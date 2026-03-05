@@ -190,7 +190,9 @@
                     size="xl"
                     >mdi-file</v-icon
                   >
-                  <span color="red">Archivo Cargado</span>
+                  <span color="red" v-if="$store.state.files.payPath"
+                    >Archivo Cargado</span
+                  >
                 </p>
                 <ArrastraYSolarComponent @idArchivoCargado="recibirId" />
               </v-col>
@@ -297,8 +299,11 @@ export default {
     };
   },
   async mounted() {
+    console.log("ssss");
     let vm = this;
-
+    vm.$store.state.files.payPath = null;
+    vm.$store.state.files.datosPath = null;
+    vm.tab = 1;
     await this.cargarProveedores();
     await this.obtenerListado();
     await this.getListBanksDetailsCargar();
@@ -494,6 +499,7 @@ export default {
           .then(function (response) {
             if (response.data.statusBol == true) {
               console.log(response.data);
+              vm.$store.state.files.payPath = null;
               vm.$swal({
                 icon: "success",
                 title: "Aviso",

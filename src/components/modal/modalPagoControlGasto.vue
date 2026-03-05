@@ -195,7 +195,9 @@
                     size="xl"
                     >mdi-file</v-icon
                   >
-                  <span color="red">Archivo Cargado</span>
+                  <span v-if="$store.state.files.payPath" color="red"
+                    >Archivo Cargado</span
+                  >
                 </p>
                 <ArrastraYSolarComponent @idArchivoCargado="recibirId" />
               </v-col>
@@ -675,6 +677,7 @@ export default {
       };
       await axios(config)
         .then(function (response) {
+          vm.$store.state.files.payPath = null;
           if (response.data.statusBol) {
             vm.$swal({
               icon: "success",

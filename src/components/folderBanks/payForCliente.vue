@@ -203,7 +203,9 @@
                 <v-icon color="red" v-if="$store.state.files.payPath" size="xl"
                   >mdi-file</v-icon
                 >
-                <span color="red">Archivo Cargado</span>
+                <span v-if="$store.state.files.payPath" color="red"
+                  >Archivo Cargado</span
+                >
               </p>
               <ArrastraYSolarComponent @idArchivoCargado="recibirId" />
             </v-col>
@@ -522,7 +524,7 @@ export default {
                   text: response.data.data[0].mensaje,
                 }).then((result) => {
                   if (result.isConfirmed) {
-                    // vm.$router.go(-1);
+                    vm.$store.state.files.payPath = null;
                   }
                 });
                 vm.limpiarDatos();

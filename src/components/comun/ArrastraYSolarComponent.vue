@@ -48,6 +48,10 @@ export default {
       file: "",
     };
   },
+  mounted() {
+    this.$store.state.files.payPath = null;
+    this.$store.state.files.datosPath = null;
+  },
   methods: {
     ...mapActions(["_uploadFile"]),
     async handleDrop(event) {
@@ -79,7 +83,7 @@ export default {
         await this._uploadFile(vm.file);
         vm.$emit("idArchivoCargado", {
           id: vm.$store.state.files.payPath,
-          archivo: vm.$store.state.files.datosPath
+          archivo: vm.$store.state.files.datosPath,
         });
       }
     },

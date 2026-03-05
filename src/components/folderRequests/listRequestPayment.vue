@@ -344,11 +344,12 @@
       fullscreen
       transition="dialog-transition"
       persistent
+      v-if="dialogPagoControlGasto"
     >
       <ModalPagoControlGastoComponent
         :limpar="true"
         @cerrarModal="onCerrarModal"
-        @cancelar="dialogPagoControlGasto=false"
+        @cancelar="dialogPagoControlGasto = false"
       />
     </v-dialog>
   </div>
@@ -573,7 +574,7 @@ export default {
         "width=1593,height=1293",
         "menubar=no",
         "location=no",
-        "resizable=no"
+        "resizable=no",
       );
     },
     cleandData() {
@@ -641,7 +642,8 @@ export default {
         method: "post",
         url: process.env.VUE_APP_URL_MAIN + "getRequestPayment",
         data: {
-          id_branch: JSON.parse(sessionStorage.getItem("dataUser"))[0].id_branch,
+          id_branch: JSON.parse(sessionStorage.getItem("dataUser"))[0]
+            .id_branch,
         },
         headers: {
           "auth-token": sessionStorage.getItem("auth-token"),
@@ -681,6 +683,7 @@ export default {
     },
     abrirPagoProveedor(id) {
       // this.idProveedor = id;
+      this.$store.state.files.payPath = null;
       this.dialogPagoControlGasto = true;
       this.$store.state.limpiar = !this.$store.state.limpiar;
     },

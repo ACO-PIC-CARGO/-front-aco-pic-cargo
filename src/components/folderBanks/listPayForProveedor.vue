@@ -560,6 +560,7 @@ export default {
       "ActualizarCXP",
     ]),
     nuevo() {
+      this.$store.state.files.payPath = null;
       this.$router.push({ name: "registroPayForProveedor" });
     },
     async editar(pago) {
@@ -1058,7 +1059,7 @@ export default {
       if (!!this.tipogastos) {
         this.tiposubgastosFilter =
           this.$store.state.balances.tiposubgastos.filter(
-            (v) => v.id_gasto == this.filtro.tipogastos
+            (v) => v.id_gasto == this.filtro.tipogastos,
           );
       } else {
         this.tiposubgastosFilter = this.$store.state.balances.tiposubgastos;
