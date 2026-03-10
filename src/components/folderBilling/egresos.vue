@@ -663,23 +663,19 @@
                   @change="validarMontoFactura"
                 ></v-text-field>
               </v-col>
-              <v-col cols="12" md="8">
-                <v-file-input
-                  v-model="payfile"
-                  @change="_uploadFiles()"
-                  show-size
-                  :label="`Adjuntar File de ${
-                    radio == 1
-                      ? 'Factura'
-                      : '' || radio == 2
-                      ? 'Performance'
-                      : 'Otro'
-                  }`"
-                  :success-messages="msgFile"
-                  :error-messages="errFile"
-                  :loading="isFileLoading"
-                >
-                </v-file-input>
+              <v-col md="12" cols="12">
+                <p>
+                  <v-icon
+                    color="red"
+                    v-if="$store.state.files.payPath"
+                    size="xl"
+                    >mdi-file</v-icon
+                  >
+                  <span v-if="$store.state.files.payPath" color="red"
+                    >Archivo Cargado</span
+                  >
+                </p>
+                <ArrastraYSolarComponent @idArchivoCargado="recibirId" />
               </v-col>
             </v-row>
           </v-container>
@@ -689,7 +685,7 @@
           <v-btn
             color="primary"
             @click="_setInvoice()"
-            :disabled="!boolFile || !monto_factura"
+            :disabled="!$store.state.files.payPath || !monto_factura"
           >
             GUARDAR
             {{
@@ -1293,6 +1289,7 @@ import moment from "moment";
 import axios from "axios";
 import Swal from "sweetalert2";
 import { mapActions } from "vuex";
+import ArrastraYSolarComponent from "../comun/ArrastraYSolarComponent.vue";
 export default {
   props: {
     statusBtn: {
@@ -1513,6 +1510,13 @@ export default {
       this.$store.state.enterprises.impuesto.mostrarimpuesto;
   },
   methods: {
+    recibirId(file) {
+      this.payPath = file.inserid;
+      this.payfile = file.archivo;
+
+      this.msgfile = "Archivo procesado y vinculado correctamente.";
+      this.errfile = "";
+    },
     abrirModalCambiarExp(item) {
       this.egreso = item;
       this.dialogCambiarExp = true;
@@ -1961,7 +1965,7 @@ export default {
             (v) => v.id_house,
           )[0].id_house,
         id_proveedor: vm.egreso.id_proveedor,
-        id_path: vm.payPath,
+        id_path: vm.$store.state.files.payPath,
         type_pago: vm.radio,
         number: vm.nro_invoice,
         date: vm.date,
@@ -2731,46 +2735,6 @@ export default {
           console.log(error);
         });
     },
-    async _uploadFiles() {
-      var vm = this;
-      vm.msgFile = "";
-      vm.errFile = "";
-      if (vm.payfile) {
-        var FormData = require("form-data");
-        var fs = require("fs");
-        var data = new FormData();
-
-        data.append("name", "Prueba");
-        data.append("file", vm.payfile);
-
-        vm.isFileLoading = true;
-
-        var config = {
-          method: "post",
-          url: process.env.VUE_APP_URL_MAIN + "uploadAllPath",
-          headers: {
-            "auth-token": sessionStorage.getItem("auth-token"),
-            "Content-Type": "application/json",
-          },
-          data: data,
-        };
-
-        await axios(config)
-          .then(function (response) {
-            vm.boolFile = true;
-            vm.payPath = JSON.stringify(response.data.data[0].insertid);
-            vm.msgFile = "Archivo Cargado.";
-
-            vm.isFileLoading = false;
-          })
-          .catch(function (error) {
-            console.log(error);
-          });
-      } else {
-        vm.boolFile = false;
-        vm.errFile = "Dato Requerido";
-      }
-    },
     openDoc(path) {
       window.open(path, "_blank");
     },
@@ -3066,6 +3030,9 @@ export default {
       }
       return codigoPago;
     },
+  },
+  components: {
+    ArrastraYSolarComponent,
   },
 };
 </script>

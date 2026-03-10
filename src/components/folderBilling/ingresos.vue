@@ -81,7 +81,7 @@
                         @click="
                           copiarMontosHouse(
                             null,
-                            bloquearCopiarMontos(house.ingresos)
+                            bloquearCopiarMontos(house.ingresos),
                           )
                         "
                       >
@@ -99,7 +99,7 @@
                     @click="
                       copiarMontosHouse(
                         house,
-                        bloquearCopiarMontos(house.ingresos)
+                        bloquearCopiarMontos(house.ingresos),
                       )
                     "
                   >
@@ -133,6 +133,7 @@
                     dark
                     class="mb-1"
                     @click.stop="abrirModalCambiarExpediente(house)"
+                    :loading="flagCambiarExpediente"
                   >
                     Cambiar expediente
                   </v-btn>
@@ -554,7 +555,7 @@
                   <v-select
                     :items="
                       ($store.state.bancos.cuentas || []).filter(
-                        (v) => v.symbol == sufmoneda
+                        (v) => v.symbol == sufmoneda,
                       )
                     "
                     v-model="id_cuenta_pic"
@@ -575,18 +576,19 @@
                     :rules="[(v) => !!v || 'Dato Requerido']"
                   ></v-textarea>
                 </v-col>
-                <v-col cols="12" md="3">
-                  <v-file-input
-                    v-model="payfile"
-                    show-size
-                    @change="uploadFile()"
-                    :success-messages="msgfile"
-                    :error-messages="errfile"
-                    :loading="loadingFile"
-                    :rules="[(v) => !!v || 'Dato Requerido']"
-                    label="Cargar Archivo"
-                  >
-                  </v-file-input>
+                <v-col md="12" cols="12">
+                  <p>
+                    <v-icon
+                      color="red"
+                      v-if="$store.state.files.payPath"
+                      size="xl"
+                      >mdi-file</v-icon
+                    >
+                    <span v-if="$store.state.files.payPath" color="red"
+                      >Archivo Cargado</span
+                    >
+                  </p>
+                  <ArrastraYSolarComponent @idArchivoCargado="recibirId" />
                 </v-col>
               </v-row>
             </v-form>
@@ -669,7 +671,7 @@
                   <v-select
                     :items="
                       ($store.state.bancos.cuentas || []).filter(
-                        (v) => v.symbol == sufmoneda
+                        (v) => v.symbol == sufmoneda,
                       )
                     "
                     v-model="id_cuenta_pic"
@@ -710,26 +712,19 @@
                     :rules="[(v) => !!v || 'Dato Requerido']"
                   ></v-textarea>
                 </v-col>
-                <v-col cols="12" md="9">
-                  <v-file-input
-                    v-if="!boolFile"
-                    v-model="payfile"
-                    show-size
-                    label="Adjuntar Pago"
-                  >
-                  </v-file-input>
-
-                  <v-chip
-                    block
-                    v-if="boolFile"
-                    large
-                    class=""
-                    color="success"
-                    outlined
-                  >
-                    <v-icon left> mdi-check </v-icon>
-                    Archivo cargado éxitosamente
-                  </v-chip>
+                <v-col md="12" cols="12">
+                  <p>
+                    <v-icon
+                      color="red"
+                      v-if="$store.state.files.payPath"
+                      size="xl"
+                      >mdi-file</v-icon
+                    >
+                    <span v-if="$store.state.files.payPath" color="red"
+                      >Archivo Cargado</span
+                    >
+                  </p>
+                  <ArrastraYSolarComponent @idArchivoCargado="recibirId" />
                 </v-col>
                 <v-col cols="3">
                   <v-btn
@@ -961,23 +956,19 @@
                   }`"
                 ></v-text-field>
               </v-col>
-              <v-col cols="12" md="8">
-                <v-file-input
-                  v-model="proformaFiscal.archivo"
-                  @change="uploadFileProformaFiscal"
-                  show-size
-                  :label="`Adjuntar File de ${
-                    proformaFiscal.tipo_pago == 1
-                      ? 'Factura'
-                      : '' || proformaFiscal.tipo_pago == 2
-                      ? 'Performance'
-                      : 'Otro'
-                  }`"
-                  :success-messages="msgfile"
-                  :error-messages="errfile"
-                  :loading="loadingFile"
-                >
-                </v-file-input>
+              <v-col md="12" cols="12">
+                <p>
+                  <v-icon
+                    color="red"
+                    v-if="$store.state.files.payPath"
+                    size="xl"
+                    >mdi-file</v-icon
+                  >
+                  <span v-if="$store.state.files.payPath" color="red"
+                    >Archivo Cargado</span
+                  >
+                </p>
+                <ArrastraYSolarComponent @idArchivoCargado="recibirId" />
               </v-col>
             </v-row>
           </v-container>
@@ -986,9 +977,9 @@
           <v-btn
             color="primary"
             @click="registrarProformaFiscal()"
-            :disabled="!boolFile"
+            :disabled="!$store.state.files.payPath"
           >
-            GUARDAR
+            GUARDAR 
             {{
               proformaFiscal.tipo_pago == 1
                 ? "Factura"
@@ -1091,7 +1082,10 @@
           <v-btn outlined color="red" @click="dialogCambiarExpediente = false"
             >Cancelar</v-btn
           >
-          <v-btn color="primary" :disabled="!selectedNuevoExpediente" @click="aplicarCambioExpediente"
+          <v-btn
+            color="primary"
+            :disabled="!selectedNuevoExpediente"
+            @click="aplicarCambioExpediente"
             >Guardar</v-btn
           >
         </v-card-actions>
@@ -1105,6 +1099,7 @@ import moment from "moment";
 import axios from "axios";
 import Swal from "sweetalert2";
 import { mapActions } from "vuex";
+import ArrastraYSolarComponent from "../comun/ArrastraYSolarComponent.vue";
 import swal from "sweetalert2";
 export default {
   props: {
@@ -1132,6 +1127,7 @@ export default {
 
   data() {
     return {
+      flagCambiarExpediente: false,
       stepProforma: 1,
       errorCoin: "",
       dialogFacturaEmitidas: false,
@@ -1272,14 +1268,20 @@ export default {
     }, 2000);
   },
   methods: {
+    recibirId(file) {
+      this.payPath = file.inserid;
+      this.payfile = file.archivo;
+
+      this.msgfile = "Archivo procesado y vinculado correctamente.";
+      this.errfile = "";
+    },
     async eliminarHouseIngreso(house) {
       let vm = this;
 
       Swal.fire({
         icon: "question",
         title: "ADVERTENCIA",
-        text:
-          "¿Está seguro que desea eliminar todo el registro de ingresos de este expediente (house)?",
+        text: "¿Está seguro que desea eliminar todo el registro de ingresos de este expediente (house)?",
         showDenyButton: true,
         confirmButtonText: "Si",
         denyButtonText: "No",
@@ -1441,7 +1443,7 @@ export default {
     },
     calcularMontoDolar() {
       this.monto = parseFloat(
-        (this.monto_abonado ? this.monto_abonado : 0) / this.tipocambio
+        (this.monto_abonado ? this.monto_abonado : 0) / this.tipocambio,
       ).toFixed(2);
     },
     async _setDebsClient() {
@@ -1543,12 +1545,12 @@ export default {
         this.ingresos.igvop = parseFloat(
           (this.ingresos.montoop *
             this.$store.state.enterprises.impuesto.impuesto) /
-            100
+            100,
         ).toFixed(2);
         this.ingresos.igvpr = parseFloat(
           (this.ingresos.montopr *
             this.$store.state.enterprises.impuesto.impuesto) /
-            100
+            100,
         ).toFixed(2);
         this.ingresos.totalop =
           parseFloat(this.ingresos.montoop) + parseFloat(this.ingresos.igvop);
@@ -1683,7 +1685,7 @@ export default {
           id_banks: vm.id_banks,
           monto: vm.monto,
           comentario_usuario: vm.comentario,
-          id_path: vm.payPath,
+          id_path: vm.$store.state.files.payPath,
           id_cuenta_pic: vm.id_cuenta_pic,
           tipocambio: vm.tipocambio,
           id_moneda_destino: vm.id_coins,
@@ -1778,7 +1780,7 @@ export default {
 
       vm.datosFactura.total = parseFloat(total).toFixed(2);
       vm.datosFactura.url_logo = JSON.parse(
-        sessionStorage.getItem("dataUser")
+        sessionStorage.getItem("dataUser"),
       )[0].path;
       vm.datosFactura.total_igv = parseFloat(total_igv).toFixed(2);
       vm.datosFactura.total_monto = parseFloat(total_monto).toFixed(2);
@@ -1879,7 +1881,7 @@ export default {
         tipo_pago: "1",
         nro_factura: "",
         fecha: moment().format("YYYY-MM-DD"),
-        archivo: null,
+        archivo: vm.$store.state.files.payPath,
         status: 1,
         id_house: vm.house.id_house,
       };
@@ -1931,7 +1933,6 @@ export default {
       };
 
       await axios(config).then(async function (response) {
-        
         sessionStorage.setItem("auth-token", response.data.token);
 
         if (response.data.estadoflag) {
@@ -1978,7 +1979,6 @@ export default {
 
       await axios(config)
         .then(function (response) {
-          
           sessionStorage.setItem("auth-token", response.data.token);
 
           if (!!response.data.data[0].estadoflag) {
@@ -2005,7 +2005,6 @@ export default {
 
       await axios(config)
         .then(async function (response) {
-          
           sessionStorage.setItem("auth-token", response.data.token);
 
           if (response.data.estadoflag) {
@@ -2070,6 +2069,7 @@ export default {
     async abrirModalCambiarExpediente(house = {}) {
       this.house = house;
       // Cargar lista de masters y poblar el combo con sus códigos
+      this.flagCambiarExpediente = true;
       await this._getMasterList();
       const masters = (this.$store.state.itemsMasterList || []).slice();
       this.listaExpedientes = masters.map((v) => ({
@@ -2078,14 +2078,22 @@ export default {
       }));
       this.selectedNuevoExpediente = Number(this.$route.params.id) || null;
       this.dialogCambiarExpediente = true;
+      this.flagCambiarExpediente = false;
     },
     async aplicarCambioExpediente() {
       if (!this.house || !this.selectedNuevoExpediente) return;
-      if (Number(this.selectedNuevoExpediente) === Number(this.$route.params.id)) {
+      if (
+        Number(this.selectedNuevoExpediente) === Number(this.$route.params.id)
+      ) {
         this.dialogCambiarExpediente = false;
         return;
       }
-      const targetLabel = (this.listaExpedientes.find((x) => x.value === this.selectedNuevoExpediente) || {}).text || this.selectedNuevoExpediente;
+      const targetLabel =
+        (
+          this.listaExpedientes.find(
+            (x) => x.value === this.selectedNuevoExpediente,
+          ) || {}
+        ).text || this.selectedNuevoExpediente;
       const res = await Swal.fire({
         icon: "question",
         title: "Confirmar cambio",
@@ -2116,7 +2124,9 @@ export default {
         if (response && response.data && response.data.estadoflag) {
           await Swal.fire({ icon: "success", text: "Expediente actualizado" });
           this.dialogCambiarExpediente = false;
+          this.flagCambiarExpediente = true;
           await this.getListControlGastos(this.$route.params.id);
+          this.flagCambiarExpediente = false;
         } else {
           await Swal.fire({
             icon: "warning",
@@ -2129,8 +2139,7 @@ export default {
         console.error(error);
         await Swal.fire({
           icon: "info",
-          text:
-            "Endpoint para reasignar house a otro master no disponible. Front listo; requerirá habilitar API (PUT reasignar_house).",
+          text: "Endpoint para reasignar house a otro master no disponible. Front listo; requerirá habilitar API (PUT reasignar_house).",
         });
       }
     },
@@ -2199,7 +2208,7 @@ export default {
         await Swal.fire(
           "¡Anulada!",
           "Factura anulada correctamente.",
-          "success"
+          "success",
         );
         this.$emit("recargarDatos");
       } catch (error) {
@@ -2207,7 +2216,7 @@ export default {
         Swal.fire(
           "Error",
           "Ocurrió un problema al anular la factura.",
-          "error"
+          "error",
         );
       }
     },
@@ -2232,6 +2241,9 @@ export default {
     },
   },
   computed: {},
+  components: {
+    ArrastraYSolarComponent,
+  },
 };
 </script>
 

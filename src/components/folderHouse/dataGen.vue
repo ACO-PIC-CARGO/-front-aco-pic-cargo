@@ -543,6 +543,12 @@ export default {
     },
     guardar() {
       this._setHouseEdit();
+      this.router.push({
+        name: "controlHouseVer",
+        params: {
+          id: this.$route.params.id,
+        },
+      });
       this.dialogCliente = false;
     },
     async _setHouseEdit() {
@@ -867,6 +873,8 @@ export default {
           !!this.$route.params.activar
         ) {
           vm.dialogCliente = true;
+        } else {
+          this.dialogCliente = false;
         }
       }
       // if (vm.$route.params.id) {
