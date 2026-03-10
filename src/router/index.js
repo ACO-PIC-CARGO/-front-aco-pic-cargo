@@ -243,6 +243,11 @@ const routes = [
         component: () => import("../views/folderBilling/frmControlGastos.vue"),
       },
       {
+        path: "folderBilling/verControlGastos/view/:id/:id_branch",
+        name: "verControlGasto",
+        component: () => import("../views/folderBilling/frmControlGastosVer.vue"),
+      },
+      {
         path: "folderRequest/controlRequest",
         name: "controlRequest",
         component: ControlRequest,

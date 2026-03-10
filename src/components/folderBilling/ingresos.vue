@@ -31,11 +31,11 @@
                   Total Operaciones
                 </th>
                 <th width="12%" style="background: #fff9c4">Total Deuda</th>
-                <th width="6%">Acción</th>
-                <th width="6%">Abonos</th>
-                <th width="8%">Más acciones</th>
+                <th v-if="editable" width="6%">Acción</th>
+                <th v-if="editable" width="6%">Abonos</th>
+                <th v-if="editable" width="8%">Más acciones</th>
                 <th>Ver Proformas</th>
-                <th width="8%">Facturas y Proformas</th>
+                <th v-if="editable" width="8%">Facturas y Proformas</th>
               </tr>
             </thead>
             <tbody>
@@ -46,7 +46,7 @@
                 <td>{{ house.total_total_pr_ingresos }}</td>
                 <td>{{ house.total_total_op_ingresos }}</td>
                 <td>{{ getDeudaActual(house) }}</td>
-                <td>
+                <td v-if="editable">
                   <v-btn
                     v-if="house.id_orders"
                     @click.stop="handleNuevoIngreso(index, house)"
@@ -106,7 +106,7 @@
                     Copiar Montos Pr->Op
                   </v-btn>
                 </td>
-                <td>
+                <td v-if="editable">
                   <v-btn
                     v-if="house.id_orders"
                     :color="house.debscliente.length > 0 ? 'green' : 'red'"
@@ -125,7 +125,7 @@
                     CARGAR ABONOS
                   </v-btn>
                 </td>
-                <td>
+                <td v-if="editable">
                   <v-btn
                     v-if="house.id_orders"
                     color="indigo"
@@ -152,7 +152,7 @@
                     >mdi-eye</v-icon
                   >
                 </td>
-                <td>
+                <td v-if="editable">
                   <v-btn
                     color="primary"
                     small
@@ -201,7 +201,7 @@
                 </th>
                 <th style="background: #ffd6d6" class="text-left">Total Op</th>
                 <th class="text-center">Facturado</th>
-                <th class="text-left">Acciones</th>
+                <th v-if="editable" class="text-left">Acciones</th>
               </tr>
             </thead>
             <tbody>
@@ -244,7 +244,7 @@
                     {{ item.nro_factura }}
                   </span>
                 </td>
-                <td>
+                <td v-if="editable">
                   <v-icon
                     color="info"
                     @click.native="activarFactura(item)"
@@ -979,7 +979,7 @@
             @click="registrarProformaFiscal()"
             :disabled="!$store.state.files.payPath"
           >
-            GUARDAR 
+            GUARDAR
             {{
               proformaFiscal.tipo_pago == 1
                 ? "Factura"
@@ -1122,6 +1122,10 @@ export default {
     ingreso_op: {
       default: 0,
       type: Number,
+    },
+    editable: {
+      type: Boolean,
+      default: true,
     },
   },
 

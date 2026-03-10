@@ -33,13 +33,19 @@
                   Total Operaciones
                 </th>
                 <th width="12%" style="background: #fff9c4">Deuda Actual</th>
-                <th width="12%"></th>
-                <th width="12%" class="text-left">Facturas o Proformance</th>
-                <th width="12%" class="text-left">Generar PDF de pago</th>
-                <th width="12%" class="text-left">
+                <th v-if="editable" width="12%"></th>
+                <th v-if="editable" width="12%" class="text-left">
+                  Facturas o Proformance
+                </th>
+                <th v-if="editable" width="12%" class="text-left">
+                  Generar PDF de pago
+                </th>
+                <th v-if="editable" width="12%" class="text-left">
                   Solicitar a Administración
                 </th>
-                <th width="12%" class="text-left">Más Acciones</th>
+                <th v-if="editable" width="12%" class="text-left">
+                  Más Acciones
+                </th>
                 <!-- <th width="10%">Acciones</th> -->
                 <!-- <th width="10%">Acciones</th> -->
               </tr>
@@ -60,7 +66,7 @@
                 <td>{{ egreso.total_total_pr }}</td>
                 <td>{{ egreso.total_total_op }}</td>
                 <td>{{ getDeudaActual(egreso) }}</td>
-                <td>
+                <td v-if="editable">
                   <v-tooltip
                     bottom
                     color="error"
@@ -100,7 +106,7 @@
                     Copiar Montos Pr->Op
                   </v-btn>
                 </td>
-                <td>
+                <td v-if="editable">
                   <v-btn
                     icon
                     small
@@ -112,7 +118,7 @@
                     <v-icon>mdi-file-compare</v-icon>
                   </v-btn>
                 </td>
-                <td>
+                <td v-if="editable">
                   <v-btn
                     small
                     color="white"
@@ -124,7 +130,7 @@
                   </v-btn>
                 </td>
 
-                <td>
+                <td v-if="editable">
                   <v-btn
                     small
                     :color="egreso.solicitudes > 0 ? 'blue' : 'grey'"
@@ -136,7 +142,7 @@
                     <v-icon :color="'blue'">mdi-email-send</v-icon>
                   </v-btn>
                 </td>
-                <td>
+                <td v-if="editable">
                   <v-btn
                     color="success"
                     small
@@ -192,7 +198,7 @@
                 <th class="text-center">Enviado a Admin.</th>
                 <th width="10%" class="text-center">Fecha Pago.</th>
                 <th class="text-center">Status</th>
-                <th class="text-left">Acciones</th>
+                <th v-if="editable" class="text-left">Acciones</th>
               </tr>
             </thead>
             <tbody>
@@ -297,7 +303,7 @@
                       Pagado
                     </v-chip>
                   </td>
-                  <td>
+                  <td v-if="editable">
                     <v-icon
                       class="btn__add mr-2"
                       dense
@@ -1311,6 +1317,10 @@ export default {
     egreso_op: {
       type: Number,
       default: 0,
+    },
+    editable: {
+      type: Boolean,
+      default: true,
     },
   },
   data: () => {

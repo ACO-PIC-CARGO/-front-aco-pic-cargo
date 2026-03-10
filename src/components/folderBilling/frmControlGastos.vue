@@ -203,6 +203,7 @@
           :ingreso_pr="ingreso_pr"
           :ingreso_op="ingreso_op"
           v-on:recalcularProfit="calcularProfit()"
+          :editable="editable"
         />
       </v-col>
       <!-- EGRESOS -->
@@ -215,7 +216,8 @@
           :egreso_op="egreso_op"
           v-on:recalcularProfit="calcularProfit()"
           @statusBtn="statusBtn = $event"
-           @recargarDatos="recargarDatos()"
+          @recargarDatos="recargarDatos()"
+          :editable="editable"
         />
       </v-col>
     </v-row>
@@ -227,6 +229,12 @@ import moment from "moment";
 import axios from "axios";
 import Swal from "sweetalert2";
 export default {
+  props: {
+    editable: {
+      type: Boolean,
+      default: true,
+    },
+  },
   components: {
     Ingresos: () => import("./ingresos.vue"),
     Egresos: () => import("./egresos.vue"),

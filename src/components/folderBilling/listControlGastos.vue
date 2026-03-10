@@ -48,7 +48,7 @@
             large
             color="blue"
             class="mr-2"
-            @click="editControlGasto(item)"
+            @click="verControlGasto(item)"
           >
             mdi-eye
           </v-icon>
@@ -93,6 +93,7 @@
 import { mapState, mapActions } from "vuex";
 import modalListHouse from "@/components/modal/modalListFile";
 import GuardarUrlMaster from "../comun/GuardarUrlMaster.vue";
+import Swal from "sweetalert2";
 export default {
   name: "listMasterCom",
   components: {
@@ -152,8 +153,29 @@ export default {
       // window.open(url, "_blank");
     },
     editControlGasto(master) {
+      if (
+        !(
+          master.id_branch ==
+          JSON.parse(sessionStorage.getItem("dataUser"))[0].id_branch
+        )
+      ) {
+        Swal.fire({
+          icon: "error",
+          text: "El expediente pertenece a otra sucursal, por favor logueese con la otra sucursal.",
+        });
+        return;
+      }
       this.$router.push({
         name: "editControlGasto",
+        params: {
+          id: master.id,
+          id_branch: master.id_branch,
+        },
+      });
+    },
+    verControlGasto(master) {
+      this.$router.push({
+        name: "verControlGasto",
         params: {
           id: master.id,
           id_branch: master.id_branch,
