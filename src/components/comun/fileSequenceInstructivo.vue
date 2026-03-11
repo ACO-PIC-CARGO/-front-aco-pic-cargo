@@ -572,7 +572,7 @@
           Generar Instructivo
         </v-btn>
         <v-btn
-          class="mx-auto mx-1"
+          class="mx-2"
           color="info"
           @click="generarHTML"
           v-if="$store.state.pricing.aprobadoflag"

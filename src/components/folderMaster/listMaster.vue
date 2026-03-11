@@ -557,8 +557,14 @@
           ></v-text-field>
         </v-card-text>
         <v-card-actions class="justify-end">
-          <v-btn small color="success" @click="guardarFechas">Guardar</v-btn>
-          <v-btn small color="error" @click="dialogFecha = false"
+          <v-btn small color="success" :loading="loading" @click="guardarFechas"
+            >Guardar</v-btn
+          >
+          <v-btn
+            small
+            color="error"
+            :loading="loading"
+            @click="dialogFecha = false"
             >Cancelar</v-btn
           >
         </v-card-actions>
@@ -582,13 +588,13 @@ export default {
   name: "listMasterCom",
   data() {
     return {
+      loading: false,
       dialogUrl: false,
       url_folderonedrive: "",
       masterEditar: {},
       exp: {},
       dialogFecha: false,
       dialogEscogerCotizacion: false,
-      loading: false,
       id_vendedor: JSON.parse(sessionStorage.getItem("dataUser"))
         ? JSON.parse(sessionStorage.getItem("dataUser"))[0].id
         : "",
@@ -674,8 +680,12 @@ export default {
 
       this.exp = {
         ...item,
-        fecha_eta: moment(item.fecha_eta, "DD-MM-YYYY").format("YYYY-MM-DD"),
-        fecha_etd: moment(item.fecha_etd, "DD-MM-YYYY").format("YYYY-MM-DD"),
+        fecha_eta: item.fecha_eta
+          ? moment(item.fecha_eta, "DD-MM-YYYY").format("YYYY-MM-DD")
+          : null,
+        fecha_etd: item.fecha_etd
+          ? moment(item.fecha_etd, "DD-MM-YYYY").format("YYYY-MM-DD")
+          : null,
       };
       this.dialogFecha = true;
     },
@@ -691,6 +701,7 @@ export default {
       }, 1000);
     },
     async guardarFechas() {
+      this.loading = true;
       try {
         const response = await axios.put(
           process.env.VUE_APP_URL_MAIN + "updateFechasMaster",
@@ -721,6 +732,8 @@ export default {
 
         // Ahora 'this' funcionará correctamente
         await this._getMasterList();
+        this.dialogFecha = false;
+        this.loading = false;
       } catch (error) {
         console.error("Error al guardar fechas:", error);
       } finally {
