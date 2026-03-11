@@ -38,6 +38,20 @@ const actions = {
         console.log(error);
       });
   },
+
+  async uploadFileFromUrlToOneDrive({ commit }, data) {
+    var config = {
+      method: "post",
+      url: process.env.VUE_APP_URL_MAIN + "mover_files_servidor_onedrive",
+      headers: {
+        "Content-Type": "application/json",
+        "auth-token": sessionStorage.getItem("auth-token"),
+      },
+      data: data,
+    };
+
+    await axios(config).then((response) => {});
+  },
 };
 export default {
   namespace: true,

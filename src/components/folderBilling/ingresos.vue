@@ -577,17 +577,6 @@
                   ></v-textarea>
                 </v-col>
                 <v-col md="12" cols="12">
-                  <p>
-                    <v-icon
-                      color="red"
-                      v-if="$store.state.files.payPath"
-                      size="xl"
-                      >mdi-file</v-icon
-                    >
-                    <span v-if="$store.state.files.payPath" color="red"
-                      >Archivo Cargado</span
-                    >
-                  </p>
                   <ArrastraYSolarComponent @idArchivoCargado="recibirId" />
                 </v-col>
               </v-row>
@@ -713,17 +702,6 @@
                   ></v-textarea>
                 </v-col>
                 <v-col md="12" cols="12">
-                  <p>
-                    <v-icon
-                      color="red"
-                      v-if="$store.state.files.payPath"
-                      size="xl"
-                      >mdi-file</v-icon
-                    >
-                    <span v-if="$store.state.files.payPath" color="red"
-                      >Archivo Cargado</span
-                    >
-                  </p>
                   <ArrastraYSolarComponent @idArchivoCargado="recibirId" />
                 </v-col>
                 <v-col cols="3">
@@ -957,17 +935,6 @@
                 ></v-text-field>
               </v-col>
               <v-col md="12" cols="12">
-                <p>
-                  <v-icon
-                    color="red"
-                    v-if="$store.state.files.payPath"
-                    size="xl"
-                    >mdi-file</v-icon
-                  >
-                  <span v-if="$store.state.files.payPath" color="red"
-                    >Archivo Cargado</span
-                  >
-                </p>
                 <ArrastraYSolarComponent @idArchivoCargado="recibirId" />
               </v-col>
             </v-row>

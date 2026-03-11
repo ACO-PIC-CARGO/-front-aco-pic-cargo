@@ -199,14 +199,6 @@
               ></v-select>
             </v-col>
             <v-col md="12" cols="12">
-              <p>
-                <v-icon color="red" v-if="$store.state.files.payPath" size="xl"
-                  >mdi-file</v-icon
-                >
-                <span v-if="$store.state.files.payPath" color="red"
-                  >Archivo Cargado</span
-                >
-              </p>
               <ArrastraYSolarComponent @idArchivoCargado="recibirId" />
             </v-col>
             <v-col md="12" cols="12" v-if="tipo == 'nuevo'">
