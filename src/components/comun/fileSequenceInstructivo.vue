@@ -85,13 +85,13 @@
 
           <v-stepper-content step="3">
             <v-row>
-              <v-col cols="12">
+              <!-- <v-col cols="12">
                 <v-checkbox
                   @change="checkNoAplica(3)"
                   label="No Aplica"
                   v-model="datosManualesNoAplica.listDiaFecha"
                 ></v-checkbox>
-              </v-col>
+              </v-col> -->
               <v-col cols="12">
                 <v-textarea
                   rows="1"
@@ -120,13 +120,13 @@
 
           <v-stepper-content step="4">
             <v-row>
-              <v-col cols="12">
+              <!-- <v-col cols="12">
                 <v-checkbox
                   @change="checkNoAplica(4)"
                   label="No Aplica"
                   v-model="datosManualesNoAplica.grupoWhatsapp"
                 ></v-checkbox>
-              </v-col>
+              </v-col> -->
               <v-col cols="12">
                 <v-textarea
                   rows="1"
@@ -459,11 +459,11 @@
           <v-stepper-content step="13">
             <v-row>
               <v-col cols="12">
-                <v-checkbox
+                <!-- <v-checkbox
                   @change="checkNoAplica(13)"
                   label="No Aplica"
                   v-model="datosManualesNoAplica.seguro"
-                ></v-checkbox>
+                ></v-checkbox> -->
                 <v-text-field
                   placeholder="Si/No"
                   v-model="datosManuales.seguro"
