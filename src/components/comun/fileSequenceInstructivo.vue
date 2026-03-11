@@ -1,7 +1,6 @@
 <template>
   <v-container>
     <v-card>
-      <v-card-title> Datos Manuales Instructivo </v-card-title>
       <v-card-text>
         <v-stepper v-model="e6" vertical non-linear>
           <v-stepper-step :complete="e6 > 1" step="1">
@@ -11,11 +10,11 @@
           <v-stepper-content step="1">
             <v-row>
               <v-col cols="12">
-                <v-checkbox
+                <!-- <v-checkbox
                   @change="checkNoAplica(1)"
                   label="No Aplica"
                   v-model="datosManualesNoAplica.servicio"
-                ></v-checkbox>
+                ></v-checkbox> -->
                 <v-text-field
                   placeholder="Individual/ Grupal"
                   v-model="datosManuales.servicio"
@@ -39,11 +38,11 @@
           <v-stepper-content step="2">
             <v-row>
               <v-col cols="12">
-                <v-checkbox
+                <!-- <v-checkbox
                   @change="checkNoAplica(2)"
                   label="No Aplica"
                   v-model="datosManualesNoAplica.email"
-                ></v-checkbox>
+                ></v-checkbox> -->
               </v-col>
               <v-col cols="12">
                 <p class="red--text">
@@ -230,7 +229,11 @@
 
               <v-col cols="12">
                 <v-spacer></v-spacer>
-                <v-btn color="primary" class="mx-1" @click="continuar">
+                <v-btn
+                  color="primary"
+                  class="mx-1"
+                  @click="continuarPagarProveedor"
+                >
                   Continue
                 </v-btn>
                 <v-btn color="error" class="mx-1" @click="regresar()">
@@ -550,19 +553,42 @@
             </v-row>
           </v-stepper-content>
         </v-stepper>
-        <div class="my-5" v-if="e6 > 15">
-          <v-btn class="mx-2" color="success" @click="generarHTML">
-            Enviar Instructivo
-          </v-btn>
-          <v-btn class="mx-auto mx-1" color="info" @click="generarHTML">
-            Generar PDF Instructivo
-          </v-btn>
-          <v-btn class="mx-2" color="warning" @click="generarHTML">
-            Guardar Pdf Instructivo
-          </v-btn>
-          <v-btn color="error" class="mx-1" @click="regresar()"> VOLVER </v-btn>
-        </div>
       </v-card-text>
+      <v-card-actions v-if="e6 > 15">
+        <v-btn
+          class="mx-2"
+          color="success"
+          @click="setDatosInstructivo"
+          v-if="!$store.state.pricing.aprobadoflag"
+        >
+          Guardar Datos Manuales
+        </v-btn>
+        <v-btn
+          class="mx-2"
+          color="success"
+          @click="generarHTML"
+          v-if="$store.state.pricing.aprobadoflag"
+        >
+          Generar Instructivo
+        </v-btn>
+        <v-btn
+          class="mx-auto mx-1"
+          color="info"
+          @click="generarHTML"
+          v-if="$store.state.pricing.aprobadoflag"
+        >
+          Generar PDF Instructivo
+        </v-btn>
+        <v-btn
+          class="mx-2"
+          color="warning"
+          @click="generarHTML"
+          v-if="$store.state.pricing.aprobadoflag"
+        >
+          Guardar Pdf Instructivo
+        </v-btn>
+        <v-btn color="error" class="mx-1" @click="regresar()"> VOLVER </v-btn>
+      </v-card-actions>
     </v-card>
   </v-container>
 </template>
@@ -610,13 +636,21 @@ export default {
     };
   },
   methods: {
-    ...mapActions(["uploadFileFromUrlToOneDrive"]),
+    ...mapActions(["uploadFileFromUrlToOneDrive", "guardarDatosInstructivo"]),
     continuarEmail() {
       if (!this.datosManuales.servicio) {
         this.$refs.txtServicio.focus();
         return;
       }
       this.e6 = 2;
+    },
+
+    setDatosInstructivo() {
+      this.guardarDatosInstructivo({
+        id: this.$route.params.id,
+        datosInstructivoManual: this.datosManuales,
+      });
+      this.$emit("continuar");
     },
     continuarListaDiaFecha() {
       if (!this.datosManuales.email) {
@@ -630,6 +664,13 @@ export default {
       //   return;
       // }
       this.e6 = 3;
+    },
+    continuarPagarProveedor() {
+      if (this.datosManualesNoAplica.pagarProveedor) {
+        this.e6 = 11;
+        return;
+      }
+      this.continuar();
     },
     continuar() {
       this.e6++;
@@ -705,7 +746,7 @@ export default {
       let Proveedor = this.$store.state.itemsProveedorList.find(
         (v) => v.id == this.$store.state.pricing.datosPrincipales.id_proveedor,
       );
-
+      console.log("dataCliente", this.$store.state.pricing.dataCliente);
       let hmtl1 = `
         <table border="0" cellspacing="0" cellpadding="0" style="border-collapse:collapse">
           <tbody>
@@ -791,7 +832,7 @@ export default {
                   } M3<br>
                   TIPO DE MERCANCIA: ${
                     this.$store.state.pricing.datosPrincipales
-                      .descripcionMercancia || ""
+                      .descripcioncarga || ""
                   }
                 </p>
               </td>
@@ -804,11 +845,11 @@ export default {
               <td width="681" valign="top" style="width:510.5pt; border-top:none; border-left:none; border-bottom:solid windowtext 1.0pt; border-right:solid windowtext 1.0pt; padding:0cm 5.4pt 0cm 5.4pt">
                 <p class="MsoNormal">
                   NOMBRE: ${Proveedor.namelong}<br>
-                  CONTACTO: ${Proveedor.contacto}<br>
-                  EMAIL: <a href="mailto:${Proveedor.emailaddress}">${
-        Proveedor.emailaddress
+                  CONTACTO: ${Proveedor.contacto || ""}<br>
+                  EMAIL: <a href="mailto:${Proveedor.emailaddress || ""}">${
+        Proveedor.emailaddress || ""
       }</a><br>
-                  TELEFONO: ${Proveedor.contacto_phone}
+                  TELEFONO: ${Proveedor.contacto_phone || ""}
                 </p>
               </td>
             </tr>
@@ -820,16 +861,27 @@ export default {
               <td width="681" valign="top" style="width:510.5pt; border-top:none; border-left:none; border-bottom:solid windowtext 1.0pt; border-right:solid windowtext 1.0pt; padding:0cm 5.4pt 0cm 5.4pt">
                 <p class="MsoNormal">
                   ${
-                    this.$store.state.pricing.dataCliente.business_name ||
-                    "Sin nombre"
+                    this.$store.state.pricing.dataCliente.nombrecompleto
+                      ? this.$store.state.pricing.dataCliente.nombrecompleto
+                      : ""
                   }<br>
                   RUC: ${
-                    this.$store.state.pricing.dataCliente.document || ""
-                  }<br>
+                    this.$store.state.pricing.dataCliente.document
+                      ? this.$store.state.pricing.dataCliente.document
+                      : ""
+                  }
+                  <br>
                   DIRECCION: ${
-                    this.$store.state.pricing.dataCliente.address || ""
-                  }<br>
-                  GMAIL: ${this.$store.state.pricing.emailaddress || ""}
+                    this.$store.state.pricing.dataCliente.address
+                      ? this.$store.state.pricing.dataCliente.address
+                      : ""
+                  }
+                  <br>
+                  GMAIL: ${
+                    this.$store.state.pricing.emailaddress
+                      ? this.$store.state.pricing.emailaddress
+                      : ""
+                  }
                 </p>
               </td>
             </tr>
@@ -1003,7 +1055,7 @@ export default {
             this.GenerartSegundoCorreo();
           }
         });
-      }, 1000);
+      }, 3000);
     },
     async GenerartSegundoCorreo() {
       let asesor = this.$store.state.pricing.listEjecutivo.find(
@@ -1054,7 +1106,10 @@ export default {
                     } M3 <br/>
                     <strong>TIPO DE MERCANCIA:</strong> ${
                       this.$store.state.pricing.datosPrincipales
-                        .descripcionMercancia || ""
+                        .descripcioncarga
+                        ? this.$store.state.pricing.datosPrincipales
+                            .descripcioncarga
+                        : ""
                     }
                   </td>
                 </tr>
@@ -1161,6 +1216,11 @@ export default {
           : "";
       }
     },
+  },
+  mounted() {
+    if (this.$store.state.pricing.datosPrincipales.datosinstructivomanual)
+      this.datosManuales =
+        this.$store.state.pricing.datosPrincipales.datosinstructivomanual;
   },
   watch: {
     files() {

@@ -670,7 +670,13 @@ export default {
       });
     },
     editFechas(item) {
-      this.exp = { ...item };
+      console.log(item);
+
+      this.exp = {
+        ...item,
+        fecha_eta: moment(item.fecha_eta, "DD-MM-YYYY").format("YYYY-MM-DD"),
+        fecha_etd: moment(item.fecha_etd, "DD-MM-YYYY").format("YYYY-MM-DD"),
+      };
       this.dialogFecha = true;
     },
     async actualizarUrl() {

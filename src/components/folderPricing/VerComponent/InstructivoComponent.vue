@@ -146,6 +146,17 @@
       >
         <v-icon color="white">mdi-printer-outline</v-icon>
       </v-btn>
+
+      <v-btn
+        class="mx-1"
+        color="#01579B"
+        elevation="2"
+        small
+        dark
+        @click="dialogSequenceInstructivo = true"
+      >
+        <v-icon>mdi-email-outline</v-icon> Instructivo
+      </v-btn>
       <v-btn
         class="mx-1"
         color="#004D40"
@@ -643,10 +654,30 @@
     <v-dialog
       v-model="dialogSequenceInstructivo"
       max-width="70%"
+      persistent
       scrollable
       v-if="dialogSequenceInstructivo"
     >
-      <fileSequenceInstructivo @continuar="abrirModalAprobar" />
+      <v-row>
+        <v-card>
+          <v-col cols="12" class="my-0 py-0">
+            <v-card-title>
+              Datos Manuales Instructivo
+              <v-spacer></v-spacer>
+              <v-btn
+                @click="dialogSequenceInstructivo = false"
+                icon
+                color="default"
+              >
+                <v-icon>mdi-close</v-icon>
+              </v-btn>
+            </v-card-title>
+          </v-col>
+          <v-col cols="12" class="my-0 py-0">
+            <fileSequenceInstructivo @continuar="abrirModalAprobar" />
+          </v-col>
+        </v-card>
+      </v-row>
     </v-dialog>
   </v-container>
 </template>
