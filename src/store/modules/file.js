@@ -41,7 +41,7 @@ const actions = {
 
   async uploadFileFromUrlToOneDrive({ commit }, data) {
     var config = {
-      method: "post",
+      method: "put",
       url: process.env.VUE_APP_URL_MAIN + "mover_files_servidor_onedrive",
       headers: {
         "Content-Type": "application/json",

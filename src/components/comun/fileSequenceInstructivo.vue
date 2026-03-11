@@ -156,11 +156,29 @@
 
           <v-stepper-content step="5">
             <v-row>
-              <p class="red--text">
-                si se adjunta todo lo que más puedas facturas permisos, fotos, y
-                cualquier información relevante
-              </p>
               <v-col cols="12">
+                <p class="red--text">
+                  si se adjunta todo lo que más puedas facturas permisos, fotos,
+                  y cualquier información relevante
+                </p>
+              </v-col>
+              <v-col cols="12">
+                <v-file-input
+                  small-chips
+                  label="Se pueden cargar varios archivos a la vez"
+                  v-model="files"
+                  counter
+                  multiple
+                  show-size
+                  dense
+                />
+
+                <!-- <div v-if="files.length > 0">
+                  <p v-for="(file, index) in files" :key="index">
+                    {{ file.name }}
+                  </p>
+                </div> -->
+
                 <!-- <v-textarea
                   rows="1"
                   auto-grow
@@ -172,7 +190,11 @@
               </v-col>
               <v-col cols="12">
                 <v-spacer></v-spacer>
-                <v-btn color="primary" class="mx-1" @click="continuar">
+                <v-btn
+                  color="primary"
+                  class="mx-1"
+                  @click="continuarCargarArchivos()"
+                >
                   Continue
                 </v-btn>
                 <v-btn color="error" class="mx-1" @click="regresar()">
@@ -548,9 +570,12 @@
 <script>
 import moment from "moment";
 import Swal from "sweetalert2";
+import axios from "axios";
+import { mapActions } from "vuex";
 export default {
   data() {
     return {
+      files: [],
       e6: 1,
       datosManualesNoAplica: {
         servicio: false,
@@ -585,6 +610,7 @@ export default {
     };
   },
   methods: {
+    ...mapActions(["uploadFileFromUrlToOneDrive"]),
     continuarEmail() {
       if (!this.datosManuales.servicio) {
         this.$refs.txtServicio.focus();
@@ -611,6 +637,45 @@ export default {
     regresar() {
       this.e6--;
     },
+    continuarCargarArchivos() {
+      for (let index = 0; index < this.files.length; index++) {
+        this._uploadFile(index);
+      }
+      this.e6++;
+    },
+    async _uploadFile(i) {
+      var FormData = require("form-data");
+      var fs = require("fs");
+      var data = new FormData();
+      var vm = this;
+      data.append("name", "Prueba");
+      data.append("file", vm.files[i]);
+
+      var config = {
+        method: "post",
+        url: process.env.VUE_APP_URL_MAIN + "uploadAllPath",
+        headers: {
+          "auth-token": sessionStorage.getItem("auth-token"),
+          "Content-Type": "application/json",
+        },
+        data: data,
+      };
+
+      await axios(config)
+        .then(async function (response) {
+          let res = response.data.data[0];
+          await vm.uploadFileFromUrlToOneDrive({
+            fileUrl: res.ruta,
+            destinationFolderUrl:
+              vm.$store.state.pricing.datosPrincipales.url_folderonedrive,
+          });
+          console.log(res);
+        })
+        .catch(function (error) {
+          console.log(error);
+        });
+    },
+    moverArchivo() {},
     async generarHTML() {
       let asunto =
         "EXPEDIENTE1523 QUOTE10098 PLASMAME S.A.C FOB INVIDUAL IMPORTACION";
@@ -1095,6 +1160,11 @@ export default {
           ? "No Aplica"
           : "";
       }
+    },
+  },
+  watch: {
+    files() {
+      console.log(this.files);
     },
   },
 };
