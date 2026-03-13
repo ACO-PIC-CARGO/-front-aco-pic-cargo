@@ -267,15 +267,7 @@
         <v-icon class="mx-1">mdi-send</v-icon>AUTOMATICO
       </v-btn>
 
-      <v-btn
-        color="info"
-        dark
-        class="mx-1"
-        v-if="routeVerEditarParaVolverListado.includes(getNameUrl())"
-        @click="iraListado()"
-      >
-        <v-icon>mdi-format-list-bulleted</v-icon> IR AL LISTADO
-      </v-btn>
+      <BtnIrAlListado />
     </v-app-bar>
 
     <v-main class="main">
@@ -435,6 +427,7 @@ import moment from "moment";
 import axios from "axios";
 import LoadingComponent from "../../components/comun/loadingComponent.vue";
 import { io } from "socket.io-client";
+import BtnIrAlListado from "../../components/comun/btnIrAlListado.vue";
 export default {
   created() {
     this.socket = io(process.env.VUE_APP_URL_MAIN);
@@ -477,6 +470,7 @@ export default {
     listMenu,
     LoadingComponent,
     CotizacionPilotoAutomatico,
+    BtnIrAlListado,
   },
   async mounted() {
     let urlPricing = ["newQuote", "verQuote", "editQuote"];
@@ -554,36 +548,6 @@ export default {
       "actualizarQuoteAduana",
       "_getRole",
     ]),
-    iraListado() {
-      const route = this.$route.name;
-
-      let nombreRutaIr = "";
-      if (!this.routeVerEditarParaVolverListado.includes(route)) {
-        return;
-      }
-      switch (route) {
-        case "editControlGasto":
-          nombreRutaIr = "listControlGastos";
-          break;
-        case "verQuote":
-        case "editQuote":
-          nombreRutaIr = "lstQuote";
-          break;
-        case "controlHouseEditar":
-        case "controlHouseVer":
-          nombreRutaIr = "listHouse";
-          break;
-        case "controlMasterEditar":
-        case "controlMasterVer":
-          nombreRutaIr = "listMaster";
-          break;
-      }
-      if (nombreRutaIr) {
-        this.$router.push({ name: nombreRutaIr });
-      } else {
-        console.warn("No se encontró una ruta de destino para:", route);
-      }
-    },
     abrirCarpeta(url) {
       if (!url) {
         Swal.fire({

@@ -156,6 +156,17 @@
         </v-alert>
 
         <v-btn
+          color="info"
+          class="my-1"
+          block
+          dark
+          small
+          v-if="!editable"
+          @click="irAEditar(false)"
+        >
+          <v-icon class="mx-1">mdi-pencil</v-icon> EDITAR
+        </v-btn>
+        <v-btn
           color="red"
           class="my-1"
           block
@@ -327,6 +338,29 @@ export default {
     ]),
     // ...mapAction([])
     // --------------------
+    irAEditar() {
+      let id_branch =
+        this.$store.state.controlGastos.listControlGastos[0].id_branch;
+      if (
+        !(
+          JSON.parse(sessionStorage.getItem("dataUser"))[0].id_branch ==
+          id_branch
+        )
+      ) {
+        Swal.fire({
+          icon: "error",
+          text: "El expediente pertenece a otra sucursal, por favor logueese con la otra sucursal.",
+        });
+        return;
+      }
+      this.$router.push({
+        name: "editControlGasto",
+        params: {
+          id: this.$route.params.id,
+          id_branch: id_branch,
+        },
+      });
+    },
     to_direct({ url }) {
       window.open(url, "_blank");
     },
