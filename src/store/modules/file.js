@@ -17,7 +17,8 @@ const actions = {
     var FormData = require("form-data");
     var fs = require("fs");
     var data = new FormData();
-    data.append("name", "Prueba");
+    let nameWithoutExtension = file.name.replace(/\.[^/.]+$/, "");
+    data.append("name", nameWithoutExtension);
     data.append("file", file);
     var config = {
       method: "post",

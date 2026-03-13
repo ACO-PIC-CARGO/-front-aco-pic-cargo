@@ -172,11 +172,22 @@
                   dense
                 />
 
-                <!-- <div v-if="files.length > 0">
-                  <p v-for="(file, index) in files" :key="index">
-                    {{ file.name }}
+                <div
+                  v-if="
+                    datosManuales.table_allpath_list &&
+                    datosManuales.table_allpath_list.length > 0
+                  "
+                >
+                  <p
+                    v-for="(file, index) in datosManuales.table_allpath_list"
+                    :key="index"
+                  >
+                    {{ file.nombre }}
+                    <v-btn color="default" icon :href="file.url" target="_blank"
+                      ><v-icon>mdi-file</v-icon></v-btn
+                    >
                   </p>
-                </div> -->
+                </div>
 
                 <!-- <v-textarea
                   rows="1"
@@ -554,7 +565,7 @@
           </v-stepper-content>
         </v-stepper>
       </v-card-text>
-      <v-card-actions v-if="e6 > 15">
+      <v-card-actions v-if="e6 > 15 || $store.state.pricing.aprobadoflag">
         <v-btn
           class="mx-2"
           color="success"
@@ -574,7 +585,7 @@
         <v-btn
           class="mx-2"
           color="info"
-          @click="generarHTML"
+          @click="generarHTMLPDF(false)"
           v-if="$store.state.pricing.aprobadoflag"
         >
           Generar PDF Instructivo
@@ -582,7 +593,7 @@
         <v-btn
           class="mx-2"
           color="warning"
-          @click="generarHTML"
+          @click="generarHTMLPDF(true)"
           v-if="$store.state.pricing.aprobadoflag"
         >
           Guardar Pdf Instructivo
@@ -601,7 +612,9 @@ import { mapActions } from "vuex";
 export default {
   data() {
     return {
+      proveedorInstructivo: {},
       files: [],
+      datosFile: [],
       e6: 1,
       datosManualesNoAplica: {
         servicio: false,
@@ -632,11 +645,16 @@ export default {
         seguro: "",
         observacion1: "",
         observacion2: "",
+        id_path: [],
       },
     };
   },
   methods: {
-    ...mapActions(["uploadFileFromUrlToOneDrive", "guardarDatosInstructivo"]),
+    ...mapActions([
+      "uploadFileFromUrlToOneDrive",
+      "guardarDatosInstructivo",
+      "quotePreviewInstructivoManual",
+    ]),
     continuarEmail() {
       if (!this.datosManuales.servicio) {
         this.$refs.txtServicio.focus();
@@ -679,6 +697,8 @@ export default {
       this.e6--;
     },
     continuarCargarArchivos() {
+      this.datosManuales.id_path = [];
+      this.datosFile = [];
       for (let index = 0; index < this.files.length; index++) {
         this._uploadFile(index);
       }
@@ -689,9 +709,10 @@ export default {
       var fs = require("fs");
       var data = new FormData();
       var vm = this;
-      data.append("name", "Prueba");
+      let nameWithoutExtension = vm.files[i].name.replace(/\.[^/.]+$/, "");
+      data.append("name", nameWithoutExtension);
       data.append("file", vm.files[i]);
-
+      console.log("vm.files[i]", vm.files[i].name);
       var config = {
         method: "post",
         url: process.env.VUE_APP_URL_MAIN + "uploadAllPath",
@@ -704,7 +725,13 @@ export default {
 
       await axios(config)
         .then(async function (response) {
+          // this.datosManuales.id_path =
           let res = response.data.data[0];
+          vm.datosManuales.id_path.push(res.insertid);
+          vm.datosFile.push({
+            name: nameWithoutExtension,
+            url: res.ruta,
+          });
           await vm.uploadFileFromUrlToOneDrive({
             fileUrl: res.ruta,
             destinationFolderUrl:
@@ -717,6 +744,96 @@ export default {
         });
     },
     moverArchivo() {},
+    async generarHTMLPDF(guardarFlag) {
+      let asesor = this.$store.state.pricing.listEjecutivo.find(
+        (v) =>
+          v.id_entitie ==
+          this.$store.state.pricing.datosPrincipales.id_vendedor,
+      );
+
+      let Modality = this.$store.state.pricing.listModality.find(
+        (v) => v.id == this.$store.state.pricing.datosPrincipales.idsentido,
+      );
+
+      let Shipment = this.$store.state.pricing.listShipment.find(
+        (v) => v.id == this.$store.state.pricing.datosPrincipales.idtipocarga,
+      );
+
+      let PortBegin = this.$store.state.pricing.listPortBegin.find(
+        (v) => v.id == this.$store.state.pricing.datosPrincipales.idorigen,
+      );
+      let PortEnd = this.$store.state.pricing.listPortEnd.find(
+        (v) => v.id == this.$store.state.pricing.datosPrincipales.iddestino,
+      );
+      let Incoterms = this.$store.state.pricing.listIncoterms.find(
+        (v) => v.id == this.$store.state.pricing.datosPrincipales.idincoterms,
+      );
+      let Proveedor = this.$store.state.itemsProveedorList.find(
+        (v) => v.id == this.$store.state.pricing.datosPrincipales.id_proveedor,
+      );
+      let nro_quote = this.$store.state.pricing.nro_quote
+        .trim()
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "")
+        .replace(/[\s-]+/g, "_");
+      let nombre = this.$store.state.pricing.dataCliente.nombrecompleto
+        .trim()
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "")
+        .replace(/[\s-]+/g, "_");
+      const subject = encodeURIComponent(
+        `EXPEDIENTE_${this.$store.state.pricing.nro_exp}_QUOTE_${nro_quote}_${nombre}_${Incoterms.name}_${Modality.name}`,
+      );
+
+      await this.quotePreviewInstructivoManual({
+        guardarFlag: guardarFlag,
+        subject: subject,
+        asesor: asesor.name,
+        nro_quote: this.$store.state.pricing.nro_quote || "",
+        servicio: this.datosManuales.servicio || "",
+        email: this.datosManuales.email || "",
+        PortBegin: PortBegin.name || "",
+        Incoterms: Incoterms.name || "",
+        peso: this.$store.state.pricing.datosPrincipales.peso || 0,
+        volumen: this.$store.state.pricing.datosPrincipales.volumen || 0,
+        descripcioncarga: this.$store.state.pricing.datosPrincipales
+          .descripcioncarga
+          ? this.$store.state.pricing.datosPrincipales.descripcioncarga
+          : "",
+        nombrecompletoProveedor: Proveedor.namelong || "",
+        contactoProveedor: Proveedor.contacto || "",
+        addressProveedor: Proveedor.emailaddress || "",
+        contactoPhoneProveedor: Proveedor.contacto_phone || "",
+        nombrecompletoCliente:
+          this.$store.state.pricing.dataCliente.nombrecompleto || "",
+        documentCliente: this.$store.state.pricing.dataCliente.document || "",
+        addressCliente: this.$store.state.pricing.dataCliente.address || "",
+        emailaddressCliente: this.$store.state.pricing.emailaddress || "",
+        listDiaFecha: this.datosManuales.listDiaFecha || "",
+        grupoWhatsapp: this.datosManuales.grupoWhatsapp || "",
+        Shipment: Shipment.name,
+        url_folderonedrive:
+          this.$store.state.pricing.datosPrincipales.url_folderonedrive,
+
+        pagarProveedor: this.datosManuales.pagarProveedor || "",
+        dondePagar: this.datosManuales.dondePagar || "",
+        linkDePago: this.datosManuales.linkDePago || "",
+        condicionesLink: this.datosManuales.condicionesLink || "",
+        nroFactura: this.datosManuales.nroFactura || "",
+        seguro: this.datosManuales.seguro || "",
+        observacion1: this.datosManuales.observacion1 || "",
+        observacion2: this.datosManuales.observacion2 || "",
+        namelongColoader: this.proveedorInstructivo.namelong || "",
+        contactoColoader: this.proveedorInstructivo.contacto || "",
+        phoneColoader: this.proveedorInstructivo.contacto_phone || "",
+        seAdjunta:
+          this.datosFile && this.datosFile.length > 0
+            ? this.datosFile
+                .map((file) => `• ${file.nombre || file}`)
+                .join("<br />")
+            : "No hay archivos",
+      });
+    },
     async generarHTML() {
       let asunto =
         "EXPEDIENTE1523 QUOTE10098 PLASMAME S.A.C FOB INVIDUAL IMPORTACION";
@@ -746,7 +863,7 @@ export default {
       let Proveedor = this.$store.state.itemsProveedorList.find(
         (v) => v.id == this.$store.state.pricing.datosPrincipales.id_proveedor,
       );
-      console.log("dataCliente", this.$store.state.pricing.dataCliente);
+
       let hmtl1 = `
         <table border="0" cellspacing="0" cellpadding="0" style="border-collapse:collapse">
           <tbody>
@@ -793,7 +910,16 @@ export default {
                 <p class="MsoNormal">COLOADER/AGENTE</p>
               </td>
               <td width="681" valign="top" style="width:510.5pt; border-top:none; border-left:none; border-bottom:solid windowtext 1.0pt; border-right:solid windowtext 1.0pt; padding:0cm 5.4pt 0cm 5.4pt">
-                <p class="MsoNormal">&nbsp;</p>
+                <p class="MsoNormal">Datos:${
+                  this.proveedorInstructivo.namelong
+                }</p>
+                <p class="MsoNormal">Contacto:${
+                  this.proveedorInstructivo.contacto
+                }</p>
+                <p class="MsoNormal">Téfono:${
+                  this.proveedorInstructivo.contacto_phone
+                }</p>
+                
               </td>
             </tr>
 
@@ -924,7 +1050,13 @@ export default {
                 <p class="MsoNormal"><b>SE ADJUNTA</b></p>
               </td>
               <td width="681" valign="top" style="width:510.5pt; border-top:none; border-left:none; border-bottom:solid windowtext 1.0pt; border-right:solid windowtext 1.0pt; padding:0cm 5.4pt 0cm 5.4pt">
-                <p class="MsoNormal"></p>
+                <p class="MsoNormal">${
+                  this.datosFile && this.datosFile.length > 0
+                    ? this.datosFile
+                        .map((file) => `• ${file.nombre || file}`)
+                        .join("<br />")
+                    : "No hay archivos"
+                }</p>
               </td>
             </tr>
 
@@ -934,7 +1066,12 @@ export default {
                 <p class="MsoNormal"><b>TIPO DE MERCANCIA</b></p>
               </td>
               <td width="681" valign="top" style="width:510.5pt; border-top:none; border-left:none; border-bottom:solid windowtext 1.0pt; border-right:solid windowtext 1.0pt; padding:0cm 5.4pt 0cm 5.4pt">
-                <p class="MsoNormal">${Shipment.name}</p>
+                <p class="MsoNormal">${
+                  this.$store.state.pricing.datosPrincipales.descripcioncarga
+                    ? this.$store.state.pricing.datosPrincipales
+                        .descripcioncarga
+                    : ""
+                }</p>
               </td>
             </tr>
 
@@ -1028,7 +1165,7 @@ export default {
         );
 
         const subject = encodeURIComponent(
-          `QUOTE ${this.$store.state.pricing.nro_quote} ${this.$store.state.pricing.dataCliente.nombrecompleto} ${Incoterms.name} ${Modality.name}`,
+          `EXPEDIENTE-${this.$store.state.pricing.nro_exp} QUOTE ${this.$store.state.pricing.nro_quote} ${this.$store.state.pricing.dataCliente.nombrecompleto} ${Incoterms.name} ${Modality.name}`,
         );
         const body = encodeURIComponent("Hola colega, (PEGA LA TABLA AQUÍ)");
 
@@ -1218,15 +1355,28 @@ export default {
     },
   },
   mounted() {
-    if (this.$store.state.pricing.datosPrincipales.datosinstructivomanual)
+    if (this.$store.state.pricing.datosPrincipales.datosinstructivomanual) {
       this.datosManuales =
         this.$store.state.pricing.datosPrincipales.datosinstructivomanual;
+      this.datosFile =
+        this.$store.state.pricing.datosPrincipales.datosinstructivomanual.table_allpath_list;
+      let opcionCostos = this.$store.state.pricing.opcionCostos.filter(
+        (v) => !!v.selected,
+      );
+      let costosFlete = opcionCostos[0].listCostos.filter(
+        (v) => v.esfleteflag == 1 && v.status == 1 && v.esopcionflag == 1,
+      );
+
+      let proveedoresUnicos = [
+        ...new Set(costosFlete.map((v) => v.id_proveedor)),
+      ];
+      this.proveedorInstructivo = this.$store.state.provedores.find(
+        (v) => v.id == proveedoresUnicos[0],
+      );
+      console.log(this.proveedorInstructivo);
+    }
   },
-  watch: {
-    files() {
-      console.log(this.files);
-    },
-  },
+  watch: {},
 };
 </script>
 

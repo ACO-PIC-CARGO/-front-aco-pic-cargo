@@ -113,6 +113,7 @@
         elevation="2"
         small
         @click="imprimir()"
+        v-if="!mostrarBtnAprobar()"
       >
         <v-icon color="white">mdi-printer-outline</v-icon>
       </v-btn>
@@ -136,9 +137,7 @@
 
         <h3 class="mb-1 ml-1">
           {{
-            $store.state.pricing.aprobadoflag == true
-              ? "APROBADO"
-              : $store.state.pricing.listQuoteStatus.filter(
+            $store.state.pricing.listQuoteStatus.filter(
                   (v) => v.id == $store.state.pricing.datosPrincipales.id_status
                 )[0].name
           }}

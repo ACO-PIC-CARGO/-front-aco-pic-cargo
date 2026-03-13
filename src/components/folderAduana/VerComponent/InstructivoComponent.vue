@@ -153,9 +153,7 @@
 
         <h3 class="mb-1 ml-1">
           {{
-            $store.state.aduana.aprobadoflag == true
-              ? "APROBADO"
-              : $store.state.pricing.listQuoteStatus.filter(
+            $store.state.pricing.listQuoteStatus.filter(
                   (v) => v.id == $store.state.aduana.datosPrincipales.id_status
                 )[0].name
           }}

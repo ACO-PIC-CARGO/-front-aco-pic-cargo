@@ -152,6 +152,7 @@
         color="#01579B"
         elevation="2"
         small
+        v-if="!mostrarBtnAprobar()"
         dark
         @click="dialogSequenceInstructivo = true"
       >
@@ -176,14 +177,7 @@
         </h3>
 
         <h3 class="mb-1 ml-1">
-          {{
-            $store.state.pricing.aprobadoflag == true
-              ? "APROBADO"
-              : $store.state.pricing.listQuoteStatus.filter(
-                  (v) =>
-                    v.id == $store.state.pricing.datosPrincipales.id_status,
-                )[0].name
-          }}
+          {{ $store.state.pricing.aprobadoflag == true ? "APROBADO" : "" }}
           | Exp. Master:
           {{
             $store.state.pricing.listInstructivo[0].code_master
@@ -674,7 +668,9 @@
             </v-card-title>
           </v-col>
           <v-col cols="12" class="my-0 py-0">
-            <fileSequenceInstructivo @continuar="abrirModalAprobar" />
+            <fileSequenceInstructivo
+              @continuar="abrirModalAprobar"
+            />
           </v-col>
         </v-card>
       </v-row>
@@ -699,6 +695,7 @@ export default {
   },
   data() {
     return {
+      proveedorInstructivo: {},
       dialogSequenceInstructivo: false,
       dialogFiles: false,
       nuevoexpediente: "",
@@ -944,12 +941,43 @@ export default {
         });
         return;
       }
+      let opcionCostos = this.$store.state.pricing.opcionCostos.filter(
+        (v) => !!v.selected,
+      );
+      if (opcionCostos.length != 1) {
+        Swal.fire({
+          icon: "warning",
+          title: "Costos",
+          text: "Es necesario seleccionar opción para cotizar",
+        });
+        return;
+      }
+      let costosFlete = opcionCostos[0].listCostos.filter(
+        (v) => v.esfleteflag == 1 && v.status == 1 && v.esopcionflag == 1,
+      );
+
+      let proveedoresUnicos = [
+        ...new Set(costosFlete.map((v) => v.id_proveedor)),
+      ];
+      if (proveedoresUnicos.length > 1) {
+        Swal.fire({
+          icon: "warning",
+          title: "Costos",
+          text: "Para aprobar, en la sección Flete y gastos de origen, debe tener un solo proveedor",
+        });
+        return;
+      }
+      this.proveedorInstructivo = this.$store.state.provedores.find(
+        (v) => v.id == proveedoresUnicos[0],
+      );
+     
 
       let val = JSON.parse(sessionStorage.getItem("ConfigEmpresa"));
       this.dialogConfig = !val.existemaster;
       if (this.dialogConfig) {
         return false;
       }
+
       await this.cargarMaster(this.$store.state.pricing.datosPrincipales);
 
       this.seleccionQuoteAprobar = true;

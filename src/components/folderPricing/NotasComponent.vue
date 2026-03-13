@@ -480,10 +480,6 @@ export default {
   },
   mounted() {
     this.dialog = false;
-    console.log(
-      "esNuevoFlag",
-      this.$store.state.pricing.datosPrincipales.url_folderonedrive,
-    );
   },
   methods: {
     ...mapActions([

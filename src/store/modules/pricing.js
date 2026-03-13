@@ -7,8 +7,9 @@ import masterusuario from "./masterusuario";
 import enterprise from "./enterprise";
 import modules from "./../index";
 const state = {
-  dataCliente:{},
+  dataCliente: {},
   step: 1,
+  nro_exp:'',
   preServices: [],
   preCostos: [],
   itemsDataRoleList: [],
@@ -127,7 +128,7 @@ const state = {
     containers: [],
     iddistrito: "",
     idprovincia: "",
-    datosInstructivoManual:null,
+    datosInstructivoManual: null,
   },
   opcionCostos: [
     {
@@ -503,11 +504,31 @@ const actions = {
   resetQuoteNew({ commit }) {
     commit("SET_QUOTE");
   },
-  async guardarDatosInstructivo({ dispatch },datos) {
+  async quotePreviewInstructivoManual({ dispatch }, datos) {
+    let config = {
+      method: "put",
+      url: `${process.env.VUE_APP_URL_MAIN}quote_preview_instructivo_manual`,
+      data: datos,
+      headers: {
+        "auth-token": sessionStorage.getItem("auth-token"),
+        "Content-Type": "application/json",
+      },
+    };
+    await axios(config).then((response) => {
+      if (!datos.guardarFlag) {
+        window.open(
+          `${process.env.VUE_APP_URL_MAIN}${response.data.path}`,
+          // "",
+          "_blank",
+        );
+      }
+    });
+  },
+  async guardarDatosInstructivo({ dispatch }, datos) {
     let config = {
       method: "put",
       url: `${process.env.VUE_APP_URL_MAIN}actualizar_datos_instructivo_manual`,
-      data:datos,
+      data: datos,
       headers: {
         "auth-token": sessionStorage.getItem("auth-token"),
         "Content-Type": "application/json",
@@ -515,7 +536,6 @@ const actions = {
     };
     await axios(config).then((response) => {
       let data = response.data;
-      console.log(data)
     });
   },
   async obtenerRoles({ commit, rootState }) {
@@ -1483,7 +1503,6 @@ const actions = {
     };
     // let vm = this;
     await axios(config).then(async (response) => {
-      console.log("id", response.data.data[0]);
       state.id = response.data.data[0].insertid;
       state.nro_quote = response.data.data[0].nro_quote;
       state.mensaje = response.data.data[0].mensaje;
@@ -1513,7 +1532,6 @@ const actions = {
     }
   },
   async actualizarURLEnElQuote(__, { id = "", url = "" }) {
-    console.log("crearCarpetaOneDrive", url);
     let config = {
       method: "put",
       url: process.env.VUE_APP_URL_MAIN + `actualizar_quote_folderonedrive`,
@@ -1565,7 +1583,9 @@ const actions = {
       state.datosPrincipales.descripcioncarga = res.descripcionmercancia;
       state.datosPrincipales.fecha_inicio = res.fecha_inicio;
       state.datosPrincipales.url_folderonedrive = res.url_folderonedrive;
-      state.datosPrincipales.datosinstructivomanual = res.datosinstructivomanual;
+      state.nro_exp = res.nro_exp
+      state.datosPrincipales.datosinstructivomanual =
+        res.datosinstructivomanual;
       // --------------------------------------------------------------
       state.datosPrincipales.iddestino = res.iddestino;
       state.datosPrincipales.idorigen = res.idorigen;
@@ -5515,7 +5535,7 @@ const actions = {
                 });
             }
             if (tipo == "TOTAL") {
-              console.log("----------");
+              
               opcionCosto.listCostos
                 .filter((v) => v.status == 1 && v.esventaflag == 1)
                 .forEach((element) => {
@@ -6193,7 +6213,6 @@ const actions = {
         if (res.isDenied) {
           window.location.reload();
         }
-        
       });
     });
   },
@@ -6727,12 +6746,9 @@ const actions = {
           parseFloat(state.totalCostos).toFixed(2),
       ),
       sucursal: JSON.parse(sessionStorage.getItem("dataBranch"))[0].trade_name,
-      status:
-        state.aprobadoflag == true
-          ? "APROBADO"
-          : state.listQuoteStatus.filter(
-              (v) => v.id == state.datosPrincipales.id_status,
-            )[0].name,
+      status: state.listQuoteStatus.filter(
+        (v) => v.id == state.datosPrincipales.id_status,
+      )[0].name,
       code_house: state.listInstructivo[0].code_house
         ? state.listInstructivo[0].code_house
         : "",
@@ -6906,7 +6922,7 @@ const actions = {
       });
   },
   async GetArchivos({ commit }, folderUrl) {
-    console.log("folderUrl", folderUrl);
+    
     let config = {
       method: "get",
       url: `${process.env.VUE_APP_URL_MAIN}listado_files`,
@@ -6922,7 +6938,7 @@ const actions = {
       let data = response.data;
       if (data.estadoflag) {
         // sessionStorage.setItem("auth-token", data.token);
-        console.log("GetArchivos", data);
+
         commit("LISTADO_FILES_DRIVE", data.data);
       }
     });
@@ -9110,7 +9126,6 @@ export function getNombreCotizacion(listNotasQuote) {
   state.nombre_cotizacion = `COTIZACION ${nota} ${state.datosPrincipales.nombre}`;
   return name;
 }
-
 
 export default {
   namespace: true,
