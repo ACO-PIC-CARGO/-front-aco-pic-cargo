@@ -196,7 +196,12 @@
       </v-expansion-panels>
 
       <v-col class="derecha">
-        <v-btn color="#3363A2" dark @click="abrirModalCambioNombreSecciones()">
+        <v-btn
+          color="#3363A2"
+          class="mx-1"
+          dark
+          @click="abrirModalCambioNombreSecciones()"
+        >
           PREVIEW COTIZACIÓN(es)</v-btn
         >
       </v-col>
@@ -480,7 +485,6 @@ export default {
   },
   mounted() {
     this.dialog = false;
-   
   },
   methods: {
     ...mapActions([

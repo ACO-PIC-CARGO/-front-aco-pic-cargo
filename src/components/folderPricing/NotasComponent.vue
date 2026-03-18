@@ -199,6 +199,14 @@
         <v-btn color="#3363A2" dark @click="abrirModalCambioNombreSecciones()">
           PREVIEW COTIZACIÓN(es)</v-btn
         >
+        <v-btn
+          color="#FFD600"
+          class="mx-1"
+          @click="abrirDialogCotizacionRapida"
+        >
+          <v-icon class="mx-1" dense small>mdi-folder</v-icon>Guardar en
+          Carpeta</v-btn
+        >
       </v-col>
       <!-- <v-card-actions>
       <v-spacer></v-spacer>
@@ -492,6 +500,18 @@ export default {
       "predata",
       "updateQuote",
     ]),
+    abrirDialogCotizacionRapida() {
+      let esperandoSeguro = this.$store.state.pricing.listQuoteStatus.find(
+        (v) => v.code == "4",
+      );
+      this.previewFlag = true;
+      this.$nextTick(() => {
+        this.tiporeporte = "AGRUPADO";
+        this.cambiarStatus = true;
+        this.selectedStatusId = esperandoSeguro.id;
+      });
+    },
+
     formatDate(val) {
       if (!val) return "";
       try {

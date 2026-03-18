@@ -9,7 +9,7 @@ import modules from "./../index";
 const state = {
   dataCliente: {},
   step: 1,
-  nro_exp:'',
+  nro_exp: "",
   preServices: [],
   preCostos: [],
   itemsDataRoleList: [],
@@ -1583,7 +1583,7 @@ const actions = {
       state.datosPrincipales.descripcioncarga = res.descripcionmercancia;
       state.datosPrincipales.fecha_inicio = res.fecha_inicio;
       state.datosPrincipales.url_folderonedrive = res.url_folderonedrive;
-      state.nro_exp = res.nro_exp
+      state.nro_exp = res.nro_exp;
       state.datosPrincipales.datosinstructivomanual =
         res.datosinstructivomanual;
       // --------------------------------------------------------------
@@ -5535,7 +5535,6 @@ const actions = {
                 });
             }
             if (tipo == "TOTAL") {
-              
               opcionCosto.listCostos
                 .filter((v) => v.status == 1 && v.esventaflag == 1)
                 .forEach((element) => {
@@ -6888,13 +6887,14 @@ const actions = {
       .then((response) => {
         let res = response.data;
       })
-      .catch((e) =>
-        Swal.fire({
-          icon: "error",
-          title: "Ocurrió un error",
-          text: e,
-          showConfirmButton: true,
-        }),
+      .catch(
+        (e) => console.error(e),
+        // Swal.fire({
+        //   icon: "error",
+        //   title: "Ocurrió un error",
+        //   text: e,
+        //   showConfirmButton: true,
+        // }),
       );
   },
 
@@ -6922,7 +6922,6 @@ const actions = {
       });
   },
   async GetArchivos({ commit }, folderUrl) {
-    
     let config = {
       method: "get",
       url: `${process.env.VUE_APP_URL_MAIN}listado_files`,
