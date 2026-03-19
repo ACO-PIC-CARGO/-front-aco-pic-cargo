@@ -504,11 +504,11 @@ export default {
       let esperandoSeguro = this.$store.state.pricing.listQuoteStatus.find(
         (v) => v.code == "4",
       );
-      this.previewFlag = true;
+      // this.previewFlag = true;
       this.$nextTick(() => {
         this.tiporeporte = "AGRUPADO";
-        this.cambiarStatus = true;
         this.selectedStatusId = esperandoSeguro.id;
+        this.generarPreview({ val: true });
       });
     },
 
@@ -695,8 +695,8 @@ export default {
       }
       this.cambiarStatus = false;
     },
-    async generarPreview() {
-      if (this.$refs.frmReporte.validate()) {
+    async generarPreview({ val = false }) {
+      if (val || this.$refs.frmReporte.validate()) {
         this.$store.state.spiner = true;
         this.previewFlag = false;
         if (this.cambiarStatus && this.selectedStatusId) {
