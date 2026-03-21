@@ -280,7 +280,7 @@
 
             <!--PRODUCTO QUE VENDE-->
             <v-subheader class="px-0 font-weight-bold mt-2">Producto</v-subheader>
-            <v-row>
+            <v-row :disabled="isProductoDisabled">
               <v-col cols="12">
                 <v-textarea
                   dense
@@ -290,7 +290,7 @@
                   :rules="[(v) => validarProducto(v)]"
                   :error-messages="productoErrors"
                   v-model="$store.state.entities.proveedor.producto"
-                  :disabled="isProductoDisabled"
+                  
                 ></v-textarea>
               </v-col>
             </v-row>
