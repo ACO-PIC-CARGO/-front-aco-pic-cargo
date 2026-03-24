@@ -91,10 +91,10 @@
             v-model="filtro.monto"
           >
           </v-text-field>
-          <v-text-field v-model="filtro.desde" label="Fecha Desde" type="date">
-          </v-text-field>
-          <v-text-field v-model="filtro.hasta" label="Fecha Hasta" type="date">
-          </v-text-field>
+          <FormatFecha id="filtroDesde" v-model="filtro.desde" />
+          <FormatFecha id="filtroHasta" v-model="filtro.hasta" />
+          <!-- <v-text-field v-model="filtro.hasta" label="Fecha Hasta" type="date">
+          </v-text-field> -->
           <v-checkbox v-model="filtro.operativo" label="Operativo"></v-checkbox>
           <v-checkbox
             v-model="filtro.administrativo"
@@ -116,8 +116,12 @@
 <script>
 import moment from "moment";
 import { mapActions } from "vuex";
+import FormatFecha from "../comun/FormatFecha.vue";
 import axios from "axios";
 export default {
+  components: {
+    FormatFecha,
+  },
   data() {
     return {
       search: "",
@@ -220,6 +224,4 @@ export default {
 };
 </script>
 
-<style>
-
-</style>
+<style></style>
