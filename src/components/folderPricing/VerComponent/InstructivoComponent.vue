@@ -670,6 +670,7 @@
           <v-col cols="12" class="my-0 py-0">
             <fileSequenceInstructivo
               @continuar="abrirModalAprobar"
+              :aprobadoflag="$store.state.pricing.aprobadoflag"
             />
           </v-col>
         </v-card>

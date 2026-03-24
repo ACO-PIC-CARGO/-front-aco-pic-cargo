@@ -3,7 +3,7 @@
     <v-card>
       <v-card-text>
         <v-stepper v-model="e6" vertical non-linear>
-          <v-stepper-step :complete="e6 > 1" step="1">
+          <v-stepper-step :editable="aprobadoflag" :complete="e6 > 1" step="1">
             SERVICIO
           </v-stepper-step>
 
@@ -31,7 +31,7 @@
             </v-row>
           </v-stepper-content>
 
-          <v-stepper-step :complete="e6 > 2" step="2">
+          <v-stepper-step :editable="aprobadoflag" :complete="e6 > 2" step="2">
             EMAIL DE SEGUIMIENTO
           </v-stepper-step>
 
@@ -79,7 +79,7 @@
           </v-stepper-content>
 
           <!--  -->
-          <v-stepper-step :complete="e6 > 3" step="3">
+          <v-stepper-step :editable="aprobadoflag" :complete="e6 > 3" step="3">
             CARGA LISTA DIA FECHA
           </v-stepper-step>
 
@@ -114,7 +114,7 @@
             </v-row>
           </v-stepper-content>
           <!--  -->
-          <v-stepper-step :complete="e6 > 4" step="4">
+          <v-stepper-step :editable="aprobadoflag" :complete="e6 > 4" step="4">
             GRUPO DE WHATSAPP
           </v-stepper-step>
 
@@ -149,7 +149,7 @@
             </v-row>
           </v-stepper-content>
           <!--  -->
-          <v-stepper-step :complete="e6 > 5" step="5">
+          <v-stepper-step :editable="aprobadoflag" :complete="e6 > 5" step="5">
             SE ADJUNTA
           </v-stepper-step>
 
@@ -215,7 +215,7 @@
           </v-stepper-content>
 
           <!--  -->
-          <v-stepper-step :complete="e6 > 6" step="6">
+          <v-stepper-step :editable="aprobadoflag" :complete="e6 > 6" step="6">
             DEBEMOS PAGAR AL PROVEEDOR
           </v-stepper-step>
 
@@ -255,7 +255,7 @@
           </v-stepper-content>
 
           <!--  -->
-          <v-stepper-step :complete="e6 > 7" step="7">
+          <v-stepper-step :editable="aprobadoflag" :complete="e6 > 7" step="7">
             DONDE SE DEBE PAGAR
           </v-stepper-step>
 
@@ -290,7 +290,7 @@
           </v-stepper-content>
 
           <!--  -->
-          <v-stepper-step :complete="e6 > 8" step="8">
+          <v-stepper-step :editable="aprobadoflag" :complete="e6 > 8" step="8">
             MONTO A PAGAR
           </v-stepper-step>
 
@@ -325,7 +325,7 @@
             </v-row>
           </v-stepper-content>
           <!--  -->
-          <v-stepper-step :complete="e6 > 9" step="9">
+          <v-stepper-step :editable="aprobadoflag" :complete="e6 > 9" step="9">
             CLIENTE YA NOS PAGOS
           </v-stepper-step>
 
@@ -359,7 +359,11 @@
             </v-row>
           </v-stepper-content>
           <!--  -->
-          <v-stepper-step :complete="e6 > 10" step="10">
+          <v-stepper-step
+            :editable="aprobadoflag"
+            :complete="e6 > 10"
+            step="10"
+          >
             LINK DE PAGO o DATOS DE A TRANSFERENCIA INTERNACIONAL
           </v-stepper-step>
 
@@ -394,7 +398,11 @@
             </v-row>
           </v-stepper-content>
 
-          <v-stepper-step :complete="e6 > 11" step="11">
+          <v-stepper-step
+            :editable="aprobadoflag"
+            :complete="e6 > 11"
+            step="11"
+          >
             CONDICIONES DE LINK DE CONTRATO DE ALIBABA
           </v-stepper-step>
 
@@ -431,7 +439,11 @@
           </v-stepper-content>
 
           <!--  -->
-          <v-stepper-step :complete="e6 > 12" step="12">
+          <v-stepper-step
+            :editable="aprobadoflag"
+            :complete="e6 > 12"
+            step="12"
+          >
             PAGO DE TRANSFERENCIA INTERNCIONAL
           </v-stepper-step>
 
@@ -463,7 +475,11 @@
             </v-row>
           </v-stepper-content>
           <!--  -->
-          <v-stepper-step :complete="e6 > 13" step="13">
+          <v-stepper-step
+            :editable="aprobadoflag"
+            :complete="e6 > 13"
+            step="13"
+          >
             SEGURO DE MERCANCIA
           </v-stepper-step>
 
@@ -494,7 +510,11 @@
             </v-row>
           </v-stepper-content>
           <!--  -->
-          <v-stepper-step :complete="e6 > 14" step="14">
+          <v-stepper-step
+            :editable="aprobadoflag"
+            :complete="e6 > 14"
+            step="14"
+          >
             OBSERVACIONES ADICIONALES 1
           </v-stepper-step>
 
@@ -529,7 +549,11 @@
             </v-row>
           </v-stepper-content>
           <!--  -->
-          <v-stepper-step :complete="e6 > 15" step="15">
+          <v-stepper-step
+            :editable="aprobadoflag"
+            :complete="e6 > 15"
+            step="15"
+          >
             OBSERVACIONES ADICCIONALES 2
           </v-stepper-step>
 
@@ -610,6 +634,12 @@ import Swal from "sweetalert2";
 import axios from "axios";
 import { mapActions } from "vuex";
 export default {
+  props: {
+    aprobadoflag: {
+      type: Boolean,
+      default: false,
+    },
+  },
   data() {
     return {
       proveedorInstructivo: {},
@@ -835,349 +865,146 @@ export default {
       });
     },
     async generarHTML() {
-      let asunto =
-        "EXPEDIENTE1523 QUOTE10098 PLASMAME S.A.C FOB INVIDUAL IMPORTACION";
-      let asesor = this.$store.state.pricing.listEjecutivo.find(
-        (v) =>
-          v.id_entitie ==
-          this.$store.state.pricing.datosPrincipales.id_vendedor,
+      const { state } = this.$store;
+      const pricing = state.pricing;
+      const dp = pricing.datosPrincipales;
+
+      // 1. Búsquedas con validación (Evita errores si no encuentra el objeto)
+      const encontrar = (lista, id, campo = "id") =>
+        lista.find((v) => v[campo] == id) || {};
+
+      const asesor = encontrar(
+        pricing.listEjecutivo,
+        dp.id_vendedor,
+        "id_entitie",
       );
+      const modality = encontrar(pricing.listModality, dp.idsentido);
+      const shipment = encontrar(pricing.listShipment, dp.idtipocarga);
+      const portBegin = encontrar(pricing.listPortBegin, dp.idorigen);
+      const portEnd = encontrar(pricing.listPortEnd, dp.iddestino);
+      const incoterms = encontrar(pricing.listIncoterms, dp.idincoterms);
+      const proveedor = encontrar(state.itemsProveedorList, dp.id_proveedor);
 
-      let Modality = this.$store.state.pricing.listModality.find(
-        (v) => v.id == this.$store.state.pricing.datosPrincipales.idsentido,
-      );
+      // 2. Formateo de archivos adjuntos
+      const listaArchivos =
+        this.datosFile?.length > 0
+          ? this.datosFile.map((f) => `• ${f.nombre || f}`).join("<br />")
+          : "No hay archivos";
 
-      let Shipment = this.$store.state.pricing.listShipment.find(
-        (v) => v.id == this.$store.state.pricing.datosPrincipales.idtipocarga,
-      );
+      // 3. Construcción del Template HTML
+      const htmlTable = `
+    <table border="0" cellspacing="0" cellpadding="0" style="border-collapse:collapse; font-family: Arial, sans-serif; width: 100%;">
+      <tbody>
+        ${this._tr("FECHA", moment().format("DD/MM/YYYY"))}
+        ${this._tr("ASESOR", asesor.name)}
+        ${this._tr("N° QUOTE", pricing.nro_quote)}
+        ${this._tr("SERVICIO", this.datosManuales.servicio)}
+        ${this._tr(
+          "COLOADER/AGENTE",
+          `
+          <b>Datos:</b> ${this.proveedorInstructivo.namelong}<br>
+          <b>Contacto:</b> ${this.proveedorInstructivo.contacto}<br>
+          <b>Teléfono:</b> ${this.proveedorInstructivo.contacto_phone}
+        `,
+        )}
+        ${this._tr("Email de Seguimiento", this.datosManuales.email)}
+        ${this._tr("PUERTO DE SALIDA", portBegin.name)}
+        ${this._tr(
+          "DATOS DE LA CARGA<br><span style='color:red;font-size:10px;'>Si es EXW enviar dirección de recolecta</span>",
+          `
+          INCOTERMS: ${incoterms.name || ""}<br>
+          PESO: ${dp.peso || 0} KG<br>
+          VOLUMEN: ${dp.volumen || 0} M3<br>
+          TIPO DE MERCANCIA: ${dp.descripcioncarga || ""}
+        `,
+        )}
+        ${this._tr(
+          "DETALLES DEL PROVEEDOR",
+          `
+          NOMBRE: ${proveedor.namelong || ""}<br>
+          CONTACTO: ${proveedor.contacto || ""}<br>
+          EMAIL: ${proveedor.emailaddress || ""}<br>
+          TELÉFONO: ${proveedor.contacto_phone || ""}
+        `,
+        )}
+        ${this._tr(
+          "CLIENTE / RAZON SOCIAL",
+          `
+          ${pricing.dataCliente.nombrecompleto || ""}<br>
+          RUC: ${pricing.dataCliente.document || ""}<br>
+          DIRECCIÓN: ${pricing.dataCliente.address || ""}<br>
+          EMAIL: ${pricing.emailaddress || ""}
+        `,
+        )}
+        ${this._tr(
+          "<b>NOTIFY</b>",
+          `
+          PIC LOGISTICA SAC <br>
+          RUC: 20609852861 <br>
+          AV. AGUSTIN DE LA ROSA TORO 770, SAN LUIS <br>
+          Contacto: Carlos Ramirez <br>
+          CORREO: ASESOR2@PIC-CARGO.COM
+        `,
+        )}
+        ${this._tr("CARGA LISTA DIA FECHA", this.datosManuales.listDiaFecha)}
+        ${this._tr("GRUPO DE WHATSAPP", this.datosManuales.grupoWhatsapp)}
+        ${this._tr("SE ADJUNTA", listaArchivos)}
+        ${this._tr(
+          "DEBEMOS PAGAR AL PROVEEDOR",
+          this.datosManuales.pagarProveedor,
+        )}
+        ${this._tr("DONDE SE DEBE PAGAR", this.datosManuales.dondePagar)}
+        ${this._tr(
+          "LINK DE PAGO / TRANSFERENCIA",
+          this.datosManuales.linkDePago,
+        )}
+        ${this._tr("CONDICIONES ALIBABA", this.datosManuales.condicionesLink)}
+        ${this._tr("NRO FACTURA", this.datosManuales.nroFactura)}
+        ${this._tr("SEGURO", this.datosManuales.seguro)}
+        ${this._tr("OBSERVACIONES 1", this.datosManuales.observacion1)}
+        ${this._tr("OBSERVACIONES 2", this.datosManuales.observacion2)}
+      </tbody>
+    </table>`;
 
-      let PortBegin = this.$store.state.pricing.listPortBegin.find(
-        (v) => v.id == this.$store.state.pricing.datosPrincipales.idorigen,
-      );
-      let PortEnd = this.$store.state.pricing.listPortEnd.find(
-        (v) => v.id == this.$store.state.pricing.datosPrincipales.iddestino,
-      );
-      let Incoterms = this.$store.state.pricing.listIncoterms.find(
-        (v) => v.id == this.$store.state.pricing.datosPrincipales.idincoterms,
-      );
-      let Proveedor = this.$store.state.itemsProveedorList.find(
-        (v) => v.id == this.$store.state.pricing.datosPrincipales.id_proveedor,
-      );
-
-      let hmtl1 = `
-        <table border="0" cellspacing="0" cellpadding="0" style="border-collapse:collapse">
-          <tbody>
-            <tr>
-              <td width="164" valign="top" style="width:123.05pt; border:solid windowtext 1.0pt; padding:0cm 5.4pt 0cm 5.4pt">
-                <p class="MsoNormal">FECHA</p>
-              </td>
-              <td width="681" valign="top" style="width:510.5pt; border:solid windowtext 1.0pt; border-left:none; padding:0cm 5.4pt 0cm 5.4pt">
-                <p class="MsoNormal">${moment().format("DD/MM/YYYY")}</p>
-              </td>
-            </tr>
-
-            <tr>
-              <td width="164" valign="top" style="width:123.05pt; border:solid windowtext 1.0pt; border-top:none; padding:0cm 5.4pt 0cm 5.4pt">
-                <p class="MsoNormal">ASESOR</p>
-              </td>
-              <td width="681" valign="top" style="width:510.5pt; border-top:none; border-left:none; border-bottom:solid windowtext 1.0pt; border-right:solid windowtext 1.0pt; padding:0cm 5.4pt 0cm 5.4pt">
-                <p class="MsoNormal">${asesor.name || ""}</p>
-              </td>
-            </tr>
-
-            <tr>
-              <td width="164" valign="top" style="width:123.05pt; border:solid windowtext 1.0pt; border-top:none; padding:0cm 5.4pt 0cm 5.4pt">
-                <p class="MsoNormal">N° QUOTE</p>
-              </td>
-              <td width="681" valign="top" style="width:510.5pt; border-top:none; border-left:none; border-bottom:solid windowtext 1.0pt; border-right:solid windowtext 1.0pt; padding:0cm 5.4pt 0cm 5.4pt">
-                <p class="MsoNormal">${
-                  this.$store.state.pricing.nro_quote || ""
-                }</p>
-              </td>
-            </tr>
-
-            <tr>
-              <td width="164" valign="top" style="width:123.05pt; border:solid windowtext 1.0pt; border-top:none; padding:0cm 5.4pt 0cm 5.4pt">
-                <p class="MsoNormal">SERVICIO</p>
-              </td>
-              <td width="681" valign="top" style="width:510.5pt; border-top:none; border-left:none; border-bottom:solid windowtext 1.0pt; border-right:solid windowtext 1.0pt; padding:0cm 5.4pt 0cm 5.4pt">
-                <p class="MsoNormal">${this.datosManuales.servicio || ""}</p>
-              </td>
-            </tr>
-
-            <tr>
-              <td width="164" valign="top" style="width:123.05pt; border:solid windowtext 1.0pt; border-top:none; padding:0cm 5.4pt 0cm 5.4pt">
-                <p class="MsoNormal">COLOADER/AGENTE</p>
-              </td>
-              <td width="681" valign="top" style="width:510.5pt; border-top:none; border-left:none; border-bottom:solid windowtext 1.0pt; border-right:solid windowtext 1.0pt; padding:0cm 5.4pt 0cm 5.4pt">
-                <p class="MsoNormal">Datos:${
-                  this.proveedorInstructivo.namelong
-                }</p>
-                <p class="MsoNormal">Contacto:${
-                  this.proveedorInstructivo.contacto
-                }</p>
-                <p class="MsoNormal">Téfono:${
-                  this.proveedorInstructivo.contacto_phone
-                }</p>
-                
-              </td>
-            </tr>
-
-            <tr>
-              <td width="164" valign="top" style="width:123.05pt; border:solid windowtext 1.0pt; border-top:none; padding:0cm 5.4pt 0cm 5.4pt">
-                <p class="MsoNormal">Email de Seguimiento</p>
-              </td>
-              <td width="681" valign="top" style="width:510.5pt; border-top:none; border-left:none; border-bottom:solid windowtext 1.0pt; border-right:solid windowtext 1.0pt; padding:0cm 5.4pt 0cm 5.4pt">
-                <p class="MsoNormal">${this.datosManuales.email || ""}</p>
-              </td>
-            </tr>
-
-            <tr>
-              <td width="164" valign="top" style="width:123.05pt; border:solid windowtext 1.0pt; border-top:none; padding:0cm 5.4pt 0cm 5.4pt">
-                <p class="MsoNormal">PUERTO DE SALIDA</p>
-              </td>
-              <td width="681" valign="top" style="width:510.5pt; border-top:none; border-left:none; border-bottom:solid windowtext 1.0pt; border-right:solid windowtext 1.0pt; padding:0cm 5.4pt 0cm 5.4pt">
-                <p class="MsoNormal">${PortBegin.name || ""}</p>
-              </td>
-            </tr>
-
-            <tr>
-              <td width="164" valign="top" style="width:123.05pt; border:solid windowtext 1.0pt; border-top:none; padding:0cm 5.4pt 0cm 5.4pt">
-                <p class="MsoNormal">DATOS DE LA CARGA <br>
-                  <span style="color:red">Si es EXWORD enviar dirección de recolecta</span>
-                </p>
-              </td>
-              <td width="681" valign="top" style="width:510.5pt; border-top:none; border-left:none; border-bottom:solid windowtext 1.0pt; border-right:solid windowtext 1.0pt; padding:0cm 5.4pt 0cm 5.4pt">
-                <p class="MsoNormal">
-                  INCOTERMS: ${Incoterms.name || ""}<br>
-                  PESO: ${
-                    this.$store.state.pricing.datosPrincipales.peso || 0
-                  } KG<br>
-                  VOLUMEN: ${
-                    this.$store.state.pricing.datosPrincipales.volumen || 0
-                  } M3<br>
-                  TIPO DE MERCANCIA: ${
-                    this.$store.state.pricing.datosPrincipales
-                      .descripcioncarga || ""
-                  }
-                </p>
-              </td>
-            </tr>
-
-            <tr>
-              <td width="164" valign="top" style="width:123.05pt; border:solid windowtext 1.0pt; border-top:none; padding:0cm 5.4pt 0cm 5.4pt">
-                <p class="MsoNormal">DETALLES DEL PROVEEDOR</p>
-              </td>
-              <td width="681" valign="top" style="width:510.5pt; border-top:none; border-left:none; border-bottom:solid windowtext 1.0pt; border-right:solid windowtext 1.0pt; padding:0cm 5.4pt 0cm 5.4pt">
-                <p class="MsoNormal">
-                  NOMBRE: ${Proveedor.namelong}<br>
-                  CONTACTO: ${Proveedor.contacto || ""}<br>
-                  EMAIL: <a href="mailto:${Proveedor.emailaddress || ""}">${
-        Proveedor.emailaddress || ""
-      }</a><br>
-                  TELEFONO: ${Proveedor.contacto_phone || ""}
-                </p>
-              </td>
-            </tr>
-
-            <tr>
-              <td width="164" valign="top" style="width:123.05pt; border:solid windowtext 1.0pt; border-top:none; padding:0cm 5.4pt 0cm 5.4pt">
-                <p class="MsoNormal">CLIENTE / RAZON SOCIAL</p>
-              </td>
-              <td width="681" valign="top" style="width:510.5pt; border-top:none; border-left:none; border-bottom:solid windowtext 1.0pt; border-right:solid windowtext 1.0pt; padding:0cm 5.4pt 0cm 5.4pt">
-                <p class="MsoNormal">
-                  ${
-                    this.$store.state.pricing.dataCliente.nombrecompleto
-                      ? this.$store.state.pricing.dataCliente.nombrecompleto
-                      : ""
-                  }<br>
-                  RUC: ${
-                    this.$store.state.pricing.dataCliente.document
-                      ? this.$store.state.pricing.dataCliente.document
-                      : ""
-                  }
-                  <br>
-                  DIRECCION: ${
-                    this.$store.state.pricing.dataCliente.address
-                      ? this.$store.state.pricing.dataCliente.address
-                      : ""
-                  }
-                  <br>
-                  GMAIL: ${
-                    this.$store.state.pricing.emailaddress
-                      ? this.$store.state.pricing.emailaddress
-                      : ""
-                  }
-                </p>
-              </td>
-            </tr>
-
-            <tr>
-              <td width="164" valign="top" style="width:123.05pt; border:solid windowtext 1.0pt; border-top:none; padding:0cm 5.4pt 0cm 5.4pt">
-                <p class="MsoNormal"><b>NOTIFY</b></p>
-              </td>
-              <td width="681" valign="top" style="width:510.5pt; border-top:none; border-left:none; border-bottom:solid windowtext 1.0pt; border-right:solid windowtext 1.0pt; padding:0cm 5.4pt 0cm 5.4pt">
-                <p class="MsoNormal">
-                  PIC LOGISTICA SAC <br>
-                  RUC: 20609852861 <br>
-                  AV. AGUSTIN DE LA ROSA TORO 770, SAN LUIS <br>
-                  Contacto: Carlos Ramirez <br>
-                  CORREO: ASESOR2@PIC-CARGO.COM
-                </p>
-              </td>
-            </tr>
-
-            <tr>
-              <td width="164" valign="top" style="width:123.05pt; border:solid windowtext 1.0pt; border-top:none; padding:0cm 5.4pt 0cm 5.4pt">
-                <p class="MsoNormal"><b>CARGA LISTA DIA FECHA</b></p>
-              </td>
-              <td width="681" valign="top" style="width:510.5pt; border-top:none; border-left:none; border-bottom:solid windowtext 1.0pt; border-right:solid windowtext 1.0pt; padding:0cm 5.4pt 0cm 5.4pt">
-                <p class="MsoNormal">${this.datosManuales.listDiaFecha}</p>
-              </td>
-            </tr>
-
-            <tr>
-              <td width="164" valign="top" style="width:123.05pt; border:solid windowtext 1.0pt; border-top:none; padding:0cm 5.4pt 0cm 5.4pt">
-                <p class="MsoNormal"><b>GRUPO DE WHATSAPP</b></p>
-              </td>
-              <td width="681" valign="top" style="width:510.5pt; border-top:none; border-left:none; border-bottom:solid windowtext 1.0pt; border-right:solid windowtext 1.0pt; padding:0cm 5.4pt 0cm 5.4pt">
-                <p class="MsoNormal">${this.datosManuales.grupoWhatsapp}</p>
-              </td>
-            </tr>
-
-            <tr>
-              <td width="164" valign="top" style="width:123.05pt; border:solid windowtext 1.0pt; border-top:none; padding:0cm 5.4pt 0cm 5.4pt">
-                <p class="MsoNormal"><b>SE ADJUNTA</b></p>
-              </td>
-              <td width="681" valign="top" style="width:510.5pt; border-top:none; border-left:none; border-bottom:solid windowtext 1.0pt; border-right:solid windowtext 1.0pt; padding:0cm 5.4pt 0cm 5.4pt">
-                <p class="MsoNormal">${
-                  this.datosFile && this.datosFile.length > 0
-                    ? this.datosFile
-                        .map((file) => `• ${file.nombre || file}`)
-                        .join("<br />")
-                    : "No hay archivos"
-                }</p>
-              </td>
-            </tr>
-
-
-            <tr>
-              <td width="164" valign="top" style="width:123.05pt; border:solid windowtext 1.0pt; border-top:none; padding:0cm 5.4pt 0cm 5.4pt">
-                <p class="MsoNormal"><b>TIPO DE MERCANCIA</b></p>
-              </td>
-              <td width="681" valign="top" style="width:510.5pt; border-top:none; border-left:none; border-bottom:solid windowtext 1.0pt; border-right:solid windowtext 1.0pt; padding:0cm 5.4pt 0cm 5.4pt">
-                <p class="MsoNormal">${
-                  this.$store.state.pricing.datosPrincipales.descripcioncarga
-                    ? this.$store.state.pricing.datosPrincipales
-                        .descripcioncarga
-                    : ""
-                }</p>
-              </td>
-            </tr>
-
-            <tr>
-              <td width="164" valign="top" style="width:123.05pt; border:solid windowtext 1.0pt; border-top:none; padding:0cm 5.4pt 0cm 5.4pt">
-                <p class="MsoNormal"><b>DEBEMOS PAGAR AL PROVEEDOR</b></p>
-                <span style="color:red">Solo aplica si el cliente nos cancela a nosotros y nosotros debemos pagar al proveedor</span>
-              </td>
-              <td width="681" valign="top" style="width:510.5pt; border-top:none; border-left:none; border-bottom:solid windowtext 1.0pt; border-right:solid windowtext 1.0pt; padding:0cm 5.4pt 0cm 5.4pt">
-                <p class="MsoNormal">${this.datosManuales.pagarProveedor}</p>
-              </td>
-            </tr>
-
-            <tr>
-              <td width="164" valign="top" style="width:123.05pt; border:solid windowtext 1.0pt; border-top:none; padding:0cm 5.4pt 0cm 5.4pt">
-                <p class="MsoNormal"><b>DONDE SE DEBE PAGAR</b></p>
-                <span style="color:red">Solo aplica si el cliente nos cancela a nosotros y nosotros debemos pagar al proveedor</span>
-              </td>
-              <td width="681" valign="top" style="width:510.5pt; border-top:none; border-left:none; border-bottom:solid windowtext 1.0pt; border-right:solid windowtext 1.0pt; padding:0cm 5.4pt 0cm 5.4pt">
-                <p class="MsoNormal">${this.datosManuales.dondePagar}</p>
-              </td>
-            </tr>
-
-            <tr>
-              <td width="164" valign="top" style="width:123.05pt; border:solid windowtext 1.0pt; border-top:none; padding:0cm 5.4pt 0cm 5.4pt">
-                <p class="MsoNormal"><b>LINK DE PAGO o DATOS DE A TRANSFERENCIA INTERNACIONAL</b></p>
-                <span style="color:red">Recuerda debes cobrar la comisión bancaria</span>
-                <span style="color:red">Solo aplica si el cliente nos cancela a nosotros y nosotros debemos pagar al proveedor</span>
-              </td>
-              <td width="681" valign="top" style="width:510.5pt; border-top:none; border-left:none; border-bottom:solid windowtext 1.0pt; border-right:solid windowtext 1.0pt; padding:0cm 5.4pt 0cm 5.4pt">
-                <p class="MsoNormal">${this.datosManuales.linkDePago}</p>
-              </td>
-            </tr>
-
-
-            <tr>
-              <td width="164" valign="top" style="width:123.05pt; border:solid windowtext 1.0pt; border-top:none; padding:0cm 5.4pt 0cm 5.4pt">
-                <p class="MsoNormal"><b>CONDICIONES DE LINK DE CONTRATO DE ALIBABA</b></p>
-              </td>
-              <td width="681" valign="top" style="width:510.5pt; border-top:none; border-left:none; border-bottom:solid windowtext 1.0pt; border-right:solid windowtext 1.0pt; padding:0cm 5.4pt 0cm 5.4pt">
-                <p class="MsoNormal">${this.datosManuales.condicionesLink}</p>
-              </td>
-            </tr>
-
-            <tr>
-              <td width="164" valign="top" style="width:123.05pt; border:solid windowtext 1.0pt; border-top:none; padding:0cm 5.4pt 0cm 5.4pt">
-                <p class="MsoNormal"><b>PAGO DE TRANSFERENCIA INTERNCIONAL</b></p>
-                <span style="color:red">DEBE PONERSE EL NUMERO DE FACTURA</span>
-              </td>
-              <td width="681" valign="top" style="width:510.5pt; border-top:none; border-left:none; border-bottom:solid windowtext 1.0pt; border-right:solid windowtext 1.0pt; padding:0cm 5.4pt 0cm 5.4pt">
-                <p class="MsoNormal">${this.datosManuales.nroFactura}</p>
-              </td>
-            </tr>
-
-
-            <tr>
-              <td width="164" valign="top" style="width:123.05pt; border:solid windowtext 1.0pt; border-top:none; padding:0cm 5.4pt 0cm 5.4pt">
-                <p class="MsoNormal"><b>SEGURO DE MERCANCIA</b></p>
-              </td>
-              <td width="681" valign="top" style="width:510.5pt; border-top:none; border-left:none; border-bottom:solid windowtext 1.0pt; border-right:solid windowtext 1.0pt; padding:0cm 5.4pt 0cm 5.4pt">
-                <p class="MsoNormal">${this.datosManuales.seguro}</p>
-              </td>
-            </tr>
-
-            <tr>
-              <td width="164" valign="top" style="width:123.05pt; border:solid windowtext 1.0pt; border-top:none; padding:0cm 5.4pt 0cm 5.4pt">
-                <p class="MsoNormal">OBSERVACIONES ADICIONALES 1</p>
-              </td>
-              <td width="681" valign="top" style="width:510.5pt; border-top:none; border-left:none; border-bottom:solid windowtext 1.0pt; border-right:solid windowtext 1.0pt; padding:0cm 5.4pt 0cm 5.4pt">
-                <p class="MsoNormal">${this.datosManuales.observacion1}</p>
-              </td>
-            </tr>
-
-            <tr>
-              <td width="164" valign="top" style="width:123.05pt; border:solid windowtext 1.0pt; border-top:none; padding:0cm 5.4pt 0cm 5.4pt">
-                <p class="MsoNormal">OBSERVACIONES ADICIONALES 2</p>
-              </td>
-              <td width="681" valign="top" style="width:510.5pt; border-top:none; border-left:none; border-bottom:solid windowtext 1.0pt; border-right:solid windowtext 1.0pt; padding:0cm 5.4pt 0cm 5.4pt">
-                <p class="MsoNormal">${this.datosManuales.observacion2}</p>
-              </td>
-            </tr>
-          </tbody>
-        </table>`;
       try {
-        const blob = new Blob([hmtl1], { type: "text/html" });
-        const data = [new ClipboardItem({ ["text/html"]: blob })];
-        await navigator.clipboard.write(data);
+        // 4. Copiar al Portapapeles
+        const blob = new Blob([htmlTable], { type: "text/html" });
+        await navigator.clipboard.write([
+          new ClipboardItem({ "text/html": blob }),
+        ]);
 
         alert(
-          "Información de cotización copiada. Al aceptar, se abrirá Outlook. (Luego presiona Ctrl+V)",
+          "Tabla copiada. Se abrirá Outlook; pega el contenido con Ctrl+V.",
         );
 
-        const subject = encodeURIComponent(
-          `EXPEDIENTE-${this.$store.state.pricing.nro_exp} QUOTE ${this.$store.state.pricing.nro_quote} ${this.$store.state.pricing.dataCliente.nombrecompleto} ${Incoterms.name} ${Modality.name}`,
-        );
-        const body = encodeURIComponent("Hola colega, (PEGA LA TABLA AQUÍ)");
+        // 5. Configuración del correo
+        const subject = `EXPEDIENTE-${pricing.nro_exp} QUOTE ${pricing.nro_quote} ${pricing.dataCliente.nombrecompleto} ${incoterms.name} ${modality.name}`;
+        const body =
+          "Hola colega, adjunto los detalles del expediente (Pega la tabla aquí):\n\n";
 
         setTimeout(() => {
-          window.location.href = `mailto:?subject=${subject}&body=${body}`;
-
+          window.location.href = `mailto:?subject=${encodeURIComponent(
+            subject,
+          )}&body=${encodeURIComponent(body)}`;
           this.abrirModalSegundoCorreo();
         }, 1000);
       } catch (err) {
-        console.error("Error al copiar:", err);
-        alert("Hubo un problema al copiar los datos automáticamente.");
+        console.error("Error:", err);
+        alert("Error al copiar automáticamente.");
       }
+    },
+
+    // Método auxiliar para no repetir tanto código de filas
+    _tr(label, value) {
+      return `
+    <tr>
+      <td width="164" valign="top" style="width:123pt; border:solid windowtext 1.0pt; padding:4pt;">
+        <p style="margin:0; font-size:11px;">${label}</p>
+      </td>
+      <td valign="top" style="border:solid windowtext 1.0pt; border-left:none; padding:4pt;">
+        <p style="margin:0; font-size:11px;">${value || ""}</p>
+      </td>
+    </tr>`;
     },
     abrirModalSegundoCorreo() {
       setTimeout(() => {
