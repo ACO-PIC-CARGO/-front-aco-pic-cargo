@@ -633,6 +633,7 @@ import moment from "moment";
 import Swal from "sweetalert2";
 import axios from "axios";
 import { mapActions } from "vuex";
+import puerto from "../../store/modules/puerto";
 export default {
   props: {
     aprobadoflag: {
@@ -677,6 +678,8 @@ export default {
         observacion2: "",
         id_path: [],
       },
+      puertoOrigen: null,
+      puertoDestino: null,
     };
   },
   methods: {
@@ -684,6 +687,7 @@ export default {
       "uploadFileFromUrlToOneDrive",
       "guardarDatosInstructivo",
       "quotePreviewInstructivoManual",
+      "verPuerto",
     ]),
     continuarEmail() {
       if (!this.datosManuales.servicio) {
@@ -786,8 +790,7 @@ export default {
         state.listModality.find((v) => v.id == main.idsentido) || {};
       const Shipment =
         state.listShipment.find((v) => v.id == main.idtipocarga) || {};
-      const PortBegin =
-        state.listPortBegin.find((v) => v.id == main.idorigen) || {};
+      const PortBegin = this.puertoOrigen;
       const Incoterms =
         state.listIncoterms.find((v) => v.id == main.idincoterms) || {};
       const Proveedor =
@@ -824,7 +827,7 @@ export default {
         nro_quote: state.nro_quote || "",
         servicio: this.datosManuales.servicio || "",
         email: this.datosManuales.email || "",
-        PortBegin: PortBegin.name || "",
+        PortBegin: this.puertoOrigen.name || "",
         Incoterms: Incoterms.name || "",
         peso: main.peso || 0,
         volumen: main.volumen || 0,
@@ -880,13 +883,12 @@ export default {
       const portEnd = encontrar(pricing.listPortEnd, dp.iddestino);
       const incoterms = encontrar(pricing.listIncoterms, dp.idincoterms);
       const proveedor = encontrar(state.itemsProveedorList, dp.id_proveedor);
-
+      console.log("portBegin", portBegin);
       // 2. Formateo de archivos adjuntos
       const listaArchivos =
         this.datosFile?.length > 0
           ? this.datosFile.map((f) => `• ${f.nombre || f}`).join("<br />")
           : "No hay archivos";
-
       // 3. Construcción del Template HTML
       const htmlTable = `
         <table border="0" cellspacing="0" cellpadding="0" style="border-collapse:collapse; font-family: Arial, sans-serif; width: 100%;">
@@ -894,6 +896,7 @@ export default {
             ${this._tr("FECHA", moment().format("DD/MM/YYYY"))}
             ${this._tr("ASESOR", asesor.name)}
             ${this._tr("N° QUOTE", pricing.nro_quote)}
+            ${this._tr("TIPO DE EMBARQUE", shipment.code)}
             ${this._tr("SERVICIO", this.datosManuales.servicio)}
             ${this._tr(
               "COLOADER/AGENTE",
@@ -1021,8 +1024,7 @@ export default {
       const cliente = state.dataCliente;
 
       // Obtenemos los objetos o un objeto vacío para evitar errores de .name
-      const PortBegin =
-        state.listPortBegin.find((v) => v.id == main.idorigen) || {};
+      const PortBegin = this.puertoOrigen;
       const Incoterms =
         state.listIncoterms.find((v) => v.id == main.idincoterms) || {};
       const Modality =
@@ -1085,11 +1087,7 @@ export default {
 
         alert("Copiado. Se abrirá Outlook. (Usa Ctrl+V)");
 
-        const subject = encodeURIComponent(
-          `QUOTE ${state.nro_quote} ${cliente.nombrecompleto || ""} ${
-            Incoterms.name || ""
-          } ${Modality.name || ""}`,
-        );
+        const subject = `EXPEDIENTE-${pricing.nro_exp} QUOTE ${pricing.nro_quote} ${pricing.dataCliente.nombrecompleto} ${incoterms.name} ${modality.name}`;
         window.location.href = `mailto:${
           cliente.emailaddress || ""
         }?subject=${subject}&body=${encodeURIComponent(
@@ -1140,7 +1138,12 @@ export default {
     </tr>`;
     },
   },
-  mounted() {
+  async mounted() {
+    const tipoCargaItem = this.$store.state.pricing.listShipment.find(
+      (v) => v.id == this.$store.state.pricing.datosPrincipales.idtipocarga,
+    );
+
+    let idTipoCarga = tipoCargaItem ? tipoCargaItem.id_transport : null;
     if (this.$store.state.pricing.datosPrincipales.datosinstructivomanual) {
       this.datosManuales =
         this.$store.state.pricing.datosPrincipales.datosinstructivomanual;
@@ -1161,6 +1164,16 @@ export default {
       );
       console.log(this.proveedorInstructivo);
     }
+    this.puertoOrigen = await this.verPuerto({
+      id_transport: idTipoCarga,
+      id: this.$store.state.pricing.datosPrincipales.idorigen,
+    });
+    this.puertoDestino = await this.verPuerto({
+      id_transport: idTipoCarga,
+      id: this.$store.state.pricing.datosPrincipales.iddestino,
+    });
+    console.log("this.puertoOrigen", this.puertoOrigen);
+    console.log("this.puertoDestino", this.puertoDestino);
   },
   watch: {},
 };

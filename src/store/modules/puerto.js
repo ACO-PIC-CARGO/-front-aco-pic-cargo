@@ -138,6 +138,34 @@ let actions = {
       console.error(error);
     }
   },
+  async verPuerto({ commit }, params) {
+    let res = null;
+    var config = {
+      method: "get",
+      url: process.env.VUE_APP_URL_MAIN + `ver_puerto`,
+      headers: {
+        "auth-token": sessionStorage.getItem("auth-token"),
+        "Content-Type": "application/json",
+      },
+      params: params,
+    };
+    try {
+      await axios(config)
+        .then(function (response) {
+          let data = response.data;
+          res = data.data[0];
+          
+        })
+        .catch(function (error) {
+          console.error(error);
+        });
+      console.log(res);
+      return res;
+    } catch (error) {
+      console.error(error);
+      return false;
+    }
+  },
 };
 
 export default {
