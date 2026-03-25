@@ -907,7 +907,7 @@ export default {
             `,
             )}
             ${this._tr("Email de Seguimiento", this.datosManuales.email)}
-            ${this._tr("PUERTO DE SALIDA", puertoOrigen.name)}
+            ${this._tr("PUERTO DE SALIDA", this.puertoOrigen.name)}
             ${this._tr(
               "DATOS DE LA CARGA<br><span style='color:red;font-size:10px;'>Si es EXW enviar dirección de recolecta</span>",
               `
