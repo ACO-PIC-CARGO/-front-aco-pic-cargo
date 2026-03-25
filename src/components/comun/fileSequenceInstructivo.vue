@@ -879,11 +879,11 @@ export default {
       );
       const modality = encontrar(pricing.listModality, dp.idsentido);
       const shipment = encontrar(pricing.listShipment, dp.idtipocarga);
-      const portBegin = encontrar(pricing.listPortBegin, dp.idorigen);
+     
       const portEnd = encontrar(pricing.listPortEnd, dp.iddestino);
       const incoterms = encontrar(pricing.listIncoterms, dp.idincoterms);
       const proveedor = encontrar(state.itemsProveedorList, dp.id_proveedor);
-      console.log("portBegin", portBegin);
+    
       // 2. Formateo de archivos adjuntos
       const listaArchivos =
         this.datosFile?.length > 0
@@ -907,7 +907,7 @@ export default {
             `,
             )}
             ${this._tr("Email de Seguimiento", this.datosManuales.email)}
-            ${this._tr("PUERTO DE SALIDA", portBegin.name)}
+            ${this._tr("PUERTO DE SALIDA", puertoOrigen.name)}
             ${this._tr(
               "DATOS DE LA CARGA<br><span style='color:red;font-size:10px;'>Si es EXW enviar dirección de recolecta</span>",
               `
