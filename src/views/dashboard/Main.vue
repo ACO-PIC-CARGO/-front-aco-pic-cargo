@@ -148,7 +148,7 @@
         v-if="getNameUrl() == 'verQuote'"
         @click="handleEditarQuote()"
       >
-        EDITAR
+      <v-icon small class="mx-1">mdi-pencil</v-icon>  EDITAR
       </v-btn>
       <v-btn
         v-if="getNameUrl() == 'verQuote'"

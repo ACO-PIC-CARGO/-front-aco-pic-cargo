@@ -1,195 +1,204 @@
 <template>
-  <v-container>
-    <v-card>
-      <v-card-text>
-        <v-stepper v-model="e6" vertical non-linear>
-          <v-stepper-step :editable="aprobadoflag" :complete="e6 > 1" step="1">
-            SERVICIO
-          </v-stepper-step>
+  <v-card>
+    <v-container fluid class="px-5">
+      <v-row no-gutters>
+        <v-col v-if="verDatosPreview" :cols="verPrevisualizacion ? 4 : 12">
+          <div class="clsSequence">
+            <v-checkbox label="Ver Preview" v-model="verPrevisualizacion" />
+            <v-stepper v-model="e6" vertical non-linear>
+              <v-stepper-step :editable="true" :complete="e6 > 1" step="1">
+                SERVICIO
+              </v-stepper-step>
 
-          <v-stepper-content step="1">
-            <v-row>
-              <v-col cols="12">
-                <!-- <v-checkbox
+              <v-stepper-content step="1">
+                <v-row>
+                  <v-col cols="12">
+                    <!-- <v-checkbox
                   @change="checkNoAplica(1)"
                   label="No Aplica"
                   v-model="datosManualesNoAplica.servicio"
                 ></v-checkbox> -->
-                <v-text-field
-                  placeholder="Individual/ Grupal"
-                  v-model="datosManuales.servicio"
-                  ref="txtServicio"
-                  :rules="[(v) => !!v || 'Dato Requerido']"
-                ></v-text-field>
-              </v-col>
-              <v-col cols="12">
-                <v-spacer></v-spacer>
-                <v-btn color="primary" @click="continuarEmail">
-                  Continue
-                </v-btn>
-              </v-col>
-            </v-row>
-          </v-stepper-content>
+                    <v-text-field
+                      placeholder="Individual/ Grupal"
+                      v-model="datosManuales.servicio"
+                      ref="txtServicio"
+                      :rules="[(v) => !!v || 'Dato Requerido']"
+                    ></v-text-field>
+                  </v-col>
+                  <v-col cols="12">
+                    <v-spacer></v-spacer>
+                    <v-btn color="primary" @click="continuarEmail">
+                      Continue
+                    </v-btn>
+                  </v-col>
+                </v-row>
+              </v-stepper-content>
 
-          <v-stepper-step :editable="aprobadoflag" :complete="e6 > 2" step="2">
-            EMAIL DE SEGUIMIENTO
-          </v-stepper-step>
+              <v-stepper-step :editable="true" :complete="e6 > 2" step="2">
+                EMAIL DE SEGUIMIENTO
+              </v-stepper-step>
 
-          <v-stepper-content step="2">
-            <v-row>
-              <v-col cols="12">
-                <!-- <v-checkbox
+              <v-stepper-content step="2">
+                <v-row>
+                  <v-col cols="12">
+                    <!-- <v-checkbox
                   @change="checkNoAplica(2)"
                   label="No Aplica"
                   v-model="datosManualesNoAplica.email"
                 ></v-checkbox> -->
-              </v-col>
-              <v-col cols="12">
-                <p class="red--text">
-                  Email de Seguimiento con el coloader o Agente donde se
-                  consiguió la tarifa
-                </p>
-                <v-text-field
-                  placeholder="example@mail.com"
-                  v-model="datosManuales.email"
-                  ref="txtEmail"
-                  :rules="[
-                    (v) => !datosManualesNoAplica.email,
-                    (v) => !!v || 'Dato Requerido',
-                    (v) =>
-                      /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v) ||
-                      'Formato de correo no válido',
-                  ]"
-                ></v-text-field>
-              </v-col>
-              <v-col cols="12">
-                <v-spacer></v-spacer>
-                <v-btn
-                  color="primary"
-                  class="mx-1"
-                  @click="continuarListaDiaFecha"
-                >
-                  Continue
-                </v-btn>
-                <v-btn color="error" class="mx-1" @click="regresar()">
-                  Volver
-                </v-btn>
-              </v-col>
-            </v-row>
-          </v-stepper-content>
+                  </v-col>
+                  <v-col cols="12">
+                    <p class="red--text">
+                      Email de Seguimiento con el coloader o Agente donde se
+                      consiguió la tarifa
+                    </p>
+                    <v-text-field
+                      placeholder="example@mail.com"
+                      v-model="datosManuales.email"
+                      ref="txtEmail"
+                      :rules="[
+                        (v) => !datosManualesNoAplica.email,
+                        (v) => !!v || 'Dato Requerido',
+                        (v) =>
+                          /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v) ||
+                          'Formato de correo no válido',
+                      ]"
+                    ></v-text-field>
+                  </v-col>
+                  <v-col cols="12">
+                    <v-spacer></v-spacer>
+                    <v-btn
+                      color="primary"
+                      class="mx-1"
+                      @click="continuarListaDiaFecha"
+                    >
+                      Continue
+                    </v-btn>
+                    <v-btn color="error" class="mx-1" @click="regresar()">
+                      Volver
+                    </v-btn>
+                  </v-col>
+                </v-row>
+              </v-stepper-content>
 
-          <!--  -->
-          <v-stepper-step :editable="aprobadoflag" :complete="e6 > 3" step="3">
-            CARGA LISTA DIA FECHA
-          </v-stepper-step>
+              <!--  -->
+              <v-stepper-step :editable="true" :complete="e6 > 3" step="3">
+                CARGA LISTA DIA FECHA
+              </v-stepper-step>
 
-          <v-stepper-content step="3">
-            <v-row>
-              <!-- <v-col cols="12">
+              <v-stepper-content step="3">
+                <v-row>
+                  <!-- <v-col cols="12">
                 <v-checkbox
                   @change="checkNoAplica(3)"
                   label="No Aplica"
                   v-model="datosManualesNoAplica.listDiaFecha"
                 ></v-checkbox>
               </v-col> -->
-              <v-col cols="12">
-                <v-textarea
-                  rows="1"
-                  auto-grow
-                  placeholder=""
-                  v-model="datosManuales.listDiaFecha"
-                  ref="txtcondiciones"
-                  class="txtNroFactura"
-                />
-              </v-col>
-              <v-col cols="12">
-                <v-spacer></v-spacer>
-                <v-btn color="primary" class="mx-1" @click="continuar">
-                  Continue
-                </v-btn>
-                <v-btn color="error" class="mx-1" @click="regresar()">
-                  Volver
-                </v-btn>
-              </v-col>
-            </v-row>
-          </v-stepper-content>
-          <!--  -->
-          <v-stepper-step :editable="aprobadoflag" :complete="e6 > 4" step="4">
-            GRUPO DE WHATSAPP
-          </v-stepper-step>
+                  <v-col cols="12">
+                    <v-textarea
+                      rows="1"
+                      auto-grow
+                      placeholder=""
+                      v-model="datosManuales.listDiaFecha"
+                      ref="txtcondiciones"
+                      class="txtNroFactura"
+                    />
+                  </v-col>
+                  <v-col cols="12">
+                    <v-spacer></v-spacer>
+                    <v-btn color="primary" class="mx-1" @click="continuar">
+                      Continue
+                    </v-btn>
+                    <v-btn color="error" class="mx-1" @click="regresar()">
+                      Volver
+                    </v-btn>
+                  </v-col>
+                </v-row>
+              </v-stepper-content>
+              <!--  -->
+              <v-stepper-step :editable="true" :complete="e6 > 4" step="4">
+                GRUPO DE WHATSAPP
+              </v-stepper-step>
 
-          <v-stepper-content step="4">
-            <v-row>
-              <!-- <v-col cols="12">
+              <v-stepper-content step="4">
+                <v-row>
+                  <!-- <v-col cols="12">
                 <v-checkbox
                   @change="checkNoAplica(4)"
                   label="No Aplica"
                   v-model="datosManualesNoAplica.grupoWhatsapp"
                 ></v-checkbox>
               </v-col> -->
-              <v-col cols="12">
-                <v-textarea
-                  rows="1"
-                  auto-grow
-                  placeholder=""
-                  v-model="datosManuales.grupoWhatsapp"
-                  ref="txtcondiciones"
-                  class="txtNroFactura"
-                />
-              </v-col>
-              <v-col cols="12">
-                <v-spacer></v-spacer>
-                <v-btn color="primary" class="mx-1" @click="continuar">
-                  Continue
-                </v-btn>
-                <v-btn color="error" class="mx-1" @click="regresar()">
-                  Volver
-                </v-btn>
-              </v-col>
-            </v-row>
-          </v-stepper-content>
-          <!--  -->
-          <v-stepper-step :editable="aprobadoflag" :complete="e6 > 5" step="5">
-            SE ADJUNTA
-          </v-stepper-step>
+                  <v-col cols="12">
+                    <v-textarea
+                      rows="1"
+                      auto-grow
+                      placeholder=""
+                      v-model="datosManuales.grupoWhatsapp"
+                      ref="txtcondiciones"
+                      class="txtNroFactura"
+                    />
+                  </v-col>
+                  <v-col cols="12">
+                    <v-spacer></v-spacer>
+                    <v-btn color="primary" class="mx-1" @click="continuar">
+                      Continue
+                    </v-btn>
+                    <v-btn color="error" class="mx-1" @click="regresar()">
+                      Volver
+                    </v-btn>
+                  </v-col>
+                </v-row>
+              </v-stepper-content>
+              <!--  -->
+              <v-stepper-step :editable="true" :complete="e6 > 5" step="5">
+                SE ADJUNTA
+              </v-stepper-step>
 
-          <v-stepper-content step="5">
-            <v-row>
-              <v-col cols="12">
-                <p class="red--text">
-                  si se adjunta todo lo que más puedas facturas permisos, fotos,
-                  y cualquier información relevante
-                </p>
-              </v-col>
-              <v-col cols="12">
-                <v-file-input
-                  small-chips
-                  label="Se pueden cargar varios archivos a la vez"
-                  v-model="files"
-                  counter
-                  multiple
-                  show-size
-                  dense
-                />
+              <v-stepper-content step="5">
+                <v-row>
+                  <v-col cols="12">
+                    <p class="red--text">
+                      si se adjunta todo lo que más puedas facturas permisos,
+                      fotos, y cualquier información relevante
+                    </p>
+                  </v-col>
+                  <v-col cols="12">
+                    <v-file-input
+                      small-chips
+                      label="Se pueden cargar varios archivos a la vez"
+                      v-model="files"
+                      counter
+                      multiple
+                      show-size
+                      dense
+                    />
 
-                <div
-                  v-if="
-                    datosManuales.table_allpath_list &&
-                    datosManuales.table_allpath_list.length > 0
-                  "
-                >
-                  <p
-                    v-for="(file, index) in datosManuales.table_allpath_list"
-                    :key="index"
-                  >
-                    {{ file.nombre }}
-                    <v-btn color="default" icon :href="file.url" target="_blank"
-                      ><v-icon>mdi-file</v-icon></v-btn
+                    <div
+                      v-if="
+                        datosManuales.table_allpath_list &&
+                        datosManuales.table_allpath_list.length > 0
+                      "
                     >
-                  </p>
-                </div>
+                      <p
+                        v-for="(
+                          file, index
+                        ) in datosManuales.table_allpath_list"
+                        :key="index"
+                      >
+                        {{ file.nombre || "" }}
+                        <v-btn
+                          color="default"
+                          icon
+                          :href="file.url"
+                          target="_blank"
+                          ><v-icon>mdi-file</v-icon></v-btn
+                        >
+                      </p>
+                    </div>
 
-                <!-- <v-textarea
+                    <!-- <v-textarea
                   rows="1"
                   auto-grow
                   placeholder=""
@@ -197,435 +206,1210 @@
                   ref="txtcondiciones"
                   class="txtNroFactura"
                 /> -->
-              </v-col>
-              <v-col cols="12">
-                <v-spacer></v-spacer>
-                <v-btn
-                  color="primary"
-                  class="mx-1"
-                  @click="continuarCargarArchivos()"
-                >
-                  Continue
-                </v-btn>
-                <v-btn color="error" class="mx-1" @click="regresar()">
-                  Volver
-                </v-btn>
-              </v-col>
-            </v-row>
-          </v-stepper-content>
+                  </v-col>
+                  <v-col cols="12">
+                    <v-spacer></v-spacer>
+                    <v-btn
+                      color="primary"
+                      class="mx-1"
+                      @click="continuarCargarArchivos()"
+                    >
+                      Continue
+                    </v-btn>
+                    <v-btn color="error" class="mx-1" @click="regresar()">
+                      Volver
+                    </v-btn>
+                  </v-col>
+                </v-row>
+              </v-stepper-content>
 
-          <!--  -->
-          <v-stepper-step :editable="aprobadoflag" :complete="e6 > 6" step="6">
-            DEBEMOS PAGAR AL PROVEEDOR
-          </v-stepper-step>
+              <!--  -->
+              <v-stepper-step :editable="true" :complete="e6 > 6" step="6">
+                DEBEMOS PAGAR AL PROVEEDOR
+              </v-stepper-step>
 
-          <v-stepper-content step="6">
-            <v-row>
-              <v-col cols="12">
-                <p class="red--text">
-                  solo aplica si el cliente nos cancela a nosotros y nosotros
-                  debemos pagar al proveedor
-                </p>
-                <v-checkbox
-                  @change="checkNoAplica(6)"
-                  label="No Aplica"
-                  v-model="datosManualesNoAplica.pagarProveedor"
-                ></v-checkbox>
-                <v-text-field
-                  placeholder=""
-                  v-model="datosManuales.pagarProveedor"
-                  ref="txtClientePago"
-                ></v-text-field>
-              </v-col>
+              <v-stepper-content step="6">
+                <v-row>
+                  <v-col cols="12">
+                    <p class="red--text">
+                      solo aplica si el cliente nos cancela a nosotros y
+                      nosotros debemos pagar al proveedor
+                    </p>
+                    <v-checkbox
+                      @change="checkNoAplica(6)"
+                      label="No Aplica"
+                      v-model="datosManualesNoAplica.pagarProveedor"
+                    ></v-checkbox>
+                    <v-text-field
+                      placeholder=""
+                      v-model="datosManuales.pagarProveedor"
+                      ref="txtClientePago"
+                    ></v-text-field>
+                  </v-col>
 
-              <v-col cols="12">
-                <v-spacer></v-spacer>
-                <v-btn
-                  color="primary"
-                  class="mx-1"
-                  @click="continuarPagarProveedor"
-                >
-                  Continue
-                </v-btn>
-                <v-btn color="error" class="mx-1" @click="regresar()">
-                  Volver
-                </v-btn>
-              </v-col>
-            </v-row>
-          </v-stepper-content>
+                  <v-col cols="12">
+                    <v-spacer></v-spacer>
+                    <v-btn
+                      color="primary"
+                      class="mx-1"
+                      @click="continuarPagarProveedor"
+                    >
+                      Continue
+                    </v-btn>
+                    <v-btn color="error" class="mx-1" @click="regresar()">
+                      Volver
+                    </v-btn>
+                  </v-col>
+                </v-row>
+              </v-stepper-content>
 
-          <!--  -->
-          <v-stepper-step :editable="aprobadoflag" :complete="e6 > 7" step="7">
-            DONDE SE DEBE PAGAR
-          </v-stepper-step>
+              <!--  -->
+              <v-stepper-step :editable="true" :complete="e6 > 7" step="7">
+                DONDE SE DEBE PAGAR
+              </v-stepper-step>
 
-          <v-stepper-content step="7">
-            <v-row>
-              <v-col cols="12">
-                <p class="red--text">
-                  solo aplica si el cliente nos cancela a nosotros y nosotros
-                  debemos pagar al proveedor
-                </p>
-                <v-checkbox
-                  @change="checkNoAplica(7)"
-                  label="No Aplica"
-                  v-model="datosManualesNoAplica.dondePagar"
-                ></v-checkbox>
-                <v-text-field
-                  placeholder=""
-                  v-model="datosManuales.dondePagar"
-                  ref="txtClientePago"
-                ></v-text-field>
-              </v-col>
-              <v-col cols="12">
-                <v-spacer></v-spacer>
-                <v-btn color="primary" class="mx-1" @click="continuar">
-                  Continue
-                </v-btn>
-                <v-btn color="error" class="mx-1" @click="regresar()">
-                  Volver
-                </v-btn>
-              </v-col>
-            </v-row>
-          </v-stepper-content>
+              <v-stepper-content step="7">
+                <v-row>
+                  <v-col cols="12">
+                    <p class="red--text">
+                      solo aplica si el cliente nos cancela a nosotros y
+                      nosotros debemos pagar al proveedor
+                    </p>
+                    <v-checkbox
+                      @change="checkNoAplica(7)"
+                      label="No Aplica"
+                      v-model="datosManualesNoAplica.dondePagar"
+                    ></v-checkbox>
+                    <v-text-field
+                      placeholder=""
+                      v-model="datosManuales.dondePagar"
+                      ref="txtClientePago"
+                    ></v-text-field>
+                  </v-col>
+                  <v-col cols="12">
+                    <v-spacer></v-spacer>
+                    <v-btn color="primary" class="mx-1" @click="continuar">
+                      Continue
+                    </v-btn>
+                    <v-btn color="error" class="mx-1" @click="regresar()">
+                      Volver
+                    </v-btn>
+                  </v-col>
+                </v-row>
+              </v-stepper-content>
 
-          <!--  -->
-          <v-stepper-step :editable="aprobadoflag" :complete="e6 > 8" step="8">
-            MONTO A PAGAR
-          </v-stepper-step>
+              <!--  -->
+              <v-stepper-step :editable="true" :complete="e6 > 8" step="8">
+                MONTO A PAGAR
+              </v-stepper-step>
 
-          <v-stepper-content step="8">
-            <v-row>
-              <v-col cols="12">
-                <p class="red--text">
-                  solo aplica si el cliente nos cancela a nosotros y nosotros
-                  debemos pagar al proveedor
-                </p>
-                <v-checkbox
-                  @change="checkNoAplica(8)"
-                  label="No Aplica"
-                  v-model="datosManualesNoAplica.monto"
-                ></v-checkbox>
-                <v-text-field
-                  placeholder="0.00"
-                  v-model="datosManuales.monto"
-                  ref="txtMonto"
-                  type="number"
-                ></v-text-field>
-              </v-col>
-              <v-col cols="12">
-                <v-spacer></v-spacer>
-                <v-btn color="primary" class="mx-1" @click="continuar">
-                  Continue
-                </v-btn>
-                <v-btn color="error" class="mx-1" @click="regresar()">
-                  Volver
-                </v-btn>
-              </v-col>
-            </v-row>
-          </v-stepper-content>
-          <!--  -->
-          <v-stepper-step :editable="aprobadoflag" :complete="e6 > 9" step="9">
-            CLIENTE YA NOS PAGOS
-          </v-stepper-step>
+              <v-stepper-content step="8">
+                <v-row>
+                  <v-col cols="12">
+                    <p class="red--text">
+                      solo aplica si el cliente nos cancela a nosotros y
+                      nosotros debemos pagar al proveedor
+                    </p>
+                    <v-checkbox
+                      @change="checkNoAplica(8)"
+                      label="No Aplica"
+                      v-model="datosManualesNoAplica.monto"
+                    ></v-checkbox>
+                    <v-text-field
+                      placeholder="0.00"
+                      v-model="datosManuales.monto"
+                      ref="txtMonto"
+                      type="number"
+                    ></v-text-field>
+                  </v-col>
+                  <v-col cols="12">
+                    <v-spacer></v-spacer>
+                    <v-btn color="primary" class="mx-1" @click="continuar">
+                      Continue
+                    </v-btn>
+                    <v-btn color="error" class="mx-1" @click="regresar()">
+                      Volver
+                    </v-btn>
+                  </v-col>
+                </v-row>
+              </v-stepper-content>
+              <!--  -->
+              <v-stepper-step :editable="true" :complete="e6 > 9" step="9">
+                CLIENTE YA NOS PAGOS
+              </v-stepper-step>
 
-          <v-stepper-content step="9">
-            <v-row>
-              <v-col cols="12">
-                <p class="red--text">
-                  Solo aplica si el cliente nos cancela a nosotros y nosotros
-                  debemos pagar al proveedor
-                </p>
-                <v-checkbox
-                  @change="checkNoAplica(9)"
-                  label="No Aplica"
-                  v-model="datosManualesNoAplica.clientePago"
-                ></v-checkbox>
-                <v-text-field
-                  placeholder=""
-                  v-model="datosManuales.clientePago"
-                  ref="txtClientePago"
-                ></v-text-field>
-              </v-col>
-              <v-col cols="12">
-                <v-spacer></v-spacer>
-                <v-btn color="primary" class="mx-1" @click="continuar">
-                  Continue
-                </v-btn>
-                <v-btn color="error" class="mx-1" @click="regresar()">
-                  Volver
-                </v-btn>
-              </v-col>
-            </v-row>
-          </v-stepper-content>
-          <!--  -->
-          <v-stepper-step
-            :editable="aprobadoflag"
-            :complete="e6 > 10"
-            step="10"
-          >
-            LINK DE PAGO o DATOS DE A TRANSFERENCIA INTERNACIONAL
-          </v-stepper-step>
+              <v-stepper-content step="9">
+                <v-row>
+                  <v-col cols="12">
+                    <p class="red--text">
+                      Solo aplica si el cliente nos cancela a nosotros y
+                      nosotros debemos pagar al proveedor
+                    </p>
+                    <v-checkbox
+                      @change="checkNoAplica(9)"
+                      label="No Aplica"
+                      v-model="datosManualesNoAplica.clientePago"
+                    ></v-checkbox>
+                    <v-text-field
+                      placeholder=""
+                      v-model="datosManuales.clientePago"
+                      ref="txtClientePago"
+                    ></v-text-field>
+                  </v-col>
+                  <v-col cols="12">
+                    <v-spacer></v-spacer>
+                    <v-btn color="primary" class="mx-1" @click="continuar">
+                      Continue
+                    </v-btn>
+                    <v-btn color="error" class="mx-1" @click="regresar()">
+                      Volver
+                    </v-btn>
+                  </v-col>
+                </v-row>
+              </v-stepper-content>
+              <!--  -->
+              <v-stepper-step :editable="true" :complete="e6 > 10" step="10">
+                LINK DE PAGO o DATOS DE A TRANSFERENCIA INTERNACIONAL
+              </v-stepper-step>
 
-          <v-stepper-content step="10">
-            <v-row>
-              <v-col cols="12">
-                <p class="red--text">
-                  Recuerda debes cobrar la comisión bancaria solo aplica si el
-                  cliente nos cancela a nosotros y nosotros debemos pagar al
-                  proveedor
-                </p>
-                <v-checkbox
-                  @change="checkNoAplica(10)"
-                  label="No Aplica"
-                  v-model="datosManualesNoAplica.linkDePago"
-                ></v-checkbox>
-                <v-text-field
-                  placeholder=""
-                  v-model="datosManuales.linkDePago"
-                  ref="txtLink"
-                ></v-text-field>
-              </v-col>
-              <v-col cols="12">
-                <v-spacer></v-spacer>
-                <v-btn color="primary" class="mx-1" @click="continuar">
-                  Continue
-                </v-btn>
-                <v-btn color="error" class="mx-1" @click="regresar()">
-                  Volver
-                </v-btn>
-              </v-col>
-            </v-row>
-          </v-stepper-content>
+              <v-stepper-content step="10">
+                <v-row>
+                  <v-col cols="12">
+                    <p class="red--text">
+                      Recuerda debes cobrar la comisión bancaria solo aplica si
+                      el cliente nos cancela a nosotros y nosotros debemos pagar
+                      al proveedor
+                    </p>
+                    <v-checkbox
+                      @change="checkNoAplica(10)"
+                      label="No Aplica"
+                      v-model="datosManualesNoAplica.linkDePago"
+                    ></v-checkbox>
+                    <v-text-field
+                      placeholder=""
+                      v-model="datosManuales.linkDePago"
+                      ref="txtLink"
+                    ></v-text-field>
+                  </v-col>
+                  <v-col cols="12">
+                    <v-spacer></v-spacer>
+                    <v-btn color="primary" class="mx-1" @click="continuar">
+                      Continue
+                    </v-btn>
+                    <v-btn color="error" class="mx-1" @click="regresar()">
+                      Volver
+                    </v-btn>
+                  </v-col>
+                </v-row>
+              </v-stepper-content>
 
-          <v-stepper-step
-            :editable="aprobadoflag"
-            :complete="e6 > 11"
-            step="11"
-          >
-            CONDICIONES DE LINK DE CONTRATO DE ALIBABA
-          </v-stepper-step>
+              <v-stepper-step :editable="true" :complete="e6 > 11" step="11">
+                CONDICIONES DE LINK DE CONTRATO DE ALIBABA
+              </v-stepper-step>
 
-          <v-stepper-content step="11">
-            <v-row>
-              <v-col cols="12">
-                <p class="red--text">
-                  DEBE ESTAR DETALLADO ESPECIFICAR UNIDADES ITEMS Y DEBE
-                  COINCIDIR CON EL INVOCE POR SI SUNAT LO OBSERVA
-                </p>
-                <v-checkbox
-                  @change="checkNoAplica(11)"
-                  label="No Aplica"
-                  v-model="datosManualesNoAplica.condicionesLink"
-                ></v-checkbox>
-                <v-textarea
-                  auto-grow
-                  rows="1"
-                  placeholder=""
-                  v-model="datosManuales.condicionesLink"
-                  ref="txtLink"
-                />
-              </v-col>
-              <v-col cols="12">
-                <v-spacer></v-spacer>
-                <v-btn color="primary" class="mx-1" @click="continuar">
-                  Continue
-                </v-btn>
-                <v-btn color="error" class="mx-1" @click="regresar()">
-                  Volver
-                </v-btn>
-              </v-col>
-            </v-row>
-          </v-stepper-content>
+              <v-stepper-content step="11">
+                <v-row>
+                  <v-col cols="12">
+                    <p class="red--text">
+                      DEBE ESTAR DETALLADO ESPECIFICAR UNIDADES ITEMS Y DEBE
+                      COINCIDIR CON EL INVOCE POR SI SUNAT LO OBSERVA
+                    </p>
+                    <v-checkbox
+                      @change="checkNoAplica(11)"
+                      label="No Aplica"
+                      v-model="datosManualesNoAplica.condicionesLink"
+                    ></v-checkbox>
+                    <v-textarea
+                      auto-grow
+                      rows="1"
+                      placeholder=""
+                      v-model="datosManuales.condicionesLink"
+                      ref="txtLink"
+                    />
+                  </v-col>
+                  <v-col cols="12">
+                    <v-spacer></v-spacer>
+                    <v-btn color="primary" class="mx-1" @click="continuar">
+                      Continue
+                    </v-btn>
+                    <v-btn color="error" class="mx-1" @click="regresar()">
+                      Volver
+                    </v-btn>
+                  </v-col>
+                </v-row>
+              </v-stepper-content>
 
-          <!--  -->
-          <v-stepper-step
-            :editable="aprobadoflag"
-            :complete="e6 > 12"
-            step="12"
-          >
-            PAGO DE TRANSFERENCIA INTERNCIONAL
-          </v-stepper-step>
+              <!--  -->
+              <v-stepper-step :editable="true" :complete="e6 > 12" step="12">
+                PAGO DE TRANSFERENCIA INTERNCIONAL
+              </v-stepper-step>
 
-          <v-stepper-content step="12">
-            <v-row>
-              <v-col cols="12">
-                <p class="red--text">DEBE PONERSE EL NUMERO DE FACTURA</p>
-                <v-checkbox
-                  @change="checkNoAplica(12)"
-                  label="No Aplica"
-                  v-model="datosManualesNoAplica.nroFactura"
-                ></v-checkbox>
-                <v-text-field
-                  placeholder=""
-                  v-model="datosManuales.nroFactura"
-                  ref="txtcondiciones"
-                  class="txtNroFactura"
-                />
-              </v-col>
-              <v-col cols="12">
-                <v-spacer></v-spacer>
-                <v-btn color="primary" class="mx-1" @click="continuar">
-                  Continue
-                </v-btn>
-                <v-btn color="error" class="mx-1" @click="regresar()">
-                  Volver
-                </v-btn>
-              </v-col>
-            </v-row>
-          </v-stepper-content>
-          <!--  -->
-          <v-stepper-step
-            :editable="aprobadoflag"
-            :complete="e6 > 13"
-            step="13"
-          >
-            SEGURO DE MERCANCIA
-          </v-stepper-step>
+              <v-stepper-content step="12">
+                <v-row>
+                  <v-col cols="12">
+                    <p class="red--text">DEBE PONERSE EL NUMERO DE FACTURA</p>
+                    <v-checkbox
+                      @change="checkNoAplica(12)"
+                      label="No Aplica"
+                      v-model="datosManualesNoAplica.nroFactura"
+                    ></v-checkbox>
+                    <v-text-field
+                      placeholder=""
+                      v-model="datosManuales.nroFactura"
+                      ref="txtcondiciones"
+                      class="txtNroFactura"
+                    />
+                  </v-col>
+                  <v-col cols="12">
+                    <v-spacer></v-spacer>
+                    <v-btn color="primary" class="mx-1" @click="continuar">
+                      Continue
+                    </v-btn>
+                    <v-btn color="error" class="mx-1" @click="regresar()">
+                      Volver
+                    </v-btn>
+                  </v-col>
+                </v-row>
+              </v-stepper-content>
+              <!--  -->
+              <v-stepper-step :editable="true" :complete="e6 > 13" step="13">
+                SEGURO DE MERCANCIA
+              </v-stepper-step>
 
-          <v-stepper-content step="13">
-            <v-row>
-              <v-col cols="12">
-                <!-- <v-checkbox
+              <v-stepper-content step="13">
+                <v-row>
+                  <v-col cols="12">
+                    <!-- <v-checkbox
                   @change="checkNoAplica(13)"
                   label="No Aplica"
                   v-model="datosManualesNoAplica.seguro"
                 ></v-checkbox> -->
-                <v-text-field
-                  placeholder="Si/No"
-                  v-model="datosManuales.seguro"
-                  ref="txtcondiciones"
-                  class="txtNroFactura"
-                />
-              </v-col>
-              <v-col cols="12">
-                <v-spacer></v-spacer>
-                <v-btn color="primary" class="mx-1" @click="continuar">
-                  Continue
-                </v-btn>
-                <v-btn color="error" class="mx-1" @click="regresar()">
-                  Volver
-                </v-btn>
-              </v-col>
-            </v-row>
-          </v-stepper-content>
-          <!--  -->
-          <v-stepper-step
-            :editable="aprobadoflag"
-            :complete="e6 > 14"
-            step="14"
-          >
-            OBSERVACIONES ADICIONALES 1
-          </v-stepper-step>
+                    <v-text-field
+                      placeholder="Si/No"
+                      v-model="datosManuales.seguro"
+                      ref="txtcondiciones"
+                      class="txtNroFactura"
+                    />
+                  </v-col>
+                  <v-col cols="12">
+                    <v-spacer></v-spacer>
+                    <v-btn color="primary" class="mx-1" @click="continuar">
+                      Continue
+                    </v-btn>
+                    <v-btn color="error" class="mx-1" @click="regresar()">
+                      Volver
+                    </v-btn>
+                  </v-col>
+                </v-row>
+              </v-stepper-content>
+              <!--  -->
+              <v-stepper-step :editable="true" :complete="e6 > 14" step="14">
+                OBSERVACIONES ADICIONALES 1
+              </v-stepper-step>
 
-          <v-stepper-content step="14">
-            <v-row>
-              <v-col cols="12">
-                <v-checkbox
-                  @change="checkNoAplica(14)"
-                  label="No Aplica"
-                  v-model="datosManualesNoAplica.observacion1"
-                ></v-checkbox>
-              </v-col>
-              <v-col cols="12">
-                <v-textarea
-                  auto-grow
-                  rows="1"
-                  placeholder=""
-                  v-model="datosManuales.observacion1"
-                  ref="txtcondiciones"
-                  class="txtNroFactura"
-                />
-              </v-col>
-              <v-col cols="12">
-                <v-spacer></v-spacer>
-                <v-btn color="primary" class="mx-1" @click="continuar">
-                  Continue
-                </v-btn>
-                <v-btn color="error" class="mx-1" @click="regresar()">
-                  Volver
-                </v-btn>
-              </v-col>
-            </v-row>
-          </v-stepper-content>
-          <!--  -->
-          <v-stepper-step
-            :editable="aprobadoflag"
-            :complete="e6 > 15"
-            step="15"
-          >
-            OBSERVACIONES ADICCIONALES 2
-          </v-stepper-step>
+              <v-stepper-content step="14">
+                <v-row>
+                  <v-col cols="12">
+                    <v-checkbox
+                      @change="checkNoAplica(14)"
+                      label="No Aplica"
+                      v-model="datosManualesNoAplica.observacion1"
+                    ></v-checkbox>
+                  </v-col>
+                  <v-col cols="12">
+                    <v-textarea
+                      auto-grow
+                      rows="1"
+                      placeholder=""
+                      v-model="datosManuales.observacion1"
+                      ref="txtcondiciones"
+                      class="txtNroFactura"
+                    />
+                  </v-col>
+                  <v-col cols="12">
+                    <v-spacer></v-spacer>
+                    <v-btn color="primary" class="mx-1" @click="continuar">
+                      Continue
+                    </v-btn>
+                    <v-btn color="error" class="mx-1" @click="regresar()">
+                      Volver
+                    </v-btn>
+                  </v-col>
+                </v-row>
+              </v-stepper-content>
+              <!--  -->
+              <v-stepper-step :editable="true" :complete="e6 > 15" step="15">
+                OBSERVACIONES ADICCIONALES 2
+              </v-stepper-step>
 
-          <v-stepper-content step="15">
-            <v-row>
-              <v-col cols="12">
-                <v-checkbox
-                  @change="checkNoAplica(15)"
-                  label="No Aplica"
-                  v-model="datosManualesNoAplica.observacion2"
-                ></v-checkbox>
-              </v-col>
-              <v-col cols="12">
-                <v-textarea
-                  rows="1"
-                  auto-grow
-                  placeholder=""
-                  v-model="datosManuales.observacion2"
-                  ref="txtcondiciones"
-                  class="txtNroFactura"
-                />
-              </v-col>
-              <v-col cols="12">
-                <v-spacer></v-spacer>
-                <v-btn color="primary" class="mx-1" @click="continuar">
-                  Continue
-                </v-btn>
-                <v-btn color="error" class="mx-1" @click="regresar()">
-                  Volver
-                </v-btn>
-              </v-col>
-            </v-row>
-          </v-stepper-content>
-        </v-stepper>
-      </v-card-text>
-      <v-card-actions v-if="e6 > 15 || $store.state.pricing.aprobadoflag">
-        <v-btn
-          class="mx-2"
-          color="success"
-          @click="setDatosInstructivo"
-          v-if="!$store.state.pricing.aprobadoflag"
+              <v-stepper-content step="15">
+                <v-row>
+                  <v-col cols="12">
+                    <v-checkbox
+                      @change="checkNoAplica(15)"
+                      label="No Aplica"
+                      v-model="datosManualesNoAplica.observacion2"
+                    ></v-checkbox>
+                  </v-col>
+                  <v-col cols="12">
+                    <v-textarea
+                      rows="1"
+                      auto-grow
+                      placeholder=""
+                      v-model="datosManuales.observacion2"
+                      ref="txtcondiciones"
+                      class="txtNroFactura"
+                    />
+                  </v-col>
+                  <v-col cols="12">
+                    <v-spacer></v-spacer>
+                    <v-btn color="primary" class="mx-1" @click="continuar">
+                      Continue
+                    </v-btn>
+                    <v-btn color="error" class="mx-1" @click="regresar()">
+                      Volver
+                    </v-btn>
+                  </v-col>
+                </v-row>
+              </v-stepper-content>
+            </v-stepper>
+          </div>
+          <!-- <v-card-actions v-if="e6 > 15 || $store.state.pricing.aprobadoflag">
+            <v-btn
+              class="mx-2"
+              color="success"
+              @click="setDatosInstructivo"
+              v-if="!$store.state.pricing.aprobadoflag"
+            >
+              Guardar Datos Manuales
+            </v-btn>
+            <v-btn
+              class="mx-2"
+              color="success"
+              @click="generarHTML"
+              v-if="$store.state.pricing.aprobadoflag"
+            >
+              Generar Instructivo
+            </v-btn>
+            <v-btn
+              class="mx-2"
+              color="info"
+              @click="generarHTMLPDF(false)"
+              v-if="$store.state.pricing.aprobadoflag"
+            >
+              Generar PDF Instructivo
+            </v-btn>
+            <v-btn
+              class="mx-2"
+              color="warning"
+              @click="generarHTMLPDF(true)"
+              v-if="$store.state.pricing.aprobadoflag"
+            >
+              Guardar Pdf Instructivo
+            </v-btn>
+            <v-btn color="error" class="mx-1" @click="regresar()">
+              VOLVER
+            </v-btn>
+          </v-card-actions>
+           -->
+        </v-col>
+        <v-col
+          v-if="verPrevisualizacion"
+          :cols="verDatosPreview ? 8 : 12"
+          class="px-10"
         >
-          Guardar Datos Manuales
-        </v-btn>
-        <v-btn
-          class="mx-2"
-          color="success"
-          @click="generarHTML"
-          v-if="$store.state.pricing.aprobadoflag"
-        >
-          Generar Instructivo
-        </v-btn>
-        <v-btn
-          class="mx-2"
-          color="info"
-          @click="generarHTMLPDF(false)"
-          v-if="$store.state.pricing.aprobadoflag"
-        >
-          Generar PDF Instructivo
-        </v-btn>
-        <v-btn
-          class="mx-2"
-          color="warning"
-          @click="generarHTMLPDF(true)"
-          v-if="$store.state.pricing.aprobadoflag"
-        >
-          Guardar Pdf Instructivo
-        </v-btn>
-        <v-btn color="error" class="mx-1" @click="regresar()"> VOLVER </v-btn>
-      </v-card-actions>
-    </v-card>
-  </v-container>
+          <v-tabs color="deep-purple accent-4" right v-model="tabPreview">
+            <v-checkbox label="Ver Datos Manuales" v-model="verDatosPreview" />
+            <v-spacer></v-spacer>
+            <v-tabs-slider></v-tabs-slider>
+            <v-tab href="#op">INSTRUCTIVO A OPERACIONES</v-tab>
+            <v-tab href="#agente">INSTRUCTIVO AL AGENTE</v-tab>
+            <v-tabs-items v-model="tabPreview" class="mt-5">
+              <v-tab-item value="op">
+                <div class="clsInstructivo">
+                  <v-simple-table>
+                    <tbody>
+                      <tr>
+                        <td valign="top" style="border: solid windowtext 1pt">
+                          <p class="MsoNormal my-0">FECHA</p>
+                        </td>
+                        <td
+                          valign="top"
+                          style="
+                            width: 510.5pt;
+                            border: solid windowtext 1pt;
+                            border-left: none;
+                          "
+                        >
+                          <p class="MsoNormal my-0">
+                            {{ fecha || "" }}
+                          </p>
+                        </td>
+                      </tr>
+
+                      <tr>
+                        <td
+                          valign="top"
+                          style="border: solid windowtext 1pt; border-top: none"
+                        >
+                          <p class="MsoNormal my-0">ASESOR</p>
+                        </td>
+                        <td
+                          valign="top"
+                          style="
+                            border-top: none;
+                            border-left: none;
+                            border-bottom: solid windowtext 1pt;
+                            border-right: solid windowtext 1pt;
+                          "
+                        >
+                          <p class="MsoNormal my-0">
+                            {{ asesor ? asesor.name : "" }}
+                          </p>
+                        </td>
+                      </tr>
+
+                      <tr>
+                        <td
+                          valign="top"
+                          style="border: solid windowtext 1pt; border-top: none"
+                        >
+                          <p class="MsoNormal my-0">N° QUOTE</p>
+                        </td>
+                        <td
+                          valign="top"
+                          style="
+                            width: 510.5pt;
+                            border-top: none;
+                            border-left: none;
+                            border-bottom: solid windowtext 1pt;
+                            border-right: solid windowtext 1pt;
+                          "
+                        >
+                          <p class="MsoNormal my-0">
+                            {{ this.nro_quote || "" }}
+                          </p>
+                        </td>
+                      </tr>
+
+                      <tr>
+                        <td
+                          valign="top"
+                          style="border: solid windowtext 1pt; border-top: none"
+                        >
+                          <p class="MsoNormal my-0">SERVICIO</p>
+                        </td>
+                        <td
+                          valign="top"
+                          style="
+                            width: 510.5pt;
+                            border-top: none;
+                            border-left: none;
+                            border-bottom: solid windowtext 1pt;
+                            border-right: solid windowtext 1pt;
+                          "
+                        >
+                          <p class="MsoNormal my-0">
+                            {{ datosManuales.servicio || "" }}
+                          </p>
+                        </td>
+                      </tr>
+
+                      <tr>
+                        <td
+                          valign="top"
+                          style="border: solid windowtext 1pt; border-top: none"
+                        >
+                          <p class="MsoNormal my-0">COLOADER/AGENTE</p>
+                        </td>
+                        <td
+                          valign="top"
+                          style="
+                            width: 510.5pt;
+                            border-top: none;
+                            border-left: none;
+                            border-bottom: solid windowtext 1pt;
+                            border-right: solid windowtext 1pt;
+                          "
+                        >
+                          <p class="MsoNormal my-0 my-0">
+                            Datos:
+                            {{ this.proveedorInstructivo.namelong || "" }}
+                          </p>
+                          <p class="MsoNormal my-0 my-0">
+                            Contacto:
+                            {{ this.proveedorInstructivo.contacto || "" }}
+                          </p>
+                          <p class="MsoNormal my-0 my-0">
+                            Téfono:
+                            {{ this.proveedorInstructivo.contacto_phone || "" }}
+                          </p>
+                        </td>
+                      </tr>
+
+                      <tr>
+                        <td
+                          valign="top"
+                          style="border: solid windowtext 1pt; border-top: none"
+                        >
+                          <p class="MsoNormal my-0">Email de Seguimiento</p>
+                        </td>
+                        <td
+                          valign="top"
+                          style="
+                            width: 510.5pt;
+                            border-top: none;
+                            border-left: none;
+                            border-bottom: solid windowtext 1pt;
+                            border-right: solid windowtext 1pt;
+                          "
+                        >
+                          <p class="MsoNormal my-0">
+                            {{ this.datosManuales.email || "" }}
+                          </p>
+                        </td>
+                      </tr>
+
+                      <tr>
+                        <td
+                          valign="top"
+                          style="border: solid windowtext 1pt; border-top: none"
+                        >
+                          <p class="MsoNormal my-0">PUERTO DE SALIDA</p>
+                        </td>
+                        <td
+                          valign="top"
+                          style="
+                            width: 510.5pt;
+                            border-top: none;
+                            border-left: none;
+                            border-bottom: solid windowtext 1pt;
+                            border-right: solid windowtext 1pt;
+                          "
+                        >
+                          <p class="MsoNormal my-0">
+                            {{ puertoOrigen ? puertoOrigen.name : "" }}
+                          </p>
+                        </td>
+                      </tr>
+
+                      <tr>
+                        <td
+                          valign="top"
+                          style="border: solid windowtext 1pt; border-top: none"
+                        >
+                          <p class="MsoNormal my-0">
+                            DATOS DE LA CARGA <br />
+                            <span style="color: red"
+                              >Si es EXWORD enviar dirección de recolecta</span
+                            >
+                          </p>
+                        </td>
+                        <td
+                          valign="top"
+                          style="
+                            width: 510.5pt;
+                            border-top: none;
+                            border-left: none;
+                            border-bottom: solid windowtext 1pt;
+                            border-right: solid windowtext 1pt;
+                          "
+                        >
+                          <p class="MsoNormal my-0">
+                            INCOTERMS: {{ incoterms.name || "" }}<br />
+                            PESO:{{ datosPrincipales.peso || "" }} KG<br />
+                            VOLUMEN:
+                            {{ datosPrincipales.volumen || "" }} M3<br />
+                            TIPO DE MERCANCIA:
+                            {{ datosPrincipales.descripcioncarga || "" }}
+                          </p>
+                        </td>
+                      </tr>
+
+                      <tr>
+                        <td
+                          valign="top"
+                          style="border: solid windowtext 1pt; border-top: none"
+                        >
+                          <p class="MsoNormal my-0">DETALLES DEL PROVEEDOR</p>
+                        </td>
+                        <td
+                          valign="top"
+                          style="
+                            width: 510.5pt;
+                            border-top: none;
+                            border-left: none;
+                            border-bottom: solid windowtext 1pt;
+                            border-right: solid windowtext 1pt;
+                          "
+                        >
+                          <p class="MsoNormal my-0">
+                            NOMBRE: {{ proveedor.namelong || "" }} <br />
+                            CONTACTO: {{ proveedor.contacto || "" }} <br />
+                            EMAIL:
+                            <a :href="`mailto:${proveedor.addressProveedor}`">
+                              {{ proveedor.addressProveedor || "" }} </a
+                            ><br />
+                            TELEFONO: {{ proveedor.contacto_phone || "" }}
+                          </p>
+                        </td>
+                      </tr>
+
+                      <tr>
+                        <td
+                          valign="top"
+                          style="border: solid windowtext 1pt; border-top: none"
+                        >
+                          <p class="MsoNormal my-0">CLIENTE / RAZON SOCIAL</p>
+                        </td>
+                        <td
+                          valign="top"
+                          style="
+                            width: 510.5pt;
+                            border-top: none;
+                            border-left: none;
+                            border-bottom: solid windowtext 1pt;
+                            border-right: solid windowtext 1pt;
+                          "
+                        >
+                          <p class="MsoNormal my-0">
+                            {{ cliente ? cliente.nombrecompleto : "" }} <br />
+                            RUC: {{ cliente ? cliente.document : "" }} <br />
+                            DIRECCION: {{ cliente ? cliente.address : "" }}
+                          </p>
+                        </td>
+                      </tr>
+
+                      <tr>
+                        <td
+                          valign="top"
+                          style="border: solid windowtext 1pt; border-top: none"
+                        >
+                          <p class="MsoNormal my-0"><b>NOTIFY</b></p>
+                        </td>
+                        <td
+                          valign="top"
+                          style="
+                            width: 510.5pt;
+                            border-top: none;
+                            border-left: none;
+                            border-bottom: solid windowtext 1pt;
+                            border-right: solid windowtext 1pt;
+                          "
+                        >
+                          <p class="MsoNormal my-0">
+                            PIC LOGISTICA SAC <br />
+                            RUC: 20609852861 <br />
+                            AV. AGUSTIN DE LA ROSA TORO 770, SAN LUIS <br />
+                            Contacto: Carlos Ramirez <br />
+                            CORREO: ASESOR2@PIC-CARGO.COM
+                          </p>
+                        </td>
+                      </tr>
+
+                      <tr>
+                        <td
+                          valign="top"
+                          style="border: solid windowtext 1pt; border-top: none"
+                        >
+                          <p class="MsoNormal my-0">
+                            <b>CARGA LISTA DIA FECHA</b>
+                          </p>
+                        </td>
+                        <td
+                          valign="top"
+                          style="
+                            width: 510.5pt;
+                            border-top: none;
+                            border-left: none;
+                            border-bottom: solid windowtext 1pt;
+                            border-right: solid windowtext 1pt;
+                          "
+                        >
+                          <p class="MsoNormal my-0">
+                            {{ datosManuales.listDiaFecha }}
+                          </p>
+                        </td>
+                      </tr>
+
+                      <tr>
+                        <td
+                          valign="top"
+                          style="border: solid windowtext 1pt; border-top: none"
+                        >
+                          <p class="MsoNormal my-0"><b>GRUPO DE WHATSAPP</b></p>
+                        </td>
+                        <td
+                          valign="top"
+                          style="
+                            width: 510.5pt;
+                            border-top: none;
+                            border-left: none;
+                            border-bottom: solid windowtext 1pt;
+                            border-right: solid windowtext 1pt;
+                          "
+                        >
+                          <p class="MsoNormal my-0">
+                            {{ datosManuales.grupoWhatsapp }}
+                          </p>
+                        </td>
+                      </tr>
+
+                      <tr>
+                        <td
+                          valign="top"
+                          style="border: solid windowtext 1pt; border-top: none"
+                        >
+                          <p class="MsoNormal my-0"><b>SE ADJUNTA</b></p>
+                        </td>
+                        <td
+                          valign="top"
+                          style="
+                            width: 510.5pt;
+                            border-top: none;
+                            border-left: none;
+                            border-bottom: solid windowtext 1pt;
+                            border-right: solid windowtext 1pt;
+                          "
+                        >
+                          <p
+                            class="MsoNormal my-0"
+                            v-html="formatearArchivos"
+                          ></p>
+                        </td>
+                      </tr>
+
+                      <tr>
+                        <td
+                          valign="top"
+                          style="border: solid windowtext 1pt; border-top: none"
+                        >
+                          <p class="MsoNormal my-0"><b>TIPO DE MERCANCIA</b></p>
+                        </td>
+                        <td
+                          valign="top"
+                          style="
+                            width: 510.5pt;
+                            border-top: none;
+                            border-left: none;
+                            border-bottom: solid windowtext 1pt;
+                            border-right: solid windowtext 1pt;
+                          "
+                        >
+                          <p class="MsoNormal my-0">
+                            {{ datosPrincipales.descripcioncarga || "" }}
+                          </p>
+                        </td>
+                      </tr>
+
+                      <tr>
+                        <td
+                          valign="top"
+                          style="border: solid windowtext 1pt; border-top: none"
+                        >
+                          <p class="MsoNormal my-0">
+                            <b>DEBEMOS PAGAR AL PROVEEDOR</b>
+                          </p>
+                          <span style="color: red"
+                            >Solo aplica si el cliente nos cancela a nosotros y
+                            nosotros debemos pagar al proveedor</span
+                          >
+                        </td>
+                        <td
+                          valign="top"
+                          style="
+                            width: 510.5pt;
+                            border-top: none;
+                            border-left: none;
+                            border-bottom: solid windowtext 1pt;
+                            border-right: solid windowtext 1pt;
+                          "
+                        >
+                          <p class="MsoNormal my-0">
+                            {{ datosManuales.pagarProveedor || "" }}
+                          </p>
+                        </td>
+                      </tr>
+
+                      <tr>
+                        <td
+                          valign="top"
+                          style="border: solid windowtext 1pt; border-top: none"
+                        >
+                          <p class="MsoNormal my-0">
+                            <b>DONDE SE DEBE PAGAR</b>
+                          </p>
+                          <span style="color: red"
+                            >Solo aplica si el cliente nos cancela a nosotros y
+                            nosotros debemos pagar al proveedor</span
+                          >
+                        </td>
+                        <td
+                          valign="top"
+                          style="
+                            width: 510.5pt;
+                            border-top: none;
+                            border-left: none;
+                            border-bottom: solid windowtext 1pt;
+                            border-right: solid windowtext 1pt;
+                          "
+                        >
+                          <p class="MsoNormal my-0">
+                            {{ datosManuales.dondePagar }}
+                          </p>
+                        </td>
+                      </tr>
+
+                      <tr>
+                        <td
+                          valign="top"
+                          style="border: solid windowtext 1pt; border-top: none"
+                        >
+                          <p class="MsoNormal my-0">
+                            <b
+                              >LINK DE PAGO o DATOS DE A TRANSFERENCIA
+                              INTERNACIONAL</b
+                            >
+                          </p>
+                          <span style="color: red"
+                            >Recuerda debes cobrar la comisión bancaria</span
+                          >
+                          <span style="color: red"
+                            >Solo aplica si el cliente nos cancela a nosotros y
+                            nosotros debemos pagar al proveedor</span
+                          >
+                        </td>
+                        <td
+                          valign="top"
+                          style="
+                            width: 510.5pt;
+                            border-top: none;
+                            border-left: none;
+                            border-bottom: solid windowtext 1pt;
+                            border-right: solid windowtext 1pt;
+                          "
+                        >
+                          <p class="MsoNormal my-0">
+                            {{ datosManuales.linkDePago }}
+                          </p>
+                        </td>
+                      </tr>
+
+                      <tr>
+                        <td
+                          valign="top"
+                          style="border: solid windowtext 1pt; border-top: none"
+                        >
+                          <p class="MsoNormal my-0">
+                            <b>CONDICIONES DE LINK DE CONTRATO DE ALIBABA</b>
+                          </p>
+                        </td>
+                        <td
+                          valign="top"
+                          style="
+                            width: 510.5pt;
+                            border-top: none;
+                            border-left: none;
+                            border-bottom: solid windowtext 1pt;
+                            border-right: solid windowtext 1pt;
+                          "
+                        >
+                          <p class="MsoNormal my-0">
+                            {{ datosManuales.condicionesLink }}
+                          </p>
+                        </td>
+                      </tr>
+
+                      <tr>
+                        <td
+                          valign="top"
+                          style="border: solid windowtext 1pt; border-top: none"
+                        >
+                          <p class="MsoNormal my-0">
+                            <b>PAGO DE TRANSFERENCIA INTERNCIONAL</b>
+                          </p>
+                          <span style="color: red"
+                            >DEBE PONERSE EL NUMERO DE FACTURA</span
+                          >
+                        </td>
+                        <td
+                          valign="top"
+                          style="
+                            width: 510.5pt;
+                            border-top: none;
+                            border-left: none;
+                            border-bottom: solid windowtext 1pt;
+                            border-right: solid windowtext 1pt;
+                          "
+                        >
+                          <p class="MsoNormal my-0">
+                            {{ datosManuales.nroFactura }}
+                          </p>
+                        </td>
+                      </tr>
+
+                      <tr>
+                        <td
+                          valign="top"
+                          style="border: solid windowtext 1pt; border-top: none"
+                        >
+                          <p class="MsoNormal my-0">
+                            <b>SEGURO DE MERCANCIA</b>
+                          </p>
+                        </td>
+                        <td
+                          valign="top"
+                          style="
+                            width: 510.5pt;
+                            border-top: none;
+                            border-left: none;
+                            border-bottom: solid windowtext 1pt;
+                            border-right: solid windowtext 1pt;
+                          "
+                        >
+                          <p class="MsoNormal my-0">
+                            {{ datosManuales.seguro }}
+                          </p>
+                        </td>
+                      </tr>
+
+                      <tr>
+                        <td
+                          valign="top"
+                          style="border: solid windowtext 1pt; border-top: none"
+                        >
+                          <p class="MsoNormal my-0">
+                            OBSERVACIONES ADICIONALES 1
+                          </p>
+                        </td>
+                        <td
+                          valign="top"
+                          style="
+                            width: 510.5pt;
+                            border-top: none;
+                            border-left: none;
+                            border-bottom: solid windowtext 1pt;
+                            border-right: solid windowtext 1pt;
+                          "
+                        >
+                          <p class="MsoNormal my-0">
+                            {{ datosManuales.observacion1 }}
+                          </p>
+                        </td>
+                      </tr>
+
+                      <tr>
+                        <td
+                          valign="top"
+                          style="border: solid windowtext 1pt; border-top: none"
+                        >
+                          <p class="MsoNormal my-0">
+                            OBSERVACIONES ADICIONALES 2
+                          </p>
+                        </td>
+                        <td
+                          valign="top"
+                          style="
+                            width: 510.5pt;
+                            border-top: none;
+                            border-left: none;
+                            border-bottom: solid windowtext 1pt;
+                            border-right: solid windowtext 1pt;
+                          "
+                        >
+                          <p class="MsoNormal my-0">
+                            {{ datosManuales.observacion2 }}
+                          </p>
+                        </td>
+                      </tr>
+                    </tbody>
+                  </v-simple-table>
+                </div>
+              </v-tab-item>
+              <v-tab-item value="agente">
+                <div class="clsInstructivo">
+                  <v-simple-table>
+                    <tbody>
+                      <tr>
+                        <td valign="top" style="border: solid windowtext 1pt">
+                          <p class="MsoNormal my-0">PUERTO DE SALIDA</p>
+                        </td>
+                        <td
+                          valign="top"
+                          style="
+                            width: 510.5pt;
+                            border: solid windowtext 1pt;
+                            border-left: none;
+                          "
+                        >
+                          {{ puertoOrigen ? puertoOrigen.name : "" }}
+                        </td>
+                      </tr>
+                      <tr>
+                        <td
+                          valign="top"
+                          style="border: solid windowtext 1pt; border-top: none"
+                        >
+                          <p class="MsoNormal my-0">
+                            DATOS DE LA CARGA Si es EXWORK enviar dirección de
+                            recolecta
+                          </p>
+                        </td>
+                        <td
+                          valign="top"
+                          style="
+                            width: 510.5pt;
+                            border-top: none;
+                            border-left: none;
+                            border-bottom: solid windowtext 1pt;
+                            border-right: solid windowtext 1pt;
+                          "
+                        >
+                          <p class="MsoNormal my-0">
+                            INCOTERMS: {{ incoterms.name || "" }}<br />
+                            PESO:{{ datosPrincipales.peso || "" }} KG<br />
+                            VOLUMEN:
+                            {{ datosPrincipales.volumen || "" }} M3<br />
+                            TIPO DE MERCANCIA:
+                            {{ datosPrincipales.descripcioncarga || "" }}
+                          </p>
+                        </td>
+                      </tr>
+                      <tr>
+                        <td
+                          valign="top"
+                          style="border: solid windowtext 1pt; border-top: none"
+                        >
+                          <p class="MsoNormal my-0">DETALLES DEL PROVEEDOR</p>
+                        </td>
+                        <td
+                          valign="top"
+                          style="
+                            width: 510.5pt;
+                            border-top: none;
+                            border-left: none;
+                            border-bottom: solid windowtext 1pt;
+                            border-right: solid windowtext 1pt;
+                          "
+                        >
+                          <p class="MsoNormal my-0">
+                            NOMBRE: {{ proveedor.namelong || "" }} <br />
+                            CONTACTO: {{ proveedor.contacto || "" }} <br />
+                            EMAIL:
+                            <a :href="`mailto:${proveedor.addressProveedor}`">
+                              {{ proveedor.addressProveedor || "" }} </a
+                            ><br />
+                            TELEFONO: {{ proveedor.contacto_phone || "" }}
+                          </p>
+                        </td>
+                      </tr>
+                      <tr>
+                        <td
+                          valign="top"
+                          style="border: solid windowtext 1pt; border-top: none"
+                        >
+                          <p class="MsoNormal my-0">CLIENTE / RAZON SOCIAL</p>
+                        </td>
+                        <td
+                          valign="top"
+                          style="
+                            width: 510.5pt;
+                            border-top: none;
+                            border-left: none;
+                            border-bottom: solid windowtext 1pt;
+                            border-right: solid windowtext 1pt;
+                          "
+                        >
+                          <p class="MsoNormal my-0">
+                            {{ cliente ? cliente.nombrecompleto : "" }} <br />
+                            RUC: {{ cliente ? cliente.document : "" }} <br />
+                            DIRECCION: {{ cliente ? cliente.address : "" }}
+                          </p>
+                        </td>
+                      </tr>
+                      <tr>
+                        <td
+                          valign="top"
+                          style="border: solid windowtext 1pt; border-top: none"
+                        >
+                          <p class="MsoNormal my-0">NOTIFY</p>
+                        </td>
+                        <td
+                          valign="top"
+                          style="
+                            width: 510.5pt;
+                            border-top: none;
+                            border-left: none;
+                            border-bottom: solid windowtext 1pt;
+                            border-right: solid windowtext 1pt;
+                          "
+                        >
+                          PIC LOGISTICA SAC <br />
+                          RUC: 20609852861 <br />
+                          AV. AGUSTIN DE LA ROSA TORO 770, SAN LUIS <br />
+                          Contacto: Carlos Ramirez <br />
+                          CORREO: ASESOR2@PIC-CARGO.COM
+                        </td>
+                      </tr>
+                      <tr>
+                        <td
+                          valign="top"
+                          style="border: solid windowtext 1pt; border-top: none"
+                        >
+                          <p class="MsoNormal my-0">CARGA LISTA DIA FECHA</p>
+                        </td>
+                        <td
+                          valign="top"
+                          style="
+                            width: 510.5pt;
+                            border-top: none;
+                            border-left: none;
+                            border-bottom: solid windowtext 1pt;
+                            border-right: solid windowtext 1pt;
+                          "
+                        >
+                          <p class="MsoNormal my-0">
+                            {{ datosManuales.listDiaFecha }}
+                          </p>
+                        </td>
+                      </tr>
+                    </tbody>
+                  </v-simple-table>
+                </div>
+              </v-tab-item>
+            </v-tabs-items>
+          </v-tabs>
+        </v-col>
+        <v-col cols="12 my-2">
+          <v-btn
+            color="success"
+            v-if="!aprobadoflag"
+            @click="setDatosInstructivo"
+          >
+            Guardar Borrador Y Continuar
+          </v-btn>
+          <v-btn
+            color="success"
+            v-if="aprobadoflag"
+            @click="guardarYGenenarCorreo"
+            class="mx-1"
+          >
+            <v-icon class="mx-2">mdi-content-save-move</v-icon> Guardar y Enviar
+            Email a Operaciones
+          </v-btn>
+          <v-btn
+            color="red"
+            class="mx-1"
+            dark
+            v-if="aprobadoflag"
+            @click="generarHTMLPDF()"
+          >
+            <v-icon class="mx-2">mdi-file-pdf-box</v-icon> Imprimir
+          </v-btn>
+        </v-col>
+      </v-row>
+    </v-container>
+  </v-card>
 </template>
 
 <script>
@@ -633,7 +1417,7 @@ import moment from "moment";
 import Swal from "sweetalert2";
 import axios from "axios";
 import { mapActions } from "vuex";
-import puerto from "../../store/modules/puerto";
+
 export default {
   props: {
     aprobadoflag: {
@@ -643,7 +1427,22 @@ export default {
   },
   data() {
     return {
+      verPrevisualizacion: false,
+      verDatosPreview: true,
+      nro_quote: "",
+      fecha: moment().format("YYYY-MM-DD HH:MM"),
+      tabPreview: "op",
+      Modality: null,
+      Shipment: null,
+      Incoterms: null,
+      Proveedor: null,
       proveedorInstructivo: {},
+      asesor: {},
+      incoterms: {},
+      proveedor: {},
+      cliente: {},
+      pricing: this.$store.state.pricing,
+      datosPrincipales: this.$store.state.pricing.datosPrincipales,
       files: [],
       datosFile: [],
       e6: 1,
@@ -777,7 +1576,17 @@ export default {
           console.log(error);
         });
     },
-    moverArchivo() {},
+    guardarYGenenarCorreo() {
+      Promise.all([
+        this.guardarDatosInstructivo({
+          id: this.$route.params.id,
+          datosInstructivoManual: this.datosManuales,
+        }),
+        this.generarHTML(),
+        this.generarHTMLPDF(true),
+        // this.generarHTMLPDF(),
+      ]);
+    },
     async generarHTMLPDF(guardarFlag) {
       const state = this.$store.state.pricing;
       const main = state.datosPrincipales;
@@ -844,6 +1653,7 @@ export default {
         grupoWhatsapp: this.datosManuales.grupoWhatsapp || "",
         Shipment: Shipment.name || "",
         url_folderonedrive: main.url_folderonedrive,
+        url_folderonedriveexp: main.url_folderonedriveexp,
         pagarProveedor: this.datosManuales.pagarProveedor || "",
         dondePagar: this.datosManuales.dondePagar || "",
         linkDePago: this.datosManuales.linkDePago || "",
@@ -864,26 +1674,6 @@ export default {
       });
     },
     async generarHTML() {
-      const { state } = this.$store;
-      const pricing = state.pricing;
-      const dp = pricing.datosPrincipales;
-
-      // 1. Búsquedas con validación (Evita errores si no encuentra el objeto)
-      const encontrar = (lista, id, campo = "id") =>
-        lista.find((v) => v[campo] == id) || {};
-
-      const asesor = encontrar(
-        pricing.listEjecutivo,
-        dp.id_vendedor,
-        "id_entitie",
-      );
-      const modality = encontrar(pricing.listModality, dp.idsentido);
-      const shipment = encontrar(pricing.listShipment, dp.idtipocarga);
-
-      const portEnd = encontrar(pricing.listPortEnd, dp.iddestino);
-      const incoterms = encontrar(pricing.listIncoterms, dp.idincoterms);
-      const proveedor = encontrar(state.itemsProveedorList, dp.id_proveedor);
-
       // 2. Formateo de archivos adjuntos
       const listaArchivos =
         this.datosFile?.length > 0
@@ -894,9 +1684,9 @@ export default {
         <table border="0" cellspacing="0" cellpadding="0" style="border-collapse:collapse; font-family: Arial, sans-serif; width: 100%;">
           <tbody>
             ${this._tr("FECHA", moment().format("DD/MM/YYYY"))}
-            ${this._tr("ASESOR", asesor.name)}
-            ${this._tr("N° QUOTE", pricing.nro_quote)}
-            ${this._tr("TIPO DE EMBARQUE", shipment.code)}
+            ${this._tr("ASESOR", this.asesor.name)}
+            ${this._tr("N° QUOTE", this.pricing.nro_quote)}
+            ${this._tr("TIPO DE EMBARQUE", this.Shipment.code)}
             ${this._tr("SERVICIO", this.datosManuales.servicio)}
             ${this._tr(
               "COLOADER/AGENTE",
@@ -907,32 +1697,32 @@ export default {
             `,
             )}
             ${this._tr("Email de Seguimiento", this.datosManuales.email)}
-            ${this._tr("PUERTO DE SALIDA", this.puertoOrigen.name)}
+            ${this._tr("PUERTO DE SALIDA", this.puertoOrigen.name || "")}
             ${this._tr(
               "DATOS DE LA CARGA<br><span style='color:red;font-size:10px;'>Si es EXW enviar dirección de recolecta</span>",
               `
-              INCOTERMS: ${incoterms.name || ""}<br>
-              PESO: ${dp.peso || 0} KG<br>
-              VOLUMEN: ${dp.volumen || 0} M3<br>
-              TIPO DE MERCANCIA: ${dp.descripcioncarga || ""}
+              INCOTERMS: ${this.incoterms.name || ""}<br>
+              PESO: ${this.datosPrincipales.peso || 0} KG<br>
+              VOLUMEN: ${this.datosPrincipales.volumen || 0} M3<br>
+              TIPO DE MERCANCIA: ${this.datosPrincipales.descripcioncarga || ""}
             `,
             )}
             ${this._tr(
               "DETALLES DEL PROVEEDOR",
               `
-              NOMBRE: ${proveedor.namelong || ""}<br>
-              CONTACTO: ${proveedor.contacto || ""}<br>
-              EMAIL: ${proveedor.emailaddress || ""}<br>
-              TELÉFONO: ${proveedor.contacto_phone || ""}
+              NOMBRE: ${this.proveedor.namelong || ""}<br>
+              CONTACTO: ${this.proveedor.contacto || ""}<br>
+              EMAIL: ${this.proveedor.emailaddress || ""}<br>
+              TELÉFONO: ${this.proveedor.contacto_phone || ""}
             `,
             )}
             ${this._tr(
               "CLIENTE / RAZON SOCIAL",
               `
-              ${pricing.dataCliente.nombrecompleto || ""}<br>
-              RUC: ${pricing.dataCliente.document || ""}<br>
-              DIRECCIÓN: ${pricing.dataCliente.address || ""}<br>
-              EMAIL: ${pricing.emailaddress || ""}
+              ${this.pricing.dataCliente.nombrecompleto || ""}<br>
+              RUC: ${this.pricing.dataCliente.document || ""}<br>
+              DIRECCIÓN: ${this.pricing.dataCliente.address || ""}<br>
+              EMAIL: ${this.pricing.emailaddress || ""}
             `,
             )}
             ${this._tr(
@@ -983,7 +1773,7 @@ export default {
         );
 
         // 5. Configuración del correo
-        const subject = `EXPEDIENTE-${pricing.nro_exp} QUOTE ${pricing.nro_quote} ${pricing.dataCliente.nombrecompleto} ${incoterms.name} ${modality.name}`;
+        const subject = `EXPEDIENTE-${this.pricing.nro_exp} QUOTE ${this.pricing.nro_quote} ${this.pricing.dataCliente.nombrecompleto} ${this.incoterms.name} ${this.Modality.name}`;
         const body =
           "Hola colega, adjunto los detalles del expediente (Pega la tabla aquí):\n\n";
 
@@ -1005,12 +1795,32 @@ export default {
       setTimeout(() => {
         Swal.fire({
           icon: "info",
-          title: "📧 Crear email al agente",
-          text: "✅ Confirmar que ya enviaste el email operaciones",
-          confirmButtonText: "Lo Confirmo",
+          title: "",
+          html: `
+          <h1 style="font-size: 2.5em; font-weight: bold;">📧 Crear email al agente</h1>
+
+        <h1 style="font-size: 2em; font-weight: bold;">🚨 OBLIGATORIO</h1>
+        <h2 style="font-size: 1.5em;">Antes de abrir el segundo correo, primero envía el email a Operaciones.</h2>
+      `,
+          confirmButtonText: "☑️ Ya envié el email a Operaciones. Continuar",
           allowEnterKey: false,
           allowEscapeKey: false,
           allowOutsideClick: false,
+          confirmButtonColor: "#00C853",
+          // 2. Personalización de tamaños mediante clases
+          customClass: {
+            title: "custom-title-class",
+            confirmButton: "custom-button-class",
+          },
+
+          didOpen: () => {
+            const confirmBtn = Swal.getConfirmButton();
+            confirmBtn.style.display = "none";
+
+            setTimeout(() => {
+              confirmBtn.style.display = "inline-block";
+            }, 3000);
+          },
         }).then((res) => {
           if (res.isConfirmed) {
             this.GenerartSegundoCorreo();
@@ -1019,74 +1829,57 @@ export default {
       }, 3000);
     },
     async GenerartSegundoCorreo() {
-      // Centralizamos el acceso al store para evitar errores de undefined
-      const pricing = this.$store.state.pricing || {};
-      const main = pricing.datosPrincipales || {};
-      const cliente = pricing.dataCliente || {};
-
-      // Función de búsqueda segura: si la lista no existe, no explota
-      const encontrar = (lista, id) => {
-        if (!lista || !Array.isArray(lista)) return {};
-        return lista.find((v) => v.id == id || v.id_entitie == id) || {};
-      };
-
-      // Buscamos los datos asegurándonos de usar la ruta correcta en el store
-      const proveedor = encontrar(
-        this.$store.state.itemsProveedorList,
-        main.id_proveedor,
-      );
-      const incotermsObj = encontrar(pricing.listIncoterms, main.idincoterms);
-      const modalityObj = encontrar(pricing.listModality, main.idsentido);
-      const portBeginObj = this.puertoOrigen || {};
-
-      // Bloques de texto
       const cargaDetalles = `
-    <strong>INCOTERMS:</strong> ${incotermsObj.name || ""}<br/>
-    <strong>PESO:</strong> ${main.peso || 0} KG <br/>
-    <strong>VOLUMEN:</strong> ${main.volumen || 0} M3 <br/>
-    <strong>TIPO DE MERCANCIA:</strong> ${main.descripcioncarga || ""}
-  `;
+            <strong>INCOTERMS:</strong> ${this.incoterms.name || ""}<br/>
+            <strong>PESO:</strong> ${this.datosPrincipales.peso || 0} KG <br/>
+            <strong>VOLUMEN:</strong> ${
+              this.datosPrincipales.volumen || 0
+            } M3 <br/>
+            <strong>TIPO DE MERCANCIA:</strong> ${
+              this.datosPrincipales.descripcioncarga || ""
+            }
+          `;
 
       const proveedorDetalles = `
-    NOMBRE: ${proveedor.namelong || ""}<br>
-    CONTACTO: ${proveedor.contacto || ""}<br>
-    EMAIL: ${proveedor.emailaddress || ""}<br>
-    TELÉFONO: ${proveedor.contacto_phone || ""}
-  `;
+            NOMBRE: ${this.proveedor.namelong || ""}<br>
+            CONTACTO: ${this.proveedor.contacto || ""}<br>
+            EMAIL: ${this.proveedor.emailaddress || ""}<br>
+            TELÉFONO: ${this.proveedor.contacto_phone || ""}
+          `;
 
       const clienteDetalles = `
-    ${cliente.nombrecompleto || ""}<br />
-    RUC: ${cliente.document || ""}<br />
-    DIRECCION: ${cliente.address || ""} <br />
-    EMAIL: ${
-      pricing.emailaddress
-        ? `<a href="mailto:${pricing.emailaddress}">${pricing.emailaddress}</a>`
-        : ""
-    }
-  `;
+              ${this.pricing.dataCliente.nombrecompleto || ""}<br />
+              RUC: ${this.pricing.dataCliente.document || ""}<br />
+              DIRECCION: ${this.pricing.dataCliente.address || ""} <br />
+              EMAIL: ${
+                this.pricing.emailaddress
+                  ? `<a href="mailto:${this.pricing.emailaddress}">${this.pricing.emailaddress}</a>`
+                  : ""
+              }
+            `;
 
       const htmlBody = `
-    <p>Hola Colega Por aquí tenemos una nueva carga, por indicarnos tu numero de routing order y que Customer seguirá el tema</p>
-    <table style="border-collapse: collapse; width: 100%; max-width: 800px; border: 1px solid #000; font-family: Arial, sans-serif;">
-      <tbody>
-        ${this._tr("PUERTO DE SALIDA", portBeginObj.name)}
-        ${this._tr(
-          "DATOS DE LA CARGA<br/><small style='font-weight:normal;'>Si es EXWORK enviar dirección de recolecta</small>",
-          cargaDetalles,
-        )}
-        ${this._tr("DETALLES DEL PROVEEDOR", proveedorDetalles)}
-        ${this._tr("CLIENTE / RAZON SOCIAL", clienteDetalles)}
-        ${this._tr(
-          "NOTIFY",
-          "PIC LOGISTICA SAC<br/>RUC: 20609852861<br/>AV. AGUSTIN DE LA ROSA TORO 770, SAN LUIS<br/>Contacto: Carlos Ramirez<br/>CORREO: ASESOR2@PIC-CARGO.COM",
-        )}
-        ${this._tr(
-          "CARGA LISTA DIA FECHA",
-          this.datosManuales.fechaCarga || "Pendiente",
-        )}
-      </tbody>
-    </table>
-  `;
+            <p>Hola Colega Por aquí tenemos una nueva carga, por indicarnos tu numero de routing order y que Customer seguirá el tema</p>
+            <table style="border-collapse: collapse; width: 100%; max-width: 800px; border: 1px solid #000; font-family: Arial, sans-serif;">
+              <tbody>
+                ${this._tr("PUERTO DE SALIDA", this.puertoOrigen.name || "")}
+                ${this._tr(
+                  "DATOS DE LA CARGA<br/><small style='font-weight:normal;'>Si es EXWORK enviar dirección de recolecta</small>",
+                  cargaDetalles,
+                )}
+                ${this._tr("DETALLES DEL PROVEEDOR", proveedorDetalles)}
+                ${this._tr("CLIENTE / RAZON SOCIAL", clienteDetalles)}
+                ${this._tr(
+                  "NOTIFY",
+                  "PIC LOGISTICA SAC<br/>RUC: 20609852861<br/>AV. AGUSTIN DE LA ROSA TORO 770, SAN LUIS<br/>Contacto: Carlos Ramirez<br/>CORREO: ASESOR2@PIC-CARGO.COM",
+                )}
+                ${this._tr(
+                  "CARGA LISTA DIA FECHA",
+                  this.datosManuales.fechaCarga || "Pendiente",
+                )}
+              </tbody>
+            </table>
+          `;
 
       try {
         const blob = new Blob([htmlBody], { type: "text/html" });
@@ -1097,14 +1890,14 @@ export default {
         alert("Copiado. Se abrirá Outlook. (Usa Ctrl+V)");
 
         // Construcción del Subject (Sin caracteres especiales que rompan la URL)
-        const subject = `EXPEDIENTE-${pricing.nro_exp || ""} QUOTE ${
-          pricing.nro_quote || ""
-        } ${cliente.nombrecompleto || ""} ${incotermsObj.name || ""} ${
-          modalityObj.name || ""
+        const subject = `EXPEDIENTE-${this.pricing.nro_exp || ""} QUOTE ${
+          this.pricing.nro_quote || ""
+        } ${this.cliente.nombrecompleto || ""} ${this.incoterms.name || ""} ${
+          this.Modality.name || ""
         }`;
 
         window.location.href = `mailto:${
-          cliente.emailaddress || ""
+          this.cliente.emailaddress || ""
         }?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(
           "Hola colega, (PEGA LA TABLA AQUÍ)",
         )}`;
@@ -1144,7 +1937,7 @@ export default {
     _tr(label, value) {
       return `
     <tr>
-      <td width="164" valign="top" style="width:123pt; border:solid windowtext 1.0pt; padding:4pt;">
+      <td valign="top" style="width:123pt; border:solid windowtext 1.0pt; padding:4pt;">
         <p style="margin:0; font-size:11px;">${label}</p>
       </td>
       <td valign="top" style="border:solid windowtext 1.0pt; border-left:none; padding:4pt;">
@@ -1152,8 +1945,96 @@ export default {
       </td>
     </tr>`;
     },
+
+    cargarDatosModality() {
+      if (!this.pricing?.listEjecutivo || !this.datosPrincipales) return;
+      this.Modality =
+        this.pricing.listEjecutivo.find(
+          (v) => v.id_entitie == this.datosPrincipales.id_vendedor,
+        ) || {};
+    },
+
+    cargarDatosShipment() {
+      if (!this.pricing?.listShipment || !this.datosPrincipales) return;
+      this.Shipment =
+        this.pricing.listShipment.find(
+          (v) => v.id == this.datosPrincipales.idsentido,
+        ) || {};
+    },
+
+    cargarDatosProveedor() {
+      // OJO: Verifica si itemsProveedorList está en 'pricing' o directamente en 'this'
+      const lista = this.pricing?.itemsProveedorList || this.itemsProveedorList;
+      if (!lista || !this.datosPrincipales) return;
+
+      this.Proveedor =
+        lista.find((v) => v.id == this.datosPrincipales.id_proveedor) || {};
+    },
+    cargarDatosAsesor() {
+      this.asesor = this.encontrar(
+        this.pricing.listEjecutivo,
+        this.datosPrincipales.id_vendedor,
+        "id_entitie",
+      );
+    },
+    cargarDatosIncoterms() {
+      this.incoterms = this.encontrar(
+        this.pricing.listIncoterms,
+        this.datosPrincipales.idincoterms,
+      );
+    },
+
+    cargarDatosProveedor() {
+      this.proveedor = this.encontrar(
+        this.$store.state.itemsProveedorList,
+        this.datosPrincipales.id_proveedor,
+      );
+    },
+    cargarDatosCliente() {
+      this.cliente = { ...this.$store.state.pricing.dataCliente };
+      this.cliente.nombre_clean = (this.cliente.nombrecompleto || "")
+        .trim()
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "")
+        .replace(/[\s-]+/g, "_");
+    },
+
+    encontrar(lista, id, campo = "id") {
+      return lista.find((v) => v[campo] == id) || {};
+    },
+
+    cargaNroQuote() {
+      if (!this.pricing?.nro_quote) {
+        this.nro_quote = "";
+        return;
+      }
+      this.nro_quote = this.pricing.nro_quote
+        .trim()
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "")
+        .replace(/[\s-]+/g, "_");
+    },
   },
+
   async mounted() {
+    console.log(this.aprobadoflag);
+    if (this.aprobadoflag) {
+      this.e6 = 16;
+      this.verPrevisualizacion = true;
+      this.verDatosPreview = false;
+    }
+    Promise.all([
+      this.cargarDatosModality(),
+      this.cargarDatosShipment(),
+      this.cargarDatosIncoterms(),
+      this.cargarDatosProveedor(),
+      this.cargaNroQuote(),
+      this.cargarDatosAsesor(),
+      this.cargarDatosIncoterms(),
+      this.cargarDatosProveedor(),
+      this.cargarDatosCliente(),
+    ]);
+
     const tipoCargaItem = this.$store.state.pricing.listShipment.find(
       (v) => v.id == this.$store.state.pricing.datosPrincipales.idtipocarga,
     );
@@ -1191,11 +2072,42 @@ export default {
     console.log("this.puertoDestino", this.puertoDestino);
   },
   watch: {},
+  computed: {
+    formatearArchivos() {
+      if (!this.datosFile || this.datosFile.length === 0) {
+        return "No hay archivos";
+      }
+      return this.datosFile.map((f) => `• ${f.nombre || f}`).join("<br />");
+    },
+  },
 };
 </script>
 
 <style scoped>
 .txtCondiciones {
   field-sizing: content !important;
+}
+
+.clsInstructivo {
+  height: 450px;
+  overflow-y: scroll;
+  scrollbar-gutter: stable;
+}
+.clsSequence {
+  height: 500px;
+  overflow-y: auto; /* 'auto' es más limpio que 'scroll' */
+  scrollbar-gutter: stable;
+  position: relative; /* Estabiliza el contexto de posicionado */
+  will-change: scroll-position; /* Optimiza el renderizado del scroll */
+}
+
+/* Agrega esto a tu archivo CSS */
+.custom-title-class {
+  font-size: 2.5rem !important; /* Título de la alerta más grande */
+}
+
+.custom-button-class {
+  font-size: 1.5rem !important; /* Texto del botón más grande */
+  padding: 15px 30px !important; /* Botón más amplio */
 }
 </style>

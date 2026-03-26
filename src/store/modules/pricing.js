@@ -1583,6 +1583,7 @@ const actions = {
       state.datosPrincipales.descripcioncarga = res.descripcionmercancia;
       state.datosPrincipales.fecha_inicio = res.fecha_inicio;
       state.datosPrincipales.url_folderonedrive = res.url_folderonedrive;
+      state.datosPrincipales.url_folderonedriveexp = res.url_folderonedriveexp;
       state.nro_exp = res.nro_exp;
       state.datosPrincipales.datosinstructivomanual =
         res.datosinstructivomanual;
@@ -6192,7 +6193,7 @@ const actions = {
         allowOutsideClick: false,
         confirmButtonText: "Ir al control de gastos",
         // cancelButtonText: "Enviar Correos",
-        denyButtonText: "Cerrar",
+        denyButtonText: "Ahora continuaremos con los Email.",
         // showCancelButton: true,
         showConfirmButton: true,
         showDenyButton: true,
@@ -6209,8 +6210,22 @@ const actions = {
             },
           });
         }
-        if (res.isDenied) {
-          window.location.reload();
+        if (res.isDenied) { 
+  // La ruta actual está en 'currentRoute'
+           const idActual = router.currentRoute.params.id; 
+  
+          if (idActual) {
+            router.push({
+              name: "verQuote",
+              params: { id: idActual, step: 5 },
+            });
+
+            setTimeout(() => {
+              window.location.reload();
+            }, 1000);
+          } else {
+            console.warn("No se encontró el ID en la ruta actual");
+          }
         }
       });
     });

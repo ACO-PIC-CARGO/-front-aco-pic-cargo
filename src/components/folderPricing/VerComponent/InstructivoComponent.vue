@@ -647,34 +647,35 @@
     </v-dialog>
     <v-dialog
       v-model="dialogSequenceInstructivo"
-      max-width="70%"
+      width="90%"
       persistent
       scrollable
       v-if="dialogSequenceInstructivo"
     >
-      <v-row>
-        <v-card>
-          <v-col cols="12" class="my-0 py-0">
-            <v-card-title>
-              Datos Manuales Instructivo
-              <v-spacer></v-spacer>
-              <v-btn
-                @click="dialogSequenceInstructivo = false"
-                icon
-                color="default"
-              >
-                <v-icon>mdi-close</v-icon>
-              </v-btn>
-            </v-card-title>
-          </v-col>
-          <v-col cols="12" class="my-0 py-0">
-            <fileSequenceInstructivo
-              @continuar="abrirModalAprobar"
-              :aprobadoflag="$store.state.pricing.aprobadoflag"
-            />
-          </v-col>
-        </v-card>
-      </v-row>
+      <v-card tile shadow="none">
+        <v-card-title class="pa-0">
+          <v-toolbar flat dark color="primary">
+            <v-toolbar-title>Datos Manuales Instructivo</v-toolbar-title>
+            <v-spacer></v-spacer>
+            <v-btn icon @click="cerrarDialogoSequenceInstructivo">
+              <v-icon>mdi-close</v-icon>
+            </v-btn>
+          </v-toolbar>
+        </v-card-title>
+
+        <v-card-text class="pa-0">
+          <v-container fluid class="pa-0">
+            <v-row no-gutters>
+              <v-col cols="12">
+                <fileSequenceInstructivo
+                  @continuar="abrirModalAprobar"
+                  :aprobadoflag="$store.state.pricing.aprobadoflag"
+                />
+              </v-col>
+            </v-row>
+          </v-container>
+        </v-card-text>
+      </v-card>
     </v-dialog>
   </v-container>
 </template>
@@ -789,6 +790,9 @@ export default {
     this.$nextTick(async () => {
       setTimeout(async () => {
         await this.generaInstructivoparaguardata();
+        if (this.$store.state.pricing.aprobadoflag) {
+          this.dialogSequenceInstructivo = true;
+        }
       }, 4000);
     });
   },
@@ -803,6 +807,25 @@ export default {
       "GuardarConfiguracionEmpresa",
       "ObtenerDatosConfig",
     ]),
+    cerrarDialogoSequenceInstructivo() {
+      Swal.fire({
+        icon: "warning",
+        title: "Advertencia",
+        text: "Si cierra esta pestaña no se guardará ningún cambio. Está seguro de cerrar esta pestaña.",
+        allowEnterKey: false,
+        allowEscapeKey: false,
+        allowOutsideClick: false,
+        confirmButtonText: "Si, cerrar.",
+        cancelButtonText: "Cancelar",
+        cancelButtonColor: "red",
+        showCancelButton: true,
+      }).then((res) => {
+        if (res.isConfirmed) {
+          this.dialogSequenceInstructivo = false;
+        }
+      });
+      // dialogSequenceInstructivo
+    },
     getIconFile(item) {
       if (item.folder) return "mdi-folder";
 
@@ -971,7 +994,6 @@ export default {
       this.proveedorInstructivo = this.$store.state.provedores.find(
         (v) => v.id == proveedoresUnicos[0],
       );
-     
 
       let val = JSON.parse(sessionStorage.getItem("ConfigEmpresa"));
       this.dialogConfig = !val.existemaster;
