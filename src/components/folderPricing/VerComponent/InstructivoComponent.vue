@@ -825,13 +825,11 @@ export default {
 
   async mounted() {
     this.$nextTick(async () => {
+      this.dialogSequenceInstructivo = true;
       setTimeout(async () => {
-        this.$store.state.spiner = true;
         await this.generaInstructivoparaguardata();
         if (this.$store.state.pricing.aprobadoflag) {
-          this.dialogSequenceInstructivo = true;
         }
-        this.$store.state.spiner = false;
       }, 4000);
     });
   },

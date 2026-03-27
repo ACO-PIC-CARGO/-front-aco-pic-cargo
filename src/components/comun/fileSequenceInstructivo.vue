@@ -1875,7 +1875,7 @@ export default {
             subject,
           )}&body=${encodeURIComponent(body)}`;
           this.abrirModalSegundoCorreo();
-        }, 1000);
+        }, 500);
       } catch (err) {
         console.error("Error:", err);
         alert("Error al copiar automáticamente.");
@@ -1892,14 +1892,17 @@ export default {
           html: `
           <h1 style="font-size: 2.5em; font-weight: bold;">📧 Crear email al agente</h1>
 
-        <h1 style="font-size: 2em; font-weight: bold;">🚨 OBLIGATORIO</h1>
-        <h2 style="font-size: 1.5em;">Antes de abrir el segundo correo, primero envía el email a Operaciones.</h2>
-      `,
+              <h1 style="font-size: 2em; font-weight: bold;">🚨 OBLIGATORIO</h1>
+              <h2 style="font-size: 1.5em;">Antes de abrir el segundo correo, primero envía el email a Operaciones.</h2>
+            `,
           confirmButtonText: "☑️ Ya envié el email a Operaciones. Continuar",
+          showCancelButton: true,
+          cancelButtonText: "Cancelar",
           allowEnterKey: false,
           allowEscapeKey: false,
           allowOutsideClick: false,
           confirmButtonColor: "#00C853",
+          cancelButtonColor: "red",
           // 2. Personalización de tamaños mediante clases
           customClass: {
             title: "custom-title-class",
@@ -1908,11 +1911,14 @@ export default {
 
           didOpen: () => {
             const confirmBtn = Swal.getConfirmButton();
+            const cancelBtn = Swal.getCancelButton();
             confirmBtn.style.display = "none";
+            cancelBtn.style.display = "none";
 
             setTimeout(() => {
               confirmBtn.style.display = "inline-block";
-            }, 3000);
+              cancelBtn.style.display = "inline-block";
+            }, 2000);
           },
         }).then((res) => {
           if (res.isConfirmed) {
