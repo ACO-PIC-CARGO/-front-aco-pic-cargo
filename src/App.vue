@@ -1154,14 +1154,6 @@ export default {
   }
 }
 
-.drop-area {
-  width: 100%;
-  height: 150px;
-  border: 2px dashed #ccc;
-  text-align: center;
-  line-height: 150px;
-  cursor: pointer;
-}
 
 .contenedor-scroll {
   height: 100vh;

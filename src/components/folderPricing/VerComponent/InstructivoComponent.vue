@@ -647,7 +647,7 @@
     </v-dialog>
     <v-dialog
       v-model="dialogSequenceInstructivo"
-      width="90%"
+      fullscreen
       persistent
       scrollable
       v-if="dialogSequenceInstructivo"
