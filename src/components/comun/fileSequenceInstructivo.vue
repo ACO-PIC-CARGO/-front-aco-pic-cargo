@@ -59,16 +59,9 @@
                 CARGA LISTA DIA FECHA
               </v-stepper-step>
 
-              <v-stepper-content step="3">
+              <v-stepper-content step="3" class="pt-0">
                 <v-row>
-                  <!-- <v-col cols="12">
-                <v-checkbox
-                  @change="checkNoAplica(3)"
-                  label="No Aplica"
-                  v-model="datosManualesNoAplica.listDiaFecha"
-                ></v-checkbox>
-              </v-col> -->
-                  <v-col cols="12">
+                  <v-col cols="12" class="pt-0">
                     <v-textarea
                       rows="1"
                       auto-grow
@@ -428,6 +421,7 @@
                       outlined
                       label="Si/ No"
                       hide-details
+                      style="width: 120px; margin-top: 10px"
                     ></v-select>
                   </v-col>
 
@@ -474,7 +468,7 @@
                   </v-col>
                 </v-row>
               </v-stepper-content>
-
+              <!-- MONTO A PAGAR -->
               <div class="" v-if="datosManuales.pagarProveedor">
                 <!-- Monto -->
                 <v-stepper-step :editable="true" :complete="e6 > 8" step="8">
@@ -505,7 +499,7 @@
                   </v-row>
                 </v-stepper-content>
                 <!-- ALIBABA -->
-                <div v-if="datosManuales.metodoPagarProveedor == 1">
+                <div v-if="mostrarPagarProveedorAlibaba">
                   <!--  -->
                   <v-stepper-step
                     :editable="true"
@@ -518,11 +512,14 @@
                   <v-stepper-content step="9">
                     <v-row>
                       <v-col cols="12">
-                        <v-checkbox
-                          @change="checkNoAplica(10)"
-                          label="No Aplica"
+                        <v-select
+                          :items="cboSiNo"
                           v-model="datosManualesNoAplica.clientePago"
-                        ></v-checkbox>
+                          outlined
+                          label="Si/ No"
+                          style="width: 120px; margin-top: 10px"
+                          hide-details
+                        ></v-select>
                         <v-text-field
                           v-model="datosManuales.clientePago"
                         ></v-text-field>
@@ -545,12 +542,15 @@
                     :complete="e6 > 10"
                     step="10"
                   >
-                    MONTO RECIBIDO
+                    MONTO RECIBIDO DEL CLIENTE
                   </v-stepper-step>
                   <v-stepper-content step="10">
                     <v-row>
                       <v-col cols="12">
-                        <v-text-field v-model="datosManuales.montoRecibido">
+                        <v-text-field
+                          type="number"
+                          v-model="datosManuales.montoRecibido"
+                        >
                         </v-text-field>
                       </v-col>
                       <v-col cols="12">
@@ -614,6 +614,36 @@
                       </v-col>
                       <v-col cols="12">
                         <v-spacer></v-spacer>
+                        <v-btn color="primary" class="mx-1" @click="continuar">
+                          Continue
+                        </v-btn>
+                        <v-btn color="error" class="mx-1" @click="regresar()">
+                          Volver
+                        </v-btn>
+                      </v-col>
+                    </v-row>
+                  </v-stepper-content>
+
+                  <!-- NRO DE CONTRATO DE ALIBABA -->
+                  <v-stepper-step
+                    :editable="true"
+                    :complete="e6 > 13"
+                    step="13"
+                  >
+                    NÚMERO DE CONTRATO DE ALIBABA
+                  </v-stepper-step>
+                  <v-stepper-content step="13">
+                    <v-row>
+                      <v-col cols="12">
+                        <v-text-field
+                          name="linkPagoAlibaba"
+                          label="Número de Contrato de Alibaba (De Acuerdo a la Factura comercial)"
+                          id="numeroContratoAlibaba"
+                          v-model="datosManuales.numeroContratoAlibaba"
+                        ></v-text-field>
+                      </v-col>
+                      <v-col cols="12">
+                        <v-spacer></v-spacer>
                         <v-btn
                           color="primary"
                           class="mx-1"
@@ -629,16 +659,16 @@
                   </v-stepper-content>
                 </div>
 
-                <div v-if="datosManuales.metodoPagarProveedor == 2">
+                <div v-if="mostrarPagarProveedorInternacional">
                   <!-- Nro Factura -->
                   <v-stepper-step
                     :editable="true"
-                    :complete="e6 > 13"
-                    step="13"
+                    :complete="e6 > 14"
+                    step="14"
                   >
                     NRO DE FACTURA
                   </v-stepper-step>
-                  <v-stepper-content step="13">
+                  <v-stepper-content step="14">
                     <v-row>
                       <v-col cols="12">
                         <v-checkbox
@@ -656,7 +686,7 @@
                         <v-btn
                           color="primary"
                           class="mx-1"
-                          @click="pasarASeguro"
+                          @click="continuar"
                         >
                           Continue
                         </v-btn>
@@ -670,12 +700,12 @@
                   <!-- Banco Beneficiario o Cuenta Beneficiario -->
                   <v-stepper-step
                     :editable="true"
-                    :complete="e6 > 14"
-                    step="14"
+                    :complete="e6 > 15"
+                    step="15"
                   >
                     BANCO BENEFICIARIO
                   </v-stepper-step>
-                  <v-stepper-content step="14">
+                  <v-stepper-content step="15">
                     <v-row>
                       <v-col cols="12">
                         <v-text-field
@@ -688,7 +718,7 @@
                         <v-btn
                           color="primary"
                           class="mx-1"
-                          @click="pasarASeguro"
+                          @click="continuar"
                         >
                           Continue
                         </v-btn>
@@ -702,12 +732,12 @@
                   <!-- Dirección del banco beneficiario -->
                   <v-stepper-step
                     :editable="true"
-                    :complete="e6 > 15"
-                    step="15"
+                    :complete="e6 > 16"
+                    step="16"
                   >
                     DIRECCIÓN DEL BANCO BENEFICIARIO
                   </v-stepper-step>
-                  <v-stepper-content step="15">
+                  <v-stepper-content step="16">
                     <v-row>
                       <v-col cols="12">
                         <v-text-field
@@ -715,17 +745,30 @@
                           class="txtNroFactura"
                         />
                       </v-col>
+                      <v-col cols="12">
+                        <v-spacer></v-spacer>
+                        <v-btn
+                          color="primary"
+                          class="mx-1"
+                          @click="continuar"
+                        >
+                          Continue
+                        </v-btn>
+                        <v-btn color="error" class="mx-1" @click="regresar()">
+                          Volver
+                        </v-btn>
+                      </v-col>
                     </v-row>
                   </v-stepper-content>
                   <!-- Nombre del Beneficiario -->
                   <v-stepper-step
                     :editable="true"
-                    :complete="e6 > 16"
-                    step="16"
+                    :complete="e6 > 17"
+                    step="17"
                   >
-                  NOMBRE DEL BENEFICIARIO
+                    NOMBRE DEL BENEFICIARIO
                   </v-stepper-step>
-                  <v-stepper-content step="16">
+                  <v-stepper-content step="17">
                     <v-row>
                       <v-col cols="12">
                         <v-text-field
@@ -747,12 +790,12 @@
                   <!-- Dirección del Beneficiario -->
                   <v-stepper-step
                     :editable="true"
-                    :complete="e6 > 17"
-                    step="17"
+                    :complete="e6 > 18"
+                    step="18"
                   >
-                   DIRECCIÓN DEL BENEFICIARIO
+                    DIRECCIÓN DEL BENEFICIARIO
                   </v-stepper-step>
-                  <v-stepper-content step="17">
+                  <v-stepper-content step="18">
                     <v-row>
                       <v-col cols="12">
                         <v-text-field
@@ -774,12 +817,12 @@
                   <!-- Número de Cuenta -->
                   <v-stepper-step
                     :editable="true"
-                    :complete="e6 > 18"
-                    step="18"
+                    :complete="e6 > 19"
+                    step="19"
                   >
-                   NÚMERO DE CUENTA
+                    NÚMERO DE CUENTA
                   </v-stepper-step>
-                  <v-stepper-content step="18">
+                  <v-stepper-content step="19">
                     <v-row>
                       <v-col cols="12">
                         <v-text-field
@@ -801,12 +844,12 @@
                   <!-- Porcentaje de Pago -->
                   <v-stepper-step
                     :editable="true"
-                    :complete="e6 > 19"
-                    step="19"
+                    :complete="e6 > 20"
+                    step="20"
                   >
                     PORCENTAJE DE PAGO
                   </v-stepper-step>
-                  <v-stepper-content step="19">
+                  <v-stepper-content step="20">
                     <v-row>
                       <v-col cols="12">
                         <v-text-field
@@ -833,12 +876,12 @@
                   <!-- País Recepto -->
                   <v-stepper-step
                     :editable="true"
-                    :complete="e6 > 20"
-                    step="20"
+                    :complete="e6 > 21"
+                    step="21"
                   >
                     PAÍS RECEPTOR
                   </v-stepper-step>
-                  <v-stepper-content step="20">
+                  <v-stepper-content step="21">
                     <v-row>
                       <v-col cols="12">
                         <v-text-field
@@ -865,13 +908,13 @@
                 <!-- ------------------------------------------ -->
                 <v-stepper-step
                   :editable="true"
-                  :complete="e6 > 21"
-                  step="21"
+                  :complete="e6 > 22"
+                  step="22"
                   v-if="false"
                 >
                   DONDE SE DEBE PAGAR
                 </v-stepper-step>
-                <v-stepper-content step="21">
+                <v-stepper-content step="22">
                   <v-row>
                     <v-col cols="12">
                       <p class="red--text">
@@ -891,10 +934,10 @@
                 </v-stepper-content>
               </div>
               <!-- SEGURO DE MERCANCIA -->
-              <v-stepper-step :editable="true" :complete="e6 > 22" step="22">
+              <v-stepper-step :editable="true" :complete="e6 > 23" step="23">
                 SEGURO DE MERCANCIA
               </v-stepper-step>
-              <v-stepper-content step="22">
+              <v-stepper-content step="23">
                 <v-row>
                   <v-col cols="12">
                     <v-text-field
@@ -913,14 +956,14 @@
                   </v-col>
                 </v-row>
               </v-stepper-content>
-              <v-stepper-step :editable="true" :complete="e6 > 23" step="23">
+              <v-stepper-step :editable="true" :complete="e6 > 24" step="24">
                 OBSERVACIONES ADICIONALES 1
               </v-stepper-step>
-              <v-stepper-content step="23">
+              <v-stepper-content step="24">
                 <v-row>
                   <v-col cols="12">
                     <v-checkbox
-                      @change="checkNoAplica(15)"
+                      @change="checkNoAplica(24)"
                       label="No Aplica"
                       v-model="datosManualesNoAplica.observacion1"
                     ></v-checkbox>
@@ -942,14 +985,14 @@
                 </v-row>
               </v-stepper-content>
               <!--  -->
-              <v-stepper-step :editable="true" :complete="e6 > 24" step="24">
+              <v-stepper-step :editable="true" :complete="e6 > 25" step="25">
                 OBSERVACIONES ADICIONALES 2
               </v-stepper-step>
-              <v-stepper-content step="24">
+              <v-stepper-content step="25">
                 <v-row>
                   <v-col cols="12">
                     <v-checkbox
-                      @change="checkNoAplica(16)"
+                      @change="checkNoAplica(25)"
                       label="No Aplica"
                       v-model="datosManualesNoAplica.observacion2"
                     ></v-checkbox>
@@ -1384,7 +1427,7 @@
                         </td>
                       </tr>
 
-                      <tr v-if="datosManuales.metodoPagarProveedor == 1">
+                      <tr>
                         <td
                           valign="top"
                           style="border: solid windowtext 1pt; border-top: none"
@@ -1413,7 +1456,7 @@
                         </td>
                       </tr>
 
-                      <tr v-if="datosManuales.metodoPagarProveedor == 1">
+                      <tr v-if="mostrarPagarProveedorAlibaba">
                         <td
                           valign="top"
                           style="border: solid windowtext 1pt; border-top: none"
@@ -1442,7 +1485,7 @@
                         </td>
                       </tr>
 
-                      <tr>
+                      <tr v-if="datosManuales.pagarProveedor">
                         <td
                           valign="top"
                           style="border: solid windowtext 1pt; border-top: none"
@@ -1453,7 +1496,7 @@
                           <span style="color: red"> </span>
                         </td>
                         <td
-                          v-if="datosManuales.metodoPagarProveedor == 1"
+                          v-if="mostrarPagarProveedorAlibaba"
                           valign="top"
                           style="
                             width: 510.5pt;
@@ -1492,7 +1535,7 @@
                                 text-transform: uppercase;
                               "
                             >
-                              MONTO RECIBIDO:
+                              MONTO RECIBIDO DEL CLIENTE:
                             </span>
                             {{ datosManuales.montoRecibido }}
                           </p>
@@ -1518,9 +1561,20 @@
                             </span>
                             {{ datosManuales.linkDePagoAlibaba }}
                           </p>
+                          <p class="MsoNormal my-0">
+                            <span
+                              style="
+                                font-weight: bold;
+                                text-transform: uppercase;
+                              "
+                            >
+                              NÚMERO DE CONTRATO DE ALIBABA:
+                            </span>
+                            {{ datosManuales.numeroContratoAlibaba }}
+                          </p>
                         </td>
                         <td
-                          v-if="datosManuales.metodoPagarProveedor == 2"
+                          v-if="mostrarPagarProveedorInternacional"
                           valign="top"
                           style="
                             width: 510.5pt;
@@ -1530,6 +1584,17 @@
                             border-right: solid windowtext 1pt;
                           "
                         >
+                          <p class="MsoNormal my-0">
+                            <span
+                              style="
+                                font-weight: bold;
+                                text-transform: uppercase;
+                              "
+                            >
+                              MONTO A PAGAR:
+                            </span>
+                            {{ datosManuales.monto }}
+                          </p>
                           <p class="MsoNormal my-0">
                             <span
                               style="
@@ -1996,10 +2061,12 @@
           </v-tabs>
         </v-col>
         <v-col cols="12 my-5">
+          <v-spacer></v-spacer>
           <v-btn
             color="success"
             v-if="!aprobadoflag"
             @click="setDatosInstructivo"
+            class="mx-2"
           >
             Guardar Borrador Y Continuar
           </v-btn>
@@ -2007,7 +2074,7 @@
             color="success"
             v-if="aprobadoflag"
             @click="guardarYGenenarCorreo"
-            class="mx-1"
+            class="mx-2"
           >
             <v-icon class="mx-2">mdi-content-save-move</v-icon> Guardar y Enviar
             Email a Operaciones
@@ -2139,6 +2206,7 @@ export default {
         soporteTransferenciaInternacional: null,
         otros: null,
         agregarOtros: null,
+        numeroContratoAlibaba: null,
       },
       puertoOrigen: null,
       puertoDestino: null,
@@ -2152,7 +2220,7 @@ export default {
       "verPuerto",
     ]),
     pasarASeguro() {
-      this.e6 = 22;
+      this.e6 = 23;
     },
     continuarPagarProveedor() {
       console.log("nani?");
@@ -2316,176 +2384,273 @@ export default {
       const main = state.datosPrincipales;
       const cliente = state.dataCliente;
 
-      // 1. Buscamos con fallback a objeto vacío para evitar errores de .name
-
-      // 2. Limpieza de nombres para el subject
+      // 1. Limpieza de nombres para el subject
       const nro_quote_clean = (state.nro_quote || "")
         .trim()
         .normalize("NFD")
         .replace(/[\u0300-\u036f]/g, "")
         .replace(/[\s-]+/g, "_");
 
-      const nombre_clean = (cliente.nombrecompleto || "")
-        .trim()
-        .normalize("NFD")
-        .replace(/[\u0300-\u036f]/g, "")
-        .replace(/[\s-]+/g, "_");
-
-      // 3. Construcción segura del subject
-
       const subjectStr = `INSTRUCTIVO_VENTAS_${nro_quote_clean}_EXPEDIENTE_${this.pricing.nro_exp}`;
       const subject = encodeURIComponent(subjectStr);
 
+      // 2. Extracción de datos de sucursal
+      const dataBranch =
+        JSON.parse(sessionStorage.getItem("dataBranch"))?.[0] || {};
+
+      // 3. Normalizamos los valores de pago a booleanos para evitar conflictos con textos como "No Aplica"
+      const esAlibaba = !!this.mostrarPagarProveedorAlibaba;
+      const esInternacional = !!this.mostrarPagarProveedorInternacional;
+console.log('(esAlibaba',esAlibaba)
+console.log('(esInternacional',esInternacional)
+      // Es verdadero solo si dice explícitamente que "Si" o si se activó alguna bandera de pago
+      const requierePagar =
+        this.datosManuales.pagarProveedor === true ||
+        this.datosManuales.pagarProveedor === "Si" ||
+        esAlibaba ||
+        esInternacional;
+
       // 4. Ejecución del preview/guardado
       await this.quotePreviewInstructivoManual({
+        // Esparcimos TODOS los datos manuales
+        ...this.datosManuales,
+
+        // Forzamos/Sobrescribimos parámetros específicos que requieren lógica o nombres distintos
         guardarFlag: guardarFlag,
         subject: subject,
         asesor: this.asesor.name || "",
         asesorPricing: this.asesorPricing.name || "",
         nro_quote: state.nro_quote || "",
-        servicio: this.datosManuales.servicio || "",
-        email: this.datosManuales.email || "",
         PortBegin: this.puertoOrigen.name || "",
         Incoterms: this.incoterms.name || "",
         peso: main.peso || 0,
         volumen: main.volumen || 0,
         descripcioncarga: main.descripcioncarga || "",
+
         nombrecompletoProveedor: this.proveedor.namelong || "",
         contactoProveedor: this.proveedor.contacto || "",
         addressProveedor: this.proveedor.emailaddress || "",
         contactoPhoneProveedor: this.proveedor.contacto_phone || "",
+
         nombrecompletoCliente: cliente.nombrecompleto || "",
         documentCliente: cliente.document || "",
         addressCliente: cliente.address || "",
         emailaddressCliente: state.emailaddress || "",
-        listDiaFecha: this.datosManuales.listDiaFecha || "",
-        grupoWhatsapp: this.datosManuales.grupoWhatsapp || "",
-        Shipment: this.Shipment.name || "",
+
+        Shipment: this.Shipment.code || "",
         url_folderonedrive: this.datosPrincipales.url_folderonedrive,
         url_folderonedriveexp: this.datosPrincipales.url_folderonedriveexp,
-        pagarProveedor: this.datosManuales.pagarProveedor || "",
-        dondePagar: this.datosManuales.dondePagar || "",
-        linkDePago: this.datosManuales.linkDePago || "",
-        condicionesLink: this.datosManuales.condicionesLink || "",
-        nroFactura: this.datosManuales.nroFactura || "",
-        seguro: this.datosManuales.seguro || "",
-        observacion1: this.datosManuales.observacion1 || "",
-        observacion2: this.datosManuales.observacion2 || "",
+
         namelongColoader: this.proveedorInstructivo.namelong || "",
         contactoColoader: this.proveedorInstructivo.contacto || "",
         phoneColoader: this.proveedorInstructivo.contacto_phone || "",
+
         seAdjunta:
-          this.datosFile && this.datosFile.length > 0
-            ? this.datosFile
+          this.filesLinkPagoAlibaba?.length > 0
+            ? this.filesLinkPagoAlibaba
                 .map((file) => `• ${file.nombre || file}`)
                 .join("<br />")
             : "No hay archivos",
-        url_logo: JSON.parse(sessionStorage.getItem("dataBranch"))[0].logo,
-        document: JSON.parse(sessionStorage.getItem("dataBranch"))[0].document,
-        address: JSON.parse(sessionStorage.getItem("dataBranch"))[0].address,
-        phone: JSON.parse(sessionStorage.getItem("dataBranch"))[0].phone,
+
+        url_logo: dataBranch.logo || "",
+        document: dataBranch.document || "",
+        address: dataBranch.address || "",
+        phone: dataBranch.phone || "",
+
+        // Pasamos booleanos controlados y limpios al API
+        pagarProveedor: requierePagar,
+        mostrarPagarProveedorAlibaba: esAlibaba,
+        mostrarPagarProveedorInternacional: esInternacional,
       });
     },
     async generarHTML() {
-      // 2. Formateo de archivos adjuntos
+      // 1. Formateo de archivos adjuntos
       const listaArchivos =
         this.filesLinkPagoAlibaba?.length > 0
           ? this.filesLinkPagoAlibaba
               .map((f) => `• ${f.nombre || f}`)
               .join("<br />")
           : "No hay archivos";
-      // 3. Construcción del Template HTML
+
+      // 2. Construcción de bloques condicionales para las filas
+
+      // Bloque 1: Datos de pago Alibaba
+      let datosPagoAlibaba = "";
+      if (this.mostrarPagarProveedorAlibaba) {
+        datosPagoAlibaba = `
+      <b>MONTO A PAGAR:</b> ${this.datosManuales.monto || ""}<br>
+      <b>CLIENTE YA NOS PAGÓ:</b> ${this.datosManuales.clientePago || ""}<br>
+      <b>MONTO RECIBIDO DEL CLIENTE:</b> ${
+        this.datosManuales.montoRecibido || ""
+      }<br>
+      <b>FECHA DE PAGO DEL CLIENTE:</b> ${
+        this.datosManuales.fechaPagoCliente || ""
+      }<br>
+      <b>LINK DE PAGO ALIBABA:</b> ${
+        this.datosManuales.linkDePagoAlibaba || ""
+      }<br>
+      <b>NÚMERO DE CONTRATO DE ALIBABA:</b> ${
+        this.datosManuales.numeroContratoAlibaba || ""
+      }
+    `;
+      }
+
+      // Bloque 2: Datos de pago Internacional
+      let datosPagoInternacional = "";
+      if (this.mostrarPagarProveedorInternacional) {
+        datosPagoInternacional = `
+      <b>MONTO A PAGAR:</b> ${this.datosManuales.monto || ""}<br>
+      <b>Nro Factura:</b> ${this.datosManuales.nroFactura || ""}<br>
+      <b>Banco Beneficiario:</b> ${
+        this.datosManuales.bancoBenbeficiario || ""
+      }<br>
+      <b>Dirección del banco beneficiario:</b> ${
+        this.datosManuales.direccionBancoBeneficiario || ""
+      }<br>
+      <b>Nombre del Beneficiario:</b> ${
+        this.datosManuales.nombreBeneficiario || ""
+      }<br>
+      <b>Dirección del Beneficiario:</b> ${
+        this.datosManuales.direccionBeneficiario || ""
+      }<br>
+      <b>Número de Cuenta:</b> ${
+        this.datosManuales.numeroCuentaBeneficiario || ""
+      }<br>
+      <b>Porcentaje de Pago:</b> ${this.datosManuales.porcentajePago || ""}<br>
+      <b>País Receptor:</b> ${this.datosManuales.paisReceptor || ""}
+    `;
+      }
+
+      // Unificamos el valor de la celda de la cuenta bancaria según cuál esté activo
+      const valorDatosBancarios = this.mostrarPagarProveedorAlibaba
+        ? datosPagoAlibaba
+        : this.mostrarPagarProveedorInternacional
+        ? datosPagoInternacional
+        : "No especificado";
+
+      // 3. Construcción del Template HTML final
       const htmlTable = `
-        <p> Hola Compañero</p>
-        <p>Hemos logrado cerrar esta nueva carga abajo los detalles </p>
-        <table border="0" cellspacing="0" cellpadding="0" style="border-collapse:collapse; font-family: Arial, sans-serif; width: 100%;">
-          <tbody>
-            ${this._tr("FECHA", moment().format("DD/MM/YYYY"))}
-            ${this._tr("ASESOR", this.asesor.name)}
-            ${this._tr("N° QUOTE", this.pricing.nro_quote)}
-            ${this._tr("TIPO DE EMBARQUE", this.Shipment.code)}
-            ${this._tr("SERVICIO", this.datosManuales.servicio)}
-            ${this._tr(
-              "COLOADER/AGENTE",
-              `
-              <b>Datos:</b> ${this.proveedorInstructivo.namelong}<br>
-              <b>Contacto:</b> ${this.proveedorInstructivo.contacto}<br>
-              <b>Teléfono:</b> ${this.proveedorInstructivo.contacto_phone}
-            `,
-            )}
-            ${this._tr("Email de Seguimiento", this.datosManuales.email)}
-            ${this._tr("PUERTO DE SALIDA", this.puertoOrigen.name || "")}
-            ${this._tr(
-              "DATOS DE LA CARGA<br><span style='color:red;font-size:10px;'>Si es EXW enviar dirección de recolecta</span>",
-              `
-              INCOTERMS: ${this.incoterms.name || ""}<br>
-              PESO: ${this.datosPrincipales.peso || 0} KG<br>
-              VOLUMEN: ${this.datosPrincipales.volumen || 0} M3<br>
-              TIPO DE MERCANCIA: ${this.datosPrincipales.descripcioncarga || ""}
-            `,
-            )}
-            ${this._tr(
-              "DETALLES DEL PROVEEDOR",
-              `
-              NOMBRE: ${this.proveedor.namelong || ""}<br>
-              CONTACTO: ${this.proveedor.contacto || ""}<br>
-              EMAIL: ${this.proveedor.emailaddress || ""}<br>
-              TELÉFONO: ${this.proveedor.contacto_phone || ""}
-            `,
-            )}
-            ${this._tr(
-              "CLIENTE / RAZON SOCIAL",
-              `
-              ${this.pricing.dataCliente.nombrecompleto || ""}<br>
-              RUC: ${this.pricing.dataCliente.document || ""}<br>
-              DIRECCIÓN: ${this.pricing.dataCliente.address || ""}<br>
-              EMAIL: ${this.pricing.emailaddress || ""}
-            `,
-            )}
-            ${this._tr(
-              "<b>NOTIFY</b>",
-              `
-              PIC LOGISTICA SAC <br>
-              RUC: 20609852861 <br>
-              AV. AGUSTIN DE LA ROSA TORO 770, SAN LUIS <br>
-              Contacto: Carlos Ramirez <br>
-              CORREO: ASESOR2@PIC-CARGO.COM
-            `,
-            )}
-            ${this._tr(
-              "CARGA LISTA DIA FECHA",
-              this.datosManuales.listDiaFecha,
-            )}
-            ${this._tr("GRUPO DE WHATSAPP", this.datosManuales.grupoWhatsapp)}
-            ${this._tr("SE ADJUNTA", listaArchivos)}
-            ${this._tr(
-              "DEBEMOS PAGAR AL PROVEEDOR",
-              this.datosManuales.pagarProveedor,
-            )}
-            ${this._tr("DONDE SE DEBE PAGAR", this.datosManuales.dondePagar)}
-            ${this._tr(
-              "LINK DE PAGO / TRANSFERENCIA",
-              this.datosManuales.linkDePago,
-            )}
-            ${this._tr(
-              "CONDICIONES ALIBABA",
-              this.datosManuales.condicionesLink,
-            )}
-            ${this._tr("NRO FACTURA", this.datosManuales.nroFactura)}
-            ${this._tr("SEGURO", this.datosManuales.seguro)}
-            ${this._tr("OBSERVACIONES 1", this.datosManuales.observacion1)}
-            ${this._tr("OBSERVACIONES 2", this.datosManuales.observacion2)}
-            ${
-              this.datosPrincipales.url_folderonedriveexp
-                ? this._tr(
-                    "CARPETA OPERATIVA",
-                    `<a href="${this.datosPrincipales.url_folderonedriveexp}" target="_blank" style="color: blue; font-weight: bold;">CLICK AQUÍ</a>`,
-                  )
-                : ""
-            }
-          </tbody>
-        </table>
-        <p>Quedamos atentos a sus comentarios y en caso de cualquier duda por favor contactarnos</p>`;
+    <p style="font-family: Arial, sans-serif;">Hola Compañero,</p>
+    <p style="font-family: Arial, sans-serif;">Hemos logrado cerrar esta nueva carga, abajo los detalles:</p>
+    <table border="0" cellspacing="0" cellpadding="0" style="border-collapse:collapse; font-family: Arial, sans-serif; width: 100%;">
+      <tbody>
+        ${this._tr("FECHA", moment().format("DD/MM/YYYY"))}
+       ${this._tr(
+         "ASESOR/ PRICING",
+         `${this.asesor?.name || ""} / ${this.asesorPricing?.name || ""}`,
+       )}
+        ${this._tr("N° QUOTE", this.pricing.nro_quote)}
+        ${this._tr("TIPO DE EMBARQUE", this.Shipment.code)}
+        ${this._tr("SERVICIO", this.datosManuales.servicio)}
+        ${this._tr(
+          "COLOADER/AGENTE",
+          `
+          <b>Datos:</b> ${this.proveedorInstructivo.namelong || ""}<br>
+          <b>Contacto:</b> ${this.proveedorInstructivo.contacto || ""}<br>
+          <b>Teléfono:</b> ${this.proveedorInstructivo.contacto_phone || ""}
+        `,
+        )}
+        ${this._tr("Email de Seguimiento", this.datosManuales.email)}
+        ${this._tr("PUERTO DE SALIDA", this.puertoOrigen.name || "")}
+        ${this._tr(
+          "DATOS DE LA CARGA<br><span style='color:red;font-size:10px;'>Si es EXW enviar dirección de recolecta</span>",
+          `
+          <b>INCOTERMS:</b> ${this.incoterms.name || ""}<br>
+          <b>PESO:</b> ${this.datosPrincipales.peso || 0} KG<br>
+          <b>VOLUMEN:</b> ${this.datosPrincipales.volumen || 0} M3<br>
+          <b>TIPO DE MERCANCIA:</b> ${
+            this.datosPrincipales.descripcioncarga || ""
+          }
+        `,
+        )}
+        ${this._tr(
+          "DETALLES DEL PROVEEDOR",
+          `
+          <b>NOMBRE:</b> ${this.proveedor.namelong || ""}<br>
+          <b>CONTACTO:</b> ${this.proveedor.contacto || ""}<br>
+          <b>EMAIL:</b> <a href="mailto:${
+            this.proveedor.addressProveedor || ""
+          }">${this.proveedor.addressProveedor || ""}</a><br>
+          <b>TELÉFONO:</b> ${this.proveedor.contacto_phone || ""}
+        `,
+        )}
+        ${this._tr(
+          "CLIENTE / RAZON SOCIAL",
+          `
+          <b>NOMBRE:</b> ${this.pricing.dataCliente.nombrecompleto || ""}<br>
+          <b>RUC:</b> ${this.pricing.dataCliente.document || ""}<br>
+          <b>DIRECCIÓN:</b> ${this.pricing.dataCliente.address || ""}<br>
+          <b>EMAIL:</b> ${this.pricing.emailaddress || ""}
+        `,
+        )}
+        ${this._tr(
+          "<b>NOTIFY</b>",
+          `
+          PIC LOGISTICA SAC <br>
+          RUC: 20609852861 <br>
+          AV. AGUSTIN DE LA ROSA TORO 770, SAN LUIS <br>
+          Contacto: Carlos Ramirez <br>
+          CORREO: ASESOR2@PIC-CARGO.COM
+        `,
+        )}
+        ${this._tr(
+          "<b>CARGA LISTA DIA FECHA</b>",
+          this.datosManuales.listDiaFecha,
+        )}
+        ${this._tr(
+          "<b>GRUPO DE WHATSAPP</b>",
+          this.datosManuales.grupoWhatsapp,
+        )}
+        ${this._tr("<b>SE ADJUNTA</b>", listaArchivos)}
+        ${this._tr(
+          "<b>TIPO DE MERCANCIA</b>",
+          this.datosPrincipales.descripcioncarga || "",
+        )}
+        ${this._tr(
+          "<b>DEBEMOS PAGAR AL PROVEEDOR</b><br><span style='color:red;font-size:10px;'>Solo aplica si el cliente nos cancela a nosotros y debemos pagar al proveedor</span>",
+          this.datosManuales.pagarProveedor ? "Si" : "No",
+        )}
+        
+        ${
+          this.mostrarPagarProveedorAlibaba
+            ? this._tr(
+                "<b>DONDE SE DEBE PAGAR</b>",
+                this.datosManuales.dondePagar,
+              )
+            : ""
+        }
+        
+        ${
+          this.datosManuales.pagarProveedor
+            ? this._tr(
+                "<b>DATOS BANCARIOS PARA TRANSFERENCIA</b>",
+                valorDatosBancarios,
+              )
+            : ""
+        }
+        
+        ${this._tr("<b>SEGURO DE MERCANCIA</b>", this.datosManuales.seguro)}
+        ${this._tr(
+          "OBSERVACIONES ADICIONALES 1",
+          this.datosManuales.observacion1,
+        )}
+        ${this._tr(
+          "OBSERVACIONES ADICIONALES 2",
+          this.datosManuales.observacion2,
+        )}
+        ${
+          this.datosPrincipales.url_folderonedriveexp
+            ? this._tr(
+                "CARPETA OPERATIVA",
+                `<a href="${this.datosPrincipales.url_folderonedriveexp}" target="_blank" style="color: blue; font-weight: bold;">CLICK AQUÍ</a>`,
+              )
+            : ""
+        }
+      </tbody>
+    </table>
+    <br>
+    <p style="font-family: Arial, sans-serif;">Quedamos atentos a sus comentarios y en caso de cualquier duda por favor contactarnos.</p>
+  `;
 
       try {
         // 4. Copiar al Portapapeles
@@ -2499,11 +2664,9 @@ export default {
         );
 
         // 5. Configuración del correo
-        // Función para quitar tildes
         const clean = (str) =>
           str ? str.normalize("NFD").replace(/[\u0300-\u036f]/g, "") : "";
 
-        // Aplicación en tu constante
         const subject = `EXPEDIENTE-${this.pricing.nro_exp} QUOTE ${
           this.pricing.nro_quote
         } ${clean(this.pricing.dataCliente.nombrecompleto)} ${clean(
@@ -2669,8 +2832,8 @@ export default {
         11: "condicionesLink",
         12: "nroFactura",
         13: "seguro",
-        14: "observacion1",
-        15: "observacion2",
+        24: "observacion1",
+        25: "observacion2",
       };
 
       const propiedad = campos[step];
@@ -2877,6 +3040,22 @@ export default {
     },
   },
   computed: {
+    mostrarPagarProveedorAlibaba() {
+      if (this.datosManuales.pagarProveedor) {
+        if (this.datosManuales.metodoPagarProveedor == 1) {
+          return true;
+        }
+      }
+      return false;
+    },
+    mostrarPagarProveedorInternacional() {
+      if (this.datosManuales.pagarProveedor) {
+        if (this.datosManuales.metodoPagarProveedor == 2) {
+          return true;
+        }
+      }
+      return false;
+    },
     formatearArchivos() {
       if (
         !this.filesLinkPagoAlibaba ||
