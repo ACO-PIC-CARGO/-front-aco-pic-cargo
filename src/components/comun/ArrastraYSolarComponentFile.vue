@@ -54,26 +54,56 @@
 import axios from "axios";
 import { mapActions } from "vuex";
 export default {
+  // 1. Agregamos los props para recibir la data del padre
+  props: {
+    id: String,
+    archivoInicial: {
+      type: Object,
+      default: null,
+    },
+  },
   data() {
     return {
       loading: false,
-      isDragging: false, // Lo ideal es que inicie en false
-      file: null, // Cambiado a null para mejor manejo de archivos
+      isDragging: false,
+      file: null,
       msgfile: "",
-      errfile: "", // Agregado porque lo usas en uploadFile
+      errfile: "",
 
-      // NUEVAS VARIABLES LOCALES (La clave del éxito 🔑)
       archivoSubidoExitosamente: false,
       rutaDescarga: "",
     };
   },
+  // 2. Agregamos un watch por si la data tarda un poco en llegar desde la BD
+  watch: {
+    archivoInicial: {
+      handler(newValue) {
+        if (newValue && newValue.archivo) {
+          this.cargarDataExistente(newValue);
+        }
+      },
+      immediate: true, // Esto hace que se ejecute apenas cargue el componente
+      deep: true,
+    },
+  },
   mounted() {
-    // Al montar el componente, limpiamos el store para evitar basura de cargas anteriores
     this.$store.state.files.payPath = null;
     this.$store.state.files.datosPath = null;
   },
   methods: {
     ...mapActions(["_uploadFile"]),
+
+    // 3. Este método se encarga de pintar visualmente el archivo existente
+    cargarDataExistente(data) {
+      this.archivoSubidoExitosamente = true;
+      this.rutaDescarga = data.archivo ? data.archivo.ruta : "";
+
+      // Creamos un objeto similar al que genera el input de file nativo
+      // para que se dibuje el nombre en la etiqueta {{ file.name }}
+      this.file = {
+        name: data.archivo ? data.archivo.name : "Archivo cargado",
+      };
+    },
 
     async handleDrop(event) {
       this.loading = true;
@@ -84,7 +114,6 @@ export default {
       if (droppedFiles.length > 0) {
         this.file = droppedFiles[0];
 
-        // El setTimeout que tenías para simular análisis
         setTimeout(async () => {
           await this.uploadFile();
           this.loading = false;
@@ -95,7 +124,6 @@ export default {
     },
 
     openFileInput() {
-      // Usamos el click nativo del input oculto
       this.$refs.fileInput.$el.querySelector("input").click();
     },
 
@@ -104,18 +132,16 @@ export default {
       this.errfile = "";
 
       if (this.file) {
-        this.loading = true; // Aseguramos el loading también aquí
+        this.loading = true;
         try {
           await this._uploadFile(this.file);
           alert("Archivo Cargado");
 
-          // 1. Guardamos los datos del store en variables de este componente hijo
           this.rutaDescarga = this.$store.state.files.datosPath
             ? this.$store.state.files.datosPath.ruta
             : "";
           this.archivoSubidoExitosamente = true;
 
-          // 2. Emitimos los datos al padre
           this.$emit("archivo-cargado", {
             id: this.$store.state.files.payPath,
             archivo: this.$store.state.files.datosPath,
@@ -129,15 +155,12 @@ export default {
     },
 
     eliminarFile() {
-      // 1. Notificamos al padre para que quite el check
       this.$emit("archivo-eliminado");
 
-      // 2. Limpiamos el estado visual de ESTE hijo
       this.file = null;
       this.archivoSubidoExitosamente = false;
       this.rutaDescarga = "";
 
-      // 3. Limpiamos el store global
       this.$store.state.files.payPath = null;
       this.$store.state.files.datosPath = null;
     },

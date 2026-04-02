@@ -825,10 +825,10 @@ export default {
 
   async mounted() {
     this.$nextTick(async () => {
-      this.dialogSequenceInstructivo = true;
       setTimeout(async () => {
         await this.generaInstructivoparaguardata();
         if (this.$store.state.pricing.aprobadoflag) {
+          this.dialogSequenceInstructivo = true;
         }
       }, 4000);
     });

@@ -89,13 +89,6 @@
 
               <v-stepper-content step="4">
                 <v-row>
-                  <!-- <v-col cols="12">
-                <v-checkbox
-                  @change="checkNoAplica(4)"
-                  label="No Aplica"
-                  v-model="datosManualesNoAplica.grupoWhatsapp"
-                ></v-checkbox>
-              </v-col> -->
                   <v-col cols="12">
                     <v-textarea
                       rows="1"
@@ -144,6 +137,7 @@
                           <td width="50%">
                             <ArrastraYSolarComponent
                               id="CotizacionVenta"
+                              :archivo-inicial="datosManuales.cotizacionFile"
                               @archivo-cargado="
                                 (datoEmit) =>
                                   cargarArchivo(datoEmit, 'cotizacionFile')
@@ -154,6 +148,7 @@
                             />
                           </td>
                         </tr>
+
                         <tr>
                           <td width="5%">
                             <v-checkbox
@@ -165,6 +160,9 @@
                           <td width="50%">
                             <ArrastraYSolarComponent
                               id="facturaCommercial"
+                              :archivo-inicial="
+                                datosManuales.facturaCommercialFile
+                              "
                               @archivo-cargado="
                                 (datoEmit) =>
                                   cargarArchivo(
@@ -178,6 +176,7 @@
                             />
                           </td>
                         </tr>
+
                         <tr>
                           <td width="5%">
                             <v-checkbox
@@ -189,6 +188,7 @@
                           <td width="50%">
                             <ArrastraYSolarComponent
                               id="ListaEmpaque"
+                              :archivo-inicial="datosManuales.listaEmpaqueFile"
                               @archivo-cargado="
                                 (datoEmit) =>
                                   cargarArchivo(datoEmit, 'listaEmpaqueFile')
@@ -197,13 +197,9 @@
                                 eliminarArchivoPadre('listaEmpaqueFile')
                               "
                             />
-                            <!-- <v-file-input
-                              dense
-                              v-model="datosManuales.listaEmpaqueFile"
-                              @change="cargarArchivo('listaEmpaqueFile')"
-                            /> -->
                           </td>
                         </tr>
+
                         <tr>
                           <td width="5%">
                             <v-checkbox
@@ -215,6 +211,7 @@
                           <td width="50%">
                             <ArrastraYSolarComponent
                               id="Proforma"
+                              :archivo-inicial="datosManuales.proformaFile"
                               @archivo-cargado="
                                 (datoEmit) =>
                                   cargarArchivo(datoEmit, 'proformaFile')
@@ -223,13 +220,9 @@
                                 eliminarArchivoPadre('proformaFile')
                               "
                             />
-                            <!-- <v-file-input
-                              dense
-                              v-model="datosManuales.proformaFile"
-                              @change="cargarArchivo('proformaFile')"
-                            /> -->
                           </td>
                         </tr>
+
                         <tr>
                           <td width="5%">
                             <v-checkbox
@@ -241,6 +234,7 @@
                           <td width="50%">
                             <ArrastraYSolarComponent
                               id="FichaTecnica"
+                              :archivo-inicial="datosManuales.fichaTecnicaFile"
                               @archivo-cargado="
                                 (datoEmit) =>
                                   cargarArchivo(datoEmit, 'fichaTecnicaFile')
@@ -249,13 +243,9 @@
                                 eliminarArchivoPadre('fichaTecnicaFile')
                               "
                             />
-                            <!-- <v-file-input
-                              dense
-                              v-model="datosManuales.fichaTecnicaFile"
-                              @change="cargarArchivo('fichaTecnicaFile')"
-                            /> -->
                           </td>
                         </tr>
+
                         <tr>
                           <td width="5%">
                             <v-checkbox
@@ -267,6 +257,9 @@
                           <td width="50%">
                             <ArrastraYSolarComponent
                               id="SoportePagoAlibaba"
+                              :archivo-inicial="
+                                datosManuales.soportePagoAlibabaFile
+                              "
                               @archivo-cargado="
                                 (datoEmit) =>
                                   cargarArchivo(
@@ -278,15 +271,9 @@
                                 eliminarArchivoPadre('soportePagoAlibabaFile')
                               "
                             />
-                            <!--
-                            <v-file-input
-                              dense
-                              v-model="datosManuales.soportePagoAlibabaFile"
-                              @change="cargarArchivo('soportePagoAlibabaFile')"
-                            />
-                            -->
                           </td>
                         </tr>
+
                         <tr>
                           <td width="5%">
                             <v-checkbox
@@ -302,6 +289,9 @@
                           <td width="50%">
                             <ArrastraYSolarComponent
                               id="SoporteTransferenciaInternacional"
+                              :archivo-inicial="
+                                datosManuales.soporteTransferenciaInternacionalFile
+                              "
                               @archivo-cargado="
                                 (datoEmit) =>
                                   cargarArchivo(
@@ -315,22 +305,9 @@
                                 )
                               "
                             />
-                            <!--
-
-                            <v-file-input
-                              dense
-                              v-model="
-                                datosManuales.soporteTransferenciaInternacionalFile
-                              "
-                              @change="
-                                cargarArchivo(
-                                  'soporteTransferenciaInternacionalFile',
-                                )
-                              "
-                            />  
-                            -->
                           </td>
                         </tr>
+
                         <tr>
                           <td width="5%">
                             <v-checkbox
@@ -342,6 +319,7 @@
                           <td width="50%">
                             <ArrastraYSolarComponent
                               id="Otros"
+                              :archivo-inicial="datosManuales.otrosFile"
                               @archivo-cargado="
                                 (datoEmit) =>
                                   cargarArchivo(datoEmit, 'otrosFile')
@@ -350,13 +328,9 @@
                                 eliminarArchivoPadre('otrosFile')
                               "
                             />
-                            <!-- <v-file-input
-                              dense
-                              v-model="datosManuales.otrosFile"
-                              @change="cargarArchivo('otrosFile')"
-                            /> -->
                           </td>
                         </tr>
+
                         <tr>
                           <td width="5%">
                             <v-checkbox
@@ -368,6 +342,7 @@
                           <td width="50%">
                             <ArrastraYSolarComponent
                               id="AgregarOtros"
+                              :archivo-inicial="datosManuales.agregarOtrosFile"
                               @archivo-cargado="
                                 (datoEmit) =>
                                   cargarArchivo(datoEmit, 'agregarOtrosFile')
@@ -376,11 +351,6 @@
                                 eliminarArchivoPadre('agregarOtrosFile')
                               "
                             />
-                            <!-- <v-file-input
-                              dense
-                              v-model="datosManuales.agregarOtrosFile"
-                              @change="cargarArchivo('agregarOtrosFile')"
-                            /> -->
                           </td>
                         </tr>
                       </tbody>
@@ -388,11 +358,7 @@
                   </v-col>
                   <v-col cols="12">
                     <v-spacer></v-spacer>
-                    <v-btn
-                      color="primary"
-                      class="mx-1"
-                      @click="continuarCargarArchivosLinkPagoAlibaba()"
-                    >
+                    <v-btn color="primary" class="mx-1" @click="continuar()">
                       Continue
                     </v-btn>
                     <v-btn color="error" class="mx-1" @click="regresar()">
@@ -579,6 +545,7 @@
                         <v-text-field
                           type="date"
                           v-model="datosManuales.fechaPagoCliente"
+                          style="width: 280px"
                         >
                         </v-text-field>
                       </v-col>
@@ -683,11 +650,7 @@
                       </v-col>
                       <v-col cols="12">
                         <v-spacer></v-spacer>
-                        <v-btn
-                          color="primary"
-                          class="mx-1"
-                          @click="continuar"
-                        >
+                        <v-btn color="primary" class="mx-1" @click="continuar">
                           Continue
                         </v-btn>
                         <v-btn color="error" class="mx-1" @click="regresar()">
@@ -715,11 +678,7 @@
                       </v-col>
                       <v-col cols="12">
                         <v-spacer></v-spacer>
-                        <v-btn
-                          color="primary"
-                          class="mx-1"
-                          @click="continuar"
-                        >
+                        <v-btn color="primary" class="mx-1" @click="continuar">
                           Continue
                         </v-btn>
                         <v-btn color="error" class="mx-1" @click="regresar()">
@@ -747,11 +706,7 @@
                       </v-col>
                       <v-col cols="12">
                         <v-spacer></v-spacer>
-                        <v-btn
-                          color="primary"
-                          class="mx-1"
-                          @click="continuar"
-                        >
+                        <v-btn color="primary" class="mx-1" @click="continuar">
                           Continue
                         </v-btn>
                         <v-btn color="error" class="mx-1" @click="regresar()">
@@ -1686,94 +1641,6 @@
                         </td>
                       </tr>
 
-                      <!-- <tr>
-                        <td
-                          valign="top"
-                          style="border: solid windowtext 1pt; border-top: none"
-                        >
-                          <p class="MsoNormal my-0">
-                            <b
-                              >LINK DE PAGO o DATOS DE A TRANSFERENCIA
-                              INTERNACIONAL</b
-                            >
-                          </p>
-                          <span style="color: red"
-                            >Recuerda debes cobrar la comisión bancaria</span
-                          >
-                          <span style="color: red"
-                            >Solo aplica si el cliente nos cancela a nosotros y
-                            nosotros debemos pagar al proveedor</span
-                          >
-                        </td>
-                        <td
-                          valign="top"
-                          style="
-                            width: 510.5pt;
-                            border-top: none;
-                            border-left: none;
-                            border-bottom: solid windowtext 1pt;
-                            border-right: solid windowtext 1pt;
-                          "
-                        >
-                          <p class="MsoNormal my-0">
-                            {{ datosManuales.linkDePago }}
-                          </p>
-                        </td>
-                      </tr> -->
-
-                      <!-- <tr>
-                        <td
-                          valign="top"
-                          style="border: solid windowtext 1pt; border-top: none"
-                        >
-                          <p class="MsoNormal my-0">
-                            <b>CONDICIONES DE LINK DE CONTRATO DE ALIBABA</b>
-                          </p>
-                        </td>
-                        <td
-                          valign="top"
-                          style="
-                            width: 510.5pt;
-                            border-top: none;
-                            border-left: none;
-                            border-bottom: solid windowtext 1pt;
-                            border-right: solid windowtext 1pt;
-                          "
-                        >
-                          <p class="MsoNormal my-0">
-                            {{ datosManuales.condicionesLink }}
-                          </p>
-                        </td>
-                      </tr> -->
-
-                      <!-- <tr>
-                        <td
-                          valign="top"
-                          style="border: solid windowtext 1pt; border-top: none"
-                        >
-                          <p class="MsoNormal my-0">
-                            <b>PAGO DE TRANSFERENCIA INTERNCIONAL</b>
-                          </p>
-                          <span style="color: red"
-                            >DEBE PONERSE EL NUMERO DE FACTURA</span
-                          >
-                        </td>
-                        <td
-                          valign="top"
-                          style="
-                            width: 510.5pt;
-                            border-top: none;
-                            border-left: none;
-                            border-bottom: solid windowtext 1pt;
-                            border-right: solid windowtext 1pt;
-                          "
-                        >
-                          <p class="MsoNormal my-0">
-                            {{ datosManuales.nroFactura }}
-                          </p>
-                        </td>
-                      </tr> -->
-
                       <tr>
                         <td
                           valign="top"
@@ -2234,7 +2101,6 @@ export default {
     },
     cargarArchivo(datoEmit, name) {
       if (datoEmit) {
-        // Reemplaza el sufijo 'File' por 'Flag' para prender la bandera automáticamente
         const flagName = name.replace("File", "Flag");
 
         this.datosManuales[name] = {
@@ -2250,7 +2116,6 @@ export default {
     eliminarArchivoPadre(name) {
       console.log(`Eliminando archivo del padre: ${name}`);
 
-      // 1. Apagamos el flag visual (ej. cotizacionFlag = false)
       const flagName = name.replace("File", "Flag");
       this.datosManuales[flagName] = false;
 
@@ -2294,52 +2159,21 @@ export default {
         this.$refs.txtEmail.focus();
         return;
       }
-      // const expresion = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-      // if (!expresion.test(this.datosManuales.email)) {
-      //   console.log("d");
-      //   this.$refs.txtEmail.focus();
-      //   return;
-      // }
       this.e6 = 3;
     },
-
     continuar() {
       this.e6++;
     },
     regresar() {
       this.e6--;
     },
-    continuarCargarArchivos() {
-      this.datosManuales.id_path = [];
-      this.datosFile = [];
-      for (let index = 0; index < this.files.length; index++) {
-        this._uploadFile(index);
-      }
-      this.e6++;
-    },
-    continuarCargarArchivosLinkPagoAlibaba() {
-      this.datosFile = [];
-      if (this.filesLinkPagoAlibaba.length > 0) {
-        // Pasamos directamente el archivo en lugar del índice
-        this.filesLinkPagoAlibaba.forEach((file) => {
-          this._uploadFile(file);
-        });
-      }
-      this.e6++;
-    },
 
     async _uploadFile(file) {
-      // Eliminados los require de node (fs y form-data)
-      // FormData ya es nativo en el navegador
       var data = new FormData();
       var vm = this;
-
-      // Extraemos el nombre directamente del archivo recibido
       let nameWithoutExtension = file.name.replace(/\.[^/.]+$/, "");
-
       data.append("name", nameWithoutExtension);
-      data.append("file", file); // Usamos el archivo directamente
-
+      data.append("file", file);
       var config = {
         method: "post",
         url: process.env.VUE_APP_URL_MAIN + "uploadAllPath",
@@ -2376,7 +2210,6 @@ export default {
         }),
         this.generarHTML(),
         this.generarHTMLPDF(true),
-        // this.generarHTMLPDF(),
       ]);
     },
     async generarHTMLPDF(guardarFlag) {
@@ -2384,7 +2217,6 @@ export default {
       const main = state.datosPrincipales;
       const cliente = state.dataCliente;
 
-      // 1. Limpieza de nombres para el subject
       const nro_quote_clean = (state.nro_quote || "")
         .trim()
         .normalize("NFD")
@@ -2393,29 +2225,19 @@ export default {
 
       const subjectStr = `INSTRUCTIVO_VENTAS_${nro_quote_clean}_EXPEDIENTE_${this.pricing.nro_exp}`;
       const subject = encodeURIComponent(subjectStr);
-
-      // 2. Extracción de datos de sucursal
       const dataBranch =
         JSON.parse(sessionStorage.getItem("dataBranch"))?.[0] || {};
-
-      // 3. Normalizamos los valores de pago a booleanos para evitar conflictos con textos como "No Aplica"
       const esAlibaba = !!this.mostrarPagarProveedorAlibaba;
       const esInternacional = !!this.mostrarPagarProveedorInternacional;
-console.log('(esAlibaba',esAlibaba)
-console.log('(esInternacional',esInternacional)
-      // Es verdadero solo si dice explícitamente que "Si" o si se activó alguna bandera de pago
       const requierePagar =
         this.datosManuales.pagarProveedor === true ||
         this.datosManuales.pagarProveedor === "Si" ||
         esAlibaba ||
         esInternacional;
 
-      // 4. Ejecución del preview/guardado
       await this.quotePreviewInstructivoManual({
-        // Esparcimos TODOS los datos manuales
         ...this.datosManuales,
 
-        // Forzamos/Sobrescribimos parámetros específicos que requieren lógica o nombres distintos
         guardarFlag: guardarFlag,
         subject: subject,
         asesor: this.asesor.name || "",
@@ -2457,14 +2279,12 @@ console.log('(esInternacional',esInternacional)
         address: dataBranch.address || "",
         phone: dataBranch.phone || "",
 
-        // Pasamos booleanos controlados y limpios al API
         pagarProveedor: requierePagar,
         mostrarPagarProveedorAlibaba: esAlibaba,
         mostrarPagarProveedorInternacional: esInternacional,
       });
     },
     async generarHTML() {
-      // 1. Formateo de archivos adjuntos
       const listaArchivos =
         this.filesLinkPagoAlibaba?.length > 0
           ? this.filesLinkPagoAlibaba
@@ -2472,9 +2292,6 @@ console.log('(esInternacional',esInternacional)
               .join("<br />")
           : "No hay archivos";
 
-      // 2. Construcción de bloques condicionales para las filas
-
-      // Bloque 1: Datos de pago Alibaba
       let datosPagoAlibaba = "";
       if (this.mostrarPagarProveedorAlibaba) {
         datosPagoAlibaba = `
@@ -2494,8 +2311,6 @@ console.log('(esInternacional',esInternacional)
       }
     `;
       }
-
-      // Bloque 2: Datos de pago Internacional
       let datosPagoInternacional = "";
       if (this.mostrarPagarProveedorInternacional) {
         datosPagoInternacional = `
@@ -2521,14 +2336,12 @@ console.log('(esInternacional',esInternacional)
     `;
       }
 
-      // Unificamos el valor de la celda de la cuenta bancaria según cuál esté activo
       const valorDatosBancarios = this.mostrarPagarProveedorAlibaba
         ? datosPagoAlibaba
         : this.mostrarPagarProveedorInternacional
         ? datosPagoInternacional
         : "No especificado";
 
-      // 3. Construcción del Template HTML final
       const htmlTable = `
     <p style="font-family: Arial, sans-serif;">Hola Compañero,</p>
     <p style="font-family: Arial, sans-serif;">Hemos logrado cerrar esta nueva carga, abajo los detalles:</p>
@@ -2653,7 +2466,6 @@ console.log('(esInternacional',esInternacional)
   `;
 
       try {
-        // 4. Copiar al Portapapeles
         const blob = new Blob([htmlTable], { type: "text/html" });
         await navigator.clipboard.write([
           new ClipboardItem({ "text/html": blob }),
@@ -2663,7 +2475,6 @@ console.log('(esInternacional',esInternacional)
           "Tabla copiada. Se abrirá Outlook; pega el contenido con Ctrl+V.",
         );
 
-        // 5. Configuración del correo
         const clean = (str) =>
           str ? str.normalize("NFD").replace(/[\u0300-\u036f]/g, "") : "";
 
@@ -2688,8 +2499,6 @@ console.log('(esInternacional',esInternacional)
       }
     },
 
-    // Método auxiliar para no repetir tanto código de filas
-
     abrirModalSegundoCorreo() {
       setTimeout(() => {
         Swal.fire({
@@ -2709,18 +2518,15 @@ console.log('(esInternacional',esInternacional)
           allowOutsideClick: false,
           confirmButtonColor: "#00C853",
           cancelButtonColor: "red",
-          // 2. Personalización de tamaños mediante clases
           customClass: {
             title: "custom-title-class",
             confirmButton: "custom-button-class",
           },
-
           didOpen: () => {
             const confirmBtn = Swal.getConfirmButton();
             const cancelBtn = Swal.getCancelButton();
             confirmBtn.style.display = "none";
             cancelBtn.style.display = "none";
-
             setTimeout(() => {
               confirmBtn.style.display = "inline-block";
               cancelBtn.style.display = "inline-block";
@@ -2795,11 +2601,9 @@ console.log('(esInternacional',esInternacional)
 
         alert("Copiado. Se abrirá Outlook. (Usa Ctrl+V)");
 
-        // Construcción del Subject (Sin caracteres especiales que rompan la URL)
         const clean = (str) =>
           str ? str.normalize("NFD").replace(/[\u0300-\u036f]/g, "") : "";
 
-        // Aplicación en tu constante
         const subject = `EXPEDIENTE-${this.pricing.nro_exp} QUOTE ${
           this.pricing.nro_quote
         } ${clean(this.pricing.dataCliente.nombrecompleto)} ${clean(
@@ -2874,7 +2678,6 @@ console.log('(esInternacional',esInternacional)
     },
 
     cargarDatosProveedor() {
-      // OJO: Verifica si itemsProveedorList está en 'pricing' o directamente en 'this'
       const lista = this.pricing?.itemsProveedorList || this.itemsProveedorList;
       if (!lista || !this.datosPrincipales) return;
 
@@ -2936,7 +2739,7 @@ console.log('(esInternacional',esInternacional)
 
   async mounted() {
     if (this.aprobadoflag) {
-      this.e6 = 16;
+      this.e6 = 26;
     }
     Promise.all([
       this.cargarDatosModality(),
@@ -3038,6 +2841,39 @@ console.log('(esInternacional',esInternacional)
       this.msgfile = "Archivo procesado y vinculado correctamente.";
       this.errfile = "";
     },
+    "$store.state.pricing.datosPrincipales.datosinstructivomanual": {
+      handler(newData) {
+        if (newData) {
+          this.filesLinkPagoAlibaba = [];
+
+          const nombresDeArchivos = [
+            "cotizacionFile",
+            "facturaCommercialFile",
+            "listaEmpaqueFile",
+            "proformaFile",
+            "fichaTecnicaFile",
+            "soportePagoAlibabaFile",
+            "soporteTransferenciaInternacionalFile",
+            "otrosFile",
+            "agregarOtrosFile",
+          ];
+
+          nombresDeArchivos.forEach((propiedad) => {
+            const archivoGuardado = newData[propiedad];
+
+            if (archivoGuardado && archivoGuardado.id) {
+              this.filesLinkPagoAlibaba.push({
+                id: archivoGuardado.id,
+                archivo: archivoGuardado.archivo,
+                name: propiedad,
+              });
+            }
+          });
+        }
+      },
+      immediate: true,
+      deep: true,
+    },
   },
   computed: {
     mostrarPagarProveedorAlibaba() {
@@ -3064,7 +2900,6 @@ console.log('(esInternacional',esInternacional)
         return "No hay archivos";
       }
 
-      // 1. Diccionario para traducir el 'name' técnico al nombre de la fila
       const nombresLegibles = {
         cotizacionFile: "COTIZACIÓN DE VENTAS",
         facturaCommercialFile: "FACTURA COMERCIAL",
@@ -3078,17 +2913,13 @@ console.log('(esInternacional',esInternacional)
         agregarOtrosFile: "AGREGAR OTROS",
       };
 
-      // 2. Mapeamos el arreglo para construir el texto
       return this.filesLinkPagoAlibaba
         .map((f) => {
-          // Obtenemos el título traducido usando el diccionario (o dejamos el name original si no lo encuentra)
           const titulo = nombresLegibles[f.name] || f.name;
 
-          // Obtenemos el nombre original del archivo subido (ej: documento.pdf)
           const nombreArchivoOriginal =
             f.archivo && f.archivo.name ? f.archivo.name : "Archivo sin nombre";
 
-          // Retornamos el formato que pediste
           return `• <b>${titulo}:</b> ${nombreArchivoOriginal}`;
         })
         .join("<br />");
@@ -3109,19 +2940,18 @@ console.log('(esInternacional',esInternacional)
 }
 .clsSequence {
   height: 550px;
-  overflow-y: auto; /* 'auto' es más limpio que 'scroll' */
+  overflow-y: auto;
   scrollbar-gutter: stable;
-  position: relative; /* Estabiliza el contexto de posicionado */
-  will-change: scroll-position; /* Optimiza el renderizado del scroll */
+  position: relative;
+  will-change: scroll-position;
 }
 
-/* Agrega esto a tu archivo CSS */
 .custom-title-class {
-  font-size: 2.5rem !important; /* Título de la alerta más grande */
+  font-size: 2.5rem !important;
 }
 
 .custom-button-class {
-  font-size: 1.5rem !important; /* Texto del botón más grande */
-  padding: 15px 30px !important; /* Botón más amplio */
+  font-size: 1.5rem !important;
+  padding: 15px 30px !important;
 }
 </style>
