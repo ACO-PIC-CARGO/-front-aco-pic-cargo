@@ -9,11 +9,13 @@
     <template v-slot:activator="{ on, attrs }">
       <v-text-field
         :value="labelFormateada"
-        label="Fecha Desde"
+        :label="label"
         prepend-icon="mdi-calendar"
         readonly
         v-bind="attrs"
         v-on="on"
+        :outlined="outlined"
+        :dense="dense"
       ></v-text-field>
     </template>
     <v-date-picker
@@ -33,6 +35,18 @@ export default {
       type: String,
       default: null,
     },
+    label:{
+      type: String,
+      default: "Fecha"
+    },
+    outlined: {
+      type: Boolean,
+      default: false, // o "filled"
+    }, 
+    dense:{
+      type: Boolean,
+      default: false,
+    }
   },
   data: () => ({
     menuDesde: false,

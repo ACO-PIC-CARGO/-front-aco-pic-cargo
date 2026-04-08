@@ -1,7 +1,7 @@
 <template>
-  <v-card>
+  <v-card class="py-0">
     <v-card-text>
-      <div v-if="$store.state.files.payPath">
+      <div v-if="$store.state.files.payPath" class="clsArchivoCargado">
         <span><b>Archivo Cargado:</b></span>
         {{ file.name }}
         <v-btn
@@ -25,7 +25,7 @@
           v-if="!loading"
         >
           <label>
-            Arrastra y suelta el archivo aquí
+            Arrastra y suelta el archivo aquí  o haz clic para seleccionar
             <v-file-input
               ref="fileInput"
               v-model="file"
@@ -123,5 +123,12 @@ export default {
   text-align: center;
   line-height: 150px;
   cursor: pointer;
+  background: #FAFAFA;
+}
+.clsArchivoCargado {
+  padding: 10px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  background: #E8F5E9;
 }
 </style>

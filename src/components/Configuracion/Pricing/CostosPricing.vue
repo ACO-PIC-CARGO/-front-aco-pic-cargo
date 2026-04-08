@@ -29,47 +29,14 @@
                   :rules="[(v) => !!v || 'Dato Requerido']"
                 />
               </v-col>
-              <!-- <v-col cols="12" md="2">
-                <v-autocomplete
-                  :items="$store.state.pricing.listIncoterms"
-                  label="Incoterms"
-                  outlined
-                  dense
-                  item-text="name"
-                  item-value="id"
-                  v-model="id_incoterms"
-                />
-              </v-col> -->
-              <!-- <v-col cols="12" md="2">
-                <v-btn
-                  color="info"
-                  small
-                  @click="cargarDatos"
-                  v-if="!editarflag"
-                >
-                  <v-icon small>mdi-magnify</v-icon> Cargar Datos</v-btn
-                >
-              </v-col>
-              <v-col cols="12" md="2">
-                <v-btn color="success" small v-if="editarflag">
-                  <v-icon small>mdi-content-save-all</v-icon> Guardar
-                </v-btn>
-              </v-col>
-              <v-col cols="12" md="2">
-                <v-btn color="error" small @click="limpiar" v-if="editarflag">
-                  <v-icon small>mdi-cancel</v-icon> Cancelar</v-btn
-                >
-              </v-col> -->
             </v-row>
           </v-form>
         </v-col>
-        <v-col cols="12">
-          <v-data-table
-            :headers="headersIcoterms"
-            :items="$store.state.incoterm.list"
-          >
+
+        <v-col cols="12" v-if="mostrarListadoIncoterms">
+          <v-data-table :headers="headersIcoterms" :items="listadoIncoterms">
             <template v-slot:[`item.action`]="{ item }">
-              <v-btn color="#E65100" @click="abrirModal(item.id)" icon>
+              <v-btn color="#E65100" @click="abrirModal(item.id, item.name)" icon>
                 <v-icon>mdi-pencil</v-icon>
               </v-btn>
             </template>
@@ -80,15 +47,18 @@
     <v-dialog v-model="dialog" scrollable fullscreen persistent>
       <v-card>
         <v-card-title style="background: #b3e5fc">
-          {{ modality.name }} | {{ shipment.embarque }}
+          {{ modality.name }} | {{ shipment.embarque }} | {{ incoterms }}
         </v-card-title>
         <v-card-text>
           <v-data-table
             :headers="headers"
             :items="lstCostos"
-            :loading="lstCostos.length == 0"
+           :loading="cargandoTabla"
             dense
             disable-pagination
+            ref="tblIncoterms"
+            loading-text="Cargando datos... por favor espere"
+            
           >
             <template v-slot:[`item.multiplicador`]="{ item }">
               <v-autocomplete
@@ -155,6 +125,8 @@ import _ from "lodash";
 export default {
   data() {
     return {
+      cargandoTabla:false,
+      incoterms:'',
       modality: {},
       shipment: {},
       dialog: false,
@@ -196,7 +168,7 @@ export default {
     ]),
     ...mapActions("configuracion", [
       "getCargarCostos",
-      "getMultiplicador",
+      "getMultiplicadorConfigCosto",
       "setGuardarCostos",
     ]),
     async cargarDatos() {
@@ -209,7 +181,7 @@ export default {
       };
       await Promise.all([
         this.getCargarCostos(data),
-        this.getMultiplicador(this.id_shipment),
+        this.getMultiplicadorConfigCosto(this.id_shipment),
       ]);
 
       let IdProveedor = this.lstCostos.map((v) => {
@@ -221,7 +193,7 @@ export default {
         search: null,
       });
     },
-    abrirModal(id) {
+    abrirModal(id,incoterms) {
       if (!this.$refs.frmBuscar.validate()) {
         return;
       }
@@ -232,6 +204,7 @@ export default {
       this.shipment = this.$store.state.pricing.listShipment.find(
         (v) => (v.id = this.id_shipment),
       );
+      this.incoterms = incoterms
       this.cargarDatos();
       this.dialog = true;
     },
@@ -260,6 +233,40 @@ export default {
   },
   computed: {
     ...mapState("configuracion", ["lstCostos", "lstMultiplicador"]),
+    mostrarListadoIncoterms() {
+      return !!this.id_modality && !!this.id_shipment;
+    },
+    listadoIncoterms() {
+      let name = [];
+      if (this.id_modality == 1) {
+        name = ["CIF", "FOB", "FCA", "EXW", "CFR"];
+      }
+      if (this.id_modality == 2) {
+        name = ["DDP", "FOB", "FCA", "CIF", "CFR"];
+      }
+
+      return this.$store.state.incoterm.list.filter((v) => {
+        return name.includes(v.name);
+      });
+    },
+  },
+  watch: {
+    id_modality() {
+    this.$store.state.spiner = true;
+    this.cargandoTabla =true
+    setTimeout(() => {
+      this.$store.state.spiner = false;
+      this.cargandoTabla =false
+    }, 500);
+    },
+    id_shipment() {
+    this.$store.state.spiner = true;
+    this.cargandoTabla =true
+    setTimeout(() => {
+      this.$store.state.spiner = false;
+      this.cargandoTabla =false
+    }, 500);
+    },
   },
 };
 </script>

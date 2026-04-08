@@ -32,7 +32,7 @@ const actions = {
         console.log(error);
       });
   },
-  async getMultiplicador({ commit }, id_shipment) {
+  async getMultiplicadorConfigCosto({ commit }, id_shipment) {
     var headers = {
       "auth-token": sessionStorage.getItem("auth-token"),
       "Content-Type": "application/json",
@@ -44,9 +44,9 @@ const actions = {
     };
     //
     var config = {
-      method: "post",
-      url: process.env.VUE_APP_URL_MAIN + "getMultiplicador",
-      data: data,
+      method: "get",
+      url: process.env.VUE_APP_URL_MAIN + "cargar_multiplicador_config_costo",
+      params: data,
       headers: headers,
     };
     await axios(config)
