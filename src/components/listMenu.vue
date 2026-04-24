@@ -83,6 +83,7 @@
         class="mt-2 white--text"
         block
         @click="dialogTutorial = true"
+        style="padding: 10% 0"
       >
         VER TUTORIAL <v-icon color="#000" class="mx-5">mdi-video</v-icon>
       </v-btn>

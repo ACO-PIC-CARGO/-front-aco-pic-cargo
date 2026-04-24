@@ -16,6 +16,8 @@
         v-on="on"
         :outlined="outlined"
         :dense="dense"
+        :error-messages="errorMessages"
+        :error="!!errorMessages"
       ></v-text-field>
     </template>
     <v-date-picker
@@ -35,18 +37,22 @@ export default {
       type: String,
       default: null,
     },
-    label:{
+    label: {
       type: String,
-      default: "Fecha"
+      default: "Fecha",
     },
     outlined: {
       type: Boolean,
       default: false, // o "filled"
-    }, 
-    dense:{
+    },
+    dense: {
       type: Boolean,
       default: false,
-    }
+    },
+    errorMessages: {
+      type: [String, Array],
+      default: "",
+    },
   },
   data: () => ({
     menuDesde: false,

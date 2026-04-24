@@ -34,9 +34,9 @@ export default {
   components: {
     //  opciones: () => import("@/components/comun/opcionesRegistro.vue"),
     ConTrolGastoComponet: () =>
-      import("../../components/folderRequests/listRequestPayment.vue"),
+      import("../folderRequests/listRequestPayment.vue"),
     CuentasPorPagar: () =>
-      import("../../components/folderBanks/payForProveedor.vue"),
+      import("./payForProveedor.vue"),
   
   },
   data() {

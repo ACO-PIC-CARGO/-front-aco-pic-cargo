@@ -386,7 +386,6 @@ const actions = {
 
     await axios(config)
       .then(function (response) {
-        
         let data = response.data;
         sessionStorage.setItem("auth-token", data.token);
         if (!!data.estadoflag) {
@@ -502,10 +501,9 @@ const actions = {
 
     await axios(config)
       .then(function (response) {
-        
         let data = response.data;
         res = response.data;
-        
+
         sessionStorage.setItem("auth-token", data.token);
 
         if (data.status == "401") {
@@ -584,7 +582,6 @@ const actions = {
 
     await axios(config)
       .then(function (response) {
-        
         let data = response.data;
         sessionStorage.setItem("auth-token", data.token);
 
@@ -765,7 +762,6 @@ const actions = {
 
     await axios(config)
       .then(function (response) {
-        
         let { data } = response;
         sessionStorage.setItem("auth-token", data.token);
         if (data.estadoflag == true) {
@@ -801,7 +797,6 @@ const actions = {
 
     await axios(config)
       .then(function (response) {
-        
         let { data } = response;
         sessionStorage.setItem("auth-token", data.token);
         if (data.estadoflag == true) {
@@ -997,7 +992,6 @@ const actions = {
     };
     await axios(config)
       .then(function (response) {
-        
         let data = response.data;
         sessionStorage.setItem("auth-token", data.token);
         if (!!data.estadoflag) {
@@ -1090,6 +1084,7 @@ const actions = {
     state.cliente.id_branch = JSON.parse(
       sessionStorage.getItem("dataUser"),
     )[0].id_branch;
+    state.cliente.usuario = JSON.parse(sessionStorage.getItem("dataUser"))[0].usuario;
     state.cliente.lstTelefonos = state.lstTelefonos;
     state.cliente.lstContactos = state.lstContactos;
     state.cliente.lstConvenios = state.lstConvenios;
@@ -1232,7 +1227,6 @@ const actions = {
 
     await axios(config)
       .then(function (response) {
-        
         let { data } = response;
         sessionStorage.setItem("auth-token", data.token);
         if (data.estadoflag == true) {
@@ -1266,7 +1260,6 @@ const actions = {
 
     await axios(config)
       .then(function (response) {
-        
         let { data } = response;
         sessionStorage.setItem("auth-token", data.token);
         if (data.estadoflag == true) {
@@ -1292,7 +1285,6 @@ const actions = {
 
     await axios(config)
       .then(function (response) {
-        
         let { data } = response;
         sessionStorage.setItem("auth-token", data.token);
         if (data.estadoflag == true) {
@@ -1304,6 +1296,28 @@ const actions = {
       .catch(function (error) {
         console.log(error);
       });
+  },
+  async validarClienteTieneMovimientos({ commit }, data) {
+    let res = {};
+    var config = {
+      method: "get",
+      url: process.env.VUE_APP_URL_MAIN + `entities/validar_eliminar_cliente`,
+      headers: {
+        "auth-token": sessionStorage.getItem("auth-token"),
+        "Content-Type": "application/json",
+      },
+      params: data,
+    };
+
+    await axios(config)
+      .then(function (response) {
+        let { data } = response;
+        res = data.data;
+      })
+      .catch(function (error) {
+        console.log(error);
+      });
+    return res;
   },
 };
 

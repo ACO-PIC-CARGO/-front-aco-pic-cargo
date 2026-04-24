@@ -64,7 +64,7 @@ export default {
       boolFile: false,
       payPath: 0,
       msgfile: "",
-      file: "",
+      file: null,
     };
   },
   mounted() {

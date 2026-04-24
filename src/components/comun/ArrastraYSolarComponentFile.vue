@@ -69,7 +69,6 @@ export default {
       file: null,
       msgfile: "",
       errfile: "",
-
       archivoSubidoExitosamente: false,
       rutaDescarga: "",
     };

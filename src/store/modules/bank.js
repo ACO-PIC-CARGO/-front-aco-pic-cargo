@@ -7,6 +7,7 @@ const state = {
   response: [],
   record: {},
   loading: false,
+  deudaAProveedor: [],
 };
 
 const mutations = {
@@ -21,6 +22,9 @@ const mutations = {
   },
   SET_LIST_BANK_CARGAR(state, data) {
     state.list = data;
+  },
+  SET_DEUDA_A_PROVEEDOR(state, data) {
+    state.deudaAProveedor = data;
   },
 };
 const actions = {
@@ -460,6 +464,47 @@ const actions = {
     await http(config)
       .then(function (response) {
         res = response.data;
+      })
+      .catch(function (error) {
+        console.log(error);
+      });
+    return res;
+  },
+
+  async getDeudaAProveedorPorSucursal({ commit }, id_proveedor) {
+    let res = null;
+    var config = {
+      method: "get",
+      url: process.env.VUE_APP_URL_MAIN + `deuda_a_proveedor_por_sucursal`,
+      headers: {
+        "auth-token": sessionStorage.getItem("auth-token"),
+        "Content-Type": "application/json",
+      },
+      params: {
+        id_proveedor: id_proveedor,
+        id_branch: JSON.parse(sessionStorage.getItem("dataUser"))[0].id_branch,
+      },
+    };
+    await http(config)
+      .then(function (response) {
+        res = response.data;
+        commit(
+          "SET_DEUDA_A_PROVEEDOR",
+          res.data.map((item, index) => {
+            return {
+              ...item,
+              id: index + 1,
+              nuevoflag: false,
+              parcialflag: false,
+              montoparcial: 0,
+              saldo: 0,
+              tipocambio: parseFloat(
+                (item.saldo_pendiente_local ? item.saldo_pendiente_local : 1) /
+                  (item.saldo_pendiente ? item.saldo_pendiente : 1),
+              ).toFixed(4),
+            };
+          }),
+        );
       })
       .catch(function (error) {
         console.log(error);
