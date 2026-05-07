@@ -511,6 +511,113 @@ const actions = {
       });
     return res;
   },
+
+  async getDeudaDeClientePorSucursal({ commit }, id_cliente) {
+    let res = null;
+    var config = {
+      method: "get",
+      url: process.env.VUE_APP_URL_MAIN + `deuda_de_cliente_por_sucursal`,
+      headers: {
+        "auth-token": sessionStorage.getItem("auth-token"),
+        "Content-Type": "application/json",
+      },
+      params: {
+        id_cliente: id_cliente,
+        id_branch: JSON.parse(sessionStorage.getItem("dataUser"))[0].id_branch,
+      },
+    };
+    await http(config)
+      .then(function (response) {
+        res = response.data;
+        commit(
+          "SET_DEUDA_A_PROVEEDOR",
+          res.data.map((item, index) => {
+            return {
+              ...item,
+              id: index + 1,
+              nuevoflag: false,
+              parcialflag: false,
+              montoparcial: 0,
+              saldo: 0,
+              tipocambio: parseFloat(
+                (item.total_mon_local ? item.total_mon_local : 1) /
+                  (item.totaldolar ? item.totaldolar : 1),
+              ).toFixed(4),
+            };
+          }),
+        );
+      })
+      .catch(function (error) {
+        console.log(error);
+      });
+    return res;
+  },
+  async setRegistroEgresos({ commit }, data) {
+    var config = {
+      method: "post",
+      url: process.env.VUE_APP_URL_MAIN + "registro_egresos",
+      headers: {
+        "auth-token": sessionStorage.getItem("auth-token"),
+        "Content-Type": "application/json",
+      },
+      data: {
+        ...data,
+        id_branch: JSON.parse(sessionStorage.getItem("dataUser"))[0].id_branch,
+      },
+    };
+    await http(config)
+      .then(function (response) {
+        let data = response.data;
+        console.log("Respuesta del servidor al registrar egreso:", data);
+      })
+      .catch(function (error) {
+        console.log(error);
+      });
+  },
+  async setRegistroIgresos({ commit }, data) {
+    var config = {
+      method: "post",
+      url: process.env.VUE_APP_URL_MAIN + "registro_ingresos",
+      headers: {
+        "auth-token": sessionStorage.getItem("auth-token"),
+        "Content-Type": "application/json",
+      },
+      data: {
+        ...data,
+        id_branch: JSON.parse(sessionStorage.getItem("dataUser"))[0].id_branch,
+      },
+    };
+    await http(config)
+      .then(function (response) {
+        let data = response.data;
+        console.log("Respuesta del servidor al registrar egreso:", data);
+      })
+      .catch(function (error) {
+        console.log(error);
+      });
+  },
+  async getRegistroEgresos({ commit }, data) {
+    var config = {
+      method: "get",
+      url: process.env.VUE_APP_URL_MAIN + "listado_egresos",
+      headers: {
+        "auth-token": sessionStorage.getItem("auth-token"),
+        "Content-Type": "application/json",
+      },
+      params: {
+        ...data,
+        id_branch: JSON.parse(sessionStorage.getItem("dataUser"))[0].id_branch,
+      },
+    };
+    await http(config)
+      .then(function (response) {
+        let data = response.data;
+        commit("SET_LIST_BANK_CARGAR", data.estadoflag ? data.data : []);
+      })
+      .catch(function (error) {
+        console.log(error);
+      });
+  },
 };
 
 export default {

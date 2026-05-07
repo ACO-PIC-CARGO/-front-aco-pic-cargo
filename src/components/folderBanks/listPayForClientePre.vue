@@ -38,47 +38,54 @@
     <v-data-table
       :search="search"
       :headers="headersCabecera"
-      :items="$store.state.bank.list"
+      :items="listado"
       :expanded.sync="expanded"
       :single-expand="singleExpand"
       show-expand
       @click:row="clickRow"
-      item-key="id"
+      item-key="index"
       dense
       disable-sort
     >
-      <template v-slot:[`item.urlarchivo`]="{ item }">
-        <v-btn
-          v-if="item.urlarchivo"
-          x-small
-          icon
-          color="primary"
-          @click="abrirPDF(item.urlarchivo)"
-        >
-          <v-icon>mdi-file-pdf-box</v-icon>
-        </v-btn>
-      </template>
       <template v-slot:expanded-item="{ item }">
         <td colspan="1"></td>
         <td colspan="16">
           <v-simple-table style="width: 100%">
             <thead>
               <tr>
-                <th>Concepto</th>
+                <th>Banco Origen</th>
+                <th>Cuenta Destino (PIC)</th>
+                <!-- <th>O/A</th> -->
+                <th>Tipo Ingreso</th>
+                <th>Sub Tipo de ingreso</th>
+                <th>Monto</th>
+                <th>Moneda</th>
+                <th>Monto Ingresado</th>
+                <th>Moneda Ingresado</th>
+                <th>Tipo de Cambio</th>
+                <th>concepto</th>
                 <th>Nro Factura</th>
                 <th>Nro Serie</th>
-                <th>Monto Ingresado (USD)</th>
-                <th>Monto Ingresado (M.L)</th>
                 <th>Accion</th>
               </tr>
             </thead>
             <tbody>
-              <tr v-for="(i, index) in item.detalle" :key="index">
-                <td>{{ i.code_master }}</td>
-                <td>{{ i.nro_factura }}</td>
-                <td>{{ i.nro_serie }}</td>
-                <td>{{ i.montodolar }}</td>
-                <td>{{ i.montomonedalocal }}</td>
+              <tr v-for="(i, index) in item.detalles" :key="index">
+                <td>{{ i.banco }}</td>
+                <td>{{ i.cuenta_destino }}</td>
+                <!-- <td>{{ i.tipo }}</td> -->
+                <!-- <td>{{ i.tipo_gasto }}</td>  -->
+                <td>{{ i.tipo_ingreso }}</td>
+                <td>{{ i.subtipo_ingreso }}</td>
+                <td>{{ i.monto }}</td>
+                <td>{{ i.moneda_simbolo }}</td>
+                <td>{{ i.monto_destino }}</td>
+                <td>{{ i.moneda_destino }}</td>
+                <td>{{ i.tipocambio }}</td>
+                <td>{{ i.concepto }}</td>
+                <td>{{ i.factura }}</td>
+                <td>{{ i.serie }}</td>
+                <td>{{ i.action }}</td>
               </tr>
             </tbody>
           </v-simple-table>
@@ -570,35 +577,50 @@ export default {
       listado: [],
       dataList: false,
       headersCabecera: [
-        { value: "fechaoperacion", text: "Fecha Operación" }, // text,
-        { value: "bancoingreso", text: "Banco de Origen" }, // varchar,
-        { value: "nrocuenta", text: "Número de Cuenta Destino" }, // text,
-        { value: "cliente", text: "Cliente" }, // text,
-        { value: "totaldolar", text: "Total en Dólares" }, // numeric(19,4),
-        { value: "totalmonedalocal", text: "Total en Moneda Local" }, // numeric(19,4),
-        { value: "tipocambio", text: "Tipo de Cambio" }, // numeric(19,4),
-        { value: "monedaregistro", text: "Moneda de Registro" }, // varchar,
-        { value: "comentarioadmin", text: "Comentario del Administrador" }, // text,
-        { value: "comentariousuario", text: "Comentario del Usuario" }, // text,
-        { value: "nombrearchivo", text: "Nombre del Archivo" }, // varchar,
-        { value: "urlarchivo", text: "URL del Archivo" }, // varchar,
-        // { value: detalle, text: "detalle" }, // json,
-        // { value: comisionbancaria, text: "comisionbancaria" }, // json
+        { text: "Fecha Operacion", value: "fecha_pago" },
+        // { text: "Fecha Registro",value: "fecha_creacion",filterable: false,with: "5%",},
+        { text: "Nro Operación	", value: "nro_operacion" },
+        // { text: "Banco Origen", value: "banco" },
+        { text: "Cuenta Destino (PIC)", value: "cuenta_destino" },
+        { text: "O/A	", value: "tipo" },
+        { text: "Tipo de Pago", value: "tipo_gasto", with: "5%" },
+        { text: "Tipo Ingreso", value: "tipo_ingreso", with: "5%" },
+        { text: "Sub Tipo de ingreso", value: "subtipo_ingreso" },
+        { text: "Cliente	", value: "name_consigner" },
+        { text: "Monto	", value: "monto" },
+        { text: "Moneda	", value: "moneda_simbolo", with: "5%" },
+        {
+          text: "Monto Ingresado al Banco	",
+          value: "monto_destino",
+          with: "5%",
+        },
+        {
+          text: "Moneda Ingresado al Banco	",
+          value: "moneda_destino",
+          with: "5%",
+        },
+        // { text: "Tipo de Cambio	", value: "tipocambio", with: "5%" },
+        // { text: "concepto	", value: "concepto", with: "20%" },
+        // { text: "Nro Factura", value: "factura", with: "5%" },
+        // { text: "Nro Serie", value: "serie", with: "5%" },
+        { text: "Accion", value: "action" },
       ],
       filtro: {
         id_branch: "",
-        id_banco_origin: "",
-        id_cuenta_destino: "",
-        id_cliente: "",
-        id_tipoingreso: "",
-        id_subtipoingreso: "",
         nro_operacion: "",
-        nro_expediente: "",
-        monto_factura: "",
+        monto: "",
         fechadesde: "",
         fechahasta: "",
-        operativo: "",
-        administrativo: "",
+        factura: "",
+        serie: "",
+        id_banco: "",
+        id_cuenta: "",
+        id_consigner: "",
+        id_coin: "",
+        tipoingreso: "",
+        tiposubingreso: "",
+        operativo: true,
+        administrativo: true,
       },
       payfile: null,
       dato: {
@@ -626,11 +648,11 @@ export default {
   },
   async mounted() {
     this.usuario = JSON.parse(sessionStorage.getItem("dataUser"))[0].usuario;
-    this.filtro.fechadesde = moment().format("YYYY-01-01");
+    this.filtro.fechadesde = moment().startOf("month").format("YYYY-MM-DD");
     this.filtro.fechahasta = moment().endOf("month").format("YYYY-MM-DD");
     const vm = this;
     vm.$store.state.spiner = true;
-    await vm.getRegistroIngresos(this.filtro);
+    await vm.getListBanksDetailsCxC();
     vm.$store.state.spiner = false;
 
     await Promise.all([
@@ -653,7 +675,6 @@ export default {
       "validarUsuarioAdmin",
       "_getCoinsList",
       "ActualizarCXC",
-      "getRegistroIngresos",
     ]),
     _uploadFile() {
       if (this.payfile) {
@@ -702,13 +723,13 @@ export default {
         nro_exp: "",
       };
       this.$store.state.spiner = true;
-      await this.getRegistroIngresos(this.filtro);
+      await this.getListBanksDetailsCxC();
       this.dialogFiltro = !this.dialogFiltro;
       this.$store.state.spiner = false;
     },
     async filtrar() {
       this.$store.state.spiner = true;
-      await this.getRegistroIngresos(this.filtro);
+      await this.getListBanksDetailsCxC();
       this.dialogFiltro = !this.dialogFiltro;
       this.$store.state.spiner = false;
     },
@@ -812,7 +833,54 @@ export default {
     verSoport(ruta) {
       window.open(ruta, "_blank");
     },
-
+    async getListBanksDetailsCxC() {
+      let data = {
+        id_branch: JSON.parse(sessionStorage.getItem("dataUser"))[0].id_branch,
+      };
+      let vm = this;
+      var config = {
+        method: "get",
+        url:
+          process.env.VUE_APP_URL_MAIN +
+          `getListarPayForCustomer?id_branch=${
+            JSON.parse(sessionStorage.getItem("dataUser"))[0].id_branch
+          }&nro_operacion=${
+            this.filtro.nro_operacion ? this.filtro.nro_operacion : ""
+          }&monto=${this.filtro.monto ? this.filtro.monto : ""}&fechadesde=${
+            this.filtro.fechadesde ? this.filtro.fechadesde : ""
+          }&fechahasta=${
+            this.filtro.fechahasta ? this.filtro.fechahasta : ""
+          }&factura=${this.filtro.factura ? this.filtro.factura : ""}&serie=${
+            this.filtro.serie ? this.filtro.serie : ""
+          }&id_banco=${
+            this.filtro.id_banco ? this.filtro.id_banco : ""
+          }&id_coin=${
+            this.filtro.id_coin ? this.filtro.id_coin : ""
+          }&id_consigner=${
+            this.filtro.id_consigner ? this.filtro.id_consigner : ""
+          }&id_tipoingreso=${
+            this.filtro.tipoingreso ? this.filtro.tipoingreso : ""
+          }&id_tiposubingreso=${
+            this.filtro.tiposubingreso ? this.filtro.tiposubingreso : ""
+          }&operativo=${this.filtro.operativo}&administrativo=${
+            this.filtro.administrativo
+          }&nro_exp=${this.filtro.nro_exp ? this.filtro.nro_exp : ""}`,
+        headers: {
+          "auth-token": sessionStorage.getItem("auth-token"),
+          "Content-Type": "application/json",
+        },
+        data: data,
+      };
+      await axios(config)
+        .then(function (response) {
+          let data = response.data.data;
+          vm.listado = data.map((element, index) => ({ ...element, index }));
+          vm.dataList = true;
+        })
+        .catch(function (error) {
+          console.log(error);
+        });
+    },
     async verInvoice(id, editar = false) {
       let vm = this;
       vm.verflag = !editar;
@@ -976,8 +1044,8 @@ export default {
           link.setAttribute(
             "download",
             `Reporte Bancos - Ingresos ${moment().format(
-              "DD_MM_YYYY_h_mm_ss",
-            )} .xlsx`,
+              "DD_MM_YYYY_h_mm_ss"
+            )} .xlsx`
           );
           document.body.appendChild(link);
           link.click();
@@ -1009,7 +1077,7 @@ export default {
       if (!!this.filtro.tipoingreso) {
         this.tiposubingresoFilter =
           this.$store.state.balances.tiposubingreso.filter(
-            (v) => v.id_ingreso == this.filtro.tipoingreso,
+            (v) => v.id_ingreso == this.filtro.tipoingreso
           );
       } else {
         this.tiposubingresoFilter = this.$store.state.balances.tiposubingreso;

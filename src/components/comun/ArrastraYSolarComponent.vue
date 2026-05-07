@@ -96,10 +96,12 @@ export default {
     },
     async uploadFile() {
       var vm = this;
+      vm.loading = true;
       vm.msgfile = "";
       vm.errfile = "";
       if (vm.file) {
         await this._uploadFile(vm.file);
+        vm.loading = false;
         alert("Archivo Cargado");
         vm.$emit("idArchivoCargado", {
           id: vm.$store.state.files.payPath,

@@ -1,6 +1,6 @@
 <template>
-  <v-card>
-    <!-- <v-alert type="warning" v-if="mostrarAdvFlag" class="ocultarMovil">
+  <v-card height="90vh">
+    <v-alert type="warning" v-if="mostrarAdvFlag" class="ocultarMovil">
       <v-row>
         <v-col cols="11">
           Solo se muestran los movimientos del mes actual. Usa el filtro
@@ -12,7 +12,7 @@
           </v-btn>
         </v-col>
       </v-row>
-    </v-alert> -->
+    </v-alert>
     <v-card-title>
       <v-text-field v-model="search" label="Buscar...."> </v-text-field>
       <v-spacer> </v-spacer>
@@ -33,12 +33,12 @@
     <v-data-table
       :search="search"
       :headers="headersCabecera"
-      :items="$store.state.bank.list"
+      :items="listado"
       :expanded.sync="expanded"
       :single-expand="singleExpand"
       show-expand
       @click:row="clickRow"
-      item-key="id"
+      item-key="index"
       dense
       disable-sort
     >
@@ -54,58 +54,35 @@
         <td colspan="1"></td>
         <td colspan="12">
           <v-simple-table style="width: 100%">
-            <thead style="background: #e3f2fd">
+            <thead>
               <tr>
-                <!-- <th>Fecha Registro</th> -->
+                <th>Fecha Registro</th>
                 <th>O/A</th>
                 <th>Expediente</th>
-                <th>Factura</th>
-                <th>Serie</th>
                 <th>Monto (USD)</th>
+                <th>Tipo Cambio</th>
                 <th>Monto</th>
+                <!-- <th>concepto</th> -->
+                <th>Factura/ Proforma</th>
                 <!-- <th>Nro Serie</th> -->
-                <th>Accion</th>
+                <!-- <th>Accion</th> -->
               </tr>
             </thead>
             <tbody>
-              <tr v-for="i in item.detalles" :key="i">
+              <tr v-for="i in item.detalle" :key="i">
+                <td>{{ i.create_at }}</td>
                 <td>{{ i.tipo }}</td>
-                <td>{{ i.code_master }}</td>
-                <td>{{ i.nro_factura }}</td>
-                <td>{{ i.nro_serie }}</td>
-                <td>{{ i.montodolar }}</td>
-                <td>{{ i.montomonedalocal }}</td>
+                <td>{{ i.tipo_gasto }}</td>
+                <td>USD {{ i.monto_dolar }}</td>
+                <td>{{ i.tipocambio }}</td>
+                <td>{{ i.moneda_simbolo }} {{ i.monto_mon_ex }}</td>
+                <!-- <td>{{ i.concepto }}</td> -->
+                <!-- <td>{{ i.expedientes }}</td> -->
 
                 <td>
-                  <!-- <v-btn small color="warning" @click.native="verFactura(i)">
+                  <v-btn small color="warning" @click.native="verFactura(i)">
                     VER FACTURAS
-                  </v-btn> -->
-                </td>
-              </tr>
-            </tbody>
-          </v-simple-table>
-          <v-simple-table
-            style="width: 100%"
-            v-if="item.table_comisionbancaria.length > 0"
-          >
-            <thead style="background: #e3f2fd">
-              <tr>
-                <!-- <th>Fecha Registro</th> -->
-                <th>Comisión Bancaria</th>
-                <th>Monto(USD)</th>
-                <th>Monto (ML)</th>
-                <th>Accion</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr v-for="i in item.table_comisionbancaria" :key="i">
-                <td>{{ i.concepto }}</td>
-                <td>{{ i.montodolar }}</td>
-                <td>{{ i.monto }}</td>
-                <td>
-                  <!-- <v-btn small color="warning" @click.native="verFactura(i)">
-                    VER FACTURAS
-                  </v-btn> -->
+                  </v-btn>
                 </td>
               </tr>
             </tbody>
@@ -233,10 +210,6 @@
             item-text="label"
             item-value="id"
             clearable
-            outlined
-            class="mb-2"
-            dense
-            hide-details
           >
           </v-select>
           <v-autocomplete
@@ -246,88 +219,58 @@
             item-text="namelong"
             item-value="id"
             clearable
-            outlined
-            class="mb-2"
-            dense
-            hide-details
           >
           </v-autocomplete>
 
-          <v-text-field
+          <!-- <v-autocomplete
+            label="Tipo de Gasto"
+            :items="$store.state.balances.tipogastos"
+            v-model="filtro.tipogastos"
+            auto-select-first
             clearable
-            outlined
-            class="mb-2"
-            label="Cod. Expediente"
-            v-model="filtro.expediente"
             dense
-            hide-details
-          >
-          </v-text-field>
+            item-text="description"
+            item-value="id"
+          ></v-autocomplete>
+
+          <v-autocomplete
+            label="Subtipo de Gasto"
+            :items="tiposubgastosFilter"
+            v-model="filtro.tiposubgastos"
+            auto-select-first
+            clearable
+            dense
+            item-text="description"
+            item-value="id"
+          ></v-autocomplete> -->
 
           <v-text-field
             clearable
-            outlined
-            class="mb-2"
             label="Nro Operacion"
             v-model="filtro.nro_operacion"
-            dense
-            hide-details
           >
           </v-text-field>
           <v-text-field
             clearable
-            outlined
-            class="mb-2"
             type="number"
             label="Monto"
             v-model="filtro.monto"
-            dense
-            hide-details
           >
           </v-text-field>
-          <v-text-field
-            outlined
-            class="mb-2"
-            v-model="filtro.desde"
-            label="Fecha Desde"
-            type="date"
-            dense
-            hide-details
-          >
+          <v-text-field v-model="filtro.desde" label="Fecha Desde" type="date">
           </v-text-field>
-          <v-text-field
-            outlined
-            class="mb-2"
-            v-model="filtro.hasta"
-            label="Fecha Hasta"
-            type="date"
-            hide-details
-            dense
-          >
+          <v-text-field v-model="filtro.hasta" label="Fecha Hasta" type="date">
           </v-text-field>
-          <!-- <v-checkbox
-            outlined
-            class="mb-2"
-            v-model="filtro.operativo"
-            label="Operativo"
-            hide-details
-            dense
-          ></v-checkbox>
+          <v-checkbox v-model="filtro.operativo" label="Operativo"></v-checkbox>
           <v-checkbox
             v-model="filtro.administrativo"
             label="Administrativo"
-            hide-details
-            dense
-          ></v-checkbox> -->
+          ></v-checkbox>
         </v-card-text>
         <v-card-actions>
-          <v-spacer></v-spacer>
-          <v-btn color="success" small @click="filtrar()">Filtrar</v-btn>
-          <v-btn
-            color="warning"
-            style="color: black"
-            small
-            @click="dialogFiltro = !dialogFiltro"
+          <v-spacer> </v-spacer>
+          <v-btn color="success" @click="filtrar()" text>Aceptar</v-btn>
+          <v-btn color="red" @click="dialogFiltro = !dialogFiltro" text
             >Cancelar</v-btn
           >
         </v-card-actions>
@@ -359,6 +302,156 @@
         </v-card-text>
       </v-card>
     </v-dialog>
+
+    <v-dialog
+      v-model="EditarIngresoFlag"
+      persistent
+      :overlay="false"
+      max-width="80%"
+      transition="dialog-transition"
+    >
+      <v-card>
+        <v-card-title primary-title>
+          Editar Salida <v-spacer></v-spacer>
+          <v-icon @click="EditarIngresoFlag = !EditarIngresoFlag"
+            >mdi-close</v-icon
+          >
+        </v-card-title>
+        <v-stepper v-model="stepEditarIngreso">
+          <v-stepper-header>
+            <v-stepper-step editable step="1"> Step 1 </v-stepper-step>
+            <v-divider></v-divider>
+            <v-stepper-step editable step="2"> Step 2 </v-stepper-step>
+          </v-stepper-header>
+          <v-stepper-items>
+            <v-stepper-content step="1">
+              <v-row>
+                <v-col cols="12">
+                  <b>Proveedor: </b> {{ Ingreso.name_proveedor }}
+                </v-col>
+                <v-col cols="12">
+                  <v-simple-table>
+                    <thead>
+                      <tr>
+                        <th>House</th>
+                        <th>Sub Ingreso</th>
+                        <th>Monto Dolar</th>
+                        <th>Monto ML</th>
+                        <!-- <th>Moneda</th> -->
+                        <th>Tipo Cambio</th>
+                        <th></th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr v-for="(detalle, index) in detalles" :key="index">
+                        <td>{{ detalle.tipo_gasto }}</td>
+                        <td>{{ detalle.subtipo_gasto }}</td>
+                        <td>
+                          <v-text-field
+                            type="number"
+                            v-model="detalle.monto_dolar"
+                          ></v-text-field>
+                        </td>
+                        <td>
+                          <v-text-field
+                            type="number"
+                            v-model="detalle.monto_mon_ex"
+                          ></v-text-field>
+                        </td>
+                        <!-- <td>{{ detalle.tipocambio }}</td> -->
+                        <td>{{ detalle.tipocambio }}</td>
+                        <td>
+                          <v-btn
+                            color="error"
+                            icon
+                            @click="detalle.anuladoflag = true"
+                            ><v-icon>mdi-delete</v-icon></v-btn
+                          >
+                        </td>
+                      </tr>
+                    </tbody>
+                  </v-simple-table>
+                </v-col>
+              </v-row>
+            </v-stepper-content>
+            <v-stepper-content step="2">
+              <v-row>
+                <v-col cols="4">
+                  <v-text-field
+                    outlined
+                    dense
+                    class="my-1"
+                    label="Nro Operación"
+                    v-model="Ingreso.nro_operacion"
+                    :rules="[(v) => !!v || 'Datos Requerido']"
+                  ></v-text-field>
+                </v-col>
+                <v-col cols="2">
+                  <v-text-field
+                    type="date"
+                    outlined
+                    dense
+                    class="my-1"
+                    label="Fecha Pago"
+                    v-model="Ingreso.fecha_pago"
+                    :rules="[(v) => !!v || 'Datos Requerido']"
+                  ></v-text-field>
+                </v-col>
+                <v-col cols="2" class="py-auto">
+                  Soporte de Pago:
+                  <v-icon color="red" @click="abrirPDF(Ingreso.soporte)">
+                    mdi-file-pdf-box
+                  </v-icon>
+                </v-col>
+                <v-col cols="3" class="py-auto">
+                  <v-file-input
+                    @change="_uploadFile()"
+                    label="Cambiar Soporte de Pago"
+                    show-size
+                    truncate-length="50"
+                    outlined
+                    dense
+                    v-model="payfile"
+                    :rules="[(v) => !!v || 'Datos Requerido']"
+                  />
+                </v-col>
+                <v-col cols="6">
+                  <v-select
+                    :items="cuentas"
+                    v-model="Ingreso.id_banco_salida"
+                    label="Cuenta"
+                    item-text="label"
+                    item-value="id"
+                    dense
+                    outlined
+                    :rules="[(v) => !!v || 'Datos Requerido']"
+                  >
+                  </v-select>
+                </v-col>
+                <v-col cols="6">
+                  <v-textarea
+                    v-model="Ingreso.comentarios"
+                    auto-grow
+                    rows="1"
+                    label="Comentarios"
+                    dense
+                    outlined
+                  />
+                </v-col>
+              </v-row>
+            </v-stepper-content>
+          </v-stepper-items>
+          <v-row class="mx-5 mb-5">
+            <v-col cols="12">
+              <v-spacer></v-spacer>
+              <v-btn color="success" @click="ActualizarIngreso()"
+                >Actualizar</v-btn
+              >
+            </v-col>
+          </v-row>
+        </v-stepper>
+      </v-card>
+    </v-dialog>
   </v-card>
 </template>
 
@@ -382,18 +475,18 @@ export default {
       Ingreso: {},
       dataList: false,
       headersCabecera: [
-        { text: "Fecha Operacion", value: "fechaoperacion" },
+        { text: "Fecha Operacion", value: "fecha_pago" },
         // { text: "Fecha Registro", value: "create_at" },
-        { text: "Nro Operación	", value: "numerooperacion" },
-        { text: "Cuenta Salida", value: "cuenta" },
+        { text: "Nro Operación	", value: "nro_operacion" },
+        { text: "Cuenta Salida", value: "banco" },
         //{ text: "O/A	", value: "tipo" },
         //{ text: "Tipo Gasto	", value: "tipo_gasto" },
         //{ text: "Sub Tipo de Gasto", value: "subtipo_gasto" },
-        { text: "Proveedor	", value: "proveedor" },
-        { text: "Monto (USD)	", value: "totaldolar" },
-        { text: "Monto	", value: "totalmonedalocal" },
-        { text: "Moneda	", value: "moneda" },
-        { text: "Comentarios", value: "comentario" },
+        { text: "Proveedor	", value: "name_proveedor" },
+        { text: "Monto (USD)	", value: "monto_dolar" },
+        { text: "Monto	", value: "monto_mon_ex" },
+        { text: "Moneda	", value: "moneda_simbolo" },
+        { text: "Comentarios", value: "comentarios" },
         // { text: "concepto	", value: "concepto" },
         // { text: "Nro Factura", value: "factura" },
         // { text: "Nro Serie", value: "serie" },
@@ -426,7 +519,6 @@ export default {
         id_branch: "",
         desde: "",
         hasta: "",
-        expediente: "",
         nro_operacion: "",
         id_cuenta: "",
         id_proveedor: "",
@@ -442,13 +534,13 @@ export default {
     };
   },
   async mounted() {
-    this.filtro.desde = moment().format("YYYY-01-01");
+    this.filtro.desde = moment().startOf("month").format("YYYY-MM-DD");
     this.filtro.hasta = moment().endOf("month").format("YYYY-MM-DD");
     this.usuario = JSON.parse(sessionStorage.getItem("dataUser"))[0].usuario;
 
     let vm = this;
     vm.$store.state.spiner = true;
-    await vm.getRegistroEgresos(this.filtro);
+    await vm.getListBanksDetailsCxP();
     vm.$store.state.spiner = false;
     await vm.getListBanksDetailsCargar();
     await vm.getCargarTipoGastos();
@@ -466,7 +558,6 @@ export default {
       "verVacturas",
       "_getBanksList",
       "ActualizarCXP",
-      "getRegistroEgresos",
     ]),
     nuevo() {
       this.$store.state.files.payPath = null;
@@ -586,7 +677,6 @@ export default {
         desde: "",
         hasta: "",
         nro_operacion: "",
-        expediente: "",
         id_cuenta: "",
         id_proveedor: "",
         monto: "",
@@ -598,16 +688,14 @@ export default {
         operativo: true,
         administrativo: true,
       };
-      this.filtro.desde = moment().format("YYYY-01-01");
-      this.filtro.hasta = moment().endOf("month").format("YYYY-MM-DD");
 
       this.$store.state.spiner = true;
-      await this.getRegistroEgresos(this.filtro);
+      await this.getListBanksDetailsCxP();
       this.$store.state.spiner = false;
     },
     async filtrar() {
       this.$store.state.spiner = true;
-      await this.getRegistroEgresos(this.filtro);
+      await this.getListBanksDetailsCxP();
       this.dialogFiltro = !this.dialogFiltro;
       this.$store.state.spiner = false;
     },

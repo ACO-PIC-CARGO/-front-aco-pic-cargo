@@ -302,7 +302,6 @@ export default {
     await vm.cargarClientes();
     await vm.obtenerListado();
     await vm.getListBanksDetailsCargar();
-    await vm.getListBanksDetailsCargar();
     await vm.limpiarDatos();
     await vm.obtenerDatos();
     await vm._getCoinsList();
