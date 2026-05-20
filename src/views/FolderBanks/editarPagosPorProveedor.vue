@@ -1,6 +1,6 @@
 <template>
   <div class="">
-    <verEditarPayForProveedor :verflag="true" />
+    <verEditarPayForProveedor :verflag="false" />
   </div>
 </template>
 

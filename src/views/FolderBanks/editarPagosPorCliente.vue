@@ -1,6 +1,6 @@
 <template>
   <v-container fluid>
-    <verEditarPayForCliente :verflag="true" />
+    <verEditarPayForCliente :verflag="false" />
   </v-container>
 </template>
 

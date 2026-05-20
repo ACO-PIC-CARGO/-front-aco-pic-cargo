@@ -1081,10 +1081,15 @@ const actions = {
       });
   },
   async actualizarCliente({ commit }) {
+    const nombreRuta = router.currentRoute.value
+      ? router.currentRoute.value.name
+      : router.currentRoute.name;
     state.cliente.id_branch = JSON.parse(
       sessionStorage.getItem("dataUser"),
     )[0].id_branch;
-    state.cliente.usuario = JSON.parse(sessionStorage.getItem("dataUser"))[0].usuario;
+    state.cliente.usuario = JSON.parse(
+      sessionStorage.getItem("dataUser"),
+    )[0].usuario;
     state.cliente.lstTelefonos = state.lstTelefonos;
     state.cliente.lstContactos = state.lstContactos;
     state.cliente.lstConvenios = state.lstConvenios;
@@ -1100,7 +1105,7 @@ const actions = {
         "auth-token": sessionStorage.getItem("auth-token"),
         "Content-Type": "application/json",
       },
-      data: state.cliente,
+      data: { ...state.cliente, rute: nombreRuta },
     };
 
     await axios(config)

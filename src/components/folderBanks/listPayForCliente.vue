@@ -48,14 +48,14 @@
       disable-sort
     >
       <template v-slot:[`item.urlarchivo`]="{ item }">
-        <v-btn
-          v-if="item.urlarchivo"
-          x-small
-          icon
-          color="primary"
-          @click="abrirPDF(item.urlarchivo)"
-        >
-          <v-icon>mdi-file-pdf-box</v-icon>
+        <v-btn icon color="red" @click="verSoport(item.ruta)">
+          <v-icon>mdi-file</v-icon>
+        </v-btn>
+        <v-btn small icon color="info" @click.native="ver(item)">
+          <v-icon>mdi-eye</v-icon>
+        </v-btn>
+        <v-btn small icon color="orange" @click.native="editar(item)">
+          <v-icon>mdi-pencil</v-icon>
         </v-btn>
       </template>
       <template v-slot:expanded-item="{ item }">
@@ -80,10 +80,35 @@
                 <td>{{ i.montodolar }}</td>
                 <td>{{ i.montomonedalocal }}</td>
               </tr>
+            </tbody> </v-simple-table
+          ><v-simple-table
+            style="width: 100%"
+            v-if="item.comisionbancaria.length > 0"
+          >
+            <thead style="background: #e3f2fd">
+              <tr>
+                <!-- <th>Fecha Registro</th> -->
+                <th>Comisión Bancaria</th>
+                <th>Monto(USD)</th>
+                <th>Monto (ML)</th>
+                <th>Accion</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr v-for="i in item.comisionbancaria" :key="i.id">
+                <td>{{ i.concepto }}</td>
+                <td>{{ i.montodolar }}</td>
+                <td>{{ i.monto }}</td>
+                <td>
+                  <!-- <v-btn small color="warning" @click.native="verFactura(i)">
+                    VER FACTURAS
+                  </v-btn> -->
+                </td>
+              </tr>
             </tbody>
           </v-simple-table>
-        </td></template
-      >
+        </td>
+      </template>
       <template v-slot:[`item.action`]="{ item }">
         <v-btn x-small icon color="primary" @click="verSoport(item.soporte)">
           <v-icon>mdi-file-cloud-outline</v-icon>
@@ -580,8 +605,8 @@ export default {
         { value: "monedaregistro", text: "Moneda de Registro" }, // varchar,
         { value: "comentarioadmin", text: "Comentario del Administrador" }, // text,
         { value: "comentariousuario", text: "Comentario del Usuario" }, // text,
-        { value: "nombrearchivo", text: "Nombre del Archivo" }, // varchar,
-        { value: "urlarchivo", text: "URL del Archivo" }, // varchar,
+        // { value: "nombrearchivo", text: "Nombre del Archivo" }, // varchar,
+        { value: "urlarchivo", text: "Acción" }, // varchar,
         // { value: detalle, text: "detalle" }, // json,
         // { value: comisionbancaria, text: "comisionbancaria" }, // json
       ],
@@ -645,6 +670,20 @@ export default {
     vm.$store.state.drawer = false;
   },
   methods: {
+    async ver(pago) {
+      console.log("pago", pago);
+      this.$router.push({
+        name: "verPagosPorCliente",
+        params: { id: pago.id },
+      });
+    },
+    // async editar(pago) {
+    //   console.log("pago", pago);
+    //   this.$router.push({
+    //     name: "editarPagosPorProveedor",
+    //     params: { id: pago.id },
+    //   });
+    // },
     ...mapActions([
       "cargarClientes",
       "_getBanksList",
@@ -773,16 +812,11 @@ export default {
         });
         return false;
       }
-      let detalles = item.detalles.map((detalle) => {
-        return {
-          ...detalle,
-          anuladoflag: false,
-        };
-      });
-      item.detalles = detalles;
 
-      this.Ingreso = item;
-      this.EditarIngresoFlag = true;
+      this.$router.push({
+        name: "editarPagosPorCliente",
+        params: { id: item.id },
+      });
     },
     abrirPDF(url) {
       window.open(url, "_blank");

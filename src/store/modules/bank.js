@@ -574,6 +574,52 @@ const actions = {
         console.log(error);
       });
   },
+
+  async updateRegistroEgresos({ commit }, data) {
+    var config = {
+      method: "put",
+      url: process.env.VUE_APP_URL_MAIN + "actualizar_egresos",
+      headers: {
+        "auth-token": sessionStorage.getItem("auth-token"),
+        "Content-Type": "application/json",
+      },
+      data: {
+        ...data,
+        id_branch: JSON.parse(sessionStorage.getItem("dataUser"))[0].id_branch,
+      },
+    };
+    await http(config)
+      .then(function (response) {
+        let data = response.data;
+        console.log("Respuesta del servidor al registrar egreso:", data);
+      })
+      .catch(function (error) {
+        console.log(error);
+      });
+  },
+  async updateRegistroIgresos({ commit }, data) {
+    var config = {
+      method: "put",
+      url: process.env.VUE_APP_URL_MAIN + "actualizar_ingresos",
+      headers: {
+        "auth-token": sessionStorage.getItem("auth-token"),
+        "Content-Type": "application/json",
+      },
+      data: {
+        ...data,
+        id_branch: JSON.parse(sessionStorage.getItem("dataUser"))[0].id_branch,
+      },
+    };
+    await http(config)
+      .then(function (response) {
+        let data = response.data;
+        console.log("Respuesta del servidor al registrar ingreso:", data);
+      })
+      .catch(function (error) {
+        console.log(error);
+      });
+  },
+  
   async setRegistroIgresos({ commit }, data) {
     var config = {
       method: "post",
@@ -617,6 +663,80 @@ const actions = {
       .catch(function (error) {
         console.log(error);
       });
+  },
+  async getRegistroIngresos({ commit }, data) {
+    var config = {
+      method: "get",
+      url: process.env.VUE_APP_URL_MAIN + "listado_ingresos",
+      headers: {
+        "auth-token": sessionStorage.getItem("auth-token"),
+        "Content-Type": "application/json",
+      },
+      params: {
+        ...data,
+        id_branch: JSON.parse(sessionStorage.getItem("dataUser"))[0].id_branch,
+      },
+    };
+    await http(config)
+      .then(function (response) {
+        let data = response.data;
+        commit("SET_LIST_BANK_CARGAR", data.estadoflag ? data.data : []);
+      })
+      .catch(function (error) {
+        console.log(error);
+      });
+  },
+  async verRegistroIngresos({ commit }, data) {
+    let res = {};
+    var config = {
+      method: "get",
+      url: process.env.VUE_APP_URL_MAIN + "ver_registro_ingresos",
+      headers: {
+        "auth-token": sessionStorage.getItem("auth-token"),
+        "Content-Type": "application/json",
+      },
+      params: {
+        ...data,
+        id_branch: JSON.parse(sessionStorage.getItem("dataUser"))[0].id_branch,
+      },
+    };
+    await http(config)
+      .then(function (response) {
+        let data = response.data;
+        if (data.estadoflag) {
+          res = data.data[0];
+        }
+      })
+      .catch(function (error) {
+        console.log(error);
+      });
+    return res;
+  },
+  async verRegistroEgresos({ commit }, data) {
+    let res = {};
+    var config = {
+      method: "get",
+      url: process.env.VUE_APP_URL_MAIN + "ver_registro_egresos",
+      headers: {
+        "auth-token": sessionStorage.getItem("auth-token"),
+        "Content-Type": "application/json",
+      },
+      params: {
+        ...data,
+        id_branch: JSON.parse(sessionStorage.getItem("dataUser"))[0].id_branch,
+      },
+    };
+    await http(config)
+      .then(function (response) {
+        let data = response.data;
+        if (data.estadoflag) {
+          res = data.data[0];
+        }
+      })
+      .catch(function (error) {
+        console.log(error);
+      });
+    return res;
   },
 };
 

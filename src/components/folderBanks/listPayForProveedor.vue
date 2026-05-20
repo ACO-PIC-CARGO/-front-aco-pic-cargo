@@ -44,9 +44,12 @@
     >
       <template v-slot:[`item.action`]="{ item }">
         <v-btn icon color="red" @click="verSoport(item.ruta)">
-          <v-icon>mdi-file-pdf-box</v-icon>
+          <v-icon>mdi-file</v-icon>
         </v-btn>
-        <v-btn x-small icon color="warning" @click.native="editar(item)">
+        <v-btn small icon color="info" @click.native="ver(item)">
+          <v-icon>mdi-eye</v-icon>
+        </v-btn>
+        <v-btn small icon color="orange" @click.native="editar(item)">
           <v-icon>mdi-pencil</v-icon>
         </v-btn>
       </template>
@@ -64,11 +67,11 @@
                 <th>Monto (USD)</th>
                 <th>Monto</th>
                 <!-- <th>Nro Serie</th> -->
-                <th>Accion</th>
+                <!-- <th>Accion</th> -->
               </tr>
             </thead>
             <tbody>
-              <tr v-for="i in item.detalles" :key="i">
+              <tr v-for="i in item.detalles" :key="i.id">
                 <td>{{ i.tipo }}</td>
                 <td>{{ i.code_master }}</td>
                 <td>{{ i.nro_factura }}</td>
@@ -76,11 +79,11 @@
                 <td>{{ i.montodolar }}</td>
                 <td>{{ i.montomonedalocal }}</td>
 
-                <td>
-                  <!-- <v-btn small color="warning" @click.native="verFactura(i)">
+                <!--  <td>
+                 <v-btn small color="warning" @click.native="verFactura(i)">
                     VER FACTURAS
-                  </v-btn> -->
-                </td>
+                  </v-btn> 
+                </td>-->
               </tr>
             </tbody>
           </v-simple-table>
@@ -98,7 +101,7 @@
               </tr>
             </thead>
             <tbody>
-              <tr v-for="i in item.table_comisionbancaria" :key="i">
+              <tr v-for="i in item.table_comisionbancaria" :key="i.id">
                 <td>{{ i.concepto }}</td>
                 <td>{{ i.montodolar }}</td>
                 <td>{{ i.monto }}</td>
@@ -391,6 +394,7 @@ export default {
         //{ text: "Sub Tipo de Gasto", value: "subtipo_gasto" },
         { text: "Proveedor	", value: "proveedor" },
         { text: "Monto (USD)	", value: "totaldolar" },
+        { text: "Tipo de Cambio	", value: "tipocambio" },
         { text: "Monto	", value: "totalmonedalocal" },
         { text: "Moneda	", value: "moneda" },
         { text: "Comentarios", value: "comentario" },
@@ -450,11 +454,18 @@ export default {
     vm.$store.state.spiner = true;
     await vm.getRegistroEgresos(this.filtro);
     vm.$store.state.spiner = false;
-    await vm.getListBanksDetailsCargar();
-    await vm.getCargarTipoGastos();
-    await vm.getCargarTipoSubGastos();
-    await vm.cargarProveedores();
-    await vm._getBanksList();
+    Promise.all([
+      vm.getListBanksDetailsCargar(),
+      vm.getCargarTipoGastos(),
+      vm.getCargarTipoSubGastos(),
+      vm.cargarProveedores(),
+      vm._getBanksList(),
+    ]).then((res) => {
+      vm.cuentas = vm.$store.state.bank.list.map((item) => ({
+        id: item.id,
+        label: item.name,
+      }));
+    });
     this.$store.state.drawer = false;
   },
   methods: {
@@ -472,83 +483,24 @@ export default {
       this.$store.state.files.payPath = null;
       this.$router.push({ name: "registroPayForProveedor" });
     },
-    async editar(pago) {
-      let item = { ...pago };
-      let val = false;
-      let msg = "";
-      this.payfile = null;
-      this.Ingreso.id_path = null;
-      await swal
-        .fire({
-          title: "Ingrese sus datos Administrador",
-          html:
-            '<input id="swal-input1" class="swal2-input" placeholder="Nombre">' +
-            '<input id="swal-input2" type="password" class="swal2-input" placeholder="Clave">',
-          focusConfirm: false,
-          showCancelButton: true,
-          confirmButtonText: "Aceptar",
-          cancelButtonText: "Cancelar",
-          preConfirm: () => {
-            const input1 = document.getElementById("swal-input1").value.trim();
-            const input2 = document.getElementById("swal-input2").value.trim();
-            if (!input1 || !input2) {
-              Swal.showValidationMessage("Por favor, complete ambos campos");
-              return false;
-            }
-            return { usuario: input1, clave: input2 };
-          },
-        })
-        .then(async (result) => {
-          if (!result.isConfirmed) {
-            // Usuario canceló
-            val = false;
-            msg = "Operación cancelada";
-            return;
-          }
-
-          if (result.value) {
-            const res = await this.validarUsuarioAdmin({
-              usuario: result.value.usuario,
-              clave: result.value.clave,
-            });
-
-            if (res && res.estadoflag) {
-              val = true;
-            } else {
-              val = false;
-              msg = res?.mensaje || "Credenciales incorrectas";
-            }
-          } else {
-            val = false;
-            msg = "Debe ingresar las credenciales";
-          }
-        });
-
-      if (!val) {
-        await swal.fire({
-          icon: "error",
-          text: msg,
-        });
-        return false;
-      }
-
-      let detalles = item.detalle.map((detalle) => {
-        return {
-          ...detalle,
-          anuladoflag: false,
-        };
+    async ver(pago) {
+      console.log("pago", pago);
+      this.$router.push({
+        name: "verPagosPorProveedor",
+        params: { id: pago.id },
       });
-
-      console.log("detalles", detalles);
-      item.detalle = detalles;
-
-      this.Ingreso = item;
-      this.EditarIngresoFlag = true;
+    },
+    async editar(pago) {
+      console.log("pago", pago);
+      this.$router.push({
+        name: "editarPagosPorProveedor",
+        params: { id: pago.id },
+      });
     },
     async ActualizarIngreso() {
       await this.ActualizarCXP(this.Ingreso);
       this.$store.state.spiner = true;
-      await this.getListBanksDetailsCxP();
+      await this.getRegistroEgresos();
       this.$store.state.spiner = false;
       this.EditarIngresoFlag = false;
     },
@@ -611,105 +563,7 @@ export default {
       this.dialogFiltro = !this.dialogFiltro;
       this.$store.state.spiner = false;
     },
-    // async editar(item) {
-    //   let val = true;
-    //   let msg = "";
-    //   await swal
-    //     .fire({
-    //       title: "Ingrese sus datos Administrador",
-    //       html:
-    //         '<input id="swal-input1" class="swal2-input" placeholder="Nombre">' +
-    //         '<input id="swal-input2" type="password" class="swal2-input" placeholder="Apellido">',
-    //       focusConfirm: false,
-    //       preConfirm: () => {
-    //         const input1 = document.getElementById("swal-input1").value;
-    //         const input2 = document.getElementById("swal-input2").value;
-    //         if (!input1 || !input2) {
-    //           Swal.showValidationMessage("Por favor, complete ambos campos");
-    //         }
-    //         return { usuario: input1, clave: input2 };
-    //       },
-    //     })
-    //     .then(async (result) => {
-    //       if (result.isConfirmed) {
-    //         let res = await this.validarUsuarioAdmin({
-    //           usuario: result.value.usuario,
-    //           clave: result.value.clave,
-    //         });
 
-    //         val = res.estadoflag;
-    //         msg = res.mensaje;
-    //         // Aquí puedes manejar los datos ingresados
-    //       }
-    //     });
-    //   if (!val) {
-    //     swal.fire({
-    //       icon: "error",
-    //       text: msg,
-    //     });
-    //     return false;
-    //   }
-
-    //   this.$router.push({
-    //     name: "EditarSalida",
-    //     params: {
-    //       nro_operacion: item.nro_operacion,
-    //     },
-    //   });
-    // },
-    async getListBanksDetailsCxP() {
-      let vm = this;
-      var config = {
-        method: "get",
-        url:
-          process.env.VUE_APP_URL_MAIN +
-          `getListBanksDetailsCxP?id_branch=${
-            JSON.parse(sessionStorage.getItem("dataUser"))[0].id_branch
-          }&desde=${this.filtro.desde ? this.filtro.desde : ""}&hasta=${
-            this.filtro.hasta ? this.filtro.hasta : ""
-          }&nro_operacion=${
-            this.filtro.nro_operacion ? this.filtro.nro_operacion : ""
-          }&id_cuenta=${
-            this.filtro.id_cuenta ? this.filtro.id_cuenta : ""
-          }&id_proveedor=${
-            this.filtro.id_proveedor ? this.filtro.id_proveedor : ""
-          }&monto=${this.filtro.monto ? this.filtro.monto : ""}&id_moneda=${
-            this.filtro.id_moneda ? this.filtro.id_moneda : ""
-          }&nro_factura=${
-            this.filtro.nro_factura ? this.filtro.nro_factura : ""
-          }&nro_serie=${
-            this.filtro.nro_serie ? this.filtro.nro_serie : ""
-          }&tipogastos=${
-            this.filtro.tipogastos ? this.filtro.tipogastos : ""
-          }&tiposubgastos=${
-            this.filtro.tiposubgastos ? this.filtro.tiposubgastos : ""
-          }&operativo=${this.filtro.operativo}&administrativo=${
-            this.filtro.administrativo
-          }`,
-
-        headers: {
-          "auth-token": sessionStorage.getItem("auth-token"),
-          "Content-Type": "application/json",
-        },
-      };
-      await axios(config)
-        .then(function (response) {
-          let data = response.data;
-          if (data.estadoflag) {
-            let data = response.data.data;
-            vm.listado = data.map((element, index) => ({ ...element, index }));
-          } else {
-            vm.listado = [];
-            swal.fire({
-              icon: "error",
-              text: data.mensaje,
-            });
-          }
-        })
-        .catch(function (error) {
-          console.log(error);
-        });
-    },
     async verInvoice(id, editar = false) {
       let vm = this;
       vm.verflag = !editar;
@@ -859,7 +713,7 @@ export default {
     async obtenerListado() {
       let vm = this;
       vm.$store.state.spiner = true;
-      await vm.getListBanksDetailsCxP();
+      await vm.getRegistroEgresos();
       vm.dato = {
         id: "",
         id_proveedor: "",

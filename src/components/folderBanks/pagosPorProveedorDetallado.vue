@@ -130,7 +130,7 @@ export default {
         { text: "F. Op.", value: "fecha_pago" },
         { text: "Nro Operación", value: "nro_operacion" },
         { text: "Tipo", value: "tipo_pago" },
-        { text: "Tipo", value: "tipo_pago" },
+        // { text: "Tipo", value: "tipo_pago" },
         { text: "Exp/ Tipo Gasto", value: "tipo_gasto" },
         { text: "Exp/ SubTipo Gasto", value: "subtipo_gasto" },
         { text: "Cuenta Salida", value: "banco" },
@@ -163,8 +163,8 @@ export default {
     };
   },
   async mounted() {
-    this.filtro.desde = moment().startOf("month").format("YYYY-MM-DD");
-    this.filtro.hasta = moment().format("YYYY-MM-DD");
+    this.filtro.desde = moment().format("YYYY-01-01");
+    this.filtro.hasta = moment().endOf("month").format("YYYY-MM-DD");
 
     await this.getListarBancosgastosDetalles(this.filtro);
     await this.getListBanksDetailsCargar();

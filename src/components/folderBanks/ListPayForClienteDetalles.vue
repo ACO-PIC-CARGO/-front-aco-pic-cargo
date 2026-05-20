@@ -605,7 +605,7 @@ export default {
           with: "5%",
         },
         { text: "Tipo de Cambio	", value: "tipocambio", with: "5%" },
-        { text: "Concepto	", value: "concepto", with: "20%" },
+        // { text: "Concepto	", value: "concepto", with: "20%" },
         { text: "Nro Factura", value: "factura", with: "5%" },
         { text: "Nro Serie", value: "serie", with: "5%" },
         // { text: "Accion", value: "action" },
@@ -653,7 +653,7 @@ export default {
   },
   async mounted() {
     this.usuario = JSON.parse(sessionStorage.getItem("dataUser"))[0].usuario;
-    this.filtro.fechadesde = moment().startOf("month").format("YYYY-MM-DD");
+    this.filtro.fechadesde = moment().format("YYYY-01-01");
     this.filtro.fechahasta = moment().endOf("month").format("YYYY-MM-DD");
     const vm = this;
     vm.$store.state.spiner = true;

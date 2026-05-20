@@ -365,7 +365,7 @@
               <v-autocomplete
                 :items="
                   $store.state.programaciones.listProgramacion.filter(
-                    (v) => v.programend_id != 0
+                    (v) => v.programend_id != 0,
                   )
                 "
                 item-text="programend_fecha"
@@ -695,26 +695,26 @@ export default {
   }),
   async mounted() {
     this.moneda = JSON.parse(
-      sessionStorage.getItem("dataBranch")
+      sessionStorage.getItem("dataBranch"),
     )[0].moneda[0].acronym;
     this.offcanvas = false;
-    await this.obtenerImpuestoXEmpresa();
     this.$store.state.spiner = true;
     this.cabTotalAdministrativo[2].text =
       this.$store.state.enterprises.impuesto.nombre_impuesto;
-    await this._getDebsToPay();
-    await this._getDebsToPayAdmin();
+    await Promise.all([
+      this._getDebsToPay(),
+      this._getDebsToPayAdmin(),
+      this.getModulesEntities(),
+      this.cargarProveedores(),
+      this.cargarGasto(),
+      this.obtenerImpuestoXEmpresa(),
+      this.GetListSubGasto(),
+    ]);
+
     this.$store.state.spiner = false;
-    await this.getModulesEntities();
-    await this.cargarProveedores();
-    await this.cargarGasto();
-    // await this.GetTotalCotizacion();
-
-    await this.GetListSubGasto();
-
     this.programend_id = (
       this.$store.state.programaciones.listProgramacion.filter(
-        (v) => v.programend_select == true
+        (v) => v.programend_select == true,
       )[0] || {}
     ).programend_id;
   },
@@ -771,7 +771,7 @@ export default {
         "width=1593,height=1293",
         "menubar=no",
         "location=no",
-        "resizable=no"
+        "resizable=no",
       );
     },
     sumField(key) {
@@ -818,31 +818,31 @@ export default {
       var data = {
         itemsCpp: vm.itemsCpp,
         total_pagar: Intl.NumberFormat().format(
-          vm.sumField("total_pagar").toFixed(2)
+          vm.sumField("total_pagar").toFixed(2),
         ),
         total_pagado: Intl.NumberFormat().format(
-          vm.sumField("total_pagado").toFixed(2)
+          vm.sumField("total_pagado").toFixed(2),
         ),
         total_restante: Intl.NumberFormat().format(
-          vm.sumField("restante_pagar").toFixed(2)
+          vm.sumField("restante_pagar").toFixed(2),
         ),
         total_pagar_llegada: Intl.NumberFormat().format(
-          vm.sumField("total_pagar_llegada").toFixed(2)
+          vm.sumField("total_pagar_llegada").toFixed(2),
         ),
         total_pagado_llegada: Intl.NumberFormat().format(
-          vm.sumField("total_pagado_llegada").toFixed(2)
+          vm.sumField("total_pagado_llegada").toFixed(2),
         ),
         total_restante_llegada: Intl.NumberFormat().format(
-          vm.sumField("restante_llegada").toFixed(2)
+          vm.sumField("restante_llegada").toFixed(2),
         ),
         total_pagar_no_llegada: Intl.NumberFormat().format(
-          vm.sumField("total_pagar_no_llegada").toFixed(2)
+          vm.sumField("total_pagar_no_llegada").toFixed(2),
         ),
         total_pagado_no_llegada: Intl.NumberFormat().format(
-          vm.sumField("total_pagado_no_llegado").toFixed(2)
+          vm.sumField("total_pagado_no_llegado").toFixed(2),
         ),
         total_restante_no_llegada: Intl.NumberFormat().format(
-          vm.sumField("restante_pagar_no_llegada").toFixed(2)
+          vm.sumField("restante_pagar_no_llegada").toFixed(2),
         ),
         fecha: new Date(Date.now() - new Date().getTimezoneOffset() * 60000)
           .toISOString()
@@ -880,7 +880,7 @@ export default {
           vm.dialogPdf = false;
           window.open(
             process.env.VUE_APP_URL_MAIN + response.data.path,
-            "_blank"
+            "_blank",
           );
         })
         .catch(function (error) {
@@ -915,7 +915,6 @@ export default {
       };
       await axios(config)
         .then(function (response) {
-          
           vm.itemsCpp = response.data.data;
           vm.dataList = true;
           vm.calcularTotalOperativo({ data: response.data.data });
@@ -949,7 +948,6 @@ export default {
       };
       await axios(config)
         .then(function (response) {
-          
           vm.itemsCppa = response.data.data;
           vm.$store.state.drawer = false;
           setTimeout(() => {
@@ -1038,7 +1036,7 @@ export default {
           llegada: parseFloat(totalLlegadaSoles).toFixed(2),
           no_llegada: parseFloat(totalNoLlegadaSoles).toFixed(2),
           total: parseFloat(totalSoles).toFixed(2),
-        }
+        },
       );
     },
 
@@ -1078,7 +1076,7 @@ export default {
           monto: parseFloat(totalMontoSoles).toFixed(2),
           igv: parseFloat(IgvSoles).toFixed(2),
           total: parseFloat(totalSoles).toFixed(2),
-        }
+        },
       );
       this.$store.state.spiner = false;
     },
@@ -1353,7 +1351,6 @@ export default {
       };
 
       await axios(config).then(function (response) {
-        
         sessionStorage.setItem("auth-token", response.data.token);
 
         if (response.data.status == "401") {
@@ -1379,7 +1376,7 @@ export default {
               vm.lstComentarios = comentarios.filter((v) => !!v.esoperativo);
             } else if (vm.dataCXP.esadministrativo) {
               vm.lstComentarios = comentarios.filter(
-                (v) => !!v.esadministrativo
+                (v) => !!v.esadministrativo,
               );
             }
           } else {
@@ -1406,7 +1403,6 @@ export default {
         };
 
         await axios(config).then(async function (response) {
-          
           sessionStorage.setItem("auth-token", response.data.token);
 
           if (response.data.estadoflag) {

@@ -37,6 +37,8 @@ import controlAccountReceivable from "../views/folderModulesPays/controlAccountR
 import listadoPagosPorProveedor from "../views/FolderBanks/listadoPagosPorProveedor";
 import registroPayForProveedor from "../views/FolderBanks/registroPagoProveedor";
 import verPagosPorProveedor from "../views/FolderBanks/verPagosPorProveedor";
+import editarPagosPorProveedor from "../views/FolderBanks/editarPagosPorProveedor";
+import editarPagosPorCliente from "../views/FolderBanks/editarPagosPorCliente";
 import listadoPagosPorCliente from "../views/FolderBanks/listadoPagosPorCliente";
 import registroPayForCliente from "../views/FolderBanks/registroPagoCliente";
 import verPagosPorCliente from "../views/FolderBanks/verPagosPorCliente";
@@ -360,6 +362,16 @@ const routes = [
         path: "FolderBanks/verPagosPorProveedor/:id",
         name: "verPagosPorProveedor",
         component: verPagosPorProveedor,
+      },
+      {
+        path: "FolderBanks/editarPagosPorProveedor/:id",
+        name: "editarPagosPorProveedor",
+        component: editarPagosPorProveedor,
+      },
+      {
+        path: "FolderBanks/editarPagosPorCliente/:id",
+        name: "editarPagosPorCliente",
+        component: editarPagosPorCliente,
       },
       {
         path: "FolderBanks/listadoPagosPorCliente",

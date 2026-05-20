@@ -5,6 +5,7 @@
     transition="scale-transition"
     offset-y
     min-width="auto"
+    :disabled="verflag"
   >
     <template v-slot:activator="{ on, attrs }">
       <v-text-field
@@ -12,8 +13,9 @@
         :label="label"
         prepend-icon="mdi-calendar"
         readonly
+        :disabled="verflag"
         v-bind="attrs"
-        v-on="on"
+        v-on="verflag ? {} : on"
         :outlined="outlined"
         :dense="dense"
         :error-messages="errorMessages"
@@ -52,6 +54,11 @@ export default {
     errorMessages: {
       type: [String, Array],
       default: "",
+    },
+    verflag: {
+      type: Boolean,
+      required: false,
+      default: false,
     },
   },
   data: () => ({
