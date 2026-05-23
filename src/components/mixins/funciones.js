@@ -121,7 +121,7 @@ const miMixin = {
       }
       return fac;
     },
-    calcularValor(precio, flete, multiplicador, porcentaje = 0) {
+    calcularValor(precio, flete, multiplicador, porcentaje = 0, minimo = 118) {
       // SETEANDO DATOS
       flete = flete ? flete : 0;
       let seguro = 0.015 * (parseFloat(precio) + parseFloat(flete));
@@ -142,10 +142,13 @@ const miMixin = {
         case 13:
           if (porcentaje == 0) {
             costo = 0;
-          } else if ((parseFloat(porcentaje) / 100) * parseFloat(cif) >= 118) {
+          } else if (
+            (parseFloat(porcentaje) / 100) * parseFloat(cif) >=
+            minimo
+          ) {
             costo = (parseFloat(porcentaje) / 100) * parseFloat(cif);
           } else {
-            costo = 118;
+            costo = minimo;
           }
           break;
         case 14:
@@ -154,18 +157,29 @@ const miMixin = {
           } else if (
             (parseFloat(porcentaje) / 100) *
               (parseFloat(cif) + parseFloat(seguro)) >=
-            118
+            minimo
           ) {
             costo =
               (parseFloat(porcentaje) / 100) *
               (parseFloat(cif) + parseFloat(seguro));
           } else {
-            costo = 118;
+            costo = minimo;
           }
           break;
         case 15:
-          costo = (precio * porcentaje) / 100;
-
+          if (porcentaje == 0) {
+            costo = 0;
+          } else if (
+            (parseFloat(porcentaje) / 100) *
+              (parseFloat(cif) + parseFloat(seguro)) >=
+            minimo
+          ) {
+            costo =
+              (parseFloat(porcentaje) / 100) *
+              (parseFloat(cif) + parseFloat(seguro));
+          } else {
+            costo = minimo;
+          }
           break;
 
         default:
@@ -192,7 +206,7 @@ const miMixin = {
       let listCostos = costo.filter(
         (v) =>
           idMultiplicador.includes(v.id_multiplicador) &&
-          idServices.includes(v.id_groupservices)
+          idServices.includes(v.id_groupservices),
       );
       let val = listCostos.filter((v) => v.costounitario == 0);
       return {
@@ -237,7 +251,7 @@ const miMixin = {
               v.esaduanaflag == true ||
               v.esgastostercerosflag == true ||
               v.esalmacenflag == true) &&
-            v.status == 1
+            v.status == 1,
         )
         .forEach((costo) => {
           let codemultiplicador = costo.id_multiplicador
@@ -261,7 +275,7 @@ const miMixin = {
                   datosPrincipales.metroscc,
                   datosPrincipales.kg,
                   datosPrincipales.containers,
-                  datosPrincipales.amount
+                  datosPrincipales.amount,
                 );
             } else if (
               codemultiplicador.code == 5 ||
@@ -272,7 +286,8 @@ const miMixin = {
                 datosPrincipales.amount,
                 totalDeFlete,
                 codemultiplicador.code,
-                codemultiplicador.code == 14 ? costo.cif : costo.seguro
+                codemultiplicador.code == 14 ? costo.cif : costo.seguro,
+                costo.minimo ? costo.minimo : 118,
               );
             }
           } else {
@@ -331,7 +346,7 @@ const miMixin = {
               v.esaduanaflag == true ||
               v.esgastostercerosflag == true ||
               v.esalmacenflag == true) &&
-            v.status == 1
+            v.status == 1,
         )
         .forEach((costo) => {
           let codemultiplicador = costo.id_multiplicador
@@ -355,7 +370,7 @@ const miMixin = {
                   datosPrincipales.metroscc,
                   datosPrincipales.kg,
                   datosPrincipales.containers,
-                  datosPrincipales.amount
+                  datosPrincipales.amount,
                 );
             } else if (
               codemultiplicador.code == 5 ||
@@ -366,7 +381,8 @@ const miMixin = {
                 datosPrincipales.amount,
                 totalDeFlete,
                 codemultiplicador.code,
-                codemultiplicador.code == 14 ? costo.cif : costo.seguro
+                codemultiplicador.code == 14 ? costo.cif : costo.seguro,
+                costo.minimo ? costo.minimo : 118,
               );
             }
           } else {
@@ -496,9 +512,9 @@ const miMixin = {
         monto = parseFloat(
           ((parseFloat(totalFlete) + parseFloat(datosPrincipales.amount)) *
             parseFloat(
-              this.obtenerPorcentaje({ listImpuestos: impuestos, code: "03" })
+              this.obtenerPorcentaje({ listImpuestos: impuestos, code: "03" }),
             )) /
-            100
+            100,
         ).toFixed(2);
       }
       if (item.codigo === "04") {
@@ -507,9 +523,9 @@ const miMixin = {
         let seguro = parseFloat(
           ((parseFloat(totalFlete) + parseFloat(datosPrincipales.amount)) *
             parseFloat(
-              this.obtenerPorcentaje({ listImpuestos: impuestos, code: "03" })
+              this.obtenerPorcentaje({ listImpuestos: impuestos, code: "03" }),
             )) /
-            100
+            100,
         );
         monto = parseFloat(fob) + parseFloat(flet) + parseFloat(seguro);
       }
@@ -519,9 +535,9 @@ const miMixin = {
         let seguro = parseFloat(
           ((parseFloat(totalFlete) + parseFloat(datosPrincipales.amount)) *
             parseFloat(
-              this.obtenerPorcentaje({ listImpuestos: impuestos, code: "03" })
+              this.obtenerPorcentaje({ listImpuestos: impuestos, code: "03" }),
             )) /
-            100
+            100,
         );
         let cif = parseFloat(fob) + parseFloat(flet) + parseFloat(seguro);
 
@@ -534,7 +550,7 @@ const miMixin = {
         let seguro = parseFloat(
           ((parseFloat(totalFlete) + parseFloat(datosPrincipales.amount)) *
             this.obtenerPorcentaje({ listImpuestos: impuestos, code: "03" })) /
-            100
+            100,
         );
         let cif = parseFloat(fob) + parseFloat(flet) + parseFloat(seguro);
         let adv =
@@ -550,9 +566,9 @@ const miMixin = {
         let seguro = parseFloat(
           ((parseFloat(totalFlete) + parseFloat(datosPrincipales.amount)) *
             parseFloat(
-              this.obtenerPorcentaje({ listImpuestos: impuestos, code: "03" })
+              this.obtenerPorcentaje({ listImpuestos: impuestos, code: "03" }),
             )) /
-            100
+            100,
         );
         let cif = parseFloat(fob) + parseFloat(flet) + parseFloat(seguro);
         let adv =
@@ -573,9 +589,9 @@ const miMixin = {
         let seguro = parseFloat(
           ((parseFloat(totalFlete) + parseFloat(datosPrincipales.amount)) *
             parseFloat(
-              this.obtenerPorcentaje({ listImpuestos: impuestos, code: "03" })
+              this.obtenerPorcentaje({ listImpuestos: impuestos, code: "03" }),
             )) /
-            100
+            100,
         );
         let cif = parseFloat(fob) + parseFloat(flet) + parseFloat(seguro);
         let adv =
@@ -595,9 +611,9 @@ const miMixin = {
         let seguro = parseFloat(
           ((parseFloat(totalFlete) + parseFloat(datosPrincipales.amount)) *
             parseFloat(
-              this.obtenerPorcentaje({ listImpuestos: impuestos, code: "03" })
+              this.obtenerPorcentaje({ listImpuestos: impuestos, code: "03" }),
             )) /
-            100
+            100,
         );
         let cif = parseFloat(fob) + parseFloat(flet) + parseFloat(seguro);
         let adv =
@@ -636,9 +652,9 @@ const miMixin = {
               this.obtenerPorcentaje({
                 listImpuestos: impuestos,
                 code: item.codigo,
-              })
+              }),
             )) /
-            100
+            100,
         ).toFixed(2);
       }
       return parseFloat(monto).toFixed(2);

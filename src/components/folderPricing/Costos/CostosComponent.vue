@@ -22,7 +22,7 @@
                 {{
                   $store.state.pricing.listTipoCostos.length > 0
                     ? $store.state.pricing.listTipoCostos.filter(
-                        (v) => v.codigo == "FL"
+                        (v) => v.codigo == "FL",
                       )[0].name
                     : ""
                 }}:
@@ -33,7 +33,7 @@
                   color="red"
                   v-if="
                     mostrarAdvertencia(
-                      valores.filter((v) => v.esfleteflag == 1)
+                      valores.filter((v) => v.esfleteflag == 1),
                     )
                   "
                 >
@@ -56,7 +56,7 @@
                   <tbody>
                     <tr
                       v-for="(valor, i) in valores.filter(
-                        (v) => v.esfleteflag == 1 && v.status == 1
+                        (v) => v.esfleteflag == 1 && v.status == 1,
                       )"
                       :key="i"
                     >
@@ -142,7 +142,7 @@
                             $store.state.pricing.listMultiplicador.some(
                               (v) =>
                                 v.id == valor.id_multiplicador &&
-                                (v.code == 13 || v.code == 14 || v.code == 15)
+                                (v.code == 13 || v.code == 14 || v.code == 15),
                             ) &&
                             !isITBM(valor.code_cost) &&
                             !isConfeccion(valor.code_cost) &&
@@ -166,7 +166,7 @@
                           v-if="
                             $store.state.pricing.listMultiplicador.some(
                               (v) =>
-                                v.id == valor.id_multiplicador && v.code == 5
+                                v.id == valor.id_multiplicador && v.code == 5,
                             ) &&
                             !isITBM(valor.code_cost) &&
                             !isConfeccion(valor.code_cost) &&
@@ -217,32 +217,7 @@
                           !isNotaCredito(valor.code_cost)
                         "
                       >
-                        {{
-                          currencyFormat(
-                            ($store.state.pricing.listMultiplicador.filter(
-                              (v) => v.id == valor.id_multiplicador
-                            ).length > 0
-                              ? $store.state.pricing.listMultiplicador.filter(
-                                  (v) => v.id == valor.id_multiplicador
-                                )[0].valor
-                              : 0) *
-                              valor.costounitario *
-                              calcularFac(
-                                $store.state.pricing.listMultiplicador.filter(
-                                  (v) => v.id == valor.id_multiplicador
-                                ).length > 0
-                                  ? $store.state.pricing.listMultiplicador.filter(
-                                      (v) => v.id == valor.id_multiplicador
-                                    )[0].code
-                                  : "N",
-                                $store.state.pricing.datosPrincipales.volumen,
-                                $store.state.pricing.datosPrincipales.peso,
-                                $store.state.pricing.datosPrincipales
-                                  .containers,
-                                $store.state.pricing.datosPrincipales.amount
-                              )
-                          )
-                        }}
+                        {{ formatearCostoTotal(valor) }}
                       </td>
 
                       <td
@@ -254,39 +229,7 @@
                           !isNotaCredito(valor.code_cost)
                         "
                       >
-                        {{
-                          currencyFormat(
-                            calcularValor(
-                              $store.state.pricing.datosPrincipales.amount,
-                              $store.state.pricing.totalFlete,
-                              $store.state.pricing.listMultiplicador.filter(
-                                (v) => v.id == valor.id_multiplicador
-                              ).length > 0
-                                ? $store.state.pricing.listMultiplicador.filter(
-                                    (v) => v.id == valor.id_multiplicador
-                                  )[0].code
-                                : "",
-                              $store.state.pricing.listMultiplicador.some(
-                                (v) =>
-                                  v.id == valor.id_multiplicador &&
-                                  (v.code == 14 ||
-                                    v.code == 13 ||
-                                    v.code == 15 ||
-                                    v.code == 5)
-                              )
-                                ? $store.state.pricing.listMultiplicador.some(
-                                    (v) =>
-                                      v.id == valor.id_multiplicador &&
-                                      (v.code == 14 ||
-                                        v.code == 13 ||
-                                        v.code == 15)
-                                  )
-                                  ? valor.cif
-                                  : valor.seguro
-                                : 0
-                            )
-                          )
-                        }}
+                        {{ formatearValorCalculado(valor) }}
                       </td>
                       <td
                         class="colCostos"
@@ -327,7 +270,7 @@
                 {{
                   $store.state.pricing.listTipoCostos.length > 0
                     ? $store.state.pricing.listTipoCostos.filter(
-                        (v) => v.codigo == "OR"
+                        (v) => v.codigo == "OR",
                       )[0].name
                     : ""
                 }}:
@@ -337,7 +280,7 @@
                   color="red"
                   v-if="
                     mostrarAdvertencia(
-                      valores.filter((v) => v.esorigenflag == 1)
+                      valores.filter((v) => v.esorigenflag == 1),
                     )
                   "
                 >
@@ -360,7 +303,7 @@
                   <tbody>
                     <tr
                       v-for="(valor, i) in valores.filter(
-                        (v) => v.esorigenflag == 1 && v.status == 1
+                        (v) => v.esorigenflag == 1 && v.status == 1,
                       )"
                       :key="i"
                     >
@@ -446,7 +389,7 @@
                             $store.state.pricing.listMultiplicador.some(
                               (v) =>
                                 v.id == valor.id_multiplicador &&
-                                (v.code == 13 || v.code == 14 || v.code == 15)
+                                (v.code == 13 || v.code == 14 || v.code == 15),
                             ) &&
                             !isITBM(valor.code_cost) &&
                             !isConfeccion(valor.code_cost) &&
@@ -470,7 +413,7 @@
                           v-if="
                             $store.state.pricing.listMultiplicador.some(
                               (v) =>
-                                v.id == valor.id_multiplicador && v.code == 5
+                                v.id == valor.id_multiplicador && v.code == 5,
                             ) &&
                             !isITBM(valor.code_cost) &&
                             !isConfeccion(valor.code_cost) &&
@@ -521,32 +464,7 @@
                           !isNotaCredito(valor.code_cost)
                         "
                       >
-                        {{
-                          currencyFormat(
-                            ($store.state.pricing.listMultiplicador.filter(
-                              (v) => v.id == valor.id_multiplicador
-                            ).length > 0
-                              ? $store.state.pricing.listMultiplicador.filter(
-                                  (v) => v.id == valor.id_multiplicador
-                                )[0].valor
-                              : 0) *
-                              valor.costounitario *
-                              calcularFac(
-                                $store.state.pricing.listMultiplicador.filter(
-                                  (v) => v.id == valor.id_multiplicador
-                                ).length > 0
-                                  ? $store.state.pricing.listMultiplicador.filter(
-                                      (v) => v.id == valor.id_multiplicador
-                                    )[0].code
-                                  : "N",
-                                $store.state.pricing.datosPrincipales.volumen,
-                                $store.state.pricing.datosPrincipales.peso,
-                                $store.state.pricing.datosPrincipales
-                                  .containers,
-                                $store.state.pricing.datosPrincipales.amount
-                              )
-                          )
-                        }}
+                        {{ formatearCostoTotal(valor) }}
                       </td>
 
                       <td
@@ -558,40 +476,7 @@
                           !isNotaCredito(valor.code_cost)
                         "
                       >
-                        {{
-                          currencyFormat(
-                            calcularValor(
-                              $store.state.pricing.datosPrincipales.amount,
-                              $store.state.pricing.totalFlete,
-                              $store.state.pricing.listMultiplicador.filter(
-                                (v) => v.id == valor.id_multiplicador
-                              ).length > 0
-                                ? $store.state.pricing.listMultiplicador.filter(
-                                    (v) => v.id == valor.id_multiplicador
-                                  )[0].code
-                                : "",
-                              $store.state.pricing.listMultiplicador.some(
-                                (v) =>
-                                  v.id == valor.id_multiplicador &&
-                                  (v.code == 14 ||
-                                    v.code == 13 ||
-                                    v.code == 15 ||
-                                    v.code == 5)
-                              )
-                                ? $store.state.pricing.listMultiplicador.some(
-                                    (v) =>
-                                      v.id == valor.id_multiplicador &&
-                                      (v.code == 14 ||
-                                        v.code == 13 ||
-                                        v.code == 15 ||
-                                        v.code == 5)
-                                  )
-                                  ? valor.cif
-                                  : valor.seguro
-                                : 0
-                            )
-                          )
-                        }}
+                        {{ formatearValorCalculado(valor) }}
                       </td>
                       <td
                         class="colCostos"
@@ -633,7 +518,7 @@
                 {{
                   $store.state.pricing.listTipoCostos.length > 0
                     ? $store.state.pricing.listTipoCostos.filter(
-                        (v) => v.codigo == "LO"
+                        (v) => v.codigo == "LO",
                       )[0].name
                     : ""
                 }}:
@@ -642,7 +527,7 @@
                   color="red"
                   v-if="
                     mostrarAdvertencia(
-                      valores.filter((v) => v.eslocalflag == 1)
+                      valores.filter((v) => v.eslocalflag == 1),
                     )
                   "
                 >
@@ -665,7 +550,7 @@
                   <tbody>
                     <tr
                       v-for="(valor, i) in valores.filter(
-                        (v) => v.eslocalflag == 1 && v.status == 1
+                        (v) => v.eslocalflag == 1 && v.status == 1,
                       )"
                       :key="i"
                     >
@@ -751,7 +636,7 @@
                             $store.state.pricing.listMultiplicador.some(
                               (v) =>
                                 v.id == valor.id_multiplicador &&
-                                (v.code == 13 || v.code == 14 || v.code == 15)
+                                (v.code == 13 || v.code == 14 || v.code == 15),
                             ) &&
                             !isITBM(valor.code_cost) &&
                             !isConfeccion(valor.code_cost) &&
@@ -775,7 +660,7 @@
                           v-if="
                             $store.state.pricing.listMultiplicador.some(
                               (v) =>
-                                v.id == valor.id_multiplicador && v.code == 5
+                                v.id == valor.id_multiplicador && v.code == 5,
                             ) &&
                             !isITBM(valor.code_cost) &&
                             !isConfeccion(valor.code_cost) &&
@@ -826,32 +711,7 @@
                           !isNotaCredito(valor.code_cost)
                         "
                       >
-                        {{
-                          currencyFormat(
-                            ($store.state.pricing.listMultiplicador.filter(
-                              (v) => v.id == valor.id_multiplicador
-                            ).length > 0
-                              ? $store.state.pricing.listMultiplicador.filter(
-                                  (v) => v.id == valor.id_multiplicador
-                                )[0].valor
-                              : 0) *
-                              valor.costounitario *
-                              calcularFac(
-                                $store.state.pricing.listMultiplicador.filter(
-                                  (v) => v.id == valor.id_multiplicador
-                                ).length > 0
-                                  ? $store.state.pricing.listMultiplicador.filter(
-                                      (v) => v.id == valor.id_multiplicador
-                                    )[0].code
-                                  : "N",
-                                $store.state.pricing.datosPrincipales.volumen,
-                                $store.state.pricing.datosPrincipales.peso,
-                                $store.state.pricing.datosPrincipales
-                                  .containers,
-                                $store.state.pricing.datosPrincipales.amount
-                              )
-                          )
-                        }}
+                        {{ formatearCostoTotal(valor) }}
                       </td>
 
                       <td
@@ -863,40 +723,7 @@
                           !isNotaCredito(valor.code_cost)
                         "
                       >
-                        {{
-                          currencyFormat(
-                            calcularValor(
-                              $store.state.pricing.datosPrincipales.amount,
-                              $store.state.pricing.totalFlete,
-                              $store.state.pricing.listMultiplicador.filter(
-                                (v) => v.id == valor.id_multiplicador
-                              ).length > 0
-                                ? $store.state.pricing.listMultiplicador.filter(
-                                    (v) => v.id == valor.id_multiplicador
-                                  )[0].code
-                                : "",
-                              $store.state.pricing.listMultiplicador.some(
-                                (v) =>
-                                  v.id == valor.id_multiplicador &&
-                                  (v.code == 14 ||
-                                    v.code == 13 ||
-                                    v.code == 15 ||
-                                    v.code == 5)
-                              )
-                                ? $store.state.pricing.listMultiplicador.some(
-                                    (v) =>
-                                      v.id == valor.id_multiplicador &&
-                                      (v.code == 14 ||
-                                        v.code == 13 ||
-                                        v.code == 15 ||
-                                        v.code == 5)
-                                  )
-                                  ? valor.cif
-                                  : valor.seguro
-                                : 0
-                            )
-                          )
-                        }}
+                        {{ formatearValorCalculado(valor) }}
                       </td>
                       <td
                         class="colCostos"
@@ -937,7 +764,7 @@
                 {{
                   $store.state.pricing.listTipoCostos.length > 0
                     ? $store.state.pricing.listTipoCostos.filter(
-                        (v) => v.codigo == "AD"
+                        (v) => v.codigo == "AD",
                       )[0].name
                     : ""
                 }}:
@@ -947,7 +774,7 @@
                   color="red"
                   v-if="
                     mostrarAdvertencia(
-                      valores.filter((v) => v.esaduanaflag == 1)
+                      valores.filter((v) => v.esaduanaflag == 1),
                     )
                   "
                 >
@@ -970,7 +797,7 @@
                   <tbody>
                     <tr
                       v-for="(valor, i) in valores.filter(
-                        (v) => v.esaduanaflag == 1 && v.status == 1
+                        (v) => v.esaduanaflag == 1 && v.status == 1,
                       )"
                       :key="i"
                     >
@@ -1056,7 +883,7 @@
                             $store.state.pricing.listMultiplicador.some(
                               (v) =>
                                 v.id == valor.id_multiplicador &&
-                                (v.code == 13 || v.code == 14 || v.code == 15)
+                                (v.code == 13 || v.code == 14 || v.code == 15),
                             ) &&
                             !isITBM(valor.code_cost) &&
                             !isConfeccion(valor.code_cost) &&
@@ -1080,7 +907,7 @@
                           v-if="
                             $store.state.pricing.listMultiplicador.some(
                               (v) =>
-                                v.id == valor.id_multiplicador && v.code == 5
+                                v.id == valor.id_multiplicador && v.code == 5,
                             ) &&
                             !isITBM(valor.code_cost) &&
                             !isConfeccion(valor.code_cost) &&
@@ -1131,32 +958,7 @@
                           !isNotaCredito(valor.code_cost)
                         "
                       >
-                        {{
-                          currencyFormat(
-                            ($store.state.pricing.listMultiplicador.filter(
-                              (v) => v.id == valor.id_multiplicador
-                            ).length > 0
-                              ? $store.state.pricing.listMultiplicador.filter(
-                                  (v) => v.id == valor.id_multiplicador
-                                )[0].valor
-                              : 0) *
-                              valor.costounitario *
-                              calcularFac(
-                                $store.state.pricing.listMultiplicador.filter(
-                                  (v) => v.id == valor.id_multiplicador
-                                ).length > 0
-                                  ? $store.state.pricing.listMultiplicador.filter(
-                                      (v) => v.id == valor.id_multiplicador
-                                    )[0].code
-                                  : "N",
-                                $store.state.pricing.datosPrincipales.volumen,
-                                $store.state.pricing.datosPrincipales.peso,
-                                $store.state.pricing.datosPrincipales
-                                  .containers,
-                                $store.state.pricing.datosPrincipales.amount
-                              )
-                          )
-                        }}
+                        {{ formatearCostoTotal(valor) }}
                       </td>
 
                       <td
@@ -1168,40 +970,7 @@
                           !isNotaCredito(valor.code_cost)
                         "
                       >
-                        {{
-                          currencyFormat(
-                            calcularValor(
-                              $store.state.pricing.datosPrincipales.amount,
-                              $store.state.pricing.totalFlete,
-                              $store.state.pricing.listMultiplicador.filter(
-                                (v) => v.id == valor.id_multiplicador
-                              ).length > 0
-                                ? $store.state.pricing.listMultiplicador.filter(
-                                    (v) => v.id == valor.id_multiplicador
-                                  )[0].code
-                                : "",
-                              $store.state.pricing.listMultiplicador.some(
-                                (v) =>
-                                  v.id == valor.id_multiplicador &&
-                                  (v.code == 14 ||
-                                    v.code == 13 ||
-                                    v.code == 15 ||
-                                    v.code == 5)
-                              )
-                                ? $store.state.pricing.listMultiplicador.some(
-                                    (v) =>
-                                      v.id == valor.id_multiplicador &&
-                                      (v.code == 14 ||
-                                        v.code == 13 ||
-                                        v.code == 15 ||
-                                        v.code == 5)
-                                  )
-                                  ? valor.cif
-                                  : valor.seguro
-                                : 0
-                            )
-                          )
-                        }}
+                        {{ formatearValorCalculado(valor) }}
                       </td>
                       <td
                         class="colCostos"
@@ -1242,7 +1011,7 @@
                 {{
                   $store.state.pricing.listTipoCostos.length > 0
                     ? $store.state.pricing.listTipoCostos.filter(
-                        (v) => v.codigo == "FL"
+                        (v) => v.codigo == "FL",
                       )[0].name
                     : ""
                 }}:
@@ -1253,7 +1022,7 @@
                   color="red"
                   v-if="
                     mostrarAdvertencia(
-                      valores.filter((v) => v.esfleteflag == 1)
+                      valores.filter((v) => v.esfleteflag == 1),
                     )
                   "
                 >
@@ -1276,7 +1045,7 @@
                   <tbody>
                     <tr
                       v-for="(valor, i) in valores.filter(
-                        (v) => v.esfleteflag == 1 && v.status == 1
+                        (v) => v.esfleteflag == 1 && v.status == 1,
                       )"
                       :key="i"
                     >
@@ -1362,7 +1131,7 @@
                             $store.state.pricing.listMultiplicador.some(
                               (v) =>
                                 v.id == valor.id_multiplicador &&
-                                (v.code == 13 || v.code == 14 || v.code == 15)
+                                (v.code == 13 || v.code == 14 || v.code == 15),
                             ) &&
                             !isITBM(valor.code_cost) &&
                             !isConfeccion(valor.code_cost) &&
@@ -1386,7 +1155,7 @@
                           v-if="
                             $store.state.pricing.listMultiplicador.some(
                               (v) =>
-                                v.id == valor.id_multiplicador && v.code == 5
+                                v.id == valor.id_multiplicador && v.code == 5,
                             ) &&
                             !isITBM(valor.code_cost) &&
                             !isConfeccion(valor.code_cost) &&
@@ -1437,32 +1206,7 @@
                           !isNotaCredito(valor.code_cost)
                         "
                       >
-                        {{
-                          currencyFormat(
-                            ($store.state.pricing.listMultiplicador.filter(
-                              (v) => v.id == valor.id_multiplicador
-                            ).length > 0
-                              ? $store.state.pricing.listMultiplicador.filter(
-                                  (v) => v.id == valor.id_multiplicador
-                                )[0].valor
-                              : 0) *
-                              valor.costounitario *
-                              calcularFac(
-                                $store.state.pricing.listMultiplicador.filter(
-                                  (v) => v.id == valor.id_multiplicador
-                                ).length > 0
-                                  ? $store.state.pricing.listMultiplicador.filter(
-                                      (v) => v.id == valor.id_multiplicador
-                                    )[0].code
-                                  : "N",
-                                $store.state.pricing.datosPrincipales.volumen,
-                                $store.state.pricing.datosPrincipales.peso,
-                                $store.state.pricing.datosPrincipales
-                                  .containers,
-                                $store.state.pricing.datosPrincipales.amount
-                              )
-                          )
-                        }}
+                        {{ formatearCostoTotal(valor) }}
                       </td>
 
                       <td
@@ -1474,40 +1218,7 @@
                           !isNotaCredito(valor.code_cost)
                         "
                       >
-                        {{
-                          currencyFormat(
-                            calcularValor(
-                              $store.state.pricing.datosPrincipales.amount,
-                              $store.state.pricing.totalFlete,
-                              $store.state.pricing.listMultiplicador.filter(
-                                (v) => v.id == valor.id_multiplicador
-                              ).length > 0
-                                ? $store.state.pricing.listMultiplicador.filter(
-                                    (v) => v.id == valor.id_multiplicador
-                                  )[0].code
-                                : "",
-                              $store.state.pricing.listMultiplicador.some(
-                                (v) =>
-                                  v.id == valor.id_multiplicador &&
-                                  (v.code == 14 ||
-                                    v.code == 13 ||
-                                    v.code == 15 ||
-                                    v.code == 5)
-                              )
-                                ? $store.state.pricing.listMultiplicador.some(
-                                    (v) =>
-                                      v.id == valor.id_multiplicador &&
-                                      (v.code == 14 ||
-                                        v.code == 13 ||
-                                        v.code == 15 ||
-                                        v.code == 5)
-                                  )
-                                  ? valor.cif
-                                  : valor.seguro
-                                : 0
-                            )
-                          )
-                        }}
+                        {{ formatearValorCalculado(valor) }}
                       </td>
                       <td
                         class="colCostos"
@@ -1548,7 +1259,7 @@
                 {{
                   $store.state.pricing.listTipoCostos.length > 0
                     ? $store.state.pricing.listTipoCostos.filter(
-                        (v) => v.codigo == "AL"
+                        (v) => v.codigo == "AL",
                       )[0].name
                     : ""
                 }}:
@@ -1557,7 +1268,7 @@
                   color="red"
                   v-if="
                     mostrarAdvertencia(
-                      valores.filter((v) => v.esalmacenflag == 1)
+                      valores.filter((v) => v.esalmacenflag == 1),
                     )
                   "
                 >
@@ -1580,7 +1291,7 @@
                   <tbody>
                     <tr
                       v-for="(valor, i) in valores.filter(
-                        (v) => v.esalmacenflag == 1 && v.status == 1
+                        (v) => v.esalmacenflag == 1 && v.status == 1,
                       )"
                       :key="i"
                     >
@@ -1666,7 +1377,7 @@
                             $store.state.pricing.listMultiplicador.some(
                               (v) =>
                                 v.id == valor.id_multiplicador &&
-                                (v.code == 13 || v.code == 14 || v.code == 15)
+                                (v.code == 13 || v.code == 14 || v.code == 15),
                             ) &&
                             !isITBM(valor.code_cost) &&
                             !isConfeccion(valor.code_cost) &&
@@ -1689,10 +1400,10 @@
                           class="derecha tdMontos"
                           v-if="
                             ($store.state.pricing.listMultiplicador.filter(
-                              (v) => v.id == valor.id_multiplicador
+                              (v) => v.id == valor.id_multiplicador,
                             )[0].code == 14 ||
                               $store.state.pricing.listMultiplicador.filter(
-                                (v) => v.id == valor.id_multiplicador
+                                (v) => v.id == valor.id_multiplicador,
                               )[0].code == 5) &&
                             !isITBM(valor.code_cost) &&
                             !isConfeccion(valor.code_cost) &&
@@ -1743,32 +1454,7 @@
                           !isNotaCredito(valor.code_cost)
                         "
                       >
-                        {{
-                          currencyFormat(
-                            ($store.state.pricing.listMultiplicador.filter(
-                              (v) => v.id == valor.id_multiplicador
-                            ).length > 0
-                              ? $store.state.pricing.listMultiplicador.filter(
-                                  (v) => v.id == valor.id_multiplicador
-                                )[0].valor
-                              : 0) *
-                              valor.costounitario *
-                              calcularFac(
-                                $store.state.pricing.listMultiplicador.filter(
-                                  (v) => v.id == valor.id_multiplicador
-                                ).length > 0
-                                  ? $store.state.pricing.listMultiplicador.filter(
-                                      (v) => v.id == valor.id_multiplicador
-                                    )[0].code
-                                  : "N",
-                                $store.state.pricing.datosPrincipales.volumen,
-                                $store.state.pricing.datosPrincipales.peso,
-                                $store.state.pricing.datosPrincipales
-                                  .containers,
-                                $store.state.pricing.datosPrincipales.amount
-                              )
-                          )
-                        }}
+                        {{ formatearCostoTotal(valor) }}
                       </td>
 
                       <td
@@ -1780,40 +1466,7 @@
                           !isNotaCredito(valor.code_cost)
                         "
                       >
-                        {{
-                          currencyFormat(
-                            calcularValor(
-                              $store.state.pricing.datosPrincipales.amount,
-                              $store.state.pricing.totalFlete,
-                              $store.state.pricing.listMultiplicador.filter(
-                                (v) => v.id == valor.id_multiplicador
-                              ).length > 0
-                                ? $store.state.pricing.listMultiplicador.filter(
-                                    (v) => v.id == valor.id_multiplicador
-                                  )[0].code
-                                : "",
-                              $store.state.pricing.listMultiplicador.some(
-                                (v) =>
-                                  v.id == valor.id_multiplicador &&
-                                  (v.code == 14 ||
-                                    v.code == 13 ||
-                                    v.code == 15 ||
-                                    v.code == 5)
-                              )
-                                ? $store.state.pricing.listMultiplicador.some(
-                                    (v) =>
-                                      v.id == valor.id_multiplicador &&
-                                      (v.code == 14 ||
-                                        v.code == 13 ||
-                                        v.code == 15 ||
-                                        v.code == 5)
-                                  )
-                                  ? valor.cif
-                                  : valor.seguro
-                                : 0
-                            )
-                          )
-                        }}
+                        {{ formatearValorCalculado(valor) }}
                       </td>
                       <td
                         class="colCostos"
@@ -1854,7 +1507,7 @@
                 {{
                   $store.state.pricing.listTipoCostos.length > 0
                     ? $store.state.pricing.listTipoCostos.filter(
-                        (v) => v.codigo == "GT"
+                        (v) => v.codigo == "GT",
                       )[0].name
                     : ""
                 }}:
@@ -1863,7 +1516,7 @@
                   color="red"
                   v-if="
                     mostrarAdvertencia(
-                      valores.filter((v) => v.esgastostercerosflag == 1)
+                      valores.filter((v) => v.esgastostercerosflag == 1),
                     )
                   "
                 >
@@ -1886,7 +1539,7 @@
                   <tbody>
                     <tr
                       v-for="(valor, i) in valores.filter(
-                        (v) => v.esgastostercerosflag == 1 && v.status == 1
+                        (v) => v.esgastostercerosflag == 1 && v.status == 1,
                       )"
                       :key="i"
                     >
@@ -1972,7 +1625,7 @@
                             $store.state.pricing.listMultiplicador.some(
                               (v) =>
                                 v.id == valor.id_multiplicador &&
-                                (v.code == 13 || v.code == 14 || v.code == 15)
+                                (v.code == 13 || v.code == 14 || v.code == 15),
                             ) &&
                             !isITBM(valor.code_cost) &&
                             !isConfeccion(valor.code_cost) &&
@@ -1995,10 +1648,10 @@
                           class="derecha tdMontos"
                           v-if="
                             ($store.state.pricing.listMultiplicador.filter(
-                              (v) => v.id == valor.id_multiplicador
+                              (v) => v.id == valor.id_multiplicador,
                             )[0].code == 14 ||
                               $store.state.pricing.listMultiplicador.filter(
-                                (v) => v.id == valor.id_multiplicador
+                                (v) => v.id == valor.id_multiplicador,
                               )[0].code == 5) &&
                             !isITBM(valor.code_cost) &&
                             !isConfeccion(valor.code_cost) &&
@@ -2049,32 +1702,7 @@
                           !isNotaCredito(valor.code_cost)
                         "
                       >
-                        {{
-                          currencyFormat(
-                            ($store.state.pricing.listMultiplicador.filter(
-                              (v) => v.id == valor.id_multiplicador
-                            ).length > 0
-                              ? $store.state.pricing.listMultiplicador.filter(
-                                  (v) => v.id == valor.id_multiplicador
-                                )[0].valor
-                              : 0) *
-                              valor.costounitario *
-                              calcularFac(
-                                $store.state.pricing.listMultiplicador.filter(
-                                  (v) => v.id == valor.id_multiplicador
-                                ).length > 0
-                                  ? $store.state.pricing.listMultiplicador.filter(
-                                      (v) => v.id == valor.id_multiplicador
-                                    )[0].code
-                                  : "N",
-                                $store.state.pricing.datosPrincipales.volumen,
-                                $store.state.pricing.datosPrincipales.peso,
-                                $store.state.pricing.datosPrincipales
-                                  .containers,
-                                $store.state.pricing.datosPrincipales.amount
-                              )
-                          )
-                        }}
+                        {{ formatearCostoTotal(valor) }}
                       </td>
 
                       <td
@@ -2086,40 +1714,7 @@
                           !isNotaCredito(valor.code_cost)
                         "
                       >
-                        {{
-                          currencyFormat(
-                            calcularValor(
-                              $store.state.pricing.datosPrincipales.amount,
-                              $store.state.pricing.totalFlete,
-                              $store.state.pricing.listMultiplicador.filter(
-                                (v) => v.id == valor.id_multiplicador
-                              ).length > 0
-                                ? $store.state.pricing.listMultiplicador.filter(
-                                    (v) => v.id == valor.id_multiplicador
-                                  )[0].code
-                                : "",
-                              $store.state.pricing.listMultiplicador.some(
-                                (v) =>
-                                  v.id == valor.id_multiplicador &&
-                                  (v.code == 14 ||
-                                    v.code == 13 ||
-                                    v.code == 15 ||
-                                    v.code == 5)
-                              )
-                                ? $store.state.pricing.listMultiplicador.some(
-                                    (v) =>
-                                      v.id == valor.id_multiplicador &&
-                                      (v.code == 14 ||
-                                        v.code == 13 ||
-                                        v.code == 15 ||
-                                        v.code == 5)
-                                  )
-                                  ? valor.cif
-                                  : valor.seguro
-                                : 0
-                            )
-                          )
-                        }}
+                        {{ formatearValorCalculado(valor) }}
                       </td>
                       <td
                         class="colCostos"
@@ -2374,7 +1969,6 @@ export default {
         id: IdProveedor.join(","),
         search: null,
       });
-      
     },
     async recargarProveedores(e) {
       let opciones = [...this.$store.state.pricing.opcionCostos];
@@ -2457,11 +2051,18 @@ export default {
         this.$forceUpdate();
       });
     },
-    async habilidarPrimeraAccion() {
-      if (this.isFlete && this.isImport) {
-        this.mostrarFleteImportFlag = true;
+    habilidarPrimeraAccion() {
+      // 1. Agrupamos la lógica de Fletes
+      if (this.isFlete) {
+        if (this.isImport) {
+          this.mostrarFleteImportFlag = true;
+        } else {
+          this.mostrarFleteExportFlag = true;
+        }
         return true;
       }
+
+      // 2. Evaluamos el resto de flags secuencialmente
       if (this.isOrigen) {
         this.mostrarOrigenFlag = true;
         return true;
@@ -2470,13 +2071,8 @@ export default {
         this.mostrarLocalFlag = true;
         return true;
       }
-
       if (this.isAduana) {
         this.mostrarAduanaFlag = true;
-        return true;
-      }
-      if (this.isFlete && !this.isImport) {
-        this.mostrarFleteExportFlag = true;
         return true;
       }
       if (this.isAlmacen) {
@@ -2487,321 +2083,173 @@ export default {
         this.mostrarGastosTercerosFlag = true;
         return true;
       }
-    },
-    async comprobarFleteImport() {
-      this.valores
-        .filter((v) => v.esfleteflag == 1 && v.status == true)
-        .forEach((element) => {
-          let res = this.validateCost({ costo: element });
 
-          if (!!res) {
+      return false; // Es una buena práctica retornar false si ninguna condición se cumplió
+    },
+    comprobarFleteImport() {
+      let tieneErrores = false;
+
+      // 1. Filtramos y evaluamos en un solo recorrido eficiente
+      this.valores
+        .filter((v) => v.esfleteflag == 1 && v.status === true)
+        .forEach((element) => {
+          const tieneErrorCosto = this.validateCost({ costo: element });
+
+          if (tieneErrorCosto) {
             element.error = "El costo que tiene un valor 0.00.";
+            tieneErrores = true; // Si encontramos al menos uno, activamos la bandera
           } else {
             element.error = "";
           }
         });
-      let val = !this.valores.some(
-        (v) => v.esfleteflag == 1 && v.status == true && v.error != ""
-      );
 
-      if (val) {
-        await this.mostrarSiguienteFleteImport();
+      // 2. Si no hubo errores, avanzamos a la siguiente acción
+      if (!tieneErrores) {
+        this.mostrarSiguienteFleteImport();
         this.valueFleteImport = 1;
         this.mostrarBtnFleteImportFlag = false;
       }
     },
+
     mostrarSiguienteFleteImport() {
-      if (this.isOrigen) {
-        this.mostrarOrigenFlag = true;
-        return true;
-      }
-      if (this.isLocal) {
-        this.mostrarLocalFlag = true;
-        return true;
-      }
-      if (this.isAduana) {
-        this.mostrarAduanaFlag = true;
-        return true;
-      }
-      if (this.isFlete && !this.isImport) {
-        this.mostrarFleteExportFlag = true;
+      // Diccionario de condiciones para evitar los 'if' repetitivos
+      const pasos = [
+        { condicion: this.isOrigen, flag: "mostrarOrigenFlag" },
+        { condicion: this.isLocal, flag: "mostrarLocalFlag" },
+        { condicion: this.isAduana, flag: "mostrarAduanaFlag" },
+        {
+          condicion: this.isFlete && !this.isImport,
+          flag: "mostrarFleteExportFlag",
+        },
+        { condicion: this.isAlmacen, flag: "mostrarAlmacenFlag" },
+        { condicion: this.isGastosTercero, flag: "mostrarGastosTercerosFlag" },
+      ];
+
+      // Buscamos el primer paso que se cumpla
+      const pasoSiguiente = pasos.find((p) => p.condicion);
+
+      if (pasoSiguiente) {
+        this[pasoSiguiente.flag] = true;
         return true;
       }
 
-      if (this.isAlmacen) {
-        this.mostrarAlmacenFlag = true;
-        return true;
-      }
-      if (this.isGastosTercero) {
-        this.mostrarGastosTercerosFlag = true;
-        return true;
-      }
+      // Si no se cumplió ninguna condición anterior, se habilita el botón de guardar
       this.$store.state.pricing.mostrarGuardarCostos = true;
     },
-    async comprobarOrigen() {
-      this.valores
-        .filter((v) => v.esorigenflag == 1 && v.status == true)
-        .forEach((element) => {
-          let res = this.validateCost({ costo: element });
+    avanzarFlujoFormulario() {
+      // Lista única con el orden estricto de prioridad de tus pantallas
+      const pasos = [
+        { condicion: this.isOrigen, flag: "mostrarOrigenFlag" },
+        { condicion: this.isLocal, flag: "mostrarLocalFlag" },
+        { condicion: this.isAduana, flag: "mostrarAduanaFlag" },
+        {
+          condicion: this.isFlete && !this.isImport,
+          flag: "mostrarFleteExportFlag",
+        },
+        { condicion: this.isAlmacen, flag: "mostrarAlmacenFlag" },
+        { condicion: this.isGastosTercero, flag: "mostrarGastosTercerosFlag" },
+      ];
 
-          if (!!res) {
+      // Buscamos el PRIMER paso que esté activo en la cotización y que todavía esté oculto
+      const proximoPaso = pasos.find((p) => p.condicion && !this[p.flag]);
+
+      if (proximoPaso) {
+        this[proximoPaso.flag] = true;
+        return true; // Se abrió una nueva sección con éxito
+      }
+
+      // Si ya se recorrieron o mostraron todas las secciones activas, liberamos el botón final
+      this.$store.state.pricing.mostrarGuardarCostos = true;
+      return false;
+    },
+
+    // ========================================================
+    // 2. VALIDADOR ÚNICO: Reutiliza la lógica de filtrado y errores
+    // ========================================================
+    procesarValidacionSeccion(flagFiltro, propiedadValor, flagBoton) {
+      let tieneErrores = false;
+
+      // Filtramos dinámicamente según la bandera de la fila (ej: 'esorigenflag')
+      this.valores
+        .filter((v) => v[flagFiltro] == 1 && v.status === true)
+        .forEach((element) => {
+          const tieneErrorCosto = this.validateCost({ costo: element });
+
+          if (tieneErrorCosto) {
             element.error = "El costo que tiene un valor 0.00.";
+            tieneErrores = true;
           } else {
             element.error = "";
           }
         });
-      let val = !this.valores.some(
-        (v) => v.esorigenflag == 1 && v.status == true && v.error != ""
+
+      // Si no hay errores, cerramos el paso actual y disparamos el flujo al siguiente paso
+      if (!tieneErrores) {
+        this[propiedadValor] = 1; // Ej: this.valueOrigen = 1
+        this[flagBoton] = false; // Ej: this.mostrarBtnOrigenFlag = false
+        this.avanzarFlujoFormulario(); // Calcula automáticamente cuál sigue o si ya guarda
+      }
+    },
+
+    // ========================================================
+    // 3. TUS MÉTODOS (Ahora solo invocan al validador único)
+    // ========================================================
+    comprobarOrigen() {
+      this.procesarValidacionSeccion(
+        "esorigenflag",
+        "valueOrigen",
+        "mostrarBtnOrigenFlag",
       );
-
-      if (val) {
-        await this.mostrarSiguienteOrigen();
-        this.valueOrigen = 1;
-        this.mostrarBtnOrigenFlag = false;
-        if (
-          !this.mostrarSiguienteOrigen() &&
-          !this.mostrarSiguienteLocal() &&
-          !this.mostrarSiguienteFleteExport() &&
-          !this.mostrarSiguienteAduana()
-        ) {
-          this.$store.state.pricing.mostrarGuardarCostos = true;
-        }
-      }
     },
-    mostrarSiguienteOrigen() {
-      if (this.isLocal) {
-        this.mostrarLocalFlag = true;
-        return true;
-      }
-      if (this.isAduana) {
-        this.mostrarAduanaFlag = true;
-        return true;
-      }
-      if (this.isFlete && !this.isImport) {
-        this.mostrarFleteExportFlag = true;
-        return true;
-      }
 
-      if (this.isAlmacen) {
-        this.mostrarAlmacenFlag = true;
-        return true;
-      }
-      if (this.isGastosTercero) {
-        this.mostrarGastosTercerosFlag = true;
-        return true;
-      }
-    },
-    async comprobarLocal() {
-      this.valores
-        .filter((v) => v.eslocalflag == 1 && v.status == true)
-        .forEach((element) => {
-          let res = this.validateCost({ costo: element });
-
-          if (!!res) {
-            element.error = "El costo que tiene un valor 0.00.";
-          } else {
-            element.error = "";
-          }
-        });
-      let val = !this.valores.some(
-        (v) => v.eslocalflag == 1 && v.status == true && v.error != ""
+    comprobarLocal() {
+      this.procesarValidacionSeccion(
+        "eslocalflag",
+        "valueLocal",
+        "mostrarBtnLocalFlag",
       );
-
-      if (val) {
-        await this.mostrarSiguienteLocal();
-        this.valueLocal = 1;
-        this.mostrarBtnLocalFlag = false;
-        if (
-          !this.mostrarSiguienteLocal() &&
-          !this.mostrarSiguienteFleteExport() &&
-          !this.mostrarSiguienteAduana()
-        ) {
-          this.$store.state.pricing.mostrarGuardarCostos = true;
-        }
-      }
-    },
-    mostrarSiguienteLocal() {
-      if (this.isAduana) {
-        this.mostrarAduanaFlag = true;
-        return true;
-      }
-      if (this.isFlete && !this.isImport) {
-        this.mostrarFleteExportFlag = true;
-        return true;
-      }
-      if (this.isAlmacen) {
-        this.mostrarAlmacenFlag = true;
-        return true;
-      }
-      if (this.isGastosTercero) {
-        this.mostrarGastosTercerosFlag = true;
-        return true;
-      }
     },
 
-    async comprobarAduana() {
-      this.valores
-        .filter((v) => v.esaduanaflag == 1 && v.status == true)
-        .forEach((element) => {
-          let res = this.validateCost({ costo: element });
-
-          if (!!res) {
-            element.error = "El costo que tiene un valor 0.00.";
-          } else {
-            element.error = "";
-          }
-        });
-      let val = !this.valores.some(
-        (v) => v.esaduanaflag == 1 && v.status == true && v.error != ""
+    comprobarAduana() {
+      this.procesarValidacionSeccion(
+        "esaduanaflag",
+        "valueAduana",
+        "mostrarBtnAduanaFlag",
       );
-
-      if (val) {
-        await this.mostrarSiguienteFleteExport();
-        this.valueAduana = 1;
-        this.mostrarBtnAduanaFlag = false;
-        if (
-          !this.mostrarSiguienteFleteExport() &&
-          !this.mostrarSiguienteAduana()
-        ) {
-          this.$store.state.pricing.mostrarGuardarCostos = true;
-        }
-      }
-    },
-    mostrarSiguienteAduana() {
-      if (this.isFlete && !this.isImport) {
-        this.mostrarFleteExportFlag = true;
-        this.mostrarAlmacenFlag = false;
-        return true;
-      }
-
-      if (this.isAlmacen) {
-        this.mostrarAlmacenFlag = true;
-        return true;
-      }
-      if (this.isGastosTercero) {
-        this.mostrarGastosTercerosFlag = true;
-        return true;
-      }
     },
 
-    async comprobarFleteExport() {
-      this.valores
-        .filter((v) => v.esfleteflag == 1 && v.status == true)
-        .forEach((element) => {
-          let res = this.validateCost({ costo: element });
-
-          if (!!res) {
-            element.error = "El costo que tiene un valor 0.00.";
-          } else {
-            element.error = "";
-          }
-        });
-      let val = !this.valores.some(
-        (v) => v.esfleteflag == 1 && v.status == true && v.error != ""
+    comprobarFleteExport() {
+      this.procesarValidacionSeccion(
+        "esfleteflag",
+        "valueFleteExport",
+        "mostrarBtnFleteExportFlag",
       );
+    },
 
-      if (val) {
-        await this.mostrarSiguienteAlmacen();
-        this.valueFleteExport = 1;
-        this.mostrarBtnFleteExportFlag = false;
-        if (!this.mostrarSiguienteAlmacen()) {
-          this.$store.state.pricing.mostrarGuardarCostos = true;
-        }
-      }
-    },
-    mostrarSiguienteFleteExport() {
-      if (this.isFlete && !this.isImport) {
-        this.mostrarFleteExportFlag = true;
-        return true;
-      }
-      if (this.isAlmacen) {
-        this.mostrarAlmacenFlag = true;
-        return true;
-      }
-      if (this.isGastosTercero) {
-        this.mostrarGastosTercerosFlag = true;
-        return true;
-      }
-    },
-    mostrarSiguienteAlmacen() {
-      if (this.isAlmacen) {
-        this.mostrarAlmacenFlag = true;
-        return true;
-      }
-      if (this.isGastosTercero) {
-        this.mostrarGastosTercerosFlag = true;
-        return true;
-      }
-    },
-    async comprobarAlmacen() {
-      this.valores
-        .filter((v) => v.esalmacenflag == 1 && v.status == true)
-        .forEach((element) => {
-          let res = this.validateCost({ costo: element });
-
-          if (!!res) {
-            element.error = "El costo que tiene un valor 0.00.";
-          } else {
-            element.error = "";
-          }
-        });
-      let val = !this.valores.some(
-        (v) => v.esalmacenflag == 1 && v.status == true && v.error != ""
+    comprobarAlmacen() {
+      this.procesarValidacionSeccion(
+        "esalmacenflag",
+        "valueAlmacen",
+        "mostrarBtnAlmacenFlag",
       );
-
-      if (val) {
-        await this.mostrarSiguienteGastosTercero();
-        this.valueAlmacen = 1;
-        this.mostrarBtnAlmacenFlag = false;
-        if (!this.mostrarSiguienteGastosTercero()) {
-          this.$store.state.pricing.mostrarGuardarCostos = true;
-        }
-      }
     },
 
-    mostrarSiguienteGastosTercero() {
-      if (this.isGastosTercero) {
-        this.mostrarGastosTercerosFlag = true;
-        return true;
-      }
-    },
-
-    async comprobarGastosTerceros() {
-      this.valores
-        .filter((v) => v.esgastostercerosflag == 1 && v.status == true)
-        .forEach((element) => {
-          let res = this.validateCost({ costo: element });
-
-          if (!!res) {
-            element.error = "El costo que tiene un valor 0.00.";
-          } else {
-            element.error = "";
-          }
-        });
-      let val = !this.valores.some(
-        (v) => v.esgastostercerosflag == 1 && v.status == true && v.error != ""
+    comprobarGastosTerceros() {
+      this.procesarValidacionSeccion(
+        "esgastostercerosflag",
+        "valueGastosTerceros",
+        "mostrarBtnGastosTercerosFlag",
       );
-      if (val) {
-        this.valueGastosTerceros = 1;
-        this.mostrarBtnGastosTercerosFlag = false;
-        this.$store.state.pricing.mostrarGuardarCostos = true;
-      }
     },
 
-    // mostrarGuardarCostosF() {
-
-    //   if (!this.valores.some((v) => v.status == true && v.error != "")) {
-    //     this.$store.state.pricing.mostrarGuardarCostos = true;
-    //   }
-    // },
     validateCost({ costo }) {
       let service = this.$store.state.pricing.listServices.filter(
-        (v) => v.status == 1
+        (v) => v.status == 1,
       );
       let multiplocadores = this.$store.state.pricing.listMultiplicador.filter(
         (v) => {
           return this.comienzaNoConCaracter(v.text, "%");
-        }
+        },
       );
       let idMultiplicador = multiplocadores.map((v) => v.id);
       let idServices = service.map((v) => v.id_groupservices);
@@ -2832,6 +2280,50 @@ export default {
         await this.calcTotal();
       }, 100);
     },
+    obtenerCostoElemento(element) {
+     
+      const { listMultiplicador, datosPrincipales, totalFlete } =
+        this.$store.state.pricing;
+      const multiplicadores = listMultiplicador || [];
+
+      // Buscamos el multiplicador una sola vez por elemento
+      const multEncontrado = multiplicadores.find(
+        (v) => v.id === element.id_multiplicador,
+      );
+
+      const valorMultiplicador = multEncontrado ? multEncontrado.valor : 0;
+      const codigoMultiplicador = multEncontrado ? multEncontrado.code : "N";
+
+      // CASO A: No es porcentaje (Cálculo basado en factor)
+      if (this.isNotPorcentaje(element, element.id_multiplicador)) {
+        const factorCalculado = this.calcularFac(
+          codigoMultiplicador,
+          datosPrincipales.volumen,
+          datosPrincipales.peso,
+          datosPrincipales.containers,
+          datosPrincipales.amount,
+        );
+        return valorMultiplicador * element.costounitario * factorCalculado;
+      }
+
+      // CASO B: Sí es porcentaje (Cálculo basado en CIF / Seguro)
+      const codigosEspeciales = [13, 14, 15, 5];
+      const parametroEspecial = codigosEspeciales.includes(codigoMultiplicador)
+        ? element.cif
+        : element.seguro;
+
+      return this.calcularValor(
+        datosPrincipales.amount,
+        totalFlete,
+        multEncontrado ? codigoMultiplicador : "",
+        parametroEspecial,
+        element.minimo,
+      );
+    },
+
+    // ==========================================
+    // 2. MÉTODOS PRINCIPALES SIMPLIFICADOS
+    // ==========================================
     calcularTotalesFlete() {
       this.totalOption = 0;
       this.resumenOpcion = {
@@ -2843,395 +2335,62 @@ export default {
         gastostercero: 0,
       };
 
-      if (this.isFlete) {
-        this.valores
-          .filter(
-            (v) => v.esfleteflag == 1 && v.status == 1 && v.esopcionflag == 1
-          )
-          .forEach((element) => {
-            if (this.isNotPorcentaje(element, element.id_multiplicador)) {
-              this.resumenOpcion.flete +=
-                (this.$store.state.pricing.listMultiplicador.filter(
-                  (v) => v.id == element.id_multiplicador
-                ).length > 0
-                  ? this.$store.state.pricing.listMultiplicador.filter(
-                      (v) => v.id == element.id_multiplicador
-                    )[0].valor
-                  : 0) *
-                element.costounitario *
-                this.calcularFac(
-                  this.$store.state.pricing.listMultiplicador.filter(
-                    (v) => v.id == element.id_multiplicador
-                  ).length > 0
-                    ? this.$store.state.pricing.listMultiplicador.filter(
-                        (v) => v.id == element.id_multiplicador
-                      )[0].code
-                    : "N",
-                  this.$store.state.pricing.datosPrincipales.volumen,
-                  this.$store.state.pricing.datosPrincipales.peso,
-                  this.$store.state.pricing.datosPrincipales.containers,
-                  this.$store.state.pricing.datosPrincipales.amount
-                );
-            } else {
-              this.resumenOpcion.flete += this.calcularValor(
-                this.$store.state.pricing.datosPrincipales.amount,
-                this.$store.state.pricing.totalFlete,
-                this.$store.state.pricing.listMultiplicador.filter(
-                  (v) => v.id == element.id_multiplicador
-                ).length > 0
-                  ? this.$store.state.pricing.listMultiplicador.filter(
-                      (v) => v.id == element.id_multiplicador
-                    )[0].code
-                  : "",
-                this.$store.state.pricing.listMultiplicador.some(
-                  (v) =>
-                    v.id == element.id_multiplicador &&
-                    (v.code == 14 ||
-                      v.code == 13 ||
-                      v.code == 15 ||
-                      v.code == 5)
-                )
-                  ? this.$store.state.pricing.listMultiplicador.some(
-                      (v) =>
-                        v.id == element.id_multiplicador &&
-                        (v.code == 14 ||
-                          v.code == 13 ||
-                          v.code == 15 ||
-                          v.code == 5)
-                    )
-                    ? element.cif
-                    : element.seguro
-                  : 0
-              );
-            }
-          });
-      }
+      if (!this.isFlete) return;
+
+      this.valores
+        .filter(
+          (v) => v.esfleteflag == 1 && v.status == 1 && v.esopcionflag == 1,
+        )
+        .forEach((element) => {
+          this.resumenOpcion.flete += this.obtenerCostoElemento(element);
+        });
     },
+
     calcularTotalesNoFlete() {
+      // Mantener el flete acumulado previamente
       this.resumenOpcion = {
-        flete: this.resumenOpcion.flete,
+        ...this.resumenOpcion,
         origen: 0,
         gasto: 0,
         aduana: 0,
         almacen: 0,
         gastostercero: 0,
       };
+
       this.valores
         .filter((v) => v.status == 1)
         .forEach((element) => {
-          //   GASTOS
-          if (this.isOrigen) {
-            if (element.esorigenflag == 1) {
-              if (this.isNotPorcentaje(element, element.id_multiplicador)) {
-                this.resumenOpcion.origen +=
-                  (this.$store.state.pricing.listMultiplicador.filter(
-                    (v) => v.id == element.id_multiplicador
-                  ).length > 0
-                    ? this.$store.state.pricing.listMultiplicador.filter(
-                        (v) => v.id == element.id_multiplicador
-                      )[0].valor
-                    : 0) *
-                  element.costounitario *
-                  this.calcularFac(
-                    this.$store.state.pricing.listMultiplicador.filter(
-                      (v) => v.id == element.id_multiplicador
-                    ).length > 0
-                      ? this.$store.state.pricing.listMultiplicador.filter(
-                          (v) => v.id == element.id_multiplicador
-                        )[0].code
-                      : "N",
-                    this.$store.state.pricing.datosPrincipales.volumen,
-                    this.$store.state.pricing.datosPrincipales.peso,
-                    this.$store.state.pricing.datosPrincipales.containers,
-                    this.$store.state.pricing.datosPrincipales.amount
-                  );
-              } else {
-                this.resumenOpcion.origen += this.calcularValor(
-                  this.$store.state.pricing.datosPrincipales.amount,
-                  this.$store.state.pricing.totalFlete,
-                  this.$store.state.pricing.listMultiplicador.filter(
-                    (v) => v.id == element.id_multiplicador
-                  ).length > 0
-                    ? this.$store.state.pricing.listMultiplicador.filter(
-                        (v) => v.id == element.id_multiplicador
-                      )[0].code
-                    : "",
-                  this.$store.state.pricing.listMultiplicador.some(
-                    (v) =>
-                      v.id == element.id_multiplicador &&
-                      (v.code == 14 ||
-                        v.code == 13 ||
-                        v.code == 15 ||
-                        v.code == 5)
-                  )
-                    ? this.$store.state.pricing.listMultiplicador.some(
-                        (v) =>
-                          v.id == element.id_multiplicador &&
-                          (v.code == 14 ||
-                            v.code == 13 ||
-                            v.code == 15 ||
-                            v.code == 5)
-                      )
-                      ? element.cif
-                      : element.seguro
-                    : 0
-                );
-              }
-            }
+          // Usamos el helper para obtener el costo procesado una sola vez
+          const costo = this.obtenerCostoElemento(element);
+
+          if (this.isOrigen && element.esorigenflag == 1) {
+            this.resumenOpcion.origen += Number(costo);
           }
-          if (this.isLocal) {
-            if (element.eslocalflag == 1) {
-              if (this.isNotPorcentaje(element, element.id_multiplicador)) {
-                this.resumenOpcion.gasto +=
-                  (this.$store.state.pricing.listMultiplicador.filter(
-                    (v) => v.id == element.id_multiplicador
-                  ).length > 0
-                    ? this.$store.state.pricing.listMultiplicador.filter(
-                        (v) => v.id == element.id_multiplicador
-                      )[0].valor
-                    : 0) *
-                  element.costounitario *
-                  this.calcularFac(
-                    this.$store.state.pricing.listMultiplicador.filter(
-                      (v) => v.id == element.id_multiplicador
-                    ).length > 0
-                      ? this.$store.state.pricing.listMultiplicador.filter(
-                          (v) => v.id == element.id_multiplicador
-                        )[0].code
-                      : "N",
-                    this.$store.state.pricing.datosPrincipales.volumen,
-                    this.$store.state.pricing.datosPrincipales.peso,
-                    this.$store.state.pricing.datosPrincipales.containers,
-                    this.$store.state.pricing.datosPrincipales.amount
-                  );
-              } else {
-                this.resumenOpcion.gasto += this.calcularValor(
-                  this.$store.state.pricing.datosPrincipales.amount,
-                  this.$store.state.pricing.totalFlete,
-                  this.$store.state.pricing.listMultiplicador.filter(
-                    (v) => v.id == element.id_multiplicador
-                  ).length > 0
-                    ? this.$store.state.pricing.listMultiplicador.filter(
-                        (v) => v.id == element.id_multiplicador
-                      )[0].code
-                    : "",
-                  this.$store.state.pricing.listMultiplicador.some(
-                    (v) =>
-                      v.id == element.id_multiplicador &&
-                      (v.code == 14 ||
-                        v.code == 13 ||
-                        v.code == 15 ||
-                        v.code == 5)
-                  )
-                    ? this.$store.state.pricing.listMultiplicador.some(
-                        (v) =>
-                          v.id == element.id_multiplicador &&
-                          (v.code == 14 ||
-                            v.code == 13 ||
-                            v.code == 15 ||
-                            v.code == 5)
-                      )
-                      ? element.cif
-                      : element.seguro
-                    : 0
-                );
-              }
-            }
+          if (this.isLocal && element.eslocalflag == 1) {
+            this.resumenOpcion.gasto += Number(costo); // Mantenido como 'gasto' según tu lógica
           }
-          //   ADUANA
-          if (this.isAduana) {
-            if (element.esaduanaflag == 1) {
-              if (this.isNotPorcentaje(element, element.id_multiplicador)) {
-                this.resumenOpcion.aduana +=
-                  (this.$store.state.pricing.listMultiplicador.filter(
-                    (v) => v.id == element.id_multiplicador
-                  ).length > 0
-                    ? this.$store.state.pricing.listMultiplicador.filter(
-                        (v) => v.id == element.id_multiplicador
-                      )[0].valor
-                    : 0) *
-                  element.costounitario *
-                  this.calcularFac(
-                    this.$store.state.pricing.listMultiplicador.filter(
-                      (v) => v.id == element.id_multiplicador
-                    ).length > 0
-                      ? this.$store.state.pricing.listMultiplicador.filter(
-                          (v) => v.id == element.id_multiplicador
-                        )[0].code
-                      : "N",
-                    this.$store.state.pricing.datosPrincipales.volumen,
-                    this.$store.state.pricing.datosPrincipales.peso,
-                    this.$store.state.pricing.datosPrincipales.containers,
-                    this.$store.state.pricing.datosPrincipales.amount
-                  );
-              } else {
-                this.resumenOpcion.aduana += this.calcularValor(
-                  this.$store.state.pricing.datosPrincipales.amount,
-                  this.$store.state.pricing.totalFlete,
-                  this.$store.state.pricing.listMultiplicador.filter(
-                    (v) => v.id == element.id_multiplicador
-                  ).length > 0
-                    ? this.$store.state.pricing.listMultiplicador.filter(
-                        (v) => v.id == element.id_multiplicador
-                      )[0].code
-                    : "",
-                  this.$store.state.pricing.listMultiplicador.some(
-                    (v) =>
-                      v.id == element.id_multiplicador &&
-                      (v.code == 14 ||
-                        v.code == 13 ||
-                        v.code == 15 ||
-                        v.code == 5)
-                  )
-                    ? this.$store.state.pricing.listMultiplicador.some(
-                        (v) =>
-                          v.id == element.id_multiplicador &&
-                          (v.code == 14 ||
-                            v.code == 13 ||
-                            v.code == 15 ||
-                            v.code == 5)
-                      )
-                      ? element.cif
-                      : element.seguro
-                    : 0
-                );
-              }
-            }
+          if (this.isAduana && element.esaduanaflag == 1) {
+            this.resumenOpcion.aduana += Number(costo);
           }
-          //   ALMACEN
-          if (this.isAlmacen) {
-            if (element.esalmacenflag == 1) {
-              if (this.isNotPorcentaje(element, element.id_multiplicador)) {
-                this.resumenOpcion.almacen +=
-                  (this.$store.state.pricing.listMultiplicador.filter(
-                    (v) => v.id == element.id_multiplicador
-                  ).length > 0
-                    ? this.$store.state.pricing.listMultiplicador.filter(
-                        (v) => v.id == element.id_multiplicador
-                      )[0].valor
-                    : 0) *
-                  element.costounitario *
-                  this.calcularFac(
-                    this.$store.state.pricing.listMultiplicador.filter(
-                      (v) => v.id == element.id_multiplicador
-                    ).length > 0
-                      ? this.$store.state.pricing.listMultiplicador.filter(
-                          (v) => v.id == element.id_multiplicador
-                        )[0].code
-                      : "N",
-                    this.$store.state.pricing.datosPrincipales.volumen,
-                    this.$store.state.pricing.datosPrincipales.peso,
-                    this.$store.state.pricing.datosPrincipales.containers,
-                    this.$store.state.pricing.datosPrincipales.amount
-                  );
-              } else {
-                this.resumenOpcion.almacen += this.calcularValor(
-                  this.$store.state.pricing.datosPrincipales.amount,
-                  this.$store.state.pricing.totalFlete,
-                  this.$store.state.pricing.listMultiplicador.filter(
-                    (v) => v.id == element.id_multiplicador
-                  ).length > 0
-                    ? this.$store.state.pricing.listMultiplicador.filter(
-                        (v) => v.id == element.id_multiplicador
-                      )[0].code
-                    : "",
-                  this.$store.state.pricing.listMultiplicador.some(
-                    (v) =>
-                      v.id == element.id_multiplicador &&
-                      (v.code == 14 ||
-                        v.code == 13 ||
-                        v.code == 15 ||
-                        v.code == 5)
-                  )
-                    ? this.$store.state.pricing.listMultiplicador.some(
-                        (v) =>
-                          v.id == element.id_multiplicador &&
-                          (v.code == 14 ||
-                            v.code == 13 ||
-                            v.code == 15 ||
-                            v.code == 5)
-                      )
-                      ? element.cif
-                      : element.seguro
-                    : 0
-                );
-              }
-            }
+          if (this.isAlmacen && element.esalmacenflag == 1) {
+            this.resumenOpcion.almacen += Number(costo);
           }
-          //   GASTOS DE TERCEROS
-          if (this.isGastosTercero) {
-            if (element.esgastostercerosflag == 1) {
-              if (this.isNotPorcentaje(element, element.id_multiplicador)) {
-                this.resumenOpcion.gastostercero +=
-                  (this.$store.state.pricing.listMultiplicador.filter(
-                    (v) => v.id == element.id_multiplicador
-                  ).length > 0
-                    ? this.$store.state.pricing.listMultiplicador.filter(
-                        (v) => v.id == element.id_multiplicador
-                      )[0].valor
-                    : 0) *
-                  element.costounitario *
-                  this.calcularFac(
-                    this.$store.state.pricing.listMultiplicador.filter(
-                      (v) => v.id == element.id_multiplicador
-                    ).length > 0
-                      ? this.$store.state.pricing.listMultiplicador.filter(
-                          (v) => v.id == element.id_multiplicador
-                        )[0].code
-                      : "N",
-                    this.$store.state.pricing.datosPrincipales.volumen,
-                    this.$store.state.pricing.datosPrincipales.peso,
-                    this.$store.state.pricing.datosPrincipales.containers,
-                    this.$store.state.pricing.datosPrincipales.amount
-                  );
-              } else {
-                this.resumenOpcion.gastostercero += this.calcularValor(
-                  this.$store.state.pricing.datosPrincipales.amount,
-                  this.$store.state.pricing.totalFlete,
-                  this.$store.state.pricing.listMultiplicador.filter(
-                    (v) => v.id == element.id_multiplicador
-                  ).length > 0
-                    ? this.$store.state.pricing.listMultiplicador.filter(
-                        (v) => v.id == element.id_multiplicador
-                      )[0].code
-                    : "",
-                  this.$store.state.pricing.listMultiplicador.some(
-                    (v) =>
-                      v.id == element.id_multiplicador &&
-                      (v.code == 14 ||
-                        v.code == 13 ||
-                        v.code == 15 ||
-                        v.code == 5)
-                  )
-                    ? this.$store.state.pricing.listMultiplicador.some(
-                        (v) =>
-                          v.id == element.id_multiplicador &&
-                          (v.code == 14 ||
-                            v.code == 13 ||
-                            v.code == 15 ||
-                            v.code == 5)
-                      )
-                      ? element.cif
-                      : element.seguro
-                    : 0
-                );
-              }
-            }
+          if (this.isGastosTercero && element.esgastostercerosflag == 1) {
+            this.resumenOpcion.gastostercero += Number(costo);
           }
         });
     },
     calcTotal() {
       this.totalOption = 0;
       this.totalOption =
-        this.resumenOpcion.flete +
-        this.resumenOpcion.gasto +
-        this.resumenOpcion.aduana +
-        this.resumenOpcion.origen +
-        this.resumenOpcion.almacen +
-        this.resumenOpcion.gastostercero;
+        (Number(this.resumenOpcion.flete) || 0) +
+        (Number(this.resumenOpcion.gasto) || 0) +
+        (Number(this.resumenOpcion.aduana) || 0) +
+        (Number(this.resumenOpcion.origen) || 0) +
+        (Number(this.resumenOpcion.almacen) || 0) +
+        (Number(this.resumenOpcion.gastostercero) || 0);
 
       this.$store.state.pricing.totalCosto = this.totalOption;
-      // this.setTotalOpcion(valores);
     },
     cerrarModalNuevoCosto() {
       // this.$refs.frmNuevoCosto.reset();
@@ -3271,7 +2430,7 @@ export default {
       let code = [5, 13, 14, 15];
 
       let mul = this.$store.state.pricing.listMultiplicador.some(
-        (v) => v.id == id_multiplicador && code.includes(v.code)
+        (v) => v.id == id_multiplicador && code.includes(v.code),
       );
 
       return !mul;
@@ -3311,38 +2470,53 @@ export default {
     },
 
     montoITBM(item) {
-      let monto = 0;
-      let code = [29, 36, 41, 68];
-      if (item.code_cost == 38) {
-        let val = this.valores.filter((v) => code.includes(v.code_cost));
-        val.forEach((element) => {
-          monto += parseFloat(
-            (this.$store.state.pricing.listMultiplicador.some(
-              (v) => v.id == element.id_multiplicador
-            )
-              ? this.$store.state.pricing.listMultiplicador.filter(
-                  (v) => v.id == element.id_multiplicador
-                )[0].valor
-              : 0) *
-              element.costounitario *
-              this.calcularFac(
-                this.$store.state.pricing.listMultiplicador.some(
-                  (v) => v.id == element.id_multiplicador
-                )
-                  ? this.$store.state.pricing.listMultiplicador.filter(
-                      (v) => v.id == element.id_multiplicador
-                    )[0].code
-                  : "N",
-                this.$store.state.pricing.datosPrincipales.volumen,
-                this.$store.state.pricing.datosPrincipales.peso,
-                this.$store.state.pricing.datosPrincipales.containers,
-                this.$store.state.pricing.datosPrincipales.amount
-              )
+      let montoTotal = 0;
+      const codigosFiltrar = [29, 36, 41, 68];
+
+      if (item.code_cost === 38) {
+        const { listMultiplicador, datosPrincipales } =
+          this.$store.state.pricing;
+
+        // 1. Filtramos los valores que necesitamos procesar
+        const valoresFiltrados = this.valores.filter((v) =>
+          codigosFiltrar.includes(v.code_cost),
+        );
+
+        valoresFiltrados.forEach((element) => {
+          // 2. Buscamos el multiplicador UNA sola vez con .find()
+          const multiplicador = listMultiplicador.find(
+            (v) => v.id == element.id_multiplicador,
           );
+
+          // Si existe extraemos sus datos, si no, valores por defecto
+          const valorMultiplicador = multiplicador
+            ? parseFloat(multiplicador.valor)
+            : 0;
+          const codigoMultiplicador = multiplicador ? multiplicador.code : "N";
+
+          // 3. Calculamos el factor de forma limpia
+          const factor = this.calcularFac(
+            codigoMultiplicador,
+            datosPrincipales.volumen,
+            datosPrincipales.peso,
+            datosPrincipales.containers,
+            datosPrincipales.amount,
+          );
+
+          // 4. Sumamos al monto de forma legible
+          const costoUnitario = parseFloat(element.costounitario || 0);
+          montoTotal += valorMultiplicador * costoUnitario * factor;
         });
       }
-      item.costounitario = parseFloat(monto * 0.07).toFixed(2);
-      return this.currencyFormat(parseFloat(monto * 0.07).toFixed(2));
+
+      // 5. Calculamos el ITBMS (7%)
+      const itbmCalculado = (montoTotal * 0.07).toFixed(2);
+
+      // Guardamos el costo unitario en el item como lo hacías originalmente
+      item.costounitario = parseFloat(itbmCalculado);
+
+      // Retornamos el valor formateado
+      return this.currencyFormat(itbmCalculado);
     },
 
     montoNotaCredito(item) {
@@ -3379,7 +2553,7 @@ export default {
 
     mostrarAdvertencia(data) {
       return data.some(
-        (v) => v.status == 1 && v.error != null && v.error !== ""
+        (v) => v.status == 1 && v.error != null && v.error !== "",
       );
     },
     isConfeccion(code) {
@@ -3387,6 +2561,69 @@ export default {
     },
     isNotaCredito(code) {
       return code == 69 ? true : false;
+    },
+    formatearValorCalculado(valor) {
+      
+      const pricingState = this.$store.state.pricing;
+      const multiplicadores = pricingState.listMultiplicador || [];
+
+      const multiplicadorEncontrado = multiplicadores.find(
+        (v) => v.id === valor.id_multiplicador,
+      );
+
+      const codigoMultiplicador = multiplicadorEncontrado
+        ? multiplicadorEncontrado.code
+        : "";
+
+      let tercerParametro = 0;
+      if (multiplicadorEncontrado) {
+        const codigosEspeciales = [13, 14, 15, 5];
+        tercerParametro = codigosEspeciales.includes(
+          multiplicadorEncontrado.code,
+        )
+          ? valor.cif
+          : valor.seguro;
+      }
+
+      const resultadoCalculado = this.calcularValor(
+        pricingState.datosPrincipales.amount,
+        pricingState.totalFlete,
+        codigoMultiplicador,
+        tercerParametro,
+        valor.minimo,
+      );
+
+      return this.currencyFormat(resultadoCalculado);
+    },
+    formatearCostoTotal(valor) {
+      // 1. Desestructuración de los estados del Vuex para escribir menos y más limpio
+      const { listMultiplicador, datosPrincipales } = this.$store.state.pricing;
+      const multiplicadores = listMultiplicador || [];
+
+      // 2. Buscamos el multiplicador correspondiente UNA SOLA VEZ
+      const multEncontrado = multiplicadores.find(
+        (v) => v.id === valor.id_multiplicador,
+      );
+
+      // 3. Extraemos las variables con valores por defecto si no existe el multiplicador
+      const valorMultiplicador = multEncontrado ? multEncontrado.valor : 0;
+      const codigoMultiplicador = multEncontrado ? multEncontrado.code : "N";
+
+      // 4. Ejecutamos la función calcularFac pasándole los datos de pricing
+      const factorCalculado = this.calcularFac(
+        codigoMultiplicador,
+        datosPrincipales.volumen,
+        datosPrincipales.peso,
+        datosPrincipales.containers,
+        datosPrincipales.amount,
+      );
+
+      // 5. Realizamos la operación matemática final
+      const operacionFinal =
+        valorMultiplicador * valor.costounitario * factorCalculado;
+
+      // 6. Retornamos el valor con su respectivo formato de moneda
+      return this.currencyFormat(operacionFinal);
     },
   },
   watch: {
@@ -3472,14 +2709,14 @@ export default {
 
     isFlete() {
       let val = this.valores.some(
-        (v) => v.esfleteflag == 1 && v.status == true
+        (v) => v.esfleteflag == 1 && v.status == true,
       );
       return val;
     },
 
     isOrigen() {
       let val = this.valores.some(
-        (v) => v.esorigenflag == 1 && v.status == true
+        (v) => v.esorigenflag == 1 && v.status == true,
       );
 
       return val;
@@ -3487,27 +2724,27 @@ export default {
 
     isLocal() {
       let val = this.valores.some(
-        (v) => v.eslocalflag == 1 && v.status == true
+        (v) => v.eslocalflag == 1 && v.status == true,
       );
       return val;
     },
 
     isAduana() {
       let val = this.valores.some(
-        (v) => v.esaduanaflag == 1 && v.status == true
+        (v) => v.esaduanaflag == 1 && v.status == true,
       );
       return val;
     },
 
     isGastosTercero() {
       let val = this.valores.some(
-        (v) => v.esgastostercerosflag == 1 && v.status == true
+        (v) => v.esgastostercerosflag == 1 && v.status == true,
       );
       return val;
     },
     isAlmacen() {
       let val = this.valores.some(
-        (v) => v.esalmacenflag == 1 && v.status == true
+        (v) => v.esalmacenflag == 1 && v.status == true,
       );
       return val;
     },
@@ -3516,7 +2753,7 @@ export default {
       return this.$store.state.pricing.listModality.some(
         (v) =>
           v.id == this.$store.state.pricing.datosPrincipales.idsentido &&
-          v.code == "I"
+          v.code == "I",
       );
     },
     tipoOpcion() {

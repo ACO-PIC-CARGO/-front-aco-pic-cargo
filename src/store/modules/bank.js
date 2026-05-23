@@ -619,7 +619,7 @@ const actions = {
         console.log(error);
       });
   },
-  
+
   async setRegistroIgresos({ commit }, data) {
     var config = {
       method: "post",
@@ -732,6 +732,54 @@ const actions = {
         if (data.estadoflag) {
           res = data.data[0];
         }
+      })
+      .catch(function (error) {
+        console.log(error);
+      });
+    return res;
+  },
+  async validarIngresoNroOperacion({ commit }, data) {
+    let res = {};
+    var config = {
+      method: "get",
+      url: process.env.VUE_APP_URL_MAIN + "validar_nrooperacion_ingreso",
+      headers: {
+        "auth-token": sessionStorage.getItem("auth-token"),
+        "Content-Type": "application/json",
+      },
+      params: {
+        ...data,
+        id_branch: JSON.parse(sessionStorage.getItem("dataUser"))[0].id_branch,
+      },
+    };
+    await http(config)
+      .then(function (response) {
+        let data = response.data;
+        res = data.data;
+      })
+      .catch(function (error) {
+        console.log(error);
+      });
+    return res;
+  },
+  async validarEgresoNroOperacion({ commit }, data) {
+    let res = {};
+    var config = {
+      method: "get",
+      url: process.env.VUE_APP_URL_MAIN + "validar_nrooperacion_egreso",
+      headers: {
+        "auth-token": sessionStorage.getItem("auth-token"),
+        "Content-Type": "application/json",
+      },
+      params: {
+        ...data,
+        id_branch: JSON.parse(sessionStorage.getItem("dataUser"))[0].id_branch,
+      },
+    };
+    await http(config)
+      .then(function (response) {
+        let data = response.data;
+        res = data.data;
       })
       .catch(function (error) {
         console.log(error);

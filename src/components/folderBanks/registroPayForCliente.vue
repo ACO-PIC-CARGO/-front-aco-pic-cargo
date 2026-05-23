@@ -167,11 +167,41 @@
                     :error-messages="errorMesage.nro_operacion"
                     @input="
                       nro_operacion !== ''
-                        ? (errorMesage.nro_operacion = null)
-                        : (errorMesage.nro_operacion =
-                            'Número de Operación es requerido')
+                        ? ((errorMesage.nro_operacion = null),
+                          buscarOperacionAlEscribir())
+                        : ((errorMesage.nro_operacion =
+                            'Número de Operación es requerido'),
+                          (operacionesSimilares = []),
+                          (esDuplicado = false))
                     "
                   ></v-text-field>
+
+                  <div
+                    v-if="
+                      operacionesSimilares.length > 0 &&
+                      operacionesSimilares[0].id !== null
+                    "
+                  >
+                    <p
+                      v-if="esDuplicado"
+                      class="red--text caption font-weight-bold pl-2"
+                    >
+                      ⚠️ Ya existe un registro con este número exacto.
+                    </p>
+
+                    <div v-else class="pl-2">
+                      <div class="d-flex flex-wrap gap-1 mt-1">
+                        <v-chip
+                          v-for="(item, index) in operacionesSimilares"
+                          :key="index"
+                          small
+                          class="mr-1 mb-1"
+                        >
+                          {{ item.numerooperacion }}
+                        </v-chip>
+                      </div>
+                    </div>
+                  </div>
                 </v-col>
 
                 <v-col cols="12" md="6" class="py-1">
@@ -422,6 +452,9 @@ export default {
   },
   data() {
     return {
+      esDuplicado: false,
+      timer: null,
+      operacionesSimilares: {},
       comentarios: "",
       comentariosadmin: "",
       conceptogastobancario: "",
@@ -518,6 +551,7 @@ export default {
       "cargarClientes",
       "_getBanksList",
       "setRegistroIgresos",
+      "validarIngresoNroOperacion",
     ]),
     onItemSelected({ item, value }) {
       if (value) {
@@ -584,7 +618,7 @@ export default {
         this.fecha_operacion &&
         this.nro_operacion &&
         this.id_path &&
-        this.monto_local
+        !this.esDuplicado
       ) {
         const hoy = new Date();
         const fechaOp = new Date(this.fecha_operacion);
@@ -612,9 +646,7 @@ export default {
         }
       } else {
         this.errorMesage.cliente = this.cliente ? "" : "Proveedor es requerido";
-        this.errorMesage.monto_local = this.monto_local
-          ? ""
-          : "Monto de Depósito en banco es requerido";
+
         this.errorMesage.id_banco_origen = this.id_banco_origen
           ? ""
           : "Proveedor es requerido";
@@ -634,6 +666,9 @@ export default {
             title: "Archivo de Soporte Requerido",
             text: "Por favor, suba el archivo de soporte para continuar.",
           });
+        }
+        if (this.esDuplicado) {
+          this.errorMesage.nro_operacion = "El número de operación ya existe";
         }
       }
     },
@@ -673,6 +708,14 @@ export default {
       this.monto = total.toFixed(2);
     },
     continuarGastoBancario() {
+      if (!this.monto_local) {
+        Swal.fire({
+          icon: "error",
+          title: "Monto Local Requerido",
+          text: "Por favor, ingrese el monto depositado en banco para continuar.",
+        });
+        return;
+      }
       this.pasos = 2;
       this.editableGastoBancario = true;
     },
@@ -730,6 +773,40 @@ export default {
       } else {
         return `${this.symbol} ${(monto / this.tipoCambio).toFixed(2)}`;
       }
+    },
+    buscarOperacionAlEscribir() {
+      clearTimeout(this.timer);
+      if (this.nro_operacion.length < 3) {
+        this.operacionesSimilares = [];
+        this.esDuplicado = false;
+        return;
+      }
+      this.timer = setTimeout(async () => {
+        const res = await this.validarIngresoNroOperacion({
+          numerooperacion: this.nro_operacion,
+        });
+
+        this.operacionesSimilares = res;
+        console.log("Respuesta de validación de número de operación:", res);
+        if (!res[0].estadoflag) {
+          this.operacionesSimilares = [];
+          return;
+        }
+        // CAMBIO CLAVE: Evaluamos toda la lista. Si CUALQUIERA es duplicado exacto, bloqueamos.
+        this.esDuplicado = this.operacionesSimilares.some(
+          (op) => op.es_duplicado_exacto === true,
+        );
+
+        // Opcional: Si es duplicado, inyectamos el error directamente en el v-text-field
+        if (this.esDuplicado) {
+          this.errorMesage.nro_operacion = "El número de operación ya existe";
+        }
+
+        console.log(
+          "Operaciones similares encontradas:",
+          this.operacionesSimilares,
+        );
+      }, 300);
     },
   },
   computed: {

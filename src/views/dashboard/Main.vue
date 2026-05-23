@@ -148,7 +148,7 @@
         v-if="getNameUrl() == 'verQuote'"
         @click="handleEditarQuote()"
       >
-      <v-icon small class="mx-1">mdi-pencil</v-icon>  EDITAR
+        <v-icon small class="mx-1">mdi-pencil</v-icon> EDITAR
       </v-btn>
       <v-btn
         v-if="getNameUrl() == 'verQuote'"
@@ -1243,7 +1243,6 @@ export default {
         if (dataUser && dataUser[0]) {
           // Verificar en ambos campos: 'user' y 'usuario'
           const userEmail = dataUser[0].user || dataUser[0].usuario || "";
-          console.log("Usuario actual en sesión:", userEmail);
           return userEmail.toLowerCase() === "cmrg1979a@gmail.com";
         }
       } catch (e) {
@@ -1256,7 +1255,6 @@ export default {
 
       // Verificar aprobadoflag (boolean)
       if (pricing.aprobadoflag === true) {
-        console.log("Cotización aprobada por aprobadoflag=true");
         return true;
       }
 
@@ -1267,9 +1265,8 @@ export default {
         const statusName = pricing.datosPrincipales.nameStatusQuote
           .toUpperCase()
           .trim();
-        console.log("Status nameStatusQuote:", statusName);
+
         if (statusName === "APROBADO" || statusName === "APROBADA") {
-          console.log("Cotización aprobada por nameStatusQuote:", statusName);
           return true;
         }
       }

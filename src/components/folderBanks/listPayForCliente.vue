@@ -1,18 +1,5 @@
 <template>
   <v-card min-height="80vh">
-    <v-alert type="warning" v-if="mostrarAdvFlag" class="ocultarMovil">
-      <v-row>
-        <v-col cols="11">
-          Solo se muestran los movimientos del mes actual. Usa el filtro
-          <v-icon color="info">mdi-filter</v-icon>
-        </v-col>
-        <v-col cols="1">
-          <v-btn @click="mostrarAdvFlag = !mostrarAdvFlag" icon>
-            <v-icon>mdi-close</v-icon>
-          </v-btn>
-        </v-col>
-      </v-row>
-    </v-alert>
     <v-card-title>
       <v-text-field v-model="search" label="Buscar...."> </v-text-field>
       <v-spacer> </v-spacer>
@@ -48,7 +35,7 @@
       disable-sort
     >
       <template v-slot:[`item.urlarchivo`]="{ item }">
-        <v-btn icon color="red" @click="verSoport(item.ruta)">
+        <v-btn icon color="red" @click="verSoport(item.urlarchivo)">
           <v-icon>mdi-file</v-icon>
         </v-btn>
         <v-btn small icon color="info" @click.native="ver(item)">
@@ -110,7 +97,7 @@
         </td>
       </template>
       <template v-slot:[`item.action`]="{ item }">
-        <v-btn x-small icon color="primary" @click="verSoport(item.soporte)">
+        <v-btn x-small icon color="primary" @click="verSoport(item.urlarchivo)">
           <v-icon>mdi-file-cloud-outline</v-icon>
         </v-btn>
         <v-btn x-small icon color="warning" @click.native="editar(item)">
@@ -596,6 +583,7 @@ export default {
       dataList: false,
       headersCabecera: [
         { value: "fechaoperacion", text: "Fecha Operación" }, // text,
+        { value: "numerooperacion", text: "Nro Operación" }, // varchar,
         { value: "bancoingreso", text: "Banco de Origen" }, // varchar,
         { value: "nrocuenta", text: "Número de Cuenta Destino" }, // text,
         { value: "cliente", text: "Cliente" }, // text,

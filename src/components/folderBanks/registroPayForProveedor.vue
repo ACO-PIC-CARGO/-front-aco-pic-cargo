@@ -149,11 +149,41 @@
                     :error-messages="errorMesage.numerooperacion"
                     @input="
                       numerooperacion !== ''
-                        ? (errorMesage.numerooperacion = null)
-                        : (errorMesage.numerooperacion =
-                            'Número de Operación es requerido')
+                        ? ((errorMesage.numerooperacion = null),
+                          buscarOperacionAlEscribir())
+                        : ((errorMesage.numerooperacion =
+                            'Número de Operación es requerido'),
+                          (operacionesSimilares = []),
+                          (esDuplicado = false))
                     "
                   ></v-text-field>
+
+                  <div
+                    v-if="
+                      operacionesSimilares.length > 0 &&
+                      operacionesSimilares[0].id !== null
+                    "
+                  >
+                    <p
+                      v-if="esDuplicado"
+                      class="red--text caption font-weight-bold pl-2"
+                    >
+                      ⚠️ Ya existe un registro con este número exacto.
+                    </p>
+
+                    <div v-else class="pl-2">
+                      <div class="d-flex flex-wrap gap-1 mt-1">
+                        <v-chip
+                          v-for="(item, index) in operacionesSimilares"
+                          :key="index"
+                          small
+                          class="mr-1 mb-1"
+                        >
+                          {{ item.numerooperacion }}
+                        </v-chip>
+                      </div>
+                    </div>
+                  </div>
                 </v-col>
                 <v-col cols="12" md="6" class="py-1">
                   <v-textarea
@@ -389,6 +419,9 @@ export default {
   },
   data() {
     return {
+      esDuplicado: false,
+      timer: null,
+      operacionesSimilares: {},
       comentarios: "",
       conceptogastobancario: "",
       montogastobancario: 0,
@@ -464,6 +497,7 @@ export default {
       "getListBanksDetailsCargar",
       "getDeudaAProveedorPorSucursal",
       "setRegistroEgresos",
+      "validarEgresoNroOperacion",
     ]),
     onItemSelected({ item, value }) {
       if (value) {
@@ -550,7 +584,8 @@ export default {
         this.proveedor &&
         Object.keys(this.id_cuenta).length > 0 &&
         this.fechaoperacion &&
-        this.numerooperacion
+        this.numerooperacion &&
+        !this.esDuplicado
       ) {
         console.log("Datos principales completos. ID Path:", this.id_path);
         if (this.id_path) {
@@ -582,6 +617,9 @@ export default {
         this.errorMesage.numerooperacion = this.numerooperacion
           ? false
           : "Número de Operación es requerido";
+        if (this.esDuplicado) {
+          this.errorMesage.numerooperacion = "El número de operación ya existe";
+        }
       }
     },
 
@@ -689,6 +727,40 @@ export default {
           return `${item.symbol} ${monto.toFixed(2)}`;
         }
       }
+    },
+    buscarOperacionAlEscribir() {
+      clearTimeout(this.timer);
+      if (this.numerooperacion.length < 3) {
+        this.operacionesSimilares = [];
+        this.esDuplicado = false;
+        return;
+      }
+      this.timer = setTimeout(async () => {
+        const res = await this.validarEgresoNroOperacion({
+          numerooperacion: this.numerooperacion,
+        });
+
+        this.operacionesSimilares = res;
+        console.log("Respuesta de validación de número de operación:", res);
+        if (!res[0].estadoflag) {
+          this.operacionesSimilares = [];
+          return;
+        }
+        // CAMBIO CLAVE: Evaluamos toda la lista. Si CUALQUIERA es duplicado exacto, bloqueamos.
+        this.esDuplicado = this.operacionesSimilares.some(
+          (op) => op.es_duplicado_exacto === true,
+        );
+
+        // Opcional: Si es duplicado, inyectamos el error directamente en el v-text-field
+        if (this.esDuplicado) {
+          this.errorMesage.numerooperacion = "El número de operación ya existe";
+        }
+
+        console.log(
+          "Operaciones similares encontradas:",
+          this.operacionesSimilares,
+        );
+      }, 300);
     },
   },
   computed: {

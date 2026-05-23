@@ -36,7 +36,11 @@
         <v-col cols="12" v-if="mostrarListadoIncoterms">
           <v-data-table :headers="headersIcoterms" :items="listadoIncoterms">
             <template v-slot:[`item.action`]="{ item }">
-              <v-btn color="#E65100" @click="abrirModal(item.id, item.name)" icon>
+              <v-btn
+                color="#E65100"
+                @click="abrirModal(item.id, item.name)"
+                icon
+              >
                 <v-icon>mdi-pencil</v-icon>
               </v-btn>
             </template>
@@ -46,6 +50,30 @@
     </v-container>
     <v-dialog v-model="dialog" scrollable fullscreen persistent>
       <v-card>
+        <ModelCostos
+          v-if="dialog"
+          :Modality="
+            this.id_modality
+              ? $store.state.pricing.listModality.find(
+                  (v) => v.id == this.id_modality,
+                ).name
+              : ''
+          "
+          :Shipment="
+            this.id_shipment
+              ? $store.state.pricing.listShipment.find(
+                  (v) => v.id == this.id_shipment,
+                ).embarque
+              : ''
+          "
+          :incoterms="incoterms"
+          :id_modality="id_modality"
+          :id_shipment="id_shipment"
+          :id_incoterms="id_incoterms"
+          @cerrarModal="dialog = false"
+        />
+      </v-card>
+      <!-- <v-card>
         <v-card-title style="background: #b3e5fc">
           {{ modality.name }} | {{ shipment.embarque }} | {{ incoterms }}
         </v-card-title>
@@ -114,19 +142,21 @@
           <v-btn color="success" @click="guardar">Actualizar</v-btn>
           <v-btn color="error" @click="dialog = false">Cerrar</v-btn>
         </v-card-actions>
-      </v-card>
+      </v-card> -->
     </v-dialog>
   </v-card>
 </template>
 
 <script>
 import { mapActions, mapState } from "vuex";
+import ModelCostos from "./ModelCostos.vue";
 import _ from "lodash";
 export default {
+  components: { ModelCostos },
   data() {
     return {
-      cargandoTabla:false,
-      incoterms:'',
+      cargandoTabla: false,
+      incoterms: "",
       modality: {},
       shipment: {},
       dialog: false,
@@ -165,15 +195,18 @@ export default {
       "getShipment",
       "CargarIncotermsConfig",
       "obtenerProveedorPricing",
+      "getTipoCostos",
     ]),
     ...mapActions("configuracion", [
       "getCargarCostos",
       "getMultiplicadorConfigCosto",
       "setGuardarCostos",
+      "obtenerServicioPricingConfig",
     ]),
     async cargarDatos() {
       this.$store.state.configuracion.lstCostos = [];
-
+      this.$store.state.pricing.datosPrincipales.idsentido = this.id_modality;
+      this.$store.state.pricing.datosPrincipales.idtipocarga = this.id_shipment;
       let data = {
         id_modality: this.id_modality,
         id_shipment: this.id_shipment,
@@ -182,6 +215,12 @@ export default {
       await Promise.all([
         this.getCargarCostos(data),
         this.getMultiplicadorConfigCosto(this.id_shipment),
+        this.getTipoCostos(),
+        this.obtenerServicioPricingConfig({
+          id_modality: this.id_modality,
+          id_shipment: this.id_shipment,
+          id_incoterms: this.id_incoterms,
+        }),
       ]);
 
       let IdProveedor = this.lstCostos.map((v) => {
@@ -193,7 +232,7 @@ export default {
         search: null,
       });
     },
-    abrirModal(id,incoterms) {
+    abrirModal(id, incoterms) {
       if (!this.$refs.frmBuscar.validate()) {
         return;
       }
@@ -204,7 +243,8 @@ export default {
       this.shipment = this.$store.state.pricing.listShipment.find(
         (v) => (v.id = this.id_shipment),
       );
-      this.incoterms = incoterms
+      this.incoterms = incoterms;
+
       this.cargarDatos();
       this.dialog = true;
     },
@@ -252,20 +292,20 @@ export default {
   },
   watch: {
     id_modality() {
-    this.$store.state.spiner = true;
-    this.cargandoTabla =true
-    setTimeout(() => {
-      this.$store.state.spiner = false;
-      this.cargandoTabla =false
-    }, 500);
+      this.$store.state.spiner = true;
+      this.cargandoTabla = true;
+      setTimeout(() => {
+        this.$store.state.spiner = false;
+        this.cargandoTabla = false;
+      }, 500);
     },
     id_shipment() {
-    this.$store.state.spiner = true;
-    this.cargandoTabla =true
-    setTimeout(() => {
-      this.$store.state.spiner = false;
-      this.cargandoTabla =false
-    }, 500);
+      this.$store.state.spiner = true;
+      this.cargandoTabla = true;
+      setTimeout(() => {
+        this.$store.state.spiner = false;
+        this.cargandoTabla = false;
+      }, 500);
     },
   },
 };

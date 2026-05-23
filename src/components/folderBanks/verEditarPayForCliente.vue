@@ -296,10 +296,8 @@
 
                     <!-- CASO 2: SI NO ES IMAGEN (Tu botón original para PDF/otros archivos) -->
                     <template v-else>
-                      <v-btn color="info" icon :href="urlfile" target="_blank">
-                        <v-icon color="info" size="large"
-                          >mdi-file-pdf-box</v-icon
-                        >
+                      <v-btn color="red" icon :href="urlfile" target="_blank">
+                        <v-icon color="red" size="50">mdi-file-pdf-box</v-icon>
                       </v-btn>
                     </template>
                   </div>
@@ -603,15 +601,24 @@ export default {
   },
   async mounted() {
     this.$store.state.mainTitle = "BANCOS - VER INGRESO";
-
-    await Promise.all([
+    this.$store.state.spiner = true;
+    // Desestructuramos el quinto elemento del array que devuelve el Promise.all
+    const [, , , , data] = await Promise.all([
       this.cargarClientes(),
       this._getCoinsList(),
       this.getListBanksDetailsCargar(),
       this._getBanksList(),
+      this.verRegistroIngresos({ id: this.$route.params.id }), // <-- Entra al paralelo
     ]);
-    let data = await this.verRegistroIngresos({ id: this.$route.params.id });
-    console.log(data);
+
+    // await Promise.all([
+    //   this.cargarClientes(),
+    //   this._getCoinsList(),
+    //   this.getListBanksDetailsCargar(),
+    //   this._getBanksList(),
+    // ]);
+    // let data = await this.verRegistroIngresos({ id: this.$route.params.id });
+    this.$store.state.spiner = false;
     this.cliente = data.cliente;
     this.urlfile = data.filename;
     this.id_cuenta =
@@ -820,8 +827,8 @@ export default {
       this.editableGastoBancario = true;
     },
     async finalizarOperacion() {
-      console.log('Monto Local:', this.monto_local);
-      console.log('Monto Local1:', this.monto / this.tipocambio);
+      console.log("Monto Local:", this.monto_local);
+      console.log("Monto Local1:", this.monto / this.tipocambio);
       if (this.monto_local != this.monto / this.tipocambio) {
         Swal.fire({
           icon: "error",
