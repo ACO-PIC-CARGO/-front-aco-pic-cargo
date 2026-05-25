@@ -70,7 +70,7 @@ Vue.use(VueSweetalert2);
 
 export default new Vuex.Store({
   state: {
-    recargarClienteFlag:false,
+    recargarClienteFlag: false,
     dialogProcessing: false,
     lstMenu: [],
     namecampaign: "",
@@ -304,7 +304,9 @@ export default new Vuex.Store({
 
     totalItemsMasterList: 0,
     master_filtrarData: false,
+    cg_filtrarData: false,
     master_filtro: {},
+    controlgastosfiltro: {},
 
     dataControl_Numero: "",
     dataControl_idControl: "",
@@ -2387,17 +2389,18 @@ export default new Vuex.Store({
 
     async _getControlList({ commit }) {
       let data = {
+        ...this.state.controlgastosfiltro,
         id_branch: JSON.parse(sessionStorage.getItem("dataUser"))[0].id_branch,
       };
       this.state.dataGastos = false;
       var config = {
-        method: "post",
+        method: "get",
         url: process.env.VUE_APP_URL_MAIN + "getControlList",
         headers: {
           "auth-token": sessionStorage.getItem("auth-token"),
           "Content-Type": "application/json",
         },
-        data: data,
+        params: data,
       };
       await axios(config)
         .then(function (response) {

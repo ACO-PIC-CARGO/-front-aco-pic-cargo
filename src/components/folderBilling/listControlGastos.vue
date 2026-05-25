@@ -12,6 +12,13 @@
         >
           NUEVO CONTROL
         </v-btn>
+        <v-btn
+          color="success"
+          class="mb-2 ml-5"
+          rounded
+          @click="$store.state.cg_filtrarData = true"
+          >Filtar</v-btn
+        >
         <v-spacer></v-spacer>
 
         <v-text-field
@@ -126,19 +133,37 @@ export default {
         { text: "Destino", value: "nameportend" },
 
         { text: "Consignatario", value: "nameconsigner" },
+        { text: "Fecha Etd", value: "fecha_etd" },
+        { text: "Fecha Eta", value: "fecha_eta" },
 
         { text: "Acciones", value: "actions" },
       ],
     };
   },
-  mounted() {
-    this._getControlList();
+  async mounted() {
+    await Promise.all([
+      this._getControlList(),
+      this.getModulesEntities(),
+      this.getQuoteNoAsignadoHouse(),
+      this.cargarMasterDetalleCanal(),
+      this._getModality(),
+      this._getProveedor(),
+      this._getShipment(),
+    ]);
   },
   computed: {
     ...mapState(["itemsDataControlList"]),
   },
   methods: {
-    ...mapActions(["_getControlList"]),
+    ...mapActions([
+      "_getControlList",
+      "getModulesEntities",
+      "getQuoteNoAsignadoHouse",
+      "cargarMasterDetalleCanal",
+      "_getModality",
+      "_getProveedor",
+      "_getShipment",
+    ]),
     async cerrarDialog() {
       this.dialogUrl = false;
       this.$store.state.spiner = true;
