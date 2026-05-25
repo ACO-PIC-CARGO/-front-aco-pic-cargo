@@ -40,6 +40,7 @@
                 color="#E65100"
                 @click="abrirModal(item.id, item.name)"
                 icon
+                :loading="loading"
               >
                 <v-icon>mdi-pencil</v-icon>
               </v-btn>
@@ -155,6 +156,7 @@ export default {
   components: { ModelCostos },
   data() {
     return {
+      loading: false,
       cargandoTabla: false,
       incoterms: "",
       modality: {},
@@ -232,10 +234,11 @@ export default {
         search: null,
       });
     },
-    abrirModal(id, incoterms) {
+    async abrirModal(id, incoterms) {
       if (!this.$refs.frmBuscar.validate()) {
         return;
       }
+      this.loading = true;
       this.id_incoterms = id;
       this.modality = this.$store.state.pricing.listModality.find(
         (v) => (v.id = this.id_modality),
@@ -245,8 +248,9 @@ export default {
       );
       this.incoterms = incoterms;
 
-      this.cargarDatos();
+      await this.cargarDatos();
       this.dialog = true;
+      this.loading = false;
     },
     recargarProveedores: _.debounce(async function (e) {
       if (!e) return; // No buscar si el input está vacío

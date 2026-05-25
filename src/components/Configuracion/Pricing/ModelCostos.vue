@@ -106,8 +106,16 @@
       </v-expansion-panel>
     </v-expansion-panels>
     <v-card-actions>
-      <v-btn class="ml-auto" @click="guardar()" color="success">Guardar</v-btn>
-      <v-btn color="error" @click="$emit('cerrarModal')">Cancelar</v-btn>
+      <v-btn
+        :loading="loading"
+        class="ml-auto"
+        @click="guardar()"
+        color="success"
+        >Guardar</v-btn
+      >
+      <v-btn :loading="loading" color="error" @click="$emit('cerrarModal')"
+        >Cancelar</v-btn
+      >
     </v-card-actions>
     <!-- Diálogo para agregar nuevo costo -->
     <v-dialog v-model="dialog" persistent max-width="30%">
@@ -229,6 +237,7 @@ export default {
   data() {
     return {
       dialog: false,
+      loading: false,
       fromDataService: { id_multiplicador: 0, minimo: 0 },
       headers: [
         { value: "servicio", text: "Servicio", width: "15%" },
@@ -269,6 +278,13 @@ export default {
       }
 
       return false;
+    },
+    async guardar() {
+      await this.setGuardarCostos({
+        lstCostos: this.lstCostos,
+        id_incoterms: this.id_incoterms,
+      });
+      this.$emit("cerrarModal");
     },
     obtenerCostosEnBaseTipoCosto(codigoTipoCosto) {
       //   if (this.id_modality == 1) {
@@ -336,6 +352,7 @@ export default {
 
       this.lstCostos.push({
         ...nuevoCosto,
+        id: null,
         id_costo: null,
         maximo: 0,
         id_modality: this.id_modality,
