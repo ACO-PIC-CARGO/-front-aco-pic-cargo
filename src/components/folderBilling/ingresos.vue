@@ -751,10 +751,25 @@
       v-if="dialogFacturar"
     >
       <v-card>
-        <v-card-title primary-title> GENERAR PROFORMA </v-card-title>
+        <v-card-title primary-title>
+          GENERAR PROFORMA
+          <v-spacer></v-spacer>
+          <v-btn
+            color="default"
+            icon
+            @click="dialogFacturar = false"
+            :editable="firstCompleteProforma"
+          >
+            <v-icon>mdi-close</v-icon>
+          </v-btn>
+        </v-card-title>
         <v-card-text>
           <v-stepper v-model="stepProforma" vertical>
-            <v-stepper-step step="1" :complete="stepProforma > 1">
+            <v-stepper-step
+              step="1"
+              :complete="stepProforma > 1"
+              :editable="firstCompleteProforma"
+            >
               Descripción de la Cabecera del Documento
             </v-stepper-step>
             <v-stepper-content step="1">
@@ -763,9 +778,7 @@
                 label="Nombre a Imprimir"
                 :rules="[(v) => !!v || 'Dato Requerido']"
               />
-              <v-btn color="primary" @click="stepProforma = 2">
-                Continue
-              </v-btn>
+              <v-btn color="primary" @click="continueStep2"> Continue </v-btn>
             </v-stepper-content>
 
             <v-stepper-step step="2"> Conceptos a Facturar </v-stepper-step>
@@ -825,11 +838,19 @@
             Generar Proforma
           </v-btn>
           <v-btn
+            v-if="stepProforma == 2"
             color="warning"
+            @click="stepProforma = 1"
+            class="mx-1"
+          >
+            Volver
+          </v-btn>
+          <v-btn
+            color="error"
             @click="dialogFacturar = !dialogFacturar"
             class="mx-1"
           >
-            Cancelar
+            Cerrar
           </v-btn>
         </v-card-actions>
       </v-card>
@@ -1110,6 +1131,7 @@ export default {
     return {
       flagCambiarExpediente: false,
       stepProforma: 1,
+      firstCompleteProforma: false,
       errorCoin: "",
       dialogFacturaEmitidas: false,
       lstFacturasEmitidas: [],
@@ -1249,6 +1271,10 @@ export default {
     }, 2000);
   },
   methods: {
+    continueStep2() {
+      this.stepProforma = 2;
+      this.firstCompleteProforma = true;
+    },
     abrirCotizacion(id) {
       const routeData = this.$router.resolve({
         name: "verQuote",

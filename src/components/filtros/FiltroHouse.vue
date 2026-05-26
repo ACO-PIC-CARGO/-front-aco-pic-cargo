@@ -12,7 +12,7 @@
           item-text="code_master"
           item-value="id"
           label="Exp. Máster"
-          clearable
+          dense
           v-model="$store.state.house_filtro.id_master"
         ></v-autocomplete>
 
@@ -21,7 +21,7 @@
           item-text="name"
           item-value="id"
           label="Sentido"
-          clearable
+          dense
           v-model="$store.state.house_filtro.id_sentido"
         ></v-autocomplete>
 
@@ -30,7 +30,7 @@
           item-text="embarque"
           item-value="id"
           label="Tipo Embarque"
-          clearable
+          dense
           v-model="$store.state.house_filtro.id_tipo_embarque"
           return-object
           @change="
@@ -43,7 +43,7 @@
           item-text="name"
           item-value="id_port"
           label="Origen"
-          clearable
+          dense
           v-model="$store.state.house_filtro.id_origen"
         ></v-autocomplete>
 
@@ -52,7 +52,7 @@
           item-text="name"
           item-value="id_port"
           label="Destino"
-          clearable
+          dense
           v-model="$store.state.house_filtro.id_destino"
         ></v-autocomplete>
 
@@ -61,21 +61,21 @@
           item-text="namelong"
           item-value="id"
           label="Cliente del House"
-          clearable
+          dense
           v-model="$store.state.house_filtro.id_cliente"
         ></v-autocomplete>
 
         <v-text-field
           type="date"
           label="Fecha ETD"
-          clearable
+          dense
           v-model="$store.state.house_filtro.fecha_etd"
         ></v-text-field>
 
         <v-text-field
           type="date"
           label="Fecha ETA"
-          clearable
+          dense
           v-model="$store.state.house_filtro.fecha_eta"
         ></v-text-field>
       </v-form>

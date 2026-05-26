@@ -127,6 +127,7 @@ export default {
         // },
 
         { text: "Versión", value: "posicion" },
+        { text: "Nro MBL", value: "nro_mbl" },
         { text: "Sentido", value: "namemodality" },
         { text: "Embarque", value: "nameshipment" },
         { text: "Origen", value: "nameportbegin" },

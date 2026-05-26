@@ -12,7 +12,7 @@
           item-text="descripcion"
           item-value="id"
           label="Canal"
-          clearable
+          dense
           v-model="$store.state.master_filtro.id_canal"
         ></v-autocomplete>
 
@@ -21,7 +21,7 @@
           item-text="name"
           item-value="id"
           label="Sentido"
-          clearable
+          dense
           v-model="$store.state.master_filtro.id_sentido"
         ></v-autocomplete>
 
@@ -30,7 +30,7 @@
           item-text="embarque"
           item-value="id"
           label="Tipo Embarque"
-          clearable
+          dense
           v-model="$store.state.master_filtro.id_tipo_embarque"
           return-object
           @change="
@@ -45,7 +45,7 @@
           item-text="name"
           item-value="id_port"
           label="Origen"
-          clearable
+          dense
           v-model="$store.state.master_filtro.id_origen"
         ></v-autocomplete>
 
@@ -54,7 +54,7 @@
           item-text="name"
           item-value="id_port"
           label="Destino"
-          clearable
+          dense
           v-model="$store.state.master_filtro.id_destino"
         ></v-autocomplete>
 
@@ -63,21 +63,21 @@
           item-text="namelong"
           item-value="id"
           label="Agente"
-          clearable
+          dense
           v-model="$store.state.master_filtro.id_agente"
         ></v-autocomplete>
 
         <v-text-field
           type="date"
           label="Fecha ETD"
-          clearable
+          dense
           v-model="$store.state.master_filtro.fecha_etd"
         ></v-text-field>
 
         <v-text-field
           type="date"
           label="Fecha ETA"
-          clearable
+          dense
           v-model="$store.state.master_filtro.fecha_eta"
         ></v-text-field>
 
