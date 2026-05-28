@@ -86,7 +86,7 @@
             <v-tab-item key="datosPrincipales">
               <v-row class="mt-1">
                 <v-col cols="12" md="6" class="py-1">
-                  <v-select
+                  <v-autocomplete
                     :items="$store.state.itemsDataBanksList"
                     v-model="id_banco_origen"
                     label="Banco Origen"
@@ -96,14 +96,14 @@
                     dense
                     :error-messages="errorMesage.id_cuenta_origen"
                     @change="errorMesage.id_cuenta_origen = null"
-                  ></v-select>
+                  ></v-autocomplete>
                 </v-col>
                 <v-col cols="12" md="6" class="py-1">
                   <v-autocomplete
                     :items="$store.state.bancos.cuentas"
                     item-text="label"
                     item-value="id"
-                    label="Cuenta de Ingreso de Banco"
+                    label="Cuenta y Banco Ingreso de Banco"
                     v-model="id_cuenta"
                     return-object
                     outlined
@@ -250,6 +250,7 @@
                     @item-selected="onItemSelected"
                     @toggle-select-all="onSelectAll"
                     :search="searchTableDetalle"
+                    :item-disabled="checkDeshabilitado"
                   >
                     <template v-slot:body.append>
                       <tr class="grey lighten-4 font-weight-bold">
@@ -553,7 +554,22 @@ export default {
       "setRegistroIgresos",
       "validarIngresoNroOperacion",
     ]),
+    checkDeshabilitado(item) {
+      // Si editaflag es false, devuelve true para deshabilitar el checkbox
+      return item.editaflag === false;
+    },
     onItemSelected({ item, value }) {
+      if (value && item.editaflag === false) {
+        // Removerlo inmediatamente si fue seleccionado
+        this.selected = this.selected.filter((i) => i.id !== item.id);
+
+        // Mostrar el mensaje
+        Swal.fire({
+          icon: "error",
+          title: "Error",
+          text: "No sé puede seleccionar porque está en departamento operativo. Comuníquese.",
+        });
+      }
       if (value) {
         // Si se selecciona, por defecto es Abono Completo (false) y carga el saldo
         item.parcialflag = false;

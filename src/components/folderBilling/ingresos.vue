@@ -32,7 +32,7 @@
                 </th>
                 <th width="12%" style="background: #fff9c4">Total Deuda</th>
                 <th v-if="editable" width="6%">Acción</th>
-                <th v-if="editable" width="6%">Abonos</th>
+                <!-- <th v-if="editable" width="6%">Abonos</th> -->
                 <th v-if="editable" width="8%">Más acciones</th>
                 <th>Ver Proformas</th>
                 <th v-if="editable" width="8%">Facturas y Proformas</th>
@@ -116,7 +116,7 @@
                     Copiar Montos Pr->Op
                   </v-btn>
                 </td>
-                <td v-if="editable">
+                <!-- <td v-if="editable">
                   <v-btn
                     v-if="house.id_orders"
                     :color="house.debscliente.length > 0 ? 'green' : 'red'"
@@ -134,7 +134,7 @@
                   >
                     CARGAR ABONOS
                   </v-btn>
-                </td>
+                </td> -->
                 <td v-if="editable">
                   <v-btn
                     v-if="house.id_orders"
