@@ -90,15 +90,16 @@
               <td width="40%"><b>INCOTERMS: </b></td>
               <td width="60%">{{ data.icoterm }}</td>
             </tr>
-            <tr>
+            <tr v-if="!isFCL">
+              
               <td width="40%"><b>N° BULTOS: </b></td>
               <td width="60%">{{ data.numerobultos }}</td>
             </tr>
-            <tr>
+            <tr v-if="!isFCL">
               <td width="40%"><b>PESO: </b></td>
               <td width="60%">{{ data.peso }}</td>
             </tr>
-            <tr>
+            <tr v-if="!isFCL">
               <td width="40%"><b>VOLUMEN: </b></td>
               <td width="60%">{{ data.volumen }}</td>
             </tr>
@@ -709,6 +710,17 @@ export default {
   beforeDestroy() {
     window.removeEventListener("keydown", this.handleKeyPress);
   },
+  computed: {
+    isFCL() {
+      let id = this.$store.state.pricing.datosPrincipales.idtipocarga;
+      let code = this.$store.state.pricing.listShipment.filter(
+        (v) => v.id == id,
+      )[0].code;
+
+      let validate = code == "FCL" ? true : false;
+      return validate;
+    },
+  },
   methods: {
     handleKeyPress(event) {
       if (event.ctrlKey && event.key === "p") {
@@ -772,32 +784,6 @@ export default {
         });
       }
 
-      // if (Array.isArray(contenedor)) {
-      //   contenedor.forEach((element) => {
-      //     vm.lstServices.push({
-      //       name: element.name,
-      //       estado: element.valor,
-      //     });
-      //   });
-      // }
-      // if (vm.data.numerobultos) {
-      //   vm.lstServices.push({
-      //     name: "Nro Bultos:",
-      //     estado: vm.data.numerobultos,
-      //   });
-      // }
-      // if (vm.data.peso) {
-      //   vm.lstServices.push({
-      //     name: "Peso",
-      //     estado: vm.data.peso,
-      //   });
-      // }
-      // if (vm.data.volumen) {
-      //   vm.lstServices.push({
-      //     name: "Volumen",
-      //     estado: vm.data.volumen,
-      //   });
-      // }
       vm.data.OpcionesSelecciondas[this.index - 1].listServices.forEach(
         (element) => {
           if (element.status == 1) {

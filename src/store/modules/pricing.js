@@ -1562,7 +1562,7 @@ const actions = {
 
       state.copy_quote = res;
       state.id = res.id;
-      
+
       state.dataCliente = res.cliente[0];
       state.nro_quote = res.quote;
       state.datosPrincipales.id_marketing = res.id_marketing;
@@ -1872,8 +1872,13 @@ const actions = {
     // ========================================================
     // 5. PREPARACIÓN DEL PAYLOAD FINAL PARA EL AXIOS
     // ========================================================
+    let shipment = state.listShipment.find(
+      (v) => v.id == state.datosPrincipales.idtipocarga,
+    );
+
     let data = {
       tipo,
+      isFCL: shipment && shipment.code === "FCL",
       isImport,
       guardarFlag,
       nro_propuesta: opcion.nro_propuesta,
@@ -2402,292 +2407,2023 @@ const actions = {
 
   async predata(__, { tipo = "" }) {
     return new Promise(async (resolve, reject) => {
-      try {
-        let iso = JSON.parse(sessionStorage.getItem("iso_pais"));
-        let TipoCostos = state.namesection.map((v) => ({
-          name: v.name,
-          codigo: v.codigo,
-        }));
-        let isImport = state.listModality.some(
-          (v) => v.id == state.datosPrincipales.idsentido && v.code == "I",
-        );
+      let iso = JSON.parse(sessionStorage.getItem("iso_pais"));
+      let TipoCostos = state.namesection.map((v) => ({
+        name: v.name,
+        codigo: v.codigo,
+      }));
+      let isImport = state.listModality.some(
+        (v) => v.id == state.datosPrincipales.idsentido && v.code == "I",
+      );
+      let totalImpuesto = 0;
+      let imp = [];
+      let flete = [];
+      let locales = [];
+      let aduana = [];
+      let almacen = [];
+      let incluye = [];
+      let noincluye = [];
+      let OpcionesSelecciondas = [];
+      let importante = [];
+      let contenedor = [];
+      let totalSeguroCargaInterna = 0;
+      let totalFleteVentas = 0;
+      // GENERALES
+      /** AGRUPADO */
+      let conceptos = [];
+      /** !AGRUPADO */
+      let datosFlete = [];
+      let datosOrigen = [];
+      let datosLocales = [];
+      let datosAduanas = [];
+      let datosAlmacenes = [];
+      let datosGastosTerceros = [];
+      // SON LOS COSTOS
+      let totalFlete = 0;
+      let totalOrigen = 0;
+      let totalLocales = 0;
+      let totalAduanas = 0;
+      let totalAlmacenes = 0;
+      let totalGastosTercero = 0;
 
-        let contenedor = state.datosPrincipales.containers.map((element) => ({
+      // ----------------------------------------------------------------
+      /* contenedor*/
+
+      state.datosPrincipales.containers.forEach((element) => {
+        contenedor.push({
           name: element.description,
           valor: element.cantidad,
-        }));
-
-        let incluye = [];
-        let noincluye = [];
-        state.listServices.forEach((element) => {
-          if (element.status == 1) {
-            incluye.push({ name: element.service });
-          } else {
-            noincluye.push({ name: element.service });
-          }
         });
+      });
 
-        let flete = [];
-        let locales = [];
-        let aduana = [];
-        let almacen = [];
+      /** incluye - no incluye */
+      state.listServices.forEach((element) => {
+        if (element.status == 1) {
+          incluye.push({
+            name: element.service,
+          });
+        }
+        if (element.status != 1) {
+          noincluye.push({
+            name: element.service,
+          });
+        }
+      });
+      /*  let ExisteSeguro = state.listCostos.some(
+        (v) => v.code_cost == 15 && v.status == 1 && v.esventaflag == 1
+      );
+/
+      /* NOTAS DE QUOTE - INCLU */
 
-        state.listServices.forEach((element) => {
-          const estado =
-            element.status == 1 || element.status == true ? "SI" : "NO";
-          const item = { name: element.service, estado };
-          if (element.codebegend == "OR") flete.push(item);
-          if (element.codebegend == "FL") locales.push(item);
-          if (element.codebegend == "DE") aduana.push(item);
-          if (element.codebegend == "OP") almacen.push(item);
-        });
+      state.listServices.forEach((element) => {
+        if (element.codebegend == "OR") {
+          flete.push({
+            name: element.service,
+            estado: element.status == 1 || element.status == true ? "SI" : "NO",
+          });
+        }
+        if (element.codebegend == "FL") {
+          locales.push({
+            name: element.service,
+            estado: element.status == 1 || element.status == true ? "SI" : "NO",
+          });
+        }
+        if (element.codebegend == "DE") {
+          aduana.push({
+            name: element.service,
+            estado: element.status == 1 || element.status == true ? "SI" : "NO",
+          });
+        }
+        if (element.codebegend == "OP") {
+          almacen.push({
+            name: element.service,
+            estado: element.status == 1 || element.status == true ? "SI" : "NO",
+          });
+        }
+      });
+      state.opcionCostos
+        .filter((v) => v.selected)
+        .forEach((opcionCosto) => {
+          setTimeout(async () => {
+            importante = [];
+            imp = [];
+            datosFlete = [];
+            datosOrigen = [];
+            datosLocales = [];
+            datosAduanas = [];
+            datosAlmacenes = [];
+            datosGastosTerceros = [];
+            conceptos = [];
+            totalFlete = 0;
+            totalOrigen = 0;
+            totalLocales = 0;
+            totalAduanas = 0;
+            totalAlmacenes = 0;
+            totalGastosTercero = 0;
+            totalImpuesto = 0;
+            totalFleteVentas = await calcularTotalFleteVentaPorOpcion(
+              opcionCosto.listCostos,
+            );
+            let totalServicios = 0;
 
-        // INDEXACIÓN: Creamos un mapa para buscar multiplicadores en tiempo O(1)
-        const multiplicadorMap = new Map(
-          state.listMultiplicador.map((m) => [m.id, m]),
-        );
-
-        // Filtrar las opciones seleccionadas
-        const opcionesSeleccionadas = state.opcionCostos.filter(
-          (v) => v.selected,
-        );
-
-        // Procesamos de forma secuencial y limpia sin temporizadores que rompan el flujo
-        for (const opcionCosto of opcionesSeleccionadas) {
-          let importante = opcionCosto.listNotasQuote
-            .filter((v) => v.estado == 1)
-            .map((element) => ({ name: element.descripcion }));
-
-          let totalFleteVentas = await calcularTotalFleteVentaPorOpcion(
-            opcionCosto.listCostos,
-          );
-          let totalImpuesto = 0;
-          let imp = [];
-
-          if (
-            state.listServices.some(
-              (v) => v.code_service == 15 && v.status == 1,
-            )
-          ) {
-            let codeCalc = ["05", "06", "07", "08", "09", "10", "11", "12"];
-            opcionCosto.listImpuestos
-              .filter((v) => codeCalc.includes(v.codigo))
+            //  NOTAS
+            opcionCosto.listNotasQuote
+              .filter((v) => v.estado == 1)
               .forEach((element) => {
-                let valorImp =
-                  parseFloat(
+                importante.push({ name: element.descripcion });
+              });
+            // impuestos
+            if (
+              state.listServices.some(
+                (v) => v.code_service == 15 && v.status == 1,
+              )
+            ) {
+              let codeCalc = ["05", "06", "07", "08", "09", "10", "11", "12"];
+              opcionCosto.listImpuestos
+                .filter((v) => codeCalc.includes(v.codigo))
+                .forEach((element) => {
+                  imp.push({
+                    type: element.codigo,
+                    name: element.descripcion,
+                    percentage: element.codigo01,
+                    valor: miMixin.methods.calcularImpuestos({
+                      impuestos: opcionCosto.listImpuestos,
+                      item: element,
+                      totalFlete: totalFleteVentas,
+                      datosPrincipales: state.datosPrincipales,
+                    }),
+                    // miMixin.methods.currencyFormat(element.valor),
+                  });
+
+                  // console.log("valor", element.valor);
+                  totalImpuesto += parseFloat(
                     miMixin.methods.calcularImpuestos({
                       impuestos: opcionCosto.listImpuestos,
                       item: element,
                       totalFlete: totalFleteVentas,
                       datosPrincipales: state.datosPrincipales,
                     }),
-                  ) || 0;
-
-                imp.push({
-                  type: element.codigo,
-                  name: element.descripcion,
-                  percentage: element.codigo01,
-                  valor: valorImp,
+                  );
                 });
-                totalImpuesto += valorImp;
-              });
-          }
-
-          let totalFlete = 0,
-            totalOrigen = 0,
-            totalLocales = 0;
-          let totalAduanas = 0,
-            totalAlmacenes = 0,
-            totalGastosTercero = 0;
-
-          let datosFlete = [],
-            datosOrigen = [],
-            datosLocales = [];
-          let datosAduanas = [],
-            datosAlmacenes = [],
-            datosGastosTerceros = [];
-          let conceptos = [];
-
-          // Identificadores de secciones activos
-          let flags = {
-            isFlete: opcionCosto.listCostos.some(
-              (v) => v.esfleteflag == 1 && v.status && v.esventaflag == 1,
-            ),
-            isOrigen: opcionCosto.listCostos.some(
-              (v) => v.esorigenflag == 1 && v.status && v.esventaflag == 1,
-            ),
-            isLocal: opcionCosto.listCostos.some(
-              (v) => v.eslocalflag == 1 && v.status && v.esventaflag == 1,
-            ),
-            isAduana: opcionCosto.listCostos.some(
-              (v) => v.esaduanaflag == 1 && v.status && v.esventaflag == 1,
-            ),
-            isAlmacen: opcionCosto.listCostos.some(
-              (v) => v.esalmacenflag == 1 && v.status && v.esventaflag == 1,
-            ),
-            isGastosTercero: opcionCosto.listCostos.some(
+            }
+            //  costos
+            let isFlete = opcionCosto.listCostos.some(
               (v) =>
-                v.esgastostercerosflag == 1 && v.status && v.esventaflag == 1,
-            ),
-          };
+                v.esfleteflag == 1 && v.status == true && v.esventaflag == 1,
+            );
+            let isOrigen = opcionCosto.listCostos.some(
+              (v) =>
+                v.esorigenflag == 1 && v.status == true && v.esventaflag == 1,
+            );
 
-          // Filtrar costos válidos una sola vez
-          const costosValidos = opcionCosto.listCostos.filter(
-            (v) => v.status == 1 && v.esventaflag == 1,
-          );
+            let isLocal = opcionCosto.listCostos.some(
+              (v) =>
+                v.eslocalflag == 1 && v.status == true && v.esventaflag == 1,
+            );
+            let isAduana = opcionCosto.listCostos.some(
+              (v) =>
+                v.esaduanaflag == 1 && v.status == true && v.esventaflag == 1,
+            );
+            let isAlmacen = opcionCosto.listCostos.some(
+              (v) =>
+                v.esalmacenflag == 1 && v.status == true && v.esventaflag == 1,
+            );
+            let isGastosTercero = opcionCosto.listCostos.some(
+              (v) =>
+                v.esgastostercerosflag == 1 &&
+                v.status == true &&
+                v.esventaflag == 1,
+            );
 
-          costosValidos.forEach((element) => {
-            // Obtener el multiplicador desde el Map optimizado
-            const mult = multiplicadorMap.get(element.id_multiplicador);
-            const multCode = mult ? mult.code : "";
-            const multValor = mult ? mult.valor : 0;
+            if (tipo == "AGRUPADO") {
+              // state.listCostos
+              opcionCosto.listCostos
+                .filter((v) => v.status == 1 && v.esventaflag == 1)
+                .forEach((element) => {
+                  if (element.esfleteflag == 1) {
+                    datosFlete.push({
+                      name: element.nameservice,
+                      valor: "",
+                    });
+                    if (
+                      state.listMultiplicador.some(
+                        (v) => v.id == element.id_multiplicador,
+                      )
+                        ? state.listMultiplicador.filter(
+                            (v) => v.id == element.id_multiplicador,
+                          )[0].code != 5 &&
+                          state.listMultiplicador.filter(
+                            (v) => v.id == element.id_multiplicador,
+                          )[0].code != 13 &&
+                          state.listMultiplicador.filter(
+                            (v) => v.id == element.id_multiplicador,
+                          )[0].code != 14
+                        : 0
+                    ) {
+                      totalFlete +=
+                        (state.listMultiplicador.filter(
+                          (v) => v.id == element.id_multiplicador,
+                        ).length > 0
+                          ? state.listMultiplicador.filter(
+                              (v) => v.id == element.id_multiplicador,
+                            )[0].valor
+                          : 0) *
+                        element.costounitario *
+                        miMixin.methods.calcularFac(
+                          state.listMultiplicador.filter(
+                            (v) => v.id == element.id_multiplicador,
+                          ).length > 0
+                            ? state.listMultiplicador.filter(
+                                (v) => v.id == element.id_multiplicador,
+                              )[0].code
+                            : "N",
+                          state.datosPrincipales.volumen,
+                          state.datosPrincipales.peso,
+                          state.datosPrincipales.containers,
+                          state.datosPrincipales.amount,
+                        );
+                    } else {
+                      totalFlete += miMixin.methods.calcularValor(
+                        state.datosPrincipales.amount,
+                        totalFleteVentas,
+                        state.listMultiplicador.some(
+                          (v) => v.id == element.id_multiplicador,
+                        )
+                          ? state.listMultiplicador.filter(
+                              (v) => v.id == element.id_multiplicador,
+                            )[0].code
+                          : "",
+                        state.listMultiplicador.some(
+                          (v) =>
+                            v.id == element.id_multiplicador &&
+                            (v.code == 14 || v.code == 13 || v.code == 5),
+                        )
+                          ? state.listMultiplicador.some(
+                              (v) =>
+                                v.id == element.id_multiplicador &&
+                                (v.code == 14 || v.code == 13),
+                            )
+                            ? element.cif
+                            : element.seguro
+                          : 0,
+                      );
+                    }
+                  }
+                  if (element.esorigenflag == 1) {
+                    datosOrigen.push({
+                      name: element.nameservice,
+                      valor: "",
+                    });
+                    if (
+                      state.listMultiplicador.some(
+                        (v) => v.id == element.id_multiplicador,
+                      )
+                        ? state.listMultiplicador.filter(
+                            (v) => v.id == element.id_multiplicador,
+                          )[0].code != 5 &&
+                          state.listMultiplicador.filter(
+                            (v) => v.id == element.id_multiplicador,
+                          )[0].code != 13 &&
+                          state.listMultiplicador.filter(
+                            (v) => v.id == element.id_multiplicador,
+                          )[0].code != 14
+                        : 0
+                    ) {
+                      totalOrigen +=
+                        (state.listMultiplicador.filter(
+                          (v) => v.id == element.id_multiplicador,
+                        ).length > 0
+                          ? state.listMultiplicador.filter(
+                              (v) => v.id == element.id_multiplicador,
+                            )[0].valor
+                          : 0) *
+                        element.costounitario *
+                        miMixin.methods.calcularFac(
+                          state.listMultiplicador.filter(
+                            (v) => v.id == element.id_multiplicador,
+                          ).length > 0
+                            ? state.listMultiplicador.filter(
+                                (v) => v.id == element.id_multiplicador,
+                              )[0].code
+                            : "N",
+                          state.datosPrincipales.volumen,
+                          state.datosPrincipales.peso,
+                          state.datosPrincipales.containers,
+                          state.datosPrincipales.amount,
+                        );
+                    } else {
+                      totalOrigen += miMixin.methods.calcularValor(
+                        state.datosPrincipales.amount,
+                        totalFleteVentas,
+                        state.listMultiplicador.some(
+                          (v) => v.id == element.id_multiplicador,
+                        )
+                          ? state.listMultiplicador.filter(
+                              (v) => v.id == element.id_multiplicador,
+                            )[0].code
+                          : "",
+                        state.listMultiplicador.some(
+                          (v) =>
+                            v.id == element.id_multiplicador &&
+                            (v.code == 14 || v.code == 13 || v.code == 5),
+                        )
+                          ? state.listMultiplicador.some(
+                              (v) =>
+                                v.id == element.id_multiplicador &&
+                                (v.code == 14 || v.code == 13),
+                            )
+                            ? element.cif
+                            : element.seguro
+                          : 0,
+                      );
+                    }
+                  }
+                  if (element.eslocalflag == 1) {
+                    datosLocales.push({
+                      name: element.nameservice,
+                      valor: "",
+                    });
+                    if (
+                      state.listMultiplicador.filter(
+                        (v) => v.id == element.id_multiplicador,
+                      )[0].code != 5 &&
+                      state.listMultiplicador.filter(
+                        (v) => v.id == element.id_multiplicador,
+                      )[0].code != 13 &&
+                      state.listMultiplicador.filter(
+                        (v) => v.id == element.id_multiplicador,
+                      )[0].code != 14
+                    ) {
+                      totalLocales +=
+                        (state.listMultiplicador.filter(
+                          (v) => v.id == element.id_multiplicador,
+                        ).length > 0
+                          ? state.listMultiplicador.filter(
+                              (v) => v.id == element.id_multiplicador,
+                            )[0].valor
+                          : 0) *
+                        element.costounitario *
+                        miMixin.methods.calcularFac(
+                          state.listMultiplicador.filter(
+                            (v) => v.id == element.id_multiplicador,
+                          ).length > 0
+                            ? state.listMultiplicador.filter(
+                                (v) => v.id == element.id_multiplicador,
+                              )[0].code
+                            : "N",
+                          state.datosPrincipales.volumen,
+                          state.datosPrincipales.peso,
+                          state.datosPrincipales.containers,
+                          state.datosPrincipales.amount,
+                        );
+                    } else {
+                      totalLocales += miMixin.methods.calcularValor(
+                        state.datosPrincipales.amount,
+                        totalFleteVentas,
+                        state.listMultiplicador.some(
+                          (v) => v.id == element.id_multiplicador,
+                        )
+                          ? state.listMultiplicador.filter(
+                              (v) => v.id == element.id_multiplicador,
+                            )[0].code
+                          : "",
+                        state.listMultiplicador.some(
+                          (v) =>
+                            v.id == element.id_multiplicador &&
+                            (v.code == 14 || v.code == 13 || v.code == 5),
+                        )
+                          ? state.listMultiplicador.some(
+                              (v) =>
+                                v.id == element.id_multiplicador &&
+                                (v.code == 14 || v.code == 13),
+                            )
+                            ? element.cif
+                            : element.seguro
+                          : 0,
+                      );
+                    }
+                  }
+                  if (element.esaduanaflag == 1) {
+                    datosAduanas.push({
+                      name: element.nameservice,
+                      valor: "",
+                    });
+                    if (
+                      state.listMultiplicador.filter(
+                        (v) => v.id == element.id_multiplicador,
+                      )[0].code != 5 &&
+                      state.listMultiplicador.filter(
+                        (v) => v.id == element.id_multiplicador,
+                      )[0].code != 13 &&
+                      state.listMultiplicador.filter(
+                        (v) => v.id == element.id_multiplicador,
+                      )[0].code != 14
+                    ) {
+                      totalAduanas +=
+                        (state.listMultiplicador.filter(
+                          (v) => v.id == element.id_multiplicador,
+                        ).length > 0
+                          ? state.listMultiplicador.filter(
+                              (v) => v.id == element.id_multiplicador,
+                            )[0].valor
+                          : 0) *
+                        element.costounitario *
+                        miMixin.methods.calcularFac(
+                          state.listMultiplicador.filter(
+                            (v) => v.id == element.id_multiplicador,
+                          ).length > 0
+                            ? state.listMultiplicador.filter(
+                                (v) => v.id == element.id_multiplicador,
+                              )[0].code
+                            : "N",
+                          state.datosPrincipales.volumen,
+                          state.datosPrincipales.peso,
+                          state.datosPrincipales.containers,
+                          state.datosPrincipales.amount,
+                        );
+                    } else {
+                      totalAduanas += miMixin.methods.calcularValor(
+                        state.datosPrincipales.amount,
+                        totalFleteVentas,
+                        state.listMultiplicador.some(
+                          (v) => v.id == element.id_multiplicador,
+                        )
+                          ? state.listMultiplicador.filter(
+                              (v) => v.id == element.id_multiplicador,
+                            )[0].code
+                          : "",
+                        state.listMultiplicador.some(
+                          (v) =>
+                            v.id == element.id_multiplicador &&
+                            (v.code == 14 || v.code == 13 || v.code == 5),
+                        )
+                          ? state.listMultiplicador.some(
+                              (v) =>
+                                v.id == element.id_multiplicador &&
+                                (v.code == 14 || v.code == 13),
+                            )
+                            ? element.cif
+                            : element.seguro
+                          : 0,
+                      );
+                    }
+                  }
 
-            let valorCalculado = 0;
-
-            if (mult && multCode != 5 && multCode != 13 && multCode != 14) {
-              valorCalculated =
-                multValor *
-                element.costounitario *
-                miMixin.methods.calcularFac(
-                  multCode || "N",
-                  state.datosPrincipales.volumen,
-                  state.datosPrincipales.peso,
-                  state.datosPrincipales.containers,
-                  state.datosPrincipales.amount,
-                );
-            } else {
-              const esEspecial =
-                mult && (multCode == 14 || multCode == 13 || multCode == 5);
-              const esCif = mult && (multCode == 14 || multCode == 13);
-              const baseSeguroCif = esEspecial
-                ? esCif
-                  ? element.cif
-                  : element.seguro
-                : 0;
-
-              valorCalculado = miMixin.methods.calcularValor(
-                state.datosPrincipales.amount,
-                totalFleteVentas,
-                multCode,
-                baseSeguroCif,
-                element.minimo,
-              );
-            }
-
-            // Acumulación de totales según los flags correspondientes
-            if (element.esfleteflag == 1) {
-              totalFlete += valorCalculado;
-              datosFlete.push({
-                name: element.nameservice,
-                valor:
-                  tipo === "DETALLE"
-                    ? miMixin.methods.currencyFormat(valorCalculado)
-                    : "",
-              });
-            }
-            if (element.esorigenflag == 1) {
-              totalOrigen += valorCalculado;
-              datosOrigen.push({
-                name: element.nameservice,
-                valor:
-                  tipo === "DETALLE"
-                    ? miMixin.methods.currencyFormat(valorCalculado)
-                    : "",
-              });
-            }
-            if (element.eslocalflag == 1) {
-              totalLocales += valorCalculado;
-              datosLocales.push({
-                name: element.nameservice,
-                valor:
-                  tipo === "DETALLE"
-                    ? miMixin.methods.currencyFormat(valorCalculado)
-                    : "",
-              });
-            }
-            if (element.esaduanaflag == 1) {
-              totalAduanas += valorCalculado;
-              datosAduanas.push({
-                name: element.nameservice,
-                valor:
-                  tipo === "DETALLE"
-                    ? miMixin.methods.currencyFormat(valorCalculado)
-                    : "",
-              });
-            }
-            if (element.esalmacenflag == 1) {
-              totalAlmacenes += valorCalculado;
-              datosAlmacenes.push({
-                name: element.nameservice,
-                valor:
-                  tipo === "DETALLE"
-                    ? miMixin.methods.currencyFormat(valorCalculado)
-                    : "",
-              });
-            }
-            if (element.esgastostercerosflag == 1) {
-              totalGastosTercero += valorCalculado;
-              datosGastosTerceros.push({
-                name: element.nameservice,
-                valor:
-                  tipo === "DETALLE"
-                    ? miMixin.methods.currencyFormat(valorCalculado)
-                    : "",
-              });
-            }
-          });
-
-          // Llenado de conceptos si es AGRUPADO (Corrección del .filter heredado)
-          if (tipo == "AGRUPADO") {
-            const agregarConceptosUnicos = (condicion, filtroFlag) => {
-              if (condicion) {
-                costosValidos.filter(filtroFlag).forEach((element) => {
-                  // CORRECCIÓN: .some() en vez de .filter() para evaluar si existe correctamente
-                  if (!conceptos.some((v) => v.name == element.nameservice)) {
-                    conceptos.push({ name: element.nameservice });
+                  if (element.esalmacenflag == 1) {
+                    datosAlmacenes.push({
+                      name: element.nameservice,
+                      valor: "",
+                    });
+                    if (
+                      state.listMultiplicador.filter(
+                        (v) => v.id == element.id_multiplicador,
+                      )[0].code != 5 &&
+                      state.listMultiplicador.filter(
+                        (v) => v.id == element.id_multiplicador,
+                      )[0].code != 13 &&
+                      state.listMultiplicador.filter(
+                        (v) => v.id == element.id_multiplicador,
+                      )[0].code != 14
+                    ) {
+                      totalAlmacenes +=
+                        (state.listMultiplicador.filter(
+                          (v) => v.id == element.id_multiplicador,
+                        ).length > 0
+                          ? state.listMultiplicador.filter(
+                              (v) => v.id == element.id_multiplicador,
+                            )[0].valor
+                          : 0) *
+                        element.costounitario *
+                        miMixin.methods.calcularFac(
+                          state.listMultiplicador.filter(
+                            (v) => v.id == element.id_multiplicador,
+                          ).length > 0
+                            ? state.listMultiplicador.filter(
+                                (v) => v.id == element.id_multiplicador,
+                              )[0].code
+                            : "N",
+                          state.datosPrincipales.volumen,
+                          state.datosPrincipales.peso,
+                          state.datosPrincipales.containers,
+                          state.datosPrincipales.amount,
+                        );
+                    } else {
+                      totalAlmacenes += miMixin.methods.calcularValor(
+                        state.datosPrincipales.amount,
+                        totalFleteVentas,
+                        state.listMultiplicador.some(
+                          (v) => v.id == element.id_multiplicador,
+                        )
+                          ? state.listMultiplicador.filter(
+                              (v) => v.id == element.id_multiplicador,
+                            )[0].code
+                          : "",
+                        state.listMultiplicador.some(
+                          (v) =>
+                            v.id == element.id_multiplicador &&
+                            (v.code == 14 || v.code == 13 || v.code == 5),
+                        )
+                          ? state.listMultiplicador.some(
+                              (v) =>
+                                v.id == element.id_multiplicador &&
+                                (v.code == 14 || v.code == 13),
+                            )
+                            ? element.cif
+                            : element.seguro
+                          : 0,
+                      );
+                    }
+                  }
+                  if (element.esgastostercerosflag == 1) {
+                    datosGastosTerceros.push({
+                      name: element.nameservice,
+                      valor: "",
+                    });
+                    if (
+                      state.listMultiplicador.filter(
+                        (v) => v.id == element.id_multiplicador,
+                      )[0].code != 5 &&
+                      state.listMultiplicador.filter(
+                        (v) => v.id == element.id_multiplicador,
+                      )[0].code != 13 &&
+                      state.listMultiplicador.filter(
+                        (v) => v.id == element.id_multiplicador,
+                      )[0].code != 14
+                    ) {
+                      totalGastosTercero +=
+                        (state.listMultiplicador.filter(
+                          (v) => v.id == element.id_multiplicador,
+                        ).length > 0
+                          ? state.listMultiplicador.filter(
+                              (v) => v.id == element.id_multiplicador,
+                            )[0].valor
+                          : 0) *
+                        element.costounitario *
+                        miMixin.methods.calcularFac(
+                          state.listMultiplicador.filter(
+                            (v) => v.id == element.id_multiplicador,
+                          ).length > 0
+                            ? state.listMultiplicador.filter(
+                                (v) => v.id == element.id_multiplicador,
+                              )[0].code
+                            : "N",
+                          state.datosPrincipales.volumen,
+                          state.datosPrincipales.peso,
+                          state.datosPrincipales.containers,
+                          state.datosPrincipales.amount,
+                        );
+                    } else {
+                      totalGastosTercero += miMixin.methods.calcularValor(
+                        state.datosPrincipales.amount,
+                        totalFleteVentas,
+                        state.listMultiplicador.some(
+                          (v) => v.id == element.id_multiplicador,
+                        )
+                          ? state.listMultiplicador.filter(
+                              (v) => v.id == element.id_multiplicador,
+                            )[0].code
+                          : "",
+                        state.listMultiplicador.some(
+                          (v) =>
+                            v.id == element.id_multiplicador &&
+                            (v.code == 14 || v.code == 13 || v.code == 5),
+                        )
+                          ? state.listMultiplicador.some(
+                              (v) =>
+                                v.id == element.id_multiplicador &&
+                                (v.code == 14 || v.code == 13),
+                            )
+                            ? element.cif
+                            : element.seguro
+                          : 0,
+                      );
+                    }
                   }
                 });
+              if (isFlete == true && isImport) {
+                opcionCosto.listCostos
+                  .filter(
+                    (v) =>
+                      v.status == 1 && v.esfleteflag == 1 && v.esventaflag == 1,
+                  )
+                  .forEach((element) => {
+                    if (
+                      conceptos.filter((v) => v.name == element.nameservice)
+                    ) {
+                      conceptos.push({
+                        name: element.nameservice,
+                      });
+                    }
+                  });
               }
-            };
+              if (isOrigen == true) {
+                opcionCosto.listCostos
+                  .filter(
+                    (v) =>
+                      v.status == 1 &&
+                      v.esorigenflag == 1 &&
+                      v.esventaflag == 1,
+                  )
+                  .forEach((element) => {
+                    if (
+                      conceptos.filter((v) => v.name == element.nameservice)
+                    ) {
+                      conceptos.push({
+                        name: element.nameservice,
+                      });
+                    }
+                  });
+              }
 
-            agregarConceptosUnicos(
-              flags.isFlete && isImport,
-              (v) => v.esfleteflag == 1,
-            );
-            agregarConceptosUnicos(flags.isOrigen, (v) => v.esorigenflag == 1);
-            agregarConceptosUnicos(flags.isLocal, (v) => v.eslocalflag == 1);
-            agregarConceptosUnicos(flags.isAduana, (v) => v.esaduanaflag == 1);
-            agregarConceptosUnicos(
-              flags.isFlete && !isImport,
-              (v) => v.esfleteflag == 1,
-            );
-            agregarConceptosUnicos(
-              flags.isAlmacen,
-              (v) => v.esalmacenflag == 1,
-            );
-            agregarConceptosUnicos(
-              flags.isGastosTercero,
-              (v) => v.esgastostercerosflag == 1,
-            );
-          }
+              if (isLocal == true) {
+                opcionCosto.listCostos
+                  .filter(
+                    (v) =>
+                      v.status == 1 && v.eslocalflag == 1 && v.esventaflag == 1,
+                  )
+                  .forEach((element) => {
+                    if (
+                      conceptos.filter((v) => v.name == element.nameservice)
+                    ) {
+                      conceptos.push({
+                        name: element.nameservice,
+                      });
+                    }
+                  });
+              }
+              if (isAduana == true) {
+                opcionCosto.listCostos
+                  .filter(
+                    (v) =>
+                      v.status == 1 &&
+                      v.esaduanaflag == 1 &&
+                      v.esventaflag == 1,
+                  )
+                  .forEach((element) => {
+                    if (
+                      conceptos.filter((v) => v.name == element.nameservice)
+                    ) {
+                      conceptos.push({
+                        name: element.nameservice,
+                      });
+                    }
+                  });
+              }
+              if (isFlete == true && !isImport) {
+                opcionCosto.listCostos
+                  .filter(
+                    (v) =>
+                      v.status == 1 && v.esfleteflag == 1 && v.esventaflag == 1,
+                  )
+                  .forEach((element) => {
+                    if (
+                      conceptos.filter((v) => v.name == element.nameservice)
+                    ) {
+                      conceptos.push({
+                        name: element.nameservice,
+                      });
+                    }
+                  });
+              }
 
-          // Aquí puedes estructurar el almacenamiento de tus resultados por cada `opcionCosto`
-          // Ej: opcionCosto.resultados = { totalFlete, datosFlete, conceptos, ... };
-        }
+              if (isAlmacen == true) {
+                opcionCosto.listCostos
+                  .filter(
+                    (v) =>
+                      v.status == 1 &&
+                      v.esalmacenflag == 1 &&
+                      v.esventaflag == 1,
+                  )
+                  .forEach((element) => {
+                    if (
+                      conceptos.filter((v) => v.name == element.nameservice)
+                    ) {
+                      conceptos.push({
+                        name: element.nameservice,
+                      });
+                    }
+                  });
+              }
+              if (isGastosTercero == true) {
+                opcionCosto.listCostos
+                  .filter(
+                    (v) =>
+                      v.status == 1 &&
+                      v.esgastostercerosflag == 1 &&
+                      v.esventaflag == 1,
+                  )
+                  .forEach((element) => {
+                    if (
+                      conceptos.filter((v) => v.name == element.nameservice)
+                    ) {
+                      conceptos.push({
+                        name: element.nameservice,
+                      });
+                    }
+                  });
+              }
+            }
+            if (tipo == "DETALLE") {
+              opcionCosto.listCostos
+                .filter((v) => v.status == 1 && v.esventaflag == 1)
+                .forEach((element) => {
+                  if (element.esfleteflag == 1) {
+                    if (
+                      state.listMultiplicador.some(
+                        (v) => v.id == element.id_multiplicador,
+                      )
+                        ? state.listMultiplicador.filter(
+                            (v) => v.id == element.id_multiplicador,
+                          )[0].code != 5 &&
+                          state.listMultiplicador.filter(
+                            (v) => v.id == element.id_multiplicador,
+                          )[0].code != 13 &&
+                          state.listMultiplicador.filter(
+                            (v) => v.id == element.id_multiplicador,
+                          )[0].code != 14
+                        : false
+                    ) {
+                      datosFlete.push({
+                        name: element.nameservice,
+                        valor: miMixin.methods.currencyFormat(
+                          state.listMultiplicador.filter(
+                            (v) => v.id == element.id_multiplicador,
+                          )[0].valor *
+                            element.costounitario *
+                            miMixin.methods.calcularFac(
+                              state.listMultiplicador.filter(
+                                (v) => v.id == element.id_multiplicador,
+                              ).length > 0
+                                ? state.listMultiplicador.filter(
+                                    (v) => v.id == element.id_multiplicador,
+                                  )[0].code
+                                : "N",
+                              state.datosPrincipales.volumen,
+                              state.datosPrincipales.peso,
+                              state.datosPrincipales.containers,
+                              state.datosPrincipales.amount,
+                            ),
+                        ),
+                      });
+                      totalFlete +=
+                        (state.listMultiplicador.filter(
+                          (v) => v.id == element.id_multiplicador,
+                        ).length > 0
+                          ? state.listMultiplicador.filter(
+                              (v) => v.id == element.id_multiplicador,
+                            )[0].valor
+                          : 0) *
+                        element.costounitario *
+                        miMixin.methods.calcularFac(
+                          state.listMultiplicador.filter(
+                            (v) => v.id == element.id_multiplicador,
+                          ).length > 0
+                            ? state.listMultiplicador.filter(
+                                (v) => v.id == element.id_multiplicador,
+                              )[0].code
+                            : "N",
+                          state.datosPrincipales.volumen,
+                          state.datosPrincipales.peso,
+                          state.datosPrincipales.containers,
+                          state.datosPrincipales.amount,
+                        );
+                    } else {
+                      datosFlete.push({
+                        name: element.nameservice,
+                        valor: miMixin.methods.currencyFormat(
+                          miMixin.methods.calcularValor(
+                            state.datosPrincipales.amount,
+                            totalFleteVentas,
+                            state.listMultiplicador.some(
+                              (v) => v.id == element.id_multiplicador,
+                            )
+                              ? state.listMultiplicador.filter(
+                                  (v) => v.id == element.id_multiplicador,
+                                )[0].code
+                              : "",
+                            state.listMultiplicador.some(
+                              (v) =>
+                                v.id == element.id_multiplicador &&
+                                (v.code == 14 || v.code == 13 || v.code == 5),
+                            )
+                              ? state.listMultiplicador.some(
+                                  (v) =>
+                                    v.id == element.id_multiplicador &&
+                                    (v.code == 14 || v.code == 13),
+                                )
+                                ? element.cif
+                                : element.seguro
+                              : 0,
+                          ),
+                        ),
+                      });
+                      totalFlete += miMixin.methods.calcularValor(
+                        state.datosPrincipales.amount,
+                        totalFleteVentas,
+                        state.listMultiplicador.some(
+                          (v) => v.id == element.id_multiplicador,
+                        )
+                          ? state.listMultiplicador.filter(
+                              (v) => v.id == element.id_multiplicador,
+                            )[0].code
+                          : "",
+                        state.listMultiplicador.some(
+                          (v) =>
+                            v.id == element.id_multiplicador &&
+                            (v.code == 14 || v.code == 13 || v.code == 5),
+                        )
+                          ? state.listMultiplicador.some(
+                              (v) =>
+                                v.id == element.id_multiplicador &&
+                                (v.code == 14 || v.code == 13),
+                            )
+                            ? element.cif
+                            : element.seguro
+                          : 0,
+                      );
+                    }
+                  }
+                  if (element.esorigenflag == 1) {
+                    if (
+                      state.listMultiplicador.some(
+                        (v) => v.id == element.id_multiplicador,
+                      )
+                        ? state.listMultiplicador.filter(
+                            (v) => v.id == element.id_multiplicador,
+                          )[0].code != 5 &&
+                          state.listMultiplicador.filter(
+                            (v) => v.id == element.id_multiplicador,
+                          )[0].code != 13 &&
+                          state.listMultiplicador.filter(
+                            (v) => v.id == element.id_multiplicador,
+                          )[0].code != 14
+                        : false
+                    ) {
+                      datosOrigen.push({
+                        name: element.nameservice,
+                        valor: miMixin.methods.currencyFormat(
+                          state.listMultiplicador.filter(
+                            (v) => v.id == element.id_multiplicador,
+                          )[0].valor *
+                            element.costounitario *
+                            miMixin.methods.calcularFac(
+                              state.listMultiplicador.filter(
+                                (v) => v.id == element.id_multiplicador,
+                              ).length > 0
+                                ? state.listMultiplicador.filter(
+                                    (v) => v.id == element.id_multiplicador,
+                                  )[0].code
+                                : "N",
+                              state.datosPrincipales.volumen,
+                              state.datosPrincipales.peso,
+                              state.datosPrincipales.containers,
+                              state.datosPrincipales.amount,
+                            ),
+                        ),
+                      });
+                      totalOrigen +=
+                        (state.listMultiplicador.filter(
+                          (v) => v.id == element.id_multiplicador,
+                        ).length > 0
+                          ? state.listMultiplicador.filter(
+                              (v) => v.id == element.id_multiplicador,
+                            )[0].valor
+                          : 0) *
+                        element.costounitario *
+                        miMixin.methods.calcularFac(
+                          state.listMultiplicador.filter(
+                            (v) => v.id == element.id_multiplicador,
+                          ).length > 0
+                            ? state.listMultiplicador.filter(
+                                (v) => v.id == element.id_multiplicador,
+                              )[0].code
+                            : "N",
+                          state.datosPrincipales.volumen,
+                          state.datosPrincipales.peso,
+                          state.datosPrincipales.containers,
+                          state.datosPrincipales.amount,
+                        );
+                    } else {
+                      datosOrigen.push({
+                        name: element.nameservice,
+                        valor: miMixin.methods.currencyFormat(
+                          miMixin.methods.calcularValor(
+                            state.datosPrincipales.amount,
+                            totalFleteVentas,
+                            state.listMultiplicador.some(
+                              (v) => v.id == element.id_multiplicador,
+                            )
+                              ? state.listMultiplicador.filter(
+                                  (v) => v.id == element.id_multiplicador,
+                                )[0].code
+                              : "",
+                            state.listMultiplicador.some(
+                              (v) =>
+                                v.id == element.id_multiplicador &&
+                                (v.code == 14 || v.code == 13 || v.code == 5),
+                            )
+                              ? state.listMultiplicador.some(
+                                  (v) =>
+                                    v.id == element.id_multiplicador &&
+                                    (v.code == 14 || v.code == 13),
+                                )
+                                ? element.cif
+                                : element.seguro
+                              : 0,
+                          ),
+                        ),
+                      });
+                      totalOrigen += miMixin.methods.calcularValor(
+                        state.datosPrincipales.amount,
+                        totalFleteVentas,
+                        state.listMultiplicador.some(
+                          (v) => v.id == element.id_multiplicador,
+                        )
+                          ? state.listMultiplicador.filter(
+                              (v) => v.id == element.id_multiplicador,
+                            )[0].code
+                          : "",
+                        state.listMultiplicador.some(
+                          (v) =>
+                            v.id == element.id_multiplicador &&
+                            (v.code == 14 || v.code == 13 || v.code == 5),
+                        )
+                          ? state.listMultiplicador.some(
+                              (v) =>
+                                v.id == element.id_multiplicador &&
+                                (v.code == 14 || v.code == 13),
+                            )
+                            ? element.cif
+                            : element.seguro
+                          : 0,
+                      );
+                    }
+                  }
 
-        // IMPORTANTE: Asegúrate de llamar al resolve() con los datos requeridos al finalizar el proceso.
-        resolve({
-          flete,
-          locales,
-          aduana,
-          almacen,
-          contenedor,
-          incluye,
-          noincluye,
+                  if (element.eslocalflag == 1) {
+                    if (
+                      state.listMultiplicador.filter(
+                        (v) => v.id == element.id_multiplicador,
+                      ).length > 0
+                        ? state.listMultiplicador.filter(
+                            (v) => v.id == element.id_multiplicador,
+                          )[0].code != 5 &&
+                          state.listMultiplicador.filter(
+                            (v) => v.id == element.id_multiplicador,
+                          )[0].code != 13 &&
+                          state.listMultiplicador.filter(
+                            (v) => v.id == element.id_multiplicador,
+                          )[0].code != 14
+                        : false
+                    ) {
+                      datosLocales.push({
+                        name: element.nameservice,
+                        valor: miMixin.methods.currencyFormat(
+                          (state.listMultiplicador.filter(
+                            (v) => v.id == element.id_multiplicador,
+                          ).length > 0
+                            ? state.listMultiplicador.filter(
+                                (v) => v.id == element.id_multiplicador,
+                              )[0].valor
+                            : 0) *
+                            element.costounitario *
+                            miMixin.methods.calcularFac(
+                              state.listMultiplicador.filter(
+                                (v) => v.id == element.id_multiplicador,
+                              ).length > 0
+                                ? state.listMultiplicador.filter(
+                                    (v) => v.id == element.id_multiplicador,
+                                  )[0].code
+                                : "N",
+                              state.datosPrincipales.volumen,
+                              state.datosPrincipales.peso,
+                              state.datosPrincipales.containers,
+                              state.datosPrincipales.amount,
+                            ),
+                        ),
+                      });
+                      totalLocales +=
+                        (state.listMultiplicador.filter(
+                          (v) => v.id == element.id_multiplicador,
+                        ).length > 0
+                          ? state.listMultiplicador.filter(
+                              (v) => v.id == element.id_multiplicador,
+                            )[0].valor
+                          : 0) *
+                        element.costounitario *
+                        miMixin.methods.calcularFac(
+                          state.listMultiplicador.filter(
+                            (v) => v.id == element.id_multiplicador,
+                          ).length > 0
+                            ? state.listMultiplicador.filter(
+                                (v) => v.id == element.id_multiplicador,
+                              )[0].code
+                            : "N",
+                          state.datosPrincipales.volumen,
+                          state.datosPrincipales.peso,
+                          state.datosPrincipales.containers,
+                          state.datosPrincipales.amount,
+                        );
+                    } else {
+                      datosLocales.push({
+                        name: element.nameservice,
+                        valor: miMixin.methods.currencyFormat(
+                          miMixin.methods.calcularValor(
+                            state.datosPrincipales.amount,
+                            totalFleteVentas,
+                            state.listMultiplicador.some(
+                              (v) => v.id == element.id_multiplicador,
+                            )
+                              ? state.listMultiplicador.filter(
+                                  (v) => v.id == element.id_multiplicador,
+                                )[0].code
+                              : "",
+                            state.listMultiplicador.some(
+                              (v) =>
+                                v.id == element.id_multiplicador &&
+                                (v.code == 14 || v.code == 13 || v.code == 5),
+                            )
+                              ? state.listMultiplicador.some(
+                                  (v) =>
+                                    v.id == element.id_multiplicador &&
+                                    (v.code == 14 || v.code == 13),
+                                )
+                                ? element.cif
+                                : element.seguro
+                              : 0,
+                          ),
+                        ),
+                      });
+                      totalLocales += miMixin.methods.calcularValor(
+                        state.datosPrincipales.amount,
+                        totalFleteVentas,
+                        state.listMultiplicador.some(
+                          (v) => v.id == element.id_multiplicador,
+                        )
+                          ? state.listMultiplicador.filter(
+                              (v) => v.id == element.id_multiplicador,
+                            )[0].code
+                          : "",
+                        state.listMultiplicador.some(
+                          (v) =>
+                            v.id == element.id_multiplicador &&
+                            (v.code == 14 || v.code == 13 || v.code == 5),
+                        )
+                          ? state.listMultiplicador.some(
+                              (v) =>
+                                v.id == element.id_multiplicador &&
+                                (v.code == 14 || v.code == 13),
+                            )
+                            ? element.cif
+                            : element.seguro
+                          : 0,
+                      );
+                    }
+                  }
+
+                  if (element.esaduanaflag == 1) {
+                    if (
+                      state.listMultiplicador.filter(
+                        (v) => v.id == element.id_multiplicador,
+                      ).length > 0
+                        ? state.listMultiplicador.filter(
+                            (v) => v.id == element.id_multiplicador,
+                          )[0].code != 5 &&
+                          state.listMultiplicador.filter(
+                            (v) => v.id == element.id_multiplicador,
+                          )[0].code != 13 &&
+                          state.listMultiplicador.filter(
+                            (v) => v.id == element.id_multiplicador,
+                          )[0].code != 14
+                        : false
+                    ) {
+                      datosAduanas.push({
+                        name: element.nameservice,
+                        valor: miMixin.methods.currencyFormat(
+                          (state.listMultiplicador.filter(
+                            (v) => v.id == element.id_multiplicador,
+                          ).length > 0
+                            ? state.listMultiplicador.filter(
+                                (v) => v.id == element.id_multiplicador,
+                              )[0].valor
+                            : 0) *
+                            element.costounitario *
+                            miMixin.methods.calcularFac(
+                              state.listMultiplicador.filter(
+                                (v) => v.id == element.id_multiplicador,
+                              ).length > 0
+                                ? state.listMultiplicador.filter(
+                                    (v) => v.id == element.id_multiplicador,
+                                  )[0].code
+                                : "N",
+                              state.datosPrincipales.volumen,
+                              state.datosPrincipales.peso,
+                              state.datosPrincipales.containers,
+                              state.datosPrincipales.amount,
+                            ),
+                        ),
+                      });
+                      totalAduanas +=
+                        (state.listMultiplicador.filter(
+                          (v) => v.id == element.id_multiplicador,
+                        ).length > 0
+                          ? state.listMultiplicador.filter(
+                              (v) => v.id == element.id_multiplicador,
+                            )[0].valor
+                          : 0) *
+                        element.costounitario *
+                        miMixin.methods.calcularFac(
+                          state.listMultiplicador.filter(
+                            (v) => v.id == element.id_multiplicador,
+                          ).length > 0
+                            ? state.listMultiplicador.filter(
+                                (v) => v.id == element.id_multiplicador,
+                              )[0].code
+                            : "N",
+                          state.datosPrincipales.volumen,
+                          state.datosPrincipales.peso,
+                          state.datosPrincipales.containers,
+                          state.datosPrincipales.amount,
+                        );
+                    } else {
+                      datosAduanas.push({
+                        name: element.nameservice,
+                        valor: miMixin.methods.currencyFormat(
+                          miMixin.methods.calcularValor(
+                            state.datosPrincipales.amount,
+                            totalFleteVentas,
+                            state.listMultiplicador.some(
+                              (v) => v.id == element.id_multiplicador,
+                            )
+                              ? state.listMultiplicador.filter(
+                                  (v) => v.id == element.id_multiplicador,
+                                )[0].code
+                              : "",
+                            state.listMultiplicador.some(
+                              (v) =>
+                                v.id == element.id_multiplicador &&
+                                (v.code == 14 || v.code == 13 || v.code == 5),
+                            )
+                              ? state.listMultiplicador.some(
+                                  (v) =>
+                                    v.id == element.id_multiplicador &&
+                                    (v.code == 14 || v.code == 13),
+                                )
+                                ? element.cif
+                                : element.seguro
+                              : 0,
+                          ),
+                        ),
+                      });
+                      totalAduanas += miMixin.methods.calcularValor(
+                        state.datosPrincipales.amount,
+                        totalFleteVentas,
+                        state.listMultiplicador.some(
+                          (v) => v.id == element.id_multiplicador,
+                        )
+                          ? state.listMultiplicador.filter(
+                              (v) => v.id == element.id_multiplicador,
+                            )[0].code
+                          : "",
+                        state.listMultiplicador.some(
+                          (v) =>
+                            v.id == element.id_multiplicador &&
+                            (v.code == 14 || v.code == 13 || v.code == 5),
+                        )
+                          ? state.listMultiplicador.some(
+                              (v) =>
+                                v.id == element.id_multiplicador &&
+                                (v.code == 14 || v.code == 13),
+                            )
+                            ? element.cif
+                            : element.seguro
+                          : 0,
+                      );
+                    }
+                  }
+
+                  if (element.esalmacenflag == 1) {
+                    if (
+                      state.listMultiplicador.filter(
+                        (v) => v.id == element.id_multiplicador,
+                      )[0].code != 5 &&
+                      state.listMultiplicador.filter(
+                        (v) => v.id == element.id_multiplicador,
+                      )[0].code != 13 &&
+                      state.listMultiplicador.filter(
+                        (v) => v.id == element.id_multiplicador,
+                      )[0].code != 14
+                    ) {
+                      datosAlmacenes.push({
+                        name: element.nameservice,
+                        valor: miMixin.methods.currencyFormat(
+                          (state.listMultiplicador.filter(
+                            (v) => v.id == element.id_multiplicador,
+                          ).length > 0
+                            ? state.listMultiplicador.filter(
+                                (v) => v.id == element.id_multiplicador,
+                              )[0].valor
+                            : 0) *
+                            element.costounitario *
+                            miMixin.methods.calcularFac(
+                              state.listMultiplicador.filter(
+                                (v) => v.id == element.id_multiplicador,
+                              ).length > 0
+                                ? state.listMultiplicador.filter(
+                                    (v) => v.id == element.id_multiplicador,
+                                  )[0].code
+                                : "N",
+                              state.datosPrincipales.volumen,
+                              state.datosPrincipales.peso,
+                              state.datosPrincipales.containers,
+                              state.datosPrincipales.amount,
+                            ),
+                        ),
+                      });
+                      totalAlmacenes +=
+                        (state.listMultiplicador.filter(
+                          (v) => v.id == element.id_multiplicador,
+                        ).length > 0
+                          ? state.listMultiplicador.filter(
+                              (v) => v.id == element.id_multiplicador,
+                            )[0].valor
+                          : 0) *
+                        element.costounitario *
+                        miMixin.methods.calcularFac(
+                          state.listMultiplicador.filter(
+                            (v) => v.id == element.id_multiplicador,
+                          ).length > 0
+                            ? state.listMultiplicador.filter(
+                                (v) => v.id == element.id_multiplicador,
+                              )[0].code
+                            : "N",
+                          state.datosPrincipales.volumen,
+                          state.datosPrincipales.peso,
+                          state.datosPrincipales.containers,
+                          state.datosPrincipales.amount,
+                        );
+                    } else {
+                      datosAlmacenes.push({
+                        name: element.nameservice,
+                        valor: miMixin.methods.currencyFormat(
+                          miMixin.methods.calcularValor(
+                            state.datosPrincipales.amount,
+                            totalFleteVentas,
+                            state.listMultiplicador.some(
+                              (v) => v.id == element.id_multiplicador,
+                            )
+                              ? state.listMultiplicador.filter(
+                                  (v) => v.id == element.id_multiplicador,
+                                )[0].code
+                              : "",
+                            state.listMultiplicador.some(
+                              (v) =>
+                                v.id == element.id_multiplicador &&
+                                (v.code == 14 || v.code == 13 || v.code == 5),
+                            )
+                              ? state.listMultiplicador.some(
+                                  (v) =>
+                                    v.id == element.id_multiplicador &&
+                                    (v.code == 14 || v.code == 13),
+                                )
+                                ? element.cif
+                                : element.seguro
+                              : 0,
+                          ),
+                        ),
+                      });
+                      totalAlmacenes += miMixin.methods.calcularValor(
+                        state.datosPrincipales.amount,
+                        totalFleteVentas,
+                        state.listMultiplicador.some(
+                          (v) => v.id == element.id_multiplicador,
+                        )
+                          ? state.listMultiplicador.filter(
+                              (v) => v.id == element.id_multiplicador,
+                            )[0].code
+                          : "",
+                        state.listMultiplicador.some(
+                          (v) =>
+                            v.id == element.id_multiplicador &&
+                            (v.code == 14 || v.code == 13 || v.code == 5),
+                        )
+                          ? state.listMultiplicador.some(
+                              (v) =>
+                                v.id == element.id_multiplicador &&
+                                (v.code == 14 || v.code == 13),
+                            )
+                            ? element.cif
+                            : element.seguro
+                          : 0,
+                      );
+                    }
+                  }
+                  if (element.esgastostercerosflag == 1) {
+                    if (
+                      state.listMultiplicador.filter(
+                        (v) => v.id == element.id_multiplicador,
+                      )[0].code != 5 &&
+                      state.listMultiplicador.filter(
+                        (v) => v.id == element.id_multiplicador,
+                      )[0].code != 13 &&
+                      state.listMultiplicador.filter(
+                        (v) => v.id == element.id_multiplicador,
+                      )[0].code != 14
+                    ) {
+                      datosGastosTerceros.push({
+                        name: element.nameservice,
+                        valor: miMixin.methods.currencyFormat(
+                          (state.listMultiplicador.filter(
+                            (v) => v.id == element.id_multiplicador,
+                          ).length > 0
+                            ? state.listMultiplicador.filter(
+                                (v) => v.id == element.id_multiplicador,
+                              )[0].valor
+                            : 0) *
+                            element.costounitario *
+                            miMixin.methods.calcularFac(
+                              state.listMultiplicador.filter(
+                                (v) => v.id == element.id_multiplicador,
+                              ).length > 0
+                                ? state.listMultiplicador.filter(
+                                    (v) => v.id == element.id_multiplicador,
+                                  )[0].code
+                                : "N",
+                              state.datosPrincipales.volumen,
+                              state.datosPrincipales.peso,
+                              state.datosPrincipales.containers,
+                              state.datosPrincipales.amount,
+                            ),
+                        ),
+                      });
+                      totalGastosTercero +=
+                        (state.listMultiplicador.filter(
+                          (v) => v.id == element.id_multiplicador,
+                        ).length > 0
+                          ? state.listMultiplicador.filter(
+                              (v) => v.id == element.id_multiplicador,
+                            )[0].valor
+                          : 0) *
+                        element.costounitario *
+                        miMixin.methods.calcularFac(
+                          state.listMultiplicador.filter(
+                            (v) => v.id == element.id_multiplicador,
+                          ).length > 0
+                            ? state.listMultiplicador.filter(
+                                (v) => v.id == element.id_multiplicador,
+                              )[0].code
+                            : "N",
+                          state.datosPrincipales.volumen,
+                          state.datosPrincipales.peso,
+                          state.datosPrincipales.containers,
+                          state.datosPrincipales.amount,
+                        );
+                    } else {
+                      datosGastosTerceros.push({
+                        name: element.nameservice,
+                        valor: miMixin.methods.currencyFormat(
+                          miMixin.methods.calcularValor(
+                            state.datosPrincipales.amount,
+                            totalFleteVentas,
+                            state.listMultiplicador.some(
+                              (v) => v.id == element.id_multiplicador,
+                            )
+                              ? state.listMultiplicador.filter(
+                                  (v) => v.id == element.id_multiplicador,
+                                )[0].code
+                              : "",
+                            state.listMultiplicador.some(
+                              (v) =>
+                                v.id == element.id_multiplicador &&
+                                (v.code == 14 || v.code == 13 || v.code == 5),
+                            )
+                              ? state.listMultiplicador.some(
+                                  (v) =>
+                                    v.id == element.id_multiplicador &&
+                                    (v.code == 14 || v.code == 13),
+                                )
+                                ? element.cif
+                                : element.seguro
+                              : 0,
+                          ),
+                        ),
+                      });
+                      totalGastosTercero += miMixin.methods.calcularValor(
+                        state.datosPrincipales.amount,
+                        totalFleteVentas,
+                        state.listMultiplicador.some(
+                          (v) => v.id == element.id_multiplicador,
+                        )
+                          ? state.listMultiplicador.filter(
+                              (v) => v.id == element.id_multiplicador,
+                            )[0].code
+                          : "",
+                        state.listMultiplicador.some(
+                          (v) =>
+                            v.id == element.id_multiplicador &&
+                            (v.code == 14 || v.code == 13 || v.code == 5),
+                        )
+                          ? state.listMultiplicador.some(
+                              (v) =>
+                                v.id == element.id_multiplicador &&
+                                (v.code == 14 || v.code == 13),
+                            )
+                            ? element.cif
+                            : element.seguro
+                          : 0,
+                      );
+                    }
+                  }
+                });
+            }
+            if (tipo == "TOTAL") {
+              opcionCosto.listCostos
+                .filter((v) => v.status == 1 && v.esventaflag == 1)
+                .forEach((element) => {
+                  if (element.esfleteflag == 1) {
+                    datosFlete.push({
+                      name: element.nameservice,
+                      valor: "",
+                    });
+                    if (
+                      state.listMultiplicador.some(
+                        (v) => v.id == element.id_multiplicador,
+                      )
+                        ? state.listMultiplicador.filter(
+                            (v) => v.id == element.id_multiplicador,
+                          )[0].code != 5 &&
+                          state.listMultiplicador.filter(
+                            (v) => v.id == element.id_multiplicador,
+                          )[0].code != 13 &&
+                          state.listMultiplicador.filter(
+                            (v) => v.id == element.id_multiplicador,
+                          )[0].code != 14
+                        : false
+                    ) {
+                      totalFlete +=
+                        (state.listMultiplicador.filter(
+                          (v) => v.id == element.id_multiplicador,
+                        ).length > 0
+                          ? state.listMultiplicador.filter(
+                              (v) => v.id == element.id_multiplicador,
+                            )[0].valor
+                          : 0) *
+                        element.costounitario *
+                        miMixin.methods.calcularFac(
+                          state.listMultiplicador.filter(
+                            (v) => v.id == element.id_multiplicador,
+                          ).length > 0
+                            ? state.listMultiplicador.filter(
+                                (v) => v.id == element.id_multiplicador,
+                              )[0].code
+                            : "N",
+                          state.datosPrincipales.volumen,
+                          state.datosPrincipales.peso,
+                          state.datosPrincipales.containers,
+                          state.datosPrincipales.amount,
+                        );
+                    } else {
+                      totalFlete += miMixin.methods.calcularValor(
+                        state.datosPrincipales.amount,
+                        totalFleteVentas,
+                        state.listMultiplicador.some(
+                          (v) => v.id == element.id_multiplicador,
+                        )
+                          ? state.listMultiplicador.filter(
+                              (v) => v.id == element.id_multiplicador,
+                            )[0].code
+                          : "",
+                        state.listMultiplicador.some(
+                          (v) =>
+                            v.id == element.id_multiplicador &&
+                            (v.code == 14 || v.code == 13 || v.code == 5),
+                        )
+                          ? state.listMultiplicador.some(
+                              (v) =>
+                                v.id == element.id_multiplicador &&
+                                (v.code == 14 || v.code == 13),
+                            )
+                            ? element.cif
+                            : element.seguro
+                          : 0,
+                      );
+                    }
+                  }
+                  if (element.esorigenflag == 1) {
+                    datosOrigen.push({
+                      name: element.nameservice,
+                      valor: "",
+                    });
+                    if (
+                      state.listMultiplicador.some(
+                        (v) => v.id == element.id_multiplicador,
+                      )
+                        ? state.listMultiplicador.filter(
+                            (v) => v.id == element.id_multiplicador,
+                          )[0].code != 5 &&
+                          state.listMultiplicador.filter(
+                            (v) => v.id == element.id_multiplicador,
+                          )[0].code != 13 &&
+                          state.listMultiplicador.filter(
+                            (v) => v.id == element.id_multiplicador,
+                          )[0].code != 14
+                        : false
+                    ) {
+                      totalOrigen +=
+                        (state.listMultiplicador.filter(
+                          (v) => v.id == element.id_multiplicador,
+                        ).length > 0
+                          ? state.listMultiplicador.filter(
+                              (v) => v.id == element.id_multiplicador,
+                            )[0].valor
+                          : 0) *
+                        element.costounitario *
+                        miMixin.methods.calcularFac(
+                          state.listMultiplicador.filter(
+                            (v) => v.id == element.id_multiplicador,
+                          ).length > 0
+                            ? state.listMultiplicador.filter(
+                                (v) => v.id == element.id_multiplicador,
+                              )[0].code
+                            : "N",
+                          state.datosPrincipales.volumen,
+                          state.datosPrincipales.peso,
+                          state.datosPrincipales.containers,
+                          state.datosPrincipales.amount,
+                        );
+                    } else {
+                      totalOrigen += miMixin.methods.calcularValor(
+                        state.datosPrincipales.amount,
+                        totalFleteVentas,
+                        state.listMultiplicador.some(
+                          (v) => v.id == element.id_multiplicador,
+                        )
+                          ? state.listMultiplicador.filter(
+                              (v) => v.id == element.id_multiplicador,
+                            )[0].code
+                          : "",
+                        state.listMultiplicador.some(
+                          (v) =>
+                            v.id == element.id_multiplicador &&
+                            (v.code == 14 || v.code == 13 || v.code == 5),
+                        )
+                          ? state.listMultiplicador.some(
+                              (v) =>
+                                v.id == element.id_multiplicador &&
+                                (v.code == 14 || v.code == 13),
+                            )
+                            ? element.cif
+                            : element.seguro
+                          : 0,
+                      );
+                    }
+                  }
+
+                  if (element.eslocalflag == 1) {
+                    datosLocales.push({
+                      name: element.nameservice,
+                      valor: "",
+                    });
+                    if (
+                      state.listMultiplicador.filter(
+                        (v) => v.id == element.id_multiplicador,
+                      ).length > 0
+                        ? state.listMultiplicador.filter(
+                            (v) => v.id == element.id_multiplicador,
+                          )[0].code != 5 &&
+                          state.listMultiplicador.filter(
+                            (v) => v.id == element.id_multiplicador,
+                          )[0].code != 13 &&
+                          state.listMultiplicador.filter(
+                            (v) => v.id == element.id_multiplicador,
+                          )[0].code != 14
+                        : false
+                    ) {
+                      totalLocales +=
+                        (state.listMultiplicador.filter(
+                          (v) => v.id == element.id_multiplicador,
+                        ).length > 0
+                          ? state.listMultiplicador.filter(
+                              (v) => v.id == element.id_multiplicador,
+                            )[0].valor
+                          : 0) *
+                        element.costounitario *
+                        miMixin.methods.calcularFac(
+                          state.listMultiplicador.filter(
+                            (v) => v.id == element.id_multiplicador,
+                          ).length > 0
+                            ? state.listMultiplicador.filter(
+                                (v) => v.id == element.id_multiplicador,
+                              )[0].code
+                            : "N",
+                          state.datosPrincipales.volumen,
+                          state.datosPrincipales.peso,
+                          state.datosPrincipales.containers,
+                          state.datosPrincipales.amount,
+                        );
+                    } else {
+                      totalLocales += miMixin.methods.calcularValor(
+                        state.datosPrincipales.amount,
+                        totalFleteVentas,
+                        state.listMultiplicador.some(
+                          (v) => v.id == element.id_multiplicador,
+                        )
+                          ? state.listMultiplicador.filter(
+                              (v) => v.id == element.id_multiplicador,
+                            )[0].code
+                          : "",
+                        state.listMultiplicador.some(
+                          (v) =>
+                            v.id == element.id_multiplicador &&
+                            (v.code == 14 || v.code == 13 || v.code == 5),
+                        )
+                          ? state.listMultiplicador.some(
+                              (v) =>
+                                v.id == element.id_multiplicador &&
+                                (v.code == 14 || v.code == 13),
+                            )
+                            ? element.cif
+                            : element.seguro
+                          : 0,
+                      );
+                    }
+                  }
+
+                  if (element.esaduanaflag == 1) {
+                    datosAduanas.push({
+                      name: element.nameservice,
+                      valor: "",
+                    });
+                    if (
+                      state.listMultiplicador.filter(
+                        (v) => v.id == element.id_multiplicador,
+                      ).length > 0
+                        ? state.listMultiplicador.filter(
+                            (v) => v.id == element.id_multiplicador,
+                          )[0].code != 5 &&
+                          state.listMultiplicador.filter(
+                            (v) => v.id == element.id_multiplicador,
+                          )[0].code != 13 &&
+                          state.listMultiplicador.filter(
+                            (v) => v.id == element.id_multiplicador,
+                          )[0].code != 14
+                        : false
+                    ) {
+                      totalAduanas +=
+                        (state.listMultiplicador.filter(
+                          (v) => v.id == element.id_multiplicador,
+                        ).length > 0
+                          ? state.listMultiplicador.filter(
+                              (v) => v.id == element.id_multiplicador,
+                            )[0].valor
+                          : 0) *
+                        element.costounitario *
+                        miMixin.methods.calcularFac(
+                          state.listMultiplicador.filter(
+                            (v) => v.id == element.id_multiplicador,
+                          ).length > 0
+                            ? state.listMultiplicador.filter(
+                                (v) => v.id == element.id_multiplicador,
+                              )[0].code
+                            : "N",
+                          state.datosPrincipales.volumen,
+                          state.datosPrincipales.peso,
+                          state.datosPrincipales.containers,
+                          state.datosPrincipales.amount,
+                        );
+                    } else {
+                      totalAduanas += miMixin.methods.calcularValor(
+                        state.datosPrincipales.amount,
+                        totalFleteVentas,
+                        state.listMultiplicador.some(
+                          (v) => v.id == element.id_multiplicador,
+                        )
+                          ? state.listMultiplicador.filter(
+                              (v) => v.id == element.id_multiplicador,
+                            )[0].code
+                          : "",
+                        state.listMultiplicador.some(
+                          (v) =>
+                            v.id == element.id_multiplicador &&
+                            (v.code == 14 || v.code == 13 || v.code == 5),
+                        )
+                          ? state.listMultiplicador.some(
+                              (v) =>
+                                v.id == element.id_multiplicador &&
+                                (v.code == 14 || v.code == 13),
+                            )
+                            ? element.cif
+                            : element.seguro
+                          : 0,
+                      );
+                    }
+                  }
+
+                  if (element.esalmacenflag == 1) {
+                    datosAlmacenes.push({
+                      name: element.nameservice,
+                      valor: "",
+                    });
+                    if (
+                      state.listMultiplicador.filter(
+                        (v) => v.id == element.id_multiplicador,
+                      )[0].code != 5 &&
+                      state.listMultiplicador.filter(
+                        (v) => v.id == element.id_multiplicador,
+                      )[0].code != 13 &&
+                      state.listMultiplicador.filter(
+                        (v) => v.id == element.id_multiplicador,
+                      )[0].code != 14
+                    ) {
+                      totalAlmacenes +=
+                        (state.listMultiplicador.filter(
+                          (v) => v.id == element.id_multiplicador,
+                        ).length > 0
+                          ? state.listMultiplicador.filter(
+                              (v) => v.id == element.id_multiplicador,
+                            )[0].valor
+                          : 0) *
+                        element.costounitario *
+                        miMixin.methods.calcularFac(
+                          state.listMultiplicador.filter(
+                            (v) => v.id == element.id_multiplicador,
+                          ).length > 0
+                            ? state.listMultiplicador.filter(
+                                (v) => v.id == element.id_multiplicador,
+                              )[0].code
+                            : "N",
+                          state.datosPrincipales.volumen,
+                          state.datosPrincipales.peso,
+                          state.datosPrincipales.containers,
+                          state.datosPrincipales.amount,
+                        );
+                    } else {
+                      totalAlmacenes += miMixin.methods.calcularValor(
+                        state.datosPrincipales.amount,
+                        totalFleteVentas,
+                        state.listMultiplicador.some(
+                          (v) => v.id == element.id_multiplicador,
+                        )
+                          ? state.listMultiplicador.filter(
+                              (v) => v.id == element.id_multiplicador,
+                            )[0].code
+                          : "",
+                        state.listMultiplicador.some(
+                          (v) =>
+                            v.id == element.id_multiplicador &&
+                            (v.code == 14 || v.code == 13 || v.code == 5),
+                        )
+                          ? state.listMultiplicador.some(
+                              (v) =>
+                                v.id == element.id_multiplicador &&
+                                (v.code == 14 || v.code == 13),
+                            )
+                            ? element.cif
+                            : element.seguro
+                          : 0,
+                      );
+                    }
+                  }
+                  if (element.esgastostercerosflag == 1) {
+                    datosGastosTerceros.push({
+                      name: element.nameservice,
+                      valor: "",
+                    });
+                    if (
+                      state.listMultiplicador.filter(
+                        (v) => v.id == element.id_multiplicador,
+                      )[0].code != 5 &&
+                      state.listMultiplicador.filter(
+                        (v) => v.id == element.id_multiplicador,
+                      )[0].code != 13 &&
+                      state.listMultiplicador.filter(
+                        (v) => v.id == element.id_multiplicador,
+                      )[0].code != 14
+                    ) {
+                      totalGastosTercero +=
+                        (state.listMultiplicador.filter(
+                          (v) => v.id == element.id_multiplicador,
+                        ).length > 0
+                          ? state.listMultiplicador.filter(
+                              (v) => v.id == element.id_multiplicador,
+                            )[0].valor
+                          : 0) *
+                        element.costounitario *
+                        miMixin.methods.calcularFac(
+                          state.listMultiplicador.filter(
+                            (v) => v.id == element.id_multiplicador,
+                          ).length > 0
+                            ? state.listMultiplicador.filter(
+                                (v) => v.id == element.id_multiplicador,
+                              )[0].code
+                            : "N",
+                          state.datosPrincipales.volumen,
+                          state.datosPrincipales.peso,
+                          state.datosPrincipales.containers,
+                          state.datosPrincipales.amount,
+                        );
+                    } else {
+                      totalGastosTercero += miMixin.methods.calcularValor(
+                        state.datosPrincipales.amount,
+                        totalFleteVentas,
+                        state.listMultiplicador.some(
+                          (v) => v.id == element.id_multiplicador,
+                        )
+                          ? state.listMultiplicador.filter(
+                              (v) => v.id == element.id_multiplicador,
+                            )[0].code
+                          : "",
+                        state.listMultiplicador.some(
+                          (v) =>
+                            v.id == element.id_multiplicador &&
+                            (v.code == 14 || v.code == 13 || v.code == 5),
+                        )
+                          ? state.listMultiplicador.some(
+                              (v) =>
+                                v.id == element.id_multiplicador &&
+                                (v.code == 14 || v.code == 13),
+                            )
+                            ? element.cif
+                            : element.seguro
+                          : 0,
+                      );
+                    }
+                  }
+                });
+            }
+            // ----------------------------------------------------------------
+            totalServicios =
+              (isFlete == true ? totalFlete : 0) +
+              (isOrigen == true ? totalOrigen : 0) +
+              (isLocal == true ? totalLocales : 0) +
+              (isAduana == true ? totalAduanas : 0) +
+              (isAlmacen == true ? totalAlmacenes : 0) +
+              (isGastosTercero == true ? totalGastosTercero : 0);
+
+            let totalImpuestosIGV = 0;
+            // ----------------------------------------------------------------
+
+            if (!!isImport) {
+              totalImpuestosIGV =
+                ((parseFloat(isLocal == true ? totalLocales : 0) +
+                  parseFloat(isAduana == true ? totalAduanas : 0) +
+                  parseFloat(isAlmacen == true ? totalAlmacenes : 0) +
+                  parseFloat(
+                    isGastosTercero == true ? totalGastosTercero : 0,
+                  )) *
+                  enterprise.state.impuesto.impuesto) /
+                100;
+            } else {
+              totalImpuestosIGV =
+                ((parseFloat(isOrigen == true ? totalOrigen : 0) +
+                  parseFloat(isLocal == true ? totalLocales : 0) +
+                  parseFloat(isAduana == true ? totalAduanas : 0) +
+                  parseFloat(
+                    isGastosTercero == true ? totalGastosTercero : 0,
+                  )) *
+                  enterprise.state.impuesto.impuesto) /
+                100;
+            }
+
+            let total = miMixin.methods.currencyFormat(
+              parseFloat(totalServicios) +
+                parseFloat(totalImpuesto) +
+                parseFloat(totalImpuestosIGV),
+            );
+
+            OpcionesSelecciondas.push({
+              nro_propuesta: opcionCosto.nro_propuesta,
+              date_end: opcionCosto.date_end,
+              tiempo_transito: opcionCosto.tiempo_transito,
+              importante: importante,
+              impuesto: imp,
+              datosFlete: isFlete == true ? datosFlete : [],
+              datosOrigen: isOrigen == true ? datosOrigen : [],
+              datosLocales: isLocal == true ? datosLocales : [],
+              datosAduanas: isAduana == true ? datosAduanas : [],
+              datosAlmacenes: isAlmacen == true ? datosAlmacenes : [],
+              datosGastosTerceros:
+                isGastosTercero == true ? datosGastosTerceros : [],
+              totalImpuestosIGV:
+                miMixin.methods.currencyFormat(totalImpuestosIGV),
+              totalImpuesto: miMixin.methods.currencyFormat(
+                parseFloat(totalImpuesto).toFixed(2),
+              ),
+              total: total,
+              totalFlete:
+                isFlete == true
+                  ? miMixin.methods.currencyFormat(totalFlete)
+                  : miMixin.methods.currencyFormat(0),
+              totalOrigen:
+                isOrigen == true
+                  ? miMixin.methods.currencyFormat(totalOrigen)
+                  : miMixin.methods.currencyFormat(0),
+              totalLocales:
+                isLocal == true
+                  ? miMixin.methods.currencyFormat(totalLocales)
+                  : miMixin.methods.currencyFormat(0),
+              totalAduanas:
+                isAduana == true
+                  ? miMixin.methods.currencyFormat(totalAduanas)
+                  : miMixin.methods.currencyFormat(0),
+              totalAlmacenes:
+                isAlmacen == true
+                  ? miMixin.methods.currencyFormat(totalAlmacenes)
+                  : miMixin.methods.currencyFormat(0),
+              totalGastosTercero:
+                isGastosTercero == true
+                  ? miMixin.methods.currencyFormat(totalGastosTercero)
+                  : miMixin.methods.currencyFormat(0),
+              conceptos: conceptos,
+              totalServicios: miMixin.methods.currencyFormat(totalServicios),
+              listServices: state.listServices,
+              listNotasQuote: opcionCosto.listNotasQuote,
+            });
+          }, 10);
         });
-      } catch (error) {
-        reject(error);
-      }
+
+      /* FLETE - LOCAL - ADUANA - ALMACEN - SERVICIOS SIEMPRE VENTAFLAG == 0*/
+
+      /* IMPUESTOS */
+
+      // ----------------------------------------------------------------
+
+      /* GENERAR */
+
+      let data = {
+        TipoCostos: TipoCostos,
+        isImport: state.listModality.some(
+          (v) => v.id == state.datosPrincipales.idsentido && v.code == "I",
+        ),
+        id_branch: JSON.parse(sessionStorage.getItem("dataUser"))[0].id_branch,
+        code: "########",
+        business_name: state.datosEmpresa[0].business_name
+          ? state.datosEmpresa[0].business_name
+          : "",
+        address: state.datosEmpresa[0].address,
+        iso: state.datosEmpresa[0].iso_pais,
+        iso_pais: state.datosEmpresa[0].iso_pais,
+        pais: state.datosEmpresa[0].pais,
+        document: state.datosEmpresa[0].document,
+        phone: state.datosEmpresa[0].phone,
+        tipo: tipo,
+        cliente: state.datosPrincipales.nombre,
+        slogancliente: state.datosPrincipales.slogan
+          ? state.datosPrincipales.slogan
+          : "",
+        fechafin: state.datosPrincipales.fecha_fin,
+        tiempoTransito: state.datosPrincipales.tiempo_transito,
+        origen:
+          state.listPortBegin.filter(
+            (v) => v.id_port == state.datosPrincipales.idorigen,
+          ).length > 0
+            ? state.listPortBegin.filter(
+                (v) => v.id_port == state.datosPrincipales.idorigen,
+              )[0].name
+            : "",
+        destino:
+          state.listPortEnd.filter(
+            (v) => v.id_port == state.datosPrincipales.iddestino,
+          ).length > 0
+            ? state.listPortEnd.filter(
+                (v) => v.id_port == state.datosPrincipales.iddestino,
+              )[0].name
+            : "",
+
+        flete: flete,
+        almacen: almacen,
+        aduana: aduana,
+        local: locales,
+        // totalImpuesto: miMixin.methods.currencyFormat(
+        //   parseFloat(totalImpuesto).toFixed(2)
+        // ),
+        incluye: incluye,
+        noincluye: noincluye,
+        importante: importante,
+        contenedor: contenedor,
+        conceptos: conceptos,
+        numerobultos: state.datosPrincipales.numerobultos,
+        peso: state.datosPrincipales.peso,
+        volumen: state.datosPrincipales.volumen,
+        sentido: state.listModality.filter(
+          (v) => v.id == state.datosPrincipales.idsentido,
+        )[0].name,
+        embarque: state.listShipment.filter(
+          (v) =>
+            v.id ==
+            (state.datosPrincipales.idtipocarga.id
+              ? state.datosPrincipales.idtipocarga.id
+              : state.datosPrincipales.idtipocarga),
+        )[0].embarque,
+        icoterm: state.listIncoterms.filter(
+          (v) => v.id == state.datosPrincipales.idincoterms,
+        )[0].name,
+
+        OpcionesSelecciondas: OpcionesSelecciondas,
+      };
+      setTimeout(() => {
+        resolve(data);
+      }, 1000);
     });
   },
   validarCosto() {
@@ -5728,8 +7464,13 @@ export function getNombreCotizacion(listNotasQuote) {
     default:
       break;
   }
+  let containers = "";
+  if (shipment.code == "FCL") {
+    containers = state.datosPrincipales.containers.map((c) => c.code).join("_");
+  }
+
   let nota = state.opcionCostos[0].listNotasQuote[0].descripcion;
-  state.nombre_cotizacion = `COTIZACION ${nota} ${state.datosPrincipales.nombre}`;
+  state.nombre_cotizacion = `COTIZACION ${nota} ${containers} ${state.datosPrincipales.nombre}`;
   return name;
 }
 
