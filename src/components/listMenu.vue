@@ -141,6 +141,29 @@
                 </template>
               </v-select>
 
+              <v-autocomplete
+                label="Puerto Origen"
+                class="my-1 px-5 text-resumen"
+                dense
+                :rules="[(v) => !!v || 'Dato requerido']"
+                :items="$store.state.pricing.listPortBegin"
+                item-text="name"
+                item-value="id_port"
+                v-model="$store.state.pricing.datosPrincipales.idorigen"
+              ></v-autocomplete>
+
+              <v-autocomplete
+                label="Puerto Destino"
+                class="my-1 px-5 text-resumen"
+                dense
+                :rules="[(v) => !!v || 'Dato requerido']"
+                :items="this.$store.state.pricing.listPortEnd"
+                item-text="name"
+                item-value="id_port"
+                v-model="$store.state.pricing.datosPrincipales.iddestino"
+              >
+              </v-autocomplete>
+
               <v-text-field
                 class="my-1 px-5 text-resumen"
                 prefix="$"

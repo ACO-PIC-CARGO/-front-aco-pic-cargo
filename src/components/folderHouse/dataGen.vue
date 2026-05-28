@@ -7,6 +7,8 @@
           readonly
           v-model="$store.state.house_master_expediente"
           label="N° de Expedientes Master"
+          append-icon="mdi-eye"
+          @click:append="irAMaster()"
         ></v-text-field>
       </v-col>
       <!-- <v-col cols="12" md="6">
@@ -428,6 +430,7 @@ export default {
       "dataHouse_transporte",
       "recargarClienteFlag",
     ]),
+
     esAereo() {
       const v = this.$store.state.house_id_trasnport;
       const id = v && typeof v === "object" ? v.id : v;
@@ -486,6 +489,15 @@ export default {
     ]),
     isDisabled(item) {
       return !item.porasignar; // Deshabilita si el estado no es "activo"
+    },
+    irAMaster() {
+      console.log("ir a master", this.$store.state.id_master);
+      this.$router.push({
+        name: "controlMasterVer",
+        params: {
+          id: this.$store.state.id_master,
+        },
+      });
     },
     reset() {
       let vm = this;
@@ -805,6 +817,7 @@ export default {
         let house = this.$store.state.houses.house;
 
         this.$store.state.copy_house = house;
+        this.$store.state.id_master = house.id_master;
         this.$store.state.dataHouse_transporte = house.id_transport;
         this.$store.state.house_origen = house.id_port_begin;
         this.$store.state.house_destino = house.id_port_end;

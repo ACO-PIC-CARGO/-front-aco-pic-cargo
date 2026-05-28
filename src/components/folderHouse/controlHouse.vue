@@ -525,7 +525,6 @@ export default {
     }
   },
   async mounted() {
-    console.log('sssssssssssssssssssss')
     if (this.$route.name == "controlHouse") {
       this.$store.state.mainTitle = "CONTROL DE EXPEDIENTE HOUSE";
     } else if (

@@ -2037,9 +2037,10 @@ export default {
         datosInstructivoManual: {
           ...this.datosManuales,
           listaDocumentos: this.listaDocumentos,
+          table_allpath_list: this.listaDocumentos,
         },
-      });
-      this.$emit("continuar");
+      }),
+        this.$emit("continuar");
     },
     continuarListaDiaFecha() {
       if (!this.datosManuales.email) {
@@ -2093,7 +2094,11 @@ export default {
       Promise.all([
         this.guardarDatosInstructivo({
           id: this.$route.params.id,
-          datosInstructivoManual: this.datosManuales,
+          datosInstructivoManual: {
+            ...this.datosManuales,
+            listaDocumentos: this.listaDocumentos,
+            table_allpath_list: this.listaDocumentos,
+          },
         }),
         this.generarHTML(),
         this.generarHTMLPDF(true),

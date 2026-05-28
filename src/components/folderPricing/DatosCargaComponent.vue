@@ -39,7 +39,7 @@
                 dense
                 :rules="[(v) => !!v || 'Dato requerido']"
                 class="my-1"
-                :items="this.$store.state.pricing.listPortEnd"
+                :items="$store.state.pricing.listPortEnd"
                 item-text="name"
                 item-value="id_port"
                 v-model="$store.state.pricing.datosPrincipales.iddestino"

@@ -11,7 +11,7 @@ const mutations = {
     state.listHouse = data;
   },
   SET_VER_HOUSE(state, data) {
-    console.log('SET_VER_HOUSE',data)
+    
     state.house = data;
   },
 };

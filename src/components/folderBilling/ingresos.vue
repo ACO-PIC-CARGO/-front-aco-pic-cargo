@@ -51,6 +51,15 @@
                   >
                     <v-icon>mdi-eye</v-icon>
                   </v-btn>
+
+                  <v-btn
+                    color="default"
+                    icon
+                    v-if="house.ruta_cotizacion"
+                    @click="openDoc(house.ruta_cotizacion)"
+                  >
+                    <v-icon>mdi-file</v-icon>
+                  </v-btn>
                 </td>
                 <td>{{ house.consigner }}</td>
                 <td>{{ house.total_total_pr_ingresos }}</td>
