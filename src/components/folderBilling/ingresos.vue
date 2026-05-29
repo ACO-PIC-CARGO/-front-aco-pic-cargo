@@ -60,6 +60,20 @@
                   >
                     <v-icon>mdi-file</v-icon>
                   </v-btn>
+
+                  <v-btn
+                    color="default"
+                    icon
+                    v-if="!house.ruta_cotizacion"
+                    @click="
+                      abrirModalRegistroDocumentoHouse(
+                        house.datosinstructivomanual,
+                        house.id_quote,
+                      )
+                    "
+                  >
+                    <v-icon>mdi-file-document-plus</v-icon>
+                  </v-btn>
                 </td>
                 <td>{{ house.consigner }}</td>
                 <td>{{ house.total_total_pr_ingresos }}</td>
@@ -801,6 +815,7 @@
                     :items="conceptos.filter((v) => !v.facturado)"
                     show-select
                     item-key="id"
+                    hide-default-footer
                   >
                   </v-data-table>
                 </v-col>
@@ -1098,6 +1113,88 @@
         </v-card-actions>
       </v-card>
     </v-dialog>
+
+    <v-dialog
+      v-model="dialogCargarArchivoCotizacion"
+      scrollable
+      persistent
+      max-width="40%"
+    >
+      <v-card>
+        <v-card-title class="text-h5 grey lighten-2">
+          Cargar Documentos de Cotización
+          <v-spacer></v-spacer>
+          <v-btn
+            color="default"
+            icon
+            @click="dialogCargarArchivoCotizacion = false"
+          >
+            <v-icon>mdi-close</v-icon>
+          </v-btn>
+        </v-card-title>
+        <v-card-text>
+          <v-simple-table>
+            <tbody>
+              <tr
+                v-for="(doc, index) in listaDocumentos.filter(
+                  (v) => v.key == 'cotizacion',
+                )"
+                :key="index"
+              >
+                <td width="5%">
+                  <v-checkbox v-model="doc.flag" color="success" hide-details />
+                </td>
+
+                <td width="45%">
+                  <div v-if="doc.editable">
+                    <v-text-field
+                      v-model="doc.label"
+                      dense
+                      hide-details
+                      placeholder="Nombre del documento personalizado"
+                      variant="underlined"
+                    ></v-text-field>
+                  </div>
+                  <div v-else>
+                    {{ doc.label }}
+                  </div>
+                </td>
+
+                <td width="50%">
+                  <ArrastraYSolarComponent2
+                    :id="doc.key"
+                    :archivo-inicial="doc.file"
+                    @archivo-cargado="
+                      (datoEmit) => cargarArchivoDinamico(datoEmit, doc)
+                    "
+                    @archivo-eliminado="eliminarArchivoDinamico(doc)"
+                  />
+                </td>
+              </tr>
+            </tbody>
+          </v-simple-table>
+        </v-card-text>
+        <v-card-actions>
+          <v-spacer></v-spacer>
+          <v-btn
+            class="mx-1"
+            color="success"
+            @click="setDatosInstructivo"
+            :loading="loadingFile"
+          >
+            Actualizar Cotización
+          </v-btn>
+          <v-btn
+            color="primary"
+            @click="dialogCargarArchivoCotizacion = false"
+            class="mx-1"
+            :loading="loadingFile"
+          >
+            Cerrar
+          </v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
   </v-container>
 </template>
 
@@ -1107,6 +1204,7 @@ import axios from "axios";
 import Swal from "sweetalert2";
 import { mapActions } from "vuex";
 import ArrastraYSolarComponent from "../comun/ArrastraYSolarComponent.vue";
+import ArrastraYSolarComponent2 from "../comun/ArrastraYSolarComponentFile.vue";
 import swal from "sweetalert2";
 export default {
   props: {
@@ -1138,6 +1236,73 @@ export default {
 
   data() {
     return {
+      loadingFile: false,
+      listaDocumentosQuote: [
+        {
+          key: "cotizacion",
+          label: "COTIZACIÓN DE VENTAS",
+          flag: false,
+          file: null,
+          editable: false,
+        },
+        {
+          key: "facturaCommercial",
+          label: "FACTURA COMERCIAL",
+          flag: false,
+          file: null,
+          editable: false,
+        },
+        {
+          key: "listaEmpaque",
+          label: "LISTA DE EMPAQUE",
+          flag: false,
+          file: null,
+          editable: false,
+        },
+        {
+          key: "proforma",
+          label: "PROFORMA",
+          flag: false,
+          file: null,
+          editable: false,
+        },
+        {
+          key: "fichaTecnica",
+          label: "FICHA TÉCNICA",
+          flag: false,
+          file: null,
+          editable: false,
+        },
+        {
+          key: "soportePagoAlibaba",
+          label: "SOPORTE DE PAGO DE ALIBABA",
+          flag: false,
+          file: null,
+          editable: false,
+        },
+        {
+          key: "soporteTransferenciaInternacional",
+          label: "SOPORTE DE TRANSFERENCIA INTERNACIONAL",
+          flag: false,
+          file: null,
+          editable: false,
+        },
+        {
+          key: "otros",
+          label: "OTROS",
+          flag: false,
+          file: null,
+          editable: true,
+        },
+        // {
+        //   key: "agregarOtros",
+        //   label: "AGREGAR OTROS",
+        //   flag: false,
+        //   file: null,
+        //   editable: true,
+        // },
+      ],
+      dialogCargarArchivoCotizacion: false,
       flagCambiarExpediente: false,
       stepProforma: 1,
       firstCompleteProforma: false,
@@ -1262,6 +1427,9 @@ export default {
       dialogCambiarExpediente: false,
       selectedNuevoExpediente: null,
       listaExpedientes: [],
+      listaDocumentos: [],
+      datosinstructivomanual: {},
+      id_quote: null,
     };
   },
   async mounted() {
@@ -1280,6 +1448,44 @@ export default {
     }, 2000);
   },
   methods: {
+    abrirModalRegistroDocumentoHouse(datosinstructivomanual, id_quote) {
+      this.datosinstructivomanual = datosinstructivomanual;
+      this.listaDocumentos = datosinstructivomanual.listaDocumentos
+        ? datosinstructivomanual.listaDocumentos
+        : this.listaDocumentosQuote;
+      this.id_quote = id_quote;
+      this.dialogCargarArchivoCotizacion = true;
+    },
+    cargarArchivoDinamico(datoEmit, doc) {
+      console.log("sssssssssssssssssss");
+      doc.file = datoEmit.archivo;
+      doc.flag = true;
+      console.log(`Archivo cargado para: ${doc}`);
+    },
+    eliminarArchivoDinamico(doc) {
+      doc.file = null;
+      doc.flag = false;
+    },
+    async setDatosInstructivo() {
+      this.loadingFile = true;
+      await this.guardarDatosInstructivo({
+        id: this.id_quote,
+        datosInstructivoManual: {
+          ...this.datosManuales,
+          listaDocumentos: this.listaDocumentos,
+          table_allpath_list: this.listaDocumentos,
+        },
+      });
+      this.loadingFile = false;
+      this.dialogCargarArchivoCotizacion = false;
+      Swal.fire({
+        icon: "success",
+        title: "Datos guardados correctamente.",
+        text: " Se han guardado. Recargue la página para ver los cambios reflejados.",
+      }).then(() => {
+         this.$emit("recargarDatos");
+      });
+    },
     continueStep2() {
       this.stepProforma = 2;
       this.firstCompleteProforma = true;
@@ -2258,6 +2464,7 @@ export default {
       "copiarCGingresos",
       "getCargarHouse",
       "_getMasterList",
+      "guardarDatosInstructivo",
     ]),
     bloquearCopiarMontos(ingresos) {
       return ingresos.some((v) => v.facturado);
@@ -2266,6 +2473,7 @@ export default {
   computed: {},
   components: {
     ArrastraYSolarComponent,
+    ArrastraYSolarComponent2,
   },
 };
 </script>

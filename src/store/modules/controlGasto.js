@@ -44,7 +44,7 @@ const actions = {
       sessionStorage.setItem("auth-token", data.token);
       if (data.statusBol == true) {
         commit("SET_LIST_CONTROL_GASTOS", response.data.data);
-        console.log(response.data.data)
+        
       } else {
         commit("SET_LIST_CONTROL_GASTOS", []);
         Swal.fire({

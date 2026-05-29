@@ -20,9 +20,9 @@
       >
         <v-expansion-panel-header @click.stop="abrirExpandEgreso(index)">
           <template #actions>
-            <v-icon @click="abrirExpandEgreso(index)"
-              >mdi-unfold-more-horizontal</v-icon
-            >
+            <v-icon @click="abrirExpandEgreso(index)">
+              mdi-unfold-more-horizontal
+            </v-icon>
           </template>
           <v-simple-table dense>
             <thead>

@@ -2396,11 +2396,11 @@ export default {
         const clean = (str) =>
           str ? str.normalize("NFD").replace(/[\u0300-\u036f]/g, "") : "";
 
-        const subject = `EXPEDIENTE-${this.pricing.nro_exp}QUOTE${
+        const subject = `EXPEDIENTE-${this.pricing.nro_exp} | QUOTE${
           this.pricing.nro_quote
         } ${clean(this.pricing.dataCliente.nombrecompleto)} ${clean(
           this.incoterms.name,
-        )} ${clean(this.Modality.name)}`;
+        )} ${clean(this.Modality.name.toUpperCase())}`;
 
         const body =
           "Hola colega, adjunto los detalles del expediente (Pega la tabla aquí):\n\n";
@@ -2522,11 +2522,11 @@ export default {
         const clean = (str) =>
           str ? str.normalize("NFD").replace(/[\u0300-\u036f]/g, "") : "";
 
-        const subject = `EXPEDIENTE-${this.pricing.nro_exp}QUOTE${
+        const subject = `EXPEDIENTE-${this.pricing.nro_exp} | QUOTE${
           this.pricing.nro_quote
         } ${clean(this.pricing.dataCliente.nombrecompleto)} ${clean(
           this.incoterms.name,
-        )} ${clean(this.Modality.name)}`;
+        )} ${clean(this.Modality.name.toUpperCase())}`;
 
         window.location.href = `mailto:${
           this.cliente.emailaddress || ""
