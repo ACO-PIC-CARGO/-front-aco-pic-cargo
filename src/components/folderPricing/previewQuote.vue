@@ -91,7 +91,6 @@
               <td width="60%">{{ data.icoterm }}</td>
             </tr>
             <tr v-if="!isFCL">
-              
               <td width="40%"><b>N° BULTOS: </b></td>
               <td width="60%">{{ data.numerobultos }}</td>
             </tr>
@@ -712,7 +711,14 @@ export default {
   },
   computed: {
     isFCL() {
-      let id = this.$store.state.pricing.datosPrincipales.idtipocarga;
+      let tipoCarga = this.$store.state.pricing.datosPrincipales.idtipocarga;
+      let id = null;
+      if (typeof tipoCarga === 'object' && tipoCarga !== null) {
+        id = tipoCarga.id;
+      } else {
+        id = tipoCarga;
+      }
+
       let code = this.$store.state.pricing.listShipment.filter(
         (v) => v.id == id,
       )[0].code;

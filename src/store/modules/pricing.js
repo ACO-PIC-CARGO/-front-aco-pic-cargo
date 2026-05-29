@@ -9148,10 +9148,15 @@ function isNotPorcentaje(element, id_multiplicador) {
 
 export function getNombreCotizacion(listNotasQuote) {
   // COTIZACION  Servicio *Maritimo*  Salida Semanal. *CLIENTE No 10060*
+  let tipoCarga = state.datosPrincipales.idtipocarga;
+  let id = null;
+  if (typeof tipoCarga === "object" && tipoCarga !== null) {
+    id = tipoCarga.id;
+  } else {
+    id = tipoCarga;
+  }
 
-  let shipment = state.listShipment.find(
-    (v) => v.id == state.datosPrincipales.idtipocarga,
-  );
+  let shipment = state.listShipment.find((v) => v.id == id);
 
   let Servicio = "";
 
