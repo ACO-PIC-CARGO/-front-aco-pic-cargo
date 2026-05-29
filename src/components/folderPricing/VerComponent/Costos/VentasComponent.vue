@@ -1364,7 +1364,7 @@ export default {
 
       this.valores
         .filter(
-          (v) => v.esfleteflag == 1 && v.status == 1 && v.esopcionflag == 1,
+          (v) => v.esfleteflag == 1 && v.status == 1,
         )
         .forEach((element) => {
           this.resumenOpcion.flete += this.obtenerCostoElemento(element);
