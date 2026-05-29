@@ -57,7 +57,7 @@
           <v-text-field
             outlined
             dense
-            v-model="tipoCambio"
+            v-model="tipocambio"
             type="number"
             prefix="USD"
             width="50px"
@@ -402,7 +402,7 @@
                     v-model="montogastobancario"
                   ></v-text-field>
                 </v-col>
-                <v-col cols="12">
+                <v-col cols="3" offset="9">
                   <v-text-field
                     outlined
                     dense
@@ -746,7 +746,7 @@ export default {
         fecha_operacion: this.fecha_operacion,
         nro_operacion: this.nro_operacion,
         totaldolar: this.monto,
-        tipocambio: this.tipoCambio,
+        tipocambio: this.tipocambio,
         comentarios: this.comentarios,
         totalmonedalocal: this.monto_local,
         comentariosadmin: this.comentariosadmin,
@@ -787,7 +787,7 @@ export default {
       if (item.symbol == "USD") {
         return `${item.symbol} ${monto.toFixed(2)}`;
       } else {
-        return `${this.symbol} ${(monto / this.tipoCambio).toFixed(2)}`;
+        return `${this.symbol} ${(monto / this.tipocambio).toFixed(2)}`;
       }
     },
     buscarOperacionAlEscribir() {
@@ -859,7 +859,7 @@ export default {
 
           // Convertimos a USD si no lo está
           if (item.symbol !== "USD") {
-            const tc = parseFloat(this.tipoCambio) || 1;
+            const tc = parseFloat(this.tipocambio) || 1;
             monto = monto / tc;
           }
 
@@ -867,71 +867,8 @@ export default {
         }, 0)
         .toFixed(2);
     },
-    tipoCambio() {
-      let monto_mon_local = 0;
-      let monto_mon_dolar = 0;
-
-      let tc = 1;
-      // 1. Sumatoria de seleccionados
-
-      if (this.id_cuenta.symbol == "USD") {
-        if (Number(this.monto_local) == Number(this.monto)) {
-          this.selected
-            .filter((v) => v.symbol != "USD")
-            .forEach((item) => {
-              const monto = item.parcialflag
-                ? Number(item.montoparcial || 0)
-                : Number(item.total_mon_local || 0);
-              monto_mon_local += monto;
-              monto_mon_dolar += item.totaldolar;
-            });
-          tc = monto_mon_local / monto_mon_dolar;
-        } else {
-          let monto_total_dolar = 0;
-          this.selected.forEach((item) => {
-            const monto = item.parcialflag
-              ? Number(item.montoparcial || 0)
-              : Number(item.total_mon_local || 0);
-
-            if (item.symbol === "USD") {
-              monto_mon_dolar += monto;
-            } else {
-              monto_mon_local += monto;
-              monto_total_dolar += item.parcialflag
-                ? Number(item.montoparcial || 0)
-                : Number(item.totaldolar || 0);
-            }
-          });
-
-          tc = 1;
-          const montoBase = Number(this.monto_local || 0);
-
-          const divisor = montoBase - monto_mon_dolar;
-          if (divisor !== 0 && monto_total_dolar !== 0) {
-            tc = divisor / monto_total_dolar;
-          }
-        }
-      } else {
-        this.selected.forEach((item) => {
-          const monto = item.parcialflag
-            ? Number(item.montoparcial || 0)
-            : Number(item.total_mon_local || 0);
-
-          if (item.symbol === "USD") {
-            monto_mon_dolar += monto;
-          } else {
-            monto_mon_local += monto;
-          }
-        });
-
-        tc = 1;
-        const montoBase = Number(this.monto_local || 0);
-
-        const divisor = montoBase - monto_mon_local;
-        if (divisor !== 0 && monto_mon_dolar !== 0) {
-          tc = divisor / monto_mon_dolar;
-        }
-      }
+    tipocambio() {
+      const tc = (this.monto_local||0) / (this.monto||1);
       const resultado = isNaN(tc) || !isFinite(tc) || tc <= 0 ? 1 : tc;
       return Number(resultado).toFixed(4);
     },
@@ -949,7 +886,7 @@ export default {
     montoFinal() {
       let montogastobancario = 0;
       montogastobancario = Number(this.montogastobancario || 0);
-      const total = Number(this.monto || 0) + montogastobancario;
+      const total = Number(this.monto_local || 0) + montogastobancario;
       return total.toFixed(4);
     },
   },
