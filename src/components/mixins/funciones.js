@@ -241,16 +241,38 @@ const miMixin = {
       datosPrincipales = {},
       totalDeFlete = 0,
     }) {
+      costos.filter((v) => {
+        const flags = [
+          v.esorigenflag,
+          v.esfleteflag,
+          v.eslocalflag,
+          v.esaduanaflag,
+          v.esgastostercerosflag,
+          v.esalmacenflag,
+        ];
+
+        const tieneFlag = flags.some((f) => Number(f) === 1);
+        const statusOk = Number(v.status) === 1;
+
+        if (!tieneFlag || !statusOk) {
+          console.log("Registro descartado:", v.nameservice, {
+            flags,
+            status: v.status,
+          });
+        }
+
+        return tieneFlag && statusOk;
+      });
       let cost = [];
       costos
         .filter(
           (v) =>
-            (v.esorigenflag == true ||
-              v.esfleteflag == true ||
-              v.eslocalflag == true ||
-              v.esaduanaflag == true ||
-              v.esgastostercerosflag == true ||
-              v.esalmacenflag == true) &&
+            (v.esorigenflag ||
+              v.esfleteflag ||
+              v.eslocalflag ||
+              v.esaduanaflag ||
+              v.esgastostercerosflag ||
+              v.esalmacenflag) &&
             v.status == 1,
         )
         .forEach((costo) => {
@@ -262,6 +284,7 @@ const miMixin = {
           let subTotal = 0;
 
           if (codemultiplicador.length > 0) {
+
             if (
               codemultiplicador.code != 5 &&
               codemultiplicador.code != 13 &&

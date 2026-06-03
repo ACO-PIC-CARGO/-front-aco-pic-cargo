@@ -585,16 +585,21 @@ export default {
         Object.keys(this.id_cuenta).length > 0 &&
         this.fechaoperacion &&
         this.numerooperacion &&
+        this.id_path &&
         !this.esDuplicado
       ) {
-        console.log("Datos principales completos. ID Path:", this.id_path);
-        if (this.id_path) {
+        const hoy = new Date();
+        const fechaOp = new Date(this.fechaoperacion);
+        const unMesEnMs = 30 * 24 * 60 * 60 * 1000;
+        const diferencia = Math.abs(fechaOp.getTime() - hoy.getTime());
+        if (diferencia < unMesEnMs) {
           this.pasos = 1;
           this.editable = true;
         } else {
           Swal.fire({
-            icon: "question",
-            title: "¿Continuar sin soporte de pago?",
+            icon: "warning",
+            title: "Fecha inusual : tiempo",
+            html: `La fecha seleccionada <b> (${this.fechaoperacion})</b> tiene más de un mes de diferencia con la actual. ¿Es correcta?`,
             showCancelButton: true,
             confirmButtonText: "Sí, continuar",
             cancelButtonText: "No, revisar",
@@ -617,6 +622,13 @@ export default {
         this.errorMesage.numerooperacion = this.numerooperacion
           ? false
           : "Número de Operación es requerido";
+        if (!this.id_path) {
+          Swal.fire({
+            icon: "error",
+            title: "Archivo de Soporte Requerido",
+            text: "Por favor, suba el archivo de soporte para continuar.",
+          });
+        }
         if (this.esDuplicado) {
           this.errorMesage.numerooperacion = "El número de operación ya existe";
         }

@@ -638,18 +638,16 @@ export default {
       ) {
         const hoy = new Date();
         const fechaOp = new Date(this.fecha_operacion);
-        const diffMeses =
-          (fechaOp.getFullYear() - hoy.getFullYear()) * 12 +
-          (fechaOp.getMonth() - hoy.getMonth());
-
-        if (Math.abs(diffMeses) < 1) {
+        const unMesEnMs = 30 * 24 * 60 * 60 * 1000;
+        const diferencia = Math.abs(fechaOp.getTime() - hoy.getTime());
+        if (diferencia < unMesEnMs) {
           this.pasos = 1;
           this.editable = true;
         } else {
           Swal.fire({
             icon: "warning",
             title: "Fecha inusual",
-            text: `La fecha seleccionada (${this.fecha_operacion}) tiene más de un mes de diferencia con la actual. ¿Es correcta?`,
+            html: `La fecha seleccionada <b> (${this.fecha_operacion})</b> tiene más de un mes de diferencia con la actual. ¿Es correcta?`,
             showCancelButton: true,
             confirmButtonText: "Sí, continuar",
             cancelButtonText: "No, revisar",
@@ -868,7 +866,7 @@ export default {
         .toFixed(2);
     },
     tipocambio() {
-      const tc = (this.monto_local||0) / (this.monto||1);
+      const tc = (this.monto_local || 0) / (this.monto || 1);
       const resultado = isNaN(tc) || !isFinite(tc) || tc <= 0 ? 1 : tc;
       return Number(resultado).toFixed(4);
     },

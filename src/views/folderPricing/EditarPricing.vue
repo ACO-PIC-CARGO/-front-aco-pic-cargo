@@ -129,12 +129,12 @@ export default {
   async mounted() {
     this.$store.state.pricing.actualizarCostosFlag =
       !this.$store.state.pricing.actualizarCostosFlag;
-    let TimeInicio = Date.now();
+
     this.$store.commit("SET_RESET");
     this.$store.state.spiner = true;
     await Promise.all([
-      await this.getQuote({ id: this.$route.params.id }),
-      await this.getShipment(),
+      this.getQuote({ id: this.$route.params.id }),
+      this.getShipment(),
     ]);
 
     this.$store.state.mainTitle = `EDITAR  COTIZACIÓN - ${this.$store.state.pricing.nro_quote}`;
@@ -151,15 +151,16 @@ export default {
           IdProveedor.push(costo.id_proveedor);
       });
     });
-    await this.obtenerProveedorPricing({
-      id: IdProveedor.join(","),
-      search: null,
-    }),
-      (this.$store.state.spiner = false);
+
+    this.$store.state.spiner = false;
     this.mostrar = true;
 
     // obtenerProveedorPricing
     await Promise.all([
+      this.obtenerProveedorPricing({
+        id: IdProveedor.join(","),
+        search: null,
+      }),
       this.getMarketingList(),
       this.getQuoteStatus(),
       this.getCargarEjecutivo(),
@@ -169,13 +170,6 @@ export default {
       this.cargarMasterDetallePercepcionAduana(),
       this.getMultiplicador(),
       this.getTipoCostos(),
-    ]);
-    let TimeFin = Date.now();
-    let time = TimeFin - TimeInicio;
-
-    this.mostrarStepS = true;
-    this.$store.state.pricing.llenadoCostos = false;
-    await Promise.all([
       this._getContainers(),
       this.getBegEndList(),
       this.obtenerCostosPricing(),
@@ -191,12 +185,13 @@ export default {
       }),
     ]);
 
+    this.mostrarStepS = true;
+    this.$store.state.pricing.llenadoCostos = false;
+
+    await Promise.all([this.getServices(), this.obtenerCostosPricing()]);
+
     this.$store.state.pricing.actualizarComparativa =
       !this.$store.state.pricing.actualizarComparativa;
-    // setTimeout(() => {
-
-    // }, 3000);
-    // await this.obtenerImpuestoXEmpresa(),
   },
   methods: {
     ...mapActions([
@@ -223,6 +218,8 @@ export default {
       "getPortEnd",
       "_getContainers",
       "cargarMasterDetallePercepcionAduana",
+      "getServices",
+      "obtenerCostosPricing",
     ]),
     async recargar() {
       await this.recargarServicios();

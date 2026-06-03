@@ -1588,7 +1588,6 @@ export default {
         almacen: 0,
         gastostercero: 0,
       };
-      console.log('resumenOpcion.flete',this.resumenOpcion.flete)
       this.valores
         .filter((v) => v.status == 1)
         .forEach((element) => {

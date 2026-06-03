@@ -2032,6 +2032,15 @@ export default {
     },
 
     setDatosInstructivo() {
+      if (this.listaDocumentos.some((v) => !v.flag && v.key == "cotizacion")) {
+        Swal.fire({
+          icon: "warning",
+          title: "Soporte de Cotización",
+          text: "Es Requerido adjuntar: COTIZACIÓN DE VENTAS ",
+        });
+        return;
+      }
+
       this.guardarDatosInstructivo({
         id: this.$route.params.id,
         datosInstructivoManual: {
@@ -2388,10 +2397,30 @@ export default {
         await navigator.clipboard.write([
           new ClipboardItem({ "text/html": blob }),
         ]);
-
-        alert(
-          "Tabla copiada. Se abrirá Outlook; pega el contenido con Ctrl+V.",
-        );
+        Swal.fire({
+          icon: "info",
+          title: "¡Casi listo!",
+          html: `
+              <div style="text-align: center; font-family: 'Segoe UI', sans-serif;">
+                <h2 style="color: #333; margin-top: 0;">Tabla copiada con éxito</h2>
+                
+                <div style="background-color: #eef6ff; border: 2px dashed #3085d6; padding: 20px; border-radius: 12px; margin: 20px 0;">
+                  <p style="font-size: 1.1rem; color: #555; margin: 0;">
+                    Para finalizar, abre <strong>Outlook</strong> y presiona:
+                  </p>
+                  <div style="margin: 15px 0;">
+                    <kbd style="font-size: 1.5rem; background: #333; color: #fff; padding: 5px 15px; border-radius: 6px; box-shadow: 0 4px 0 #000;">
+                      Ctrl + V
+                    </kbd>
+                  </div>
+                  <p style="font-size: 0.9rem; color: #3085d6; font-weight: bold;">
+                    ¡Asegúrate de pegar el contenido antes de cerrar esta ventana!
+                  </p>
+                </div>
+              </div>
+            `,
+          timer: 2500,
+        });
 
         const clean = (str) =>
           str ? str.normalize("NFD").replace(/[\u0300-\u036f]/g, "") : "";
@@ -2413,7 +2442,6 @@ export default {
         }, 500);
       } catch (err) {
         console.error("Error:", err);
-        alert("Error al copiar automáticamente.");
       }
     },
 
@@ -2517,7 +2545,30 @@ export default {
           new ClipboardItem({ "text/html": blob }),
         ]);
 
-        alert("Copiado. Se abrirá Outlook. (Usa Ctrl+V)");
+        Swal.fire({
+          icon: "info",
+          title: "¡Casi listo!",
+          html: `
+              <div style="text-align: center; font-family: 'Segoe UI', sans-serif;">
+                <h2 style="color: #333; margin-top: 0;">Tabla copiada con éxito</h2>
+                
+                <div style="background-color: #eef6ff; border: 2px dashed #3085d6; padding: 20px; border-radius: 12px; margin: 20px 0;">
+                  <p style="font-size: 1.1rem; color: #555; margin: 0;">
+                    Para finalizar, abre <strong>Outlook</strong> y presiona:
+                  </p>
+                  <div style="margin: 15px 0;">
+                    <kbd style="font-size: 1.5rem; background: #333; color: #fff; padding: 5px 15px; border-radius: 6px; box-shadow: 0 4px 0 #000;">
+                      Ctrl + V
+                    </kbd>
+                  </div>
+                  <p style="font-size: 0.9rem; color: #3085d6; font-weight: bold;">
+                    ¡Asegúrate de pegar el contenido antes de cerrar esta ventana!
+                  </p>
+                </div>
+              </div>
+            `,
+          timer: 2500,
+        });
 
         const clean = (str) =>
           str ? str.normalize("NFD").replace(/[\u0300-\u036f]/g, "") : "";
@@ -2537,7 +2588,6 @@ export default {
         this.$emit("continuar");
       } catch (err) {
         console.error("Error:", err);
-        alert("Hubo un problema al copiar los datos.");
       }
     },
     checkNoAplica(step) {

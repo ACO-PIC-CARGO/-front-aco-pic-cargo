@@ -120,7 +120,7 @@ export default {
       this.getIncoterms(),
       this.getCargarEjecutivo(),
     ]);
-    await this.getQuoteStatus();
+
     await this.setDefaultStatusPreliminar();
     let opciones = [...this.$store.state.pricing.opcionCostos];
     let IdProveedor = [];
@@ -188,18 +188,22 @@ export default {
     },
     async activarDatosCarga() {
       this.$store.state.spiner = true;
-      await this.getPortBegin({
-        id_transport: this.$store.state.pricing.datosPrincipales.idtipocarga
-          .id_transport
-          ? this.$store.state.pricing.datosPrincipales.idtipocarga.id_transport
-          : this.$store.state.pricing.datosPrincipales.idtipocarga,
-      });
-      await this.getPortEnd({
-        id_transport: this.$store.state.pricing.datosPrincipales.idtipocarga
-          .id_transport
-          ? this.$store.state.pricing.datosPrincipales.idtipocarga.id_transport
-          : this.$store.state.pricing.datosPrincipales.idtipocarga,
-      });
+      await Promise.all([
+        this.getPortBegin({
+          id_transport: this.$store.state.pricing.datosPrincipales.idtipocarga
+            .id_transport
+            ? this.$store.state.pricing.datosPrincipales.idtipocarga
+                .id_transport
+            : this.$store.state.pricing.datosPrincipales.idtipocarga,
+        }),
+        this.getPortEnd({
+          id_transport: this.$store.state.pricing.datosPrincipales.idtipocarga
+            .id_transport
+            ? this.$store.state.pricing.datosPrincipales.idtipocarga
+                .id_transport
+            : this.$store.state.pricing.datosPrincipales.idtipocarga,
+        }),
+      ]);
       this.DatosCargaComponentFlag = true;
       this.$nextTick(() => {
         // setTimeout(() => {
@@ -805,7 +809,7 @@ export default {
           e.name.toLowerCase().includes("preliminar"),
       );
       if (existe) return;
-      await this.createPreliminarStatus();
+      // await this.createPreliminarStatus();
     },
     async createPreliminarStatus() {
       try {

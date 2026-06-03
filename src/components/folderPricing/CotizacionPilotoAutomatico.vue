@@ -1367,19 +1367,10 @@ export default {
       return code == 69 ? true : false;
     },
     async editarCotizacion() {
-      // let val = await this.validarCosto();
       let val = true;
-      // val = !this.$store.state.pricing.opcionCostos.some(
-      //   (v) =>
-      //     !v.date_end || !v.tiempo_transito || !this.isDateValid(v.date_end),
-      // );
 
-      // // -----------------------------------------------------
-      // if (val) {
       this.$store.state.spiner = false;
       await this.updateQuote();
-
-      console.log("step", this.$store.state.pricing.step);
 
       this.$router.push({
         name: "verQuote",
@@ -1392,14 +1383,6 @@ export default {
       });
       this.$store.state.spiner = false;
       this.$emit("close");
-      // } else {
-      //   Swal.fire({
-      //     title: "ADVERTENCIA",
-      //     icon: "error",
-      //     text: "Existe una o más Fechas de validez y/o tiempos en tránsito, INCOMPLETOS. Verifique.",
-      //   });
-      //   this.$store.state.pricing.tab = 2;
-      // }
     },
   },
   computed: {

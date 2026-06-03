@@ -1489,6 +1489,109 @@ const actions = {
       state.tiporeporte = "";
     });
   },
+  async registrarQuotePorCambioIncoterms(__, newData) {
+    let imp = newData.listServices.filter(
+      (v) => v.code_service == "15" && v.status == true,
+    );
+    let isFCL = state.listShipment.some(
+      (v) =>
+        v.id ==
+          (state.datosPrincipales.idtipocarga.id
+            ? state.datosPrincipales.idtipocarga.id
+            : state.datosPrincipales.idtipocarga) && v.code == "FCL",
+    );
+    let opciones = [];
+    await newData.opcionCostos.forEach(async (opcionCosto) => {
+      let costocotizacion = miMixin.methods.formatearCostos({
+        costos: opcionCosto.listCostos,
+        services: newData.listServices,
+        multiplicadores: state.listMultiplicador,
+        datosPrincipales: state.datosPrincipales,
+        totalDeFlete: state.totalFlete,
+      });
+      let notacosto = miMixin.methods.formatearNotas({
+        notas: opcionCosto.listNotasQuote.filter((v) => v.estado == 1),
+      });
+      let impuestos =
+        imp.length > 0
+          ? miMixin.methods.formatImp({
+              impuestos: opcionCosto.listImpuestos,
+              datosPrincipales: state.datosPrincipales,
+              totalFlete: state.totalFlete,
+            })
+          : [];
+      opciones.push({
+        nro_propuesta: opcionCosto.nro_propuesta,
+        date_end: opcionCosto.date_end,
+        tiempo_transito: opcionCosto.tiempo_transito,
+        listCostos: costocotizacion,
+        listImpuestos: impuestos,
+        listNotasQuote: notacosto,
+        selected: opcionCosto.selected,
+      });
+    });
+
+    let data = {
+      tiporeporte: state.tiporeporte ? state.tiporeporte : "TOTAL",
+      id_percepcionaduana: state.datosPrincipales.id_percepcionaduana,
+      fullflag: true,
+      id_marketing: state.datosPrincipales.id_marketing,
+      statusquote: state.datosPrincipales.id_status,
+      idVendedor: state.datosPrincipales.id_vendedor,
+      id_proveedor: state.datosPrincipales.id_proveedor,
+      idPricing: state.datosPrincipales.id_pricing,
+      id_entitie: state.datosPrincipales.id_entitie,
+      idsentido: state.datosPrincipales.idsentido,
+      idtipocarga: state.datosPrincipales.idtipocarga.id
+        ? state.datosPrincipales.idtipocarga.id
+        : state.datosPrincipales.idtipocarga,
+      idincoterms: state.datosPrincipales.idincoterms,
+      proveedor: state.datosPrincipales.proveedor,
+      telefonoproveedor: state.datosPrincipales.telefonoproveedor,
+      direccionproveedor: state.datosPrincipales.direccionproveedor,
+      idorigen: state.datosPrincipales.idorigen,
+      iddestino: state.datosPrincipales.iddestino,
+      numerobultos: !isFCL ? state.datosPrincipales.numerobultos : 0,
+      peso: !isFCL ? state.datosPrincipales.peso : 0,
+      volumen: !isFCL ? state.datosPrincipales.volumen : 0,
+      contenedores: isFCL
+        ? miMixin.methods.formatearContainer({
+            containers: state.datosPrincipales.containers,
+          })
+        : [],
+      serviciocotizacion: miMixin.methods.formatearServicios({
+        services: newData.listServices,
+      }),
+      monto: state.datosPrincipales.amount,
+
+      iddistrito: state.datosPrincipales.iddistrito,
+      idprovincia: state.datosPrincipales.idprovincia,
+
+      descripcionMercancia: state.datosPrincipales.descripcioncarga
+        ? state.datosPrincipales.descripcioncarga
+        : "",
+      ventascasillerodetalles: [],
+      opcionCostos: opciones,
+      id_branch: JSON.parse(sessionStorage.getItem("dataUser"))[0].id_branch,
+    };
+    //  console.log(data.costocotizacion);
+    let config = {
+      method: "post",
+      url: process.env.VUE_APP_URL_MAIN + "setQuote",
+      headers: {
+        "auth-token": sessionStorage.getItem("auth-token"),
+        "Content-Type": "application/json",
+      },
+      data: data,
+    };
+    // let vm = this;
+    await axios(config).then(async (response) => {
+      state.id = response.data.insertId;
+      state.nro_quote = response.data.nro_quote;
+      state.mensaje = response.data.msg;
+      state.tiporeporte = "";
+    });
+  },
   async copiarQuote(__, { fullflag = true, id = null }) {
     let data = { id: id };
     //  console.log(data.costocotizacion);
@@ -6945,6 +7048,9 @@ const actions = {
       });
   },
   async GetArchivos({ commit }, folderUrl) {
+    if (!folderUrl){
+      return
+    }
     let config = {
       method: "get",
       url: `${process.env.VUE_APP_URL_MAIN}listado_files`,

@@ -668,8 +668,6 @@ export default {
         this.$store.state.spiner = false;
         await this.updateQuote();
 
-        console.log("step", this.$store.state.pricing.step);
-
         this.$router.push({
           name: "verQuote",
           params: {
@@ -789,6 +787,7 @@ export default {
     async abrirCorreoSend() {
       let valIncoterms = ["EXW", "FCA", "FOB"];
       const selected = this.lstDatosTarifa.filter((v) => v.selected);
+      const nameCliente = this.$store.state.pricing.dataCliente.nombrecompleto;
       const to = selected
         .map((v) => v.email)
         .filter((e) => e)
@@ -826,9 +825,9 @@ export default {
           incoterms ? incoterms.name : ""
         } ${origen ? origen.name : ""} - ${destino ? destino.name : ""}  ${
           this.$store.state.pricing.datosPrincipales.peso || ""
-        }KGS / ${this.$store.state.pricing.datosPrincipales.volumen || ""}M3 ${
-          this.$store.state.pricing.datosPrincipales.nombre
-        }`;
+        }KGS / ${
+          this.$store.state.pricing.datosPrincipales.volumen || ""
+        }M3 | CLIENTE: ${nameCliente}`;
         /* CREAR EL BOBY */
         tablaHtml = `
         <div style="font-family: Arial, sans-serif;">
@@ -885,7 +884,9 @@ export default {
           incoterms ? incoterms.name : ""
         } ${origen ? origen.name : ""} - ${destino ? destino.name : ""}  ${
           this.$store.state.pricing.datosPrincipales.peso || ""
-        }KGS / ${this.$store.state.pricing.datosPrincipales.volumen || ""}M3`;
+        }KGS / ${
+          this.$store.state.pricing.datosPrincipales.volumen || ""
+        }M3 | CLIENTE: ${nameCliente}`;
         /* CREAR EL BOBY */
         tablaHtml = `
         <div style="font-family: Arial, sans-serif;">
@@ -939,14 +940,37 @@ export default {
         const data = [new ClipboardItem({ ["text/html"]: blob })];
         await navigator.clipboard.write(data);
 
-        alert(
-          "Información de cotización copiada. Al aceptar, se abrirá Outlook. (Luego presiona Ctrl+V)",
-        );
+        Swal.fire({
+          icon: "info",
+          title: "¡Casi listo!",
+          html: `
+              <div style="text-align: center; font-family: 'Segoe UI', sans-serif;">
+                <h2 style="color: #333; margin-top: 0;">Tabla copiada con éxito</h2>
+                
+                <div style="background-color: #eef6ff; border: 2px dashed #3085d6; padding: 20px; border-radius: 12px; margin: 20px 0;">
+                  <p style="font-size: 1.1rem; color: #555; margin: 0;">
+                    Para finalizar, abre <strong>Outlook</strong> y presiona:
+                  </p>
+                  <div style="margin: 15px 0;">
+                    <kbd style="font-size: 1.5rem; background: #333; color: #fff; padding: 5px 15px; border-radius: 6px; box-shadow: 0 4px 0 #000;">
+                      Ctrl + V
+                    </kbd>
+                  </div>
+                  <p style="font-size: 0.9rem; color: #3085d6; font-weight: bold;">
+                    ¡Asegúrate de pegar el contenido antes de cerrar esta ventana!
+                  </p>
+                </div>
+              </div>
+            `,
+          // timer: 2500,
+        });
+        console.log("subject", subject);
 
         const body = encodeURIComponent("Hola colega, (PEGA LA TABLA AQUI)");
         window.location.href = `mailto:${miEmail}?bcc=${to}&subject=${encodeURIComponent(
           subject,
         )}&body=${body}`;
+        this.dialogProveedor = false;
       } catch (err) {
         console.error("Error al copiar:", err);
         alert("Hubo un problema al copiar los datos automáticamente.");
