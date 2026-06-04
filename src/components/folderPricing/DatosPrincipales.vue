@@ -444,26 +444,28 @@ export default {
       }
     },
     recargarServiciosCostos(id_incoterms) {
-      Swal.fire({
-        icon: "question",
-        title: "Nueva Cotización",
-        html: "<span style='font-size:1.5em'> Se creará una nueva cotización con el <b> NUEVO INCOTERMS </b> seleccionado.</span> ",
-        confirmButtonText: "Si, crear una nueva Cotización",
-        cancelButtonText: "Cancelar",
-        showCancelButton: true,
-        allowEnterKey: true,
-        allowEscapeKey: true,
-        allowOutsideClick: true,
-        cancelButtonColor: "red",
-      }).then((res) => {
-        if (res.isConfirmed) {
-          this.recargarServiciosCostosContinuar(id_incoterms);
-        } else {
-          this.$store.state.pricing.datosPrincipales.idincoterms =
-            this.idincoterms;
-          Swal.close();
-        }
-      });
+      if (this.$route.name === "editQuote") {
+        Swal.fire({
+          icon: "question",
+          title: "Nueva Cotización",
+          html: "<span style='font-size:1.5em'> Se creará una nueva cotización con el <b> NUEVO INCOTERMS </b> seleccionado.</span> ",
+          confirmButtonText: "Si, crear una nueva Cotización",
+          cancelButtonText: "Cancelar",
+          showCancelButton: true,
+          allowEnterKey: true,
+          allowEscapeKey: true,
+          allowOutsideClick: true,
+          cancelButtonColor: "red",
+        }).then((res) => {
+          if (res.isConfirmed) {
+            this.recargarServiciosCostosContinuar(id_incoterms);
+          } else {
+            this.$store.state.pricing.datosPrincipales.idincoterms =
+              this.idincoterms;
+            Swal.close();
+          }
+        });
+      }
       // this.recargarServiciosCostosContinuar(id_incoterms)
     },
     recargarServiciosCostosContinuar(id_incoterms) {
@@ -495,14 +497,13 @@ export default {
               .id_branch;
             let branchCreacion = [1, 2];
             if (branchCreacion.includes(id_branch)) {
-             
               const urlGenerada = await this.crearCarpetaOneDrive({
                 nro_quote: this.$store.state.pricing.nro_quote,
                 nombre: this.$store.state.pricing.datosPrincipales.nombre,
               }).catch((e) => {
                 console.log(e);
               });
-              
+
               if (urlGenerada) {
                 this.urlGenerada = urlGenerada;
                 console.log(this.urlGenerada);
