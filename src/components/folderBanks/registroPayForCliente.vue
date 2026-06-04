@@ -73,9 +73,9 @@
             color="#000000"
             background-color="#C8E6C9"
           >
-            <v-tab key="datosPrincipales">Datos Principales</v-tab>
-            <v-tab key="detallesPago" :disabled="!editable"
-              >Detalles de Pago</v-tab
+            <v-tab key="detallesPago"> Detalles de Pago </v-tab>
+            <v-tab key="datosPrincipales" :disabled="!editable"
+              >Datos Principales</v-tab
             >
             <v-tab key="gastoBancario" :disabled="!editableGastoBancario">
               Resumen y Comisión Bancario</v-tab
@@ -83,6 +83,112 @@
           </v-tabs>
 
           <v-tabs-items v-model="pasos">
+            <v-tab-item key="detallesPago">
+              <v-row class="mt-1">
+                <v-col cols="12">
+                  <v-data-table
+                    :headers="headers"
+                    :items="itemsOrdenados"
+                    v-model="selected"
+                    show-select
+                    item-key="id"
+                    @item-selected="onItemSelected"
+                    @toggle-select-all="onSelectAll"
+                    :search="searchTableDetalle"
+                    :item-disabled="checkDeshabilitado"
+                  >
+                    <template v-slot:body.append>
+                      <tr class="grey lighten-4 font-weight-bold">
+                        <td :colspan="headers.length" class="text-right">
+                          Total General Seleccionado ({{ symbol }}):
+                        </td>
+                        <td class="text-left">
+                          {{ symbol }} {{ totalGeneralAbonado }}
+                        </td>
+                      </tr>
+                    </template>
+                    <template v-slot:[`item.parcialflag`]="{ item }">
+                      <v-select
+                        :items="cboParcial"
+                        v-model="item.parcialflag"
+                        dense
+                        outlined
+                        :disabled="!selected.includes(item)"
+                        hide-details
+                        @change="verificarMontoCompleto(item)"
+                      ></v-select>
+                    </template>
+                    <template v-slot:[`item.montopagar`]="{ item }">
+                      <v-text-field
+                        hide-details
+                        dense
+                        outlined
+                        v-model="item.montoparcial"
+                        :disabled="
+                          !selected.includes(item) || !item.parcialflag
+                        "
+                        :prefix="item.symbol"
+                        @input="calcularTotal"
+                        :rules="[
+                          (v) =>
+                            !v ||
+                            parseFloat(v) <= parseFloat(item.total_mon_local) ||
+                            'El monto no puede ser mayor al saldo',
+                        ]"
+                      ></v-text-field>
+                    </template>
+                    <template v-slot:[`item.concepto`]="{ item, index }">
+                      <v-text-field
+                        v-model="item.concepto"
+                        :id="`txtConcepto${index}`"
+                        outlined
+                        dense
+                        hide-details
+                        style="max-width: 150px"
+                        placeholder="Nuevo Concepto"
+                        v-if="item.nuevoflag"
+                      ></v-text-field>
+                    </template>
+                    <template v-slot:[`item.totaldolar`]="{ item }">
+                      USD {{ item.totaldolar }}
+                    </template>
+                    <template v-slot:[`item.totalabonado`]="{ item }">
+                      {{ fn_totalAbonado(item) }}
+                    </template>
+                    <template v-slot:[`item.monto_original_total`]="{ item }">
+                      {{ item.symbol }} {{ item.monto_original_total }}
+                    </template>
+                    <template v-slot:[`item.total_mon_local`]="{ item }">
+                      {{ item.symbol }} {{ item.total_mon_local }}
+                    </template>
+                    <template v-slot:[`item.saldo`]="{ item }">
+                      {{ item.symbol }}
+                      {{
+                        parseFloat(
+                          item.total_mon_local -
+                            (item.montoparcial
+                              ? item.montoparcial
+                              : item.total_mon_local),
+                        ).toFixed(2)
+                      }}
+                    </template>
+                  </v-data-table>
+                </v-col>
+                <v-col
+                  cols="12"
+                  class="pt-1"
+                  style="align-items: end; align-content: end; text-align: end"
+                >
+                  <v-btn
+                    class="mx-1"
+                    color="success"
+                    @click="continuarGastoBancario()"
+                  >
+                    Continuar
+                  </v-btn>
+                </v-col>
+              </v-row>
+            </v-tab-item>
             <v-tab-item key="datosPrincipales">
               <v-row class="mt-1">
                 <v-col cols="12" md="6" class="py-1">
@@ -233,115 +339,9 @@
                   <v-btn color="primary" @click="continuarDetalles()">
                     Continue
                   </v-btn>
-                  <v-btn text> Cancel </v-btn>
-                </v-col>
-              </v-row>
-            </v-tab-item>
-
-            <v-tab-item key="detallesPago">
-              <v-row class="mt-1">
-                <v-col cols="12">
-                  <v-data-table
-                    :headers="headers"
-                    :items="itemsOrdenados"
-                    v-model="selected"
-                    show-select
-                    item-key="id"
-                    @item-selected="onItemSelected"
-                    @toggle-select-all="onSelectAll"
-                    :search="searchTableDetalle"
-                    :item-disabled="checkDeshabilitado"
-                  >
-                    <template v-slot:body.append>
-                      <tr class="grey lighten-4 font-weight-bold">
-                        <td :colspan="headers.length" class="text-right">
-                          Total General Seleccionado ({{ symbol }}):
-                        </td>
-                        <td class="text-left">
-                          {{ symbol }} {{ totalGeneralAbonado }}
-                        </td>
-                      </tr>
-                    </template>
-                    <template v-slot:[`item.parcialflag`]="{ item }">
-                      <v-select
-                        :items="cboParcial"
-                        v-model="item.parcialflag"
-                        dense
-                        outlined
-                        :disabled="!selected.includes(item)"
-                        hide-details
-                        @change="verificarMontoCompleto(item)"
-                      ></v-select>
-                    </template>
-                    <template v-slot:[`item.montopagar`]="{ item }">
-                      <v-text-field
-                        hide-details
-                        dense
-                        outlined
-                        v-model="item.montoparcial"
-                        :disabled="
-                          !selected.includes(item) || !item.parcialflag
-                        "
-                        :prefix="item.symbol"
-                        @input="calcularTotal"
-                        :rules="[
-                          (v) =>
-                            !v ||
-                            parseFloat(v) <= parseFloat(item.total_mon_local) ||
-                            'El monto no puede ser mayor al saldo',
-                        ]"
-                      ></v-text-field>
-                    </template>
-                    <template v-slot:[`item.concepto`]="{ item, index }">
-                      <v-text-field
-                        v-model="item.concepto"
-                        :id="`txtConcepto${index}`"
-                        outlined
-                        dense
-                        hide-details
-                        style="max-width: 150px"
-                        placeholder="Nuevo Concepto"
-                        v-if="item.nuevoflag"
-                      ></v-text-field>
-                    </template>
-                    <template v-slot:[`item.totaldolar`]="{ item }">
-                      USD {{ item.totaldolar }}
-                    </template>
-                    <template v-slot:[`item.totalabonado`]="{ item }">
-                      {{ fn_totalAbonado(item) }}
-                    </template>
-                    <template v-slot:[`item.monto_original_total`]="{ item }">
-                      {{ item.symbol }} {{ item.monto_original_total }}
-                    </template>
-                    <template v-slot:[`item.total_mon_local`]="{ item }">
-                      {{ item.symbol }} {{ item.total_mon_local }}
-                    </template>
-                    <template v-slot:[`item.saldo`]="{ item }">
-                      {{ item.symbol }}
-                      {{
-                        parseFloat(
-                          item.total_mon_local -
-                            (item.montoparcial
-                              ? item.montoparcial
-                              : item.total_mon_local),
-                        ).toFixed(2)
-                      }}
-                    </template>
-                  </v-data-table>
-                </v-col>
-                <v-col
-                  cols="12"
-                  class="pt-1"
-                  style="align-items: end; align-content: end; text-align: end"
-                >
-                  <v-btn
-                    class="mx-1"
-                    color="success"
-                    @click="continuarGastoBancario()"
-                  >
-                    Continuar
+                  <v-btn class="mx-1" color="error" @click="pasos = 0">
+                    Cancel
                   </v-btn>
-                  <v-btn class="mx-1" color="error"> Cancel </v-btn>
                 </v-col>
               </v-row>
             </v-tab-item>
@@ -607,12 +607,14 @@ export default {
         this.id_path = null;
       }
     },
-    obtenerListado() {
+    async obtenerListado() {
       this.errorMesage.cliente = "";
       this.pasos = 0;
       this.editable = false;
       if (this.cliente) {
-        this.getDeudaDeClientePorSucursal(this.cliente);
+        this.$store.state.spiner = true;
+        await this.getDeudaDeClientePorSucursal(this.cliente);
+        this.$store.state.spiner = false;
       } else {
         this.$store.state.bank.deudaAProveedor = [];
       }
@@ -641,8 +643,8 @@ export default {
         const unMesEnMs = 30 * 24 * 60 * 60 * 1000;
         const diferencia = Math.abs(fechaOp.getTime() - hoy.getTime());
         if (diferencia < unMesEnMs) {
-          this.pasos = 1;
-          this.editable = true;
+          this.pasos = 2;
+          this.editableGastoBancario = true;
         } else {
           Swal.fire({
             icon: "warning",
@@ -653,8 +655,8 @@ export default {
             cancelButtonText: "No, revisar",
           }).then((result) => {
             if (result.isConfirmed) {
-              this.pasos = 1;
-              this.editable = true;
+              this.pasos = 2;
+              this.editableGastoBancario = true;
             }
           });
         }
@@ -722,16 +724,21 @@ export default {
       this.monto = total.toFixed(2);
     },
     continuarGastoBancario() {
-      if (!this.monto_local) {
+      if (!this.cliente || !this.monto_local || this.selected.length == 0) {
+        let text = "";
+        text = !this.cliente ? "Cliente Requerido. <br>" : "";
+        text += !this.monto_local ? "Monto Local Requerido. <br>" : "";
+        text +=
+          this.selected.length == 0 ? "Seleccione Facturas a Pagar. <br>" : "";
         Swal.fire({
           icon: "error",
-          title: "Monto Local Requerido",
-          text: "Por favor, ingrese el monto depositado en banco para continuar.",
+          title: `Aviso Importante`,
+          html: text,
         });
         return;
       }
-      this.pasos = 2;
-      this.editableGastoBancario = true;
+      this.pasos = 1;
+      this.editable = true;
     },
     async finalizarOperacion() {
       let data = {
@@ -801,7 +808,7 @@ export default {
         });
 
         this.operacionesSimilares = res;
-        console.log("Respuesta de validación de número de operación:", res);
+        
         if (!res[0].estadoflag) {
           this.operacionesSimilares = [];
           return;

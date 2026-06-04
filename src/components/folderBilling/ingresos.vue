@@ -1483,7 +1483,7 @@ export default {
         title: "Datos guardados correctamente.",
         text: " Se han guardado. Recargue la página para ver los cambios reflejados.",
       }).then(() => {
-         this.$emit("recargarDatos");
+        this.$emit("recargarDatos");
       });
     },
     continueStep2() {
@@ -1867,14 +1867,27 @@ export default {
       this.$emit("recalcularProfit");
     },
     async delIngreso(id) {
-      let data = {
-        code_master: this.$route.params.code_master,
-        id: id,
-      };
-      await this.eliminarIngreso(data);
-      await this.getListControlGastos(this.$route.params.id);
-      this.$emit("recalcularProfit");
+      Swal.fire({
+        icon: "question",
+        title: "Eliminar",
+        text: "¿Desea Eliminar El registro?",
+        showCancelButton:true,
+        confirmButtonColor:"red",
+        confirmButtonText:"Si, Eliminar"
+
+      }).then(async (res) => {
+        if (res.isConfirmed) {
+          let data = {
+            code_master: this.$route.params.code_master,
+            id: id,
+          };
+          await this.eliminarIngreso(data);
+          await this.getListControlGastos(this.$route.params.id);
+          this.$emit("recalcularProfit");
+        }
+      });
     },
+
     async setIngresos() {
       // this.calcularE();
       if (this.$refs.frmIngreso.validate()) {

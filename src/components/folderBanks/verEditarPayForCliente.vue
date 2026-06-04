@@ -99,12 +99,103 @@
             color="#000000"
             background-color="#C8E6C9"
           >
+          <v-tab key="detallesPago">Detalles de Pago</v-tab>
             <v-tab key="datosPrincipales">Datos Principales</v-tab>
-            <v-tab key="detallesPago">Detalles de Pago</v-tab>
             <v-tab key="gastoBancario"> Resumen y Comisión Bancario</v-tab>
           </v-tabs>
 
           <v-tabs-items v-model="pasos">
+            
+            <v-tab-item key="detallesPago">
+              <v-row class="mt-1">
+                <v-col cols="12">
+                  <v-data-table
+                    :headers="headers"
+                    :items="itemsOrdenados"
+                    v-model="selected"
+                    item-key="id"
+                    @item-selected="onItemSelected"
+                    @toggle-select-all="onSelectAll"
+                    :search="searchTableDetalle"
+                  >
+                    <template v-slot:body.append>
+                      <tr class="grey lighten-4 font-weight-bold">
+                        <td :colspan="headers.length - 1" class="text-right">
+                          Total General Seleccionado ({{ symbol }}):
+                        </td>
+                        <td class="text-left">
+                          {{ symbol }} {{ totalGeneralAbonado }}
+                        </td>
+                      </tr>
+                    </template>
+                    <template v-slot:[`item.parcialflag`]="{ item }">
+                      <v-select
+                        :items="cboParcial"
+                        v-model="item.parcialflag"
+                        dense
+                        outlined
+                        :disabled="!selected.includes(item)"
+                        hide-details
+                        @change="verificarMontoCompleto(item)"
+                      ></v-select>
+                    </template>
+                    <template v-slot:[`item.montopagar`]="{ item }">
+                      <v-text-field
+                        hide-details
+                        dense
+                        outlined
+                        v-model="item.montoparcial"
+                        :disabled="verflag"
+                        :prefix="item.symbol"
+                        @input="calcularTotal"
+                        :rules="[
+                          (v) =>
+                            !v ||
+                            parseFloat(v) <= parseFloat(item.total_mon_local) ||
+                            'El monto no puede ser mayor al saldo',
+                        ]"
+                      ></v-text-field>
+                    </template>
+                    <template v-slot:[`item.concepto`]="{ item, index }">
+                      <v-text-field
+                        v-model="item.concepto"
+                        :id="`txtConcepto${index}`"
+                        outlined
+                        dense
+                        hide-details
+                        style="max-width: 150px"
+                        placeholder="Nuevo Concepto"
+                        v-if="item.nuevoflag"
+                      ></v-text-field>
+                    </template>
+                    <template v-slot:[`item.totaldolar`]="{ item }">
+                      USD {{ item.totaldolar }}
+                    </template>
+                    <template v-slot:[`item.totalabonado`]="{ item }">
+                      {{ fn_totalAbonado(item) }}
+                    </template>
+                    <template v-slot:[`item.monto_original_total`]="{ item }">
+                      {{ item.symbol }} {{ item.monto_original_total }}
+                    </template>
+                    <template v-slot:[`item.total_mon_local`]="{ item }">
+                      {{ item.symbol }} {{ item.total_mon_local }}
+                    </template>
+                    <template v-slot:[`item.saldo`]="{ item }">
+                      {{ item.symbol }}
+                      {{
+                        parseFloat(
+                          item.total_mon_local -
+                            (item.montoparcial
+                              ? item.montoparcial
+                              : item.total_mon_local),
+                        ).toFixed(2)
+                      }}
+                    </template>
+                  </v-data-table>
+                </v-col>
+                
+              </v-row>
+            </v-tab-item> 
             <v-tab-item key="datosPrincipales">
               <v-row class="mt-1">
                 <v-col cols="12" md="6" class="py-1">
@@ -309,109 +400,6 @@
               </v-row>
             </v-tab-item>
 
-            <v-tab-item key="detallesPago">
-              <v-row class="mt-1">
-                <v-col cols="12">
-                  <v-data-table
-                    :headers="headers"
-                    :items="itemsOrdenados"
-                    v-model="selected"
-                    item-key="id"
-                    @item-selected="onItemSelected"
-                    @toggle-select-all="onSelectAll"
-                    :search="searchTableDetalle"
-                  >
-                    <template v-slot:body.append>
-                      <tr class="grey lighten-4 font-weight-bold">
-                        <td :colspan="headers.length - 1" class="text-right">
-                          Total General Seleccionado ({{ symbol }}):
-                        </td>
-                        <td class="text-left">
-                          {{ symbol }} {{ totalGeneralAbonado }}
-                        </td>
-                      </tr>
-                    </template>
-                    <template v-slot:[`item.parcialflag`]="{ item }">
-                      <v-select
-                        :items="cboParcial"
-                        v-model="item.parcialflag"
-                        dense
-                        outlined
-                        :disabled="!selected.includes(item)"
-                        hide-details
-                        @change="verificarMontoCompleto(item)"
-                      ></v-select>
-                    </template>
-                    <template v-slot:[`item.montopagar`]="{ item }">
-                      <v-text-field
-                        hide-details
-                        dense
-                        outlined
-                        v-model="item.montoparcial"
-                        :disabled="verflag"
-                        :prefix="item.symbol"
-                        @input="calcularTotal"
-                        :rules="[
-                          (v) =>
-                            !v ||
-                            parseFloat(v) <= parseFloat(item.total_mon_local) ||
-                            'El monto no puede ser mayor al saldo',
-                        ]"
-                      ></v-text-field>
-                    </template>
-                    <template v-slot:[`item.concepto`]="{ item, index }">
-                      <v-text-field
-                        v-model="item.concepto"
-                        :id="`txtConcepto${index}`"
-                        outlined
-                        dense
-                        hide-details
-                        style="max-width: 150px"
-                        placeholder="Nuevo Concepto"
-                        v-if="item.nuevoflag"
-                      ></v-text-field>
-                    </template>
-                    <template v-slot:[`item.totaldolar`]="{ item }">
-                      USD {{ item.totaldolar }}
-                    </template>
-                    <template v-slot:[`item.totalabonado`]="{ item }">
-                      {{ fn_totalAbonado(item) }}
-                    </template>
-                    <template v-slot:[`item.monto_original_total`]="{ item }">
-                      {{ item.symbol }} {{ item.monto_original_total }}
-                    </template>
-                    <template v-slot:[`item.total_mon_local`]="{ item }">
-                      {{ item.symbol }} {{ item.total_mon_local }}
-                    </template>
-                    <template v-slot:[`item.saldo`]="{ item }">
-                      {{ item.symbol }}
-                      {{
-                        parseFloat(
-                          item.total_mon_local -
-                            (item.montoparcial
-                              ? item.montoparcial
-                              : item.total_mon_local),
-                        ).toFixed(2)
-                      }}
-                    </template>
-                  </v-data-table>
-                </v-col>
-                <!-- <v-col
-                  cols="12"
-                  class="pt-1"
-                  style="align-items: end; align-content: end; text-align: end"
-                >
-                  <v-btn
-                    class="mx-1"
-                    color="success"
-                    @click="continuarGastoBancario()"
-                  >
-                    Continuar
-                  </v-btn>
-                  <v-btn class="mx-1" color="error"> Cancel </v-btn>
-                </v-col> -->
-              </v-row>
-            </v-tab-item>
 
             <v-tab-item key="gastoBancario">
               <v-row class="mt-1">
