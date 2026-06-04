@@ -11,7 +11,7 @@
           Registro de nueva nota - Opción
           {{ opcionesSeleccionadas[$store.state.pricing.page - 1].nro_propuesta
           }}<v-spacer></v-spacer>
-          <v-btn icon color="default" @click="abrirDialog()">
+          <v-btn icon color="default" @click="dialog=false">
             <v-icon>mdi-close</v-icon>
           </v-btn>
         </v-card-title>
