@@ -1876,10 +1876,14 @@ export default {
       fecha: moment().format("YYYY-MM-DD HH:MM"),
       tabPreview: "op",
       Modality: null,
-      Shipment: null,
+      Shipment: { code: "" },
       Incoterms: null,
-      Proveedor: null,
-      proveedorInstructivo: {},
+      Proveedor: {
+        namelong: "",
+      },
+      proveedorInstructivo: {
+        namelong: "",
+      },
       asesor: {},
       asesorPricing: {},
       incoterms: {},

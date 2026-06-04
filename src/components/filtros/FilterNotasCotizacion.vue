@@ -58,7 +58,7 @@
         </div> -->
 
         <div class="col-12 py-1">
-          <v-text-field
+          <v-textarea
             v-model="$store.state.masterusuarios.model.description"
             :readonly="$store.state.masterusuarios.tipo == 'ver'"
             label="Nombre (*)"
@@ -69,7 +69,10 @@
                 (!!v && v.length <= 500) ||
                 'El nombre no puede tener más 500 de  carácteres',
             ]"
-          ></v-text-field>
+            outlined
+            auto-grow
+            rows="1"
+          ></v-textarea>
         </div>
         <div class="col-12 py-1">
           <span> Estado</span>
@@ -148,7 +151,7 @@ export default {
         return `Nota  – Modo Vista`;
       }
       if (this.$store.state.masterusuarios.tipo == "nuevo") {
-        return "Nueva Nota Cotizacion";
+        return "Nueva Nota Cotización";
       }
       if (this.$store.state.masterusuarios.tipo == "editar") {
         return `Modificar Nota`;
@@ -224,4 +227,3 @@ export default {
 };
 </script>
 
-<style></style>

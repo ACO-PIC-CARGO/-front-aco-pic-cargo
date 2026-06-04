@@ -7,7 +7,7 @@
       absolute
       bottom
       persistent
-      width="30%"
+      width="50%"
       temporary
     >
       <FilterNotasCotizacion />
