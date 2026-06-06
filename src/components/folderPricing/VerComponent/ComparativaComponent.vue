@@ -264,13 +264,11 @@ export default {
               (v) => v.esopcionflag == 1 && v.code_cost == 4
             )[0].id_proveedor
           : "";
-        let nameProveedor = id_proveedor
-          ? this.$store.state.provedores.filter((v) => v.id == id_proveedor)[0]
-              .namelong
-          : "";
+        let proveedor = this.$store.state.provedores.find((v) => v.id == id_proveedor)
+            ;
         setTimeout(async () => {
           await this.calcTotales(element.listCostos);
-          element.proveedor = nameProveedor;
+          element.proveedor = proveedor ? proveedor.namelong : '';
           element.flete = this.resumenOpcion.flete
             ? this.currencyFormat(this.resumenOpcion.flete)
             : this.currencyFormat(0);

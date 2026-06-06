@@ -6523,13 +6523,51 @@ const actions = {
                 ? state.listTipoCostos.filter((v) => v.codigo == "AL")[0].name
                 : "";
           }
+
+          if (element.esgastostercerosflag == 1) {
+            if (isImport) {
+              totalImpuestosIGV += parseFloat(montoDetails);
+            }
+            orden = 7;
+            name =
+              state.listTipoCostos.length > 0
+                ? state.listTipoCostos.filter((v) => v.codigo == "GT")[0].name
+                : "";
+          }
+
+          let igv = 0;
+          if (isImport) {
+            if (
+              element.eslocalflag == 1 ||
+              element.esaduanaflag == 1 ||
+              element.esalmacenflag == 1 ||
+              element.esgastostercerosflag == 1
+            ) {
+              igv = parseFloat(
+                (montoDetails * enterprise.state.impuesto.impuesto) / 100,
+              );
+            }
+          } else {
+            if (
+              element.esorigenflag == 1 ||
+              element.eslocalflag == 1 ||
+              element.esaduanaflag == 1 ||
+              element.esalmacenflag == 1 ||
+              element.esgastostercerosflag == 1
+            ) {
+              igv = parseFloat(
+                (montoDetails * enterprise.state.impuesto.impuesto) / 100,
+              );
+            }
+          }
+
           dataIngresos.push({
             descripcion: name,
             service: element.nameservice,
             valor: montoDetails,
             orden: orden,
-            igv: 0,
-            total: montoDetails,
+            igv: parseFloat(igv).toFixed(2),
+            total: parseFloat(montoDetails + igv).toFixed(2),
           });
 
           igvIngresos += parseFloat(0);
@@ -6658,20 +6696,59 @@ const actions = {
           const proveedorEncontrado = modules.state.provedores.find(
             (v) => v.id == element.id_proveedor,
           );
+
+          if (element.esgastostercerosflag == 1) {
+            if (isImport) {
+              totalImpuestosIGV += parseFloat(montoDetails);
+            }
+            orden = 7;
+            name =
+              state.listTipoCostos.length > 0
+                ? state.listTipoCostos.filter((v) => v.codigo == "GT")[0].name
+                : "";
+          }
+
+          let igv = 0;
+          if (isImport) {
+            if (
+              element.eslocalflag == 1 ||
+              element.esaduanaflag == 1 ||
+              element.esalmacenflag == 1 ||
+              element.esgastostercerosflag == 1
+            ) {
+              igv = parseFloat(
+                (montoDetails * enterprise.state.impuesto.impuesto) / 100,
+              );
+            }
+          } else {
+            if (
+              element.esorigenflag == 1 ||
+              element.eslocalflag == 1 ||
+              element.esaduanaflag == 1 ||
+              element.esalmacenflag == 1 ||
+              element.esgastostercerosflag == 1
+            ) {
+              
+              igv = parseFloat(
+                (montoDetails * enterprise.state.impuesto.impuesto) / 100,
+              );
+            }
+          }
+
           dataCostos.push({
             proveedor: proveedorEncontrado ? proveedorEncontrado.namelong : "",
             service: element.nameservice,
             valor: montoDetails,
             orden: orden,
-            igv: 0,
-            total: montoDetails,
+            igv: parseFloat(igv),
+            total: parseFloat(montoDetails + igv).toFixed(2),
             id: proveedorEncontrado ? proveedorEncontrado.id : null,
           });
-          igvCostos += 0;
+          igvCostos += igv;
           montoCostos += parseFloat(montoDetails);
           totalCostos += parseFloat(montoDetails);
         });
-
+     
       dataIngresos = dataIngresos.sort((a, b) => {
         if (a.orden < b.orden) return -1;
         if (a.orden > b.orden) return 1;
@@ -6741,12 +6818,12 @@ const actions = {
           currentProvider = item.proveedor;
           valor += item.valor;
           subtotal += item.total;
-          igv += 0;
+          igv += item.igv;
         } else if (currentProvider === item.proveedor) {
           id = item.id;
           valor += item.valor;
           subtotal += item.total;
-          igv += 0;
+          igv += item.igv;
         } else {
           // Agregar la fila de subtotal
           result.push({
@@ -6764,7 +6841,7 @@ const actions = {
           currentProvider = item.proveedor;
           valor = item.valor;
           subtotal = item.total;
-          igv = 0;
+          igv =item-igv;
         }
 
         // Agregar el elemento actual
@@ -6813,6 +6890,7 @@ const actions = {
         total: parseFloat(montoCostos).toFixed(2),
       });
       //
+      console.log('dataCostos',dataCostos)
       state.listIngresosInstructivoAprobar.push({
         nro_propuesta: opcion.nro_propuesta,
         dataIngresos: dataIngresos,
@@ -7048,8 +7126,8 @@ const actions = {
       });
   },
   async GetArchivos({ commit }, folderUrl) {
-    if (!folderUrl){
-      return
+    if (!folderUrl) {
+      return;
     }
     let config = {
       method: "get",
@@ -9092,10 +9170,11 @@ async function GenerarCostosInstrictivo(tipo) {
               element.minimo,
             );
           }
+          let proveedor = modules.state.provedores.find(
+            (v) => v.id == element.id_proveedor,
+          );
           dataCostos.push({
-            proveedor: modules.state.provedores.filter(
-              (v) => v.id == element.id_proveedor,
-            )[0].namelong,
+            proveedor: proveedor ? proveedor.namelong : "",
             service: element.nameservice,
             valor: montoDetails,
           });
