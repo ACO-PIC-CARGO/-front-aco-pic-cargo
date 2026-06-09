@@ -156,7 +156,6 @@ export default {
     if (this.$route.name == "controlMaster") {
       this.$store.state.mainTitle = "CONTROL DE EXPEDIENTE MÁSTER";
     } else if (this.$route.name == "controlMasterEditar") {
-      console.log("name", this.$route.name);
       this.$nextTick(() => {
         setTimeout(() => {
           this.$store.state.mainTitle =
@@ -371,7 +370,7 @@ export default {
 
       vm.loadingBotonNuevoHouse = !vm.loadingBotonNuevoHouse;
 
-      await vm._setHouse();
+      await vm._setHouse(vm.$store.state.master_insertId);
       await vm._getHouseList();
 
       vm.loadingBotonNuevoHouse = !vm.loadingBotonNuevoHouse;
@@ -401,9 +400,9 @@ export default {
       // }
     },
     async _setHouse({ id_master = "", pintaSuccess = true }) {
+      console.log("ssssssssssss");
       var vm = this;
       var finalIdMaster = id_master || vm.$store.state.master_insertId;
-
       if (!finalIdMaster) {
         vm.$swal({
           icon: "error",
@@ -1110,7 +1109,6 @@ export default {
               title: "Espera",
               timerProgressBar: true,
               text: "Generando expediente...",
-              
             });
 
             var id_branch = JSON.parse(sessionStorage.getItem("dataUser"))[0]
@@ -1130,14 +1128,14 @@ export default {
               id_master: id_master,
               pintaSuccess: false,
             });
-            vm.$swal.close()
+            vm.$swal.close();
             console.log("_setMaster: Respuesta de _setHouse:", res);
             if (res[0].estadoflag) {
               vm.$router.push({
                 name: "controlHouseEditar",
                 params: {
                   id: res[0].insertid,
-                  activar:1
+                  activar: 1,
                 },
               });
             }

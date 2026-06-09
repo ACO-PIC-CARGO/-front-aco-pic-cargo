@@ -9,6 +9,7 @@ import modules from "./../index";
 const state = {
   dataCliente: {},
   step: 1,
+  id_master:'',
   nro_exp: "",
   preServices: [],
   preCostos: [],
@@ -1668,6 +1669,7 @@ const actions = {
 
       state.dataCliente = res.cliente[0];
       state.nro_quote = res.quote;
+      state.id_master = res.id_master;
       state.datosPrincipales.id_marketing = res.id_marketing;
       state.datosPrincipales.id_status = res.id_status; //-------
       state.datosPrincipales.id_vendedor = res.id_vendedor;
@@ -6890,7 +6892,6 @@ const actions = {
         total: parseFloat(montoCostos).toFixed(2),
       });
       //
-      console.log('dataCostos',dataCostos)
       state.listIngresosInstructivoAprobar.push({
         nro_propuesta: opcion.nro_propuesta,
         dataIngresos: dataIngresos,

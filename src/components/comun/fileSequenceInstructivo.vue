@@ -2638,7 +2638,6 @@ export default {
         this.pricing.listModality.find(
           (v) => v.id == this.datosPrincipales.idsentido,
         ) || {};
-      console.log(this.Modality);
     },
 
     cargarDatosShipment() {

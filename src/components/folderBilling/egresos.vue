@@ -67,6 +67,14 @@
                 <td>{{ egreso.total_total_op }}</td>
                 <td>{{ getDeudaActual(egreso) }}</td>
                 <td v-if="editable">
+                  <v-btn
+                    color="info"
+                    class="my-1 mx-1"
+                    x-small
+                    @click="nuevoEngreso(egreso)"
+                  >
+                    Nuevo Concepto
+                  </v-btn>
                   <v-tooltip
                     bottom
                     color="error"
@@ -76,7 +84,7 @@
                       <v-btn
                         v-bind="attrs"
                         v-on="on"
-                        color="success"
+                        color="info"
                         x-small
                         @click="
                           copiarMontos(
@@ -1535,11 +1543,8 @@ export default {
         this.loading = true;
         await this.moverCostos(data);
         this.loading = false;
-        console.log("llegp 2");
         this.dialogCambiarExp = false;
-        console.log("llegp 3");
         this.$emit("recargarDatos");
-        console.log("llegp 4");
       }
     },
     clienteKey(egreso, grupo) {
@@ -1611,7 +1616,8 @@ export default {
     abrirModalCuentaBancaria() {
       this.dialogCuentaBancaria = true;
     },
-    nuevoEngreso() {
+    nuevoEngreso(item = {}) {
+      console.log(item)
       this.egresos.id = null;
       this.egresos.concepto = "";
       this.egresos.statusCalcula = false;
@@ -1624,7 +1630,10 @@ export default {
       this.egresos.montopr = 0;
       this.egresos.igvpr = 0;
       this.egresos.totalpr = 0;
-      this.egresos.id_proveedor = null;
+      this.id_correlativo =
+        Object.keys(item).length > 0 ? item.id_correlativo : 1;
+      this.egresos.id_proveedor =
+        Object.keys(item).length > 0 ? item.id_proveedor : null;
       this.egresos.montoopcuentabanco = 0;
       this.egresos.igvopcuentabanco = 0;
       this.egresos.totalopcuentabanco = 0;

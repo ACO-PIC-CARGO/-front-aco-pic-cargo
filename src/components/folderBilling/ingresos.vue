@@ -5,6 +5,9 @@
       {{ formatUsd(ingreso_pr) }} / ------- Operaciones:
       {{ formatUsd(ingreso_op) }}
     </h3>
+    <!-- <v-btn @click="nuevoIngreso()" color="blue" dark small>
+      Nuevo Control Gastos Ingresos
+    </v-btn> -->
     <v-expansion-panels v-model="openedPanel" accordion>
       <v-expansion-panel
         v-for="(house, index) in ($store.state.controlGastos
@@ -23,9 +26,9 @@
           <v-simple-table dense>
             <thead>
               <tr>
-                <th width="10%">House</th>
-                <th width="10%">Cotización</th>
+                <!-- <th width="10%">House</th> -->
                 <th width="22%">Consignatario</th>
+                <th width="10%">Cotización</th>
                 <th width="12%" style="background: #d6f4ff">Total Pricing</th>
                 <th width="12%" style="background: #ffd6d6">
                   Total Operaciones
@@ -40,7 +43,8 @@
             </thead>
             <tbody>
               <tr>
-                <td>{{ house.code_house }}</td>
+                <!-- <td>{{ house.code_house }} - {{ house.correlativo }}</td> -->
+                <td>{{ house.consigner }} - {{ house.correlativo }}</td>
                 <td>
                   {{ house.quote }}
                   <v-btn
@@ -75,7 +79,7 @@
                     <v-icon>mdi-file-document-plus</v-icon>
                   </v-btn>
                 </td>
-                <td>{{ house.consigner }}</td>
+
                 <td>{{ house.total_total_pr_ingresos }}</td>
                 <td>{{ house.total_total_op_ingresos }}</td>
                 <td>{{ getDeudaActual(house) }}</td>
@@ -319,7 +323,19 @@
           <v-container>
             <v-form ref="frmIngreso">
               <v-row>
-                <v-col cols="9">
+                <v-col cols="12" xl="3" lg="3">
+                  <!-- @change="activarSeccion3" -->
+                  <v-autocomplete
+                    :items="$store.state.controlGastos.listCorrelativo"
+                    v-model="ingresos.id_correlativo"
+                    item-text="description"
+                    item-value="id"
+                    label="Correlativo"
+                    :rules="[(v) => !!v || 'Dato Requerido']"
+                  ></v-autocomplete>
+                </v-col>
+
+                <v-col cols="6">
                   <v-text-field
                     v-model="ingresos.concepto"
                     label="Concepto"
@@ -1095,7 +1111,8 @@
             item-text="text"
             item-value="value"
             label="Seleccione nuevo expediente"
-            dense
+            outlined
+            class="my-5"
           ></v-select>
           <p class="caption mb-0">Actual: {{ house.code_house }}</p>
         </v-card-text>
@@ -1457,10 +1474,8 @@ export default {
       this.dialogCargarArchivoCotizacion = true;
     },
     cargarArchivoDinamico(datoEmit, doc) {
-      console.log("sssssssssssssssssss");
       doc.file = datoEmit.archivo;
       doc.flag = true;
-      console.log(`Archivo cargado para: ${doc}`);
     },
     eliminarArchivoDinamico(doc) {
       doc.file = null;
@@ -1630,11 +1645,9 @@ export default {
     editIngreso(item) {
       this.statusBtn = 2;
       this.ingresos = {
-        id: item.id,
-        concepto: item.concepto,
+        ...item,
         statusCalcula: this.igv_pr != 0 || this.igv_op != 0 ? true : false,
-        numero: "",
-        fecha: moment(new Date()).format("YYYY-MM-DD"),
+        // fecha: moment(new Date()).format("YYYY-MM-DD"),
         montoop: item.monto_op,
         igvop: item.igv_op,
         totalop: item.total_op,
@@ -1642,8 +1655,6 @@ export default {
         igvpr: item.igv_pr,
         totalpr: item.total_pr,
         opcion: item.tipo_pago,
-        numero: item.numero,
-        fecha: item.fecha,
       };
       this.dialogIngreso = true;
     },
@@ -1752,6 +1763,7 @@ export default {
     nuevoIngreso(house) {
       this.statusBtn = 1;
       this.ingresos = {
+        id_correlativo: house.id_correlativo,
         id: null,
         concepto: "",
         statusCalcula: false,
@@ -1846,8 +1858,8 @@ export default {
     },
     async editIngresos() {
       let data = {
+        ...this.ingresos,
         code_master: this.$route.params.code_master,
-        concepto: this.ingresos.concepto,
         monto_pr: this.ingresos.montopr,
         monto_op: this.ingresos.montoop,
         igv_pr: this.ingresos.igvpr,
@@ -1855,9 +1867,6 @@ export default {
         total_pr: this.ingresos.totalpr,
         total_op: this.ingresos.totalop,
         tipo_pago: this.ingresos.opcion,
-        numero: this.ingresos.numero,
-        fecha: this.ingresos.fecha,
-        id: this.ingresos.id,
       };
       await this.actualizarIngresos(data);
       await this.getListControlGastos(this.$route.params.id);
@@ -1871,10 +1880,9 @@ export default {
         icon: "question",
         title: "Eliminar",
         text: "¿Desea Eliminar El registro?",
-        showCancelButton:true,
-        confirmButtonColor:"red",
-        confirmButtonText:"Si, Eliminar"
-
+        showCancelButton: true,
+        confirmButtonColor: "red",
+        confirmButtonText: "Si, Eliminar",
       }).then(async (res) => {
         if (res.isConfirmed) {
           let data = {
@@ -1894,6 +1902,7 @@ export default {
         var data = {
           code_master: this.$route.params.code_master,
           id_orders: this.house.id_orders,
+          id_correlativo: this.ingresos.id_correlativo,
           concepto: this.ingresos.concepto,
           monto_op: this.ingresos.montoop,
           igv_op: this.ingresos.igvop,
@@ -2048,8 +2057,9 @@ export default {
         vm.registrarFactura(res.data);
         vm.dialogFacturar = false;
         vm.nombreProforma = "PROFORMA";
+        vm.obtenerDatosHouse = false;
       }
-      vm.obtenerDatosHouse = false;
+
     },
     async registrarFactura(data) {
       let vm = this;

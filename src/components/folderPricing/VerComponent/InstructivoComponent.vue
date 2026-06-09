@@ -177,19 +177,32 @@
         </h3>
 
         <h3 class="mb-1 ml-1">
-          {{ $store.state.pricing.aprobadoflag == true ? "APROBADO" : "" }}
-          | Exp. Master:
           {{
-            $store.state.pricing.listInstructivo[0].code_master
-              ? $store.state.pricing.listInstructivo[0].code_master
-              : "--"
+            $store.state.pricing.aprobadoflag == true
+              ? "APROBADO"
+              : "POR APROBAR"
           }}
-          | Exp. House:
-          {{
-            $store.state.pricing.listInstructivo[0].code_house
-              ? $store.state.pricing.listInstructivo[0].code_house
-              : "--"
-          }}
+          |
+          <v-btn
+            v-if="$store.state.pricing.listInstructivo[0].code_master"
+            color="info"
+            style="color: black"
+            @click="irAControlDeGastos"
+          >
+            Exp. Master:
+            {{
+              $store.state.pricing.listInstructivo[0].code_master
+                ? $store.state.pricing.listInstructivo[0].code_master
+                : "--"
+            }}
+            | Exp. House:
+            {{
+              $store.state.pricing.listInstructivo[0].code_house
+                ? $store.state.pricing.listInstructivo[0].code_house
+                : "--"
+            }}
+            <v-icon class="mx-5">mdi-cash-fast</v-icon>
+          </v-btn>
         </h3>
         <h4 class="mb-1 ml-1">
           {{ $store.state.pricing.listInstructivo[0].sentido }} -
@@ -847,6 +860,32 @@ export default {
       "GuardarConfiguracionEmpresa",
       "ObtenerDatosConfig",
     ]),
+    irAControlDeGastos() {
+      console.log();
+      Swal.fire({
+        icon: "question",
+        title: "Ir a Control de Gastos",
+        text: "¿Desea Ir al control de Gastos Asociado a esta Cotización?",
+        allowEnterKey: false,
+        allowEscapeKey: false,
+        allowOutsideClick: false,
+        confirmButtonText: "Si, ir al control de Gastos",
+        denyButtonText: "Cancelar",
+        showCloseButton:true
+        
+      }).then((res) => {
+        if (res.isConfirmed) {
+          this.$router.push({
+            name: "editControlGasto",
+            params: {
+              id: this.$store.state.pricing.id_master,
+              id_branch: JSON.parse(sessionStorage.getItem("dataUser"))[0]
+                .id_branch,
+            },
+          });
+        }
+      });
+    },
     cerrarDialogoSequenceInstructivo() {
       Swal.fire({
         icon: "warning",
