@@ -463,7 +463,7 @@
 <script>
 import { validationMixin } from "vuelidate";
 import { required, maxLength, email } from "vuelidate/lib/validators";
-import axios from "axios";
+import axios from '@/api/axios-config';
 import Swal from "sweetalert2";
 import { mapActions, mapState } from "vuex";
 // import the component

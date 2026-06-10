@@ -659,7 +659,7 @@
 import { mapActions } from "vuex";
 import moment from "moment";
 import funcion from "../mixins/funciones";
-// import axios from "axios";
+// import axios from '@/api/axios-config';;
 export default {
   mixins: [funcion],
   data() {

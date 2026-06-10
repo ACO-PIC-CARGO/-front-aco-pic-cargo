@@ -428,7 +428,7 @@
   </div>
 </template>
 <script>
-import axios from "axios";
+import axios from '@/api/axios-config';
 
 export default {
   name: "cashflow",

@@ -1,7 +1,7 @@
 import http from "@/plugins/axios";
 import Swal from "sweetalert2";
 import router from "@/router";
-
+import axios from '@/api/axios-config';
 const state = {
   list: [],
   response: [],
@@ -485,7 +485,7 @@ const actions = {
         id_branch: JSON.parse(sessionStorage.getItem("dataUser"))[0].id_branch,
       },
     };
-    await http(config)
+    await axios(config)
       .then(function (response) {
         res = response.data;
         commit(

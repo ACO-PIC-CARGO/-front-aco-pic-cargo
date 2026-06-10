@@ -211,7 +211,7 @@
 </template>
 <script>
 import { mapState, mapActions } from "vuex";
-import axios from "axios";
+import axios from '@/api/axios-config';
 export default {
   name: "ControlPaymentFile",
   data: () => ({

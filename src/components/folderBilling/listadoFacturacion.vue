@@ -31,7 +31,7 @@
 </template>
 
 <script>
-import axios from "axios";
+import axios from '@/api/axios-config';;
 import { mapActions } from 'vuex';
 export default {
   name: "lstFacturacionComponent",

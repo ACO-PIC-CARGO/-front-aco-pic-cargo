@@ -464,7 +464,7 @@ import readXlsFile from "read-excel-file";
 import exportXlsFile from "export-from-json";
 import moment from "moment";
 import Swal from "sweetalert2";
-import axios from "axios";
+import axios from '@/api/axios-config';
 import { mapActions } from "vuex";
 export default {
   data() {

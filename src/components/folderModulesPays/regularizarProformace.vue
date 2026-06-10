@@ -40,7 +40,7 @@
   </div>
 </template>
 <script>
-import axios from "axios";
+import axios from '@/api/axios-config';
 import controlAccountPaysCom from "@/components/folderModulesPays/controlAccountPays";
 export default {
   name: "RegularizarFacturaCom",

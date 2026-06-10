@@ -503,7 +503,7 @@
   </v-container>
 </template>
 <script>
-import axios from "axios";
+import axios from '@/api/axios-config';
 import { mapState, mapActions } from "vuex";
 import exportFromJSON from "export-from-json";
 import moment from "moment";

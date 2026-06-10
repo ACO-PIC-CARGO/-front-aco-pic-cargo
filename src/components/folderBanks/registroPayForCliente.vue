@@ -73,13 +73,13 @@
             color="#000000"
             background-color="#C8E6C9"
           >
-            <v-tab key="detallesPago"> Detalles de Pago </v-tab>
-            <v-tab key="datosPrincipales" :disabled="!editable"
-              >Datos Principales</v-tab
-            >
+            <v-tab key="detallesPago"> Facturas </v-tab>
+            <v-tab key="datosPrincipales" :disabled="!editable">
+              Detalles Bancarios
+            </v-tab>
             <v-tab key="gastoBancario" :disabled="!editableGastoBancario">
-              Resumen y Comisión Bancario</v-tab
-            >
+              Resumen y Comisión Bancario
+            </v-tab>
           </v-tabs>
 
           <v-tabs-items v-model="pasos">
@@ -337,7 +337,7 @@
                 <v-col cols="12" class="pt-1 pb-5">
                   <v-spacer></v-spacer>
                   <v-btn color="primary" @click="continuarDetalles()">
-                    Continue
+                    Continuar Comisión Bancanría
                   </v-btn>
                   <v-btn class="mx-1" color="error" @click="pasos = 0">
                     Cancel
@@ -808,7 +808,7 @@ export default {
         });
 
         this.operacionesSimilares = res;
-        
+
         if (!res[0].estadoflag) {
           this.operacionesSimilares = [];
           return;
@@ -891,7 +891,7 @@ export default {
     montoFinal() {
       let montogastobancario = 0;
       montogastobancario = Number(this.montogastobancario || 0);
-      const total = Number(this.monto_local || 0) + montogastobancario;
+      const total = Number(this.monto*this.tipocambio || 0) + montogastobancario;
       return total.toFixed(4);
     },
   },

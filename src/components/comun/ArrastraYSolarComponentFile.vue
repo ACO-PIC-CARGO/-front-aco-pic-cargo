@@ -51,7 +51,7 @@
 </template>
 
 <script>
-import axios from "axios";
+import axios from '@/api/axios-config';;
 import { mapActions } from "vuex";
 export default {
   // 1. Agregamos los props para recibir la data del padre

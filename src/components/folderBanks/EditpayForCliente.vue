@@ -226,7 +226,7 @@
 </template>
 
 <script>
-import axios from "axios";
+import axios from '@/api/axios-config';;
 
 import { mapActions, mapState } from "vuex";
 export default {

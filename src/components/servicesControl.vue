@@ -34,7 +34,7 @@
 </template>
 <script>
 import { mapActions } from "vuex";
-import axios from "axios";
+import axios from '@/api/axios-config';
 export default {
   name: "servicesControl",
 

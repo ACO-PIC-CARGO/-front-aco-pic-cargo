@@ -1,6 +1,6 @@
 import Vue from "vue";
 import Vuex from "vuex";
-import axios from "axios";
+import axios from '@/api/axios-config';;
 import router from "@/router";
 import imgSave from "../../public/img/svg/save.svg";
 import imgFolder from "../../public/img/svg/folder.svg";

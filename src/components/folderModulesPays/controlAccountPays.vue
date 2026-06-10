@@ -445,7 +445,7 @@
   </v-card>
 </template>
 <script>
-import axios from "axios";
+import axios from '@/api/axios-config';
 import { mapActions, mapState } from "vuex";
 // import the component
 import Treeselect from "@riophae/vue-treeselect";

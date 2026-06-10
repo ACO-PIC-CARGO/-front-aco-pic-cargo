@@ -601,7 +601,7 @@ import { mapActions } from "vuex";
 import Swal from "sweetalert2";
 import moment from "moment";
 import mixins from "../../../components/mixins/funciones.js";
-import axios from "axios";
+import axios from '@/api/axios-config';;
 export default {
   mixins: [mixins],
   components: {

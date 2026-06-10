@@ -39,7 +39,7 @@
 </template>
 
 <script>
-import axios from "axios";
+import axios from '@/api/axios-config';
 import moment from "moment";
 export default {
   props: ["id", "tipo", "id_master", "id_proveedor"],

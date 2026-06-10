@@ -117,7 +117,7 @@
 import moment from "moment";
 import { mapActions } from "vuex";
 import FormatFecha from "../comun/FormatFecha.vue";
-import axios from "axios";
+import axios from '@/api/axios-config';;
 export default {
   components: {
     FormatFecha,

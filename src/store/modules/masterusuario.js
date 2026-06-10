@@ -1,4 +1,4 @@
-import axios from "axios";
+import axios from '@/api/axios-config';;
 import Swal from "sweetalert2";
 import miMixin from "../../components/mixins/funciones";
 import moment from "moment";
