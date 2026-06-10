@@ -2443,7 +2443,7 @@ export default {
               this.pricing.nro_quote
             } ${clean(this.pricing.dataCliente.nombrecompleto)} ${clean(
               this.incoterms.name,
-            )} ${clean(this.Modality.name.toUpperCase())}`;
+            )} ${clean(this.Modality.name.toUpperCase())} | AGREGAR INSTRUCTIVO INTERNO`;
 
             const body =
               "Hola colega, adjunto los detalles del expediente (Pega la tabla aquí):\n\n";

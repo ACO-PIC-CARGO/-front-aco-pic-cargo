@@ -1289,7 +1289,7 @@
 
 <script>
 import moment from "moment";
-import axios from '@/api/axios-config';;
+import axios from "@/api/axios-config";
 import Swal from "sweetalert2";
 import { mapActions } from "vuex";
 import ArrastraYSolarComponent from "../comun/ArrastraYSolarComponent.vue";
@@ -1617,7 +1617,8 @@ export default {
       this.dialogCuentaBancaria = true;
     },
     nuevoEngreso(item = {}) {
-      console.log(item)
+      this.isBotonGuardarEgresoDisabled = false;
+      console.log(item);
       this.egresos.id = null;
       this.egresos.concepto = "";
       this.egresos.statusCalcula = false;
@@ -1856,6 +1857,7 @@ export default {
     async _setData() {
       if (this.$refs.frmEgreso.validate()) {
         var vm = this;
+        vm.isBotonGuardarEgresoDisabled = true;
 
         var data = {
           id_master:
@@ -1885,7 +1887,6 @@ export default {
           method: "post",
           url: process.env.VUE_APP_URL_MAIN + "setEgresos",
           headers: {
-           
             "Content-Type": "application/json",
           },
           data: data,
@@ -1987,7 +1988,6 @@ export default {
         method: "post",
         url: process.env.VUE_APP_URL_MAIN + "setInvoice",
         headers: {
-         
           "Content-Type": "application/json",
         },
         data: data,
@@ -2022,7 +2022,6 @@ export default {
         method: "post",
         url: process.env.VUE_APP_URL_MAIN + "delInvoice/" + id,
         headers: {
-         
           "Content-Type": "application/json",
         },
       };
@@ -2079,7 +2078,6 @@ export default {
         url:
           process.env.VUE_APP_URL_MAIN + "getAccountsNumber/" + vm.proveedorId,
         headers: {
-         
           "Content-Type": "application/json",
         },
         data: data,
@@ -2141,7 +2139,6 @@ export default {
             method: "put",
             url: process.env.VUE_APP_URL_MAIN + "delEgregso/" + item.id,
             headers: {
-             
               "Content-Type": "application/json",
             },
           };
@@ -2193,7 +2190,6 @@ export default {
             JSON.parse(sessionStorage.getItem("dataUser"))[0].id_branch
           }`,
         headers: {
-         
           "Content-Type": "application/json",
         },
       };
@@ -2244,7 +2240,6 @@ export default {
         method: "post",
         url: process.env.VUE_APP_URL_MAIN + "editEgreso/" + vm.egresos.id,
         headers: {
-         
           "Content-Type": "application/json",
         },
         data: data,
@@ -2403,7 +2398,6 @@ export default {
         method: "post",
         url: process.env.VUE_APP_URL_MAIN + "getPdfInstructivoDetallado",
         headers: {
-         
           "Content-Type": "application/json",
         },
         data: data,
@@ -2449,7 +2443,6 @@ export default {
             method: "post",
             url: process.env.VUE_APP_URL_MAIN + "putSPaymentPro/" + id,
             headers: {
-             
               "Content-Type": "application/json",
             },
             data: data,
@@ -2490,7 +2483,6 @@ export default {
         method: "put",
         url: process.env.VUE_APP_URL_MAIN + "eliminar_spaymentpro",
         headers: {
-         
           "Content-Type": "application/json",
         },
         data: data,
@@ -2572,7 +2564,6 @@ export default {
         method: "post",
         url: process.env.VUE_APP_URL_MAIN + "setSPaymentPro",
         headers: {
-         
           "Content-Type": "application/json",
         },
         data: datas,
@@ -2614,7 +2605,6 @@ export default {
             method: "post",
             url: process.env.VUE_APP_URL_MAIN + "pdfSolicitud",
             headers: {
-             
               "Content-Type": "application/json",
             },
             data: data,
@@ -2721,7 +2711,6 @@ export default {
           process.env.VUE_APP_URL_MAIN +
           `list_invoice_path?id_master=${egreso.id_master}&id_proveedor=${egreso.id_proveedor}&id_correlativo=${egreso.id_correlativo}`,
         headers: {
-         
           "Content-Type": "application/json",
         },
       };
@@ -2783,7 +2772,6 @@ export default {
               method: "post",
               url: process.env.VUE_APP_URL_MAIN + "setAccount",
               headers: {
-               
                 "Content-Type": "application/json",
               },
               data: {
