@@ -927,15 +927,28 @@
                         >
                           <p class="MsoNormal my-0 my-0">
                             Datos:
-                            {{ this.proveedorInstructivo.namelong || "" }}
+
+                            {{
+                              Object.keys(proveedorInstructivo).length
+                                ? proveedorInstructivo.namelong
+                                : ""
+                            }}
                           </p>
                           <p class="MsoNormal my-0 my-0">
                             Contacto:
-                            {{ this.proveedorInstructivo.contacto || "" }}
+                            {{
+                              Object.keys(proveedorInstructivo).length
+                                ? proveedorInstructivo.contacto
+                                : ""
+                            }}
                           </p>
                           <p class="MsoNormal my-0 my-0">
                             Téfono:
-                            {{ this.proveedorInstructivo.contacto_phone || "" }}
+                            {{
+                              Object.keys(proveedorInstructivo).length
+                                ? proveedorInstructivo.contacto_phone
+                                : ""
+                            }}
                           </p>
                         </td>
                       </tr>
@@ -1780,7 +1793,7 @@
 <script>
 import moment from "moment";
 import Swal from "sweetalert2";
-import axios from '@/api/axios-config';;
+import axios from "@/api/axios-config";
 import { mapActions } from "vuex";
 import ArrastraYSolarComponent from "./ArrastraYSolarComponentFile.vue";
 export default {
@@ -2078,9 +2091,7 @@ export default {
       var config = {
         method: "post",
         url: process.env.VUE_APP_URL_MAIN + "uploadAllPath",
-        headers: {
-         
-        },
+        headers: {},
         data: data,
       };
 
@@ -2423,27 +2434,28 @@ export default {
                 </div>
               </div>
             `,
-          timer: 2500,
+        }).then((res) => {
+          if (res.isConfirmed) {
+            const clean = (str) =>
+              str ? str.normalize("NFD").replace(/[\u0300-\u036f]/g, "") : "";
+
+            const subject = `EXPEDIENTE-${this.pricing.nro_exp} | QUOTE${
+              this.pricing.nro_quote
+            } ${clean(this.pricing.dataCliente.nombrecompleto)} ${clean(
+              this.incoterms.name,
+            )} ${clean(this.Modality.name.toUpperCase())}`;
+
+            const body =
+              "Hola colega, adjunto los detalles del expediente (Pega la tabla aquí):\n\n";
+
+            setTimeout(() => {
+              window.location.href = `mailto:?subject=${encodeURIComponent(
+                subject,
+              )}&body=${encodeURIComponent(body)}`;
+              this.abrirModalSegundoCorreo();
+            }, 500);
+          }
         });
-
-        const clean = (str) =>
-          str ? str.normalize("NFD").replace(/[\u0300-\u036f]/g, "") : "";
-
-        const subject = `EXPEDIENTE-${this.pricing.nro_exp} | QUOTE${
-          this.pricing.nro_quote
-        } ${clean(this.pricing.dataCliente.nombrecompleto)} ${clean(
-          this.incoterms.name,
-        )} ${clean(this.Modality.name.toUpperCase())}`;
-
-        const body =
-          "Hola colega, adjunto los detalles del expediente (Pega la tabla aquí):\n\n";
-
-        setTimeout(() => {
-          window.location.href = `mailto:?subject=${encodeURIComponent(
-            subject,
-          )}&body=${encodeURIComponent(body)}`;
-          this.abrirModalSegundoCorreo();
-        }, 500);
       } catch (err) {
         console.error("Error:", err);
       }
@@ -2677,6 +2689,11 @@ export default {
     },
 
     cargarDatosProveedor() {
+      console.log(
+        "itemsProveedorList",
+        this.$store.state.itemsProveedorList.find((v) => v.id == 12817),
+      );
+      console.log("id_proveedor", this.datosPrincipales.id_proveedor);
       this.proveedor = this.encontrar(
         this.$store.state.itemsProveedorList,
         this.datosPrincipales.id_proveedor,
@@ -2720,7 +2737,6 @@ export default {
       this.cargaNroQuote(),
       this.cargarDatosAsesor(),
       this.cargarDatosIncoterms(),
-      this.cargarDatosProveedor(),
       this.cargarDatosCliente(),
       this.cargarDatosAsesorPricing(),
     ]);
@@ -2745,9 +2761,11 @@ export default {
       let proveedoresUnicos = [
         ...new Set(costosFlete.map((v) => v.id_proveedor)),
       ];
-      this.proveedorInstructivo = this.$store.state.provedores.find(
-        (v) => v.id == proveedoresUnicos[0],
-      );
+      const idBuscado =
+        proveedoresUnicos.length > 0 ? proveedoresUnicos[0] : null;
+      this.proveedorInstructivo =
+        this.$store.state.provedores.find((v) => v.id == idBuscado) || {};
+      console.log("proveedorInstructivo", this.proveedorInstructivo);
     }
     this.puertoOrigen = await this.verPuerto({
       id_transport: idTipoCarga,
