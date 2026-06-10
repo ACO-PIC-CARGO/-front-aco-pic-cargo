@@ -47,7 +47,7 @@ let actions = {
         }`,
 
       headers: {
-        "auth-token": sessionStorage.getItem("auth-token"),
+       
         "Content-Type": "application/json",
       },
     };
@@ -89,7 +89,7 @@ let actions = {
       method: "post",
       url: process.env.VUE_APP_URL_MAIN + `insertar_motonave`,
       headers: {
-        "auth-token": sessionStorage.getItem("auth-token"),
+       
         "Content-Type": "application/json",
       },
       data: state.MotonaveModel,
@@ -116,7 +116,7 @@ let actions = {
       method: "put",
       url: process.env.VUE_APP_URL_MAIN + `actualizar_motonave`,
       headers: {
-        "auth-token": sessionStorage.getItem("auth-token"),
+       
         "Content-Type": "application/json",
       },
       data: state.MotonaveModel,

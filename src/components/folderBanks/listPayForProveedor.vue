@@ -517,7 +517,7 @@ export default {
           method: "post",
           url: process.env.VUE_APP_URL_MAIN + "uploadAllPath",
           headers: {
-            "auth-token": sessionStorage.getItem("auth-token"),
+           
             "Content-Type": "application/json",
           },
           data: data,
@@ -572,7 +572,7 @@ export default {
         url: process.env.VUE_APP_URL_MAIN + "ver_pago_invoice?id=" + id,
 
         headers: {
-          "auth-token": sessionStorage.getItem("auth-token"),
+         
           "Content-Type": "application/json",
         },
       };
@@ -597,7 +597,7 @@ export default {
         url: process.env.VUE_APP_URL_MAIN + "ver_pago_cgegreso?id=" + id,
 
         headers: {
-          "auth-token": sessionStorage.getItem("auth-token"),
+         
           "Content-Type": "application/json",
         },
       };
@@ -624,7 +624,7 @@ export default {
           item.id,
 
         headers: {
-          "auth-token": sessionStorage.getItem("auth-token"),
+         
           "Content-Type": "application/json",
         },
       };
@@ -646,7 +646,7 @@ export default {
           url: process.env.VUE_APP_URL_MAIN + "actualizar_pago_invoice",
 
           headers: {
-            "auth-token": sessionStorage.getItem("auth-token"),
+           
             "Content-Type": "application/json",
           },
           data: this.dato,
@@ -683,7 +683,7 @@ export default {
           url: process.env.VUE_APP_URL_MAIN + "actualizar_pago_cgegreso",
 
           headers: {
-            "auth-token": sessionStorage.getItem("auth-token"),
+           
             "Content-Type": "application/json",
           },
           data: this.dato,
@@ -778,7 +778,7 @@ export default {
           }`,
         responseType: "blob",
         headers: {
-          "auth-token": sessionStorage.getItem("auth-token"),
+         
           "Content-Type": "application/json",
         },
       };
@@ -808,7 +808,7 @@ export default {
             .id_branch,
         },
         headers: {
-          "auth-token": sessionStorage.getItem("auth-token"),
+         
           "Content-Type": "application/json",
         },
       };

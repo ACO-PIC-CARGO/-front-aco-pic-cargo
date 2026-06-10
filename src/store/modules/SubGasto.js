@@ -53,7 +53,7 @@ let actions = {
         }`,
 
       headers: {
-        "auth-token": sessionStorage.getItem("auth-token"),
+       
         "Content-Type": "application/json",
       },
     };
@@ -100,7 +100,7 @@ let actions = {
         }&code=${state.model.code}`,
 
       headers: {
-        "auth-token": sessionStorage.getItem("auth-token"),
+       
         "Content-Type": "application/json",
       },
     };
@@ -116,7 +116,7 @@ let actions = {
       method: "post",
       url: process.env.VUE_APP_URL_MAIN + `insertar_subgasto`,
       headers: {
-        "auth-token": sessionStorage.getItem("auth-token"),
+       
         "Content-Type": "application/json",
       },
       data: state.model,
@@ -143,7 +143,7 @@ let actions = {
       method: "put",
       url: process.env.VUE_APP_URL_MAIN + `actualizar_subgasto`,
       headers: {
-        "auth-token": sessionStorage.getItem("auth-token"),
+       
         "Content-Type": "application/json",
       },
       data: state.model,

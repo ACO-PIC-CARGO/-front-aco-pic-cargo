@@ -19,7 +19,7 @@ const actions = {
       url: process.env.VUE_APP_URL_MAIN + `cargar_proveedor_pricing`,
 
       headers: {
-        "auth-token": sessionStorage.getItem("auth-token"),
+       
         "Content-Type": "application/json",
       },
       params: data,

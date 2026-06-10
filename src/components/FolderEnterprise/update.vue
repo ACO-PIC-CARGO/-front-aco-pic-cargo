@@ -548,7 +548,7 @@ export default {
           `&document=${encodeURIComponent(this.enterprise.document)}`,
         headers: {
           "Content-Type": "application/json",
-          "auth-token": sessionStorage.getItem("auth-token"),
+         
         },
       };
 

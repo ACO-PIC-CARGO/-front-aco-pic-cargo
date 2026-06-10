@@ -183,7 +183,7 @@ export default {
         url: process.env.VUE_APP_URL_MAIN + "CargarBranch/" + id_usuario,
 
         headers: {
-          "auth-token": sessionStorage.getItem("auth-token"),
+         
           "Content-Type": "application/json",
         },
       };
@@ -220,7 +220,7 @@ export default {
           url: process.env.VUE_APP_URL_MAIN + "ListProgrammedPayment",
 
           headers: {
-            "auth-token": sessionStorage.getItem("auth-token"),
+           
             "Content-Type": "application/json",
           },
         };

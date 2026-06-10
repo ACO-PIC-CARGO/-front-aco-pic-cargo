@@ -1885,7 +1885,7 @@ export default {
           method: "post",
           url: process.env.VUE_APP_URL_MAIN + "setEgresos",
           headers: {
-            "auth-token": sessionStorage.getItem("auth-token"),
+           
             "Content-Type": "application/json",
           },
           data: data,
@@ -1987,7 +1987,7 @@ export default {
         method: "post",
         url: process.env.VUE_APP_URL_MAIN + "setInvoice",
         headers: {
-          "auth-token": sessionStorage.getItem("auth-token"),
+         
           "Content-Type": "application/json",
         },
         data: data,
@@ -2022,7 +2022,7 @@ export default {
         method: "post",
         url: process.env.VUE_APP_URL_MAIN + "delInvoice/" + id,
         headers: {
-          "auth-token": sessionStorage.getItem("auth-token"),
+         
           "Content-Type": "application/json",
         },
       };
@@ -2079,7 +2079,7 @@ export default {
         url:
           process.env.VUE_APP_URL_MAIN + "getAccountsNumber/" + vm.proveedorId,
         headers: {
-          "auth-token": sessionStorage.getItem("auth-token"),
+         
           "Content-Type": "application/json",
         },
         data: data,
@@ -2141,7 +2141,7 @@ export default {
             method: "put",
             url: process.env.VUE_APP_URL_MAIN + "delEgregso/" + item.id,
             headers: {
-              "auth-token": sessionStorage.getItem("auth-token"),
+             
               "Content-Type": "application/json",
             },
           };
@@ -2193,7 +2193,7 @@ export default {
             JSON.parse(sessionStorage.getItem("dataUser"))[0].id_branch
           }`,
         headers: {
-          "auth-token": sessionStorage.getItem("auth-token"),
+         
           "Content-Type": "application/json",
         },
       };
@@ -2244,7 +2244,7 @@ export default {
         method: "post",
         url: process.env.VUE_APP_URL_MAIN + "editEgreso/" + vm.egresos.id,
         headers: {
-          "auth-token": sessionStorage.getItem("auth-token"),
+         
           "Content-Type": "application/json",
         },
         data: data,
@@ -2403,7 +2403,7 @@ export default {
         method: "post",
         url: process.env.VUE_APP_URL_MAIN + "getPdfInstructivoDetallado",
         headers: {
-          "auth-token": sessionStorage.getItem("auth-token"),
+         
           "Content-Type": "application/json",
         },
         data: data,
@@ -2449,7 +2449,7 @@ export default {
             method: "post",
             url: process.env.VUE_APP_URL_MAIN + "putSPaymentPro/" + id,
             headers: {
-              "auth-token": sessionStorage.getItem("auth-token"),
+             
               "Content-Type": "application/json",
             },
             data: data,
@@ -2490,7 +2490,7 @@ export default {
         method: "put",
         url: process.env.VUE_APP_URL_MAIN + "eliminar_spaymentpro",
         headers: {
-          "auth-token": sessionStorage.getItem("auth-token"),
+         
           "Content-Type": "application/json",
         },
         data: data,
@@ -2572,7 +2572,7 @@ export default {
         method: "post",
         url: process.env.VUE_APP_URL_MAIN + "setSPaymentPro",
         headers: {
-          "auth-token": sessionStorage.getItem("auth-token"),
+         
           "Content-Type": "application/json",
         },
         data: datas,
@@ -2614,7 +2614,7 @@ export default {
             method: "post",
             url: process.env.VUE_APP_URL_MAIN + "pdfSolicitud",
             headers: {
-              "auth-token": sessionStorage.getItem("auth-token"),
+             
               "Content-Type": "application/json",
             },
             data: data,
@@ -2721,7 +2721,7 @@ export default {
           process.env.VUE_APP_URL_MAIN +
           `list_invoice_path?id_master=${egreso.id_master}&id_proveedor=${egreso.id_proveedor}&id_correlativo=${egreso.id_correlativo}`,
         headers: {
-          "auth-token": sessionStorage.getItem("auth-token"),
+         
           "Content-Type": "application/json",
         },
       };
@@ -2783,7 +2783,7 @@ export default {
               method: "post",
               url: process.env.VUE_APP_URL_MAIN + "setAccount",
               headers: {
-                "auth-token": sessionStorage.getItem("auth-token"),
+               
                 "Content-Type": "application/json",
               },
               data: {

@@ -31,7 +31,7 @@ const actions = {
         JSON.parse(sessionStorage.getItem("dataUser"))[0].id_branch,
 
       headers: {
-        "auth-token": sessionStorage.getItem("auth-token"),
+       
         "Content-Type": "application/json",
       },
       data: data,
@@ -66,7 +66,7 @@ const actions = {
   },
   async GetTotalCotizacion({ commit }) {
     var headers = {
-      "auth-token": sessionStorage.getItem("auth-token"),
+     
       "Content-Type": "application/json",
     };
     var config = {
@@ -86,7 +86,7 @@ const actions = {
   },
   async getListProgramacion({ commit }, data) {
     var headers = {
-      "auth-token": sessionStorage.getItem("auth-token"),
+     
       "Content-Type": "application/json",
     };
     var config = {
@@ -112,7 +112,7 @@ const actions = {
   },
   async setPagoProgramado({ dispatch }, data) {
     var headers = {
-      "auth-token": sessionStorage.getItem("auth-token"),
+     
       "Content-Type": "application/json",
     };
     var config = {
@@ -137,7 +137,7 @@ const actions = {
   },
   async eliminarProgramacion({ dispatch }, data) {
     var headers = {
-      "auth-token": sessionStorage.getItem("auth-token"),
+     
       "Content-Type": "application/json",
     };
     var config = {
@@ -162,7 +162,7 @@ const actions = {
   },
   async eliminarProgramacionDetalle(__, data) {
     var headers = {
-      "auth-token": sessionStorage.getItem("auth-token"),
+     
       "Content-Type": "application/json",
     };
     var config = {

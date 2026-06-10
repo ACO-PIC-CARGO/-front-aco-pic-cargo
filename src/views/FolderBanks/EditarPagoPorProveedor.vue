@@ -315,7 +315,7 @@ export default {
             .id_branch,
         },
         headers: {
-          "auth-token": sessionStorage.getItem("auth-token"),
+         
           "Content-Type": "application/json",
         },
       };

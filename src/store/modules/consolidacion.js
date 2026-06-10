@@ -15,7 +15,7 @@ const actions = {
       method: "post",
       url: process.env.VUE_APP_URL_MAIN + "generar_consolidacion",
       headers: {
-        "auth-token": sessionStorage.getItem("auth-token"),
+       
         "Content-Type": "application/json",
       },
       data: data,

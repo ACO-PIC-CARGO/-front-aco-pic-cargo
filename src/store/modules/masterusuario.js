@@ -73,7 +73,7 @@ const actions = {
       method: "put",
       url: process.env.VUE_APP_URL_MAIN + `actualizar_master_detalle`,
       headers: {
-        "auth-token": sessionStorage.getItem("auth-token"),
+       
         "Content-Type": "application/json",
       },
       data: state.model,
@@ -119,7 +119,7 @@ const actions = {
         }`,
 
       headers: {
-        "auth-token": sessionStorage.getItem("auth-token"),
+       
         "Content-Type": "application/json",
       },
     };
@@ -180,7 +180,7 @@ const actions = {
         }&escomunflag=${state.filtros.escomunflag}`,
 
       headers: {
-        "auth-token": sessionStorage.getItem("auth-token"),
+       
         "Content-Type": "application/json",
       },
     };
@@ -241,7 +241,7 @@ const actions = {
         }`,
 
       headers: {
-        "auth-token": sessionStorage.getItem("auth-token"),
+       
         "Content-Type": "application/json",
       },
     };
@@ -280,7 +280,7 @@ const actions = {
   },
   async cargarMasterDetalleCanal({ commit }) {
     var headers = {
-      "auth-token": sessionStorage.getItem("auth-token"),
+     
       "Content-Type": "application/json",
     };
 
@@ -307,7 +307,7 @@ const actions = {
   },
   async cargarMasterDetalleTipoProveedor({ commit }) {
     var headers = {
-      "auth-token": sessionStorage.getItem("auth-token"),
+     
 
       "Content-Type": "application/json",
     };
@@ -337,7 +337,7 @@ const actions = {
   },
   async cargarMasterDetallePercepcionAduana({ commit }) {
     var headers = {
-      "auth-token": sessionStorage.getItem("auth-token"),
+     
 
       "Content-Type": "application/json",
     };
@@ -363,7 +363,7 @@ const actions = {
   },
   async cargarMasterDetalleTipoTransaccion({ commit }) {
     var headers = {
-      "auth-token": sessionStorage.getItem("auth-token"),
+     
       "Content-Type": "application/json",
     };
 
@@ -388,7 +388,7 @@ const actions = {
   },
   async cargarTipoTelefono({ commit }) {
     var headers = {
-      "auth-token": sessionStorage.getItem("auth-token"),
+     
       "Content-Type": "application/json",
     };
 
@@ -417,7 +417,7 @@ const actions = {
       url:
         process.env.VUE_APP_URL_MAIN + `insertar_master_detalle_tipotelefono`,
       headers: {
-        "auth-token": sessionStorage.getItem("auth-token"),
+       
         "Content-Type": "application/json",
       },
       data: state.model,
@@ -446,7 +446,7 @@ const actions = {
         process.env.VUE_APP_URL_MAIN +
         `insertar_master_detalle_notas_cotizacion`,
       headers: {
-        "auth-token": sessionStorage.getItem("auth-token"),
+       
         "Content-Type": "application/json",
       },
       data: state.model,
@@ -470,7 +470,7 @@ const actions = {
   },
   async cargarTipoPersona({ commit }) {
     var headers = {
-      "auth-token": sessionStorage.getItem("auth-token"),
+     
       "Content-Type": "application/json",
     };
 
@@ -496,7 +496,7 @@ const actions = {
   },
   async cargarImpuestoRenta({ commit }) {
     var headers = {
-      "auth-token": sessionStorage.getItem("auth-token"),
+     
       "Content-Type": "application/json",
     };
 

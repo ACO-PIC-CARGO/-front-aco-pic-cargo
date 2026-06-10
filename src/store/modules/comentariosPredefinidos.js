@@ -41,7 +41,7 @@ const actions = {
         }`,
       headers: {
         "Content-Type": "application/json",
-        "auth-token": sessionStorage.getItem("auth-token"),
+       
       },
     };
 
@@ -86,7 +86,7 @@ const actions = {
         }`,
       headers: {
         "Content-Type": "application/json",
-        "auth-token": sessionStorage.getItem("auth-token"),
+       
       },
     };
 
@@ -110,7 +110,7 @@ const actions = {
       url: process.env.VUE_APP_URL_MAIN + "insertarComentarioPredefinido",
       headers: {
         "Content-Type": "application/json",
-        "auth-token": sessionStorage.getItem("auth-token"),
+       
       },
       data: data,
     };
@@ -137,7 +137,7 @@ const actions = {
       url: process.env.VUE_APP_URL_MAIN + "actualizarComentarioPredefinido",
       headers: {
         "Content-Type": "application/json",
-        "auth-token": sessionStorage.getItem("auth-token"),
+       
       },
       data: data,
     };
@@ -164,7 +164,7 @@ const actions = {
       url: process.env.VUE_APP_URL_MAIN + "eliminarComentarioPredefinido",
       headers: {
         "Content-Type": "application/json",
-        "auth-token": sessionStorage.getItem("auth-token"),
+       
       },
       data: data,
     };

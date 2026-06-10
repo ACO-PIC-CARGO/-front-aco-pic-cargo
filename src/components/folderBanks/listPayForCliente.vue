@@ -695,7 +695,7 @@ export default {
           method: "post",
           url: process.env.VUE_APP_URL_MAIN + "uploadAllPath",
           headers: {
-            "auth-token": sessionStorage.getItem("auth-token"),
+           
             "Content-Type": "application/json",
           },
           data: data,
@@ -819,7 +819,7 @@ export default {
             .id_branch,
         },
         headers: {
-          "auth-token": sessionStorage.getItem("auth-token"),
+         
           "Content-Type": "application/json",
         },
       };
@@ -843,7 +843,7 @@ export default {
         url: process.env.VUE_APP_URL_MAIN + "ver_ingresos_invoice?id=" + id,
 
         headers: {
-          "auth-token": sessionStorage.getItem("auth-token"),
+         
           "Content-Type": "application/json",
         },
       };
@@ -868,7 +868,7 @@ export default {
         url: process.env.VUE_APP_URL_MAIN + "ver_ingresos_debscliente?id=" + id,
 
         headers: {
-          "auth-token": sessionStorage.getItem("auth-token"),
+         
           "Content-Type": "application/json",
         },
       };
@@ -893,7 +893,7 @@ export default {
           url: process.env.VUE_APP_URL_MAIN + "actualizar_ingreso_invoice",
 
           headers: {
-            "auth-token": sessionStorage.getItem("auth-token"),
+           
             "Content-Type": "application/json",
           },
           data: this.dato,
@@ -929,7 +929,7 @@ export default {
           url: process.env.VUE_APP_URL_MAIN + "actualizar_ingreso_debscliente",
 
           headers: {
-            "auth-token": sessionStorage.getItem("auth-token"),
+           
             "Content-Type": "application/json",
           },
           data: this.dato,
@@ -986,7 +986,7 @@ export default {
           }&nro_exp=${this.filtro.nro_exp ? this.filtro.nro_exp : ""}`,
         responseType: "blob",
         headers: {
-          "auth-token": sessionStorage.getItem("auth-token"),
+         
           "Content-Type": "application/json",
         },
       };

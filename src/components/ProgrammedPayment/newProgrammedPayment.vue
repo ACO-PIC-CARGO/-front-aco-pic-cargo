@@ -76,7 +76,7 @@ export default {
         url: process.env.VUE_APP_URL_MAIN + "ListProgrammedPayment",
 
         headers: {
-          "auth-token": sessionStorage.getItem("auth-token"),
+         
           "Content-Type": "application/json",
         },
         data: data,
@@ -116,7 +116,7 @@ export default {
         method: "post",
         url: process.env.VUE_APP_URL_MAIN + "setProgrammedPayment",
         headers: {
-          "auth-token": sessionStorage.getItem("auth-token"),
+         
           "Content-Type": "application/json",
         },
         data: data,

@@ -658,7 +658,7 @@ export default {
         method: "put",
         url: process.env.VUE_APP_URL_MAIN + "setHouseEdit",
         headers: {
-          "auth-token": sessionStorage.getItem("auth-token"),
+         
           "Content-Type": "application/json",
         },
         data: data,
@@ -739,7 +739,7 @@ export default {
           url: process.env.VUE_APP_URL_MAIN + "validar_existe_pago_master",
           headers: {
             "Content-Type": "application/json",
-            "auth-token": sessionStorage.getItem("auth-token"),
+           
           },
           params: {
             id: this.$store.state.house_cotizacion,
@@ -900,7 +900,7 @@ export default {
       //     method: "post",
       //     url: process.env.VUE_APP_URL_MAIN + "getHouseListId/",
       //     headers: {
-      //       "auth-token": sessionStorage.getItem("auth-token"),
+      //      
       //       "Content-Type": "application/json",
       //     },
       //     data: data,
@@ -1070,7 +1070,7 @@ export default {
           process.env.VUE_APP_URL_MAIN +
           `ver_proveedor?id=${vm.$store.state.house_id_consigner}`,
         headers: {
-          "auth-token": sessionStorage.getItem("auth-token"),
+         
           "Content-Type": "application/json",
         },
       };

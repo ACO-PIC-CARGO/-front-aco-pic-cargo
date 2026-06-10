@@ -683,7 +683,7 @@ export default {
               }`,
             responseType: "blob",
             headers: {
-              "auth-token": sessionStorage.getItem("auth-token"),
+             
               "Content-Type": "blob",
             },
           };
@@ -725,7 +725,7 @@ export default {
             vm.filtroOp.fechaOp ? vm.filtroOp.fechaOp : ""
           }&nro_expediente=${this.nro_expediente}`,
         headers: {
-          "auth-token": sessionStorage.getItem("auth-token"),
+         
           "Content-Type": "application/json",
         },
       };
@@ -755,7 +755,7 @@ export default {
         url: process.env.VUE_APP_URL_MAIN + "getReportAccountsFilter",
 
         headers: {
-          "auth-token": sessionStorage.getItem("auth-token"),
+         
           "Content-Type": "application/json",
         },
         data: data,
@@ -790,7 +790,7 @@ export default {
           }&id_subingreso=${this.subingreso ? this.subingreso : ""}`,
 
         headers: {
-          "auth-token": sessionStorage.getItem("auth-token"),
+         
           "Content-Type": "application/json",
         },
       };
@@ -1024,7 +1024,7 @@ export default {
 
         responseType: "blob",
         headers: {
-          "auth-token": sessionStorage.getItem("auth-token"),
+         
           "Content-Type": "blob",
         },
       };
@@ -1108,7 +1108,7 @@ export default {
           process.env.VUE_APP_URL_MAIN +
           `listarComentariosCXC?id_cliente=${vm.dataCXC.id_consigner}`,
         headers: {
-          "auth-token": sessionStorage.getItem("auth-token"),
+         
           "Content-Type": "application/json",
         },
       };
@@ -1160,7 +1160,7 @@ export default {
           method: "post",
           url: process.env.VUE_APP_URL_MAIN + `insertarComentarioCXC`,
           headers: {
-            "auth-token": sessionStorage.getItem("auth-token"),
+           
             "Content-Type": "application/json",
           },
           data: vm.comentario,

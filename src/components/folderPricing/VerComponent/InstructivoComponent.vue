@@ -1402,7 +1402,7 @@ export default {
           url: process.env.VUE_APP_URL_MAIN + "validar_existe_pago_master",
           headers: {
             "Content-Type": "application/json",
-            "auth-token": sessionStorage.getItem("auth-token"),
+           
           },
           params: {
             id: this.id_exp,
@@ -1427,7 +1427,7 @@ export default {
         url: process.env.VUE_APP_URL_MAIN + "validar_existe_pago_house",
         headers: {
           "Content-Type": "application/json",
-          "auth-token": sessionStorage.getItem("auth-token"),
+         
         },
         params: {
           id: this.id_house,
@@ -1447,7 +1447,7 @@ export default {
         url: process.env.VUE_APP_URL_MAIN + "cargar_house_asociado_master",
         headers: {
           "Content-Type": "application/json",
-          "auth-token": sessionStorage.getItem("auth-token"),
+         
         },
         params: {
           id_master: this.id_exp,

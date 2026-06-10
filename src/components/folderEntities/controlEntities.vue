@@ -497,7 +497,7 @@ export default {
           "getAccountsNumber/" +
           vm.$route.params.id,
         headers: {
-          "auth-token": sessionStorage.getItem("auth-token"),
+         
           "Content-Type": "application/json",
         },
         data: data,
@@ -539,7 +539,7 @@ export default {
           method: "post",
           url: process.env.VUE_APP_URL_MAIN + "getEntitiesListIc",
           headers: {
-            "auth-token": sessionStorage.getItem("auth-token"),
+           
             "Content-Type": "application/json",
           },
           data: data,
@@ -589,7 +589,7 @@ export default {
           method: "post",
           url: process.env.VUE_APP_URL_MAIN + "getEntitiesListId",
           headers: {
-            "auth-token": sessionStorage.getItem("auth-token"),
+           
             "Content-Type": "application/json",
           },
           data: data,
@@ -667,7 +667,7 @@ export default {
           method: "post",
           url: process.env.VUE_APP_URL_MAIN + "addEntities",
           headers: {
-            "auth-token": sessionStorage.getItem("auth-token"),
+           
             "Content-Type": "application/json",
           },
           data: dataEntitie,
@@ -705,7 +705,7 @@ export default {
         method: "post",
         url: process.env.VUE_APP_URL_MAIN + "editRole/" + vm.$route.params.id,
         headers: {
-          "auth-token": sessionStorage.getItem("auth-token"),
+         
           "Content-Type": "application/json",
         },
         data: data,
@@ -765,7 +765,7 @@ export default {
           method: "post",
           url: process.env.VUE_APP_URL_MAIN + "editEntitie/" + vm.id_entitie,
           headers: {
-            "auth-token": sessionStorage.getItem("auth-token"),
+           
             "Content-Type": "application/json",
           },
           data: dataEntitie,
@@ -810,7 +810,7 @@ export default {
         method: "post",
         url: process.env.VUE_APP_URL_MAIN + "addRoleEntitie",
         headers: {
-          "auth-token": sessionStorage.getItem("auth-token"),
+         
           "Content-Type": "application/json",
         },
         data: dataEntitie,

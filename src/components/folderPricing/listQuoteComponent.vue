@@ -1048,7 +1048,7 @@ export default {
               id_branch,
             },
             headers: {
-              "auth-token": sessionStorage.getItem("auth-token"),
+             
             },
           },
         );
@@ -1101,7 +1101,7 @@ export default {
           },
           {
             headers: {
-              "auth-token": sessionStorage.getItem("auth-token"),
+             
             },
           },
         );

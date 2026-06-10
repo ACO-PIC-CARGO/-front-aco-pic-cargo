@@ -598,7 +598,7 @@ export default {
           `&position=${this.marketing.position}`,
         headers: {
           "Content-Type": "application/json",
-          "auth-token": sessionStorage.getItem("auth-token"),
+         
         },
       };
       await axios(config)
@@ -624,7 +624,7 @@ export default {
           `&position=${this.marketing.position}`,
         headers: {
           "Content-Type": "application/json",
-          "auth-token": sessionStorage.getItem("auth-token"),
+         
         },
       };
       await axios(config)

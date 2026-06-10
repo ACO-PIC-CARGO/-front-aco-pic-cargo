@@ -438,7 +438,7 @@ export default {
             "listPagoControlGastoXProveedor/" +
             vm.proveedor,
           headers: {
-            "auth-token": sessionStorage.getItem("auth-token"),
+           
             "Content-Type": "application/json",
           },
         };
@@ -517,7 +517,7 @@ export default {
             .id_branch,
         },
         headers: {
-          "auth-token": sessionStorage.getItem("auth-token"),
+         
           "Content-Type": "application/json",
         },
       };
@@ -553,7 +553,7 @@ export default {
           method: "post",
           url: process.env.VUE_APP_URL_MAIN + "uploadAllPath",
           headers: {
-            "auth-token": sessionStorage.getItem("auth-token"),
+           
             "Content-Type": "application/json",
           },
           data: data,
@@ -659,7 +659,7 @@ export default {
         method: "post",
         url: process.env.VUE_APP_URL_MAIN + "registro_pago_detalles",
         headers: {
-          "auth-token": sessionStorage.getItem("auth-token"),
+         
           "Content-Type": "application/json",
         },
         data: data,

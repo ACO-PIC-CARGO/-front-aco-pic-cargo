@@ -756,7 +756,7 @@ export default {
           `list_invoice_path/${vm.$route.params.id_house}/${vm.proveedorId}`,
 
         headers: {
-          "auth-token": sessionStorage.getItem("auth-token"),
+         
           "Content-Type": "application/json",
         },
         data: data,
@@ -793,7 +793,7 @@ export default {
         url: process.env.VUE_APP_URL_MAIN + "setInvoice",
 
         headers: {
-          "auth-token": sessionStorage.getItem("auth-token"),
+         
           "Content-Type": "application/json",
         },
         data: data,
@@ -824,7 +824,7 @@ export default {
         url: process.env.VUE_APP_URL_MAIN + "delInvoice/" + id,
 
         headers: {
-          "auth-token": sessionStorage.getItem("auth-token"),
+         
           "Content-Type": "application/json",
         },
       };
@@ -851,7 +851,7 @@ export default {
         method: "post",
         url: process.env.VUE_APP_URL_MAIN + "uploadAllPath",
         headers: {
-          "auth-token": sessionStorage.getItem("auth-token"),
+         
           "Content-Type": "application/json",
         },
         data: data,
@@ -895,7 +895,7 @@ export default {
         url:
           process.env.VUE_APP_URL_MAIN + "getAccountsNumber/" + vm.proveedorId,
         headers: {
-          "auth-token": sessionStorage.getItem("auth-token"),
+         
           "Content-Type": "application/json",
         },
         data: data,
@@ -933,7 +933,7 @@ export default {
             method: "post",
             url: process.env.VUE_APP_URL_MAIN + "putSPaymentPro/" + id,
             headers: {
-              "auth-token": sessionStorage.getItem("auth-token"),
+             
               "Content-Type": "application/json",
             },
             data: data,
@@ -977,7 +977,7 @@ export default {
           "/" +
           JSON.parse(sessionStorage.getItem("dataUser"))[0].id_branch,
         headers: {
-          "auth-token": sessionStorage.getItem("auth-token"),
+         
           "Content-Type": "application/json",
         },
       };
@@ -1075,7 +1075,7 @@ export default {
         method: "post",
         url: process.env.VUE_APP_URL_MAIN + "setSPaymentPro",
         headers: {
-          "auth-token": sessionStorage.getItem("auth-token"),
+         
           "Content-Type": "application/json",
         },
         data: datas,
@@ -1105,7 +1105,7 @@ export default {
             method: "post",
             url: process.env.VUE_APP_URL_MAIN + "pdfSolicitud",
             headers: {
-              "auth-token": sessionStorage.getItem("auth-token"),
+             
               "Content-Type": "application/json",
             },
             data: data,
@@ -1192,7 +1192,7 @@ export default {
         method: "post",
         url: process.env.VUE_APP_URL_MAIN + "deleteServices",
         headers: {
-          "auth-token": sessionStorage.getItem("auth-token"),
+         
           "Content-Type": "application/json",
         },
         data: data,
@@ -1221,7 +1221,7 @@ export default {
           method: "post",
           url: process.env.VUE_APP_URL_MAIN + "getHouseServices",
           headers: {
-            "auth-token": sessionStorage.getItem("auth-token"),
+           
             "Content-Type": "application/json",
           },
           data: data,
@@ -1248,7 +1248,7 @@ export default {
           "/" +
           vm.proveedorId,
         headers: {
-          "auth-token": sessionStorage.getItem("auth-token"),
+         
           "Content-Type": "application/json",
         },
       };
@@ -1272,7 +1272,7 @@ export default {
           "/" +
           vm.proveedorId,
         headers: {
-          "auth-token": sessionStorage.getItem("auth-token"),
+         
           "Content-Type": "application/json",
         },
       };

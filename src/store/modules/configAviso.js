@@ -20,7 +20,7 @@ let actions = {
         id_branch: JSON.parse(sessionStorage.getItem("dataUser"))[0].id_branch,
       },
       headers: {
-        "auth-token": sessionStorage.getItem("auth-token"),
+       
         "Content-Type": "application/json",
       },
     };
@@ -42,7 +42,7 @@ let actions = {
       url: process.env.VUE_APP_URL_MAIN + "actualizarConfigAviso",
       data,
       headers: {
-        "auth-token": sessionStorage.getItem("auth-token"),
+       
         "Content-Type": "application/json",
       },
     };

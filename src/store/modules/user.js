@@ -71,7 +71,7 @@ let actions = {
         }`,
 
       headers: {
-        "auth-token": sessionStorage.getItem("auth-token"),
+       
         "Content-Type": "application/json",
       },
     };
@@ -114,7 +114,7 @@ let actions = {
         }&id=${state.model.id}`,
 
       headers: {
-        "auth-token": sessionStorage.getItem("auth-token"),
+       
         "Content-Type": "application/json",
       },
     };
@@ -168,7 +168,7 @@ let actions = {
         `validate_user_usuarios?users=${state.model.users}`,
 
       headers: {
-        "auth-token": sessionStorage.getItem("auth-token"),
+       
         "Content-Type": "application/json",
       },
     };
@@ -187,7 +187,7 @@ let actions = {
         `validate_email_usuarios?email=${state.model.email}`,
 
       headers: {
-        "auth-token": sessionStorage.getItem("auth-token"),
+       
         "Content-Type": "application/json",
       },
     };
@@ -210,7 +210,7 @@ let actions = {
         }`,
 
       headers: {
-        "auth-token": sessionStorage.getItem("auth-token"),
+       
         "Content-Type": "application/json",
       },
     };
@@ -231,7 +231,7 @@ let actions = {
       method: "post",
       url: process.env.VUE_APP_URL_MAIN + `insertar_usuario`,
       headers: {
-        "auth-token": sessionStorage.getItem("auth-token"),
+       
         "Content-Type": "application/json",
       },
       data: datos,
@@ -269,7 +269,7 @@ let actions = {
       method: "put",
       url: process.env.VUE_APP_URL_MAIN + `actualizar_usuario`,
       headers: {
-        "auth-token": sessionStorage.getItem("auth-token"),
+       
         "Content-Type": "application/json",
       },
       data: datos,
@@ -303,7 +303,7 @@ let actions = {
       method: "put",
       url: process.env.VUE_APP_URL_MAIN + `cambiar_estado_usuario`,
       headers: {
-        "auth-token": sessionStorage.getItem("auth-token"),
+       
         "Content-Type": "application/json",
       },
       data: state.model,

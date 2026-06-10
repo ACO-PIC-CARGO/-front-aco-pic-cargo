@@ -16,7 +16,7 @@ let actions = {
       url: `${process.env.VUE_APP_URL_MAIN}listar_sucursal`,
 
       headers: {
-        "auth-token": sessionStorage.getItem("auth-token"),
+       
         "Content-Type": "application/json",
       },
     };
@@ -61,7 +61,7 @@ let actions = {
         id: id,
       },
       headers: {
-        "auth-token": sessionStorage.getItem("auth-token"),
+       
         "Content-Type": "application/json",
       },
     };

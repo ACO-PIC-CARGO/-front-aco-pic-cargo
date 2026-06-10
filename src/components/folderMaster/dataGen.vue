@@ -330,7 +330,7 @@ export default {
             "getMasterId/" +
             vm.$store.state.master_Id_get,
           headers: {
-            "auth-token": sessionStorage.getItem("auth-token"),
+           
             "Content-Type": "application/json",
           },
         };

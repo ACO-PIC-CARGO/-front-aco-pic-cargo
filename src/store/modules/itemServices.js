@@ -47,7 +47,7 @@ let actions = {
         }&status=${state.filtros.status == "null" ? "" : state.filtros.status}`,
 
       headers: {
-        "auth-token": sessionStorage.getItem("auth-token"),
+       
         "Content-Type": "application/json",
       },
     };
@@ -89,7 +89,7 @@ let actions = {
       method: "post",
       url: process.env.VUE_APP_URL_MAIN + `insertar_itemservices`,
       headers: {
-        "auth-token": sessionStorage.getItem("auth-token"),
+       
         "Content-Type": "application/json",
       },
       data: state.model,
@@ -116,7 +116,7 @@ let actions = {
       method: "put",
       url: process.env.VUE_APP_URL_MAIN + `actualizar_itemservices`,
       headers: {
-        "auth-token": sessionStorage.getItem("auth-token"),
+       
         "Content-Type": "application/json",
       },
       data: state.model,

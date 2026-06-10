@@ -25,7 +25,7 @@ const actions = {
       url: process.env.VUE_APP_URL_MAIN + "costo_pricing",
       params: data,
       headers: {
-        "auth-token": sessionStorage.getItem("auth-token"),
+       
         "Content-Type": "application/json",
       },
     };
@@ -48,7 +48,7 @@ const actions = {
       url: process.env.VUE_APP_URL_MAIN + "obtener_servicio_pricing_config",
       params: data,
       headers: {
-        "auth-token": sessionStorage.getItem("auth-token"),
+       
         "Content-Type": "application/json",
       },
     };
@@ -62,7 +62,7 @@ const actions = {
   },
   async getMultiplicadorConfigCosto({ commit }, id_shipment) {
     var headers = {
-      "auth-token": sessionStorage.getItem("auth-token"),
+     
       "Content-Type": "application/json",
     };
     var data = {
@@ -97,7 +97,7 @@ const actions = {
       url: process.env.VUE_APP_URL_MAIN + "costo_pricing_actualizar",
       data: data,
       headers: {
-        "auth-token": sessionStorage.getItem("auth-token"),
+       
         "Content-Type": "application/json",
       },
     };

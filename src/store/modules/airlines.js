@@ -64,7 +64,7 @@ const actions = {
         `,
 
       headers: {
-        "auth-token": sessionStorage.getItem("auth-token"),
+       
         "Content-Type": "application/json",
       },
     };
@@ -126,7 +126,7 @@ const actions = {
         `,
 
       headers: {
-        "auth-token": sessionStorage.getItem("auth-token"),
+       
         "Content-Type": "application/json",
       },
     };
@@ -162,7 +162,7 @@ const actions = {
         }&code_icao=${state.AirlineModel.code_icao}`,
 
       headers: {
-        "auth-token": sessionStorage.getItem("auth-token"),
+       
         "Content-Type": "application/json",
       },
     };
@@ -198,7 +198,7 @@ const actions = {
       url: process.env.VUE_APP_URL_MAIN + `insert_airlines`,
       data: state.AirlineModel,
       headers: {
-        "auth-token": sessionStorage.getItem("auth-token"),
+       
         "Content-Type": "application/json",
       },
     };
@@ -243,7 +243,7 @@ const actions = {
         `,
 
       headers: {
-        "auth-token": sessionStorage.getItem("auth-token"),
+       
         "Content-Type": "application/json",
       },
     };
@@ -277,7 +277,7 @@ const actions = {
         `validate_icao_airlines_editar?id=${state.AirlineModel.id}&id_branch=${state.AirlineModel.id_branch}&code_icao=${state.AirlineModel.code_icao}`,
 
       headers: {
-        "auth-token": sessionStorage.getItem("auth-token"),
+       
         "Content-Type": "application/json",
       },
     };
@@ -314,7 +314,7 @@ const actions = {
       data: state.AirlineModel,
 
       headers: {
-        "auth-token": sessionStorage.getItem("auth-token"),
+       
         "Content-Type": "application/json",
       },
     };

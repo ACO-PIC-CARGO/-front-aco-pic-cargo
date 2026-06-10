@@ -9,7 +9,7 @@ const actions = {
       url:
         process.env.VUE_APP_URL_MAIN + `crear-carpeta-master?nromaster=${name}`,
       headers: {
-        "auth-token": sessionStorage.getItem("auth-token"),
+       
         "Content-Type": "application/json",
       },
     };
@@ -28,7 +28,7 @@ const actions = {
       method: "put",
       url: process.env.VUE_APP_URL_MAIN + `update_folder_onedrive`,
       headers: {
-        "auth-token": sessionStorage.getItem("auth-token"),
+       
         "Content-Type": "application/json",
       },
       data: {
@@ -48,7 +48,7 @@ const actions = {
       method: "post",
       url: process.env.VUE_APP_URL_MAIN + `insert_comentario_master`,
       headers: {
-        "auth-token": sessionStorage.getItem("auth-token"),
+       
         "Content-Type": "application/json",
       },
       data: {
@@ -92,7 +92,7 @@ const actions = {
       method: "put",
       url: process.env.VUE_APP_URL_MAIN + `actualizar_folder_onedrive_master`,
       headers: {
-        "auth-token": sessionStorage.getItem("auth-token"),
+       
         "Content-Type": "application/json",
       },
       data: {
@@ -109,7 +109,7 @@ const actions = {
       method: "put",
       url: process.env.VUE_APP_URL_MAIN + `mover_cgegresos`,
       headers: {
-        "auth-token": sessionStorage.getItem("auth-token"),
+       
         "Content-Type": "application/json",
       },
       data: data,

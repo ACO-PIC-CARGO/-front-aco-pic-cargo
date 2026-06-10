@@ -24,7 +24,7 @@ const actions = {
       url: process.env.VUE_APP_URL_MAIN + `insertar_proyeccion`,
 
       headers: {
-        "auth-token": sessionStorage.getItem("auth-token"),
+       
         "Content-Type": "application/json",
       },
       data: data,
@@ -58,7 +58,7 @@ const actions = {
         }&aprobadoflag=${data.aprobadoflag}`,
 
       headers: {
-        "auth-token": sessionStorage.getItem("auth-token"),
+       
         "Content-Type": "application/json",
       },
       data: data,
@@ -96,7 +96,7 @@ const actions = {
       url: process.env.VUE_APP_URL_MAIN + `ver_proyeccion?id=${id}`,
 
       headers: {
-        "auth-token": sessionStorage.getItem("auth-token"),
+       
         "Content-Type": "application/json",
       },
     };
@@ -124,7 +124,7 @@ const actions = {
       url: process.env.VUE_APP_URL_MAIN + `update_proyeccion`,
 
       headers: {
-        "auth-token": sessionStorage.getItem("auth-token"),
+       
         "Content-Type": "application/json",
       },
       data: data,
@@ -156,7 +156,7 @@ const actions = {
         }`,
 
       headers: {
-        "auth-token": sessionStorage.getItem("auth-token"),
+       
         "Content-Type": "application/json",
       },
       data: data,
@@ -176,7 +176,7 @@ const actions = {
       url: process.env.VUE_APP_URL_MAIN + `copiar_proyeccion`,
 
       headers: {
-        "auth-token": sessionStorage.getItem("auth-token"),
+       
         "Content-Type": "application/json",
       },
       data: data,
@@ -200,7 +200,7 @@ const actions = {
       url: process.env.VUE_APP_URL_MAIN + `aprobar_proyeccion`,
 
       headers: {
-        "auth-token": sessionStorage.getItem("auth-token"),
+       
         "Content-Type": "application/json",
       },
       data: data,
@@ -224,7 +224,7 @@ const actions = {
       url: process.env.VUE_APP_URL_MAIN + `eliminar_proyeccion`,
 
       headers: {
-        "auth-token": sessionStorage.getItem("auth-token"),
+       
         "Content-Type": "application/json",
       },
       data: data,
@@ -247,7 +247,7 @@ const actions = {
       url: process.env.VUE_APP_URL_MAIN + `generar_primerar_proyeccion`,
 
       headers: {
-        "auth-token": sessionStorage.getItem("auth-token"),
+       
         "Content-Type": "application/json",
       },
       data: data,
@@ -277,7 +277,7 @@ const actions = {
       url: process.env.VUE_APP_URL_MAIN + `excel_proyeccion?id=${id}`,
       responseType: "blob",
       headers: {
-        "auth-token": sessionStorage.getItem("auth-token"),
+       
         "Content-Type": "application/json",
       },
     };
@@ -304,7 +304,7 @@ const actions = {
         }`,
 
       headers: {
-        "auth-token": sessionStorage.getItem("auth-token"),
+       
         "Content-Type": "application/json",
       },
     };

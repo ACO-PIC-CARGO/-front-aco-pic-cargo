@@ -308,7 +308,7 @@ export default {
         method: "post",
         url: process.env.VUE_APP_URL_MAIN + "deleteBitacora",
         headers: {
-          "auth-token": sessionStorage.getItem("auth-token"),
+         
           "Content-Type": "application/json",
         },
         data: data,
@@ -355,7 +355,7 @@ export default {
         method: "put",
         url: process.env.VUE_APP_URL_MAIN + "changeStatusBitacora",
         headers: {
-          "auth-token": sessionStorage.getItem("auth-token"),
+         
           "Content-Type": "application/json",
         },
         data: data,
@@ -400,7 +400,7 @@ export default {
         method: "put",
         url: process.env.VUE_APP_URL_MAIN + "changeStatusVisibleBitacora",
         headers: {
-          "auth-token": sessionStorage.getItem("auth-token"),
+         
           "Content-Type": "application/json",
         },
         data: data,
@@ -518,7 +518,7 @@ export default {
             method: "post",
             url: process.env.VUE_APP_URL_MAIN + "setBitacora",
             headers: {
-              "auth-token": sessionStorage.getItem("auth-token"),
+             
               "Content-Type": "application/json",
             },
             data: data,
@@ -582,7 +582,7 @@ export default {
         method: "put",
         url: process.env.VUE_APP_URL_MAIN + `setTrackingToken`,
         headers: {
-          "auth-token": sessionStorage.getItem("auth-token"),
+         
           "Content-Type": "application/json",
         },
         data: data,

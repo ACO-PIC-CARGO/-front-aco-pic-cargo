@@ -23,7 +23,7 @@ const actions = {
       method: "post",
       url: process.env.VUE_APP_URL_MAIN + "createdPDF",
       headers: {
-        "auth-token": sessionStorage.getItem("auth-token"),
+       
         "Content-Type": "application/json",
       },
       data: data,
@@ -57,7 +57,7 @@ const actions = {
       method: "get",
       url: process.env.VUE_APP_URL_MAIN + `listar_banco_gasto_detalles`,
       headers: {
-        "auth-token": sessionStorage.getItem("auth-token"),
+       
         "Content-Type": "application/json",
       },
       params: data,

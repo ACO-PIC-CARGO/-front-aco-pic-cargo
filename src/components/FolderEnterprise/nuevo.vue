@@ -650,7 +650,7 @@ export default {
           )}`,
         headers: {
           "Content-Type": "application/json",
-          "auth-token": sessionStorage.getItem("auth-token"),
+         
         },
       };
 

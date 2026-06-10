@@ -481,7 +481,7 @@ export default {
           JSON.parse(sessionStorage.getItem("dataUser"))[0].id_user,
 
         headers: {
-          "auth-token": sessionStorage.getItem("auth-token"),
+         
           "Content-Type": "application/json",
         },
       };
@@ -506,7 +506,7 @@ export default {
         url: `${process.env.VUE_APP_URL_MAIN}data_factura/${vm.$route.params.id_house}/${vm.id_branch}`,
 
         headers: {
-          "auth-token": sessionStorage.getItem("auth-token"),
+         
           "Content-Type": "application/json",
         },
       };
@@ -525,7 +525,7 @@ export default {
         method: "post",
         url: `${process.env.VUE_APP_URL_MAIN}factura`,
         headers: {
-          "auth-token": sessionStorage.getItem("auth-token"),
+         
           "Content-Type": "application/json",
         },
         data: data,
@@ -555,7 +555,7 @@ export default {
         method: "post",
         url: process.env.VUE_APP_URL_MAIN + "registrar_factura",
         headers: {
-          "auth-token": sessionStorage.getItem("auth-token"),
+         
           "Content-Type": "application/json",
         },
         data: dataFactura,
@@ -583,7 +583,7 @@ export default {
         url: process.env.VUE_APP_URL_MAIN + "delDebsClient/" + id,
 
         headers: {
-          "auth-token": sessionStorage.getItem("auth-token"),
+         
           "Content-Type": "application/json",
         },
       };
@@ -619,7 +619,7 @@ export default {
         url: process.env.VUE_APP_URL_MAIN + "setDebsClient",
 
         headers: {
-          "auth-token": sessionStorage.getItem("auth-token"),
+         
           "Content-Type": "application/json",
         },
         data: data,
@@ -657,7 +657,7 @@ export default {
           vm.$route.params.id_house,
 
         headers: {
-          "auth-token": sessionStorage.getItem("auth-token"),
+         
           "Content-Type": "application/json",
         },
         data: data,
@@ -683,7 +683,7 @@ export default {
         method: "post",
         url: process.env.VUE_APP_URL_MAIN + "uploadAllPath",
         headers: {
-          "auth-token": sessionStorage.getItem("auth-token"),
+         
           "Content-Type": "application/json",
         },
         data: data,
@@ -795,7 +795,7 @@ export default {
         method: "post",
         url: process.env.VUE_APP_URL_MAIN + "getPdfInstructivo",
         headers: {
-          "auth-token": sessionStorage.getItem("auth-token"),
+         
           "Content-Type": "application/json",
         },
         data: data,

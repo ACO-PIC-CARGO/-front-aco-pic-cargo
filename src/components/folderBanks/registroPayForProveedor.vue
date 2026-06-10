@@ -846,7 +846,7 @@ export default {
       let montogastobancario = 0;
       montogastobancario = Number(this.montogastobancario || 0);
       const total = Number(this.totalGeneralAbonado || 0) + montogastobancario;
-      return total.toFixed(4);
+      return total.toFixed(2);
     },
   },
   watch: {

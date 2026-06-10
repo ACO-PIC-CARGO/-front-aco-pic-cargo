@@ -291,7 +291,7 @@ export default {
           method: "post",
           url: process.env.VUE_APP_URL_MAIN + "uploadAllPath",
           headers: {
-            "auth-token": sessionStorage.getItem("auth-token"),
+           
             "Content-Type": "application/json",
           },
           data: data,

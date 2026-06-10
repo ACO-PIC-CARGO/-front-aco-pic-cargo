@@ -48,7 +48,7 @@ let actions = {
         }&code=${state.filtros.code ? state.filtros.code : ""}`,
 
       headers: {
-        "auth-token": sessionStorage.getItem("auth-token"),
+       
         "Content-Type": "application/json",
       },
     };
@@ -90,7 +90,7 @@ let actions = {
       method: "post",
       url: process.env.VUE_APP_URL_MAIN + `insertar_city`,
       headers: {
-        "auth-token": sessionStorage.getItem("auth-token"),
+       
         "Content-Type": "application/json",
       },
       data: state.model,
@@ -117,7 +117,7 @@ let actions = {
       method: "put",
       url: process.env.VUE_APP_URL_MAIN + `actualizar_city`,
       headers: {
-        "auth-token": sessionStorage.getItem("auth-token"),
+       
         "Content-Type": "application/json",
       },
       data: state.model,

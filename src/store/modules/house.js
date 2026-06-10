@@ -24,7 +24,7 @@ const actions = {
     await axios
       .get(process.env.VUE_APP_URL_MAIN + `house_ver`, {
         params: filtros,
-        "auth-token": sessionStorage.getItem("auth-token"),
+       
         "Content-Type": "application/json",
       })
       .then(function (response) {
@@ -38,7 +38,7 @@ const actions = {
 
   async guardarCarpetaHouse({ commit }, data) {
     var headers = {
-      "auth-token": sessionStorage.getItem("auth-token"),
+     
       "Content-Type": "application/json",
     };
 
@@ -61,7 +61,7 @@ const actions = {
     await axios
       .get(process.env.VUE_APP_URL_MAIN + `listado_houses`, {
         params: filtros,
-        "auth-token": sessionStorage.getItem("auth-token"),
+       
         "Content-Type": "application/json",
       })
       .then(function (response) {
@@ -83,7 +83,7 @@ const actions = {
         }`,
 
       headers: {
-        "auth-token": sessionStorage.getItem("auth-token"),
+       
         "Content-Type": "application/json",
       },
     };
@@ -102,7 +102,7 @@ const actions = {
       method: "post",
       url: process.env.VUE_APP_URL_MAIN + `insertComentarioHouse`,
       headers: {
-        "auth-token": sessionStorage.getItem("auth-token"),
+       
         "Content-Type": "application/json",
       },
       data: dataObj,
@@ -144,7 +144,7 @@ const actions = {
       method: "put",
       url: process.env.VUE_APP_URL_MAIN + "setHouseDelete",
       headers: {
-        "auth-token": sessionStorage.getItem("auth-token"),
+       
         "Content-Type": "application/json",
       },
       data: data,

@@ -38,7 +38,7 @@ const actions = {
         `&status=${data.status}`,
       headers: {
         "Content-Type": "application/json",
-        "auth-token": sessionStorage.getItem("auth-token"),
+       
       },
     };
    await axios(config)
@@ -75,7 +75,7 @@ const actions = {
       url: process.env.VUE_APP_URL_MAIN + "insertar_containers",
       headers: {
         "Content-Type": "application/json",
-        "auth-token": sessionStorage.getItem("auth-token"),
+       
       },
       data: data,
     };
@@ -104,7 +104,7 @@ const actions = {
       url: process.env.VUE_APP_URL_MAIN + `ver_containers?id=${id}`,
       headers: {
         "Content-Type": "application/json",
-        "auth-token": sessionStorage.getItem("auth-token"),
+       
       },
     };
 
@@ -131,7 +131,7 @@ const actions = {
       url: process.env.VUE_APP_URL_MAIN + "actualizar_containers",
       headers: {
         "Content-Type": "application/json",
-        "auth-token": sessionStorage.getItem("auth-token"),
+       
       },
       data: data,
     };

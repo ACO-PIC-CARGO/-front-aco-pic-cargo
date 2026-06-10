@@ -68,7 +68,7 @@ const actions = {
       method: "put",
       url: process.env.VUE_APP_URL_MAIN + `actualizar_datos_empresa_config`,
       headers: {
-        "auth-token": sessionStorage.getItem("auth-token"),
+       
         "Content-Type": "application/json",
       },
       data: datoEmpresa,
@@ -94,7 +94,7 @@ const actions = {
       url:
         process.env.VUE_APP_URL_MAIN + `actualizar_datos_administrador_config`,
       headers: {
-        "auth-token": sessionStorage.getItem("auth-token"),
+       
         "Content-Type": "application/json",
       },
       data: state.dataUsuario,
@@ -121,7 +121,7 @@ const actions = {
       url:
         process.env.VUE_APP_URL_MAIN + `actualizar_datos_administrador_config`,
       headers: {
-        "auth-token": sessionStorage.getItem("auth-token"),
+       
         "Content-Type": "application/json",
       },
       data: state.dataUsuario,
@@ -147,7 +147,7 @@ const actions = {
       method: "post",
       url: process.env.VUE_APP_URL_MAIN + `actualizar_datos_cm_proveedor`,
       headers: {
-        "auth-token": sessionStorage.getItem("auth-token"),
+       
         "Content-Type": "application/json",
       },
       data: {
@@ -175,7 +175,7 @@ const actions = {
       method: "post",
       url: process.env.VUE_APP_URL_MAIN + `actualizar_datos_cm_cliente`,
       headers: {
-        "auth-token": sessionStorage.getItem("auth-token"),
+       
         "Content-Type": "application/json",
       },
       data: {
@@ -207,7 +207,7 @@ const actions = {
           JSON.parse(sessionStorage.getItem("dataUser"))[0].id_branch
         }&id_modality=${data.id_modality}&shipment=${data.shipment}`,
       headers: {
-        "auth-token": sessionStorage.getItem("auth-token"),
+       
         "Content-Type": "application/json",
       },
     };
@@ -224,7 +224,7 @@ const actions = {
 
   async getMultiplicadorConfig({ commit }, data) {
     var headers = {
-      "auth-token": sessionStorage.getItem("auth-token"),
+     
       "Content-Type": "application/json",
     };
     var config = {
@@ -264,7 +264,7 @@ const actions = {
         process.env.VUE_APP_URL_MAIN +
         `tipo_costo_x_embarque?id_shipment=${data.id_shipment}&id_modality=${data.id_modality}`,
       headers: {
-        "auth-token": sessionStorage.getItem("auth-token"),
+       
         "Content-Type": "application/json",
       },
     };
@@ -291,7 +291,7 @@ const actions = {
       method: "post",
       url: process.env.VUE_APP_URL_MAIN + `guardar_costos_config`,
       headers: {
-        "auth-token": sessionStorage.getItem("auth-token"),
+       
         "Content-Type": "application/json",
       },
       data,
@@ -316,7 +316,7 @@ const actions = {
       method: "put",
       url: process.env.VUE_APP_URL_MAIN + `omitir_config_cost`,
       headers: {
-        "auth-token": sessionStorage.getItem("auth-token"),
+       
         "Content-Type": "application/json",
       },
       data: data,
@@ -336,7 +336,7 @@ const actions = {
       method: "put",
       url: process.env.VUE_APP_URL_MAIN + `finalizar_config`,
       headers: {
-        "auth-token": sessionStorage.getItem("auth-token"),
+       
         "Content-Type": "application/json",
       },
       data: data,
@@ -354,7 +354,7 @@ const actions = {
       method: "post",
       url: process.env.VUE_APP_URL_MAIN + `guardar_existe_datos_config`,
       headers: {
-        "auth-token": sessionStorage.getItem("auth-token"),
+       
         "Content-Type": "application/json",
       },
       data: data,

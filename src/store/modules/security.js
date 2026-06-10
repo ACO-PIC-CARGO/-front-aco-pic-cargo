@@ -32,7 +32,7 @@ const actions = {
     // let menu = JSON.parse(sessionStorage.getItem("menu"));
     // let dataBranch = JSON.parse(sessionStorage.getItem("dataBranch"))[0];
     var headers = {
-      "auth-token": sessionStorage.getItem("auth-token"),
+     
       "Content-Type": "application/json",
     };
     var config = {
@@ -56,7 +56,7 @@ const actions = {
     // let menu = JSON.parse(sessionStorage.getItem("menu"));
     // let dataBranch = JSON.parse(sessionStorage.getItem("dataBranch"))[0];
     var headers = {
-      "auth-token": sessionStorage.getItem("auth-token"),
+     
       "Content-Type": "application/json",
     };
     var config = {
@@ -84,7 +84,7 @@ const actions = {
   async singin({ commit, dispatch }) {
     state.errorClave = "";
     var headers = {
-      "auth-token": sessionStorage.getItem("auth-token"),
+     
       "Content-Type": "application/json",
     };
     var config = {
@@ -157,7 +157,7 @@ const actions = {
       url: process.env.VUE_APP_URL_MAIN + "CargarBranch/" + id_usuario,
 
       headers: {
-        "auth-token": sessionStorage.getItem("auth-token"),
+       
         "Content-Type": "application/json",
       },
     };
@@ -178,7 +178,7 @@ const actions = {
       method: "put",
       url: process.env.VUE_APP_URL_MAIN + "recuperar_clave",
       headers: {
-        "auth-token": sessionStorage.getItem("auth-token"),
+       
         "Content-Type": "application/json",
       },
       data: { email: state.frmLogin.user },
@@ -211,7 +211,7 @@ const actions = {
   //     url: process.env.VUE_APP_URL_MAIN + "ListProgrammedPayment",
 
   //     headers: {
-  //       "auth-token": sessionStorage.getItem("auth-token"),
+  //      
   //       "Content-Type": "application/json",
   //     },
   //   };
@@ -251,7 +251,7 @@ const actions = {
       method: "post",
       url: process.env.VUE_APP_URL_MAIN + "getMenuModules",
       headers: {
-        "auth-token": sessionStorage.getItem("auth-token"),
+       
         "Content-Type": "application/json",
       },
       data: data,
@@ -273,7 +273,7 @@ const actions = {
       method: "post",
       url: process.env.VUE_APP_URL_MAIN + "validar_usuario_admin",
       headers: {
-        "auth-token": sessionStorage.getItem("auth-token"),
+       
         "Content-Type": "application/json",
       },
       data: data,

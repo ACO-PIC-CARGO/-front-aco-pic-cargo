@@ -96,7 +96,7 @@ const actions = {
         }`,
 
       headers: {
-        "auth-token": sessionStorage.getItem("auth-token"),
+       
         "Content-Type": "application/json",
       },
     };
@@ -129,7 +129,7 @@ const actions = {
         }&month=${data.month}&year=${data.year}`,
 
       headers: {
-        "auth-token": sessionStorage.getItem("auth-token"),
+       
         "Content-Type": "application/json",
       },
     };
@@ -162,7 +162,7 @@ const actions = {
         }`,
 
       headers: {
-        "auth-token": sessionStorage.getItem("auth-token"),
+       
         "Content-Type": "application/json",
       },
     };
@@ -195,7 +195,7 @@ const actions = {
         }`,
 
       headers: {
-        "auth-token": sessionStorage.getItem("auth-token"),
+       
         "Content-Type": "application/json",
       },
     };
@@ -228,7 +228,7 @@ const actions = {
         }`,
 
       headers: {
-        "auth-token": sessionStorage.getItem("auth-token"),
+       
         "Content-Type": "application/json",
       },
     };
@@ -261,7 +261,7 @@ const actions = {
         }`,
 
       headers: {
-        "auth-token": sessionStorage.getItem("auth-token"),
+       
         "Content-Type": "application/json",
       },
     };
@@ -293,7 +293,7 @@ const actions = {
         `detalle_ganancia?year=${data.year}&month=${data.month}&tipoingreso=${data.tipoingreso}&tiposubingreso=${data.tiposubingreso}&nro_expediente=${data.nro_expediente}&monto=${data.monto}`,
 
       headers: {
-        "auth-token": sessionStorage.getItem("auth-token"),
+       
         "Content-Type": "application/json",
       },
     };
@@ -324,7 +324,7 @@ const actions = {
         `detalle_ganancia?year=${data.year}&month=${data.month}&tipoingreso=${data.tipoingreso}&tiposubingreso=${data.tiposubingreso}&nro_expediente=${data.nro_expediente}&monto=${data.monto}`,
 
       headers: {
-        "auth-token": sessionStorage.getItem("auth-token"),
+       
         "Content-Type": "application/json",
       },
     };
@@ -355,7 +355,7 @@ const actions = {
         `resumen_ganancia?year=${data.year}&month=${data.month}`,
 
       headers: {
-        "auth-token": sessionStorage.getItem("auth-token"),
+       
         "Content-Type": "application/json",
       },
     };
@@ -387,7 +387,7 @@ const actions = {
         `detalle_gastos?year=${data.year}&month=${data.month}&tipogastos=${data.tipogastos}&tiposubgastos=${data.tiposubgastos}&proveedor=${data.proveedor}&monto=${data.monto}`,
 
       headers: {
-        "auth-token": sessionStorage.getItem("auth-token"),
+       
         "Content-Type": "application/json",
       },
     };
@@ -418,7 +418,7 @@ const actions = {
         `detalle_gastos?year=${data.year}&month=${data.month}&tipogastos=${data.tipogastos}&tiposubgastos=${data.tiposubgastos}&proveedor=${data.proveedor}&monto=${data.monto}`,
 
       headers: {
-        "auth-token": sessionStorage.getItem("auth-token"),
+       
         "Content-Type": "application/json",
       },
     };
@@ -449,7 +449,7 @@ const actions = {
         `resumen_gastos?year=${data.year}&month=${data.month}`,
 
       headers: {
-        "auth-token": sessionStorage.getItem("auth-token"),
+       
         "Content-Type": "application/json",
       },
     };
@@ -480,7 +480,7 @@ const actions = {
         `resumen_gastos_tipogasto?year=${data.year}&month=${data.month}`,
 
       headers: {
-        "auth-token": sessionStorage.getItem("auth-token"),
+       
         "Content-Type": "application/json",
       },
     };
@@ -511,7 +511,7 @@ const actions = {
         `resumen_ingreso_tipo?year=${data.year}&month=${data.month}`,
 
       headers: {
-        "auth-token": sessionStorage.getItem("auth-token"),
+       
         "Content-Type": "application/json",
       },
     };
@@ -544,7 +544,7 @@ const actions = {
         }`,
 
       headers: {
-        "auth-token": sessionStorage.getItem("auth-token"),
+       
         "Content-Type": "application/json",
       },
     };
@@ -577,7 +577,7 @@ const actions = {
         }`,
 
       headers: {
-        "auth-token": sessionStorage.getItem("auth-token"),
+       
         "Content-Type": "application/json",
       },
     };
@@ -608,7 +608,7 @@ const actions = {
         `excel_reporte?year=${data.year}&month=${data.month}`,
       responseType: "blob",
       headers: {
-        "auth-token": sessionStorage.getItem("auth-token"),
+       
         "Content-Type": "application/json",
       },
     };
@@ -639,7 +639,7 @@ const actions = {
         }`,
 
       headers: {
-        "auth-token": sessionStorage.getItem("auth-token"),
+       
         "Content-Type": "application/json",
       },
     };

@@ -43,7 +43,7 @@ const actions = {
         `&status=${data.status}`,
       headers: {
         "Content-Type": "application/json",
-        "auth-token": sessionStorage.getItem("auth-token"),
+       
       },
     };
    await axios(config)
@@ -81,7 +81,7 @@ const actions = {
       url: process.env.VUE_APP_URL_MAIN + "insertar_coins",
       headers: {
         "Content-Type": "application/json",
-        "auth-token": sessionStorage.getItem("auth-token"),
+       
       },
       data: data,
     };
@@ -117,7 +117,7 @@ const actions = {
       url: process.env.VUE_APP_URL_MAIN + `ver_coins?id=${id}`,
       headers: {
         "Content-Type": "application/json",
-        "auth-token": sessionStorage.getItem("auth-token"),
+       
       },
     };
 
@@ -144,7 +144,7 @@ const actions = {
       url: process.env.VUE_APP_URL_MAIN + "actualizar_coins",
       headers: {
         "Content-Type": "application/json",
-        "auth-token": sessionStorage.getItem("auth-token"),
+       
       },
       data: data,
     };
@@ -183,7 +183,7 @@ const actions = {
           JSON.parse(sessionStorage.getItem("dataUser"))[0].id_branch
         }`,
       headers: {
-        "auth-token": sessionStorage.getItem("auth-token"),
+       
         "Content-Type": "application/json",
       },
     };

@@ -92,7 +92,7 @@ let actions = {
         }`,
 
       headers: {
-        "auth-token": sessionStorage.getItem("auth-token"),
+       
         "Content-Type": "application/json",
       },
     };
@@ -139,7 +139,7 @@ let actions = {
         }`,
 
       headers: {
-        "auth-token": sessionStorage.getItem("auth-token"),
+       
         "Content-Type": "application/json",
       },
     };
@@ -176,7 +176,7 @@ let actions = {
         }&position=${state.StatusModel.position}`,
 
       headers: {
-        "auth-token": sessionStorage.getItem("auth-token"),
+       
         "Content-Type": "application/json",
       },
     };
@@ -197,7 +197,7 @@ let actions = {
         }&position_select=${state.StatusModel.position_select}`,
 
       headers: {
-        "auth-token": sessionStorage.getItem("auth-token"),
+       
         "Content-Type": "application/json",
       },
     };
@@ -218,7 +218,7 @@ let actions = {
         }&position_report=${state.StatusModel.position_report}`,
 
       headers: {
-        "auth-token": sessionStorage.getItem("auth-token"),
+       
         "Content-Type": "application/json",
       },
     };
@@ -239,7 +239,7 @@ let actions = {
         }&position_calls=${state.StatusModel.position_calls}`,
 
       headers: {
-        "auth-token": sessionStorage.getItem("auth-token"),
+       
         "Content-Type": "application/json",
       },
     };
@@ -256,7 +256,7 @@ let actions = {
       url: process.env.VUE_APP_URL_MAIN + `insertar_position_calls`,
 
       headers: {
-        "auth-token": sessionStorage.getItem("auth-token"),
+       
         "Content-Type": "application/json",
       },
       data: state.StatusModel,
@@ -288,7 +288,7 @@ let actions = {
         }&id=${state.StatusModel.id}&position=${state.StatusModel.position}`,
 
       headers: {
-        "auth-token": sessionStorage.getItem("auth-token"),
+       
         "Content-Type": "application/json",
       },
     };
@@ -311,7 +311,7 @@ let actions = {
         }`,
 
       headers: {
-        "auth-token": sessionStorage.getItem("auth-token"),
+       
         "Content-Type": "application/json",
       },
     };
@@ -334,7 +334,7 @@ let actions = {
         }`,
 
       headers: {
-        "auth-token": sessionStorage.getItem("auth-token"),
+       
         "Content-Type": "application/json",
       },
     };
@@ -357,7 +357,7 @@ let actions = {
         }`,
 
       headers: {
-        "auth-token": sessionStorage.getItem("auth-token"),
+       
         "Content-Type": "application/json",
       },
     };
@@ -375,7 +375,7 @@ let actions = {
       url: process.env.VUE_APP_URL_MAIN + `actualizar_position_calls`,
 
       headers: {
-        "auth-token": sessionStorage.getItem("auth-token"),
+       
         "Content-Type": "application/json",
       },
       data: state.StatusModel,

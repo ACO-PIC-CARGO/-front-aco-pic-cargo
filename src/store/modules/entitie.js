@@ -163,7 +163,7 @@ const actions = {
           JSON.parse(sessionStorage.getItem("dataUser"))[0].id_branch
         }`,
       headers: {
-        "auth-token": sessionStorage.getItem("auth-token"),
+       
         "Content-Type": "application/json",
       },
       data: this.dataEntitiePost,
@@ -191,7 +191,7 @@ const actions = {
           JSON.parse(sessionStorage.getItem("dataUser"))[0].id_branch
         }`,
       headers: {
-        "auth-token": sessionStorage.getItem("auth-token"),
+       
         "Content-Type": "application/json",
       },
       data: this.dataEntitiePost,
@@ -215,7 +215,7 @@ const actions = {
       method: "put",
       url: process.env.VUE_APP_URL_MAIN + `actualizar_rol_proveedor`,
       headers: {
-        "auth-token": sessionStorage.getItem("auth-token"),
+       
         "Content-Type": "application/json",
       },
       data: {
@@ -278,7 +278,7 @@ const actions = {
             : ""
         }`,
       headers: {
-        "auth-token": sessionStorage.getItem("auth-token"),
+       
         "Content-Type": "application/json",
       },
       data: this.dataEntitiePost,
@@ -323,7 +323,7 @@ const actions = {
           state.proveedor.bussiness_name ? state.proveedor.bussiness_name : ""
         }`,
       headers: {
-        "auth-token": sessionStorage.getItem("auth-token"),
+       
         "Content-Type": "application/json",
       },
       data: this.dataEntitiePost,
@@ -353,7 +353,7 @@ const actions = {
           state.proveedor.nro_documento
         }`,
       headers: {
-        "auth-token": sessionStorage.getItem("auth-token"),
+       
         "Content-Type": "application/json",
       },
       data: this.dataEntitiePost,
@@ -379,7 +379,7 @@ const actions = {
         process.env.VUE_APP_URL_MAIN +
         `ver_proveedor?id=${router.currentRoute.params.id}`,
       headers: {
-        "auth-token": sessionStorage.getItem("auth-token"),
+       
         "Content-Type": "application/json",
       },
     };
@@ -493,7 +493,7 @@ const actions = {
       method: "post",
       url: process.env.VUE_APP_URL_MAIN + `registrar_proveedor`,
       headers: {
-        "auth-token": sessionStorage.getItem("auth-token"),
+       
         "Content-Type": "application/json",
       },
       data: state.proveedor,
@@ -574,7 +574,7 @@ const actions = {
       method: "put",
       url: process.env.VUE_APP_URL_MAIN + `actualizar_proveedor`,
       headers: {
-        "auth-token": sessionStorage.getItem("auth-token"),
+       
         "Content-Type": "application/json",
       },
       data: state.proveedor,
@@ -626,7 +626,7 @@ const actions = {
       method: "put",
       url: process.env.VUE_APP_URL_MAIN + `eliminar_proveedor`,
       headers: {
-        "auth-token": sessionStorage.getItem("auth-token"),
+       
         "Content-Type": "application/json",
       },
       data: data,
@@ -654,7 +654,7 @@ const actions = {
       url:
         process.env.VUE_APP_URL_MAIN + `tel_contacto_proveedor?id=${data.id}`,
       headers: {
-        "auth-token": sessionStorage.getItem("auth-token"),
+       
         "Content-Type": "application/json",
       },
       data: data,
@@ -754,7 +754,7 @@ const actions = {
           state.proveedor.nombrecompleto ? state.proveedor.nombrecompleto : ""
         }`,
       headers: {
-        "auth-token": sessionStorage.getItem("auth-token"),
+       
         "Content-Type": "application/json",
       },
       data: {},
@@ -789,7 +789,7 @@ const actions = {
           state.proveedor.nro_documento ? state.proveedor.nro_documento : ""
         }`,
       headers: {
-        "auth-token": sessionStorage.getItem("auth-token"),
+       
         "Content-Type": "application/json",
       },
       data: {},
@@ -837,7 +837,7 @@ const actions = {
           state.filtro.id_tipoproveedor ? state.filtro.id_tipoproveedor : ""
         }`,
       headers: {
-        "auth-token": sessionStorage.getItem("auth-token"),
+       
         "Content-Type": "application/json",
       },
       data: this.dataEntitiePost,
@@ -882,7 +882,7 @@ const actions = {
           state.cliente.nro_documento
         }`,
       headers: {
-        "auth-token": sessionStorage.getItem("auth-token"),
+       
         "Content-Type": "application/json",
       },
       data: this.dataEntitiePost,
@@ -917,7 +917,7 @@ const actions = {
       method: "post",
       url: process.env.VUE_APP_URL_MAIN + `registrar_cliente`,
       headers: {
-        "auth-token": sessionStorage.getItem("auth-token"),
+       
         "Content-Type": "application/json",
       },
       data: state.cliente,
@@ -986,7 +986,7 @@ const actions = {
         process.env.VUE_APP_URL_MAIN +
         `ver_cliente?id=${id ? id : router.currentRoute.params.id}`,
       headers: {
-        "auth-token": sessionStorage.getItem("auth-token"),
+       
         "Content-Type": "application/json",
       },
     };
@@ -1102,7 +1102,7 @@ const actions = {
       method: "put",
       url: process.env.VUE_APP_URL_MAIN + `actualizar_cliente`,
       headers: {
-        "auth-token": sessionStorage.getItem("auth-token"),
+       
         "Content-Type": "application/json",
       },
       data: { ...state.cliente, rute: nombreRuta },
@@ -1224,7 +1224,7 @@ const actions = {
           state.cliente.nombrecompleto ? state.cliente.nombrecompleto : ""
         }`,
       headers: {
-        "auth-token": sessionStorage.getItem("auth-token"),
+       
         "Content-Type": "application/json",
       },
       data: {},
@@ -1257,7 +1257,7 @@ const actions = {
           state.cliente.nro_documento ? state.cliente.nro_documento : ""
         }`,
       headers: {
-        "auth-token": sessionStorage.getItem("auth-token"),
+       
         "Content-Type": "application/json",
       },
       data: {},
@@ -1282,7 +1282,7 @@ const actions = {
       method: "get",
       url: process.env.VUE_APP_URL_MAIN + `entitie/cargar_datos_tarifas`,
       headers: {
-        "auth-token": sessionStorage.getItem("auth-token"),
+       
         "Content-Type": "application/json",
       },
       params: data,
@@ -1308,7 +1308,7 @@ const actions = {
       method: "get",
       url: process.env.VUE_APP_URL_MAIN + `entities/validar_eliminar_cliente`,
       headers: {
-        "auth-token": sessionStorage.getItem("auth-token"),
+       
         "Content-Type": "application/json",
       },
       params: data,

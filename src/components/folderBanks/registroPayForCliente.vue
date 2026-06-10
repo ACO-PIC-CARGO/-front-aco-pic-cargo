@@ -20,7 +20,12 @@
           >
           </v-autocomplete>
         </v-col>
-        <v-col cols="12" md="3" class="pb-0">
+        <v-col
+          cols="12"
+          md="3"
+          class="pb-0"
+          v-if="Object.keys(id_cuenta).length > 0"
+        >
           Monto Depositado En Banco:
           <!-- <v-icon @click="snackbar = true">mdi-information</v-icon> -->
           <v-text-field
@@ -532,6 +537,7 @@ export default {
     };
   },
   async mounted() {
+    this.$store.state.bank.deudaAProveedor = [];
     this.$store.state.mainTitle = "BANCOS - NUEVO INGRESO";
     await Promise.all([
       this.cargarClientes(),
@@ -741,6 +747,18 @@ export default {
       this.editable = true;
     },
     async finalizarOperacion() {
+      
+      let monto_local = Number(parseFloat(this.monto_local).toFixed(2));
+      let montoFinal = Number(parseFloat(this.montoFinal).toFixed(2));
+      if (monto_local != montoFinal) {
+        Swal.fire({
+          icon: "error",
+          title: "Monto Incorrecto",
+          html: `El Monto Depositado(${this.symbol} ${monto_local}) En Banco es diferente al Monto Total a Pagar(${this.symbol} ${montoFinal})`,
+        });
+        return;
+      }
+
       let data = {
         symbol: this.symbol,
         id_branch: "",
@@ -851,31 +869,37 @@ export default {
       // return this.selected.some((v) => v.symbol != "USD");
     },
     totalGeneralAbonado() {
-      return this.selected
-        .reduce((acc, item) => {
-          let monto = 0;
+      const total = this.selected.reduce((acc, item) => {
+        let monto = parseFloat(item.montoparcial) || 0;
 
-          // Lógica similar a tu fn_totalAbonado pero puramente numérica
-          if (item.parcialflag) {
-            monto = parseFloat(item.montoparcial) || 0;
-          } else {
-            monto = parseFloat(item.total_mon_local) || 0;
-          }
+        return acc + monto;
+      }, 0);
+      this.monto_local = total.toFixed(2);
+      return total.toFixed(2);
+      // return this.selected
+      //   .reduce((acc, item) => {
+      //     let monto = 0;
 
-          // Convertimos a USD si no lo está
-          if (item.symbol !== "USD") {
-            const tc = parseFloat(this.tipocambio) || 1;
-            monto = monto / tc;
-          }
+      //     // Lógica similar a tu fn_totalAbonado pero puramente numérica
+      //     if (item.parcialflag) {
+      //       monto = parseFloat(item.montoparcial) || 0;
+      //     } else {
+      //       monto = parseFloat(item.total_mon_local) || 0;
+      //     }
 
-          return acc + monto;
-        }, 0)
-        .toFixed(2);
+      //     // Convertimos a USD si no lo está
+      //     if (item.symbol !== "USD") {
+      //       const tc = parseFloat(this.tipocambio) || 1;
+      //       monto = monto / tc;
+      //     }
+
+      //     return acc + monto;
+      //   }, 0)
+      //   .toFixed(2);
     },
     tipocambio() {
-      const tc = (this.monto_local || 0) / (this.monto || 1);
-      const resultado = isNaN(tc) || !isFinite(tc) || tc <= 0 ? 1 : tc;
-      return Number(resultado).toFixed(4);
+      let tc = this.montoFinal / this.monto;
+      return tc.toFixed(2);
     },
     itemsOrdenados() {
       const items = [...this.$store.state.bank.deudaAProveedor];
@@ -891,8 +915,8 @@ export default {
     montoFinal() {
       let montogastobancario = 0;
       montogastobancario = Number(this.montogastobancario || 0);
-      const total = Number(this.monto*this.tipocambio || 0) + montogastobancario;
-      return total.toFixed(4);
+      const total = Number(this.totalGeneralAbonado || 0) + montogastobancario;
+      return total.toFixed(2);
     },
   },
   watch: {

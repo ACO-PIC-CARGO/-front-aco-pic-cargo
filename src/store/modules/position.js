@@ -53,7 +53,7 @@ let actions = {
         }`,
 
       headers: {
-        "auth-token": sessionStorage.getItem("auth-token"),
+       
         "Content-Type": "application/json",
       },
     };
@@ -104,7 +104,7 @@ let actions = {
         }&estado=${state.filtros.estado == "null" ? "" : state.filtros.estado}`,
 
       headers: {
-        "auth-token": sessionStorage.getItem("auth-token"),
+       
         "Content-Type": "application/json",
       },
     };
@@ -151,7 +151,7 @@ let actions = {
         }&id=${state.model.id}`,
 
       headers: {
-        "auth-token": sessionStorage.getItem("auth-token"),
+       
         "Content-Type": "application/json",
       },
     };
@@ -198,7 +198,7 @@ let actions = {
         }&id=${state.model.id}`,
 
       headers: {
-        "auth-token": sessionStorage.getItem("auth-token"),
+       
         "Content-Type": "application/json",
       },
     };
@@ -245,7 +245,7 @@ let actions = {
       method: "put",
       url: process.env.VUE_APP_URL_MAIN + `insertar_actualizar_posicion`,
       headers: {
-        "auth-token": sessionStorage.getItem("auth-token"),
+       
         "Content-Type": "application/json",
       },
       data: data,
@@ -272,7 +272,7 @@ let actions = {
       method: "put",
       url: process.env.VUE_APP_URL_MAIN + `cambiar_estado_posicion`,
       headers: {
-        "auth-token": sessionStorage.getItem("auth-token"),
+       
         "Content-Type": "application/json",
       },
       data: state.model,

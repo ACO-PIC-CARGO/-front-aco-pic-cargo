@@ -278,7 +278,7 @@ export default {
           method: "put",
           url: process.env.VUE_APP_URL_MAIN + `setTrackingToken`,
           headers: {
-            "auth-token": sessionStorage.getItem("auth-token"),
+           
             "Content-Type": "application/json",
           },
           data,
@@ -312,7 +312,7 @@ export default {
         method: "post",
         url: process.env.VUE_APP_URL_MAIN + "deleteServices",
         headers: {
-          "auth-token": sessionStorage.getItem("auth-token"),
+         
           "Content-Type": "application/json",
         },
         data: data,
@@ -336,7 +336,7 @@ export default {
         method: "post",
         url: process.env.VUE_APP_URL_MAIN + "activeServices",
         headers: {
-          "auth-token": sessionStorage.getItem("auth-token"),
+         
           "Content-Type": "application/json",
         },
         data: data,
@@ -360,7 +360,7 @@ export default {
         method: "post",
         url: process.env.VUE_APP_URL_MAIN + "inactiveServices",
         headers: {
-          "auth-token": sessionStorage.getItem("auth-token"),
+         
           "Content-Type": "application/json",
         },
         data: data,
@@ -385,7 +385,7 @@ export default {
         method: "post",
         url: process.env.VUE_APP_URL_MAIN + "editServices",
         headers: {
-          "auth-token": sessionStorage.getItem("auth-token"),
+         
           "Content-Type": "application/json",
         },
         data: data,
@@ -415,7 +415,7 @@ export default {
           method: "post",
           url: process.env.VUE_APP_URL_MAIN + "getHouseServices",
           headers: {
-            "auth-token": sessionStorage.getItem("auth-token"),
+           
             "Content-Type": "application/json",
           },
           data: data,
@@ -573,7 +573,7 @@ export default {
         method: "post",
         url: process.env.VUE_APP_URL_MAIN + `getServicesByIncoterms`,
         headers: {
-          "auth-token": sessionStorage.getItem("auth-token"),
+         
           "Content-Type": "application/json",
         },
         data: data,
@@ -635,7 +635,7 @@ export default {
             formatoflag: this.formatoflag,
           },
           headers: {
-            "auth-token": sessionStorage.getItem("auth-token"),
+           
           },
           responseType: "blob", // 👈 importante
         });
@@ -668,7 +668,7 @@ export default {
             formatoflag: this.formatoflag,
           },
           headers: {
-            "auth-token": sessionStorage.getItem("auth-token"),
+           
           },
           responseType: "blob", // 👈 importante
         });

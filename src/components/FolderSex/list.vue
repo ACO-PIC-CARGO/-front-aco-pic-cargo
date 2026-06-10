@@ -609,7 +609,7 @@ export default {
           `&id_branch=${this.record.id_branch}`,
         headers: {
           "Content-Type": "application/json",
-          "auth-token": sessionStorage.getItem("auth-token"),
+         
         },
       };
 
@@ -636,7 +636,7 @@ export default {
           `&id_branch=${this.record.id_branch}`,
         headers: {
           "Content-Type": "application/json",
-          "auth-token": sessionStorage.getItem("auth-token"),
+         
         },
       };
 

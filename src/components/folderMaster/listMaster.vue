@@ -713,7 +713,7 @@ export default {
           },
           {
             headers: {
-              "auth-token": sessionStorage.getItem("auth-token"),
+             
               "Content-Type": "application/json",
             },
           },
@@ -812,7 +812,7 @@ export default {
             method: "post",
             url: process.env.VUE_APP_URL_MAIN + "lockMaster/" + id,
             headers: {
-              "auth-token": sessionStorage.getItem("auth-token"),
+             
               "Content-Type": "application/json",
             },
           };
@@ -865,7 +865,7 @@ export default {
             method: "post",
             url: process.env.VUE_APP_URL_MAIN + "nullMaster/" + id,
             headers: {
-              "auth-token": sessionStorage.getItem("auth-token"),
+             
               "Content-Type": "application/json",
             },
             data: {
@@ -920,7 +920,7 @@ export default {
             method: "post",
             url: process.env.VUE_APP_URL_MAIN + "lockMasterAdm/" + id,
             headers: {
-              "auth-token": sessionStorage.getItem("auth-token"),
+             
               "Content-Type": "application/json",
             },
           };
@@ -1086,7 +1086,7 @@ export default {
             method: "delete",
             url: process.env.VUE_APP_URL_MAIN + "deleteMaster/" + id,
             headers: {
-              "auth-token": sessionStorage.getItem("auth-token"),
+             
               "Content-Type": "application/json",
             },
           };

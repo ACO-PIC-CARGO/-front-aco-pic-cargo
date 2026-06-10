@@ -155,7 +155,7 @@ export default {
         method: "get",
         url: process.env.VUE_APP_URL_MAIN + "getTrackingData/" + vm.$route.params.token,
         headers: {
-          "auth-token": sessionStorage.getItem("auth-token"),
+         
           "Content-Type": "application/json",
         },
         data: {},

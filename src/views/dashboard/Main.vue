@@ -1883,7 +1883,7 @@ export default {
         method: "get",
         url: process.env.VUE_APP_URL_MAIN + "entities/obtener_datos_tarifa",
         headers: {
-          "auth-token": sessionStorage.getItem("auth-token"),
+         
           "Content-Type": "application/json",
         },
         params: {

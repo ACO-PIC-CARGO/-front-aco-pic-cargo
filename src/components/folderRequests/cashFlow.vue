@@ -623,7 +623,7 @@ export default {
         url: process.env.VUE_APP_URL_MAIN + urlLong,
 
         headers: {
-          "auth-token": sessionStorage.getItem("auth-token"),
+         
           "Content-Type": "application/json",
         },
         data: data,
@@ -655,7 +655,7 @@ export default {
         url: process.env.VUE_APP_URL_MAIN + "getDebsToPay",
 
         headers: {
-          "auth-token": sessionStorage.getItem("auth-token"),
+         
           "Content-Type": "application/json",
         },
       };
@@ -678,7 +678,7 @@ export default {
         url: process.env.VUE_APP_URL_MAIN + "getReportAccounts",
 
         headers: {
-          "auth-token": sessionStorage.getItem("auth-token"),
+         
           "Content-Type": "application/json",
         },
       };
@@ -706,7 +706,7 @@ export default {
         url: process.env.VUE_APP_URL_MAIN + "getDebsToPayFilter",
 
         headers: {
-          "auth-token": sessionStorage.getItem("auth-token"),
+         
           "Content-Type": "application/json",
         },
         data: data,

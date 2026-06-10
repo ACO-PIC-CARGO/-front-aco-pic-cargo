@@ -776,7 +776,7 @@ export default {
       });
       //  AXIOS
       var headers = {
-        "auth-token": sessionStorage.getItem("auth-token"),
+       
         "Content-Type": "application/json",
       };
       var data = {
@@ -904,7 +904,7 @@ export default {
         );
       });
       var headers = {
-        "auth-token": sessionStorage.getItem("auth-token"),
+       
         "Content-Type": "application/json",
       };
       var data = {
@@ -1046,7 +1046,7 @@ export default {
         );
       });
       var headers = {
-        "auth-token": sessionStorage.getItem("auth-token"),
+       
         "Content-Type": "application/json",
       };
       var data = {
@@ -1285,7 +1285,7 @@ export default {
       let data = null;
       let response = null;
       var headers = {
-        "auth-token": sessionStorage.getItem("auth-token"),
+       
         "Content-Type": "application/json",
       };
       if (vm.tipo == "lcl") {

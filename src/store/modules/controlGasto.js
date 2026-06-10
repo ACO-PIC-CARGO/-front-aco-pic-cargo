@@ -28,7 +28,7 @@ const actions = {
     const routeParams = router.currentRoute.params;
     // console.log(routeParams);
     var headers = {
-      "auth-token": sessionStorage.getItem("auth-token"),
+     
       "Content-Type": "application/json",
     };
     var config = {
@@ -67,7 +67,7 @@ const actions = {
   },
   async cargarCorrelativo({ commit }) {
     var headers = {
-      "auth-token": sessionStorage.getItem("auth-token"),
+     
       "Content-Type": "application/json",
     };
     var config = {
@@ -88,7 +88,7 @@ const actions = {
   },
   async listarCGECcorralativo({ commit }, id_proveedor) {
     var headers = {
-      "auth-token": sessionStorage.getItem("auth-token"),
+     
       "Content-Type": "application/json",
     };
     var config = {
@@ -126,7 +126,7 @@ const actions = {
       method: "post",
       url: process.env.VUE_APP_URL_MAIN + "setControl",
       headers: {
-        "auth-token": sessionStorage.getItem("auth-token"),
+       
         "Content-Type": "application/json",
       },
       data: data,
@@ -160,7 +160,7 @@ const actions = {
       method: "post",
       url: process.env.VUE_APP_URL_MAIN + "setIngresos",
       headers: {
-        "auth-token": sessionStorage.getItem("auth-token"),
+       
         "Content-Type": "application/json",
       },
       data: data,
@@ -194,7 +194,7 @@ const actions = {
       method: "post",
       url: process.env.VUE_APP_URL_MAIN + "editIngreso/" + data.id,
       headers: {
-        "auth-token": sessionStorage.getItem("auth-token"),
+       
         "Content-Type": "application/json",
       },
       data: data,
@@ -226,7 +226,7 @@ const actions = {
       method: "put",
       url: process.env.VUE_APP_URL_MAIN + "copiar_cgingresos",
       headers: {
-        "auth-token": sessionStorage.getItem("auth-token"),
+       
         "Content-Type": "application/json",
       },
       data: data,
@@ -258,7 +258,7 @@ const actions = {
       method: "put",
       url: process.env.VUE_APP_URL_MAIN + "copiar_cgegresos",
       headers: {
-        "auth-token": sessionStorage.getItem("auth-token"),
+       
         "Content-Type": "application/json",
       },
       data: data,
@@ -294,7 +294,7 @@ const actions = {
         "obtener_nombre_camapania?id_master=" +
         id_master,
       headers: {
-        "auth-token": sessionStorage.getItem("auth-token"),
+       
         "Content-Type": "application/json",
       },
       data: data,
@@ -322,7 +322,7 @@ const actions = {
       method: "post",
       url: process.env.VUE_APP_URL_MAIN + "delIngresos/" + data.id,
       headers: {
-        "auth-token": sessionStorage.getItem("auth-token"),
+       
         "Content-Type": "application/json",
       },
       data: data,
@@ -352,7 +352,7 @@ const actions = {
       method: "post",
       url: process.env.VUE_APP_URL_MAIN + "carga_masiva_controldegasto",
       headers: {
-        "auth-token": sessionStorage.getItem("auth-token"),
+       
         "Content-Type": "application/json",
       },
       data: data,
@@ -380,7 +380,7 @@ const actions = {
         id_mastercontrol,
       responseType: "blob",
       headers: {
-        "auth-token": sessionStorage.getItem("auth-token"),
+       
         "Content-Type": "blob",
       },
     };
@@ -410,7 +410,7 @@ const actions = {
       method: "post",
       url: process.env.VUE_APP_URL_MAIN + "guardar_cuotas_cge_tipo_proveedor",
       headers: {
-        "auth-token": sessionStorage.getItem("auth-token"),
+       
         "Content-Type": "application/json",
       },
       data: data,

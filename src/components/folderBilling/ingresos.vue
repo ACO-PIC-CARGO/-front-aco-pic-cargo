@@ -1539,7 +1539,7 @@ export default {
                 "setHouseIngresosDelete/" +
                 house.id_house,
               headers: {
-                "auth-token": sessionStorage.getItem("auth-token"),
+               
                 "Content-Type": "application/json",
               },
             };
@@ -1715,7 +1715,7 @@ export default {
           url: process.env.VUE_APP_URL_MAIN + "setDebsClient",
 
           headers: {
-            "auth-token": sessionStorage.getItem("auth-token"),
+           
             "Content-Type": "application/json",
           },
           data: data,
@@ -1843,7 +1843,7 @@ export default {
         url: process.env.VUE_APP_URL_MAIN + "delDebsClient/" + id,
 
         headers: {
-          "auth-token": sessionStorage.getItem("auth-token"),
+         
           "Content-Type": "application/json",
         },
       };
@@ -1949,7 +1949,7 @@ export default {
           url: process.env.VUE_APP_URL_MAIN + "actualizar_debs_client",
 
           headers: {
-            "auth-token": sessionStorage.getItem("auth-token"),
+           
             "Content-Type": "application/json",
           },
           data: data,
@@ -1985,7 +1985,7 @@ export default {
         url: `${process.env.VUE_APP_URL_MAIN}data_factura/${vm.house.id_house}/${vm.id_branch}`,
 
         headers: {
-          "auth-token": sessionStorage.getItem("auth-token"),
+         
           "Content-Type": "application/json",
         },
       };
@@ -2044,7 +2044,7 @@ export default {
         method: "post",
         url: `${process.env.VUE_APP_URL_MAIN}generar_factura`,
         headers: {
-          "auth-token": sessionStorage.getItem("auth-token"),
+         
           "Content-Type": "application/json",
         },
         data: data,
@@ -2077,7 +2077,7 @@ export default {
         method: "post",
         url: process.env.VUE_APP_URL_MAIN + "registrar_factura",
         headers: {
-          "auth-token": sessionStorage.getItem("auth-token"),
+         
           "Content-Type": "application/json",
         },
         data: dataFactura,
@@ -2178,7 +2178,7 @@ export default {
         method: "post",
         url: process.env.VUE_APP_URL_MAIN + "setProformaFiscal",
         headers: {
-          "auth-token": sessionStorage.getItem("auth-token"),
+         
           "Content-Type": "application/json",
         },
         data: vm.proformaFiscal,
@@ -2224,7 +2224,7 @@ export default {
           process.env.VUE_APP_URL_MAIN +
           `getFacturasFiscales?id_house=${house.id_house}`,
         headers: {
-          "auth-token": sessionStorage.getItem("auth-token"),
+         
           "Content-Type": "application/json",
         },
       };
@@ -2250,7 +2250,7 @@ export default {
         method: "post",
         url: process.env.VUE_APP_URL_MAIN + "delProformaFiscal/" + id,
         headers: {
-          "auth-token": sessionStorage.getItem("auth-token"),
+         
           "Content-Type": "application/json",
         },
       };
@@ -2303,7 +2303,7 @@ export default {
           id: item.id_house,
         },
         headers: {
-          "auth-token": sessionStorage.getItem("auth-token"),
+         
           "Content-Type": "application/json",
         },
       };
@@ -2367,7 +2367,7 @@ export default {
           method: "put",
           url: process.env.VUE_APP_URL_MAIN + "reasignar_house",
           headers: {
-            "auth-token": sessionStorage.getItem("auth-token"),
+           
             "Content-Type": "application/json",
           },
           data: payload,
@@ -2448,7 +2448,7 @@ export default {
         method: "put",
         url: process.env.VUE_APP_URL_MAIN + "anular_factura",
         headers: {
-          "auth-token": sessionStorage.getItem("auth-token"),
+         
           "Content-Type": "application/json",
         },
         data: datos,

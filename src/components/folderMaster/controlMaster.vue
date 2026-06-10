@@ -197,7 +197,7 @@ export default {
           process.env.VUE_APP_URL_MAIN +
           `crear-carpeta-master?nromaster=${name}`,
         headers: {
-          "auth-token": sessionStorage.getItem("auth-token"),
+         
           "Content-Type": "application/json",
         },
       };
@@ -216,7 +216,7 @@ export default {
         method: "put",
         url: process.env.VUE_APP_URL_MAIN + `update_folder_onedrive`,
         headers: {
-          "auth-token": sessionStorage.getItem("auth-token"),
+         
           "Content-Type": "application/json",
         },
         data: {
@@ -250,7 +250,7 @@ export default {
         method: "post",
         url: process.env.VUE_APP_URL_MAIN + "setMasterContainers",
         headers: {
-          "auth-token": sessionStorage.getItem("auth-token"),
+         
           "Content-Type": "application/json",
         },
         data: data,
@@ -291,7 +291,7 @@ export default {
         method: "post",
         url: process.env.VUE_APP_URL_MAIN + "setHouseContainers",
         headers: {
-          "auth-token": sessionStorage.getItem("auth-token"),
+         
           "Content-Type": "application/json",
         },
         data: data,
@@ -322,7 +322,7 @@ export default {
           method: "post",
           url: process.env.VUE_APP_URL_MAIN + "setServices",
           headers: {
-            "auth-token": sessionStorage.getItem("auth-token"),
+           
             "Content-Type": "application/json",
           },
           data: data,
@@ -425,7 +425,7 @@ export default {
         method: "post",
         url: process.env.VUE_APP_URL_MAIN + "setHouse",
         headers: {
-          "auth-token": sessionStorage.getItem("auth-token"),
+         
           "Content-Type": "application/json",
         },
         data: data,
@@ -556,7 +556,7 @@ export default {
           method: "post",
           url: process.env.VUE_APP_URL_MAIN + "setHouse",
           headers: {
-            "auth-token": sessionStorage.getItem("auth-token"),
+           
             "Content-Type": "application/json",
           },
           data: data,
@@ -744,7 +744,7 @@ export default {
             "editMaster/" +
             vm.$store.state.master_Id_get,
           headers: {
-            "auth-token": sessionStorage.getItem("auth-token"),
+           
             "Content-Type": "application/json",
           },
           data: data,
@@ -1052,7 +1052,7 @@ export default {
           method: "post",
           url: process.env.VUE_APP_URL_MAIN + "setMaster",
           headers: {
-            "auth-token": sessionStorage.getItem("auth-token"),
+           
             "Content-Type": "application/json",
           },
           data: data,

@@ -31,7 +31,7 @@ const actions = {
         `&status=${data.status}`,
       headers: {
         "Content-Type": "application/json",
-        "auth-token": sessionStorage.getItem("auth-token"),
+       
       },
     };
     await axios(config)

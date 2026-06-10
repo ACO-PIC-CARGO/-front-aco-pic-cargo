@@ -875,7 +875,7 @@ export default new Vuex.Store({
         method: "post",
         url: process.env.VUE_APP_URL_MAIN + "getEntitiesList",
         headers: {
-          "auth-token": sessionStorage.getItem("auth-token"),
+         
           "Content-Type": "application/json",
         },
         data: data,
@@ -898,7 +898,7 @@ export default new Vuex.Store({
           "get_listado_cliente?id_branch=" +
           JSON.parse(sessionStorage.getItem("dataUser"))[0].id_branch,
         headers: {
-          "auth-token": sessionStorage.getItem("auth-token"),
+         
           "Content-Type": "application/json",
         },
       };
@@ -922,7 +922,7 @@ export default new Vuex.Store({
         method: "post",
         url: process.env.VUE_APP_URL_MAIN + "getEntitiesList",
         headers: {
-          "auth-token": sessionStorage.getItem("auth-token"),
+         
           "Content-Type": "application/json",
         },
         data: data,
@@ -945,7 +945,7 @@ export default new Vuex.Store({
         method: "post",
         url: process.env.VUE_APP_URL_MAIN + "getEntitiesList",
         headers: {
-          "auth-token": sessionStorage.getItem("auth-token"),
+         
           "Content-Type": "application/json",
         },
         data: data,
@@ -968,7 +968,7 @@ export default new Vuex.Store({
         method: "post",
         url: process.env.VUE_APP_URL_MAIN + "getEntitiesList",
         headers: {
-          "auth-token": sessionStorage.getItem("auth-token"),
+         
           "Content-Type": "application/json",
         },
         data: data,
@@ -990,7 +990,7 @@ export default new Vuex.Store({
           "CargarProveedores?id_branch=" +
           JSON.parse(sessionStorage.getItem("dataUser"))[0].id_branch,
         headers: {
-          "auth-token": sessionStorage.getItem("auth-token"),
+         
           "Content-Type": "application/json",
         },
       };
@@ -1012,7 +1012,7 @@ export default new Vuex.Store({
         method: "post",
         url: process.env.VUE_APP_URL_MAIN + "getEntitiesList",
         headers: {
-          "auth-token": sessionStorage.getItem("auth-token"),
+         
           "Content-Type": "application/json",
         },
         data: data,
@@ -1035,7 +1035,7 @@ export default new Vuex.Store({
         method: "post",
         url: process.env.VUE_APP_URL_MAIN + "getEntitiesList",
         headers: {
-          "auth-token": sessionStorage.getItem("auth-token"),
+         
           "Content-Type": "application/json",
         },
         data: data,
@@ -1058,7 +1058,7 @@ export default new Vuex.Store({
         method: "post",
         url: process.env.VUE_APP_URL_MAIN + "getEntitiesList",
         headers: {
-          "auth-token": sessionStorage.getItem("auth-token"),
+         
           "Content-Type": "application/json",
         },
         data: data,
@@ -1081,7 +1081,7 @@ export default new Vuex.Store({
         method: "post",
         url: process.env.VUE_APP_URL_MAIN + "getDocumentsList",
         headers: {
-          "auth-token": sessionStorage.getItem("auth-token"),
+         
           "Content-Type": "application/json",
         },
         data: data,
@@ -1100,7 +1100,7 @@ export default new Vuex.Store({
         method: "post",
         url: process.env.VUE_APP_URL_MAIN + "getPais",
         headers: {
-          "auth-token": sessionStorage.getItem("auth-token"),
+         
           "Content-Type": "application/json",
         },
       };
@@ -1119,7 +1119,7 @@ export default new Vuex.Store({
         url:
           process.env.VUE_APP_URL_MAIN + `cargar_state?id_pais=${idPais || ""}`,
         headers: {
-          "auth-token": sessionStorage.getItem("auth-token"),
+         
           "Content-Type": "application/json",
         },
       };
@@ -1145,7 +1145,7 @@ export default new Vuex.Store({
         method: "post",
         url: process.env.VUE_APP_URL_MAIN + "getCity",
         headers: {
-          "auth-token": sessionStorage.getItem("auth-token"),
+         
           "Content-Type": "application/json",
         },
         data: data,
@@ -1172,7 +1172,7 @@ export default new Vuex.Store({
         method: "post",
         url: process.env.VUE_APP_URL_MAIN + "getTown",
         headers: {
-          "auth-token": sessionStorage.getItem("auth-token"),
+         
           "Content-Type": "application/json",
         },
         data: data,
@@ -1195,7 +1195,7 @@ export default new Vuex.Store({
           JSON.parse(sessionStorage.getItem("dataUser"))[0].id_branch,
 
         headers: {
-          "auth-token": sessionStorage.getItem("auth-token"),
+         
           "Content-Type": "application/json",
         },
       };
@@ -1216,7 +1216,7 @@ export default new Vuex.Store({
         method: "post",
         url: process.env.VUE_APP_URL_MAIN + "getModality",
         headers: {
-          "auth-token": sessionStorage.getItem("auth-token"),
+         
           "Content-Type": "application/json",
         },
         data: data,
@@ -1238,7 +1238,7 @@ export default new Vuex.Store({
         method: "post",
         url: process.env.VUE_APP_URL_MAIN + "getShipment",
         headers: {
-          "auth-token": sessionStorage.getItem("auth-token"),
+         
           "Content-Type": "application/json",
         },
         data: data,
@@ -1266,7 +1266,7 @@ export default new Vuex.Store({
         method: "post",
         url: process.env.VUE_APP_URL_MAIN + "getPortBegin",
         headers: {
-          "auth-token": sessionStorage.getItem("auth-token"),
+         
           "Content-Type": "application/json",
         },
         data: data,
@@ -1295,7 +1295,7 @@ export default new Vuex.Store({
         method: "post",
         url: process.env.VUE_APP_URL_MAIN + "getPortEnd",
         headers: {
-          "auth-token": sessionStorage.getItem("auth-token"),
+         
           "Content-Type": "application/json",
         },
         data: data,
@@ -1316,7 +1316,7 @@ export default new Vuex.Store({
         method: "post",
         url: process.env.VUE_APP_URL_MAIN + "getIncoterms",
         headers: {
-          "auth-token": sessionStorage.getItem("auth-token"),
+         
           "Content-Type": "application/json",
         },
         data: data,
@@ -1347,7 +1347,7 @@ export default new Vuex.Store({
         method: "post",
         url: process.env.VUE_APP_URL_MAIN + "getItemsServices",
         headers: {
-          "auth-token": sessionStorage.getItem("auth-token"),
+         
           "Content-Type": "application/json",
         },
         data: data,
@@ -1375,7 +1375,7 @@ export default new Vuex.Store({
         method: "post",
         url: process.env.VUE_APP_URL_MAIN + "getGroupList",
         headers: {
-          "auth-token": sessionStorage.getItem("auth-token"),
+         
           "Content-Type": "application/json",
         },
         data: data,
@@ -1408,7 +1408,7 @@ export default new Vuex.Store({
         method: "post",
         url: process.env.VUE_APP_URL_MAIN + "getBitacoraList",
         headers: {
-          "auth-token": sessionStorage.getItem("auth-token"),
+         
           "Content-Type": "application/json",
         },
         data: data,
@@ -1430,7 +1430,7 @@ export default new Vuex.Store({
         method: "post",
         url: process.env.VUE_APP_URL_MAIN + "getContainersList",
         headers: {
-          "auth-token": sessionStorage.getItem("auth-token"),
+         
           "Content-Type": "application/json",
         },
         data: data,
@@ -1453,7 +1453,7 @@ export default new Vuex.Store({
             JSON.parse(sessionStorage.getItem("dataUser"))[0].id_branch
           }`,
         headers: {
-          "auth-token": sessionStorage.getItem("auth-token"),
+         
           "Content-Type": "application/json",
         },
       };
@@ -1475,7 +1475,7 @@ export default new Vuex.Store({
             JSON.parse(sessionStorage.getItem("dataUser"))[0].id_branch
           }`,
         headers: {
-          "auth-token": sessionStorage.getItem("auth-token"),
+         
           "Content-Type": "application/json",
         },
       };
@@ -1493,7 +1493,7 @@ export default new Vuex.Store({
         method: "post",
         url: process.env.VUE_APP_URL_MAIN + "getFleteCon",
         headers: {
-          "auth-token": sessionStorage.getItem("auth-token"),
+         
           "Content-Type": "application/json",
         },
       };
@@ -1515,7 +1515,7 @@ export default new Vuex.Store({
             JSON.parse(sessionStorage.getItem("dataUser"))[0].id_branch
           }`,
         headers: {
-          "auth-token": sessionStorage.getItem("auth-token"),
+         
           "Content-Type": "application/json",
         },
       };
@@ -1533,7 +1533,7 @@ export default new Vuex.Store({
         method: "post",
         url: process.env.VUE_APP_URL_MAIN + "getNroMaster",
         headers: {
-          "auth-token": sessionStorage.getItem("auth-token"),
+         
           "Content-Type": "application/json",
         },
         data: {
@@ -1560,7 +1560,7 @@ export default new Vuex.Store({
             JSON.parse(sessionStorage.getItem("dataUser"))[0].id_branch
           }`,
         headers: {
-          "auth-token": sessionStorage.getItem("auth-token"),
+         
           "Content-Type": "application/json",
         },
       };
@@ -1582,7 +1582,7 @@ export default new Vuex.Store({
         method: "post",
         url: process.env.VUE_APP_URL_MAIN + "getHouseList",
         headers: {
-          "auth-token": sessionStorage.getItem("auth-token"),
+         
           "Content-Type": "application/json",
         },
         data: data,
@@ -1614,7 +1614,7 @@ export default new Vuex.Store({
           
           `,
         headers: {
-          "auth-token": sessionStorage.getItem("auth-token"),
+         
           "Content-Type": "application/json",
         },
         data: data,
@@ -1689,7 +1689,7 @@ export default new Vuex.Store({
             vm.state.master_filtro.orden || ""
           }&busqueda=${vm.state.master_filtro.busqueda || ""}`,
         headers: {
-          "auth-token": sessionStorage.getItem("auth-token"),
+         
           "Content-Type": "application/json",
         },
       };
@@ -1744,7 +1744,7 @@ export default new Vuex.Store({
               : ""
           }&busqueda=${vm.state.master_filtro.busqueda || ""}`,
         headers: {
-          "auth-token": sessionStorage.getItem("auth-token"),
+         
           "Content-Type": "application/json",
         },
       };
@@ -1763,7 +1763,7 @@ export default new Vuex.Store({
         method: "get",
         url: process.env.VUE_APP_URL_MAIN + "getBitacoraLineal",
         headers: {
-          "auth-token": sessionStorage.getItem("auth-token"),
+         
           "Content-Type": "application/json",
         },
         params: data,
@@ -1805,7 +1805,7 @@ export default new Vuex.Store({
             vm.state.house_filtro.orden || "code_master DESC"
           }&busqueda=${vm.state.house_filtro.busqueda || ""}`,
         headers: {
-          "auth-token": sessionStorage.getItem("auth-token"),
+         
           "Content-Type": "application/json",
         },
       };
@@ -1853,7 +1853,7 @@ export default new Vuex.Store({
             vm.state.house_filtro.busqueda || ""
           }`,
         headers: {
-          "auth-token": sessionStorage.getItem("auth-token"),
+         
           "Content-Type": "application/json",
         },
       };
@@ -1876,7 +1876,7 @@ export default new Vuex.Store({
         method: "post",
         url: process.env.VUE_APP_URL_MAIN + "getHouseListAll",
         headers: {
-          "auth-token": sessionStorage.getItem("auth-token"),
+         
           "Content-Type": "application/json",
         },
         data: data,
@@ -1900,7 +1900,7 @@ export default new Vuex.Store({
         method: "post",
         url: process.env.VUE_APP_URL_MAIN + "getBegEndList",
         headers: {
-          "auth-token": sessionStorage.getItem("auth-token"),
+         
           "Content-Type": "application/json",
         },
         data: data,
@@ -1923,7 +1923,7 @@ export default new Vuex.Store({
         method: "post",
         url: process.env.VUE_APP_URL_MAIN + "getHouseBitacora",
         headers: {
-          "auth-token": sessionStorage.getItem("auth-token"),
+         
           "Content-Type": "application/json",
         },
         data: data,
@@ -1945,7 +1945,7 @@ export default new Vuex.Store({
         method: "get",
         url: process.env.VUE_APP_URL_MAIN + "getHouseContainers",
         headers: {
-          "auth-token": sessionStorage.getItem("auth-token"),
+         
           "Content-Type": "application/json",
         },
         params: data,
@@ -1970,7 +1970,7 @@ export default new Vuex.Store({
         method: "post",
         url: process.env.VUE_APP_URL_MAIN + "getItemsServicesList",
         headers: {
-          "auth-token": sessionStorage.getItem("auth-token"),
+         
           "Content-Type": "application/json",
         },
         data: data,
@@ -2003,7 +2003,7 @@ export default new Vuex.Store({
           }
         `,
         headers: {
-          "auth-token": sessionStorage.getItem("auth-token"),
+         
           "Content-Type": "application/json",
         },
       };
@@ -2033,7 +2033,7 @@ export default new Vuex.Store({
         method: "post",
         url: process.env.VUE_APP_URL_MAIN + "getControlFileAllMaster",
         headers: {
-          "auth-token": sessionStorage.getItem("auth-token"),
+         
           "Content-Type": "application/json",
         },
         data: data,
@@ -2061,7 +2061,7 @@ export default new Vuex.Store({
         method: "post",
         url: process.env.VUE_APP_URL_MAIN + "getControlFileAllFilter",
         headers: {
-          "auth-token": sessionStorage.getItem("auth-token"),
+         
           "Content-Type": "application/json",
         },
         data: data,
@@ -2086,7 +2086,7 @@ export default new Vuex.Store({
         method: "post",
         url: process.env.VUE_APP_URL_MAIN + "getControlFileAllFilterMaster",
         headers: {
-          "auth-token": sessionStorage.getItem("auth-token"),
+         
           "Content-Type": "application/json",
         },
         data: data,
@@ -2107,7 +2107,7 @@ export default new Vuex.Store({
         method: "post",
         url: process.env.VUE_APP_URL_MAIN + "getTotalesAll",
         headers: {
-          "auth-token": sessionStorage.getItem("auth-token"),
+         
           "Content-Type": "application/json",
         },
       };
@@ -2134,7 +2134,7 @@ export default new Vuex.Store({
         method: "post",
         url: process.env.VUE_APP_URL_MAIN + "getTotales",
         headers: {
-          "auth-token": sessionStorage.getItem("auth-token"),
+         
           "Content-Type": "application/json",
         },
         data: data,
@@ -2164,7 +2164,7 @@ export default new Vuex.Store({
         method: "post",
         url: process.env.VUE_APP_URL_MAIN + "guardar_telefono",
         headers: {
-          "auth-token": sessionStorage.getItem("auth-token"),
+         
           "Content-Type": "application/json",
         },
         data: data,
@@ -2192,7 +2192,7 @@ export default new Vuex.Store({
         method: "get",
         url: process.env.VUE_APP_URL_MAIN + "listar_phone/" + id,
         headers: {
-          "auth-token": sessionStorage.getItem("auth-token"),
+         
           "Content-Type": "application/json",
         },
       };
@@ -2234,7 +2234,7 @@ export default new Vuex.Store({
           "getPhone/" +
           this.state.id_entitie_selected,
         headers: {
-          "auth-token": sessionStorage.getItem("auth-token"),
+         
           "Content-Type": "application/json",
         },
         data: data,
@@ -2259,7 +2259,7 @@ export default new Vuex.Store({
           "getContacts/" +
           this.state.id_entitie_selected,
         headers: {
-          "auth-token": sessionStorage.getItem("auth-token"),
+         
           "Content-Type": "application/json",
         },
         data: data,
@@ -2285,7 +2285,7 @@ export default new Vuex.Store({
         method: "post",
         url: process.env.VUE_APP_URL_MAIN + "setControl",
         headers: {
-          "auth-token": sessionStorage.getItem("auth-token"),
+         
           "Content-Type": "application/json",
         },
         data: data,
@@ -2312,7 +2312,7 @@ export default new Vuex.Store({
         method: "post",
         url: process.env.VUE_APP_URL_MAIN + "setIngresos",
         headers: {
-          "auth-token": sessionStorage.getItem("auth-token"),
+         
           "Content-Type": "application/json",
         },
         data: data,
@@ -2334,7 +2334,7 @@ export default new Vuex.Store({
           "getIngresos/" +
           this.state.dataControl_id_orders,
         headers: {
-          "auth-token": sessionStorage.getItem("auth-token"),
+         
           "Content-Type": "application/json",
         },
       };
@@ -2353,7 +2353,7 @@ export default new Vuex.Store({
         method: "post",
         url: process.env.VUE_APP_URL_MAIN + "getRole",
         headers: {
-          "auth-token": sessionStorage.getItem("auth-token"),
+         
           "Content-Type": "application/json",
         },
       };
@@ -2374,7 +2374,7 @@ export default new Vuex.Store({
           "getTotalesProveedor/" +
           this.state.dataControl_id_orders,
         headers: {
-          "auth-token": sessionStorage.getItem("auth-token"),
+         
           "Content-Type": "application/json",
         },
       };
@@ -2397,7 +2397,7 @@ export default new Vuex.Store({
         method: "get",
         url: process.env.VUE_APP_URL_MAIN + "getControlList",
         headers: {
-          "auth-token": sessionStorage.getItem("auth-token"),
+         
           "Content-Type": "application/json",
         },
         params: data,
@@ -2441,7 +2441,7 @@ export default new Vuex.Store({
         method: "post",
         url: process.env.VUE_APP_URL_MAIN + "getTypeAccount/",
         headers: {
-          "auth-token": sessionStorage.getItem("auth-token"),
+         
           "Content-Type": "application/json",
         },
         data: data,
@@ -2460,7 +2460,7 @@ export default new Vuex.Store({
         method: "post",
         url: process.env.VUE_APP_URL_MAIN + "getBanksList/",
         headers: {
-          "auth-token": sessionStorage.getItem("auth-token"),
+         
           "Content-Type": "application/json",
         },
         data: {
@@ -2482,7 +2482,7 @@ export default new Vuex.Store({
         method: "post",
         url: process.env.VUE_APP_URL_MAIN + "getPerfomance",
         headers: {
-          "auth-token": sessionStorage.getItem("auth-token"),
+         
           "Content-Type": "application/json",
         },
       };
@@ -2500,7 +2500,7 @@ export default new Vuex.Store({
         method: "get",
         url: process.env.VUE_APP_URL_MAIN + "getVerInvoiceAdmin/" + id,
         headers: {
-          "auth-token": sessionStorage.getItem("auth-token"),
+         
           "Content-Type": "application/json",
         },
       };
@@ -2518,7 +2518,7 @@ export default new Vuex.Store({
         method: "get",
         url: process.env.VUE_APP_URL_MAIN + "getVerInvoiceAdminCxC/" + id,
         headers: {
-          "auth-token": sessionStorage.getItem("auth-token"),
+         
           "Content-Type": "application/json",
         },
       };
@@ -2535,7 +2535,7 @@ export default new Vuex.Store({
         method: "get",
         url: process.env.VUE_APP_URL_MAIN + "getChargeMonth",
         headers: {
-          "auth-token": sessionStorage.getItem("auth-token"),
+         
           "Content-Type": "application/json",
         },
       };
@@ -2556,7 +2556,7 @@ export default new Vuex.Store({
             .id_branch,
         },
         headers: {
-          "auth-token": sessionStorage.getItem("auth-token"),
+         
           "Content-Type": "application/json",
         },
       };
@@ -2581,7 +2581,7 @@ export default new Vuex.Store({
             JSON.parse(sessionStorage.getItem("dataUser"))[0].id_branch
           }`,
         headers: {
-          "auth-token": sessionStorage.getItem("auth-token"),
+         
           "Content-Type": "application/json",
         },
         // params: data,
@@ -2610,7 +2610,7 @@ export default new Vuex.Store({
         method: "get",
         url: process.env.VUE_APP_URL_MAIN + `getListaPagosXProveedorCxC/${id}`,
         headers: {
-          "auth-token": sessionStorage.getItem("auth-token"),
+         
           "Content-Type": "application/json",
         },
       };
@@ -2649,7 +2649,7 @@ export default new Vuex.Store({
           "CargarProveedores?id_branch=" +
           JSON.parse(sessionStorage.getItem("dataUser"))[0].id_branch,
         headers: {
-          "auth-token": sessionStorage.getItem("auth-token"),
+         
           "Content-Type": "application/json",
         },
       };
@@ -2669,7 +2669,7 @@ export default new Vuex.Store({
           "CargarClientes?id_branch=" +
           JSON.parse(sessionStorage.getItem("dataUser"))[0].id_branch,
         headers: {
-          "auth-token": sessionStorage.getItem("auth-token"),
+         
           "Content-Type": "application/json",
         },
       };
@@ -2693,7 +2693,7 @@ export default new Vuex.Store({
           JSON.parse(sessionStorage.getItem("dataUser"))[0].id_user,
 
         headers: {
-          "auth-token": sessionStorage.getItem("auth-token"),
+         
           "Content-Type": "application/json",
         },
       };
@@ -2716,7 +2716,7 @@ export default new Vuex.Store({
             .id_branch,
         },
         headers: {
-          "auth-token": sessionStorage.getItem("auth-token"),
+         
           "Content-Type": "application/json",
         },
       };
@@ -2739,7 +2739,7 @@ export default new Vuex.Store({
             .id_branch,
         },
         headers: {
-          "auth-token": sessionStorage.getItem("auth-token"),
+         
           "Content-Type": "application/json",
         },
       };
@@ -2761,7 +2761,7 @@ export default new Vuex.Store({
             JSON.parse(sessionStorage.getItem("dataUser"))[0].id_branch
           }`,
         headers: {
-          "auth-token": sessionStorage.getItem("auth-token"),
+         
           "Content-Type": "application/json",
         },
       };
@@ -2787,7 +2787,7 @@ export default new Vuex.Store({
             JSON.parse(sessionStorage.getItem("dataUser"))[0].id_branch
           }&rol=AEROLINEA`,
         headers: {
-          "auth-token": sessionStorage.getItem("auth-token"),
+         
           "Content-Type": "application/json",
         },
       };
@@ -2813,7 +2813,7 @@ export default new Vuex.Store({
             JSON.parse(sessionStorage.getItem("dataUser"))[0].id_branch
           }&rol=COLOADER`,
         headers: {
-          "auth-token": sessionStorage.getItem("auth-token"),
+         
           "Content-Type": "application/json",
         },
       };
@@ -2839,7 +2839,7 @@ export default new Vuex.Store({
             JSON.parse(sessionStorage.getItem("dataUser"))[0].id_branch
           }&rol=NAVIERA`,
         headers: {
-          "auth-token": sessionStorage.getItem("auth-token"),
+         
           "Content-Type": "application/json",
         },
       };
@@ -2865,7 +2865,7 @@ export default new Vuex.Store({
             JSON.parse(sessionStorage.getItem("dataUser"))[0].id_branch
           }&rol=SHIPPER`,
         headers: {
-          "auth-token": sessionStorage.getItem("auth-token"),
+         
           "Content-Type": "application/json",
         },
       };
@@ -2891,7 +2891,7 @@ export default new Vuex.Store({
             JSON.parse(sessionStorage.getItem("dataUser"))[0].id_branch
           }`,
         headers: {
-          "auth-token": sessionStorage.getItem("auth-token"),
+         
           "Content-Type": "application/json",
         },
       };

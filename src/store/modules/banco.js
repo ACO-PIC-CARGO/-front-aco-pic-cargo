@@ -23,7 +23,7 @@ const actions = {
         id_branch: JSON.parse(sessionStorage.getItem("dataUser"))[0].id_branch,
       },
       headers: {
-        "auth-token": sessionStorage.getItem("auth-token"),
+       
         "Content-Type": "application/json",
       },
     };
@@ -46,7 +46,7 @@ const actions = {
         nro_operacion,
 
       headers: {
-        "auth-token": sessionStorage.getItem("auth-token"),
+       
         "Content-Type": "application/json",
       },
     };

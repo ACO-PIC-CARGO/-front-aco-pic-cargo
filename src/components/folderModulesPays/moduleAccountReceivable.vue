@@ -367,7 +367,7 @@ export default {
         method: "post",
         url: process.env.VUE_APP_URL_MAIN + "uploadAllPath",
         headers: {
-          "auth-token": sessionStorage.getItem("auth-token"),
+         
           "Content-Type": "application/json",
         },
         data: data,
@@ -413,7 +413,7 @@ export default {
           process.env.VUE_APP_URL_MAIN + "paymentInvoiceAdminCxC/" + vm.id_pro,
 
         headers: {
-          "auth-token": sessionStorage.getItem("auth-token"),
+         
           "Content-Type": "application/json",
         },
         data: data,
@@ -446,7 +446,7 @@ export default {
           id_branch: JSON.parse(sessionStorage.getItem("dataUser"))[0].id_branch,
         },
         headers: {
-          "auth-token": sessionStorage.getItem("auth-token"),
+         
           "Content-Type": "application/json",
         },
       };
@@ -473,7 +473,7 @@ export default {
         url: process.env.VUE_APP_URL_MAIN + "delProCxC",
 
         headers: {
-          "auth-token": sessionStorage.getItem("auth-token"),
+         
           "Content-Type": "application/json",
         },
         data: data,

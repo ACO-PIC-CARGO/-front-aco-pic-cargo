@@ -24,7 +24,7 @@ const actions = {
       method: "post",
       url: process.env.VUE_APP_URL_MAIN + "uploadAllPath",
       headers: {
-        "auth-token": sessionStorage.getItem("auth-token"),
+       
         "Content-Type": "application/json",
       },
       data: data,
@@ -46,7 +46,7 @@ const actions = {
       url: process.env.VUE_APP_URL_MAIN + "mover_files_servidor_onedrive",
       headers: {
         "Content-Type": "application/json",
-        "auth-token": sessionStorage.getItem("auth-token"),
+       
       },
       data: data,
     };
@@ -59,7 +59,7 @@ const actions = {
       url: process.env.VUE_APP_URL_MAIN + "mover_files",
       headers: {
         "Content-Type": "application/json",
-        "auth-token": sessionStorage.getItem("auth-token"),
+       
       },
       data: data,
     };

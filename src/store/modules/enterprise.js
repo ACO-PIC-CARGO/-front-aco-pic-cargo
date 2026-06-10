@@ -85,7 +85,7 @@ const actions = {
         `&id_document=${data.id_document}`,
       headers: {
         "Content-Type": "application/json",
-        "auth-token": sessionStorage.getItem("auth-token"),
+       
       },
     };
 
@@ -129,7 +129,7 @@ const actions = {
       url: process.env.VUE_APP_URL_MAIN + "insertar_enterprise",
       headers: {
         "Content-Type": "application/json",
-        "auth-token": sessionStorage.getItem("auth-token"),
+       
       },
       data: data,
     };
@@ -159,7 +159,7 @@ const actions = {
       url: process.env.VUE_APP_URL_MAIN + `ver_enterprise?id=${id}`,
       headers: {
         "Content-Type": "application/json",
-        "auth-token": sessionStorage.getItem("auth-token"),
+       
       },
     };
 
@@ -186,7 +186,7 @@ const actions = {
       url: process.env.VUE_APP_URL_MAIN + "actualizar_enterprise",
       headers: {
         "Content-Type": "application/json",
-        "auth-token": sessionStorage.getItem("auth-token"),
+       
       },
       data: data,
     };
@@ -235,7 +235,7 @@ const actions = {
       url: process.env.VUE_APP_URL_MAIN + "registro_nueva_empresa",
       headers: {
         "Content-Type": "application/json",
-        "auth-token": sessionStorage.getItem("auth-token"),
+       
       },
       data: state.data,
     };
@@ -273,7 +273,7 @@ const actions = {
         `enviar_codigo_validacion_email?email=${state.data.email}`,
       headers: {
         "Content-Type": "application/json",
-        "auth-token": sessionStorage.getItem("auth-token"),
+       
       },
       data: state.data,
     };
@@ -294,7 +294,7 @@ const actions = {
         `validar_token_registro?email=${state.data.email}&codigo=${state.data.codigo}&eliminartoken=${eliminar}`,
       headers: {
         "Content-Type": "application/json",
-        "auth-token": sessionStorage.getItem("auth-token"),
+       
       },
       data: state.data,
     };
@@ -317,7 +317,7 @@ const actions = {
         `validar_correo_registro?email=${state.data.email}`,
       headers: {
         "Content-Type": "application/json",
-        "auth-token": sessionStorage.getItem("auth-token"),
+       
       },
       data: state.data,
     };
@@ -342,7 +342,7 @@ const actions = {
         "obtener_impuestos_branch?id_branch=" +
         branch,
       headers: {
-        "auth-token": sessionStorage.getItem("auth-token"),
+       
         "Content-Type": "application/json",
       },
     };
@@ -363,7 +363,7 @@ const actions = {
         "listado_cuentas_empresa?id_branch=" +
         branch,
       headers: {
-        "auth-token": sessionStorage.getItem("auth-token"),
+       
         "Content-Type": "application/json",
       },
     };
@@ -382,7 +382,7 @@ const actions = {
       method: "post",
       url: process.env.VUE_APP_URL_MAIN + "banco_registrar",
       headers: {
-        "auth-token": sessionStorage.getItem("auth-token"),
+       
         "Content-Type": "application/json",
       },
       data,

@@ -626,7 +626,7 @@ export default {
             formatoflag: this.formatoflag,
           },
           headers: {
-            "auth-token": sessionStorage.getItem("auth-token"),
+           
           },
           responseType: "blob",
         });
@@ -666,7 +666,7 @@ export default {
             formatoflag: this.formatoflag,
           },
           headers: {
-            "auth-token": sessionStorage.getItem("auth-token"),
+           
           },
           responseType: "blob",
         });
@@ -719,7 +719,7 @@ export default {
         method: "put",
         url: process.env.VUE_APP_URL_MAIN + `setTrackingToken`,
         headers: {
-          "auth-token": sessionStorage.getItem("auth-token"),
+         
           "Content-Type": "application/json",
         },
         data: data,
@@ -795,7 +795,7 @@ export default {
         method: "post",
         url: process.env.VUE_APP_URL_MAIN + "setMasterContainers",
         headers: {
-          "auth-token": sessionStorage.getItem("auth-token"),
+         
           "Content-Type": "application/json",
         },
         data: data,
@@ -914,7 +914,7 @@ export default {
         method: "put",
         url: process.env.VUE_APP_URL_MAIN + "setHouseEdit",
         headers: {
-          "auth-token": sessionStorage.getItem("auth-token"),
+         
           "Content-Type": "application/json",
         },
         data: data,
@@ -1224,7 +1224,7 @@ export default {
         method: "post",
         url: process.env.VUE_APP_URL_MAIN + "getHouseListId/",
         headers: {
-          "auth-token": sessionStorage.getItem("auth-token"),
+         
           "Content-Type": "application/json",
         },
         data: data,
@@ -1255,7 +1255,7 @@ export default {
           method: "post",
           url: process.env.VUE_APP_URL_MAIN + "getHouseServices",
           headers: {
-            "auth-token": sessionStorage.getItem("auth-token"),
+           
             "Content-Type": "application/json",
           },
           data: data,
@@ -1320,7 +1320,7 @@ export default {
         method: "post",
         url: process.env.VUE_APP_URL_MAIN + "sendNotificacionHouse",
         headers: {
-          "auth-token": sessionStorage.getItem("auth-token"),
+         
           "Content-Type": "application/json",
         },
         data: data,

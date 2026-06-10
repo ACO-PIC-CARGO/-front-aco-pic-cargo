@@ -37,7 +37,7 @@ const actions = {
         `&status=${data.status}`,
       headers: {
         "Content-Type": "application/json",
-        "auth-token": sessionStorage.getItem("auth-token"),
+       
       },
     };
    await axios(config)
@@ -75,7 +75,7 @@ const actions = {
       url: process.env.VUE_APP_URL_MAIN + "insertar_sex",
       headers: {
         "Content-Type": "application/json",
-        "auth-token": sessionStorage.getItem("auth-token"),
+       
       },
       data: data,
     };
@@ -111,7 +111,7 @@ const actions = {
       url: process.env.VUE_APP_URL_MAIN + `ver_sex?id=${id}`,
       headers: {
         "Content-Type": "application/json",
-        "auth-token": sessionStorage.getItem("auth-token"),
+       
       },
     };
 
@@ -138,7 +138,7 @@ const actions = {
       url: process.env.VUE_APP_URL_MAIN + "actualizar_sex",
       headers: {
         "Content-Type": "application/json",
-        "auth-token": sessionStorage.getItem("auth-token"),
+       
       },
       data: data,
     };

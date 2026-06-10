@@ -864,7 +864,7 @@ export default {
         url: process.env.VUE_APP_URL_MAIN + urlLong,
 
         headers: {
-          "auth-token": sessionStorage.getItem("auth-token"),
+         
           "Content-Type": "application/json",
         },
         data: data,
@@ -909,7 +909,7 @@ export default {
           }`,
 
         headers: {
-          "auth-token": sessionStorage.getItem("auth-token"),
+         
           "Content-Type": "application/json",
         },
       };
@@ -942,7 +942,7 @@ export default {
             this.subgasto ? this.subgasto : ""
           }`,
         headers: {
-          "auth-token": sessionStorage.getItem("auth-token"),
+         
           "Content-Type": "application/json",
         },
       };
@@ -974,7 +974,7 @@ export default {
         url: process.env.VUE_APP_URL_MAIN + "getDebsToPayFilter",
 
         headers: {
-          "auth-token": sessionStorage.getItem("auth-token"),
+         
           "Content-Type": "application/json",
         },
         data: data,
@@ -1132,7 +1132,7 @@ export default {
         method: "post",
         url: process.env.VUE_APP_URL_MAIN + "setProgrammedPayment",
         headers: {
-          "auth-token": sessionStorage.getItem("auth-token"),
+         
           "Content-Type": "application/json",
         },
         data: data,
@@ -1193,7 +1193,7 @@ export default {
 
         responseType: "blob",
         headers: {
-          "auth-token": sessionStorage.getItem("auth-token"),
+         
           "Content-Type": "blob",
         },
       };
@@ -1258,7 +1258,7 @@ export default {
               }`,
             responseType: "blob",
             headers: {
-              "auth-token": sessionStorage.getItem("auth-token"),
+             
               "Content-Type": "blob",
             },
           };
@@ -1345,7 +1345,7 @@ export default {
           process.env.VUE_APP_URL_MAIN +
           `listarComentariosCXP?id_proveedor=${vm.dataCXP.id}`,
         headers: {
-          "auth-token": sessionStorage.getItem("auth-token"),
+         
           "Content-Type": "application/json",
         },
       };
@@ -1396,7 +1396,7 @@ export default {
           method: "post",
           url: process.env.VUE_APP_URL_MAIN + `insertarComentarioCXP`,
           headers: {
-            "auth-token": sessionStorage.getItem("auth-token"),
+           
             "Content-Type": "application/json",
           },
           data: vm.comentario,

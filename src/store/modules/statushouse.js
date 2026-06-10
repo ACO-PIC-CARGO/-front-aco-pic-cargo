@@ -29,7 +29,7 @@ const actions = {
       params: data,
       headers: {
         "Content-Type": "application/json",
-        "auth-token": sessionStorage.getItem("auth-token"),
+       
       },
     };
     await axios(config)
@@ -67,7 +67,7 @@ const actions = {
       params: data,
       headers: {
         "Content-Type": "application/json",
-        "auth-token": sessionStorage.getItem("auth-token"),
+       
       },
     };
     await axios(config)
@@ -90,7 +90,7 @@ const actions = {
       data: data,
       headers: {
         "Content-Type": "application/json",
-        "auth-token": sessionStorage.getItem("auth-token"),
+       
       },
     };
     await axios(config)
@@ -114,7 +114,7 @@ const actions = {
       data: { lstStatus: data },
       headers: {
         "Content-Type": "application/json",
-        "auth-token": sessionStorage.getItem("auth-token"),
+       
       },
     };
     await axios(config)
@@ -138,7 +138,7 @@ const actions = {
       data: data,
       headers: {
         "Content-Type": "application/json",
-        "auth-token": sessionStorage.getItem("auth-token"),
+       
       },
     };
     await axios(config)
@@ -162,7 +162,7 @@ const actions = {
       data: data,
       headers: {
         "Content-Type": "application/json",
-        "auth-token": sessionStorage.getItem("auth-token"),
+       
       },
     };
     await axios(config)

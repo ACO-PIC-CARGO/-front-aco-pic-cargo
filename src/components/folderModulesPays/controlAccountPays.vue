@@ -613,7 +613,7 @@ export default {
         method: "post",
         url: process.env.VUE_APP_URL_MAIN + "uploadAllPath",
         headers: {
-          "auth-token": sessionStorage.getItem("auth-token"),
+         
           "Content-Type": "application/json",
         },
         data: data,
@@ -639,7 +639,7 @@ export default {
         url: process.env.VUE_APP_URL_MAIN + "getHouseListAll",
         data: data,
         headers: {
-          "auth-token": sessionStorage.getItem("auth-token"),
+         
           "Content-Type": "application/json",
         },
       };
@@ -663,7 +663,7 @@ export default {
         url: process.env.VUE_APP_URL_MAIN + "getListInvoiceExp",
 
         headers: {
-          "auth-token": sessionStorage.getItem("auth-token"),
+         
           "Content-Type": "application/json",
         },
         data: data,
@@ -797,7 +797,7 @@ export default {
           url: process.env.VUE_APP_URL_MAIN + "setInvoiceAdmin",
 
           headers: {
-            "auth-token": sessionStorage.getItem("auth-token"),
+           
             "Content-Type": "application/json",
           },
           data: data,
@@ -867,7 +867,7 @@ export default {
           url: process.env.VUE_APP_URL_MAIN + "setUpdateInvoiceAdmin",
 
           headers: {
-            "auth-token": sessionStorage.getItem("auth-token"),
+           
             "Content-Type": "application/json",
           },
           data: data,
@@ -909,7 +909,7 @@ export default {
         url: process.env.VUE_APP_URL_MAIN + "putPro",
 
         headers: {
-          "auth-token": sessionStorage.getItem("auth-token"),
+         
           "Content-Type": "application/json",
         },
         data: data,

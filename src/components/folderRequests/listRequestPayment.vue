@@ -526,7 +526,7 @@ export default {
         url: process.env.VUE_APP_URL_MAIN + "getListInvoice",
 
         headers: {
-          "auth-token": sessionStorage.getItem("auth-token"),
+         
           "Content-Type": "application/json",
         },
         data: data,
@@ -552,7 +552,7 @@ export default {
         method: "post",
         url: process.env.VUE_APP_URL_MAIN + "uploadAllPath",
         headers: {
-          "auth-token": sessionStorage.getItem("auth-token"),
+         
           "Content-Type": "application/json",
         },
         data: data,
@@ -615,7 +615,7 @@ export default {
         url: process.env.VUE_APP_URL_MAIN + "setSPaymentFile/",
 
         headers: {
-          "auth-token": sessionStorage.getItem("auth-token"),
+         
           "Content-Type": "application/json",
         },
         data: data,
@@ -646,7 +646,7 @@ export default {
             .id_branch,
         },
         headers: {
-          "auth-token": sessionStorage.getItem("auth-token"),
+         
           "Content-Type": "application/json",
         },
       };
@@ -666,7 +666,7 @@ export default {
         url: process.env.VUE_APP_URL_MAIN + "getRequestPaymentConceptos/" + id,
 
         headers: {
-          "auth-token": sessionStorage.getItem("auth-token"),
+         
           "Content-Type": "application/json",
         },
       };
@@ -708,7 +708,7 @@ export default {
         url: process.env.VUE_APP_URL_MAIN + "reversar_debsproveedor",
 
         headers: {
-          "auth-token": sessionStorage.getItem("auth-token"),
+         
           "Content-Type": "application/json",
         },
         data: { id: item.id },

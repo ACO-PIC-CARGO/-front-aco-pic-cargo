@@ -386,7 +386,7 @@ export default {
             vm.dateHasta ? vm.dateHasta : ""
           }`,
         headers: {
-          "auth-token": sessionStorage.getItem("auth-token"),
+         
           "Content-Type": "application/json",
         },
       };
@@ -485,7 +485,7 @@ export default {
         url: process.env.VUE_APP_URL_MAIN + "pdfFD",
 
         headers: {
-          "auth-token": sessionStorage.getItem("auth-token"),
+         
           "Content-Type": "application/json",
         },
         data: data,

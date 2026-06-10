@@ -412,7 +412,7 @@ export default {
         url: process.env.VUE_APP_URL_MAIN + "reversar_debscliente",
 
         headers: {
-          "auth-token": sessionStorage.getItem("auth-token"),
+         
           "Content-Type": "application/json",
         },
         data: { id: item.id },
@@ -454,7 +454,7 @@ export default {
         url: process.env.VUE_APP_URL_MAIN + "getDebsClientList",
 
         headers: {
-          "auth-token": sessionStorage.getItem("auth-token"),
+         
           "Content-Type": "application/json",
         },
         data: data,
@@ -481,7 +481,7 @@ export default {
         method: "post",
         url: process.env.VUE_APP_URL_MAIN + "uploadAllPath",
         headers: {
-          "auth-token": sessionStorage.getItem("auth-token"),
+         
           "Content-Type": "application/json",
         },
         data: data,
@@ -537,7 +537,7 @@ export default {
           url: process.env.VUE_APP_URL_MAIN + "setCheckDebsClient/",
 
           headers: {
-            "auth-token": sessionStorage.getItem("auth-token"),
+           
             "Content-Type": "application/json",
           },
           data: data,
@@ -571,7 +571,7 @@ export default {
           id_branch: JSON.parse(sessionStorage.getItem("dataUser"))[0].id_branch,
         },
         headers: {
-          "auth-token": sessionStorage.getItem("auth-token"),
+         
           "Content-Type": "application/json",
         },
       };
@@ -591,7 +591,7 @@ export default {
         url: process.env.VUE_APP_URL_MAIN + "getRequestPaymentConceptos/" + id,
 
         headers: {
-          "auth-token": sessionStorage.getItem("auth-token"),
+         
           "Content-Type": "application/json",
         },
       };

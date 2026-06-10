@@ -193,7 +193,7 @@ const actions = {
             .id_branch,
         },
         headers: {
-          "auth-token": sessionStorage.getItem("auth-token"),
+         
           "Content-Type": "application/json",
         },
       };
@@ -254,7 +254,7 @@ const actions = {
     };
 
     let headers = {
-      "auth-token": sessionStorage.getItem("auth-token"),
+     
       "Content-Type": "application/json",
     };
 
@@ -284,7 +284,7 @@ const actions = {
         "get_personal_pricing?id_branch=" +
         JSON.parse(sessionStorage.getItem("dataUser"))[0].id_branch,
       headers: {
-        "auth-token": sessionStorage.getItem("auth-token"),
+       
         "Content-Type": "application/json",
       },
     };
@@ -301,7 +301,7 @@ const actions = {
       method: "put",
       url: process.env.VUE_APP_URL_MAIN + "aprobar_cotizacion_aduana",
       headers: {
-        "auth-token": sessionStorage.getItem("auth-token"),
+       
         "Content-Type": "application/json",
       },
       data: dataParaAprobar,
@@ -357,7 +357,7 @@ const actions = {
         id_branch: JSON.parse(sessionStorage.getItem("dataUser"))[0].id_branch,
       },
       headers: {
-        "auth-token": sessionStorage.getItem("auth-token"),
+       
         "Content-Type": "application/json",
       },
     };
@@ -379,7 +379,7 @@ const actions = {
         id_branch: JSON.parse(sessionStorage.getItem("dataUser"))[0].id_branch,
       },
       headers: {
-        "auth-token": sessionStorage.getItem("auth-token"),
+       
         "Content-Type": "application/json",
       },
     };
@@ -399,7 +399,7 @@ const actions = {
         id: id,
       },
       headers: {
-        "auth-token": sessionStorage.getItem("auth-token"),
+       
         "Content-Type": "application/json",
       },
     };
@@ -423,7 +423,7 @@ const actions = {
         id: id,
       },
       headers: {
-        "auth-token": sessionStorage.getItem("auth-token"),
+       
         "Content-Type": "application/json",
       },
     };
@@ -444,7 +444,7 @@ const actions = {
       method: "post",
       url: process.env.VUE_APP_URL_MAIN + "getItemsServices",
       headers: {
-        "auth-token": sessionStorage.getItem("auth-token"),
+       
         "Content-Type": "application/json",
       },
       data: {
@@ -474,7 +474,7 @@ const actions = {
   },
   async obtenerCostosAduana({ commit }) {
     var headers = {
-      "auth-token": sessionStorage.getItem("auth-token"),
+     
       "Content-Type": "application/json",
     };
     let data = {
@@ -492,7 +492,7 @@ const actions = {
   },
   async getMultiplicadorAduana({ commit }) {
     var headers = {
-      "auth-token": sessionStorage.getItem("auth-token"),
+     
       "Content-Type": "application/json",
     };
     var data = {
@@ -541,7 +541,7 @@ const actions = {
             : state.datosPrincipales.idtipocarga
         }&id_modality=${state.datosPrincipales.idsentido}`,
       headers: {
-        "auth-token": sessionStorage.getItem("auth-token"),
+       
         "Content-Type": "application/json",
       },
     };
@@ -2583,7 +2583,7 @@ const actions = {
       method: "post",
       url: process.env.VUE_APP_URL_MAIN + "getModality",
       headers: {
-        "auth-token": sessionStorage.getItem("auth-token"),
+       
         "Content-Type": "application/json",
       },
       data: {
@@ -2600,7 +2600,7 @@ const actions = {
   },
   async obtenerDatosEmpresaAduana() {
     var headers = {
-      "auth-token": sessionStorage.getItem("auth-token"),
+     
       "Content-Type": "application/json",
     };
     let data = {
@@ -2629,7 +2629,7 @@ const actions = {
       method: "post",
       url: process.env.VUE_APP_URL_MAIN + "getPortBegin",
       headers: {
-        "auth-token": sessionStorage.getItem("auth-token"),
+       
         "Content-Type": "application/json",
       },
       data: {
@@ -2655,7 +2655,7 @@ const actions = {
       method: "post",
       url: process.env.VUE_APP_URL_MAIN + "getPortEnd",
       headers: {
-        "auth-token": sessionStorage.getItem("auth-token"),
+       
         "Content-Type": "application/json",
       },
       data: {
@@ -2678,7 +2678,7 @@ const actions = {
       method: "post",
       url: process.env.VUE_APP_URL_MAIN + "getShipment",
       headers: {
-        "auth-token": sessionStorage.getItem("auth-token"),
+       
         "Content-Type": "application/json",
       },
       data: {
@@ -2698,7 +2698,7 @@ const actions = {
       method: "post",
       url: process.env.VUE_APP_URL_MAIN + "getIncoterms",
       headers: {
-        "auth-token": sessionStorage.getItem("auth-token"),
+       
         "Content-Type": "application/json",
       },
       data: {
@@ -2802,7 +2802,7 @@ const actions = {
       method: "post",
       url: process.env.VUE_APP_URL_MAIN + "insert_aduana  ",
       headers: {
-        "auth-token": sessionStorage.getItem("auth-token"),
+       
         "Content-Type": "application/json",
       },
       data: data,
@@ -2846,7 +2846,7 @@ const actions = {
             : ""
         }`,
       headers: {
-        "auth-token": sessionStorage.getItem("auth-token"),
+       
         "Content-Type": "application/json",
       },
       data: {
@@ -2889,7 +2889,7 @@ const actions = {
       method: "get",
       url: process.env.VUE_APP_URL_MAIN + `ver_aduana?id=${id}`,
       headers: {
-        "auth-token": sessionStorage.getItem("auth-token"),
+       
         "Content-Type": "application/json",
       },
     };
@@ -3032,7 +3032,7 @@ const actions = {
       method: "put",
       url: process.env.VUE_APP_URL_MAIN + "actualizar_aduana",
       headers: {
-        "auth-token": sessionStorage.getItem("auth-token"),
+       
         "Content-Type": "application/json",
       },
       data: data,
@@ -3049,7 +3049,7 @@ const actions = {
   },
   async getCargarMasterDetalleNotasCotizacionAduana({ commit }) {
     var headers = {
-      "auth-token": sessionStorage.getItem("auth-token"),
+     
 
       "Content-Type": "application/json",
     };
@@ -3078,7 +3078,7 @@ const actions = {
   },
   async obtenerDatosEmpresaAduana() {
     var headers = {
-      "auth-token": sessionStorage.getItem("auth-token"),
+     
       "Content-Type": "application/json",
     };
     let data = {
@@ -3104,7 +3104,7 @@ const actions = {
       method: "post",
       url: process.env.VUE_APP_URL_MAIN + "aduana_unificar",
       headers: {
-        "auth-token": sessionStorage.getItem("auth-token"),
+       
         "Content-Type": "application/json",
       },
       data: data,
@@ -3120,7 +3120,7 @@ const actions = {
 
   async actualizarAduanaRecibidoEnviado(_, data) {
     var headers = {
-      "auth-token": sessionStorage.getItem("auth-token"),
+     
       "Content-Type": "application/json",
     };
 
@@ -3144,7 +3144,7 @@ const actions = {
       method: "post",
       url: process.env.VUE_APP_URL_MAIN + "set_calls_aduana",
       headers: {
-        "auth-token": sessionStorage.getItem("auth-token"),
+       
         "Content-Type": "application/json",
       },
       data: data,
@@ -3165,7 +3165,7 @@ const actions = {
     };
 
     let header = {
-      "auth-token": sessionStorage.getItem("auth-token"),
+     
       "Content-Type": "application/json",
     };
     var config = {
@@ -5181,7 +5181,7 @@ const actions = {
     };
 
     let headers = {
-      "auth-token": sessionStorage.getItem("auth-token"),
+     
       "Content-Type": "application/json",
     };
 
@@ -5209,7 +5209,7 @@ const actions = {
   },
   async getInstructivoIdAduana({ commit }, { id: id }) {
     var headers = {
-      "auth-token": sessionStorage.getItem("auth-token"),
+     
       "Content-Type": "application/json",
     };
     var data = {

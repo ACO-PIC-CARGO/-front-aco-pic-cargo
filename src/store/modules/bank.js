@@ -1,4 +1,3 @@
-import http from "@/plugins/axios";
 import Swal from "sweetalert2";
 import router from "@/router";
 import axios from '@/api/axios-config';
@@ -45,10 +44,10 @@ const actions = {
         `&status=${data.status}`,
       headers: {
         "Content-Type": "application/json",
-        "auth-token": sessionStorage.getItem("auth-token"),
+       
       },
     };
-    await http(config)
+    await axios(config)
       .then((response) => {
         let data = response.data;
         sessionStorage.setItem("auth-token", data.token);
@@ -84,12 +83,12 @@ const actions = {
       url: process.env.VUE_APP_URL_MAIN + "insertar_bank",
       headers: {
         "Content-Type": "application/json",
-        "auth-token": sessionStorage.getItem("auth-token"),
+       
       },
       data: data,
     };
 
-    await http(config)
+    await axios(config)
       .then((response) => {
         let data = response.data;
         sessionStorage.setItem("auth-token", data.token);
@@ -119,11 +118,11 @@ const actions = {
       url: process.env.VUE_APP_URL_MAIN + `ver_bank?id=${id}`,
       headers: {
         "Content-Type": "application/json",
-        "auth-token": sessionStorage.getItem("auth-token"),
+       
       },
     };
 
-    await http(config)
+    await axios(config)
       .then((response) => {
         let data = response.data;
         sessionStorage.setItem("auth-token", data.token);
@@ -156,12 +155,12 @@ const actions = {
       url: process.env.VUE_APP_URL_MAIN + "actualizar_bank",
       headers: {
         "Content-Type": "application/json",
-        "auth-token": sessionStorage.getItem("auth-token"),
+       
       },
       data: data,
     };
 
-    await http(config)
+    await axios(config)
       .then((response) => {
         let data = response.data;
         sessionStorage.setItem("auth-token", data.token);
@@ -192,14 +191,14 @@ const actions = {
       method: "post",
       url: process.env.VUE_APP_URL_MAIN + "getBanksList/",
       headers: {
-        "auth-token": sessionStorage.getItem("auth-token"),
+       
         "Content-Type": "application/json",
       },
       data: {
         id_branch: JSON.parse(sessionStorage.getItem("dataUser"))[0].id_branch,
       },
     };
-    await http(config)
+    await axios(config)
       .then(function (response) {
         let data = response.data;
         if (!!data.estadoflag) {
@@ -218,11 +217,11 @@ const actions = {
       url: process.env.VUE_APP_URL_MAIN + "insertar_cuenta",
       headers: {
         "Content-Type": "application/json",
-        "auth-token": sessionStorage.getItem("auth-token"),
+       
       },
       data: data,
     };
-    await http(config)
+    await axios(config)
       .then((response) => {
         let data = response.data;
         sessionStorage.setItem("auth-token", data.token);
@@ -252,11 +251,11 @@ const actions = {
       url: process.env.VUE_APP_URL_MAIN + "eliminar_cuenta",
       headers: {
         "Content-Type": "application/json",
-        "auth-token": sessionStorage.getItem("auth-token"),
+       
       },
       data: data,
     };
-    await http(config)
+    await axios(config)
       .then((response) => {
         let data = response.data;
         sessionStorage.setItem("auth-token", data.token);
@@ -289,11 +288,11 @@ const actions = {
           JSON.parse(sessionStorage.getItem("dataUser"))[0].id_branch
         }`,
       headers: {
-        "auth-token": sessionStorage.getItem("auth-token"),
+       
         "Content-Type": "application/json",
       },
     };
-    await http(config)
+    await axios(config)
       .then(function (response) {
         let data = response.data;
         if (data.estadoflag) {
@@ -320,14 +319,14 @@ const actions = {
       method: "put",
       url: process.env.VUE_APP_URL_MAIN + `anular_pago`,
       headers: {
-        "auth-token": sessionStorage.getItem("auth-token"),
+       
         "Content-Type": "application/json",
       },
       data: {
         id: id,
       },
     };
-    await http(config)
+    await axios(config)
       .then(function (response) {
         res = response.data;
       })
@@ -342,12 +341,12 @@ const actions = {
       method: "put",
       url: process.env.VUE_APP_URL_MAIN + `actualizar_pago`,
       headers: {
-        "auth-token": sessionStorage.getItem("auth-token"),
+       
         "Content-Type": "application/json",
       },
       data: { lstPago: data },
     };
-    await http(config)
+    await axios(config)
       .then(function (response) {
         res = response.data;
       })
@@ -365,11 +364,11 @@ const actions = {
           JSON.parse(sessionStorage.getItem("dataUser"))[0].id_branch
         }`,
       headers: {
-        "auth-token": sessionStorage.getItem("auth-token"),
+       
         "Content-Type": "application/json",
       },
     };
-    await http(config)
+    await axios(config)
       .then(function (response) {
         let data = response.data;
         if (data.estadoflag) {
@@ -396,12 +395,12 @@ const actions = {
       method: "put",
       url: process.env.VUE_APP_URL_MAIN + `anular_cobro`,
       headers: {
-        "auth-token": sessionStorage.getItem("auth-token"),
+       
         "Content-Type": "application/json",
       },
       data: data,
     };
-    await http(config)
+    await axios(config)
       .then(function (response) {
         res = response.data;
       })
@@ -416,12 +415,12 @@ const actions = {
       method: "put",
       url: process.env.VUE_APP_URL_MAIN + `actualizar_cobro`,
       headers: {
-        "auth-token": sessionStorage.getItem("auth-token"),
+       
         "Content-Type": "application/json",
       },
       data: { lstPago: data },
     };
-    await http(config)
+    await axios(config)
       .then(function (response) {
         res = response.data;
       })
@@ -436,12 +435,12 @@ const actions = {
       method: "get",
       url: process.env.VUE_APP_URL_MAIN + `validate_nro_operacion_cobro`,
       headers: {
-        "auth-token": sessionStorage.getItem("auth-token"),
+       
         "Content-Type": "application/json",
       },
       params: data,
     };
-    await http(config)
+    await axios(config)
       .then(function (response) {
         res = response.data;
       })
@@ -456,12 +455,12 @@ const actions = {
       method: "get",
       url: process.env.VUE_APP_URL_MAIN + `ver_facturas`,
       headers: {
-        "auth-token": sessionStorage.getItem("auth-token"),
+       
         "Content-Type": "application/json",
       },
       params: data,
     };
-    await http(config)
+    await axios(config)
       .then(function (response) {
         res = response.data;
       })
@@ -477,7 +476,7 @@ const actions = {
       method: "get",
       url: process.env.VUE_APP_URL_MAIN + `deuda_a_proveedor_por_sucursal`,
       headers: {
-        "auth-token": sessionStorage.getItem("auth-token"),
+       
         "Content-Type": "application/json",
       },
       params: {
@@ -518,7 +517,7 @@ const actions = {
       method: "get",
       url: process.env.VUE_APP_URL_MAIN + `deuda_de_cliente_por_sucursal`,
       headers: {
-        "auth-token": sessionStorage.getItem("auth-token"),
+       
         "Content-Type": "application/json",
       },
       params: {
@@ -526,7 +525,7 @@ const actions = {
         id_branch: JSON.parse(sessionStorage.getItem("dataUser"))[0].id_branch,
       },
     };
-    await http(config)
+    await axios(config)
       .then(function (response) {
         res = response.data;
         commit(
@@ -557,7 +556,7 @@ const actions = {
       method: "post",
       url: process.env.VUE_APP_URL_MAIN + "registro_egresos",
       headers: {
-        "auth-token": sessionStorage.getItem("auth-token"),
+       
         "Content-Type": "application/json",
       },
       data: {
@@ -565,7 +564,7 @@ const actions = {
         id_branch: JSON.parse(sessionStorage.getItem("dataUser"))[0].id_branch,
       },
     };
-    await http(config)
+    await axios(config)
       .then(function (response) {
         let data = response.data;
         console.log("Respuesta del servidor al registrar egreso:", data);
@@ -580,7 +579,7 @@ const actions = {
       method: "put",
       url: process.env.VUE_APP_URL_MAIN + "actualizar_egresos",
       headers: {
-        "auth-token": sessionStorage.getItem("auth-token"),
+       
         "Content-Type": "application/json",
       },
       data: {
@@ -588,7 +587,7 @@ const actions = {
         id_branch: JSON.parse(sessionStorage.getItem("dataUser"))[0].id_branch,
       },
     };
-    await http(config)
+    await axios(config)
       .then(function (response) {
         let data = response.data;
         console.log("Respuesta del servidor al registrar egreso:", data);
@@ -602,7 +601,7 @@ const actions = {
       method: "put",
       url: process.env.VUE_APP_URL_MAIN + "actualizar_ingresos",
       headers: {
-        "auth-token": sessionStorage.getItem("auth-token"),
+       
         "Content-Type": "application/json",
       },
       data: {
@@ -610,7 +609,7 @@ const actions = {
         id_branch: JSON.parse(sessionStorage.getItem("dataUser"))[0].id_branch,
       },
     };
-    await http(config)
+    await axios(config)
       .then(function (response) {
         let data = response.data;
         console.log("Respuesta del servidor al registrar ingreso:", data);
@@ -625,7 +624,7 @@ const actions = {
       method: "post",
       url: process.env.VUE_APP_URL_MAIN + "registro_ingresos",
       headers: {
-        "auth-token": sessionStorage.getItem("auth-token"),
+       
         "Content-Type": "application/json",
       },
       data: {
@@ -633,7 +632,7 @@ const actions = {
         id_branch: JSON.parse(sessionStorage.getItem("dataUser"))[0].id_branch,
       },
     };
-    await http(config)
+    await axios(config)
       .then(function (response) {
         let data = response.data;
         console.log("Respuesta del servidor al registrar egreso:", data);
@@ -647,7 +646,7 @@ const actions = {
       method: "get",
       url: process.env.VUE_APP_URL_MAIN + "listado_egresos",
       headers: {
-        "auth-token": sessionStorage.getItem("auth-token"),
+       
         "Content-Type": "application/json",
       },
       params: {
@@ -655,7 +654,7 @@ const actions = {
         id_branch: JSON.parse(sessionStorage.getItem("dataUser"))[0].id_branch,
       },
     };
-    await http(config)
+    await axios(config)
       .then(function (response) {
         let data = response.data;
         commit("SET_LIST_BANK_CARGAR", data.estadoflag ? data.data : []);
@@ -669,7 +668,7 @@ const actions = {
       method: "get",
       url: process.env.VUE_APP_URL_MAIN + "listado_ingresos",
       headers: {
-        "auth-token": sessionStorage.getItem("auth-token"),
+       
         "Content-Type": "application/json",
       },
       params: {
@@ -677,7 +676,7 @@ const actions = {
         id_branch: JSON.parse(sessionStorage.getItem("dataUser"))[0].id_branch,
       },
     };
-    await http(config)
+    await axios(config)
       .then(function (response) {
         let data = response.data;
         commit("SET_LIST_BANK_CARGAR", data.estadoflag ? data.data : []);
@@ -692,7 +691,7 @@ const actions = {
       method: "get",
       url: process.env.VUE_APP_URL_MAIN + "ver_registro_ingresos",
       headers: {
-        "auth-token": sessionStorage.getItem("auth-token"),
+       
         "Content-Type": "application/json",
       },
       params: {
@@ -700,7 +699,7 @@ const actions = {
         id_branch: JSON.parse(sessionStorage.getItem("dataUser"))[0].id_branch,
       },
     };
-    await http(config)
+    await axios(config)
       .then(function (response) {
         let data = response.data;
         if (data.estadoflag) {
@@ -718,7 +717,7 @@ const actions = {
       method: "get",
       url: process.env.VUE_APP_URL_MAIN + "ver_registro_egresos",
       headers: {
-        "auth-token": sessionStorage.getItem("auth-token"),
+       
         "Content-Type": "application/json",
       },
       params: {
@@ -726,7 +725,7 @@ const actions = {
         id_branch: JSON.parse(sessionStorage.getItem("dataUser"))[0].id_branch,
       },
     };
-    await http(config)
+    await axios(config)
       .then(function (response) {
         let data = response.data;
         if (data.estadoflag) {
@@ -744,7 +743,7 @@ const actions = {
       method: "get",
       url: process.env.VUE_APP_URL_MAIN + "validar_nrooperacion_ingreso",
       headers: {
-        "auth-token": sessionStorage.getItem("auth-token"),
+       
         "Content-Type": "application/json",
       },
       params: {
@@ -752,7 +751,7 @@ const actions = {
         id_branch: JSON.parse(sessionStorage.getItem("dataUser"))[0].id_branch,
       },
     };
-    await http(config)
+    await axios(config)
       .then(function (response) {
         let data = response.data;
         res = data.data;
@@ -768,7 +767,7 @@ const actions = {
       method: "get",
       url: process.env.VUE_APP_URL_MAIN + "validar_nrooperacion_egreso",
       headers: {
-        "auth-token": sessionStorage.getItem("auth-token"),
+       
         "Content-Type": "application/json",
       },
       params: {
@@ -776,7 +775,7 @@ const actions = {
         id_branch: JSON.parse(sessionStorage.getItem("dataUser"))[0].id_branch,
       },
     };
-    await http(config)
+    await axios(config)
       .then(function (response) {
         let data = response.data;
         res = data.data;

@@ -511,7 +511,7 @@ const actions = {
       url: `${process.env.VUE_APP_URL_MAIN}quote_preview_instructivo_manual`,
       data: datos,
       headers: {
-        "auth-token": sessionStorage.getItem("auth-token"),
+       
         "Content-Type": "application/json",
       },
     };
@@ -531,7 +531,7 @@ const actions = {
       url: `${process.env.VUE_APP_URL_MAIN}actualizar_datos_instructivo_manual`,
       data: datos,
       headers: {
-        "auth-token": sessionStorage.getItem("auth-token"),
+       
         "Content-Type": "application/json",
       },
     };
@@ -552,7 +552,7 @@ const actions = {
             .id_branch,
         },
         headers: {
-          "auth-token": sessionStorage.getItem("auth-token"),
+         
           "Content-Type": "application/json",
         },
       };
@@ -582,7 +582,7 @@ const actions = {
         id_branch: JSON.parse(sessionStorage.getItem("dataUser"))[0].id_branch,
       },
       headers: {
-        "auth-token": sessionStorage.getItem("auth-token"),
+       
         "Content-Type": "application/json",
       },
     };
@@ -603,7 +603,7 @@ const actions = {
         id_branch: JSON.parse(sessionStorage.getItem("dataUser"))[0].id_branch,
       },
       headers: {
-        "auth-token": sessionStorage.getItem("auth-token"),
+       
         "Content-Type": "application/json",
       },
     };
@@ -647,7 +647,7 @@ const actions = {
             : ""
         }`,
       headers: {
-        "auth-token": sessionStorage.getItem("auth-token"),
+       
         "Content-Type": "application/json",
       },
       data: {
@@ -696,7 +696,7 @@ const actions = {
             : state.datosPrincipales.idtipocarga
         }&id_modality=${state.datosPrincipales.idsentido}`,
       headers: {
-        "auth-token": sessionStorage.getItem("auth-token"),
+       
         "Content-Type": "application/json",
       },
     };
@@ -726,7 +726,7 @@ const actions = {
           JSON.parse(sessionStorage.getItem("dataUser"))[0].id_branch
         }`,
       headers: {
-        "auth-token": sessionStorage.getItem("auth-token"),
+       
         "Content-Type": "application/json",
       },
       data: {
@@ -752,7 +752,7 @@ const actions = {
       url:
         process.env.VUE_APP_URL_MAIN + `quote_data_house?id_quote=${id_quote}`,
       headers: {
-        "auth-token": sessionStorage.getItem("auth-token"),
+       
         "Content-Type": "application/json",
       },
     };
@@ -785,7 +785,7 @@ const actions = {
     };
 
     let header = {
-      "auth-token": sessionStorage.getItem("auth-token"),
+     
       "Content-Type": "application/json",
     };
     var config = {
@@ -853,7 +853,7 @@ const actions = {
       method: "post",
       url: process.env.VUE_APP_URL_MAIN + "getMarketingList",
       headers: {
-        "auth-token": sessionStorage.getItem("auth-token"),
+       
         "Content-Type": "application/json",
       },
       data: {
@@ -873,7 +873,7 @@ const actions = {
       method: "post",
       url: process.env.VUE_APP_URL_MAIN + "getQuoteStatus",
       headers: {
-        "auth-token": sessionStorage.getItem("auth-token"),
+       
         "Content-Type": "application/json",
       },
       data: {
@@ -893,7 +893,7 @@ const actions = {
       method: "post",
       url: process.env.VUE_APP_URL_MAIN + "getModulesEntities",
       headers: {
-        "auth-token": sessionStorage.getItem("auth-token"),
+       
         "Content-Type": "application/json",
       },
       data: {
@@ -914,7 +914,7 @@ const actions = {
       method: "get",
       url: process.env.VUE_APP_URL_MAIN + "cargar_ejecutivo",
       headers: {
-        "auth-token": sessionStorage.getItem("auth-token"),
+       
         "Content-Type": "application/json",
       },
       params: {
@@ -938,7 +938,7 @@ const actions = {
         "get_personal_pricing?id_branch=" +
         JSON.parse(sessionStorage.getItem("dataUser"))[0].id_branch,
       headers: {
-        "auth-token": sessionStorage.getItem("auth-token"),
+       
         "Content-Type": "application/json",
       },
     };
@@ -952,7 +952,7 @@ const actions = {
   },
   async getBegEndList({ commit }) {
     var headers = {
-      "auth-token": sessionStorage.getItem("auth-token"),
+     
       "Content-Type": "application/json",
     };
     var data = {
@@ -978,7 +978,7 @@ const actions = {
       method: "post",
       url: process.env.VUE_APP_URL_MAIN + "getModality",
       headers: {
-        "auth-token": sessionStorage.getItem("auth-token"),
+       
         "Content-Type": "application/json",
       },
       data: {
@@ -998,7 +998,7 @@ const actions = {
       method: "post",
       url: process.env.VUE_APP_URL_MAIN + "getShipment",
       headers: {
-        "auth-token": sessionStorage.getItem("auth-token"),
+       
         "Content-Type": "application/json",
       },
       data: {
@@ -1018,7 +1018,7 @@ const actions = {
       method: "post",
       url: process.env.VUE_APP_URL_MAIN + "getIncoterms",
       headers: {
-        "auth-token": sessionStorage.getItem("auth-token"),
+       
         "Content-Type": "application/json",
       },
       data: {
@@ -1041,7 +1041,7 @@ const actions = {
       method: "post",
       url: process.env.VUE_APP_URL_MAIN + "getPortBegin",
       headers: {
-        "auth-token": sessionStorage.getItem("auth-token"),
+       
         "Content-Type": "application/json",
       },
       data: {
@@ -1064,7 +1064,7 @@ const actions = {
       method: "post",
       url: process.env.VUE_APP_URL_MAIN + "getPortEnd",
       headers: {
-        "auth-token": sessionStorage.getItem("auth-token"),
+       
         "Content-Type": "application/json",
       },
       data: {
@@ -1088,7 +1088,7 @@ const actions = {
       method: "post",
       url: process.env.VUE_APP_URL_MAIN + "getItemsServices",
       headers: {
-        "auth-token": sessionStorage.getItem("auth-token"),
+       
         "Content-Type": "application/json",
       },
       data: {
@@ -1118,7 +1118,7 @@ const actions = {
   },
   async obtenerCostosPricing({ commit }) {
     var headers = {
-      "auth-token": sessionStorage.getItem("auth-token"),
+     
       "Content-Type": "application/json",
     };
     let data = {
@@ -1136,7 +1136,7 @@ const actions = {
   },
   async getItemsServicesDetails({ commit }) {
     var headers = {
-      "auth-token": sessionStorage.getItem("auth-token"),
+     
       "Content-Type": "application/json",
     };
     let data = {
@@ -1259,7 +1259,7 @@ const actions = {
   },
   async getMultiplicador({ commit }) {
     var headers = {
-      "auth-token": sessionStorage.getItem("auth-token"),
+     
       "Content-Type": "application/json",
     };
     var data = {
@@ -1299,7 +1299,7 @@ const actions = {
   },
   async getModuleRole({ commit }) {
     var headers = {
-      "auth-token": sessionStorage.getItem("auth-token"),
+     
       "Content-Type": "application/json",
     };
     var data = JSON.stringify({
@@ -1331,7 +1331,7 @@ const actions = {
   },
   async getCargarMasterDetalleNotasCotizacion({ commit }) {
     var headers = {
-      "auth-token": sessionStorage.getItem("auth-token"),
+     
 
       "Content-Type": "application/json",
     };
@@ -1360,7 +1360,7 @@ const actions = {
   },
   async getImpuestos({ commit }) {
     var headers = {
-      "auth-token": sessionStorage.getItem("auth-token"),
+     
 
       "Content-Type": "application/json",
     };
@@ -1477,7 +1477,7 @@ const actions = {
       method: "post",
       url: process.env.VUE_APP_URL_MAIN + "setQuote",
       headers: {
-        "auth-token": sessionStorage.getItem("auth-token"),
+       
         "Content-Type": "application/json",
       },
       data: data,
@@ -1580,7 +1580,7 @@ const actions = {
       method: "post",
       url: process.env.VUE_APP_URL_MAIN + "setQuote",
       headers: {
-        "auth-token": sessionStorage.getItem("auth-token"),
+       
         "Content-Type": "application/json",
       },
       data: data,
@@ -1600,7 +1600,7 @@ const actions = {
       method: "post",
       url: process.env.VUE_APP_URL_MAIN + "copiar_cotizacion",
       headers: {
-        "auth-token": sessionStorage.getItem("auth-token"),
+       
         "Content-Type": "application/json",
       },
       data: data,
@@ -1621,7 +1621,7 @@ const actions = {
         process.env.VUE_APP_URL_MAIN +
         `crear-carpeta-cotizacion?nombrecotizacion=${folder}`,
       headers: {
-        "auth-token": sessionStorage.getItem("auth-token"),
+       
         "Content-Type": "application/json",
       },
     };
@@ -1640,7 +1640,7 @@ const actions = {
       method: "put",
       url: process.env.VUE_APP_URL_MAIN + `actualizar_quote_folderonedrive`,
       headers: {
-        "auth-token": sessionStorage.getItem("auth-token"),
+       
         "Content-Type": "application/json",
       },
       data: {
@@ -1657,7 +1657,7 @@ const actions = {
       method: "get",
       url: process.env.VUE_APP_URL_MAIN + `getQuoteId?id=${id}`,
       headers: {
-        "auth-token": sessionStorage.getItem("auth-token"),
+       
         "Content-Type": "application/json",
       },
     };
@@ -1733,7 +1733,7 @@ const actions = {
   },
   async getInstructivoId({ commit }, { id: id }) {
     var headers = {
-      "auth-token": sessionStorage.getItem("auth-token"),
+     
       "Content-Type": "application/json",
     };
     var data = {
@@ -1755,7 +1755,7 @@ const actions = {
   },
   async obtenerDatosEmpresa() {
     var headers = {
-      "auth-token": sessionStorage.getItem("auth-token"),
+     
       "Content-Type": "application/json",
     };
     let data = {
@@ -3755,7 +3755,7 @@ const actions = {
     };
 
     let headers = {
-      "auth-token": sessionStorage.getItem("auth-token"),
+     
       "Content-Type": "application/json",
     };
     await axios
@@ -3802,7 +3802,7 @@ const actions = {
     };
 
     let headers = {
-      "auth-token": sessionStorage.getItem("auth-token"),
+     
       "Content-Type": "application/json",
     };
     let data = {
@@ -3913,7 +3913,7 @@ const actions = {
     };
 
     let headers = {
-      "auth-token": sessionStorage.getItem("auth-token"),
+     
       "Content-Type": "application/json",
     };
     let data = {
@@ -3941,7 +3941,7 @@ const actions = {
       method: "post",
       url: process.env.VUE_APP_URL_MAIN + "listado_cotizacion_mercadeo",
       headers: {
-        "auth-token": sessionStorage.getItem("auth-token"),
+       
         "Content-Type": "application/json",
       },
       data: {
@@ -4014,7 +4014,7 @@ const actions = {
 
   async getListRecibidoCotizacion({ commit }) {
     var headers = {
-      "auth-token": sessionStorage.getItem("auth-token"),
+     
       "Content-Type": "application/json",
     };
 
@@ -4042,7 +4042,7 @@ const actions = {
   },
   async getListEnviadoCliente({ commit }) {
     var headers = {
-      "auth-token": sessionStorage.getItem("auth-token"),
+     
       "Content-Type": "application/json",
     };
 
@@ -4070,7 +4070,7 @@ const actions = {
   },
   async actualizarQuoteRecibidoEnviado(_, data) {
     var headers = {
-      "auth-token": sessionStorage.getItem("auth-token"),
+     
       "Content-Type": "application/json",
     };
 
@@ -4094,7 +4094,7 @@ const actions = {
       method: "post",
       url: process.env.VUE_APP_URL_MAIN + "setCalls",
       headers: {
-        "auth-token": sessionStorage.getItem("auth-token"),
+       
         "Content-Type": "application/json",
       },
       data: data,
@@ -4184,7 +4184,7 @@ const actions = {
       method: "put",
       url: process.env.VUE_APP_URL_MAIN + "putQuote",
       headers: {
-        "auth-token": sessionStorage.getItem("auth-token"),
+       
         "Content-Type": "application/json",
       },
       data: data,
@@ -4201,7 +4201,7 @@ const actions = {
   },
   async eliminarRegistro(__, id) {
     var headers = {
-      "auth-token": sessionStorage.getItem("auth-token"),
+     
       "Content-Type": "application/json",
     };
     var config = {
@@ -6274,7 +6274,7 @@ const actions = {
       method: "put",
       url: process.env.VUE_APP_URL_MAIN + "aprobar_cotizacion",
       headers: {
-        "auth-token": sessionStorage.getItem("auth-token"),
+       
         "Content-Type": "application/json",
       },
       data: dataParaAprobar,
@@ -6981,7 +6981,7 @@ const actions = {
       url_logo: JSON.parse(sessionStorage.getItem("dataUser"))[0].path,
     };
     let headers = {
-      "auth-token": sessionStorage.getItem("auth-token"),
+     
       "Content-Type": "application/json",
     };
     Swal.fire({
@@ -7079,7 +7079,7 @@ const actions = {
     };
 
     let headers = {
-      "auth-token": sessionStorage.getItem("auth-token"),
+     
       "Content-Type": "application/json",
     };
 
@@ -7108,7 +7108,7 @@ const actions = {
       method: "post",
       url: process.env.VUE_APP_URL_MAIN + "quote_note_insert",
       headers: {
-        "auth-token": sessionStorage.getItem("auth-token"),
+       
         "Content-Type": "application/json",
       },
       data: data,
@@ -7137,7 +7137,7 @@ const actions = {
         folderUrl: folderUrl,
       },
       headers: {
-        "auth-token": sessionStorage.getItem("auth-token"),
+       
         "Content-Type": "application/json",
       },
     };

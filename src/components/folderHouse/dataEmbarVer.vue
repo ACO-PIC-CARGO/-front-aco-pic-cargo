@@ -247,7 +247,7 @@ export default {
         method: "post",
         url: process.env.VUE_APP_URL_MAIN + "deleteContainers",
         headers: {
-          "auth-token": sessionStorage.getItem("auth-token"),
+         
           "Content-Type": "application/json",
         },
         data: data,
@@ -277,7 +277,7 @@ export default {
         method: "post",
         url: process.env.VUE_APP_URL_MAIN + "setHouseContainers",
         headers: {
-          "auth-token": sessionStorage.getItem("auth-token"),
+         
           "Content-Type": "application/json",
         },
         data: data,
@@ -307,7 +307,7 @@ export default {
         //   method: "post",
         //   url: process.env.VUE_APP_URL_MAIN + "getHouseListId/",
         //   headers: {
-        //     "auth-token": sessionStorage.getItem("auth-token"),
+        //    
         //     "Content-Type": "application/json",
         //   },
         //   data: data,

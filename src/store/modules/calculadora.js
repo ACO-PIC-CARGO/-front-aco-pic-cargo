@@ -93,7 +93,7 @@ const mutations = {
 const actions = {
   async GetTotalCotizacion({ commit }) {
     var headers = {
-      "auth-token": sessionStorage.getItem("auth-token"),
+     
       "Content-Type": "application/json",
     };
     var config = {
@@ -113,7 +113,7 @@ const actions = {
     var vm = this;
     vm.state.overlay = true;
     var headers = {
-      "auth-token": sessionStorage.getItem("auth-token"),
+     
       "Content-Type": "application/json",
     };
     var config = {
@@ -138,7 +138,7 @@ const actions = {
     var vm = this;
     vm.state.overlay = true;
     var headers = {
-      "auth-token": sessionStorage.getItem("auth-token"),
+     
       "Content-Type": "application/json",
     };
     var config = {
@@ -161,7 +161,7 @@ const actions = {
     var vm = this;
     vm.state.overlay = true;
     var headers = {
-      "auth-token": sessionStorage.getItem("auth-token"),
+     
       "Content-Type": "application/json",
     };
     var config = {
@@ -183,7 +183,7 @@ const actions = {
   async CargarSucursal({ commit }) {
     let vm = this;
     var headers = {
-      "auth-token": sessionStorage.getItem("auth-token"),
+     
       "Content-Type": "application/json",
     };
     var config = {
@@ -200,7 +200,7 @@ const actions = {
   },
   async getListUserCalc({ commit }) {
     var headers = {
-      "auth-token": sessionStorage.getItem("auth-token"),
+     
       "Content-Type": "application/json",
     };
 
@@ -218,7 +218,7 @@ const actions = {
   },
   async getCboStatus({ commit }) {
     var headers = {
-      "auth-token": sessionStorage.getItem("auth-token"),
+     
       "Content-Type": "application/json",
     };
 
@@ -233,7 +233,7 @@ const actions = {
   },
   async SetCall(__, data) {
     var headers = {
-      "auth-token": sessionStorage.getItem("auth-token"),
+     
       "Content-Type": "application/json",
     };
 
@@ -252,7 +252,7 @@ const actions = {
   },
   async ExportarListUser() {
     var headers = {
-      "auth-token": sessionStorage.getItem("auth-token"),
+     
       "Content-Type": "blob",
     };
 
@@ -283,7 +283,7 @@ const actions = {
 
   async GetCotFCL({ commit }, token) {
     var headers = {
-      "auth-token": sessionStorage.getItem("auth-token"),
+     
       "Content-Type": "application/json",
     };
 
@@ -298,7 +298,7 @@ const actions = {
   },
   async GetCotLCL({ commit }, token) {
     var headers = {
-      "auth-token": sessionStorage.getItem("auth-token"),
+     
       "Content-Type": "application/json",
     };
 
@@ -313,7 +313,7 @@ const actions = {
   },
   async GetCotAereo({ commit }, token) {
     var headers = {
-      "auth-token": sessionStorage.getItem("auth-token"),
+     
       "Content-Type": "application/json",
     };
 
@@ -329,7 +329,7 @@ const actions = {
 
   async GetCotFCLResumen({ commit }, token) {
     var headers = {
-      "auth-token": sessionStorage.getItem("auth-token"),
+     
       "Content-Type": "application/json",
     };
 
@@ -344,7 +344,7 @@ const actions = {
   },
   async GetCotLCLResumen({ commit }, token) {
     var headers = {
-      "auth-token": sessionStorage.getItem("auth-token"),
+     
       "Content-Type": "application/json",
     };
 
@@ -359,7 +359,7 @@ const actions = {
   },
   async GetCotAereoResumen({ commit }, token) {
     var headers = {
-      "auth-token": sessionStorage.getItem("auth-token"),
+     
       "Content-Type": "application/json",
     };
 
@@ -379,7 +379,7 @@ const actions = {
     let id_pais = branch[0].id_pais;
     data.id_pais = id_pais;
     var headers = {
-      "auth-token": sessionStorage.getItem("auth-token"),
+     
       "Content-Type": "application/json",
     };
 
@@ -399,7 +399,7 @@ const actions = {
     let id_pais = branch[0].id_pais;
     let data = { id_pais: id_pais };
     var headers = {
-      "auth-token": sessionStorage.getItem("auth-token"),
+     
       "Content-Type": "application/json",
     };
 
@@ -417,7 +417,7 @@ const actions = {
     let branch = JSON.parse(sessionStorage.getItem("dataBranch"));
     data.id_branch = branch[0].id;
     var headers = {
-      "auth-token": sessionStorage.getItem("auth-token"),
+     
       "Content-Type": "application/json",
     };
 
@@ -435,7 +435,7 @@ const actions = {
     let branch = JSON.parse(sessionStorage.getItem("dataBranch"));
     let id_pais = branch[0].id_pais;
     var headers = {
-      "auth-token": sessionStorage.getItem("auth-token"),
+     
       "Content-Type": "application/json",
     };
 
@@ -457,7 +457,7 @@ const actions = {
     data.id_pais = id_pais;
     data.users = dataUser[0].users;
     var headers = {
-      "auth-token": sessionStorage.getItem("auth-token"),
+     
       "Content-Type": "application/json",
     };
 
@@ -474,7 +474,7 @@ const actions = {
   },
   async GetCotCostos({ commit }, _) {
     var headers = {
-      "auth-token": sessionStorage.getItem("auth-token"),
+     
       "Content-Type": "application/json",
     };
     let branch = JSON.parse(sessionStorage.getItem("dataBranch"));
@@ -496,7 +496,7 @@ const actions = {
   async GetCotValLCL({ commit }, data) {
     let res = [];
     var headers = {
-      "auth-token": sessionStorage.getItem("auth-token"),
+     
       "Content-Type": "application/json",
     };
 
@@ -519,7 +519,7 @@ const actions = {
     data.user = dataUser[0].users;
     let res = [];
     var headers = {
-      "auth-token": sessionStorage.getItem("auth-token"),
+     
       "Content-Type": "application/json",
     };
 
@@ -551,7 +551,7 @@ const actions = {
     data.id_pais = id_pais;
     let res = [];
     var headers = {
-      "auth-token": sessionStorage.getItem("auth-token"),
+     
       "Content-Type": "application/json",
     };
 
@@ -573,7 +573,7 @@ const actions = {
     data.id_pais = id_pais;
     let res = [];
     var headers = {
-      "auth-token": sessionStorage.getItem("auth-token"),
+     
       "Content-Type": "application/json",
     };
 
@@ -597,7 +597,7 @@ const actions = {
     data.id_pais = id_pais;
     let res = [];
     var headers = {
-      "auth-token": sessionStorage.getItem("auth-token"),
+     
       "Content-Type": "application/json",
     };
 
@@ -632,7 +632,7 @@ const actions = {
     data.id_pais = id_pais;
     let res = [];
     var headers = {
-      "auth-token": sessionStorage.getItem("auth-token"),
+     
       "Content-Type": "application/json",
     };
 
@@ -667,7 +667,7 @@ const actions = {
     data.id_pais = id_pais;
     let res = [];
     var headers = {
-      "auth-token": sessionStorage.getItem("auth-token"),
+     
       "Content-Type": "application/json",
     };
 
@@ -698,7 +698,7 @@ const actions = {
     let dataUser = JSON.parse(sessionStorage.getItem("dataUser"));
     data.user = dataUser[0].users;
     var headers = {
-      "auth-token": sessionStorage.getItem("auth-token"),
+     
       "Content-Type": "application/json",
     };
 
@@ -728,7 +728,7 @@ const actions = {
     let dataUser = JSON.parse(sessionStorage.getItem("dataUser"));
     data.user = dataUser[0].users;
     var headers = {
-      "auth-token": sessionStorage.getItem("auth-token"),
+     
       "Content-Type": "application/json",
     };
 
@@ -760,7 +760,7 @@ const actions = {
     data.id_pais = id_pais;
     let res = [];
     var headers = {
-      "auth-token": sessionStorage.getItem("auth-token"),
+     
       "Content-Type": "application/json",
     };
 
@@ -782,7 +782,7 @@ const actions = {
     let id_pais = branch[0].id_pais;
 
     var headers = {
-      "auth-token": sessionStorage.getItem("auth-token"),
+     
       "Content-Type": "application/json",
     };
 
@@ -805,7 +805,7 @@ const actions = {
     data.id_pais = id_pais;
     let res = [];
     var headers = {
-      "auth-token": sessionStorage.getItem("auth-token"),
+     
       "Content-Type": "application/json",
     };
 
@@ -827,7 +827,7 @@ const actions = {
     data.id_pais = id_pais;
     let res = [];
     var headers = {
-      "auth-token": sessionStorage.getItem("auth-token"),
+     
       "Content-Type": "application/json",
     };
 
@@ -849,7 +849,7 @@ const actions = {
     data.id_pais = id_pais;
     let res = [];
     var headers = {
-      "auth-token": sessionStorage.getItem("auth-token"),
+     
       "Content-Type": "application/json",
     };
 
@@ -881,7 +881,7 @@ const actions = {
     // data.id_pais = id_pais;
     let res = [];
     var headers = {
-      "auth-token": sessionStorage.getItem("auth-token"),
+     
       "Content-Type": "application/json",
     };
 
@@ -905,7 +905,7 @@ const actions = {
     let dataUser = JSON.parse(sessionStorage.getItem("dataUser"));
     data.user = dataUser[0].users;
     var headers = {
-      "auth-token": sessionStorage.getItem("auth-token"),
+     
       "Content-Type": "application/json",
     };
 
@@ -937,7 +937,7 @@ const actions = {
     data.id_pais = id_pais;
     let res = [];
     var headers = {
-      "auth-token": sessionStorage.getItem("auth-token"),
+     
       "Content-Type": "application/json",
     };
 
@@ -959,7 +959,7 @@ const actions = {
     let id_pais = branch[0].id_pais;
     data.id_pais = id_pais;
     var headers = {
-      "auth-token": sessionStorage.getItem("auth-token"),
+     
       "Content-Type": "application/json",
     };
 
@@ -987,7 +987,7 @@ const actions = {
     let id_pais = branch[0].id_pais;
     data.id_pais = id_pais;
     var headers = {
-      "auth-token": sessionStorage.getItem("auth-token"),
+     
       "Content-Type": "application/json",
     };
 

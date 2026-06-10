@@ -252,7 +252,7 @@ watch: {
         method: "post",
         url: process.env.VUE_APP_URL_MAIN + "deleteServices",
         headers: {
-          "auth-token": sessionStorage.getItem("auth-token"),
+         
           "Content-Type": "application/json",
         },
         data: data,
@@ -276,7 +276,7 @@ watch: {
         method: "post",
         url: process.env.VUE_APP_URL_MAIN + "activeServices",
         headers: {
-          "auth-token": sessionStorage.getItem("auth-token"),
+         
           "Content-Type": "application/json",
         },
         data: data,
@@ -300,7 +300,7 @@ watch: {
         method: "post",
         url: process.env.VUE_APP_URL_MAIN + "inactiveServices",
         headers: {
-          "auth-token": sessionStorage.getItem("auth-token"),
+         
           "Content-Type": "application/json",
         },
         data: data,
@@ -325,7 +325,7 @@ watch: {
         method: "post",
         url: process.env.VUE_APP_URL_MAIN + "editServices",
         headers: {
-          "auth-token": sessionStorage.getItem("auth-token"),
+         
           "Content-Type": "application/json",
         },
         data: data,
@@ -355,7 +355,7 @@ watch: {
           method: "post",
           url: process.env.VUE_APP_URL_MAIN + "getHouseServices",
           headers: {
-            "auth-token": sessionStorage.getItem("auth-token"),
+           
             "Content-Type": "application/json",
           },
           data: data,
@@ -508,7 +508,7 @@ watch: {
         method: "post",
         url: process.env.VUE_APP_URL_MAIN + `getServicesByIncoterms`,
         headers: {
-          "auth-token": sessionStorage.getItem("auth-token"),
+         
           "Content-Type": "application/json",
         },
         data: data,

@@ -12,7 +12,7 @@ const mutations = {
 const actions = {
   async CargarMoneda({ commit }) {
     var headers = {
-      "auth-token": sessionStorage.getItem("auth-token"),
+     
       "Content-Type": "application/json",
     };
     var config = {

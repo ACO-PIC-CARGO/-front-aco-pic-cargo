@@ -615,7 +615,7 @@ export default {
         url: process.env.VUE_APP_URL_MAIN + "getRequestPaymentConceptos/" + id,
 
         headers: {
-          "auth-token": sessionStorage.getItem("auth-token"),
+         
           "Content-Type": "application/json",
         },
       };
@@ -670,7 +670,7 @@ export default {
             .id_branch,
         },
         headers: {
-          "auth-token": sessionStorage.getItem("auth-token"),
+         
           "Content-Type": "application/json",
         },
       };
@@ -766,7 +766,7 @@ export default {
           url: process.env.VUE_APP_URL_MAIN + "setPayForProveedor",
 
           headers: {
-            "auth-token": sessionStorage.getItem("auth-token"),
+           
             "Content-Type": "application/json",
           },
           data: data,
@@ -816,7 +816,7 @@ export default {
         url: process.env.VUE_APP_URL_MAIN + "setSPaymentFile/",
 
         headers: {
-          "auth-token": sessionStorage.getItem("auth-token"),
+         
           "Content-Type": "application/json",
         },
         data: data,
@@ -862,7 +862,7 @@ export default {
             process.env.VUE_APP_URL_MAIN + `getVerPagosPorProveedor?id=` + id,
 
           headers: {
-            "auth-token": sessionStorage.getItem("auth-token"),
+           
             "Content-Type": "application/json",
           },
         };
@@ -893,7 +893,7 @@ export default {
           process.env.VUE_APP_URL_MAIN +
           `updateProgrammedPayment/${vm.idDetails}`,
         headers: {
-          "auth-token": sessionStorage.getItem("auth-token"),
+         
           "Content-Type": "application/json",
         },
       };
