@@ -30,11 +30,17 @@
           <template v-slot:[`item.action`]="{ item }">
             <v-btn
               v-if="!!item.urlfile"
+              small
               icon
+              color="red"
               :href="item.urlfile"
               target="_blank"
             >
               <v-icon>mdi-file</v-icon>
+            </v-btn>
+
+            <v-btn small icon color="info" @click.native="ver(item)">
+              <v-icon>mdi-eye</v-icon>
             </v-btn>
           </template>
         </v-data-table>
@@ -59,6 +65,10 @@
             item-text="label"
             item-value="id"
             clearable
+            outlined
+            class="mb-2"
+            dense
+            hide-details
           >
           </v-select>
           <v-autocomplete
@@ -68,45 +78,66 @@
             item-text="namelong"
             item-value="id"
             clearable
+            outlined
+            class="mb-2"
+            dense
+            hide-details
           >
           </v-autocomplete>
 
           <v-text-field
-            clearable
             label="Nro Operacion"
             v-model="filtro.nro_operacion"
+            clearable
+            outlined
+            class="mb-2"
+            dense
+            hide-details
           >
           </v-text-field>
 
           <v-text-field
-            clearable
             label="Nro Expediente"
             v-model="filtro.nro_exp"
+            clearable
+            outlined
+            class="mb-2"
+            dense
+            hide-details
           >
           </v-text-field>
           <v-text-field
-            clearable
             type="number"
             label="Monto"
             v-model="filtro.monto"
+            clearable
+            outlined
+            class="mb-2"
+            dense
+            hide-details
           >
           </v-text-field>
-          <FormatFecha id="filtroDesde" v-model="filtro.desde" />
-          <FormatFecha id="filtroHasta" v-model="filtro.hasta" />
-          <!-- <v-text-field v-model="filtro.hasta" label="Fecha Hasta" type="date">
-          </v-text-field> -->
-          <v-checkbox v-model="filtro.operativo" label="Operativo"></v-checkbox>
-          <v-checkbox
-            v-model="filtro.administrativo"
-            label="Administrativo"
-          ></v-checkbox>
+          <FormatFecha
+            :dense="true"
+            :outlined="true"
+            label="Fecha Desde"
+            id="filtroDesde"
+            v-model="filtro.desde"
+          />
+          <FormatFecha
+            :dense="true"
+            :outlined="true"
+            label="Fecha Hasta"
+            id="filtroHasta"
+            v-model="filtro.hasta"
+          />
         </v-card-text>
         <v-card-actions>
           <v-spacer> </v-spacer>
-          <v-btn color="success" @click="filtrar()" text>Aceptar</v-btn>
-          <v-btn color="red" @click="dialogFiltro = !dialogFiltro" text
-            >Cancelar</v-btn
-          >
+          <v-btn color="success" @click="filtrar()">Filtrar</v-btn>
+          <v-btn color="red" class="mr-2" dark @click="dialogFiltro = !dialogFiltro">
+            Cancelar
+          </v-btn>
         </v-card-actions>
       </v-card>
     </v-navigation-drawer>
@@ -117,7 +148,7 @@
 import moment from "moment";
 import { mapActions } from "vuex";
 import FormatFecha from "../comun/FormatFecha.vue";
-import axios from '@/api/axios-config';;
+import axios from "@/api/axios-config";
 export default {
   components: {
     FormatFecha,
@@ -171,6 +202,12 @@ export default {
   },
   methods: {
     ...mapActions(["getListarBancosgastosDetalles"]),
+    async ver(pago) {
+      this.$router.push({
+        name: "verPagosPorProveedor",
+        params: { id: pago.id_pago },
+      });
+    },
     async getListBanksDetailsCargar() {
       let vm = this;
       var config = {
@@ -181,7 +218,6 @@ export default {
             .id_branch,
         },
         headers: {
-         
           "Content-Type": "application/json",
         },
       };

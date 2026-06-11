@@ -31,7 +31,6 @@
       show-expand
       @click:row="clickRow"
       item-key="id"
-      dense
       disable-sort
     >
       <template v-slot:[`item.urlarchivo`]="{ item }">
@@ -105,188 +104,7 @@
         </v-btn>
       </template>
     </v-data-table>
-    <!--  -->
-    <v-dialog
-      v-model="dialogInvoice"
-      scrollable
-      persistent
-      max-width="60%"
-      transition="dialog-transition"
-    >
-      <v-card>
-        <v-card-title primary-title>
-          {{ verflag ? "Ver " : "Editar" }}
-          <v-spacer> </v-spacer>
-          <v-btn icon color="default" @click="dialogInvoice = !dialogInvoice">
-            <v-icon>mdi-close</v-icon>
-          </v-btn>
-        </v-card-title>
-        <v-card-text>
-          <v-form ref="formInvoice">
-            <v-select
-              :items="$store.state.provedores"
-              v-model="dato.id_proveedor"
-              label="Consignatario"
-              item-text="namelong"
-              item-value="id"
-              readonly
-            >
-            </v-select>
-            <v-text-field
-              label="Nro Operacion"
-              type="number"
-              v-model="dato.nro_operacion"
-              :rules="[(v) => !!v || 'Datos Requerido']"
-            >
-            </v-text-field>
-            <v-text-field
-              label="Monto "
-              v-model="dato.monto"
-              :rules="[(v) => !!v || 'Datos Requerido']"
-            >
-            </v-text-field>
-            <v-text-field
-              type="date"
-              label="Fecha Operacion"
-              v-model="dato.fecha"
-              :rules="[(v) => !!v || 'Datos Requerido']"
-            >
-            </v-text-field>
-            <v-select
-              :items="$store.state.itemsDataBanksList"
-              v-model="dato.id_banco_origen"
-              label="Banco Origen"
-              item-text="acronym"
-              item-value="id"
-              :rules="[(v) => !!v || 'Datos Requerido']"
-            >
-            </v-select>
-            <v-select
-              :items="cuentas"
-              v-model="dato.id_cuenta_pic"
-              label="Cuenta Bancaria Destino (PIC)"
-              item-text="label"
-              item-value="id"
-              :rules="[(v) => !!v || 'Datos Requerido']"
-            >
-            </v-select>
-            <v-file-input
-              v-model="payfile"
-              label="Nuevo Soporte de Pago"
-              show-size
-              truncate-length="50"
-              hide-details
-              clearable
-              @change="_uploadFile()"
-            >
-            </v-file-input>
-            >
-          </v-form>
-        </v-card-text>
-        <v-card-actions>
-          <v-spacer> </v-spacer>
-          <v-btn color="success" text @click="actualizarInvoice()"
-            >Guardar</v-btn
-          >
-          <v-btn color="warning" text @click="dialogInvoice = !dialogInvoice"
-            >Cancelar</v-btn
-          >
-        </v-card-actions>
-      </v-card>
-    </v-dialog>
-    <!--  -->
-    <v-dialog
-      v-model="dialogPayDebsClient"
-      scrollable
-      persistent
-      max-width="60%"
-      transition="dialog-transition"
-    >
-      <v-card>
-        <v-card-title primary-title>
-          {{ verflag ? "Ver " : "Editar" }}
-          <v-spacer> </v-spacer>
-          <v-btn
-            icon
-            color="default"
-            @click="dialogPayDebsClient = !dialogPayDebsClient"
-          >
-            <v-icon>mdi-close</v-icon>
-          </v-btn>
-        </v-card-title>
-        <v-card-text>
-          <v-form ref="formInvoice">
-            <v-select
-              :items="$store.state.provedores"
-              v-model="dato.id_proveedor"
-              label="Consignatario"
-              item-text="namelong"
-              item-value="id"
-              readonly
-            >
-            </v-select>
-            <v-text-field
-              label="Nro Operacion"
-              type="number"
-              v-model="dato.nro_operacion"
-              :rules="[(v) => !!v || 'Datos Requerido']"
-            >
-            </v-text-field>
-            <v-text-field
-              label="Monto "
-              v-model="dato.monto"
-              :rules="[(v) => !!v || 'Datos Requerido']"
-            >
-            </v-text-field>
-            <v-text-field
-              type="date"
-              label="Fecha Operacion"
-              v-model="dato.fecha"
-              :rules="[(v) => !!v || 'Datos Requerido']"
-            >
-            </v-text-field>
-            <v-select
-              :items="$store.state.itemsDataBanksList"
-              v-model="dato.id_banco_origen"
-              label="Banco Origen"
-              item-text="acronym"
-              item-value="id"
-              :rules="[(v) => !!v || 'Datos Requerido']"
-            >
-            </v-select>
-            <v-select
-              :items="cuentas"
-              v-model="dato.id_cuenta_pic"
-              label="Cuenta Bancaria Destino (PIC)"
-              item-text="label"
-              item-value="id"
-              :rules="[(v) => !!v || 'Datos Requerido']"
-            >
-            </v-select>
-            <v-file-input
-              v-model="payfile"
-              label="Nuevo Soporte de Pago"
-              show-size
-              truncate-length="50"
-              hide-details
-              clearable
-              @change="_uploadFile()"
-            >
-            </v-file-input>
-          </v-form>
-        </v-card-text>
-        <v-card-actions>
-          <v-spacer> </v-spacer>
-          <v-btn color="success" text @click="actualizarDebs()">Guardar</v-btn>
-          <v-btn
-            color="warning"
-            text
-            @click="dialogPayDebsClient = !dialogPayDebsClient"
-            >Cancelar</v-btn
-          >
-        </v-card-actions>
-      </v-card>
-    </v-dialog>
+
     <v-navigation-drawer
       absolute
       permanent
@@ -307,31 +125,40 @@
           <v-select
             :items="$store.state.itemsDataBanksList"
             v-model="filtro.id_banco"
-            dense
             label="Banco Origen"
             item-text="acronym"
             item-value="id"
             clearable
+            outlined
+            class="mb-2"
+            dense
+            hide-details
           >
           </v-select>
           <v-select
             :items="cuentas"
             v-model="filtro.id_cuenta"
-            dense
             label="Cuenta Bancaria Destino (PIC)"
             item-text="label"
             item-value="id"
             clearable
+            outlined
+            class="mb-2"
+            dense
+            hide-details
           >
           </v-select>
           <v-autocomplete
             :items="$store.state.clientes"
             v-model="filtro.id_consigner"
-            dense
             label="Consignatario"
             item-text="namelong"
             item-value="id"
             clearable
+            outlined
+            class="mb-2"
+            dense
+            hide-details
           >
           </v-autocomplete>
           <v-autocomplete
@@ -340,7 +167,10 @@
             v-model="filtro.tipoingreso"
             auto-select-first
             clearable
+            outlined
+            class="mb-2"
             dense
+            hide-details
             item-text="description"
             item-value="id"
           ></v-autocomplete>
@@ -348,230 +178,84 @@
           <v-autocomplete
             label="Subtipo de Ingreso"
             :items="tiposubingresoFilter"
-            dense
             v-model="filtro.tiposubingreso"
             auto-select-first
             clearable
+            outlined
+            class="mb-2"
+            dense
+            hide-details
             item-text="description"
             item-value="id"
           ></v-autocomplete>
 
           <v-text-field
-            clearable
             label="Nro Operacion"
             v-model="filtro.nro_operacion"
+            clearable
+            outlined
+            class="mb-2"
             dense
+            hide-details
           >
           </v-text-field>
           <v-text-field
-            clearable
-            label="Tipo de Pago (Nro Expediente)"
+            label="Nro Expediente"
             v-model="filtro.nro_exp"
+            clearable
+            outlined
+            class="mb-2"
             dense
+            hide-details
           >
           </v-text-field>
           <v-text-field
-            clearable
             type="number"
             label="Monto"
             v-model="filtro.monto"
+            clearable
+            outlined
+            class="mb-2"
             dense
+            hide-details
           >
           </v-text-field>
-          <v-text-field
-            v-model="filtro.fechadesde"
-            dense
+          <FormatFecha
+            :dense="true"
+            :outlined="true"
             label="Fecha Desde"
-            type="date"
-          >
-          </v-text-field>
-          <v-text-field
-            v-model="filtro.fechahasta"
-            dense
+            id="filtroDesde"
+            v-model="filtro.fechadesde"
+          />
+          <FormatFecha
+            :dense="true"
+            :outlined="true"
             label="Fecha Hasta"
-            type="date"
-          >
-          </v-text-field>
-          <v-checkbox
-            v-model="filtro.operativo"
-            dense
-            label="Operativo"
-          ></v-checkbox>
-          <v-checkbox
-            v-model="filtro.administrativo"
-            dense
-            label="Administrativo"
-          ></v-checkbox>
+            id="filtroHasta"
+            v-model="filtro.fechahasta"
+          />
+
         </v-card-text>
         <v-card-actions>
           <v-spacer> </v-spacer>
-          <v-btn color="success" @click="filtrar()" text>Aceptar</v-btn>
-          <v-btn color="warning" @click="limpiar()" text>Limpiar </v-btn>
+          <v-btn color="success" @click="filtrar()" >Aceptar</v-btn>
+          <v-btn color="error" @click="limpiar()" >Limpiar </v-btn>
         </v-card-actions>
       </v-card>
     </v-navigation-drawer>
-
-    <v-dialog
-      v-model="EditarIngresoFlag"
-      persistent
-      :overlay="false"
-      max-width="80%"
-      transition="dialog-transition"
-    >
-      <v-card>
-        <v-card-title primary-title>
-          Editar Ingreso <v-spacer></v-spacer>
-          <v-icon @click="EditarIngresoFlag = !EditarIngresoFlag"
-            >mdi-close</v-icon
-          >
-        </v-card-title>
-        <v-stepper v-model="stepEditarIngreso">
-          <v-stepper-header>
-            <v-stepper-step editable step="1"> Step 1 </v-stepper-step>
-            <v-divider></v-divider>
-            <v-stepper-step editable step="2"> Step 2 </v-stepper-step>
-          </v-stepper-header>
-          <v-stepper-items>
-            <v-stepper-content step="1">
-              <v-row>
-                <v-col cols="12">
-                  <b>Cliente: </b> {{ Ingreso.name_consigner }}
-                </v-col>
-                <v-col cols="12">
-                  <v-simple-table>
-                    <thead>
-                      <tr>
-                        <th>House</th>
-                        <th>Sub Ingreso</th>
-                        <th>Monto Dolar</th>
-                        <th>Monto ML</th>
-                        <th>Moneda</th>
-                        <th>Tipo Cambio</th>
-                        <th></th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      <tr v-for="(detalle, index) in detalles" :key="index">
-                        <td>{{ detalle.tipo_gasto }}</td>
-                        <td>{{ detalle.subtipo_ingreso }}</td>
-                        <td>
-                          <v-text-field
-                            type="number"
-                            v-model="detalle.monto"
-                          ></v-text-field>
-                        </td>
-                        <td>
-                          <v-text-field
-                            type="number"
-                            v-model="detalle.monto_destino"
-                          ></v-text-field>
-                        </td>
-                        <!-- <td>{{ detalle.tipocambio }}</td> -->
-                        <td>{{ detalle.tipocambio }}</td>
-                        <td>
-                          <v-btn
-                            color="error"
-                            icon
-                            @click="detalle.anuladoflag = true"
-                            ><v-icon>mdi-delete</v-icon></v-btn
-                          >
-                        </td>
-                      </tr>
-                    </tbody>
-                  </v-simple-table>
-                </v-col>
-              </v-row>
-            </v-stepper-content>
-            <v-stepper-content step="2">
-              <v-row>
-                <v-col cols="4">
-                  <v-text-field
-                    outlined
-                    dense
-                    class="my-1"
-                    label="Nro Operación"
-                    v-model="Ingreso.nro_operacion"
-                    :rules="[(v) => !!v || 'Datos Requerido']"
-                  ></v-text-field>
-                </v-col>
-                <v-col cols="2">
-                  <v-text-field
-                    type="date"
-                    outlined
-                    dense
-                    class="my-1"
-                    label="Fecha Pago"
-                    v-model="Ingreso.fecha_pago"
-                    :rules="[(v) => !!v || 'Datos Requerido']"
-                  ></v-text-field>
-                </v-col>
-                <v-col cols="2" class="py-auto">
-                  Soporte de Pago:
-                  <v-icon color="red" @click="abrirPDF(Ingreso.soporte)">
-                    mdi-file-pdf-box
-                  </v-icon>
-                </v-col>
-                <v-col cols="3" class="py-auto">
-                  <v-file-input
-                    @change="_uploadFile()"
-                    label="Cambiar Soporte de Pago"
-                    show-size
-                    truncate-length="50"
-                    outlined
-                    dense
-                    v-model="payfile"
-                    :rules="[(v) => !!v || 'Datos Requerido']"
-                  />
-                </v-col>
-                <v-col cols="4">
-                  <v-select
-                    :items="cuentas"
-                    v-model="Ingreso.id_cuenta"
-                    label="Banco Origen"
-                    item-text="label"
-                    item-value="id"
-                    dense
-                    outlined
-                    :rules="[(v) => !!v || 'Datos Requerido']"
-                  >
-                  </v-select>
-                </v-col>
-                <v-col cols="4">
-                  <v-select
-                    :items="$store.state.itemsDataBanksList"
-                    v-model="Ingreso.id_banco_salida"
-                    label="Banco Destino"
-                    item-text="acronym"
-                    item-value="id"
-                    dense
-                    outlined
-                    :rules="[(v) => !!v || 'Datos Requerido']"
-                  >
-                  </v-select>
-                </v-col>
-              </v-row>
-            </v-stepper-content>
-          </v-stepper-items>
-          <v-row class="mx-5 mb-5">
-            <v-col cols="12">
-              <v-spacer></v-spacer>
-              <v-btn color="success" @click="ActualizarIngreso()"
-                >Actualizar</v-btn
-              >
-            </v-col>
-          </v-row>
-        </v-stepper>
-      </v-card>
-    </v-dialog>
   </v-card>
 </template>
 
 <script>
-import axios from '@/api/axios-config';;
+import axios from "@/api/axios-config";
 import swal from "sweetalert2";
 import moment from "moment";
 import { mapActions } from "vuex";
+import FormatFecha from "../comun/FormatFecha.vue";
 export default {
+  components: {
+    FormatFecha,
+  },
   data() {
     return {
       stepEditarIngreso: 1,
@@ -695,7 +379,6 @@ export default {
           method: "post",
           url: process.env.VUE_APP_URL_MAIN + "uploadAllPath",
           headers: {
-           
             "Content-Type": "application/json",
           },
           data: data,
@@ -819,7 +502,6 @@ export default {
             .id_branch,
         },
         headers: {
-         
           "Content-Type": "application/json",
         },
       };
@@ -843,7 +525,6 @@ export default {
         url: process.env.VUE_APP_URL_MAIN + "ver_ingresos_invoice?id=" + id,
 
         headers: {
-         
           "Content-Type": "application/json",
         },
       };
@@ -868,7 +549,6 @@ export default {
         url: process.env.VUE_APP_URL_MAIN + "ver_ingresos_debscliente?id=" + id,
 
         headers: {
-         
           "Content-Type": "application/json",
         },
       };
@@ -893,7 +573,6 @@ export default {
           url: process.env.VUE_APP_URL_MAIN + "actualizar_ingreso_invoice",
 
           headers: {
-           
             "Content-Type": "application/json",
           },
           data: this.dato,
@@ -929,7 +608,6 @@ export default {
           url: process.env.VUE_APP_URL_MAIN + "actualizar_ingreso_debscliente",
 
           headers: {
-           
             "Content-Type": "application/json",
           },
           data: this.dato,
@@ -986,7 +664,6 @@ export default {
           }&nro_exp=${this.filtro.nro_exp ? this.filtro.nro_exp : ""}`,
         responseType: "blob",
         headers: {
-         
           "Content-Type": "application/json",
         },
       };

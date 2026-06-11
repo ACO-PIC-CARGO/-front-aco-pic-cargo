@@ -99,13 +99,12 @@
             color="#000000"
             background-color="#C8E6C9"
           >
-          <v-tab key="detallesPago">Detalles de Pago</v-tab>
+            <v-tab key="detallesPago">Detalles de Pago</v-tab>
             <v-tab key="datosPrincipales">Datos Principales</v-tab>
             <v-tab key="gastoBancario"> Resumen y Comisión Bancario</v-tab>
           </v-tabs>
 
           <v-tabs-items v-model="pasos">
-            
             <v-tab-item key="detallesPago">
               <v-row class="mt-1">
                 <v-col cols="12">
@@ -193,9 +192,8 @@
                     </template>
                   </v-data-table>
                 </v-col>
-                
               </v-row>
-            </v-tab-item> 
+            </v-tab-item>
             <v-tab-item key="datosPrincipales">
               <v-row class="mt-1">
                 <v-col cols="12" md="6" class="py-1">
@@ -393,13 +391,12 @@
                     </template>
                   </div>
                   <ArrastraYSolarComponent
-                    v-else
+                    v-if="!urlfile && !verflag"
                     @idArchivoCargado="recibirId"
                   />
                 </v-col>
               </v-row>
             </v-tab-item>
-
 
             <v-tab-item key="gastoBancario">
               <v-row class="mt-1">
@@ -459,7 +456,7 @@
                     :disabled="verflag"
                   ></v-text-field>
                 </v-col>
-                <v-col cols="12">
+                <v-col cols="3" offset="9">
                   <v-text-field
                     outlined
                     dense
@@ -621,6 +618,7 @@ export default {
     this.filename = data.filename;
     this.originalname = data.originalname;
     this.$store.state.bank.deudaAProveedor = data.detalle;
+    console.log("detalle", data.detalle);
     this.selected = data.detalle;
     this.monto =
       data.totaldolar -
@@ -905,14 +903,7 @@ export default {
       return this.selected
         .reduce((acc, item) => {
           let monto = 0;
-
-          // Lógica similar a tu fn_totalAbonado pero puramente numérica
-          if (item.parcialflag) {
-            monto = parseFloat(item.montoparcial) || 0;
-          } else {
-            monto = parseFloat(item.total_mon_local) || 0;
-          }
-
+          monto = parseFloat(item.montoparcial) || 0;
           // Convertimos a USD si no lo está
           if (item.symbol !== "USD") {
             const tc = parseFloat(this.tipocambio) || 1;
