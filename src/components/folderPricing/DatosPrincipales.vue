@@ -207,7 +207,7 @@
       </v-card-text>
     </v-card>
     <!-- dIALOG -->
-    <v-dialog v-model="buscarClienteDialog" max-width="80%">
+    <v-dialog v-model="buscarClienteDialog" max-width="80%" v-if="buscarClienteDialog">
       <v-card>
         <v-card-title
           >Buscar Cliente<v-spacer></v-spacer>
