@@ -150,14 +150,15 @@
                     <v-icon :color="'blue'">mdi-email-send</v-icon>
                   </v-btn>
                 </td>
-                <td v-if="editable">
+                <!-- <td v-if="editable">
                   <v-btn
-                    color="success"
+                    color="indigo"
                     small
+                    dark
                     @click="abrirModalCambiarExp(egreso)"
                     >CAMBIAR EXPEDIENTE</v-btn
                   >
-                </td>
+                </td> -->
               </tr>
             </tbody>
           </v-simple-table>
@@ -1252,7 +1253,7 @@
     </v-dialog>
     <v-dialog v-model="dialogCambiarExp" persistent max-width="500px">
       <v-card>
-        <v-card-title>
+        <v-card-title class="text-h5 grey lighten-2">
           Mover {{ egreso.nombre_proveedor ? egreso.nombre_proveedor : null }}
         </v-card-title>
         <v-card-text>
@@ -1272,14 +1273,15 @@
         </v-card-text>
         <v-card-actions>
           <v-spacer></v-spacer>
-          <v-btn :loading="loading" color="success" @click="functionMoverCostos"
-            >Mover Costo</v-btn
-          >
           <v-btn
             :loading="loading"
+            outlined
             color="error"
             @click="dialogCambiarExp = false"
             >Cancelar</v-btn
+          >
+          <v-btn :loading="loading" color="success" @click="functionMoverCostos"
+            >Mover Costo</v-btn
           >
         </v-card-actions>
       </v-card>
@@ -1533,12 +1535,16 @@ export default {
       console.log(item);
     },
     async functionMoverCostos() {
+      let id_controlgastos = this.egreso.detalle.map((v) => {
+        return v.id;
+      });
       if (this.$refs.frmMoverCosto.validate()) {
         let data = {
           id_masterorigen: this.egreso.id_master,
           id_proveedor: this.egreso.id_proveedor,
           id_masterdestino: this.id_masterdestino,
           id_correlativo: this.egreso.id_correlativo,
+          id_controlgastos: id_controlgastos.join(","),
         };
         this.loading = true;
         await this.moverCostos(data);

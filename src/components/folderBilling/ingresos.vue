@@ -1109,15 +1109,19 @@
           </v-btn>
         </v-card-title>
         <v-card-text>
-          <v-select
-            :items="listaExpedientes"
+          <v-autocomplete
+            :items="
+              $store.state.itemsMasterList.filter(
+                (v) => v.id != $route.params.id,
+              )
+            "
             v-model="selectedNuevoExpediente"
-            item-text="text"
-            item-value="value"
+            item-value="id"
+            item-text="code_master"
             label="Seleccione nuevo expediente"
             outlined
             class="my-5"
-          ></v-select>
+          ></v-autocomplete>
           <p class="caption mb-0">Actual: {{ house.code_house }}</p>
         </v-card-text>
         <v-card-actions>
@@ -2285,12 +2289,12 @@ export default {
       this.house = house;
       // Cargar lista de masters y poblar el combo con sus códigos
       this.flagCambiarExpediente = true;
-      await this._getMasterList();
-      const masters = (this.$store.state.itemsMasterList || []).slice();
-      this.listaExpedientes = masters.map((v) => ({
-        text: v.code_master,
-        value: v.id,
-      }));
+      // await this._getMasterList();
+      // const masters = (this.$store.state.itemsMasterList || []).slice();
+      // this.listaExpedientes = masters.map((v) => ({
+      //   text: v.code_master,
+      //   value: v.id,
+      // }));
       this.selectedNuevoExpediente = Number(this.$route.params.id) || null;
       this.dialogCambiarExpediente = true;
       this.flagCambiarExpediente = false;
@@ -2335,12 +2339,16 @@ export default {
           data: payload,
         };
         const response = await axios(config);
+         this.flagCambiarExpediente = false;
+          this.dialogCambiarExpediente = false;
+         this.$emit("recargarDatos");
         if (response && response.data && response.data.estadoflag) {
           await Swal.fire({ icon: "success", text: "Expediente actualizado" });
           this.dialogCambiarExpediente = false;
           this.flagCambiarExpediente = true;
-          await this.getListControlGastos(this.$route.params.id);
-          this.flagCambiarExpediente = false;
+          this.$emit("recargarDatos");
+          // await this.getListControlGastos(this.$route.params.id);
+         
         } else {
           await Swal.fire({
             icon: "warning",
