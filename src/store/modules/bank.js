@@ -635,6 +635,18 @@ const actions = {
     await axios(config)
       .then(function (response) {
         let data = response.data;
+        if (data.estadoflag) {
+          Swal.fire({
+            icon:'success',
+            text:data.mensaje
+          })
+        }else{
+          Swal.fire({
+            icon:'error',
+            text:'Ocurrió un Error, comuníquese con el área de sistemas.'
+          })
+
+        }
         console.log("Respuesta del servidor al registrar egreso:", data);
       })
       .catch(function (error) {

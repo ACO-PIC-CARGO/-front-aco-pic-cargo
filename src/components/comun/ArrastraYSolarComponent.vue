@@ -25,7 +25,7 @@
           v-if="!loading"
         >
           <label>
-            Arrastra y suelta el archivo aquí  o haz clic para seleccionar
+            Arrastra y suelta el archivo aquí o haz clic para seleccionar
             <v-file-input
               ref="fileInput"
               v-model="file"
@@ -54,7 +54,7 @@
 </template>
 
 <script>
-import axios from '@/api/axios-config';;
+import Swal from "sweetalert2";
 import { mapActions } from "vuex";
 export default {
   data() {
@@ -102,7 +102,10 @@ export default {
       if (vm.file) {
         await this._uploadFile(vm.file);
         vm.loading = false;
-        alert("Archivo Cargado");
+        Swal.fire({
+          icon: "success",
+          title:"Archivo Cargado Correctamente"
+        });
         vm.$emit("idArchivoCargado", {
           id: vm.$store.state.files.payPath,
           archivo: vm.$store.state.files.datosPath,
@@ -125,12 +128,12 @@ export default {
   text-align: center;
   line-height: 150px;
   cursor: pointer;
-  background: #FAFAFA;
+  background: #fafafa;
 }
 .clsArchivoCargado {
   padding: 10px;
   border: 1px solid #ccc;
   border-radius: 4px;
-  background: #E8F5E9;
+  background: #e8f5e9;
 }
 </style>

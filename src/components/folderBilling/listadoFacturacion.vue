@@ -13,6 +13,15 @@
           class="mx-4"
         ></v-text-field>
       </template>
+      <template v-slot:[`item.existe_fiscal`]="{ item }">
+        <v-chip v-if="item.existe_fiscal" class="ma-2" color="green" dark>
+          Si
+        </v-chip>
+
+        <v-chip v-else class="ma-2" color="red" text-color="white">
+          No
+        </v-chip>
+      </template>
       <template v-slot:[`item.url`]="{ item }">
         <v-btn color="red" @click="verFactura(item.url)" icon>
           <v-icon>mdi-file-pdf-box</v-icon></v-btn
@@ -31,8 +40,8 @@
 </template>
 
 <script>
-import axios from '@/api/axios-config';;
-import { mapActions } from 'vuex';
+import axios from "@/api/axios-config";
+import { mapActions } from "vuex";
 export default {
   name: "lstFacturacionComponent",
   data() {
@@ -93,6 +102,12 @@ export default {
         },
         { text: "Total", value: "total", align: "start", sortable: false },
         { text: "Estado", value: "estado", align: "start", sortable: false },
+        {
+          text: "Tiene Fac. Fiscal",
+          value: "existe_fiscal",
+          align: "center",
+          sortable: false,
+        },
         { text: "Acciones", value: "url", align: "start", sortable: false },
       ],
     };
@@ -100,7 +115,8 @@ export default {
   async mounted() {
     await this.listadoFacturacion();
     await this.obtenerImpuestoXEmpresa();
-    this.headers[8].text = this.$store.state.enterprises.impuesto.nombre_impuesto
+    this.headers[8].text =
+      this.$store.state.enterprises.impuesto.nombre_impuesto;
   },
   methods: {
     ...mapActions(["obtenerImpuestoXEmpresa"]),
@@ -117,7 +133,6 @@ export default {
           JSON.parse(sessionStorage.getItem("dataUser"))[0].id_branch,
 
         headers: {
-         
           "Content-Type": "application/json",
         },
         data: data,
@@ -160,7 +175,6 @@ export default {
             url: process.env.VUE_APP_URL_MAIN + "anular_factura",
 
             headers: {
-             
               "Content-Type": "application/json",
             },
             data: datos,

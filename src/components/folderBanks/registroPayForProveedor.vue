@@ -24,18 +24,19 @@
           cols="12"
           md="3"
           class="pb-0"
-          v-if="Object.keys(id_cuenta).length > 0"
         >
           Monto Depositado En Banco:
           <!-- <v-icon @click="snackbar = true">mdi-information</v-icon> -->
           <v-text-field
             outlined
             dense
+            ref="txtMontoLocal"
             v-model="monto_local"
             type="number"
             :prefix="symbol"
             width="50px"
             hide-details
+            :readonly="!Object.keys(id_cuenta).length > 0"
           ></v-text-field>
         </v-col>
         <v-col cols="12" md="2" class="pb-0">
@@ -73,9 +74,9 @@
             color="#000000"
             background-color="#C8E6C9"
           >
-            <v-tab key="detallesPago"> Detalles de Pago </v-tab>
+            <v-tab key="detallesPago">Facturas</v-tab>
             <v-tab key="datosPrincipales" :disabled="!editable">
-              Datos Principales
+              Detalles Bancarios
             </v-tab>
             <v-tab key="gastoBancario" :disabled="!editableGastoBancario">
               Resumen y Comisión Bancario</v-tab
@@ -869,6 +870,9 @@ export default {
         this.calcularTotal();
       },
       deep: true, // Esto detecta cambios en las propiedades internas de los items
+    },
+    id_cuenta() {
+      this.$refs.txtMontoLocal.focus();
     },
   },
 };

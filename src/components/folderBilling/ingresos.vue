@@ -908,7 +908,7 @@
         <v-card-text>
           <v-data-table
             :headers="headersFacturasFiscales"
-            :items="lstFacturasFiscales"
+            :items="$store.state.houses.lstFacturasFiscales"
             dense
             item-key="id"
             class="elevation-0"
@@ -969,7 +969,11 @@
       </v-card>
     </v-dialog>
     <!--PROFORMA FISCAL-->
-    <v-dialog width="80%" v-model="dialogProformaFiscal">
+    <v-dialog
+      width="80%"
+      v-model="dialogProformaFiscal"
+      v-if="dialogProformaFiscal"
+    >
       <v-card>
         <v-card-title>
           <h3>Subir Proformas Fiscales de {{ house.consigner }}</h3>
@@ -1217,7 +1221,7 @@
 
 <script>
 import moment from "moment";
-import axios from '@/api/axios-config';;
+import axios from "@/api/axios-config";
 import Swal from "sweetalert2";
 import { mapActions } from "vuex";
 import ArrastraYSolarComponent from "../comun/ArrastraYSolarComponent.vue";
@@ -1513,7 +1517,8 @@ export default {
       window.open(routeData.href, "_blank");
     },
     recibirId(file) {
-      this.payPath = file.inserid;
+      console.log("aqui", file);
+      this.payPath = file.id;
       this.payfile = file.archivo;
 
       this.msgfile = "Archivo procesado y vinculado correctamente.";
@@ -1539,7 +1544,6 @@ export default {
                 "setHouseIngresosDelete/" +
                 house.id_house,
               headers: {
-               
                 "Content-Type": "application/json",
               },
             };
@@ -1715,7 +1719,6 @@ export default {
           url: process.env.VUE_APP_URL_MAIN + "setDebsClient",
 
           headers: {
-           
             "Content-Type": "application/json",
           },
           data: data,
@@ -1843,7 +1846,6 @@ export default {
         url: process.env.VUE_APP_URL_MAIN + "delDebsClient/" + id,
 
         headers: {
-         
           "Content-Type": "application/json",
         },
       };
@@ -1949,7 +1951,6 @@ export default {
           url: process.env.VUE_APP_URL_MAIN + "actualizar_debs_client",
 
           headers: {
-           
             "Content-Type": "application/json",
           },
           data: data,
@@ -1985,7 +1986,6 @@ export default {
         url: `${process.env.VUE_APP_URL_MAIN}data_factura/${vm.house.id_house}/${vm.id_branch}`,
 
         headers: {
-         
           "Content-Type": "application/json",
         },
       };
@@ -2044,7 +2044,6 @@ export default {
         method: "post",
         url: `${process.env.VUE_APP_URL_MAIN}generar_factura`,
         headers: {
-         
           "Content-Type": "application/json",
         },
         data: data,
@@ -2059,7 +2058,6 @@ export default {
         vm.nombreProforma = "PROFORMA";
         vm.obtenerDatosHouse = false;
       }
-
     },
     async registrarFactura(data) {
       let vm = this;
@@ -2071,13 +2069,13 @@ export default {
         total_monto: vm.datosFactura.total_monto,
         total_igv: vm.datosFactura.total_igv,
         total: vm.datosFactura.total,
+        id_correlativo: vm.selected[0].id_correlativo,
         details: vm.selected,
       };
       var config = {
         method: "post",
         url: process.env.VUE_APP_URL_MAIN + "registrar_factura",
         headers: {
-         
           "Content-Type": "application/json",
         },
         data: dataFactura,
@@ -2113,14 +2111,12 @@ export default {
       return deuda != 0 ? deuda.toFixed(2) : 0;
     },
     async abrirModalFacturasFiscales(house = {}) {
-      var vm = this;
+      this.house = house;
+      this.dialogFacturasFiscales = true;
 
-      vm.house = house;
-      vm.dialogFacturasFiscales = true;
-
-      vm.isDataTableLoading = true;
-      await vm.getFacturasFiscales(house);
-      vm.isDataTableLoading = false;
+      this.isDataTableLoading = true;
+      await this.getFacturasFiscales(house);
+      this.isDataTableLoading = false;
     },
     cargarProformaFiscal() {
       var vm = this;
@@ -2140,31 +2136,7 @@ export default {
 
       vm.dialogProformaFiscal = true;
     },
-    async uploadFileProformaFiscal() {
-      var vm = this;
 
-      vm.boolFile = false;
-      vm.msgfile = "";
-      vm.errfile = "";
-      if (vm.proformaFiscal.archivo) {
-        vm.loadingFile = true;
-        await vm._uploadFile(vm.proformaFiscal.archivo);
-        vm.loadingFile = false;
-
-        if (vm.$store.state.files.payPath) {
-          vm.boolFile = true;
-          vm.msgfile = "Archivo cargado";
-          vm.proformaFiscal = {
-            ...vm.proformaFiscal,
-            id_path: vm.$store.state.files.payPath,
-          };
-        } else {
-          vm.errfile = "Comuniquese con el administrador";
-        }
-      } else {
-        vm.errfile = "Dato Requerido";
-      }
-    },
     async registrarProformaFiscal() {
       var vm = this;
 
@@ -2178,10 +2150,13 @@ export default {
         method: "post",
         url: process.env.VUE_APP_URL_MAIN + "setProformaFiscal",
         headers: {
-         
           "Content-Type": "application/json",
         },
-        data: vm.proformaFiscal,
+        data: {
+          ...vm.proformaFiscal,
+          id_correlativo: this.house.id_correlativo,
+          id_path: this.payPath,
+        },
       };
 
       await axios(config).then(async function (response) {
@@ -2215,80 +2190,61 @@ export default {
 
       vm.dialogProformaFiscal = !vm.dialogProformaFiscal;
     },
-    async getFacturasFiscales(house = {}) {
-      var vm = this;
 
-      var config = {
-        method: "get",
-        url:
-          process.env.VUE_APP_URL_MAIN +
-          `getFacturasFiscales?id_house=${house.id_house}`,
-        headers: {
-         
-          "Content-Type": "application/json",
-        },
-      };
-
-      await axios(config)
-        .then(function (response) {
-          sessionStorage.setItem("auth-token", response.data.token);
-
-          if (!!response.data.data[0].estadoflag) {
-            vm.lstFacturasFiscales = response.data.data;
-          } else {
-            vm.lstFacturasFiscales = [];
-          }
-        })
-        .catch(function (error) {
-          console.log(error);
-        });
-    },
     async eliminarProformaFiscal(id = "") {
-      var vm = this;
+      Swal.fire({
+        icon: "question",
+        title: "Eliminar Proforma Fiscal",
+        text: "¿Desea Eliminar la Factura Fiscal?",
+        denyButtonText: "Cancelar",
+        confirmButtonText: "Si, Eliminar",
+      }).then(async (res) => {
+        if (res.isConfirmed) {
+          var vm = this;
+          var config = {
+            method: "post",
+            url: process.env.VUE_APP_URL_MAIN + "delProformaFiscal/" + id,
+            headers: {
+              "Content-Type": "application/json",
+            },
+          };
 
-      var config = {
-        method: "post",
-        url: process.env.VUE_APP_URL_MAIN + "delProformaFiscal/" + id,
-        headers: {
-         
-          "Content-Type": "application/json",
-        },
-      };
+          await axios(config)
+            .then(async function (response) {
+              sessionStorage.setItem("auth-token", response.data.token);
 
-      await axios(config)
-        .then(async function (response) {
-          sessionStorage.setItem("auth-token", response.data.token);
+              if (response.data.estadoflag) {
+                vm.$swal({
+                  icon: "success",
+                  title: "Información",
+                  text: response.data.mensaje,
+                });
 
-          if (response.data.estadoflag) {
-            vm.$swal({
-              icon: "success",
-              title: "Información",
-              text: response.data.mensaje,
-            });
-
-            vm.isDataTableLoading = true;
-            await vm.getFacturasFiscales(vm.house);
-            vm.isDataTableLoading = false;
-          } else {
-            Swal.fire({
-              icon: "error",
-              text: response.data.mensaje,
-              allowOutsideClick: false,
-              allowEscapeKey: false,
-              allowEnterKey: false,
-            }).then((resSwal) => {
-              if (resSwal.isConfirmed && response.data.status == "401") {
-                router.push({ name: "Login" });
-                setTimeout(() => {
-                  window.location.reload();
-                }, 10);
+                vm.isDataTableLoading = true;
+                await vm.getFacturasFiscales(vm.house);
+                vm.isDataTableLoading = false;
+              } else {
+                Swal.fire({
+                  icon: "error",
+                  text: response.data.mensaje,
+                  allowOutsideClick: false,
+                  allowEscapeKey: false,
+                  allowEnterKey: false,
+                }).then((resSwal) => {
+                  if (resSwal.isConfirmed && response.data.status == "401") {
+                    router.push({ name: "Login" });
+                    setTimeout(() => {
+                      window.location.reload();
+                    }, 10);
+                  }
+                });
               }
+            })
+            .catch(function (error) {
+              console.log(error);
             });
-          }
-        })
-        .catch(function (error) {
-          console.log(error);
-        });
+        }
+      });
     },
     activarFactura(item) {
       item.verFactura = !item.verFactura;
@@ -2301,9 +2257,9 @@ export default {
         url: `${process.env.VUE_APP_URL_MAIN}ver_factura_house`,
         params: {
           id: item.id_house,
+          id_correlativo: item.id_correlativo,
         },
         headers: {
-         
           "Content-Type": "application/json",
         },
       };
@@ -2312,6 +2268,13 @@ export default {
           let res = response.data.data;
           vm.lstFacturasEmitidas = response.data.data;
           vm.dialogFacturaEmitidas = true;
+        } else {
+          let res = response.data;
+          console.log(res);
+          Swal.fire({
+            icon: "warning",
+            text: res.mensaje,
+          });
         }
       });
     },
@@ -2367,7 +2330,6 @@ export default {
           method: "put",
           url: process.env.VUE_APP_URL_MAIN + "reasignar_house",
           headers: {
-           
             "Content-Type": "application/json",
           },
           data: payload,
@@ -2448,7 +2410,6 @@ export default {
         method: "put",
         url: process.env.VUE_APP_URL_MAIN + "anular_factura",
         headers: {
-         
           "Content-Type": "application/json",
         },
         data: datos,
@@ -2488,6 +2449,7 @@ export default {
       "getCargarHouse",
       "_getMasterList",
       "guardarDatosInstructivo",
+      "getFacturasFiscales",
     ]),
     bloquearCopiarMontos(ingresos) {
       return ingresos.some((v) => v.facturado);

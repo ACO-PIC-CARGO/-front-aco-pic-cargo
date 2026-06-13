@@ -51,7 +51,7 @@
 </template>
 
 <script>
-import axios from '@/api/axios-config';;
+import Swal from "sweetalert2";
 import { mapActions } from "vuex";
 export default {
   // 1. Agregamos los props para recibir la data del padre
@@ -139,7 +139,10 @@ export default {
         this.loading = true;
         try {
           await this._uploadFile(this.file);
-          alert("Archivo Cargado");
+          Swal.fire({
+            icon: "success",
+            title: "Archivo Cargado Correctamente",
+          });
 
           this.rutaDescarga = this.$store.state.files.datosPath
             ? this.$store.state.files.datosPath.ruta

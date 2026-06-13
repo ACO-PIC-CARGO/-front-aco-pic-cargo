@@ -1,18 +1,21 @@
-import axios from '@/api/axios-config';;
+import axios from "@/api/axios-config";
 import Swal from "sweetalert2";
 import router from "@/router";
 
 const state = {
   listHouse: [],
   house: {},
+  lstFacturasFiscales: [],
 };
 const mutations = {
   SET_LIST_HOUSE(state, data) {
     state.listHouse = data;
   },
   SET_VER_HOUSE(state, data) {
-    
     state.house = data;
+  },
+  SET_LIST_FACTURA_FISCALES(state, data) {
+    state.lstFacturasFiscales = data;
   },
 };
 // getCargarHouse
@@ -24,7 +27,7 @@ const actions = {
     await axios
       .get(process.env.VUE_APP_URL_MAIN + `house_ver`, {
         params: filtros,
-       
+
         "Content-Type": "application/json",
       })
       .then(function (response) {
@@ -38,7 +41,6 @@ const actions = {
 
   async guardarCarpetaHouse({ commit }, data) {
     var headers = {
-     
       "Content-Type": "application/json",
     };
 
@@ -61,7 +63,7 @@ const actions = {
     await axios
       .get(process.env.VUE_APP_URL_MAIN + `listado_houses`, {
         params: filtros,
-       
+
         "Content-Type": "application/json",
       })
       .then(function (response) {
@@ -83,7 +85,6 @@ const actions = {
         }`,
 
       headers: {
-       
         "Content-Type": "application/json",
       },
     };
@@ -102,7 +103,6 @@ const actions = {
       method: "post",
       url: process.env.VUE_APP_URL_MAIN + `insertComentarioHouse`,
       headers: {
-       
         "Content-Type": "application/json",
       },
       data: dataObj,
@@ -144,7 +144,6 @@ const actions = {
       method: "put",
       url: process.env.VUE_APP_URL_MAIN + "setHouseDelete",
       headers: {
-       
         "Content-Type": "application/json",
       },
       data: data,
@@ -196,6 +195,36 @@ const actions = {
         });
       }
     });
+  },
+  async getFacturasFiscales({ commit }, house = {}) {
+    commit("SET_LIST_FACTURA_FISCALES", []);
+    var vm = this;
+
+    var config = {
+      method: "get",
+      url: process.env.VUE_APP_URL_MAIN + `getFacturasFiscales`,
+      params: {
+        id_house: house.id_house,
+        id_correlativo: house.id_correlativo,
+      },
+      headers: {
+        "Content-Type": "application/json",
+      },
+    };
+
+    await axios(config)
+      .then(function (response) {
+        sessionStorage.setItem("auth-token", response.data.token);
+
+        if (!!response.data.data[0].estadoflag) {
+          commit("SET_LIST_FACTURA_FISCALES", response.data.data);
+        } else {
+          commit("SET_LIST_FACTURA_FISCALES", []);
+        }
+      })
+      .catch(function (error) {
+        console.log(error);
+      });
   },
 };
 export default {

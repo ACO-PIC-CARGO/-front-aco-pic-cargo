@@ -20,22 +20,19 @@
           >
           </v-autocomplete>
         </v-col>
-        <v-col
-          cols="12"
-          md="3"
-          class="pb-0"
-          v-if="Object.keys(id_cuenta).length > 0"
-        >
+        <v-col cols="12" md="3" class="pb-0">
           Monto Depositado En Banco:
           <!-- <v-icon @click="snackbar = true">mdi-information</v-icon> -->
           <v-text-field
             outlined
             dense
+            ref="txtMontoLocal"
             v-model="monto_local"
             type="number"
             :prefix="symbol"
             width="50px"
             :error-messages="errorMesage.monto_local"
+            :readonly="!Object.keys(id_cuenta).length > 0"
             @input="
               monto_local
                 ? (errorMesage.monto_local = '')
@@ -86,7 +83,6 @@
               Resumen y Comisión Bancario
             </v-tab>
           </v-tabs>
-
           <v-tabs-items v-model="pasos">
             <v-tab-item key="detallesPago">
               <v-row class="mt-1">
@@ -730,10 +726,10 @@ export default {
       this.monto = total.toFixed(2);
     },
     continuarGastoBancario() {
-      if (!this.cliente || !this.monto_local || this.selected.length == 0) {
+      if (!this.cliente || this.selected.length == 0) {
         let text = "";
         text = !this.cliente ? "Cliente Requerido. <br>" : "";
-        text += !this.monto_local ? "Monto Local Requerido. <br>" : "";
+        // text += !this.monto_local ? "Monto Local Requerido. <br>" : "";
         text +=
           this.selected.length == 0 ? "Seleccione Facturas a Pagar. <br>" : "";
         Swal.fire({
@@ -747,7 +743,6 @@ export default {
       this.editable = true;
     },
     async finalizarOperacion() {
-      
       let monto_local = Number(parseFloat(this.monto_local).toFixed(2));
       let montoFinal = Number(parseFloat(this.montoFinal).toFixed(2));
       if (monto_local != montoFinal) {
@@ -778,7 +773,6 @@ export default {
         detalle: this.selected,
         id_soporte: this.id_path,
       };
-
       this.loading = true;
       await this.setRegistroIgresos(data);
       this.loading = false;
@@ -874,7 +868,6 @@ export default {
 
         return acc + monto;
       }, 0);
-      this.monto_local = total.toFixed(2);
       return total.toFixed(2);
       // return this.selected
       //   .reduce((acc, item) => {
@@ -939,6 +932,9 @@ export default {
         this.calcularTotal();
       },
       deep: true, // Esto detecta cambios en las propiedades internas de los items
+    },
+    id_cuenta() {
+      this.$refs.txtMontoLocal.focus();
     },
   },
 };
