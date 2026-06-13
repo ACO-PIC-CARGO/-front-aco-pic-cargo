@@ -192,8 +192,7 @@
           class="my-1"
           small
           block
-          v-if="
-            $store.state.controlGastos.listControlGastos[0].url_folderonedrive
+          v-if="Object.keys($store.state.controlGastos.listControlGastos).length > 0 && $store.state.controlGastos.listControlGastos[0].url_folderonedrive
           "
           @click="
             to_direct({

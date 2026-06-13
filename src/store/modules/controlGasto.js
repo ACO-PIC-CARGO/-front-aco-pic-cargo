@@ -188,7 +188,6 @@ const actions = {
       });
   },
   async actualizarIngresos({ dispatch }, data) {
-    console.log("data2", data);
     var data = data;
     var config = {
       method: "post",

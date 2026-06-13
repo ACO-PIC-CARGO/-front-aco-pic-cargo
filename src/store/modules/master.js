@@ -116,7 +116,9 @@ const actions = {
     };
     await axios(config).then(async (response) => {
       return response.data.data;
-    });
+    }).catch(e=>{
+      console.error(e)
+    })
   },
 };
 
