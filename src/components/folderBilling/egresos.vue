@@ -11,10 +11,7 @@
     </h3>
     <v-expansion-panels accordion>
       <v-expansion-panel
-        v-for="(egreso, index) in ($store.state.controlGastos
-          .listControlGastos[0] &&
-          $store.state.controlGastos.listControlGastos[0].master_egresos) ||
-        []"
+        v-for="(egreso, index) in master_egresos || []"
         :key="index"
         :value="egreso.isExpanded"
       >
@@ -1321,6 +1318,7 @@ export default {
       type: Boolean,
       default: true,
     },
+    master_egresos: [],
   },
   data: () => {
     return {
@@ -1550,7 +1548,7 @@ export default {
         await this.moverCostos(data);
         this.loading = false;
         this.dialogCambiarExp = false;
-        this.$emit("recargarDatos");
+        await this.getListControlGastosMaster(this.$route.params.id);
       }
     },
     clienteKey(egreso, grupo) {
@@ -1575,10 +1573,7 @@ export default {
 
       const gruposMap = new Map();
 
-      const masterHouses =
-        (this.$store.state.controlGastos.listControlGastos[0] &&
-          this.$store.state.controlGastos.listControlGastos[0].master_houses) ||
-        [];
+      const masterHouses = this.$store.state.controlGastos.master_houses || [];
 
       detalle.forEach((item) => {
         const id_house = item.id_house || null;
@@ -1868,10 +1863,9 @@ export default {
         var data = {
           id_master:
             vm.$store.state.controlGastos.listControlGastos[0].master_id,
-          id_orders:
-            vm.$store.state.controlGastos.listControlGastos[0].master_houses.filter(
-              (v) => v.id_orders,
-            )[0].id_orders,
+          id_orders: vm.$store.state.controlGastos.master_houses.filter(
+            (v) => v.id_orders,
+          )[0].id_orders,
           id_proveedor: vm.egresos.id_proveedor,
           concepto: vm.egresos.concepto,
           monto_op: vm.egresos.montoop,
@@ -1898,8 +1892,8 @@ export default {
           data: data,
         };
         await axios(config)
-          .then(function (response) {
-            vm.listControlGasto();
+          .then(async function (response) {
+            await vm.getListControlGastosMaster(vm.$route.params.id);
             vm.dialog = false;
           })
           .catch(function (error) {
@@ -1975,10 +1969,9 @@ export default {
       });
 
       var data = {
-        id_house:
-          this.$store.state.controlGastos.listControlGastos[0].master_houses.filter(
-            (v) => v.id_house,
-          )[0].id_house,
+        id_house: this.$store.state.controlGastos.master_houses.filter(
+          (v) => v.id_house,
+        )[0].id_house,
         id_proveedor: vm.egreso.id_proveedor,
         id_path: vm.$store.state.files.payPath,
         type_pago: vm.radio,
@@ -2004,7 +1997,7 @@ export default {
           sessionStorage.setItem("auth-token", response.data.token);
 
           vm.itemsInvoice = response.data.data;
-          vm.listControlGasto();
+          await vm.getListControlGastosMaster(vm.$route.params.id);
           vm.$swal({
             icon: "success",
             title: "Documento Cargado",
@@ -2067,7 +2060,7 @@ export default {
           cuotas: cuotas,
         };
         await this.guardarCuotasCgeTipoProveedor(data);
-        await this.getListControlGastos(this.$route.params.id);
+        await this.getListControlGastosMaster(this.$route.params.id);
         this.$refs.frmPorcentajeProveedor.reset();
         this.loadingPorcentaje = false;
         this.dialogPorcentajeProveedor = false;
@@ -2149,7 +2142,7 @@ export default {
             },
           };
           axios(config)
-            .then(function (response) {
+            .then(async function (response) {
               let res = response.data;
               if (res.estadoflag == true) {
                 vm.$swal({
@@ -2158,7 +2151,7 @@ export default {
                   text: res.mensaje,
                 });
                 vm.$store.state.spiner = false;
-                vm.listControlGasto();
+                await vm.getListControlGastosMaster(vm.$route.params.id);
               } else {
                 vm.$swal({
                   icon: "error",
@@ -2210,7 +2203,7 @@ export default {
     },
     async listControlGasto() {
       this.$store.state.spiner = true;
-      await this.getListControlGastos(this.$route.params.id);
+      await this.getListControlGastosMaster(this.$route.params.id);
       this.$store.state.spiner = false;
     },
     activarSeccion3() {
@@ -2251,8 +2244,8 @@ export default {
         data: data,
       };
       await axios(config)
-        .then(function (response) {
-          vm.listControlGasto();
+        .then(async function (response) {
+          await vm.getListControlGastosMaster(vm.$route.params.id);
           vm.dialog = false;
         })
         .catch(function (error) {
@@ -2274,7 +2267,7 @@ export default {
         gananciaop: parseFloat(this.ingreso_op - this.egreso_op).toFixed(2),
         exp: this.codigo_master,
         sentido: master.master_modality,
-        itemsTotalesProveedores: master.master_egresos.map((element) => {
+        itemsTotalesProveedores: this.master_egresos.map((element) => {
           return {
             nameproveedor: element.nombre_proveedor,
             restante: parseFloat(element.monto_pagar_op).toFixed(2),
@@ -2283,30 +2276,32 @@ export default {
             total_pr: parseFloat(element.total_total_pr).toFixed(2),
           };
         }),
-        itemTotalHouse: master.master_houses.map((element) => {
-          return {
-            consigner: element.consigner,
-            code_house: element.code_house,
-            total_igv_op_ingresos: parseFloat(
-              element.total_igv_op_ingresos,
-            ).toFixed(2),
-            total_igv_pr_ingresos: parseFloat(
-              element.total_igv_pr_ingresos,
-            ).toFixed(2),
-            total_monto_op_ingresos: parseFloat(
-              element.total_monto_op_ingresos,
-            ).toFixed(2),
-            total_monto_pr_ingresos: parseFloat(
-              element.total_monto_pr_ingresos,
-            ).toFixed(2),
-            total_total_op_ingresos: parseFloat(
-              element.total_total_op_ingresos,
-            ).toFixed(2),
-            total_total_pr_ingresos: parseFloat(
-              element.total_total_pr_ingresos,
-            ).toFixed(2),
-          };
-        }),
+        itemTotalHouse: this.$store.state.controlgastos.master_houses.map(
+          (element) => {
+            return {
+              consigner: element.consigner,
+              code_house: element.code_house,
+              total_igv_op_ingresos: parseFloat(
+                element.total_igv_op_ingresos,
+              ).toFixed(2),
+              total_igv_pr_ingresos: parseFloat(
+                element.total_igv_pr_ingresos,
+              ).toFixed(2),
+              total_monto_op_ingresos: parseFloat(
+                element.total_monto_op_ingresos,
+              ).toFixed(2),
+              total_monto_pr_ingresos: parseFloat(
+                element.total_monto_pr_ingresos,
+              ).toFixed(2),
+              total_total_op_ingresos: parseFloat(
+                element.total_total_op_ingresos,
+              ).toFixed(2),
+              total_total_pr_ingresos: parseFloat(
+                element.total_total_pr_ingresos,
+              ).toFixed(2),
+            };
+          },
+        ),
       };
     },
     async imprimirControlDetallado() {
@@ -2318,7 +2313,7 @@ export default {
       let totalEgresoOp = 0;
       let totalIgvEgresosOp = 0;
       let totalTotalEgresosOp = 0;
-      master.master_egresos.forEach((element) => {
+      this.master_egresos.forEach((element) => {
         element.detalle.forEach((element2) => {
           egresos.push({
             namePagado: "",
@@ -2356,7 +2351,7 @@ export default {
         totalEgresoOp,
         totalIgvEgresosOp,
         totalTotalEgresosOp,
-        itemsTotalesProveedores: master.master_egresos.map((element) => {
+        itemsTotalesProveedores: this.master_egresos.map((element) => {
           return {
             nameproveedor: element.nombre_proveedor,
             restante: parseFloat(element.monto_pagar_op).toFixed(2),
@@ -2366,32 +2361,34 @@ export default {
           };
         }),
 
-        itemTotalHouse: master.master_houses.map((element) => {
-          return {
-            consigner: element.consigner,
-            code_house: element.code_house,
-            total_igv_op_ingresos: parseFloat(
-              element.total_igv_op_ingresos,
-            ).toFixed(2),
-            total_igv_pr_ingresos: parseFloat(
-              element.total_igv_pr_ingresos,
-            ).toFixed(2),
-            total_monto_op_ingresos: parseFloat(
-              element.total_monto_op_ingresos,
-            ).toFixed(2),
-            total_monto_pr_ingresos: parseFloat(
-              element.total_monto_pr_ingresos,
-            ).toFixed(2),
-            total_total_op_ingresos: parseFloat(
-              element.total_total_op_ingresos,
-            ).toFixed(2),
-            total_total_pr_ingresos: parseFloat(
-              element.total_total_pr_ingresos,
-            ).toFixed(2),
-          };
-        }),
-        itemHouses: master.master_houses,
-        itemEgresos: master.master_egresos,
+        itemTotalHouse: this.$store.state.controlgastos.master_houses.map(
+          (element) => {
+            return {
+              consigner: element.consigner,
+              code_house: element.code_house,
+              total_igv_op_ingresos: parseFloat(
+                element.total_igv_op_ingresos,
+              ).toFixed(2),
+              total_igv_pr_ingresos: parseFloat(
+                element.total_igv_pr_ingresos,
+              ).toFixed(2),
+              total_monto_op_ingresos: parseFloat(
+                element.total_monto_op_ingresos,
+              ).toFixed(2),
+              total_monto_pr_ingresos: parseFloat(
+                element.total_monto_pr_ingresos,
+              ).toFixed(2),
+              total_total_op_ingresos: parseFloat(
+                element.total_total_op_ingresos,
+              ).toFixed(2),
+              total_total_pr_ingresos: parseFloat(
+                element.total_total_pr_ingresos,
+              ).toFixed(2),
+            };
+          },
+        ),
+        itemHouses: this.$store.state.controlgastos.master_houses,
+        itemEgresos: this.master_egresos,
       };
       var vm = this;
       vm._calcularTotales();
@@ -2457,13 +2454,13 @@ export default {
           var vm = this;
 
           axios(config)
-            .then(function (response) {
+            .then(async function (response) {
               vm.$swal({
                 icon: "success",
                 title: "Excelente",
                 text: "Solicitud enviada correctamente",
               });
-              vm.listControlGasto();
+              await vm.getListControlGastosMaster(vm.$route.params.id);
               vm._getSPaymentPro(vm.sPaymentId);
               vm.dataList = true;
             })
@@ -2508,7 +2505,7 @@ export default {
             if (result.isConfirmed) {
               vm.dialogPayment = false;
               vm.$store.state.spiner = true;
-              await vm.listControlGasto();
+              await vm.getListControlGastosMaster(vm.$route.params.id);
               vm.$store.state.spiner = false;
             }
           });
@@ -2543,22 +2540,17 @@ export default {
       } else {
         concepto = vm.conceptos;
       }
-      let proveedor =
-        this.$store.state.controlGastos.listControlGastos[0].master_egresos.map(
-          (element) => {
-            return {
-              nameproveedor: element.nombre_proveedor,
-              total_pr: parseFloat(element.total_total_pr).toFixed(2),
-              total_op: parseFloat(element.total_total_op).toFixed(2),
-            };
-          },
-        );
+      let proveedor = this.master_egresos.map((element) => {
+        return {
+          nameproveedor: element.nombre_proveedor,
+          total_pr: parseFloat(element.total_total_pr).toFixed(2),
+          total_op: parseFloat(element.total_total_op).toFixed(2),
+        };
+      });
 
       var datas = {
-        id_house:
-          vm.$store.state.controlGastos.listControlGastos[0].master_houses.filter(
-            (v) => v.id_house,
-          )[0].id_house,
+        id_house: vm.$store.state.master_houses.filter((v) => v.id_house)[0]
+          .id_house,
         id_proveedor: vm.proveedorId,
         conceptos: concepto,
         monto: pago,
@@ -2574,12 +2566,11 @@ export default {
         },
         data: datas,
       };
-      let clientes =
-        this.$store.state.controlGastos.listControlGastos[0].master_houses
-          .map((element) => {
-            return element.consigner;
-          })
-          .join(", ");
+      let clientes = this.$store.state.controlGastos.master_houses
+        .map((element) => {
+          return element.consigner;
+        })
+        .join(", ");
 
       await axios(config)
         .then(function (response) {
@@ -2617,8 +2608,8 @@ export default {
           };
 
           axios(config)
-            .then(function (response) {
-              vm.listControlGasto();
+            .then(async function (response) {
+              await vm.getListControlGastosMaster(vm.$route.params.id);
               vm.$swal({
                 icon: "success",
                 title: "PDF Generado",
@@ -2889,6 +2880,7 @@ export default {
       }
     },
     ...mapActions([
+      "getListControlGastosMaster",
       "setEgresos",
       "setInvoice",
       "delInvoice",
@@ -2930,7 +2922,7 @@ export default {
     async copiarMontos() {
       if (this.$refs.frmCopiar.validate()) {
         await this.copiarCGEgresos(this.egreso);
-        await this.getListControlGastos(this.$route.params.id);
+        await this.getListControlGastosMaster(this.$route.params.id);
         this.dialogCopiar = false;
       }
     },

@@ -54,9 +54,7 @@
                   "
                   class="mb-2"
                 >
-                  <v-btn color="info" small @click="showAll = true"
-                    >Leer más</v-btn
-                  >
+                  <v-btn color="info" @click="showAll = true">Leer más</v-btn>
                 </div>
                 <v-simple-table>
                   <template v-slot:default>
@@ -99,18 +97,23 @@
                         </td>
                         <td v-if="esAereo">{{ computePesoCargable(item) }}</td>
                         <td>
-                          <v-icon
-                            small
-                            color="info"
-                            @click.stop="showHouse(item.id)"
-                            >mdi-open-in-new</v-icon
-                          >
-                          <v-icon
-                            small
-                            color="red"
-                            @click.stop="eliminar(item.id)"
-                            >mdi-delete</v-icon
-                          >
+                          <v-btn icon color="info">
+                            <v-icon @click.stop="showHouse(item.id)">
+                              mdi-open-in-new
+                            </v-icon>
+                          </v-btn>
+                          <v-btn icon color="red">
+                            <v-icon @click.stop="eliminar(item.id)">
+                              mdi-delete
+                            </v-icon>
+                          </v-btn>
+                          <v-btn icon color="#F57F17">
+                            <v-icon
+                              @click.stop="abrirModalCambiarExpediente(item)"
+                            >
+                              mdi-folder-arrow-up-down
+                            </v-icon>
+                          </v-btn>
                         </td>
                       </tr>
                     </tbody>
@@ -150,14 +153,101 @@
         </v-expansion-panel>
       </v-expansion-panels>
     </template>
+
+    <!-- DDDDDDDDDDDDDDDDD -->
+    <v-dialog v-model="dialogCambiarExpediente" max-width="500">
+      <v-card>
+        <v-card-title class="text-h5 grey lighten-2">
+          Cambiar expediente (House)
+          <v-spacer></v-spacer>
+          <v-btn icon color="default" @click="dialogCambiarExpediente = false">
+            <v-icon>mdi-close</v-icon>
+          </v-btn>
+        </v-card-title>
+        <v-card-text>
+          <v-autocomplete
+            :items="
+              $store.state.itemsMasterList.filter(
+                (v) => v.id != $route.params.id,
+              )
+            "
+            v-model="selectedNuevoExpediente"
+            item-value="id"
+            item-text="code_master"
+            label="Seleccione nuevo expediente"
+            outlined
+            class="my-5"
+          ></v-autocomplete>
+          <p class="caption mb-0">Actual: {{ house.code_house }}</p>
+        </v-card-text>
+        <v-card-actions>
+          <v-spacer></v-spacer>
+          <v-btn outlined color="red" @click="dialogCambiarExpediente = false"
+            >Cancelar</v-btn
+          >
+          <v-btn
+            color="primary"
+            :disabled="!selectedNuevoExpediente"
+            @click="aplicarCambioExpediente"
+            >Guardar</v-btn
+          >
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
   </div>
 </template>
 
 <script>
 import { mapActions } from "vuex";
 import Swal from "sweetalert2";
+import axios from "@/api/axios-config";
 export default {
   name: "houselist",
+  data: () => ({
+    openExpand: 0,
+    showAll: false,
+    activeTab: 0,
+    items: [
+      { header: "LISTA DE HOUSE" },
+      {
+        avatar: "https://cdn.vuetifyjs.com/images/lists/1.jpg",
+        title: "Brunch this weekend?",
+        subtitle: `<span class="text--primary">Ali Connors</span> &mdash; I'll be in your neighborhood doing errands this weekend. Do you want to hang out?`,
+      },
+      { divider: true, inset: true },
+      {
+        avatar: "https://cdn.vuetifyjs.com/images/lists/2.jpg",
+        title: 'Summer BBQ <span class="grey--text text--lighten-1">4</span>',
+        subtitle: `<span class="text--primary">to Alex, Scott, Jennifer</span> &mdash; Wish I could come, but I'm out of town this weekend.`,
+      },
+      { divider: true, inset: true },
+      {
+        avatar: "https://cdn.vuetifyjs.com/images/lists/3.jpg",
+        title: "Oui oui",
+        subtitle:
+          '<span class="text--primary">Sandra Adams</span> &mdash; Do you have Paris recommendations? Have you ever been?',
+      },
+      { divider: true, inset: true },
+      {
+        avatar: "https://cdn.vuetifyjs.com/images/lists/4.jpg",
+        title: "Birthday gift",
+        subtitle:
+          '<span class="text--primary">Trevor Hansen</span> &mdash; Have any ideas about what we should get Heidi for her birthday?',
+      },
+      { divider: true, inset: true },
+      {
+        avatar: "https://cdn.vuetifyjs.com/images/lists/5.jpg",
+        title: "Recipe to try",
+        subtitle:
+          '<span class="text--primary">Britta Holt</span> &mdash; We should eat this: Grate, Squash, Corn, and tomatillo Tacos.',
+      },
+    ],
+    flagCambiarExpediente: false,
+    dialogCambiarExpediente: false,
+    selectedNuevoExpediente: [],
+    house: {},
+    listaExpedientes: [],
+  }),
   computed: {
     displayedItems() {
       const list = this.$store.state.itemsHouseList || [];
@@ -221,7 +311,81 @@ export default {
     },
   },
   methods: {
-    ...mapActions(["deleteHouse"]),
+    ...mapActions(["deleteHouse", "_getMasterList"]),
+    async abrirModalCambiarExpediente(house = {}) {
+      this.house = house;
+
+      this.flagCambiarExpediente = true;
+
+      this.selectedNuevoExpediente = Number(this.$route.params.id) || null;
+      this.dialogCambiarExpediente = true;
+      this.flagCambiarExpediente = false;
+    },
+    async aplicarCambioExpediente() {
+      if (!this.house || !this.selectedNuevoExpediente) return;
+      if (
+        Number(this.selectedNuevoExpediente) === Number(this.$route.params.id)
+      ) {
+        this.dialogCambiarExpediente = false;
+        return;
+      }
+      const targetLabel =
+        (
+          this.listaExpedientes.find(
+            (x) => x.value === this.selectedNuevoExpediente,
+          ) || {}
+        ).text || this.selectedNuevoExpediente;
+      const res = await Swal.fire({
+        icon: "question",
+        title: "Confirmar cambio",
+        text: `¿Desea mover el house ${this.house.code_house} (con todos sus registros) al master ${targetLabel}?`,
+        showCancelButton: true,
+        confirmButtonText: "Sí, cambiar",
+        cancelButtonText: "Cancelar",
+      });
+      if (!res.isConfirmed) return;
+      
+      try {
+        const payload = {
+          id_orders: this.house.id_orders,
+          id_house: this.house.id,
+          id_master_origen: Number(this.$route.params.id),
+          id_master_destino: Number(this.selectedNuevoExpediente),
+        };
+        const config = {
+          method: "put",
+          url: process.env.VUE_APP_URL_MAIN + "reasignar_house",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          data: payload,
+        };
+        const response = await axios(config);
+        this.flagCambiarExpediente = false;
+        this.dialogCambiarExpediente = false;
+        this.$emit("recargarDatos");
+        if (response && response.data && response.data.estadoflag) {
+          await Swal.fire({ icon: "success", text: "Expediente actualizado" });
+          this.dialogCambiarExpediente = false;
+          this.flagCambiarExpediente = true;
+          this.$emit("recargarDatos");
+          // await this.getListControlGastos(this.$route.params.id);
+        } else {
+          await Swal.fire({
+            icon: "warning",
+            text:
+              (response && response.data && response.data.mensaje) ||
+              "No se pudo reasignar el expediente. Se requiere soporte de backend.",
+          });
+        }
+      } catch (error) {
+        console.error(error);
+        await Swal.fire({
+          icon: "info",
+          text: "Endpoint para reasignar house a otro master no disponible. Front listo; requerirá habilitar API (PUT reasignar_house).",
+        });
+      }
+    },
     showHouse(id) {
       if (this.$route.name == "controlMasterEditar") {
         this.$router.push("/home/folderHouse/control/editar/" + id);
@@ -272,51 +436,13 @@ export default {
       });
     },
   },
-  mounted() {
+  async mounted() {
+    await this._getMasterList();
     this.$nextTick(() => {
       this.openExpand = 0;
     });
   },
-  data: () => ({
-    openExpand: 0,
-    showAll: false,
-    activeTab: 0,
-    items: [
-      { header: "LISTA DE HOUSE" },
-      {
-        avatar: "https://cdn.vuetifyjs.com/images/lists/1.jpg",
-        title: "Brunch this weekend?",
-        subtitle: `<span class="text--primary">Ali Connors</span> &mdash; I'll be in your neighborhood doing errands this weekend. Do you want to hang out?`,
-      },
-      { divider: true, inset: true },
-      {
-        avatar: "https://cdn.vuetifyjs.com/images/lists/2.jpg",
-        title: 'Summer BBQ <span class="grey--text text--lighten-1">4</span>',
-        subtitle: `<span class="text--primary">to Alex, Scott, Jennifer</span> &mdash; Wish I could come, but I'm out of town this weekend.`,
-      },
-      { divider: true, inset: true },
-      {
-        avatar: "https://cdn.vuetifyjs.com/images/lists/3.jpg",
-        title: "Oui oui",
-        subtitle:
-          '<span class="text--primary">Sandra Adams</span> &mdash; Do you have Paris recommendations? Have you ever been?',
-      },
-      { divider: true, inset: true },
-      {
-        avatar: "https://cdn.vuetifyjs.com/images/lists/4.jpg",
-        title: "Birthday gift",
-        subtitle:
-          '<span class="text--primary">Trevor Hansen</span> &mdash; Have any ideas about what we should get Heidi for her birthday?',
-      },
-      { divider: true, inset: true },
-      {
-        avatar: "https://cdn.vuetifyjs.com/images/lists/5.jpg",
-        title: "Recipe to try",
-        subtitle:
-          '<span class="text--primary">Britta Holt</span> &mdash; We should eat this: Grate, Squash, Corn, and tomatillo Tacos.',
-      },
-    ],
-  }),
+
   watch: {
     "$store.state.itemsHouseList": function (newValue, oldValue) {
       this.openExpand = 0;

@@ -27,7 +27,10 @@
           </v-card>
         </v-col>
         <v-col cols="12">
-          <houselist v-if="$store.state.statusData" />
+          <houselist
+            v-if="$store.state.statusData"
+            @recargarDatos="recargarDatos"
+          />
         </v-col>
         <div style="position: fixed; bottom: 16px; right: 16px; z-index: 3000">
           <v-fab-transition v-if="formControlMasterReadonly">
@@ -110,7 +113,7 @@ import dataEmbar from "./dataEmbar.vue";
 import dataFechas from "./fechas.vue";
 import { mapActions, mapState } from "vuex";
 import Swal from "sweetalert2";
-import axios from '@/api/axios-config';
+import axios from "@/api/axios-config";
 export default {
   name: "controlMasterCom",
   components: {
@@ -183,6 +186,9 @@ export default {
       "openURL",
       "atras",
     ]),
+    async recargarDatos() {
+      await this._getHouseList();
+    },
     irAVerMaster() {
       this.$router.push({
         name: "controlMasterEditar",
@@ -197,7 +203,6 @@ export default {
           process.env.VUE_APP_URL_MAIN +
           `crear-carpeta-master?nromaster=${name}`,
         headers: {
-         
           "Content-Type": "application/json",
         },
       };
@@ -216,7 +221,6 @@ export default {
         method: "put",
         url: process.env.VUE_APP_URL_MAIN + `update_folder_onedrive`,
         headers: {
-         
           "Content-Type": "application/json",
         },
         data: {
@@ -250,7 +254,6 @@ export default {
         method: "post",
         url: process.env.VUE_APP_URL_MAIN + "setMasterContainers",
         headers: {
-         
           "Content-Type": "application/json",
         },
         data: data,
@@ -291,7 +294,6 @@ export default {
         method: "post",
         url: process.env.VUE_APP_URL_MAIN + "setHouseContainers",
         headers: {
-         
           "Content-Type": "application/json",
         },
         data: data,
@@ -322,7 +324,6 @@ export default {
           method: "post",
           url: process.env.VUE_APP_URL_MAIN + "setServices",
           headers: {
-           
             "Content-Type": "application/json",
           },
           data: data,
@@ -425,7 +426,6 @@ export default {
         method: "post",
         url: process.env.VUE_APP_URL_MAIN + "setHouse",
         headers: {
-         
           "Content-Type": "application/json",
         },
         data: data,
@@ -556,7 +556,6 @@ export default {
           method: "post",
           url: process.env.VUE_APP_URL_MAIN + "setHouse",
           headers: {
-           
             "Content-Type": "application/json",
           },
           data: data,
@@ -744,7 +743,6 @@ export default {
             "editMaster/" +
             vm.$store.state.master_Id_get,
           headers: {
-           
             "Content-Type": "application/json",
           },
           data: data,
@@ -1052,7 +1050,6 @@ export default {
           method: "post",
           url: process.env.VUE_APP_URL_MAIN + "setMaster",
           headers: {
-           
             "Content-Type": "application/json",
           },
           data: data,
