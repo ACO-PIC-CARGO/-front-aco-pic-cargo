@@ -192,7 +192,7 @@
 </template>
 <script>
 import { mapState, mapActions } from "vuex";
-import axios from '@/api/axios-config';
+import axios from "@/api/axios-config";
 export default {
   name: "dataGen",
   data() {
@@ -242,7 +242,7 @@ export default {
       return this.isAereo() ? "BL Máster Nro." : "BL Máster";
     },
     obtenerInputTypeBLMaster() {
-      return 'text'
+      return "text";
       // return this.isAereo() ? "number" : "text";
     },
     operadorNombre() {
@@ -250,7 +250,7 @@ export default {
         return "";
       }
       const operador = this.itemsOperadorList.find(
-        op => op.id == this.$store.state.master_id_operador
+        (op) => op.id == this.$store.state.master_id_operador,
       );
       return operador ? operador.namelong : "";
     },
@@ -330,7 +330,6 @@ export default {
             "getMasterId/" +
             vm.$store.state.master_Id_get,
           headers: {
-           
             "Content-Type": "application/json",
           },
         };
@@ -383,6 +382,10 @@ export default {
             vm.$store.state.master_id_airlines =
               response.data.data[0].id_aerolinea;
             vm.$store.state.statusData = true;
+            vm.$store.state.salidaflag = response.data.data[0].salidaflag;
+            vm.$store.state.llegadaflag = response.data.data[0].llegadaflag;
+            vm.$store.state.disponibilidadflag =
+              response.data.data[0].disponibilidadflag;
             vm.$store.state.master_id_coloader =
               response.data.data[0].id_coloader;
             vm.$store.state.master_id_naviera =

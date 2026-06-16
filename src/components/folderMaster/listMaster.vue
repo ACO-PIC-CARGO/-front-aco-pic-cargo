@@ -534,27 +534,55 @@
         </v-card-actions>
       </v-card>
     </v-dialog>
-    <v-dialog v-model="dialogFecha" width="30%">
+    <v-dialog v-model="dialogFecha" width="45%">
       <v-card>
         <v-card-title primary-title>
           {{ exp.code_master }} - Editar Fechas
         </v-card-title>
         <v-card-text>
-          <v-text-field
-            label="Fecha ETD"
-            v-model="exp.fecha_etd"
-            type="date"
-          ></v-text-field>
-          <v-text-field
-            label="Fecha ETA"
-            v-model="exp.fecha_eta"
-            type="date"
-          ></v-text-field>
-          <v-text-field
-            label="Fecha Disponibilidad"
-            v-model="exp.fecha_disponibilidad"
-            type="date"
-          ></v-text-field>
+          <v-row>
+            <v-col cols="7">
+              <FormatFecha
+                label="Fecha ETD"
+                id="filtroDesde"
+                v-model="exp.fecha_etd"
+              />
+            </v-col>
+            <v-col cols="5">
+              <v-checkbox
+                label="Salida Confirmada"
+                v-model="exp.salidaflag"
+              ></v-checkbox>
+            </v-col>
+
+            <v-col cols="7">
+              <FormatFecha
+                label="Fecha ETA"
+                id="filtroDesde"
+                v-model="exp.fecha_eta"
+              />
+            </v-col>
+            <v-col cols="5">
+              <v-checkbox
+                label="Llegada Confirmada"
+                v-model="exp.llegadaflag"
+              ></v-checkbox>
+            </v-col>
+
+            <v-col cols="7">
+              <FormatFecha
+                label="Disponibilidad Confirmada"
+                id="filtroDesde"
+                v-model="exp.fecha_disponibilidad"
+              />
+            </v-col>
+            <v-col cols="5">
+              <v-checkbox
+                label="Confirmación Disponibilidad"
+                v-model="exp.disponibilidadflag"
+              ></v-checkbox>
+            </v-col>
+          </v-row>
         </v-card-text>
         <v-card-actions class="justify-end">
           <v-btn small color="success" :loading="loading" @click="guardarFechas"
@@ -579,12 +607,13 @@
 </template>
 <script>
 import { mapState, mapActions } from "vuex";
-import axios from '@/api/axios-config';
+import axios from "@/api/axios-config";
 import moment from "moment";
 import Swal from "sweetalert2";
 import GuardarUrlMaster from "../comun/GuardarUrlMaster.vue";
+import FormatFecha from "../comun/FormatFecha.vue";
 export default {
-  components: { GuardarUrlMaster },
+  components: { GuardarUrlMaster, FormatFecha },
   name: "listMasterCom",
   data() {
     return {
@@ -703,21 +732,27 @@ export default {
     async guardarFechas() {
       this.loading = true;
       try {
-        const response = await axios.put(
-          process.env.VUE_APP_URL_MAIN + "updateFechasMaster",
-          {
-            fecha_etd: this.exp.fecha_etd,
-            fecha_eta: this.exp.fecha_eta,
-            id: this.exp.id,
-            fecha_disponibilidad: this.exp.fecha_disponibilidad,
-          },
-          {
-            headers: {
-             
-              "Content-Type": "application/json",
+        const response = await axios
+          .put(
+            process.env.VUE_APP_URL_MAIN + "updateFechasMaster",
+            {
+              fecha_etd: this.exp.fecha_etd,
+              fecha_eta: this.exp.fecha_eta,
+              fecha_disponibilidad: this.exp.fecha_disponibilidad,
+              salidaflag: this.exp.salidaflag,
+              llegadaflag: this.exp.llegadaflag,
+              disponibilidadflag: this.exp.disponibilidadflag,
+              id: this.exp.id,
             },
-          },
-        );
+            {
+              headers: {
+                "Content-Type": "application/json",
+              },
+            },
+          )
+          .catch((e) => {
+            console.error(e);
+          });
 
         let data = response.data;
         if (data.estadoflag) {
@@ -812,7 +847,6 @@ export default {
             method: "post",
             url: process.env.VUE_APP_URL_MAIN + "lockMaster/" + id,
             headers: {
-             
               "Content-Type": "application/json",
             },
           };
@@ -865,7 +899,6 @@ export default {
             method: "post",
             url: process.env.VUE_APP_URL_MAIN + "nullMaster/" + id,
             headers: {
-             
               "Content-Type": "application/json",
             },
             data: {
@@ -920,7 +953,6 @@ export default {
             method: "post",
             url: process.env.VUE_APP_URL_MAIN + "lockMasterAdm/" + id,
             headers: {
-             
               "Content-Type": "application/json",
             },
           };
@@ -1086,7 +1118,6 @@ export default {
             method: "delete",
             url: process.env.VUE_APP_URL_MAIN + "deleteMaster/" + id,
             headers: {
-             
               "Content-Type": "application/json",
             },
           };

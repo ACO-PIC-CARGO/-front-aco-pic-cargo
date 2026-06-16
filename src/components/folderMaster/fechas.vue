@@ -10,6 +10,13 @@
         ></v-text-field>
       </v-col>
       <v-col cols="12" md="6">
+        <v-checkbox
+          label="Salida Confirmada"
+          v-model="$store.state.salidaflag"
+          dense
+        ></v-checkbox>
+      </v-col>
+      <v-col cols="12" md="6">
         <v-text-field
           @change="_getDate()"
           type="date"
@@ -17,6 +24,14 @@
           label="Llegada (ETA)"
         ></v-text-field>
       </v-col>
+      <v-col cols="12" md="6">
+        <v-checkbox
+          label="Llegada Confirmada"
+          v-model="$store.state.llegadaflag"
+          dense
+        ></v-checkbox>
+      </v-col>
+
       <v-col cols="12" md="6" align="right" justify="right">
         <v-text-field
           v-model="$store.state.master_fecha_disponibilidad"
@@ -24,6 +39,13 @@
           @change="_validaDate()"
           label="Fecha de Disponibilidad"
         ></v-text-field>
+      </v-col>
+      <v-col cols="12" md="6" align="right" justify="right">
+        <v-checkbox
+          label="Confirmación Disponibilidad"
+          v-model="$store.state.disponibilidadflag"
+          dense
+        ></v-checkbox>
       </v-col>
       <v-col cols="12" md="6">
         <v-select
@@ -136,7 +158,7 @@ export default {
     },
     _getDate() {
       let code_sentido = this.itemsModality.filter(
-        (v) => v.id == this.$store.state.master_sentido
+        (v) => v.id == this.$store.state.master_sentido,
       )[0].code;
 
       if (code_sentido == "E") {
@@ -154,7 +176,7 @@ export default {
     },
     _validaDate() {
       let code_sentido = this.itemsModality.filter(
-        (v) => v.id == this.$store.state.master_sentido
+        (v) => v.id == this.$store.state.master_sentido,
       )[0].code;
       var vm = this;
       if (code_sentido == "E") {
