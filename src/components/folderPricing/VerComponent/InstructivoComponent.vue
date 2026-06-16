@@ -671,6 +671,19 @@
             <v-toolbar-title>Datos Manuales Instructivo</v-toolbar-title>
             <v-spacer></v-spacer>
             <v-btn
+              class="mx-1"
+              color="#FFD600"
+              dark
+              @click="
+                abrirCarpeta(
+                  $store.state.pricing.datosPrincipales.url_folderonedrive,
+                )
+              "
+            >
+              <v-icon class="mx-1" dense small>mdi-folder</v-icon>
+              ABRIR
+            </v-btn>
+            <v-btn
               small
               class="mx-1"
               v-if="verPrevisualizacion"
@@ -733,7 +746,7 @@ import { mapActions } from "vuex";
 import Swal from "sweetalert2";
 import moment from "moment";
 import mixins from "../../../components/mixins/funciones.js";
-import axios from '@/api/axios-config';
+import axios from "@/api/axios-config";
 import FileSequenceInstructivo from "../../comun/fileSequenceInstructivo.vue";
 
 export default {
@@ -860,6 +873,18 @@ export default {
       "GuardarConfiguracionEmpresa",
       "ObtenerDatosConfig",
     ]),
+    abrirCarpeta(url) {
+      if (!url) {
+        Swal.fire({
+          icon: "warning",
+          title: "Error",
+          text: "No existe carpeta asociada.",
+        });
+        return;
+      }
+
+      window.open(url, "_blank");
+    },
     irAControlDeGastos() {
       console.log();
       Swal.fire({
@@ -871,8 +896,7 @@ export default {
         allowOutsideClick: false,
         confirmButtonText: "Si, ir al control de Gastos",
         denyButtonText: "Cancelar",
-        showCloseButton:true
-        
+        showCloseButton: true,
       }).then((res) => {
         if (res.isConfirmed) {
           this.$router.push({
@@ -1402,7 +1426,6 @@ export default {
           url: process.env.VUE_APP_URL_MAIN + "validar_existe_pago_master",
           headers: {
             "Content-Type": "application/json",
-           
           },
           params: {
             id: this.id_exp,
@@ -1427,7 +1450,6 @@ export default {
         url: process.env.VUE_APP_URL_MAIN + "validar_existe_pago_house",
         headers: {
           "Content-Type": "application/json",
-         
         },
         params: {
           id: this.id_house,
@@ -1447,7 +1469,6 @@ export default {
         url: process.env.VUE_APP_URL_MAIN + "cargar_house_asociado_master",
         headers: {
           "Content-Type": "application/json",
-         
         },
         params: {
           id_master: this.id_exp,

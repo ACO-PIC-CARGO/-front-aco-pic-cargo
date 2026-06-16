@@ -1,12 +1,15 @@
-import axios from '@/api/axios-config';;
+import axios from "@/api/axios-config";
 import Swal from "sweetalert2";
 import moment from "moment";
 import router from "@/router";
 const state = {
   listControlGastos: [],
+  master_houses: [],
+  master_egresos: [],
   listCorrelativo: [],
   response: [],
   nombreCampania: "",
+  listHouses: [],
 };
 const mutations = {
   SET_LIST_CONTROL_GASTOS(state, data) {
@@ -21,6 +24,12 @@ const mutations = {
   SET_NOMBRECAMBIANIA(state, data) {
     state.nombreCampania = data;
   },
+  SET_LIST_CONTROL_GASTOS_HOUSE(state, data) {
+    state.master_houses = data.lsthouses;
+  },
+  SET_LIST_CONTROL_GASTOS_MASTER(state, data) {
+    state.master_egresos = data.lsthouses;
+  },
 };
 
 const actions = {
@@ -28,7 +37,6 @@ const actions = {
     const routeParams = router.currentRoute.params;
     // console.log(routeParams);
     var headers = {
-     
       "Content-Type": "application/json",
     };
     var config = {
@@ -44,7 +52,6 @@ const actions = {
       sessionStorage.setItem("auth-token", data.token);
       if (data.statusBol == true) {
         commit("SET_LIST_CONTROL_GASTOS", response.data.data);
-        
       } else {
         commit("SET_LIST_CONTROL_GASTOS", []);
         Swal.fire({
@@ -65,9 +72,86 @@ const actions = {
       }
     });
   },
+  async getListControlGastosHouses({ commit }, id) {
+    const routeParams = router.currentRoute.params;
+    // console.log(routeParams);
+    var headers = {
+      "Content-Type": "application/json",
+    };
+    var config = {
+      method: "get",
+      url:
+        process.env.VUE_APP_URL_MAIN +
+        `control_gastos_listhouses?id=${id}&id_branch=${routeParams.id_branch}`,
+      headers: headers,
+    };
+
+    await axios(config).then((response) => {
+      let data = response.data;
+      sessionStorage.setItem("auth-token", data.token);
+      if (data.statusBol == true) {
+        commit("SET_LIST_CONTROL_GASTOS_HOUSE", response.data.data);
+      } else {
+        commit("SET_LIST_CONTROL_GASTOS_HOUSE", []);
+        Swal.fire({
+          icon: "error",
+          title: data.statusText,
+          text: data.mensaje,
+          allowOutsideClick: false,
+          allowEscapeKey: false,
+          allowEnterKey: false,
+        }).then((resSwal) => {
+          if (resSwal.isConfirmed && data.status == "401") {
+            router.push({ name: "Login" });
+            setTimeout(() => {
+              window.location.reload();
+            }, 10);
+          }
+        });
+      }
+    });
+  },
+  async getListControlGastosMaster({ commit }, id) {
+    const routeParams = router.currentRoute.params;
+    // console.log(routeParams);
+    var headers = {
+      "Content-Type": "application/json",
+    };
+    var config = {
+      method: "get",
+      url:
+        process.env.VUE_APP_URL_MAIN +
+        `control_gastos_listmaster?id=${id}&id_branch=${routeParams.id_branch}`,
+      headers: headers,
+    };
+
+    await axios(config).then((response) => {
+      let data = response.data;
+      sessionStorage.setItem("auth-token", data.token);
+      if (data.statusBol == true) {
+        commit("SET_LIST_CONTROL_GASTOS_MASTER", response.data.data);
+      } else {
+        commit("SET_LIST_CONTROL_GASTOS_MASTER", []);
+        Swal.fire({
+          icon: "error",
+          title: data.statusText,
+          text: data.mensaje,
+          allowOutsideClick: false,
+          allowEscapeKey: false,
+          allowEnterKey: false,
+        }).then((resSwal) => {
+          if (resSwal.isConfirmed && data.status == "401") {
+            router.push({ name: "Login" });
+            setTimeout(() => {
+              window.location.reload();
+            }, 10);
+          }
+        });
+      }
+    });
+  },
   async cargarCorrelativo({ commit }) {
     var headers = {
-     
       "Content-Type": "application/json",
     };
     var config = {
@@ -88,7 +172,6 @@ const actions = {
   },
   async listarCGECcorralativo({ commit }, id_proveedor) {
     var headers = {
-     
       "Content-Type": "application/json",
     };
     var config = {
@@ -126,7 +209,6 @@ const actions = {
       method: "post",
       url: process.env.VUE_APP_URL_MAIN + "setControl",
       headers: {
-       
         "Content-Type": "application/json",
       },
       data: data,
@@ -160,7 +242,6 @@ const actions = {
       method: "post",
       url: process.env.VUE_APP_URL_MAIN + "setIngresos",
       headers: {
-       
         "Content-Type": "application/json",
       },
       data: data,
@@ -175,7 +256,7 @@ const actions = {
             icon: "info",
             text: res.data[0].mensaje,
           });
-          dispatch("getListControlGastos", data.id_master);
+          dispatch("getListControlGastosHouses", data.id_master);
         } else {
           Swal.fire({
             icon: "error",
@@ -193,7 +274,6 @@ const actions = {
       method: "post",
       url: process.env.VUE_APP_URL_MAIN + "editIngreso/" + data.id,
       headers: {
-       
         "Content-Type": "application/json",
       },
       data: data,
@@ -208,7 +288,7 @@ const actions = {
             icon: "info",
             text: res.data[0].mensaje,
           });
-          // dispatch("getListControlGastos", data.code_master);
+          dispatch("getListControlGastosHouses", data.code_master);
         } else {
           Swal.fire({
             icon: "error",
@@ -225,7 +305,6 @@ const actions = {
       method: "put",
       url: process.env.VUE_APP_URL_MAIN + "copiar_cgingresos",
       headers: {
-       
         "Content-Type": "application/json",
       },
       data: data,
@@ -240,7 +319,7 @@ const actions = {
             icon: "info",
             text: res.data[0].mensaje,
           });
-          // dispatch("getListControlGastos", data.code_master);
+          dispatch("getListControlGastosHouses", data.code_master);
         } else {
           Swal.fire({
             icon: "error",
@@ -257,7 +336,6 @@ const actions = {
       method: "put",
       url: process.env.VUE_APP_URL_MAIN + "copiar_cgegresos",
       headers: {
-       
         "Content-Type": "application/json",
       },
       data: data,
@@ -272,7 +350,7 @@ const actions = {
             icon: "info",
             text: res.data[0].mensaje,
           });
-          // dispatch("getListControlGastos", data.code_master);
+          dispatch("getListControlGastosMaster", data.code_master);
         } else {
           Swal.fire({
             icon: "error",
@@ -293,7 +371,6 @@ const actions = {
         "obtener_nombre_camapania?id_master=" +
         id_master,
       headers: {
-       
         "Content-Type": "application/json",
       },
       data: data,
@@ -321,7 +398,6 @@ const actions = {
       method: "post",
       url: process.env.VUE_APP_URL_MAIN + "delIngresos/" + data.id,
       headers: {
-       
         "Content-Type": "application/json",
       },
       data: data,
@@ -331,9 +407,7 @@ const actions = {
       .then(function (response) {
         let res = response.data;
         sessionStorage.setItem("auth-token", res.token);
-        if (res.statusBol == true) {
-          // dispatch("getListControlGastos", data.code_master);
-        } else {
+        if (!res.statusBol == true) {
           Swal.fire({
             icon: "error",
             text: res.data.mensaje,
@@ -351,7 +425,6 @@ const actions = {
       method: "post",
       url: process.env.VUE_APP_URL_MAIN + "carga_masiva_controldegasto",
       headers: {
-       
         "Content-Type": "application/json",
       },
       data: data,
@@ -379,7 +452,6 @@ const actions = {
         id_mastercontrol,
       responseType: "blob",
       headers: {
-       
         "Content-Type": "blob",
       },
     };
@@ -393,8 +465,8 @@ const actions = {
         link.setAttribute(
           "download",
           `Consolidación Carga Masiva ${moment().format(
-            "DD-MM-YYYY hh:mm:ss"
-          )}.xlsx`
+            "DD-MM-YYYY hh:mm:ss",
+          )}.xlsx`,
         );
         document.body.appendChild(link);
         link.click();
@@ -409,7 +481,6 @@ const actions = {
       method: "post",
       url: process.env.VUE_APP_URL_MAIN + "guardar_cuotas_cge_tipo_proveedor",
       headers: {
-       
         "Content-Type": "application/json",
       },
       data: data,

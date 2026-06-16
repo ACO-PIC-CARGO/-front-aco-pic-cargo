@@ -10,10 +10,7 @@
     </v-btn> -->
     <v-expansion-panels v-model="openedPanel" accordion>
       <v-expansion-panel
-        v-for="(house, index) in ($store.state.controlGastos
-          .listControlGastos[0] &&
-          $store.state.controlGastos.listControlGastos[0].master_houses) ||
-        []"
+        v-for="(house, index) in master_houses || []"
         :key="index"
         :value="house.isExpanded"
       >
@@ -185,9 +182,13 @@
                   </v-btn>
                 </td>
                 <td>
-                  <v-icon color="info" @click.stop="verProformas(house)"
-                    >mdi-eye</v-icon
+                  <v-icon
+                    :disabled="!house.tienefacturafiscal"
+                    color="info"
+                    @click.stop="verProformas(house)"
                   >
+                    mdi-eye
+                  </v-icon>
                 </td>
                 <td v-if="editable">
                   <v-btn
@@ -1257,6 +1258,7 @@ export default {
       type: Boolean,
       default: true,
     },
+    master_houses: [],
   },
 
   data() {
@@ -1505,8 +1507,8 @@ export default {
         icon: "success",
         title: "Datos guardados correctamente.",
         text: " Se han guardado. Recargue la página para ver los cambios reflejados.",
-      }).then(() => {
-        this.$emit("recargarDatos");
+      }).then(async () => {
+        await this.getListControlGastosHouses(this.$route.params.id);
       });
     },
     continueStep2() {
@@ -1571,7 +1573,7 @@ export default {
                 title: "REGISTRO ELIMINADO.",
               });
 
-              await vm.getListControlGastos(vm.$route.params.id);
+              await vm.getListControlGastosHouses(vm.$route.params.id);
               vm.$emit("recalcularProfit");
             }
           } catch (error) {
@@ -1621,7 +1623,7 @@ export default {
       }).then(async (res) => {
         if (res.isConfirmed) {
           await this.copiarCGingresos({ id_orders: house.id_orders });
-          await this.getListControlGastos(this.$route.params.id);
+          await this.getListControlGastosHouses(this.$route.params.id);
         }
       });
       // console.log(id_orders);
@@ -1643,12 +1645,8 @@ export default {
       this.dialogNewDebs = true;
     },
     abrirExpandIngreso(index) {
-      this.$store.state.controlGastos.listControlGastos[0].master_houses[
-        index
-      ].isExpanded =
-        !this.$store.state.controlGastos.listControlGastos[0].master_houses[
-          index
-        ].isExpanded;
+      this.$store.state.controlGastos.master_houses[index].isExpanded =
+        this.$store.state.controlGastos.master_houses[index].isExpanded;
     },
     editIngreso(item) {
       this.statusBtn = 2;
@@ -1679,7 +1677,7 @@ export default {
       house.id_master = this.$route.params.id;
       let vm = this;
       await vm.setControl(house);
-      await vm.getListControlGastos(this.$route.params.id);
+      await vm.getListControlGastosHouses(vm.$route.params.id);
       vm.$store.state.spiner = false;
     },
     obtenerMoneda() {
@@ -1728,10 +1726,10 @@ export default {
           data: data,
         };
         await axios(config)
-          .then(function (response) {
+          .then(async function (response) {
             vm.dialogNewDebs = false;
             vm.dialogDebs = false;
-            vm.listControlGasto(vm.$route.params.code_master);
+            await vm.getListControlGastosHouses(vm.$route.params.id);
 
             vm.cleandData();
 
@@ -1750,7 +1748,7 @@ export default {
     },
     async listControlGasto() {
       this.$store.state.spiner = true;
-      await this.getListControlGastos(this.$route.params.id);
+      await this.getListControlGastosHouses(this.$route.params.id);
       this.$store.state.spiner = false;
     },
     async uploadFile() {
@@ -1854,8 +1852,8 @@ export default {
         },
       };
       await axios(config)
-        .then(function (response) {
-          vm.listControlGasto();
+        .then(async function (response) {
+          await vm.getListControlGastosHouses(vm.$route.params.id);
           vm.dialogDebs = false;
         })
         .catch(function (error) {
@@ -1875,7 +1873,7 @@ export default {
         tipo_pago: this.ingresos.opcion,
       };
       await this.actualizarIngresos(data);
-      await this.getListControlGastos(this.$route.params.id);
+      await this.getListControlGastosHouses(this.$route.params.id);
       this.statusBtn = 1;
       this.dialogIngreso = false;
       this.$forceUpdate();
@@ -1896,7 +1894,7 @@ export default {
             id: id,
           };
           await this.eliminarIngreso(data);
-          await this.getListControlGastos(this.$route.params.id);
+          await this.getListControlGastosHouses(this.$route.params.id);
           this.$emit("recalcularProfit");
         }
       });
@@ -1968,11 +1966,11 @@ export default {
               icon: "success",
               title: "Pago Cargado",
               text: "El pago ha sido cargado correctamente",
-            }).then((result) => {
+            }).then(async (result) => {
               if (result.isConfirmed) {
                 vm.dialogDebsEdit = false;
                 vm.dialogDebs = false;
-                vm.listControlGasto();
+                await vm.getListControlGastosHouses(vm.$route.params.id);
               }
             });
           })
@@ -2086,7 +2084,7 @@ export default {
       };
       await axios(config);
       window.open(process.env.VUE_APP_URL_MAIN + data.path, "_blank");
-      vm.listControlGasto();
+      await vm.getListControlGastosHouses(vm.$route.params.id);
     },
     isBotonEmitirProformaDisabled(house = {}) {
       let disabled = false;
@@ -2287,14 +2285,9 @@ export default {
     },
     async abrirModalCambiarExpediente(house = {}) {
       this.house = house;
-      // Cargar lista de masters y poblar el combo con sus códigos
+
       this.flagCambiarExpediente = true;
-      // await this._getMasterList();
-      // const masters = (this.$store.state.itemsMasterList || []).slice();
-      // this.listaExpedientes = masters.map((v) => ({
-      //   text: v.code_master,
-      //   value: v.id,
-      // }));
+
       this.selectedNuevoExpediente = Number(this.$route.params.id) || null;
       this.dialogCambiarExpediente = true;
       this.flagCambiarExpediente = false;
@@ -2339,16 +2332,13 @@ export default {
           data: payload,
         };
         const response = await axios(config);
-         this.flagCambiarExpediente = false;
-          this.dialogCambiarExpediente = false;
-         this.$emit("recargarDatos");
+        this.flagCambiarExpediente = false;
+        this.dialogCambiarExpediente = false;
+        await this.getListControlGastosHouses(this.$route.params.id);
         if (response && response.data && response.data.estadoflag) {
           await Swal.fire({ icon: "success", text: "Expediente actualizado" });
           this.dialogCambiarExpediente = false;
           this.flagCambiarExpediente = true;
-          this.$emit("recargarDatos");
-          // await this.getListControlGastos(this.$route.params.id);
-         
         } else {
           await Swal.fire({
             icon: "warning",
@@ -2431,7 +2421,7 @@ export default {
           "Factura anulada correctamente.",
           "success",
         );
-        this.$emit("recargarDatos");
+        await this.getListControlGastosHouses(this.$route.params.id);
       } catch (error) {
         console.error(error);
         Swal.fire(
@@ -2458,6 +2448,7 @@ export default {
       "_getMasterList",
       "guardarDatosInstructivo",
       "getFacturasFiscales",
+      "getListControlGastosHouses",
     ]),
     bloquearCopiarMontos(ingresos) {
       return ingresos.some((v) => v.facturado);
