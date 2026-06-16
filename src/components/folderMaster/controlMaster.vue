@@ -734,6 +734,9 @@ export default {
           vuelo: vm.$store.state.master_vuelo || null,
           nro_containers: vm.$store.state.master_nro_containers || null,
           nro_precinto: vm.$store.state.master_nro_precinto || null,
+          salidaflag: vm.$store.state.salidaflag || null,
+          llegadaflag: vm.$store.state.llegadaflag || null,
+          disponibilidadflag: vm.$store.state.disponibilidadflag || null,
         });
 
         var config = {
@@ -1044,6 +1047,9 @@ export default {
           vuelo: vm.$store.state.master_vuelo || null,
           nro_containers: vm.$store.state.master_nro_containers || null,
           nro_precinto: vm.$store.state.master_nro_precinto || null,
+          salidaflag: vm.$store.state.salidaflag || null,
+          llegadaflag: vm.$store.state.llegadaflag || null,
+          disponibilidadflag: vm.$store.state.disponibilidadflag || null,
         });
 
         var config = {
