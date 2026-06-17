@@ -5,7 +5,7 @@
         <v-text-field
           placeholder="Buscar..."
           label="Buscar"
-          v-model="$store.state.pricing.search"
+          v-model="search"
           append-icon="mdi-magnify"
         >
         </v-text-field>
