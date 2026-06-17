@@ -1946,23 +1946,14 @@ export default new Vuex.Store({
     },
 
     async _getControlFileAll({ commit }, filtro) {
+      filtro.id_branch = JSON.parse(sessionStorage.getItem("dataUser"))[0].id_branch
       this.state.reportStatusTable = true;
       var config = {
         method: "get",
         url:
           process.env.VUE_APP_URL_MAIN +
-          `getControlFile?id_branch=${
-            JSON.parse(sessionStorage.getItem("dataUser"))[0].id_branch
-          }&status_op=${
-            filtro.status_op ? filtro.status_op : ""
-          }&status_admin=${
-            filtro.status_admin ? filtro.status_admin : ""
-          }&sentido=${filtro.sentido ? filtro.sentido : ""}&desde=${
-            filtro.desde ? filtro.desde : ""
-          }&hasta=${filtro.hasta ? filtro.hasta : ""}&id_operativo=${
-            filtro.id_operativo ? filtro.id_operativo : ""
-          }
-        `,
+          `getControlFile`,
+        params:filtro,
         headers: {
           "Content-Type": "application/json",
         },

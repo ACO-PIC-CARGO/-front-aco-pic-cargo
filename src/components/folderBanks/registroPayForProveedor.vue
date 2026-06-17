@@ -20,11 +20,7 @@
           >
           </v-autocomplete>
         </v-col>
-        <v-col
-          cols="12"
-          md="3"
-          class="pb-0"
-        >
+        <v-col cols="12" md="3" class="pb-0">
           Monto Depositado En Banco:
           <!-- <v-icon @click="snackbar = true">mdi-information</v-icon> -->
           <v-text-field
@@ -39,7 +35,7 @@
             :readonly="!Object.keys(id_cuenta).length > 0"
           ></v-text-field>
         </v-col>
-        <v-col cols="12" md="2" class="pb-0">
+        <v-col cols="12" md="2" class="pb-0" style="background: #e3f2fd">
           Total Factura Seleccionada:
           <v-text-field
             outlined
@@ -857,6 +853,7 @@ export default {
         (coin) => coin.id === id_coins,
       );
       this.symbol = coins ? coins.symbol : "USD";
+      this.$refs.txtMontoLocal.focus();
     },
     fechaoperacion(newVal) {
       if (newVal) {
@@ -870,9 +867,6 @@ export default {
         this.calcularTotal();
       },
       deep: true, // Esto detecta cambios en las propiedades internas de los items
-    },
-    id_cuenta() {
-      this.$refs.txtMontoLocal.focus();
     },
   },
 };

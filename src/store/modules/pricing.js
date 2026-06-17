@@ -1,4 +1,4 @@
-import axios from '@/api/axios-config';;
+import axios from "@/api/axios-config";
 import Swal from "sweetalert2";
 import miMixin from "../../components/mixins/funciones";
 import moment from "moment";
@@ -7,9 +7,12 @@ import masterusuario from "./masterusuario";
 import enterprise from "./enterprise";
 import modules from "./../index";
 const state = {
+  totalregistro: 1,
+  limit: 10,
+  pagina: 1,
   dataCliente: {},
   step: 1,
-  id_master:'',
+  id_master: "",
   nro_exp: "",
   preServices: [],
   preCostos: [],
@@ -53,6 +56,7 @@ const state = {
     id_incoterm: "",
     fechainicio: "",
     fechafin: "",
+    fechaemision: "",
     estado: "activo",
   },
   filtroCalls: {
@@ -430,6 +434,9 @@ const mutations = {
   },
   SET_LIST_QUOTES(state, data) {
     state.listQuotes = data;
+    state.totalregistro = data[0].totalregistro
+      ? Number(Math.ceil(data[0].totalregistro / state.limit))
+      : 10;
   },
 
   SET_CARGAR_NOTAS_COTIZACION(state, data) {
@@ -505,13 +512,32 @@ const actions = {
   resetQuoteNew({ commit }) {
     commit("SET_QUOTE");
   },
+  async setEmisionPdf({ dispatch }) {
+    let datos = {
+      id: state.id,
+    };
+    let config = {
+      method: "put",
+      url: `${process.env.VUE_APP_URL_MAIN}set_emision-pdf`,
+      data: datos,
+      headers: {
+        "Content-Type": "application/json",
+      },
+    };
+    axios(config)
+      .then((response) => {
+        console.log(response);
+      })
+      .catch((e) => {
+        console.error(e);
+      });
+  },
   async quotePreviewInstructivoManual({ dispatch }, datos) {
     let config = {
       method: "put",
       url: `${process.env.VUE_APP_URL_MAIN}quote_preview_instructivo_manual`,
       data: datos,
       headers: {
-       
         "Content-Type": "application/json",
       },
     };
@@ -531,7 +557,6 @@ const actions = {
       url: `${process.env.VUE_APP_URL_MAIN}actualizar_datos_instructivo_manual`,
       data: datos,
       headers: {
-       
         "Content-Type": "application/json",
       },
     };
@@ -552,7 +577,6 @@ const actions = {
             .id_branch,
         },
         headers: {
-         
           "Content-Type": "application/json",
         },
       };
@@ -582,7 +606,6 @@ const actions = {
         id_branch: JSON.parse(sessionStorage.getItem("dataUser"))[0].id_branch,
       },
       headers: {
-       
         "Content-Type": "application/json",
       },
     };
@@ -603,7 +626,6 @@ const actions = {
         id_branch: JSON.parse(sessionStorage.getItem("dataUser"))[0].id_branch,
       },
       headers: {
-       
         "Content-Type": "application/json",
       },
     };
@@ -617,41 +639,21 @@ const actions = {
     });
   },
   async getListQuote({ commit }) {
+    state.filtro.id_branch = JSON.parse(
+      sessionStorage.getItem("dataUser"),
+    )[0].id_branch;
+   
     var config = {
       method: "get",
-      url:
-        process.env.VUE_APP_URL_MAIN +
-        `getQuoteList?id_branch=${
-          JSON.parse(sessionStorage.getItem("dataUser"))[0].id_branch
-        }&id_marketing=${
-          state.filtro.id_marketing ? state.filtro.id_marketing : ""
-        }&id_status=${
-          state.filtro.id_status ? state.filtro.id_status : ""
-        }&id_entities=${
-          state.filtro.id_entities ? state.filtro.id_entities : ""
-        }&id_modality=${
-          state.filtro.id_modality ? state.filtro.id_modality : ""
-        }&id_shipment=${
-          state.filtro.id_shipment ? state.filtro.id_shipment : ""
-        }&id_incoterm=${
-          state.filtro.id_incoterm ? state.filtro.id_incoterm : ""
-        }&fechainicio=${
-          state.filtro.fechainicio ? state.filtro.fechainicio : ""
-        }&fechafin=${
-          state.filtro.fechafin ? state.filtro.fechafin : ""
-        }&estado=${
-          state.filtro.estado == "activo"
-            ? 1
-            : state.filtro.estado == "eliminado"
-            ? 0
-            : ""
-        }`,
-      headers: {
-       
-        "Content-Type": "application/json",
+      url: process.env.VUE_APP_URL_MAIN + `getQuoteList`,
+      params: {
+        ...state.filtro,
+
+        limit: state.limit,
+        pagina: state.pagina,
       },
-      data: {
-        id_branch: JSON.parse(sessionStorage.getItem("dataUser"))[0].id_branch,
+      headers: {
+        "Content-Type": "application/json",
       },
     };
     await axios(config)
@@ -696,7 +698,6 @@ const actions = {
             : state.datosPrincipales.idtipocarga
         }&id_modality=${state.datosPrincipales.idsentido}`,
       headers: {
-       
         "Content-Type": "application/json",
       },
     };
@@ -726,7 +727,6 @@ const actions = {
           JSON.parse(sessionStorage.getItem("dataUser"))[0].id_branch
         }`,
       headers: {
-       
         "Content-Type": "application/json",
       },
       data: {
@@ -752,7 +752,6 @@ const actions = {
       url:
         process.env.VUE_APP_URL_MAIN + `quote_data_house?id_quote=${id_quote}`,
       headers: {
-       
         "Content-Type": "application/json",
       },
     };
@@ -785,7 +784,6 @@ const actions = {
     };
 
     let header = {
-     
       "Content-Type": "application/json",
     };
     var config = {
@@ -853,7 +851,6 @@ const actions = {
       method: "post",
       url: process.env.VUE_APP_URL_MAIN + "getMarketingList",
       headers: {
-       
         "Content-Type": "application/json",
       },
       data: {
@@ -873,7 +870,6 @@ const actions = {
       method: "post",
       url: process.env.VUE_APP_URL_MAIN + "getQuoteStatus",
       headers: {
-       
         "Content-Type": "application/json",
       },
       data: {
@@ -893,7 +889,6 @@ const actions = {
       method: "post",
       url: process.env.VUE_APP_URL_MAIN + "getModulesEntities",
       headers: {
-       
         "Content-Type": "application/json",
       },
       data: {
@@ -914,7 +909,6 @@ const actions = {
       method: "get",
       url: process.env.VUE_APP_URL_MAIN + "cargar_ejecutivo",
       headers: {
-       
         "Content-Type": "application/json",
       },
       params: {
@@ -938,7 +932,6 @@ const actions = {
         "get_personal_pricing?id_branch=" +
         JSON.parse(sessionStorage.getItem("dataUser"))[0].id_branch,
       headers: {
-       
         "Content-Type": "application/json",
       },
     };
@@ -952,7 +945,6 @@ const actions = {
   },
   async getBegEndList({ commit }) {
     var headers = {
-     
       "Content-Type": "application/json",
     };
     var data = {
@@ -978,7 +970,6 @@ const actions = {
       method: "post",
       url: process.env.VUE_APP_URL_MAIN + "getModality",
       headers: {
-       
         "Content-Type": "application/json",
       },
       data: {
@@ -998,7 +989,6 @@ const actions = {
       method: "post",
       url: process.env.VUE_APP_URL_MAIN + "getShipment",
       headers: {
-       
         "Content-Type": "application/json",
       },
       data: {
@@ -1018,7 +1008,6 @@ const actions = {
       method: "post",
       url: process.env.VUE_APP_URL_MAIN + "getIncoterms",
       headers: {
-       
         "Content-Type": "application/json",
       },
       data: {
@@ -1041,7 +1030,6 @@ const actions = {
       method: "post",
       url: process.env.VUE_APP_URL_MAIN + "getPortBegin",
       headers: {
-       
         "Content-Type": "application/json",
       },
       data: {
@@ -1064,7 +1052,6 @@ const actions = {
       method: "post",
       url: process.env.VUE_APP_URL_MAIN + "getPortEnd",
       headers: {
-       
         "Content-Type": "application/json",
       },
       data: {
@@ -1088,7 +1075,6 @@ const actions = {
       method: "post",
       url: process.env.VUE_APP_URL_MAIN + "getItemsServices",
       headers: {
-       
         "Content-Type": "application/json",
       },
       data: {
@@ -1118,7 +1104,6 @@ const actions = {
   },
   async obtenerCostosPricing({ commit }) {
     var headers = {
-     
       "Content-Type": "application/json",
     };
     let data = {
@@ -1136,7 +1121,6 @@ const actions = {
   },
   async getItemsServicesDetails({ commit }) {
     var headers = {
-     
       "Content-Type": "application/json",
     };
     let data = {
@@ -1259,7 +1243,6 @@ const actions = {
   },
   async getMultiplicador({ commit }) {
     var headers = {
-     
       "Content-Type": "application/json",
     };
     var data = {
@@ -1299,7 +1282,6 @@ const actions = {
   },
   async getModuleRole({ commit }) {
     var headers = {
-     
       "Content-Type": "application/json",
     };
     var data = JSON.stringify({
@@ -1331,8 +1313,6 @@ const actions = {
   },
   async getCargarMasterDetalleNotasCotizacion({ commit }) {
     var headers = {
-     
-
       "Content-Type": "application/json",
     };
 
@@ -1360,8 +1340,6 @@ const actions = {
   },
   async getImpuestos({ commit }) {
     var headers = {
-     
-
       "Content-Type": "application/json",
     };
 
@@ -1477,7 +1455,6 @@ const actions = {
       method: "post",
       url: process.env.VUE_APP_URL_MAIN + "setQuote",
       headers: {
-       
         "Content-Type": "application/json",
       },
       data: data,
@@ -1580,7 +1557,6 @@ const actions = {
       method: "post",
       url: process.env.VUE_APP_URL_MAIN + "setQuote",
       headers: {
-       
         "Content-Type": "application/json",
       },
       data: data,
@@ -1600,7 +1576,6 @@ const actions = {
       method: "post",
       url: process.env.VUE_APP_URL_MAIN + "copiar_cotizacion",
       headers: {
-       
         "Content-Type": "application/json",
       },
       data: data,
@@ -1621,7 +1596,6 @@ const actions = {
         process.env.VUE_APP_URL_MAIN +
         `crear-carpeta-cotizacion?nombrecotizacion=${folder}`,
       headers: {
-       
         "Content-Type": "application/json",
       },
     };
@@ -1640,7 +1614,6 @@ const actions = {
       method: "put",
       url: process.env.VUE_APP_URL_MAIN + `actualizar_quote_folderonedrive`,
       headers: {
-       
         "Content-Type": "application/json",
       },
       data: {
@@ -1657,7 +1630,6 @@ const actions = {
       method: "get",
       url: process.env.VUE_APP_URL_MAIN + `getQuoteId?id=${id}`,
       headers: {
-       
         "Content-Type": "application/json",
       },
     };
@@ -1733,7 +1705,6 @@ const actions = {
   },
   async getInstructivoId({ commit }, { id: id }) {
     var headers = {
-     
       "Content-Type": "application/json",
     };
     var data = {
@@ -1755,7 +1726,6 @@ const actions = {
   },
   async obtenerDatosEmpresa() {
     var headers = {
-     
       "Content-Type": "application/json",
     };
     let data = {
@@ -3755,7 +3725,6 @@ const actions = {
     };
 
     let headers = {
-     
       "Content-Type": "application/json",
     };
     await axios
@@ -3802,7 +3771,6 @@ const actions = {
     };
 
     let headers = {
-     
       "Content-Type": "application/json",
     };
     let data = {
@@ -3913,7 +3881,6 @@ const actions = {
     };
 
     let headers = {
-     
       "Content-Type": "application/json",
     };
     let data = {
@@ -3941,7 +3908,6 @@ const actions = {
       method: "post",
       url: process.env.VUE_APP_URL_MAIN + "listado_cotizacion_mercadeo",
       headers: {
-       
         "Content-Type": "application/json",
       },
       data: {
@@ -4014,7 +3980,6 @@ const actions = {
 
   async getListRecibidoCotizacion({ commit }) {
     var headers = {
-     
       "Content-Type": "application/json",
     };
 
@@ -4042,7 +4007,6 @@ const actions = {
   },
   async getListEnviadoCliente({ commit }) {
     var headers = {
-     
       "Content-Type": "application/json",
     };
 
@@ -4070,7 +4034,6 @@ const actions = {
   },
   async actualizarQuoteRecibidoEnviado(_, data) {
     var headers = {
-     
       "Content-Type": "application/json",
     };
 
@@ -4094,7 +4057,6 @@ const actions = {
       method: "post",
       url: process.env.VUE_APP_URL_MAIN + "setCalls",
       headers: {
-       
         "Content-Type": "application/json",
       },
       data: data,
@@ -4184,7 +4146,6 @@ const actions = {
       method: "put",
       url: process.env.VUE_APP_URL_MAIN + "putQuote",
       headers: {
-       
         "Content-Type": "application/json",
       },
       data: data,
@@ -4201,7 +4162,6 @@ const actions = {
   },
   async eliminarRegistro(__, id) {
     var headers = {
-     
       "Content-Type": "application/json",
     };
     var config = {
@@ -6274,7 +6234,6 @@ const actions = {
       method: "put",
       url: process.env.VUE_APP_URL_MAIN + "aprobar_cotizacion",
       headers: {
-       
         "Content-Type": "application/json",
       },
       data: dataParaAprobar,
@@ -6730,7 +6689,6 @@ const actions = {
               element.esalmacenflag == 1 ||
               element.esgastostercerosflag == 1
             ) {
-              
               igv = parseFloat(
                 (montoDetails * enterprise.state.impuesto.impuesto) / 100,
               );
@@ -6750,7 +6708,7 @@ const actions = {
           montoCostos += parseFloat(montoDetails);
           totalCostos += parseFloat(montoDetails);
         });
-     
+
       dataIngresos = dataIngresos.sort((a, b) => {
         if (a.orden < b.orden) return -1;
         if (a.orden > b.orden) return 1;
@@ -6843,7 +6801,7 @@ const actions = {
           currentProvider = item.proveedor;
           valor = item.valor;
           subtotal = item.total;
-          igv =item-igv;
+          igv = item - igv;
         }
 
         // Agregar el elemento actual
@@ -6981,7 +6939,6 @@ const actions = {
       url_logo: JSON.parse(sessionStorage.getItem("dataUser"))[0].path,
     };
     let headers = {
-     
       "Content-Type": "application/json",
     };
     Swal.fire({
@@ -7079,7 +7036,6 @@ const actions = {
     };
 
     let headers = {
-     
       "Content-Type": "application/json",
     };
 
@@ -7108,7 +7064,6 @@ const actions = {
       method: "post",
       url: process.env.VUE_APP_URL_MAIN + "quote_note_insert",
       headers: {
-       
         "Content-Type": "application/json",
       },
       data: data,
@@ -7137,7 +7092,6 @@ const actions = {
         folderUrl: folderUrl,
       },
       headers: {
-       
         "Content-Type": "application/json",
       },
     };

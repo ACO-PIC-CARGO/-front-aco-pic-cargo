@@ -1,6 +1,6 @@
 import Swal from "sweetalert2";
 import router from "@/router";
-import axios from '@/api/axios-config';
+import axios from "@/api/axios-config";
 const state = {
   list: [],
   response: [],
@@ -44,7 +44,6 @@ const actions = {
         `&status=${data.status}`,
       headers: {
         "Content-Type": "application/json",
-       
       },
     };
     await axios(config)
@@ -83,7 +82,6 @@ const actions = {
       url: process.env.VUE_APP_URL_MAIN + "insertar_bank",
       headers: {
         "Content-Type": "application/json",
-       
       },
       data: data,
     };
@@ -118,7 +116,6 @@ const actions = {
       url: process.env.VUE_APP_URL_MAIN + `ver_bank?id=${id}`,
       headers: {
         "Content-Type": "application/json",
-       
       },
     };
 
@@ -155,7 +152,6 @@ const actions = {
       url: process.env.VUE_APP_URL_MAIN + "actualizar_bank",
       headers: {
         "Content-Type": "application/json",
-       
       },
       data: data,
     };
@@ -191,7 +187,6 @@ const actions = {
       method: "post",
       url: process.env.VUE_APP_URL_MAIN + "getBanksList/",
       headers: {
-       
         "Content-Type": "application/json",
       },
       data: {
@@ -217,7 +212,6 @@ const actions = {
       url: process.env.VUE_APP_URL_MAIN + "insertar_cuenta",
       headers: {
         "Content-Type": "application/json",
-       
       },
       data: data,
     };
@@ -251,7 +245,6 @@ const actions = {
       url: process.env.VUE_APP_URL_MAIN + "eliminar_cuenta",
       headers: {
         "Content-Type": "application/json",
-       
       },
       data: data,
     };
@@ -288,7 +281,6 @@ const actions = {
           JSON.parse(sessionStorage.getItem("dataUser"))[0].id_branch
         }`,
       headers: {
-       
         "Content-Type": "application/json",
       },
     };
@@ -319,7 +311,6 @@ const actions = {
       method: "put",
       url: process.env.VUE_APP_URL_MAIN + `anular_pago`,
       headers: {
-       
         "Content-Type": "application/json",
       },
       data: {
@@ -341,7 +332,6 @@ const actions = {
       method: "put",
       url: process.env.VUE_APP_URL_MAIN + `actualizar_pago`,
       headers: {
-       
         "Content-Type": "application/json",
       },
       data: { lstPago: data },
@@ -364,7 +354,6 @@ const actions = {
           JSON.parse(sessionStorage.getItem("dataUser"))[0].id_branch
         }`,
       headers: {
-       
         "Content-Type": "application/json",
       },
     };
@@ -395,7 +384,6 @@ const actions = {
       method: "put",
       url: process.env.VUE_APP_URL_MAIN + `anular_cobro`,
       headers: {
-       
         "Content-Type": "application/json",
       },
       data: data,
@@ -415,7 +403,6 @@ const actions = {
       method: "put",
       url: process.env.VUE_APP_URL_MAIN + `actualizar_cobro`,
       headers: {
-       
         "Content-Type": "application/json",
       },
       data: { lstPago: data },
@@ -435,7 +422,6 @@ const actions = {
       method: "get",
       url: process.env.VUE_APP_URL_MAIN + `validate_nro_operacion_cobro`,
       headers: {
-       
         "Content-Type": "application/json",
       },
       params: data,
@@ -455,7 +441,6 @@ const actions = {
       method: "get",
       url: process.env.VUE_APP_URL_MAIN + `ver_facturas`,
       headers: {
-       
         "Content-Type": "application/json",
       },
       params: data,
@@ -476,7 +461,6 @@ const actions = {
       method: "get",
       url: process.env.VUE_APP_URL_MAIN + `deuda_a_proveedor_por_sucursal`,
       headers: {
-       
         "Content-Type": "application/json",
       },
       params: {
@@ -517,7 +501,6 @@ const actions = {
       method: "get",
       url: process.env.VUE_APP_URL_MAIN + `deuda_de_cliente_por_sucursal`,
       headers: {
-       
         "Content-Type": "application/json",
       },
       params: {
@@ -556,7 +539,6 @@ const actions = {
       method: "post",
       url: process.env.VUE_APP_URL_MAIN + "registro_egresos",
       headers: {
-       
         "Content-Type": "application/json",
       },
       data: {
@@ -579,7 +561,6 @@ const actions = {
       method: "put",
       url: process.env.VUE_APP_URL_MAIN + "actualizar_egresos",
       headers: {
-       
         "Content-Type": "application/json",
       },
       data: {
@@ -601,7 +582,6 @@ const actions = {
       method: "put",
       url: process.env.VUE_APP_URL_MAIN + "actualizar_ingresos",
       headers: {
-       
         "Content-Type": "application/json",
       },
       data: {
@@ -624,7 +604,6 @@ const actions = {
       method: "post",
       url: process.env.VUE_APP_URL_MAIN + "registro_ingresos",
       headers: {
-       
         "Content-Type": "application/json",
       },
       data: {
@@ -637,15 +616,14 @@ const actions = {
         let data = response.data;
         if (data.estadoflag) {
           Swal.fire({
-            icon:'success',
-            text:data.mensaje
-          })
-        }else{
+            icon: "success",
+            text: data.mensaje,
+          });
+        } else {
           Swal.fire({
-            icon:'error',
-            text:'Ocurrió un Error, comuníquese con el área de sistemas.'
-          })
-
+            icon: "error",
+            text: "Ocurrió un Error, comuníquese con el área de sistemas.",
+          });
         }
         console.log("Respuesta del servidor al registrar egreso:", data);
       })
@@ -658,7 +636,6 @@ const actions = {
       method: "get",
       url: process.env.VUE_APP_URL_MAIN + "listado_egresos",
       headers: {
-       
         "Content-Type": "application/json",
       },
       params: {
@@ -680,7 +657,6 @@ const actions = {
       method: "get",
       url: process.env.VUE_APP_URL_MAIN + "listado_ingresos",
       headers: {
-       
         "Content-Type": "application/json",
       },
       params: {
@@ -703,7 +679,6 @@ const actions = {
       method: "get",
       url: process.env.VUE_APP_URL_MAIN + "ver_registro_ingresos",
       headers: {
-       
         "Content-Type": "application/json",
       },
       params: {
@@ -723,13 +698,37 @@ const actions = {
       });
     return res;
   },
+  async eliminarRegistroIngresos({ commit }, data) {
+    let res = {};
+    var config = {
+      method: "delete",
+      url: process.env.VUE_APP_URL_MAIN + "eliminar_registro_ingresos",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      data: data,
+    };
+    await axios(config)
+      .then(function (response) {
+        let data = response.data;
+        if (data.estadoflag) {
+          Swal.fire({
+            icon: "success",
+            text: data.mensaje,
+          });
+        }
+      })
+      .catch(function (error) {
+        console.log(error);
+      });
+    return res;
+  },
   async verRegistroEgresos({ commit }, data) {
     let res = {};
     var config = {
       method: "get",
       url: process.env.VUE_APP_URL_MAIN + "ver_registro_egresos",
       headers: {
-       
         "Content-Type": "application/json",
       },
       params: {
@@ -755,7 +754,6 @@ const actions = {
       method: "get",
       url: process.env.VUE_APP_URL_MAIN + "validar_nrooperacion_ingreso",
       headers: {
-       
         "Content-Type": "application/json",
       },
       params: {
@@ -779,7 +777,6 @@ const actions = {
       method: "get",
       url: process.env.VUE_APP_URL_MAIN + "validar_nrooperacion_egreso",
       headers: {
-       
         "Content-Type": "application/json",
       },
       params: {

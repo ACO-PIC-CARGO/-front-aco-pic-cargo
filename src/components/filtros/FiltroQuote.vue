@@ -16,90 +16,90 @@
     <v-card-text>
       <v-form ref="frmFiltro">
         <div class="row mt-3 mx-1">
-          <div class="col-12 py-1">
-            <v-autocomplete
-              :items="$store.state.pricing.listMarketing"
-              label="Tipo de Marketing"
-              dense
-              search
-              item-text="name"
-              item-value="id"
-              v-model="$store.state.pricing.filtro.id_marketing"
-            ></v-autocomplete>
-          </div>
+          <v-autocomplete
+            :items="$store.state.pricing.listMarketing"
+            label="Tipo de Marketing"
+            dense
+            search
+            item-text="name"
+            item-value="id"
+            v-model="$store.state.pricing.filtro.id_marketing"
+          ></v-autocomplete>
+
           <!-- <v-card-text class="mt-3 px-5 py-1"> -->
+
+          <v-autocomplete
+            auto-select-first
+            :items="$store.state.pricing.listQuoteStatus"
+            label="Estado de la Cotización"
+            dense
+            item-text="name"
+            item-value="id"
+            v-model="$store.state.pricing.filtro.id_status"
+          ></v-autocomplete>
+          <v-autocomplete
+            :items="$store.state.pricing.listEjecutivo"
+            label="Ejecutivo."
+            dense
+            search
+            item-text="name"
+            item-value="id_entitie"
+            v-model="$store.state.pricing.filtro.id_entities"
+          ></v-autocomplete>
+          <v-autocomplete
+            :items="$store.state.pricing.listModality"
+            label="Sentido"
+            v-model="$store.state.pricing.filtro.id_modality"
+            dense
+            item-text="name"
+            item-value="id"
+          ></v-autocomplete>
+          <v-autocomplete
+            :items="$store.state.pricing.listShipment"
+            label="Carga*"
+            dense
+            item-text="embarque"
+            item-value="id"
+            v-model="$store.state.pricing.filtro.id_shipment"
+          >
+          </v-autocomplete>
+          <v-autocomplete
+            :items="$store.state.pricing.listIncoterms"
+            label="Incoterm*"
+            dense
+            item-text="name"
+            item-value="id"
+            v-model="$store.state.pricing.filtro.id_incoterm"
+          ></v-autocomplete>
+
+          <FormatFecha
+            :dense="true"
+            label="Fecha Emisión"
+            id="filtroDesde"
+            v-model="$store.state.pricing.filtro.fechaemision"
+            :clearable="true"
+          />
+
+          <FormatFecha
+            :dense="true"
+            label="Fecha Desde"
+            id="filtroDesde"
+            v-model="$store.state.pricing.filtro.fechainicio"
+            :clearable="true"
+          />
+          <FormatFecha
+            :dense="true"
+            label="Fecha Hasta"
+            id="filtroHasta"
+            v-model="$store.state.pricing.filtro.fechafin"
+            :clearable="true"
+          />
+
           <div class="col-12 py-1">
-            <v-autocomplete
-              auto-select-first
-              :items="$store.state.pricing.listQuoteStatus"
-              label="Estado de la Cotización"
-              dense
-              item-text="name"
-              item-value="id"
-              v-model="$store.state.pricing.filtro.id_status"
-            ></v-autocomplete>
-          </div>
-          <div class="col-12 py-1">
-            <v-autocomplete
-              :items="$store.state.pricing.listEjecutivo"
-              label="Ejecutivo."
-              dense
-              search
-              item-text="name"
-              item-value="id_entitie"
-              v-model="$store.state.pricing.filtro.id_entities"
-            ></v-autocomplete>
-          </div>
-          <div class="col-12 py-1">
-            <v-autocomplete
-              :items="$store.state.pricing.listModality"
-              label="Sentido"
-              v-model="$store.state.pricing.filtro.id_modality"
-              dense
-              item-text="name"
-              item-value="id"
-            ></v-autocomplete>
-          </div>
-          <div class="col-12 py-1">
-            <v-autocomplete
-              :items="$store.state.pricing.listShipment"
-              label="Carga*"
-              dense
-              item-text="embarque"
-              item-value="id"
-              v-model="$store.state.pricing.filtro.id_shipment"
-            >
-            </v-autocomplete>
-          </div>
-          <div class="col-12 py-1">
-            <v-autocomplete
-              :items="$store.state.pricing.listIncoterms"
-              label="Incoterm*"
-              dense
-              item-text="name"
-              item-value="id"
-              v-model="$store.state.pricing.filtro.id_incoterm"
-            ></v-autocomplete>
-          </div>
-          <div class="col-12 py-1">
-            <v-text-field
-              v-model="$store.state.pricing.filtro.fechainicio"
-              label="Fecha de Registro"
-              type="date"
-            ></v-text-field>
-          </div>
-          <div class="col-12 py-1">
-            <v-text-field
-              v-model="$store.state.pricing.filtro.fechafin"
-              label="Fecha de Registro"
-              type="date"
-            ></v-text-field>
-          </div>
-          <div class="col-12 py-1">
-            <v-radio-group v-model="$store.state.pricing.filtro.estado" column>
-              <v-radio label="Activo" color="green" value="activo"></v-radio>
-              <v-radio label="Inactivo" color="red" value="eliminado"></v-radio>
-              <v-radio label="Todos" color="blue" value="todos"></v-radio
+            <v-radio-group v-model="$store.state.pricing.filtro.estado" row>
+              <v-radio label="Activo" color="green" :value="true"></v-radio>
+              <v-radio label="Inactivo" color="red" :value="false"></v-radio>
+              <v-radio label="Todos" color="blue" value=""></v-radio
             ></v-radio-group>
           </div>
         </div>
@@ -115,7 +115,11 @@
 
 <script>
 import { mapActions } from "vuex";
+import FormatFecha from "../comun/FormatFecha.vue";
 export default {
+  components: {
+    FormatFecha,
+  },
   methods: {
     ...mapActions([
       "getMarketingList",
@@ -127,7 +131,7 @@ export default {
       "getListQuote",
     ]),
     async filtrar() {
-     
+      this.$store.state.pricing.pagina = 1
       this.$store.state.spiner = true;
       await this.getListQuote();
       this.$store.state.pricing.filtrarQuoteFlag = false;
@@ -143,11 +147,10 @@ export default {
       this.$store.state.pricing.filtro.id_incoterm = "";
       this.$store.state.pricing.filtro.fechainicio = "";
       this.$store.state.pricing.filtro.fechafin = "";
-      this.$store.state.pricing.filtro.estado = "activo";
-      this.$store.state.pricing.filtro.estado = "activo";
+      this.$store.state.pricing.filtro.estado = true;
       await this.getListQuote();
       this.$store.state.pricing.filtrarQuoteFlag = false;
-      this.$store.state.pricing.filtro.estado = "activo";
+      this.$store.state.pricing.filtro.estado = true;
       this.$store.state.spiner = false;
     },
   },

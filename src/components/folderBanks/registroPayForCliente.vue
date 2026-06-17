@@ -41,7 +41,7 @@
             "
           ></v-text-field>
         </v-col>
-        <v-col cols="12" md="2" class="pb-0">
+        <v-col cols="12" md="2" class="pb-0" style="background: #e3f2fd">
           Total Factura Seleccionada:
           <v-text-field
             outlined
@@ -338,7 +338,7 @@
                 <v-col cols="12" class="pt-1 pb-5">
                   <v-spacer></v-spacer>
                   <v-btn color="primary" @click="continuarDetalles()">
-                    Continuar Comisión Bancanría
+                    Continuar Comisión Bancaría
                   </v-btn>
                   <v-btn class="mx-1" color="error" @click="pasos = 0">
                     Cancel
@@ -919,6 +919,7 @@ export default {
         (coin) => coin.id === id_coins,
       );
       this.symbol = coins ? coins.symbol : "USD";
+      this.$refs.txtMontoLocal.focus();
     },
     fecha_operacion(newVal) {
       if (newVal) {
@@ -932,9 +933,6 @@ export default {
         this.calcularTotal();
       },
       deep: true, // Esto detecta cambios en las propiedades internas de los items
-    },
-    id_cuenta() {
-      this.$refs.txtMontoLocal.focus();
     },
   },
 };

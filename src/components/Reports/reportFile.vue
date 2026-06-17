@@ -6,13 +6,14 @@
           Filtros Generales
         </v-card-title>
 
-        <v-card-text>
+        <v-card-text class="mt-5">
           <v-autocomplete
             :items="itemsStatusExpedientes"
             v-model="filtro.status_op"
             item-value="id"
             item-text="name"
             label="Estado de Expediente Operativo"
+            dense
           ></v-autocomplete>
           <v-autocomplete
             :items="itemsStatusExpedientes"
@@ -20,6 +21,7 @@
             item-value="id"
             item-text="name"
             label="Estado de Expediente Administrativo"
+            dense
           ></v-autocomplete>
           <v-autocomplete
             :items="itemsSentido"
@@ -27,7 +29,26 @@
             item-text="name"
             label="Sentido"
             v-model="filtro.sentido"
+            dense
           ></v-autocomplete>
+          <p class="my-0 py-0">Confirmación Salida</p>
+          <v-radio-group v-model="filtro.salidaflag" row dense>
+            <v-radio label="Si" :value="true"></v-radio>
+            <v-radio label="No" :value="false"></v-radio>
+            <v-radio label="Todos" :value="null"></v-radio>
+          </v-radio-group>
+          <p class="my-0 py-0">Confirmación Llegada</p>
+          <v-radio-group v-model="filtro.llegadaflag" row dense>
+            <v-radio label="Si" :value="true"></v-radio>
+            <v-radio label="No" :value="false"></v-radio>
+            <v-radio label="Todos" :value="null"></v-radio>
+          </v-radio-group>
+          <p class="my-0 py-0">Confirmación Disponibilidad</p>
+          <v-radio-group v-model="filtro.disponibilidadflag" row dense>
+            <v-radio label="Si" :value="true"></v-radio>
+            <v-radio label="No" :value="false"></v-radio>
+            <v-radio label="Todos" :value="null"></v-radio>
+          </v-radio-group>
           <v-autocomplete
             :items="$store.state.itemsOperadorList"
             item-value="id"
@@ -35,12 +56,25 @@
             label="Operador"
             v-model="filtro.id_operativo"
             clearable
+            dense
           ></v-autocomplete>
           <p>Fecha de Disponibilidad</p>
-          <v-text-field v-model="filtro.desde" type="date" label="Fecha Inicio">
+          <FormatFecha
+            :dense="true"
+            label="Fecha Desde"
+            id="filtroDesde"
+            v-model="filtro.desde"
+          />
+          <FormatFecha
+            :dense="true"
+            label="Fecha Hasta"
+            id="filtroHasta"
+            v-model="filtro.hasta"
+          />
+          <!-- <v-text-field v-model="filtro.desde" type="date" label="Fecha Inicio">
           </v-text-field>
           <v-text-field v-model="filtro.hasta" type="date" label="Fecha Final">
-          </v-text-field>
+          </v-text-field> -->
         </v-card-text>
 
         <v-divider></v-divider>
@@ -239,13 +273,16 @@
 <script>
 import { mapState, mapActions } from "vuex";
 import moment from "moment";
-import axios from '@/api/axios-config';
 import Swal from "sweetalert2";
+import FormatFecha from "../comun/FormatFecha.vue";
 export default {
   name: "listMasterCom",
   props: {
     // statusReport: Boolean,
     statusList: String,
+  },
+  components: {
+    FormatFecha,
   },
   data() {
     return {
@@ -259,6 +296,9 @@ export default {
         desde: "",
         id_operativo: "",
         hasta: "",
+        salidaflag: null,
+        llegadaflag: null,
+        disponibilidadflag: null,
       },
       itemsStatusExpedientes: [
         { id: "0", name: "Abierto" },
