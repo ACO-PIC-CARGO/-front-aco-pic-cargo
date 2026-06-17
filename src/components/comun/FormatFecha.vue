@@ -20,6 +20,7 @@
         :dense="dense"
         :error-messages="errorMessages"
         :error="!!errorMessages"
+        :clearable="clearable"
       ></v-text-field>
     </template>
     <v-date-picker
@@ -56,6 +57,11 @@ export default {
       default: "",
     },
     verflag: {
+      type: Boolean,
+      required: false,
+      default: false,
+    },
+    clearable: {
       type: Boolean,
       required: false,
       default: false,

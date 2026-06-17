@@ -21,7 +21,7 @@
           >
           </v-autocomplete>
         </v-col>
-        <v-col cols="12" md="3" class="pb-0">
+        <v-col cols="12" md="2" class="pb-0">
           Monto Depositado En Banco:
           <!-- <v-icon @click="snackbar = true">mdi-information</v-icon> -->
           <v-text-field
@@ -89,6 +89,17 @@
             @click="finalizarOperacion()"
           >
             Actualizar Operación
+          </v-btn>
+        </v-col>
+        <v-col cols="12" md="2" v-if="!verflag">
+          <v-btn
+            class="mt-5"
+            color="red"
+            dark
+            :loading="loading"
+            @click="confirmarEliminar()"
+          >
+            Eliminar Operación
           </v-btn>
         </v-col>
 
@@ -618,7 +629,6 @@ export default {
     this.filename = data.filename;
     this.originalname = data.originalname;
     this.$store.state.bank.deudaAProveedor = data.detalle;
-    console.log("detalle", data.detalle);
     this.selected = data.detalle;
     this.monto =
       data.totaldolar -
@@ -647,7 +657,86 @@ export default {
       "cargarClientes",
       "_getBanksList",
       "updateRegistroIgresos",
+      "validarUsuarioAdmin",
+      "eliminarRegistroIngresos",
     ]),
+    confirmarEliminar() {
+      Swal.fire({
+        icon: "warning",
+        title: "Eliminar Registro",
+        text: "¿Está seguro que quiere eliminar el registro?",
+        showDenyButton: true,
+        denyButtonColor: "#263238",
+        denyButtonText: "Cancelar",
+        confirmButtonText: "Si, Eliminar",
+        confirmButtonColor: "red",
+        showCloseButton: true,
+      }).then((res) => {
+        if (res.isConfirmed) {
+          this.eliminar();
+        }
+      });
+    },
+    async eliminar() {
+      let val = true;
+      let msg = "";
+      await Swal.fire({
+        title: "Ingrese sus datos Administrador",
+        html:
+          '<input id="swal-input1" class="swal2-input" placeholder="Nombre">' +
+          '<input id="swal-input2" type="password" class="swal2-input" placeholder="Clave">',
+        focusConfirm: false,
+        showCancelButton: true,
+        confirmButtonText: "Aceptar",
+        cancelButtonText: "Cancelar",
+        preConfirm: () => {
+          const input1 = document.getElementById("swal-input1").value.trim();
+          const input2 = document.getElementById("swal-input2").value.trim();
+          if (!input1 || !input2) {
+            Swal.showValidationMessage("Por favor, complete ambos campos");
+            return false;
+          }
+          return { usuario: input1, clave: input2 };
+        },
+      }).then(async (result) => {
+        if (!result.isConfirmed) {
+          // Usuario canceló
+          val = false;
+          msg = "Operación cancelada";
+          return;
+        }
+
+        if (result.value) {
+          const vm = this;
+          const res = await vm.validarUsuarioAdmin({
+            usuario: result.value.usuario,
+            clave: result.value.clave,
+          });
+
+          if (res && res.estadoflag) {
+            val = true;
+          } else {
+            val = false;
+            msg = res?.mensaje || "Credenciales incorrectas";
+          }
+        } else {
+          val = false;
+          msg = "Debe ingresar las credenciales";
+        }
+      });
+
+      if (!val) {
+        await Swal.fire({
+          icon: "error",
+          text: msg,
+        });
+        return false;
+      }
+      await this.eliminarRegistroIngresos({ id: this.$route.params.id });
+      this.$router.push({
+        name: "listBankCxC",
+      });
+    },
     esImagen(url) {
       if (!url) return false;
       // Convierte a minúsculas y quita parámetros de consulta (?query=...) si los hay

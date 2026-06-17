@@ -70,6 +70,7 @@
       show-expand
       class="elevation-1"
       disable-sort
+      hide-default-footer
     >
       <template v-slot:item="{ item, expand, isExpanded }">
         <tr
@@ -238,6 +239,7 @@
           <td @click="expand(!isExpanded)">{{ item.origen }}</td>
           <td @click="expand(!isExpanded)">{{ item.destino }}</td>
           <td @click="expand(!isExpanded)">{{ displayMarketing(item) }}</td>
+          <td @click="expand(!isExpanded)">{{ item.fechaemisionpdf }}</td>
         </tr>
       </template>
 
@@ -267,6 +269,17 @@
         </td>
       </template>
     </v-data-table>
+    <template>
+      <div class="text-center">
+        <v-pagination
+          v-model="$store.state.pricing.pagina"
+          :total-visible="7"
+          :length="$store.state.pricing.totalregistro"
+          circle
+          @input="cambiarPagina()"
+        ></v-pagination>
+      </div>
+    </template>
     <v-dialog
       v-model="dialog"
       scrollable
@@ -463,7 +476,7 @@
       </v-card>
     </v-dialog>
     <!-- Modal abrir y/o editar url -->
-    
+
     <GuardarUrlPricing
       :dialogUrl="dialogUrl"
       :masterEditar="masterEditar"
@@ -476,7 +489,7 @@
 import moment from "moment";
 import { mapActions } from "vuex";
 import Swal from "sweetalert2";
-import axios from '@/api/axios-config';
+import axios from "@/api/axios-config";
 import GuardarUrlPricing from "../comun/GuardarUrlPricing.vue";
 export default {
   components: {
@@ -485,6 +498,8 @@ export default {
   name: "ListQuoteComponent",
   data() {
     return {
+      page: 1,
+      limit: 10,
       dialogUrl: false,
       url_folderonedrive: "",
       search: "",
@@ -633,6 +648,11 @@ export default {
           groupable: true,
           estado: true,
         },
+        {
+          value: "fechaemisionpdf",
+          text: "Fecha Emision",
+          align: "center",
+        },
       ],
       filtro: {
         idmarketing: null,
@@ -672,6 +692,11 @@ export default {
       "validarUsuarioAdmin",
       "actualizarURLEnElQuote",
     ]),
+    async cambiarPagina() {
+      this.$store.state.spiner = true;
+      await this.getListQuote();
+      this.$store.state.spiner = false;
+    },
     displayMarketing(item) {
       // Prefer server-provided friendly name if present
       if (item.marketing) return item.marketing;
@@ -799,7 +824,7 @@ export default {
       // window.open(url, "_blank");
     },
     async cerrarDialog() {
-      console.log('llegó')
+      console.log("llegó");
       this.dialogUrl = false;
       this.$store.state.spiner = true;
       await this.getListQuote();
@@ -1047,9 +1072,7 @@ export default {
             params: {
               id_branch,
             },
-            headers: {
-             
-            },
+            headers: {},
           },
         );
         console.log("✅ Houses disponibles:", response.data);
@@ -1100,9 +1123,7 @@ export default {
             id_quote: this.quoteSeleccionada.id,
           },
           {
-            headers: {
-             
-            },
+            headers: {},
           },
         );
 
@@ -1140,7 +1161,8 @@ export default {
       id_incoterm: "",
       fechainicio: "",
       fechafin: "",
-      estado: "activo",
+      estado: true,
+      fechaemision: "",
     };
     this.$store.state.pricing.filtroCalls = {
       id_marketing: "",
