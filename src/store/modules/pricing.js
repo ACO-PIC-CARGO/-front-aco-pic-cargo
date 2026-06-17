@@ -7,6 +7,7 @@ import masterusuario from "./masterusuario";
 import enterprise from "./enterprise";
 import modules from "./../index";
 const state = {
+  search: "",
   totalregistro: 1,
   limit: 10,
   pagina: 1,
@@ -639,18 +640,15 @@ const actions = {
     });
   },
   async getListQuote({ commit }) {
-    state.filtro.id_branch = JSON.parse(
-      sessionStorage.getItem("dataUser"),
-    )[0].id_branch;
-   
     var config = {
       method: "get",
       url: process.env.VUE_APP_URL_MAIN + `getQuoteList`,
       params: {
         ...state.filtro,
-
+        search: state.search,
         limit: state.limit,
         pagina: state.pagina,
+        id_branch: JSON.parse(sessionStorage.getItem("dataUser"))[0].id_branch,
       },
       headers: {
         "Content-Type": "application/json",
