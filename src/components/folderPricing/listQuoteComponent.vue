@@ -5,7 +5,7 @@
         <v-text-field
           placeholder="Buscar..."
           label="Buscar"
-          v-model="search"
+          v-model="$store.state.pricing.search"
           append-icon="mdi-magnify"
         >
         </v-text-field>
@@ -70,7 +70,6 @@
       show-expand
       class="elevation-1"
       disable-sort
-      hide-default-footer
     >
       <template v-slot:item="{ item, expand, isExpanded }">
         <tr
@@ -269,7 +268,7 @@
         </td>
       </template>
     </v-data-table>
-    <template>
+    <!-- <template>
       <div class="text-center">
         <v-pagination
           v-model="$store.state.pricing.pagina"
@@ -279,7 +278,7 @@
           @input="cambiarPagina()"
         ></v-pagination>
       </div>
-    </template>
+    </template> -->
     <v-dialog
       v-model="dialog"
       scrollable
@@ -498,6 +497,7 @@ export default {
   name: "ListQuoteComponent",
   data() {
     return {
+      typingTimer: null,
       page: 1,
       limit: 10,
       dialogUrl: false,
@@ -1190,6 +1190,18 @@ export default {
     //   idincoterms: "",
     // });
     this.$store.state.spiner = false;
+  },
+  watch: {
+    async "$store.state.pricing.search"() {
+      if (this.typingTimer) {
+        clearTimeout(this.typingTimer);
+      }
+      this.typingTimer = setTimeout(async () => {
+        this.$store.state.spiner = true;
+        await this.getListQuote();
+        this.$store.state.spiner = false;
+      }, 500);
+    },
   },
 };
 </script>
