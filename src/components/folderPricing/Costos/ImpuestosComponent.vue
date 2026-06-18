@@ -68,6 +68,7 @@ export default {
         ).toFixed(2);
       }
       if (item.codigo === "02") {
+      console.log('totalFlete',this.$store.state.pricing.totalFlete)
         monto = parseFloat(this.$store.state.pricing.totalFlete).toFixed(2);
       }
       if (item.codigo === "03") {
