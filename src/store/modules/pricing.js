@@ -435,9 +435,9 @@ const mutations = {
   },
   SET_LIST_QUOTES(state, data) {
     state.listQuotes = data;
-    state.totalregistro = data[0].totalregistro
-      ? Number(Math.ceil(data[0].totalregistro / state.limit))
-      : 10;
+    // state.totalregistro = data[0].totalregistro
+    //   ? Number(Math.ceil(data[0].totalregistro / state.limit))
+    //   : 10;
   },
 
   SET_CARGAR_NOTAS_COTIZACION(state, data) {
