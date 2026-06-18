@@ -2281,7 +2281,6 @@ export default {
       }, 100);
     },
     obtenerCostoElemento(element) {
-     
       const { listMultiplicador, datosPrincipales, totalFlete } =
         this.$store.state.pricing;
       const multiplicadores = listMultiplicador || [];
@@ -2344,6 +2343,7 @@ export default {
         .forEach((element) => {
           this.resumenOpcion.flete += this.obtenerCostoElemento(element);
         });
+        this.$store.state.pricing.totalFlete = this.resumenOpcion.flete;
     },
 
     calcularTotalesNoFlete() {
@@ -2563,7 +2563,6 @@ export default {
       return code == 69 ? true : false;
     },
     formatearValorCalculado(valor) {
-      
       const pricingState = this.$store.state.pricing;
       const multiplicadores = pricingState.listMultiplicador || [];
 
