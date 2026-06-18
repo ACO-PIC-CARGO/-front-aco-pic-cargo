@@ -9244,7 +9244,7 @@ function GenerarImpInstructivo() {
 async function calcularTotalFleteVentaPorOpcion(data) {
   let totalFlete = 0;
   data
-    .filter((v) => v.esfleteflag == 1 && v.status == 1 && v.esventaflag == 1)
+    .filter((v) => v.esfleteflag == 1 && v.status == 1 && v.esopcionflag == 1)
     .forEach(async (element) => {
       if (isNotPorcentaje(element, element.id_multiplicador)) {
         totalFlete +=
