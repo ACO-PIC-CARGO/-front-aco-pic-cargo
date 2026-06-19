@@ -11,7 +11,7 @@
           Registro de nueva nota - Opción
           {{ opcionesSeleccionadas[$store.state.pricing.page - 1].nro_propuesta
           }}<v-spacer></v-spacer>
-          <v-btn icon color="default" @click="dialog=false">
+          <v-btn icon color="default" @click="dialog = false">
             <v-icon>mdi-close</v-icon>
           </v-btn>
         </v-card-title>
@@ -597,12 +597,15 @@ export default {
             if (
               this.$store.state.pricing.opcionCostos[index].selected == true
             ) {
-              await this.generarReporte({
-                tipo: this.tiporeporte,
-                nro_propuesta:
-                  this.$store.state.pricing.opcionCostos[index].nro_propuesta,
-                guardarFlag: this.guardarFlag,
-              }).catch((e) => console.log(e));
+              await Promise.all([
+                this.generarReporte({
+                  tipo: this.tiporeporte,
+                  nro_propuesta:
+                    this.$store.state.pricing.opcionCostos[index].nro_propuesta,
+                  guardarFlag: this.guardarFlag,
+                }).catch((e) => console.log(e)),
+                this.setEmisionPdf(),
+              ]);
             }
           }
 
