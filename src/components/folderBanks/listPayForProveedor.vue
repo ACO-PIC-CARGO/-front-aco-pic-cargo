@@ -12,10 +12,21 @@
             <v-btn class="mr-2" color="success" small @click="nuevo">
               NUEVO PAGO <v-icon small>mdi-plus</v-icon>
             </v-btn>
-            <v-btn class="mr-2" color="success" small @click="exportar()" :loading="loading">
+            <v-btn
+              class="mr-2"
+              color="success"
+              small
+              @click="exportar()"
+              :loading="loading"
+            >
               EXCEL <v-icon small>mdi-file-excel</v-icon>
             </v-btn>
-            <v-btn class="mr-2" color="info" small @click="dialogFiltro = !dialogFiltro">
+            <v-btn
+              class="mr-2"
+              color="info"
+              small
+              @click="dialogFiltro = !dialogFiltro"
+            >
               Filtrar <v-icon small>mdi-filter</v-icon>
             </v-btn>
             <v-btn class="mr-2" color="default" small @click="limpiar()">
@@ -47,6 +58,14 @@
             </v-btn>
             <v-btn small icon color="orange" @click.native="editar(item)">
               <v-icon>mdi-pencil</v-icon>
+            </v-btn>
+            <v-btn
+              small
+              icon
+              color="red"
+              @click.native="confirmarEliminar(item)"
+            >
+              <v-icon>mdi-delete</v-icon>
             </v-btn>
           </template>
           <template v-slot:expanded-item="{ item }">
@@ -317,11 +336,7 @@
           <v-card-actions>
             <v-spacer></v-spacer>
             <v-btn color="success" small @click="filtrar()">Filtrar</v-btn>
-            <v-btn
-              color="red"
-              dark
-              small
-              @click="dialogFiltro = !dialogFiltro"
+            <v-btn color="red" dark small @click="dialogFiltro = !dialogFiltro"
               >Cancelar</v-btn
             >
           </v-card-actions>
@@ -485,6 +500,86 @@ export default {
         name: "verPagosPorProveedor",
         params: { id: pago.id },
       });
+    },
+    confirmarEliminar(pago) {
+      swal
+        .fire({
+          icon: "warning",
+          title: "Eliminar Registro",
+          text: "¿Está seguro que quiere eliminar el registro?",
+          showDenyButton: true,
+          denyButtonColor: "#263238",
+          denyButtonText: "Cancelar",
+          confirmButtonText: "Si, Eliminar",
+          confirmButtonColor: "red",
+          showCloseButton: true,
+        })
+        .then((res) => {
+          if (res.isConfirmed) {
+            this.eliminar(pago);
+          }
+        });
+    },
+    async eliminar(pago) {
+      let val = true;
+      let msg = "";
+      this.payfile = null;
+      this.Ingreso.id_path = null;
+      await swal
+        .fire({
+          title: "Ingrese sus datos Administrador",
+          html:
+            '<input id="swal-input1" class="swal2-input" placeholder="Nombre">' +
+            '<input id="swal-input2" type="password" class="swal2-input" placeholder="Clave">',
+          focusConfirm: false,
+          showCancelButton: true,
+          confirmButtonText: "Aceptar",
+          cancelButtonText: "Cancelar",
+          preConfirm: () => {
+            const input1 = document.getElementById("swal-input1").value.trim();
+            const input2 = document.getElementById("swal-input2").value.trim();
+            if (!input1 || !input2) {
+              Swal.showValidationMessage("Por favor, complete ambos campos");
+              return false;
+            }
+            return { usuario: input1, clave: input2 };
+          },
+        })
+        .then(async (result) => {
+          if (!result.isConfirmed) {
+            // Usuario canceló
+            val = false;
+            msg = "Operación cancelada";
+            return;
+          }
+
+          if (result.value) {
+            const res = await this.validarUsuarioAdmin({
+              usuario: result.value.usuario,
+              clave: result.value.clave,
+            });
+
+            if (res && res.estadoflag) {
+              val = true;
+            } else {
+              val = false;
+              msg = res?.mensaje || "Credenciales incorrectas";
+            }
+          } else {
+            val = false;
+            msg = "Debe ingresar las credenciales";
+          }
+        });
+
+      if (!val) {
+        await swal.fire({
+          icon: "error",
+          text: msg,
+        });
+        return false;
+      }
+      await this.eliminarRegistroEgresos(pago);
+      await this.getRegistroEgresos(this.filtro);
     },
     async editar(pago) {
       console.log("pago", pago);

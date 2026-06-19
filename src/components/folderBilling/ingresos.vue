@@ -183,7 +183,7 @@
                 </td>
                 <td>
                   <v-icon
-                    :disabled="!house.tienefacturafiscal"
+                    :disabled="!house.tienefactura"
                     color="info"
                     @click.stop="verProformas(house)"
                   >
@@ -192,11 +192,16 @@
                 </td>
                 <td v-if="editable">
                   <v-btn
-                    color="primary"
+                    :color="!house.tienefacturafiscal ? '#616161' : 'primary'"
+                    dark
                     small
                     @click.stop="abrirModalFacturasFiscales(house)"
                   >
-                    FACTURA FISCAL
+                    {{
+                      !house.tienefacturafiscal
+                        ? "CARGAR FACTURA FISCAL"
+                        : "VER FACTURA FISCAL"
+                    }}
                   </v-btn>
                   <v-btn
                     v-if="house.id_orders"
@@ -902,9 +907,9 @@
         <v-card-title>
           Facturas y Proformas Fiscales de {{ house.consigner }}
           <v-spacer></v-spacer>
-          <v-btn outlined @click="cargarProformaFiscal" color="primary"
-            >Cargar Nueva</v-btn
-          >
+          <v-btn outlined @click="cargarProformaFiscal" color="primary">
+            Cargar Nueva
+          </v-btn>
         </v-card-title>
         <v-card-text>
           <v-data-table
@@ -1475,6 +1480,25 @@ export default {
     }, 2000);
   },
   methods: {
+    ...mapActions([
+      "setControl",
+      "guardarIngresos",
+      "_uploadFile",
+      "getListControlGastos",
+      "delDebsClient",
+      "data_factura",
+      "generar_factura",
+      "registrar_factura",
+      "actualizarIngresos",
+      "eliminarIngreso",
+      "validarUsuarioAdmin",
+      "copiarCGingresos",
+      "getCargarHouse",
+      "_getMasterList",
+      "guardarDatosInstructivo",
+      "getFacturasFiscales",
+      "getListControlGastosHouses",
+    ]),
     abrirModalRegistroDocumentoHouse(datosinstructivomanual, id_quote) {
       this.datosinstructivomanual = datosinstructivomanual;
       this.listaDocumentos = datosinstructivomanual.listaDocumentos
@@ -2170,8 +2194,12 @@ export default {
             title: "Documento Cargado",
             text: "El documento ha sido cargado correctamente",
           });
-
-          await vm.getFacturasFiscales(vm.house);
+          vm.$store.state.spiner = true;
+          await Promise.all([
+            vm.getFacturasFiscales(vm.house),
+            vm.getListControlGastosHouses(vm.$route.params.id),
+          ]);
+          vm.$store.state.spiner = false;
         } else {
           Swal.fire({
             icon: "error",
@@ -2223,8 +2251,13 @@ export default {
                 });
 
                 vm.isDataTableLoading = true;
-                await vm.getFacturasFiscales(vm.house);
+                vm.$store.state.spiner = true;
+                await Promise.all([
+                  vm.getFacturasFiscales(vm.house),
+                  vm.getListControlGastosHouses(vm.$route.params.id),
+                ]);
                 vm.isDataTableLoading = false;
+                vm.$store.state.spiner = false;
               } else {
                 Swal.fire({
                   icon: "error",
@@ -2431,25 +2464,7 @@ export default {
         );
       }
     },
-    ...mapActions([
-      "setControl",
-      "guardarIngresos",
-      "_uploadFile",
-      "getListControlGastos",
-      "delDebsClient",
-      "data_factura",
-      "generar_factura",
-      "registrar_factura",
-      "actualizarIngresos",
-      "eliminarIngreso",
-      "validarUsuarioAdmin",
-      "copiarCGingresos",
-      "getCargarHouse",
-      "_getMasterList",
-      "guardarDatosInstructivo",
-      "getFacturasFiscales",
-      "getListControlGastosHouses",
-    ]),
+
     bloquearCopiarMontos(ingresos) {
       return ingresos.some((v) => v.facturado);
     },

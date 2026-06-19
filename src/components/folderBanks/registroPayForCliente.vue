@@ -439,6 +439,44 @@
         </v-btn>
       </template>
     </v-snackbar>
+
+    <v-dialog
+      v-model="dialogLlenarMontoDepositadoBanco"
+      persistent
+      max-width="30%"
+      transition="dialog-transition"
+    >
+      <v-card>
+        <v-card-title primary-title>
+          Ingrese el Monto Exacto Depositado En Banco
+        </v-card-title>
+        <v-card-text>
+          <v-text-field
+            outlined
+            dense
+            ref="txtMontoLocal"
+            v-model="monto_local"
+            type="number"
+            :prefix="symbol"
+            width="50px"
+            :error-messages="errorMesage.monto_local"
+            :readonly="!Object.keys(id_cuenta).length > 0"
+            @input="
+              monto_local
+                ? (errorMesage.monto_local = '')
+                : (errorMesage.monto_local =
+                    'Monto de Depósito en banco es requerido')
+            "
+          ></v-text-field>
+        </v-card-text>
+        <v-card-actions>
+          <v-spacer></v-spacer>
+          <v-btn color="success" small @click="confirmarDeposito"
+            >Confirmar</v-btn
+          >
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
   </v-card>
 </template>
 
@@ -454,6 +492,7 @@ export default {
   },
   data() {
     return {
+      dialogLlenarMontoDepositadoBanco: false,
       esDuplicado: false,
       timer: null,
       operacionesSimilares: {},
@@ -556,6 +595,11 @@ export default {
       "setRegistroIgresos",
       "validarIngresoNroOperacion",
     ]),
+    confirmarDeposito() {
+      if (this.monto_local) {
+        this.dialogLlenarMontoDepositadoBanco = false;
+      }
+    },
     checkDeshabilitado(item) {
       // Si editaflag es false, devuelve true para deshabilitar el checkbox
       return item.editaflag === false;
@@ -920,6 +964,7 @@ export default {
       );
       this.symbol = coins ? coins.symbol : "USD";
       this.$refs.txtMontoLocal.focus();
+      this.dialogLlenarMontoDepositadoBanco = true;
     },
     fecha_operacion(newVal) {
       if (newVal) {

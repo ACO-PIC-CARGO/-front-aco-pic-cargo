@@ -698,11 +698,37 @@ const actions = {
       });
     return res;
   },
-  async eliminarRegistroIngresos({ commit }, data) {
+  async eliminarRegistroEgresos({ commit }, data) {
     let res = {};
     var config = {
       method: "delete",
       url: process.env.VUE_APP_URL_MAIN + "eliminar_registro_ingresos",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      data: data,
+    };
+    await axios(config)
+      .then(function (response) {
+        let data = response.data;
+        if (data.estadoflag) {
+          Swal.fire({
+            icon: "success",
+            text: data.mensaje,
+          });
+        }
+      })
+      .catch(function (error) {
+        console.log(error);
+      });
+    return res;
+  },
+
+  async eliminarRegistroEgresos({ commit }, data) {
+    let res = {};
+    var config = {
+      method: "delete",
+      url: process.env.VUE_APP_URL_MAIN + "eliminar_registro_egresos",
       headers: {
         "Content-Type": "application/json",
       },

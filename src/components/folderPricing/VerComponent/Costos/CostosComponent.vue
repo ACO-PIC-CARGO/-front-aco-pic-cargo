@@ -1579,7 +1579,7 @@ export default {
         .forEach((element) => {
           this.resumenOpcion.flete += this.obtenerCostoElemento(element);
         });
-      this.$store.state.pricing.totalFlete = this.resumenOpcion.flete;
+      
     },
 
     calcularTotalesNoFlete() {
