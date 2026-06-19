@@ -440,38 +440,45 @@
       </template>
     </v-snackbar>
 
-  <v-dialog v-model="dialogLlenarMontoDepositadoBanco" persistent max-width="450">
-  <v-card>
-    <v-card-title class="headline pb-2">
-      <v-icon left color="primary">mdi-hand-coin</v-icon> Confirmar Depósito
-    </v-card-title>
+    <v-dialog
+      v-model="dialogLlenarMontoDepositadoBanco"
+      persistent
+      max-width="450"
+    >
+      <v-card>
+        <v-card-title class="headline pb-2">
+          <v-icon left color="primary">mdi-hand-coin</v-icon> Confirmar Depósito
+        </v-card-title>
 
-    <v-card-text class="pt-4">
-      <div class="body-1 mb-4">
-        Por favor, ingresa el monto exacto recibido en tu cuenta bancaria para proceder con la validación de la factura.
-      </div>
+        <v-card-text class="pt-4">
+          <div class="body-1 mb-4">
+            Por favor, ingresa el monto exacto recibido en tu cuenta bancaria
+            para proceder con la validación de la factura.
+          </div>
 
-      <v-text-field
-        outlined
-        label="Monto depositado"
-        ref="txtMontoLocal"
-        v-model="monto_local"
-        type="number"
-        :prefix="symbol"
-        :error-messages="errorMesage.monto_local"
-        :readonly="!Object.keys(id_cuenta).length > 0"
-        hide-details="auto"
-        class="mt-2"
-      ></v-text-field>
-    </v-card-text>
+          <v-text-field
+            outlined
+            label="Monto depositado"
+            ref="txtMontoLocal"
+            v-model="monto_local"
+            type="number"
+            :prefix="symbol"
+            :error-messages="errorMesage.monto_local"
+            :readonly="!Object.keys(id_cuenta).length > 0"
+            hide-details="auto"
+            class="mt-2"
+          ></v-text-field>
+        </v-card-text>
 
-    <v-card-actions class="pa-4">
-      <v-spacer></v-spacer>
-      <v-btn text color="grey" @click="dialogLlenarMontoDepositadoBanco = false">Cancelar</v-btn>
-      <v-btn color="primary" elevation="2" @click="confirmarDeposito">Confirmar</v-btn>
-    </v-card-actions>
-  </v-card>
-</v-dialog>
+        <v-card-actions class="pa-4">
+          <v-spacer></v-spacer>
+          <!-- <v-btn text color="grey" @click="dialogLlenarMontoDepositadoBanco = false">Cancelar</v-btn> -->
+          <v-btn color="primary" elevation="2" @click="confirmarDeposito"
+            >Confirmar</v-btn
+          >
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
   </v-card>
 </template>
 
