@@ -407,38 +407,46 @@
         </v-btn>
       </template>
     </v-snackbar>
+
     <v-dialog
       v-model="dialogLlenarMontoDepositadoBanco"
       persistent
-      max-width="30%"
-      transition="dialog-transition"
+      max-width="450"
     >
       <v-card>
-        <v-card-title primary-title>
-          Ingrese el Monto Exacto Depositado En Banco
+        <v-card-title class="headline pb-2">
+          <v-icon left color="primary">mdi-hand-coin</v-icon> Confirmar Depósito
         </v-card-title>
-        <v-card-text>
+
+        <v-card-text class="pt-4">
+          <div class="body-1 mb-4">
+            Por favor, confirma el monto exacto pagado desde tu cuenta bancaria
+            para proceder con la validación de la salida de fondos.
+          </div>
+
           <v-text-field
             outlined
-            dense
+            label="Monto depositado"
             ref="txtMontoLocal"
             v-model="monto_local"
             type="number"
             :prefix="symbol"
-            width="50px"
             :error-messages="errorMesage.monto_local"
             :readonly="!Object.keys(id_cuenta).length > 0"
-            @input="
-              monto_local
-                ? (errorMesage.monto_local = '')
-                : (errorMesage.monto_local =
-                    'Monto de Depósito en banco es requerido')
-            "
+            hide-details="auto"
+            class="mt-2"
           ></v-text-field>
         </v-card-text>
-        <v-card-actions>
+
+        <v-card-actions class="pa-4">
           <v-spacer></v-spacer>
-          <v-btn color="success" small @click="confirmarDeposito"
+          <v-btn
+            text
+            color="grey"
+            @click="dialogLlenarMontoDepositadoBanco = false"
+            >Cancelar</v-btn
+          >
+          <v-btn color="primary" elevation="2" @click="confirmarDeposito"
             >Confirmar</v-btn
           >
         </v-card-actions>
