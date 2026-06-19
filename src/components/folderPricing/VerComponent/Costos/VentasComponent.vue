@@ -1363,12 +1363,11 @@ export default {
       if (!this.isFlete) return;
 
       this.valores
-        .filter(
-          (v) => v.esfleteflag == 1 && v.status == 1,
-        )
+        .filter((v) => v.esfleteflag == 1 && v.status == 1)
         .forEach((element) => {
           this.resumenOpcion.flete += this.obtenerCostoElemento(element);
         });
+      this.$store.state.pricing.totalFlete = this.resumenOpcion.flete;
     },
 
     calcularTotalesNoFlete() {
