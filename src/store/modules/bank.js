@@ -698,7 +698,7 @@ const actions = {
       });
     return res;
   },
-  async eliminarRegistroEgresos({ commit }, data) {
+  async eliminarRegistroIngresos({ commit }, data) {
     let res = {};
     var config = {
       method: "delete",

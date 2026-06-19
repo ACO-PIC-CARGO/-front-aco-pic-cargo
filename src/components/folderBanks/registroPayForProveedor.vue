@@ -20,7 +20,7 @@
           >
           </v-autocomplete>
         </v-col>
-        <v-col cols="12" md="2" class="pb-0" style="background: #ff8a80">
+        <v-col cols="12" md="2" class="pb-0">
           Monto Depositado En Banco:
           <!-- <v-icon @click="snackbar = true">mdi-information</v-icon> -->
           <v-text-field
@@ -35,7 +35,7 @@
             :readonly="!Object.keys(id_cuenta).length > 0"
           ></v-text-field>
         </v-col>
-        <v-col cols="12" md="2" class="pb-0" style="background: #e3f2fd">
+        <v-col cols="12" md="2" class="pb-0">
           Total Factura Seleccionada:
           <v-text-field
             outlined
@@ -876,7 +876,7 @@ export default {
       // return this.selected.some((v) => v.symbol != "USD");
     },
     tipocambio() {
-      let tc = this.montoFinal / this.monto;
+      let tc = this.monto_local / this.monto;
       return tc.toFixed(2);
     },
     itemsOrdenados() {

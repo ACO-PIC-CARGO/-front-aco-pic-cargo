@@ -488,7 +488,7 @@ export default {
       "verVacturas",
       "_getBanksList",
       "ActualizarCXP",
-      "getRegistroEgresos",
+      "getRegistroEgresos","eliminarRegistroEgresos"
     ]),
     nuevo() {
       this.$store.state.files.payPath = null;
