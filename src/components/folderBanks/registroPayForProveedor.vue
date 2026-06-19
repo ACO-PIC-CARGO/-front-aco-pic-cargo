@@ -440,12 +440,12 @@
 
         <v-card-actions class="pa-4">
           <v-spacer></v-spacer>
-          <v-btn
+          <!-- <v-btn
             text
             color="grey"
             @click="dialogLlenarMontoDepositadoBanco = false"
             >Cancelar</v-btn
-          >
+          > -->
           <v-btn color="primary" elevation="2" @click="confirmarDeposito"
             >Confirmar</v-btn
           >
