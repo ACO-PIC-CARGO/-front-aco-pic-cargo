@@ -447,8 +447,12 @@
       transition="dialog-transition"
     >
       <v-card>
-        <v-card-title primary-title>
-          Ingrese el Monto Exacto Depositado En Banco
+        <v-card-title>
+          <p style="font-size: 1.5rem;"> <v-icon>mdi-hand-coin</v-icon> Confirmar Depósito</p>
+          <p>
+            Por favor, ingresa el monto total recibido en tu cuenta bancaria
+            para proceder con la validación de la factura.
+          </p>
         </v-card-title>
         <v-card-text>
           <v-text-field
