@@ -495,7 +495,8 @@ export default {
       "crearCarpetaOneDrive",
       "actualizarURLEnElQuote",
       "predata",
-      "updateQuote","setEmisionPdf"
+      "updateQuote",
+      "setEmisionPdf",
     ]),
     formatDate(val) {
       if (!val) return "";
