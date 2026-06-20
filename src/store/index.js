@@ -343,6 +343,8 @@ export default new Vuex.Store({
     house_embarque: "",
     house_incoterms: "",
     house_origen: "",
+    telexconfirmado: false,
+    fechaconfirmaciontelex: "",
     house_destino: "",
     house_id_containers: "",
     house_cantidad: "",

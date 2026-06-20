@@ -838,6 +838,7 @@
                     show-select
                     item-key="id"
                     hide-default-footer
+                    :items-per-page="-1"
                   >
                   </v-data-table>
                 </v-col>

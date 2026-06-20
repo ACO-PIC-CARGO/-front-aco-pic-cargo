@@ -818,6 +818,8 @@ export default {
 
         this.$store.state.copy_house = house;
         this.$store.state.id_master = house.id_master;
+        this.$store.state.telexconfirmado = house.telexconfirmado;
+        this.$store.state.fechaconfirmaciontelex = house.fechaconfirmaciontelex;
         this.$store.state.dataHouse_transporte = house.id_transport;
         this.$store.state.house_origen = house.id_port_begin;
         this.$store.state.house_destino = house.id_port_end;
