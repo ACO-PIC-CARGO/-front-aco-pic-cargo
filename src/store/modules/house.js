@@ -39,6 +39,25 @@ const actions = {
       });
   },
 
+  async setConfirmarTelex({ commit }, data) {
+    await axios
+      .put(process.env.VUE_APP_URL_MAIN + `houses_confirmar_telex`, data, {
+        "Content-Type": "application/json",
+      })
+      .then(function (response) {
+        let data = response.data;
+        if (data.estadoflag) {
+          Swal.fire({
+            icon: "success",
+            text: data.mensaje,
+          });
+        }
+      })
+      .catch(function (error) {
+        console.log(error);
+      });
+  },
+
   async guardarCarpetaHouse({ commit }, data) {
     var headers = {
       "Content-Type": "application/json",

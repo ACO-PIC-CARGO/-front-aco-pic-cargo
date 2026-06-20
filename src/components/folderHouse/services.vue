@@ -56,11 +56,13 @@
                     dense
                     :disabled="isFormActionsDisabled"
                     hide-details
-                    style="max-width: 140px;"
+                    style="max-width: 140px"
                   ></v-text-field>
                 </template>
                 <v-date-picker
-                  :value="getDateForPicker(item.date_service || item.updated_at)"
+                  :value="
+                    getDateForPicker(item.date_service || item.updated_at)
+                  "
                   @input="updateServiceDate(item, $event)"
                   locale="es"
                   :first-day-of-week="1"
@@ -164,52 +166,147 @@
       </v-card-text>
     </v-card>
 
+    <v-btn
+      color="#01579B"
+      dark
+      block
+      class="mt-5"
+      @click="abrirModalConfirmaTelex"
+    >
+      <v-icon>mdi-send-variant</v-icon>
+      Confirmar Telex
+    </v-btn>
+
+    <v-dialog v-model="dialogConfirmarTelex" max-width="30%">
+      <v-card>
+        <v-card-title primary-title>
+          Confirmar liberación de Telex
+          <v-spacer></v-spacer>
+          <v-btn icon @click="dialogConfirmarTelex = false">
+            <v-icon>mdi-close</v-icon>
+          </v-btn>
+        </v-card-title>
+        <v-card-text>
+          <v-form ref="frmConfirmar">
+            <v-select
+              :items="cboConfirmaTelex"
+              v-model="$store.state.telexconfirmado"
+              label="Estado del documento"
+              outlined
+              dense
+            ></v-select>
+            <FormatFecha
+              :outlined="true"
+              :dense="true"
+              label="Fecha de confirmación"
+              v-model="$store.state.fechaconfirmaciontelex"
+              :clearable="true"
+            />
+          </v-form>
+        </v-card-text>
+        <v-card-actions>
+          <v-spacer></v-spacer>
+          <v-btn :loading="loading" color="success" @click="confirmarTelex()">Confirmar</v-btn>
+          <v-btn :loading="loading" color="error" @click="dialogConfirmarTelex = false" text
+            >Cancelar</v-btn
+          >
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
     <!-- Botón "Imprimir Formato" movido a sección de Acciones en controlHouse.vue -->
   </div>
 </template>
 <script>
 import { mapActions } from "vuex";
-import axios from '@/api/axios-config';;
+import axios from "@/api/axios-config";
 import moment from "moment";
+import FormatFecha from "../comun/FormatFecha.vue";
 export default {
+  components: {
+    FormatFecha,
+  },
   name: "services",
   props: {
     isFormActionsDisabled: Boolean,
   },
-  data: () => ({
-    itemsCertificado: [
-      { value: 1, text: "Si" },
-      { value: 0, text: "No" },
-      { value: 2, text: "No Aplica" },
-    ],
-    selected_certificado: "",
-  }),
+  data() {
+    return {
+      loading:false,
+      itemsCertificado: [
+        { value: 1, text: "Si" },
+        { value: 0, text: "No" },
+        { value: 2, text: "No Aplica" },
+      ],
+      selected_certificado: "",
+      dialogConfirmarTelex: false,
+      cboConfirmaTelex: [
+        { text: "Confirmado", value: true },
+        { text: "Sin Confirmar", value: false },
+      ],
+      telexconfirmado: "",
+      fechaconfirmaciontelex: "",
+    };
+  },
   computed: {},
   async mounted() {
     await this._validaData();
   },
-watch: {
-  "$store.state.itemsHouseServices": {
-    handler(newValue) {
-      newValue.forEach(item => {
-        this.logNameService(item);
-      });
+  watch: {
+    "$store.state.itemsHouseServices": {
+      handler(newValue) {
+        newValue.forEach((item) => {
+          this.logNameService(item);
+        });
+      },
+      deep: true,
     },
-    deep: true
-  }
-},
+  },
 
   methods: {
     ...mapActions([
       "getQuoteDataNoAsignadaHouseByIncoterms",
       "_getPortBegin",
       "_getPortEnd",
+      "setConfirmarTelex",
     ]),
+    abrirModalConfirmaTelex() {
+      this.dialogConfirmarTelex = true;
+    },
+    async confirmarTelex() {
+      const { telexconfirmado, fechaconfirmaciontelex } = this.$store.state;
+
+      if (telexconfirmado && !fechaconfirmaciontelex) {
+        Swal.fire({
+          icon: "warning", // Cambiado a 'warning' porque es una omisión, no un error de sistema
+          title: "Acción requerida",
+          text: "Debe ingresar una fecha de confirmación para proceder con el estado 'Confirmado'.",
+        });
+        return;
+      }
+
+      if (!telexconfirmado && fechaconfirmaciontelex) {
+        Swal.fire({
+          icon: "warning",
+          title: "Inconsistencia en los datos",
+          text: "No es posible establecer una fecha si el documento no ha sido confirmado.",
+        });
+        return;
+      }
+      this.$store.state.spiner = true;
+      this.loading = true
+      await this.setConfirmarTelex({
+        id: this.$route.params.id,
+        telexconfirmado: this.$store.state.telexconfirmado,
+        fechaconfirmaciontelex: this.$store.state.fechaconfirmaciontelex,
+      });
+      this.loading = false
+      this.dialogConfirmarTelex = false
+      this.$store.state.spiner = false;
+    },
     getDisabledPropServiceStatus(index) {
       return !!this.isFormActionsDisabled;
     },
     logNameService(value) {
-      
       return value;
     },
     formatFecha(val) {
@@ -235,9 +332,9 @@ watch: {
     async updateServiceDate(item, newDate) {
       if (!newDate) return;
 
-       item.showDatePicker = false;
+      item.showDatePicker = false;
 
-       const formattedDate = moment(newDate).format("YYYY-MM-DD");
+      const formattedDate = moment(newDate).format("YYYY-MM-DD");
       this.$set(item, "date_service", formattedDate);
     },
     send() {
@@ -252,7 +349,6 @@ watch: {
         method: "post",
         url: process.env.VUE_APP_URL_MAIN + "deleteServices",
         headers: {
-         
           "Content-Type": "application/json",
         },
         data: data,
@@ -276,7 +372,6 @@ watch: {
         method: "post",
         url: process.env.VUE_APP_URL_MAIN + "activeServices",
         headers: {
-         
           "Content-Type": "application/json",
         },
         data: data,
@@ -300,7 +395,6 @@ watch: {
         method: "post",
         url: process.env.VUE_APP_URL_MAIN + "inactiveServices",
         headers: {
-         
           "Content-Type": "application/json",
         },
         data: data,
@@ -325,7 +419,6 @@ watch: {
         method: "post",
         url: process.env.VUE_APP_URL_MAIN + "editServices",
         headers: {
-         
           "Content-Type": "application/json",
         },
         data: data,
@@ -355,7 +448,6 @@ watch: {
           method: "post",
           url: process.env.VUE_APP_URL_MAIN + "getHouseServices",
           headers: {
-           
             "Content-Type": "application/json",
           },
           data: data,
@@ -381,7 +473,7 @@ watch: {
                   status: changed ? it.status : 0,
                 };
 
-                if ((item.nameservice || '').toUpperCase() == "IMPUESTOS") {
+                if ((item.nameservice || "").toUpperCase() == "IMPUESTOS") {
                   itemImpuestos = item;
                 } else {
                   lstServices.push(item);
@@ -392,9 +484,8 @@ watch: {
                 lstServices.push(itemImpuestos);
               }
 
-              vm.$store.state.itemsHouseServices = vm._sortServicesByName(
-                lstServices
-              );
+              vm.$store.state.itemsHouseServices =
+                vm._sortServicesByName(lstServices);
             } else {
               vm.$store.state.itemsHouseServices = [];
             }
@@ -439,7 +530,7 @@ watch: {
                 await vm._getServicesByIncoterms(
                   vm.$store.state.house_sentido,
                   vm.$store.state.house_id_trasnport,
-                  vm.$store.state.house_incoterms
+                  vm.$store.state.house_incoterms,
                 );
 
                 vm.$store.state.spiner = false;
@@ -456,18 +547,19 @@ watch: {
     toggleServiceStatusSwitch(item, index) {
       // Solo actualiza el estado local. La fecha mostrada proviene de update_at del backend.
       // El backend actualizará update_at cuando se guarde el House (setHouseEdit).
-      const isOn = item.status === 1 || item.status === "1" || item.status === true;
+      const isOn =
+        item.status === 1 || item.status === "1" || item.status === true;
       item.status = isOn ? 1 : 0;
     },
     _sortServicesByName(list) {
       if (!Array.isArray(list)) return [];
       const sorted = list.slice().sort((a, b) => {
-        const A = (a.nameservice || '').toString();
-        const B = (b.nameservice || '').toString();
-        return A.localeCompare(B, 'es', { sensitivity: 'base' });
+        const A = (a.nameservice || "").toString();
+        const B = (b.nameservice || "").toString();
+        return A.localeCompare(B, "es", { sensitivity: "base" });
       });
       const idx = sorted.findIndex(
-        (s) => String(s.nameservice).toUpperCase() === 'IMPUESTOS'
+        (s) => String(s.nameservice).toUpperCase() === "IMPUESTOS",
       );
       if (idx > -1) {
         const [imp] = sorted.splice(idx, 1);
@@ -494,7 +586,7 @@ watch: {
     async _getServicesByIncoterms(
       id_modality = 0,
       id_shipment = 0,
-      id_incoterms = 0
+      id_incoterms = 0,
     ) {
       var vm = this;
       var data = {
@@ -508,7 +600,6 @@ watch: {
         method: "post",
         url: process.env.VUE_APP_URL_MAIN + `getServicesByIncoterms`,
         headers: {
-         
           "Content-Type": "application/json",
         },
         data: data,
@@ -543,9 +634,8 @@ watch: {
               lstServices.push(itemImpuestos);
             }
 
-            vm.$store.state.itemsHouseServices = vm._sortServicesByName(
-              lstServices
-            );
+            vm.$store.state.itemsHouseServices =
+              vm._sortServicesByName(lstServices);
           } else {
             vm.$store.state.itemsHouseServices = [];
 

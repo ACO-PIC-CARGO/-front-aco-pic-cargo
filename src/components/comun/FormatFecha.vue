@@ -21,6 +21,7 @@
         :error-messages="errorMessages"
         :error="!!errorMessages"
         :clearable="clearable"
+        @click:clear="limpiarFecha"
       ></v-text-field>
     </template>
     <v-date-picker
@@ -100,6 +101,12 @@ export default {
         "DIC",
       ];
       return `${day}/${meses[parseInt(month) - 1]}/${year}`;
+    },
+  },
+  methods: {
+    limpiarFecha() {
+      // Al limpiar, emitimos null al padre (el store)
+      this.$emit("input", null);
     },
   },
 };

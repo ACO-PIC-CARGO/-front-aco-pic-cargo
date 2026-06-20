@@ -161,7 +161,7 @@
       >
         <template v-slot:item="{ item }">
           <tr :style="{ backgroundColor: item.background }">
-            <td width="11%">
+            <td width="15%">
               <p class="ma-0">
                 <b>{{ item.code_master }}</b>
 
@@ -177,7 +177,7 @@
               </p>
               <p class="ma-0">Incoterms: {{ item.incoterms }}</p>
             </td>
-            <td width="59%">
+            <td width="40%">
               <p class="ma-0">Cliente: {{ item.listhouse }}</p>
               <p class="ma-0"><b>Comentarios:</b></p>
               <p
@@ -189,6 +189,12 @@
                 {{ i.comentario }}
               </p>
             </td>
+            <td width="20%">
+              <p v-for="(telex,index) in item.house_telex" :key="index">
+                  {{ telex.nombrecompleto }} : {{ telex.fechaconfirmaciontelex }}
+              </p>
+              
+              </td>
             <td width="30%">
               <p class="ma-0">Operador:{{ item.operador }}</p>
 
@@ -324,7 +330,7 @@ export default {
           value: "datos_embarque",
         },
 
-        // { text: "Fechas", value: "fechas" },
+        { text: "Telex", value: "house_telex" },
         { text: "OPERADOR / FECHAS", value: "datos_operador" },
       ],
       loading: false,

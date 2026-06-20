@@ -20,7 +20,7 @@
           >
           </v-autocomplete>
         </v-col>
-        <v-col cols="12" md="2" class="pb-0" >
+        <v-col cols="12" md="2" class="pb-0">
           Monto Depositado En Banco:
           <!-- <v-icon @click="snackbar = true">mdi-information</v-icon> -->
           <v-text-field
@@ -41,7 +41,7 @@
             "
           ></v-text-field>
         </v-col>
-        <v-col cols="12" md="2" class="pb-0" >
+        <v-col cols="12" md="2" class="pb-0">
           Total Factura Seleccionada:
           <v-text-field
             outlined
@@ -101,11 +101,9 @@
                     <template v-slot:body.append>
                       <tr class="grey lighten-4 font-weight-bold">
                         <td :colspan="headers.length" class="text-right">
-                          Total General Seleccionado ({{ symbol }}):
+                          Total General Seleccionado (USD):
                         </td>
-                        <td class="text-left">
-                          {{ symbol }} {{ totalGeneralAbonado }}
-                        </td>
+                        <td class="text-left">USD {{ totalGeneralAbonado }}</td>
                       </tr>
                     </template>
                     <template v-slot:[`item.parcialflag`]="{ item }">
@@ -362,11 +360,9 @@
                           :colspan="headersPagosGastosBancario.length - 1"
                           class="text-right"
                         >
-                          Total General Seleccionado ({{ symbol }}):
+                          Total General Seleccionado (USD):
                         </td>
-                        <td class="text-left">
-                          {{ symbol }} {{ totalGeneralAbonado }}
-                        </td>
+                        <td class="text-left">USD {{ totalGeneralAbonado }}</td>
                       </tr>
                     </template>
                     <template v-slot:[`item.parcialflag`]="{ item }">
@@ -399,7 +395,7 @@
                     label="Monto Gasto Bancario"
                     id="id"
                     type="number"
-                    :prefix="symbol"
+                    prefix="USD"
                     v-model="montogastobancario"
                   ></v-text-field>
                 </v-col>
@@ -410,7 +406,7 @@
                     label="Monto Total a Pagar"
                     id="id"
                     type="number"
-                    :prefix="symbol"
+                    prefix="USD"
                     v-model="montoFinal"
                   ></v-text-field>
                 </v-col>
@@ -791,7 +787,7 @@ export default {
     async finalizarOperacion() {
       let monto_local = Number(parseFloat(this.monto_local).toFixed(2));
       let montoFinal = Number(parseFloat(this.montoFinal).toFixed(2));
-      if (monto_local != montoFinal) {
+      if (this.symbol == "USD" && monto_local != montoFinal) {
         Swal.fire({
           icon: "error",
           title: "Monto Incorrecto",
@@ -937,8 +933,10 @@ export default {
       //   .toFixed(2);
     },
     tipocambio() {
-      let tc = this.monto_local / this.monto;
-      return tc.toFixed(2);
+      let tc =
+        (this.monto_local + parseFloat(this.montogastobancario || 0)) /
+        this.monto;
+      return tc.toFixed(4);
     },
     itemsOrdenados() {
       const items = [...this.$store.state.bank.deudaAProveedor];
