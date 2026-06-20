@@ -3751,28 +3751,13 @@ const actions = {
       .catch((e) => console.log(e));
   },
   async imprimiReporteListado(__, { filtro = [] }) {
-    let filtros = {
-      id_entities: state.filtro.id_entities,
-      id_marketing: state.filtro.id_marketing,
-      id_status: state.filtro.id_status,
-      id_modality: state.filtro.id_modality,
-      id_shipment: state.filtro.id_shipment,
-      id_incoterm: state.filtro.id_incoterm,
-      fechainicio: state.filtro.fechainicio,
-      fechafin: state.filtro.fechafin,
-      estado:
-        state.filtro.estado == "activo"
-          ? "1"
-          : state.filtro.estado == "eliminado"
-          ? "0"
-          : "",
-    };
+    
 
     let headers = {
       "Content-Type": "application/json",
     };
     let data = {
-      filtro: filtros,
+      filtro: state.filtro,
       id_branch: JSON.parse(sessionStorage.getItem("dataUser"))[0].id_branch,
     };
     let timerInterval;
