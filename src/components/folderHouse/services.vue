@@ -165,17 +165,37 @@
         </v-row>
       </v-card-text>
     </v-card>
+    <v-card class="mt-2">
+      <v-card-title primary-title> BL TELEXT </v-card-title>
+      <v-card-text>
+        <v-row>
+          <v-col cols="3">
+            <v-switch
+              :label="$store.state.telexconfirmado ? 'Si' : 'No'"
+              v-model="$store.state.telexconfirmado"
+            />
+          </v-col>
+          <v-col cols="9">
+            <FormatFecha
+              v-if="$store.state.telexconfirmado"
+              :outlined="true"
+              label="Fecha de confirmación"
+              v-model="$store.state.fechaconfirmaciontelex"
+              :clearable="true"
+            />
+          </v-col>
 
-    <v-btn
-      color="#01579B"
-      dark
-      block
-      class="mt-5"
-      @click="abrirModalConfirmaTelex"
-    >
-      <v-icon>mdi-send-variant</v-icon>
-      Confirmar Telex
-    </v-btn>
+          <v-btn
+            v-if="mostrarBtnTelex"
+            :loading="loading"
+            color="success"
+            @click="confirmarTelex()"
+          >
+            Confirmar Telex
+          </v-btn>
+        </v-row>
+      </v-card-text>
+    </v-card>
 
     <v-dialog v-model="dialogConfirmarTelex" max-width="30%">
       <v-card>
@@ -206,8 +226,14 @@
         </v-card-text>
         <v-card-actions>
           <v-spacer></v-spacer>
-          <v-btn :loading="loading" color="success" @click="confirmarTelex()">Confirmar</v-btn>
-          <v-btn :loading="loading" color="error" @click="dialogConfirmarTelex = false" text
+          <v-btn :loading="loading" color="success" @click="confirmarTelex()"
+            >Confirmar</v-btn
+          >
+          <v-btn
+            :loading="loading"
+            color="error"
+            @click="dialogConfirmarTelex = false"
+            text
             >Cancelar</v-btn
           >
         </v-card-actions>
@@ -221,6 +247,7 @@ import { mapActions } from "vuex";
 import axios from "@/api/axios-config";
 import moment from "moment";
 import FormatFecha from "../comun/FormatFecha.vue";
+import Swal from "sweetalert2";
 export default {
   components: {
     FormatFecha,
@@ -231,7 +258,8 @@ export default {
   },
   data() {
     return {
-      loading:false,
+      loading: false,
+      mostrarBtnTelex: false,
       itemsCertificado: [
         { value: 1, text: "Si" },
         { value: 0, text: "No" },
@@ -260,6 +288,12 @@ export default {
       },
       deep: true,
     },
+    "$store.state.telexconfirmado"() {
+      this.mostrarBtnTelex = true;
+      if (!this.$store.state.telexconfirmado) {
+        this.$store.state.fechaconfirmaciontelex = null;
+      }
+    },
   },
 
   methods: {
@@ -274,6 +308,9 @@ export default {
     },
     async confirmarTelex() {
       const { telexconfirmado, fechaconfirmaciontelex } = this.$store.state;
+      if (!this.telexconfirmado) {
+        this.fechaconfirmaciontelex = false;
+      }
 
       if (telexconfirmado && !fechaconfirmaciontelex) {
         Swal.fire({
@@ -293,14 +330,14 @@ export default {
         return;
       }
       this.$store.state.spiner = true;
-      this.loading = true
+      this.loading = true;
       await this.setConfirmarTelex({
         id: this.$route.params.id,
         telexconfirmado: this.$store.state.telexconfirmado,
         fechaconfirmaciontelex: this.$store.state.fechaconfirmaciontelex,
       });
-      this.loading = false
-      this.dialogConfirmarTelex = false
+      this.loading = false;
+      this.dialogConfirmarTelex = false;
       this.$store.state.spiner = false;
     },
     getDisabledPropServiceStatus(index) {

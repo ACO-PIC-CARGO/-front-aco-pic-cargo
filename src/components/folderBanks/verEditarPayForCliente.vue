@@ -553,7 +553,7 @@ export default {
         { text: "Expediente", value: "code_master" },
         { text: "Módulo Origen", value: "tipo" },
         {
-          text: "Monto Según Factura",
+          text: "Moneda y Monto Facturado",
           value: "montomonedalocal",
         },
 
@@ -568,7 +568,7 @@ export default {
         { text: "Expediente", value: "code_master" },
         { text: "Módulo Origen", value: "tipo" },
         {
-          text: "Monto Según Factura",
+          text: "Moneda y Monto Facturado",
           value: "montomonedalocal",
         },
 

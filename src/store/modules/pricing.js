@@ -51,6 +51,7 @@ const state = {
   filtro: {
     id_marketing: "",
     id_status: "",
+    id_pricing: "",
     id_entities: "",
     id_modality: "",
     id_shipment: "",
@@ -58,7 +59,7 @@ const state = {
     fechainicio: "",
     fechafin: "",
     fechaemision: "",
-    estado: "activo",
+    estado: 1,
   },
   filtroCalls: {
     id_marketing: "",
@@ -69,7 +70,7 @@ const state = {
     id_incoterm: "",
     fechainicio: "",
     fechafin: "",
-    estado: "activo",
+    estado: 1,
   },
   ventaflag: false,
   dataQuote: null,
