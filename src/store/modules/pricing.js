@@ -56,8 +56,8 @@ const state = {
     id_modality: "",
     id_shipment: "",
     id_incoterm: "",
-    fechainicio: "",
-    fechafin: "",
+    fechainicio: moment().format("YYYY-01-01"),
+    fechafin: moment().endOf("month").format("YYYY-MM-DD"),
     fechaemision: "",
     estado: 1,
   },
@@ -216,17 +216,18 @@ const mutations = {
     state.reset = false;
     state.namesection = [];
     state.page = 1;
-    state.filtro = {
-      id_marketing: "",
-      id_status: "",
-      id_entities: "",
-      id_modality: "",
-      id_shipment: "",
-      id_incoterm: "",
-      fechainicio: "",
-      fechafin: "",
-      estado: "activo",
-    };
+    // state.filtro = {
+    //   id_marketing: "",
+    //   id_status: "",
+    //   id_entities: "",
+    //   id_modality: "",
+    //   id_shipment: "",
+    //   id_incoterm: "",
+    //   fechainicio: "",
+    //   fechafin: "",
+    //   id_pricing : '',
+    //   estado: "activo",
+    // };
     state.filtroCalls = {
       id_marketing: "",
       id_status: "",
@@ -641,6 +642,7 @@ const actions = {
     });
   },
   async getListQuote({ commit }) {
+    console.log('id_pricing',state.filtro)
     var config = {
       method: "get",
       url: process.env.VUE_APP_URL_MAIN + `getQuoteList`,
@@ -3751,14 +3753,17 @@ const actions = {
       })
       .catch((e) => console.log(e));
   },
-  async imprimiReporteListado(__, { filtro = [] }) {
+  async imprimiReporteListado() {
     
 
     let headers = {
       "Content-Type": "application/json",
     };
     let data = {
-      filtro: state.filtro,
+      filtro:{... state.filtro,search: state.search,
+        limit: state.limit,
+        pagina: state.pagina,
+        id_branch: JSON.parse(sessionStorage.getItem("dataUser"))[0].id_branch,},
       id_branch: JSON.parse(sessionStorage.getItem("dataUser"))[0].id_branch,
     };
     let timerInterval;
@@ -3797,23 +3802,8 @@ const actions = {
       })
       .catch((e) => console.log(e));
   },
-  async exportarExcelListadoQuote(__, { filtro = {} }) {
-    let filtros = {
-      id_entities: state.filtro.id_entities,
-      id_marketing: state.filtro.id_marketing,
-      id_status: state.filtro.id_status,
-      id_modality: state.filtro.id_modality,
-      id_shipment: state.filtro.id_shipment,
-      id_incoterm: state.filtro.id_incoterm,
-      fechainicio: state.filtro.fechainicio,
-      fechafin: state.filtro.fechafin,
-      estado:
-        state.filtro.estado == "activo"
-          ? "1"
-          : state.filtro.estado == "eliminado"
-          ? "0"
-          : "",
-    };
+  async exportarExcelListadoQuote() {
+   
     let headers = {
       "Access-Control-Allow-Origin": "*",
       "Content-Type": "application/json",
@@ -3824,7 +3814,10 @@ const actions = {
       responseType: "arraybuffer",
     };
     let data = {
-      filtro: filtros,
+      filtro:{... state.filtro,search: state.search,
+        limit: state.limit,
+        pagina: state.pagina,
+        id_branch: JSON.parse(sessionStorage.getItem("dataUser"))[0].id_branch,},
       id_branch: JSON.parse(sessionStorage.getItem("dataUser"))[0].id_branch,
     };
 

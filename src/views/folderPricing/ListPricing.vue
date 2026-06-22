@@ -126,7 +126,6 @@ export default {
       "GuardarConfiguracionEmpresa",
       "ObtenerDatosConfig",
       "getResumenPorEstado",
-      "getListQuote",
     ]),
     redirect() {
       this.$nextTick(() => {
@@ -137,18 +136,7 @@ export default {
     },
     async filtrarCotizaciones(item) {
       this.$store.state.spiner = true;
-      this.$store.state.pricing.filtro = {
-        id_marketing: "",
-        id_status: item.id,
-        id_entities: "",
-        id_modality: "",
-        id_shipment: "",
-        id_incoterm: "",
-        fechainicio: "",
-        fechafin: "",
-        estado: "activo",
-      };
-      // await this.getListQuote();
+      
       this.$store.state.spiner = false;
     },
     async guardarConfig() {
