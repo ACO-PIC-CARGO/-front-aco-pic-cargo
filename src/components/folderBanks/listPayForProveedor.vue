@@ -49,6 +49,10 @@
           dense
           disable-sort
         >
+          <template v-slot:[`item.totalmonedalocal`]="{ item }">
+            {{ item.moneda }}
+            {{ item.totalmonedalocal }}
+            </template>
           <template v-slot:[`item.action`]="{ item }">
             <v-btn icon color="red" @click="verSoport(item.ruta)">
               <v-icon>mdi-file</v-icon>
@@ -404,10 +408,13 @@ export default {
         //{ text: "Tipo Gasto	", value: "tipo_gasto" },
         //{ text: "Sub Tipo de Gasto", value: "subtipo_gasto" },
         { text: "Proveedor	", value: "proveedor" },
-        { text: "Monto (USD)	", value: "totaldolar" },
+        { text: "Total en Dólares", value: "totaldolar" },
         { text: "Tipo de Cambio	", value: "tipocambio" },
-        { text: "Monto	", value: "totalmonedalocal" },
-        { text: "Moneda	", value: "moneda" },
+        {
+          text: "Monto y Moneda que Salió al Banco",
+          value: "totalmonedalocal",
+        },
+        // { text: "Moneda	", value: "moneda" },
         { text: "Comentarios", value: "comentario" },
         // { text: "concepto	", value: "concepto" },
         // { text: "Nro Factura", value: "factura" },
@@ -488,7 +495,8 @@ export default {
       "verVacturas",
       "_getBanksList",
       "ActualizarCXP",
-      "getRegistroEgresos","eliminarRegistroEgresos"
+      "getRegistroEgresos",
+      "eliminarRegistroEgresos",
     ]),
     nuevo() {
       this.$store.state.files.payPath = null;

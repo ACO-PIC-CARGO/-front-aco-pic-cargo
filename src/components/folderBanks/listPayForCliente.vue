@@ -33,6 +33,10 @@
       item-key="id"
       disable-sort
     >
+      <template v-slot:[`item.totalmonedalocal`]="{ item }">
+        {{ item.monedaregistro }}
+        {{ item.totalmonedalocal }}
+      </template>
       <template v-slot:[`item.urlarchivo`]="{ item }">
         <v-btn icon color="" @click="verSoport(item.urlarchivo)">
           <v-icon>mdi-file</v-icon>
@@ -275,9 +279,12 @@ export default {
         { value: "nrocuenta", text: "Número de Cuenta Destino" }, // text,
         { value: "cliente", text: "Cliente" }, // text,
         { value: "totaldolar", text: "Total en Dólares" }, // numeric(19,4),
-        { value: "totalmonedalocal", text: "Total en Moneda Local" }, // numeric(19,4),
         { value: "tipocambio", text: "Tipo de Cambio" }, // numeric(19,4),
-        { value: "monedaregistro", text: "Moneda de Registro" }, // varchar,
+        {
+          value: "totalmonedalocal",
+          text: "Monto y Moneda que Ingresó al Banco",
+        }, // numeric(19,4),
+        // { value: "monedaregistro", text: "Moneda de Registro" }, // varchar,
         { value: "comentarioadmin", text: "Comentario del Administrador" }, // text,
         { value: "comentariousuario", text: "Comentario del Usuario" }, // text,
         // { value: "nombrearchivo", text: "Nombre del Archivo" }, // varchar,

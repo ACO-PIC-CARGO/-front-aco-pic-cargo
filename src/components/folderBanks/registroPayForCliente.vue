@@ -53,7 +53,7 @@
             width="50px"
           ></v-text-field>
         </v-col>
-
+        <!--  -->
         <v-col cols="12" md="2" class="pb-0" v-if="mostrarTipoCambio">
           Tipo Cambio:
           <v-text-field
@@ -375,6 +375,17 @@
                     </template>
                     <template v-slot:[`item.totalabonado`]="{ item }">
                       {{ fn_totalAbonado(item) }}
+                    </template>
+                    <template v-slot:[`item.saldo`]="{ item }">
+                      {{ item.symbol }}
+                      {{
+                        parseFloat(
+                          item.total_mon_local -
+                            (item.montoparcial
+                              ? item.montoparcial
+                              : item.total_mon_local),
+                        ).toFixed(2)
+                      }}
                     </template>
                   </v-data-table>
                 </v-col>
@@ -934,7 +945,8 @@ export default {
     },
     tipocambio() {
       let tc =
-        (this.monto_local + parseFloat(this.montogastobancario || 0)) /
+        (parseFloat(this.monto_local) +
+          parseFloat(this.montogastobancario || 0)) /
         this.monto;
       return tc.toFixed(4);
     },

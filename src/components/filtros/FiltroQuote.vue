@@ -37,6 +37,17 @@
             item-value="id"
             v-model="$store.state.pricing.filtro.id_status"
           ></v-autocomplete>
+
+          <!-- <v-autocomplete
+            :items="$store.state.pricing.listEjecutivo"
+            label="Ejecutivo."
+            dense
+            search
+            item-text="name"
+            item-value="id_entitie"
+            v-model="$store.state.pricing.filtro.id_pricing"
+          ></v-autocomplete> -->
+
           <v-autocomplete
             :items="$store.state.pricing.listEjecutivo"
             label="Ejecutivo."

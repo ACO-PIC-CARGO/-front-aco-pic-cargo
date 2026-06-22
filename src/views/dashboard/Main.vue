@@ -449,6 +449,9 @@
         </v-card-actions>
       </v-card>
     </v-dialog>
+    <v-snackbar v-model="snackbar">
+      {{ dataMensaje }}
+    </v-snackbar>
   </v-app>
 </template>
 
@@ -460,7 +463,7 @@ import { Store, mapActions, mapState } from "vuex";
 import mixins from "@/components/mixins/funciones";
 import Swal from "sweetalert2";
 import moment from "moment";
-import axios from '@/api/axios-config';
+import axios from "@/api/axios-config";
 import LoadingComponent from "../../components/comun/loadingComponent.vue";
 import { io } from "socket.io-client";
 import BtnIrAlListado from "../../components/comun/btnIrAlListado.vue";
@@ -477,6 +480,9 @@ export default {
   mixins: [mixins],
   data() {
     return {
+      snackbar: false,
+      dataMensaje: "",
+      vertical: true,
       dialogFiles: false,
       headersFiles: [
         { text: "Archivo", value: "name" },
@@ -522,17 +528,19 @@ export default {
 
     this.socket.on("nueva-operacion", (data) => {
       if (!urlPricing.includes(this.$route.name)) {
-        Swal.fire({
-          title: "¡Nueva Cotización!",
-          text: data.mensaje,
-          icon: "info",
-          timer: 5000, // 30 segundos
-          timerProgressBar: true,
-          showConfirmButton: false,
-          allowEnterKey: false,
-          allowOutsideClick: false,
-          allowOutsideClick: false,
-        });
+        this.dataMensaje = data.mensaje;
+        this.snackbar = true;
+        // Swal.fire({
+        //   title: "¡Nueva Cotización!",
+        //   text: data.mensaje,
+        //   icon: "info",
+        //   timer: 5000, // 30 segundos
+        //   timerProgressBar: true,
+        //   showConfirmButton: false,
+        //   allowEnterKey: false,
+        //   allowOutsideClick: false,
+        //   allowOutsideClick: false,
+        // });
       }
     });
   },
@@ -1883,7 +1891,6 @@ export default {
         method: "get",
         url: process.env.VUE_APP_URL_MAIN + "entities/obtener_datos_tarifa",
         headers: {
-         
           "Content-Type": "application/json",
         },
         params: {
