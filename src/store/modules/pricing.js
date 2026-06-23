@@ -6232,6 +6232,18 @@ const actions = {
           idSelectedFile: state.selectedFile.map((v) => v.id),
         });
       }
+
+      if (
+        dataParaAprobar.nuevoexpediente == false &&
+        id_branchs.includes(id_branch)
+      ) {
+        await dispatch("moveFileToOneDrive", {
+          destinationFolderUrl: dataParaAprobar.url_folderonedrive,
+          nroMaster: name,
+          id: data.data[0].id_master,
+          fileIds: state.selectedFile.map((v) => v.id),
+        });
+      }
       Swal.fire({
         icon: data.estadoflag == true ? "success" : "error",
         title: "Aviso",

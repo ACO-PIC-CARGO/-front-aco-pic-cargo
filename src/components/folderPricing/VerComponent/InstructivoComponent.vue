@@ -808,6 +808,7 @@ export default {
         { text: "Archivo", value: "name" },
         { text: "", value: "action" },
       ],
+      url_folderonedrive: "",
     };
   },
   computed: {
@@ -980,9 +981,10 @@ export default {
     verificarMaster() {
       this.mostrarAdvertencia = false;
       this.textValidacionCotizacionMaster = [];
-      let master = this.$store.state.itemsMasterList.filter(
+      let master = this.$store.state.itemsMasterList.find(
         (v) => v.id == this.id_exp,
-      )[0];
+      );
+      this.url_folderonedrive = master.url_folderonedrive;
       if (
         !(
           this.$store.state.pricing.datosPrincipales.idsentido ==
@@ -1280,6 +1282,7 @@ export default {
                       listVentasInstructivo: listVentasInstructivo,
                       id_house: this.id_house,
                       id_opcion: this.id_opcion,
+                      url_folderonedrive: this.url_folderonedrive,
                     });
                     this.$store.state.spiner = true;
 
@@ -1402,6 +1405,7 @@ export default {
                     listVentasInstructivo: listVentasInstructivo,
                     id_house: this.id_house,
                     id_opcion: this.id_opcion,
+                    url_folderonedrive: this.url_folderonedrive,
                   });
                   this.$store.state.spiner = true;
 
@@ -1541,6 +1545,7 @@ export default {
           id_house: this.id_house,
           id_opcion: this.id_opcion,
           id_opcion_house: this.id_opcion_house,
+          url_folderonedrive: this.url_folderonedrive,
         });
         this.$store.state.spiner = true;
         this.aprobarflag = false;
