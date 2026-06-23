@@ -229,6 +229,7 @@
           <td @click="expand(!isExpanded)">{{ item.enviadocliente }}</td>
           <td @click="expand(!isExpanded)">{{ item.status }}</td>
           <td @click="expand(!isExpanded)">{{ item.codigo }}</td>
+          <td @click="expand(!isExpanded)">{{ item.pricing }}</td>
           <td @click="expand(!isExpanded)">{{ item.ejecutivo_ventas }}</td>
           <td @click="expand(!isExpanded)">{{ item.nombres }}</td>
           <td @click="expand(!isExpanded)">{{ item.telefono }}</td>
@@ -586,8 +587,15 @@ export default {
           estado: true,
         },
         {
+          value: "pricing",
+          text: "EJECUTIVO PRICING",
+          align: "center",
+          groupable: true,
+          estado: true,
+        },
+        {
           value: "ejecutivo_ventas",
-          text: "EJECUTIVO",
+          text: "EJECUTIVO VENTAS",
           align: "center",
           groupable: true,
           estado: true,
@@ -654,17 +662,17 @@ export default {
           align: "center",
         },
       ],
-      filtro: {
-        idmarketing: null,
-        idstatus: null,
-        identities: null,
-        idmodality: null,
-        idshipment: null,
-        idincoterm: null,
-        fechainicio: null,
-        fechafin: null,
-        estado: "activo",
-      },
+      // filtro: {
+      //   idmarketing: null,
+      //   idstatus: null,
+      //   identities: null,
+      //   idmodality: null,
+      //   idshipment: null,
+      //   idincoterm: null,
+      //   fechainicio: null,
+      //   fechafin: null,
+      //   estado: "activo",
+      // },
       quote: null,
       id_master_recibidocotizacion: "",
       id_master_enviadocliente: "",
@@ -851,16 +859,6 @@ export default {
       });
       this.loading = false;
     },
-    // async actualizarUrl() {
-    //   await this.actualizarURLEnElQuote({
-    //     id: this.quoteEditar.id,
-    //     url: this.url_folderonedrive,
-    //   });
-    //   this.quoteEditar.url_folderonedrive = this.url_folderonedrive;
-    //   setTimeout(async () => {
-    //     await this.getListQuote();
-    //   }, 1000);
-    // },
     abrirModal(quote) {
       this.quote = quote;
       this.id_master_recibidocotizacion = quote.id_master_recibidocotizacion;
@@ -1152,18 +1150,6 @@ export default {
   async mounted() {
     this.$store.state.mainTitle = "LISTADO DE COTIZACIONES";
 
-    this.$store.state.pricing.filtro = {
-      id_marketing: "",
-      id_status: "",
-      id_entities: "",
-      id_modality: "",
-      id_shipment: "",
-      id_incoterm: "",
-      fechainicio: "",
-      fechafin: "",
-      estado: true,
-      fechaemision: "",
-    };
     this.$store.state.pricing.filtroCalls = {
       id_marketing: "",
       id_status: "",

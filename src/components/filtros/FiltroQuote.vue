@@ -24,6 +24,7 @@
             item-text="name"
             item-value="id"
             v-model="$store.state.pricing.filtro.id_marketing"
+            clearable
           ></v-autocomplete>
 
           <!-- <v-card-text class="mt-3 px-5 py-1"> -->
@@ -36,17 +37,19 @@
             item-text="name"
             item-value="id"
             v-model="$store.state.pricing.filtro.id_status"
+            clearable
           ></v-autocomplete>
 
-          <!-- <v-autocomplete
+          <v-autocomplete
             :items="$store.state.pricing.listEjecutivo"
-            label="Ejecutivo."
+            label="Pricing."
             dense
             search
             item-text="name"
             item-value="id_entitie"
             v-model="$store.state.pricing.filtro.id_pricing"
-          ></v-autocomplete> -->
+            clearable
+          ></v-autocomplete>
 
           <v-autocomplete
             :items="$store.state.pricing.listEjecutivo"
@@ -56,6 +59,7 @@
             item-text="name"
             item-value="id_entitie"
             v-model="$store.state.pricing.filtro.id_entities"
+            clearable
           ></v-autocomplete>
           <v-autocomplete
             :items="$store.state.pricing.listModality"
@@ -64,6 +68,7 @@
             dense
             item-text="name"
             item-value="id"
+            clearable
           ></v-autocomplete>
           <v-autocomplete
             :items="$store.state.pricing.listShipment"
@@ -72,6 +77,7 @@
             item-text="embarque"
             item-value="id"
             v-model="$store.state.pricing.filtro.id_shipment"
+            clearable
           >
           </v-autocomplete>
           <v-autocomplete
@@ -81,6 +87,7 @@
             item-text="name"
             item-value="id"
             v-model="$store.state.pricing.filtro.id_incoterm"
+            clearable
           ></v-autocomplete>
 
           <FormatFecha
@@ -88,7 +95,7 @@
             label="Fecha Emisión"
             id="filtroDesde"
             v-model="$store.state.pricing.filtro.fechaemision"
-            :clearable="true"
+            clearable
           />
 
           <FormatFecha
@@ -96,14 +103,14 @@
             label="Fecha Desde"
             id="filtroDesde"
             v-model="$store.state.pricing.filtro.fechainicio"
-            :clearable="true"
+            clearble
           />
           <FormatFecha
             :dense="true"
             label="Fecha Hasta"
             id="filtroHasta"
             v-model="$store.state.pricing.filtro.fechafin"
-            :clearable="true"
+            clearble
           />
 
           <div class="col-12 py-1">
@@ -142,7 +149,7 @@ export default {
       "getListQuote",
     ]),
     async filtrar() {
-      this.$store.state.pricing.pagina = 1
+      this.$store.state.pricing.pagina = 1;
       this.$store.state.spiner = true;
       await this.getListQuote();
       this.$store.state.pricing.filtrarQuoteFlag = false;
