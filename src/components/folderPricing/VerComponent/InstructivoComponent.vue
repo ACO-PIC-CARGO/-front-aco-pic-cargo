@@ -1041,9 +1041,12 @@ export default {
         index++
       ) {
         (function (index) {
-          this.imprimirInstructivoQuote(
-            this.$store.state.pricing.opcionCostos[index].nro_propuesta,
-          );
+          this.imprimirInstructivoQuote({
+            nro_propuesta:
+              this.$store.state.pricing.opcionCostos[index].nro_propuesta,
+            url_folderonedrive:
+              this.$store.state.pricing.datosPrincipales.url_folderonedrive,
+          });
         }).call(this, index); // Pasamos 'index' como argumento y establecemos el contexto a 'this'
       }
     },
@@ -1565,10 +1568,9 @@ export default {
           )[0].id_proveedor
         : "";
       let nameProveedor = id_proveedor
-        ? this.$store.state.provedores.filter((v) => v.id == id_proveedor)[0]
-            .namelong
+        ? this.$store.state.provedores.find((v) => v.id == id_proveedor)
         : "";
-      return nameProveedor;
+      return nameProveedor ? nameProveedor.namelong : " Sin Proveedor";
     },
   },
 };
