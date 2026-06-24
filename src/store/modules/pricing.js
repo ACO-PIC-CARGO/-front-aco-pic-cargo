@@ -6232,6 +6232,18 @@ const actions = {
           idSelectedFile: state.selectedFile.map((v) => v.id),
         });
       }
+
+      if (
+        dataParaAprobar.nuevoexpediente == false &&
+        id_branchs.includes(id_branch)
+      ) {
+        await dispatch("moveFileToOneDrive", {
+          destinationFolderUrl: dataParaAprobar.url_folderonedrive,
+          nroMaster: name,
+          id: data.data[0].id_master,
+          fileIds: state.selectedFile.map((v) => v.id),
+        });
+      }
       Swal.fire({
         icon: data.estadoflag == true ? "success" : "error",
         title: "Aviso",
@@ -6848,15 +6860,15 @@ const actions = {
 
     //
   },
-  async imprimirInstructivoQuote({}, nro_propuesta) {
+  async imprimirInstructivoQuote({}, dataQuote) {
     let listIngresosInstructivo = state.listIngresosInstructivo.filter(
-      (v) => v.nro_propuesta == nro_propuesta,
+      (v) => v.nro_propuesta == dataQuote.nro_propuesta,
     )[0].opcion;
     let listCostosInstructivo = state.listCostosInstructivo.filter(
-      (v) => v.nro_propuesta == nro_propuesta,
+      (v) => v.nro_propuesta == dataQuote.nro_propuesta,
     )[0].opcion;
     let listImpuestosInstructivo = state.listImpuestosInstructivo.filter(
-      (v) => v.nro_propuesta == nro_propuesta,
+      (v) => v.nro_propuesta == dataQuote.nro_propuesta,
     )[0].opcion;
     let tipoimportacionaduana = state.datosPrincipales.id_percepcionaduana
       ? masterusuario.state.lstPercepcionAduana.length > 0
@@ -6868,7 +6880,10 @@ const actions = {
     let notas = state.listInstructivo[0].notas;
 
     let data = {
-      nro_propuesta: nro_propuesta,
+      nro_propuesta: dataQuote.nro_propuesta,
+      url_folderonedrive: state.datosPrincipales.url_folderonedrive,
+      url_folderonedriveexp: state.datosPrincipales.url_folderonedriveexp,
+      nombre_archvivo:`INSTRUCTIVO_${state.nro_quote}_${state.datosPrincipales.nombre}`,
       tipoimportacionaduana: tipoimportacionaduana,
       containers: state.datosPrincipales.containers,
       numerobultos: state.datosPrincipales.numerobultos,
@@ -6885,9 +6900,9 @@ const actions = {
           parseFloat(state.totalCostos).toFixed(2),
       ),
       sucursal: JSON.parse(sessionStorage.getItem("dataBranch"))[0].trade_name,
-      status: state.listQuoteStatus.filter(
+      status: state.aprobadoflag ? 'Aprobado' : state.listQuoteStatus.find(
         (v) => v.id == state.datosPrincipales.id_status,
-      )[0].name,
+      ).name,
       code_house: state.listInstructivo[0].code_house
         ? state.listInstructivo[0].code_house
         : "",

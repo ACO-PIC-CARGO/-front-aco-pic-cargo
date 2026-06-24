@@ -808,6 +808,7 @@ export default {
         { text: "Archivo", value: "name" },
         { text: "", value: "action" },
       ],
+      url_folderonedrive: "",
     };
   },
   computed: {
@@ -980,9 +981,10 @@ export default {
     verificarMaster() {
       this.mostrarAdvertencia = false;
       this.textValidacionCotizacionMaster = [];
-      let master = this.$store.state.itemsMasterList.filter(
+      let master = this.$store.state.itemsMasterList.find(
         (v) => v.id == this.id_exp,
-      )[0];
+      );
+      this.url_folderonedrive = master.url_folderonedrive;
       if (
         !(
           this.$store.state.pricing.datosPrincipales.idsentido ==
@@ -1039,9 +1041,12 @@ export default {
         index++
       ) {
         (function (index) {
-          this.imprimirInstructivoQuote(
-            this.$store.state.pricing.opcionCostos[index].nro_propuesta,
-          );
+          this.imprimirInstructivoQuote({
+            nro_propuesta:
+              this.$store.state.pricing.opcionCostos[index].nro_propuesta,
+            url_folderonedrive:
+              this.$store.state.pricing.datosPrincipales.url_folderonedrive,
+          });
         }).call(this, index); // Pasamos 'index' como argumento y establecemos el contexto a 'this'
       }
     },
@@ -1280,6 +1285,7 @@ export default {
                       listVentasInstructivo: listVentasInstructivo,
                       id_house: this.id_house,
                       id_opcion: this.id_opcion,
+                      url_folderonedrive: this.url_folderonedrive,
                     });
                     this.$store.state.spiner = true;
 
@@ -1402,6 +1408,7 @@ export default {
                     listVentasInstructivo: listVentasInstructivo,
                     id_house: this.id_house,
                     id_opcion: this.id_opcion,
+                    url_folderonedrive: this.url_folderonedrive,
                   });
                   this.$store.state.spiner = true;
 
@@ -1541,6 +1548,7 @@ export default {
           id_house: this.id_house,
           id_opcion: this.id_opcion,
           id_opcion_house: this.id_opcion_house,
+          url_folderonedrive: this.url_folderonedrive,
         });
         this.$store.state.spiner = true;
         this.aprobarflag = false;
@@ -1560,10 +1568,9 @@ export default {
           )[0].id_proveedor
         : "";
       let nameProveedor = id_proveedor
-        ? this.$store.state.provedores.filter((v) => v.id == id_proveedor)[0]
-            .namelong
+        ? this.$store.state.provedores.find((v) => v.id == id_proveedor)
         : "";
-      return nameProveedor;
+      return nameProveedor ? nameProveedor.namelong : " Sin Proveedor";
     },
   },
 };

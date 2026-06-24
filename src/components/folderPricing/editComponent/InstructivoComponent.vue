@@ -138,8 +138,8 @@
         <h3 class="mb-1 ml-1">
           {{
             $store.state.pricing.listQuoteStatus.filter(
-                  (v) => v.id == $store.state.pricing.datosPrincipales.id_status
-                )[0].name
+              (v) => v.id == $store.state.pricing.datosPrincipales.id_status,
+            )[0].name
           }}
           | Exp. Master:
           {{
@@ -497,7 +497,7 @@ export default {
       this.mostrarAdvertencia = false;
       this.textValidacionCotizacionMaster = [];
       let master = this.$store.state.itemsMasterList.filter(
-        (v) => v.id == this.id_exp
+        (v) => v.id == this.id_exp,
       )[0];
       if (
         !(
@@ -557,9 +557,9 @@ export default {
       ) {
         (function (index) {
           this.imprimirInstructivoQuote(
-            this.$store.state.pricing.opcionCostos[index].nro_propuesta
+            this.$store.state.pricing.opcionCostos[index].nro_propuesta,
           );
-        }.call(this, index)); // Pasamos 'index' como argumento y establecemos el contexto a 'this'
+        }).call(this, index); // Pasamos 'index' como argumento y establecemos el contexto a 'this'
       }
     },
     async guardarNota() {
@@ -593,7 +593,7 @@ export default {
     abrirModalAprobar() {
       if (this.$refs.frmAprobar.validate()) {
         let fecha_validez = this.$store.state.pricing.opcionCostos.filter(
-          (v) => v.nro_propuesta == this.nro_propuesta
+          (v) => v.nro_propuesta == this.nro_propuesta,
         )[0].date_end;
         let esValida = moment(fecha_validez).isSameOrAfter(moment(), "day");
         if (!esValida) {
@@ -604,7 +604,7 @@ export default {
           }).then(() => false);
         }
         esValida = moment(fecha_validez, "YYYY-MM-DD").isSameOrAfter(
-          moment().add(15, "days").startOf("day")
+          moment().add(15, "days").startOf("day"),
         );
         let hoy = moment();
         let newFechaValize = moment(fecha_validez);
@@ -670,7 +670,7 @@ export default {
                       document.getElementById("swal-input1").value;
                     if (!dateInput) {
                       Swal.showValidationMessage(
-                        "La fecha de validez es requerida"
+                        "La fecha de validez es requerida",
                       );
                     } else {
                       const selectedDate = moment(dateInput, "YYYY-MM-DD"); // Parsea la fecha ingresada
@@ -678,7 +678,7 @@ export default {
 
                       if (selectedDate.isSameOrBefore(currentDate)) {
                         Swal.showValidationMessage(
-                          "La fecha debe ser mayor que la fecha actual"
+                          "La fecha debe ser mayor que la fecha actual",
                         );
                       } else {
                         return dateInput;
@@ -688,31 +688,31 @@ export default {
                 }).then(async (res) => {
                   this.fecha_validez = res.value;
                   console.log(
-                    this.$store.state.pricing.listIngresosInstructivoAprobar
+                    this.$store.state.pricing.listIngresosInstructivoAprobar,
                   );
                   let sum =
                     this.$store.state.pricing.listIngresosInstructivoAprobar.filter(
-                      (v) => v.nro_propuesta == this.nro_propuesta
+                      (v) => v.nro_propuesta == this.nro_propuesta,
                     );
                   let igv =
                     this.$store.state.pricing.listIngresosInstructivoAprobar
                       .filter((v) => v.nro_propuesta == this.nro_propuesta)[0]
                       .dataIngresos.filter(
-                        (v) => v.descripcion === "TOTAL"
+                        (v) => v.descripcion === "TOTAL",
                       )[0].igv;
                   let valor =
                     this.$store.state.pricing.listIngresosInstructivoAprobar
                       .filter((v) => v.nro_propuesta == this.nro_propuesta)[0]
                       .dataIngresos.filter(
-                        (v) => v.descripcion === "TOTAL"
+                        (v) => v.descripcion === "TOTAL",
                       )[0].valor;
                   let listCostosInstructivo =
                     this.$store.state.pricing.listIngresosInstructivoAprobar.filter(
-                      (v) => v.nro_propuesta == this.nro_propuesta
+                      (v) => v.nro_propuesta == this.nro_propuesta,
                     )[0].dataCostos;
                   let listVentasInstructivo =
                     this.$store.state.pricing.listIngresosInstructivoAprobar.filter(
-                      (v) => v.nro_propuesta == this.nro_propuesta
+                      (v) => v.nro_propuesta == this.nro_propuesta,
                     )[0].dataVentas;
                   if (res.isConfirmed) {
                     Swal.fire({
@@ -789,7 +789,7 @@ export default {
                     document.getElementById("swal-input1").value;
                   if (!dateInput) {
                     Swal.showValidationMessage(
-                      "La fecha de validez es requerida"
+                      "La fecha de validez es requerida",
                     );
                   } else {
                     const selectedDate = moment(dateInput, "YYYY-MM-DD"); // Parsea la fecha ingresada
@@ -797,7 +797,7 @@ export default {
 
                     if (selectedDate.isSameOrBefore(currentDate)) {
                       Swal.showValidationMessage(
-                        "La fecha debe ser mayor que la fecha actual"
+                        "La fecha debe ser mayor que la fecha actual",
                       );
                     } else {
                       return dateInput;
@@ -807,31 +807,31 @@ export default {
               }).then(async (res) => {
                 this.fecha_validez = res.value;
                 console.log(
-                  this.$store.state.pricing.listIngresosInstructivoAprobar
+                  this.$store.state.pricing.listIngresosInstructivoAprobar,
                 );
                 let sum =
                   this.$store.state.pricing.listIngresosInstructivoAprobar.filter(
-                    (v) => v.nro_propuesta == this.nro_propuesta
+                    (v) => v.nro_propuesta == this.nro_propuesta,
                   );
                 let igv =
                   this.$store.state.pricing.listIngresosInstructivoAprobar
                     .filter((v) => v.nro_propuesta == this.nro_propuesta)[0]
                     .dataIngresos.filter(
-                      (v) => v.descripcion === "TOTAL"
+                      (v) => v.descripcion === "TOTAL",
                     )[0].igv;
                 let valor =
                   this.$store.state.pricing.listIngresosInstructivoAprobar
                     .filter((v) => v.nro_propuesta == this.nro_propuesta)[0]
                     .dataIngresos.filter(
-                      (v) => v.descripcion === "TOTAL"
+                      (v) => v.descripcion === "TOTAL",
                     )[0].valor;
                 let listCostosInstructivo =
                   this.$store.state.pricing.listIngresosInstructivoAprobar.filter(
-                    (v) => v.nro_propuesta == this.nro_propuesta
+                    (v) => v.nro_propuesta == this.nro_propuesta,
                   )[0].dataCostos;
                 let listVentasInstructivo =
                   this.$store.state.pricing.listIngresosInstructivoAprobar.filter(
-                    (v) => v.nro_propuesta == this.nro_propuesta
+                    (v) => v.nro_propuesta == this.nro_propuesta,
                   )[0].dataVentas;
 
                 if (res.isConfirmed) {
@@ -875,7 +875,7 @@ export default {
       await this.generaInstructivoparaguardata();
 
       let sum = this.$store.state.pricing.listIngresosInstructivoAprobar.filter(
-        (v) => v.nro_propuesta == this.nro_propuesta
+        (v) => v.nro_propuesta == this.nro_propuesta,
       );
       let igv = this.$store.state.pricing.listIngresosInstructivoAprobar
         .filter((v) => v.nro_propuesta == this.nro_propuesta)[0]
@@ -885,11 +885,11 @@ export default {
         .dataIngresos.filter((v) => v.descripcion === "TOTAL")[0].valor;
       let listCostosInstructivo =
         this.$store.state.pricing.listIngresosInstructivoAprobar.filter(
-          (v) => v.nro_propuesta == this.nro_propuesta
+          (v) => v.nro_propuesta == this.nro_propuesta,
         )[0].dataCostos;
       let listVentasInstructivo =
         this.$store.state.pricing.listIngresosInstructivoAprobar.filter(
-          (v) => v.nro_propuesta == this.nro_propuesta
+          (v) => v.nro_propuesta == this.nro_propuesta,
         )[0].dataVentas;
       if (this.$refs.frmAprobar.validate()) {
         Swal.fire({
@@ -924,17 +924,16 @@ export default {
     },
     getProveedor(element) {
       let id_proveedor = element.listCostos.some(
-        (v) => v.code_cost == 4 && v.esopcionflag == 1
+        (v) => v.code_cost == 4 && v.esopcionflag == 1,
       )
-        ? element.listCostos.filter(
-            (v) => v.code_cost == 4 && v.esopcionflag == 1
-          )[0].id_proveedor
+        ? element.listCostos.find(
+            (v) => v.code_cost == 4 && v.esopcionflag == 1,
+          ).id_proveedor
         : "";
       let nameProveedor = id_proveedor
-        ? this.$store.state.provedores.filter((v) => v.id == id_proveedor)[0]
-            .namelong
+        ? this.$store.state.provedores.find((v) => v.id == id_proveedor)
         : "";
-      return nameProveedor;
+      return nameProveedor ?  nameProveedor.namelong :' Sin Proveedor';
     },
     async guardarQuote() {
       await this.updateQuote();
