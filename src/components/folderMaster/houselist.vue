@@ -164,22 +164,25 @@
             <v-icon>mdi-close</v-icon>
           </v-btn>
         </v-card-title>
-        <v-card-text>
-          <v-autocomplete
-            :items="
-              $store.state.itemsMasterList.filter(
-                (v) => v.id != $route.params.id,
-              )
-            "
-            v-model="selectedNuevoExpediente"
-            item-value="id"
-            item-text="code_master"
-            label="Seleccione nuevo expediente"
-            outlined
-            class="my-5"
-          ></v-autocomplete>
-          <p class="caption mb-0">Actual: {{ house.code_house }}</p>
-        </v-card-text>
+        <v-form :readonly="false" :disabled="false">
+          <v-card-text>
+            <v-autocomplete
+              :items="
+                $store.state.itemsMasterList.filter(
+                  (v) => v.id != $route.params.id,
+                )
+              "
+              :readonly="false"
+              v-model="selectedNuevoExpediente"
+              item-value="id"
+              item-text="code_master"
+              label="Seleccione nuevo expediente"
+              outlined
+              class="my-5"
+            ></v-autocomplete>
+            <p class="caption mb-0">Actual: {{ house.code_house }}</p>
+          </v-card-text>
+        </v-form>
         <v-card-actions>
           <v-spacer></v-spacer>
           <v-btn outlined color="red" @click="dialogCambiarExpediente = false"
@@ -344,7 +347,7 @@ export default {
         cancelButtonText: "Cancelar",
       });
       if (!res.isConfirmed) return;
-      
+
       try {
         const payload = {
           id_orders: this.house.id_orders,
