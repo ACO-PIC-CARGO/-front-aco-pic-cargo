@@ -545,7 +545,7 @@ export default {
       vm.$store.state.entities.cliente.nombrecompleto = val;
       if (vm.$store.state.entities.cliente.nombrecompleto) {
         vm.isNombreLoading = true;
-        await this.validarNombreCliente();
+        // await this.validarNombreCliente();
         vm.isNombreLoading = false;
       }
     },
