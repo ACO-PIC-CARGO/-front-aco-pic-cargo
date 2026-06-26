@@ -332,12 +332,9 @@ export default {
         this.dialogCambiarExpediente = false;
         return;
       }
-      const targetLabel =
-        (
-          this.listaExpedientes.find(
-            (x) => x.value === this.selectedNuevoExpediente,
-          ) || {}
-        ).text || this.selectedNuevoExpediente;
+      const targetLabel = this.$store.state.itemsMasterList.find(
+        (x) => x.id === this.selectedNuevoExpediente,
+      ).code_master;
       const res = await Swal.fire({
         icon: "question",
         title: "Confirmar cambio",

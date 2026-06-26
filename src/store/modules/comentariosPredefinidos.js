@@ -1,4 +1,4 @@
-import axios from '@/api/axios-config';;
+import axios from '@/api/axios-config';
 import Swal from "sweetalert2";
 import router from "@/router";
 import moment from "moment";

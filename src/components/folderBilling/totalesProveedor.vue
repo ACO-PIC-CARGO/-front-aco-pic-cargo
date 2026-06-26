@@ -570,7 +570,7 @@
   </div>
 </template>
 <script>
-import axios from '@/api/axios-config';;
+import axios from '@/api/axios-config';
 import { mapState, mapActions } from "vuex";
 export default {
   name: "services",

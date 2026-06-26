@@ -793,6 +793,18 @@ const routes = [
         component: () =>
           import("../views/Configuracion/Pricing/CostosPricing.vue"),
       },
+      {
+        path: "pricing/profit",
+        name: "listPricingProfit",
+        component: () =>
+          import("../views/PricingProfit/ListadoProfitPricing.vue"),
+      },
+      {
+        path: "pricing/profit/registro",
+        name: "RegistroProfitPricing",
+        component: () =>
+          import("../views/PricingProfit/RegistroProfitPricing.vue"),
+      },
     ],
   },
   {

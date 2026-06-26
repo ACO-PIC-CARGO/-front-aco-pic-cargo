@@ -352,7 +352,7 @@
 </template>
 
 <script>
-import axios from '@/api/axios-config';;
+import axios from '@/api/axios-config';
 import { mapState, mapActions } from "vuex";
 import miMixin from "../mixins/funciones";
 export default {

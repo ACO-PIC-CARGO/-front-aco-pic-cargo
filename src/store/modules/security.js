@@ -1,5 +1,5 @@
 // validToken
-import axios from '@/api/axios-config';;
+import axios from '@/api/axios-config';
 import router from "@/router";
 import Swal from "sweetalert2";
 import StatePrincipal from "./../index";
