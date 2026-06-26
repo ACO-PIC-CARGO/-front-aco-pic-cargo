@@ -174,7 +174,7 @@
 
 <script>
 import { mapState, mapActions } from "vuex";
-import axios from '@/api/axios-config';;
+import axios from '@/api/axios-config';
 export default {
   name: "dataEmbar",
   props: {

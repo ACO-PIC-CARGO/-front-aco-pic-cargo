@@ -768,7 +768,7 @@
 <script>
 // import { io } from "socket.io-client";
 import { mapActions, mapState } from "vuex";
-import axios from '@/api/axios-config';;
+import axios from '@/api/axios-config';
 import Swal from "sweetalert2";
 
 export default {

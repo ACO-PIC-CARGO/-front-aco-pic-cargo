@@ -348,7 +348,7 @@
                       {{ item.symbol }}
                       {{
                         parseFloat(
-                          item.total_mon_local -
+                          item.saldo_pendiente -
                             (item.montoparcial
                               ? item.montoparcial
                               : item.total_mon_local),
@@ -866,7 +866,7 @@ export default {
 
         return acc + monto;
       }, 0);
-      this.monto_local = total.toFixed(2);
+      // this.monto_local = total.toFixed(2);
       return total.toFixed(2);
     },
     mostrarTipoCambio() {

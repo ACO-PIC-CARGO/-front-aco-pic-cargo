@@ -258,7 +258,7 @@
 <script>
 import { mapActions } from "vuex";
 import Swal from "sweetalert2";
-import axios from '@/api/axios-config';;
+import axios from '@/api/axios-config';
 export default {
   data() {
     return {

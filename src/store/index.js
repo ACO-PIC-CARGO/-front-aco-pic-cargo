@@ -64,6 +64,7 @@ import branch from "./modules/branch";
 import aduana from "./modules/aduana";
 import proveedor from "./modules/proveedor";
 import configuracion from "./modules/configuracion";
+import profitPricing from "./modules/profitPricing";
 import Swal from "sweetalert2";
 Vue.use(Vuex);
 Vue.use(VueSweetalert2);
@@ -1948,14 +1949,14 @@ export default new Vuex.Store({
     },
 
     async _getControlFileAll({ commit }, filtro) {
-      filtro.id_branch = JSON.parse(sessionStorage.getItem("dataUser"))[0].id_branch
+      filtro.id_branch = JSON.parse(
+        sessionStorage.getItem("dataUser"),
+      )[0].id_branch;
       this.state.reportStatusTable = true;
       var config = {
         method: "get",
-        url:
-          process.env.VUE_APP_URL_MAIN +
-          `getControlFile`,
-        params:filtro,
+        url: process.env.VUE_APP_URL_MAIN + `getControlFile`,
+        params: filtro,
         headers: {
           "Content-Type": "application/json",
         },
@@ -2885,5 +2886,6 @@ export default new Vuex.Store({
     aduana,
     proveedor,
     configuracion,
+    profitPricing,
   },
 });

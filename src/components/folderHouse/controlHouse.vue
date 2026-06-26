@@ -387,7 +387,7 @@ import Bitacora from "./bitacora.vue";
 import services from "./services.vue";
 import { mapActions, mapState } from "vuex";
 
-import axios from '@/api/axios-config';;
+import axios from '@/api/axios-config';
 import Swal from "sweetalert2";
 
 export default {

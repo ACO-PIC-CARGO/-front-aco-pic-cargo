@@ -136,6 +136,8 @@ const state = {
     iddistrito: "",
     idprovincia: "",
     datosInstructivoManual: null,
+    esindividualflag: false,
+    esgrupalflag: false,
   },
   opcionCostos: [
     {
@@ -642,7 +644,7 @@ const actions = {
     });
   },
   async getListQuote({ commit }) {
-    console.log('id_pricing',state.filtro)
+    console.log("id_pricing", state.filtro);
     var config = {
       method: "get",
       url: process.env.VUE_APP_URL_MAIN + `getQuoteList`,
@@ -1636,46 +1638,22 @@ const actions = {
     };
     await axios(config).then(async (response) => {
       let res = response.data.data[0];
-
       state.copy_quote = res;
       state.id = res.id;
-
       state.dataCliente = res.cliente[0];
       state.nro_quote = res.quote;
       state.id_master = res.id_master;
-      state.datosPrincipales.id_marketing = res.id_marketing;
-      state.datosPrincipales.id_status = res.id_status; //-------
-      state.datosPrincipales.id_vendedor = res.id_vendedor;
-      state.datosPrincipales.id_pricing = res.id_pricing;
-      state.datosPrincipales.nombre = res.nombre;
-      state.datosPrincipales.id_entitie = res.id_entitie;
-      state.datosPrincipales.id_proveedor = res.id_proveedor;
-      state.datosPrincipales.telefono = res.telefono;
-      state.datosPrincipales.idsentido = res.idsentido;
-      state.datosPrincipales.idtipocarga = res.idtipocarga;
-      state.datosPrincipales.idincoterms = res.idincoterms;
-      state.datosPrincipales.proveedor = res.proveedor;
-      state.datosPrincipales.telefonoproveedor = res.telefonoproveedor;
-      state.datosPrincipales.direccionproveedor = res.direccionproveedor;
-      state.datosPrincipales.id_status = res.statusquote;
-      state.datosPrincipales.nameStatusQuote = res.namestatusquote;
-      state.datosPrincipales.descripcioncarga = res.descripcionmercancia;
-      state.datosPrincipales.fecha_inicio = res.fecha_inicio;
-      state.datosPrincipales.url_folderonedrive = res.url_folderonedrive;
-      state.datosPrincipales.url_folderonedriveexp = res.url_folderonedriveexp;
+      state.datosPrincipales = {
+        ...res,
+        nameStatusQuote: res.namestatusquote,
+        descripcioncarga: res.descripcionmercancia,
+        id_status: res.statusquote,
+        amount: res.monto,
+      };
       state.nro_exp = res.nro_exp;
-      state.datosPrincipales.datosinstructivomanual =
-        res.datosinstructivomanual;
-      // --------------------------------------------------------------
-      state.datosPrincipales.iddestino = res.iddestino;
-      state.datosPrincipales.idorigen = res.idorigen;
-      state.datosPrincipales.numerobultos = res.numerobultos;
-      state.datosPrincipales.peso = res.peso;
-      state.datosPrincipales.volumen = res.volumen;
-      // --------------------------------------------------------------
       state.listServices = res.servicios;
       state.copylistServices = res.servicios;
-      state.datosPrincipales.amount = res.monto;
+
       // --------------------------------------------------------------
       state.opcionCostos = [];
       res.opcioncostos.forEach((element) => {
@@ -1693,11 +1671,10 @@ const actions = {
 
       // --------------------------------------------------------------
 
-      state.datosPrincipales.containers = res.containers;
       state.aprobadoflag = res.aprobadoflag;
       state.fullflag = res.fullflag;
       state.tiporeporte = res.tiporeporte;
-      state.datosPrincipales.id_percepcionaduana = res.id_percepcionaduana;
+
       state.mostrarBtnActualizarFlag = !(
         res.statusmain == 0 || res.aprobadoflag == true
       );
@@ -3754,16 +3731,17 @@ const actions = {
       .catch((e) => console.log(e));
   },
   async imprimiReporteListado() {
-    
-
     let headers = {
       "Content-Type": "application/json",
     };
     let data = {
-      filtro:{... state.filtro,search: state.search,
+      filtro: {
+        ...state.filtro,
+        search: state.search,
         limit: state.limit,
         pagina: state.pagina,
-        id_branch: JSON.parse(sessionStorage.getItem("dataUser"))[0].id_branch,},
+        id_branch: JSON.parse(sessionStorage.getItem("dataUser"))[0].id_branch,
+      },
       id_branch: JSON.parse(sessionStorage.getItem("dataUser"))[0].id_branch,
     };
     let timerInterval;
@@ -3803,7 +3781,6 @@ const actions = {
       .catch((e) => console.log(e));
   },
   async exportarExcelListadoQuote() {
-   
     let headers = {
       "Access-Control-Allow-Origin": "*",
       "Content-Type": "application/json",
@@ -3814,10 +3791,13 @@ const actions = {
       responseType: "arraybuffer",
     };
     let data = {
-      filtro:{... state.filtro,search: state.search,
+      filtro: {
+        ...state.filtro,
+        search: state.search,
         limit: state.limit,
         pagina: state.pagina,
-        id_branch: JSON.parse(sessionStorage.getItem("dataUser"))[0].id_branch,},
+        id_branch: JSON.parse(sessionStorage.getItem("dataUser"))[0].id_branch,
+      },
       id_branch: JSON.parse(sessionStorage.getItem("dataUser"))[0].id_branch,
     };
 
@@ -6883,7 +6863,7 @@ const actions = {
       nro_propuesta: dataQuote.nro_propuesta,
       url_folderonedrive: state.datosPrincipales.url_folderonedrive,
       url_folderonedriveexp: state.datosPrincipales.url_folderonedriveexp,
-      nombre_archvivo:`INSTRUCTIVO_${state.nro_quote}_${state.datosPrincipales.nombre}`,
+      nombre_archvivo: `INSTRUCTIVO_${state.nro_quote}_${state.datosPrincipales.nombre}`,
       tipoimportacionaduana: tipoimportacionaduana,
       containers: state.datosPrincipales.containers,
       numerobultos: state.datosPrincipales.numerobultos,
@@ -6900,9 +6880,11 @@ const actions = {
           parseFloat(state.totalCostos).toFixed(2),
       ),
       sucursal: JSON.parse(sessionStorage.getItem("dataBranch"))[0].trade_name,
-      status: state.aprobadoflag ? 'Aprobado' : state.listQuoteStatus.find(
-        (v) => v.id == state.datosPrincipales.id_status,
-      ).name,
+      status: state.aprobadoflag
+        ? "Aprobado"
+        : state.listQuoteStatus.find(
+            (v) => v.id == state.datosPrincipales.id_status,
+          ).name,
       code_house: state.listInstructivo[0].code_house
         ? state.listInstructivo[0].code_house
         : "",

@@ -1,4 +1,4 @@
-import axios from '@/api/axios-config';;
+import axios from '@/api/axios-config';
 
 const state = {
   payPath: null,

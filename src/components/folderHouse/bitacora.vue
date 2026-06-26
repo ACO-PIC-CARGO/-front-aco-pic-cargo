@@ -508,7 +508,7 @@
 
 <script>
 import { mapActions, mapState } from "vuex";
-import axios from '@/api/axios-config';;
+import axios from '@/api/axios-config';
 import { v4 as uuidv4 } from "uuid";
 import Swal from "sweetalert2";
 export default {

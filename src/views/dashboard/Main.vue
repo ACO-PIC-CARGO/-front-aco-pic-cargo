@@ -470,9 +470,6 @@ import BtnIrAlListado from "../../components/comun/btnIrAlListado.vue";
 export default {
   created() {
     this.socket = io(process.env.VUE_APP_URL_MAIN);
-    // this.socket.on("connect", () => {
-    //   console.log("Conectado al servidor Socket.IO:", this.socket.id);
-    // });
     this.socket.on("connect_error", (err) => {
       console.error("Error al conectar con Socket.IO:", err);
     });
@@ -609,10 +606,6 @@ export default {
         });
         return;
       }
-      // console.log("item:", item);
-      // this.houseEditar = { ...item };
-      // this.url_folderonedrive = "";
-      // this.dialogUrl = true;
       window.open(url, "_blank");
     },
     async guardarCotizacion() {
@@ -620,7 +613,7 @@ export default {
       if (!!validacion) {
         this.$store.state.spiner = true;
         await this.registrarQuote({ fullflag: true }).catch((err) => {
-          console.log("registrarQuote", err);
+          console.error("registrarQuote", err);
         });
 
         this.$store.state.spiner = false;
@@ -647,14 +640,13 @@ export default {
             nombre: this.$store.state.pricing.datosPrincipales.nombre,
           });
 
-          console.log("URL capturada en generar():", urlGenerada);
-
           if (urlGenerada) {
             await this.actualizarURLEnElQuote({
               id: this.$store.state.pricing.id,
               url: urlGenerada,
+            }).catch((e) => {
+              console.error(e);
             });
-            console.log("Base de datos actualizada con URL de OneDrive");
           } else {
             console.warn(
               "No se obtuvo URL de OneDrive, se saltó la actualización.",
@@ -708,7 +700,7 @@ export default {
         this.$store.state.spiner = false;
         await this.actualizarQuoteAduana();
 
-        console.log("step", this.$store.state.aduana.step);
+        
 
         this.$router.push({
           name: "VerAduana",
@@ -972,7 +964,7 @@ export default {
             `,
           // timer: 2500,
         });
-        console.log("subject", subject);
+        
 
         const body = encodeURIComponent("Hola colega, (PEGA LA TABLA AQUI)");
         window.location.href = `mailto:${miEmail}?bcc=${to}&subject=${encodeURIComponent(
@@ -1055,7 +1047,7 @@ export default {
           fullflag: true,
           id: this.$route.params.id,
         }).catch((err) => {
-          console.log("copiarQuote", err);
+          console.error("copiarQuote", err);
         });
 
         let userStr = sessionStorage.getItem("dataUser");
@@ -1063,7 +1055,7 @@ export default {
         let branchCreacion = [1, 2];
 
         if (branchCreacion.includes(id_branch)) {
-          console.log("Iniciando creación de carpeta...");
+          
 
           // Aquí recibimos el return de la función anterior
           const urlGenerada = await this.crearCarpetaOneDrive({
@@ -1071,7 +1063,7 @@ export default {
             nombre: this.$store.state.pricing.datosPrincipales.nombre,
           });
 
-          console.log("URL capturada en generar():", urlGenerada);
+          
 
           if (urlGenerada) {
             await Promise.all([
@@ -1086,9 +1078,9 @@ export default {
                 destinationFolderUrl: urlGenerada,
               }),
             ]);
-            console.log("Base de datos actualizada con URL de OneDrive");
+            
           } else {
-            console.warn(
+            console.error(
               "No se obtuvo URL de OneDrive, se saltó la actualización.",
             );
           }
@@ -1308,29 +1300,19 @@ export default {
         const currentStatus = statusList.find(
           (s) => s.id === pricing.datosPrincipales.id_status,
         );
-        console.log("Status por id_status:", currentStatus);
         if (currentStatus && currentStatus.name) {
           const statusName = currentStatus.name.toUpperCase().trim();
           if (statusName === "APROBADO" || statusName === "APROBADA") {
-            console.log("Cotización aprobada por listQuoteStatus:", statusName);
             return true;
           }
         }
       }
 
-      console.log("Cotización NO está aprobada");
       return false;
     },
     handleEditarQuote() {
       const aprobada = this.esCotizacionAprobada();
       const esAdmin = this.esUsuarioAdmin();
-
-      console.log(
-        "handleEditarQuote - aprobada:",
-        aprobada,
-        "esAdmin:",
-        esAdmin,
-      );
 
       if (!aprobada) {
         this.ira("editQuote", this.$route.params.id);

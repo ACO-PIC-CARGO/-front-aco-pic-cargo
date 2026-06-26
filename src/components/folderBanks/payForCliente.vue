@@ -223,7 +223,7 @@
 </template>
 
 <script>
-import axios from '@/api/axios-config';;
+import axios from '@/api/axios-config';
 import Swal from "sweetalert2";
 import { mapActions, mapState } from "vuex";
 import ArrastraYSolarComponent from "../comun/ArrastraYSolarComponent.vue";

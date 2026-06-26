@@ -159,7 +159,7 @@
 </template>
 
 <script>
-import axios from '@/api/axios-config';;
+import axios from '@/api/axios-config';
 import Swal from "sweetalert2";
 import { mapActions } from "vuex";
 
