@@ -291,21 +291,27 @@
                   <v-icon
                     color="info"
                     @click.native="activarFactura(item)"
-                    v-if="item.facturado == true"
+                    v-if="item.facturado == true && item.pagado == 0"
                   >
                     mdi-eye
                   </v-icon>
-                  <v-icon color="orange" @click="editIngreso(item)">
+                  <v-icon
+                    color="orange"
+                    @click="editIngreso(item)"
+                    v-if="item.pagado == 0"
+                  >
                     mdi-pencil
                   </v-icon>
 
                   <v-icon
                     color="red"
-                    v-if="item.facturado == false"
+                    v-if="item.facturado == false && item.pagado == 0"
                     @click="delIngreso(item.id)"
                   >
                     mdi-delete
                   </v-icon>
+
+                  <v-chip v-if="item.pagado == 1" color="success"> Pagado </v-chip>
                 </td>
               </tr>
             </tbody>
@@ -2126,14 +2132,10 @@ export default {
       return disabled;
     },
     getDeudaActual(data = {}) {
-      let { ingresos = [], total_total_op_ingresos = 0 } = data;
-
-      let abono = ingresos.reduce((suma, v) => {
-        return v.facturado ? suma + (parseFloat(v.total_op) || 0) : suma;
-      }, 0);
-
+      let { total_total_op_ingresos = 0, totalpagadodolar } = data;
       let deuda =
-        parseFloat(total_total_op_ingresos) - parseFloat(abono.toFixed(2));
+        parseFloat(total_total_op_ingresos) -
+        parseFloat(totalpagadodolar ? totalpagadodolar : 0);
 
       return deuda != 0 ? deuda.toFixed(2) : 0;
     },
@@ -2334,10 +2336,9 @@ export default {
         this.dialogCambiarExpediente = false;
         return;
       }
-      const targetLabel =
-        this.$store.state.itemsMasterList.find(
-          (x) => x.id === this.selectedNuevoExpediente,
-        ).code_master
+      const targetLabel = this.$store.state.itemsMasterList.find(
+        (x) => x.id === this.selectedNuevoExpediente,
+      ).code_master;
       const res = await Swal.fire({
         icon: "question",
         title: "Confirmar cambio",
