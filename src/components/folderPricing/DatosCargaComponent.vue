@@ -47,7 +47,7 @@
               </v-autocomplete>
             </v-col>
 
-            <!-- <v-col cols="12" lg="6" xl="6" class="py-1" rows>
+            <v-col cols="12" lg="6" xl="6" class="py-1" rows v-if="esFobFlag()">
               <v-row>
                 <v-col cols="12" md="6">
                   <v-checkbox
@@ -68,7 +68,7 @@
                   ></v-checkbox>
                 </v-col>
               </v-row>
-            </v-col> -->
+            </v-col>
 
             <v-col
               cols="12"
@@ -636,6 +636,18 @@ export default {
   },
   methods: {
     ...mapActions(["_getContainers", "getPortBegin", "getPortEnd"]),
+    esFobFlag() {
+      let valBranch = [1, 2, "1", "2"];
+      let branch = JSON.parse(sessionStorage.getItem("dataBranch"))[0];
+
+      if (!valBranch.includes(branch.id)) return false;
+
+      return this.$store.state.pricing.listIncoterms.some(
+        (v) =>
+          v.id == this.$store.state.pricing.datosPrincipales.idincoterms &&
+          v.name == "FOB",
+      );
+    },
     async recargarPuertoOrigen(textoBuscar) {
       let idtipocarga =
         typeof this.$store.state.pricing.datosPrincipales.idtipocarga ===

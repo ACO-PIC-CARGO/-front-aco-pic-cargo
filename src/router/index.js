@@ -686,24 +686,24 @@ const routes = [
         component: () =>
           import("../views/FolderComentariosPredefinidos/list.vue"),
       },
-      {
-        path: "suscripcion",
-        name: "lstPlanes",
-        component: () =>
-          import("../views/Membresia/RegistroMembresiacarlos.vue"),
-      },
-      {
-        path: "suscripcion3",
-        name: "lstPlanes",
-        component: () =>
-          import("../views/Membresia/RegistroMembresiacarlos2.vue"),
-      },
-      {
-        path: "suscripcion2",
-        name: "lstPlanes",
-        component: () =>
-          import("../views/Membresia/RegistroMembresia.vue"),
-      },
+      // {
+      //   path: "suscripcion",
+      //   name: "lstPlanes",
+      //   component: () =>
+      //     import("../views/Membresia/RegistroMembresiacarlos.vue"),
+      // },
+      // {
+      //   path: "suscripcion3",
+      //   name: "lstPlanes",
+      //   component: () =>
+      //     import("../views/Membresia/RegistroMembresiacarlos2.vue"),
+      // },
+      // {
+      //   path: "suscripcion2",
+      //   name: "lstPlanes",
+      //   component: () =>
+      //     import("../views/Membresia/RegistroMembresia.vue"),
+      // },
       {
         path: "folderFolderBanks/editar_salida/:nro_operacion",
         name: "EditarSalida",
