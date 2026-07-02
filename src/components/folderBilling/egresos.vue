@@ -257,6 +257,9 @@
                   <td style="background: #ffd6d6" v-if="mostrarImpuesto">
                     {{ parseFloat(item.igv_op).toFixed(2) }}
                   </td>
+                  <!-- <td style="background: #ffd6d6">
+                    {{ parseFloat(item.igv_op).toFixed(2) }}
+                  </td> -->
                   <td style="background: #ffd6d6">
                     {{ parseFloat(item.total_op).toFixed(2) }}
                   </td>
@@ -2111,10 +2114,10 @@ export default {
         });
     },
     _editEgreso(egreso) {
+      console.log(egreso)
       this.egresos = {
         ...egreso,
-
-        statusCalcula: true,
+        statusCalcula: !!egreso.igv_op ?true: false,
         opcion: egreso.igv_op || egreso.igv_pr ? true : false,
         numero: "",
         fecha: moment(new Date()).format("YYYY-MM-DD"),
