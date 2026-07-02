@@ -310,23 +310,21 @@
                     </v-chip>
                   </td>
                   <td v-if="editable">
-                    <v-icon
-                      class="btn__add mr-2"
-                      dense
-                      color="orange"
-                      v-if="item.pagado == 0"
-                      @click.native="_editEgreso(item)"
-                    >
-                      mdi-pencil
-                    </v-icon>
-                    <v-icon
-                      class="btn__add"
-                      dense
+                    <v-btn icon color="orange" small>
+                      <v-icon @click.native="_editEgreso(item)">
+                        mdi-pencil
+                      </v-icon>
+                    </v-btn>
+                    <v-btn
+                      icon
                       color="red"
+                      small
                       v-if="!item.statusadmin && item.pagado == 0"
-                      @click.native="_delEngreso(item)"
-                      >mdi-delete</v-icon
                     >
+                      <v-icon @click.native="_delEngreso(item)"
+                        >mdi-delete</v-icon
+                      >
+                    </v-btn>
                   </td>
                 </tr>
               </template>
@@ -351,7 +349,16 @@
           <v-container style="min-height: 435px">
             <v-form ref="frmEgreso">
               <v-row>
-                <v-col cols="12">
+                <v-col cols="4">
+                  <v-autocomplete
+                    label="Seleccione el House Asociado"
+                    :items="$store.state.controlGastos.master_houses"
+                    item-text="consigner"
+                    item-value="id_orders"
+                    v-model="egresos.id_orders"
+                  />
+                </v-col>
+                <v-col cols="4">
                   <v-autocomplete
                     :items="$store.state.itemsProveedorList"
                     item-text="namelong"
@@ -359,6 +366,7 @@
                     v-model="egresos.id_proveedor"
                     label="Proveedor"
                     :rules="[(v) => !!v || 'Dato requerido']"
+                    :disabled="egresos.pagado"
                   ></v-autocomplete>
                 </v-col>
               </v-row>
@@ -370,6 +378,7 @@
                     v-model="egresos.concepto"
                     label="Concepto"
                     :rules="[(v) => !!v || 'Dato requerido']"
+                    :disabled="egresos.pagado"
                   ></v-text-field>
                 </v-col>
                 <v-col cols="12" xl="3" lg="3">
@@ -382,12 +391,14 @@
                     label="Correlativo"
                     dense
                     :rules="[(v) => !!v || 'Dato Requerido']"
+                    :disabled="egresos.pagado"
                   ></v-autocomplete>
                 </v-col>
                 <v-col cols="12" xl="3" lg="3">
                   <v-switch
                     v-if="mostrarImpuesto"
                     dense
+                    :disabled="egresos.pagado"
                     @change="calcularE()"
                     v-model="egresos.statusCalcula"
                     :label="`Calcula ${$store.state.enterprises.impuesto.nombre_impuesto}`"
@@ -410,6 +421,7 @@
                     @change="obtenerMoneda()"
                     dense
                     :rules="[(v) => !!v || 'Dato Requerido']"
+                    :disabled="egresos.pagado"
                   ></v-autocomplete>
                 </v-col>
 
@@ -422,6 +434,7 @@
                     label="Tipo de Cambio"
                     @input="calcularE()"
                     step="0.01"
+                    :disabled="egresos.pagado"
                   ></v-text-field>
                 </v-col>
               </v-row>
@@ -436,7 +449,7 @@
                     label="Monto"
                     :rules="[(v) => !!v || 'Dato requerido']"
                     :prefix="sufmoneda"
-                    :disabled="!id_coins"
+                    :disabled="!id_coins || egresos.pagado"
                   ></v-text-field>
                 </v-col>
 
@@ -447,7 +460,7 @@
                     type="number"
                     :label="`${$store.state.enterprises.impuesto.nombre_impuesto}`"
                     :prefix="sufmoneda"
-                    :disabled="!id_coins"
+                    :disabled="!id_coins || egresos.pagado"
                     readonly
                   ></v-text-field>
                 </v-col>
@@ -459,7 +472,7 @@
                     type="number"
                     label="Total Operaciones"
                     :prefix="sufmoneda"
-                    :disabled="!id_coins"
+                    :disabled="!id_coins || egresos.pagado"
                     readonly
                   ></v-text-field>
                 </v-col>
@@ -468,30 +481,33 @@
                   <v-text-field
                     dense
                     @input="calcularE()"
-                    v-model="egresos.montopr"
+                    v-model="egresos.monto_pr"
                     type="number"
                     label="Monto"
                     :rules="[(v) => !!v || 'Dato requerido']"
+                    :disabled="egresos.pagado"
                   ></v-text-field>
                 </v-col>
 
                 <v-col cols="12" md="4" v-if="prFlag && mostrarImpuesto">
                   <v-text-field
                     dense
-                    v-model="egresos.igvpr"
+                    v-model="egresos.igv_pr"
                     type="number"
                     :label="`${$store.state.enterprises.impuesto.nombre_impuesto}`"
                     readonly
+                    :disabled="egresos.pagado"
                   ></v-text-field>
                 </v-col>
 
                 <v-col cols="12" md="4" v-if="prFlag">
                   <v-text-field
                     dense
-                    v-model="egresos.totalpr"
+                    v-model="egresos.total_pr"
                     type="number"
                     label="Total"
                     readonly
+                    :disabled="egresos.pagado"
                   ></v-text-field>
                 </v-col>
                 <v-col cols="12" md="4" v-if="opFlag">
@@ -502,6 +518,7 @@
                     label="Monto Operaciones (Solo lectura) "
                     suffix="USD"
                     readonly
+                    :disabled="egresos.pagado"
                   ></v-text-field>
                 </v-col>
 
@@ -513,6 +530,7 @@
                     :label="`${$store.state.enterprises.impuesto.nombre_impuesto} Operaciones (Solo lectura)`"
                     suffix="USD"
                     readonly
+                    :disabled="egresos.pagado"
                   ></v-text-field>
                 </v-col>
 
@@ -524,6 +542,7 @@
                     label="Total Operaciones (Solo lectura) "
                     suffix="USD"
                     readonly
+                    :disabled="egresos.pagado"
                   ></v-text-field>
                 </v-col>
               </v-row>
@@ -1335,7 +1354,6 @@ export default {
       dialogPayment: false,
       dialogSolicitudDivision: false,
       dialogSolicitudDivision: false,
-
       dialogSolicitud: false,
       checkPago: false,
       checkMaster: false,
@@ -1365,13 +1383,13 @@ export default {
         opcion: null,
         numero: "",
         fecha: moment(new Date()).format("YYYY-MM-DD"),
-        montoop: 0,
+        monto_op: 0,
         montoopview: 0,
-        igvop: 0,
-        totalop: 0,
-        montopr: 0,
-        igvpr: 0,
-        totalpr: 0,
+        igv_op: 0,
+        total_op: 0,
+        monto_pr: 0,
+        igv_pr: 0,
+        total_pr: 0,
         id_proveedor: null,
         montoopcuentabanco: 0,
         igvopcuentabanco: 0,
@@ -1621,17 +1639,18 @@ export default {
       this.isBotonGuardarEgresoDisabled = false;
       console.log(item);
       this.egresos.id = null;
+      this.egresos.id_orders = null;
       this.egresos.concepto = "";
       this.egresos.statusCalcula = false;
       this.egresos.opcion = null;
       this.egresos.numero = "";
       this.egresos.fecha = moment(new Date()).format("YYYY-MM-DD");
-      this.egresos.montoop = 0;
-      this.egresos.igvop = 0;
-      this.egresos.totalop = 0;
-      this.egresos.montopr = 0;
-      this.egresos.igvpr = 0;
-      this.egresos.totalpr = 0;
+      this.egresos.monto_op = 0;
+      this.egresos.igv_op = 0;
+      this.egresos.total_op = 0;
+      this.egresos.monto_pr = 0;
+      this.egresos.igv_pr = 0;
+      this.egresos.total_pr = 0;
       this.id_correlativo =
         Object.keys(item).length > 0 ? item.id_correlativo : 1;
       this.egresos.id_proveedor =
@@ -1680,13 +1699,13 @@ export default {
 
       if (this.egresos.statusCalcula) {
         // pricing
-        this.egresos.igvpr = parseFloat(
-          (this.egresos.montopr *
+        this.egresos.igv_pr = parseFloat(
+          (this.egresos.monto_pr *
             this.$store.state.enterprises.impuesto.impuesto) /
             100,
         ).toFixed(2);
-        this.egresos.totalpr =
-          parseFloat(this.egresos.montopr) + parseFloat(this.egresos.igvpr);
+        this.egresos.total_pr =
+          parseFloat(this.egresos.monto_pr) + parseFloat(this.egresos.igv_pr);
         // op
         this.egresos.igvopcuentabanco = parseFloat(
           (this.egresos.montoopcuentabanco *
@@ -1701,48 +1720,50 @@ export default {
                 100,
             ),
         ).toFixed(2);
-        this.egresos.montoop = parseFloat(
+        this.egresos.monto_op = parseFloat(
           this.egresos.montoopcuentabanco / this.tipocambio,
         ).toFixed(4);
         this.egresos.montoopview = parseFloat(
           this.egresos.montoopcuentabanco / this.tipocambio,
         ).toFixed(2);
-        this.egresos.igvop = parseFloat(
+        this.egresos.igv_op = parseFloat(
           this.egresos.igvopcuentabanco / this.tipocambio,
         ).toFixed(4);
-        this.egresos.totalop = parseFloat(
-          parseFloat(this.egresos.montoop) + parseFloat(this.egresos.igvop),
+        this.egresos.total_op = parseFloat(
+          parseFloat(this.egresos.monto_op) + parseFloat(this.egresos.igv_op),
         ).toFixed(4);
         this.egresos.igvopview = parseFloat(
           this.egresos.igvopcuentabanco / this.tipocambio,
         ).toFixed(2);
         this.egresos.totalopview = parseFloat(
-          parseFloat(this.egresos.montoop) + parseFloat(this.egresos.igvop),
+          parseFloat(this.egresos.monto_op) + parseFloat(this.egresos.igv_op),
         ).toFixed(2);
       } else {
         // pr
 
-        this.egresos.igvpr = 0;
-        this.egresos.totalpr = parseFloat(this.egresos.montopr);
+        this.egresos.igv_pr = 0;
+        this.egresos.total_pr = parseFloat(this.egresos.monto_pr);
         // op
         this.egresos.igvopcuentabanco = 0.0;
         this.egresos.totalopcuentabanco = parseFloat(
           parseFloat(this.egresos.montoopcuentabanco),
         ).toFixed(2);
-        this.egresos.montoop = parseFloat(
+        this.egresos.monto_op = parseFloat(
           this.egresos.montoopcuentabanco / this.tipocambio,
         ).toFixed(4);
         this.egresos.montoopview = parseFloat(
           this.egresos.montoopcuentabanco / this.tipocambio,
         ).toFixed(2);
-        this.egresos.igvop = parseFloat(
+        this.egresos.igv_op = parseFloat(
           this.egresos.igvopcuentabanco / this.tipocambio,
         ).toFixed(4);
         this.egresos.igvopview = parseFloat(
           this.egresos.igvopcuentabanco / this.tipocambio,
         ).toFixed(2);
-        this.egresos.totalop = parseFloat(parseFloat(this.egresos.montoop));
-        this.egresos.totalopview = parseFloat(parseFloat(this.egresos.montoop));
+        this.egresos.total_op = parseFloat(parseFloat(this.egresos.monto_op));
+        this.egresos.totalopview = parseFloat(
+          parseFloat(this.egresos.monto_op),
+        );
       }
       this.$forceUpdate();
     },
@@ -1863,17 +1884,15 @@ export default {
         var data = {
           id_master:
             vm.$store.state.controlGastos.listControlGastos[0].master_id,
-          id_orders: vm.$store.state.controlGastos.master_houses.filter(
-            (v) => v.id_orders,
-          )[0].id_orders,
+          id_orders: vm.egresos.id_orders,
           id_proveedor: vm.egresos.id_proveedor,
           concepto: vm.egresos.concepto,
-          monto_op: vm.egresos.montoop,
-          monto_pr: vm.egresos.montopr,
-          igv_pr: vm.egresos.igvpr,
-          total_pr: vm.egresos.totalpr,
-          igv_op: vm.egresos.igvop,
-          total_op: vm.egresos.totalop,
+          monto_op: vm.egresos.monto_op,
+          monto_pr: vm.egresos.monto_pr,
+          igv_pr: vm.egresos.igv_pr,
+          total_pr: vm.egresos.total_pr,
+          igv_op: vm.egresos.igv_op,
+          total_op: vm.egresos.total_op,
           id_coins: vm.id_coins,
           montoopcuentabanco: vm.egresos.montoopcuentabanco,
           igvopcuentabanco: vm.egresos.igvopcuentabanco,
@@ -2093,22 +2112,12 @@ export default {
     },
     _editEgreso(egreso) {
       this.egresos = {
-        id: egreso.id,
-        concepto: egreso.concepto,
+        ...egreso,
+
         statusCalcula: true,
-        opcion: egreso.igvop || egreso.igvpr ? true : false,
+        opcion: egreso.igv_op || egreso.igv_pr ? true : false,
         numero: "",
         fecha: moment(new Date()).format("YYYY-MM-DD"),
-        montoop: egreso.monto_op,
-        igvop: egreso.igv_op,
-        totalop: egreso.total_op,
-        montopr: egreso.monto_pr,
-        igvpr: egreso.igv_pr,
-        totalpr: egreso.total_pr,
-        id_proveedor: egreso.id_proveedor,
-        montoopcuentabanco: egreso.montoopcuentabanco,
-        igvopcuentabanco: egreso.igvopcuentabanco,
-        totalopcuentabanco: egreso.totalopcuentabanco,
       };
       this.id_correlativo = egreso.id_correlativo;
       this.tipocambio = egreso.tipocambio;
@@ -2180,14 +2189,12 @@ export default {
 
       var config = {
         method: "get",
-        url:
-          process.env.VUE_APP_URL_MAIN +
-          "getSPaymentPro?" +
-          `id_master=${egreso.id_master}&id_proveedor=${
-            egreso.id_proveedor
-          }&id_correlativo=${egreso.id_correlativo}&id_branch=${
-            JSON.parse(sessionStorage.getItem("dataUser"))[0].id_branch
-          }`,
+        url: process.env.VUE_APP_URL_MAIN + "getSPaymentPro",
+        params: {
+          ...egreso,
+          id_branch: JSON.parse(sessionStorage.getItem("dataUser"))[0]
+            .id_branch,
+        },
         headers: {
           "Content-Type": "application/json",
         },
@@ -2216,18 +2223,10 @@ export default {
       this.calcularE();
       var vm = this;
       var data = {
-        id_proveedor: vm.egresos.id_proveedor,
-        concepto: vm.egresos.concepto,
-        monto_op: vm.egresos.montoop,
-        monto_pr: vm.egresos.montopr,
-        igv_pr: vm.egresos.igvpr,
-        total_pr: vm.egresos.totalpr,
-        igv_op: vm.egresos.igvop,
-        total_op: vm.egresos.totalop,
+        ...vm.egresos,
+
         id_coins: vm.id_coins,
-        montoopcuentabanco: vm.egresos.montoopcuentabanco,
-        igvopcuentabanco: vm.egresos.igvopcuentabanco,
-        totalopcuentabanco: vm.egresos.totalopcuentabanco,
+
         id_user: JSON.parse(sessionStorage.getItem("dataUser"))[0].id,
         id_master: vm.$store.state.controlGastos.listControlGastos[0].master_id,
         id_correlativo: vm.id_correlativo,
@@ -2945,7 +2944,7 @@ export default {
           vm.showSeccion3NuevoEgreso = true;
         }
 
-        if (newValue.montoopcuentabanco || newValue.montopr) {
+        if (newValue.montoopcuentabanco || newValue.monto_pr) {
           vm.isBotonGuardarEgresoDisabled = false;
         } else {
           vm.isBotonGuardarEgresoDisabled = true;
