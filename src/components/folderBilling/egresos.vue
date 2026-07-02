@@ -359,6 +359,7 @@
                     item-text="consigner"
                     item-value="id_orders"
                     v-model="egresos.id_orders"
+                    clearable
                   />
                 </v-col>
                 <v-col cols="4">
@@ -1600,7 +1601,7 @@ export default {
         const id_house = item.id_house || null;
         const code_house = item.code_house || "";
 
-        let consigner = item.consigner || "";
+        let consigner = item.consigner || "Costo Global del Expediente";
 
         // Si no tenemos consigner en el detalle pero sí tenemos id_house,
         // intentamos obtenerlo desde master_houses.
