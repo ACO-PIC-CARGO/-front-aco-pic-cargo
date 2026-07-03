@@ -354,7 +354,7 @@
               <v-row>
                 <v-col cols="4">
                   <v-autocomplete
-                    label="Seleccione el House Asociado"
+                    label="Costo Aspociado al Master o un House"
                     :items="listHouses"
                     item-text="consigner"
                     item-value="id_orders"
@@ -1600,8 +1600,8 @@ export default {
       detalle.forEach((item) => {
         const id_house = item.id_house || null;
         const code_house = item.code_house || "";
-
-        let consigner = item.consigner || "Costo Global del Expediente";
+        console.log("item.consigner:", item.consigner);
+        let consigner = item.consigner ? item.consigner :  "Costo Global del Expediente";
 
         // Si no tenemos consigner en el detalle pero sí tenemos id_house,
         // intentamos obtenerlo desde master_houses.
@@ -3005,7 +3005,7 @@ export default {
     listHouses() {
       let houses = [
         {
-          consigner: "COSTO ASOCIADO AL EXPEDIENTE",
+          consigner: "COSTO ASOCIADO AL MASTER",
           id_orders: null,
         },
         ...this.$store.state.controlGastos.master_houses,
