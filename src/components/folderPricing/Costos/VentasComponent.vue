@@ -217,7 +217,7 @@
                 <v-autocomplete
                   dense
                   autocomplete="none"
-                  :items="tipoOpcion"
+                  :items="$store.state.pricing.listTipoCostos"
                   label="Tipo"
                   item-value="codigo"
                   item-text="name"
