@@ -355,7 +355,7 @@
                 <v-col cols="4">
                   <v-autocomplete
                     label="Seleccione el House Asociado"
-                    :items="$store.state.controlGastos.master_houses"
+                    :items="listHouses"
                     item-text="consigner"
                     item-value="id_orders"
                     v-model="egresos.id_orders"
@@ -369,7 +369,7 @@
                     v-model="egresos.id_proveedor"
                     label="Proveedor"
                     :rules="[(v) => !!v || 'Dato requerido']"
-                    :disabled="egresos.pagado"
+                    :disabled="!!egresos.pagado"
                   ></v-autocomplete>
                 </v-col>
               </v-row>
@@ -381,7 +381,7 @@
                     v-model="egresos.concepto"
                     label="Concepto"
                     :rules="[(v) => !!v || 'Dato requerido']"
-                    :disabled="egresos.pagado"
+                    :disabled="!!egresos.pagado"
                   ></v-text-field>
                 </v-col>
                 <v-col cols="12" xl="3" lg="3">
@@ -394,14 +394,14 @@
                     label="Correlativo"
                     dense
                     :rules="[(v) => !!v || 'Dato Requerido']"
-                    :disabled="egresos.pagado"
+                    :disabled="!!egresos.pagado"
                   ></v-autocomplete>
                 </v-col>
                 <v-col cols="12" xl="3" lg="3">
                   <v-switch
                     v-if="mostrarImpuesto"
                     dense
-                    :disabled="egresos.pagado"
+                    :disabled="!!egresos.pagado"
                     @change="calcularE()"
                     v-model="egresos.statusCalcula"
                     :label="`Calcula ${$store.state.enterprises.impuesto.nombre_impuesto}`"
@@ -424,7 +424,7 @@
                     @change="obtenerMoneda()"
                     dense
                     :rules="[(v) => !!v || 'Dato Requerido']"
-                    :disabled="egresos.pagado"
+                    :disabled="!!egresos.pagado"
                   ></v-autocomplete>
                 </v-col>
 
@@ -437,7 +437,7 @@
                     label="Tipo de Cambio"
                     @input="calcularE()"
                     step="0.01"
-                    :disabled="egresos.pagado"
+                    :disabled="!!egresos.pagado"
                   ></v-text-field>
                 </v-col>
               </v-row>
@@ -452,7 +452,7 @@
                     label="Monto"
                     :rules="[(v) => !!v || 'Dato requerido']"
                     :prefix="sufmoneda"
-                    :disabled="!id_coins || egresos.pagado"
+                    :disabled="!id_coins || !!egresos.pagado"
                   ></v-text-field>
                 </v-col>
 
@@ -463,7 +463,7 @@
                     type="number"
                     :label="`${$store.state.enterprises.impuesto.nombre_impuesto}`"
                     :prefix="sufmoneda"
-                    :disabled="!id_coins || egresos.pagado"
+                    :disabled="!id_coins || !!egresos.pagado"
                     readonly
                   ></v-text-field>
                 </v-col>
@@ -475,7 +475,7 @@
                     type="number"
                     label="Total Operaciones"
                     :prefix="sufmoneda"
-                    :disabled="!id_coins || egresos.pagado"
+                    :disabled="!id_coins || !!egresos.pagado"
                     readonly
                   ></v-text-field>
                 </v-col>
@@ -488,7 +488,7 @@
                     type="number"
                     label="Monto"
                     :rules="[(v) => !!v || 'Dato requerido']"
-                    :disabled="egresos.pagado"
+                    :disabled="!!egresos.pagado"
                   ></v-text-field>
                 </v-col>
 
@@ -499,7 +499,7 @@
                     type="number"
                     :label="`${$store.state.enterprises.impuesto.nombre_impuesto}`"
                     readonly
-                    :disabled="egresos.pagado"
+                    :disabled="!!egresos.pagado"
                   ></v-text-field>
                 </v-col>
 
@@ -510,7 +510,7 @@
                     type="number"
                     label="Total"
                     readonly
-                    :disabled="egresos.pagado"
+                    :disabled="!!egresos.pagado"
                   ></v-text-field>
                 </v-col>
                 <v-col cols="12" md="4" v-if="opFlag">
@@ -521,7 +521,7 @@
                     label="Monto Operaciones (Solo lectura) "
                     suffix="USD"
                     readonly
-                    :disabled="egresos.pagado"
+                    :disabled="!!egresos.pagado"
                   ></v-text-field>
                 </v-col>
 
@@ -533,7 +533,7 @@
                     :label="`${$store.state.enterprises.impuesto.nombre_impuesto} Operaciones (Solo lectura)`"
                     suffix="USD"
                     readonly
-                    :disabled="egresos.pagado"
+                    :disabled="!!egresos.pagado"
                   ></v-text-field>
                 </v-col>
 
@@ -545,7 +545,7 @@
                     label="Total Operaciones (Solo lectura) "
                     suffix="USD"
                     readonly
-                    :disabled="egresos.pagado"
+                    :disabled="!!egresos.pagado"
                   ></v-text-field>
                 </v-col>
               </v-row>
@@ -1381,6 +1381,7 @@ export default {
       e1: 1,
       egresos: {
         id: null,
+        id_orders: "",
         concepto: "",
         statusCalcula: false,
         opcion: null,
@@ -1600,7 +1601,7 @@ export default {
         const id_house = item.id_house || null;
         const code_house = item.code_house || "";
 
-        let consigner = item.consigner || "";
+        let consigner = item.consigner || "Costo Global del Expediente";
 
         // Si no tenemos consigner en el detalle pero sí tenemos id_house,
         // intentamos obtenerlo desde master_houses.
@@ -1640,7 +1641,7 @@ export default {
     },
     nuevoEngreso(item = {}) {
       this.isBotonGuardarEgresoDisabled = false;
-      console.log(item);
+
       this.egresos.id = null;
       this.egresos.id_orders = null;
       this.egresos.concepto = "";
@@ -2114,10 +2115,10 @@ export default {
         });
     },
     _editEgreso(egreso) {
-      console.log(egreso)
+      console.log(egreso);
       this.egresos = {
         ...egreso,
-        statusCalcula: !!egreso.igv_op ?true: false,
+        statusCalcula: !!egreso.igv_op ? true : false,
         opcion: egreso.igv_op || egreso.igv_pr ? true : false,
         numero: "",
         fecha: moment(new Date()).format("YYYY-MM-DD"),
@@ -3001,6 +3002,16 @@ export default {
     },
   },
   computed: {
+    listHouses() {
+      let houses = [
+        {
+          consigner: "COSTO ASOCIADO AL EXPEDIENTE",
+          id_orders: null,
+        },
+        ...this.$store.state.controlGastos.master_houses,
+      ];
+      return houses;
+    },
     nombreCodigoPago() {
       let shipment =
         (this.$store.state.controlGastos.listControlGastos[0] &&
