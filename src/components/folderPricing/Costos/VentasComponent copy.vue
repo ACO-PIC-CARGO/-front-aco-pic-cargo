@@ -14,6 +14,7 @@
           <v-card-title primary-title> Nueva Venta </v-card-title>
           <v-card-text>
             <v-row>
+           sssssssss   {{ $store.state.pricing.listTipoCostos }}
               <v-col cols="12">
                 <v-autocomplete
                   dense
