@@ -321,15 +321,17 @@ export default {
     obtenerCostosEnBaseTipoCosto(codigoTipoCosto) {
       //   if (this.id_modality == 1) {
       if (codigoTipoCosto == "LO")
-        return this.valores.filter((v) => v.eslocalflag);
+        return this.valores.filter((v) => v.eslocalflag && v.status == 1);
       if (codigoTipoCosto == "AD")
-        return this.valores.filter((v) => v.esaduanaflag);
+        return this.valores.filter((v) => v.esaduanaflag && v.status == 1);
       if (codigoTipoCosto == "AL")
-        return this.valores.filter((v) => v.esalmacenflag);
+        return this.valores.filter((v) => v.esalmacenflag && v.status == 1);
       if (codigoTipoCosto == "FL")
-        return this.valores.filter((v) => v.esfleteflag);
+        return this.valores.filter((v) => v.esfleteflag && v.status == 1);
       if (codigoTipoCosto == "GT")
-        return this.valores.filter((v) => v.esgastostercerosflag);
+        return this.valores.filter(
+          (v) => v.esgastostercerosflag && v.status == 1,
+        );
 
       return this.valores;
     },
