@@ -541,7 +541,7 @@ export default {
       },
       editable: false,
       editableGastoBancario: false,
-      searchTableDetalle: "1537",
+      searchTableDetalle: "",
       cboParcial: [
         { text: "Abono Completo", value: false },
         { text: "Abono Parcial", value: true },
