@@ -81,6 +81,15 @@
 
           <v-tabs-items v-model="pasos">
             <v-tab-item key="detallesPago">
+              <v-text-field
+                label="Buscar Expediente, Factura o Procedencia"
+                v-model="searchTableDetalle"
+                style="max-width: 400px"
+                outlined
+                :disabled="itemsOrdenados.length == 0"
+                dense
+                class="mt-2"
+              ></v-text-field>
               <v-row class="mt-1">
                 <v-col cols="12">
                   <v-data-table
@@ -97,9 +106,11 @@
                     <template v-slot:body.append>
                       <tr class="grey lighten-4 font-weight-bold">
                         <td :colspan="headers.length" class="text-right">
-                          Total General Seleccionado (USD):
+                          Total General Seleccionado ( {{ symbol }}):
                         </td>
-                        <td class="text-left">USD {{ totalGeneralAbonado }}</td>
+                        <td class="text-left">
+                          {{ symbol }} {{ totalGeneralAbonado }}
+                        </td>
                       </tr>
                     </template>
                     <template v-slot:[`item.totalabonado`]="{ item }">
@@ -331,9 +342,11 @@
                           :colspan="headersPagosGastosBancario.length - 1"
                           class="text-right"
                         >
-                          Total General Seleccionado (USD):
+                          Total General Seleccionado ( {{ symbol }}):
                         </td>
-                        <td class="text-left">USD {{ totalGeneralAbonado }}</td>
+                        <td class="text-left">
+                          {{ symbol }} {{ totalGeneralAbonado }}
+                        </td>
                       </tr>
                     </template>
                     <template v-slot:[`item.totalabonado`]="{ item }">
@@ -348,10 +361,10 @@
                       {{ item.symbol }}
                       {{
                         parseFloat(
-                          item.saldo_pendiente -
+                          item.saldo_pendiente_local -
                             (item.montoparcial
                               ? item.montoparcial
-                              : item.total_mon_local),
+                              : item.saldo_pendiente_local),
                         ).toFixed(2)
                       }}
                     </template>
@@ -528,7 +541,7 @@ export default {
       },
       editable: false,
       editableGastoBancario: false,
-      searchTableDetalle: "",
+      searchTableDetalle: "1537",
       cboParcial: [
         { text: "Abono Completo", value: false },
         { text: "Abono Parcial", value: true },
@@ -586,13 +599,11 @@ export default {
       this.calcularTotal();
     },
     recibirId(file) {
-      console.log("Archivo recibido en el componente padre:", file);
       if (Object.keys(file).length > 0) {
         this.id_path = file.id;
       } else {
         this.id_path = null;
       }
-      console.log("ID del archivo recibido:", this.id_path);
       // this.payfile = file.archivo;
 
       // this.msgfile = "Archivo procesado y vinculado correctamente.";
@@ -809,11 +820,15 @@ export default {
         if (item.symbol == "USD") {
           return `${item.symbol} ${monto.toFixed(2)}`;
         } else {
-          return `${this.symbol} ${(monto / this.tipocambio).toFixed(2)}`;
+          return `${this.symbol} ${(
+            monto / (this.tipocambio ? this.tipocambio : 1)
+          ).toFixed(2)}`;
         }
       } else {
         if (item.symbol == "USD") {
-          return `${this.symbol} ${(monto * this.tipocambio).toFixed(2)}`;
+          return `${this.symbol} ${(
+            monto * (this.tipocambio ? this.tipocambio : 1)
+          ).toFixed(2)}`;
         } else {
           return `${item.symbol} ${monto.toFixed(2)}`;
         }
@@ -845,11 +860,6 @@ export default {
         if (this.esDuplicado) {
           this.errorMesage.numerooperacion = "El número de operación ya existe";
         }
-
-        console.log(
-          "Operaciones similares encontradas:",
-          this.operacionesSimilares,
-        );
       }, 300);
     },
   },
@@ -887,7 +897,7 @@ export default {
         (parseFloat(this.monto_local) +
           parseFloat(this.montogastobancario || 0)) /
         this.monto;
-      return tc.toFixed(4);
+      return tc ? tc.toFixed(4) : 1;
     },
     itemsOrdenados() {
       const items = [...this.$store.state.bank.deudaAProveedor];
