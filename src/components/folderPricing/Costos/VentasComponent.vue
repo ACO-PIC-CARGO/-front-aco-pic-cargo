@@ -337,8 +337,9 @@ export default {
     },
 
     obtenerTotalEnBaseTipoCosto(codigoTipoCosto) {
+      console.log('codigoTipoCosto',codigoTipoCosto)
       if (codigoTipoCosto == "LO")
-        return this.currencyFormat(this.resumenOpcion.origen);
+        return this.currencyFormat(this.resumenOpcion.gasto);
       if (codigoTipoCosto == "AD")
         return this.currencyFormat(this.resumenOpcion.aduana);
       if (codigoTipoCosto == "AL")
@@ -348,7 +349,7 @@ export default {
       if (codigoTipoCosto == "GT")
         return this.currencyFormat(this.resumenOpcion.gastostercero);
 
-      return currencyFormat(0);
+      return this.currencyFormat(0);
     },
     eliminarCostos({ costo = null }) {
       costo.status = 0;
