@@ -350,6 +350,8 @@ export default {
         return this.currencyFormat(this.resumenOpcion.flete);
       if (codigoTipoCosto == "GT")
         return this.currencyFormat(this.resumenOpcion.gastostercero);
+      if (codigoTipoCosto == "OR")
+        return this.currencyFormat(this.resumenOpcion.origen);
 
       return this.currencyFormat(0);
     },
