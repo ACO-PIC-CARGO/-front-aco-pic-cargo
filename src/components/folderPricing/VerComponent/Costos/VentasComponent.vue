@@ -336,7 +336,7 @@ export default {
       if (codigoTipoCosto == "GT")
         return this.currencyFormat(this.resumenOpcion.gastostercero);
 
-      return currencyFormat(0);
+      return this.currencyFormat(0);
     },
     eliminarCostos({ costo = null }) {
       costo.status = 0;
