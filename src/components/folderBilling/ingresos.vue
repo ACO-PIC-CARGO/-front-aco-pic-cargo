@@ -482,7 +482,7 @@
                 <v-col cols="12" md="4" v-if="prFlag && mostrarImpuesto">
                   <v-text-field
                     readonly
-                    v-model="ingresos.igvpr"
+                    v-model="ingresos.igv_pr"
                     type="number"
                     :label="`${$store.state.enterprises.impuesto.nombre_impuesto}`"
                     :prefix="sufmoneda"
@@ -1492,7 +1492,7 @@ export default {
         igv_op: 0,
         total_op: 0,
         monto_pr: 0,
-        igvpr: 0,
+        igv_pr: 0,
         total_pr: 0,
       },
       headersdebs: [
@@ -1842,7 +1842,7 @@ export default {
       }
 
       // ------------------------------------------------------ montos
-
+      
       this.ingresos.igv_pr = parseFloat(this.ingresos.monto_pr * igv).toFixed(
         2,
       );
@@ -1853,26 +1853,31 @@ export default {
         parseFloat(this.ingresos.monto_pr) +
         parseFloat(this.ingresos.monto_pr * igv);
       // operaciones
+      this.ingresos.totalopcuentabanco = parseFloat(
+        parseFloat(this.ingresos.montoopcuentabanco) +
+          parseFloat(this.ingresos.igvopcuentabanco),
+      ).toFixed(2);
       // ---------------------------------------------operaciones
-      this.ingresos.igv_op = parseFloat(this.ingresos.monto_op * igv).toFixed(
-        4,
-      );
-      this.ingresos.total_op = parseFloat(
-        parseFloat(this.ingresos.monto_op) +
-          parseFloat(this.ingresos.monto_op * igv),
-      ).toFixed(4);
-
-      // --------------------------------------- moneda extranjera
-      this.ingresos.montoopview = parseFloat(
-        this.ingresos.monto_op / this.tipocambio,
+        this.ingresos.montoopview = parseFloat(
+        this.ingresos.montoopcuentabanco / this.tipocambio,
       ).toFixed(2);
       this.ingresos.igvopview = parseFloat(
         this.ingresos.montoopview * igv,
-      ).toFixed(2);
+      ).toFixed(4);
       this.ingresos.totalopview = parseFloat(
         parseFloat(this.ingresos.montoopview) +
-          parseFloat(this.ingresos.montoopview * igv),
-      ).toFixed(2);
+          parseFloat(this.ingresos.igvopview * igv),
+      ).toFixed(4);
+
+      // --------------------------------------- moneda extranjera
+    
+      // this.ingresos.igvopview = parseFloat(
+      //   this.ingresos.montoopview * igv,
+      // ).toFixed(2);
+      // this.ingresos.totalopview = parseFloat(
+      //   parseFloat(this.ingresos.montoopview) +
+      //     parseFloat(this.ingresos.montoopview * igv),
+      // ).toFixed(2);
     },
     calcularMontoDolar() {
       this.monto = parseFloat(
@@ -1954,24 +1959,31 @@ export default {
     },
     nuevoIngreso(house) {
       this.statusBtn = 1;
-      this.ingresos = {
-        id_correlativo: house.id_correlativo,
-        id: null,
-        concepto: "",
-        statusCalcula: false,
-        opcion: null,
-        numero: "",
-        fecha: moment(new Date()).format("YYYY-MM-DD"),
-        monto_op: 0,
-        igv_op: 0,
-        total_op: 0,
-        monto_pr: 0,
-        igvpr: 0,
-        total_pr: 0,
-      };
-      this.house = house;
 
       this.dialogIngreso = true;
+
+      setTimeout(() => {
+        this.$refs.frmIngreso.reset();
+        this.ingresos = {
+          id_correlativo: house.id_correlativo,
+          id: null,
+          concepto: "",
+          statusCalcula: false,
+          opcion: null,
+          numero: "",
+          fecha: moment(new Date()).format("YYYY-MM-DD"),
+          monto_op: 0,
+          igv_op: 0,
+          total_op: 0,
+          monto_pr: 0,
+          igv_pr: 0,
+          total_pr: 0,
+          montoopview: 0,
+          igvopview: 0,
+          totalopview: 0,
+        };
+        this.house = house;
+      }, 500);
     },
     // calcular() {
     //   if (this.ingresos.statusCalcula) {
@@ -1980,7 +1992,7 @@ export default {
     //         this.$store.state.enterprises.impuesto.impuesto) /
     //         100,
     //     ).toFixed(2);
-    //     this.ingresos.igvpr = parseFloat(
+    //     this.ingresos.igv_pr = parseFloat(
     //       (this.ingresos.monto_pr *
     //         this.$store.state.enterprises.impuesto.impuesto) /
     //         100,
@@ -1988,14 +2000,14 @@ export default {
     //     this.ingresos.total_op =
     //       parseFloat(this.ingresos.monto_op) + parseFloat(this.ingresos.igv_op);
     //     this.ingresos.total_pr =
-    //       parseFloat(this.ingresos.monto_pr) + parseFloat(this.ingresos.igvpr);
+    //       parseFloat(this.ingresos.monto_pr) + parseFloat(this.ingresos.igv_pr);
     //   } else {
     //     this.ingresos.igv_op = 0.0;
-    //     this.ingresos.igvpr = 0.0;
+    //     this.ingresos.igv_pr = 0.0;
     //     this.ingresos.total_op =
     //       parseFloat(this.ingresos.monto_op) + parseFloat(this.ingresos.igv_op);
     //     this.ingresos.total_pr =
-    //       parseFloat(this.ingresos.monto_pr) + parseFloat(this.ingresos.igvpr);
+    //       parseFloat(this.ingresos.monto_pr) + parseFloat(this.ingresos.igv_pr);
     //   }
     // },
     editarDebs(item) {
@@ -2089,16 +2101,9 @@ export default {
       // this.calcularE();
       if (this.$refs.frmIngreso.validate()) {
         var data = {
+          ...this.ingresos,
           code_master: this.$route.params.code_master,
           id_orders: this.house.id_orders,
-          id_correlativo: this.ingresos.id_correlativo,
-          concepto: this.ingresos.concepto,
-          monto_op: this.ingresos.monto_op,
-          igv_op: this.ingresos.igv_op,
-          total_op: this.ingresos.total_op,
-          monto_pr: this.ingresos.monto_pr,
-          igv_pr: this.ingresos.igvpr,
-          total_pr: this.ingresos.total_pr,
           id_user: JSON.parse(sessionStorage.getItem("dataUser"))[0].id,
           tipo_pago: this.ingresos.opcion,
           numero: this.ingresos.numero,
