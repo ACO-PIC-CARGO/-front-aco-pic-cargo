@@ -332,12 +332,14 @@ export default {
         return this.valores.filter(
           (v) => v.esgastostercerosflag && v.status == 1,
         );
+      if (codigoTipoCosto == "OR")
+        return this.valores.filter((v) => v.esorigenflag && v.status == 1);
 
       return this.valores;
     },
 
     obtenerTotalEnBaseTipoCosto(codigoTipoCosto) {
-      console.log('codigoTipoCosto',codigoTipoCosto)
+      console.log("codigoTipoCosto", codigoTipoCosto);
       if (codigoTipoCosto == "LO")
         return this.currencyFormat(this.resumenOpcion.gasto);
       if (codigoTipoCosto == "AD")
