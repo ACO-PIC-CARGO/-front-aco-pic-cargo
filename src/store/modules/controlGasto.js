@@ -272,7 +272,7 @@ const actions = {
     var data = data;
     var config = {
       method: "post",
-      url: process.env.VUE_APP_URL_MAIN + "editIngreso/" + data.id,
+      url: process.env.VUE_APP_URL_MAIN + "editIngreso",
       headers: {
         "Content-Type": "application/json",
       },

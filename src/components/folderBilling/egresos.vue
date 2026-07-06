@@ -1600,8 +1600,9 @@ export default {
       detalle.forEach((item) => {
         const id_house = item.id_house || null;
         const code_house = item.code_house || "";
-        console.log("item.consigner:", item.consigner);
-        let consigner = item.consigner ? item.consigner :  "Costo Global del Expediente";
+        let consigner = item.consigner
+          ? item.consigner
+          : "Costo Global del Expediente";
 
         // Si no tenemos consigner en el detalle pero sí tenemos id_house,
         // intentamos obtenerlo desde master_houses.
@@ -2115,11 +2116,14 @@ export default {
         });
     },
     _editEgreso(egreso) {
-      console.log(egreso);
+      
       this.egresos = {
         ...egreso,
         statusCalcula: !!egreso.igv_op ? true : false,
         opcion: egreso.igv_op || egreso.igv_pr ? true : false,
+        montoopview: egreso.monto_op,
+        igvopview: egreso.igv_op,
+        totalopview: egreso.total_op,
         numero: "",
         fecha: moment(new Date()).format("YYYY-MM-DD"),
       };

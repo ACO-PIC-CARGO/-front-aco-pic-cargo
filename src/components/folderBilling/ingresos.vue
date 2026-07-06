@@ -243,6 +243,19 @@
                   {{ $store.state.enterprises.impuesto.nombre_impuesto }} Op
                 </th>
                 <th style="background: #ffd6d6" class="text-left">Total Op</th>
+                <th style="background: #d8ffde" class="text-left">
+                  Monto Op Cuenta Banco
+                </th>
+                <th style="background: #d8ffde" class="text-left">
+                  {{ $store.state.enterprises.impuesto.nombre_impuesto }} Op
+                  Cuenta Banco
+                </th>
+                <th style="background: #d8ffde" class="text-left">
+                  Total Op Cuenta Banco
+                </th>
+                <th style="background: #d8ffde" class="text-left">
+                  Tipo Cambio Cuenta Banco
+                </th>
                 <th class="text-center">Facturado</th>
                 <th v-if="editable" class="text-left">Acciones</th>
               </tr>
@@ -267,6 +280,25 @@
                 </td>
                 <td style="background: #ffd6d6">
                   {{ parseFloat(item.total_op).toFixed(2) }}
+                </td>
+                <!-- Monto Op Cuenta Banco -->
+                <td style="background: #d8ffde">
+                  {{ parseFloat(item.montoopcuentabanco).toFixed(2) }}
+                  {{ item.acronym }}
+                </td>
+                <!-- IGV Op Cuenta Banco -->
+                <td style="background: #d8ffde" v-if="mostrarImpuesto">
+                  {{ parseFloat(item.igvopcuentabanco).toFixed(2) }}
+                  {{ item.acronym }}
+                </td>
+                <!-- Total Op Cuenta Banco -->
+                <td style="background: #d8ffde">
+                  {{ parseFloat(item.totalopcuentabanco).toFixed(2) }}
+                  {{ item.acronym }}
+                </td>
+                <!-- Tipo Cambio Cuenta Banco -->
+                <td style="background: #d8ffde">
+                  {{ item.tipocambio == 1 ? "No Aplica" : item.tipocambio }}
                 </td>
                 <td>
                   <v-chip
@@ -311,7 +343,9 @@
                     mdi-delete
                   </v-icon>
 
-                  <v-chip v-if="item.pagado == 1" color="success"> Pagado </v-chip>
+                  <v-chip v-if="item.pagado == 1" color="success">
+                    Pagado
+                  </v-chip>
                 </td>
               </tr>
             </tbody>
@@ -357,31 +391,66 @@
                 <v-col cols="3">
                   <v-switch
                     v-if="mostrarImpuesto"
-                    @change="calcular()"
+                    @change="calcularE()"
                     v-model="ingresos.statusCalcula"
                     dense
                     :label="`Calcula ${$store.state.enterprises.impuesto.nombre_impuesto}`"
                   ></v-switch>
                   <!-- <p v-else>NO HA CONFIGURADO EL IMPUESTOS A LA VENTAS. Ir al Módulo de Configuración</p> -->
                 </v-col>
+              </v-row>
+              <v-row>
+                <v-col cols="12" md="3">
+                  <v-autocomplete
+                    :items="$store.state.itemsCoinsList"
+                    v-model="ingresos.id_coins"
+                    item-text="acronym"
+                    item-value="id"
+                    label="Moneda de Banco Salida"
+                    @change="obtenerMoneda()"
+                    dense
+                    :rules="[(v) => !!v || 'Dato Requerido']"
+                  ></v-autocomplete>
+                </v-col>
 
+                <v-col cols="12" md="3" v-if="opFlag">
+                  <v-text-field
+                    dense
+                    v-if="
+                      ingresos.id_coins &&
+                      $store.state.itemsCoinsList.find(
+                        (c) => c.id === ingresos.id_coins,
+                      )?.symbol != 'USD'
+                    "
+                    v-model="tipocambio"
+                    type="number"
+                    label="Tipo de Cambio"
+                    @input="calcularE()"
+                    step="0.01"
+                    :rules="[(v) => !!v || v > 1 || 'Dato Requerido']"
+                  ></v-text-field>
+                </v-col>
+              </v-row>
+              <v-row>
                 <v-col cols="12" md="4" v-if="opFlag">
                   <v-text-field
-                    @keyup="calcular()"
-                    v-model="ingresos.montoop"
+                    @keyup="calcularE()"
+                    v-model="ingresos.montoopcuentabanco"
                     :rules="[(v) => !!v || 'Dato es requerido']"
                     type="number"
                     label="Monto"
+                    :prefix="sufmoneda"
                   ></v-text-field>
                 </v-col>
 
                 <v-col cols="12" md="4" v-if="opFlag">
                   <v-text-field
                     readonly
-                    v-model="ingresos.igvop"
+                    v-model="ingresos.igvopcuentabanco"
                     type="number"
                     :label="`${$store.state.enterprises.impuesto.nombre_impuesto}`"
                     v-if="mostrarImpuesto"
+                    :prefix="sufmoneda"
                   ></v-text-field>
                   <p v-else>
                     NO HA CONFIGURADO EL IMPUESTOS A LA VENTAS. Ir al Módulo de
@@ -391,20 +460,22 @@
 
                 <v-col cols="12" md="4" v-if="opFlag">
                   <v-text-field
-                    v-model="ingresos.totalop"
+                    v-model="ingresos.totalopcuentabanco"
                     type="number"
                     label="Total"
                     readonly
+                    :prefix="sufmoneda"
                   ></v-text-field>
                 </v-col>
 
                 <v-col cols="12" md="4" v-if="prFlag">
                   <v-text-field
-                    @keyup="calcular()"
-                    v-model="ingresos.montopr"
+                    @keyup="calcularE()"
+                    v-model="ingresos.monto_pr"
                     :rules="[(v) => !!v || 'Dato es requerido']"
                     type="number"
                     label="Monto"
+                    :prefix="sufmoneda"
                   ></v-text-field>
                 </v-col>
 
@@ -414,39 +485,73 @@
                     v-model="ingresos.igvpr"
                     type="number"
                     :label="`${$store.state.enterprises.impuesto.nombre_impuesto}`"
+                    :prefix="sufmoneda"
                   ></v-text-field>
                 </v-col>
 
                 <v-col cols="12" md="4" v-if="prFlag">
                   <v-text-field
-                    v-model="ingresos.totalpr"
+                    v-model="ingresos.total_pr"
                     type="number"
                     label="Total"
+                    :prefix="sufmoneda"
+                  ></v-text-field>
+                </v-col>
+                <!--  -->
+                <v-col cols="12" md="4" v-if="opFlag">
+                  <v-text-field
+                    dense
+                    v-model="ingresos.montoopview"
+                    type="number"
+                    label="Monto Operaciones (Solo lectura) "
+                    suffix="USD"
+                    readonly
                   ></v-text-field>
                 </v-col>
 
-                <v-col>
-                  <v-btn
-                    v-if="this.statusBtn == 1"
-                    @click.native="setIngresos()"
-                    block
-                    color="success"
-                    elevation="0"
-                    >Agregar servicio</v-btn
-                  >
-                  <v-btn
-                    v-if="this.statusBtn == 2"
-                    @click.native="editIngresos()"
-                    block
-                    color="success"
-                    elevation="0"
-                    >Guardar Cambios</v-btn
-                  >
+                <v-col cols="12" md="4" v-if="opFlag && mostrarImpuesto">
+                  <v-text-field
+                    dense
+                    v-model="ingresos.igvopview"
+                    type="number"
+                    :label="`${$store.state.enterprises.impuesto.nombre_impuesto} Operaciones (Solo lectura)`"
+                    suffix="USD"
+                    readonly
+                  ></v-text-field>
+                </v-col>
+
+                <v-col cols="12" md="4" v-if="opFlag">
+                  <v-text-field
+                    dense
+                    v-model="ingresos.totalopview"
+                    type="number"
+                    label="Total Operaciones (Solo lectura) "
+                    suffix="USD"
+                    readonly
+                  ></v-text-field>
                 </v-col>
               </v-row>
             </v-form>
           </v-container>
         </v-card-text>
+        <v-card-actions>
+          <v-btn
+            v-if="this.statusBtn == 1"
+            @click.native="setIngresos()"
+            block
+            color="success"
+            elevation="0"
+            >Agregar servicio</v-btn
+          >
+          <v-btn
+            v-if="this.statusBtn == 2"
+            @click.native="editIngresos()"
+            block
+            color="success"
+            elevation="0"
+            >Guardar Cambios</v-btn
+          >
+        </v-card-actions>
       </v-card>
     </v-dialog>
 
@@ -1383,12 +1488,12 @@ export default {
         opcion: null,
         numero: "",
         fecha: moment(new Date()).format("YYYY-MM-DD"),
-        montoop: 0,
-        igvop: 0,
-        totalop: 0,
-        montopr: 0,
+        monto_op: 0,
+        igv_op: 0,
+        total_op: 0,
+        monto_pr: 0,
         igvpr: 0,
-        totalpr: 0,
+        total_pr: 0,
       },
       headersdebs: [
         {
@@ -1680,20 +1785,23 @@ export default {
         this.$store.state.controlGastos.master_houses[index].isExpanded;
     },
     editIngreso(item) {
-      this.statusBtn = 2;
-      this.ingresos = {
-        ...item,
-        statusCalcula: this.igv_pr != 0 || this.igv_op != 0 ? true : false,
-        // fecha: moment(new Date()).format("YYYY-MM-DD"),
-        montoop: item.monto_op,
-        igvop: item.igv_op,
-        totalop: item.total_op,
-        montopr: item.monto_pr,
-        igvpr: item.igv_pr,
-        totalpr: item.total_pr,
-        opcion: item.tipo_pago,
-      };
       this.dialogIngreso = true;
+      setTimeout(() => {
+        this.$refs.frmIngreso.reset();
+        this.statusBtn = 2;
+        this.ingresos = {
+          ...item,
+          statusCalcula: this.igv_pr != 0 || this.igv_op != 0 ? true : false,
+          montoopview: item.monto_op,
+          igvopview: item.igv_op,
+          totalopview: item.total_op,
+          // fecha: moment(new Date()).format("YYYY-MM-DD"),
+          opcion: item.tipo_pago,
+        };
+        this.id_coins = item.id_coins;
+        this.tipocambio = item.tipocambio;
+        this.dialogIngreso = true;
+      }, 500);
     },
     abrirModalFacturar(house) {
       this.stepProforma = 1;
@@ -1713,10 +1821,58 @@ export default {
     },
     obtenerMoneda() {
       let monedas = [...this.$store.state.itemsCoinsList];
-      this.sufmoneda = monedas.filter((v) => v.id == this.id_coins)[0].symbol;
+      this.sufmoneda = monedas.find(
+        (v) => v.id == this.ingresos.id_coins,
+      )?.symbol;
       this.sufmoneda == "USD"
         ? (this.tipocambio = 1)
         : (this.tipocambio = this.tipocambio);
+    },
+    calcularE() {
+      if (this.tipocambio) {
+        let partes = this.tipocambio.toString().split(".");
+        let decimales = partes[1] ? partes[1].length : 0;
+        if (decimales > 2) {
+          this.tipocambio = parseFloat(this.tipocambio).toFixed(2);
+        }
+      }
+      let igv = 0;
+      if (this.ingresos.statusCalcula) {
+        igv = this.$store.state.enterprises.impuesto.impuesto / 100;
+      }
+
+      // ------------------------------------------------------ montos
+
+      this.ingresos.igv_pr = parseFloat(this.ingresos.monto_pr * igv).toFixed(
+        2,
+      );
+      this.ingresos.igvopcuentabanco = parseFloat(
+        this.ingresos.montoopcuentabanco * igv,
+      ).toFixed(2);
+      this.ingresos.total_pr =
+        parseFloat(this.ingresos.monto_pr) +
+        parseFloat(this.ingresos.monto_pr * igv);
+      // operaciones
+      // ---------------------------------------------operaciones
+      this.ingresos.igv_op = parseFloat(this.ingresos.monto_op * igv).toFixed(
+        4,
+      );
+      this.ingresos.total_op = parseFloat(
+        parseFloat(this.ingresos.monto_op) +
+          parseFloat(this.ingresos.monto_op * igv),
+      ).toFixed(4);
+
+      // --------------------------------------- moneda extranjera
+      this.ingresos.montoopview = parseFloat(
+        this.ingresos.monto_op / this.tipocambio,
+      ).toFixed(2);
+      this.ingresos.igvopview = parseFloat(
+        this.ingresos.montoopview * igv,
+      ).toFixed(2);
+      this.ingresos.totalopview = parseFloat(
+        parseFloat(this.ingresos.montoopview) +
+          parseFloat(this.ingresos.montoopview * igv),
+      ).toFixed(2);
     },
     calcularMontoDolar() {
       this.monto = parseFloat(
@@ -1806,42 +1962,42 @@ export default {
         opcion: null,
         numero: "",
         fecha: moment(new Date()).format("YYYY-MM-DD"),
-        montoop: 0,
-        igvop: 0,
-        totalop: 0,
-        montopr: 0,
+        monto_op: 0,
+        igv_op: 0,
+        total_op: 0,
+        monto_pr: 0,
         igvpr: 0,
-        totalpr: 0,
+        total_pr: 0,
       };
       this.house = house;
 
       this.dialogIngreso = true;
     },
-    calcular() {
-      if (this.ingresos.statusCalcula) {
-        this.ingresos.igvop = parseFloat(
-          (this.ingresos.montoop *
-            this.$store.state.enterprises.impuesto.impuesto) /
-            100,
-        ).toFixed(2);
-        this.ingresos.igvpr = parseFloat(
-          (this.ingresos.montopr *
-            this.$store.state.enterprises.impuesto.impuesto) /
-            100,
-        ).toFixed(2);
-        this.ingresos.totalop =
-          parseFloat(this.ingresos.montoop) + parseFloat(this.ingresos.igvop);
-        this.ingresos.totalpr =
-          parseFloat(this.ingresos.montopr) + parseFloat(this.ingresos.igvpr);
-      } else {
-        this.ingresos.igvop = 0.0;
-        this.ingresos.igvpr = 0.0;
-        this.ingresos.totalop =
-          parseFloat(this.ingresos.montoop) + parseFloat(this.ingresos.igvop);
-        this.ingresos.totalpr =
-          parseFloat(this.ingresos.montopr) + parseFloat(this.ingresos.igvpr);
-      }
-    },
+    // calcular() {
+    //   if (this.ingresos.statusCalcula) {
+    //     this.ingresos.igv_op = parseFloat(
+    //       (this.ingresos.monto_op *
+    //         this.$store.state.enterprises.impuesto.impuesto) /
+    //         100,
+    //     ).toFixed(2);
+    //     this.ingresos.igvpr = parseFloat(
+    //       (this.ingresos.monto_pr *
+    //         this.$store.state.enterprises.impuesto.impuesto) /
+    //         100,
+    //     ).toFixed(2);
+    //     this.ingresos.total_op =
+    //       parseFloat(this.ingresos.monto_op) + parseFloat(this.ingresos.igv_op);
+    //     this.ingresos.total_pr =
+    //       parseFloat(this.ingresos.monto_pr) + parseFloat(this.ingresos.igvpr);
+    //   } else {
+    //     this.ingresos.igv_op = 0.0;
+    //     this.ingresos.igvpr = 0.0;
+    //     this.ingresos.total_op =
+    //       parseFloat(this.ingresos.monto_op) + parseFloat(this.ingresos.igv_op);
+    //     this.ingresos.total_pr =
+    //       parseFloat(this.ingresos.monto_pr) + parseFloat(this.ingresos.igvpr);
+    //   }
+    // },
     editarDebs(item) {
       this.id = item.id;
       this.date = item.date;
@@ -1892,16 +2048,14 @@ export default {
         });
     },
     async editIngresos() {
+      if (!this.$refs.frmIngreso.validate()) {
+        return;
+      }
       let data = {
         ...this.ingresos,
         code_master: this.$route.params.code_master,
-        monto_pr: this.ingresos.montopr,
-        monto_op: this.ingresos.montoop,
-        igv_pr: this.ingresos.igvpr,
-        igv_op: this.ingresos.igvop,
-        total_pr: this.ingresos.totalpr,
-        total_op: this.ingresos.totalop,
         tipo_pago: this.ingresos.opcion,
+        tipocambio: this.tipocambio,
       };
       await this.actualizarIngresos(data);
       await this.getListControlGastosHouses(this.$route.params.id);
@@ -1939,12 +2093,12 @@ export default {
           id_orders: this.house.id_orders,
           id_correlativo: this.ingresos.id_correlativo,
           concepto: this.ingresos.concepto,
-          monto_op: this.ingresos.montoop,
-          igv_op: this.ingresos.igvop,
-          total_op: this.ingresos.totalop,
-          monto_pr: this.ingresos.montopr,
+          monto_op: this.ingresos.monto_op,
+          igv_op: this.ingresos.igv_op,
+          total_op: this.ingresos.total_op,
+          monto_pr: this.ingresos.monto_pr,
           igv_pr: this.ingresos.igvpr,
-          total_pr: this.ingresos.totalpr,
+          total_pr: this.ingresos.total_pr,
           id_user: JSON.parse(sessionStorage.getItem("dataUser"))[0].id,
           tipo_pago: this.ingresos.opcion,
           numero: this.ingresos.numero,
