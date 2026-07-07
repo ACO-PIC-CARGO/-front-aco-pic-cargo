@@ -58,6 +58,7 @@
                     "
                     :value="true"
                     dense
+                    disabled
                   ></v-checkbox>
                 </v-col>
                 <v-col cols="12" md="6">
@@ -66,6 +67,7 @@
                     v-model="$store.state.pricing.datosPrincipales.esgrupalflag"
                     :value="true"
                     dense
+                    disabled
                   ></v-checkbox>
                 </v-col>
               </v-row>

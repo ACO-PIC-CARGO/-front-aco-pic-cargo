@@ -42,6 +42,7 @@
               <DatosCargaComponent
                 @activarServicios="activarServicios"
                 @recargarCostos="recargarCostos"
+                @recargarGrupalFlag="recargarGrupalFlag"
                 :mostrarBtn="false"
                 :abrirModalContenedorRecargar="abrirModalContenedorRecargar"
               />
@@ -60,7 +61,7 @@
           <v-btn text> Cancel </v-btn> -->
         </v-stepper-content>
 
-        <v-stepper-content step="2">
+        <v-stepper-content step="2" v-if="mostrarCostos">
           <DatosCostosComponent
             :key="indexCostos"
             :mostrarBtn="false"
@@ -124,6 +125,7 @@ export default {
       indexCostos: 0,
       mostrar: false,
       abrirModalContenedorRecargar: false,
+      mostrarCostos:true
     };
   },
   async mounted() {
@@ -227,6 +229,13 @@ export default {
       setTimeout(async () => {
         await this.recargarCostos();
       }, 1000);
+    },
+    recargarGrupalFlag() {
+      console.log("recargarGrupalFlag");
+      this.mostrarCostos=false;
+      setTimeout(async () => {
+        this.mostrarCostos=true;
+      }, 100);
     },
     continuarComparativa() {
       this.step = 3;
@@ -550,7 +559,7 @@ export default {
             ...nuevo,
             id: 0,
           }));
-        console.log("nuevosCostos", nuevosCostos);
+
         let Propuesta = {
           ...opcion,
           listCostos: [...costosValidos, ...nuevosCostos],

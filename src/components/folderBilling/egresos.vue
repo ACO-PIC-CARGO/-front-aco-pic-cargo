@@ -1648,6 +1648,7 @@ export default {
       this.egresos.concepto = "";
       this.egresos.statusCalcula = false;
       this.egresos.opcion = null;
+      this.egresos.pagado = 0;
       this.egresos.numero = "";
       this.egresos.fecha = moment(new Date()).format("YYYY-MM-DD");
       this.egresos.monto_op = 0;
@@ -1882,49 +1883,73 @@ export default {
       return val;
     },
     async _setData() {
-      if (this.$refs.frmEgreso.validate()) {
-        var vm = this;
-        vm.isBotonGuardarEgresoDisabled = true;
-
-        var data = {
-          id_master:
-            vm.$store.state.controlGastos.listControlGastos[0].master_id,
-          id_orders: vm.egresos.id_orders,
-          id_proveedor: vm.egresos.id_proveedor,
-          concepto: vm.egresos.concepto,
-          monto_op: vm.egresos.monto_op,
-          monto_pr: vm.egresos.monto_pr,
-          igv_pr: vm.egresos.igv_pr,
-          total_pr: vm.egresos.total_pr,
-          igv_op: vm.egresos.igv_op,
-          total_op: vm.egresos.total_op,
-          id_coins: vm.id_coins,
-          montoopcuentabanco: vm.egresos.montoopcuentabanco,
-          igvopcuentabanco: vm.egresos.igvopcuentabanco,
-          totalopcuentabanco: vm.egresos.totalopcuentabanco,
-          id_correlativo: vm.id_correlativo,
-          tipocambio: vm.tipocambio,
-          id_user: JSON.parse(sessionStorage.getItem("dataUser"))[0].id,
-        };
-
-        var config = {
-          method: "post",
-          url: process.env.VUE_APP_URL_MAIN + "setEgresos",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          data: data,
-        };
-        await axios(config)
-          .then(async function (response) {
-            await vm.getListControlGastosMaster(vm.$route.params.id);
-            vm.dialog = false;
-          })
-          .catch(function (error) {
-            console.log(error);
-          });
-        this.$emit("recalcularProfit");
+      if (!this.$refs.frmEgreso.validate()) {
+        return;
       }
+      var vm = this;
+
+      let master = vm.master_egresos.find(
+        (v) =>
+          v.id_proveedor == vm.egresos.id_proveedor &&
+          v.id_correlativo == vm.id_correlativo,
+      );
+
+
+      if (!!master) {
+        let exiteOtraMoneda = master.detalle.some(
+          (v) => v.id_coins != vm.egresos.id_coins,
+        );
+        if (exiteOtraMoneda) {
+          this.$swal({
+            icon: "warning", // Cambiado a 'warning' porque es una restricción del sistema, no un fallo crítico.
+            title:"MONEDAS SOLES DOLARES",
+            html: `<b>Hay conceptos con monedas diferentes</b><br><br>Por favor chequear.`,
+            confirmButtonColor: "#3085d6",
+            confirmButtonText: "ACEPTAR",
+          });
+          return;
+        }
+      }
+
+      vm.isBotonGuardarEgresoDisabled = true;
+
+      var data = {
+        id_master: vm.$store.state.controlGastos.listControlGastos[0].master_id,
+        id_orders: vm.egresos.id_orders,
+        id_proveedor: vm.egresos.id_proveedor,
+        concepto: vm.egresos.concepto,
+        monto_op: vm.egresos.monto_op,
+        monto_pr: vm.egresos.monto_pr,
+        igv_pr: vm.egresos.igv_pr,
+        total_pr: vm.egresos.total_pr,
+        igv_op: vm.egresos.igv_op,
+        total_op: vm.egresos.total_op,
+        id_coins: vm.id_coins,
+        montoopcuentabanco: vm.egresos.montoopcuentabanco,
+        igvopcuentabanco: vm.egresos.igvopcuentabanco,
+        totalopcuentabanco: vm.egresos.totalopcuentabanco,
+        id_correlativo: vm.id_correlativo,
+        tipocambio: vm.tipocambio,
+        id_user: JSON.parse(sessionStorage.getItem("dataUser"))[0].id,
+      };
+
+      var config = {
+        method: "post",
+        url: process.env.VUE_APP_URL_MAIN + "setEgresos",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        data: data,
+      };
+      await axios(config)
+        .then(async function (response) {
+          await vm.getListControlGastosMaster(vm.$route.params.id);
+          vm.dialog = false;
+        })
+        .catch(function (error) {
+          console.log(error);
+        });
+      this.$emit("recalcularProfit");
     },
     solicitar(egreso) {
       var vm = this;
@@ -2116,7 +2141,6 @@ export default {
         });
     },
     _editEgreso(egreso) {
-      
       this.egresos = {
         ...egreso,
         statusCalcula: !!egreso.igv_op ? true : false,
@@ -2241,6 +2265,28 @@ export default {
         tipocambio: vm.tipocambio,
         status: true,
       };
+
+      let master = vm.master_egresos.find(
+        (v) =>
+          v.id_proveedor == vm.egresos.id_proveedor &&
+          v.id_correlativo == vm.id_correlativo,
+      );
+
+      if (!!master) {
+        let exiteOtraMoneda = master.detalle.some(
+          (v) => v.id_coins != vm.egresos.id_coins,
+        );
+          if (exiteOtraMoneda) {
+          this.$swal({
+            icon: "warning", // Cambiado a 'warning' porque es una restricción del sistema, no un fallo crítico.
+            title:"MONEDAS SOLES DOLARES",
+            html: `<b>Hay conceptos con monedas diferentes</b><br><br>Por favor chequear.`,
+            confirmButtonColor: "#3085d6",
+            confirmButtonText: "ACEPTAR",
+          });
+          return;
+        }
+      }
 
       var config = {
         method: "post",
