@@ -455,6 +455,10 @@
       <v-card>
         <v-card-title class="headline pb-2">
           <v-icon left color="primary">mdi-hand-coin</v-icon> Confirmar Depósito
+          <v-spacer></v-spacer>
+          <v-btn icon @click="dialogLlenarMontoDepositadoBanco = false">
+            <v-icon>mdi-close</v-icon>
+          </v-btn>
         </v-card-title>
 
         <v-card-text class="pt-4">
@@ -581,7 +585,7 @@ export default {
     };
   },
   async mounted() {
-    this.$store.state.bank.deudaAProveedor = [];
+    this.$store.state.bank.deudaACliente = [];
     this.$store.state.mainTitle = "BANCOS - NUEVO INGRESO";
     await Promise.all([
       this.cargarClientes(),
@@ -671,7 +675,7 @@ export default {
         await this.getDeudaDeClientePorSucursal(this.cliente);
         this.$store.state.spiner = false;
       } else {
-        this.$store.state.bank.deudaAProveedor = [];
+        this.$store.state.bank.deudaACliente = [];
       }
     },
 
@@ -951,7 +955,7 @@ export default {
       return tc.toFixed(4);
     },
     itemsOrdenados() {
-      const items = [...this.$store.state.bank.deudaAProveedor];
+      const items = [...this.$store.state.bank.deudaACliente];
       return items.sort((a, b) => {
         const aSeleccionado = this.selected.some((sel) => sel.id === a.id);
         const bSeleccionado = this.selected.some((sel) => sel.id === b.id);
