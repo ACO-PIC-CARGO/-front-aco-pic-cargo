@@ -2121,7 +2121,7 @@ export default {
     },
 
     async setIngresos() {
-      if (this.$refs.frmIngreso.validate()) {
+      if (!this.$refs.frmIngreso.validate()) {
         return;
       }
       let house = this.master_houses.find(
