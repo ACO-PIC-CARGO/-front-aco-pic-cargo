@@ -805,6 +805,12 @@ const routes = [
         component: () =>
           import("../views/PricingProfit/RegistroProfitPricing.vue"),
       },
+      {
+        path: "configuracion/texto_whatsapp_cotizacion",
+        name: "TextoWhatsappCotizacion",
+        component: () =>
+          import("../views/Configuracion/Pricing/TextoWhatsappCotizacion.vue"),
+      },
     ],
   },
   {
