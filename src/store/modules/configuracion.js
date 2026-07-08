@@ -1,9 +1,12 @@
-import axios from '@/api/axios-config';
+import axios from "@/api/axios-config";
 import Swal from "sweetalert2";
 const state = {
   lstCostos: [],
   lstMultiplicador: [],
   lstServicios: [],
+  lcl:{},
+  fcl:{},
+  id: null,
 };
 const mutations = {
   SET_COSTOS(state, data) {
@@ -16,6 +19,11 @@ const mutations = {
   SET_SERVICIOS(state, data) {
     state.lstServicios = data;
   },
+  SET_TEXT_WHATSAPP(state, data) {
+    state.id = data.id;
+    state.lcl = data.lcl || {};
+    state.fcl = data.fcl || {};
+  },
 };
 const actions = {
   async getCargarCostos({ commit }, data) {
@@ -25,7 +33,6 @@ const actions = {
       url: process.env.VUE_APP_URL_MAIN + "costo_pricing",
       params: data,
       headers: {
-       
         "Content-Type": "application/json",
       },
     };
@@ -48,7 +55,6 @@ const actions = {
       url: process.env.VUE_APP_URL_MAIN + "obtener_servicio_pricing_config",
       params: data,
       headers: {
-       
         "Content-Type": "application/json",
       },
     };
@@ -62,7 +68,6 @@ const actions = {
   },
   async getMultiplicadorConfigCosto({ commit }, id_shipment) {
     var headers = {
-     
       "Content-Type": "application/json",
     };
     var data = {
@@ -97,7 +102,6 @@ const actions = {
       url: process.env.VUE_APP_URL_MAIN + "costo_pricing_actualizar",
       data: data,
       headers: {
-       
         "Content-Type": "application/json",
       },
     };
@@ -108,6 +112,31 @@ const actions = {
           icon: !!res.estadoflag ? "success" : "error",
           text: res.mensaje,
         });
+      })
+      .catch(function (error) {
+        console.log(error);
+      });
+  },
+
+  async getTextWhatsapp({ commit }) {
+    let vm = this;
+    var config = {
+      method: "get",
+      url: process.env.VUE_APP_URL_MAIN + "text_whatsapp",
+      params: {
+        id_branch: JSON.parse(sessionStorage.getItem("dataUser"))[0].id_branch,
+      },
+      headers: {
+        "Content-Type": "application/json",
+      },
+    };
+    await axios(config)
+      .then(function (response) {
+        if (response.estadoflag) {
+          commit("SET_TEXT_WHATSAPP", response.data.data[0]);
+        } else {
+          commit("SET_TEXT_WHATSAPP", []);
+        }
       })
       .catch(function (error) {
         console.log(error);

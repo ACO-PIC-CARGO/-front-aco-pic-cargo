@@ -1788,10 +1788,13 @@ export default {
       this.dialogIngreso = true;
       setTimeout(() => {
         this.$refs.frmIngreso.reset();
+      }, 100);
+      setTimeout(() => {
+        console.log(item);
         this.statusBtn = 2;
         this.ingresos = {
           ...item,
-          statusCalcula: this.igv_pr != 0 || this.igv_op != 0 ? true : false,
+          statusCalcula: item.igv_pr != 0 || item.igv_op != 0 ? true : false,
           montoopview: item.monto_op,
           igvopview: item.igv_op,
           totalopview: item.total_op,
@@ -1801,7 +1804,7 @@ export default {
         this.id_coins = item.id_coins;
         this.tipocambio = item.tipocambio;
         this.dialogIngreso = true;
-      }, 500);
+      }, 100);
     },
     abrirModalFacturar(house) {
       this.stepProforma = 1;
