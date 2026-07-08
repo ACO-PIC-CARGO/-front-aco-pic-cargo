@@ -1419,7 +1419,11 @@ export default new Vuex.Store({
       };
       await axios(config)
         .then(function (response) {
-          commit("_setItemsContainers", response.data.data);
+          if (!!response.data.estadoflag) {
+            commit("_setItemsContainers", response.data.data);
+          } else {
+            commit("_setItemsContainers", []);
+          }
         })
         .catch(function (error) {
           console.log(error);

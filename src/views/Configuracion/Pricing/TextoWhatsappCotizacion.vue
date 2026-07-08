@@ -41,10 +41,18 @@ export default {
   },
   methods: {
     ...mapActions("configuracion", ["getTextWhatsapp"]),
+    ...mapActions(["_getContainers"]),
   },
   async mounted() {
-    await this.getTextWhatsapp();
+    Promise.all([this.getTextWhatsapp(), this._getContainers()]).catch(
+      (error) => {
+        console.error("Error al cargar los datos:", error);
+      },
+    );
+    this.$store.state.mainTitle =
+      "Actualizar Texto Para Envío de Cotización por WSP";
   },
+  computed: {},
 };
 </script>
 

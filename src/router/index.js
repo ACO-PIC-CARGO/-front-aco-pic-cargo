@@ -686,12 +686,12 @@ const routes = [
         component: () =>
           import("../views/FolderComentariosPredefinidos/list.vue"),
       },
-      // {
-      //   path: "suscripcion",
-      //   name: "lstPlanes",
-      //   component: () =>
-      //     import("../views/Membresia/RegistroMembresiacarlos.vue"),
-      // },
+      {
+        path: "suscripcion",
+        name: "lstPlanes",
+        component: () =>
+          import("../views/Membresia/RegistroMembresiacarlos.vue"),
+      },
       // {
       //   path: "suscripcion3",
       //   name: "lstPlanes",

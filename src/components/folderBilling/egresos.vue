@@ -1896,8 +1896,8 @@ export default {
 
 
       if (!!master) {
-        let exiteOtraMoneda = master.detalle.some(
-          (v) => v.id_coins != vm.egresos.id_coins,
+       let exiteOtraMoneda = master.detalle.some(
+          (v) => v.id_coins != vm.id_coins,
         );
         if (exiteOtraMoneda) {
           this.$swal({
