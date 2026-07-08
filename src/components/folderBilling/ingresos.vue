@@ -1842,7 +1842,7 @@ export default {
       }
 
       // ------------------------------------------------------ montos
-      
+
       this.ingresos.igv_pr = parseFloat(this.ingresos.monto_pr * igv).toFixed(
         2,
       );
@@ -1858,7 +1858,7 @@ export default {
           parseFloat(this.ingresos.igvopcuentabanco),
       ).toFixed(2);
       // ---------------------------------------------operaciones
-        this.ingresos.montoopview = parseFloat(
+      this.ingresos.montoopview = parseFloat(
         this.ingresos.montoopcuentabanco / this.tipocambio,
       ).toFixed(2);
       this.ingresos.igvopview = parseFloat(
@@ -1870,7 +1870,7 @@ export default {
       ).toFixed(4);
 
       // --------------------------------------- moneda extranjera
-    
+
       // this.ingresos.igvopview = parseFloat(
       //   this.ingresos.montoopview * igv,
       // ).toFixed(2);
@@ -2063,6 +2063,29 @@ export default {
       if (!this.$refs.frmIngreso.validate()) {
         return;
       }
+
+      let house = this.master_houses.find(
+        (v) =>
+          v.id_house == this.ingresos.id_house &&
+          v.id_correlativo == this.ingresos.id_correlativo,
+      );
+
+      if (!!house) {
+        let exiteOtraMoneda = house.ingresos.some(
+          (v) => v.id_coins != this.ingresos.id_coins,
+        );
+        if (exiteOtraMoneda) {
+          this.$swal({
+            icon: "warning", // Cambiado a 'warning' porque es una restricción del sistema, no un fallo crítico.
+            title: "MONEDAS SOLES DOLARES",
+            html: `<b>Hay conceptos con monedas diferentes</b><br><br>Por favor chequear.`,
+            confirmButtonColor: "#3085d6",
+            confirmButtonText: "ACEPTAR",
+          });
+          return;
+        }
+      }
+
       let data = {
         ...this.ingresos,
         code_master: this.$route.params.code_master,
@@ -2098,22 +2121,43 @@ export default {
     },
 
     async setIngresos() {
-      // this.calcularE();
       if (this.$refs.frmIngreso.validate()) {
-        var data = {
-          ...this.ingresos,
-          code_master: this.$route.params.code_master,
-          id_orders: this.house.id_orders,
-          id_user: JSON.parse(sessionStorage.getItem("dataUser"))[0].id,
-          tipo_pago: this.ingresos.opcion,
-          numero: this.ingresos.numero,
-          fecha: this.ingresos.fecha,
-          id_master: this.$route.params.id,
-        };
-        await this.guardarIngresos(data);
-        this.dialogIngreso = false;
-        this.$emit("recalcularProfit");
+        return;
       }
+      let house = this.master_houses.find(
+        (v) =>
+          v.id_house == this.ingresos.id_house &&
+          v.id_correlativo == this.ingresos.id_correlativo,
+      );
+
+      if (!!house) {
+        let exiteOtraMoneda = house.ingresos.some(
+          (v) => v.id_coins != this.ingresos.id_coins,
+        );
+        if (exiteOtraMoneda) {
+          this.$swal({
+            icon: "warning", // Cambiado a 'warning' porque es una restricción del sistema, no un fallo crítico.
+            title: "MONEDAS SOLES DOLARES",
+            html: `<b>Hay conceptos con monedas diferentes</b><br><br>Por favor chequear.`,
+            confirmButtonColor: "#3085d6",
+            confirmButtonText: "ACEPTAR",
+          });
+          return;
+        }
+      }
+      var data = {
+        ...this.ingresos,
+        code_master: this.$route.params.code_master,
+        id_orders: this.house.id_orders,
+        id_user: JSON.parse(sessionStorage.getItem("dataUser"))[0].id,
+        tipo_pago: this.ingresos.opcion,
+        numero: this.ingresos.numero,
+        fecha: this.ingresos.fecha,
+        id_master: this.$route.params.id,
+      };
+      await this.guardarIngresos(data);
+      this.dialogIngreso = false;
+      this.$emit("recalcularProfit");
     },
     async actualizar() {
       if (this.$refs.frmNuevoAbono.validate()) {

@@ -339,7 +339,7 @@ export default {
     },
 
     obtenerTotalEnBaseTipoCosto(codigoTipoCosto) {
-      console.log("codigoTipoCosto", codigoTipoCosto);
+      
       if (codigoTipoCosto == "LO")
         return this.currencyFormat(this.resumenOpcion.gasto);
       if (codigoTipoCosto == "AD")

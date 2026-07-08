@@ -65,6 +65,7 @@
                     v-model="$store.state.pricing.datosPrincipales.esgrupalflag"
                     :value="true"
                     dense
+                    
                   ></v-checkbox>
                 </v-col>
               </v-row>
@@ -600,6 +601,23 @@ export default {
     },
   },
   watch: {
+    "$store.state.pricing.datosPrincipales.esgrupalflag"() {
+      if (
+        this.$store.state.pricing.datosPrincipales.esgrupalflag === true
+      ) {
+        this.$store.state.pricing.datosPrincipales.esindividualflag = false;
+        this.cambiarMontosACero()
+        
+      }
+     
+    },
+    "$store.state.pricing.datosPrincipales.esindividualflag"() {
+      if (
+        this.$store.state.pricing.datosPrincipales.esindividualflag === true
+      ) {
+        this.$store.state.pricing.datosPrincipales.esgrupalflag = false;        
+      }     
+    },
     abrirModalContenedorRecargar() {
       if (this.$store.state.pricing.datosPrincipales.containers.length == 0) {
         this.dialogConteiner = true;
@@ -636,6 +654,18 @@ export default {
   },
   methods: {
     ...mapActions(["_getContainers", "getPortBegin", "getPortEnd"]),
+    cambiarMontosACero(){
+      this.$store.state.pricing.opcionCostos.forEach(element => {
+        element.listCostos.forEach(element => {
+          element.costounitario = 0;
+          element.cif = 0;
+          element.seguro = 0;
+        });
+      });
+      setTimeout(() => {
+         this.$emit("recargarGrupalFlag");
+      }, 100);
+    },
     esFobFlag() {
       let valBranch = [1, 2, "1", "2"];
       let branch = JSON.parse(sessionStorage.getItem("dataBranch"))[0];

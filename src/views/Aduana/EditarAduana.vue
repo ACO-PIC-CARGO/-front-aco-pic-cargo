@@ -550,7 +550,7 @@ export default {
             ...nuevo,
             id: 0,
           }));
-        console.log("nuevosCostos", nuevosCostos);
+        
         let Propuesta = {
           ...opcion,
           listCostos: [...costosValidos, ...nuevosCostos],
