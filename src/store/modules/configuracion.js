@@ -4,8 +4,8 @@ const state = {
   lstCostos: [],
   lstMultiplicador: [],
   lstServicios: [],
-  lcl:{},
-  fcl:{},
+  lcl: {},
+  fcl: {},
   id: null,
 };
 const mutations = {
@@ -20,6 +20,7 @@ const mutations = {
     state.lstServicios = data;
   },
   SET_TEXT_WHATSAPP(state, data) {
+    console.log(data)
     state.id = data.id;
     state.lcl = data.lcl || {};
     state.fcl = data.fcl || {};
@@ -132,11 +133,57 @@ const actions = {
     };
     await axios(config)
       .then(function (response) {
-        if (response.estadoflag) {
+        if (response.data.estadoflag) {
           commit("SET_TEXT_WHATSAPP", response.data.data[0]);
         } else {
           commit("SET_TEXT_WHATSAPP", []);
         }
+      })
+      .catch(function (error) {
+        console.log(error);
+      });
+  },
+  async setTextoWhatsappLCL({}, data) {
+    data.id = state.id;
+    let vm = this;
+    var config = {
+      method: "put",
+      url: process.env.VUE_APP_URL_MAIN + "text_whatsapp_lcl",
+      data: data,
+      headers: {
+        "Content-Type": "application/json",
+      },
+    };
+    await axios(config)
+      .then(function (response) {
+        let res = response.data;
+        Swal.fire({
+          icon: !!res.estadoflag ? "success" : "error",
+          text: res.mensaje,
+        });
+      })
+      .catch(function (error) {
+        console.log(error);
+      });
+  },
+  async setTextoWhatsappFCL({}, data) {
+    data.id = state.id;
+    let vm = this;
+    var config = {
+      method: "put",
+      url: process.env.VUE_APP_URL_MAIN + "text_whatsapp_fcl",
+      data: data,
+      headers: {
+        "Content-Type": "application/json",
+      },
+    };
+    await axios(config)
+      .then(function (response) {
+        let res = response.data;
+        Swal.fire({
+          icon: !!res.estadoflag ? "success" : "error",
+          text: res.mensaje,
+        });
       })
       .catch(function (error) {
         console.log(error);

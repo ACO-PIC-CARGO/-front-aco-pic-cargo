@@ -1,48 +1,45 @@
 <template>
   <v-container>
-    <v-row>
-      <v-col cols="12" md="6">
+    <v-row class="py-1">
+      <v-col cols="12" md="6" class="py-1">
         <vTextarea
           v-model="lcl.pdf"
           label="Texto para envío de PDF"
           auto-grow
           outlined
+          hide-details
         />
       </v-col>
-      <v-col cols="12" md="6">
+      <v-col cols="12" md="6" class="py-1">
         <vTextarea
           v-model="lcl.link"
           label="Texto para envío de Link de Descarga"
           auto-grow
           outlined
+          hide-details
         />
       </v-col>
-      <v-col cols="12">
-        <v-spacer></v-spacer>
-        <v-btn color="primary" class="mt-4" @click="guardar">Guardar</v-btn>
+      <v-col cols="12" class="d-flex justify-end">
+        <v-btn color="success" class="mt-4" @click="guardar">Guardar</v-btn>
       </v-col>
     </v-row>
   </v-container>
 </template>
 
 <script>
-import { mapState } from 'vuex';
+import { mapActions, mapState } from "vuex";
 export default {
   data() {
-    return {
-      textoWhasappLCL: {
-        pdf: "dssssssssssssssss",
-        link: "sssssssssss",
-      },
-    };
+    return {};
   },
   mounted() {
-    console.log("Texto WhatsApp LCL:", this.lcl);
+    // console.log("Texto WhatsApp LCL:", this.lcl);
   },
   methods: {
+    ...mapActions("configuracion", ["setTextoWhatsappLCL"]),
     guardar() {
       // Lógica para guardar los textos
-      console.log("Textos guardados",this.lcl);
+      this.setTextoWhatsappLCL({ lcl: this.lcl });
     },
   },
   computed: {
