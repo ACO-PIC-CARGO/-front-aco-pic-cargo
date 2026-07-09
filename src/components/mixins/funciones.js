@@ -283,8 +283,7 @@ const miMixin = {
             : [];
           let subTotal = 0;
 
-          if (codemultiplicador.length > 0) {
-
+          if (codemultiplicador && codemultiplicador.length > 0) {
             if (
               codemultiplicador.code != 5 &&
               codemultiplicador.code != 13 &&
@@ -317,6 +316,7 @@ const miMixin = {
             subTotal = 0;
           }
           if (
+            codemultiplicador &&
             !(
               codemultiplicador.code == 5 &&
               codemultiplicador.code == 13 &&
@@ -379,8 +379,9 @@ const miMixin = {
             : [];
           let subTotal = 0;
 
-          if (codemultiplicador.length > 0) {
+          if (codemultiplicador && codemultiplicador.length > 0) {
             if (
+              codemultiplicador &&
               codemultiplicador.code != 5 &&
               codemultiplicador.code != 13 &&
               codemultiplicador.code != 14
@@ -396,6 +397,7 @@ const miMixin = {
                   datosPrincipales.amount,
                 );
             } else if (
+               codemultiplicador &&
               codemultiplicador.code == 5 ||
               codemultiplicador.code == 13 ||
               codemultiplicador.code == 14
@@ -412,6 +414,7 @@ const miMixin = {
             subTotal = 0;
           }
           if (
+            codemultiplicador &&
             !(
               codemultiplicador.code == 5 &&
               codemultiplicador.code == 13 &&

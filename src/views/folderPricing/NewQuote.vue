@@ -387,6 +387,7 @@ export default {
     async guardar() {
       console.log("Guardando cotización...");
       this.$store.state.spiner = true;
+      
       this.$store.state.pricing.opcionCostos[0].selected = true;
       await this.registrarQuote({ fullflag: false }).catch((err) => {
         console.log("registrarQuote", err);
