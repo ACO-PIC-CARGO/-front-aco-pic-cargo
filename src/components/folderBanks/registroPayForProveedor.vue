@@ -436,6 +436,10 @@
       <v-card>
         <v-card-title class="headline pb-2">
           <v-icon left color="primary">mdi-hand-coin</v-icon> Confirmar Depósito
+          <v-spacer></v-spacer>
+          <v-btn icon @click="dialogLlenarMontoDepositadoBanco = false">
+            <v-icon>mdi-close</v-icon>
+          </v-btn>
         </v-card-title>
 
         <v-card-text class="pt-4">

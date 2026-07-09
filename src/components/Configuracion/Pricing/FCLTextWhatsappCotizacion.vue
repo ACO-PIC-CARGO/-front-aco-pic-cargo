@@ -4,33 +4,54 @@
       <v-col cols="12">
         <div class="d-flex align-center my-2">
           <v-divider></v-divider>
-          <span class="mx-3 text-caption grey--text">{{text.name}}</span>
+          <span
+            class="mx-3 grey--text"
+            style="font-size: 1.2em; font-weight: bold"
+          >
+            {{ text.name }}
+          </span>
           <v-divider></v-divider>
         </div>
       </v-col>
 
       <v-col cols="12" md="6" class="py-1">
+        <p style="font-size: 1.2em; font-weight: bold">
+          Texto para envío de PDF - {{ text.name }}
+        </p>
         <vTextarea
           v-model="text.texto.pdf"
           :label="`Texto para envío de PDF - ${text.name}`"
           auto-grow
           outlined
           hide-details
-        />
+        >
+          <template #label>
+            <span> </span>
+          </template>
+        </vTextarea>
       </v-col>
       <v-col cols="12" md="6" class="py-1">
+        <p style="font-size: 1.2em; font-weight: bold">
+          Texto para envío de Link de Descarga - {{ text.name }}
+        </p>
         <vTextarea
           v-model="text.texto.link"
           :label="`Texto para envío de Link de Descarga - ${text.name}`"
           auto-grow
           outlined
           hide-details
-        />
+        >
+          <template #label>
+            <span> </span>
+          </template>
+        </vTextarea>
       </v-col>
     </v-row>
     <v-row>
       <v-col cols="12" class="d-flex justify-end">
-        <v-btn color="success" @click="guardar">Guardar</v-btn>
+        <v-btn color="success" @click="guardar" :loading="loading">
+          Guardar
+        </v-btn>
       </v-col>
     </v-row>
   </v-container>
@@ -43,16 +64,18 @@ export default {
   data() {
     return {
       textoWhasappFCL: [],
+      loading: false,
     };
   },
   mounted() {},
   methods: {
     ...mapActions("configuracion", ["setTextoWhatsappFCL"]),
-    guardar() {
-      // Lógica para guardar los textos
-      this.setTextoWhatsappFCL({
+    async guardar() {
+      this.loading = true;
+      await this.setTextoWhatsappFCL({
         fcl: this.listadoTextoFCL,
       });
+      this.loading = false;
     },
   },
   computed: {

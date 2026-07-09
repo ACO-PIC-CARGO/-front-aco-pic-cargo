@@ -7,6 +7,7 @@ const state = {
   record: {},
   loading: false,
   deudaAProveedor: [],
+  deudaACliente: [],
 };
 
 const mutations = {
@@ -24,6 +25,9 @@ const mutations = {
   },
   SET_DEUDA_A_PROVEEDOR(state, data) {
     state.deudaAProveedor = data;
+  },
+  SET_DEUDA_A_CLIENTE(state, data) {
+    state.deudaACliente = data;
   },
 };
 const actions = {
@@ -471,23 +475,32 @@ const actions = {
     await axios(config)
       .then(function (response) {
         res = response.data;
-        commit(
-          "SET_DEUDA_A_PROVEEDOR",
-          res.data.map((item, index) => {
-            return {
-              ...item,
-              id: index + 1,
-              nuevoflag: false,
-              parcialflag: false,
-              montoparcial: 0,
-              saldo: 0,
-              tipocambio: parseFloat(
-                (item.saldo_pendiente_local ? item.saldo_pendiente_local : 1) /
-                  (item.saldo_pendiente ? item.saldo_pendiente : 1),
-              ).toFixed(4),
-            };
-          }),
-        );
+        if (res.estadoflag) {
+          commit(
+            "SET_DEUDA_A_PROVEEDOR",
+            res.data.map((item, index) => {
+              return {
+                ...item,
+                id: index + 1,
+                nuevoflag: false,
+                parcialflag: false,
+                montoparcial: 0,
+                saldo: 0,
+                tipocambio: parseFloat(
+                  (item.saldo_pendiente_local
+                    ? item.saldo_pendiente_local
+                    : 1) / (item.saldo_pendiente ? item.saldo_pendiente : 1),
+                ).toFixed(4),
+              };
+            }),
+          );
+        } else {
+          commit("SET_DEUDA_A_PROVEEDOR", []);
+          Swal.fire({
+            icon: "warning",
+            text: res.mensaje,
+          });
+        }
       })
       .catch(function (error) {
         console.log(error);
@@ -511,23 +524,31 @@ const actions = {
     await axios(config)
       .then(function (response) {
         res = response.data;
-        commit(
-          "SET_DEUDA_A_PROVEEDOR",
-          res.data.map((item, index) => {
-            return {
-              ...item,
-              id: index + 1,
-              nuevoflag: false,
-              parcialflag: false,
-              montoparcial: 0,
-              saldo: 0,
-              tipocambio: parseFloat(
-                (item.total_mon_local ? item.total_mon_local : 1) /
-                  (item.totaldolar ? item.totaldolar : 1),
-              ).toFixed(4),
-            };
-          }),
-        );
+        if (res.estadoflag) {
+          commit(
+            "SET_DEUDA_A_CLIENTE",
+            res.data.map((item, index) => {
+              return {
+                ...item,
+                id: index + 1,
+                nuevoflag: false,
+                parcialflag: false,
+                montoparcial: 0,
+                saldo: 0,
+                tipocambio: parseFloat(
+                  (item.total_mon_local ? item.total_mon_local : 1) /
+                    (item.totaldolar ? item.totaldolar : 1),
+                ).toFixed(4),
+              };
+            }),
+          );
+        } else {
+          commit("SET_DEUDA_A_CLIENTE", []);
+          Swal.fire({
+            icon: "warning",
+            text: res.mensaje,
+          });
+        }
       })
       .catch(function (error) {
         console.log(error);
