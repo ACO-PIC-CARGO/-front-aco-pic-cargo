@@ -32,7 +32,7 @@
         </vTextarea>
       </v-col>
       <v-col cols="12" class="d-flex justify-end">
-        <v-btn color="success" class="mt-4" @click="guardar">Guardar</v-btn>
+        <v-btn color="success" class="mt-4"  :loading="loading" @click="guardar">Guardar</v-btn>
       </v-col>
     </v-row>
   </v-container>
@@ -42,16 +42,20 @@
 import { mapActions, mapState } from "vuex";
 export default {
   data() {
-    return {};
+    return {
+      loading:false,
+    };
   },
   mounted() {
     // console.log("Texto WhatsApp LCL:", this.lcl);
   },
   methods: {
     ...mapActions("configuracion", ["setTextoWhatsappLCL"]),
-    guardar() {
+    async guardar() {
       // Lógica para guardar los textos
-      this.setTextoWhatsappLCL({ lcl: this.lcl });
+      this.loading = true
+      await this.setTextoWhatsappLCL({ lcl: this.lcl });
+      this.loading = false
     },
   },
   computed: {

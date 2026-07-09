@@ -49,7 +49,9 @@
     </v-row>
     <v-row>
       <v-col cols="12" class="d-flex justify-end">
-        <v-btn color="success" @click="guardar">Guardar</v-btn>
+        <v-btn color="success" @click="guardar" :loading="loading">
+          Guardar
+        </v-btn>
       </v-col>
     </v-row>
   </v-container>
@@ -62,16 +64,18 @@ export default {
   data() {
     return {
       textoWhasappFCL: [],
+      loading: false,
     };
   },
   mounted() {},
   methods: {
     ...mapActions("configuracion", ["setTextoWhatsappFCL"]),
-    guardar() {
-      // Lógica para guardar los textos
-      this.setTextoWhatsappFCL({
+    async guardar() {
+      this.loading = true;
+      await this.setTextoWhatsappFCL({
         fcl: this.listadoTextoFCL,
       });
+      this.loading = false;
     },
   },
   computed: {

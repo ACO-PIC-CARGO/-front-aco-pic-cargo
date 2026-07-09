@@ -20,7 +20,7 @@ const mutations = {
     state.lstServicios = data;
   },
   SET_TEXT_WHATSAPP(state, data) {
-    console.log(data)
+    console.log(data);
     state.id = data.id;
     state.lcl = data.lcl || {};
     state.fcl = data.fcl || {};
@@ -145,6 +145,9 @@ const actions = {
   },
   async setTextoWhatsappLCL({}, data) {
     data.id = state.id;
+    data.id_branch = JSON.parse(
+      sessionStorage.getItem("dataUser"),
+    )[0].id_branch;
     let vm = this;
     var config = {
       method: "put",
@@ -168,6 +171,9 @@ const actions = {
   },
   async setTextoWhatsappFCL({}, data) {
     data.id = state.id;
+    data.id_branch = JSON.parse(
+      sessionStorage.getItem("dataUser"),
+    )[0].id_branch;
     let vm = this;
     var config = {
       method: "put",
