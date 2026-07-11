@@ -135,7 +135,7 @@
                       </tr>
                     </template>
                     <template v-slot:[`item.totalabonado`]="{ item }">
-                      {{ fn_totalAbonado(item) }}
+                      {{ symbol }} {{ fn_totalAbonado(item) }}
                     </template>
                     <template v-slot:[`item.parcialflag`]="{ item }">
                       <v-select
@@ -158,6 +158,7 @@
                         style="max-width: 120px"
                         :prefix="item.symbol"
                         type="number"
+                        @input="recalcularTotal"
                       ></v-text-field>
                     </template>
                     <template v-slot:[`item.concepto`]="{ item, index }">
@@ -405,7 +406,7 @@
                       </tr>
                     </template>
                     <template v-slot:[`item.totalabonado`]="{ item }">
-                      {{ fn_totalAbonado(item) }}
+                      {{ symbol }} {{ fn_totalAbonado(item) }}
                     </template>
                     <template v-slot:[`item.parcialflag`]="{ item }">
                       {{
@@ -508,6 +509,7 @@ export default {
       symbol: "USD",
       id_cuenta: {},
       fechaoperacion: null,
+      tipocambiosVer: 1,
       id_path: null,
       selected: [],
       urlfile: "",
@@ -555,7 +557,6 @@ export default {
     };
   },
   async mounted() {
-    console.log("editable", this.verflag);
     this.$store.state.mainTitle = "BANCOS - VER SALIDA";
     this.$store.state.spiner = true;
     await Promise.all([
@@ -573,6 +574,8 @@ export default {
     this.fechaoperacion = data.fechaoperacion;
     this.numerooperacion = data.numerooperacion;
     this.comentarios = data.comentario;
+    this.tipocambiosVer = data.tipocambio;
+
     this.monto =
       data.totaldolar -
       (data.comisionbancaria.length > 0
@@ -829,14 +832,13 @@ export default {
       let total = this.selected.reduce((acc, item) => {
         let valorFila = 0;
         if (item.parcialflag) {
-          let maximo = parseFloat(item.montoparcial / item.tipocambio) || 0;
-          let escrito = parseFloat(item.montoparcial / item.tipocambio) || 0;
+          let maximo = parseFloat(item.montodolar) || 0;
+          let escrito = parseFloat(item.montodolar) || 0;
 
           valorFila = escrito > maximo ? maximo : escrito;
         } else {
-          valorFila = parseFloat(item.montoparcial / item.tipocambio) || 0;
+          valorFila = parseFloat(item.montodolar) || 0;
         }
-
         return acc + valorFila;
       }, 0);
 
@@ -855,7 +857,8 @@ export default {
       this.editableGastoBancario = true;
     },
     async finalizarOperacion() {
-      if (this.monto_local != this.monto / this.tipocambio) {
+      
+      if (parseFloat(this.monto_local).toFixed(0) != parseFloat(this.monto * this.tipocambio).toFixed(0)) {
         Swal.fire({
           icon: "error",
           title: "Monto Local Incorrecto",
@@ -900,24 +903,13 @@ export default {
       });
     },
     fn_totalAbonado(item) {
-      if (!this.selected.includes(item)) {
-        return 0;
-      }
-      let monto = 0;
-      monto = parseFloat(item.montoparcial) || 0;
-      if (this.symbol == "USD") {
-        if (item.symbol == "USD") {
-          return `${item.symbol} ${monto.toFixed(2)}`;
-        } else {
-          return `${this.symbol} ${(monto / this.tipocambio).toFixed(2)}`;
-        }
-      } else {
-        if (item.symbol == "USD") {
-          return `${this.symbol} ${(monto * this.tipocambio).toFixed(2)}`;
-        } else {
-          return `${item.symbol} ${monto.toFixed(2)}`;
-        }
-      }
+      return parseFloat(item.montomonedalocal).toFixed(2);
+    },
+    recalcularTotal() {
+      this.monto_local = this.selected.reduce((suma, element) => {
+        return suma + parseFloat(element.montoparcial);
+      }, 0);
+      this.tipocambiosVer =parseFloat(this.monto_local/ this.monto).toFixed(4)
     },
   },
   computed: {
@@ -929,81 +921,27 @@ export default {
     ]),
     totalGeneralAbonado() {
       const total = this.selected.reduce((acc, item) => {
-        // 1. IMPORTANTE: Usar la misma lógica que fn_totalAbonado
-        // Si tu individual usa montoparcial, aquí también.
         let monto = parseFloat(item.montoparcial) || 0;
 
-        let montoConvertido = 0;
-        const tc = parseFloat(this.tipocambio) || 1;
-
-        if (this.symbol === "USD") {
-          if (item.symbol === "USD") {
-            montoConvertido = monto;
-          } else {
-            // De Local a USD -> Dividir (Redondeamos a 2 decimales como en el individual)
-            montoConvertido = Math.round((monto / tc) * 100) / 100;
-          }
-        } else {
-          // Si la cuenta bancaria es Soles (S/.)
-          if (item.symbol === "USD") {
-            // De USD a Local -> Multiplicar
-            montoConvertido = Math.round(monto * tc * 100) / 100;
-          } else {
-            montoConvertido = monto;
-          }
-        }
-
-        return acc + montoConvertido;
+        return acc + monto;
       }, 0);
-
       return total.toFixed(2);
     },
     mostrarTipoCambio() {
-      if (this.editable) {
-        if (this.symbol != "USD") {
-          return true;
-        }
-
-        if (this.selected.some((v) => v.symbol != "USD")) {
-          return true;
-        }
+      // if (this.editable) {
+      if (this.symbol != "USD") {
+        return true;
       }
+
+      if (this.selected.some((v) => v.symbol != "USD")) {
+        return true;
+      }
+      // }
       return false;
       // return this.selected.some((v) => v.symbol != "USD");
     },
     tipocambio() {
-      let monto_mon_local = 0;
-      let monto_mon_dolar = 0;
-
-      // 1. Sumatoria de seleccionados
-      this.selected.forEach((item) => {
-        const monto = item.parcialflag
-          ? Number(item.montoparcial || 0)
-          : Number(item.saldo_pendiente_local || 0);
-
-        if (item.symbol === "USD") {
-          monto_mon_dolar += monto;
-        } else {
-          monto_mon_local += monto;
-        }
-      });
-
-      let tc = 1;
-      const montoBase = Number(this.monto_local || 0);
-      if (this.id_cuenta.symbol == "USD") {
-        const divisor = montoBase - monto_mon_dolar;
-        if (divisor !== 0 && monto_mon_local !== 0) {
-          tc = monto_mon_local / divisor;
-        }
-      } else {
-        const divisor = montoBase - monto_mon_local;
-        if (divisor !== 0 && monto_mon_dolar !== 0) {
-          tc = divisor / monto_mon_dolar;
-        }
-      }
-
-      const resultado = isNaN(tc) || !isFinite(tc) || tc <= 0 ? 1 : tc;
-      return Number(resultado).toFixed(4);
+      return this.tipocambiosVer || 5;
     },
     itemsOrdenados() {
       const items = [...this.$store.state.bank.deudaAProveedor];
