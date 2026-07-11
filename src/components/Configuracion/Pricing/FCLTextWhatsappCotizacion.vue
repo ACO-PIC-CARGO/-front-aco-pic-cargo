@@ -1,5 +1,5 @@
 <template>
-  <v-container>
+  <v-container fluid>
     <v-row v-for="(text, index) in listadoTextoFCL" :key="index" class="py-1">
       <v-col cols="12">
         <div class="d-flex align-center my-2">
@@ -14,35 +14,55 @@
         </div>
       </v-col>
 
-      <v-col cols="12" md="6" class="py-1">
-        <p style="font-size: 1.2em; font-weight: bold">
-          Texto para envío de PDF - {{ text.name }}
-        </p>
+      <v-col cols="12" md="3" class="py-1">
         <vTextarea
-          v-model="text.texto.pdf"
-          :label="`Texto para envío de PDF - ${text.name}`"
+          v-model="text.texto.pdfindividual"
+         
           auto-grow
           outlined
           hide-details
         >
           <template #label>
-            <span> </span>
+            <span> Texto para envío de PDF | {{ text.code }} | INDIVIDUAL </span>
           </template>
         </vTextarea>
       </v-col>
-      <v-col cols="12" md="6" class="py-1">
-        <p style="font-size: 1.2em; font-weight: bold">
-          Texto para envío de Link de Descarga - {{ text.name }}
-        </p>
+      <v-col cols="12" md="3" class="py-1">
         <vTextarea
-          v-model="text.texto.link"
-          :label="`Texto para envío de Link de Descarga - ${text.name}`"
+          v-model="text.texto.pdfgrupal"
+         
           auto-grow
           outlined
           hide-details
         >
           <template #label>
-            <span> </span>
+            <span> Texto para envío de PDF | {{ text.code }} | GRUPAL </span>
+          </template>
+        </vTextarea>
+      </v-col>
+      <v-col cols="12" md="3" class="py-1">
+        <vTextarea
+          v-model="text.texto.linkindividual"
+          auto-grow
+          outlined
+          hide-details
+        >
+          <template #label>
+            <span> Texto para envío de LINK | {{ text.code }} | INDIVIDUAL </span>
+          </template>
+        </vTextarea>
+      </v-col>
+      <v-col cols="12" md="3" class="py-1">
+        <vTextarea
+          v-model="text.texto.linkgrupal"
+          auto-grow
+          outlined
+          hide-details
+        >
+          <template #label>
+            <span>
+              <span> Texto para envío de LINK | {{ text.code }} | GRUPAL </span>
+            </span>
           </template>
         </vTextarea>
       </v-col>
@@ -89,14 +109,16 @@ export default {
           texto: this.fcl.some((v) => v.id_container == container.id)
             ? this.fcl.find((v) => v.id_container == container.id).texto
             : {
-                pdf: "",
-                link: "",
+                pdfindividual: "",
+                pdfgrupal: "",
+                linkindividual: "",
+                linkgrupal: "",
               },
         }));
       } else {
         return this.itemsContainers.map((container) => ({
+          ...container,
           id_container: container.id,
-          name: container.name,
           texto: {
             pdf: "",
             link: "",

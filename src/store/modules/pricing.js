@@ -182,6 +182,7 @@ const state = {
   listIngresosInstructivo: [],
   listCostosInstructivo: [],
   listImpuestosInstructivo: [],
+  textWhatsapp: [],
   e1: 1,
   step: 1,
 };
@@ -506,6 +507,9 @@ const mutations = {
   },
   setbegEndList(state, data) {
     state.begEndList = data;
+  },
+  SET_WHATS_APP(state, data) {
+    state.textWhatsapp = data;
   },
   SET_TIPO_COSTOS(state, data) {
     state.listTipoCostos = data;
@@ -1679,6 +1683,15 @@ const actions = {
         res.statusmain == 0 || res.aprobadoflag == true
       );
       dispatch("GetArchivos", res.url_folderonedrive);
+      dispatch("getTextoWhatsapp", {
+        id_shipment: res.idtipocarga,
+        id_quote: res.id,
+        id_containers: res.containers
+          .map((v) => {
+            return v.id;
+          })
+          .join(","),
+      });
     });
   },
   async getInstructivoId({ commit }, { id: id }) {
@@ -1726,11 +1739,20 @@ const actions = {
   },
   async generarReporte(
     __,
-    { tipo = "", nro_propuesta = 0, guardarFlag = false },
+    {
+      tipo = "",
+      nro_propuesta = 1,
+      guardarFlag = false,
+      enviarWspCliente = false,
+      textWhatsapp = "",
+      pdfflag = false,
+      linkflag = false,
+    },
   ) {
     let opcion = state.opcionCostos.filter(
       (v) => v.nro_propuesta == nro_propuesta,
     )[0];
+
     let totalFleteVentas = 0;
     let iso = JSON.parse(sessionStorage.getItem("iso_pais"));
     let TipoCostos = state.namesection.map((v) => ({
@@ -3567,12 +3589,46 @@ const actions = {
       (isAduana == true ? totalAduanas : 0) +
       (isAlmacen == true ? totalAlmacenes : 0) +
       (isGastosTercero == true ? totalGastosTercero : 0);
-    /* GENERAR */
+    /* GENERAR ---------------------------------*/
     let shipment = state.listShipment.find(
       (v) => v.id == state.datosPrincipales.idtipocarga,
     );
 
+    let nombrePdfEnviarCliente = "";
+    if (!!enviarWspCliente) {
+      nombrePdfEnviarCliente =
+        limpiarNombre(state.datosPrincipales.nombre) + "_";
+
+      if (!!state.datosPrincipales.esindividualflag) {
+        console.log("esindividualflag");
+        nombrePdfEnviarCliente += "INDIVIDUAL";
+      }
+      if (!!state.datosPrincipales.esgrupalflag) {
+        console.log("esgrupalflag");
+        nombrePdfEnviarCliente += "GRUPAL";
+      }
+
+      let shipment = state.listShipment.find(
+        (v) => v.id == state.datosPrincipales.idtipocarga,
+      );
+      if (shipment.code == "FCL") {
+        nombrePdfEnviarCliente = contenedor
+          .map((v) => {
+            return "_" + v.valor + "x" + v.name;
+          })
+          .join("_");
+      }
+      if (shipment.code == "LCL") {
+        nombrePdfEnviarCliente += "_CONSOLIDADOS";
+      }
+    }
+
     let data = {
+      enviarWspCliente: enviarWspCliente,
+      textWhatsapp: textWhatsapp,
+      nombrePdfEnviarCliente: nombrePdfEnviarCliente,
+      pdfflag: pdfflag,
+      linkflag: linkflag,
       isFCL: shipment.code == "FCL",
       guardarFlag: guardarFlag,
       url_folderonedrive: state.datosPrincipales.url_folderonedrive,
@@ -3599,6 +3655,7 @@ const actions = {
       phone: state.datosEmpresa[0].phone,
       tipo: tipo,
       cliente: state.datosPrincipales.nombre,
+      telefonoCliente: state.datosPrincipales.telefono,
       slogancliente: state.datosPrincipales.slogan
         ? state.datosPrincipales.slogan
         : "",
@@ -3712,20 +3769,40 @@ const actions = {
         headers,
       )
       .then((response) => {
-        Swal.fire({
-          icon: "success",
-          title: "PDF Generado",
-          text: guardarFlag
-            ? "Se ha guardado los archivos correctamente."
-            : "El PDF se descargará automaticamente",
-          showConfirmButton: true,
-        });
-        if (!guardarFlag) {
-          window.open(
-            `${process.env.VUE_APP_URL_MAIN}${response.data.path}`,
-            // "",
-            "_blank",
-          );
+        if (!enviarWspCliente) {
+        
+          Swal.fire({
+            icon: "success",
+            title: "PDF Generado",
+            text: guardarFlag
+              ? "Se ha guardado los archivos correctamente."
+              : "El PDF se descargará automaticamente",
+            showConfirmButton: true,
+          });
+          if (!guardarFlag) {
+            window.open(
+              `${process.env.VUE_APP_URL_MAIN}${response.data.path}`,
+              // "",
+              "_blank",
+            );
+          }
+        } else {
+            let res = response.data;
+          if (res.estadoflag) {
+            
+            Swal.fire({
+              icon: "success",
+              title: "Mensaje Enviado",
+              showConfirmButton: true,
+            });
+          }else{
+              Swal.fire({
+              icon: "error",
+              title: "Ocurrió un error. Comuníquese con el administrador del sistema",
+              showConfirmButton: true,
+            });
+            console.error(res.error)
+          }
         }
       })
       .catch((e) => console.log(e));
@@ -7078,6 +7155,33 @@ const actions = {
       }
     });
   },
+
+  async getTextoWhatsapp({ commit }, params) {
+    params.id_branch = JSON.parse(
+      sessionStorage.getItem("dataUser"),
+    )[0].id_branch;
+    try {
+      const config = {
+        method: "get",
+        url: `${process.env.VUE_APP_URL_MAIN}get_texto_whatsapp`,
+        params: params,
+        headers: {
+          "Content-Type": "application/json",
+        },
+      };
+
+      const response = await axios(config);
+      const { estadoflag, token, data } = response.data;
+
+      if (estadoflag) {
+        commit("SET_WHATS_APP", data);
+      } else {
+        commit("SET_WHATS_APP", []);
+      }
+    } catch (error) {
+      console.error("Error al listar montos finales quote:", error);
+    }
+  },
 };
 
 function GenerarIngresosInstrictivo(tipo) {
@@ -9298,6 +9402,16 @@ export function getNombreCotizacion(listNotasQuote) {
 
   state.nombre_cotizacion = name;
   return name;
+}
+
+function limpiarNombre(str) {
+  return str
+    .normalize("NFD") // Separa los acentos del carácter base
+    .replace(/[\u0300-\u036f]/g, "") // Elimina los acentos
+    .replace(/ñ/g, "n") // Convierte ñ a n
+    .replace(/Ñ/g, "N") // Convierte Ñ a N
+    .replace(/\s+/g, "_") // Convierte espacios a guion bajo
+    .replace(/[^a-zA-Z0-9_]/g, ""); // Elimina cualquier otro carácter especial que sobre
 }
 
 export default {

@@ -195,27 +195,20 @@
         </v-expansion-panel>
       </v-expansion-panels>
 
-      <v-col class="derecha">
-        <v-btn
-          color="#3363A2"
-          class="mx-1"
-          dark
-          @click="abrirModalCambioNombreSecciones()"
-        >
-          PREVIEW COTIZACIÓN(es)</v-btn
-        >
+      <v-col cols="12" md="4" offset-md="8">
+        <v-row>
+          <v-col class="px-0" cols="6"> <EnviarCotizacionWhatsapp /></v-col>
+          <v-col class="px-0" cols="6">
+            <v-btn
+              color="#3363A2"
+              dark
+              @click="abrirModalCambioNombreSecciones()"
+            >
+              PREVIEW COTIZACIÓN(es)
+            </v-btn>
+          </v-col>
+        </v-row>
       </v-col>
-      <!-- <v-card-actions>
-      <v-spacer></v-spacer>
-      <v-btn
-        color="info"
-        class="mx-1"
-        small
-        @click="abrirModalTipoReportePreview()"
-      >
-        Preview Cotizacion
-      </v-btn>
-    </v-card-actions> -->
     </v-row>
     <v-dialog
       v-model="dialogCambioNombreSecciones"
@@ -457,6 +450,8 @@ export default {
   components: {
     previewCotizacion: () =>
       import("@/components/folderPricing/previewQuote.vue"),
+    EnviarCotizacionWhatsapp: () =>
+      import("@/components/comun/EnviarCotizacionWhatsapp.vue"),
   },
   data() {
     return {
