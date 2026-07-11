@@ -926,26 +926,7 @@ export default {
         return acc + monto;
       }, 0);
       return total.toFixed(2);
-      // return this.selected
-      //   .reduce((acc, item) => {
-      //     let monto = 0;
 
-      //     // Lógica similar a tu fn_totalAbonado pero puramente numérica
-      //     if (item.parcialflag) {
-      //       monto = parseFloat(item.montoparcial) || 0;
-      //     } else {
-      //       monto = parseFloat(item.total_mon_local) || 0;
-      //     }
-
-      //     // Convertimos a USD si no lo está
-      //     if (item.symbol !== "USD") {
-      //       const tc = parseFloat(this.tipocambio) || 1;
-      //       monto = monto / tc;
-      //     }
-
-      //     return acc + monto;
-      //   }, 0)
-      //   .toFixed(2);
     },
     tipocambio() {
       let tc =
