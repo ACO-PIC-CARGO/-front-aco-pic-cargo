@@ -1869,7 +1869,7 @@ export default {
       ).toFixed(4);
       this.ingresos.totalopview = parseFloat(
         parseFloat(this.ingresos.montoopview) +
-          parseFloat(this.ingresos.igvopview * igv),
+          parseFloat(this.ingresos.igvopview),
       ).toFixed(4);
 
       // --------------------------------------- moneda extranjera
