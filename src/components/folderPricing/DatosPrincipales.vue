@@ -207,7 +207,11 @@
       </v-card-text>
     </v-card>
     <!-- dIALOG -->
-    <v-dialog v-model="buscarClienteDialog" max-width="80%" v-if="buscarClienteDialog">
+    <v-dialog
+      v-model="buscarClienteDialog"
+      max-width="80%"
+      v-if="buscarClienteDialog"
+    >
       <v-card>
         <v-card-title
           >Buscar Cliente<v-spacer></v-spacer>
@@ -598,28 +602,30 @@ export default {
                 v.esventaflag == 1 &&
                 String(v.code_cost) === String(element.code_cost),
             );
-            newCosto.push({
-              ...element,
-              id_proveedor: costo.id_proveedor,
-              id_multiplicador: costo.id_multiplicador,
-              costounitario: costo.costounitario,
-              nameservice: costo.nameservice,
-              seguro: costo.seguro,
-              status: 1,
-              esopcionflag: 1,
-              esventaflag: 0,
-            });
-            newCosto.push({
-              ...element,
-              id_proveedor: costo.id_proveedor,
-              id_multiplicador: costo.id_multiplicador,
-              costounitario: costo.costounitario,
-              nameservice: costo.nameservice,
-              seguro: costo.seguro,
-              status: 1,
-              esopcionflag: 0,
-              esventaflag: 1,
-            });
+            if (costo) {
+              newCosto.push({
+                ...element,
+                id_proveedor: costo.id_proveedor,
+                id_multiplicador: costo.id_multiplicador,
+                costounitario: costo.costounitario,
+                nameservice: costo.nameservice,
+                seguro: costo.seguro,
+                status: 1,
+                esopcionflag: 1,
+                esventaflag: 0,
+              });
+              newCosto.push({
+                ...element,
+                id_proveedor: costo.id_proveedor,
+                id_multiplicador: costo.id_multiplicador,
+                costounitario: costo.costounitario,
+                nameservice: costo.nameservice,
+                seguro: costo.seguro,
+                status: 1,
+                esopcionflag: 0,
+                esventaflag: 1,
+              });
+            }
           } else {
             newCosto.push({
               ...element,
