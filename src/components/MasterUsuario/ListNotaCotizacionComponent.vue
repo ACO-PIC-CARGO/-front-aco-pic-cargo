@@ -20,13 +20,23 @@
         </v-col>
         <v-col cols="12">
           <v-data-table
-            :headers="headers"
+            :headers="headersPorEmpresa"
             :items="$store.state.masterusuarios.lstNotasQuote"
             class="elevation-1"
             item-key="port_beginend_id"
             :loading="loading"
             :search="search"
           >
+            <template v-slot:[`item.individualflag`]="{ item }">
+              <v-chip :color="item.individualflag ? 'success' : 'warning'">
+                {{ item.individualflag ? "SI" : "NO" }}
+              </v-chip>
+            </template>
+            <template v-slot:[`item.grupalflag`]="{ item }">
+              <v-chip :color="item.grupalflag ? 'success' : 'warning'">
+                {{ item.grupalflag ? "SI" : "NO" }}
+              </v-chip>
+            </template>
             <template v-slot:[`item.estado`]="{ item }">
               {{ !!item.status == 1 ? "Activo" : "Inactivo" }}
             </template>
@@ -93,14 +103,39 @@ export default {
       mostrarflag: true,
       loading: false,
       headers: [
-        { text: "Código", value: "valorcodigo" },
-        { text: "Nombre", value: "description" },
-        //   { text: "Porcentaje", value: "codigo01" },
-        //   { text: "Fórmula", value: "codigo02" },
-        { text: "Estado", value: "estado" },
-        { text: "Creación", value: "created_at" },
-        { text: "Última Actualización", value: "updated_at" },
-        { text: "Acciones", value: "action" },
+        { width: "5%", mostrarflag: true, text: "Orden", value: "orden" },
+        {
+          width: "5%",
+          mostrarflag: true,
+          text: "Código",
+          value: "valorcodigo",
+        },
+        {
+          width: "50%",
+          mostrarflag: true,
+          text: "Nombre",
+          value: "description",
+        },
+        {
+          width: "10%",
+          mostrarflag: false,
+          text: "Invidual",
+          value: "individualflag",
+        },
+        {
+          width: "10%",
+          mostrarflag: false,
+          text: "Grupal",
+          value: "grupalflag",
+        },
+        { width: "10%", mostrarflag: true, text: "Estado", value: "estado" },
+        // { mostrarflag: true, text: "Creación", value: "created_at" },
+        // {
+        //   mostrarflag: true,
+        //   text: "Última Actualización",
+        //   value: "updated_at",
+        // },
+        { width: "10%", mostrarflag: true, text: "Acciones", value: "action" },
       ],
     };
   },
@@ -128,6 +163,13 @@ export default {
     },
     async nuevo() {
       this.$store.state.masterusuarios.tipo = "nuevo";
+      const lista = this.$store.state.masterusuarios.lstNotasQuote;
+      const maxOrden =
+        lista.length > 0
+          ? Math.max(...lista.map((item) => Number(item.orden) || 0))
+          : 0;
+      const nuevoOrden = maxOrden + 1;
+
       this.$store.state.masterusuarios.model = {
         id: "",
         id_master: "",
@@ -137,6 +179,9 @@ export default {
         description: "",
         status: true,
         escomunflag: "",
+        individualflag: true,
+        grupalflag: true,
+        orden: nuevoOrden,
         id_branch: JSON.parse(sessionStorage.getItem("dataUser"))[0].id_branch,
       };
       this.$store.state.masterusuarios.drawer =
@@ -182,6 +227,16 @@ export default {
       set(val) {
         return (this.$store.state.masterusuarios.drawer = drawer);
       },
+    },
+
+    headersPorEmpresa() {
+      let valEmpresaPic = [1, 2];
+      let empresa = JSON.parse(localStorage.getItem("dataBranch"))[0];
+      if (valEmpresaPic.includes(empresa.id)) {
+        return this.headers;
+      } else {
+        return this.headers.filter((v) => v.mostrarflag);
+      }
     },
   },
   watch: {

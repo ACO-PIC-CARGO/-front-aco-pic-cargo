@@ -65,7 +65,6 @@
                     v-model="$store.state.pricing.datosPrincipales.esgrupalflag"
                     :value="true"
                     dense
-                    
                   ></v-checkbox>
                 </v-col>
               </v-row>
@@ -602,21 +601,43 @@ export default {
   },
   watch: {
     "$store.state.pricing.datosPrincipales.esgrupalflag"() {
-      if (
-        this.$store.state.pricing.datosPrincipales.esgrupalflag === true
-      ) {
+      if (this.$store.state.pricing.datosPrincipales.esgrupalflag === true) {
         this.$store.state.pricing.datosPrincipales.esindividualflag = false;
-        this.cambiarMontosACero()
-        
+        setTimeout(() => {
+          Promise.all([
+            this.cambiarMontosACero({
+              esgrupalflag:
+                this.$store.state.pricing.datosPrincipales.esgrupalflag,
+              esindividualflag:
+                this.$store.state.pricing.datosPrincipales.esindividualflag,
+            }),
+            this.cambiarNotasIndividualGrupal({
+              esgrupalflag:
+                this.$store.state.pricing.datosPrincipales.esgrupalflag,
+              esindividualflag:
+                this.$store.state.pricing.datosPrincipales.esindividualflag,
+            }),
+          ]);
+        }, 100);
       }
-     
     },
     "$store.state.pricing.datosPrincipales.esindividualflag"() {
       if (
         this.$store.state.pricing.datosPrincipales.esindividualflag === true
       ) {
-        this.$store.state.pricing.datosPrincipales.esgrupalflag = false;        
-      }     
+        this.$store.state.pricing.datosPrincipales.esgrupalflag = false;
+        setTimeout(() => {
+          Promise.all([
+            this.cambiarMontosACero({
+              esgrupalflag:
+                this.$store.state.pricing.datosPrincipales.esgrupalflag,
+              esindividualflag:
+                this.$store.state.pricing.datosPrincipales.esindividualflag,
+            }),
+            this.cambiarNotasIndividualGrupal(),
+          ]);
+        }, 100);
+      }
     },
     abrirModalContenedorRecargar() {
       if (this.$store.state.pricing.datosPrincipales.containers.length == 0) {
@@ -654,17 +675,78 @@ export default {
   },
   methods: {
     ...mapActions(["_getContainers", "getPortBegin", "getPortEnd"]),
-    cambiarMontosACero(){
-      this.$store.state.pricing.opcionCostos.forEach(element => {
-        element.listCostos.forEach(element => {
-          element.costounitario = 0;
-          element.cif = 0;
-          element.seguro = 0;
+    cambiarMontosACero({ esgrupalflag = false, esindividualflag = false }) {
+      let codeServicesActivos = new Set(
+        this.$store.state.pricing.listServices
+          .filter((v) => v.status === true || v.status === 1)
+          .map((v) => v.code_service),
+      );
+      let costos = [...this.$store.state.pricing.preCostos];
+      let c = costos.filter(
+        (v) =>
+          v.id_incoterms ==
+            this.$store.state.pricing.datosPrincipales.idincoterms &&
+          v.id_modality ==
+            this.$store.state.pricing.datosPrincipales.idsentido &&
+          v.id_shipment ==
+            this.$store.state.pricing.datosPrincipales.idtipocarga.id &&
+          codeServicesActivos.has(v.code_service),
+      );
+
+      this.$store.state.pricing.opcionCostos.forEach((element1) => {
+        element1.listCostos.forEach((element) => {
+          let costo = c.find((v) => v.code_cost == element.code_cost);
+          element.costounitario = esgrupalflag
+            ? 0
+            : esindividualflag
+            ? costo.costounitario
+            : 0;
+          element.cif = esgrupalflag
+            ? 0
+            : esindividualflag
+            ? parseFloat(0.35)
+            : parseFloat(0.35);
+          element.seguro = esgrupalflag
+            ? 0
+            : esindividualflag
+            ? parseFloat(0.45)
+            : parseFloat(0.45);
         });
       });
       setTimeout(() => {
-         this.$emit("recargarGrupalFlag");
-      }, 100);
+        this.$emit("recargarGrupalFlag");
+      }, 500);
+    },
+    cambiarNotasIndividualGrupal(
+      esgrupalflag = false,
+      esindividualflag = false,
+    ) {
+      let newNotas = this.$store.state.pricing.listNotasQuote.filter((v) =>
+        esindividualflag
+          ? v.individualflag
+          : esgrupalflag
+          ? v.grupalflag
+          : false,
+      );
+
+      this.$store.state.pricing.opcionCostos.forEach((element) => {
+        element.listNotasQuote = [
+          ...element.listNotasQuote.map((v) => {
+            return v.estado == 0;
+          }),
+          ...newNotas
+            .filter((v) =>
+              esindividualflag
+                ? v.individual
+                : esgrupalflag
+                ? v.grupalflag
+                : true,
+            )
+            .map((v) => {
+              return { ...v, id: null, estado: 1 };
+            }),
+        ];
+      });
     },
     esFobFlag() {
       let valBranch = [1, 2, "1", "2"];
