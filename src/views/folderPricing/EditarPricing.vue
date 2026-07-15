@@ -185,6 +185,7 @@ export default {
         id_transport: idTipoCarga,
         id: this.$store.state.pricing.datosPrincipales.iddestino,
       }),
+      this.getCargarMasterDetalleNotasCotizacion()
     ]);
 
     this.mostrarStepS = true;
@@ -221,7 +222,7 @@ export default {
       "_getContainers",
       "cargarMasterDetallePercepcionAduana",
       "getServices",
-      "obtenerCostosPricing",
+      "obtenerCostosPricing","getCargarMasterDetalleNotasCotizacion"
     ]),
     async recargar() {
       await this.recargarServicios();

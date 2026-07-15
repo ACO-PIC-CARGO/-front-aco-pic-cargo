@@ -325,8 +325,16 @@ export default {
               esopcionflag: 1,
               esventaflag: 0,
               status: true,
-              cif: parseFloat(0.35),
-              seguro: parseFloat(0.45),
+              cif: this.$store.state.pricing.datosPrincipales.esgrupalflag
+                ? 0
+                : parseFloat(0.35),
+              seguro: this.$store.state.pricing.datosPrincipales.esgrupalflag
+                ? 0
+                : parseFloat(0.45),
+              costounitario: this.$store.state.pricing.datosPrincipales
+                .esgrupalflag
+                ? 0
+                : item.costounitario,
               nro_propuesta: 1,
             },
           ];
@@ -338,8 +346,16 @@ export default {
               esopcionflag: 1,
               esventaflag: 0,
               status: true,
-              cif: parseFloat(0.35),
-              seguro: parseFloat(0.45),
+              cif: this.$store.state.pricing.datosPrincipales.esgrupalflag
+                ? 0
+                : parseFloat(0.35),
+              seguro: this.$store.state.pricing.datosPrincipales.esgrupalflag
+                ? 0
+                : parseFloat(0.45),
+              costounitario: this.$store.state.pricing.datosPrincipales
+                .esgrupalflag
+                ? 0
+                : item.costounitario,
               nro_propuesta: 1,
             },
             {
@@ -352,6 +368,10 @@ export default {
               cif: 0,
               seguro: 0,
               nro_propuesta: 1,
+              costounitario: this.$store.state.pricing.datosPrincipales
+                .esgrupalflag
+                ? 0
+                : item.costounitario,
             },
           ];
         }
@@ -360,7 +380,13 @@ export default {
       this.$store.state.pricing.opcionCostos[0].listImpuestos =
         this.$store.state.pricing.listImpuestos;
       this.$store.state.pricing.opcionCostos[0].listNotasQuote =
-        this.$store.state.pricing.listNotasQuote;
+        this.$store.state.pricing.listNotasQuote.filter((v) =>
+          this.$store.state.pricing.datosPrincipales.esindividualflag
+            ? v.individualflag
+            : this.$store.state.pricing.datosPrincipales.esgrupalflag
+            ? v.grupalflag
+            : false,
+        );
       this.$store.state.spiner = false;
       Swal.fire({
         icon: "question",
@@ -387,7 +413,7 @@ export default {
     async guardar() {
       console.log("Guardando cotización...");
       this.$store.state.spiner = true;
-      
+
       this.$store.state.pricing.opcionCostos[0].selected = true;
       await this.registrarQuote({ fullflag: false }).catch((err) => {
         console.log("registrarQuote", err);
@@ -863,6 +889,12 @@ export default {
           text: "La cotización preliminar fue registrada automáticamente.",
         });
       } catch (err) {}
+    },
+    recargarGrupalFlag() {
+      this.mostrarCostos = false;
+      setTimeout(async () => {
+        this.mostrarCostos = true;
+      }, 200);
     },
   },
   computed: {

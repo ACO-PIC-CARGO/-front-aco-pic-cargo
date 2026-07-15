@@ -22,6 +22,18 @@
           :clearable="$store.state.masterusuarios.tipo != 'ver'"
         ></v-text-field>
       </div>
+      <!-- <div class="col-12 py-1">
+        <v-switch
+          label="Individual"
+          v-model="$store.state.masterusuarios.filtros.individualflag"
+        />
+      </div>
+      <div class="col-12 py-1">
+        <v-switch
+          label="Grupal"
+          v-model="$store.state.masterusuarios.filtros.grupalflag"
+        />
+      </div> -->
       <div class="col-12 py-1">
         <v-text-field
           v-model="$store.state.masterusuarios.filtros.description"
@@ -44,7 +56,8 @@
     </v-card-text>
     <v-card-text v-else>
       <v-form ref="frmDML">
-        <!-- <div class="col-12 py-1">
+        <v-row>
+          <!-- <div class="col-12 py-1">
           <v-text-field
             v-model="$store.state.masterusuarios.model.valorcodigo"
             :readonly="$store.state.masterusuarios.tipo != 'nuevo'"
@@ -57,34 +70,65 @@
           ></v-text-field>
         </div> -->
 
-        <div class="col-12 py-1">
-          <v-textarea
-            v-model="$store.state.masterusuarios.model.description"
-            :readonly="$store.state.masterusuarios.tipo == 'ver'"
-            label="Nombre (*)"
-            :clearable="$store.state.masterusuarios.tipo != 'ver'"
-            :rules="[
-              (v) => !!v || 'Dato Requerido',
-              (v) =>
-                (!!v && v.length <= 500) ||
-                'El nombre no puede tener más 500 de  carácteres',
-            ]"
-            outlined
-            auto-grow
-            rows="1"
-          ></v-textarea>
-        </div>
-        <div class="col-12 py-1">
-          <span> Estado</span>
-          <v-switch
-            :readonly="$store.state.masterusuarios.tipo == 'ver'"
-            :label="`Estado: ${
-              !!$store.state.masterusuarios.model.status ? 'Activo' : 'Inactivo'
-            }`"
-            color="success"
-            v-model="$store.state.masterusuarios.model.status"
-          ></v-switch>
-        </div>
+          <div class="col-12 py-1">
+            <v-textarea
+              v-model="$store.state.masterusuarios.model.description"
+              :readonly="$store.state.masterusuarios.tipo == 'ver'"
+              label="Nombre (*)"
+              :clearable="$store.state.masterusuarios.tipo != 'ver'"
+              :rules="[
+                (v) => !!v || 'Dato Requerido',
+                (v) =>
+                  (!!v && v.length <= 500) ||
+                  'El nombre no puede tener más 500 de  carácteres',
+              ]"
+              outlined
+              dense
+              auto-grow
+              rows="1"
+            ></v-textarea>
+          </div>
+          <div class="col-12 py-1">
+            <v-text-field
+              name="name"
+              label="Orden"
+              id="id"
+              outlined
+              dense
+              v-model="$store.state.masterusuarios.model.orden"
+              :readonly="$store.state.masterusuarios.tipo == 'ver'"
+              :clearable="$store.state.masterusuarios.tipo != 'ver'"
+              type="number"
+              style="max-width: 240px;"
+            ></v-text-field>
+          </div>
+          <div class="col-12 py-1">Tipo de Cotización</div>
+          <div class="col-6 py-1">
+            <v-switch
+              label="Individual"
+              v-model="$store.state.masterusuarios.model.individualflag"
+            />
+          </div>
+          <div class="col-6 py-1">
+            <v-switch
+              label="Grupal"
+              v-model="$store.state.masterusuarios.model.grupalflag"
+            />
+          </div>
+          <div class="col-12 py-1">
+            <span> Estado</span>
+            <v-switch
+              :readonly="$store.state.masterusuarios.tipo == 'ver'"
+              :label="`Estado: ${
+                !!$store.state.masterusuarios.model.status
+                  ? 'Activo'
+                  : 'Inactivo'
+              }`"
+              color="success"
+              v-model="$store.state.masterusuarios.model.status"
+            ></v-switch>
+          </div>
+        </v-row>
       </v-form>
     </v-card-text>
 
@@ -146,6 +190,14 @@ export default {
       "ActualizarMasterDetalle",
       "RegistrarMasterDetalleNotasCotizacion",
     ]),
+    mostrarIndividualGrupalPorEmpresa() {
+      let valEmpresaPic = [1, 2];
+      let empresa = JSON.parse(localStorage.getItem("dataBranch"))[0];
+      if (valEmpresaPic.includes(empresa.id)) {
+        return true;
+      }
+      return false;
+    },
     getName() {
       if (this.$store.state.masterusuarios.tipo == "ver") {
         return `Nota  – Modo Vista`;
@@ -226,4 +278,3 @@ export default {
   },
 };
 </script>
-

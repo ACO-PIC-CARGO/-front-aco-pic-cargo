@@ -1,4 +1,4 @@
-import axios from '@/api/axios-config';
+import axios from "@/api/axios-config";
 import Swal from "sweetalert2";
 import miMixin from "../../components/mixins/funciones";
 import moment from "moment";
@@ -25,6 +25,9 @@ const state = {
     description: "",
     status: true,
     escomunflag: false,
+    individualflag: true,
+    grupalflag: true,
+    orden: null,
   },
   model: {
     id: "",
@@ -36,6 +39,9 @@ const state = {
     status: true,
     id_branch: "",
     escomunflag: "",
+    individualflag: true,
+    grupalflag: true,
+    orden: null,
   },
 };
 const mutations = {
@@ -73,7 +79,6 @@ const actions = {
       method: "put",
       url: process.env.VUE_APP_URL_MAIN + `actualizar_master_detalle`,
       headers: {
-       
         "Content-Type": "application/json",
       },
       data: state.model,
@@ -119,7 +124,6 @@ const actions = {
         }`,
 
       headers: {
-       
         "Content-Type": "application/json",
       },
     };
@@ -180,7 +184,6 @@ const actions = {
         }&escomunflag=${state.filtros.escomunflag}`,
 
       headers: {
-       
         "Content-Type": "application/json",
       },
     };
@@ -241,7 +244,6 @@ const actions = {
         }`,
 
       headers: {
-       
         "Content-Type": "application/json",
       },
     };
@@ -280,7 +282,6 @@ const actions = {
   },
   async cargarMasterDetalleCanal({ commit }) {
     var headers = {
-     
       "Content-Type": "application/json",
     };
 
@@ -293,22 +294,19 @@ const actions = {
         }`,
       headers: headers,
     };
-    
-    axios(config)
-      .then((response) => {
-        let data = response.data;
-        sessionStorage.setItem("auth-token", data.token);
-        if (data.estadoflag == true) {
-          commit("SET_CARGAR_CANALES", response.data.data);
-        } else {
-          commit("SET_CARGAR_CANALES", []);
-        }
-      });
+
+    axios(config).then((response) => {
+      let data = response.data;
+      sessionStorage.setItem("auth-token", data.token);
+      if (data.estadoflag == true) {
+        commit("SET_CARGAR_CANALES", response.data.data);
+      } else {
+        commit("SET_CARGAR_CANALES", []);
+      }
+    });
   },
   async cargarMasterDetalleTipoProveedor({ commit }) {
     var headers = {
-     
-
       "Content-Type": "application/json",
     };
 
@@ -337,8 +335,6 @@ const actions = {
   },
   async cargarMasterDetallePercepcionAduana({ commit }) {
     var headers = {
-     
-
       "Content-Type": "application/json",
     };
 
@@ -363,7 +359,6 @@ const actions = {
   },
   async cargarMasterDetalleTipoTransaccion({ commit }) {
     var headers = {
-     
       "Content-Type": "application/json",
     };
 
@@ -388,7 +383,6 @@ const actions = {
   },
   async cargarTipoTelefono({ commit }) {
     var headers = {
-     
       "Content-Type": "application/json",
     };
 
@@ -417,7 +411,6 @@ const actions = {
       url:
         process.env.VUE_APP_URL_MAIN + `insertar_master_detalle_tipotelefono`,
       headers: {
-       
         "Content-Type": "application/json",
       },
       data: state.model,
@@ -446,7 +439,6 @@ const actions = {
         process.env.VUE_APP_URL_MAIN +
         `insertar_master_detalle_notas_cotizacion`,
       headers: {
-       
         "Content-Type": "application/json",
       },
       data: state.model,
@@ -470,7 +462,6 @@ const actions = {
   },
   async cargarTipoPersona({ commit }) {
     var headers = {
-     
       "Content-Type": "application/json",
     };
 
@@ -483,20 +474,18 @@ const actions = {
         }`,
       headers: headers,
     };
-    await axios(config)
-      .then((response) => {
-        let data = response.data;
-        sessionStorage.setItem("auth-token", data.token);
-        if (data.estadoflag == true) {
-          commit("SET_CARGAR_TIPO_PERSONA", response.data.data);
-        } else {
-          commit("SET_CARGAR_TIPO_PERSONA", []);
-        }
-      });
+    await axios(config).then((response) => {
+      let data = response.data;
+      sessionStorage.setItem("auth-token", data.token);
+      if (data.estadoflag == true) {
+        commit("SET_CARGAR_TIPO_PERSONA", response.data.data);
+      } else {
+        commit("SET_CARGAR_TIPO_PERSONA", []);
+      }
+    });
   },
   async cargarImpuestoRenta({ commit }) {
     var headers = {
-     
       "Content-Type": "application/json",
     };
 
@@ -509,16 +498,15 @@ const actions = {
         }`,
       headers: headers,
     };
-    await axios(config)
-      .then((response) => {
-        let data = response.data;
-        sessionStorage.setItem("auth-token", data.token);
-        if (data.estadoflag == true) {
-          commit("SET_CARGAR_IMPUESTO_RENTA", response.data.data);
-        } else {
-          commit("SET_CARGAR_IMPUESTO_RENTA", []);
-        }
-      });
+    await axios(config).then((response) => {
+      let data = response.data;
+      sessionStorage.setItem("auth-token", data.token);
+      if (data.estadoflag == true) {
+        commit("SET_CARGAR_IMPUESTO_RENTA", response.data.data);
+      } else {
+        commit("SET_CARGAR_IMPUESTO_RENTA", []);
+      }
+    });
   },
 };
 

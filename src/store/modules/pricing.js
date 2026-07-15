@@ -136,7 +136,7 @@ const state = {
     iddistrito: "",
     idprovincia: "",
     datosInstructivoManual: null,
-    esindividualflag: false,
+    esindividualflag: true,
     esgrupalflag: false,
   },
   opcionCostos: [
@@ -304,6 +304,8 @@ const mutations = {
       containers: [],
       iddistrito: "",
       idprovincia: "",
+      esindividualflag: true,
+      esgrupalflag: false,
     };
     state.opcionCostos = [
       {
@@ -1418,6 +1420,8 @@ const actions = {
       tiporeporte: state.tiporeporte ? state.tiporeporte : "TOTAL",
       id_percepcionaduana: state.datosPrincipales.id_percepcionaduana,
       fullflag: fullflag,
+      esindividualflag: state.datosPrincipales.esindividualflag,
+      esgrupalflag: state.datosPrincipales.esgrupalflag,
       id_marketing: state.datosPrincipales.id_marketing,
       statusquote: state.datosPrincipales.id_status,
       idVendedor: state.datosPrincipales.id_vendedor,
@@ -1520,6 +1524,8 @@ const actions = {
       tiporeporte: state.tiporeporte ? state.tiporeporte : "TOTAL",
       id_percepcionaduana: state.datosPrincipales.id_percepcionaduana,
       fullflag: true,
+      esindividualflag: state.datosPrincipales.esindividualflag,
+      esgrupalflag: state.datosPrincipales.esgrupalflag,
       id_marketing: state.datosPrincipales.id_marketing,
       statusquote: state.datosPrincipales.id_status,
       idVendedor: state.datosPrincipales.id_vendedor,
@@ -3770,7 +3776,6 @@ const actions = {
       )
       .then((response) => {
         if (!enviarWspCliente) {
-        
           Swal.fire({
             icon: "success",
             title: "PDF Generado",
@@ -3787,21 +3792,21 @@ const actions = {
             );
           }
         } else {
-            let res = response.data;
+          let res = response.data;
           if (res.estadoflag) {
-            
             Swal.fire({
               icon: "success",
               title: "Mensaje Enviado",
               showConfirmButton: true,
             });
-          }else{
-              Swal.fire({
+          } else {
+            Swal.fire({
               icon: "error",
-              title: "Ocurrió un error. Comuníquese con el administrador del sistema",
+              title:
+                "Ocurrió un error. Comuníquese con el administrador del sistema",
               showConfirmButton: true,
             });
-            console.error(res.error)
+            console.error(res.error);
           }
         }
       })
@@ -4143,6 +4148,8 @@ const actions = {
       id_marketing: state.datosPrincipales.id_marketing,
       statusquote: state.datosPrincipales.id_status,
       id_proveedor: state.datosPrincipales.id_proveedor,
+      esindividualflag: state.datosPrincipales.esindividualflag,
+      esgrupalflag: state.datosPrincipales.esgrupalflag,
       idVendedor: state.datosPrincipales.id_vendedor,
       idPricing: state.datosPrincipales.id_pricing,
       id_entitie: state.datosPrincipales.id_entitie,
