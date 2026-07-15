@@ -1753,6 +1753,10 @@ const actions = {
       textWhatsapp = "",
       pdfflag = false,
       linkflag = false,
+      tipoCotizacion = "individual",
+      fecha_salida = "",
+      nombre_cliente = "",
+      fecha_max = "",
     },
   ) {
     let opcion = state.opcionCostos.filter(
@@ -3600,11 +3604,8 @@ const actions = {
       (v) => v.id == state.datosPrincipales.idtipocarga,
     );
 
-    let nombrePdfEnviarCliente = "";
+    let nombrePdfEnviarCliente = "COTIZACION_";
     if (!!enviarWspCliente) {
-      nombrePdfEnviarCliente =
-        limpiarNombre(state.datosPrincipales.nombre) + "_";
-
       if (!!state.datosPrincipales.esindividualflag) {
         console.log("esindividualflag");
         nombrePdfEnviarCliente += "INDIVIDUAL";
@@ -3627,9 +3628,15 @@ const actions = {
       if (shipment.code == "LCL") {
         nombrePdfEnviarCliente += "_CONSOLIDADOS";
       }
+      nombrePdfEnviarCliente =
+        "_" + limpiarNombre(state.datosPrincipales.nombre);
     }
 
     let data = {
+      tipoCotizacion: tipoCotizacion,
+      fecha_salida: fecha_salida,
+      nombre_cliente: nombre_cliente,
+      fecha_max: fecha_max,
       enviarWspCliente: enviarWspCliente,
       textWhatsapp: textWhatsapp,
       nombrePdfEnviarCliente: nombrePdfEnviarCliente,
