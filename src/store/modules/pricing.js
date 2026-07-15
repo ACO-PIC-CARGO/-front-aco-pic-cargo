@@ -3628,7 +3628,7 @@ const actions = {
       if (shipment.code == "LCL") {
         nombrePdfEnviarCliente += "_CONSOLIDADOS";
       }
-      nombrePdfEnviarCliente =
+      nombrePdfEnviarCliente +=
         "_" + limpiarNombre(state.datosPrincipales.nombre);
     }
 
