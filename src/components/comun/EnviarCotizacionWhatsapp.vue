@@ -228,6 +228,7 @@ export default {
         fecha_salida: this.dateRangeText,
         nombre_cliente: this.$store.state.pricing.datosPrincipales.nombre,
         fecha_max: this.fecha_max,
+        nombrePdfEnviarCliente: this.nombrePdfEnviarCliente,
       });
       this.loading = false;
       this.dialog = false;

@@ -1757,6 +1757,7 @@ const actions = {
       fecha_salida = "",
       nombre_cliente = "",
       fecha_max = "",
+      nombrePdfEnviarCliente = "",
     },
   ) {
     let opcion = state.opcionCostos.filter(
@@ -3604,36 +3605,39 @@ const actions = {
       (v) => v.id == state.datosPrincipales.idtipocarga,
     );
 
-    let nombrePdfEnviarCliente = "COTIZACION_";
-    if (!!enviarWspCliente) {
-      if (!!state.datosPrincipales.esindividualflag) {
-        console.log("esindividualflag");
-        nombrePdfEnviarCliente += "INDIVIDUAL";
-      }
-      if (!!state.datosPrincipales.esgrupalflag) {
-        console.log("esgrupalflag");
-        nombrePdfEnviarCliente += "GRUPAL";
-      }
+    if (!nombrePdfEnviarCliente) {
+      nombrePdfEnviarCliente = "COTIZACION_";
+      if (!!enviarWspCliente) {
+        if (!!state.datosPrincipales.esindividualflag) {
+          console.log("esindividualflag");
+          nombrePdfEnviarCliente += "INDIVIDUAL";
+        }
+        if (!!state.datosPrincipales.esgrupalflag) {
+          console.log("esgrupalflag");
+          nombrePdfEnviarCliente += "GRUPAL";
+        }
 
-      let shipment = state.listShipment.find(
-        (v) => v.id == state.datosPrincipales.idtipocarga,
-      );
-      if (shipment.code == "FCL") {
-        nombrePdfEnviarCliente = contenedor
-          .map((v) => {
-            return "_" + v.valor + "x" + v.name;
-          })
-          .join("_");
+        let shipment = state.listShipment.find(
+          (v) => v.id == state.datosPrincipales.idtipocarga,
+        );
+        if (shipment.code == "FCL") {
+          nombrePdfEnviarCliente = contenedor
+            .map((v) => {
+              return "_" + v.valor + "x" + v.name;
+            })
+            .join("_");
+        }
+        if (shipment.code == "LCL") {
+          nombrePdfEnviarCliente += "_CONSOLIDADOS";
+        }
+        nombrePdfEnviarCliente +=
+          "_" + limpiarNombre(state.datosPrincipales.nombre);
       }
-      if (shipment.code == "LCL") {
-        nombrePdfEnviarCliente += "_CONSOLIDADOS";
-      }
-      nombrePdfEnviarCliente +=
-        "_" + limpiarNombre(state.datosPrincipales.nombre);
     }
     let data = {
       tipoCotizacion: tipoCotizacion,
-      nombre_asesor:JSON.parse(sessionStorage.getItem("dataUser"))[0].nombrecompleto,
+      nombre_asesor: JSON.parse(sessionStorage.getItem("dataUser"))[0]
+        .nombrecompleto,
       fecha_salida: fecha_salida,
       nombre_cliente: nombre_cliente,
       fecha_max: fecha_max,
