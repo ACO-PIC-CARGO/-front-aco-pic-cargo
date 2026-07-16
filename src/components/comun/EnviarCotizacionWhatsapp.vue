@@ -37,6 +37,13 @@
                 </v-tab-item>
               </v-tabs-items>
             </v-col>
+            <v-col cols="12">
+              <v-text-field
+                label="Nombre de Archivo"
+                v-model="nombrePdfEnviarCliente"
+                outlined
+              ></v-text-field>
+            </v-col>
             <!-- <v-col cols="12">
               <v-menu
                 v-model="menu"
@@ -93,7 +100,7 @@
 
 <script>
 import { mapActions, mapState } from "vuex";
-
+import Swal from "sweetalert2";
 export default {
   data() {
     return {
@@ -106,10 +113,46 @@ export default {
       dates: [],
       menu: false,
       fecha_max: "",
+      nombrePdfEnviarCliente: "",
     };
   },
   mounted() {
     this.obtenerDatosEmpresa();
+    let contenedor = [];
+
+    this.$store.state.pricing.datosPrincipales.containers.forEach((element) => {
+      contenedor.push({
+        name: element.description,
+        valor: element.cantidad,
+      });
+    });
+
+    this.nombrePdfEnviarCliente = "COTIZACION_";
+
+    if (!!this.$store.state.pricing.datosPrincipales.esindividualflag) {
+      this.nombrePdfEnviarCliente += "INDIVIDUAL";
+    }
+    if (!!this.$store.state.pricing.datosPrincipales.esgrupalflag) {
+      this.nombrePdfEnviarCliente += "GRUPAL";
+    }
+
+    let shipment = this.$store.state.pricing.listShipment.find(
+      (v) => v.id == this.$store.state.pricing.datosPrincipales.idtipocarga,
+    );
+
+    if (shipment.code == "FCL") {
+      this.nombrePdfEnviarCliente = contenedor
+        .map((v) => {
+          return "_" + v.valor + "x" + v.name;
+        })
+        .join("_");
+    }
+    if (shipment.code == "LCL") {
+      this.nombrePdfEnviarCliente += "_CONSOLIDADOS";
+    }
+    this.nombrePdfEnviarCliente +=
+      "_" +
+      this.limpiarNombre(this.$store.state.pricing.datosPrincipales.nombre);
   },
   watch: {
     // Sincronizamos cuando los datos de Vuex lleguen
@@ -140,11 +183,35 @@ export default {
     },
   },
   methods: {
-    ...mapActions(["generarReporte", "obtenerDatosEmpresa"]),
+    ...mapActions(["generarReporte", "obtenerDatosEmpresa", "GetArchivos"]),
     abrirModal() {
       this.dialog = true;
     },
+    limpiarNombre(str) {
+      return str
+        .normalize("NFD") // Separa los acentos del carácter base
+        .replace(/[\u0300-\u036f]/g, "") // Elimina los acentos
+        .replace(/ñ/g, "n") // Convierte ñ a n
+        .replace(/Ñ/g, "N") // Convierte Ñ a N
+        .replace(/\s+/g, "_") // Convierte espacios a guion bajo
+        .replace(/[^a-zA-Z0-9_]/g, ""); // Elimina cualquier otro carácter especial que sobre
+    },
     async enviarWsp() {
+      const nameFile = this.nombrePdfEnviarCliente + ".pdf";
+      if (
+        this.$store.state.pricing.listadoFilesDrive.some(
+          (v) => v.name == nameFile,
+        )
+      ) {
+        Swal.fire({
+          icon: "warning",
+          title: "Nombre duplicado",
+          text: "El nombre del archivo ya está en uso en la carpeta. Por favor, ingresa un nombre diferente para continuar.",
+          confirmButtonText: "Entendido",
+        });
+        return;
+      }
+
       this.loading = true;
       let tipo = "individual";
       if (this.$store.state.pricing.datosPrincipales.esgrupalflag) {
