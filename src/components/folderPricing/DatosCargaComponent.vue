@@ -836,6 +836,19 @@ export default {
     },
     async aceptar() {
       let validate = true;
+
+      if (
+        !this.$store.state.pricing.datosPrincipales.esgrupalflag &&
+        !this.$store.state.pricing.datosPrincipales.esindividualflag
+      ) {
+        Swal.fire({
+          icon: "warning",
+          title: "Tipo de Cotización",
+          text: "Por favor seleccione, el tipo de cotización.",
+        });
+        return;
+      }
+
       if (this.$refs.frmPuerto.validate()) {
         if (
           this.$store.state.pricing.datosPrincipales.idtipocarga.code == "FCL"
