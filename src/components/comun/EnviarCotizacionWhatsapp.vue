@@ -11,25 +11,69 @@
           </span>
         </v-card-title>
         <v-card-text>
-          <v-tabs v-model="tabIndex" centered slider-color="primary">
-            <v-tab href="#pdfflag"> PDF </v-tab>
-            <v-tab href="#linkflag"> LINK </v-tab>
-          </v-tabs>
-          <v-tabs-items v-model="tabIndex">
-            <v-tab-item value="linkflag" class="px-10">
-              <v-card-text>
-                <v-textarea
-                  v-model="texto_link"
-                  auto-grow
-                  outlined
-                  class="my-2"
-                />
-              </v-card-text>
-            </v-tab-item>
-            <v-tab-item value="pdfflag" class="px-10">
-              <v-textarea v-model="texto_pdf" auto-grow outlined class="my-2" />
-            </v-tab-item>
-          </v-tabs-items>
+          <v-row>
+            <v-col cols="12">
+              <v-tabs v-model="tabIndex" centered slider-color="primary">
+                <v-tab href="#pdfflag"> PDF </v-tab>
+              </v-tabs>
+              <v-tabs-items v-model="tabIndex">
+                <v-tab-item value="linkflag">
+                  <v-card-text>
+                    <v-textarea
+                      v-model="localTextoLink"
+                      auto-grow
+                      outlined
+                      class="my-2"
+                    />
+                  </v-card-text>
+                </v-tab-item>
+                <v-tab-item value="pdfflag">
+                  <v-textarea
+                    v-model="localTextoPdf"
+                    auto-grow
+                    outlined
+                    class="my-2"
+                  />
+                </v-tab-item>
+              </v-tabs-items>
+            </v-col>
+            <!-- <v-col cols="12">
+              <v-menu
+                v-model="menu"
+                :close-on-content-click="false"
+                transition="scale-transition"
+                offset-y
+                max-width="290px"
+                min-width="auto"
+                outline
+              >
+                <template v-slot:activator="{ on, attrs }">
+                  <v-text-field
+                    v-model="dateRangeText"
+                    label="Rango de fechas"
+                    prepend-icon="mdi-calendar"
+                    readonly
+                    v-bind="attrs"
+                    v-on="on"
+                  ></v-text-field>
+                </template>
+
+                <v-date-picker v-model="dates" range no-title scrollable>
+                  <v-spacer></v-spacer>
+                  <v-btn text color="primary" @click="menu = false">
+                    Confirmar
+                  </v-btn>
+                </v-date-picker>
+              </v-menu>
+            </v-col>
+            <v-col cols="12">
+              <v-text-field
+                label="Fecha Máxima"
+                type="date"
+                v-model="fecha_max"
+              ></v-text-field>
+            </v-col> -->
+          </v-row>
         </v-card-text>
 
         <v-card-actions>
@@ -56,46 +100,90 @@ export default {
       dialog: false,
       tabIndex: "pdfflag",
       loading: false,
+      localTextoPdf: "",
+      localTextoLink: "",
+      // dateRangeText: null,
+      dates: [],
+      menu: false,
+      fecha_max: "",
     };
   },
   mounted() {
     this.obtenerDatosEmpresa();
   },
+  watch: {
+    // Sincronizamos cuando los datos de Vuex lleguen
+    texto_pdf_vuex(val) {
+      this.localTextoPdf = val;
+    },
+    texto_link_vuex(val) {
+      this.localTextoLink = val;
+    },
+  },
   computed: {
     ...mapState({
-      texto_pdf: (state) => {
-        const list = state.pricing.textWhatsapp;
-        if (Array.isArray(list) && list.length > 0 && list[0]) {
-          return list[0].texto_pdf || "";
-        }
-        return "Configuración no disponible";
-      },
-      texto_link: (state) => {
-        const list = state.pricing.textWhatsapp;
-        if (Array.isArray(list) && list.length > 0 && list[0]) {
-          return list[0].texto_link || "";
-        }
-        return "Configuración no disponible";
-      },
+      texto_pdf_vuex: (state) =>
+        state.pricing.textWhatsapp?.[0]?.texto_pdf || "",
+      texto_link_vuex: (state) =>
+        state.pricing.textWhatsapp?.[0]?.texto_link || "",
     }),
+    dateRangeText() {
+      if (this.dates.length === 0) return "";
+
+      // Ordenamos las fechas primero
+      const fechasOrdenadas = this.dates.slice().sort();
+
+      // Mapeamos cada fecha a través de la lógica de formato
+      return fechasOrdenadas
+        .map((fecha) => this.formatearFecha(fecha))
+        .join(" a ");
+    },
   },
   methods: {
     ...mapActions(["generarReporte", "obtenerDatosEmpresa"]),
     abrirModal() {
       this.dialog = true;
     },
-   async enviarWsp() {
+    async enviarWsp() {
       this.loading = true;
+      let tipo = "individual";
+      if (this.$store.state.pricing.datosPrincipales.esgrupalflag) {
+        tipo = "grupal";
+      }
       await this.generarReporte({
         enviarWspCliente: true,
         guardarFlag: true,
         textWhatsapp:
-          this.tabIndex == "pdfflag" ? this.texto_pdf : this.texto_link,
+          this.tabIndex == "pdfflag" ? this.localTextoPdf : this.localTextoLink,
         pdfflag: this.tabIndex == "pdfflag",
         linkflag: this.tabIndex == "linkflag",
+        tipoCotizacion: tipo,
+        fecha_salida: this.dateRangeText,
+        nombre_cliente: this.$store.state.pricing.datosPrincipales.nombre,
+        fecha_max: this.fecha_max,
       });
       this.loading = false;
-      this.dialog =false
+      this.dialog = false;
+    },
+    formatearFecha(fecha) {
+      if (!fecha) return "";
+      const [year, month, day] = fecha.split("-");
+      const meses = [
+        "ENE",
+        "FEB",
+        "MAR",
+        "ABR",
+        "MAY",
+        "JUN",
+        "JUL",
+        "AGO",
+        "SEP",
+        "OCT",
+        "NOV",
+        "DIC",
+      ];
+      // Aseguramos que el mes sea un índice válido y formateamos
+      return `${day}/${meses[parseInt(month) - 1]}/${year}`;
     },
   },
 };
