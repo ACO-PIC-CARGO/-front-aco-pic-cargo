@@ -3631,9 +3631,9 @@ const actions = {
       nombrePdfEnviarCliente +=
         "_" + limpiarNombre(state.datosPrincipales.nombre);
     }
-
     let data = {
       tipoCotizacion: tipoCotizacion,
+      nombre_asesor:JSON.parse(sessionStorage.getItem("dataUser"))[0].nombrecompleto,
       fecha_salida: fecha_salida,
       nombre_cliente: nombre_cliente,
       fecha_max: fecha_max,
