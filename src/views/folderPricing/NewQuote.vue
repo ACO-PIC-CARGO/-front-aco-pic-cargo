@@ -339,6 +339,45 @@ export default {
             },
           ];
         } else {
+          let montoprofit = 0;
+
+          let tipoImportacion =
+            this.$store.state.masterusuarios.lstPercepcionAduana.find(
+              (v) =>
+                v.id ==
+                this.$store.state.pricing.datosPrincipales.id_percepcionaduana,
+            );
+          // OBTENIENDO LOS PROFIT
+          if (
+            item.profit_ganancia_pricing.length > 0 &&
+            this.$store.state.pricing.datosPrincipales.esindividualflag
+          ) {
+            if (tipoImportacion.codigo == "01") {
+              montoprofit = item.profit_ganancia_pricing.find(
+                (v) => v.esindividualflag,
+              ).profitprimeraimportacion;
+            }
+            if (tipoImportacion.codigo == "02") {
+              montoprofit = item.profit_ganancia_pricing.find(
+                (v) => v.esindividualflag,
+              ).profitsegundaimportacion;
+            }
+          }
+          if (
+            item.profit_ganancia_pricing.length > 0 &&
+            this.$store.state.pricing.datosPrincipales.esgrupalflag
+          ) {
+            if (tipoImportacion.codigo == "01") {
+              montoprofit = item.profit_ganancia_pricing.find(
+                (v) => v.esgrupalflag,
+              ).profitprimeraimportacion;
+            }
+            if (tipoImportacion.codigo == "02") {
+              montoprofit = item.profit_ganancia_pricing.find(
+                (v) => v.esgrupalflag,
+              ).profitsegundaimportacion;
+            }
+          }
           return [
             {
               ...item,
@@ -364,14 +403,16 @@ export default {
               esopcionflag: 0,
               esventaflag: 1,
               status: true,
-              costounitario: 0,
               cif: 0,
               seguro: 0,
               nro_propuesta: 1,
-              costounitario: this.$store.state.pricing.datosPrincipales
-                .esgrupalflag
-                ? 0
-                : item.costounitario,
+              costounitario:
+                parseFloat(
+                  this.$store.state.pricing.datosPrincipales.esgrupalflag
+                    ? 0
+                    : item.costounitario,
+                ) + parseFloat(montoprofit),
+              tieneprofitflag: parseFloat(montoprofit) > 0,
             },
           ];
         }
@@ -506,33 +547,90 @@ export default {
             {
               ...item,
               esopcionflag: 1,
-              nro_propuesta: nro_propuesta,
               esventaflag: 0,
               status: true,
-              cif: parseFloat(0.35),
-              seguro: parseFloat(0.45),
+              cif: this.$store.state.pricing.datosPrincipales.esgrupalflag
+                ? 0
+                : parseFloat(0.35),
+              seguro: this.$store.state.pricing.datosPrincipales.esgrupalflag
+                ? 0
+                : parseFloat(0.45),
+              costounitario: this.$store.state.pricing.datosPrincipales
+                .esgrupalflag
+                ? 0
+                : item.costounitario,
+              nro_propuesta: 1,
             },
           ];
         } else {
+          let montoprofit = 0;
+
+          let tipoImportacion =
+            this.$store.state.masterusuarios.lstPercepcionAduana.find(
+              (v) =>
+                v.id ==
+                this.$store.state.pricing.datosPrincipales.id_percepcionaduana,
+            );
+          // OBTENIENDO LOS PROFIT
+          if (this.$store.state.pricing.datosPrincipales.esindividualflag) {
+            if (tipoImportacion.codigo == "01") {
+              montoprofit = item.profit_ganancia_pricing.find(
+                (v) => v.esindividualflag,
+              ).profitprimeraimportacion;
+            }
+            if (tipoImportacion.codigo == "02") {
+              montoprofit = item.profit_ganancia_pricing.find(
+                (v) => v.esindividualflag,
+              ).profitsegundaimportacion;
+            }
+          }
+          if (this.$store.state.pricing.datosPrincipales.esgrupalflag) {
+            if (tipoImportacion.codigo == "01") {
+              montoprofit = item.profit_ganancia_pricing.find(
+                (v) => v.esgrupalflag,
+              ).profitprimeraimportacion;
+            }
+            if (tipoImportacion.codigo == "02") {
+              montoprofit = item.profit_ganancia_pricing.find(
+                (v) => v.esgrupalflag,
+              ).profitsegundaimportacion;
+            }
+          }
           return [
             {
               ...item,
+              nro_propuesta: 1,
               esopcionflag: 1,
-              nro_propuesta: nro_propuesta,
               esventaflag: 0,
               status: true,
-              cif: parseFloat(0.35),
-              seguro: parseFloat(0.45),
+              cif: this.$store.state.pricing.datosPrincipales.esgrupalflag
+                ? 0
+                : parseFloat(0.35),
+              seguro: this.$store.state.pricing.datosPrincipales.esgrupalflag
+                ? 0
+                : parseFloat(0.45),
+              costounitario: this.$store.state.pricing.datosPrincipales
+                .esgrupalflag
+                ? 0
+                : item.costounitario,
+              nro_propuesta: 1,
             },
             {
               ...item,
+              nro_propuesta: 1,
               esopcionflag: 0,
-              nro_propuesta: nro_propuesta,
               esventaflag: 1,
               status: true,
               cif: 0,
               seguro: 0,
-              costounitario: 0,
+              nro_propuesta: 1,
+              costounitario:
+                parseFloat(
+                  this.$store.state.pricing.datosPrincipales.esgrupalflag
+                    ? 0
+                    : item.costounitario,
+                ) + parseFloat(montoprofit),
+              tieneprofitflag: parseFloat(montoprofit) > 0,
             },
           ];
         }
@@ -591,30 +689,88 @@ export default {
               esopcionflag: 1,
               esventaflag: 0,
               status: true,
+              cif: this.$store.state.pricing.datosPrincipales.esgrupalflag
+                ? 0
+                : parseFloat(0.35),
+              seguro: this.$store.state.pricing.datosPrincipales.esgrupalflag
+                ? 0
+                : parseFloat(0.45),
+              costounitario: this.$store.state.pricing.datosPrincipales
+                .esgrupalflag
+                ? 0
+                : item.costounitario,
               nro_propuesta: 1,
-              cif: parseFloat(0.35),
-              seguro: parseFloat(0.45),
             },
           ];
         } else {
+          let montoprofit = 0;
+
+          let tipoImportacion =
+            this.$store.state.masterusuarios.lstPercepcionAduana.find(
+              (v) =>
+                v.id ==
+                this.$store.state.pricing.datosPrincipales.id_percepcionaduana,
+            );
+          // OBTENIENDO LOS PROFIT
+          if (this.$store.state.pricing.datosPrincipales.esindividualflag) {
+            if (tipoImportacion.codigo == "01") {
+              montoprofit = item.profit_ganancia_pricing.find(
+                (v) => v.esindividualflag,
+              ).profitprimeraimportacion;
+            }
+            if (tipoImportacion.codigo == "02") {
+              montoprofit = item.profit_ganancia_pricing.find(
+                (v) => v.esindividualflag,
+              ).profitsegundaimportacion;
+            }
+          }
+          if (this.$store.state.pricing.datosPrincipales.esgrupalflag) {
+            if (tipoImportacion.codigo == "01") {
+              montoprofit = item.profit_ganancia_pricing.find(
+                (v) => v.esgrupalflag,
+              ).profitprimeraimportacion;
+            }
+            if (tipoImportacion.codigo == "02") {
+              montoprofit = item.profit_ganancia_pricing.find(
+                (v) => v.esgrupalflag,
+              ).profitsegundaimportacion;
+            }
+          }
           return [
             {
               ...item,
+              nro_propuesta: 1,
               esopcionflag: 1,
               esventaflag: 0,
-              nro_propuesta: 1,
               status: true,
-              cif: parseFloat(0.35),
-              seguro: parseFloat(0.45),
+              cif: this.$store.state.pricing.datosPrincipales.esgrupalflag
+                ? 0
+                : parseFloat(0.35),
+              seguro: this.$store.state.pricing.datosPrincipales.esgrupalflag
+                ? 0
+                : parseFloat(0.45),
+              costounitario: this.$store.state.pricing.datosPrincipales
+                .esgrupalflag
+                ? 0
+                : item.costounitario,
+              nro_propuesta: 1,
             },
             {
               ...item,
+              nro_propuesta: 1,
               esopcionflag: 0,
               esventaflag: 1,
               status: true,
               cif: 0,
               seguro: 0,
-              costounitario: 0,
+              nro_propuesta: 1,
+              costounitario:
+                parseFloat(
+                  this.$store.state.pricing.datosPrincipales.esgrupalflag
+                    ? 0
+                    : item.costounitario,
+                ) + parseFloat(montoprofit),
+              tieneprofitflag: parseFloat(montoprofit) > 0,
             },
           ];
         }

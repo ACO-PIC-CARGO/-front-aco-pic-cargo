@@ -276,7 +276,7 @@ export default {
   data() {
     return {
       tab: 0,
-      loadingGuardar:false,
+      loadingGuardar: false,
       headersIncoterms: [
         { value: "text", text: "Icoterms" },
         { value: "action", text: "" },
@@ -374,6 +374,7 @@ export default {
       "obtenerProveedorPricing",
     ]),
     obtenerCostosEnBaseTipoCosto(codigoTipoCosto) {
+      console.log("tab", this.tab);
       let lstCostos = [];
       if (this.tab == 0) {
         lstCostos = this.$store.state.profitPricing.lstProfigIndividual;
@@ -422,7 +423,6 @@ export default {
             return v.id_proveedor;
           }),
         ];
-        console.log(id);
         await this.obtenerProveedorPricing({ id: id.join(",") });
         this.$forceUpdate();
         this.loadingObtenerDatos = false;
@@ -463,6 +463,9 @@ export default {
     },
   },
   watch: {
+    tab() {
+      console.log(this.tab);
+    },
     "$store.state.profitPricing.id_modality"() {
       this.mostrarIncoterms = false;
       if (

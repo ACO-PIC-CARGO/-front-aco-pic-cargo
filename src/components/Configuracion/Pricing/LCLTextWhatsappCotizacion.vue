@@ -35,7 +35,7 @@
       <v-col cols="12">
       <p style="font-size: 1.2em; font-weight: bold">Texto para envío de LINK</p>
       </v-col>
-      <v-col cols="12" md="6">
+      <!-- <v-col cols="12" md="6">
         <vTextarea
           v-model="lcl.linkindividual"
           label="Texto para envío de LINK - INDIVIDUAL"
@@ -60,7 +60,7 @@
             <span> Texto para envío de LINK - GRUPAL </span>
           </template>
         </vTextarea>
-      </v-col>
+      </v-col> -->
 
       <v-col cols="12" class="d-flex justify-end">
         <v-btn color="success" class="mt-4" :loading="loading" @click="guardar"
