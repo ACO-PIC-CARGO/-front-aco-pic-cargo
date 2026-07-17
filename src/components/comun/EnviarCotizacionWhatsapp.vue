@@ -150,7 +150,7 @@ export default {
     );
 
     if (shipment.code == "FCL") {
-      this.nombrePdfEnviarCliente = contenedor
+      this.nombrePdfEnviarCliente += contenedor
         .map((v) => {
           return "_" + v.valor + "x" + v.name;
         })
