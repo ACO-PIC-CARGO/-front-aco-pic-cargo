@@ -190,16 +190,33 @@
               </p>
             </td>
             <td width="20%">
-              <p v-for="(telex,index) in item.house_telex" :key="index">
-                  {{ telex.nombrecompleto }} : {{ telex.fechaconfirmaciontelex }}
-              </p>
-              
-              </td>
+              <table width="100%">
+                <tr v-for="(telex, index) in item.house_telex" :key="index">
+                  <td width="80%">{{ telex.nombrecompleto }}</td>
+                  <td width="10%">{{ telex.fechaconfirmaciontelex }}</td>
+                </tr>
+              </table>
+              <p></p>
+            </td>
             <td width="30%">
               <p class="ma-0">Operador:{{ item.operador }}</p>
 
               <p class="ma-0">Fecha Registro:{{ getFecha(item.created) }}</p>
-              <p class="ma-0">
+              <p>Ejecutivo de Ventas</p>
+              <p>Número Manifiesto</p>
+              <p>Declaración Aduana</p>
+              <p>
+                Canal:
+                <span
+                  :style="{
+                    color: item.hexacolor,
+                    fontWeight: 'bold',
+                  }"
+                >
+                  {{ item.color ? item.color : "N/A" }}
+                </span>
+              </p>
+              <!-- <p class="ma-0">
                 Status Expediente Op.:{{
                   item.statuslock == 0 ? "Abierto" : "Cerrado"
                 }}
@@ -208,7 +225,7 @@
                 Status Expediente Adm.:{{
                   item.statuslockadm == 0 ? "Abierto" : "Cerrado"
                 }}
-              </p>
+              </p> -->
             </td>
             <v-divider></v-divider>
           </tr>
