@@ -341,7 +341,8 @@
     <v-dialog id="mydiv" v-model="dialog" width="70%" persistent>
       <v-card>
         <v-card-title id="mydivheader" class="text-h5 grey lighten-2">
-          REGISTRO DE NUEVO COSTO
+          {{  getNameModalNuevoEditar }}
+
           <v-spacer></v-spacer>
           <v-btn color="default" text @click="dialog = false">
             <v-icon>mdi-close</v-icon>
@@ -1894,15 +1895,14 @@ export default {
           v.id_correlativo == vm.id_correlativo,
       );
 
-
       if (!!master) {
-       let exiteOtraMoneda = master.detalle.some(
+        let exiteOtraMoneda = master.detalle.some(
           (v) => v.id_coins != vm.id_coins,
         );
         if (exiteOtraMoneda) {
           this.$swal({
             icon: "warning", // Cambiado a 'warning' porque es una restricción del sistema, no un fallo crítico.
-            title:"MONEDAS SOLES DOLARES",
+            title: "MONEDAS SOLES DOLARES",
             html: `<b>Hay conceptos con monedas diferentes</b><br><br>Por favor chequear.`,
             confirmButtonColor: "#3085d6",
             confirmButtonText: "ACEPTAR",
@@ -2143,7 +2143,7 @@ export default {
     _editEgreso(egreso) {
       this.egresos = {
         ...egreso,
-        statusCalcula: !!egreso.igv_op ? true : false,
+        statusCalcula: !!egreso.igv_op || !!egreso.igv_pr ? true : false,
         opcion: egreso.igv_op || egreso.igv_pr ? true : false,
         montoopview: egreso.monto_op,
         igvopview: egreso.igv_op,
@@ -2276,10 +2276,10 @@ export default {
         let exiteOtraMoneda = master.detalle.some(
           (v) => v.id_coins != vm.egresos.id_coins,
         );
-          if (exiteOtraMoneda) {
+        if (exiteOtraMoneda) {
           this.$swal({
             icon: "warning", // Cambiado a 'warning' porque es una restricción del sistema, no un fallo crítico.
-            title:"MONEDAS SOLES DOLARES",
+            title: "MONEDAS SOLES DOLARES",
             html: `<b>Hay conceptos con monedas diferentes</b><br><br>Por favor chequear.`,
             confirmButtonColor: "#3085d6",
             confirmButtonText: "ACEPTAR",
@@ -3052,6 +3052,12 @@ export default {
     },
   },
   computed: {
+    getNameModalNuevoEditar(){
+      if (this.egresos && this.egresos.id) {
+        return 'EDITAR REGISTRO COSTO'
+      }
+      return 'REGISTRO DE NUEVO COSTO'
+    },
     listHouses() {
       let houses = [
         {

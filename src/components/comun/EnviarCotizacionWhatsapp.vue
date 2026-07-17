@@ -37,6 +37,10 @@
                 </v-tab-item>
               </v-tabs-items>
             </v-col>
+            <!-- <v-col cols="12">
+              {{ $store.state.pricing.datosPrincipales }}
+              <v-select :items="cboTipoReporte" label="Tipo de Reporte a Envíar"></v-select>
+            </v-col> -->
             <v-col cols="12">
               <v-text-field
                 label="Nombre de Archivo"
@@ -114,6 +118,11 @@ export default {
       menu: false,
       fecha_max: "",
       nombrePdfEnviarCliente: "",
+      cboTipoReporte: [
+        { text: "Costo detallado por cada item", value: "DETALLE" },
+        { text: "Totales por servicios", value: "TOTAL" },
+        { text: "Reporte total general sin desglose", value: "AGRUPADO" },
+      ],
     };
   },
   mounted() {
@@ -218,6 +227,7 @@ export default {
         tipo = "grupal";
       }
       await this.generarReporte({
+        tipo: "AGRUPADO",
         enviarWspCliente: true,
         guardarFlag: true,
         textWhatsapp:
