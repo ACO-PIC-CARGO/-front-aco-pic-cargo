@@ -572,8 +572,6 @@ export default {
             this.$store.state.pricing.datosPrincipales.idtipocarga,
       );
       let opcionCostos = [...this.$store.state.pricing.opcionCostos];
-      // console.log(preCostos);
-      // console.log(this.$store.state.pricing.opcionCostos);
       let newOpcionCosto = [];
       opcionCostos.forEach((opcion) => {
         let newCosto = [];

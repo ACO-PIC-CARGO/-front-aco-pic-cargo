@@ -14,7 +14,7 @@
         </div>
       </v-col>
 
-      <v-col cols="12" md="3" class="py-1">
+      <v-col cols="12" md="6" class="py-1">
         <vTextarea
           v-model="text.texto.pdfindividual"
          
@@ -27,7 +27,7 @@
           </template>
         </vTextarea>
       </v-col>
-      <v-col cols="12" md="3" class="py-1">
+      <v-col cols="12" md="6" class="py-1">
         <vTextarea
           v-model="text.texto.pdfgrupal"
          
@@ -40,7 +40,7 @@
           </template>
         </vTextarea>
       </v-col>
-      <v-col cols="12" md="3" class="py-1">
+      <!-- <v-col cols="12" md="3" class="py-1">
         <vTextarea
           v-model="text.texto.linkindividual"
           auto-grow
@@ -65,7 +65,7 @@
             </span>
           </template>
         </vTextarea>
-      </v-col>
+      </v-col> -->
     </v-row>
     <v-row>
       <v-col cols="12" class="d-flex justify-end">

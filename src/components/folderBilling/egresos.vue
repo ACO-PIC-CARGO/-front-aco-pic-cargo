@@ -62,7 +62,7 @@
                 </td>
                 <td>{{ egreso.total_total_pr }}</td>
                 <td>{{ egreso.total_total_op }}</td>
-                <td>{{ getDeudaActual(egreso) }}</td>
+                <td>{{ egreso.monto_pagar_op }}</td>
                 <td v-if="editable">
                   <v-btn
                     color="info"
