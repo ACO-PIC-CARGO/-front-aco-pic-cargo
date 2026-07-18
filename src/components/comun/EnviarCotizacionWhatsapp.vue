@@ -37,6 +37,10 @@
                       class="my-2"
                       :rules="[(v) => !!v || 'Dato Requerido']"
                     />
+                    <p>
+                      Este mensaje solo se verá reflejado, si está dentro de las
+                      24h
+                    </p>
                   </v-tab-item>
                 </v-tabs-items>
               </v-col>
@@ -90,15 +94,14 @@
                 </v-menu>
               </v-col>
               <v-col cols="6">
-                <v-text-field
+                <FormatFecha
+                  :dense="true"
                   label="Fecha Máxima de Entrega"
-                  type="date"
                   v-model="fecha_max"
-                  :rules="[(v) => !!v || 'Dato Requerido']"
                   v-if="$store.state.pricing.datosPrincipales.esgrupalflag"
-                  outlined
-                  dense
-                ></v-text-field>
+                  :errorMessages="errorFechaEntrega"
+                  :outlined="true"
+                />
               </v-col>
             </v-row>
           </v-form>
@@ -122,9 +125,14 @@
 <script>
 import { mapActions, mapState } from "vuex";
 import Swal from "sweetalert2";
+import FormatFecha from "../comun/FormatFecha.vue";
 export default {
+  components: {
+    FormatFecha,
+  },
   data() {
     return {
+      errorFechaEntrega: "",
       dialog: false,
       tabIndex: "pdfflag",
       loading: false,
@@ -270,7 +278,13 @@ export default {
         .replace(/[^a-zA-Z0-9_]/g, ""); // Elimina cualquier otro carácter especial que sobre
     },
     async enviarWsp() {
+      this.errorFechaEntrega = "";
       if (!this.$refs.frmEnvioWsp.validate()) {
+        return;
+      }
+
+      if (!this.fecha_max) {
+        this.errorFechaEntrega = "Dato Requerido";
         return;
       }
 
