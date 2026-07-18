@@ -30,17 +30,22 @@
                     </v-card-text>
                   </v-tab-item>
                   <v-tab-item value="pdfflag">
+                    <p class="py-0 mt-5" style="font-size: 1.2em; color: red">
+                      <center>
+                        <v-icon color="warning" class="mx-2">mdi-alert</v-icon>
+                        <i>
+                          Este mensaje solo se verá reflejado, si está dentro de
+                          las 24h
+                        </i>
+                      </center>
+                    </p>
                     <v-textarea
                       v-model="localTextoPdf"
                       auto-grow
                       outlined
-                      class="my-2"
+                      class="py-0 my-0"
                       :rules="[(v) => !!v || 'Dato Requerido']"
                     />
-                    <p>
-                      Este mensaje solo se verá reflejado, si está dentro de las
-                      24h
-                    </p>
                   </v-tab-item>
                 </v-tabs-items>
               </v-col>
