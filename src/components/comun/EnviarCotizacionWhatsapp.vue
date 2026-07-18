@@ -65,7 +65,7 @@
                   <template v-slot:activator="{ on, attrs }">
                     <v-text-field
                       v-model="dateRangeText"
-                      label="Rango de fechas"
+                      label="Fecha Aproximada de Salida"
                       prepend-icon="mdi-calendar"
                       readonly
                       v-bind="attrs"
@@ -91,7 +91,7 @@
               </v-col>
               <v-col cols="6">
                 <v-text-field
-                  label="Fecha Máxima"
+                  label="Fecha Máxima de Entrega"
                   type="date"
                   v-model="fecha_max"
                   :rules="[(v) => !!v || 'Dato Requerido']"
