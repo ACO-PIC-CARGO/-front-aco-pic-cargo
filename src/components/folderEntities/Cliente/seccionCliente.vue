@@ -267,6 +267,14 @@
                         ? 'Dato Requerido'
                         : ''
                     "
+                    :prefix="getPrefix()"
+                    :style="{
+                      backgroundImage: `url(${obtenerFlag()})`,
+                      backgroundRepeat: 'no-repeat',
+                      backgroundSize: '20px 15px',
+                      backgroundPosition: '4px center',
+                      paddingLeft: '30px',
+                    }"
                   ></v-text-field>
                 </v-col>
               </v-row>
@@ -305,6 +313,7 @@
                 </v-col>
                 <v-col cols="12" md="4">
                   <v-text-field
+                    hide-details
                     dense
                     outlined
                     label="Teléfono"
@@ -313,6 +322,14 @@
                     "
                     :rules="[(v) => !!v || 'Dato Requerido']"
                     @change="validarContactoActual"
+                    :prefix="getPrefix()"
+                    :style="{
+                      backgroundImage: `url(${obtenerFlag()})`,
+                      backgroundRepeat: 'no-repeat',
+                      backgroundSize: '20px 15px',
+                      backgroundPosition: '4px center',
+                      paddingLeft: '30px',
+                    }"
                   ></v-text-field>
                 </v-col>
               </v-row>
@@ -891,6 +908,25 @@ export default {
         vm.$store.state.entities.isReadonly = true;
         vm.$store.state.entities.isEdit = false;
       }
+    },
+    getPrefix() {
+      let pais = this.$store.state.itemsPais.find(
+        (v) => v.id == this.$store.state.entities.cliente.id_pais,
+      );
+      if (pais) {
+        return   pais.phoneprefix ;
+      }
+      return "+xx";
+    },
+    obtenerFlag() {
+      let pais = this.$store.state.itemsPais.find(
+        (v) => v.id == this.$store.state.entities.cliente.id_pais,
+      );
+      let flag = "";
+      if (pais) {
+        flag = `https://flagcdn.com/w40/${pais.codigo_iso.toLowerCase()}.png`;
+      }
+      return flag;
     },
   },
   async mounted() {

@@ -54,12 +54,19 @@
                 <template v-slot:[`item.nro_telefono`]="{ item }">
                   <v-text-field
                     v-model="item.telefono"
-                    prefix="+"
                     :rules="[
                       (v) => !!v || 'Dato Requerido',
                       (v) =>
                         /^\d+$/.test(v) || 'Formato de teléfono incorrecto',
                     ]"
+                    :prefix="getPrefix()"
+                    :style="{
+                      backgroundImage: `url(${obtenerFlag()})`,
+                      backgroundRepeat: 'no-repeat',
+                      backgroundSize: '20px 15px',
+                      backgroundPosition: '4px center',
+                      paddingLeft: '30px',
+                    }"
                   ></v-text-field>
                 </template>
                 <template
@@ -122,13 +129,20 @@
                 <template v-slot:[`item.nro_telefono`]="{ item }">
                   <v-text-field
                     v-model="item.telefono"
-                    prefix="+"
                     :rules="[
                       (v) => !!v || 'Dato Requerido',
                       (v) =>
                         /^\d+$/.test(v) || 'Formato de teléfono incorrecto',
                     ]"
                     :error-messages="item.errorTelefono"
+                    :prefix="getPrefix()"
+                    :style="{
+                      backgroundImage: `url(${obtenerFlag()})`,
+                      backgroundRepeat: 'no-repeat',
+                      backgroundSize: '20px 15px',
+                      backgroundPosition: '4px center',
+                      paddingLeft: '30px',
+                    }"
                   ></v-text-field>
                 </template>
                 <template
@@ -264,6 +278,25 @@ export default {
         id_tipotelefono: "",
         telefono: "",
       });
+    },
+    getPrefix() {
+      let pais = this.$store.state.itemsPais.find(
+        (v) => v.id == this.$store.state.entities.cliente.id_pais,
+      );
+      if (pais) {
+        return pais.phoneprefix;
+      }
+      return "+xx";
+    },
+    obtenerFlag() {
+      let pais = this.$store.state.itemsPais.find(
+        (v) => v.id == this.$store.state.entities.cliente.id_pais,
+      );
+      let flag = "";
+      if (pais) {
+        flag = `https://flagcdn.com/w40/${pais.codigo_iso.toLowerCase()}.png`;
+      }
+      return flag;
     },
     eliminarTelefono(index) {
       this.$store.state.entities.lstTelefonos.splice(index, 1);
