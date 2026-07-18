@@ -1688,16 +1688,18 @@ const actions = {
       state.mostrarBtnActualizarFlag = !(
         res.statusmain == 0 || res.aprobadoflag == true
       );
-      dispatch("GetArchivos", res.url_folderonedrive);
-      dispatch("getTextoWhatsapp", {
-        id_shipment: res.idtipocarga,
-        id_quote: res.id,
-        id_containers: res.containers
-          .map((v) => {
-            return v.id;
-          })
-          .join(","),
-      });
+      Promise.all([
+        dispatch("GetArchivos", res.url_folderonedrive),
+        dispatch("getTextoWhatsapp", {
+          id_shipment: res.idtipocarga,
+          id_quote: res.id,
+          id_containers: res.containers
+            .map((v) => {
+              return v.id;
+            })
+            .join(","),
+        }),
+      ]);
     });
   },
   async getInstructivoId({ commit }, { id: id }) {
