@@ -30,11 +30,20 @@
                     </v-card-text>
                   </v-tab-item>
                   <v-tab-item value="pdfflag">
+                    <p class="py-0 mt-5" style="font-size: 1.2em; color: red">
+                      <center>
+                        <v-icon color="warning" class="mx-2">mdi-alert</v-icon>
+                        <i>
+                          Este mensaje solo se verá reflejado, si está dentro de
+                          las 24h
+                        </i>
+                      </center>
+                    </p>
                     <v-textarea
                       v-model="localTextoPdf"
                       auto-grow
                       outlined
-                      class="my-2"
+                      class="py-0 my-0"
                       :rules="[(v) => !!v || 'Dato Requerido']"
                     />
                   </v-tab-item>
@@ -65,7 +74,7 @@
                   <template v-slot:activator="{ on, attrs }">
                     <v-text-field
                       v-model="dateRangeText"
-                      label="Rango de fechas"
+                      label="Fecha Aproximada de Salida"
                       prepend-icon="mdi-calendar"
                       readonly
                       v-bind="attrs"
@@ -90,15 +99,14 @@
                 </v-menu>
               </v-col>
               <v-col cols="6">
-                <v-text-field
-                  label="Fecha Máxima"
-                  type="date"
+                <FormatFecha
+                  :dense="true"
+                  label="Fecha Máxima de Entrega"
                   v-model="fecha_max"
-                  :rules="[(v) => !!v || 'Dato Requerido']"
                   v-if="$store.state.pricing.datosPrincipales.esgrupalflag"
-                  outlined
-                  dense
-                ></v-text-field>
+                  :errorMessages="errorFechaEntrega"
+                  :outlined="true"
+                />
               </v-col>
             </v-row>
           </v-form>
@@ -122,9 +130,14 @@
 <script>
 import { mapActions, mapState } from "vuex";
 import Swal from "sweetalert2";
+import FormatFecha from "../comun/FormatFecha.vue";
 export default {
+  components: {
+    FormatFecha,
+  },
   data() {
     return {
+      errorFechaEntrega: "",
       dialog: false,
       tabIndex: "pdfflag",
       loading: false,
@@ -270,7 +283,13 @@ export default {
         .replace(/[^a-zA-Z0-9_]/g, ""); // Elimina cualquier otro carácter especial que sobre
     },
     async enviarWsp() {
+      this.errorFechaEntrega = "";
       if (!this.$refs.frmEnvioWsp.validate()) {
+        return;
+      }
+
+      if (!this.fecha_max) {
+        this.errorFechaEntrega = "Dato Requerido";
         return;
       }
 
