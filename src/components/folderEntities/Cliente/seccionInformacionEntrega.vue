@@ -116,6 +116,15 @@
                   $store.state.entities.informacionEntrega.celular_agencia
                 "
                 :rules="[(v) => validarTelefono(v)]"
+                :prefix="getPrefix()"
+                :style="{
+                  backgroundImage: `url(${obtenerFlag()})`,
+                  backgroundRepeat: 'no-repeat',
+                  backgroundSize: '20px 15px',
+                  backgroundPosition: '4px center',
+                  paddingLeft: '30px',
+                }"
+                hide-details
               ></v-text-field>
             </v-col>
           </v-row>
@@ -182,6 +191,25 @@ export default {
       }
 
       return true;
+    },
+    getPrefix() {
+      let pais = this.$store.state.itemsPais.find(
+        (v) => v.id == this.$store.state.entities.cliente.id_pais,
+      );
+      if (pais) {
+        return pais.phoneprefix;
+      }
+      return "+xx";
+    },
+    obtenerFlag() {
+      let pais = this.$store.state.itemsPais.find(
+        (v) => v.id == this.$store.state.entities.cliente.id_pais,
+      );
+      let flag = "";
+      if (pais) {
+        flag = `https://flagcdn.com/w40/${pais.codigo_iso.toLowerCase()}.png`;
+      }
+      return flag;
     },
     async modificarCliente() {
       var vm = this;

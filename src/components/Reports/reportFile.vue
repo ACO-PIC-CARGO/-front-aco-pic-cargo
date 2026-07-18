@@ -161,7 +161,7 @@
       >
         <template v-slot:item="{ item }">
           <tr :style="{ backgroundColor: item.background }">
-            <td width="15%">
+            <td width="25%">
               <p class="ma-0">
                 <b>{{ item.code_master }}</b>
 
@@ -177,7 +177,7 @@
               </p>
               <p class="ma-0">Incoterms: {{ item.incoterms }}</p>
             </td>
-            <td width="40%">
+            <td width="25%">
               <p class="ma-0">Cliente: {{ item.listhouse }}</p>
               <p class="ma-0"><b>Comentarios:</b></p>
               <p
@@ -189,7 +189,7 @@
                 {{ i.comentario }}
               </p>
             </td>
-            <td width="20%">
+            <td width="25%">
               <table width="100%">
                 <tr v-for="(telex, index) in item.house_telex" :key="index">
                   <td width="80%">{{ telex.nombrecompleto }}</td>
@@ -198,20 +198,16 @@
               </table>
               <p></p>
             </td>
-            <td width="30%">
-              <p class="ma-0">Operador:{{ item.operador }}</p>
+            <td width="25%">
+              <p class="ma-0"> <b>Operador:</b> {{ item.operador }}</p>
 
-              <p class="ma-0">Fecha Registro:{{ getFecha(item.created) }}</p>
-              <p>Ejecutivo de Ventas</p>
-              <p>Número Manifiesto</p>
-              <p>Declaración Aduana</p>
+              <p class="ma-0"> <b>Fecha Registro:</b> {{ getFecha(item.created) }}</p>
+              <!-- <p>Ejecutivo de Ventas</p> -->
+              <p> <b>N° Manifiesto: </b> {{ item.nro_manifiesto || 'Sin Nro Manifesto' }}</p>
+              <!-- <p>Declaración Aduana</p> -->
               <p>
-                Canal:
+                <b>Canal:</b>
                 <span
-                  :style="{
-                    color: item.hexacolor,
-                    fontWeight: 'bold',
-                  }"
                 >
                   {{ item.color ? item.color : "N/A" }}
                 </span>
