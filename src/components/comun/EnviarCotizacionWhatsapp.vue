@@ -164,6 +164,7 @@ export default {
       contenedor.push({
         name: element.description,
         valor: element.cantidad,
+        code:element.code
       });
     });
 
@@ -183,7 +184,7 @@ export default {
     if (shipment.code == "FCL") {
       this.nombrePdfEnviarCliente += contenedor
         .map((v) => {
-          return "_" + v.valor + "x" + v.name;
+          return "_" + v.valor + "x" + v.code;
         })
         .join("_");
     }
