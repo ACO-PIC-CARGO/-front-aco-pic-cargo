@@ -319,7 +319,7 @@ const actions = {
             icon: "info",
             text: res.data[0].mensaje,
           });
-          dispatch("getListControlGastosHouses", data.code_master);
+          // dispatch("getListControlGastosHouses", data.code_master);
         } else {
           Swal.fire({
             icon: "error",
