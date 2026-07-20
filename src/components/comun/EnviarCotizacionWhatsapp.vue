@@ -70,6 +70,7 @@
                   max-width="290px"
                   min-width="auto"
                   outline
+                  v-if="$store.state.pricing.datosPrincipales.esgrupalflag"
                 >
                   <template v-slot:activator="{ on, attrs }">
                     <v-text-field
@@ -284,11 +285,12 @@ export default {
     },
     async enviarWsp() {
       this.errorFechaEntrega = "";
+
       if (!this.$refs.frmEnvioWsp.validate()) {
         return;
       }
 
-      if (!this.fecha_max) {
+      if (!this.fecha_max && this.$store.state.pricing.datosPrincipales.esgrupalflag) {
         this.errorFechaEntrega = "Dato Requerido";
         return;
       }
