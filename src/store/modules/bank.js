@@ -535,10 +535,6 @@ const actions = {
                 parcialflag: false,
                 montoparcial: 0,
                 saldo: 0,
-                tipocambio: parseFloat(
-                  (item.total_mon_local ? item.total_mon_local : 1) /
-                    (item.totaldolar ? item.totaldolar : 1),
-                ).toFixed(4),
               };
             }),
           );
