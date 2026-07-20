@@ -341,7 +341,7 @@
     <v-dialog id="mydiv" v-model="dialog" width="70%" persistent>
       <v-card>
         <v-card-title id="mydivheader" class="text-h5 grey lighten-2">
-          {{  getNameModalNuevoEditar }}
+          {{ getNameModalNuevoEditar }}
 
           <v-spacer></v-spacer>
           <v-btn color="default" text @click="dialog = false">
@@ -439,6 +439,10 @@
                     @input="calcularE()"
                     step="0.01"
                     :disabled="!!egresos.pagado"
+                    :rules="[
+                      (v) => !!v || 'Dato Requerido',
+                      (v) => v > 1 || 'El tipo de cambio debe ser mayor a 1',
+                    ]"
                   ></v-text-field>
                 </v-col>
               </v-row>
@@ -3052,11 +3056,11 @@ export default {
     },
   },
   computed: {
-    getNameModalNuevoEditar(){
+    getNameModalNuevoEditar() {
       if (this.egresos && this.egresos.id) {
-        return 'EDITAR REGISTRO COSTO'
+        return "EDITAR REGISTRO COSTO";
       }
-      return 'REGISTRO DE NUEVO COSTO'
+      return "REGISTRO DE NUEVO COSTO";
     },
     listHouses() {
       let houses = [
