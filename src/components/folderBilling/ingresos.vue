@@ -2145,7 +2145,7 @@ export default {
         ...this.ingresos,
         code_master: this.$route.params.code_master,
         tipo_pago: this.ingresos.opcion,
-        tipocambio: this.tipocambio,
+        // tipocambio: this.tipocambio,git status
       };
       await this.actualizarIngresos(data);
       await this.getListControlGastosHouses(this.$route.params.id);
