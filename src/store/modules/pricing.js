@@ -1695,7 +1695,7 @@ const actions = {
           id_quote: res.id,
           id_containers: res.containers
             .map((v) => {
-              return v.id;
+              return v.id_containers;
             })
             .join(","),
         }),
