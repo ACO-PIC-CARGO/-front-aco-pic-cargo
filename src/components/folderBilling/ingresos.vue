@@ -422,12 +422,15 @@
                         (c) => c.id === ingresos.id_coins,
                       )?.symbol != 'USD'
                     "
-                    v-model="tipocambio"
+                    v-model="ingresos.tipocambio"
                     type="number"
                     label="Tipo de Cambio"
                     @input="calcularE()"
                     step="0.01"
-                    :rules="[(v) => !!v || v > 1 || 'Dato Requerido']"
+                    :rules="[
+                      (v) => !!v || 'Dato Requerido',
+                      (v) => v > 1 || 'Debe ser mayor a 1',
+                    ]"
                   ></v-text-field>
                 </v-col>
               </v-row>
@@ -1419,7 +1422,6 @@ export default {
     return {
       dialogCopiar: false,
       loadingFile: false,
-      ingreso:{},
       listaDocumentosQuote: [
         {
           key: "cotizacion",
@@ -1533,7 +1535,8 @@ export default {
         monto_pr: 0,
         igv_pr: 0,
         total_pr: 0,
-        id_coins:''
+        id_coins: "",
+        tipocambio: 1,
       },
       headersdebs: [
         {
@@ -1918,7 +1921,7 @@ export default {
       ).toFixed(2);
       // ---------------------------------------------operaciones
       this.ingresos.montoopview = parseFloat(
-        this.ingresos.montoopcuentabanco / this.tipocambio,
+        this.ingresos.montoopcuentabanco / this.ingresos.tipocambio,
       ).toFixed(2);
       this.ingresos.igvopview = parseFloat(
         this.ingresos.montoopview * igv,
@@ -1928,15 +1931,6 @@ export default {
           parseFloat(this.ingresos.igvopview),
       ).toFixed(4);
 
-      // --------------------------------------- moneda extranjera
-
-      // this.ingresos.igvopview = parseFloat(
-      //   this.ingresos.montoopview * igv,
-      // ).toFixed(2);
-      // this.ingresos.totalopview = parseFloat(
-      //   parseFloat(this.ingresos.montoopview) +
-      //     parseFloat(this.ingresos.montoopview * igv),
-      // ).toFixed(2);
     },
     calcularMontoDolar() {
       this.monto = parseFloat(
@@ -2040,6 +2034,8 @@ export default {
           montoopview: 0,
           igvopview: 0,
           totalopview: 0,
+          tipocambio: 1,
+          id_orders: house.id_orders,
         };
         this.house = house;
       }, 500);
@@ -2185,7 +2181,7 @@ export default {
       }
       let house = this.master_houses.find(
         (v) =>
-          v.id_house == this.ingresos.id_house &&
+          v.id_orders == this.ingresos.id_orders &&
           v.id_correlativo == this.ingresos.id_correlativo,
       );
 
@@ -2204,6 +2200,7 @@ export default {
           return;
         }
       }
+
       var data = {
         ...this.ingresos,
         code_master: this.$route.params.code_master,
