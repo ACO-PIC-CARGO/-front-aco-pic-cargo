@@ -113,8 +113,8 @@
                         color="success"
                         x-small
                         @click="
-                          copiarMontosHouse(
-                            null,
+                          abriModalCopiar(
+                            house.ingresos,
                             bloquearCopiarMontos(house.ingresos),
                           )
                         "
@@ -131,7 +131,7 @@
                     color="success"
                     x-small
                     @click="
-                      copiarMontosHouse(
+                      abriModalCopiar(
                         house,
                         bloquearCopiarMontos(house.ingresos),
                       )
@@ -1338,6 +1338,43 @@
         </v-card-actions>
       </v-card>
     </v-dialog>
+
+    <v-dialog v-model="dialogCopiar" scrollable persistent max-width="40%">
+      <v-card>
+        <v-card-title primary-title>
+          COPIAR COSTOS {{ ingresos.consigner }} - {{ ingresos.correlativo }}
+        </v-card-title>
+        <v-card-text>
+          <v-form ref="frmCopiar">
+            <v-autocomplete
+              :items="$store.state.itemsCoinsList"
+              v-model="ingresos.id_coins"
+              item-text="acronym"
+              item-value="id"
+              label="Moneda de Banco Salida"
+              @change="obtenerMoneda()"
+              :rules="[(v) => !!v || 'Dato Requerido']"
+            />
+
+            <v-text-field
+              dense
+              v-model="ingresos.tipocambio"
+              type="number"
+              label="Tipo de Cambio"
+              step="0.01"
+              :rules="[(v) => !!v || 'Dato Requerido']"
+            />
+          </v-form>
+        </v-card-text>
+        <v-card-actions>
+          <v-spacer></v-spacer>
+          <v-btn color="success" @click="copiarMontos()">COPIAR</v-btn>
+          <v-btn color="danger" @click="dialogCopiar = !dialogCopiar">
+            CANCELAR
+          </v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
   </v-container>
 </template>
 
@@ -1380,7 +1417,9 @@ export default {
 
   data() {
     return {
+      dialogCopiar: false,
       loadingFile: false,
+      ingreso:{},
       listaDocumentosQuote: [
         {
           key: "cotizacion",
@@ -1494,6 +1533,7 @@ export default {
         monto_pr: 0,
         igv_pr: 0,
         total_pr: 0,
+        id_coins:''
       },
       headersdebs: [
         {
@@ -1740,30 +1780,46 @@ export default {
     openDoc(path) {
       window.open(path, "_blank");
     },
-    copiarMontosHouse(house, bloquearCopiarMontos) {
-      console.log(house);
+    abriModalCopiar(ingreso, bloquearCopiarMontos) {
+      this.ingreso = {};
       if (bloquearCopiarMontos) {
         return;
       }
-      Swal.fire({
-        icon: "question",
-        title: "Copiar Montos de Pricing a Operaciones",
-        text: `¿Desea copiar los Montos del house ${house.code_house} Pricing a Operaciones `,
-        allowEnterKey: false,
-        allowOutsideClick: false,
-        allowEscapeKey: false,
-        showCancelButton: false,
-        showDenyButton: true,
-        confirmButtonText: "Copiar",
-        denyButtonText: "Cancelar",
-      }).then(async (res) => {
-        if (res.isConfirmed) {
-          await this.copiarCGingresos({ id_orders: house.id_orders });
-          await this.getListControlGastosHouses(this.$route.params.id);
-        }
-      });
-      // console.log(id_orders);
+
+      this.ingresos = ingreso;
+      this.dialogCopiar = true;
     },
+    async copiarMontos() {
+      if (this.$refs.frmCopiar.validate()) {
+        await this.copiarCGingresos(this.ingresos);
+        await this.getListControlGastosHouses(this.$route.params.id);
+        this.dialogCopiar = false;
+      }
+    },
+    // copiarMontosHouse(house, bloquearCopiarMontos) {
+    //   console.log(house);
+    //   if (bloquearCopiarMontos) {
+    //     return;
+    //   }
+    //   Swal.fire({
+    //     icon: "question",
+    //     title: "Copiar Montos de Pricing a Operaciones",
+    //     text: `¿Desea copiar los Montos del house ${house.code_house} Pricing a Operaciones `,
+    //     allowEnterKey: false,
+    //     allowOutsideClick: false,
+    //     allowEscapeKey: false,
+    //     showCancelButton: false,
+    //     showDenyButton: true,
+    //     confirmButtonText: "Copiar",
+    //     denyButtonText: "Cancelar",
+    //   }).then(async (res) => {
+    //     if (res.isConfirmed) {
+    //       await this.copiarCGingresos({ id_orders: house.id_orders });
+    //       await this.getListControlGastosHouses(this.$route.params.id);
+    //     }
+    //   });
+    //   // console.log(id_orders);
+    // },
     _newDebs() {
       this.loading = false;
       this.boolFile = false;
