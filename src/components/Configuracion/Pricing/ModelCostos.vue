@@ -101,6 +101,11 @@
                 outlined
               ></v-autocomplete>
             </template>
+            <template v-slot:[`item.action`]="{ item }">
+              <v-btn color="success" icon @click="copiarCosto(item)">
+                <v-icon>mdi-content-copy</v-icon>
+              </v-btn>
+            </template>
           </v-data-table>
         </v-expansion-panel-content>
       </v-expansion-panel>
@@ -206,6 +211,7 @@
 import { mapState } from "vuex";
 import { mapActions } from "vuex/dist/vuex.common.js";
 import _ from "lodash";
+import Swal from "sweetalert2";
 
 export default {
   props: {
@@ -247,6 +253,7 @@ export default {
         { value: "precio", text: "Precio", width: "10%" },
         { value: "minimo", text: "Valor Mínimo", width: "10%" },
         { value: "status", text: "Status", width: "5%" },
+        { value: "action", text: "", width: "5%" },
       ],
     };
   },
@@ -263,6 +270,28 @@ export default {
       "getMultiplicadorConfigCosto",
       "setGuardarCostos",
     ]),
+    copiarCosto(item) {
+      console.log(item);
+      Swal.fire({
+        icon: "question",
+        title: "Copiar",
+        text: `Está seguro que desea copiar el concepto ${item.costo}`,
+        confirmButtonText: "Si, copiar",
+        showDenyButton: true,
+        denyButtonText: "No, Cancelar",
+      }).then((res) => {
+        if (res.isConfirmed) {
+          this.lstCostos.push({
+            ...item,
+            id: null,
+            id_costo: null,
+            id_modality: this.id_modality,
+            id_shipment: this.id_shipment,
+            id_incoterms: this.id_incoterms,
+          });
+        }
+      });
+    },
     mostrarMinimo(item) {
       const codigosEspeciales = [13, 14, 15];
 

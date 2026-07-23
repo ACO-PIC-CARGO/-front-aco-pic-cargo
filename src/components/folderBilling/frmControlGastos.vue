@@ -489,7 +489,12 @@ export default {
         headers: {
           "Content-Type": "application/json",
         },
-        data: { ...this.$route.params, guardarEnCarpeta: guardarEnCarpeta },
+        data: {
+          ...this.$route.params,
+          guardarEnCarpeta: guardarEnCarpeta,
+          folders_quote:
+            this.$store.state.controlGastos.listControlGastos[0].folders_quote,
+        },
       };
       await axios(config)
         .then(function (response) {

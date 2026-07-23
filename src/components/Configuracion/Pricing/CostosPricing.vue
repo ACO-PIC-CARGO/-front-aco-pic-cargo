@@ -1,6 +1,6 @@
 <template>
   <v-card>
-    <v-container fluid>
+    <v-container>
       <v-row>
         <v-col cols="12">
           <v-form ref="frmBuscar">
@@ -28,6 +28,15 @@
                   v-model="id_shipment"
                   :rules="[(v) => !!v || 'Dato Requerido']"
                 />
+              </v-col>
+              <v-col cols="12" md="2">
+                <v-btn
+                  color="success"
+                  @click="obtenerDatos()"
+                  :disabled="!id_modality || !id_shipment"
+                >
+                  Obtener Datos
+                </v-btn>
               </v-col>
             </v-row>
           </v-form>
@@ -182,6 +191,7 @@ export default {
       id_modality: "",
       id_shipment: "",
       id_incoterms: "",
+      mostrarListadoIncoterms: false,
     };
   },
   async mounted() {
@@ -274,12 +284,22 @@ export default {
       this.CargarIncotermsConfig();
       this.dialog = false;
     },
+    obtenerDatos() {
+      this.cargandoTabla = true;
+      this.$store.state.spiner = true;
+      this.mostrarListadoIncoterms = false;
+      setTimeout(() => {
+        this.$store.state.spiner = false;
+        this.cargandoTabla = false;
+        this.mostrarListadoIncoterms = true;
+      }, 500);
+    },
   },
   computed: {
     ...mapState("configuracion", ["lstCostos", "lstMultiplicador"]),
-    mostrarListadoIncoterms() {
-      return !!this.id_modality && !!this.id_shipment;
-    },
+    // mostrarListadoIncoterms() {
+    //   return !!this.id_modality && !!this.id_shipment;
+    // },
     listadoIncoterms() {
       let name = [];
       if (this.id_modality == 1) {
@@ -295,22 +315,22 @@ export default {
     },
   },
   watch: {
-    id_modality() {
-      this.$store.state.spiner = true;
-      this.cargandoTabla = true;
-      setTimeout(() => {
-        this.$store.state.spiner = false;
-        this.cargandoTabla = false;
-      }, 500);
-    },
-    id_shipment() {
-      this.$store.state.spiner = true;
-      this.cargandoTabla = true;
-      setTimeout(() => {
-        this.$store.state.spiner = false;
-        this.cargandoTabla = false;
-      }, 500);
-    },
+    // id_modality() {
+    //   this.$store.state.spiner = true;
+    //   this.cargandoTabla = true;
+    //   setTimeout(() => {
+    //     this.$store.state.spiner = false;
+    //     this.cargandoTabla = false;
+    //   }, 500);
+    // },
+    // id_shipment() {
+    //   this.$store.state.spiner = true;
+    //   this.cargandoTabla = true;
+    //   setTimeout(() => {
+    //     this.$store.state.spiner = false;
+    //     this.cargandoTabla = false;
+    //   }, 500);
+    // },
   },
 };
 </script>

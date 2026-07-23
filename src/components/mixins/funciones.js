@@ -383,8 +383,7 @@ const miMixin = {
                   datosPrincipales.amount,
                 );
             } else if (
-               codemultiplicador &&
-              codemultiplicador.code == 5 ||
+              (codemultiplicador && codemultiplicador.code == 5) ||
               codemultiplicador.code == 13 ||
               codemultiplicador.code == 14
             ) {
@@ -409,26 +408,12 @@ const miMixin = {
             )
           ) {
             cost.push({
+              ...costo,
               code_cost: costo.code_cost ? costo.code_cost : null,
               id: costo.id ? costo.id : null,
-              id_proveedor: costo.id_proveedor,
-              id_multiplicador: costo.id_multiplicador,
               concepto: costo.nameservice,
-              costounitario: costo.costounitario,
               minimo: costo.minimo ? costo.minimo : 0,
-              esorigenflag: costo.esorigenflag,
-              esfleteflag: costo.esfleteflag,
-              eslocalflag: costo.eslocalflag,
-              esaduanaflag: costo.esaduanaflag,
-              esalmacenflag: costo.esalmacenflag,
-              esgastostercerosflag: costo.esgastostercerosflag,
-              status: costo.status,
-              esopcionflag: costo.esventaflag == 1 ? 0 : 1,
-              esventaflag: costo.esventaflag,
-              cif: costo.cif,
-              seguro: costo.seguro,
               subtotal: subTotal,
-              nro_propuesta: costo.nro_propuesta,
             });
           }
         });
