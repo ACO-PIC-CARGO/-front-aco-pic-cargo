@@ -605,6 +605,12 @@ export default {
     "$store.state.pricing.datosPrincipales.esgrupalflag"() {
       if (this.$store.state.pricing.datosPrincipales.esgrupalflag === true) {
         this.$store.state.pricing.datosPrincipales.esindividualflag = false;
+        let percepcionAduana =
+          this.$store.state.masterusuarios.lstPercepcionAduana.find(
+            (v) => v.codigo == "02",
+          );
+        this.$store.state.pricing.datosPrincipales.id_percepcionaduana =
+          percepcionAduana.id;
         setTimeout(() => {
           Promise.all([
             this.cambiarMontosACero({
@@ -836,8 +842,7 @@ export default {
       if (item.code_cost == 4 && item.esventaflag == 1) {
         if (this.$store.state.pricing.datosPrincipales.esgrupalflag) {
           let val =
-            !!this.$store.state.calculadoras.fletePricing
-              .monto_flete_grupal;
+            !!this.$store.state.calculadoras.fletePricing.monto_flete_grupal;
           datoFlete.monto = val
             ? this.$store.state.calculadoras.fletePricing.monto_flete_grupal
             : 0;
@@ -899,6 +904,7 @@ export default {
     },
     async guardarContainer() {
       let cantCostos = this.$store.state.pricing.listCostos.length;
+
       this.err = "";
       if (this.$refs.frmContainer.validate()) {
         if (
@@ -943,6 +949,22 @@ export default {
         return;
       }
 
+      if (this.$store.state.pricing.datosPrincipales.esgrupalflag) {
+        if (
+          !this.$store.state.pricing.listPortBegin.some(
+            (v) =>
+              v.id == this.$store.state.pricing.datosPrincipales.idorigen &&
+              v.puerto == "NINGBO",
+          )
+        ) {
+          Swal.fire({
+            icon: "warning",
+            title: "Cotización Grupal",
+            text: "Para una cotización grupal, el puerto de salida debe ser NINGBO",
+          });
+          return;
+        }
+      }
       if (this.$refs.frmPuerto.validate()) {
         if (
           this.$store.state.pricing.datosPrincipales.idtipocarga.code == "FCL"

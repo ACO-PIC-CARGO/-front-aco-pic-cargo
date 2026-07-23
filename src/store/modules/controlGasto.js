@@ -507,6 +507,22 @@ const actions = {
       });
     return state.response;
   },
+  async imprimirGuardarControlDetallado({}, data) {
+    var vm = this;
+    // vm._calcularTotales();
+    console.log("imprimirGuardarControlDetallado", data);
+    var config = {
+      method: "post",
+      url: process.env.VUE_APP_URL_MAIN + "getPdfInstructivoDetallado",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      data: data,
+    };
+    await axios(config).catch(function (error) {
+      console.error(error);
+    });
+  },
 };
 
 export default {

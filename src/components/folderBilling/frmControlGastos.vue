@@ -492,6 +492,7 @@ export default {
         data: {
           ...this.$route.params,
           guardarEnCarpeta: guardarEnCarpeta,
+          asociadoflag:false,
           folders_quote:
             this.$store.state.controlGastos.listControlGastos[0].folders_quote,
         },

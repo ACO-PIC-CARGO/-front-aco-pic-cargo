@@ -6303,23 +6303,42 @@ const actions = {
         dataParaAprobar.nuevoexpediente == true &&
         id_branchs.includes(id_branch)
       ) {
-        await dispatch("guardarCarpetaHouse", {
-          nroMaster: name,
-          id: data.data[0].id_master,
-          idSelectedFile: state.selectedFile.map((v) => v.id),
-        });
+        Promise.all([
+          dispatch("guardarCarpetaHouse", {
+            nroMaster: name,
+            id: data.data[0].id_master,
+            idSelectedFile: state.selectedFile.map((v) => v.id),
+          }),
+         
+          dispatch("imprimirGuardarControlDetallado", {
+            guardarEnCarpeta: false,
+            asociadoflag: true,
+            id: data.data[0].id_master,
+            id_branch: JSON.parse(sessionStorage.getItem("dataUser"))[0]
+              .id_branch,
+          }),
+        ]);
       }
 
       if (
         dataParaAprobar.nuevoexpediente == false &&
         id_branchs.includes(id_branch)
       ) {
-        await dispatch("moveFileToOneDrive", {
-          destinationFolderUrl: dataParaAprobar.url_folderonedrive,
-          nroMaster: name,
-          id: data.data[0].id_master,
-          fileIds: state.selectedFile.map((v) => v.id),
-        });
+        Promise.all([
+          dispatch("moveFileToOneDrive", {
+            destinationFolderUrl: dataParaAprobar.url_folderonedrive,
+            nroMaster: name,
+            id: data.data[0].id_master,
+            fileIds: state.selectedFile.map((v) => v.id),
+          }),
+          dispatch("imprimirGuardarControlDetallado", {
+            guardarEnCarpeta: false,
+            asociadoflag: true,
+            id: data.data[0].id_master,
+            id_branch: JSON.parse(sessionStorage.getItem("dataUser"))[0]
+              .id_branch,
+          }),
+        ]);
       }
       Swal.fire({
         icon: data.estadoflag == true ? "success" : "error",
