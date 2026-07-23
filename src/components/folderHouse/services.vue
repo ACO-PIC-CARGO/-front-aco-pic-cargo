@@ -397,7 +397,7 @@ export default {
           }
         })
         .catch(function (error) {
-          console.log(error);
+          console.error(error);
         });
     },
     _activeServices(id) {
@@ -420,7 +420,7 @@ export default {
           }
         })
         .catch(function (error) {
-          console.log(error);
+          console.error(error);
         });
     },
     _inactiveServices(id) {
@@ -443,7 +443,7 @@ export default {
           }
         })
         .catch(function (error) {
-          console.log(error);
+          console.error(error);
         });
     },
     _editServices(id, status) {
@@ -467,7 +467,7 @@ export default {
           }
         })
         .catch(function (error) {
-          console.log(error);
+          console.error(error);
         });
     },
     async _validaData() {
@@ -528,7 +528,7 @@ export default {
             }
           })
           .catch(function (error) {
-            console.log(error);
+            console.error(error);
           });
       }
     },
@@ -683,7 +683,7 @@ export default {
           }
         })
         .catch(function (error) {
-          console.log(error);
+          console.error(error);
         });
     },
   },

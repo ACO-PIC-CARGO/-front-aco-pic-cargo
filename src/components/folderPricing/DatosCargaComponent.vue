@@ -591,7 +591,9 @@ export default {
       },
     };
   },
-  async mounted() {},
+  async mounted() {
+    // console.log("listPortEnd", this.$store.state.pricing.listPortEnd);
+  },
   computed: {
     abrirModalContenedor: {
       get() {
@@ -682,25 +684,37 @@ export default {
           .map((v) => v.code_service),
       );
       let costos = [...this.$store.state.pricing.preCostos];
+      let idTipoCarga =
+        typeof this.$store.state.pricing.datosPrincipales.idtipocarga ===
+        "object"
+          ? this.$store.state.pricing.datosPrincipales.idtipocarga.id
+          : this.$store.state.pricing.datosPrincipales.idtipocarga;
       let c = costos.filter(
         (v) =>
           v.id_incoterms ==
             this.$store.state.pricing.datosPrincipales.idincoterms &&
           v.id_modality ==
             this.$store.state.pricing.datosPrincipales.idsentido &&
-          v.id_shipment ==
-            this.$store.state.pricing.datosPrincipales.idtipocarga.id &&
-          codeServicesActivos.has(v.code_service),
+          v.id_shipment == idTipoCarga &&
+          codeServicesActivos.has(Number(v.code_service)),
       );
-
       this.$store.state.pricing.opcionCostos.forEach((element1) => {
         element1.listCostos.forEach((element) => {
+          // FLETE
+          let flete = this.obtenerFleteOpcion(element);
+          let fleteVenta = this.obtenerFleteOpcionVenta(element);
+
           let costo = c.find((v) => v.code_cost == element.code_cost);
-          element.costounitario = esgrupalflag
-            ? 0
-            : esindividualflag
-            ? costo.costounitario
-            : 0;
+          element.costounitario =
+            parseFloat(
+              esgrupalflag
+                ? 0
+                : esindividualflag
+                ? costo?.costounitario || 0
+                : 0,
+            ) +
+            parseFloat(flete.monto) +
+            parseFloat(fleteVenta.monto);
           element.cif = esgrupalflag
             ? 0
             : esindividualflag
@@ -711,6 +725,18 @@ export default {
             : esindividualflag
             ? parseFloat(0.45)
             : parseFloat(0.45);
+          element.tienefleteflag =
+            element.esopcionflag == 1
+              ? flete.tienefleteflag
+              : element.esventaflag == 1
+              ? fleteVenta.tienefleteflag
+              : false;
+          element.fechavigencia =
+            element.esopcionflag == 1
+              ? flete.fechavigencia
+              : element.esventaflag == 1
+              ? fleteVenta.fechavigencia
+              : null;
         });
       });
       setTimeout(() => {
@@ -759,6 +785,74 @@ export default {
           v.id == this.$store.state.pricing.datosPrincipales.idincoterms &&
           v.name == "FOB",
       );
+    },
+    obtenerFleteOpcion(item) {
+      let datoFlete = { monto: 0, tienefleteflag: false, fechavigencia: null };
+      if (item.code_cost == 4 && item.esopcionflag == 1) {
+        if (this.$store.state.pricing.datosPrincipales.esindividualflag) {
+          let val = !!this.$store.state.calculadoras.fletePricing.monto_flete;
+          datoFlete.monto = val
+            ? this.$store.state.calculadoras.fletePricing.monto_flete
+            : 0;
+          datoFlete.tienefleteflag = val;
+          datoFlete.fechavigencia = val
+            ? this.$store.state.calculadoras.fletePricing.vigencia
+            : null;
+        }
+        if (this.$store.state.pricing.datosPrincipales.esgrupalflag) {
+          let val =
+            !!this.$store.state.calculadoras.fletePricing.monto_flete_grupal;
+          datoFlete.monto = val
+            ? this.$store.state.calculadoras.fletePricing.monto_flete_grupal
+            : 0;
+          datoFlete.tienefleteflag = val;
+          datoFlete.fechavigencia = val
+            ? this.$store.state.calculadoras.fletePricing.vigencia_grupal ||
+              null
+            : null;
+        }
+      }
+      return datoFlete;
+    },
+    obtenerFleteOpcionVenta(item) {
+      let datoFlete = { monto: 0, tienefleteflag: false, fechavigencia: null };
+      if (item.code_cost == 7 && item.esventaflag == 1) {
+        if (this.$store.state.pricing.datosPrincipales.esgrupalflag) {
+          let val =
+            !!this.$store.state.calculadoras.fletePricing
+              .monto_flete_grupal_venta;
+          datoFlete.monto = val
+            ? this.$store.state.calculadoras.fletePricing
+                .monto_flete_grupal_venta -
+              this.$store.state.calculadoras.fletePricing.monto_flete_grupal
+            : 0;
+          datoFlete.tienefleteflag = val;
+          datoFlete.fechavigencia = val
+            ? this.$store.state.calculadoras.fletePricing
+                .vigencia_grupal_venta || null
+            : null;
+        }
+      }
+      if (item.code_cost == 4 && item.esventaflag == 1) {
+        if (this.$store.state.pricing.datosPrincipales.esgrupalflag) {
+          let val =
+            !!this.$store.state.calculadoras.fletePricing
+              .monto_flete_grupal;
+          datoFlete.monto = val
+            ? this.$store.state.calculadoras.fletePricing.monto_flete_grupal
+            : 0;
+          datoFlete.tienefleteflag = val;
+          datoFlete.fechavigencia = val
+            ? this.$store.state.calculadoras.fletePricing
+                .vigencia_grupal_venta || null
+            : null;
+        }
+        console.log(datoFlete);
+      }
+      if (datoFlete.monto < 0) {
+        datoFlete.monto = 0;
+      }
+      return datoFlete;
     },
     async recargarPuertoOrigen(textoBuscar) {
       let idtipocarga =

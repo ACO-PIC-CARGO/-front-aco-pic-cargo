@@ -325,27 +325,13 @@ const miMixin = {
             )
           ) {
             cost.push({
+              ...costo,
               code_service: costo.code_service ? costo.code_service : "",
               code_cost: costo.code_cost ? costo.code_cost : "",
               id: costo.id ? costo.id : "",
-              id_proveedor: costo.id_proveedor,
-              id_multiplicador: costo.id_multiplicador,
               concepto: costo.nameservice,
-              costounitario: costo.costounitario,
               minimo: costo.minimo ? costo.minimo : 0,
-              esfleteflag: costo.esfleteflag,
-              esorigenflag: costo.esorigenflag,
-              eslocalflag: costo.eslocalflag,
-              esaduanaflag: costo.esaduanaflag,
-              esalmacenflag: costo.esalmacenflag,
-              esgastostercerosflag: costo.esgastostercerosflag,
-              status: costo.status,
-              esopcionflag: costo.esventaflag == 1 ? 0 : 1,
-              esventaflag: costo.esventaflag,
-              cif: costo.cif,
-              seguro: costo.seguro,
               subtotal: subTotal,
-              nro_propuesta: costo.nro_propuesta,
             });
           }
         });

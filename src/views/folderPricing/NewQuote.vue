@@ -171,6 +171,7 @@ export default {
       "_getContainers",
       "crearCarpetaOneDrive",
       "actualizarURLEnElQuote",
+      "obtenerFleteCalculadora",
     ]),
     recargar() {
       if (this.$store.state.pricing.listServices.length > 0) {
@@ -217,6 +218,12 @@ export default {
     },
     async activarServicios() {
       this.ServicesComponentFlag = true;
+      let idTipoCarga =
+        typeof this.$store.state.pricing.datosPrincipales.idtipocarga ===
+        "object"
+          ? this.$store.state.pricing.datosPrincipales.idtipocarga.id
+          : this.$store.state.pricing.datosPrincipales.idtipocarga;
+
       let services = [...this.$store.state.pricing.preServices];
       let serv = services.filter(
         (v) =>
@@ -227,7 +234,25 @@ export default {
           v.id_shipment ==
             this.$store.state.pricing.datosPrincipales.idtipocarga.id,
       );
-      this.getTipoCostos();
+      Promise.all([
+        this.getTipoCostos(),
+        this.obtenerFleteCalculadora({
+          shipment: this.$store.state.pricing.listShipment.find(
+            (v) => v.id == idTipoCarga,
+          ).code,
+          puerto_origen: this.$store.state.pricing.listPortBegin.find(
+            (v) =>
+              v.id_port == this.$store.state.pricing.datosPrincipales.idorigen,
+          ).puerto,
+          puerto_destino: this.$store.state.pricing.listPortEnd.find(
+            (v) =>
+              v.id_port == this.$store.state.pricing.datosPrincipales.iddestino,
+          ).puerto,
+          volumen: this.$store.state.pricing.datosPrincipales.volumen,
+          peso: this.$store.state.pricing.datosPrincipales.peso,
+        }),
+      ]);
+
       this.$store.state.pricing.listServices = serv;
       this.$nextTick(() => {
         // setTimeout(() => {
@@ -237,6 +262,7 @@ export default {
         }
         // }, 100);
       });
+
       this.$store.state.spiner = false;
     },
     recargarServicios() {
@@ -305,7 +331,6 @@ export default {
         idContainer = this.$store.state.pricing.datosPrincipales.containers.map(
           (v) => v.id,
         );
-        console.log("ID de Containers:", idContainer);
       }
 
       let cFiltrado = c.filter((v) => {
@@ -318,6 +343,9 @@ export default {
       let codeCost = [69, 114, 105, 39];
 
       let cDuplicado = cFiltrado.flatMap((item) => {
+        let flete = this.obtenerFleteOpcion(item);
+        let fleteVenta = this.obtenerFleteOpcionVenta(item);
+
         if (codeCost.includes(item.code_cost)) {
           return [
             {
@@ -331,11 +359,19 @@ export default {
               seguro: this.$store.state.pricing.datosPrincipales.esgrupalflag
                 ? 0
                 : parseFloat(0.45),
-              costounitario: this.$store.state.pricing.datosPrincipales
-                .esgrupalflag
-                ? 0
-                : item.costounitario,
+              costounitario:
+                parseFloat(
+                  this.$store.state.pricing.datosPrincipales.esgrupalflag
+                    ? 0
+                    : item.costounitario,
+                ) +
+                parseFloat(flete.monto) +
+                parseFloat(fleteVenta.monto),
               nro_propuesta: 1,
+              tienefleteflag: tienefleteflag,
+              fechavigencia: fechavigencia,
+              tienefleteflag: false,
+              fechavigencia: null,
             },
           ];
         } else {
@@ -391,11 +427,15 @@ export default {
               seguro: this.$store.state.pricing.datosPrincipales.esgrupalflag
                 ? 0
                 : parseFloat(0.45),
-              costounitario: this.$store.state.pricing.datosPrincipales
-                .esgrupalflag
-                ? 0
-                : item.costounitario,
+              costounitario:
+                parseFloat(
+                  this.$store.state.pricing.datosPrincipales.esgrupalflag
+                    ? 0
+                    : item.costounitario,
+                ) + parseFloat(flete.monto),
               nro_propuesta: 1,
+              tienefleteflag: flete.tienefleteflag,
+              fechavigencia: flete.fechavigencia,
             },
             {
               ...item,
@@ -411,8 +451,12 @@ export default {
                   this.$store.state.pricing.datosPrincipales.esgrupalflag
                     ? 0
                     : item.costounitario,
-                ) + parseFloat(montoprofit),
+                ) +
+                parseFloat(montoprofit) +
+                parseFloat(fleteVenta.monto),
               tieneprofitflag: parseFloat(montoprofit) > 0,
+              tienefleteflag: fleteVenta.tienefleteflag,
+              fechavigencia: fleteVenta.fechavigencia,
             },
           ];
         }
@@ -451,14 +495,79 @@ export default {
         }
       });
     },
+    obtenerFleteOpcion(item) {
+      let datoFlete = { monto: 0, tienefleteflag: false, fechavigencia: null };
+      if (item.code_cost == 4) {
+        if (this.$store.state.pricing.datosPrincipales.esindividualflag) {
+          let val = !!this.$store.state.calculadoras.fletePricing.monto_flete;
+          datoFlete.monto = val
+            ? this.$store.state.calculadoras.fletePricing.monto_flete
+            : 0;
+          datoFlete.tienefleteflag = val;
+          datoFlete.fechavigencia = val
+            ? this.$store.state.calculadoras.fletePricing.vigencia
+            : null;
+        }
+        if (this.$store.state.pricing.datosPrincipales.esgrupalflag) {
+          let val =
+            !!this.$store.state.calculadoras.fletePricing.monto_flete_grupal;
+          datoFlete.monto = val
+            ? this.$store.state.calculadoras.fletePricing.monto_flete_grupal
+            : 0;
+          datoFlete.tienefleteflag = val;
+          datoFlete.fechavigencia = val
+            ? this.$store.state.calculadoras.fletePricing.vigencia_grupal ||
+              null
+            : null;
+        }
+        console.log(datoFlete);
+      }
+      return datoFlete;
+    },
+    obtenerFleteOpcionVenta(item) {
+      let datoFlete = { monto: 0, tienefleteflag: false, fechavigencia: null };
+      if (item.code_cost == 7) {
+        if (this.$store.state.pricing.datosPrincipales.esgrupalflag) {
+          let val =
+            !!this.$store.state.calculadoras.fletePricing
+              .monto_flete_grupal_venta;
+          datoFlete.monto = val
+            ? this.$store.state.calculadoras.fletePricing
+                .monto_flete_grupal_venta -
+              this.$store.state.calculadoras.fletePricing.monto_flete_grupal
+            : 0;
+          datoFlete.tienefleteflag = val;
+          datoFlete.fechavigencia = val
+            ? this.$store.state.calculadoras.fletePricing
+                .vigencia_grupal_venta || null
+            : null;
+        }
+      }
+      if (item.code_cost == 4) {
+        if (this.$store.state.pricing.datosPrincipales.esgrupalflag) {
+          let val =
+            !!this.$store.state.calculadoras.fletePricing.monto_flete_grupal;
+          datoFlete.monto = val
+            ? this.$store.state.calculadoras.fletePricing.monto_flete_grupal
+            : 0;
+          datoFlete.tienefleteflag = val;
+          datoFlete.fechavigencia = val
+            ? this.$store.state.calculadoras.fletePricing
+                .vigencia_grupal_venta || null
+            : null;
+        }
+        console.log(datoFlete);
+      }
+      if (datoFlete.monto < 0) {
+        datoFlete.monto = 0;
+      }
+      return datoFlete;
+    },
     async guardar() {
-      console.log("Guardando cotización...");
       this.$store.state.spiner = true;
 
       this.$store.state.pricing.opcionCostos[0].selected = true;
-      await this.registrarQuote({ fullflag: false }).catch((err) => {
-        console.log("registrarQuote", err);
-      });
+      await this.registrarQuote({ fullflag: false }).catch((err) => {});
       if (this.$store.state.pricing.nro_quote) {
         this.$store.state.spiner = false;
         let vm = this;
@@ -485,22 +594,18 @@ export default {
           .id_branch;
         let branchCreacion = [1, 2];
         if (branchCreacion.includes(id_branch)) {
-          console.log("Iniciando creación de carpeta...");
           const urlGenerada = await this.crearCarpetaOneDrive({
             nro_quote: this.$store.state.pricing.nro_quote,
             nombre: this.$store.state.pricing.datosPrincipales.nombre,
           });
-
-          console.log("URL capturada en generar():", urlGenerada);
 
           if (urlGenerada) {
             await this.actualizarURLEnElQuote({
               id: this.$store.state.pricing.id,
               url: urlGenerada,
             });
-            console.log("Base de datos actualizada con URL de OneDrive");
           } else {
-            console.warn(
+            console.error(
               "No se obtuvo URL de OneDrive, se saltó la actualización.",
             );
           }
@@ -530,7 +635,6 @@ export default {
         idContainer = this.$store.state.pricing.datosPrincipales.containers.map(
           (v) => v.id,
         );
-        console.log("ID de Containers:", idContainer);
       }
       let cFiltrado = c.filter((v) => {
         if (v.escontenedorflag) {
@@ -647,8 +751,7 @@ export default {
       this.$store.state.spiner = false;
     },
     async recargarCostos() {
-      await this.getTipoCostos();
-      await this.getMultiplicador();
+      Promise.all([this.getTipoCostos(), this.getMultiplicador()]);
       let codeServicesActivos = new Set(
         this.$store.state.pricing.listServices
           .filter((v) => v.status === true || v.status === 1)

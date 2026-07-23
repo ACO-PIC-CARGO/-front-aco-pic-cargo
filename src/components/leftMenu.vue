@@ -50,7 +50,7 @@ export default {
           vm._getGroupList();
         })
         .catch(function (error) {
-          console.log(error);
+          console.error(error);
         });
     },
     _setidMenu(idMenu, name) {

@@ -947,10 +947,10 @@ export default {
             }
           })
           .catch(function (error) {
-            console.log(error);
+            console.error(error);
           });
       } catch (error) {
-        console.log(error);
+        console.error(error);
       }
     },
 
@@ -969,7 +969,7 @@ export default {
           vm._getAccountsNumber();
         })
         .catch(function (error) {
-          console.log(error);
+          console.error(error);
         });
     },
 
@@ -995,7 +995,7 @@ export default {
           vm.$store.state.itemsDataAccountsNumberList = response.data.data;
         })
         .catch(function (error) {
-          console.log(error);
+          console.error(error);
         });
     },
 
@@ -1024,7 +1024,7 @@ export default {
           vm._getAccountsNumber();
         })
         .catch(function (error) {
-          console.log(error);
+          console.error(error);
         });
     },
 

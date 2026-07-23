@@ -243,17 +243,33 @@
                   {{ $store.state.enterprises.impuesto.nombre_impuesto }} Op
                 </th>
                 <th style="background: #ffd6d6" class="text-left">Total Op</th>
-                <th style="background: #d8ffde" class="text-left">
+                <th
+                  style="background: #d8ffde"
+                  class="text-left"
+                  v-if="mostrarMontoOperativos(house.ingresos)"
+                >
                   Monto Op Cuenta Banco
                 </th>
-                <th style="background: #d8ffde" class="text-left">
+                <th
+                  style="background: #d8ffde"
+                  class="text-left"
+                  v-if="mostrarMontoOperativos(house.ingresos)"
+                >
                   {{ $store.state.enterprises.impuesto.nombre_impuesto }} Op
                   Cuenta Banco
                 </th>
-                <th style="background: #d8ffde" class="text-left">
+                <th
+                  style="background: #d8ffde"
+                  class="text-left"
+                  v-if="mostrarMontoOperativos(house.ingresos)"
+                >
                   Total Op Cuenta Banco
                 </th>
-                <th style="background: #d8ffde" class="text-left">
+                <th
+                  style="background: #d8ffde"
+                  class="text-left"
+                  v-if="mostrarMontoOperativos(house.ingresos)"
+                >
                   Tipo Cambio Cuenta Banco
                 </th>
                 <th class="text-center">Facturado</th>
@@ -282,22 +298,36 @@
                   {{ parseFloat(item.total_op).toFixed(2) }}
                 </td>
                 <!-- Monto Op Cuenta Banco -->
-                <td style="background: #d8ffde">
+                <td
+                  style="background: #d8ffde"
+                  v-if="mostrarMontoOperativos(house.ingresos)"
+                >
                   {{ parseFloat(item.montoopcuentabanco).toFixed(2) }}
                   {{ item.acronym }}
                 </td>
                 <!-- IGV Op Cuenta Banco -->
-                <td style="background: #d8ffde" v-if="mostrarImpuesto">
+                <td
+                  style="background: #d8ffde"
+                  v-if="
+                    mostrarImpuesto && mostrarMontoOperativos(house.ingresos)
+                  "
+                >
                   {{ parseFloat(item.igvopcuentabanco).toFixed(2) }}
                   {{ item.acronym }}
                 </td>
                 <!-- Total Op Cuenta Banco -->
-                <td style="background: #d8ffde">
+                <td
+                  style="background: #d8ffde"
+                  v-if="mostrarMontoOperativos(house.ingresos)"
+                >
                   {{ parseFloat(item.totalopcuentabanco).toFixed(2) }}
                   {{ item.acronym }}
                 </td>
                 <!-- Tipo Cambio Cuenta Banco -->
-                <td style="background: #d8ffde">
+                <td
+                  style="background: #d8ffde"
+                  v-if="mostrarMontoOperativos(house.ingresos)"
+                >
                   {{ item.tipocambio == 1 ? "No Aplica" : item.tipocambio }}
                 </td>
                 <td>
@@ -954,9 +984,13 @@
                     hide-default-footer
                     :items-per-page="-1"
                   >
+                   <template v-slot:[`item.tipocambio`]="{ item }">
+                    {{ item.tipocambio != 0 ? item.tipocambio : 'No Aplica' }}
+
+                  </template>
                   </v-data-table>
                 </v-col>
-                <v-col cols="6">
+                <v-col cols="4">
                   <v-autocomplete
                     :items="$store.state.itemsCoinsList"
                     item-text="symbol"
@@ -964,12 +998,13 @@
                     label="Moneda"
                     placeholder="Seleccione una moneda"
                     v-model="id_coins"
-                    :error-messages="errorCoin"
                     ref="coinSelect"
+                    readonly
+                    error-messages="Si necesita cambiar de moneda. Edite el/los concepto(s)"
                   >
                   </v-autocomplete>
                 </v-col>
-                <v-col cols="6" v-if="$store.state.branchs.length > 1">
+                <v-col cols="8" v-if="$store.state.branchs.length > 1">
                   <v-autocomplete
                     :items="$store.state.branchs"
                     item-text="trade_name"
@@ -1583,9 +1618,13 @@ export default {
         // { text: "Monto Pr", value: "monto_pr" },
         // { text: "IGV Pr", value: "igv_pr" },
         // { text: "Total Pr", value: "total_pr" },
-        { text: "Monto Op", value: "monto_op" },
-        { text: "IGV Op", value: "igv_op" },
-        { text: "Total Op", value: "total_op" },
+        // { text: "Monto Op", value: "monto_op" },
+        // { text: "IGV Op", value: "igv_op" },
+        // { text: "Total Op", value: "total_op" },
+        { text: "Monto Op", value: "montoopcuentabanco" },
+        { text: "IGV Op.", value: "igvopcuentabanco" },
+        { text: "Total Op", value: "totalopcuentabanco" },
+        { text: "Tipo Cambio", value: "tipocambio" },
       ],
       conceptos: [],
       selected: [],
@@ -1756,7 +1795,7 @@ export default {
               vm.$emit("recalcularProfit");
             }
           } catch (error) {
-            console.log(error);
+            console.error(error);
             Swal.fire({
               icon: "error",
               title: "Lo sentimos",
@@ -1866,12 +1905,23 @@ export default {
       }, 100);
     },
     abrirModalFacturar(house) {
+      this.conceptos = house.ingresos || [];
+      const simbolosUnicos = new Set(this.conceptos.map((item) => item.symbol));
+      const tieneSimbolosDiferentes = simbolosUnicos.size > 1;
+
+      if (tieneSimbolosDiferentes) {
+        Swal.fire({
+          icon: "error",
+          html: "¡Alerta! Hay múltiples monedas en los ingresos",
+        });
+        return;
+      }
+      
+      this.id_coins = this.conceptos[0] ? this.conceptos[0].id_coins : null;
       this.stepProforma = 1;
       this.house = house;
       this.selected = [];
-      this.conceptos = house.ingresos;
       this.obtenerDatos();
-      this.id_coins = "";
       this.dialogFacturar = true;
     },
     async nuevoControlGasto(house) {
@@ -1930,7 +1980,6 @@ export default {
         parseFloat(this.ingresos.montoopview) +
           parseFloat(this.ingresos.igvopview),
       ).toFixed(4);
-
     },
     calcularMontoDolar() {
       this.monto = parseFloat(
@@ -1986,7 +2035,7 @@ export default {
             });
           })
           .catch(function (error) {
-            console.log(error);
+            console.error(error);
           });
       }
       this.loading = false;
@@ -2111,7 +2160,7 @@ export default {
           vm.dialogDebs = false;
         })
         .catch(function (error) {
-          console.log(error);
+          console.error(error);
         });
     },
     async editIngresos() {
@@ -2133,7 +2182,7 @@ export default {
           this.$swal({
             icon: "warning", // Cambiado a 'warning' porque es una restricción del sistema, no un fallo crítico.
             title: "MONEDAS SOLES DOLARES",
-            html: `<b>Hay conceptos con monedas diferentes</b><br><br>Por favor chequear.`,
+            html: `<b>Hay conceptos con monedas diferentes</b><br><br>Por favor chequear. NO SE CARGARÁ EL COSTO.`,
             confirmButtonColor: "#3085d6",
             confirmButtonText: "ACEPTAR",
           });
@@ -2193,7 +2242,7 @@ export default {
           this.$swal({
             icon: "warning", // Cambiado a 'warning' porque es una restricción del sistema, no un fallo crítico.
             title: "MONEDAS SOLES DOLARES",
-            html: `<b>Hay conceptos con monedas diferentes</b><br><br>Por favor chequear.`,
+            html: `<b>Hay conceptos con monedas diferentes</b><br><br>Por favor chequear. NO SE CARGARÁ EL COSTO.`,
             confirmButtonColor: "#3085d6",
             confirmButtonText: "ACEPTAR",
           });
@@ -2265,7 +2314,7 @@ export default {
             });
           })
           .catch(function (error) {
-            console.log(error);
+            console.error(error);
           });
       }
     },
@@ -2289,6 +2338,7 @@ export default {
       vm.obtenerDatosHouse = false;
     },
     async generarDocumento() {
+      // return
       this.errorCoin = "";
       if (!this.id_coins) {
         this.errorCoin = "Seleccione una moneda";
@@ -2305,9 +2355,9 @@ export default {
         return {
           concepto: element.concepto,
           id_orders: element.id_orders,
-          igv: element.igv_op,
-          monto: element.monto_op,
-          total: element.total_op,
+          monto: element.montoopcuentabanco,
+          igv: element.igvopcuentabanco,
+          total: element.totalopcuentabanco,
         };
       });
       vm.id_house = vm.selected[0].id_house;
@@ -2538,7 +2588,7 @@ export default {
               }
             })
             .catch(function (error) {
-              console.log(error);
+              console.error(error);
             });
         }
       });
@@ -2726,6 +2776,13 @@ export default {
 
     bloquearCopiarMontos(ingresos) {
       return ingresos.some((v) => v.facturado);
+    },
+    mostrarMontoOperativos(ingresos) {
+      let existeMonedaDiferenteADolar = ingresos.some(
+        (v) => v.acronym !== "USD",
+      );
+
+      return existeMonedaDiferenteADolar;
     },
   },
   computed: {},

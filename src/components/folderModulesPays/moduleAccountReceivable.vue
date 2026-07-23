@@ -379,7 +379,7 @@ export default {
           vm.payPath = JSON.stringify(response.data.data[0].insertid);
         })
         .catch(function (error) {
-          console.log(error);
+          console.error(error);
         });
     },
     cleanData() {
@@ -432,7 +432,7 @@ export default {
           vm._getInvoiceAdminCxC();
         })
         .catch(function (error) {
-          console.log(error);
+          console.error(error);
         });
     },
 
@@ -456,7 +456,7 @@ export default {
           vm.itemsListInvoice = response.data.data;
         })
         .catch(function (error) {
-          console.log(error);
+          console.error(error);
         });
       vm.$store.state.spiner = false;
     },
@@ -483,7 +483,7 @@ export default {
           vm._getInvoiceAdminCxC();
         })
         .catch(function (error) {
-          console.log(error);
+          console.error(error);
         });
     },
   },

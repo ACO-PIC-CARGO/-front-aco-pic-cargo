@@ -700,7 +700,7 @@ export default {
               link.click();
             })
             .catch(function (error) {
-              console.log(error);
+              console.error(error);
             });
 
           vm.exportandopdf = false;
@@ -738,7 +738,7 @@ export default {
           });
         })
         .catch(function (error) {
-          console.log(error);
+          console.error(error);
         });
       vm.$store.state.spiner = false;
     },
@@ -767,7 +767,7 @@ export default {
           //
         })
         .catch(function (error) {
-          console.log(error);
+          console.error(error);
         });
     },
     async _getInvoiceAdminCxCAdmin() {
@@ -804,7 +804,7 @@ export default {
           }, 100);
         })
         .catch(function (error) {
-          console.log(error);
+          console.error(error);
         });
       vm.$store.state.spiner = false;
     },
@@ -1043,7 +1043,7 @@ export default {
           link.click();
         })
         .catch(function (error) {
-          console.log(error);
+          console.error(error);
         });
 
       vm.exportando = false;

@@ -123,8 +123,8 @@
                   @change="recargarServiciosCostos()"
                   return-object
                   :disabled="!EditableFlag"
-                ></v-autocomplete
-              ></v-col>
+                ></v-autocomplete>
+              </v-col>
               <v-col cols="12" class="my-0 py-0">
                 <v-autocomplete
                   label="Incoterms"
@@ -505,7 +505,7 @@ export default {
                 nro_quote: this.$store.state.pricing.nro_quote,
                 nombre: this.$store.state.pricing.datosPrincipales.nombre,
               }).catch((e) => {
-                console.log(e);
+               console.error(e);
               });
 
               if (urlGenerada) {

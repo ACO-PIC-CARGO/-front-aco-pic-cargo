@@ -35,7 +35,7 @@ export default {
   props: ["html"],
   data() {
     return {
-      editorContent: ``, 
+      editorContent: ``,
       editorInit: {
         height: 920,
         menubar: false,
@@ -49,9 +49,7 @@ export default {
         placeholder: "Escribe tu contenido aquí...", // Placeholder en el editor
         setup: (editor) => {
           // Aquí puedes asegurarte de que TinyMCE se inicializa correctamente
-          editor.on("init", () => {
-            console.log("Editor de TinyMCE inicializado.");
-          });
+          editor.on("init", () => {});
         },
       },
     };
@@ -59,7 +57,6 @@ export default {
   methods: {
     guardarContenido() {
       // Aquí puedes hacer lo que desees con el contenido del editor
-      console.log(this.editorContent);
     },
   },
 };

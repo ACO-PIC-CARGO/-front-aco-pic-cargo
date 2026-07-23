@@ -341,7 +341,7 @@ export default {
           }
         })
         .catch(function (error) {
-          console.log(error);
+          console.error(error);
         });
     },
     async _changeStatusBitacora({ id, status }) {
@@ -386,7 +386,7 @@ export default {
           }
         })
         .catch(function (error) {
-          console.log(error);
+          console.error(error);
         });
     },
     async _changeStatusVisibleBitacora({ id, visible_cliente }) {
@@ -432,7 +432,7 @@ export default {
           }
         })
         .catch(function (error) {
-          console.log(error);
+          console.error(error);
         });
     },
     _setDefaultBitacora() {
@@ -552,7 +552,7 @@ export default {
               }
             })
             .catch(function (error) {
-              console.log(error);
+              console.error(error);
             })
             .finally(function () {
               vm.loadingBotonBitacora = !vm.loadingBotonBitacora;
@@ -615,7 +615,7 @@ export default {
           }
         })
         .catch(function (error) {
-          console.log(error);
+          console.error(error);
         });
     },
     async _copyEnlaceTracking(texto) {

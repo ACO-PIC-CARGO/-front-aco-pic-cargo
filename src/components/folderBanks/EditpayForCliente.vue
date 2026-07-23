@@ -348,7 +348,7 @@ export default {
           vm.cuentas = response.data.data;
         })
         .catch(function (error) {
-          console.log(error);
+          console.error(error);
         });
     },
 
@@ -413,7 +413,7 @@ export default {
           vm.payPath = JSON.stringify(response.data.data[0].insertid);
         })
         .catch(function (error) {
-          console.log(error);
+          console.error(error);
         });
     },
     validar(registro = false) {
@@ -491,7 +491,7 @@ export default {
               }
             })
             .catch(function (error) {
-              console.log(error);
+              console.error(error);
             });
           this.loading = false;
         }
@@ -543,7 +543,7 @@ export default {
             }, 200);
           })
           .catch(function (error) {
-            console.log(error);
+            console.error(error);
           });
       }
     },

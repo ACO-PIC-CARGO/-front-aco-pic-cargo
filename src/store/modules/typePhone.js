@@ -58,8 +58,8 @@ const actions = {
           });
         }
       })
-      .catch((error) => {
-        console.log("Error al obtener los datos:", error);
+      .catch((e) => {
+        console.error("Error al obtener los datos:", e);
       });
   },
   async insertTypePhone({ commit }, data) {
@@ -87,8 +87,8 @@ const actions = {
           }
         });
       })
-      .catch((error) => {
-        console.log("Error al obtener los datos:", error);
+      .catch((e) => {
+        console.error("Error al obtener los datos:", e);
       });
   },
   async readTypePhone({ commit }, id) {
@@ -113,8 +113,8 @@ const actions = {
           });
         }
       })
-      .catch((error) => {
-        console.log("Error al obtener los datos:", error);
+      .catch((e) => {
+        console.error("Error al obtener los datos:", e);
       });
   },
   async inactiveTypePhone(_, data) {
@@ -142,8 +142,8 @@ const actions = {
           }
         });
       })
-      .catch((error) => {
-        console.log("Error al obtener los datos:", error);
+      .catch((e) => {
+        console.error("Error al obtener los datos:", e);
       });
   },
   async updateTypePhone(_, data) {
@@ -176,8 +176,8 @@ const actions = {
           });
         }
       })
-      .catch((error) => {
-        console.log("Error al obtener los datos:", error);
+      .catch((e) => {
+        console.error("Error al obtener los datos:", e);
       });
   },
 };

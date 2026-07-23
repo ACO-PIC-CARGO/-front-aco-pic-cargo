@@ -116,7 +116,7 @@ const actions = {
         
       })
       .catch(function (error) {
-        console.log(error);
+        console.error(error);
       });
   },
   async getComparativo({ commit }, data) {
@@ -149,7 +149,7 @@ const actions = {
         
       })
       .catch(function (error) {
-        console.log(error);
+        console.error(error);
       });
   },
   async getCargarTipoIngreso({ commit }) {
@@ -182,7 +182,7 @@ const actions = {
         
       })
       .catch(function (error) {
-        console.log(error);
+        console.error(error);
       });
   },
   async getCargarTipoSubIngreso({ commit }) {
@@ -215,7 +215,7 @@ const actions = {
         
       })
       .catch(function (error) {
-        console.log(error);
+        console.error(error);
       });
   },
   async getCargarTipoGastos({ commit }) {
@@ -248,7 +248,7 @@ const actions = {
         
       })
       .catch(function (error) {
-        console.log(error);
+        console.error(error);
       });
   },
   async getCargarTipoSubGastos({ commit }) {
@@ -281,7 +281,7 @@ const actions = {
         
       })
       .catch(function (error) {
-        console.log(error);
+        console.error(error);
       });
   },
 
@@ -313,7 +313,7 @@ const actions = {
         
       })
       .catch(function (error) {
-        console.log(error);
+        console.error(error);
       });
   },
   async getListBalanaceGananciaFiltro({ commit }, data) {
@@ -344,7 +344,7 @@ const actions = {
         
       })
       .catch(function (error) {
-        console.log(error);
+        console.error(error);
       });
   },
   async getResumenBalanaceGanancia({ commit }, data) {
@@ -375,7 +375,7 @@ const actions = {
         
       })
       .catch(function (error) {
-        console.log(error);
+        console.error(error);
       });
   },
 
@@ -407,7 +407,7 @@ const actions = {
         
       })
       .catch(function (error) {
-        console.log(error);
+        console.error(error);
       });
   },
   async getListBalanaceGastosFiltro({ commit }, data) {
@@ -438,7 +438,7 @@ const actions = {
         
       })
       .catch(function (error) {
-        console.log(error);
+        console.error(error);
       });
   },
   async getResumenBalanaceGastos({ commit }, data) {
@@ -469,7 +469,7 @@ const actions = {
         
       })
       .catch(function (error) {
-        console.log(error);
+        console.error(error);
       });
   },
   async getResumenGastosxTipoGasto({ commit }, data) {
@@ -500,7 +500,7 @@ const actions = {
         
       })
       .catch(function (error) {
-        console.log(error);
+        console.error(error);
       });
   },
   async resumenIngresoTipoIngreso({ commit }, data) {
@@ -531,7 +531,7 @@ const actions = {
         
       })
       .catch(function (error) {
-        console.log(error);
+        console.error(error);
       });
   },
   async getArbolGastos({ commit }) {
@@ -564,7 +564,7 @@ const actions = {
         
       })
       .catch(function (error) {
-        console.log(error);
+        console.error(error);
       });
   },
   async getArbolIngresos({ commit }) {
@@ -597,7 +597,7 @@ const actions = {
         
       })
       .catch(function (error) {
-        console.log(error);
+        console.error(error);
       });
   },
   async exportarBalanceGanancia(__, data) {
@@ -622,7 +622,7 @@ const actions = {
         link.click();
       })
       .catch(function (error) {
-        console.log(error);
+        console.error(error);
       });
   },
   async getListFlujoOperacionMes({ commit }, data) {
@@ -659,7 +659,7 @@ const actions = {
         
       })
       .catch(function (error) {
-        console.log(error);
+        console.error(error);
       });
   },
 };

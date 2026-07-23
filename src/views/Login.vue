@@ -174,7 +174,6 @@ export default {
      
       //-------------------------------------
       await this._getMenuItem();
-      // console.log(JSON.parse(sessionStorage.getItem("menu")));
       this.$store.state.lstMenu = JSON.parse(sessionStorage.getItem("menu"));
       // await this.ListProgrammedPayment();
       setTimeout(() => {

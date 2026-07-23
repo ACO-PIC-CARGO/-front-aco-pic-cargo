@@ -324,9 +324,8 @@ export default {
         !this.$store.state.aduana.datosPrincipales.idincoterms ||
         Object.keys(this.$store.state.aduana.datosPrincipales.idtipocarga) === 0
       ) {
-        return
+        return;
       }
-      console.log("recargarServiciosCostos");
       this.$emit("recargarServiciosCostos", true);
     },
   },
@@ -345,7 +344,7 @@ export default {
       let exw = this.$store.state.aduana.listIncoterms.filter(
         (v) =>
           v.id == this.$store.state.aduana.datosPrincipales.idincoterms &&
-          v.name == "EXW"
+          v.name == "EXW",
       );
 
       return exw.length > 0 ? true : false;
@@ -356,12 +355,10 @@ export default {
       this.$store.state.spiner = true;
       await this._getEntitiesCliente();
       this.$store.state.spiner = false;
-      console.log("llegó");
       if (!!this.$store.state.entities.id) {
         let cliente = this.$store.state.itemsEntities.filter(
-          (v) => v.id == this.$store.state.entities.id
+          (v) => v.id == this.$store.state.entities.id,
         )[0];
-        console.log("cliente", cliente);
         this.$store.state.aduana.datosPrincipales.id_entitie = cliente.id;
         this.$store.state.aduana.datosPrincipales.nombre =
           cliente.nombrecompleto;

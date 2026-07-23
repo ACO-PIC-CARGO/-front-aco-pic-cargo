@@ -1,34 +1,83 @@
 <template>
   <v-container>
-    <v-row>
-      <v-col cols="12">
-        <v-btn color="success" @click="abrirModal({ tipo: 'nuevo', item: {} })"
-          >Nuevo Flete Grupal</v-btn
-        >
-      </v-col>
-      <v-col cols="12">
-        <v-data-table
-          :headers="headers"
-          :items="$store.state.calculadoras.lstFleteGrupal"
-        >
-          <template v-slot:[`item.index`]="{ index }">
-            {{ index + 1 }}
-          </template>
-          <template v-slot:[`item.action`]="{ item }">
-            <v-btn color="error" icon @click="eliminar(item)">
-              <v-icon>mdi-delete</v-icon>
-            </v-btn>
+    <v-tabs v-model="tab" centered icons-and-text>
+      <v-tabs-slider></v-tabs-slider>
+      <v-tab href="#costo"> Costo</v-tab>
+      <v-tab href="#venta"> Venta</v-tab>
+    </v-tabs>
+    <v-tabs-items v-model="tab" class="mt-5">
+      <v-tab-item value="costo">
+        <v-row>
+          <v-col cols="12" style="text-align: end">
             <v-btn
-              color="warning"
-              icon
-              @click="abrirModal({ tipo: 'editar', item: item })"
+              color="success"
+              @click="abrirModal({ tipo: 'nuevo', item: {} })"
             >
-              <v-icon>mdi-pencil</v-icon>
+              Nuevo Flete Grupal
             </v-btn>
-          </template>
-        </v-data-table>
-      </v-col>
-    </v-row>
+          </v-col>
+          <v-col cols="12">
+            <v-data-table
+              :headers="headers"
+              :items="$store.state.calculadoras.lstFleteGrupal"
+              dense
+            >
+              <template v-slot:[`item.index`]="{ index }">
+                {{ index + 1 }}
+              </template>
+              <template v-slot:[`item.action`]="{ item }">
+                <v-btn color="error" icon @click="eliminar(item)">
+                  <v-icon>mdi-delete</v-icon>
+                </v-btn>
+                <v-btn
+                  color="warning"
+                  icon
+                  @click="abrirModal({ tipo: 'editar', item: item })"
+                >
+                  <v-icon>mdi-pencil</v-icon>
+                </v-btn>
+              </template>
+            </v-data-table>
+          </v-col>
+        </v-row>
+      </v-tab-item>
+      <v-tab-item value="venta">
+        <v-row>
+          <v-col cols="12" style="text-align: end">
+            <v-btn
+              color="success"
+              @click="abrirModal({ tipo: 'nuevo', item: {} })"
+            >
+              Nuevo Flete Grupal
+            </v-btn>
+          </v-col>
+          <v-col cols="12">
+            <v-data-table
+              :headers="headers"
+              :items="$store.state.calculadoras.lstFleteGrupalVenta"
+              dense
+            >
+              <template v-slot:[`item.index`]="{ index }">
+                {{ index + 1 }}
+              </template>
+              <template v-slot:[`item.action`]="{ item }">
+                <v-btn color="error" icon @click="eliminar(item)">
+                  <v-icon>mdi-delete</v-icon>
+                </v-btn>
+                <v-btn
+                  color="warning"
+                  icon
+                  @click="abrirModal({ tipo: 'editar', item: item })"
+                >
+                  <v-icon>mdi-pencil</v-icon>
+                </v-btn>
+              </template>
+            </v-data-table>
+          </v-col>
+        </v-row>
+      </v-tab-item>
+    </v-tabs-items>
+
     <v-dialog
       v-model="dialog"
       persistent
@@ -36,7 +85,11 @@
       transition="dialog-transition"
     >
       <v-card class="pa-5">
-        <v-card-title> Nuevo Registro </v-card-title>
+        <v-card-title class="py-0 my-0">
+          {{
+            nuevoflag ? "Nuevo Registro" : editarflag ? "Editar Registro" : ""
+          }}
+        </v-card-title>
         <v-form ref="frmNuevo">
           <v-text-field
             label="Volumen"
@@ -62,6 +115,13 @@
             step="0.01"
             prefix="$."
           ></v-text-field>
+          <!--  -->
+          <FormatFechaVue
+            v-model="form.vigencia"
+            label="Fecha Vigencia"
+            :errorMessages="errorFechaVigencia"
+          />
+          <!--  -->
           <v-card-actions>
             <v-btn
               color="success"
@@ -86,32 +146,47 @@
 import { mapActions, mapState } from "vuex";
 import Swal from "sweetalert2";
 
+import FormatFechaVue from "../comun/FormatFecha.vue";
 export default {
   props: ["type"],
+  components: {
+    FormatFechaVue,
+  },
   data() {
     return {
+      tab: "costo",
       headers: [
-        { text: "#", value: "index", sortable: false },
-        { value: "volumen", text: "Volumen" },
-        { value: "peso", text: "Peso" },
-        { value: "valor", text: "Valor" },
-        { text: "", value: "action", width: "5%" },
+        {width: "18%",text: "#", value: "index", sortable: false },
+        {width: "18%",value: "volumen", text: "Volumen" },
+        {width: "18%",value: "peso", text: "Peso" },
+        {width: "18%",value: "valor", text: "Valor" },
+        {width: "18%",value: "vigencia_text", text: "Fec. Vigencia" },
+        {width: "10%",text: "", value: "action",  },
       ],
       dialog: false,
       form: {
         volumen: 0,
         peso: 0,
         valor: 0,
+        vigencia: null,
       },
       nuevoflag: false,
       editarflag: false,
+      errorFechaVigencia: "",
     };
   },
   computed: {
     // ...mapState(["getFleteGrupal"]),
   },
   methods: {
-    ...mapActions(["getFleteGrupal", "setFleteGrupal", "updateFleteGrupal"]),
+    ...mapActions([
+      "getFleteGrupal",
+      "setFleteGrupal",
+      "updateFleteGrupal",
+      "getFleteGrupalVenta",
+      "setFleteGrupalVenta",
+      "updateFleteGrupalVenta",
+    ]),
     eliminar(element) {
       Swal.fire({
         icon: "question",
@@ -130,6 +205,7 @@ export default {
     async actualizar() {
       if (this.editarflag) {
         await this.updateFleteGrupal({ ...this.form, estado: true });
+        this.dialog = false;
         this.getFleteGrupal({ tipo: this.type });
         return;
       }
@@ -144,6 +220,7 @@ export default {
         if (res.isConfirmed) {
           await this.updateFleteGrupal({ ...this.form, estado: false });
           this.getFleteGrupal({ tipo: this.type });
+          this.dialog = false;
         }
       });
     },
@@ -165,31 +242,46 @@ export default {
       });
     },
     async guardarFleteGrupal() {
-      if (this.$refs.frmNuevo.validate()) {
+      this.errorFechaVigencia = "";
+      if (this.$refs.frmNuevo.validate() && this.form.vigencia) {
         if (
-          this.$store.state.calculadoras.lstFleteGrupal.some(
-            (v) =>
-              Number(v.volumen) === Number(this.form.volumen) ||
-              Number(v.peso) === Number(this.form.peso),
-          )
+          (this.$store.state.calculadoras.lstFleteGrupal.some(
+            (v) => Number(v.volumen) === Number(this.form.volumen),
+          ) &&
+            this.tab == "costo") ||
+          (this.$store.state.calculadoras.lstFleteGrupalVenta.some(
+            (v) => Number(v.volumen) === Number(this.form.volumen),
+          ) &&
+            this.tab == "venta")
         ) {
-          console.log("sss");
           Swal.fire({
             icon: "error",
             title: "Error",
-            text: "Ya existe un valor asociado, al volumen, o peso",
+            text: "Ya existe un valor asociado, al volumen",
           });
           return;
         }
-
-        await this.setFleteGrupal(this.form);
-        this.getFleteGrupal({ tipo: this.type });
-        this.dialog = false;
+        if (this.tab == "costo") {
+          await this.setFleteGrupal(this.form);
+          this.getFleteGrupal({ tipo: this.type });
+        }
+        if (this.tab == "venta") {
+          await this.setFleteGrupalVenta(this.form);
+          this.getFleteGrupalVenta({ tipo: this.type });
+          this.dialog = false;
+        }
+      } else {
+        if (!this.form.vigencia) {
+          this.errorFechaVigencia = "Dato Requerido";
+        }
       }
     },
   },
-  mounted() {
-    this.getFleteGrupal({ tipo: this.type });
+  async mounted() {
+    await Promise.all([
+      this.getFleteGrupal({ tipo: this.type }),
+      this.getFleteGrupalVenta({ tipo: this.type }),
+    ]);
   },
 };
 </script>

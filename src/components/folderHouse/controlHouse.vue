@@ -757,7 +757,7 @@ export default {
           }
         })
         .catch(function (error) {
-          console.log(error);
+          console.error(error);
           vm.$swal({
             icon: "error",
             title: "Error",
@@ -804,7 +804,7 @@ export default {
       axios(config)
         .then(function (response) {})
         .catch(function (error) {
-          console.log(error);
+          console.error(error);
           vm.$swal({
             icon: "error",
             title: "Lo sentimos",
@@ -976,7 +976,7 @@ export default {
           });
         // Refresh data in background (non-blocking)
       } catch (error) {
-        console.log(error);
+        console.error(error);
         vm.loadingBotonGuardarHouse = false;
         vm.$swal({
           icon: "error",
@@ -1238,7 +1238,7 @@ export default {
             response.data.data && response.data.data[0];
         })
         .catch(function (error) {
-          console.log(error);
+          console.error(error);
         });
     },
     async _getHouseServices() {
@@ -1286,7 +1286,7 @@ export default {
             }
           })
           .catch(function (error) {
-            console.log(error);
+            console.error(error);
           });
       }
     },
@@ -1357,7 +1357,7 @@ export default {
           }
         })
         .catch(function (error) {
-          console.log(error);
+          console.error(error);
           vm.$swal({
             icon: "error",
             title: "Lo sentimos",

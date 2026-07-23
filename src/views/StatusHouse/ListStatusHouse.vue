@@ -530,7 +530,7 @@ export default {
     ]),
     ...mapActions(["getModality", "getShipment"]),
     eliminarComentario(comentario) {
-      console.log(comentario);
+      
       Swal.fire({
         title: "¿Estás seguro?",
         text: "¡No podrás revertir esto!",

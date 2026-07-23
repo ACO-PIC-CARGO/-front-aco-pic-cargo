@@ -23,7 +23,7 @@ export default {
     Editor,
   },
   mounted() {
-    console.log("Component montado");
+
     this.obtenerConfigAviso();
   },
   methods: {

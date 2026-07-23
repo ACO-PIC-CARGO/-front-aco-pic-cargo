@@ -503,7 +503,7 @@ export default {
           }
         })
         .catch(function (error) {
-          console.log(error);
+          console.error(error);
           vm.$swal({
             icon: "error",
             title: "Error",
@@ -547,7 +547,7 @@ export default {
       axios(config)
         .then(function (response) {})
         .catch(function (error) {
-          console.log(error);
+          console.error(error);
           vm.$swal({
             icon: "error",
             title: "Lo sentimos",
@@ -701,7 +701,7 @@ export default {
           // vm.$router.go(-1);
         })
         .catch(function (error) {
-          console.log(error);
+          console.error(error);
           vm.$swal({
             icon: "error",
             title: "Lo sentimos",
@@ -862,7 +862,7 @@ export default {
     },
     async validarMenuNotificaciones() {
       var vm = this;
-      console.log(this.$store.state.bank);
+      
 
       if (this.$store.state.bank.list.length == 0) {
         Swal.fire({
@@ -976,7 +976,7 @@ export default {
             response.data.data && response.data.data[0];
         })
         .catch(function (error) {
-          console.log(error);
+          console.error(error);
         });
     },
     async _getHouseServices() {
@@ -1024,7 +1024,7 @@ export default {
             }
           })
           .catch(function (error) {
-            console.log(error);
+            console.error(error);
           });
       }
     },
@@ -1071,7 +1071,6 @@ export default {
 
       await axios(config)
         .then(function (response) {
-          // console.log(response)
           sessionStorage.setItem("auth-token", response.data.token);
 
           if (response.data.status == "401") {
@@ -1099,7 +1098,7 @@ export default {
           }
         })
         .catch(function (error) {
-          console.log(error);
+          console.error(error);
           vm.$swal({
             icon: "error",
             title: "Lo sentimos",

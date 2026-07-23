@@ -643,7 +643,7 @@ export default {
           );
         })
         .catch(function (error) {
-          console.log(error);
+          console.error(error);
         });
     },
 
@@ -666,7 +666,7 @@ export default {
           vm.$store.state.drawer = false;
         })
         .catch(function (error) {
-          console.log(error);
+          console.error(error);
         });
     },
 
@@ -689,7 +689,7 @@ export default {
           vm.$store.state.drawer = false;
         })
         .catch(function (error) {
-          console.log(error);
+          console.error(error);
         });
     },
 
@@ -718,7 +718,7 @@ export default {
           vm.$store.state.drawer = false;
         })
         .catch(function (error) {
-          console.log(error);
+          console.error(error);
         });
     },
   },

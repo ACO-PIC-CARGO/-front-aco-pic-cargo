@@ -125,7 +125,7 @@ export default {
       indexCostos: 0,
       mostrar: false,
       abrirModalContenedorRecargar: false,
-      mostrarCostos:true
+      mostrarCostos: true,
     };
   },
   async mounted() {
@@ -141,7 +141,7 @@ export default {
 
     this.$store.state.mainTitle = `EDITAR  COTIZACIÓN - ${this.$store.state.pricing.nro_quote}`;
 
-    let idTipoCarga = this.$store.state.pricing.listShipment.filter(
+    let idTransport = this.$store.state.pricing.listShipment.filter(
       (v) => v.id == this.$store.state.pricing.datosPrincipales.idtipocarga,
     )[0].id_transport;
     //
@@ -178,20 +178,41 @@ export default {
       this.getServices(),
       this.obtenerImpuestoXEmpresa(),
       this.getPortBegin({
-        id_transport: idTipoCarga,
+        id_transport: idTransport,
         id: this.$store.state.pricing.datosPrincipales.idorigen,
       }),
       this.getPortEnd({
-        id_transport: idTipoCarga,
+        id_transport: idTransport,
         id: this.$store.state.pricing.datosPrincipales.iddestino,
       }),
-      this.getCargarMasterDetalleNotasCotizacion()
+      this.getCargarMasterDetalleNotasCotizacion(),
     ]);
 
     this.mostrarStepS = true;
     this.$store.state.pricing.llenadoCostos = false;
-
-    await Promise.all([this.getServices(), this.obtenerCostosPricing()]);
+    let idTipoCarga =
+      typeof this.$store.state.pricing.datosPrincipales.idtipocarga === "object"
+        ? this.$store.state.pricing.datosPrincipales.idtipocarga.id
+        : this.$store.state.pricing.datosPrincipales.idtipocarga;
+    await Promise.all([
+      this.getServices(),
+      this.obtenerCostosPricing(),
+      this.obtenerFleteCalculadora({
+        shipment: this.$store.state.pricing.listShipment.find(
+          (v) => v.id == idTipoCarga,
+        ).code,
+        puerto_origen: this.$store.state.pricing.listPortBegin.find(
+          (v) =>
+            v.id_port == this.$store.state.pricing.datosPrincipales.idorigen,
+        ).puerto,
+        puerto_destino: this.$store.state.pricing.listPortEnd.find(
+          (v) =>
+            v.id_port == this.$store.state.pricing.datosPrincipales.iddestino,
+        ).puerto,
+        volumen: this.$store.state.pricing.datosPrincipales.volumen,
+        peso: this.$store.state.pricing.datosPrincipales.peso,
+      }),
+    ]);
 
     this.$store.state.pricing.actualizarComparativa =
       !this.$store.state.pricing.actualizarComparativa;
@@ -222,7 +243,9 @@ export default {
       "_getContainers",
       "cargarMasterDetallePercepcionAduana",
       "getServices",
-      "obtenerCostosPricing","getCargarMasterDetalleNotasCotizacion"
+      "obtenerCostosPricing",
+      "getCargarMasterDetalleNotasCotizacion",
+      "obtenerFleteCalculadora",
     ]),
     async recargar() {
       await this.recargarServicios();
@@ -232,10 +255,10 @@ export default {
       }, 1000);
     },
     recargarGrupalFlag() {
-      console.log("recargarGrupalFlag");
-      this.mostrarCostos=false;
+      
+      this.mostrarCostos = false;
       setTimeout(async () => {
-        this.mostrarCostos=true;
+        this.mostrarCostos = true;
       }, 100);
     },
     continuarComparativa() {

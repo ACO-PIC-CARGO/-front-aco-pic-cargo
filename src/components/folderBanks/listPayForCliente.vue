@@ -473,7 +473,7 @@ export default {
             vm.Ingreso.id_path = JSON.stringify(response.data.data[0].insertid);
           })
           .catch(function (error) {
-            console.log(error);
+            console.error(error);
           });
       }
     },
@@ -596,7 +596,7 @@ export default {
           vm.cuentas = response.data.data;
         })
         .catch(function (error) {
-          console.log(error);
+          console.error(error);
         });
     },
     verSoport(ruta) {
@@ -622,7 +622,7 @@ export default {
           }
         })
         .catch(function (error) {
-          console.log(error);
+          console.error(error);
         });
       vm.dialogInvoice = true;
     },
@@ -646,7 +646,7 @@ export default {
           }
         })
         .catch(function (error) {
-          console.log(error);
+          console.error(error);
         });
       vm.dialogPayDebsClient = true;
     },
@@ -681,7 +681,7 @@ export default {
             // }
           })
           .catch(function (error) {
-            console.log(error);
+            console.error(error);
           });
       }
     },
@@ -714,7 +714,7 @@ export default {
               });
           })
           .catch(function (error) {
-            console.log(error);
+            console.error(error);
           });
       }
     },
@@ -768,7 +768,7 @@ export default {
           link.click();
         })
         .catch(function (error) {
-          console.log(error);
+          console.error(error);
         });
       this.loading = false;
       // exportar_listado_reporte_pagos

@@ -41,7 +41,7 @@ const actions = {
         }
       })
       .catch(function (error) {
-        console.log(error);
+        console.error(error);
       });
   },
   async getProyeccion({ commit }, data) {
@@ -87,7 +87,7 @@ const actions = {
         }
       })
       .catch(function (error) {
-        console.log(error);
+        console.error(error);
       });
   },
   async verProyeccion({ commit }, id) {
@@ -114,7 +114,7 @@ const actions = {
         }
       })
       .catch(function (error) {
-        console.log(error);
+        console.error(error);
       });
   },
 
@@ -142,7 +142,7 @@ const actions = {
         }
       })
       .catch(function (error) {
-        console.log(error);
+        console.error(error);
       });
   },
   async validateProyeccionAprobacion(_, data) {
@@ -166,7 +166,7 @@ const actions = {
         res = response.data;
       })
       .catch(function (error) {
-        console.log(error);
+        console.error(error);
       });
     return res;
   },
@@ -191,7 +191,7 @@ const actions = {
         });
       })
       .catch(function (error) {
-        console.log(error);
+        console.error(error);
       });
   },
   async aprobarProyeccion(_, data) {
@@ -215,7 +215,7 @@ const actions = {
         });
       })
       .catch(function (error) {
-        console.log(error);
+        console.error(error);
       });
   },
   async eliminarProyeccion(_, data) {
@@ -238,7 +238,7 @@ const actions = {
         });
       })
       .catch(function (error) {
-        console.log(error);
+        console.error(error);
       });
   },
   async primeraProyeccion(_, data) {
@@ -268,7 +268,7 @@ const actions = {
         }
       })
       .catch(function (error) {
-        console.log(error);
+        console.error(error);
       });
   },
   async exportarVerProyeccion(__, id) {
@@ -291,7 +291,7 @@ const actions = {
         link.click();
       })
       .catch(function (error) {
-        console.log(error);
+        console.error(error);
       });
   },
   async getProyeccionAprobada({ commit }) {
@@ -321,7 +321,7 @@ const actions = {
         }
       })
       .catch(function (error) {
-        console.log(error);
+        console.error(error);
       });
   },
 };

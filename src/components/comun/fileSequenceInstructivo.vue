@@ -2008,14 +2008,12 @@ export default {
     cargarArchivoDinamico(datoEmit, doc) {
       doc.file = datoEmit.archivo;
       doc.flag = true;
-      console.log(`Archivo cargado para: ${doc.label}`);
     },
     eliminarArchivoDinamico(doc) {
       doc.file = null;
       doc.flag = false;
     },
     eliminarArchivoPadre(name) {
-      console.log(`Eliminando archivo del padre: ${name}`);
 
       const flagName = name.replace("File", "Flag");
       this.datosManuales[flagName] = false;
@@ -2025,11 +2023,6 @@ export default {
       );
 
       this.datosManuales[name] = null;
-
-      console.log(
-        "filesLinkPagoAlibaba actualizado:",
-        this.filesLinkPagoAlibaba,
-      );
     },
     cambiarPagarProvedor() {
       this.datosManuales.condicionesLink = "No Aplica";
@@ -2689,11 +2682,7 @@ export default {
     },
 
     cargarDatosProveedor() {
-      console.log(
-        "itemsProveedorList",
-        this.$store.state.itemsProveedorList.find((v) => v.id == 12817),
-      );
-      console.log("id_proveedor", this.datosPrincipales.id_proveedor);
+      
       this.proveedor = this.encontrar(
         this.$store.state.itemsProveedorList,
         this.datosPrincipales.id_proveedor,
@@ -2765,7 +2754,6 @@ export default {
         proveedoresUnicos.length > 0 ? proveedoresUnicos[0] : null;
       this.proveedorInstructivo =
         this.$store.state.provedores.find((v) => v.id == idBuscado) || {};
-      console.log("proveedorInstructivo", this.proveedorInstructivo);
     }
     this.puertoOrigen = await this.verPuerto({
       id_transport: idTipoCarga,
@@ -2778,7 +2766,6 @@ export default {
   },
   watch: {
     "datosManuales.cotizacionFile"() {
-      console.log("cotizacionFile", !this.datosManuales.cotizacionFile);
       if (!this.datosManuales.cotizacionFile) {
         this.datosManuales.cotizacionFlag = false;
       }

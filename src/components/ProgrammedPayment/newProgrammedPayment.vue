@@ -86,7 +86,7 @@ export default {
           vm.listado = response.data.data;
         })
         .catch(function (error) {
-          console.log(error);
+          console.error(error);
         });
     },
 
@@ -129,7 +129,7 @@ export default {
           vm.$emit("cerrar", false);
         })
         .catch(function (error) {
-          console.log(error);
+          console.error(error);
         });
     },
   },

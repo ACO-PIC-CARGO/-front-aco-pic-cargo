@@ -444,7 +444,7 @@ export default {
           }
         })
         .catch(function (error) {
-          console.log(error);
+          console.error(error);
         });
     },
     getTipo(tipo) {
@@ -503,7 +503,7 @@ export default {
           );
         })
         .catch(function (error) {
-          console.log(error);
+          console.error(error);
         });
     },
   },

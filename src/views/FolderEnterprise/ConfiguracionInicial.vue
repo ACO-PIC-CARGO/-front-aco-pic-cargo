@@ -160,7 +160,7 @@ export default {
       this.e1 = 4;
     },
     omitirStep() {
-      console.log(this.e1);
+      
       switch (this.e1) {
         case 1:
           this.editarProveedor = true;

@@ -1907,7 +1907,7 @@ export default {
           this.$swal({
             icon: "warning", // Cambiado a 'warning' porque es una restricción del sistema, no un fallo crítico.
             title: "MONEDAS SOLES DOLARES",
-            html: `<b>Hay conceptos con monedas diferentes</b><br><br>Por favor chequear.`,
+            html: `<b>Hay conceptos con monedas diferentes</b><br><br>Por favor chequear. NO SE CARGARÁ EL COSTO.`,
             confirmButtonColor: "#3085d6",
             confirmButtonText: "ACEPTAR",
           });
@@ -1951,7 +1951,7 @@ export default {
           vm.dialog = false;
         })
         .catch(function (error) {
-          console.log(error);
+          console.error(error);
         });
       this.$emit("recalcularProfit");
     },
@@ -2064,7 +2064,7 @@ export default {
           await vm._getInvoice(vm.egreso);
         })
         .catch(function (error) {
-          console.log(error);
+          console.error(error);
         });
     },
     async _delInvoice(id) {
@@ -2087,7 +2087,7 @@ export default {
           vm.dialogInvoice = false;
         })
         .catch(function (error) {
-          console.log(error);
+          console.error(error);
         });
     },
     async InsertarActualizarPorcentajeProveedor() {
@@ -2141,7 +2141,7 @@ export default {
             response.data.data || [];
         })
         .catch(function (error) {
-          console.log(error);
+          console.error(error);
         });
     },
     _editEgreso(egreso) {
@@ -2207,7 +2207,7 @@ export default {
               }
             })
             .catch(function (error) {
-              console.log(error);
+              console.error(error);
             });
         }
       });
@@ -2241,7 +2241,7 @@ export default {
           vm.itemsSPayment = response.data.data;
         })
         .catch(function (error) {
-          console.log(error);
+          console.error(error);
         });
     },
     async listControlGasto() {
@@ -2284,7 +2284,7 @@ export default {
           this.$swal({
             icon: "warning", // Cambiado a 'warning' porque es una restricción del sistema, no un fallo crítico.
             title: "MONEDAS SOLES DOLARES",
-            html: `<b>Hay conceptos con monedas diferentes</b><br><br>Por favor chequear.`,
+             html: `<b>Hay conceptos con monedas diferentes</b><br><br>Por favor chequear. NO SE CARGARÁ EL COSTO.`,
             confirmButtonColor: "#3085d6",
             confirmButtonText: "ACEPTAR",
           });
@@ -2306,7 +2306,7 @@ export default {
           vm.dialog = false;
         })
         .catch(function (error) {
-          console.log(error);
+          console.error(error);
         });
       this.$emit("recalcularProfit");
     },
@@ -2476,7 +2476,7 @@ export default {
           );
         })
         .catch(function (error) {
-          console.log(error);
+          console.error(error);
         });
     },
     sendAdmin(id) {
@@ -2522,7 +2522,7 @@ export default {
               vm.dataList = true;
             })
             .catch(function (error) {
-              console.log(error);
+              console.error(error);
             });
         }
       });
@@ -2568,7 +2568,7 @@ export default {
           });
         })
         .catch(function (error) {
-          console.log(error);
+          console.error(error);
         });
 
       vm.$store.state.spiner = false;
@@ -2681,11 +2681,11 @@ export default {
               vm.dialogSolicitud = false;
             })
             .catch(function (error) {
-              console.log(error);
+              console.error(error);
             });
         })
         .catch(function (error) {
-          console.log(error);
+          console.error(error);
         });
       vm.loading = false;
     },
@@ -2783,7 +2783,7 @@ export default {
           vm.isDataTableLoading = false;
         })
         .catch(function (error) {
-          console.log(error);
+          console.error(error);
         });
     },
     openDoc(path) {

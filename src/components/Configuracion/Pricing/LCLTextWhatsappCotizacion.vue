@@ -2,8 +2,9 @@
   <v-container>
     <v-row class="py-1">
       <v-col cols="12">
-
-        <p style="font-size: 1.2em; font-weight: bold">Texto para envío de PDF</p>
+        <p style="font-size: 1.2em; font-weight: bold">
+          Texto para envío de PDF
+        </p>
       </v-col>
       <v-col cols="12" md="6">
         <vTextarea
@@ -19,7 +20,6 @@
         </vTextarea>
       </v-col>
       <v-col cols="12" md="6">
-      
         <vTextarea
           v-model="lcl.pdfgrupal"
           label="Texto para envío de PDF - GRUPAL"
@@ -33,7 +33,9 @@
         </vTextarea>
       </v-col>
       <v-col cols="12">
-      <p style="font-size: 1.2em; font-weight: bold">Texto para envío de LINK</p>
+        <p style="font-size: 1.2em; font-weight: bold">
+          Texto para envío de LINK
+        </p>
       </v-col>
       <!-- <v-col cols="12" md="6">
         <vTextarea
@@ -79,9 +81,7 @@ export default {
       loading: false,
     };
   },
-  mounted() {
-    // console.log("Texto WhatsApp LCL:", this.lcl);
-  },
+  mounted() {},
   methods: {
     ...mapActions("configuracion", ["setTextoWhatsappLCL"]),
     async guardar() {

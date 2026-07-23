@@ -537,7 +537,7 @@ export default {
           vm.itemsListInvoice = response.data.data;
         })
         .catch(function (error) {
-          console.log(error);
+          console.error(error);
         });
     },
     _uploadFile() {
@@ -564,7 +564,7 @@ export default {
           vm.payPath = JSON.stringify(response.data.data[0].insertid);
         })
         .catch(function (error) {
-          console.log(error);
+          console.error(error);
         });
     },
     editControl(nro_master) {
@@ -633,7 +633,7 @@ export default {
           vm.dialogProcess = false;
         })
         .catch(function (error) {
-          console.log(error);
+          console.error(error);
         });
     },
     async _getRequestPayment() {
@@ -656,7 +656,7 @@ export default {
           vm.dataList = true;
         })
         .catch(function (error) {
-          console.log(error);
+          console.error(error);
         });
     },
     async _getRequestPaymentConceptos(id) {
@@ -675,7 +675,7 @@ export default {
           vm.itemsSPaymentConceptos = response.data.data;
         })
         .catch(function (error) {
-          console.log(error);
+          console.error(error);
         });
     },
     viewPdf(pdf) {
@@ -725,7 +725,7 @@ export default {
           vm.getDebs();
         })
         .catch(function (error) {
-          console.log(error);
+          console.error(error);
         });
     },
     async getDebs() {

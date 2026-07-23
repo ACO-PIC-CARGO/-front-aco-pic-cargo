@@ -841,21 +841,21 @@ export default {
     async reporteListado() {
       this.loading2 = true;
       await this.imprimiReporteListado(this.filtro).catch((e) => {
-        console.log(e);
+       console.error(e);
       });
       this.loading2 = false;
     },
     async excelListadoQuote() {
       this.loading3 = true;
       await this.exportarExcelListadoQuote(this.filtro).catch((e) => {
-        console.log(e);
+       console.error(e);
       });
       this.loading3 = false;
     },
     async imprimirListMercadeo() {
       this.loading = true;
       await this.imprimirMercadeo().catch((e) => {
-        console.log(e);
+       console.error(e);
       });
       this.loading = false;
     },

@@ -325,7 +325,7 @@ export default {
           vm.payPath = JSON.stringify(response.data.data[0].insertid);
         })
         .catch(function (error) {
-          console.log(error);
+          console.error(error);
         });
     },
 
@@ -374,7 +374,7 @@ export default {
           vm.dialogProcess = false;
         })
         .catch(function (error) {
-          console.log(error);
+          console.error(error);
         });
     },
     cleandData() {
@@ -415,7 +415,7 @@ export default {
           vm.dialogPayment = true;
         })
         .catch(function (error) {
-          console.log(error);
+          console.error(error);
         });
     },
   },

@@ -386,7 +386,7 @@ export default {
     },
   },
   mounted() {
-    // console.log(this.$vuetify.breakpoint.width);
+
     // Inicia el temporizador cuando el componente es montado
     // this.startTimer();
   },
@@ -404,7 +404,7 @@ export default {
       window.open(text);
     },
     handlePaisSeleccionado(paisId) {
-      console.log(paisId);
+      
       this.$store.state.enterprises.data.id_pais = paisId;
       this.errorPais = "";
     },
@@ -461,8 +461,8 @@ export default {
           if (val) {
             this.loading = true;
             this.loadingRegistro = true;
-            this.enviarCorreoValidacion().catch((err) => {
-              console.log(err);
+            this.enviarCorreoValidacion().catch((e) => {
+              console.error(e);
             });
             this.reenviarCodigo = false;
             this.enviarCodigo = false;

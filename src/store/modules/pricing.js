@@ -693,7 +693,7 @@ const actions = {
         }
       })
       .catch(function (error) {
-        console.log(error);
+        console.error(error);
       });
   },
   async getTipoCostos({ commit }) {
@@ -724,7 +724,7 @@ const actions = {
         }
       })
       .catch(function (error) {
-        console.log(error);
+        console.error(error);
       });
   },
   async getQuoteNoAsignadoHouse({ commit }) {
@@ -752,7 +752,7 @@ const actions = {
         }
       })
       .catch(function (error) {
-        console.log(error);
+        console.error(error);
       });
   },
   async getQuoteDataNoAsignadaHouse({ commit }, { id_quote = 0 }) {
@@ -778,7 +778,7 @@ const actions = {
         }
       })
       .catch(function (error) {
-        console.log(error);
+        console.error(error);
       });
   },
   async getQuoteCall({ commit }, filtro) {
@@ -852,7 +852,7 @@ const actions = {
         }
       })
       .catch(function (error) {
-        console.log(error);
+        console.error(error);
       });
   },
   async getMarketingList({ commit }) {
@@ -871,7 +871,7 @@ const actions = {
         commit("SET_LIST_MARKETING", response.data.data);
       })
       .catch(function (error) {
-        console.log(error);
+        console.error(error);
       });
   },
   async getQuoteStatus({ commit }) {
@@ -890,7 +890,7 @@ const actions = {
         commit("SET_LIST_QUOTE_STATUS", response.data.data);
       })
       .catch(function (error) {
-        console.log(error);
+        console.error(error);
       });
   },
   async getModulesEntities({ commit }) {
@@ -910,7 +910,7 @@ const actions = {
         commit("SET_LIST_EJECUTIVO", response.data.data);
       })
       .catch(function (error) {
-        console.log(error);
+        console.error(error);
       });
   },
   async getCargarEjecutivo({ commit }) {
@@ -930,7 +930,7 @@ const actions = {
         commit("SET_LIST_EJECUTIVO", response.data.data);
       })
       .catch(function (error) {
-        console.log(error);
+        console.error(error);
       });
   },
   async getPersonalPricing({ commit }) {
@@ -949,7 +949,7 @@ const actions = {
         commit("SET_LIST_EJECUTIVO", response.data.data);
       })
       .catch(function (error) {
-        console.log(error);
+        console.error(error);
       });
   },
   async getBegEndList({ commit }) {
@@ -971,7 +971,7 @@ const actions = {
         commit("setbegEndList", valores);
       })
       .catch(function (error) {
-        console.log(error);
+        console.error(error);
       });
   },
   async getModality({ commit }) {
@@ -990,7 +990,7 @@ const actions = {
         commit("SET_LIST_MODALITY", response.data.data);
       })
       .catch(function (error) {
-        console.log(error);
+        console.error(error);
       });
   },
   async getShipment({ commit }) {
@@ -1009,7 +1009,7 @@ const actions = {
         commit("SET_LIST_SHIPMENT", response.data.data);
       })
       .catch(function (error) {
-        console.log(error);
+        console.error(error);
       });
   },
   async getIncoterms({ commit }) {
@@ -1028,7 +1028,7 @@ const actions = {
         commit("SET_LIST_INCOTERMS", response.data.data);
       })
       .catch(function (error) {
-        console.log(error);
+        console.error(error);
       });
   },
   async getPortBegin(
@@ -1053,7 +1053,7 @@ const actions = {
         commit("SET_LIST_PORT_BEGIN", response.data.data);
       })
       .catch(function (error) {
-        console.log(error);
+        console.error(error);
       });
   },
   async getPortEnd({ commit }, { id_transport = 0, id = null, search = null }) {
@@ -1075,7 +1075,7 @@ const actions = {
         commit("SET_LIST_PORT_END", response.data.data);
       })
       .catch(function (error) {
-        console.log(error);
+        console.error(error);
       });
   },
 
@@ -1108,7 +1108,7 @@ const actions = {
         }
       })
       .catch(function (error) {
-        console.log(error);
+        console.error(error);
       });
   },
   async obtenerCostosPricing({ commit }) {
@@ -1286,7 +1286,7 @@ const actions = {
         commit("SET_MULTPLICADOR", valores);
       })
       .catch(function (error) {
-        console.log(error);
+        console.error(error);
       });
   },
   async getModuleRole({ commit }) {
@@ -1317,7 +1317,7 @@ const actions = {
         commit("SET_ROLE", valores);
       })
       .catch(function (error) {
-        console.log(error);
+        console.error(error);
       });
   },
   async getCargarMasterDetalleNotasCotizacion({ commit }) {
@@ -1720,7 +1720,7 @@ const actions = {
         commit("setInstructivo", response.data.data);
       })
       .catch(function (error) {
-        console.log(error);
+        console.error(error);
       });
   },
   async obtenerDatosEmpresa() {
@@ -4114,7 +4114,7 @@ const actions = {
       data: data,
     };
     await axios(config).catch(function (error) {
-      console.log(error);
+      console.error(error);
     });
   },
   async updateQuote() {
@@ -7149,7 +7149,7 @@ const actions = {
         });
       })
       .catch(function (error) {
-        console.log(error);
+        console.error(error);
       });
   },
   async GetArchivos({ commit }, folderUrl) {

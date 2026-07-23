@@ -834,7 +834,6 @@ export default {
       this.limpiar();
     },
     cambiarOpcionSeleccionada(opcion) {
-      console.log(opcion);
       // this.$emit('cambiarSeleccionado',opcion)
     },
   },

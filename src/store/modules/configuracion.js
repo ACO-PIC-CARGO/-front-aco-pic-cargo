@@ -20,7 +20,6 @@ const mutations = {
     state.lstServicios = data;
   },
   SET_TEXT_WHATSAPP(state, data) {
-    console.log(data);
     state.id = data.id;
     state.lcl = data.lcl || {};
     state.fcl = data.fcl || {};
@@ -42,7 +41,7 @@ const actions = {
         commit("SET_COSTOS", response.data.data);
       })
       .catch(function (error) {
-        console.log(error);
+        console.error(error);
       });
   },
 
@@ -64,7 +63,7 @@ const actions = {
         commit("SET_SERVICIOS", response.data.data);
       })
       .catch(function (error) {
-        console.log(error);
+        console.error(error);
       });
   },
   async getMultiplicadorConfigCosto({ commit }, id_shipment) {
@@ -93,7 +92,7 @@ const actions = {
         }
       })
       .catch(function (error) {
-        console.log(error);
+        console.error(error);
       });
   },
   async setGuardarCostos({}, data) {
@@ -115,7 +114,7 @@ const actions = {
         });
       })
       .catch(function (error) {
-        console.log(error);
+        console.error(error);
       });
   },
 
@@ -140,7 +139,7 @@ const actions = {
         }
       })
       .catch(function (error) {
-        console.log(error);
+        console.error(error);
       });
   },
   async setTextoWhatsappLCL({}, data) {
@@ -166,7 +165,7 @@ const actions = {
         });
       })
       .catch(function (error) {
-        console.log(error);
+        console.error(error);
       });
   },
   async setTextoWhatsappFCL({}, data) {
@@ -192,7 +191,7 @@ const actions = {
         });
       })
       .catch(function (error) {
-        console.log(error);
+        console.error(error);
       });
   },
 };

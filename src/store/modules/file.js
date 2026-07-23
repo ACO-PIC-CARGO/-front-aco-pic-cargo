@@ -36,7 +36,7 @@ const actions = {
         commit("SET_DATOS_PATH", response.data.data[0]);
       })
       .catch(function (error) {
-        console.log(error);
+        console.error(error);
       });
   },
 

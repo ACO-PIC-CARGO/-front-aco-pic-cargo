@@ -179,7 +179,7 @@ const actions = {
         }
       })
       .catch(function (error) {
-        console.log(error);
+        console.error(error);
       });
   },
   async ListarPersonaTipoPersona({ commit }) {
@@ -207,7 +207,7 @@ const actions = {
         }
       })
       .catch(function (error) {
-        console.log(error);
+        console.error(error);
       });
   },
   async guardarRolProveedor({ commit, dispatch }) {
@@ -246,7 +246,7 @@ const actions = {
         });
       })
       .catch(function (error) {
-        console.log(error);
+        console.error(error);
       });
   },
   async getListProveedor({ commit }) {
@@ -309,7 +309,7 @@ const actions = {
         }
       })
       .catch(function (error) {
-        console.log(error);
+        console.error(error);
       });
   },
   async getValidaRazonSocial({ commit }) {
@@ -339,7 +339,7 @@ const actions = {
         }
       })
       .catch(function (error) {
-        console.log(error);
+        console.error(error);
       });
   },
   async getValidaDocument({ commit }) {
@@ -369,7 +369,7 @@ const actions = {
         }
       })
       .catch(function (error) {
-        console.log(error);
+        console.error(error);
       });
   },
   async getVerProveedor({ commit }) {
@@ -470,7 +470,7 @@ const actions = {
         }
       })
       .catch(function (error) {
-        console.log(error);
+        console.error(error);
       });
   },
   async guardarProveedor({ commit }) {
@@ -555,7 +555,7 @@ const actions = {
         }
       })
       .catch(function (error) {
-        console.log(error);
+        console.error(error);
       });
     return res;
   },
@@ -618,7 +618,7 @@ const actions = {
         }
       })
       .catch(function (error) {
-        console.log(error);
+        console.error(error);
       });
   },
   async eliminarPersona({ commit, dispatch }, data) {
@@ -644,7 +644,7 @@ const actions = {
         });
       })
       .catch(function (error) {
-        console.log(error);
+        console.error(error);
       });
     dispatch("getListProveedor");
   },
@@ -682,7 +682,7 @@ const actions = {
         });
       })
       .catch(function (error) {
-        console.log(error);
+        console.error(error);
       });
   },
   async exportListProveedor() {
@@ -771,7 +771,7 @@ const actions = {
         }
       })
       .catch(function (error) {
-        console.log(error);
+        console.error(error);
       });
   },
   async validarDocumentoProveedor({ commit }) {
@@ -806,7 +806,7 @@ const actions = {
         }
       })
       .catch(function (error) {
-        console.log(error);
+        console.error(error);
       });
   },
   // CLIENTES
@@ -868,7 +868,7 @@ const actions = {
         }
       })
       .catch(function (error) {
-        console.log(error);
+        console.error(error);
       });
   },
   async getValidaDocumentCliente({ commit }) {
@@ -898,7 +898,7 @@ const actions = {
         }
       })
       .catch(function (error) {
-        console.log(error);
+        console.error(error);
       });
   },
   async guardarCliente({ commit }) {
@@ -976,7 +976,7 @@ const actions = {
         }
       })
       .catch(function (error) {
-        console.log(error);
+        console.error(error);
       });
   },
   async verCliente({ commit }, id = null) {
@@ -1077,7 +1077,7 @@ const actions = {
         }
       })
       .catch(function (error) {
-        console.log(error);
+        console.error(error);
       });
   },
   async actualizarCliente({ commit }) {
@@ -1147,7 +1147,7 @@ const actions = {
         }
       })
       .catch(function (error) {
-        console.log(error);
+        console.error(error);
       });
   },
   async exportListClientes() {
@@ -1241,7 +1241,7 @@ const actions = {
         }
       })
       .catch(function (error) {
-        console.log(error);
+        console.error(error);
       });
   },
   async validarDocumentoCliente({ commit }) {
@@ -1274,7 +1274,7 @@ const actions = {
         }
       })
       .catch(function (error) {
-        console.log(error);
+        console.error(error);
       });
   },
   async cargarDatosTatifasEntite({ commit }, data) {
@@ -1299,7 +1299,7 @@ const actions = {
         }
       })
       .catch(function (error) {
-        console.log(error);
+        console.error(error);
       });
   },
   async validarClienteTieneMovimientos({ commit }, data) {
@@ -1320,7 +1320,7 @@ const actions = {
         res = data.data;
       })
       .catch(function (error) {
-        console.log(error);
+        console.error(error);
       });
     return res;
   },

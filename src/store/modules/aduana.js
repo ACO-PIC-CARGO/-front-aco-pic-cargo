@@ -293,7 +293,7 @@ const actions = {
         commit("SET_LIST_EJECUTIVO", response.data.data);
       })
       .catch(function (error) {
-        console.log(error);
+        console.error(error);
       });
   },
   async aprobarCotizacionAduana({ dispatch }, dataParaAprobar) {
@@ -469,7 +469,7 @@ const actions = {
         }
       })
       .catch(function (error) {
-        console.log(error);
+        console.error(error);
       });
   },
   async obtenerCostosAduana({ commit }) {
@@ -527,7 +527,7 @@ const actions = {
         commit("SET_MULTPLICADOR", valores);
       })
       .catch(function (error) {
-        console.log(error);
+        console.error(error);
       });
   },
   async getTipoCostosAduana({ commit }) {
@@ -559,7 +559,7 @@ const actions = {
         }
       })
       .catch(function (error) {
-        console.log(error);
+        console.error(error);
       });
   },
   async predataAduana(__, { tipo = "" }) {
@@ -2595,7 +2595,7 @@ const actions = {
         commit("SET_LIST_MODALITY", response.data.data);
       })
       .catch(function (error) {
-        console.log(error);
+        console.error(error);
       });
   },
   async obtenerDatosEmpresaAduana() {
@@ -2644,7 +2644,7 @@ const actions = {
         commit("SET_LIST_PORT_BEGIN", response.data.data);
       })
       .catch(function (error) {
-        console.log(error);
+        console.error(error);
       });
   },
   async getPortEndAduana(
@@ -2670,7 +2670,7 @@ const actions = {
         commit("SET_LIST_PORT_END", response.data.data);
       })
       .catch(function (error) {
-        console.log(error);
+        console.error(error);
       });
   },
   async getShipmentAduana({ commit }) {
@@ -2690,7 +2690,7 @@ const actions = {
         commit("SET_LIST_SHIPMENT", response.data.data);
       })
       .catch(function (error) {
-        console.log(error);
+        console.error(error);
       });
   },
   async getIncotermsAduana({ commit }) {
@@ -2710,7 +2710,7 @@ const actions = {
         commit("SET_LIST_INCOTERMS", response.data.data);
       })
       .catch(function (error) {
-        console.log(error);
+        console.error(error);
       });
   },
   async registrarAduana(__, { fullflag = true }) {
@@ -2881,7 +2881,7 @@ const actions = {
         }
       })
       .catch(function (error) {
-        console.log(error);
+        console.error(error);
       });
   },
   async getAdunaVer(__, { id: id }) {
@@ -3150,7 +3150,7 @@ const actions = {
       data: data,
     };
     await axios(config).catch(function (error) {
-      console.log(error);
+      console.error(error);
     });
   },
   async getQuoteCallAduana({ commit }, filtro) {
@@ -3225,7 +3225,7 @@ const actions = {
         }
       })
       .catch(function (error) {
-        console.log(error);
+        console.error(error);
       });
   },
   async generarReporteAduana(__, { tipo = "", nro_propuesta = 0 }) {
@@ -5226,7 +5226,7 @@ const actions = {
         commit("setInstructivo", response.data.data);
       })
       .catch(function (error) {
-        console.log(error);
+        console.error(error);
       });
   },
   generaInstructivoAduana({ dispatch }) {

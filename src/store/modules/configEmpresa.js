@@ -254,7 +254,7 @@ const actions = {
         commit("SET_MULTPLICADOR", valores);
       })
       .catch(function (error) {
-        console.log(error);
+        console.error(error);
       });
   },
   async getTipoCostosConfig({ commit }, data) {
@@ -282,7 +282,7 @@ const actions = {
         }
       })
       .catch(function (error) {
-        console.log(error);
+        console.error(error);
       });
   },
   async guardarCostos({ commit }, data) {
@@ -322,7 +322,7 @@ const actions = {
       data: data,
     };
     await axios(config).catch(function (error) {
-      console.log(error);
+      console.error(error);
     });
   },
   async finalizarConfiguracion({ commit }) {
@@ -342,7 +342,7 @@ const actions = {
       data: data,
     };
     await axios(config).catch(function (error) {
-      console.log(error);
+      console.error(error);
     });
   },
   async GuardarConfiguracionEmpresa({ commit }) {
@@ -360,7 +360,7 @@ const actions = {
       data: data,
     };
     await axios(config).catch(function (error) {
-      console.log(error);
+      console.error(error);
     });
   },
 };

@@ -504,13 +504,13 @@ export default {
         if (this.$refs.frmReporte.validate()) {
           this.$store.state.spiner = true;
           await this.registrarAduana({ fullflag: true }).catch((e) => {
-            console.log(e);
+           console.error(e);
           });
           if (this.$store.state.aduana.nro_quote) {
             this.$store.state.spiner = false;
             let vm = this;
             await this.obtenerDatosEmpresaAduana().catch((e) => {
-              console.log(e);
+             console.error(e);
             });
 
             for (
@@ -526,7 +526,7 @@ export default {
                   nro_propuesta:
                     this.$store.state.aduana.opcionCostos[index].nro_propuesta,
                 }).catch((e) => {
-                  console.log(e);
+                 console.error(e);
                 });
               }
             }

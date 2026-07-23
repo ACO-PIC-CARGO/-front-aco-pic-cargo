@@ -207,7 +207,7 @@ const actions = {
         }
       })
       .catch(function (error) {
-        console.log(error);
+        console.error(error);
       });
   },
   async guardarCuentaDetalle({ dispatch }, data) {
@@ -306,7 +306,7 @@ const actions = {
         }
       })
       .catch(function (error) {
-        console.log(error);
+        console.error(error);
       });
   },
   async anularPagoRealizado({ commit }, id) {
@@ -326,7 +326,7 @@ const actions = {
         res = response.data;
       })
       .catch(function (error) {
-        console.log(error);
+        console.error(error);
       });
     return res;
   },
@@ -345,7 +345,7 @@ const actions = {
         res = response.data;
       })
       .catch(function (error) {
-        console.log(error);
+        console.error(error);
       });
     return res;
   },
@@ -379,7 +379,7 @@ const actions = {
         }
       })
       .catch(function (error) {
-        console.log(error);
+        console.error(error);
       });
   },
   async anularCobroRealizado({ commit }, data) {
@@ -397,7 +397,7 @@ const actions = {
         res = response.data;
       })
       .catch(function (error) {
-        console.log(error);
+        console.error(error);
       });
     return res;
   },
@@ -416,7 +416,7 @@ const actions = {
         res = response.data;
       })
       .catch(function (error) {
-        console.log(error);
+        console.error(error);
       });
     return res;
   },
@@ -435,7 +435,7 @@ const actions = {
         res = response.data;
       })
       .catch(function (error) {
-        console.log(error);
+        console.error(error);
       });
     return res;
   },
@@ -454,7 +454,7 @@ const actions = {
         res = response.data;
       })
       .catch(function (error) {
-        console.log(error);
+        console.error(error);
       });
     return res;
   },
@@ -503,7 +503,7 @@ const actions = {
         }
       })
       .catch(function (error) {
-        console.log(error);
+        console.error(error);
       });
     return res;
   },
@@ -547,7 +547,7 @@ const actions = {
         }
       })
       .catch(function (error) {
-        console.log(error);
+        console.error(error);
       });
     return res;
   },
@@ -569,7 +569,7 @@ const actions = {
         console.log("Respuesta del servidor al registrar egreso:", data);
       })
       .catch(function (error) {
-        console.log(error);
+        console.error(error);
       });
   },
 
@@ -591,7 +591,7 @@ const actions = {
         console.log("Respuesta del servidor al registrar egreso:", data);
       })
       .catch(function (error) {
-        console.log(error);
+        console.error(error);
       });
   },
   async updateRegistroIgresos({ commit }, data) {
@@ -612,7 +612,7 @@ const actions = {
         console.log("Respuesta del servidor al registrar ingreso:", data);
       })
       .catch(function (error) {
-        console.log(error);
+        console.error(error);
       });
   },
 
@@ -645,7 +645,7 @@ const actions = {
         console.log("Respuesta del servidor al registrar egreso:", data);
       })
       .catch(function (error) {
-        console.log(error);
+        console.error(error);
       });
   },
   async getRegistroEgresos({ commit }, data) {
@@ -666,7 +666,7 @@ const actions = {
         commit("SET_LIST_BANK_CARGAR", data.estadoflag ? data.data : []);
       })
       .catch(function (error) {
-        console.log(error);
+        console.error(error);
       });
   },
   async getRegistroIngresos({ commit }, data) {
@@ -687,7 +687,7 @@ const actions = {
         commit("SET_LIST_BANK_CARGAR", data.estadoflag ? data.data : []);
       })
       .catch(function (error) {
-        console.log(error);
+        console.error(error);
       });
   },
   async verRegistroIngresos({ commit }, data) {
@@ -711,7 +711,7 @@ const actions = {
         }
       })
       .catch(function (error) {
-        console.log(error);
+        console.error(error);
       });
     return res;
   },
@@ -736,7 +736,7 @@ const actions = {
         }
       })
       .catch(function (error) {
-        console.log(error);
+        console.error(error);
       });
     return res;
   },
@@ -762,7 +762,7 @@ const actions = {
         }
       })
       .catch(function (error) {
-        console.log(error);
+        console.error(error);
       });
     return res;
   },
@@ -787,7 +787,7 @@ const actions = {
         }
       })
       .catch(function (error) {
-        console.log(error);
+        console.error(error);
       });
     return res;
   },
@@ -810,7 +810,7 @@ const actions = {
         res = data.data;
       })
       .catch(function (error) {
-        console.log(error);
+        console.error(error);
       });
     return res;
   },
@@ -833,7 +833,7 @@ const actions = {
         res = data.data;
       })
       .catch(function (error) {
-        console.log(error);
+        console.error(error);
       });
     return res;
   },

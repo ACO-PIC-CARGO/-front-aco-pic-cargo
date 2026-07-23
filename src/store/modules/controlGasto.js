@@ -232,7 +232,7 @@ const actions = {
         }
       })
       .catch(function (error) {
-        console.log(error);
+        console.error(error);
       });
   },
   async guardarIngresos({ dispatch }, data) {
@@ -265,7 +265,7 @@ const actions = {
         }
       })
       .catch(function (error) {
-        console.log(error);
+        console.error(error);
       });
   },
   async actualizarIngresos({ dispatch }, data) {
@@ -297,7 +297,7 @@ const actions = {
         }
       })
       .catch(function (error) {
-        console.log(error);
+        console.error(error);
       });
   },
   async copiarCGingresos({ dispatch }, data) {
@@ -328,7 +328,7 @@ const actions = {
         }
       })
       .catch(function (error) {
-        console.log(error);
+        console.error(error);
       });
   },
   async copiarCGEgresos({ dispatch }, data) {
@@ -359,7 +359,7 @@ const actions = {
         }
       })
       .catch(function (error) {
-        console.log(error);
+        console.error(error);
       });
   },
   async getNombreCompania({ commit }, id_master) {
@@ -387,7 +387,7 @@ const actions = {
         }
       })
       .catch(function (error) {
-        console.log(error);
+        console.error(error);
       });
     return state.nombreCampania;
   },
@@ -415,7 +415,7 @@ const actions = {
         }
       })
       .catch(function (error) {
-        console.log(error);
+        console.error(error);
       });
   },
 
@@ -437,7 +437,7 @@ const actions = {
         commit("SET_RESPONSE", res.data);
       })
       .catch(function (error) {
-        console.log(error);
+        console.error(error);
       });
     return state.response;
   },
@@ -472,7 +472,7 @@ const actions = {
         link.click();
       })
       .catch(function (error) {
-        console.log(error);
+        console.error(error);
       });
   },
   async guardarCuotasCgeTipoProveedor({ commit }, data) {
@@ -503,7 +503,7 @@ const actions = {
         }
       })
       .catch(function (error) {
-        console.log(error);
+        console.error(error);
       });
     return state.response;
   },

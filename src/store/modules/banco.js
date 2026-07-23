@@ -32,7 +32,7 @@ const actions = {
         commit("SET_CUENTAS", response.data.data);
       })
       .catch(function (error) {
-        console.log(error);
+        console.error(error);
       });
   },
   async getValidaNroOp({ commit }, nro_operacion) {
@@ -56,7 +56,7 @@ const actions = {
         res = response.data;
       })
       .catch(function (error) {
-        console.log(error);
+        console.error(error);
       });
     return res;
   },

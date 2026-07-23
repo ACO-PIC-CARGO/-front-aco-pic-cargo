@@ -892,7 +892,7 @@ export default new Vuex.Store({
           }
         })
         .catch(function (error) {
-          console.log(error);
+          console.error(error);
         });
     },
     async _getEntitiesCliente({ commit }, role) {
@@ -913,7 +913,7 @@ export default new Vuex.Store({
           }
         })
         .catch(function (error) {
-          console.log(error);
+          console.error(error);
         });
     },
 
@@ -935,7 +935,7 @@ export default new Vuex.Store({
           commit("_setConsigners", response.data.data);
         })
         .catch(function (error) {
-          console.log(error);
+          console.error(error);
         });
     },
 
@@ -957,7 +957,7 @@ export default new Vuex.Store({
           commit("_setNotify", response.data.data);
         })
         .catch(function (error) {
-          console.log(error);
+          console.error(error);
         });
     },
 
@@ -979,7 +979,7 @@ export default new Vuex.Store({
           commit("_setAgents", response.data.data);
         })
         .catch(function (error) {
-          console.log(error);
+          console.error(error);
         });
     },
 
@@ -999,7 +999,7 @@ export default new Vuex.Store({
           commit("_setItemsProveedorList", response.data.data);
         })
         .catch(function (error) {
-          console.log(error);
+          console.error(error);
         });
     },
 
@@ -1021,7 +1021,7 @@ export default new Vuex.Store({
           commit("_setItemsNaviera", response.data.data);
         })
         .catch(function (error) {
-          console.log(error);
+          console.error(error);
         });
     },
 
@@ -1043,7 +1043,7 @@ export default new Vuex.Store({
           commit("_setColoaders", response.data.data);
         })
         .catch(function (error) {
-          console.log(error);
+          console.error(error);
         });
     },
 
@@ -1065,7 +1065,7 @@ export default new Vuex.Store({
           commit("_setItemsOperador", response.data.data);
         })
         .catch(function (error) {
-          console.log(error);
+          console.error(error);
         });
     },
 
@@ -1087,7 +1087,7 @@ export default new Vuex.Store({
           commit("_setDocumentsPais", response.data.data);
         })
         .catch(function (error) {
-          console.log(error);
+          console.error(error);
         });
     },
 
@@ -1104,7 +1104,7 @@ export default new Vuex.Store({
           commit("_setPais", response.data.data);
         })
         .catch(function (error) {
-          console.log(error);
+          console.error(error);
         });
     },
 
@@ -1127,7 +1127,7 @@ export default new Vuex.Store({
           }
         })
         .catch(function (error) {
-          console.log(error);
+          console.error(error);
         });
     },
 
@@ -1153,7 +1153,7 @@ export default new Vuex.Store({
           }
         })
         .catch(function (error) {
-          console.log(error);
+          console.error(error);
         });
     },
 
@@ -1174,7 +1174,7 @@ export default new Vuex.Store({
           commit("_setTown", response.data.data);
         })
         .catch(function (error) {
-          console.log(error);
+          console.error(error);
         });
     },
 
@@ -1195,7 +1195,7 @@ export default new Vuex.Store({
           commit("_setSex", response.data.data);
         })
         .catch(function (error) {
-          console.log(error);
+          console.error(error);
         });
     },
 
@@ -1216,7 +1216,7 @@ export default new Vuex.Store({
           commit("_setModality", response.data.data);
         })
         .catch(function (error) {
-          console.log(error);
+          console.error(error);
         });
     },
 
@@ -1237,7 +1237,7 @@ export default new Vuex.Store({
           commit("_setShipment", response.data.data);
         })
         .catch(function (error) {
-          console.log(error);
+          console.error(error);
         });
     },
 
@@ -1264,7 +1264,7 @@ export default new Vuex.Store({
           commit("_setPortBegin", response.data.data || []);
         })
         .catch(function (error) {
-          console.log(error);
+          console.error(error);
         });
     },
 
@@ -1312,7 +1312,7 @@ export default new Vuex.Store({
           commit("_setIncoterms", response.data.data);
         })
         .catch(function (error) {
-          console.log(error);
+          console.error(error);
         });
     },
 
@@ -1344,7 +1344,7 @@ export default new Vuex.Store({
           }
         })
         .catch(function (error) {
-          console.log(error);
+          console.error(error);
         });
     },
 
@@ -1379,7 +1379,7 @@ export default new Vuex.Store({
           commit("_setItemsList", menu);
         })
         .catch(function (error) {
-          console.log(error);
+          console.error(error);
         });
     },
 
@@ -1401,7 +1401,7 @@ export default new Vuex.Store({
           commit("_setItemsBitacoraList", response.data.data);
         })
         .catch(function (error) {
-          console.log(error);
+          console.error(error);
         });
     },
 
@@ -1426,7 +1426,7 @@ export default new Vuex.Store({
           }
         })
         .catch(function (error) {
-          console.log(error);
+          console.error(error);
         });
     },
 
@@ -1447,7 +1447,7 @@ export default new Vuex.Store({
           commit("_setItemsAirlines", response.data.data);
         })
         .catch(function (error) {
-          console.log(error);
+          console.error(error);
         });
     },
 
@@ -1468,7 +1468,7 @@ export default new Vuex.Store({
           commit("_setItemsMotonave", response.data.data);
         })
         .catch(function (error) {
-          console.log(error);
+          console.error(error);
         });
     },
 
@@ -1485,7 +1485,7 @@ export default new Vuex.Store({
           commit("_setItemsFleteCon", response.data.data);
         })
         .catch(function (error) {
-          console.log(error);
+          console.error(error);
         });
     },
 
@@ -1506,7 +1506,7 @@ export default new Vuex.Store({
           commit("_setItemsCoinsList", response.data.data);
         })
         .catch(function (error) {
-          console.log(error);
+          console.error(error);
         });
     },
 
@@ -1527,7 +1527,7 @@ export default new Vuex.Store({
           commit("_setDataNroMaster", response.data.data);
         })
         .catch(function (error) {
-          console.log(error);
+          console.error(error);
         });
     },
 
@@ -1549,7 +1549,7 @@ export default new Vuex.Store({
           commit("_setDataNroHouse", response.data.data);
         })
         .catch(function (error) {
-          console.log(error);
+          console.error(error);
         });
     },
 
@@ -1571,7 +1571,7 @@ export default new Vuex.Store({
           commit("_setHouseList", response.data.data);
         })
         .catch(function (error) {
-          console.log(error);
+          console.error(error);
         });
     },
 
@@ -1625,7 +1625,7 @@ export default new Vuex.Store({
           }
         })
         .catch(function (error) {
-          console.log(error);
+          console.error(error);
         });
     },
 
@@ -1687,7 +1687,7 @@ export default new Vuex.Store({
           }
         })
         .catch(function (error) {
-          console.log(error);
+          console.error(error);
         });
     },
 
@@ -1730,7 +1730,7 @@ export default new Vuex.Store({
           commit("_setTotalMasterList", parseInt(response.data.total) || 0);
         })
         .catch(function (error) {
-          console.log(error);
+          console.error(error);
         });
     },
 
@@ -1748,7 +1748,7 @@ export default new Vuex.Store({
           commit("_setBitacoraLineal", response.data.data);
         })
         .catch(function (error) {
-          console.log(error);
+          console.error(error);
         });
     },
 
@@ -1800,7 +1800,7 @@ export default new Vuex.Store({
           }
         })
         .catch(function (error) {
-          console.log(error);
+          console.error(error);
         });
     },
 
@@ -1836,7 +1836,7 @@ export default new Vuex.Store({
           commit("_setTotalHouseListAll", parseInt(response.data.total) || 0);
         })
         .catch(function (error) {
-          console.log(error);
+          console.error(error);
         });
     },
 
@@ -1859,7 +1859,7 @@ export default new Vuex.Store({
         })
         .catch(function (error) {
           commit("_setHouseServices", []);
-          console.log(error);
+          console.error(error);
         });
     },
 
@@ -1881,7 +1881,7 @@ export default new Vuex.Store({
           commit("_setBegEndList", response.data.data);
         })
         .catch(function (error) {
-          console.log(error);
+          console.error(error);
         });
     },
 
@@ -1906,7 +1906,7 @@ export default new Vuex.Store({
           );
         })
         .catch(function (error) {
-          console.log(error);
+          console.error(error);
         });
     },
 
@@ -1924,7 +1924,7 @@ export default new Vuex.Store({
           commit("_setItemsHouseContainers", response.data.data);
         })
         .catch(function (error) {
-          console.log(error);
+          console.error(error);
         });
     },
 
@@ -1948,7 +1948,7 @@ export default new Vuex.Store({
           commit("_setServicesList", response.data.data);
         })
         .catch(function (error) {
-          console.log(error);
+          console.error(error);
         });
     },
 
@@ -1978,7 +1978,7 @@ export default new Vuex.Store({
           }
         })
         .catch(function (error) {
-          console.log(error);
+          console.error(error);
         });
     },
 
@@ -2000,7 +2000,7 @@ export default new Vuex.Store({
           commit("_setItemsReportFileAllMaster", response.data.data);
         })
         .catch(function (error) {
-          console.log(error);
+          console.error(error);
         });
     },
 
@@ -2027,7 +2027,7 @@ export default new Vuex.Store({
           commit("_setItemsReportFileAll", response.data.data);
         })
         .catch(function (error) {
-          console.log(error);
+          console.error(error);
         });
     },
 
@@ -2051,7 +2051,7 @@ export default new Vuex.Store({
           commit("_setItemsReportFileAllMaster", response.data.data);
         })
         .catch(function (error) {
-          console.log(error);
+          console.error(error);
         });
     },
 
@@ -2070,7 +2070,7 @@ export default new Vuex.Store({
           commit("_setItemsTotalesAll", response.data.data);
         })
         .catch(function (error) {
-          console.log(error);
+          console.error(error);
         });
     },
 
@@ -2097,7 +2097,7 @@ export default new Vuex.Store({
           commit("_setItemsTotalesAll", response.data.data);
         })
         .catch(function (error) {
-          console.log(error);
+          console.error(error);
         });
     },
 
@@ -2124,7 +2124,7 @@ export default new Vuex.Store({
       await axios(config)
         .then()
         .catch(function (error) {
-          console.log(error);
+          console.error(error);
         });
       this.state.phone_id = "";
       this.state.phone_number = "";
@@ -2160,7 +2160,7 @@ export default new Vuex.Store({
           });
         })
         .catch(function (error) {
-          console.log(error);
+          console.error(error);
         });
     },
 
@@ -2194,7 +2194,7 @@ export default new Vuex.Store({
           commit("_setItemsPhone", response.data.data);
         })
         .catch(function (error) {
-          console.log(error);
+          console.error(error);
         });
     },
 
@@ -2218,7 +2218,7 @@ export default new Vuex.Store({
           commit("_setItemsContacts", response.data.data);
         })
         .catch(function (error) {
-          console.log(error);
+          console.error(error);
         });
     },
 
@@ -2243,7 +2243,7 @@ export default new Vuex.Store({
           commit("_setItemsDataControl", response.data.data);
         })
         .catch(function (error) {
-          console.log(error);
+          console.error(error);
         });
     },
 
@@ -2269,7 +2269,7 @@ export default new Vuex.Store({
           commit("_setItemsDataIngresos", response.data.data);
         })
         .catch(function (error) {
-          console.log(error);
+          console.error(error);
         });
     },
 
@@ -2290,7 +2290,7 @@ export default new Vuex.Store({
         })
         .catch(function (error) {
           d;
-          console.log(error);
+          console.error(error);
         });
     },
 
@@ -2307,7 +2307,7 @@ export default new Vuex.Store({
           commit("_setItemsDataRoleList", response.data.data);
         })
         .catch(function (error) {
-          console.log(error);
+          console.error(error);
         });
     },
 
@@ -2327,7 +2327,7 @@ export default new Vuex.Store({
           commit("_setItemsDataTotalesProveedor", response.data.data);
         })
         .catch(function (error) {
-          console.log(error);
+          console.error(error);
         });
     },
 
@@ -2371,7 +2371,7 @@ export default new Vuex.Store({
           }
         })
         .catch(function (error) {
-          console.log(error);
+          console.error(error);
         });
     },
 
@@ -2393,7 +2393,7 @@ export default new Vuex.Store({
           commit("_setItemsDataAccountList", response.data.data);
         })
         .catch(function (error) {
-          console.log(error);
+          console.error(error);
         });
     },
 
@@ -2414,7 +2414,7 @@ export default new Vuex.Store({
           commit("_setItemsDataBanksList", response.data.data);
         })
         .catch(function (error) {
-          console.log(error);
+          console.error(error);
         });
     },
 
@@ -2431,7 +2431,7 @@ export default new Vuex.Store({
           commit("_setPerfomance", response.data.data);
         })
         .catch(function (error) {
-          console.log(error);
+          console.error(error);
         });
     },
 
@@ -2448,7 +2448,7 @@ export default new Vuex.Store({
           commit("_setInvoiceAdmin", response.data.data);
         })
         .catch(function (error) {
-          console.log(error);
+          console.error(error);
         });
     },
 
@@ -2465,7 +2465,7 @@ export default new Vuex.Store({
           commit("_setInvoiceAdmin", response.data.data);
         })
         .catch(function (error) {
-          console.log(error);
+          console.error(error);
         });
     },
     async _getChargeMonth({ commit }, id) {
@@ -2481,7 +2481,7 @@ export default new Vuex.Store({
           commit("_setMonth", response.data.data);
         })
         .catch(function (error) {
-          console.log(error);
+          console.error(error);
         });
     },
     async _getChargeYear({ commit }, id) {
@@ -2501,7 +2501,7 @@ export default new Vuex.Store({
           commit("_setYear", response.data.data);
         })
         .catch(function (error) {
-          console.log(error);
+          console.error(error);
         });
     },
     async _getListaPagosXProveedorCxP({ commit }, id) {
@@ -2536,7 +2536,7 @@ export default new Vuex.Store({
           }
         })
         .catch(function (error) {
-          console.log(error);
+          console.error(error);
         });
     },
     async _getListaPagosXProveedorCxC({ commit }, id) {
@@ -2571,7 +2571,7 @@ export default new Vuex.Store({
           }
         })
         .catch(function (error) {
-          console.log(error);
+          console.error(error);
         });
     },
     //ZONE ADD DATA
@@ -2591,7 +2591,7 @@ export default new Vuex.Store({
           commit("_setProveedores", response.data.data);
         })
         .catch(function (error) {
-          console.log(error);
+          console.error(error);
         });
     },
     async cargarClientes({ commit }) {
@@ -2612,7 +2612,7 @@ export default new Vuex.Store({
           // vm.dataList = false;
         })
         .catch(function (error) {
-          console.log(error);
+          console.error(error);
         });
     },
     async cargarBranch({ commit }) {
@@ -2655,7 +2655,7 @@ export default new Vuex.Store({
           commit("SET_CUENTAS", response.data.data);
         })
         .catch(function (error) {
-          console.log(error);
+          console.error(error);
         });
     },
     async getListBanksDetailsCargarPorSucursal({ commit }) {
@@ -2677,7 +2677,7 @@ export default new Vuex.Store({
           commit("SET_CUENTAS", response.data.data);
         })
         .catch(function (error) {
-          console.log(error);
+          console.error(error);
         });
     },
 
@@ -2703,7 +2703,7 @@ export default new Vuex.Store({
           }
         })
         .catch(function (error) {
-          console.log(error);
+          console.error(error);
         });
     },
     async _getProveedorRolAerolinea({ commit }) {
@@ -2728,7 +2728,7 @@ export default new Vuex.Store({
           }
         })
         .catch(function (error) {
-          console.log(error);
+          console.error(error);
         });
     },
     async _getProveedorRolColoader({ commit }) {
@@ -2753,7 +2753,7 @@ export default new Vuex.Store({
           }
         })
         .catch(function (error) {
-          console.log(error);
+          console.error(error);
         });
     },
     async _getProveedorRolNaviera({ commit }) {
@@ -2778,7 +2778,7 @@ export default new Vuex.Store({
           }
         })
         .catch(function (error) {
-          console.log(error);
+          console.error(error);
         });
     },
     async _getProveedorRolShipper({ commit }) {
@@ -2803,7 +2803,7 @@ export default new Vuex.Store({
           }
         })
         .catch(function (error) {
-          console.log(error);
+          console.error(error);
         });
     },
     async _getComentariosPredefinidos({ commit }) {
@@ -2828,7 +2828,7 @@ export default new Vuex.Store({
           }
         })
         .catch(function (error) {
-          console.log(error);
+          console.error(error);
         });
     },
   },
