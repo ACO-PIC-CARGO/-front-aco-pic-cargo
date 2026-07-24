@@ -796,11 +796,23 @@ export default {
     this.$store.state.security = JSON.parse(sessionStorage.getItem("security"));
     setTimeout(() => {
       this.$store.state.lstMenu = JSON.parse(sessionStorage.getItem("menu"));
+      this._getVersion();
     }, 10);
 
-    // Desactivado: comprobación de versión y diálogo de actualización
-    await this._validaVersion();
-    // await this._getVersion();
+    this.socket.on("version-actualizada", (data) => {
+      if (data.modulo === "operativo") {
+        if (data.power == 0) {
+          this.dialogPower = true;
+          return;
+        }
+        if (data.power == 1) {
+          this.dialogPower = false;
+        }
+        if (data.version != process.env.VUE_APP_VERSION) {
+          this.dialogVersion = true;
+        }
+      }
+    });
 
     var vm = this;
     vm.$store.state.drawer = false;
@@ -892,13 +904,6 @@ export default {
         this.$store.state.master_nro_precinto = "";
         this.$store.state.master_cantidad = "";
       }
-    },
-
-    async _validaVersion() {
-      var vm = this;
-      setInterval(async () => {
-        await vm._getVersion();
-      }, 1000 * 60 * 5);
     },
 
     cleanData() {
