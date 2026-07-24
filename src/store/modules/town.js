@@ -1,4 +1,4 @@
-import axios from '@/api/axios-config';
+import axios from "@/api/axios-config";
 import Swal from "sweetalert2";
 import router from "@/router";
 
@@ -55,7 +55,6 @@ let actions = {
         }&status=${state.filtros.status ? state.filtros.status : ""}`,
 
       headers: {
-       
         "Content-Type": "application/json",
       },
     };
@@ -92,12 +91,37 @@ let actions = {
       console.error(error);
     }
   },
+  async cargarTownParaPricing({ commit }, params) {
+    var config = {
+      method: "get",
+      url: process.env.VUE_APP_URL_MAIN + `cargar_town_pricing`,
+      params: params,
+      headers: {
+        "Content-Type": "application/json",
+      },
+    };
+    try {
+      await axios(config)
+        .then(function (response) {
+          let data = response.data;
+          if (data.estadoflag == true) {
+            commit("SET_LIST_TOWN", data.data);
+          } else {
+            commit("SET_LIST_TOWN", []);
+          }
+        })
+        .catch(function (error) {
+          console.error(error);
+        });
+    } catch (error) {
+      console.error(error);
+    }
+  },
   async setTown({ commit }) {
     var config = {
       method: "post",
       url: process.env.VUE_APP_URL_MAIN + `insertar_town`,
       headers: {
-       
         "Content-Type": "application/json",
       },
       data: state.model,
@@ -124,7 +148,6 @@ let actions = {
       method: "put",
       url: process.env.VUE_APP_URL_MAIN + `actualizar_town`,
       headers: {
-       
         "Content-Type": "application/json",
       },
       data: state.model,
