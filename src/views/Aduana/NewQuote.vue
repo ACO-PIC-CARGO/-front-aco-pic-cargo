@@ -321,8 +321,8 @@ export default {
                 esventaflag: 1,
                 status: true,
                 costounitario: 0,
-                cif: 0,
-                seguro: 0,
+                cif: parseFloat(0.35),
+                seguro: parseFloat(0.45),
                 nro_propuesta: 1,
               },
             ];
@@ -470,8 +470,8 @@ export default {
               nro_propuesta: nro_propuesta,
               esventaflag: 1,
               status: true,
-              cif: 0,
-              seguro: 0,
+              cif: parseFloat(0.35),
+              seguro: parseFloat(0.45),
               costounitario: 0,
             },
           ];
@@ -552,8 +552,8 @@ export default {
               esopcionflag: 0,
               esventaflag: 1,
               status: true,
-              cif: 0,
-              seguro: 0,
+              cif: parseFloat(0.35),
+              seguro: parseFloat(0.45),
               costounitario: 0,
             },
           ];

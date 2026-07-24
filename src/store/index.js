@@ -491,6 +491,20 @@ export default new Vuex.Store({
     dataBranch: JSON.parse(sessionStorage.getItem("dataBranch")),
   },
   getters: {
+    isEmpresaPermitida: (state) => {
+      const valEmpresaPic = [1, 2];
+      const dataBranch = localStorage.getItem("dataBranch");
+      
+      if (!dataBranch) return false;
+      
+      try {
+        const empresa = JSON.parse(dataBranch)[0];
+        return empresa && valEmpresaPic.includes(empresa.id);
+      } catch (e) {
+        console.error("Error al parsear dataBranch", e);
+        return false;
+      }
+    },
     itemsEntitie: (state) => state.itemsEntities,
     itemsConsigner: (state) => state.itemsContainers,
     itemsColoaders: (state) => state.itemsColoaders,

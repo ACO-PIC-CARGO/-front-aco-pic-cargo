@@ -368,8 +368,8 @@ export default {
                 parseFloat(flete.monto) +
                 parseFloat(fleteVenta.monto),
               nro_propuesta: 1,
-              tienefleteflag: tienefleteflag,
-              fechavigencia: fechavigencia,
+              tienefleteflag: flete.tienefleteflag,
+              fechavigencia: flete.fechavigencia,
               tienefleteflag: false,
               fechavigencia: null,
             },
@@ -443,8 +443,8 @@ export default {
               esopcionflag: 0,
               esventaflag: 1,
               status: true,
-              cif: 0,
-              seguro: 0,
+              cif: parseFloat(0.35),
+              seguro: parseFloat(0.45),
               nro_propuesta: 1,
               costounitario:
                 parseFloat(
@@ -725,8 +725,8 @@ export default {
               esopcionflag: 0,
               esventaflag: 1,
               status: true,
-              cif: 0,
-              seguro: 0,
+              cif:parseFloat(0.35),
+              seguro:parseFloat(0.45),
               nro_propuesta: 1,
               costounitario:
                 parseFloat(
@@ -864,8 +864,8 @@ export default {
               esopcionflag: 0,
               esventaflag: 1,
               status: true,
-              cif: 0,
-              seguro: 0,
+              cif: parseFloat(0.35),
+              seguro: parseFloat(0.45),
               nro_propuesta: 1,
               costounitario:
                 parseFloat(
