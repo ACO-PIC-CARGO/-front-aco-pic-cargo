@@ -261,7 +261,7 @@ export default {
   watch: {
     drawer() {
       this.model = { ...this.$store.state.itemServices.model };
-      console.log('sss');
+     
       setTimeout(() => {
         this.$refs.frmDML.resetValidation();
       }, 10);

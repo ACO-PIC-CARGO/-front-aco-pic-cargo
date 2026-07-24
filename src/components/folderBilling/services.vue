@@ -54,7 +54,7 @@ export default {
           }
         })
         .catch(function (error) {
-          console.log(error);
+          console.error(error);
         });
     },
     _validaData() {
@@ -80,7 +80,7 @@ export default {
             vm.$store.state.itemsHouseServices = response.data.data;
           })
           .catch(function (error) {
-            console.log(error);
+            console.error(error);
           });
       }
     },

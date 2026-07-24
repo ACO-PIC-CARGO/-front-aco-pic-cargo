@@ -45,7 +45,7 @@ const actions = {
         );
       })
       .catch(function (error) {
-        console.log(error);
+        console.error(error);
       });
   },
   async getListarBancosgastosDetalles({ commit }, data) {
@@ -71,7 +71,7 @@ const actions = {
         }
       })
       .catch(function (error) {
-        console.log(error);
+        console.error(error);
       });
   },
 };

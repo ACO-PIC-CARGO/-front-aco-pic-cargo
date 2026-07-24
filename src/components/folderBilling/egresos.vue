@@ -1907,7 +1907,7 @@ export default {
           this.$swal({
             icon: "warning", // Cambiado a 'warning' porque es una restricción del sistema, no un fallo crítico.
             title: "MONEDAS SOLES DOLARES",
-            html: `<b>Hay conceptos con monedas diferentes</b><br><br>Por favor chequear.`,
+            html: `<b>Hay conceptos con monedas diferentes</b><br><br>Por favor chequear. NO SE CARGARÁ EL COSTO.`,
             confirmButtonColor: "#3085d6",
             confirmButtonText: "ACEPTAR",
           });
@@ -1951,7 +1951,7 @@ export default {
           vm.dialog = false;
         })
         .catch(function (error) {
-          console.log(error);
+          console.error(error);
         });
       this.$emit("recalcularProfit");
     },
@@ -2064,7 +2064,7 @@ export default {
           await vm._getInvoice(vm.egreso);
         })
         .catch(function (error) {
-          console.log(error);
+          console.error(error);
         });
     },
     async _delInvoice(id) {
@@ -2087,7 +2087,7 @@ export default {
           vm.dialogInvoice = false;
         })
         .catch(function (error) {
-          console.log(error);
+          console.error(error);
         });
     },
     async InsertarActualizarPorcentajeProveedor() {
@@ -2141,7 +2141,7 @@ export default {
             response.data.data || [];
         })
         .catch(function (error) {
-          console.log(error);
+          console.error(error);
         });
     },
     _editEgreso(egreso) {
@@ -2207,7 +2207,7 @@ export default {
               }
             })
             .catch(function (error) {
-              console.log(error);
+              console.error(error);
             });
         }
       });
@@ -2241,7 +2241,7 @@ export default {
           vm.itemsSPayment = response.data.data;
         })
         .catch(function (error) {
-          console.log(error);
+          console.error(error);
         });
     },
     async listControlGasto() {
@@ -2284,7 +2284,7 @@ export default {
           this.$swal({
             icon: "warning", // Cambiado a 'warning' porque es una restricción del sistema, no un fallo crítico.
             title: "MONEDAS SOLES DOLARES",
-            html: `<b>Hay conceptos con monedas diferentes</b><br><br>Por favor chequear.`,
+             html: `<b>Hay conceptos con monedas diferentes</b><br><br>Por favor chequear. NO SE CARGARÁ EL COSTO.`,
             confirmButtonColor: "#3085d6",
             confirmButtonText: "ACEPTAR",
           });
@@ -2306,7 +2306,7 @@ export default {
           vm.dialog = false;
         })
         .catch(function (error) {
-          console.log(error);
+          console.error(error);
         });
       this.$emit("recalcularProfit");
     },
@@ -2361,124 +2361,6 @@ export default {
         ),
       };
     },
-    async imprimirControlDetallado() {
-      let master = this.$store.state.controlGastos.listControlGastos[0];
-      let egresos = [];
-      let totalEgreso = 0;
-      let totalIgvEgresos = 0;
-      let totalTotalEgresos = 0;
-      let totalEgresoOp = 0;
-      let totalIgvEgresosOp = 0;
-      let totalTotalEgresosOp = 0;
-      this.master_egresos.forEach((element) => {
-        element.detalle.forEach((element2) => {
-          egresos.push({
-            namePagado: "",
-            nameproveedor: element2.nombre_proveedor,
-            concepto: element2.concepto,
-            monto_pr: element2.monto_pr,
-            igv_pr: element2.igv_pr,
-            total_pr: element2.total_pr,
-            monto_op: element2.monto_op,
-            igv_op: element2.igv_op,
-            total_op: element2.total_op,
-          });
-          totalEgreso += parseFloat(element2.monto_pr);
-          totalIgvEgresos += parseFloat(element2.igv_pr);
-          totalTotalEgresos += parseFloat(element2.total_pr);
-          totalEgresoOp += parseFloat(element2.monto_op);
-          totalIgvEgresosOp += parseFloat(element2.igv_op);
-          totalTotalEgresosOp += parseFloat(element2.total_op);
-        });
-      });
-      let data = {
-        bultos: master.master_volumen,
-        peso: master.master_peso,
-        puerto_origen: master.master_port_begin,
-        puerto_destino: master.master_port_end,
-        tipo_embarque: master.master_shipment,
-        volumen: master.master_volumen,
-        sentido: master.master_modality,
-        gananciapr: parseFloat(this.ingreso_pr - this.egreso_pr).toFixed(2),
-        gananciaop: parseFloat(this.ingreso_op - this.egreso_op).toFixed(2),
-        exp: this.codigo_master,
-        totalEgreso,
-        totalIgvEgresos,
-        totalTotalEgresos,
-        totalEgresoOp,
-        totalIgvEgresosOp,
-        totalTotalEgresosOp,
-        itemsTotalesProveedores: this.master_egresos.map((element) => {
-          return {
-            nameproveedor: element.nombre_proveedor,
-            restante: parseFloat(element.monto_pagar_op).toFixed(2),
-            total_op: parseFloat(element.total_total_op).toFixed(2),
-            total_p: parseFloat(element.total_total_op).toFixed(2),
-            total_pr: parseFloat(element.total_total_pr).toFixed(2),
-          };
-        }),
-
-        itemTotalHouse: this.$store.state.controlgastos.master_houses.map(
-          (element) => {
-            return {
-              consigner: element.consigner,
-              code_house: element.code_house,
-              total_igv_op_ingresos: parseFloat(
-                element.total_igv_op_ingresos,
-              ).toFixed(2),
-              total_igv_pr_ingresos: parseFloat(
-                element.total_igv_pr_ingresos,
-              ).toFixed(2),
-              total_monto_op_ingresos: parseFloat(
-                element.total_monto_op_ingresos,
-              ).toFixed(2),
-              total_monto_pr_ingresos: parseFloat(
-                element.total_monto_pr_ingresos,
-              ).toFixed(2),
-              total_total_op_ingresos: parseFloat(
-                element.total_total_op_ingresos,
-              ).toFixed(2),
-              total_total_pr_ingresos: parseFloat(
-                element.total_total_pr_ingresos,
-              ).toFixed(2),
-            };
-          },
-        ),
-        itemHouses: this.$store.state.controlgastos.master_houses,
-        itemEgresos: this.master_egresos,
-      };
-      var vm = this;
-      vm._calcularTotales();
-      vm.$swal({
-        icon: "info",
-        title: "Generando PDF...",
-        text: "Por favor espere",
-      });
-      var config = {
-        method: "post",
-        url: process.env.VUE_APP_URL_MAIN + "getPdfInstructivoDetallado",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        data: data,
-      };
-      await axios(config)
-        .then(function (response) {
-          vm.$swal({
-            icon: "success",
-            title: "PDF Generado",
-            text: "El PDF se descargará automaticamente",
-          });
-
-          window.open(
-            process.env.VUE_APP_URL_MAIN + response.data.path,
-            "_blank",
-          );
-        })
-        .catch(function (error) {
-          console.log(error);
-        });
-    },
     sendAdmin(id) {
       this.$swal({
         title: "¿Desea realizar esta solicitud a Administración?",
@@ -2522,7 +2404,7 @@ export default {
               vm.dataList = true;
             })
             .catch(function (error) {
-              console.log(error);
+              console.error(error);
             });
         }
       });
@@ -2568,7 +2450,7 @@ export default {
           });
         })
         .catch(function (error) {
-          console.log(error);
+          console.error(error);
         });
 
       vm.$store.state.spiner = false;
@@ -2681,11 +2563,11 @@ export default {
               vm.dialogSolicitud = false;
             })
             .catch(function (error) {
-              console.log(error);
+              console.error(error);
             });
         })
         .catch(function (error) {
-          console.log(error);
+          console.error(error);
         });
       vm.loading = false;
     },
@@ -2783,7 +2665,7 @@ export default {
           vm.isDataTableLoading = false;
         })
         .catch(function (error) {
-          console.log(error);
+          console.error(error);
         });
     },
     openDoc(path) {
@@ -2946,7 +2828,6 @@ export default {
       "getSPaymentPro",
       "getListControlGastos",
       "editEgreso",
-      "getPdfInstructivoDetallado",
       "putSPaymentPro",
       "eliminar_spaymentpro",
       "pdfSolicitud",

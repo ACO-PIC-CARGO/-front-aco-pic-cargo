@@ -324,7 +324,7 @@ export default {
           vm.cuentas = response.data.data;
         })
         .catch(function (error) {
-          console.log(error);
+          console.error(error);
         });
     },
     validarMonto(details) {
@@ -400,7 +400,7 @@ export default {
       });
     },
     abrirSoporte(url) {
-      console.log(url);
+    
       window.open(url, "_blank");
     },
   },

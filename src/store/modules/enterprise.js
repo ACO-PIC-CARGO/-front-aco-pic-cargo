@@ -351,7 +351,7 @@ const actions = {
         commit("SET_IMPUESTO_X_EMPRESA", response.data.data);
       })
       .catch(function (error) {
-        console.log(error);
+        console.error(error);
       });
   },
   async listarCuentaEmpresa({ commit }, id_branch = null) {
@@ -372,7 +372,7 @@ const actions = {
         commit("SET_CUENTAS_X_EMPRESA", response.data.data);
       })
       .catch(function (error) {
-        console.log(error);
+        console.error(error);
       });
   },
   async registrarCuentaEmpresa({ commit, dispatch }, data) {
@@ -399,7 +399,7 @@ const actions = {
         dispatch("listarCuentaEmpresa");
       })
       .catch(function (error) {
-        console.log(error);
+        console.error(error);
       });
   },
 };

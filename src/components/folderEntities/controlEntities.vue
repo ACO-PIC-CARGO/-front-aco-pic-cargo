@@ -507,7 +507,7 @@ export default {
           vm.$store.state.itemsDataAccountsNumberList = response.data.data;
         })
         .catch(function (error) {
-          console.log(error);
+          console.error(error);
         });
     },
 
@@ -570,7 +570,7 @@ export default {
             }
           })
           .catch(function (error) {
-            console.log(error);
+            console.error(error);
           });
       }
     },
@@ -622,7 +622,7 @@ export default {
             vm.dataList = true;
           })
           .catch(function (error) {
-            console.log(error);
+            console.error(error);
           });
       }
     },
@@ -686,7 +686,7 @@ export default {
             }
           })
           .catch(function (error) {
-            console.log(error);
+            console.error(error);
             vm.$swal({
               icon: "error",
               title: "Lo sentimos",
@@ -731,7 +731,7 @@ export default {
           }
         })
         .catch(function (error) {
-          console.log(error);
+          console.error(error);
         });
     },
 

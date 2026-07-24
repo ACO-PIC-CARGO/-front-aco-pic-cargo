@@ -104,7 +104,7 @@ export default {
             vm.$store.state.dataHouse_volumen = response.data.data[0].volumen;
           })
           .catch(function (error) {
-            console.log(error);
+            console.error(error);
           });
       }
     },

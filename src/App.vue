@@ -42,7 +42,7 @@
     </v-dialog>
 
     <v-dialog
-      v-if="false"
+      v-if="dialogVersion"
       persistent
       v-model="dialogVersion"
       :width="$vuetify.breakpoint.smAndDown ? '100%' : '25%'"
@@ -766,12 +766,18 @@
 </template>
 
 <script>
-// import { io } from "socket.io-client";
+import { io } from "socket.io-client";
 import { mapActions, mapState } from "vuex";
-import axios from '@/api/axios-config';
+import axios from "@/api/axios-config";
 import Swal from "sweetalert2";
 
 export default {
+  created() {
+    this.socket = io(process.env.VUE_APP_URL_MAIN);
+    this.socket.on("connect_error", (err) => {
+      console.error("Error al conectar con Socket.IO:", err);
+    });
+  },
   name: "App",
 
   data: () => ({
@@ -790,11 +796,23 @@ export default {
     this.$store.state.security = JSON.parse(sessionStorage.getItem("security"));
     setTimeout(() => {
       this.$store.state.lstMenu = JSON.parse(sessionStorage.getItem("menu"));
+      this._getVersion();
     }, 10);
 
-    // Desactivado: comprobación de versión y diálogo de actualización
-    // await this._validaVersion();
-    await this._getVersion();
+    this.socket.on("version-actualizada", (data) => {
+      if (data.modulo === "operativo") {
+        if (data.power == 0) {
+          this.dialogPower = true;
+          return;
+        }
+        if (data.power == 1) {
+          this.dialogPower = false;
+        }
+        if (data.version != process.env.VUE_APP_VERSION) {
+          this.dialogVersion = true;
+        }
+      }
+    });
 
     var vm = this;
     vm.$store.state.drawer = false;
@@ -835,6 +853,8 @@ export default {
     actualizar() {
       this.cargando = true;
       localStorage.setItem("actualizando", "1");
+      console.log(process.env.VUE_APP_VERSION);
+
       setTimeout(() => {
         const url = window.location.origin + window.location.pathname;
         window.location.href = `${url}?v=${new Date().getTime()}`;
@@ -886,14 +906,6 @@ export default {
       }
     },
 
-    async _validaVersion() {
-      var vm = this;
-      setInterval(async () => {
-        await vm._getVersion();
-        // await vm.validateTotal();
-      }, 30000);
-    },
-
     cleanData() {
       this.$store.state.accountIdTypeAccount = "";
       this.$store.state.accountIdBanks = "";
@@ -902,6 +914,7 @@ export default {
     },
 
     async _getVersion() {
+      console.log(process.env.VUE_APP_VERSION);
       var vm = this;
       let data = {
         modulo: "operativo",
@@ -920,21 +933,10 @@ export default {
           .then(function (response) {
             const serverVersion = response.data.data[0].version;
             const currentVersion = sessionStorage.getItem("version");
-
-            // if (currentVersion && serverVersion !== currentVersion) {
-            //   sessionStorage.setItem("version", serverVersion);
-
-            //   if (!sessionStorage.getItem("hasReloaded")) {
-            //     sessionStorage.setItem("hasReloaded", "1");
-            //     window.location.href = window.location.origin;
-            //   }
-            // }
-
             if (
               !!sessionStorage.getItem("version") &&
               response.data.data[0].version != sessionStorage.getItem("version")
             ) {
-              // window.location.reload(true);
               vm.dialogVersion = true;
             } else {
               vm.dialogVersion = false;
@@ -947,10 +949,10 @@ export default {
             }
           })
           .catch(function (error) {
-            console.log(error);
+            console.error(error);
           });
       } catch (error) {
-        console.log(error);
+        console.error(error);
       }
     },
 
@@ -960,7 +962,6 @@ export default {
         method: "post",
         url: process.env.VUE_APP_URL_MAIN + "delAccount/" + id,
         headers: {
-         
           "Content-Type": "application/json",
         },
       };
@@ -969,7 +970,7 @@ export default {
           vm._getAccountsNumber();
         })
         .catch(function (error) {
-          console.log(error);
+          console.error(error);
         });
     },
 
@@ -985,7 +986,6 @@ export default {
           "getAccountsNumber/" +
           vm.$route.params.id,
         headers: {
-         
           "Content-Type": "application/json",
         },
         data: data,
@@ -995,7 +995,7 @@ export default {
           vm.$store.state.itemsDataAccountsNumberList = response.data.data;
         })
         .catch(function (error) {
-          console.log(error);
+          console.error(error);
         });
     },
 
@@ -1014,7 +1014,6 @@ export default {
         method: "post",
         url: process.env.VUE_APP_URL_MAIN + "setAccount",
         headers: {
-         
           "Content-Type": "application/json",
         },
         data: data,
@@ -1024,7 +1023,7 @@ export default {
           vm._getAccountsNumber();
         })
         .catch(function (error) {
-          console.log(error);
+          console.error(error);
         });
     },
 
@@ -1045,46 +1044,7 @@ export default {
     _deleteContacts(i) {
       this.$store.state.itemsListContact.splice(i, 1);
     },
-    async validateTotal() {
-      if (JSON.parse(sessionStorage.getItem("totalCotizacion"))) {
-        let totalCotizacion = JSON.parse(
-          sessionStorage.getItem("totalCotizacion"),
-        );
-        await this.GetTotalCotizacion();
-        let val = true;
-        totalCotizacion.forEach((element) => {
-          let validate =
-            this.$store.state.calculadoras.listTotalCotizacion.filter(
-              (v) => v.rtype == element.rtype && v.total == element.total,
-            ).length;
-          val = validate == 0 ? false : val;
-        });
-        if (!val) {
-          this.newquote = true;
-          Swal.fire({
-            icon: "warning",
-            text: "Se a registrado una nueva cotización.",
-            confirmButtonText: "Ok",
-          }).then((result) => {
-            if (result.isConfirmed) {
-              this.newquote = false;
-              sessionStorage.setItem(
-                "totalCotizacion",
-                JSON.stringify(
-                  this.$store.state.calculadoras.listTotalCotizacion,
-                ),
-              );
-            }
-          });
-        }
-      } else {
-        await this.GetTotalCotizacion();
-        sessionStorage.setItem(
-          "totalCotizacion",
-          JSON.stringify(this.$store.state.calculadoras.listTotalCotizacion),
-        );
-      }
-    },
+
     mostrarBtnGuardar() {
       if (!this.$store.state.entities.cliente.id_tipopersona) {
         return false;
@@ -1153,7 +1113,6 @@ export default {
     align-items: center;
   }
 }
-
 
 .contenedor-scroll {
   height: 100vh;

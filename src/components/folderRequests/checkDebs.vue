@@ -429,7 +429,7 @@ export default {
           vm.getDebs();
         })
         .catch(function (error) {
-          console.log(error);
+          console.error(error);
         });
     },
     openPaymentFile(id, path, proveedor) {
@@ -465,7 +465,7 @@ export default {
           vm.itemsDebsClient = response.data.data;
         })
         .catch(function (error) {
-          console.log(error);
+          console.error(error);
         });
     },
 
@@ -493,7 +493,7 @@ export default {
           vm.payPath = JSON.stringify(response.data.data[0].insertid);
         })
         .catch(function (error) {
-          console.log(error);
+          console.error(error);
         });
     },
     cleandData() {
@@ -556,7 +556,7 @@ export default {
             vm.dialogProcess = false;
           })
           .catch(function (error) {
-            console.log(error);
+            console.error(error);
           });
       } else {
         this.errorNroOp = "Dato Requerido.";
@@ -581,7 +581,7 @@ export default {
           vm.dataList = true;
         })
         .catch(function (error) {
-          console.log(error);
+          console.error(error);
         });
     },
     async _getRequestPaymentConceptos(id) {
@@ -600,7 +600,7 @@ export default {
           vm.itemsSPaymentConceptos = response.data.data;
         })
         .catch(function (error) {
-          console.log(error);
+          console.error(error);
         });
     },
     viewPdf(pdf) {

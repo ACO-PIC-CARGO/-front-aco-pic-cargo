@@ -471,7 +471,7 @@ export default {
             }
           })
           .catch(function (error) {
-            console.log(error);
+            console.error(error);
           });
         vm.dataList = true;
       } else {
@@ -528,7 +528,7 @@ export default {
           vm.cuentas = data;
         })
         .catch(function (error) {
-          console.log(error);
+          console.error(error);
         });
     },
     continuar() {
@@ -568,7 +568,7 @@ export default {
           .catch(function (error) {
             vm.errfile =
               "Ocurrió un problmea conuníquese con el administrador del sistema";
-            console.log(error);
+            console.error(error);
           });
       }
     },
@@ -678,7 +678,7 @@ export default {
           }
         })
         .catch(function (error) {
-          console.log(error);
+          console.error(error);
         });
       this.loadingPago = false;
       this.$emit("cerrarModal", true);

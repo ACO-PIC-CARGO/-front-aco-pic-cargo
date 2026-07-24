@@ -211,7 +211,7 @@ export default {
           return response.data.data;
         })
         .catch((e) => {
-          console.log(e);
+         console.error(e);
           return false;
         });
       return res;
@@ -264,7 +264,7 @@ export default {
           console.log(response);
         })
         .catch(function (error) {
-          console.log(error);
+          console.error(error);
           vm.$swal({
             icon: "error",
             title: "Lo sentimos",
@@ -302,7 +302,7 @@ export default {
       axios(config)
         .then(function (response) {})
         .catch(function (error) {
-          console.log(error);
+          console.error(error);
           vm.$swal({
             icon: "error",
             title: "Lo sentimos",
@@ -331,7 +331,7 @@ export default {
         axios(config)
           .then(function () {})
           .catch(function (error) {
-            console.log(error);
+            console.error(error);
           });
       });
 
@@ -570,7 +570,7 @@ export default {
             vm.cleanData();
           })
           .catch(function (error) {
-            console.log(error);
+            console.error(error);
             vm.$swal({
               icon: "error",
               title: "Lo sentimos",
@@ -782,7 +782,7 @@ export default {
             // vm.$router.go(-1);
           })
           .catch(function (error) {
-            console.log(error);
+            console.error(error);
             vm.$swal({
               icon: "error",
               title: "Lo sentimos",

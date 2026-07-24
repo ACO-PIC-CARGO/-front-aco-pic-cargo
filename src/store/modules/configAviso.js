@@ -33,7 +33,7 @@ let actions = {
         }
       })
       .catch(function (error) {
-        console.log(error);
+        console.error(error);
       });
   },
   async actualizarConfigAviso({ commit }, data) {
@@ -58,7 +58,7 @@ let actions = {
         }
       })
       .catch(function (error) {
-        console.log(error);
+        console.error(error);
       });
   },
 };

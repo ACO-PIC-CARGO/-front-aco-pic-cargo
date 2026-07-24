@@ -1,4 +1,4 @@
-import axios from '@/api/axios-config';
+import axios from "@/api/axios-config";
 import Swal from "sweetalert2";
 import router from "@/router";
 
@@ -35,7 +35,6 @@ const actions = {
         `&status=${data.status}`,
       headers: {
         "Content-Type": "application/json",
-       
       },
     };
     await axios(config)
@@ -63,8 +62,8 @@ const actions = {
             }
           });
       })
-      .catch((error) => {
-        console.log("Error al obtener los datos:", error);
+      .catch((e) => {
+        console.error("Error al obtener los datos:", e);
       });
   },
   async insertYear({ commit, dispatch }, data) {
@@ -73,7 +72,6 @@ const actions = {
       url: process.env.VUE_APP_URL_MAIN + "insertar_year",
       headers: {
         "Content-Type": "application/json",
-       
       },
       data: data,
     };
@@ -95,8 +93,8 @@ const actions = {
           }
         });
       })
-      .catch((error) => {
-        console.log("Error al obtener los datos:", error);
+      .catch((e) => {
+        console.error("Error al obtener los datos:", e);
       });
   },
   async readYear({ commit }, id) {
@@ -105,7 +103,6 @@ const actions = {
       url: process.env.VUE_APP_URL_MAIN + `ver_year?id=${id}`,
       headers: {
         "Content-Type": "application/json",
-       
       },
     };
 
@@ -122,8 +119,8 @@ const actions = {
           });
         }
       })
-      .catch((error) => {
-        console.log("Error al obtener los datos:", error);
+      .catch((e) => {
+        console.error("Error al obtener los datos:", e);
       });
   },
   async updateYear({ dispatch }, data) {
@@ -132,7 +129,6 @@ const actions = {
       url: process.env.VUE_APP_URL_MAIN + "actualizar_year",
       headers: {
         "Content-Type": "application/json",
-       
       },
       data: data,
     };
@@ -153,8 +149,8 @@ const actions = {
           }
         });
       })
-      .catch((error) => {
-        console.log("Error al obtener los datos:", error);
+      .catch((e) => {
+        console.error("Error al obtener los datos:", e);
       });
   },
 };

@@ -624,7 +624,7 @@ export default {
           vm.itemsSPaymentConceptos = response.data.data;
         })
         .catch(function (error) {
-          console.log(error);
+          console.error(error);
         });
     },
     async uploadFile() {
@@ -679,7 +679,7 @@ export default {
           vm.cuentas = response.data.data;
         })
         .catch(function (error) {
-          console.log(error);
+          console.error(error);
         });
     },
     validarMonto(details) {
@@ -783,7 +783,7 @@ export default {
             }
           })
           .catch(function (error) {
-            console.log(error);
+            console.error(error);
           });
       }
     },
@@ -835,7 +835,7 @@ export default {
           vm.dialogProcess = false;
         })
         .catch(function (error) {
-          console.log(error);
+          console.error(error);
         });
     },
 
@@ -880,7 +880,7 @@ export default {
             }, 200);
           })
           .catch(function (error) {
-            console.log(error);
+            console.error(error);
           });
       }
     },
@@ -904,7 +904,7 @@ export default {
           vm.ListProgrammedPayment();
         })
         .catch(function (error) {
-          console.log(error);
+          console.error(error);
         });
     },
     async eliminar(item, id_proveedor, id_details) {

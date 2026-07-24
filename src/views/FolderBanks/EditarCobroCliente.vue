@@ -183,7 +183,7 @@
 </template>
 
 <script>
-import axios from '@/api/axios-config';
+import axios from "@/api/axios-config";
 import Swal from "sweetalert2";
 import { mapActions, mapState } from "vuex";
 export default {
@@ -292,7 +292,7 @@ export default {
     },
     async actualizarCobro() {
       let res = await this.actualizarPagoRealizado(
-        this.$store.state.bank.record.details
+        this.$store.state.bank.record.details,
       );
 
       Swal.fire({
@@ -317,10 +317,10 @@ export default {
         method: "get",
         url: process.env.VUE_APP_URL_MAIN + "getListBanksDetailsCargar",
         params: {
-          id_branch: JSON.parse(sessionStorage.getItem("dataUser"))[0].id_branch,
+          id_branch: JSON.parse(sessionStorage.getItem("dataUser"))[0]
+            .id_branch,
         },
         headers: {
-         
           "Content-Type": "application/json",
         },
       };
@@ -329,7 +329,7 @@ export default {
           vm.cuentas = response.data.data;
         })
         .catch(function (error) {
-          console.log(error);
+          console.error(error);
         });
     },
 
@@ -342,7 +342,7 @@ export default {
     },
     obtenerSymbol() {
       this.symbol = this.$store.state.itemsCoinsList.filter(
-        (v) => v.id == this.id_coins
+        (v) => v.id == this.id_coins,
       )[0].symbol;
     },
     calcularMonto() {
@@ -350,10 +350,10 @@ export default {
         this.selected.forEach((element) => {
           this.id_coins = element.id_coins;
           this.symbol = this.$store.state.itemsCoinsList.filter(
-            (v) => v.id == this.selected[0].id_coins
+            (v) => v.id == this.selected[0].id_coins,
           )[0].symbol;
           element.montopagar = parseFloat(
-            element.monto_pagar * element.tipocambio
+            element.monto_pagar * element.tipocambio,
           ).toFixed(2);
           element.montopagar > element.max_pagar
             ? (element.err = "Monto Superior a la deuda ")
@@ -397,7 +397,6 @@ export default {
         method: "post",
         url: process.env.VUE_APP_URL_MAIN + "uploadAllPath",
         headers: {
-         
           "Content-Type": "application/json",
         },
         data: data,
@@ -409,7 +408,7 @@ export default {
           vm.payPath = JSON.stringify(response.data.data[0].insertid);
         })
         .catch(function (error) {
-          console.log(error);
+          console.error(error);
         });
     },
     validar(registro = false) {
@@ -470,7 +469,6 @@ export default {
             url: process.env.VUE_APP_URL_MAIN + "setPayForCustomer",
 
             headers: {
-             
               "Content-Type": "application/json",
             },
             data: data,
@@ -487,12 +485,12 @@ export default {
               }
             })
             .catch(function (error) {
-              console.log(error);
+              console.error(error);
             });
           this.loading = false;
         }
-      } catch (err) {
-        console.log(err);
+      } catch (e) {
+        console.error(e);
       }
     },
     continuar() {
@@ -522,7 +520,6 @@ export default {
           url: process.env.VUE_APP_URL_MAIN + `getVerPagosPorCustomer?id=` + id,
 
           headers: {
-           
             "Content-Type": "application/json",
           },
         };
@@ -539,12 +536,11 @@ export default {
             }, 200);
           })
           .catch(function (error) {
-            console.log(error);
+            console.error(error);
           });
       }
     },
     abrirSoporte(url) {
-      console.log(url);
       window.open(url, "_blank");
     },
   },

@@ -168,7 +168,7 @@ const actions = {
         commit("SET_SUCURSAL_X_USUARIO", res.data);
       })
       .catch(function (error) {
-        console.log(error);
+        console.error(error);
       });
   },
   async ReEstablecerContrasenia({ commit }, data) {
@@ -193,7 +193,7 @@ const actions = {
         });
       })
       .catch(function (error) {
-        console.log(error);
+        console.error(error);
       });
   },
   // async ListProgrammedPayment() {
@@ -237,7 +237,7 @@ const actions = {
   //       }
   //     })
   //     .catch(function (error) {
-  //       console.log(error);
+  //       console.error(error);
   //     });
   // },
   async _getMenuItem({ commit }) {
@@ -264,7 +264,7 @@ const actions = {
         commit("_setItemsMenu", response.data.data);
       })
       .catch(function (error) {
-        console.log(error);
+        console.error(error);
       });
   },
   async validarUsuarioAdmin({ commit }, data) {
@@ -283,7 +283,7 @@ const actions = {
         respuesta = response.data;
       })
       .catch(function (error) {
-        console.log(error);
+        console.error(error);
       });
     return respuesta;
   },

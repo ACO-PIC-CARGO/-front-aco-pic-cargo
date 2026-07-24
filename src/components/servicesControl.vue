@@ -68,7 +68,7 @@ export default {
           vm.$store.state.itemsHouseServices = response.data.data;
         })
         .catch(function (error) {
-          console.log(error);
+          console.error(error);
         });
     },
     _setServices() {
@@ -97,7 +97,7 @@ export default {
           }
         })
         .catch(function (error) {
-          console.log(error);
+          console.error(error);
         });
     },
   },

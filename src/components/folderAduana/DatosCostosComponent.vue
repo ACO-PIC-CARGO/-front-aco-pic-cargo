@@ -390,7 +390,7 @@ export default {
             this.$refs.frmDatosOpcion.resetValidation();
           }
           if (action.isDenied) {
-            console.log("ddd");
+            
             this.$store.state.aduana.actualizarComparativa =
               !this.$store.state.aduana.actualizarComparativa;
             this.$emit("continuarComparativa");
@@ -417,11 +417,7 @@ export default {
     },
     activarImpuesto() {
       this.mostrarContinuarVentas = false;
-      console.log(
-        this.$store.state.aduana.listServices.some(
-          (v) => v.code_service == "15" || v.code_service == 15
-        )
-      );
+
       if (
         this.$store.state.aduana.listServices.some(
           (v) => v.code_service == "15" || v.code_service == 15

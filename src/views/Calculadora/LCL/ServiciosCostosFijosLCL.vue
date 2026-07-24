@@ -1,8 +1,15 @@
 <template>
   <v-card>
     <v-container fluid>
-      <v-tabs centered v-model="tab">
-        <v-tab href="#flete">Carga Másiva Flete</v-tab>
+      <v-tabs
+        background-color="#B71C1C"
+        center-active
+        dark
+        centered
+        v-model="tab"
+      >
+        <v-tabs-slider color="red"></v-tabs-slider>
+        <v-tab href="#flete">Carga Masiva Flete</v-tab>
         <v-tab href="#config">Configuracion</v-tab>
         <v-tab href="#fletelst" active>Listado Fletes </v-tab>
         <v-tab href="#fletegrup" active>Listado Fletes Grupal</v-tab>

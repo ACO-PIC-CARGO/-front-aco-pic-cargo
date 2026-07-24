@@ -356,14 +356,14 @@ export default {
           }
         });
       } catch (error) {
-        console.log(error);
+        console.error(error);
       }
     },
     async guardar() {
       this.$store.state.spiner = true;
       this.$store.state.aduana.opcionCostos[0].selected = true;
-      await this.registrarQuote({ fullflag: false }).catch((err) => {
-        console.log("registrarQuote", err);
+      await this.registrarQuote({ fullflag: false }).catch((e) => {
+        console.error("registrarQuote", e);
       });
       if (this.$store.state.aduana.nro_quote) {
         this.$store.state.spiner = false;
@@ -394,15 +394,15 @@ export default {
           await this.crearCarpetaOneDrive({
             nro_quote: this.$store.state.aduana.nro_quote,
             nombre: this.$store.state.aduana.datosPrincipales.nombre,
-          }).catch((err) => {
-            console.log("crearCarpetaOneDrive", err);
+          }).catch((e) => {
+            console.error("crearCarpetaOneDrive", e);
           });
 
           await this.actualizarURLEnElQuote({
             id: this.$store.state.aduana.id,
             url: this.$store.state.aduana.urlFolder,
-          }).catch((err) => {
-            console.log("actualizarURLEnElQuote", err);
+          }).catch((e) => {
+            console.error("actualizarURLEnElQuote", e);
           });
         }
       }

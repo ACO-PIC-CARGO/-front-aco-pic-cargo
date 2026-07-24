@@ -35,7 +35,7 @@ const actions = {
         commit("SET_VER_HOUSE", data.data ? data.data[0] : {});
       })
       .catch(function (error) {
-        console.log(error);
+        console.error(error);
       });
   },
 
@@ -54,7 +54,7 @@ const actions = {
         }
       })
       .catch(function (error) {
-        console.log(error);
+        console.error(error);
       });
   },
 
@@ -91,7 +91,7 @@ const actions = {
         commit("SET_LIST_HOUSE", data.data ? data.data : []);
       })
       .catch(function (error) {
-        console.log(error);
+        console.error(error);
       });
   },
   async getCargarHouse({ commit }) {
@@ -114,7 +114,7 @@ const actions = {
         commit("SET_LIST_HOUSE", data.data ? data.data : []);
       })
       .catch(function (error) {
-        console.log(error);
+        console.error(error);
       });
   },
   async insertComentarioHouse(__, dataObj = {}) {
@@ -155,7 +155,7 @@ const actions = {
         }
       })
       .catch(function (error) {
-        console.log(error);
+        console.error(error);
       });
   },
   async deleteHouse({ commit, state, rootState }, data) {
@@ -242,7 +242,7 @@ const actions = {
         }
       })
       .catch(function (error) {
-        console.log(error);
+        console.error(error);
       });
   },
 };

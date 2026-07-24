@@ -31,180 +31,203 @@
             </thead>
 
             <tbody>
-              <tr
+              <template
                 v-for="(valor, i) in valores.filter(
                   (v) => v.esfleteflag == 1 && v.status == 1,
                 )"
-                :key="i"
               >
-                <td>
-                  <v-autocomplete
-                    class="widthTD"
-                    dense
-                    item-text="namelong"
-                    item-value="id"
-                    :items="$store.state.provedores"
-                    v-model="valor.id_proveedor"
-                    hide-details
-                  ></v-autocomplete>
-                </td>
-                <td>
-                  <v-text-field
-                    readonly
-                    class="widthTD"
-                    dense
-                    hide-details
-                    v-model="valor.nameservice"
-                  ></v-text-field>
-                </td>
-                <td>
-                  <v-select
-                    readonly
-                    class="widthTD"
-                    :items="$store.state.pricing.listMultiplicador"
-                    v-model="valor.id_multiplicador"
-                    placeholder="Multiplicador"
-                    hide-details
-                    dense
-                    @change="calcTotales"
-                  ></v-select>
-                </td>
+                <tr :key="'main-' + i">
+                  <td>
+                    <v-autocomplete
+                      class="widthTD"
+                      dense
+                      item-text="namelong"
+                      item-value="id"
+                      :items="$store.state.provedores"
+                      v-model="valor.id_proveedor"
+                      hide-details
+                    ></v-autocomplete>
+                  </td>
 
-                <td>
-                  <v-text-field
-                    readonly
-                    class="derecha tdMontos"
+                  <!-- Columna 2: Servicio -->
+                  <td>
+                    <v-text-field
+                      readonly
+                      class="widthTD"
+                      dense
+                      hide-details
+                      v-model="valor.nameservice"
+                    ></v-text-field>
+                  </td>
+
+                  <!-- Columna 3: Multiplicador -->
+                  <td>
+                    <v-select
+                      readonly
+                      class="widthTD"
+                      :items="$store.state.pricing.listMultiplicador"
+                      v-model="valor.id_multiplicador"
+                      placeholder="Multiplicador"
+                      hide-details
+                      dense
+                      @change="calcTotales"
+                    ></v-select>
+                  </td>
+
+                  <!-- Columna 4: Inputs de Montos -->
+                  <td>
+                    <v-text-field
+                      readonly
+                      class="derecha tdMontos"
+                      v-if="
+                        isNotPorcentaje(valor, valor.id_multiplicador) &&
+                        !isConfeccion(valor.code_cost) &&
+                        !isITBM(valor.code_cost) &&
+                        !isNotaCredito(valor.code_cost)
+                      "
+                      dense
+                      max-width="50%"
+                      v-model="valor.costounitario"
+                      :error-messages="valor.error"
+                      :rules="[
+                        (v) => {
+                          if (v > 0) {
+                            valor.error = '';
+                            return true;
+                          }
+                          valor.error = 'El costo que tiene un valor 0.00.';
+                          return false;
+                        },
+                      ]"
+                      prefix="$"
+                      type="number"
+                      step="0.01"
+                      :min="valor.minimo"
+                      v-on:blur="calcTotales"
+                    ></v-text-field>
+
+                    <v-text-field
+                      readonly
+                      class="derecha tdMontos"
+                      v-if="
+                        $store.state.pricing.listMultiplicador.some(
+                          (v) =>
+                            v.id == valor.id_multiplicador &&
+                            (v.code == 13 || v.code == 14),
+                        ) &&
+                        !isITBM(valor.code_cost) &&
+                        !isConfeccion(valor.code_cost) &&
+                        !isNotaCredito(valor.code_cost)
+                      "
+                      hide-details
+                      max-width="50%"
+                      suffix="%"
+                      dense
+                      max="100"
+                      v-model="valor.cif"
+                      type="number"
+                      :min="valor.minimo"
+                      step="0.01"
+                      v-on:blur="calcTotales"
+                    ></v-text-field>
+
+                    <v-text-field
+                      readonly
+                      max-width="50%"
+                      suffix="%"
+                      class="derecha tdMontos"
+                      v-if="
+                        $store.state.pricing.listMultiplicador.some(
+                          (v) => v.id == valor.id_multiplicador && v.code == 5,
+                        ) &&
+                        !isITBM(valor.code_cost) &&
+                        !isConfeccion(valor.code_cost) &&
+                        !isNotaCredito(valor.code_cost)
+                      "
+                      hide-details
+                      dense
+                      max="100"
+                      v-model="valor.seguro"
+                      type="number"
+                      :min="valor.minimo"
+                      step="0.01"
+                      v-on:blur="calcTotales"
+                    ></v-text-field>
+
+                    <v-text-field
+                      readonly
+                      v-if="isITBM(valor.code_cost)"
+                      dense
+                      v-model="valor.costounitario"
+                      :error-messages="valor.error"
+                      prefix="$"
+                    ></v-text-field>
+
+                    <v-text-field
+                      readonly
+                      v-if="isConfeccion(valor.code_cost)"
+                      dense
+                      v-model="valor.costounitario"
+                      :error-messages="valor.error"
+                      prefix="$"
+                    ></v-text-field>
+
+                    <v-text-field
+                      readonly
+                      v-if="isNotaCredito(valor.code_cost)"
+                      dense
+                      v-model="valor.costounitario"
+                      prefix="$"
+                    ></v-text-field>
+                  </td>
+
+                  <!-- Columna 5: Totales -->
+                  <td
                     v-if="
                       isNotPorcentaje(valor, valor.id_multiplicador) &&
                       !isConfeccion(valor.code_cost) &&
                       !isITBM(valor.code_cost) &&
                       !isNotaCredito(valor.code_cost)
                     "
-                    dense
-                    max-width="50%"
-                    v-model="valor.costounitario"
-                    :error-messages="valor.error"
-                    :rules="[
-                      (v) => {
-                        if (v > 0) {
-                          valor.error = ''; // Borra el mensaje de error si el valor es válido
-                          return true; // La regla se cumple
-                        }
-                        valor.error = 'El costo que tiene un valor 0.00.';
-                        return false; // La regla no se cumple
-                      },
-                    ]"
-                    prefix="$"
-                    type="number"
-                    step="0.01"
-                    :min="valor.minimo"
-                    v-on:blur="calcTotales"
-                  ></v-text-field>
-                  <v-text-field
-                    readonly
-                    class="derecha tdMontos"
+                  >
+                    {{ formatearCostoTotal(valor) }}
+                  </td>
+
+                  <td
                     v-if="
-                      $store.state.pricing.listMultiplicador.some(
-                        (v) =>
-                          v.id == valor.id_multiplicador &&
-                          (v.code == 13 || v.code == 14),
-                      ) &&
+                      !isNotPorcentaje(valor, valor.id_multiplicador) &&
                       !isITBM(valor.code_cost) &&
                       !isConfeccion(valor.code_cost) &&
                       !isNotaCredito(valor.code_cost)
                     "
-                    hide-details
-                    max-width="50%"
-                    suffix="%"
-                    dense
-                    max="100"
-                    v-model="valor.cif"
-                    type="number"
-                    :min="valor.minimo"
-                    step="0.01"
-                    v-on:blur="calcTotales"
-                  ></v-text-field>
-                  <v-text-field
-                    readonly
-                    max-width="50%"
-                    suffix="%"
-                    class="derecha tdMontos"
-                    v-if="
-                      $store.state.pricing.listMultiplicador.some(
-                        (v) => v.id == valor.id_multiplicador && v.code == 5,
-                      ) &&
-                      !isITBM(valor.code_cost) &&
-                      !isConfeccion(valor.code_cost) &&
-                      !isNotaCredito(valor.code_cost)
-                    "
-                    hide-details
-                    dense
-                    max="100"
-                    v-model="valor.seguro"
-                    type="number"
-                    :min="valor.minimo"
-                    step="0.01"
-                    v-on:blur="calcTotales"
-                  ></v-text-field>
+                  >
+                    {{ formatearValorCalculado(valor) }}
+                  </td>
 
-                  <v-text-field
-                    readonly
-                    v-if="isITBM(valor.code_cost)"
-                    dense
-                    v-model="valor.costounitario"
-                    :error-messages="valor.error"
-                    prefix="$"
-                  ></v-text-field>
+                  <td v-if="isConfeccion(valor.code_cost)">
+                    {{ montoConfeccion(valor) }}
+                  </td>
 
-                  <v-text-field
-                    readonly
-                    v-if="isConfeccion(valor.code_cost)"
-                    dense
-                    v-model="valor.costounitario"
-                    :error-messages="valor.error"
-                    prefix="$"
-                  ></v-text-field>
-                  <v-text-field
-                    readonly
-                    v-if="isNotaCredito(valor.code_cost)"
-                    dense
-                    v-model="valor.costounitario"
-                    prefix="$"
-                  ></v-text-field>
-                </td>
+                  <td v-if="isITBM(valor.code_cost)">
+                    {{ montoITBM(valor) }}
+                  </td>
 
-                <td
-                  v-if="
-                    isNotPorcentaje(valor, valor.id_multiplicador) &&
-                    !isConfeccion(valor.code_cost) &&
-                    !isITBM(valor.code_cost) &&
-                    !isNotaCredito(valor.code_cost)
-                  "
-                >
-                  {{ formatearCostoTotal(valor) }}
-                </td>
+                  <td v-if="isNotaCredito(valor.code_cost)">
+                    {{ montoNotaCredito(valor) }}
+                  </td>
+                </tr>
 
-                <td
-                  v-if="
-                    !isNotPorcentaje(valor, valor.id_multiplicador) &&
-                    !isITBM(valor.code_cost) &&
-                    !isConfeccion(valor.code_cost) &&
-                    !isNotaCredito(valor.code_cost)
-                  "
-                >
-                  {{ formatearValorCalculado(valor) }}
-                </td>
-                <td v-if="isConfeccion(valor.code_cost)">
-                  {{ montoConfeccion(valor) }}
-                </td>
-                <td v-if="isITBM(valor.code_cost)">
-                  {{ montoITBM(valor) }}
-                </td>
-
-                <td v-if="isNotaCredito(valor.code_cost)">
-                  {{ montoNotaCredito(valor) }}
-                </td>
-              </tr>
+                <!-- 2. FILA SECUNDARIA: Mensaje de flete -->
+                <tr :key="'flete-' + i" v-if="textoFlete(valor)">
+                  <td
+                    colspan="5"
+                    class="text-caption text-left pt-0 pl-2"
+                    style="color: #d50000"
+                  >
+                    {{ textoFlete(valor) }}
+                  </td>
+                </tr>
+              </template>
             </tbody>
           </v-simple-table>
         </v-expansion-panel-content>
@@ -850,181 +873,205 @@
             </thead>
 
             <tbody>
-              <tr
+              <!-- Usamos <template> para poder agrupar 2 <tr> por cada iteración -->
+              <template
                 v-for="(valor, i) in valores.filter(
                   (v) => v.esfleteflag == 1 && v.status == 1,
                 )"
-                :key="i"
               >
-                <td>
-                  <v-autocomplete
-                    class="widthTD"
-                    dense
-                    item-text="namelong"
-                    item-value="id"
-                    :items="$store.state.provedores"
-                    v-model="valor.id_proveedor"
-                    hide-details
-                  ></v-autocomplete>
-                </td>
-                <td>
-                  <v-text-field
-                    readonly
-                    class="widthTD"
-                    dense
-                    hide-details
-                    v-model="valor.nameservice"
-                  ></v-text-field>
-                </td>
-                <td>
-                  <v-select
-                    readonly
-                    class="widthTD"
-                    :items="$store.state.pricing.listMultiplicador"
-                    v-model="valor.id_multiplicador"
-                    placeholder="Multiplicador"
-                    hide-details
-                    dense
-                    @change="calcTotales"
-                  ></v-select>
-                </td>
+                <!-- 1. FILA PRINCIPAL: Datos (x | x | x | x | x) -->
+                <tr :key="'main-' + i">
+                  <!-- Columna 1: Proveedor -->
+                  <td>
+                    <v-autocomplete
+                      class="widthTD"
+                      dense
+                      item-text="namelong"
+                      item-value="id"
+                      :items="$store.state.provedores"
+                      v-model="valor.id_proveedor"
+                      hide-details
+                    ></v-autocomplete>
+                  </td>
 
-                <td>
-                  <v-text-field
-                    readonly
-                    class="derecha tdMontos"
+                  <!-- Columna 2: Servicio -->
+                  <td>
+                    <v-text-field
+                      readonly
+                      class="widthTD"
+                      dense
+                      hide-details
+                      v-model="valor.nameservice"
+                    ></v-text-field>
+                  </td>
+
+                  <!-- Columna 3: Multiplicador -->
+                  <td>
+                    <v-select
+                      readonly
+                      class="widthTD"
+                      :items="$store.state.pricing.listMultiplicador"
+                      v-model="valor.id_multiplicador"
+                      placeholder="Multiplicador"
+                      hide-details
+                      dense
+                      @change="calcTotales"
+                    ></v-select>
+                  </td>
+
+                  <!-- Columna 4: Inputs de Montos -->
+                  <td>
+                    <v-text-field
+                      readonly
+                      class="derecha tdMontos"
+                      v-if="
+                        isNotPorcentaje(valor, valor.id_multiplicador) &&
+                        !isConfeccion(valor.code_cost) &&
+                        !isITBM(valor.code_cost) &&
+                        !isNotaCredito(valor.code_cost)
+                      "
+                      dense
+                      max-width="50%"
+                      v-model="valor.costounitario"
+                      :error-messages="valor.error"
+                      :rules="[
+                        (v) => {
+                          if (v > 0) {
+                            valor.error = '';
+                            return true;
+                          }
+                          valor.error = 'El costo que tiene un valor 0.00.';
+                          return false;
+                        },
+                      ]"
+                      prefix="$"
+                      type="number"
+                      step="0.01"
+                      :min="valor.minimo"
+                      v-on:blur="calcTotales"
+                    ></v-text-field>
+
+                    <v-text-field
+                      readonly
+                      class="derecha tdMontos"
+                      v-if="
+                        $store.state.pricing.listMultiplicador.some(
+                          (v) =>
+                            v.id == valor.id_multiplicador &&
+                            (v.code == 13 || v.code == 14),
+                        ) &&
+                        !isITBM(valor.code_cost) &&
+                        !isConfeccion(valor.code_cost) &&
+                        !isNotaCredito(valor.code_cost)
+                      "
+                      hide-details
+                      max-width="50%"
+                      suffix="%"
+                      dense
+                      max="100"
+                      v-model="valor.cif"
+                      type="number"
+                      :min="valor.minimo"
+                      step="0.01"
+                      v-on:blur="calcTotales"
+                    ></v-text-field>
+
+                    <v-text-field
+                      readonly
+                      max-width="50%"
+                      suffix="%"
+                      class="derecha tdMontos"
+                      v-if="
+                        $store.state.pricing.listMultiplicador.some(
+                          (v) => v.id == valor.id_multiplicador && v.code == 5,
+                        ) &&
+                        !isITBM(valor.code_cost) &&
+                        !isConfeccion(valor.code_cost) &&
+                        !isNotaCredito(valor.code_cost)
+                      "
+                      hide-details
+                      dense
+                      max="100"
+                      v-model="valor.seguro"
+                      type="number"
+                      :min="valor.minimo"
+                      step="0.01"
+                      v-on:blur="calcTotales"
+                    ></v-text-field>
+
+                    <v-text-field
+                      readonly
+                      v-if="isITBM(valor.code_cost)"
+                      dense
+                      v-model="valor.costounitario"
+                      :error-messages="valor.error"
+                      prefix="$"
+                    ></v-text-field>
+
+                    <v-text-field
+                      readonly
+                      v-if="isConfeccion(valor.code_cost)"
+                      dense
+                      v-model="valor.costounitario"
+                      :error-messages="valor.error"
+                      prefix="$"
+                    ></v-text-field>
+
+                    <v-text-field
+                      readonly
+                      v-if="isNotaCredito(valor.code_cost)"
+                      dense
+                      v-model="valor.costounitario"
+                      prefix="$"
+                    ></v-text-field>
+                  </td>
+
+                  <!-- Columna 5: Totales -->
+                  <td
                     v-if="
                       isNotPorcentaje(valor, valor.id_multiplicador) &&
                       !isConfeccion(valor.code_cost) &&
                       !isITBM(valor.code_cost) &&
                       !isNotaCredito(valor.code_cost)
                     "
-                    dense
-                    max-width="50%"
-                    v-model="valor.costounitario"
-                    :error-messages="valor.error"
-                    :rules="[
-                      (v) => {
-                        if (v > 0) {
-                          valor.error = ''; // Borra el mensaje de error si el valor es válido
-                          return true; // La regla se cumple
-                        }
-                        valor.error = 'El costo que tiene un valor 0.00.';
-                        return false; // La regla no se cumple
-                      },
-                    ]"
-                    prefix="$"
-                    type="number"
-                    step="0.01"
-                    :min="valor.minimo"
-                    v-on:blur="calcTotales"
-                  ></v-text-field>
-                  <v-text-field
-                    readonly
-                    class="derecha tdMontos"
+                  >
+                    {{ formatearCostoTotal(valor) }}
+                  </td>
+
+                  <td
                     v-if="
-                      $store.state.pricing.listMultiplicador.some(
-                        (v) =>
-                          v.id == valor.id_multiplicador &&
-                          (v.code == 13 || v.code == 14),
-                      ) &&
+                      !isNotPorcentaje(valor, valor.id_multiplicador) &&
                       !isITBM(valor.code_cost) &&
                       !isConfeccion(valor.code_cost) &&
                       !isNotaCredito(valor.code_cost)
                     "
-                    hide-details
-                    max-width="50%"
-                    suffix="%"
-                    dense
-                    max="100"
-                    v-model="valor.cif"
-                    type="number"
-                    :min="valor.minimo"
-                    step="0.01"
-                    v-on:blur="calcTotales"
-                  ></v-text-field>
-                  <v-text-field
-                    readonly
-                    max-width="50%"
-                    suffix="%"
-                    class="derecha tdMontos"
-                    v-if="
-                      $store.state.pricing.listMultiplicador.some(
-                        (v) => v.id == valor.id_multiplicador && v.code == 5,
-                      ) &&
-                      !isITBM(valor.code_cost) &&
-                      !isConfeccion(valor.code_cost) &&
-                      !isNotaCredito(valor.code_cost)
-                    "
-                    hide-details
-                    dense
-                    max="100"
-                    v-model="valor.seguro"
-                    type="number"
-                    :min="valor.minimo"
-                    step="0.01"
-                    v-on:blur="calcTotales"
-                  ></v-text-field>
+                  >
+                    {{ formatearValorCalculado(valor) }}
+                  </td>
 
-                  <v-text-field
-                    readonly
-                    v-if="isITBM(valor.code_cost)"
-                    reaonly
-                    dense
-                    v-model="valor.costounitario"
-                    :error-messages="valor.error"
-                    prefix="$"
-                  ></v-text-field>
+                  <td v-if="isConfeccion(valor.code_cost)">
+                    {{ montoConfeccion(valor) }}
+                  </td>
 
-                  <v-text-field
-                    readonly
-                    v-if="isConfeccion(valor.code_cost)"
-                    dense
-                    v-model="valor.costounitario"
-                    :error-messages="valor.error"
-                    prefix="$"
-                  ></v-text-field>
-                  <v-text-field
-                    readonly
-                    v-if="isNotaCredito(valor.code_cost)"
-                    dense
-                    v-model="valor.costounitario"
-                    prefix="$"
-                  ></v-text-field>
-                </td>
+                  <td v-if="isITBM(valor.code_cost)">
+                    {{ montoITBM(valor) }}
+                  </td>
 
-                <td
-                  v-if="
-                    isNotPorcentaje(valor, valor.id_multiplicador) &&
-                    !isConfeccion(valor.code_cost) &&
-                    !isITBM(valor.code_cost) &&
-                    !isNotaCredito(valor.code_cost)
-                  "
-                >
-                  {{ formatearCostoTotal(valor) }}
-                </td>
+                  <td v-if="isNotaCredito(valor.code_cost)">
+                    {{ montoNotaCredito(valor) }}
+                  </td>
+                </tr>
 
-                <td
-                  v-if="
-                    !isNotPorcentaje(valor, valor.id_multiplicador) &&
-                    !isITBM(valor.code_cost) &&
-                    !isConfeccion(valor.code_cost) &&
-                    !isNotaCredito(valor.code_cost)
-                  "
-                >
-                  {{ formatearValorCalculado(valor) }}
-                </td>
-                <td v-if="isConfeccion(valor.code_cost)">
-                  {{ montoConfeccion(valor) }}
-                </td>
-                <td v-if="isITBM(valor.code_cost)">
-                  {{ montoITBM(valor) }}
-                </td>
-
-                <td v-if="isNotaCredito(valor.code_cost)">
-                  {{ montoNotaCredito(valor) }}
-                </td>
-              </tr>
+                <!-- 2. FILA SECUNDARIA: Mensaje de flete -->
+                <tr :key="'flete-' + i" v-if="textoFlete(valor)">
+                  <td
+                    colspan="5"
+                    class="text-caption text-left grey--text pt-0"
+                  >
+                    {{ textoFlete(valor) }}
+                  </td>
+                </tr>
+              </template>
             </tbody>
           </v-simple-table>
         </v-expansion-panel-content>
@@ -1579,7 +1626,6 @@ export default {
         .forEach((element) => {
           this.resumenOpcion.flete += this.obtenerCostoElemento(element);
         });
-      
     },
 
     calcularTotalesNoFlete() {
@@ -1861,6 +1907,45 @@ export default {
       return data.some(
         (v) => v.status == 1 && v.error != null && v.error !== "",
       );
+    },
+    textoFlete(data) {
+      if (data.code_cost == 4) {
+        if (data.tienefleteflag) {
+          return `Tarifa del Tarifario. Vence: ${this.formatoFecha(
+            data.fechavigencia,
+          )}`;
+        } else {
+          return "No tiene tarifa vigente";
+        }
+      }
+
+      return false;
+    },
+    formatoFecha(fecha) {
+      if (!fecha) return "";
+      const soloFecha = fecha.split("T")[0];
+      const partes = soloFecha.split("-");
+      if (partes.length !== 3) return fecha;
+
+      const year = partes[0];
+      const month = parseInt(partes[1], 10) - 1;
+      const day = partes[2].padStart(2, "0");
+      const meses = [
+        "Ene",
+        "Feb",
+        "Mar",
+        "Abr",
+        "May",
+        "Jun",
+        "Jul",
+        "Ago",
+        "Sep",
+        "Oct",
+        "Nov",
+        "Dic",
+      ];
+
+      return `${day}/${meses[month]}/${year}`;
     },
   },
   watch: {

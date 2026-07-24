@@ -171,7 +171,7 @@ export default {
           //   title: "Lo sentimos",
           //   text: response.data.mensaje,
           // });
-          console.log(error);
+          console.error(error);
         });
       this.loading = false;
     },
@@ -194,7 +194,7 @@ export default {
           vm.branchdialog = true;
         })
         .catch(function (error) {
-          console.log(error);
+          console.error(error);
         });
     },
 
@@ -239,7 +239,7 @@ export default {
             vm.$router.push({ name: "Main" });
           })
           .catch(function (error) {
-            console.log(error);
+            console.error(error);
           });
         vm.cargandoBranch = !vm.cargandoBranch;
       } else {

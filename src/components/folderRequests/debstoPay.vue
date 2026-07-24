@@ -884,7 +884,7 @@ export default {
           );
         })
         .catch(function (error) {
-          console.log(error);
+          console.error(error);
         });
     },
 
@@ -920,7 +920,7 @@ export default {
           vm.calcularTotalOperativo({ data: response.data.data });
         })
         .catch(function (error) {
-          console.log(error);
+          console.error(error);
         });
       vm.overlay = false;
     },
@@ -955,7 +955,7 @@ export default {
           }, 100);
         })
         .catch(function (error) {
-          console.log(error);
+          console.error(error);
         });
       vm.overlay = false;
       vm.offcanvas = false;
@@ -986,7 +986,7 @@ export default {
           vm.$store.state.drawer = false;
         })
         .catch(function (error) {
-          console.log(error);
+          console.error(error);
         });
     },
 
@@ -1151,7 +1151,7 @@ export default {
           });
         })
         .catch(function (error) {
-          console.log(error);
+          console.error(error);
         });
     },
     async filtrar() {
@@ -1207,7 +1207,7 @@ export default {
           link.click();
         })
         .catch(function (error) {
-          console.log(error);
+          console.error(error);
         });
       vm.exportando = false;
       // exportar_listado_reporte_pagos
@@ -1275,7 +1275,7 @@ export default {
               link.click();
             })
             .catch(function (error) {
-              console.log(error);
+              console.error(error);
             });
 
           vm.exportandopdf = false;

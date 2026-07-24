@@ -670,7 +670,7 @@ export default {
           vm.payPath = JSON.stringify(response.data.data[0].insertid);
         })
         .catch(function (error) {
-          console.log(error);
+          console.error(error);
         });
     },
     async _getMasterList() {
@@ -693,7 +693,7 @@ export default {
           vm.itemsExpedientes = response.data.data;
         })
         .catch(function (error) {
-          console.log(error);
+          console.error(error);
         });
     },
     async _getProformace() {
@@ -718,7 +718,7 @@ export default {
           vm.itemsProformace = response.data.data;
         })
         .catch(function (error) {
-          console.log(error);
+          console.error(error);
         });
     },
     cleanData() {
@@ -813,7 +813,7 @@ export default {
             // vm.dialogInvoice = false;
           })
           .catch(function (error) {
-            console.log(error);
+            console.error(error);
           });
       }
     },
@@ -878,7 +878,7 @@ export default {
             vm.dialogInvoice = false;
           })
           .catch(function (error) {
-            console.log(error);
+            console.error(error);
           });
       }
     },
@@ -909,7 +909,7 @@ export default {
           vm.dialogInvoice = false;
         })
         .catch(function (error) {
-          console.log(error);
+          console.error(error);
         });
     },
 

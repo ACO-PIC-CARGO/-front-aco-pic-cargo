@@ -719,7 +719,7 @@ export default {
           });
         // Refresh data in background (non-blocking)
       } catch (error) {
-        console.log(error);
+        console.error(error);
         vm.loadingBotonGuardarHouse = false;
         vm.$swal({
           icon: "error",
@@ -992,7 +992,7 @@ export default {
       //       }
       //     })
       //     .catch(function (error) {
-      //       console.log(error);
+      //       console.error(error);
       //     });
       //   vm.$store.state.spiner = false;
       //   await vm._getBitacoraLineal({
@@ -1088,7 +1088,7 @@ export default {
           }
         })
         .catch(function (error) {
-          console.log(error);
+          console.error(error);
         });
     },
   },

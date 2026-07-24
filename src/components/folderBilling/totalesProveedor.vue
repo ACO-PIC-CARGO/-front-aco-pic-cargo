@@ -769,7 +769,7 @@ export default {
           }
         })
         .catch(function (error) {
-          console.log(error);
+          console.error(error);
         });
     },
     async _setInvoice() {
@@ -813,7 +813,7 @@ export default {
           vm.dialogInvoice = false;
         })
         .catch(function (error) {
-          console.log(error);
+          console.error(error);
         });
     },
     async _delInvoice(id) {
@@ -836,7 +836,7 @@ export default {
           vm.dialogInvoice = false;
         })
         .catch(function (error) {
-          console.log(error);
+          console.error(error);
         });
     },
     _uploadFile() {
@@ -863,7 +863,7 @@ export default {
           vm.payPath = JSON.stringify(response.data.data[0].insertid);
         })
         .catch(function (error) {
-          console.log(error);
+          console.error(error);
         });
     },
     openPayments(id, type) {
@@ -905,7 +905,7 @@ export default {
           vm.$store.state.itemsDataAccountsNumberList = response.data.data;
         })
         .catch(function (error) {
-          console.log(error);
+          console.error(error);
         });
     },
 
@@ -952,7 +952,7 @@ export default {
               vm._getSPaymentPro(vm.sPaymentId);
             })
             .catch(function (error) {
-              console.log(error);
+              console.error(error);
             });
         }
       });
@@ -987,7 +987,7 @@ export default {
           vm.dataList = true;
         })
         .catch(function (error) {
-          console.log(error);
+          console.error(error);
         });
     },
     openPaymentFile(path) {
@@ -1125,11 +1125,11 @@ export default {
               );
             })
             .catch(function (error) {
-              console.log(error);
+              console.error(error);
             });
         })
         .catch(function (error) {
-          console.log(error);
+          console.error(error);
         });
     },
 
@@ -1204,7 +1204,7 @@ export default {
           }
         })
         .catch(function (error) {
-          console.log(error);
+          console.error(error);
         });
     },
     _validaData() {
@@ -1231,7 +1231,7 @@ export default {
             vm.$store.state.itemsHouseServices = response.data.data;
           })
           .catch(function (error) {
-            console.log(error);
+            console.error(error);
           });
       }
       vm.$store.state.spiner = false;
@@ -1257,7 +1257,7 @@ export default {
           vm.$store.state.itemsDataConceptos = response.data.data;
         })
         .catch(function (error) {
-          console.log(error);
+          console.error(error);
         });
     },
 
@@ -1282,7 +1282,7 @@ export default {
           vm.dialogSolicitudDivision = !vm.dialogSolicitudDivision;
         })
         .catch(function (error) {
-          console.log(error);
+          console.error(error);
         });
     },
   },

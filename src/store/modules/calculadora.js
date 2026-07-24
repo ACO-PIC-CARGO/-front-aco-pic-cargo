@@ -1,4 +1,4 @@
-import axios from '@/api/axios-config';
+import axios from "@/api/axios-config";
 import Swal from "sweetalert2";
 // import funciones from "./../../mixins/funciones";
 const state = {
@@ -15,12 +15,14 @@ const state = {
   lstFlete: [],
   lstProfit: [],
   lstFleteGrupal: [],
+  lstFleteGrupalVenta: [],
   lstDepartamentos: [],
   lstDistritos: [],
   lstTransporte: [],
   opcionCalculadora: 1,
   opciones: [],
   config: [],
+  fletePricing: {},
 };
 const mutations = {
   setOpcion(state, opcion) {
@@ -35,6 +37,9 @@ const mutations = {
   },
   SET_FLETE_GRUPAL(state, data) {
     state.lstFleteGrupal = data;
+  },
+  SET_FLETE_GRUPAL_VENTA(state, data) {
+    state.lstFleteGrupalVenta = data;
   },
   SET_LST_COSTOS_DISTRITOS(state, data) {
     state.lstDistritos = data;
@@ -85,15 +90,16 @@ const mutations = {
     state.lstCostos = data;
   },
   SET_LST_OPCIONES(state, data) {
-    console.log(data);
     state.opciones = data;
+  },
+  SET_FLETE_PRICING(state, data) {
+    state.fletePricing = data;
   },
 };
 
 const actions = {
   async GetTotalCotizacion({ commit }) {
     var headers = {
-     
       "Content-Type": "application/json",
     };
     var config = {
@@ -113,7 +119,6 @@ const actions = {
     var vm = this;
     vm.state.overlay = true;
     var headers = {
-     
       "Content-Type": "application/json",
     };
     var config = {
@@ -138,7 +143,6 @@ const actions = {
     var vm = this;
     vm.state.overlay = true;
     var headers = {
-     
       "Content-Type": "application/json",
     };
     var config = {
@@ -161,7 +165,6 @@ const actions = {
     var vm = this;
     vm.state.overlay = true;
     var headers = {
-     
       "Content-Type": "application/json",
     };
     var config = {
@@ -183,7 +186,6 @@ const actions = {
   async CargarSucursal({ commit }) {
     let vm = this;
     var headers = {
-     
       "Content-Type": "application/json",
     };
     var config = {
@@ -200,7 +202,6 @@ const actions = {
   },
   async getListUserCalc({ commit }) {
     var headers = {
-     
       "Content-Type": "application/json",
     };
 
@@ -218,7 +219,6 @@ const actions = {
   },
   async getCboStatus({ commit }) {
     var headers = {
-     
       "Content-Type": "application/json",
     };
 
@@ -233,7 +233,6 @@ const actions = {
   },
   async SetCall(__, data) {
     var headers = {
-     
       "Content-Type": "application/json",
     };
 
@@ -252,7 +251,6 @@ const actions = {
   },
   async ExportarListUser() {
     var headers = {
-     
       "Content-Type": "blob",
     };
 
@@ -283,7 +281,6 @@ const actions = {
 
   async GetCotFCL({ commit }, token) {
     var headers = {
-     
       "Content-Type": "application/json",
     };
 
@@ -298,7 +295,6 @@ const actions = {
   },
   async GetCotLCL({ commit }, token) {
     var headers = {
-     
       "Content-Type": "application/json",
     };
 
@@ -313,7 +309,6 @@ const actions = {
   },
   async GetCotAereo({ commit }, token) {
     var headers = {
-     
       "Content-Type": "application/json",
     };
 
@@ -329,7 +324,6 @@ const actions = {
 
   async GetCotFCLResumen({ commit }, token) {
     var headers = {
-     
       "Content-Type": "application/json",
     };
 
@@ -344,7 +338,6 @@ const actions = {
   },
   async GetCotLCLResumen({ commit }, token) {
     var headers = {
-     
       "Content-Type": "application/json",
     };
 
@@ -359,7 +352,6 @@ const actions = {
   },
   async GetCotAereoResumen({ commit }, token) {
     var headers = {
-     
       "Content-Type": "application/json",
     };
 
@@ -379,7 +371,6 @@ const actions = {
     let id_pais = branch[0].id_pais;
     data.id_pais = id_pais;
     var headers = {
-     
       "Content-Type": "application/json",
     };
 
@@ -399,7 +390,6 @@ const actions = {
     let id_pais = branch[0].id_pais;
     let data = { id_pais: id_pais };
     var headers = {
-     
       "Content-Type": "application/json",
     };
 
@@ -417,7 +407,6 @@ const actions = {
     let branch = JSON.parse(sessionStorage.getItem("dataBranch"));
     data.id_branch = branch[0].id;
     var headers = {
-     
       "Content-Type": "application/json",
     };
 
@@ -435,7 +424,6 @@ const actions = {
     let branch = JSON.parse(sessionStorage.getItem("dataBranch"));
     let id_pais = branch[0].id_pais;
     var headers = {
-     
       "Content-Type": "application/json",
     };
 
@@ -457,7 +445,6 @@ const actions = {
     data.id_pais = id_pais;
     data.users = dataUser[0].users;
     var headers = {
-     
       "Content-Type": "application/json",
     };
 
@@ -474,7 +461,6 @@ const actions = {
   },
   async GetCotCostos({ commit }, _) {
     var headers = {
-     
       "Content-Type": "application/json",
     };
     let branch = JSON.parse(sessionStorage.getItem("dataBranch"));
@@ -496,7 +482,6 @@ const actions = {
   async GetCotValLCL({ commit }, data) {
     let res = [];
     var headers = {
-     
       "Content-Type": "application/json",
     };
 
@@ -517,9 +502,11 @@ const actions = {
   async postGuardarCostos({ commit, dispatch }, data) {
     let dataUser = JSON.parse(sessionStorage.getItem("dataUser"));
     data.user = dataUser[0].users;
+    data.id_branch = JSON.parse(
+      sessionStorage.getItem("dataUser"),
+    )[0].id_branch;
     let res = [];
     var headers = {
-     
       "Content-Type": "application/json",
     };
 
@@ -551,7 +538,6 @@ const actions = {
     data.id_pais = id_pais;
     let res = [];
     var headers = {
-     
       "Content-Type": "application/json",
     };
 
@@ -573,7 +559,6 @@ const actions = {
     data.id_pais = id_pais;
     let res = [];
     var headers = {
-     
       "Content-Type": "application/json",
     };
 
@@ -597,7 +582,6 @@ const actions = {
     data.id_pais = id_pais;
     let res = [];
     var headers = {
-     
       "Content-Type": "application/json",
     };
 
@@ -632,7 +616,6 @@ const actions = {
     data.id_pais = id_pais;
     let res = [];
     var headers = {
-     
       "Content-Type": "application/json",
     };
 
@@ -667,7 +650,6 @@ const actions = {
     data.id_pais = id_pais;
     let res = [];
     var headers = {
-     
       "Content-Type": "application/json",
     };
 
@@ -698,7 +680,6 @@ const actions = {
     let dataUser = JSON.parse(sessionStorage.getItem("dataUser"));
     data.user = dataUser[0].users;
     var headers = {
-     
       "Content-Type": "application/json",
     };
 
@@ -728,7 +709,6 @@ const actions = {
     let dataUser = JSON.parse(sessionStorage.getItem("dataUser"));
     data.user = dataUser[0].users;
     var headers = {
-     
       "Content-Type": "application/json",
     };
 
@@ -760,7 +740,6 @@ const actions = {
     data.id_pais = id_pais;
     let res = [];
     var headers = {
-     
       "Content-Type": "application/json",
     };
 
@@ -782,7 +761,6 @@ const actions = {
     let id_pais = branch[0].id_pais;
 
     var headers = {
-     
       "Content-Type": "application/json",
     };
 
@@ -805,7 +783,6 @@ const actions = {
     data.id_pais = id_pais;
     let res = [];
     var headers = {
-     
       "Content-Type": "application/json",
     };
 
@@ -827,7 +804,6 @@ const actions = {
     data.id_pais = id_pais;
     let res = [];
     var headers = {
-     
       "Content-Type": "application/json",
     };
 
@@ -849,7 +825,6 @@ const actions = {
     data.id_pais = id_pais;
     let res = [];
     var headers = {
-     
       "Content-Type": "application/json",
     };
 
@@ -881,7 +856,6 @@ const actions = {
     // data.id_pais = id_pais;
     let res = [];
     var headers = {
-     
       "Content-Type": "application/json",
     };
 
@@ -905,7 +879,6 @@ const actions = {
     let dataUser = JSON.parse(sessionStorage.getItem("dataUser"));
     data.user = dataUser[0].users;
     var headers = {
-     
       "Content-Type": "application/json",
     };
 
@@ -937,7 +910,6 @@ const actions = {
     data.id_pais = id_pais;
     let res = [];
     var headers = {
-     
       "Content-Type": "application/json",
     };
 
@@ -959,7 +931,6 @@ const actions = {
     let id_pais = branch[0].id_pais;
     data.id_pais = id_pais;
     var headers = {
-     
       "Content-Type": "application/json",
     };
 
@@ -982,18 +953,111 @@ const actions = {
     }
   },
   async updateFleteGrupal({ dispatch }, data) {
-    console.log("data", data);
     let branch = JSON.parse(sessionStorage.getItem("dataBranch"));
     let id_pais = branch[0].id_pais;
     data.id_pais = id_pais;
     var headers = {
-     
       "Content-Type": "application/json",
     };
 
     var config = {
       method: "put",
       url: process.env.VUE_APP_URL_MAIN + "calc/flete/grupal/actualizar",
+      headers: headers,
+      data: data,
+    };
+    let response = await axios(config);
+    if (response.data.estadoflag) {
+      let res = response.data;
+      Swal.fire({
+        icon: "success",
+        title: res.mensaje,
+        allowEnterKey: true,
+        allowOutsideClick: true,
+        allowEscapeKey: true,
+      }).then((res) => {});
+    }
+  },
+  async obtenerFleteCalculadora({ commit }, datos) {
+    datos.id_branch = JSON.parse(
+      sessionStorage.getItem("dataUser"),
+    )[0].id_branch;
+    var headers = {
+      "Content-Type": "application/json",
+    };
+    var config = {
+      method: "get",
+      url: process.env.VUE_APP_URL_MAIN + "calc/flete/obtener_flete",
+      headers: headers,
+      params: datos,
+    };
+
+    await axios(config).then((response) => {
+      let res = response.data;
+
+      commit("SET_FLETE_PRICING", res.data[0]);
+    });
+  },
+
+    async getFleteGrupalVenta({ commit }, data) {
+    let branch = JSON.parse(sessionStorage.getItem("dataBranch"));
+    let id_pais = branch[0].id_pais;
+    data.id_pais = id_pais;
+    let res = [];
+    var headers = {
+      "Content-Type": "application/json",
+    };
+
+    var config = {
+      method: "get",
+      url: process.env.VUE_APP_URL_MAIN + "calc/flete/grupal_venta",
+      headers: headers,
+      params: data,
+    };
+    let response = await axios(config);
+
+    if (response.data.estadoflag) {
+      commit("SET_FLETE_GRUPAL_VENTA", response.data.data);
+    }
+  },
+  async setFleteGrupalVenta({ dispatch }, data) {
+    console.log("data", data);
+    let branch = JSON.parse(sessionStorage.getItem("dataBranch"));
+    let id_pais = branch[0].id_pais;
+    data.id_pais = id_pais;
+    var headers = {
+      "Content-Type": "application/json",
+    };
+
+    var config = {
+      method: "post",
+      url: process.env.VUE_APP_URL_MAIN + "calc/flete/grupal_venta/guardar",
+      headers: headers,
+      data: data,
+    };
+    let response = await axios(config);
+    if (response.data.estadoflag) {
+      let res = response.data;
+      Swal.fire({
+        icon: "success",
+        title: res.mensaje,
+        allowEnterKey: true,
+        allowOutsideClick: true,
+        allowEscapeKey: true,
+      }).then((res) => {});
+    }
+  },
+  async updateFleteGrupalVenta({ dispatch }, data) {
+    let branch = JSON.parse(sessionStorage.getItem("dataBranch"));
+    let id_pais = branch[0].id_pais;
+    data.id_pais = id_pais;
+    var headers = {
+      "Content-Type": "application/json",
+    };
+
+    var config = {
+      method: "put",
+      url: process.env.VUE_APP_URL_MAIN + "calc/flete/grupal_venta/actualizar",
       headers: headers,
       data: data,
     };

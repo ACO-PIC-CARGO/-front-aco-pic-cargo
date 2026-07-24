@@ -592,7 +592,7 @@ export default {
           vm._getDebsClient();
         })
         .catch(function (error) {
-          console.log(error);
+          console.error(error);
         });
     },
 
@@ -640,7 +640,7 @@ export default {
           vm.dialogNewDebs = false;
         })
         .catch(function (error) {
-          console.log(error);
+          console.error(error);
         });
     },
 
@@ -667,7 +667,7 @@ export default {
           vm.itemsDebsClient = response.data.data;
         })
         .catch(function (error) {
-          console.log(error);
+          console.error(error);
         });
     },
 
@@ -695,7 +695,7 @@ export default {
           vm.payPath = JSON.stringify(response.data.data[0].insertid);
         })
         .catch(function (error) {
-          console.log(error);
+          console.error(error);
         });
     },
 
@@ -815,7 +815,7 @@ export default {
           );
         })
         .catch(function (error) {
-          console.log(error);
+          console.error(error);
         });
     },
   },

@@ -71,7 +71,7 @@ export default {
     };
   },
   async mounted() {
-    console.log(this.$route.params.token);
+    
     await axios({
       method: "get",
       url: `${process.env.VUE_APP_URL_MAIN}validar_token_recuperar_clave?token=${this.$route.params.token}`,
@@ -92,7 +92,7 @@ export default {
         }
       })
       .catch((error) => {
-        console.log(error);
+        console.error(error);
       });
   },
   methods: {
@@ -137,7 +137,7 @@ export default {
           }
         })
         .catch((error) => {
-          console.log(error);
+          console.error(error);
         });
     },
   },
