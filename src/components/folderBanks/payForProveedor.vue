@@ -487,7 +487,7 @@ export default {
         await axios(config)
           .then(function (response) {
             if (response.data.statusBol == true) {
-              console.log(response.data);
+              
               vm.$store.state.files.payPath = null;
               vm.$swal({
                 icon: "success",

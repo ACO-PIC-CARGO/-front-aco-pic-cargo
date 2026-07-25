@@ -1417,27 +1417,12 @@ const actions = {
     });
 
     let data = {
+      ...state.datosPrincipales,
       tiporeporte: state.tiporeporte ? state.tiporeporte : "TOTAL",
-      id_percepcionaduana: state.datosPrincipales.id_percepcionaduana,
       fullflag: fullflag,
-      esindividualflag: state.datosPrincipales.esindividualflag,
-      esgrupalflag: state.datosPrincipales.esgrupalflag,
-      id_marketing: state.datosPrincipales.id_marketing,
-      statusquote: state.datosPrincipales.id_status,
-      idVendedor: state.datosPrincipales.id_vendedor,
-      id_proveedor: state.datosPrincipales.id_proveedor,
-      idPricing: state.datosPrincipales.id_pricing,
-      id_entitie: state.datosPrincipales.id_entitie,
-      idsentido: state.datosPrincipales.idsentido,
       idtipocarga: state.datosPrincipales.idtipocarga.id
         ? state.datosPrincipales.idtipocarga.id
         : state.datosPrincipales.idtipocarga,
-      idincoterms: state.datosPrincipales.idincoterms,
-      proveedor: state.datosPrincipales.proveedor,
-      telefonoproveedor: state.datosPrincipales.telefonoproveedor,
-      direccionproveedor: state.datosPrincipales.direccionproveedor,
-      idorigen: state.datosPrincipales.idorigen,
-      iddestino: state.datosPrincipales.iddestino,
       numerobultos: !isFCL ? state.datosPrincipales.numerobultos : 0,
       peso: !isFCL ? state.datosPrincipales.peso : 0,
       volumen: !isFCL ? state.datosPrincipales.volumen : 0,
@@ -1449,11 +1434,6 @@ const actions = {
       serviciocotizacion: miMixin.methods.formatearServicios({
         services: state.listServices,
       }),
-      monto: state.datosPrincipales.amount,
-
-      iddistrito: state.datosPrincipales.iddistrito,
-      idprovincia: state.datosPrincipales.idprovincia,
-
       descripcionMercancia: state.datosPrincipales.descripcioncarga
         ? state.datosPrincipales.descripcioncarga
         : "",
@@ -4153,44 +4133,19 @@ const actions = {
       });
     });
     let data = {
+      ...state.datosPrincipales,
       tiporeporte: state.tiporeporte ? state.tiporeporte : "TOTAL",
-      id_percepcionaduana: state.datosPrincipales.id_percepcionaduana,
-      id: state.id,
       id_quote: state.id,
       fullflag: true,
-      id_marketing: state.datosPrincipales.id_marketing,
-      statusquote: state.datosPrincipales.id_status,
-      id_proveedor: state.datosPrincipales.id_proveedor,
-      esindividualflag: state.datosPrincipales.esindividualflag,
-      esgrupalflag: state.datosPrincipales.esgrupalflag,
-      idVendedor: state.datosPrincipales.id_vendedor,
-      idPricing: state.datosPrincipales.id_pricing,
-      id_entitie: state.datosPrincipales.id_entitie,
-      idsentido: state.datosPrincipales.idsentido,
       idtipocarga: state.datosPrincipales.idtipocarga.id
         ? state.datosPrincipales.idtipocarga.id
         : state.datosPrincipales.idtipocarga,
-      idincoterms: state.datosPrincipales.idincoterms,
-      proveedor: state.datosPrincipales.proveedor,
-      telefonoproveedor: state.datosPrincipales.telefonoproveedor,
-      direccionproveedor: state.datosPrincipales.direccionproveedor,
-      idorigen: state.datosPrincipales.idorigen,
-      iddestino: state.datosPrincipales.iddestino,
-      numerobultos: state.datosPrincipales.numerobultos,
-      peso: state.datosPrincipales.peso,
-      volumen: state.datosPrincipales.volumen,
-      tiempo_transito: state.datosPrincipales.tiempo_transito,
       contenedores: miMixin.methods.formatearContainer({
         containers: state.datosPrincipales.containers,
       }),
       serviciocotizacion: miMixin.methods.formatearServicios({
         services: state.listServices,
       }),
-      monto: state.datosPrincipales.amount,
-
-      iddistrito: state.datosPrincipales.iddistrito,
-      idprovincia: state.datosPrincipales.idprovincia,
-
       descripcionMercancia: state.datosPrincipales.descripcioncarga
         ? state.datosPrincipales.descripcioncarga
         : "",
@@ -6309,7 +6264,7 @@ const actions = {
             id: data.data[0].id_master,
             idSelectedFile: state.selectedFile.map((v) => v.id),
           }),
-         
+
           dispatch("imprimirGuardarControlDetallado", {
             guardarEnCarpeta: false,
             asociadoflag: true,

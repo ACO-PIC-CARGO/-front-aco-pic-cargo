@@ -212,6 +212,14 @@ export default {
         volumen: this.$store.state.pricing.datosPrincipales.volumen,
         peso: this.$store.state.pricing.datosPrincipales.peso,
       }),
+      this.getTransporte({
+        shimpent: this.$store.state.pricing.listShipment.find(
+          (v) => v.id == idTipoCarga,
+        ).code,
+        id_modality: this.$store.state.pricing.datosPrincipales.idsentido,
+        id_pais: JSON.parse(sessionStorage.getItem("dataUser"))[0].id_pais,
+        id_branch: JSON.parse(sessionStorage.getItem("dataUser"))[0].id_branch,
+      }),
     ]);
 
     this.$store.state.pricing.actualizarComparativa =
@@ -246,6 +254,7 @@ export default {
       "obtenerCostosPricing",
       "getCargarMasterDetalleNotasCotizacion",
       "obtenerFleteCalculadora",
+      "getTransporte",
     ]),
     async recargar() {
       await this.recargarServicios();
@@ -255,7 +264,6 @@ export default {
       }, 1000);
     },
     recargarGrupalFlag() {
-      
       this.mostrarCostos = false;
       setTimeout(async () => {
         this.mostrarCostos = true;

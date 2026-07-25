@@ -783,11 +783,17 @@ export default {
       return this.currencyFormat(resultadoCalculado);
     },
     textoFlete(data) {
-      if (
-        (data.code_cost == 7 || data.code_cost == 4) &&
-        this.$store.state.pricing.datosPrincipales.esgrupalflag
-      ) {
-        
+      // if (data.code_cost == 7 || data.code_cost == 4) {
+      if (data.code_cost == 4) {
+        if (data.tienefleteflag) {
+          return `Tarifa del Tarifario. Vence: ${this.formatoFecha(
+            data.fechavigencia,
+          )}`;
+        } else {
+          return "No tiene tarifa vigente";
+        }
+      }
+      if (data.code_cost == 7 && this.$store.state.pricing.datosPrincipales.esgrupalflag) {
         if (data.tienefleteflag) {
           return `Tarifa del Tarifario. Vence: ${this.formatoFecha(
             data.fechavigencia,
