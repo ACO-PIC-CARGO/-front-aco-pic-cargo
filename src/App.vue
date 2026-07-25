@@ -853,7 +853,7 @@ export default {
     actualizar() {
       this.cargando = true;
       localStorage.setItem("actualizando", "1");
-      console.log(process.env.VUE_APP_VERSION);
+      
 
       setTimeout(() => {
         const url = window.location.origin + window.location.pathname;
@@ -914,7 +914,7 @@ export default {
     },
 
     async _getVersion() {
-      console.log(process.env.VUE_APP_VERSION);
+
       var vm = this;
       let data = {
         modulo: "operativo",

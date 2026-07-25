@@ -626,7 +626,7 @@ export default {
                 this.$store.state.pricing.datosPrincipales.esindividualflag,
             }),
           ]);
-        }, 100);
+        }, 500);
       }
     },
     "$store.state.pricing.datosPrincipales.esindividualflag"() {
@@ -711,16 +711,10 @@ export default {
           let fleteVenta = this.obtenerFleteOpcionVenta(element);
 
           let costo = c.find((v) => v.code_cost == element.code_cost);
-          element.costounitario =
-            parseFloat(
-              esgrupalflag
-                ? 0
-                : esindividualflag
-                ? costo?.costounitario || 0
-                : 0,
-            ) +
-            parseFloat(flete.monto) +
-            parseFloat(fleteVenta.monto);
+          let calc = this.calcularCostoUnitario(element, costo);
+
+          // -------------------------
+          element.costounitario = calc.costounitario;
           element.cif = esgrupalflag
             ? 0
             : esindividualflag
@@ -731,18 +725,18 @@ export default {
             : esindividualflag
             ? parseFloat(0.45)
             : parseFloat(0.45);
-          element.tienefleteflag =
-            element.esopcionflag == 1
-              ? flete.tienefleteflag
-              : element.esventaflag == 1
-              ? fleteVenta.tienefleteflag
-              : false;
-          element.fechavigencia =
-            element.esopcionflag == 1
-              ? flete.fechavigencia
-              : element.esventaflag == 1
-              ? fleteVenta.fechavigencia
-              : null;
+          element.tienefleteflag = this.$store.state.pricing.datosPrincipales
+            .esindividualflag
+            ? calc.flete.tienefleteflag
+            : this.$store.state.pricing.datosPrincipales.esgrupalflag
+            ? calc.fleteVenta.tienefleteflag
+            : false;
+          element.fechavigencia = this.$store.state.pricing.datosPrincipales
+            .esindividualflag
+            ? calc.flete.fechavigencia
+            : this.$store.state.pricing.datosPrincipales.esgrupalflag
+            ? calc.fleteVenta.fechavigencia
+            : false;
         });
       });
       setTimeout(() => {
@@ -794,7 +788,7 @@ export default {
     },
     obtenerFleteOpcion(item) {
       let datoFlete = { monto: 0, tienefleteflag: false, fechavigencia: null };
-      if (item.code_cost == 4 && item.esopcionflag == 1) {
+      if (item.code_cost == 4) {
         if (this.$store.state.pricing.datosPrincipales.esindividualflag) {
           let val = !!this.$store.state.calculadoras.fletePricing.monto_flete;
           datoFlete.monto = val
@@ -852,7 +846,6 @@ export default {
                 .vigencia_grupal_venta || null
             : null;
         }
-        console.log(datoFlete);
       }
       if (datoFlete.monto < 0) {
         datoFlete.monto = 0;
@@ -1139,6 +1132,132 @@ export default {
       this.tblTotal.uni = parseFloat(uni).toFixed(2);
       this.tblTotal.peso = parseFloat(peso).toFixed(2);
       this.tblTotal.volumen = parseFloat(volumen).toFixed(2);
+    },
+    calcularCostoUnitario(costo, costoAsociado) {
+      let costounitario = costo.costounitario;
+      let esindividualflag =
+        this.$store.state.pricing.datosPrincipales.esindividualflag;
+      let esgrupalflag =
+        this.$store.state.pricing.datosPrincipales.esgrupalflag;
+      let montoprofit = 0;
+      let flete = this.obtenerFleteOpcion(costo);
+      let fleteVenta = this.obtenerFleteOpcionVenta(costo);
+      let transporte = this.obtenerTransporte(costo);
+      let tipoImportacion =
+        this.$store.state.masterusuarios.lstPercepcionAduana.find(
+          (v) =>
+            v.id ==
+            this.$store.state.pricing.datosPrincipales.id_percepcionaduana,
+        );
+      // OBTENIENDO LOS PROFIT
+      if (
+        costoAsociado.profit_ganancia_pricing.length > 0 &&
+        esindividualflag
+      ) {
+        if (tipoImportacion.codigo == "01") {
+          montoprofit = costoAsociado.profit_ganancia_pricing.find(
+            (v) => v.esindividualflag,
+          ).profitprimeraimportacion;
+        }
+        if (tipoImportacion.codigo == "02") {
+          montoprofit = costoAsociado.profit_ganancia_pricing.find(
+            (v) => v.esindividualflag,
+          ).profitsegundaimportacion;
+        }
+      }
+      if (costoAsociado.profit_ganancia_pricing.length > 0 && esgrupalflag) {
+        if (tipoImportacion.codigo == "01") {
+          montoprofit = costoAsociado.profit_ganancia_pricing.find(
+            (v) => v.esgrupalflag,
+          ).profitprimeraimportacion;
+        }
+        if (tipoImportacion.codigo == "02") {
+          montoprofit = costoAsociado.profit_ganancia_pricing.find(
+            (v) => v.esgrupalflag,
+          ).profitsegundaimportacion;
+        }
+      }
+      /* -------- CALCUALAR COSTO UNITARIO ---------------*/
+
+      if (esgrupalflag) {
+        if (costo.esopcionflag == 1) {
+          if (costo.code_cost == 13) {
+            costounitario = transporte;
+          } else if (costo.code_cost == 4 || costo.code_cost == 7 ) {
+            costounitario =
+              parseFloat(costoAsociado.costounitario) +
+              parseFloat(montoprofit) +
+              parseFloat(flete.monto) +
+              parseFloat(fleteVenta.monto);
+          } else {
+            costounitario = 0;
+          }
+        }
+        if (costo.esventaflag == 1) {
+          costounitario =
+            parseFloat(costoAsociado.costounitario) +
+            parseFloat(montoprofit) +
+            parseFloat(flete.monto) +
+            parseFloat(fleteVenta.monto);
+        }
+      }
+
+      if (esindividualflag) {
+        if (costo.esopcionflag == 1) {
+          if (costo.code_cost == 13) {
+            costounitario = transporte;
+          } else {
+            costounitario =
+              parseFloat(costoAsociado.costounitario) + parseFloat(flete.monto);
+          }
+        }
+        if (costo.esventaflag == 1) {
+          if (costo.code_cost == 13) {
+            costounitario = transporte;
+          } else {
+            costounitario =
+              parseFloat(costoAsociado.costounitario) +
+              parseFloat(montoprofit) +
+              parseFloat(flete.monto) +
+              parseFloat(fleteVenta.monto);
+          }
+        }
+      }
+      if (costo.code_cost == 11) {
+        // console.log({
+        //   esopcionflag:costo.esopcionflag,
+        //   esventaflag:costo.esventaflag,
+        //   costounitario: costounitario,
+        //   flete: flete,
+        //   fleteVenta: fleteVenta,
+        // });
+      }
+      return {
+        costounitario: costounitario,
+        flete: flete,
+        fleteVenta: fleteVenta,
+      };
+    },
+    obtenerTransporte(item) {
+      let monto = 0;
+      if (item.code_cost == 13) {
+        let opcion = this.$store.state.pricing.datosPrincipales.esindividualflag
+          ? 1
+          : this.$store.state.pricing.datosPrincipales.esgrupalflag
+          ? 2
+          : 0;
+
+        let transporte = this.$store.state.calculadoras.lstTransporte.find(
+          (v) =>
+            v.id_distrito ==
+              this.$store.state.pricing.datosPrincipales.id_town &&
+            v.opcion == opcion,
+        );
+        if (transporte) {
+          monto = transporte.monto;
+        }
+      }
+      return monto;
     },
   },
   computed: {

@@ -172,6 +172,7 @@ export default {
       "crearCarpetaOneDrive",
       "actualizarURLEnElQuote",
       "obtenerFleteCalculadora",
+      "getTransporte",
     ]),
     recargar() {
       if (this.$store.state.pricing.listServices.length > 0) {
@@ -251,6 +252,15 @@ export default {
           volumen: this.$store.state.pricing.datosPrincipales.volumen,
           peso: this.$store.state.pricing.datosPrincipales.peso,
         }),
+        this.getTransporte({
+          shimpent: this.$store.state.pricing.listShipment.find(
+            (v) => v.id == idTipoCarga,
+          ).code,
+          id_modality: this.$store.state.pricing.datosPrincipales.idsentido,
+          id_pais: JSON.parse(sessionStorage.getItem("dataUser"))[0].id_pais,
+          id_branch: JSON.parse(sessionStorage.getItem("dataUser"))[0]
+            .id_branch,
+        }),
       ]);
 
       this.$store.state.pricing.listServices = serv;
@@ -306,7 +316,10 @@ export default {
       this.$store.state.spiner = true;
       await this.getMultiplicador();
       // await this.getImpuestos();
-
+      let esindividualflag =
+        this.$store.state.pricing.datosPrincipales.esindividualflag;
+      let esgrupalflag =
+        this.$store.state.pricing.datosPrincipales.esgrupalflag;
       let codeServicesActivos = new Set(
         this.$store.state.pricing.listServices
           .filter((v) => v.status === true || v.status === 1)
@@ -345,6 +358,7 @@ export default {
       let cDuplicado = cFiltrado.flatMap((item) => {
         let flete = this.obtenerFleteOpcion(item);
         let fleteVenta = this.obtenerFleteOpcionVenta(item);
+        let transporte = this.obtenerTransporte(item);
 
         if (codeCost.includes(item.code_cost)) {
           return [
@@ -353,18 +367,10 @@ export default {
               esopcionflag: 1,
               esventaflag: 0,
               status: true,
-              cif: this.$store.state.pricing.datosPrincipales.esgrupalflag
-                ? 0
-                : parseFloat(0.35),
-              seguro: this.$store.state.pricing.datosPrincipales.esgrupalflag
-                ? 0
-                : parseFloat(0.45),
+              cif: esgrupalflag ? 0 : parseFloat(0.35),
+              seguro: esgrupalflag ? 0 : parseFloat(0.45),
               costounitario:
-                parseFloat(
-                  this.$store.state.pricing.datosPrincipales.esgrupalflag
-                    ? 0
-                    : item.costounitario,
-                ) +
+                parseFloat(esgrupalflag ? 0 : item.costounitario) +
                 parseFloat(flete.monto) +
                 parseFloat(fleteVenta.monto),
               nro_propuesta: 1,
@@ -384,10 +390,7 @@ export default {
                 this.$store.state.pricing.datosPrincipales.id_percepcionaduana,
             );
           // OBTENIENDO LOS PROFIT
-          if (
-            item.profit_ganancia_pricing.length > 0 &&
-            this.$store.state.pricing.datosPrincipales.esindividualflag
-          ) {
+          if (item.profit_ganancia_pricing.length > 0 && esindividualflag) {
             if (tipoImportacion.codigo == "01") {
               montoprofit = item.profit_ganancia_pricing.find(
                 (v) => v.esindividualflag,
@@ -399,10 +402,7 @@ export default {
               ).profitsegundaimportacion;
             }
           }
-          if (
-            item.profit_ganancia_pricing.length > 0 &&
-            this.$store.state.pricing.datosPrincipales.esgrupalflag
-          ) {
+          if (item.profit_ganancia_pricing.length > 0 && esgrupalflag) {
             if (tipoImportacion.codigo == "01") {
               montoprofit = item.profit_ganancia_pricing.find(
                 (v) => v.esgrupalflag,
@@ -414,6 +414,12 @@ export default {
               ).profitsegundaimportacion;
             }
           }
+          // if (item.code_cost == 7) {
+          //   console.log(item.costounitario);
+          //   console.log(montoprofit);
+          //   console.log(flete.monto);
+          //   console.log(fleteVenta.monto);
+          // }
           return [
             {
               ...item,
@@ -421,18 +427,13 @@ export default {
               esopcionflag: 1,
               esventaflag: 0,
               status: true,
-              cif: this.$store.state.pricing.datosPrincipales.esgrupalflag
-                ? 0
-                : parseFloat(0.35),
-              seguro: this.$store.state.pricing.datosPrincipales.esgrupalflag
-                ? 0
-                : parseFloat(0.45),
+              cif: esgrupalflag ? 0 : parseFloat(0.35),
+              seguro: esgrupalflag ? 0 : parseFloat(0.45),
               costounitario:
-                parseFloat(
-                  this.$store.state.pricing.datosPrincipales.esgrupalflag
-                    ? 0
-                    : item.costounitario,
-                ) + parseFloat(flete.monto),
+                item.code_cost == 13
+                  ? transporte
+                  : parseFloat(esgrupalflag ? 0 : item.costounitario) +
+                    parseFloat(flete.monto),
               nro_propuesta: 1,
               tienefleteflag: flete.tienefleteflag,
               fechavigencia: flete.fechavigencia,
@@ -447,16 +448,19 @@ export default {
               seguro: parseFloat(0.45),
               nro_propuesta: 1,
               costounitario:
-                parseFloat(
-                  this.$store.state.pricing.datosPrincipales.esgrupalflag
-                    ? 0
-                    : item.costounitario,
-                ) +
-                parseFloat(montoprofit) +
-                parseFloat(fleteVenta.monto),
+                item.code_cost == 13
+                  ? transporte
+                  : parseFloat(esgrupalflag ? 0 : item.costounitario) +
+                    parseFloat(montoprofit) +
+                    parseFloat(flete.monto) +
+                    parseFloat(fleteVenta.monto),
               tieneprofitflag: parseFloat(montoprofit) > 0,
-              tienefleteflag: fleteVenta.tienefleteflag,
-              fechavigencia: fleteVenta.fechavigencia,
+              tienefleteflag: esindividualflag
+                ? flete.tienefleteflag
+                : fleteVenta.tienefleteflag,
+              fechavigencia: esindividualflag
+                ? flete.fechavigencia
+                : fleteVenta.fechavigencia,
             },
           ];
         }
@@ -520,7 +524,6 @@ export default {
               null
             : null;
         }
-        console.log(datoFlete);
       }
       return datoFlete;
     },
@@ -556,12 +559,33 @@ export default {
                 .vigencia_grupal_venta || null
             : null;
         }
-        console.log(datoFlete);
       }
       if (datoFlete.monto < 0) {
         datoFlete.monto = 0;
       }
       return datoFlete;
+    },
+    obtenerTransporte(item) {
+      let monto = 0;
+      if (item.code_cost == 13) {
+        let opcion = this.$store.state.pricing.datosPrincipales.esindividualflag
+          ? 1
+          : this.$store.state.pricing.datosPrincipales.esgrupalflag
+          ? 2
+          : 0;
+
+        let transporte = this.$store.state.calculadoras.lstTransporte.find(
+          (v) =>
+            v.id_distrito ==
+              this.$store.state.pricing.datosPrincipales.id_town &&
+            v.opcion == opcion,
+        );
+
+        if (transporte) {
+          monto = transporte.monto;
+        }
+      }
+      return monto;
     },
     async guardar() {
       this.$store.state.spiner = true;
@@ -725,8 +749,8 @@ export default {
               esopcionflag: 0,
               esventaflag: 1,
               status: true,
-              cif:parseFloat(0.35),
-              seguro:parseFloat(0.45),
+              cif: parseFloat(0.35),
+              seguro: parseFloat(0.45),
               nro_propuesta: 1,
               costounitario:
                 parseFloat(

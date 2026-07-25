@@ -752,7 +752,7 @@ const actions = {
     let response = await axios(config);
 
     if (response.data.estadoflag) {
-      console.log(response.data);
+      
       commit("SET_LST_COSTOS_TRANSPORTE", response.data.data);
     }
   },
@@ -773,7 +773,7 @@ const actions = {
     let response = await axios(config);
 
     if (response.data.estadoflag) {
-      console.log(response.data);
+      
       commit("SET_LST_OPCIONES", response.data.data);
     }
   },

@@ -57,7 +57,7 @@
                 {{ service.service }}
               </template>
             </v-checkbox>
-            <!-- <template
+            <template
               v-if="
                 service.code_service == 14 &&
                 service.status == 1 &&
@@ -72,8 +72,9 @@
                 outlined
                 label="Distrito"
                 class="pr-10"
+                v-model="$store.state.pricing.datosPrincipales.id_town"
               />
-            </template> -->
+            </template>
           </div>
 
           <!-- Campos adicionales solo para la sección OPCIONAL -->
@@ -329,16 +330,11 @@ export default {
     },
     async buscarYCARGAR(idDestino) {
       if (!idDestino) return;
-
       const listaPuertos = this.$store.state.pricing.listPortEnd || [];
-      console.log("Buscando ID:", idDestino, "en lista:", listaPuertos);
-
       // Usamos Number() o String() para evitar problemas de tipos
       let port = listaPuertos.find(
         (v) => String(v.id_port) === String(idDestino),
       );
-
-      console.log("Puerto encontrado:", port);
 
       if (port) {
         await this.cargarTownParaPricing({ id_pais: port.id_pais });
