@@ -695,6 +695,7 @@ export default {
         "object"
           ? this.$store.state.pricing.datosPrincipales.idtipocarga.id
           : this.$store.state.pricing.datosPrincipales.idtipocarga;
+
       let c = costos.filter(
         (v) =>
           v.id_incoterms ==
@@ -704,41 +705,102 @@ export default {
           v.id_shipment == idTipoCarga &&
           codeServicesActivos.has(Number(v.code_service)),
       );
-      this.$store.state.pricing.opcionCostos.forEach((element1) => {
-        element1.listCostos.forEach((element) => {
-          // FLETE
+
+      // Traemos el tipo de importación (necesario para el profit)
+      let tipoImportacion =
+        this.$store.state.masterusuarios.lstPercepcionAduana.find(
+          (v) =>
+            v.id ==
+            this.$store.state.pricing.datosPrincipales.id_percepcionaduana,
+        );
+
+      let codeCostEspeciales = [69, 114, 105, 39];
+
+      this.$store.state.pricing.opcionCostos.forEach((opcion) => {
+        opcion.listCostos.forEach((element) => {
+          // 1. Obtenemos fletes y transporte actuales
           let flete = this.obtenerFleteOpcion(element);
           let fleteVenta = this.obtenerFleteOpcionVenta(element);
+          let transporte = this.obtenerTransporte(element);
 
-          let costo = c.find((v) => v.code_cost == element.code_cost);
-          let calc = this.calcularCostoUnitario(element, costo);
+          // 2. Buscamos el costo base (preCosto) para extraer su profit y costo original
+          let costoBase = c.find((v) => v.code_cost == element.code_cost);
 
-          // -------------------------
-          element.costounitario = calc.costounitario;
-          element.cif = esgrupalflag
-            ? 0
-            : esindividualflag
-            ? parseFloat(0.35)
-            : parseFloat(0.35);
-          element.seguro = esgrupalflag
-            ? 0
-            : esindividualflag
-            ? parseFloat(0.45)
-            : parseFloat(0.45);
-          element.tienefleteflag = this.$store.state.pricing.datosPrincipales
-            .esindividualflag
-            ? calc.flete.tienefleteflag
-            : this.$store.state.pricing.datosPrincipales.esgrupalflag
-            ? calc.fleteVenta.tienefleteflag
-            : false;
-          element.fechavigencia = this.$store.state.pricing.datosPrincipales
-            .esindividualflag
-            ? calc.flete.fechavigencia
-            : this.$store.state.pricing.datosPrincipales.esgrupalflag
-            ? calc.fleteVenta.fechavigencia
-            : false;
+          if (costoBase) {
+            let costoBaseUnitario = parseFloat(
+              esgrupalflag ? 0 : costoBase.costounitario,
+            );
+
+            // 3. Evaluamos si es un costo especial
+            if (codeCostEspeciales.includes(element.code_cost)) {
+              element.costounitario =
+                costoBaseUnitario +
+                parseFloat(flete.monto) +
+                parseFloat(fleteVenta.monto);
+              element.tienefleteflag = false; // Replicado de tu lógica original
+              element.fechavigencia = null; // Replicado de tu lógica original
+            } else {
+              // 4. Lógica para VENTA (esventaflag == 1)
+              if (element.esventaflag === 1 || element.esventaflag === true) {
+                let montoprofit = 0;
+
+                // Calculamos el profit según esgrupal o individual
+                if (
+                  costoBase.profit_ganancia_pricing &&
+                  costoBase.profit_ganancia_pricing.length > 0
+                ) {
+                  let profitObj = costoBase.profit_ganancia_pricing.find((v) =>
+                    esindividualflag ? v.esindividualflag : v.esgrupalflag,
+                  );
+
+                  if (profitObj) {
+                    if (tipoImportacion.codigo == "01")
+                      montoprofit = profitObj.profitprimeraimportacion;
+                    if (tipoImportacion.codigo == "02")
+                      montoprofit = profitObj.profitsegundaimportacion;
+                  }
+                }
+
+                element.costounitario =
+                  element.code_cost == 13
+                    ? transporte
+                    : costoBaseUnitario +
+                      parseFloat(montoprofit) +
+                      parseFloat(flete.monto) +
+                      parseFloat(fleteVenta.monto);
+
+                element.tieneprofitflag = parseFloat(montoprofit) > 0;
+                element.tienefleteflag = esindividualflag
+                  ? flete.tienefleteflag
+                  : fleteVenta.tienefleteflag;
+                element.fechavigencia = esindividualflag
+                  ? flete.fechavigencia
+                  : fleteVenta.fechavigencia;
+              }
+              // 5. Lógica para COMPRA/OPCIÓN (esopcionflag == 1)
+              else if (
+                element.esopcionflag === 1 ||
+                element.esopcionflag === true
+              ) {
+                element.costounitario =
+                  element.code_cost == 13
+                    ? transporte
+                    : costoBaseUnitario + parseFloat(flete.monto);
+
+                element.tienefleteflag = flete.tienefleteflag;
+                element.fechavigencia = flete.fechavigencia;
+              }
+            }
+          }
+
+          // 6. Actualizamos los valores fijos que aplican a todos
+          element.cif =
+            esgrupalflag && element.esopcionflag == 1 ? 0 : parseFloat(0.35);
+          element.seguro =
+            esgrupalflag && element.esopcionflag == 1 ? 0 : parseFloat(0.45);
         });
       });
+
       setTimeout(() => {
         this.$emit("recargarGrupalFlag");
       }, 500);
@@ -1183,7 +1245,7 @@ export default {
         if (costo.esopcionflag == 1) {
           if (costo.code_cost == 13) {
             costounitario = transporte;
-          } else if (costo.code_cost == 4 || costo.code_cost == 7 ) {
+          } else if (costo.code_cost == 4 || costo.code_cost == 7) {
             costounitario =
               parseFloat(costoAsociado.costounitario) +
               parseFloat(montoprofit) +
