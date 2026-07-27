@@ -929,6 +929,9 @@ export default {
 
     },
     tipocambio() {
+      if (this.symbol=='USD') {
+        return 1
+      }
       let tc =
         (parseFloat(this.monto_local) +
           parseFloat(this.montogastobancario || 0)) /

@@ -146,7 +146,7 @@
               v-model="tipocambio"
               :disabled="radio == ''"
               @input="cambiarTipodeCambio()"
-              v-if="symbol != 'USD' || !id_coins"
+              v-if="id_coins && symbol != 'USD'"
             ></v-text-field>
           </v-col>
 
@@ -172,17 +172,21 @@
                     {{ $store.state.enterprises.impuesto.nombre_impuesto }}
                   </th>
                   <th style="background: #adcaf5">Total</th>
-                  <th style="background: #c7f7d7">Monto (USD)</th>
-                  <th style="background: #c7f7d7">
+                  <th v-if="mostrarColumna()" style="background: #c7f7d7">
+                    Monto (USD)
+                  </th>
+                  <th v-if="mostrarColumna()" style="background: #c7f7d7">
                     {{ $store.state.enterprises.impuesto.nombre_impuesto }}(USD)
                   </th>
-                  <th style="background: #c7f7d7">Total (USD)</th>
+                  <th v-if="mostrarColumna()" style="background: #c7f7d7">
+                    Total (USD)
+                  </th>
                 </tr>
               </thead>
               <tbody>
                 <tr
                   v-for="(productos, index) in itemsProductos.filter(
-                    (v) => v.status == 1
+                    (v) => v.status == 1,
                   )"
                   :key="index"
                 >
@@ -198,17 +202,22 @@
                   </td>
                   <td>{{ productos.concepto }}</td>
                   <td>
+                    <span v-if="tipo == 'ver'">
+                      {{ productos.monto }}
+                    </span>
+
                     <v-text-field
-                      v-if="tipo == 'editar'"
+                      v-else
                       type="number"
                       v-model="productos.monto"
                       step="0.01"
                       @input="recalcularMonto(productos, index)"
-                      style="max-width: 100px"
+                      style="max-width: 200px"
+                      outlined
+                      dense
+                      hide-details
+                      :prefix="symbol"
                     ></v-text-field>
-                    <span v-else>
-                      {{ productos.monto }}
-                    </span>
                   </td>
 
                   <td v-if="productos.id != null">
@@ -220,12 +229,12 @@
                     {{ symbol }}
                     {{ parseFloat(productos.total).toFixed(2) }}
                   </td>
-                  <td>USD {{ productos.montodolar }}</td>
-                  <td v-if="productos.id != null">
-                    USD {{ productos.igvdolar }}
+                  <td v-if="mostrarColumna()">
+                    USD {{ productos.montodolar }}
                   </td>
-                  <td v-else>USD {{ productos.igvdolar }}</td>
-                  <td>
+                  <td v-if="mostrarColumna()">USD {{ productos.igvdolar }}</td>
+
+                  <td v-if="mostrarColumna()">
                     USD
                     {{ parseFloat(productos.totaldolar).toFixed(2) }}
                   </td>
@@ -241,7 +250,7 @@
                           .filter((v) => v.status == 1)
                           .reduce((sum, producto) => {
                             return sum + parseFloat(producto.monto);
-                          }, 0)
+                          }, 0),
                       ).toFixed(2)
                     }}
                   </td>
@@ -253,7 +262,7 @@
                           .filter((v) => v.status == 1)
                           .reduce((sum, producto) => {
                             return sum + parseFloat(producto.igv);
-                          }, 0)
+                          }, 0),
                       ).toFixed(2)
                     }}
                   </td>
@@ -265,11 +274,11 @@
                           .filter((v) => v.status == 1)
                           .reduce((sum, producto) => {
                             return sum + parseFloat(producto.total);
-                          }, 0)
+                          }, 0),
                       ).toFixed(2)
                     }}
                   </td>
-                  <td>
+                  <td v-if="mostrarColumna()">
                     USD
                     {{
                       parseFloat(
@@ -277,11 +286,11 @@
                           .filter((v) => v.status == 1)
                           .reduce((sum, producto) => {
                             return sum + parseFloat(producto.montodolar);
-                          }, 0)
+                          }, 0),
                       ).toFixed(2)
                     }}
                   </td>
-                  <td>
+                  <td v-if="mostrarColumna()">
                     USD
                     {{
                       parseFloat(
@@ -289,11 +298,11 @@
                           .filter((v) => v.status == 1)
                           .reduce((sum, producto) => {
                             return sum + parseFloat(producto.igvdolar);
-                          }, 0)
+                          }, 0),
                       ).toFixed(2)
                     }}
                   </td>
-                  <td>
+                  <td v-if="mostrarColumna()">
                     USD
                     {{
                       parseFloat(
@@ -301,7 +310,7 @@
                           .filter((v) => v.status == 1)
                           .reduce((sum, producto) => {
                             return sum + parseFloat(producto.totaldolar);
-                          }, 0)
+                          }, 0),
                       ).toFixed(2)
                     }}
                   </td>
@@ -445,7 +454,7 @@
   </v-card>
 </template>
 <script>
-import axios from '@/api/axios-config';
+import axios from "@/api/axios-config";
 import { mapActions, mapState } from "vuex";
 // import the component
 import Treeselect from "@riophae/vue-treeselect";
@@ -613,7 +622,6 @@ export default {
         method: "post",
         url: process.env.VUE_APP_URL_MAIN + "uploadAllPath",
         headers: {
-         
           "Content-Type": "application/json",
         },
         data: data,
@@ -639,7 +647,6 @@ export default {
         url: process.env.VUE_APP_URL_MAIN + "getHouseListAll",
         data: data,
         headers: {
-         
           "Content-Type": "application/json",
         },
       };
@@ -663,7 +670,6 @@ export default {
         url: process.env.VUE_APP_URL_MAIN + "getListInvoiceExp",
 
         headers: {
-         
           "Content-Type": "application/json",
         },
         data: data,
@@ -791,13 +797,14 @@ export default {
           status: 1,
           tipocambio: vm.tipocambio,
           id_gastos: vm.id_gastos,
+          id_branch: JSON.parse(sessionStorage.getItem("dataUser"))[0]
+            .id_branch,
         };
         var config = {
           method: "post",
           url: process.env.VUE_APP_URL_MAIN + "setInvoiceAdmin",
 
           headers: {
-           
             "Content-Type": "application/json",
           },
           data: data,
@@ -867,7 +874,6 @@ export default {
           url: process.env.VUE_APP_URL_MAIN + "setUpdateInvoiceAdmin",
 
           headers: {
-           
             "Content-Type": "application/json",
           },
           data: data,
@@ -875,17 +881,19 @@ export default {
         await axios(config)
           .then(function (response) {
             vm.itemsInvoice = response.data.data;
+            console.log(vm.itemsInvoice)
+            if (response.data.data.estado) {
+              vm.$swal({
+                icon: "success",
+                title: "Documento Cargado",
+                text: "El documento ha sido actualizado correctamente",
+              });
+            }
 
-            vm.$swal({
-              icon: "success",
-              title: "Documento Cargado",
-              text: "El documento ha sido actualizado correctamente",
-            });
-
-            vm.$router.push({
-              name: "viewAccountPays",
-              params: { id: vm.$route.params.id },
-            });
+            // vm.$router.push({
+            //   name: "viewAccountPays",
+            //   params: { id: vm.$route.params.id },
+            // });
             // vm._getInvoice();
             vm.dialogInvoice = false;
           })
@@ -909,7 +917,6 @@ export default {
         url: process.env.VUE_APP_URL_MAIN + "putPro",
 
         headers: {
-         
           "Content-Type": "application/json",
         },
         data: data,
@@ -1023,9 +1030,7 @@ export default {
     },
     obtenerPrefixCoins() {
       this.symbol = this.id_coins.symbol;
-      this.symbol == "USD"
-        ? (this.tipocambio = 1)
-        : (this.tipocambio = this.tipocambio);
+      this.tipocambio = 1;
       this.cambiarTipodeCambio();
     },
     validarFormulario() {
@@ -1062,6 +1067,12 @@ export default {
       }
 
       return validacion;
+    },
+    mostrarColumna() {
+      if (this.symbol == "USD") {
+        return false;
+      }
+      return true;
     },
   },
   watch: {
