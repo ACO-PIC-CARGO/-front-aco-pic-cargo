@@ -161,7 +161,7 @@
               v-model="tipocambio"
               :disabled="radio == ''"
               @input.native="cambiarTipodeCambio()"
-              v-if="symbol != 'USD' || !id_coins"
+              v-if="id_coins && symbol != 'USD'"
             ></v-text-field>
           </v-col>
           <v-col cols="12" md="12">
@@ -187,17 +187,21 @@
                     {{ $store.state.enterprises.impuesto.nombre_impuesto }}
                   </th>
                   <th style="background: #adcaf5">Total</th>
-                  <th style="background: #c7f7d7">Monto (USD)</th>
-                  <th style="background: #c7f7d7">
+                  <th v-if="mostrarColumna()" style="background: #c7f7d7">
+                    Monto (USD)
+                  </th>
+                  <th v-if="mostrarColumna()" style="background: #c7f7d7">
                     {{ $store.state.enterprises.impuesto.nombre_impuesto }}(USD)
                   </th>
-                  <th style="background: #c7f7d7">Total (USD)</th>
+                  <th v-if="mostrarColumna()" style="background: #c7f7d7">
+                    Total (USD)
+                  </th>
                 </tr>
               </thead>
               <tbody>
                 <tr
                   v-for="(productos, index) in itemsproductos.filter(
-                    (v) => v.status == 1
+                    (v) => v.status == 1,
                   )"
                   :key="index"
                 >
@@ -213,32 +217,35 @@
                   </td>
                   <td>{{ productos.concepto }}</td>
                   <td>
+                    <span v-if="tipo == 'ver'">
+                      {{ productos.monto }}
+                    </span>
                     <v-text-field
-                      v-if="tipo == 'editar'"
                       type="number"
                       v-model="productos.monto"
                       step="0.01"
                       @input="recalcularMonto(productos, index)"
-                      style="max-width: 100px"
-                    ></v-text-field>
-                    <span v-else>
-                      {{ productos.monto }}
-                    </span>
+                      style="max-width: 200px"
+                      outlined
+                      dense
+                      hide-details
+                      :prefix="symbol"
+                                          ></v-text-field>
                   </td>
                   <td v-if="productos.id != null">
                     {{ productos.igv }}
                   </td>
-                  <td v-else>
-                    {{ productos.igv }}
-                  </td>
+                  <td v-else>{{ symbol }} {{ productos.igv }}</td>
                   <td>
                     {{ symbol }}
                     {{ parseFloat(productos.total).toFixed(4) }}
                   </td>
-                  <td>USD {{ productos.montodolar }}</td>
-                  <td>USD {{ productos.igvdolar }}</td>
+                  <td v-if="mostrarColumna()">
+                    USD {{ productos.montodolar }}
+                  </td>
+                  <td v-if="mostrarColumna()">USD {{ productos.igvdolar }}</td>
 
-                  <td>
+                  <td v-if="mostrarColumna()">
                     USD
                     {{ parseFloat(productos.totaldolar).toFixed(2) }}
                   </td>
@@ -254,7 +261,7 @@
                           .filter((v) => v.status == 1)
                           .reduce((sum, producto) => {
                             return sum + parseFloat(producto.monto);
-                          }, 0)
+                          }, 0),
                       ).toFixed(2)
                     }}
                   </td>
@@ -266,7 +273,7 @@
                           .filter((v) => v.status == 1)
                           .reduce((sum, producto) => {
                             return sum + parseFloat(producto.igv);
-                          }, 0)
+                          }, 0),
                       ).toFixed(2)
                     }}
                   </td>
@@ -278,11 +285,11 @@
                           .filter((v) => v.status == 1)
                           .reduce((sum, producto) => {
                             return sum + parseFloat(producto.total);
-                          }, 0)
+                          }, 0),
                       ).toFixed(2)
                     }}
                   </td>
-                  <td>
+                  <td v-if="mostrarColumna()">
                     USD
                     {{
                       parseFloat(
@@ -290,11 +297,11 @@
                           .filter((v) => v.status == 1)
                           .reduce((sum, producto) => {
                             return sum + parseFloat(producto.montodolar);
-                          }, 0)
+                          }, 0),
                       ).toFixed(2)
                     }}
                   </td>
-                  <td>
+                  <td v-if="mostrarColumna()">
                     USD
                     {{
                       parseFloat(
@@ -302,11 +309,11 @@
                           .filter((v) => v.status == 1)
                           .reduce((sum, producto) => {
                             return sum + parseFloat(producto.igvdolar);
-                          }, 0)
+                          }, 0),
                       ).toFixed(2)
                     }}
                   </td>
-                  <td>
+                  <td v-if="mostrarColumna()">
                     USD
                     {{
                       parseFloat(
@@ -314,7 +321,7 @@
                           .filter((v) => v.status == 1)
                           .reduce((sum, producto) => {
                             return sum + parseFloat(producto.totaldolar);
-                          }, 0)
+                          }, 0),
                       ).toFixed(2)
                     }}
                   </td>
@@ -463,7 +470,7 @@
 <script>
 import { validationMixin } from "vuelidate";
 import { required, maxLength, email } from "vuelidate/lib/validators";
-import axios from '@/api/axios-config';
+import axios from "@/api/axios-config";
 import Swal from "sweetalert2";
 import { mapActions, mapState } from "vuex";
 // import the component
@@ -615,7 +622,7 @@ export default {
 
       console.log(
         "Producto después de actualizar:",
-        this.itemsproductos[index]
+        this.itemsproductos[index],
       );
     },
     _valida() {
@@ -658,7 +665,6 @@ export default {
         method: "post",
         url: process.env.VUE_APP_URL_MAIN + "uploadAllPath",
         headers: {
-         
           "Content-Type": "application/json",
         },
         data: data,
@@ -684,7 +690,6 @@ export default {
         url: process.env.VUE_APP_URL_MAIN + "getHouseListAll",
 
         headers: {
-         
           "Content-Type": "application/json",
         },
       };
@@ -708,7 +713,6 @@ export default {
         url: process.env.VUE_APP_URL_MAIN + "getListInvoiceExp",
 
         headers: {
-         
           "Content-Type": "application/json",
         },
         data: data,
@@ -781,13 +785,14 @@ export default {
           id_year: vm.id_year,
           tipocambio: vm.tipocambio,
           id_tipoingreso: vm.id_tipoingreso,
+          id_branch: JSON.parse(sessionStorage.getItem("dataUser"))[0]
+            .id_branch,
         };
         var config = {
           method: "post",
           url: process.env.VUE_APP_URL_MAIN + "setInvoiceAdminCxC",
 
           headers: {
-           
             "Content-Type": "application/json",
           },
           data: data,
@@ -851,7 +856,6 @@ export default {
           url: process.env.VUE_APP_URL_MAIN + "setUpdateInvoiceAdminCxC",
 
           headers: {
-           
             "Content-Type": "application/json",
           },
           data: data,
@@ -895,7 +899,6 @@ export default {
         url: process.env.VUE_APP_URL_MAIN + "putPro",
 
         headers: {
-         
           "Content-Type": "application/json",
         },
         data: data,
@@ -956,10 +959,10 @@ export default {
                 (parseFloat(this.producto.monto / this.tipocambio) *
                   this.$store.state.enterprises.impuesto.impuesto) /
                   100 +
-                  parseFloat(this.producto.monto / this.tipocambio)
+                  parseFloat(this.producto.monto / this.tipocambio),
               ).toFixed(2)
             : parseFloat(
-                parseFloat(this.producto.monto / this.tipocambio)
+                parseFloat(this.producto.monto / this.tipocambio),
               ).toFixed(2),
       };
       this.itemsproductos.push(producto);
@@ -1014,6 +1017,8 @@ export default {
     },
     obtenerPrefixCoins() {
       this.symbol = this.id_coins.symbol;
+      this.tipocambio = 1;
+      this.cambiarTipodeCambio();
     },
     validarFormulario() {
       let mensaje = "";
@@ -1062,11 +1067,17 @@ export default {
       if (!!this.tipoingreso) {
         this.tiposubingresoFilter =
           this.$store.state.balances.tiposubingreso.filter(
-            (v) => v.id_ingreso == this.tipoingreso
+            (v) => v.id_ingreso == this.tipoingreso,
           );
       } else {
         this.tiposubingresoFilter = this.$store.state.balances.tiposubingreso;
       }
+    },
+    mostrarColumna() {
+      if (this.symbol == "USD") {
+        return false;
+      }
+      return true;
     },
   },
 

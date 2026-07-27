@@ -398,7 +398,7 @@
                     label="Monto Total a Pagar"
                     id="id"
                     type="number"
-                    prefix="USD"
+                    :prefix="symbol"
                     v-model="montoFinal"
                   ></v-text-field>
                 </v-col>
@@ -797,7 +797,7 @@ export default {
         id_soporte: this.id_path,
       };
       this.loading = true;
-      await this.setRegistroEgresos(data);
+      await this.setRegistroEgresos(data).catch((e) => console.error(er));
       this.loading = false;
       Swal.fire({
         icon: "success",
@@ -897,6 +897,9 @@ export default {
       // return this.selected.some((v) => v.symbol != "USD");
     },
     tipocambio() {
+      if (this.symbol == "USD") {
+        return 1;
+      }
       let tc =
         (parseFloat(this.monto_local) +
           parseFloat(this.montogastobancario || 0)) /
