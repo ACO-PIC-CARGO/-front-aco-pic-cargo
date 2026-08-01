@@ -425,7 +425,9 @@ export default {
               montoprofit = profitObj.profitsegundaimportacion;
           }
         }
-
+        if (item.code_cost == 4) {
+          console.log("flete", flete);
+        }
         return [
           {
             // ITEM COMPRA / OPCIÓN
@@ -450,11 +452,11 @@ export default {
             seguro: seguroVenta, // <--- Siempre 0.45
             costounitario:
               item.code_cost == 13
-                ? transporte
-                : costoBaseUnitario +
+                ? parseFloat(transporte)
+                : parseFloat(costoBaseUnitario) +
                   parseFloat(montoprofit || 0) +
-                  parseFloat(flete.monto || 0) +
-                  parseFloat(fleteVenta.monto || 0),
+                  parseFloat(!esgrupalflag ? flete.monto || 0 : 0) +
+                  parseFloat(esgrupalflag ? fleteVenta.monto || 0 : 0),
             tieneprofitflag: parseFloat(montoprofit) > 0,
             tienefleteflag: esindividualflag
               ? flete.tienefleteflag

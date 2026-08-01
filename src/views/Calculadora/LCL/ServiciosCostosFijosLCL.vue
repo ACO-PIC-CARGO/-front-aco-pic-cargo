@@ -14,9 +14,9 @@
         <v-tab href="#fletelst" active>Listado Fletes </v-tab>
         <v-tab href="#fletegrup" active>Listado Fletes Grupal</v-tab>
         <!-- <v-tab href="#section">Secciones </v-tab> -->
-        <v-tab href="#serv">Servicios </v-tab>
-        <v-tab href="#cost">Costos Fijos</v-tab>
-        <v-tab href="#profit">Profit</v-tab>
+        <!-- <v-tab href="#serv">Servicios </v-tab> -->
+        <!-- <v-tab href="#cost">Costos Fijos</v-tab> -->
+        <!-- <v-tab href="#profit">Profit</v-tab> -->
         <v-tab href="#Transporte">Transporte</v-tab>
       </v-tabs>
       <v-tabs-items v-model="tab">
