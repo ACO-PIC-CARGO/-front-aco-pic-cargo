@@ -86,7 +86,9 @@ import NotasComponent from "../../components/folderPricing/NotasComponent.vue";
 import { mapActions, mapState } from "vuex";
 import Swal from "sweetalert2";
 import readXlsFile from "read-excel-file";
+import mixins from "@/components/mixins/funciones.js";
 export default {
+  mixins: [mixins],
   components: {
     DatosPrincipales,
     DatosCargaComponent,
@@ -389,8 +391,8 @@ export default {
         // Valores calculados según tu nueva regla
         const cifOpcion = esgrupalflag ? 0 : parseFloat(0.35);
         const seguroOpcion = esgrupalflag ? 0 : parseFloat(0.45);
-        const cifVenta = parseFloat(0.35);
-        const seguroVenta = parseFloat(0.45);
+        const cifVenta = esgrupalflag ? 0 : parseFloat(0.35);
+        const seguroVenta = esgrupalflag ? 0 : parseFloat(0.45);
 
         // CASO A: Costos Especiales
         if (COSTOS_ESPECIALES.includes(item.code_cost)) {
@@ -436,12 +438,13 @@ export default {
             esventaflag: 0,
             cif: cifOpcion, // <--- Regla con validación grupal
             seguro: seguroOpcion, // <--- Regla con validación grupal
-            costounitario:
-              item.code_cost == 13
-                ? transporte
-                : costoBaseUnitario + parseFloat(flete.monto || 0),
-            tienefleteflag: flete.tienefleteflag,
-            fechavigencia: flete.fechavigencia,
+            costounitario: esgrupalflag
+              ? 0
+              : item.code_cost == 13
+              ? transporte
+              : costoBaseUnitario + parseFloat(flete.monto || 0),
+            tienefleteflag: esgrupalflag ? false : flete.tienefleteflag,
+            fechavigencia: esgrupalflag ? null : flete.fechavigencia,
           },
           {
             // ITEM VENTA
@@ -492,6 +495,7 @@ export default {
         confirmButtonColor: "green",
         showDenyButton: true,
         allowEscapeKey: false,
+        showCloseButton: true,
       }).then(async (result) => {
         if (result.isConfirmed) {
           this.step = 2;
@@ -533,6 +537,18 @@ export default {
     obtenerFleteOpcionVenta(item) {
       let datoFlete = { monto: 0, tienefleteflag: false, fechavigencia: null };
       if (item.code_cost == 7) {
+        let val = this.$store.state.pricing.preCostos.find(
+          (v) =>
+            v.id_incoterms ==
+              this.$store.state.pricing.datosPrincipales.idincoterms &&
+            v.id_modality ==
+              this.$store.state.pricing.datosPrincipales.idsentido &&
+            v.id_shipment ==
+              this.$store.state.pricing.datosPrincipales.idtipocarga.id &&
+            v.code_cost == 4,
+        );
+        let facMultiplicador = this.formatearCostoTotal(val);
+        console.log("facMultiplicador", facMultiplicador);
         if (this.$store.state.pricing.datosPrincipales.esgrupalflag) {
           let val =
             !!this.$store.state.calculadoras.fletePricing
@@ -540,8 +556,12 @@ export default {
           datoFlete.monto = val
             ? this.$store.state.calculadoras.fletePricing
                 .monto_flete_grupal_venta -
-              this.$store.state.calculadoras.fletePricing.monto_flete_grupal
+              parseFloat(
+                this.$store.state.calculadoras.fletePricing.monto_flete_grupal *
+                  facMultiplicador,
+              )
             : 0;
+          // this.formatearCostoTotal()
           datoFlete.tienefleteflag = val;
           datoFlete.fechavigencia = val
             ? this.$store.state.calculadoras.fletePricing
@@ -1181,6 +1201,31 @@ export default {
       setTimeout(async () => {
         this.mostrarCostos = true;
       }, 200);
+    },
+    formatearCostoTotal(valor) {
+      // 1. Desestructuración de los estados del Vuex para escribir menos y más limpio
+      const { listMultiplicador, datosPrincipales } = this.$store.state.pricing;
+      const multiplicadores = listMultiplicador || [];
+
+      // 2. Buscamos el multiplicador correspondiente UNA SOLA VEZ
+      const multEncontrado = multiplicadores.find(
+        (v) => v.id === valor.id_multiplicador,
+      );
+
+      // 3. Extraemos las variables con valores por defecto si no existe el multiplicador
+      const valorMultiplicador = multEncontrado ? multEncontrado.valor : 0;
+      const codigoMultiplicador = multEncontrado ? multEncontrado.code : "N";
+
+      // 4. Ejecutamos la función calcularFac pasándole los datos de pricing
+      const factorCalculado = this.calcularFac(
+        codigoMultiplicador,
+        datosPrincipales.volumen,
+        datosPrincipales.peso,
+        datosPrincipales.containers,
+        datosPrincipales.amount,
+      );
+
+      return factorCalculado;
     },
   },
   computed: {

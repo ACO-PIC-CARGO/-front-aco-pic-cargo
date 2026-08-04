@@ -165,7 +165,7 @@
             <v-simple-table dense v-if="itemsProductos.length > 0">
               <thead>
                 <tr>
-                  <th>Acciones</th>
+                  <th v-if="tipo != 'ver'">Acciones</th>
                   <th>Producto/ Concepto</th>
                   <th style="background: #adcaf5">Monto</th>
                   <th style="background: #adcaf5">
@@ -190,7 +190,7 @@
                   )"
                   :key="index"
                 >
-                  <td>
+                  <td v-if="tipo != 'ver'">
                     <v-btn
                       icon
                       color="red"
@@ -240,7 +240,7 @@
                   </td>
                 </tr>
                 <tr>
-                  <td></td>
+                  <td v-if="tipo != 'ver'"></td>
                   <td>Total:</td>
                   <td>
                     {{ symbol }}
