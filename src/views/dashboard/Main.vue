@@ -30,33 +30,7 @@
       </v-chip>
 
       <v-spacer></v-spacer>
-      <!-- <span
-        class="white--text mr-5"
-        v-if="
-          getNameUrl() != 'newQuote' &&
-          getNameUrl() != 'verQuote' &&
-          getNameUrl() != 'editQuote' &&
-          getNameUrl() != 'editQuote' &&
-          !this.$route.params.id_house
-        "
-      >
-        ¡Atención! te quedan 15 días de prueba gratis.
-      </span>
-      <v-btn
-        v-if="
-          getNameUrl() != 'newQuote' &&
-          getNameUrl() != 'verQuote' &&
-          getNameUrl() != 'editQuote' &&
-          getNameUrl() != 'editQuote' &&
-          !this.$route.params.id_house
-        "
-        color="#527AC7"
-        dark
-        small
-        >
-        Adquiere ahora
-        </v-btn
-      > -->
+      
       <b v-if="this.$route.params.id_house" class="mr-10 text-h4">
         PROFIT PR:
         {{
@@ -265,6 +239,24 @@
         v-if="getNameUrl() == 'editQuote'"
       >
         <v-icon class="mx-1">mdi-send</v-icon>AUTOMATICO
+      </v-btn>
+
+      <v-btn
+        color="info"
+        dark
+        @click="ira('EditAccountPaysCxC', $route.params.id)"
+        v-if="getNameUrl() == 'viewAccountPaysCxC'"
+      >
+        <v-icon class="mx-1">mdi-pencil</v-icon> IR EDITAR
+      </v-btn>
+      
+      <v-btn
+        color="info"
+        dark
+        @click="ira('EditAccountPays', $route.params.id)"
+        v-if="getNameUrl() == 'viewAccountPays'"
+      >
+        <v-icon class="mx-1">mdi-pencil</v-icon> IR EDITAR
       </v-btn>
 
       <BtnIrAlListado />

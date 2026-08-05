@@ -483,7 +483,7 @@ import readXlsFile from "read-excel-file";
 import exportXlsFile from "export-from-json";
 import moment from "moment";
 import Swal from "sweetalert2";
-import axios from '@/api/axios-config';
+import axios from "@/api/axios-config";
 import { mapActions } from "vuex";
 export default {
   props: {
@@ -613,7 +613,7 @@ export default {
               v.id_pais_destino == "" ||
               v.id_pais_destino == null ||
               v.id_pais_origen == "" ||
-              v.id_pais_origen == null
+              v.id_pais_origen == null,
           )
         ) {
           Swal.fire({ icon: "warning", text: "Falta Completar Datos" });
@@ -632,7 +632,7 @@ export default {
               v.id_pais_destino == "" ||
               v.id_pais_destino == null ||
               v.id_pais_origen == "" ||
-              v.id_pais_origen == null
+              v.id_pais_origen == null,
           )
         ) {
           Swal.fire({ icon: "warning", text: "Falta Completar Datos" });
@@ -651,7 +651,7 @@ export default {
               v.id_pais_destino == "" ||
               v.id_pais_destino == null ||
               v.id_pais_origen == "" ||
-              v.id_pais_origen == null
+              v.id_pais_origen == null,
           )
         ) {
           Swal.fire({ icon: "warning", text: "Falta Completar Datos" });
@@ -699,30 +699,30 @@ export default {
       var fileName = "";
 
       var exportType = exportXlsFile.types.xls;
+      let url = `${process.env.VUE_APP_URL_MAIN}uploads/`;
       switch (this.type) {
         case "LCL":
-          let url = `${process.env.VUE_APP_URL_MAIN}uploads/FORMATO_LCL_CARGA_FELTE.xlsx`;
+          url += `FORMATO_LCL_CARGA_FELTE.xlsx`;
           window.open(url, "blank");
           this.procesando2 = false;
           break;
         case "FCL":
           data = [
             {
-              Continente: "",
               pais_origen: "",
               puerto_origen: "",
               pais_destino: "",
               puerto_destino: "",
-              Tipo_contenedor: "",
-              costo: "",
-              moneda: "",
-              Naviera: "",
-              vigencia_desde: "",
+              contenedor_20_C: "",
+              contenedor_40_st: "",
+              contenedor_40_hc: "",
+              contenedor_40_nor: "",
               vigencia_hasta: "",
             },
           ];
-          fileName = "FORMATO FCL";
-
+          url += `FormatoFCL.xlsx`;
+          window.open(url, "blank");
+          this.procesando2 = false;
           break;
         case "AEREO":
           data = [
@@ -831,7 +831,7 @@ export default {
       // });
       // //  AXIOS
       // var headers = {
-      //  
+      //
       //   "Content-Type": "application/json",
       // };
       // var data = {
@@ -911,17 +911,15 @@ export default {
       for (let index = 0; index < rows.length; index++) {
         if (index > 0) {
           datos.push({
-            Continente: rows[index][0],
-            pais_origen: rows[index][1],
-            puerto_origen: rows[index][2],
-            pais_destino: rows[index][3],
-            puerto_destino: rows[index][4],
-            Tipo_contenedor: rows[index][5],
-            costo: rows[index][6],
-            moneda: rows[index][7],
-            Naviera: rows[index][8],
-            vigencia_desde: moment(rows[index][9]).format("YYYY-MM-DD"),
-            vigencia_hasta: moment(rows[index][10]).format("YYYY-MM-DD"),
+            pais_origen: rows[index][0],
+            puerto_origen: rows[index][1],
+            pais_destino: rows[index][2],
+            puerto_destino: rows[index][3],
+            contenedor_20_C: rows[index][4],
+            contenedor_40_st: rows[index][5],
+            contenedor_40_hc: rows[index][6],
+            contenedor_40_nor: rows[index][7],
+            vigencia_hasta: rows[index][8],
           });
         }
       }
@@ -937,10 +935,10 @@ export default {
       let puerto_origen2 = [];
       let pais_destino2 = [];
       let puerto_destino2 = [];
-      let Tipo_contenedor2 = [];
-      let moneda2 = [];
-      let Naviera2 = [];
-      let vigencia_desde2 = [];
+      let contenedor_20_C2 = [];
+      let contenedor_40_st2 = [];
+      let contenedor_40_hc2 = [];
+      let contenedor_40_nor2 = [];
       let vigencia_hasta2 = [];
 
       datos.forEach((element) => {
@@ -948,30 +946,27 @@ export default {
         puerto_origen2.push(element.puerto_origen);
         pais_destino2.push(element.pais_destino);
         puerto_destino2.push(element.puerto_destino);
-        Tipo_contenedor2.push(element.Tipo_contenedor);
-        moneda2.push(element.moneda);
-        Naviera2.push(element.Naviera);
-        vigencia_desde2.push(
-          moment(element.vigencia_desde).format("YYYY-MM-DD")
-        );
+        contenedor_20_C2.push(element.contenedor_20_C);
+        contenedor_40_st2.push(element.contenedor_40_st);
+        contenedor_40_hc2.push(element.contenedor_40_hc);
+        contenedor_40_nor2.push(element.contenedor_40_nor);
         vigencia_hasta2.push(
-          moment(element.vigencia_hasta).format("YYYY-MM-DD")
+          moment(element.vigencia_hasta).format("YYYY-MM-DD"),
         );
       });
       var headers = {
-       
         "Content-Type": "application/json",
       };
       var data = {
-        id_branch: JSON.parse(sessionStorage.getItem("branch")),
+        id_branch: JSON.parse(sessionStorage.getItem("dataUser"))[0].id_branch,
         pais_origen: pais_origen2,
         puerto_origen: puerto_origen2,
         pais_destino: pais_destino2,
         puerto_destino: puerto_destino2,
-        Tipo_contenedor: Tipo_contenedor2,
-        moneda: moneda2,
-        Naviera: Naviera2,
-        vigencia_desde: vigencia_desde2,
+        contenedor_20_C: contenedor_20_C2,
+        contenedor_40_st: contenedor_40_st2,
+        contenedor_40_hc: contenedor_40_hc2,
+        contenedor_40_nor: contenedor_40_nor2,
         vigencia_hasta: vigencia_hasta2,
       };
       var config = {
@@ -1020,7 +1015,7 @@ export default {
             Swal.fire(
               "No se cargaron los REGISTROS procese un nuevo documento.",
               "",
-              "info"
+              "info",
             );
           }
         });
@@ -1094,14 +1089,13 @@ export default {
         frecuencia2.push(element.frecuencia);
         agente2.push(element.agente);
         vigencia_desde2.push(
-          moment(element.vigencia_desde).format("YYYY-MM-DD")
+          moment(element.vigencia_desde).format("YYYY-MM-DD"),
         );
         vigencia_hasta2.push(
-          moment(element.vigencia_hasta).format("YYYY-MM-DD")
+          moment(element.vigencia_hasta).format("YYYY-MM-DD"),
         );
       });
       var headers = {
-       
         "Content-Type": "application/json",
       };
       var data = {
@@ -1162,7 +1156,7 @@ export default {
             Swal.fire(
               "No se cargaron los REGISTROS procese un nuevo documento.",
               "",
-              "info"
+              "info",
             );
           }
         });
@@ -1221,16 +1215,14 @@ export default {
         { name: "vigencia" },
       ];
       let headerFCL = [
-        { name: "Continente" },
         { name: "pais_origen" },
         { name: "puerto_origen" },
         { name: "pais_destino" },
         { name: "puerto_destino" },
-        { name: "Tipo_contenedor" },
-        { name: "costo" },
-        { name: "moneda" },
-        { name: "Naviera" },
-        { name: "vigencia_desde" },
+        { name: "contenedor_20_C" },
+        { name: "contenedor_40_st" },
+        { name: "contenedor_40_hc" },
+        { name: "contenedor_40_nor" },
         { name: "vigencia_hasta" },
       ];
       let headerAereo = [
@@ -1331,7 +1323,6 @@ export default {
       let data = null;
       let response = null;
       var headers = {
-       
         "Content-Type": "application/json",
       };
       if (vm.type == "LCL") {
@@ -1352,10 +1343,10 @@ export default {
           recargos.push(element.recargos);
           agente.push(element.agente);
           vigencia_desde.push(
-            moment(element.vigencia_desde).format("YYYY-MM-DD")
+            moment(element.vigencia_desde).format("YYYY-MM-DD"),
           );
           vigencia_hasta.push(
-            moment(element.vigencia_hasta).format("YYYY-MM-DD")
+            moment(element.vigencia_hasta).format("YYYY-MM-DD"),
           );
         });
         data = {
@@ -1406,10 +1397,10 @@ export default {
           pais_destino.push(element.pais_destino);
           puerto_destino.push(element.puerto_destino);
           vigencia_desde.push(
-            moment(element.vigencia_desde).format("YYYY-MM-DD")
+            moment(element.vigencia_desde).format("YYYY-MM-DD"),
           );
           vigencia_hasta.push(
-            moment(element.vigencia_hasta).format("YYYY-MM-DD")
+            moment(element.vigencia_hasta).format("YYYY-MM-DD"),
           );
         });
         data = {
@@ -1461,10 +1452,10 @@ export default {
             agente.push(element.agente),
             vigencia_hasta.push(element.vigencia_hasta),
             vigencia_desde.push(
-              moment(element.vigencia_desde).format("YYYY-MM-DD")
+              moment(element.vigencia_desde).format("YYYY-MM-DD"),
             );
           vigencia_hasta.push(
-            moment(element.vigencia_hasta).format("YYYY-MM-DD")
+            moment(element.vigencia_hasta).format("YYYY-MM-DD"),
           );
         });
         data = {
@@ -1570,10 +1561,10 @@ export default {
               recargos: vm.datosFormulario.recargos,
               agente: vm.datosFormulario.agente,
               vigencia_desde: moment(vm.datosFormulario.vigencia_desde).format(
-                "YYYY-MM-DD"
+                "YYYY-MM-DD",
               ),
               vigencia_hasta: moment(vm.datosFormulario.vigencia_hasta).format(
-                "YYYY-MM-DD"
+                "YYYY-MM-DD",
               ),
             });
           });
@@ -1593,10 +1584,10 @@ export default {
               moneda: vm.datosFormulario.moneda.moneda_descripcion,
               Naviera: vm.datosFormulario.naviera.navieras_nombre,
               vigencia_desde: moment(vm.datosFormulario.vigencia_desde).format(
-                "YYYY-MM-DD"
+                "YYYY-MM-DD",
               ),
               vigencia_hasta: moment(vm.datosFormulario.vigencia_hasta).format(
-                "YYYY-MM-DD"
+                "YYYY-MM-DD",
               ),
             });
           });
@@ -1622,10 +1613,10 @@ export default {
               carrier_tt: vm.datosFormulario.carrier_tt,
               agente: vm.datosFormulario.agente,
               vigencia_desde: moment(vm.datosFormulario.vigencia_desde).format(
-                "YYYY-MM-DD"
+                "YYYY-MM-DD",
               ),
               vigencia_hasta: moment(vm.datosFormulario.vigencia_hasta).format(
-                "YYYY-MM-DD"
+                "YYYY-MM-DD",
               ),
             });
           });
