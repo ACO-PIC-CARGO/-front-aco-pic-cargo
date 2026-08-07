@@ -52,18 +52,14 @@
                 <v-col cols="12" md="6">
                   <v-checkbox
                     label="Individual"
-                    v-model="
-                      $store.state.pricing.datosPrincipales.esindividualflag
-                    "
-                    :value="true"
+                    v-model="proxyIndividual"
                     dense
                   ></v-checkbox>
                 </v-col>
                 <v-col cols="12" md="6">
                   <v-checkbox
                     label="Grupal"
-                    v-model="$store.state.pricing.datosPrincipales.esgrupalflag"
-                    :value="true"
+                    v-model="proxyGrupal"
                     dense
                   ></v-checkbox>
                 </v-col>
@@ -602,51 +598,6 @@ export default {
     },
   },
   watch: {
-    "$store.state.pricing.datosPrincipales.esgrupalflag"() {
-      if (this.$store.state.pricing.datosPrincipales.esgrupalflag === true) {
-        this.$store.state.pricing.datosPrincipales.esindividualflag = false;
-        let percepcionAduana =
-          this.$store.state.masterusuarios.lstPercepcionAduana.find(
-            (v) => v.codigo == "02",
-          );
-        this.$store.state.pricing.datosPrincipales.id_percepcionaduana =
-          percepcionAduana.id;
-        setTimeout(() => {
-          Promise.all([
-            this.cambiarMontosACero({
-              esgrupalflag:
-                this.$store.state.pricing.datosPrincipales.esgrupalflag,
-              esindividualflag:
-                this.$store.state.pricing.datosPrincipales.esindividualflag,
-            }),
-            this.cambiarNotasIndividualGrupal({
-              esgrupalflag:
-                this.$store.state.pricing.datosPrincipales.esgrupalflag,
-              esindividualflag:
-                this.$store.state.pricing.datosPrincipales.esindividualflag,
-            }),
-          ]);
-        }, 500);
-      }
-    },
-    "$store.state.pricing.datosPrincipales.esindividualflag"() {
-      if (
-        this.$store.state.pricing.datosPrincipales.esindividualflag === true
-      ) {
-        this.$store.state.pricing.datosPrincipales.esgrupalflag = false;
-        setTimeout(() => {
-          Promise.all([
-            this.cambiarMontosACero({
-              esgrupalflag:
-                this.$store.state.pricing.datosPrincipales.esgrupalflag,
-              esindividualflag:
-                this.$store.state.pricing.datosPrincipales.esindividualflag,
-            }),
-            this.cambiarNotasIndividualGrupal(),
-          ]);
-        }, 100);
-      }
-    },
     abrirModalContenedorRecargar() {
       if (this.$store.state.pricing.datosPrincipales.containers.length == 0) {
         this.dialogConteiner = true;
@@ -683,6 +634,49 @@ export default {
   },
   methods: {
     ...mapActions(["_getContainers", "getPortBegin", "getPortEnd"]),
+    cambiarGrupalIndividual() {
+      if (this.$store.state.pricing.datosPrincipales.esgrupalflag) {
+        if (this.$store.state.pricing.datosPrincipales.esgrupalflag === true) {
+          this.$store.state.pricing.datosPrincipales.esindividualflag = false;
+          let percepcionAduana =
+            this.$store.state.masterusuarios.lstPercepcionAduana.find(
+              (v) => v.codigo == "02",
+            );
+          this.$store.state.pricing.datosPrincipales.id_percepcionaduana =
+            percepcionAduana.id;
+          setTimeout(() => {
+            Promise.all([
+              this.cambiarMontosACero({
+                esgrupalflag:
+                  this.$store.state.pricing.datosPrincipales.esgrupalflag,
+                esindividualflag:
+                  this.$store.state.pricing.datosPrincipales.esindividualflag,
+              }),
+              this.cambiarNotasIndividualGrupal({
+                esgrupalflag:
+                  this.$store.state.pricing.datosPrincipales.esgrupalflag,
+                esindividualflag:
+                  this.$store.state.pricing.datosPrincipales.esindividualflag,
+              }),
+            ]);
+          }, 500);
+        }
+      }
+      if (this.$store.state.pricing.datosPrincipales.esindividualflag) {
+        this.$store.state.pricing.datosPrincipales.esgrupalflag = false;
+        setTimeout(() => {
+          Promise.all([
+            this.cambiarMontosACero({
+              esgrupalflag:
+                this.$store.state.pricing.datosPrincipales.esgrupalflag,
+              esindividualflag:
+                this.$store.state.pricing.datosPrincipales.esindividualflag,
+            }),
+            this.cambiarNotasIndividualGrupal(),
+          ]);
+        }, 100);
+      }
+    },
     cambiarMontosACero({ esgrupalflag = false, esindividualflag = false }) {
       let codeServicesActivos = new Set(
         this.$store.state.pricing.listServices
@@ -1326,6 +1320,98 @@ export default {
       }
       return monto;
     },
+    async confirmarCambio(tipo, nuevoValor) {
+      // Si el usuario está desmarcando la opción, lo permitimos directamente
+      if (!nuevoValor) {
+        if (tipo === "grupal")
+          this.$store.state.pricing.datosPrincipales.esgrupalflag = false;
+        if (tipo === "individual")
+          this.$store.state.pricing.datosPrincipales.esindividualflag = false;
+        return;
+      }
+
+      // Lógica para cambio a GRUPAL
+      if (tipo === "grupal") {
+        const result = await Swal.fire({
+          title:
+            '<span style="color: #3F51B5;">¿Cambiar a modalidad grupal?</span>',
+          html: `
+            <div style="text-align: left; line-height: 1.5; font-size: 15px;">
+              <p style="margin-bottom: 12px;">Al seleccionar la opción <b>Grupal</b>, el sistema realizará los siguientes ajustes automáticos:</p>
+              
+              <div style="background-color: #e8eaf6; color: #1a237e; padding: 12px; border-radius: 6px; font-size: 14px; border: 1px solid #c5cae9; margin-bottom: 12px;">
+                📦 <b>Actualización de costos:</b> Se actualizará la estructura tarifaria según el esquema consolidado.
+              </div>
+
+              <p style="font-size: 14px; color: #555;">¿Desea continuar con la aplicación de estos cambios?</p>
+            </div>
+          `,
+          icon: "warning",
+          showCancelButton: true,
+          confirmButtonColor: "#3085d6",
+          cancelButtonColor: "#d33",
+          confirmButtonText: "SI CAMBIAR A GRUPAL",
+          cancelButtonText: "Cancelar",
+          allowOutsideClick: false,
+        });
+
+        if (result.isConfirmed) {
+          this.$store.state.pricing.datosPrincipales.esgrupalflag = true;
+          this.$store.state.pricing.datosPrincipales.individual = false;
+          setTimeout(() => {
+            this.cambiarGrupalIndividual();
+          }, 100);
+        } else {
+          // SOLUCIÓN: Forzamos un cambio para que Vue reactive la vista de Vuetify
+          this.$store.state.pricing.datosPrincipales.esgrupalflag = true;
+          this.$nextTick(() => {
+            this.$store.state.pricing.datosPrincipales.esgrupalflag = false;
+            this.$store.state.pricing.datosPrincipales.esindividualflag = true;
+          });
+        }
+      }
+
+      // Lógica para cambio a INDIVIDUAL
+      else if (tipo === "individual") {
+        const result = await Swal.fire({
+          title:
+            '<span style="color: #3F51B5;">¿Cambiar a modalidad individual?</span>',
+          html: `
+            <div style="text-align: left; line-height: 1.5; font-size: 15px;">
+              <p style="margin-bottom: 12px;">Está a punto de cambiar los parámetros de la cotización:</p>
+              
+              <div style="background-color: #e1f5fe; color: #01579b; padding: 12px; border-radius: 6px; font-size: 14px; border: 1px solid #b3e5fc; margin-bottom: 12px;">
+                👤 <b>Recálculo individual:</b> El sistema ajustará los costos base y beneficios aplicables a este esquema.
+              </div>
+
+              <p style="font-size: 14px; color: #555;">¿Desea proceder con esta modificación?</p>
+            </div>
+          `,
+          icon: "question",
+          showCancelButton: true,
+          confirmButtonColor: "#3085d6",
+          cancelButtonColor: "#d33",
+          confirmButtonText: "SÍ, CAMBIAR A INDIVIDUAL",
+          cancelButtonText: "Cancelar",
+          allowOutsideClick: false,
+        });
+
+        if (result.isConfirmed) {
+          this.$store.state.pricing.datosPrincipales.esindividualflag = true;
+          this.$store.state.pricing.datosPrincipales.esgrupalflag = false;
+          setTimeout(() => {
+            this.cambiarGrupalIndividual();
+          }, 100);
+        } else {
+          // SOLUCIÓN: Aplicamos el mismo parche para el caso de cancelar el individual
+          this.$store.state.pricing.datosPrincipales.esindividualflag = true;
+          this.$nextTick(() => {
+            this.$store.state.pricing.datosPrincipales.esindividualflag = false;
+            this.$store.state.pricing.datosPrincipales.esgrupalflag = true;
+          });
+        }
+      }
+    },
   },
   computed: {
     getPuertoOrigen() {
@@ -1427,6 +1513,22 @@ export default {
       const chargeable = Math.max(pesoReal || 0, pesoVolumetrico || 0);
       if (!chargeable || !isFinite(chargeable)) return null;
       return parseFloat(chargeable.toFixed(2));
+    },
+    proxyIndividual: {
+      get() {
+        return this.$store.state.pricing.datosPrincipales.esindividualflag;
+      },
+      set(valor) {
+        this.confirmarCambio("individual", valor);
+      },
+    },
+    proxyGrupal: {
+      get() {
+        return this.$store.state.pricing.datosPrincipales.esgrupalflag;
+      },
+      set(valor) {
+        this.confirmarCambio("grupal", valor);
+      },
     },
   },
 };

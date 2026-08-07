@@ -4,6 +4,7 @@ const state = {
   lstCostos: [],
   lstMultiplicador: [],
   lstServicios: [],
+  lstIncoterms: [],
   lcl: {},
   fcl: {},
   id: null,
@@ -18,6 +19,9 @@ const mutations = {
   },
   SET_SERVICIOS(state, data) {
     state.lstServicios = data;
+  },
+  SET_INCOTERMS(state, data) {
+    state.lstIncoterms = data;
   },
   SET_TEXT_WHATSAPP(state, data) {
     state.id = data.id;
@@ -189,6 +193,55 @@ const actions = {
           icon: !!res.estadoflag ? "success" : "error",
           text: res.mensaje,
         });
+      })
+      .catch(function (error) {
+        console.error(error);
+      });
+  },
+
+  async EliminarCosto({}, data) {
+    let vm = this;
+    var config = {
+      method: "delete",
+      url: process.env.VUE_APP_URL_MAIN + "costo_eliminar",
+      data: data,
+      headers: {
+        "Content-Type": "application/json",
+      },
+    };
+    await axios(config)
+      .then(function (response) {
+        let res = response.data;
+        Swal.fire({
+          icon: !!res.estadoflag ? "success" : "error",
+          text: res.mensaje,
+        });
+      })
+      .catch(function (error) {
+        console.error(error);
+      });
+  },
+
+  async ObtenerIncotermsConfigCostos({commit}, data) {
+    data.id_branch = JSON.parse(
+      sessionStorage.getItem("dataUser"),
+    )[0].id_branch;
+    var config = {
+      method: "get",
+      url: process.env.VUE_APP_URL_MAIN + "incoterms_config_costos",
+      params: data,
+      headers: {
+        "Content-Type": "application/json",
+      },
+    };
+    await axios(config)
+      .then(function (response) {
+        let res = response.data;
+        if (res.estadoflag) {
+          commit("SET_INCOTERMS", response.data.data);
+        } else {
+          commit("SET_INCOTERMS", []);
+        }
       })
       .catch(function (error) {
         console.error(error);

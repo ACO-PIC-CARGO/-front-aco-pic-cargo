@@ -42,8 +42,8 @@
           </v-form>
         </v-col>
 
-        <v-col cols="12" v-if="mostrarListadoIncoterms">
-          <v-data-table :headers="headersIcoterms" :items="listadoIncoterms">
+        <v-col cols="12">
+          <v-data-table :headers="headersIcoterms" :items="lstIncoterms">
             <template v-slot:[`item.action`]="{ item }">
               <v-btn
                 color="#E65100"
@@ -81,6 +81,8 @@
           :id_shipment="id_shipment"
           :id_incoterms="id_incoterms"
           @cerrarModal="dialog = false"
+          @cerrarModalGuardar="obtenerDatos(), (dialog = false)"
+          @recargarCostos="cargarDatos()"
         />
       </v-card>
       <!-- <v-card>
@@ -214,6 +216,7 @@ export default {
       "getMultiplicadorConfigCosto",
       "setGuardarCostos",
       "obtenerServicioPricingConfig",
+      "ObtenerIncotermsConfigCostos",
     ]),
     async cargarDatos() {
       this.$store.state.configuracion.lstCostos = [];
@@ -251,10 +254,10 @@ export default {
       this.loading = true;
       this.id_incoterms = id;
       this.modality = this.$store.state.pricing.listModality.find(
-        (v) => (v.id = this.id_modality),
+        (v) => v.id == this.id_modality,
       );
       this.shipment = this.$store.state.pricing.listShipment.find(
-        (v) => (v.id = this.id_shipment),
+        (v) => v.id == this.id_shipment,
       );
       this.incoterms = incoterms;
 
@@ -284,19 +287,23 @@ export default {
       this.CargarIncotermsConfig();
       this.dialog = false;
     },
-    obtenerDatos() {
+    async obtenerDatos() {
       this.cargandoTabla = true;
       this.$store.state.spiner = true;
       this.mostrarListadoIncoterms = false;
-      setTimeout(() => {
-        this.$store.state.spiner = false;
-        this.cargandoTabla = false;
-        this.mostrarListadoIncoterms = true;
-      }, 500);
+      await this.ObtenerIncotermsConfigCostos({
+        id_modality: this.id_modality,
+        id_shipment: this.id_shipment,
+      });
+      this.$store.state.spiner = false;
     },
   },
   computed: {
-    ...mapState("configuracion", ["lstCostos", "lstMultiplicador"]),
+    ...mapState("configuracion", [
+      "lstCostos",
+      "lstMultiplicador",
+      "lstIncoterms",
+    ]),
     // mostrarListadoIncoterms() {
     //   return !!this.id_modality && !!this.id_shipment;
     // },
@@ -315,22 +322,12 @@ export default {
     },
   },
   watch: {
-    // id_modality() {
-    //   this.$store.state.spiner = true;
-    //   this.cargandoTabla = true;
-    //   setTimeout(() => {
-    //     this.$store.state.spiner = false;
-    //     this.cargandoTabla = false;
-    //   }, 500);
-    // },
-    // id_shipment() {
-    //   this.$store.state.spiner = true;
-    //   this.cargandoTabla = true;
-    //   setTimeout(() => {
-    //     this.$store.state.spiner = false;
-    //     this.cargandoTabla = false;
-    //   }, 500);
-    // },
+    id_modality() {
+      this.$store.state.configuracion.lstIncoterms = [];
+    },
+    id_shipment() {
+      this.$store.state.configuracion.lstIncoterms = [];
+    },
   },
 };
 </script>

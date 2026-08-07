@@ -411,28 +411,59 @@ export default {
       this.datosExcel = await this.validarTransporte({ datovalidar: datos });
       this.$store.state.spiner = false;
     },
+
     async registrarDatos() {
-      let data = {
-        shimpent: "LCL",
-        id_modality: this.id_modality,
-        datos: this.datosExcel,
-      };
-      if (this.$refs.frmDatos.validate()) {
-        this.$store.state.spiner = true;
-        await this.setGuardarTransporte(data);
-        await this.getTransporte({
-          shimpent: this.type,
-          id_modality: id_modality,
-        });
-        this.tabTransporte = "datosactuales";
-        this.$store.state.spiner = false;
-        // this.dialognNuevo = false;
-      } else {
+      // 1. Primero validamos el formulario para evitar cálculos si hay errores
+      if (!this.$refs.frmDatos.validate()) {
         Swal.fire({
           icon: "error",
           title: "Verificar",
           text: "Faltan Datos por Rellenar. Verifique",
         });
+        return; // Detenemos la ejecución aquí
+      }
+
+      this.$store.state.spiner = true;
+
+      try {
+        // 2. Definimos de qué tamaño serán los lotes (ej. 500 registros por petición)
+        const tamañoLote = 100; // Ajusta este número según la capacidad de tu backend
+        const peticionesPromesas = [];
+
+        // 3. Rompemos this.datosExcel en lotes más pequeños
+        for (let i = 0; i < this.datosExcel.length; i += tamañoLote) {
+          const lote = this.datosExcel.slice(i, i + tamañoLote);
+
+          const dataLote = {
+            shimpent: "LCL",
+            id_modality: this.id_modality,
+            datos: lote, // Enviamos solo la porción del array
+          };
+
+          // 4. En lugar de hacer await aquí, empujamos la promesa al array
+          peticionesPromesas.push(this.setGuardarTransporte(dataLote));
+        }
+
+        // 5. Ejecutamos todas las peticiones en paralelo
+        await Promise.all(peticionesPromesas);
+
+        // 6. Una vez que TODAS las peticiones terminaron, actualizamos la tabla principal
+        await this.getTransporte({
+          shimpent: this.type,
+          id_modality: this.id_modality, // Nota: agregué 'this.' que faltaba en tu código original
+        });
+
+        this.tabTransporte = "datosactuales";
+      } catch (error) {
+        console.error("Error procesando el lote de datos:", error);
+        Swal.fire({
+          icon: "error",
+          title: "Error de Servidor",
+          text: "Ocurrió un error al guardar los registros. Revisa la consola.",
+        });
+      } finally {
+        // 7. Apagamos el spinner sin importar si hubo éxito o error
+        this.$store.state.spiner = false;
       }
     },
   },
