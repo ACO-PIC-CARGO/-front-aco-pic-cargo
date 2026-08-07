@@ -32,6 +32,7 @@
             :items="obtenerCostosEnBaseTipoCosto(item.codigo)"
             dense
             hide-default-footer
+            :items-per-page="-1"
           >
             <template v-slot:[`item.servicio`]="{ item }">
               <v-autocomplete
@@ -102,9 +103,41 @@
               ></v-autocomplete>
             </template>
             <template v-slot:[`item.action`]="{ item }">
-              <v-btn color="success" icon @click="copiarCosto(item)">
+              <v-btn
+                color="success"
+                icon
+                @click="copiarCosto(item)"
+                v-if="item.id"
+              >
                 <v-icon>mdi-content-copy</v-icon>
               </v-btn>
+
+              <v-btn
+                color="red"
+                icon
+                @click="eliminarRegistro(item)"
+                v-if="item.id"
+              >
+                <v-icon>mdi-delete</v-icon>
+              </v-btn>
+
+              <v-btn
+                color="red"
+                icon
+                @click="quitarRegistro(item)"
+                v-if="!item.id"
+              >
+                <v-icon>mdi-delete</v-icon>
+              </v-btn>
+
+              <v-chip
+                class="ma-2"
+                color="green"
+                text-color="white"
+                v-if="!item.id"
+              >
+                Nuevo
+              </v-chip>
             </template>
           </v-data-table>
         </v-expansion-panel-content>
@@ -252,8 +285,8 @@ export default {
         { value: "costo", text: "Costo", width: "15%" },
         { value: "precio", text: "Precio", width: "10%" },
         { value: "minimo", text: "Valor Mínimo", width: "10%" },
-        { value: "status", text: "Status", width: "5%" },
-        { value: "action", text: "", width: "5%" },
+        { value: "status", text: "Activo / Inactivo", width: "5%" },
+        { value: "action", text: "", width: "10%" },
       ],
     };
   },
@@ -269,6 +302,7 @@ export default {
       "getCargarCostos",
       "getMultiplicadorConfigCosto",
       "setGuardarCostos",
+      "EliminarCosto",
     ]),
     copiarCosto(item) {
       console.log(item);
@@ -343,6 +377,38 @@ export default {
         search: e,
       });
     }, 100),
+    eliminarRegistro(item) {
+      Swal.fire({
+        icon: "warning",
+        title: "¿Estás completamente seguro?",
+        html: `
+      <p style="margin-bottom: 10px;">Esta acción <b>eliminará permanentemente</b> este registro y no se podrá recuperar.</p>
+      <div style="background-color: #f8d7da; color: #721c24; padding: 10px; border-radius: 5px; font-size: 14px; border: 1px solid #f5c6cb;">
+        💡 <b>¿Prefieres no perder la información?</b><br>
+        Te recomendamos <b>cambiar el estado a inactivo</b> en lugar de eliminarlo.
+      </div>
+    `,
+        showCancelButton: true,
+        confirmButtonColor: "#d33",
+        cancelButtonColor: "#3085d6",
+        confirmButtonText: "Sí, eliminar para siempre",
+        cancelButtonText: "Cancelar",
+      }).then(async (result) => {
+        if (result.isConfirmed) {
+          await this.EliminarCosto(item);
+          this.$emit("recargarCostos");
+        }
+      });
+    },
+    quitarRegistro(item) {
+      // 1. Buscamos el índice del registro temporal dentro del arreglo principal
+      const index = this.lstCostos.indexOf(item);
+
+      // 2. Si lo encuentra (es decir, el índice es diferente de -1), lo quitamos
+      if (index !== -1) {
+        this.lstCostos.splice(index, 1);
+      }
+    },
     guardarCosto() {
       if (!this.$refs.frmNuevoCosto.validate()) return; // Valida que los campos requeridos estén llenos
 

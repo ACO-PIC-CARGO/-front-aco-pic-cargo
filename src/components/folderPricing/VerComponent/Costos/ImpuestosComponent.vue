@@ -15,7 +15,18 @@
             item-key="id"
             dense
             disable-sort
+            :item-class="claseFila"
           >
+            <template v-slot:[`item.descripcion`]="{ item }">
+              {{ item.descripcion }}
+              <p
+                class="my-0 py-0"
+                v-if="item.codigo == '04'"
+                style="color: blue; font-style: italic; font-size: 0.8em"
+              >
+                Monto para Cálculo de Impuestos
+              </p>
+            </template>
             <template v-slot:[`item.index`]="{ item, index }">
               {{ index + 1 }}
             </template>
@@ -55,6 +66,7 @@ export default {
         { text: "Monto", value: "monto" },
       ],
       noPorcentaje: ["04", "01", "02", "10", "11", "12"],
+      siCalcula: ["05", "06", "07", "08", "09", "10", "11", "12"],
     };
   },
   methods: {
@@ -62,7 +74,7 @@ export default {
       let monto = 0;
       if (item.codigo === "01") {
         monto = parseFloat(
-          this.$store.state.pricing.datosPrincipales.amount
+          this.$store.state.pricing.datosPrincipales.amount,
         ).toFixed(2);
       }
       if (item.codigo === "02") {
@@ -73,7 +85,7 @@ export default {
           ((parseFloat(this.$store.state.pricing.totalFlete) +
             parseFloat(this.$store.state.pricing.datosPrincipales.amount)) *
             item.codigo01) /
-            100
+            100,
         ).toFixed(2);
       }
       if (item.codigo === "04") {
@@ -83,7 +95,7 @@ export default {
           ((parseFloat(this.$store.state.pricing.totalFlete) +
             parseFloat(this.$store.state.pricing.datosPrincipales.amount)) *
             this.obtenerPorcentaje({ code: "03" })) /
-            100
+            100,
         );
         monto = parseFloat(fob) + parseFloat(flet) + parseFloat(seguro);
       }
@@ -94,7 +106,7 @@ export default {
           ((parseFloat(this.$store.state.pricing.totalFlete) +
             parseFloat(this.$store.state.pricing.datosPrincipales.amount)) *
             this.obtenerPorcentaje({ code: "03" })) /
-            100
+            100,
         );
         let cif = parseFloat(fob) + parseFloat(flet) + parseFloat(seguro);
         monto = (cif * item.codigo01) / 100;
@@ -107,7 +119,7 @@ export default {
           ((parseFloat(this.$store.state.pricing.totalFlete) +
             parseFloat(this.$store.state.pricing.datosPrincipales.amount)) *
             this.obtenerPorcentaje({ code: "03" })) /
-            100
+            100,
         );
         let cif = parseFloat(fob) + parseFloat(flet) + parseFloat(seguro);
         let adv = (cif * this.obtenerPorcentaje({ code: "05" })) / 100;
@@ -121,7 +133,7 @@ export default {
           ((parseFloat(this.$store.state.pricing.totalFlete) +
             parseFloat(this.$store.state.pricing.datosPrincipales.amount)) *
             this.obtenerPorcentaje({ code: "03" })) /
-            100
+            100,
         );
         let cif = parseFloat(fob) + parseFloat(flet) + parseFloat(seguro);
         let adv = (cif * this.obtenerPorcentaje({ code: "05" })) / 100;
@@ -136,7 +148,7 @@ export default {
           ((parseFloat(this.$store.state.pricing.totalFlete) +
             parseFloat(this.$store.state.pricing.datosPrincipales.amount)) *
             this.obtenerPorcentaje({ code: "03" })) /
-            100
+            100,
         );
         let cif = parseFloat(fob) + parseFloat(flet) + parseFloat(seguro);
         let adv = (cif * this.obtenerPorcentaje({ code: "05" })) / 100;
@@ -151,7 +163,7 @@ export default {
           ((parseFloat(this.$store.state.pricing.totalFlete) +
             parseFloat(this.$store.state.pricing.datosPrincipales.amount)) *
             this.obtenerPorcentaje({ code: "03" })) /
-            100
+            100,
         );
         let cif = parseFloat(fob) + parseFloat(flet) + parseFloat(seguro);
         let adv = (cif * this.obtenerPorcentaje({ code: "05" })) / 100;
@@ -176,9 +188,9 @@ export default {
     },
     calcularTotalImpuesto() {
       let total = 0;
-      let siCalcula = ["05", "06", "07", "08", "09", "10", "11", "12"];
+      
       this.impuestos
-        .filter((v) => siCalcula.includes(v.codigo))
+        .filter((v) => this.siCalcula.includes(v.codigo))
         .forEach((element) => {
           total += parseFloat(this.calcularImpuestos({ item: element }));
         });
@@ -194,6 +206,15 @@ export default {
     disabledImp({ code = "" }) {
       return false;
     },
+    claseFila(item) {
+      // Arreglo con los códigos que queremos pintar
+      const codigosResaltados = ["01", "02", "03", "04", "05"];
+
+      if (!this.siCalcula.includes(item.codigo)) {
+        return "fila-color-especial"; // Nombre de la clase CSS que aplicaremos
+      }
+      return ""; // Las demás filas se quedan normales
+    },
   },
   amount() {
     this.calcularImpuestos();
@@ -201,4 +222,8 @@ export default {
 };
 </script>
 
-<style></style>
+<style>
+.fila-color-especial {
+  background-color: #fff9c4 !important; /* Puedes cambiar este color */
+}
+</style>

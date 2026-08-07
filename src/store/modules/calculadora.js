@@ -848,37 +848,37 @@ const actions = {
     }
   },
 
-  async getTransporteGuardar({ dispatch }, data) {
-    let branch = JSON.parse(sessionStorage.getItem("dataBranch"));
-    let id_pais = branch[0].id_pais;
-    data.id_pais = id_pais;
-    let res = [];
-    var headers = {
-      "Content-Type": "application/json",
-    };
+  // async getTransporteGuardar({ dispatch }, data) {
+  //   let branch = JSON.parse(sessionStorage.getItem("dataBranch"));
+  //   let id_pais = branch[0].id_pais;
+  //   data.id_pais = id_pais;
+  //   let res = [];
+  //   var headers = {
+  //     "Content-Type": "application/json",
+  //   };
 
-    var config = {
-      method: "post",
-      url: process.env.VUE_APP_URL_MAIN + "calc/transporte/guardar",
-      headers: headers,
-      data: data,
-    };
-    let response = await axios(config);
-    if (response.data.estadoflag) {
-      let res = response.data;
-      Swal.fire({
-        icon: "success",
-        title: res.mensaje,
-        allowEnterKey: true,
-        allowOutsideClick: true,
-        allowEscapeKey: true,
-      }).then((res) => {
-        if (res.isConfirmed) {
-          dispatch("getTransporte", {});
-        }
-      });
-    }
-  },
+  //   var config = {
+  //     method: "post",
+  //     url: process.env.VUE_APP_URL_MAIN + "calc/transporte/guardar",
+  //     headers: headers,
+  //     data: data,
+  //   };
+  //   let response = await axios(config);
+  //   if (response.data.estadoflag) {
+  //     let res = response.data;
+  //     Swal.fire({
+  //       icon: "success",
+  //       title: res.mensaje,
+  //       allowEnterKey: true,
+  //       allowOutsideClick: true,
+  //       allowEscapeKey: true,
+  //     }).then((res) => {
+  //       if (res.isConfirmed) {
+  //         dispatch("getTransporte", {});
+  //       }
+  //     });
+  //   }
+  // },
   async getConfiguración({ commit }, data) {
     let branch = JSON.parse(sessionStorage.getItem("dataBranch"));
     // let id_pais = branch[0].id_pais;
