@@ -1308,15 +1308,20 @@ export default {
           : this.$store.state.pricing.datosPrincipales.esgrupalflag
           ? 2
           : 0;
+        let pesoActual =
+          parseFloat(this.$store.state.pricing.datosPrincipales.peso) || 0;
 
         let transporte = this.$store.state.calculadoras.lstTransporte.find(
           (v) =>
             v.id_distrito ==
               this.$store.state.pricing.datosPrincipales.id_town &&
-            v.opcion == opcion,
+            v.opcion == opcion &&
+            pesoActual >= parseFloat(v.peso_desde) &&
+            pesoActual <= parseFloat(v.peso_hasta),
         );
+
         if (transporte) {
-          monto = transporte.monto;
+          monto = parseFloat(transporte.tarifadolar);
         }
       }
       return monto;

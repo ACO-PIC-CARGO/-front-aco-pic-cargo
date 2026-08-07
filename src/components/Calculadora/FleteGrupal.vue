@@ -2,10 +2,39 @@
   <v-container>
     <v-tabs v-model="tab" centered icons-and-text>
       <v-tabs-slider></v-tabs-slider>
+      <v-tab href="#resumen"> Resumen </v-tab>
       <v-tab href="#costo"> Costo</v-tab>
       <v-tab href="#venta"> Venta</v-tab>
     </v-tabs>
     <v-tabs-items v-model="tab" class="mt-5">
+      <v-tab-item value="resumen">
+        <v-data-table
+          :headers="headersResumen"
+          :items="$store.state.calculadoras.lstFleteGrupalResumen"
+          dense
+        >
+          <template v-slot:[`item.monto`]="{ item }">
+            <span :style="!item.monto ? 'color:red' : ''">
+              {{ item.monto || "Sin Config" }}
+            </span>
+          </template>
+          <template v-slot:[`item.montoventa`]="{ item }">
+            <span :style="!item.montoventa ? 'color:red' : ''">
+              {{ item.montoventa || "Sin Config" }}
+            </span>
+          </template>
+          <template v-slot:[`item.vigencia`]="{ item }">
+            <span :style="!item.vigencia ? 'color:red' : ''">
+              {{ item.vigencia || "Sin Config" }}
+            </span>
+          </template>
+          <template v-slot:[`item.vigenciaventa`]="{ item }">
+            <span :style="!item.vigenciaventa ? 'color:red' : ''">
+              {{ item.vigenciaventa || "Sin Config" }}
+            </span>
+          </template>
+        </v-data-table>
+      </v-tab-item>
       <v-tab-item value="costo">
         <v-row>
           <v-col cols="12" style="text-align: end">
@@ -154,14 +183,47 @@ export default {
   },
   data() {
     return {
-      tab: "costo",
+      tab: "resumen",
       headers: [
-        {width: "18%",text: "#", value: "index", sortable: false },
-        {width: "18%",value: "volumen", text: "Volumen" },
-        {width: "18%",value: "peso", text: "Peso" },
-        {width: "18%",value: "valor", text: "Valor" },
-        {width: "18%",value: "vigencia_text", text: "Fec. Vigencia" },
-        {width: "10%",text: "", value: "action",  },
+        { width: "18%", text: "#", value: "index", sortable: false },
+        { width: "18%", value: "volumen", text: "Volumen" },
+        { width: "18%", value: "peso", text: "Peso" },
+        { width: "18%", value: "valor", text: "Valor" },
+        { width: "18%", value: "vigencia_text", text: "Fec. Vigencia" },
+        { width: "10%", text: "", value: "action" },
+      ],
+      headersResumen: [
+        { width: "15%", value: "volumen", text: "Volumen" },
+        { width: "15%", value: "peso", text: "Peso" },
+        {
+          width: "16%",
+          value: "monto",
+          text: "Valor",
+          class: "col-fondo-monto",
+          cellClass: "col-fondo-monto",
+        },
+        {
+          width: "14%",
+          value: "vigencia",
+          text: "Fec. Vigencia",
+          class: "col-fondo-monto",
+          cellClass: "col-fondo-monto",
+        },
+        {
+          width: "16%",
+          value: "montoventa",
+          text: "Valor Venta",
+          class: "col-fondo-venta",
+          cellClass: "col-fondo-venta",
+        },
+
+        {
+          width: "14%",
+          value: "vigenciaventa",
+          text: "Fec. Vigencia Venta",
+          class: "col-fondo-venta",
+          cellClass: "col-fondo-venta",
+        },
       ],
       dialog: false,
       form: {
@@ -186,6 +248,7 @@ export default {
       "getFleteGrupalVenta",
       "setFleteGrupalVenta",
       "updateFleteGrupalVenta",
+      "getFleteGrupalResumen",
     ]),
     eliminar(element) {
       Swal.fire({
@@ -281,9 +344,20 @@ export default {
     await Promise.all([
       this.getFleteGrupal({ tipo: this.type }),
       this.getFleteGrupalVenta({ tipo: this.type }),
+      this.getFleteGrupalResumen({ tipo: this.type }),
     ]);
   },
 };
 </script>
 
-<style></style>
+<style>
+/* Color de fondo para toda la columna MONTO (ejemplo: amarillo claro) */
+.col-fondo-monto {
+  background-color: #fff9c4 !important;
+}
+
+/* Color de fondo para toda la columna MONTO VENTA (ejemplo: verde claro) */
+.col-fondo-venta {
+  background-color: #c8e6c9 !important;
+}
+</style>

@@ -438,11 +438,12 @@ export default {
             esventaflag: 0,
             cif: cifOpcion, // <--- Regla con validación grupal
             seguro: seguroOpcion, // <--- Regla con validación grupal
-            costounitario: esgrupalflag
-              ? 0
-              : item.code_cost == 13
-              ? transporte
-              : costoBaseUnitario + parseFloat(flete.monto || 0),
+            costounitario:
+              (esgrupalflag
+                ? 0
+                : item.code_cost == 13
+                ? transporte
+                : costoBaseUnitario) + parseFloat(flete.monto || 0),
             tienefleteflag: esgrupalflag ? false : flete.tienefleteflag,
             fechavigencia: esgrupalflag ? null : flete.fechavigencia,
           },
@@ -597,15 +598,21 @@ export default {
           ? 2
           : 0;
 
+        // Obtener el peso actual y asegurar formato numérico
+        let pesoActual =
+          parseFloat(this.$store.state.pricing.datosPrincipales.peso) || 0;
+
         let transporte = this.$store.state.calculadoras.lstTransporte.find(
           (v) =>
             v.id_distrito ==
               this.$store.state.pricing.datosPrincipales.id_town &&
-            v.opcion == opcion,
+            v.opcion == opcion &&
+            pesoActual >= parseFloat(v.peso_desde) &&
+            pesoActual <= parseFloat(v.peso_hasta),
         );
 
         if (transporte) {
-          monto = transporte.monto;
+          monto = parseFloat(transporte.tarifadolar); // o mantenerlo como string/número según tus necesidades
         }
       }
       return monto;
