@@ -2488,25 +2488,18 @@ export default {
       if (item.code_cost === 38) {
         const { listMultiplicador, datosPrincipales } =
           this.$store.state.pricing;
-
-        // 1. Filtramos los valores que necesitamos procesar
         const valoresFiltrados = this.valores.filter((v) =>
           codigosFiltrar.includes(v.code_cost),
         );
 
         valoresFiltrados.forEach((element) => {
-          // 2. Buscamos el multiplicador UNA sola vez con .find()
           const multiplicador = listMultiplicador.find(
             (v) => v.id == element.id_multiplicador,
           );
-
-          // Si existe extraemos sus datos, si no, valores por defecto
           const valorMultiplicador = multiplicador
             ? parseFloat(multiplicador.valor)
             : 0;
           const codigoMultiplicador = multiplicador ? multiplicador.code : "N";
-
-          // 3. Calculamos el factor de forma limpia
           const factor = this.calcularFac(
             codigoMultiplicador,
             datosPrincipales.volumen,
@@ -2514,20 +2507,13 @@ export default {
             datosPrincipales.containers,
             datosPrincipales.amount,
           );
-
-          // 4. Sumamos al monto de forma legible
           const costoUnitario = parseFloat(element.costounitario || 0);
           montoTotal += valorMultiplicador * costoUnitario * factor;
         });
       }
-
-      // 5. Calculamos el ITBMS (7%)
       const itbmCalculado = (montoTotal * 0.07).toFixed(2);
-
-      // Guardamos el costo unitario en el item como lo hacías originalmente
       item.costounitario = parseFloat(itbmCalculado);
 
-      // Retornamos el valor formateado
       return this.currencyFormat(itbmCalculado);
     },
 
