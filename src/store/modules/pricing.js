@@ -1275,9 +1275,8 @@ const actions = {
         let valores = [];
         response.data.data.forEach((element) => {
           valores.push({
-            id: element.id,
+            ...element,
             value: element.id,
-            code: element.code,
             text: element.name,
             valor: element.valor ? element.valor : 0,
           });

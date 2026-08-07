@@ -347,7 +347,7 @@ export default {
         lstCostos: this.lstCostos,
         id_incoterms: this.id_incoterms,
       });
-      this.$emit("cerrarModal");
+      this.$emit("cerrarModalGuardar");
     },
     obtenerCostosEnBaseTipoCosto(codigoTipoCosto) {
       //   if (this.id_modality == 1) {

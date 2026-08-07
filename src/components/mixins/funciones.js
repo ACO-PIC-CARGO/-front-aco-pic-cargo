@@ -52,73 +52,58 @@ const miMixin = {
 
       return value;
     },
-    calcularFac(code = null, metroscc, kg, containers = null, amount) {
-      // console.log(code);
+    calcularFac(
+      code = null,
+      metroscc = 0,
+      kg = 0,
+      containers = [],
+      amount = 0,
+    ) {
+      const listMultiplicador = this.$store.state.pricing.listMultiplicador;
       let fac = 0;
+
+      const configMult = listMultiplicador.find((item) => item.code == code);
+
+      const getContainerCount = (identificador) => {
+        if (!Array.isArray(containers)) return 0;
+        const found = containers.find((v) => v.id_containers == identificador);
+        return found ? found.cantidad : 0;
+      };
+
+      if (configMult && configMult.id_container) {
+        fac = getContainerCount(configMult.id_container);
+        return fac;
+      }
+
       switch (code) {
-        // 1	EMBARQUE
         case 1:
-          fac = 1;
+        case 14:
+          fac =
+            configMult && configMult.valor ? parseFloat(configMult.valor) : 1;
           break;
-        // 2	M3
-        case 2:
+        case 2: // M3
           fac = metroscc;
           break;
-        // 3 TO/M3
-        case 3:
+        case 3: // TO/M3
           fac = kg / 1000 > metroscc ? kg / 1000 : metroscc;
           break;
-        // 4	TONELADA
         case 4:
           fac = kg / 1000;
           break;
-        // 5	% SOBRE EL VALOR CIF DE LA MERCANCIA
-        case 15:
-          fac = amount / 100;
-          break;
-        // 6	PESO CARGABLE
         case 6:
           fac = metroscc * 166.66 > kg ? metroscc * 166.66 : kg;
           break;
-        // 7 "20 ST CONTENEDOR"
-        case 7:
-          fac = containers.some((v) => v.code == "20S")
-            ? containers.filter((v) => v.code == "20S")[0].cantidad
-            : 0;
-
+        case 15:
+          fac = amount / 100;
           break;
-        // 8 "40 NOR CONTENEDOR "
-        case 8:
-          fac = containers.some((v) => v.code == "40NOR")
-            ? containers.filter((v) => v.code == "40NOR")[0].cantidad
-            : 0;
-          break;
-        // 9  "40 HC CONTENEDOR "
-        case 9:
-          fac = containers.some((v) => v.code == "40HC")
-            ? containers.filter((v) => v.code == "40HC")[0].cantidad
-            : 0;
-          break;
-        // 10 "40 ST CONTENEDOR "
-        case 10:
-          fac = containers.some((v) => v.code == "40S")
-            ? containers.filter((v) => v.code == "40S")[0].cantidad
-            : 0;
-          break;
-        // 10  "% SEGURO SOBRE EL VALOR DE LA MERCANCIA",
         case 18:
           fac = kg;
-          break;
-        case 14:
-          fac = 1;
-          break;
-        case 15:
-          fac = 1;
           break;
         default:
           fac = 1;
           break;
       }
+
       return fac;
     },
     calcularValor(precio, flete, multiplicador, porcentaje = 0, minimo = 118) {
