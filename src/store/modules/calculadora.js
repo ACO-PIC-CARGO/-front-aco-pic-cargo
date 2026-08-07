@@ -14,10 +14,12 @@ const state = {
   lstCostos: [],
   lstFlete: [],
   lstProfit: [],
+  lstFleteGrupalResumen: [],
   lstFleteGrupal: [],
   lstFleteGrupalVenta: [],
   lstDepartamentos: [],
   lstDistritos: [],
+  lstCiudades: [],
   lstTransporte: [],
   opcionCalculadora: 1,
   opciones: [],
@@ -34,6 +36,9 @@ const mutations = {
   },
   SET_CONFIGURACION(state, data) {
     state.config = data;
+  },
+  SET_FLETE_GRUPAL_RESUMEN(state, data) {
+    state.lstFleteGrupalResumen = data;
   },
   SET_FLETE_GRUPAL(state, data) {
     state.lstFleteGrupal = data;
@@ -94,6 +99,9 @@ const mutations = {
   },
   SET_FLETE_PRICING(state, data) {
     state.fletePricing = data;
+  },
+  SET_LST_CIUDADES(state, data) {
+    state.lstCiudades = data;
   },
 };
 
@@ -752,7 +760,6 @@ const actions = {
     let response = await axios(config);
 
     if (response.data.estadoflag) {
-      
       commit("SET_LST_COSTOS_TRANSPORTE", response.data.data);
     }
   },
@@ -773,7 +780,6 @@ const actions = {
     let response = await axios(config);
 
     if (response.data.estadoflag) {
-      
       commit("SET_LST_OPCIONES", response.data.data);
     }
   },
@@ -819,6 +825,29 @@ const actions = {
       commit("SET_LST_COSTOS_DISTRITOS", response.data.data);
     }
   },
+
+  async getCiudad({ commit }, data) {
+    let branch = JSON.parse(sessionStorage.getItem("dataBranch"));
+    let id_pais = branch[0].id_pais;
+    data.id_pais = id_pais;
+    let res = [];
+    var headers = {
+      "Content-Type": "application/json",
+    };
+
+    var config = {
+      method: "get",
+      url: process.env.VUE_APP_URL_MAIN + "calc/ciudades",
+      headers: headers,
+      params: data,
+    };
+    let response = await axios(config);
+
+    if (response.data.estadoflag) {
+      commit("SET_LST_CIUDADES", response.data.data);
+    }
+  },
+
   async getTransporteGuardar({ dispatch }, data) {
     let branch = JSON.parse(sessionStorage.getItem("dataBranch"));
     let id_pais = branch[0].id_pais;
@@ -925,6 +954,28 @@ const actions = {
       commit("SET_FLETE_GRUPAL", response.data.data);
     }
   },
+
+  async getFleteGrupalResumen({ commit }, data) {
+    let branch = JSON.parse(sessionStorage.getItem("dataBranch"));
+    let id_pais = branch[0].id_pais;
+    data.id_pais = id_pais;
+    let res = [];
+    var headers = {
+      "Content-Type": "application/json",
+    };
+
+    var config = {
+      method: "get",
+      url: process.env.VUE_APP_URL_MAIN + "calc/flete/grupal/resumen",
+      headers: headers,
+      params: data,
+    };
+    let response = await axios(config);
+
+    if (response.data.estadoflag) {
+      commit("SET_FLETE_GRUPAL_RESUMEN", response.data.data);
+    }
+  },
   async setFleteGrupal({ dispatch }, data) {
     console.log("data", data);
     let branch = JSON.parse(sessionStorage.getItem("dataBranch"));
@@ -999,7 +1050,7 @@ const actions = {
     });
   },
 
-    async getFleteGrupalVenta({ commit }, data) {
+  async getFleteGrupalVenta({ commit }, data) {
     let branch = JSON.parse(sessionStorage.getItem("dataBranch"));
     let id_pais = branch[0].id_pais;
     data.id_pais = id_pais;
@@ -1071,6 +1122,152 @@ const actions = {
         allowOutsideClick: true,
         allowEscapeKey: true,
       }).then((res) => {});
+    }
+  },
+
+  async validarTransporte({ dispatch }, data) {
+    let branch = JSON.parse(sessionStorage.getItem("dataBranch"));
+    let id_pais = branch[0].id_pais;
+    let res = [];
+    var headers = {
+      "Content-Type": "application/json",
+    };
+
+    var config = {
+      method: "post",
+      url: process.env.VUE_APP_URL_MAIN + "calc/transporte/validate",
+      headers: headers,
+      data: data,
+    };
+    await axios(config).then((response) => {
+      if (response.data.estadoflag) {
+        let val = response.data;
+
+        res = response.data.data.map((item, index) => {
+          return {
+            ...item,
+            index: index + 1,
+          };
+        });
+        Swal.fire({
+          icon: "success",
+          title: val.mensaje,
+          allowEnterKey: true,
+          allowOutsideClick: true,
+          allowEscapeKey: true,
+        }).then((res) => {});
+      }
+    });
+
+    return res;
+  },
+
+  async setGuardarTransporte({ dispatch }, data) {
+    let branch = JSON.parse(sessionStorage.getItem("dataBranch"));
+    let id_pais = branch[0].id_pais;
+    let res = [];
+    var headers = {
+      "Content-Type": "application/json",
+    };
+
+    var config = {
+      method: "post",
+      url: process.env.VUE_APP_URL_MAIN + "calc/transporte/guardar",
+      headers: headers,
+      data: {
+        ...data,
+        id_pais: id_pais,
+      },
+    };
+    await axios(config).then((response) => {
+      if (response.data.estadoflag) {
+        let val = response.data;
+
+        res = response.data.data.map((item, index) => {
+          return {
+            ...item,
+            index: index + 1,
+          };
+        });
+        Swal.fire({
+          icon: "success",
+          title: val.mensaje,
+          allowEnterKey: true,
+          allowOutsideClick: true,
+          allowEscapeKey: true,
+        }).then((res) => {});
+      }
+    });
+
+    return res;
+  },
+
+  async EliminarTransporte({ commit }, data) {
+    var headers = {
+      "Content-Type": "application/json",
+    };
+
+    var config = {
+      method: "put",
+      url: process.env.VUE_APP_URL_MAIN + "calc/transporte/eliminar",
+      headers: headers,
+      data: data,
+    };
+    let response = await axios(config);
+
+    if (response.data.estadoflag) {
+      let data = response.data;
+      Swal.fire({
+        icon: data.estadoflag ? "success" : "error",
+        title: "Aviso",
+        text: data.mensaje,
+      });
+    }
+  },
+
+  async ActualizarTransporte({ commit }, data) {
+    var headers = {
+      "Content-Type": "application/json",
+    };
+
+    var config = {
+      method: "put",
+      url: process.env.VUE_APP_URL_MAIN + "calc/transporte/actualizar",
+      headers: headers,
+      data: data,
+    };
+    let response = await axios(config);
+
+    if (response.data.estadoflag) {
+      let data = response.data;
+      Swal.fire({
+        icon: data.estadoflag ? "success" : "error",
+        title: "Aviso",
+        text: data.mensaje,
+      });
+    }
+  },
+
+  async RegistroTransporte({ commit }, data) {
+    var headers = {
+      "Content-Type": "application/json",
+    };
+
+    var config = {
+      method: "post",
+      url: process.env.VUE_APP_URL_MAIN + "calc/transporte/registro",
+      headers: headers,
+      data: data,
+    };
+    let response = await axios(config);
+
+    if (response.data.estadoflag) {
+      let data = response.data;
+      Swal.fire({
+        icon: data.estadoflag ? "success" : "error",
+        title: "Aviso",
+        text: data.mensaje,
+      });
     }
   },
 };
