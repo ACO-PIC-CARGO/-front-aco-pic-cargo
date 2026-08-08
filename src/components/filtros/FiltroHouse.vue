@@ -37,16 +37,6 @@
             activarPort($store.state.house_filtro.id_tipo_embarque.id_transport)
           "
         ></v-autocomplete>
-
-        <v-autocomplete
-          :items="$store.state.itemsPortBegin"
-          item-text="name"
-          item-value="id_port"
-          label="Origen"
-          dense
-          v-model="$store.state.house_filtro.id_origen"
-        ></v-autocomplete>
-
         <v-autocomplete
           :items="$store.state.itemsPortEnd"
           item-text="name"
@@ -65,7 +55,47 @@
           v-model="$store.state.house_filtro.id_cliente"
         ></v-autocomplete>
 
-        <v-text-field
+        <v-autocomplete
+          :items="$store.state.itemsPortBegin"
+          item-text="name"
+          item-value="id_port"
+          label="Origen"
+          dense
+          v-model="$store.state.house_filtro.id_origen"
+        ></v-autocomplete>
+
+        <v-row>
+          <v-col cols="12" md="6">
+            <FormatFecha
+              v-model="$store.state.house_filtro.fecha_etd_desde"
+              label="Fecha ETD Desde "
+              :dense="true"
+            />
+          </v-col>
+          <v-col cols="12" md="6">
+            <FormatFecha
+              v-model="$store.state.house_filtro.fecha_etd_hasta"
+              label="Fecha ETD Hasta"
+              :dense="true"
+            />
+          </v-col>
+          <v-col cols="12" md="6">
+            <FormatFecha
+              v-model="$store.state.house_filtro.fecha_eta_desde"
+              label="Fecha ETA Desde"
+              :dense="true"
+            />
+          </v-col>
+          <v-col cols="12" md="6">
+            <FormatFecha
+              v-model="$store.state.house_filtro.fecha_eta_hasta"
+              label="Fecha ETA Hasta"
+              :dense="true"
+            />
+          </v-col>
+        </v-row>
+
+        <!-- <v-text-field
           type="date"
           label="Fecha ETD"
           dense
@@ -77,7 +107,7 @@
           label="Fecha ETA"
           dense
           v-model="$store.state.house_filtro.fecha_eta"
-        ></v-text-field>
+        ></v-text-field> -->
       </v-form>
     </v-card-text>
     <v-card-actions>
@@ -105,10 +135,27 @@
 <script>
 import { mapActions } from "vuex";
 import miMixin from "../mixins/funciones";
+import FormatFecha from "../comun/FormatFecha.vue";
+import moment from "moment";
 export default {
+  components: {
+    FormatFecha,
+  },
   mixins: [miMixin],
   data() {
     return {};
+  },
+  mounted() {
+    this.$store.state.house_filtro.fecha_etd_desde =
+      moment().format("YYYY-01-01");
+    this.$store.state.house_filtro.fecha_etd_hasta =
+      moment().format("YYYY-01-01");
+    this.$store.state.house_filtro.fecha_eta_desde = moment()
+      .endOf("month")
+      .format("YYYY-MM-DD");
+    this.$store.state.house_filtro.fecha_eta_hasta = moment()
+      .endOf("month")
+      .format("YYYY-MM-DD");
   },
   methods: {
     ...mapActions([

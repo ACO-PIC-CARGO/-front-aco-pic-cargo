@@ -13,8 +13,8 @@
           <v-icon color="info" size="xl">mdi-file</v-icon>
         </v-btn>
         <v-btn color="red" icon @click="eliminarFile">
-          <v-icon color="red" size="xl">mdi-close-circle</v-icon></v-btn
-        >
+          <v-icon color="red" size="xl">mdi-close-circle</v-icon>
+        </v-btn>
       </div>
       <div v-else>
         <div
@@ -30,9 +30,9 @@
               ref="fileInput"
               v-model="file"
               hide-details
+              accept="image/*, application/pdf"
               @change="uploadFile()"
               style="display: none"
-              @click="openFileInput"
             ></v-file-input>
           </label>
         </div>
@@ -56,6 +56,7 @@
 <script>
 import Swal from "sweetalert2";
 import { mapActions } from "vuex";
+
 export default {
   data() {
     return {
@@ -73,48 +74,71 @@ export default {
   },
   methods: {
     ...mapActions(["_uploadFile"]),
+
     async handleDrop(event) {
-      this.loading = true;
       event.preventDefault();
       this.isDragging = false;
       const droppedFiles = event.dataTransfer.files;
+
       if (droppedFiles.length > 0) {
         this.file = droppedFiles[0];
-        setTimeout(async () => {
-          await this.uploadFile();
-          this.loading = false;
-        }, 1000);
-      } else {
-        this.loading = false;
+        await this.uploadFile();
       }
     },
+
     openFileInput() {
       this.$refs.fileInput.$el.click();
     },
-    openFileInput() {
-      this.$refs.fileInput.$el.click();
-    },
+
     async uploadFile() {
-      var vm = this;
+      const vm = this;
+
+      if (!vm.file) return;
+
+      // 1. Validar el tipo de archivo (PDF o Imagen)
+      const isValidType =
+        vm.file.type === "application/pdf" || vm.file.type.startsWith("image/");
+
+      if (!isValidType) {
+        vm.file = null; // Limpiar el archivo inválido
+        Swal.fire({
+          icon: "error",
+          title: "Formato no válido",
+          text: "Por favor, selecciona únicamente una imagen o un archivo PDF.",
+        });
+        return;
+      }
+
+      // 2. Iniciar la carga si el archivo es válido
       vm.loading = true;
       vm.msgfile = "";
-      vm.errfile = "";
-      if (vm.file) {
+
+      try {
         await this._uploadFile(vm.file);
-        vm.loading = false;
         Swal.fire({
           icon: "success",
-          title:"Archivo Cargado Correctamente"
+          title: "Archivo Cargado Correctamente",
         });
+
         vm.$emit("idArchivoCargado", {
           id: vm.$store.state.files.payPath,
           archivo: vm.$store.state.files.datosPath,
         });
+      } catch (error) {
+        Swal.fire({
+          icon: "error",
+          title: "Error al cargar",
+          text: "Ocurrió un problema al subir el archivo.",
+        });
+      } finally {
+        vm.loading = false;
       }
     },
+
     eliminarFile() {
       this.$store.state.files.payPath = null;
       this.$store.state.files.datosPath = null;
+      this.file = null; // También limpiamos la variable local
     },
   },
 };

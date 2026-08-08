@@ -770,12 +770,10 @@ export default {
       let total = this.selected.reduce((acc, item) => {
         let valorFila = 0;
         if (item.parcialflag) {
-          let maximo = parseFloat(item.total_mon_local / item.tipocambio) || 0;
-          let escrito = parseFloat(item.montoparcial / item.tipocambio) || 0;
-
-          valorFila = escrito > maximo ? maximo : escrito;
+          let porcentaje_pago = item.montoparcial / item.total_mon_local;
+          valorFila = item.monto_original_total * porcentaje_pago;
         } else {
-          valorFila = parseFloat(item.total_mon_local / item.tipocambio) || 0;
+          valorFila = parseFloat(item.monto_original_total) || 0;
         }
         return acc + valorFila;
       }, 0);
@@ -861,7 +859,7 @@ export default {
       if (item.symbol == "USD") {
         return `${item.symbol} ${monto.toFixed(2)}`;
       } else {
-        return `${this.symbol} ${(monto / this.tipocambio).toFixed(2)}`;
+        return `${this.symbol} ${(monto).toFixed(2)}`;
       }
     },
     buscarOperacionAlEscribir() {
@@ -926,11 +924,10 @@ export default {
         return acc + monto;
       }, 0);
       return total.toFixed(2);
-
     },
     tipocambio() {
-      if (this.symbol=='USD') {
-        return 1
+      if (this.symbol == "USD") {
+        return 1;
       }
       let tc =
         (parseFloat(this.monto_local) +

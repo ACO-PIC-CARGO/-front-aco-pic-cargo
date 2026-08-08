@@ -9,8 +9,9 @@
       absolute
       bottom
       persistent
-      width="20%"
+      width="30%"
       temporary
+      v-if="$store.state.master_filtrarData"
     >
       <v-card elevation="0">
         <FiltroMaster />

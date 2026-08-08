@@ -2,7 +2,7 @@
   <v-card>
     <v-container fluid>
       <v-row>
-        <v-col cols="12" md="4" class="pb-0">
+        <v-col cols="12" md="2" class="pb-0">
           Cliente:
           <v-autocomplete
             outlined
@@ -54,7 +54,7 @@
           ></v-text-field>
         </v-col>
 
-        <v-col cols="12" md="2" class="pb-0" v-if="mostrarTipoCambio">
+        <v-col cols="12" md="2" class="pb-0">
           Tipo Cambio:
           <v-text-field
             outlined

@@ -35,7 +35,7 @@
           return-object
           @change="
             activarPort(
-              $store.state.master_filtro.id_tipo_embarque.id_transport
+              $store.state.master_filtro.id_tipo_embarque.id_transport,
             )
           "
         ></v-autocomplete>
@@ -66,22 +66,35 @@
           dense
           v-model="$store.state.master_filtro.id_agente"
         ></v-autocomplete>
-
-        <v-text-field
-          type="date"
-          label="Fecha ETD"
-          dense
-          v-model="$store.state.master_filtro.fecha_etd"
-        ></v-text-field>
-
-        <v-text-field
-          type="date"
-          label="Fecha ETA"
-          dense
-          v-model="$store.state.master_filtro.fecha_eta"
-        ></v-text-field>
-
         <v-row>
+          <v-col cols="12" md="6">
+            <FormatFecha
+              v-model="$store.state.master_filtro.fecha_etd_desde"
+              label="Fecha ETD Desde "
+              :dense="true"
+            />
+          </v-col>
+          <v-col cols="12" md="6">
+            <FormatFecha
+              v-model="$store.state.master_filtro.fecha_etd_hasta"
+              label="Fecha ETD Hasta"
+              :dense="true"
+            />
+          </v-col>
+          <v-col cols="12" md="6">
+            <FormatFecha
+              v-model="$store.state.master_filtro.fecha_eta_desde"
+              label="Fecha ETA Desde"
+              :dense="true"
+            />
+          </v-col>
+          <v-col cols="12" md="6">
+            <FormatFecha
+              v-model="$store.state.master_filtro.fecha_eta_hasta"
+              label="Fecha ETA Hasta"
+              :dense="true"
+            />
+          </v-col>
           <v-col col="6">
             <p>Estado Operativo</p>
             <v-radio-group
@@ -131,10 +144,27 @@
 <script>
 import { mapActions } from "vuex";
 import miMixin from "../mixins/funciones";
+import FormatFecha from "../comun/FormatFecha.vue";
+import moment from "moment";
 export default {
+  components: {
+    FormatFecha,
+  },
   mixins: [miMixin],
   data() {
     return {};
+  },
+  mounted() {
+    this.$store.state.master_filtro.fecha_etd_desde =
+      moment().format("YYYY-01-01");
+    this.$store.state.master_filtro.fecha_eta_desde =
+      moment().format("YYYY-01-01");
+    this.$store.state.master_filtro.fecha_etd_hasta = moment()
+      .endOf("month")
+      .format("YYYY-MM-DD");
+    this.$store.state.master_filtro.fecha_eta_hasta = moment()
+      .endOf("month")
+      .format("YYYY-MM-DD");
   },
   methods: {
     ...mapActions([
