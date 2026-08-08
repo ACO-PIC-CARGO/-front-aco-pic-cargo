@@ -732,19 +732,15 @@ export default {
       }
     },
     calcularTotal() {
+      // 13445
       let total = this.selected.reduce((acc, item) => {
         let valorFila = 0;
         if (item.parcialflag) {
-          let maximo =
-            parseFloat(item.saldo_pendiente_local / item.tipocambio) || 0;
-          let escrito = parseFloat(item.montoparcial / item.tipocambio) || 0;
-
-          valorFila = escrito > maximo ? maximo : escrito;
+          let porcentaje_pago = item.montoparcial / item.saldo_pendiente_local;
+          valorFila = item.saldo_pendiente * porcentaje_pago;
         } else {
-          valorFila =
-            parseFloat(item.saldo_pendiente_local / item.tipocambio) || 0;
+          valorFila = parseFloat(item.saldo_pendiente_local) || 0;
         }
-
         return acc + valorFila;
       }, 0);
 

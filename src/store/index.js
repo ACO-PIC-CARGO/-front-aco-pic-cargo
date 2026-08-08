@@ -66,6 +66,7 @@ import proveedor from "./modules/proveedor";
 import configuracion from "./modules/configuracion";
 import profitPricing from "./modules/profitPricing";
 import Swal from "sweetalert2";
+import moment from "moment";
 Vue.use(Vuex);
 Vue.use(VueSweetalert2);
 
@@ -309,7 +310,12 @@ export default new Vuex.Store({
     totalItemsMasterList: 0,
     master_filtrarData: false,
     cg_filtrarData: false,
-    master_filtro: {},
+    master_filtro: {
+      fecha_etd_desde: moment().format("YYYY-01-01"),
+      fecha_eta_desde: moment().format("YYYY-01-01"),
+      fecha_etd_hasta: moment().endOf("month").format("YYYY-MM-DD"),
+      fecha_eta_hasta: moment().endOf("month").format("YYYY-MM-DD"),
+    },
     controlgastosfiltro: {},
 
     dataControl_Numero: "",
@@ -381,7 +387,12 @@ export default new Vuex.Store({
 
     totalItemsHouseListAll: 0,
     house_filtrarData: false,
-    house_filtro: {},
+    house_filtro: {
+      fecha_etd_desde: moment().format("YYYY-01-01"),
+      fecha_eta_desde: moment().format("YYYY-01-01"),
+      fecha_etd_hasta: moment().endOf("month").format("YYYY-MM-DD"),
+      fecha_eta_hasta: moment().endOf("month").format("YYYY-MM-DD"),
+    },
 
     services_id_begend: "",
     services_name: "",
@@ -494,9 +505,9 @@ export default new Vuex.Store({
     isEmpresaPermitida: (state) => {
       const valEmpresaPic = [1, 2];
       const dataBranch = localStorage.getItem("dataBranch");
-      
+
       if (!dataBranch) return false;
-      
+
       try {
         const empresa = JSON.parse(dataBranch)[0];
         return empresa && valEmpresaPic.includes(empresa.id);
@@ -1648,38 +1659,55 @@ export default new Vuex.Store({
       vm.state.dataMaster = false;
       var config = {
         method: "get",
-        url:
-          process.env.VUE_APP_URL_MAIN +
-          `getMasterList?id_branch=${
-            JSON.parse(sessionStorage.getItem("dataUser"))[0].id_branch
-          }&id_canal=${vm.state.master_filtro.id_canal || ""}&id_sentido=${
-            vm.state.master_filtro.id_sentido || ""
-          }&id_tipo_embarque=${
-            vm.state.master_filtro.id_tipo_embarque
-              ? vm.state.master_filtro.id_tipo_embarque.id || ""
-              : ""
-          }&id_origen=${vm.state.master_filtro.id_origen || ""}&id_destino=${
-            vm.state.master_filtro.id_destino || ""
-          }&id_agente=${vm.state.master_filtro.id_agente || ""}&fecha_etd=${
-            vm.state.master_filtro.fecha_etd || ""
-          }&fecha_eta=${vm.state.master_filtro.fecha_eta || ""}&status_op=${
-            vm.state.master_filtro.status_operativo == 0 ||
-            vm.state.master_filtro.status_operativo == 1
-              ? vm.state.master_filtro.status_operativo
-              : ""
-          }&status_adm=${
+        url: process.env.VUE_APP_URL_MAIN + "getMasterList",
+        params: {
+          ...vm.state.master_filtro,
+          id_branch: JSON.parse(sessionStorage.getItem("dataUser"))[0]
+            .id_branch,
+          id_tipo_embarque: vm.state.master_filtro.id_tipo_embarque
+            ? vm.state.master_filtro.id_tipo_embarque.id || ""
+            : "",
+          status_adm:
             vm.state.master_filtro.status_administrativo == 0 ||
             vm.state.master_filtro.status_administrativo == 1
               ? vm.state.master_filtro.status_administrativo
-              : ""
-          }&pagina=${
-            vm.state.master_filtro.pagina
-              ? (vm.state.master_filtro.pagina - 1) *
-                (vm.state.master_filtro.limite || 10)
-              : 0
-          }&limite=${vm.state.master_filtro.limite || -1}&orden=${
-            vm.state.master_filtro.orden || ""
-          }&busqueda=${vm.state.master_filtro.busqueda || ""}`,
+              : "",
+          pagina: vm.state.master_filtro.pagina
+            ? (vm.state.master_filtro.pagina - 1) *
+              (vm.state.master_filtro.limite || 10)
+            : 0,
+          limite: vm.state.master_filtro.limite || -1,
+        },
+        // `getMasterList?id_branch=${
+
+        // }&id_canal=${vm.state.master_filtro.id_canal || ""}&id_sentido=${
+        //   vm.state.master_filtro.id_sentido || ""
+        // }&id_tipo_embarque=${
+        //   vm.state.master_filtro.id_tipo_embarque
+        //     ? vm.state.master_filtro.id_tipo_embarque.id || ""
+        //     : ""
+        // }&id_origen=${vm.state.master_filtro.id_origen || ""}&id_destino=${
+        //   vm.state.master_filtro.id_destino || ""
+        // }&id_agente=${vm.state.master_filtro.id_agente || ""}&fecha_etd=${
+        //   vm.state.master_filtro.fecha_etd || ""
+        // }&fecha_eta=${vm.state.master_filtro.fecha_eta || ""}&status_op=${
+        //   vm.state.master_filtro.status_operativo == 0 ||
+        //   vm.state.master_filtro.status_operativo == 1
+        //     ? vm.state.master_filtro.status_operativo
+        //     : ""
+        // }&status_adm=${
+        //   vm.state.master_filtro.status_administrativo == 0 ||
+        //   vm.state.master_filtro.status_administrativo == 1
+        //     ? vm.state.master_filtro.status_administrativo
+        //     : ""
+        // }&pagina=${
+        //   vm.state.master_filtro.pagina
+        //     ? (vm.state.master_filtro.pagina - 1) *
+        //       (vm.state.master_filtro.limite || 10)
+        //     : 0
+        // }&limite=${vm.state.master_filtro.limite || -1}&orden=${
+        //   vm.state.master_filtro.orden || ""
+        // }&busqueda=${vm.state.master_filtro.busqueda || ""}`,
         headers: {
           "Content-Type": "application/json",
         },
