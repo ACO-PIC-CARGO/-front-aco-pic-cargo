@@ -1,3 +1,4 @@
+import store from "@/store/index";
 const miMixin = {
   methods: {
     probarFunction() {
@@ -59,7 +60,7 @@ const miMixin = {
       containers = [],
       amount = 0,
     ) {
-      const listMultiplicador = this.$store.state.pricing.listMultiplicador;
+      const listMultiplicador = store.state.pricing.listMultiplicador;
       let fac = 0;
 
       const configMult = listMultiplicador.find((item) => item.code == code);
