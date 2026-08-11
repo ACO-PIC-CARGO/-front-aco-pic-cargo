@@ -1,5 +1,5 @@
 <template fluid class="">
-  <v-container class="elevation-5 px-2">
+  <v-container class="elevation-5 px-2" fluid>
     <v-row>
       <v-col>
         <v-file-input
@@ -78,6 +78,30 @@
           dense
           :items-per-page="10"
         >
+          <template v-slot:[`item.puerto_origen_sistema`]="{ item }">
+            <v-autocomplete
+              :items="
+                $store.state.pricing.listPortBegin.filter(
+                  (v) => v.id_pais == item.id_pais_origen,
+                )
+              "
+              v-model="item.puerto_origen"
+              item-value="puerto"
+              item-text="puerto"
+            />
+          </template>
+          <template v-slot:[`item.puerto_destino_sistema`]="{ item }">
+            <v-autocomplete
+              :items="
+                $store.state.pricing.listPortEnd.filter(
+                  (v) => v.id_pais == item.id_pais_destino,
+                )
+              "
+              v-model="item.puerto_destino"
+              item-value="puerto"
+              item-text="puerto"
+            />
+          </template>
           <template v-slot:[`item.pais_origen`]="{ item }">
             <v-autocomplete
               :items="$store.state.itemsPais"
@@ -514,8 +538,18 @@ export default {
         // { text: "PAIS ORIGEN", value: "pais_origen", sortable: false },
         { text: "Pais Origen", value: "pais_origen", sortable: false },
         { text: "Puerto Origen", value: "puerto_origen", sortable: false },
+        {
+          text: "Puerto Origen Según Sistema",
+          value: "puerto_origen_sistema",
+          sortable: false,
+        },
         { text: "Pais Origen", value: "pais_destino", sortable: false },
         { text: "Puertos Origen", value: "puerto_destino", sortable: false },
+        {
+          text: "Puertos Origen Según Sistema",
+          value: "puerto_destino_sistema",
+          sortable: false,
+        },
         { text: "0.1 a 5 cbm	", value: "flete_0_5", sortable: false },
         { text: "5.01 a 10 cbm	", value: "flete_5_10", sortable: false },
         { text: "10.01 a 15 cbm", value: "flete_10_15", sortable: false },
@@ -602,10 +636,75 @@ export default {
       "CargarSucursal",
       "GetCotValLCL",
       "postGuardarCostos",
+      "getPortBegin",
+      "getPortEnd",
     ]),
 
+    // async guardarDatos() {
+    //   let data = {};
+    //   if (this.itemsAereo.length > 0) {
+    //     if (
+    //       this.itemsAereo.some(
+    //         (v) =>
+    //           v.id_pais_destino == "" ||
+    //           v.id_pais_destino == null ||
+    //           v.id_pais_origen == "" ||
+    //           v.id_pais_origen == null,
+    //       )
+    //     ) {
+    //       Swal.fire({ icon: "warning", text: "Falta Completar Datos" });
+    //       return;
+    //     }
+    //     data = {
+    //       costos: this.itemsAereo,
+    //       shipment: "Aereo",
+    //       id_modality: 1,
+    //     };
+    //   }
+    //   if (this.itemsFCL.length > 0) {
+    //     if (
+    //       this.itemsFCL.some(
+    //         (v) =>
+    //           v.id_pais_destino == "" ||
+    //           v.id_pais_destino == null ||
+    //           v.id_pais_origen == "" ||
+    //           v.id_pais_origen == null,
+    //       )
+    //     ) {
+    //       Swal.fire({ icon: "warning", text: "Falta Completar Datos" });
+    //       return;
+    //     }
+    //     data = {
+    //       costos: this.itemsFCL,
+    //       shipment: "FCL",
+    //       id_modality: 1,
+    //     };
+    //   }
+    //   if (this.itemsLCL.length > 0) {
+    //     if (
+    //       this.itemsLCL.some(
+    //         (v) =>
+    //           v.id_pais_destino == "" ||
+    //           v.id_pais_destino == null ||
+    //           v.id_pais_origen == "" ||
+    //           v.id_pais_origen == null,
+    //       )
+    //     ) {
+    //       Swal.fire({ icon: "warning", text: "Falta Completar Datos" });
+    //       return;
+    //     }
+    //     data = {
+    //       costos: this.itemsLCL,
+    //       shipment: "LCL",
+    //       id_modality: 1,
+    //     };
+    //   }
+    //   this.postGuardarCostos(data);
+    // },
     async guardarDatos() {
       let data = {};
+
+      // Validación para Aéreo
       if (this.itemsAereo.length > 0) {
         if (
           this.itemsAereo.some(
@@ -613,10 +712,18 @@ export default {
               v.id_pais_destino == "" ||
               v.id_pais_destino == null ||
               v.id_pais_origen == "" ||
-              v.id_pais_origen == null,
+              v.id_pais_origen == null ||
+              // Nuevas validaciones de puertos agregadas aquí:
+              v.puerto_origen == "" ||
+              v.puerto_origen == null ||
+              v.puerto_destino == "" ||
+              v.puerto_destino == null,
           )
         ) {
-          Swal.fire({ icon: "warning", text: "Falta Completar Datos" });
+          Swal.fire({
+            icon: "warning",
+            text: "Falta Completar Datos (País o Puerto)",
+          });
           return;
         }
         data = {
@@ -625,6 +732,8 @@ export default {
           id_modality: 1,
         };
       }
+
+      // Validación para FCL
       if (this.itemsFCL.length > 0) {
         if (
           this.itemsFCL.some(
@@ -632,10 +741,18 @@ export default {
               v.id_pais_destino == "" ||
               v.id_pais_destino == null ||
               v.id_pais_origen == "" ||
-              v.id_pais_origen == null,
+              v.id_pais_origen == null ||
+              // Nuevas validaciones de puertos agregadas aquí:
+              v.puerto_origen == "" ||
+              v.puerto_origen == null ||
+              v.puerto_destino == "" ||
+              v.puerto_destino == null,
           )
         ) {
-          Swal.fire({ icon: "warning", text: "Falta Completar Datos" });
+          Swal.fire({
+            icon: "warning",
+            text: "Falta Completar Datos (País o Puerto)",
+          });
           return;
         }
         data = {
@@ -644,17 +761,54 @@ export default {
           id_modality: 1,
         };
       }
+
+      // Validación para LCL
       if (this.itemsLCL.length > 0) {
+        let puerto_origen = this.itemsLCL.map((v) => {
+          return v.puerto_origen;
+        });
+        let puerto_destino = this.itemsLCL.map((v) => {
+          return v.puerto_destino;
+        });
+        console.log("puerto_origen", puerto_origen);
+        console.log("puerto_destino", puerto_destino);
+        let listBeginPorts = this.$store.state.pricing.listPortBegin.map(
+          (p) => p.puerto,
+        );
+        let listEndPorts = this.$store.state.pricing.listPortEnd.map(
+          (p) => p.puerto,
+        );
+        console.log("listBeginPorts", listBeginPorts);
+        console.log("listEndPorts", listEndPorts);
+        // 3. Validas si alguno de los puertos extraídos NO se encuentra en el listado del store
+        let origenInvalido = puerto_origen.some(
+          (puerto) => !listBeginPorts.includes(puerto),
+        );
+        let destinoInvalido = puerto_destino.some(
+          (puerto) => !listEndPorts.includes(puerto),
+        );
+        console.log("origenInvalido", origenInvalido);
+        console.log("destinoInvalido", destinoInvalido);
         if (
           this.itemsLCL.some(
             (v) =>
               v.id_pais_destino == "" ||
               v.id_pais_destino == null ||
               v.id_pais_origen == "" ||
-              v.id_pais_origen == null,
-          )
+              v.id_pais_origen == null ||
+              // Nuevas validaciones de puertos agregadas aquí:
+              v.puerto_origen == "" ||
+              v.puerto_origen == null ||
+              v.puerto_destino == "" ||
+              v.puerto_destino == null,
+          ) ||
+          origenInvalido ||
+          destinoInvalido
         ) {
-          Swal.fire({ icon: "warning", text: "Falta Completar Datos" });
+          Swal.fire({
+            icon: "warning",
+            text: "Falta Completar Datos (País o Puerto)",
+          });
           return;
         }
         data = {
@@ -663,6 +817,7 @@ export default {
           id_modality: 1,
         };
       }
+
       this.postGuardarCostos(data);
     },
 
@@ -767,9 +922,11 @@ export default {
         if (index > 0) {
           datos.push({
             pais_origen: rows[index][0],
-            puerto_origen: rows[index][1],
+            puerto_origen: rows[index][1] ? rows[index][1].toUpperCase() : null,
             pais_destino: rows[index][2],
-            puerto_destino: rows[index][3],
+            puerto_destino: rows[index][3]
+              ? rows[index][3].toUpperCase()
+              : null,
             flete_0_5: rows[index][4],
             flete_5_10: rows[index][5],
             flete_10_15: rows[index][6],
@@ -1661,8 +1818,19 @@ export default {
     },
   },
   async mounted() {
+    let maritimo = ["LCL", "FCL"];
     this.$store.state.spiner = true;
-    await this._getPais();
+    Promise.all([
+      this._getPais(),
+      this.getPortBegin({
+        id_transport: maritimo.includes(this.type) ? 1 : 2,
+        limit: -1,
+      }),
+      this.getPortEnd({
+        id_transport: maritimo.includes(this.type) ? 1 : 2,
+        limit: -1,
+      }),
+    ]);
     // await this.CargarMoneda();
     // await this.CargarSucursal();
     // await this.CargarnavieraCalc();
