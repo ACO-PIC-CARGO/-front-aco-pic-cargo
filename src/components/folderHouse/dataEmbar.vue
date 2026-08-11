@@ -98,6 +98,29 @@
         </v-autocomplete>
       </v-col>
 
+      <v-col cols="12">
+        <v-autocomplete
+          :items="$store.state.pricing.listEjecutivo"
+          item-text="nombrecompleto"
+          item-value="id"
+          item-key="id"
+          label="Vendedor"
+          v-model="$store.state.house_id_vendedor"
+        >
+        </v-autocomplete>
+      </v-col>
+      <v-col cols="12">
+        <v-autocomplete
+          :items="$store.state.pricing.listEjecutivo"
+          item-text="nombrecompleto"
+          item-value="id"
+          item-key="id"
+          label="Pricing"
+          v-model="$store.state.house_id_pricing"
+        >
+        </v-autocomplete>
+      </v-col>
+
       <v-col cols="12" md="6">
         <v-autocomplete
           :items="itemsMotonave"
@@ -236,7 +259,7 @@
 
 <script>
 import { mapState, mapActions } from "vuex";
-import axios from '@/api/axios-config';
+import axios from "@/api/axios-config";
 import Swal from "sweetalert2";
 export default {
   name: "dataEmbar",
@@ -331,7 +354,6 @@ export default {
         method: "get",
         url: process.env.VUE_APP_URL_MAIN + "obtener_house_master_asociados",
         headers: {
-         
           "Content-Type": "application/json",
         },
         params: { id: vm.$route.params.id },
@@ -340,7 +362,6 @@ export default {
         .then(function (response) {
           let res = response.data;
           if (res.estadoflag) {
-            
             vm.lstHouse = res.data;
           }
         })
@@ -384,7 +405,6 @@ export default {
         method: "post",
         url: process.env.VUE_APP_URL_MAIN + "deleteContainers",
         headers: {
-         
           "Content-Type": "application/json",
         },
         data: data,
@@ -414,7 +434,6 @@ export default {
         method: "post",
         url: process.env.VUE_APP_URL_MAIN + "setHouseContainers",
         headers: {
-         
           "Content-Type": "application/json",
         },
         data: data,

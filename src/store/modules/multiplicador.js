@@ -1,4 +1,4 @@
-import axios from '@/api/axios-config';
+import axios from "@/api/axios-config";
 import Swal from "sweetalert2";
 import router from "@/router";
 
@@ -36,10 +36,9 @@ const actions = {
         }`,
       headers: {
         "Content-Type": "application/json",
-       
       },
     };
-   await axios(config)
+    await axios(config)
       .then((response) => {
         let data = response.data;
         sessionStorage.setItem("auth-token", data.token);
@@ -68,10 +67,9 @@ const actions = {
         `&status=${data.status}`,
       headers: {
         "Content-Type": "application/json",
-       
       },
     };
-   await axios(config)
+    await axios(config)
       .then((response) => {
         let data = response.data;
         sessionStorage.setItem("auth-token", data.token);
@@ -107,11 +105,10 @@ const actions = {
       url: process.env.VUE_APP_URL_MAIN + `ver_multiplicador?id=${id}`,
       headers: {
         "Content-Type": "application/json",
-       
       },
     };
 
-   await axios(config)
+    await axios(config)
       .then((response) => {
         let data = response.data;
         sessionStorage.setItem("auth-token", data.token);
@@ -134,12 +131,49 @@ const actions = {
       url: process.env.VUE_APP_URL_MAIN + "actualizar_multiplicador",
       headers: {
         "Content-Type": "application/json",
-       
       },
       data: data,
     };
 
-   await axios(config)
+    await axios(config)
+      .then((response) => {
+        let data = response.data;
+        sessionStorage.setItem("auth-token", data.token);
+        Swal.fire({
+          icon: !!data.estadoflag ? "success" : "error",
+          text: data.mensaje,
+          showCancelButton: false,
+          confirmButtonText: "Ok",
+        }).then((result) => {
+          let data = {
+            code: "",
+            name: "",
+            description: "",
+            id_shipment: "",
+            status: 1,
+          };
+          dispatch("fetchDataMultiplicador", data);
+        });
+      })
+      .catch((error) => {
+        console.log("Error al obtener los datos:", error);
+      });
+  },
+
+  async nuevoMultiplicador({ dispatch }, data) {
+    var config = {
+      method: "post",
+      url: process.env.VUE_APP_URL_MAIN + "nuevo_multiplicador",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      data: {
+        ...data,
+        id_branch: JSON.parse(sessionStorage.getItem("dataUser"))[0].id_branch,
+      },
+    };
+
+    await axios(config)
       .then((response) => {
         let data = response.data;
         sessionStorage.setItem("auth-token", data.token);

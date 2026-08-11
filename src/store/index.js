@@ -311,10 +311,10 @@ export default new Vuex.Store({
     master_filtrarData: false,
     cg_filtrarData: false,
     master_filtro: {
-      fecha_etd_desde: moment().format("YYYY-01-01"),
-      fecha_eta_desde: moment().format("YYYY-01-01"),
-      fecha_etd_hasta: moment().endOf("month").format("YYYY-MM-DD"),
-      fecha_eta_hasta: moment().endOf("month").format("YYYY-MM-DD"),
+      fecha_etd_desde: null,
+      fecha_eta_desde: null,
+      fecha_etd_hasta: null,
+      fecha_eta_hasta: null,
     },
     controlgastosfiltro: {},
 
@@ -388,10 +388,10 @@ export default new Vuex.Store({
     totalItemsHouseListAll: 0,
     house_filtrarData: false,
     house_filtro: {
-      fecha_etd_desde: moment().format("YYYY-01-01"),
-      fecha_eta_desde: moment().format("YYYY-01-01"),
-      fecha_etd_hasta: moment().endOf("month").format("YYYY-MM-DD"),
-      fecha_eta_hasta: moment().endOf("month").format("YYYY-MM-DD"),
+      fecha_etd_desde: null,
+      fecha_eta_desde: null,
+      fecha_etd_hasta: null,
+      fecha_eta_hasta: null,
     },
 
     services_id_begend: "",

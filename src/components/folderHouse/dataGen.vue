@@ -841,6 +841,8 @@ export default {
         this.$store.state.house_id_notify = house.id_notify;
         this.$store.state.house_id_airlines = house.id_aerolinea;
         this.$store.state.house_id_coloader = house.id_coloader;
+        this.$store.state.house_id_vendedor = house.id_vendedor;
+        this.$store.state.house_id_pricing = house.id_pricing;
         //this.$store.state.house_id_agente = house.id_agent;
         this.$store.state.house_id_naviera = house.id_naviera;
         this.$store.state.house_blmaster = house.nro_hbl;

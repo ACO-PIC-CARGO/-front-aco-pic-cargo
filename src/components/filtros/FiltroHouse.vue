@@ -70,6 +70,7 @@
               v-model="$store.state.house_filtro.fecha_etd_desde"
               label="Fecha ETD Desde "
               :dense="true"
+              :clearable="true"
             />
           </v-col>
           <v-col cols="12" md="6">
@@ -77,6 +78,7 @@
               v-model="$store.state.house_filtro.fecha_etd_hasta"
               label="Fecha ETD Hasta"
               :dense="true"
+              :clearable="true"
             />
           </v-col>
           <v-col cols="12" md="6">
@@ -84,6 +86,7 @@
               v-model="$store.state.house_filtro.fecha_eta_desde"
               label="Fecha ETA Desde"
               :dense="true"
+              :clearable="true"
             />
           </v-col>
           <v-col cols="12" md="6">
@@ -91,6 +94,7 @@
               v-model="$store.state.house_filtro.fecha_eta_hasta"
               label="Fecha ETA Hasta"
               :dense="true"
+              :clearable="true"
             />
           </v-col>
         </v-row>
@@ -145,18 +149,7 @@ export default {
   data() {
     return {};
   },
-  mounted() {
-    this.$store.state.house_filtro.fecha_etd_desde =
-      moment().format("YYYY-01-01");
-    this.$store.state.house_filtro.fecha_etd_hasta =
-      moment().format("YYYY-01-01");
-    this.$store.state.house_filtro.fecha_eta_desde = moment()
-      .endOf("month")
-      .format("YYYY-MM-DD");
-    this.$store.state.house_filtro.fecha_eta_hasta = moment()
-      .endOf("month")
-      .format("YYYY-MM-DD");
-  },
+  mounted() {},
   methods: {
     ...mapActions([
       "_getPortBegin",
