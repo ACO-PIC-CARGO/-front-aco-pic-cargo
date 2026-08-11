@@ -18,7 +18,7 @@
           <tr>
             <th>Dia</th>
             <th>Nuevos</th>
-            <th>Recurente</th>
+            <th>Recurrente</th>
           </tr>
         </thead>
         <tbody>
@@ -749,12 +749,12 @@ export default {
   },
   async mounted() {
     //this.$store.state.spiner = true;
-    await this.getModulesEntities();
     moment.locale("es");
     let fechahora = moment(this.fecha).format("YYYY-MM-DDTHH:mm");
     this.call.date = fechahora;
+    // await this.getModulesEntities();
     await this.getListUserCalc();
-    await this.getCboStatus();
+    // await this.getCboStatus();
     this.calcResumen();
     let index = 0;
     this.$store.state.calculadoras.listUser.forEach((element) => {

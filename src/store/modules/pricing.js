@@ -1033,7 +1033,7 @@ const actions = {
   },
   async getPortBegin(
     { commit },
-    { id_transport = 0, id = null, search = null },
+    { id_transport = 0, id = null, search = null, limit = 20 },
   ) {
     var config = {
       method: "post",
@@ -1046,6 +1046,7 @@ const actions = {
         id_transport: id_transport,
         id: id,
         search: search,
+        limit: limit,
       },
     };
     await axios(config)
@@ -1056,7 +1057,10 @@ const actions = {
         console.error(error);
       });
   },
-  async getPortEnd({ commit }, { id_transport = 0, id = null, search = null }) {
+  async getPortEnd(
+    { commit },
+    { id_transport = 0, id = null, search = null, limit = 20 },
+  ) {
     var config = {
       method: "post",
       url: process.env.VUE_APP_URL_MAIN + "getPortEnd",
@@ -1068,6 +1072,7 @@ const actions = {
         id_transport: id_transport,
         id: id,
         search: search,
+        limit: limit,
       },
     };
     await axios(config)
