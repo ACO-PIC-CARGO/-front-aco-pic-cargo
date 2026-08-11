@@ -265,7 +265,7 @@
 </template>
 <script>
 import { mapState, mapActions } from "vuex";
-import axios from '@/api/axios-config';
+import axios from "@/api/axios-config";
 export default {
   name: "dataGen",
   data() {
@@ -526,7 +526,7 @@ export default {
     },
     async _validaData() {
       var vm = this;
-
+      console.log('sssssssssss')
       if (vm.$route.params.id) {
         var data = {
           id: vm.$route.params.id,
@@ -537,7 +537,6 @@ export default {
           method: "post",
           url: process.env.VUE_APP_URL_MAIN + "getHouseListId/",
           headers: {
-           
             "Content-Type": "application/json",
           },
           data: data,
@@ -545,13 +544,16 @@ export default {
         await axios(config)
           .then(async function (response) {
             sessionStorage.setItem("auth-token", response.data.token);
-
+            console.log('id_vendedor',response.data.data[0].id_vendedor)
+            console.log('id_pricing',response.data.data[0].id_pricing)
             vm.$store.state.copy_house = response.data.data[0];
             vm.$store.state.dataHouse_transporte =
               response.data.data[0].id_transport;
             vm.$store.state.house_origen = response.data.data[0].id_port_begin;
             vm.$store.state.house_destino = response.data.data[0].id_port_end;
             vm.$store.state.house_sentido = response.data.data[0].id_modality;
+            vm.$store.state.house_id_vendedor = response.data.data[0].id_vendedor;
+            vm.$store.state.house_id_pricing = response.data.data[0].id_pricing;
             vm.$store.state.house_id_trasnport =
               response.data.data[0].id_shipment;
             vm.$store.state.house_incoterms =
