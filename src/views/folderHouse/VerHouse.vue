@@ -205,7 +205,11 @@
           </v-card-text>
           <v-card-actions>
             <v-spacer></v-spacer>
-            <v-btn color="success" v-if="isAereo()" @click="exportarFormatoAWB()">
+            <v-btn
+              color="success"
+              v-if="isAereo()"
+              @click="exportarFormatoAWB()"
+            >
               <v-icon left>mdi-printer</v-icon>
               Imprimir Guía Aérea
             </v-btn>
@@ -220,7 +224,7 @@
         </v-card>
       </v-dialog>
     </v-container>
-    
+
     <!-- <v-footer app color="white" elevation="5" height="72" inset>
         <router-link class="div__button_bottom" to="">
           <img width="30" :src="$store.state.imgFolder" alt="" />
@@ -276,7 +280,7 @@ import Bitacora from "@/components/folderHouse/bitacoraVer.vue";
 import services from "@/components/folderHouse/servicesVer.vue";
 import { mapActions, mapState } from "vuex";
 import Swal from "sweetalert2";
-import axios from '@/api/axios-config';
+import axios from "@/api/axios-config";
 export default {
   name: "controlMasterCom",
   components: {
@@ -325,14 +329,20 @@ export default {
   async mounted() {
     this.$store.state.spiner = true;
     await this.verHouse(this.$route.params);
+    await this.getCargarEjecutivo();
     if (this.$route.name == "controlHouseVer") {
       this.formControlHouseReadonly = true;
     }
-    const actionLabel = this.$route.name == "controlHouseEditar" ? "EDITAR" : "VER";
+    const actionLabel =
+      this.$route.name == "controlHouseEditar" ? "EDITAR" : "VER";
     this.$store.state.mainTitle = `N° BL House ${
-      (this.$store.state.houses.house && this.$store.state.houses.house.nro_hbl) || ""
+      (this.$store.state.houses.house &&
+        this.$store.state.houses.house.nro_hbl) ||
+      ""
     } - ${
-      (this.$store.state.houses.house && this.$store.state.houses.house.consigner) || ""
+      (this.$store.state.houses.house &&
+        this.$store.state.houses.house.consigner) ||
+      ""
     } [${actionLabel}]`;
     this.$store.state.spiner = false;
     await this.fetchDataBank({
@@ -358,6 +368,7 @@ export default {
       "verHouse",
       "fetchDataBank",
       "getQuoteNoAsignadoHouse",
+      "getCargarEjecutivo",
     ]),
     irAVerMaster() {
       this.$router.push({
@@ -378,9 +389,7 @@ export default {
             id_house: this.$route.params.id,
             formatoflag: this.formatoflag,
           },
-          headers: {
-           
-          },
+          headers: {},
           responseType: "blob",
         });
 
@@ -418,9 +427,7 @@ export default {
             id_house: this.$route.params.id,
             formatoflag: this.formatoflag,
           },
-          headers: {
-           
-          },
+          headers: {},
           responseType: "blob",
         });
 
@@ -472,7 +479,6 @@ export default {
         method: "put",
         url: process.env.VUE_APP_URL_MAIN + `setTrackingToken`,
         headers: {
-         
           "Content-Type": "application/json",
         },
         data: data,
@@ -538,7 +544,6 @@ export default {
         method: "post",
         url: process.env.VUE_APP_URL_MAIN + "setMasterContainers",
         headers: {
-         
           "Content-Type": "application/json",
         },
         data: data,
@@ -633,7 +638,6 @@ export default {
         method: "put",
         url: process.env.VUE_APP_URL_MAIN + "setHouseEdit",
         headers: {
-         
           "Content-Type": "application/json",
         },
         data: data,
@@ -688,7 +692,7 @@ export default {
                     params: {
                       code_master: vm.$store.state.houses.house.code_master,
                       id_branch: JSON.parse(
-                        sessionStorage.getItem("dataUser")
+                        sessionStorage.getItem("dataUser"),
                       )[0].id_branch,
                     },
                   });
@@ -731,7 +735,6 @@ export default {
                 "setHouseDelete/" +
                 vm.$route.params.id,
               headers: {
-               
                 "Content-Type": "application/json",
               },
             };
@@ -862,7 +865,6 @@ export default {
     },
     async validarMenuNotificaciones() {
       var vm = this;
-      
 
       if (this.$store.state.bank.list.length == 0) {
         Swal.fire({
@@ -919,7 +921,7 @@ export default {
       if (
         !vm.itemsShipment.filter(
           (v) =>
-            v.id == vm.$store.state.houses.house.id_shipment && v.code == "FCL"
+            v.id == vm.$store.state.houses.house.id_shipment && v.code == "FCL",
         ).length
       ) {
         if (!vm.$store.state.houses.house.bultos) {
@@ -961,7 +963,6 @@ export default {
         method: "post",
         url: process.env.VUE_APP_URL_MAIN + "getHouseListId/",
         headers: {
-         
           "Content-Type": "application/json",
         },
         data: data,
@@ -970,7 +971,6 @@ export default {
       await axios(config)
         .then(function (response) {
           sessionStorage.setItem("auth-token", response.data.token);
-          
 
           vm.$store.state.houses.house =
             response.data.data && response.data.data[0];
@@ -993,7 +993,6 @@ export default {
           method: "post",
           url: process.env.VUE_APP_URL_MAIN + "getHouseServices",
           headers: {
-           
             "Content-Type": "application/json",
           },
           data: data,
@@ -1063,7 +1062,6 @@ export default {
         method: "post",
         url: process.env.VUE_APP_URL_MAIN + "sendNotificacionHouse",
         headers: {
-         
           "Content-Type": "application/json",
         },
         data: data,

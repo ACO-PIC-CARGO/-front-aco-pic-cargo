@@ -26,6 +26,31 @@
         />
       </v-col>
 
+      <v-col cols="12">
+        <v-autocomplete
+          :items="$store.state.pricing.listEjecutivo"
+          item-text="nombrecompleto"
+          item-value="id"
+          item-key="id"
+          label="Vendedor"
+          v-model="$store.state.houses.house.id_vendedor"
+          
+          >
+        </v-autocomplete>
+      </v-col>
+      <v-col cols="12">
+        <v-autocomplete
+          :items="$store.state.pricing.listEjecutivo"
+          item-text="nombrecompleto"
+          item-value="id"
+          item-key="id"
+          label="Pricing"
+          v-model="$store.state.houses.house.id_pricing"
+          
+          >
+        </v-autocomplete>
+      </v-col>
+
       <!-- Fila 3: Motonave + Viaje (sin N° BL House en vista) -->
       <v-col cols="12" md="6">
         <v-text-field
@@ -174,7 +199,7 @@
 
 <script>
 import { mapState, mapActions } from "vuex";
-import axios from '@/api/axios-config';
+import axios from "@/api/axios-config";
 export default {
   name: "dataEmbar",
   props: {
@@ -247,7 +272,6 @@ export default {
         method: "post",
         url: process.env.VUE_APP_URL_MAIN + "deleteContainers",
         headers: {
-         
           "Content-Type": "application/json",
         },
         data: data,
@@ -277,7 +301,6 @@ export default {
         method: "post",
         url: process.env.VUE_APP_URL_MAIN + "setHouseContainers",
         headers: {
-         
           "Content-Type": "application/json",
         },
         data: data,
@@ -307,7 +330,7 @@ export default {
         //   method: "post",
         //   url: process.env.VUE_APP_URL_MAIN + "getHouseListId/",
         //   headers: {
-        //    
+        //
         //     "Content-Type": "application/json",
         //   },
         //   data: data,
