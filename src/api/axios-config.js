@@ -12,8 +12,17 @@ const http = axios.create({
 // Interceptor de petición para inyectar headers dinámicamente
 http.interceptors.request.use((config) => {
   const userData = JSON.parse(sessionStorage.getItem("dataUser"));
+  // JSON.parse(sessionStorage.getItem("dataUser"))[0].id_branch
+  const branch = JSON.parse(sessionStorage.getItem("dataUser"))
   const token = sessionStorage.getItem("auth-token");
 
+  if (branch && branch[0].id_branch) {
+    config.headers["X-Branch-ID"] = branch[0].id_branch;
+  }
+
+  if (userData && userData[0].users) {
+    config.headers["X-User-ID"] = userData[0].users;
+  }
   if (userData && userData[0].users) {
     config.headers["X-User-ID"] = userData[0].users;
   }

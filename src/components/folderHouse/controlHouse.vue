@@ -387,7 +387,7 @@ import Bitacora from "./bitacora.vue";
 import services from "./services.vue";
 import { mapActions, mapState } from "vuex";
 
-import axios from '@/api/axios-config';
+import axios from "@/api/axios-config";
 import Swal from "sweetalert2";
 
 export default {
@@ -575,6 +575,7 @@ export default {
     Promise.all([
       this._getModality(),
       this._getShipment(),
+      this.getCargarEjecutivo(),
       this.getListBanksDetailsCargarPorSucursal(),
       this.cargarListadoQuoteAduana(),
       this.fetchDataBank({
@@ -609,6 +610,7 @@ export default {
       "verHouse",
       "guardarCarpetaHouse",
       "deleteHouse",
+      "getCargarEjecutivo",
     ]),
     getTipoDocumento() {
       return this.isAereo() ? "GUÍA AÉREA" : "BL";
@@ -625,9 +627,7 @@ export default {
             id_house: this.$route.params.id,
             formatoflag: this.formatoflag,
           },
-          headers: {
-           
-          },
+          headers: {},
           responseType: "blob",
         });
 
@@ -665,9 +665,7 @@ export default {
             id_house: this.$route.params.id,
             formatoflag: this.formatoflag,
           },
-          headers: {
-           
-          },
+          headers: {},
           responseType: "blob",
         });
 
@@ -719,7 +717,6 @@ export default {
         method: "put",
         url: process.env.VUE_APP_URL_MAIN + `setTrackingToken`,
         headers: {
-         
           "Content-Type": "application/json",
         },
         data: data,
@@ -795,7 +792,6 @@ export default {
         method: "post",
         url: process.env.VUE_APP_URL_MAIN + "setMasterContainers",
         headers: {
-         
           "Content-Type": "application/json",
         },
         data: data,
@@ -914,7 +910,6 @@ export default {
         method: "put",
         url: process.env.VUE_APP_URL_MAIN + "setHouseEdit",
         headers: {
-         
           "Content-Type": "application/json",
         },
         data: data,
@@ -1224,7 +1219,6 @@ export default {
         method: "post",
         url: process.env.VUE_APP_URL_MAIN + "getHouseListId/",
         headers: {
-         
           "Content-Type": "application/json",
         },
         data: data,
@@ -1255,7 +1249,6 @@ export default {
           method: "post",
           url: process.env.VUE_APP_URL_MAIN + "getHouseServices",
           headers: {
-           
             "Content-Type": "application/json",
           },
           data: data,
@@ -1320,7 +1313,6 @@ export default {
         method: "post",
         url: process.env.VUE_APP_URL_MAIN + "sendNotificacionHouse",
         headers: {
-         
           "Content-Type": "application/json",
         },
         data: data,

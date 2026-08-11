@@ -773,9 +773,10 @@ export default {
           let porcentaje_pago = item.montoparcial / item.total_mon_local;
           valorFila = item.monto_original_total * porcentaje_pago;
         } else {
-          valorFila = parseFloat(item.monto_original_total) || 0;
+          valorFila = parseFloat(item.total_mon_local) || 0;
         }
-        return acc + valorFila;
+        console.log(valorFila)
+        return acc + parseFloat(valorFila);
       }, 0);
 
       this.monto = total.toFixed(2);
@@ -859,7 +860,7 @@ export default {
       if (item.symbol == "USD") {
         return `${item.symbol} ${monto.toFixed(2)}`;
       } else {
-        return `${this.symbol} ${(monto).toFixed(2)}`;
+        return `${this.symbol} ${monto.toFixed(2)}`;
       }
     },
     buscarOperacionAlEscribir() {
