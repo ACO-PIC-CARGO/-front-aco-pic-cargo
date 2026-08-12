@@ -864,7 +864,13 @@ export default {
     },
     exportarMacro() {
       if (this.type == "LCL") {
-        window.open(this.macroLCL, "_blank");
+        const link = document.createElement("a");
+        link.href = this.macroLCL;
+        // Forzamos el nombre con el que se va a descargar
+        link.setAttribute("download", "MACRO_CARLOS.xlsm");
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
       }
     },
     exportarFormato() {
