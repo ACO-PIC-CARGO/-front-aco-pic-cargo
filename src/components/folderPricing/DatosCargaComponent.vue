@@ -1677,6 +1677,9 @@ export default {
         } else {
           this.$store.state.pricing.datosPrincipales.esindividualflag = true;
           this.$store.state.pricing.datosPrincipales.esgrupalflag = false;
+          setTimeout(() => {
+            this.cambiarImpuesto();
+          }, 100);
         }
       },
     },
@@ -1696,6 +1699,9 @@ export default {
             percepcionAduana.id;
           this.$store.state.pricing.datosPrincipales.esgrupalflag = true;
           this.$store.state.pricing.datosPrincipales.esindividualflag = false;
+          setTimeout(() => {
+            this.cambiarImpuesto();
+          }, 100);
         }
       },
     },
