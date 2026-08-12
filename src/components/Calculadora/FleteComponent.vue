@@ -46,6 +46,17 @@
         >
           Descargar Formato
         </v-btn>
+
+        <v-btn
+          color="#1D6F42"
+          :loading="procesando3"
+          class="mx-1"
+          small
+          @click="exportarMacro()"
+          dark
+        >
+          Descargar Macro
+        </v-btn>
         <!-- <v-btn
           color="default"
           class="mx-1"
@@ -528,12 +539,15 @@ export default {
       subir: false,
       procesando: false,
       procesando2: false,
+      procesando3: false,
       sucursal: [],
       sucursales: null,
       registrarFlag: false,
       offcanvas: false,
       importacionflag: "true",
       symbol: "",
+      macroLCL:
+        "http://api.agentedecargaonline.com/uploads/MACRO_CARLOS_AGOSTO_2026_08_11_11_43_00.xlsm",
       headerLCL: [
         // { text: "PAIS ORIGEN", value: "pais_origen", sortable: false },
         { text: "Pais Origen", value: "pais_origen", sortable: false },
@@ -846,6 +860,11 @@ export default {
           default:
             break;
         }
+      }
+    },
+    exportarMacro() {
+      if (this.type == "LCL") {
+        window.open(this.macroLCL, "_blank");
       }
     },
     exportarFormato() {
