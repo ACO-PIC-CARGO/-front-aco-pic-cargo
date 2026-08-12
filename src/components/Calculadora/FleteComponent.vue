@@ -547,7 +547,7 @@ export default {
       importacionflag: "true",
       symbol: "",
       macroLCL:
-        "http://api.agentedecargaonline.com/uploads/MACRO_CARLOS_AGOSTO_2026_08_11_11_43_00.xlsm",
+        "https://api.agentedecargaonline.com/uploads/MACRO_CARLOS_AGOSTO_2026_08_11_11_43_00.xlsm",
       headerLCL: [
         // { text: "PAIS ORIGEN", value: "pais_origen", sortable: false },
         { text: "Pais Origen", value: "pais_origen", sortable: false },
