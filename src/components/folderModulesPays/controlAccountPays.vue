@@ -58,22 +58,18 @@
             </v-row>
           </v-col>
           <v-col cols="12" md="6" class="pb-0">
-            <treeselect
-              :multiple="false"
-              :options="$store.state.balances.arbolGastos"
-              placeholder="Seleccione un Sub Gastos"
+            <custom-tree-select
               v-model="id_gastos"
-              :disable-branch-nodes="true"
-              label="Sub Gasto"
-              search-nested
-              dense
-              outlined
+              :options="$store.state.balances.arbolGastos"
+              :rules="[(v) => !!v || 'Dato Requerido']"
               :disabled="radio == ''"
-              class="my-0"
-              :rules="[(v) => !!v || 'Datos Requerido']"
-              required
+              :outlined="false"
+              :dense="false"
+              placeholder="Seleccione un Sub Gasto"
+              search-nested
+              :disable-branch-nodes="true"
+              :multiple="false"
             />
-            <span class="red--text">{{ errorGasto }}</span>
           </v-col>
           <v-col cols="12" md="6">
             <v-autocomplete
@@ -152,14 +148,13 @@
 
           <v-col cols="12" md="12">
             <v-card-title primary-title>
-              Cargar Conceptos a Pagar
               <v-btn
                 color="success"
-                class="mx-2"
                 @click="abrirDialogNuevoProducto()"
                 :disabled="radio == ''"
+                style="min-width: 350px"
               >
-                Añadir
+                Añadir Conceptos a Pagar
               </v-btn>
             </v-card-title>
             <v-simple-table dense v-if="itemsProductos.length > 0">
@@ -414,7 +409,7 @@
                 placeholder="Descripción"
                 label="Producto/ Concepto"
                 v-model="producto.concepto"
-                :rules="conceptoRule"
+                :rules="[(v) => !!v || 'Dato Requerido']"
                 required
               ></v-text-field>
             </v-col>
@@ -424,8 +419,11 @@
                 label="Monto"
                 v-model="producto.monto"
                 type="number"
-                :rules="[(v) => !!v > 0 || 'El monto es requerido']"
                 :prefix="symbol"
+                :rules="[
+                  (v) => !!v || 'Dato Requerido',
+                  (v) => v > 0 || 'Monto Mayor que 0.00',
+                ]"
               ></v-text-field>
             </v-col>
             <v-col cols="12" md="12">
@@ -460,6 +458,7 @@ import { mapActions, mapState } from "vuex";
 import Treeselect from "@riophae/vue-treeselect";
 // import the styles
 import "@riophae/vue-treeselect/dist/vue-treeselect.css";
+import CustomTreeSelect from "./../comun/CustomTreeSelect.vue";
 import Swal from "sweetalert2";
 export default {
   name: "controlAccountPaysCom",
@@ -470,7 +469,7 @@ export default {
     id_pro: "",
     tipo: "",
   },
-  components: { Treeselect },
+  components: { Treeselect, CustomTreeSelect },
 
   data: () => ({
     date: new Date(Date.now() - new Date().getTimezoneOffset() * 60000)
@@ -881,7 +880,6 @@ export default {
         await axios(config)
           .then(function (response) {
             vm.itemsInvoice = response.data.data;
-            console.log(vm.itemsInvoice)
             if (response.data.data.estado) {
               vm.$swal({
                 icon: "success",
@@ -935,6 +933,8 @@ export default {
     },
 
     añadirProducto() {
+      if (!this.$refs.validacionConcepto.validate()) return;
+
       let igv = 0;
       let igvdolar = 0;
       let total = parseFloat(this.producto.monto);

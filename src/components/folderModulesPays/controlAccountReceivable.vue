@@ -166,15 +166,13 @@
           </v-col>
           <v-col cols="12" md="12">
             <v-card-title primary-title>
-              Cargar Conceptos a Cobrar
               <v-btn
                 color="success"
-                class="mx-2"
                 @click="abrirDialogNuevoProducto()"
                 :disabled="radio == ''"
-                v-if="tipo != 'ver'"
+                style="min-width: 350px"
               >
-                Añadir
+                Añadir Conceptos a Pagar
               </v-btn>
             </v-card-title>
             <v-simple-table dense v-if="itemsproductos.length > 0">
@@ -428,7 +426,7 @@
                 placeholder="Descripción"
                 label="Producto/ Concepto"
                 v-model="producto.concepto"
-                :rules="conceptoRule"
+                :rules="[(v) => !!v || 'Dato Requerido']"
                 required
               ></v-text-field>
             </v-col>
@@ -438,8 +436,11 @@
                 label="Monto"
                 v-model="producto.monto"
                 type="number"
-                :rules="[(v) => !!v > 0 || 'El monto es requerido']"
                 :prefix="symbol"
+                :rules="[
+                  (v) => !!v || 'Dato Requerido',
+                  (v) => v > 0 || 'Monto Mayor que 0.00',
+                ]"
               ></v-text-field>
             </v-col>
             <v-col cols="12" md="12">
@@ -918,6 +919,7 @@ export default {
     },
 
     añadirProducto() {
+      if (!this.$refs.validacionConcepto.validate()) return;
       let igv = 0;
       let igvdolar = 0;
       let total = parseFloat(this.producto.monto);

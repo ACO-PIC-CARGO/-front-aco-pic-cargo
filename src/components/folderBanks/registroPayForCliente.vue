@@ -20,19 +20,22 @@
           >
           </v-autocomplete>
         </v-col>
-        <v-col cols="12" md="2" class="pb-0">
+        <v-col
+          cols="12"
+          md="2"
+          class="pb-0"
+          v-if="Object.keys(id_cuenta).length > 0"
+        >
           Monto Depositado En Banco:
           <!-- <v-icon @click="snackbar = true">mdi-information</v-icon> -->
           <v-text-field
             outlined
             dense
-            ref="txtMontoLocal"
             v-model="monto_local"
             type="number"
             :prefix="symbol"
             width="50px"
             :error-messages="errorMesage.monto_local"
-            :readonly="!Object.keys(id_cuenta).length > 0"
             @input="
               monto_local
                 ? (errorMesage.monto_local = '')
@@ -775,7 +778,7 @@ export default {
         } else {
           valorFila = parseFloat(item.total_mon_local) || 0;
         }
-        console.log(valorFila)
+        console.log(valorFila);
         return acc + parseFloat(valorFila);
       }, 0);
 
@@ -934,7 +937,7 @@ export default {
         (parseFloat(this.monto_local) +
           parseFloat(this.montogastobancario || 0)) /
         this.monto;
-      return tc.toFixed(4);
+      return tc ? tc.toFixed(4) : 1;
     },
     itemsOrdenados() {
       const items = [...this.$store.state.bank.deudaACliente];
@@ -961,8 +964,10 @@ export default {
         (coin) => coin.id === id_coins,
       );
       this.symbol = coins ? coins.symbol : "USD";
-      this.$refs.txtMontoLocal.focus();
       this.dialogLlenarMontoDepositadoBanco = true;
+      setTimeout(() => {
+        this.$refs.txtMontoLocal.focus();
+      }, 100);
     },
     fecha_operacion(newVal) {
       if (newVal) {
