@@ -15,7 +15,9 @@ export default {
     listUser: () =>
       import("../../components/Calculadora/listUserCalcComponent.vue"),
   },
-  mounted() {},
+  mounted() {
+    this.$store.state.mainTitle = "Usuarios Calculadora";
+  },
   methods: {},
 };
 </script>
