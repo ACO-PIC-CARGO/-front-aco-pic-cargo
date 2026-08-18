@@ -688,7 +688,7 @@ export default {
       };
       var config = {
         data: data,
-        method: "post",
+        method: "get",
         url: process.env.VUE_APP_URL_MAIN + "getHouseListAll",
 
         headers: {

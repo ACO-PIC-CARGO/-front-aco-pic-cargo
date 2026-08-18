@@ -642,7 +642,7 @@ export default {
         id_branch: JSON.parse(sessionStorage.getItem("dataUser"))[0].id_branch,
       };
       var config = {
-        method: "post",
+        method: "get",
         url: process.env.VUE_APP_URL_MAIN + "getHouseListAll",
         data: data,
         headers: {

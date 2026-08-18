@@ -1,6 +1,6 @@
 {
   "name": "aco_agente_aduana",
-  "version": "0.5.1",
+  "version": "0.2.15",
   "private": true,
   "scripts": {
     "dev": "vue-cli-service serve",

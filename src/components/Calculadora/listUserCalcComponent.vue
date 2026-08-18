@@ -13,7 +13,7 @@
       <!-- </v-col> -->
       <!-- <v-col> -->
       <v-spacer></v-spacer>
-      <v-simple-table dense class="elevation-5">
+      <!-- <v-simple-table dense class="elevation-5">
         <thead>
           <tr>
             <th>Dia</th>
@@ -29,7 +29,7 @@
           </tr>
         </tbody>
       </v-simple-table>
-
+      -->
       <v-spacer></v-spacer>
 
       <v-btn color="green" text @click="exportar()" :loading="loading"
@@ -687,7 +687,7 @@ export default {
         { text: "Puerto Origen", value: "port_origen" },
         { text: "Puerto Destino", value: "port_destino" },
         { text: "Peso", value: "peso" },
-        { text: "Volumn", value: "volumen" },
+        { text: "Volumen", value: "volumen" },
         // { text: "", value: "servicios" },
         { text: "Valor Mercancía", value: "valormercancia" },
         { text: "Correo", value: "email" },
@@ -748,21 +748,12 @@ export default {
     };
   },
   async mounted() {
-    //this.$store.state.spiner = true;
     moment.locale("es");
     let fechahora = moment(this.fecha).format("YYYY-MM-DDTHH:mm");
     this.call.date = fechahora;
-    // await this.getModulesEntities();
     await this.getListUserCalc();
-    // await this.getCboStatus();
-    this.calcResumen();
-    let index = 0;
-    this.$store.state.calculadoras.listUser.forEach((element) => {
-      element.index = index;
-      index++;
-    });
 
-    //this.$store.state.spiner = false;
+    let index = 0;
   },
   methods: {
     ...mapActions([
@@ -809,7 +800,7 @@ export default {
         };
         this.$store.state.overlay = true;
         await this.SetCall(data);
-        await this.getListUserCalc();
+        // await this.getListUserCalc();
 
         this.call = {
           iduser: "",
@@ -827,34 +818,34 @@ export default {
     calcResumen() {
       let items = [];
       let hoy = moment(new Date()).format("YYYY-MM-DD");
-      if (this.$store.state.calculadoras.listUser.length > 0) {
-        while (items.length <= 1) {
-          if (
-            this.$store.state.calculadoras.listUser.filter(
-              (v) =>
-                moment(v.usuario_creacion).format("YYYY-MM-DD") == hoy ||
-                moment(v.usuario_updated).format("YYYY-MM-DD") == hoy,
-            ).length > 0
-          ) {
-            items.push({
-              day: hoy,
-            });
-          }
-          hoy = moment(hoy).subtract(1, "days").format("YYYY-MM-DD");
-        }
-      }
-      items.forEach((element) => {
-        element.new = this.$store.state.calculadoras.listUser.filter(
-          (v) =>
-            moment(v.usuario_creacion).format("YYYY-MM-DD") == element.day &&
-            v.list_cotizacion.length == 1,
-        ).length;
-        element.recurrente = this.$store.state.calculadoras.listUser.filter(
-          (v) =>
-            moment(v.usuario_creacion).format("YYYY-MM-DD") == element.day &&
-            v.list_cotizacion.length != 1,
-        ).length;
-      });
+      // if (this.$store.state.calculadoras.listUser.length > 0) {
+      //   while (items.length <= 1) {
+      //     if (
+      //       this.$store.state.calculadoras.listUser.filter(
+      //         (v) =>
+      //           moment(v.usuario_creacion).format("YYYY-MM-DD") == hoy ||
+      //           moment(v.usuario_updated).format("YYYY-MM-DD") == hoy,
+      //       ).length > 0
+      //     ) {
+      //       items.push({
+      //         day: hoy,
+      //       });
+      //     }
+      //     hoy = moment(hoy).subtract(1, "days").format("YYYY-MM-DD");
+      //   }
+      // }
+      // items.forEach((element) => {
+      //   element.new = this.$store.state.calculadoras.listUser.filter(
+      //     (v) =>
+      //       moment(v.usuario_creacion).format("YYYY-MM-DD") == element.day &&
+      //       v.list_cotizacion.length == 1,
+      //   ).length;
+      //   element.recurrente = this.$store.state.calculadoras.listUser.filter(
+      //     (v) =>
+      //       moment(v.usuario_creacion).format("YYYY-MM-DD") == element.day &&
+      //       v.list_cotizacion.length != 1,
+      //   ).length;
+      // });
       this.itemResumen = items;
     },
     openHistoryCall(item) {
