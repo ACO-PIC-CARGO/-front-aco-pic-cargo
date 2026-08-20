@@ -773,7 +773,9 @@ import Swal from "sweetalert2";
 
 export default {
   created() {
-    this.socket = io(process.env.VUE_APP_URL_MAIN);
+    this.socket = io(process.env.VUE_APP_URL_MAIN, {
+      transports: ["polling"],
+    });
     this.socket.on("connect_error", (err) => {
       console.error("Error al conectar con Socket.IO:", err);
     });
