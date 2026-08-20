@@ -988,12 +988,12 @@ export default {
       let branch = JSON.parse(sessionStorage.getItem("dataBranch"))[0];
 
       if (!valBranch.includes(branch.id)) return false;
-
-      return this.$store.state.pricing.listIncoterms.some(
-        (v) =>
-          v.id == this.$store.state.pricing.datosPrincipales.idincoterms &&
-          v.name == "FOB",
-      );
+      return true;
+      // return this.$store.state.pricing.listIncoterms.some(
+      //   (v) =>
+      //     v.id == this.$store.state.pricing.datosPrincipales.idincoterms &&
+      //     v.name == "FOB",
+      // );
     },
     obtenerFleteOpcion(item) {
       let datoFlete = { monto: 0, tienefleteflag: false, fechavigencia: null };
