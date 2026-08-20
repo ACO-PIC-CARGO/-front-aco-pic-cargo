@@ -21,6 +21,7 @@
         :error-messages="errorMessages"
         :error="!!errorMessages"
         :clearable="clearable"
+        :rules="rules"
         @click:clear="limpiarFecha"
       ></v-text-field>
     </template>
@@ -36,7 +37,6 @@
 <script>
 export default {
   props: {
-    // Recibimos el valor del padre (formato YYYY-MM-DD)
     value: {
       type: String,
       default: null,
@@ -47,7 +47,7 @@ export default {
     },
     outlined: {
       type: Boolean,
-      default: false, // o "filled"
+      default: false,
     },
     dense: {
       type: Boolean,
@@ -59,30 +59,30 @@ export default {
     },
     verflag: {
       type: Boolean,
-      required: false,
       default: false,
     },
     clearable: {
       type: Boolean,
-      required: false,
       default: false,
+    },
+    // Añadir esta prop para interceptar las reglas del padre
+    rules: {
+      type: Array,
+      default: () => [],
     },
   },
   data: () => ({
     menuDesde: false,
   }),
   computed: {
-    // Propiedad intermedia para no mutar la prop directamente
     fechaInterna: {
       get() {
         return this.value;
       },
       set(val) {
-        // Emitimos el cambio al padre en formato estándar
         this.$emit("input", val);
       },
     },
-    // Solo para mostrar en el text-field (DD/MES/YYYY)
     labelFormateada() {
       if (!this.value) return "";
       const [year, month, day] = this.value.split("-");
@@ -105,7 +105,6 @@ export default {
   },
   methods: {
     limpiarFecha() {
-      // Al limpiar, emitimos null al padre (el store)
       this.$emit("input", null);
     },
   },

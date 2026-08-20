@@ -956,7 +956,8 @@ export default {
             flete_5_10: rows[index][5],
             flete_10_15: rows[index][6],
             moneda: rows[index][7],
-            vigencia: moment(rows[index][8]).format("YYYY-MM-DD"),
+            // vigencia: moment(rows[index][8]).format("YYYY-MM-DD"),
+            vigencia: moment.utc(rows[index][8]).format("YYYY-MM-DD")
           });
         }
       }
