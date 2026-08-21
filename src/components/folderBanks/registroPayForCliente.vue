@@ -16,7 +16,6 @@
             @change="obtenerListado()"
             hide-details
             :error-messages="errorMesage.cliente"
-            id="cboProveedor"
           >
           </v-autocomplete>
         </v-col>
@@ -27,7 +26,6 @@
           v-if="Object.keys(id_cuenta).length > 0"
         >
           Monto Depositado En Banco:
-          <!-- <v-icon @click="snackbar = true">mdi-information</v-icon> -->
           <v-text-field
             outlined
             dense
@@ -71,7 +69,7 @@
           ></v-text-field>
         </v-col>
 
-        <v-col cols="12">
+        <v-col cols="12" v-if="cliente">
           <v-tabs
             v-model="pasos"
             centered
@@ -88,8 +86,49 @@
           </v-tabs>
           <v-tabs-items v-model="pasos">
             <v-tab-item key="detallesPago">
+              <v-row class="mt-2">
+                <v-col cols="12" md="6" class="py-1">
+                  <v-autocomplete
+                    :items="$store.state.bancos.cuentas"
+                    item-text="label"
+                    item-value="id"
+                    label="Cuenta y Banco Ingreso de Banco"
+                    v-model="id_cuenta"
+                    return-object
+                    outlined
+                    dense
+                    :rules="[
+                      (v) =>
+                        (v && Object.keys(v).length > 0 && !!v.id) ||
+                        'Dato Requerido',
+                    ]"
+                  ></v-autocomplete>
+                </v-col>
+                <v-col cols="12" md="6" class="py-1">
+                  <v-text-field
+                    label="Buscar Expediente, Factura o Procedencia"
+                    v-model="searchTableDetalle"
+                    style="max-width: 400px"
+                    outlined
+                    :disabled="itemsOrdenados.length == 0"
+                    dense
+                    v-if="
+                      id_cuenta &&
+                      Object.keys(id_cuenta).length > 0 &&
+                      !!id_cuenta.id
+                    "
+                  ></v-text-field>
+                </v-col>
+              </v-row>
               <v-row class="mt-1">
-                <v-col cols="12">
+                <v-col
+                  cols="12"
+                  v-if="
+                    id_cuenta &&
+                    Object.keys(id_cuenta).length > 0 &&
+                    !!id_cuenta.id
+                  "
+                >
                   <v-data-table
                     :headers="headers"
                     :items="itemsOrdenados"
@@ -185,6 +224,13 @@
                     class="mx-1"
                     color="success"
                     @click="continuarGastoBancario()"
+                    :disabled="
+                      !(
+                        id_cuenta &&
+                        Object.keys(id_cuenta).length > 0 &&
+                        !!id_cuenta.id
+                      )
+                    "
                   >
                     Continuar
                   </v-btn>
@@ -449,15 +495,6 @@
         </v-col>
       </v-row>
     </v-container>
-    <v-snackbar v-model="snackbar">
-      Monto en moneda {{ symbol }} para realizar el pago. El tipo de cambio se
-      calculará automáticamente al ingresar el monto en moneda local.
-      <template v-slot:action="{ attrs }">
-        <v-btn color="red" text v-bind="attrs" @click="snackbar = false">
-          Close
-        </v-btn>
-      </template>
-    </v-snackbar>
 
     <v-dialog
       v-model="dialogLlenarMontoDepositadoBanco"
@@ -526,7 +563,7 @@ export default {
       conceptogastobancario: "",
       montogastobancario: 0,
       monto_local: 0,
-      snackbar: false,
+
       pasos: 0,
       monto: 0,
       loading: false,
