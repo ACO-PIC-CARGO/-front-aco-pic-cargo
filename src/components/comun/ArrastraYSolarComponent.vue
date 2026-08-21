@@ -8,25 +8,46 @@
   >
     <v-card class="py-0 elevation-0 width-100">
       <v-card-text class="pa-0">
-        <!-- 1. Estado: Archivo Cargado -->
-        <div v-if="$store.state.files.payPath" class="clsArchivoCargado">
-          <span><b>Archivo Cargado:</b></span>
-          {{ file ? file.name : "Soporte adjunto" }}
-          <v-btn
-            color="info"
-            icon
-            :href="$store.state.files.datosPath.ruta"
-            target="_blank"
-          >
-            <v-icon color="info" size="xl">mdi-file</v-icon>
-          </v-btn>
-          <v-btn color="red" icon @click="eliminarFile">
-            <v-icon color="red" size="xl">mdi-close-circle</v-icon>
-          </v-btn>
+        <!-- 1. Estado: Archivo Cargado (Ya sea por Prop Inicial o subido recientemente) -->
+        <div v-if="tieneArchivo" class="clsArchivoCargado">
+          <div class="d-flex align-center overflow-hidden">
+            <v-icon color="success" class="mr-2"
+              >mdi-check-circle-outline</v-icon
+            >
+            <span class="text-truncate">
+              <b>Archivo Cargado:</b>
+              {{ nombreArchivo }}
+            </span>
+          </div>
+
+          <div class="d-flex align-center">
+            <!-- Botón Ver/Descargar -->
+            <v-btn
+              v-if="urlVisor"
+              color="info"
+              icon
+              :href="urlVisor"
+              target="_blank"
+              title="Ver archivo"
+            >
+              <v-icon color="info" size="22">mdi-open-in-new</v-icon>
+            </v-btn>
+
+            <!-- Botón Eliminar (Deshabilitado si solo es lectura / modo 'ver') -->
+            <v-btn
+              v-if="!readOnly"
+              color="red"
+              icon
+              @click="eliminarFile"
+              title="Eliminar archivo"
+            >
+              <v-icon color="red" size="22">mdi-close-circle</v-icon>
+            </v-btn>
+          </div>
         </div>
 
         <!-- 2. Estado: Zona Dropzone (Sube / Arrastra) -->
-        <div v-else>
+        <div v-else-if="!readOnly">
           <div
             class="drop-area"
             :class="{ 'drop-area-error': errorState }"
@@ -53,9 +74,9 @@
 
           <!-- 3. Estado: Cargando -->
           <div v-else>
-            <v-card color="primary" dark>
-              <v-card-text>
-                Se están analizando los archivos, un momento por favor....
+            <v-card color="primary" dark class="pa-2">
+              <v-card-text class="pa-2 text-center">
+                Se está procesando el archivo, un momento por favor...
                 <v-progress-linear
                   indeterminate
                   color="white"
@@ -64,6 +85,12 @@
               </v-card-text>
             </v-card>
           </div>
+        </div>
+
+        <!-- 4. Estado: No hay archivo y es solo lectura -->
+        <div v-else class="text-caption grey--text text--darken-1 pa-2 italic">
+          <v-icon small color="grey">mdi-file-hidden</v-icon> No se ha adjuntado
+          ningún soporte.
         </div>
       </v-card-text>
     </v-card>
@@ -75,31 +102,92 @@ import Swal from "sweetalert2";
 import { mapActions } from "vuex";
 
 export default {
+  name: "ArrastraYSolarComponent",
   props: {
-    // Propiedad para interceptar las reglas pasadas por el v-form
+    // Reglas de validación para v-form
     rules: {
       type: Array,
       default: () => [],
+    },
+    // URL previa del archivo (si la tienes desde BD)
+    initialUrl: {
+      type: String,
+      default: null,
+    },
+    // ID previo del archivo (si la tienes desde BD)
+    initialId: {
+      type: [String, Number],
+      default: null,
+    },
+    // Si se pasa true, deshabilita eliminar y subir (Ideal para tipo == 'ver')
+    readOnly: {
+      type: Boolean,
+      default: false,
     },
   },
   data() {
     return {
       loading: false,
-      isDragging: true,
-      boolFile: false,
-      payPath: 0,
-      msgfile: "",
+      isDragging: false,
       file: null,
       errorState: false,
+      // Manejo local cuando se pasa prop previa
+      existingUrl: null,
+      existingId: null,
     };
   },
   computed: {
-    // Retorna el ID cargado para que v-input valide si existe o es null
+    // Evalúa si hay archivo (ya sea subido nuevo o enviado por Props)
+    tieneArchivo() {
+      return (
+        !!this.$store.state.files.payPath ||
+        !!this.existingUrl ||
+        !!this.existingId
+      );
+    },
+    // Retorna el ID actual para que v-input valide si existe
     archivoValido() {
-      return this.$store.state.files.payPath || null;
+      return (
+        this.$store.state.files.payPath ||
+        this.existingId ||
+        this.existingUrl ||
+        null
+      );
+    },
+    // URL para ver el archivo en el botón
+    urlVisor() {
+      if (this.$store.state.files.datosPath?.ruta) {
+        return this.$store.state.files.datosPath.ruta;
+      }
+      return this.existingUrl || null;
+    },
+    // Nombre a mostrar en la tarjeta
+    nombreArchivo() {
+      if (this.file) return this.file.name;
+      if (this.existingUrl) {
+        // Extrae el nombre del archivo desde la URL si existe
+        const filename = this.existingUrl.split("/").pop();
+        return filename || "Soporte adjunto";
+      }
+      return "Soporte adjunto";
+    },
+  },
+  watch: {
+    initialUrl: {
+      immediate: true,
+      handler(val) {
+        this.existingUrl = val;
+      },
+    },
+    initialId: {
+      immediate: true,
+      handler(val) {
+        this.existingId = val;
+      },
     },
   },
   mounted() {
+    // Reseteamos el store al montar para no arrastrar basura de otras vistas
     this.$store.state.files.payPath = null;
     this.$store.state.files.datosPath = null;
   },
@@ -107,6 +195,7 @@ export default {
     ...mapActions(["_uploadFile"]),
 
     async handleDrop(event) {
+      if (this.readOnly) return;
       event.preventDefault();
       this.isDragging = false;
       const droppedFiles = event.dataTransfer.files;
@@ -118,6 +207,7 @@ export default {
     },
 
     openFileInput() {
+      if (this.readOnly) return;
       this.$refs.fileInput.$el.click();
     },
 
@@ -139,13 +229,21 @@ export default {
       }
 
       vm.loading = true;
-      vm.msgfile = "";
 
       try {
         await this._uploadFile(vm.file);
+
+        // Limpiamos referencias viejas si sube uno nuevo
+        this.existingUrl = null;
+        this.existingId = null;
+
         Swal.fire({
           icon: "success",
           title: "Archivo Cargado Correctamente",
+          toast: true,
+          position: "top-end",
+          showConfirmButton: false,
+          timer: 3000,
         });
 
         vm.$emit("idArchivoCargado", {
@@ -166,6 +264,8 @@ export default {
     eliminarFile() {
       this.$store.state.files.payPath = null;
       this.$store.state.files.datosPath = null;
+      this.existingUrl = null;
+      this.existingId = null;
       this.file = null;
       this.$emit("idArchivoCargado", { id: null, archivo: null });
     },
@@ -182,7 +282,7 @@ export default {
 }
 .drop-area {
   width: 100%;
-  height: 100px;
+  height: 90px;
   border: 2px dashed #b0bec5;
   border-radius: 6px;
   display: flex;
@@ -205,7 +305,7 @@ export default {
 }
 
 .clsArchivoCargado {
-  padding: 10px 16px;
+  padding: 8px 14px;
   border: 1px solid #a5d6a7;
   border-radius: 6px;
   background: #e8f5e9;

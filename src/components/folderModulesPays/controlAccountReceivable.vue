@@ -186,7 +186,7 @@
               </div>
 
               <!-- Alerta / Mensaje Informativo -->
-              <div class="d-flex align-center mb-4 pl-1">
+              <div class="d-flex align-center mb-4 pl-1" v-if="tipo !== 'ver'">
                 <v-icon color="orange darken-2" small class="mr-1"
                   >mdi-alert-circle-outline</v-icon
                 >
@@ -209,6 +209,7 @@
                 elevation="0"
                 class="text-uppercase font-weight-bold my-2"
                 @click="abrirDialogNuevoProducto()"
+                v-if="tipo !== 'ver'"
               >
                 <v-icon left>mdi-plus</v-icon>
                 Añadir Concepto de Cobro
@@ -384,64 +385,16 @@
             </v-card>
           </v-col>
 
-          <v-col cols="12" v-if="tipo == 'nuevo' || tipo == 'editar'">
-            <v-row>
-              <v-col cols="12" md="8">
-                <v-file-input
-                  :disabled="radio == ''"
-                  v-model="payfile"
-                  show-size
-                  label="Adjuntar archivo"
-                  @change="_uploadFile()"
-                  dense
-                  filled
-                >
-                </v-file-input>
-              </v-col>
-              <v-col cols="12" md="4">
-                <v-chip
-                  block
-                  v-if="boolFile"
-                  large
-                  class=""
-                  color="success"
-                  outlined
-                  dense
-                >
-                  <v-icon left> mdi-check </v-icon>
-                  Archivo cargado éxitosamente
-                </v-chip>
-              </v-col>
-            </v-row>
+          <v-col cols="12">
+            <ArrastraYSolarComponent
+              :initial-url="payPath"
+              :initial-id="id_path"
+              :read-only="tipo === 'ver'"
+              :rules="[(v) => !!v || 'El archivo soporte es obligatorio']"
+              @idArchivoCargado="recibirId"
+            />
           </v-col>
-          <v-col cols="12" md="9" v-else>
-            <v-card-title primary-title> Documento referencia: </v-card-title>
-            <v-simple-table dense>
-              <tbody>
-                <tr>
-                  <td v-if="payPathName">
-                    {{ name_path }}
-                  </td>
-                  <td v-else>
-                    <v-alert color="orange" type="warning">
-                      No se ha cargado documento</v-alert
-                    >
-                  </td>
-                  <td>
-                    <v-btn
-                      v-if="payPathName"
-                      icon
-                      color="red"
-                      :href="payPath"
-                      target="_blank"
-                    >
-                      <v-icon>mdi-file-pdf-box</v-icon>
-                    </v-btn>
-                  </td>
-                </tr>
-              </tbody>
-            </v-simple-table>
-          </v-col>
+      
           <v-col cols="12" class="d-flex flex-column align-end mt-2">
             <span
               v-if="
@@ -543,9 +496,11 @@ import { mapActions, mapState } from "vuex";
 import Treeselect from "@riophae/vue-treeselect";
 // import the styles
 import "@riophae/vue-treeselect/dist/vue-treeselect.css";
-import { parse } from "path";
+import ArrastraYSolarComponent from "../comun/ArrastraYSolarComponent.vue";
+import { type } from "os";
+
 export default {
-  components: { Treeselect },
+  components: { Treeselect, ArrastraYSolarComponent },
   name: "moduleAccountReceivableCom",
   mixins: [validationMixin],
   props: {
@@ -584,7 +539,7 @@ export default {
     payPath: "",
     name_path: "",
     pathfile: "",
-    payPath: "",
+    id_path: "",
     pathfileAll: "",
     boolFile: false,
     itemsExpedientes: [],
@@ -641,6 +596,15 @@ export default {
         return false;
       }
       this.dialog = true;
+    },
+    recibirId(file) {
+      if (Object.keys(file).length > 0) {
+        this.payPath = file.id;
+        this.id_path = file.id;
+      } else {
+        this.payPath = null;
+        this.id_path = null;
+      }
     },
     clear() {
       this.$v.$reset();
@@ -1201,6 +1165,7 @@ export default {
       vm.radio = vm.InvoiceAdmin[0].type_payment;
       vm.payPathName = vm.InvoiceAdmin[0].originalname;
       vm.payPath = vm.InvoiceAdmin[0].path;
+      vm.id_path = vm.InvoiceAdmin[0].id_path;
       vm.id_proformace = vm.InvoiceAdmin[0].id_proformance;
       vm.id_month = vm.InvoiceAdmin[0].id_month;
       vm.id_year = vm.InvoiceAdmin[0].id_year;
