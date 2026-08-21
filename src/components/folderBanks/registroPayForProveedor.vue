@@ -42,7 +42,12 @@
             "
           ></v-text-field>
         </v-col>
-        <v-col cols="12" md="2" class="pb-0">
+        <v-col
+          cols="12"
+          md="2"
+          class="pb-0"
+          v-if="Object.keys(id_cuenta).length > 0"
+        >
           Total Factura Seleccionada:
           <v-text-field
             outlined
@@ -460,52 +465,68 @@
         </v-col>
       </v-row>
     </v-container>
-
     <v-dialog
       v-model="dialogLlenarMontoDepositadoBanco"
       persistent
-      max-width="450"
+      max-width="35%"
     >
-      <v-card>
+      <v-card class="pa-2">
         <v-card-title class="headline pb-2">
-          <v-icon left color="primary">mdi-hand-coin</v-icon> Confirmar Depósito
-          <v-spacer></v-spacer>
-          <v-btn icon @click="dialogLlenarMontoDepositadoBanco = false">
-            <v-icon>mdi-close</v-icon>
-          </v-btn>
+          <v-icon left color="primary">mdi-hand-coin</v-icon> Confirmar Pago
         </v-card-title>
 
-        <v-card-text class="pt-4">
-          <div class="body-1 mb-4">
-            Por favor, confirma el monto exacto pagado desde tu cuenta bancaria
-            para proceder con la validación de la salida de fondos.
-          </div>
+        <v-card-text class="pt-2">
+          <!-- Banner de advertencia adaptado para salida -->
+          <v-alert
+            type="warning"
+            border="left"
+            colored-border
+            elevation="0"
+            class="amber lighten-5 text--darken-3 mb-4 rounded-lg"
+          >
+            <template v-slot:prepend>
+              <v-icon size="36" color="amber darken-2" class="mr-3">
+                mdi-alert
+              </v-icon>
+            </template>
+            <div>
+              <div
+                class="subtitle-2 font-weight-bold amber--text text--darken-4 text-uppercase"
+              >
+                OBLIGATORIO PARA CONTINUAR
+              </div>
+              <div class="caption font-weight-bold grey--text text--darken-3">
+                Ingresa el monto que salió del banco, según tu estado de
+                cuenta.
+              </div>
+            </div>
+          </v-alert>
 
           <v-text-field
             outlined
-            label="Monto depositado"
+            label="Monto debitado en el banco"
             ref="txtMontoLocal"
             v-model="monto_local"
             type="number"
             :prefix="symbol"
             :error-messages="errorMesage.monto_local"
             :readonly="!Object.keys(id_cuenta).length > 0"
+            :rules="[(v) => !!v || 'Este campo es obligatorio']"
             hide-details="auto"
-            class="mt-2"
           ></v-text-field>
         </v-card-text>
 
-        <v-card-actions class="pa-4">
+        <v-card-actions class="pa-4 pt-0">
           <v-spacer></v-spacer>
-          <!-- <v-btn
-            text
-            color="grey"
-            @click="dialogLlenarMontoDepositadoBanco = false"
-            >Cancelar</v-btn
-          > -->
-          <v-btn color="primary" elevation="2" @click="confirmarDeposito"
-            >Confirmar</v-btn
+          <v-btn
+            color="primary"
+            elevation="1"
+            large
+            class="font-weight-bold text-uppercase px-6"
+            @click="confirmarDeposito"
           >
+            CONTINUAR
+          </v-btn>
         </v-card-actions>
       </v-card>
     </v-dialog>
