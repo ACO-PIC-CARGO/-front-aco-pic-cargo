@@ -783,19 +783,36 @@ export default {
       }
     },
     calcularTotal() {
-      let total = this.selected.reduce((acc, item) => {
-        let valorFila = 0;
+      let totalUSD = this.selected.reduce((acc, item) => {
+        let valorFilaUSD = 0;
+
+        // Detectar si la factura viene en soles usando la propiedad usada en la tabla
+        const esFacturaSoles = item.symbol !== "USD" && item.symbol !== "$";
+
+        let montoIngresado = parseFloat(item.montoparcial) || 0;
+        let saldoLocal = parseFloat(item.total_mon_local) || 0;
+        let saldoDolares = parseFloat(item.totaldolar) || 0;
+
         if (item.parcialflag) {
-          let porcentaje_pago = item.montoparcial / item.total_mon_local;
-          valorFila = item.monto_original_total * porcentaje_pago;
+          if (esFacturaSoles) {
+            // Regla de tres: (Monto abonado en Soles / Saldo Total Soles) * Saldo Total en USD
+            if (saldoLocal > 0) {
+              let porcentajePago = montoIngresado / saldoLocal;
+              valorFilaUSD = saldoDolares * porcentajePago;
+            }
+          } else {
+            // Factura en USD
+            valorFilaUSD = montoIngresado;
+          }
         } else {
-          valorFila = parseFloat(item.total_mon_local) || 0;
+          // Abono completo: toma directamente el equivalente total en dólares
+          valorFilaUSD = saldoDolares;
         }
-        console.log(valorFila);
-        return acc + parseFloat(valorFila);
+
+        return acc + valorFilaUSD;
       }, 0);
 
-      this.monto = total.toFixed(2);
+      this.monto = totalUSD.toFixed(2);
     },
     continuarGastoBancario() {
       if (!this.cliente || this.selected.length == 0) {
@@ -935,12 +952,13 @@ export default {
       // return this.selected.some((v) => v.symbol != "USD");
     },
     totalGeneralAbonado() {
-      const total = this.selected.reduce((acc, item) => {
-        let monto = parseFloat(item.montoparcial) || 0;
+      // const total = this.selected.reduce((acc, item) => {
+      //   let monto = parseFloat(item.montoparcial) || 0;
 
-        return acc + monto;
-      }, 0);
-      return total.toFixed(2);
+      //   return acc + monto;
+      // }, 0);
+      // return total.toFixed(2);
+      return this.monto || "0.00";
     },
     tipocambio() {
       if (this.symbol == "USD") {
@@ -977,6 +995,10 @@ export default {
         (coin) => coin.id === id_coins,
       );
       this.symbol = coins ? coins.symbol : "USD";
+
+      // Recalcular con la nueva moneda seleccionada
+      this.calcularTotal();
+
       this.dialogLlenarMontoDepositadoBanco = true;
       setTimeout(() => {
         this.$refs.txtMontoLocal.focus();

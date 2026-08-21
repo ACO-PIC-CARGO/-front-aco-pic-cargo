@@ -24,7 +24,7 @@
           cols="12"
           md="2"
           class="pb-0"
-          v-if="!Object.keys(id_cuenta).length > 0"
+          v-if="Object.keys(id_cuenta).length > 0"
         >
           Monto Depositado En Banco:
           <!-- <v-icon @click="snackbar = true">mdi-information</v-icon> -->
@@ -735,19 +735,37 @@ export default {
       }
     },
     calcularTotal() {
-      // 13445
-      let total = this.selected.reduce((acc, item) => {
-        let valorFila = 0;
+      let totalUSD = this.selected.reduce((acc, item) => {
+        let valorFilaUSD = 0;
+
+        // Evaluamos con item.symbol que es la propiedad real usada en tu vista
+        const esFacturaSoles = item.symbol !== "USD" && item.symbol !== "$";
+
+        let montoIngresado = parseFloat(item.montoparcial) || 0;
+        let saldoLocal = parseFloat(item.saldo_pendiente_local) || 0;
+        let saldoDolares = parseFloat(item.saldo_pendiente) || 0;
+
         if (item.parcialflag) {
-          let porcentaje_pago = item.montoparcial / item.saldo_pendiente_local;
-          valorFila = item.saldo_pendiente * porcentaje_pago;
+          if (esFacturaSoles) {
+            // Regla de tres: (Monto en Soles / Saldo Total Soles) * Saldo Total Dólares
+            if (saldoLocal > 0) {
+              let porcentajePago = montoIngresado / saldoLocal;
+              valorFilaUSD = saldoDolares * porcentajePago;
+            }
+          } else {
+            // Si la factura ya es en dólares, el monto ingresado está en USD
+            valorFilaUSD = montoIngresado;
+          }
         } else {
-          valorFila = parseFloat(item.saldo_pendiente_local) || 0;
+          // Abono completo: toma directamente el equivalente en dólares de la fila
+          valorFilaUSD = saldoDolares;
         }
-        return acc + valorFila;
+
+        return acc + valorFilaUSD;
       }, 0);
 
-      this.monto = total.toFixed(2);
+      // Asigna el total convertido a dólares para el campo superior
+      this.monto = totalUSD.toFixed(2);
     },
     continuarGastoBancario() {
       if (!this.proveedor || this.selected.length == 0) {
@@ -874,13 +892,7 @@ export default {
       "cuentas",
     ]),
     totalGeneralAbonado() {
-      const total = this.selected.reduce((acc, item) => {
-        let monto = parseFloat(item.montoparcial) || 0;
-
-        return acc + monto;
-      }, 0);
-      // this.monto_local = total.toFixed(2);
-      return total.toFixed(2);
+      return this.monto || "0.00";
     },
     mostrarTipoCambio() {
       if (this.editable) {
@@ -930,6 +942,9 @@ export default {
         (coin) => coin.id === id_coins,
       );
       this.symbol = coins ? coins.symbol : "USD";
+
+      // RECALCULAR con la nueva moneda de la cuenta bancaria
+      this.calcularTotal();
 
       this.dialogLlenarMontoDepositadoBanco = true;
       setTimeout(() => {
