@@ -113,7 +113,7 @@
                         $store.state.pricing.listMultiplicador.some(
                           (v) =>
                             v.id == valor.id_multiplicador &&
-                            (v.code == 13 || v.code == 14),
+                            (v.code == 13 || v.code == 14 || v.code == 15),
                         ) &&
                         !isITBM(valor.code_cost) &&
                         !isConfeccion(valor.code_cost) &&
@@ -334,7 +334,7 @@
                       $store.state.pricing.listMultiplicador.some(
                         (v) =>
                           v.id == valor.id_multiplicador &&
-                          (v.code == 13 || v.code == 14),
+                          (v.code == 13 || v.code == 14 || v.code == 15),
                       ) &&
                       !isITBM(valor.code_cost) &&
                       !isConfeccion(valor.code_cost) &&
@@ -491,7 +491,6 @@
                 </td>
                 <td>
                   <v-select
-                    readonly
                     class="widthTD"
                     :items="$store.state.pricing.listMultiplicador"
                     v-model="valor.id_multiplicador"
@@ -516,16 +515,6 @@
                     max-width="50%"
                     v-model="valor.costounitario"
                     :error-messages="valor.error"
-                    :rules="[
-                      (v) => {
-                        if (v > 0) {
-                          valor.error = ''; // Borra el mensaje de error si el valor es válido
-                          return true; // La regla se cumple
-                        }
-                        valor.error = 'El costo que tiene un valor 0.00.';
-                        return false; // La regla no se cumple
-                      },
-                    ]"
                     prefix="$"
                     type="number"
                     step="0.01"
@@ -539,7 +528,7 @@
                       $store.state.pricing.listMultiplicador.some(
                         (v) =>
                           v.id == valor.id_multiplicador &&
-                          (v.code == 13 || v.code == 14),
+                          (v.code == 13 || v.code == 14 || v.code == 15),
                       ) &&
                       !isITBM(valor.code_cost) &&
                       !isConfeccion(valor.code_cost) &&
@@ -721,22 +710,13 @@
                     max-width="50%"
                     v-model="valor.costounitario"
                     :error-messages="valor.error"
-                    :rules="[
-                      (v) => {
-                        if (v > 0) {
-                          valor.error = ''; // Borra el mensaje de error si el valor es válido
-                          return true; // La regla se cumple
-                        }
-                        valor.error = 'El costo que tiene un valor 0.00.';
-                        return false; // La regla no se cumple
-                      },
-                    ]"
                     prefix="$"
                     type="number"
                     step="0.01"
                     :min="valor.minimo"
                     v-on:blur="calcTotales"
                   ></v-text-field>
+
                   <v-text-field
                     readonly
                     class="derecha tdMontos"
@@ -744,7 +724,7 @@
                       $store.state.pricing.listMultiplicador.some(
                         (v) =>
                           v.id == valor.id_multiplicador &&
-                          (v.code == 13 || v.code == 14),
+                          (v.code == 13 || v.code == 14 || v.code == 15),
                       ) &&
                       !isITBM(valor.code_cost) &&
                       !isConfeccion(valor.code_cost) &&
@@ -958,7 +938,7 @@
                         $store.state.pricing.listMultiplicador.some(
                           (v) =>
                             v.id == valor.id_multiplicador &&
-                            (v.code == 13 || v.code == 14),
+                            (v.code == 13 || v.code == 14 || v.code == 15),
                         ) &&
                         !isITBM(valor.code_cost) &&
                         !isConfeccion(valor.code_cost) &&
@@ -1179,7 +1159,7 @@
                       $store.state.pricing.listMultiplicador.some(
                         (v) =>
                           v.id == valor.id_multiplicador &&
-                          (v.code == 13 || v.code == 14),
+                          (v.code == 13 || v.code == 14 || v.code == 15),
                       ) &&
                       !isITBM(valor.code_cost) &&
                       !isConfeccion(valor.code_cost) &&
@@ -1384,7 +1364,7 @@
                       $store.state.pricing.listMultiplicador.some(
                         (v) =>
                           v.id == valor.id_multiplicador &&
-                          (v.code == 13 || v.code == 14),
+                          (v.code == 13 || v.code == 14 || v.code == 15),
                       ) &&
                       !isITBM(valor.code_cost) &&
                       !isConfeccion(valor.code_cost) &&
@@ -1743,7 +1723,7 @@ export default {
       }
     },
     isNotPorcentaje(element, id_multiplicador) {
-      let code = [5, 13, 14];
+      let code = [5, 13, 14, 15];
 
       let mul = this.$store.state.pricing.listMultiplicador.some(
         (v) => v.id == id_multiplicador && code.includes(v.code),
