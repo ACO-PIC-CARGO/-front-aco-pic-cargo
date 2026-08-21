@@ -146,245 +146,271 @@
             ></v-text-field>
           </v-col>
 
-          <v-col cols="12" md="12">
-            <v-card-title primary-title>
+          <!-- SECCIÓN CONCEPTOS DE PAGO -->
+          <v-col cols="12" class="mt-4">
+            <v-card
+              outlined
+              color="#f2f8fd"
+              class="pa-4 rounded-lg"
+              style="border: 1.5px solid #a8d5e5 !important"
+            >
+              <!-- Encabezado con Icono -->
+              <div class="d-flex align-center mb-2">
+                <v-avatar color="white" size="36" class="mr-3 elevation-1">
+                  <v-icon color="#009688">mdi-file-document-outline</v-icon>
+                </v-avatar>
+                <span
+                  class="text-subtitle-1 font-weight-bold"
+                  style="letter-spacing: 0.5px"
+                >
+                  CONCEPTOS DE PAGO
+                </span>
+              </div>
+
+              <!-- Alerta Informativa -->
+              <div class="d-flex align-center mb-4 pl-1" v-if="tipo !== 'ver'">
+                <v-icon color="orange darken-2" small class="mr-1"
+                  >mdi-alert-circle-outline</v-icon
+                >
+                <span
+                  class="caption text-uppercase font-weight-bold orange--text text--darken-3"
+                >
+                  OBLIGATORIO:
+                </span>
+                <span class="caption grey--text text--darken-2 ml-1">
+                  Añade al menos un concepto para continuar.
+                </span>
+              </div>
+
+              <!-- Botón Añadir Concepto -->
               <v-btn
-                color="success"
+                block
+                color="#009688"
+                dark
+                x-large
+                elevation="0"
+                class="text-uppercase font-weight-bold my-2"
                 @click="abrirDialogNuevoProducto()"
-                :disabled="radio == ''"
-                style="min-width: 350px"
+                v-if="tipo !== 'ver'"
               >
-                Añadir Conceptos a Pagar
+                <v-icon left>mdi-plus</v-icon>
+                Añadir Concepto de Pago
               </v-btn>
-            </v-card-title>
-            <v-simple-table dense v-if="itemsProductos.length > 0">
-              <thead>
-                <tr>
-                  <th v-if="tipo != 'ver'">Acciones</th>
-                  <th>Producto/ Concepto</th>
-                  <th style="background: #adcaf5">Monto</th>
-                  <th style="background: #adcaf5">
-                    {{ $store.state.enterprises.impuesto.nombre_impuesto }}
-                  </th>
-                  <th style="background: #adcaf5">Total</th>
-                  <th v-if="mostrarColumna()" style="background: #c7f7d7">
-                    Monto (USD)
-                  </th>
-                  <th v-if="mostrarColumna()" style="background: #c7f7d7">
-                    {{ $store.state.enterprises.impuesto.nombre_impuesto }}(USD)
-                  </th>
-                  <th v-if="mostrarColumna()" style="background: #c7f7d7">
-                    Total (USD)
-                  </th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr
-                  v-for="(productos, index) in itemsProductos.filter(
-                    (v) => v.status == 1,
-                  )"
-                  :key="index"
-                >
-                  <td v-if="tipo != 'ver'">
-                    <v-btn
-                      icon
-                      color="red"
-                      x-small
-                      @click="eliminar(productos)"
-                    >
-                      <v-icon>mdi-delete</v-icon>
-                    </v-btn>
-                  </td>
-                  <td>{{ productos.concepto }}</td>
-                  <td>
-                    <span v-if="tipo == 'ver'">
-                      {{ productos.monto }}
-                    </span>
 
-                    <v-text-field
-                      v-else
-                      type="number"
-                      v-model="productos.monto"
-                      step="0.01"
-                      @input="recalcularMonto(productos, index)"
-                      style="max-width: 200px"
-                      outlined
-                      dense
-                      hide-details
-                      :prefix="symbol"
-                    ></v-text-field>
-                  </td>
-
-                  <td v-if="productos.id != null">
-                    {{ symbol }} {{ productos.igv }}
-                  </td>
-                  <td v-else>{{ symbol }} {{ productos.igv }}</td>
-
-                  <td>
-                    {{ symbol }}
-                    {{ parseFloat(productos.total).toFixed(2) }}
-                  </td>
-                  <td v-if="mostrarColumna()">
-                    USD {{ productos.montodolar }}
-                  </td>
-                  <td v-if="mostrarColumna()">USD {{ productos.igvdolar }}</td>
-
-                  <td v-if="mostrarColumna()">
-                    USD
-                    {{ parseFloat(productos.totaldolar).toFixed(2) }}
-                  </td>
-                </tr>
-                <tr>
-                  <td v-if="tipo != 'ver'"></td>
-                  <td>Total:</td>
-                  <td>
-                    {{ symbol }}
-                    {{
-                      parseFloat(
-                        itemsProductos
-                          .filter((v) => v.status == 1)
-                          .reduce((sum, producto) => {
-                            return sum + parseFloat(producto.monto);
-                          }, 0),
-                      ).toFixed(2)
-                    }}
-                  </td>
-                  <td>
-                    {{ symbol }}
-                    {{
-                      parseFloat(
-                        itemsProductos
-                          .filter((v) => v.status == 1)
-                          .reduce((sum, producto) => {
-                            return sum + parseFloat(producto.igv);
-                          }, 0),
-                      ).toFixed(2)
-                    }}
-                  </td>
-                  <td>
-                    {{ symbol }}
-                    {{
-                      parseFloat(
-                        itemsProductos
-                          .filter((v) => v.status == 1)
-                          .reduce((sum, producto) => {
-                            return sum + parseFloat(producto.total);
-                          }, 0),
-                      ).toFixed(2)
-                    }}
-                  </td>
-                  <td v-if="mostrarColumna()">
-                    USD
-                    {{
-                      parseFloat(
-                        itemsProductos
-                          .filter((v) => v.status == 1)
-                          .reduce((sum, producto) => {
-                            return sum + parseFloat(producto.montodolar);
-                          }, 0),
-                      ).toFixed(2)
-                    }}
-                  </td>
-                  <td v-if="mostrarColumna()">
-                    USD
-                    {{
-                      parseFloat(
-                        itemsProductos
-                          .filter((v) => v.status == 1)
-                          .reduce((sum, producto) => {
-                            return sum + parseFloat(producto.igvdolar);
-                          }, 0),
-                      ).toFixed(2)
-                    }}
-                  </td>
-                  <td v-if="mostrarColumna()">
-                    USD
-                    {{
-                      parseFloat(
-                        itemsProductos
-                          .filter((v) => v.status == 1)
-                          .reduce((sum, producto) => {
-                            return sum + parseFloat(producto.totaldolar);
-                          }, 0),
-                      ).toFixed(2)
-                    }}
-                  </td>
-                </tr>
-              </tbody>
-            </v-simple-table>
-          </v-col>
-
-          <v-col cols="12" v-if="tipo == 'nuevo' || tipo == 'editar'">
-            <v-row>
-              <v-col cols="12" md="8">
-                <v-file-input
-                  :disabled="radio == ''"
-                  v-model="payfile"
-                  show-size
-                  label="Adjuntar archivo"
-                  @change="_uploadFile()"
-                  dense
-                  filled
-                >
-                </v-file-input>
-              </v-col>
-              <v-col cols="12" md="4">
-                <v-chip
-                  block
-                  v-if="boolFile"
-                  large
-                  class=""
-                  color="success"
-                  outlined
-                  dense
-                >
-                  <v-icon left> mdi-check </v-icon>
-                  Archivo cargado éxitosamente
-                </v-chip>
-              </v-col>
-            </v-row>
-          </v-col>
-          <v-col cols="12" md="9" v-else>
-            <v-card-title primary-title> Documento referencia: </v-card-title>
-            <v-simple-table dense>
-              <tbody>
-                <tr>
-                  <td v-if="payPathName">{{ name_path }}sssssssssss</td>
-                  <td v-else>
-                    <v-alert color="orange" type="warning">
-                      No se ha cargado documento</v-alert
-                    >
-                  </td>
-                  <td>
-                    <v-btn
-                      v-if="payPathName"
-                      icon
-                      color="red"
-                      :href="payPath"
-                      target="_blank"
-                    >
-                      <v-icon>mdi-file-pdf-box</v-icon>
-                    </v-btn>
-                  </td>
-                </tr>
-              </tbody>
-            </v-simple-table>
+              <!-- Tabla de Conceptos (Muestra si existen registros activos) -->
+              <v-simple-table
+                dense
+                v-if="itemsProductos.filter((v) => v.status == 1).length > 0"
+                class="mt-4 white rounded"
+              >
+                <thead>
+                  <tr>
+                    <th v-if="tipo != 'ver'">Acciones</th>
+                    <th>Producto / Concepto</th>
+                    <th style="background: #adcaf5">Monto</th>
+                    <th style="background: #adcaf5">
+                      {{ $store.state.enterprises.impuesto.nombre_impuesto }}
+                    </th>
+                    <th style="background: #adcaf5">Total</th>
+                    <th v-if="mostrarColumna()" style="background: #c7f7d7">
+                      Monto (USD)
+                    </th>
+                    <th v-if="mostrarColumna()" style="background: #c7f7d7">
+                      {{
+                        $store.state.enterprises.impuesto.nombre_impuesto
+                      }}(USD)
+                    </th>
+                    <th v-if="mostrarColumna()" style="background: #c7f7d7">
+                      Total (USD)
+                    </th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr
+                    v-for="(productos, index) in itemsProductos.filter(
+                      (v) => v.status == 1,
+                    )"
+                    :key="index"
+                  >
+                    <td v-if="tipo != 'ver'">
+                      <v-btn
+                        icon
+                        color="red"
+                        x-small
+                        @click="eliminar(productos)"
+                      >
+                        <v-icon>mdi-delete</v-icon>
+                      </v-btn>
+                    </td>
+                    <td>{{ productos.concepto }}</td>
+                    <td>
+                      <span v-if="tipo == 'ver'">{{ productos.monto }}</span>
+                      <v-text-field
+                        v-else
+                        type="number"
+                        v-model="productos.monto"
+                        step="0.01"
+                        @input="recalcularMonto(productos, index)"
+                        style="max-width: 150px"
+                        outlined
+                        dense
+                        hide-details
+                        :prefix="symbol"
+                      ></v-text-field>
+                    </td>
+                    <td v-if="productos.id != null">
+                      {{ symbol }} {{ productos.igv }}
+                    </td>
+                    <td v-else>{{ symbol }} {{ productos.igv }}</td>
+                    <td>
+                      {{ symbol }} {{ parseFloat(productos.total).toFixed(2) }}
+                    </td>
+                    <td v-if="mostrarColumna()">
+                      USD {{ productos.montodolar }}
+                    </td>
+                    <td v-if="mostrarColumna()">
+                      USD {{ productos.igvdolar }}
+                    </td>
+                    <td v-if="mostrarColumna()">
+                      USD {{ parseFloat(productos.totaldolar).toFixed(2) }}
+                    </td>
+                  </tr>
+                  <!-- Fila Totales -->
+                  <tr class="font-weight-bold">
+                    <td v-if="tipo != 'ver'"></td>
+                    <td>Total:</td>
+                    <td>
+                      {{ symbol }}
+                      {{
+                        parseFloat(
+                          itemsProductos
+                            .filter((v) => v.status == 1)
+                            .reduce(
+                              (sum, producto) =>
+                                sum + parseFloat(producto.monto || 0),
+                              0,
+                            ),
+                        ).toFixed(2)
+                      }}
+                    </td>
+                    <td>
+                      {{ symbol }}
+                      {{
+                        parseFloat(
+                          itemsProductos
+                            .filter((v) => v.status == 1)
+                            .reduce(
+                              (sum, producto) =>
+                                sum + parseFloat(producto.igv || 0),
+                              0,
+                            ),
+                        ).toFixed(2)
+                      }}
+                    </td>
+                    <td>
+                      {{ symbol }}
+                      {{
+                        parseFloat(
+                          itemsProductos
+                            .filter((v) => v.status == 1)
+                            .reduce(
+                              (sum, producto) =>
+                                sum + parseFloat(producto.total || 0),
+                              0,
+                            ),
+                        ).toFixed(2)
+                      }}
+                    </td>
+                    <td v-if="mostrarColumna()">
+                      USD
+                      {{
+                        parseFloat(
+                          itemsProductos
+                            .filter((v) => v.status == 1)
+                            .reduce(
+                              (sum, producto) =>
+                                sum + parseFloat(producto.montodolar || 0),
+                              0,
+                            ),
+                        ).toFixed(2)
+                      }}
+                    </td>
+                    <td v-if="mostrarColumna()">
+                      USD
+                      {{
+                        parseFloat(
+                          itemsProductos
+                            .filter((v) => v.status == 1)
+                            .reduce(
+                              (sum, producto) =>
+                                sum + parseFloat(producto.igvdolar || 0),
+                              0,
+                            ),
+                        ).toFixed(2)
+                      }}
+                    </td>
+                    <td v-if="mostrarColumna()">
+                      USD
+                      {{
+                        parseFloat(
+                          itemsProductos
+                            .filter((v) => v.status == 1)
+                            .reduce(
+                              (sum, producto) =>
+                                sum + parseFloat(producto.totaldolar || 0),
+                              0,
+                            ),
+                        ).toFixed(2)
+                      }}
+                    </td>
+                  </tr>
+                </tbody>
+              </v-simple-table>
+            </v-card>
           </v-col>
           <v-col cols="12">
+            <ArrastraYSolarComponent
+              :initial-url="payPath"
+              :initial-id="id_path"
+              :read-only="tipo === 'ver'"
+              :rules="[(v) => !!v || 'El archivo soporte es obligatorio']"
+              @idArchivoCargado="recibirId"
+            />
+          </v-col>
+          <!-- ACCIONES (Botón inferior alineado a la derecha) -->
+          <v-col cols="12" class="d-flex flex-column align-end mt-2">
+            <!-- Texto de ayuda dinámico -->
+            <span
+              v-if="
+                itemsProductos.length == 0 &&
+                (tipo == 'nuevo' || tipo == 'editar')
+              "
+              class="caption grey--text text--darken-1 mb-2"
+            >
+              Primero añade un concepto de pago.
+            </span>
+
+            <!-- Botones de Acción -->
             <v-btn
               elevation="0"
               @click="_setInvoice()"
               color="primary"
+              large
               v-if="tipo == 'nuevo'"
               :disabled="itemsProductos.length == 0"
+              class="font-weight-bold text-uppercase"
             >
-              GUARDAR FACTURA
+              GUARDAR CUENTA POR PAGAR
             </v-btn>
+
             <v-btn
               elevation="0"
               color="primary"
+              large
               v-if="tipo == 'editar'"
               @click="setUpdateInvoiceAdmin()"
+              :disabled="itemsProductos.length == 0"
+              class="font-weight-bold text-uppercase"
             >
               GUARDAR CAMBIOS
             </v-btn>
@@ -460,6 +486,7 @@ import Treeselect from "@riophae/vue-treeselect";
 import "@riophae/vue-treeselect/dist/vue-treeselect.css";
 import CustomTreeSelect from "./../comun/CustomTreeSelect.vue";
 import Swal from "sweetalert2";
+import ArrastraYSolarComponent from "../comun/ArrastraYSolarComponent.vue";
 export default {
   name: "controlAccountPaysCom",
   props: {
@@ -469,7 +496,7 @@ export default {
     id_pro: "",
     tipo: "",
   },
-  components: { Treeselect, CustomTreeSelect },
+  components: { Treeselect, CustomTreeSelect, ArrastraYSolarComponent },
 
   data: () => ({
     date: new Date(Date.now() - new Date().getTimezoneOffset() * 60000)
@@ -566,6 +593,15 @@ export default {
       "_getProveedor",
       "obtenerImpuestoXEmpresa",
     ]),
+    recibirId(file) {
+      if (Object.keys(file).length > 0) {
+        this.payPath = file.id;
+        this.id_path = file.id;
+      } else {
+        this.payPath = null;
+        this.id_path = null;
+      }
+    },
     abrirDialogNuevoProducto() {
       if (!this.id_coins) {
         Swal.fire({
@@ -1093,6 +1129,7 @@ export default {
       vm.payPathName = vm.InvoiceAdmin[0].originalname;
       vm.id_path = vm.InvoiceAdmin[0].id_path;
       vm.payPath = vm.InvoiceAdmin[0].path;
+      vm.id_path = vm.InvoiceAdmin[0].id_path;
       vm.id_proformace = vm.InvoiceAdmin[0].id_proformance;
       vm.id_month = vm.InvoiceAdmin[0].id_month;
       vm.id_year = vm.InvoiceAdmin[0].id_year;
