@@ -1053,8 +1053,8 @@
                             NOMBRE: {{ proveedor.namelong || "" }} <br />
                             CONTACTO: {{ proveedor.contacto || "" }} <br />
                             EMAIL:
-                            <a :href="`mailto:${proveedor.addressProveedor}`">
-                              {{ proveedor.addressProveedor || "" }} </a
+                            <a :href="`mailto:${proveedor.emailaddress}`">
+                              {{ proveedor.emailaddress || "" }} </a
                             ><br />
                             TELEFONO: {{ proveedor.contacto_phone || "" }}
                           </p>
@@ -1669,8 +1669,8 @@
                             NOMBRE: {{ proveedor.namelong || "" }} <br />
                             CONTACTO: {{ proveedor.contacto || "" }} <br />
                             EMAIL:
-                            <a :href="`mailto:${proveedor.addressProveedor}`">
-                              {{ proveedor.addressProveedor || "" }} </a
+                            <a :href="`mailto:${proveedor.emailaddress}`">
+                              {{ proveedor.emailaddress || "" }} </a
                             ><br />
                             TELEFONO: {{ proveedor.contacto_phone || "" }}
                           </p>
