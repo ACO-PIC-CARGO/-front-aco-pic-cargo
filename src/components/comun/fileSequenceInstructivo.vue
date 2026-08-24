@@ -2317,8 +2317,8 @@ export default {
           <b>NOMBRE:</b> ${this.proveedor.namelong || ""}<br>
           <b>CONTACTO:</b> ${this.proveedor.contacto || ""}<br>
           <b>EMAIL:</b> <a href="mailto:${
-            this.proveedor.addressProveedor || ""
-          }">${this.proveedor.addressProveedor || ""}</a><br>
+            this.proveedor.emailaddress || ""
+          }">${this.proveedor.emailaddress || ""}</a><br>
           <b>TELÉFONO:</b> ${this.proveedor.contacto_phone || ""}
         `,
         )}
