@@ -68,6 +68,7 @@ const routes = [
       {
         path: "",
         redirect: "/home/main",
+        name:"Home"
       },
       {
         path: "main",
