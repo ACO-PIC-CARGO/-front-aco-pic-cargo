@@ -82,28 +82,48 @@
       </v-card>
     </v-dialog>
 
-    <v-dialog persistent width="600" v-model="dialogPower">
-      <v-card>
-        <v-card-title> SISTEMA APAGADO</v-card-title>
-        <v-card-text>
+    <v-dialog persistent width="650" v-model="dialogPower">
+      <v-card class="rounded-lg elevation-4">
+        <!-- Barra superior de advertencia -->
+        <v-card-title
+          class="headline error white--text py-3 px-4 d-flex align-center"
+        >
+          <v-icon left dark large class="mr-2">mdi-power-plug-off</v-icon>
+          <span class="font-weight-bold">SISTEMA EN MANTENIMIENTO</span>
+        </v-card-title>
+
+        <v-card-text class="pt-4 pb-4">
           <v-container fluid>
-            <v-row>
-              <v-col cols="4">
-                <img
-                  class="mt-4"
-                  width="80%"
+            <v-row align="center" justify="center">
+              <!-- Columna del ícono -->
+              <v-col cols="4" class="text-center">
+                <v-img
+                  class="mx-auto"
+                  max-width="110"
                   src="../public/img/svg/power.svg"
-                  alt=""
-                />
+                  alt="Sistema Apagado"
+                ></v-img>
               </v-col>
+
+              <!-- Columna del mensaje -->
               <v-col cols="8">
-                <p style="font-size: 18px">
-                  Hola <br /><br />
-                  En este momento el proveedor se encuentra realizando cambios o
-                  mantenimientos en el sistema, por lo tanto el sistema estará
-                  apagado hasta que el proveedor lo indique. <br /><br />
-                  Nos disculpamos por las molestias, saludos.
-                </p>
+                <div class="text-body-1 grey--text text--darken-3">
+                  <p class="font-weight-bold mb-2" style="font-size: 17px">
+                    Estimado usuario:
+                  </p>
+                  <p class="mb-3" style="line-height: 1.5">
+                    En este momento el proveedor se encuentra realizando
+                    actualizaciones y mantenimientos en el sistema. Por
+                    seguridad, el acceso permanecerá
+                    <b>suspendido temporalmente</b>.
+                  </p>
+                  <p
+                    class="text-caption grey--text text--darken-1 mb-0 font-italic"
+                  >
+                    Agradecemos su comprensión y paciencia. Estaremos operando
+                    con normalidad en breve.
+                  </p>
+                </div>
               </v-col>
             </v-row>
           </v-container>
@@ -855,7 +875,6 @@ export default {
     actualizar() {
       this.cargando = true;
       localStorage.setItem("actualizando", "1");
-      
 
       setTimeout(() => {
         const url = window.location.origin + window.location.pathname;
@@ -916,7 +935,6 @@ export default {
     },
 
     async _getVersion() {
-
       var vm = this;
       let data = {
         modulo: "operativo",
