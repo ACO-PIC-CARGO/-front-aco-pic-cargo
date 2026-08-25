@@ -40,7 +40,9 @@
           <v-col cols="12" style="text-align: end">
             <v-btn
               color="success"
-              @click="abrirModal({ tipo: 'nuevo', item: {} })"
+              @click="
+                abrirModal({ tipo: 'nuevo', item: {}, tipoCosto: 'costo' })
+              "
             >
               Nuevo Flete Grupal
             </v-btn>
@@ -61,7 +63,13 @@
                 <v-btn
                   color="warning"
                   icon
-                  @click="abrirModal({ tipo: 'editar', item: item })"
+                  @click="
+                    abrirModal({
+                      tipo: 'editar',
+                      item: item,
+                      tipoCosto: 'costo',
+                    })
+                  "
                 >
                   <v-icon>mdi-pencil</v-icon>
                 </v-btn>
@@ -75,7 +83,9 @@
           <v-col cols="12" style="text-align: end">
             <v-btn
               color="success"
-              @click="abrirModal({ tipo: 'nuevo', item: {} })"
+              @click="
+                abrirModal({ tipo: 'nuevo', item: {}, tipoCosto: 'venta' })
+              "
             >
               Nuevo Flete Grupal
             </v-btn>
@@ -96,7 +106,13 @@
                 <v-btn
                   color="warning"
                   icon
-                  @click="abrirModal({ tipo: 'editar', item: item })"
+                  @click="
+                    abrirModal({
+                      tipo: 'editar',
+                      item: item,
+                      tipoCosto: 'venta',
+                    })
+                  "
                 >
                   <v-icon>mdi-pencil</v-icon>
                 </v-btn>
@@ -235,6 +251,7 @@ export default {
       nuevoflag: false,
       editarflag: false,
       errorFechaVigencia: "",
+      tipoCosto: "",
     };
   },
   computed: {
@@ -267,9 +284,17 @@ export default {
     },
     async actualizar() {
       if (this.editarflag) {
-        await this.updateFleteGrupal({ ...this.form, estado: true });
+        if ((this.tipoCosto =="costo")) {
+          await this.updateFleteGrupal({ ...this.form, estado: true });
+          this.getFleteGrupal({ tipo: this.type });
+        }
+        if ((this.tipoCosto == "venta")) {
+          await this.updateFleteGrupalVenta({ ...this.form, estado: true });
+
+          this.getFleteGrupalVenta({ tipo: this.type });
+        }
+        this.getFleteGrupalResumen();
         this.dialog = false;
-        this.getFleteGrupal({ tipo: this.type });
         return;
       }
       Swal.fire({
@@ -281,13 +306,21 @@ export default {
         cancelButtonText: "Cancelar",
       }).then(async (res) => {
         if (res.isConfirmed) {
-          await this.updateFleteGrupal({ ...this.form, estado: false });
-          this.getFleteGrupal({ tipo: this.type });
+          if ((this.tipoCosto = "costo")) {
+            await this.updateFleteGrupal({ ...this.form, estado: false });
+            this.getFleteGrupal({ tipo: this.type });
+          }
+          if ((this.tipoCosto = "venta")) {
+            await this.updateFleteGrupalVenta({ ...this.form, estado: false });
+            this.getFleteGrupalVenta({ tipo: this.type });
+          }
+          this.getFleteGrupalResumen();
           this.dialog = false;
         }
       });
     },
-    abrirModal({ tipo = "nuevo", item = {} }) {
+    abrirModal({ tipo = "nuevo", item = {}, tipoCosto = "costo" }) {
+      console.log("tipo", tipoCosto);
       this.form.volumen = 1;
       this.form.peso = 1;
       this.form.valor = 1;
