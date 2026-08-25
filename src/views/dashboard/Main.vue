@@ -30,7 +30,7 @@
       </v-chip>
 
       <v-spacer></v-spacer>
-      
+
       <b v-if="this.$route.params.id_house" class="mr-10 text-h4">
         PROFIT PR:
         {{
@@ -249,7 +249,7 @@
       >
         <v-icon class="mx-1">mdi-pencil</v-icon> IR EDITAR
       </v-btn>
-      
+
       <v-btn
         color="info"
         dark
@@ -521,19 +521,88 @@ export default {
       if (!urlPricing.includes(this.$route.name)) {
         this.dataMensaje = data.mensaje;
         this.snackbar = true;
-        // Swal.fire({
-        //   title: "¡Nueva Cotización!",
-        //   text: data.mensaje,
-        //   icon: "info",
-        //   timer: 5000, // 30 segundos
-        //   timerProgressBar: true,
-        //   showConfirmButton: false,
-        //   allowEnterKey: false,
-        //   allowOutsideClick: false,
-        //   allowOutsideClick: false,
-        // });
       }
     });
+    let dataBranch = JSON.parse(sessionStorage.getItem("dataBranch"));
+    let { tienefleteactivo, dias_restantes, vigencia } = dataBranch[0];
+    let routeHome = this.$route.name;
+    let routesHome = ["Home", "Main"];
+
+    if (!tienefleteactivo && routesHome.includes(routeHome)) {
+      // 1. Textos actualizados enfocados en el riesgo de cálculos incorrectos
+      let tituloAlerta = "";
+      let mensajeAlerta = "";
+      let iconoAlerta = "warning";
+
+      if (dias_restantes < 0) {
+        const diasVencidos = Math.abs(dias_restantes);
+        tituloAlerta = "¡ATENCIÓN: FLETE VENCIDO!";
+        mensajeAlerta = `Su flete venció hace <b>${
+          dias_restantes === -1 ? "1 día" : `${diasVencidos} días`
+        }</b>.<br>Debe actualizarlo urgentemente; de lo contrario, <b>los cálculos saldrán incorrectos</b> en las cotizaciones.<br><br><span style="color: #e74c3c; font-weight: bold;">Fecha de vigencia: ${vigencia}</span>`;
+        iconoAlerta = "error";
+      } else if (dias_restantes === 0) {
+        tituloAlerta = "¡FLETE VENCE HOY!";
+        mensajeAlerta = `Su flete expira <b>hoy mismo</b>.<br>Actualice los costos para evitar que <b>los cálculos saldrán incorrectos</b> en las cotizaciones.<br><br><span style="color: #f39c12; font-weight: bold;">Fecha de vigencia: ${vigencia}</span>`;
+        iconoAlerta = "warning";
+      } else {
+        tituloAlerta = "¡AVISO DE VIGENCIA DE FLETE!";
+        mensajeAlerta = `Su flete está próximo a vencer en <b>${dias_restantes} ${
+          dias_restantes === 1 ? "día" : "días"
+        }</b>.<br>Manténgalo al día para asegurar que <b>los cálculos no salgan incorrectos</b> en las cotizaciones.<br><br><span style="color: #f39c12; font-weight: bold;">Fecha de vigencia: ${vigencia}</span>`;
+        iconoAlerta = "warning";
+      }
+
+      // 2. Alerta con bloqueo total de 5 segundos y botón "Cancelar"
+      Swal.fire({
+        icon: iconoAlerta,
+        title: tituloAlerta,
+        html: mensajeAlerta,
+        allowOutsideClick: false,
+        allowEscapeKey: false,
+        showCancelButton: true,
+        cancelButtonText: "Cancelar",
+        confirmButtonText: "Espere (5s)...",
+        confirmButtonColor: "#00a65a",
+        didOpen: () => {
+          const confirmBtn = Swal.getConfirmButton();
+          const cancelBtn = Swal.getCancelButton();
+
+          confirmBtn.disabled = true;
+          confirmBtn.style.backgroundColor = "#95a5a6";
+
+          if (cancelBtn) {
+            cancelBtn.disabled = true;
+          }
+
+          let timerSecs = 5;
+          confirmBtn.innerHTML = `Por favor lea (${timerSecs}s)`;
+
+          const interval = setInterval(() => {
+            timerSecs--;
+            if (timerSecs > 0) {
+              confirmBtn.innerHTML = `Por favor lea (${timerSecs}s)`;
+            } else {
+              clearInterval(interval);
+              confirmBtn.disabled = false;
+              confirmBtn.innerHTML =
+                '<i class="fa fa-cog"></i> Ir a Configurar Flete';
+              confirmBtn.style.backgroundColor = "#00a65a";
+
+              if (cancelBtn) {
+                cancelBtn.disabled = false;
+              }
+            }
+          }, 1000);
+        },
+      }).then((res) => {
+        if (res.isConfirmed) {
+          this.$router.push({
+            name: "ServiciosCostosFijosLCL",
+          });
+        }
+      });
+    }
   },
   beforeMount() {
     this.mostrarBtnMenu = !JSON.parse(sessionStorage.getItem("dataBranch"))[0]
@@ -693,8 +762,6 @@ export default {
       if (val) {
         this.$store.state.spiner = false;
         await this.actualizarQuoteAduana();
-
-        
 
         this.$router.push({
           name: "VerAduana",
@@ -958,7 +1025,6 @@ export default {
             `,
           // timer: 2500,
         });
-        
 
         const body = encodeURIComponent("Hola colega, (PEGA LA TABLA AQUI)");
         window.location.href = `mailto:${miEmail}?bcc=${to}&subject=${encodeURIComponent(
@@ -1049,15 +1115,11 @@ export default {
         let branchCreacion = [1, 2];
 
         if (branchCreacion.includes(id_branch)) {
-          
-
           // Aquí recibimos el return de la función anterior
           const urlGenerada = await this.crearCarpetaOneDrive({
             nro_quote: this.$store.state.pricing.nro_quote,
             nombre: this.$store.state.pricing.datosPrincipales.nombre,
           });
-
-          
 
           if (urlGenerada) {
             await Promise.all([
@@ -1072,7 +1134,6 @@ export default {
                 destinationFolderUrl: urlGenerada,
               }),
             ]);
-            
           } else {
             console.error(
               "No se obtuvo URL de OneDrive, se saltó la actualización.",
