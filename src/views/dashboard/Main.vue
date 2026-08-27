@@ -265,27 +265,7 @@
     <v-main class="main">
       <router-view />
     </v-main>
-    <!-- <v-footer dark padless class="mt-auto">
-      <v-card class="flex" flat tile>
-        <v-card-title class="teal">
-          <strong class="subheading"
-            >Get connected with us on social networks!</strong
-          >
 
-          <v-spacer></v-spacer>
-
-          <v-btn v-for="icon in icons" :key="icon" class="mx-4" dark icon>
-            <v-icon size="24px">
-              {{ icon }}
-            </v-icon>
-          </v-btn>
-        </v-card-title>
-
-        <v-card-text class="py-2 white--text text-center">
-          {{ new Date().getFullYear() }} — <strong>PIC CARGO</strong>
-        </v-card-text>
-      </v-card>
-    </v-footer> -->
     <div v-if="$store.state.dialogProcessing" class="dialogOverlay"></div>
     <div v-if="$store.state.dialogProcessing" class="dialogProcessing">
       <!-- <div class="dialogOverlay"></div> -->
@@ -385,6 +365,7 @@
         </v-card-actions>
       </v-card>
     </v-dialog>
+
     <v-dialog
       v-model="dialogPilotoAutomatico"
       scrollable
@@ -444,6 +425,59 @@
     <v-snackbar v-model="snackbar">
       {{ dataMensaje }}
     </v-snackbar>
+
+    <v-dialog persistent max-width="480" v-model="dialogCambiarFecha">
+      <v-card class="rounded-lg elevation-4">
+        <!-- Cabecera profesional con color y título claro -->
+        <v-card-title
+          class="headline primary white--text py-3 px-4 d-flex align-center"
+        >
+          <v-icon left dark class="mr-2">mdi-calendar-clock</v-icon>
+          <span class="font-weight-bold">Actualizar Vigencia de Flete</span>
+        </v-card-title>
+
+        <!-- Cuerpo del diálogo -->
+        <v-card-text class="pt-4 pb-2">
+          <div class="text-body-2 text--darken-2 mb-4">
+            Selecciona la nueva fecha límite de vigencia. Esto actualizará los
+            cálculos en las nuevas cotizaciones, calculadora y bot de whatsapp.
+          </div>
+
+          <v-form ref="formVigencia">
+            <FormatFecha
+              outlined
+              dense
+              label="Nueva Fecha de Vigencia"
+              v-model="fechaVigencia"
+              :rules="[(v) => !!fechaVigencia || 'Dato Requerido']"
+            />
+          </v-form>
+        </v-card-text>
+
+        <v-divider></v-divider>
+
+        <!-- Acciones con botones bien diferenciados -->
+        <v-card-actions class="px-4 py-3 justify-end">
+          <v-btn
+            color="grey darken-1"
+            text
+            class="text-none font-weight-medium"
+            @click="dialogCambiarFecha = false"
+          >
+            Cancelar
+          </v-btn>
+          <v-btn
+            color="success"
+            class="text-none font-weight-bold px-4 ml-2"
+            elevation="1"
+            @click="guardarNuevaFecha"
+          >
+            <v-icon left size="18">mdi-check</v-icon>
+            Actualizar Fecha
+          </v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
   </v-app>
 </template>
 
@@ -451,6 +485,7 @@
 import leftMenu from "@/components/leftMenu";
 import listMenu from "@/components/listMenu";
 import CotizacionPilotoAutomatico from "@/components/folderPricing/CotizacionPilotoAutomatico.vue";
+import FormatFecha from "../../components/comun/FormatFecha.vue";
 import { Store, mapActions, mapState } from "vuex";
 import mixins from "@/components/mixins/funciones";
 import Swal from "sweetalert2";
@@ -471,6 +506,8 @@ export default {
   mixins: [mixins],
   data() {
     return {
+      dialogCambiarFecha: false,
+      fechaVigencia: "",
       snackbar: false,
       dataMensaje: "",
       vertical: true,
@@ -509,6 +546,7 @@ export default {
     LoadingComponent,
     CotizacionPilotoAutomatico,
     BtnIrAlListado,
+    FormatFecha,
   },
   async mounted() {
     let urlPricing = ["newQuote", "verQuote", "editQuote"];
@@ -523,86 +561,7 @@ export default {
         this.snackbar = true;
       }
     });
-    let dataBranch = JSON.parse(sessionStorage.getItem("dataBranch"));
-    let { tienefleteactivo, dias_restantes, vigencia } = dataBranch[0];
-    let routeHome = this.$route.name;
-    let routesHome = ["Home", "Main"];
-
-    if (!tienefleteactivo && routesHome.includes(routeHome)) {
-      // 1. Textos actualizados enfocados en el riesgo de cálculos incorrectos
-      let tituloAlerta = "";
-      let mensajeAlerta = "";
-      let iconoAlerta = "warning";
-
-      if (dias_restantes < 0) {
-        const diasVencidos = Math.abs(dias_restantes);
-        tituloAlerta = "¡ATENCIÓN: FLETE VENCIDO!";
-        mensajeAlerta = `Su flete venció hace <b>${
-          dias_restantes === -1 ? "1 día" : `${diasVencidos} días`
-        }</b>.<br>Debe actualizarlo urgentemente; de lo contrario, <b>los cálculos saldrán incorrectos</b> en las cotizaciones.<br><br><span style="color: #e74c3c; font-weight: bold;">Fecha de vigencia: ${vigencia}</span>`;
-        iconoAlerta = "error";
-      } else if (dias_restantes === 0) {
-        tituloAlerta = "¡FLETE VENCE HOY!";
-        mensajeAlerta = `Su flete expira <b>hoy mismo</b>.<br>Actualice los costos para evitar que <b>los cálculos saldrán incorrectos</b> en las cotizaciones.<br><br><span style="color: #f39c12; font-weight: bold;">Fecha de vigencia: ${vigencia}</span>`;
-        iconoAlerta = "warning";
-      } else {
-        tituloAlerta = "¡AVISO DE VIGENCIA DE FLETE!";
-        mensajeAlerta = `Su flete está próximo a vencer en <b>${dias_restantes} ${
-          dias_restantes === 1 ? "día" : "días"
-        }</b>.<br>Manténgalo al día para asegurar que <b>los cálculos no salgan incorrectos</b> en las cotizaciones.<br><br><span style="color: #f39c12; font-weight: bold;">Fecha de vigencia: ${vigencia}</span>`;
-        iconoAlerta = "warning";
-      }
-
-      // 2. Alerta con bloqueo total de 5 segundos y botón "Cancelar"
-      Swal.fire({
-        icon: iconoAlerta,
-        title: tituloAlerta,
-        html: mensajeAlerta,
-        allowOutsideClick: false,
-        allowEscapeKey: false,
-        showCancelButton: true,
-        cancelButtonText: "Cancelar",
-        confirmButtonText: "Espere (5s)...",
-        confirmButtonColor: "#00a65a",
-        didOpen: () => {
-          const confirmBtn = Swal.getConfirmButton();
-          const cancelBtn = Swal.getCancelButton();
-
-          confirmBtn.disabled = true;
-          confirmBtn.style.backgroundColor = "#95a5a6";
-
-          if (cancelBtn) {
-            cancelBtn.disabled = true;
-          }
-
-          let timerSecs = 5;
-          confirmBtn.innerHTML = `Por favor lea (${timerSecs}s)`;
-
-          const interval = setInterval(() => {
-            timerSecs--;
-            if (timerSecs > 0) {
-              confirmBtn.innerHTML = `Por favor lea (${timerSecs}s)`;
-            } else {
-              clearInterval(interval);
-              confirmBtn.disabled = false;
-              confirmBtn.innerHTML =
-                '<i class="fa fa-cog"></i> Ir a Configurar Flete';
-              confirmBtn.style.backgroundColor = "#00a65a";
-
-              if (cancelBtn) {
-                cancelBtn.disabled = false;
-              }
-            }
-          }, 1000);
-        },
-      }).then((res) => {
-        if (res.isConfirmed) {
-          this.$router.push({
-            name: "ServiciosCostosFijosLCL",
-          });
-        }
-      });
-    }
+    this.abrirSwalConfigFlete();
   },
   beforeMount() {
     this.mostrarBtnMenu = !JSON.parse(sessionStorage.getItem("dataBranch"))[0]
@@ -659,7 +618,9 @@ export default {
       "GetArchivos",
       "uploadFileFromUrlToOneDrive",
       "moveFileToOneDrive",
+      'actualizarFechaVigencia'
     ]),
+    // ...mapActions("calculadoras", ["actualizarFechaVigencia"]),
     abrirCarpeta(url) {
       if (!url) {
         Swal.fire({
@@ -670,6 +631,130 @@ export default {
         return;
       }
       window.open(url, "_blank");
+    },
+    async guardarNuevaFecha() {
+      if (this.$refs.formVigencia.validate()) {
+        await this.actualizarFechaVigencia(this.fechaVigencia)
+        this.dialogCambiarFecha = false
+      }
+    },
+    abrirSwalConfigFlete() {
+      let routesHome = ["Home", "Main"];
+      let positions = ["01", "02"];
+      let dataBranch = JSON.parse(sessionStorage.getItem("dataBranch"));
+      let dataUser = JSON.parse(sessionStorage.getItem("dataUser"));
+      let position = dataUser[0].position_code[0];
+      let { tienefleteactivo, dias_restantes, vigencia } = dataBranch[0];
+      let routeHome = this.$route.name;
+
+      if (
+        !tienefleteactivo &&
+        routesHome.includes(routeHome) &&
+        positions.includes(position)
+      ) {
+        // 1. Textos actualizados enfocados en el riesgo de cálculos incorrectos
+        let tituloAlerta = "";
+        let mensajeAlerta = "";
+        let iconoAlerta = "warning";
+
+        if (dias_restantes < 0) {
+          const diasVencidos = Math.abs(dias_restantes);
+          tituloAlerta = "¡ATENCIÓN: FLETE VENCIDO!";
+          mensajeAlerta = `Su flete venció hace <b>${
+            dias_restantes === -1 ? "1 día" : `${diasVencidos} días`
+          }</b>.<br>Debe actualizarlo urgentemente; de lo contrario, <b>los cálculos saldrán incorrectos</b> en las cotizaciones.<br><br><span style="color: #e74c3c; font-weight: bold;">Fecha de vigencia: ${vigencia}</span>`;
+          iconoAlerta = "error";
+        } else if (dias_restantes === 0) {
+          tituloAlerta = "¡FLETE VENCE HOY!";
+          mensajeAlerta = `Su flete expira <b>hoy mismo</b>.<br>Actualice los costos para evitar que <b>los cálculos saldrán incorrectos</b> en las cotizaciones.<br><br><span style="color: #f39c12; font-weight: bold;">Fecha de vigencia: ${vigencia}</span>`;
+          iconoAlerta = "warning";
+        } else {
+          tituloAlerta = "¡AVISO DE VIGENCIA DE FLETE!";
+          mensajeAlerta = `Su flete está próximo a vencer en <b>${dias_restantes} ${
+            dias_restantes === 1 ? "día" : "días"
+          }</b>.<br>Manténgalo al día para asegurar que <b>los cálculos no salgan incorrectos</b> en las cotizaciones.<br><br><span style="color: #f39c12; font-weight: bold;">Fecha de vigencia: ${vigencia}</span>`;
+          iconoAlerta = "warning";
+        }
+
+        // 2. Alerta con 3 botones con iconos y bloqueo total de 5 segundos
+        Swal.fire({
+          icon: iconoAlerta,
+          title: tituloAlerta,
+          html: mensajeAlerta,
+          allowOutsideClick: false,
+          allowEscapeKey: false,
+
+          // Botón principal (Ir a Configurar Flete)
+          confirmButtonText: "Espere (5s)...",
+          confirmButtonColor: "#00a65a",
+
+          // Tercer botón (Actualizar Fecha)
+          showDenyButton: true,
+          denyButtonText: '<i class="fa fa-calendar-alt"></i> Actualizar Fecha',
+          denyButtonColor: "#3085d6",
+
+          // Botón secundario (Cancelar)
+          showCancelButton: true,
+          cancelButtonText: '<i class="fa fa-times"></i> Cancelar',
+
+          didOpen: () => {
+            const confirmBtn = Swal.getConfirmButton();
+            const denyBtn = Swal.getDenyButton();
+            const cancelBtn = Swal.getCancelButton();
+
+            // Deshabilitamos los 3 botones al inicio
+            confirmBtn.disabled = true;
+            confirmBtn.style.backgroundColor = "#95a5a6";
+
+            if (denyBtn) {
+              denyBtn.disabled = true;
+              denyBtn.style.backgroundColor = "#95a5a6";
+            }
+
+            if (cancelBtn) {
+              cancelBtn.disabled = true;
+            }
+
+            let timerSecs = 5;
+            confirmBtn.innerHTML = `Por favor lea (${timerSecs}s)`;
+
+            const interval = setInterval(() => {
+              timerSecs--;
+              if (timerSecs > 0) {
+                confirmBtn.innerHTML = `Por favor lea (${timerSecs}s)`;
+              } else {
+                clearInterval(interval);
+
+                // Habilitamos y restauramos los botones con sus respectivos iconos al pasar los 5 segundos
+                confirmBtn.disabled = false;
+                confirmBtn.innerHTML =
+                  '<i class="fa fa-cog"></i> Ir a Configurar Flete';
+                confirmBtn.style.backgroundColor = "#00a65a";
+
+                if (denyBtn) {
+                  denyBtn.disabled = false;
+                  denyBtn.innerHTML =
+                    '<i class="fa fa-calendar-alt"></i> Actualizar Fecha';
+                  denyBtn.style.backgroundColor = "#3085d6";
+                }
+
+                if (cancelBtn) {
+                  cancelBtn.disabled = false;
+                }
+              }
+            }, 1000);
+          },
+        }).then((res) => {
+          if (res.isConfirmed) {
+            // Acción para "Ir a Configurar Flete"
+            this.$router.push({
+              name: "ServiciosCostosFijosLCL",
+            });
+          } else if (res.isDenied) {
+            this.dialogCambiarFecha = true;
+          }
+        });
+      }
     },
     async guardarCotizacion() {
       let validacion = this.validarRegistro();

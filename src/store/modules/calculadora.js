@@ -1270,6 +1270,31 @@ const actions = {
       });
     }
   },
+
+  async actualizarFechaVigencia({ commit }, vigencia) {
+    let branch = JSON.parse(sessionStorage.getItem("dataBranch"));
+    let id_pais = branch[0].id_pais;
+    var headers = {
+      "Content-Type": "application/json",
+    };
+    let data = { id_pais_destino: id_pais, vigencia: vigencia };
+    var config = {
+      method: "put",
+      url: process.env.VUE_APP_URL_MAIN + "calc/actualizar_fecha_flete",
+      headers: headers,
+      data: data,
+    };
+    let response = await axios(config);
+
+    if (response.data.estadoflag) {
+      let data = response.data;
+      Swal.fire({
+        icon: data.estadoflag ? "success" : "error",
+        title: "Aviso",
+        text: data.mensaje,
+      });
+    }
+  },
 };
 
 export default {

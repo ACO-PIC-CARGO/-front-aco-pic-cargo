@@ -1,7 +1,7 @@
 <template>
-  <div>
+  <v-card>
     <AccountPaysCom />
-  </div>
+  </v-card>
 </template>
 
 <script>
