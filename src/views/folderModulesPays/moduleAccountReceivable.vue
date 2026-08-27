@@ -1,7 +1,7 @@
 <template>
-  <div>
+  <v-card>
     <moduleAccountReceivableCom />
-  </div>
+  </v-card>
 </template>
 <script>
 import moduleAccountReceivableCom from "@/components/folderModulesPays/moduleAccountReceivable.vue";
