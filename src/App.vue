@@ -790,7 +790,6 @@ import { io } from "socket.io-client";
 import { mapActions, mapState } from "vuex";
 import axios from "@/api/axios-config";
 import Swal from "sweetalert2";
-import { getRegistration } from "./registerServiceWorker";
 
 export default {
   created() {
@@ -814,7 +813,6 @@ export default {
     newquote: false,
     guardarClienteFlag: false,
     isPricing: false,
-    registration: null,
   }),
   async mounted() {
     this.$store.state.security = JSON.parse(sessionStorage.getItem("security"));
@@ -823,27 +821,21 @@ export default {
       this._getVersion();
     }, 10);
 
-    // this.socket.on("version-actualizada", (data) => {
-    //   if (data.modulo === "operativo") {
-    //     if (data.power == 0) {
-    //       this.dialogPower = true;
-    //       return;
-    //     }
-    //     if (data.power == 1) {
-    //       this.dialogPower = false;
-    //     }
-    //     if (data.version != process.env.VUE_APP_VERSION) {
-    //       this.dialogVersion = true;
-    //     }
-    //   }
-    // });
-
-    window.addEventListener('sw-updated', (event) => {
-      this.registration = event.detail;
-      this.dialogVersion = true; // Muestra tu diálogo actual
+    this.socket.on("version-actualizada", (data) => {
+      if (data.modulo === "operativo") {
+        if (data.power == 0) {
+          this.dialogPower = true;
+          return;
+        }
+        if (data.power == 1) {
+          this.dialogPower = false;
+        }
+        if (data.version != process.env.VUE_APP_VERSION) {
+          this.dialogVersion = true;
+        }
+      }
     });
 
-    
     var vm = this;
     vm.$store.state.drawer = false;
 

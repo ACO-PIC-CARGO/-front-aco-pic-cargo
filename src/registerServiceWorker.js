@@ -1,19 +1,16 @@
 /* eslint-disable no-console */
+
 import { register } from "register-service-worker";
-
-let registrationWorker = null;
-
-export function getRegistration() {
-  return registrationWorker;
-}
 
 if (process.env.NODE_ENV === "production") {
   register(`${process.env.BASE_URL}service-worker.js`, {
     ready() {
-      console.log("App is being served from cache by a service worker.");
+      console.log(
+        "App is being served from cache by a service worker.\n" +
+          "For more details, visit https://goo.gl/AFskqB"
+      );
     },
-    registered(registration) {
-      registrationWorker = registration;
+    registered() {
       console.log("Service worker has been registered.");
     },
     cached() {
@@ -22,15 +19,13 @@ if (process.env.NODE_ENV === "production") {
     updatefound() {
       console.log("New content is downloading.");
     },
-    updated(registration) {
+    updated() {
       console.log("New content is available; please refresh.");
-      registrationWorker = registration;
-      
-      // Lanzamos un evento global para que App.vue muestre el diálogo
-      window.dispatchEvent(new CustomEvent('sw-updated', { detail: registration }));
     },
     offline() {
-      console.log("No internet connection found. App is running in offline mode.");
+      console.log(
+        "No internet connection found. App is running in offline mode."
+      );
     },
     error(error) {
       console.error("Error during service worker registration:", error);
