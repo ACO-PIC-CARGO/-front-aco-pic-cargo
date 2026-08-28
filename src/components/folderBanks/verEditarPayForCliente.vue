@@ -156,7 +156,7 @@
                         outlined
                         v-model="item.montoparcial"
                         :disabled="verflag"
-                        :prefix="item.symbol"
+                        :prefix="symbol"
                         @input="calcularTotal"
                         :rules="[
                           (v) =>
@@ -178,28 +178,11 @@
                         v-if="item.nuevoflag"
                       ></v-text-field>
                     </template>
-                    <template v-slot:[`item.totaldolar`]="{ item }">
-                      USD {{ item.totaldolar }}
+                    <template v-slot:[`item.montomonedalocal`]="{ item }">
+                      {{ symbol }} {{ item.montomonedalocal }}
                     </template>
-                    <template v-slot:[`item.totalabonado`]="{ item }">
-                      {{ fn_totalAbonado(item) }}
-                    </template>
-                    <template v-slot:[`item.monto_original_total`]="{ item }">
-                      {{ item.symbol }} {{ item.monto_original_total }}
-                    </template>
-                    <template v-slot:[`item.total_mon_local`]="{ item }">
-                      {{ item.symbol }} {{ item.total_mon_local }}
-                    </template>
-                    <template v-slot:[`item.saldo`]="{ item }">
-                      {{ item.symbol }}
-                      {{
-                        parseFloat(
-                          item.total_mon_local -
-                            (item.montoparcial
-                              ? item.montoparcial
-                              : item.total_mon_local),
-                        ).toFixed(2)
-                      }}
+                    <template v-slot:[`item.montodolar`]="{ item }">
+                      USD {{ item.montodolar }}
                     </template>
                   </v-data-table>
                 </v-col>
@@ -549,7 +532,7 @@ export default {
       id_path: null,
       selected: [],
       headers: [
-        { text: "Ingrese Monto a Abonar", value: "montopagar" },
+        { text: "Monto a Abonado", value: "montopagar" },
         { text: "Expediente", value: "code_master" },
         { text: "Módulo Origen", value: "tipo" },
         {
@@ -902,13 +885,15 @@ export default {
       this.editableGastoBancario = true;
     },
     async finalizarOperacion() {
-      console.log("Monto Local:", this.monto_local);
-      console.log("Monto Local1:", this.monto / this.tipocambio);
-      if (this.monto_local != this.monto / this.tipocambio) {
+      
+      if (
+        parseFloat(this.monto_local).toFixed(2) !=
+        parseFloat(this.monto*this.tipocambio).toFixed(2)
+      ) {
         Swal.fire({
           icon: "error",
           title: "Monto Local Incorrecto",
-          text: `El monto local debe ser equivalente a ${this.symbol} ${this.monto}.`,
+          text: `El monto local debe ser equivalente a ${this.symbol} ${this.monto_local}.`,
         });
         return false;
       }
@@ -994,83 +979,12 @@ export default {
           let monto = 0;
           monto = parseFloat(item.montoparcial) || 0;
           // Convertimos a USD si no lo está
-          if (item.symbol !== "USD") {
-            const tc = parseFloat(this.tipocambio) || 1;
-            monto = monto / tc;
-          }
 
           return acc + monto;
         }, 0)
         .toFixed(2);
     },
-    // tipocambio() {
-    //   let monto_mon_local = 0;
-    //   let monto_mon_dolar = 0;
 
-    //   let tc = 1;
-    //   // 1. Sumatoria de seleccionados
-
-    //   if (this.id_cuenta.symbol == "USD") {
-    //     if (Number(this.monto_local) == Number(this.monto)) {
-    //       this.selected
-    //         .filter((v) => v.symbol != "USD")
-    //         .forEach((item) => {
-    //           const monto = item.parcialflag
-    //             ? Number(item.montoparcial || 0)
-    //             : Number(item.total_mon_local || 0);
-    //           monto_mon_local += monto;
-    //           monto_mon_dolar += item.totaldolar;
-    //         });
-    //       tc = monto_mon_local / monto_mon_dolar;
-    //     } else {
-    //       let monto_total_dolar = 0;
-    //       this.selected.forEach((item) => {
-    //         const monto = item.parcialflag
-    //           ? Number(item.montoparcial || 0)
-    //           : Number(item.total_mon_local || 0);
-
-    //         if (item.symbol === "USD") {
-    //           monto_mon_dolar += monto;
-    //         } else {
-    //           monto_mon_local += monto;
-    //           monto_total_dolar += item.parcialflag
-    //             ? Number(item.montoparcial || 0)
-    //             : Number(item.totaldolar || 0);
-    //         }
-    //       });
-
-    //       tc = 1;
-    //       const montoBase = Number(this.monto_local || 0);
-
-    //       const divisor = montoBase - monto_mon_dolar;
-    //       if (divisor !== 0 && monto_total_dolar !== 0) {
-    //         tc = divisor / monto_total_dolar;
-    //       }
-    //     }
-    //   } else {
-    //     this.selected.forEach((item) => {
-    //       const monto = item.parcialflag
-    //         ? Number(item.montoparcial || 0)
-    //         : Number(item.total_mon_local || 0);
-
-    //       if (item.symbol === "USD") {
-    //         monto_mon_dolar += monto;
-    //       } else {
-    //         monto_mon_local += monto;
-    //       }
-    //     });
-
-    //     tc = 1;
-    //     const montoBase = Number(this.monto_local || 0);
-
-    //     const divisor = montoBase - monto_mon_local;
-    //     if (divisor !== 0 && monto_mon_dolar !== 0) {
-    //       tc = divisor / monto_mon_dolar;
-    //     }
-    //   }
-    //   const resultado = isNaN(tc) || !isFinite(tc) || tc <= 0 ? 1 : tc;
-    //   return Number(resultado).toFixed(4);
-    // },
     itemsOrdenados() {
       const items = [...this.$store.state.bank.deudaAProveedor];
       return items.sort((a, b) => {

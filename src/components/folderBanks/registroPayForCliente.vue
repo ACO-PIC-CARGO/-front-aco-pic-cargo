@@ -74,7 +74,7 @@
           ></v-text-field>
         </v-col>
 
-        <v-col cols="12" v-if="cliente">
+        <v-col cols="12" v-if="cliente" class="pt-0">
           <v-tabs
             v-model="pasos"
             centered
@@ -111,7 +111,7 @@
                 </v-col>
                 <v-col cols="12" md="6" class="py-1">
                   <v-text-field
-                    label="Buscar Expediente, Factura o Procedencia"
+                    label="Buscar"
                     v-model="searchTableDetalle"
                     style="max-width: 400px"
                     outlined
@@ -126,14 +126,20 @@
                 </v-col>
               </v-row>
               <v-row class="mt-1">
-                <v-col
-                  cols="12"
-                  v-if="
-                    id_cuenta &&
-                    Object.keys(id_cuenta).length > 0 &&
-                    !!id_cuenta.id
-                  "
-                >
+                <v-col cols="12" class="pt-0" v-if="mostrarDetalle">
+                  <div class="d-flex justify-center">
+                    <v-alert
+                      class="mt-0"
+                      border="top"
+                      type="info"
+                      elevation="2"
+                      dense
+                      width="450px"
+                      color="purple"
+                    >
+                      <b>SELECCIONE UNA FACTURA PARA CONTINUAR</b>
+                    </v-alert>
+                  </div>
                   <v-data-table
                     :headers="headers"
                     :items="itemsOrdenados"
@@ -150,7 +156,9 @@
                         <td :colspan="headers.length" class="text-right">
                           Total General Seleccionado (USD):
                         </td>
-                        <td class="text-left">USD {{ totalGeneralAbonado }}</td>
+                        <td class="text-left">
+                          {{ symbol }} {{ totalGeneralAbonadoMonLocal }}
+                        </td>
                       </tr>
                     </template>
                     <template v-slot:[`item.parcialflag`]="{ item }">
@@ -162,6 +170,7 @@
                         :disabled="!selected.includes(item)"
                         hide-details
                         @change="verificarMontoCompleto(item)"
+                        style="max-width: 200px"
                       ></v-select>
                     </template>
                     <template v-slot:[`item.montopagar`]="{ item }">
@@ -425,7 +434,9 @@
                         >
                           Total General Seleccionado (USD):
                         </td>
-                        <td class="text-left">USD {{ totalGeneralAbonado }}</td>
+                        <td class="text-left">
+                          {{ symbol }} {{ totalGeneralAbonadoMonLocal }}
+                        </td>
                       </tr>
                     </template>
                     <template v-slot:[`item.parcialflag`]="{ item }">
@@ -469,7 +480,7 @@
                     label="Monto Gasto Bancario"
                     id="id"
                     type="number"
-                    prefix="USD"
+                    :prefix="symbol"
                     v-model="montogastobancario"
                   ></v-text-field>
                 </v-col>
@@ -480,8 +491,8 @@
                     label="Monto Total a Pagar"
                     id="id"
                     type="number"
-                    prefix="USD"
-                    v-model="montoFinal"
+                    :prefix="symbol"
+                    v-model="totalGeneralAbonadoMonLocal"
                   ></v-text-field>
                 </v-col>
                 <v-col cols="12">
@@ -546,7 +557,6 @@
             type="number"
             :prefix="symbol"
             :error-messages="errorMesage.monto_local"
-            :readonly="!Object.keys(id_cuenta).length > 0"
             :rules="[(v) => !!v || 'Este campo es obligatorio']"
             hide-details="auto"
           ></v-text-field>
@@ -554,15 +564,10 @@
 
         <v-card-actions class="pa-4 pt-0">
           <v-spacer></v-spacer>
-          <v-btn
-            color="primary"
-            elevation="1"
-            large
-            class="font-weight-bold text-uppercase px-6"
-            @click="confirmarDeposito"
-          >
-            CONTINUAR
+          <v-btn color="error" @click="cancelarllenadoDeMonto()" text>
+            Cancelar
           </v-btn>
+          <v-btn color="primary" @click="confirmarDeposito"> CONTINUAR </v-btn>
         </v-card-actions>
       </v-card>
     </v-dialog>
@@ -590,7 +595,7 @@ export default {
       conceptogastobancario: "",
       montogastobancario: 0,
       monto_local: 0,
-
+      mostrarDetalle: false,
       pasos: 0,
       monto: 0,
       loading: false,
@@ -603,46 +608,42 @@ export default {
       id_path: null,
       selected: [],
       headers: [
-        { width: "6%", text: "Abono Completo o Parcial", value: "parcialflag" },
-        { width: "12%", text: "Ingrese Monto a Abonar", value: "montopagar" },
-        { width: "8%", text: "Fecha Facturación", value: "fecha" },
-        { width: "8%", text: "Expediente", value: "referencia" },
-        { width: "8%", text: "Módulo Origen", value: "tipo" },
+        { text: "Abono Completo o Parcial", value: "parcialflag" },
+        { text: "Moneda Y Monto", value: "montopagar" },
+        // { width: "8%", text: "Fecha Facturación", value: "fecha" },
+        { text: "Expediente", value: "referencia" },
+        { text: "Tipo", value: "tipo" },
         {
-          width: "8%",
-          text: "Monto Según Factura",
+          text: "Moneda y Monto Facturado",
           value: "monto_original_total",
         },
-        { width: "8%", text: "Saldo Actual", value: "total_mon_local" },
+        { text: "Saldo Actual", value: "total_mon_local" },
         {
           text: "Monto Equivalente en Dólares",
           value: "totaldolar",
-          width: "8%",
         },
-        { width: "8%", text: "Saldo Final", value: "saldo" },
-        { width: "8%", text: "Factura", value: "documentos" },
-        { width: "8%", text: "Monto Total Abonado", value: "totalabonado" },
+        { text: "Saldo Final", value: "saldo" },
+        { text: "Factura", value: "documentos" },
+        { text: "Monto Total Abonado", value: "totalabonado" },
       ],
       headersPagosGastosBancario: [
-        { width: "6%", text: "Abono Completo o Parcial", value: "parcialflag" },
-        { width: "12%", text: "Monto Abonado", value: "montopagar" },
-        { width: "8%", text: "Fecha Facturación", value: "fecha" },
-        { width: "8%", text: "Expediente", value: "referencia" },
-        { width: "8%", text: "Módulo Origen", value: "tipo" },
+        { text: "Abono Completo o Parcial", value: "parcialflag" },
+        { text: "Moneda Y Monto", value: "montopagar" },
+        // { text: "Fecha Facturación", value: "fecha" },
+        { text: "Expediente", value: "referencia" },
+        { text: "Tipo", value: "tipo", align: "center" },
         {
-          width: "8%",
-          text: "Monto Según Factura",
+          text: "Moneda y Monto Facturado",
           value: "monto_original_total",
         },
-        { width: "8%", text: "Saldo Actual", value: "total_mon_local" },
+        { text: "Saldo Actual", value: "total_mon_local" },
         {
           text: "Monto Equivalente en Dólares",
           value: "totaldolar",
-          width: "8%",
         },
-        { width: "8%", text: "Saldo Final", value: "saldo" },
-        { width: "8%", text: "Factura", value: "documentos" },
-        { width: "8%", text: "Monto Total Abonado", value: "totalabonado" },
+        { text: "Saldo Final", value: "saldo" },
+        // { text: "Factura", value: "documentos" },
+        { text: "Monto Total Abonado", value: "totalabonado" },
       ],
       items: [],
       errorMesage: {
@@ -684,9 +685,18 @@ export default {
       "setRegistroIgresos",
       "validarIngresoNroOperacion",
     ]),
+    cancelarllenadoDeMonto() {
+      this.dialogLlenarMontoDepositadoBanco = false;
+      this.monto_local = null;
+      this.id_cuenta = {};
+
+      // Si usas validación de formulario (v-form), es recomendable resetearla aquí:
+      // this.$refs.tuFormulario?.resetValidation();
+    },
     confirmarDeposito() {
       if (this.monto_local) {
         this.dialogLlenarMontoDepositadoBanco = false;
+        this.mostrarDetalle = true;
       }
     },
     checkDeshabilitado(item) {
@@ -848,32 +858,13 @@ export default {
     },
     calcularTotal() {
       let totalUSD = this.selected.reduce((acc, item) => {
-        let valorFilaUSD = 0;
-
-        // Detectar si la factura viene en soles usando la propiedad usada en la tabla
-        const esFacturaSoles = item.symbol !== "USD" && item.symbol !== "$";
-
-        let montoIngresado = parseFloat(item.montoparcial) || 0;
-        let saldoLocal = parseFloat(item.total_mon_local) || 0;
-        let saldoDolares = parseFloat(item.totaldolar) || 0;
-
-        if (item.parcialflag) {
-          if (esFacturaSoles) {
-            // Regla de tres: (Monto abonado en Soles / Saldo Total Soles) * Saldo Total en USD
-            if (saldoLocal > 0) {
-              let porcentajePago = montoIngresado / saldoLocal;
-              valorFilaUSD = saldoDolares * porcentajePago;
-            }
-          } else {
-            // Factura en USD
-            valorFilaUSD = montoIngresado;
-          }
+        if (this.symbol === "USD") {
+          return acc + parseFloat(item.montoparcial || 0);
         } else {
-          // Abono completo: toma directamente el equivalente total en dólares
-          valorFilaUSD = saldoDolares;
+          let porcentagePago =
+            (item.montoparcial || 0 * 100) / item.monto_original_total;
+          return acc + parseFloat(item.totaldolar * porcentagePago);
         }
-
-        return acc + valorFilaUSD;
       }, 0);
 
       this.monto = totalUSD.toFixed(2);
@@ -1024,6 +1015,14 @@ export default {
       // return total.toFixed(2);
       return this.monto || "0.00";
     },
+    totalGeneralAbonadoMonLocal() {
+      let monto = this.selected.reduce((acc, item) => {
+        let monto = parseFloat(item.montoparcial) || 0;
+
+        return acc + monto;
+      }, 0);
+      return parseFloat(monto).toFixed(2);
+    },
     tipocambio() {
       if (this.symbol == "USD") {
         return 1;
@@ -1053,20 +1052,18 @@ export default {
     },
   },
   watch: {
-    id_cuenta(newVal) {
-      let id_coins = newVal.id_coins;
-      let coins = this.$store.state.itemsCoinsList.find(
-        (coin) => coin.id === id_coins,
-      );
-      this.symbol = coins ? coins.symbol : "USD";
+    id_cuenta(newVal, oldVal) {
+      if (newVal && newVal.id && (!oldVal || newVal.id !== oldVal.id)) {
+        let id_coins = newVal.id_coins;
+        let coins = this.$store.state.itemsCoinsList.find(
+          (coin) => coin.id === id_coins,
+        );
+        this.symbol = coins ? coins.symbol : "USD";
 
-      // Recalcular con la nueva moneda seleccionada
-      this.calcularTotal();
+        this.calcularTotal();
 
-      this.dialogLlenarMontoDepositadoBanco = true;
-      setTimeout(() => {
-        this.$refs.txtMontoLocal.focus();
-      }, 100);
+        this.dialogLlenarMontoDepositadoBanco = true;
+      }
     },
     fecha_operacion(newVal) {
       if (newVal) {

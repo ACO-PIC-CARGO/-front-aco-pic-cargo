@@ -46,12 +46,18 @@
                 <tbody>
                   <tr v-for="(detalle, index) in item.detalle" :key="index">
                     <td>{{ detalle.concepto }}</td>
-                    <td> {{ item.namecoins }} {{ parseFloat(detalle.monto).toFixed(2) }} </td>
                     <td>
-                      {{ item.namecoins }} 
+                      {{ item.namecoins }}
+                      {{ parseFloat(detalle.monto).toFixed(2) }}
+                    </td>
+                    <td>
+                      {{ item.namecoins }}
                       {{ parseFloat(detalle.igv).toFixed(2) }}
                     </td>
-                    <td> {{ item.namecoins }} {{ parseFloat(detalle.total).toFixed(2) }} </td>
+                    <td>
+                      {{ item.namecoins }}
+                      {{ parseFloat(detalle.total).toFixed(2) }}
+                    </td>
                     <td>USD {{ parseFloat(detalle.montodolar).toFixed(2) }}</td>
                     <td>USD {{ parseFloat(detalle.igvdolar).toFixed(2) }}</td>
                     <td>USD {{ parseFloat(detalle.totaldolar).toFixed(2) }}</td>
@@ -59,6 +65,9 @@
                 </tbody>
               </v-simple-table>
             </td>
+          </template>
+          <template v-slot:[`item.paymentname`]="{ item }">
+            {{ item.paymentname.charAt(0) }}
           </template>
           <template v-slot:[`item.accion`]="{ item }">
             <v-chip
@@ -272,13 +281,13 @@ export default {
         },
 
         {
-          text: "Tipo de Cambio",
-          value: "tipocambio",
-        },
-        {
           text: "Total",
           value: "total",
           class: "totalcss",
+        },
+        {
+          text: "Tipo de Cambio",
+          value: "tipocambio",
         },
         {
           text: "Total",
@@ -446,7 +455,6 @@ export default {
       await axios(config)
         .then(function (response) {
           //vm.dialogListInvoince = true;
-          console.log(response);
           vm.itemsListInvoice = response.data.data;
         })
         .catch(function (error) {
