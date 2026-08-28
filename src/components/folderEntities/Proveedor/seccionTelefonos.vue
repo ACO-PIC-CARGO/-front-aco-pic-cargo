@@ -139,7 +139,7 @@
             </v-data-table>
           </v-form>
 
-          <v-subheader class="px-0">
+          <!-- <v-subheader class="px-0">
             <b>Emails</b>
             <template v-if="showFormActions">
               <v-btn
@@ -198,7 +198,7 @@
                 </v-data-table>
               </v-form>
             </v-col>
-          </v-row>
+          </v-row> -->
         </v-col>
       </v-row>
       </div>
@@ -360,9 +360,9 @@ export default {
       if (!vm.$refs.formProv_contactos.validate()) {
         return;
       }
-      if (!vm.$refs.formProv_email.validate()) {
-        return;
-      }
+      // if (!vm.$refs.formProv_email.validate()) {
+      //   return;
+      // }
 
       vm.$store.state.entities.stepper = 3;
     },

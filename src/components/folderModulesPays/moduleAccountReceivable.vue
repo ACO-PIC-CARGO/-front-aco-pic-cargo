@@ -1,26 +1,84 @@
 <template>
-  <div>
-    <v-card elevation="0">
-      <v-card elevation="0">
-        <v-card-title class="py-0">
-          <v-spacer></v-spacer>
-          <v-btn color="primary" @click="toGoPage()" elevation="0">
-            SUBIR NUEVA CUENTA POR COBRAR
-          </v-btn>
-        </v-card-title>
-        <v-card-text> </v-card-text>
-      </v-card>
-      <v-card-text class="pa-1">
+  <v-container fluid>
+    <v-row>
+      <v-col cols="12" md="3">
+        <v-text-field
+          hide-details
+          v-model="searchFactura"
+          dense
+          id="id"
+          outlined
+          label="Buscar Factura"
+          append-icon="mdi-text-search"
+        ></v-text-field>
+      </v-col>
+      <v-col cols="12" md="9" class="text-right">
+        <v-btn class="mx-1" @click="filtroflag = true" color="default">
+          <v-icon small>mdi-filter</v-icon> Filtro
+        </v-btn>
+        <v-btn class="mx-1" @click="toGoPage()" color="primary">
+          <v-icon>mdi-plus</v-icon> NUEVO COBRO
+        </v-btn>
+      </v-col>
+      <v-col cols="12">
         <v-data-table
           :headers="headersFacturas"
           :items="itemsListInvoice"
-          :search="searchFactura"
-          :custom-filter="filterOnlyCapsText"
-          multi-sort
-          disable-sort
+          dense
+          :single-expand="true"
+          @click:row="clickRow"
+          :expanded.sync="expanded"
         >
+          <template v-slot:expanded-item="{ item }">
+            <td :colspan="headersFacturas.length">
+              <v-simple-table>
+                <thead style="background: #e3f2fd; font-weight: bold">
+                  <tr>
+                    <td>Concepto</td>
+                    <td>Monto</td>
+                    <td>IGV</td>
+                    <td>Total</td>
+                    <td>Monto (USD)</td>
+                    <td>IGV (USD)</td>
+                    <td>Total (USD)</td>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr v-for="(detalle, index) in item.detalle" :key="index">
+                    <td>{{ detalle.concepto }}</td>
+                    <td>
+                      {{ item.namecoins }}
+                      {{ parseFloat(detalle.monto).toFixed(2) }}
+                    </td>
+                    <td>
+                      {{ item.namecoins }}
+                      {{ parseFloat(detalle.igv).toFixed(2) }}
+                    </td>
+                    <td>
+                      {{ item.namecoins }}
+                      {{ parseFloat(detalle.total).toFixed(2) }}
+                    </td>
+                    <td>USD {{ parseFloat(detalle.montodolar).toFixed(2) }}</td>
+                    <td>USD {{ parseFloat(detalle.igvdolar).toFixed(2) }}</td>
+                    <td>USD {{ parseFloat(detalle.totaldolar).toFixed(2) }}</td>
+                  </tr>
+                </tbody>
+              </v-simple-table>
+            </td>
+          </template>
+          <template v-slot:[`item.totaldolar`]="{ item }">
+            USD {{ item.totaldolar }}
+            </template>
+          <template v-slot:[`item.monto`]="{ item }">
+            {{ item.namecoins }}
+            {{ item.total }}
+          </template>
+
+          <template v-slot:[`item.paymentname`]="{ item }">
+            {{ item.paymentname.charAt(0) }}
+          </template>
           <template v-slot:[`item.tipo_cambio`]="{ item }">
-            {{ item.tipocambio == 1 ? "No Aplica" : item.tipocambio }}
+            {{ item.tipocambio }}
           </template>
           <template v-slot:[`item.accion`]="{ item }">
             <v-chip
@@ -41,14 +99,9 @@
               v-if="item.status == 2"
             >
               Pagado
-            </v-chip> </template
-          ><template v-slot:top>
-            <v-text-field
-              v-model="searchFactura"
-              label="Buscar...."
-              class="mx-4"
-            ></v-text-field>
+            </v-chip>
           </template>
+
           <template v-slot:[`item.action`]="{ item }">
             <v-icon
               class="btn_add mr-2"
@@ -85,146 +138,93 @@
             </v-icon>
           </template>
         </v-data-table>
-      </v-card-text>
-    </v-card>
+      </v-col>
+    </v-row>
+    <!-- seeción filtro -->
 
-    <v-dialog max-width="600" v-model="dialogPayment">
-      <v-card>
-        <v-card-title> SUBIR PAGO </v-card-title>
-        <v-card-text>
-          <v-row dense>
-            <v-col cols="12" md="4">
-              <v-menu
-                ref="menu"
-                v-model="menu"
-                :close-on-content-click="false"
-                :return-value.sync="date"
-                transition="scale-transition"
-                offset-y
-                min-width="auto"
-              >
-                <template v-slot:activator="{ on, attrs }">
-                  <v-text-field
-                    v-model="date"
-                    label="Fecha de Operación"
-                    prepend-icon="mdi-calendar"
-                    readonly
-                    v-bind="attrs"
-                    v-on="on"
-                  ></v-text-field>
-                </template>
-                <v-date-picker
-                  locale="es-pe"
-                  v-model="date"
-                  no-title
-                  scrollable
-                >
-                  <v-spacer></v-spacer>
-                  <v-btn text color="primary" @click="menu = false">
-                    Cancel
-                  </v-btn>
-                  <v-btn text color="primary" @click="$refs.menu.save(date)">
-                    OK
-                  </v-btn>
-                </v-date-picker>
-              </v-menu>
-            </v-col>
-            <v-col cols="12" md="3">
-              <v-text-field
-                v-model="serie_pago"
-                label="No. Serie"
-              ></v-text-field>
-            </v-col>
-            <v-col cols="12" md="5">
-              <v-text-field
-                v-model="factura_pago"
-                label="No. Factura"
-              ></v-text-field>
-            </v-col>
-
-            <v-col cols="12" md="4">
-              <v-autocomplete
-                :items="$store.state.itemsDataBanksList"
-                v-model="banco_pago"
-                item-text="acronym"
-                item-value="id"
-                label="Banco"
-              ></v-autocomplete>
-            </v-col>
-            <v-col cols="12" md="4">
-              <v-autocomplete
-                :items="$store.state.itemsCoinsList"
-                v-model="moneda_pago"
-                item-text="acronym"
-                item-value="id"
-                label="Moneda"
-              ></v-autocomplete>
-            </v-col>
-            <v-col cols="12" md="4">
-              <v-text-field
-                v-model="monto_pago"
-                type="number"
-                label="Monto"
-              ></v-text-field>
-            </v-col>
-            <v-col cols="12" md="9">
-              <v-file-input
-                v-if="!boolFile"
-                v-model="payfile"
-                show-size
-                label="Adjuntar Pago"
-              >
-              </v-file-input>
-
-              <v-chip
-                block
-                v-if="boolFile"
-                large
-                class=""
-                color="success"
-                outlined
-              >
-                <v-icon left> mdi-check </v-icon>
-                Archivo cargado éxitosamente
-              </v-chip>
-            </v-col>
-            <v-col cols="3">
-              <v-btn
-                :disabled="boolFile || payfile == []"
-                color="blue-grey"
-                block
-                class="ma-2 white--text"
-                large
-                @click="_uploadFile()"
-              >
-                Subir
-                <v-icon right dark> mdi-cloud-upload </v-icon>
-              </v-btn>
-            </v-col>
-          </v-row>
-        </v-card-text>
-        <v-card-actions>
-          <v-btn
-            color="primary"
-            @click="_putInvoice(id_pro)"
-            :disabled="!boolFile"
-          >
-            Procesar Pago
-          </v-btn>
+    <v-navigation-drawer
+      v-model="filtroflag"
+      right
+      absolute
+      bottom
+      persistent
+      width="40%"
+      temporary
+      class="filtro-container"
+    >
+      <v-card min-height="800px">
+        <v-card-title primary-title>
+          Filtro Para Facturas
           <v-spacer></v-spacer>
-          <v-btn outlined color="red" @click="dialogProcess = !dialogProcess">
-            Cerrar
+          <v-btn color="default" text @click="filtroflag = false">
+            <v-icon>mdi-close</v-icon>
+          </v-btn>
+        </v-card-title>
+        <v-divider></v-divider>
+        <v-card-text>
+          <v-autocomplete
+            :items="$store.state.clientes"
+            v-model="id_cliente"
+            item-text="namelong"
+            item-value="id"
+            clearable
+            label="Cliente"
+            outlined
+            dense
+          ></v-autocomplete>
+
+          <FormatFecha
+            v-model="fechapagodesde"
+            label="Fecha Emisión desde "
+            :outlined="true"
+            :dense="true"
+          />
+          <FormatFecha
+            v-model="fechapagohasta"
+            label="Fecha Emisión Hasta"
+            :outlined="true"
+            :dense="true"
+          />
+          <v-text-field
+            v-model="factura"
+            clearable
+            outlined
+            dense
+            label="Factura"
+          />
+          <v-text-field
+            v-model="serie"
+            clearable
+            outlined
+            dense
+            label="Serie"
+          />
+        </v-card-text>
+        <v-divider></v-divider>
+        <v-card-actions>
+          <v-spacer></v-spacer>
+          <v-btn color="info" @click="_getInvoiceAdminCxC()">
+            <v-icon>mdi-filter-check-outline</v-icon> Filtrar
+          </v-btn>
+          <v-btn color="danger" @click="limpiar()">
+            <v-icon>mdi-filter-remove-outline</v-icon> Limpiar
           </v-btn>
         </v-card-actions>
       </v-card>
-    </v-dialog>
-  </div>
+    </v-navigation-drawer>
+  </v-container>
 </template>
 
 <script>
-import axios from '@/api/axios-config';
+import axios from "@/api/axios-config";
+import moment from "moment";
+import FormatFecha from "../comun/FormatFecha.vue";
+import { mapActions } from "vuex";
 export default {
   name: "controlAccountReceivableCom",
+  components: {
+    FormatFecha,
+  },
   props: {
     operativa: "",
     exp: "",
@@ -232,107 +232,123 @@ export default {
     id_pro: "",
     tipo: "",
   },
-  data: () => ({
-    itemsListInvoice: [],
-    searchFactura: "",
-    dialogPayment: false,
-    date: new Date(Date.now() - new Date().getTimezoneOffset() * 60000)
-      .toISOString()
-      .substr(0, 10),
-    row: "",
-    menu: false,
-    modal: false,
-    menu2: false,
-    pathfileAll: "",
-    boolFile: false,
-    pathfile: "",
-    payfile: "",
-    payPath: "",
-    serie_pago: "",
-    factura_pago: "",
-    moneda_pago: "",
-    monto_pago: "",
-    banco_pago: "",
-    headersFacturas: [
-      {
-        text: "Tipo Ingreso",
-        value: "ingreso_description",
-      },
-      {
-        text: "Tipo Sub Ingreso",
-        value: "subingreso_description",
-      },
-      {
-        text: "Tipo",
-        value: "paymentname",
-      },
-      {
-        text: "Fecha",
-        value: "fecha",
-      },
-      {
-        text: "Expediente",
-        value: "nro_master",
-      },
-      {
-        text: "Cliente",
-        value: "nameconsigner",
-      },
-      {
-        text: "Nro. Factura",
-        value: "nro_factura",
-      },
-      {
-        text: "Nro. Serie",
-        value: "nro_serie",
-      },
-      {
-        text: "Moneda",
-        value: "namecoins",
-      },
-      {
-        text: "Monto",
-        value: "monto",
-      },
-      {
-        text: "Tipo de cambio",
-        value: "tipo_cambio",
-      },
-      {
-        text: "Monto Dolar",
-        value: "montodolar",
-      },
+  data() {
+    return {
+      filtroflag: false,
+      itemsListInvoice: [],
+      searchFactura: "",
+      dialogPayment: false,
+      date: new Date(Date.now() - new Date().getTimezoneOffset() * 60000)
+        .toISOString()
+        .substr(0, 10),
+      row: "",
+      menu: false,
+      modal: false,
+      menu2: false,
+      pathfileAll: "",
+      boolFile: false,
+      pathfile: "",
+      payfile: "",
+      payPath: "",
+      serie_pago: "",
+      factura_pago: "",
+      moneda_pago: "",
+      monto_pago: "",
+      banco_pago: "",
+      headersFacturas: [
+        {
+          text: "",
+          value: "action",
+        },
+        {
+          text: "Tipo",
+          value: "paymentname",
+        },
+        {
+          text: "Ingreso",
+          value: "ingreso_description",
+        },
+        {
+          text: "Sub Ingreso",
+          value: "subingreso_description",
+        },
 
-      {
-        text: "Total",
-        value: "total",
-      },
-      {
-        text: "Cargar factura de pago",
-        value: "accion",
-      },
-      {
-        text: "Acción",
-        value: "action",
-      },
-    ],
-  }),
+        {
+          text: "Fecha",
+          value: "fecha",
+        },
+        {
+          text: "Expediente",
+          value: "nro_master",
+        },
+        {
+          text: "Cliente",
+          value: "nameconsigner",
+        },
+        {
+          text: "Nro. Factura",
+          value: "nro_factura",
+        },
+        {
+          text: "Nro. Serie",
+          value: "nro_serie",
+        },
+        // {
+        //   text: "Moneda",
+        //   value: "namecoins",
+        // },
+        {
+          text: "Total",
+          value: "monto",
+        },
+        {
+          text: "Tipo de cambio",
+          value: "tipo_cambio",
+        },
+        // {
+        //   text: "Monto Dolar",
+        //   value: "montodolar",
+        // },
+
+        {
+          text: "Total",
+          value: "totaldolar",
+        },
+        {
+          text: "",
+          value: "accion",
+        },
+      ],
+      id_ingreso: null,
+      id_subingreso: null,
+      fechapagodesde: moment().format("YYYY-01-01"),
+      fechapagohasta: moment().format("YYYY-MM-DD"),
+      id_cliente: null,
+      factura: null,
+      serie: null,
+      expanded: [],
+    };
+  },
 
   async mounted() {
     this.$store.state.spiner = true;
     await this._getInvoiceAdminCxC();
     this.$store.state.spiner = false;
+    this.cargarClientes();
   },
 
   methods: {
-    filterOnlyCapsText(value, search) {
-      let text = search ? search.toLocaleUpperCase() : null;
-      return (
-        value != null &&
-        search != null &&
-        typeof value === "string" &&
-        value.toString().toLocaleUpperCase().indexOf(text) !== -1
-      );
+    ...mapActions(["cargarClientes"]),
+    limpiar() {
+      this.filtroflag = false;
+      this.id_ingreso = null;
+      this.id_subingreso = null;
+      this.fechapagodesde = moment().format("YYYY-01-01");
+      this.fechapagohasta = moment().format("YYYY-MM-DD");
+      this.id_cliente = null;
+      this.factura = null;
+      this.serie = null;
+      this._getInvoiceAdminCxC();
     },
     toGoPage() {
       this.$router.push({ name: "controlAccountReceivable" });
@@ -367,7 +383,6 @@ export default {
         method: "post",
         url: process.env.VUE_APP_URL_MAIN + "uploadAllPath",
         headers: {
-         
           "Content-Type": "application/json",
         },
         data: data,
@@ -413,7 +428,6 @@ export default {
           process.env.VUE_APP_URL_MAIN + "paymentInvoiceAdminCxC/" + vm.id_pro,
 
         headers: {
-         
           "Content-Type": "application/json",
         },
         data: data,
@@ -435,18 +449,32 @@ export default {
           console.error(error);
         });
     },
-
+    clickRow(item, event) {
+      if (event.isExpanded) {
+        const index = this.expanded.findIndex((i) => i === item);
+        this.expanded.splice(index, 1);
+      } else {
+        this.expanded.push(item);
+      }
+    },
     async _getInvoiceAdminCxC(id_proveedor, id_house) {
       var vm = this;
       vm.$store.state.spiner = true;
       var config = {
-        method: "post",
+        method: "get",
         url: process.env.VUE_APP_URL_MAIN + "getInvoiceAdminCxC",
-        data: {
-          id_branch: JSON.parse(sessionStorage.getItem("dataUser"))[0].id_branch,
+        params: {
+          id_branch: JSON.parse(sessionStorage.getItem("dataUser"))[0]
+            .id_branch,
+          id_ingreso: vm.id_ingreso,
+          id_subgingreso: vm.id_subingreso,
+          fechapagodesde: vm.fechapagodesde,
+          fechapagohasta: vm.fechapagohasta,
+          id_cliente: vm.id_cliente,
+          factura: vm.factura,
+          serie: vm.serie,
         },
         headers: {
-         
           "Content-Type": "application/json",
         },
       };
@@ -459,6 +487,7 @@ export default {
           console.error(error);
         });
       vm.$store.state.spiner = false;
+      this.filtroflag = false;
     },
 
     async delPro(id) {
@@ -473,7 +502,6 @@ export default {
         url: process.env.VUE_APP_URL_MAIN + "delProCxC",
 
         headers: {
-         
           "Content-Type": "application/json",
         },
         data: data,

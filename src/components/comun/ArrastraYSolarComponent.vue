@@ -162,11 +162,16 @@ export default {
       return this.existingUrl || null;
     },
     // Nombre a mostrar en la tarjeta
+    // Nombre a mostrar en la tarjeta
     nombreArchivo() {
       if (this.file) return this.file.name;
-      if (this.existingUrl) {
-        // Extrae el nombre del archivo desde la URL si existe
-        const filename = this.existingUrl.split("/").pop();
+      if (this.existingUrl !== null && this.existingUrl !== undefined) {
+        // Convierte a String por si acaso se pasa un número por error desde el padre
+        const urlStr = String(this.existingUrl);
+        // Extrae el nombre del archivo si es una URL válida, o muestra el valor/ID
+        const filename = urlStr.includes("/")
+          ? urlStr.split("/").pop()
+          : urlStr;
         return filename || "Soporte adjunto";
       }
       return "Soporte adjunto";
@@ -213,7 +218,8 @@ export default {
 
     async uploadFile() {
       const vm = this;
-      if (!vm.file) return;
+      // BLOQUEO: Si ya está cargando, ignora nuevos intentos para romper el bucle
+      if (vm.loading || !vm.file) return;
 
       const isValidType =
         vm.file.type === "application/pdf" || vm.file.type.startsWith("image/");
@@ -233,7 +239,6 @@ export default {
       try {
         await this._uploadFile(vm.file);
 
-        // Limpiamos referencias viejas si sube uno nuevo
         this.existingUrl = null;
         this.existingId = null;
 
@@ -258,6 +263,7 @@ export default {
         });
       } finally {
         vm.loading = false;
+        vm.file = null; // Limpia la referencia para permitir reintentos limpios
       }
     },
 

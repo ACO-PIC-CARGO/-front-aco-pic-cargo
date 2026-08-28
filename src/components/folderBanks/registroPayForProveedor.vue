@@ -74,7 +74,7 @@
           ></v-text-field>
         </v-col>
 
-        <v-col cols="12" v-if="proveedor">
+        <v-col cols="12" v-if="proveedor" class="pt-0">
           <v-tabs
             v-model="pasos"
             centered
@@ -109,7 +109,7 @@
                 </v-col>
                 <v-col cols="12" md="6" class="py-1">
                   <v-text-field
-                    label="Buscar Expediente, Factura o Procedencia"
+                    label="Buscar Expediente"
                     v-model="searchTableDetalle"
                     style="max-width: 400px"
                     outlined
@@ -124,14 +124,20 @@
                 </v-col>
               </v-row>
               <v-row class="mt-1">
-                <v-col
-                  cols="12"
-                  v-if="
-                    id_cuenta &&
-                    Object.keys(id_cuenta).length > 0 &&
-                    !!id_cuenta.id
-                  "
-                >
+                <v-col cols="12" class="pt-0" v-if="mostrarDetalle">
+                  <div class="d-flex justify-center">
+                    <v-alert
+                      class="mt-0"
+                      border="top"
+                      type="info"
+                      elevation="2"
+                      dense
+                      width="450px"
+                      color="purple"
+                    >
+                      <b >SELECCIONE UNA FACTURA PARA CONTINUAR</b>
+                    </v-alert>
+                  </div>
                   <v-data-table
                     :headers="headers"
                     :items="itemsOrdenados"
@@ -496,8 +502,7 @@
                 OBLIGATORIO PARA CONTINUAR
               </div>
               <div class="caption font-weight-bold grey--text text--darken-3">
-                Ingresa el monto que salió del banco, según tu estado de
-                cuenta.
+                Ingresa el monto que salió del banco, según tu estado de cuenta.
               </div>
             </div>
           </v-alert>
@@ -510,7 +515,6 @@
             type="number"
             :prefix="symbol"
             :error-messages="errorMesage.monto_local"
-            :readonly="!Object.keys(id_cuenta).length > 0"
             :rules="[(v) => !!v || 'Este campo es obligatorio']"
             hide-details="auto"
           ></v-text-field>
@@ -518,15 +522,10 @@
 
         <v-card-actions class="pa-4 pt-0">
           <v-spacer></v-spacer>
-          <v-btn
-            color="primary"
-            elevation="1"
-            large
-            class="font-weight-bold text-uppercase px-6"
-            @click="confirmarDeposito"
-          >
-            CONTINUAR
+          <v-btn color="error" @click="cancelarllenadoDeMonto()" text>
+            Cancelar
           </v-btn>
+          <v-btn color="primary" @click="confirmarDeposito"> CONTINUAR </v-btn>
         </v-card-actions>
       </v-card>
     </v-dialog>
@@ -553,7 +552,7 @@ export default {
       conceptogastobancario: "",
       montogastobancario: 0,
       monto_local: 0,
-
+      mostrarDetalle: false,
       pasos: 0,
       monto: 0,
       numerooperacion: "",
@@ -566,10 +565,10 @@ export default {
       loading: false,
       headers: [
         { text: "Abono Completo o Parcial", value: "parcialflag" },
-        { text: "Monto DDL", value: "montopagar" },
+        { text: "Moneda Y Monto", value: "montopagar" },
         // { text: "Fecha Facturación", value: "fecha" },
         { text: "Expediente", value: "code_master" },
-        { text: "Procedencia", value: "tipo_gasto" },
+        { text: "Tipo", value: "tipo_gasto" },
 
         { text: "Moneda y Monto Facturado", value: "saldo_pendiente_local" },
         { text: "Monto Equivalente en Dólares", value: "saldo_pendiente" },
@@ -579,10 +578,10 @@ export default {
       ],
       headersPagosGastosBancario: [
         { text: "Abono Completo o Parcial", value: "parcialflag" },
-        { text: "Monto DDL", value: "montoparcial" },
+        { text: "Moneda Y Monto", value: "montoparcial" },
         // { text: "Fecha Facturación", value: "fecha" },
         { text: "Expediente", value: "code_master" },
-        { text: "Procedencia", value: "tipo_gasto" },
+        { text: "Tipo", value: "tipo_gasto", align: "center" },
 
         { text: "Moneda y Monto Facturado", value: "saldo_pendiente_local" },
         { text: "Monto Equivalente en Dólares", value: "saldo_pendiente" },
@@ -627,9 +626,15 @@ export default {
       "setRegistroEgresos",
       "validarEgresoNroOperacion",
     ]),
+    cancelarllenadoDeMonto() {
+      this.dialogLlenarMontoDepositadoBanco = false;
+      this.monto_local = null;
+      this.id_cuenta = {};
+    },
     confirmarDeposito() {
       if (this.monto_local) {
         this.dialogLlenarMontoDepositadoBanco = false;
+        this.mostrarDetalle = true;
       }
     },
     onItemSelected({ item, value }) {
@@ -943,7 +948,12 @@ export default {
       "cuentas",
     ]),
     totalGeneralAbonado() {
-      return this.monto || "0.00";
+      let monto = this.selected.reduce((acc, item) => {
+        let monto = parseFloat(item.montoparcial) || 0;
+
+        return acc + monto;
+      }, 0);
+      return parseFloat(monto).toFixed(2);
     },
     mostrarTipoCambio() {
       if (this.editable) {
@@ -987,20 +997,18 @@ export default {
     },
   },
   watch: {
-    id_cuenta(newVal) {
-      let id_coins = newVal.id_coins;
-      let coins = this.$store.state.itemsCoinsList.find(
-        (coin) => coin.id === id_coins,
-      );
-      this.symbol = coins ? coins.symbol : "USD";
+    id_cuenta(newVal, oldVal) {
+      if (newVal && newVal.id && (!oldVal || newVal.id !== oldVal.id)) {
+        let id_coins = newVal.id_coins;
+        let coins = this.$store.state.itemsCoinsList.find(
+          (coin) => coin.id === id_coins,
+        );
+        this.symbol = coins ? coins.symbol : "USD";
 
-      // RECALCULAR con la nueva moneda de la cuenta bancaria
-      this.calcularTotal();
+        this.calcularTotal();
 
-      this.dialogLlenarMontoDepositadoBanco = true;
-      setTimeout(() => {
-        this.$refs.txtMontoLocal.focus();
-      }, 100);
+        this.dialogLlenarMontoDepositadoBanco = true;
+      }
     },
     fechaoperacion(newVal) {
       if (newVal) {
