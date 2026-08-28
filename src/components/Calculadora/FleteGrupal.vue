@@ -283,17 +283,18 @@ export default {
       });
     },
     async actualizar() {
+
       if (this.editarflag) {
-        if ((this.tipoCosto =="costo")) {
+        if (this.tipoCosto == "costo") {
           await this.updateFleteGrupal({ ...this.form, estado: true });
           this.getFleteGrupal({ tipo: this.type });
         }
-        if ((this.tipoCosto == "venta")) {
+        if (this.tipoCosto == "venta") {
           await this.updateFleteGrupalVenta({ ...this.form, estado: true });
 
           this.getFleteGrupalVenta({ tipo: this.type });
         }
-        this.getFleteGrupalResumen();
+        this.getFleteGrupalResumen({ tipo: this.type });
         this.dialog = false;
         return;
       }
@@ -320,7 +321,7 @@ export default {
       });
     },
     abrirModal({ tipo = "nuevo", item = {}, tipoCosto = "costo" }) {
-      console.log("tipo", tipoCosto);
+      this.tipoCosto = tipoCosto;
       this.form.volumen = 1;
       this.form.peso = 1;
       this.form.valor = 1;
