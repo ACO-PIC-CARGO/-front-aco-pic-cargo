@@ -8,12 +8,6 @@ module.exports = {
     msTileColor: "#252C32",
     appleMobileWebAppCapable: "yes",
     appleMobileWebAppStatusBarStyle: "#252C32",
-    // Agrega estas dos líneas:
-    workboxPluginMode: "GenerateSW",
-    workboxOptions: {
-      skipWaiting: true,
-      clientsClaim: true,
-    },
   },
   configureWebpack: {
     resolve: {
