@@ -661,11 +661,11 @@ export default {
           text: "Moneda y Monto Facturado",
           value: "monto_original_total",
         },
-        { text: "Saldo Actual", value: "total_mon_local" },
         {
           text: "Monto Equivalente en Dólares",
           value: "totaldolar",
         },
+        { text: "Saldo Actual", value: "total_mon_local" },
         { text: "Saldo Final", value: "saldo" },
         { text: "Factura", value: "documentos" },
         { text: "Monto Total Abonado", value: "totalabonado" },

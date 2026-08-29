@@ -607,8 +607,8 @@ export default {
         { text: "Expediente", value: "code_master" },
         { text: "Tipo", value: "tipo_gasto" },
 
-        { text: "Moneda y Monto Facturado", value: "saldo_pendiente_local" },
         { text: "Monto Equivalente en Dólares", value: "saldo_pendiente" },
+        { text: "Moneda y Monto Facturado", value: "saldo_pendiente_local" },
         { text: "Saldo", value: "saldo" },
         // { text: "Factura", value: "documentos" },
         { text: "Total Monto Abonado", value: "totalabonado" },

@@ -2,8 +2,8 @@
   <v-container fluid>
     <v-row>
       <v-col cols="12">
-        <v-alert dense color="#E3F2FD" width="500px">
-          Mostrando año vigente. Para otros años, usa
+        <v-alert dense color="#E3F2FD" width="520px">
+          Se han aplicado filtros. Si necesita cambiar, de clic en
           <a
             href="#"
             class="text-decoration-underline text-info font-weight-bold"
@@ -31,7 +31,10 @@
           <v-icon small>mdi-filter</v-icon> Filtro
         </v-btn>
         <v-btn class="mx-1" @click="toPageAdd()" color="primary">
-          <v-icon>mdi-plus</v-icon> NUEVA FACTURA
+          <v-icon small>mdi-plus</v-icon> NUEVA FACTURA
+        </v-btn>
+        <v-btn class="mx-1" @click="limpiar()" color="red" outlined>
+          <v-icon small>mdi-filter-remove</v-icon> LIMPIAR
         </v-btn>
       </v-col>
       <v-col cols="12">
@@ -113,39 +116,35 @@
             {{ item.total }}
           </template>
           <template v-slot:[`item.action`]="{ item }">
-            <v-icon
-              class="btn_add mr-2"
-              dense
-              small
-              icon
-              v-if="item.status == 1"
-              color="red"
-              @click="delPro(item.id)"
-            >
-              mdi-delete
-            </v-icon>
-            <v-icon
-              class="btn_add mr-2"
-              dense
-              small
-              icon
-              v-if="item.status == 1"
-              color="blue"
-              @click="penPro(item.id)"
-            >
-              mdi-pencil
-            </v-icon>
+            <div class="d-flex align-center">
+              <v-icon
+                class="btn_add mr-2"
+                icon
+                v-if="item.status == 1"
+                color="red"
+                @click="delPro(item.id)"
+              >
+                mdi-delete
+              </v-icon>
+              <v-icon
+                class="btn_add mr-2"
+                icon
+                v-if="item.status == 1"
+                color="blue"
+                @click="penPro(item.id)"
+              >
+                mdi-pencil
+              </v-icon>
 
-            <v-icon
-              class="btn_add mr-2"
-              dense
-              small
-              icon
-              color="green"
-              @click="eyePro(item.id)"
-            >
-              mdi-eye
-            </v-icon>
+              <v-icon
+                class="btn_add mr-2"
+                icon
+                color="green"
+                @click="eyePro(item.id)"
+              >
+                mdi-eye
+              </v-icon>
+            </div>
           </template>
         </v-data-table>
       </v-col>
@@ -330,6 +329,7 @@ export default {
       "getListFlujoOperacionMes",
       "cargarClientes",
       "cargarProveedores",
+      "validarUsuarioAdmin",
     ]),
     filterOnlyCapsText(value, search) {
       let text = search ? search.toLocaleUpperCase() : null;
@@ -480,44 +480,61 @@ export default {
     },
 
     async delPro(id) {
-      const result = await Swal.fire({
-        title: "¿Estás seguro de eliminar este registro?",
-        text: "Esta acción no se puede deshacer y eliminará los datos permanentemente.",
-        icon: "warning",
+      let val = true;
+      await Swal.fire({
+        title: "Ingrese sus datos Administrador",
+        html:
+          '<input id="swal-input1" class="swal2-input" placeholder="Nombre">' +
+          '<input id="swal-input2" type="password" class="swal2-input" placeholder="Clave">',
+        focusConfirm: false,
         showCancelButton: true,
-        confirmButtonText: "Sí, eliminar",
-        confirmButtonColor: "#d33", // Color rojo de advertencia/peligro
+        confirmButtonText: "Aceptar",
         cancelButtonText: "Cancelar",
-        cancelButtonColor: "#3085d6", // Color neutro o secundario
-        reverseButtons: true, // Coloca el botón de cancelar a la izquierda por seguridad UX
-        focusCancel: true, // Foco por defecto en cancelar para prevenir errores
+        preConfirm: () => {
+          const input1 = document.getElementById("swal-input1").value.trim();
+          const input2 = document.getElementById("swal-input2").value.trim();
+          if (!input1 || !input2) {
+            Swal.showValidationMessage("Por favor, complete ambos campos");
+            return false;
+          }
+          return { usuario: input1, clave: input2 };
+        },
+      }).then(async (result) => {
+        if (!result.isConfirmed) {
+          // Usuario canceló
+          val = false;
+          msg = "Operación cancelada";
+          return;
+        }
+
+        if (result.value) {
+          const res = await this.validarUsuarioAdmin({
+            usuario: result.value.usuario,
+            clave: result.value.clave,
+          });
+
+          if (res && res.estadoflag) {
+            val = true;
+          } else {
+            val = false;
+            msg = res?.mensaje || "Credenciales incorrectas";
+          }
+        } else {
+          val = false;
+          msg = "Debe ingresar las credenciales";
+        }
       });
 
-      // Solo se ejecuta si el usuario hizo clic en "Sí, eliminar"
-      if (result.isConfirmed) {
-        try {
-          // Opcional: Mostrar un indicador de carga mientras elimina
-          Swal.showLoading();
-
-          await this.EliminarCuenta(id);
-
-          // Mensaje de éxito opcional
-          Swal.fire({
-            icon: "success",
-            title: "¡Eliminado!",
-            text: "El registro ha sido eliminado correctamente.",
-            timer: 1500,
-            showConfirmButton: false,
-          });
-        } catch (error) {
-          // Manejo de errores en caso de que falle la eliminación
-          Swal.fire({
-            icon: "error",
-            title: "Error",
-            text: "No se pudo completar la eliminación. Inténtalo de nuevo.",
-          });
-        }
+      if (!val) {
+        await swal.fire({
+          icon: "error",
+          text: msg,
+        });
+        return false;
       }
+
+      await this.EliminarCuenta(id);
+      await this.limpiar();
     },
     clickRow(item, event) {
       if (event.isExpanded) {

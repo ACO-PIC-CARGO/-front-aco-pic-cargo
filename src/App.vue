@@ -790,6 +790,7 @@ import { io } from "socket.io-client";
 import { mapActions, mapState } from "vuex";
 import axios from "@/api/axios-config";
 import Swal from "sweetalert2";
+import { getRegistration } from "./registerServiceWorker";
 
 export default {
   created() {
@@ -803,6 +804,7 @@ export default {
   name: "App",
 
   data: () => ({
+    registration: null,
     listAgente: false,
     dialogWelcome: false,
     dialogVersion: false,
@@ -834,6 +836,11 @@ export default {
           this.dialogVersion = true;
         }
       }
+    });
+
+    window.addEventListener("sw-updated", (event) => {
+      this.registration = event.detail;
+      this.dialogVersion = true; // Muestra tu diálogo actual
     });
 
     var vm = this;
@@ -872,9 +879,18 @@ export default {
       "actualizarCliente",
       "guardarCliente",
     ]),
-    actualizar() {
+    async actualizar() {
       this.cargando = true;
       localStorage.setItem("actualizando", "1");
+
+      if (window.caches) {
+        const cacheNames = await caches.keys();
+        await Promise.all(cacheNames.map((name) => caches.delete(name)));
+      }
+
+      if (this.registration && this.registration.waiting) {
+        this.registration.waiting.postMessage({ type: "SKIP_WAITING" });
+      }
 
       setTimeout(() => {
         const url = window.location.origin + window.location.pathname;
