@@ -1,7 +1,7 @@
 <template>
   <v-card min-height="80vh" elevation="0">
-    <v-alert dense color="#E3F2FD" class="mx-5" width="500px">
-      Mostrando año vigente. Para otros años, usa
+    <v-alert dense color="#E3F2FD" class="mx-5" width="520px">
+      Se han aplicado filtros. Si necesita cambiar, de clic en 
       <a
         href="#"
         class="text-decoration-underline text-info font-weight-bold"
@@ -69,18 +69,20 @@
         {{ item.totalmonedalocal }}
       </template>
       <template v-slot:[`item.action`]="{ item }">
-        <v-btn icon color="red" @click="verSoport(item.ruta)">
-          <v-icon>mdi-file</v-icon>
-        </v-btn>
-        <v-btn small icon color="info" @click.native="ver(item)">
-          <v-icon>mdi-eye</v-icon>
-        </v-btn>
-        <v-btn small icon color="orange" @click.native="editar(item)">
-          <v-icon>mdi-pencil</v-icon>
-        </v-btn>
-        <v-btn small icon color="red" @click.native="confirmarEliminar(item)">
-          <v-icon>mdi-delete</v-icon>
-        </v-btn>
+        <div class="d-flex align-center">
+          <v-btn icon color="default" @click="verSoport(item.ruta)">
+            <v-icon>mdi-file</v-icon>
+          </v-btn>
+          <v-btn small icon color="info" @click.native="ver(item)">
+            <v-icon>mdi-eye</v-icon>
+          </v-btn>
+          <v-btn small icon color="orange" @click.native="editar(item)">
+            <v-icon>mdi-pencil</v-icon>
+          </v-btn>
+          <v-btn small icon color="red" @click.native="confirmarEliminar(item)">
+            <v-icon>mdi-delete</v-icon>
+          </v-btn>
+        </div>
       </template>
       <template v-slot:expanded-item="{ item }">
         <td colspan="1"></td>

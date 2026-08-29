@@ -2,8 +2,8 @@
   <v-container fluid>
     <v-row>
       <v-col cols="12">
-        <v-alert dense color="#E3F2FD"  width="500px">
-          Mostrando año vigente. Para otros años, usa
+        <v-alert dense color="#E3F2FD" width="520px">
+          Se han aplicado filtros. Si necesita cambiar, de clic en
           <a
             href="#"
             class="text-decoration-underline text-info font-weight-bold"
@@ -31,7 +31,10 @@
           <v-icon small>mdi-filter</v-icon> Filtro
         </v-btn>
         <v-btn class="mx-1" @click="toGoPage()" color="primary">
-          <v-icon>mdi-plus</v-icon> NUEVO COBRO
+          <v-icon  small>mdi-plus</v-icon> NUEVO COBRO
+        </v-btn>
+        <v-btn class="mx-1" @click="limpiar()" color="red" outlined>
+          <v-icon  small>mdi-filter-remove</v-icon> LIMPIAR
         </v-btn>
       </v-col>
       <v-col cols="12">
@@ -118,39 +121,35 @@
           </template>
 
           <template v-slot:[`item.action`]="{ item }">
-            <v-icon
-              class="btn_add mr-2"
-              dense
-              small
-              icon
-              v-if="item.status == 1"
-              color="red"
-              @click="delPro(item.id)"
-            >
-              mdi-delete
-            </v-icon>
-            <v-icon
-              class="btn_add mr-2"
-              dense
-              small
-              icon
-              v-if="item.status == 1"
-              color="blue"
-              @click="penPro(item.id)"
-            >
-              mdi-pencil
-            </v-icon>
+            <div class="d-flex align-center">
+              <v-icon
+                class="btn_add mr-2"
+                icon
+                v-if="item.status == 1"
+                color="red"
+                @click="delPro(item.id)"
+              >
+                mdi-delete
+              </v-icon>
+              <v-icon
+                class="btn_add mr-2"
+                icon
+                v-if="item.status == 1"
+                color="blue"
+                @click="penPro(item.id)"
+              >
+                mdi-pencil
+              </v-icon>
 
-            <v-icon
-              class="btn_add mr-2"
-              dense
-              small
-              icon
-              color="green"
-              @click="eyePro(item.id)"
-            >
-              mdi-eye
-            </v-icon>
+              <v-icon
+                class="btn_add mr-2"
+                icon
+                color="green"
+                @click="eyePro(item.id)"
+              >
+                mdi-eye
+              </v-icon>
+            </div>
           </template>
         </v-data-table>
       </v-col>
@@ -235,6 +234,7 @@ import axios from "@/api/axios-config";
 import moment from "moment";
 import FormatFecha from "../comun/FormatFecha.vue";
 import { mapActions } from "vuex";
+import Swal from "sweetalert2";
 export default {
   name: "controlAccountReceivableCom",
   components: {
@@ -353,7 +353,7 @@ export default {
   },
 
   methods: {
-    ...mapActions(["cargarClientes"]),
+    ...mapActions(["cargarClientes", "validarUsuarioAdmin"]),
     limpiar() {
       this.filtroflag = false;
       this.id_ingreso = null;
@@ -506,6 +506,63 @@ export default {
     },
 
     async delPro(id) {
+      let val = true;
+      await Swal.fire({
+        title: "Ingrese sus datos Administrador",
+        html:
+          '<input id="swal-input1" class="swal2-input" placeholder="Nombre">' +
+          '<input id="swal-input2" type="password" class="swal2-input" placeholder="Clave">',
+        focusConfirm: false,
+        showCancelButton: true,
+        confirmButtonText: "Aceptar",
+        cancelButtonText: "Cancelar",
+        preConfirm: () => {
+          const input1 = document.getElementById("swal-input1").value.trim();
+          const input2 = document.getElementById("swal-input2").value.trim();
+          if (!input1 || !input2) {
+            Swal.showValidationMessage("Por favor, complete ambos campos");
+            return false;
+          }
+          return { usuario: input1, clave: input2 };
+        },
+      }).then(async (result) => {
+        if (!result.isConfirmed) {
+          // Usuario canceló
+          val = false;
+          msg = "Operación cancelada";
+          return;
+        }
+
+        if (result.value) {
+          const res = await this.validarUsuarioAdmin({
+            usuario: result.value.usuario,
+            clave: result.value.clave,
+          });
+
+          if (res && res.estadoflag) {
+            val = true;
+          } else {
+            val = false;
+            msg = res?.mensaje || "Credenciales incorrectas";
+          }
+        } else {
+          val = false;
+          msg = "Debe ingresar las credenciales";
+        }
+      });
+
+      if (!val) {
+        await swal.fire({
+          icon: "error",
+          text: msg,
+        });
+        return false;
+      }
+
+      await this.EliminarCuenta(id);
+      await this.limpiar();
+    },
+    async EliminarCuenta(id) {
       var vm = this;
 
       var data = {

@@ -1,7 +1,7 @@
 <template>
   <v-card min-height="80vh">
-    <v-alert dense color="#E3F2FD" class="mx-5" width="500px">
-      Mostrando año vigente. Para otros años, usa
+    <v-alert dense color="#E3F2FD" class="mx-5" width="520px">
+      Se han aplicado filtros. Si necesita cambiar, de clic en 
       <a
         href="#"
         class="text-decoration-underline text-info font-weight-bold"
@@ -42,6 +42,9 @@
         @click="dialogFiltro = !dialogFiltro"
         class="mx-1"
         >Filtrar <v-icon small>mdi-filter</v-icon>
+      </v-btn>
+      <v-btn color="red" small outlined @click="limpiarFiltro" class="mx-1"
+        > LIMPIAR <v-icon small>mdi-filter-remove</v-icon>
       </v-btn>
     </v-card-title>
     <v-data-table
@@ -269,7 +272,7 @@
         <v-card-actions>
           <v-spacer> </v-spacer>
           <v-btn color="success" @click="filtrar()">Aceptar</v-btn>
-          <v-btn color="error" @click="limpiar()">Limpiar </v-btn>
+          <v-btn color="error" @click="limpiarFiltro()">Limpiar </v-btn>
         </v-card-actions>
       </v-card>
     </v-navigation-drawer>
@@ -383,6 +386,26 @@ export default {
         name: "verPagosPorCliente",
         params: { id: pago.id },
       });
+    },
+    async limpiarFiltro() {
+      this.filtro = {
+        id_branch: "",
+        id_banco_origin: "",
+        id_cuenta_destino: "",
+        id_cliente: "",
+        id_tipoingreso: "",
+        id_subtipoingreso: "",
+        nro_operacion: "",
+        nro_expediente: "",
+        monto_factura: "",
+        fechadesde: moment().format("YYYY-01-01"),
+        fechahasta: moment().endOf("month").format("YYYY-MM-DD"),
+        operativo: "",
+        administrativo: "",
+      };
+      this.$store.state.spiner = true;
+      await this.getRegistroIngresos(this.filtro);
+      this.$store.state.spiner = false;
     },
     confirmarEliminar(pago) {
       swal
@@ -502,31 +525,7 @@ export default {
           });
       }
     },
-    async limpiar() {
-      this.filtro = {
-        id_branch: "",
-        nro_operacion: "",
-        monto: "",
-        fechadesde: "",
-        fechahasta: "",
-        factura: "",
-        serie: "",
-        id_banco: "",
-        id_coin: "",
-        id_consigner: "",
-        tipoingreso: "",
-        tiposubingreso: "",
-        operativo: true,
-        administrativo: true,
-        nro_exp: "",
-        fechaemision: "",
-      };
-      this.$store.state.pricing.pagina = 1;
-      this.$store.state.spiner = true;
-      await this.getRegistroIngresos(this.filtro);
-      this.dialogFiltro = !this.dialogFiltro;
-      this.$store.state.spiner = false;
-    },
+    
     async filtrar() {
       this.$store.state.spiner = true;
       await this.getRegistroIngresos(this.filtro);

@@ -984,10 +984,9 @@
                     hide-default-footer
                     :items-per-page="-1"
                   >
-                   <template v-slot:[`item.tipocambio`]="{ item }">
-                    {{ item.tipocambio != 0 ? item.tipocambio : 'No Aplica' }}
-
-                  </template>
+                    <template v-slot:[`item.tipocambio`]="{ item }">
+                      {{ item.tipocambio != 0 ? item.tipocambio : "No Aplica" }}
+                    </template>
                   </v-data-table>
                 </v-col>
                 <v-col cols="4">
@@ -1393,7 +1392,6 @@
               @change="obtenerMoneda()"
               :rules="[(v) => !!v || 'Dato Requerido']"
             />
-
             <v-text-field
               dense
               v-model="ingresos.tipocambio"
@@ -1401,6 +1399,11 @@
               label="Tipo de Cambio"
               step="0.01"
               :rules="[(v) => !!v || 'Dato Requerido']"
+              v-if="
+                $store.state.itemsCoinsList.some(
+                  (v) => v.id == ingresos.id_coins && v.acronym !== 'USD',
+                )
+              "
             />
           </v-form>
         </v-card-text>
@@ -1833,7 +1836,10 @@ export default {
     },
     async copiarMontos() {
       if (this.$refs.frmCopiar.validate()) {
-        await this.copiarCGingresos(this.ingresos);
+        await this.copiarCGingresos({
+          ...this.ingresos,
+          tipocambio: this.ingresos.tipocambio || 1,
+        });
         await this.getListControlGastosHouses(this.$route.params.id);
         this.dialogCopiar = false;
       }
@@ -1916,7 +1922,7 @@ export default {
         });
         return;
       }
-      
+
       this.id_coins = this.conceptos[0] ? this.conceptos[0].id_coins : null;
       this.stepProforma = 1;
       this.house = house;

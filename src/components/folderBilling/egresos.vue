@@ -1263,6 +1263,11 @@
               label="Tipo de Cambio"
               step="0.01"
               :rules="[(v) => !!v || 'Dato Requerido']"
+              v-if="
+                $store.state.itemsCoinsList.some(
+                  (v) => v.id == egreso.id_coins && v.acronym !== 'USD',
+                )
+              "
             />
           </v-form>
         </v-card-text>
@@ -2284,7 +2289,7 @@ export default {
           this.$swal({
             icon: "warning", // Cambiado a 'warning' porque es una restricción del sistema, no un fallo crítico.
             title: "MONEDAS SOLES DOLARES",
-             html: `<b>Hay conceptos con monedas diferentes</b><br><br>Por favor chequear. NO SE CARGARÁ EL COSTO.`,
+            html: `<b>Hay conceptos con monedas diferentes</b><br><br>Por favor chequear. NO SE CARGARÁ EL COSTO.`,
             confirmButtonColor: "#3085d6",
             confirmButtonText: "ACEPTAR",
           });
@@ -2859,7 +2864,10 @@ export default {
     },
     async copiarMontos() {
       if (this.$refs.frmCopiar.validate()) {
-        await this.copiarCGEgresos(this.egreso);
+        await this.copiarCGEgresos({
+          ...this.egreso,
+          tipocambio: this.egreso.tipocambio || 1,
+        });
         await this.getListControlGastosMaster(this.$route.params.id);
         this.dialogCopiar = false;
       }
