@@ -1,25 +1,47 @@
 <template>
   <v-card min-height="80vh">
-    <v-card-title>
-      <v-text-field v-model="search" label="Buscar...."> </v-text-field>
+    <v-alert dense color="#E3F2FD" class="mx-5" width="500px">
+      Mostrando año vigente. Para otros años, usa
+      <a
+        href="#"
+        class="text-decoration-underline text-info font-weight-bold"
+        @click.prevent="dialogFiltro = !dialogFiltro"
+        dense
+      >
+        FILTRAR <v-icon color="info">mdi-filter</v-icon>
+      </a>
+    </v-alert>
+    <v-card-title class="pt-0">
+      <v-text-field
+        class="mx-2"
+        hide-details
+        dense
+        id="id"
+        outlined
+        placeholder="Buscar..."
+        append-icon="mdi-text-search"
+        v-model="search"
+        label="Buscar"
+      >
+      </v-text-field>
       <v-spacer> </v-spacer>
-      <v-btn color="default" @click="nuevo" text class="mx-1"
-        >NUEVO INGRESO <v-icon>mdi-plus</v-icon>
+      <v-btn color="success" @click="nuevo" small class="mx-1"
+        >NUEVO INGRESO <v-icon small>mdi-plus</v-icon>
       </v-btn>
       <v-btn
         color="success"
         @click="exportar()"
         :loading="loading"
-        text
+        small
         class="mx-1"
-        >EXCEL <v-icon>mdi-file-excel</v-icon>
+        >EXCEL <v-icon small>mdi-file-excel</v-icon>
       </v-btn>
       <v-btn
         color="info"
-        text
+        small
         @click="dialogFiltro = !dialogFiltro"
         class="mx-1"
-        >Filtrar <v-icon>mdi-filter</v-icon>
+        >Filtrar <v-icon small>mdi-filter</v-icon>
       </v-btn>
     </v-card-title>
     <v-data-table
@@ -38,18 +60,20 @@
         {{ item.totalmonedalocal }}
       </template>
       <template v-slot:[`item.urlarchivo`]="{ item }">
-        <v-btn icon color="" @click="verSoport(item.urlarchivo)">
-          <v-icon>mdi-file</v-icon>
-        </v-btn>
-        <v-btn small icon color="info" @click.native="ver(item)">
-          <v-icon>mdi-eye</v-icon>
-        </v-btn>
-        <v-btn small icon color="orange" @click.native="editar(item)">
-          <v-icon>mdi-pencil</v-icon>
-        </v-btn>
-        <v-btn small icon color="red" @click.native="confirmarEliminar(item)">
-          <v-icon>mdi-delete</v-icon>
-        </v-btn>
+        <div class="d-flex align-center">
+          <v-btn icon color="" @click="verSoport(item.urlarchivo)">
+            <v-icon>mdi-file</v-icon>
+          </v-btn>
+          <v-btn small icon color="info" @click.native="ver(item)">
+            <v-icon>mdi-eye</v-icon>
+          </v-btn>
+          <v-btn small icon color="orange" @click.native="editar(item)">
+            <v-icon>mdi-pencil</v-icon>
+          </v-btn>
+          <v-btn small icon color="red" @click.native="confirmarEliminar(item)">
+            <v-icon>mdi-delete</v-icon>
+          </v-btn>
+        </div>
       </template>
       <template v-slot:expanded-item="{ item }">
         <td colspan="1"></td>
@@ -273,6 +297,7 @@ export default {
       listado: [],
       dataList: false,
       headersCabecera: [
+        { value: "urlarchivo", text: "Acción" },
         { value: "fechaoperacion", text: "Fecha Operación" }, // text,
         { value: "numerooperacion", text: "Nro Operación" }, // varchar,
         { value: "bancoingreso", text: "Banco de Origen" }, // varchar,
@@ -288,7 +313,7 @@ export default {
         { value: "comentarioadmin", text: "Comentario del Administrador" }, // text,
         { value: "comentariousuario", text: "Comentario del Usuario" }, // text,
         // { value: "nombrearchivo", text: "Nombre del Archivo" }, // varchar,
-        { value: "urlarchivo", text: "Acción" }, // varchar,
+        // varchar,
         // { value: detalle, text: "detalle" }, // json,
         // { value: comisionbancaria, text: "comisionbancaria" }, // json
       ],

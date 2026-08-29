@@ -1,17 +1,31 @@
 <template>
-  <v-container fluid class="contenedor-scroll">
-    <v-card min-height="80vh">
-      <v-card-title>
-        <v-text-field v-model="search" label="Buscar...."> </v-text-field>
+  <v-container fluid>
+    <v-alert dense color="#E3F2FD" class="mx-5" width="500px">
+      Mostrando año vigente. Para otros años, usa
+      <a
+        href="#"
+        class="text-decoration-underline text-info font-weight-bold"
+        @click.prevent="dialogFiltro = !dialogFiltro"
+        dense
+      >
+        FILTRAR <v-icon color="info">mdi-filter</v-icon>
+      </a>
+    </v-alert>
+    <v-card min-height="80vh" elevation="0">
+      <v-card-title class="pt-0">
+        <v-text-field
+          class="mx-2"
+          hide-details
+          dense
+          id="id"
+          outlined
+          placeholder="Buscar..."
+          append-icon="mdi-text-search"
+          v-model="search"
+          label="Buscar"
+        >
+        </v-text-field>
         <v-spacer> </v-spacer>
-        <!-- <v-btn
-        color="success"
-        @click="exportar()"
-        :loading="loading"
-        text
-        class="mx-1"
-        >EXCEL <v-icon>mdi-file-excel</v-icon>
-      </v-btn> -->
         <v-btn
           color="info"
           text
@@ -26,6 +40,7 @@
         :items="listado"
         item-key="index"
         disable-sort
+        dense
       >
         <template v-slot:expanded-item="{ item }">
           <td colspan="1"></td>
@@ -90,13 +105,19 @@
           </ol>
         </template>
         <template v-slot:[`item.action`]="{ item }">
-          <v-btn small icon color="red" @click="verSoport(item.soporte)">
-            <v-icon>mdi-file</v-icon>
-          </v-btn>
+          <div class="d-flex align-center">
+            <v-btn small icon color="red" @click="verSoport(item.soporte)">
+              <v-icon>mdi-file</v-icon>
+            </v-btn>
 
-          <v-btn small icon color="info" @click.native="ver(item)">
-            <v-icon>mdi-eye</v-icon>
-          </v-btn>
+            <v-btn small icon color="info" @click.native="ver(item)">
+              <v-icon>mdi-eye</v-icon>
+            </v-btn>
+
+            <v-btn small icon color="warning" @click.native="editar(item)">
+              <v-icon>mdi-pencil</v-icon>
+            </v-btn>
+          </div>
         </template>
       </v-data-table>
 
@@ -242,8 +263,8 @@
           </v-card-text>
           <v-card-actions>
             <v-spacer> </v-spacer>
-            <v-btn color="success" @click="filtrar()" >Aceptar</v-btn>
-            <v-btn color="error" @click="limpiar()" >Limpiar </v-btn>
+            <v-btn color="success" @click="filtrar()">Aceptar</v-btn>
+            <v-btn color="error" @click="limpiar()">Limpiar </v-btn>
           </v-card-actions>
         </v-card>
       </v-navigation-drawer>
@@ -272,6 +293,7 @@ export default {
       listado: [],
       dataList: false,
       headersCabecera: [
+        { text: "Accion", value: "action" },
         { text: "Fecha Operacion", value: "fecha_pago" },
         // { text: "Fecha Registro",value: "fecha_creacion",filterable: false,with: "5%",},
         { text: "Nro Operación	", value: "nro_operacion" },
@@ -298,7 +320,6 @@ export default {
         // { text: "Concepto	", value: "concepto", with: "20%" },
         { text: "Nro Factura", value: "factura", with: "5%" },
         { text: "Nro Serie", value: "serie", with: "5%" },
-        { text: "Accion", value: "action" },
       ],
       filtro: {
         id_branch: "",
@@ -435,75 +456,6 @@ export default {
     },
     nuevo() {
       this.$router.push({ name: "registroPayForCliente" });
-    },
-    async editar(item) {
-      let val = true;
-      let msg = "";
-      this.payfile = null;
-      this.Ingreso.id_path = null;
-      await swal
-        .fire({
-          title: "Ingrese sus datos Administrador",
-          html:
-            '<input id="swal-input1" class="swal2-input" placeholder="Nombre">' +
-            '<input id="swal-input2" type="password" class="swal2-input" placeholder="Clave">',
-          focusConfirm: false,
-          showCancelButton: true,
-          confirmButtonText: "Aceptar",
-          cancelButtonText: "Cancelar",
-          preConfirm: () => {
-            const input1 = document.getElementById("swal-input1").value.trim();
-            const input2 = document.getElementById("swal-input2").value.trim();
-            if (!input1 || !input2) {
-              Swal.showValidationMessage("Por favor, complete ambos campos");
-              return false;
-            }
-            return { usuario: input1, clave: input2 };
-          },
-        })
-        .then(async (result) => {
-          if (!result.isConfirmed) {
-            // Usuario canceló
-            val = false;
-            msg = "Operación cancelada";
-            return;
-          }
-
-          if (result.value) {
-            const res = await this.validarUsuarioAdmin({
-              usuario: result.value.usuario,
-              clave: result.value.clave,
-            });
-
-            if (res && res.estadoflag) {
-              val = true;
-            } else {
-              val = false;
-              msg = res?.mensaje || "Credenciales incorrectas";
-            }
-          } else {
-            val = false;
-            msg = "Debe ingresar las credenciales";
-          }
-        });
-
-      if (!val) {
-        await swal.fire({
-          icon: "error",
-          text: msg,
-        });
-        return false;
-      }
-      let detalles = item.detalles.map((detalle) => {
-        return {
-          ...detalle,
-          anuladoflag: false,
-        };
-      });
-      item.detalles = detalles;
-
-      this.Ingreso = item;
-      this.EditarIngresoFlag = true;
     },
     abrirPDF(url) {
       window.open(url, "_blank");
@@ -801,6 +753,70 @@ export default {
       await this.getListBanksDetailsCxC();
       this.$store.state.spiner = false;
       this.EditarIngresoFlag = false;
+    },
+    async editar(item) {
+      let val = true;
+      let msg = "";
+      this.payfile = null;
+      this.Ingreso.id_path = null;
+      await swal
+        .fire({
+          title: "Ingrese sus datos Administrador",
+          html:
+            '<input id="swal-input1" class="swal2-input" placeholder="Nombre">' +
+            '<input id="swal-input2" type="password" class="swal2-input" placeholder="Clave">',
+          focusConfirm: false,
+          showCancelButton: true,
+          confirmButtonText: "Aceptar",
+          cancelButtonText: "Cancelar",
+          preConfirm: () => {
+            const input1 = document.getElementById("swal-input1").value.trim();
+            const input2 = document.getElementById("swal-input2").value.trim();
+            if (!input1 || !input2) {
+              Swal.showValidationMessage("Por favor, complete ambos campos");
+              return false;
+            }
+            return { usuario: input1, clave: input2 };
+          },
+        })
+        .then(async (result) => {
+          if (!result.isConfirmed) {
+            // Usuario canceló
+            val = false;
+            msg = "Operación cancelada";
+            return;
+          }
+
+          if (result.value) {
+            const res = await this.validarUsuarioAdmin({
+              usuario: result.value.usuario,
+              clave: result.value.clave,
+            });
+
+            if (res && res.estadoflag) {
+              val = true;
+            } else {
+              val = false;
+              msg = res?.mensaje || "Credenciales incorrectas";
+            }
+          } else {
+            val = false;
+            msg = "Debe ingresar las credenciales";
+          }
+        });
+
+      if (!val) {
+        await swal.fire({
+          icon: "error",
+          text: msg,
+        });
+        return false;
+      }
+
+      this.$router.push({
+        name: "editarPagosPorCliente",
+        params: { id: item.id_pago },
+      });
     },
   },
   watch: {

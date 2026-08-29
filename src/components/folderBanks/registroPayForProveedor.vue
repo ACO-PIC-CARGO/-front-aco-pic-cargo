@@ -3,9 +3,9 @@
     <v-container fluid>
       <v-row>
         <v-col cols="12" md="4" class="pb-0">
-          Proveedor:
           <v-autocomplete
             outlined
+            label="Proveedor"
             dense
             :items="provedores"
             item-text="namelong"
@@ -25,8 +25,8 @@
           class="pb-0"
           v-if="Object.keys(id_cuenta).length > 0"
         >
-          Monto Depositado En Banco:
           <v-text-field
+            label="Monto Depositado En Banco"
             outlined
             dense
             v-model="monto_local"
@@ -42,14 +42,27 @@
             "
           ></v-text-field>
         </v-col>
+
+        <v-col cols="12" md="2" class="pb-0" v-if="mostrarTipoCambio">
+          <v-text-field
+            outlined
+            dense
+            disabled
+            v-model="totalGeneralAbonadoMonLocal"
+            type="number"
+            :prefix="symbol"
+            :label="`Total Factura Seleccionada (${symbol})`"
+          ></v-text-field>
+        </v-col>
+
         <v-col
           cols="12"
           md="2"
           class="pb-0"
           v-if="Object.keys(id_cuenta).length > 0"
         >
-          Total Factura Seleccionada:
           <v-text-field
+            label="Total Factura Seleccionada"
             outlined
             dense
             disabled
@@ -61,8 +74,8 @@
         </v-col>
 
         <v-col cols="12" md="2" class="pb-0" v-if="mostrarTipoCambio">
-          Tipo Cambio:
           <v-text-field
+            label="Tipo Cambio"
             outlined
             dense
             v-model="tipocambio"
@@ -135,7 +148,7 @@
                       width="450px"
                       color="purple"
                     >
-                      <b >SELECCIONE UNA FACTURA PARA CONTINUAR</b>
+                      <b>SELECCIONE UNA(S) FACTURA PARA CONTINUAR</b>
                     </v-alert>
                   </div>
                   <v-data-table
@@ -150,13 +163,23 @@
                     @toggle-select-all="onSelectAll"
                   >
                     <template v-slot:body.append>
-                      <tr class="grey lighten-4 font-weight-bold">
+                      <tr
+                        class="grey lighten-4 font-weight-bold"
+                        v-if="symbol !== 'USD'"
+                      >
                         <td :colspan="headers.length" class="text-right">
-                          Total General Seleccionado ( {{ symbol }}):
+                          Total General Seleccionado {{ symbol }}:
                         </td>
                         <td class="text-left">
-                          {{ symbol }} {{ totalGeneralAbonado }}
+                          {{ symbol }}
+                          {{ totalGeneralAbonadoMonLocalSeleccionado }}
                         </td>
+                      </tr>
+                      <tr class="grey lighten-4 font-weight-bold">
+                        <td :colspan="headers.length" class="text-right">
+                          Total General Seleccionado (USD):
+                        </td>
+                        <td class="text-left">USD {{ totalGeneralAbonado }}</td>
                       </tr>
                     </template>
                     <template v-slot:[`item.totalabonado`]="{ item }">
@@ -259,6 +282,7 @@
                     return-object
                     outlined
                     dense
+                    readonly
                     :error-messages="errorMesage.id_cuenta"
                     @change="errorMesage.id_cuenta = null"
                   ></v-autocomplete>
@@ -390,16 +414,29 @@
                     item-key="id"
                   >
                     <template v-slot:body.append>
+                      <tr
+                        class="grey lighten-4 font-weight-bold"
+                        v-if="symbol !== 'USD'"
+                      >
+                        <td
+                          :colspan="headersPagosGastosBancario.length - 1"
+                          class="text-right"
+                        >
+                          Total General Seleccionado {{ symbol }}:
+                        </td>
+                        <td class="text-left">
+                          {{ symbol }}
+                          {{ totalGeneralAbonadoMonLocalSeleccionado }}
+                        </td>
+                      </tr>
                       <tr class="grey lighten-4 font-weight-bold">
                         <td
                           :colspan="headersPagosGastosBancario.length - 1"
                           class="text-right"
                         >
-                          Total General Seleccionado ( {{ symbol }}):
+                          Total General Seleccionado (USD):
                         </td>
-                        <td class="text-left">
-                          {{ symbol }} {{ totalGeneralAbonado }}
-                        </td>
+                        <td class="text-left">USD {{ totalGeneralAbonado }}</td>
                       </tr>
                     </template>
                     <template v-slot:[`item.totalabonado`]="{ item }">
@@ -452,7 +489,7 @@
                     id="id"
                     type="number"
                     :prefix="symbol"
-                    v-model="montoFinal"
+                    v-model="totalGeneralAbonadoMonLocal"
                   ></v-text-field>
                 </v-col>
                 <v-col cols="12">
@@ -841,17 +878,39 @@ export default {
       this.editable = true;
     },
     async finalizarOperacion() {
-      let monto_local = Number(parseFloat(this.monto_local).toFixed(2));
-      let montoFinal = Number(parseFloat(this.montoFinal).toFixed(2));
-      if (this.symbol == "USD" && monto_local != montoFinal) {
+      if (
+        Number(this.totalGeneralAbonadoMonLocal) !== Number(this.monto_local)
+      ) {
         Swal.fire({
-          icon: "error",
-          title: "Monto Incorrecto",
-          html: `El Monto Depositado(${this.symbol} ${monto_local}) En Banco es diferente al Monto Total a Pagar(${this.symbol} ${montoFinal})`,
+          icon: "warning",
+          title: "Discrepancia en los Montos",
+          html: `
+            <p style="color: #6c757d; font-size: 14px; margin-bottom: 16px;">
+                El registro no puede completarse porque los valores monetarios no coinciden.
+            </p>
+            <div style="display: flex; gap: 12px; justify-content: center; text-align: left;">
+                <div style="flex: 1; background: #f8f9fa; border: 1px solid #e9ecef; border-radius: 8px; padding: 12px;">
+                    <span style="display: block; font-size: 11px; color: #adb5bd; text-transform: uppercase; font-weight: bold;">Registrado en Banco</span>
+                    <span style="font-size: 15px; font-weight: bold; color: #495057;">${
+                      this.symbol
+                    } ${Number(this.monto_local).toFixed(2)}</span>
+                </div>
+                <div style="flex: 1; background: #fff5f5; border: 1px solid #ffe3e3; border-radius: 8px; padding: 12px;">
+                    <span style="display: block; font-size: 11px; color: #e03131; text-transform: uppercase; font-weight: bold;">Total a Pagar</span>
+                    <span style="font-size: 15px; font-weight: bold; color: #c92a2a;">${
+                      this.symbol
+                    } ${Number(this.totalGeneralAbonadoMonLocal).toFixed(
+            2,
+          )}</span>
+                </div>
+            </div>
+        `,
+          confirmButtonText: "Revisar y Corregir",
+          confirmButtonColor: "#3085d6",
+          buttonsStyling: true,
         });
         return;
       }
-
       let data = {
         symbol: this.symbol,
         id_branch: "",
@@ -948,22 +1007,15 @@ export default {
       "cuentas",
     ]),
     totalGeneralAbonado() {
-      let monto = this.selected.reduce((acc, item) => {
-        let monto = parseFloat(item.montoparcial) || 0;
-
-        return acc + monto;
-      }, 0);
-      return parseFloat(monto).toFixed(2);
+      return this.monto || "0.00";
     },
     mostrarTipoCambio() {
-      if (this.editable) {
-        if (this.symbol != "USD") {
-          return true;
-        }
+      if (this.symbol != "USD") {
+        return true;
+      }
 
-        if (this.selected.some((v) => v.symbol != "USD")) {
-          return true;
-        }
+      if (this.selected.some((v) => v.symbol != "USD")) {
+        return true;
       }
       return false;
       // return this.selected.some((v) => v.symbol != "USD");
@@ -977,6 +1029,24 @@ export default {
           parseFloat(this.montogastobancario || 0)) /
         this.monto;
       return tc ? tc.toFixed(4) : 1;
+    },
+    totalGeneralAbonadoMonLocal() {
+      let monto = this.selected.reduce((acc, item) => {
+        let monto = parseFloat(item.montoparcial) || 0;
+
+        return acc + monto;
+      }, 0);
+      monto = monto + parseFloat(this.montogastobancario || 0);
+      return parseFloat(monto).toFixed(2);
+    },
+    totalGeneralAbonadoMonLocalSeleccionado() {
+      let monto = this.selected.reduce((acc, item) => {
+        let monto = parseFloat(item.montoparcial) || 0;
+
+        return acc + monto;
+      }, 0);
+      monto = monto;
+      return parseFloat(monto).toFixed(2);
     },
     itemsOrdenados() {
       const items = [...this.$store.state.bank.deudaAProveedor];

@@ -16,5 +16,11 @@ export default {
     controlAccountReceivable,
   },
   name: "controlAccountReceivableNew",
+   mounted() {
+    this.$store.state.mainTitle = "NUEVA CUENTA POR COBRAR";
+    this.$nextTick(() => {
+      this.$store.state.drawer = false;
+    });
+  },
 };
 </script>

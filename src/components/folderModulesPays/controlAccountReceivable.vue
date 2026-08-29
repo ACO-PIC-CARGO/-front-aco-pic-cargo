@@ -90,7 +90,7 @@
               :items="$store.state.performances"
               item-text="description"
               item-value="id"
-              label="Proformace"
+              label="Tipo de Comprobante"
               v-model="id_proformace"
               :disabled="radio == ''"
               @change="validacionesRequeridas()"
@@ -394,7 +394,7 @@
               @idArchivoCargado="recibirId"
             />
           </v-col>
-      
+
           <v-col cols="12" class="d-flex flex-column align-end mt-2">
             <span
               v-if="
@@ -454,10 +454,7 @@
                 v-model="producto.monto"
                 type="number"
                 :prefix="symbol"
-                :rules="[
-                  (v) => !!v || 'Dato Requerido',
-                  (v) => v > 0 || 'Monto Mayor que 0.00',
-                ]"
+                :rules="[validarMonto]"
               ></v-text-field>
             </v-col>
             <v-col cols="12" md="12">
@@ -586,14 +583,60 @@ export default {
       "cargarClientes",
       "obtenerImpuestoXEmpresa",
     ]),
+    validarMonto(v) {
+      if (!v) return "Dato Requerido";
+
+      if (this.id_proformace.code === "07") {
+        return Number(v) !== 0 || "El monto no puede ser cero";
+      }
+      return Number(v) > 0 || "Monto Mayor que 0.00";
+    },
     abrirDialogNuevoProducto() {
+      if (!this.id_proformace) {
+        Swal.fire({
+          icon: "warning",
+          title: "Tipo de Comprobante Requerido",
+          html: `
+      <div style="text-align: left; font-size: 14px; color: #555; line-height: 1.5;">
+        <p style="margin-bottom: 8px;">No se ha especificado el tipo de documento asociado.</p>
+        <p style="margin: 0;"><b>Es necesario seleccionar un tipo de documento o proforma</b> para continuar con el registro del comprobante.</p>
+      </div>
+    `,
+          confirmButtonText: "Entendido",
+          confirmButtonColor: "#3085d6",
+        });
+        return false;
+      }
       if (!this.id_coins) {
         Swal.fire({
           icon: "warning",
-          title: "Advertencia",
-          text: "Es necesario seleccionar una moneda.",
+          title: "Selección de Moneda Requerida",
+          html: `
+      <div style="text-align: left; font-size: 14px; color: #555; line-height: 1.5;">
+        <p style="margin-bottom: 8px;">No se ha especificado la divisa para esta transacción.</p>
+        <p style="margin: 0;"><b>Es necesario seleccionar una moneda</b> para calcular correctamente los montos y conversiones del registro.</p>
+      </div>
+    `,
+          confirmButtonText: "Entendido",
+          confirmButtonColor: "#3085d6",
         });
         return false;
+      }
+
+      if (this.symbol !== "USD" && this.tipocambio <= 1) {
+        Swal.fire({
+          icon: "warning",
+          title: "Validación de Tipo de Cambio",
+          html: `
+      <div style="text-align: left; font-size: 14px; color: #555; line-height: 1.5;">
+        <p style="margin-bottom: 8px;">Se ha detectado una operación en moneda extranjera sin conversión válida.</p>
+        <p style="margin: 0;"><b>Es necesario registrar un tipo de cambio mayor a 1</b> para continuar con el proceso de registro.</p>
+      </div>
+    `,
+          confirmButtonText: "Entendido",
+          confirmButtonColor: "#3085d6",
+        });
+        return;
       }
       this.dialog = true;
     },

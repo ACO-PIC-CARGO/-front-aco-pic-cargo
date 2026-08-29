@@ -1,18 +1,32 @@
 <template>
   <v-container fluid>
     <v-row>
-      <v-col cols="12" md="3">
+      <v-col cols="12">
+        <v-alert dense color="#E3F2FD"  width="500px">
+          Mostrando año vigente. Para otros años, usa
+          <a
+            href="#"
+            class="text-decoration-underline text-info font-weight-bold"
+            @click.prevent="dialogFiltro = !dialogFiltro"
+            dense
+          >
+            FILTRAR <v-icon color="info">mdi-filter</v-icon>
+          </a>
+        </v-alert>
+      </v-col>
+      <v-col cols="12" md="3" class="pt-0">
         <v-text-field
           hide-details
           v-model="searchFactura"
           dense
           id="id"
           outlined
-          label="Buscar Factura"
+          label="Buscar"
+          placeholder="Buscar..."
           append-icon="mdi-text-search"
         ></v-text-field>
       </v-col>
-      <v-col cols="12" md="9" class="text-right">
+      <v-col cols="12" md="9" class="text-right pt-0">
         <v-btn class="mx-1" @click="filtroflag = true" color="default">
           <v-icon small>mdi-filter</v-icon> Filtro
         </v-btn>
@@ -28,6 +42,7 @@
           :single-expand="true"
           @click:row="clickRow"
           :expanded.sync="expanded"
+          :search="searchFactura"
         >
           <template v-slot:expanded-item="{ item }">
             <td :colspan="headersFacturas.length">
@@ -68,8 +83,8 @@
           </template>
           <template v-slot:[`item.totaldolar`]="{ item }">
             USD {{ item.totaldolar }}
-            </template>
-          <template v-slot:[`item.monto`]="{ item }">
+          </template>
+          <template v-slot:[`item.total`]="{ item }">
             {{ item.namecoins }}
             {{ item.total }}
           </template>
@@ -299,7 +314,7 @@ export default {
         // },
         {
           text: "Total",
-          value: "monto",
+          value: "total",
         },
         {
           text: "Tipo de cambio",
