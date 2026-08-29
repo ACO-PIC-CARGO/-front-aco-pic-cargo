@@ -168,7 +168,7 @@
                         v-if="symbol !== 'USD'"
                       >
                         <td :colspan="headers.length" class="text-right">
-                          Total General Seleccionado {{ Symbol }}:
+                          Total General Seleccionado {{ symbol }}:
                         </td>
                         <td class="text-left">
                           {{ symbol }}
@@ -462,8 +462,11 @@
                         class="grey lighten-4 font-weight-bold"
                         v-if="symbol !== 'USD'"
                       >
-                        <td :colspan="headersPagosGastosBancario.length-1" class="text-right">
-                          Total General Seleccionado {{ Symbol }}:
+                        <td
+                          :colspan="headersPagosGastosBancario.length - 1"
+                          class="text-right"
+                        >
+                          Total General Seleccionado {{ symbol }}:
                         </td>
                         <td class="text-left">
                           {{ symbol }}
@@ -471,7 +474,10 @@
                         </td>
                       </tr>
                       <tr class="grey lighten-4 font-weight-bold">
-                        <td :colspan="headersPagosGastosBancario.length-1" class="text-right">
+                        <td
+                          :colspan="headersPagosGastosBancario.length - 1"
+                          class="text-right"
+                        >
                           Total General Seleccionado (USD):
                         </td>
                         <td class="text-left">USD {{ totalGeneralAbonado }}</td>
@@ -925,17 +931,39 @@ export default {
       this.editable = true;
     },
     async finalizarOperacion() {
-      let monto_local = Number(parseFloat(this.monto_local).toFixed(2));
-      let montoFinal = Number(parseFloat(this.montoFinal).toFixed(2));
-      if (this.symbol == "USD" && monto_local != montoFinal) {
+      if (
+        Number(this.totalGeneralAbonadoMonLocal) !== Number(this.monto_local)
+      ) {
         Swal.fire({
-          icon: "error",
-          title: "Monto Incorrecto",
-          html: `El Monto Depositado(${this.symbol} ${monto_local}) En Banco es diferente al Monto Total a Pagar(${this.symbol} ${montoFinal})`,
+          icon: "warning",
+          title: "Discrepancia en los Montos",
+          html: `
+            <p style="color: #6c757d; font-size: 14px; margin-bottom: 16px;">
+                El registro no puede completarse porque los valores monetarios no coinciden.
+            </p>
+            <div style="display: flex; gap: 12px; justify-content: center; text-align: left;">
+                <div style="flex: 1; background: #f8f9fa; border: 1px solid #e9ecef; border-radius: 8px; padding: 12px;">
+                    <span style="display: block; font-size: 11px; color: #adb5bd; text-transform: uppercase; font-weight: bold;">Registrado en Banco</span>
+                    <span style="font-size: 15px; font-weight: bold; color: #495057;">${
+                      this.symbol
+                    } ${Number(this.monto_local).toFixed(2)}</span>
+                </div>
+                <div style="flex: 1; background: #fff5f5; border: 1px solid #ffe3e3; border-radius: 8px; padding: 12px;">
+                    <span style="display: block; font-size: 11px; color: #e03131; text-transform: uppercase; font-weight: bold;">Total a Pagar</span>
+                    <span style="font-size: 15px; font-weight: bold; color: #c92a2a;">${
+                      this.symbol
+                    } ${Number(this.totalGeneralAbonadoMonLocal).toFixed(
+            2,
+          )}</span>
+                </div>
+            </div>
+        `,
+          confirmButtonText: "Revisar y Corregir",
+          confirmButtonColor: "#3085d6",
+          buttonsStyling: true,
         });
         return;
       }
-
       let data = {
         symbol: this.symbol,
         id_branch: "",
