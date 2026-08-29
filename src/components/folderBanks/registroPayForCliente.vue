@@ -3,8 +3,8 @@
     <v-container fluid>
       <v-row>
         <v-col cols="12" md="4" class="pb-0">
-          Cliente:
           <v-autocomplete
+            label="Cliente"
             outlined
             dense
             :items="clientes"
@@ -25,8 +25,8 @@
           class="pb-0"
           v-if="Object.keys(id_cuenta).length > 0"
         >
-          Monto Depositado En Banco:
           <v-text-field
+            label="Monto Depositado En Banco:"
             outlined
             dense
             v-model="monto_local"
@@ -42,13 +42,24 @@
             "
           ></v-text-field>
         </v-col>
+        <v-col cols="12" md="2" class="pb-0" v-if="mostrarTipoCambio">
+          <v-text-field
+            outlined
+            dense
+            disabled
+            v-model="totalGeneralAbonadoMonLocal"
+            type="number"
+            :prefix="symbol"
+            :label="`Total Factura Seleccionada (${symbol})`"
+          ></v-text-field>
+        </v-col>
+
         <v-col
           cols="12"
           md="2"
           class="pb-0"
           v-if="Object.keys(id_cuenta).length > 0"
         >
-          Total Factura Seleccionada:
           <v-text-field
             outlined
             dense
@@ -56,13 +67,13 @@
             v-model="monto"
             type="number"
             prefix="USD"
-            width="50px"
+            label="Total Factura Seleccionada"
           ></v-text-field>
         </v-col>
         <!--  -->
         <v-col cols="12" md="2" class="pb-0" v-if="mostrarTipoCambio">
-          Tipo Cambio:
           <v-text-field
+            label="Tipo Cambio"
             outlined
             dense
             v-model="tipocambio"
@@ -137,7 +148,7 @@
                       width="450px"
                       color="purple"
                     >
-                      <b>SELECCIONE UNA FACTURA PARA CONTINUAR</b>
+                      <b>SELECCIONE UNA(S) FACTURA PARA CONTINUAR</b>
                     </v-alert>
                   </div>
                   <v-data-table
@@ -152,13 +163,23 @@
                     :item-disabled="checkDeshabilitado"
                   >
                     <template v-slot:body.append>
+                      <tr
+                        class="grey lighten-4 font-weight-bold"
+                        v-if="symbol !== 'USD'"
+                      >
+                        <td :colspan="headers.length" class="text-right">
+                          Total General Seleccionado {{ Symbol }}:
+                        </td>
+                        <td class="text-left">
+                          {{ symbol }}
+                          {{ totalGeneralAbonadoMonLocalSeleccionado }}
+                        </td>
+                      </tr>
                       <tr class="grey lighten-4 font-weight-bold">
                         <td :colspan="headers.length" class="text-right">
                           Total General Seleccionado (USD):
                         </td>
-                        <td class="text-left">
-                          {{ symbol }} {{ totalGeneralAbonadoMonLocal }}
-                        </td>
+                        <td class="text-left">USD {{ totalGeneralAbonado }}</td>
                       </tr>
                     </template>
                     <template v-slot:[`item.parcialflag`]="{ item }">
@@ -217,15 +238,24 @@
                       {{ item.symbol }} {{ item.total_mon_local }}
                     </template>
                     <template v-slot:[`item.saldo`]="{ item }">
-                      {{ item.symbol }}
-                      {{
-                        parseFloat(
-                          item.total_mon_local -
-                            (item.montoparcial
-                              ? item.montoparcial
-                              : item.total_mon_local),
-                        ).toFixed(2)
-                      }}
+                      <span
+                        v-if="
+                          selected.some(
+                            (s) => s.registro_id === item.registro_id,
+                          )
+                        "
+                      >
+                        {{ item.symbol }}
+                        {{
+                          parseFloat(
+                            item.total_mon_local -
+                              (item.montoparcial
+                                ? item.montoparcial
+                                : item.total_mon_local),
+                          ).toFixed(2)
+                        }}
+                      </span>
+                      <span v-else> ----- </span>
                     </template>
                   </v-data-table>
                 </v-col>
@@ -276,6 +306,7 @@
                       return-object
                       outlined
                       dense
+                      readonly
                       :rules="[
                         (v) =>
                           (v && Object.keys(v).length > 0 && !!v.id) ||
@@ -427,16 +458,23 @@
                     item-key="id"
                   >
                     <template v-slot:body.append>
-                      <tr class="grey lighten-4 font-weight-bold">
-                        <td
-                          :colspan="headersPagosGastosBancario.length - 1"
-                          class="text-right"
-                        >
-                          Total General Seleccionado (USD):
+                      <tr
+                        class="grey lighten-4 font-weight-bold"
+                        v-if="symbol !== 'USD'"
+                      >
+                        <td :colspan="headersPagosGastosBancario.length-1" class="text-right">
+                          Total General Seleccionado {{ Symbol }}:
                         </td>
                         <td class="text-left">
-                          {{ symbol }} {{ totalGeneralAbonadoMonLocal }}
+                          {{ symbol }}
+                          {{ totalGeneralAbonadoMonLocalSeleccionado }}
                         </td>
+                      </tr>
+                      <tr class="grey lighten-4 font-weight-bold">
+                        <td :colspan="headersPagosGastosBancario.length-1" class="text-right">
+                          Total General Seleccionado (USD):
+                        </td>
+                        <td class="text-left">USD {{ totalGeneralAbonado }}</td>
                       </tr>
                     </template>
                     <template v-slot:[`item.parcialflag`]="{ item }">
@@ -994,15 +1032,14 @@ export default {
       "cuentas",
     ]),
     mostrarTipoCambio() {
-      if (this.editable) {
-        if (this.symbol != "USD") {
-          return true;
-        }
-
-        if (this.selected.some((v) => v.symbol != "USD")) {
-          return true;
-        }
+      if (this.symbol != "USD") {
+        return true;
       }
+
+      if (this.selected.some((v) => v.symbol != "USD")) {
+        return true;
+      }
+
       return false;
       // return this.selected.some((v) => v.symbol != "USD");
     },
@@ -1021,17 +1058,33 @@ export default {
 
         return acc + monto;
       }, 0);
+      monto = monto + parseFloat(this.montogastobancario || 0);
+      return parseFloat(monto).toFixed(2);
+    },
+    totalGeneralAbonadoMonLocalSeleccionado() {
+      let monto = this.selected.reduce((acc, item) => {
+        let monto = parseFloat(item.montoparcial) || 0;
+
+        return acc + monto;
+      }, 0);
+      monto = monto;
       return parseFloat(monto).toFixed(2);
     },
     tipocambio() {
-      if (this.symbol == "USD") {
+      if (this.symbol === "USD") {
         return 1;
       }
+
+      if (!this.monto || !this.monto_local) {
+        return 1;
+      }
+
       let tc =
-        (parseFloat(this.monto_local) +
+        (parseFloat(this.monto_local || 1) +
           parseFloat(this.montogastobancario || 0)) /
-        this.monto;
-      return tc ? tc.toFixed(4) : 1;
+        (this.monto || 1);
+
+      return Number(tc.toFixed(4));
     },
     itemsOrdenados() {
       const items = [...this.$store.state.bank.deudaACliente];

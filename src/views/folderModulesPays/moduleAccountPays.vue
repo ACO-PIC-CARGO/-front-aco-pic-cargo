@@ -13,6 +13,9 @@ export default {
   },
   mounted() {
     this.$store.state.mainTitle = "CONTROL CUENTAS POR PAGAR";
+    this.$nextTick(() => {
+      this.$store.state.drawer = false;
+    });
   },
 };
 </script>

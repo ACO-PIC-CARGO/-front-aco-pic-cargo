@@ -562,6 +562,9 @@ export default {
       }
     });
     this.abrirSwalConfigFlete();
+    this.$nextTick(() => {
+      this.$store.state.drawer = false;
+    });
   },
   beforeMount() {
     this.mostrarBtnMenu = !JSON.parse(sessionStorage.getItem("dataBranch"))[0]
@@ -618,7 +621,7 @@ export default {
       "GetArchivos",
       "uploadFileFromUrlToOneDrive",
       "moveFileToOneDrive",
-      'actualizarFechaVigencia'
+      "actualizarFechaVigencia",
     ]),
     // ...mapActions("calculadoras", ["actualizarFechaVigencia"]),
     abrirCarpeta(url) {
@@ -634,8 +637,8 @@ export default {
     },
     async guardarNuevaFecha() {
       if (this.$refs.formVigencia.validate()) {
-        await this.actualizarFechaVigencia(this.fechaVigencia)
-        this.dialogCambiarFecha = false
+        await this.actualizarFechaVigencia(this.fechaVigencia);
+        this.dialogCambiarFecha = false;
       }
     },
     abrirSwalConfigFlete() {

@@ -2,13 +2,33 @@
   <v-container fluid class="contenedor-scroll">
     <v-row>
       <v-col cols="12">
+        <v-alert dense color="#E3F2FD" width="500px">
+          Mostrando año vigente. Para otros años, usa
+          <a
+            href="#"
+            class="text-decoration-underline text-info font-weight-bold"
+            @click.prevent="dialogFiltro = !dialogFiltro"
+            dense
+          >
+            FILTRAR <v-icon color="info">mdi-filter</v-icon>
+          </a>
+        </v-alert>
+      </v-col>
+      <v-col cols="12" class="pt-0">
         <v-row align="center">
           <v-col cols="6">
             <v-text-field
-              label="Buscar...."
-              v-model="search"
+              class="mx-2"
               hide-details
-            ></v-text-field>
+              dense
+              id="id"
+              outlined
+              placeholder="Buscar..."
+              append-icon="mdi-text-search"
+              v-model="search"
+              label="Buscar"
+            >
+            </v-text-field>
           </v-col>
           <v-spacer></v-spacer>
           <v-col cols="auto">
@@ -26,22 +46,28 @@
           :search="search"
           :headers="headersCabecera"
           :items="$store.state.reportes.listDetalle"
+          dense
         >
           <template v-slot:[`item.action`]="{ item }">
-            <v-btn
-              v-if="!!item.urlfile"
-              small
-              icon
-              color="red"
-              :href="item.urlfile"
-              target="_blank"
-            >
-              <v-icon>mdi-file</v-icon>
-            </v-btn>
+            <div class="d-flex align-center">
+              <v-btn
+                v-if="!!item.urlfile"
+                small
+                icon
+                color="red"
+                :href="item.urlfile"
+                target="_blank"
+              >
+                <v-icon>mdi-file</v-icon>
+              </v-btn>
 
-            <v-btn small icon color="info" @click.native="ver(item)">
-              <v-icon>mdi-eye</v-icon>
-            </v-btn>
+              <v-btn small icon color="info" @click.native="ver(item)">
+                <v-icon>mdi-eye</v-icon>
+              </v-btn>
+              <v-btn small icon color="warning" @click.native="editar(item)">
+                <v-icon>mdi-pencil</v-icon>
+              </v-btn>
+            </div>
           </template>
         </v-data-table>
       </v-col>
@@ -135,7 +161,12 @@
         <v-card-actions>
           <v-spacer> </v-spacer>
           <v-btn color="success" @click="filtrar()">Filtrar</v-btn>
-          <v-btn color="red" class="mr-2" dark @click="dialogFiltro = !dialogFiltro">
+          <v-btn
+            color="red"
+            class="mr-2"
+            dark
+            @click="dialogFiltro = !dialogFiltro"
+          >
             Cancelar
           </v-btn>
         </v-card-actions>
@@ -149,6 +180,7 @@ import moment from "moment";
 import { mapActions } from "vuex";
 import FormatFecha from "../comun/FormatFecha.vue";
 import axios from "@/api/axios-config";
+import Swal from "sweetalert2";
 export default {
   components: {
     FormatFecha,
@@ -157,6 +189,7 @@ export default {
     return {
       search: "",
       headersCabecera: [
+        { text: "Accion", value: "action" },
         { text: "F. Reg.", value: "create_at" },
         { text: "F. Op.", value: "fecha_pago" },
         { text: "Nro Operación", value: "nro_operacion" },
@@ -170,7 +203,6 @@ export default {
         { text: "Monto	", value: "monto_mon_ex" },
         { text: "Moneda	", value: "moneda_simbolo" },
         { text: "Comentarios", value: "comentarios" },
-        { text: "Accion", value: "action" },
       ],
       list: [],
       dialogFiltro: false,
@@ -201,11 +233,72 @@ export default {
     await this.getListBanksDetailsCargar();
   },
   methods: {
-    ...mapActions(["getListarBancosgastosDetalles"]),
+    ...mapActions(["getListarBancosgastosDetalles",'validarUsuarioAdmin']),
     async ver(pago) {
       this.$router.push({
         name: "verPagosPorProveedor",
         params: { id: pago.id_pago },
+      });
+    },
+    async editar(item) {
+      let val = false
+      await Swal
+        .fire({
+          title: "Ingrese sus datos Administrador",
+          html:
+            '<input id="swal-input1" class="swal2-input" placeholder="Nombre">' +
+            '<input id="swal-input2" type="password" class="swal2-input" placeholder="Clave">',
+          focusConfirm: false,
+          showCancelButton: true,
+          confirmButtonText: "Aceptar",
+          cancelButtonText: "Cancelar",
+          preConfirm: () => {
+            const input1 = document.getElementById("swal-input1").value.trim();
+            const input2 = document.getElementById("swal-input2").value.trim();
+            if (!input1 || !input2) {
+              Swal.showValidationMessage("Por favor, complete ambos campos");
+              return false;
+            }
+            return { usuario: input1, clave: input2 };
+          },
+        })
+        .then(async (result) => {
+          if (!result.isConfirmed) {
+            // Usuario canceló
+            val = false;
+            msg = "Operación cancelada";
+            return;
+          }
+
+          if (result.value) {
+            const res = await this.validarUsuarioAdmin({
+              usuario: result.value.usuario,
+              clave: result.value.clave,
+            });
+
+            if (res && res.estadoflag) {
+              val = true;
+            } else {
+              val = false;
+              msg = res?.mensaje || "Credenciales incorrectas";
+            }
+          } else {
+            val = false;
+            msg = "Debe ingresar las credenciales";
+          }
+        });
+
+      if (!val) {
+        await swal.fire({
+          icon: "error",
+          text: msg,
+        });
+        return false;
+      }
+
+      this.$router.push({
+        name: "editarPagosPorProveedor",
+        params: { id: item.id_pago },
       });
     },
     async getListBanksDetailsCargar() {

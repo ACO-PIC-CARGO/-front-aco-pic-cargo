@@ -1,5 +1,5 @@
 <template>
-  <v-container fluid>
+  <v-container fluid class="pt-0 mt-0">
     <v-tabs v-model="tab" centered dense>
       <v-tabs-slider></v-tabs-slider>
 
