@@ -135,7 +135,15 @@
               >
                 mdi-pencil
               </v-icon>
-
+              <v-icon
+                class="btn_add mr-2"
+                icon
+                v-if="item.status == 2"
+                color="blue"
+                @click="penProConClaveAdmin(item.id)"
+              >
+                mdi-pencil
+              </v-icon>
               <v-icon
                 class="btn_add mr-2"
                 icon
@@ -355,6 +363,63 @@ export default {
     },
     penPro(id) {
       // window.open(id, "_blank");
+      this.$router.push({ name: "EditAccountPays", params: { id: id } });
+    },
+    async penProConClaveAdmin(id) {
+      let val = true;
+      let msg = "";
+      await Swal.fire({
+        title: "Ingrese sus datos Administrador",
+        html:
+          '<input id="swal-input1" class="swal2-input" placeholder="Nombre">' +
+          '<input id="swal-input2" type="password" class="swal2-input" placeholder="Clave">',
+        focusConfirm: false,
+        showCancelButton: true,
+        confirmButtonText: "Aceptar",
+        cancelButtonText: "Cancelar",
+        preConfirm: () => {
+          const input1 = document.getElementById("swal-input1").value.trim();
+          const input2 = document.getElementById("swal-input2").value.trim();
+          if (!input1 || !input2) {
+            Swal.showValidationMessage("Por favor, complete ambos campos");
+            return false;
+          }
+          return { usuario: input1, clave: input2 };
+        },
+      }).then(async (result) => {
+        if (!result.isConfirmed) {
+          // Usuario canceló
+          val = false;
+          msg = "Operación cancelada";
+          return;
+        }
+
+        if (result.value) {
+          const vm = this;
+          const res = await vm.validarUsuarioAdmin({
+            usuario: result.value.usuario,
+            clave: result.value.clave,
+          });
+
+          if (res && res.estadoflag) {
+            val = true;
+          } else {
+            val = false;
+            msg = res?.mensaje || "Credenciales incorrectas";
+          }
+        } else {
+          val = false;
+          msg = "Debe ingresar las credenciales";
+        }
+      });
+
+      if (!val) {
+        await Swal.fire({
+          icon: "error",
+          text: msg,
+        });
+        return false;
+      }
       this.$router.push({ name: "EditAccountPays", params: { id: id } });
     },
 

@@ -185,6 +185,17 @@
                     <template v-slot:[`item.totalabonado`]="{ item }">
                       {{ fn_totalAbonado(item) }}
                     </template>
+                    <template v-slot:[`item.action`]="{ item }">
+                     <v-btn
+                        flat
+                        icon
+                        color="primary"
+                        v-if="item.tipo_gasto == 'A'"
+                        @click="abrirFactura(item)"
+                      >
+                        <v-icon>mdi-eye</v-icon>
+                      </v-btn>
+                    </template>
                     <template v-slot:[`item.parcialflag`]="{ item }">
                       <v-select
                         :items="cboParcial"
@@ -442,6 +453,7 @@
                     <template v-slot:[`item.totalabonado`]="{ item }">
                       {{ fn_totalAbonado(item) }}
                     </template>
+
                     <template v-slot:[`item.parcialflag`]="{ item }">
                       {{
                         item.parcialflag ? "Abono Parcial" : "Abono Completo"
@@ -603,14 +615,14 @@ export default {
       headers: [
         { text: "Abono Completo o Parcial", value: "parcialflag" },
         { text: "Moneda Y Monto", value: "montopagar" },
-        // { text: "Fecha Facturación", value: "fecha" },
         { text: "Expediente", value: "code_master" },
         { text: "Tipo", value: "tipo_gasto" },
+        { text: "Ver Factura.", value: "action" },
+        { text: "Fecha Factura", value: "fecha" },
 
         { text: "Monto Equivalente en Dólares", value: "saldo_pendiente" },
         { text: "Moneda y Monto Facturado", value: "saldo_pendiente_local" },
         { text: "Saldo", value: "saldo" },
-        // { text: "Factura", value: "documentos" },
         { text: "Total Monto Abonado", value: "totalabonado" },
       ],
       headersPagosGastosBancario: [
@@ -618,6 +630,7 @@ export default {
         { text: "Moneda Y Monto", value: "montoparcial" },
         // { text: "Fecha Facturación", value: "fecha" },
         { text: "Expediente", value: "code_master" },
+        { text: "Fecha Factura", value: "fecha" },
         { text: "Tipo", value: "tipo_gasto", align: "center" },
 
         { text: "Moneda y Monto Facturado", value: "saldo_pendiente_local" },
@@ -668,6 +681,14 @@ export default {
       this.monto_local = null;
       this.id_cuenta = {};
     },
+    abrirFactura(item) {
+      let id = item.id_admininvoice;
+      window.open(
+        `/home/folderModulesPays/viewAccountPays/${id}`,
+        "Instructivo",
+        "width=1593,height=1293,menubar=no,location=no,resizable=no",
+      );
+    },
     confirmarDeposito() {
       if (this.monto_local) {
         this.dialogLlenarMontoDepositadoBanco = false;
@@ -711,12 +732,36 @@ export default {
     },
     async obtenerListado() {
       this.errorMesage.proveedor = "";
+      this.selected = [];
+      this.monto = 0;
+      this.monto_local = 0;
+      this.montogastobancario = 0;
+      this.conceptogastobancario = "";
+
       this.pasos = 0;
       this.editable = false;
+      this.editableGastoBancario = false;
+
+      this.searchTableDetalle = "";
+
+      this.id_cuenta = {};
+
+      this.fechaoperacion = null;
+      this.numerooperacion = "";
+
+      this.id_path = null;
+
+      this.esDuplicado = false;
+      this.operacionesSimilares = [];
+      this.mostrarDetalle = false;
       if (this.proveedor) {
         this.$store.state.spiner = true;
-        await this.getDeudaAProveedorPorSucursal(this.proveedor);
-        this.$store.state.spiner = false;
+
+        try {
+          await this.getDeudaAProveedorPorSucursal(this.proveedor);
+        } finally {
+          this.$store.state.spiner = false;
+        }
       } else {
         this.$store.state.bank.deudaAProveedor = [];
       }
@@ -1010,6 +1055,7 @@ export default {
       return this.monto || "0.00";
     },
     mostrarTipoCambio() {
+      if (this.selected.length == 0) return false;
       if (this.symbol != "USD") {
         return true;
       }

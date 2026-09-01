@@ -30,7 +30,7 @@
               target="_blank"
               title="Ver archivo"
             >
-              <v-icon color="info" size="22">mdi-open-in-new</v-icon>
+              <v-icon color="info" size="22">mdi-eye</v-icon>
             </v-btn>
 
             <!-- Botón Eliminar (Deshabilitado si solo es lectura / modo 'ver') -->
