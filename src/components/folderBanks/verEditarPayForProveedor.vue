@@ -605,6 +605,7 @@ export default {
       "updateRegistroEgresos",
       "verRegistroEgresos",
       "eliminarRegistroEgresos",
+      "validarUsuarioAdmin",
     ]),
     confirmarEliminar() {
       Swal.fire({
@@ -857,8 +858,10 @@ export default {
       this.editableGastoBancario = true;
     },
     async finalizarOperacion() {
-      
-      if (parseFloat(this.monto_local).toFixed(0) != parseFloat(this.monto * this.tipocambio).toFixed(0)) {
+      if (
+        parseFloat(this.monto_local).toFixed(0) !=
+        parseFloat(this.monto * this.tipocambio).toFixed(0)
+      ) {
         Swal.fire({
           icon: "error",
           title: "Monto Local Incorrecto",
@@ -909,7 +912,9 @@ export default {
       this.monto_local = this.selected.reduce((suma, element) => {
         return suma + parseFloat(element.montoparcial);
       }, 0);
-      this.tipocambiosVer =parseFloat(this.monto_local/ this.monto).toFixed(4)
+      this.tipocambiosVer = parseFloat(this.monto_local / this.monto).toFixed(
+        4,
+      );
     },
   },
   computed: {

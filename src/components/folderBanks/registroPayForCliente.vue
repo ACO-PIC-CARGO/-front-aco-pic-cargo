@@ -182,6 +182,17 @@
                         <td class="text-left">USD {{ totalGeneralAbonado }}</td>
                       </tr>
                     </template>
+                    <template v-slot:[`item.action`]="{ item }">
+                      <v-btn
+                        flat
+                        icon
+                        color="primary"
+                        v-if="item.tipo == 'A'"
+                        @click="abrirFactura(item)"
+                      >
+                        <v-icon>mdi-eye</v-icon>
+                      </v-btn>
+                    </template>
                     <template v-slot:[`item.parcialflag`]="{ item }">
                       <v-select
                         :items="cboParcial"
@@ -654,9 +665,11 @@ export default {
       headers: [
         { text: "Abono Completo o Parcial", value: "parcialflag" },
         { text: "Moneda Y Monto", value: "montopagar" },
-        // { width: "8%", text: "Fecha Facturación", value: "fecha" },
+
         { text: "Expediente", value: "referencia" },
         { text: "Tipo", value: "tipo" },
+        { text: "Ver Factura.", value: "action" },
+        { text: "Fecha Factura", value: "fecha" },
         {
           text: "Moneda y Monto Facturado",
           value: "monto_original_total",
@@ -676,6 +689,7 @@ export default {
         // { text: "Fecha Facturación", value: "fecha" },
         { text: "Expediente", value: "referencia" },
         { text: "Tipo", value: "tipo", align: "center" },
+        { text: "Fecha Factura", value: "fecha" },
         {
           text: "Moneda y Monto Facturado",
           value: "monto_original_total",
@@ -729,6 +743,14 @@ export default {
       "setRegistroIgresos",
       "validarIngresoNroOperacion",
     ]),
+    abrirFactura(item) {
+      let id = item.admin_invoice_id;
+      window.open(
+        `/home/viewAccountPaysCxC/${id}`,
+        "Instructivo",
+        "width=1593,height=1293,menubar=no,location=no,resizable=no",
+      );
+    },
     cancelarllenadoDeMonto() {
       this.dialogLlenarMontoDepositadoBanco = false;
       this.monto_local = null;
@@ -798,12 +820,38 @@ export default {
     },
     async obtenerListado() {
       this.errorMesage.cliente = "";
+
+      this.selected = [];
+      this.monto = 0;
+      this.monto_local = 0;
+      this.montogastobancario = 0;
+      this.conceptogastobancario = "";
+
       this.pasos = 0;
       this.editable = false;
+      this.editableGastoBancario = false;
+
+      this.searchTableDetalle = "";
+
+      this.id_cuenta = {};
+
+      this.id_banco_origen = null;
+      this.fecha_operacion = null;
+      this.nro_operacion = "";
+
+      this.id_path = null;
+
+      this.esDuplicado = false;
+      this.operacionesSimilares = [];
+      this.mostrarDetalle = false;
       if (this.cliente) {
         this.$store.state.spiner = true;
-        await this.getDeudaDeClientePorSucursal(this.cliente);
-        this.$store.state.spiner = false;
+
+        try {
+          await this.getDeudaDeClientePorSucursal(this.cliente);
+        } finally {
+          this.$store.state.spiner = false;
+        }
       } else {
         this.$store.state.bank.deudaACliente = [];
       }
@@ -1060,6 +1108,8 @@ export default {
       "cuentas",
     ]),
     mostrarTipoCambio() {
+      if (this.selected.length == 0) return false;
+
       if (this.symbol != "USD") {
         return true;
       }
