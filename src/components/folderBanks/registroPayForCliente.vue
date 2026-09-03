@@ -769,27 +769,46 @@ export default {
       // Si editaflag es false, devuelve true para deshabilitar el checkbox
       return item.editaflag === false;
     },
-    onItemSelected({ item, value }) {
-      if (value && item.editaflag === false) {
-        // Removerlo inmediatamente si fue seleccionado
-        this.selected = this.selected.filter((i) => i.id !== item.id);
-
-        // Mostrar el mensaje
-        Swal.fire({
-          icon: "error",
-          title: "Error",
-          text: "No sé puede seleccionar porque está en departamento operativo. Comuníquese.",
-        });
-      }
+    async onItemSelected({ item, value }) {
+      // Si está intentando seleccionar
       if (value) {
-        // Si se selecciona, por defecto es Abono Completo (false) y carga el saldo
+        // Validar que la factura y la cuenta tengan la misma moneda
+        if (item.symbol !== this.symbol) {
+          const result = await Swal.fire({
+            icon: "warning",
+            title: "Moneda diferente",
+            html: `
+              La factura seleccionada está en <b>${item.symbol}</b>
+              y la cuenta está en <b>${this.symbol}</b>
+              <br><br>
+              ¿Desea Continuar?
+            `,
+            showCancelButton: true,
+            confirmButtonText: "Sí, continuar",
+            cancelButtonText: "Cancelar",
+            confirmButtonColor: "#3085d6",
+            cancelButtonColor: "#d33",
+            reverseButtons: true,
+          });
+
+          // Si cancela, quitar la factura de selected
+          if (!result.isConfirmed) {
+            this.selected = this.selected.filter((i) => i.id !== item.id);
+
+            this.calcularTotal();
+            return;
+          }
+        }
+
+        // Si confirma o las monedas son iguales
         item.parcialflag = false;
         item.montoparcial = item.total_mon_local;
       } else {
-        // Si se deselecciona, vuelve a 0
+        // Si deselecciona normalmente
         item.montoparcial = 0;
         item.parcialflag = false;
       }
+
       this.calcularTotal();
     },
     onSelectAll({ items, value }) {
@@ -1185,13 +1204,17 @@ export default {
   watch: {
     id_cuenta(newVal, oldVal) {
       if (newVal && newVal.id && (!oldVal || newVal.id !== oldVal.id)) {
+        if (oldVal && oldVal.id && this.selected.length > 0) {
+          this.selected = [];
+
+          this.monto = 0;
+          this.calcularTotal();
+        }
         let id_coins = newVal.id_coins;
         let coins = this.$store.state.itemsCoinsList.find(
           (coin) => coin.id === id_coins,
         );
         this.symbol = coins ? coins.symbol : "USD";
-
-        this.calcularTotal();
 
         this.dialogLlenarMontoDepositadoBanco = true;
       }

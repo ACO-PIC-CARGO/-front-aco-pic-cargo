@@ -2385,6 +2385,7 @@ export default {
       vm.datosFactura.total_monto = parseFloat(total_monto).toFixed(2);
       vm.datosFactura.nombreProforma = vm.nombreProforma;
       vm.obtenerDatosHouse = true;
+      vm.datosFactura.impuesto = vm.$store.state.enterprises.impuesto.nombre_impuesto;
       let data = vm.datosFactura;
       // console.log(vm.datosFactura);
       // return;
