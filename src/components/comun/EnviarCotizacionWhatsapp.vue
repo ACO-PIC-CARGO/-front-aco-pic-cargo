@@ -164,7 +164,7 @@ export default {
       contenedor.push({
         name: element.description,
         valor: element.cantidad,
-        code:element.code
+        code: element.code,
       });
     });
 
@@ -271,7 +271,12 @@ export default {
     },
   },
   methods: {
-    ...mapActions(["generarReporte", "obtenerDatosEmpresa", "GetArchivos"]),
+    ...mapActions([
+      "generarReporte",
+      "obtenerDatosEmpresa",
+      "GetArchivos",
+      "setEmisionPdf",
+    ]),
     abrirModal() {
       this.dialog = true;
     },
@@ -291,7 +296,10 @@ export default {
         return;
       }
 
-      if (!this.fecha_max && this.$store.state.pricing.datosPrincipales.esgrupalflag) {
+      if (
+        !this.fecha_max &&
+        this.$store.state.pricing.datosPrincipales.esgrupalflag
+      ) {
         this.errorFechaEntrega = "Dato Requerido";
         return;
       }
@@ -316,20 +324,25 @@ export default {
       if (this.$store.state.pricing.datosPrincipales.esgrupalflag) {
         tipo = "grupal";
       }
-      await this.generarReporte({
-        tipo: "AGRUPADO",
-        enviarWspCliente: true,
-        guardarFlag: true,
-        textWhatsapp:
-          this.tabIndex == "pdfflag" ? this.localTextoPdf : this.localTextoLink,
-        pdfflag: this.tabIndex == "pdfflag",
-        linkflag: this.tabIndex == "linkflag",
-        tipoCotizacion: tipo,
-        fecha_salida: this.dateRangeText,
-        nombre_cliente: this.$store.state.pricing.datosPrincipales.nombre,
-        fecha_max: this.fecha_max,
-        nombrePdfEnviarCliente: this.nombrePdfEnviarCliente,
-      });
+      await Promise.all([
+        this.generarReporte({
+          tipo: "AGRUPADO",
+          enviarWspCliente: true,
+          guardarFlag: true,
+          textWhatsapp:
+            this.tabIndex == "pdfflag"
+              ? this.localTextoPdf
+              : this.localTextoLink,
+          pdfflag: this.tabIndex == "pdfflag",
+          linkflag: this.tabIndex == "linkflag",
+          tipoCotizacion: tipo,
+          fecha_salida: this.dateRangeText,
+          nombre_cliente: this.$store.state.pricing.datosPrincipales.nombre,
+          fecha_max: this.fecha_max,
+          nombrePdfEnviarCliente: this.nombrePdfEnviarCliente,
+        }),
+        this.setEmisionPdf(),
+      ]);
       this.loading = false;
       this.dialog = false;
     },

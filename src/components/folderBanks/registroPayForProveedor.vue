@@ -186,7 +186,7 @@
                       {{ fn_totalAbonado(item) }}
                     </template>
                     <template v-slot:[`item.action`]="{ item }">
-                     <v-btn
+                      <v-btn
                         flat
                         icon
                         color="primary"
@@ -695,9 +695,36 @@ export default {
         this.mostrarDetalle = true;
       }
     },
-    onItemSelected({ item, value }) {
+    async onItemSelected({ item, value }) {
       if (value) {
-        // Si se selecciona, por defecto es Abono Completo (false) y carga el saldo
+        console.log("Item seleccionado:", item);
+        if (item.symbol !== this.symbol) {
+          const result = await Swal.fire({
+            icon: "warning",
+            title: "Moneda diferente",
+            html: `
+              La factura seleccionada está en <b>${item.symbol}</b>
+              y la cuenta está en <b>${this.symbol}</b>
+              <br><br>
+              ¿Desea Continuar?
+            `,
+            showCancelButton: true,
+            confirmButtonText: "Sí, continuar",
+            cancelButtonText: "Cancelar",
+            confirmButtonColor: "#3085d6",
+            cancelButtonColor: "#d33",
+            reverseButtons: true,
+          });
+
+          // Si cancela, quitar la factura de selected
+          if (!result.isConfirmed) {
+            this.selected = this.selected.filter((i) => i.id !== item.id);
+
+            this.calcularTotal();
+            return;
+          }
+        }
+
         item.parcialflag = false;
         item.montoparcial = item.saldo_pendiente_local;
       } else {
@@ -1115,13 +1142,19 @@ export default {
   watch: {
     id_cuenta(newVal, oldVal) {
       if (newVal && newVal.id && (!oldVal || newVal.id !== oldVal.id)) {
+        if (oldVal && oldVal.id && this.selected.length > 0) {
+          this.selected = [];
+
+          this.monto = 0;
+          this.calcularTotal();
+        }
         let id_coins = newVal.id_coins;
         let coins = this.$store.state.itemsCoinsList.find(
           (coin) => coin.id === id_coins,
         );
         this.symbol = coins ? coins.symbol : "USD";
 
-        this.calcularTotal();
+        // this.calcularTotal();
 
         this.dialogLlenarMontoDepositadoBanco = true;
       }

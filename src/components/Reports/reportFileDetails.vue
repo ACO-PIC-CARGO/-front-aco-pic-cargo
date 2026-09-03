@@ -400,7 +400,7 @@ export default {
             vm.gananciaPr = data.data.reduce((total, item) => {
               return (
                 parseFloat(total) +
-                (parseFloat(item.ingresos_pr) - parseFloat(item.egresos_pr))
+                (parseFloat(item.ingresos_pr||0) - parseFloat(item.egresos_pr||0))
               );
             }, 0);
             vm.gananciaOp = data.data.reduce((total, item) => {
