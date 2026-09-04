@@ -63,20 +63,19 @@
                     ></v-text-field>
                   </td>
                   <td class="colProveedorMultiplicador">
-                    <v-select
-                      class="widthTD"
-                      :items="$store.state.pricing.listMultiplicador"
+                    <CboMultiplicador
                       v-model="valor.id_multiplicador"
                       placeholder="Multiplicador"
-                      hide-details
-                      dense
                       @change="calcTotales"
+                      :hide-details="true"
+                      :dense="true"
+                      class="widthTD"
                       :readonly="
                         isITBM(valor.code_cost) ||
                         isConfeccion(valor.code_cost) ||
                         isNotaCredito(valor.code_cost)
                       "
-                    ></v-select>
+                    />
                   </td>
 
                   <td class="colCostos">
@@ -292,9 +291,13 @@
 </template>
 <script>
 import mixins from "@/components/mixins/funciones";
+import CboMultiplicador from "@/components/comun/CboMultiplicador.vue";
+
 export default {
   mixins: [mixins],
   props: ["valores", "actualizarCostosFlag", "amount"],
+  components: { CboMultiplicador },
+
   data() {
     return {
       resumenOpcion: {

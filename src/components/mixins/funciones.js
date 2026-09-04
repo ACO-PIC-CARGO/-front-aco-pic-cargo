@@ -61,6 +61,7 @@ const miMixin = {
       amount = 0,
     ) {
       const listMultiplicador = store.state.pricing.listMultiplicador;
+      const volumen = store.state.pricing.datosPrincipales.volumen;
       let fac = 0;
 
       const configMult = listMultiplicador.find((item) => item.code == code);
@@ -99,6 +100,10 @@ const miMixin = {
           break;
         case 18:
           fac = kg;
+          break;
+        case 24:
+          let valorCalculado = metroscc / (volumen || 1);
+          fac = valorCalculado || 1;
           break;
         default:
           fac = 1;

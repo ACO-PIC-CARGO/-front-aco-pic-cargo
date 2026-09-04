@@ -91,11 +91,24 @@
                           ></v-text-field>
                         </td>
                         <td class="colProveedorMultiplicador">
-                          <v-select
+                          <CboMultiplicador
+                            v-model="valor.id_multiplicador"
+                            placeholder="Multiplicador"
+                            @change="calcTotales"
+                            :hide-details="true"
+                            :dense="true"
+                            class="widthTD"
+                            :readonly="
+                              isITBM(valor.code_cost) ||
+                              isConfeccion(valor.code_cost) ||
+                              isNotaCredito(valor.code_cost)
+                            "
+                          />
+                          <!-- <v-select
                             class="widthTD"
                             :items="$store.state.pricing.listMultiplicador"
                             v-model="valor.id_multiplicador"
-                            placeholder="Multiplicador"
+                            placeholder="Multiplicador" @change="calcTotales"
                             hide-details
                             dense
                             @change="calcTotales"
@@ -104,7 +117,7 @@
                               isConfeccion(valor.code_cost) ||
                               isNotaCredito(valor.code_cost)
                             "
-                          ></v-select>
+                          ></v-select> -->
                         </td>
 
                         <td class="colCostos">
@@ -351,11 +364,24 @@
                         ></v-text-field>
                       </td>
                       <td class="colProveedorMultiplicador">
-                        <v-select
+                        <CboMultiplicador
+                          v-model="valor.id_multiplicador"
+                          placeholder="Multiplicador"
+                          @change="calcTotales"
+                          :hide-details="true"
+                          :dense="true"
+                          class="widthTD"
+                          :readonly="
+                            isITBM(valor.code_cost) ||
+                            isConfeccion(valor.code_cost) ||
+                            isNotaCredito(valor.code_cost)
+                          "
+                        />
+                        <!-- <v-select
                           class="widthTD"
                           :items="$store.state.pricing.listMultiplicador"
                           v-model="valor.id_multiplicador"
-                          placeholder="Multiplicador"
+                          placeholder="Multiplicador" @change="calcTotales"
                           hide-details
                           dense
                           @change="calcTotales"
@@ -364,7 +390,7 @@
                             isConfeccion(valor.code_cost) ||
                             isNotaCredito(valor.code_cost)
                           "
-                        ></v-select>
+                        ></v-select> -->
                       </td>
 
                       <td class="colCostos">
@@ -598,11 +624,24 @@
                         ></v-text-field>
                       </td>
                       <td class="colProveedorMultiplicador">
-                        <v-select
+                        <CboMultiplicador
+                          v-model="valor.id_multiplicador"
+                          placeholder="Multiplicador"
+                          @change="calcTotales"
+                          :hide-details="true"
+                          :dense="true"
+                          class="widthTD"
+                          :readonly="
+                            isITBM(valor.code_cost) ||
+                            isConfeccion(valor.code_cost) ||
+                            isNotaCredito(valor.code_cost)
+                          "
+                        />
+                        <!-- <v-select
                           class="widthTD"
                           :items="$store.state.pricing.listMultiplicador"
                           v-model="valor.id_multiplicador"
-                          placeholder="Multiplicador"
+                          placeholder="Multiplicador" @change="calcTotales"
                           hide-details
                           dense
                           @change="calcTotales"
@@ -611,7 +650,7 @@
                             isConfeccion(valor.code_cost) ||
                             isNotaCredito(valor.code_cost)
                           "
-                        ></v-select>
+                        ></v-select> -->
                       </td>
 
                       <td class="colCostos">
@@ -845,11 +884,24 @@
                         ></v-text-field>
                       </td>
                       <td class="colProveedorMultiplicador">
-                        <v-select
+                        <CboMultiplicador
+                          v-model="valor.id_multiplicador"
+                          placeholder="Multiplicador"
+                          @change="calcTotales"
+                          :hide-details="true"
+                          :dense="true"
+                          class="widthTD"
+                          :readonly="
+                            isITBM(valor.code_cost) ||
+                            isConfeccion(valor.code_cost) ||
+                            isNotaCredito(valor.code_cost)
+                          "
+                        />
+                        <!-- <v-select
                           class="widthTD"
                           :items="$store.state.pricing.listMultiplicador"
                           v-model="valor.id_multiplicador"
-                          placeholder="Multiplicador"
+                          placeholder="Multiplicador" @change="calcTotales"
                           hide-details
                           dense
                           @change="calcTotales"
@@ -858,7 +910,7 @@
                             isConfeccion(valor.code_cost) ||
                             isNotaCredito(valor.code_cost)
                           "
-                        ></v-select>
+                        ></v-select> -->
                       </td>
 
                       <td class="colCostos">
@@ -1093,11 +1145,24 @@
                         ></v-text-field>
                       </td>
                       <td class="colProveedorMultiplicador">
-                        <v-select
+                        <CboMultiplicador
+                          v-model="valor.id_multiplicador"
+                          placeholder="Multiplicador"
+                          @change="calcTotales"
+                          :hide-details="true"
+                          :dense="true"
+                          class="widthTD"
+                          :readonly="
+                            isITBM(valor.code_cost) ||
+                            isConfeccion(valor.code_cost) ||
+                            isNotaCredito(valor.code_cost)
+                          "
+                        />
+                        <!-- <v-select
                           class="widthTD"
                           :items="$store.state.pricing.listMultiplicador"
                           v-model="valor.id_multiplicador"
-                          placeholder="Multiplicador"
+                          placeholder="Multiplicador" @change="calcTotales"
                           hide-details
                           dense
                           @change="calcTotales"
@@ -1106,7 +1171,7 @@
                             isConfeccion(valor.code_cost) ||
                             isNotaCredito(valor.code_cost)
                           "
-                        ></v-select>
+                        ></v-select> -->
                       </td>
 
                       <td class="colCostos">
@@ -1339,11 +1404,24 @@
                         ></v-text-field>
                       </td>
                       <td class="colProveedorMultiplicador">
-                        <v-select
+                        <CboMultiplicador
+                          v-model="valor.id_multiplicador"
+                          placeholder="Multiplicador"
+                          @change="calcTotales"
+                          :hide-details="true"
+                          :dense="true"
+                          class="widthTD"
+                          :readonly="
+                            isITBM(valor.code_cost) ||
+                            isConfeccion(valor.code_cost) ||
+                            isNotaCredito(valor.code_cost)
+                          "
+                        />
+                        <!-- <v-select
                           class="widthTD"
                           :items="$store.state.pricing.listMultiplicador"
                           v-model="valor.id_multiplicador"
-                          placeholder="Multiplicador"
+                          placeholder="Multiplicador" @change="calcTotales"
                           hide-details
                           dense
                           @change="calcTotales"
@@ -1352,7 +1430,7 @@
                             isConfeccion(valor.code_cost) ||
                             isNotaCredito(valor.code_cost)
                           "
-                        ></v-select>
+                        ></v-select> -->
                       </td>
 
                       <td class="colCostos">
@@ -1587,11 +1665,24 @@
                         ></v-text-field>
                       </td>
                       <td class="colProveedorMultiplicador">
-                        <v-select
+                        <CboMultiplicador
+                          v-model="valor.id_multiplicador"
+                          placeholder="Multiplicador"
+                          @change="calcTotales"
+                          :hide-details="true"
+                          :dense="true"
+                          class="widthTD"
+                          :readonly="
+                            isITBM(valor.code_cost) ||
+                            isConfeccion(valor.code_cost) ||
+                            isNotaCredito(valor.code_cost)
+                          "
+                        />
+                        <!-- <v-select
                           class="widthTD"
                           :items="$store.state.pricing.listMultiplicador"
                           v-model="valor.id_multiplicador"
-                          placeholder="Multiplicador"
+                          placeholder="Multiplicador" @change="calcTotales"
                           hide-details
                           dense
                           @change="calcTotales"
@@ -1600,7 +1691,7 @@
                             isConfeccion(valor.code_cost) ||
                             isNotaCredito(valor.code_cost)
                           "
-                        ></v-select>
+                        ></v-select> -->
                       </td>
 
                       <td class="colCostos">
@@ -1791,13 +1882,22 @@
                 ></v-autocomplete>
               </v-col>
               <v-col cols="12" class="my-1 py-1">
-                <v-autocomplete
+                <CboMultiplicador
+                  v-model="fromDataService.id_multiplicador"
+                  placeholder="Multiplicador"
+                  label="Multiplicador"
+                  :hide-details="true"
+                  :dense="true"
+                  class="widthTD"
+                  :rules="[(v) => !!v || 'Dato requerido']"
+                />
+                <!-- <v-autocomplete
                   dense
                   label="Multiplicador"
                   :items="$store.state.pricing.listMultiplicador"
                   v-model="fromDataService.id_multiplicador"
                   :rules="[(v) => !!v || 'Dato requerido']"
-                ></v-autocomplete>
+                ></v-autocomplete> -->
               </v-col>
               <v-col cols="12" class="my-1 py-1">
                 <v-text-field
@@ -1878,6 +1978,7 @@
 import { mapActions } from "vuex";
 import NuevoProveedorComponentVue from "@/components/folderEntities/Proveedor/NuevoProveedorComponent.vue";
 import mixins from "@/components/mixins/funciones.js";
+import CboMultiplicador from "@/components/comun/CboMultiplicador.vue";
 export default {
   mixins: [mixins],
   props: [
@@ -1887,7 +1988,7 @@ export default {
     "index",
     "recargarSegmentos",
   ],
-  components: { NuevoProveedorComponentVue },
+  components: { NuevoProveedorComponentVue, CboMultiplicador },
   data() {
     return {
       costo: {},
@@ -2607,14 +2708,21 @@ export default {
       const codigoMultiplicador = multEncontrado ? multEncontrado.code : "N";
 
       // 4. Ejecutamos la función calcularFac pasándole los datos de pricing
-      const factorCalculado = this.calcularFac(
+      let factorCalculado = this.calcularFac(
         codigoMultiplicador,
         datosPrincipales.volumen,
         datosPrincipales.peso,
         datosPrincipales.containers,
         datosPrincipales.amount,
       );
+      // if (
+      //   valor.code_cost == 4 &&
+      //   this.$store.state.pricing.datosPrincipales.volumen < 1
+      // ) {
+      //   factorCalculado = 1;
 
+      // }
+      
       // 5. Realizamos la operación matemática final
       const operacionFinal =
         valorMultiplicador * valor.costounitario * factorCalculado;
