@@ -427,8 +427,25 @@ export default {
               montoprofit = profitObj.profitsegundaimportacion;
           }
         }
-        if (item.code_cost == 4) {
-          console.log("flete", flete);
+        if (item.code_cost === "39") {
+          return [
+            {
+              // ITEM COMPRA / OPCIÓN
+              ...baseItem,
+              esopcionflag: 1,
+              esventaflag: 0,
+              cif: cifOpcion, // <--- Regla con validación grupal
+              seguro: seguroOpcion, // <--- Regla con validación grupal
+              costounitario:
+                (esgrupalflag
+                  ? 0
+                  : item.code_cost == 13
+                  ? transporte
+                  : costoBaseUnitario) + parseFloat(flete.monto || 0),
+              tienefleteflag: esgrupalflag ? false : flete.tienefleteflag,
+              fechavigencia: esgrupalflag ? null : flete.fechavigencia,
+            },
+          ];
         }
         return [
           {

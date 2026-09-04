@@ -812,6 +812,12 @@ const routes = [
         component: () =>
           import("../views/Configuracion/Pricing/TextoWhatsappCotizacion.vue"),
       },
+      {
+        path: "reporte/ReporteGanancia",
+        name: "ReporteGanancia",
+        component: () =>
+          import("../views/folderReports/ReporteGanancia.vue"),
+      },
     ],
   },
   {
