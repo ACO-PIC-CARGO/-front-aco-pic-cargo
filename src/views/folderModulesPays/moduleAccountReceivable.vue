@@ -11,7 +11,7 @@ export default {
   },
   name: "moduleAccountReceivableNew",
   mounted() {
-    this.$store.state.mainTitle = "CONTROL DE CUENTAS POR COBRAR";
+    this.$store.state.mainTitle = "CONTROL DE CUENTAS POR COBRAR ADMINISTRATIVAS";
     this.$nextTick(() => {
       this.$store.state.drawer = false;
     });

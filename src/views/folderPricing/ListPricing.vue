@@ -52,7 +52,7 @@
       absolute
       bottom
       persistent
-      width="20%"
+      width="40%"
       temporary
     >
       <v-card elevation="10">

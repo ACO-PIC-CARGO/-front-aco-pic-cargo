@@ -745,11 +745,7 @@ export default {
     ]),
     abrirFactura(item) {
       let id = item.admin_invoice_id;
-      window.open(
-        `/home/viewAccountPaysCxC/${id}`,
-        "Instructivo",
-        "width=1593,height=1293,menubar=no,location=no,resizable=no",
-      );
+      window.open(`/home/viewAccountPaysCxC/${id}`, "_blank");
     },
     cancelarllenadoDeMonto() {
       this.dialogLlenarMontoDepositadoBanco = false;

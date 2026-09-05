@@ -260,7 +260,14 @@
                         <v-icon>mdi-delete</v-icon>
                       </v-btn>
                     </td>
-                    <td>{{ productos.concepto }}</td>
+                    <td>
+                      <v-text-field
+                        v-model="productos.concepto"
+                        dense
+                        outlined
+                        :hide-details="auto"
+                      ></v-text-field>
+                    </td>
                     <td>
                       <span v-if="tipo == 'ver'">{{ productos.monto }}</span>
                       <v-text-field

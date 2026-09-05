@@ -1,6 +1,22 @@
 <template>
   <v-container fluid>
-    <v-row v-if="lstPricing">
+    <v-row>
+      <v-col cols="12" class="py-1">
+        <span>Filtros Seleccionado:</span>
+      </v-col>
+      <v-col cols="12" class="py-1">
+        <div class="d-flex flex-wrap align-center">
+          <v-chip
+            v-for="(valor, clave) in $store.state.pricing.filtroSeleccionado"
+            :key="clave"
+            class="ma-1"
+            color="primary"
+            outlined
+          >
+            <strong>{{ clave }}:</strong> &nbsp;{{ valor }}
+          </v-chip>
+        </div>
+      </v-col>
       <v-col cols="12" lg="4" xl="4">
         <v-text-field
           placeholder="Buscar..."
@@ -495,6 +511,12 @@ export default {
   components: {
     GuardarUrlPricing,
   },
+  props: {
+    filtrosSeleccionados: {
+      type: Object,
+      default: () => ({}),
+    },
+  },
   name: "ListQuoteComponent",
   data() {
     return {
@@ -841,21 +863,21 @@ export default {
     async reporteListado() {
       this.loading2 = true;
       await this.imprimiReporteListado(this.filtro).catch((e) => {
-       console.error(e);
+        console.error(e);
       });
       this.loading2 = false;
     },
     async excelListadoQuote() {
       this.loading3 = true;
       await this.exportarExcelListadoQuote(this.filtro).catch((e) => {
-       console.error(e);
+        console.error(e);
       });
       this.loading3 = false;
     },
     async imprimirListMercadeo() {
       this.loading = true;
       await this.imprimirMercadeo().catch((e) => {
-       console.error(e);
+        console.error(e);
       });
       this.loading = false;
     },

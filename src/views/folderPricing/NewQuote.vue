@@ -566,7 +566,7 @@ export default {
             v.code_cost == 4,
         );
         let facMultiplicador = this.formatearCostoTotal(val);
-        console.log("facMultiplicador", facMultiplicador);
+
         if (this.$store.state.pricing.datosPrincipales.esgrupalflag) {
           let val =
             !!this.$store.state.calculadoras.fletePricing
@@ -1248,7 +1248,7 @@ export default {
         datosPrincipales.containers,
         datosPrincipales.amount,
       );
-
+      console.log('sssssss',valor)
       return factorCalculado;
     },
   },

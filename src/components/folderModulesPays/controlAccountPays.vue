@@ -242,7 +242,14 @@
                         <v-icon>mdi-delete</v-icon>
                       </v-btn>
                     </td>
-                    <td>{{ productos.concepto }}</td>
+                    <td>
+                      <v-text-field
+                        v-model="productos.concepto"
+                        dense
+                        hide-details="auto"
+                        outlined
+                      ></v-text-field>
+                    </td>
                     <td>
                       <span v-if="tipo == 'ver'">{{ productos.monto }}</span>
                       <v-text-field
@@ -969,8 +976,9 @@ export default {
         };
         await axios(config)
           .then(function (response) {
-            vm.itemsInvoice = response.data.data;
-            if (response.data.data.estado) {
+            vm.itemsInvoice = response.data;
+            console.log(response.data.data)
+            if (response.data.data[0].estadoflag) {
               vm.$swal({
                 icon: "success",
                 title: "Documento Cargado",
@@ -978,10 +986,10 @@ export default {
               });
             }
 
-            // vm.$router.push({
-            //   name: "viewAccountPays",
-            //   params: { id: vm.$route.params.id },
-            // });
+            vm.$router.push({
+              name: "viewAccountPays",
+              params: { id: vm.$route.params.id },
+            });
             // vm._getInvoice();
             vm.dialogInvoice = false;
           })
