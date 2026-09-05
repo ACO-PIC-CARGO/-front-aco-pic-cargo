@@ -6,7 +6,12 @@ import router from "@/router";
 import masterusuario from "./masterusuario";
 import enterprise from "./enterprise";
 import modules from "./../index";
+import { generateIdempotencyKey } from "@/components/mixins/utils";
 const state = {
+  filtroSeleccionado:{
+    "Fecha Inicio": moment().format("YYYY-01-01"),
+    "Fecha Fin": moment().endOf("month").format("YYYY-MM-DD"),
+  },
   search: "",
   totalregistro: 1,
   limit: 10,
@@ -58,7 +63,8 @@ const state = {
     id_incoterm: "",
     fechainicio: moment().format("YYYY-01-01"),
     fechafin: moment().endOf("month").format("YYYY-MM-DD"),
-    fechaemision: "",
+    fechaemisiondesde: "",
+    fechaemisionhasta: "",
     estado: 1,
   },
   filtroCalls: {
@@ -650,7 +656,7 @@ const actions = {
     });
   },
   async getListQuote({ commit }) {
-    console.log("id_pricing", state.filtro);
+
     var config = {
       method: "get",
       url: process.env.VUE_APP_URL_MAIN + `getQuoteList`,
@@ -1931,6 +1937,26 @@ const actions = {
       opcion.listCostos
         .filter((v) => v.status == 1 && v.esventaflag == 1)
         .forEach((element) => {
+          let factor = miMixin.methods.calcularFac(
+            state.listMultiplicador.filter(
+              (v) => v.id == element.id_multiplicador,
+            ).length > 0
+              ? state.listMultiplicador.filter(
+                  (v) => v.id == element.id_multiplicador,
+                )[0].code
+              : "N",
+            state.datosPrincipales.volumen,
+            state.datosPrincipales.peso,
+            state.datosPrincipales.containers,
+            state.datosPrincipales.amount,
+          );
+
+          if (element.code_cost == 4 && state.datosPrincipales.volumen < 1) {
+            if (factor < 1) {
+              factor = 1;
+            }
+          }
+
           if (element.esfleteflag == 1) {
             datosFlete.push({
               name: element.nameservice,
@@ -1960,19 +1986,7 @@ const actions = {
                     )[0].valor
                   : 0) *
                 element.costounitario *
-                miMixin.methods.calcularFac(
-                  state.listMultiplicador.filter(
-                    (v) => v.id == element.id_multiplicador,
-                  ).length > 0
-                    ? state.listMultiplicador.filter(
-                        (v) => v.id == element.id_multiplicador,
-                      )[0].code
-                    : "N",
-                  state.datosPrincipales.volumen,
-                  state.datosPrincipales.peso,
-                  state.datosPrincipales.containers,
-                  state.datosPrincipales.amount,
-                );
+                factor;
             } else {
               totalFlete += miMixin.methods.calcularValor(
                 state.datosPrincipales.amount,
@@ -2029,19 +2043,7 @@ const actions = {
                     )[0].valor
                   : 0) *
                 element.costounitario *
-                miMixin.methods.calcularFac(
-                  state.listMultiplicador.filter(
-                    (v) => v.id == element.id_multiplicador,
-                  ).length > 0
-                    ? state.listMultiplicador.filter(
-                        (v) => v.id == element.id_multiplicador,
-                      )[0].code
-                    : "N",
-                  state.datosPrincipales.volumen,
-                  state.datosPrincipales.peso,
-                  state.datosPrincipales.containers,
-                  state.datosPrincipales.amount,
-                );
+                factor;
             } else {
               totalOrigen += miMixin.methods.calcularValor(
                 state.datosPrincipales.amount,
@@ -2094,19 +2096,7 @@ const actions = {
                     )[0].valor
                   : 0) *
                 element.costounitario *
-                miMixin.methods.calcularFac(
-                  state.listMultiplicador.filter(
-                    (v) => v.id == element.id_multiplicador,
-                  ).length > 0
-                    ? state.listMultiplicador.filter(
-                        (v) => v.id == element.id_multiplicador,
-                      )[0].code
-                    : "N",
-                  state.datosPrincipales.volumen,
-                  state.datosPrincipales.peso,
-                  state.datosPrincipales.containers,
-                  state.datosPrincipales.amount,
-                );
+                factor;
             } else {
               totalLocales += miMixin.methods.calcularValor(
                 state.datosPrincipales.amount,
@@ -2159,19 +2149,7 @@ const actions = {
                     )[0].valor
                   : 0) *
                 element.costounitario *
-                miMixin.methods.calcularFac(
-                  state.listMultiplicador.filter(
-                    (v) => v.id == element.id_multiplicador,
-                  ).length > 0
-                    ? state.listMultiplicador.filter(
-                        (v) => v.id == element.id_multiplicador,
-                      )[0].code
-                    : "N",
-                  state.datosPrincipales.volumen,
-                  state.datosPrincipales.peso,
-                  state.datosPrincipales.containers,
-                  state.datosPrincipales.amount,
-                );
+                factor;
             } else {
               totalAduanas += miMixin.methods.calcularValor(
                 state.datosPrincipales.amount,
@@ -2225,19 +2203,7 @@ const actions = {
                     )[0].valor
                   : 0) *
                 element.costounitario *
-                miMixin.methods.calcularFac(
-                  state.listMultiplicador.filter(
-                    (v) => v.id == element.id_multiplicador,
-                  ).length > 0
-                    ? state.listMultiplicador.filter(
-                        (v) => v.id == element.id_multiplicador,
-                      )[0].code
-                    : "N",
-                  state.datosPrincipales.volumen,
-                  state.datosPrincipales.peso,
-                  state.datosPrincipales.containers,
-                  state.datosPrincipales.amount,
-                );
+                factor;
             } else {
               totalAlmacenes += miMixin.methods.calcularValor(
                 state.datosPrincipales.amount,
@@ -2290,19 +2256,7 @@ const actions = {
                     )[0].valor
                   : 0) *
                 element.costounitario *
-                miMixin.methods.calcularFac(
-                  state.listMultiplicador.filter(
-                    (v) => v.id == element.id_multiplicador,
-                  ).length > 0
-                    ? state.listMultiplicador.filter(
-                        (v) => v.id == element.id_multiplicador,
-                      )[0].code
-                    : "N",
-                  state.datosPrincipales.volumen,
-                  state.datosPrincipales.peso,
-                  state.datosPrincipales.containers,
-                  state.datosPrincipales.amount,
-                );
+                factor;
             } else {
               totalGastosTercero += miMixin.methods.calcularValor(
                 state.datosPrincipales.amount,
@@ -2430,6 +2384,26 @@ const actions = {
       opcion.listCostos
         .filter((v) => v.status == 1 && v.esventaflag == 1)
         .forEach((element) => {
+          let factor = miMixin.methods.calcularFac(
+            state.listMultiplicador.filter(
+              (v) => v.id == element.id_multiplicador,
+            ).length > 0
+              ? state.listMultiplicador.filter(
+                  (v) => v.id == element.id_multiplicador,
+                )[0].code
+              : "N",
+            state.datosPrincipales.volumen,
+            state.datosPrincipales.peso,
+            state.datosPrincipales.containers,
+            state.datosPrincipales.amount,
+          );
+
+          if (element.code_cost == 4 && state.datosPrincipales.volumen < 1) {
+            if (factor < 1) {
+              factor = 1;
+            }
+          }
+
           if (element.esfleteflag == 1) {
             if (
               state.listMultiplicador.some(
@@ -2453,19 +2427,7 @@ const actions = {
                     (v) => v.id == element.id_multiplicador,
                   )[0].valor *
                     element.costounitario *
-                    miMixin.methods.calcularFac(
-                      state.listMultiplicador.filter(
-                        (v) => v.id == element.id_multiplicador,
-                      ).length > 0
-                        ? state.listMultiplicador.filter(
-                            (v) => v.id == element.id_multiplicador,
-                          )[0].code
-                        : "N",
-                      state.datosPrincipales.volumen,
-                      state.datosPrincipales.peso,
-                      state.datosPrincipales.containers,
-                      state.datosPrincipales.amount,
-                    ),
+                    factor,
                 ),
               });
               totalFlete +=
@@ -2477,19 +2439,7 @@ const actions = {
                     )[0].valor
                   : 0) *
                 element.costounitario *
-                miMixin.methods.calcularFac(
-                  state.listMultiplicador.filter(
-                    (v) => v.id == element.id_multiplicador,
-                  ).length > 0
-                    ? state.listMultiplicador.filter(
-                        (v) => v.id == element.id_multiplicador,
-                      )[0].code
-                    : "N",
-                  state.datosPrincipales.volumen,
-                  state.datosPrincipales.peso,
-                  state.datosPrincipales.containers,
-                  state.datosPrincipales.amount,
-                );
+                factor;
             } else {
               datosFlete.push({
                 name: element.nameservice,
@@ -2569,19 +2519,7 @@ const actions = {
                     (v) => v.id == element.id_multiplicador,
                   )[0].valor *
                     element.costounitario *
-                    miMixin.methods.calcularFac(
-                      state.listMultiplicador.filter(
-                        (v) => v.id == element.id_multiplicador,
-                      ).length > 0
-                        ? state.listMultiplicador.filter(
-                            (v) => v.id == element.id_multiplicador,
-                          )[0].code
-                        : "N",
-                      state.datosPrincipales.volumen,
-                      state.datosPrincipales.peso,
-                      state.datosPrincipales.containers,
-                      state.datosPrincipales.amount,
-                    ),
+                    factor,
                 ),
               });
               totalOrigen +=
@@ -2593,19 +2531,7 @@ const actions = {
                     )[0].valor
                   : 0) *
                 element.costounitario *
-                miMixin.methods.calcularFac(
-                  state.listMultiplicador.filter(
-                    (v) => v.id == element.id_multiplicador,
-                  ).length > 0
-                    ? state.listMultiplicador.filter(
-                        (v) => v.id == element.id_multiplicador,
-                      )[0].code
-                    : "N",
-                  state.datosPrincipales.volumen,
-                  state.datosPrincipales.peso,
-                  state.datosPrincipales.containers,
-                  state.datosPrincipales.amount,
-                );
+                factor;
             } else {
               datosOrigen.push({
                 name: element.nameservice,
@@ -2690,19 +2616,7 @@ const actions = {
                       )[0].valor
                     : 0) *
                     element.costounitario *
-                    miMixin.methods.calcularFac(
-                      state.listMultiplicador.filter(
-                        (v) => v.id == element.id_multiplicador,
-                      ).length > 0
-                        ? state.listMultiplicador.filter(
-                            (v) => v.id == element.id_multiplicador,
-                          )[0].code
-                        : "N",
-                      state.datosPrincipales.volumen,
-                      state.datosPrincipales.peso,
-                      state.datosPrincipales.containers,
-                      state.datosPrincipales.amount,
-                    ),
+                    factor,
                 ),
               });
               totalLocales +=
@@ -2714,19 +2628,7 @@ const actions = {
                     )[0].valor
                   : 0) *
                 element.costounitario *
-                miMixin.methods.calcularFac(
-                  state.listMultiplicador.filter(
-                    (v) => v.id == element.id_multiplicador,
-                  ).length > 0
-                    ? state.listMultiplicador.filter(
-                        (v) => v.id == element.id_multiplicador,
-                      )[0].code
-                    : "N",
-                  state.datosPrincipales.volumen,
-                  state.datosPrincipales.peso,
-                  state.datosPrincipales.containers,
-                  state.datosPrincipales.amount,
-                );
+                factor;
             } else {
               datosLocales.push({
                 name: element.nameservice,
@@ -2811,19 +2713,7 @@ const actions = {
                       )[0].valor
                     : 0) *
                     element.costounitario *
-                    miMixin.methods.calcularFac(
-                      state.listMultiplicador.filter(
-                        (v) => v.id == element.id_multiplicador,
-                      ).length > 0
-                        ? state.listMultiplicador.filter(
-                            (v) => v.id == element.id_multiplicador,
-                          )[0].code
-                        : "N",
-                      state.datosPrincipales.volumen,
-                      state.datosPrincipales.peso,
-                      state.datosPrincipales.containers,
-                      state.datosPrincipales.amount,
-                    ),
+                    factor,
                 ),
               });
               totalAduanas +=
@@ -2835,19 +2725,7 @@ const actions = {
                     )[0].valor
                   : 0) *
                 element.costounitario *
-                miMixin.methods.calcularFac(
-                  state.listMultiplicador.filter(
-                    (v) => v.id == element.id_multiplicador,
-                  ).length > 0
-                    ? state.listMultiplicador.filter(
-                        (v) => v.id == element.id_multiplicador,
-                      )[0].code
-                    : "N",
-                  state.datosPrincipales.volumen,
-                  state.datosPrincipales.peso,
-                  state.datosPrincipales.containers,
-                  state.datosPrincipales.amount,
-                );
+                factor;
             } else {
               datosAduanas.push({
                 name: element.nameservice,
@@ -2928,19 +2806,7 @@ const actions = {
                       )[0].valor
                     : 0) *
                     element.costounitario *
-                    miMixin.methods.calcularFac(
-                      state.listMultiplicador.filter(
-                        (v) => v.id == element.id_multiplicador,
-                      ).length > 0
-                        ? state.listMultiplicador.filter(
-                            (v) => v.id == element.id_multiplicador,
-                          )[0].code
-                        : "N",
-                      state.datosPrincipales.volumen,
-                      state.datosPrincipales.peso,
-                      state.datosPrincipales.containers,
-                      state.datosPrincipales.amount,
-                    ),
+                    factor,
                 ),
               });
               totalAlmacenes +=
@@ -2952,19 +2818,7 @@ const actions = {
                     )[0].valor
                   : 0) *
                 element.costounitario *
-                miMixin.methods.calcularFac(
-                  state.listMultiplicador.filter(
-                    (v) => v.id == element.id_multiplicador,
-                  ).length > 0
-                    ? state.listMultiplicador.filter(
-                        (v) => v.id == element.id_multiplicador,
-                      )[0].code
-                    : "N",
-                  state.datosPrincipales.volumen,
-                  state.datosPrincipales.peso,
-                  state.datosPrincipales.containers,
-                  state.datosPrincipales.amount,
-                );
+                factor;
             } else {
               datosAlmacenes.push({
                 name: element.nameservice,
@@ -3044,19 +2898,7 @@ const actions = {
                       )[0].valor
                     : 0) *
                     element.costounitario *
-                    miMixin.methods.calcularFac(
-                      state.listMultiplicador.filter(
-                        (v) => v.id == element.id_multiplicador,
-                      ).length > 0
-                        ? state.listMultiplicador.filter(
-                            (v) => v.id == element.id_multiplicador,
-                          )[0].code
-                        : "N",
-                      state.datosPrincipales.volumen,
-                      state.datosPrincipales.peso,
-                      state.datosPrincipales.containers,
-                      state.datosPrincipales.amount,
-                    ),
+                    factor,
                 ),
               });
               totalGastosTercero +=
@@ -3068,19 +2910,7 @@ const actions = {
                     )[0].valor
                   : 0) *
                 element.costounitario *
-                miMixin.methods.calcularFac(
-                  state.listMultiplicador.filter(
-                    (v) => v.id == element.id_multiplicador,
-                  ).length > 0
-                    ? state.listMultiplicador.filter(
-                        (v) => v.id == element.id_multiplicador,
-                      )[0].code
-                    : "N",
-                  state.datosPrincipales.volumen,
-                  state.datosPrincipales.peso,
-                  state.datosPrincipales.containers,
-                  state.datosPrincipales.amount,
-                );
+                factor;
             } else {
               datosGastosTerceros.push({
                 name: element.nameservice,
@@ -3143,6 +2973,24 @@ const actions = {
       opcion.listCostos
         .filter((v) => v.status == 1 && v.esventaflag == 1)
         .forEach((element) => {
+          let factor = miMixin.methods.calcularFac(
+            state.listMultiplicador.filter(
+              (v) => v.id == element.id_multiplicador,
+            ).length > 0
+              ? state.listMultiplicador.filter(
+                  (v) => v.id == element.id_multiplicador,
+                )[0].code
+              : "N",
+            state.datosPrincipales.volumen,
+            state.datosPrincipales.peso,
+            state.datosPrincipales.containers,
+            state.datosPrincipales.amount,
+          );
+          if (element.code_cost == 4 && state.datosPrincipales.volumen < 1) {
+            if (factor < 1) {
+              factor = 1;
+            }
+          }
           if (element.esfleteflag == 1) {
             datosFlete.push({
               name: element.nameservice,
@@ -3172,19 +3020,7 @@ const actions = {
                     )[0].valor
                   : 0) *
                 element.costounitario *
-                miMixin.methods.calcularFac(
-                  state.listMultiplicador.filter(
-                    (v) => v.id == element.id_multiplicador,
-                  ).length > 0
-                    ? state.listMultiplicador.filter(
-                        (v) => v.id == element.id_multiplicador,
-                      )[0].code
-                    : "N",
-                  state.datosPrincipales.volumen,
-                  state.datosPrincipales.peso,
-                  state.datosPrincipales.containers,
-                  state.datosPrincipales.amount,
-                );
+                factor;
             } else {
               totalFlete += miMixin.methods.calcularValor(
                 state.datosPrincipales.amount,
@@ -3241,19 +3077,7 @@ const actions = {
                     )[0].valor
                   : 0) *
                 element.costounitario *
-                miMixin.methods.calcularFac(
-                  state.listMultiplicador.filter(
-                    (v) => v.id == element.id_multiplicador,
-                  ).length > 0
-                    ? state.listMultiplicador.filter(
-                        (v) => v.id == element.id_multiplicador,
-                      )[0].code
-                    : "N",
-                  state.datosPrincipales.volumen,
-                  state.datosPrincipales.peso,
-                  state.datosPrincipales.containers,
-                  state.datosPrincipales.amount,
-                );
+                factor;
             } else {
               totalOrigen += miMixin.methods.calcularValor(
                 state.datosPrincipales.amount,
@@ -3311,19 +3135,7 @@ const actions = {
                     )[0].valor
                   : 0) *
                 element.costounitario *
-                miMixin.methods.calcularFac(
-                  state.listMultiplicador.filter(
-                    (v) => v.id == element.id_multiplicador,
-                  ).length > 0
-                    ? state.listMultiplicador.filter(
-                        (v) => v.id == element.id_multiplicador,
-                      )[0].code
-                    : "N",
-                  state.datosPrincipales.volumen,
-                  state.datosPrincipales.peso,
-                  state.datosPrincipales.containers,
-                  state.datosPrincipales.amount,
-                );
+                factor;
             } else {
               totalLocales += miMixin.methods.calcularValor(
                 state.datosPrincipales.amount,
@@ -3381,19 +3193,7 @@ const actions = {
                     )[0].valor
                   : 0) *
                 element.costounitario *
-                miMixin.methods.calcularFac(
-                  state.listMultiplicador.filter(
-                    (v) => v.id == element.id_multiplicador,
-                  ).length > 0
-                    ? state.listMultiplicador.filter(
-                        (v) => v.id == element.id_multiplicador,
-                      )[0].code
-                    : "N",
-                  state.datosPrincipales.volumen,
-                  state.datosPrincipales.peso,
-                  state.datosPrincipales.containers,
-                  state.datosPrincipales.amount,
-                );
+                factor;
             } else {
               totalAduanas += miMixin.methods.calcularValor(
                 state.datosPrincipales.amount,
@@ -3447,19 +3247,7 @@ const actions = {
                     )[0].valor
                   : 0) *
                 element.costounitario *
-                miMixin.methods.calcularFac(
-                  state.listMultiplicador.filter(
-                    (v) => v.id == element.id_multiplicador,
-                  ).length > 0
-                    ? state.listMultiplicador.filter(
-                        (v) => v.id == element.id_multiplicador,
-                      )[0].code
-                    : "N",
-                  state.datosPrincipales.volumen,
-                  state.datosPrincipales.peso,
-                  state.datosPrincipales.containers,
-                  state.datosPrincipales.amount,
-                );
+                factor;
             } else {
               totalAlmacenes += miMixin.methods.calcularValor(
                 state.datosPrincipales.amount,
@@ -3512,19 +3300,7 @@ const actions = {
                     )[0].valor
                   : 0) *
                 element.costounitario *
-                miMixin.methods.calcularFac(
-                  state.listMultiplicador.filter(
-                    (v) => v.id == element.id_multiplicador,
-                  ).length > 0
-                    ? state.listMultiplicador.filter(
-                        (v) => v.id == element.id_multiplicador,
-                      )[0].code
-                    : "N",
-                  state.datosPrincipales.volumen,
-                  state.datosPrincipales.peso,
-                  state.datosPrincipales.containers,
-                  state.datosPrincipales.amount,
-                );
+                factor;
             } else {
               totalGastosTercero += miMixin.methods.calcularValor(
                 state.datosPrincipales.amount,
@@ -3555,7 +3331,7 @@ const actions = {
         });
     }
     let totalImpuestosIGV = 0;
-    // ----------------------------------------------------------------
+    // ----------------------AQUI------------------------------------------
 
     if (isImport) {
       totalImpuestosIGV =
@@ -3821,6 +3597,7 @@ const actions = {
         pagina: state.pagina,
         id_branch: JSON.parse(sessionStorage.getItem("dataUser"))[0].id_branch,
       },
+      filtroSeleccionado:state.filtroSeleccionado,
       id_branch: JSON.parse(sessionStorage.getItem("dataUser"))[0].id_branch,
     };
     let timerInterval;
@@ -4383,6 +4160,27 @@ const actions = {
               opcionCosto.listCostos
                 .filter((v) => v.status == 1 && v.esventaflag == 1)
                 .forEach((element) => {
+                  let factor = miMixin.methods.calcularFac(
+                    state.listMultiplicador.filter(
+                      (v) => v.id == element.id_multiplicador,
+                    ).length > 0
+                      ? state.listMultiplicador.filter(
+                          (v) => v.id == element.id_multiplicador,
+                        )[0].code
+                      : "N",
+                    state.datosPrincipales.volumen,
+                    state.datosPrincipales.peso,
+                    state.datosPrincipales.containers,
+                    state.datosPrincipales.amount,
+                  );
+                  if (
+                    element.code_cost == 4 &&
+                    state.datosPrincipales.volumen < 1
+                  ) {
+                    if (factor < 1) {
+                      factor = 1;
+                    }
+                  }
                   if (element.esfleteflag == 1) {
                     datosFlete.push({
                       name: element.nameservice,
@@ -4412,19 +4210,7 @@ const actions = {
                             )[0].valor
                           : 0) *
                         element.costounitario *
-                        miMixin.methods.calcularFac(
-                          state.listMultiplicador.filter(
-                            (v) => v.id == element.id_multiplicador,
-                          ).length > 0
-                            ? state.listMultiplicador.filter(
-                                (v) => v.id == element.id_multiplicador,
-                              )[0].code
-                            : "N",
-                          state.datosPrincipales.volumen,
-                          state.datosPrincipales.peso,
-                          state.datosPrincipales.containers,
-                          state.datosPrincipales.amount,
-                        );
+                        factor;
                     } else {
                       totalFlete += miMixin.methods.calcularValor(
                         state.datosPrincipales.amount,
@@ -4481,19 +4267,7 @@ const actions = {
                             )[0].valor
                           : 0) *
                         element.costounitario *
-                        miMixin.methods.calcularFac(
-                          state.listMultiplicador.filter(
-                            (v) => v.id == element.id_multiplicador,
-                          ).length > 0
-                            ? state.listMultiplicador.filter(
-                                (v) => v.id == element.id_multiplicador,
-                              )[0].code
-                            : "N",
-                          state.datosPrincipales.volumen,
-                          state.datosPrincipales.peso,
-                          state.datosPrincipales.containers,
-                          state.datosPrincipales.amount,
-                        );
+                        factor;
                     } else {
                       totalOrigen += miMixin.methods.calcularValor(
                         state.datosPrincipales.amount,
@@ -4546,19 +4320,7 @@ const actions = {
                             )[0].valor
                           : 0) *
                         element.costounitario *
-                        miMixin.methods.calcularFac(
-                          state.listMultiplicador.filter(
-                            (v) => v.id == element.id_multiplicador,
-                          ).length > 0
-                            ? state.listMultiplicador.filter(
-                                (v) => v.id == element.id_multiplicador,
-                              )[0].code
-                            : "N",
-                          state.datosPrincipales.volumen,
-                          state.datosPrincipales.peso,
-                          state.datosPrincipales.containers,
-                          state.datosPrincipales.amount,
-                        );
+                        factor;
                     } else {
                       totalLocales += miMixin.methods.calcularValor(
                         state.datosPrincipales.amount,
@@ -4611,19 +4373,7 @@ const actions = {
                             )[0].valor
                           : 0) *
                         element.costounitario *
-                        miMixin.methods.calcularFac(
-                          state.listMultiplicador.filter(
-                            (v) => v.id == element.id_multiplicador,
-                          ).length > 0
-                            ? state.listMultiplicador.filter(
-                                (v) => v.id == element.id_multiplicador,
-                              )[0].code
-                            : "N",
-                          state.datosPrincipales.volumen,
-                          state.datosPrincipales.peso,
-                          state.datosPrincipales.containers,
-                          state.datosPrincipales.amount,
-                        );
+                        factor;
                     } else {
                       totalAduanas += miMixin.methods.calcularValor(
                         state.datosPrincipales.amount,
@@ -4677,19 +4427,7 @@ const actions = {
                             )[0].valor
                           : 0) *
                         element.costounitario *
-                        miMixin.methods.calcularFac(
-                          state.listMultiplicador.filter(
-                            (v) => v.id == element.id_multiplicador,
-                          ).length > 0
-                            ? state.listMultiplicador.filter(
-                                (v) => v.id == element.id_multiplicador,
-                              )[0].code
-                            : "N",
-                          state.datosPrincipales.volumen,
-                          state.datosPrincipales.peso,
-                          state.datosPrincipales.containers,
-                          state.datosPrincipales.amount,
-                        );
+                        factor;
                     } else {
                       totalAlmacenes += miMixin.methods.calcularValor(
                         state.datosPrincipales.amount,
@@ -4742,19 +4480,7 @@ const actions = {
                             )[0].valor
                           : 0) *
                         element.costounitario *
-                        miMixin.methods.calcularFac(
-                          state.listMultiplicador.filter(
-                            (v) => v.id == element.id_multiplicador,
-                          ).length > 0
-                            ? state.listMultiplicador.filter(
-                                (v) => v.id == element.id_multiplicador,
-                              )[0].code
-                            : "N",
-                          state.datosPrincipales.volumen,
-                          state.datosPrincipales.peso,
-                          state.datosPrincipales.containers,
-                          state.datosPrincipales.amount,
-                        );
+                        factor;
                     } else {
                       totalGastosTercero += miMixin.methods.calcularValor(
                         state.datosPrincipales.amount,
@@ -4910,6 +4636,27 @@ const actions = {
               opcionCosto.listCostos
                 .filter((v) => v.status == 1 && v.esventaflag == 1)
                 .forEach((element) => {
+                  let factor = miMixin.methods.calcularFac(
+                    state.listMultiplicador.filter(
+                      (v) => v.id == element.id_multiplicador,
+                    ).length > 0
+                      ? state.listMultiplicador.filter(
+                          (v) => v.id == element.id_multiplicador,
+                        )[0].code
+                      : "N",
+                    state.datosPrincipales.volumen,
+                    state.datosPrincipales.peso,
+                    state.datosPrincipales.containers,
+                    state.datosPrincipales.amount,
+                  );
+                  if (
+                    element.code_cost == 4 &&
+                    state.datosPrincipales.volumen < 1
+                  ) {
+                    if (factor < 1) {
+                      factor = 1;
+                    }
+                  }
                   if (element.esfleteflag == 1) {
                     if (
                       state.listMultiplicador.some(
@@ -4933,19 +4680,7 @@ const actions = {
                             (v) => v.id == element.id_multiplicador,
                           )[0].valor *
                             element.costounitario *
-                            miMixin.methods.calcularFac(
-                              state.listMultiplicador.filter(
-                                (v) => v.id == element.id_multiplicador,
-                              ).length > 0
-                                ? state.listMultiplicador.filter(
-                                    (v) => v.id == element.id_multiplicador,
-                                  )[0].code
-                                : "N",
-                              state.datosPrincipales.volumen,
-                              state.datosPrincipales.peso,
-                              state.datosPrincipales.containers,
-                              state.datosPrincipales.amount,
-                            ),
+                            factor,
                         ),
                       });
                       totalFlete +=
@@ -4957,19 +4692,7 @@ const actions = {
                             )[0].valor
                           : 0) *
                         element.costounitario *
-                        miMixin.methods.calcularFac(
-                          state.listMultiplicador.filter(
-                            (v) => v.id == element.id_multiplicador,
-                          ).length > 0
-                            ? state.listMultiplicador.filter(
-                                (v) => v.id == element.id_multiplicador,
-                              )[0].code
-                            : "N",
-                          state.datosPrincipales.volumen,
-                          state.datosPrincipales.peso,
-                          state.datosPrincipales.containers,
-                          state.datosPrincipales.amount,
-                        );
+                        factor;
                     } else {
                       datosFlete.push({
                         name: element.nameservice,
@@ -5049,19 +4772,7 @@ const actions = {
                             (v) => v.id == element.id_multiplicador,
                           )[0].valor *
                             element.costounitario *
-                            miMixin.methods.calcularFac(
-                              state.listMultiplicador.filter(
-                                (v) => v.id == element.id_multiplicador,
-                              ).length > 0
-                                ? state.listMultiplicador.filter(
-                                    (v) => v.id == element.id_multiplicador,
-                                  )[0].code
-                                : "N",
-                              state.datosPrincipales.volumen,
-                              state.datosPrincipales.peso,
-                              state.datosPrincipales.containers,
-                              state.datosPrincipales.amount,
-                            ),
+                            factor,
                         ),
                       });
                       totalOrigen +=
@@ -5073,19 +4784,7 @@ const actions = {
                             )[0].valor
                           : 0) *
                         element.costounitario *
-                        miMixin.methods.calcularFac(
-                          state.listMultiplicador.filter(
-                            (v) => v.id == element.id_multiplicador,
-                          ).length > 0
-                            ? state.listMultiplicador.filter(
-                                (v) => v.id == element.id_multiplicador,
-                              )[0].code
-                            : "N",
-                          state.datosPrincipales.volumen,
-                          state.datosPrincipales.peso,
-                          state.datosPrincipales.containers,
-                          state.datosPrincipales.amount,
-                        );
+                        factor;
                     } else {
                       datosOrigen.push({
                         name: element.nameservice,
@@ -5170,19 +4869,7 @@ const actions = {
                               )[0].valor
                             : 0) *
                             element.costounitario *
-                            miMixin.methods.calcularFac(
-                              state.listMultiplicador.filter(
-                                (v) => v.id == element.id_multiplicador,
-                              ).length > 0
-                                ? state.listMultiplicador.filter(
-                                    (v) => v.id == element.id_multiplicador,
-                                  )[0].code
-                                : "N",
-                              state.datosPrincipales.volumen,
-                              state.datosPrincipales.peso,
-                              state.datosPrincipales.containers,
-                              state.datosPrincipales.amount,
-                            ),
+                            factor,
                         ),
                       });
                       totalLocales +=
@@ -5194,19 +4881,7 @@ const actions = {
                             )[0].valor
                           : 0) *
                         element.costounitario *
-                        miMixin.methods.calcularFac(
-                          state.listMultiplicador.filter(
-                            (v) => v.id == element.id_multiplicador,
-                          ).length > 0
-                            ? state.listMultiplicador.filter(
-                                (v) => v.id == element.id_multiplicador,
-                              )[0].code
-                            : "N",
-                          state.datosPrincipales.volumen,
-                          state.datosPrincipales.peso,
-                          state.datosPrincipales.containers,
-                          state.datosPrincipales.amount,
-                        );
+                        factor;
                     } else {
                       datosLocales.push({
                         name: element.nameservice,
@@ -5291,19 +4966,7 @@ const actions = {
                               )[0].valor
                             : 0) *
                             element.costounitario *
-                            miMixin.methods.calcularFac(
-                              state.listMultiplicador.filter(
-                                (v) => v.id == element.id_multiplicador,
-                              ).length > 0
-                                ? state.listMultiplicador.filter(
-                                    (v) => v.id == element.id_multiplicador,
-                                  )[0].code
-                                : "N",
-                              state.datosPrincipales.volumen,
-                              state.datosPrincipales.peso,
-                              state.datosPrincipales.containers,
-                              state.datosPrincipales.amount,
-                            ),
+                            factor,
                         ),
                       });
                       totalAduanas +=
@@ -5315,19 +4978,7 @@ const actions = {
                             )[0].valor
                           : 0) *
                         element.costounitario *
-                        miMixin.methods.calcularFac(
-                          state.listMultiplicador.filter(
-                            (v) => v.id == element.id_multiplicador,
-                          ).length > 0
-                            ? state.listMultiplicador.filter(
-                                (v) => v.id == element.id_multiplicador,
-                              )[0].code
-                            : "N",
-                          state.datosPrincipales.volumen,
-                          state.datosPrincipales.peso,
-                          state.datosPrincipales.containers,
-                          state.datosPrincipales.amount,
-                        );
+                        factor;
                     } else {
                       datosAduanas.push({
                         name: element.nameservice,
@@ -5408,19 +5059,7 @@ const actions = {
                               )[0].valor
                             : 0) *
                             element.costounitario *
-                            miMixin.methods.calcularFac(
-                              state.listMultiplicador.filter(
-                                (v) => v.id == element.id_multiplicador,
-                              ).length > 0
-                                ? state.listMultiplicador.filter(
-                                    (v) => v.id == element.id_multiplicador,
-                                  )[0].code
-                                : "N",
-                              state.datosPrincipales.volumen,
-                              state.datosPrincipales.peso,
-                              state.datosPrincipales.containers,
-                              state.datosPrincipales.amount,
-                            ),
+                            factor,
                         ),
                       });
                       totalAlmacenes +=
@@ -5432,19 +5071,7 @@ const actions = {
                             )[0].valor
                           : 0) *
                         element.costounitario *
-                        miMixin.methods.calcularFac(
-                          state.listMultiplicador.filter(
-                            (v) => v.id == element.id_multiplicador,
-                          ).length > 0
-                            ? state.listMultiplicador.filter(
-                                (v) => v.id == element.id_multiplicador,
-                              )[0].code
-                            : "N",
-                          state.datosPrincipales.volumen,
-                          state.datosPrincipales.peso,
-                          state.datosPrincipales.containers,
-                          state.datosPrincipales.amount,
-                        );
+                        factor;
                     } else {
                       datosAlmacenes.push({
                         name: element.nameservice,
@@ -5524,19 +5151,7 @@ const actions = {
                               )[0].valor
                             : 0) *
                             element.costounitario *
-                            miMixin.methods.calcularFac(
-                              state.listMultiplicador.filter(
-                                (v) => v.id == element.id_multiplicador,
-                              ).length > 0
-                                ? state.listMultiplicador.filter(
-                                    (v) => v.id == element.id_multiplicador,
-                                  )[0].code
-                                : "N",
-                              state.datosPrincipales.volumen,
-                              state.datosPrincipales.peso,
-                              state.datosPrincipales.containers,
-                              state.datosPrincipales.amount,
-                            ),
+                            factor,
                         ),
                       });
                       totalGastosTercero +=
@@ -5548,19 +5163,7 @@ const actions = {
                             )[0].valor
                           : 0) *
                         element.costounitario *
-                        miMixin.methods.calcularFac(
-                          state.listMultiplicador.filter(
-                            (v) => v.id == element.id_multiplicador,
-                          ).length > 0
-                            ? state.listMultiplicador.filter(
-                                (v) => v.id == element.id_multiplicador,
-                              )[0].code
-                            : "N",
-                          state.datosPrincipales.volumen,
-                          state.datosPrincipales.peso,
-                          state.datosPrincipales.containers,
-                          state.datosPrincipales.amount,
-                        );
+                        factor;
                     } else {
                       datosGastosTerceros.push({
                         name: element.nameservice,
@@ -5623,6 +5226,27 @@ const actions = {
               opcionCosto.listCostos
                 .filter((v) => v.status == 1 && v.esventaflag == 1)
                 .forEach((element) => {
+                  let factor = miMixin.methods.calcularFac(
+                    state.listMultiplicador.filter(
+                      (v) => v.id == element.id_multiplicador,
+                    ).length > 0
+                      ? state.listMultiplicador.filter(
+                          (v) => v.id == element.id_multiplicador,
+                        )[0].code
+                      : "N",
+                    state.datosPrincipales.volumen,
+                    state.datosPrincipales.peso,
+                    state.datosPrincipales.containers,
+                    state.datosPrincipales.amount,
+                  );
+                  if (
+                    element.code_cost == 4 &&
+                    state.datosPrincipales.volumen < 1
+                  ) {
+                    if (factor < 1) {
+                      factor = 1;
+                    }
+                  }
                   if (element.esfleteflag == 1) {
                     datosFlete.push({
                       name: element.nameservice,
@@ -5652,19 +5276,7 @@ const actions = {
                             )[0].valor
                           : 0) *
                         element.costounitario *
-                        miMixin.methods.calcularFac(
-                          state.listMultiplicador.filter(
-                            (v) => v.id == element.id_multiplicador,
-                          ).length > 0
-                            ? state.listMultiplicador.filter(
-                                (v) => v.id == element.id_multiplicador,
-                              )[0].code
-                            : "N",
-                          state.datosPrincipales.volumen,
-                          state.datosPrincipales.peso,
-                          state.datosPrincipales.containers,
-                          state.datosPrincipales.amount,
-                        );
+                        factor;
                     } else {
                       totalFlete += miMixin.methods.calcularValor(
                         state.datosPrincipales.amount,
@@ -5721,19 +5333,7 @@ const actions = {
                             )[0].valor
                           : 0) *
                         element.costounitario *
-                        miMixin.methods.calcularFac(
-                          state.listMultiplicador.filter(
-                            (v) => v.id == element.id_multiplicador,
-                          ).length > 0
-                            ? state.listMultiplicador.filter(
-                                (v) => v.id == element.id_multiplicador,
-                              )[0].code
-                            : "N",
-                          state.datosPrincipales.volumen,
-                          state.datosPrincipales.peso,
-                          state.datosPrincipales.containers,
-                          state.datosPrincipales.amount,
-                        );
+                        factor;
                     } else {
                       totalOrigen += miMixin.methods.calcularValor(
                         state.datosPrincipales.amount,
@@ -5791,19 +5391,7 @@ const actions = {
                             )[0].valor
                           : 0) *
                         element.costounitario *
-                        miMixin.methods.calcularFac(
-                          state.listMultiplicador.filter(
-                            (v) => v.id == element.id_multiplicador,
-                          ).length > 0
-                            ? state.listMultiplicador.filter(
-                                (v) => v.id == element.id_multiplicador,
-                              )[0].code
-                            : "N",
-                          state.datosPrincipales.volumen,
-                          state.datosPrincipales.peso,
-                          state.datosPrincipales.containers,
-                          state.datosPrincipales.amount,
-                        );
+                        factor;
                     } else {
                       totalLocales += miMixin.methods.calcularValor(
                         state.datosPrincipales.amount,
@@ -5861,19 +5449,7 @@ const actions = {
                             )[0].valor
                           : 0) *
                         element.costounitario *
-                        miMixin.methods.calcularFac(
-                          state.listMultiplicador.filter(
-                            (v) => v.id == element.id_multiplicador,
-                          ).length > 0
-                            ? state.listMultiplicador.filter(
-                                (v) => v.id == element.id_multiplicador,
-                              )[0].code
-                            : "N",
-                          state.datosPrincipales.volumen,
-                          state.datosPrincipales.peso,
-                          state.datosPrincipales.containers,
-                          state.datosPrincipales.amount,
-                        );
+                        factor;
                     } else {
                       totalAduanas += miMixin.methods.calcularValor(
                         state.datosPrincipales.amount,
@@ -5927,19 +5503,7 @@ const actions = {
                             )[0].valor
                           : 0) *
                         element.costounitario *
-                        miMixin.methods.calcularFac(
-                          state.listMultiplicador.filter(
-                            (v) => v.id == element.id_multiplicador,
-                          ).length > 0
-                            ? state.listMultiplicador.filter(
-                                (v) => v.id == element.id_multiplicador,
-                              )[0].code
-                            : "N",
-                          state.datosPrincipales.volumen,
-                          state.datosPrincipales.peso,
-                          state.datosPrincipales.containers,
-                          state.datosPrincipales.amount,
-                        );
+                        factor;
                     } else {
                       totalAlmacenes += miMixin.methods.calcularValor(
                         state.datosPrincipales.amount,
@@ -5992,19 +5556,7 @@ const actions = {
                             )[0].valor
                           : 0) *
                         element.costounitario *
-                        miMixin.methods.calcularFac(
-                          state.listMultiplicador.filter(
-                            (v) => v.id == element.id_multiplicador,
-                          ).length > 0
-                            ? state.listMultiplicador.filter(
-                                (v) => v.id == element.id_multiplicador,
-                              )[0].code
-                            : "N",
-                          state.datosPrincipales.volumen,
-                          state.datosPrincipales.peso,
-                          state.datosPrincipales.containers,
-                          state.datosPrincipales.amount,
-                        );
+                        factor;
                     } else {
                       totalGastosTercero += miMixin.methods.calcularValor(
                         state.datosPrincipales.amount,
@@ -6248,6 +5800,7 @@ const actions = {
       url: process.env.VUE_APP_URL_MAIN + "aprobar_cotizacion",
       headers: {
         "Content-Type": "application/json",
+        "idempotency-key": generateIdempotencyKey(),
       },
       data: dataParaAprobar,
     };
@@ -6411,6 +5964,24 @@ const actions = {
           let orden = 1;
           let name = "";
 
+          let factor = miMixin.methods.calcularFac(
+            state.listMultiplicador.filter(
+              (v) => v.id == element.id_multiplicador,
+            ).length > 0
+              ? state.listMultiplicador.filter(
+                  (v) => v.id == element.id_multiplicador,
+                )[0].code
+              : "N",
+            state.datosPrincipales.volumen,
+            state.datosPrincipales.peso,
+            state.datosPrincipales.containers,
+            state.datosPrincipales.amount,
+          );
+          if (element.code_cost == 4 && state.datosPrincipales.volumen < 1) {
+            if (factor < 1) {
+              factor = 1;
+            }
+          }
           // ------------------------------------
 
           let montoDetails = 0;
@@ -6435,19 +6006,7 @@ const actions = {
                   )[0].valor
                 : 0) *
               element.costounitario *
-              miMixin.methods.calcularFac(
-                state.listMultiplicador.filter(
-                  (v) => v.id == element.id_multiplicador,
-                ).length > 0
-                  ? state.listMultiplicador.filter(
-                      (v) => v.id == element.id_multiplicador,
-                    )[0].code
-                  : "N",
-                state.datosPrincipales.volumen,
-                state.datosPrincipales.peso,
-                state.datosPrincipales.containers,
-                state.datosPrincipales.amount,
-              );
+              factor;
           } else {
             montoDetails += miMixin.methods.calcularValor(
               state.datosPrincipales.amount,
@@ -6585,6 +6144,24 @@ const actions = {
         .forEach((element) => {
           let orden = 1;
           let name = "";
+          let factor = miMixin.methods.calcularFac(
+            state.listMultiplicador.filter(
+              (v) => v.id == element.id_multiplicador,
+            ).length > 0
+              ? state.listMultiplicador.filter(
+                  (v) => v.id == element.id_multiplicador,
+                )[0].code
+              : "N",
+            state.datosPrincipales.volumen,
+            state.datosPrincipales.peso,
+            state.datosPrincipales.containers,
+            state.datosPrincipales.amount,
+          );
+          if (element.code_cost == 4 && state.datosPrincipales.volumen < 1) {
+            if (factor < 1) {
+              factor = 1;
+            }
+          }
           // Creando el agrupamiento
           if (element.esfleteflag == 1 && isImport) {
             name =
@@ -6658,19 +6235,7 @@ const actions = {
                   )[0].valor
                 : 0) *
               element.costounitario *
-              miMixin.methods.calcularFac(
-                state.listMultiplicador.filter(
-                  (v) => v.id == element.id_multiplicador,
-                ).length > 0
-                  ? state.listMultiplicador.filter(
-                      (v) => v.id == element.id_multiplicador,
-                    )[0].code
-                  : "N",
-                state.datosPrincipales.volumen,
-                state.datosPrincipales.peso,
-                state.datosPrincipales.containers,
-                state.datosPrincipales.amount,
-              );
+              factor;
           } else {
             montoDetails += miMixin.methods.calcularValor(
               state.datosPrincipales.amount,
@@ -7233,6 +6798,24 @@ function GenerarIngresosInstrictivo(tipo) {
         opcion.listCostos
           .filter((v) => v.status == 1 && v.esventaflag == 1)
           .forEach((element) => {
+            let factor = miMixin.methods.calcularFac(
+              state.listMultiplicador.filter(
+                (v) => v.id == element.id_multiplicador,
+              ).length > 0
+                ? state.listMultiplicador.filter(
+                    (v) => v.id == element.id_multiplicador,
+                  )[0].code
+                : "N",
+              state.datosPrincipales.volumen,
+              state.datosPrincipales.peso,
+              state.datosPrincipales.containers,
+              state.datosPrincipales.amount,
+            );
+            if (element.code_cost == 4 && state.datosPrincipales.volumen < 1) {
+              if (factor < 1) {
+                factor = 1;
+              }
+            }
             if (element.esfleteflag == 1) {
               datosFlete.push({
                 name: element.nameservice,
@@ -7262,19 +6845,7 @@ function GenerarIngresosInstrictivo(tipo) {
                       )[0].valor
                     : 0) *
                   element.costounitario *
-                  miMixin.methods.calcularFac(
-                    state.listMultiplicador.filter(
-                      (v) => v.id == element.id_multiplicador,
-                    ).length > 0
-                      ? state.listMultiplicador.filter(
-                          (v) => v.id == element.id_multiplicador,
-                        )[0].code
-                      : "N",
-                    state.datosPrincipales.volumen,
-                    state.datosPrincipales.peso,
-                    state.datosPrincipales.containers,
-                    state.datosPrincipales.amount,
-                  );
+                  factor;
               } else {
                 totalFlete += miMixin.methods.calcularValor(
                   state.datosPrincipales.amount,
@@ -7332,19 +6903,7 @@ function GenerarIngresosInstrictivo(tipo) {
                       )[0].valor
                     : 0) *
                   element.costounitario *
-                  miMixin.methods.calcularFac(
-                    state.listMultiplicador.filter(
-                      (v) => v.id == element.id_multiplicador,
-                    ).length > 0
-                      ? state.listMultiplicador.filter(
-                          (v) => v.id == element.id_multiplicador,
-                        )[0].code
-                      : "N",
-                    state.datosPrincipales.volumen,
-                    state.datosPrincipales.peso,
-                    state.datosPrincipales.containers,
-                    state.datosPrincipales.amount,
-                  );
+                  factor;
               } else {
                 totalOrigen += miMixin.methods.calcularValor(
                   state.datosPrincipales.amount,
@@ -7398,19 +6957,7 @@ function GenerarIngresosInstrictivo(tipo) {
                       )[0].valor
                     : 0) *
                   element.costounitario *
-                  miMixin.methods.calcularFac(
-                    state.listMultiplicador.filter(
-                      (v) => v.id == element.id_multiplicador,
-                    ).length > 0
-                      ? state.listMultiplicador.filter(
-                          (v) => v.id == element.id_multiplicador,
-                        )[0].code
-                      : "N",
-                    state.datosPrincipales.volumen,
-                    state.datosPrincipales.peso,
-                    state.datosPrincipales.containers,
-                    state.datosPrincipales.amount,
-                  );
+                  factor;
               } else {
                 totalLocales += miMixin.methods.calcularValor(
                   state.datosPrincipales.amount,
@@ -7464,19 +7011,7 @@ function GenerarIngresosInstrictivo(tipo) {
                       )[0].valor
                     : 0) *
                   element.costounitario *
-                  miMixin.methods.calcularFac(
-                    state.listMultiplicador.filter(
-                      (v) => v.id == element.id_multiplicador,
-                    ).length > 0
-                      ? state.listMultiplicador.filter(
-                          (v) => v.id == element.id_multiplicador,
-                        )[0].code
-                      : "N",
-                    state.datosPrincipales.volumen,
-                    state.datosPrincipales.peso,
-                    state.datosPrincipales.containers,
-                    state.datosPrincipales.amount,
-                  );
+                  factor;
               } else {
                 totalAduanas += miMixin.methods.calcularValor(
                   state.datosPrincipales.amount,
@@ -7530,19 +7065,7 @@ function GenerarIngresosInstrictivo(tipo) {
                       )[0].valor
                     : 0) *
                   element.costounitario *
-                  miMixin.methods.calcularFac(
-                    state.listMultiplicador.filter(
-                      (v) => v.id == element.id_multiplicador,
-                    ).length > 0
-                      ? state.listMultiplicador.filter(
-                          (v) => v.id == element.id_multiplicador,
-                        )[0].code
-                      : "N",
-                    state.datosPrincipales.volumen,
-                    state.datosPrincipales.peso,
-                    state.datosPrincipales.containers,
-                    state.datosPrincipales.amount,
-                  );
+                  factor;
               } else {
                 totalAlmacenes += miMixin.methods.calcularValor(
                   state.datosPrincipales.amount,
@@ -7596,19 +7119,7 @@ function GenerarIngresosInstrictivo(tipo) {
                       )[0].valor
                     : 0) *
                   element.costounitario *
-                  miMixin.methods.calcularFac(
-                    state.listMultiplicador.filter(
-                      (v) => v.id == element.id_multiplicador,
-                    ).length > 0
-                      ? state.listMultiplicador.filter(
-                          (v) => v.id == element.id_multiplicador,
-                        )[0].code
-                      : "N",
-                    state.datosPrincipales.volumen,
-                    state.datosPrincipales.peso,
-                    state.datosPrincipales.containers,
-                    state.datosPrincipales.amount,
-                  );
+                  factor;
               } else {
                 totalGastosTercero += miMixin.methods.calcularValor(
                   state.datosPrincipales.amount,
@@ -7713,6 +7224,24 @@ function GenerarIngresosInstrictivo(tipo) {
         opcion.listCostos
           .filter((v) => v.status == 1 && v.esventaflag == 1)
           .forEach((element) => {
+            let factor = miMixin.methods.calcularFac(
+              state.listMultiplicador.filter(
+                (v) => v.id == element.id_multiplicador,
+              ).length > 0
+                ? state.listMultiplicador.filter(
+                    (v) => v.id == element.id_multiplicador,
+                  )[0].code
+                : "N",
+              state.datosPrincipales.volumen,
+              state.datosPrincipales.peso,
+              state.datosPrincipales.containers,
+              state.datosPrincipales.amount,
+            );
+            if (element.code_cost == 4 && state.datosPrincipales.volumen < 1) {
+              if (factor < 1) {
+                factor = 1;
+              }
+            }
             if (element.esfleteflag == 1) {
               if (
                 state.listMultiplicador.some(
@@ -7736,19 +7265,7 @@ function GenerarIngresosInstrictivo(tipo) {
                       (v) => v.id == element.id_multiplicador,
                     )[0].valor *
                       element.costounitario *
-                      miMixin.methods.calcularFac(
-                        state.listMultiplicador.filter(
-                          (v) => v.id == element.id_multiplicador,
-                        ).length > 0
-                          ? state.listMultiplicador.filter(
-                              (v) => v.id == element.id_multiplicador,
-                            )[0].code
-                          : "N",
-                        state.datosPrincipales.volumen,
-                        state.datosPrincipales.peso,
-                        state.datosPrincipales.containers,
-                        state.datosPrincipales.amount,
-                      ),
+                      factor,
                   ),
                 });
                 totalFlete +=
@@ -7760,19 +7277,7 @@ function GenerarIngresosInstrictivo(tipo) {
                       )[0].valor
                     : 0) *
                   element.costounitario *
-                  miMixin.methods.calcularFac(
-                    state.listMultiplicador.filter(
-                      (v) => v.id == element.id_multiplicador,
-                    ).length > 0
-                      ? state.listMultiplicador.filter(
-                          (v) => v.id == element.id_multiplicador,
-                        )[0].code
-                      : "N",
-                    state.datosPrincipales.volumen,
-                    state.datosPrincipales.peso,
-                    state.datosPrincipales.containers,
-                    state.datosPrincipales.amount,
-                  );
+                  factor;
               } else {
                 datosFlete.push({
                   name: element.nameservice,
@@ -7854,19 +7359,7 @@ function GenerarIngresosInstrictivo(tipo) {
                       (v) => v.id == element.id_multiplicador,
                     )[0].valor *
                       element.costounitario *
-                      miMixin.methods.calcularFac(
-                        state.listMultiplicador.filter(
-                          (v) => v.id == element.id_multiplicador,
-                        ).length > 0
-                          ? state.listMultiplicador.filter(
-                              (v) => v.id == element.id_multiplicador,
-                            )[0].code
-                          : "N",
-                        state.datosPrincipales.volumen,
-                        state.datosPrincipales.peso,
-                        state.datosPrincipales.containers,
-                        state.datosPrincipales.amount,
-                      ),
+                      factor,
                   ),
                 });
                 totalOrigen +=
@@ -7878,19 +7371,7 @@ function GenerarIngresosInstrictivo(tipo) {
                       )[0].valor
                     : 0) *
                   element.costounitario *
-                  miMixin.methods.calcularFac(
-                    state.listMultiplicador.filter(
-                      (v) => v.id == element.id_multiplicador,
-                    ).length > 0
-                      ? state.listMultiplicador.filter(
-                          (v) => v.id == element.id_multiplicador,
-                        )[0].code
-                      : "N",
-                    state.datosPrincipales.volumen,
-                    state.datosPrincipales.peso,
-                    state.datosPrincipales.containers,
-                    state.datosPrincipales.amount,
-                  );
+                  factor;
               } else {
                 datosOrigen.push({
                   name: element.nameservice,
@@ -7977,19 +7458,7 @@ function GenerarIngresosInstrictivo(tipo) {
                         )[0].valor
                       : 0) *
                       element.costounitario *
-                      miMixin.methods.calcularFac(
-                        state.listMultiplicador.filter(
-                          (v) => v.id == element.id_multiplicador,
-                        ).length > 0
-                          ? state.listMultiplicador.filter(
-                              (v) => v.id == element.id_multiplicador,
-                            )[0].code
-                          : "N",
-                        state.datosPrincipales.volumen,
-                        state.datosPrincipales.peso,
-                        state.datosPrincipales.containers,
-                        state.datosPrincipales.amount,
-                      ),
+                      factor,
                   ),
                 });
                 totalLocales +=
@@ -8001,19 +7470,7 @@ function GenerarIngresosInstrictivo(tipo) {
                       )[0].valor
                     : 0) *
                   element.costounitario *
-                  miMixin.methods.calcularFac(
-                    state.listMultiplicador.filter(
-                      (v) => v.id == element.id_multiplicador,
-                    ).length > 0
-                      ? state.listMultiplicador.filter(
-                          (v) => v.id == element.id_multiplicador,
-                        )[0].code
-                      : "N",
-                    state.datosPrincipales.volumen,
-                    state.datosPrincipales.peso,
-                    state.datosPrincipales.containers,
-                    state.datosPrincipales.amount,
-                  );
+                  factor;
               } else {
                 datosLocales.push({
                   name: element.nameservice,
@@ -8100,19 +7557,7 @@ function GenerarIngresosInstrictivo(tipo) {
                         )[0].valor
                       : 0) *
                       element.costounitario *
-                      miMixin.methods.calcularFac(
-                        state.listMultiplicador.filter(
-                          (v) => v.id == element.id_multiplicador,
-                        ).length > 0
-                          ? state.listMultiplicador.filter(
-                              (v) => v.id == element.id_multiplicador,
-                            )[0].code
-                          : "N",
-                        state.datosPrincipales.volumen,
-                        state.datosPrincipales.peso,
-                        state.datosPrincipales.containers,
-                        state.datosPrincipales.amount,
-                      ),
+                      factor,
                   ),
                 });
                 totalAduanas +=
@@ -8124,19 +7569,7 @@ function GenerarIngresosInstrictivo(tipo) {
                       )[0].valor
                     : 0) *
                   element.costounitario *
-                  miMixin.methods.calcularFac(
-                    state.listMultiplicador.filter(
-                      (v) => v.id == element.id_multiplicador,
-                    ).length > 0
-                      ? state.listMultiplicador.filter(
-                          (v) => v.id == element.id_multiplicador,
-                        )[0].code
-                      : "N",
-                    state.datosPrincipales.volumen,
-                    state.datosPrincipales.peso,
-                    state.datosPrincipales.containers,
-                    state.datosPrincipales.amount,
-                  );
+                  factor;
               } else {
                 datosAduanas.push({
                   name: element.nameservice,
@@ -8219,19 +7652,7 @@ function GenerarIngresosInstrictivo(tipo) {
                         )[0].valor
                       : 0) *
                       element.costounitario *
-                      miMixin.methods.calcularFac(
-                        state.listMultiplicador.filter(
-                          (v) => v.id == element.id_multiplicador,
-                        ).length > 0
-                          ? state.listMultiplicador.filter(
-                              (v) => v.id == element.id_multiplicador,
-                            )[0].code
-                          : "N",
-                        state.datosPrincipales.volumen,
-                        state.datosPrincipales.peso,
-                        state.datosPrincipales.containers,
-                        state.datosPrincipales.amount,
-                      ),
+                      factor,
                   ),
                 });
                 totalAlmacenes +=
@@ -8243,19 +7664,7 @@ function GenerarIngresosInstrictivo(tipo) {
                       )[0].valor
                     : 0) *
                   element.costounitario *
-                  miMixin.methods.calcularFac(
-                    state.listMultiplicador.filter(
-                      (v) => v.id == element.id_multiplicador,
-                    ).length > 0
-                      ? state.listMultiplicador.filter(
-                          (v) => v.id == element.id_multiplicador,
-                        )[0].code
-                      : "N",
-                    state.datosPrincipales.volumen,
-                    state.datosPrincipales.peso,
-                    state.datosPrincipales.containers,
-                    state.datosPrincipales.amount,
-                  );
+                  factor;
               } else {
                 datosAlmacenes.push({
                   name: element.nameservice,
@@ -8337,19 +7746,7 @@ function GenerarIngresosInstrictivo(tipo) {
                         )[0].valor
                       : 0) *
                       element.costounitario *
-                      miMixin.methods.calcularFac(
-                        state.listMultiplicador.filter(
-                          (v) => v.id == element.id_multiplicador,
-                        ).length > 0
-                          ? state.listMultiplicador.filter(
-                              (v) => v.id == element.id_multiplicador,
-                            )[0].code
-                          : "N",
-                        state.datosPrincipales.volumen,
-                        state.datosPrincipales.peso,
-                        state.datosPrincipales.containers,
-                        state.datosPrincipales.amount,
-                      ),
+                      factor,
                   ),
                 });
                 totalGastosTercero +=
@@ -8361,19 +7758,7 @@ function GenerarIngresosInstrictivo(tipo) {
                       )[0].valor
                     : 0) *
                   element.costounitario *
-                  miMixin.methods.calcularFac(
-                    state.listMultiplicador.filter(
-                      (v) => v.id == element.id_multiplicador,
-                    ).length > 0
-                      ? state.listMultiplicador.filter(
-                          (v) => v.id == element.id_multiplicador,
-                        )[0].code
-                      : "N",
-                    state.datosPrincipales.volumen,
-                    state.datosPrincipales.peso,
-                    state.datosPrincipales.containers,
-                    state.datosPrincipales.amount,
-                  );
+                  factor;
               } else {
                 datosGastosTerceros.push({
                   name: element.nameservice,
@@ -8438,6 +7823,24 @@ function GenerarIngresosInstrictivo(tipo) {
         opcion.listCostos
           .filter((v) => v.status == 1 && v.esventaflag == 1)
           .forEach((element) => {
+            let factor = miMixin.methods.calcularFac(
+              state.listMultiplicador.filter(
+                (v) => v.id == element.id_multiplicador,
+              ).length > 0
+                ? state.listMultiplicador.filter(
+                    (v) => v.id == element.id_multiplicador,
+                  )[0].code
+                : "N",
+              state.datosPrincipales.volumen,
+              state.datosPrincipales.peso,
+              state.datosPrincipales.containers,
+              state.datosPrincipales.amount,
+            );
+            if (element.code_cost == 4 && state.datosPrincipales.volumen < 1) {
+              if (factor < 1) {
+                factor = 1;
+              }
+            }
             if (element.esfleteflag == 1) {
               datosFlete.push({
                 name: element.nameservice,
@@ -8467,19 +7870,7 @@ function GenerarIngresosInstrictivo(tipo) {
                       )[0].valor
                     : 0) *
                   element.costounitario *
-                  miMixin.methods.calcularFac(
-                    state.listMultiplicador.filter(
-                      (v) => v.id == element.id_multiplicador,
-                    ).length > 0
-                      ? state.listMultiplicador.filter(
-                          (v) => v.id == element.id_multiplicador,
-                        )[0].code
-                      : "N",
-                    state.datosPrincipales.volumen,
-                    state.datosPrincipales.peso,
-                    state.datosPrincipales.containers,
-                    state.datosPrincipales.amount,
-                  );
+                  factor;
               } else {
                 totalFlete += miMixin.methods.calcularValor(
                   state.datosPrincipales.amount,
@@ -8537,19 +7928,7 @@ function GenerarIngresosInstrictivo(tipo) {
                       )[0].valor
                     : 0) *
                   element.costounitario *
-                  miMixin.methods.calcularFac(
-                    state.listMultiplicador.filter(
-                      (v) => v.id == element.id_multiplicador,
-                    ).length > 0
-                      ? state.listMultiplicador.filter(
-                          (v) => v.id == element.id_multiplicador,
-                        )[0].code
-                      : "N",
-                    state.datosPrincipales.volumen,
-                    state.datosPrincipales.peso,
-                    state.datosPrincipales.containers,
-                    state.datosPrincipales.amount,
-                  );
+                  factor;
               } else {
                 totalOrigen += miMixin.methods.calcularValor(
                   state.datosPrincipales.amount,
@@ -8608,19 +7987,7 @@ function GenerarIngresosInstrictivo(tipo) {
                       )[0].valor
                     : 0) *
                   element.costounitario *
-                  miMixin.methods.calcularFac(
-                    state.listMultiplicador.filter(
-                      (v) => v.id == element.id_multiplicador,
-                    ).length > 0
-                      ? state.listMultiplicador.filter(
-                          (v) => v.id == element.id_multiplicador,
-                        )[0].code
-                      : "N",
-                    state.datosPrincipales.volumen,
-                    state.datosPrincipales.peso,
-                    state.datosPrincipales.containers,
-                    state.datosPrincipales.amount,
-                  );
+                  factor;
               } else {
                 totalLocales += miMixin.methods.calcularValor(
                   state.datosPrincipales.amount,
@@ -8679,19 +8046,7 @@ function GenerarIngresosInstrictivo(tipo) {
                       )[0].valor
                     : 0) *
                   element.costounitario *
-                  miMixin.methods.calcularFac(
-                    state.listMultiplicador.filter(
-                      (v) => v.id == element.id_multiplicador,
-                    ).length > 0
-                      ? state.listMultiplicador.filter(
-                          (v) => v.id == element.id_multiplicador,
-                        )[0].code
-                      : "N",
-                    state.datosPrincipales.volumen,
-                    state.datosPrincipales.peso,
-                    state.datosPrincipales.containers,
-                    state.datosPrincipales.amount,
-                  );
+                  factor;
               } else {
                 totalAduanas += miMixin.methods.calcularValor(
                   state.datosPrincipales.amount,
@@ -8746,19 +8101,7 @@ function GenerarIngresosInstrictivo(tipo) {
                       )[0].valor
                     : 0) *
                   element.costounitario *
-                  miMixin.methods.calcularFac(
-                    state.listMultiplicador.filter(
-                      (v) => v.id == element.id_multiplicador,
-                    ).length > 0
-                      ? state.listMultiplicador.filter(
-                          (v) => v.id == element.id_multiplicador,
-                        )[0].code
-                      : "N",
-                    state.datosPrincipales.volumen,
-                    state.datosPrincipales.peso,
-                    state.datosPrincipales.containers,
-                    state.datosPrincipales.amount,
-                  );
+                  factor;
               } else {
                 totalAlmacenes += miMixin.methods.calcularValor(
                   state.datosPrincipales.amount,
@@ -8812,19 +8155,7 @@ function GenerarIngresosInstrictivo(tipo) {
                       )[0].valor
                     : 0) *
                   element.costounitario *
-                  miMixin.methods.calcularFac(
-                    state.listMultiplicador.filter(
-                      (v) => v.id == element.id_multiplicador,
-                    ).length > 0
-                      ? state.listMultiplicador.filter(
-                          (v) => v.id == element.id_multiplicador,
-                        )[0].code
-                      : "N",
-                    state.datosPrincipales.volumen,
-                    state.datosPrincipales.peso,
-                    state.datosPrincipales.containers,
-                    state.datosPrincipales.amount,
-                  );
+                  factor;
               } else {
                 totalGastosTercero += miMixin.methods.calcularValor(
                   state.datosPrincipales.amount,
@@ -9134,6 +8465,24 @@ async function GenerarCostosInstrictivo(tipo) {
       opcion.listCostos
         .filter((v) => v.esopcionflag == 1 && v.status == 1)
         .forEach((element) => {
+          let factor = miMixin.methods.calcularFac(
+            state.listMultiplicador.filter(
+              (v) => v.id == element.id_multiplicador,
+            ).length > 0
+              ? state.listMultiplicador.filter(
+                  (v) => v.id == element.id_multiplicador,
+                )[0].code
+              : "N",
+            state.datosPrincipales.volumen,
+            state.datosPrincipales.peso,
+            state.datosPrincipales.containers,
+            state.datosPrincipales.amount,
+          );
+          if (element.code_cost == 4 && state.datosPrincipales.volumen < 1) {
+            if (factor < 1) {
+              factor = 1;
+            }
+          }
           // ------------------------------------
 
           let montoDetails = 0;
@@ -9161,19 +8510,7 @@ async function GenerarCostosInstrictivo(tipo) {
                   )[0].valor
                 : 0) *
               element.costounitario *
-              miMixin.methods.calcularFac(
-                state.listMultiplicador.filter(
-                  (v) => v.id == element.id_multiplicador,
-                ).length > 0
-                  ? state.listMultiplicador.filter(
-                      (v) => v.id == element.id_multiplicador,
-                    )[0].code
-                  : "N",
-                state.datosPrincipales.volumen,
-                state.datosPrincipales.peso,
-                state.datosPrincipales.containers,
-                state.datosPrincipales.amount,
-              );
+              factor;
           } else {
             montoDetails += miMixin.methods.calcularValor(
               state.datosPrincipales.amount,
@@ -9324,6 +8661,23 @@ async function calcularTotalFleteVentaPorOpcion(data) {
   data
     .filter((v) => v.esfleteflag == 1 && v.status == 1 && v.esventaflag == 1)
     .forEach(async (element) => {
+      let factor = miMixin.methods.calcularFac(
+        state.listMultiplicador.filter((v) => v.id == element.id_multiplicador)
+          .length > 0
+          ? state.listMultiplicador.filter(
+              (v) => v.id == element.id_multiplicador,
+            )[0].code
+          : "N",
+        state.datosPrincipales.volumen,
+        state.datosPrincipales.peso,
+        state.datosPrincipales.containers,
+        state.datosPrincipales.amount,
+      );
+      if (element.code_cost == 4 && state.datosPrincipales.volumen < 1) {
+        if (factor < 1) {
+          factor = 1;
+        }
+      }
       if (isNotPorcentaje(element, element.id_multiplicador)) {
         totalFlete +=
           (state.listMultiplicador.filter(
@@ -9334,19 +8688,7 @@ async function calcularTotalFleteVentaPorOpcion(data) {
               )[0].valor
             : 0) *
           element.costounitario *
-          miMixin.methods.calcularFac(
-            state.listMultiplicador.filter(
-              (v) => v.id == element.id_multiplicador,
-            ).length > 0
-              ? state.listMultiplicador.filter(
-                  (v) => v.id == element.id_multiplicador,
-                )[0].code
-              : "N",
-            state.datosPrincipales.volumen,
-            state.datosPrincipales.peso,
-            state.datosPrincipales.containers,
-            state.datosPrincipales.amount,
-          );
+          factor;
       }
     });
   return totalFlete;

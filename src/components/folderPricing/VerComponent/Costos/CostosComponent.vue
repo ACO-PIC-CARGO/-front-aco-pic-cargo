@@ -1563,14 +1563,21 @@ export default {
       const codigoMultiplicador = multEncontrado ? multEncontrado.code : "N";
 
       // 4. Ejecutamos la función calcularFac pasándole los datos de pricing
-      const factorCalculado = this.calcularFac(
+      let factorCalculado = this.calcularFac(
         codigoMultiplicador,
         datosPrincipales.volumen,
         datosPrincipales.peso,
         datosPrincipales.containers,
         datosPrincipales.amount,
       );
-
+      if (
+        valor.code_cost == 4 &&
+        this.$store.state.pricing.datosPrincipales.volumen < 1
+      ) {
+        if (factorCalculado < 1) {
+          factorCalculado = 1;
+        }
+      }
       // 5. Realizamos la operación matemática final
       const operacionFinal =
         valorMultiplicador * valor.costounitario * factorCalculado;
@@ -1657,13 +1664,21 @@ export default {
 
       // CASO A: No es porcentaje (Cálculo basado en factor)
       if (this.isNotPorcentaje(element, element.id_multiplicador)) {
-        const factorCalculado = this.calcularFac(
+        let factorCalculado = this.calcularFac(
           codigoMultiplicador,
           datosPrincipales.volumen,
           datosPrincipales.peso,
           datosPrincipales.containers,
           datosPrincipales.amount,
         );
+         if (
+          element.code_cost == 4 &&
+          this.$store.state.pricing.datosPrincipales.volumen < 1
+        ) {
+          if (factorCalculado < 1) {
+            factorCalculado = 1;
+          }
+        }
         return valorMultiplicador * element.costounitario * factorCalculado;
       }
 

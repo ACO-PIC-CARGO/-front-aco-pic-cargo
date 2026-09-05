@@ -334,14 +334,11 @@ export default {
       if (!idDestino) return;
 
       const listaPuertos = this.$store.state.pricing.listPortEnd || [];
-      console.log("Buscando ID:", idDestino, "en lista:", listaPuertos);
 
       // Usamos Number() o String() para evitar problemas de tipos
       let port = listaPuertos.find(
         (v) => String(v.id_port) === String(idDestino),
       );
-
-      console.log("Puerto encontrado:", port);
 
       if (port) {
         await this.cargarTownParaPricing({ id_pais: port.id_pais });

@@ -102,8 +102,15 @@ const miMixin = {
           fac = kg;
           break;
         case 24:
-          let valorCalculado = metroscc / (volumen || 1);
-          fac = valorCalculado || 1;
+          if (metroscc < 15) {
+            fac = kg / 1000;
+          } else {
+              let tonelada = kg/1000;
+              let volumen = metroscc/3;
+              let valorCalculado = Math.max(tonelada, volumen,1);
+              fac = valorCalculado;
+            
+          }
           break;
         default:
           fac = 1;
