@@ -748,9 +748,9 @@ import moment from "moment";
 import mixins from "../../../components/mixins/funciones.js";
 import axios from "@/api/axios-config";
 import FileSequenceInstructivo from "../../comun/fileSequenceInstructivo.vue";
-
+import Idempotency from "../../../components/mixins/utils.js";
 export default {
-  mixins: [mixins],
+  mixins: [mixins, Idempotency],
   components: {
     ConfigCotizacion: () =>
       import("@/components/folderPricing/ConfigExpediente"),
@@ -758,6 +758,7 @@ export default {
   },
   data() {
     return {
+      IdempotencyKey: "",
       verPrevisualizacion: true,
       verDatosPreview: true,
       proveedorInstructivo: {},
@@ -851,6 +852,7 @@ export default {
   },
 
   async mounted() {
+    this.IdempotencyKey = this.generateIdempotencyKey();
     this.stepAprobado = this.$route.params.step
       ? parseInt(this.$route.params.step)
       : 1;
@@ -1274,6 +1276,7 @@ export default {
                       },
                     });
                     await vm.aprobarCotizacion({
+                      IdempotencyKey:vm.IdempotencyKey,
                       id_quote: vm.$route.params.id,
                       nuevoexpediente: true,
                       id_exp: vm.id_exp,
@@ -1397,6 +1400,7 @@ export default {
                     },
                   });
                   await vm.aprobarCotizacion({
+                    IdempotencyKey:vm.IdempotencyKey,
                     id_quote: vm.$route.params.id,
                     nuevoexpediente: true,
                     id_exp: vm.id_exp,
@@ -1536,6 +1540,7 @@ export default {
           },
         });
         await this.aprobarCotizacion({
+          IdempotencyKey:vm.IdempotencyKey,
           id_quote: this.$route.params.id,
           nuevoexpediente: false,
           id_exp: this.id_exp,
