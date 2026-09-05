@@ -6,7 +6,6 @@ import router from "@/router";
 import masterusuario from "./masterusuario";
 import enterprise from "./enterprise";
 import modules from "./../index";
-import { generateIdempotencyKey } from "@/components/mixins/utils";
 const state = {
   filtroSeleccionado:{
     "Fecha Inicio": moment().format("YYYY-01-01"),
@@ -5800,7 +5799,7 @@ const actions = {
       url: process.env.VUE_APP_URL_MAIN + "aprobar_cotizacion",
       headers: {
         "Content-Type": "application/json",
-        "idempotency-key": generateIdempotencyKey(),
+        "idempotency-key": dataParaAprobar.IdempotencyKey,
       },
       data: dataParaAprobar,
     };
