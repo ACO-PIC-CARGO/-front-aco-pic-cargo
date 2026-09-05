@@ -12,7 +12,7 @@ export default {
     AccountPaysCom,
   },
   mounted() {
-    this.$store.state.mainTitle = "CONTROL CUENTAS POR PAGAR";
+    this.$store.state.mainTitle = "CONTROL CUENTAS POR PAGAR ADMINISTRATIVAS";
     this.$nextTick(() => {
       this.$store.state.drawer = false;
     });

@@ -534,8 +534,16 @@ export default {
       };
       await axios(config)
         .then(function (response) {
-          //vm.dialogListInvoince = true;
-          vm.itemsListInvoice = response.data.data;
+          let res = response.data;
+          if (res.estadoflag) {
+            vm.itemsListInvoice = response.data.data;
+          } else {
+            vm.itemsListInvoice = [];
+            Swal.fire({
+              icon: "error",
+              text: res.mensaje,
+            });
+          }
         })
         .catch(function (error) {
           console.error(error);

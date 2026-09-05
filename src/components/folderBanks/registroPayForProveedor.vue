@@ -683,12 +683,17 @@ export default {
     },
     abrirFactura(item) {
       let id = item.id_admininvoice;
-      window.open(
-        `/home/folderModulesPays/viewAccountPays/${id}`,
-        "Instructivo",
-        "width=1593,height=1293,menubar=no,location=no,resizable=no",
-      );
+      window.open(`/home/folderModulesPays/viewAccountPays/${id}`, "_blank");
     },
+    // abrirFactura(item) {
+
+    //   let id = item.id_admininvoice;
+    //   window.open(
+    //     `/home/folderModulesPays/viewAccountPays/${id}`,
+    //     "Instructivo",
+    //     "width=1593,height=1293,menubar=no,location=no,resizable=no",
+    //   );
+    // },
     confirmarDeposito() {
       if (this.monto_local) {
         this.dialogLlenarMontoDepositadoBanco = false;
