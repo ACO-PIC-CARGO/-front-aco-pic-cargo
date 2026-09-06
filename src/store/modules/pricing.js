@@ -7,10 +7,6 @@ import masterusuario from "./masterusuario";
 import enterprise from "./enterprise";
 import modules from "./../index";
 const state = {
-  filtroSeleccionado:{
-    "Fecha Inicio": moment().format("YYYY-01-01"),
-    "Fecha Fin": moment().endOf("month").format("YYYY-MM-DD"),
-  },
   search: "",
   totalregistro: 1,
   limit: 10,
@@ -655,7 +651,6 @@ const actions = {
     });
   },
   async getListQuote({ commit }) {
-
     var config = {
       method: "get",
       url: process.env.VUE_APP_URL_MAIN + `getQuoteList`,
@@ -3596,7 +3591,7 @@ const actions = {
         pagina: state.pagina,
         id_branch: JSON.parse(sessionStorage.getItem("dataUser"))[0].id_branch,
       },
-      filtroSeleccionado:state.filtroSeleccionado,
+      filtroSeleccionado: state.filtroSeleccionado,
       id_branch: JSON.parse(sessionStorage.getItem("dataUser"))[0].id_branch,
     };
     let timerInterval;

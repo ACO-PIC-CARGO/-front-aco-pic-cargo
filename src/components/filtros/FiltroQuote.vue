@@ -30,8 +30,6 @@
               ></v-autocomplete>
             </v-col>
             <v-col cols="12" md="6" class="py-1">
-              <!-- <v-card-text class="mt-3 px-5 py-1"> -->
-
               <v-autocomplete
                 auto-select-first
                 :items="$store.state.pricing.listQuoteStatus"
@@ -115,7 +113,7 @@
             <v-col cols="12" md="6" class="py-1">
               <FormatFecha
                 :dense="true"
-                label="Fecha Emisión Desde"
+                label="Fecha Envío Cliente Desde"
                 v-model="$store.state.pricing.filtro.fechaemisiondesde"
                 clearable
               />
@@ -124,7 +122,7 @@
             <v-col cols="12" md="6" class="py-1">
               <FormatFecha
                 :dense="true"
-                label="Fecha Emisión Hasta"
+                label="Fecha Envío Cliente Hasta"
                 v-model="$store.state.pricing.filtro.fechaemisionhasta"
                 clearable
               />
@@ -133,7 +131,7 @@
             <v-col cols="12" md="6" class="py-1">
               <FormatFecha
                 :dense="true"
-                label="Fecha Desde"
+                label="Fecha Creación Desde"
                 id="filtroDesde"
                 v-model="$store.state.pricing.filtro.fechainicio"
                 clearble
@@ -142,7 +140,7 @@
             <v-col cols="12" md="6" class="py-1">
               <FormatFecha
                 :dense="true"
-                label="Fecha Hasta"
+                label="Fecha Creación Hasta"
                 id="filtroHasta"
                 v-model="$store.state.pricing.filtro.fechafin"
                 clearble
@@ -188,7 +186,6 @@ export default {
     async filtrar() {
       this.$store.state.spiner = true;
       await this.getListQuote();
-      this.emitirFiltro();
       this.$store.state.pricing.filtrarQuoteFlag = false;
       this.$store.state.spiner = false;
     },
@@ -208,7 +205,7 @@ export default {
         .format("YYYY-MM-DD");
       this.$store.state.pricing.filtro.estado = true;
       await this.getListQuote();
-      this.emitirFiltro();
+
       this.$store.state.pricing.filtrarQuoteFlag = false;
       this.$store.state.pricing.filtro.estado = true;
       this.$store.state.spiner = false;
@@ -218,72 +215,7 @@ export default {
       const encontrado = list.find((item) => item[valueKey] === id);
       return encontrado ? encontrado[textKey] : "";
     },
-    emitirFiltro() {
-      const state = this.$store.state.pricing;
-
-      let filtroBruto = {
-        Marketing: this.getTextoPorId(
-          state.listMarketing,
-          state.filtro.id_marketing,
-          "id",
-          "name",
-        ),
-        "Estado de la Cotización": this.getTextoPorId(
-          state.listQuoteStatus,
-          state.filtro.id_status,
-          "id",
-          "name",
-        ),
-        Pricing: this.getTextoPorId(
-          state.listEjecutivo,
-          state.filtro.id_pricing,
-          "id_entitie",
-          "name",
-        ),
-        Ejecutivo: this.getTextoPorId(
-          state.listEjecutivo,
-          state.filtro.id_entities,
-          "id_entitie",
-          "name",
-        ),
-        Sentido: this.getTextoPorId(
-          state.listModality,
-          state.filtro.id_modality,
-          "id",
-          "name",
-        ),
-        "Tipo Carga": this.getTextoPorId(
-          state.listShipment,
-          state.filtro.id_shipment,
-          "id",
-          "embarque",
-        ),
-        Incoterm: this.getTextoPorId(
-          state.listIncoterms,
-          state.filtro.id_incoterm,
-          "id",
-          "name",
-        ),
-        "Fecha Emisión Desde": state.filtro.fechaemisiondesde,
-        "Fecha Emisión Hasta": state.filtro.fechaemisionhasta,
-        "Fecha Desde": state.filtro.fechainicio,
-        "Fecha Hasta": state.filtro.fechafin,
-      };
-
-      // Filtra solo los que tienen valor y aplica Capitalize a las llaves si es necesario
-      let filtroLimpio = {};
-      for (const [key, value] of Object.entries(filtroBruto)) {
-        if (value !== "" && value !== null && value !== undefined) {
-          const llaveCapitalizada = key
-            .toLowerCase()
-            .replace(/^\w/, (c) => c.toUpperCase());
-          filtroLimpio[llaveCapitalizada] = value;
-        }
-      }
-
-      this.$store.state.pricing.filtroSeleccionado = filtroLimpio;
-      this.$emit("filtroCotizacion", filtroLimpio);
-    },
+    
   },
   async mounted() {
     await this.getMarketingList();
@@ -295,5 +227,3 @@ export default {
   },
 };
 </script>
-
-
