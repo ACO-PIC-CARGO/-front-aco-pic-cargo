@@ -1,22 +1,239 @@
 <template>
   <v-container fluid>
     <v-row>
-      <v-col cols="12" class="py-1">
+      <!-- <v-col cols="12" class="py-1">
         <span>Filtros Seleccionado:</span>
-      </v-col>
-      <v-col cols="12" class="py-1">
-        <div class="d-flex flex-wrap align-center">
-          <v-chip
-            v-for="(valor, clave) in $store.state.pricing.filtroSeleccionado"
-            :key="clave"
-            class="ma-1"
-            color="primary"
-            outlined
+      </v-col> -->
+
+      <v-col cols="12" class="mt-3 clsFiltro">
+        <v-row>
+          <v-col cols="6" class="py-1">
+            <v-row>
+              <v-col cols="4" class="clsFechaPor">
+                <v-text-field
+                  value="Fecha Creación"
+                  label="Fecha Por"
+                  readonly
+                  hide-details
+                  dense
+                  outlined
+                  prepend-icon="mdi-calendar-month"
+                ></v-text-field>
+              </v-col>
+
+              <v-col cols="4">
+                <v-text-field
+                  prepend-inner-icon="mdi-calendar-month"
+                  :value="
+                    formatearFecha($store.state.pricing.filtro.fechainicio)
+                  "
+                  dense
+                  readonly
+                  hide-details
+                  outlined
+                  label="Desde"
+                ></v-text-field>
+              </v-col>
+              <v-col cols="4">
+                <v-text-field
+                  prepend-inner-icon="mdi-calendar-month"
+                  :value="formatearFecha($store.state.pricing.filtro.fechafin)"
+                  dense
+                  readonly
+                  hide-details
+                  outlined
+                  label="Hasta"
+                ></v-text-field>
+              </v-col>
+            </v-row>
+          </v-col>
+          <v-col
+            cols="6"
+            class="py-1"
+            v-if="
+              $store.state.pricing.filtro.fechaemisiondesde ||
+              $store.state.pricing.filtro.fechaemisionhasta
+            "
           >
-            <strong>{{ clave }}:</strong> &nbsp;{{ valor }}
-          </v-chip>
-        </div>
+            <v-row>
+              <v-col cols="4" class="clsFechaPor">
+                <v-text-field
+                  value="Fecha Envíado"
+                  label="Fecha Por"
+                  readonly
+                  hide-details
+                  outlined
+                  dense
+                  prepend-icon="mdi-calendar-month"
+                ></v-text-field>
+              </v-col>
+              <v-col cols="4">
+                <v-text-field
+                  prepend-inner-icon="mdi-calendar-month"
+                  :value="
+                    formatearFecha(
+                      $store.state.pricing.filtro.fechaemisiondesde,
+                    )
+                  "
+                  dense
+                  readonly
+                  hide-details
+                  outlined
+                  label="Desde"
+                ></v-text-field>
+              </v-col>
+              <v-col cols="4">
+                <v-text-field
+                  prepend-inner-icon="mdi-calendar-month"
+                  :value="
+                    formatearFecha(
+                      $store.state.pricing.filtro.fechaemisionhasta,
+                    )
+                  "
+                  dense
+                  readonly
+                  hide-details
+                  outlined
+                  label="Hasta"
+                ></v-text-field>
+              </v-col>
+            </v-row>
+          </v-col>
+
+          <v-col
+            cols="12"
+            md="2"
+            class="py-1"
+            v-if="$store.state.pricing.filtro.id_marketing"
+          >
+            <v-autocomplete
+              :items="$store.state.pricing.listMarketing"
+              label="Tipo de Marketing"
+              dense
+              readonly
+              hide-details
+              outlined
+              search
+              item-text="name"
+              item-value="id"
+              v-model="$store.state.pricing.filtro.id_marketing"
+            ></v-autocomplete>
+          </v-col>
+          <v-col
+            cols="12"
+            md="2"
+            class="py-1"
+            v-if="$store.state.pricing.filtro.id_status"
+          >
+            <v-autocomplete
+              auto-select-first
+              :items="$store.state.pricing.listQuoteStatus"
+              label="Estado de la Cotización"
+              dense
+              readonly
+              hide-details
+              outlined
+              item-text="name"
+              item-value="id"
+              v-model="$store.state.pricing.filtro.id_status"
+            ></v-autocomplete>
+          </v-col>
+          <v-col
+            cols="12"
+            md="2"
+            class="py-1"
+            v-if="$store.state.pricing.filtro.id_pricing"
+          >
+            <v-autocomplete
+              :items="$store.state.pricing.listEjecutivo"
+              label="Pricing."
+              dense
+              readonly
+              hide-details
+              outlined
+              search
+              item-text="name"
+              item-value="id_entitie"
+              v-model="$store.state.pricing.filtro.id_pricing"
+            ></v-autocomplete>
+          </v-col>
+          <v-col
+            cols="12"
+            md="2"
+            class="py-1"
+            v-if="$store.state.pricing.filtro.id_entities"
+          >
+            <v-autocomplete
+              :items="$store.state.pricing.listEjecutivo"
+              label="Ejecutivo."
+              dense
+              readonly
+              hide-details
+              outlined
+              search
+              item-text="name"
+              item-value="id_entitie"
+              v-model="$store.state.pricing.filtro.id_entities"
+            ></v-autocomplete>
+          </v-col>
+          <v-col
+            cols="12"
+            md="2"
+            class="py-1"
+            v-if="$store.state.pricing.filtro.id_modality"
+          >
+            <v-autocomplete
+              :items="$store.state.pricing.listModality"
+              label="Sentido"
+              v-model="$store.state.pricing.filtro.id_modality"
+              dense
+              readonly
+              hide-details
+              outlined
+              item-text="name"
+              item-value="id"
+            ></v-autocomplete>
+          </v-col>
+          <v-col
+            cols="12"
+            md="2"
+            class="py-1"
+            v-if="$store.state.pricing.filtro.id_shipment"
+          >
+            <v-autocomplete
+              :items="$store.state.pricing.listShipment"
+              label="Tipo Embarque"
+              dense
+              readonly
+              hide-details
+              outlined
+              item-text="embarque"
+              item-value="id"
+              v-model="$store.state.pricing.filtro.id_shipment"
+            >
+            </v-autocomplete>
+          </v-col>
+          <v-col
+            cols="12"
+            md="2"
+            class="py-1"
+            v-if="$store.state.pricing.filtro.id_incoterm"
+          >
+            <v-autocomplete
+              :items="$store.state.pricing.listIncoterms"
+              label="Incoterm"
+              dense
+              readonly
+              hide-details
+              outlined
+              item-text="name"
+              item-value="id"
+              v-model="$store.state.pricing.filtro.id_incoterm"
+            ></v-autocomplete>
+          </v-col>
+        </v-row>
       </v-col>
+
       <v-col cols="12" lg="4" xl="4">
         <v-text-field
           placeholder="Buscar..."
@@ -117,7 +334,15 @@
                     v-bind="attrs"
                     @click="ira('verQuote', item.id)"
                   >
-                    <v-icon color="#4A148C" dense small>mdi-eye</v-icon>
+                    <v-icon
+                      color="#4A148C"
+                      dense
+                      readonly
+                      hide-details
+                      outlined
+                      small
+                      >mdi-eye</v-icon
+                    >
                   </v-btn>
                 </template>
                 <span>Ver</span>
@@ -133,7 +358,15 @@
                     @click="handleEditar(item)"
                     v-if="item.statusmain != 0"
                   >
-                    <v-icon color="#FB9514" dense small>mdi-pencil</v-icon>
+                    <v-icon
+                      color="#FB9514"
+                      dense
+                      readonly
+                      hide-details
+                      outlined
+                      small
+                      >mdi-pencil</v-icon
+                    >
                   </v-btn>
                 </template>
                 <span>Editar</span>
@@ -149,7 +382,13 @@
                     @click="abrirModal(item)"
                     v-if="!(item.statusmain == 0 || item.aprobadoflag)"
                   >
-                    <v-icon color="#E65100" dense small
+                    <v-icon
+                      color="#E65100"
+                      dense
+                      readonly
+                      hide-details
+                      outlined
+                      small
                       >mdi-receipt-text-send-outline</v-icon
                     >
                   </v-btn>
@@ -167,7 +406,15 @@
                     @click="registrarLlamada(item.id)"
                     v-if="!(item.statusmain == 0 || item.aprobadoflag)"
                   >
-                    <v-icon color="#1A237E" dense small>mdi-phone-plus</v-icon>
+                    <v-icon
+                      color="#1A237E"
+                      dense
+                      readonly
+                      hide-details
+                      outlined
+                      small
+                      >mdi-phone-plus</v-icon
+                    >
                   </v-btn>
                 </template>
                 <span>Actualizar Registro Llamada</span>
@@ -183,7 +430,15 @@
                     @click="eliminar(item.id, item.codigo)"
                     v-if="!(item.statusmain == 0 || item.aprobadoflag)"
                   >
-                    <v-icon color="#A43542" dense small>mdi-delete</v-icon>
+                    <v-icon
+                      color="#A43542"
+                      dense
+                      readonly
+                      hide-details
+                      outlined
+                      small
+                      >mdi-delete</v-icon
+                    >
                   </v-btn>
                 </template>
                 <span>Eliminar</span>
@@ -200,7 +455,15 @@
                     v-on="on"
                     @click="abrirCaperta(item)"
                   >
-                    <v-icon color="#FFAB00" dense small>mdi-folder</v-icon>
+                    <v-icon
+                      color="#FFAB00"
+                      dense
+                      readonly
+                      hide-details
+                      outlined
+                      small
+                      >mdi-folder</v-icon
+                    >
                   </v-btn>
                 </template>
                 <span>Abrir Carpeta cotización</span>
@@ -217,7 +480,15 @@
                     @click="toggleRow(item)"
                     v-if="!(item.statusmain == 0 || item.aprobadoflag)"
                   >
-                    <v-icon color="#263238" dense small>mdi-phone</v-icon>
+                    <v-icon
+                      color="#263238"
+                      dense
+                      readonly
+                      hide-details
+                      outlined
+                      small
+                      >mdi-phone</v-icon
+                    >
                   </v-btn>
                 </template>
                 <span>Historial llamada</span>
@@ -233,7 +504,9 @@
                     @click="abrirModalEnlazarHouse(item)"
                     color="success"
                   >
-                    <v-icon dense small>mdi-link</v-icon>
+                    <v-icon dense readonly hide-details outlined small
+                      >mdi-link</v-icon
+                    >
                   </v-btn>
                 </template>
                 <span>Enlazar a House</span>
@@ -396,8 +669,10 @@
               :items="$store.state.pricing.listEjecutivo"
               label="Ejecutivo."
               dense
+              readonly
+              hide-details
+              outlined
               search
-              clearable
               item-text="name"
               item-value="id_entitie"
               v-model="fromData.identities"
@@ -507,9 +782,11 @@ import { mapActions } from "vuex";
 import Swal from "sweetalert2";
 import axios from "@/api/axios-config";
 import GuardarUrlPricing from "../comun/GuardarUrlPricing.vue";
+import FormatFecha from "../comun/FormatFecha.vue";
 export default {
   components: {
     GuardarUrlPricing,
+    FormatFecha,
   },
   props: {
     filtrosSeleccionados: {
@@ -722,6 +999,11 @@ export default {
       "validarUsuarioAdmin",
       "actualizarURLEnElQuote",
     ]),
+    formatearFecha(fecha) {
+      if (!fecha) return "";
+
+      return moment(fecha).format("YYYY-MMM-DD").toUpperCase();
+    },
     async cambiarPagina() {
       this.$store.state.spiner = true;
       await this.getListQuote();
@@ -1245,4 +1527,17 @@ export default {
 } */
 </style>
 
-<!--  -->
+<style>
+.clsFiltro {
+  padding: 35px 25px 35px 25px;
+  margin: 0 20px;
+  max-width: 94vw;
+  background: #e1f5fe !important;
+  border-radius: 15px;
+}
+.clsFechaPor {
+  padding: 15px 25px 10px 25px;
+  background: #81d4fa;
+  border-radius: 50px;
+}
+</style>

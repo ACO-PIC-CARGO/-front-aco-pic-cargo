@@ -818,6 +818,12 @@ const routes = [
         component: () =>
           import("../views/folderReports/ReporteGanancia.vue"),
       },
+      {
+        path: "reporte/ReporteGananciaDetallado",
+        name: "ReporteGananciaDetallado",
+        component: () =>
+          import("../views/folderReports/ReporteGananciaDetallado.vue"),
+      },
     ],
   },
   {
