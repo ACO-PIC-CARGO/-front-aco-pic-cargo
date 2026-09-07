@@ -128,6 +128,52 @@ const actions = {
         console.log("Error al obtener los datos:", error);
       });
   },
+  async getTotalesMasterGeneralAgrupado({ commit }, data) {
+    var config = {
+      method: "get",
+      url: process.env.VUE_APP_URL_MAIN + `obtener_totales_master_genetal_general`,
+      params: data,
+      headers: {
+        "Content-Type": "application/json",
+      },
+    };
+    await axios(config)
+      .then((response) => {
+        let data = response.data;
+        sessionStorage.setItem("auth-token", data.token);
+        if (data.estadoflag) {
+          commit("SET_TOTAL_MASTER_AGRUPADO", data.data[0]);
+        } else {
+          commit("SET_TOTAL_MASTER_AGRUPADO", []);
+        }
+      })
+      .catch((error) => {
+        console.log("Error al obtener los datos:", error);
+      });
+  },
+  async getTotalesMasterGeneralPorMes({ commit }, data) {
+    var config = {
+      method: "get",
+      url: process.env.VUE_APP_URL_MAIN + `obtener_totales_master_genetal_por_mes`,
+      params: data,
+      headers: {
+        "Content-Type": "application/json",
+      },
+    };
+    await axios(config)
+      .then((response) => {
+        let data = response.data;
+        sessionStorage.setItem("auth-token", data.token);
+        if (data.estadoflag) {
+          commit("SET_TOTAL_MASTER_POR_MES", data.data);
+        } else {
+          commit("SET_TOTAL_MASTER_POR_MES", []);
+        }
+      })
+      .catch((error) => {
+        console.log("Error al obtener los datos:", error);
+      });
+  },
 };
 
 export default {

@@ -184,7 +184,6 @@
                     </template>
                     <template v-slot:[`item.action`]="{ item }">
                       <v-btn
-                        flat
                         icon
                         color="primary"
                         v-if="item.tipo == 'A'"
@@ -1049,20 +1048,20 @@ export default {
       this.loading = true;
       await this.setRegistroIgresos(data);
       this.loading = false;
-      Swal.fire({
-        icon: "success",
-        title: "Operación Finalizada",
-        text: "El pago se ha registrado correctamente.",
-        allowOutsideClick: false,
-        allowEscapeKey: false,
-        allowEnterKey: false,
-      }).then((result) => {
-        if (result.isConfirmed) {
-          this.$router.push({
-            name: "listBankCxC",
-          });
-        }
-      });
+      // Swal.fire({
+      //   icon: "success",
+      //   title: "Operación Finalizada",
+      //   text: "El pago se ha registrado correctamente.",
+      //   allowOutsideClick: false,
+      //   allowEscapeKey: false,
+      //   allowEnterKey: false,
+      // }).then((result) => {
+      //   if (result.isConfirmed) {
+      //     this.$router.push({
+      //       name: "listBankCxC",
+      //     });
+      //   }
+      // });
     },
     fn_totalAbonado(item) {
       if (!this.selected.includes(item)) {
