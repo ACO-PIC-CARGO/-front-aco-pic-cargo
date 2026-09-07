@@ -81,6 +81,16 @@
             Ir a Editar
           </v-btn>
         </v-col>
+        <v-col cols="12" md="2" v-if="verflag">
+          <v-btn
+            color="red"
+            class="mt-5"
+            dark
+            @click="imprimirComprobante({ id: $route.params.id })"
+          >
+            <v-icon class="mx-2" >mdi-file-pdf-box</v-icon> Imprimir
+          </v-btn>
+        </v-col>
         <v-col cols="12" md="2" v-if="!verflag">
           <v-btn
             class="mt-5"
@@ -641,7 +651,7 @@ export default {
       "_getBanksList",
       "updateRegistroIgresos",
       "validarUsuarioAdmin",
-      "eliminarRegistroIngresos",
+      "eliminarRegistroIngresos","imprimirComprobante"
     ]),
     confirmarEliminar() {
       Swal.fire({
@@ -885,10 +895,9 @@ export default {
       this.editableGastoBancario = true;
     },
     async finalizarOperacion() {
-      
       if (
         parseFloat(this.monto_local).toFixed(2) !=
-        parseFloat(this.monto*this.tipocambio).toFixed(2)
+        parseFloat(this.monto * this.tipocambio).toFixed(2)
       ) {
         Swal.fire({
           icon: "error",

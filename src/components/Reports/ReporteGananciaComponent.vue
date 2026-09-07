@@ -215,8 +215,10 @@
           <tr v-for="mes in totalMasterPorMes" :key="mes.mes">
             <!-- MES -->
             <td class="mes-cell">
-              <i class="far fa-calendar-alt"></i>
-              <span>{{ mes.nombre_mes }}</span>
+              <span @click="abrirReporteGananciaDetallado(mes)" style="cursor: pointer;">
+                <i class="far fa-calendar-alt"></i>
+                {{ mes.nombre_mes }}
+              </span>
             </td>
 
             <!-- PRICING -->
@@ -268,8 +270,8 @@
 
           <!-- ===================== TOTALES ===================== -->
           <tr class="fila-totales">
-            <td class="total-label">
-              TOTALES<br />
+            <td class="total-label" style="color: #472147 !important; ">
+              TOTALES
               DEL AÑO
             </td>
 
@@ -436,7 +438,12 @@ export default {
 
   methods: {
     ...mapActions(["getTotalesMasterAgrupado", "getTotalesMasterPorMes"]),
-
+    abrirReporteGananciaDetallado(item) {
+      this.$router.push({
+        name: "ReporteGananciaDetallado",
+        params: { code_mes: item.mes , year : this.anioSeleccionado},
+      });
+    },
     formatMoney(value) {
       return (
         "USD " +

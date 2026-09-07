@@ -32,6 +32,7 @@
                   hide-details
                   outlined
                   label="Desde"
+                  id="frmFechaDesde"
                 ></v-text-field>
               </v-col>
               <v-col cols="4">
@@ -240,6 +241,9 @@
           label="Buscar"
           v-model="search"
           append-icon="mdi-magnify"
+          dense
+          hidden
+          outlined
         >
         </v-text-field>
       </v-col>
@@ -288,6 +292,12 @@
             dark
             small
           >
+            <v-icon>mdi-filter</v-icon>
+            Filtrar
+          </v-btn>
+
+          <v-btn color="default" class="mx-1 my-1" small @click="limpiar()">
+            <v-icon class="mx-1">mdi-filter-remove</v-icon>
             Filtrar
           </v-btn>
         </div>
@@ -1009,6 +1019,27 @@ export default {
       await this.getListQuote();
       this.$store.state.spiner = false;
     },
+    async limpiar() {
+      this.$store.state.spiner = true;
+      this.$store.state.pricing.filtro.id_marketing = null;
+      this.$store.state.pricing.filtro.id_status = null;
+      this.$store.state.pricing.filtro.id_entities = null;
+      this.$store.state.pricing.filtro.id_modality = null;
+      this.$store.state.pricing.filtro.id_shipment = null;
+      this.$store.state.pricing.filtro.id_incoterm = null;
+      this.$store.state.pricing.filtro.fechaemisiondesde = null;
+      this.$store.state.pricing.filtro.fechaemisionhasta = null;
+      moment().format("YYYY-01-01");
+      this.$store.state.pricing.filtro.fechafin = moment()
+        .endOf("month")
+        .format("YYYY-MM-DD");
+      this.$store.state.pricing.filtro.estado = true;
+      await this.getListQuote();
+
+      this.$store.state.pricing.filtrarQuoteFlag = false;
+      this.$store.state.pricing.filtro.estado = true;
+      this.$store.state.spiner = false;
+    },
     displayMarketing(item) {
       // Prefer server-provided friendly name if present
       if (item.marketing) return item.marketing;
@@ -1532,12 +1563,15 @@ export default {
   padding: 35px 25px 35px 25px;
   margin: 0 20px;
   max-width: 94vw;
-  background: #e1f5fe !important;
-  border-radius: 15px;
+  background: #f4f8fc !important;
+  border-radius: 16px;
 }
 .clsFechaPor {
   padding: 15px 25px 10px 25px;
-  background: #81d4fa;
-  border-radius: 50px;
+  background: #f0effe;
+  border-radius: 30px;
+}
+.v-input__control {
+  background: #fff !important;
 }
 </style>

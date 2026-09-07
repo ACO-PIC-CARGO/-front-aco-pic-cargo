@@ -1248,7 +1248,6 @@ export default {
         datosPrincipales.containers,
         datosPrincipales.amount,
       );
-      console.log('sssssss',valor)
       return factorCalculado;
     },
   },

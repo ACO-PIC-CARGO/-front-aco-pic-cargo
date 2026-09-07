@@ -1,586 +1,457 @@
 <template>
   <v-container fluid>
-    
-      <!-- CONTENEDOR PRINCIPAL -->
-      <v-card class="main-card" flat>
-        <!-- HEADER -->
-        <div class="header-section">
-          <v-btn text small class="back-btn" @click="volverReporte">
-            <v-icon small left>mdi-arrow-left</v-icon>
-            Volver al reporte general
-          </v-btn>
+    <!-- CONTENEDOR PRINCIPAL -->
+    <v-card class="main-card" flat>
+      <!-- HEADER -->
 
-          <h1 class="page-title">DETALLE DE EXPEDIENTES</h1>
+      <div class="header-section">
+        <v-btn text small class="back-btn" @click="volverReporte">
+          <v-icon small left>mdi-arrow-left</v-icon>
+          Volver al reporte general
+        </v-btn>
+        <h1 class="page-title">DETALLE DE EXPEDIENTES</h1>
 
-          <!-- MENSAJE INFORMATIVO -->
-          <div class="info-message">
-            <v-icon small>mdi-information</v-icon>
+        <!-- MENSAJE INFORMATIVO -->
+        <div class="info-message">
+          <v-icon small>mdi-information</v-icon>
 
-            <span>
-              Los datos mostrados corresponden al año
-              <strong>{{ anio }}</strong>
-              y a los meses seleccionados:
-              <strong>{{ mesesTexto }}</strong
-              >.
-            </span>
-          </div>
+          <span>
+            Los datos mostrados corresponden al año
+            <strong>{{ year }}</strong>
+            y a los meses seleccionados:
+            <strong>{{ mesesTexto }}</strong
+            >.
+          </span>
         </div>
+      </div>
 
-        <!-- FILTROS -->
-        <v-card class="filters-card" flat outlined>
-          <v-row align="center" no-gutters class="filters-row">
-            <!-- AÑO -->
-            <v-col cols="12" sm="2" class="filter-col">
-              <label>Año</label>
+      <!-- FILTROS -->
+      <v-card class="filters-card" flat outlined>
+        <v-row align="center" no-gutters class="filters-row">
+          <!-- AÑO -->
+          <v-col cols="12" sm="2" class="filter-col">
+            <label>Año</label>
 
-              <v-select
-                v-model="anio"
-                :items="anios"
-                dense
-                outlined
-                hide-details
-                class="filter-input"
-                style="max-width: 130px"
-                prepend-inner-icon="mdi-calendar-month"
-              />
-            </v-col>
+            <v-select
+              v-model="year"
+              :items="anios"
+              dense
+              outlined
+              hide-details
+              class="filter-input"
+              style="max-width: 130px"
+              prepend-inner-icon="mdi-calendar-month"
+            />
+          </v-col>
 
-            <!-- MESES -->
-            <v-col cols="12" sm="3" md="2" class="filter-col">
-              <label>Meses</label>
+          <!-- MESES -->
+          <v-col cols="12" sm="3" md="2" class="filter-col">
+            <label>Meses</label>
 
-              <v-menu
-                v-model="menuMeses"
-                offset-y
-                :close-on-content-click="false"
-              >
-                <template v-slot:activator="{ on, attrs }">
-                  <v-btn
-                    v-bind="attrs"
-                    v-on="on"
-                    outlined
-                    dense
-                    block
-                    class="month-selector"
-                  >
-                    <span>
-                      Seleccionar meses ({{ mesesSeleccionados.length }})
-                    </span>
+            <v-menu
+              v-model="menuMeses"
+              offset-y
+              :close-on-content-click="false"
+            >
+              <template v-slot:activator="{ on, attrs }">
+                <v-btn
+                  v-bind="attrs"
+                  v-on="on"
+                  outlined
+                  dense
+                  block
+                  class="month-selector"
+                >
+                  <span>
+                    Seleccionar meses ({{ mesesSeleccionados.length }})
+                  </span>
 
-                    <v-icon small right> mdi-chevron-down </v-icon>
-                  </v-btn>
-                </template>
+                  <v-icon small right> mdi-chevron-down </v-icon>
+                </v-btn>
+              </template>
 
-                <v-card class="">
-                  <v-list dense>
-                    <!-- TODOS -->
-                    <v-list-item dense @click="toggleTodos">
-                      <v-list-item-action>
-                        <v-checkbox
-                          :input-value="todosLosMeses"
-                          hide-details
-                          color="primary"
-                        />
-                      </v-list-item-action>
+              <v-card class="">
+                <v-list dense>
+                  <!-- TODOS -->
+                  <v-list-item dense @click="toggleTodos">
+                    <v-list-item-action>
+                      <v-checkbox
+                        :input-value="todosLosMeses"
+                        hide-details
+                        color="primary"
+                      />
+                    </v-list-item-action>
 
-                      <v-list-item-content>
-                        <v-list-item-title> Todos los meses </v-list-item-title>
-                      </v-list-item-content>
-                    </v-list-item>
-
-                    <v-divider />
-
-                    <!-- MESES -->
-                    <v-list-item
-                      v-for="mes in meses"
-                      :key="mes.value"
-                      dense
-                      @click="toggleMes(mes.value)"
-                    >
-                      <v-list-item-action>
-                        <v-checkbox
-                          :input-value="mesesSeleccionados.includes(mes.value)"
-                          hide-details
-                          color="primary"
-                        />
-                      </v-list-item-action>
-
-                      <v-list-item-content>
-                        <v-list-item-title>
-                          {{ mes.text }}
-                        </v-list-item-title>
-                      </v-list-item-content>
-                    </v-list-item>
-                  </v-list>
+                    <v-list-item-content>
+                      <v-list-item-title> Todos los meses </v-list-item-title>
+                    </v-list-item-content>
+                  </v-list-item>
 
                   <v-divider />
 
-                  <div class="menu-actions">
-                    <v-btn text small @click="cancelarMeses"> Cancelar </v-btn>
+                  <!-- MESES -->
+                  <v-list-item
+                    v-for="mes in meses"
+                    :key="mes.value"
+                    dense
+                    @click="toggleMes(mes.value)"
+                  >
+                    <v-list-item-action>
+                      <v-checkbox
+                        :input-value="mesesSeleccionados.includes(mes.value)"
+                        hide-details
+                        color="primary"
+                      />
+                    </v-list-item-action>
 
-                    <v-btn
-                      color="primary"
-                      small
-                      depressed
-                      @click="aplicarMeses"
-                    >
-                      Aplicar
-                    </v-btn>
-                  </div>
-                </v-card>
-              </v-menu>
-            </v-col>
+                    <v-list-item-content>
+                      <v-list-item-title>
+                        {{ mes.text }}
+                      </v-list-item-title>
+                    </v-list-item-content>
+                  </v-list-item>
+                </v-list>
 
-            <!-- COMPARAR -->
-            <v-col
-              cols="12 mt-4 ml-5"
-              sm="3"
-              md="2"
-              class="filter-col compare-col"
+                <v-divider />
+
+                <div class="menu-actions">
+                  <v-btn text small @click="cancelarMeses"> Cancelar </v-btn>
+
+                  <v-btn color="primary" small depressed @click="aplicarMeses">
+                    Aplicar
+                  </v-btn>
+                </div>
+              </v-card>
+            </v-menu>
+          </v-col>
+
+          <!-- COMPARAR -->
+          <v-col
+            cols="12 mt-4 ml-5"
+            sm="3"
+            md="2"
+            class="filter-col compare-col"
+          >
+            <v-btn outlined dense class="compare-btn" @click="compararAnos">
+              <v-icon small left> mdi-calendar-sync </v-icon>
+
+              Comparar con años anteriores
+            </v-btn>
+          </v-col>
+
+          <v-spacer />
+
+          <!-- IMPRIMIR -->
+          <v-col cols="6" sm="2" md="2" class="action-col mt-4 mx-10">
+            <v-btn outlined block class="print-btn" @click="imprimirPDF">
+              <v-icon small left> mdi-printer </v-icon>
+
+              Imprimir PDF
+            </v-btn>
+          </v-col>
+
+          <!-- FILTROS -->
+          <v-col cols="6" sm="2" md="2" class="action-col mt-4 mx-10">
+            <v-btn
+              color="primary"
+              block
+              depressed
+              class="apply-filter-btn"
+              @click="recargarFiltro()"
             >
-              <v-btn outlined dense class="compare-btn" @click="compararAnos">
-                <v-icon small left> mdi-calendar-sync </v-icon>
+              <v-icon small left> mdi-filter </v-icon>
 
-                Comparar con años anteriores
-              </v-btn>
-            </v-col>
-
-            <v-spacer />
-
-            <!-- IMPRIMIR -->
-            <v-col cols="6" sm="2" md="2" class="action-col mt-4 mx-10">
-              <v-btn outlined block class="print-btn" @click="imprimirPDF">
-                <v-icon small left> mdi-printer </v-icon>
-
-                Imprimir PDF
-              </v-btn>
-            </v-col>
-
-            <!-- FILTROS -->
-            <v-col cols="6" sm="2" md="2" class="action-col mt-4 mx-10">
-              <v-btn
-                color="primary"
-                block
-                depressed
-                class="apply-filter-btn"
-                @click="aplicarFiltros"
-              >
-                <v-icon small left> mdi-filter </v-icon>
-
-                Aplicar filtros
-              </v-btn>
-            </v-col>
-          </v-row>
-        </v-card>
-
-        <!-- KPIs -->
-        <v-row class="kpi-row" no-gutters>
-          <!-- EXPEDIENTES -->
-          <v-col cols="12" sm="6" md="3">
-            <div class="kpi-card">
-              <div>
-                <v-icon color="blue" class="mr-5" size="50px">
-                  mdi-folder-open
-                </v-icon>
-              </div>
-
-              <div class="kpi-content">
-                <div class="kpi-label">
-                  TOTAL
-                  <br />
-                  EXPEDIENTES
-                </div>
-
-                <div class="kpi-value blue-text">
-                  {{ resumen.totalExpedientes }}
-                </div>
-              </div>
-            </div>
-          </v-col>
-
-          <!-- CLIENTES -->
-          <v-col cols="12" sm="6" md="3">
-            <div class="kpi-card">
-              <div>
-                <v-icon color="orange" class="mr-5" size="50px">
-                  mdi-account-group
-                </v-icon>
-              </div>
-
-              <div class="kpi-content">
-                <div class="kpi-label">
-                  TOTAL
-                  <br />
-                  CLIENTES
-                </div>
-
-                <div class="kpi-value orange-text">
-                  {{ resumen.totalClientes }}
-                </div>
-              </div>
-            </div>
-          </v-col>
-
-          <!-- GANANCIA PRICING -->
-          <v-col cols="12" sm="6" md="3">
-            <div class="kpi-card">
-              <div>
-                <v-icon color="purple" class="mr-5" size="50px">
-                  mdi-tag
-                </v-icon>
-              </div>
-
-              <div class="kpi-content">
-                <div class="kpi-label">GANANCIA S/ PRICING</div>
-
-                <div class="kpi-value purple-text">
-                  USD {{ formatMoney(resumen.gananciaPricing) }}
-                </div>
-              </div>
-            </div>
-          </v-col>
-
-          <!-- GANANCIA OPERACIONES -->
-          <v-col cols="12" sm="6" md="3">
-            <div class="kpi-card">
-              <div>
-                <v-icon color="green" class="mr-5" size="50px">
-                  mdi-cog
-                </v-icon>
-              </div>
-
-              <div class="kpi-content">
-                <div class="kpi-label">GANANCIA S/ OPERACIONES</div>
-
-                <div class="kpi-value green-text">
-                  USD {{ formatMoney(resumen.gananciaOperaciones) }}
-                </div>
-              </div>
-            </div>
+              Aplicar filtros
+            </v-btn>
           </v-col>
         </v-row>
+      </v-card>
 
-        <!-- TABLA -->
-        <div class="table-container">
-          <v-simple-table class="expedientes-table">
-            <thead>
-              <tr>
-                <th>MES</th>
+      <!-- KPIs -->
+      <v-row class="kpi-row" no-gutters>
+        <!-- EXPEDIENTES -->
+        <v-col cols="12" sm="6" md="3">
+          <div class="kpi-card">
+            <div>
+              <v-icon color="blue" class="mr-5" size="50px">
+                mdi-folder-open
+              </v-icon>
+            </div>
 
-                <th>EXPEDIENTE</th>
+            <div class="kpi-content">
+              <div class="kpi-label">
+                TOTAL
+                <br />
+                EXPEDIENTES
+              </div>
 
-                <th>CLIENTE</th>
-
-                <th>TIPO DE EMBARQUE</th>
-
-                <th>
-                  GANANCIA S/ PRICING<br />
-                  (USD)
-                </th>
-
-                <th>
-                  GANANCIA S/ OPERACIONES<br />
-                  (USD)
-                </th>
-              </tr>
-            </thead>
-
-            <tbody>
-              <tr v-for="item in expedientes" :key="item.id">
-                <!-- MES -->
-                <td>
-                  <span class="month-badge" :class="'month-' + item.mesNumero">
-                    {{ item.mes }}
-                  </span>
-                </td>
-
-                <!-- EXPEDIENTE -->
-                <td class="expediente">
-                  {{ item.expediente }}
-                </td>
-
-                <!-- CLIENTE -->
-                <td>
-                  {{ item.cliente }}
-                </td>
-
-                <!-- TIPO -->
-                <td>
-                  <span
-                    class="shipment-badge"
-                    :class="shipmentClass(item.tipo)"
-                  >
-                    {{ item.tipo }}
-                  </span>
-                </td>
-
-                <!-- PRICING -->
-                <td class="money">
-                  {{ formatMoney(item.pricing) }}
-                </td>
-
-                <!-- OPERACIONES -->
-                <td class="money">
-                  {{ formatMoney(item.operaciones) }}
-                </td>
-              </tr>
-            </tbody>
-          </v-simple-table>
-        </div>
-
-        <!-- FOOTER TABLA -->
-        <div class="table-footer">
-          <div class="showing-text">
-            Mostrando
-            <strong>{{ expedientes.length }}</strong>
-            de
-            <strong>{{ resumen.totalExpedientes }}</strong>
-            expedientes ({{ mesesTexto }} {{ anio }})
-          </div>
-
-          <div class="pagination-container">
-            <v-btn
-              outlined
-              small
-              min-width="32"
-              class="page-btn"
-              @click="paginaAnterior"
-            >
-              <v-icon small> mdi-chevron-left </v-icon>
-            </v-btn>
-
-            <v-btn
-              v-for="page in 5"
-              :key="page"
-              small
-              min-width="32"
-              class="page-btn"
-              :class="{ active: pagina === page }"
-              @click="pagina = page"
-            >
-              {{ page }}
-            </v-btn>
-
-            <v-btn
-              outlined
-              small
-              min-width="32"
-              class="page-btn"
-              @click="paginaSiguiente"
-            >
-              <v-icon small> mdi-chevron-right </v-icon>
-            </v-btn>
-          </div>
-        </div>
-
-        <!-- TOTAL -->
-        <div class="total-row">
-          <div class="total-label">TOTAL ({{ mesesTexto }} {{ anio }})</div>
-
-          <div class="total-pricing">
-            USD {{ formatMoney(resumen.gananciaPricing) }}
-          </div>
-
-          <div class="total-operaciones">
-            USD {{ formatMoney(resumen.gananciaOperaciones) }}
-          </div>
-        </div>
-
-        <!-- NOTA -->
-        <div class="note-box">
-          <div class="note-icon">
-            <v-icon> mdi-information </v-icon>
-          </div>
-
-          <div>
-            <div class="note-title">Nota:</div>
-
-            <div class="note-text">
-              Los datos mostrados corresponden al periodo y filtros
-              seleccionados.
+              <div class="kpi-value blue-text">
+                {{ totalMasterAgrupado.total_expedientes }}
+              </div>
             </div>
           </div>
+        </v-col>
+
+        <!-- CLIENTES -->
+        <v-col cols="12" sm="6" md="3">
+          <div class="kpi-card">
+            <div>
+              <v-icon color="orange" class="mr-5" size="50px">
+                mdi-account-group
+              </v-icon>
+            </div>
+
+            <div class="kpi-content">
+              <div class="kpi-label">
+                TOTAL
+                <br />
+                CLIENTES
+              </div>
+
+              <div class="kpi-value orange-text">
+                {{ totalMasterAgrupado.total_clientes }}
+              </div>
+            </div>
+          </div>
+        </v-col>
+
+        <!-- GANANCIA PRICING -->
+        <v-col cols="12" sm="6" md="3">
+          <div class="kpi-card">
+            <div>
+              <v-icon color="purple" class="mr-5" size="50px"> mdi-tag </v-icon>
+            </div>
+
+            <div class="kpi-content">
+              <div class="kpi-label">GANANCIA S/ PRICING</div>
+
+              <div class="kpi-value purple-text">
+                USD {{ formatMoney(totalMasterAgrupado.total_pr) }}
+              </div>
+            </div>
+          </div>
+        </v-col>
+
+        <!-- GANANCIA OPERACIONES -->
+        <v-col cols="12" sm="6" md="3">
+          <div class="kpi-card">
+            <div>
+              <v-icon color="green" class="mr-5" size="50px"> mdi-cog </v-icon>
+            </div>
+
+            <div class="kpi-content">
+              <div class="kpi-label">GANANCIA S/ OPERACIONES</div>
+
+              <div class="kpi-value green-text">
+                USD {{ formatMoney(totalMasterAgrupado.total_op) }}
+              </div>
+            </div>
+          </div>
+        </v-col>
+      </v-row>
+
+      <!-- TABLA -->
+      <v-data-table
+        :headers="headers"
+        :items="totalMasterPorMes"
+        class="expedientes-table"
+        hide-default-footer
+        :page="page"
+      >
+        <template v-slot:[`item.mes`]="{ item }">
+          <span class="month-badge" :class="'month-' + item.mesnumero">
+            {{ item.mes }}
+          </span>
+        </template>
+        <template v-slot:[`item.exp_codemaster`]="{ item }">
+          <span class="expediente">
+            {{ item.exp_codemaster }}
+          </span>
+        </template>
+
+        <template v-slot:[`item.tipo_embarque`]="{ item }">
+          <span
+            class="shipment-badge"
+            :class="shipmentClass(item.tipo_embarque)"
+          >
+            {{ item.tipo_embarque }}
+          </span>
+        </template>
+
+        <template v-slot:[`item.total_pr`]="{ item }">
+          <span class="money">
+            {{ formatMoney(item.total_pr) }}
+          </span>
+        </template>
+
+        <template v-slot:[`item.total_op`]="{ item }">
+          <span class="money">
+            {{ formatMoney(item.total_op) }}
+          </span>
+        </template>
+      </v-data-table>
+
+      <!-- FOOTER TABLA -->
+      <div class="table-footer">
+        <div class="showing-text">
+          Mostrando
+          <strong>{{
+            10 * page > totalMasterPorMes.length
+              ? totalMasterPorMes.length
+              : 10 * page
+          }}</strong>
+          de
+          <strong>{{ totalMasterPorMes.length }}</strong>
+          expedientes ({{ mesesTexto }} {{ year }})
         </div>
-      </v-card>
+
+        <div class="pagination-container">
+          <v-pagination
+            v-model="page"
+            :total-visible="10"
+            :length="totalPaginas"
+            color="#063c79"
+          />
+        </div>
+      </div>
+
+      <!-- TOTAL -->
+      <!-- <div class="total-row">
+        <div class="total-label">TOTAL ({{ mesesTexto }} {{ year }})</div>
+
+        <div class="total-pricing">
+          USD {{ formatMoney(totalMasterAgrupado.total_pr) }}
+        </div>
+
+        <div class="total-operaciones">
+          USD {{ formatMoney(totalMasterAgrupado.total_op) }}
+        </div>
+      </div> -->
+
+      <!-- NOTA -->
+      <div class="note-box">
+        <div class="note-icon">
+          <v-icon> mdi-information </v-icon>
+        </div>
+
+        <div>
+          <div class="note-title">Nota:</div>
+
+          <div class="note-text">
+            Los datos mostrados corresponden al periodo y filtros seleccionados.
+          </div>
+        </div>
+      </div>
+    </v-card>
   </v-container>
 </template>
 
 <script>
+import { mapActions } from "vuex";
 export default {
   name: "DetalleExpedientes",
 
   data() {
     return {
-      anio: 2026,
-
+      year: 2026,
+      page: 1,
       anios: [2024, 2025, 2026],
 
       menuMeses: false,
 
-      mesesSeleccionados: [1, 2, 3],
+      mesesSeleccionados: [
+        "01",
+        "02",
+        "03",
+        "04",
+        "05",
+        "06",
+        "07",
+        "08",
+        "09",
+        "10",
+        "11",
+        "12",
+      ],
 
-      mesesTemporales: [1, 2, 3],
+      mesesTemporales: [
+        "01",
+        "02",
+        "03",
+        "04",
+        "05",
+        "06",
+        "07",
+        "08",
+        "09",
+        "10",
+        "11",
+        "12",
+      ],
 
       pagina: 1,
 
       meses: [
         {
-          value: 1,
+          value: "01",
           text: "Enero",
         },
         {
-          value: 2,
+          value: "02",
           text: "Febrero",
         },
         {
-          value: 3,
+          value: "03",
           text: "Marzo",
         },
         {
-          value: 4,
+          value: "04",
           text: "Abril",
         },
         {
-          value: 5,
+          value: "05",
           text: "Mayo",
         },
         {
-          value: 6,
+          value: "06",
           text: "Junio",
         },
         {
-          value: 7,
+          value: "07",
           text: "Julio",
         },
         {
-          value: 8,
+          value: "08",
           text: "Agosto",
         },
         {
-          value: 9,
+          value: "09",
           text: "Septiembre",
         },
         {
-          value: 10,
+          value: "10",
           text: "Octubre",
         },
         {
-          value: 11,
+          value: "11",
           text: "Noviembre",
         },
         {
-          value: 12,
+          value: "12",
           text: "Diciembre",
         },
       ],
 
-      resumen: {
-        totalExpedientes: 42,
-        totalClientes: 68,
-        gananciaPricing: 196602.91,
-        gananciaOperaciones: 345789.02,
-      },
-
-      expedientes: [
+      headers: [
+        { value: "mes", text: "MES" },
+        { value: "exp_codemaster", text: "EXP" },
+        { value: "cliente", text: "CLIENTE" },
+        { value: "tipo_embarque", text: "TIPO EMBARQUE", align: "center" },
+        { value: "total_pr", text: "GANANCIA PRICING (USD)", align: "center" },
         {
-          id: 1,
-          mes: "Enero",
-          mesNumero: 1,
-          expediente: "EXP-1456",
-          cliente: "Importadora XYZ SAC",
-          tipo: "LCL",
-          pricing: 1250,
-          operaciones: 1480,
-        },
-        {
-          id: 2,
-          mes: "Enero",
-          mesNumero: 1,
-          expediente: "EXP-1457",
-          cliente: "Comercial Andina SRL",
-          tipo: "FCL",
-          pricing: 2100,
-          operaciones: 2450,
-        },
-        {
-          id: 3,
-          mes: "Febrero",
-          mesNumero: 2,
-          expediente: "EXP-1460",
-          cliente: "Distribuidora Norte SAC",
-          tipo: "LCL",
-          pricing: 3200,
-          operaciones: 4150,
-        },
-        {
-          id: 4,
-          mes: "Febrero",
-          mesNumero: 2,
-          expediente: "EXP-1461",
-          cliente: "Servicios Logísticos Peru SAC",
-          tipo: "GRUPAL",
-          pricing: 980,
-          operaciones: 1320,
-        },
-        {
-          id: 5,
-          mes: "Marzo",
-          mesNumero: 3,
-          expediente: "EXP-1463",
-          cliente: "Grupo Empresarial Lima SAC",
-          tipo: "FCL",
-          pricing: 1680,
-          operaciones: 2230,
-        },
-        {
-          id: 6,
-          mes: "Marzo",
-          mesNumero: 3,
-          expediente: "EXP-1464",
-          cliente: "Comercializadora del Sur SAC",
-          tipo: "LCL",
-          pricing: 2950,
-          operaciones: 3870,
-        },
-        {
-          id: 7,
-          mes: "Marzo",
-          mesNumero: 3,
-          expediente: "EXP-1465",
-          cliente: "Negocios Internacionales SAC",
-          tipo: "GRUPAL",
-          pricing: 1300,
-          operaciones: 1650,
-        },
-        {
-          id: 8,
-          mes: "Marzo",
-          mesNumero: 3,
-          expediente: "EXP-1466",
-          cliente: "Soluciones Industriales SAC",
-          tipo: "FCL",
-          pricing: 2480,
-          operaciones: 3120,
-        },
-        {
-          id: 9,
-          mes: "Marzo",
-          mesNumero: 3,
-          expediente: "EXP-1467",
-          cliente: "Inversiones Globales SAC",
-          tipo: "LCL",
-          pricing: 1150,
-          operaciones: 1980,
-        },
-        {
-          id: 10,
-          mes: "Enero",
-          mesNumero: 1,
-          expediente: "EXP-1468",
-          cliente: "Comercializadora Alpha SAC",
-          tipo: "FCL",
-          pricing: 3600,
-          operaciones: 4560,
+          value: "total_op",
+          text: "GANANCIA OPERACIONES (USD)",
+          align: "center",
         },
       ],
     };
@@ -605,9 +476,53 @@ export default {
         .map((m) => m.text)
         .join(", ");
     },
-  },
+    totalMasterAgrupado() {
+      return (
+        this.$store.state.reportes.totalMasterAgrupado || {
+          total_clientes: 0,
+          total_expedientes: 0,
+          total_op: 0,
+          total_pr: 0,
+        }
+      );
+    },
 
+    totalMasterPorMes() {
+      return this.$store.state.reportes.totalMasterPorMes || [];
+    },
+    totalPaginas() {
+      return Math.ceil(this.totalMasterPorMes.length / 10);
+    },
+  },
+  mounted() {
+    const { code_mes, year } = this.$route.params;
+    console.log("params", this.$route.params);
+    if (code_mes && year) {
+      this.mesesSeleccionados = [code_mes];
+      this.year = year;
+      console.log("year", year);
+      this.recargarFiltro();
+      return;
+    }
+    this.recargarFiltro();
+  },
   methods: {
+    ...mapActions([
+      "getTotalesMasterGeneralAgrupado",
+      "getTotalesMasterGeneralPorMes",
+    ]),
+    recargarFiltro() {
+      Promise.all([
+        this.getTotalesMasterGeneralAgrupado({
+          year: this.year,
+          mes: this.mesesSeleccionados.join(","),
+        }),
+        this.getTotalesMasterGeneralPorMes({
+          year: this.year,
+          mes: this.mesesSeleccionados.join(","),
+        }),
+      ]);
+    },
     toggleMes(value) {
       const index = this.mesesTemporales.indexOf(value);
 
@@ -640,7 +555,7 @@ export default {
 
     aplicarFiltros() {
       console.log("Aplicando filtros:", {
-        anio: this.anio,
+        year: this.year,
         meses: this.mesesSeleccionados,
       });
 
@@ -684,7 +599,7 @@ export default {
         case "FCL":
           return "shipment-fcl";
 
-        case "GRUPAL":
+        case "AÉREO":
           return "shipment-grupal";
 
         default:
@@ -732,7 +647,7 @@ export default {
   top: 0;
   border: 1px solid #dce6ef;
   color: #16447d !important;
-  font-size: 11px !important;
+  /* font-size: 11px !important; */
   text-transform: none;
 }
 
@@ -754,7 +669,7 @@ export default {
   border-radius: 6px;
   background: #edf6fd;
   color: #24517e;
-  font-size: 10px;
+  /* font-size: 10px; */
 }
 
 .info-message .v-icon {
@@ -783,12 +698,12 @@ export default {
   display: block;
   margin-bottom: 3px;
   color: #24446d;
-  font-size: 10px;
+  /* font-size: 10px; */
   font-weight: 700;
 }
 
 .filter-input {
-  font-size: 11px;
+  /* font-size: 11px; */
 }
 
 .filter-input >>> .v-input__slot {
@@ -800,7 +715,7 @@ export default {
   justify-content: space-between;
   border-color: #cfdbe7 !important;
   color: #274b76 !important;
-  font-size: 10px;
+  font-size: 14px;
   text-transform: none;
 }
 
@@ -813,7 +728,7 @@ export default {
   min-height: 34px !important;
   border-color: #d3dfe9 !important;
   color: #234773 !important;
-  font-size: 10px;
+  font-size: 14px;
   text-transform: none;
 }
 
@@ -821,14 +736,14 @@ export default {
   min-height: 34px !important;
   border-color: #d7e1ea !important;
   color: #234773 !important;
-  font-size: 10px;
+  font-size: 14px;
   text-transform: none;
 }
 
 .apply-filter-btn {
   min-height: 34px !important;
   background: #073e7d !important;
-  font-size: 10px;
+  font-size: 14px;
   text-transform: none;
 }
 
@@ -968,7 +883,7 @@ export default {
   background: #063c79 !important;
   border-right: 1px solid rgba(255, 255, 255, 0.25);
   color: #fff !important;
-  font-size: 9px !important;
+  /* font-size: 9px !important; */
   font-weight: 700 !important;
   text-align: center !important;
   white-space: nowrap;
@@ -980,7 +895,7 @@ export default {
   border-right: 1px solid #e0e6eb;
   border-bottom: 1px solid #e5eaef;
   color: #24446d;
-  font-size: 9px !important;
+  /* font-size: 9px !important; */
 }
 
 .expedientes-table >>> tbody tr:hover {
@@ -1005,7 +920,7 @@ export default {
   min-width: 55px;
   padding: 3px 8px;
   border-radius: 4px;
-  font-size: 9px;
+  /* font-size: 9px; */
   font-weight: 600;
   text-align: center;
 }
@@ -1025,12 +940,57 @@ export default {
   color: #d05d1a;
 }
 
+.month-4 {
+  background: #e8ddff;
+  color: #6842b5;
+}
+
+.month-5 {
+  background: #fff0b8;
+  color: #a67c00;
+}
+
+.month-6 {
+  background: #d8f3f5;
+  color: #14777d;
+}
+
+.month-7 {
+  background: #ffdce5;
+  color: #b52d50;
+}
+
+.month-8 {
+  background: #e2e4ff;
+  color: #4b51a8;
+}
+
+.month-9 {
+  background: #ffe0b2;
+  color: #a85d00;
+}
+
+.month-10 {
+  background: #dcefdc;
+  color: #3d7a42;
+}
+
+.month-11 {
+  background: #e5e0f5;
+  color: #67558f;
+}
+
+.month-12 {
+  background: #d9edf7;
+  color: #28627a;
+}
+
 .shipment-badge {
   display: inline-block;
   min-width: 52px;
   padding: 3px 7px;
   border-radius: 4px;
-  font-size: 9px;
+  font-size: 12px;
   font-weight: 700;
   text-align: center;
 }
@@ -1063,7 +1023,7 @@ export default {
 
 .showing-text {
   color: #315478;
-  font-size: 9px;
+  font-size: 16px;
 }
 
 .pagination-container {
