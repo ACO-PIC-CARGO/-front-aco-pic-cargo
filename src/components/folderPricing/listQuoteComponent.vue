@@ -242,7 +242,6 @@
           v-model="search"
           append-icon="mdi-magnify"
           dense
-          hidden
           outlined
         >
         </v-text-field>
