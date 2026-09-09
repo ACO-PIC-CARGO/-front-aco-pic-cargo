@@ -1,10 +1,11 @@
 import axios from "@/api/axios-config";
 import Swal from "sweetalert2";
 
-const state = { listDetalle: [] ,
-   totalMasterAgrupado: {},
-   totalMasterPorMes  : []
-  };
+const state = {
+  listDetalle: [],
+  totalMasterAgrupado: {},
+  totalMasterPorMes: [],
+};
 const mutations = {
   SET_LIST_DETALLE(state, data) {
     state.listDetalle = data;
@@ -15,7 +16,7 @@ const mutations = {
   },
   SET_TOTAL_MASTER_POR_MES(state, data) {
     state.totalMasterPorMes = data;
-  }
+  },
 };
 const actions = {
   async exportReporteFile(__, data) {
@@ -105,6 +106,68 @@ const actions = {
         console.log("Error al obtener los datos:", error);
       });
   },
+  async printTotalesMasterPorMes({ commit }, data) {
+    var config = {
+      method: "get",
+      url: process.env.VUE_APP_URL_MAIN + `imprimir_reporte_ganancia`,
+      params: data,
+      headers: {
+        "Content-Type": "application/json",
+      },
+    };
+    Swal.fire({
+      icon: "info",
+      title: "Generando impresión",
+      text: "Estamos preparando la impresión. Por favor, espera un momento.",
+      showConfirmButton: false,
+      allowOutsideClick: false,
+      allowEscapeKey: false,
+      didOpen: () => {
+        Swal.showLoading();
+      },
+    });
+
+    await axios(config)
+      .then(function (response) {
+        let data = response.data;
+        window.open(process.env.VUE_APP_URL_MAIN + data.path, "_blank");
+        Swal.close();
+      })
+      .catch(function (error) {
+        console.error(error);
+      });
+  },
+  async imprimirReporteGananciaDetallado({ commit }, data) {
+    var config = {
+      method: "get",
+      url: process.env.VUE_APP_URL_MAIN + `imprimir_reporte_ganancia_detallado`,
+      params: data,
+      headers: {
+        "Content-Type": "application/json",
+      },
+    };
+    Swal.fire({
+      icon: "info",
+      title: "Generando impresión",
+      text: "Estamos preparando la impresión. Por favor, espera un momento.",
+      showConfirmButton: false,
+      allowOutsideClick: false,
+      allowEscapeKey: false,
+      didOpen: () => {
+        Swal.showLoading();
+      },
+    });
+
+    await axios(config)
+      .then(function (response) {
+        let data = response.data;
+        window.open(process.env.VUE_APP_URL_MAIN + data.path, "_blank");
+        Swal.close();
+      })
+      .catch(function (error) {
+        console.error(error);
+      });
+  },
   async getTotalesMasterPorMes({ commit }, data) {
     var config = {
       method: "get",
@@ -131,7 +194,8 @@ const actions = {
   async getTotalesMasterGeneralAgrupado({ commit }, data) {
     var config = {
       method: "get",
-      url: process.env.VUE_APP_URL_MAIN + `obtener_totales_master_genetal_general`,
+      url:
+        process.env.VUE_APP_URL_MAIN + `obtener_totales_master_genetal_general`,
       params: data,
       headers: {
         "Content-Type": "application/json",
@@ -154,7 +218,8 @@ const actions = {
   async getTotalesMasterGeneralPorMes({ commit }, data) {
     var config = {
       method: "get",
-      url: process.env.VUE_APP_URL_MAIN + `obtener_totales_master_genetal_por_mes`,
+      url:
+        process.env.VUE_APP_URL_MAIN + `obtener_totales_master_genetal_por_mes`,
       params: data,
       headers: {
         "Content-Type": "application/json",

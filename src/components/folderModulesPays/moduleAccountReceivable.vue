@@ -2,17 +2,7 @@
   <v-container fluid>
     <v-row>
       <v-col cols="12">
-        <v-alert dense color="#E3F2FD" width="520px">
-          Se han aplicado filtros. Si necesita cambiar, de clic en
-          <a
-            href="#"
-            class="text-decoration-underline text-info font-weight-bold"
-            @click.prevent="dialogFiltro = !dialogFiltro"
-            dense
-          >
-            FILTRAR <v-icon color="info">mdi-filter</v-icon>
-          </a>
-        </v-alert>
+        <BarraFiltro :filtro="filtro" />
       </v-col>
       <v-col cols="12" md="3" class="pt-0">
         <v-text-field
@@ -244,10 +234,12 @@ import moment from "moment";
 import FormatFecha from "../comun/FormatFecha.vue";
 import { mapActions } from "vuex";
 import Swal from "sweetalert2";
+import BarraFiltro from "../BarraMostrarFiltro/BarraFiltro.vue";
 export default {
   name: "controlAccountReceivableCom",
   components: {
     FormatFecha,
+    BarraFiltro,
   },
   props: {
     operativa: "",
@@ -660,6 +652,19 @@ export default {
         .catch(function (error) {
           console.error(error);
         });
+    },
+  },
+  computed: {
+    filtro() {
+      return {
+        id_ingreso: this.id_ingreso,
+        id_subingreso: this.id_subingreso,
+        fechapagodesde: this.fechapagodesde,
+        fechapagohasta: this.fechapagohasta,
+        id_cliente: this.id_cliente,
+        factura: this.factura,
+        serie: this.serie,
+      };
     },
   },
 };

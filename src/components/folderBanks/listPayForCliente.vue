@@ -1,16 +1,7 @@
 <template>
   <v-card min-height="80vh">
-    <v-alert dense color="#E3F2FD" class="mx-5" width="520px">
-      Se han aplicado filtros. Si necesita cambiar, de clic en 
-      <a
-        href="#"
-        class="text-decoration-underline text-info font-weight-bold"
-        @click.prevent="dialogFiltro = !dialogFiltro"
-        dense
-      >
-        FILTRAR <v-icon color="info">mdi-filter</v-icon>
-      </a>
-    </v-alert>
+    <BarraFiltro :filtro="filtro" :cuentas="cuentas" />
+    
     <v-card-title class="pt-0">
       <v-text-field
         class="mx-2"
@@ -285,10 +276,13 @@ import swal from "sweetalert2";
 import moment from "moment";
 import { mapActions } from "vuex";
 import FormatFecha from "../comun/FormatFecha.vue";
+import BarraFiltro from "../BarraMostrarFiltro/BarraFiltro.vue";
+
 
 export default {
   components: {
     FormatFecha,
+    BarraFiltro 
   },
   data() {
     return {

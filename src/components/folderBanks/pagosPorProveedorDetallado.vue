@@ -2,17 +2,7 @@
   <v-container fluid class="contenedor-scroll">
     <v-row>
       <v-col cols="12">
-        <v-alert dense color="#E3F2FD" width="500px">
-          Mostrando año vigente. Para otros años, usa
-          <a
-            href="#"
-            class="text-decoration-underline text-info font-weight-bold"
-            @click.prevent="dialogFiltro = !dialogFiltro"
-            dense
-          >
-            FILTRAR <v-icon color="info">mdi-filter</v-icon>
-          </a>
-        </v-alert>
+        <BarraFiltro :filtro="filtro" :cuentas="cuentas" />
       </v-col>
       <v-col cols="12" class="pt-0">
         <v-row align="center">
@@ -181,9 +171,11 @@ import { mapActions } from "vuex";
 import FormatFecha from "../comun/FormatFecha.vue";
 import axios from "@/api/axios-config";
 import Swal from "sweetalert2";
+import BarraFiltro from "../BarraMostrarFiltro/BarraFiltro.vue";
 export default {
   components: {
     FormatFecha,
+    BarraFiltro,
   },
   data() {
     return {
@@ -233,7 +225,7 @@ export default {
     await this.getListBanksDetailsCargar();
   },
   methods: {
-    ...mapActions(["getListarBancosgastosDetalles",'validarUsuarioAdmin']),
+    ...mapActions(["getListarBancosgastosDetalles", "validarUsuarioAdmin"]),
     async ver(pago) {
       this.$router.push({
         name: "verPagosPorProveedor",
@@ -241,52 +233,50 @@ export default {
       });
     },
     async editar(item) {
-      let val = false
-      await Swal
-        .fire({
-          title: "Ingrese sus datos Administrador",
-          html:
-            '<input id="swal-input1" class="swal2-input" placeholder="Nombre">' +
-            '<input id="swal-input2" type="password" class="swal2-input" placeholder="Clave">',
-          focusConfirm: false,
-          showCancelButton: true,
-          confirmButtonText: "Aceptar",
-          cancelButtonText: "Cancelar",
-          preConfirm: () => {
-            const input1 = document.getElementById("swal-input1").value.trim();
-            const input2 = document.getElementById("swal-input2").value.trim();
-            if (!input1 || !input2) {
-              Swal.showValidationMessage("Por favor, complete ambos campos");
-              return false;
-            }
-            return { usuario: input1, clave: input2 };
-          },
-        })
-        .then(async (result) => {
-          if (!result.isConfirmed) {
-            // Usuario canceló
-            val = false;
-            msg = "Operación cancelada";
-            return;
+      let val = false;
+      await Swal.fire({
+        title: "Ingrese sus datos Administrador",
+        html:
+          '<input id="swal-input1" class="swal2-input" placeholder="Nombre">' +
+          '<input id="swal-input2" type="password" class="swal2-input" placeholder="Clave">',
+        focusConfirm: false,
+        showCancelButton: true,
+        confirmButtonText: "Aceptar",
+        cancelButtonText: "Cancelar",
+        preConfirm: () => {
+          const input1 = document.getElementById("swal-input1").value.trim();
+          const input2 = document.getElementById("swal-input2").value.trim();
+          if (!input1 || !input2) {
+            Swal.showValidationMessage("Por favor, complete ambos campos");
+            return false;
           }
+          return { usuario: input1, clave: input2 };
+        },
+      }).then(async (result) => {
+        if (!result.isConfirmed) {
+          // Usuario canceló
+          val = false;
+          msg = "Operación cancelada";
+          return;
+        }
 
-          if (result.value) {
-            const res = await this.validarUsuarioAdmin({
-              usuario: result.value.usuario,
-              clave: result.value.clave,
-            });
+        if (result.value) {
+          const res = await this.validarUsuarioAdmin({
+            usuario: result.value.usuario,
+            clave: result.value.clave,
+          });
 
-            if (res && res.estadoflag) {
-              val = true;
-            } else {
-              val = false;
-              msg = res?.mensaje || "Credenciales incorrectas";
-            }
+          if (res && res.estadoflag) {
+            val = true;
           } else {
             val = false;
-            msg = "Debe ingresar las credenciales";
+            msg = res?.mensaje || "Credenciales incorrectas";
           }
-        });
+        } else {
+          val = false;
+          msg = "Debe ingresar las credenciales";
+        }
+      });
 
       if (!val) {
         await swal.fire({
@@ -346,7 +336,11 @@ export default {
         operativo: true,
         administrativo: true,
       };
+      this.filtro.desde = moment().format("YYYY-01-01");
+      this.filtro.hasta = moment().endOf("month").format("YYYY-MM-DD");
+      this.$store.state.spiner = true;
       await this.getListarBancosgastosDetalles(this.filtro);
+      this.$store.state.spiner = false;
       this.dialogFiltro = false;
     },
   },

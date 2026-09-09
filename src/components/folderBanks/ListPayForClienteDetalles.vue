@@ -1,17 +1,7 @@
 <template>
   <v-container fluid>
-    <v-alert dense color="#E3F2FD" class="mx-5" width="500px">
-      Mostrando año vigente. Para otros años, usa
-      <a
-        href="#"
-        class="text-decoration-underline text-info font-weight-bold"
-        @click.prevent="dialogFiltro = !dialogFiltro"
-        dense
-      >
-        FILTRAR <v-icon color="info">mdi-filter</v-icon>
-      </a>
-    </v-alert>
     <v-card min-height="80vh" elevation="0">
+      <BarraFiltro :filtro="filtro" :cuentas="cuentas" />
       <v-card-title class="pt-0">
         <v-text-field
           class="mx-2"
@@ -279,9 +269,12 @@ import moment from "moment";
 import { mapActions } from "vuex";
 import Swal from "sweetalert2";
 import FormatFecha from "../comun/FormatFecha.vue";
+import BarraFiltro from "../BarraMostrarFiltro/BarraFiltro.vue";
+
 export default {
   components: {
     FormatFecha,
+    BarraFiltro,
   },
   data() {
     return {
