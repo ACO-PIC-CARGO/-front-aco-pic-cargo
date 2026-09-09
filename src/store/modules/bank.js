@@ -552,7 +552,7 @@ const actions = {
       });
     return res;
   },
-  async setRegistroEgresos({ commit }, data) {
+  async setRegistroEgresos({ commit, dispatch }, data) {
     var config = {
       method: "post",
       url: process.env.VUE_APP_URL_MAIN + "registro_egresos",
@@ -567,7 +567,27 @@ const actions = {
     await axios(config)
       .then(function (response) {
         let data = response.data;
-        console.log("Respuesta del servidor al registrar egreso:", data);
+        Swal.fire({
+          icon: "success",
+          text: data.mensaje,
+          confirmButtonText: "Imprimir comprobante",
+          cancelButtonText: "Ir A listado",
+          showCancelButton: true,
+        }).then(async (res) => {
+          if (res.isConfirmed) {
+            await dispatch("imprimirComprobanteEgreso", {
+              id: data.data[0].v_id,
+            });
+            router.push({
+              name: "listBankCxP",
+            });
+          }
+          if (res.cancelButtonText) {
+            router.push({
+              name: "listBankCxP",
+            });
+          }
+        });
       })
       .catch(function (error) {
         console.error(error);
@@ -641,7 +661,7 @@ const actions = {
             showCancelButton: true,
           }).then(async (res) => {
             if (res.isConfirmed) {
-              await dispatch("imprimirComprobante", {
+              await dispatch("imprimirComprobanteIngreso", {
                 id: data.data[0].v_id_pago,
               });
               router.push({
@@ -855,7 +875,7 @@ const actions = {
       });
     return res;
   },
-  async imprimirComprobante({ commit }, data) {
+  async imprimirComprobanteIngreso({ commit }, data) {
     let res = {};
     var config = {
       method: "get",
@@ -873,6 +893,42 @@ const actions = {
       icon: "info",
       title: "Generando impresión",
       text: "Estamos preparando la impresión del ingreso. Por favor, espera un momento.",
+      showConfirmButton: false,
+      allowOutsideClick: false,
+      allowEscapeKey: false,
+      didOpen: () => {
+        Swal.showLoading();
+      },
+    });
+
+    await axios(config)
+      .then(function (response) {
+        let data = response.data;
+        window.open(process.env.VUE_APP_URL_MAIN + data.path, "_blank");
+        Swal.close();
+      })
+      .catch(function (error) {
+        console.error(error);
+      });
+  },
+  async imprimirComprobanteEgreso({ commit }, data) {
+    let res = {};
+    var config = {
+      method: "get",
+      url: process.env.VUE_APP_URL_MAIN + "imprimir_registro_egreso",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      params: {
+        ...data,
+        id_branch: JSON.parse(sessionStorage.getItem("dataUser"))[0].id_branch,
+        logo: JSON.parse(sessionStorage.getItem("dataBranch"))[0].logo,
+      },
+    };
+    Swal.fire({
+      icon: "info",
+      title: "Generando impresión",
+      text: "Estamos preparando la impresión del egreso. Por favor, espera un momento.",
       showConfirmButton: false,
       allowOutsideClick: false,
       allowEscapeKey: false,

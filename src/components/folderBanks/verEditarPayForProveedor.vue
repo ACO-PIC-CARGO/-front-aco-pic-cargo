@@ -62,41 +62,54 @@
             disabled
           ></v-text-field>
         </v-col>
-        <v-col cols="12" md="2" v-if="verflag">
-          <v-btn
-            color="success"
-            class="mt-5"
-            @click="
-              $router.push({
-                name: 'editarPagosPorProveedor',
-                params: { id: $route.params.id },
-              })
-            "
-          >
-            Ir a Editar
-          </v-btn>
-        </v-col>
-        <v-col cols="12" md="2" v-if="!verflag">
-          <v-btn
-            class="mt-5"
-            color="success"
-            :loading="loading"
-            @click="finalizarOperacion()"
-          >
-            Actualizar Operación
-          </v-btn>
-        </v-col>
-        <v-col cols="12" md="2" v-if="!verflag">
-          <v-btn
-            class="mt-5"
-            color="red"
-            dark
-            :loading="loading"
-            @click="confirmarEliminar()"
-          >
-            Eliminar Operación
-          </v-btn>
-        </v-col>
+      </v-row>
+      <v-row>
+        <v-btn
+          v-if="verflag"
+          color="success"
+          class="mt-5 ml-3"
+          @click="
+            $router.push({
+              name: 'editarPagosPorProveedor',
+              params: { id: $route.params.id },
+            })
+          "
+        >
+          Ir a Editar
+        </v-btn>
+
+        <v-btn
+          v-if="verflag"
+          color="red"
+          class="mt-5 ml-3"
+          dark
+          @click="imprimirComprobanteEgreso({ id: $route.params.id })"
+        >
+          <v-icon class="mx-2">mdi-file-pdf-box</v-icon> Imprimir
+        </v-btn>
+
+        <v-btn
+          v-if="!verflag"
+          class="mt-5 ml-3"
+          color="success"
+          :loading="loading"
+          @click="finalizarOperacion()"
+        >
+          Actualizar Operación
+        </v-btn>
+
+        <v-btn
+          v-if="!verflag"
+          class="mt-5"
+          color="red"
+          dark
+          :loading="loading"
+          @click="confirmarEliminar()"
+        >
+          Eliminar Operación
+        </v-btn>
+      </v-row>
+      <v-row>
         <v-col cols="12">
           <v-tabs
             v-model="pasos"
@@ -606,7 +619,9 @@ export default {
       "verRegistroEgresos",
       "eliminarRegistroEgresos",
       "validarUsuarioAdmin",
+      "imprimirComprobanteEgreso",
     ]),
+
     confirmarEliminar() {
       Swal.fire({
         icon: "warning",

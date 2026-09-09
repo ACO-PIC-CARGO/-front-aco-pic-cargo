@@ -5,7 +5,7 @@
     transition="scale-transition"
     offset-y
     min-width="auto"
-    :disabled="verflag"
+    :disabled="verflag || disabled"
   >
     <template v-slot:activator="{ on, attrs }">
       <v-text-field
@@ -23,6 +23,7 @@
         :clearable="clearable"
         :rules="rules"
         @click:clear="limpiarFecha"
+        :hide-details="hideDetails"
       ></v-text-field>
     </template>
     <v-date-picker
@@ -62,6 +63,14 @@ export default {
       default: false,
     },
     clearable: {
+      type: Boolean,
+      default: false,
+    },
+    hideDetails: {
+      type: Boolean,
+      default: false,
+    },
+    disabled: {
       type: Boolean,
       default: false,
     },

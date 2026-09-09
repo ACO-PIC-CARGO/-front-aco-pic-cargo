@@ -1,16 +1,6 @@
 <template>
   <v-card min-height="80vh" elevation="0">
-    <v-alert dense color="#E3F2FD" class="mx-5" width="520px">
-      Se han aplicado filtros. Si necesita cambiar, de clic en 
-      <a
-        href="#"
-        class="text-decoration-underline text-info font-weight-bold"
-        @click.prevent="dialogFiltro = !dialogFiltro"
-        dense
-      >
-        FILTRAR <v-icon color="info">mdi-filter</v-icon>
-      </a>
-    </v-alert>
+    <BarraFiltro :filtro="filtro" :cuentas="cuentas" />
     <v-card-title class="pt-0">
       <v-text-field
         class="mx-2"
@@ -47,6 +37,10 @@
       >
         Filtrar <v-icon small>mdi-filter</v-icon>
       </v-btn>
+      <v-btn small color="default" @click="Limpiar">
+        <v-icon small>mdi-close</v-icon> Limpiar
+      </v-btn>
+
       <!-- <v-btn class="mr-2" color="default" small @click="limpiar()">
         Limpiar <v-icon small>mdi-close</v-icon>
       </v-btn> -->
@@ -393,9 +387,11 @@ import swal from "sweetalert2";
 import moment from "moment";
 import { mapActions } from "vuex";
 import FormatFecha from "../comun/FormatFecha.vue";
+import BarraFiltro from "../BarraMostrarFiltro/BarraFiltro.vue";
 export default {
   components: {
     FormatFecha,
+    BarraFiltro,
   },
   data() {
     return {
@@ -490,10 +486,10 @@ export default {
       vm.cargarProveedores(),
       vm._getBanksList(),
     ]).then((res) => {
-      vm.cuentas = vm.$store.state.bank.list.map((item) => ({
-        id: item.id,
-        label: item.name,
-      }));
+      // vm.cuentas = vm.$store.state.bank.list.map((item) => ({
+      //   id: item.id,
+      //   label: item.cuenta,
+      // }));
     });
     this.$store.state.drawer = false;
   },
@@ -641,7 +637,7 @@ export default {
           });
       }
     },
-    async limpiar() {
+    async Limpiar() {
       this.filtro = {
         id_branch: "",
         desde: "",

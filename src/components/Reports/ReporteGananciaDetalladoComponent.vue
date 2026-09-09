@@ -510,9 +510,11 @@ export default {
     ...mapActions([
       "getTotalesMasterGeneralAgrupado",
       "getTotalesMasterGeneralPorMes",
+      "imprimirReporteGananciaDetallado",
     ]),
-    recargarFiltro() {
-      Promise.all([
+    async recargarFiltro() {
+      this.$store.state.spiner = true;
+      await Promise.all([
         this.getTotalesMasterGeneralAgrupado({
           year: this.year,
           mes: this.mesesSeleccionados.join(","),
@@ -522,6 +524,7 @@ export default {
           mes: this.mesesSeleccionados.join(","),
         }),
       ]);
+      this.$store.state.spiner = false;
     },
     toggleMes(value) {
       const index = this.mesesTemporales.indexOf(value);
@@ -554,12 +557,7 @@ export default {
     },
 
     aplicarFiltros() {
-      console.log("Aplicando filtros:", {
-        year: this.year,
-        meses: this.mesesSeleccionados,
-      });
-
-      // Aquí llamarías tu API
+      this.recargarFiltro();
     },
 
     compararAnos() {
@@ -567,11 +565,16 @@ export default {
     },
 
     imprimirPDF() {
-      window.print();
+      this.imprimirReporteGananciaDetallado({
+        year: this.year,
+        mes: this.mesesSeleccionados.join(","),
+      });
     },
 
     volverReporte() {
-      this.$router.go(-1);
+      this.$router.push({
+        name: "ReporteGanancia",
+      });
     },
 
     paginaAnterior() {

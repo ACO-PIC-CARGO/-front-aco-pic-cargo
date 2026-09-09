@@ -67,10 +67,13 @@
             disabled
           ></v-text-field>
         </v-col>
-        <v-col cols="12" md="2" v-if="verflag">
+      </v-row>
+      <v-row>
+        <v-col cols="12">
           <v-btn
             color="success"
-            class="mt-5"
+            class="mt-5 ml-3"
+            v-if="verflag"
             @click="
               $router.push({
                 name: 'editarPagosPorCliente',
@@ -80,39 +83,40 @@
           >
             Ir a Editar
           </v-btn>
-        </v-col>
-        <v-col cols="12" md="2" v-if="verflag">
+
           <v-btn
             color="red"
-            class="mt-5"
+            class="mt-5 ml-3"
             dark
-            @click="imprimirComprobante({ id: $route.params.id })"
+            v-if="verflag"
+            @click="imprimirComprobanteIngreso({ id: $route.params.id })"
           >
-            <v-icon class="mx-2" >mdi-file-pdf-box</v-icon> Imprimir
+            <v-icon class="mx-2">mdi-file-pdf-box</v-icon> Imprimir
           </v-btn>
-        </v-col>
-        <v-col cols="12" md="2" v-if="!verflag">
+
           <v-btn
-            class="mt-5"
+            class="mt-5 ml-3"
             color="success"
+            v-if="!verflag"
             :loading="loading"
             @click="finalizarOperacion()"
           >
             Actualizar Operación
           </v-btn>
-        </v-col>
-        <v-col cols="12" md="2" v-if="!verflag">
+
           <v-btn
-            class="mt-5"
+            class="mt-5 mx-3"
             color="red"
             dark
+            v-if="!verflag"
             :loading="loading"
             @click="confirmarEliminar()"
           >
             Eliminar Operación
           </v-btn>
         </v-col>
-
+      </v-row>
+      <v-row>
         <v-col cols="12">
           <v-tabs
             v-model="pasos"
@@ -651,7 +655,8 @@ export default {
       "_getBanksList",
       "updateRegistroIgresos",
       "validarUsuarioAdmin",
-      "eliminarRegistroIngresos","imprimirComprobante"
+      "eliminarRegistroIngresos",
+      "imprimirComprobanteIngreso",
     ]),
     confirmarEliminar() {
       Swal.fire({

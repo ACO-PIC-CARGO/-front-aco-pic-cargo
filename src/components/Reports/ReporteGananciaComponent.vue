@@ -3,6 +3,11 @@
     <div class="titulo-reporte">REPORTE DE GANANCIA</div>
 
     <div class="filtro-anio">
+      <v-btn outlined class="print-btn mx-2" @click="imprimir">
+        <v-icon small left> mdi-printer </v-icon>
+        Imprimir PDF
+      </v-btn>
+
       <v-select
         v-model="anioSeleccionado"
         :items="listaAnios"
@@ -215,7 +220,10 @@
           <tr v-for="mes in totalMasterPorMes" :key="mes.mes">
             <!-- MES -->
             <td class="mes-cell">
-              <span @click="abrirReporteGananciaDetallado(mes)" style="cursor: pointer;">
+              <span
+                @click="abrirReporteGananciaDetallado(mes)"
+                style="cursor: pointer"
+              >
                 <i class="far fa-calendar-alt"></i>
                 {{ mes.nombre_mes }}
               </span>
@@ -270,9 +278,8 @@
 
           <!-- ===================== TOTALES ===================== -->
           <tr class="fila-totales">
-            <td class="total-label" style="color: #472147 !important; ">
-              TOTALES
-              DEL AÑO
+            <td class="total-label" style="color: #472147 !important">
+              TOTALES DEL AÑO
             </td>
 
             <td class="total-pricing">
@@ -437,11 +444,15 @@ export default {
   },
 
   methods: {
-    ...mapActions(["getTotalesMasterAgrupado", "getTotalesMasterPorMes"]),
+    ...mapActions([
+      "getTotalesMasterAgrupado",
+      "getTotalesMasterPorMes",
+      "printTotalesMasterPorMes",
+    ]),
     abrirReporteGananciaDetallado(item) {
       this.$router.push({
         name: "ReporteGananciaDetallado",
-        params: { code_mes: item.mes , year : this.anioSeleccionado},
+        params: { code_mes: item.mes, year: this.anioSeleccionado },
       });
     },
     formatMoney(value) {
@@ -470,6 +481,11 @@ export default {
         }),
       ]);
       this.$store.state.spiner = false;
+    },
+    async imprimir() {
+      this.printTotalesMasterPorMes({
+        year: this.anioSeleccionado,
+      });
     },
   },
 };
@@ -1047,5 +1063,13 @@ export default {
 .select-anio >>> .v-label {
   color: #082d70;
   font-weight: 600;
+}
+
+.print-btn {
+  min-height: 40px !important;
+  border-color: #d7e1ea !important;
+  color: #234773 !important;
+  font-size: 14px;
+  text-transform: none;
 }
 </style>
