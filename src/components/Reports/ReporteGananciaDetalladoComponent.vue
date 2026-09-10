@@ -98,7 +98,7 @@
                   >
                     <v-list-item-action>
                       <v-checkbox
-                        :input-value="mesesSeleccionados.includes(mes.value)"
+                        :input-value="mesesTemporales.includes(mes.value)"
                         hide-details
                         color="primary"
                       />
@@ -257,6 +257,7 @@
         class="expedientes-table"
         hide-default-footer
         :page="page"
+        :items-per-page="itemsPerPage"
       >
         <template v-slot:[`item.mes`]="{ item }">
           <span class="month-badge" :class="'month-' + item.mesnumero">
@@ -295,17 +296,25 @@
       <div class="table-footer">
         <div class="showing-text">
           Mostrando
-          <strong>{{
-            10 * page > totalMasterPorMes.length
-              ? totalMasterPorMes.length
-              : 10 * page
-          }}</strong>
+          <strong>
+            {{ itemsPerPage < 0 ? "Todos" : itemsPerPage * page }}
+          </strong>
           de
           <strong>{{ totalMasterPorMes.length }}</strong>
           expedientes ({{ mesesTexto }} {{ year }})
         </div>
 
-        <div class="pagination-container">
+        <div class="pagination-container my-5">
+          <v-select
+            outlined
+            :items="elementPorPage"
+            v-model="itemsPerPage"
+            item-text="label"
+            label="Mostrar"
+            hide-details
+            dense
+            style="max-width: 150px"
+          ></v-select>
           <v-pagination
             v-model="page"
             :total-visible="10"
@@ -355,8 +364,17 @@ export default {
     return {
       year: 2026,
       page: 1,
+      itemsPerPage: 10,
       anios: [2024, 2025, 2026],
 
+      elementPorPage: [
+        { value: 10, label: "10" },
+        { value: 20, label: "20" },
+        { value: 25, label: "25" },
+        { value: 50, label: "50" },
+        { value: 100, label: "100" },
+        { value: -1, label: "Todos" },
+      ],
       menuMeses: false,
 
       mesesSeleccionados: [
@@ -459,7 +477,7 @@ export default {
 
   computed: {
     todosLosMeses() {
-      return this.mesesSeleccionados.length === 12;
+      return this.mesesTemporales.length === this.meses.length;
     },
 
     mesesTexto() {
@@ -491,7 +509,10 @@ export default {
       return this.$store.state.reportes.totalMasterPorMes || [];
     },
     totalPaginas() {
-      return Math.ceil(this.totalMasterPorMes.length / 10);
+      if (this.itemsPerPage < 0) {
+        return 1;
+      }
+      return Math.ceil(this.totalMasterPorMes.length / this.itemsPerPage);
     },
   },
   mounted() {
@@ -499,6 +520,7 @@ export default {
     console.log("params", this.$route.params);
     if (code_mes && year) {
       this.mesesSeleccionados = [code_mes];
+      this.mesesTemporales = [code_mes];
       this.year = year;
       console.log("year", year);
       this.recargarFiltro();
@@ -514,6 +536,7 @@ export default {
     ]),
     async recargarFiltro() {
       this.$store.state.spiner = true;
+      this.page = 1;
       await Promise.all([
         this.getTotalesMasterGeneralAgrupado({
           year: this.year,
@@ -608,6 +631,11 @@ export default {
         default:
           return "";
       }
+    },
+  },
+  watch: {
+    itemsPerPage() {
+      this.page = 1;
     },
   },
 };
