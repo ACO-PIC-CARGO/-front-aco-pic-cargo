@@ -3,7 +3,6 @@
     <v-card>
       <v-card-title primary-title class="">
         <v-row>
-          DASHBOARD: <v-spacer></v-spacer>
           <v-col
             cols="12"
             lg="2"
@@ -24,7 +23,7 @@
           </v-col>
 
           <v-spacer></v-spacer>
-          <v-btn color="success" @click="redirect()" small class="ml-auto">
+          <v-btn color="success" @click="redirect()" small class="ml-auto my-auto mr-5">
             NUEVA COTIZACIÓN
           </v-btn>
         </v-row>

@@ -1540,7 +1540,7 @@ export default {
           },
         });
         await this.aprobarCotizacion({
-          IdempotencyKey:vm.IdempotencyKey,
+          IdempotencyKey:this.IdempotencyKey,
           id_quote: this.$route.params.id,
           nuevoexpediente: false,
           id_exp: this.id_exp,

@@ -1,7 +1,7 @@
 <template>
-  <v-container fluid>
+  <v-card>
     <listUser />
-  </v-container>
+  </v-card>
 </template>
 
 <script>
