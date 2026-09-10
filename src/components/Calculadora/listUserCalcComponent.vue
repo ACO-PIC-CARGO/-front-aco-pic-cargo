@@ -27,9 +27,20 @@
           class="elevation-2"
         >
           <template v-slot:[`item.action`]="{ item }">
-            <v-btn small min-width="180px" color="info" class="ma-1" @click="abrirModalPreview(item)">
-              <v-icon class="mr-3">mdi-eye</v-icon> Ver Preview
+            <v-btn
+              color="info"
+              v-if="item.capture_cotizacion"
+              small
+              min-width="180px"
+              class="ma-1"
+              @click="abrirImg(item)"
+            >
+              <v-icon>mdi-eye</v-icon> Ver Capture
             </v-btn>
+
+            <!-- <v-btn small min-width="180px" color="info" class="ma-1" @click="abrirModalPreview(item)">
+              <v-icon class="mr-3">mdi-eye</v-icon> Ver Preview
+            </v-btn> -->
             <v-btn small min-width="180px" color="success" class="ma-1">
               <v-icon class="mr-3">mdi-invoice-text-send-outline</v-icon> Enviar
               Pricing
@@ -45,7 +56,7 @@
         </v-data-table>
       </v-col>
     </v-row>
-    <previewQuote :dialog="dialog" :data="dataCotizacion"/>
+    <previewQuote :dialog="dialog" :data="dataCotizacion" />
   </v-container>
 </template>
 
@@ -146,7 +157,7 @@ export default {
       return moment(fecha).format("YYYY-MMM-DD");
     },
     abrirModalPreview(data) {
-      this.dialog = true
+      this.dialog = true;
       this.dataCotizacion = data;
     },
     async exportar() {
@@ -191,38 +202,8 @@ export default {
         this.$store.state.overlay = false;
       }
     },
-    calcResumen() {
-      let items = [];
-      let hoy = moment(new Date()).format("YYYY-MM-DD");
-      // if (this.$store.state.calculadoras.listUser.length > 0) {
-      //   while (items.length <= 1) {
-      //     if (
-      //       this.$store.state.calculadoras.listUser.filter(
-      //         (v) =>
-      //           moment(v.usuario_creacion).format("YYYY-MM-DD") == hoy ||
-      //           moment(v.usuario_updated).format("YYYY-MM-DD") == hoy,
-      //       ).length > 0
-      //     ) {
-      //       items.push({
-      //         day: hoy,
-      //       });
-      //     }
-      //     hoy = moment(hoy).subtract(1, "days").format("YYYY-MM-DD");
-      //   }
-      // }
-      // items.forEach((element) => {
-      //   element.new = this.$store.state.calculadoras.listUser.filter(
-      //     (v) =>
-      //       moment(v.usuario_creacion).format("YYYY-MM-DD") == element.day &&
-      //       v.list_cotizacion.length == 1,
-      //   ).length;
-      //   element.recurrente = this.$store.state.calculadoras.listUser.filter(
-      //     (v) =>
-      //       moment(v.usuario_creacion).format("YYYY-MM-DD") == element.day &&
-      //       v.list_cotizacion.length != 1,
-      //   ).length;
-      // });
-      this.itemResumen = items;
+    abrirImg(item) {
+      window.open(item.capture_cotizacion, "_blank");
     },
     openHistoryCall(item) {
       this.user = item;
