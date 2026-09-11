@@ -22,7 +22,7 @@
           </v-autocomplete>
         </v-col>
         <v-col cols="12" md="2" class="pb-0">
-          Monto Depositado En Banco:
+          Monto Debitado en el banco:
           <!-- <v-icon @click="snackbar = true">mdi-information</v-icon> -->
           <v-text-field
             outlined

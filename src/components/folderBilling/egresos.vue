@@ -173,21 +173,21 @@
                   {{ $store.state.enterprises.impuesto.nombre_impuesto }} Op
                 </th>
                 <th style="background: #ffd6d6" class="text-left">Total Op</th>
-                <th style="background: #d8ffde" class="text-left">
+                <th style="background: #d8ffde" class="text-left" v-if="mostrarColumnaMonedaDiferenteDolar(egreso)">
                   Monto Op Cuenta Banco
                 </th>
                 <th
                   style="background: #d8ffde"
                   class="text-left"
-                  v-if="mostrarImpuesto"
+                  v-if="mostrarImpuesto && mostrarColumnaMonedaDiferenteDolar(egreso)"
                 >
                   {{ $store.state.enterprises.impuesto.nombre_impuesto }} Op
                   Cuenta Banco
                 </th>
-                <th style="background: #d8ffde" class="text-left">
+                <th style="background: #d8ffde" class="text-left" v-if="mostrarColumnaMonedaDiferenteDolar(egreso)">
                   Total Op Cuenta Banco
                 </th>
-                <th style="background: #d8ffde" class="text-left">
+                <th style="background: #d8ffde" class="text-left" v-if="mostrarColumnaMonedaDiferenteDolar(egreso)">
                   Tipo Cambio Cuenta Banco
                 </th>
                 <th class="text-center">Enviado a Admin.</th>
@@ -249,22 +249,22 @@
                   <!-- <td style="background: #ffd6d6">
                     {{ parseFloat(item.igv_op).toFixed(2) }}
                   </td> -->
-                  <td style="background: #ffd6d6">
+                  <td style="background: #ffd6d6" >
                     {{ parseFloat(item.total_op).toFixed(2) }}
                   </td>
-                  <td style="background: #d8ffde">
+                  <td style="background: #d8ffde" v-if="mostrarColumnaMonedaDiferenteDolar(egreso)">
                     {{ parseFloat(item.montoopcuentabanco).toFixed(2) }}
                     {{ item.acronym }}
                   </td>
-                  <td style="background: #d8ffde" v-if="mostrarImpuesto">
+                  <td style="background: #d8ffde" v-if="mostrarImpuesto && mostrarColumnaMonedaDiferenteDolar(egreso)">
                     {{ parseFloat(item.igvopcuentabanco).toFixed(2) }}
                     {{ item.acronym }}
                   </td>
-                  <td style="background: #d8ffde">
+                  <td style="background: #d8ffde" v-if="mostrarColumnaMonedaDiferenteDolar(egreso)">
                     {{ parseFloat(item.totalopcuentabanco).toFixed(2) }}
                     {{ item.acronym }}
                   </td>
-                  <td style="background: #d8ffde">
+                  <td style="background: #d8ffde" v-if="mostrarColumnaMonedaDiferenteDolar(egreso)">
                     {{ item.tipocambio == 1 ? "No Aplica" : item.tipocambio }}
                   </td>
                   <td class="text-center">
@@ -1538,6 +1538,13 @@ export default {
       this.$store.state.enterprises.impuesto.mostrarimpuesto;
   },
   methods: {
+    mostrarColumnaMonedaDiferenteDolar(item){
+      if (item.detalle.some(v=>v.acronym!=='USD')) {
+        return true
+      }
+      console.log(item)
+      return false
+    },
     recibirId(file) {
       this.payPath = file.inserid;
       this.payfile = file.archivo;
