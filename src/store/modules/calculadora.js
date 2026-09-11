@@ -1,5 +1,6 @@
 import axios from "@/api/axios-config";
 import Swal from "sweetalert2";
+import router from "@/router";
 // import funciones from "./../../mixins/funciones";
 const state = {
   listTotalCotizacion: [],
@@ -1293,6 +1294,38 @@ const actions = {
         icon: data.estadoflag ? "success" : "error",
         title: "Aviso",
         text: data.mensaje,
+      });
+    }
+  },
+  async EnviarCotizacionCalculadoraAPrincing({ commit }, data) {
+    var headers = {
+      "Content-Type": "application/json",
+    };
+
+    var config = {
+      method: "post",
+      url: process.env.VUE_APP_URL_MAIN + "calc/enviar_pricing",
+      headers: headers,
+      data: data,
+    };
+    let response = await axios(config);
+    let res = response.data;
+    if (res.estadoflag) {
+      Swal.fire({
+        icon: "success",
+        title: "Cotización Creada",
+        confirmButtonText: "Ir a la cotización",
+        allowEnterKey:false,
+        allowEscapeKey:false,
+        allowOutsideClick:false,
+      }).then((respuesta) => {
+        if (respuesta.isConfirmed) {
+          console.log(res.data);
+          router.push({
+            name: "verQuote",
+            params: { id: res.data[0].id_quote_out },
+          });
+        }
       });
     }
   },
