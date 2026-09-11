@@ -588,15 +588,8 @@ export default {
     this.numerooperacion = data.numerooperacion;
     this.comentarios = data.comentario;
     this.tipocambiosVer = data.tipocambio;
-
-    this.monto =
-      data.totaldolar -
-      (data.comisionbancaria.length > 0
-        ? data.comisionbancaria[0].montodolar
-        : 0);
-    this.monto_local =
-      data.totalmonedalocal -
-      (data.comisionbancaria.length > 0 ? data.comisionbancaria[0].monto : 0);
+    this.monto = data.totaldolar;
+    this.monto_local = data.totalmonedalocal;
     this.urlfile = data.urlfile;
     this.$store.state.bank.deudaAProveedor = data.detalles;
     this.selected = data.detalles;
@@ -844,22 +837,22 @@ export default {
         }
       }
     },
-    calcularTotal() {
-      let total = this.selected.reduce((acc, item) => {
-        let valorFila = 0;
-        if (item.parcialflag) {
-          let maximo = parseFloat(item.montodolar) || 0;
-          let escrito = parseFloat(item.montodolar) || 0;
+    // calcularTotal() {
+    //   let total = this.selected.reduce((acc, item) => {
+    //     let valorFila = 0;
+    //     if (item.parcialflag) {
+    //       let maximo = parseFloat(item.montodolar) || 0;
+    //       let escrito = parseFloat(item.montodolar) || 0;
 
-          valorFila = escrito > maximo ? maximo : escrito;
-        } else {
-          valorFila = parseFloat(item.montodolar) || 0;
-        }
-        return acc + valorFila;
-      }, 0);
+    //       valorFila = escrito > maximo ? maximo : escrito;
+    //     } else {
+    //       valorFila = parseFloat(item.montodolar) || 0;
+    //     }
+    //     return acc + valorFila;
+    //   }, 0);
 
-      this.monto = total.toFixed(2);
-    },
+    //   this.monto = total.toFixed(2);
+    // },
     continuarGastoBancario() {
       if (!this.monto_local) {
         Swal.fire({
@@ -977,7 +970,7 @@ export default {
     montoFinal() {
       let montogastobancario = 0;
       montogastobancario = Number(this.montogastobancario || 0);
-      const total = Number(this.monto_local || 0) + montogastobancario;
+      const total = Number(this.monto_local || 0) ;
       return total.toFixed(4);
     },
   },

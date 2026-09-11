@@ -368,7 +368,7 @@
                   <v-icon
                     color="red"
                     v-if="item.facturado == false && item.pagado == 0"
-                    @click="delIngreso(item.id)"
+                    @click="delIngreso(item,house)"
                   >
                     mdi-delete
                   </v-icon>
@@ -1409,7 +1409,7 @@
         </v-card-text>
         <v-card-actions>
           <v-spacer></v-spacer>
-          <v-btn color="success" @click="copiarMontos()">COPIAR</v-btn>
+          <v-btn color="success" @click="copiarMontos()" :loading="loadingCopiarMonto">COPIAR</v-btn>
           <v-btn color="danger" @click="dialogCopiar = !dialogCopiar">
             CANCELAR
           </v-btn>
@@ -1460,6 +1460,7 @@ export default {
     return {
       dialogCopiar: false,
       loadingFile: false,
+      loadingCopiarMonto:false,
       listaDocumentosQuote: [
         {
           key: "cotizacion",
@@ -1825,23 +1826,109 @@ export default {
     openDoc(path) {
       window.open(path, "_blank");
     },
-    abriModalCopiar(ingreso, bloquearCopiarMontos) {
-      this.ingreso = {};
-      if (bloquearCopiarMontos) {
-        return;
-      }
+    // abriModalCopiar(ingreso, bloquearCopiarMontos) {
+    //   this.ingreso = {};
+    //   if (bloquearCopiarMontos) {
+    //     return;
+    //   }
 
-      this.ingresos = ingreso;
-      this.dialogCopiar = true;
+    //   this.ingresos = ingreso;
+    //   this.dialogCopiar = true;
+    // },
+    abriModalCopiar(house, bloquearCopiarMontos) {
+      if (house.ingresos && house.ingresos.some((v) => v.total_op > 0)) {
+        // Nota: en JavaScript el método correcto es .filter() en lugar de .filtro()
+        let montosConMontosMayoresACero = house.ingresos.filter(
+          (v) => v.total_op > 0,
+        );
+
+        // Generar las filas de la tabla dinámicamente con los datos obtenidos
+        let filasHTML = montosConMontosMayoresACero
+          .map(
+            (item) => `
+        <tr>
+          <td style="padding: 10px; border-bottom: 1px solid #dee2e6; color: #212529;">${
+            item.concepto || "COMISIÓN"
+          }</td>
+          <td style="padding: 10px; border-bottom: 1px solid #dee2e6; color: #212529;">$${item.total_pr.toFixed(
+            2,
+          )}</td>
+          <td style="padding: 10px; border-bottom: 1px solid #dee2e6; font-weight: bold; color: #212529;">$${item.total_op.toFixed(
+            2,
+          )}</td>
+        </tr>
+      `,
+          )
+          .join("");
+
+        Swal.fire({
+          title: "Monto en Operaciones",
+          html: `
+          <p style="margin-bottom: 20px; color: #555; font-size: 14px;">
+            Este concepto tiene un monto en Operaciones.<br>No se modificará.
+          </p>
+          <table style="width: 100%; border-collapse: collapse; text-align: left; font-size: 14px;">
+            <thead>
+              <tr style="background-color: #f1f3f5; color: #495057;">
+                <th style="padding: 10px; border-bottom: 1px solid #dee2e6;">Concepto</th>
+                <th style="padding: 10px; border-bottom: 1px solid #dee2e6;">Pricing</th>
+                <th style="padding: 10px; border-bottom: 1px solid #dee2e6;">Operaciones</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${filasHTML}
+            </tbody>
+          </table>
+        `,
+          icon: "warning",
+          showCancelButton: true,
+          confirmButtonText: "Continuar",
+          cancelButtonText: "Cancelar",
+          confirmButtonColor: "#0056b3",
+          cancelButtonColor: "#ffffff",
+          customClass: {
+            cancelButton: "swal2-cancel-custom",
+          },
+          reverseButtons: true,
+          didRender: () => {
+            const cancelBtn = Swal.getCancelButton();
+            if (cancelBtn) {
+              cancelBtn.style.color = "#212529";
+              cancelBtn.style.border = "1px solid #ced4da";
+            }
+          },
+        }).then((respuesta) => {
+          if (respuesta.isConfirmed) {
+            this.ingreso = {};
+            if (bloquearCopiarMontos) {
+              return;
+            }
+
+            this.ingresos = house;
+            this.dialogCopiar = true;
+          }
+        });
+      } else {
+        this.ingreso = {};
+        if (bloquearCopiarMontos) {
+          return;
+        }
+
+        this.ingresos = house;
+        this.dialogCopiar = true;
+      }
     },
     async copiarMontos() {
       if (this.$refs.frmCopiar.validate()) {
+        this.loadingCopiarMonto = true
         await this.copiarCGingresos({
           ...this.ingresos,
           tipocambio: this.ingresos.tipocambio || 1,
         });
         await this.getListControlGastosHouses(this.$route.params.id);
         this.dialogCopiar = false;
+        this.loadingCopiarMonto = false;
+
       }
     },
     // copiarMontosHouse(house, bloquearCopiarMontos) {
@@ -2209,7 +2296,172 @@ export default {
       this.$forceUpdate();
       this.$emit("recalcularProfit");
     },
-    async delIngreso(id) {
+    async delIngreso(item,house) {
+      let deuda = this.getDeudaActual(house)
+      if (house.total_total_op_ingresos > deuda) {
+        
+      Swal.fire({
+          width: "430px",
+          padding: "18px 22px 16px",
+          background: "#ffffff",
+          showCloseButton: true,
+
+          title: "",
+
+          html: `
+            <div class="delete-modal-content">
+
+              <!-- ILUSTRACIÓN -->
+              <div class="delete-warning-icon">
+
+                <!-- Documento -->
+                <div class="delete-document">
+
+                  <div class="delete-document-fold"></div>
+
+                  <div class="delete-dollar">$</div>
+
+                  <div class="delete-line line-1"></div>
+                  <div class="delete-line line-2"></div>
+                  <div class="delete-line line-3"></div>
+                  <div class="delete-line line-4"></div>
+
+                </div>
+
+                <!-- Rayos -->
+                <div class="delete-ray ray-1"></div>
+                <div class="delete-ray ray-2"></div>
+                <div class="delete-ray ray-3"></div>
+
+                <!-- Candado -->
+                <div class="delete-lock">
+
+                  <div class="delete-lock-shackle"></div>
+
+                  <div class="delete-lock-body">
+                    <div class="delete-lock-key"></div>
+                  </div>
+
+                </div>
+
+              </div>
+
+              <!-- TÍTULO -->
+              <div class="delete-title">
+                No es posible eliminar
+              </div>
+
+              <!-- MENSAJE -->
+              <div class="delete-message">
+                Tiene un pago asociado en Administración.
+              </div>
+
+            </div>
+          `,
+
+                  icon: false,
+
+                  showCancelButton: true,
+
+                  confirmButtonText: `
+            <span class="delete-confirm-content">
+              <i class="fas fa-key"></i>
+              <span>Usar clave de administrador</span>
+            </span>
+          `,
+
+          cancelButtonText: "Cancelar",
+
+          confirmButtonColor: "#0878dc",
+          cancelButtonColor: "#ffffff",
+
+          buttonsStyling: false,
+
+          customClass: {
+            popup: "swal-delete-popup",
+            closeButton: "swal-delete-close",
+            confirmButton: "swal-delete-confirm",
+            cancelButton: "swal-delete-cancel",
+          },
+          reverseButtons:true,
+          didOpen: () => {
+            const popup = Swal.getPopup();
+
+            if (popup) {
+              popup.style.borderRadius = "26px";
+              popup.style.boxShadow = "0 18px 50px rgba(15, 23, 42, 0.18)";
+            }
+          },
+        }).then(async (respuesta) => {
+          if (respuesta.isConfirmed) {
+            let val = true;
+            let msg = "";
+
+            await Swal.fire({
+          title: "Ingrese sus datos Administrador",
+          html:
+            '<input id="swal-input1" class="swal2-input" placeholder="Nombre">' +
+            '<input id="swal-input2" type="password" class="swal2-input" placeholder="Clave">',
+          focusConfirm: false,
+          showCancelButton: true,
+          confirmButtonText: "Aceptar",
+          cancelButtonText: "Cancelar",
+          preConfirm: () => {
+            const input1 = document.getElementById("swal-input1").value.trim();
+            const input2 = document.getElementById("swal-input2").value.trim();
+            if (!input1 || !input2) {
+              Swal.showValidationMessage("Por favor, complete ambos campos");
+              return false;
+            }
+            return { usuario: input1, clave: input2 };
+          },
+        })
+        .then(async (result) => {
+              if (!result.isConfirmed) {
+                val = false;
+                msg = "Operación cancelada";
+
+                return;
+              }
+
+              if (result.value) {
+                const res = await this.validarUsuarioAdmin({
+                  usuario: result.value.usuario,
+                  clave: result.value.clave,
+                });
+
+                if (res && res.estadoflag) {
+                  val = true;
+                } else {
+                  val = false;
+                  msg = res?.mensaje || "Credenciales incorrectas";
+                }
+              } else {
+                val = false;
+                msg = "Debe ingresar las credenciales";
+              }
+            });
+
+            if (!val) {
+              await Swal.fire({
+                icon: "error",
+                title: "No autorizado",
+                text: msg,
+                confirmButtonColor: "#0878dc",
+              });
+
+              return false;
+            }
+
+            await this.continuarEliminar(item.id);
+          }
+        });
+      } else {
+        this.continuarEliminar(item.id);
+      }
+      
+    },
+    async continuarEliminar(id) {
       Swal.fire({
         icon: "question",
         title: "Eliminar",
@@ -2385,7 +2637,8 @@ export default {
       vm.datosFactura.total_monto = parseFloat(total_monto).toFixed(2);
       vm.datosFactura.nombreProforma = vm.nombreProforma;
       vm.obtenerDatosHouse = true;
-      vm.datosFactura.impuesto = vm.$store.state.enterprises.impuesto.nombre_impuesto;
+      vm.datosFactura.impuesto =
+        vm.$store.state.enterprises.impuesto.nombre_impuesto;
       let data = vm.datosFactura;
       // console.log(vm.datosFactura);
       // return;

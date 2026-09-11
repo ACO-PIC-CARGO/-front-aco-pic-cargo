@@ -627,14 +627,9 @@ export default {
     this.originalname = data.originalname;
     this.$store.state.bank.deudaAProveedor = data.detalle;
     this.selected = data.detalle;
-    this.monto =
-      data.totaldolar -
-      (data.comisionbancaria.length > 0
-        ? data.comisionbancaria[0].montodolar
-        : 0);
-    this.monto_local =
-      data.totalmonedalocal -
-      (data.comisionbancaria.length > 0 ? data.comisionbancaria[0].monto : 0);
+    this.monto = data.totaldolar;
+    console.log('totalmonedalocal',data.totalmonedalocal)
+    this.monto_local = data.totalmonedalocal;
     this.tipocambio = data.tipocambio;
     this.conceptogastobancario =
       data.comisionbancaria.length > 0 ? data.comisionbancaria[0].concepto : "";
@@ -1013,7 +1008,7 @@ export default {
     montoFinal() {
       let montogastobancario = 0;
       montogastobancario = Number(this.montogastobancario || 0);
-      const total = Number(this.monto || 0) + montogastobancario;
+      const total = Number(this.monto || 0);
       return total.toFixed(4);
     },
   },
