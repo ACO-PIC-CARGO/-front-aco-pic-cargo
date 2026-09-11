@@ -308,7 +308,7 @@
       :items="$store.state.pricing.listQuotes"
       :single-expand="singleExpand"
       :expanded.sync="expanded"
-      item-key="index"
+      item-key="id"
       show-expand
       class="elevation-1"
       disable-sort
@@ -821,7 +821,6 @@ export default {
       lstPricing: true,
       id_status: null,
       comentario: "",
-      search: "",
       dialogRegistroNotaLlamada: false,
       expanded: [],
       singleExpand: false,

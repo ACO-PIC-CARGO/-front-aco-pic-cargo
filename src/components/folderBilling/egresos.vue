@@ -78,18 +78,7 @@
                     v-if="bloquearCopiarMontos(egreso.detalle)"
                   >
                     <template v-slot:activator="{ on, attrs }">
-                      <v-btn
-                        v-bind="attrs"
-                        v-on="on"
-                        color="info"
-                        x-small
-                        @click="
-                          copiarMontos(
-                            null,
-                            bloquearCopiarMontos(egreso.detalle),
-                          )
-                        "
-                      >
+                      <v-btn v-bind="attrs" v-on="on" color="info" x-small>
                         Copiar Montos Pr->Op
                       </v-btn>
                     </template>
@@ -324,7 +313,7 @@
                       small
                       v-if="!item.statusadmin && item.pagado == 0"
                     >
-                      <v-icon @click.native="_delEngreso(item)"
+                      <v-icon @click.native="_delEngreso(item, egreso)"
                         >mdi-delete</v-icon
                       >
                     </v-btn>
@@ -2169,7 +2158,169 @@ export default {
       this.$emit("statusBtn", 2);
       this.dialog = true;
     },
-    async _delEngreso(item) {
+    async _delEngreso(item, egreso) {
+      if (egreso.total_total_op > egreso.monto_pagar_op) {
+        Swal.fire({
+          width: "430px",
+          padding: "18px 22px 16px",
+          background: "#ffffff",
+          showCloseButton: true,
+
+          title: "",
+
+          html: `
+            <div class="delete-modal-content">
+
+              <!-- ILUSTRACIÓN -->
+              <div class="delete-warning-icon">
+
+                <!-- Documento -->
+                <div class="delete-document">
+
+                  <div class="delete-document-fold"></div>
+
+                  <div class="delete-dollar">$</div>
+
+                  <div class="delete-line line-1"></div>
+                  <div class="delete-line line-2"></div>
+                  <div class="delete-line line-3"></div>
+                  <div class="delete-line line-4"></div>
+
+                </div>
+
+                <!-- Rayos -->
+                <div class="delete-ray ray-1"></div>
+                <div class="delete-ray ray-2"></div>
+                <div class="delete-ray ray-3"></div>
+
+                <!-- Candado -->
+                <div class="delete-lock">
+
+                  <div class="delete-lock-shackle"></div>
+
+                  <div class="delete-lock-body">
+                    <div class="delete-lock-key"></div>
+                  </div>
+
+                </div>
+
+              </div>
+
+              <!-- TÍTULO -->
+              <div class="delete-title">
+                No es posible eliminar
+              </div>
+
+              <!-- MENSAJE -->
+              <div class="delete-message">
+                Tiene un pago asociado en Administración.
+              </div>
+
+            </div>
+          `,
+
+                  icon: false,
+
+                  showCancelButton: true,
+
+                  confirmButtonText: `
+            <span class="delete-confirm-content">
+              <i class="fas fa-key"></i>
+              <span>Usar clave de administrador</span>
+            </span>
+          `,
+
+          cancelButtonText: "Cancelar",
+
+          confirmButtonColor: "#0878dc",
+          cancelButtonColor: "#ffffff",
+
+          buttonsStyling: false,
+
+          customClass: {
+            popup: "swal-delete-popup",
+            closeButton: "swal-delete-close",
+            confirmButton: "swal-delete-confirm",
+            cancelButton: "swal-delete-cancel",
+          },
+          reverseButtons:true,
+          didOpen: () => {
+            const popup = Swal.getPopup();
+
+            if (popup) {
+              popup.style.borderRadius = "26px";
+              popup.style.boxShadow = "0 18px 50px rgba(15, 23, 42, 0.18)";
+            }
+          },
+        }).then(async (respuesta) => {
+          if (respuesta.isConfirmed) {
+            let val = true;
+            let msg = "";
+
+            await Swal.fire({
+          title: "Ingrese sus datos Administrador",
+          html:
+            '<input id="swal-input1" class="swal2-input" placeholder="Nombre">' +
+            '<input id="swal-input2" type="password" class="swal2-input" placeholder="Clave">',
+          focusConfirm: false,
+          showCancelButton: true,
+          confirmButtonText: "Aceptar",
+          cancelButtonText: "Cancelar",
+          preConfirm: () => {
+            const input1 = document.getElementById("swal-input1").value.trim();
+            const input2 = document.getElementById("swal-input2").value.trim();
+            if (!input1 || !input2) {
+              Swal.showValidationMessage("Por favor, complete ambos campos");
+              return false;
+            }
+            return { usuario: input1, clave: input2 };
+          },
+        })
+        .then(async (result) => {
+              if (!result.isConfirmed) {
+                val = false;
+                msg = "Operación cancelada";
+
+                return;
+              }
+
+              if (result.value) {
+                const res = await this.validarUsuarioAdmin({
+                  usuario: result.value.usuario,
+                  clave: result.value.clave,
+                });
+
+                if (res && res.estadoflag) {
+                  val = true;
+                } else {
+                  val = false;
+                  msg = res?.mensaje || "Credenciales incorrectas";
+                }
+              } else {
+                val = false;
+                msg = "Debe ingresar las credenciales";
+              }
+            });
+
+            if (!val) {
+              await Swal.fire({
+                icon: "error",
+                title: "No autorizado",
+                text: msg,
+                confirmButtonColor: "#0878dc",
+              });
+
+              return false;
+            }
+
+            await this.continuarEliminar(item);
+          }
+        });
+      } else {
+        this.continuarEliminar(item);
+      }
+    },
+    continuarEliminar(item) {
       var vm = this;
 
       vm.$swal({
@@ -2824,6 +2975,7 @@ export default {
       }
     },
     ...mapActions([
+      "validarUsuarioAdmin",
       "getListControlGastosMaster",
       "setEgresos",
       "setInvoice",
@@ -2853,14 +3005,97 @@ export default {
       return detalle.some((v) => v.pagado == 1 || v.statusadmin == 1);
       // return true;
     },
-    abriModalCopiar(egreso, bloquearCopiarMontos) {
-      this.egreso = {};
-      if (bloquearCopiarMontos) {
-        return;
-      }
+    // abriModalCopiar(egreso, bloquearCopiarMontos) {
+    //   this.egreso = {};
+    //   if (bloquearCopiarMontos) {
+    //     return;
+    //   }
 
-      this.egreso = egreso;
-      this.dialogCopiar = true;
+    //   this.egreso = egreso;
+    //   this.dialogCopiar = true;
+    // },
+    abriModalCopiar(egreso, bloquearCopiarMontos) {
+      if (egreso.detalle && egreso.detalle.some((v) => v.total_op > 0)) {
+        // Nota: en JavaScript el método correcto es .filter() en lugar de .filtro()
+        let montosConMontosMayoresACero = egreso.detalle.filter(
+          (v) => v.total_op > 0,
+        );
+
+        // Generar las filas de la tabla dinámicamente con los datos obtenidos
+        let filasHTML = montosConMontosMayoresACero
+          .map(
+            (item) => `
+        <tr>
+          <td style="padding: 10px; border-bottom: 1px solid #dee2e6; color: #212529;">${
+            item.concepto || "COMISIÓN"
+          }</td>
+          <td style="padding: 10px; border-bottom: 1px solid #dee2e6; color: #212529;">$${item.total_pr.toFixed(
+            2,
+          )}</td>
+          <td style="padding: 10px; border-bottom: 1px solid #dee2e6; font-weight: bold; color: #212529;">$${item.total_op.toFixed(
+            2,
+          )}</td>
+        </tr>
+      `,
+          )
+          .join("");
+
+        Swal.fire({
+          title: "Monto en Operaciones",
+          html: `
+          <p style="margin-bottom: 20px; color: #555; font-size: 14px;">
+            Este concepto tiene un monto en Operaciones.<br>No se modificará.
+          </p>
+          <table style="width: 100%; border-collapse: collapse; text-align: left; font-size: 14px;">
+            <thead>
+              <tr style="background-color: #f1f3f5; color: #495057;">
+                <th style="padding: 10px; border-bottom: 1px solid #dee2e6;">Concepto</th>
+                <th style="padding: 10px; border-bottom: 1px solid #dee2e6;">Pricing</th>
+                <th style="padding: 10px; border-bottom: 1px solid #dee2e6;">Operaciones</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${filasHTML}
+            </tbody>
+          </table>
+        `,
+          icon: "warning",
+          showCancelButton: true,
+          confirmButtonText: "Continuar",
+          cancelButtonText: "Cancelar",
+          confirmButtonColor: "#0056b3",
+          cancelButtonColor: "#ffffff",
+          customClass: {
+            cancelButton: "swal2-cancel-custom",
+          },
+          reverseButtons: true,
+          didRender: () => {
+            const cancelBtn = Swal.getCancelButton();
+            if (cancelBtn) {
+              cancelBtn.style.color = "#212529";
+              cancelBtn.style.border = "1px solid #ced4da";
+            }
+          },
+        }).then((respuesta) => {
+          if (respuesta.isConfirmed) {
+            this.ingreso = {};
+            if (bloquearCopiarMontos) {
+              return;
+            }
+
+            this.egreso = egreso;
+            this.dialogCopiar = true;
+          }
+        });
+      } else {
+        this.egreso = {};
+        if (bloquearCopiarMontos) {
+          return;
+        }
+
+        this.egreso = egreso;
+        this.dialogCopiar = true;
+      }
     },
     async copiarMontos() {
       if (this.$refs.frmCopiar.validate()) {
@@ -2993,4 +3228,399 @@ export default {
 };
 </script>
 
-<style></style>
+<style>
+/* =====================================================
+   MODAL ELIMINAR
+   ===================================================== */
+
+.swal-delete-popup {
+  border-radius: 26px !important;
+  overflow: hidden !important;
+}
+
+/* =====================================================
+   CONTENIDO
+   ===================================================== */
+
+.delete-modal-content {
+  width: 100%;
+  text-align: center;
+  padding: 0;
+  margin: 0;
+}
+
+/* =====================================================
+   ILUSTRACIÓN
+   ===================================================== */
+
+.delete-warning-icon {
+  position: relative;
+  width: 82px;
+  height: 76px;
+  margin: 0 auto 5px;
+}
+
+/* Documento */
+
+.delete-document {
+  position: absolute;
+  left: 8px;
+  top: 0;
+  width: 50px;
+  height: 65px;
+
+  background: #f8fafc;
+
+  border: 2px solid #d9e0ea;
+  border-radius: 5px;
+
+  box-sizing: border-box;
+}
+
+/* Esquina */
+
+.delete-document-fold {
+  position: absolute;
+  right: -2px;
+  top: -2px;
+
+  width: 17px;
+  height: 17px;
+
+  background: #eef2f7;
+
+  border-left: 2px solid #d9e0ea;
+  border-bottom: 2px solid #d9e0ea;
+
+  clip-path: polygon(0 0, 100% 100%, 0 100%);
+}
+
+/* $ */
+
+.delete-dollar {
+  position: absolute;
+
+  left: 8px;
+  top: 6px;
+
+  color: #1976d2;
+
+  font-family: Arial, sans-serif;
+  font-size: 22px;
+  font-weight: 700;
+
+  line-height: 1;
+}
+
+/* Líneas */
+
+.delete-line {
+  position: absolute;
+
+  height: 5px;
+
+  background: #cbd5e1;
+
+  border-radius: 5px;
+}
+
+.delete-line.line-1 {
+  top: 14px;
+  right: 6px;
+  width: 14px;
+}
+
+.delete-line.line-2 {
+  top: 25px;
+  right: 6px;
+  width: 12px;
+}
+
+.delete-line.line-3 {
+  top: 39px;
+  left: 8px;
+  width: 32px;
+}
+
+.delete-line.line-4 {
+  top: 50px;
+  left: 8px;
+  width: 27px;
+}
+
+/* =====================================================
+   CANDADO
+   ===================================================== */
+
+.delete-lock {
+  position: absolute;
+
+  left: 42px;
+  top: 42px;
+
+  width: 35px;
+  height: 36px;
+
+  z-index: 5;
+}
+
+/* Arco */
+
+.delete-lock-shackle {
+  position: absolute;
+
+  left: 8px;
+  top: 0;
+
+  width: 20px;
+  height: 20px;
+
+  border: 5px solid #ffc107;
+  border-bottom: 0;
+
+  border-radius: 14px 14px 0 0;
+
+  box-sizing: border-box;
+}
+
+/* Cuerpo */
+
+.delete-lock-body {
+  position: absolute;
+
+  left: 1px;
+  bottom: 0;
+
+  width: 34px;
+  height: 27px;
+
+  background: #ffc107;
+
+  border-radius: 5px;
+}
+
+/* Cerradura */
+
+.delete-lock-key {
+  position: absolute;
+
+  left: 13px;
+  top: 8px;
+
+  width: 8px;
+  height: 11px;
+
+  background: #374151;
+
+  border-radius: 5px;
+}
+
+.delete-lock-key::before {
+  content: "";
+
+  position: absolute;
+
+  left: -3px;
+  top: -3px;
+
+  width: 14px;
+  height: 14px;
+
+  border-radius: 50%;
+
+  border: 3px solid #374151;
+
+  box-sizing: border-box;
+}
+
+/* =====================================================
+   RAYOS
+   ===================================================== */
+
+.delete-ray {
+  position: absolute;
+
+  height: 4px;
+
+  background: #fbbf24;
+
+  border-radius: 5px;
+
+  transform-origin: left center;
+}
+
+.delete-ray.ray-1 {
+  width: 10px;
+
+  left: 68px;
+  top: 25px;
+
+  transform: rotate(-35deg);
+}
+
+.delete-ray.ray-2 {
+  width: 12px;
+
+  left: 72px;
+  top: 40px;
+
+  transform: rotate(0deg);
+}
+
+.delete-ray.ray-3 {
+  width: 10px;
+
+  left: 68px;
+  top: 54px;
+
+  transform: rotate(35deg);
+}
+
+/* =====================================================
+   TÍTULO
+   ===================================================== */
+
+.delete-title {
+  color: #0f2f63;
+
+  font-size: 23px;
+  font-weight: 700;
+
+  line-height: 1.2;
+
+  margin: 0;
+
+  padding: 0;
+}
+
+/* =====================================================
+   MENSAJE
+   ===================================================== */
+
+.delete-message {
+  color: #64748b;
+
+  font-size: 14px;
+  font-weight: 400;
+
+  line-height: 1.3;
+
+  margin: 8px 0 0;
+
+  padding: 0;
+}
+
+/* =====================================================
+   BOTÓN CONFIRMAR
+   ===================================================== */
+
+.swal-delete-confirm {
+  background: #0878dc !important;
+
+  color: #ffffff !important;
+
+  border: none !important;
+
+  border-radius: 6px !important;
+
+  padding: 10px 17px !important;
+
+  font-size: 13px !important;
+
+  font-weight: 500 !important;
+
+  min-width: 210px !important;
+
+  height: 38px !important;
+
+  box-shadow: none !important;
+}
+
+.swal-delete-confirm:hover {
+  background: #0669c4 !important;
+}
+
+/* =====================================================
+   BOTÓN CANCELAR
+   ===================================================== */
+
+.swal-delete-cancel {
+  background: #ffffff !important;
+
+  color: #0f172a !important;
+
+  border: 1px solid #cbd5e1 !important;
+
+  border-radius: 6px !important;
+
+  padding: 9px 25px !important;
+
+  font-size: 13px !important;
+
+  font-weight: 500 !important;
+
+  height: 38px !important;
+
+  box-shadow: none !important;
+}
+
+.swal-delete-cancel:hover {
+  background: #f8fafc !important;
+}
+
+/* =====================================================
+   CONTENIDO BOTÓN
+   ===================================================== */
+
+.delete-confirm-content {
+  display: inline-flex;
+
+  align-items: center;
+
+  justify-content: center;
+
+  gap: 8px;
+}
+
+.delete-confirm-content i {
+  font-size: 14px;
+}
+
+/* =====================================================
+   X
+   ===================================================== */
+
+.swal-delete-close {
+  color: #64748b !important;
+
+  font-size: 25px !important;
+
+  font-weight: 400 !important;
+
+  margin-top: 2px !important;
+}
+
+.swal-delete-close:hover {
+  color: #0f172a !important;
+}
+
+/* =====================================================
+   FOOTER SWEETAL
+   ===================================================== */
+
+.swal-delete-popup .swal2-actions {
+  width: 100% !important;
+
+  margin-top: 18px !important;
+
+  padding: 0 !important;
+
+  display: flex !important;
+
+  justify-content: center !important;
+
+  align-items: center !important;
+
+  gap: 0 !important;
+}
+</style>
