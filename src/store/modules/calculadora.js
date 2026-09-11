@@ -1296,6 +1296,21 @@ const actions = {
       });
     }
   },
+  async EnviarCotizacionCalculadoraAPrincing({ commit }, data) {
+    var headers = {
+      "Content-Type": "application/json",
+    };
+
+    var config = {
+      method: "post",
+      url: process.env.VUE_APP_URL_MAIN + "calc/enviar_pricing",
+      headers: headers,
+      data: data,
+    };
+    let response = await axios(config);
+    console.log(response)
+
+  },
 };
 
 export default {

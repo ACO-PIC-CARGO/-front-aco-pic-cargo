@@ -41,7 +41,13 @@
             <!-- <v-btn small min-width="180px" color="info" class="ma-1" @click="abrirModalPreview(item)">
               <v-icon class="mr-3">mdi-eye</v-icon> Ver Preview
             </v-btn> -->
-            <v-btn small min-width="180px" color="success" class="ma-1">
+            <v-btn
+              small
+              min-width="180px"
+              color="success"
+              class="ma-1"
+              @click="enviarCotizacionAPricing(item)"
+            >
               <v-icon class="mr-3">mdi-invoice-text-send-outline</v-icon> Enviar
               Pricing
             </v-btn>
@@ -65,7 +71,8 @@ import { mapActions } from "vuex";
 import moment from "moment";
 import funcion from "../mixins/funciones";
 import previewQuote from "./previewQuote.vue";
-// import axios from '@/api/axios-config';
+import Swal from "sweetalert2";
+
 export default {
   components: {
     previewQuote,
@@ -151,6 +158,7 @@ export default {
       "GetCotLCLResumen",
       "GetCotAereoResumen",
       "getModulesEntities",
+      "EnviarCotizacionCalculadoraAPrincing",
     ]),
     getFecha(fecha) {
       moment.locale("es");
@@ -204,6 +212,51 @@ export default {
     },
     abrirImg(item) {
       window.open(item.capture_cotizacion, "_blank");
+    },
+    enviarCotizacionAPricing(item) {
+      Swal.fire({
+        title: "Gestión de Envío a Pricing",
+        text: "¿Cómo desea procesar el envío de esta cotización?",
+        icon: "question",
+        showCancelButton: true,
+        showDenyButton: true,
+        showCloseButton: true,
+        confirmButtonText: "Enviar Opción Individual",
+        denyButtonText: "Enviar Opción Grupal",
+        cancelButtonText: "Cancelar",
+        // Asignación de colores y clases personalizadas para los botones
+        confirmButtonColor: "#28a745", // Éxito / Verde
+        denyButtonColor: "#17a2b8", // Info / Celeste
+        cancelButtonColor: "#dc3545", // Rojo / Peligro
+        reverseButtons: true, // Opcional: invierte el orden para mejor UX
+      }).then((result) => {
+        if (result.isConfirmed) {
+          // Lógica para envío individual
+          this.enviarCotizacion({
+            id: item.id,
+            individualflag: true,
+            grupalflag: false,
+          });
+        } else if (result.isDenied) {
+          // Lógica para envío grupal
+          this.enviarCotizacion({
+            id: item.id,
+            individualflag: false,
+            grupalflag: true,
+          });
+        }
+      });
+    },
+    async enviarCotizacion({
+      id = null,
+      individualflag = false,
+      grupalflag = false,
+    }) {
+      await this.EnviarCotizacionCalculadoraAPrincing({
+        id: id,
+        individualflag: individualflag,
+        grupalflag: grupalflag,
+      });
     },
     openHistoryCall(item) {
       this.user = item;
