@@ -26,6 +26,23 @@
           id="tblListUser"
           class="elevation-2"
         >
+          <template v-slot:[`item.estadocotizacion`]="{ item }">
+            <v-chip
+              v-if="item.estadocotizacion == 2"
+              class="ma-2"
+              color="green"
+              text-color="white"
+            >
+              Aprobado
+            </v-chip>
+            <v-chip
+              v-if="item.estadocotizacion == 1"
+              class="ma-2"
+              color="primary"
+            >
+              En Espera
+            </v-chip>
+          </template>
           <template v-slot:[`item.action`]="{ item }">
             <v-btn
               color="info"
@@ -105,6 +122,7 @@ export default {
         { text: "Valor Mercancía", value: "valormercancia" },
         { text: "Correo", value: "email" },
         { text: "Teléfono", value: "telefono" },
+        { text: "Estado", value: "estadocotizacion" },
         { text: "", value: "action", sortable: false },
       ],
 
@@ -214,6 +232,25 @@ export default {
       window.open(item.capture_cotizacion, "_blank");
     },
     enviarCotizacionAPricing(item) {
+      if (item.estadocotizacion == 1) {
+        this.continuarEnviarCotizacionAPricing(item);
+      }
+      if (item.estadocotizacion == 2) {
+        Swal.fire({
+          icon: "warning",
+          title: "Cotización ya envíada",
+          text: "¿La cotización ya fue envíada a Princing, desea crear una nueva cotización con los mismos datos?",
+          confirmButtonText: "Si, envíar.",
+          showCancelButton: true,
+          cancelButtonText: "Cancelar",
+        }).then((respuesta) => {
+          if (respuesta.isConfirmed) {
+            this.continuarEnviarCotizacionAPricing(item);
+          }
+        });
+      }
+    },
+    continuarEnviarCotizacionAPricing(item) {
       Swal.fire({
         title: "Gestión de Envío a Pricing",
         text: "¿Cómo desea procesar el envío de esta cotización?",
