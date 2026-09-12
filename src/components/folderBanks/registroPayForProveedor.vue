@@ -26,7 +26,7 @@
           v-if="Object.keys(id_cuenta).length > 0"
         >
           <v-text-field
-            label="Monto Depositado En Banco"
+            label="Monto Debitado En Banco"
             outlined
             dense
             v-model="monto_local"
