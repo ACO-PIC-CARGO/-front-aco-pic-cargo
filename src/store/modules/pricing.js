@@ -1686,6 +1686,76 @@ const actions = {
       ]);
     });
   },
+  async getCotzacionCalculadora({ dispatch }, data) {
+    let config = {
+      method: "get",
+      url: process.env.VUE_APP_URL_MAIN + `calc/ver_cotizacion`,
+      params:data,
+      headers: {
+        "Content-Type": "application/json",
+      },
+    };
+    await axios(config).then(async (response) => {
+      let res = response.data.data[0];
+      state.copy_quote = res;
+      state.id = res.id;
+    
+      state.datosPrincipales = {
+        ...res,
+        idorigen : Number(res.idorigen),
+        iddestino : Number(res.iddestino),
+        idsentido : Number(res.idsentido),
+        idtipocarga : Number(res.idtipocarga),
+        idincoterms : Number(res.idincoterms),
+        id_percepcionaduana : res.id_percepcionaduana,
+        // nameStatusQuote: res.namestatusquote,
+        descripcioncarga: res.descripcionmercancia,
+        // id_status: res.statusquote,
+        amount: res.monto,
+      };
+      // state.nro_exp = res.nro_exp;
+      state.listServices = res.servicios;
+      state.copylistServices = res.servicios;
+
+      // --------------------------------------------------------------
+      state.opcionCostos = [];
+      res.opcioncostos.forEach((element) => {
+        state.opcionCostos.push({
+          // id: element.id,
+          nro_propuesta: element.nro_propuesta,
+          date_end: element.date_end,
+          tiempo_transito: element.tiempo_transito,
+          listCostos: element.listcostos,
+          // listImpuestos: element.listimpuestos,
+          // listNotasQuote: element.listnotasquote,
+          selected: element.selected,
+        });
+      });
+
+    //   // --------------------------------------------------------------
+
+    //   state.aprobadoflag = res.aprobadoflag;
+    //   state.fullflag = res.fullflag;
+    //   state.tiporeporte = res.tiporeporte;
+
+    //   state.mostrarBtnActualizarFlag = !(
+    //     res.statusmain == 0 || res.aprobadoflag == true
+    //   );
+    //   Promise.all([
+    //     dispatch("GetArchivos", res.url_folderonedrive),
+    //     dispatch("getTextoWhatsapp", {
+    //       id_shipment: res.idtipocarga,
+    //       id_quote: res.id,
+    //       id_containers: res.containers
+    //         .map((v) => {
+    //           return v.id_containers;
+    //         })
+    //         .join(","),
+    //     }),
+    //   ]);
+    });
+
+  },
   async getInstructivoId({ commit }, { id: id }) {
     var headers = {
       "Content-Type": "application/json",

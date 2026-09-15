@@ -45,27 +45,34 @@
           </template>
           <template v-slot:[`item.action`]="{ item }">
             <v-btn
-              color="info"
+              color="#B71C1C"
+              dark
               v-if="item.capture_cotizacion"
-              small
-              min-width="180px"
-              class="ma-1"
+              block
+              class="ma-1 btnCalc"
               @click="abrirImg(item)"
             >
-              <v-icon>mdi-eye</v-icon> Ver Capture
+              <v-icon class="mx-1">mdi-image-area</v-icon> Ver Capture
             </v-btn>
 
-            <!-- <v-btn small min-width="180px" color="info" class="ma-1" @click="abrirModalPreview(item)">
-              <v-icon class="mr-3">mdi-eye</v-icon> Ver Preview
-            </v-btn> -->
             <v-btn
+              block
+              color="#4A148C"
+              dark
+              class="ma-1 btnCalc"
+              @click="abrirModalPreview(item)"
+            >
+              <v-icon class="mx-1">mdi-eye</v-icon> Ver Preview
+            </v-btn>
+            <v-btn
+              block
               small
-              min-width="180px"
-              color="success"
-              class="ma-1"
+              color="#01579B"
+              dark
+              class="ma-1 btnCalc"
               @click="enviarCotizacionAPricing(item)"
             >
-              <v-icon class="mr-3">mdi-invoice-text-send-outline</v-icon> Enviar
+              <v-icon class="mx-1">mdi-invoice-text-send-outline</v-icon> Enviar
               Pricing
             </v-btn>
 
@@ -183,8 +190,42 @@ export default {
       return moment(fecha).format("YYYY-MMM-DD");
     },
     abrirModalPreview(data) {
-      this.dialog = true;
-      this.dataCotizacion = data;
+      Swal.fire({
+        title: "Tipo de cálculo de cotización",
+        html: `
+    <p style="margin: 0; color: #555;">
+      Selecciona la modalidad que deseas visualizar para esta cotización:
+    </p>
+  `,
+        icon: "question",
+        showCloseButton: true,
+        showCancelButton: true,
+        cancelButtonText: "Cancelar",
+        confirmButtonText: '<i class="fa fa-user"></i> Individual', // Opcional si usas FontAwesome
+        denyButtonText: '<i class="fa fa-users"></i> Grupal',
+        showDenyButton: true,
+        reverseButtons: true, // Ordena mejor los botones de acción
+        allowEnterKey: false,
+        allowOutsideClick: false,
+        allowEscapeKey: false,
+      }).then((respuesta) => {
+        if (respuesta.isConfirmed) {
+          const routeData = this.$router.resolve({
+            name: "VerCotizacionCalculadora",
+            query: { id: data.id, individualflag: 1, esgrupalflag: 0 },
+          });
+
+          window.open(routeData.href, "_blank");
+        }
+        if (respuesta.isDenied) {
+          const routeData = this.$router.resolve({
+            name: "VerCotizacionCalculadora",
+            query: { id: data.id, individualflag: 0, esgrupalflag: 1 },
+          });
+
+          window.open(routeData.href, "_blank");
+        }
+      });
     },
     async exportar() {
       this.loading = true;
@@ -949,3 +990,5 @@ export default {
   },
 };
 </script>
+
+<style scoped></style>

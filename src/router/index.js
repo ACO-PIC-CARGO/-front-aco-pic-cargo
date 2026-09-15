@@ -824,6 +824,12 @@ const routes = [
         component: () =>
           import("../views/folderReports/ReporteGananciaDetallado.vue"),
       },
+      {
+        path: "calculadora/ver_cotizacion",
+        name: "VerCotizacionCalculadora",
+        component: () =>
+          import("../views/Calculadora/VerCotizacionCalculadora.vue"),
+      },
     ],
   },
   {
