@@ -122,13 +122,13 @@
 
     <v-divider></v-divider>
 
-    <v-card-actions class="sticky-actions pa-3" v-if="mostrarBtn">
+    <!-- <v-card-actions class="sticky-actions pa-3" v-if="mostrarBtn">
       <v-spacer></v-spacer>
       <v-btn color="primary" large @click="continuarLlenadoCostos">
         <v-icon left>mdi-arrow-right-bold</v-icon>
         Continuar
       </v-btn>
-    </v-card-actions>
+    </v-card-actions> -->
   </v-card>
 </template>
 
