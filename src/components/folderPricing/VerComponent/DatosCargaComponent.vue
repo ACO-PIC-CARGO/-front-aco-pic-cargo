@@ -18,6 +18,7 @@
                 item-value="id"
                 readonly
                 v-model="$store.state.pricing.datosPrincipales.id_proveedor"
+                v-if="mostrarproveedor"
               ></v-autocomplete>
             </v-col>
             <v-col cols="12" lg="6" xl="6">
@@ -26,7 +27,7 @@
                 outlined
                 dense
                 class="my-1"
-                :items="getPuertoOrigen()"
+                :items="$store.state.pricing.listPortBegin"
                 item-text="name"
                 item-value="id_port"
                 v-model="$store.state.pricing.datosPrincipales.idorigen"
@@ -39,7 +40,7 @@
                 outlined
                 dense
                 class="my-1"
-                :items="getPuertoDestino()"
+                :items="$store.state.pricing.listPortEnd"
                 item-text="name"
                 item-value="id_port"
                 v-model="$store.state.pricing.datosPrincipales.iddestino"
@@ -93,8 +94,7 @@
                 v-model="
                   $store.state.pricing.datosPrincipales.id_percepcionaduana
                 "
-              >
-              </v-autocomplete>
+              />
             </v-col>
           </v-row>
         </v-form>
@@ -209,6 +209,12 @@
 import { mapActions } from "vuex";
 import Swal from "sweetalert2";
 export default {
+  props: {
+    mostrarproveedor: {
+      type: Boolean,
+      default: true,
+    },
+  },
   name: "DatosCargaComponent",
   data() {
     return {

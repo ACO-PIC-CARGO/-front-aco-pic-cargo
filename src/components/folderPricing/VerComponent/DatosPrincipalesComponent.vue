@@ -14,6 +14,7 @@
             item-value="id"
             v-model="$store.state.pricing.datosPrincipales.id_marketing"
             readonly
+            v-if="mostrarmarketing"
           ></v-autocomplete>
           <v-autocomplete
             label="Estado de la cotización"
@@ -25,6 +26,7 @@
             item-value="id"
             v-model="$store.state.pricing.datosPrincipales.id_status"
             readonly
+            v-if="mostrarmarestado"
           ></v-autocomplete>
           <v-autocomplete
             label="Ejecutivo"
@@ -37,6 +39,7 @@
             item-key="id_entitie"
             v-model="$store.state.pricing.datosPrincipales.id_vendedor"
             readonly
+            v-if="mostrarmarejecutivo"
           ></v-autocomplete>
 
           <v-autocomplete
@@ -50,6 +53,7 @@
             item-key="id_entitie"
             v-model="$store.state.pricing.datosPrincipales.id_pricing"
             readonly
+            v-if="mostrarmarpricing"
           ></v-autocomplete>
           <v-text-field
             label="Nombres"
@@ -94,7 +98,6 @@
             item-key="id"
             item-value="id"
             v-model="$store.state.pricing.datosPrincipales.idtipocarga"
-            return-object
             readonly
           ></v-autocomplete>
           <v-autocomplete
@@ -153,9 +156,27 @@
 
 <script>
 import { mapActions, mapState } from "vuex";
-import axios from '@/api/axios-config';
+import axios from "@/api/axios-config";
 
 export default {
+  props: {
+    mostrarmarketing: {
+      type: Boolean,
+      default: true,
+    },
+    mostrarmarestado: {
+      type: Boolean,
+      default: true,
+    },
+    mostrarmarejecutivo: {
+      type: Boolean,
+      default: true,
+    },
+    mostrarmarpricing: {
+      type: Boolean,
+      default: true,
+    },
+  },
   data() {
     return {
       buscarClienteDialog: false,
@@ -186,7 +207,8 @@ export default {
       "getModuleRole",
       "_getRole",
       "getCargarMasterDetalleNotasCotizacion",
-      "_getEntities","_getProveedor"
+      "_getEntities",
+      "_getProveedor",
     ]),
     async changeShipment() {
       if (this.$store.state.pricing.datosPrincipales.idtipocarga) {

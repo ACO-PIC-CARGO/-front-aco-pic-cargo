@@ -258,7 +258,8 @@
       >
         <v-icon class="mx-1">mdi-pencil</v-icon> IR EDITAR
       </v-btn>
-
+      <v-spacer></v-spacer>
+      <BotonesHeader />
       <BtnIrAlListado />
     </v-app-bar>
 
@@ -494,6 +495,7 @@ import axios from "@/api/axios-config";
 import LoadingComponent from "../../components/comun/loadingComponent.vue";
 import { io } from "socket.io-client";
 import BtnIrAlListado from "../../components/comun/btnIrAlListado.vue";
+import BotonesHeader from "../../components/comun/BotonesHeader.vue";
 export default {
   created() {
     this.socket = io(process.env.VUE_APP_URL_MAIN, {
@@ -547,6 +549,7 @@ export default {
     CotizacionPilotoAutomatico,
     BtnIrAlListado,
     FormatFecha,
+    BotonesHeader,
   },
   async mounted() {
     let urlPricing = ["newQuote", "verQuote", "editQuote"];
