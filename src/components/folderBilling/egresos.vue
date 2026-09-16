@@ -409,7 +409,7 @@
                     @change="activarSeccion3"
                     :items="$store.state.controlGastos.listCorrelativo"
                     v-model="id_correlativo"
-                    item-text="description"
+                    item-text="code"
                     item-value="id"
                     label="Correlativo"
                     dense
