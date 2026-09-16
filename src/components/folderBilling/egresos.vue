@@ -173,21 +173,36 @@
                   {{ $store.state.enterprises.impuesto.nombre_impuesto }} Op
                 </th>
                 <th style="background: #ffd6d6" class="text-left">Total Op</th>
-                <th style="background: #d8ffde" class="text-left" v-if="mostrarColumnaMonedaDiferenteDolar(egreso)">
+                <th
+                  style="background: #d8ffde"
+                  class="text-left"
+                  v-if="mostrarColumnaMonedaDiferenteDolar(egreso)"
+                >
                   Monto Op Cuenta Banco
                 </th>
                 <th
                   style="background: #d8ffde"
                   class="text-left"
-                  v-if="mostrarImpuesto && mostrarColumnaMonedaDiferenteDolar(egreso)"
+                  v-if="
+                    mostrarImpuesto &&
+                    mostrarColumnaMonedaDiferenteDolar(egreso)
+                  "
                 >
                   {{ $store.state.enterprises.impuesto.nombre_impuesto }} Op
                   Cuenta Banco
                 </th>
-                <th style="background: #d8ffde" class="text-left" v-if="mostrarColumnaMonedaDiferenteDolar(egreso)">
+                <th
+                  style="background: #d8ffde"
+                  class="text-left"
+                  v-if="mostrarColumnaMonedaDiferenteDolar(egreso)"
+                >
                   Total Op Cuenta Banco
                 </th>
-                <th style="background: #d8ffde" class="text-left" v-if="mostrarColumnaMonedaDiferenteDolar(egreso)">
+                <th
+                  style="background: #d8ffde"
+                  class="text-left"
+                  v-if="mostrarColumnaMonedaDiferenteDolar(egreso)"
+                >
                   Tipo Cambio Cuenta Banco
                 </th>
                 <th class="text-center">Enviado a Admin.</th>
@@ -249,22 +264,37 @@
                   <!-- <td style="background: #ffd6d6">
                     {{ parseFloat(item.igv_op).toFixed(2) }}
                   </td> -->
-                  <td style="background: #ffd6d6" >
+                  <td style="background: #ffd6d6">
                     {{ parseFloat(item.total_op).toFixed(2) }}
                   </td>
-                  <td style="background: #d8ffde" v-if="mostrarColumnaMonedaDiferenteDolar(egreso)">
+                  <td
+                    style="background: #d8ffde"
+                    v-if="mostrarColumnaMonedaDiferenteDolar(egreso)"
+                  >
                     {{ parseFloat(item.montoopcuentabanco).toFixed(2) }}
                     {{ item.acronym }}
                   </td>
-                  <td style="background: #d8ffde" v-if="mostrarImpuesto && mostrarColumnaMonedaDiferenteDolar(egreso)">
+                  <td
+                    style="background: #d8ffde"
+                    v-if="
+                      mostrarImpuesto &&
+                      mostrarColumnaMonedaDiferenteDolar(egreso)
+                    "
+                  >
                     {{ parseFloat(item.igvopcuentabanco).toFixed(2) }}
                     {{ item.acronym }}
                   </td>
-                  <td style="background: #d8ffde" v-if="mostrarColumnaMonedaDiferenteDolar(egreso)">
+                  <td
+                    style="background: #d8ffde"
+                    v-if="mostrarColumnaMonedaDiferenteDolar(egreso)"
+                  >
                     {{ parseFloat(item.totalopcuentabanco).toFixed(2) }}
                     {{ item.acronym }}
                   </td>
-                  <td style="background: #d8ffde" v-if="mostrarColumnaMonedaDiferenteDolar(egreso)">
+                  <td
+                    style="background: #d8ffde"
+                    v-if="mostrarColumnaMonedaDiferenteDolar(egreso)"
+                  >
                     {{ item.tipocambio == 1 ? "No Aplica" : item.tipocambio }}
                   </td>
                   <td class="text-center">
@@ -1538,12 +1568,11 @@ export default {
       this.$store.state.enterprises.impuesto.mostrarimpuesto;
   },
   methods: {
-    mostrarColumnaMonedaDiferenteDolar(item){
-      if (item.detalle.some(v=>v.acronym!=='USD')) {
-        return true
+    mostrarColumnaMonedaDiferenteDolar(item) {
+      if (item.detalle.some((v) => v.acronym !== "USD")) {
+        return true;
       }
-      console.log(item)
-      return false
+      return false;
     },
     recibirId(file) {
       this.payPath = file.inserid;
@@ -1558,7 +1587,6 @@ export default {
       this.$nextTick(() => {
         this.$refs.frmMoverCosto.reset();
       });
-      console.log(item);
     },
     async functionMoverCostos() {
       let id_controlgastos = this.egreso.detalle.map((v) => {
@@ -2226,11 +2254,11 @@ export default {
             </div>
           `,
 
-                  icon: false,
+          icon: false,
 
-                  showCancelButton: true,
+          showCancelButton: true,
 
-                  confirmButtonText: `
+          confirmButtonText: `
             <span class="delete-confirm-content">
               <i class="fas fa-key"></i>
               <span>Usar clave de administrador</span>
@@ -2250,7 +2278,7 @@ export default {
             confirmButton: "swal-delete-confirm",
             cancelButton: "swal-delete-cancel",
           },
-          reverseButtons:true,
+          reverseButtons: true,
           didOpen: () => {
             const popup = Swal.getPopup();
 
@@ -2265,25 +2293,30 @@ export default {
             let msg = "";
 
             await Swal.fire({
-          title: "Ingrese sus datos Administrador",
-          html:
-            '<input id="swal-input1" class="swal2-input" placeholder="Nombre">' +
-            '<input id="swal-input2" type="password" class="swal2-input" placeholder="Clave">',
-          focusConfirm: false,
-          showCancelButton: true,
-          confirmButtonText: "Aceptar",
-          cancelButtonText: "Cancelar",
-          preConfirm: () => {
-            const input1 = document.getElementById("swal-input1").value.trim();
-            const input2 = document.getElementById("swal-input2").value.trim();
-            if (!input1 || !input2) {
-              Swal.showValidationMessage("Por favor, complete ambos campos");
-              return false;
-            }
-            return { usuario: input1, clave: input2 };
-          },
-        })
-        .then(async (result) => {
+              title: "Ingrese sus datos Administrador",
+              html:
+                '<input id="swal-input1" class="swal2-input" placeholder="Nombre">' +
+                '<input id="swal-input2" type="password" class="swal2-input" placeholder="Clave">',
+              focusConfirm: false,
+              showCancelButton: true,
+              confirmButtonText: "Aceptar",
+              cancelButtonText: "Cancelar",
+              preConfirm: () => {
+                const input1 = document
+                  .getElementById("swal-input1")
+                  .value.trim();
+                const input2 = document
+                  .getElementById("swal-input2")
+                  .value.trim();
+                if (!input1 || !input2) {
+                  Swal.showValidationMessage(
+                    "Por favor, complete ambos campos",
+                  );
+                  return false;
+                }
+                return { usuario: input1, clave: input2 };
+              },
+            }).then(async (result) => {
               if (!result.isConfirmed) {
                 val = false;
                 msg = "Operación cancelada";

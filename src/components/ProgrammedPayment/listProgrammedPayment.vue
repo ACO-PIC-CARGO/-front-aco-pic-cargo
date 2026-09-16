@@ -917,7 +917,6 @@ export default {
         confirmButtonColor: "green",
       }).then((result) => {
         if (result.isConfirmed) {
-          console.log(item);
           this.eliminarProgramacion({
             id: parseInt(item.correlativo),
             id_proveedor: id_proveedor,

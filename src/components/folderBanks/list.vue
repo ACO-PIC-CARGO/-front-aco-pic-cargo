@@ -668,7 +668,6 @@ export default {
       }
     },
     async EliminarCuenta(item) {
-      console.log(item);
       Swal.fire({
         icon: "question",
         title: ``,

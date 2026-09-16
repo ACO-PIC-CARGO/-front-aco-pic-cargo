@@ -61,6 +61,7 @@
               dark
               class="ma-1 btnCalc"
               @click="abrirModalPreview(item)"
+              v-if="item.estadocotizacion == 1"
             >
               <v-icon class="mx-1">mdi-eye</v-icon> Ver Preview
             </v-btn>
@@ -71,6 +72,7 @@
               dark
               class="ma-1 btnCalc"
               @click="enviarCotizacionAPricing(item)"
+              v-if="item.estadocotizacion == 1"
             >
               <v-icon class="mx-1">mdi-invoice-text-send-outline</v-icon> Enviar
               Pricing
