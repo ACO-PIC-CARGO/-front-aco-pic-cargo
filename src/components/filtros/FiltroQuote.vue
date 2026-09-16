@@ -199,7 +199,7 @@ export default {
       this.$store.state.pricing.filtro.id_incoterm = null;
       this.$store.state.pricing.filtro.fechaemisiondesde = null;
       this.$store.state.pricing.filtro.fechaemisionhasta = null;
-      moment().format("YYYY-01-01");
+      this.$store.state.pricing.filtro.fechafin = moment().format("YYYY-01-01");
       this.$store.state.pricing.filtro.fechafin = moment()
         .endOf("month")
         .format("YYYY-MM-DD");
@@ -215,7 +215,6 @@ export default {
       const encontrado = list.find((item) => item[valueKey] === id);
       return encontrado ? encontrado[textKey] : "";
     },
-    
   },
   async mounted() {
     await this.getMarketingList();

@@ -1,7 +1,7 @@
 <template>
-  <v-card elevation="1">
+  <v-card elevation="1" class="clsCardFiltro">
     <v-card-title primary-title>
-      Filtrar LLamadas <v-spacer></v-spacer>
+      Filtrar Cotización <v-spacer></v-spacer>
       <v-btn
         icon
         color="default"
@@ -15,101 +15,145 @@
     </v-card-title>
     <v-card-text>
       <v-form ref="frmFiltro">
-        <div class="row mt-3 mx-1">
-          <!-- <div class="col-12 py-1">
-            <v-autocomplete
-              :items="$store.state.pricing.listMarketing"
-              label="Tipo de Marketing"
-              dense
-              search
-              item-text="name"
-              item-value="id"
-              v-model="$store.state.pricing.filtroCalls.id_marketing"
-            ></v-autocomplete>
-          </div> -->
-          <!-- <v-card-text class="mt-3 px-5 py-1"> -->
-          <div class="col-12 py-1">
-            <v-autocomplete
-              auto-select-first
-              :items="$store.state.pricing.listQuoteStatus"
-              label="Estado de la Cotización"
-              dense
-              item-text="name"
-              item-value="id"
-              v-model="$store.state.pricing.filtroCalls.id_status"
-            ></v-autocomplete>
-          </div>
-          <!-- <div class="col-12 py-1">
-            <v-autocomplete
-              :items="$store.state.pricing.listEjecutivo"
-              label="Ejecutivo."
-              dense
-              search
-              item-text="name"
-              item-value="id"
-              v-model="$store.state.pricing.filtroCalls.id_entities"
-            ></v-autocomplete>
-          </div> -->
-          <div class="col-12 py-1">
-            <v-autocomplete
-              :items="$store.state.pricing.listModality"
-              label="Sentido"
-              v-model="$store.state.pricing.filtroCalls.id_modality"
-              dense
-              item-text="name"
-              item-key="id"
-            ></v-autocomplete>
-          </div>
-          <div class="col-12 py-1">
-            <v-autocomplete
-              :items="$store.state.pricing.listShipment"
-              label="Carga*"
-              dense
-              item-text="embarque"
-              item-key="id"
-              v-model="$store.state.pricing.filtroCalls.id_shipment"
-            >
-            </v-autocomplete>
-          </div>
-          <div class="col-12 py-1">
-            <v-autocomplete
-              :items="$store.state.pricing.listIncoterms"
-              label="Incoterm*"
-              dense
-              item-text="name"
-              item-key="id"
-              v-model="$store.state.pricing.filtroCalls.id_incoterm"
-            ></v-autocomplete>
-          </div>
-          <div class="col-12 py-1">
-            <v-text-field
-              v-model="$store.state.pricing.filtroCalls.fechainicio"
-              type="date"
-              label="Fecha de Registro"
-            ></v-text-field>
-          </div>
-          <div class="col-12 py-1">
-            <v-text-field
-              v-model="$store.state.pricing.filtroCalls.fechafin"
-              type="date"
-              label="Fecha de Registro"
-            ></v-text-field>
-          </div>
-          <div class="col-12 py-1">
-            <v-radio-group
-              v-model="$store.state.pricing.filtroCalls.estado"
-              column
-            >
-              <v-radio label="Activo" color="green" value="activo"></v-radio>
-              <v-radio
-                label="Eliminado"
-                color="red"
-                value="eliminado"
-              ></v-radio>
-              <v-radio label="Todos" color="blue" value="todos"></v-radio
-            ></v-radio-group>
-          </div>
-        </div>
+        <v-container>
+          <v-row>
+            <v-col cols="12" md="6" class="py-1">
+              <v-autocomplete
+                :items="$store.state.pricing.listMarketing"
+                label="Tipo de Marketing"
+                dense
+                search
+                item-text="name"
+                item-value="id"
+                v-model="$store.state.pricing.filtrocalls.id_marketing"
+                clearable
+              ></v-autocomplete>
+            </v-col>
+            <v-col cols="12" md="6" class="py-1">
+              <v-autocomplete
+                :items="$store.state.pricing.listQuoteStatus"
+                label="Estado de la Cotización"
+                dense
+                item-text="name"
+                item-value="id"
+                v-model="$store.state.pricing.filtrocalls.id_status"
+                clearable
+              ></v-autocomplete>
+            </v-col>
+            <v-col cols="12" md="6" class="py-1">
+              <v-autocomplete
+                :items="$store.state.pricing.listEjecutivo"
+                label="Pricing."
+                dense
+                search
+                item-text="name"
+                item-value="id_entitie"
+                v-model="$store.state.pricing.filtrocalls.id_pricing"
+                clearable
+              ></v-autocomplete>
+            </v-col>
+            <v-col cols="12" md="6" class="py-1">
+              <v-autocomplete
+                :items="$store.state.pricing.listEjecutivo"
+                label="Ejecutivo."
+                dense
+                search
+                item-text="name"
+                item-value="id_entitie"
+                v-model="$store.state.pricing.filtrocalls.id_entities"
+                clearable
+              ></v-autocomplete>
+            </v-col>
+            <v-col cols="12" md="6" class="py-1">
+              <v-autocomplete
+                :items="$store.state.pricing.listModality"
+                label="Sentido"
+                v-model="$store.state.pricing.filtrocalls.id_modality"
+                dense
+                item-text="name"
+                item-value="id"
+                clearable
+              ></v-autocomplete>
+            </v-col>
+            <v-col cols="12" md="6" class="py-1">
+              <v-autocomplete
+                :items="$store.state.pricing.listShipment"
+                label="Carga*"
+                dense
+                item-text="embarque"
+                item-value="id"
+                v-model="$store.state.pricing.filtrocalls.id_shipment"
+                clearable
+              >
+              </v-autocomplete>
+            </v-col>
+            <v-col cols="12" md="6" class="py-1">
+              <v-autocomplete
+                :items="$store.state.pricing.listIncoterms"
+                label="Incoterm*"
+                dense
+                item-text="name"
+                item-value="id"
+                v-model="$store.state.pricing.filtrocalls.id_incoterm"
+                clearable
+              ></v-autocomplete>
+            </v-col>
+          </v-row>
+
+          <v-row>
+            <v-col cols="12">
+              <v-divider></v-divider>
+            </v-col>
+          </v-row>
+          <v-row>
+            <v-col cols="12">
+              <b>Filtro Fechas:</b>
+            </v-col>
+            <v-col cols="12" md="6" class="py-1">
+              <FormatFecha
+                :dense="true"
+                label="Fecha Envío Cliente Desde"
+                v-model="$store.state.pricing.filtrocalls.fechaemisiondesde"
+                clearable
+              />
+            </v-col>
+
+            <v-col cols="12" md="6" class="py-1">
+              <FormatFecha
+                :dense="true"
+                label="Fecha Envío Cliente Hasta"
+                v-model="$store.state.pricing.filtrocalls.fechaemisionhasta"
+                clearable
+              />
+            </v-col>
+
+            <v-col cols="12" md="6" class="py-1">
+              <FormatFecha
+                :dense="true"
+                label="Fecha Creación Desde"
+                id="filtroDesde"
+                v-model="$store.state.pricing.filtrocalls.fechainicio"
+                clearble
+              />
+            </v-col>
+            <v-col cols="12" md="6" class="py-1">
+              <FormatFecha
+                :dense="true"
+                label="Fecha Creación Hasta"
+                id="filtroHasta"
+                v-model="$store.state.pricing.filtrocalls.fechafin"
+                clearble
+              />
+            </v-col>
+            <!-- <v-col cols="12">
+              <v-radio-group v-model="$store.state.pricing.filtrocalls.estado" row>
+                <v-radio label="Activo" color="green" :value="true"></v-radio>
+                <v-radio label="Inactivo" color="red" :value="false"></v-radio>
+                <v-radio label="Todos" color="blue" value=""></v-radio
+              ></v-radio-group>
+            </v-col> -->
+          </v-row>
+        </v-container>
       </v-form>
     </v-card-text>
     <v-card-actions>
@@ -122,6 +166,8 @@
 
 <script>
 import { mapActions } from "vuex";
+import FormatFecha from "../comun/FormatFecha.vue";
+import moment from "moment";
 export default {
   methods: {
     ...mapActions([
