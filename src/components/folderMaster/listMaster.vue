@@ -43,9 +43,11 @@
           v-model="search"
           append-icon="mdi-magnify"
           label="Buscar"
-          single-line
+          placeholder="Texto Buscado..."
           hide-details
-          class="col-6"
+          outlined
+          dense
+          style="max-width: 300px"
         ></v-text-field>
         <v-spacer></v-spacer>
         <div class="">
@@ -201,7 +203,17 @@
         </template>
 
         <template v-slot:[`item.canal`]="{ item }">
-          <v-chip dark :color="item.codigo01" v-if="item.descripcion_canal">
+          <label
+            v-if="item.status == 0"
+            style="color: red; font-weight: 700 !important"
+          >
+            ANULADO
+          </label>
+          <v-chip
+            dark
+            :color="item.codigo01"
+            v-if="item.descripcion_canal && item.status == 1"
+          >
             {{ item.descripcion_canal }}
           </v-chip>
         </template>
@@ -255,6 +267,24 @@
                   Expediente Operativo
                 </v-list-item-title>
               </v-list-item>
+              <v-list-item class="itemMenu" v-else>
+                <v-list-item-title
+                  icon
+                  fab
+                  small
+                  @click="
+                    reactivarMaster({
+                      id: item.id,
+                      abriroperativo: true,
+                    })
+                  "
+                >
+                  <v-icon class="mx-1" color="#E65100"
+                    >mdi-lock-open-alert</v-icon
+                  >
+                  Abrir Expediente Operativo
+                </v-list-item-title>
+              </v-list-item>
               <v-list-item
                 class="itemMenu"
                 v-if="!item.statuslockadm && item.status == 1"
@@ -269,12 +299,31 @@
                   Expediente Administrativo
                 </v-list-item-title>
               </v-list-item>
+              <v-list-item class="itemMenu" v-else>
+                <v-list-item-title
+                  icon
+                  fab
+                  @click="
+                    reactivarMaster({
+                      id: item.id,
+                      abriradministrativo: true,
+                    })
+                  "
+                  small
+                >
+                  <v-icon class="mx-1" color="#E65100"
+                    >mdi-lock-open-alert</v-icon
+                  >
+                  Abrir Expediente Administrativo
+                </v-list-item-title>
+              </v-list-item>
               <v-list-item class="itemMenu" v-if="item.status == 1">
                 <v-list-item-title icon fab small @click="abrirCaperta(item)">
                   <v-icon class="mx-1" color="#FFD600">mdi-folder</v-icon>Abrir
                   Carpeta
                 </v-list-item-title>
               </v-list-item>
+
               <v-list-item class="itemMenu" v-if="item.status == 1">
                 <v-list-item-title
                   icon
@@ -287,7 +336,7 @@
                 </v-list-item-title>
               </v-list-item>
 
-              <v-list-item class="itemMenu" v-if="item.status == 1">
+              <!-- <v-list-item class="itemMenu" v-if="item.status == 1">
                 <v-list-item-title
                   icon
                   fab|
@@ -297,15 +346,28 @@
                   <v-icon class="mx-1" color="#D50000">mdi-trash-can</v-icon>
                   Eliminar Master
                 </v-list-item-title>
-              </v-list-item>
+              </v-list-item> -->
             </v-list>
           </v-menu>
-          <label
+          <!-- <label
             v-if="item.status == 0"
             style="color: red; font-weight: 700 !important"
           >
             ANULADO
-          </label>
+          </label> -->
+          <v-btn
+            color="red"
+            dark
+            v-if="item.status == 0"
+            @click="
+              reactivarMaster({
+                id: item.id,
+                activaranulado: true,
+              })
+            "
+          >
+            <v-icon class="mx-1">mdi-delete-empty</v-icon>Activar
+          </v-btn>
           <v-tooltip top>
             <template v-slot:activator="{ on, attrs }">
               <v-btn
@@ -676,7 +738,6 @@ export default {
   methods: {
     ...mapActions([
       "_getMasterList",
-
       "getModulesEntities",
       "insertComentarioMaster",
       "getQuoteNoAsignadoHouse",
@@ -687,6 +748,8 @@ export default {
       "_getShipment",
       "_getProveedor",
       "actualizarURLEnElMaster",
+      "controlGastosReactivar",
+      "validarUsuarioAdmin",
     ]),
     async cerrarDialog() {
       this.dialogUrl = false;
@@ -704,9 +767,78 @@ export default {
         },
       });
     },
-    editFechas(item) {
-      console.log(item);
+    async reactivarMaster({
+      id = null,
+      activaranulado = null,
+      abriroperativo = null,
+      abriradministrativo = null,
+    }) {
+      let val = true;
+      let msg = null;
+      await Swal.fire({
+        title: "Ingrese sus datos Administrador",
+        html:
+          '<input id="swal-input1" class="swal2-input" placeholder="Nombre">' +
+          '<input id="swal-input2" type="password" class="swal2-input" placeholder="Clave">',
+        focusConfirm: false,
+        showCancelButton: true,
+        confirmButtonText: "Aceptar",
+        cancelButtonText: "Cancelar",
+        preConfirm: () => {
+          const input1 = document.getElementById("swal-input1").value.trim();
+          const input2 = document.getElementById("swal-input2").value.trim();
+          if (!input1 || !input2) {
+            Swal.showValidationMessage("Por favor, complete ambos campos");
+            return false;
+          }
+          return { usuario: input1, clave: input2 };
+        },
+      }).then(async (result) => {
+        if (!result.isConfirmed) {
+          // Usuario canceló
+          val = false;
+          msg = "Operación cancelada";
+          return;
+        }
 
+        if (result.value) {
+          const res = await this.validarUsuarioAdmin({
+            usuario: result.value.usuario,
+            clave: result.value.clave,
+          });
+
+          if (res && res.estadoflag) {
+            val = true;
+          } else {
+            val = false;
+            msg = res?.mensaje || "Credenciales incorrectas";
+          }
+        } else {
+          val = false;
+          msg = "Debe ingresar las credenciales";
+        }
+      });
+
+      if (!val) {
+        await Swal.fire({
+          icon: "error",
+          text: msg,
+        });
+        return false;
+      }
+      this.$store.state.spiner = true;
+      await this.controlGastosReactivar({
+        id: id,
+        activaranulado: activaranulado,
+        abriroperativo: abriroperativo,
+        abriradministrativo: abriradministrativo,
+      });
+      await this._getMasterList();
+      this.$store.state.spiner = false;
+    },
+    // validarUsuarioAdmin
+    // controlGastosReactivar
+    editFechas(item) {
       this.exp = {
         ...item,
         fecha_eta: item.fecha_eta
@@ -911,7 +1043,9 @@ export default {
 
               if (response.data.estadoflag) {
                 vm.$swal("Anulado!", "Expediente anulado", "success");
+                vm.$store.state.spiner = true;
                 await vm._getMasterList();
+                vm.$store.state.spiner = false;
               } else {
                 Swal.fire({
                   icon: response.data.status == "401" ? "error" : "info",

@@ -73,6 +73,8 @@
                 label="Distrito"
                 class="pr-10"
                 v-model="$store.state.pricing.datosPrincipales.id_town"
+                :error-messages="errorIdTown"
+                @input="errorIdTown = ''"
               />
             </template>
           </div>
@@ -156,6 +158,7 @@ export default {
         { code: "DE", title: "DESTINO" },
         { code: "OP", title: "OPCIONAL" },
       ],
+      errorIdTown: "",
     };
   },
   async mounted() {
@@ -268,18 +271,28 @@ export default {
     },
 
     continuarLlenadoCostos() {
-      if (this.requiereValorMercancia) {
+      this.errorIdTown = "";
+      this.$store.state.pricing.errorValorMercancia = "";
+      let val = true;
+      if (
+        this.requiereValorMercancia ||
+        !this.$store.state.pricing.datosPrincipales.id_town
+      ) {
         const amount = this.$store.state.pricing.datosPrincipales.amount;
         if (!amount || amount <= 0) {
           this.$store.state.pricing.errorValorMercancia =
             "Datos Requeridos y mayor que 0";
-          return false;
+          val = false;
         }
-      } else {
-        this.$store.state.pricing.errorValorMercancia = "";
+        if (!this.$store.state.pricing.datosPrincipales.id_town) {
+          this.errorIdTown = "Datos Requeridos";
+          val = false;
+        }
       }
-      this.$emit("activarLlenadoCostos");
-      this.mostrarContinuarFlag = false;
+      if (val) {
+        this.$emit("activarLlenadoCostos");
+        this.mostrarContinuarFlag = false;
+      }
     },
 
     showConfirmationDialog(service) {

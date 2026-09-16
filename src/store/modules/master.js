@@ -1,4 +1,4 @@
-import axios from '@/api/axios-config';
+import axios from "@/api/axios-config";
 import Swal from "sweetalert2";
 const state = {};
 const mutations = {};
@@ -9,7 +9,6 @@ const actions = {
       url:
         process.env.VUE_APP_URL_MAIN + `crear-carpeta-master?nromaster=${name}`,
       headers: {
-       
         "Content-Type": "application/json",
       },
     };
@@ -28,7 +27,6 @@ const actions = {
       method: "put",
       url: process.env.VUE_APP_URL_MAIN + `update_folder_onedrive`,
       headers: {
-       
         "Content-Type": "application/json",
       },
       data: {
@@ -48,7 +46,6 @@ const actions = {
       method: "post",
       url: process.env.VUE_APP_URL_MAIN + `insert_comentario_master`,
       headers: {
-       
         "Content-Type": "application/json",
       },
       data: {
@@ -92,7 +89,6 @@ const actions = {
       method: "put",
       url: process.env.VUE_APP_URL_MAIN + `actualizar_folder_onedrive_master`,
       headers: {
-       
         "Content-Type": "application/json",
       },
       data: {
@@ -109,16 +105,34 @@ const actions = {
       method: "put",
       url: process.env.VUE_APP_URL_MAIN + `mover_cgegresos`,
       headers: {
-       
         "Content-Type": "application/json",
       },
       data: data,
     };
-    await axios(config).then(async (response) => {
-      return response.data.data;
-    }).catch(e=>{
-      console.error(e)
-    })
+    await axios(config)
+      .then(async (response) => {
+        return response.data.data;
+      })
+      .catch((e) => {
+        console.error(e);
+      });
+  },
+  async controlGastosReactivar({ dispatch }, data) {
+    let config = {
+      method: "put",
+      url: process.env.VUE_APP_URL_MAIN + `master_control_reactivar`,
+      headers: {
+        "Content-Type": "application/json",
+      },
+      data: data,
+    };
+    await axios(config)
+      .then(async (response) => {
+        return response.data.data;
+      })
+      .catch((e) => {
+        console.error(e);
+      });
   },
 };
 

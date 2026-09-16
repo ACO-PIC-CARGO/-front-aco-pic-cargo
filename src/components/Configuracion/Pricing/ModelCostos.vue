@@ -305,7 +305,7 @@ export default {
       "EliminarCosto",
     ]),
     copiarCosto(item) {
-      console.log(item);
+      
       Swal.fire({
         icon: "question",
         title: "Copiar",

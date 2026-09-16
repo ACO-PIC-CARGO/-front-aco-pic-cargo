@@ -368,7 +368,7 @@
                   <v-icon
                     color="red"
                     v-if="item.facturado == false && item.pagado == 0"
-                    @click="delIngreso(item,house)"
+                    @click="delIngreso(item, house)"
                   >
                     mdi-delete
                   </v-icon>
@@ -404,11 +404,38 @@
                   <v-autocomplete
                     :items="$store.state.controlGastos.listCorrelativo"
                     v-model="ingresos.id_correlativo"
-                    item-text="description"
+                    item-text="code"
                     item-value="id"
                     label="Correlativo"
                     :rules="[(v) => !!v || 'Dato Requerido']"
-                  ></v-autocomplete>
+                  >
+                    <!-- Lo que se muestra cuando está seleccionado -->
+                    <template v-slot:selection="{ item }">
+                      <span class="correlativo-selection">
+                        {{ item.code }}
+                      </span>
+                    </template>
+
+                    <!-- Cada opción del dropdown -->
+                    <template v-slot:item="{ item }">
+                      <v-list-item-content class="py-3">
+                        <v-list-item-title class="correlativo-code">
+                          {{ item.code }}
+                        </v-list-item-title>
+
+                        <v-list-item-subtitle
+                          v-if="item.description"
+                          class="correlativo-descripcion"
+                        >
+                          <v-icon v-if="item.mdi_icon" small class="mr-2">
+                            {{ item.mdi_icon }}
+                          </v-icon>
+
+                          {{ item.description }}
+                        </v-list-item-subtitle>
+                      </v-list-item-content>
+                    </template>
+                  </v-autocomplete>
                 </v-col>
 
                 <v-col cols="6">
@@ -1409,7 +1436,12 @@
         </v-card-text>
         <v-card-actions>
           <v-spacer></v-spacer>
-          <v-btn color="success" @click="copiarMontos()" :loading="loadingCopiarMonto">COPIAR</v-btn>
+          <v-btn
+            color="success"
+            @click="copiarMontos()"
+            :loading="loadingCopiarMonto"
+            >COPIAR</v-btn
+          >
           <v-btn color="danger" @click="dialogCopiar = !dialogCopiar">
             CANCELAR
           </v-btn>
@@ -1460,7 +1492,7 @@ export default {
     return {
       dialogCopiar: false,
       loadingFile: false,
-      loadingCopiarMonto:false,
+      loadingCopiarMonto: false,
       listaDocumentosQuote: [
         {
           key: "cotizacion",
@@ -1920,7 +1952,7 @@ export default {
     },
     async copiarMontos() {
       if (this.$refs.frmCopiar.validate()) {
-        this.loadingCopiarMonto = true
+        this.loadingCopiarMonto = true;
         await this.copiarCGingresos({
           ...this.ingresos,
           tipocambio: this.ingresos.tipocambio || 1,
@@ -1928,7 +1960,6 @@ export default {
         await this.getListControlGastosHouses(this.$route.params.id);
         this.dialogCopiar = false;
         this.loadingCopiarMonto = false;
-
       }
     },
     // copiarMontosHouse(house, bloquearCopiarMontos) {
@@ -1981,7 +2012,6 @@ export default {
         this.$refs.frmIngreso.reset();
       }, 100);
       setTimeout(() => {
-        console.log(item);
         this.statusBtn = 2;
         this.ingresos = {
           ...item,
@@ -2296,11 +2326,10 @@ export default {
       this.$forceUpdate();
       this.$emit("recalcularProfit");
     },
-    async delIngreso(item,house) {
-      let deuda = this.getDeudaActual(house)
+    async delIngreso(item, house) {
+      let deuda = this.getDeudaActual(house);
       if (house.total_total_op_ingresos > deuda) {
-        
-      Swal.fire({
+        Swal.fire({
           width: "430px",
           padding: "18px 22px 16px",
           background: "#ffffff",
@@ -2359,11 +2388,11 @@ export default {
             </div>
           `,
 
-                  icon: false,
+          icon: false,
 
-                  showCancelButton: true,
+          showCancelButton: true,
 
-                  confirmButtonText: `
+          confirmButtonText: `
             <span class="delete-confirm-content">
               <i class="fas fa-key"></i>
               <span>Usar clave de administrador</span>
@@ -2383,7 +2412,7 @@ export default {
             confirmButton: "swal-delete-confirm",
             cancelButton: "swal-delete-cancel",
           },
-          reverseButtons:true,
+          reverseButtons: true,
           didOpen: () => {
             const popup = Swal.getPopup();
 
@@ -2398,25 +2427,30 @@ export default {
             let msg = "";
 
             await Swal.fire({
-          title: "Ingrese sus datos Administrador",
-          html:
-            '<input id="swal-input1" class="swal2-input" placeholder="Nombre">' +
-            '<input id="swal-input2" type="password" class="swal2-input" placeholder="Clave">',
-          focusConfirm: false,
-          showCancelButton: true,
-          confirmButtonText: "Aceptar",
-          cancelButtonText: "Cancelar",
-          preConfirm: () => {
-            const input1 = document.getElementById("swal-input1").value.trim();
-            const input2 = document.getElementById("swal-input2").value.trim();
-            if (!input1 || !input2) {
-              Swal.showValidationMessage("Por favor, complete ambos campos");
-              return false;
-            }
-            return { usuario: input1, clave: input2 };
-          },
-        })
-        .then(async (result) => {
+              title: "Ingrese sus datos Administrador",
+              html:
+                '<input id="swal-input1" class="swal2-input" placeholder="Nombre">' +
+                '<input id="swal-input2" type="password" class="swal2-input" placeholder="Clave">',
+              focusConfirm: false,
+              showCancelButton: true,
+              confirmButtonText: "Aceptar",
+              cancelButtonText: "Cancelar",
+              preConfirm: () => {
+                const input1 = document
+                  .getElementById("swal-input1")
+                  .value.trim();
+                const input2 = document
+                  .getElementById("swal-input2")
+                  .value.trim();
+                if (!input1 || !input2) {
+                  Swal.showValidationMessage(
+                    "Por favor, complete ambos campos",
+                  );
+                  return false;
+                }
+                return { usuario: input1, clave: input2 };
+              },
+            }).then(async (result) => {
               if (!result.isConfirmed) {
                 val = false;
                 msg = "Operación cancelada";
@@ -2459,7 +2493,6 @@ export default {
       } else {
         this.continuarEliminar(item.id);
       }
-      
     },
     async continuarEliminar(id) {
       Swal.fire({
@@ -3074,4 +3107,29 @@ export default {
     background-color: white; /* apagado, pero aún visible */
   }
 }
+
+.correlativo-selection {
+  font-size: 16px;
+  font-weight: 400;
+  color: #202124;
+}
+
+.correlativo-code {
+  font-size: 22px !important;
+  font-weight: 700 !important;
+  color: #111827 !important;
+  line-height: 1.2;
+  margin-bottom: 5px;
+}
+
+.correlativo-descripcion {
+  font-size: 16px !important;
+  color: #6b7280 !important;
+  display: flex;
+  align-items: center;
+}
+
+.correlativo-descripcion .v-icon {
+  color: #64748b;
+} 
 </style>
