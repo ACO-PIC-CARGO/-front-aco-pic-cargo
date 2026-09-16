@@ -50,6 +50,190 @@
       </v-card>
     </v-dialog>
     <v-row>
+      <v-col cols="12" class="mt-3 clsFiltro">
+        <v-row>
+          {{ filtro }}
+
+          <v-col cols="6" class="py-1">
+            <v-row>
+              <v-col cols="4" class="clsFechaPor">
+                <v-text-field
+                  value="Fecha Creación"
+                  label="Fecha Por"
+                  readonly
+                  hide-details
+                  dense
+                  outlined
+                  prepend-icon="mdi-calendar-month"
+                ></v-text-field>
+              </v-col>
+
+              <v-col cols="4">
+                <v-text-field
+                  prepend-inner-icon="mdi-calendar-month"
+                  :value="formatearFecha(filtro.fechainicio)"
+                  dense
+                  readonly
+                  hide-details
+                  outlined
+                  label="Desde"
+                  id="frmFechaDesde"
+                ></v-text-field>
+              </v-col>
+              <v-col cols="4">
+                <v-text-field
+                  prepend-inner-icon="mdi-calendar-month"
+                  :value="formatearFecha(filtro.fechafin)"
+                  dense
+                  readonly
+                  hide-details
+                  outlined
+                  label="Hasta"
+                ></v-text-field>
+              </v-col>
+            </v-row>
+          </v-col>
+          <v-col
+            cols="6"
+            class="py-1"
+            v-if="filtro.fechaemisiondesde || filtro.fechaemisionhasta"
+          >
+            <v-row>
+              <v-col cols="4" class="clsFechaPor">
+                <v-text-field
+                  value="Fecha Envíado"
+                  label="Fecha Por"
+                  readonly
+                  hide-details
+                  outlined
+                  dense
+                  prepend-icon="mdi-calendar-month"
+                ></v-text-field>
+              </v-col>
+              <v-col cols="4">
+                <v-text-field
+                  prepend-inner-icon="mdi-calendar-month"
+                  :value="formatearFecha(filtro.fechaemisiondesde)"
+                  dense
+                  readonly
+                  hide-details
+                  outlined
+                  label="Desde"
+                ></v-text-field>
+              </v-col>
+              <v-col cols="4">
+                <v-text-field
+                  prepend-inner-icon="mdi-calendar-month"
+                  :value="formatearFecha(filtro.fechaemisionhasta)"
+                  dense
+                  readonly
+                  hide-details
+                  outlined
+                  label="Hasta"
+                ></v-text-field>
+              </v-col>
+            </v-row>
+          </v-col>
+
+          <v-col cols="12" md="2" class="py-1" v-if="filtro.id_marketing">
+            <v-autocomplete
+              :items="$store.state.pricing.listMarketing"
+              label="Tipo de Marketing"
+              dense
+              readonly
+              hide-details
+              outlined
+              search
+              item-text="name"
+              item-value="id"
+              v-model="filtro.id_marketing"
+            ></v-autocomplete>
+          </v-col>
+          <v-col cols="12" md="2" class="py-1" v-if="filtro.id_status">
+            <v-autocomplete
+              auto-select-first
+              :items="$store.state.pricing.listQuoteStatus"
+              label="Estado de la Cotización"
+              dense
+              readonly
+              hide-details
+              outlined
+              item-text="name"
+              item-value="id"
+              v-model="filtro.id_status"
+            ></v-autocomplete>
+          </v-col>
+          <v-col cols="12" md="2" class="py-1" v-if="filtro.id_pricing">
+            <v-autocomplete
+              :items="$store.state.pricing.listEjecutivo"
+              label="Pricing."
+              dense
+              readonly
+              hide-details
+              outlined
+              search
+              item-text="name"
+              item-value="id_entitie"
+              v-model="filtro.id_pricing"
+            ></v-autocomplete>
+          </v-col>
+          <v-col cols="12" md="2" class="py-1" v-if="filtro.id_entities">
+            <v-autocomplete
+              :items="$store.state.pricing.listEjecutivo"
+              label="Ejecutivo."
+              dense
+              readonly
+              hide-details
+              outlined
+              search
+              item-text="name"
+              item-value="id_entitie"
+              v-model="filtro.id_entities"
+            ></v-autocomplete>
+          </v-col>
+          <v-col cols="12" md="2" class="py-1" v-if="filtro.id_modality">
+            <v-autocomplete
+              :items="$store.state.pricing.listModality"
+              label="Sentido"
+              v-model="filtro.id_modality"
+              dense
+              readonly
+              hide-details
+              outlined
+              item-text="name"
+              item-value="id"
+            ></v-autocomplete>
+          </v-col>
+          <v-col cols="12" md="2" class="py-1" v-if="filtro.id_shipment">
+            <v-autocomplete
+              :items="$store.state.pricing.listShipment"
+              label="Tipo Embarque"
+              dense
+              readonly
+              hide-details
+              outlined
+              item-text="embarque"
+              item-value="id"
+              v-model="filtro.id_shipment"
+            >
+            </v-autocomplete>
+          </v-col>
+          <v-col cols="12" md="2" class="py-1" v-if="filtro.id_incoterm">
+            <v-autocomplete
+              :items="$store.state.pricing.listIncoterms"
+              label="Incoterm"
+              dense
+              readonly
+              hide-details
+              outlined
+              item-text="name"
+              item-value="id"
+              v-model="filtro.id_incoterm"
+            ></v-autocomplete>
+          </v-col>
+        </v-row>
+      </v-col>
+
       <v-col cols="12">
         <div class="text-right">
           <v-btn
@@ -226,12 +410,17 @@ export default {
         },
       ],
       filtro: {
-        id_estado: "",
-        id_sentido: "",
-        id_carga: "",
-        id_incoterms: "",
-        desde: "",
-        hasta: "",
+        fechainicio: moment().format("YYYY-01-01"),
+        fechafin: moment().endOf("month").format("YYYY-MM-DD"),
+        fechaemisiondesde: "",
+        fechaemisionhasta: "",
+        id_marketing: "",
+        id_status: "",
+        id_pricing: "",
+        id_entities: "",
+        id_modality: "",
+        id_shipment: "",
+        id_incoterm: "",
       },
       filtroLlamada: {
         idmarketing: null,
@@ -256,6 +445,11 @@ export default {
       "imprimiReporteListadoCalls",
       "guardarNotaQuote",
     ]),
+    formatearFecha(fecha) {
+      if (!fecha) return "";
+
+      return moment(fecha).format("YYYY-MMM-DD").toUpperCase();
+    },
     async imprimierCalls() {
       this.$store.state.spiner = true;
       this.loading4 = true;

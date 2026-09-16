@@ -315,6 +315,7 @@
     >
       <template v-slot:item="{ item, expand, isExpanded }">
         <tr
+          :key="item.id"
           :class="[
             item.aprobadoflag || item.status_code == 4
               ? 't-green-approved'
@@ -389,7 +390,7 @@
                     v-on="on"
                     x-small
                     @click="abrirModal(item)"
-                    v-if="!(item.statusmain == 0 || item.aprobadoflag)"
+                    v-if="mostrarBoton(item)"
                   >
                     <v-icon
                       color="#E65100"
@@ -413,7 +414,7 @@
                     v-on="on"
                     x-small
                     @click="registrarLlamada(item.id)"
-                    v-if="!(item.statusmain == 0 || item.aprobadoflag)"
+                    v-if="mostrarBoton(item)"
                   >
                     <v-icon
                       color="#1A237E"
@@ -437,7 +438,7 @@
                     v-bind="attrs"
                     v-on="on"
                     @click="eliminar(item.id, item.codigo)"
-                    v-if="!(item.statusmain == 0 || item.aprobadoflag)"
+                    v-if="mostrarBoton(item)"
                   >
                     <v-icon
                       color="#A43542"
@@ -487,7 +488,7 @@
                     v-bind="attrs"
                     v-on="on"
                     @click="toggleRow(item)"
-                    v-if="!(item.statusmain == 0 || item.aprobadoflag)"
+                    v-if="mostrarBoton(item)"
                   >
                     <v-icon
                       color="#263238"
@@ -1007,6 +1008,20 @@ export default {
       "validarUsuarioAdmin",
       "actualizarURLEnElQuote",
     ]),
+    mostrarBoton(item) {
+      if (item.statusmain == 0) {
+        return false;
+      }
+      const aprobado = [true, 1, "true", "1", "si", "sí", "yes"].includes(
+        typeof item.aprobadoflag === "string"
+          ? item.aprobadoflag.trim().toLowerCase()
+          : item.aprobadoflag,
+      );
+      if (aprobado) {
+        return false;
+      }
+      return true;
+    },
     formatearFecha(fecha) {
       if (!fecha) return "";
 
@@ -1027,7 +1042,8 @@ export default {
       this.$store.state.pricing.filtro.id_incoterm = null;
       this.$store.state.pricing.filtro.fechaemisiondesde = null;
       this.$store.state.pricing.filtro.fechaemisionhasta = null;
-      moment().format("YYYY-01-01");
+      this.$store.state.pricing.filtro.fechadesde =
+        moment().format("YYYY-01-01");
       this.$store.state.pricing.filtro.fechafin = moment()
         .endOf("month")
         .format("YYYY-MM-DD");
