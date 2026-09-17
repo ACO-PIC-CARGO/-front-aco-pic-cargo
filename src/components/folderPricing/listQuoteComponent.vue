@@ -1189,7 +1189,60 @@ export default {
     },
     async reporteListado() {
       this.loading2 = true;
-      await this.imprimiReporteListado(this.filtro).catch((e) => {
+
+      let filtroSeleccionado = {};
+      const f = this.$store.state.pricing.filtro;
+      const store = this.$store.state.pricing;
+
+      if (f.fechainicio)
+        filtroSeleccionado["Fecha Creación de Cotización inicio"] =
+          f.fechainicio;
+      if (f.fechafin)
+        filtroSeleccionado["Fecha Creación de Cotización fin"] = f.fechafin;
+      if (f.fechaemisiondesde)
+        filtroSeleccionado["Fecha de Envío Al Cliente  Desde"] =
+          f.fechaemisiondesde;
+      if (f.fechaemisionhasta)
+        filtroSeleccionado["Fecha de Envío Al Cliente  Hasta"] =
+          f.fechaemisionhasta;
+
+      if (f.id_marketing) {
+        filtroSeleccionado.Marketing = store.listMarketing.find(
+          (v) => v.id == f.id_marketing,
+        )?.name;
+      }
+      if (f.id_status) {
+        filtroSeleccionado["Estado Cotización"] = store.listQuoteStatus.find(
+          (v) => v.id == f.id_status,
+        )?.name;
+      }
+      if (f.id_pricing) {
+        filtroSeleccionado.Pricing = store.listEjecutivo.find(
+          (v) => v.id_entitie == f.id_pricing,
+        )?.name;
+      }
+      if (f.id_entities) {
+        filtroSeleccionado.Ejecutivo = store.listEjecutivo.find(
+          (v) => v.id_entitie == f.id_entities,
+        )?.name;
+      }
+      if (f.id_modality) {
+        filtroSeleccionado.Modalidad = store.listModality.find(
+          (v) => v.id == f.id_modality,
+        )?.name;
+      }
+      if (f.id_shipment) {
+        filtroSeleccionado["Tipo Carga"] = store.listShipment.find(
+          (v) => v.id == f.id_shipment,
+        )?.embarque;
+      }
+      if (f.id_incoterm) {
+        filtroSeleccionado.Incoterms = store.listIncoterms.find(
+          (v) => v.id == f.id_incoterm,
+        )?.name;
+      }
+
+      await this.imprimiReporteListado(filtroSeleccionado).catch((e) => {
         console.error(e);
       });
       this.loading2 = false;
@@ -1499,17 +1552,6 @@ export default {
   async mounted() {
     this.$store.state.mainTitle = "LISTADO DE COTIZACIONES";
 
-    this.$store.state.pricing.filtroCalls = {
-      id_marketing: "",
-      id_status: "",
-      id_entities: "",
-      id_modality: "",
-      id_shipment: "",
-      id_incoterm: "",
-      fechainicio: "",
-      fechafin: "",
-      estado: "activo",
-    };
     this.$store.state.spiner = true;
     await this.getListQuote();
     await Promise.all([

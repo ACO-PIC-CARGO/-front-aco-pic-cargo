@@ -25,7 +25,7 @@
                 search
                 item-text="name"
                 item-value="id"
-                v-model="$store.state.pricing.filtrocalls.id_marketing"
+                v-model="$store.state.pricing.filtroCalls.id_marketing"
                 clearable
               ></v-autocomplete>
             </v-col>
@@ -36,7 +36,7 @@
                 dense
                 item-text="name"
                 item-value="id"
-                v-model="$store.state.pricing.filtrocalls.id_status"
+                v-model="$store.state.pricing.filtroCalls.id_status"
                 clearable
               ></v-autocomplete>
             </v-col>
@@ -48,7 +48,7 @@
                 search
                 item-text="name"
                 item-value="id_entitie"
-                v-model="$store.state.pricing.filtrocalls.id_pricing"
+                v-model="$store.state.pricing.filtroCalls.id_pricing"
                 clearable
               ></v-autocomplete>
             </v-col>
@@ -60,7 +60,7 @@
                 search
                 item-text="name"
                 item-value="id_entitie"
-                v-model="$store.state.pricing.filtrocalls.id_entities"
+                v-model="$store.state.pricing.filtroCalls.id_entities"
                 clearable
               ></v-autocomplete>
             </v-col>
@@ -68,7 +68,7 @@
               <v-autocomplete
                 :items="$store.state.pricing.listModality"
                 label="Sentido"
-                v-model="$store.state.pricing.filtrocalls.id_modality"
+                v-model="$store.state.pricing.filtroCalls.id_modality"
                 dense
                 item-text="name"
                 item-value="id"
@@ -82,7 +82,7 @@
                 dense
                 item-text="embarque"
                 item-value="id"
-                v-model="$store.state.pricing.filtrocalls.id_shipment"
+                v-model="$store.state.pricing.filtroCalls.id_shipment"
                 clearable
               >
               </v-autocomplete>
@@ -94,7 +94,7 @@
                 dense
                 item-text="name"
                 item-value="id"
-                v-model="$store.state.pricing.filtrocalls.id_incoterm"
+                v-model="$store.state.pricing.filtroCalls.id_incoterm"
                 clearable
               ></v-autocomplete>
             </v-col>
@@ -113,7 +113,7 @@
               <FormatFecha
                 :dense="true"
                 label="Fecha Envío Cliente Desde"
-                v-model="$store.state.pricing.filtrocalls.fechaemisiondesde"
+                v-model="$store.state.pricing.filtroCalls.fechaemisiondesde"
                 clearable
               />
             </v-col>
@@ -122,7 +122,7 @@
               <FormatFecha
                 :dense="true"
                 label="Fecha Envío Cliente Hasta"
-                v-model="$store.state.pricing.filtrocalls.fechaemisionhasta"
+                v-model="$store.state.pricing.filtroCalls.fechaemisionhasta"
                 clearable
               />
             </v-col>
@@ -132,7 +132,7 @@
                 :dense="true"
                 label="Fecha Creación Desde"
                 id="filtroDesde"
-                v-model="$store.state.pricing.filtrocalls.fechainicio"
+                v-model="$store.state.pricing.filtroCalls.fechainicio"
                 clearble
               />
             </v-col>
@@ -141,12 +141,12 @@
                 :dense="true"
                 label="Fecha Creación Hasta"
                 id="filtroHasta"
-                v-model="$store.state.pricing.filtrocalls.fechafin"
+                v-model="$store.state.pricing.filtroCalls.fechafin"
                 clearble
               />
             </v-col>
             <!-- <v-col cols="12">
-              <v-radio-group v-model="$store.state.pricing.filtrocalls.estado" row>
+              <v-radio-group v-model="$store.state.pricing.filtroCalls.estado" row>
                 <v-radio label="Activo" color="green" :value="true"></v-radio>
                 <v-radio label="Inactivo" color="red" :value="false"></v-radio>
                 <v-radio label="Todos" color="blue" value=""></v-radio
@@ -169,6 +169,9 @@ import { mapActions } from "vuex";
 import FormatFecha from "../comun/FormatFecha.vue";
 import moment from "moment";
 export default {
+  components: {
+    FormatFecha,
+  },
   methods: {
     ...mapActions([
       "getMarketingList",
@@ -188,19 +191,31 @@ export default {
     },
     async limpiar() {
       this.$store.state.spiner = true;
-      this.$refs.frmFiltro.reset();
+      this.$store.state.pricing.filtroCalls.id_marketing = null;
+      this.$store.state.pricing.filtroCalls.id_status = null;
+      this.$store.state.pricing.filtroCalls.id_entities = null;
+      this.$store.state.pricing.filtroCalls.id_modality = null;
+      this.$store.state.pricing.filtroCalls.id_shipment = null;
+      this.$store.state.pricing.filtroCalls.id_incoterm = null;
+      this.$store.state.pricing.filtroCalls.fechaemisiondesde = null;
+      this.$store.state.pricing.filtroCalls.fechaemisionhasta = null;
+      this.$store.state.pricing.filtroCalls.fechafin = moment().format("YYYY-01-01");
+      this.$store.state.pricing.filtroCalls.fechafin = moment()
+        .endOf("month")
+        .format("YYYY-MM-DD");
+      this.$store.state.pricing.filtroCalls.estado = true;
       await this.getQuoteCall(this.$store.state.pricing.filtroCalls);
       this.$store.state.pricing.filtrarCallsFlag = false;
       this.$store.state.spiner = false;
     },
   },
   async mounted() {
-    await this.getMarketingList();
-    await this.getModulesEntities();
-    await this.getQuoteStatus();
-    await this.getModality();
-    await this.getShipment();
-    await this.getIncoterms();
+    // await this.getMarketingList();
+    // await this.getModulesEntities();
+    // await this.getQuoteStatus();
+    // await this.getModality();
+    // await this.getShipment();
+    // await this.getIncoterms();
   },
 };
 </script>

@@ -52,8 +52,6 @@
     <v-row>
       <v-col cols="12" class="mt-3 clsFiltro">
         <v-row>
-          {{ filtro }}
-
           <v-col cols="6" class="py-1">
             <v-row>
               <v-col cols="4" class="clsFechaPor">
@@ -71,7 +69,9 @@
               <v-col cols="4">
                 <v-text-field
                   prepend-inner-icon="mdi-calendar-month"
-                  :value="formatearFecha(filtro.fechainicio)"
+                  :value="
+                    formatearFecha($store.state.pricing.filtroCalls.fechainicio)
+                  "
                   dense
                   readonly
                   hide-details
@@ -83,7 +83,9 @@
               <v-col cols="4">
                 <v-text-field
                   prepend-inner-icon="mdi-calendar-month"
-                  :value="formatearFecha(filtro.fechafin)"
+                  :value="
+                    formatearFecha($store.state.pricing.filtroCalls.fechafin)
+                  "
                   dense
                   readonly
                   hide-details
@@ -96,7 +98,10 @@
           <v-col
             cols="6"
             class="py-1"
-            v-if="filtro.fechaemisiondesde || filtro.fechaemisionhasta"
+            v-if="
+              $store.state.pricing.filtroCalls.fechaemisiondesde ||
+              $store.state.pricing.filtroCalls.fechaemisionhasta
+            "
           >
             <v-row>
               <v-col cols="4" class="clsFechaPor">
@@ -113,7 +118,11 @@
               <v-col cols="4">
                 <v-text-field
                   prepend-inner-icon="mdi-calendar-month"
-                  :value="formatearFecha(filtro.fechaemisiondesde)"
+                  :value="
+                    formatearFecha(
+                      $store.state.pricing.filtroCalls.fechaemisiondesde,
+                    )
+                  "
                   dense
                   readonly
                   hide-details
@@ -124,7 +133,11 @@
               <v-col cols="4">
                 <v-text-field
                   prepend-inner-icon="mdi-calendar-month"
-                  :value="formatearFecha(filtro.fechaemisionhasta)"
+                  :value="
+                    formatearFecha(
+                      $store.state.pricing.filtroCalls.fechaemisionhasta,
+                    )
+                  "
                   dense
                   readonly
                   hide-details
@@ -135,7 +148,12 @@
             </v-row>
           </v-col>
 
-          <v-col cols="12" md="2" class="py-1" v-if="filtro.id_marketing">
+          <v-col
+            cols="12"
+            md="2"
+            class="py-1"
+            v-if="$store.state.pricing.filtroCalls.id_marketing"
+          >
             <v-autocomplete
               :items="$store.state.pricing.listMarketing"
               label="Tipo de Marketing"
@@ -146,12 +164,11 @@
               search
               item-text="name"
               item-value="id"
-              v-model="filtro.id_marketing"
+              v-model="$store.state.pricing.filtroCalls.id_marketing"
             ></v-autocomplete>
           </v-col>
-          <v-col cols="12" md="2" class="py-1" v-if="filtro.id_status">
+          <!-- <v-col cols="12" md="2" class="py-1" v-if="$store.state.pricing.filtroCalls.id_status">
             <v-autocomplete
-              auto-select-first
               :items="$store.state.pricing.listQuoteStatus"
               label="Estado de la Cotización"
               dense
@@ -160,10 +177,15 @@
               outlined
               item-text="name"
               item-value="id"
-              v-model="filtro.id_status"
+              v-model="$store.state.pricing.filtroCalls.id_status"
             ></v-autocomplete>
-          </v-col>
-          <v-col cols="12" md="2" class="py-1" v-if="filtro.id_pricing">
+          </v-col> -->
+          <v-col
+            cols="12"
+            md="2"
+            class="py-1"
+            v-if="$store.state.pricing.filtroCalls.id_pricing"
+          >
             <v-autocomplete
               :items="$store.state.pricing.listEjecutivo"
               label="Pricing."
@@ -174,10 +196,15 @@
               search
               item-text="name"
               item-value="id_entitie"
-              v-model="filtro.id_pricing"
+              v-model="$store.state.pricing.filtroCalls.id_pricing"
             ></v-autocomplete>
           </v-col>
-          <v-col cols="12" md="2" class="py-1" v-if="filtro.id_entities">
+          <v-col
+            cols="12"
+            md="2"
+            class="py-1"
+            v-if="$store.state.pricing.filtroCalls.id_entities"
+          >
             <v-autocomplete
               :items="$store.state.pricing.listEjecutivo"
               label="Ejecutivo."
@@ -188,14 +215,19 @@
               search
               item-text="name"
               item-value="id_entitie"
-              v-model="filtro.id_entities"
+              v-model="$store.state.pricing.filtroCalls.id_entities"
             ></v-autocomplete>
           </v-col>
-          <v-col cols="12" md="2" class="py-1" v-if="filtro.id_modality">
+          <v-col
+            cols="12"
+            md="2"
+            class="py-1"
+            v-if="$store.state.pricing.filtroCalls.id_modality"
+          >
             <v-autocomplete
               :items="$store.state.pricing.listModality"
               label="Sentido"
-              v-model="filtro.id_modality"
+              v-model="$store.state.pricing.filtroCalls.id_modality"
               dense
               readonly
               hide-details
@@ -204,7 +236,12 @@
               item-value="id"
             ></v-autocomplete>
           </v-col>
-          <v-col cols="12" md="2" class="py-1" v-if="filtro.id_shipment">
+          <v-col
+            cols="12"
+            md="2"
+            class="py-1"
+            v-if="$store.state.pricing.filtroCalls.id_shipment"
+          >
             <v-autocomplete
               :items="$store.state.pricing.listShipment"
               label="Tipo Embarque"
@@ -214,11 +251,16 @@
               outlined
               item-text="embarque"
               item-value="id"
-              v-model="filtro.id_shipment"
+              v-model="$store.state.pricing.filtroCalls.id_shipment"
             >
             </v-autocomplete>
           </v-col>
-          <v-col cols="12" md="2" class="py-1" v-if="filtro.id_incoterm">
+          <v-col
+            cols="12"
+            md="2"
+            class="py-1"
+            v-if="$store.state.pricing.filtroCalls.id_incoterm"
+          >
             <v-autocomplete
               :items="$store.state.pricing.listIncoterms"
               label="Incoterm"
@@ -228,7 +270,7 @@
               outlined
               item-text="name"
               item-value="id"
-              v-model="filtro.id_incoterm"
+              v-model="$store.state.pricing.filtroCalls.id_incoterm"
             ></v-autocomplete>
           </v-col>
         </v-row>
@@ -409,34 +451,12 @@ export default {
           estado: true,
         },
       ],
-      filtro: {
-        fechainicio: moment().format("YYYY-01-01"),
-        fechafin: moment().endOf("month").format("YYYY-MM-DD"),
-        fechaemisiondesde: "",
-        fechaemisionhasta: "",
-        id_marketing: "",
-        id_status: "",
-        id_pricing: "",
-        id_entities: "",
-        id_modality: "",
-        id_shipment: "",
-        id_incoterm: "",
-      },
-      filtroLlamada: {
-        idmarketing: null,
-        idstatus: null,
-        identities: null,
-        idmodality: null,
-        idshipment: null,
-        idincoterm: null,
-        fechainicio: null,
-        fechafin: null,
-      },
     };
   },
   async mounted() {
     this.$store.state.spiner = true;
-    await this.getQuoteCall(this.filtro);
+    console.log("filtroCalls", this.$store.state.pricing.filtroCalls);
+    await this.getQuoteCall(this.$store.state.pricing.filtroCalls);
     this.$store.state.spiner = false;
   },
   methods: {
@@ -452,8 +472,63 @@ export default {
     },
     async imprimierCalls() {
       this.$store.state.spiner = true;
+
+      let filtroSeleccionado = {};
+      const f = this.$store.state.pricing.filtroCalls;
+      const store = this.$store.state.pricing;
+
+      if (f.fechainicio)
+        filtroSeleccionado["Fecha Creación de Cotización inicio"] =
+          f.fechainicio;
+      if (f.fechafin)
+        filtroSeleccionado["Fecha Creación de Cotización fin"] = f.fechafin;
+      if (f.fechaemisiondesde)
+        filtroSeleccionado["Fecha de Envío Al Cliente  Desde"] =
+          f.fechaemisiondesde;
+      if (f.fechaemisionhasta)
+        filtroSeleccionado["Fecha de Envío Al Cliente  Hasta"] =
+          f.fechaemisionhasta;
+
+      if (f.id_marketing) {
+        filtroSeleccionado.Marketing = store.listMarketing.find(
+          (v) => v.id == f.id_marketing,
+        )?.name;
+      }
+      if (f.id_status) {
+        filtroSeleccionado["Estado Cotización"] = store.listQuoteStatus.find(
+          (v) => v.id == f.id_status,
+        )?.name;
+      }
+      if (f.id_pricing) {
+        filtroSeleccionado.Pricing = store.listEjecutivo.find(
+          (v) => v.id_entitie == f.id_pricing,
+        )?.name;
+      }
+      if (f.id_entities) {
+        filtroSeleccionado.Ejecutivo = store.listEjecutivo.find(
+          (v) => v.id_entitie == f.id_entities,
+        )?.name;
+      }
+      if (f.id_modality) {
+        filtroSeleccionado.Modalidad = store.listModality.find(
+          (v) => v.id == f.id_modality,
+        )?.name;
+      }
+      if (f.id_shipment) {
+        filtroSeleccionado["Tipo Carga"] = store.listShipment.find(
+          (v) => v.id == f.id_shipment,
+        )?.embarque;
+      }
+      if (f.id_incoterm) {
+        filtroSeleccionado.Incoterms = store.listIncoterms.find(
+          (v) => v.id == f.id_incoterm,
+        )?.name;
+      }
+
+      console.log("filtroSeleccionado", filtroSeleccionado);
+
       this.loading4 = true;
-      await this.imprimiReporteListadoCalls({ filtro: this.filtro });
+      await this.imprimiReporteListadoCalls(filtroSeleccionado);
       this.loading4 = false;
       this.$store.state.spiner = false;
     },
@@ -484,9 +559,11 @@ export default {
         await this.guardarNotaQuote(data).catch((err) => {
           console.log(err);
         });
-        await this.getQuoteCall(this.filtro).catch((err) => {
-          console.log(err);
-        });
+        await this.getQuoteCall(this.$store.state.pricing.filtroCalls).catch(
+          (err) => {
+            console.log(err);
+          },
+        );
 
         this.$store.state.spiner = false;
       }

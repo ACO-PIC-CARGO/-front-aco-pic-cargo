@@ -899,17 +899,7 @@ export default {
       fechafin: "",
       estado: "activo",
     };
-    this.$store.state.pricing.filtroCalls = {
-      id_marketing: "",
-      id_status: "",
-      id_entities: "",
-      id_modality: "",
-      id_shipment: "",
-      id_incoterm: "",
-      fechainicio: "",
-      fechafin: "",
-      estado: "activo",
-    };
+   
     this.$store.state.spiner = true;
     await this.getListQuoteAduana();
     await this.getListRecibidoCotizacion();
