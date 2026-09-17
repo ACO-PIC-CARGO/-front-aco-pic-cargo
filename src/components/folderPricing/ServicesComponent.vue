@@ -60,6 +60,7 @@
             <template
               v-if="
                 service.code_service == 14 &&
+                service.status == 1 &&
                 isEmpresaPermitida
               "
             >
@@ -273,9 +274,14 @@ export default {
       this.errorIdTown = "";
       this.$store.state.pricing.errorValorMercancia = "";
       let val = true;
+
+      let validarTown = this.listServices.some(
+        (v) => v.code_service == 14 && v.service.status == 1,
+      );
+
       if (
         this.requiereValorMercancia ||
-        !this.$store.state.pricing.datosPrincipales.id_town
+        (validarTown && !this.$store.state.pricing.datosPrincipales.id_town)
       ) {
         const amount = this.$store.state.pricing.datosPrincipales.amount;
         if (!amount || amount <= 0) {
@@ -283,7 +289,10 @@ export default {
             "Datos Requeridos y mayor que 0";
           val = false;
         }
-        if (!this.$store.state.pricing.datosPrincipales.id_town) {
+        if (
+          validarTown &&
+          !this.$store.state.pricing.datosPrincipales.id_town
+        ) {
           this.errorIdTown = "Datos Requeridos";
           val = false;
         }
