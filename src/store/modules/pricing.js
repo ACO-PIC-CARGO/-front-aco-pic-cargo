@@ -189,6 +189,7 @@ const state = {
   textWhatsapp: [],
   e1: 1,
   step: 1,
+  filtroSeleccionado: [],
 };
 
 const mutations = {
@@ -235,17 +236,6 @@ const mutations = {
     //   id_pricing : '',
     //   estado: "activo",
     // };
-    state.filtroCalls = {
-      id_marketing: "",
-      id_status: "",
-      id_entities: "",
-      id_modality: "",
-      id_shipment: "",
-      id_incoterm: "",
-      fechainicio: "",
-      fechafin: "",
-      estado: "activo",
-    };
     state.ventaflag = false;
     state.dataQuote = null;
     state.filtrarQuoteFlag = false;
@@ -785,50 +775,14 @@ const actions = {
       });
   },
   async getQuoteCall({ commit }, filtro) {
-    var data = {
-      id_branch: JSON.parse(sessionStorage.getItem("dataUser"))[0].id_branch,
-      id_estado: filtro.id_estado,
-      id_sentido: filtro.id_sentido,
-      id_carga: filtro.id_carga,
-      id_incoterms: filtro.id_incoterms,
-      desde: filtro.desde,
-      hasta: filtro.hasta,
-    };
-
     let header = {
       "Content-Type": "application/json",
     };
     var config = {
       method: "get",
-      url:
-        process.env.VUE_APP_URL_MAIN +
-        `listado_llamadas?id_branch=${
-          JSON.parse(sessionStorage.getItem("dataUser"))[0].id_branch
-        }&id_marketing=${
-          state.filtroCalls.id_marketing ? state.filtroCalls.id_marketing : ""
-        }&id_status=${
-          state.filtroCalls.id_status ? state.filtroCalls.id_status : ""
-        }&id_entities=${
-          state.filtroCalls.id_entities ? state.filtroCalls.id_entities : ""
-        }&id_modality=${
-          state.filtroCalls.id_modality ? state.filtroCalls.id_modality : ""
-        }&id_shipment=${
-          state.filtroCalls.id_shipment ? state.filtroCalls.id_shipment : ""
-        }&id_incoterm=${
-          state.filtroCalls.id_incoterm ? state.filtroCalls.id_incoterm : ""
-        }&fechainicio=${
-          state.filtroCalls.fechainicio ? state.filtroCalls.fechainicio : ""
-        }&fechafin=${
-          state.filtroCalls.fechafin ? state.filtroCalls.fechafin : ""
-        }&estado=${
-          typeof state.filtroCalls.estado === "string"
-            ? state.filtroCalls.estado == "activo"
-              ? 1
-              : 0
-            : ""
-        }`,
+      url: process.env.VUE_APP_URL_MAIN + `listado_llamadas`,
       headers: header,
-      data: data,
+      params: filtro,
     };
     await axios(config)
       .then(function (response) {
@@ -3651,7 +3605,7 @@ const actions = {
       })
       .catch((e) => console.log(e));
   },
-  async imprimiReporteListado() {
+  async imprimiReporteListado({}, filtroSeleccionado) {
     let headers = {
       "Content-Type": "application/json",
     };
@@ -3663,7 +3617,7 @@ const actions = {
         pagina: state.pagina,
         id_branch: JSON.parse(sessionStorage.getItem("dataUser"))[0].id_branch,
       },
-      filtroSeleccionado: state.filtroSeleccionado,
+      filtroSeleccionado: filtroSeleccionado,
       id_branch: JSON.parse(sessionStorage.getItem("dataUser"))[0].id_branch,
     };
     let timerInterval;
@@ -3819,40 +3773,52 @@ const actions = {
       })
       .catch((e) => console.log(e));
   },
-  async imprimiReporteListadoCalls(__, { filtro = [] }) {
-    let headers = {
-      "Access-Control-Allow-Origin": "*",
+  async imprimiReporteListadoCalls(__, filtroSeleccionado) {
+     let headers = {
       "Content-Type": "application/json",
-      Accept: "aplication/json",
-      "Access-Control-Allow-Methods": "GET, POST, PATCH, PUT, DELETE, OPTIONS",
-      "Access-Control-Allow-Headers":
-        "Origin, Content-Type, X-Auth-Token, Authorization, Accept,charset,boundary,Content-Length",
-      responseType: "arraybuffer",
     };
     let data = {
-      filtro: filtro,
+      ...state.filtroCalls,
+      filtroSeleccionado: filtroSeleccionado,
+      sucursal:  JSON.parse(sessionStorage.getItem("dataBranch"))[0].business_name,
       id_branch: JSON.parse(sessionStorage.getItem("dataUser"))[0].id_branch,
     };
+    let timerInterval;
+    Swal.fire({
+      icon: "info",
+      title: "Generando  PDF",
+      text: "El PDF se descargará automaticamente",
+      showConfirmButton: false,
+      allowOutsideClick: false,
+      timerProgressBar: true,
+      timer: null,
+      didOpen: () => {
+        Swal.showLoading();
+      },
+    }).then((res) => {
+      if (res.dismiss) {
+        clearInterval(timerInterval);
+      }
+    });
     await axios
       .post(
-        process.env.VUE_APP_URL_REPORT + "reporte_llamadas_export",
+        process.env.VUE_APP_URL_MAIN + "reporte_llamadas_export",
         data,
         headers,
       )
       .then((response) => {
-        const url = window.URL.createObjectURL(new Blob([response.data]));
-        const link = document.createElement("a");
-        link.href = url;
-        // let name = this.uuidv4();
-        link.setAttribute(
-          "download",
-          `Reporte de Cotizaciones ${moment().format(
-            "DD-MM-YYYY hh:mm:ss",
-          )}.pdf`,
+        Swal.fire({
+          icon: "success",
+          title: "PDF Generado",
+          text: "El PDF se descargará automaticamente",
+          showConfirmButton: true,
+        });
+        console.log('data',response.data)
+        window.open(
+          `${process.env.VUE_APP_URL_MAIN}${response.data.path}`,
+          // "",
+          "_blank",
         );
-        document.body.appendChild(link);
-        link.click();
-        this.loading2 = false;
       })
       .catch((e) => console.log(e));
   },
@@ -3926,7 +3892,7 @@ const actions = {
       let data = response.data;
 
       Swal.fire({
-        icon: data.estado == true ? "info" : "error",
+        icon: data.estadoflag == true ? "info" : "error",
         text: data.mensaje,
       });
     });
