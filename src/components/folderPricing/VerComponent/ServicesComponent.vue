@@ -58,13 +58,7 @@
                 {{ service.service }}
               </template>
             </v-checkbox>
-            <template
-              v-if="
-                service.code_service == 14 &&
-                service.status == 1 &&
-                isEmpresaPermitida
-              "
-            >
+            <template>
               <v-autocomplete
                 :items="$store.state.town.lstTown"
                 item-text="nombrecompleto"
