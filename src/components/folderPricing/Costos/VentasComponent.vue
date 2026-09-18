@@ -482,7 +482,16 @@ export default {
             factorCalculado = 1;
           }
         }
-        return valorMultiplicador * element.costounitario * factorCalculado;
+
+        let operacionFinal =
+          valorMultiplicador * element.costounitario * factorCalculado;
+        if (element.considerarvalorminimoflag) {
+          operacionFinal =
+            Number(element.minimo || 0) > Number(operacionFinal)
+              ? Number(element.minimo)
+              : operacionFinal;
+        }
+        return operacionFinal;
       }
 
       // CASO B: Sí es porcentaje (Cálculo basado en CIF / Seguro)
@@ -775,8 +784,14 @@ export default {
       }
 
       // 5. Realizamos la operación matemática final
-      const operacionFinal =
+      let operacionFinal =
         valorMultiplicador * valor.costounitario * factorCalculado;
+      if (valor.considerarvalorminimoflag) {
+        operacionFinal =
+          Number(valor.minimo || 0) > Number(operacionFinal)
+            ? Number(valor.minimo)
+            : operacionFinal;
+      }
 
       // 6. Retornamos el valor con su respectivo formato de moneda
       return this.currencyFormat(operacionFinal);

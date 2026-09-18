@@ -23,7 +23,12 @@
           </v-col>
 
           <v-spacer></v-spacer>
-          <v-btn color="success" @click="redirect()" small class="ml-auto my-auto mr-5">
+          <v-btn
+            color="success"
+            @click="redirect()"
+            small
+            class="ml-auto my-auto mr-5"
+          >
             NUEVA COTIZACIÓN
           </v-btn>
         </v-row>
@@ -113,18 +118,41 @@ export default {
       dialog: false,
     };
   },
-  mounted() {
+  async mounted() {
     this.$store.state.drawer = false;
     this.$store.state.pricing.e1 = 1;
     let val = JSON.parse(sessionStorage.getItem("ConfigEmpresa"));
     this.dialog = !val.existecot;
-    this.getResumenPorEstado();
+    this.$store.state.spiner = true;
+    await Promise.all([
+      this.getListQuote(),
+      // this.getListRecibidoCotizacion(),
+      // this.getListEnviadoCliente(),
+      this.getModulesEntities(),
+      this.getQuoteStatus(),
+      this.getMarketingList(),
+      this.getResumenPorEstado(),
+      this.cargarClientes(),
+      this.getQuoteCall()
+    ]);
+    this.$store.state.spiner = false;
   },
   methods: {
     ...mapActions([
+      "getQuoteCall",
+      "getListEnviadoCliente",
       "GuardarConfiguracionEmpresa",
       "ObtenerDatosConfig",
       "getResumenPorEstado",
+      "cargarClientes",
+      "getMarketingList",
+      "getModulesEntities",
+      "getQuoteStatus",
+      "getModality",
+      "getShipment",
+      "getIncoterms",
+      "getListQuote",
+      "getListRecibidoCotizacion ",
     ]),
     redirect() {
       this.$nextTick(() => {
@@ -135,7 +163,7 @@ export default {
     },
     async filtrarCotizaciones(item) {
       this.$store.state.spiner = true;
-      
+
       this.$store.state.spiner = false;
     },
     async guardarConfig() {

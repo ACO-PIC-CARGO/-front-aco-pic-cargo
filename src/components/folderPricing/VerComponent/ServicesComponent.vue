@@ -61,6 +61,7 @@
             <template
               v-if="
                 service.code_service == 14 &&
+                service.status == 1 &&
                 isEmpresaPermitida
               "
             >

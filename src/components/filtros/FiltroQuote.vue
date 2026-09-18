@@ -19,10 +19,22 @@
           <v-row>
             <v-col cols="12" md="6" class="py-1">
               <v-autocomplete
+                label="Cliente"
+                dense
+                :items="$store.state.clientes"
+                item-text="namelong"
+                item-value="id"
+                placeholder="Clientes"
+                v-model="$store.state.pricing.filtro.id_cliente"
+                clearable
+              >
+              </v-autocomplete>
+            </v-col>
+            <v-col cols="12" md="6" class="py-1">
+              <v-autocomplete
                 :items="$store.state.pricing.listMarketing"
                 label="Tipo de Marketing"
                 dense
-                search
                 item-text="name"
                 item-value="id"
                 v-model="$store.state.pricing.filtro.id_marketing"
@@ -166,13 +178,14 @@
 </template>
 
 <script>
-import { mapActions } from "vuex";
+import { mapActions, mapState } from "vuex";
 import FormatFecha from "../comun/FormatFecha.vue";
 import moment from "moment";
 export default {
   components: {
     FormatFecha,
   },
+  ...mapState(["clientes"]),
   methods: {
     ...mapActions([
       "getMarketingList",

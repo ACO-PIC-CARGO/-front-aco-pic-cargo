@@ -297,7 +297,7 @@
 
           <v-btn color="default" class="mx-1 my-1" small @click="limpiar()">
             <v-icon class="mx-1">mdi-filter-remove</v-icon>
-            Filtrar
+            Limpiar
           </v-btn>
         </div>
       </v-col>
@@ -1034,19 +1034,11 @@ export default {
     },
     async limpiar() {
       this.$store.state.spiner = true;
-      this.$store.state.pricing.filtro.id_marketing = null;
-      this.$store.state.pricing.filtro.id_status = null;
-      this.$store.state.pricing.filtro.id_entities = null;
-      this.$store.state.pricing.filtro.id_modality = null;
-      this.$store.state.pricing.filtro.id_shipment = null;
-      this.$store.state.pricing.filtro.id_incoterm = null;
-      this.$store.state.pricing.filtro.fechaemisiondesde = null;
-      this.$store.state.pricing.filtro.fechaemisionhasta = null;
-      this.$store.state.pricing.filtro.fechadesde =
-        moment().format("YYYY-01-01");
-      this.$store.state.pricing.filtro.fechafin = moment()
-        .endOf("month")
-        .format("YYYY-MM-DD");
+      this.$store.state.pricing.filtro = {
+        fechadesde: moment().format("YYYY-01-01"),
+        fechafin: moment().endOf("month").format("YYYY-MM-DD"),
+      };
+      
       this.$store.state.pricing.filtro.estado = true;
       await this.getListQuote();
 
@@ -1206,41 +1198,41 @@ export default {
         filtroSeleccionado["Fecha de Envío Al Cliente  Hasta"] =
           f.fechaemisionhasta;
 
-      if (f.id_marketing) {
-        filtroSeleccionado.Marketing = store.listMarketing.find(
-          (v) => v.id == f.id_marketing,
-        )?.name;
-      }
-      if (f.id_status) {
-        filtroSeleccionado["Estado Cotización"] = store.listQuoteStatus.find(
-          (v) => v.id == f.id_status,
-        )?.name;
-      }
-      if (f.id_pricing) {
-        filtroSeleccionado.Pricing = store.listEjecutivo.find(
-          (v) => v.id_entitie == f.id_pricing,
-        )?.name;
-      }
-      if (f.id_entities) {
-        filtroSeleccionado.Ejecutivo = store.listEjecutivo.find(
-          (v) => v.id_entitie == f.id_entities,
-        )?.name;
-      }
-      if (f.id_modality) {
-        filtroSeleccionado.Modalidad = store.listModality.find(
-          (v) => v.id == f.id_modality,
-        )?.name;
-      }
-      if (f.id_shipment) {
-        filtroSeleccionado["Tipo Carga"] = store.listShipment.find(
-          (v) => v.id == f.id_shipment,
-        )?.embarque;
-      }
-      if (f.id_incoterm) {
-        filtroSeleccionado.Incoterms = store.listIncoterms.find(
-          (v) => v.id == f.id_incoterm,
-        )?.name;
-      }
+      // if (f.id_marketing) {
+      //   filtroSeleccionado.Marketing = store.listMarketing.find(
+      //     (v) => v.id == f.id_marketing,
+      //   )?.name;
+      // }
+      // if (f.id_status) {
+      //   filtroSeleccionado["Estado Cotización"] = store.listQuoteStatus.find(
+      //     (v) => v.id == f.id_status,
+      //   )?.name;
+      // }
+      // if (f.id_pricing) {
+      //   filtroSeleccionado.Pricing = store.listEjecutivo.find(
+      //     (v) => v.id_entitie == f.id_pricing,
+      //   )?.name;
+      // }
+      // if (f.id_entities) {
+      //   filtroSeleccionado.Ejecutivo = store.listEjecutivo.find(
+      //     (v) => v.id_entitie == f.id_entities,
+      //   )?.name;
+      // }
+      // if (f.id_modality) {
+      //   filtroSeleccionado.Modalidad = store.listModality.find(
+      //     (v) => v.id == f.id_modality,
+      //   )?.name;
+      // }
+      // if (f.id_shipment) {
+      //   filtroSeleccionado["Tipo Carga"] = store.listShipment.find(
+      //     (v) => v.id == f.id_shipment,
+      //   )?.embarque;
+      // }
+      // if (f.id_incoterm) {
+      //   filtroSeleccionado.Incoterms = store.listIncoterms.find(
+      //     (v) => v.id == f.id_incoterm,
+      //   )?.name;
+      // }
 
       await this.imprimiReporteListado(filtroSeleccionado).catch((e) => {
         console.error(e);
@@ -1554,19 +1546,12 @@ export default {
 
     this.$store.state.spiner = true;
     await this.getListQuote();
-    await Promise.all([
-      this.getListRecibidoCotizacion(),
-      this.getListEnviadoCliente(),
-      this.getModulesEntities(),
-      this.getQuoteStatus(),
-      this.getMarketingList(),
-    ]);
+
     // await this.cargarMaster({
     //   idsentido: "",
     //   idtipocarga: "",
     //   idincoterms: "",
     // });
-    this.$store.state.spiner = false;
   },
   watch: {
     async "$store.state.pricing.search"() {

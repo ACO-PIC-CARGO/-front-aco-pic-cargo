@@ -19,6 +19,19 @@
           <v-row>
             <v-col cols="12" md="6" class="py-1">
               <v-autocomplete
+                label="Cliente"
+                dense
+                :items="$store.state.clientes"
+                item-text="namelong"
+                item-value="id"
+                placeholder="Clientes"
+                v-model="$store.state.pricing.filtroCalls.id_cliente"
+                clearable
+              >
+              </v-autocomplete>
+            </v-col>
+            <v-col cols="12" md="6" class="py-1">
+              <v-autocomplete
                 :items="$store.state.pricing.listMarketing"
                 label="Tipo de Marketing"
                 dense
@@ -199,7 +212,8 @@ export default {
       this.$store.state.pricing.filtroCalls.id_incoterm = null;
       this.$store.state.pricing.filtroCalls.fechaemisiondesde = null;
       this.$store.state.pricing.filtroCalls.fechaemisionhasta = null;
-      this.$store.state.pricing.filtroCalls.fechafin = moment().format("YYYY-01-01");
+      this.$store.state.pricing.filtroCalls.fechafin =
+        moment().format("YYYY-01-01");
       this.$store.state.pricing.filtroCalls.fechafin = moment()
         .endOf("month")
         .format("YYYY-MM-DD");
