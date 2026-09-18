@@ -2417,16 +2417,15 @@ export default {
           datosPrincipales.amount,
         );
 
-        if (
-          element.code_cost == 4 &&
-          this.$store.state.pricing.datosPrincipales.volumen < 1
-        ) {
-          if (factorCalculado < 1) {
-            factorCalculado = 1;
-          }
+        let operacionFinal =
+          valorMultiplicador * element.costounitario * factorCalculado;
+        if (element.considerarvalorminimoflag) {
+          operacionFinal =
+            Number(element.minimo || 0) > Number(operacionFinal)
+              ? Number(element.minimo)
+              : operacionFinal;
         }
-        console.log("Factor Calculado:", element, factorCalculado);
-        return valorMultiplicador * element.costounitario * factorCalculado;
+        return operacionFinal;
       }
 
       // CASO B: Sí es porcentaje (Cálculo basado en CIF / Seguro)
@@ -2735,8 +2734,17 @@ export default {
       }
 
       // 5. Realizamos la operación matemática final
-      const operacionFinal =
+      let operacionFinal =
         valorMultiplicador * valor.costounitario * factorCalculado;
+      if (valor.considerarvalorminimoflag) {
+        
+        operacionFinal =
+           Number(valor.minimo || 0) > Number(operacionFinal)
+            ? Number(valor.minimo)
+            : operacionFinal;
+      }
+
+      // console.log('considerarvalorminimoflag',valor.considerarvalorminimoflag)
 
       // 6. Retornamos el valor con su respectivo formato de moneda
       return this.currencyFormat(operacionFinal);
@@ -2816,7 +2824,7 @@ export default {
       this.calcTotales();
     },
     idProveedor() {
-      console.log("idProveedor", this.idProveedor);
+      
     },
     recargarSegmentos() {
       this.habilidarCuandoYaHayOpciones();

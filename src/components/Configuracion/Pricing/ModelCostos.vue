@@ -66,7 +66,6 @@
             </template>
             <template v-slot:[`item.minimo`]="{ item }">
               <v-text-field
-                v-if="mostrarMinimo(item)"
                 dense
                 v-model="item.minimo"
                 outlined
@@ -101,6 +100,12 @@
                 hide-details
                 outlined
               ></v-autocomplete>
+            </template>
+            <template v-slot:[`item.considerarvalorminimoflag`]="{ item }">
+              <v-switch
+                v-model="item.considerarvalorminimoflag"
+                :label="`${item.considerarvalorminimoflag ? 'Si' : 'No'}`"
+              ></v-switch>
             </template>
             <template v-slot:[`item.action`]="{ item }">
               <v-btn
@@ -151,9 +156,9 @@
         color="success"
         >Guardar</v-btn
       >
-      <v-btn :loading="loading" color="error" @click="$emit('cerrarModal')"
-        >Cancelar</v-btn
-      >
+      <v-btn :loading="loading" color="error" @click="$emit('cerrarModal')">
+        Cancelar
+      </v-btn>
     </v-card-actions>
     <!-- Diálogo para agregar nuevo costo -->
     <v-dialog v-model="dialog" persistent max-width="30%">
@@ -284,6 +289,11 @@ export default {
         { value: "multiplicador", text: "Multiplicador", width: "15%" },
         { value: "costo", text: "Costo", width: "15%" },
         { value: "precio", text: "Precio", width: "10%" },
+        {
+          value: "considerarvalorminimoflag",
+          text: "Considerar Valor Mínimo",
+          width: "10%",
+        },
         { value: "minimo", text: "Valor Mínimo", width: "10%" },
         { value: "status", text: "Activo / Inactivo", width: "5%" },
         { value: "action", text: "", width: "10%" },
@@ -305,7 +315,6 @@ export default {
       "EliminarCosto",
     ]),
     copiarCosto(item) {
-      
       Swal.fire({
         icon: "question",
         title: "Copiar",
@@ -401,32 +410,25 @@ export default {
       });
     },
     quitarRegistro(item) {
-      // 1. Buscamos el índice del registro temporal dentro del arreglo principal
       const index = this.lstCostos.indexOf(item);
 
-      // 2. Si lo encuentra (es decir, el índice es diferente de -1), lo quitamos
       if (index !== -1) {
         this.lstCostos.splice(index, 1);
       }
     },
     guardarCosto() {
-      if (!this.$refs.frmNuevoCosto.validate()) return; // Valida que los campos requeridos estén llenos
-
-      // Creamos una copia limpia para evitar problemas de referencia en memoria
+      if (!this.$refs.frmNuevoCosto.validate()) return;
       const nuevoCosto = { ...this.fromDataService };
-
-      // Inicializamos los flags por defecto para el nuevo registro de costo
       nuevoCosto.esgastostercerosflag = 0;
       nuevoCosto.esfleteflag = 0;
       nuevoCosto.eslocalflag = 0;
       nuevoCosto.esaduanaflag = 0;
       nuevoCosto.esalmacenflag = 0;
-      nuevoCosto.status = 1; // Por defecto activo para la tabla
-      nuevoCosto.costo = nuevoCosto.costo; // Mapeamos el costo unitario al v-model de la tabla
-      nuevoCosto.precio = nuevoCosto.precio; // Mapeamos un precio inicial si lo requieres
-      nuevoCosto.minimo = nuevoCosto.minimo; // Mapeamos un precio inicial si lo requieres
+      nuevoCosto.status = 1;
+      nuevoCosto.costo = nuevoCosto.costo;
+      nuevoCosto.precio = nuevoCosto.precio;
+      nuevoCosto.minimo = nuevoCosto.minimo;
 
-      // Asignamos el flag correcto según el código del panel donde se hizo click
       switch (nuevoCosto.idOpcion) {
         case "GT":
           nuevoCosto.esgastostercerosflag = 1;
@@ -467,36 +469,30 @@ export default {
       "lstServicios",
     ]),
 
-    // Nueva propiedad computada para filtrar los tipos de costos vacíos
     panelesConDatos() {
       const listaTipos = this.$store.state.pricing.listTipoCostos;
       if (!listaTipos) return [];
 
-      // 1. Primero filtramos para quedarnos solo con los que sí tienen costos
       const panelesFiltrados = listaTipos.filter((tipo) => {
         const costosFiltrados = this.obtenerCostosEnBaseTipoCosto(tipo.codigo);
         return costosFiltrados && costosFiltrados.length > 0;
       });
 
-      // 2. Ordenamos la lista filtrada basándonos en el prefijo de su "name"
       return panelesFiltrados.sort((a, b) => {
-        // Asignamos un "peso" o prioridad a cada item según su nombre
         const obtenerPeso = (item) => {
           if (item.name && item.name.startsWith("ORIGEN")) {
-            return 1; // Prioridad más alta (va al principio)
+            return 1;
           }
           if (item.name && item.name.startsWith("DESTINO")) {
-            return 3; // Prioridad más baja (va al final)
+            return 3;
           }
-          return 2; // Cualquiera que no sea ni Origen ni Destino se queda en medio
+          return 2;
         };
 
         return obtenerPeso(a) - obtenerPeso(b);
       });
     },
     panelesAbiertos() {
-      // Genera un array de índices basado en la cantidad de paneles con datos.
-      // Ejemplo: si hay 3 paneles con datos, devolverá [0, 1, 2]
       return this.panelesConDatos.map((_, index) => index);
     },
   },

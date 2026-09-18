@@ -299,7 +299,12 @@
             dark
             small
           >
-            Filtrar
+             <v-icon>mdi-filter</v-icon>
+            Filtrar 
+          </v-btn>
+          <v-btn color="default" class="mx-1 my-1" small @click="limpiar()">
+            <v-icon class="mx-1">mdi-filter-remove</v-icon>
+            Limpiar
           </v-btn>
         </div>
       </v-col>
@@ -453,12 +458,7 @@ export default {
       ],
     };
   },
-  async mounted() {
-    this.$store.state.spiner = true;
-    console.log("filtroCalls", this.$store.state.pricing.filtroCalls);
-    await this.getQuoteCall(this.$store.state.pricing.filtroCalls);
-    this.$store.state.spiner = false;
-  },
+  async mounted() {},
   methods: {
     ...mapActions([
       "getQuoteCall",
@@ -469,6 +469,19 @@ export default {
       if (!fecha) return "";
 
       return moment(fecha).format("YYYY-MMM-DD").toUpperCase();
+    },
+    async limpiar() {
+      this.$store.state.spiner = true;
+      this.$store.state.pricing.filtroCalls = {
+        fechainicio: moment().format("YYYY-01-01"),
+        fechafin: moment().endOf("month").format("YYYY-MM-DD"),
+      };
+      // this.$store.state.pricing.filtroCalls.estado = true;
+      await this.getQuoteCall();
+
+      this.$store.state.pricing.filtrarQuoteFlag = false;
+      this.$store.state.pricing.filtroCalls.estado = true;
+      this.$store.state.spiner = false;
     },
     async imprimierCalls() {
       this.$store.state.spiner = true;
@@ -489,43 +502,41 @@ export default {
         filtroSeleccionado["Fecha de Envío Al Cliente  Hasta"] =
           f.fechaemisionhasta;
 
-      if (f.id_marketing) {
-        filtroSeleccionado.Marketing = store.listMarketing.find(
-          (v) => v.id == f.id_marketing,
-        )?.name;
-      }
-      if (f.id_status) {
-        filtroSeleccionado["Estado Cotización"] = store.listQuoteStatus.find(
-          (v) => v.id == f.id_status,
-        )?.name;
-      }
-      if (f.id_pricing) {
-        filtroSeleccionado.Pricing = store.listEjecutivo.find(
-          (v) => v.id_entitie == f.id_pricing,
-        )?.name;
-      }
-      if (f.id_entities) {
-        filtroSeleccionado.Ejecutivo = store.listEjecutivo.find(
-          (v) => v.id_entitie == f.id_entities,
-        )?.name;
-      }
-      if (f.id_modality) {
-        filtroSeleccionado.Modalidad = store.listModality.find(
-          (v) => v.id == f.id_modality,
-        )?.name;
-      }
-      if (f.id_shipment) {
-        filtroSeleccionado["Tipo Carga"] = store.listShipment.find(
-          (v) => v.id == f.id_shipment,
-        )?.embarque;
-      }
-      if (f.id_incoterm) {
-        filtroSeleccionado.Incoterms = store.listIncoterms.find(
-          (v) => v.id == f.id_incoterm,
-        )?.name;
-      }
-
-      console.log("filtroSeleccionado", filtroSeleccionado);
+      // if (f.id_marketing) {
+      //   filtroSeleccionado.Marketing = store.listMarketing.find(
+      //     (v) => v.id == f.id_marketing,
+      //   )?.name;
+      // }
+      // if (f.id_status) {
+      //   filtroSeleccionado["Estado Cotización"] = store.listQuoteStatus.find(
+      //     (v) => v.id == f.id_status,
+      //   )?.name;
+      // }
+      // if (f.id_pricing) {
+      //   filtroSeleccionado.Pricing = store.listEjecutivo.find(
+      //     (v) => v.id_entitie == f.id_pricing,
+      //   )?.name;
+      // }
+      // if (f.id_entities) {
+      //   filtroSeleccionado.Ejecutivo = store.listEjecutivo.find(
+      //     (v) => v.id_entitie == f.id_entities,
+      //   )?.name;
+      // }
+      // if (f.id_modality) {
+      //   filtroSeleccionado.Modalidad = store.listModality.find(
+      //     (v) => v.id == f.id_modality,
+      //   )?.name;
+      // }
+      // if (f.id_shipment) {
+      //   filtroSeleccionado["Tipo Carga"] = store.listShipment.find(
+      //     (v) => v.id == f.id_shipment,
+      //   )?.embarque;
+      // }
+      // if (f.id_incoterm) {
+      //   filtroSeleccionado.Incoterms = store.listIncoterms.find(
+      //     (v) => v.id == f.id_incoterm,
+      //   )?.name;
+      // }
 
       this.loading4 = true;
       await this.imprimiReporteListadoCalls(filtroSeleccionado);
