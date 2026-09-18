@@ -3600,13 +3600,17 @@ const actions = {
       })
       .catch((e) => console.log(e));
   },
-  async imprimiReporteListadoCalls(__, filtroSeleccionado) {
+  async imprimiReporteListadoCalls(
+    __,
+    { filtroSeleccionado = {}, filtroCabecera = {} },
+  ) {
     let headers = {
       "Content-Type": "application/json",
     };
     let data = {
       ...state.filtroCalls,
       filtroSeleccionado: filtroSeleccionado,
+      filtroCabecera: filtroCabecera,
       sucursal: JSON.parse(sessionStorage.getItem("dataBranch"))[0]
         .business_name,
       id_branch: JSON.parse(sessionStorage.getItem("dataUser"))[0].id_branch,
