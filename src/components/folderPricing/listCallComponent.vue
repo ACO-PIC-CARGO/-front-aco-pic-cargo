@@ -299,8 +299,8 @@
             dark
             small
           >
-             <v-icon>mdi-filter</v-icon>
-            Filtrar 
+            <v-icon>mdi-filter</v-icon>
+            Filtrar
           </v-btn>
           <v-btn color="default" class="mx-1 my-1" small @click="limpiar()">
             <v-icon class="mx-1">mdi-filter-remove</v-icon>
@@ -511,44 +511,54 @@ export default {
         filtroSeleccionado["Fecha de Envío Al Cliente  Hasta"] =
           f.fechaemisionhasta;
 
-      // if (f.id_marketing) {
-      //   filtroSeleccionado.Marketing = store.listMarketing.find(
-      //     (v) => v.id == f.id_marketing,
-      //   )?.name;
-      // }
-      // if (f.id_status) {
-      //   filtroSeleccionado["Estado Cotización"] = store.listQuoteStatus.find(
-      //     (v) => v.id == f.id_status,
-      //   )?.name;
-      // }
-      // if (f.id_pricing) {
-      //   filtroSeleccionado.Pricing = store.listEjecutivo.find(
-      //     (v) => v.id_entitie == f.id_pricing,
-      //   )?.name;
-      // }
-      // if (f.id_entities) {
-      //   filtroSeleccionado.Ejecutivo = store.listEjecutivo.find(
-      //     (v) => v.id_entitie == f.id_entities,
-      //   )?.name;
-      // }
-      // if (f.id_modality) {
-      //   filtroSeleccionado.Modalidad = store.listModality.find(
-      //     (v) => v.id == f.id_modality,
-      //   )?.name;
-      // }
-      // if (f.id_shipment) {
-      //   filtroSeleccionado["Tipo Carga"] = store.listShipment.find(
-      //     (v) => v.id == f.id_shipment,
-      //   )?.embarque;
-      // }
-      // if (f.id_incoterm) {
-      //   filtroSeleccionado.Incoterms = store.listIncoterms.find(
-      //     (v) => v.id == f.id_incoterm,
-      //   )?.name;
-      // }
+      let filtroCabecera = {};
+
+      if (f.id_marketing) {
+        filtroCabecera.Marketing = store.listMarketing.find(
+          (v) => v.id == f.id_marketing,
+        )?.name;
+      }
+      if (f.id_status) {
+        filtroCabecera.QuoteStatus = store.listQuoteStatus.find(
+          (v) => v.id == f.id_status,
+        )?.name;
+      }
+      if (f.id_pricing) {
+        filtroCabecera.Pricing = store.listEjecutivo.find(
+          (v) => v.id_entitie == f.id_pricing,
+        )?.name;
+      }
+      if (f.id_entities) {
+        filtroCabecera.Ejecutivo = store.listEjecutivo.find(
+          (v) => v.id_entitie == f.id_entities,
+        )?.name;
+      }
+      if (f.id_modality) {
+        filtroCabecera.Modalidad = store.listModality.find(
+          (v) => v.id == f.id_modality,
+        )?.name;
+      }
+      if (f.id_shipment) {
+        filtroCabecera.Shipment = store.listShipment.find(
+          (v) => v.id == f.id_shipment,
+        )?.embarque;
+      }
+      if (f.id_incoterm) {
+        filtroCabecera.Incoterms = store.listIncoterms.find(
+          (v) => v.id == f.id_incoterm,
+        )?.name;
+      }
+      if (f.id_cliente) {
+        filtroCabecera.Cliente = this.$store.state.clientes.find(
+          (v) => v.id == f.id_cliente,
+        )?.namelong;
+      }
 
       this.loading4 = true;
-      await this.imprimiReporteListadoCalls(filtroSeleccionado);
+      await this.imprimiReporteListadoCalls({
+        filtroSeleccionado: filtroSeleccionado,
+        filtroCabecera: filtroCabecera,
+      });
       this.loading4 = false;
       this.$store.state.spiner = false;
     },
