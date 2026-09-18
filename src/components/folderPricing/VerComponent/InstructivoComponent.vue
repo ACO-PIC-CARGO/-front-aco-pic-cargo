@@ -738,6 +738,99 @@
         </v-card-text>
       </v-card>
     </v-dialog>
+    <v-dialog v-model="dialogCorrelativos" max-width="900px" persistent>
+      <v-card class="correlativos-dialog">
+        <!-- BOTÓN CERRAR -->
+        <v-btn icon class="close-dialog" @click="dialogCorrelativos = false">
+          <v-icon size="38">mdi-close</v-icon>
+        </v-btn>
+
+        <v-card-text class="pa-0">
+          <div class="dialog-content">
+            <!-- COLUMNA DEL ICONO -->
+            <div class="warning-section">
+              <div class="warning-circle">
+                <v-icon color="#ff9800" size="100"> mdi-alert </v-icon>
+              </div>
+            </div>
+
+            <!-- CONTENIDO -->
+            <div class="main-section">
+              <div class="dialog-title">
+                Correlativos asociados a este House
+              </div>
+
+              <div class="dialog-description">
+                Se ha detectado que este House tiene varios correlativos
+                asociados:
+              </div>
+
+              <!-- CORRELATIVOS -->
+              <div class="correlativos-list">
+                <div
+                  v-for="(item, index) in correlativos"
+                  :key="index"
+                  class="correlativo-item"
+                >
+                  {{ item.code }}
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- INFORMACIÓN -->
+          <div class="info-container">
+            <div class="info-icon">
+              <v-icon color="white" size="32"> mdi-information </v-icon>
+            </div>
+
+            <div class="info-text">
+              <div>
+                Solo se sustituirán todos los costos del
+                <strong>correlativo {{ correlativoPrincipal.code }}</strong
+                >.
+              </div>
+
+              <div class="info-secondary">
+                Los correlativos
+                <strong
+                  v-for="(item, index) in correlativosSecundarios"
+                  :key="index"
+                >
+                  {{ item.code
+                  }}<span v-if="index < correlativosSecundarios.length - 1">
+                    y
+                  </span>
+                </strong>
+                no serán modificados.
+              </div>
+            </div>
+          </div>
+
+          <!-- PREGUNTA -->
+          <div class="question-text">¿Deseas continuar?</div>
+        </v-card-text>
+
+        <!-- FOOTER -->
+        <v-card-actions class="dialog-footer">
+          <v-btn
+            outlined
+            class="btn-cancelar"
+            @click="dialogCorrelativos = false"
+          >
+            Cancelar
+          </v-btn>
+
+          <v-btn
+            depressed
+            class="btn-confirmar"
+            @click="continuarAprobarHouses"
+          >
+            Confirmar
+          </v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
   </v-container>
 </template>
 
@@ -758,6 +851,8 @@ export default {
   },
   data() {
     return {
+      dialogCorrelativos: false,
+      correlativos: [],
       IdempotencyKey: "",
       verPrevisualizacion: true,
       verDatosPreview: true,
@@ -1276,7 +1371,7 @@ export default {
                       },
                     });
                     await vm.aprobarCotizacion({
-                      IdempotencyKey:vm.IdempotencyKey,
+                      IdempotencyKey: vm.IdempotencyKey,
                       id_quote: vm.$route.params.id,
                       nuevoexpediente: true,
                       id_exp: vm.id_exp,
@@ -1400,7 +1495,7 @@ export default {
                     },
                   });
                   await vm.aprobarCotizacion({
-                    IdempotencyKey:vm.IdempotencyKey,
+                    IdempotencyKey: vm.IdempotencyKey,
                     id_quote: vm.$route.params.id,
                     nuevoexpediente: true,
                     id_exp: vm.id_exp,
@@ -1509,6 +1604,21 @@ export default {
       this.dialogCostos = true;
     },
     async aprobar() {
+      if (this.id_opcion_house == 1) {
+        let house = this.lstHouse.find((v) => v.id == this.id_house);
+
+        this.correlativos = house.correlativos
+          ? house.correlativos.split(",").map((item) => ({
+              code: item.trim(),
+            }))
+          : [];
+        this.dialogCorrelativos = true;
+      } else {
+        this.continuarAprobarHouses();
+      }
+    },
+    async continuarAprobarHouses() {
+      this.dialogCorrelativos = false;
       await this.generaInstructivoparaguardata();
 
       let sum = this.$store.state.pricing.listIngresosInstructivoAprobar.filter(
@@ -1540,7 +1650,7 @@ export default {
           },
         });
         await this.aprobarCotizacion({
-          IdempotencyKey:this.IdempotencyKey,
+          IdempotencyKey: this.IdempotencyKey,
           id_quote: this.$route.params.id,
           nuevoexpediente: false,
           id_exp: this.id_exp,
@@ -1576,6 +1686,15 @@ export default {
         ? this.$store.state.provedores.find((v) => v.id == id_proveedor)
         : "";
       return nameProveedor ? nameProveedor.namelong : " Sin Proveedor";
+    },
+  },
+  computed: {
+    correlativoPrincipal() {
+      return this.correlativos.length ? this.correlativos[0] : "";
+    },
+
+    correlativosSecundarios() {
+      return this.correlativos.slice(1);
     },
   },
 };
@@ -1664,5 +1783,244 @@ export default {
 } */
 .classDialog {
   min-height: 900px !important;
+}
+</style>
+<style scoped>
+/* =========================
+   DIALOG
+========================= */
+
+.correlativos-dialog {
+  border-radius: 14px !important;
+  overflow: hidden !important;
+  background: #ffffff;
+  position: relative;
+}
+
+/* =========================
+   CERRAR
+========================= */
+
+.close-dialog {
+  position: absolute !important;
+  right: 18px;
+  top: 16px;
+  z-index: 10;
+}
+
+.close-dialog .v-icon {
+  color: #8a929e;
+  font-size: 32px !important;
+}
+
+/* =========================
+   CONTENIDO PRINCIPAL
+========================= */
+
+.dialog-content {
+  display: flex;
+  padding: 40px 42px 28px 42px;
+}
+
+/* =========================
+   WARNING
+========================= */
+
+.warning-section {
+  width: 190px;
+  min-width: 190px;
+
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+
+  border-right: 2px solid #e4e8ed;
+  padding-top: 5px;
+}
+
+.warning-circle {
+  width: 125px;
+  height: 125px;
+
+  border-radius: 50%;
+
+  background: #fff5dc;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.warning-circle .v-icon {
+  font-size: 70px !important;
+}
+
+/* =========================
+   CONTENIDO
+========================= */
+
+.main-section {
+  padding-left: 38px;
+  padding-right: 5px;
+  flex: 1;
+  min-width: 0;
+}
+
+.dialog-title {
+  font-size: 30px;
+  line-height: 1.2;
+  font-weight: 700;
+  color: #0d1b3d;
+  margin-bottom: 10px;
+  padding-right: 35px;
+}
+
+.dialog-description {
+  font-size: 20px;
+  line-height: 1.4;
+  color: #667085;
+  max-width: 650px;
+}
+
+/* =========================
+   CORRELATIVOS
+========================= */
+
+.correlativos-list {
+  display: flex;
+  gap: 18px;
+  margin-top: 18px;
+  width: 100%;
+  overflow: hidden;
+}
+
+.correlativo-item {
+  flex: 1;
+  min-width: 0;
+
+  height: 70px;
+
+  border-radius: 10px;
+
+  background: #f0f5fd;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  font-size: 32px;
+  font-weight: 700;
+
+  color: #0d1b3d;
+}
+
+/* =========================
+   INFORMACIÓN
+========================= */
+
+.info-container {
+  margin: 0 42px 25px 42px;
+
+  min-height: 95px;
+
+  border-radius: 15px;
+
+  background: #eaf5ff;
+
+  display: flex;
+  align-items: center;
+
+  padding: 18px 25px;
+}
+
+.info-icon {
+  width: 52px;
+  height: 52px;
+
+  min-width: 52px;
+
+  border-radius: 50%;
+
+  background: #168be5;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.info-icon .v-icon {
+  font-size: 25px !important;
+}
+
+.info-text {
+  padding-left: 25px;
+
+  font-size: 19px;
+  line-height: 1.45;
+
+  color: #123d75;
+}
+
+.info-text strong {
+  font-weight: 700;
+}
+
+.info-secondary {
+  color: #667085;
+  margin-top: 3px;
+}
+
+/* =========================
+   PREGUNTA
+========================= */
+
+.question-text {
+  padding: 0 42px 28px 42px;
+
+  font-size: 23px;
+  font-weight: 400;
+
+  color: #0d1b3d;
+}
+
+/* =========================
+   FOOTER
+========================= */
+
+.dialog-footer {
+  border-top: 1px solid #e1e5ea;
+
+  padding: 18px 30px;
+
+  display: flex;
+  justify-content: flex-end;
+
+  gap: 15px;
+}
+
+.btn-cancelar,
+.btn-confirmar {
+  height: 52px !important;
+
+  min-width: 170px;
+
+  border-radius: 9px !important;
+
+  font-size: 19px !important;
+
+  font-weight: 700 !important;
+
+  text-transform: none !important;
+}
+
+.btn-cancelar {
+  border: 2px solid #d4d9e0 !important;
+  color: #667085 !important;
+  background: #ffffff !important;
+}
+
+.btn-confirmar {
+  background: #1769e8 !important;
+  color: white !important;
 }
 </style>

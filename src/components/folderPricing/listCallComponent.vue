@@ -359,6 +359,9 @@
               {{ row.item.fecha_ultima_llamada }}
             </td>
             <td>
+              {{ row.item.ejecutivo_pricing }}
+            </td>
+            <td>
               {{ row.item.ejecutivo_ventas }}
             </td>
             <td>
@@ -417,6 +420,12 @@ export default {
         {
           value: "fecha_ultima_llamada",
           text: "FECHA ÚLTIMA LLAMADA",
+          aling: "center",
+          estado: true,
+        },
+        {
+          value: "ejecutivo_pricing",
+          text: "PRICING",
           aling: "center",
           estado: true,
         },

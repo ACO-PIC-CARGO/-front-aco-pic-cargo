@@ -124,18 +124,15 @@ export default {
     let val = JSON.parse(sessionStorage.getItem("ConfigEmpresa"));
     this.dialog = !val.existecot;
     this.$store.state.spiner = true;
+    await Promise.all([this.getListQuote(), this.getQuoteCall()]);
+    this.$store.state.spiner = false;
     await Promise.all([
-      this.getListQuote(),
-      // this.getListRecibidoCotizacion(),
-      // this.getListEnviadoCliente(),
       this.getModulesEntities(),
       this.getQuoteStatus(),
       this.getMarketingList(),
       this.getResumenPorEstado(),
       this.cargarClientes(),
-      this.getQuoteCall()
     ]);
-    this.$store.state.spiner = false;
   },
   methods: {
     ...mapActions([

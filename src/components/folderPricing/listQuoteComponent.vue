@@ -1035,10 +1035,11 @@ export default {
     async limpiar() {
       this.$store.state.spiner = true;
       this.$store.state.pricing.filtro = {
+        fechainicio: moment().format("YYYY-01-01"),
         fechadesde: moment().format("YYYY-01-01"),
         fechafin: moment().endOf("month").format("YYYY-MM-DD"),
       };
-      
+
       this.$store.state.pricing.filtro.estado = true;
       await this.getListQuote();
 
@@ -1234,7 +1235,54 @@ export default {
       //   )?.name;
       // }
 
-      await this.imprimiReporteListado(filtroSeleccionado).catch((e) => {
+      let filtroCabecera = {}
+
+
+      if (f.id_marketing) {
+        filtroCabecera.Marketing = store.listMarketing.find(
+          (v) => v.id == f.id_marketing,
+        )?.name;
+      }
+      if (f.id_status) {
+        filtroCabecera.QuoteStatus = store.listQuoteStatus.find(
+          (v) => v.id == f.id_status,
+        )?.name;
+      }
+      if (f.id_pricing) {
+        filtroCabecera.Pricing = store.listEjecutivo.find(
+          (v) => v.id_entitie == f.id_pricing,
+        )?.name;
+      }
+      if (f.id_entities) {
+        filtroCabecera.Ejecutivo = store.listEjecutivo.find(
+          (v) => v.id_entitie == f.id_entities,
+        )?.name;
+      }
+      if (f.id_modality) {
+        filtroCabecera.Modalidad = store.listModality.find(
+          (v) => v.id == f.id_modality,
+        )?.name;
+      }
+      if (f.id_shipment) {
+        filtroCabecera.Shipment = store.listShipment.find(
+          (v) => v.id == f.id_shipment,
+        )?.embarque;
+      }
+      if (f.id_incoterm) {
+        filtroCabecera.Incoterms = store.listIncoterms.find(
+          (v) => v.id == f.id_incoterm,
+        )?.name;
+      }
+      if (f.id_cliente) {
+        filtroCabecera.Cliente = this.$store.state.clientes.find(
+          (v) => v.id == f.id_cliente,
+        )?.namelong;
+      }
+
+      await this.imprimiReporteListado({
+        filtroSeleccionado: filtroSeleccionado,
+        filtroCabecera: filtroCabecera ,
+      }).catch((e) => {
         console.error(e);
       });
       this.loading2 = false;
