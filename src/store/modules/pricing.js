@@ -53,10 +53,8 @@ const state = {
     fechafin: moment().endOf("month").format("YYYY-MM-DD"),
   },
   filtroCalls: {
-    
     fechainicio: moment().format("YYYY-01-01"),
     fechafin: moment().endOf("month").format("YYYY-MM-DD"),
-    
   },
   ventaflag: false,
   dataQuote: null,
@@ -3436,17 +3434,18 @@ const actions = {
       })
       .catch((e) => console.log(e));
   },
-  async imprimiReporteListado({}, filtroSeleccionado) {
+  async imprimiReporteListado(
+    {},
+    { filtroSeleccionado = {}, filtroCabecera = {} },
+  ) {
     let headers = {
       "Content-Type": "application/json",
     };
     let data = {
-      filtro: {
-        ...state.filtro,
-        id_branch: JSON.parse(sessionStorage.getItem("dataUser"))[0].id_branch,
-      },
+      filtro: state.filtro,
       filtroSeleccionado: filtroSeleccionado,
       id_branch: JSON.parse(sessionStorage.getItem("dataUser"))[0].id_branch,
+      filtroCabecera: filtroCabecera,
     };
     let timerInterval;
     Swal.fire({
