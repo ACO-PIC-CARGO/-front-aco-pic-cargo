@@ -27,7 +27,6 @@
               :items="$store.state.pricing.listEjecutivo"
               label="Ejecutivo."
               dense
-              search
               clearable
               item-text="name"
               item-value="id_entitie"
@@ -161,7 +160,6 @@
               readonly
               hide-details
               outlined
-              search
               item-text="name"
               item-value="id"
               v-model="$store.state.pricing.filtroCalls.id_marketing"
@@ -193,7 +191,6 @@
               readonly
               hide-details
               outlined
-              search
               item-text="name"
               item-value="id_entitie"
               v-model="$store.state.pricing.filtroCalls.id_pricing"
@@ -212,7 +209,6 @@
               readonly
               hide-details
               outlined
-              search
               item-text="name"
               item-value="id_entitie"
               v-model="$store.state.pricing.filtroCalls.id_entities"
@@ -276,7 +272,25 @@
         </v-row>
       </v-col>
 
-      <v-col cols="12">
+      <v-col cols="12" lg="4" xl="4">
+        <v-text-field
+          placeholder="Buscar..."
+          label="Buscar"
+          v-model="search"
+          append-icon="mdi-magnify"
+          dense
+          outlined
+          messages=" "
+        >
+          <template v-slot:message>
+            <span v-if="search">
+              <v-icon color="orange">mdi-file-alert</v-icon> Este filtro no se
+              usará para el exportar en pdf
+            </span>
+          </template>
+        </v-text-field>
+      </v-col>
+      <v-col cols="12" lg="8" xl="8">
         <div class="text-right">
           <v-btn
             color="red"
@@ -287,7 +301,7 @@
             :dark="!loading4"
             small
           >
-            <v-icon>mdi-file-pdf-box</v-icon> Imprimir
+            <v-icon>mdi-file-pdf-box</v-icon> REPORTE
           </v-btn>
           <v-btn
             color="info"
@@ -321,7 +335,12 @@
         mobile
         disable-sort
       >
-        <template v-slot:item="row">
+        <template v-slot:[`item.llamadas`]="{ item }"> 
+          <span style="font-weight: bold;">{{ item.fecha_ultima_llamada }} </span>
+          <br>
+          <span style="font-size: 0.7rem; font-style: italic;">{{ item.ultimo_comentario }}</span>
+        </template>
+        <!-- <template v-slot:item="row">
           <tr
             @dblclick="accionVerCotizacion(row.item.id)"
             :class="{
@@ -393,7 +412,7 @@
             </td>
           </tr>
         </template>
-        <template v-slot:no-data> No se encontraron registros </template>
+        <template v-slot:no-data> No se encontraron registros </template> -->
       </v-data-table>
     </v-row>
   </v-container>
@@ -409,60 +428,131 @@ export default {
       loading4: false,
       dialogRegistroNotaLlamada: false,
       headers: [
-        { value: "acciones", text: "", align: "center", estado: true },
-        { value: "status", text: "ESTATUS ", aling: "center", estado: true },
+        // {
+        //   value: "acciones",
+        //   text: "",
+        //   align: "center",
+        //   groupable: true,
+        //   estado: true,
+        // },
         {
-          value: "codigo_quote",
-          text: "CÓDIGO ",
-          aling: "center",
+          value: "created_at",
+          text: "FECHA REGISTRO",
+          align: "center",
+          groupable: true,
+          estado: true,
+          dataType: "Date",
+        },
+        // {
+        //   value: "status",
+        //   text: "RECIBIDO COTIZACION EN PRICING",
+        //   align: "center",
+        //   groupable: true,
+        //   estado: true,
+        // },
+        // {
+        //   value: "enviadocliente",
+        //   text: "ENVIADO AL CLIENTE",
+        //   align: "center",
+        //   groupable: true,
+        //   estado: true,
+        // },
+        {
+          value: "llamadas",
+          text: "DATOS LLAMADA",
+          align: "center",
+          groupable: true,
           estado: true,
         },
         {
-          value: "fecha_ultima_llamada",
-          text: "FECHA ÚLTIMA LLAMADA",
-          aling: "center",
+          value: "status",
+          text: "ESTATUS",
+          align: "center",
+          groupable: true,
+          estado: true,
+        },
+
+        {
+          value: "codigo",
+          text: "CÓD.",
+          align: "center",
+          groupable: true,
           estado: true,
         },
         {
           value: "ejecutivo_pricing",
-          text: "PRICING",
-          aling: "center",
+          text: "EJECUTIVO PRICING",
+          align: "center",
+          groupable: true,
           estado: true,
         },
         {
           value: "ejecutivo_ventas",
-          text: "EJECUTIVO",
-          aling: "center",
+          text: "EJECUTIVO VENTAS",
+          align: "center",
+          groupable: true,
           estado: true,
         },
-        { value: "cliente", text: "CLIENTE", aling: "center", estado: true },
         {
-          value: "ultimo_comentario",
-          text: "ULTIMO COMENTARIO",
-          aling: "center",
+          value: "cliente",
+          text: "CLIENTE",
+          align: "center",
+          groupable: true,
           estado: true,
         },
-        { value: "telefono", text: "TELEFONO", aling: "center", estado: true },
         {
-          value: "fecha_solicitud",
-          text: "FECHA SOLICITUD",
-          aling: "center",
+          value: "telefono",
+          text: "TÉLEFONO",
+          align: "center",
+          groupable: true,
           estado: true,
         },
-        { value: "sentido", text: "SENTIDO", aling: "center", estado: true },
-        { value: "origen", text: "ORIGEN ", aling: "center", estado: true },
-        { value: "destino", text: "DESTINO", aling: "center", estado: true },
         {
-          value: "incoterms",
-          text: "INCOTERMS",
-          aling: "center",
+          value: "sentido",
+          text: "SENTIDO",
+          align: "center",
+          groupable: true,
           estado: true,
         },
         {
           value: "tipo_de_carga",
           text: "TIPO DE CARGA",
-          aling: "center",
+          align: "center",
+          groupable: true,
           estado: true,
+        },
+        {
+          value: "incoterms",
+          text: "INCOTERMS",
+          align: "center",
+          groupable: true,
+          estado: true,
+        },
+        {
+          value: "origen",
+          text: "ORIGEN",
+          align: "center",
+          groupable: true,
+          estado: true,
+        },
+        {
+          value: "destino",
+          text: "DESTINO",
+          align: "center",
+          groupable: true,
+          estado: true,
+        },
+        // {
+        //   value: "marketing",
+        //   text: "MARKETING",
+        //   align: "center",
+        //   groupable: true,
+        //   estado: true,
+        // },
+        {
+          value: "fecha_solicitud",
+          text: "Fecha Emision",
+          align: "center",
         },
       ],
     };

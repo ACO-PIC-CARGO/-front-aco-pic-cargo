@@ -171,7 +171,6 @@
               readonly
               hide-details
               outlined
-              search
               item-text="name"
               item-value="id_entitie"
               v-model="$store.state.pricing.filtro.id_entities"
@@ -243,7 +242,14 @@
           append-icon="mdi-magnify"
           dense
           outlined
+          messages=" "
         >
+          <template v-slot:message>
+            <span v-if="search">
+              <v-icon color="orange">mdi-file-alert</v-icon> Este filtro no se
+              usará para el exportar en pdf
+            </span>
+          </template>
         </v-text-field>
       </v-col>
       <v-col cols="12" lg="8" xl="8">
@@ -381,7 +387,7 @@
                 </template>
                 <span>Editar</span>
               </v-tooltip>
-              <!--  -->
+
               <v-tooltip top>
                 <template v-slot:activator="{ on, attrs }">
                   <v-btn
@@ -389,31 +395,7 @@
                     v-bind="attrs"
                     v-on="on"
                     x-small
-                    @click="abrirModal(item)"
-                    v-if="mostrarBoton(item)"
-                  >
-                    <v-icon
-                      color="#E65100"
-                      dense
-                      readonly
-                      hide-details
-                      outlined
-                      small
-                      >mdi-receipt-text-send-outline</v-icon
-                    >
-                  </v-btn>
-                </template>
-                <span>Actualizar Estado Cotización</span>
-              </v-tooltip>
-              <!--  -->
-              <v-tooltip top>
-                <template v-slot:activator="{ on, attrs }">
-                  <v-btn
-                    fab
-                    v-bind="attrs"
-                    v-on="on"
-                    x-small
-                    @click="registrarLlamada(item.id)"
+                    @click="registrarLlamada(item)"
                     v-if="mostrarBoton(item)"
                   >
                     <v-icon
@@ -430,29 +412,6 @@
                 <span>Actualizar Registro Llamada</span>
               </v-tooltip>
               <!--  -->
-              <v-tooltip top>
-                <template v-slot:activator="{ on, attrs }">
-                  <v-btn
-                    fab
-                    x-small
-                    v-bind="attrs"
-                    v-on="on"
-                    @click="eliminar(item.id, item.codigo)"
-                    v-if="mostrarBoton(item)"
-                  >
-                    <v-icon
-                      color="#A43542"
-                      dense
-                      readonly
-                      hide-details
-                      outlined
-                      small
-                      >mdi-delete</v-icon
-                    >
-                  </v-btn>
-                </template>
-                <span>Eliminar</span>
-              </v-tooltip>
             </v-btn-toggle>
             <v-btn-toggle>
               <!--  -->
@@ -503,7 +462,6 @@
                 </template>
                 <span>Historial llamada</span>
               </v-tooltip>
-              <!--  -->
               <v-tooltip top>
                 <template v-slot:activator="{ on, attrs }">
                   <v-btn
@@ -511,15 +469,21 @@
                     x-small
                     v-bind="attrs"
                     v-on="on"
-                    @click="abrirModalEnlazarHouse(item)"
-                    color="success"
+                    @click="eliminar(item.id, item.codigo)"
+                    v-if="mostrarBoton(item)"
                   >
-                    <v-icon dense readonly hide-details outlined small
-                      >mdi-link</v-icon
+                    <v-icon
+                      color="#A43542"
+                      dense
+                      readonly
+                      hide-details
+                      outlined
+                      small
+                      >mdi-delete</v-icon
                     >
                   </v-btn>
                 </template>
-                <span>Enlazar a House</span>
+                <span>Eliminar</span>
               </v-tooltip>
             </v-btn-toggle>
           </td>
@@ -682,10 +646,21 @@
               readonly
               hide-details
               outlined
-              search
               item-text="name"
               item-value="id_entitie"
               v-model="fromData.identities"
+            ></v-autocomplete>
+
+            <v-autocomplete
+              outlined
+              :items="$store.state.pricing.listQuoteStatus"
+              label="ESTADO DE LA COTIZACIÓN"
+              v-model="id_status"
+              :rules="[(v) => !!v || 'Dato Requerido']"
+              item-text="name"
+              item-value="id"
+              dense
+              class="mt-5"
             ></v-autocomplete>
           </v-form>
         </v-card-text>
@@ -931,14 +906,14 @@ export default {
         },
         {
           value: "tipo_de_carga",
-          text: "TIPO DE CARGA",
+          text: "T. C.",
           align: "center",
           groupable: true,
           estado: true,
         },
         {
           value: "incoterms",
-          text: "INCOTERMS",
+          text: "CCI",
           align: "center",
           groupable: true,
           estado: true,
@@ -1235,8 +1210,7 @@ export default {
       //   )?.name;
       // }
 
-      let filtroCabecera = {}
-
+      let filtroCabecera = {};
 
       if (f.id_marketing) {
         filtroCabecera.Marketing = store.listMarketing.find(
@@ -1281,7 +1255,7 @@ export default {
 
       await this.imprimiReporteListado({
         filtroSeleccionado: filtroSeleccionado,
-        filtroCabecera: filtroCabecera ,
+        filtroCabecera: filtroCabecera,
       }).catch((e) => {
         console.error(e);
       });
@@ -1327,7 +1301,7 @@ export default {
         this.$refs.frmEstado.reset();
       }
     },
-    registrarLlamada(id) {
+    registrarLlamada(item) {
       this.fromData = {
         date: moment().format("YYYY-MM-DD"),
         descripcion: "",
@@ -1335,7 +1309,8 @@ export default {
           ? JSON.parse(sessionStorage.getItem("dataUser"))[0].id
           : "",
       };
-      this.$store.state.pricing.id = id;
+      this.$store.state.pricing.id = item.id;
+      this.id_status = item.statusquote
       this.dialogRegistroNotaLlamada = true;
     },
     async guardarNota() {
@@ -1348,6 +1323,7 @@ export default {
           id_operador: this.fromData.identities,
           comentario: this.fromData.descripcion,
           fecha: this.fromData.date,
+          id_status : this.id_status
         };
 
         await this.guardarNotaQuote(data).catch((err) => {
@@ -1591,9 +1567,7 @@ export default {
   },
   async mounted() {
     this.$store.state.mainTitle = "LISTADO DE COTIZACIONES";
-
-    this.$store.state.spiner = true;
-    await this.getListQuote();
+    // await this.getListQuote();
 
     // await this.cargarMaster({
     //   idsentido: "",
