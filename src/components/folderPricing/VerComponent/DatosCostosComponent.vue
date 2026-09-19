@@ -72,6 +72,7 @@
               $store.state.pricing.page - 1
             ].listCostos.filter((v) => v.esventaflag == 1)
           "
+          :actualizarCostosFlag="$store.state.pricing.actualizarCostosFlag"
           :amount="$store.state.pricing.datosPrincipales.amount"
         />
       </v-col>

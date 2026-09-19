@@ -274,11 +274,11 @@ export default {
       this.errorIdTown = "";
       this.$store.state.pricing.errorValorMercancia = "";
       let val = true;
-
+     
       let validarTown = this.listServices.some(
-        (v) => v.code_service == 14 && v.service.status == 1,
+        (v) => v.code_service == '14' && v.status == 1,
       );
-
+      
       if (
         this.requiereValorMercancia ||
         (validarTown && !this.$store.state.pricing.datosPrincipales.id_town)
@@ -297,6 +297,7 @@ export default {
           val = false;
         }
       }
+      return 
       if (val) {
         this.$emit("activarLlenadoCostos");
         this.mostrarContinuarFlag = false;

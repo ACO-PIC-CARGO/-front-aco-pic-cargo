@@ -1590,13 +1590,10 @@ export default {
       // 6. Retornamos el valor con su respectivo formato de moneda
       return this.currencyFormat(operacionFinal);
     },
-    async calcTotales() {
-      setTimeout(async () => {
-        // this.$store.state.pricing.totalFlete = 0.0;
-        await this.calcularTotalesFlete();
-        await this.calcularTotalesNoFlete();
-        await this.calcTotal();
-      }, 100);
+    calcTotales() {
+      this.calcularTotalesFlete();
+      this.calcularTotalesNoFlete();
+      this.calcTotal();
     },
     calcularTotalesFlete() {
       this.totalOption = 0;
@@ -1609,7 +1606,7 @@ export default {
         gastostercero: 0,
       };
 
-      if (!this.isFlete) return;
+      if (!this.isFlete()) return;
 
       this.valores
         .filter(
@@ -1637,19 +1634,19 @@ export default {
           // Usamos el helper para obtener el costo procesado una sola vez
           const costo = this.obtenerCostoElemento(element);
 
-          if (this.isOrigen && element.esorigenflag == 1) {
+          if (element.esorigenflag == 1) {
             this.resumenOpcion.origen += Number(costo);
           }
-          if (this.isLocal && element.eslocalflag == 1) {
+          if (element.eslocalflag == 1) {
             this.resumenOpcion.gasto += Number(costo); // Mantenido como 'gasto' según tu lógica
           }
-          if (this.isAduana && element.esaduanaflag == 1) {
+          if (element.esaduanaflag == 1) {
             this.resumenOpcion.aduana += Number(costo);
           }
-          if (this.isAlmacen && element.esalmacenflag == 1) {
+          if (element.esalmacenflag == 1) {
             this.resumenOpcion.almacen += Number(costo);
           }
-          if (this.isGastosTercero && element.esgastostercerosflag == 1) {
+          if (element.esgastostercerosflag == 1) {
             this.resumenOpcion.gastostercero += Number(costo);
           }
         });
@@ -1661,7 +1658,7 @@ export default {
 
       // Buscamos el multiplicador una sola vez por elemento
       const multEncontrado = multiplicadores.find(
-        (v) => v.id === element.id_multiplicador,
+        (v) => v.id == element.id_multiplicador,
       );
 
       const valorMultiplicador = multEncontrado ? multEncontrado.valor : 0;
@@ -1957,14 +1954,24 @@ export default {
     },
   },
   watch: {
-    valores() {
+    valores: {
+      handler() {
+        this.calcTotales();
+      },
+      deep: true,
+    },
+    multiplicadores() {
       this.calcTotales();
     },
     actualizarCostosFlag() {
       this.calcTotales();
     },
   },
-  computed: {},
+  computed: {
+    multiplicadores() {
+      return this.$store.state.pricing.listMultiplicador;
+    },
+  },
 };
 </script>
 

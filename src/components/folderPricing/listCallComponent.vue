@@ -335,10 +335,14 @@
         mobile
         disable-sort
       >
-        <template v-slot:[`item.llamadas`]="{ item }"> 
-          <span style="font-weight: bold;">{{ item.fecha_ultima_llamada }} </span>
-          <br>
-          <span style="font-size: 0.7rem; font-style: italic;">{{ item.ultimo_comentario }}</span>
+        <template v-slot:[`item.llamadas`]="{ item }">
+          <span style="font-weight: bold"
+            >{{ item.fecha_ultima_llamada }}
+          </span>
+          <br />
+          <span style="font-size: 0.7rem; font-style: italic">{{
+            item.ultimo_comentario
+          }}</span>
         </template>
         <!-- <template v-slot:item="row">
           <tr
@@ -443,20 +447,20 @@ export default {
           estado: true,
           dataType: "Date",
         },
-        // {
-        //   value: "status",
-        //   text: "RECIBIDO COTIZACION EN PRICING",
-        //   align: "center",
-        //   groupable: true,
-        //   estado: true,
-        // },
-        // {
-        //   value: "enviadocliente",
-        //   text: "ENVIADO AL CLIENTE",
-        //   align: "center",
-        //   groupable: true,
-        //   estado: true,
-        // },
+         {
+           value: "status_recibido",
+          text: "RECIBIDO COTIZACION EN PRICING",
+           align: "center",
+          groupable: true,
+           estado: true,
+         },
+         {
+           value: "enviadocliente",
+           text: "ENVIADO AL CLIENTE",
+           align: "center",
+           groupable: true,
+           estado: true,
+         },
         {
           value: "llamadas",
           text: "DATOS LLAMADA",

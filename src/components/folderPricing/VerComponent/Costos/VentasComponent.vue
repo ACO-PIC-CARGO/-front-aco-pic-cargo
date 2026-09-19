@@ -364,12 +364,10 @@ export default {
         this.recalcularCostos();
       }, 10);
     },
-    async calcTotales() {
-      setTimeout(async () => {
-        await this.calcularTotalesFlete();
-        await this.calcularTotalesNoFlete();
-        await this.calcTotal();
-      }, 100);
+    calcTotales() {
+      this.calcularTotalesFlete();
+      this.calcularTotalesNoFlete();
+      this.calcTotal();
     },
     calcularTotalesFlete() {
       this.totalOption = 0;
@@ -382,7 +380,7 @@ export default {
         gastostercero: 0,
       };
 
-      if (!this.isFlete) return;
+      if (!this.isFlete()) return;
 
       this.valores
         .filter((v) => v.esfleteflag == 1 && v.status == 1)
@@ -408,19 +406,19 @@ export default {
           // Usamos el helper para obtener el costo procesado una sola vez
           const costo = this.obtenerCostoElemento(element);
 
-          if (this.isOrigen && element.esorigenflag == 1) {
+          if (element.esorigenflag == 1) {
             this.resumenOpcion.origen += Number(costo);
           }
-          if (this.isLocal && element.eslocalflag == 1) {
+          if (element.eslocalflag == 1) {
             this.resumenOpcion.gasto += Number(costo); // Mantenido como 'gasto' según tu lógica
           }
-          if (this.isAduana && element.esaduanaflag == 1) {
+          if (element.esaduanaflag == 1) {
             this.resumenOpcion.aduana += Number(costo);
           }
-          if (this.isAlmacen && element.esalmacenflag == 1) {
+          if (element.esalmacenflag == 1) {
             this.resumenOpcion.almacen += Number(costo);
           }
-          if (this.isGastosTercero && element.esgastostercerosflag == 1) {
+          if (element.esgastostercerosflag == 1) {
             this.resumenOpcion.gastostercero += Number(costo);
           }
         });
@@ -445,7 +443,7 @@ export default {
 
       // Buscamos el multiplicador una sola vez por elemento
       const multEncontrado = multiplicadores.find(
-        (v) => v.id === element.id_multiplicador,
+        (v) => v.id == element.id_multiplicador,
       );
 
       const valorMultiplicador = multEncontrado ? multEncontrado.valor : 0;
@@ -865,15 +863,10 @@ export default {
       return `${day}/${meses[month]}/${year}`;
     },
   },
-  watch: {
-    valores() {
-      this.calcTotales();
-    },
-    amount() {
-      this.calcTotales();
-    },
-  },
   computed: {
+    multiplicadores() {
+      return this.$store.state.pricing.listMultiplicador;
+    },
     panelesConDatos() {
       const listaTipos = this.$store.state.pricing.listTipoCostos;
       if (!listaTipos) return [];
@@ -898,6 +891,23 @@ export default {
     },
     panelesAbiertos() {
       return this.panelesConDatos.map((_, index) => index);
+    },
+  },
+  watch: {
+    valores: {
+      handler() {
+        this.calcTotales();
+      },
+      deep: true,
+    },
+    multiplicadores() {
+      this.calcTotales();
+    },
+    amount() {
+      this.calcTotales();
+    },
+    actualizarCostosFlag() {
+      this.calcTotales();
     },
   },
 };
