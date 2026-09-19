@@ -487,7 +487,7 @@
               </v-tooltip>
             </v-btn-toggle>
           </td>
-          <td @click="expand(!isExpanded)">{{ fecha(item.created) }}</td>
+          <td @click="expand(!isExpanded)">{{ item.created }}</td>
           <td @click="expand(!isExpanded)">{{ item.recibidocotizacion }}</td>
           <td @click="expand(!isExpanded)">{{ item.enviadocliente }}</td>
           <td @click="expand(!isExpanded)">{{ item.status }}</td>
