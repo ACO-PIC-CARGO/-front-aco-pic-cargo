@@ -1929,12 +1929,16 @@ export default {
       );
 
       if (!!master) {
+        let moneda = vm.$store.state.itemsCoinsList.find(
+          (v) => v.id == vm.id_coins,
+        );
+
         let exiteOtraMoneda = master.detalle.some(
-          (v) => v.id_coins != vm.id_coins,
+          (v) => v.acronym != moneda.acronym,
         );
         if (exiteOtraMoneda) {
           this.$swal({
-            icon: "warning", // Cambiado a 'warning' porque es una restricción del sistema, no un fallo crítico.
+            icon: "warning",
             title: "MONEDAS SOLES DOLARES",
             html: `<b>Hay conceptos con monedas diferentes</b><br><br>Por favor chequear. NO SE CARGARÁ EL COSTO.`,
             confirmButtonColor: "#3085d6",
