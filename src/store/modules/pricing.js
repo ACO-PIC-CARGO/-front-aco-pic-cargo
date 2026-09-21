@@ -1971,10 +1971,12 @@ const actions = {
             valorMultiplicador * element.costounitario * factorCalculado;
 
           if (element.considerarvalorminimoflag) {
-            operacionFinal =
-              Number(element.minimo || 0) > Number(operacionFinal)
-                ? Number(element.minimo)
-                : operacionFinal;
+            if (element.costounitario != 0) {
+              operacionFinal =
+                Number(element.minimo || 0) > Number(operacionFinal)
+                  ? Number(element.minimo)
+                  : operacionFinal;
+            }
           }
 
           if (element.esfleteflag == 1) {
@@ -2381,17 +2383,14 @@ const actions = {
 
           let operacionFinal =
             valorMultiplicador * element.costounitario * factorCalculado;
-          console.log(
-            "operacionFinal",
-            element,
-            element.considerarvalorminimoflag,
-          );
-          console.log("------------------");
+
           if (element.considerarvalorminimoflag) {
-            operacionFinal =
-              Number(element.minimo || 0) > Number(operacionFinal)
-                ? Number(element.minimo)
-                : operacionFinal;
+            if (element.costounitario != 0) {
+              operacionFinal =
+                Number(element.minimo || 0) > Number(operacionFinal)
+                  ? Number(element.minimo)
+                  : operacionFinal;
+            }
           }
           if (element.esfleteflag == 1) {
             if (
@@ -2888,10 +2887,12 @@ const actions = {
             valorMultiplicador * element.costounitario * factorCalculado;
 
           if (element.considerarvalorminimoflag) {
-            operacionFinal =
-              Number(element.minimo || 0) > Number(operacionFinal)
-                ? Number(element.minimo)
-                : operacionFinal;
+            if (element.costounitario != 0) {
+              operacionFinal =
+                Number(element.minimo || 0) > Number(operacionFinal)
+                  ? Number(element.minimo)
+                  : operacionFinal;
+            }
           }
 
           if (element.esfleteflag == 1) {
@@ -4061,10 +4062,12 @@ const actions = {
                     factorCalculado;
 
                   if (element.considerarvalorminimoflag) {
-                    operacionFinal =
-                      Number(element.minimo || 0) > Number(operacionFinal)
-                        ? Number(element.minimo)
-                        : operacionFinal;
+                    if (element.costounitario != 0) {
+                      operacionFinal =
+                        Number(element.minimo || 0) > Number(operacionFinal)
+                          ? Number(element.minimo)
+                          : operacionFinal;
+                    }
                   }
 
                   if (element.esfleteflag == 1) {
@@ -4502,17 +4505,14 @@ const actions = {
                     valorMultiplicador *
                     element.costounitario *
                     factorCalculado;
-                  console.log(
-                    "operacionFinal",
-                    element,
-                    element.considerarvalorminimoflag,
-                  );
-                  console.log("------------------");
+
                   if (element.considerarvalorminimoflag) {
-                    operacionFinal =
-                      Number(element.minimo || 0) > Number(operacionFinal)
-                        ? Number(element.minimo)
-                        : operacionFinal;
+                    if (element.costounitario != 0) {
+                      operacionFinal =
+                        Number(element.minimo || 0) > Number(operacionFinal)
+                          ? Number(element.minimo)
+                          : operacionFinal;
+                    }
                   }
                   if (element.esfleteflag == 1) {
                     if (
@@ -5014,10 +5014,12 @@ const actions = {
                     factorCalculado;
 
                   if (element.considerarvalorminimoflag) {
-                    operacionFinal =
-                      Number(element.minimo || 0) > Number(operacionFinal)
-                        ? Number(element.minimo)
-                        : operacionFinal;
+                    if (element.costounitario != 0) {
+                      operacionFinal =
+                        Number(element.minimo || 0) > Number(operacionFinal)
+                          ? Number(element.minimo)
+                          : operacionFinal;
+                    }
                   }
 
                   if (element.esfleteflag == 1) {

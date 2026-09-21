@@ -341,6 +341,20 @@
           <!-- <td></td> -->
           <td>
             <v-btn-toggle>
+              <!-- <v-tooltip top>
+                <template v-slot:activator="{ on, attrs }">
+                  <v-btn
+                    fab
+                    x-small
+                    v-on="on"
+                    v-bind="attrs"
+                    @click="abrirModal(item)"
+                  >
+                    ssss
+                  </v-btn>
+                </template>
+                <span>Ver</span>
+              </v-tooltip> -->
               <v-tooltip top>
                 <template v-slot:activator="{ on, attrs }">
                   <v-btn
@@ -487,9 +501,9 @@
               </v-tooltip>
             </v-btn-toggle>
           </td>
+          <!-- <td @click="expand(!isExpanded)">{{ item.recibidocotizacion }}</td> -->
+          <!-- <td @click="expand(!isExpanded)">{{ item.enviadocliente }}</td> -->
           <td @click="expand(!isExpanded)">{{ item.created }}</td>
-          <td @click="expand(!isExpanded)">{{ item.recibidocotizacion }}</td>
-          <td @click="expand(!isExpanded)">{{ item.enviadocliente }}</td>
           <td @click="expand(!isExpanded)">{{ item.status }}</td>
           <td @click="expand(!isExpanded)">{{ item.codigo }}</td>
           <td @click="expand(!isExpanded)">{{ item.pricing }}</td>
@@ -502,7 +516,17 @@
           <td @click="expand(!isExpanded)">{{ item.origen }}</td>
           <td @click="expand(!isExpanded)">{{ item.destino }}</td>
           <td @click="expand(!isExpanded)">{{ displayMarketing(item) }}</td>
-          <td @click="expand(!isExpanded)">{{ item.fechaemisionpdf }}</td>
+          <td @click="expand(!isExpanded)">
+            {{ item.fechaemisionpdf }}
+
+            <span
+              v-for="(val, index) in item.details"
+              :key="index"
+              style="font-size: 1rem; font-style: italic;text-transform: capitalize;"
+            >
+              "{{ val.notes }}"
+            </span>
+          </td>
         </tr>
       </template>
 
@@ -840,20 +864,20 @@ export default {
           estado: true,
           dataType: "Date",
         },
-        {
-          value: "recibidocotizacion",
-          text: "RECIBIDO COTIZACION EN PRICING",
-          align: "center",
-          groupable: true,
-          estado: true,
-        },
-        {
-          value: "enviadocliente",
-          text: "ENVIADO AL CLIENTE",
-          align: "center",
-          groupable: true,
-          estado: true,
-        },
+        // {
+        //   value: "recibidocotizacion",
+        //   text: "RECIBIDO COTIZACION EN PRICING",
+        //   align: "center",
+        //   groupable: true,
+        //   estado: true,
+        // },
+        // {
+        //   value: "enviadocliente",
+        //   text: "ENVIADO AL CLIENTE",
+        //   align: "center",
+        //   groupable: true,
+        //   estado: true,
+        // },
         {
           value: "status",
           text: "ESTATUS",
@@ -1310,7 +1334,7 @@ export default {
           : "",
       };
       this.$store.state.pricing.id = item.id;
-      this.id_status = item.statusquote
+      this.id_status = item.statusquote;
       this.dialogRegistroNotaLlamada = true;
     },
     async guardarNota() {
@@ -1323,7 +1347,7 @@ export default {
           id_operador: this.fromData.identities,
           comentario: this.fromData.descripcion,
           fecha: this.fromData.date,
-          id_status : this.id_status
+          id_status: this.id_status,
         };
 
         await this.guardarNotaQuote(data).catch((err) => {

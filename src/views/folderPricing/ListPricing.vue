@@ -132,6 +132,8 @@ export default {
       this.getMarketingList(),
       this.getResumenPorEstado(),
       this.cargarClientes(),
+      // this.getListEnviadoCliente(),
+      // this.getListRecibidoCotizacion(),
     ]);
   },
   methods: {
@@ -149,7 +151,7 @@ export default {
       "getShipment",
       "getIncoterms",
       "getListQuote",
-      "getListRecibidoCotizacion ",
+      "getListRecibidoCotizacion",
     ]),
     redirect() {
       this.$nextTick(() => {
