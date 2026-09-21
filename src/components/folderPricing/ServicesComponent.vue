@@ -297,7 +297,6 @@ export default {
           val = false;
         }
       }
-      return 
       if (val) {
         this.$emit("activarLlenadoCostos");
         this.mostrarContinuarFlag = false;

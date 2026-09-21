@@ -66,6 +66,7 @@
             </template>
             <template v-slot:[`item.minimo`]="{ item }">
               <v-text-field
+                v-if="item.considerarvalorminimoflag"
                 dense
                 v-model="item.minimo"
                 outlined
