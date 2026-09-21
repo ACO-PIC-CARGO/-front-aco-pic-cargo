@@ -469,10 +469,12 @@ export default {
         let operacionFinal =
           valorMultiplicador * element.costounitario * factorCalculado;
         if (element.considerarvalorminimoflag) {
-          operacionFinal =
-            Number(element.minimo || 0) > Number(operacionFinal)
-              ? Number(element.minimo)
-              : operacionFinal;
+          if (element.costounitario != 0) {
+            operacionFinal =
+              Number(element.minimo || 0) > Number(operacionFinal)
+                ? Number(element.minimo)
+                : operacionFinal;
+          }
         }
         return operacionFinal;
       }
@@ -769,10 +771,12 @@ export default {
       let operacionFinal =
         valorMultiplicador * valor.costounitario * factorCalculado;
       if (valor.considerarvalorminimoflag) {
-        operacionFinal =
-          Number(valor.minimo || 0) > Number(operacionFinal)
-            ? Number(valor.minimo)
-            : operacionFinal;
+        if (valor.costounitario != 0) {
+          operacionFinal =
+            Number(valor.minimo || 0) > Number(operacionFinal)
+              ? Number(valor.minimo)
+              : operacionFinal;
+        }
       }
 
       // 6. Retornamos el valor con su respectivo formato de moneda
