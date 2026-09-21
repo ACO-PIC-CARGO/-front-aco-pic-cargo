@@ -441,7 +441,7 @@ export default {
         // },
         {
           value: "created_at",
-          text: "FECHA REGISTRO",
+          text: "FECHA CREACIÓN",
           align: "center",
           groupable: true,
           estado: true,
@@ -555,7 +555,7 @@ export default {
         // },
         {
           value: "fecha_solicitud",
-          text: "Fecha Emision",
+          text: "FECHA ENVÍADO A CLIENTE",
           align: "center",
         },
       ],

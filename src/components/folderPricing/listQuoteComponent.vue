@@ -834,7 +834,7 @@ export default {
         // },
         {
           value: "created",
-          text: "FECHA REGISTRO",
+          text: "FECHA CREACIÓN",
           align: "center",
           groupable: true,
           estado: true,
@@ -941,7 +941,7 @@ export default {
         },
         {
           value: "fechaemisionpdf",
-          text: "Fecha Emision",
+          text: "FECHA ENVIADO A CLIENTE",
           align: "center",
         },
       ],
