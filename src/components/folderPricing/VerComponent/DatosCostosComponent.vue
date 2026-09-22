@@ -1,5 +1,7 @@
 <template>
-  <v-card v-if="costoFlag">
+  <v-card
+    v-if="costoFlag && opcionesSeleccionadas[$store.state.pricing.page - 1]"
+  >
     <h1>
       OPCIÓN COSTOS
       {{ opcionesSeleccionadas[$store.state.pricing.page - 1].nro_propuesta }}

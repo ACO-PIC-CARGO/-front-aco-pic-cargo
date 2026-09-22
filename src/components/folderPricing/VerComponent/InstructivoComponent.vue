@@ -1,5 +1,5 @@
 <template>
-  <v-container>
+  <v-container v-if="$store.state.pricing.listInstructivo.length">
     <v-col cols="12">
       <template>
         <div class="text-center">
@@ -47,6 +47,7 @@
               </v-autocomplete>
             </v-row>
           </v-form>
+
           <v-alert
             v-if="mostrarAdvertencia"
             border="left"
@@ -597,9 +598,28 @@
             @change="validarExistePagosMaster"
           />
         </v-card-text>
-        <p class="red--text mx-5 my-0">
+        <v-alert
+          v-if="mostrarMensajeClienteVariosExp"
+          border="left"
+          colored-border
+          type="warning"
+          elevation="2"
+          class="mx-5"
+        >
+          No puede reemplazar los costos, porqué es un expediente grupal.
+        </v-alert>
+        
+        <v-alert
+          v-if="textValidacionPago"
+          border="left"
+          colored-border
+          type="error"
+          elevation="2"
+          class="mx-5"
+        >
           {{ textValidacionPago }}
-        </p>
+        </v-alert>
+        
         <v-card-actions>
           <v-spacer></v-spacer>
           <!-- <v-btn class="mx-1" small color="success" @click="aprobar"> -->
@@ -608,7 +628,7 @@
             small
             color="success"
             @click="buscarHouseAsociadosAMaster"
-            :disabled="activarBtnContinuar"
+            :disabled="activarBtnContinuar && activarBotonAsociarMaster"
           >
             CONITNUAR
           </v-btn>
@@ -619,6 +639,14 @@
             @click="dialogCostos = !dialogCostos"
           >
             Cancelar
+          </v-btn>
+          <v-btn
+            class="mx-1"
+            small
+            color="warning"
+            @click="regresarSeleccionoMaster()"
+          >
+            Volver
           </v-btn>
         </v-card-actions>
       </v-card>
@@ -908,6 +936,39 @@ export default {
     };
   },
   computed: {
+    activarBotonAsociarMaster() {
+      if (this.id_opcion == 1) {
+        let exp = this.$store.state.itemsMasterList.find(
+          (v) => v.id == this.id_exp,
+        );
+        let clienteVarios = "CLIENTE VARIOS";
+
+        if (exp && exp.Expediente) {
+          let esMultiple = exp.Expediente.includes(clienteVarios);
+
+          if (esMultiple) {
+            return false;
+          }
+        }
+      }
+      return true;
+    },
+    mostrarMensajeClienteVariosExp() {
+      if (this.id_opcion == 1) {
+        let exp = this.$store.state.itemsMasterList.find(
+          (v) => v.id == this.id_exp,
+        );
+        let clienteVarios = "CLIENTE VARIOS";
+        if (exp && exp.code_master) {
+          let esMultiple = exp.code_master.includes(clienteVarios);
+
+          if (esMultiple) {
+            return true;
+          }
+        }
+      }
+      return false;
+    },
     ingresosInstructivoActual() {
       const lista = this.$store.state.pricing.listIngresosInstructivo;
       const index = this.page - 1;
@@ -944,6 +1005,12 @@ export default {
       const item = lista[index];
       return item && item.nro_propuesta ? item.nro_propuesta : "";
     },
+    correlativoPrincipal() {
+      return this.correlativos.length ? this.correlativos[0] : "";
+    },
+    correlativosSecundarios() {
+      return this.correlativos.slice(1);
+    },
   },
 
   async mounted() {
@@ -971,6 +1038,17 @@ export default {
       "GuardarConfiguracionEmpresa",
       "ObtenerDatosConfig",
     ]),
+    tienePagosAsociados() {
+      if (this.id_exp) {
+        let val = this.$store.state.itemsMasterList.find(
+          (v) => v.id == this.id_exp,
+        );
+        if (val.tienepagos) {
+          return true;
+        }
+      }
+      return false;
+    },
     abrirCarpeta(url) {
       if (!url) {
         Swal.fire({
@@ -1523,6 +1601,10 @@ export default {
         }
       }
     },
+    regresarSeleccionoMaster() {
+      this.dialogCostos = !this.dialogCostos;
+      this.aprobarflag = true;
+    },
     async validarExistePagosMaster() {
       this.activarBtnContinuar = true;
       this.textValidacionPago = "";
@@ -1686,15 +1768,6 @@ export default {
         ? this.$store.state.provedores.find((v) => v.id == id_proveedor)
         : "";
       return nameProveedor ? nameProveedor.namelong : " Sin Proveedor";
-    },
-  },
-  computed: {
-    correlativoPrincipal() {
-      return this.correlativos.length ? this.correlativos[0] : "";
-    },
-
-    correlativosSecundarios() {
-      return this.correlativos.slice(1);
     },
   },
 };
