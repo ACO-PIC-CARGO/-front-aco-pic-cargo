@@ -522,7 +522,11 @@
             <span
               v-for="(val, index) in item.details"
               :key="index"
-              style="font-size: 1rem; font-style: italic;text-transform: capitalize;"
+              style="
+                font-size: 1rem;
+                font-style: italic;
+                text-transform: capitalize;
+              "
             >
               "{{ val.notes }}"
             </span>
@@ -888,7 +892,7 @@ export default {
 
         {
           value: "codigo",
-          text: "CÓD.",
+          text: "NÚMERO DE COTIZACIÓN",
           align: "center",
           groupable: true,
           estado: true,
@@ -937,7 +941,7 @@ export default {
         },
         {
           value: "incoterms",
-          text: "CCI",
+          text: "INCOTERMS",
           align: "center",
           groupable: true,
           estado: true,

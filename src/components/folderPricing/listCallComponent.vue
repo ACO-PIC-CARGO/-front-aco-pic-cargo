@@ -335,13 +335,24 @@
         mobile
         disable-sort
       >
+        <template v-slot:[`item.fechaemisionpdf`]="{ item }">
+          <span v-if="item.fechaemisionpdf">
+            {{ item.fechaemisionpdf }}
+          </span>
+        </template>
         <template v-slot:[`item.llamadas`]="{ item }">
           <span style="font-weight: bold"
             >{{ item.fecha_ultima_llamada }}
           </span>
           <br />
-          <span style="font-size: 0.8rem; font-style: italic;text-transform: capitalize;">
-            "{{item.ultimo_comentario}}"
+          <span
+            style="
+              font-size: 0.8rem;
+              font-style: italic;
+              text-transform: capitalize;
+            "
+          >
+            "{{ item.ultimo_comentario }}"
           </span>
         </template>
         <!-- <template v-slot:item="row">
@@ -478,7 +489,7 @@ export default {
 
         {
           value: "codigo",
-          text: "CÓD.",
+          text: "NÚMERO DE COTIZACIÓN",
           align: "center",
           groupable: true,
           estado: true,
@@ -520,7 +531,7 @@ export default {
         },
         {
           value: "tipo_de_carga",
-          text: "TIPO DE CARGA",
+          text: "T. C.",
           align: "center",
           groupable: true,
           estado: true,
@@ -546,15 +557,15 @@ export default {
           groupable: true,
           estado: true,
         },
-        // {
-        //   value: "marketing",
-        //   text: "MARKETING",
-        //   align: "center",
-        //   groupable: true,
-        //   estado: true,
-        // },
         {
-          value: "fecha_solicitud",
+          value: "marketing",
+          text: "MARKETING",
+          align: "center",
+          groupable: true,
+          estado: true,
+        },
+        {
+          value: "fechaemisionpdf",
           text: "FECHA ENVÍADO A CLIENTE",
           align: "center",
         },
