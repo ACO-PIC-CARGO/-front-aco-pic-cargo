@@ -205,7 +205,8 @@ export default {
         cancelButtonText: "Cancelar",
         confirmButtonText: '<i class="fa fa-user"></i> Individual', // Opcional si usas FontAwesome
         denyButtonText: '<i class="fa fa-users"></i> Grupal',
-        showDenyButton: true,
+        showDenyButton: data.tienegrupalflag,
+        showConfirmButton: data.tieneindividualflag,
         reverseButtons: true, // Ordena mejor los botones de acción
         allowEnterKey: false,
         allowOutsideClick: false,
