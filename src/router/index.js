@@ -830,6 +830,12 @@ const routes = [
         component: () =>
           import("../views/Calculadora/VerCotizacionCalculadora.vue"),
       },
+      {
+        path: "calculadora/configuracion_opciones",
+        name: "calcOpciones",
+        component: () =>
+          import("../views/Calculadora/ConfiguracionOpcionCalculadora.vue"),
+      },
     ],
   },
   {

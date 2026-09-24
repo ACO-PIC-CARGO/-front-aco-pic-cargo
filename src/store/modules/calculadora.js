@@ -22,6 +22,7 @@ const state = {
   lstDistritos: [],
   lstCiudades: [],
   lstTransporte: [],
+  lstOpciones: [],
   opcionCalculadora: 1,
   opciones: [],
   config: [],
@@ -103,6 +104,9 @@ const mutations = {
   },
   SET_LST_CIUDADES(state, data) {
     state.lstCiudades = data;
+  },
+  SET_LIST_OPCIONES(state, data) {
+    state.lstOpciones = data;
   },
 };
 
@@ -1315,9 +1319,9 @@ const actions = {
         icon: "success",
         title: "Cotización Creada",
         confirmButtonText: "Ir a la cotización",
-        allowEnterKey:false,
-        allowEscapeKey:false,
-        allowOutsideClick:false,
+        allowEnterKey: false,
+        allowEscapeKey: false,
+        allowOutsideClick: false,
       }).then((respuesta) => {
         if (respuesta.isConfirmed) {
           console.log(res.data);
@@ -1328,6 +1332,44 @@ const actions = {
         }
       });
     }
+  },
+
+  async opcionListado({ commit }, data) {
+    var config = {
+      method: "get",
+      url: process.env.VUE_APP_URL_MAIN + `calc/opcion_listado`,
+    };
+    await axios(config).then((res) => {
+      let data = res.data;
+      if (data.estadoflag) {
+        let newData = data.data.map((item) => ({
+          ...item,
+          editarflag: false,
+        }));
+        commit("SET_LIST_OPCIONES", newData);
+      } else {
+        commit("SET_LIST_OPCIONES", []);
+      }
+    });
+  },
+  async opcionActualizar({ dispatch }, data) {
+    var config = {
+      method: "put",
+      url: process.env.VUE_APP_URL_MAIN + `calc/opcion_actualizar`,
+      data: data,
+    };
+    await axios(config).then((res) => {
+      let data = res.data;
+      if (data.estadoflag) {
+        Swal.fire({
+          icon: "success",
+          text: data.mensaje,
+        });
+        dispatch("opcionListado");
+      } else {
+        dispatch("opcionListado");
+      }
+    });
   },
 };
 
