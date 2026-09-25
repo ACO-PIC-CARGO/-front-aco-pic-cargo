@@ -1,4 +1,4 @@
-import axios from '@/api/axios-config';
+import axios from "@/api/axios-config";
 import Swal from "sweetalert2";
 import router from "@/router";
 import user from "./user";
@@ -64,28 +64,16 @@ const mutations = {
 };
 const actions = {
   async fetchDataEnterprise({ commit }, data) {
+    data.id_branch = JSON.parse(
+      sessionStorage.getItem("dataUser"),
+    )[0].id_branch;
     commit("SET_LOADING", false);
     var config = {
       method: "get",
-      url:
-        process.env.VUE_APP_URL_MAIN +
-        `listar_enterprise?` +
-        `id_branch=${
-          JSON.parse(sessionStorage.getItem("dataUser"))[0].id_branch
-        }` +
-        `&document=${encodeURIComponent(data.document)}` +
-        `&trade_name=${encodeURIComponent(data.trade_name)}` +
-        `&business_name=${encodeURIComponent(data.business_name)}` +
-        `&address=${encodeURIComponent(data.address)}` +
-        `&status=${data.status}` +
-        `&id_pais=${data.id_pais}` +
-        `&id_state=${data.id_state}` +
-        `&id_city=${data.id_city}` +
-        `&id_town=${data.id_town}` +
-        `&id_document=${data.id_document}`,
+      url: process.env.VUE_APP_URL_MAIN + `listar_enterprise`,
+      params: data,
       headers: {
         "Content-Type": "application/json",
-       
       },
     };
 
@@ -129,7 +117,6 @@ const actions = {
       url: process.env.VUE_APP_URL_MAIN + "insertar_enterprise",
       headers: {
         "Content-Type": "application/json",
-       
       },
       data: data,
     };
@@ -159,7 +146,6 @@ const actions = {
       url: process.env.VUE_APP_URL_MAIN + `ver_enterprise?id=${id}`,
       headers: {
         "Content-Type": "application/json",
-       
       },
     };
 
@@ -186,7 +172,54 @@ const actions = {
       url: process.env.VUE_APP_URL_MAIN + "actualizar_enterprise",
       headers: {
         "Content-Type": "application/json",
-       
+      },
+      data: data,
+    };
+
+    axios(config)
+      .then((response) => {
+        let data = response.data;
+        sessionStorage.setItem("auth-token", data.token);
+        Swal.fire({
+          icon: !!data.estadoflag ? "success" : "error",
+          text: data.mensaje,
+          showCancelButton: false,
+          confirmButtonText: "Ok",
+        }).then((result) => {
+          const currentRoute = router.currentRoute;
+          if (currentRoute.name !== "listEnterprise") {
+            router.push({ name: "listEnterprise" });
+          } else {
+            let data = {
+              id_branch: JSON.parse(sessionStorage.getItem("dataUser"))[0]
+                .id_branch,
+              document: "",
+              trade_name: "",
+              business_name: "",
+              address: "",
+              status: "",
+              id_pais: "",
+              id_state: "",
+              id_city: "",
+              id_town: "",
+              id_document: "",
+              status: 1,
+            };
+            dispatch("fetchDataEnterprise", data);
+          }
+        });
+      })
+      .catch((error) => {
+        console.log("Error al obtener los datos:", error);
+      });
+  },
+
+  async eliminarBranch({ dispatch }, data) {
+    var config = {
+      method: "delete",
+      url: process.env.VUE_APP_URL_MAIN + "eliminar_sucursal",
+      headers: {
+        "Content-Type": "application/json",
       },
       data: data,
     };
@@ -235,7 +268,6 @@ const actions = {
       url: process.env.VUE_APP_URL_MAIN + "registro_nueva_empresa",
       headers: {
         "Content-Type": "application/json",
-       
       },
       data: state.data,
     };
@@ -244,7 +276,7 @@ const actions = {
       .then((response) => {
         sessionStorage.setItem(
           "security",
-          response.data.data[0].data_users.id_secutiry
+          response.data.data[0].data_users.id_secutiry,
         );
 
         let dataUser = response.data.data[0].data_users; // es un array
@@ -273,7 +305,6 @@ const actions = {
         `enviar_codigo_validacion_email?email=${state.data.email}`,
       headers: {
         "Content-Type": "application/json",
-       
       },
       data: state.data,
     };
@@ -294,7 +325,6 @@ const actions = {
         `validar_token_registro?email=${state.data.email}&codigo=${state.data.codigo}&eliminartoken=${eliminar}`,
       headers: {
         "Content-Type": "application/json",
-       
       },
       data: state.data,
     };
@@ -317,7 +347,6 @@ const actions = {
         `validar_correo_registro?email=${state.data.email}`,
       headers: {
         "Content-Type": "application/json",
-       
       },
       data: state.data,
     };
@@ -342,7 +371,6 @@ const actions = {
         "obtener_impuestos_branch?id_branch=" +
         branch,
       headers: {
-       
         "Content-Type": "application/json",
       },
     };
@@ -363,7 +391,6 @@ const actions = {
         "listado_cuentas_empresa?id_branch=" +
         branch,
       headers: {
-       
         "Content-Type": "application/json",
       },
     };
@@ -382,7 +409,6 @@ const actions = {
       method: "post",
       url: process.env.VUE_APP_URL_MAIN + "banco_registrar",
       headers: {
-       
         "Content-Type": "application/json",
       },
       data,

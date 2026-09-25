@@ -772,20 +772,20 @@ const actions = {
           commit("SET_LIST_CALLS", data.data);
         } else {
           commit("SET_LIST_CALLS", []);
-          Swal.fire({
-            icon: "error",
-            text: data.mensaje,
-            allowOutsideClick: false,
-            allowEscapeKey: false,
-            allowEnterKey: false,
-          }).then((resSwal) => {
-            if (resSwal.isConfirmed && data.status == "401") {
-              router.push({ name: "Login" });
-              setTimeout(() => {
-                window.location.reload();
-              }, 10);
-            }
-          });
+          // Swal.fire({
+          //   icon: "error",
+          //   text: data.mensaje,
+          //   allowOutsideClick: false,
+          //   allowEscapeKey: false,
+          //   allowEnterKey: false,
+          // }).then((resSwal) => {
+          //   if (resSwal.isConfirmed && data.status == "401") {
+          //     router.push({ name: "Login" });
+          //     setTimeout(() => {
+          //       window.location.reload();
+          //     }, 10);
+          //   }
+          // });
         }
       })
       .catch(function (error) {
