@@ -69,7 +69,7 @@
             icon
             color="red"
             @click="switch_status(item)"
-            v-if="item.status"
+            v-if="item.status && !idPrincipales.includes(item.id)"
           >
             <v-icon>mdi-delete</v-icon>
           </v-btn>
@@ -213,8 +213,9 @@ export default {
   name: "ListEnterpriseComponent",
   data() {
     return {
+      idPrincipales: ["1", "2", 1, 2],
       headers: [
-        { text: "Código", align: "start", value: "code" },
+        // { text: "Código", align: "start", value: "code" },
         { text: "Tipo de Documento", value: "td_name" },
         { text: "Nro. Documento", value: "document" },
         { text: "Nombre Comercial", value: "trade_name" },
@@ -287,6 +288,8 @@ export default {
       "_getCity",
       "_getTown",
       "switchEnterprise",
+      "eliminarBranch",
+      "validarUsuarioAdmin",
     ]),
     updateStatus(newValue) {
       this.enterprise.status = newValue ? 1 : 0;
@@ -334,9 +337,68 @@ export default {
       this.clear();
     },
     async switch_status(item) {
+      let val = true;
+      let msg = "";
+      this.payfile = null;
+
+      await Swal.fire({
+        title: "Ingrese sus datos Administrador",
+        html:
+          '<input id="swal-input1" class="swal2-input" placeholder="Nombre">' +
+          '<input id="swal-input2" type="password" class="swal2-input" placeholder="Clave">',
+        focusConfirm: false,
+        showCancelButton: true,
+        confirmButtonText: "Aceptar",
+        cancelButtonText: "Cancelar",
+        preConfirm: () => {
+          const input1 = document.getElementById("swal-input1").value.trim();
+          const input2 = document.getElementById("swal-input2").value.trim();
+          if (!input1 || !input2) {
+            Swal.showValidationMessage("Por favor, complete ambos campos");
+            return false;
+          }
+          return { usuario: input1, clave: input2 };
+        },
+      }).then(async (result) => {
+        if (!result.isConfirmed) {
+          // Usuario canceló
+          val = false;
+          msg = "Operación cancelada";
+          return;
+        }
+
+        if (result.value) {
+          const res = await this.validarUsuarioAdmin({
+            usuario: result.value.usuario,
+            clave: result.value.clave,
+          });
+
+          if (res && res.estadoflag) {
+            val = true;
+          } else {
+            val = false;
+            msg = res?.mensaje || "Credenciales incorrectas";
+          }
+        } else {
+          val = false;
+          msg = "Debe ingresar las credenciales";
+        }
+      });
+
+      if (!val) {
+        await swal.fire({
+          icon: "error",
+          text: msg,
+        });
+        return false;
+      }
+      await this.eliminar(item);
+    },
+
+    async eliminar(item) {
       Swal.fire({
         title: "¿Estás seguro?",
-        text: `Si inactiva el registro, éste no aparecerá disponible en otros formularios ¿Está seguro de que desea inactivarlo?`,
+        text: `La eliminación será definitiva, y no se podrá recupear la sucursal`,
         confirmButtonColor: "red",
         icon: "warning",
         showCancelButton: true,
@@ -347,7 +409,7 @@ export default {
         if (result.isConfirmed) {
           item.status = 0;
           this.clear();
-          await this.updateEnterprise(item);
+          await this.eliminarBranch(item);
         }
       });
     },

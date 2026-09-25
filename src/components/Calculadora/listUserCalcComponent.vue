@@ -25,6 +25,7 @@
           item-key="index"
           id="tblListUser"
           class="elevation-2"
+          striped
         >
           <template v-slot:[`item.estadocotizacion`]="{ item }">
             <v-chip
@@ -187,6 +188,10 @@ export default {
       "getModulesEntities",
       "EnviarCotizacionCalculadoraAPrincing",
     ]),
+    rowTrainerClass(item) {
+      const index = this.$store.state.calculadoras.listUser.indexOf(item);
+      return index % 2 === 0 ? "fila-par" : "fila-impar";
+    },
     getFecha(fecha) {
       moment.locale("es");
       return moment(fecha).format("YYYY-MMM-DD");
@@ -994,4 +999,13 @@ export default {
 };
 </script>
 
-<style scoped></style>
+<style scoped>
+#tblListUser tbody tr:nth-child(odd) {
+  background-color: #f9f9f9; /* Color suave para impares */
+}
+
+/* Fila par */
+#tblListUser tbody tr:nth-child(even) {
+  background-color: #ffffff; /* Color para pares */
+}
+</style>
