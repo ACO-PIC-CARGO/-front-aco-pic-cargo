@@ -6466,6 +6466,27 @@ const actions = {
       console.error("Error al listar montos finales quote:", error);
     }
   },
+
+  async cargarTrabajadores({ commit }, data) {
+    let res = {};
+    var config = {
+      method: "get",
+      url: process.env.VUE_APP_URL_MAIN + `cargar_trabajadores`,
+      headers: {
+       
+        "Content-Type": "application/json",
+      },
+      params: data,
+    };
+
+     await axios(config)
+      .then(function (response) {
+        commit("SET_LIST_EJECUTIVO", response.data.data);
+      })
+      .catch(function (error) {
+        console.error(error);
+      });
+  },
 };
 
 function GenerarIngresosInstrictivo(tipo) {

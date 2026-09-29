@@ -1213,12 +1213,12 @@ export default {
         )?.name;
       }
       if (f.id_pricing) {
-        filtroSeleccionado.Pricing = store.listEjecutivo.find(
+        filtroSeleccionado["Ejecutivo Pricing"] = store.listEjecutivo.find(
           (v) => v.id_entitie == f.id_pricing,
         )?.name;
       }
       if (f.id_entities) {
-        filtroSeleccionado.Ejecutivo = store.listEjecutivo.find(
+        filtroSeleccionado["Ejecutivo Venta"] = store.listEjecutivo.find(
           (v) => v.id_entitie == f.id_entities,
         )?.name;
       }

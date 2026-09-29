@@ -127,7 +127,7 @@ export default {
     await Promise.all([this.getListQuote(), this.getQuoteCall()]);
     this.$store.state.spiner = false;
     await Promise.all([
-      this.getModulesEntities(),
+      this.cargarTrabajadores(),
       this.getQuoteStatus(),
       this.getMarketingList(),
       this.getResumenPorEstado(),
@@ -145,7 +145,7 @@ export default {
       "getResumenPorEstado",
       "cargarClientes",
       "getMarketingList",
-      "getModulesEntities",
+      "cargarTrabajadores",
       "getQuoteStatus",
       "getModality",
       "getShipment",

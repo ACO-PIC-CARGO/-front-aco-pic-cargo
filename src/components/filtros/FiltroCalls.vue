@@ -158,6 +158,12 @@
                 clearble
               />
             </v-col>
+            <v-col cols="12" v-if="errorFiltroFecha">
+              <v-alert dense style="background: #ffcdd2; color: #b71c1c">
+                <b>{{ errorFiltroFecha }}</b>
+              </v-alert>
+              <span> </span>
+            </v-col>
             <!-- <v-col cols="12">
               <v-radio-group v-model="$store.state.pricing.filtroCalls.estado" row>
                 <v-radio label="Activo" color="green" :value="true"></v-radio>
@@ -196,7 +202,86 @@ export default {
       "getListQuote",
       "getQuoteCall",
     ]),
+    data() {
+      return {
+        errorFiltroFecha: "",
+      };
+    },
+    validarFiltroFechas() {
+      this.errorFiltroFecha = "";
+
+      const filtro = this.$store.state.pricing.filtroCalls;
+
+      // Normalizar fechas: detectar valores vacíos o inválidos
+      const tieneFecha = (fecha) => {
+        if (fecha === null || fecha === undefined) {
+          return false;
+        }
+
+        const valor = String(fecha).trim().toLowerCase();
+
+        return (
+          valor !== "" &&
+          valor !== "null" &&
+          valor !== "undefined" &&
+          valor !== "invalid date"
+        );
+      };
+
+      const creacionDesde = tieneFecha(filtro.fechainicio);
+      const creacionHasta = tieneFecha(filtro.fechafin);
+
+      const envioDesde = tieneFecha(filtro.fechaemisiondesde);
+      const envioHasta = tieneFecha(filtro.fechaemisionhasta);
+
+      // 1. No permitir mezclar creación y envío
+      if ((creacionDesde || creacionHasta) && (envioDesde || envioHasta)) {
+        this.errorFiltroFecha = "Solo 1 tipo de fecha: Creación o envío.";
+
+        return false;
+      }
+
+      // 2. Obligatoriamente debe existir un rango completo
+      if (!creacionDesde && !creacionHasta && !envioDesde && !envioHasta) {
+        this.errorFiltroFecha =
+          "Debes seleccionar un rango de fechas: Creación o de envío.";
+
+        return false;
+      }
+
+      // 3. Validar rango de creación
+      if (creacionDesde && !creacionHasta) {
+        this.errorFiltroFecha = "Debes seleccionar la Fecha Creación Hasta.";
+
+        return false;
+      }
+
+      if (!creacionDesde && creacionHasta) {
+        this.errorFiltroFecha = "Debes seleccionar la Fecha Creación Desde.";
+
+        return false;
+      }
+
+      // 4. Validar rango de envío
+      if (envioDesde && !envioHasta) {
+        this.errorFiltroFecha =
+          "Debes seleccionar la Fecha Envío Cliente Hasta.";
+
+        return false;
+      }
+
+      if (!envioDesde && envioHasta) {
+        this.errorFiltroFecha =
+          "Debes seleccionar la Fecha Envío Cliente Desde.";
+
+        return false;
+      }
+
+      // 5. Todas las validaciones pasaron
+      return true;
+    },
     async filtrar() {
+      if (!this.validarFiltroFechas()) return;
       this.$store.state.spiner = true;
       await this.getQuoteCall(this.$store.state.pricing.filtroCalls);
       this.$store.state.pricing.filtrarCallsFlag = false;
