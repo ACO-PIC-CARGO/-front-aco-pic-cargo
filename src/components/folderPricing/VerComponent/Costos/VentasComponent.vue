@@ -64,7 +64,6 @@
                         isConfeccion(valor.code_cost) ||
                         isNotaCredito(valor.code_cost)
                       "
-                      readonly
                     ></v-select>
                   </td>
 
@@ -891,6 +890,19 @@ export default {
         };
 
         return obtenerPeso(a) - obtenerPeso(b);
+      });
+    },
+    tipoOpcion() {
+      const tipos = this.$store.state.pricing.listTipoCostos || [];
+      return tipos.filter((element) => {
+        const codigo = element.codigo;
+        if (codigo === "GT") return this.isGastosTercero();
+        if (codigo === "FL") return this.isFlete();
+        if (codigo === "OR") return this.isOrigen();
+        if (codigo === "LO") return this.isLocal();
+        if (codigo === "AD") return this.isAduana();
+        if (codigo === "AL") return this.isAlmacen();
+        return false;
       });
     },
     panelesAbiertos() {

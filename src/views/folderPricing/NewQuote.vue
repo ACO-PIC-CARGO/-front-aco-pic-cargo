@@ -87,6 +87,7 @@ import { mapActions, mapState } from "vuex";
 import Swal from "sweetalert2";
 import readXlsFile from "read-excel-file";
 import mixins from "@/components/mixins/funciones.js";
+import moment from "moment";
 export default {
   mixins: [mixins],
   components: {
@@ -812,8 +813,8 @@ export default {
       });
       let newPropuesta = {
         nro_propuesta: nro_propuesta,
-        date_end: "",
-        tiempo_transito: 0,
+        date_end: moment().add(7, 'days').format("YYYY-MM-DD"),
+        tiempo_transito: 35,
         listCostos: cDuplicado,
         listImpuestos: this.$store.state.pricing.listImpuestos,
         listNotasQuote: this.$store.state.pricing.listNotasQuote,
@@ -823,13 +824,13 @@ export default {
     },
     async recargarCostos() {
       Promise.all([this.getTipoCostos(), this.getMultiplicador()]);
-      let codeServicesActivos = new Set(
-        this.$store.state.pricing.listServices
+      const codeServicesActivos = new Set(
+        (this.$store.state.pricing.listServices || [])
           .filter((v) => v.status === true || v.status === 1)
           .map((v) => v.code_service),
       );
 
-      let c = this.$store.state.pricing.preCostos.filter(
+      const c = (this.$store.state.pricing.preCostos || []).filter(
         (v) =>
           v.id_incoterms ===
             this.$store.state.pricing.datosPrincipales.idincoterms &&
@@ -839,23 +840,24 @@ export default {
             this.$store.state.pricing.datosPrincipales.idtipocarga.id &&
           codeServicesActivos.has(v.code_service),
       );
+
       let idContainer = [];
-      if (this.$store.state.pricing.datosPrincipales.containers.length > 0) {
+      if ((this.$store.state.pricing.datosPrincipales.containers || []).length > 0) {
         idContainer = this.$store.state.pricing.datosPrincipales.containers.map(
           (v) => v.id,
         );
       }
 
-      let cFiltrado = c.filter((v) => {
+      const cFiltrado = c.filter((v) => {
         if (v.escontenedorflag) {
           return idContainer.includes(v.id_container);
         }
         return true;
       });
 
-      let codeCost = [69, 114, 105, 39];
+      const codeCost = [69, 114, 105, 39];
 
-      let cDuplicado = cFiltrado.flatMap((item) => {
+      const cDuplicado = cFiltrado.flatMap((item) => {
         if (codeCost.includes(item.code_cost)) {
           return [
             {
@@ -876,81 +878,79 @@ export default {
               nro_propuesta: 1,
             },
           ];
-        } else {
-          let montoprofit = 0;
-
-          let tipoImportacion =
-            this.$store.state.masterusuarios.lstPercepcionAduana.find(
-              (v) =>
-                v.id ==
-                this.$store.state.pricing.datosPrincipales.id_percepcionaduana,
-            );
-          // OBTENIENDO LOS PROFIT
-          if (this.$store.state.pricing.datosPrincipales.esindividualflag) {
-            if (tipoImportacion.codigo == "01") {
-              montoprofit = item.profit_ganancia_pricing.find(
-                (v) => v.esindividualflag,
-              ).profitprimeraimportacion;
-            }
-            if (tipoImportacion.codigo == "02") {
-              montoprofit = item.profit_ganancia_pricing.find(
-                (v) => v.esindividualflag,
-              ).profitsegundaimportacion;
-            }
-          }
-          if (this.$store.state.pricing.datosPrincipales.esgrupalflag) {
-            if (tipoImportacion.codigo == "01") {
-              montoprofit = item.profit_ganancia_pricing.find(
-                (v) => v.esgrupalflag,
-              ).profitprimeraimportacion;
-            }
-            if (tipoImportacion.codigo == "02") {
-              montoprofit = item.profit_ganancia_pricing.find(
-                (v) => v.esgrupalflag,
-              ).profitsegundaimportacion;
-            }
-          }
-          return [
-            {
-              ...item,
-              nro_propuesta: 1,
-              esopcionflag: 1,
-              esventaflag: 0,
-              status: true,
-              cif: this.$store.state.pricing.datosPrincipales.esgrupalflag
-                ? 0
-                : parseFloat(0.35),
-              seguro: this.$store.state.pricing.datosPrincipales.esgrupalflag
-                ? 0
-                : parseFloat(0.45),
-              costounitario: this.$store.state.pricing.datosPrincipales
-                .esgrupalflag
-                ? 0
-                : item.costounitario,
-              nro_propuesta: 1,
-            },
-            {
-              ...item,
-              nro_propuesta: 1,
-              esopcionflag: 0,
-              esventaflag: 1,
-              status: true,
-              cif: parseFloat(0.35),
-              seguro: parseFloat(0.45),
-              nro_propuesta: 1,
-              costounitario:
-                parseFloat(
-                  this.$store.state.pricing.datosPrincipales.esgrupalflag
-                    ? 0
-                    : item.costounitario,
-                ) + parseFloat(montoprofit),
-              tieneprofitflag: parseFloat(montoprofit) > 0,
-            },
-          ];
         }
+
+        let montoprofit = 0;
+        const tipoImportacion =
+          this.$store.state.masterusuarios.lstPercepcionAduana.find(
+            (v) =>
+              String(v.id) ===
+              String(
+                this.$store.state.pricing.datosPrincipales
+                  .id_percepcionaduana,
+              ),
+          );
+        const profitList = item.profit_ganancia_pricing || [];
+
+        if (this.$store.state.pricing.datosPrincipales.esindividualflag) {
+          const profitObj = profitList.find((v) => v.esindividualflag);
+          if (tipoImportacion?.codigo == "01") {
+            montoprofit = profitObj?.profitprimeraimportacion || 0;
+          }
+          if (tipoImportacion?.codigo == "02") {
+            montoprofit = profitObj?.profitsegundaimportacion || 0;
+          }
+        }
+
+        if (this.$store.state.pricing.datosPrincipales.esgrupalflag) {
+          const profitObj = profitList.find((v) => v.esgrupalflag);
+          if (tipoImportacion?.codigo == "01") {
+            montoprofit = profitObj?.profitprimeraimportacion || 0;
+          }
+          if (tipoImportacion?.codigo == "02") {
+            montoprofit = profitObj?.profitsegundaimportacion || 0;
+          }
+        }
+
+        return [
+          {
+            ...item,
+            nro_propuesta: 1,
+            esopcionflag: 1,
+            esventaflag: 0,
+            status: true,
+            cif: this.$store.state.pricing.datosPrincipales.esgrupalflag
+              ? 0
+              : parseFloat(0.35),
+            seguro: this.$store.state.pricing.datosPrincipales.esgrupalflag
+              ? 0
+              : parseFloat(0.45),
+            costounitario: this.$store.state.pricing.datosPrincipales
+              .esgrupalflag
+              ? 0
+              : item.costounitario,
+          },
+          {
+            ...item,
+            nro_propuesta: 1,
+            esopcionflag: 0,
+            esventaflag: 1,
+            status: true,
+            cif: parseFloat(0.35),
+            seguro: parseFloat(0.45),
+            costounitario:
+              parseFloat(
+                this.$store.state.pricing.datosPrincipales.esgrupalflag
+                  ? 0
+                  : item.costounitario,
+              ) + parseFloat(montoprofit),
+            tieneprofitflag: parseFloat(montoprofit) > 0,
+          },
+        ];
       });
+
       this.$store.state.pricing.opcionCostos =
-        this.$store.state.pricing.opcionCostos.slice(0, 1);
+        (this.$store.state.pricing.opcionCostos || []).slice(0, 1);
       this.$store.state.pricing.index = 0;
       this.$store.state.pricing.opcionCostos[0].listCostos = cDuplicado;
       this.$store.state.pricing.opcionCostos[0].listImpuestos =

@@ -1184,11 +1184,44 @@ export default {
       await this.getListQuote();
       this.$store.state.spiner = false;
     },
+    rangoFechaSuperaUnMes(inicio, fin) {
+      const fechaInicio = moment(inicio);
+      const fechaFin = moment(fin);
+      return (
+        fechaInicio.isValid() &&
+        fechaFin.isValid() &&
+        fechaFin.isAfter(fechaInicio.clone().add(1, "month"), "day")
+      );
+    },
     async reporteListado() {
-      this.loading2 = true;
-
-      let filtroSeleccionado = {};
       const f = this.$store.state.pricing.filtro;
+      const rangoCreacionExcedido = this.rangoFechaSuperaUnMes(
+        f.fechainicio,
+        f.fechafin,
+      );
+      const rangoEmisionExcedido = this.rangoFechaSuperaUnMes(
+        f.fechaemisiondesde,
+        f.fechaemisionhasta,
+      );
+
+      if (rangoCreacionExcedido || rangoEmisionExcedido) {
+        const rangoExcedido =
+          rangoCreacionExcedido && rangoEmisionExcedido
+            ? "Los rangos de creación y emisión"
+            : rangoCreacionExcedido
+              ? "El rango de creación"
+              : "El rango de emisión";
+        await Swal.fire({
+          icon: "warning",
+          title: "No se puede generar el reporte",
+          html: `<strong>${rangoExcedido} supera el máximo permitido.</strong><br>Selecciona un periodo de hasta <strong>1 mes</strong> para continuar.`,
+          confirmButtonText: "Revisar fechas",
+        });
+        return;
+      }
+
+      this.loading2 = true;
+      let filtroSeleccionado = {};
       const store = this.$store.state.pricing;
 
       if (f.fechainicio) filtroSeleccionado["Creación De:"] = f.fechainicio;

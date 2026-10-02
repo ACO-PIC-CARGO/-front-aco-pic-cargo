@@ -483,8 +483,8 @@ export default {
       });
       let newPropuesta = {
         nro_propuesta: nro_propuesta,
-        date_end: "",
-        tiempo_transito: 0,
+         date_end: moment().add(7, 'days').format("YYYY-MM-DD"),
+        tiempo_transito: 35,
         listCostos: cDuplicado,
         listImpuestos: this.$store.state.pricing.listImpuestos,
         listNotasQuote: this.$store.state.pricing.listNotasQuote,
