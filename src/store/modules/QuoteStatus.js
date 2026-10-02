@@ -1,4 +1,4 @@
-import axios from '@/api/axios-config';
+import axios from "@/api/axios-config";
 import Swal from "sweetalert2";
 import router from "@/router";
 let state = {
@@ -57,42 +57,12 @@ let actions = {
   async GetListQuoteStatus({ commit, dispatch }) {
     var config = {
       method: "get",
-      url:
-        process.env.VUE_APP_URL_MAIN +
-        `list_quote_status?id_branch=${
-          JSON.parse(sessionStorage.getItem("dataUser"))[0].id_branch
-        }&code=${state.StatusFilter.code ? state.StatusFilter.code : ""}&name=${
-          state.StatusFilter.name ? state.StatusFilter.name : ""
-        }&description=${
-          state.StatusFilter.description ? state.StatusFilter.description : ""
-        }&position=${
-          state.StatusFilter.position ? state.StatusFilter.position : ""
-        }&position_report=${
-          state.StatusFilter.position_report
-            ? state.StatusFilter.position_report
-            : ""
-        }&position_select=${
-          state.StatusFilter.position_select
-            ? state.StatusFilter.position_select
-            : ""
-        }&position_calls=${
-          state.StatusFilter.position_calls
-            ? state.StatusFilter.position_calls
-            : ""
-        }&status_calls=${
-          state.StatusFilter.status_calls !== "null"
-            ? state.StatusFilter.status_calls
-            : ""
-        }&status_calls_all=${
-          state.StatusFilter.status_calls_all !== "null"
-            ? state.StatusFilter.status_calls_all
-            : ""
-        }&status=${
-          state.StatusFilter.status !== "null" ? state.StatusFilter.status : ""
-        }`,
-
+      url: process.env.VUE_APP_URL_MAIN + `list_quote_status`,
+      params: {
+        ...state.StatusFilter,
+        id_branch: JSON.parse(sessionStorage.getItem("dataUser"))[0].id_branch,
+      },
       headers: {
-       
         "Content-Type": "application/json",
       },
     };
@@ -139,7 +109,6 @@ let actions = {
         }`,
 
       headers: {
-       
         "Content-Type": "application/json",
       },
     };
@@ -176,7 +145,6 @@ let actions = {
         }&position=${state.StatusModel.position}`,
 
       headers: {
-       
         "Content-Type": "application/json",
       },
     };
@@ -197,7 +165,6 @@ let actions = {
         }&position_select=${state.StatusModel.position_select}`,
 
       headers: {
-       
         "Content-Type": "application/json",
       },
     };
@@ -218,7 +185,6 @@ let actions = {
         }&position_report=${state.StatusModel.position_report}`,
 
       headers: {
-       
         "Content-Type": "application/json",
       },
     };
@@ -239,7 +205,6 @@ let actions = {
         }&position_calls=${state.StatusModel.position_calls}`,
 
       headers: {
-       
         "Content-Type": "application/json",
       },
     };
@@ -256,7 +221,6 @@ let actions = {
       url: process.env.VUE_APP_URL_MAIN + `insertar_position_calls`,
 
       headers: {
-       
         "Content-Type": "application/json",
       },
       data: state.StatusModel,
@@ -288,7 +252,6 @@ let actions = {
         }&id=${state.StatusModel.id}&position=${state.StatusModel.position}`,
 
       headers: {
-       
         "Content-Type": "application/json",
       },
     };
@@ -311,7 +274,6 @@ let actions = {
         }`,
 
       headers: {
-       
         "Content-Type": "application/json",
       },
     };
@@ -334,7 +296,6 @@ let actions = {
         }`,
 
       headers: {
-       
         "Content-Type": "application/json",
       },
     };
@@ -357,7 +318,6 @@ let actions = {
         }`,
 
       headers: {
-       
         "Content-Type": "application/json",
       },
     };
@@ -375,7 +335,6 @@ let actions = {
       url: process.env.VUE_APP_URL_MAIN + `actualizar_position_calls`,
 
       headers: {
-       
         "Content-Type": "application/json",
       },
       data: state.StatusModel,

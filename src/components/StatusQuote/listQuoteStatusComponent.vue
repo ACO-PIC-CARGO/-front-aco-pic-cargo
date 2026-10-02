@@ -110,13 +110,17 @@ export default {
       headers: [
         { text: "Código", value: "code" },
         { text: "Nombre", value: "name" },
-        { text: "Descripción", value: "description" },
+        // { text: "Descripción", value: "description" },
+        { text: "Temperatura del lead ", value: "temperatura" },
         { text: "Posición ", value: "position" },
-        { text: "Posición Listado Llamadas", value: "position_calls" },
-        { text: "Posición Reportes", value: "position_report" },
-        { text: "Posición Registro", value: "position_select" },
-        { text: "Uso Llamadas", value: "statuscalls" },
-        { text: "Uso Todas Llamadas", value: "statuscalls_all" },
+        // temperatura
+        // temperaturadescripcion
+        // backgroundtemperatura
+        // { text: "Posición Listado Llamadas", value: "position_calls" },
+        // { text: "Posición Reportes", value: "position_report" },
+        // { text: "Posición Registro", value: "position_select" },
+        // { text: "Uso Llamadas", value: "statuscalls" },
+        // { text: "Uso Todas Llamadas", value: "statuscalls_all" },
         { text: "Estado", value: "estado" },
         { text: "Creación", value: "created_at" },
         { text: "Última Actualización", value: "updated_at" },
@@ -128,9 +132,10 @@ export default {
     this.loading = true;
     await this.GetListQuoteStatus();
     this.loading = false;
+    this.cargarTemperaturaLeds()
   },
   methods: {
-    ...mapActions(["GetListQuoteStatus", "actualizarQuoteStatus"]),
+    ...mapActions(["GetListQuoteStatus", "actualizarQuoteStatus","cargarTemperaturaLeds"]),
     ver(item) {
       let datos = { ...item };
       this.$store.state.QuoteStatus.tipo = "ver";

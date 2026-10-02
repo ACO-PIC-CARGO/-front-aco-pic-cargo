@@ -51,10 +51,12 @@ const state = {
   filtro: {
     fechainicio: moment().format("YYYY-01-01"),
     fechafin: moment().endOf("month").format("YYYY-MM-DD"),
+    tipopdf: 1,
   },
   filtroCalls: {
     fechainicio: moment().format("YYYY-01-01"),
     fechafin: moment().endOf("month").format("YYYY-MM-DD"),
+    tipopdf: 1,
   },
   ventaflag: false,
   dataQuote: null,
@@ -415,7 +417,10 @@ const mutations = {
     state.listEnviadoCliente = data;
   },
   SET_LIST_QUOTES(state, data) {
-    state.listQuotes = data;
+    state.listQuotes = (data || []).map((item, index) => ({
+      ...item,
+      rowId: item.rowId || (item.id ? `${item.id}_${index}` : `quote_${index}`),
+    }));
     // state.totalregistro = data[0].totalregistro
     //   ? Number(Math.ceil(data[0].totalregistro / state.limit))
     //   : 10;
@@ -425,7 +430,10 @@ const mutations = {
     state.listNotasQuote = data;
   },
   SET_LIST_CALLS(state, data) {
-    state.listCall = data;
+    state.listCall = (data || []).map((item, index) => ({
+      ...item,
+      rowId: item.rowId || (item.id ? `${item.id}_${index}` : `call_${index}`),
+    }));
   },
   SET_LIST_MARKETING(state, data) {
     var sorted = (data || []).slice().sort(function (a, b) {
@@ -644,7 +652,13 @@ const actions = {
         sessionStorage.setItem("auth-token", data.token);
         if (data.estadoflag) {
           data = data.data.map((elemento, index) => {
-            return { ...elemento, index };
+            return {
+              ...elemento,
+              index,
+              rowId: elemento.id
+                ? `${elemento.id}_${index}`
+                : `quote_${index}`,
+            };
           });
           commit("SET_LIST_QUOTES", data);
         } else {
@@ -769,7 +783,11 @@ const actions = {
         let data = response.data;
         sessionStorage.setItem("auth-token", data.token);
         if (data.estadoflag) {
-          commit("SET_LIST_CALLS", data.data);
+          let newData = data.data.map((item, index) => ({
+  ...item,
+  rowId: `${item.id}_${index}` // Evita duplicados combinando el ID con el índice
+}));
+          commit("SET_LIST_CALLS", newData);
         } else {
           commit("SET_LIST_CALLS", []);
           // Swal.fire({
@@ -3443,9 +3461,8 @@ const actions = {
       "Content-Type": "application/json",
     };
     let data = {
-      filtro: state.filtro,
+      filtro: { ...state.filtro },
       filtroSeleccionado: filtroSeleccionado,
-      id_branch: JSON.parse(sessionStorage.getItem("dataUser"))[0].id_branch,
       filtroCabecera: filtroCabecera,
     };
     let timerInterval;
@@ -3609,12 +3626,9 @@ const actions = {
       "Content-Type": "application/json",
     };
     let data = {
-      ...state.filtroCalls,
+      filtro: { ...state.filtroCalls },
       filtroSeleccionado: filtroSeleccionado,
       filtroCabecera: filtroCabecera,
-      sucursal: JSON.parse(sessionStorage.getItem("dataBranch"))[0]
-        .business_name,
-      id_branch: JSON.parse(sessionStorage.getItem("dataUser"))[0].id_branch,
     };
     let timerInterval;
     Swal.fire({
@@ -6473,13 +6487,12 @@ const actions = {
       method: "get",
       url: process.env.VUE_APP_URL_MAIN + `cargar_trabajadores`,
       headers: {
-       
         "Content-Type": "application/json",
       },
       params: data,
     };
 
-     await axios(config)
+    await axios(config)
       .then(function (response) {
         commit("SET_LIST_EJECUTIVO", response.data.data);
       })

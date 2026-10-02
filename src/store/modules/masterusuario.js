@@ -72,6 +72,9 @@ const mutations = {
   SET_CARGAR_IMPUESTO_RENTA(state, data) {
     state.lstImpRenta = data;
   },
+  SET_TEMPERATURA_LEDS(state, data) {
+    state.lstTemperatura = data;
+  },
 };
 const actions = {
   async ActualizarMasterDetalle({ commit }) {
@@ -505,6 +508,28 @@ const actions = {
         commit("SET_CARGAR_IMPUESTO_RENTA", response.data.data);
       } else {
         commit("SET_CARGAR_IMPUESTO_RENTA", []);
+      }
+    });
+  },
+  async cargarTemperaturaLeds({ commit }) {
+    var headers = {
+      "Content-Type": "application/json",
+    };
+
+    var config = {
+      method: "get",
+      url:
+        process.env.VUE_APP_URL_MAIN +
+        `cargar_master_detalle_temperatura_leads`,
+      headers: headers,
+    };
+    await axios(config).then((response) => {
+      let data = response.data;
+      sessionStorage.setItem("auth-token", data.token);
+      if (data.estadoflag == true) {
+        commit("SET_TEMPERATURA_LEDS", response.data.data);
+      } else {
+        commit("SET_TEMPERATURA_LEDS", []);
       }
     });
   },

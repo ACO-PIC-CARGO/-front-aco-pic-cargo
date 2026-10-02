@@ -23,6 +23,7 @@
                 v-model="$store.state.QuoteStatus.StatusFilter.code"
                 dense
                 label="Código"
+                outlined
               ></v-text-field>
             </div>
             <div class="col-12 py-1">
@@ -31,6 +32,7 @@
                 v-model="$store.state.QuoteStatus.StatusFilter.name"
                 dense
                 label="Nombre"
+                outlined
               ></v-text-field>
             </div>
             <div class="col-12 py-1">
@@ -39,18 +41,47 @@
                 v-model="$store.state.QuoteStatus.StatusFilter.description"
                 dense
                 label="Descripción"
+                outlined
               ></v-text-field>
             </div>
-            <div class="col-6 py-1">
+            <div class="col-12 py-1">
               <v-text-field
                 clearable
                 v-model="$store.state.QuoteStatus.StatusFilter.position"
                 type="number"
                 dense
                 label="Posición Cotizaciones"
+                outlined
               ></v-text-field>
             </div>
-            <div class="col-6 py-1">
+            <div class="col-12 py-1">
+              <v-autocomplete
+                :items="$store.state.masterusuarios.lstTemperatura"
+                v-model="
+                  $store.state.QuoteStatus.StatusFilter
+                    .id_masterdetalletemperaturaventa
+                "
+                item-value="id"
+                item-text="descripcion"
+                dense
+                outlined
+                label="Temperatura de Lead"
+              >
+                <template v-slot:item="{ item }">
+                  <span
+                    class="mr-3 d-inline-block"
+                    :style="{
+                      backgroundColor: item.codigo,
+                      width: '14px',
+                      height: '14px',
+                      borderRadius: '50%',
+                    }"
+                  ></span>
+                  {{ item.descripcion }}
+                </template>
+              </v-autocomplete>
+            </div>
+            <!--<div class="col-6 py-1">
               <v-text-field
                 clearable
                 v-model="$store.state.QuoteStatus.StatusFilter.position_select"
@@ -58,8 +89,8 @@
                 type="number"
                 label="Posición Registro"
               ></v-text-field>
-            </div>
-            <div class="col-6 py-1">
+            </div> -->
+            <!-- <div class="col-6 py-1">
               <v-text-field
                 clearable
                 v-model="$store.state.QuoteStatus.StatusFilter.position_report"
@@ -67,7 +98,7 @@
                 type="number"
                 label="Posición Reportes"
               ></v-text-field>
-            </div>
+            </div> 
             <div class="col-6 py-1">
               <v-text-field
                 clearable
@@ -76,7 +107,7 @@
                 type="number"
                 label="Posición Llamadas"
               ></v-text-field>
-            </div>
+            </div> 
             <div class="col-6 py-1">
               Uso Llamadas
               <v-radio-group
@@ -100,7 +131,7 @@
                 <v-radio label="Si" color="green" :value="1"></v-radio>
                 <v-radio label="No" color="red" :value="0"></v-radio>
               </v-radio-group>
-            </div>
+            </div> -->
 
             <div class="col-12 py-1">
               <span> Estado</span>
@@ -122,33 +153,36 @@
       <v-form ref="frmDML">
         <div class="container">
           <div class="row">
-            <div class="col-12 py-1">
+            <div class="col-12 py-0">
               <v-text-field
                 v-if="$store.state.QuoteStatus.tipo != 'nuevo'"
                 :readonly="$store.state.QuoteStatus.tipo == 'ver'"
                 v-model="$store.state.QuoteStatus.StatusModel.code"
                 dense
                 label="Código"
+                outlined
               ></v-text-field>
             </div>
-            <div class="col-12 py-1">
+            <div class="col-12 py-0">
               <v-text-field
                 :readonly="$store.state.QuoteStatus.tipo == 'ver'"
                 v-model="$store.state.QuoteStatus.StatusModel.name"
                 dense
                 label="Nombre (*)"
                 :rules="[(v) => !!v || 'Dato requerido']"
+                outlined
               ></v-text-field>
             </div>
-            <div class="col-12 py-1">
+            <div class="col-12 py-0">
               <v-text-field
                 :readonly="$store.state.QuoteStatus.tipo == 'ver'"
                 v-model="$store.state.QuoteStatus.StatusModel.description"
                 dense
                 label="Descripción"
+                outlined
               ></v-text-field>
             </div>
-            <div class="col-6 py-1">
+            <div class="col-12 py-0">
               <v-text-field
                 :readonly="$store.state.QuoteStatus.tipo == 'ver'"
                 v-model="$store.state.QuoteStatus.StatusModel.position"
@@ -158,9 +192,37 @@
                 type="number"
                 dense
                 label="Posición Cotizaciones"
+                outlined
               ></v-text-field>
             </div>
-            <div class="col-6 py-1">
+            <div class="col-12 py-0">
+              <v-autocomplete
+                :items="$store.state.masterusuarios.lstTemperatura"
+                v-model="
+                  $store.state.QuoteStatus.StatusModel
+                    .id_masterdetalletemperaturaventa
+                "
+                item-value="id"
+                item-text="descripcion"
+                dense
+                outlined
+                label="Temperatura de Lead"
+              >
+                <template v-slot:item="{ item }">
+                  <span
+                    class="mr-3 d-inline-block"
+                    :style="{
+                      backgroundColor: item.codigo,
+                      width: '14px',
+                      height: '14px',
+                      borderRadius: '50%',
+                    }"
+                  ></span>
+                  {{ item.descripcion }}
+                </template>
+              </v-autocomplete>
+            </div>
+            <!--<div class="col-6 py-1">
               <v-text-field
                 :readonly="$store.state.QuoteStatus.tipo == 'ver'"
                 v-model="$store.state.QuoteStatus.StatusModel.position_select"
@@ -183,8 +245,8 @@
                 type="number"
                 label="Posición Reportes (*)"
               ></v-text-field>
-            </div>
-            <div class="col-6 py-1">
+            </div> -->
+            <!-- <div class="col-6 py-1">
               <v-text-field
                 v-if="
                   $store.state.QuoteStatus.StatusModel.status_calls_all == 1
@@ -198,8 +260,8 @@
                 type="number"
                 label="Posición Llamadas (*)"
               ></v-text-field>
-            </div>
-            <div class="col-6 py-1">
+            </div> -->
+            <!-- <div class="col-6 py-1">
               Uso Llamadas (*)
               <v-radio-group
                 v-model="$store.state.QuoteStatus.StatusModel.status_calls"
@@ -224,7 +286,7 @@
                 <v-radio label="Si" color="green" :value="1"></v-radio>
                 <v-radio label="No" color="red" :value="0"></v-radio>
               </v-radio-group>
-            </div>
+            </div> -->
 
             <div class="col-12 py-1">
               <span> Estado</span>

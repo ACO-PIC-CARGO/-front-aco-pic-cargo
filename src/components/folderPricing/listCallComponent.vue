@@ -334,6 +334,7 @@
         multi-sort
         mobile
         disable-sort
+        item-key="rowId"
       >
         <template v-slot:[`item.fechaemisionpdf`]="{ item }">
           <span v-if="item.fechaemisionpdf">
@@ -630,7 +631,7 @@ export default {
           (v) => v.id_entitie == f.id_pricing,
         )?.name;
       }
-      if (f.id_entities) {
+      if (f.id_entities && !(f.tipopdf === 2 || f.tipopdf == "2")) {
         filtroSeleccionado["Ejecutivo Venta"] = store.listEjecutivo.find(
           (v) => v.id_entitie == f.id_entities,
         )?.name;
@@ -668,7 +669,7 @@ export default {
           (v) => v.id_entitie == f.id_pricing,
         )?.name;
       }
-      if (f.id_entities) {
+      if (f.id_entities && !(f.tipopdf === 2 || f.tipopdf == "2")) {
         filtroCabecera.Ejecutivo = store.listEjecutivo.find(
           (v) => v.id_entitie == f.id_entities,
         )?.name;

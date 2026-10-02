@@ -111,6 +111,34 @@
                 clearable
               ></v-autocomplete>
             </v-col>
+
+            <v-col cols="12" md="6" class="py-1">
+              <v-autocomplete
+                :items="$store.state.masterusuarios.lstTemperatura"
+                v-model="
+                  $store.state.pricing.filtroCalls
+                    .id_masterdetalletemperaturaventa
+                "
+                item-value="id"
+                item-text="descripcion"
+                dense
+                clearable
+                label="Temperatura de Lead"
+              >
+                <template v-slot:item="{ item }">
+                  <span
+                    class="mr-3 d-inline-block"
+                    :style="{
+                      backgroundColor: item.codigo,
+                      width: '14px',
+                      height: '14px',
+                      borderRadius: '50%',
+                    }"
+                  ></span>
+                  {{ item.descripcion }}
+                </template>
+              </v-autocomplete>
+            </v-col>
           </v-row>
 
           <v-row>
@@ -146,7 +174,7 @@
                 label="Fecha Creación Desde"
                 id="filtroDesde"
                 v-model="$store.state.pricing.filtroCalls.fechainicio"
-                clearble
+                clearable
               />
             </v-col>
             <v-col cols="12" md="6" class="py-1">
@@ -155,7 +183,7 @@
                 label="Fecha Creación Hasta"
                 id="filtroHasta"
                 v-model="$store.state.pricing.filtroCalls.fechafin"
-                clearble
+                clearable
               />
             </v-col>
             <v-col cols="12" v-if="errorFiltroFecha">
@@ -164,6 +192,7 @@
               </v-alert>
               <span> </span>
             </v-col>
+
             <!-- <v-col cols="12">
               <v-radio-group v-model="$store.state.pricing.filtroCalls.estado" row>
                 <v-radio label="Activo" color="green" :value="true"></v-radio>
@@ -171,6 +200,29 @@
                 <v-radio label="Todos" color="blue" value=""></v-radio
               ></v-radio-group>
             </v-col> -->
+          </v-row>
+
+          <v-row>
+            <v-col cols="12">
+              <v-divider></v-divider>
+            </v-col>
+          </v-row>
+          <v-row>
+            <v-col class="12">
+              <p>Seleccione Tipo de reporte a Imprimir</p>
+              <v-radio-group v-model="$store.state.pricing.filtroCalls.tipopdf">
+                <v-radio
+                  label="Reporte por Estatus"
+                  color="green"
+                  :value="1"
+                ></v-radio>
+                <v-radio
+                  label="Reporte por Vendedor"
+                  color="green"
+                  :value="2"
+                ></v-radio>
+              </v-radio-group>
+            </v-col>
           </v-row>
         </v-container>
       </v-form>
@@ -191,6 +243,11 @@ export default {
   components: {
     FormatFecha,
   },
+  data() {
+    return {
+      errorFiltroFecha: "",
+    };
+  },
   methods: {
     ...mapActions([
       "getMarketingList",
@@ -202,11 +259,7 @@ export default {
       "getListQuote",
       "getQuoteCall",
     ]),
-    data() {
-      return {
-        errorFiltroFecha: "",
-      };
-    },
+
     validarFiltroFechas() {
       this.errorFiltroFecha = "";
 

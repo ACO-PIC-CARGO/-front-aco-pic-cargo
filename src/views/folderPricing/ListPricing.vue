@@ -132,6 +132,7 @@ export default {
       this.getMarketingList(),
       this.getResumenPorEstado(),
       this.cargarClientes(),
+      this.cargarTemperaturaLeds(),
       // this.getListEnviadoCliente(),
       // this.getListRecibidoCotizacion(),
     ]);
@@ -151,7 +152,7 @@ export default {
       "getShipment",
       "getIncoterms",
       "getListQuote",
-      "getListRecibidoCotizacion",
+      "getListRecibidoCotizacion","cargarTemperaturaLeds"
     ]),
     redirect() {
       this.$nextTick(() => {
