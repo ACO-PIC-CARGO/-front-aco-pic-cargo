@@ -1559,7 +1559,7 @@ export default {
       this.getCoinsListCargar(),
       this.cargarMasterDetalleTipoTransaccion(),
       this._getProveedor(),
-      // this._getMasterList(),
+      this._getMasterList(),
     ]);
 
     this.headers[2].text =
