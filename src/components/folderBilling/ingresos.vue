@@ -1695,7 +1695,6 @@ export default {
     };
   },
   async mounted() {
-    this._getMasterList();
     this.id_branch = Number(this.$route.params.id_branch);
     setTimeout(() => {
       this.headersFacturas[2].text =
@@ -3132,5 +3131,5 @@ export default {
 
 .correlativo-descripcion .v-icon {
   color: #64748b;
-}
+} 
 </style>

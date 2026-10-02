@@ -410,7 +410,7 @@
                     v-on="on"
                     x-small
                     @click="registrarLlamada(item)"
-                    v-if="mostrarBoton(item)"
+                    v-if="item.statusmain != 0"
                   >
                     <v-icon
                       color="#1A237E"
