@@ -5712,6 +5712,7 @@ const actions = {
       opcion.listCostos
         .filter((v) => v.esventaflag == 1 && v.status == 1)
         .forEach((element) => {
+          const excluirIgv = [5, 15].includes(Number(element.code_cost));
           let orden = 1;
           let name = "";
 
@@ -5785,6 +5786,7 @@ const actions = {
               element.minimo,
             );
           }
+          montoDetails = aplicarMinimoCosto(element, montoDetails);
 
           // Creando el agrupamiento
           if (element.esfleteflag == 1 && isImport) {
@@ -5795,7 +5797,7 @@ const actions = {
             orden = 1;
           }
           if (element.esorigenflag == 1) {
-            if (!isImport) {
+            if (!isImport && !excluirIgv) {
               totalImpuestosIGV += parseFloat(montoDetails);
             }
             name =
@@ -5806,7 +5808,9 @@ const actions = {
           }
           if (element.eslocalflag == 1) {
             //
-            totalImpuestosIGV += parseFloat(montoDetails);
+            if (!excluirIgv) {
+              totalImpuestosIGV += parseFloat(montoDetails);
+            }
             name =
               state.listTipoCostos.length > 0
                 ? state.listTipoCostos.filter((v) => v.codigo == "LO")[0].name
@@ -5814,7 +5818,9 @@ const actions = {
             orden = 3;
           }
           if (element.esaduanaflag == 1) {
-            totalImpuestosIGV += parseFloat(montoDetails);
+            if (!excluirIgv) {
+              totalImpuestosIGV += parseFloat(montoDetails);
+            }
             orden = 4;
             name =
               state.listTipoCostos.length > 0
@@ -5829,7 +5835,7 @@ const actions = {
             orden = 5;
           }
           if (element.esalmacenflag == 1) {
-            if (isImport) {
+            if (isImport && !excluirIgv) {
               totalImpuestosIGV += parseFloat(montoDetails);
             }
             orden = 6;
@@ -5840,7 +5846,7 @@ const actions = {
           }
 
           if (element.esgastostercerosflag == 1) {
-            if (isImport) {
+            if (isImport && !excluirIgv) {
               totalImpuestosIGV += parseFloat(montoDetails);
             }
             orden = 7;
@@ -5851,7 +5857,7 @@ const actions = {
           }
 
           let igv = 0;
-          if (isImport) {
+          if (!excluirIgv && isImport) {
             if (
               element.eslocalflag == 1 ||
               element.esaduanaflag == 1 ||
@@ -5862,7 +5868,7 @@ const actions = {
                 (montoDetails * enterprise.state.impuesto.impuesto) / 100,
               );
             }
-          } else {
+          } else if (!excluirIgv) {
             if (
               element.esorigenflag == 1 ||
               element.eslocalflag == 1 ||
@@ -5893,6 +5899,7 @@ const actions = {
       opcion.listCostos
         .filter((v) => v.esopcionflag == 1 && v.status == 1)
         .forEach((element) => {
+          const excluirIgv = [5, 15].includes(Number(element.code_cost));
           let orden = 1;
           let name = "";
           let factor = miMixin.methods.calcularFac(
@@ -6014,12 +6021,13 @@ const actions = {
               element.minimo,
             );
           }
+          montoDetails = aplicarMinimoCosto(element, montoDetails);
           const proveedorEncontrado = modules.state.provedores.find(
             (v) => v.id == element.id_proveedor,
           );
 
           if (element.esgastostercerosflag == 1) {
-            if (isImport) {
+            if (isImport && !excluirIgv) {
               totalImpuestosIGV += parseFloat(montoDetails);
             }
             orden = 7;
@@ -6030,7 +6038,7 @@ const actions = {
           }
 
           let igv = 0;
-          if (isImport) {
+          if (!excluirIgv && isImport) {
             if (
               element.eslocalflag == 1 ||
               element.esaduanaflag == 1 ||
@@ -6041,7 +6049,7 @@ const actions = {
                 (montoDetails * enterprise.state.impuesto.impuesto) / 100,
               );
             }
-          } else {
+          } else if (!excluirIgv) {
             if (
               element.esorigenflag == 1 ||
               element.eslocalflag == 1 ||
@@ -6517,6 +6525,13 @@ const actions = {
       });
   },
 };
+
+function aplicarMinimoCosto(element, importe) {
+  if (element.considerarvalorminimoflag && element.costounitario != 0) {
+    return Math.max(Number(element.minimo || 0), Number(importe));
+  }
+  return importe;
+}
 
 function GenerarIngresosInstrictivo(tipo) {
   let iso = JSON.parse(sessionStorage.getItem("iso_pais"));
@@ -7957,6 +7972,86 @@ function GenerarIngresosInstrictivo(tipo) {
             }
           });
       }
+      const categoriasIngresos = [
+        {
+          flag: "esfleteflag",
+          rows: datosFlete,
+          ajustarTotal: (diferencia) => (totalFlete += diferencia),
+        },
+        {
+          flag: "esorigenflag",
+          rows: datosOrigen,
+          ajustarTotal: (diferencia) => (totalOrigen += diferencia),
+        },
+        {
+          flag: "eslocalflag",
+          rows: datosLocales,
+          ajustarTotal: (diferencia) => (totalLocales += diferencia),
+        },
+        {
+          flag: "esaduanaflag",
+          rows: datosAduanas,
+          ajustarTotal: (diferencia) => (totalAduanas += diferencia),
+        },
+        {
+          flag: "esalmacenflag",
+          rows: datosAlmacenes,
+          ajustarTotal: (diferencia) => (totalAlmacenes += diferencia),
+        },
+        {
+          flag: "esgastostercerosflag",
+          rows: datosGastosTerceros,
+          ajustarTotal: (diferencia) => (totalGastosTercero += diferencia),
+        },
+      ];
+
+      categoriasIngresos.forEach(({ flag, rows, ajustarTotal }) => {
+        const elementosCategoria = opcion.listCostos.filter(
+          (element) =>
+            element.status == 1 &&
+            element.esventaflag == 1 &&
+            element[flag] == 1,
+        );
+
+        elementosCategoria.forEach((element, index) => {
+          if (!element.considerarvalorminimoflag || element.costounitario == 0) {
+            return;
+          }
+
+          const multiplicador = state.listMultiplicador.find(
+            (item) => item.id == element.id_multiplicador,
+          );
+          if (!multiplicador || [5, 13, 14].includes(Number(multiplicador.code))) {
+            return;
+          }
+
+          let factor = miMixin.methods.calcularFac(
+            multiplicador.code,
+            state.datosPrincipales.volumen,
+            state.datosPrincipales.peso,
+            state.datosPrincipales.containers,
+            state.datosPrincipales.amount,
+          );
+          if (element.code_cost == 4 && state.datosPrincipales.volumen < 1) {
+            factor = Math.max(factor, 1);
+          }
+
+          const importeCalculado =
+            Number(multiplicador.valor || 0) *
+            Number(element.costounitario) *
+            factor;
+          const importeMinimo = aplicarMinimoCosto(element, importeCalculado);
+          const diferencia = importeMinimo - importeCalculado;
+
+          if (diferencia > 0) {
+            ajustarTotal(diferencia);
+            if (tipo == "DETALLE" && rows[index]) {
+              rows[index].valor = miMixin.methods.currencyFormat(importeMinimo);
+            }
+          }
+        });
+      });
+
       let DatosFinalesIngresos = [];
       if (tipo == "AGRUPADO") {
         DatosFinalesIngresos.push({
