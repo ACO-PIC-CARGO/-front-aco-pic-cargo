@@ -314,14 +314,14 @@
       :items="$store.state.pricing.listQuotes"
       :single-expand="singleExpand"
       :expanded.sync="expanded"
-      item-key="id"
+      item-key="rowId"
       show-expand
       class="elevation-1"
       disable-sort
     >
       <template v-slot:item="{ item, expand, isExpanded }">
         <tr
-          :key="item.id"
+          :key="item.rowId"
           :class="[
             item.aprobadoflag || item.status_code == 4
               ? 't-green-approved'
@@ -519,7 +519,7 @@
           <td @click="expand(!isExpanded)">
             {{ item.fechaemisionpdf }}
 
-            <span
+            <!-- <span
               v-for="(val, index) in item.details"
               :key="index"
               style="
@@ -529,7 +529,7 @@
               "
             >
               "{{ val.notes }}"
-            </span>
+            </span> -->
           </td>
         </tr>
       </template>
@@ -539,23 +539,23 @@
           <v-simple-table>
             <thead class="headerDetails">
               <tr>
-                <th v-if="item.details.length > 0">Notas</th>
-                <th v-if="item.details.length > 0">Pricing Call</th>
-                <th>Fecha Enviado Al Cliente</th>
+                <th v-if="item.details.length > 0">Fecha</th>
+                <th v-if="item.details.length > 0">Comentario</th>
+                <th>Usuario</th>
               </tr>
             </thead>
             <tbody v-if="item.details.length > 0">
-              <tr v-for="i in item.details" :key="i">
+              <tr v-for="(i, index) in item.details" :key="i.id || index">
+                <td>{{ i.fecha }}</td>
                 <td>{{ i.notes }}</td>
                 <td>{{ i.namelong }}</td>
-                <td>{{ item.fecha_enviocliente }}</td>
               </tr>
             </tbody>
-            <tbody v-else>
+            <!-- <tbody v-else>
               <tr>
                 <td>{{ item.fecha_enviocliente }}</td>
               </tr>
-            </tbody>
+            </tbody> -->
           </v-simple-table>
         </td>
       </template>
@@ -827,7 +827,7 @@ export default {
       comentario: "",
       dialogRegistroNotaLlamada: false,
       expanded: [],
-      singleExpand: false,
+      singleExpand: true,
       loading: false,
       loading2: false,
       loading3: false,
@@ -1041,6 +1041,7 @@ export default {
         fechainicio: moment().format("YYYY-01-01"),
         fechadesde: moment().format("YYYY-01-01"),
         fechafin: moment().endOf("month").format("YYYY-MM-DD"),
+        tipopdf: 1,
       };
 
       this.$store.state.pricing.filtro.estado = true;
@@ -1190,17 +1191,12 @@ export default {
       const f = this.$store.state.pricing.filtro;
       const store = this.$store.state.pricing;
 
-      if (f.fechainicio)
-        filtroSeleccionado["Fecha Creación de Cotización inicio"] =
-          f.fechainicio;
-      if (f.fechafin)
-        filtroSeleccionado["Fecha Creación de Cotización fin"] = f.fechafin;
+      if (f.fechainicio) filtroSeleccionado["Creación De:"] = f.fechainicio;
+      if (f.fechafin) filtroSeleccionado["Creación Hasta:"] = f.fechafin;
       if (f.fechaemisiondesde)
-        filtroSeleccionado["Fecha de Envío Al Cliente  Desde"] =
-          f.fechaemisiondesde;
+        filtroSeleccionado["Fecha de Envío De:"] = f.fechaemisiondesde;
       if (f.fechaemisionhasta)
-        filtroSeleccionado["Fecha de Envío Al Cliente  Hasta"] =
-          f.fechaemisionhasta;
+        filtroSeleccionado["Fecha de Envío Hasta:"] = f.fechaemisionhasta;
 
       if (f.id_marketing) {
         filtroSeleccionado.Marketing = store.listMarketing.find(
@@ -1217,7 +1213,7 @@ export default {
           (v) => v.id_entitie == f.id_pricing,
         )?.name;
       }
-      if (f.id_entities) {
+      if (f.id_entities && !(f.tipopdf === 2 || f.tipopdf == "2")) {
         filtroSeleccionado["Ejecutivo Venta"] = store.listEjecutivo.find(
           (v) => v.id_entitie == f.id_entities,
         )?.name;
@@ -1255,7 +1251,7 @@ export default {
           (v) => v.id_entitie == f.id_pricing,
         )?.name;
       }
-      if (f.id_entities) {
+      if (f.id_entities && !(f.tipopdf === 2 || f.tipopdf == '2')) {
         filtroCabecera.Ejecutivo = store.listEjecutivo.find(
           (v) => v.id_entitie == f.id_entities,
         )?.name;
