@@ -55,7 +55,7 @@ export default {
       mostrar: true,
       headers: [
         { text: "#", value: "index" },
-        { text: "Código", value: "codigo" },
+        // { text: "Código", value: "codigo" },
         { text: "Descripción", value: "descripcion" },
         { text: "Porcentaje", value: "porcentaje" },
         { text: "Monto", value: "monto" },

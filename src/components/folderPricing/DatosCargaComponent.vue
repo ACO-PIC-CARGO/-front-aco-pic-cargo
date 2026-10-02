@@ -676,6 +676,7 @@ export default {
           ]);
         }, 100);
       }
+      this.cambiarImpuesto()
     },
     cambiarMontosACero({ esgrupalflag = false, esindividualflag = false }) {
       const flags = { esgrupalflag, esindividualflag };
