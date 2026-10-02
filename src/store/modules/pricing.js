@@ -128,8 +128,8 @@ const state = {
   opcionCostos: [
     {
       nro_propuesta: 1,
-      date_end: "",
-      tiempo_transito: 0,
+      date_end: moment().add(7, "days").format("YYYY-MM-DD"),
+      tiempo_transito: 35,
       listCostos: [],
       listImpuestos: [],
       listNotasQuote: [],
@@ -286,8 +286,8 @@ const mutations = {
     state.opcionCostos = [
       {
         nro_propuesta: 1,
-        date_end: "",
-        tiempo_transito: 0,
+        date_end: moment().add(7, "days").format("YYYY-MM-DD"),
+        tiempo_transito: 35,
         listCostos: [],
         listImpuestos: [],
         listNotasQuote: [],
@@ -655,9 +655,7 @@ const actions = {
             return {
               ...elemento,
               index,
-              rowId: elemento.id
-                ? `${elemento.id}_${index}`
-                : `quote_${index}`,
+              rowId: elemento.id ? `${elemento.id}_${index}` : `quote_${index}`,
             };
           });
           commit("SET_LIST_QUOTES", data);
@@ -784,9 +782,9 @@ const actions = {
         sessionStorage.setItem("auth-token", data.token);
         if (data.estadoflag) {
           let newData = data.data.map((item, index) => ({
-  ...item,
-  rowId: `${item.id}_${index}` // Evita duplicados combinando el ID con el índice
-}));
+            ...item,
+            rowId: `${item.id}_${index}`, // Evita duplicados combinando el ID con el índice
+          }));
           commit("SET_LIST_CALLS", newData);
         } else {
           commit("SET_LIST_CALLS", []);
@@ -3486,18 +3484,27 @@ const actions = {
     await axios
       .post(process.env.VUE_APP_URL_MAIN + "export_list_quote", data, headers)
       .then((response) => {
-        Swal.fire({
-          icon: "success",
-          title: "PDF Generado",
-          text: "El PDF se descargará automaticamente",
-          showConfirmButton: true,
-        });
+        if (response.data.estadoflag) {
+          Swal.fire({
+            icon: "success",
+            title: "PDF Generado",
+            text: "El PDF se descargará automaticamente",
+            showConfirmButton: true,
+          });
 
-        window.open(
-          `${process.env.VUE_APP_URL_MAIN}${response.data.path}`,
-          // "",
-          "_blank",
-        );
+          window.open(
+            `${process.env.VUE_APP_URL_MAIN}${response.data.path}`,
+            // "",
+            "_blank",
+          );
+        } else {
+          Swal.close();
+          Swal.fire({
+            icon: "warning",
+            text: "Ocurrió un error al generar el PDF, por favor comuníquese con el administrador del sistema",
+            showConfirmButton: true,
+          });
+        }
       })
       .catch((e) => console.log(e));
   },
@@ -3654,18 +3661,27 @@ const actions = {
         headers,
       )
       .then((response) => {
-        Swal.fire({
-          icon: "success",
-          title: "PDF Generado",
-          text: "El PDF se descargará automaticamente",
-          showConfirmButton: true,
-        });
-        console.log("data", response.data);
-        window.open(
-          `${process.env.VUE_APP_URL_MAIN}${response.data.path}`,
-          // "",
-          "_blank",
-        );
+        if (response.data.estadoflag) {
+          Swal.fire({
+            icon: "success",
+            title: "PDF Generado",
+            text: "El PDF se descargará automaticamente",
+            showConfirmButton: true,
+          });
+          console.log("data", response.data);
+          window.open(
+            `${process.env.VUE_APP_URL_MAIN}${response.data.path}`,
+            // "",
+            "_blank",
+          );
+        } else {
+          Swal.close();
+          Swal.fire({
+            icon: "warning",
+            text: "Ocurrió un error al generar el PDF, por favor comuníquese con el administrador del sistema",
+            showConfirmButton: true,
+          });
+        }
       })
       .catch((e) => console.log(e));
   },

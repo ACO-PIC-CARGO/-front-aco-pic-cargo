@@ -123,7 +123,7 @@ export default {
   },
   mounted() {
     this.opcionesSeleccionadas = this.$store.state.pricing.opcionCostos.filter(
-      (v) => !!v.selected
+      (v) => !!v.selected,
     );
   },
   components: {
@@ -134,7 +134,7 @@ export default {
   methods: {
     mostrarImpuestos() {
       let imp = this.$store.state.pricing.listServices.some(
-        (v) => v.codegroupservices == 15 && v.status == true
+        (v) => v.codegroupservices == 15 && v.status == true,
       );
 
       return imp;
@@ -150,19 +150,19 @@ export default {
           (objeto) => ({
             ...objeto,
             nro_propuesta,
-          })
+          }),
         );
         let listNotasQuote = this.$store.state.pricing.listNotasQuote.map(
           (objeto) => ({
             ...objeto,
             nro_propuesta,
-          })
+          }),
         );
         this.$store.state.pricing.opcionCostos.push({
           id: null,
           nro_propuesta: this.$store.state.pricing.index + 1,
-          date_end: "",
-          tiempo_transito: 0,
+          date_end: moment().add(7, "days").format("YYYY-MM-DD"),
+          tiempo_transito: 35,
           listCostos: costos,
           listImpuestos: listImpuestos,
           listNotasQuote: listNotasQuote,
@@ -201,7 +201,7 @@ export default {
     },
     getExisteImpuesto() {
       return this.$store.state.pricing.listServices.some(
-        (v) => v.codegroupservices == "15" || v.codegroupservices == 15
+        (v) => v.codegroupservices == "15" || v.codegroupservices == 15,
       );
     },
   },

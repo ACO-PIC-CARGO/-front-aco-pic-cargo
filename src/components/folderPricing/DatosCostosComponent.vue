@@ -371,8 +371,8 @@ export default {
             );
             this.$store.state.pricing.opcionCostos.push({
               nro_propuesta: this.$store.state.pricing.index + 2,
-              date_end: "",
-              tiempo_transito: 0,
+              date_end: moment().add(7, "days").format("YYYY-MM-DD"),
+              tiempo_transito: 35,
               listCostos: costos,
 
               listImpuestos: listImpuestos,

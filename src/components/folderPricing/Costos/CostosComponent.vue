@@ -2416,6 +2416,14 @@ export default {
           datosPrincipales.containers,
           datosPrincipales.amount,
         );
+        if (
+          element.code_cost == 4 &&
+          this.$store.state.pricing.datosPrincipales.volumen < 1
+        ) {
+          if (factorCalculado < 1) {
+            factorCalculado = 1;
+          }
+        }
 
         let operacionFinal =
           valorMultiplicador * element.costounitario * factorCalculado;
@@ -2487,19 +2495,19 @@ export default {
           // Usamos el helper para obtener el costo procesado una sola vez
           const costo = this.obtenerCostoElemento(element);
 
-          if (this.isOrigen && element.esorigenflag == 1) {
+          if (element.esorigenflag == 1) {
             this.resumenOpcion.origen += Number(costo);
           }
-          if (this.isLocal && element.eslocalflag == 1) {
-            this.resumenOpcion.gasto += Number(costo); // Mantenido como 'gasto' según tu lógica
+          if (element.eslocalflag == 1) {
+            this.resumenOpcion.gasto += Number(costo);
           }
-          if (this.isAduana && element.esaduanaflag == 1) {
+          if (element.esaduanaflag == 1) {
             this.resumenOpcion.aduana += Number(costo);
           }
-          if (this.isAlmacen && element.esalmacenflag == 1) {
+          if (element.esalmacenflag == 1) {
             this.resumenOpcion.almacen += Number(costo);
           }
-          if (this.isGastosTercero && element.esgastostercerosflag == 1) {
+          if (element.esgastostercerosflag == 1) {
             this.resumenOpcion.gastostercero += Number(costo);
           }
         });
@@ -2747,13 +2755,13 @@ export default {
          }
       }
 
-      // console.log('considerarvalorminimoflag',valor.considerarvalorminimoflag)
+     
 
       // 6. Retornamos el valor con su respectivo formato de moneda
       return this.currencyFormat(operacionFinal);
     },
     textoFlete(data) {
-      if (data.code_cost == 4) {
+      if (!!data && data.code_cost == 4) {
         if (data.tienefleteflag) {
           return `Tarifa del Tarifario. Vence: ${this.formatoFecha(
             data.fechavigencia,
