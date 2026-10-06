@@ -59,6 +59,11 @@ const routes = [
     component: () =>
       import("../views/FolderEnterprise/RegistroNuevaEmpresa.vue"),
   },
+  {
+    path: "/planes",
+    name: "Planes",
+    component: () => import("../views/Planes/Planes.vue"),
+  },
 
   {
     path: "/home",
