@@ -50,7 +50,10 @@
           v-for="(plan, index) in plans"
           :key="plan.name"
           class="plan"
-          :class="{ 'plan--featured': plan.featured }"
+          :class="{
+            'plan--featured': plan.featured,
+            'plan--expanded': isExpanded(plan),
+          }"
           :style="{ '--plan-index': index }"
         >
           <span v-if="plan.featured" class="plan__ribbon">
@@ -58,74 +61,106 @@
             Más elegido
           </span>
 
-          <h2 class="plan__name">
-            ACO <span class="planes__accent">{{ plan.name }}</span>
-          </h2>
+          <div class="plan__heading">
+            <h2 class="plan__name">
+              ACO <span class="planes__accent">{{ plan.name }}</span>
+            </h2>
+            <button
+              type="button"
+              class="plan__chevron"
+              :aria-label="`Ver detalles de ACO ${plan.name}`"
+              :aria-expanded="String(isExpanded(plan))"
+              :aria-controls="`plan-details-${plan.name}`"
+              @click="toggleDetails(plan)"
+            >
+              <i class="mdi mdi-chevron-down" aria-hidden="true"></i>
+            </button>
+          </div>
           <p class="plan__tagline">{{ plan.tagline }}</p>
 
-          <p class="plan__price" aria-live="polite">
-            <strong>{{
-              isAnnual ? plan.annualPrice : plan.monthlyPrice
-            }}</strong
-            ><span>{{ isAnnual ? "/año" : "/mes" }}</span>
-          </p>
-          <span class="plan__savings">
-            {{
-              isAnnual
-                ? `Ahorras ${plan.savings} al año`
-                : `Ahorra ${plan.savings} pagando anual`
-            }}
-          </span>
+          <div class="plan__pricing">
+            <p class="plan__price" aria-live="polite">
+              <strong>{{
+                isAnnual ? plan.annualPrice : plan.monthlyPrice
+              }}</strong
+              ><span>{{ isAnnual ? "/año" : "/mes" }}</span>
+            </p>
+            <span v-if="isAnnual" class="plan__savings">
+              Ahorras {{ plan.savings }} al año
+            </span>
+          </div>
 
           <p class="plan__users">
             <i class="mdi mdi-account" aria-hidden="true"></i>
             {{ plan.users }}
           </p>
 
-          <h3 class="plan__section-title">Incluye</h3>
-          <ul class="feature-list">
-            <li
-              v-for="feature in plan.includes"
-              :key="feature.text"
-              class="feature"
-            >
+          <ul class="plan__highlights">
+            <li v-for="item in plan.highlights" :key="item" class="feature">
               <i
-                class="feature__icon mdi"
-                :class="
-                  feature.conditional ? 'mdi-help-circle' : 'mdi-check-circle'
-                "
-                aria-hidden="true"
-              ></i>
-              <div>
-                {{ feature.text }}
-                <ul v-if="feature.details" class="feature__details">
-                  <li v-for="detail in feature.details" :key="detail">
-                    {{ detail }}
-                  </li>
-                </ul>
-              </div>
-            </li>
-          </ul>
-
-          <h3 class="plan__section-title">No incluye</h3>
-          <ul class="feature-list">
-            <li
-              v-for="item in plan.excludes"
-              :key="item"
-              class="feature feature--excluded"
-            >
-              <i
-                class="feature__icon mdi mdi-close-circle"
+                class="feature__icon mdi mdi-check-circle"
                 aria-hidden="true"
               ></i>
               <div>{{ item }}</div>
             </li>
           </ul>
 
+          <div :id="`plan-details-${plan.name}`" class="plan__details">
+            <h3 class="plan__section-title">Incluye</h3>
+            <ul class="feature-list">
+              <li
+                v-for="feature in plan.includes"
+                :key="feature.text"
+                class="feature"
+              >
+                <i
+                  class="feature__icon mdi"
+                  :class="
+                    feature.conditional ? 'mdi-help-circle' : 'mdi-check-circle'
+                  "
+                  aria-hidden="true"
+                ></i>
+                <div>
+                  {{ feature.text }}
+                  <ul v-if="feature.details" class="feature__details">
+                    <li v-for="detail in feature.details" :key="detail">
+                      {{ detail }}
+                    </li>
+                  </ul>
+                </div>
+              </li>
+            </ul>
+
+            <h3 class="plan__section-title">No incluye</h3>
+            <ul class="feature-list">
+              <li
+                v-for="item in plan.excludes"
+                :key="item"
+                class="feature feature--excluded"
+              >
+                <i
+                  class="feature__icon mdi mdi-close-circle"
+                  aria-hidden="true"
+                ></i>
+                <div>{{ item }}</div>
+              </li>
+            </ul>
+          </div>
+
           <footer class="plan__footer">
             <button type="button" class="plan__cta">
               Adquirir plan
               <i class="mdi mdi-arrow-right" aria-hidden="true"></i>
+            </button>
+            <button
+              type="button"
+              class="plan__details-toggle"
+              :aria-expanded="String(isExpanded(plan))"
+              :aria-controls="`plan-details-${plan.name}`"
+              @click="toggleDetails(plan)"
+            >
+              {{ isExpanded(plan) ? "Ocultar detalles" : "Ver detalles" }}
+              <i class="mdi mdi-chevron-down" aria-hidden="true"></i>
             </button>
             <p class="plan__note">Solo con tu email · Sin tarjeta</p>
           </footer>
@@ -168,6 +203,7 @@ const PLANS = Object.freeze([
     monthlyPrice: "US$29",
     savings: "US$58",
     users: "1 usuario",
+    highlights: ["1 módulo a elegir", "Sistema 100% online", "Soporte básico"],
     includes: [
       { text: "1 módulo a elegir" },
       { text: "Puedes elegir: Pricing o Operaciones o Administración" },
@@ -204,6 +240,11 @@ const PLANS = Object.freeze([
     monthlyPrice: "US$79",
     savings: "US$158",
     users: "3 usuarios",
+    highlights: [
+      "3 módulos incluidos",
+      "Flujo conectado entre módulos",
+      "Soporte prioritario",
+    ],
     featured: true,
     includes: [
       ...ALL_MODULES,
@@ -219,6 +260,11 @@ const PLANS = Object.freeze([
     monthlyPrice: "US$129",
     savings: "US$258",
     users: "5 usuarios",
+    highlights: [
+      "3 módulos incluidos",
+      "Reportes y control total",
+      "Soporte premium",
+    ],
     includes: [
       ...ALL_MODULES,
       { text: "Reportes y control total" },
@@ -232,7 +278,15 @@ const PLANS = Object.freeze([
 
 export default {
   name: "Planes",
-  data: () => ({ plans: PLANS, isAnnual: true }),
+  data: () => ({ plans: PLANS, isAnnual: true, expandedPlan: null }),
+  methods: {
+    isExpanded(plan) {
+      return this.expandedPlan === plan.name;
+    },
+    toggleDetails(plan) {
+      this.expandedPlan = this.isExpanded(plan) ? null : plan.name;
+    },
+  },
 };
 </script>
 
@@ -459,6 +513,19 @@ export default {
   font-size: 13px;
 }
 
+.plan__heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.plan__chevron,
+.plan__highlights,
+.plan__details-toggle {
+  display: none;
+}
+
 .plan__name {
   font-size: 26px;
   line-height: 1.2;
@@ -471,8 +538,14 @@ export default {
   color: var(--planes-text-muted);
 }
 
-.plan__price {
+.plan__pricing {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
   margin-top: 10px;
+}
+
+.plan__price {
   line-height: 1.1;
 }
 
@@ -488,7 +561,6 @@ export default {
 }
 
 .plan__savings {
-  align-self: flex-start;
   margin-top: 6px;
   padding: 3px 10px;
   border-radius: 6px;
@@ -612,7 +684,53 @@ export default {
   transform: scale(0.98);
 }
 
+.plan__chevron {
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 40px;
+  height: 40px;
+  margin: -8px -10px 0 0;
+  border-radius: 8px;
+  font-size: 22px;
+  color: var(--planes-text-muted);
+  cursor: pointer;
+}
+
+.plan__details-toggle {
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  width: 100%;
+  min-height: 42px;
+  margin-top: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  border-radius: var(--planes-radius-control);
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--planes-text-muted);
+  cursor: pointer;
+}
+
+.plan__details-toggle .mdi {
+  font-size: 18px;
+}
+
+.plan__details-toggle:hover,
+.plan__chevron:hover {
+  color: var(--planes-text);
+  border-color: rgba(47, 230, 212, 0.5);
+}
+
+.plan--expanded .plan__chevron .mdi,
+.plan--expanded .plan__details-toggle .mdi {
+  display: inline-block;
+  transform: rotate(180deg);
+}
+
 .plan__cta:focus-visible,
+.plan__chevron:focus-visible,
+.plan__details-toggle:focus-visible,
 .billing-toggle__option:focus-visible {
   outline: 2px solid var(--planes-accent);
   outline-offset: 3px;
@@ -633,6 +751,11 @@ export default {
   .plan__cta {
     transition: transform 0.2s var(--planes-ease), filter 0.2s,
       box-shadow 0.2s var(--planes-ease);
+  }
+
+  .plan__chevron .mdi,
+  .plan__details-toggle .mdi {
+    transition: transform 0.25s var(--planes-ease);
   }
 }
 
@@ -655,8 +778,8 @@ export default {
   .planes__logo {
     position: static;
     display: block;
-    margin: -8px auto 12px;
-    width: 220px;
+    margin: -6px 0 12px -34px;
+    width: 180px;
   }
 
   .planes__title {
@@ -669,19 +792,153 @@ export default {
 
   .planes__grid {
     grid-template-columns: minmax(0, 1fr);
-    gap: 28px;
+    gap: 24px;
     max-width: 480px;
     margin: 0 auto;
+  }
+
+  .plan__chevron,
+  .plan__details-toggle {
+    display: inline-flex;
+  }
+
+  .plan__highlights {
+    display: grid;
+    gap: 7px;
+    padding-top: 12px;
+  }
+
+  .plan__details,
+  .plan__note {
+    display: none;
+  }
+
+  .plan--expanded .plan__details {
+    display: block;
+  }
+
+  .plan--expanded .plan__highlights {
+    display: none;
+  }
+
+  .plan__footer {
+    padding-top: 16px;
   }
 }
 
 @media (max-width: 600px) {
   .planes__container {
-    padding: 24px 16px 40px;
+    padding: 12px 16px 32px;
+  }
+
+  .planes__header {
+    margin-bottom: 18px;
+  }
+
+  .planes__logo {
+    margin: -4px 0 2px -25px;
+    width: 130px;
   }
 
   .planes__title {
-    font-size: 36px;
+    font-size: 28px;
+  }
+
+  .planes__subtitle {
+    margin-top: 2px;
+    font-size: 14px;
+  }
+
+  .billing-toggle__option {
+    padding: 5px 18px;
+  }
+
+  .planes__modules,
+  .billing-badge {
+    display: none;
+  }
+
+  .planes__billing {
+    margin-top: 10px;
+  }
+
+  .planes__grid {
+    gap: 18px;
+  }
+
+  .plan {
+    padding: 12px 14px 10px;
+  }
+
+  .plan__name {
+    font-size: 20px;
+  }
+
+  .plan__chevron {
+    width: 36px;
+    height: 36px;
+    margin: -7px -8px 0 0;
+    font-size: 20px;
+  }
+
+  .plan__tagline {
+    margin-top: 0;
+    font-size: 13px;
+  }
+
+  .plan__pricing {
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 4px 10px;
+    margin-top: 6px;
+  }
+
+  .plan__price strong {
+    font-size: 28px;
+  }
+
+  .plan__price span {
+    font-size: 14px;
+  }
+
+  .plan__savings {
+    margin-top: 0;
+    font-size: 11px;
+  }
+
+  .plan__users {
+    padding: 4px 0 6px;
+    font-size: 13.5px;
+  }
+
+  .plan__users .mdi {
+    font-size: 18px;
+  }
+
+  .plan__highlights {
+    gap: 3px;
+    padding-top: 6px;
+  }
+
+  .feature {
+    font-size: 13px;
+    line-height: 1.3;
+  }
+
+  .plan__footer {
+    padding-top: 10px;
+  }
+
+  .plan__cta {
+    min-height: 40px;
+    font-size: 14.5px;
+  }
+
+  .plan__details-toggle {
+    min-height: 36px;
+    margin-top: 6px;
+    font-size: 13px;
   }
 }
 </style>
