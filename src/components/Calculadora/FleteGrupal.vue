@@ -8,10 +8,23 @@
     </v-tabs>
     <v-tabs-items v-model="tab" class="mt-5">
       <v-tab-item value="resumen">
+        <v-text-field
+          v-model="searchResumen"
+          append-icon="mdi-magnify"
+          label="Buscar"
+          single-line
+          hide-details
+          outlined
+          style="max-width: 30%"
+          dense
+        />
+        <br />
+
         <v-data-table
           :headers="headersResumen"
           :items="$store.state.calculadoras.lstFleteGrupalResumen"
           dense
+          :search="searchResumen"
         >
           <template v-slot:[`item.monto`]="{ item }">
             <span :style="!item.monto ? 'color:red' : ''">
@@ -37,21 +50,39 @@
       </v-tab-item>
       <v-tab-item value="costo">
         <v-row>
-          <v-col cols="12" style="text-align: end">
-            <v-btn
-              color="success"
-              @click="
-                abrirModal({ tipo: 'nuevo', item: {}, tipoCosto: 'costo' })
-              "
-            >
-              Nuevo Flete Grupal
-            </v-btn>
+          <v-col cols="12">
+            <v-row>
+              <v-col cols="6">
+                <v-text-field
+                  v-model="searchCosto"
+                  append-icon="mdi-magnify"
+                  label="Buscar"
+                  single-line
+                  hide-details
+                  outlined
+                  style="max-width: 40%"
+                  dense
+                ></v-text-field>
+              </v-col>
+
+              <v-col cols="6" style="text-align: end">
+                <v-btn
+                  color="success"
+                  @click="
+                    abrirModal({ tipo: 'nuevo', item: {}, tipoCosto: 'costo' })
+                  "
+                >
+                  Nuevo Flete Grupal
+                </v-btn>
+              </v-col>
+            </v-row>
           </v-col>
           <v-col cols="12">
             <v-data-table
               :headers="headers"
               :items="$store.state.calculadoras.lstFleteGrupal"
               dense
+              :search="searchCosto"
             >
               <template v-slot:[`item.index`]="{ index }">
                 {{ index + 1 }}
@@ -80,20 +111,38 @@
       </v-tab-item>
       <v-tab-item value="venta">
         <v-row>
-          <v-col cols="12" style="text-align: end">
-            <v-btn
-              color="success"
-              @click="
-                abrirModal({ tipo: 'nuevo', item: {}, tipoCosto: 'venta' })
-              "
-            >
-              Nuevo Flete Grupal
-            </v-btn>
+          <v-col cols="12">
+            <v-row>
+              <v-col cols="6">
+                <v-text-field
+                  v-model="searchVenta"
+                  append-icon="mdi-magnify"
+                  label="Buscar"
+                  single-line
+                  hide-details
+                  outlined
+                  style="max-width: 40%"
+                  dense
+                ></v-text-field>
+              </v-col>
+
+              <v-col cols="6" style="text-align: end">
+                <v-btn
+                  color="success"
+                  @click="
+                    abrirModal({ tipo: 'nuevo', item: {}, tipoCosto: 'venta' })
+                  "
+                >
+                  Nuevo Flete Grupal
+                </v-btn>
+              </v-col>
+            </v-row>
           </v-col>
           <v-col cols="12">
             <v-data-table
               :headers="headers"
               :items="$store.state.calculadoras.lstFleteGrupalVenta"
+              :search="searchVenta"
               dense
             >
               <template v-slot:[`item.index`]="{ index }">
@@ -200,6 +249,8 @@ export default {
   data() {
     return {
       tab: "resumen",
+      searchCosto: "",
+      searchVenta: "",
       headers: [
         { width: "18%", text: "#", value: "index", sortable: false },
         { width: "18%", value: "volumen", text: "Volumen" },
@@ -208,6 +259,7 @@ export default {
         { width: "18%", value: "vigencia_text", text: "Fec. Vigencia" },
         { width: "10%", text: "", value: "action" },
       ],
+      searchResumen: "",
       headersResumen: [
         { width: "15%", value: "volumen", text: "Volumen" },
         { width: "15%", value: "peso", text: "Peso" },
@@ -283,7 +335,6 @@ export default {
       });
     },
     async actualizar() {
-
       if (this.editarflag) {
         if (this.tipoCosto == "costo") {
           await this.updateFleteGrupal({ ...this.form, estado: true });
