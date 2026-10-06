@@ -208,7 +208,7 @@
                     class="text-caption text-left pt-0 pl-2"
                     style="color: #d50000"
                   >
-                    {{ textoFlete(valor) }}
+                    {{ textoFlete(valor) }}x
                   </td>
                 </tr>
               </template>

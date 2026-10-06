@@ -88,6 +88,7 @@ const miMixin = {
           break;
         case 3: // TO/M3
           fac = kg / 1000 > metroscc ? kg / 1000 : metroscc;
+          console.log('TO/M3',fac)
           break;
         case 4:
           fac = kg / 1000;

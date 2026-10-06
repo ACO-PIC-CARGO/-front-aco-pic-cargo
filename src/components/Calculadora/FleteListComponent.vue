@@ -1,8 +1,21 @@
 <template>
   <v-container fluid>
+    <v-text-field
+      v-model="search"
+      append-icon="mdi-magnify"
+      label="Buscar"
+      single-line
+      hide-details
+      outlined
+      style="max-width: 30%; "
+      dense
+    />
+    <br/>
+
     <v-data-table
       :headers="headers"
       :items="$store.state.calculadoras.lstFlete"
+      :search="search"
       item-key="id"
     >
     </v-data-table>
@@ -13,6 +26,7 @@
 export default {
   data() {
     return {
+      search: "",
       headers: [
         { value: "pais_origen", text: "Pais Origen" },
         { value: "puerto_origin", text: "Puerto Origin" },
