@@ -22,3 +22,16 @@ export const confirmCompanyPlan = (transactionId) =>
 
 export const openBillingPortal = () =>
   request({ method: "post", url: "branch_subscription/portal" });
+
+export const previewPlanChange = (payload) =>
+  request({
+    method: "post",
+    url: "branch_subscription/change/preview",
+    data: payload,
+  });
+
+export const changeCompanyPlan = (payload) =>
+  request({ method: "post", url: "branch_subscription/change", data: payload });
+
+export const keepCompanyPlan = () =>
+  request({ method: "post", url: "branch_subscription/resume" });
