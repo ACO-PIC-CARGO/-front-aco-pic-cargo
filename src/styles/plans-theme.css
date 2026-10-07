@@ -1,0 +1,106 @@
+@import url("https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&display=swap");
+
+.plans-theme {
+  --planes-bg: #051419;
+  --planes-surface-top: rgba(18, 50, 58, 0.72);
+  --planes-surface-bottom: rgba(9, 30, 36, 0.78);
+  --planes-surface-solid: #0a2a2f;
+  --planes-field: rgba(255, 255, 255, 0.05);
+  --planes-border: rgba(150, 226, 220, 0.14);
+  --planes-border-strong: rgba(255, 255, 255, 0.16);
+  --planes-divider: rgba(255, 255, 255, 0.08);
+  --planes-accent: #2fe6d4;
+  --planes-accent-soft: #74f7ec;
+  --planes-accent-ink: #03241f;
+  --planes-accent-glow: rgba(47, 230, 212, 0.75);
+  --planes-savings: #46df88;
+  --planes-savings-ink: #04301a;
+  --planes-danger: #ff8a80;
+  --planes-text: #eef7f7;
+  --planes-text-muted: #b5c7c9;
+  --planes-text-subtle: #8ea4a7;
+  --planes-excluded: #62797d;
+  --planes-radius-card: 16px;
+  --planes-radius-control: 10px;
+  --planes-ease: cubic-bezier(0.16, 1, 0.3, 1);
+
+  color: var(--planes-text);
+  background: radial-gradient(
+      55% 45% at 100% 100%,
+      rgba(36, 204, 189, 0.22),
+      transparent 70%
+    ),
+    radial-gradient(40% 40% at 0% 100%, rgba(36, 204, 189, 0.12), transparent 70%),
+    radial-gradient(70% 55% at 50% 0%, #0c2a32 0%, transparent 75%),
+    var(--planes-bg);
+}
+
+.plans-theme,
+.plans-theme * {
+  font-family: "Outfit", "Roboto", sans-serif;
+}
+
+.plans-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-height: 44px;
+  padding: 0 18px;
+  border-radius: var(--planes-radius-control);
+  border: 1px solid transparent;
+  font-size: 14px;
+  font-weight: 600;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: filter 0.2s, border-color 0.2s, color 0.2s, transform 0.2s;
+}
+
+.plans-button .mdi {
+  font-size: 18px;
+}
+
+.plans-button:active:not(:disabled) {
+  transform: scale(0.98);
+}
+
+.plans-button:focus-visible {
+  outline: 2px solid var(--planes-accent);
+  outline-offset: 3px;
+}
+
+.plans-button:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.plans-button--primary {
+  background: linear-gradient(180deg, var(--planes-accent-soft), var(--planes-accent));
+  color: var(--planes-accent-ink);
+}
+
+.plans-button--primary:hover:not(:disabled) {
+  filter: brightness(1.06);
+}
+
+.plans-button--secondary {
+  border-color: rgba(47, 230, 212, 0.45);
+  color: var(--planes-accent);
+}
+
+.plans-button--ghost {
+  border-color: var(--planes-border-strong);
+  color: var(--planes-text-muted);
+}
+
+.plans-button--secondary:hover:not(:disabled),
+.plans-button--ghost:hover:not(:disabled) {
+  border-color: var(--planes-accent);
+  color: var(--planes-text);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .plans-button {
+    transition: none;
+  }
+}
