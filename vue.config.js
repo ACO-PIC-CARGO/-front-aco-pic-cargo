@@ -2,6 +2,7 @@ const path = require("path");
 module.exports = {
   filenameHashing: true,
   productionSourceMap: false,
+  transpileDependencies: ["@sentry", "web-vitals"],
   pwa: {
     name: "Sistema ChainSolver",
     themeColor: "#252C32",
