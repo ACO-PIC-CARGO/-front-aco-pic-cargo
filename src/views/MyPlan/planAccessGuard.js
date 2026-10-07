@@ -16,7 +16,7 @@ const readMenu = () => {
 
 export const planAccessGuard = (router) => async (to, from, next) => {
   const module = moduleForRoute(readMenu(), to.name);
-  if (!module) return next();
+  if (!module || to.name === "miPlan") return next();
 
   const access = await loadPlanAccess();
   if (!isModuleLocked(access, module.id)) return next();

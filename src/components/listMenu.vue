@@ -298,7 +298,7 @@
 <script>
 import { mapState, mapActions } from "vuex";
 import { isModuleLocked, moduleForRoute } from "@/views/MyPlan/planAccess";
-import { loadPlanAccess, planAccessState } from "@/views/MyPlan/planAccessStore";
+import { reloadPlanAccess, planAccessState } from "@/views/MyPlan/planAccessStore";
 export default {
   name: "listMenu",
   data: () => ({
@@ -320,7 +320,7 @@ export default {
     person: JSON.parse(sessionStorage.getItem("dataUser"))[0],
   }),
   mounted() {
-    loadPlanAccess();
+    reloadPlanAccess();
     setTimeout(() => {
       this.$store.state.lstMenu = JSON.parse(sessionStorage.getItem("menu"));
     }, 10);
