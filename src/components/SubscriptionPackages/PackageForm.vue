@@ -1083,33 +1083,10 @@ export default {
   color: var(--planes-text-muted);
 }
 
-.icon-button {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-  width: 44px;
-  height: 44px;
-  border-radius: var(--planes-radius-control);
-  font-size: 22px;
-  color: var(--planes-text-muted);
-  cursor: pointer;
-}
-
 .icon-button--small {
   width: 36px;
   height: 36px;
   font-size: 19px;
-}
-
-.icon-button:hover:not(:disabled) {
-  color: var(--planes-text);
-  background: var(--planes-overlay-hover);
-}
-
-.icon-button:disabled {
-  cursor: default;
-  opacity: 0.45;
 }
 
 .icon-button--included {
@@ -1124,7 +1101,6 @@ export default {
   color: var(--planes-star);
 }
 
-.icon-button:focus-visible,
 .chip:focus-visible,
 .stepper__button:focus-visible {
   outline: 2px solid var(--planes-accent);

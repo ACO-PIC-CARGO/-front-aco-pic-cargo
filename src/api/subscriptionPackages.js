@@ -42,3 +42,9 @@ export const setPackageActive = (id, isActive) =>
     url: `subscription_packages/${id}/status`,
     data: { is_active: isActive },
   });
+
+export const fetchPaddleSync = () =>
+  request({ method: "get", url: "subscription_packages/paddle_sync" });
+
+export const applyPaddleSync = () =>
+  request({ method: "post", url: "subscription_packages/paddle_sync" });

@@ -24,6 +24,13 @@
           </router-link>
           <button
             type="button"
+            class="plans-button plans-button--ghost"
+            @click="isSyncOpen = true"
+          >
+            <i class="mdi mdi-sync" aria-hidden="true"></i> Verificar Paddle
+          </button>
+          <button
+            type="button"
             class="plans-button plans-button--primary"
             @click="openCreate"
           >
@@ -132,6 +139,7 @@
       :modules="modules"
       @saved="onSaved"
     />
+    <PaddleSyncDialog v-model="isSyncOpen" @synced="onSynced" />
   </div>
 </template>
 
@@ -140,6 +148,7 @@ import Swal from "sweetalert2";
 import "@/styles/plans-theme.css";
 import PackageCard from "@/components/SubscriptionPackages/PackageCard.vue";
 import PackageForm from "@/components/SubscriptionPackages/PackageForm.vue";
+import PaddleSyncDialog from "@/components/SubscriptionPackages/PaddleSyncDialog.vue";
 import SegmentedControl from "@/components/SubscriptionPackages/SegmentedControl.vue";
 import { toPlanView } from "@/components/SubscriptionPackages/packageView";
 import {
@@ -178,7 +187,7 @@ const confirmDeactivation = (pkg) =>
 
 export default {
   name: "SubscriptionPackages",
-  components: { PackageCard, PackageForm, SegmentedControl },
+  components: { PackageCard, PackageForm, PaddleSyncDialog, SegmentedControl },
   data: () => ({
     packages: [],
     modules: [],
@@ -190,6 +199,7 @@ export default {
     busyId: null,
     isFormOpen: false,
     editingPackage: null,
+    isSyncOpen: false,
     billingOptions: BILLING_OPTIONS,
   }),
   computed: {
@@ -253,6 +263,9 @@ export default {
     async onSaved(message) {
       notifySuccess(message);
       await this.loadPackages();
+    },
+    onSynced(message) {
+      notifySuccess(message);
     },
     async toggleActive(pkg) {
       if (pkg.is_active) {
