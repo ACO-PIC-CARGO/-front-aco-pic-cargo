@@ -61,7 +61,7 @@
       </section>
 
       <section
-        v-else-if="hasLivePlan"
+        v-else-if="hasLivePlan && !isChangingPlan"
         class="plan-summary"
         aria-labelledby="plan-summary-title"
       >
@@ -89,6 +89,25 @@
         </div>
         <div class="plan-summary__actions">
           <button
+            v-if="canChange"
+            type="button"
+            class="plans-button plans-button--primary"
+            :disabled="busy"
+            @click="startChangingPlan"
+          >
+            <i class="mdi mdi-swap-horizontal" aria-hidden="true"></i>
+            Cambiar plan
+          </button>
+          <button
+            v-if="plan.scheduled_change_action === 'cancel'"
+            type="button"
+            class="plans-button plans-button--secondary"
+            :disabled="busy"
+            @click="keepPlan"
+          >
+            Mantener mi plan
+          </button>
+          <button
             type="button"
             class="plans-button plans-button--secondary"
             :disabled="busy"
@@ -110,7 +129,7 @@
       </section>
 
       <template v-else>
-        <p class="my-plan__notice" role="status">
+        <p v-if="!hasLivePlan" class="my-plan__notice" role="status">
           <i class="mdi mdi-information-outline" aria-hidden="true"></i>
           <span v-if="plan">
             Tu plan anterior, ACO {{ plan.package_name }}, se canceló el
@@ -122,13 +141,29 @@
           </span>
         </p>
         <div class="my-plan__toolbar">
-          <p class="my-plan__lead">Elige el plan para tu empresa.</p>
+          <p class="my-plan__lead">
+            <template v-if="isChangingPlan">
+              Hoy tienes ACO {{ plan.package_name }}. Elige tu nuevo plan; antes
+              de cambiar verás cuánto se cobrará.
+            </template>
+            <template v-else>Elige el plan para tu empresa.</template>
+          </p>
           <SegmentedControl
             v-model="isAnnual"
             :options="billingOptions"
             label="Precio mostrado"
           />
         </div>
+        <button
+          v-if="isChangingPlan"
+          type="button"
+          class="plans-button plans-button--ghost my-plan__back"
+          :disabled="busy"
+          @click="isChangingPlan = false"
+        >
+          <i class="mdi mdi-arrow-left" aria-hidden="true"></i>
+          Volver a mi plan
+        </button>
         <div v-if="!packages.length" class="my-plan__state">
           <p class="my-plan__state-title">Aún no hay planes disponibles.</p>
           <p>Vuelve en unos días o escríbenos para ayudarte.</p>
@@ -147,12 +182,8 @@
             <button
               type="button"
               class="plans-button plans-button--primary my-plan__buy"
-              :disabled="busy"
-              :aria-label="
-                buyingId === pkg.id
-                  ? `Abriendo el pago de ACO ${pkg.name}`
-                  : `Comprar ACO ${pkg.name}`
-              "
+              :disabled="busy || cardActionOf(pkg) === 'current'"
+              :aria-label="`${cardLabel(pkg)}: ACO ${pkg.name}`"
               @click="choosePackage(pkg)"
             >
               <i
@@ -160,7 +191,7 @@
                 class="mdi mdi-loading mdi-spin"
                 aria-hidden="true"
               ></i>
-              {{ buyingId === pkg.id ? "Abriendo el pago" : "Comprar" }}
+              {{ cardLabel(pkg) }}
             </button>
           </PackageCard>
         </section>
@@ -185,14 +216,20 @@ import { toPlanView } from "@/components/SubscriptionPackages/packageView";
 import { fetchPublicPackages, isEmptyResult } from "@/api/subscriptionPackages";
 import {
   cancelCompanyPlan,
+  changeCompanyPlan,
   confirmCompanyPlan,
   fetchCompanyPlan,
+  keepCompanyPlan,
   openBillingPortal,
+  previewPlanChange,
   startCheckout,
 } from "@/api/branchSubscription";
 import { openPaddleCheckout, stopCheckoutEvents } from "@/api/paddleCheckout";
 import {
   billingLabel,
+  canChangePlan,
+  cardAction,
+  changeSummary,
   clearPendingChoice,
   formatDate,
   isLivePlan,
@@ -211,6 +248,16 @@ const OPEN_FAILED_MESSAGE =
   "No pudimos abrir el pago. Intenta de nuevo en unos minutos.";
 const PORTAL_FAILED_MESSAGE =
   "No pudimos abrir la gestión de pagos. Intenta de nuevo en unos minutos.";
+const CHANGE_FAILED_MESSAGE =
+  "No pudimos cambiar tu plan. Intenta de nuevo en unos minutos.";
+const KEEP_FAILED_MESSAGE =
+  "No pudimos mantener tu plan. Intenta de nuevo en unos minutos.";
+const CARD_LABELS = {
+  buy: "Comprar",
+  change: "Cambiar a este plan",
+  "change-module": "Cambiar módulo",
+  current: "Tu plan actual",
+};
 
 const notifySuccess = (message) =>
   Swal.fire({
@@ -244,6 +291,7 @@ export default {
     confirmTimer: null,
     pendingTransactionId: null,
     isAnnual: true,
+    isChangingPlan: false,
     expandedId: null,
     chosenPackageId: null,
     busy: false,
@@ -259,6 +307,12 @@ export default {
     },
     status() {
       return statusView(this.plan);
+    },
+    canChange() {
+      return canChangePlan(this.plan);
+    },
+    billing() {
+      return this.isAnnual ? "annual" : "monthly";
     },
   },
   async mounted() {
@@ -311,17 +365,101 @@ export default {
         this.isModuleDialogOpen = true;
         return;
       }
-      this.buy(pkg, []);
+      this.submitChoice(pkg, []);
     },
     onModulesChosen(moduleIds) {
-      this.buy(this.modulePackage, moduleIds);
+      this.submitChoice(this.modulePackage, moduleIds);
+    },
+    submitChoice(pkg, moduleIds) {
+      if (this.isChangingPlan) return this.changePlan(pkg, moduleIds);
+      return this.buy(pkg, moduleIds);
+    },
+    cardActionOf(pkg) {
+      return this.isChangingPlan
+        ? cardAction(pkg, this.plan, this.billing)
+        : "buy";
+    },
+    cardLabel(pkg) {
+      if (this.buyingId === pkg.id) {
+        return this.isChangingPlan
+          ? "Calculando el cambio"
+          : "Abriendo el pago";
+      }
+      return CARD_LABELS[this.cardActionOf(pkg)];
+    },
+    startChangingPlan() {
+      this.isAnnual = this.plan.billing === "annual";
+      this.expandedId = null;
+      this.isChangingPlan = true;
+    },
+    async changePlan(pkg, moduleIds) {
+      const payload = {
+        package_id: pkg.id,
+        billing: this.billing,
+        module_ids: moduleIds,
+      };
+      this.busy = true;
+      this.buyingId = pkg.id;
+      const preview = await previewPlanChange(payload);
+      this.resetBuying();
+      if (!preview.estadoflag) {
+        notifyError(preview.mensaje || CHANGE_FAILED_MESSAGE);
+        return;
+      }
+
+      const { isConfirmed } = await Swal.fire({
+        icon: "question",
+        title: `¿Cambiar a ACO ${pkg.name}?`,
+        text: changeSummary(preview.data[0]),
+        showCancelButton: true,
+        confirmButtonText: "Sí, cambiar plan",
+        cancelButtonText: "Volver",
+        reverseButtons: true,
+      });
+      if (!isConfirmed) return;
+
+      this.busy = true;
+      this.buyingId = pkg.id;
+      const response = await changeCompanyPlan(payload);
+      this.resetBuying();
+      if (!response.estadoflag) {
+        notifyError(response.mensaje || CHANGE_FAILED_MESSAGE);
+        return;
+      }
+      this.plan = response.data[0];
+      this.isChangingPlan = false;
+      notifySuccess(response.mensaje);
+    },
+    async keepPlan() {
+      const { isConfirmed } = await Swal.fire({
+        icon: "question",
+        title: `¿Mantener ACO ${this.plan.package_name}?`,
+        text: `Quitaremos la cancelación y tu plan seguirá renovándose el ${formatDate(
+          this.plan.scheduled_change_at
+        )}.`,
+        showCancelButton: true,
+        confirmButtonText: "Sí, mantener plan",
+        cancelButtonText: "Volver",
+        reverseButtons: true,
+      });
+      if (!isConfirmed) return;
+
+      this.busy = true;
+      const response = await keepCompanyPlan();
+      this.busy = false;
+      if (!response.estadoflag) {
+        notifyError(response.mensaje || KEEP_FAILED_MESSAGE);
+        return;
+      }
+      this.plan = response.data[0];
+      notifySuccess(response.mensaje);
     },
     async buy(pkg, moduleIds) {
       this.busy = true;
       this.buyingId = pkg.id;
       const response = await startCheckout({
         package_id: pkg.id,
-        billing: this.isAnnual ? "annual" : "monthly",
+        billing: this.billing,
         module_ids: moduleIds,
       });
       const transactionId =
@@ -512,6 +650,10 @@ export default {
 
 .my-plan__buy {
   width: 100%;
+}
+
+.my-plan__back {
+  margin-bottom: 16px;
 }
 
 .my-plan__state {
