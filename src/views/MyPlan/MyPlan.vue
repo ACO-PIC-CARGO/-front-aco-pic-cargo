@@ -79,12 +79,27 @@
         </div>
         <p class="plan-summary__billing">{{ billingLabel(plan.billing) }}</p>
         <p class="plan-summary__dates">{{ planDateLine(plan) }}</p>
-        <div v-if="(plan.modules || []).length" class="plan-summary__modules">
+        <p v-if="details.users" class="plan-summary__users">
+          <i class="mdi mdi-account-multiple-outline" aria-hidden="true"></i>
+          Usuarios: {{ details.users }}
+        </p>
+        <div v-if="details.modules.length" class="plan-summary__modules">
           <p class="plan-summary__label">Módulos de tu plan</p>
-          <ul>
-            <li v-for="module in plan.modules || []" :key="module.id">
-              {{ module.name }}
+          <ul class="plan-summary__module-list">
+            <li v-for="module in details.modules" :key="module.id">
+              <span class="plan-summary__module-name">{{ module.name }}</span>
+              <ul v-if="module.details.length" class="plan-summary__details">
+                <li v-for="detail in module.details" :key="detail">
+                  {{ detail }}
+                </li>
+              </ul>
             </li>
+          </ul>
+        </div>
+        <div v-if="details.extras.length" class="plan-summary__extras">
+          <p class="plan-summary__label">También incluye</p>
+          <ul class="plan-summary__details">
+            <li v-for="extra in details.extras" :key="extra">{{ extra }}</li>
           </ul>
         </div>
         <div class="plan-summary__actions">
@@ -236,6 +251,7 @@ import {
   isLivePlan,
   PLAN_CHANGED_EVENT,
   planDateLine,
+  planDetails,
   readPendingChoice,
   statusView,
 } from "./myPlanView";
@@ -315,6 +331,9 @@ export default {
     },
     billing() {
       return this.isAnnual ? "annual" : "monthly";
+    },
+    details() {
+      return planDetails(this.plan);
     },
   },
   watch: {
@@ -744,21 +763,37 @@ export default {
   color: var(--planes-text-muted);
 }
 
-.plan-summary__modules ul {
+.plan-summary__users {
   display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
+  align-items: center;
+  gap: 6px;
+  font-weight: 600;
+}
+
+.plan-summary__module-list {
+  display: grid;
+  gap: 12px;
   margin-top: 6px;
   list-style: none;
 }
 
-.plan-summary__modules li {
+.plan-summary__module-name {
+  display: inline-block;
   padding: 2px 10px;
   border-radius: 999px;
   background: var(--planes-accent-tint);
   color: var(--planes-accent);
   font-size: 13px;
   font-weight: 600;
+}
+
+.plan-summary__details {
+  display: grid;
+  gap: 2px;
+  margin: 6px 0 0 20px;
+  list-style: disc;
+  font-size: 14px;
+  color: var(--planes-text-muted);
 }
 
 .plan-summary__actions {
