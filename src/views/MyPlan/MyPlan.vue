@@ -234,6 +234,7 @@ import {
   clearPendingChoice,
   formatDate,
   isLivePlan,
+  PLAN_CHANGED_EVENT,
   planDateLine,
   readPendingChoice,
   statusView,
@@ -314,6 +315,11 @@ export default {
     },
     billing() {
       return this.isAnnual ? "annual" : "monthly";
+    },
+  },
+  watch: {
+    plan(value) {
+      this.$root.$emit(PLAN_CHANGED_EVENT, value);
     },
   },
   async mounted() {
