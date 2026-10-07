@@ -109,8 +109,7 @@ const modulesErrors = (draft) => {
   return {};
 };
 
-const trialError = (draft) => {
-  if (!draft.trialEnabled) return null;
+const trialLengthError = (draft) => {
   const unit = TRIAL_UNITS.find((item) => item.value === draft.trialInterval);
   if (!unit || isBlank(draft.trialFrequency))
     return "Elige la duración del periodo de prueba.";
@@ -121,6 +120,9 @@ const trialError = (draft) => {
     } ${unit.label.toLowerCase()}.`;
   return null;
 };
+
+const trialError = (draft) =>
+  draft.trialEnabled ? trialLengthError(draft) : null;
 
 export const validateDraft = (draft) => {
   const errors = {
@@ -166,7 +168,9 @@ export const toPayload = (draft) => ({
   is_featured: draft.isFeatured,
   trial_enabled: draft.trialEnabled,
   trial_interval: draft.trialInterval,
-  trial_frequency: Number(draft.trialFrequency) || null,
+  trial_frequency: trialLengthError(draft)
+    ? null
+    : Number(draft.trialFrequency),
   modules: draft.moduleIds,
   features: draft.features.map(toFeaturePayload),
 });
