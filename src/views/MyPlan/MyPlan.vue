@@ -255,6 +255,7 @@ import {
   readPendingChoice,
   statusView,
 } from "./myPlanView";
+import { reloadPlanAccess } from "./planAccessStore";
 
 const BILLING_OPTIONS = [
   { value: false, label: "Mensual" },
@@ -339,6 +340,7 @@ export default {
   watch: {
     plan(value) {
       this.$root.$emit(PLAN_CHANGED_EVENT, value);
+      reloadPlanAccess();
     },
   },
   async mounted() {

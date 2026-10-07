@@ -35,3 +35,6 @@ export const changeCompanyPlan = (payload) =>
 
 export const keepCompanyPlan = () =>
   request({ method: "post", url: "branch_subscription/resume" });
+
+export const fetchPlanAccess = () =>
+  request({ method: "get", url: "branch_subscription/access" });

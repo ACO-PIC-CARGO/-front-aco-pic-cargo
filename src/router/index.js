@@ -44,6 +44,7 @@ import registroPayForCliente from "../views/FolderBanks/registroPagoCliente";
 import verPagosPorCliente from "../views/FolderBanks/verPagosPorCliente";
 import litProgrammedPayment from "../views/programmedPayment/listProgrammedPayment";
 import listFacturacion from "../views/folderBilling/listFacturacionView";
+import { planAccessGuard } from "@/views/MyPlan/planAccessGuard";
 
 Vue.use(VueRouter);
 
@@ -897,4 +898,5 @@ router.beforeEach((to, from, next) => {
   }
   next();
 });
+router.beforeEach(planAccessGuard(router));
 export default router;
