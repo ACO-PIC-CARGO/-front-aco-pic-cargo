@@ -37,8 +37,8 @@ export default {
   display: inline-flex;
   padding: 3px;
   border-radius: 999px;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid var(--planes-border);
+  background: var(--planes-overlay-faint);
 }
 
 .segmented__option {

@@ -1,11 +1,14 @@
 @import url("https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&display=swap");
 
 .plans-theme {
+  --planes-color-scheme: dark;
   --planes-bg: #051419;
   --planes-surface-top: rgba(18, 50, 58, 0.72);
   --planes-surface-bottom: rgba(9, 30, 36, 0.78);
   --planes-surface-solid: #0a2a2f;
   --planes-field: rgba(255, 255, 255, 0.05);
+  --planes-overlay-faint: rgba(255, 255, 255, 0.03);
+  --planes-overlay-hover: rgba(255, 255, 255, 0.08);
   --planes-border: rgba(150, 226, 220, 0.14);
   --planes-border-strong: rgba(255, 255, 255, 0.16);
   --planes-divider: rgba(255, 255, 255, 0.08);
@@ -13,13 +16,25 @@
   --planes-accent-soft: #74f7ec;
   --planes-accent-ink: #03241f;
   --planes-accent-glow: rgba(47, 230, 212, 0.75);
+  --planes-accent-border: rgba(47, 230, 212, 0.45);
+  --planes-accent-tint: rgba(47, 230, 212, 0.14);
+  --planes-accent-ring: rgba(47, 230, 212, 0.22);
+  --planes-action: linear-gradient(180deg, #74f7ec, #2fe6d4);
+  --planes-action-ink: #03241f;
   --planes-savings: #46df88;
   --planes-savings-ink: #04301a;
+  --planes-savings-text: #46df88;
+  --planes-star: #ffd166;
   --planes-danger: #ff8a80;
   --planes-text: #eef7f7;
   --planes-text-muted: #b5c7c9;
   --planes-text-subtle: #8ea4a7;
   --planes-excluded: #62797d;
+  --planes-card-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04),
+    0 28px 56px -28px rgba(0, 0, 0, 0.7);
+  --planes-featured-shadow: 0 0 0 1px rgba(47, 230, 212, 0.2),
+    0 0 56px -10px rgba(47, 230, 212, 0.38),
+    0 28px 56px -28px rgba(0, 0, 0, 0.7);
   --planes-radius-card: 16px;
   --planes-radius-control: 10px;
   --planes-ease: cubic-bezier(0.16, 1, 0.3, 1);
@@ -38,6 +53,47 @@
 .plans-theme,
 .plans-theme * {
   font-family: "Outfit", "Roboto", sans-serif;
+}
+
+.plans-theme--app {
+  --planes-color-scheme: light;
+  --planes-bg: #ffffff;
+  --planes-surface-top: #ffffff;
+  --planes-surface-bottom: #ffffff;
+  --planes-surface-solid: #e1f5fe;
+  --planes-field: #ffffff;
+  --planes-overlay-faint: rgba(0, 0, 0, 0.03);
+  --planes-overlay-hover: rgba(0, 0, 0, 0.06);
+  --planes-border: rgba(0, 0, 0, 0.12);
+  --planes-border-strong: rgba(0, 0, 0, 0.38);
+  --planes-divider: rgba(0, 0, 0, 0.12);
+  --planes-accent: #0288d1;
+  --planes-accent-soft: #03a9f4;
+  --planes-accent-ink: #ffffff;
+  --planes-accent-glow: #0288d1;
+  --planes-accent-border: rgba(2, 136, 209, 0.5);
+  --planes-accent-tint: rgba(3, 169, 244, 0.12);
+  --planes-accent-ring: rgba(3, 169, 244, 0.3);
+  --planes-action: #26a69a;
+  --planes-action-ink: #ffffff;
+  --planes-savings: #00796b;
+  --planes-savings-ink: #ffffff;
+  --planes-savings-text: #00796b;
+  --planes-star: #ffb300;
+  --planes-danger: #d32f2f;
+  --planes-text: rgba(0, 0, 0, 0.87);
+  --planes-text-muted: rgba(0, 0, 0, 0.6);
+  --planes-text-subtle: rgba(0, 0, 0, 0.6);
+  --planes-excluded: rgba(0, 0, 0, 0.38);
+  --planes-card-shadow: 0 1px 3px rgba(0, 0, 0, 0.12), 0 1px 2px rgba(0, 0, 0, 0.08);
+  --planes-featured-shadow: 0 0 0 1px #0288d1, 0 4px 14px rgba(2, 136, 209, 0.2);
+
+  background: var(--planes-bg);
+}
+
+.plans-theme--app,
+.plans-theme--app * {
+  font-family: "Roboto", sans-serif;
 }
 
 .plans-button {
@@ -75,8 +131,8 @@
 }
 
 .plans-button--primary {
-  background: linear-gradient(180deg, var(--planes-accent-soft), var(--planes-accent));
-  color: var(--planes-accent-ink);
+  background: var(--planes-action);
+  color: var(--planes-action-ink);
 }
 
 .plans-button--primary:hover:not(:disabled) {
@@ -84,12 +140,20 @@
 }
 
 .plans-button--secondary {
-  border-color: rgba(47, 230, 212, 0.45);
+  border-color: var(--planes-accent-border);
   color: var(--planes-accent);
 }
 
 .plans-button--ghost {
   border-color: var(--planes-border-strong);
+  color: var(--planes-text-muted);
+}
+
+.plans-theme a.plans-button {
+  text-decoration: none;
+}
+
+.plans-theme a.plans-button--ghost {
   color: var(--planes-text-muted);
 }
 

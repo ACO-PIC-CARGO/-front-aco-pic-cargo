@@ -141,16 +141,13 @@ export default {
     var(--planes-surface-top),
     var(--planes-surface-bottom)
   );
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04),
-    0 28px 56px -28px rgba(0, 0, 0, 0.7);
+  box-shadow: var(--planes-card-shadow);
   color: var(--planes-text);
 }
 
 .plan--featured {
   border-color: var(--planes-accent-glow);
-  box-shadow: 0 0 0 1px rgba(47, 230, 212, 0.2),
-    0 0 56px -10px rgba(47, 230, 212, 0.38),
-    0 28px 56px -28px rgba(0, 0, 0, 0.7);
+  box-shadow: var(--planes-featured-shadow);
 }
 
 .plan--inactive {
@@ -376,7 +373,7 @@ export default {
 .plan__details-toggle:hover,
 .plan__chevron:hover {
   color: var(--planes-text);
-  border-color: rgba(47, 230, 212, 0.5);
+  border-color: var(--planes-accent-border);
 }
 
 .plan--expanded .plan__chevron .mdi,

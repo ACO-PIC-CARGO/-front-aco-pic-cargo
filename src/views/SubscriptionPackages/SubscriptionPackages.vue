@@ -1,5 +1,5 @@
 <template>
-  <div class="subscription-admin plans-theme">
+  <div class="subscription-admin plans-theme plans-theme--app">
     <div class="subscription-admin__container">
       <header class="subscription-admin__header">
         <div>
@@ -11,13 +11,25 @@
             de planes.
           </p>
         </div>
-        <button
-          type="button"
-          class="plans-button plans-button--primary"
-          @click="openCreate"
-        >
-          <i class="mdi mdi-plus" aria-hidden="true"></i> Nuevo paquete
-        </button>
+        <div class="subscription-admin__actions">
+          <router-link
+            :to="{ name: 'Planes' }"
+            target="_blank"
+            rel="noopener"
+            class="plans-button plans-button--ghost"
+            aria-label="Ver la página de planes como cliente (se abre en una pestaña nueva)"
+          >
+            <i class="mdi mdi-open-in-new" aria-hidden="true"></i> Ver como
+            cliente
+          </router-link>
+          <button
+            type="button"
+            class="plans-button plans-button--primary"
+            @click="openCreate"
+          >
+            <i class="mdi mdi-plus" aria-hidden="true"></i> Nuevo paquete
+          </button>
+        </div>
       </header>
 
       <div
@@ -295,6 +307,12 @@ export default {
   letter-spacing: -0.02em;
 }
 
+.subscription-admin__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
 .subscription-admin__accent {
   color: var(--planes-accent);
 }
@@ -335,9 +353,9 @@ export default {
   border: 1px solid var(--planes-border);
   background: linear-gradient(
     100deg,
-    rgba(255, 255, 255, 0.03) 30%,
-    rgba(255, 255, 255, 0.08) 50%,
-    rgba(255, 255, 255, 0.03) 70%
+    var(--planes-overlay-faint) 30%,
+    var(--planes-overlay-hover) 50%,
+    var(--planes-overlay-faint) 70%
   );
   background-size: 300% 100%;
 }
@@ -394,6 +412,7 @@ export default {
     font-size: 30px;
   }
 
+  .subscription-admin__actions,
   .subscription-admin__header .plans-button {
     width: 100%;
   }

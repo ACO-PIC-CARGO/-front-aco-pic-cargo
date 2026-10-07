@@ -4,7 +4,7 @@
     max-width="1180"
     persistent
     :fullscreen="$vuetify.breakpoint.smAndDown"
-    content-class="plans-theme package-dialog"
+    content-class="plans-theme plans-theme--app package-dialog"
   >
     <form
       ref="form"
@@ -703,7 +703,7 @@ export default {
   display: flex;
   flex-direction: column;
   min-height: 100%;
-  color-scheme: dark;
+  color-scheme: var(--planes-color-scheme);
   color: var(--planes-text);
 }
 
@@ -807,7 +807,7 @@ export default {
 .input:focus {
   outline: none;
   border-color: var(--planes-accent);
-  box-shadow: 0 0 0 3px rgba(47, 230, 212, 0.22);
+  box-shadow: 0 0 0 3px var(--planes-accent-ring);
 }
 
 .input[aria-invalid="true"] {
@@ -877,7 +877,7 @@ export default {
 
 .switch__input:checked + .switch__track {
   border-color: var(--planes-accent);
-  background: rgba(47, 230, 212, 0.25);
+  background: var(--planes-accent-tint);
 }
 
 .switch__input:checked + .switch__track::after {
@@ -972,12 +972,12 @@ export default {
 
 .chip:hover {
   color: var(--planes-text);
-  border-color: rgba(47, 230, 212, 0.5);
+  border-color: var(--planes-accent-border);
 }
 
 .chip--selected {
   border-color: var(--planes-accent);
-  background: rgba(47, 230, 212, 0.14);
+  background: var(--planes-accent-tint);
   color: var(--planes-text);
 }
 
@@ -996,7 +996,7 @@ export default {
   padding: 14px;
   border-radius: var(--planes-radius-control);
   border: 1px solid var(--planes-divider);
-  background: rgba(255, 255, 255, 0.02);
+  background: var(--planes-overlay-faint);
 }
 
 .access__label {
@@ -1043,7 +1043,7 @@ export default {
   gap: 6px;
   padding: 4px;
   border-radius: var(--planes-radius-control);
-  background: rgba(255, 255, 255, 0.03);
+  background: var(--planes-overlay-faint);
 }
 
 .feature-row--excluded .input--inline {
@@ -1065,7 +1065,7 @@ export default {
   max-width: 120px;
   padding: 2px 10px;
   border-radius: 999px;
-  background: rgba(47, 230, 212, 0.12);
+  background: var(--planes-accent-tint);
   font-size: 12px;
   font-weight: 600;
   white-space: nowrap;
@@ -1104,7 +1104,7 @@ export default {
 
 .icon-button:hover:not(:disabled) {
   color: var(--planes-text);
-  background: rgba(255, 255, 255, 0.06);
+  background: var(--planes-overlay-hover);
 }
 
 .icon-button:disabled {
@@ -1121,7 +1121,7 @@ export default {
 }
 
 .icon-button--starred {
-  color: #ffd166;
+  color: var(--planes-star);
 }
 
 .icon-button:focus-visible,
