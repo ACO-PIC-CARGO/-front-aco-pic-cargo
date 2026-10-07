@@ -5,6 +5,7 @@ import {
   cardAction,
   changeSummary,
   planBadge,
+  planDetails,
 } from "../../../src/views/MyPlan/myPlanView.js";
 
 const plan = { package_id: 3, billing: "monthly", status: "active" };
@@ -129,4 +130,54 @@ test("planBadge hides for no plan and for plans that are not usable or paid", ()
   for (const status of ["canceled", "past_due", "paused"]) {
     assert.equal(planBadge({ status, package_name: "PRO" }, NOW), null);
   }
+});
+
+const detailedPlan = (overrides = {}) => ({
+  user_limit: 3,
+  user_count: 1,
+  modules: [
+    { id: 6, name: "Pricing" },
+    { id: 1, name: "Operativo" },
+  ],
+  features: [
+    { module_id: 6, description: "Reporte de vendedores" },
+    { module_id: null, description: "Sistema 100% online" },
+    { module_id: 1, description: "Reporte de embarques" },
+    { module_id: 6, description: "Seguimiento de llamadas" },
+    { module_id: null, description: "Soporte prioritario" },
+  ],
+  ...overrides,
+});
+
+test("planDetails shows used and allowed users", () => {
+  assert.equal(planDetails(detailedPlan()).users, "1 de 3");
+  assert.equal(planDetails(detailedPlan({ user_count: 4 })).users, "4 de 3");
+  assert.equal(planDetails(detailedPlan({ user_limit: null })).users, null);
+});
+
+test("planDetails groups each module with what it includes, in order", () => {
+  assert.deepEqual(planDetails(detailedPlan()).modules, [
+    {
+      id: 6,
+      name: "Pricing",
+      details: ["Reporte de vendedores", "Seguimiento de llamadas"],
+    },
+    { id: 1, name: "Operativo", details: ["Reporte de embarques"] },
+  ]);
+});
+
+test("planDetails lists the general features apart", () => {
+  assert.deepEqual(planDetails(detailedPlan()).extras, [
+    "Sistema 100% online",
+    "Soporte prioritario",
+  ]);
+});
+
+test("planDetails tolerates a plan without details", () => {
+  assert.deepEqual(planDetails({ modules: [{ id: 6, name: "Pricing" }] }), {
+    users: null,
+    modules: [{ id: 6, name: "Pricing", details: [] }],
+    extras: [],
+  });
+  assert.deepEqual(planDetails(null), { users: null, modules: [], extras: [] });
 });

@@ -149,3 +149,24 @@ export const planBadge = (plan, now = Date.now()) => {
     return { text: `ACO ${plan.package_name} activo`, tone: "paid" };
   return null;
 };
+
+const featureDescriptions = (features, moduleId) =>
+  features
+    .filter((feature) => feature.module_id === moduleId)
+    .map((feature) => feature.description);
+
+export const planDetails = (plan) => {
+  const features = (plan && plan.features) || [];
+  return {
+    users:
+      plan && plan.user_limit
+        ? `${plan.user_count || 0} de ${plan.user_limit}`
+        : null,
+    modules: ((plan && plan.modules) || []).map((module) => ({
+      id: module.id,
+      name: module.name,
+      details: featureDescriptions(features, module.id),
+    })),
+    extras: featureDescriptions(features, null),
+  };
+};
