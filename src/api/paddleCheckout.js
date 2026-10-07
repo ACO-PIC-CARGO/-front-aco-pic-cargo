@@ -39,7 +39,11 @@ const getPaddle = () => {
   return paddleReady;
 };
 
-export const openPaddleCheckout = async (transactionId, onEvent) => {
+export const stopCheckoutEvents = () => {
+  checkoutListener = null;
+};
+
+export const openPaddleCheckout =async (transactionId, onEvent) => {
   try {
     const paddle = await getPaddle();
     checkoutListener = onEvent;

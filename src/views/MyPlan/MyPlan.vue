@@ -79,10 +79,10 @@
         </div>
         <p class="plan-summary__billing">{{ billingLabel(plan.billing) }}</p>
         <p class="plan-summary__dates">{{ planDateLine(plan) }}</p>
-        <div v-if="plan.modules.length" class="plan-summary__modules">
+        <div v-if="(plan.modules || []).length" class="plan-summary__modules">
           <p class="plan-summary__label">Módulos de tu plan</p>
           <ul>
-            <li v-for="module in plan.modules" :key="module.id">
+            <li v-for="module in plan.modules || []" :key="module.id">
               {{ module.name }}
             </li>
           </ul>
@@ -142,7 +142,11 @@
               type="button"
               class="plans-button plans-button--primary my-plan__buy"
               :disabled="busy"
-              :aria-label="`Comprar ACO ${pkg.name}`"
+              :aria-label="
+                buyingId === pkg.id
+                  ? `Abriendo el pago de ACO ${pkg.name}`
+                  : `Comprar ACO ${pkg.name}`
+              "
               @click="choosePackage(pkg)"
             >
               <i
@@ -179,7 +183,7 @@ import {
   openBillingPortal,
   startCheckout,
 } from "@/api/branchSubscription";
-import { openPaddleCheckout } from "@/api/paddleCheckout";
+import { openPaddleCheckout, stopCheckoutEvents } from "@/api/paddleCheckout";
 import {
   billingLabel,
   clearPendingChoice,
@@ -196,6 +200,10 @@ const BILLING_OPTIONS = [
 ];
 const CONFIRM_ATTEMPTS = 20;
 const CONFIRM_INTERVAL_MS = 3000;
+const OPEN_FAILED_MESSAGE =
+  "No pudimos abrir el pago. Intenta de nuevo en unos minutos.";
+const PORTAL_FAILED_MESSAGE =
+  "No pudimos abrir la gestión de pagos. Intenta de nuevo en unos minutos.";
 
 const notifySuccess = (message) =>
   Swal.fire({
@@ -251,7 +259,9 @@ export default {
     this.loadPage();
   },
   beforeDestroy() {
+    this.isLeaving = true;
     clearTimeout(this.confirmTimer);
+    stopCheckoutEvents();
   },
   methods: {
     toPlanView,
@@ -264,6 +274,7 @@ export default {
       this.chosenPackageId = choice.packageId;
       this.isAnnual = choice.billing === "annual";
       clearPendingChoice();
+      if (this.$route.query.paquete) this.$router.replace({ name: "miPlan" });
     },
     async loadPage() {
       this.loadState = "loading";
@@ -305,13 +316,18 @@ export default {
         billing: this.isAnnual ? "annual" : "monthly",
         module_ids: moduleIds,
       });
-      if (!response.estadoflag) {
+      const transactionId =
+        response.estadoflag &&
+        response.data &&
+        response.data[0] &&
+        response.data[0].transaction_id;
+      if (!transactionId) {
         this.resetBuying();
-        notifyError(response.mensaje);
+        notifyError(response.mensaje || OPEN_FAILED_MESSAGE);
         return;
       }
       const error = await openPaddleCheckout(
-        response.data[0].transaction_id,
+        transactionId,
         this.onCheckoutEvent
       );
       if (error) {
@@ -333,10 +349,12 @@ export default {
       }
     },
     confirmPayment(attempt) {
+      if (this.isLeaving) return;
       this.confirmState = "waiting";
       clearTimeout(this.confirmTimer);
       this.confirmTimer = setTimeout(async () => {
         const response = await fetchCompanyPlan();
+        if (this.isLeaving) return;
         if (response.estadoflag && isLivePlan(response.data[0])) {
           this.plan = response.data[0];
           this.confirmState = null;
@@ -356,11 +374,16 @@ export default {
       this.busy = true;
       const response = await openBillingPortal();
       this.busy = false;
-      if (!response.estadoflag) {
-        notifyError(response.mensaje);
+      const url =
+        response.estadoflag &&
+        response.data &&
+        response.data[0] &&
+        response.data[0].url;
+      if (!url) {
+        notifyError(response.mensaje || PORTAL_FAILED_MESSAGE);
         return;
       }
-      window.location.href = response.data[0].url;
+      window.location.href = url;
     },
     async cancelPlan() {
       const { isConfirmed } = await Swal.fire({

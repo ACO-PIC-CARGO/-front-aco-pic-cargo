@@ -107,7 +107,7 @@
 
 <script>
 import "@/styles/plans-theme.css";
-import { savePendingChoice } from "@/views/MyPlan/myPlanView";
+import { hasSession, savePendingChoice } from "@/views/MyPlan/myPlanView";
 import PackageCard from "@/components/SubscriptionPackages/PackageCard.vue";
 import SegmentedControl from "@/components/SubscriptionPackages/SegmentedControl.vue";
 import {
@@ -170,7 +170,7 @@ export default {
     },
     buyPlan(plan) {
       const billing = this.isAnnual ? "annual" : "monthly";
-      if (sessionStorage.getItem("auth-token")) {
+      if (hasSession()) {
         this.$router.push({
           name: "miPlan",
           query: {

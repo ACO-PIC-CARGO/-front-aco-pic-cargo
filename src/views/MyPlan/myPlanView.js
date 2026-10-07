@@ -53,7 +53,15 @@ export const planDateLine = (plan) => {
   return `Próxima renovación: ${formatDate(plan.next_billed_at)}.`;
 };
 
-export const savePendingChoice = (choice) => {
+export const hasSession = () => {
+  try {
+    return Boolean(sessionStorage.getItem("auth-token"));
+  } catch (error) {
+    return false;
+  }
+};
+
+export const savePendingChoice =(choice) => {
   try {
     localStorage.setItem(PENDING_PLAN_KEY, JSON.stringify(choice));
     return true;
