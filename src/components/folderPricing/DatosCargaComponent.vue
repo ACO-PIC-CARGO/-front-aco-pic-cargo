@@ -1007,6 +1007,9 @@ export default {
           this.numerobultos;
         this.$store.state.pricing.datosPrincipales.volumen = this.volumen;
         this.$store.state.pricing.datosPrincipales.peso = this.peso;
+        const { esgrupalflag, esindividualflag } =
+          this.$store.state.pricing.datosPrincipales;
+        this.cambiarMontosACero({ esgrupalflag, esindividualflag });
         this.$refs.frmDatosCarga.reset();
         this.$store.state.pricing.actualizarCostosFlag =
           !this.$store.state.pricing.actualizarCostosFlag;
