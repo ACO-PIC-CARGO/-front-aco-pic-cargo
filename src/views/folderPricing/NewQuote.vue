@@ -691,7 +691,14 @@ export default {
       return datoFlete;
     },
     obtenerPrecioUnitarioGrupal(item, monto) {
-      const factor = parseFloat(this.formatearCostoTotal(item)) || 0;
+      let factor = parseFloat(this.formatearCostoTotal(item)) || 0;
+      if (
+        item.code_cost == 4 &&
+        this.$store.state.pricing.datosPrincipales.volumen < 1 &&
+        factor < 1
+      ) {
+        factor = 1;
+      }
       return factor > 0 ? parseFloat(monto || 0) / factor : 0;
     },
     obtenerTransporteGrupal(item) {
@@ -711,7 +718,7 @@ export default {
         );
 
         if (transporte) {
-          monto = parseFloat(transporte.tarifadolar); // o mantenerlo como string/número según tus necesidades
+          monto = parseFloat(transporte.tarifadolar); 
         }
       }
       return monto;
