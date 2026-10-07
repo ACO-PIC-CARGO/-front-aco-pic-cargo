@@ -1,6 +1,7 @@
 import { formatPrice } from "../../components/SubscriptionPackages/packageView.js";
 
 export const PENDING_PLAN_KEY = "pendingPlan";
+export const PLAN_CHANGED_EVENT = "company-plan-changed";
 
 const STATUS_VIEW = {
   active: { label: "Activo", tone: "ok" },
@@ -129,4 +130,22 @@ export const changeSummary = (preview) => {
   return preview.removes_cancel
     ? `${today} Tu cancelación programada se quitará.`
     : today;
+};
+
+const DAY_MS = 24 * 60 * 60 * 1000;
+
+const trialDaysLabel = (plan, now) => {
+  const end = Date.parse(plan.current_period_ends_at || plan.next_billed_at);
+  const days = Math.ceil((end - now) / DAY_MS);
+  if (!(days > 0)) return "Último día de prueba";
+  return days === 1 ? "1 día de prueba" : `${days} días de prueba`;
+};
+
+export const planBadge = (plan, now = Date.now()) => {
+  if (!plan) return null;
+  if (plan.status === "trialing")
+    return { text: trialDaysLabel(plan, now), tone: "trial" };
+  if (plan.status === "active")
+    return { text: `ACO ${plan.package_name} activo`, tone: "paid" };
+  return null;
 };

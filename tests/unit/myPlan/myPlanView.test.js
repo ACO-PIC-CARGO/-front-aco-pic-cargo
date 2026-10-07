@@ -4,6 +4,7 @@ import {
   canChangePlan,
   cardAction,
   changeSummary,
+  planBadge,
 } from "../../../src/views/MyPlan/myPlanView.js";
 
 const plan = { package_id: 3, billing: "monthly", status: "active" };
@@ -71,4 +72,61 @@ test("changeSummary says nothing is charged and warns the cancellation goes away
 
   assert.match(text, /No se te cobrará nada hoy/);
   assert.match(text, /Tu cancelación programada se quitará\.$/);
+});
+
+const DAY_MS = 24 * 60 * 60 * 1000;
+const NOW = Date.parse("2026-10-07T12:00:00Z");
+const trial = (endsInMs, overrides = {}) => ({
+  status: "trialing",
+  package_name: "PRO",
+  current_period_ends_at: new Date(NOW + endsInMs).toISOString(),
+  next_billed_at: null,
+  ...overrides,
+});
+
+test("planBadge counts the trial days left, rounding up", () => {
+  assert.deepEqual(planBadge(trial(12 * DAY_MS), NOW), {
+    text: "12 días de prueba",
+    tone: "trial",
+  });
+  assert.equal(
+    planBadge(trial(11 * DAY_MS + 1), NOW).text,
+    "12 días de prueba"
+  );
+});
+
+test("planBadge uses the singular and the last day", () => {
+  assert.equal(planBadge(trial(DAY_MS), NOW).text, "1 día de prueba");
+  assert.equal(planBadge(trial(0), NOW).text, "Último día de prueba");
+  assert.equal(planBadge(trial(-DAY_MS), NOW).text, "Último día de prueba");
+});
+
+test("planBadge falls back to the next bill date and to the last day", () => {
+  const nextBilled = new Date(NOW + 3 * DAY_MS).toISOString();
+
+  assert.equal(
+    planBadge(
+      trial(0, { current_period_ends_at: null, next_billed_at: nextBilled }),
+      NOW
+    ).text,
+    "3 días de prueba"
+  );
+  assert.equal(
+    planBadge(trial(0, { current_period_ends_at: null }), NOW).text,
+    "Último día de prueba"
+  );
+});
+
+test("planBadge shows the paid plan", () => {
+  assert.deepEqual(planBadge({ status: "active", package_name: "PRO" }, NOW), {
+    text: "ACO PRO activo",
+    tone: "paid",
+  });
+});
+
+test("planBadge hides for no plan and for plans that are not usable or paid", () => {
+  assert.equal(planBadge(null, NOW), null);
+  for (const status of ["canceled", "past_due", "paused"]) {
+    assert.equal(planBadge({ status, package_name: "PRO" }, NOW), null);
+  }
 });
