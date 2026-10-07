@@ -236,6 +236,7 @@ export default {
     errorMessage: "",
     confirmState: null,
     confirmTimer: null,
+    pendingTransactionId: null,
     isAnnual: true,
     expandedId: null,
     chosenPackageId: null,
@@ -350,6 +351,7 @@ export default {
     },
     async confirmRightAway(transactionId) {
       this.resetBuying();
+      this.pendingTransactionId = transactionId || null;
       this.confirmState = "waiting";
       const response = await confirmCompanyPlan(transactionId);
       if (this.isLeaving) return;
@@ -366,7 +368,9 @@ export default {
       this.confirmState = "waiting";
       clearTimeout(this.confirmTimer);
       this.confirmTimer = setTimeout(async () => {
-        const response = await fetchCompanyPlan();
+        const response = this.pendingTransactionId
+          ? await confirmCompanyPlan(this.pendingTransactionId)
+          : await fetchCompanyPlan();
         if (this.isLeaving) return;
         if (response.estadoflag && isLivePlan(response.data[0])) {
           this.plan = response.data[0];
