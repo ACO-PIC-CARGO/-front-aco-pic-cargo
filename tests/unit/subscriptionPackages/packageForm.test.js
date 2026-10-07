@@ -97,6 +97,9 @@ test("toPayload trims text, converts numbers and keeps module features included"
     user_limit: 1,
     module_selection_limit: 1,
     is_featured: false,
+    trial_enabled: false,
+    trial_interval: "day",
+    trial_frequency: 15,
     modules: [6, 1, 3],
     features: [
       {
