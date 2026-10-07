@@ -696,7 +696,7 @@ const routes = [
         path: "suscripcion",
         name: "lstPlanes",
         component: () =>
-          import("../views/Membresia/RegistroMembresiacarlos.vue"),
+          import("../views/SubscriptionPackages/SubscriptionPackages.vue"),
       },
       // {
       //   path: "suscripcion3",
