@@ -3,7 +3,7 @@ import http from "@/api/axios-config";
 const CONNECTION_ERROR_MESSAGE =
   "No pudimos conectar con el servidor. Revisa tu conexión e intenta de nuevo.";
 
-const request = async (config) => {
+export const request = async (config) => {
   try {
     const { data } = await http(config);
     return data;

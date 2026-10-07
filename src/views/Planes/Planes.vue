@@ -63,14 +63,10 @@
           :index="index"
           @toggle-details="toggleDetails(plan)"
         >
-          <button
-            type="button"
-            class="plan__cta"
-            @click="showPurchaseNotice(plan)"
-          >
+          <button type="button" class="plan__cta" @click="buyPlan(plan)">
             Adquirir plan <i class="mdi mdi-arrow-right" aria-hidden="true"></i>
           </button>
-          <p class="plan__note">Solo con tu email · Sin tarjeta</p>
+          <p class="plan__note">Pago seguro procesado por Paddle</p>
         </PackageCard>
       </section>
     </div>
@@ -80,16 +76,30 @@
       class="purchase-notice"
       aria-labelledby="purchase-notice-title"
     >
-      <i class="mdi mdi-progress-wrench purchase-notice__icon" aria-hidden="true"></i>
+      <i
+        class="mdi mdi-account-key-outline purchase-notice__icon"
+        aria-hidden="true"
+      ></i>
       <h2 id="purchase-notice-title" class="purchase-notice__title">
-        Aún en desarrollo
+        Entra para comprar ACO {{ selectedPlanName }}
       </h2>
       <p class="purchase-notice__text">
-        Estamos terminando la compra en línea de ACO {{ selectedPlanName }}.
-        Muy pronto podrás adquirir tu plan desde aquí.
+        El plan se asigna a tu empresa. Inicia sesión o crea tu cuenta; después
+        entra a Configuración → Mi plan y tu elección te estará esperando.
       </p>
+      <div class="purchase-notice__actions">
+        <router-link :to="{ name: 'Login' }" class="plan__cta">
+          Iniciar sesión
+        </router-link>
+        <router-link
+          :to="{ name: 'RegistroEmpresa' }"
+          class="purchase-notice__link"
+        >
+          Crear cuenta
+        </router-link>
+      </div>
       <form method="dialog">
-        <button type="submit" class="plan__cta">Entendido</button>
+        <button type="submit" class="purchase-notice__close">Ahora no</button>
       </form>
     </dialog>
   </div>
@@ -97,6 +107,7 @@
 
 <script>
 import "@/styles/plans-theme.css";
+import { savePendingChoice } from "@/views/MyPlan/myPlanView";
 import PackageCard from "@/components/SubscriptionPackages/PackageCard.vue";
 import SegmentedControl from "@/components/SubscriptionPackages/SegmentedControl.vue";
 import {
@@ -157,7 +168,19 @@ export default {
     toggleDetails(plan) {
       this.expandedPlanId = this.expandedPlanId === plan.id ? null : plan.id;
     },
-    showPurchaseNotice(plan) {
+    buyPlan(plan) {
+      const billing = this.isAnnual ? "annual" : "monthly";
+      if (sessionStorage.getItem("auth-token")) {
+        this.$router.push({
+          name: "miPlan",
+          query: {
+            paquete: plan.id,
+            ciclo: this.isAnnual ? "anual" : "mensual",
+          },
+        });
+        return;
+      }
+      savePendingChoice({ packageId: plan.id, billing });
       this.selectedPlanName = plan.name;
       this.$refs.purchaseNotice.showModal();
     },
@@ -390,6 +413,35 @@ export default {
   font-size: 15px;
   line-height: 1.5;
   color: var(--planes-text-muted);
+}
+
+.purchase-notice__actions {
+  display: grid;
+  gap: 10px;
+  width: 100%;
+}
+
+.purchase-notice__actions .plan__cta {
+  text-decoration: none;
+}
+
+.purchase-notice__link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 44px;
+  border-radius: var(--planes-radius-control);
+  border: 1px solid var(--planes-accent-border);
+  color: var(--planes-accent);
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.purchase-notice__close {
+  min-height: 44px;
+  color: var(--planes-text-muted);
+  font-weight: 600;
+  cursor: pointer;
 }
 
 @media (prefers-reduced-motion: no-preference) {

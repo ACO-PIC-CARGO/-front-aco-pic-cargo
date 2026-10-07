@@ -698,6 +698,11 @@ const routes = [
         component: () =>
           import("../views/SubscriptionPackages/SubscriptionPackages.vue"),
       },
+      {
+        path: "mi-plan",
+        name: "miPlan",
+        component: () => import("../views/MyPlan/MyPlan.vue"),
+      },
       // {
       //   path: "suscripcion3",
       //   name: "lstPlanes",
