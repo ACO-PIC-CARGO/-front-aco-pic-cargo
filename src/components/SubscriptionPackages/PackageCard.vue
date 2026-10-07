@@ -54,10 +54,18 @@
     <div :id="detailsId" class="plan__details">
       <h3 class="plan__section-title">Incluye</h3>
       <ul class="feature-list">
-        <li v-for="feature in plan.includes" :key="feature.text" class="feature">
+        <li
+          v-for="feature in plan.includes"
+          :key="feature.text"
+          class="feature"
+        >
           <i
             class="feature__icon mdi"
-            :class="feature.conditional ? 'mdi-help-circle' : 'mdi-check-circle'"
+            :class="
+              feature.conditional
+                ? 'mdi-help-circle feature__icon--option'
+                : 'mdi-check-circle'
+            "
             aria-hidden="true"
           ></i>
           <div>
@@ -79,7 +87,10 @@
             :key="item"
             class="feature feature--excluded"
           >
-            <i class="feature__icon mdi mdi-close-circle" aria-hidden="true"></i>
+            <i
+              class="feature__icon mdi mdi-close-circle"
+              aria-hidden="true"
+            ></i>
             <div>{{ item }}</div>
           </li>
         </ul>
@@ -298,6 +309,10 @@ export default {
   font-size: 18px;
   line-height: 1;
   color: var(--planes-accent);
+}
+
+.feature__icon--option {
+  color: var(--planes-text-subtle);
 }
 
 .feature__details {
