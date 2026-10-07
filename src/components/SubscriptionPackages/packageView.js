@@ -35,6 +35,14 @@ export const moduleNames = (packages) => [
 
 export const userLabel = (count) => countLabel(count, "usuario", "usuarios");
 
+const TRIAL_UNIT_LABELS = { day: ["día", "días"], month: ["mes", "meses"] };
+
+export const trialLabel = (pkg) => {
+  const units = TRIAL_UNIT_LABELS[pkg.trial_interval];
+  if (!pkg.trial_enabled || !units || !pkg.trial_frequency) return null;
+  return `${countLabel(Number(pkg.trial_frequency), ...units)} gratis`;
+};
+
 export const moduleAccessLabel = (pkg) =>
   pkg.module_selection_limit
     ? `${countLabel(pkg.module_selection_limit, "módulo", "módulos")} a elegir`
@@ -85,6 +93,7 @@ export const toPlanView = (pkg) => {
     annualPrice: formatPrice(pkg.annual_price),
     savings: savings > 0 ? formatPrice(savings) : null,
     users: userLabel(pkg.user_limit),
+    trial: trialLabel(pkg),
     highlights: [
       moduleAccessLabel(pkg),
       ...generalFeatures

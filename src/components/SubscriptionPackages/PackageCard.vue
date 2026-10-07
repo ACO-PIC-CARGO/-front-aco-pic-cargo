@@ -39,6 +39,9 @@
         Ahorras {{ plan.savings }} al año
       </span>
     </div>
+    <p v-if="plan.trial" class="plan__trial">
+      <i class="mdi mdi-gift-outline" aria-hidden="true"></i> {{ plan.trial }}
+    </p>
 
     <p class="plan__users">
       <i class="mdi mdi-account" aria-hidden="true"></i> {{ plan.users }}
@@ -265,6 +268,21 @@ export default {
   font-size: 12px;
   font-weight: 700;
   color: var(--planes-savings-ink);
+}
+
+.plan__trial {
+  display: inline-flex;
+  align-items: center;
+  align-self: flex-start;
+  gap: 6px;
+  margin-top: 8px;
+  padding: 3px 10px;
+  border: 1px solid var(--planes-accent-border);
+  border-radius: 6px;
+  background: var(--planes-accent-tint);
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--planes-accent);
 }
 
 .plan__users {

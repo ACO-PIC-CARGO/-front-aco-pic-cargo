@@ -196,6 +196,60 @@
             </FormField>
           </section>
 
+          <section class="form-section" aria-labelledby="section-trial">
+            <h3 id="section-trial" class="form-section__title">
+              Periodo de prueba
+            </h3>
+            <label class="switch">
+              <input
+                v-model="draft.trialEnabled"
+                class="switch__input"
+                type="checkbox"
+                role="switch"
+              />
+              <span class="switch__track" aria-hidden="true"></span>
+              Ofrecer periodo de prueba
+            </label>
+            <FormField
+              v-if="draft.trialEnabled"
+              label="Duración"
+              input-id="package-trial-length"
+              :error="visibleErrors.trialFrequency"
+              hint="El cliente deja su tarjeta y se le cobra cuando termina la prueba."
+            >
+              <template #default="field">
+                <div class="form-grid">
+                  <input
+                    id="package-trial-length"
+                    v-model="draft.trialFrequency"
+                    class="input"
+                    type="number"
+                    min="1"
+                    step="1"
+                    inputmode="numeric"
+                    :aria-describedby="field.describedby"
+                    :aria-invalid="String(field.invalid)"
+                    @blur="touch('trialFrequency')"
+                  />
+                  <select
+                    v-model="draft.trialInterval"
+                    class="input"
+                    aria-label="Unidad de la duración"
+                    @change="touch('trialFrequency')"
+                  >
+                    <option
+                      v-for="unit in trialUnits"
+                      :key="unit.value"
+                      :value="unit.value"
+                    >
+                      {{ unit.label }}
+                    </option>
+                  </select>
+                </div>
+              </template>
+            </FormField>
+          </section>
+
           <section class="form-section" aria-labelledby="section-modules">
             <h3 id="section-modules" class="form-section__title">Módulos</h3>
             <p class="form-section__help">
@@ -460,6 +514,7 @@ import {
   MAX_HIGHLIGHTS,
   NAME_MAX_LENGTH,
   TAGLINE_MAX_LENGTH,
+  TRIAL_UNITS,
   canBeHighlighted,
   draftFromPackage,
   draftToPackage,
@@ -489,6 +544,7 @@ const FIELD_ORDER = [
   ["monthlyPrice", "package-monthly-price"],
   ["annualPrice", "package-annual-price"],
   ["userLimit", "package-users"],
+  ["trialFrequency", "package-trial-length"],
   ["moduleIds", "package-modules"],
   ["selectionLimit", "package-selection"],
   ["features", "new-feature"],
@@ -513,6 +569,7 @@ export default {
     previewAnnual: true,
     previewExpanded: true,
     accessOptions: ACCESS_OPTIONS,
+    trialUnits: TRIAL_UNITS,
     billingOptions: BILLING_OPTIONS,
     limits: {
       name: NAME_MAX_LENGTH,

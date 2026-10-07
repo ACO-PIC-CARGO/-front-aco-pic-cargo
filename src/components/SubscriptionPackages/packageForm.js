@@ -3,6 +3,11 @@ export const NAME_MAX_LENGTH = 60;
 export const TAGLINE_MAX_LENGTH = 120;
 export const FEATURE_MAX_LENGTH = 160;
 
+export const TRIAL_UNITS = [
+  { value: "day", label: "Días", max: 365 },
+  { value: "month", label: "Meses", max: 12 },
+];
+
 let lastFeatureKey = 0;
 
 export const newFeature = (description = "", moduleId = null) => {
@@ -26,6 +31,9 @@ export const emptyDraft = () => ({
   moduleIds: [],
   selectionLimit: null,
   isFeatured: false,
+  trialEnabled: false,
+  trialInterval: "day",
+  trialFrequency: 15,
   features: [],
 });
 
@@ -39,6 +47,9 @@ export const draftFromPackage = (pkg) => ({
   moduleIds: pkg.modules.map((module) => module.id),
   selectionLimit: pkg.module_selection_limit,
   isFeatured: pkg.is_featured,
+  trialEnabled: Boolean(pkg.trial_enabled),
+  trialInterval: pkg.trial_interval || "day",
+  trialFrequency: pkg.trial_frequency || 15,
   features: pkg.features.map((feature) => ({
     ...newFeature(feature.description, feature.module_id),
     isIncluded: feature.is_included,
@@ -98,6 +109,19 @@ const modulesErrors = (draft) => {
   return {};
 };
 
+const trialError = (draft) => {
+  if (!draft.trialEnabled) return null;
+  const unit = TRIAL_UNITS.find((item) => item.value === draft.trialInterval);
+  if (!unit || isBlank(draft.trialFrequency))
+    return "Elige la duración del periodo de prueba.";
+  const length = Number(draft.trialFrequency);
+  if (!Number.isInteger(length) || length < 1 || length > unit.max)
+    return `La prueba puede durar de 1 a ${
+      unit.max
+    } ${unit.label.toLowerCase()}.`;
+  return null;
+};
+
 export const validateDraft = (draft) => {
   const errors = {
     name: nameError(draft.name),
@@ -115,6 +139,7 @@ export const validateDraft = (draft) => {
       Number.isInteger(Number(draft.userLimit)) && Number(draft.userLimit) >= 1
         ? null
         : "El paquete debe incluir al menos 1 usuario.",
+    trialFrequency: trialError(draft),
     features: featuresError(draft.features),
     ...modulesErrors(draft),
   };
@@ -139,6 +164,9 @@ export const toPayload = (draft) => ({
   user_limit: Number(draft.userLimit),
   module_selection_limit: draft.selectionLimit,
   is_featured: draft.isFeatured,
+  trial_enabled: draft.trialEnabled,
+  trial_interval: draft.trialInterval,
+  trial_frequency: Number(draft.trialFrequency) || null,
   modules: draft.moduleIds,
   features: draft.features.map(toFeaturePayload),
 });
