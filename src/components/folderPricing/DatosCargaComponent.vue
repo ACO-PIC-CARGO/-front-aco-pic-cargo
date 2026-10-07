@@ -641,9 +641,12 @@ export default {
   methods: {
     ...mapActions(["_getContainers", "getPortBegin", "getPortEnd"]),
     cambiarGrupalIndividual() {
-      if (this.$store.state.pricing.datosPrincipales.esgrupalflag) {
-        if (this.$store.state.pricing.datosPrincipales.esgrupalflag === true) {
-          this.$store.state.pricing.datosPrincipales.esindividualflag = false;
+      const { esindividualflag, esgrupalflag } =
+        this.$store.state.pricing.datosPrincipales;
+
+      if (esgrupalflag) {
+        if (esgrupalflag === true) {
+          esindividualflag = false;
           let percepcionAduana =
             this.$store.state.masterusuarios.lstPercepcionAduana.find(
               (v) => v.codigo == "02",
@@ -653,36 +656,30 @@ export default {
           setTimeout(() => {
             Promise.all([
               this.cambiarMontosACero({
-                esgrupalflag:
-                  this.$store.state.pricing.datosPrincipales.esgrupalflag,
-                esindividualflag:
-                  this.$store.state.pricing.datosPrincipales.esindividualflag,
+                esgrupalflag: esgrupalflag,
+                esindividualflag: esindividualflag,
               }),
               this.cambiarNotasIndividualGrupal({
-                esgrupalflag:
-                  this.$store.state.pricing.datosPrincipales.esgrupalflag,
-                esindividualflag:
-                  this.$store.state.pricing.datosPrincipales.esindividualflag,
+                esgrupalflag: esgrupalflag,
+                esindividualflag: esindividualflag,
               }),
             ]);
           }, 500);
         }
       }
-      if (this.$store.state.pricing.datosPrincipales.esindividualflag) {
-        this.$store.state.pricing.datosPrincipales.esgrupalflag = false;
+      if (esindividualflag) {
+        esgrupalflag = false;
         setTimeout(() => {
           Promise.all([
             this.cambiarMontosACero({
-              esgrupalflag:
-                this.$store.state.pricing.datosPrincipales.esgrupalflag,
-              esindividualflag:
-                this.$store.state.pricing.datosPrincipales.esindividualflag,
+              esgrupalflag: esgrupalflag,
+              esindividualflag: esindividualflag,
             }),
             this.cambiarNotasIndividualGrupal(),
           ]);
         }, 100);
       }
-      this.cambiarImpuesto()
+      this.cambiarImpuesto();
     },
     cambiarMontosACero({ esgrupalflag = false, esindividualflag = false }) {
       const flags = { esgrupalflag, esindividualflag };
@@ -871,7 +868,10 @@ export default {
           let val =
             !!this.$store.state.calculadoras.fletePricing.monto_flete_grupal;
           datoFlete.monto = val
-            ? this.$store.state.calculadoras.fletePricing.monto_flete_grupal
+            ? this.obtenerPrecioUnitarioGrupal(
+                item,
+                this.$store.state.calculadoras.fletePricing.monto_flete_grupal,
+              )
             : 0;
           datoFlete.tienefleteflag = val;
           datoFlete.fechavigencia = val
@@ -890,9 +890,17 @@ export default {
             !!this.$store.state.calculadoras.fletePricing
               .monto_flete_grupal_venta;
           datoFlete.monto = val
-            ? this.$store.state.calculadoras.fletePricing
-                .monto_flete_grupal_venta -
-              this.$store.state.calculadoras.fletePricing.monto_flete_grupal
+            ? this.obtenerPrecioUnitarioGrupal(
+                item,
+                parseFloat(
+                  this.$store.state.calculadoras.fletePricing
+                    .monto_flete_grupal_venta || 0,
+                ) -
+                  parseFloat(
+                    this.$store.state.calculadoras.fletePricing
+                      .monto_flete_grupal || 0,
+                  ),
+              )
             : 0;
           datoFlete.tienefleteflag = val;
           datoFlete.fechavigencia = val
@@ -904,16 +912,17 @@ export default {
       if (item.code_cost == 4 && item.esventaflag == 1) {
         if (this.$store.state.pricing.datosPrincipales.esgrupalflag) {
           let val =
-            !!this.$store.state.calculadoras.fletePricing
-              .monto_flete_grupal_venta;
+            !!this.$store.state.calculadoras.fletePricing.monto_flete_grupal;
           datoFlete.monto = val
-            ? this.$store.state.calculadoras.fletePricing
-                .monto_flete_grupal_venta
+            ? this.obtenerPrecioUnitarioGrupal(
+                item,
+                this.$store.state.calculadoras.fletePricing.monto_flete_grupal,
+              )
             : 0;
           datoFlete.tienefleteflag = val;
           datoFlete.fechavigencia = val
-            ? this.$store.state.calculadoras.fletePricing
-                .vigencia_grupal_venta || null
+            ? this.$store.state.calculadoras.fletePricing.vigencia_grupal ||
+              null
             : null;
         }
       }
@@ -921,6 +930,22 @@ export default {
         datoFlete.monto = 0;
       }
       return datoFlete;
+    },
+    obtenerPrecioUnitarioGrupal(item, monto) {
+      const { listMultiplicador, datosPrincipales } = this.$store.state.pricing;
+      const multiplicador = (listMultiplicador || []).find(
+        (v) => v.id == item.id_multiplicador,
+      );
+      const factor = multiplicador
+        ? this.calcularFac(
+            multiplicador.code,
+            datosPrincipales.volumen,
+            datosPrincipales.peso,
+            datosPrincipales.containers,
+            datosPrincipales.amount,
+          )
+        : 0;
+      return factor > 0 ? parseFloat(monto || 0) / factor : 0;
     },
     recargarPuertoOrigen(textoBuscar) {
       clearTimeout(this.puertoOrigenDebounce);

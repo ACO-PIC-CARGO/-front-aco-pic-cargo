@@ -251,7 +251,22 @@ export default {
             .id_branch,
         }),
       ]);
+       const {  esgrupalflag } =
+        this.$store.state.pricing.datosPrincipales;
 
+      if (esgrupalflag) {
+        serv = serv.map((v) => {
+          if (v.code_service == 14) {
+            return {
+              ...v,
+              status: 0,
+            };
+          }
+
+          return v;
+        });
+      }
+      console.log("servicios filtrados", serv);
       this.$store.state.pricing.listServices = serv;
       this.$nextTick(() => {
         // setTimeout(() => {
@@ -617,7 +632,10 @@ export default {
         const val =
           !!this.$store.state.calculadoras.fletePricing.monto_flete_grupal;
         datoFlete.monto = val
-          ? this.$store.state.calculadoras.fletePricing.monto_flete_grupal
+          ? this.obtenerPrecioUnitarioGrupal(
+              item,
+              this.$store.state.calculadoras.fletePricing.monto_flete_grupal,
+            )
           : 0;
         datoFlete.tienefleteflag = val;
         datoFlete.fechavigencia = val
@@ -629,27 +647,20 @@ export default {
     obtenerFleteOpcionVentaGrupal(item) {
       let datoFlete = { monto: 0, tienefleteflag: false, fechavigencia: null };
       if (item.code_cost == 7) {
-        let val = this.$store.state.pricing.preCostos.find(
-          (v) =>
-            v.id_incoterms ==
-              this.$store.state.pricing.datosPrincipales.idincoterms &&
-            v.id_modality ==
-              this.$store.state.pricing.datosPrincipales.idsentido &&
-            v.id_shipment ==
-              this.$store.state.pricing.datosPrincipales.idtipocarga.id &&
-            v.code_cost == 4,
-        );
-        let facMultiplicador = this.formatearCostoTotal(val);
-
         const tieneFleteVenta =
           !!this.$store.state.calculadoras.fletePricing
             .monto_flete_grupal_venta;
         datoFlete.monto = tieneFleteVenta
-          ? this.$store.state.calculadoras.fletePricing
-              .monto_flete_grupal_venta -
-            parseFloat(
-              this.$store.state.calculadoras.fletePricing.monto_flete_grupal *
-                facMultiplicador,
+          ? this.obtenerPrecioUnitarioGrupal(
+              item,
+              parseFloat(
+                this.$store.state.calculadoras.fletePricing
+                  .monto_flete_grupal_venta || 0,
+              ) -
+                parseFloat(
+                  this.$store.state.calculadoras.fletePricing
+                    .monto_flete_grupal || 0,
+                ),
             )
           : 0;
         datoFlete.tienefleteflag = tieneFleteVenta;
@@ -661,21 +672,27 @@ export default {
       if (item.code_cost == 4) {
         const tieneFleteVenta =
           !!this.$store.state.calculadoras.fletePricing
-            .monto_flete_grupal_venta;
+            .monto_flete_grupal;
         datoFlete.monto = tieneFleteVenta
-          ? this.$store.state.calculadoras.fletePricing
-              .monto_flete_grupal_venta
+          ? this.obtenerPrecioUnitarioGrupal(
+              item,
+              this.$store.state.calculadoras.fletePricing.monto_flete_grupal,
+            )
           : 0;
         datoFlete.tienefleteflag = tieneFleteVenta;
         datoFlete.fechavigencia = tieneFleteVenta
           ? this.$store.state.calculadoras.fletePricing
-              .vigencia_grupal_venta || null
+              .vigencia_grupal || null
           : null;
       }
       if (datoFlete.monto < 0) {
         datoFlete.monto = 0;
       }
       return datoFlete;
+    },
+    obtenerPrecioUnitarioGrupal(item, monto) {
+      const factor = parseFloat(this.formatearCostoTotal(item)) || 0;
+      return factor > 0 ? parseFloat(monto || 0) / factor : 0;
     },
     obtenerTransporteGrupal(item) {
       let monto = 0;
