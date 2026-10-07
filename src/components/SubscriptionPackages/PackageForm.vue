@@ -686,18 +686,6 @@ export default {
 };
 </script>
 
-<style>
-.package-dialog.v-dialog {
-  border-radius: var(--planes-radius-card);
-  border: 1px solid var(--planes-border);
-}
-
-.package-dialog.v-dialog--fullscreen {
-  border-radius: 0;
-  border: 0;
-}
-</style>
-
 <style scoped>
 .package-form {
   display: flex;

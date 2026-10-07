@@ -169,6 +169,16 @@
   }
 }
 
+.package-dialog.v-dialog {
+  border-radius: var(--planes-radius-card);
+  border: 1px solid var(--planes-border);
+}
+
+.package-dialog.v-dialog--fullscreen {
+  border-radius: 0;
+  border: 0;
+}
+
 .icon-button {
   display: inline-flex;
   align-items: center;
