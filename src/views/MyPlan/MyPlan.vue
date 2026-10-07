@@ -201,6 +201,7 @@
     <ModuleSelectDialog
       v-model="isModuleDialogOpen"
       :pkg="modulePackage"
+      :confirm-label="isChangingPlan ? 'Ver el cambio' : undefined"
       @confirm="onModulesChosen"
     />
   </div>

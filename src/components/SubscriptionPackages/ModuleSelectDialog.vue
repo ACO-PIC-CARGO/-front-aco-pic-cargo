@@ -64,7 +64,7 @@
           class="plans-button plans-button--primary"
           :disabled="!isComplete"
         >
-          Continuar al pago
+          {{ confirmLabel }}
         </button>
       </footer>
     </form>
@@ -77,6 +77,7 @@ export default {
   props: {
     value: { type: Boolean, default: false },
     pkg: { type: Object, default: null },
+    confirmLabel: { type: String, default: "Continuar al pago" },
   },
   data: () => ({
     selectedIds: [],
