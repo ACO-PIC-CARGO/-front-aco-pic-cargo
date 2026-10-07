@@ -109,6 +109,20 @@ test("toPayload trims text, converts numbers and keeps module features included"
   });
 });
 
+test("an excluded feature is never sent as highlighted nor counts toward the limit", () => {
+  const features = [
+    feature({ key: 1, isHighlighted: true }),
+    feature({ key: 2, isHighlighted: true }),
+    feature({ key: 3, isIncluded: false, isHighlighted: true }),
+  ];
+
+  assert.deepEqual(validateDraft({ ...validDraft(), features }), {});
+  assert.equal(
+    toPayload({ ...validDraft(), features }).features[2].is_highlighted,
+    false
+  );
+});
+
 test("removing a module keeps its features as general ones and lowers the selection", () => {
   const draft = {
     ...validDraft(),

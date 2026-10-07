@@ -72,6 +72,22 @@ test("highlights start with the module access and add the highlighted features",
   ]);
 });
 
+test("an excluded feature never shows as a highlight", () => {
+  const pkg = {
+    ...START,
+    features: [
+      {
+        description: "Soporte premium",
+        module_id: null,
+        is_included: false,
+        is_highlighted: true,
+      },
+    ],
+  };
+
+  assert.deepEqual(toPlanView(pkg).highlights, ["1 módulo a elegir"]);
+});
+
 test("excludes list only the general features that are not included", () => {
   assert.deepEqual(toPlanView(START).excludes, [
     "Los 3 módulos al mismo tiempo",

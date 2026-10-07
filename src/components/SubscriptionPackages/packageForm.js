@@ -46,9 +46,14 @@ export const draftFromPackage = (pkg) => ({
   })),
 });
 
+export const canBeHighlighted = (feature) =>
+  !feature.moduleId && feature.isIncluded;
+
+const isShownHighlighted = (feature) =>
+  canBeHighlighted(feature) && feature.isHighlighted;
+
 export const highlightedCount = (features) =>
-  features.filter((feature) => !feature.moduleId && feature.isHighlighted)
-    .length;
+  features.filter(isShownHighlighted).length;
 
 const isBlank = (text) => !String(text || "").trim();
 
@@ -123,7 +128,7 @@ const toFeaturePayload = (feature) => ({
   description: feature.description.trim(),
   module_id: feature.moduleId,
   is_included: feature.moduleId ? true : feature.isIncluded,
-  is_highlighted: feature.moduleId ? false : feature.isHighlighted,
+  is_highlighted: isShownHighlighted(feature),
 });
 
 export const toPayload = (draft) => ({

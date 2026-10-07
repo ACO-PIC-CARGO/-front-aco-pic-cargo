@@ -88,7 +88,7 @@ export const toPlanView = (pkg) => {
     highlights: [
       moduleAccessLabel(pkg),
       ...generalFeatures
-        .filter((feature) => feature.is_highlighted)
+        .filter((feature) => feature.is_included && feature.is_highlighted)
         .map((feature) => feature.description),
     ],
     includes: [
