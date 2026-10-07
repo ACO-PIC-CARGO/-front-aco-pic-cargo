@@ -110,10 +110,16 @@
       </section>
 
       <template v-else>
-        <p v-if="plan" class="my-plan__previous">
-          Tu plan anterior, ACO {{ plan.package_name }}, se canceló el
-          {{ formatDate(plan.canceled_at) }}. Elige un plan para volver a
-          activarlo.
+        <p class="my-plan__notice" role="status">
+          <i class="mdi mdi-information-outline" aria-hidden="true"></i>
+          <span v-if="plan">
+            Tu plan anterior, ACO {{ plan.package_name }}, se canceló el
+            {{ formatDate(plan.canceled_at) }}. Elige un plan para volver a
+            activarlo.
+          </span>
+          <span v-else>
+            Tu empresa aún no tiene un plan activo. Elige uno para empezar.
+          </span>
         </p>
         <div class="my-plan__toolbar">
           <p class="my-plan__lead">Elige el plan para tu empresa.</p>
@@ -457,12 +463,30 @@ export default {
 }
 
 .my-plan__subtitle,
-.my-plan__lead,
-.my-plan__previous {
+.my-plan__lead {
   margin-top: 6px;
   max-width: 70ch;
   font-size: 16px;
   color: var(--planes-text-muted);
+}
+
+.my-plan__notice {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  max-width: 70ch;
+  margin-top: 4px;
+  padding: 12px 16px;
+  border: 1px solid var(--planes-accent-border);
+  border-radius: var(--planes-radius-control);
+  background: var(--planes-accent-tint);
+  font-size: 15px;
+  color: var(--planes-text);
+}
+
+.my-plan__notice .mdi {
+  font-size: 20px;
+  color: var(--planes-accent);
 }
 
 .my-plan__toolbar {
