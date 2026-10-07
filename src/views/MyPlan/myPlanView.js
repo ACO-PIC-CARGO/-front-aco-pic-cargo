@@ -26,6 +26,7 @@ export const formatDate = (value) =>
         day: "numeric",
         month: "long",
         year: "numeric",
+        timeZone: "UTC",
       })
     : "";
 
@@ -61,7 +62,7 @@ export const hasSession = () => {
   }
 };
 
-export const savePendingChoice =(choice) => {
+export const savePendingChoice = (choice) => {
   try {
     localStorage.setItem(PENDING_PLAN_KEY, JSON.stringify(choice));
     return true;

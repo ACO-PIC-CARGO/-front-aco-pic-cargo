@@ -13,5 +13,12 @@ export const startCheckout = (payload) =>
 export const cancelCompanyPlan = () =>
   request({ method: "post", url: "branch_subscription/cancel" });
 
+export const confirmCompanyPlan = (transactionId) =>
+  request({
+    method: "post",
+    url: "branch_subscription/confirm",
+    data: { transaction_id: transactionId },
+  });
+
 export const openBillingPortal = () =>
   request({ method: "post", url: "branch_subscription/portal" });

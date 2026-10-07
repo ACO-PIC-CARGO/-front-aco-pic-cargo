@@ -179,6 +179,7 @@ import { toPlanView } from "@/components/SubscriptionPackages/packageView";
 import { fetchPublicPackages, isEmptyResult } from "@/api/subscriptionPackages";
 import {
   cancelCompanyPlan,
+  confirmCompanyPlan,
   fetchCompanyPlan,
   openBillingPortal,
   startCheckout,
@@ -253,10 +254,10 @@ export default {
       return statusView(this.plan);
     },
   },
-  mounted() {
+  async mounted() {
     this.$store.state.mainTitle = "MI PLAN";
     this.applyPendingChoice();
-    this.loadPage();
+    if (await this.loadPage()) clearPendingChoice();
   },
   beforeDestroy() {
     this.isLeaving = true;
@@ -273,7 +274,6 @@ export default {
       if (!choice) return;
       this.chosenPackageId = choice.packageId;
       this.isAnnual = choice.billing === "annual";
-      clearPendingChoice();
       if (this.$route.query.paquete) this.$router.replace({ name: "miPlan" });
     },
     async loadPage() {
@@ -288,11 +288,12 @@ export default {
       if (failed) {
         this.errorMessage = failed.mensaje;
         this.loadState = "error";
-        return;
+        return false;
       }
       this.plan = planResponse.estadoflag ? planResponse.data[0] : null;
       this.packages = packagesResponse.data;
       this.loadState = "ready";
+      return true;
     },
     toggleDetails(pkg) {
       this.expandedId = this.expandedId === pkg.id ? null : pkg.id;
@@ -341,12 +342,24 @@ export default {
     },
     onCheckoutEvent(event) {
       if (event.name === "checkout.completed") {
-        this.resetBuying();
-        this.confirmPayment(0);
+        this.confirmRightAway(event.data && event.data.transaction_id);
       }
       if (event.name === "checkout.closed" && !this.confirmState) {
         this.resetBuying();
       }
+    },
+    async confirmRightAway(transactionId) {
+      this.resetBuying();
+      this.confirmState = "waiting";
+      const response = await confirmCompanyPlan(transactionId);
+      if (this.isLeaving) return;
+      if (response.estadoflag && isLivePlan(response.data[0])) {
+        this.plan = response.data[0];
+        this.confirmState = null;
+        notifySuccess(`Tu plan ACO ${this.plan.package_name} ya está activo.`);
+        return;
+      }
+      this.confirmPayment(0);
     },
     confirmPayment(attempt) {
       if (this.isLeaving) return;

@@ -115,6 +115,7 @@ import {
   moduleNames,
   toPlanView,
 } from "@/components/SubscriptionPackages/packageView";
+import { preparePaddle } from "@/api/paddleCheckout";
 import {
   fetchPublicPackages,
   isEmptyResult,
@@ -149,6 +150,7 @@ export default {
     },
   },
   created() {
+    if (this.$route.query._ptxn) preparePaddle();
     this.loadPlans();
   },
   methods: {
