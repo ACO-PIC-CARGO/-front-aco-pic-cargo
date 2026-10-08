@@ -43,8 +43,8 @@
                 <v-checkbox
                   label=""
                   class="mx-auto"
-                  v-model="opcion.selected"
-                  @click="cambiarOpcionSeleccionada(opcion)"
+                  :input-value="opcion.selected"
+                  @change="cambiarOpcionSeleccionada(opcion, $event)"
                 >
                 </v-checkbox>
               </td>
@@ -824,9 +824,14 @@ export default {
       this.dialog = !this.dialog;
       this.limpiar();
     },
-    cambiarOpcionSeleccionada(opcion) {
-      console.log(opcion);
-      // this.$emit('cambiarSeleccionado',opcion)
+    cambiarOpcionSeleccionada(opcion, selected) {
+      opcion.selected = selected;
+      const opcionEnStore = this.$store.state.pricing.opcionCostos.find(
+        (item) => item.nro_propuesta === opcion.nro_propuesta,
+      );
+      if (opcionEnStore) {
+        opcionEnStore.selected = selected;
+      }
     },
   },
   watch: {
