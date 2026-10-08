@@ -63,8 +63,23 @@
           :index="index"
           @toggle-details="toggleDetails(plan)"
         >
-          <button type="button" class="plan__cta" @click="buyPlan(plan)">
-            Adquirir plan <i class="mdi mdi-arrow-right" aria-hidden="true"></i>
+          <button
+            type="button"
+            class="plan__cta"
+            :disabled="busy || actionOf(plan) === 'current'"
+            @click="buyPlan(plan)"
+          >
+            <i
+              v-if="buyingId === plan.id"
+              class="mdi mdi-loading mdi-spin"
+              aria-hidden="true"
+            ></i>
+            {{ ctaLabel(plan) }}
+            <i
+              v-if="buyingId !== plan.id"
+              class="mdi mdi-arrow-right"
+              aria-hidden="true"
+            ></i>
           </button>
           <p class="plan__note">Pago seguro procesado por Paddle</p>
         </PackageCard>
@@ -102,12 +117,28 @@
         <button type="submit" class="purchase-notice__close">Ahora no</button>
       </form>
     </dialog>
+
+    <ModuleSelectDialog
+      v-model="isModuleDialogOpen"
+      :pkg="modulePackage"
+      :confirm-label="companyPlan ? 'Ver el cambio' : undefined"
+      @confirm="onModulesChosen"
+    />
   </div>
 </template>
 
 <script>
 import "@/styles/plans-theme.css";
-import { hasSession, savePendingChoice } from "@/views/MyPlan/myPlanView";
+import Swal from "sweetalert2";
+import {
+  hasSession,
+  isLivePlan,
+  purchaseAction,
+  savePendingChoice,
+} from "@/views/MyPlan/myPlanView";
+import { confirmPlanChange, openPlanCheckout } from "@/views/MyPlan/planPurchase";
+import ModuleSelectDialog from "@/components/SubscriptionPackages/ModuleSelectDialog.vue";
+import { fetchCompanyPlan } from "@/api/branchSubscription";
 import PackageCard from "@/components/SubscriptionPackages/PackageCard.vue";
 import SegmentedControl from "@/components/SubscriptionPackages/SegmentedControl.vue";
 import {
@@ -115,7 +146,7 @@ import {
   moduleNames,
   toPlanView,
 } from "@/components/SubscriptionPackages/packageView";
-import { preparePaddle } from "@/api/paddleCheckout";
+import { preparePaddle, stopCheckoutEvents } from "@/api/paddleCheckout";
 import {
   fetchPublicPackages,
   isEmptyResult,
@@ -126,9 +157,18 @@ const BILLING_OPTIONS = [
   { value: true, label: "Anual" },
 ];
 
+const CTA_LABELS = {
+  buy: "Adquirir plan",
+  change: "Cambiar a este plan",
+  "change-module": "Cambiar módulo",
+  current: "Tu plan actual",
+  manage: "Ver Mi plan",
+};
+const notifyError = (message) => Swal.fire({ icon: "error", text: message });
+
 export default {
   name: "Planes",
-  components: { PackageCard, SegmentedControl },
+  components: { PackageCard, SegmentedControl, ModuleSelectDialog },
   data: () => ({
     packages: [],
     loadState: "loading",
@@ -137,8 +177,16 @@ export default {
     expandedPlanId: null,
     selectedPlanName: "",
     billingOptions: BILLING_OPTIONS,
+    companyPlan: null,
+    busy: false,
+    buyingId: null,
+    isModuleDialogOpen: false,
+    modulePackage: null,
   }),
   computed: {
+    billing() {
+      return this.isAnnual ? "annual" : "monthly";
+    },
     plans() {
       return this.packages.map(toPlanView);
     },
@@ -152,8 +200,33 @@ export default {
   created() {
     if (this.$route.query._ptxn) preparePaddle();
     this.loadPlans();
+    if (hasSession()) this.loadCompanyPlan();
+  },
+  beforeDestroy() {
+    stopCheckoutEvents();
   },
   methods: {
+    async loadCompanyPlan() {
+      const response = await fetchCompanyPlan();
+      this.companyPlan =
+        response.estadoflag && isLivePlan(response.data[0])
+          ? response.data[0]
+          : null;
+    },
+    packageOf(plan) {
+      return this.packages.find((pkg) => pkg.id === plan.id);
+    },
+    actionOf(plan) {
+      return hasSession()
+        ? purchaseAction(this.packageOf(plan), this.companyPlan, this.billing)
+        : "buy";
+    },
+    ctaLabel(plan) {
+      if (this.buyingId === plan.id) {
+        return this.companyPlan ? "Calculando el cambio" : "Abriendo el pago";
+      }
+      return CTA_LABELS[this.actionOf(plan)];
+    },
     async loadPlans() {
       this.loadState = "loading";
       const response = await fetchPublicPackages();
@@ -171,20 +244,72 @@ export default {
       this.expandedPlanId = this.expandedPlanId === plan.id ? null : plan.id;
     },
     buyPlan(plan) {
-      const billing = this.isAnnual ? "annual" : "monthly";
-      if (hasSession()) {
-        this.$router.push({
-          name: "miPlan",
-          query: {
-            paquete: plan.id,
-            ciclo: this.isAnnual ? "anual" : "mensual",
-          },
-        });
+      if (!hasSession()) {
+        savePendingChoice({ packageId: plan.id, billing: this.billing });
+        this.selectedPlanName = plan.name;
+        this.$refs.purchaseNotice.showModal();
         return;
       }
-      savePendingChoice({ packageId: plan.id, billing });
-      this.selectedPlanName = plan.name;
-      this.$refs.purchaseNotice.showModal();
+      const action = this.actionOf(plan);
+      if (action === "manage") {
+        this.$router.push({ name: "miPlan" });
+        return;
+      }
+      if (action === "current") return;
+      const pkg = this.packageOf(plan);
+      if (pkg.module_selection_limit) {
+        this.modulePackage = pkg;
+        this.isModuleDialogOpen = true;
+        return;
+      }
+      this.submitChoice(pkg, []);
+    },
+    onModulesChosen(moduleIds) {
+      this.submitChoice(this.modulePackage, moduleIds);
+    },
+    submitChoice(pkg, moduleIds) {
+      const payload = {
+        package_id: pkg.id,
+        billing: this.billing,
+        module_ids: moduleIds,
+      };
+      if (this.companyPlan) return this.changePlan(pkg, payload);
+      return this.buy(pkg, payload);
+    },
+    async buy(pkg, payload) {
+      this.busy = true;
+      this.buyingId = pkg.id;
+      const error = await openPlanCheckout(payload, this.onCheckoutEvent);
+      if (error) {
+        this.resetBuying();
+        notifyError(error);
+      }
+    },
+    onCheckoutEvent(event) {
+      if (event.name === "checkout.completed") {
+        const transactionId = event.data && event.data.transaction_id;
+        this.$router.push({
+          name: "miPlan",
+          query: transactionId ? { transaccion: transactionId } : {},
+        });
+      }
+      if (event.name === "checkout.closed") this.resetBuying();
+    },
+    async changePlan(pkg, payload) {
+      this.buyingId = pkg.id;
+      const result = await confirmPlanChange(pkg.name, payload, (busy) => {
+        this.busy = busy;
+      });
+      this.resetBuying();
+      if (result.error) {
+        notifyError(result.error);
+        return;
+      }
+      if (result.plan) this.$router.push({ name: "miPlan" });
+    },
+    resetBuying() {
+      this.busy = false;
+      this.buyingId = null;
     },
   },
 };
@@ -364,6 +489,11 @@ export default {
 .plan__cta:hover {
   filter: brightness(1.06);
   box-shadow: 0 10px 28px -12px rgba(47, 230, 212, 0.7);
+}
+
+.plan__cta:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
 }
 
 .plan__cta:active {
