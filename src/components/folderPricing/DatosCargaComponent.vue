@@ -639,7 +639,7 @@ export default {
     },
   },
   methods: {
-    ...mapActions(["_getContainers", "getPortBegin", "getPortEnd"]),
+    ...mapActions(["_getContainers", "getPortBegin", "getPortEnd","obtenerFleteCalculadora"]),
     cambiarGrupalIndividual() {
       const { esindividualflag, esgrupalflag } =
         this.$store.state.pricing.datosPrincipales;
@@ -1001,14 +1001,36 @@ export default {
         search: textoBuscar,
       });
     },
-    anadirCarga() {
+    async anadirCarga() {
       if (this.$refs.frmDatosCarga.validate()) {
         this.$store.state.pricing.datosPrincipales.numerobultos =
           this.numerobultos;
         this.$store.state.pricing.datosPrincipales.volumen = this.volumen;
         this.$store.state.pricing.datosPrincipales.peso = this.peso;
-        const { esgrupalflag, esindividualflag } =
-          this.$store.state.pricing.datosPrincipales;
+        const datos = this.$store.state.pricing.datosPrincipales;
+        const idTipoCarga =
+          typeof datos.idtipocarga === "object"
+            ? datos.idtipocarga.id
+            : datos.idtipocarga;
+        const shipment = this.$store.state.pricing.listShipment.find(
+          (v) => v.id == idTipoCarga,
+        );
+        const puertoOrigen = this.$store.state.pricing.listPortBegin.find(
+          (v) => v.id_port == datos.idorigen,
+        );
+        const puertoDestino = this.$store.state.pricing.listPortEnd.find(
+          (v) => v.id_port == datos.iddestino,
+        );
+        this.$store.state.spiner = true;
+        await this.obtenerFleteCalculadora({
+          shipment: shipment.code,
+          puerto_origen: puertoOrigen.puerto,
+          puerto_destino: puertoDestino.puerto,
+          volumen: datos.volumen,
+          peso: datos.peso,
+        });
+        this.$store.state.spiner = false;
+        const { esgrupalflag, esindividualflag } = datos;
         this.cambiarMontosACero({ esgrupalflag, esindividualflag });
         this.$refs.frmDatosCarga.reset();
         this.$store.state.pricing.actualizarCostosFlag =
