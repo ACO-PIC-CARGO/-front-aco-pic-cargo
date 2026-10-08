@@ -6,6 +6,7 @@ import {
   changeSummary,
   planBadge,
   planDetails,
+  purchaseAction,
 } from "../../../src/views/MyPlan/myPlanView.js";
 
 const plan = { package_id: 3, billing: "monthly", status: "active" };
@@ -180,4 +181,54 @@ test("planDetails tolerates a plan without details", () => {
     extras: [],
   });
   assert.deepEqual(planDetails(null), { users: null, modules: [], extras: [] });
+});
+
+test("purchaseAction buys when the company has no live plan", () => {
+  assert.equal(purchaseAction({ id: 3 }, null, "annual"), "buy");
+  assert.equal(
+    purchaseAction(
+      { id: 3 },
+      { status: "canceled", package_id: 3, billing: "annual" },
+      "annual"
+    ),
+    "buy"
+  );
+});
+
+test("purchaseAction changes a live plan like Mi plan does", () => {
+  const plan = { status: "active", package_id: 3, billing: "annual" };
+
+  assert.equal(purchaseAction({ id: 4 }, plan, "annual"), "change");
+  assert.equal(purchaseAction({ id: 3 }, plan, "annual"), "current");
+  assert.equal(
+    purchaseAction(
+      { id: 2, module_selection_limit: 1 },
+      { ...plan, package_id: 2 },
+      "annual"
+    ),
+    "change-module"
+  );
+  assert.equal(
+    purchaseAction({ id: 4 }, { ...plan, status: "trialing" }, "annual"),
+    "change"
+  );
+});
+
+test("purchaseAction sends plans that cannot change to Mi plan", () => {
+  assert.equal(
+    purchaseAction(
+      { id: 4 },
+      { status: "past_due", package_id: 3, billing: "annual" },
+      "annual"
+    ),
+    "manage"
+  );
+  assert.equal(
+    purchaseAction(
+      { id: 4 },
+      { status: "paused", package_id: 3, billing: "annual" },
+      "annual"
+    ),
+    "manage"
+  );
 });

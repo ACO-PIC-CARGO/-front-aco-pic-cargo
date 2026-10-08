@@ -114,6 +114,12 @@ export const cardAction = (pkg, plan, billing) => {
   return pkg.module_selection_limit ? "change-module" : "current";
 };
 
+export const purchaseAction = (pkg, plan, billing) => {
+  if (!isLivePlan(plan)) return "buy";
+  if (!canChangePlan(plan)) return "manage";
+  return cardAction(pkg, plan, billing);
+};
+
 export const changeSummary = (preview) => {
   const recurring = `${formatPrice(preview.recurring_amount)} ${
     PERIOD_BY_BILLING[preview.billing]
