@@ -60,4 +60,12 @@ export default {
   border-radius: var(--planes-radius-control);
   background: var(--planes-surface-solid);
 }
+
+@media (max-width: 600px) {
+  .legal-links--floating {
+    position: static;
+    transform: none;
+    margin: 16px auto;
+  }
+}
 </style>
