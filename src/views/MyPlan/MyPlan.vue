@@ -232,30 +232,28 @@ import { toPlanView } from "@/components/SubscriptionPackages/packageView";
 import { fetchPublicPackages, isEmptyResult } from "@/api/subscriptionPackages";
 import {
   cancelCompanyPlan,
-  changeCompanyPlan,
   confirmCompanyPlan,
   fetchCompanyPlan,
   keepCompanyPlan,
   openBillingPortal,
-  previewPlanChange,
-  startCheckout,
 } from "@/api/branchSubscription";
-import { openPaddleCheckout, stopCheckoutEvents } from "@/api/paddleCheckout";
+import { stopCheckoutEvents } from "@/api/paddleCheckout";
 import {
   billingLabel,
   canChangePlan,
   cardAction,
-  changeSummary,
   clearPendingChoice,
   formatDate,
   isLivePlan,
   PLAN_CHANGED_EVENT,
   planDateLine,
   planDetails,
+  purchaseAction,
   readPendingChoice,
   statusView,
 } from "./myPlanView";
 import { reloadPlanAccess } from "./planAccessStore";
+import { confirmPlanChange, openPlanCheckout } from "./planPurchase";
 
 const BILLING_OPTIONS = [
   { value: false, label: "Mensual" },
@@ -263,12 +261,8 @@ const BILLING_OPTIONS = [
 ];
 const CONFIRM_ATTEMPTS = 20;
 const CONFIRM_INTERVAL_MS = 3000;
-const OPEN_FAILED_MESSAGE =
-  "No pudimos abrir el pago. Intenta de nuevo en unos minutos.";
 const PORTAL_FAILED_MESSAGE =
   "No pudimos abrir la gestión de pagos. Intenta de nuevo en unos minutos.";
-const CHANGE_FAILED_MESSAGE =
-  "No pudimos cambiar tu plan. Intenta de nuevo en unos minutos.";
 const KEEP_FAILED_MESSAGE =
   "No pudimos mantener tu plan. Intenta de nuevo en unos minutos.";
 const CARD_LABELS = {
@@ -345,8 +339,19 @@ export default {
   },
   async mounted() {
     this.$store.state.mainTitle = "MI PLAN";
-    this.applyPendingChoice();
-    if (await this.loadPage()) clearPendingChoice();
+    const transactionId = this.$route.query.transaccion;
+    const choice = readPendingChoice(this.$route.query);
+    if (transactionId || this.$route.query.paquete) {
+      this.$router.replace({ name: "miPlan" });
+    }
+    if (choice) this.isAnnual = choice.billing === "annual";
+    if (!(await this.loadPage())) return;
+    clearPendingChoice();
+    if (transactionId) {
+      this.confirmRightAway(transactionId);
+      return;
+    }
+    if (choice) this.startPendingChoice(choice);
   },
   beforeDestroy() {
     this.isLeaving = true;
@@ -358,12 +363,19 @@ export default {
     formatDate,
     billingLabel,
     planDateLine,
-    applyPendingChoice() {
-      const choice = readPendingChoice(this.$route.query);
-      if (!choice) return;
-      this.chosenPackageId = choice.packageId;
-      this.isAnnual = choice.billing === "annual";
-      if (this.$route.query.paquete) this.$router.replace({ name: "miPlan" });
+    startPendingChoice(choice) {
+      const pkg = this.packages.find((item) => item.id === choice.packageId);
+      if (!pkg) return;
+      this.chosenPackageId = pkg.id;
+      const action = purchaseAction(pkg, this.plan, this.billing);
+      if (action === "buy") {
+        this.choosePackage(pkg);
+        return;
+      }
+      if (action === "change" || action === "change-module") {
+        this.isChangingPlan = true;
+        this.choosePackage(pkg);
+      }
     },
     async loadPage() {
       this.loadState = "loading";
@@ -421,42 +433,23 @@ export default {
       this.isChangingPlan = true;
     },
     async changePlan(pkg, moduleIds) {
-      const payload = {
-        package_id: pkg.id,
-        billing: this.billing,
-        module_ids: moduleIds,
-      };
-      this.busy = true;
       this.buyingId = pkg.id;
-      const preview = await previewPlanChange(payload);
+      const result = await confirmPlanChange(
+        pkg.name,
+        { package_id: pkg.id, billing: this.billing, module_ids: moduleIds },
+        (busy) => {
+          this.busy = busy;
+        }
+      );
       this.resetBuying();
-      if (!preview.estadoflag) {
-        notifyError(preview.mensaje || CHANGE_FAILED_MESSAGE);
+      if (result.error) {
+        notifyError(result.error);
         return;
       }
-
-      const { isConfirmed } = await Swal.fire({
-        icon: "question",
-        title: `¿Cambiar a ACO ${pkg.name}?`,
-        text: changeSummary(preview.data[0]),
-        showCancelButton: true,
-        confirmButtonText: "Sí, cambiar plan",
-        cancelButtonText: "Volver",
-        reverseButtons: true,
-      });
-      if (!isConfirmed) return;
-
-      this.busy = true;
-      this.buyingId = pkg.id;
-      const response = await changeCompanyPlan(payload);
-      this.resetBuying();
-      if (!response.estadoflag) {
-        notifyError(response.mensaje || CHANGE_FAILED_MESSAGE);
-        return;
-      }
-      this.plan = response.data[0];
+      if (!result.plan) return;
+      this.plan = result.plan;
       this.isChangingPlan = false;
-      notifySuccess(response.mensaje);
+      notifySuccess(result.message);
     },
     async keepPlan() {
       const { isConfirmed } = await Swal.fire({
@@ -485,23 +478,8 @@ export default {
     async buy(pkg, moduleIds) {
       this.busy = true;
       this.buyingId = pkg.id;
-      const response = await startCheckout({
-        package_id: pkg.id,
-        billing: this.billing,
-        module_ids: moduleIds,
-      });
-      const transactionId =
-        response.estadoflag &&
-        response.data &&
-        response.data[0] &&
-        response.data[0].transaction_id;
-      if (!transactionId) {
-        this.resetBuying();
-        notifyError(response.mensaje || OPEN_FAILED_MESSAGE);
-        return;
-      }
-      const error = await openPaddleCheckout(
-        transactionId,
+      const error = await openPlanCheckout(
+        { package_id: pkg.id, billing: this.billing, module_ids: moduleIds },
         this.onCheckoutEvent
       );
       if (error) {
