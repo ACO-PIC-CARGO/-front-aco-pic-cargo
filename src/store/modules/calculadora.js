@@ -1371,6 +1371,29 @@ const actions = {
       }
     });
   },
+  async actualizarFlete({ dispatch }, data) {
+    var headers = {
+      "Content-Type": "application/json",
+    };
+
+    var config = {
+      method: "put",
+      url: process.env.VUE_APP_URL_MAIN + "calc/flete/actualizar",
+      headers: headers,
+      data: data,
+    };
+    let response = await axios(config);
+    if (response.data.estadoflag) {
+      let res = response.data;
+      Swal.fire({
+        icon: "success",
+        title: res.mensaje,
+        allowEnterKey: true,
+        allowOutsideClick: true,
+        allowEscapeKey: true,
+      }).then((res) => {});
+    }
+  },
 };
 
 export default {

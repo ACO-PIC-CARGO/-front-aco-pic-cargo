@@ -64,14 +64,13 @@
 
       <!-- ENLACE NAVEGABLE DEL MENÚ -->
       <template v-slot:label="{ item }">
-        <router-link
+        <span
           v-if="item.route"
-          :to="getRouteForItem(item)"
           class="treeview-label full-width-link"
           style="text-decoration: none; color: inherit"
         >
           {{ item.name }}
-        </router-link>
+        </span>
         <span v-else class="treeview-label">{{ item.name }}</span>
       </template>
     </v-treeview>
@@ -411,7 +410,11 @@ export default {
       const item = selected[0];
       if (item && item.route) {
         const route = this.getRouteForItem(item);
-        if (route && route.name) {
+        if (
+          route &&
+          route.name &&
+          this.$router.resolve(route).route.fullPath !== this.$route.fullPath
+        ) {
           this.$router.push(route);
         }
       }
