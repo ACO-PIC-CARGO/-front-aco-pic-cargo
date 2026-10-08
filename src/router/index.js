@@ -44,6 +44,7 @@ import registroPayForCliente from "../views/FolderBanks/registroPagoCliente";
 import verPagosPorCliente from "../views/FolderBanks/verPagosPorCliente";
 import litProgrammedPayment from "../views/programmedPayment/listProgrammedPayment";
 import listFacturacion from "../views/folderBilling/listFacturacionView";
+import { planAccessGuard } from "@/views/MyPlan/planAccessGuard";
 
 Vue.use(VueRouter);
 
@@ -58,6 +59,11 @@ const routes = [
     name: "RegistroEmpresa",
     component: () =>
       import("../views/FolderEnterprise/RegistroNuevaEmpresa.vue"),
+  },
+  {
+    path: "/planes",
+    name: "Planes",
+    component: () => import("../views/Planes/Planes.vue"),
   },
 
   {
@@ -691,7 +697,12 @@ const routes = [
         path: "suscripcion",
         name: "lstPlanes",
         component: () =>
-          import("../views/Membresia/RegistroMembresiacarlos.vue"),
+          import("../views/SubscriptionPackages/SubscriptionPackages.vue"),
+      },
+      {
+        path: "mi-plan",
+        name: "miPlan",
+        component: () => import("../views/MyPlan/MyPlan.vue"),
       },
       // {
       //   path: "suscripcion3",
@@ -887,4 +898,5 @@ router.beforeEach((to, from, next) => {
   }
   next();
 });
+router.beforeEach(planAccessGuard(router));
 export default router;
