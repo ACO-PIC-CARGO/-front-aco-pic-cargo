@@ -200,6 +200,7 @@ export default {
       return this.$store.state.pricing.costoflag;
     },
     getExisteImpuesto() {
+      console.log('ssss',this.$store.state.pricing.listServices)
       return this.$store.state.pricing.listServices.some(
         (v) => v.codegroupservices == "15" || v.codegroupservices == 15,
       );

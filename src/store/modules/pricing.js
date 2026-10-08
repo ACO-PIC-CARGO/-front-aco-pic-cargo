@@ -1679,7 +1679,7 @@ const actions = {
           date_end: element.date_end,
           tiempo_transito: element.tiempo_transito,
           listCostos: element.listcostos,
-          // listImpuestos: element.listimpuestos,
+          listImpuestos: element.listimpuestos,
           // listNotasQuote: element.listnotasquote,
           selected: element.selected,
         });
