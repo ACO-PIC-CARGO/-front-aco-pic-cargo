@@ -7,6 +7,16 @@ import {
 import { openPaddleCheckout } from "@/api/paddleCheckout";
 import { changeSummary } from "./myPlanView";
 
+export const notifySuccess = (message) =>
+  Swal.fire({
+    toast: true,
+    position: "top-end",
+    icon: "success",
+    title: message,
+    showConfirmButton: false,
+    timer: 3000,
+  });
+
 const OPEN_FAILED_MESSAGE =
   "No pudimos abrir el pago. Intenta de nuevo en unos minutos.";
 const CHANGE_FAILED_MESSAGE =

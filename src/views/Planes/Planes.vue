@@ -133,12 +133,17 @@
 import "@/styles/plans-theme.css";
 import Swal from "sweetalert2";
 import {
+  clearPendingChoice,
   hasSession,
   isLivePlan,
   purchaseAction,
   savePendingChoice,
 } from "@/views/MyPlan/myPlanView";
-import { confirmPlanChange, openPlanCheckout } from "@/views/MyPlan/planPurchase";
+import {
+  confirmPlanChange,
+  notifySuccess,
+  openPlanCheckout,
+} from "@/views/MyPlan/planPurchase";
 import ModuleSelectDialog from "@/components/SubscriptionPackages/ModuleSelectDialog.vue";
 import { fetchCompanyPlan } from "@/api/branchSubscription";
 import LegalLinks from "@/components/Legal/LegalLinks.vue";
@@ -253,6 +258,7 @@ export default {
         this.$refs.purchaseNotice.showModal();
         return;
       }
+      clearPendingChoice();
       const action = this.actionOf(plan);
       if (action === "manage") {
         this.$router.push({ name: "miPlan" });
@@ -308,7 +314,9 @@ export default {
         notifyError(result.error);
         return;
       }
-      if (result.plan) this.$router.push({ name: "miPlan" });
+      if (!result.plan) return;
+      this.$router.push({ name: "miPlan" });
+      notifySuccess(result.message);
     },
     resetBuying() {
       this.busy = false;

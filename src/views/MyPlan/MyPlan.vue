@@ -24,7 +24,7 @@
         <button
           type="button"
           class="plans-button plans-button--secondary"
-          @click="loadPage"
+          @click="loadAndStart"
         >
           Reintentar
         </button>
@@ -253,7 +253,11 @@ import {
   statusView,
 } from "./myPlanView";
 import { reloadPlanAccess } from "./planAccessStore";
-import { confirmPlanChange, openPlanCheckout } from "./planPurchase";
+import {
+  confirmPlanChange,
+  notifySuccess,
+  openPlanCheckout,
+} from "./planPurchase";
 
 const BILLING_OPTIONS = [
   { value: false, label: "Mensual" },
@@ -271,16 +275,6 @@ const CARD_LABELS = {
   "change-module": "Cambiar módulo",
   current: "Tu plan actual",
 };
-
-const notifySuccess = (message) =>
-  Swal.fire({
-    toast: true,
-    position: "top-end",
-    icon: "success",
-    title: message,
-    showConfirmButton: false,
-    timer: 3000,
-  });
 
 const notifyError = (message) => Swal.fire({ icon: "error", text: message });
 
@@ -303,6 +297,7 @@ export default {
     confirmState: null,
     confirmTimer: null,
     pendingTransactionId: null,
+    pendingStart: null,
     isAnnual: true,
     isChangingPlan: false,
     expandedId: null,
@@ -345,13 +340,8 @@ export default {
       this.$router.replace({ name: "miPlan" });
     }
     if (choice) this.isAnnual = choice.billing === "annual";
-    if (!(await this.loadPage())) return;
-    clearPendingChoice();
-    if (transactionId) {
-      this.confirmRightAway(transactionId);
-      return;
-    }
-    if (choice) this.startPendingChoice(choice);
+    this.pendingStart = { transactionId, choice };
+    await this.loadAndStart();
   },
   beforeDestroy() {
     this.isLeaving = true;
@@ -363,6 +353,17 @@ export default {
     formatDate,
     billingLabel,
     planDateLine,
+    async loadAndStart() {
+      if (!(await this.loadPage()) || !this.pendingStart) return;
+      const { transactionId, choice } = this.pendingStart;
+      this.pendingStart = null;
+      clearPendingChoice();
+      if (transactionId) {
+        this.confirmRightAway(transactionId);
+        return;
+      }
+      if (choice) this.startPendingChoice(choice);
+    },
     startPendingChoice(choice) {
       const pkg = this.packages.find((item) => item.id === choice.packageId);
       if (!pkg) return;
