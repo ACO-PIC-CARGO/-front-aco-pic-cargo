@@ -221,7 +221,7 @@
               <p
                 class="my-1 px-5 text-resumen"
                 v-if="
-                  $store.state.pricing.datosPrincipales.containers.length > 0
+                  $store.state.pricing.datosPrincipales.containers && $store.state.pricing.datosPrincipales.containers.length > 0
                 "
               >
                 <b>Contenedores:</b>
@@ -309,6 +309,7 @@ export default {
       "newCotizacionAduana",
       "EditarAduana",
       "VerAduana",
+      "VerCotizacionCalculadora",
     ],
     dialogTutorial: false,
     loadingMenu: false,

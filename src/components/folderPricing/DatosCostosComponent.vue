@@ -148,8 +148,9 @@
           <template>
             <div class="text-center">
               <v-pagination
-                v-model="$store.state.pricing.page"
+                :value="$store.state.pricing.page"
                 :length="opcionesSeleccionadas.length"
+                @input="cambiarPagina"
                 circle
               ></v-pagination>
             </div>
@@ -159,6 +160,7 @@
           <v-row>
             <v-col cols="12" lg="6" xl="6">
               <CostosComponent
+                :key="`costos-${opcionesSeleccionadas[$store.state.pricing.page - 1].nro_propuesta}`"
                 :valores="
                   opcionesSeleccionadas[
                     $store.state.pricing.page - 1
@@ -173,6 +175,7 @@
             </v-col>
             <v-col cols="12" lg="6" xl="6">
               <VentasComponent
+                :key="`ventas-${opcionesSeleccionadas[$store.state.pricing.page - 1].nro_propuesta}`"
                 :valores="
                   opcionesSeleccionadas[
                     $store.state.pricing.page - 1
@@ -204,12 +207,10 @@
             <h3>Impuestos de Aduana</h3>
           </center>
           <ImpuestosComponent
+            :key="`impuestos-${opcionesSeleccionadas[$store.state.pricing.page - 1].nro_propuesta}`"
             class="col-12"
             v-if="mostrarImpuestos && mostrarImpuestosEditar"
-            :index="
-              $store.state.pricing.opcionCostos[$store.state.pricing.index]
-                .nro_propuesta
-            "
+            :index="opcionesSeleccionadas[$store.state.pricing.page - 1].nro_propuesta"
             :amount="$store.state.pricing.datosPrincipales.amount"
             :impuestos="
               opcionesSeleccionadas[$store.state.pricing.page - 1].listImpuestos
@@ -277,15 +278,18 @@ export default {
   mounted() {},
   methods: {
     irAComparativa() {
-      this.$store.state.pricing.tab = 3;
       this.$store.state.pricing.actualizarComparativa =
         !this.$store.state.pricing.actualizarComparativa;
+      this.$emit("continuarComparativa");
     },
     pasarLlenadoCostos() {
       if (this.$refs.frmDatosOpcion.validate()) {
         this.btnIngresarCostos = false;
         this.mostrarCostos = true;
       }
+    },
+    cambiarPagina(pagina) {
+      this.$store.state.pricing.page = Number(pagina);
     },
     cancelarLlenadoCostos() {
       this.$store.state.pricing.opcionCostos.splice(-1, 1);
@@ -352,33 +356,9 @@ export default {
           showCloseButton: true,
         }).then((action) => {
           if (action.isConfirmed) {
-            let nro_propuesta = this.$store.state.pricing.index + 2;
-            let costos = this.$store.state.pricing.listCostos.map((objeto) => ({
-              ...objeto,
-              nro_propuesta,
-            }));
-            let listImpuestos = this.$store.state.pricing.listImpuestos.map(
-              (objeto) => ({
-                ...objeto,
-                nro_propuesta,
-              }),
-            );
-            let listNotasQuote = this.$store.state.pricing.listNotasQuote.map(
-              (objeto) => ({
-                ...objeto,
-                nro_propuesta,
-              }),
-            );
-            this.$store.state.pricing.opcionCostos.push({
-              nro_propuesta: this.$store.state.pricing.index + 2,
-              date_end: moment().add(7, "days").format("YYYY-MM-DD"),
-              tiempo_transito: 35,
-              listCostos: costos,
-
-              listImpuestos: listImpuestos,
-              listNotasQuote: listNotasQuote,
-              selected: false,
-            });
+            const nro_propuesta =
+              Number(this.$store.state.pricing.index) + 2;
+            this.$emit("anadirNuevaOpcion", nro_propuesta);
             this.$store.state.pricing.index =
               parseInt(this.$store.state.pricing.index) + 1;
             this.mostrarCostos = false;
@@ -386,7 +366,6 @@ export default {
             this.$refs.frmDatosOpcion.resetValidation();
           }
           if (action.isDenied) {
-            console.log("ddd");
             this.$store.state.pricing.actualizarComparativa =
               !this.$store.state.pricing.actualizarComparativa;
             this.$emit("continuarComparativa");

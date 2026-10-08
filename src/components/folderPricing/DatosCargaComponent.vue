@@ -639,14 +639,14 @@ export default {
     },
   },
   methods: {
-    ...mapActions(["_getContainers", "getPortBegin", "getPortEnd"]),
+    ...mapActions(["_getContainers", "getPortBegin", "getPortEnd","obtenerFleteCalculadora"]),
     cambiarGrupalIndividual() {
       const { esindividualflag, esgrupalflag } =
         this.$store.state.pricing.datosPrincipales;
 
       if (esgrupalflag) {
         if (esgrupalflag === true) {
-          esindividualflag = false;
+          this.$store.state.pricing.datosPrincipales.esindividualflag = false;
           let percepcionAduana =
             this.$store.state.masterusuarios.lstPercepcionAduana.find(
               (v) => v.codigo == "02",
@@ -666,9 +666,8 @@ export default {
             ]);
           }, 500);
         }
-      }
-      if (esindividualflag) {
-        esgrupalflag = false;
+      } else if (esindividualflag) {
+        this.$store.state.pricing.datosPrincipales.esgrupalflag = false;
         setTimeout(() => {
           Promise.all([
             this.cambiarMontosACero({
@@ -936,7 +935,7 @@ export default {
       const multiplicador = (listMultiplicador || []).find(
         (v) => v.id == item.id_multiplicador,
       );
-      const factor = multiplicador
+      let factor = multiplicador
         ? this.calcularFac(
             multiplicador.code,
             datosPrincipales.volumen,
@@ -945,6 +944,13 @@ export default {
             datosPrincipales.amount,
           )
         : 0;
+      if (
+        item.code_cost == 4 &&
+        datosPrincipales.volumen < 1 &&
+        factor < 1
+      ) {
+        factor = 1;
+      }
       return factor > 0 ? parseFloat(monto || 0) / factor : 0;
     },
     recargarPuertoOrigen(textoBuscar) {
@@ -972,6 +978,7 @@ export default {
         search: textoBuscar,
       });
     },
+    
     recargarPuertoDestino(textoBuscar) {
       clearTimeout(this.puertoDestinoDebounce);
       if (!textoBuscar) return;
@@ -995,12 +1002,37 @@ export default {
         search: textoBuscar,
       });
     },
-    anadirCarga() {
+    async anadirCarga() {
       if (this.$refs.frmDatosCarga.validate()) {
         this.$store.state.pricing.datosPrincipales.numerobultos =
           this.numerobultos;
         this.$store.state.pricing.datosPrincipales.volumen = this.volumen;
         this.$store.state.pricing.datosPrincipales.peso = this.peso;
+        const datos = this.$store.state.pricing.datosPrincipales;
+        const idTipoCarga =
+          typeof datos.idtipocarga === "object"
+            ? datos.idtipocarga.id
+            : datos.idtipocarga;
+        const shipment = this.$store.state.pricing.listShipment.find(
+          (v) => v.id == idTipoCarga,
+        );
+        const puertoOrigen = this.$store.state.pricing.listPortBegin.find(
+          (v) => v.id_port == datos.idorigen,
+        );
+        const puertoDestino = this.$store.state.pricing.listPortEnd.find(
+          (v) => v.id_port == datos.iddestino,
+        );
+        this.$store.state.spiner = true;
+        await this.obtenerFleteCalculadora({
+          shipment: shipment.code,
+          puerto_origen: puertoOrigen.puerto,
+          puerto_destino: puertoDestino.puerto,
+          volumen: datos.volumen,
+          peso: datos.peso,
+        });
+        this.$store.state.spiner = false;
+        const { esgrupalflag, esindividualflag } = datos;
+        this.cambiarMontosACero({ esgrupalflag, esindividualflag });
         this.$refs.frmDatosCarga.reset();
         this.$store.state.pricing.actualizarCostosFlag =
           !this.$store.state.pricing.actualizarCostosFlag;
@@ -1412,7 +1444,7 @@ export default {
 
         if (result.isConfirmed) {
           this.$store.state.pricing.datosPrincipales.esgrupalflag = true;
-          this.$store.state.pricing.datosPrincipales.individual = false;
+          this.$store.state.pricing.datosPrincipales.esindividualflag = false;
           setTimeout(() => {
             this.cambiarGrupalIndividual();
           }, 100);
