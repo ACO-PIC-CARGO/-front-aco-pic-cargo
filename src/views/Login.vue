@@ -106,12 +106,15 @@
         </div>
       </v-col>
     </v-row>
+    <LegalLinks floating />
   </v-container>
 </template>
 
 <script>
 import { mapActions } from "vuex";
+import LegalLinks from "@/components/Legal/LegalLinks.vue";
 export default {
+  components: { LegalLinks },
   data() {
     return {
       frmUsuario: "ddd",

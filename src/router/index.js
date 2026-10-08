@@ -65,6 +65,24 @@ const routes = [
     name: "Planes",
     component: () => import("../views/Planes/Planes.vue"),
   },
+  {
+    path: "/terminos",
+    name: "LegalTerms",
+    component: () => import("../views/Legal/LegalPage.vue"),
+    props: { page: "terminos" },
+  },
+  {
+    path: "/privacidad",
+    name: "LegalPrivacy",
+    component: () => import("../views/Legal/LegalPage.vue"),
+    props: { page: "privacidad" },
+  },
+  {
+    path: "/reembolsos",
+    name: "LegalRefunds",
+    component: () => import("../views/Legal/LegalPage.vue"),
+    props: { page: "reembolsos" },
+  },
 
   {
     path: "/home",

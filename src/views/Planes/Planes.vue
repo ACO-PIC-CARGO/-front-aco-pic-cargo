@@ -84,6 +84,8 @@
           <p class="plan__note">Pago seguro procesado por Paddle</p>
         </PackageCard>
       </section>
+
+      <LegalLinks class="planes__legal" />
     </div>
 
     <dialog
@@ -139,6 +141,7 @@ import {
 import { confirmPlanChange, openPlanCheckout } from "@/views/MyPlan/planPurchase";
 import ModuleSelectDialog from "@/components/SubscriptionPackages/ModuleSelectDialog.vue";
 import { fetchCompanyPlan } from "@/api/branchSubscription";
+import LegalLinks from "@/components/Legal/LegalLinks.vue";
 import PackageCard from "@/components/SubscriptionPackages/PackageCard.vue";
 import SegmentedControl from "@/components/SubscriptionPackages/SegmentedControl.vue";
 import {
@@ -168,7 +171,7 @@ const notifyError = (message) => Swal.fire({ icon: "error", text: message });
 
 export default {
   name: "Planes",
-  components: { PackageCard, SegmentedControl, ModuleSelectDialog },
+  components: { LegalLinks, PackageCard, SegmentedControl, ModuleSelectDialog },
   data: () => ({
     packages: [],
     loadState: "loading",
@@ -332,6 +335,10 @@ export default {
   max-width: 1240px;
   margin: 0 auto;
   padding: 32px 24px 48px;
+}
+
+.planes__legal {
+  margin-top: 48px;
 }
 
 .planes__accent {
