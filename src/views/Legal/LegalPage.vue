@@ -45,6 +45,12 @@ export default {
       return LEGAL_PAGES[this.page];
     },
   },
+  watch: {
+    page: {
+      handler: () => window.scrollTo(0, 0),
+      immediate: true,
+    },
+  },
 };
 </script>
 
