@@ -297,7 +297,7 @@
 </template>
 <script>
 import { mapState, mapActions } from "vuex";
-import { isModuleLocked, moduleForRoute } from "@/views/MyPlan/planAccess";
+import { lockedModuleForRoute } from "@/views/MyPlan/planAccess";
 import { reloadPlanAccess, planAccessState } from "@/views/MyPlan/planAccessStore";
 export default {
   name: "listMenu",
@@ -407,8 +407,9 @@ export default {
       return true;
     },
     isLockedItem(item) {
-      const module = moduleForRoute(this.$store.state.lstMenu, item.route);
-      return Boolean(module) && isModuleLocked(planAccessState.access, module.id);
+      return Boolean(
+        lockedModuleForRoute(this.$store.state.lstMenu, item.route, planAccessState.access)
+      );
     },
     getRouteForItem(item) {
       if (!item || !item.route) {

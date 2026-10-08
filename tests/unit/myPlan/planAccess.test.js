@@ -3,8 +3,9 @@ import assert from "node:assert/strict";
 import {
   canAddUsers,
   isModuleLocked,
+  lockedModuleForRoute,
   lockedModuleNotice,
-  moduleForRoute,
+  modulesForRoute,
   userLimitNotice,
 } from "../../../src/views/MyPlan/planAccess.js";
 
@@ -39,17 +40,33 @@ const access = (overrides = {}) => ({
   ...overrides,
 });
 
-test("moduleForRoute finds the module of a menu route", () => {
-  assert.deepEqual(moduleForRoute(menu, "listHouse"), {
+test("modulesForRoute finds every module of a menu route and ignores unnamed routes", () => {
+  assert.deepEqual(modulesForRoute(menu, "listHouse"), [
+    { id: 1, name: "Operativo" },
+  ]);
+  assert.deepEqual(modulesForRoute(menu, "verQuote"), []);
+  assert.deepEqual(modulesForRoute(menu, undefined), []);
+  assert.deepEqual(modulesForRoute(null, "listHouse"), []);
+});
+
+test("lockedModuleForRoute locks a route only when every module holding it is locked", () => {
+  const shared = [
+    ...menu,
+    {
+      id: 4,
+      name: "Calculadora",
+      children: [{ id: "N40", children: [{ id: "S900", route: "listHouse" }] }],
+    },
+  ];
+
+  assert.deepEqual(lockedModuleForRoute(menu, "listHouse", access()), {
     id: 1,
     name: "Operativo",
   });
-  assert.deepEqual(moduleForRoute(menu, "listUser"), {
-    id: 8,
-    name: "Configuración",
-  });
-  assert.equal(moduleForRoute(menu, "verQuote"), null);
-  assert.equal(moduleForRoute(null, "listHouse"), null);
+  assert.equal(lockedModuleForRoute(shared, "listHouse", access()), null);
+  assert.equal(lockedModuleForRoute(menu, "listUser", access()), null);
+  assert.equal(lockedModuleForRoute(menu, undefined, access()), null);
+  assert.equal(lockedModuleForRoute(menu, "listHouse", null), null);
 });
 
 test("isModuleLocked only locks modules the plan excludes", () => {

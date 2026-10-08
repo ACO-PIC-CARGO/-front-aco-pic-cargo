@@ -1,18 +1,28 @@
 import { userLabel } from "../../components/SubscriptionPackages/packageView.js";
 
 const routesOf = (node) =>
-  (node.children || []).flatMap((child) => [child.route, ...routesOf(child)]);
+  (node.children || [])
+    .flatMap((child) => [child.route, ...routesOf(child)])
+    .filter(Boolean);
 
-export const moduleForRoute = (menuTree, routeName) => {
-  const module = (menuTree || []).find((node) =>
-    routesOf(node).includes(routeName)
-  );
-  return module ? { id: module.id, name: module.name } : null;
-};
+export const modulesForRoute = (menuTree, routeName) =>
+  routeName
+    ? (menuTree || [])
+        .filter((node) => routesOf(node).includes(routeName))
+        .map((node) => ({ id: node.id, name: node.name }))
+    : [];
 
 export const isModuleLocked = (access, moduleId) =>
   Boolean(access && access.has_plan) &&
   (access.locked_module_ids || []).includes(moduleId);
+
+export const lockedModuleForRoute = (menuTree, routeName, access) => {
+  const modules = modulesForRoute(menuTree, routeName);
+  return modules.length &&
+    modules.every((module) => isModuleLocked(access, module.id))
+    ? modules[0]
+    : null;
+};
 
 export const canAddUsers = (access) =>
   !access || !access.has_plan || Boolean(access.can_add_users);

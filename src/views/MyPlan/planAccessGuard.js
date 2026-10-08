@@ -1,7 +1,7 @@
 import {
-  isModuleLocked,
+  lockedModuleForRoute,
   lockedModuleNotice,
-  moduleForRoute,
+  modulesForRoute,
 } from "./planAccess";
 import { loadPlanAccess } from "./planAccessStore";
 import { promptPlanUpgrade } from "./promptPlanUpgrade";
@@ -15,11 +15,13 @@ const readMenu = () => {
 };
 
 export const planAccessGuard = (router) => async (to, from, next) => {
-  const module = moduleForRoute(readMenu(), to.name);
-  if (!module || to.name === "miPlan") return next();
+  const menu = readMenu();
+  if (to.name === "miPlan" || !modulesForRoute(menu, to.name).length)
+    return next();
 
   const access = await loadPlanAccess();
-  if (!isModuleLocked(access, module.id)) return next();
+  const module = lockedModuleForRoute(menu, to.name, access);
+  if (!module) return next();
 
   next(from.name ? false : { name: "miPlan" });
   promptPlanUpgrade(router, lockedModuleNotice(access, module.name));

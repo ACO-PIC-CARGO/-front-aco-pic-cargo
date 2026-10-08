@@ -6,14 +6,17 @@ export const planAccessState = Vue.observable({ access: null });
 let pending = null;
 
 export const loadPlanAccess = () => {
-  pending =
-    pending ||
-    fetchPlanAccess().then((response) => {
-      if (!response.estadoflag) pending = null;
-      planAccessState.access = response.estadoflag ? response.data[0] : null;
-      return planAccessState.access;
-    });
-  return pending;
+  if (pending) return pending;
+  const current = fetchPlanAccess().then((response) => {
+    const access = response.estadoflag ? response.data[0] || null : null;
+    if (pending === current) {
+      planAccessState.access = access;
+      if (!access) pending = null;
+    }
+    return access;
+  });
+  pending = current;
+  return current;
 };
 
 export const reloadPlanAccess = () => {
