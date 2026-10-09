@@ -722,6 +722,11 @@ const routes = [
         name: "miPlan",
         component: () => import("../views/MyPlan/MyPlan.vue"),
       },
+      {
+        path: "paginas-legales",
+        name: "legalPagesAdmin",
+        component: () => import("../views/Legal/LegalPagesAdmin.vue"),
+      },
       // {
       //   path: "suscripcion3",
       //   name: "lstPlanes",
