@@ -27,6 +27,9 @@
           class="elevation-2"
           striped
         >
+          <!-- <template v-slot:[`item.accion`]="{ item }">
+            
+          </template> -->
           <template v-slot:[`item.estadocotizacion`]="{ item }">
             <v-chip
               v-if="item.estadocotizacion == 2"
@@ -45,6 +48,15 @@
             </v-chip>
           </template>
           <template v-slot:[`item.action`]="{ item }">
+            <v-btn
+              color="warning"
+              class="ma-1 btnCalc"
+              block
+              dark
+              @click="abrirModalCambiarEstado(item)"
+            >
+              Cambiar Estado
+            </v-btn>
             <v-btn
               color="#B71C1C"
               dark
@@ -90,6 +102,35 @@
       </v-col>
     </v-row>
     <previewQuote :dialog="dialog" :data="dataCotizacion" />
+    <v-dialog v-model="dialogEditarEstado" max-width="30%">
+      <v-card>
+        <v-card-title class="headline pb-0">
+          <p>Editar Estado Cotización</p>
+        </v-card-title>
+        <v-card-text>
+          <v-card-subtitle class="pt-0">
+            {{ dataCotizacion.nombre }} | {{ dataCotizacion.telefono }}
+          </v-card-subtitle>
+          <v-select
+            v-model="dataCotizacion.id_status_quote"
+            :items="$store.state.calculadoras.estatusCotizacion"
+            item-text="name"
+            item-value="id"
+            label="Estado Cotización"
+            outlined
+          ></v-select>
+        </v-card-text>
+        <v-card-actions>
+          <v-spacer></v-spacer>
+          <v-btn color="success" @click="guardarEstadoCotizacion()">
+            Guardar
+          </v-btn>
+          <v-btn color="red" text @click="dialogEditarEstado = false">
+            Cancelar
+          </v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
   </v-container>
 </template>
 
@@ -109,6 +150,7 @@ export default {
     return {
       dialog: false,
       dialogCotizacion: false,
+      dialogEditarEstado: false,
       expanded: [],
       singleExpand: false,
       search: "",
@@ -117,11 +159,12 @@ export default {
       loading: false,
       title: "",
       costos: [],
-
+      item: {},
       itemResumen: [],
       headers: [
-        // { text: "Acciones", value: "accion" },
+        { text: "", value: "accion" },
         { text: "Fecha Registro", value: "created_at" },
+        { text: "Estado Cotización", value: "estado_cotizacion" },
         { text: "Cliente", value: "nombre" },
         { text: "Tipo", value: "tipo" },
         { text: "Puerto Origen", value: "port_origen" },
@@ -187,10 +230,22 @@ export default {
       "GetCotAereoResumen",
       "getModulesEntities",
       "EnviarCotizacionCalculadoraAPrincing",
+      "actualizarEstadoCotizacionCalculadora",
     ]),
+    abrirModalCambiarEstado(data) {
+      this.dataCotizacion = { ...data };
+      this.dialogEditarEstado = true;
+    },
     rowTrainerClass(item) {
       const index = this.$store.state.calculadoras.listUser.indexOf(item);
       return index % 2 === 0 ? "fila-par" : "fila-impar";
+    },
+    async guardarEstadoCotizacion() {
+      await this.actualizarEstadoCotizacionCalculadora(this.dataCotizacion);
+      this.dialogEditarEstado = false;
+      this.$store.state.spiner = true;
+      await this.getListUserCalc();
+      this.$store.state.spiner = false;
     },
     getFecha(fecha) {
       moment.locale("es");

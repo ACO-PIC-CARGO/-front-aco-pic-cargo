@@ -120,6 +120,9 @@
 <script>
 import { mapActions } from "vuex";
 import Swal from "sweetalert2";
+import { canAddUsers, userLimitNotice } from "@/views/MyPlan/planAccess";
+import { reloadPlanAccess } from "@/views/MyPlan/planAccessStore";
+import { promptPlanUpgrade } from "@/views/MyPlan/promptPlanUpgrade";
 export default {
   data() {
     return {
@@ -174,6 +177,13 @@ export default {
       });
     },
     async nuevo() {
+      this.loadingNuevo = true;
+      const access = await reloadPlanAccess();
+      this.loadingNuevo = false;
+      if (!canAddUsers(access)) {
+        promptPlanUpgrade(this.$router, userLimitNotice(access));
+        return;
+      }
       this.$router.push({ name: "registroUser" });
     },
     async eliminar(item) {

@@ -5,6 +5,8 @@
 </template>
 
 <script>
+import { mapActions } from "vuex";
+
 export default {
   data() {
     return {
@@ -17,8 +19,12 @@ export default {
   },
   mounted() {
     this.$store.state.mainTitle = "Usuarios Calculadora";
+    console.log("mounted");
+    this.cargarEstatus();
   },
-  methods: {},
+  methods: {
+    ...mapActions(["cargarEstatus"]),
+  },
 };
 </script>
 

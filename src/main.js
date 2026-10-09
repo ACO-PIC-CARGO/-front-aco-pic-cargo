@@ -6,6 +6,15 @@ import store from "./store";
 import vuetify from "./plugins/vuetify";
 import VueSweetalert2 from "vue-sweetalert2";
 import "sweetalert2/dist/sweetalert2.min.css";
+import * as Sentry from "@sentry/vue";
+
+Sentry.init({
+  Vue,
+  dsn: "https://f882606bd1c8140835ba8bbd919fdf0f@o4512212057456640.ingest.us.sentry.io/4512212072595456",
+  environment: process.env.NODE_ENV,
+  release: process.env.VUE_APP_VERSION,
+});
+
 Vue.use(VueSweetalert2);
 Vue.config.productionTip = false;
 

@@ -64,13 +64,17 @@
 
       <!-- ENLACE NAVEGABLE DEL MENÚ -->
       <template v-slot:label="{ item }">
-        <span
+        <router-link
           v-if="item.route"
+          :to="getRouteForItem(item)"
           class="treeview-label full-width-link"
           style="text-decoration: none; color: inherit"
         >
           {{ item.name }}
-        </span>
+          <v-icon v-if="isLockedItem(item)" small class="ml-1">
+            mdi-lock-outline
+          </v-icon>
+        </router-link>
         <span v-else class="treeview-label">{{ item.name }}</span>
       </template>
     </v-treeview>
@@ -293,6 +297,8 @@
 </template>
 <script>
 import { mapState, mapActions } from "vuex";
+import { lockedModuleForRoute } from "@/views/MyPlan/planAccess";
+import { reloadPlanAccess, planAccessState } from "@/views/MyPlan/planAccessStore";
 export default {
   name: "listMenu",
   data: () => ({
@@ -315,6 +321,7 @@ export default {
     person: JSON.parse(sessionStorage.getItem("dataUser"))[0],
   }),
   mounted() {
+    reloadPlanAccess();
     setTimeout(() => {
       this.$store.state.lstMenu = JSON.parse(sessionStorage.getItem("menu"));
     }, 10);
@@ -400,6 +407,11 @@ export default {
     mostrarVolumen() {
       return true;
     },
+    isLockedItem(item) {
+      return Boolean(
+        lockedModuleForRoute(this.$store.state.lstMenu, item.route, planAccessState.access)
+      );
+    },
     getRouteForItem(item) {
       if (!item || !item.route) {
         return {};
@@ -410,12 +422,8 @@ export default {
       const item = selected[0];
       if (item && item.route) {
         const route = this.getRouteForItem(item);
-        if (
-          route &&
-          route.name &&
-          this.$router.resolve(route).route.fullPath !== this.$route.fullPath
-        ) {
-          this.$router.push(route);
+        if (route && route.name) {
+          this.$router.push(route).catch(() => {});
         }
       }
     },
