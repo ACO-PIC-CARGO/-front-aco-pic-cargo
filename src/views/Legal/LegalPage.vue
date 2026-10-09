@@ -7,19 +7,45 @@
           src="/img/login/logo-aco.png"
           alt="ACO, Agencia de Carga Online"
         />
-        <h1 class="legal__title">{{ content.title }}</h1>
+        <template v-if="loadState === 'ready'">
+          <h1 class="legal__title">{{ content.title }}</h1>
+          <p class="legal__updated">
+            Última actualización: {{ formatUpdatedAt(content.updated_at) }}
+          </p>
+        </template>
       </header>
 
-      <section
-        v-for="section in content.sections"
-        :key="section.heading"
-        class="legal__section"
-      >
-        <h2 class="legal__heading">{{ section.heading }}</h2>
-        <p v-for="paragraph in section.paragraphs" :key="paragraph">
-          {{ paragraph }}
-        </p>
-      </section>
+      <p v-if="loadState === 'loading'" class="legal__state" aria-busy="true">
+        <i class="mdi mdi-loading mdi-spin" aria-hidden="true"></i> Cargando…
+      </p>
+
+      <div v-else-if="loadState === 'error'" class="legal__state" role="alert">
+        <p class="legal__state-title">No pudimos cargar esta página.</p>
+        <p>Revisa tu conexión e intenta de nuevo.</p>
+        <button
+          type="button"
+          class="plans-button plans-button--secondary"
+          @click="load"
+        >
+          Reintentar
+        </button>
+      </div>
+
+      <template v-else>
+        <section
+          v-for="(section, index) in content.sections"
+          :key="index"
+          class="legal__section"
+        >
+          <h2 class="legal__heading">{{ section.heading }}</h2>
+          <p
+            v-for="(paragraph, position) in section.paragraphs"
+            :key="position"
+          >
+            {{ paragraph }}
+          </p>
+        </section>
+      </template>
 
       <router-link :to="{ name: 'Planes' }" class="legal__back">
         Ver planes
@@ -32,7 +58,8 @@
 <script>
 import "@/styles/plans-theme.css";
 import LegalLinks from "@/components/Legal/LegalLinks.vue";
-import { LEGAL_PAGES } from "./legalContent";
+import { fetchLegalPage } from "@/api/legalPages";
+import { formatUpdatedAt } from "./legalPageEditor";
 
 export default {
   name: "LegalPage",
@@ -40,15 +67,29 @@ export default {
   props: {
     page: { type: String, required: true },
   },
-  computed: {
-    content() {
-      return LEGAL_PAGES[this.page];
-    },
-  },
+  data: () => ({ content: null, loadState: "loading" }),
   watch: {
     page: {
-      handler: () => window.scrollTo(0, 0),
+      handler() {
+        window.scrollTo(0, 0);
+        this.load();
+      },
       immediate: true,
+    },
+  },
+  methods: {
+    formatUpdatedAt,
+    async load() {
+      const slug = this.page;
+      this.loadState = "loading";
+      const response = await fetchLegalPage(slug);
+      if (slug !== this.page) return;
+      if (!response.estadoflag) {
+        this.loadState = "error";
+        return;
+      }
+      this.content = response.data[0];
+      this.loadState = "ready";
     },
   },
 };
@@ -75,11 +116,35 @@ export default {
 }
 
 .legal__title {
-  margin: 8px 0 32px;
+  margin: 8px 0 8px;
   font-size: 36px;
   line-height: 1.15;
   font-weight: 700;
   letter-spacing: -0.02em;
+}
+
+.legal__updated {
+  margin: 0 0 32px;
+  font-size: 14px;
+  color: var(--planes-text-subtle);
+}
+
+.legal__state {
+  display: grid;
+  gap: 12px;
+  justify-items: start;
+  margin: 24px 0 40px;
+  color: var(--planes-text-muted);
+}
+
+.legal__state p {
+  margin: 0;
+}
+
+.legal__state-title {
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--planes-text);
 }
 
 .legal__section {
