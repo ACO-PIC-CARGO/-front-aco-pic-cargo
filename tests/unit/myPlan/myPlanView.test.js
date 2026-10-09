@@ -4,10 +4,14 @@ import {
   canChangePlan,
   cardAction,
   changeSummary,
+  daysLabel,
+  hasUpgrade,
+  isUnavailableAction,
   planBadge,
   planDetails,
   purchaseAction,
   readPendingChoice,
+  trialNotice,
 } from "../../../src/views/MyPlan/myPlanView.js";
 
 const plan = { package_id: 3, billing: "monthly", status: "active" };
@@ -43,6 +47,48 @@ test("cardAction lets a package with module choice switch modules", () => {
     cardAction(start, { ...plan, package_id: 2 }, "monthly"),
     "change-module"
   );
+});
+
+const START = { id: 2, monthly_price: "29" };
+const PRO = { id: 3, monthly_price: "79" };
+const MAX = { id: 4, monthly_price: "149" };
+const annualPlan = { ...plan, billing: "annual" };
+
+test("cardAction marks a package cheaper than the current one as lower", () => {
+  assert.equal(cardAction(START, plan, "monthly", PRO), "lower");
+  assert.equal(cardAction(START, plan, "annual", PRO), "lower");
+  assert.equal(cardAction(MAX, plan, "monthly", PRO), "change");
+  assert.equal(
+    cardAction({ ...MAX, monthly_price: "79" }, plan, "monthly", PRO),
+    "change"
+  );
+});
+
+test("cardAction keeps an annual plan from going back to monthly", () => {
+  assert.equal(cardAction(PRO, annualPlan, "monthly", PRO), "annual-only");
+  assert.equal(cardAction(PRO, annualPlan, "annual", PRO), "current");
+  assert.equal(cardAction(PRO, plan, "annual", PRO), "change");
+});
+
+test("only the current, lower and annual-only cards cannot be picked", () => {
+  for (const action of ["current", "lower", "annual-only"]) {
+    assert.equal(isUnavailableAction(action), true);
+  }
+  for (const action of ["buy", "change", "change-module", "manage"]) {
+    assert.equal(isUnavailableAction(action), false);
+  }
+});
+
+test("hasUpgrade finds a pricier package or the annual cycle", () => {
+  assert.equal(hasUpgrade(plan, [START, PRO]), true);
+  assert.equal(hasUpgrade(annualPlan, [START, PRO]), false);
+  assert.equal(hasUpgrade(annualPlan, [START, PRO, MAX]), true);
+});
+
+test("hasUpgrade counts a module switch on the same package", () => {
+  const choosable = { ...START, module_selection_limit: 1 };
+
+  assert.equal(hasUpgrade({ ...annualPlan, package_id: 2 }, [choosable]), true);
 });
 
 test("changeSummary tells what is charged today and the new price", () => {
@@ -134,6 +180,118 @@ test("planBadge hides for no plan and for plans that are not usable or paid", ()
   }
 });
 
+const notice = (overrides = {}) => ({
+  days: null,
+  ended: false,
+  canBuy: false,
+  paidText: null,
+  ...overrides,
+});
+const registrationTrial = (endsInMs) => ({
+  trial_days: 30,
+  started_at: new Date(NOW - 5 * DAY_MS).toISOString(),
+  ends_at: new Date(NOW + endsInMs).toISOString(),
+});
+
+test("trialNotice counts the days of a plan in trial and offers no purchase", () => {
+  assert.deepEqual(
+    trialNotice({
+      plan: trial(12 * DAY_MS),
+      registrationTrial: null,
+      now: NOW,
+    }),
+    notice({ days: 12 })
+  );
+  assert.equal(
+    trialNotice({ plan: trial(11 * DAY_MS + 1), now: NOW }).days,
+    12
+  );
+});
+
+test("trialNotice falls back to the next bill date and to the last day", () => {
+  const nextBilled = new Date(NOW + 3 * DAY_MS).toISOString();
+  const withoutEnd = { current_period_ends_at: null };
+
+  assert.equal(
+    trialNotice({
+      plan: trial(0, { ...withoutEnd, next_billed_at: nextBilled }),
+      now: NOW,
+    }).days,
+    3
+  );
+  assert.equal(trialNotice({ plan: trial(0, withoutEnd), now: NOW }).days, 0);
+  assert.equal(trialNotice({ plan: trial(-DAY_MS), now: NOW }).days, 0);
+});
+
+test("trialNotice shows the paid plan and ignores the registration trial", () => {
+  assert.deepEqual(
+    trialNotice({
+      plan: { status: "active", package_name: "PRO" },
+      registrationTrial: registrationTrial(DAY_MS),
+      now: NOW,
+    }),
+    notice({ paidText: "ACO PRO activo" })
+  );
+});
+
+test("trialNotice shows nothing for a live plan that is neither in trial nor paid", () => {
+  for (const status of ["past_due", "paused"]) {
+    assert.equal(
+      trialNotice({
+        plan: { status, package_name: "PRO" },
+        registrationTrial: registrationTrial(DAY_MS),
+        now: NOW,
+      }),
+      null
+    );
+  }
+});
+
+test("trialNotice counts the registration trial days and offers a plan", () => {
+  assert.deepEqual(
+    trialNotice({
+      plan: null,
+      registrationTrial: registrationTrial(30 * DAY_MS),
+      now: NOW,
+    }),
+    notice({ days: 30, canBuy: true })
+  );
+  assert.deepEqual(
+    trialNotice({
+      plan: { status: "canceled", package_name: "PRO" },
+      registrationTrial: registrationTrial(1),
+      now: NOW,
+    }),
+    notice({ days: 1, canBuy: true })
+  );
+});
+
+test("trialNotice says the registration trial ended and offers a plan", () => {
+  for (const endsInMs of [0, -DAY_MS]) {
+    assert.deepEqual(
+      trialNotice({
+        plan: null,
+        registrationTrial: registrationTrial(endsInMs),
+        now: NOW,
+      }),
+      notice({ ended: true, canBuy: true })
+    );
+  }
+});
+
+test("trialNotice only offers a plan when there is no live plan and no trial", () => {
+  assert.deepEqual(
+    trialNotice({ plan: null, registrationTrial: null, now: NOW }),
+    notice({ canBuy: true })
+  );
+});
+
+test("daysLabel uses the singular and the last day", () => {
+  assert.equal(daysLabel(12), "12 días");
+  assert.equal(daysLabel(1), "1 día");
+  assert.equal(daysLabel(0), "Último día");
+});
+
 const detailedPlan = (overrides = {}) => ({
   user_limit: 3,
   user_count: 1,
@@ -213,6 +371,12 @@ test("purchaseAction changes a live plan like Mi plan does", () => {
     purchaseAction({ id: 4 }, { ...plan, status: "trialing" }, "annual"),
     "change"
   );
+});
+
+test("purchaseAction blocks downgrades for a live plan", () => {
+  assert.equal(purchaseAction(START, plan, "monthly", PRO), "lower");
+  assert.equal(purchaseAction(PRO, annualPlan, "monthly", PRO), "annual-only");
+  assert.equal(purchaseAction(START, null, "monthly", undefined), "buy");
 });
 
 test("purchaseAction sends plans that cannot change to Mi plan", () => {

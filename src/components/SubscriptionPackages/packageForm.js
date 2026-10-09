@@ -124,6 +124,13 @@ const trialLengthError = (draft) => {
 const trialError = (draft) =>
   draft.trialEnabled ? trialLengthError(draft) : null;
 
+export const registrationTrialDaysError = (value) => {
+  const days = Number(value);
+  return isBlank(value) || !Number.isInteger(days) || days < 1 || days > 365
+    ? "Escribe entre 1 y 365 días."
+    : null;
+};
+
 export const validateDraft = (draft) => {
   const errors = {
     name: nameError(draft.name),

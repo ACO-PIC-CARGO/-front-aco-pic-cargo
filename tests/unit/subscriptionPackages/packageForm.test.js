@@ -4,6 +4,7 @@ import {
   draftFromPackage,
   draftToPackage,
   emptyDraft,
+  registrationTrialDaysError,
   toPayload,
   toggleModule,
   validateDraft,
@@ -176,4 +177,19 @@ test("a package round-trips through the draft into the same payload", () => {
   assert.equal(payload.module_selection_limit, 1);
   assert.deepEqual(payload.modules, [6, 1, 3]);
   assert.deepEqual(payload.features, START.features);
+});
+
+test("registration trial days accept whole numbers from 1 to 365", () => {
+  for (const value of [1, "30", "365"]) {
+    assert.equal(registrationTrialDaysError(value), null);
+  }
+});
+
+test("registration trial days reject blanks, decimals and values out of range", () => {
+  for (const value of ["", "  ", null, "0", "366", "1.5", "abc", -3]) {
+    assert.equal(
+      registrationTrialDaysError(value),
+      "Escribe entre 1 y 365 días."
+    );
+  }
 });

@@ -38,3 +38,20 @@ export const keepCompanyPlan = () =>
 
 export const fetchPlanAccess = () =>
   request({ method: "get", url: "branch_subscription/access" });
+
+export const fetchRegistrationTrial = () =>
+  request({ method: "get", url: "branch_subscription/registration_trial" });
+
+export const fetchBillingHistory = () =>
+  request({ method: "get", url: "branch_subscription/billing_history" });
+
+export const fetchInvoiceUrl = (transactionId) =>
+  request({
+    method: "get",
+    url: `branch_subscription/billing_history/${encodeURIComponent(
+      transactionId
+    )}/invoice`,
+  });
+
+export const startPaymentMethodUpdate = () =>
+  request({ method: "post", url: "branch_subscription/payment_method" });

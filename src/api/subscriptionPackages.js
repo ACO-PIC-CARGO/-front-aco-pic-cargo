@@ -48,3 +48,13 @@ export const fetchPaddleSync = () =>
 
 export const applyPaddleSync = () =>
   request({ method: "post", url: "subscription_packages/paddle_sync" });
+
+export const fetchRegistrationTrialSetting = () =>
+  request({ method: "get", url: "registration_trial_setting" });
+
+export const saveRegistrationTrialSetting = (trialDays) =>
+  request({
+    method: "put",
+    url: "registration_trial_setting",
+    data: { trial_days: trialDays },
+  });

@@ -108,16 +108,41 @@ const PERIOD_BY_BILLING = { monthly: "al mes", annual: "al año" };
 export const canChangePlan = (plan) =>
   Boolean(plan) && CHANGEABLE_STATUSES.includes(plan.status);
 
-export const cardAction = (pkg, plan, billing) => {
-  if (!plan || pkg.id !== plan.package_id || billing !== plan.billing)
-    return "change";
+const UNAVAILABLE_ACTIONS = ["current", "lower", "annual-only"];
+const UPGRADE_ACTIONS = ["change", "change-module"];
+
+const isCheaper = (pkg, currentPackage) =>
+  Boolean(currentPackage) &&
+  Number(pkg.monthly_price) < Number(currentPackage.monthly_price);
+
+export const cardAction = (pkg, plan, billing, currentPackage) => {
+  if (!plan) return "change";
+  if (isCheaper(pkg, currentPackage)) return "lower";
+  if (pkg.id !== plan.package_id) return "change";
+  if (billing !== plan.billing)
+    return plan.billing === "annual" ? "annual-only" : "change";
   return pkg.module_selection_limit ? "change-module" : "current";
 };
 
-export const purchaseAction = (pkg, plan, billing) => {
+export const isUnavailableAction = (action) =>
+  UNAVAILABLE_ACTIONS.includes(action);
+
+export const currentPackageOf = (plan, packages) =>
+  plan ? packages.find((pkg) => pkg.id === plan.package_id) : undefined;
+
+export const hasUpgrade = (plan, packages) => {
+  const currentPackage = currentPackageOf(plan, packages);
+  return packages.some((pkg) =>
+    ["monthly", "annual"].some((billing) =>
+      UPGRADE_ACTIONS.includes(cardAction(pkg, plan, billing, currentPackage))
+    )
+  );
+};
+
+export const purchaseAction = (pkg, plan, billing, currentPackage) => {
   if (!isLivePlan(plan)) return "buy";
   if (!canChangePlan(plan)) return "manage";
-  return cardAction(pkg, plan, billing);
+  return cardAction(pkg, plan, billing, currentPackage);
 };
 
 export const changeSummary = (preview) => {
@@ -154,6 +179,36 @@ export const planBadge = (plan, now = Date.now()) => {
   if (plan.status === "active")
     return { text: `ACO ${plan.package_name} activo`, tone: "paid" };
   return null;
+};
+
+const daysUntil = (value, now) =>
+  Math.max(0, Math.ceil((Date.parse(value) - now) / DAY_MS) || 0);
+
+const NO_NOTICE = { days: null, ended: false, canBuy: false, paidText: null };
+
+const registrationTrialNotice = (registrationTrial, now) => {
+  const notice = { ...NO_NOTICE, canBuy: true };
+  if (!registrationTrial) return notice;
+  const days = daysUntil(registrationTrial.ends_at, now);
+  return days > 0 ? { ...notice, days } : { ...notice, ended: true };
+};
+
+export const trialNotice = ({ plan, registrationTrial, now = Date.now() }) => {
+  if (!isLivePlan(plan)) return registrationTrialNotice(registrationTrial, now);
+  if (plan.status === "trialing") {
+    return {
+      ...NO_NOTICE,
+      days: daysUntil(plan.current_period_ends_at || plan.next_billed_at, now),
+    };
+  }
+  if (plan.status === "active")
+    return { ...NO_NOTICE, paidText: `ACO ${plan.package_name} activo` };
+  return null;
+};
+
+export const daysLabel = (days) => {
+  if (days < 1) return "Último día";
+  return days === 1 ? "1 día" : `${days} días`;
 };
 
 const featureDescriptions = (features, moduleId) =>
