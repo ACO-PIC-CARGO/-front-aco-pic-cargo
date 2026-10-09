@@ -80,24 +80,24 @@
 
         <section v-else aria-labelledby="payments-title">
           <h2 id="payments-title" class="billing-history__section">Pagos</h2>
-          <table class="payments">
-            <thead>
-              <tr>
-                <th scope="col">Fecha</th>
-                <th scope="col">Concepto</th>
-                <th scope="col">Monto</th>
-                <th scope="col">Estado</th>
-                <th scope="col">Factura</th>
+          <table class="payments" role="table" aria-labelledby="payments-title">
+            <thead role="rowgroup">
+              <tr role="row">
+                <th scope="col" role="columnheader">Fecha</th>
+                <th scope="col" role="columnheader">Concepto</th>
+                <th scope="col" role="columnheader">Monto</th>
+                <th scope="col" role="columnheader">Estado</th>
+                <th scope="col" role="columnheader">Factura</th>
               </tr>
             </thead>
-            <tbody>
-              <tr v-for="row in rows" :key="row.id">
-                <td data-label="Fecha">{{ row.date }}</td>
-                <td data-label="Concepto">{{ row.concept }}</td>
-                <td data-label="Monto" class="payments__amount">
+            <tbody role="rowgroup">
+              <tr v-for="row in rows" :key="row.id" role="row">
+                <td role="cell" data-label="Fecha">{{ row.date }}</td>
+                <td role="cell" data-label="Concepto">{{ row.concept }}</td>
+                <td role="cell" data-label="Monto" class="payments__amount">
                   {{ row.amount }}
                 </td>
-                <td data-label="Estado">
+                <td role="cell" data-label="Estado">
                   <span
                     class="status-badge"
                     :class="`status-badge--${row.statusTone}`"
@@ -105,7 +105,7 @@
                     {{ row.statusLabel }}
                   </span>
                 </td>
-                <td data-label="Factura">
+                <td role="cell" data-label="Factura">
                   <button
                     v-if="row.hasInvoice"
                     type="button"
@@ -455,6 +455,7 @@ export default {
 
   .payments td::before {
     content: attr(data-label);
+    content: attr(data-label) / "";
     font-size: 13px;
     font-weight: 600;
     text-align: left;

@@ -78,7 +78,17 @@
           </span>
         </div>
         <p class="plan-summary__billing">{{ billingLabel(plan.billing) }}</p>
-        <p class="plan-summary__dates">{{ planDateLine(plan) }}</p>
+        <p class="plan-summary__dates">
+          {{ planDateLine(plan) }}
+          <template v-if="paymentUpdateNeeded(plan)">
+            Actualiza tu método de pago en
+            <router-link
+              :to="{ name: 'billingHistory' }"
+              class="plan-summary__link"
+              >Historial de facturación</router-link
+            >.
+          </template>
+        </p>
         <p v-if="details.users" class="plan-summary__users">
           <i class="mdi mdi-account-multiple-outline" aria-hidden="true"></i>
           Usuarios: {{ details.users }}
@@ -239,6 +249,7 @@ import {
   isLivePlan,
   isUnavailableAction,
   PLAN_CHANGED_EVENT,
+  paymentUpdateNeeded,
   planDateLine,
   planDetails,
   purchaseAction,
@@ -352,6 +363,7 @@ export default {
     formatDate,
     billingLabel,
     planDateLine,
+    paymentUpdateNeeded,
     isUnavailableAction,
     async loadAndStart() {
       if (!(await this.loadPage()) || !this.pendingStart) return;
@@ -732,6 +744,16 @@ export default {
 
 .plan-summary__dates {
   color: var(--planes-text-muted);
+}
+
+.plan-summary__link {
+  font-weight: 600;
+  color: var(--planes-accent);
+}
+
+.plan-summary__link:focus-visible {
+  outline: 2px solid var(--planes-accent);
+  outline-offset: 2px;
 }
 
 .plan-summary__users {

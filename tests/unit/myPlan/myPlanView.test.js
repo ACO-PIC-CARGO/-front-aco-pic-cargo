@@ -7,6 +7,7 @@ import {
   daysLabel,
   hasUpgrade,
   isUnavailableAction,
+  paymentUpdateNeeded,
   planDetails,
   purchaseAction,
   readPendingChoice,
@@ -88,6 +89,25 @@ test("hasUpgrade counts a module switch on the same package", () => {
   const choosable = { ...START, module_selection_limit: 1 };
 
   assert.equal(hasUpgrade({ ...annualPlan, package_id: 2 }, [choosable]), true);
+});
+
+const inactivePlan = (price) => ({
+  ...plan,
+  package_id: 9,
+  package_monthly_price: price,
+});
+
+test("cardAction compares with the plan price when its package is no longer offered", () => {
+  for (const price of ["79", 79]) {
+    assert.equal(cardAction(START, inactivePlan(price), "annual"), "lower");
+    assert.equal(cardAction(MAX, inactivePlan(price), "monthly"), "change");
+  }
+  assert.equal(cardAction(START, inactivePlan(null), "monthly"), "change");
+});
+
+test("hasUpgrade needs a pricier package when the current one is no longer offered", () => {
+  assert.equal(hasUpgrade(inactivePlan("79"), [START]), false);
+  assert.equal(hasUpgrade(inactivePlan("79"), [START, MAX]), true);
 });
 
 test("changeSummary tells what is charged today and the new price", () => {
@@ -238,10 +258,74 @@ test("trialNotice only offers a plan when there is no live plan and no trial", (
   );
 });
 
-test("daysLabel uses the singular and the last day", () => {
+test("trialNotice never offers a plan to ACO's own company", () => {
+  for (const branchId of [1, "1"]) {
+    assert.equal(
+      trialNotice({ plan: null, registrationTrial: null, branchId, now: NOW }),
+      null
+    );
+    assert.deepEqual(
+      trialNotice({
+        plan: null,
+        registrationTrial: registrationTrial(3 * DAY_MS),
+        branchId,
+        now: NOW,
+      }),
+      notice({ days: 3 })
+    );
+  }
+  assert.equal(
+    trialNotice({ plan: null, registrationTrial: null, branchId: 7, now: NOW })
+      .canBuy,
+    true
+  );
+});
+
+test("trialNotice still shows the plan when the registration trial is unknown", () => {
+  assert.deepEqual(
+    trialNotice({
+      plan: { status: "active", package_name: "PRO" },
+      registrationTrial: null,
+      now: NOW,
+    }),
+    notice({ paidText: "ACO PRO activo" })
+  );
+});
+
+test("daysLabel shows the last day for the final 24 hours", () => {
   assert.equal(daysLabel(12), "12 días");
-  assert.equal(daysLabel(1), "1 día");
+  assert.equal(daysLabel(2), "2 días");
+  assert.equal(daysLabel(1), "Último día");
   assert.equal(daysLabel(0), "Último día");
+});
+
+test("trial days count the final 24 hours as the last day", () => {
+  const daysLeft = (endsInMs) =>
+    trialNotice({
+      plan: null,
+      registrationTrial: registrationTrial(endsInMs),
+      now: NOW,
+    }).days;
+
+  assert.equal(daysLabel(daysLeft(DAY_MS)), "Último día");
+  assert.equal(daysLabel(daysLeft(1)), "Último día");
+  assert.equal(daysLabel(daysLeft(DAY_MS + 1)), "2 días");
+  assert.equal(
+    daysLabel(trialNotice({ plan: trial(-DAY_MS), now: NOW }).days),
+    "Último día"
+  );
+});
+
+test("paymentUpdateNeeded asks to update the card only for an unpaid plan that continues", () => {
+  assert.equal(paymentUpdateNeeded({ status: "past_due" }), true);
+  assert.equal(
+    paymentUpdateNeeded({
+      status: "past_due",
+      scheduled_change_action: "cancel",
+    }),
+    false
+  );
+  assert.equal(paymentUpdateNeeded({ status: "active" }), false);
 });
 
 const detailedPlan = (overrides = {}) => ({
@@ -329,6 +413,7 @@ test("purchaseAction blocks downgrades for a live plan", () => {
   assert.equal(purchaseAction(START, plan, "monthly", PRO), "lower");
   assert.equal(purchaseAction(PRO, annualPlan, "monthly", PRO), "annual-only");
   assert.equal(purchaseAction(START, null, "monthly", undefined), "buy");
+  assert.equal(purchaseAction(START, inactivePlan("79"), "monthly"), "lower");
 });
 
 test("purchaseAction sends plans that cannot change to Mi plan", () => {

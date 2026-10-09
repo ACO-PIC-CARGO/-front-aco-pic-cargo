@@ -57,6 +57,7 @@ import { isEmptyResult } from "@/api/subscriptionPackages";
 import {
   daysLabel,
   PLAN_CHANGED_EVENT,
+  readBranchId,
   trialNotice,
 } from "@/views/MyPlan/myPlanView";
 
@@ -66,13 +67,19 @@ const firstRow = (response) => (response.estadoflag ? response.data[0] : null);
 
 export default {
   name: "PlanStatusBadge",
-  data: () => ({ loaded: false, plan: null, registrationTrial: null }),
+  data: () => ({
+    loaded: false,
+    plan: null,
+    registrationTrial: null,
+    branchId: readBranchId(),
+  }),
   computed: {
     notice() {
       return this.loaded
         ? trialNotice({
             plan: this.plan,
             registrationTrial: this.registrationTrial,
+            branchId: this.branchId,
           })
         : null;
     },
@@ -87,12 +94,13 @@ export default {
   methods: {
     daysLabel,
     async load() {
-      const responses = await Promise.all([
+      const [planResponse, trialResponse] = await Promise.all([
         fetchCompanyPlan(),
         fetchRegistrationTrial(),
       ]);
-      this.loaded = !responses.some(hasFailed);
-      [this.plan, this.registrationTrial] = responses.map(firstRow);
+      this.loaded = !hasFailed(planResponse);
+      this.plan = firstRow(planResponse);
+      this.registrationTrial = firstRow(trialResponse);
     },
   },
 };

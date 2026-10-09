@@ -49,9 +49,7 @@ export const planDateLine = (plan) => {
       plan.next_billed_at
     )}; ese día se hará el primer cobro.`;
   }
-  if (plan.status === "past_due") {
-    return "No pudimos cobrar tu último pago. Actualiza tu método de pago en “Historial de facturación”.";
-  }
+  if (plan.status === "past_due") return "No pudimos cobrar tu último pago.";
   if (plan.status === "paused")
     return "Tu plan está pausado; no se harán cobros mientras siga así.";
   return `Próxima renovación: ${formatDate(plan.next_billed_at)}.`;
@@ -62,6 +60,14 @@ export const hasSession = () => {
     return Boolean(sessionStorage.getItem("auth-token"));
   } catch (error) {
     return false;
+  }
+};
+
+export const readBranchId = () => {
+  try {
+    return JSON.parse(sessionStorage.getItem("dataUser"))[0].id_branch;
+  } catch (error) {
+    return null;
   }
 };
 
@@ -111,13 +117,18 @@ export const canChangePlan = (plan) =>
 const UNAVAILABLE_ACTIONS = ["current", "lower", "annual-only"];
 const UPGRADE_ACTIONS = ["change", "change-module"];
 
-const isCheaper = (pkg, currentPackage) =>
-  Boolean(currentPackage) &&
-  Number(pkg.monthly_price) < Number(currentPackage.monthly_price);
+const isCheaper = (pkg, plan, currentPackage) => {
+  const currentPrice = currentPackage
+    ? currentPackage.monthly_price
+    : plan.package_monthly_price;
+  return (
+    currentPrice != null && Number(pkg.monthly_price) < Number(currentPrice)
+  );
+};
 
 export const cardAction = (pkg, plan, billing, currentPackage) => {
   if (!plan) return "change";
-  if (isCheaper(pkg, currentPackage)) return "lower";
+  if (isCheaper(pkg, plan, currentPackage)) return "lower";
   if (pkg.id !== plan.package_id) return "change";
   if (billing !== plan.billing)
     return plan.billing === "annual" ? "annual-only" : "change";
@@ -169,16 +180,25 @@ const daysUntil = (value, now) =>
   Math.max(0, Math.ceil((Date.parse(value) - now) / DAY_MS) || 0);
 
 const NO_NOTICE = { days: null, ended: false, canBuy: false, paidText: null };
+const ACO_BRANCH_ID = 1;
 
-const registrationTrialNotice = (registrationTrial, now) => {
-  const notice = { ...NO_NOTICE, canBuy: true };
-  if (!registrationTrial) return notice;
+const registrationTrialNotice = (registrationTrial, canBuy, now) => {
+  const notice = { ...NO_NOTICE, canBuy };
+  if (!registrationTrial) return canBuy ? notice : null;
   const days = daysUntil(registrationTrial.ends_at, now);
   return days > 0 ? { ...notice, days } : { ...notice, ended: true };
 };
 
-export const trialNotice = ({ plan, registrationTrial, now = Date.now() }) => {
-  if (!isLivePlan(plan)) return registrationTrialNotice(registrationTrial, now);
+export const trialNotice = ({
+  plan,
+  registrationTrial,
+  branchId,
+  now = Date.now(),
+}) => {
+  if (!isLivePlan(plan)) {
+    const canBuy = Number(branchId) !== ACO_BRANCH_ID;
+    return registrationTrialNotice(registrationTrial, canBuy, now);
+  }
   if (plan.status === "trialing") {
     return {
       ...NO_NOTICE,
@@ -190,10 +210,10 @@ export const trialNotice = ({ plan, registrationTrial, now = Date.now() }) => {
   return null;
 };
 
-export const daysLabel = (days) => {
-  if (days < 1) return "Último día";
-  return days === 1 ? "1 día" : `${days} días`;
-};
+export const paymentUpdateNeeded = (plan) =>
+  plan.status === "past_due" && plan.scheduled_change_action !== "cancel";
+
+export const daysLabel = (days) => (days > 1 ? `${days} días` : "Último día");
 
 const featureDescriptions = (features, moduleId) =>
   features
