@@ -108,49 +108,68 @@
             </span>
           </p>
 
-          <FormField
-            label="Título de la página"
-            input-id="legal-page-title"
-            :error="errors.title"
-          >
-            <template #default="field">
-              <input
-                id="legal-page-title"
-                v-model="draft.title"
-                class="legal-admin__input"
-                type="text"
-                autocomplete="off"
-                :maxlength="limits.title"
-                :aria-describedby="field.describedby"
-                :aria-invalid="String(field.invalid)"
+          <fieldset class="legal-admin__fields" :disabled="saving">
+            <FormField
+              label="Título de la página"
+              input-id="legal-page-title"
+              :error="errors.title"
+            >
+              <template #default="field">
+                <input
+                  id="legal-page-title"
+                  v-model="draft.title"
+                  class="legal-admin__input"
+                  type="text"
+                  autocomplete="off"
+                  :maxlength="limits.title"
+                  :aria-describedby="field.describedby"
+                  :aria-invalid="String(field.invalid)"
+                />
+              </template>
+            </FormField>
+
+            <p
+              v-if="errors.size || errors.sections"
+              ref="pageError"
+              class="legal-admin__error"
+              role="alert"
+              tabindex="-1"
+            >
+              {{ errors.size || errors.sections }}
+            </p>
+
+            <ol class="legal-admin__sections">
+              <LegalSectionEditor
+                v-for="(section, index) in draft.sections"
+                :key="section.key"
+                v-model="draft.sections[index]"
+                :index="index"
+                :count="draft.sections.length"
+                :errors="errors.items[index]"
+                @move="onMoveSection(index, $event)"
+                @remove="removeSection(index)"
               />
-            </template>
-          </FormField>
+            </ol>
 
-          <p v-if="errors.sections" class="legal-admin__error" role="alert">
-            {{ errors.sections }}
-          </p>
-
-          <ol class="legal-admin__sections">
-            <LegalSectionEditor
-              v-for="(section, index) in draft.sections"
-              :key="section.key"
-              v-model="draft.sections[index]"
-              :index="index"
-              :count="draft.sections.length"
-              :errors="errors.items[index]"
-              @move="onMoveSection(index, $event)"
-              @remove="removeSection(index)"
-            />
-          </ol>
-
-          <button
-            type="button"
-            class="plans-button plans-button--secondary legal-admin__add"
-            @click="addSection"
-          >
-            <i class="mdi mdi-plus" aria-hidden="true"></i> Agregar sección
-          </button>
+            <button
+              type="button"
+              class="plans-button plans-button--secondary legal-admin__add"
+              :disabled="isAtSectionLimit"
+              :aria-describedby="
+                isAtSectionLimit ? 'legal-section-limit' : null
+              "
+              @click="addSection"
+            >
+              <i class="mdi mdi-plus" aria-hidden="true"></i> Agregar sección
+            </button>
+            <p
+              v-if="isAtSectionLimit"
+              id="legal-section-limit"
+              class="legal-admin__hint"
+            >
+              Llegaste al máximo de {{ limits.sections }} secciones.
+            </p>
+          </fieldset>
 
           <div class="legal-admin__bar">
             <p class="legal-admin__status" role="status">
@@ -228,7 +247,7 @@ const PAGE_VIEWS = {
   },
 };
 
-const NO_ERRORS = { title: "", sections: "", items: [] };
+const NO_ERRORS = { size: "", title: "", sections: "", items: [] };
 
 const focusById = (id) => {
   const element = document.getElementById(id);
@@ -239,6 +258,10 @@ export default {
   name: "LegalPagesAdmin",
   components: { FormField, LegalSectionEditor },
   beforeRouteLeave(to, from, next) {
+    if (this.saving) {
+      next(false);
+      return;
+    }
     if (!this.dirtySlugs.length) {
       next();
       return;
@@ -279,6 +302,9 @@ export default {
       return this.pages
         .filter((page) => isDirty(this.drafts[page.slug], page))
         .map((page) => page.slug);
+    },
+    isAtSectionLimit() {
+      return this.draft.sections.length >= this.limits.sections;
     },
     isActiveDirty() {
       return this.dirtySlugs.includes(this.activeSlug);
@@ -372,7 +398,9 @@ export default {
       this.$set(this.showErrors, this.activeSlug, false);
     },
     focusFirstInvalid() {
-      const field = this.$refs.panel.querySelector('[aria-invalid="true"]');
+      const field =
+        this.$refs.panel.querySelector('[aria-invalid="true"]') ||
+        this.$refs.pageError;
       if (field) field.focus();
     },
     async save() {
@@ -598,8 +626,18 @@ export default {
   list-style: none;
 }
 
+.legal-admin__fields {
+  display: contents;
+}
+
 .legal-admin__add {
   width: 100%;
+}
+
+.legal-admin__hint {
+  margin: -12px 0 0;
+  font-size: 13px;
+  color: var(--planes-text-subtle);
 }
 
 .legal-admin__bar {

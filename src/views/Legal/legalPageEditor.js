@@ -4,6 +4,8 @@ export const LEGAL_LIMITS = {
   heading: 150,
   paragraphs: 20,
   text: 6000,
+  // The API rejects JSON bodies over 100 KB.
+  requestBytes: 90000,
 };
 
 export const LEGAL_MESSAGES = {
@@ -11,6 +13,7 @@ export const LEGAL_MESSAGES = {
   sections: "Agrega entre 1 y 40 secciones.",
   heading: "Cada sección necesita un título de hasta 150 caracteres.",
   text: "Cada sección necesita texto: hasta 20 párrafos y 6000 caracteres.",
+  size: "La página es demasiado larga para guardarla. Acórtala a unos 90 000 caracteres en total.",
 };
 
 const PLACEHOLDER = /\[[^\]\n]{1,60}\]/g;
@@ -50,9 +53,17 @@ export const toPayload = (draft) => ({
 
 const hasLength = (value, max) => value.length >= 1 && value.length <= max;
 
+const requestBytes = (payload) =>
+  new TextEncoder().encode(JSON.stringify(payload)).length;
+
 export const validateDraft = (draft) => {
-  const { title, sections } = toPayload(draft);
+  const payload = toPayload(draft);
+  const { title, sections } = payload;
   return {
+    size:
+      requestBytes(payload) <= LEGAL_LIMITS.requestBytes
+        ? ""
+        : LEGAL_MESSAGES.size,
     title: hasLength(title, LEGAL_LIMITS.title) ? "" : LEGAL_MESSAGES.title,
     sections: hasLength(sections, LEGAL_LIMITS.sections)
       ? ""
@@ -72,7 +83,8 @@ export const validateDraft = (draft) => {
 
 export const hasErrors = (errors) =>
   Boolean(
-    errors.title ||
+    errors.size ||
+      errors.title ||
       errors.sections ||
       errors.items.some((item) => item.heading || item.text)
   );

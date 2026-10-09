@@ -116,6 +116,16 @@ test("each section needs text: up to 20 paragraphs and 6000 characters", () => {
   assert.equal(atLimit.text, "");
 });
 
+test("a page too large to send is rejected before saving", () => {
+  const sections = Array.from({ length: 16 }, () => ({
+    heading: "a",
+    text: "x".repeat(6000),
+  }));
+  assert.equal(validateDraft(draftWith(sections)).size, LEGAL_MESSAGES.size);
+  assert.equal(hasErrors(validateDraft(draftWith(sections))), true);
+  assert.equal(validateDraft(draftWith(sections.slice(0, 14))).size, "");
+});
+
 test("only real content changes count as unsaved", () => {
   const draft = toDraft(page);
   assert.equal(isDirty(draft, page), false);
