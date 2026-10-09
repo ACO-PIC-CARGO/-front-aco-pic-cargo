@@ -39,6 +39,8 @@
         </div>
       </header>
 
+      <RegistrationTrialSetting />
+
       <div
         v-if="loadState === 'ready' && packages.length"
         class="subscription-admin__toolbar"
@@ -149,6 +151,7 @@ import "@/styles/plans-theme.css";
 import PackageCard from "@/components/SubscriptionPackages/PackageCard.vue";
 import PackageForm from "@/components/SubscriptionPackages/PackageForm.vue";
 import PaddleSyncDialog from "@/components/SubscriptionPackages/PaddleSyncDialog.vue";
+import RegistrationTrialSetting from "@/components/SubscriptionPackages/RegistrationTrialSetting.vue";
 import SegmentedControl from "@/components/SubscriptionPackages/SegmentedControl.vue";
 import { toPlanView } from "@/components/SubscriptionPackages/packageView";
 import {
@@ -187,7 +190,13 @@ const confirmDeactivation = (pkg) =>
 
 export default {
   name: "SubscriptionPackages",
-  components: { PackageCard, PackageForm, PaddleSyncDialog, SegmentedControl },
+  components: {
+    PackageCard,
+    PackageForm,
+    PaddleSyncDialog,
+    RegistrationTrialSetting,
+    SegmentedControl,
+  },
   data: () => ({
     packages: [],
     modules: [],

@@ -727,6 +727,11 @@ const routes = [
         name: "legalPagesAdmin",
         component: () => import("../views/Legal/LegalPagesAdmin.vue"),
       },
+      {
+        path: "historial-facturacion",
+        name: "billingHistory",
+        component: () => import("../views/BillingHistory/BillingHistory.vue"),
+      },
       // {
       //   path: "suscripcion3",
       //   name: "lstPlanes",
