@@ -21,7 +21,7 @@
       </v-tabs>
       <v-tabs-items v-model="tab">
         <v-tab-item value="fletelst">
-          <FleteListComponent type="LCL" :id_modality="id_modality" />
+          <FleteListComponent type="LCL" :id_modality="id_modality" @flete-actualizado="handleFleteActualizado" />
         </v-tab-item>
         <v-tab-item value="config">
           <Configuracion type="LCL" :id_modality="id_modality" />
@@ -78,6 +78,10 @@ export default {
     return {
       tab: "fletelst",
       id_modality: 1,
+      data: {
+        shimpent: "LCL",
+      id_modality: 1,
+      },
     };
   },
   methods: {
@@ -94,25 +98,24 @@ export default {
       "getTransporte",
       "getOpciones",
     ]),
+    handleFleteActualizado() {
+      this.getCostosList(this.data);
+    },
   },
   async mounted() {
-    let data = {
-      shimpent: "LCL",
-      id_modality: this.id_modality,
-    };
-
+   
     await Promise.all([
       this.getOpciones(),
       this._getModality(),
       this._getPais(),
-      this.GetTipoCosto(data),
+      this.GetTipoCosto(this.data),
       this.GetCalcServicio(),
-      this.GetCalcMultiplicador(data),
+      this.GetCalcMultiplicador(this.data),
       this.GetCotCostos(),
-      this.getCostosList(data),
-      this.getProfitList(data),
-      this.getDepartamentos(data),
-      this.getTransporte(data),
+      this.getCostosList(this.data),
+      this.getProfitList(this.data),
+      this.getDepartamentos(this.data),
+      this.getTransporte(this.data),
     ]);
   },
 };
