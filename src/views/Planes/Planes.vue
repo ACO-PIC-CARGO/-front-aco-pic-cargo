@@ -66,7 +66,7 @@
           <button
             type="button"
             class="plan__cta"
-            :disabled="busy || actionOf(plan) === 'current'"
+            :disabled="busy || isUnavailableAction(actionOf(plan))"
             @click="buyPlan(plan)"
           >
             <i
@@ -134,8 +134,10 @@ import "@/styles/plans-theme.css";
 import Swal from "sweetalert2";
 import {
   clearPendingChoice,
+  currentPackageOf,
   hasSession,
   isLivePlan,
+  isUnavailableAction,
   purchaseAction,
   savePendingChoice,
 } from "@/views/MyPlan/myPlanView";
@@ -170,6 +172,8 @@ const CTA_LABELS = {
   change: "Cambiar a este plan",
   "change-module": "Cambiar módulo",
   current: "Tu plan actual",
+  lower: "Plan inferior",
+  "annual-only": "Ya tienes el plan anual",
   manage: "Ver Mi plan",
 };
 const notifyError = (message) => Swal.fire({ icon: "error", text: message });
@@ -204,6 +208,9 @@ export default {
     monthsSaved() {
       return maxMonthsSaved(this.packages);
     },
+    currentPackage() {
+      return currentPackageOf(this.companyPlan, this.packages);
+    },
   },
   created() {
     if (this.$route.query._ptxn) preparePaddle();
@@ -214,6 +221,7 @@ export default {
     stopCheckoutEvents();
   },
   methods: {
+    isUnavailableAction,
     async loadCompanyPlan() {
       const response = await fetchCompanyPlan();
       this.companyPlan =
@@ -226,7 +234,12 @@ export default {
     },
     actionOf(plan) {
       return hasSession()
-        ? purchaseAction(this.packageOf(plan), this.companyPlan, this.billing)
+        ? purchaseAction(
+            this.packageOf(plan),
+            this.companyPlan,
+            this.billing,
+            this.currentPackage
+          )
         : "buy";
     },
     ctaLabel(plan) {
@@ -264,7 +277,7 @@ export default {
         this.$router.push({ name: "miPlan" });
         return;
       }
-      if (action === "current") return;
+      if (isUnavailableAction(action)) return;
       const pkg = this.packageOf(plan);
       if (pkg.module_selection_limit) {
         this.modulePackage = pkg;

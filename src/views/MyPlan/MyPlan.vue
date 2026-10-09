@@ -104,14 +104,14 @@
         </div>
         <div class="plan-summary__actions">
           <button
-            v-if="canChange"
+            v-if="canChange && canUpgrade"
             type="button"
             class="plans-button plans-button--primary"
             :disabled="busy"
             @click="startChangingPlan"
           >
-            <i class="mdi mdi-swap-horizontal" aria-hidden="true"></i>
-            Cambiar plan
+            <i class="mdi mdi-arrow-up-circle-outline" aria-hidden="true"></i>
+            Mejorar plan
           </button>
           <button
             v-if="plan.scheduled_change_action === 'cancel'"
@@ -121,15 +121,6 @@
             @click="keepPlan"
           >
             Mantener mi plan
-          </button>
-          <button
-            type="button"
-            class="plans-button plans-button--secondary"
-            :disabled="busy"
-            @click="manageBilling"
-          >
-            <i class="mdi mdi-credit-card-outline" aria-hidden="true"></i>
-            Gestionar pago y facturas
           </button>
           <button
             v-if="plan.scheduled_change_action !== 'cancel'"
@@ -197,7 +188,7 @@
             <button
               type="button"
               class="plans-button plans-button--primary my-plan__buy"
-              :disabled="busy || cardActionOf(pkg) === 'current'"
+              :disabled="busy || isUnavailableAction(cardActionOf(pkg))"
               :aria-label="`${cardLabel(pkg)}: ACO ${pkg.name}`"
               @click="choosePackage(pkg)"
             >
@@ -235,7 +226,6 @@ import {
   confirmCompanyPlan,
   fetchCompanyPlan,
   keepCompanyPlan,
-  openBillingPortal,
 } from "@/api/branchSubscription";
 import { stopCheckoutEvents } from "@/api/paddleCheckout";
 import {
@@ -243,8 +233,11 @@ import {
   canChangePlan,
   cardAction,
   clearPendingChoice,
+  currentPackageOf,
   formatDate,
+  hasUpgrade,
   isLivePlan,
+  isUnavailableAction,
   PLAN_CHANGED_EVENT,
   planDateLine,
   planDetails,
@@ -265,8 +258,6 @@ const BILLING_OPTIONS = [
 ];
 const CONFIRM_ATTEMPTS = 20;
 const CONFIRM_INTERVAL_MS = 3000;
-const PORTAL_FAILED_MESSAGE =
-  "No pudimos abrir la gestión de pagos. Intenta de nuevo en unos minutos.";
 const KEEP_FAILED_MESSAGE =
   "No pudimos mantener tu plan. Intenta de nuevo en unos minutos.";
 const CARD_LABELS = {
@@ -274,6 +265,8 @@ const CARD_LABELS = {
   change: "Cambiar a este plan",
   "change-module": "Cambiar módulo",
   current: "Tu plan actual",
+  lower: "Plan inferior",
+  "annual-only": "Ya tienes el plan anual",
 };
 
 const notifyError = (message) => Swal.fire({ icon: "error", text: message });
@@ -319,6 +312,12 @@ export default {
     canChange() {
       return canChangePlan(this.plan);
     },
+    canUpgrade() {
+      return hasUpgrade(this.plan, this.packages);
+    },
+    currentPackage() {
+      return currentPackageOf(this.plan, this.packages);
+    },
     billing() {
       return this.isAnnual ? "annual" : "monthly";
     },
@@ -353,6 +352,7 @@ export default {
     formatDate,
     billingLabel,
     planDateLine,
+    isUnavailableAction,
     async loadAndStart() {
       if (!(await this.loadPage()) || !this.pendingStart) return;
       const { transactionId, choice } = this.pendingStart;
@@ -368,7 +368,12 @@ export default {
       const pkg = this.packages.find((item) => item.id === choice.packageId);
       if (!pkg) return;
       this.chosenPackageId = pkg.id;
-      const action = purchaseAction(pkg, this.plan, this.billing);
+      const action = purchaseAction(
+        pkg,
+        this.plan,
+        this.billing,
+        this.currentPackage
+      );
       if (action === "buy") {
         this.choosePackage(pkg);
         return;
@@ -417,7 +422,7 @@ export default {
     },
     cardActionOf(pkg) {
       return this.isChangingPlan
-        ? cardAction(pkg, this.plan, this.billing)
+        ? cardAction(pkg, this.plan, this.billing, this.currentPackage)
         : "buy";
     },
     cardLabel(pkg) {
@@ -537,21 +542,6 @@ export default {
         }
         this.confirmPayment(attempt + 1);
       }, CONFIRM_INTERVAL_MS);
-    },
-    async manageBilling() {
-      this.busy = true;
-      const response = await openBillingPortal();
-      this.busy = false;
-      const url =
-        response.estadoflag &&
-        response.data &&
-        response.data[0] &&
-        response.data[0].url;
-      if (!url) {
-        notifyError(response.mensaje || PORTAL_FAILED_MESSAGE);
-        return;
-      }
-      window.location.href = url;
     },
     async cancelPlan() {
       const { isConfirmed } = await Swal.fire({

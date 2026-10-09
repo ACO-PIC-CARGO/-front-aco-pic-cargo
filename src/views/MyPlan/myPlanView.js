@@ -50,7 +50,7 @@ export const planDateLine = (plan) => {
     )}; ese día se hará el primer cobro.`;
   }
   if (plan.status === "past_due") {
-    return "No pudimos cobrar tu último pago. Actualiza tu método de pago en “Gestionar pago y facturas”.";
+    return "No pudimos cobrar tu último pago. Actualiza tu método de pago en “Historial de facturación”.";
   }
   if (plan.status === "paused")
     return "Tu plan está pausado; no se harán cobros mientras siga así.";
@@ -164,22 +164,6 @@ export const changeSummary = (preview) => {
 };
 
 const DAY_MS = 24 * 60 * 60 * 1000;
-
-const trialDaysLabel = (plan, now) => {
-  const end = Date.parse(plan.current_period_ends_at || plan.next_billed_at);
-  const days = Math.ceil((end - now) / DAY_MS);
-  if (!(days > 0)) return "Último día de prueba";
-  return days === 1 ? "1 día de prueba" : `${days} días de prueba`;
-};
-
-export const planBadge = (plan, now = Date.now()) => {
-  if (!plan) return null;
-  if (plan.status === "trialing")
-    return { text: trialDaysLabel(plan, now), tone: "trial" };
-  if (plan.status === "active")
-    return { text: `ACO ${plan.package_name} activo`, tone: "paid" };
-  return null;
-};
 
 const daysUntil = (value, now) =>
   Math.max(0, Math.ceil((Date.parse(value) - now) / DAY_MS) || 0);

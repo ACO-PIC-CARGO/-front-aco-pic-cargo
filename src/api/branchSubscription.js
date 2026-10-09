@@ -20,9 +20,6 @@ export const confirmCompanyPlan = (transactionId) =>
     data: { transaction_id: transactionId },
   });
 
-export const openBillingPortal = () =>
-  request({ method: "post", url: "branch_subscription/portal" });
-
 export const previewPlanChange = (payload) =>
   request({
     method: "post",
