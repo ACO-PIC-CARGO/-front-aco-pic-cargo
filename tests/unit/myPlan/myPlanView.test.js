@@ -7,6 +7,7 @@ import {
   planBadge,
   planDetails,
   purchaseAction,
+  readPendingChoice,
 } from "../../../src/views/MyPlan/myPlanView.js";
 
 const plan = { package_id: 3, billing: "monthly", status: "active" };
@@ -231,4 +232,11 @@ test("purchaseAction sends plans that cannot change to Mi plan", () => {
     ),
     "manage"
   );
+});
+
+test("readPendingChoice starts a plan link without a cycle on monthly billing", () => {
+  assert.deepEqual(readPendingChoice({ paquete: "3" }), {
+    packageId: 3,
+    billing: "monthly",
+  });
 });

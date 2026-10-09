@@ -194,7 +194,7 @@ export default {
     loadState: "loading",
     errorMessage: "",
     statusFilter: "active",
-    isAnnual: true,
+    isAnnual: false,
     expandedId: null,
     busyId: null,
     isFormOpen: false,

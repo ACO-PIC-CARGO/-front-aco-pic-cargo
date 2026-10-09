@@ -298,7 +298,7 @@ export default {
     confirmTimer: null,
     pendingTransactionId: null,
     pendingStart: null,
-    isAnnual: true,
+    isAnnual: false,
     isChangingPlan: false,
     expandedId: null,
     chosenPackageId: null,

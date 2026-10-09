@@ -181,7 +181,7 @@ export default {
     packages: [],
     loadState: "loading",
     errorMessage: "",
-    isAnnual: true,
+    isAnnual: false,
     expandedPlanId: null,
     selectedPlanName: "",
     billingOptions: BILLING_OPTIONS,

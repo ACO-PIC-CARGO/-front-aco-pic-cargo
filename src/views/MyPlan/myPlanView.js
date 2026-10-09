@@ -96,7 +96,7 @@ export const readPendingChoice = (query) => {
   if (query.paquete) {
     return {
       packageId: Number(query.paquete),
-      billing: BILLING_BY_QUERY[query.ciclo] || "annual",
+      billing: BILLING_BY_QUERY[query.ciclo] || "monthly",
     };
   }
   return readStoredChoice();
