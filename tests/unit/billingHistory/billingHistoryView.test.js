@@ -36,7 +36,8 @@ test("billingRows names a purchase, a renewal and a plan change", () => {
 });
 
 test("billingRows formats the amount from the lowest denomination in its currency", () => {
-  assert.match(rowOf({ total: "7900" }).amount, /^79,00\sUS\$$/);
+  assert.equal(rowOf({ total: "7900" }).amount, "US$79");
+  assert.equal(rowOf({ total: "6810" }).amount, "US$68.10");
   assert.match(
     rowOf({ total: "129050", currency_code: "MXN" }).amount,
     /^1290,50\sMXN$/

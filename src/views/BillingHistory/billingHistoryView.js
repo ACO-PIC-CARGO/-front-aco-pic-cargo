@@ -1,3 +1,4 @@
+import { formatPrice } from "../../components/SubscriptionPackages/packageView.js";
 import { formatDate } from "../MyPlan/myPlanView.js";
 
 const CONCEPT_BY_ORIGIN = {
@@ -33,11 +34,14 @@ const conceptOf = (entry) => {
   return entry.billing ? `${name} · ${BILLING_LABELS[entry.billing]}` : name;
 };
 
-const amountOf = (entry) =>
-  new Intl.NumberFormat("es", {
+const amountOf = (entry) => {
+  const amount = Number(entry.total) / 100;
+  if (entry.currency_code === "USD") return formatPrice(amount);
+  return new Intl.NumberFormat("es", {
     style: "currency",
     currency: entry.currency_code,
-  }).format(Number(entry.total) / 100);
+  }).format(amount);
+};
 
 const statusOf = (entry) => {
   const total = Number(entry.total);
