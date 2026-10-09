@@ -26,6 +26,7 @@ const state = {
   opcionCalculadora: 1,
   opciones: [],
   config: [],
+  estatusCotizacion: [],
   fletePricing: {},
 };
 const mutations = {
@@ -107,6 +108,9 @@ const mutations = {
   },
   SET_LIST_OPCIONES(state, data) {
     state.lstOpciones = data;
+  },
+  SET_ESTATUS_COTIZACION(state, data) {
+    state.estatusCotizacion = data;
   },
 };
 
@@ -1370,6 +1374,67 @@ const actions = {
         dispatch("opcionListado");
       }
     });
+  },
+  async actualizarFlete({ dispatch }, data) {
+    var headers = {
+      "Content-Type": "application/json",
+    };
+
+    var config = {
+      method: "put",
+      url: process.env.VUE_APP_URL_MAIN + "calc/flete/actualizar",
+      headers: headers,
+      data: data,
+    };
+    let response = await axios(config);
+    if (response.data.estadoflag) {
+      let res = response.data;
+      Swal.fire({
+        icon: "success",
+        title: res.mensaje,
+        allowEnterKey: true,
+        allowOutsideClick: true,
+        allowEscapeKey: true,
+      }).then((res) => {});
+    }
+  },
+  async cargarEstatus({ commit }, data) {
+    var config = {
+      method: "get",
+      url: process.env.VUE_APP_URL_MAIN + `calc/estatus`,
+    };
+    await axios(config).then((res) => {
+      let data = res.data;
+      if (data.estadoflag) {
+        let newData = data.data;
+        commit("SET_ESTATUS_COTIZACION", newData);
+      } else {
+        commit("SET_ESTATUS_COTIZACION", []);
+      }
+    });
+  },
+  async actualizarEstadoCotizacionCalculadora({ dispatch }, data) {
+    var headers = {
+      "Content-Type": "application/json",
+    };
+
+    var config = {
+      method: "put",
+      url: process.env.VUE_APP_URL_MAIN + "calc/flete/actualizar/individual",
+      headers: headers,
+      data: data,
+    };
+    let response = await axios(config);
+    if (response.data.estadoflag) {
+      let res = response.data;
+      Swal.fire({
+        icon: "success",
+        title: res.mensaje,
+        allowEnterKey: true,
+        allowOutsideClick: true,
+        allowEscapeKey: true,
+      }).then((res) => {});
+    }
   },
 };
 
