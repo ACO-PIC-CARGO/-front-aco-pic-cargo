@@ -112,10 +112,6 @@
   transition: filter 0.2s, border-color 0.2s, color 0.2s, transform 0.2s;
 }
 
-.plans-button .mdi {
-  font-size: 18px;
-}
-
 .plans-button:active:not(:disabled) {
   transform: scale(0.98);
 }

@@ -291,7 +291,6 @@ export default {
       planDateLine: "planDateLine",
       canChange: "canChangePlan",
       canUpgrade: "hasUpgrade",
-      currentPackage: "currentPackage",
       details: "planDetails",
       paymentUpdateNeeded: "paymentUpdateNeeded",
       cardActionFor: "cardAction",

@@ -931,7 +931,8 @@ const actions = {
       url: "subscription_packages/paddle_sync",
     });
     if (response.data.length) commit("SET_PADDLE_SYNC_REPORT", response.data);
-    if (response.estadoflag) notifySuccess(response.mensaje);
+    if (response.estadoflag && response.data.length)
+      notifySuccess(response.mensaje);
     return response;
   },
   async loadRegistrationTrialSetting({ commit }) {
