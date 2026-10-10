@@ -316,6 +316,7 @@ export default {
 }
 
 .plans-theme .feature__icon.v-icon {
+  align-self: start;
   font-size: 18px;
   line-height: 1;
   color: var(--planes-accent);
