@@ -118,11 +118,8 @@
 </template>
 
 <script>
-import { mapActions } from "vuex";
+import { mapActions, mapGetters } from "vuex";
 import Swal from "sweetalert2";
-import { canAddUsers, userLimitNotice } from "@/views/MyPlan/planAccess";
-import { reloadPlanAccess } from "@/views/MyPlan/planAccessStore";
-import { promptPlanUpgrade } from "@/views/MyPlan/promptPlanUpgrade";
 export default {
   data() {
     return {
@@ -145,7 +142,11 @@ export default {
       ],
     };
   },
+  computed: {
+    ...mapGetters("subscriptions", ["canAddUsers", "userLimitNotice"]),
+  },
   methods: {
+    ...mapActions("subscriptions", ["reloadPlanAccess", "promptPlanUpgrade"]),
     ...mapActions([
       "GetListUsers",
       "_getPais",
@@ -178,10 +179,10 @@ export default {
     },
     async nuevo() {
       this.loadingNuevo = true;
-      const access = await reloadPlanAccess();
+      await this.reloadPlanAccess();
       this.loadingNuevo = false;
-      if (!canAddUsers(access)) {
-        promptPlanUpgrade(this.$router, userLimitNotice(access));
+      if (!this.canAddUsers) {
+        this.promptPlanUpgrade(this.userLimitNotice);
         return;
       }
       this.$router.push({ name: "registroUser" });

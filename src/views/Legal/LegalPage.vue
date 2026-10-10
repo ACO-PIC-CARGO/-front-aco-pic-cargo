@@ -71,7 +71,6 @@ export default {
   watch: {
     page: {
       handler() {
-        window.scrollTo(0, 0);
         this.load();
       },
       immediate: true,
