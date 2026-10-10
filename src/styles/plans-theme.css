@@ -212,6 +212,10 @@
   font-size: inherit;
 }
 
+.plans-theme .v-btn.v-btn--disabled .v-icon.v-icon {
+  color: inherit !important;
+}
+
 .plans-theme .v-btn.v-btn {
   text-transform: none;
   letter-spacing: normal;
@@ -306,7 +310,7 @@
   display: none;
 }
 
-.plans-theme .segmented.v-btn-toggle {
+.plans-theme .segmented.v-btn-toggle:not(.v-btn-toggle--group) {
   display: inline-flex;
   padding: 3px;
   border-radius: 999px;
