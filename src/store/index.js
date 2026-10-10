@@ -66,6 +66,7 @@ import proveedor from "./modules/proveedor";
 import configuracion from "./modules/configuracion";
 import profitPricing from "./modules/profitPricing";
 import subscriptions from "./modules/subscriptions";
+import legalPages from "./modules/legalPages";
 import Swal from "sweetalert2";
 import moment from "moment";
 Vue.use(Vuex);
@@ -2935,5 +2936,6 @@ export default new Vuex.Store({
     configuracion,
     profitPricing,
     subscriptions,
+    legalPages,
   },
 });
