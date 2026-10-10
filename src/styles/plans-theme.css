@@ -206,3 +206,13 @@
   outline: 2px solid var(--planes-accent);
   outline-offset: 2px;
 }
+
+.plans-theme .v-icon.v-icon {
+  color: inherit;
+  font-size: inherit;
+}
+
+.plans-theme .v-btn.v-btn {
+  text-transform: none;
+  letter-spacing: normal;
+}

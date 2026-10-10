@@ -9,7 +9,7 @@
     :style="{ '--plan-index': index }"
   >
     <span v-if="plan.featured" class="plan__ribbon">
-      <i class="mdi mdi-crown" aria-hidden="true"></i> Más elegido
+      <v-icon>mdi-crown</v-icon> Más elegido
     </span>
 
     <div class="plan__heading">
@@ -17,16 +17,16 @@
         ACO <span class="plan__accent">{{ plan.name }}</span>
       </h2>
       <span v-if="!plan.isActive" class="plan__status">Inactivo</span>
-      <button
-        type="button"
+      <v-btn
+        icon
         class="plan__chevron"
         :aria-label="`Ver detalles de ACO ${plan.name}`"
         :aria-expanded="String(expanded)"
         :aria-controls="detailsId"
         @click="$emit('toggle-details')"
       >
-        <i class="mdi mdi-chevron-down" aria-hidden="true"></i>
-      </button>
+        <v-icon>mdi-chevron-down</v-icon>
+      </v-btn>
     </div>
     <p v-if="plan.tagline" class="plan__tagline">{{ plan.tagline }}</p>
 
@@ -40,16 +40,14 @@
       </span>
     </div>
     <p v-if="plan.trial" class="plan__trial">
-      <i class="mdi mdi-gift-outline" aria-hidden="true"></i> {{ plan.trial }}
+      <v-icon>mdi-gift-outline</v-icon> {{ plan.trial }}
     </p>
 
-    <p class="plan__users">
-      <i class="mdi mdi-account" aria-hidden="true"></i> {{ plan.users }}
-    </p>
+    <p class="plan__users"><v-icon>mdi-account</v-icon> {{ plan.users }}</p>
 
     <ul class="plan__highlights">
       <li v-for="item in plan.highlights" :key="item" class="feature">
-        <i class="feature__icon mdi mdi-check-circle" aria-hidden="true"></i>
+        <v-icon class="feature__icon">mdi-check-circle</v-icon>
         <div>{{ item }}</div>
       </li>
     </ul>
@@ -62,15 +60,12 @@
           :key="feature.text"
           class="feature"
         >
-          <i
-            class="feature__icon mdi"
-            :class="
-              feature.conditional
-                ? 'mdi-help-circle feature__icon--option'
-                : 'mdi-check-circle'
-            "
-            aria-hidden="true"
-          ></i>
+          <v-icon
+            class="feature__icon"
+            :class="{ 'feature__icon--option': feature.conditional }"
+          >
+            {{ feature.conditional ? "mdi-help-circle" : "mdi-check-circle" }}
+          </v-icon>
           <div>
             {{ feature.text }}
             <ul v-if="feature.details" class="feature__details">
@@ -90,10 +85,7 @@
             :key="item"
             class="feature feature--excluded"
           >
-            <i
-              class="feature__icon mdi mdi-close-circle"
-              aria-hidden="true"
-            ></i>
+            <v-icon class="feature__icon">mdi-close-circle</v-icon>
             <div>{{ item }}</div>
           </li>
         </ul>
@@ -102,16 +94,16 @@
 
     <footer class="plan__footer">
       <slot />
-      <button
-        type="button"
+      <v-btn
+        text
         class="plan__details-toggle"
         :aria-expanded="String(expanded)"
         :aria-controls="detailsId"
         @click="$emit('toggle-details')"
       >
         {{ expanded ? "Ocultar detalles" : "Ver detalles" }}
-        <i class="mdi mdi-chevron-down" aria-hidden="true"></i>
-      </button>
+        <v-icon>mdi-chevron-down</v-icon>
+      </v-btn>
     </footer>
   </article>
 </template>
@@ -193,7 +185,7 @@ export default {
   white-space: nowrap;
 }
 
-.plan__ribbon .mdi {
+.plans-theme .plan__ribbon .v-icon {
   font-size: 13px;
 }
 
@@ -226,9 +218,9 @@ export default {
   color: var(--planes-text-muted);
 }
 
-.plan__chevron,
+.plans-theme .plan__chevron.v-btn,
 .plan__highlights,
-.plan__details-toggle {
+.plans-theme .plan__details-toggle.v-btn {
   display: none;
 }
 
@@ -294,7 +286,7 @@ export default {
   font-size: 15px;
 }
 
-.plan__users .mdi {
+.plans-theme .plan__users .v-icon {
   font-size: 20px;
   color: var(--planes-text-muted);
 }
@@ -323,13 +315,13 @@ export default {
   color: var(--planes-text);
 }
 
-.feature__icon {
+.plans-theme .feature__icon.v-icon {
   font-size: 18px;
   line-height: 1;
   color: var(--planes-accent);
 }
 
-.feature__icon--option {
+.plans-theme .feature__icon--option.v-icon {
   color: var(--planes-text-subtle);
 }
 
@@ -361,7 +353,7 @@ export default {
   color: var(--planes-text-subtle);
 }
 
-.feature--excluded .feature__icon {
+.plans-theme .feature--excluded .feature__icon.v-icon {
   color: var(--planes-excluded);
 }
 
@@ -371,40 +363,55 @@ export default {
   text-align: center;
 }
 
-.plan__chevron {
-  align-items: center;
-  justify-content: center;
+.plans-theme .plan__chevron.v-btn {
   flex-shrink: 0;
   width: 40px;
   height: 40px;
+  min-width: 0;
   margin: -8px -10px 0 0;
+  padding: 0;
   border-radius: 8px;
   font-size: 22px;
   color: var(--planes-text-muted);
-  cursor: pointer;
 }
 
-.plan__details-toggle {
-  align-items: center;
-  justify-content: center;
-  gap: 6px;
+.plans-theme .plan__chevron.v-btn .v-icon {
+  width: auto;
+  height: auto;
+  font-size: inherit;
+}
+
+.plans-theme .plan__details-toggle.v-btn {
   width: 100%;
+  height: auto;
+  min-width: 0;
   min-height: 42px;
   margin-top: 10px;
+  padding: 1px 6px;
   border: 1px solid var(--planes-border-strong);
   border-radius: var(--planes-radius-control);
   font-size: 14px;
   font-weight: 500;
+  text-indent: 0;
   color: var(--planes-text-muted);
-  cursor: pointer;
 }
 
-.plan__details-toggle .mdi {
+.plans-theme .plan__details-toggle.v-btn >>> .v-btn__content {
+  flex: 0 1 auto;
+  gap: 6px;
+}
+
+.plans-theme .plan__details-toggle .v-icon {
   font-size: 18px;
 }
 
-.plan__details-toggle:hover,
-.plan__chevron:hover {
+.plans-theme .plan__chevron.v-btn::before,
+.plans-theme .plan__details-toggle.v-btn::before {
+  display: none;
+}
+
+.plans-theme .plan__details-toggle.v-btn:hover,
+.plans-theme .plan__chevron.v-btn:hover {
   color: var(--planes-text);
   border-color: var(--planes-accent-border);
 }
@@ -415,8 +422,8 @@ export default {
   transform: rotate(180deg);
 }
 
-.plan__chevron:focus-visible,
-.plan__details-toggle:focus-visible {
+.plans-theme .plan__chevron.v-btn:focus-visible,
+.plans-theme .plan__details-toggle.v-btn:focus-visible {
   outline: 2px solid var(--planes-accent);
   outline-offset: 3px;
 }
@@ -445,8 +452,8 @@ export default {
 }
 
 @media (max-width: 960px) {
-  .plan__chevron,
-  .plan__details-toggle {
+  .plans-theme .plan__chevron.v-btn,
+  .plans-theme .plan__details-toggle.v-btn {
     display: inline-flex;
   }
 
@@ -482,7 +489,7 @@ export default {
     font-size: 20px;
   }
 
-  .plan__chevron {
+  .plans-theme .plan__chevron.v-btn {
     width: 36px;
     height: 36px;
     margin: -7px -8px 0 0;
@@ -520,7 +527,7 @@ export default {
     font-size: 13.5px;
   }
 
-  .plan__users .mdi {
+  .plans-theme .plan__users .v-icon {
     font-size: 18px;
   }
 
@@ -538,7 +545,7 @@ export default {
     padding-top: 10px;
   }
 
-  .plan__details-toggle {
+  .plans-theme .plan__details-toggle.v-btn {
     min-height: 36px;
     margin-top: 6px;
     font-size: 13px;

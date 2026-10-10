@@ -6,10 +6,9 @@
     :fullscreen="$vuetify.breakpoint.xsOnly"
     content-class="plans-theme plans-theme--app package-dialog"
   >
-    <form
+    <v-form
       v-if="pkg"
       class="module-select"
-      novalidate
       aria-labelledby="module-select-title"
       @submit.prevent="confirm"
     >
@@ -23,51 +22,41 @@
             desde que se active tu plan.
           </p>
         </div>
-        <button
-          type="button"
-          class="icon-button"
-          aria-label="Cerrar"
-          @click="close"
-        >
-          <i class="mdi mdi-close" aria-hidden="true"></i>
-        </button>
+        <v-btn icon class="icon-button" aria-label="Cerrar" @click="close">
+          <v-icon>mdi-close</v-icon>
+        </v-btn>
       </header>
 
       <fieldset class="module-select__options">
         <legend class="module-select__legend">Módulos</legend>
-        <label
+        <v-checkbox
           v-for="module in pkg.modules"
           :key="module.id"
+          v-model="selectedIds"
           class="module-select__option"
-        >
-          <input
-            v-model="selectedIds"
-            type="checkbox"
-            :value="module.id"
-            :disabled="isLocked(module.id)"
-          />
-          {{ module.name }}
-        </label>
+          :value="module.id"
+          :label="module.name"
+          :disabled="isLocked(module.id)"
+          hide-details
+          dense
+        />
       </fieldset>
       <p class="module-select__count" aria-live="polite">{{ countLabel }}</p>
 
       <footer class="module-select__footer">
-        <button
-          type="button"
-          class="plans-button plans-button--ghost"
-          @click="close"
-        >
+        <v-btn text class="plans-button plans-button--ghost" @click="close">
           Cancelar
-        </button>
-        <button
+        </v-btn>
+        <v-btn
+          text
           type="submit"
           class="plans-button plans-button--primary"
           :disabled="!isComplete"
         >
           {{ confirmLabel }}
-        </button>
+        </v-btn>
       </footer>
-    </form>
+    </v-form>
   </v-dialog>
 </template>
 
@@ -164,21 +153,86 @@ export default {
   color: var(--planes-accent);
 }
 
-.module-select__option {
-  display: flex;
+.plans-theme .module-select__option.v-input {
   align-items: center;
-  gap: 10px;
   min-height: 44px;
+  margin: 0;
   padding: 0 14px;
   border: 1px solid var(--planes-border);
   border-radius: var(--planes-radius-control);
-  cursor: pointer;
 }
 
-.module-select__option input {
-  width: 18px;
-  height: 18px;
-  accent-color: var(--planes-accent);
+.plans-theme .module-select__option.v-input >>> .v-input__slot {
+  margin: 0;
+}
+
+.plans-theme
+  .module-select__option.v-input:not(.v-input--is-disabled)
+  >>> .v-label {
+  color: var(--planes-text);
+}
+
+.plans-theme .module-select__option.v-input--is-label-active >>> .v-icon {
+  color: var(--planes-accent) !important;
+}
+
+.plans-theme .module-select__header .icon-button.v-btn {
+  width: 44px;
+  height: 44px;
+  min-width: 0;
+  border-radius: var(--planes-radius-control);
+  font-size: 22px;
+  color: var(--planes-text-muted);
+}
+
+.plans-theme .module-select__header .icon-button.v-btn >>> .v-icon {
+  width: auto;
+  height: auto;
+  font-size: inherit;
+}
+
+.plans-theme .module-select__header .icon-button.v-btn::before,
+.plans-theme .module-select__footer .v-btn.plans-button::before {
+  display: none;
+}
+
+.plans-theme .module-select__header .icon-button.v-btn:hover {
+  color: var(--planes-text);
+  background: var(--planes-overlay-hover);
+}
+
+.plans-theme .module-select__footer .v-btn.plans-button {
+  height: auto;
+  min-width: 0;
+  min-height: 44px;
+  padding: 0 18px;
+  border: 1px solid transparent;
+  border-radius: var(--planes-radius-control);
+  font-size: 14px;
+  font-weight: 600;
+  text-indent: 0;
+  transition: filter 0.2s, border-color 0.2s, color 0.2s, transform 0.2s;
+}
+
+.plans-theme .module-select__footer .v-btn.plans-button--primary {
+  background: var(--planes-action);
+  color: var(--planes-action-ink);
+}
+
+.plans-theme
+  .module-select__footer
+  .v-btn.plans-button--primary.v-btn--disabled {
+  color: var(--planes-action-ink) !important;
+}
+
+.plans-theme .module-select__footer .v-btn.plans-button--ghost {
+  border-color: var(--planes-border-strong);
+  color: var(--planes-text-muted);
+}
+
+.plans-theme .module-select__footer .v-btn.plans-button--ghost:hover {
+  border-color: var(--planes-accent);
+  color: var(--planes-text);
 }
 
 .module-select__count {
