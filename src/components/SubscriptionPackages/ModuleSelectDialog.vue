@@ -176,65 +176,6 @@ export default {
   color: var(--planes-accent) !important;
 }
 
-.plans-theme .module-select__header .icon-button.v-btn {
-  width: 44px;
-  height: 44px;
-  min-width: 0;
-  border-radius: var(--planes-radius-control);
-  font-size: 22px;
-  color: var(--planes-text-muted);
-}
-
-.plans-theme .module-select__header .icon-button.v-btn >>> .v-icon {
-  width: auto;
-  height: auto;
-  font-size: inherit;
-}
-
-.plans-theme .module-select__header .icon-button.v-btn::before,
-.plans-theme .module-select__footer .v-btn.plans-button::before {
-  display: none;
-}
-
-.plans-theme .module-select__header .icon-button.v-btn:hover {
-  color: var(--planes-text);
-  background: var(--planes-overlay-hover);
-}
-
-.plans-theme .module-select__footer .v-btn.plans-button {
-  height: auto;
-  min-width: 0;
-  min-height: 44px;
-  padding: 0 18px;
-  border: 1px solid transparent;
-  border-radius: var(--planes-radius-control);
-  font-size: 14px;
-  font-weight: 600;
-  text-indent: 0;
-  transition: filter 0.2s, border-color 0.2s, color 0.2s, transform 0.2s;
-}
-
-.plans-theme .module-select__footer .v-btn.plans-button--primary {
-  background: var(--planes-action);
-  color: var(--planes-action-ink);
-}
-
-.plans-theme
-  .module-select__footer
-  .v-btn.plans-button--primary.v-btn--disabled {
-  color: var(--planes-action-ink) !important;
-}
-
-.plans-theme .module-select__footer .v-btn.plans-button--ghost {
-  border-color: var(--planes-border-strong);
-  color: var(--planes-text-muted);
-}
-
-.plans-theme .module-select__footer .v-btn.plans-button--ghost:hover {
-  border-color: var(--planes-accent);
-  color: var(--planes-text);
-}
-
 .module-select__count {
   padding: 0 24px 16px;
   font-size: 14px;

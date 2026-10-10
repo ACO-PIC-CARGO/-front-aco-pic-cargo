@@ -416,9 +416,8 @@ export default {
   border-color: var(--planes-accent-border);
 }
 
-.plan--expanded .plan__chevron .mdi,
-.plan--expanded .plan__details-toggle .mdi {
-  display: inline-block;
+.plan--expanded .plan__chevron .v-icon,
+.plan--expanded .plan__details-toggle .v-icon {
   transform: rotate(180deg);
 }
 
