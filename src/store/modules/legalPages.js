@@ -115,11 +115,11 @@ const moveSection = (sections, index, offset) => {
 const formatUpdatedAt = (value) =>
   value ? moment(value).locale("es").format("D [de] MMMM [de] YYYY") : "";
 
-const state = {
+const initialState = () => ({
   page: null,
   pages: [],
   drafts: {},
-};
+});
 
 const getters = {
   limits: () => LEGAL_LIMITS,
@@ -136,6 +136,9 @@ const getters = {
 };
 
 const mutations = {
+  RESET_STATE(state) {
+    Object.assign(state, initialState());
+  },
   SET_PAGE(state, page) {
     state.page = page;
   },
@@ -176,6 +179,9 @@ const mutations = {
 };
 
 const actions = {
+  resetSession({ commit }) {
+    commit("RESET_STATE");
+  },
   loadPage(_, slug) {
     return request({ method: "get", url: `public/legal_pages/${slug}` });
   },
@@ -206,7 +212,7 @@ const actions = {
 
 export default {
   namespaced: true,
-  state,
+  state: initialState(),
   getters,
   mutations,
   actions,

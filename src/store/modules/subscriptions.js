@@ -719,7 +719,7 @@ const cardLabel = (paymentMethod) => {
 
 let pendingAccess = null;
 
-const state = {
+const initialState = () => ({
   packages: [],
   publicPackages: [],
   packageModules: [],
@@ -729,8 +729,8 @@ const state = {
   plan: null,
   registrationTrial: null,
   access: null,
-  billingHistory: NO_HISTORY,
-};
+  billingHistory: { ...NO_HISTORY, transactions: [] },
+});
 
 const getters = {
   formatPrice: () => formatPrice,
@@ -803,6 +803,9 @@ const getters = {
 };
 
 const mutations = {
+  RESET_STATE(state) {
+    Object.assign(state, initialState());
+  },
   SET_PACKAGES(state, packages) {
     state.packages = packages;
   },
@@ -860,6 +863,10 @@ const mutations = {
 };
 
 const actions = {
+  resetSession({ commit }) {
+    pendingAccess = null;
+    commit("RESET_STATE");
+  },
   async loadPackages({ commit }) {
     const response = await request({
       method: "get",
@@ -1139,7 +1146,7 @@ const actions = {
 
 export default {
   namespaced: true,
-  state,
+  state: initialState(),
   getters,
   mutations,
   actions,
