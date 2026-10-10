@@ -49,58 +49,32 @@
 </template>
 
 <script>
-import {
-  fetchCompanyPlan,
-  fetchRegistrationTrial,
-} from "@/api/branchSubscription";
-import { isEmptyResult } from "@/api/subscriptionPackages";
-import {
-  daysLabel,
-  PLAN_CHANGED_EVENT,
-  readBranchId,
-  trialNotice,
-} from "@/views/MyPlan/myPlanView";
+import { mapActions, mapGetters } from "vuex";
 
-const hasFailed = (response) =>
-  !response.estadoflag && !isEmptyResult(response);
-const firstRow = (response) => (response.estadoflag ? response.data[0] : null);
+const readBranchId = () => {
+  try {
+    return JSON.parse(sessionStorage.getItem("dataUser"))[0].id_branch;
+  } catch (error) {
+    return null;
+  }
+};
 
 export default {
   name: "PlanStatusBadge",
-  data: () => ({
-    loaded: false,
-    plan: null,
-    registrationTrial: null,
-    branchId: readBranchId(),
-  }),
+  data: () => ({ loaded: false, branchId: readBranchId() }),
   computed: {
+    ...mapGetters("subscriptions", ["trialNotice"]),
     notice() {
-      return this.loaded
-        ? trialNotice({
-            plan: this.plan,
-            registrationTrial: this.registrationTrial,
-            branchId: this.branchId,
-          })
-        : null;
+      return this.loaded ? this.trialNotice({ branchId: this.branchId }) : null;
     },
   },
-  mounted() {
-    this.$root.$on(PLAN_CHANGED_EVENT, this.load);
-    this.load();
-  },
-  beforeDestroy() {
-    this.$root.$off(PLAN_CHANGED_EVENT, this.load);
+  async mounted() {
+    this.loaded = await this.loadPlanBadge();
   },
   methods: {
-    daysLabel,
-    async load() {
-      const [planResponse, trialResponse] = await Promise.all([
-        fetchCompanyPlan(),
-        fetchRegistrationTrial(),
-      ]);
-      this.loaded = !hasFailed(planResponse);
-      this.plan = firstRow(planResponse);
-      this.registrationTrial = firstRow(trialResponse);
+    ...mapActions("subscriptions", ["loadPlanBadge"]),
+    daysLabel(days) {
+      return days > 1 ? `${days} días` : "Último día";
     },
   },
 };

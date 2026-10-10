@@ -292,6 +292,14 @@
   font-size: inherit;
 }
 
+.plans-theme .v-btn.plans-button .v-btn__content {
+  gap: 6px;
+}
+
+.plans-theme .v-btn.plans-button .v-icon.v-icon {
+  font-size: 18px;
+}
+
 .plans-theme .v-btn.plans-button::before,
 .plans-theme .v-btn.icon-button::before {
   display: none;
