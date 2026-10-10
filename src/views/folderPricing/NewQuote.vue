@@ -718,7 +718,9 @@ export default {
       ) {
         factor = 1;
       }
-      return factor > 0 ? parseFloat(monto || 0) / factor : 0;
+      return factor > 0
+        ? Number((parseFloat(monto || 0) / factor).toFixed(3))
+        : 0;
     },
     obtenerTransporteGrupal(item) {
       let monto = 0;

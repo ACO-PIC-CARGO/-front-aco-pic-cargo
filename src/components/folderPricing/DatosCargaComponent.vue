@@ -639,7 +639,12 @@ export default {
     },
   },
   methods: {
-    ...mapActions(["_getContainers", "getPortBegin", "getPortEnd","obtenerFleteCalculadora"]),
+    ...mapActions([
+      "_getContainers",
+      "getPortBegin",
+      "getPortEnd",
+      "obtenerFleteCalculadora",
+    ]),
     cambiarGrupalIndividual() {
       const { esindividualflag, esgrupalflag } =
         this.$store.state.pricing.datosPrincipales;
@@ -944,14 +949,12 @@ export default {
             datosPrincipales.amount,
           )
         : 0;
-      if (
-        item.code_cost == 4 &&
-        datosPrincipales.volumen < 1 &&
-        factor < 1
-      ) {
+      if (item.code_cost == 4 && datosPrincipales.volumen < 1 && factor < 1) {
         factor = 1;
       }
-      return factor > 0 ? parseFloat(monto || 0) / factor : 0;
+      return factor > 0
+        ? Number((parseFloat(monto || 0) / factor).toFixed(3))
+        : 0;
     },
     recargarPuertoOrigen(textoBuscar) {
       clearTimeout(this.puertoOrigenDebounce);
@@ -978,7 +981,7 @@ export default {
         search: textoBuscar,
       });
     },
-    
+
     recargarPuertoDestino(textoBuscar) {
       clearTimeout(this.puertoDestinoDebounce);
       if (!textoBuscar) return;
@@ -1023,13 +1026,15 @@ export default {
           (v) => v.id_port == datos.iddestino,
         );
         this.$store.state.spiner = true;
-        await this.obtenerFleteCalculadora({
-          shipment: shipment.code,
-          puerto_origen: puertoOrigen.puerto,
-          puerto_destino: puertoDestino.puerto,
-          volumen: datos.volumen,
-          peso: datos.peso,
-        });
+        if (!!datos.idorigen && !!datos.iddestino) {
+          await this.obtenerFleteCalculadora({
+            shipment: shipment.code,
+            puerto_origen: puertoOrigen.puerto,
+            puerto_destino: puertoDestino.puerto,
+            volumen: datos.volumen,
+            peso: datos.peso,
+          });
+        }
         this.$store.state.spiner = false;
         const { esgrupalflag, esindividualflag } = datos;
         this.cambiarMontosACero({ esgrupalflag, esindividualflag });
