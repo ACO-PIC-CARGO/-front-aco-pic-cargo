@@ -503,17 +503,14 @@ const actions = {
   openPackageDraft({ commit }, pkg) {
     commit("SET_PACKAGE_DRAFT", pkg ? draftFromPackage(pkg) : emptyDraft());
   },
-  async savePackageDraft({ state, getters, dispatch }) {
+  async savePackageDraft({ state, getters }) {
     const { id } = state.packageDraft;
     const response = await request({
       method: id ? "put" : "post",
       url: id ? `subscription_packages/${id}` : "subscription_packages",
       data: getters.packageDraftPayload,
     });
-    if (response.estadoflag) {
-      notifySuccess(response.mensaje);
-      dispatch("loadPackages");
-    }
+    if (response.estadoflag) notifySuccess(response.mensaje);
     return response;
   },
   async loadPaddleSync({ commit }) {
