@@ -17,15 +17,15 @@
             algo.
           </p>
         </div>
-        <button
-          type="button"
+        <v-btn
+          icon
           class="icon-button"
           aria-label="Cerrar"
           :disabled="applying"
           @click="close"
         >
-          <i class="mdi mdi-close" aria-hidden="true"></i>
-        </button>
+          <v-icon>mdi-close</v-icon>
+        </v-btn>
       </header>
 
       <div
@@ -33,7 +33,7 @@
         :aria-busy="String(loadState === 'loading' || applying)"
       >
         <p v-if="loadState === 'loading'" class="paddle-sync__state">
-          <i class="mdi mdi-loading mdi-spin" aria-hidden="true"></i>
+          <v-icon class="mdi-spin">mdi-loading</v-icon>
           Revisando tus paquetes en Paddle…
         </p>
 
@@ -43,13 +43,13 @@
           role="alert"
         >
           <p>{{ message }}</p>
-          <button
-            type="button"
+          <v-btn
+            text
             class="plans-button plans-button--secondary"
             @click="load"
           >
             Reintentar
-          </button>
+          </v-btn>
         </div>
 
         <template v-else>
@@ -88,41 +88,33 @@
       </div>
 
       <footer class="paddle-sync__footer">
-        <button
-          type="button"
+        <v-btn
+          text
           class="plans-button plans-button--ghost"
           :disabled="applying"
           @click="close"
         >
           Cerrar
-        </button>
-        <button
+        </v-btn>
+        <v-btn
           v-if="loadState === 'ready' && pendingCount"
-          type="button"
+          text
           class="plans-button plans-button--primary"
           :disabled="applying"
           @click="apply"
         >
-          <i
-            v-if="applying"
-            class="mdi mdi-loading mdi-spin"
-            aria-hidden="true"
-          ></i>
+          <v-icon v-if="applying" class="mdi-spin">mdi-loading</v-icon>
           {{
             applying ? "Aplicando cambios" : `Aplicar cambios (${pendingCount})`
           }}
-        </button>
+        </v-btn>
       </footer>
     </section>
   </v-dialog>
 </template>
 
 <script>
-import {
-  applyPaddleSync,
-  fetchPaddleSync,
-  isEmptyResult,
-} from "@/api/subscriptionPackages";
+import { mapActions, mapState } from "vuex";
 
 const EMPTY_MESSAGE =
   "Aún no hay paquetes para sincronizar. Crea el primero y vuelve a verificar.";
@@ -140,11 +132,11 @@ export default {
   },
   data: () => ({
     loadState: "loading",
-    report: [],
     message: "",
     applying: false,
   }),
   computed: {
+    ...mapState("subscriptions", { report: "paddleSyncReport" }),
     pendingCount() {
       return this.report.reduce(
         (total, item) => total + item.actions.length,
@@ -158,38 +150,30 @@ export default {
     },
   },
   methods: {
+    ...mapActions("subscriptions", ["loadPaddleSync", "applyPaddleSync"]),
     statusOf(item) {
       if (item.error) return STATUSES.error;
       return item.actions.length ? STATUSES.pending : STATUSES.synced;
     },
     async load() {
       this.loadState = "loading";
-      const response = await fetchPaddleSync();
-
-      if (response.estadoflag || isEmptyResult(response)) {
-        this.report = response.data;
+      const response = await this.loadPaddleSync();
+      const isEmpty =
+        !response.estadoflag && response.tipomensaje === "TMSGINF";
+      if (response.estadoflag || isEmpty) {
         this.message = response.estadoflag ? response.mensaje : EMPTY_MESSAGE;
         this.loadState = "ready";
         return;
       }
-
       this.message = response.mensaje;
       this.loadState = "error";
     },
     async apply() {
       this.applying = true;
-      const response = await applyPaddleSync();
+      const response = await this.applyPaddleSync();
       this.applying = false;
-
-      if (!response.data.length) {
-        this.message = response.mensaje;
-        this.loadState = "error";
-        return;
-      }
-
-      this.report = response.data;
       this.message = response.mensaje;
-      if (response.estadoflag) this.$emit("synced", response.mensaje);
+      if (!response.data.length) this.loadState = "error";
     },
     close() {
       this.$emit("input", false);

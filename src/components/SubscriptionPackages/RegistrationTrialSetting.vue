@@ -5,7 +5,7 @@
       class="trial-setting__state"
       aria-busy="true"
     >
-      <i class="mdi mdi-loading mdi-spin" aria-hidden="true"></i>
+      <v-icon class="mdi-spin">mdi-loading</v-icon>
       Cargando los días de prueba…
     </p>
 
@@ -15,97 +15,84 @@
       role="alert"
     >
       <p>No pudimos cargar los días de prueba. {{ errorMessage }}</p>
-      <button
-        type="button"
-        class="plans-button plans-button--secondary"
-        @click="load"
-      >
+      <v-btn text class="plans-button plans-button--secondary" @click="load">
         Reintentar
-      </button>
+      </v-btn>
     </div>
 
-    <form v-else novalidate @submit.prevent="save">
-      <FormField
-        label="Prueba gratis al registrarse"
-        input-id="registration-trial-days"
-        hint="Aplica a las empresas que se registren desde ahora."
-        :error="error"
-      >
-        <template #default="field">
-          <div class="trial-setting__days">
-            <input
-              id="registration-trial-days"
-              ref="input"
-              v-model="days"
-              class="trial-setting__input"
-              type="number"
-              min="1"
-              max="365"
-              step="1"
-              inputmode="numeric"
-              :disabled="saving"
-              :aria-describedby="field.describedby"
-              :aria-invalid="String(field.invalid)"
-            />
-            <span aria-hidden="true">días</span>
-            <button
-              type="submit"
-              class="plans-button plans-button--primary"
-              :disabled="saving"
-            >
-              <i
-                v-if="saving"
-                class="mdi mdi-loading mdi-spin"
-                aria-hidden="true"
-              ></i>
-              {{ saving ? "Guardando…" : "Guardar" }}
-            </button>
-          </div>
-        </template>
-      </FormField>
-    </form>
+    <v-form v-else @submit.prevent="save">
+      <div class="trial-setting__days">
+        <v-text-field
+          id="registration-trial-days"
+          ref="input"
+          v-model="days"
+          class="trial-setting__input"
+          type="number"
+          min="1"
+          max="365"
+          step="1"
+          inputmode="numeric"
+          label="Prueba gratis al registrarse"
+          suffix="días"
+          hint="Aplica a las empresas que se registren desde ahora."
+          persistent-hint
+          :error-messages="error"
+          :disabled="saving"
+          outlined
+          dense
+        />
+        <v-btn
+          text
+          type="submit"
+          class="plans-button plans-button--primary"
+          :disabled="saving"
+        >
+          <v-icon v-if="saving" class="mdi-spin">mdi-loading</v-icon>
+          {{ saving ? "Guardando…" : "Guardar" }}
+        </v-btn>
+      </div>
+    </v-form>
   </div>
 </template>
 
 <script>
-import Swal from "sweetalert2";
-import FormField from "@/components/SubscriptionPackages/FormField.vue";
-import { registrationTrialDaysError } from "@/components/SubscriptionPackages/packageForm";
-import {
-  fetchRegistrationTrialSetting,
-  saveRegistrationTrialSetting,
-} from "@/api/subscriptionPackages";
-import { notifySuccess } from "@/views/MyPlan/planPurchase";
+import { mapActions, mapGetters } from "vuex";
 
 export default {
   name: "RegistrationTrialSetting",
-  components: { FormField },
   data: () => ({
-    days: "",
     loadState: "loading",
     errorMessage: "",
     submitted: false,
     saving: false,
   }),
   computed: {
+    ...mapGetters("subscriptions", ["registrationTrialDaysError"]),
+    days: {
+      get() {
+        return this.$store.state.subscriptions.registrationTrialDays;
+      },
+      set(value) {
+        this.$store.commit("subscriptions/SET_REGISTRATION_TRIAL_DAYS", value);
+      },
+    },
     error() {
-      return (this.submitted && registrationTrialDaysError(this.days)) || "";
+      return (this.submitted && this.registrationTrialDaysError) || "";
     },
   },
   mounted() {
     this.load();
   },
   methods: {
+    ...mapActions("subscriptions", [
+      "loadRegistrationTrialSetting",
+      "saveRegistrationTrialSetting",
+    ]),
     async load() {
       this.loadState = "loading";
-      const response = await fetchRegistrationTrialSetting();
-      if (!response.estadoflag) {
-        this.errorMessage = response.mensaje;
-        this.loadState = "error";
-        return;
-      }
-      this.days = response.data[0].trial_days;
-      this.loadState = "ready";
+      const error = await this.loadRegistrationTrialSetting();
+      this.errorMessage = error || "";
+      this.loadState = error ? "error" : "ready";
     },
     async save() {
       this.submitted = true;
@@ -113,21 +100,10 @@ export default {
         this.$refs.input.focus();
         return;
       }
-
       this.saving = true;
-      const response = await saveRegistrationTrialSetting(Number(this.days));
+      const saved = await this.saveRegistrationTrialSetting();
       this.saving = false;
-
-      if (!response.estadoflag) {
-        Swal.fire({
-          icon: response.tipomensaje === "TMSGADV" ? "warning" : "error",
-          text: response.mensaje,
-        });
-        return;
-      }
-      this.days = response.data[0].trial_days;
-      this.submitted = false;
-      notifySuccess(response.mensaje);
+      if (saved) this.submitted = false;
     },
   },
 };
@@ -149,7 +125,7 @@ export default {
 .trial-setting__days {
   display: flex;
   flex-wrap: wrap;
-  align-items: center;
+  align-items: flex-start;
   gap: 8px;
   color: var(--planes-text-muted);
 }
@@ -158,24 +134,11 @@ export default {
   margin-left: 8px;
 }
 
-.trial-setting__input {
-  width: 110px;
-  min-height: 44px;
-  padding: 0 12px;
-  border-radius: var(--planes-radius-control);
-  border: 1px solid var(--planes-border-strong);
-  background: var(--planes-field);
-  font-size: 15px;
-  color: var(--planes-text);
-}
-
-.trial-setting__input:focus-visible {
-  outline: 2px solid var(--planes-accent);
-  outline-offset: 1px;
-}
-
-.trial-setting__input[aria-invalid="true"] {
-  border-color: var(--planes-danger);
+.trial-setting__input.v-text-field {
+  flex: 0 1 360px;
+  min-width: 0;
+  margin: 0;
+  padding: 0;
 }
 
 .trial-setting__state {

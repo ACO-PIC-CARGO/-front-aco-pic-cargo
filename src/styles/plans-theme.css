@@ -283,6 +283,7 @@
 
 .plans-theme .v-btn.icon-button.v-btn--disabled {
   color: var(--planes-text-muted) !important;
+  opacity: 0.45;
   pointer-events: auto;
 }
 
