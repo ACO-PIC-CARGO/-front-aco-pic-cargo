@@ -13,7 +13,7 @@
         class="billing-history__state"
         aria-busy="true"
       >
-        <i class="mdi mdi-loading mdi-spin" aria-hidden="true"></i>
+        <v-icon class="mdi-spin">mdi-loading</v-icon>
         Cargando tus pagos…
       </p>
 
@@ -26,13 +26,13 @@
           No pudimos cargar tu historial de facturación.
         </p>
         <p>{{ errorMessage }}</p>
-        <button
-          type="button"
+        <v-btn
+          text
           class="plans-button plans-button--secondary"
           @click="loadHistory"
         >
           Reintentar
-        </button>
+        </v-btn>
       </div>
 
       <template v-else>
@@ -46,90 +46,73 @@
               Método de pago
             </h2>
             <p v-if="paymentCard" class="payment-method__card">
-              <i class="mdi mdi-credit-card-outline" aria-hidden="true"></i>
+              <v-icon>mdi-credit-card-outline</v-icon>
               {{ paymentCard }}
             </p>
           </div>
-          <button
+          <v-btn
             v-if="canUpdatePaymentMethod"
-            type="button"
+            text
             class="plans-button plans-button--secondary"
             :disabled="isUpdatingPaymentMethod"
             @click="updatePaymentMethod"
           >
-            <i
-              class="mdi"
-              :class="
+            <v-icon :class="{ 'mdi-spin': isUpdatingPaymentMethod }">
+              {{
                 isUpdatingPaymentMethod
-                  ? 'mdi-loading mdi-spin'
-                  : 'mdi-credit-card-refresh-outline'
-              "
-              aria-hidden="true"
-            ></i>
+                  ? "mdi-loading"
+                  : "mdi-credit-card-refresh-outline"
+              }}
+            </v-icon>
             Cambiar método de pago
-          </button>
+          </v-btn>
         </section>
 
         <div v-if="!rows.length" class="billing-history__state">
-          <i
-            class="mdi mdi-receipt billing-history__state-icon"
-            aria-hidden="true"
-          ></i>
+          <v-icon class="billing-history__state-icon">mdi-receipt</v-icon>
           <p class="billing-history__state-title">{{ emptyMessage }}</p>
         </div>
 
         <section v-else aria-labelledby="payments-title">
           <h2 id="payments-title" class="billing-history__section">Pagos</h2>
-          <table class="payments" role="table" aria-labelledby="payments-title">
-            <thead role="rowgroup">
-              <tr role="row">
-                <th scope="col" role="columnheader">Fecha</th>
-                <th scope="col" role="columnheader">Concepto</th>
-                <th scope="col" role="columnheader">Monto</th>
-                <th scope="col" role="columnheader">Estado</th>
-                <th scope="col" role="columnheader">Factura</th>
-              </tr>
-            </thead>
-            <tbody role="rowgroup">
-              <tr v-for="row in rows" :key="row.id" role="row">
-                <td role="cell" data-label="Fecha">{{ row.date }}</td>
-                <td role="cell" data-label="Concepto">{{ row.concept }}</td>
-                <td role="cell" data-label="Monto" class="payments__amount">
-                  {{ row.amount }}
-                </td>
-                <td role="cell" data-label="Estado">
-                  <span
-                    class="status-badge"
-                    :class="`status-badge--${row.statusTone}`"
-                  >
-                    {{ row.statusLabel }}
-                  </span>
-                </td>
-                <td role="cell" data-label="Factura">
-                  <button
-                    v-if="row.hasInvoice"
-                    type="button"
-                    class="plans-button plans-button--ghost"
-                    :disabled="downloadingId === row.id"
-                    :aria-label="`Descargar la factura del ${row.date}`"
-                    @click="downloadInvoice(row)"
-                  >
-                    <i
-                      class="mdi"
-                      :class="
-                        downloadingId === row.id
-                          ? 'mdi-loading mdi-spin'
-                          : 'mdi-download'
-                      "
-                      aria-hidden="true"
-                    ></i>
-                    Descargar
-                  </button>
-                  <span v-else class="payments__muted">Sin factura</span>
-                </td>
-              </tr>
-            </tbody>
-          </table>
+          <v-data-table
+            :headers="headers"
+            :items="rows"
+            item-key="id"
+            hide-default-footer
+            disable-pagination
+            class="payments"
+          >
+            <template #[`item.amount`]="{ item }">
+              <span class="payments__amount">{{ item.amount }}</span>
+            </template>
+            <template #[`item.status`]="{ item }">
+              <span
+                class="status-badge"
+                :class="`status-badge--${item.statusTone}`"
+              >
+                {{ item.statusLabel }}
+              </span>
+            </template>
+            <template #[`item.invoice`]="{ item }">
+              <v-btn
+                v-if="item.hasInvoice"
+                text
+                class="plans-button plans-button--ghost"
+                :disabled="downloadingId === item.id"
+                :aria-label="`Descargar la factura del ${item.date}`"
+                @click="downloadInvoice(item)"
+              >
+                <v-icon :class="{ 'mdi-spin': downloadingId === item.id }">
+                  {{
+                    downloadingId === item.id ? "mdi-loading" : "mdi-download"
+                  }}
+                </v-icon>
+                Descargar
+              </v-btn>
+              <span v-else class="payments__muted">Sin factura</span>
+            </template>
+          </v-data-table>
         </section>
       </template>
     </div>
@@ -137,60 +120,40 @@
 </template>
 
 <script>
-import Swal from "sweetalert2";
 import "@/styles/plans-theme.css";
-import {
-  fetchBillingHistory,
-  fetchInvoiceUrl,
-  startPaymentMethodUpdate,
-} from "@/api/branchSubscription";
-import { openPaddleCheckout, stopCheckoutEvents } from "@/api/paddleCheckout";
-import { isEmptyResult } from "@/api/subscriptionPackages";
-import { notifySuccess } from "@/views/MyPlan/planPurchase";
-import { billingRows, cardLabel } from "./billingHistoryView";
+import { mapActions, mapGetters, mapState } from "vuex";
+import { notifySuccess } from "@/store/request";
+import { stopCheckoutEvents } from "@/plugins/paddle";
 
 const EMPTY_MESSAGE =
   "Todavía no tienes pagos. Cuando compres un plan, aquí verás tus facturas.";
-const INVOICE_FAILED_MESSAGE =
-  "No pudimos descargar la factura. Intenta de nuevo en unos minutos.";
-const PAYMENT_METHOD_FAILED_MESSAGE =
-  "No pudimos abrir el cambio de método de pago. Intenta de nuevo en unos minutos.";
-const NO_HISTORY = {
-  transactions: [],
-  payment_method: null,
-  can_update_payment_method: false,
-};
-const ICON_BY_MESSAGE_TYPE = { TMSGINF: "info", TMSGADV: "warning" };
-
-const notifyProblem = (response, fallback) =>
-  Swal.fire({
-    icon: ICON_BY_MESSAGE_TYPE[response.tipomensaje] || "error",
-    text: response.mensaje || fallback,
-  });
-
-const firstValue = (response, key) =>
-  response.estadoflag && response.data[0] && response.data[0][key];
+const HEADERS = [
+  { text: "Fecha", value: "date", sortable: false },
+  { text: "Concepto", value: "concept", sortable: false },
+  { text: "Monto", value: "amount", sortable: false },
+  { text: "Estado", value: "status", sortable: false },
+  { text: "Factura", value: "invoice", sortable: false },
+];
 
 export default {
   name: "BillingHistory",
   data: () => ({
-    history: NO_HISTORY,
     loadState: "loading",
     errorMessage: "",
     downloadingId: null,
     isUpdatingPaymentMethod: false,
     emptyMessage: EMPTY_MESSAGE,
+    headers: HEADERS,
   }),
   computed: {
-    rows() {
-      return billingRows(this.history.transactions);
-    },
-    paymentCard() {
-      return cardLabel(this.history.payment_method);
-    },
-    canUpdatePaymentMethod() {
-      return this.history.can_update_payment_method;
-    },
+    ...mapState("subscriptions", {
+      canUpdatePaymentMethod: (state) =>
+        state.billingHistory.can_update_payment_method,
+    }),
+    ...mapGetters("subscriptions", {
+      rows: "billingRows",
+      paymentCard: "paymentCard",
+    }),
   },
   mounted() {
     this.$store.state.mainTitle = "HISTORIAL DE FACTURACIÓN";
@@ -200,45 +163,27 @@ export default {
     stopCheckoutEvents();
   },
   methods: {
+    ...mapActions("subscriptions", [
+      "loadBillingHistory",
+      "fetchInvoiceUrl",
+      "startPaymentMethodUpdate",
+    ]),
     async loadHistory() {
       this.loadState = "loading";
-      const response = await fetchBillingHistory();
-      if (!response.estadoflag && !isEmptyResult(response)) {
-        this.errorMessage = response.mensaje;
-        this.loadState = "error";
-        return;
-      }
-      this.history = response.estadoflag ? response.data[0] : NO_HISTORY;
-      this.loadState = "ready";
+      const error = await this.loadBillingHistory();
+      this.errorMessage = error || "";
+      this.loadState = error ? "error" : "ready";
     },
     async downloadInvoice(row) {
       this.downloadingId = row.id;
-      const response = await fetchInvoiceUrl(row.id);
+      const url = await this.fetchInvoiceUrl(row.id);
       this.downloadingId = null;
-      const url = firstValue(response, "url");
-      if (!url) {
-        notifyProblem(response, INVOICE_FAILED_MESSAGE);
-        return;
-      }
-      window.location.assign(url);
+      if (url) window.location.assign(url);
     },
     async updatePaymentMethod() {
       this.isUpdatingPaymentMethod = true;
-      const response = await startPaymentMethodUpdate();
-      const transactionId = firstValue(response, "transaction_id");
-      if (!transactionId) {
-        this.isUpdatingPaymentMethod = false;
-        notifyProblem(response, PAYMENT_METHOD_FAILED_MESSAGE);
-        return;
-      }
-      const error = await openPaddleCheckout(
-        transactionId,
-        this.onCheckoutEvent
-      );
-      if (error) {
-        this.isUpdatingPaymentMethod = false;
-        Swal.fire({ icon: "error", text: error });
-      }
+      const opened = await this.startPaymentMethodUpdate(this.onCheckoutEvent);
+      if (!opened) this.isUpdatingPaymentMethod = false;
     },
     onCheckoutEvent(event) {
       if (event.name === "checkout.completed") {
@@ -306,7 +251,7 @@ export default {
   color: var(--planes-text-muted);
 }
 
-.billing-history__state-icon {
+.plans-theme .billing-history__state-icon.v-icon {
   font-size: 36px;
   color: var(--planes-accent);
 }
@@ -337,30 +282,58 @@ export default {
   color: var(--planes-text-muted);
 }
 
-.payment-method__card .mdi {
+.plans-theme .payment-method__card .v-icon.v-icon {
   font-size: 20px;
   color: var(--planes-accent);
 }
 
-.payments {
-  width: 100%;
-  border-collapse: collapse;
+.plans-theme .payments.v-data-table {
+  background: transparent;
+  color: inherit;
   font-size: 15px;
 }
 
-.payments th {
+.plans-theme
+  .payments.v-data-table
+  ::v-deep
+  .v-data-table__wrapper
+  > table
+  > thead
+  > tr
+  > th {
+  height: auto;
   padding: 10px 12px;
   border-bottom: 1px solid var(--planes-border-strong);
-  text-align: left;
   font-size: 13px;
   font-weight: 600;
   color: var(--planes-text-muted);
 }
 
-.payments td {
+.plans-theme
+  .payments.v-data-table
+  ::v-deep
+  .v-data-table__wrapper
+  > table
+  > tbody
+  > tr
+  > td:not(.v-data-table__mobile-row) {
+  height: auto;
   padding: 10px 12px;
   border-bottom: 1px solid var(--planes-divider);
+  font-size: 15px;
   vertical-align: middle;
+}
+
+.plans-theme
+  .payments.v-data-table
+  ::v-deep
+  .v-data-table__wrapper
+  > table
+  > tbody
+  > tr:hover:not(.v-data-table__expanded__content):not(
+    .v-data-table__empty-wrapper
+  ) {
+  background: transparent;
 }
 
 .payments__amount {
@@ -413,26 +386,25 @@ export default {
     padding: 16px;
   }
 
-  .payment-method .plans-button {
+  .plans-theme .payment-method .plans-button.v-btn {
     width: 100%;
   }
 
-  .payments thead {
-    position: absolute;
-    width: 1px;
-    height: 1px;
-    overflow: hidden;
-    clip: rect(0 0 0 0);
+  .plans-theme .payments.v-data-table ::v-deep .v-data-table__wrapper {
+    overflow: visible;
   }
 
-  .payments,
-  .payments tbody,
-  .payments tr,
-  .payments td {
-    display: block;
+  .plans-theme .payments.v-data-table ::v-deep .v-data-table-header-mobile {
+    display: none;
   }
 
-  .payments tr {
+  .plans-theme
+    .payments.v-data-table
+    ::v-deep
+    .v-data-table__wrapper
+    > table
+    > tbody
+    > tr.v-data-table__mobile-table-row {
     margin-bottom: 12px;
     padding: 8px 16px;
     border-radius: var(--planes-radius-card);
@@ -440,22 +412,37 @@ export default {
     box-shadow: var(--planes-card-shadow);
   }
 
-  .payments td {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
+  .plans-theme
+    .payments.v-data-table
+    ::v-deep
+    .v-data-table__wrapper
+    > table
+    > tbody
+    > tr
+    > td.v-data-table__mobile-row {
+    min-height: 0;
+    height: auto;
     gap: 12px;
     padding: 8px 0;
+    border-bottom: 1px solid var(--planes-divider);
     text-align: right;
   }
 
-  .payments td:last-child {
+  .plans-theme
+    .payments.v-data-table
+    ::v-deep
+    .v-data-table__wrapper
+    > table
+    > tbody
+    > tr
+    > td.v-data-table__mobile-row:last-child {
     border-bottom: 0;
   }
 
-  .payments td::before {
-    content: attr(data-label);
-    content: attr(data-label) / "";
+  .plans-theme
+    .payments.v-data-table
+    ::v-deep
+    .v-data-table__mobile-row__header {
     font-size: 13px;
     font-weight: 600;
     text-align: left;
