@@ -17,6 +17,7 @@
           <v-btn-toggle
             v-model="isAnnual"
             mandatory
+            role="group"
             rounded
             dense
             class="segmented"
@@ -79,10 +80,12 @@
           <v-btn
             text
             class="plan__cta"
-            :loading="buyingId === plan.id"
             :disabled="busy || isUnavailableAction(actionOf(plan))"
             @click="buyPlan(plan)"
           >
+            <v-icon v-if="buyingId === plan.id" class="mdi-spin">
+              mdi-loading
+            </v-icon>
             {{ ctaLabel(plan) }}
             <v-icon v-if="buyingId !== plan.id">mdi-arrow-right</v-icon>
           </v-btn>
@@ -100,32 +103,39 @@
       overlay-color="#020a0d"
       overlay-opacity="0.72"
     >
-      <v-icon class="purchase-notice__icon">mdi-account-key-outline</v-icon>
-      <h2 class="purchase-notice__title">
-        Entra para comprar ACO {{ selectedPlanName }}
-      </h2>
-      <p class="purchase-notice__text">
-        El plan se asigna a tu empresa. Inicia sesión o crea tu cuenta; después
-        entra a Configuración → Mi plan y tu elección te estará esperando.
-      </p>
-      <div class="purchase-notice__actions">
-        <v-btn text :to="{ name: 'Login' }" class="plan__cta">
-          Iniciar sesión
-        </v-btn>
-        <router-link
-          :to="{ name: 'RegistroEmpresa' }"
-          class="purchase-notice__link"
-        >
-          Crear cuenta
-        </router-link>
-      </div>
-      <v-btn
-        text
-        class="purchase-notice__close"
-        @click="isPurchaseNoticeOpen = false"
+      <div
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="purchase-notice-title"
       >
-        Ahora no
-      </v-btn>
+        <v-icon class="purchase-notice__icon">mdi-account-key-outline</v-icon>
+        <h2 id="purchase-notice-title" class="purchase-notice__title">
+          Entra para comprar ACO {{ selectedPlanName }}
+        </h2>
+        <p class="purchase-notice__text">
+          El plan se asigna a tu empresa. Inicia sesión o crea tu cuenta;
+          después entra a Configuración → Mi plan y tu elección te estará
+          esperando.
+        </p>
+        <div class="purchase-notice__actions">
+          <v-btn text :to="{ name: 'Login' }" class="plan__cta">
+            Iniciar sesión
+          </v-btn>
+          <router-link
+            :to="{ name: 'RegistroEmpresa' }"
+            class="purchase-notice__link"
+          >
+            Crear cuenta
+          </router-link>
+        </div>
+        <v-btn
+          text
+          class="purchase-notice__close"
+          @click="isPurchaseNoticeOpen = false"
+        >
+          Ahora no
+        </v-btn>
+      </div>
     </v-dialog>
 
     <ModuleSelectDialog
@@ -465,7 +475,6 @@ export default {
 }
 
 .plans-theme .plan__cta.v-btn {
-  gap: 8px;
   width: 100%;
   height: auto;
   min-width: 0;
