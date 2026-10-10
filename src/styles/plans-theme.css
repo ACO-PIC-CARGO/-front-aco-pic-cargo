@@ -296,3 +296,55 @@
 .plans-theme .v-btn.icon-button::before {
   display: none;
 }
+
+.plans-theme .segmented.v-btn-toggle {
+  display: inline-flex;
+  padding: 3px;
+  border-radius: 999px;
+  border: 1px solid var(--planes-border);
+  background: var(--planes-overlay-faint);
+  box-shadow: none;
+}
+
+.plans-theme .segmented.v-btn-toggle .v-btn.v-btn {
+  height: auto;
+  min-width: 76px;
+  min-height: 34px;
+  padding: 6px 18px;
+  border: 0;
+  border-radius: 999px;
+  box-shadow: none;
+  opacity: 1;
+  font-size: 13px;
+  font-weight: 500;
+  text-indent: 0;
+  white-space: nowrap;
+  color: var(--planes-text-muted);
+  transition: background-color 0.2s, color 0.2s;
+}
+
+.plans-theme .segmented.v-btn-toggle .v-btn.v-btn::before {
+  display: none;
+}
+
+.plans-theme .segmented.v-btn-toggle .v-btn.v-btn:not(.v-btn--active):not(.v-btn--disabled):hover {
+  color: var(--planes-text);
+}
+
+.plans-theme .segmented.v-btn-toggle .v-btn.v-btn.v-btn--active {
+  background: var(--planes-accent);
+  color: var(--planes-accent-ink);
+  font-weight: 600;
+}
+
+.plans-theme .segmented.v-btn-toggle .v-btn.v-btn:focus-visible {
+  outline: 2px solid var(--planes-accent);
+  outline-offset: 3px;
+}
+
+.plans-theme .segmented.v-btn-toggle .v-btn.v-btn.v-btn--disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  pointer-events: auto;
+  color: var(--planes-text-muted) !important;
+}
