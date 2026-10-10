@@ -5,16 +5,6 @@ import router from "@/router";
 import { openPaddleCheckout } from "@/plugins/paddle";
 
 const ICON_BY_MESSAGE_TYPE = { TMSGINF: "info", TMSGADV: "warning" };
-const OPEN_FAILED_MESSAGE =
-  "No pudimos abrir el pago. Intenta de nuevo en unos minutos.";
-const CHANGE_FAILED_MESSAGE =
-  "No pudimos cambiar tu plan. Intenta de nuevo en unos minutos.";
-const KEEP_FAILED_MESSAGE =
-  "No pudimos mantener tu plan. Intenta de nuevo en unos minutos.";
-const INVOICE_FAILED_MESSAGE =
-  "No pudimos descargar la factura. Intenta de nuevo en unos minutos.";
-const PAYMENT_METHOD_FAILED_MESSAGE =
-  "No pudimos abrir el cambio de método de pago. Intenta de nuevo en unos minutos.";
 const PENDING_PLAN_KEY = "pendingPlan";
 
 const errorOf = (response) => (hasFailed(response) ? response.mensaje : null);
@@ -27,10 +17,10 @@ const firstValue = (response, key) => {
 };
 
 const notifyError = (message) => Swal.fire({ icon: "error", text: message });
-const notifyProblem = (response, fallback) =>
+const notifyProblem = (response) =>
   Swal.fire({
     icon: ICON_BY_MESSAGE_TYPE[response.tipomensaje] || "error",
-    text: response.mensaje || fallback,
+    text: response.mensaje,
   });
 
 const countLabel = (count, singular, plural) =>
@@ -1034,7 +1024,7 @@ const actions = {
     const transactionId = firstValue(response, "transaction_id");
     const error = transactionId
       ? await openPaddleCheckout(transactionId, onEvent)
-      : response.mensaje || OPEN_FAILED_MESSAGE;
+      : response.mensaje;
     if (error) notifyError(error);
     return !error;
   },
@@ -1045,7 +1035,7 @@ const actions = {
       data: payload,
     });
     if (!preview.estadoflag) {
-      notifyError(preview.mensaje || CHANGE_FAILED_MESSAGE);
+      notifyError(preview.mensaje);
       return false;
     }
     const { isConfirmed } = await Swal.fire({
@@ -1064,7 +1054,7 @@ const actions = {
       data: payload,
     });
     if (!response.estadoflag) {
-      notifyError(response.mensaje || CHANGE_FAILED_MESSAGE);
+      notifyError(response.mensaje);
       return false;
     }
     commit("SET_PLAN", response.data[0]);
@@ -1077,7 +1067,7 @@ const actions = {
       url: "branch_subscription/resume",
     });
     if (!response.estadoflag) {
-      notifyError(response.mensaje || KEEP_FAILED_MESSAGE);
+      notifyError(response.mensaje);
       return;
     }
     commit("SET_PLAN", response.data[0]);
@@ -1126,7 +1116,7 @@ const actions = {
       )}/invoice`,
     });
     const url = firstValue(response, "url");
-    if (!url) notifyProblem(response, INVOICE_FAILED_MESSAGE);
+    if (!url) notifyProblem(response);
     return url || null;
   },
   async startPaymentMethodUpdate(_, onEvent) {
@@ -1136,7 +1126,7 @@ const actions = {
     });
     const transactionId = firstValue(response, "transaction_id");
     if (!transactionId) {
-      notifyProblem(response, PAYMENT_METHOD_FAILED_MESSAGE);
+      notifyProblem(response);
       return false;
     }
     const error = await openPaddleCheckout(transactionId, onEvent);
