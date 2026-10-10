@@ -16,19 +16,15 @@
       </header>
 
       <p v-if="loadState === 'loading'" class="legal__state" aria-busy="true">
-        <i class="mdi mdi-loading mdi-spin" aria-hidden="true"></i> Cargando…
+        <v-icon class="mdi-spin">mdi-loading</v-icon> Cargando…
       </p>
 
       <div v-else-if="loadState === 'error'" class="legal__state" role="alert">
         <p class="legal__state-title">No pudimos cargar esta página.</p>
         <p>Revisa tu conexión e intenta de nuevo.</p>
-        <button
-          type="button"
-          class="plans-button plans-button--secondary"
-          @click="load"
-        >
+        <v-btn text class="plans-button plans-button--secondary" @click="load">
           Reintentar
-        </button>
+        </v-btn>
       </div>
 
       <template v-else>
@@ -57,9 +53,8 @@
 
 <script>
 import "@/styles/plans-theme.css";
+import { mapActions, mapGetters, mapState } from "vuex";
 import LegalLinks from "@/components/Legal/LegalLinks.vue";
-import { fetchLegalPage } from "@/api/legalPages";
-import { formatUpdatedAt } from "./legalPageEditor";
 
 export default {
   name: "LegalPage",
@@ -67,7 +62,11 @@ export default {
   props: {
     page: { type: String, required: true },
   },
-  data: () => ({ content: null, loadState: "loading" }),
+  data: () => ({ loadState: "loading" }),
+  computed: {
+    ...mapState("legalPages", { content: "page" }),
+    ...mapGetters("legalPages", ["formatUpdatedAt"]),
+  },
   watch: {
     page: {
       handler() {
@@ -77,17 +76,17 @@ export default {
     },
   },
   methods: {
-    formatUpdatedAt,
+    ...mapActions("legalPages", ["loadPage"]),
     async load() {
       const slug = this.page;
       this.loadState = "loading";
-      const response = await fetchLegalPage(slug);
+      const response = await this.loadPage(slug);
       if (slug !== this.page) return;
       if (!response.estadoflag) {
         this.loadState = "error";
         return;
       }
-      this.content = response.data[0];
+      this.$store.commit("legalPages/SET_PAGE", response.data[0]);
       this.loadState = "ready";
     },
   },
