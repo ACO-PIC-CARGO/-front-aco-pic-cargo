@@ -10,7 +10,7 @@
           id="id"
           variant="outlined"
           placeholder="Buscar..."
-          append-icon="mdi-text-search"
+          append-inner-icon="mdi-text-search"
           v-model="search"
           label="Buscar"
         >
@@ -28,53 +28,55 @@
         :search="search"
         :headers="headersCabecera"
         :items="listado"
-        item-key="index"
+        item-value="index"
         disable-sort
         density="compact"
       >
-        <template v-slot:expanded-item="{ item }">
-          <td colspan="1"></td>
-          <td colspan="16">
-            <v-table style="width: 100%">
-              <thead>
-                <tr>
-                  <th>Banco Origen</th>
-                  <th>Cuenta Destino (PIC)</th>
-                  <!-- <th>O/A</th> -->
-                  <th>Tipo Ingreso</th>
-                  <th>Sub Tipo de ingreso</th>
-                  <th>Monto</th>
-                  <th>Moneda</th>
-                  <th>Monto Ingresado</th>
-                  <th>Moneda Ingresado</th>
-                  <th>Tipo de Cambio</th>
-                  <th>concepto</th>
-                  <th>Nro Factura</th>
-                  <th>Nro Serie</th>
-                  <th>Accion</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr v-for="(i, index) in item.detalles" :key="index">
-                  <td>{{ i.banco }}</td>
-                  <td>{{ i.cuenta_destino }}</td>
-                  <!-- <td>{{ i.tipo }}</td> -->
-                  <!-- <td>{{ i.tipo_gasto }}</td>  -->
-                  <td>{{ i.tipo_ingreso }}</td>
-                  <td>{{ i.subtipo_ingreso }}</td>
-                  <td>{{ i.monto }}</td>
-                  <td>{{ i.moneda_simbolo }}</td>
-                  <td>{{ i.monto_destino }}</td>
-                  <td>{{ i.moneda_destino }}</td>
-                  <td>{{ i.tipocambio }}</td>
-                  <td>{{ i.concepto }}</td>
-                  <td>{{ i.factura }}</td>
-                  <td>{{ i.serie }}</td>
-                  <td>{{ i.action }}</td>
-                </tr>
-              </tbody>
-            </v-table>
-          </td>
+        <template v-slot:expanded-row="{ item }">
+          <tr>
+            <td colspan="1"></td>
+            <td colspan="16">
+              <v-table style="width: 100%">
+                <thead>
+                  <tr>
+                    <th>Banco Origen</th>
+                    <th>Cuenta Destino (PIC)</th>
+                    <!-- <th>O/A</th> -->
+                    <th>Tipo Ingreso</th>
+                    <th>Sub Tipo de ingreso</th>
+                    <th>Monto</th>
+                    <th>Moneda</th>
+                    <th>Monto Ingresado</th>
+                    <th>Moneda Ingresado</th>
+                    <th>Tipo de Cambio</th>
+                    <th>concepto</th>
+                    <th>Nro Factura</th>
+                    <th>Nro Serie</th>
+                    <th>Accion</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr v-for="(i, index) in item.detalles" :key="index">
+                    <td>{{ i.banco }}</td>
+                    <td>{{ i.cuenta_destino }}</td>
+                    <!-- <td>{{ i.tipo }}</td> -->
+                    <!-- <td>{{ i.tipo_gasto }}</td>  -->
+                    <td>{{ i.tipo_ingreso }}</td>
+                    <td>{{ i.subtipo_ingreso }}</td>
+                    <td>{{ i.monto }}</td>
+                    <td>{{ i.moneda_simbolo }}</td>
+                    <td>{{ i.monto_destino }}</td>
+                    <td>{{ i.moneda_destino }}</td>
+                    <td>{{ i.tipocambio }}</td>
+                    <td>{{ i.concepto }}</td>
+                    <td>{{ i.factura }}</td>
+                    <td>{{ i.serie }}</td>
+                    <td>{{ i.action }}</td>
+                  </tr>
+                </tbody>
+              </v-table>
+            </td>
+          </tr>
         </template>
         <template v-slot:[`item.tipocambio`]="{ item }">
           {{ item.tipocambio ? parseFloat(item.tipocambio).toFixed(2) : 0 }}
@@ -100,11 +102,11 @@
               <v-icon>mdi-file</v-icon>
             </v-btn>
 
-            <v-btn size="small" icon color="info" @click.native="ver(item)">
+            <v-btn size="small" icon color="info" @click="ver(item)">
               <v-icon>mdi-eye</v-icon>
             </v-btn>
 
-            <v-btn size="small" icon color="warning" @click.native="editar(item)">
+            <v-btn size="small" icon color="warning" @click="editar(item)">
               <v-icon>mdi-pencil</v-icon>
             </v-btn>
           </div>
@@ -582,7 +584,7 @@ export default {
     },
     async actualizarInvoice() {
       let vm = this;
-      if (vm.$refs.formInvoice.validate()) {
+      if ((await vm.$refs.formInvoice.validate()).valid) {
         vm.dato.usuario = vm.usuario;
         var config = {
           method: "put",
@@ -617,7 +619,7 @@ export default {
     },
     async actualizarDebs() {
       let vm = this;
-      if (this.$refs.formInvoice.validate()) {
+      if ((await this.$refs.formInvoice.validate()).valid) {
         vm.dato.usuario = vm.usuario;
         var config = {
           method: "put",

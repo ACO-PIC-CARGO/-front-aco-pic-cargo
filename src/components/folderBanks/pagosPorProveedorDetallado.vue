@@ -14,7 +14,7 @@
               id="id"
               variant="outlined"
               placeholder="Buscar..."
-              append-icon="mdi-text-search"
+              append-inner-icon="mdi-text-search"
               v-model="search"
               label="Buscar"
             >
@@ -51,10 +51,10 @@
                 <v-icon>mdi-file</v-icon>
               </v-btn>
 
-              <v-btn size="small" icon color="info" @click.native="ver(item)">
+              <v-btn size="small" icon color="info" @click="ver(item)">
                 <v-icon>mdi-eye</v-icon>
               </v-btn>
-              <v-btn size="small" icon color="warning" @click.native="editar(item)">
+              <v-btn size="small" icon color="warning" @click="editar(item)">
                 <v-icon>mdi-pencil</v-icon>
               </v-btn>
             </div>
@@ -154,7 +154,6 @@
           <v-btn
             color="red"
             class="mr-2"
-            dark
             @click="dialogFiltro = !dialogFiltro"
           >
             Cancelar

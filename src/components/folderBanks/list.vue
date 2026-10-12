@@ -18,7 +18,7 @@
 
       <v-card-title v-if="!loading" class="elevation-0">
         <v-text-field
-          append-icon="mdi-magnify"
+          append-inner-icon="mdi-magnify"
           label="Buscar"
           single-line
           hide-details
@@ -27,10 +27,10 @@
         </v-text-field>
         <v-spacer></v-spacer>
         <v-btn size="small" color="success" @click="open_new()"> Nuevo </v-btn>
-        <v-btn size="small" class="mx-1" color="#2962FF" dark @click="open_filter()">
+        <v-btn size="small" class="mx-1" color="#2962FF" @click="open_filter()">
           Fitrar
         </v-btn>
-        <v-btn size="small" class="mx-1" color="#004D40" dark> Exportar </v-btn>
+        <v-btn size="small" class="mx-1" color="#004D40"> Exportar </v-btn>
       </v-card-title>
 
       <v-data-table
@@ -38,7 +38,7 @@
         class="elevation-1"
         :headers="headers"
         :items="$store.state.bank.list"
-        item-key="id"
+        item-value="id"
         :search="search"
       >
         <template v-slot:[`item.status`]="{ item }">
@@ -79,7 +79,6 @@
       temporary
       
       width="30%"
-      height="100vh"
     >
       <v-list-item>
         
@@ -131,6 +130,7 @@
               density="compact"
               :label="`Estado: ${record.status ? 'Activo' : 'Inactivo'}`"
               v-model="record.status"
+              :value-comparator="(value, checked) => Boolean(value) === checked"
               hide-details
               color="success"
               @update:model-value="updateStatus"
@@ -144,7 +144,6 @@
           <v-btn class="mx-1" color="success" @click="insert()"> Aceptar</v-btn>
           <v-btn
             class="mx-1"
-            dark
             color="warning"
             @click="showFilterDrawerNew = !showFilterDrawerNew"
           >
@@ -161,7 +160,6 @@
       temporary
       
       width="30%"
-      height="100vh"
     >
       <v-container v-if="!loading_as">
         <v-list-item class="px-0">
@@ -210,13 +208,13 @@
               }`"
               color="success"
               v-model="$store.state.bank.record.status"
+              :value-comparator="(value, checked) => Boolean(value) === checked"
             ></v-switch>
           </v-row>
         </v-card-text>
         <v-card-actions class="justify-end mt-3">
           <v-btn
             class="mx-1"
-            dark
             color="warning"
             @click="showFilterDrawerRead = !showFilterDrawerRead"
           >
@@ -248,7 +246,6 @@
       temporary
       
       width="30%"
-      height="100vh"
     >
       <v-container v-if="!loading_as">
         <v-list-item class="px-0">
@@ -312,6 +309,7 @@
             <v-switch
               label="Activo / Inactivo"
               v-model="record.status"
+              :value-comparator="(value, checked) => Boolean(value) === checked"
               color="success"
               @update:model-value="updateStatus"
             ></v-switch>
@@ -324,7 +322,6 @@
           >
           <v-btn
             class="mx-1"
-            dark
             color="warning"
             @click="showFilterDrawerUpdate = !showFilterDrawerUpdate"
           >
@@ -356,7 +353,6 @@
       temporary
       
       width="30%"
-      height="100vh"
     >
       <v-list-item>
         
@@ -416,7 +412,6 @@
           >
           <v-btn
             class="mx-1"
-            dark
             color="warning"
             @click="showFilterDrawer = !showFilterDrawer"
           >
@@ -440,7 +435,7 @@
             :headers="headersCuenta"
             :items="datosBanco.banks_details"
             class="elevation-1"
-            item-key="index"
+            item-value="index"
             density="compact"
             :items-per-page="5"
           >
@@ -507,11 +502,13 @@
               v-if="cuenta.id"
               :label="cuenta.status == 1 ? 'Activo' : 'Inactivo'"
               v-model="cuenta.status"
+              :value-comparator="(value, checked) => Boolean(value) === checked"
             ></v-checkbox>
             <!-- v-if="cuenta.id" -->
             <v-checkbox
               label="Usar En FACTURACIÓN DE CONTROL DE GASTOS"
               v-model="cuenta.esprincipalflag"
+              :value-comparator="(value, checked) => Boolean(value) === checked"
             ></v-checkbox>
           </v-form>
         </v-card-text>
@@ -653,7 +650,7 @@ export default {
         }
       }
       console.log('dd2')
-      if (this.$refs.frmCuenta.validate()) {
+      if ((await this.$refs.frmCuenta.validate()).valid) {
         this.cuenta.status =
           this.cuenta.status == 0 || this.cuenta.status == false ? 0 : 1;
         await this.guardarCuentaDetalle(this.cuenta);
@@ -662,7 +659,7 @@ export default {
       }
     },
     async insert() {
-      if (this.$refs.formNew.validate()) {
+      if ((await this.$refs.formNew.validate()).valid) {
         this.resetRecord("filter");
         await this.insertBank(this.record);
       }
@@ -734,7 +731,7 @@ export default {
       this.id = id;
     },
     async submit_update() {
-      if (this.$refs.form.validate()) {
+      if ((await this.$refs.form.validate()).valid) {
         let data = {
           id: this.id,
           acronym: this.record.acronym,

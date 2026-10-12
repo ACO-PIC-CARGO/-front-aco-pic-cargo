@@ -9,7 +9,7 @@
         id="id"
         variant="outlined"
         placeholder="Buscar..."
-        append-icon="mdi-text-search"
+        append-inner-icon="mdi-text-search"
         v-model="search"
         label="Buscar"
       >
@@ -51,10 +51,9 @@
       :headers="headersCabecera"
       :items="$store.state.bank.list"
       v-model:expanded="expanded"
-      :single-expand="singleExpand"
       show-expand
-      @click:row="clickRow"
-      item-key="id"
+      expand-on-click
+      item-value="id"
       density="compact"
       disable-sort
     >
@@ -67,78 +66,80 @@
           <v-btn icon color="default" @click="verSoport(item.ruta)">
             <v-icon>mdi-file</v-icon>
           </v-btn>
-          <v-btn size="small" icon color="info" @click.native="ver(item)">
+          <v-btn size="small" icon color="info" @click="ver(item)">
             <v-icon>mdi-eye</v-icon>
           </v-btn>
-          <v-btn size="small" icon color="orange" @click.native="editar(item)">
+          <v-btn size="small" icon color="orange" @click="editar(item)">
             <v-icon>mdi-pencil</v-icon>
           </v-btn>
-          <v-btn size="small" icon color="red" @click.native="confirmarEliminar(item)">
+          <v-btn size="small" icon color="red" @click="confirmarEliminar(item)">
             <v-icon>mdi-delete</v-icon>
           </v-btn>
         </div>
       </template>
-      <template v-slot:expanded-item="{ item }">
-        <td colspan="1"></td>
-        <td colspan="12">
-          <v-table style="width: 100%">
-            <thead style="background: #e3f2fd">
-              <tr>
-                <!-- <th>Fecha Registro</th> -->
-                <th>O/A</th>
-                <th>Expediente</th>
-                <th>Factura</th>
-                <th>Serie</th>
-                <th>Monto (USD)</th>
-                <th>Monto</th>
-                <!-- <th>Nro Serie</th> -->
-                <!-- <th>Accion</th> -->
-              </tr>
-            </thead>
-            <tbody>
-              <tr v-for="i in item.detalles" :key="i.id">
-                <td>{{ i.tipo }}</td>
-                <td>{{ i.code_master }}</td>
-                <td>{{ i.nro_factura }}</td>
-                <td>{{ i.nro_serie }}</td>
-                <td>{{ i.montodolar }}</td>
-                <td>{{ i.montomonedalocal }}</td>
+      <template v-slot:expanded-row="{ item }">
+        <tr>
+          <td colspan="1"></td>
+          <td colspan="12">
+            <v-table style="width: 100%">
+              <thead style="background: #e3f2fd">
+                <tr>
+                  <!-- <th>Fecha Registro</th> -->
+                  <th>O/A</th>
+                  <th>Expediente</th>
+                  <th>Factura</th>
+                  <th>Serie</th>
+                  <th>Monto (USD)</th>
+                  <th>Monto</th>
+                  <!-- <th>Nro Serie</th> -->
+                  <!-- <th>Accion</th> -->
+                </tr>
+              </thead>
+              <tbody>
+                <tr v-for="i in item.detalles" :key="i.id">
+                  <td>{{ i.tipo }}</td>
+                  <td>{{ i.code_master }}</td>
+                  <td>{{ i.nro_factura }}</td>
+                  <td>{{ i.nro_serie }}</td>
+                  <td>{{ i.montodolar }}</td>
+                  <td>{{ i.montomonedalocal }}</td>
 
-                <!--  <td>
-                 <v-btn small color="warning" @click.native="verFactura(i)">
-                    VER FACTURAS
-                  </v-btn> 
-                </td>-->
-              </tr>
-            </tbody>
-          </v-table>
-          <v-table
-            style="width: 100%"
-            v-if="item.table_comisionbancaria.length > 0"
-          >
-            <thead style="background: #e3f2fd">
-              <tr>
-                <!-- <th>Fecha Registro</th> -->
-                <th>Comisión Bancaria</th>
-                <th>Monto(USD)</th>
-                <th>Monto (ML)</th>
-                <th>Accion</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr v-for="i in item.table_comisionbancaria" :key="i.id">
-                <td>{{ i.concepto }}</td>
-                <td>{{ i.montodolar }}</td>
-                <td>{{ i.monto }}</td>
-                <td>
-                  <!-- <v-btn small color="warning" @click.native="verFactura(i)">
-                    VER FACTURAS
-                  </v-btn> -->
-                </td>
-              </tr>
-            </tbody>
-          </v-table>
-        </td>
+                  <!--  <td>
+                   <v-btn small color="warning" @click.native="verFactura(i)">
+                      VER FACTURAS
+                    </v-btn> 
+                  </td>-->
+                </tr>
+              </tbody>
+            </v-table>
+            <v-table
+              style="width: 100%"
+              v-if="item.table_comisionbancaria.length > 0"
+            >
+              <thead style="background: #e3f2fd">
+                <tr>
+                  <!-- <th>Fecha Registro</th> -->
+                  <th>Comisión Bancaria</th>
+                  <th>Monto(USD)</th>
+                  <th>Monto (ML)</th>
+                  <th>Accion</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr v-for="i in item.table_comisionbancaria" :key="i.id">
+                  <td>{{ i.concepto }}</td>
+                  <td>{{ i.montodolar }}</td>
+                  <td>{{ i.monto }}</td>
+                  <td>
+                    <!-- <v-btn small color="warning" @click.native="verFactura(i)">
+                      VER FACTURAS
+                    </v-btn> -->
+                  </td>
+                </tr>
+              </tbody>
+            </v-table>
+          </td>
+        </tr>
       </template>
       <!-- <template v-slot:[`item.action`]="{ item }">
         <v-btn x-small icon color="primary" @click="verSoport(item.soporte)">
@@ -223,7 +224,7 @@
               truncate-length="50"
               hide-details
               clearable
-              @change="_uploadFile()"
+              @update:model-value="_uploadFile()"
             >
             </v-file-input>
           </v-form>
@@ -346,7 +347,7 @@
         <v-card-actions>
           <v-spacer></v-spacer>
           <v-btn color="success" size="small" @click="filtrar()">Filtrar</v-btn>
-          <v-btn color="red" dark size="small" @click="dialogFiltro = !dialogFiltro"
+          <v-btn color="red" size="small" @click="dialogFiltro = !dialogFiltro"
             >Cancelar</v-btn
           >
         </v-card-actions>
@@ -431,7 +432,6 @@ export default {
       expanded: [],
       expand: [],
       dialog: false,
-      singleExpand: false,
       // dialogInvoice: false,
       // dialogPayControlGasto: false,
       dialogFiltro: false,
@@ -739,7 +739,7 @@ export default {
     },
     async actualizarInvoice() {
       let vm = this;
-      if (this.$refs.formInvoice.validate()) {
+      if ((await this.$refs.formInvoice.validate()).valid) {
         vm.dato.usuario = vm.usuario;
         var config = {
           method: "put",
@@ -775,7 +775,7 @@ export default {
     },
     async actualizarCGEgreso() {
       let vm = this;
-      if (this.$refs.formInvoice.validate()) {
+      if ((await this.$refs.formInvoice.validate()).valid) {
         vm.dato.usuario = vm.usuario;
         var config = {
           method: "put",
@@ -823,14 +823,6 @@ export default {
         id_path: "",
       };
       vm.$store.state.spiner = false;
-    },
-    clickRow(item, event) {
-      if (event.isExpanded) {
-        const index = this.expanded.findIndex((i) => i === item);
-        this.expanded.splice(index, 1);
-      } else {
-        this.expanded.push(item);
-      }
     },
     verSoport(ruta) {
       window.open(ruta, "_blank");
