@@ -134,10 +134,12 @@
                 <td>{{ parseFloat(item.totalTipo).toFixed(2) }}</td>
                 <td></td>
               </tr>
-              <template v-for="(stipo, subIndex) in item.subtipo">
+              <template
+                v-for="(stipo, subIndex) in item.subtipo"
+                :key="'subdetail-' + index + '-' + subIndex"
+              >
                 <!-- -->
                 <tr
-                  :key="'subdetail-' + index + '-' + subIndex"
                   class="subtipo"
                   v-if="item.subtipoflag"
                   @dblclick="stipo.descripcionflag = !stipo.descripcionflag"
@@ -184,11 +186,11 @@
                     <!-- {{ stipo.descripcion }} -->
                   </td>
                 </tr>
-                <template v-for="(desc, IndexCost) in stipo.descripcion">
+                <template
+                  v-for="(desc, IndexCost) in stipo.descripcion"
+                  :key="'subdetail-' + index + '-' + subIndex + '-' + IndexCost"
+                >
                   <tr
-                    :key="
-                      'subdetail-' + index + '-' + subIndex + '-' + IndexCost
-                    "
                     v-if="stipo.descripcionflag && item.subtipoflag"
                     class="descripcion"
                   >
@@ -225,11 +227,11 @@
                     <td>{{ parseFloat(desc.totalDescripcion).toFixed(2) }}</td>
                     <td></td>
                   </tr>
-                  <template v-for="(cost, IndexCost) in desc.costo">
+                  <template
+                    v-for="(cost, IndexCost) in desc.costo"
+                    :key="'subdetail-' + index + '-' + subIndex + '-' + IndexCost"
+                  >
                     <tr
-                      :key="
-                        'subdetail-' + index + '-' + subIndex + '-' + IndexCost
-                      "
                       v-if="
                         stipo.descripcionflag &&
                         desc.costoflag &&
