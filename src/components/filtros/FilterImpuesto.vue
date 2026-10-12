@@ -204,7 +204,7 @@ export default {
     },
     async Aceptar() {
       //   if (this.$store.state.masterusuarios.tipo == "nuevo") {
-      //     if (this.$refs.frmDML.validate()) {
+      //     if ((await this.$refs.frmDML.validate()).valid) {
       //       this.loading = true;
       //       await this.setCity();
       //       await this.GetListImpuestos();
@@ -213,7 +213,7 @@ export default {
       //   }
       if (this.$store.state.masterusuarios.tipo == "editar") {
         this.loading = true;
-        if (this.$refs.frmDML.validate()) {
+        if ((await this.$refs.frmDML.validate()).valid) {
           await this.ActualizarMasterDetalle();
           await this.GetListImpuestos();
         }

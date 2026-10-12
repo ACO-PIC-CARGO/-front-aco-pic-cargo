@@ -79,7 +79,7 @@
             item-value="id"
             :rules="[(v) => !!v || 'Dato Requerido']"
             @update:model-value="ObtenerEstados($store.state.city.model.id_pais)"
-            :item-disabled="(item) => item.status != 1"
+            :item-props="(item) => ({ disabled: item.status != 1 })"
           >
           </v-autocomplete>
         </div>
@@ -93,7 +93,7 @@
             item-value="id"
             :rules="[(v) => !!v || 'Dato Requerido']"
             :loading="loadingEstado"
-            :item-disabled="(item) => item.status != 1"
+            :item-props="(item) => ({ disabled: item.status != 1 })"
           >
           </v-autocomplete>
         </div>
@@ -244,7 +244,7 @@ export default {
     },
     async Aceptar() {
       if (this.$store.state.city.tipo == "nuevo") {
-        if (this.$refs.frmDML.validate()) {
+        if ((await this.$refs.frmDML.validate()).valid) {
           this.loading = true;
           await this.setCity();
           await this.GetListCity();
@@ -253,7 +253,7 @@ export default {
       }
       if (this.$store.state.city.tipo == "editar") {
         this.loading = true;
-        if (this.$refs.frmDML.validate()) {
+        if ((await this.$refs.frmDML.validate()).valid) {
           await this.ActualizarCity();
           await this.GetListCity();
         }

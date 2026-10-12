@@ -92,7 +92,7 @@
             item-value="id"
             :rules="[(v) => !!v || 'Dato Requerido']"
             @update:model-value="ObtenerEstados($store.state.town.model.id_pais)"
-            :item-disabled="(item) => item.status != 1"
+            :item-props="(item) => ({ disabled: item.status != 1 })"
           >
           </v-autocomplete>
         </div>
@@ -107,7 +107,7 @@
             :rules="[(v) => !!v || 'Dato Requerido']"
             :loading="loadingEstado"
             @update:model-value="ObtenerCity($store.state.town.model.id_state)"
-            :item-disabled="(item) => item.status != 1"
+            :item-props="(item) => ({ disabled: item.status != 1 })"
           >
           </v-autocomplete>
         </div>
@@ -121,7 +121,7 @@
             item-value="id"
             :rules="[(v) => !!v || 'Dato Requerido']"
             :loading="loadingCity"
-            :item-disabled="(item) => item.status != 1"
+            :item-props="(item) => ({ disabled: item.status != 1 })"
           >
           </v-autocomplete>
         </div>
@@ -284,7 +284,7 @@ export default {
     },
     async Aceptar() {
       if (this.$store.state.town.tipo == "nuevo") {
-        if (this.$refs.frmDML.validate()) {
+        if ((await this.$refs.frmDML.validate()).valid) {
           this.loading = true;
           await this.setTown();
           await this.GetListTown();
@@ -293,7 +293,7 @@ export default {
       }
       if (this.$store.state.town.tipo == "editar") {
         this.loading = true;
-        if (this.$refs.frmDML.validate()) {
+        if ((await this.$refs.frmDML.validate()).valid) {
           await this.ActualizarTown();
           await this.GetListTown();
         }

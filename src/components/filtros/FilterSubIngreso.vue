@@ -93,7 +93,7 @@
             item-value="id"
             :rules="[(v) => !!v || 'Dato Requerido']"
             :readonly="$store.state.subingreso.tipo == 'ver'"
-            :item-disabled="(item) => item.status != 1"
+            :item-props="(item) => ({ disabled: item.status != 1 })"
           >
           </v-autocomplete>
         </div>
@@ -261,7 +261,7 @@ export default {
     },
     async Aceptar() {
       if (this.$store.state.subingreso.tipo == "nuevo") {
-        if (this.$refs.frmDML.validate()) {
+        if ((await this.$refs.frmDML.validate()).valid) {
           this.loading = true;
           await this.setSubIngreso();
           await this.GetListSubIngreso();
@@ -270,7 +270,7 @@ export default {
       }
       if (this.$store.state.subingreso.tipo == "editar") {
         this.loading = true;
-        if (this.$refs.frmDML.validate()) {
+        if ((await this.$refs.frmDML.validate()).valid) {
           await this.ActualizarSubIngreso();
           await this.GetListSubIngreso();
         }

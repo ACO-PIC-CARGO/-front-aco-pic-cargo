@@ -154,7 +154,7 @@ export default {
     },
     async Aceptar() {
       if (this.$store.state.user.tipo == "nuevo") {
-        if (this.$refs.frmDML.validate()) {
+        if ((await this.$refs.frmDML.validate()).valid) {
           this.loading = true;
           await this.setTown();
           await this.GetListUsers();

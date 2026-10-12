@@ -165,7 +165,7 @@ export default {
     },
     async Aceptar() {
       if (this.$store.state.motonave.tipo == "nuevo") {
-        if (this.$refs.frmDML.validate()) {
+        if ((await this.$refs.frmDML.validate()).valid) {
           this.loading = true;
           await this.setMotonave();
           await this.GetListMotonave();
@@ -174,7 +174,7 @@ export default {
       }
       if (this.$store.state.motonave.tipo == "editar") {
         this.loading = true;
-        if (this.$refs.frmDML.validate()) {
+        if ((await this.$refs.frmDML.validate()).valid) {
           await this.ActualizarMotonave();
           await this.GetListMotonave();
         }

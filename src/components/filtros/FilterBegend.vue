@@ -239,7 +239,7 @@ export default {
       if (this.$store.state.begend.tipo == "nuevo") {
         this.loading = true;
         setTimeout(async () => {
-          if (this.$refs.frmDML.validate()) {
+          if ((await this.$refs.frmDML.validate()).valid) {
             this.loading = true;
             await this.setBegend();
             await this.GetListBegend();
@@ -252,7 +252,7 @@ export default {
       if (this.$store.state.begend.tipo == "editar") {
         this.loading = true;
         setTimeout(async () => {
-          if (this.$refs.frmDML.validate() && !this.errPosition) {
+          if ((await this.$refs.frmDML.validate()).valid && !this.errPosition) {
             await this.ActualizarBegend();
             await this.GetListBegend();
             this.loading = false;

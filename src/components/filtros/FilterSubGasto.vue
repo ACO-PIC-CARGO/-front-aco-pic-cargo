@@ -82,7 +82,7 @@
             item-value="id"
             :rules="[(v) => !!v || 'Dato Requerido']"
             :readonly="$store.state.subgasto.tipo == 'ver'"
-            :item-disabled="(item) => !item.status"
+            :item-props="(item) => ({ disabled: !item.status })"
           >
           </v-autocomplete>
         </div>
@@ -246,7 +246,7 @@ export default {
     },
     async Aceptar() {
       if (this.$store.state.subgasto.tipo == "nuevo") {
-        if (this.$refs.frmDML.validate()) {
+        if ((await this.$refs.frmDML.validate()).valid) {
           this.loading = true;
           await this.setSubGasto();
           await this.GetListSubGasto();
@@ -255,7 +255,7 @@ export default {
       }
       if (this.$store.state.subgasto.tipo == "editar") {
         this.loading = true;
-        if (this.$refs.frmDML.validate()) {
+        if ((await this.$refs.frmDML.validate()).valid) {
           await this.ActualizarSubGasto();
           await this.GetListSubGasto();
         }

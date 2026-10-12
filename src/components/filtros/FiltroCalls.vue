@@ -125,17 +125,20 @@
                 clearable
                 label="Temperatura de Lead"
               >
-                <template v-slot:item="{ item }">
-                  <span
-                    class="mr-3 d-inline-block"
-                    :style="{
-                      backgroundColor: item.codigo,
+                <template v-slot:item="{ item, props }">
+                  <v-list-item v-bind="props">
+                    <template v-slot:prepend>
+                      <span
+                        class="d-inline-block"
+                        :style="{
+                          backgroundColor: item.codigo,
                       width: '14px',
                       height: '14px',
                       borderRadius: '50%',
                     }"
-                  ></span>
-                  {{ item.descripcion }}
+                      ></span>
+                    </template>
+                  </v-list-item>
                 </template>
               </v-autocomplete>
             </v-col>

@@ -80,7 +80,7 @@
             item-title="name"
             item-value="id"
             :rules="[(v) => !!v || 'Dato Requerido']"
-            :item-disabled="(item) => item.status != 1"
+            :item-props="(item) => ({ disabled: item.status != 1 })"
           >
           </v-autocomplete>
         </div>
@@ -93,7 +93,7 @@
             item-title="name"
             item-value="id"
             :rules="[(v) => !!v || 'Dato Requerido']"
-            :item-disabled="(item) => item.status != 1"
+            :item-props="(item) => ({ disabled: item.status != 1 })"
           >
           </v-autocomplete>
         </div>
@@ -241,7 +241,7 @@ export default {
     },
     async Aceptar() {
       if (this.$store.state.puerto.tipo == "nuevo") {
-        if (this.$refs.frmDML.validate()) {
+        if ((await this.$refs.frmDML.validate()).valid) {
           this.loading = true;
           await this.setPuerto();
           await this.GetListPort();
@@ -250,7 +250,7 @@ export default {
       }
       if (this.$store.state.puerto.tipo == "editar") {
         this.loading = true;
-        if (this.$refs.frmDML.validate()) {
+        if ((await this.$refs.frmDML.validate()).valid) {
           await this.ActualizarPuerto();
           await this.GetListPort();
         }

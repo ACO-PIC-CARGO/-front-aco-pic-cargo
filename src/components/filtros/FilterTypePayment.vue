@@ -197,7 +197,7 @@ export default {
     },
     async Aceptar() {
       if (this.$store.state.typepayment.tipo == "nuevo") {
-        if (this.$refs.frmDML.validate()) {
+        if ((await this.$refs.frmDML.validate()).valid) {
           this.loading = true;
           await this.setTypePayment();
           await this.GetListTypePayment();
@@ -206,7 +206,7 @@ export default {
       }
       if (this.$store.state.typepayment.tipo == "editar") {
         this.loading = true;
-        if (this.$refs.frmDML.validate()) {
+        if ((await this.$refs.frmDML.validate()).valid) {
           await this.ActualizarTypePayment();
           await this.GetListTypePayment();
         }

@@ -129,7 +129,7 @@ export default {
     },
     async Aceptar() {
       if (this.$store.state.position.tipo == "nuevo") {
-        if (this.$refs.frmDML.validate()) {
+        if ((await this.$refs.frmDML.validate()).valid) {
           this.loading = true;
           await this.setTown();
           await this.GetListPosition();
@@ -138,7 +138,7 @@ export default {
       }
       if (this.$store.state.position.tipo == "editar") {
         this.loading = true;
-        if (this.$refs.frmDML.validate()) {
+        if ((await this.$refs.frmDML.validate()).valid) {
           await this.ActualizarTown();
           await this.GetListPosition();
         }
