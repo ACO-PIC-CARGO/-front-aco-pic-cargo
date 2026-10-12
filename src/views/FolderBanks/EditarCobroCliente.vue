@@ -5,9 +5,11 @@
       <h1>MONTO A COBRAR :{{ symbol }} {{ getMontoTotal() }}</h1>
     </v-col>
     <v-tabs color="#A43542" slider-color="primary" fixed-tabs v-model="tab">
-      <v-tab href="#ref1">STEP 1</v-tab>
-      <v-tab href="#ref2">STEP 2</v-tab>
-      <v-tab-item value="ref1" class="px-5">
+      <v-tab value="ref1">STEP 1</v-tab>
+      <v-tab value="ref2">STEP 2</v-tab>
+    </v-tabs>
+    <v-tabs-window v-model="tab">
+      <v-tabs-window-item value="ref1" class="px-5">
         <v-row class="mt-5">
           <v-col md="4" cols="4">
             <v-autocomplete
@@ -44,7 +46,7 @@
                   type="number"
                   :max="item.montodolar"
                   v-on:blur="calcularTotal()"
-                  @focus.native="calcularTotal()"
+                  @focus="calcularTotal()"
                   :error-messages="item.err"
                 >
                 </v-text-field>
@@ -56,7 +58,7 @@
                   type="number"
                   :max="item.montopagar"
                   v-on:blur="calcularTotal()"
-                  @focus.native="calcularTotal()"
+                  @focus="calcularTotal()"
                   :error-messages="item.err"
                 >
                 </v-text-field>
@@ -67,7 +69,7 @@
                   type="number"
                   :max="item.monto_destino"
                   v-on:blur="calcularTotal()"
-                  @focus.native="calcularTotal()"
+                  @focus="calcularTotal()"
                   :error-messages="item.err"
                 />
               </template>
@@ -75,7 +77,7 @@
                 <v-text-field
                   v-on:blur="calcularMonto()"
                   v-model="item.tipocambio"
-                  @focus.native="calcularMonto()"
+                  @focus="calcularMonto()"
                   type="number"
                 >
                 </v-text-field>
@@ -90,8 +92,8 @@
             </v-data-table>
           </v-col>
         </v-row>
-      </v-tab-item>
-      <v-tab-item value="ref2" class="px-5">
+      </v-tabs-window-item>
+      <v-tabs-window-item value="ref2" class="px-5">
         <v-row class="mt-5">
           <v-col md="4" cols="4"
             ><v-text-field
@@ -111,7 +113,7 @@
               <v-icon color="red">mdi-file-pdf-box</v-icon>
               {{ $store.state.bank.record.nombre_archivo }}
             </v-btn>
-            <v-flex>
+            <div>
               <v-file-input
                 v-model="payfile"
                 label="Soporte de Pago"
@@ -121,7 +123,7 @@
                 v-if="!boolFile"
               >
               </v-file-input>
-            </v-flex>
+            </div>
           </v-col>
 
           <v-col md="4" cols="4">
@@ -166,7 +168,7 @@
           </v-col>
 
           <v-col md="12" cols="12">
-            <v-flex text-right>
+            <div class="text-right">
               <v-btn
                 :loading="loading"
                 color="success"
@@ -174,11 +176,11 @@
               >
                 Actualizar
               </v-btn>
-            </v-flex>
+            </div>
           </v-col>
         </v-row>
-      </v-tab-item>
-    </v-tabs>
+      </v-tabs-window-item>
+    </v-tabs-window>
   </v-card>
 </template>
 

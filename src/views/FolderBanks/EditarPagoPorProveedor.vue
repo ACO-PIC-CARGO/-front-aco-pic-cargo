@@ -30,9 +30,11 @@
       </v-row>
       <!-- v-model="value" -->
       <v-tabs color="#A43542" slider-color="primary" fixed-tabs v-model="tab">
-        <v-tab href="#ref1">STEP 1</v-tab>
-        <v-tab href="#ref2">STEP 2</v-tab>
-        <v-tab-item value="ref1">
+        <v-tab value="ref1">STEP 1</v-tab>
+        <v-tab value="ref2">STEP 2</v-tab>
+      </v-tabs>
+      <v-tabs-window v-model="tab">
+        <v-tabs-window-item value="ref1">
           <v-row class="mt-5">
             <v-col cols="3">
               <!-- <v-text-field label="Buscar..." v-model="search"></v-text-field> -->
@@ -42,7 +44,6 @@
                 v-if="selected.length > 0"
                 color="green-darken-4"
                 @click="continuar()"
-                dark
                 >Continuar</v-btn
               >
             </v-col>
@@ -51,6 +52,8 @@
                 :headers="headers"
                 :items="$store.state.bank.record.detalle"
                 v-model="selected"
+                item-value="id"
+                return-object
               >
                 <template v-slot:[`item.item_moneda`]="{ item }">
                   <v-autocomplete
@@ -96,8 +99,8 @@
               </v-data-table>
             </v-col>
           </v-row>
-        </v-tab-item>
-        <v-tab-item value="ref2">
+        </v-tabs-window-item>
+        <v-tabs-window-item value="ref2">
           <v-form ref="frmRegister">
             <v-row class="mt-5">
               <v-col md="3" cols="3">
@@ -129,8 +132,8 @@
                 <v-file-input
                   label="Cargar Archivo"
                   v-model="payfile"
-                  @change="uploadFile()"
-                  :success-messages="msgfile"
+                  @update:model-value="uploadFile()"
+                  :messages="msgfile"
                   :error-messages="errfile"
                   :rules="[(v) => !!v || 'Datos Requerido']"
                   :loading="loadingFile"
@@ -183,16 +186,16 @@
                 ></v-text-field
               ></v-col>
               <v-col md="12" cols="12">
-                <v-flex text-right>
+                <div class="text-right">
                   <v-btn color="success" @click="actualizarPago()">
                     Actualizar
                   </v-btn>
-                </v-flex>
+                </div>
               </v-col>
             </v-row>
           </v-form>
-        </v-tab-item>
-      </v-tabs>
+        </v-tabs-window-item>
+      </v-tabs-window>
     </v-card-text>
   </v-card>
 </template>

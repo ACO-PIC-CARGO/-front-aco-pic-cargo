@@ -3,9 +3,11 @@
     <v-container fluid>
       <!-- v-model="value" -->
       <v-tabs color="#A43542" slider-color="primary" fixed-tabs v-model="tab">
-        <v-tab href="#ref1">STEP 1</v-tab>
-        <v-tab href="#ref2" :disabled="step2">STEP 2</v-tab>
-        <v-tab-item value="ref1">
+        <v-tab value="ref1">STEP 1</v-tab>
+        <v-tab value="ref2" :disabled="step2">STEP 2</v-tab>
+      </v-tabs>
+      <v-tabs-window v-model="tab">
+        <v-tabs-window-item value="ref1">
           <v-row class="mt-5">
             <v-col md="12" cols="12">
               <h1 v-if="tipo == 'nuevo'">
@@ -37,6 +39,8 @@
                 :headers="headers"
                 :items="listPagosXProveedorCxP"
                 show-select
+                item-value="id"
+                return-object
                 v-model="selected"
               >
                 <template v-slot:[`item.moneda`]="{ item }">
@@ -62,7 +66,7 @@
                       selected.filter((v) => v.index == item.index).length == 0
                     "
                     v-on:blur="calcularTotal()"
-                    @focus.native="calcularTotal()"
+                    @focus="calcularTotal()"
                     :error-messages="item.err"
                   >
                   </v-text-field>
@@ -74,7 +78,7 @@
                   <v-text-field
                     v-on:blur="calcularMonto()"
                     v-model="item.tipocambio"
-                    @focus.native="calcularMonto()"
+                    @focus="calcularMonto()"
                     type="number"
                     :disabled="
                       selected.filter((v) => v.index == item.index).length == 0
@@ -89,13 +93,13 @@
               cols="12"
               v-if="$store.state.listPagosXProveedorCxP.length > 0"
             >
-              <v-flex text-right v-if="tipo == 'nuevo'">
+              <div class="text-right" v-if="tipo == 'nuevo'">
                 <v-btn color="success" @click="continuar()"> Continuar </v-btn>
-              </v-flex>
+              </div>
             </v-col>
           </v-row>
-        </v-tab-item>
-        <v-tab-item value="ref2">
+        </v-tabs-window-item>
+        <v-tabs-window-item value="ref2">
           <v-col md="12" cols="12">
             <h1>MONTO A COBRAR : {{ symbol }} {{ total }}</h1>
           </v-col>
@@ -108,7 +112,7 @@
               ></v-text-field>
             </v-col>
             <v-col md="6" cols="6" v-if="tipo == 'nuevo'">
-              <v-flex>
+              <div>
                 <v-file-input
                   v-model="payfile"
                   label="Soporte de Pago"
@@ -121,7 +125,7 @@
                 <v-chip color="success" v-if="boolFile">
                   Documento Cargado
                 </v-chip>
-              </v-flex>
+              </div>
             </v-col>
             <v-col md="2" cols="2" v-if="!boolFile && tipo == 'nuevo'">
               <v-btn color="info" @click="_uploadFile()">
@@ -203,7 +207,7 @@
               ></v-text-field
             ></v-col>
             <v-col md="12" cols="12" v-if="tipo == 'nuevo'">
-              <v-flex text-right>
+              <div class="text-right">
                 <v-btn
                   :loading="loading"
                   :disabled="
@@ -216,11 +220,11 @@
                 >
                   PROCESAR PAGO
                 </v-btn>
-              </v-flex>
+              </div>
             </v-col>
           </v-row>
-        </v-tab-item>
-      </v-tabs>
+        </v-tabs-window-item>
+      </v-tabs-window>
     </v-container>
   
 </template>

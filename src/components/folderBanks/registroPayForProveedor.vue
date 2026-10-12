@@ -103,8 +103,8 @@
             >
           </v-tabs>
 
-          <v-tabs-items v-model="pasos">
-            <v-tab-item key="detallesPago">
+          <v-tabs-window v-model="pasos">
+            <v-tabs-window-item key="detallesPago">
               <v-row class="mt-2">
                 <v-col cols="12" md="6" class="py-1">
                   <v-autocomplete
@@ -156,12 +156,32 @@
                     :items="itemsOrdenados"
                     v-model="selected"
                     show-select
-                    item-key="id"
-                    @input="calcularTotal"
+                    item-value="id"
+                    return-object
+                    @update:model-value="calcularTotal"
                     :search="searchTableDetalle"
-                    @item-selected="onItemSelected"
-                    @toggle-select-all="onSelectAll"
+                    @update:current-items="
+                      (items) => (invoicesOnPage = items.map((i) => i.raw))
+                    "
                   >
+                    <template
+                      v-slot:[`header.data-table-select`]="{
+                        allSelected,
+                        someSelected,
+                        selectAll,
+                      }"
+                    >
+                      <v-checkbox-btn
+                        :model-value="allSelected"
+                        :indeterminate="someSelected && !allSelected"
+                        @update:model-value="
+                          (value) => {
+                            selectAll(value);
+                            onSelectAll({ items: invoicesOnPage, value });
+                          }
+                        "
+                      ></v-checkbox-btn>
+                    </template>
                     <template v-slot:body.append>
                       <tr
                         class="bg-grey-lighten-4 font-weight-bold"
@@ -182,14 +202,23 @@
                         <td class="text-left">USD {{ totalGeneralAbonado }}</td>
                       </tr>
                     </template>
-                    <template v-slot:[`item.data-table-select`]="{ item, isSelected, select }">
+                    <template
+                      v-slot:[`item.data-table-select`]="{
+                        item,
+                        internalItem,
+                        isSelected,
+                        toggleSelect,
+                      }"
+                    >
                       <v-checkbox-btn
-                        class="v-data-table__checkbox"
-                        :value="isSelected"
-                        role="checkbox"
-                        :aria-checked="String(isSelected)"
+                        :model-value="isSelected(internalItem)"
                         :aria-label="`Seleccionar factura ${item.code_master}`"
-                        @input="select($event)"
+                        @update:model-value="
+                          (value) => {
+                            toggleSelect(internalItem);
+                            onItemSelected({ item, value });
+                          }
+                        "
                       ></v-checkbox-btn>
                     </template>
                     <template v-slot:[`item.totalabonado`]="{ item }">
@@ -288,9 +317,9 @@
                   </v-btn>
                 </v-col>
               </v-row>
-            </v-tab-item>
+            </v-tabs-window-item>
 
-            <v-tab-item key="datosPrincipales">
+            <v-tabs-window-item key="datosPrincipales">
               <v-row class="mt-1">
                 <v-col cols="12" md="6" class="py-1">
                   <v-autocomplete
@@ -422,16 +451,17 @@
                   </v-btn>
                 </v-col>
               </v-row>
-            </v-tab-item>
+            </v-tabs-window-item>
 
-            <v-tab-item key="gastoBancario">
+            <v-tabs-window-item key="gastoBancario">
               <v-row class="mt-1">
                 <v-col cols="12">
                   <v-data-table
                     :headers="headersPagosGastosBancario"
                     :items="selected"
                     v-model="selected"
-                    item-key="id"
+                    item-value="id"
+                    return-object
                   >
                     <template v-slot:body.append>
                       <tr
@@ -524,8 +554,8 @@
                   </v-btn>
                 </v-col>
               </v-row>
-            </v-tab-item>
-          </v-tabs-items>
+            </v-tabs-window-item>
+          </v-tabs-window>
         </v-col>
       </v-row>
     </v-container>
@@ -542,11 +572,10 @@
         <v-card-text class="pt-2">
           <!-- Banner de advertencia adaptado para salida -->
           <v-alert
-            type="warning"
             border="start"
-            colored-border
+            border-color="warning"
             elevation="0"
-            class="bg-amber-lighten-5 text--darken-3 mb-4 rounded-lg"
+            class="bg-amber-lighten-5 mb-4 rounded-lg"
           >
             <template v-slot:prepend>
               <v-icon size="36" color="amber-darken-2" class="mr-3">
@@ -621,6 +650,7 @@ export default {
       fechaoperacion: null,
       id_path: null,
       selected: [],
+      invoicesOnPage: [],
       loading: false,
       headers: [
         { title: "Abono Completo o Parcial", key: "parcialflag" },

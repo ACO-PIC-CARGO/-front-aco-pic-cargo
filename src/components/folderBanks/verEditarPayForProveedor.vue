@@ -82,7 +82,6 @@
           v-if="verflag"
           color="red"
           class="mt-5 ml-3"
-          dark
           @click="imprimirComprobanteEgreso({ id: $route.params.id })"
         >
           <v-icon class="mx-2">mdi-file-pdf-box</v-icon> Imprimir
@@ -102,7 +101,6 @@
           v-if="!verflag"
           class="mt-5"
           color="red"
-          dark
           :loading="loading"
           @click="confirmarEliminar()"
         >
@@ -122,8 +120,8 @@
             <v-tab key="gastoBancario"> Resumen y Comisión Bancario</v-tab>
           </v-tabs>
 
-          <v-tabs-items v-model="pasos">
-            <v-tab-item key="detallesPago">
+          <v-tabs-window v-model="pasos">
+            <v-tabs-window-item key="detallesPago">
               <v-row class="mt-1">
                 <v-col cols="12">
                   <!-- show-select -->
@@ -131,11 +129,10 @@
                     :headers="headers"
                     :items="itemsOrdenados"
                     v-model="selected"
-                    item-key="id"
-                    @input="calcularTotal"
+                    item-value="id"
+                    return-object
+                    @update:model-value="calcularTotal"
                     :search="searchTableDetalle"
-                    @item-selected="onItemSelected"
-                    @toggle-select-all="onSelectAll"
                   >
                     <template v-slot:body.append>
                       <tr class="bg-grey-lighten-4 font-weight-bold">
@@ -207,9 +204,9 @@
                   </v-data-table>
                 </v-col>
               </v-row>
-            </v-tab-item>
+            </v-tabs-window-item>
 
-            <v-tab-item key="datosPrincipales">
+            <v-tabs-window-item key="datosPrincipales">
               <v-row class="mt-1">
                 <v-col cols="12" md="6" class="py-1">
                   <v-autocomplete
@@ -321,12 +318,11 @@
                     <template v-if="esImagen(urlfile)">
                       <v-dialog max-width="800px">
                         <template v-slot:activator="{ props }">
-                          <v-hover v-slot="{ hover }">
+                          <v-hover v-slot="{ isHovering, props: hoverProps }">
                             <div
-                             
-                              v-bind="props"
+                              v-bind="mergeProps(props, hoverProps)"
                               class="d-inline-block rounded-circle elevation-2 position-relative cursor-zoom-in"
-                              :class="{ 'white--overlay': hover }"
+                              :class="{ 'white--overlay': isHovering }"
                             >
                               <v-avatar size="120" class="flex-shrink-0">
                                 <v-img :src="urlfile" alt="Miniatura">
@@ -345,11 +341,11 @@
                               </v-avatar>
 
                               <v-overlay
-                                absolute
-                                :model-value="hover"
+                                contained
+                                :model-value="isHovering"
                                 scrim="white"
                                 opacity="0.6"
-                                class="rounded-circle"
+                                class="rounded-circle align-center justify-center"
                                 z-index="1"
                               >
                                 <v-icon color="grey-darken-2" size="24"
@@ -364,7 +360,6 @@
                           <v-img
                             :src="urlfile"
                             max-height="85vh"
-                            contain
                           ></v-img>
                         </v-card>
                       </v-dialog>
@@ -392,16 +387,17 @@
                   <v-btn text> Cancel </v-btn>
                 </v-col> -->
               </v-row>
-            </v-tab-item>
+            </v-tabs-window-item>
 
-            <v-tab-item key="gastoBancario">
+            <v-tabs-window-item key="gastoBancario">
               <v-row class="mt-1">
                 <v-col cols="12">
                   <v-data-table
                     :headers="headersPagosGastosBancario"
                     :items="selected"
                     v-model="selected"
-                    item-key="id"
+                    item-value="id"
+                    return-object
                   >
                     <template v-slot:body.append>
                       <tr class="bg-grey-lighten-4 font-weight-bold">
@@ -472,16 +468,16 @@
                   </v-btn>
                 </v-col> -->
               </v-row>
-            </v-tab-item>
-          </v-tabs-items>
+            </v-tabs-window-item>
+          </v-tabs-window>
         </v-col>
       </v-row>
     </v-container>
     <v-snackbar v-model="snackbar">
       Monto en moneda {{ symbol }} para realizar el pago. El tipo de cambio se
       calculará automáticamente al ingresar el monto en moneda local.
-      <template v-slot:action="{ attrs }">
-        <v-btn color="red" variant="text" v-bind="attrs" @click="snackbar = false">
+      <template v-slot:actions>
+        <v-btn color="red" variant="text" @click="snackbar = false">
           Close
         </v-btn>
       </template>
@@ -490,7 +486,7 @@
 </template>
 
 <script>
-import { defineAsyncComponent } from "vue";
+import { defineAsyncComponent, mergeProps } from "vue";
 import { mapActions, mapState } from "vuex";
 import Swal from "sweetalert2";
 export default {
@@ -599,6 +595,7 @@ export default {
       data.comisionbancaria.length > 0 ? data.comisionbancaria[0].monto : 0;
   },
   methods: {
+    mergeProps,
     ...mapActions([
       "_getListaPagosXProveedorCxP",
       "_uploadFile",
