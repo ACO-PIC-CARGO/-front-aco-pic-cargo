@@ -2,7 +2,7 @@ import { readFileSync } from "node:fs";
 import { test as base, expect } from "@playwright/test";
 import { isKnownNoise } from "./known-console-noise.mjs";
 import { SESSION_FILE } from "./support/env.mjs";
-import { abortRequestsThatCrashTheBackend } from "./support/backend-crashes.mjs";
+import { stubRequestsThatCrashTheBackend } from "./support/backend-crashes.mjs";
 import { reportAppVersionAsServerVersion } from "./support/server-version.mjs";
 
 const RUNTIME_PROBLEM = /^(Uncaught )?\w*Error\b|\[Vue warn\]|\[Vue Router warn\]/;
@@ -20,7 +20,7 @@ export const test = base.extend({
       }, saved);
     }
     await reportAppVersionAsServerVersion(page);
-    await abortRequestsThatCrashTheBackend(page);
+    await stubRequestsThatCrashTheBackend(page);
     const problems = [];
     page.on("pageerror", (error) => {
       if (!isKnownNoise(error.message)) problems.push(`[${page.url()}] pageerror: ${error.message}`);

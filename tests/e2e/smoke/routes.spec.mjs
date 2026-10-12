@@ -6,17 +6,9 @@ import { routeUrl } from "../support/route-url.mjs";
 const EXPECTED_REDIRECTS = { Home: "/home/main" };
 
 const SPINNER_NEVER_CLEARS = {
-  nuevoProveedor: "pre-existing on Vue 2: the page awaits cargar_master_detalle_tipo_persona, which crashes the local backend, and never hides the spinner after the failure",
-  verProveedor: "pre-existing on Vue 2: the page awaits cargar_master_detalle_tipo_persona and entitie/cargar_datos_tarifas, which crash or hang the local backend",
-  editarProveedor: "pre-existing on Vue 2: the page awaits cargar_master_detalle_tipo_persona and entitie/cargar_datos_tarifas, which crash or hang the local backend",
-  nuevoClientes: "pre-existing on Vue 2: the page awaits cargar_master_detalle_tipo_persona, which crashes the local backend, and never hides the spinner after the failure",
-  verCliente: "pre-existing on Vue 2: the page awaits cargar_master_detalle_tipo_persona, which crashes the local backend, and never hides the spinner after the failure",
-  editarCliente: "pre-existing on Vue 2: the page awaits cargar_master_detalle_tipo_persona, which crashes the local backend, and never hides the spinner after the failure",
-  editControlGasto: "pre-existing on Vue 2: control_gastos_list and getMasterList hang on the local database, and no control gasto exists with id 1",
-  verControlGasto: "pre-existing on Vue 2: control_gastos_list and getMasterList hang on the local database, and no control gasto exists with id 1",
-  verQuote: "pre-existing on Vue 2: getQuoteId answers 500 because the local branch has no quotes",
-  editQuote: "pre-existing on Vue 2: getQuoteId answers 500 because the local branch has no quotes",
-  cargaMasivaCalc: "pre-existing on Vue 2: cargar_moneda hangs on the local database",
+  controlHouse: "pre-existing on Vue 2: listar_montos_finales_quote runs about 30 s on the development data and then answers 500, so the spinner outlives the wait",
+  cargaMasivaCalc: "pre-existing on Vue 2: cargar_moneda never answers on the development DB, so the page never hides the spinner",
+  listFlujoMensual: "pre-existing on Vue 2: getDebsToPay and getReportAccounts do not answer within 110 s on the development data",
 };
 
 const ROUTES_THAT_MATCH_NOTHING = {

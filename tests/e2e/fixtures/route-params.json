@@ -3,109 +3,109 @@
     "id_role": "3"
   },
   "verProveedor": {
-    "id": "9117"
+    "id": "64"
   },
   "editarProveedor": {
-    "id": "9117"
+    "id": "64"
   },
   "verCliente": {
-    "id": "9113"
+    "id": "656"
   },
   "editarCliente": {
-    "id": "9113"
+    "id": "656"
   },
   "controlEntitie": {
     "id_role": "3"
   },
   "controlEntitieEdit": {
-    "id": "9117"
+    "id": "64"
   },
   "controlMasterEditar": {
-    "id": "1"
+    "id": "2697"
   },
   "controlMasterVer": {
-    "id": "1"
+    "id": "2697"
   },
   "controlMasterId": {
-    "id": "1"
+    "id": "2697"
   },
   "controlMasterParams": {
-    "id": "1",
-    "params": "1"
+    "id": "2697",
+    "params": "2697"
   },
   "controlHouseEditar": {
-    "id": "1"
+    "id": "4568"
   },
   "controlHouseVer": {
-    "id": "1"
+    "id": "4568"
   },
   "controlHouseId": {
-    "id": "1"
+    "id": "4568"
   },
   "billControlGastos": {
-    "id_house": "1"
+    "id_house": "4568"
   },
   "billControlGastosControl": {
-    "id_house": "1",
-    "id_control": "1",
-    "id_orders": "1",
-    "code": "1"
+    "id_house": "4568",
+    "id_control": "2697",
+    "id_orders": "4568",
+    "code": "2026MBL01723"
   },
   "editControlGasto": {
-    "id": "1",
-    "id_branch": "22"
+    "id": "2697",
+    "id_branch": "1"
   },
   "verControlGasto": {
-    "id": "1",
-    "id_branch": "22"
+    "id": "2697",
+    "id_branch": "1"
   },
   "viewAccountPays": {
-    "id": "1"
+    "id": "4733"
   },
   "EditAccountPays": {
-    "id": "1"
+    "id": "4733"
   },
   "verProyeccion": {
-    "id": "1"
+    "id": "23"
   },
   "editarProyeccion": {
-    "id": "1"
+    "id": "23"
   },
   "viewAccountPaysCxC": {
-    "id": "1"
+    "id": "1000"
   },
   "EditAccountPaysCxC": {
-    "id": "1"
+    "id": "1000"
   },
   "verPagosPorProveedor": {
-    "id": "1"
+    "id": "6714"
   },
   "editarPagosPorProveedor": {
-    "id": "1"
+    "id": "6714"
   },
   "editarPagosPorCliente": {
-    "id": "1"
+    "id": "7060"
   },
   "verPagosPorCliente": {
-    "id": "1"
+    "id": "7060"
   },
   "verQuote": {
-    "id": "1"
+    "id": "12895"
   },
   "editQuote": {
-    "id": "1"
+    "id": "12895"
   },
   "readEnterprise": {
-    "id": "19"
+    "id": "1"
   },
   "updateEnterprise": {
-    "id": "19"
+    "id": "1"
   },
   "editarUser": {
-    "id": "95"
+    "id": "173"
   },
   "verUser": {
-    "id": "95"
+    "id": "173"
   },
   "editarPosicion": {
     "id": "1"
@@ -114,19 +114,19 @@
     "id": "1"
   },
   "EditarSalida": {
-    "nro_operacion": "1"
+    "nro_operacion": "03790014"
   },
   "EditarCobroCliente": {
-    "nro_operacion": "1"
+    "nro_operacion": "00180064"
   },
   "EditarAduana": {
-    "id": "1"
+    "id": "14"
   },
   "VerAduana": {
-    "id": "1"
+    "id": "14"
   },
   "UserCalculadoraVer": {
-    "id": "1"
+    "id": "577"
   },
   "tracking": {
     "token": "e2e-invalid-token"
