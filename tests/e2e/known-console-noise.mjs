@@ -65,6 +65,11 @@ export const KNOWN_CONSOLE_NOISE = [
     routes: ["newQuote"],
   },
   {
+    pattern: /^Error en crearCarpetaOneDrive: AxiosError: Request failed with status code 500(\n|$)/,
+    reason: "same pre-existing issue as the newQuote crearCarpetaOneDrive entry above, axios 1 wording (AxiosError)",
+    routes: ["newQuote"],
+  },
+  {
     pattern: /^\[Vue warn\]: Method "computed" has type "object" in the component definition\. Did you reference the function correctly\?(\n|$)/,
     reason: "pre-existing on Vue 2: cargaMasivaCalc",
     routes: ["cargaMasivaCalc"],

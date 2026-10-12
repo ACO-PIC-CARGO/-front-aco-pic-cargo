@@ -1,7 +1,7 @@
 import { expect } from "@playwright/test";
 
 // A closed Vuetify 4 drawer stays in the DOM as `inert`: users can't reach it, but Playwright still counts it as visible.
-const outsideInert = (page, locator) => locator.and(page.locator(":not([inert], [inert] *)"));
+export const outsideInert = (page, locator) => locator.and(page.locator(":not([inert], [inert] *)"));
 
 // By role: Vuetify 4 labels the open menu's listbox with the field's label too.
 const comboboxField = (page, label) =>
