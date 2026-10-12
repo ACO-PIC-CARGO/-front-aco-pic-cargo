@@ -1,9 +1,7 @@
 <template>
   <v-container>
-    <v-stepper v-model="e6" vertical>
-      <v-stepper-step :complete="e6 > 1" step="1"> Fechas: </v-stepper-step>
-
-      <v-stepper-content step="1">
+    <v-stepper-vertical v-model="e6" hide-actions eager>
+      <v-stepper-vertical-item :complete="e6 > 1" :value="1" title="Fechas:">
         <v-form ref="frmFecha">
           <v-row>
             <v-col cols="12" md="6">
@@ -44,13 +42,13 @@
             </v-col>
           </v-row>
         </v-form>
-      </v-stepper-content>
+      </v-stepper-vertical-item>
 
-      <v-stepper-step :complete="e6 > 2" step="2">
-        Costos Requerido:
-      </v-stepper-step>
-
-      <v-stepper-content step="2">
+      <v-stepper-vertical-item
+        :complete="e6 > 2"
+        :value="2"
+        title="Costos Requerido:"
+      >
         <v-table density="compact">
           <thead>
             <tr>
@@ -86,8 +84,8 @@
                   @update:search="recargarProveedores"
                   v-model="valor.id_proveedor"
                   hide-details
-                  append-icon="mdi-plus"
-                  @click:append="abrirModalRegistroProveedor(valor)"
+                  append-inner-icon="mdi-plus"
+                  @click:append-inner="abrirModalRegistroProveedor(valor)"
                 ></v-autocomplete>
               </td>
               <td class="colConcepto">
@@ -311,13 +309,13 @@
         <v-btn size="small" class="mx-1" color="error" @click="cancelar">
           Cancel
         </v-btn>
-      </v-stepper-content>
+      </v-stepper-vertical-item>
 
-      <v-stepper-step :complete="e6 > 3" step="3">
-        Copiar costos a la sección de ventas:
-      </v-stepper-step>
-
-      <v-stepper-content step="3">
+      <v-stepper-vertical-item
+        :complete="e6 > 3"
+        :value="3"
+        title="Copiar costos a la sección de ventas:"
+      >
         <v-spacer></v-spacer>
         <v-btn class="mx-2" color="success" @click="copiarCostostoVentas(4)"
           >Si, Copiar</v-btn
@@ -325,10 +323,9 @@
         <v-btn class="mx-2" color="warning" @click="continuar(4)"
           >No Copiar</v-btn
         >
-      </v-stepper-content>
+      </v-stepper-vertical-item>
 
-      <v-stepper-step step="4"> Profit Estimado </v-stepper-step>
-      <v-stepper-content step="4">
+      <v-stepper-vertical-item :value="4" title="Profit Estimado">
         <v-row>
           <v-col cols="12">
             <v-text-field
@@ -346,12 +343,11 @@
             </v-btn>
           </v-col>
         </v-row>
-      </v-stepper-content>
-      <v-stepper-step step="5"> Finalizar </v-stepper-step>
-      <v-stepper-content step="5">
+      </v-stepper-vertical-item>
+      <v-stepper-vertical-item :value="5" title="Finalizar">
         <v-btn color="success" @click="editarCotizacion">Finalizar</v-btn>
-      </v-stepper-content>
-    </v-stepper>
+      </v-stepper-vertical-item>
+    </v-stepper-vertical>
   </v-container>
 </template>
 
@@ -360,6 +356,7 @@ import moment from "moment";
 import mixins from "@/components/mixins/funciones.js";
 import { mapActions } from "vuex";
 export default {
+  emits: ["close"],
   mixins: [mixins],
   mounted() {
     this.$nextTick(() => {
@@ -454,9 +451,9 @@ export default {
 
       return selectedDate.isAfter(today);
     },
-    continuar(step) {
+    async continuar(step) {
       this.$store.state.pricing.tiporeporte = "AGRUPADO";
-      if (step == 2 && !this.$refs.frmFecha.validate()) {
+      if (step == 2 && !(await this.$refs.frmFecha.validate()).valid) {
         return;
       }
       if (step === 5) {

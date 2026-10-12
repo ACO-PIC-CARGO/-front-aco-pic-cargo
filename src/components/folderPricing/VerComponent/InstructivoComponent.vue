@@ -1,7 +1,7 @@
 <template>
   <v-container v-if="$store.state.pricing.listInstructivo.length">
     <v-col cols="12">
-      <template>
+      
         <div class="text-center">
           <v-pagination
             v-model="page"
@@ -12,7 +12,7 @@
             rounded
           ></v-pagination>
         </div>
-      </template>
+      
     </v-col>
     <v-dialog
       v-model="aprobarflag"
@@ -51,7 +51,7 @@
           <v-alert
             v-if="mostrarAdvertencia"
             border="start"
-            colored-border
+            border-color="error"
             type="error"
             elevation="2"
           >
@@ -154,7 +154,6 @@
         elevation="2"
         size="small"
         v-if="!mostrarBtnAprobar()"
-        dark
         @click="dialogSequenceInstructivo = true"
       >
         <v-icon>mdi-email-outline</v-icon> Instructivo
@@ -601,7 +600,7 @@
         <v-alert
           v-if="mostrarMensajeClienteVariosExp"
           border="start"
-          colored-border
+          border-color="warning"
           type="warning"
           elevation="2"
           class="mx-5"
@@ -612,7 +611,7 @@
         <v-alert
           v-if="textValidacionPago"
           border="start"
-          colored-border
+          border-color="error"
           type="error"
           elevation="2"
           class="mx-5"
@@ -660,7 +659,8 @@
             :items="$store.state.pricing.listadoFilesDrive"
             show-select
             v-model="$store.state.pricing.selectedFile"
-            item-key="id"
+            item-value="id"
+            return-object
           >
             <template v-slot:[`item.action`]="{ item }">
               <v-btn
@@ -701,7 +701,6 @@
             <v-btn
               class="mx-1"
               color="#FFD600"
-              dark
               @click="
                 abrirCarpeta(
                   $store.state.pricing.datosPrincipales.url_folderonedrive,
@@ -716,7 +715,6 @@
               class="mx-1"
               v-if="verPrevisualizacion"
               color="#01579B"
-              dark
               @click="verDatosPreview = !verDatosPreview"
             >
               <v-icon class="mx-1" size="small" v-if="verDatosPreview"
@@ -730,7 +728,6 @@
               class="mx-1"
               v-if="verDatosPreview"
               color="#01579B"
-              dark
               @click="verPrevisualizacion = !verPrevisualizacion"
             >
               <v-icon class="mx-1" size="small" v-if="verPrevisualizacion"
@@ -889,7 +886,7 @@ export default {
       dialogSequenceInstructivo: false,
       dialogFiles: false,
       nuevoexpediente: "",
-      aprobarflag: "",
+      aprobarflag: false,
       id_exp: "",
       fecha_validez: "",
       descripcionNota: "",
@@ -1227,7 +1224,7 @@ export default {
       }
     },
     async guardarNota() {
-      if (this.$refs.nota.validate()) {
+      if ((await this.$refs.nota.validate()).valid) {
         this.$store.state.spiner = true;
         let data = {
           name: this.descripcionNota,
@@ -1316,7 +1313,7 @@ export default {
       this.dialogFiles = false;
       this.dialogSequenceInstructivo = false;
       await this.generaInstructivoparaguardata();
-      if (this.$refs.frmAprobar.validate()) {
+      if ((await this.$refs.frmAprobar.validate()).valid) {
         let fecha_validez = this.$store.state.pricing.opcionCostos.filter(
           (v) => v.nro_propuesta == this.nro_propuesta,
         )[0].date_end;
@@ -1721,7 +1718,7 @@ export default {
         this.$store.state.pricing.listIngresosInstructivoAprobar.filter(
           (v) => v.nro_propuesta == this.nro_propuesta,
         )[0].dataVentas;
-      if (this.$refs.frmAprobar.validate()) {
+      if ((await this.$refs.frmAprobar.validate()).valid) {
         Swal.fire({
           icon: "info",
           title: "Aprobando Cotizacion",

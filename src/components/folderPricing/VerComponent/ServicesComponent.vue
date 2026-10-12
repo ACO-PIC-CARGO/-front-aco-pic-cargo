@@ -20,7 +20,7 @@
         <v-card-actions>
           <v-spacer></v-spacer>
           <v-btn color="success" @click="guardarServicio">Guardar</v-btn>
-          <v-btn color="red" @click="dialog = false" dark>Cancelar</v-btn>
+          <v-btn color="red" @click="dialog = false">Cancelar</v-btn>
         </v-card-actions>
       </v-card>
     </v-dialog>
@@ -32,9 +32,9 @@
         <v-icon>mdi-plus</v-icon>
       </v-btn>
     </v-card-title>
-    <v-subheader class="mt-0">
+    <v-list-subheader class="mt-0">
       <h4>Desmarque los servicios que NO desea utilizar.</h4>
-    </v-subheader>
+    </v-list-subheader>
 
     <!-- Lista de Servicios por Categoría -->
     <v-card-text>
@@ -49,8 +49,9 @@
           <h4 class="mb-2">{{ cat.title }}</h4>
           <div v-for="service in getServicesByCode(cat.code)" :key="service.id">
             <v-checkbox
-              dense
+              density="compact"
               v-model="service.status"
+              :value-comparator="(value, checked) => Boolean(value) === checked"
               @update:model-value="showConfirmationDialog(service)"
               readonly
             >
@@ -136,6 +137,7 @@
 import { mapState, mapActions, mapGetters } from "vuex";
 
 export default {
+  emits: ["activarLlenadoCostos", "recargarCostos"],
   props: {
     mostrarBtn: {
       type: Boolean,

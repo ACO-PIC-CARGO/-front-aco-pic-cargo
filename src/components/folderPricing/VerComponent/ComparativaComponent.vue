@@ -127,8 +127,8 @@ export default {
     },
     agregarFilasAlHeader() {
       this.headers = [
-        { title: "Tarifa de Costos", key: "tarifa" },
-        { title: "Proveedor Flete", key: "proveedor" },
+        { text: "Tarifa de Costos", value: "tarifa" },
+        { text: "Proveedor Flete", value: "proveedor" },
       ];
 
       if (this.opcionesSeleccionadas.some((v) => parseFloat(v.flete) > 0)) {

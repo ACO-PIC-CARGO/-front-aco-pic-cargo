@@ -219,7 +219,7 @@ export default {
       }
     },
     async aceptar() {
-      if (this.$refs.form.validate()) {
+      if ((await this.$refs.form.validate()).valid) {
         this.$store.state.pricing.step2 = true;
       }
     },

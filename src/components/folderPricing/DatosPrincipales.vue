@@ -1,7 +1,7 @@
 <template>
   <v-container fluid class="pa-0">
     <v-card elevation="0" ref="frmPuerto">
-      <v-card-title primary-title>Datos Principales</v-card-title>
+      <v-card-title>Datos Principales</v-card-title>
       <v-card-text>
         <v-form class="" ref="frmDatosPrincipales">
           <v-container>
@@ -28,7 +28,7 @@
                   item-title="name"
                   item-value="id"
                   v-model="$store.state.pricing.datosPrincipales.id_status"
-                  :item-disabled="(item) => item.status != 1"
+                  :item-props="(item) => ({ disabled: item.status != 1 })"
                 ></v-autocomplete>
               </v-col>
               <v-col cols="12" class="my-0 py-0">
@@ -66,8 +66,8 @@
                   label="Nombre del cliente"
                   variant="outlined"
                   placeholder="Nombre del cliente"
-                  :append-icon="'mdi-account-search'"
-                  @click:append="abrirModalCliente()"
+                  :append-inner-icon="'mdi-account-search'"
+                  @click:append-inner="abrirModalCliente()"
                   @click="abrirModalCliente()"
                   :rules="[(v) => !!v || 'El nombre es requerido']"
                   density="compact"
@@ -197,7 +197,7 @@
                 class="my-0 py-0 align-right"
                 v-if="mostrarContinuarFlag && mostrarBtn"
               >
-                <v-btn color="#3F51B5" dark @click="continuarDatosCarga()" size="small"
+                <v-btn color="#3F51B5" @click="continuarDatosCarga()" size="small"
                   >Continuar Datos Carga</v-btn
                 >
               </v-col>
@@ -231,7 +231,7 @@
                   :items="$store.state.itemsEntities"
                   :search="search"
                   @dblclick:row="guardarCliente"
-                  item-key="index"
+                  item-value="index"
                   :loading="$store.state.itemsEntities.length == 0"
                   loading-text="Buscando Clientes..."
                 >
@@ -260,7 +260,8 @@
             :items="$store.state.pricing.listadoFilesDrive"
             show-select
             v-model="$store.state.pricing.selectedFile"
-            item-key="id"
+            item-value="id"
+            return-object
           >
             <template v-slot:[`item.action`]="{ item }">
               <v-btn
@@ -293,6 +294,7 @@
 import { mapActions, mapState } from "vuex";
 import Swal from "sweetalert2";
 export default {
+  emits: ["activarDatosCarga"],
   props: {
     mostrarBtn: {
       type: Boolean,
@@ -400,8 +402,8 @@ export default {
       this.$store.state.pricing.datosPrincipales.telefono = item.phone;
       this.buscarClienteDialog = false;
     },
-    continuarDatosCarga() {
-      if (this.$refs.frmDatosPrincipales.validate()) {
+    async continuarDatosCarga() {
+      if ((await this.$refs.frmDatosPrincipales.validate()).valid) {
         this.$emit("activarDatosCarga", true);
         this.mostrarContinuarFlag = false;
       }

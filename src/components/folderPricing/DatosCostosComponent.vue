@@ -53,7 +53,6 @@
               color="#3363A2"
               class="mx-1 btn-ingresarcostos"
               size="x-large"
-              dark
               @click="pasarLlenadoCostos()"
               v-if="btnIngresarCostos"
             >
@@ -65,7 +64,6 @@
               color="red"
               class="mx-1"
               size="x-large"
-              dark
               @click="cancelarLlenadoCostos()"
               v-if="$store.state.pricing.index > 0 && btnIngresarCostos"
             >
@@ -91,7 +89,6 @@
             <v-spacer></v-spacer>
             <v-btn
               color="#3363A2"
-              dark
               v-if="$store.state.pricing.mostrarGuardarCostos"
               @click="agregarNuevoCostoIrAVentas()"
               >GUARDAR COSTOS OPCIÓN {{ $store.state.pricing.index + 1 }}</v-btn
@@ -145,7 +142,7 @@
           />
         </v-col>
         <v-col cols="12" class="derecha">
-          <template>
+          
             <div class="text-center">
               <v-pagination
                 :model-value="$store.state.pricing.page"
@@ -154,7 +151,7 @@
                 rounded
               ></v-pagination>
             </div>
-          </template>
+          
         </v-col>
         <v-col cols="12">
           <v-row>
@@ -189,7 +186,7 @@
               class="derecha"
               v-if="mostrarContinuarVentas && mostrarBtn"
             >
-              <v-btn color="#3363A2" @click="activarImpuesto" dark>
+              <v-btn color="#3363A2" @click="activarImpuesto">
                 Continuar Impuesto
               </v-btn>
             </v-col>
@@ -247,6 +244,7 @@ import moment from "moment";
 import Swal from "sweetalert2";
 
 export default {
+  emits: ["continuarComparativa", "anadirNuevaOpcion", "irANotas"],
   props: {
     mostrarBtn: {
       type: Boolean,
@@ -283,8 +281,8 @@ export default {
         !this.$store.state.pricing.actualizarComparativa;
       this.$emit("continuarComparativa");
     },
-    pasarLlenadoCostos() {
-      if (this.$refs.frmDatosOpcion.validate()) {
+    async pasarLlenadoCostos() {
+      if ((await this.$refs.frmDatosOpcion.validate()).valid) {
         this.btnIngresarCostos = false;
         this.mostrarCostos = true;
       }
@@ -375,8 +373,8 @@ export default {
       }
     },
 
-    activarCosto() {
-      if (this.$refs.frmFecha.validate()) {
+    async activarCosto() {
+      if ((await this.$refs.frmFecha.validate()).valid) {
         this.$store.state.pricing.costoflag = true;
         let cost = this.$store.state.pricing.listCostos.filter(
           (v) => v.esopcionflag == 1,
@@ -548,7 +546,7 @@ export default {
   text-align: right !important;
   align-content: right !important;
 }
-.v-btn.v-size--x-large {
+.v-btn.v-btn--size-x-large {
   font-size: 1.5rem !important;
 }
 .v-pagination__item {

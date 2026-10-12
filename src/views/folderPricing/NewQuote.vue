@@ -2,25 +2,31 @@
   <v-container fluid class="pt-0 px-0">
     <v-stepper v-model="step" class="pt-0">
       <v-stepper-header>
-        <v-stepper-step :complete="step > 1" step="1" editable>
-          Datos de la Carga
-        </v-stepper-step>
+        <v-stepper-item
+          :complete="step > 1"
+          :value="1"
+          title="Datos de la Carga"
+          editable
+        />
 
         <v-divider></v-divider>
 
-        <v-stepper-step :complete="step > 2" step="2" :editable="editableStep2">
-          costos de la Cotización
-        </v-stepper-step>
+        <v-stepper-item
+          :complete="step > 2"
+          :value="2"
+          title="costos de la Cotización"
+          :editable="editableStep2"
+        />
 
         <v-divider></v-divider>
 
-        <v-stepper-step step="3"> Comparativa </v-stepper-step>
+        <v-stepper-item :value="3" title="Comparativa" />
         <v-divider></v-divider>
-        <v-stepper-step step="4"> Notas de Costos </v-stepper-step>
+        <v-stepper-item :value="4" title="Notas de Costos" />
       </v-stepper-header>
 
-      <v-stepper-items>
-        <v-stepper-content step="1">
+      <v-stepper-window>
+        <v-stepper-window-item :value="1" eager>
           <v-row>
             <!-- <v-col cols="12" md="6" class="pt-0"> -->
             <v-col cols="12" md="6" class="pt-0">
@@ -53,9 +59,9 @@
           <!-- <v-btn color="primary" @click="step = 2"> Continue </v-btn>
 
           <v-btn text> Cancel </v-btn> -->
-        </v-stepper-content>
+        </v-stepper-window-item>
 
-        <v-stepper-content step="2">
+        <v-stepper-window-item :value="2" eager>
           <DatosCostosComponent
             :key="indexCostos"
             @anadirNuevaOpcion="anadirNuevaOpcion"
@@ -63,15 +69,15 @@
             @irANotas="irANotas"
             :mostrarImpuestosEditar="true"
           />
-        </v-stepper-content>
+        </v-stepper-window-item>
 
-        <v-stepper-content step="3">
+        <v-stepper-window-item :value="3" eager>
           <ComparativaComponent @irVentaCliente="irVentaCliente" />
-        </v-stepper-content>
-        <v-stepper-content step="4">
+        </v-stepper-window-item>
+        <v-stepper-window-item :value="4" eager>
           <NotasComponent :editable="editableStep4" />
-        </v-stepper-content>
-      </v-stepper-items>
+        </v-stepper-window-item>
+      </v-stepper-window>
     </v-stepper>
   </v-container>
 </template>

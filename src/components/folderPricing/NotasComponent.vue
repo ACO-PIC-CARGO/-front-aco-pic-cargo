@@ -40,7 +40,7 @@
         </v-btn>
       </v-col>
       <v-col cols="12" class="derecha">
-        <template>
+        
           <div class="text-center">
             <v-pagination
               v-model="$store.state.pricing.page"
@@ -48,10 +48,10 @@
               rounded
             ></v-pagination>
           </div>
-        </template>
+        
       </v-col>
       <v-col cols="12">
-        <v-expansion-panels class="my-1 condensed" hover>
+        <v-expansion-panels class="my-1 condensed">
           <v-expansion-panel>
             <v-expansion-panel-title>
               Notas Principales
@@ -102,7 +102,7 @@
         </v-expansion-panels>
       </v-col>
       <v-col cols="12">
-        <v-expansion-panels class="my-1 condensed" hover>
+        <v-expansion-panels class="my-1 condensed">
           <v-expansion-panel>
             <v-expansion-panel-title>
               <span class="d-inline-flex align-center">
@@ -149,7 +149,7 @@
           </v-expansion-panel>
         </v-expansion-panels>
       </v-col>
-      <v-expansion-panels class="my-1 condensed" hover>
+      <v-expansion-panels class="my-1 condensed">
         <v-expansion-panel>
           <v-expansion-panel-title>
             <span class="d-inline-flex align-center">
@@ -196,7 +196,7 @@
       </v-expansion-panels>
 
       <v-col class="derecha">
-        <v-btn color="#3363A2" dark @click="abrirModalCambioNombreSecciones()">
+        <v-btn color="#3363A2" @click="abrirModalCambioNombreSecciones()">
           PREVIEW COTIZACIÓN(es)</v-btn
         >
         <v-btn
@@ -275,7 +275,6 @@
             <v-radio-group
               v-model="tiporeporte"
               disabled
-              column
               :rules="[(v) => !!v || 'Dato requerido']"
             >
               <v-radio
@@ -319,7 +318,6 @@
           <v-form ref="frmReporte">
             <v-radio-group
               v-model="tiporeporte"
-              column
               :rules="[(v) => !!v || 'Dato requerido']"
             >
               <v-radio
@@ -398,7 +396,7 @@
           />
         </v-card-text>
         <v-card-actions>
-          <template>
+          
             <div class="text-center">
               <v-pagination
                 v-model="pagePrev"
@@ -406,7 +404,7 @@
                 rounded
               ></v-pagination>
             </div>
-          </template>
+          
           <v-textarea
             label="Nombre Archivo Generar"
             v-model="$store.state.pricing.nombre_cotizacion"
@@ -439,7 +437,6 @@
           <v-btn
             color="#A43542"
             class="mx-1"
-            dark
             size="small"
             :disabled="$store.state.pricing.bloquearBtnImprimir"
             @click="abrirModalTipoReporte(false)"
@@ -567,8 +564,8 @@ export default {
       this.statusnoincluye = statusnoincluye;
       this.dialog = true;
     },
-    anidarNota() {
-      if (this.$refs.frmNota.validate()) {
+    async anidarNota() {
+      if ((await this.$refs.frmNota.validate()).valid) {
         this.opcionesSeleccionadas[
           this.$store.state.pricing.page - 1
         ].listNotasQuote.push({
@@ -589,7 +586,7 @@ export default {
       this.$store.state.pricing.tiporeporte = this.tiporeporte;
       this.loading = true;
 
-      if (this.$refs.frmReporte.validate()) {
+      if ((await this.$refs.frmReporte.validate()).valid) {
         this.$store.state.spiner = true;
         let name = this.$route.name;
         // 1. Registro inicial
@@ -701,7 +698,7 @@ export default {
       this.cambiarStatus = false;
     },
     async generarPreview({ val = false }) {
-      if (val || this.$refs.frmReporte.validate()) {
+      if (val || (await this.$refs.frmReporte.validate()).valid) {
         this.$store.state.spiner = true;
         this.previewFlag = false;
         if (this.cambiarStatus && this.selectedStatusId) {
