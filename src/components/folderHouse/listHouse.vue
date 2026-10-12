@@ -17,7 +17,6 @@
             <v-btn
               color="secondary"
               elevation="0"
-              dark
               @click="
                 $store.state.house_filtrarData = !$store.state.house_filtrarData
               "
@@ -32,38 +31,42 @@
         :headers="headers"
         :items="$store.state.houses.listHouse"
         :search="search"
-        @click:row="handleClickRow"
+        expand-on-click
         v-model:expanded="expanded"
-        single-expand
+        item-value="id"
+        return-object
+        expand-strategy="single"
         disable-sort
       >
-        <template v-slot:expanded-item="{ item }">
-          <td
-            :colspan="headers.length"
-            class="py-3 px-3"
-            v-if="item.list_comentarios.length > 0 && item.status != 0"
-          >
-            <v-table v-if="item.list_comentarios.length > 0">
-              <thead>
-                <tr>
-                  <th width="10%">Fecha</th>
-                  <th width="20%">Ejecutivo</th>
-                  <th width="70%">Comentario</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr
-                  v-for="(c, index) in item.list_comentarios"
-                  :key="index"
-                  class="bg-comentarios"
-                >
-                  <td class="bg-comentarios">{{ c.fecha }}</td>
-                  <td class="bg-comentarios">{{ c.ejecutivo }}</td>
-                  <td class="bg-comentarios">{{ c.comentario }}</td>
-                </tr>
-              </tbody>
-            </v-table>
-          </td>
+        <template v-slot:expanded-row="{ columns, item }">
+          <tr>
+            <td
+              :colspan="columns.length"
+              class="py-3 px-3"
+              v-if="item.list_comentarios.length > 0 && item.status != 0"
+            >
+              <v-table v-if="item.list_comentarios.length > 0">
+                <thead>
+                  <tr>
+                    <th width="10%">Fecha</th>
+                    <th width="20%">Ejecutivo</th>
+                    <th width="70%">Comentario</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr
+                    v-for="(c, index) in item.list_comentarios"
+                    :key="index"
+                    class="bg-comentarios"
+                  >
+                    <td class="bg-comentarios">{{ c.fecha }}</td>
+                    <td class="bg-comentarios">{{ c.ejecutivo }}</td>
+                    <td class="bg-comentarios">{{ c.comentario }}</td>
+                  </tr>
+                </tbody>
+              </v-table>
+            </td>
+          </tr>
         </template>
 
         <template v-slot:[`item.quote_number`]="{ item }">
@@ -215,8 +218,8 @@
             label="Nueva URL"
             id="id"
             v-model="url_folderonedrive"
-            append-icon="mdi-folder-check"
-            @click:append="actualizarUrl"
+            append-inner-icon="mdi-folder-check"
+            @click:append-inner="actualizarUrl"
           ></v-text-field>
           <v-card-actions>
             <v-spacer></v-spacer>
@@ -352,7 +355,7 @@ export default {
       this.comentario = "";
     },
     async guardarComentario() {
-      if (this.$refs.frmComentario.validate()) {
+      if ((await this.$refs.frmComentario.validate()).valid) {
         this.loading = true;
         this.$store.state.spiner = true;
 
@@ -369,14 +372,6 @@ export default {
 
         this.$store.state.spiner = false;
         this.loading = false;
-      }
-    },
-    handleClickRow(item, event) {
-      if (event.isExpanded) {
-        const index = this.expanded.findIndex((i) => i === item);
-        this.expanded.splice(index, 1);
-      } else {
-        this.expanded.push(item);
       }
     },
   },

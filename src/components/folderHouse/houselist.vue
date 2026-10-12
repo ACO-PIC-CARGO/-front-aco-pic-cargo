@@ -13,8 +13,8 @@
           </v-tab>
         </v-tabs>
 
-        <v-tabs-items v-model="activeTab">
-          <v-tab-item key="houses">
+        <v-tabs-window v-model="activeTab">
+          <v-tabs-window-item key="houses">
         <v-table density="compact">
           <template v-slot:default>
             <thead>
@@ -42,9 +42,9 @@
             </tbody>
           </template>
         </v-table>
-          </v-tab-item>
+          </v-tabs-window-item>
 
-          <v-tab-item key="comments">
+          <v-tabs-window-item key="comments">
             <v-table v-if="houseComments && houseComments.length > 0">
               <thead>
                 <tr>
@@ -65,11 +65,11 @@
                 </tr>
               </tbody>
             </v-table>
-            <v-alert v-else type="info" text>
+            <v-alert v-else type="info" variant="tonal">
               No hay comentarios disponibles
             </v-alert>
-          </v-tab-item>
-        </v-tabs-items>
+          </v-tabs-window-item>
+        </v-tabs-window>
       </v-card-text>
     </v-card>
   </div>

@@ -27,22 +27,21 @@
             <div class="d-flex align-center">
               <v-speed-dial
                 v-model="fab"
-                :direction="'top'"
+                location="top"
                 :transition="transition"
-                class="acciones-dial"
+                content-class="acciones-dial"
               >
-                <template v-slot:activator>
-                  <v-btn color="indigo" dark fab size="small">
+                <template v-slot:activator="{ props }">
+                  <v-btn v-bind="props" color="indigo" icon size="small">
                     <v-icon v-if="!fab">mdi-cog</v-icon>
                     <v-icon v-else>mdi-close</v-icon>
                   </v-btn>
                 </template>
 
-                <v-btn
+                <v-btn key="eliminar"
                   v-if="$route.name != 'controlHouseVer'"
                   size="small"
                   color="red"
-                  dark
                   :loading="loadingBotonEliminarHouse"
                   :disabled="formControlHouseReadonly"
                   @click="eliminarHouse()"
@@ -52,10 +51,9 @@
                 </v-btn>
 
                 <!-- GENERAR TRACKING (siempre visible, no deshabilitar) -->
-                <v-btn
+                <v-btn key="tracking"
                   size="small"
                   color="orange-darken-2"
-                  dark
                   :loading="loadingBotonTracking"
                   @click="_generateTrackingToken"
                 >
@@ -64,16 +62,15 @@
                 </v-btn>
 
                 <!-- IMPRIMIR -->
-                <v-btn size="small" color="primary" @click="abrirModalFormato()">
+                <v-btn key="imprimir" size="small" color="primary" @click="abrirModalFormato()">
                   <v-icon size="small" start>mdi-printer</v-icon>
                   Imprimir
                 </v-btn>
 
                 <!-- NOTIFICACIONES -->
-                <v-btn
+                <v-btn key="notificaciones"
                   size="small"
                   color="deep-purple"
-                  dark
                   :disabled="formControlHouseReadonly"
                   :loading="loadingBotonNotificaciones"
                   @click="openNotificaciones"
@@ -85,7 +82,7 @@
                 </v-btn>
 
                 <!-- GUARDAR / EDITAR (queda más cerca del activador, o sea abajo visualmente con direction='top') -->
-                <v-btn
+                <v-btn key="guardar"
                   v-if="$route.name != 'controlHouseVer'"
                   size="small"
                   color="success"
@@ -96,7 +93,7 @@
                   <v-icon size="small" start>mdi-content-save</v-icon>
                   Guardar
                 </v-btn>
-                <v-btn v-else size="small" color="info" @click="irAVerMaster()">
+                <v-btn key="editar" v-else size="small" color="info" @click="irAVerMaster()">
                   <v-icon size="small" start>mdi-pencil</v-icon>
                   Editar
                 </v-btn>
@@ -113,7 +110,7 @@
               hide-details
               class="mt-3"
             >
-              <template v-slot:append>
+              <template v-slot:append-inner>
                 <v-btn
                   icon
                   size="small"
@@ -130,7 +127,6 @@
             <v-menu
               v-model="openMenuNotificaciones"
               location="top"
-              offset-y
               content-class="elevation-0"
             >
               <template v-slot:activator="{ props }">
@@ -170,9 +166,8 @@
       <div style="position: fixed; bottom: 16px; right: 16px; z-index: 3000">
         <v-fab-transition v-if="formControlHouseReadonly">
           <v-btn
-            fab
+            icon
             size="large"
-            dark
             location="bottom left"
             
             color="info"
@@ -184,51 +179,49 @@
         <v-speed-dial
           v-else
           v-model="fab"
-          :direction="'top'"
+          location="top end"
           :transition="transition"
-          class="acciones-dial"
+          content-class="acciones-dial"
         >
-          <template v-slot:activator>
-            <v-btn v-model="fab" color="info" dark fab aria-label="Acciones">
+          <template v-slot:activator="{ props }">
+            <v-btn v-bind="props" color="info" icon aria-label="Acciones">
               <v-icon v-if="fab"> mdi-close </v-icon>
               <v-icon v-else> mdi-tools </v-icon>
             </v-btn>
           </template>
 
-          <v-btn
+          <v-btn key="eliminar"
             color="red"
-            dark
             :loading="loadingBotonEliminarHouse"
             @click="eliminarHouse()"
           >
             <v-icon start>mdi-delete</v-icon>
             Eliminar
           </v-btn>
-          <v-btn
+          <v-btn key="tracking"
             color="orange-darken-2"
-            dark
             :loading="loadingBotonTracking"
             @click="_generateTrackingToken"
           >
             <v-icon start>mdi-link-variant</v-icon>
             Tracking
           </v-btn>
-          <v-btn
+          <v-btn key="imprimir"
             :style="{ backgroundColor: 'rgb(92, 116, 137)', color: 'white' }"
             @click="abrirModalFormato()"
           >
             <v-icon start style="color: white">mdi-printer</v-icon>
             Imprimir
           </v-btn>
-          <v-btn size="small" color="primary" @click="abrirCarpeta">
+          <v-btn key="carpeta" size="small" color="primary" @click="abrirCarpeta">
             <v-icon size="small" start>mdi-folder-open</v-icon>
             Carpeta
           </v-btn>
-          <v-btn color="deep-purple" dark @click="openNotificaciones">
+          <v-btn key="notificaciones" color="deep-purple" @click="openNotificaciones">
             <v-icon start style="transform: rotate(-45deg)">mdi-send</v-icon>
             Notificaciones
           </v-btn>
-          <v-btn color="light-green-lighten-1" dark @click="_setHouseEdit()">
+          <v-btn key="guardar" color="light-green-lighten-1" @click="_setHouseEdit()">
             <v-icon start>mdi-content-save</v-icon>
             Guardar
           </v-btn>
@@ -253,7 +246,7 @@
           density="compact"
           hide-details
         >
-          <template v-slot:append>
+          <template v-slot:append-inner>
             <v-btn
               icon
               size="small"
@@ -269,7 +262,6 @@
       <v-menu
         v-model="openMenuNotificaciones"
         location="top"
-        offset-y
         content-class="elevation-0"
       >
         <template v-slot:activator="{ props }">
@@ -340,7 +332,8 @@
             v-model="selected"
             :headers="headers"
             :items="$store.state.cuentas_pic"
-            item-key="id"
+            item-value="id"
+            return-object
             show-select
             class="elevation-1"
           >
@@ -1399,25 +1392,21 @@ export default {
   color: #252c32;
 }
 
-.acciones-dial ::v-deep .v-speed-dial__list {
-  align-items: flex-end !important;
+:global(.acciones-dial.v-speed-dial__content) {
+  flex-direction: column-reverse;
+  align-items: flex-end;
 }
-.acciones-dial ::v-deep .v-speed-dial__list .v-btn {
-  align-self: flex-end;
+.acciones-dial .v-btn {
   min-width: 220px;
 }
-.acciones-dial ::v-deep .v-speed-dial__list .v-btn .v-btn__content {
+.acciones-dial .v-btn :deep(.v-btn__content) {
   justify-content: flex-start;
   width: 100%;
   font-size: 1.2rem;
   line-height: 1.4;
 }
-.acciones-dial ::v-deep .v-speed-dial__list .v-btn .v-icon {
+.acciones-dial .v-btn .v-icon {
   font-size: 22px !important;
   margin-right: 8px;
-}
-.acciones-dial {
-  position: relative;
-  z-index: 4000 !important;
 }
 </style>

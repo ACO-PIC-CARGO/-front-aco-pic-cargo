@@ -21,7 +21,6 @@
                   color="success"
                   @click="_setHouseEdit()"
                   block
-                  dark
                   size="small"
                   :loading="loadingBotonGuardarHouse"
                   >GUARDAR CAMBIOS
@@ -32,7 +31,6 @@
                   color="red"
                   @click="eliminarHouse()"
                   block
-                  dark
                   size="small"
                   :loading="loadingBotonEliminarHouse"
                 >
@@ -82,36 +80,34 @@
       <div style="position: fixed; bottom: 16px; right: 16px; z-index: 3000">
         <v-speed-dial
           v-model="fab"
-          :direction="'top'"
-          :transition="'slide-y-reverse-transition'"
-          class="acciones-dial"
+          location="top end"
+          transition="slide-y-reverse-transition"
+          content-class="acciones-dial"
         >
-          <template v-slot:activator>
-            <v-btn v-model="fab" color="info" dark fab>
+          <template v-slot:activator="{ props }">
+            <v-btn v-bind="props" color="info" icon>
               <v-icon v-if="fab"> mdi-close </v-icon>
               <v-icon v-else> mdi-tools </v-icon>
             </v-btn>
           </template>
 
-          <v-btn
+          <v-btn key="eliminar"
             color="red"
-            dark
             :loading="loadingBotonEliminarHouse"
             @click="eliminarHouse()"
           >
             <v-icon start>mdi-delete</v-icon>
             Eliminar
           </v-btn>
-          <v-btn
+          <v-btn key="tracking"
             color="orange-darken-2"
-            dark
             :loading="loadingBotonTracking"
             @click="_generateTrackingToken"
           >
             <v-icon start>mdi-link-variant</v-icon>
             Tracking
           </v-btn>
-          <v-btn
+          <v-btn key="imprimir"
             :style="{ backgroundColor: 'rgb(92, 116, 137)', color: 'white' }"
             @click="abrirModalFormato()"
           >
@@ -119,11 +115,11 @@
             Imprimir
           </v-btn>
 
-          <v-btn color="deep-purple" dark @click="openNotificaciones">
+          <v-btn key="notificaciones" color="deep-purple" @click="openNotificaciones">
             <v-icon start style="transform: rotate(-45deg)">mdi-send</v-icon>
             Notificaciones
           </v-btn>
-          <v-btn color="light-green-lighten-1" dark @click="irAVerMaster()">
+          <v-btn key="editar" color="light-green-lighten-1" @click="irAVerMaster()">
             <v-icon start>mdi-pencil</v-icon>
             Editar
           </v-btn>
@@ -148,7 +144,7 @@
           density="compact"
           hide-details
         >
-          <template v-slot:append>
+          <template v-slot:append-inner>
             <v-btn
               icon
               size="small"
@@ -164,7 +160,6 @@
       <v-menu
         v-model="openMenuNotificaciones"
         location="top"
-        offset-y
         content-class="elevation-0"
       >
         <template v-slot:activator="{ props }">
@@ -246,7 +241,8 @@
             v-model="selected"
             :headers="headers"
             :items="$store.state.cuentas_pic"
-            item-key="id"
+            item-value="id"
+            return-object
             show-select
             class="elevation-1"
           >
@@ -1130,25 +1126,21 @@ export default {
   color: #252c32;
 }
 
-.acciones-dial ::v-deep .v-speed-dial__list {
-  align-items: flex-end !important;
+:global(.acciones-dial.v-speed-dial__content) {
+  flex-direction: column-reverse;
+  align-items: flex-end;
 }
-.acciones-dial ::v-deep .v-speed-dial__list .v-btn {
-  align-self: flex-end;
+.acciones-dial .v-btn {
   min-width: 220px;
 }
-.acciones-dial ::v-deep .v-speed-dial__list .v-btn .v-btn__content {
+.acciones-dial .v-btn :deep(.v-btn__content) {
   justify-content: flex-start;
   width: 100%;
   font-size: 1.2rem;
   line-height: 1.4;
 }
-.acciones-dial ::v-deep .v-speed-dial__list .v-btn .v-icon {
+.acciones-dial .v-btn .v-icon {
   font-size: 22px !important;
   margin-right: 8px;
-}
-.acciones-dial {
-  position: relative;
-  z-index: 4000 !important;
 }
 </style>

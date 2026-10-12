@@ -42,12 +42,13 @@
                   density="compact"
                   color="primary"
                   v-model="item.status"
+                  :value-comparator="(value, checked) => Boolean(value) === checked"
                   :disabled="true"
                   readonly
                 ></v-switch>
 
                 <!-- Menú especial -->
-                <v-menu v-else offset-y>
+                <v-menu v-else>
                   <template v-slot:activator="{ props }">
                     <v-btn size="large" color="default" v-bind="props" :disabled="true">
                       {{
@@ -165,12 +166,10 @@
               :key="idx"
               @click="seleccionarNotificacion(item)"
             >
-              
-                <v-list-item-title>{{ item.title }}</v-list-item-title>
-              
-              <v-list-item-icon>
+              <v-list-item-title>{{ item.title }}</v-list-item-title>
+              <template #append>
                 <v-icon color="primary">mdi-chevron-right</v-icon>
-              </v-list-item-icon>
+              </template>
             </v-list-item>
           </v-list>
         </v-card-text>
@@ -186,6 +185,7 @@ import moment from "moment";
 import { v4 as uuidv4 } from "uuid";
 export default {
   name: "services",
+  emits: ["ir-editar", "guardar-house", "eliminar-house", "send-notificacion"],
   props: {
     isFormActionsDisabled: Boolean,
     itemsNotificaciones: {
@@ -716,20 +716,20 @@ export default {
   cursor: pointer;
 }
 
-.acciones-dial ::v-deep .v-speed-dial__list {
+.acciones-dial :deep(.v-speed-dial__list) {
   align-items: flex-start !important;
 }
-.acciones-dial ::v-deep .v-speed-dial__list .v-btn {
+.acciones-dial :deep(.v-speed-dial__list .v-btn) {
   align-self: flex-start;
   min-width: 180px;
 }
-.acciones-dial ::v-deep .v-speed-dial__list .v-btn .v-btn__content {
+.acciones-dial :deep(.v-speed-dial__list .v-btn .v-btn__content) {
   justify-content: flex-start;
   width: 100%;
   font-size: 0.98rem;
   line-height: 1.2;
 }
-.acciones-dial ::v-deep .v-speed-dial__list .v-btn .v-icon {
+.acciones-dial :deep(.v-speed-dial__list .v-btn .v-icon) {
   font-size: 22px !important;
 }
 </style>

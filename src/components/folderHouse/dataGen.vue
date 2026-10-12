@@ -7,8 +7,8 @@
           readonly
           v-model="$store.state.house_master_expediente"
           label="N° de Expedientes Master"
-          append-icon="mdi-eye"
-          @click:append="irAMaster()"
+          append-inner-icon="mdi-eye"
+          @click:append-inner="irAMaster()"
         ></v-text-field>
       </v-col>
       <!-- <v-col cols="12" md="6">
@@ -25,8 +25,8 @@
           item-title="code"
           item-value="id"
           v-model:search="searchHouseCotizacion"
-          @update:model-value="asignarDatos()"
           v-model="$store.state.house_cotizacion"
+          @update:model-value="asignarDatos()"
           clearable
           :disabled="bloquearQuote"
         >
@@ -39,10 +39,10 @@
           item-title="quote"
           item-value="id"
           v-model:search="searchHouseCotizacionAduana"
-          @update:model-value="asignarDatosAduana()"
           v-model="$store.state.house_cotizacionaduana"
+          @update:model-value="asignarDatosAduana()"
           clearable
-          :item-disabled="aduanaaprobada"
+          :item-props="(item) => ({ disabled: aduanaaprobada(item) })"
           :disabled="bloquearQuote"
         >
         </v-autocomplete>
@@ -55,8 +55,8 @@
           item-title="name"
           item-value="id"
           label="Sentido"
-          @update:model-value="_getDataService()"
           v-model="$store.state.house_sentido"
+          @update:model-value="_getDataService()"
         ></v-autocomplete>
       </v-col>
       <v-col cols="12" md="4">
@@ -181,14 +181,13 @@
         </v-card-text>
         <v-card-actions>
           <v-spacer></v-spacer>
-          <v-btn color="red" rounded dark @click="cancelNewService"
+          <v-btn color="red" rounded @click="cancelNewService"
             >CANCELAR
           </v-btn>
           <v-btn
             color="success"
             class="ml-2"
             rounded
-            dark
             @click="setNewService"
             >ACEPTAR
           </v-btn>
@@ -309,17 +308,18 @@
             label="Cliente HBL"
             v-model="$store.state.house_id_consigner"
             :error-messages="error"
+            menu-icon=""
           >
-            <template v-slot:append>
-<v-icon
-              @click.native="_callModalEntitie(11)"
-              
-              class="btn__add"
-              color="primary"
-            >
-              mdi-plus
-            </v-icon>
-</template>
+            <template v-slot:append-inner>
+              <v-icon
+                @mousedown.stop
+                @click.stop="_callModalEntitie(11)"
+                class="btn__add"
+                color="primary"
+              >
+                mdi-plus
+              </v-icon>
+            </template>
           </v-autocomplete>
         </v-card-text>
         <v-card-actions>
@@ -1025,9 +1025,9 @@ export default {
       // this._getBitacoraList();
       // this._getBitacoraLineal();
     },
-    setNewService() {
+    async setNewService() {
       var vm = this;
-      if (vm.$refs.formNewService.validate()) {
+      if ((await vm.$refs.formNewService.validate()).valid) {
         const dataBegend =
           vm.$store.state.itemsBegEndList.find(
             (v) => v.id === vm.house_service_id_begend,

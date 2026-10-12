@@ -24,7 +24,7 @@
           readonly
           @click="verCotizacion"
           :style="quoteCodeDisplay ? 'cursor: pointer;' : ''"
-          :append-icon="quoteCodeDisplay ? 'mdi-eye' : ''"
+          :append-inner-icon="quoteCodeDisplay ? 'mdi-eye' : ''"
         >
         </v-text-field>
       </v-col>
@@ -247,14 +247,13 @@
         </v-card-text>
         <v-card-actions>
           <v-spacer></v-spacer>
-          <v-btn color="red" rounded dark @click="cancelNewService"
+          <v-btn color="red" rounded @click="cancelNewService"
             >CANCELAR
           </v-btn>
           <v-btn
             color="success"
             class="ml-2"
             rounded
-            dark
             @click="setNewService"
             >ACEPTAR
           </v-btn>
@@ -634,9 +633,9 @@ export default {
       // this._getBitacoraList();
       // this._getBitacoraLineal();
     },
-    setNewService() {
+    async setNewService() {
       var vm = this;
-      if (vm.$refs.formNewService.validate()) {
+      if ((await vm.$refs.formNewService.validate()).valid) {
         const dataBegend =
           vm.$store.state.itemsBegEndList.find(
             (v) => v.id === vm.house_service_id_begend,

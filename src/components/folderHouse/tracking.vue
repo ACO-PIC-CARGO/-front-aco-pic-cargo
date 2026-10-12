@@ -1,7 +1,7 @@
 <template>
   <div>
     <v-toolbar 
-      dark 
+      theme="dark" 
       class="toolbar"
     >
       <v-toolbar-title>TRACKING</v-toolbar-title>
@@ -37,7 +37,7 @@
                 <v-progress-linear
                   :model-value="getEstadoBarraProgreso"
                   color="success"
-                  bg-color="grey lighten-3"
+                  bg-color="grey-lighten-3"
                   height="20"
                 ></v-progress-linear>
               </v-col>
@@ -66,29 +66,29 @@
             </v-row>
             
             <v-container class="pasosBitacora" v-if="tracking.pasos_bitacora.filter(v => v.visible_cliente).length">
-              <v-row 
-                class="align-center" 
-                v-for="item in tracking.pasos_bitacora"
-                :key="item.id"
-                v-if="item.visible_cliente"
-              >
-                <v-col cols="4">
-                  <p class="text-subtitle-2 text-black font-weight-medium">{{ getFechaParseada(item.fecha) }}</p>
-                </v-col>
+              <template v-for="item in tracking.pasos_bitacora" :key="item.id">
+                <v-row 
+                  class="align-center" 
+                  v-if="item.visible_cliente"
+                >
+                  <v-col cols="4">
+                    <p class="text-subtitle-2 text-black font-weight-medium">{{ getFechaParseada(item.fecha) }}</p>
+                  </v-col>
 
-                <v-divider vertical></v-divider>
+                  <v-divider vertical></v-divider>
 
-                <v-col cols="8">
-                  <v-list>
-                    <v-list-item>
+                  <v-col cols="8">
+                    <v-list>
+                      <v-list-item>
                       
-                        <v-list-item-title class="font-weight-medium mb-2">{{ item.namebitacora }}</v-list-item-title>
-                        <v-list-item-subtitle>{{ item.comentario }}</v-list-item-subtitle>
+                          <v-list-item-title class="font-weight-medium mb-2">{{ item.namebitacora }}</v-list-item-title>
+                          <v-list-item-subtitle>{{ item.comentario }}</v-list-item-subtitle>
                       
-                    </v-list-item>
-                  </v-list>
-                </v-col>
-              </v-row>
+                      </v-list-item>
+                    </v-list>
+                  </v-col>
+                </v-row>
+              </template>
             </v-container>
           </v-card-text>
         </v-card>

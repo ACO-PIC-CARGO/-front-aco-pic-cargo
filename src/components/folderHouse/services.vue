@@ -7,12 +7,10 @@
       <v-btn
         @click="showModalServices"
         color="green"
-        absolute
+        position="absolute"
         location="top right"
-        
         size="small"
-        fab
-        :dark="!isFormActionsDisabled"
+        icon
         :disabled="isFormActionsDisabled"
       >
         <v-icon>mdi-plus</v-icon>
@@ -42,7 +40,6 @@
                 v-model="item.showDatePicker"
                 :close-on-content-click="false"
                 transition="scale-transition"
-                offset-y
                 min-width="auto"
                 :disabled="isFormActionsDisabled"
               >
@@ -51,7 +48,6 @@
                     :model-value="formatFecha(item.date_service || item.updated_at)"
                     prepend-icon="mdi-calendar"
                     readonly
-                   
                     v-bind="props"
                     density="compact"
                     :disabled="isFormActionsDisabled"
@@ -59,14 +55,15 @@
                     style="max-width: 140px"
                   ></v-text-field>
                 </template>
-                <v-date-picker
-                  :value="
-                    getDateForPicker(item.date_service || item.updated_at)
-                  "
-                  @input="updateServiceDate(item, $event)"
-                  locale="es"
-                  :first-day-of-week="1"
-                ></v-date-picker>
+                <v-locale-provider locale="es">
+                  <v-date-picker
+                    :model-value="
+                      getDateForPicker(item.date_service || item.updated_at)
+                    "
+                    @update:model-value="updateServiceDate(item, $event)"
+                    :first-day-of-week="1"
+                  ></v-date-picker>
+                </v-locale-provider>
               </v-menu>
             </td>
             <td>{{ item.nameservice }}</td>
@@ -87,7 +84,6 @@
 
               <v-menu
                 v-if="item.nameservice == 'CERTIFICADO DE ORIGEN'"
-                offset-y
               >
                 <template v-slot:activator="{ props }">
                   <v-btn size="large" color="default" v-bind="props">
@@ -372,7 +368,7 @@ export default {
       item.showDatePicker = false;
 
       const formattedDate = moment(newDate).format("YYYY-MM-DD");
-      this.$set(item, "date_service", formattedDate);
+      item.date_service = formattedDate;
     },
     send() {
       alert("Jpla");

@@ -138,24 +138,23 @@
         v-if="$store.state.master_id_trasnport.id == 2"
       >
         <v-text-field v-model="$store.state.house_cantidad" label="Cant.">
-          <template v-slot:append>
-<v-icon
-            class="btn__add"
-            @click.native="
-              _setHouseContainers(
-                $store.state.house_id_containers.id,
-                $store.state.house_id_containers.name,
-                $store.state.house_nro_containers,
-                $store.state.house_nro_precinto,
-                $store.state.house_cantidad,
-              )
-            "
-            
-            color="green"
-          >
-            mdi-plus
-          </v-icon>
-</template>
+          <template v-slot:append-inner>
+            <v-icon
+              class="btn__add"
+              @click="
+                _setHouseContainers(
+                  $store.state.house_id_containers.id,
+                  $store.state.house_id_containers.name,
+                  $store.state.house_nro_containers,
+                  $store.state.house_nro_precinto,
+                  $store.state.house_cantidad,
+                )
+              "
+              color="green"
+            >
+              mdi-plus
+            </v-icon>
+          </template>
         </v-text-field>
       </v-col>
 
@@ -186,7 +185,7 @@
                     class="btn__add"
                     size="small"
                     color="red"
-                    @click.native="_deleteContainers(item.id)"
+                    @click="_deleteContainers(item.id)"
                     >mdi-delete</v-icon
                   >
                 </td>

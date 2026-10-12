@@ -11,18 +11,19 @@
           item-value="id"
           label="Proveedor"
           v-model="$store.state.house_id_agente"
+          menu-icon=""
         >
-          <template v-slot:append>
-<v-icon
-            @click.native="_callModalEntitie(1)"
-            
-            class="btn__add"
-            color="primary"
-            :disabled="isFormActionsDisabled"
-          >
-            mdi-plus
-          </v-icon>
-</template>
+          <template v-slot:append-inner>
+            <v-icon
+              @mousedown.stop
+              @click.stop="_callModalEntitie(1)"
+              class="btn__add"
+              color="primary"
+              :disabled="isFormActionsDisabled"
+            >
+              mdi-plus
+            </v-icon>
+          </template>
         </v-autocomplete>
       </v-col>
       <v-col cols="12" md="12">
@@ -32,30 +33,30 @@
           item-value="id"
           label="Cliente HBL"
           v-model="$store.state.house_id_consigner"
+          menu-icon=""
         >
-          <template v-slot:append>
-<v-icon
-            @click.native="_callModalEntitie(11)"
-            
-            class="btn__add"
-            color="primary"
-            :disabled="isFormActionsDisabled"
-          >
-            mdi-plus
-          </v-icon>
-</template>
+          <template v-slot:append-inner>
+            <v-icon
+              @mousedown.stop
+              @click.stop="_callModalEntitie(11)"
+              class="btn__add"
+              color="primary"
+              :disabled="isFormActionsDisabled"
+            >
+              mdi-plus
+            </v-icon>
+          </template>
           <template v-slot:prepend>
-<v-icon
-            @click.native="abrirEditarClinte(11)"
-            
-            class="btn__add"
-            color="primary"
-            v-if="$store.state.house_id_consigner"
-            :disabled="isFormActionsDisabled"
-          >
-            mdi-pencil
-          </v-icon>
-</template>
+            <v-icon
+              @click="abrirEditarClinte(11)"
+              class="btn__add"
+              color="primary"
+              v-if="$store.state.house_id_consigner"
+              :disabled="isFormActionsDisabled"
+            >
+              mdi-pencil
+            </v-icon>
+          </template>
         </v-autocomplete>
       </v-col>
       <v-col cols="12" md="6">
@@ -72,18 +73,19 @@
           item-value="id"
           label="Consigne HBL"
           v-model="$store.state.house_id_consigner_real"
+          menu-icon=""
         >
-          <template v-slot:append>
-<v-icon
-            @click.native="_callModalEntitie(11)"
-            
-            class="btn__add"
-            color="primary"
-            :disabled="isFormActionsDisabled"
-          >
-            mdi-plus
-          </v-icon>
-</template>
+          <template v-slot:append-inner>
+            <v-icon
+              @mousedown.stop
+              @click.stop="_callModalEntitie(11)"
+              class="btn__add"
+              color="primary"
+              :disabled="isFormActionsDisabled"
+            >
+              mdi-plus
+            </v-icon>
+          </template>
         </v-autocomplete>
       </v-col>
       <v-col cols="12" md="6">
@@ -93,18 +95,19 @@
           item-value="id"
           label="Notify HBL"
           v-model="$store.state.house_id_notify"
+          menu-icon=""
         >
-          <template v-slot:append>
-<v-icon
-            @click.native="_callModalEntitie(11)"
-            
-            class="btn__add"
-            color="primary"
-            :disabled="isFormActionsDisabled"
-          >
-            mdi-plus
-          </v-icon>
-</template>
+          <template v-slot:append-inner>
+            <v-icon
+              @mousedown.stop
+              @click.stop="_callModalEntitie(11)"
+              class="btn__add"
+              color="primary"
+              :disabled="isFormActionsDisabled"
+            >
+              mdi-plus
+            </v-icon>
+          </template>
         </v-autocomplete>
       </v-col>
 
@@ -208,24 +211,23 @@
       </v-col>
       <v-col cols="12" md="3" lg="3" xl="3" v-if="mostrarContenedor">
         <v-text-field v-model="$store.state.house_cantidad" label="Cant.">
-          <template v-slot:append>
-<v-icon
-            class="btn__add"
-            @click.native="
-              _setHouseContainers(
-                $store.state.house_id_containers.id,
-                $store.state.house_id_containers.name,
-                $store.state.house_nro_containers,
-                $store.state.house_nro_precinto,
-                $store.state.house_cantidad,
-              )
-            "
-            
-            color="green"
-          >
-            mdi-plus
-          </v-icon>
-</template>
+          <template v-slot:append-inner>
+            <v-icon
+              class="btn__add"
+              @click="
+                _setHouseContainers(
+                  $store.state.house_id_containers.id,
+                  $store.state.house_id_containers.name,
+                  $store.state.house_nro_containers,
+                  $store.state.house_nro_precinto,
+                  $store.state.house_cantidad,
+                )
+              "
+              color="green"
+            >
+              mdi-plus
+            </v-icon>
+          </template>
         </v-text-field>
       </v-col>
 
@@ -256,7 +258,7 @@
                     class="btn__add"
                     size="small"
                     color="red"
-                    @click.native="_deleteContainers(item.id)"
+                    @click="_deleteContainers(item.id)"
                     >mdi-delete</v-icon
                   >
                 </td>

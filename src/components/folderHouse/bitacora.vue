@@ -13,16 +13,17 @@
             label="Estatus del embarque"
             v-model="$store.state.bitacora_id_bitacora"
           >
-            <template v-slot:item="{ item }">
-              <v-list-item-avatar
-                :color="existeEnBitacora(item) ? 'bg-selected' : 'indigo'"
-                class="text-h5 font-weight-light text-white"
-              >
-                {{ $store.state.itemsBitacoraLineal.indexOf(item) + 1 }}
-              </v-list-item-avatar>
-              <v-list-item-content class="ml-3">
-                <v-list-item-title v-text="item.name"></v-list-item-title>
-              </v-list-item-content>
+            <template v-slot:item="{ item, props }">
+              <v-list-item v-bind="props" role="option" :title="item.name">
+                <template #prepend>
+                  <v-avatar
+                    :class="existeEnBitacora(item) ? 'bg-selected' : 'bg-indigo'"
+                    class="text-h5 font-weight-light text-white mr-3"
+                  >
+                    {{ $store.state.itemsBitacoraLineal.indexOf(item) + 1 }}
+                  </v-avatar>
+                </template>
+              </v-list-item>
             </template>
           </v-autocomplete>
         </v-col>
@@ -40,13 +41,11 @@
             return-object
             @update:model-value="activarComentarioFlag"
           >
-            <template v-slot:item="{ item, on, attrs }">
-              <v-list-item v-bind="attrs" v-on="on">
-                <v-list-item-content style="width: 120px">
-                  <v-list-item-title class="wrap-text">
-                    {{ item.descripcion }}
-                  </v-list-item-title>
-                </v-list-item-content>
+            <template v-slot:item="{ item, props }">
+              <v-list-item v-bind="props" role="option">
+                <template #title>
+                  <span class="wrap-text">{{ item.descripcion }}</span>
+                </template>
               </v-list-item>
             </template>
           </v-autocomplete>
@@ -61,11 +60,9 @@
         </v-col>
         <v-col cols="12" md="4">
           <v-dialog
-            ref="dialog"
             v-model="modal"
-            v-model:return-value="date"
             persistent
-            width="290px"
+            width="auto"
           >
             <template v-slot:activator="{ props }">
               <v-text-field
@@ -73,23 +70,30 @@
                 label="Fecha"
                 prepend-icon="mdi-calendar"
                 readonly
-               
                 v-bind="props"
                 :disabled="isFormActionsDisabled"
               ></v-text-field>
             </template>
-            <v-date-picker v-model="$store.state.bitacora_fecha" scrollable>
-              <v-spacer></v-spacer>
-              <v-btn variant="text" color="primary" @click="modal = false">
-                Cancel
-              </v-btn>
-              <v-btn
-                variant="text"
-                color="primary"
-                @click="$refs.dialog.save($store.state.bitacora_fecha)"
-              >
-                OK
-              </v-btn>
+            <v-date-picker
+              :model-value="$store.state.bitacora_fecha"
+              @update:model-value="setBitacoraFecha"
+            >
+              <template #actions>
+                <v-spacer></v-spacer>
+                <v-btn variant="text" color="primary" @click="modal = false">
+                  Cancel
+                </v-btn>
+                <v-btn
+                  variant="text"
+                  color="primary"
+                  @click="
+                    date = $store.state.bitacora_fecha;
+                    modal = false;
+                  "
+                >
+                  OK
+                </v-btn>
+              </template>
             </v-date-picker>
           </v-dialog>
         </v-col>
@@ -136,7 +140,8 @@
                       density="compact"
                       color="primary"
                       v-model="item.visible_cliente"
-                      @click="_changeStatusVisibleBitacora(item)"
+                      :value-comparator="(value, checked) => Boolean(value) === checked"
+                      @update:model-value="_changeStatusVisibleBitacora(item)"
                       :disabled="isFormActionsDisabled"
                     ></v-switch>
                   </td>
@@ -145,7 +150,7 @@
                       class="btn_add"
                       size="small"
                       color="red"
-                      @click.native="_deleteBitacora(item.id)"
+                      @click="_deleteBitacora(item.id)"
                       :disabled="isFormActionsDisabled"
                       >mdi-delete</v-icon
                     >
@@ -194,7 +199,8 @@
                         density="compact"
                         color="primary"
                         v-model="item.visible_cliente"
-                        @click="_changeStatusVisibleBitacora(item)"
+                        :value-comparator="(value, checked) => Boolean(value) === checked"
+                        @update:model-value="_changeStatusVisibleBitacora(item)"
                         :disabled="isFormActionsDisabled"
                       ></v-switch>
                     </td>
@@ -203,7 +209,7 @@
                         class="btn_add"
                         size="small"
                         color="red"
-                        @click.native="_deleteBitacora(item.id)"
+                        @click="_deleteBitacora(item.id)"
                         :disabled="isFormActionsDisabled"
                         >mdi-delete</v-icon
                       >
@@ -241,8 +247,8 @@
                   label="Sentido*"
                   item-title="name"
                   item-value="id"
-                  @update:model-value="obtenerOrden()"
                   v-model="id_modality"
+                  @update:model-value="obtenerOrden()"
                   :rules="[(v) => !!v || 'Dato Requerido']"
                 ></v-autocomplete>
               </v-col>
@@ -511,6 +517,7 @@ import { defineAsyncComponent } from "vue";
 import { mapActions, mapState } from "vuex";
 import axios from '@/api/axios-config';
 import { v4 as uuidv4 } from "uuid";
+import moment from "moment";
 import Swal from "sweetalert2";
 export default {
   name: "bitacora",
@@ -634,7 +641,7 @@ export default {
     },
     async guardarStatus() {
       this.errorInconterms = "";
-      if (this.$refs.frmStatus.validate()) {
+      if ((await this.$refs.frmStatus.validate()).valid) {
         if (!this.exw && !this.fca && !this.cfr && !this.cif && !this.ddp) {
           this.errorInconterms =
             "Es necesario seleccionar al menos un Incoterms";
@@ -687,6 +694,9 @@ export default {
           this.dialog = false;
         }
       });
+    },
+    setBitacoraFecha(value) {
+      this.$store.state.bitacora_fecha = moment(value).format("YYYY-MM-DD");
     },
     existeEnBitacora(item) {
       let val = this.$store.state.itemsBitacora.some(
