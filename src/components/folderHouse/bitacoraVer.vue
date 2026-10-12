@@ -14,6 +14,9 @@
             v-model="$store.state.bitacora_id_bitacora"
             :disabled="true"
           >
+            <template #selection="{ item, internalItem }">
+              <span v-if="typeof item === 'object'" class="v-autocomplete__selection-text">{{ internalItem.title }}</span>
+            </template>
             <template v-slot:item="{ item, props }">
               <v-list-item v-bind="props" role="option" :title="item.name">
                 <template #prepend>

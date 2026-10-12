@@ -109,7 +109,11 @@
           item-value="id"
           label="Coloader"
           v-model="$store.state.house_id_coloader"
-        ></v-autocomplete>
+        >
+          <template #selection="{ item, internalItem }">
+            <span v-if="typeof item === 'object'" class="v-autocomplete__selection-text">{{ internalItem.title }}</span>
+          </template>
+        </v-autocomplete>
       </v-col>
     </v-row>
 
