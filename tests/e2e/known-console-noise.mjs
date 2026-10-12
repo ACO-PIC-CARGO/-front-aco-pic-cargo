@@ -199,6 +199,26 @@ export const KNOWN_CONSOLE_NOISE = [
     reason: "pre-existing on Vue 2: addAccountPays (controlAccountPays passes the numeric uploaded file id as initial-url)",
     routes: ["addAccountPays"],
   },
+  {
+    pattern: /^\[Vue warn\]: Invalid prop: type check failed for prop "initialUrl"\. Expected String with value "\d+", got Number with value \d+\. ?\n\s+at <ArrastraYSolarComponent[ >]/,
+    reason: "same pre-existing issue as the addAccountPays 'initialUrl' entry, Vue 3 wording: controlAccountPays passes the numeric uploaded file id as initial-url",
+    routes: ["addAccountPays"],
+  },
+  {
+    pattern: /^\[Vue warn\]: Property "auto" was accessed during render but is not defined on instance\./,
+    reason: "same pre-existing issue as the viewAccountPaysCxC 'auto' entry, Vue 3 wording: controlAccountReceivable binds :hide-details=\"auto\" to a property it does not define",
+    routes: ["viewAccountPaysCxC", "EditAccountPaysCxC", "controlAccountReceivable"],
+  },
+  {
+    pattern: /^\[Vue warn\]: Property "calcularTotal" was accessed during render but is not defined on instance\./,
+    reason: "same pre-existing issue as the verPagosPorProveedor 'calcularTotal' entries, Vue 3 wording: verEditarPayForProveedor binds a calcularTotal method it does not define",
+    routes: ["verPagosPorProveedor", "editarPagosPorProveedor"],
+  },
+  {
+    pattern: /^\[Vue warn\]: Property "(_isVue|constructor)" was accessed during render but is not defined on instance\.[\s\S]*\n\s+at <EditarCobroCliente[ >]/,
+    reason: "same pre-existing issue as the EditarCobroCliente 'reading forEach' entries, Vue 3 wording: Sentry's component trace reads vm._isVue / vm.constructor during the failing render",
+    routes: ["EditarCobroCliente"],
+  },
 ];
 
 export const isKnownNoise = (text, routeName) =>
