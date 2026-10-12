@@ -5,9 +5,9 @@
         <v-col cols="3" v-if="nuevoExpedienteFlag()">
           <!--  -->
           <v-autocomplete
-            @update:model-value="nombreCampania()"
             :items="$store.state.itemsMasterList"
             v-model="id_exp"
+            @update:model-value="nombreCampania()"
             label="Expediente"
             item-title="code_master"
             item-value="id"
@@ -83,8 +83,7 @@
           :headers="headers"
           :items="datos"
           class="elevation-1"
-          pagination.sync="pagination"
-          item-key="index"
+          item-value="index"
           :loading="datos.length != files.length"
         >
         </v-data-table>
@@ -99,7 +98,7 @@
         >
       </v-col>
     </v-row>
-    <v-dialog v-model="dialog" max-width="50%" height="80%" persistent>
+    <v-dialog v-model="dialog" max-width="50%" persistent>
       <v-card color="basil">
         <v-card-title class="text-center justify-center py-6">
           <h1 class="font-weight-bold text-h2 basil--text">SUBIR ARCHIVOS</h1>
@@ -112,11 +111,11 @@
           grow
         >
           <!-- <v-tab> Seleccionar Archivos </v-tab> -->
-          <v-tab :loading="loadingArras"> Cargar Archivos </v-tab>
+          <v-tab> Cargar Archivos </v-tab>
         </v-tabs>
 
-        <v-tabs-items v-model="tab">
-          <v-tab-item>
+        <v-tabs-window v-model="tab">
+          <v-tabs-window-item>
             <v-card color="basil" flat>
               <v-card-text>
                 <div
@@ -133,13 +132,13 @@
                       v-model="files"
                       hide-details
                       multiple
-                      @change="Procesar()"
+                      @update:model-value="Procesar()"
                       style="display: none"
                     ></v-file-input>
                   </label>
                 </div>
                 <div v-else>
-                  <v-card color="primary" dark>
+                  <v-card color="primary">
                     <v-card-text>
                       Se está analizando los archivos, un momento por
                       favor....
@@ -153,8 +152,8 @@
                 </div>
               </v-card-text>
             </v-card>
-          </v-tab-item>
-        </v-tabs-items>
+          </v-tabs-window-item>
+        </v-tabs-window>
       </v-card>
     </v-dialog>
   </v-container>
