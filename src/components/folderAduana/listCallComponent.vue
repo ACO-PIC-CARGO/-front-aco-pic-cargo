@@ -7,7 +7,7 @@
     >
       <v-card>
         <v-card-title>
-          <span class="headline">Detalle de Nota de llamada</span>
+          <span class="text-h5">Detalle de Nota de llamada</span>
         </v-card-title>
 
         <v-card-text>

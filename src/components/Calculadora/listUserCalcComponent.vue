@@ -104,7 +104,7 @@
     <previewQuote :dialog="dialog" :data="dataCotizacion" />
     <v-dialog v-model="dialogEditarEstado" max-width="30%">
       <v-card>
-        <v-card-title class="headline pb-0">
+        <v-card-title class="text-h5 pb-0">
           <p>Editar Estado Cotización</p>
         </v-card-title>
         <v-card-text>

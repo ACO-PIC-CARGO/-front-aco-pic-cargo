@@ -89,7 +89,7 @@
       <v-card class="rounded-lg elevation-4">
         <!-- Barra superior de advertencia -->
         <v-card-title
-          class="headline bg-error text-white py-3 px-4 d-flex align-center"
+          class="text-h5 bg-error text-white py-3 px-4 d-flex align-center"
         >
           <v-icon start size="large" class="mr-2">mdi-power-plug-off</v-icon>
           <span class="font-weight-bold">SISTEMA EN MANTENIMIENTO</span>

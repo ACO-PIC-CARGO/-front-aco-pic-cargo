@@ -208,7 +208,7 @@
 
     <v-dialog v-model="dialogAdminAuth" max-width="400" persistent>
       <v-card>
-        <v-card-title class="headline bg-grey-lighten-2">
+        <v-card-title class="text-h5 bg-grey-lighten-2">
           Autenticación Requerida
         </v-card-title>
         <v-card-text class="pt-4">

@@ -306,7 +306,7 @@
           Imprimir Formato {{ isAereo() ? "GUÍA AÉREA" : "BL" }}
         </v-card-title>
         <v-card-text class="pt-4">
-          <p class="subtitle-1 mb-2">¿Imprimir con fondo?</p>
+          <p class="text-subtitle-1 mb-2">¿Imprimir con fondo?</p>
           <v-radio-group v-model="formatoflag">
             <v-radio label="Sí" :value="true"></v-radio>
             <v-radio label="No" :value="false"></v-radio>
@@ -373,7 +373,7 @@
             indeterminate
             size="48"
           ></v-progress-circular>
-          <div class="subtitle-1 mt-4">Guardando cambios...</div>
+          <div class="text-subtitle-1 mt-4">Guardando cambios...</div>
         </div>
       </v-card>
     </v-dialog>

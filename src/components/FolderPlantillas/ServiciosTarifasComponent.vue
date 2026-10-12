@@ -2,7 +2,7 @@
   <v-container fluid>
     <v-card>
       <v-card-title>
-        <span class="headline">Plantillas de Costos Base</span>
+        <span class="text-h5">Plantillas de Costos Base</span>
         <v-spacer></v-spacer>
        
       </v-card-title>

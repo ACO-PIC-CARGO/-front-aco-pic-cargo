@@ -396,7 +396,7 @@
                     >
                       <p
                         v-if="esDuplicado"
-                        class="text-red caption font-weight-bold pl-2"
+                        class="text-red text-caption font-weight-bold pl-2"
                       >
                         ⚠️ Ya existe un registro con este número exacto.
                       </p>
@@ -572,7 +572,7 @@
       max-width="35%"
     >
       <v-card class="pa-2">
-        <v-card-title class="headline pb-2">
+        <v-card-title class="text-h5 pb-2">
           <v-icon start color="primary">mdi-hand-coin</v-icon> Confirmar Depósito
         </v-card-title>
 
@@ -592,11 +592,11 @@
             </template>
             <div>
               <div
-                class="subtitle-2 font-weight-bold text-amber-darken-4 text-uppercase"
+                class="text-subtitle-2 font-weight-bold text-amber-darken-4 text-uppercase"
               >
                 OBLIGATORIO PARA CONTINUAR
               </div>
-              <div class="caption font-weight-bold text-grey-darken-3">
+              <div class="text-caption font-weight-bold text-grey-darken-3">
                 Ingresa el monto recibido en el banco, según tu estado de
                 cuenta.
               </div>

@@ -191,7 +191,7 @@
     <v-dialog v-model="paymentDialog" max-width="600px">
       <v-card>
         <v-card-title>
-          <span class="headline">Pago</span>
+          <span class="text-h5">Pago</span>
         </v-card-title>
         <v-card-text>
           <v-form @submit.prevent="processPayment(selectedPlanId)">

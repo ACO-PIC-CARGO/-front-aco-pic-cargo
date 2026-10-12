@@ -1,7 +1,7 @@
 <template>
   <v-container fluid>
     <div class="">
-      <span class="title">
+      <span class="text-h6">
         Ventas {{ currencyFormat($store.state.aduana.totalVenta) }}</span
       >
     </div>

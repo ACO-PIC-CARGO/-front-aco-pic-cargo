@@ -90,7 +90,7 @@
         <v-icon start color="indigo">mdi-ferry</v-icon>
         Datos de Aduana
         <v-spacer></v-spacer>
-        <span class="caption text-grey-darken-1">Información SUNAT</span>
+        <span class="text-caption text-grey-darken-1">Información SUNAT</span>
       </v-card-title>
       <v-card-text class="pt-0">
         <v-row density="compact">

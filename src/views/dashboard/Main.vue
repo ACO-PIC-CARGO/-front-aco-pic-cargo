@@ -263,7 +263,7 @@
     <!-- Modal de autenticación admin para editar cotizaciones aprobadas -->
     <v-dialog v-model="dialogAdminAuth" max-width="400" persistent>
       <v-card>
-        <v-card-title class="headline bg-grey-lighten-2">
+        <v-card-title class="text-h5 bg-grey-lighten-2">
           Autenticación Requerida
         </v-card-title>
         <v-card-text class="pt-4">
@@ -419,7 +419,7 @@
       <v-card class="rounded-lg elevation-4">
         <!-- Cabecera profesional con color y título claro -->
         <v-card-title
-          class="headline bg-primary text-white py-3 px-4 d-flex align-center"
+          class="text-h5 bg-primary text-white py-3 px-4 d-flex align-center"
         >
           <v-icon start class="mr-2">mdi-calendar-clock</v-icon>
           <span class="font-weight-bold">Actualizar Vigencia de Flete</span>

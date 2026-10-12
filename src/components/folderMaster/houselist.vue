@@ -180,7 +180,7 @@
               variant="outlined"
               class="my-5"
             ></v-autocomplete>
-            <p class="caption mb-0">Actual: {{ house.code_house }}</p>
+            <p class="text-caption mb-0">Actual: {{ house.code_house }}</p>
           </v-card-text>
         </v-form>
         <v-card-actions>
