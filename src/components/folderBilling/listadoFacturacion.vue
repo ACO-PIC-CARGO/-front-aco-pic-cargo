@@ -115,7 +115,7 @@ export default {
   async mounted() {
     await this.listadoFacturacion();
     await this.obtenerImpuestoXEmpresa();
-    this.headers[8].text =
+    this.headers[8].title =
       this.$store.state.enterprises.impuesto.nombre_impuesto;
   },
   methods: {

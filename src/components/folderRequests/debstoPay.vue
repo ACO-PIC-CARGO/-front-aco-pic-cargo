@@ -703,7 +703,7 @@ export default {
     )[0].moneda[0].acronym;
     this.offcanvas = false;
     this.$store.state.spiner = true;
-    this.cabTotalAdministrativo[2].text =
+    this.cabTotalAdministrativo[2].title =
       this.$store.state.enterprises.impuesto.nombre_impuesto;
     await Promise.all([
       this._getDebsToPay(),
