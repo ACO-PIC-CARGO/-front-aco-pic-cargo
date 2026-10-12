@@ -35,7 +35,7 @@
           </v-form>
         </v-card-text>
         <v-card-actions>
-          <v-flex text-right>
+          <div class="flex-grow-1 text-right">
             <v-btn variant="text" color="success" @click="guardarNota">Aceptar</v-btn>
             <v-btn
               variant="text"
@@ -44,7 +44,7 @@
             >
               Cancelar
             </v-btn>
-          </v-flex>
+          </div>
         </v-card-actions>
       </v-card>
     </v-dialog>
@@ -277,7 +277,7 @@
           placeholder="Buscar..."
           label="Buscar"
           v-model="search"
-          append-icon="mdi-magnify"
+          append-inner-icon="mdi-magnify"
           density="compact"
           variant="outlined"
           messages=" "
@@ -298,7 +298,6 @@
             class="mx-1"
             :loading="loading4"
             :disabled="loading4"
-            :dark="!loading4"
             size="small"
           >
             <v-icon>mdi-file-pdf-box</v-icon> REPORTE
@@ -310,7 +309,6 @@
                 !$store.state.pricing.filtrarCallsFlag
             "
             class="mx-1"
-            dark
             size="small"
           >
             <v-icon>mdi-filter</v-icon>
@@ -332,9 +330,8 @@
         class="elevation-1 contenido"
         :search="search"
         multi-sort
-        mobile
         disable-sort
-        item-key="rowId"
+        item-value="rowId"
       >
         <template v-slot:[`item.fechaemisionpdf`]="{ item }">
           <span v-if="item.fechaemisionpdf">
@@ -750,7 +747,7 @@ export default {
       this.dialogRegistroNotaLlamada = true;
     },
     async guardarNota() {
-      if (this.$refs.detallenota.validate()) {
+      if ((await this.$refs.detallenota.validate()).valid) {
         this.dialogRegistroNotaLlamada = false;
         this.$store.state.spiner = true;
 
