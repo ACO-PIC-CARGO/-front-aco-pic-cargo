@@ -185,7 +185,7 @@
     <v-navigation-drawer
       v-model="filtar"
       absolute
-      location="bottom right"
+      location="right"
       temporary
       
       width="20%"

@@ -52,7 +52,7 @@
     </v-card>
     <v-navigation-drawer
       v-model="$store.state.pricing.filtrarQuoteFlag"
-      location="right bottom"
+      location="right"
       absolute
       
       persistent
@@ -65,7 +65,7 @@
     </v-navigation-drawer>
     <v-navigation-drawer
       v-model="$store.state.pricing.filtrarCallsFlag"
-      location="right bottom"
+      location="right"
       absolute
       
       persistent

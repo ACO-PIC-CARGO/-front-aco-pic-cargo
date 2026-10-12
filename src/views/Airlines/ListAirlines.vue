@@ -3,7 +3,7 @@
     <ListAirlinesComponet />
     <v-navigation-drawer
       v-model="$store.state.airlines.drawer"
-      location="right bottom"
+      location="right"
       absolute
       
       persistent

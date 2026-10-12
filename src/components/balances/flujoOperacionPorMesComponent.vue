@@ -3,7 +3,7 @@
     <v-navigation-drawer
       v-model="filtroFlag"
       absolute
-      location="bottom right"
+      location="right"
       temporary
       
       width="20%"

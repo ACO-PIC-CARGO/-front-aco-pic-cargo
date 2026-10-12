@@ -80,7 +80,7 @@
     <v-navigation-drawer
       v-model="showFilterDrawer"
       absolute
-      location="bottom right"
+      location="right"
       temporary
       
       width="30%"

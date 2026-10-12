@@ -5,7 +5,7 @@
     </div>
     <v-navigation-drawer
       v-model="$store.state.master_filtrarData"
-      location="right bottom"
+      location="right"
       absolute
       
       persistent

@@ -3,7 +3,7 @@
     <PuertoComponent />
     <v-navigation-drawer
       v-model="$store.state.puerto.drawer"
-      location="right bottom"
+      location="right"
       absolute
       
       persistent

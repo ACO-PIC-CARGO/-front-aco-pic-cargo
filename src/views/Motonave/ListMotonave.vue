@@ -3,7 +3,7 @@
     <MotonaveComponent />
     <v-navigation-drawer
       v-model="$store.state.motonave.drawer"
-      location="right bottom"
+      location="right"
       absolute
       
       persistent

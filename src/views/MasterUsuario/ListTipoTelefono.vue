@@ -3,7 +3,7 @@
     <TipoTelefono />
     <v-navigation-drawer
       v-model="$store.state.masterusuarios.drawer"
-      location="right bottom"
+      location="right"
       absolute
       
       persistent

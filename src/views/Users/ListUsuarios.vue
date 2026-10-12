@@ -3,7 +3,7 @@
     <Users />
     <v-navigation-drawer
       v-model="$store.state.user.drawer"
-      location="right bottom"
+      location="right"
       absolute
       
       persistent

@@ -3,7 +3,7 @@
     <Town />
     <v-navigation-drawer
       v-model="$store.state.town.drawer"
-      location="right bottom"
+      location="right"
       absolute
       
       persistent

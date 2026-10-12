@@ -69,7 +69,7 @@
     <v-navigation-drawer
       v-model="showFilterDrawerNew"
       absolute
-      location="bottom right"
+      location="right"
       temporary
       
       width="30%"
@@ -134,7 +134,7 @@
     <v-navigation-drawer
       v-model="showFilterDrawerRead"
       absolute
-      location="bottom right"
+      location="right"
       temporary
       
       width="30%"
@@ -208,7 +208,7 @@
     <v-navigation-drawer
       v-model="showFilterDrawerUpdate"
       absolute
-      location="bottom right"
+      location="right"
       temporary
       
       width="30%"
@@ -295,7 +295,7 @@
     <v-navigation-drawer
       v-model="showFilterDrawer"
       absolute
-      location="bottom right"
+      location="right"
       temporary
       
       width="30%"

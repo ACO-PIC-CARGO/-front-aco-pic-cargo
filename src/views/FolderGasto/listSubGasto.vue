@@ -3,7 +3,7 @@
     <SubGasto />
     <v-navigation-drawer
       v-model="$store.state.subgasto.drawer"
-      location="right bottom"
+      location="right"
       absolute
       
       persistent

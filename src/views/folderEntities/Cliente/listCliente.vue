@@ -5,7 +5,7 @@
     </v-card>
     <v-navigation-drawer
       v-model="$store.state.entities.filtrarProveedor"
-      location="right bottom"
+      location="right"
       absolute
       
       persistent

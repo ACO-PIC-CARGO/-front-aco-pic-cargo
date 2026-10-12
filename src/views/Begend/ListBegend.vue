@@ -3,7 +3,7 @@
     <Begend />
     <v-navigation-drawer
       v-model="$store.state.begend.drawer"
-      location="right bottom"
+      location="right"
       absolute
       
       persistent

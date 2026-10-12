@@ -155,7 +155,7 @@
 
     <v-navigation-drawer
       v-model="filtroflag"
-      location="right bottom"
+      location="right"
       absolute
       
       persistent

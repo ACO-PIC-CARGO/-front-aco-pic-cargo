@@ -3,7 +3,7 @@
     <ListItemServiceComponet />
     <v-navigation-drawer
       v-model="$store.state.itemServices.drawer"
-      location="right bottom"
+      location="right"
       absolute
       
       persistent

@@ -49,6 +49,11 @@ const TEMPLATE_GUARDS = [
     selector: "VElement[name=/^(v-stepper-(step|content|items)|vstepper(step|content|items))$/]",
     message: "Vuetify 4 steppers: v-stepper-item / v-stepper-window(-item) or v-stepper-vertical(-item) (recipe R8).",
   },
+  {
+    selector:
+      "VElement[name=/^(v-navigation-drawer|vnavigationdrawer)$/i] > VStartTag > VAttribute[directive=false][key.name='location'][value.value=/\\s/]",
+    message: "v-navigation-drawer takes one location (recipe R19).",
+  },
 ];
 
 const TYPOGRAPHY_GUARD = {

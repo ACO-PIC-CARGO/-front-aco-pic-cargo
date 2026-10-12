@@ -3,7 +3,7 @@
     <TypePayment />
     <v-navigation-drawer
       v-model="$store.state.typepayment.drawer"
-      location="right bottom"
+      location="right"
       absolute
       
       persistent

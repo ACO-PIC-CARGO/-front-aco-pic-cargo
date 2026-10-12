@@ -408,7 +408,7 @@
       v-model="offcanvas"
       v-if="offcanvas"
       absolute
-      location="bottom right"
+      location="right"
       
       width="20%"
     >

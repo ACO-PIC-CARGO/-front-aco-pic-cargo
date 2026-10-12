@@ -381,7 +381,7 @@
     </v-dialog>
     <v-navigation-drawer
       v-model="filtrar"
-      location="right bottom"
+      location="right"
       absolute
       
       persistent
