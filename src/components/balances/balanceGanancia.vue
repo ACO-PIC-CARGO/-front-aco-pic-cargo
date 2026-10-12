@@ -2870,145 +2870,145 @@ export default {
     generarCabeceras() {
       if (this.month.includes("01")) {
         this.headersDetailsGanancia.push({
-          text: "Enero",
-          value: "enero",
+          title: "Enero",
+          key: "enero",
           sortable: false,
         });
         this.headersDetailsGastos.push({
-          text: "Enero",
-          value: "enero",
+          title: "Enero",
+          key: "enero",
           sortable: false,
         });
       }
       if (this.month.includes("02")) {
         this.headersDetailsGanancia.push({
-          text: "Febrero",
-          value: "febrero",
+          title: "Febrero",
+          key: "febrero",
           sortable: false,
         });
         this.headersDetailsGastos.push({
-          text: "Febrero",
-          value: "febrero",
+          title: "Febrero",
+          key: "febrero",
           sortable: false,
         });
       }
       if (this.month.includes("03")) {
         this.headersDetailsGanancia.push({
-          text: "Marzo",
-          value: "marzo",
+          title: "Marzo",
+          key: "marzo",
           sortable: false,
         });
         this.headersDetailsGastos.push({
-          text: "Marzo",
-          value: "marzo",
+          title: "Marzo",
+          key: "marzo",
           sortable: false,
         });
       }
       if (this.month.includes("04")) {
         this.headersDetailsGanancia.push({
-          text: "Abril",
-          value: "abril",
+          title: "Abril",
+          key: "abril",
           sortable: false,
         });
         this.headersDetailsGastos.push({
-          text: "Abril",
-          value: "abril",
+          title: "Abril",
+          key: "abril",
           sortable: false,
         });
       }
       if (this.month.includes("05")) {
         this.headersDetailsGanancia.push({
-          text: "Mayo",
-          value: "mayo",
+          title: "Mayo",
+          key: "mayo",
           sortable: false,
         });
         this.headersDetailsGastos.push({
-          text: "Mayo",
-          value: "mayo",
+          title: "Mayo",
+          key: "mayo",
           sortable: false,
         });
       }
       if (this.month.includes("06")) {
         this.headersDetailsGanancia.push({
-          text: "Junio",
-          value: "junio",
+          title: "Junio",
+          key: "junio",
           sortable: false,
         });
         this.headersDetailsGastos.push({
-          text: "Junio",
-          value: "junio",
+          title: "Junio",
+          key: "junio",
           sortable: false,
         });
       }
       if (this.month.includes("07")) {
         this.headersDetailsGanancia.push({
-          text: "Julio",
-          value: "julio",
+          title: "Julio",
+          key: "julio",
           sortable: false,
         });
         this.headersDetailsGastos.push({
-          text: "Julio",
-          value: "julio",
+          title: "Julio",
+          key: "julio",
           sortable: false,
         });
       }
       if (this.month.includes("08")) {
         this.headersDetailsGanancia.push({
-          text: "Agosto",
-          value: "agosto",
+          title: "Agosto",
+          key: "agosto",
           sortable: false,
         });
         this.headersDetailsGastos.push({
-          text: "Agosto",
-          value: "agosto",
+          title: "Agosto",
+          key: "agosto",
           sortable: false,
         });
       }
       if (this.month.includes("09")) {
         this.headersDetailsGanancia.push({
-          text: "Septiembre",
-          value: "septiembre",
+          title: "Septiembre",
+          key: "septiembre",
           sortable: false,
         });
         this.headersDetailsGastos.push({
-          text: "Septiembre",
-          value: "septiembre",
+          title: "Septiembre",
+          key: "septiembre",
           sortable: false,
         });
       }
       if (this.month.includes("10")) {
         this.headersDetailsGanancia.push({
-          text: "Octubre",
-          value: "octubre",
+          title: "Octubre",
+          key: "octubre",
           sortable: false,
         });
         this.headersDetailsGastos.push({
-          text: "Octubre",
-          value: "octubre",
+          title: "Octubre",
+          key: "octubre",
           sortable: false,
         });
       }
       if (this.month.includes("11")) {
         this.headersDetailsGanancia.push({
-          text: "Noviembre",
-          value: "noviembre",
+          title: "Noviembre",
+          key: "noviembre",
           sortable: false,
         });
         this.headersDetailsGastos.push({
-          text: "Noviembre",
-          value: "noviembre",
+          title: "Noviembre",
+          key: "noviembre",
           sortable: false,
         });
       }
       if (this.month.includes("12")) {
         this.headersDetailsGanancia.push({
-          text: "Diciembre",
-          value: "diciembre",
+          title: "Diciembre",
+          key: "diciembre",
           sortable: false,
         });
         this.headersDetailsGastos.push({
-          text: "Diciembre",
-          value: "diciembre",
+          title: "Diciembre",
+          key: "diciembre",
           sortable: false,
         });
       }
@@ -3016,122 +3016,122 @@ export default {
     generarCabecerasFiltro() {
       if (this.month.includes("01")) {
         this.headersDetailsGananciaFiltro.push({
-          text: "Enero",
-          value: "enero",
+          title: "Enero",
+          key: "enero",
         });
         this.headersDetailsGastosFiltro.push({
-          text: "Enero",
-          value: "enero",
+          title: "Enero",
+          key: "enero",
         });
       }
       if (this.month.includes("02")) {
         this.headersDetailsGananciaFiltro.push({
-          text: "Febrero",
-          value: "febrero",
+          title: "Febrero",
+          key: "febrero",
         });
         this.headersDetailsGastosFiltro.push({
-          text: "Febrero",
-          value: "febrero",
+          title: "Febrero",
+          key: "febrero",
         });
       }
       if (this.month.includes("03")) {
         this.headersDetailsGananciaFiltro.push({
-          text: "Marzo",
-          value: "marzo",
+          title: "Marzo",
+          key: "marzo",
         });
         this.headersDetailsGastosFiltro.push({
-          text: "Marzo",
-          value: "marzo",
+          title: "Marzo",
+          key: "marzo",
         });
       }
       if (this.month.includes("04")) {
         this.headersDetailsGananciaFiltro.push({
-          text: "Abril",
-          value: "abril",
+          title: "Abril",
+          key: "abril",
         });
         this.headersDetailsGastosFiltro.push({
-          text: "Abril",
-          value: "abril",
+          title: "Abril",
+          key: "abril",
         });
       }
       if (this.month.includes("05")) {
         this.headersDetailsGananciaFiltro.push({
-          text: "Mayo",
-          value: "mayo",
+          title: "Mayo",
+          key: "mayo",
         });
         this.headersDetailsGastosFiltro.push({
-          text: "Mayo",
-          value: "mayo",
+          title: "Mayo",
+          key: "mayo",
         });
       }
       if (this.month.includes("06")) {
         this.headersDetailsGananciaFiltro.push({
-          text: "Junio",
-          value: "junio",
+          title: "Junio",
+          key: "junio",
         });
         this.headersDetailsGastosFiltro.push({
-          text: "Junio",
-          value: "junio",
+          title: "Junio",
+          key: "junio",
         });
       }
       if (this.month.includes("07")) {
         this.headersDetailsGananciaFiltro.push({
-          text: "Julio",
-          value: "julio",
+          title: "Julio",
+          key: "julio",
         });
         this.headersDetailsGastosFiltro.push({
-          text: "Julio",
-          value: "julio",
+          title: "Julio",
+          key: "julio",
         });
       }
       if (this.month.includes("08")) {
         this.headersDetailsGananciaFiltro.push({
-          text: "Agosto",
-          value: "agosto",
+          title: "Agosto",
+          key: "agosto",
         });
         this.headersDetailsGastosFiltro.push({
-          text: "Agosto",
-          value: "agosto",
+          title: "Agosto",
+          key: "agosto",
         });
       }
       if (this.month.includes("09")) {
         this.headersDetailsGananciaFiltro.push({
-          text: "Septiembre",
-          value: "septiembre",
+          title: "Septiembre",
+          key: "septiembre",
         });
         this.headersDetailsGastosFiltro.push({
-          text: "Septiembre",
-          value: "septiembre",
+          title: "Septiembre",
+          key: "septiembre",
         });
       }
       if (this.month.includes("10")) {
         this.headersDetailsGananciaFiltro.push({
-          text: "Octubre",
-          value: "octubre",
+          title: "Octubre",
+          key: "octubre",
         });
         this.headersDetailsGastosFiltro.push({
-          text: "Octubre",
-          value: "octubre",
+          title: "Octubre",
+          key: "octubre",
         });
       }
       if (this.month.includes("11")) {
         this.headersDetailsGananciaFiltro.push({
-          text: "Noviembre",
-          value: "noviembre",
+          title: "Noviembre",
+          key: "noviembre",
         });
         this.headersDetailsGastosFiltro.push({
-          text: "Noviembre",
-          value: "noviembre",
+          title: "Noviembre",
+          key: "noviembre",
         });
       }
       if (this.month.includes("12")) {
         this.headersDetailsGananciaFiltro.push({
-          text: "Diciembre",
-          value: "diciembre",
+          title: "Diciembre",
+          key: "diciembre",
         });
         this.headersDetailsGastosFiltro.push({
-          text: "Diciembre",
-          value: "diciembre",
+          title: "Diciembre",
+          key: "diciembre",
         });
       }
     },
