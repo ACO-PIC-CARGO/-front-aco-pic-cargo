@@ -28,6 +28,43 @@ const VUE3_RULES = [
   "require-explicit-emits",
 ];
 
+const TEMPLATE_GUARDS = [
+  {
+    selector: "VAttribute[directive=true][key.name.name='model'][key.argument.name='return-value']",
+    message: "Vuetify 4 has no return-value: drop it and replace menu.save(v) with an assignment (recipe R7).",
+  },
+  {
+    selector: "VAttribute[directive=false][key.name='size'][value.value='medium']",
+    message: "Vuetify 4 has no 'medium' size (recipe R9).",
+  },
+  {
+    selector: "VAttribute[directive=true][key.argument.name=/search-input/]",
+    message: "Use v-model:search / @update:search (recipe R6).",
+  },
+  {
+    selector: "VAttribute[directive=true][key.name.name='on'][key.argument=null]",
+    message: 'Object v-on (e.g. v-on="on") - Vuetify 4 activators/slots pass props: use v-bind="props" (recipe R4).',
+  },
+  {
+    selector: "VElement[name=/^(v-stepper-(step|content|items)|vstepper(step|content|items))$/]",
+    message: "Vuetify 4 steppers: v-stepper-item / v-stepper-window(-item) or v-stepper-vertical(-item) (recipe R8).",
+  },
+];
+
+const TYPOGRAPHY_GUARD = {
+  selector:
+    "VAttribute[directive=false][key.name='class'][value.value=/(^|\\s)(display-[1-4]|headline|title|subheading|subtitle-[12]|body-[12]|caption|overline)(\\s|$)/]",
+  message: "Vuetify 2 typography class (recipe R17).",
+};
+
+// Their <style> defines the token as the app's own class, so recipe R17 leaves it.
+const OWN_TYPOGRAPHY_CLASS_FILES = [
+  "src/components/FolderConfig/EstatusDefectoComponent.vue",
+  "src/components/Membresia/OpcionesMembresia.vue",
+  "src/components/Security/Accesos/LoginComponent.vue",
+  "src/components/Security/Accesos/SucursalComponent.vue",
+];
+
 export default [
   { ignores: ["dist/**", "node_modules/**", "src/**/* copy.vue"] },
   ...pluginVue.configs["flat/base"],
@@ -42,25 +79,7 @@ export default [
       "vuetify/no-elevation-overflow": "off",
       "vuetify/no-legacy-grid-props": "error",
       "vuetify/no-deprecated-snackbar": "error",
-      "vue/no-restricted-syntax": [
-        "error",
-        {
-          selector: "VAttribute[directive=true][key.name.name='model'][key.argument.name='return-value']",
-          message: "Vuetify 4 has no return-value: drop it and replace menu.save(v) with an assignment (recipe R7).",
-        },
-        {
-          selector: "VAttribute[directive=false][key.name='size'][value.value='medium']",
-          message: "Vuetify 4 has no 'medium' size (recipe R9).",
-        },
-        {
-          selector: "VAttribute[directive=true][key.argument.name=/search-input/]",
-          message: "Use v-model:search / @update:search (recipe R6).",
-        },
-        {
-          selector: "VAttribute[directive=true][key.name.name='on'][key.argument=null]",
-          message: 'Object v-on (e.g. v-on="on") - Vuetify 4 activators/slots pass props: use v-bind="props" (recipe R4).',
-        },
-      ],
+      "vue/no-restricted-syntax": ["error", ...TEMPLATE_GUARDS, TYPOGRAPHY_GUARD],
       "no-restricted-syntax": [
         "error",
         {
@@ -72,7 +91,15 @@ export default [
           selector: "MemberExpression[object.property.name='currentRoute'][property.name!='value']",
           message: "router.currentRoute is a ref in vue-router 4+: use router.currentRoute.value (recipe R2).",
         },
+        {
+          selector: "Property[key.name='components'] > ObjectExpression > Property > ArrowFunctionExpression[body.type='ImportExpression']",
+          message: "Wrap async components in defineAsyncComponent (recipe R15).",
+        },
       ],
     },
+  },
+  {
+    files: OWN_TYPOGRAPHY_CLASS_FILES,
+    rules: { "vue/no-restricted-syntax": ["error", ...TEMPLATE_GUARDS] },
   },
 ];
