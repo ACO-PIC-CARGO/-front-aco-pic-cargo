@@ -213,7 +213,7 @@
                             <v-btn
                               variant="text"
                               color="primary"
-                              @click="menu = false"
+                              @click="dateOnOpen = date; menu = false"
                             >
                               OK
                             </v-btn>
@@ -410,6 +410,7 @@ export default {
         .toISOString()
         .substr(0, 10),
       menu: false,
+      dateOnOpen: null,
       modal: false,
       menu2: false,
 
@@ -450,6 +451,12 @@ export default {
     this._getDebsClient();
   },
 
+  watch: {
+    menu(open) {
+      if (open) this.dateOnOpen = this.date;
+      else this.date = this.dateOnOpen;
+    },
+  },
   methods: {
     ...mapActions([
       "_setControl",

@@ -31,7 +31,7 @@
                 <template #actions>
                   <v-spacer></v-spacer>
                   <v-btn variant="text" color="primary" @click="menu = false"> Cancel </v-btn>
-                  <v-btn variant="text" color="primary" @click="menu = false">
+                  <v-btn variant="text" color="primary" @click="dateOnOpen = date; menu = false">
                     OK
                   </v-btn>
                 </template>
@@ -456,6 +456,8 @@ export default {
     radio: 1,
 
     menu: false,
+
+    dateOnOpen: null,
     modal: false,
     menu2: false,
     radiopdf: "",
@@ -523,6 +525,12 @@ export default {
   computed: {
     dateRange() {
       return this.date.join(" ~ ");
+    },
+  },
+  watch: {
+    menu(open) {
+      if (open) this.dateOnOpen = this.date;
+      else this.date = this.dateOnOpen;
     },
   },
   methods: {

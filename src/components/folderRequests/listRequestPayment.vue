@@ -163,7 +163,7 @@
                   </template>
                   <v-locale-provider locale="es">
                     <v-date-picker
-                      :model-value="date"
+                      :model-value="date || undefined"
                       @update:model-value="setDate"
                       hide-header
                     >
@@ -172,7 +172,7 @@
                         <v-btn variant="text" color="primary" @click="menu = false">
                           Cancel
                         </v-btn>
-                        <v-btn variant="text" color="primary" @click="menu = false">
+                        <v-btn variant="text" color="primary" @click="dateOnOpen = date; menu = false">
                           OK
                         </v-btn>
                       </template>
@@ -375,6 +375,7 @@ export default {
       .toISOString()
       .substr(0, 10),
     menu: false,
+    dateOnOpen: null,
     modal: false,
     menu2: false,
     security: JSON.parse(sessionStorage.getItem("security")),
@@ -739,6 +740,10 @@ export default {
     ...mapState(["actualizar"]),
   },
   watch: {
+    menu(open) {
+      if (open) this.dateOnOpen = this.date;
+      else this.date = this.dateOnOpen;
+    },
     filtrarFlag() {
       if (this.filtrarFlag == true) {
         this.itemsSPayment = this.itemsSPayment.filter((v) => v.status == 2);

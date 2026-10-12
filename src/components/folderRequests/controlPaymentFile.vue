@@ -102,7 +102,7 @@
                   </template>
                   <v-locale-provider locale="es">
                     <v-date-picker
-                      :model-value="date"
+                      :model-value="date || undefined"
                       @update:model-value="setDate"
                       hide-header
                     >
@@ -111,7 +111,7 @@
                         <v-btn variant="text" color="primary" @click="menu = false">
                           Cancel
                         </v-btn>
-                        <v-btn variant="text" color="primary" @click="menu = false">
+                        <v-btn variant="text" color="primary" @click="dateOnOpen = date; menu = false">
                           OK
                         </v-btn>
                       </template>
@@ -236,6 +236,7 @@ export default {
       .toISOString()
       .substr(0, 10),
     menu: false,
+    dateOnOpen: null,
     modal: false,
     menu2: false,
 
@@ -281,6 +282,12 @@ export default {
   },
   computed: {
     ...mapState(["itemsHouseListAll"]),
+  },
+  watch: {
+    menu(open) {
+      if (open) this.dateOnOpen = this.date;
+      else this.date = this.dateOnOpen;
+    },
   },
   methods: {
     ...mapActions(["_getHouseListAll", "_getHouseListAll"]),

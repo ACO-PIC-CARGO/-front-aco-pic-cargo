@@ -390,7 +390,7 @@
                         <v-btn variant="text" color="primary" @click="menu = false">
                           Cancel
                         </v-btn>
-                        <v-btn variant="text" color="primary" @click="menu = false">
+                        <v-btn variant="text" color="primary" @click="dateOnOpen = date; menu = false">
                           OK
                         </v-btn>
                       </template>
@@ -595,6 +595,7 @@ export default {
       .toISOString()
       .substr(0, 10),
     menu: false,
+    dateOnOpen: null,
     modal: false,
     menu2: false,
 
@@ -1283,6 +1284,10 @@ export default {
     },
   },
   watch: {
+    menu(open) {
+      if (open) this.dateOnOpen = this.date;
+      else this.date = this.dateOnOpen;
+    },
     actualizar() {
       this._getTotalesProveedor();
     },

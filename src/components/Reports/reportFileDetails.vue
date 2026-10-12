@@ -33,7 +33,7 @@
                       <v-btn variant="text" color="primary" @click="menuDesde = false">
                         Cancel
                       </v-btn>
-                      <v-btn variant="text" color="primary" @click="menuDesde = false">
+                      <v-btn variant="text" color="primary" @click="dateDesdeOnOpen = dateDesde; menuDesde = false">
                         OK
                       </v-btn>
                     </template>
@@ -67,7 +67,7 @@
                       <v-btn variant="text" color="primary" @click="menuHasta = false">
                         Cancel
                       </v-btn>
-                      <v-btn variant="text" color="primary" @click="menuHasta = false">
+                      <v-btn variant="text" color="primary" @click="dateHastaOnOpen = dateHasta; menuHasta = false">
                         OK
                       </v-btn>
                     </template>
@@ -330,8 +330,10 @@ export default {
   data: () => ({
     dateDesde: moment().startOf("month").format("YYYY-MM-DD"),
     menuDesde: false,
+    dateDesdeOnOpen: null,
     dateHasta: moment().endOf("month").format("YYYY-MM-DD"),
     menuHasta: false,
+    dateHastaOnOpen: null,
     expanded: [],
     singleExpand: false,
     dataList: true,
@@ -357,6 +359,16 @@ export default {
   }),
   mounted() {
     //this.getFileDetails();
+  },
+  watch: {
+    menuDesde(open) {
+      if (open) this.dateDesdeOnOpen = this.dateDesde;
+      else this.dateDesde = this.dateDesdeOnOpen;
+    },
+    menuHasta(open) {
+      if (open) this.dateHastaOnOpen = this.dateHasta;
+      else this.dateHasta = this.dateHastaOnOpen;
+    },
   },
   methods: {
     sumField(key) {
