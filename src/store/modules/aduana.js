@@ -2598,7 +2598,7 @@ const actions = {
         console.error(error);
       });
   },
-  async obtenerDatosEmpresaAduana() {
+  async obtenerDatosEmpresaAduana({ state }) {
     var headers = {
      
       "Content-Type": "application/json",
@@ -2713,7 +2713,7 @@ const actions = {
         console.error(error);
       });
   },
-  async registrarAduana(__, { fullflag = true }) {
+  async registrarAduana({ state }, { fullflag = true }) {
     let imp = state.listServices.filter(
       (v) => v.code_service == "15" && v.status == true
     );
@@ -2884,7 +2884,7 @@ const actions = {
         console.error(error);
       });
   },
-  async getAdunaVer(__, { id: id }) {
+  async getAdunaVer({ state }, { id: id }) {
     let config = {
       method: "get",
       url: import.meta.env.VUE_APP_URL_MAIN + `ver_aduana?id=${id}`,
@@ -3076,7 +3076,7 @@ const actions = {
       }
     });
   },
-  async obtenerDatosEmpresaAduana() {
+  async obtenerDatosEmpresaAduana({ state }) {
     var headers = {
      
       "Content-Type": "application/json",
@@ -3099,7 +3099,7 @@ const actions = {
       state.datosEmpresa = data;
     });
   },
-  async unificarQuoteAduana({}, data) {
+  async unificarQuoteAduana({ state }, data) {
     let config = {
       method: "post",
       url: import.meta.env.VUE_APP_URL_MAIN + "aduana_unificar",
@@ -5229,7 +5229,7 @@ const actions = {
         console.error(error);
       });
   },
-  generaInstructivoAduana({ dispatch }) {
+  generaInstructivoAduana({ dispatch, state }) {
     // -------------------------------------------------------
     state.listServiciosInstructivo = [];
 
@@ -5245,11 +5245,11 @@ const actions = {
     )[0].name;
 
     // console.log(state.opcionCostos)
-    GenerarIngresosInstrictivo(state.tiporeporte);
-    GenerarCostosInstrictivo(state.tiporeporte);
-    GenerarImpInstructivo();
+    GenerarIngresosInstrictivo(state.tiporeporte, state);
+    GenerarCostosInstrictivo(state.tiporeporte, state);
+    GenerarImpInstructivo(state);
   },
-  async generaInstructivoparaguardataAduana({ dispatch }) {
+  async generaInstructivoparaguardataAduana({ dispatch, state }) {
     state.listIngresosInstructivoAprobar = [];
     let isImport = state.listModality.some(
       (v) => v.id == state.datosPrincipales.idsentido && v.code == "I"
@@ -5750,7 +5750,7 @@ function isNotPorcentaje(element, id_multiplicador) {
   return !mul;
 }
 
-function GenerarIngresosInstrictivo(tipo) {
+function GenerarIngresosInstrictivo(tipo, state) {
   let iso = JSON.parse(sessionStorage.getItem("iso_pais"));
   let isImport = state.listModality.some(
     (v) => v.id == state.datosPrincipales.idsentido && v.code == "I"
@@ -7666,7 +7666,7 @@ function GenerarIngresosInstrictivo(tipo) {
     });
 }
 
-async function GenerarCostosInstrictivo(tipo) {
+async function GenerarCostosInstrictivo(tipo, state) {
   state.opcionCostos
     .filter((v) => !!v.selected)
     .forEach(async (opcion) => {
@@ -7803,7 +7803,7 @@ async function GenerarCostosInstrictivo(tipo) {
     });
 }
 
-function GenerarImpInstructivo() {
+function GenerarImpInstructivo(state) {
   let totalFleteVentas = 0;
   let impuestoflag = state.listServices.some(
     (v) => v.code_service == 15 && v.status == 1

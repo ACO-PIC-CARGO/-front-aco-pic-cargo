@@ -714,7 +714,7 @@ export default {
         });
         this.$store.state.spiner = false;
         this.dialogPreview = true;
-        getNombreCotizacion();
+        getNombreCotizacion(this.$store.state.pricing);
       }
     },
   },

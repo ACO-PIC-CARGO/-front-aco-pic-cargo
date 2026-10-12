@@ -372,7 +372,7 @@ const actions = {
         console.error(error);
       });
   },
-  async getVerProveedor({ commit }) {
+  async getVerProveedor({ commit, state }) {
     var config = {
       method: "get",
       url:
@@ -473,7 +473,7 @@ const actions = {
         console.error(error);
       });
   },
-  async guardarProveedor({ commit }) {
+  async guardarProveedor({ commit, state }) {
     let res = {};
     state.proveedor.id_branch = JSON.parse(
       sessionStorage.getItem("dataUser"),
@@ -559,7 +559,7 @@ const actions = {
       });
     return res;
   },
-  async actualizarProveedor({ commit }) {
+  async actualizarProveedor({ commit, state }) {
     state.proveedor.id_branch = JSON.parse(
       sessionStorage.getItem("dataUser"),
     )[0].id_branch;
@@ -648,7 +648,7 @@ const actions = {
       });
     dispatch("getListProveedor");
   },
-  async telConctactoProveedor({ commit, dispatch }, data) {
+  async telConctactoProveedor({ commit, dispatch, state }, data) {
     var config = {
       method: "get",
       url:
@@ -901,7 +901,7 @@ const actions = {
         console.error(error);
       });
   },
-  async guardarCliente({ commit }) {
+  async guardarCliente({ commit, state }) {
     state.cliente.id_branch = JSON.parse(
       sessionStorage.getItem("dataUser"),
     )[0].id_branch;
@@ -979,7 +979,7 @@ const actions = {
         console.error(error);
       });
   },
-  async verCliente({ commit }, id = null) {
+  async verCliente({ commit, state }, id = null) {
     var config = {
       method: "get",
       url:
@@ -1080,7 +1080,7 @@ const actions = {
         console.error(error);
       });
   },
-  async actualizarCliente({ commit }) {
+  async actualizarCliente({ commit, state }) {
     const nombreRuta = router.currentRoute.value
       ? router.currentRoute.value.name
       : router.currentRoute.value.name;

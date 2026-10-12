@@ -419,7 +419,7 @@ const actions = {
       });
   },
 
-  async CargaMasivaControlDeGastos({ commit }, data) {
+  async CargaMasivaControlDeGastos({ commit, state }, data) {
     state.response = [];
     var config = {
       method: "post",
@@ -441,7 +441,7 @@ const actions = {
       });
     return state.response;
   },
-  async DescargarConsolidadoCargaMasiva(_, id_mastercontrol) {
+  async DescargarConsolidadoCargaMasiva({ state }, id_mastercontrol) {
     state.response = [];
 
     var config = {
@@ -475,7 +475,7 @@ const actions = {
         console.error(error);
       });
   },
-  async guardarCuotasCgeTipoProveedor({ commit }, data) {
+  async guardarCuotasCgeTipoProveedor({ commit, state }, data) {
     state.response = [];
     var config = {
       method: "post",

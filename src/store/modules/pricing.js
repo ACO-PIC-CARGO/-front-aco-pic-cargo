@@ -557,7 +557,7 @@ const actions = {
       let data = response.data;
     });
   },
-  async obtenerRoles({ commit, rootState }) {
+  async obtenerRoles({ commit, rootState, state }) {
     state.itemsDataRoleList = rootState.itemsDataRoleList;
   },
   async ListarMontosFinalesQuoteMONGODB({ commit }) {
@@ -1331,7 +1331,7 @@ const actions = {
       }
     });
   },
-  async registrarQuote(__, { fullflag = true }) {
+  async registrarQuote({ state }, { fullflag = true }) {
     let imp = state.listServices.filter(
       (v) => v.code_service == "15" && v.status == true,
     );
@@ -1415,7 +1415,7 @@ const actions = {
       state.tiporeporte = "";
     });
   },
-  async registrarQuotePorCambioIncoterms(__, newData) {
+  async registrarQuotePorCambioIncoterms({ state }, newData) {
     let imp = newData.listServices.filter(
       (v) => v.code_service == "15" && v.status == true,
     );
@@ -1519,7 +1519,7 @@ const actions = {
       state.tiporeporte = "";
     });
   },
-  async copiarQuote(__, { fullflag = true, id = null }) {
+  async copiarQuote({ state }, { fullflag = true, id = null }) {
     let data = { id: id };
     //  console.log(data.costocotizacion);
     let config = {
@@ -1575,7 +1575,7 @@ const actions = {
       return response.data.data;
     });
   },
-  async getQuote({ dispatch }, { id: id }) {
+  async getQuote({ dispatch, state }, { id: id }) {
     let config = {
       method: "get",
       url: import.meta.env.VUE_APP_URL_MAIN + `getQuoteId?id=${id}`,
@@ -1639,7 +1639,7 @@ const actions = {
       ]);
     });
   },
-  async getCotzacionCalculadora({ dispatch }, data) {
+  async getCotzacionCalculadora({ dispatch, state }, data) {
     let config = {
       method: "get",
       url: import.meta.env.VUE_APP_URL_MAIN + `calc/ver_cotizacion`,
@@ -1729,7 +1729,7 @@ const actions = {
         console.error(error);
       });
   },
-  async obtenerDatosEmpresa() {
+  async obtenerDatosEmpresa({ state }) {
     var headers = {
       "Content-Type": "application/json",
     };
@@ -5654,7 +5654,7 @@ const actions = {
   comienzaConCaracter(nombre, caracter) {
     return nombre.charAt(0).toUpperCase() === caracter.toUpperCase();
   },
-  generaInstructivo({ dispatch }) {
+  generaInstructivo({ dispatch, state }) {
     // -------------------------------------------------------
     state.listServiciosInstructivo = [];
 
@@ -5669,11 +5669,11 @@ const actions = {
       (v) => v.id_entitie == state.datosPrincipales.id_pricing,
     )[0].name;
     // console.log(state.opcionCostos)
-    GenerarIngresosInstrictivo(state.tiporeporte);
-    GenerarCostosInstrictivo(state.tiporeporte);
-    GenerarImpInstructivo();
+    GenerarIngresosInstrictivo(state.tiporeporte, state);
+    GenerarCostosInstrictivo(state.tiporeporte, state);
+    GenerarImpInstructivo(state);
   },
-  async generaInstructivoparaguardata({ dispatch }) {
+  async generaInstructivoparaguardata({ dispatch, state }) {
     state.listIngresosInstructivoAprobar = [];
 
     let isImport = state.listModality.some(
@@ -6533,7 +6533,7 @@ function aplicarMinimoCosto(element, importe) {
   return importe;
 }
 
-function GenerarIngresosInstrictivo(tipo) {
+function GenerarIngresosInstrictivo(tipo, state) {
   let iso = JSON.parse(sessionStorage.getItem("iso_pais"));
   let isImport = state.listModality.some(
     (v) => v.id == state.datosPrincipales.idsentido && v.code == "I",
@@ -8320,7 +8320,7 @@ function GenerarIngresosInstrictivo(tipo) {
     });
 }
 
-async function GenerarCostosInstrictivo(tipo) {
+async function GenerarCostosInstrictivo(tipo, state) {
   state.opcionCostos
     .filter((v) => !!v.selected)
     .forEach(async (opcion) => {
@@ -8465,7 +8465,7 @@ async function GenerarCostosInstrictivo(tipo) {
     });
 }
 
-function GenerarImpInstructivo() {
+function GenerarImpInstructivo(state) {
   let totalFleteVentas = 0;
   let impuestoflag = state.listServices.some(
     (v) => v.code_service == 15 && v.status == 1,
@@ -8570,7 +8570,7 @@ function isNotPorcentaje(element, id_multiplicador) {
   return !mul;
 }
 
-export function getNombreCotizacion(listNotasQuote) {
+export function getNombreCotizacion(state) {
   // COTIZACION  Servicio *Maritimo*  Salida Semanal. *CLIENTE No 10060*
   let tipoCarga = state.datosPrincipales.idtipocarga;
   let id = null;

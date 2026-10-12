@@ -189,7 +189,7 @@ const actions = {
     }
   },
 
-  async setAirline({ commit }) {
+  async setAirline({ commit, state }) {
     state.AirlineModel.id_branch = JSON.parse(
       sessionStorage.getItem("dataUser")
     )[0].id_branch;
@@ -304,7 +304,7 @@ const actions = {
     }
   },
 
-  async actualizarAirline({ commit }) {
+  async actualizarAirline({ commit, state }) {
     state.AirlineModel.id_branch = JSON.parse(
       sessionStorage.getItem("dataUser")
     )[0].id_branch;

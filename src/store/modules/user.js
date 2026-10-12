@@ -104,7 +104,7 @@ let actions = {
         console.error(error);
       });
   },
-  async GetVerUsers({ commit }) {
+  async GetVerUsers({ commit, state }) {
     var config = {
       method: "get",
       url:
