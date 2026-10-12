@@ -139,7 +139,7 @@
               <v-chip
                 class="ma-2"
                 color="green"
-                text-color="white"
+                variant="flat"
                 v-if="!item.id"
               >
                 Nuevo
@@ -238,7 +238,7 @@
           </v-card-text>
           <v-card-actions class="d-flex justify-end">
             <v-btn color="success" @click="guardarCosto()">Aceptar</v-btn>
-            <v-btn color="red" @click="dialog = !dialog" dark>cancelar</v-btn>
+            <v-btn color="red" @click="dialog = !dialog">cancelar</v-btn>
           </v-card-actions>
         </v-card>
       </v-form>
@@ -253,6 +253,7 @@ import _ from "lodash";
 import Swal from "sweetalert2";
 
 export default {
+  emits: ["cerrarModal", "cerrarModalGuardar", "recargarCostos"],
   props: {
     id_modality: {
       type: Number,
@@ -417,8 +418,8 @@ export default {
         this.lstCostos.splice(index, 1);
       }
     },
-    guardarCosto() {
-      if (!this.$refs.frmNuevoCosto.validate()) return;
+    async guardarCosto() {
+      if (!(await this.$refs.frmNuevoCosto.validate()).valid) return;
       const nuevoCosto = { ...this.fromDataService };
       nuevoCosto.esgastostercerosflag = 0;
       nuevoCosto.esfleteflag = 0;

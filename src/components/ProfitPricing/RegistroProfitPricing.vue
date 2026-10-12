@@ -46,7 +46,7 @@
           </v-data-table>
         </v-col>
         <v-col class="icons-and-text" cols="12">
-          <template> </template>
+           
         </v-col>
       </v-row>
     </v-form>
@@ -98,8 +98,8 @@
                   <v-icon class="mx-1">mdi-account-group</v-icon>
                 </v-tab>
               </v-tabs>
-              <v-tabs-items v-model="tab">
-                <v-tab-item>
+              <v-tabs-window v-model="tab">
+                <v-tabs-window-item>
                   <v-expansion-panels multiple class="px-5 py-2">
                     <v-expansion-panel
                       v-for="(item, index) in panelesConDatos"
@@ -113,7 +113,7 @@
                         <v-data-table
                           :headers="headers"
                           :items="obtenerCostosEnBaseTipoCosto(item.codigo)"
-                          item-key="id"
+                          item-value="id"
                           density="compact"
                         >
                           <template v-slot:[`item.proveedor`]="{ item }">
@@ -174,8 +174,8 @@
                       </v-expansion-panel-text>
                     </v-expansion-panel>
                   </v-expansion-panels>
-                </v-tab-item>
-                <v-tab-item>
+                </v-tabs-window-item>
+                <v-tabs-window-item>
                   <v-expansion-panels multiple class="px-5 py-2">
                     <v-expansion-panel
                       v-for="(item, index) in panelesConDatos"
@@ -189,7 +189,7 @@
                         <v-data-table
                           :headers="headers"
                           :items="obtenerCostosEnBaseTipoCosto(item.codigo)"
-                          item-key="id"
+                          item-value="id"
                           density="compact"
                         >
                           <template v-slot:[`item.proveedor`]="{ item }">
@@ -250,8 +250,8 @@
                       </v-expansion-panel-text>
                     </v-expansion-panel>
                   </v-expansion-panels>
-                </v-tab-item>
-              </v-tabs-items>
+                </v-tabs-window-item>
+              </v-tabs-window>
             </v-col>
           </v-row>
         </v-card-text>
@@ -406,7 +406,7 @@ export default {
       this.dialogNuevoProfit = true;
     },
     async cargarDatos() {
-      if (this.$refs.frmDatos.validate()) {
+      if ((await this.$refs.frmDatos.validate()).valid) {
         this.loadingObtenerDatos = true;
         await Promise.all([
           this.getProfitPricing(),
@@ -429,8 +429,8 @@ export default {
         this.bloquearBotonAnadirConcepto = false;
       }
     },
-    anadirConcepto() {
-      if (this.$refs.frmAsignarCosto.validate()) {
+    async anadirConcepto() {
+      if ((await this.$refs.frmAsignarCosto.validate()).valid) {
         if (this.tab == 0) {
           this.$store.state.profitPricing.lstProfigIndividual.unshift({
             ...this.formData,

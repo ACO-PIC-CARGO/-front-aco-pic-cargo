@@ -248,7 +248,7 @@ export default {
       });
     },
     async abrirModal(id, incoterms) {
-      if (!this.$refs.frmBuscar.validate()) {
+      if (!(await this.$refs.frmBuscar.validate()).valid) {
         return;
       }
       this.loading = true;
