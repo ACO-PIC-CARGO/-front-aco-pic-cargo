@@ -626,6 +626,7 @@
 <script>
 import moment from "moment";
 export default {
+  emits: ["cerrar"],
   props: ["data", "index"],
   name: "PreviewQuote",
   data() {
@@ -791,12 +792,12 @@ export default {
 * {
   font-size: 0.8rem;
 }
-.v-data-table > .v-data-table__wrapper > table > tbody > tr > td,
-.v-data-table > .v-data-table__wrapper > table > tbody > tr > th,
-.v-data-table > .v-data-table__wrapper > table > thead > tr > td,
-.v-data-table > .v-data-table__wrapper > table > thead > tr > th,
-.v-data-table > .v-data-table__wrapper > table > tfoot > tr > td,
-.v-data-table > .v-data-table__wrapper > table > tfoot > tr > th {
+.v-table > .v-table__wrapper > table > tbody > tr > td,
+.v-table > .v-table__wrapper > table > tbody > tr > th,
+.v-table > .v-table__wrapper > table > thead > tr > td,
+.v-table > .v-table__wrapper > table > thead > tr > th,
+.v-table > .v-table__wrapper > table > tfoot > tr > td,
+.v-table > .v-table__wrapper > table > tfoot > tr > th {
   padding: 0;
   transition: height 0.2s cubic-bezier(0.4, 0, 0.6, 1);
 }

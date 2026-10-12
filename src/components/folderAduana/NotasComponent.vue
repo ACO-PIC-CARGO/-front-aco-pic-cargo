@@ -49,7 +49,7 @@
         </div>
       </v-col>
       <v-col cols="12">
-        <v-expansion-panels class="my-1 condensed" hover>
+        <v-expansion-panels class="my-1 condensed">
           <v-expansion-panel>
             <v-expansion-panel-title>
               Notas Principales
@@ -100,7 +100,7 @@
         </v-expansion-panels>
       </v-col>
       <v-col cols="12">
-        <v-expansion-panels class="my-1 condensed" hover>
+        <v-expansion-panels class="my-1 condensed">
           <v-expansion-panel>
             <v-expansion-panel-title>
               <span class="d-inline-flex align-center">
@@ -146,7 +146,7 @@
           </v-expansion-panel>
         </v-expansion-panels>
       </v-col>
-      <v-expansion-panels class="my-1 condensed" hover>
+      <v-expansion-panels class="my-1 condensed">
         <v-expansion-panel>
           <v-expansion-panel-title
             ><span class="d-inline-flex align-center">
@@ -193,7 +193,7 @@
       </v-expansion-panels>
 
       <v-col class="derecha">
-        <v-btn color="#3363A2" dark @click="abrirModalCambioNombreSecciones()">
+        <v-btn color="#3363A2" @click="abrirModalCambioNombreSecciones()">
           PREVIEW COTIZACIÓN(es)</v-btn
         >
       </v-col>
@@ -253,7 +253,6 @@
             <v-radio-group
               v-model="tiporeporte"
               disabled
-              column
               :rules="[(v) => !!v || 'Dato requerido']"
             >
               <v-radio
@@ -297,7 +296,6 @@
           <v-form ref="frmReporte">
             <v-radio-group
               v-model="tiporeporte"
-              column
               :rules="[(v) => !!v || 'Dato requerido']"
             >
               <v-radio
@@ -476,8 +474,8 @@ export default {
       this.statusnoincluye = statusnoincluye;
       this.dialog = true;
     },
-    anidarNota() {
-      if (this.$refs.frmNota.validate()) {
+    async anidarNota() {
+      if ((await this.$refs.frmNota.validate()).valid) {
         this.opcionesSeleccionadas[
           this.$store.state.aduana.page - 1
         ].listNotasQuote.push({
@@ -498,7 +496,7 @@ export default {
       this.$store.state.aduana.tiporeporte = this.tiporeporte;
       this.loading = true;
       if (!this.$route.params.id) {
-        if (this.$refs.frmReporte.validate()) {
+        if ((await this.$refs.frmReporte.validate()).valid) {
           this.$store.state.spiner = true;
           await this.registrarAduana({ fullflag: true }).catch((e) => {
            console.error(e);
@@ -558,7 +556,7 @@ export default {
           }
         }
       } else {
-        if (this.$refs.frmReporte.validate()) {
+        if ((await this.$refs.frmReporte.validate()).valid) {
           this.$store.state.spiner = true;
           this.imprimirFlag = false;
 
@@ -613,7 +611,7 @@ export default {
       this.$store.state.aduana.bloquearBtnImprimir = false;
     },
     async generarPreview() {
-      if (this.$refs.frmReporte.validate()) {
+      if ((await this.$refs.frmReporte.validate()).valid) {
         this.$store.state.spiner = true;
         this.previewFlag = false;
         await this.obtenerDatosEmpresaAduana();

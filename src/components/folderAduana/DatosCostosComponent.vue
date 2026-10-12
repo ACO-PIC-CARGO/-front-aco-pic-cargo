@@ -53,7 +53,6 @@
               color="#3363A2"
               class="mx-1 btn-ingresarcostos"
               size="x-large"
-              dark
               @click="pasarLlenadoCostos()"
               v-if="btnIngresarCostos"
             >
@@ -65,7 +64,6 @@
               color="red"
               class="mx-1"
               size="x-large"
-              dark
               @click="cancelarLlenadoCostos()"
               v-if="$store.state.aduana.index > 0 && btnIngresarCostos"
             >
@@ -91,7 +89,6 @@
             <v-spacer></v-spacer>
             <v-btn
               color="#3363A2"
-              dark
               v-if="$store.state.aduana.mostrarGuardarCostos"
               @click="agregarNuevoCostoIrAVentas()"
               >GUARDAR COSTOS OPCIÓN {{ $store.state.aduana.index + 1 }}</v-btn
@@ -184,7 +181,7 @@
               class="derecha"
               v-if="mostrarContinuarVentas && mostrarBtn"
             >
-              <v-btn color="#3363A2" @click="activarImpuesto" dark>
+              <v-btn color="#3363A2" @click="activarImpuesto">
                 Continuar Impuesto
               </v-btn>
             </v-col>
@@ -242,6 +239,7 @@ import moment from "moment";
 import Swal from "sweetalert2";
 
 export default {
+  emits: ["continuarComparativa", "anadirNuevaOpcion", "irANotas"],
   props: {
     mostrarBtn: {
       type: Boolean,
@@ -284,8 +282,8 @@ export default {
       this.$store.state.aduana.actualizarComparativa =
         !this.$store.state.aduana.actualizarComparativa;
     },
-    pasarLlenadoCostos() {
-      if (this.$refs.frmDatosOpcion.validate()) {
+    async pasarLlenadoCostos() {
+      if ((await this.$refs.frmDatosOpcion.validate()).valid) {
         this.btnIngresarCostos = false;
         this.mostrarCostos = true;
       }
@@ -398,8 +396,8 @@ export default {
       }
     },
 
-    activarCosto() {
-      if (this.$refs.frmFecha.validate()) {
+    async activarCosto() {
+      if ((await this.$refs.frmFecha.validate()).valid) {
         this.$store.state.aduana.costoflag = true;
         let cost = this.$store.state.aduana.listCostos.filter(
           (v) => v.esopcionflag == 1
@@ -572,7 +570,7 @@ export default {
   text-align: right !important;
   align-content: right !important;
 }
-.v-btn.v-size--x-large {
+.v-btn.v-btn--size-x-large {
   font-size: 1.5rem !important;
 }
 .v-pagination__item {

@@ -1,6 +1,6 @@
 <template>
   <v-card fluid>
-    <v-expansion-panels class="my-1 condensed" hover>
+    <v-expansion-panels class="my-1 condensed">
       <v-expansion-panel>
         <v-expansion-panel-title> Notas Principales </v-expansion-panel-title>
         <v-expansion-panel-text>
@@ -42,7 +42,7 @@
       </v-expansion-panel>
     </v-expansion-panels>
     <v-divider></v-divider>
-    <v-expansion-panels class="my-1 condensed" hover>
+    <v-expansion-panels class="my-1 condensed">
       <v-expansion-panel>
         <v-expansion-panel-title> Se incluye </v-expansion-panel-title>
         <v-expansion-panel-text>
@@ -75,7 +75,7 @@
       </v-expansion-panel>
     </v-expansion-panels>
     <v-divider></v-divider>
-    <v-expansion-panels class="my-1 condensed" hover>
+    <v-expansion-panels class="my-1 condensed">
       <v-expansion-panel>
         <v-expansion-panel-title> No se incluye </v-expansion-panel-title>
         <v-expansion-panel-text>
@@ -179,7 +179,6 @@
           <v-form ref="frmReporte">
             <v-radio-group
               v-model="$store.state.aduana.tiporeporte"
-              column
               :rules="[(v) => !!v || 'Dato requerido']"
               disabled
             >

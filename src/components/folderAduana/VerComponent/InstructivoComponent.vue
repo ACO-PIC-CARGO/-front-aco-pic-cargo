@@ -15,6 +15,7 @@
 
     <v-dialog
       v-model="aprobarflag"
+      eager
       scrollable
       persistent
       max-width="50%"
@@ -30,7 +31,7 @@
           </v-btn>
         </v-card-title>
         <v-card-text>
-          <v-form ref="frmAprobar">
+          <v-form ref="masterForm">
             <v-row>
               <v-autocomplete
                 :items="$store.state.itemsMasterList"
@@ -49,7 +50,7 @@
           <v-alert
             v-if="mostrarAdvertencia"
             border="start"
-            colored-border
+            border-color="error"
             type="error"
             elevation="2"
           >
@@ -83,6 +84,7 @@
     </v-dialog>
     <v-dialog
       v-model="seleccionQuoteAprobar"
+      eager
       scrollable
       persistent
       max-width="35%"
@@ -748,7 +750,7 @@ export default {
       }
     },
     async guardarNota() {
-      if (this.$refs.nota.validate()) {
+      if ((await this.$refs.nota.validate()).valid) {
         this.$store.state.spiner = true;
         let data = {
           name: this.descripcionNota,
@@ -776,7 +778,7 @@ export default {
     },
     async abrirModalAprobar() {
       await this.generaInstructivoparaguardataAduana();
-      if (this.$refs.frmAprobar.validate()) {
+      if ((await this.$refs.frmAprobar.validate()).valid) {
         let fecha_validez = this.$store.state.aduana.opcionCostos.filter(
           (v) => v.nro_propuesta == this.nro_propuesta
         )[0].date_end;
@@ -1161,7 +1163,7 @@ export default {
         this.$store.state.aduana.listIngresosInstructivoAprobar.filter(
           (v) => v.nro_propuesta == this.nro_propuesta
         )[0].dataVentas;
-      if (this.$refs.frmAprobar.validate()) {
+      if ((await this.$refs.masterForm.validate()).valid) {
         Swal.fire({
           icon: "info",
           title: "Aprobando Cotizacion",

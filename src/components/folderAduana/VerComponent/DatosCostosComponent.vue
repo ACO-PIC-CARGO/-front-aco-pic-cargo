@@ -135,8 +135,8 @@ export default {
 
       return imp;
     },
-    agregarNuevaOpcion() {
-      if (this.$refs.frmDatosOpcion.validate()) {
+    async agregarNuevaOpcion() {
+      if ((await this.$refs.frmDatosOpcion.validate()).valid) {
         let nro_propuesta = this.$store.state.aduana.index + 1;
         let costos = this.$store.state.aduana.listCostos.map((objeto) => ({
           ...objeto,
@@ -214,7 +214,7 @@ export default {
   text-align: right !important;
   align-content: right !important;
 }
-.v-btn.v-size--x-large {
+.v-btn.v-btn--size-x-large {
   font-size: 1.5rem !important;
 }
 </style>

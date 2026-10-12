@@ -100,7 +100,6 @@
                 <v-btn
                   icon
                   color="red"
-                  dark
                   @click="eliminarContainer({ index: item.index })"
                 >
                   <v-icon>mdi-delete</v-icon>
@@ -149,7 +148,7 @@
         <v-card-actions>
           <v-spacer></v-spacer>
           <v-btn color="success" @click="guardarContainer()">Aceptar</v-btn>
-          <v-btn color="red" dark @click="dialogConteiner = !dialogConteiner">
+          <v-btn color="red" @click="dialogConteiner = !dialogConteiner">
             Cancelar
           </v-btn>
         </v-card-actions>
@@ -198,9 +197,9 @@ export default {
         this.err = "Datos requerido y mayor que cero";
       }
     },
-    guardarContainer() {
+    async guardarContainer() {
       this.err = "";
-      if (this.$refs.frmContainer.validate()) {
+      if ((await this.$refs.frmContainer.validate()).valid) {
         if (
           this.$store.state.aduana.datosPrincipales.containers.filter(
             (v) => v.id == this.containers.container.id
@@ -226,7 +225,7 @@ export default {
     },
     async aceptar() {
       let validate = true;
-      if (this.$refs.frmPuerto.validate()) {
+      if ((await this.$refs.frmPuerto.validate()).valid) {
         if (
           this.$store.state.aduana.datosPrincipales.idtipocarga.code == "FCL"
         ) {

@@ -3,62 +3,75 @@
     <v-card elevation="10">
       <v-stepper v-model="$store.state.aduana.e1" non-linear>
         <v-stepper-header>
-          <v-stepper-step complete step="1" :editable="editable1">
-            Datos de la Carga
-          </v-stepper-step>
+          <v-stepper-item
+            complete
+            :value="1"
+            title="Datos de la Carga"
+            :editable="editable1"
+          />
 
           <v-divider></v-divider>
 
-          <v-stepper-step complete step="2" :editable="mostrarStepS">
-            <span v-if="mostrarStepS"> costos de la Cotización </span>
-            <v-progress-circular
-              v-else
-              indeterminate
-              color="primary"
-            ></v-progress-circular>
-          </v-stepper-step>
+          <v-stepper-item complete :value="2" :editable="mostrarStepS">
+            <template #title>
+              <span v-if="mostrarStepS"> costos de la Cotización </span>
+              <v-progress-circular
+                v-else
+                indeterminate
+                color="primary"
+              ></v-progress-circular>
+            </template>
+          </v-stepper-item>
 
           <v-divider></v-divider>
-          <v-stepper-step step="3" complete :editable="mostrarStepS">
-            <span v-if="mostrarStepS"> Comparativa </span>
-            <v-progress-circular
-              v-else
-              indeterminate
-              color="primary"
-            ></v-progress-circular>
-          </v-stepper-step>
+          <v-stepper-item :value="3" complete :editable="mostrarStepS">
+            <template #title>
+              <span v-if="mostrarStepS"> Comparativa </span>
+              <v-progress-circular
+                v-else
+                indeterminate
+                color="primary"
+              ></v-progress-circular>
+            </template>
+          </v-stepper-item>
           <v-divider></v-divider>
-          <v-stepper-step complete step="4" :editable="mostrarStepS">
-            <span v-if="mostrarStepS"> Notas de Costos </span>
-            <v-progress-circular
-              v-else
-              indeterminate
-              color="primary"
-            ></v-progress-circular>
-          </v-stepper-step>
+          <v-stepper-item complete :value="4" :editable="mostrarStepS">
+            <template #title>
+              <span v-if="mostrarStepS"> Notas de Costos </span>
+              <v-progress-circular
+                v-else
+                indeterminate
+                color="primary"
+              ></v-progress-circular>
+            </template>
+          </v-stepper-item>
           <v-divider></v-divider>
 
-          <v-stepper-step complete step="5" :editable="mostrarStepS">
+          <v-stepper-item complete :value="5" :editable="mostrarStepS">
             <!-- Instructivo -->
-            <span v-if="mostrarStepS"> Enviar a Operaciones </span>
-            <v-progress-circular
-              v-else
-              indeterminate
-              color="primary"
-            ></v-progress-circular>
-          </v-stepper-step>
-          <v-stepper-step complete step="6" :editable="mostrarStepS">
-            <span v-if="mostrarStepS"> Unificar Cotización </span>
-            <v-progress-circular
-              v-else
-              indeterminate
-              color="primary"
-            ></v-progress-circular>
-          </v-stepper-step>
+            <template #title>
+              <span v-if="mostrarStepS"> Enviar a Operaciones </span>
+              <v-progress-circular
+                v-else
+                indeterminate
+                color="primary"
+              ></v-progress-circular>
+            </template>
+          </v-stepper-item>
+          <v-stepper-item complete :value="6" :editable="mostrarStepS">
+            <template #title>
+              <span v-if="mostrarStepS"> Unificar Cotización </span>
+              <v-progress-circular
+                v-else
+                indeterminate
+                color="primary"
+              ></v-progress-circular>
+            </template>
+          </v-stepper-item>
         </v-stepper-header>
         <!-- DATA -->
-        <v-stepper-items>
-          <v-stepper-content step="1">
+        <v-stepper-window>
+          <v-stepper-window-item :value="1" eager>
             <v-row class="my-1">
               <v-col cols="12" md="6" class="pa-0">
                 <DatosPrincipales />
@@ -70,29 +83,29 @@
                 <Services />
               </v-col>
             </v-row>
-          </v-stepper-content>
-          <v-stepper-content step="2">
+          </v-stepper-window-item>
+          <v-stepper-window-item :value="2" eager>
             <v-row class="my-1">
               <v-col cols="12">
                 <Costos v-if="mostrarStepS" />
               </v-col>
             </v-row>
-          </v-stepper-content>
-          <v-stepper-content step="3">
+          </v-stepper-window-item>
+          <v-stepper-window-item :value="3" eager>
             <Comparativa v-if="mostrarStepS" />
-          </v-stepper-content>
-          <v-stepper-content step="4">
+          </v-stepper-window-item>
+          <v-stepper-window-item :value="4" eager>
             <Notas v-if="mostrarStepS" />
-          </v-stepper-content>
-          <v-stepper-content step="5">
+          </v-stepper-window-item>
+          <v-stepper-window-item :value="5" eager>
             <Instructivo v-if="mostrarStepS" />
             <!-- COMBINAR -->
-          </v-stepper-content>
-          <v-stepper-content step="6">
+          </v-stepper-window-item>
+          <v-stepper-window-item :value="6" eager>
             <UnificarCotizacion v-if="mostrarStepS" />
             <!-- COMBINAR -->
-          </v-stepper-content>
-        </v-stepper-items>
+          </v-stepper-window-item>
+        </v-stepper-window>
       </v-stepper>
     </v-card>
   </v-container>
@@ -233,7 +246,7 @@ export default {
 
     if (this.$route.params.step) {
       this.$store.state.aduana.e1 = this.$route.params.step
-        ? this.$route.params.step
+        ? Number(this.$route.params.step)
         : 1;
     }
 

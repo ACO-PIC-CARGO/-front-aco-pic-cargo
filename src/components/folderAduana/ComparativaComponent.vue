@@ -57,7 +57,7 @@
         <v-btn @click="regregar()" color="default">Anterior</v-btn>
       </v-col>
       <v-col cols="6" class="derecha">
-        <v-btn @click="continuar()" color="#3363A2" dark
+        <v-btn @click="continuar()" color="#3363A2"
           >Cotizar Venta final del cliente</v-btn
         >
       </v-col>
@@ -69,6 +69,7 @@
 import mixins from "@/components/mixins/funciones.js";
 import Swal from "sweetalert2";
 export default {
+  emits: ["irVentaCliente"],
   mixins: [mixins],
   data() {
     return {
@@ -121,7 +122,7 @@ export default {
     },
     agregarFilasAlHeader() {
       this.headers = [
-        { title: "Tarifa de Costos", key: "tarifa" },
+        { text: "Tarifa de Costos", value: "tarifa" },
         // { text: "Proveedor Flete", value: "proveedor" },
       ];
 
