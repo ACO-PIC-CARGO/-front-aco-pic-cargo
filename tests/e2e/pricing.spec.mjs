@@ -42,7 +42,11 @@ test("creates a draft quote, then views and edits it from the list", async ({ pa
   await page.getByRole("button", { name: "AGREGAR" }).click();
   await page.getByRole("button", { name: "Continuar Servicios" }).click();
 
-  await page.getByRole("checkbox", { name: "TRANSPORTE EN DESTINO" }).uncheck({ force: true });
+  const destinationTransport = page.getByRole("checkbox", { name: "TRANSPORTE EN DESTINO" });
+  await expect(async () => {
+    await destinationTransport.uncheck({ force: true });
+    await expect(destinationTransport).not.toBeChecked();
+  }).toPass();
   await page.getByLabel("Valor de la mercancia").filter({ visible: true }).fill("1000");
   await page.getByRole("button", { name: "Continuar", exact: true }).click();
   const saved = page.waitForResponse((r) => r.url().endsWith("/setQuote") && r.request().method() === "POST");
