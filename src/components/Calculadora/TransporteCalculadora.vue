@@ -19,11 +19,12 @@
         <v-divider></v-divider>
       </v-col>
       <v-col cols="12">
-        <v-tabs v-model="tabTransporte" align-tabs="center">
-          <v-tabs-slider color="yellow"></v-tabs-slider>
-          <v-tab href="#datosactuales">Datos Actuales</v-tab>
-          <v-tab href="#cargamasiva">Carga Masiva</v-tab>
-          <v-tab-item value="datosactuales">
+        <v-tabs v-model="tabTransporte" align-tabs="center" slider-color="yellow">
+          <v-tab value="datosactuales">Datos Actuales</v-tab>
+          <v-tab value="cargamasiva">Carga Masiva</v-tab>
+        </v-tabs>
+        <v-tabs-window v-model="tabTransporte">
+          <v-tabs-window-item value="datosactuales">
             <v-row>
               <v-col cols="12" class="d-flex justify-end">
                 <v-btn color="success" size="small" @click="abrirModalNuevo"
@@ -46,8 +47,8 @@
                 </v-data-table>
               </v-col>
             </v-row>
-          </v-tab-item>
-          <v-tab-item value="cargamasiva">
+          </v-tabs-window-item>
+          <v-tabs-window-item value="cargamasiva">
             <v-row class="my-2">
               <v-col cols="12" md="2" style="text-align: right">
                 <v-text-field
@@ -70,8 +71,8 @@
                   id="excel"
                   hide-details
                   @click:clear="subir = false"
-                  @change="subir = false"
-                  @click.native="subir = false"
+                  @update:model-value="subir = false"
+                  @click="subir = false"
                 ></v-file-input>
               </v-col>
               <v-col cols="12" md="6" style="text-align: right">
@@ -138,8 +139,8 @@
                 </v-form>
               </v-col>
             </v-row>
-          </v-tab-item>
-        </v-tabs>
+          </v-tabs-window-item>
+        </v-tabs-window>
       </v-col>
     </v-row>
     <v-dialog v-model="dialogEditar" persistent max-width="30%">
@@ -284,7 +285,7 @@ export default {
         { key: "tarifamonlocal", title: "Tarifa Soles" },
         { key: "tipocambio", title: "Tipo Cambio" },
         { key: "tarifadolar", title: "Tarifa En Dolares" },
-        { value: "action" },
+        { key: "action" },
       ],
       procesando: false,
       excel: null,
@@ -336,7 +337,7 @@ export default {
     },
     async guardarRegistro() {
       console.log("frmEditar", this.$refs.frmEditar);
-      if (this.$refs.frmEditar.validate()) {
+      if ((await this.$refs.frmEditar.validate()).valid) {
         await this.RegistroTransporte(this.transporte);
         await this.getTransporte({
           shimpent: this.type,
@@ -414,7 +415,7 @@ export default {
 
     async registrarDatos() {
       // 1. Primero validamos el formulario para evitar cálculos si hay errores
-      if (!this.$refs.frmDatos.validate()) {
+      if (!(await this.$refs.frmDatos.validate()).valid) {
         Swal.fire({
           icon: "error",
           title: "Verificar",

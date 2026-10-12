@@ -2,29 +2,29 @@
   <v-card>
     <v-container fluid>
       <v-tabs align-tabs="center" v-model="tab">
-        <v-tab href="#fletelst" active>Flete Listado </v-tab>
-        <v-tab href="#section">Secciones </v-tab>
-        <v-tab href="#serv">Servicios </v-tab>
-        <v-tab href="#cost">Costos Fijos</v-tab>
-        <v-tab href="#flete">Flete</v-tab>
+        <v-tab value="fletelst">Flete Listado </v-tab>
+        <v-tab value="section">Secciones </v-tab>
+        <v-tab value="serv">Servicios </v-tab>
+        <v-tab value="cost">Costos Fijos</v-tab>
+        <v-tab value="flete">Flete</v-tab>
       </v-tabs>
-      <v-tabs-items v-model="tab">
-        <v-tab-item value="fletelst">
+      <v-tabs-window v-model="tab">
+        <v-tabs-window-item value="fletelst">
           <FleteListComponent type="LCL" :id_modality="id_modality" />
-        </v-tab-item>
-        <v-tab-item value="section">
+        </v-tabs-window-item>
+        <v-tabs-window-item value="section">
           <SectionCalculadora type="LCL" :id_modality="id_modality" />
-        </v-tab-item>
-        <v-tab-item value="serv">
+        </v-tabs-window-item>
+        <v-tabs-window-item value="serv">
           <Servicios type="LCL" :id_modality="id_modality" />
-        </v-tab-item>
-        <v-tab-item value="cost">
+        </v-tabs-window-item>
+        <v-tabs-window-item value="cost">
           <CostosCalculadora type="LCL" :id_modality="id_modality" />
-        </v-tab-item>
-        <v-tab-item value="flete">
+        </v-tabs-window-item>
+        <v-tabs-window-item value="flete">
           <FleteComponent type="LCL" :id_modality="id_modality" />
-        </v-tab-item>
-      </v-tabs-items>
+        </v-tabs-window-item>
+      </v-tabs-window>
     </v-container>
   </v-card>
 </template>

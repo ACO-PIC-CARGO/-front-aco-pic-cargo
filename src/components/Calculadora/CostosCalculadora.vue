@@ -55,7 +55,7 @@
         />
       </v-col> -->
     </v-row>
-    <v-dialog v-model="dialogNuevoCosto" persistent max-width="40%">
+    <v-dialog v-model="dialogNuevoCosto" persistent max-width="40%" eager>
       <v-card>
         <v-card-title>
           Nuevo Concepto - Opción {{ opcionCalculadora }}</v-card-title
@@ -232,7 +232,7 @@ export default {
       );
     },
     async guardarConcepto() {
-      if (this.$refs.frmConcepto.validate()) {
+      if ((await this.$refs.frmConcepto.validate()).valid) {
         let data = {
           id_service: this.id_service,
           id_tipocosto: this.id_tipocosto,

@@ -2,7 +2,7 @@
   <v-container fluid>
     <v-text-field
       v-model="search"
-      append-icon="mdi-magnify"
+      append-inner-icon="mdi-magnify"
       label="Buscar"
       single-line
       hide-details
@@ -16,7 +16,7 @@
       :headers="headers"
       :items="$store.state.calculadoras.lstFlete"
       :search="search"
-      item-key="id"
+      item-value="id"
     >
       <template v-slot:item.action="{ item }">
         <v-btn color="warning" @click="editFlete(item)" size="small" icon>
@@ -66,6 +66,7 @@
 import FormatFecha from "@/components/comun/FormatFecha.vue";
 import { mapActions } from 'vuex';
 export default {
+  emits: ["flete-actualizado"],
   components: {
     FormatFecha,
   },

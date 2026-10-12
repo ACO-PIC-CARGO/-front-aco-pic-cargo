@@ -244,7 +244,7 @@ export default {
       "eliminarGuardarProfit",
     ]),
     async guardarProfit() {
-      if (this.$refs.frmNuevo.validate()) {
+      if ((await this.$refs.frmNuevo.validate()).valid) {
         let data = {
           id_modality: this.id_modality,
           shimpent: this.type,
@@ -318,7 +318,7 @@ export default {
       });
     },
     async actualizarProfit() {
-      if (this.$refs.frmNuevo.validate()) {
+      if ((await this.$refs.frmNuevo.validate()).valid) {
         let data = {
           id: this.id,
           id_modality: this.id_modality,

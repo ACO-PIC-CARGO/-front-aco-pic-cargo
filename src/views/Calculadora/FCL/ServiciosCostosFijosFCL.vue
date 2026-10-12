@@ -4,50 +4,49 @@
       <v-tabs
         bg-color="#B71C1C"
         center-active
-        dark
         align-tabs="center"
+        slider-color="red"
         v-model="tab"
       >
-        <v-tabs-slider color="red"></v-tabs-slider>
-        <v-tab href="#flete">Carga Masiva Flete</v-tab>
-        <v-tab href="#config">Configuracion</v-tab>
-        <v-tab href="#fletelst" active>Listado Fletes </v-tab>
+        <v-tab value="flete">Carga Masiva Flete</v-tab>
+        <v-tab value="config">Configuracion</v-tab>
+        <v-tab value="fletelst">Listado Fletes </v-tab>
         <!-- <v-tab href="#fletegrup" active>Listado Fletes Grupal</v-tab> -->
         <!-- <v-tab href="#section">Secciones </v-tab> -->
         <!-- <v-tab href="#serv">Servicios </v-tab> -->
         <!-- <v-tab href="#cost">Costos Fijos</v-tab> -->
         <!-- <v-tab href="#profit">Profit</v-tab> -->
-        <v-tab href="#Transporte">Transporte</v-tab>
+        <v-tab value="Transporte">Transporte</v-tab>
       </v-tabs>
-      <v-tabs-items v-model="tab">
-        <v-tab-item value="fletelst">
+      <v-tabs-window v-model="tab">
+        <v-tabs-window-item value="fletelst">
           <FleteListComponent type="FCL" :id_modality="id_modality" />
-        </v-tab-item>
-        <v-tab-item value="config">
+        </v-tabs-window-item>
+        <v-tabs-window-item value="config">
           <Configuracion type="FCL" :id_modality="id_modality" />
-        </v-tab-item>
+        </v-tabs-window-item>
         <!-- <v-tab-item value="section">
           <SectionCalculadora type="FCL" :id_modality="id_modality" />
         </v-tab-item> -->
-        <v-tab-item value="serv">
+        <v-tabs-window-item value="serv">
           <Servicios type="FCL" :id_modality="id_modality" />
-        </v-tab-item>
-        <v-tab-item value="cost">
+        </v-tabs-window-item>
+        <v-tabs-window-item value="cost">
           <CostosCalculadora type="FCL" :id_modality="id_modality" />
-        </v-tab-item>
-        <v-tab-item value="profit">
+        </v-tabs-window-item>
+        <v-tabs-window-item value="profit">
           <ProfitCalculadora type="FCL" :id_modality="id_modality" />
-        </v-tab-item>
-        <v-tab-item value="flete">
+        </v-tabs-window-item>
+        <v-tabs-window-item value="flete">
           <FleteComponent type="FCL" :id_modality="id_modality" />
-        </v-tab-item>
-        <v-tab-item value="fletegrup">
+        </v-tabs-window-item>
+        <v-tabs-window-item value="fletegrup">
           <FleteGrupal type="FCL" :id_modality="id_modality" />
-        </v-tab-item>
-        <v-tab-item value="Transporte">
+        </v-tabs-window-item>
+        <v-tabs-window-item value="Transporte">
           <TransporteCalculadora type="FCL" :id_modality="id_modality" />
-        </v-tab-item>
-      </v-tabs-items>
+        </v-tabs-window-item>
+      </v-tabs-window>
     </v-container>
   </v-card>
 </template>

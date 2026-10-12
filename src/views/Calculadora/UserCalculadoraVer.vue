@@ -4,16 +4,15 @@
       <v-tabs
         v-model="model"
         align-tabs="center"
-        dark
-        bg-color="teal darken-3"
+        bg-color="teal-darken-3"
+        slider-color="teal-lighten-3"
         show-arrows
       >
-        <v-tabs-slider color="teal-lighten-3"></v-tabs-slider>
         <v-tab key="principal">Datos Principales</v-tab>
         <v-tab key="xxx">Costos</v-tab>
       </v-tabs>
-      <v-tabs-items v-model="model" class="mt-3">
-        <v-tab-item key="principal">
+      <v-tabs-window v-model="model" class="mt-3">
+        <v-tabs-window-item key="principal">
           <v-row>
             <v-col cols="6">
               <v-text-field
@@ -88,9 +87,9 @@
               ></v-text-field>
             </v-col>
           </v-row>
-        </v-tab-item>
-        <v-tab-item key="costos"> Costos </v-tab-item>
-      </v-tabs-items>
+        </v-tabs-window-item>
+        <v-tabs-window-item key="costos"> Costos </v-tabs-window-item>
+      </v-tabs-window>
     </v-container>
   </v-card>
 </template>

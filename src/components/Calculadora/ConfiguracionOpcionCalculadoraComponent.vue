@@ -68,15 +68,15 @@
 
       <template v-slot:[`item.estado`]="{ item }">
         <v-chip
-          class="ma-2"
+          class="ma-2 text-white"
           color="green"
-          text-color="white"
+          variant="flat"
           v-if="item.estado"
         >
           Activo
         </v-chip>
 
-        <v-chip class="ma-2" color="orange" text-color="white" v-else>
+        <v-chip class="ma-2 text-white" color="orange" variant="flat" v-else>
           Inactivo
         </v-chip>
       </template>

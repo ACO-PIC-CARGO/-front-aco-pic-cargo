@@ -3,7 +3,7 @@
     <v-data-table
       :headers="headers"
       :items="$store.state.calculadoras.config"
-      item-key="id"
+      item-value="id"
     >
       <template v-slot:[`item.texto`]="{ item, index }">
         <div class="d-flex align-center">
@@ -28,7 +28,6 @@
         <v-btn
           v-else
           color="#004D40"
-          dark
           size="small"
           @click="guardarCambios(item, index)"
         >

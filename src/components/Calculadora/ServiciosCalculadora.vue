@@ -32,7 +32,7 @@
                   density="compact"
                   item-value="id"
                   item-title="name"
-                  :model-value="id_modality"
+                  v-model="modalityId"
                   :rules="[(v) => !!v || 'Dato requerido']"
                   disabled
                 ></v-autocomplete>
@@ -49,10 +49,8 @@
                   :rules="[(v) => !!v || 'Dato requerido']"
                   disabled
                 >
-                  <template v-slot:item="{ item }">
-                    <div class="text-uppercase">
-                      {{ item.name }}
-                    </div>
+                  <template v-slot:item="{ props }">
+                    <v-list-item v-bind="props" class="text-uppercase" />
                   </template>
                 </v-autocomplete>
               </v-col>
@@ -61,8 +59,8 @@
                   label="Código"
                   variant="outlined"
                   density="compact"
-                  append-icon="mdi-information"
-                  @click:append="mostrarAdvertencia()"
+                  append-inner-icon="mdi-information"
+                  @click:append-inner="mostrarAdvertencia()"
                   v-model="code"
                   :rules="[(v) => !!v || 'Dato requerido']"
                 ></v-text-field>
@@ -128,6 +126,7 @@ export default {
     return {
       dialogNuevo: false,
       snackbar: false,
+      modalityId: this.id_modality,
       headers: [
         { key: "modality", title: "Modalidad" },
         { key: "pais", title: "Pais" },
@@ -176,15 +175,15 @@ export default {
         setTimeout(() => {
           let branch = JSON.parse(sessionStorage.getItem("dataBranch"));
           this.id_pais = branch[0].id_pais;
-          this.id_modality = 1;
+          this.modalityId = 1;
         }, 100);
       });
     },
     async anadirServ() {
-      if (this.$refs.frmServicio.validate()) {
+      if ((await this.$refs.frmServicio.validate()).valid) {
         this.loading = true;
         let serv = {
-          id_modality: this.id_modality,
+          id_modality: this.modalityId,
           modality: this.modality.name,
           id_pais: this.id_pais,
           pais: this.pais.name,

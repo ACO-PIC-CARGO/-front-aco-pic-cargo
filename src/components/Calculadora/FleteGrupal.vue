@@ -1,16 +1,15 @@
 <template>
   <v-container>
     <v-tabs v-model="tab" align-tabs="center" stacked>
-      <v-tabs-slider></v-tabs-slider>
-      <v-tab href="#resumen"> Resumen </v-tab>
-      <v-tab href="#costo"> Costo</v-tab>
-      <v-tab href="#venta"> Venta</v-tab>
+      <v-tab value="resumen"> Resumen </v-tab>
+      <v-tab value="costo"> Costo</v-tab>
+      <v-tab value="venta"> Venta</v-tab>
     </v-tabs>
-    <v-tabs-items v-model="tab" class="mt-5">
-      <v-tab-item value="resumen">
+    <v-tabs-window v-model="tab" class="mt-5">
+      <v-tabs-window-item value="resumen">
         <v-text-field
           v-model="searchResumen"
-          append-icon="mdi-magnify"
+          append-inner-icon="mdi-magnify"
           label="Buscar"
           single-line
           hide-details
@@ -47,15 +46,15 @@
             </span>
           </template>
         </v-data-table>
-      </v-tab-item>
-      <v-tab-item value="costo">
+      </v-tabs-window-item>
+      <v-tabs-window-item value="costo">
         <v-row>
           <v-col cols="12">
             <v-row>
               <v-col cols="6">
                 <v-text-field
                   v-model="searchCosto"
-                  append-icon="mdi-magnify"
+                  append-inner-icon="mdi-magnify"
                   label="Buscar"
                   single-line
                   hide-details
@@ -108,15 +107,15 @@
             </v-data-table>
           </v-col>
         </v-row>
-      </v-tab-item>
-      <v-tab-item value="venta">
+      </v-tabs-window-item>
+      <v-tabs-window-item value="venta">
         <v-row>
           <v-col cols="12">
             <v-row>
               <v-col cols="6">
                 <v-text-field
                   v-model="searchVenta"
-                  append-icon="mdi-magnify"
+                  append-inner-icon="mdi-magnify"
                   label="Buscar"
                   single-line
                   hide-details
@@ -169,8 +168,8 @@
             </v-data-table>
           </v-col>
         </v-row>
-      </v-tab-item>
-    </v-tabs-items>
+      </v-tabs-window-item>
+    </v-tabs-window>
 
     <v-dialog
       v-model="dialog"
@@ -391,7 +390,7 @@ export default {
     },
     async guardarFleteGrupal() {
       this.errorFechaVigencia = "";
-      if (this.$refs.frmNuevo.validate() && this.form.vigencia) {
+      if ((await this.$refs.frmNuevo.validate()).valid && this.form.vigencia) {
         if (
           (this.$store.state.calculadoras.lstFleteGrupal.some(
             (v) => Number(v.volumen) === Number(this.form.volumen),

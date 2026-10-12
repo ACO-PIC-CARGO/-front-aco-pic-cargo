@@ -11,8 +11,8 @@
           id="excel"
           hide-details
           @click:clear="subir = false"
-          @change="subir = false"
-          @click.native="subir = false"
+          @update:model-value="subir = false"
+          @click="subir = false"
         ></v-file-input>
       </v-col>
       <v-col>
@@ -53,7 +53,6 @@
           class="mx-1"
           size="small"
           @click="exportarMacro()"
-          dark
         >
           Descargar Macro
         </v-btn>
@@ -85,7 +84,7 @@
           :items="itemsLCL"
           class="elevation-1"
           loading="true"
-          item-key="id"
+          item-value="id"
           density="compact"
           :items-per-page="10"
         >
@@ -99,7 +98,11 @@
               v-model="item.puerto_origen"
               item-value="puerto"
               item-title="puerto"
-            />
+            >
+              <template #selection="{ item: port, internalItem }">
+                <span v-if="typeof port === 'object'" class="v-autocomplete__selection-text">{{ internalItem.title }}</span>
+              </template>
+            </v-autocomplete>
           </template>
           <template v-slot:[`item.puerto_destino_sistema`]="{ item }">
             <v-autocomplete
@@ -111,7 +114,11 @@
               v-model="item.puerto_destino"
               item-value="puerto"
               item-title="puerto"
-            />
+            >
+              <template #selection="{ item: port, internalItem }">
+                <span v-if="typeof port === 'object'" class="v-autocomplete__selection-text">{{ internalItem.title }}</span>
+              </template>
+            </v-autocomplete>
           </template>
           <template v-slot:[`item.pais_origen`]="{ item }">
             <v-autocomplete
@@ -137,7 +144,7 @@
           :items="itemsFCL"
           class="elevation-1"
           loading="true"
-          item-key="id"
+          item-value="id"
           density="compact"
           :items-per-page="10"
         >
@@ -149,7 +156,7 @@
           :items="itemsAereo"
           class="elevation-1"
           loading="true"
-          item-key="id"
+          item-value="id"
           density="compact"
           :items-per-page="10"
         >
@@ -176,7 +183,6 @@
             chips
             clearable
             closable-chips
-            small-chips
           >
           </v-autocomplete>
           <v-radio-group v-model="importacionflag" inline hide-details density="compact">
@@ -200,7 +206,6 @@
       location="right"
       width="28%"
       class="px-2"
-      height="100vh"
     >
       <v-card elevation="5">
         <v-card-title primary-title>
@@ -245,7 +250,7 @@
                 multiple
                 density="compact"
                 closable-chips
-                small-chips
+                chips
                 prepend-icon="mdi-ferry"
               >
               </v-autocomplete>
@@ -284,7 +289,7 @@
                 density="compact"
                 prepend-icon="mdi-import"
                 closable-chips
-                small-chips
+                chips
               >
               </v-autocomplete>
             </div>
@@ -498,14 +503,14 @@
           </div>
         </v-card-actions>
         <v-card-actions>
-          <v-flex text-right>
+          <div class="flex-grow-1 text-right">
             <v-btn class="mx-1" variant="text" color="success" @click="anadirRegistros()">
               Agregar
             </v-btn>
             <v-btn class="mx-1" variant="text" color="red" @click="offcanvas = false">
               Cancelar
             </v-btn>
-          </v-flex>
+          </div>
         </v-card-actions>
       </v-card>
     </v-navigation-drawer>
@@ -1681,7 +1686,6 @@ export default {
       this.limpiarData();
     },
     limpiarData() {
-      this.type = "LCL";
       this.tipoSelected = "LCL";
       this.excel = null;
       this.count = 0;
