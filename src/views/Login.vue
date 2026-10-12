@@ -40,8 +40,8 @@
                       :type="verClave == false ? 'password' : 'text'"
                       placeholder="Contraseña"
                       prepend-inner-icon="mdi-lock"
-                      :append-icon="!verClave ? 'mdi-eye' : 'mdi-eye-off'"
-                      @click:append="verClave = !verClave"
+                      :append-inner-icon="!verClave ? 'mdi-eye' : 'mdi-eye-off'"
+                      @click:append-inner="verClave = !verClave"
                       :loading="loading"
                       @keyup.enter="acceder()"
                     />
@@ -96,7 +96,7 @@
                   <v-icon start>mdi-arrow-right</v-icon>
                   Continuar</v-btn
                 >
-                <v-btn class="my-5" block color="red" dark @click="cancelar()">
+                <v-btn class="my-5" block color="red" @click="cancelar()">
                   <v-icon start>mdi-close</v-icon>
                   Cancelar</v-btn
                 >

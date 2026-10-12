@@ -81,7 +81,7 @@ const actions = {
     });
     return val;
   },
-  async singin({ commit, dispatch }) {
+  async singin({ commit, dispatch, state }) {
     state.errorClave = "";
     var headers = {
      
