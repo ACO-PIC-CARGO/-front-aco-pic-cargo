@@ -16,6 +16,7 @@
     </v-col>
     <v-dialog
       v-model="aprobarflag"
+      eager
       scrollable
       persistent
       max-width="50%"
@@ -31,7 +32,7 @@
           </v-btn>
         </v-card-title>
         <v-card-text>
-          <v-form ref="frmAprobar">
+          <v-form ref="masterForm">
             <v-row>
               <v-autocomplete
                 :items="$store.state.itemsMasterList"
@@ -85,6 +86,7 @@
     </v-dialog>
     <v-dialog
       v-model="seleccionQuoteAprobar"
+      eager
       scrollable
       persistent
       max-width="35%"
@@ -1718,7 +1720,7 @@ export default {
         this.$store.state.pricing.listIngresosInstructivoAprobar.filter(
           (v) => v.nro_propuesta == this.nro_propuesta,
         )[0].dataVentas;
-      if ((await this.$refs.frmAprobar.validate()).valid) {
+      if ((await this.$refs.masterForm.validate()).valid) {
         Swal.fire({
           icon: "info",
           title: "Aprobando Cotizacion",
