@@ -26,8 +26,8 @@ export const KNOWN_CONSOLE_NOISE = [
   },
   {
     pattern: /^\[Vue warn\]: Property or method "auto" is not defined on the instance but referenced during render\. Make sure that this property is reactive, either in the data option, or for class-based components, by initializing the property\. See: https:\/\/v2\.vuejs\.org\/v2\/guide\/reactivity\.html#Declaring-Reactive-Properties\.(\n|$)/,
-    reason: "pre-existing on Vue 2: viewAccountPaysCxC, EditAccountPaysCxC",
-    routes: ["viewAccountPaysCxC", "EditAccountPaysCxC"],
+    reason: "pre-existing on Vue 2: viewAccountPaysCxC, EditAccountPaysCxC, controlAccountReceivable",
+    routes: ["viewAccountPaysCxC", "EditAccountPaysCxC", "controlAccountReceivable"],
   },
   {
     pattern: /^\[Vue warn\]: Property or method "calcularTotal" is not defined on the instance but referenced during render\. Make sure that this property is reactive, either in the data option, or for class-based components, by initializing the property\. See: https:\/\/v2\.vuejs\.org\/v2\/guide\/reactivity\.html#Declaring-Reactive-Properties\.(\n|$)/,
@@ -163,6 +163,11 @@ export const KNOWN_CONSOLE_NOISE = [
     pattern: /^Request failed with status code 500(\n|$)/,
     reason: "pre-existing on Vue 2: controlHouseEditar (crear-carpeta-house answers 500: the OneDrive/SharePoint folder is unreachable locally)",
     routes: ["controlHouseEditar"],
+  },
+  {
+    pattern: /^\[Vue warn\]: Invalid prop: type check failed for prop "initialUrl"\. Expected String with value "\d+", got Number with value \d+\.(\n|$)/,
+    reason: "pre-existing on Vue 2: addAccountPays (controlAccountPays passes the numeric uploaded file id as initial-url)",
+    routes: ["addAccountPays"],
   },
 ];
 
