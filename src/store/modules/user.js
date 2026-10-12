@@ -222,7 +222,7 @@ let actions = {
     }
   },
 
-  async setUsers({ commit }) {
+  async setUsers({ commit, state }) {
     let datos = state.model;
     datos.id_branch = JSON.parse(sessionStorage.getItem("dataUser"))[0].id_branch;
     datos.positions = state.positions;
@@ -260,7 +260,7 @@ let actions = {
       console.error(error);
     }
   },
-  async ActualizarUsers({ commit }) {
+  async ActualizarUsers({ commit, state }) {
     let datos = state.model;
     datos.id_branch = JSON.parse(sessionStorage.getItem("dataUser"))[0].id_branch;
     datos.positions = state.positions;
