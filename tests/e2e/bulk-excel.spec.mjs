@@ -7,7 +7,7 @@ const fixture = (name) => fileURLToPath(new URL(`./fixtures/${name}`, import.met
 const isoDate = (daysFromToday) => {
   const date = new Date();
   date.setDate(date.getDate() + daysFromToday);
-  return date.toISOString().slice(0, 10);
+  return [date.getFullYear(), date.getMonth() + 1, date.getDate()].map((part) => String(part).padStart(2, "0")).join("-");
 };
 
 test("parses a tariff spreadsheet and sends its rows for validation", async ({ page }) => {

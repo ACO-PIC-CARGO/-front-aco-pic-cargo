@@ -16,6 +16,17 @@ const SUPPORT_FILE = fileURLToPath(new URL("./fixtures/soporte.pdf", import.meta
 const isSave = (endpoint, method) => (response) =>
   response.url().endsWith(`/${endpoint}`) && response.request().method() === method;
 
+async function captureSaveResponse(page, endpoint) {
+  let resolveBody;
+  const body = new Promise((resolve) => (resolveBody = resolve));
+  await page.route(new RegExp(`/${endpoint}$`), async (route) => {
+    const response = await route.fetch();
+    resolveBody({ ok: response.ok(), json: await response.json() });
+    await route.fulfill({ response });
+  });
+  return body;
+}
+
 async function pickToday(page, label) {
   await page.getByLabel(label).click();
   await page.getByRole("button", { name: String(new Date().getDate()), exact: true }).click();
@@ -40,7 +51,7 @@ test("registers an administrative payable and pays it from banks", async ({ page
   await pickFirstOption(page, "Mes del Gasto");
   await pickFirstOption(page, "Año del Gasto");
   await page.getByPlaceholder("Seleccione un Sub Gasto").click();
-  await page.getByText(PAYMENT_DATA.expenseGroup, { exact: true }).locator("xpath=../preceding-sibling::button").click();
+  await page.getByText(PAYMENT_DATA.expenseGroup, { exact: true }).click();
   await page.getByText(PAYMENT_DATA.subExpense, { exact: true }).click();
   await pickFirstOption(page, "Tipo de Comprobante");
   await pickOption(page, "Proveedor", PAYMENT_DATA.supplier);
@@ -55,10 +66,11 @@ test("registers an administrative payable and pays it from banks", async ({ page
   await concept.getByRole("button", { name: "Aceptar" }).click();
   await expect(page.getByRole("button", { name: "GUARDAR CUENTA POR PAGAR" })).toBeEnabled();
   await uploadSupport(page);
-  const payableSaved = page.waitForResponse(isSave("setInvoiceAdmin", "POST"));
+  const payableSaved = captureSaveResponse(page, "setInvoiceAdmin");
   await page.getByRole("button", { name: "GUARDAR CUENTA POR PAGAR" }).click();
   const saved = await payableSaved;
-  expect(saved.ok(), "setInvoiceAdmin response").toBe(true);
+  expect(saved.ok, "setInvoiceAdmin response").toBe(true);
+  expect(saved.json.data[0].estadoflag, "setInvoiceAdmin estadoflag").toBe(true);
 
   await expect(page).toHaveURL(/\/home\/folderModulesPays\/controlAccountPays$/);
   await waitForPageToSettle(page);
@@ -74,7 +86,9 @@ test("registers an administrative payable and pays it from banks", async ({ page
   await confirmPayment.getByRole("button", { name: "CONTINUAR" }).click();
   const invoiceRow = page.getByRole("row").filter({ hasText: invoice });
   await expect(invoiceRow).toHaveCount(1);
-  await invoiceRow.getByRole("cell").first().locator("xpath=.//*[@aria-hidden]").first().click({ force: true });
+  const select = invoiceRow.getByRole("checkbox", { name: /Seleccionar factura/ });
+  await select.click();
+  await expect(select).toBeChecked();
   await expect(page.getByLabel("Total Factura Seleccionada", { exact: true })).toHaveValue("100.00");
   await page.getByRole("button", { name: "Continuar", exact: true }).click();
 
@@ -86,7 +100,9 @@ test("registers an administrative payable and pays it from banks", async ({ page
   await page.getByRole("button", { name: "Finalizar Operación" }).click();
   const payment = await paymentSaved;
   expect(payment.ok(), "registro_egresos response").toBe(true);
-  expect((await payment.json()).data[0].v_id, "payment id from the save response").toBeTruthy();
+  const paymentBody = await payment.json();
+  expect(paymentBody.data[0].estadoflag, "registro_egresos estadoflag").toBe(true);
+  expect(paymentBody.data[0].v_id, "payment id from the save response").toBeTruthy();
   await expect(page.getByRole("button", { name: "Imprimir comprobante" })).toBeVisible({ timeout: 30_000 });
   await page.goto("/home/FolderBanks/listadoPagosPorProveedor");
   await waitForPageToSettle(page);
@@ -119,9 +135,11 @@ test("registers an administrative receivable", async ({ page }) => {
   await concept.getByLabel("Monto").fill("100");
   await concept.getByRole("button", { name: "Aceptar" }).click();
   await expect(page.getByRole("button", { name: "GUARDAR CUENTA POR COBRAR" })).toBeEnabled();
-  const receivableSaved = page.waitForResponse(isSave("setInvoiceAdminCxC", "POST"));
+  const receivableSaved = captureSaveResponse(page, "setInvoiceAdminCxC");
   await page.getByRole("button", { name: "GUARDAR CUENTA POR COBRAR" }).click();
-  expect((await receivableSaved).ok(), "setInvoiceAdminCxC response").toBe(true);
+  const receivable = await receivableSaved;
+  expect(receivable.ok, "setInvoiceAdminCxC response").toBe(true);
+  expect(receivable.json.data[0].estadoflag, "setInvoiceAdminCxC estadoflag").toBe(true);
 
   await expect(page).toHaveURL(/\/home\/folderModulesPays\/moduleAccountReceivable$/);
   await waitForPageToSettle(page);

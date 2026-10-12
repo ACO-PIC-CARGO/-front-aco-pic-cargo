@@ -182,6 +182,15 @@
                         <td class="text-left">USD {{ totalGeneralAbonado }}</td>
                       </tr>
                     </template>
+                    <template v-slot:[`item.data-table-select`]="{ item, isSelected, select }">
+                      <v-simple-checkbox
+                        :value="isSelected"
+                        role="checkbox"
+                        :aria-checked="String(isSelected)"
+                        :aria-label="`Seleccionar factura ${item.code_master}`"
+                        @input="select($event)"
+                      ></v-simple-checkbox>
+                    </template>
                     <template v-slot:[`item.totalabonado`]="{ item }">
                       {{ fn_totalAbonado(item) }}
                     </template>
