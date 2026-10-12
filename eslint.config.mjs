@@ -25,6 +25,7 @@ const VUE3_RULES = [
   "no-deprecated-vue-config-keycodes",
   "no-v-for-template-key-on-child",
   "no-use-v-if-with-v-for",
+  "no-lone-template",
   "require-explicit-emits",
 ];
 
@@ -53,6 +54,21 @@ const TEMPLATE_GUARDS = [
     selector:
       "VElement[name=/^(v-navigation-drawer|vnavigationdrawer)$/i] > VStartTag > VAttribute[directive=false][key.name='location'][value.value=/\\s/]",
     message: "v-navigation-drawer takes one location (recipe R19).",
+  },
+  {
+    selector:
+      "VElement[name=/^(v-navigation-drawer|vnavigationdrawer)$/i] > VStartTag > VAttribute[directive=false][key.name='persistent']",
+    message: "Vuetify 4 honors persistent on drawers (blocks outside-click close); Vuetify 2 ignored it (recipe R22).",
+  },
+  {
+    selector:
+      "VElement[name=/^(v-data-table|vdatatable)$/i] > VStartTag > VAttribute[directive=false][key.name='mobile']",
+    message: "Vuetify 4 forces the mobile layout with mobile; Vuetify 2 ignored it (recipe R22).",
+  },
+  {
+    selector:
+      "VElement[name=/^(v-autocomplete|vautocomplete|v-combobox|vcombobox)$/i] > VStartTag > VAttribute[directive=false][key.name='search']",
+    message: "A bare search attribute pins the search to an empty string in Vuetify 4 (recipe R22).",
   },
 ];
 
