@@ -60,7 +60,7 @@
           <v-btn text> Cancel </v-btn> -->
         </v-stepper-window-item>
 
-        <v-stepper-window-item :value="2">
+        <v-stepper-window-item :value="2" eager>
           <DatosCostosComponent
             :key="indexCostos"
             @anadirNuevaOpcion="anadirNuevaOpcion"

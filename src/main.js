@@ -14,6 +14,7 @@ import vuetify from "./plugins/vuetify";
 moment.locale("en");
 
 const app = createApp(App);
+if (import.meta.env.DEV) app.config.errorHandler = (error) => console.error(error);
 
 Sentry.init({
   app,
