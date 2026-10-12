@@ -55,6 +55,16 @@ export const KNOWN_CONSOLE_NOISE = [
     routes: ["listFlujoMensual"],
   },
   {
+    pattern: /^TypeError: Cannot read properties of undefined \(reading '(fecha_fin|cantidad_semanas)'\)(\n|$)/,
+    reason: "same pre-existing issue as the listFlujoMensual 'fecha_inicio' entry, Vue 3 wording: each slot renders on its own, so the empty lstFlujoOperacionesMes[0] also fails at fecha_fin and cantidad_semanas",
+    routes: ["listFlujoMensual"],
+  },
+  {
+    pattern: /^\[Vue warn\]: Property "(_isVue|constructor)" was accessed during render but is not defined on instance\.[\s\S]*\n\s+at <FlujoOperacionPorMesComponent>/,
+    reason: "same pre-existing issue as the listFlujoMensual 'fecha_inicio' entry, Vue 3 wording: Sentry's component trace reads vm._isVue / vm.constructor during the failing render",
+    routes: ["listFlujoMensual"],
+  },
+  {
     pattern: /^Request failed with status code 500(\n|$)/,
     reason: "pre-existing on Vue 2: verQuote, editQuote (listado_files answers 500: the SharePoint folder is unreachable locally)",
     routes: ["verQuote", "editQuote"],
