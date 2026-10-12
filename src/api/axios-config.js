@@ -26,6 +26,11 @@ http.interceptors.request.use((config) => {
     config.headers["auth-token"] = token;
   }
 
+  // axios 1 serialises FormData to JSON under a JSON content type; let the browser set the multipart boundary.
+  if (config.data instanceof FormData) {
+    config.headers.delete("Content-Type");
+  }
+
   return config;
 });
 

@@ -1,7 +1,7 @@
 <template>
   <v-autocomplete
     :key="autocompleteKey"
-    :model-value="value"
+    :model-value="modelValue"
     :items="$store.state.pricing.listMultiplicador"
     :item-title="itemText"
     :item-value="itemValue"
@@ -9,7 +9,7 @@
     :placeholder="placeholder"
     :disabled="disabled"
     :readonly="readonly"
-    :outlined="outlined"
+    :variant="outlined ? 'outlined' : undefined"
     :density="dense ? 'compact' : undefined"
     :clearable="clearable"
     :hide-details="hideDetails"
@@ -25,8 +25,9 @@
 import Swal from "sweetalert2";
 
 export default {
+  emits: ["update:modelValue", "change"],
   props: {
-    value: {
+    modelValue: {
       type: [String, Number, Object],
       default: null,
     },
@@ -86,11 +87,11 @@ export default {
   }),
 
   created() {
-    this.valorAnterior = this.value;
+    this.valorAnterior = this.modelValue;
   },
 
   watch: {
-    value(newValue) {
+    modelValue(newValue) {
       this.valorAnterior = newValue;
     },
   },
@@ -105,7 +106,7 @@ export default {
 
       this.valorAnterior = id;
 
-      this.$emit("input", id);
+      this.$emit("update:modelValue", id);
       this.$emit("change", id);
     },
   },

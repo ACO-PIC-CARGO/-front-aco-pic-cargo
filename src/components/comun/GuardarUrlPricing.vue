@@ -44,6 +44,7 @@
 <script>
 import { mapActions } from "vuex";
 export default {
+  emits: ["cerrar"],
   props: {
     dialogUrl: {
       type: Boolean,

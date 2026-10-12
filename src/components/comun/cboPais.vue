@@ -2,16 +2,13 @@
   <v-autocomplete
     :items="itemsPais"
     :auto-select-first="autoSelectFirst"
-    :chips="chips"
+    :chips="chips || smallChips"
     :clearable="clearable"
     :closable-chips="deletableChips"
     :multiple="multiple"
-    :small-chips="smallChips"
     :density="dense ? 'compact' : undefined"
-    :filled="filled"
     :rounded="rounded"
-    :solo="solo"
-    :outlined="outlined"
+    :variant="outlined ? 'outlined' : solo ? 'solo' : filled ? 'filled' : undefined"
     item-value="id"
     item-title="name"
     label="País"
@@ -26,6 +23,7 @@
 import { mapActions, mapState } from "vuex";
 
 export default {
+  emits: ["paisSeleccionado"],
   props: {
     errorPais: {
       type: String,

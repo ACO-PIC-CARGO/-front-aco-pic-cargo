@@ -88,7 +88,7 @@
       </v-container>
     </v-card>
 
-    <modalListHouse :dialog="statusDialog" />
+    <modalListHouse v-model:dialog="statusDialog" />
     <GuardarUrlMaster
       :dialogUrl="dialogUrl"
       :masterEditar="masterEditar"

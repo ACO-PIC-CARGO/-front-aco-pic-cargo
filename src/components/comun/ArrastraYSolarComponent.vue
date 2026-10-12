@@ -66,7 +66,7 @@
                 v-model="file"
                 hide-details
                 accept="image/*, application/pdf"
-                @change="uploadFile()"
+                @update:model-value="uploadFile()"
                 style="display: none"
               ></v-file-input>
             </label>
@@ -74,7 +74,7 @@
 
           <!-- 3. Estado: Cargando -->
           <div v-else>
-            <v-card color="primary" dark class="pa-2">
+            <v-card color="primary" class="pa-2">
               <v-card-text class="pa-2 text-center">
                 Se está procesando el archivo, un momento por favor...
                 <v-progress-linear
@@ -103,6 +103,7 @@ import { mapActions } from "vuex";
 
 export default {
   name: "ArrastraYSolarComponent",
+  emits: ["idArchivoCargado"],
   props: {
     // Reglas de validación para v-form
     rules: {
@@ -305,7 +306,7 @@ export default {
 }
 
 /* Bordes en rojo cuando v-input detecta error */
-.v-input--has-state.error--text .drop-area {
+.v-input--error .drop-area {
   border-color: #ff5252 !important;
   background-color: #fff8f8;
 }

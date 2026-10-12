@@ -30,9 +30,11 @@
         </v-col>
       </v-row>
       <v-tabs color="#A43542" slider-color="primary" fixed-tabs v-model="tab">
-        <v-tab href="#ref1">STEP 1</v-tab>
-        <v-tab href="#ref2" v-if="selected.length > 0">STEP 2</v-tab>
-        <v-tab-item value="ref1" class="mt-5">
+        <v-tab value="ref1">STEP 1</v-tab>
+        <v-tab value="ref2" v-if="selected.length > 0">STEP 2</v-tab>
+      </v-tabs>
+      <v-tabs-window v-model="tab">
+        <v-tabs-window-item value="ref1" class="mt-5">
           <v-card-text>
             <v-row>
               <v-col cols="3">
@@ -43,7 +45,6 @@
                   v-if="selected.length > 0"
                   color="green-darken-4"
                   @click="continuar()"
-                  dark
                   >Continuar</v-btn
                 >
               </v-col>
@@ -52,7 +53,8 @@
             <v-data-table
               :headers="cabPagos"
               :items="lstPagos"
-              item-key="index"
+              item-value="index"
+              return-object
               :search="search"
               :loading="loadingTable"
               show-select
@@ -85,7 +87,7 @@
                     selected.filter((v) => v.id == item.id).length == 0
                   "
                   v-on:blur="calcularTotales()"
-                  @focus.native="calcularTotales()"
+                  @focus="calcularTotales()"
                 ></v-text-field>
               </template>
               <!--  -->
@@ -114,14 +116,14 @@
                   v-model="item.monto_mon_ex"
                   v-on:update:model-value="calcularTotales()"
                   v-on:blur="calcularTotales()"
-                  @focus.native="calcularTotales()"
+                  @focus="calcularTotales()"
                   :error-messages="item.errorEx"
                 ></v-text-field>
               </template>
             </v-data-table>
           </v-card-text>
-        </v-tab-item>
-        <v-tab-item value="ref2">
+        </v-tabs-window-item>
+        <v-tabs-window-item value="ref2">
           <v-card-text>
             <v-row class="mt-5">
               <v-col cols="3">
@@ -204,8 +206,8 @@
             </v-btn>
             <v-btn color="red" @click="$emit('cancelar')">Cancelar</v-btn>
           </v-card-actions>
-        </v-tab-item>
-      </v-tabs>
+        </v-tabs-window-item>
+      </v-tabs-window>
     </v-card-text>
     <!-- ---------------------------------------------- -->
     <v-dialog
@@ -223,7 +225,8 @@
             :headers="headersParcial"
             :items="detalles"
             class="elevation-1"
-            item-key="id"
+            item-value="id"
+            return-object
           >
           </v-data-table>
         </v-card-text>
@@ -246,6 +249,7 @@ import { mapActions, mapState } from "vuex";
 import Swal from "sweetalert2";
 import ArrastraYSolarComponent from "../comun/ArrastraYSolarComponent.vue";
 export default {
+  emits: ["cancelar", "cerrarModal"],
   props: { limpar: Boolean },
   async mounted() {
     await this.cargarProveedores();

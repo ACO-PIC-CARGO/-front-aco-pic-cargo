@@ -84,7 +84,7 @@
         <v-card-actions>
           <v-spacer></v-spacer>
           <v-btn size="small" color="success" @click="filtraFlujo()">Aceptar</v-btn>
-          <v-btn size="small" dark color="red" @click="filtrar = !filtrar"
+          <v-btn size="small" color="red" @click="filtrar = !filtrar"
             >Cerrar</v-btn
           >
         </v-card-actions>
@@ -94,7 +94,7 @@
     <v-card>
       <v-card-title>
         <v-spacer></v-spacer>
-        <v-btn size="small" color="#00789D" dark @click="filtrar = !filtrar"
+        <v-btn size="small" color="#00789D" @click="filtrar = !filtrar"
           >Filtrar</v-btn
         >
       </v-card-title>

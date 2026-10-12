@@ -1,7 +1,6 @@
 <template>
   <v-menu
     v-model="menu"
-    offset-y
     :close-on-content-click="false"
     transition="scale-transition"
     min-width="290"
@@ -12,15 +11,14 @@
         :model-value="selectedLabel"
         :label="label"
         :placeholder="placeholder"
-        :outlined="outlined"
+        :variant="outlined ? 'outlined' : undefined"
         :density="dense ? 'compact' : undefined"
         :rules="rules"
         :disabled="disabled"
         readonly
         clearable
         hide-details
-        append-icon="mdi-chevron-down"
-       
+        append-inner-icon="mdi-chevron-down"
         v-bind="props"
         @click:clear="clearSelection"
       ></v-text-field>
@@ -45,15 +43,14 @@
         <v-treeview
           :items="options"
           :search="search"
-          :item-text="itemText"
-          :item-key="itemValue"
+          :item-title="itemText"
+          :item-value="itemValue"
           activatable
-          hoverable
           :open-on-click="disableBranchNodes"
           density="compact"
-          v-model:open="openNodes"
-          :active="activeNodes"
-          @update:active="onNodeSelect"
+          v-model:opened="openNodes"
+          :activated="activeNodes"
+          @update:activated="onNodeSelect"
         ></v-treeview>
       </v-card-text>
     </v-card>
@@ -63,8 +60,9 @@
 <script>
 export default {
   name: "VTreeSelect",
+  emits: ["update:modelValue"],
   props: {
-    value: {
+    modelValue: {
       type: [String, Number],
       default: null,
     },
@@ -106,10 +104,10 @@ export default {
   computed: {
     internalValue: {
       get() {
-        return this.value;
+        return this.modelValue;
       },
       set(val) {
-        this.$emit("input", val);
+        this.$emit("update:modelValue", val);
       },
     },
     activeNodes() {

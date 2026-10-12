@@ -27,14 +27,14 @@
               ref="fileInput"
               v-model="file"
               hide-details
-              @change="uploadFile()"
+              @update:model-value="uploadFile()"
               style="display: none"
             ></v-file-input>
           </label>
         </div>
 
         <div v-else>
-          <v-card color="primary" dark>
+          <v-card color="primary">
             <v-card-text>
               Se está analizando los archivos, un momento por favor....
               <v-progress-linear
@@ -54,6 +54,7 @@
 import Swal from "sweetalert2";
 import { mapActions } from "vuex";
 export default {
+  emits: ["archivo-cargado", "archivo-eliminado"],
   // 1. Agregamos los props para recibir la data del padre
   props: {
     id: String,

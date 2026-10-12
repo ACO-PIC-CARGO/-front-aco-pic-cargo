@@ -2,7 +2,6 @@
   <div>
     <v-btn
       color="#01579B"
-      dark
       class="ma-1 btnCalc"
       @click="enviarCotizacionAPricing"
       v-if="getNameUrl == 'VerCotizacionCalculadora'"
