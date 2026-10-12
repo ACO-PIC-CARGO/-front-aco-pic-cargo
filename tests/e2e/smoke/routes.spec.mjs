@@ -23,5 +23,6 @@ for (const route of appRoutes()) {
     expect(new URL(page.url()).pathname, "page redirected").toBe(EXPECTED_REDIRECTS[route.name] ?? url);
     if (route.name in ROUTES_THAT_MATCH_NOTHING) return;
     await expect(page.locator("#app")).not.toBeEmpty();
+    await expect(page.locator("#app")).not.toContainText("[object Promise]");
   });
 }
