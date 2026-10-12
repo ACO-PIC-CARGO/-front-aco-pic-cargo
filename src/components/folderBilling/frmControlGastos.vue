@@ -485,7 +485,7 @@ export default {
       }
       var config = {
         method: "post",
-        url: process.env.VUE_APP_URL_MAIN + "getPdfInstructivoDetallado",
+        url: import.meta.env.VUE_APP_URL_MAIN + "getPdfInstructivoDetallado",
         headers: {
           "Content-Type": "application/json",
         },
@@ -508,7 +508,7 @@ export default {
           });
           if (!guardarEnCarpeta) {
             window.open(
-              process.env.VUE_APP_URL_MAIN + response.data.path,
+              import.meta.env.VUE_APP_URL_MAIN + response.data.path,
               "_blank",
             );
           }

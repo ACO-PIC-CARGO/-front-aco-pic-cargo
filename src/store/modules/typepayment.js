@@ -31,7 +31,7 @@ let actions = {
     var config = {
       method: "get",
       url:
-        process.env.VUE_APP_URL_MAIN +
+        import.meta.env.VUE_APP_URL_MAIN +
         `listar_type_payments?&id_branch=${
           JSON.parse(sessionStorage.getItem("dataUser"))[0].id_branch
         }&code=${state.filtros.code ? state.filtros.code : ""}&name=${
@@ -72,7 +72,7 @@ let actions = {
   async setTypePayment({ commit }) {
     var config = {
       method: "post",
-      url: process.env.VUE_APP_URL_MAIN + `insertar_type_payments`,
+      url: import.meta.env.VUE_APP_URL_MAIN + `insertar_type_payments`,
       headers: {
        
         "Content-Type": "application/json",
@@ -99,7 +99,7 @@ let actions = {
   async ActualizarTypePayment({ commit }) {
     var config = {
       method: "put",
-      url: process.env.VUE_APP_URL_MAIN + `actualizar_type_payments`,
+      url: import.meta.env.VUE_APP_URL_MAIN + `actualizar_type_payments`,
       headers: {
        
         "Content-Type": "application/json",

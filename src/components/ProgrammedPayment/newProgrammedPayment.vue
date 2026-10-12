@@ -73,7 +73,7 @@ export default {
       var vm = this;
       var config = {
         method: "get",
-        url: process.env.VUE_APP_URL_MAIN + "ListProgrammedPayment",
+        url: import.meta.env.VUE_APP_URL_MAIN + "ListProgrammedPayment",
 
         headers: {
          
@@ -114,7 +114,7 @@ export default {
       };
       var config = {
         method: "post",
-        url: process.env.VUE_APP_URL_MAIN + "setProgrammedPayment",
+        url: import.meta.env.VUE_APP_URL_MAIN + "setProgrammedPayment",
         headers: {
          
           "Content-Type": "application/json",

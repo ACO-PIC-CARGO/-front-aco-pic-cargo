@@ -248,7 +248,7 @@
 
 <script>
 import { mapState } from "vuex";
-import { mapActions } from "vuex/dist/vuex.common.js";
+import { mapActions } from "vuex";
 import _ from "lodash";
 import Swal from "sweetalert2";
 

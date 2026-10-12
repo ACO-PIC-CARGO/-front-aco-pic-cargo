@@ -302,8 +302,6 @@ export default {
       this.getEgresosExpedientes();
     },
     _uploadFile() {
-      var FormData = require("form-data");
-      var fs = require("fs");
       var data = new FormData();
       var vm = this;
       data.append("name", "Prueba");
@@ -311,7 +309,7 @@ export default {
 
       var config = {
         method: "post",
-        url: process.env.VUE_APP_URL_MAIN + "uploadAllPath",
+        url: import.meta.env.VUE_APP_URL_MAIN + "uploadAllPath",
         headers: {
          
           "Content-Type": "application/json",
@@ -353,7 +351,7 @@ export default {
       };
       var config = {
         method: "post",
-        url: process.env.VUE_APP_URL_MAIN + "setSPaymentFile/",
+        url: import.meta.env.VUE_APP_URL_MAIN + "setSPaymentFile/",
 
         headers: {
          
@@ -402,7 +400,7 @@ export default {
       var config = {
         method: "post",
         url:
-          process.env.VUE_APP_URL_MAIN + "getEgresosExpediente/" + vm.id_house,
+          import.meta.env.VUE_APP_URL_MAIN + "getEgresosExpediente/" + vm.id_house,
         headers: {
          
           "Content-Type": "application/json",

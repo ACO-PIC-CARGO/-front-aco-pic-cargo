@@ -37,7 +37,7 @@ const actions = {
     };
     var config = {
       method: "post",
-      url: process.env.VUE_APP_URL_MAIN + "validToken",
+      url: import.meta.env.VUE_APP_URL_MAIN + "validToken",
       headers: headers,
     };
 
@@ -61,7 +61,7 @@ const actions = {
     };
     var config = {
       method: "get",
-      url: process.env.VUE_APP_URL_MAIN + "obtener_existe_datos_config",
+      url: import.meta.env.VUE_APP_URL_MAIN + "obtener_existe_datos_config",
       params: {
         id_branch: JSON.parse(sessionStorage.getItem("dataUser"))[0].id_branch,
       },
@@ -89,7 +89,7 @@ const actions = {
     };
     var config = {
       method: "post",
-      url: process.env.VUE_APP_URL_MAIN + "singin",
+      url: import.meta.env.VUE_APP_URL_MAIN + "singin",
       headers: headers,
       data: state.frmLogin,
     };
@@ -154,7 +154,7 @@ const actions = {
     let id_usuario = JSON.parse(sessionStorage.getItem("dataUser"))[0].id_user;
     var config = {
       method: "get",
-      url: process.env.VUE_APP_URL_MAIN + "CargarBranch/" + id_usuario,
+      url: import.meta.env.VUE_APP_URL_MAIN + "CargarBranch/" + id_usuario,
 
       headers: {
        
@@ -176,7 +176,7 @@ const actions = {
     // let id_usuario = JSON.parse(sessionStorage.getItem("dataUser"))[0].id_user;
     var config = {
       method: "put",
-      url: process.env.VUE_APP_URL_MAIN + "recuperar_clave",
+      url: import.meta.env.VUE_APP_URL_MAIN + "recuperar_clave",
       headers: {
        
         "Content-Type": "application/json",
@@ -208,7 +208,7 @@ const actions = {
   //   // sessionStorage.setItem("dataBranch", JSON.stringify(dataBranch));
   //   var config = {
   //     method: "get",
-  //     url: process.env.VUE_APP_URL_MAIN + "ListProgrammedPayment",
+  //     url: import.meta.env.VUE_APP_URL_MAIN + "ListProgrammedPayment",
 
   //     headers: {
   //      
@@ -249,7 +249,7 @@ const actions = {
     });
     var config = {
       method: "post",
-      url: process.env.VUE_APP_URL_MAIN + "getMenuModules",
+      url: import.meta.env.VUE_APP_URL_MAIN + "getMenuModules",
       headers: {
        
         "Content-Type": "application/json",
@@ -271,7 +271,7 @@ const actions = {
     let respuesta = null;
     var config = {
       method: "post",
-      url: process.env.VUE_APP_URL_MAIN + "validar_usuario_admin",
+      url: import.meta.env.VUE_APP_URL_MAIN + "validar_usuario_admin",
       headers: {
        
         "Content-Type": "application/json",

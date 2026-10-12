@@ -7,8 +7,8 @@ export function getRegistration() {
   return registrationWorker;
 }
 
-if (process.env.NODE_ENV === "production") {
-  register(`${process.env.BASE_URL}service-worker.js`, {
+if (import.meta.env.MODE === "production") {
+  register(`${import.meta.env.BASE_URL}service-worker.js`, {
     ready() {
       console.log("App is being served from cache by a service worker.");
     },

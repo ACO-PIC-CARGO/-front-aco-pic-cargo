@@ -1,22 +1,26 @@
-import Vue from "vue";
+import { createApp } from "vue";
+import * as Sentry from "@sentry/vue";
+import moment from "moment";
+import "moment/locale/es";
+import VueSweetalert2 from "vue-sweetalert2";
+import "sweetalert2/dist/sweetalert2.min.css";
 import App from "./App.vue";
 import "./registerServiceWorker";
 import router from "./router";
 import store from "./store";
 import vuetify from "./plugins/vuetify";
-import VueSweetalert2 from "vue-sweetalert2";
-import "sweetalert2/dist/sweetalert2.min.css";
-import * as Sentry from "@sentry/vue";
+
+// Importing a moment locale also activates it; the webpack build started in "en" until a screen chose "es".
+moment.locale("en");
+
+const app = createApp(App);
 
 Sentry.init({
-  Vue,
+  app,
   dsn: "https://f882606bd1c8140835ba8bbd919fdf0f@o4512212057456640.ingest.us.sentry.io/4512212072595456",
-  environment: process.env.NODE_ENV,
-  release: process.env.VUE_APP_VERSION,
+  environment: import.meta.env.MODE,
+  release: import.meta.env.VUE_APP_VERSION,
 });
-
-Vue.use(VueSweetalert2);
-Vue.config.productionTip = false;
 
 // -------------
 let deferredPrompt;
@@ -89,9 +93,5 @@ window.addEventListener("storage", (event) => {
   }
 });
 
-new Vue({
-  router,
-  store,
-  vuetify,
-  render: (h) => h(App),
-}).$mount("#app");
+app.use(router).use(store).use(vuetify).use(VueSweetalert2);
+app.mount("#app");

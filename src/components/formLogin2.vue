@@ -104,7 +104,7 @@ export default {
 
       var config = {
         method: "post",
-        url: process.env.VUE_APP_URL_MAIN + "singin",
+        url: import.meta.env.VUE_APP_URL_MAIN + "singin",
         headers: {
           "Content-Type": "application/json",
         },
@@ -180,7 +180,7 @@ export default {
       var vm = this;
       var config = {
         method: "get",
-        url: process.env.VUE_APP_URL_MAIN + "CargarBranch/" + id_usuario,
+        url: import.meta.env.VUE_APP_URL_MAIN + "CargarBranch/" + id_usuario,
 
         headers: {
          
@@ -217,7 +217,7 @@ export default {
         );
         var config = {
           method: "get",
-          url: process.env.VUE_APP_URL_MAIN + "ListProgrammedPayment",
+          url: import.meta.env.VUE_APP_URL_MAIN + "ListProgrammedPayment",
 
           headers: {
            

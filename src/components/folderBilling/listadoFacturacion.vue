@@ -128,7 +128,7 @@ export default {
       var config = {
         method: "get",
         url:
-          process.env.VUE_APP_URL_MAIN +
+          import.meta.env.VUE_APP_URL_MAIN +
           "listar_Factura/" +
           JSON.parse(sessionStorage.getItem("dataUser"))[0].id_branch,
 
@@ -172,7 +172,7 @@ export default {
           };
           var config = {
             method: "put",
-            url: process.env.VUE_APP_URL_MAIN + "anular_factura",
+            url: import.meta.env.VUE_APP_URL_MAIN + "anular_factura",
 
             headers: {
               "Content-Type": "application/json",

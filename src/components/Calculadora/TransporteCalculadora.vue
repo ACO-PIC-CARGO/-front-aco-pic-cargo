@@ -243,7 +243,7 @@
 
 <script>
 import { mapActions } from "vuex";
-import readXlsFile from "read-excel-file";
+import { readSheet as readXlsFile } from "read-excel-file/browser";
 import Swal from "sweetalert2";
 export default {
   props: {

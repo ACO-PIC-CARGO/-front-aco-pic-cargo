@@ -1,13 +1,10 @@
-import Vue from "vue";
-import Vuex from "vuex";
+import { createStore } from "vuex";
 import axios from "@/api/axios-config";
 import router from "@/router";
-import imgSave from "../../public/img/svg/save.svg";
-import imgFolder from "../../public/img/svg/folder.svg";
-import imgMailbox from "../../public/img/svg/mailbox.svg";
-import imgList from "../../public/img/svg/lista.svg";
-import VueSweetalert2 from "vue-sweetalert2";
-import "sweetalert2/dist/sweetalert2.min.css";
+const imgSave = "/img/svg/save.svg";
+const imgFolder = "/img/svg/folder.svg";
+const imgMailbox = "/img/svg/mailbox.svg";
+const imgList = "/img/svg/lista.svg";
 import pricing from "./modules/pricing";
 import calculadoras from "./modules/calculadora";
 import controlGastos from "./modules/controlGasto";
@@ -69,10 +66,8 @@ import subscriptions from "./modules/subscriptions";
 import legalPages from "./modules/legalPages";
 import Swal from "sweetalert2";
 import moment from "moment";
-Vue.use(Vuex);
-Vue.use(VueSweetalert2);
 
-export default new Vuex.Store({
+export default createStore({
   state: {
     salidaflag: false,
     llegadaflag: false,
@@ -906,7 +901,7 @@ export default new Vuex.Store({
       });
       var config = {
         method: "post",
-        url: process.env.VUE_APP_URL_MAIN + "getEntitiesList",
+        url: import.meta.env.VUE_APP_URL_MAIN + "getEntitiesList",
         headers: {
           "Content-Type": "application/json",
         },
@@ -926,7 +921,7 @@ export default new Vuex.Store({
       var config = {
         method: "get",
         url:
-          process.env.VUE_APP_URL_MAIN +
+          import.meta.env.VUE_APP_URL_MAIN +
           "get_listado_cliente?id_branch=" +
           JSON.parse(sessionStorage.getItem("dataUser"))[0].id_branch,
         headers: {
@@ -951,7 +946,7 @@ export default new Vuex.Store({
       });
       var config = {
         method: "post",
-        url: process.env.VUE_APP_URL_MAIN + "getEntitiesList",
+        url: import.meta.env.VUE_APP_URL_MAIN + "getEntitiesList",
         headers: {
           "Content-Type": "application/json",
         },
@@ -973,7 +968,7 @@ export default new Vuex.Store({
       });
       var config = {
         method: "post",
-        url: process.env.VUE_APP_URL_MAIN + "getEntitiesList",
+        url: import.meta.env.VUE_APP_URL_MAIN + "getEntitiesList",
         headers: {
           "Content-Type": "application/json",
         },
@@ -995,7 +990,7 @@ export default new Vuex.Store({
       });
       var config = {
         method: "post",
-        url: process.env.VUE_APP_URL_MAIN + "getEntitiesList",
+        url: import.meta.env.VUE_APP_URL_MAIN + "getEntitiesList",
         headers: {
           "Content-Type": "application/json",
         },
@@ -1014,7 +1009,7 @@ export default new Vuex.Store({
       var config = {
         method: "get",
         url:
-          process.env.VUE_APP_URL_MAIN +
+          import.meta.env.VUE_APP_URL_MAIN +
           "CargarProveedores?id_branch=" +
           JSON.parse(sessionStorage.getItem("dataUser"))[0].id_branch,
         headers: {
@@ -1037,7 +1032,7 @@ export default new Vuex.Store({
       });
       var config = {
         method: "post",
-        url: process.env.VUE_APP_URL_MAIN + "getEntitiesList",
+        url: import.meta.env.VUE_APP_URL_MAIN + "getEntitiesList",
         headers: {
           "Content-Type": "application/json",
         },
@@ -1059,7 +1054,7 @@ export default new Vuex.Store({
       });
       var config = {
         method: "post",
-        url: process.env.VUE_APP_URL_MAIN + "getEntitiesList",
+        url: import.meta.env.VUE_APP_URL_MAIN + "getEntitiesList",
         headers: {
           "Content-Type": "application/json",
         },
@@ -1081,7 +1076,7 @@ export default new Vuex.Store({
       });
       var config = {
         method: "post",
-        url: process.env.VUE_APP_URL_MAIN + "getEntitiesList",
+        url: import.meta.env.VUE_APP_URL_MAIN + "getEntitiesList",
         headers: {
           "Content-Type": "application/json",
         },
@@ -1103,7 +1098,7 @@ export default new Vuex.Store({
       });
       var config = {
         method: "post",
-        url: process.env.VUE_APP_URL_MAIN + "getDocumentsList",
+        url: import.meta.env.VUE_APP_URL_MAIN + "getDocumentsList",
         headers: {
           "Content-Type": "application/json",
         },
@@ -1121,7 +1116,7 @@ export default new Vuex.Store({
     async _getPais({ commit }) {
       var config = {
         method: "post",
-        url: process.env.VUE_APP_URL_MAIN + "getPais",
+        url: import.meta.env.VUE_APP_URL_MAIN + "getPais",
         headers: {
           "Content-Type": "application/json",
         },
@@ -1139,7 +1134,7 @@ export default new Vuex.Store({
       var config = {
         method: "get",
         url:
-          process.env.VUE_APP_URL_MAIN + `cargar_state?id_pais=${idPais || ""}`,
+          import.meta.env.VUE_APP_URL_MAIN + `cargar_state?id_pais=${idPais || ""}`,
         headers: {
           "Content-Type": "application/json",
         },
@@ -1164,7 +1159,7 @@ export default new Vuex.Store({
       });
       var config = {
         method: "post",
-        url: process.env.VUE_APP_URL_MAIN + "getCity",
+        url: import.meta.env.VUE_APP_URL_MAIN + "getCity",
         headers: {
           "Content-Type": "application/json",
         },
@@ -1190,7 +1185,7 @@ export default new Vuex.Store({
       });
       var config = {
         method: "post",
-        url: process.env.VUE_APP_URL_MAIN + "getTown",
+        url: import.meta.env.VUE_APP_URL_MAIN + "getTown",
         headers: {
           "Content-Type": "application/json",
         },
@@ -1209,7 +1204,7 @@ export default new Vuex.Store({
       var config = {
         method: "post",
         url:
-          process.env.VUE_APP_URL_MAIN +
+          import.meta.env.VUE_APP_URL_MAIN +
           "getSex?id_branch=" +
           JSON.parse(sessionStorage.getItem("dataUser"))[0].id_branch,
 
@@ -1232,7 +1227,7 @@ export default new Vuex.Store({
       };
       var config = {
         method: "post",
-        url: process.env.VUE_APP_URL_MAIN + "getModality",
+        url: import.meta.env.VUE_APP_URL_MAIN + "getModality",
         headers: {
           "Content-Type": "application/json",
         },
@@ -1253,7 +1248,7 @@ export default new Vuex.Store({
       };
       var config = {
         method: "post",
-        url: process.env.VUE_APP_URL_MAIN + "getShipment",
+        url: import.meta.env.VUE_APP_URL_MAIN + "getShipment",
         headers: {
           "Content-Type": "application/json",
         },
@@ -1280,7 +1275,7 @@ export default new Vuex.Store({
       });
       var config = {
         method: "post",
-        url: process.env.VUE_APP_URL_MAIN + "getPortBegin",
+        url: import.meta.env.VUE_APP_URL_MAIN + "getPortBegin",
         headers: {
           "Content-Type": "application/json",
         },
@@ -1308,7 +1303,7 @@ export default new Vuex.Store({
       });
       var config = {
         method: "post",
-        url: process.env.VUE_APP_URL_MAIN + "getPortEnd",
+        url: import.meta.env.VUE_APP_URL_MAIN + "getPortEnd",
         headers: {
           "Content-Type": "application/json",
         },
@@ -1328,7 +1323,7 @@ export default new Vuex.Store({
       };
       var config = {
         method: "post",
-        url: process.env.VUE_APP_URL_MAIN + "getIncoterms",
+        url: import.meta.env.VUE_APP_URL_MAIN + "getIncoterms",
         headers: {
           "Content-Type": "application/json",
         },
@@ -1358,7 +1353,7 @@ export default new Vuex.Store({
       };
       var config = {
         method: "post",
-        url: process.env.VUE_APP_URL_MAIN + "getItemsServices",
+        url: import.meta.env.VUE_APP_URL_MAIN + "getItemsServices",
         headers: {
           "Content-Type": "application/json",
         },
@@ -1385,7 +1380,7 @@ export default new Vuex.Store({
 
       var config = {
         method: "post",
-        url: process.env.VUE_APP_URL_MAIN + "getGroupList",
+        url: import.meta.env.VUE_APP_URL_MAIN + "getGroupList",
         headers: {
           "Content-Type": "application/json",
         },
@@ -1417,7 +1412,7 @@ export default new Vuex.Store({
 
       var config = {
         method: "post",
-        url: process.env.VUE_APP_URL_MAIN + "getBitacoraList",
+        url: import.meta.env.VUE_APP_URL_MAIN + "getBitacoraList",
         headers: {
           "Content-Type": "application/json",
         },
@@ -1438,7 +1433,7 @@ export default new Vuex.Store({
       };
       var config = {
         method: "post",
-        url: process.env.VUE_APP_URL_MAIN + "getContainersList",
+        url: import.meta.env.VUE_APP_URL_MAIN + "getContainersList",
         headers: {
           "Content-Type": "application/json",
         },
@@ -1461,7 +1456,7 @@ export default new Vuex.Store({
       var config = {
         method: "get",
         url:
-          process.env.VUE_APP_URL_MAIN +
+          import.meta.env.VUE_APP_URL_MAIN +
           `getAirlines?id_branch=${
             JSON.parse(sessionStorage.getItem("dataUser"))[0].id_branch
           }`,
@@ -1482,7 +1477,7 @@ export default new Vuex.Store({
       var config = {
         method: "get",
         url:
-          process.env.VUE_APP_URL_MAIN +
+          import.meta.env.VUE_APP_URL_MAIN +
           `getMotonave?id_branch=${
             JSON.parse(sessionStorage.getItem("dataUser"))[0].id_branch
           }`,
@@ -1502,7 +1497,7 @@ export default new Vuex.Store({
     async _getFleteCon({ commit }) {
       var config = {
         method: "post",
-        url: process.env.VUE_APP_URL_MAIN + "getFleteCon",
+        url: import.meta.env.VUE_APP_URL_MAIN + "getFleteCon",
         headers: {
           "Content-Type": "application/json",
         },
@@ -1520,7 +1515,7 @@ export default new Vuex.Store({
       var config = {
         method: "get",
         url:
-          process.env.VUE_APP_URL_MAIN +
+          import.meta.env.VUE_APP_URL_MAIN +
           `getCoinsList?id_branch=${
             JSON.parse(sessionStorage.getItem("dataUser"))[0].id_branch
           }`,
@@ -1540,7 +1535,7 @@ export default new Vuex.Store({
     async _getnroMaster({ commit }) {
       var config = {
         method: "post",
-        url: process.env.VUE_APP_URL_MAIN + "getNroMaster",
+        url: import.meta.env.VUE_APP_URL_MAIN + "getNroMaster",
         headers: {
           "Content-Type": "application/json",
         },
@@ -1562,7 +1557,7 @@ export default new Vuex.Store({
       var config = {
         method: "post",
         url:
-          process.env.VUE_APP_URL_MAIN +
+          import.meta.env.VUE_APP_URL_MAIN +
           "getNroHouse?" +
           `id_branch=${
             JSON.parse(sessionStorage.getItem("dataUser"))[0].id_branch
@@ -1587,7 +1582,7 @@ export default new Vuex.Store({
       };
       var config = {
         method: "post",
-        url: process.env.VUE_APP_URL_MAIN + "getHouseList",
+        url: import.meta.env.VUE_APP_URL_MAIN + "getHouseList",
         headers: {
           "Content-Type": "application/json",
         },
@@ -1607,7 +1602,7 @@ export default new Vuex.Store({
       var config = {
         method: "get",
         url:
-          process.env.VUE_APP_URL_MAIN +
+          import.meta.env.VUE_APP_URL_MAIN +
           `cargar_master?id_branch=${
             JSON.parse(sessionStorage.getItem("dataUser"))[0].id_branch
           }&id_modality=${data.idsentido ? data.idsentido : ""}&id_shipment=${
@@ -1661,7 +1656,7 @@ export default new Vuex.Store({
       vm.state.dataMaster = false;
       var config = {
         method: "get",
-        url: process.env.VUE_APP_URL_MAIN + "getMasterList",
+        url: import.meta.env.VUE_APP_URL_MAIN + "getMasterList",
         params: {
           ...vm.state.master_filtro,
           id_branch: JSON.parse(sessionStorage.getItem("dataUser"))[0]
@@ -1740,7 +1735,7 @@ export default new Vuex.Store({
       var config = {
         method: "get",
         url:
-          process.env.VUE_APP_URL_MAIN +
+          import.meta.env.VUE_APP_URL_MAIN +
           `getTotalMasterList?id_branch=${
             JSON.parse(sessionStorage.getItem("dataUser"))[0].id_branch
           }&id_canal=${vm.state.master_filtro.id_canal || ""}&id_sentido=${
@@ -1781,7 +1776,7 @@ export default new Vuex.Store({
     async _getBitacoraLineal({ commit }, data) {
       var config = {
         method: "get",
-        url: process.env.VUE_APP_URL_MAIN + "getBitacoraLineal",
+        url: import.meta.env.VUE_APP_URL_MAIN + "getBitacoraLineal",
         headers: {
           "Content-Type": "application/json",
         },
@@ -1802,7 +1797,7 @@ export default new Vuex.Store({
       var config = {
         method: "get",
         url:
-          process.env.VUE_APP_URL_MAIN +
+          import.meta.env.VUE_APP_URL_MAIN +
           `getHouseListAll?id_branch=${
             JSON.parse(sessionStorage.getItem("dataUser"))[0].id_branch
           }&id_master=${vm.state.house_filtro.id_master || ""}&id_sentido=${
@@ -1854,7 +1849,7 @@ export default new Vuex.Store({
       var config = {
         method: "get",
         url:
-          process.env.VUE_APP_URL_MAIN +
+          import.meta.env.VUE_APP_URL_MAIN +
           `getTotalHouseListAll?id_branch=${
             JSON.parse(sessionStorage.getItem("dataUser"))[0].id_branch
           }&id_master=${vm.state.house_filtro.id_master || ""}&id_sentido=${
@@ -1891,7 +1886,7 @@ export default new Vuex.Store({
       };
       var config = {
         method: "get",
-        url: process.env.VUE_APP_URL_MAIN + "getHouseListAll",
+        url: import.meta.env.VUE_APP_URL_MAIN + "getHouseListAll",
         headers: {
           "Content-Type": "application/json",
         },
@@ -1914,7 +1909,7 @@ export default new Vuex.Store({
       };
       var config = {
         method: "post",
-        url: process.env.VUE_APP_URL_MAIN + "getBegEndList",
+        url: import.meta.env.VUE_APP_URL_MAIN + "getBegEndList",
         headers: {
           "Content-Type": "application/json",
         },
@@ -1936,7 +1931,7 @@ export default new Vuex.Store({
       };
       var config = {
         method: "post",
-        url: process.env.VUE_APP_URL_MAIN + "getHouseBitacora",
+        url: import.meta.env.VUE_APP_URL_MAIN + "getHouseBitacora",
         headers: {
           "Content-Type": "application/json",
         },
@@ -1957,7 +1952,7 @@ export default new Vuex.Store({
     async _getHouseContainers({ commit }, data) {
       var config = {
         method: "get",
-        url: process.env.VUE_APP_URL_MAIN + "getHouseContainers",
+        url: import.meta.env.VUE_APP_URL_MAIN + "getHouseContainers",
         headers: {
           "Content-Type": "application/json",
         },
@@ -1981,7 +1976,7 @@ export default new Vuex.Store({
       };
       var config = {
         method: "post",
-        url: process.env.VUE_APP_URL_MAIN + "getItemsServicesList",
+        url: import.meta.env.VUE_APP_URL_MAIN + "getItemsServicesList",
         headers: {
           "Content-Type": "application/json",
         },
@@ -2003,7 +1998,7 @@ export default new Vuex.Store({
       this.state.reportStatusTable = true;
       var config = {
         method: "get",
-        url: process.env.VUE_APP_URL_MAIN + `getControlFile`,
+        url: import.meta.env.VUE_APP_URL_MAIN + `getControlFile`,
         params: filtro,
         headers: {
           "Content-Type": "application/json",
@@ -2033,7 +2028,7 @@ export default new Vuex.Store({
       this.state.reportStatusTable = true;
       var config = {
         method: "post",
-        url: process.env.VUE_APP_URL_MAIN + "getControlFileAllMaster",
+        url: import.meta.env.VUE_APP_URL_MAIN + "getControlFileAllMaster",
         headers: {
           "Content-Type": "application/json",
         },
@@ -2060,7 +2055,7 @@ export default new Vuex.Store({
       };
       var config = {
         method: "post",
-        url: process.env.VUE_APP_URL_MAIN + "getControlFileAllFilter",
+        url: import.meta.env.VUE_APP_URL_MAIN + "getControlFileAllFilter",
         headers: {
           "Content-Type": "application/json",
         },
@@ -2084,7 +2079,7 @@ export default new Vuex.Store({
       };
       var config = {
         method: "post",
-        url: process.env.VUE_APP_URL_MAIN + "getControlFileAllFilterMaster",
+        url: import.meta.env.VUE_APP_URL_MAIN + "getControlFileAllFilterMaster",
         headers: {
           "Content-Type": "application/json",
         },
@@ -2104,7 +2099,7 @@ export default new Vuex.Store({
 
       var config = {
         method: "post",
-        url: process.env.VUE_APP_URL_MAIN + "getTotalesAll",
+        url: import.meta.env.VUE_APP_URL_MAIN + "getTotalesAll",
         headers: {
           "Content-Type": "application/json",
         },
@@ -2130,7 +2125,7 @@ export default new Vuex.Store({
       };
       var config = {
         method: "post",
-        url: process.env.VUE_APP_URL_MAIN + "getTotales",
+        url: import.meta.env.VUE_APP_URL_MAIN + "getTotales",
         headers: {
           "Content-Type": "application/json",
         },
@@ -2159,7 +2154,7 @@ export default new Vuex.Store({
       };
       var config = {
         method: "post",
-        url: process.env.VUE_APP_URL_MAIN + "guardar_telefono",
+        url: import.meta.env.VUE_APP_URL_MAIN + "guardar_telefono",
         headers: {
           "Content-Type": "application/json",
         },
@@ -2186,7 +2181,7 @@ export default new Vuex.Store({
     async ListarPhones(__, id) {
       var config = {
         method: "get",
-        url: process.env.VUE_APP_URL_MAIN + "listar_phone/" + id,
+        url: import.meta.env.VUE_APP_URL_MAIN + "listar_phone/" + id,
         headers: {
           "Content-Type": "application/json",
         },
@@ -2225,7 +2220,7 @@ export default new Vuex.Store({
       var config = {
         method: "post",
         url:
-          process.env.VUE_APP_URL_MAIN +
+          import.meta.env.VUE_APP_URL_MAIN +
           "getPhone/" +
           this.state.id_entitie_selected,
         headers: {
@@ -2249,7 +2244,7 @@ export default new Vuex.Store({
       var config = {
         method: "post",
         url:
-          process.env.VUE_APP_URL_MAIN +
+          import.meta.env.VUE_APP_URL_MAIN +
           "getContacts/" +
           this.state.id_entitie_selected,
         headers: {
@@ -2276,7 +2271,7 @@ export default new Vuex.Store({
       };
       var config = {
         method: "post",
-        url: process.env.VUE_APP_URL_MAIN + "setControl",
+        url: import.meta.env.VUE_APP_URL_MAIN + "setControl",
         headers: {
           "Content-Type": "application/json",
         },
@@ -2302,7 +2297,7 @@ export default new Vuex.Store({
       };
       var config = {
         method: "post",
-        url: process.env.VUE_APP_URL_MAIN + "setIngresos",
+        url: import.meta.env.VUE_APP_URL_MAIN + "setIngresos",
         headers: {
           "Content-Type": "application/json",
         },
@@ -2321,7 +2316,7 @@ export default new Vuex.Store({
       var config = {
         method: "post",
         url:
-          process.env.VUE_APP_URL_MAIN +
+          import.meta.env.VUE_APP_URL_MAIN +
           "getIngresos/" +
           this.state.dataControl_id_orders,
         headers: {
@@ -2341,7 +2336,7 @@ export default new Vuex.Store({
     async _getRole({ commit }) {
       var config = {
         method: "post",
-        url: process.env.VUE_APP_URL_MAIN + "getRole",
+        url: import.meta.env.VUE_APP_URL_MAIN + "getRole",
         headers: {
           "Content-Type": "application/json",
         },
@@ -2359,7 +2354,7 @@ export default new Vuex.Store({
       var config = {
         method: "post",
         url:
-          process.env.VUE_APP_URL_MAIN +
+          import.meta.env.VUE_APP_URL_MAIN +
           "getTotalesProveedor/" +
           this.state.dataControl_id_orders,
         headers: {
@@ -2383,7 +2378,7 @@ export default new Vuex.Store({
       this.state.dataGastos = false;
       var config = {
         method: "get",
-        url: process.env.VUE_APP_URL_MAIN + "getControlList",
+        url: import.meta.env.VUE_APP_URL_MAIN + "getControlList",
         headers: {
           "Content-Type": "application/json",
         },
@@ -2426,7 +2421,7 @@ export default new Vuex.Store({
 
       var config = {
         method: "post",
-        url: process.env.VUE_APP_URL_MAIN + "getTypeAccount/",
+        url: import.meta.env.VUE_APP_URL_MAIN + "getTypeAccount/",
         headers: {
           "Content-Type": "application/json",
         },
@@ -2444,7 +2439,7 @@ export default new Vuex.Store({
     async _getBanksList({ commit }) {
       var config = {
         method: "post",
-        url: process.env.VUE_APP_URL_MAIN + "getBanksList/",
+        url: import.meta.env.VUE_APP_URL_MAIN + "getBanksList/",
         headers: {
           "Content-Type": "application/json",
         },
@@ -2465,7 +2460,7 @@ export default new Vuex.Store({
     async _getPerformance({ commit }) {
       var config = {
         method: "post",
-        url: process.env.VUE_APP_URL_MAIN + "getPerfomance",
+        url: import.meta.env.VUE_APP_URL_MAIN + "getPerfomance",
         headers: {
           "Content-Type": "application/json",
         },
@@ -2482,7 +2477,7 @@ export default new Vuex.Store({
     async _getInvoiceAdmin({ commit }, id) {
       var config = {
         method: "get",
-        url: process.env.VUE_APP_URL_MAIN + "getVerInvoiceAdmin/" + id,
+        url: import.meta.env.VUE_APP_URL_MAIN + "getVerInvoiceAdmin/" + id,
         headers: {
           "Content-Type": "application/json",
         },
@@ -2499,7 +2494,7 @@ export default new Vuex.Store({
     async _getInvoiceAdminCxC({ commit }, id) {
       var config = {
         method: "get",
-        url: process.env.VUE_APP_URL_MAIN + "getVerInvoiceAdminCxC/" + id,
+        url: import.meta.env.VUE_APP_URL_MAIN + "getVerInvoiceAdminCxC/" + id,
         headers: {
           "Content-Type": "application/json",
         },
@@ -2515,7 +2510,7 @@ export default new Vuex.Store({
     async _getChargeMonth({ commit }, id) {
       var config = {
         method: "get",
-        url: process.env.VUE_APP_URL_MAIN + "getChargeMonth",
+        url: import.meta.env.VUE_APP_URL_MAIN + "getChargeMonth",
         headers: {
           "Content-Type": "application/json",
         },
@@ -2531,7 +2526,7 @@ export default new Vuex.Store({
     async _getChargeYear({ commit }, id) {
       var config = {
         method: "get",
-        url: process.env.VUE_APP_URL_MAIN + "getChargeYear",
+        url: import.meta.env.VUE_APP_URL_MAIN + "getChargeYear",
         params: {
           id_branch: JSON.parse(sessionStorage.getItem("dataUser"))[0]
             .id_branch,
@@ -2556,7 +2551,7 @@ export default new Vuex.Store({
       var config = {
         method: "get",
         url:
-          process.env.VUE_APP_URL_MAIN +
+          import.meta.env.VUE_APP_URL_MAIN +
           `getListaPagosXProveedorCxP?id_proveedor=${id}&id_branch=${
             JSON.parse(sessionStorage.getItem("dataUser"))[0].id_branch
           }`,
@@ -2587,7 +2582,7 @@ export default new Vuex.Store({
       commit("_setListPagosXProveedorCxP", []);
       var config = {
         method: "get",
-        url: process.env.VUE_APP_URL_MAIN + `getListaPagosXProveedorCxC/${id}`,
+        url: import.meta.env.VUE_APP_URL_MAIN + `getListaPagosXProveedorCxC/${id}`,
         headers: {
           "Content-Type": "application/json",
         },
@@ -2623,7 +2618,7 @@ export default new Vuex.Store({
       var config = {
         method: "get",
         url:
-          process.env.VUE_APP_URL_MAIN +
+          import.meta.env.VUE_APP_URL_MAIN +
           "CargarProveedores?id_branch=" +
           JSON.parse(sessionStorage.getItem("dataUser"))[0].id_branch,
         headers: {
@@ -2642,7 +2637,7 @@ export default new Vuex.Store({
       var config = {
         method: "get",
         url:
-          process.env.VUE_APP_URL_MAIN +
+          import.meta.env.VUE_APP_URL_MAIN +
           "CargarClientes?id_branch=" +
           JSON.parse(sessionStorage.getItem("dataUser"))[0].id_branch,
         headers: {
@@ -2664,7 +2659,7 @@ export default new Vuex.Store({
       var config = {
         method: "get",
         url:
-          process.env.VUE_APP_URL_MAIN +
+          import.meta.env.VUE_APP_URL_MAIN +
           "CargarBranch/" +
           JSON.parse(sessionStorage.getItem("dataUser"))[0].id_user,
 
@@ -2685,7 +2680,7 @@ export default new Vuex.Store({
       let vm = this;
       var config = {
         method: "get",
-        url: process.env.VUE_APP_URL_MAIN + "getListBanksDetailsCargar",
+        url: import.meta.env.VUE_APP_URL_MAIN + "getListBanksDetailsCargar",
         params: {
           id_branch: JSON.parse(sessionStorage.getItem("dataUser"))[0]
             .id_branch,
@@ -2707,7 +2702,7 @@ export default new Vuex.Store({
       var config = {
         method: "get",
         url:
-          process.env.VUE_APP_URL_MAIN + "getListBanksDetailsCargarPorSucursal",
+          import.meta.env.VUE_APP_URL_MAIN + "getListBanksDetailsCargarPorSucursal",
         params: {
           id_branch: JSON.parse(sessionStorage.getItem("dataUser"))[0]
             .id_branch,
@@ -2729,7 +2724,7 @@ export default new Vuex.Store({
       var config = {
         method: "get",
         url:
-          process.env.VUE_APP_URL_MAIN +
+          import.meta.env.VUE_APP_URL_MAIN +
           `cargar_proveedor_rol_no_shipper?id_branch=${
             JSON.parse(sessionStorage.getItem("dataUser"))[0].id_branch
           }`,
@@ -2754,7 +2749,7 @@ export default new Vuex.Store({
       var config = {
         method: "get",
         url:
-          process.env.VUE_APP_URL_MAIN +
+          import.meta.env.VUE_APP_URL_MAIN +
           `cargar_proveedor_x_rol?id_branch=${
             JSON.parse(sessionStorage.getItem("dataUser"))[0].id_branch
           }&rol=AEROLINEA`,
@@ -2779,7 +2774,7 @@ export default new Vuex.Store({
       var config = {
         method: "get",
         url:
-          process.env.VUE_APP_URL_MAIN +
+          import.meta.env.VUE_APP_URL_MAIN +
           `cargar_proveedor_x_rol?id_branch=${
             JSON.parse(sessionStorage.getItem("dataUser"))[0].id_branch
           }&rol=COLOADER`,
@@ -2804,7 +2799,7 @@ export default new Vuex.Store({
       var config = {
         method: "get",
         url:
-          process.env.VUE_APP_URL_MAIN +
+          import.meta.env.VUE_APP_URL_MAIN +
           `cargar_proveedor_x_rol?id_branch=${
             JSON.parse(sessionStorage.getItem("dataUser"))[0].id_branch
           }&rol=NAVIERA`,
@@ -2829,7 +2824,7 @@ export default new Vuex.Store({
       var config = {
         method: "get",
         url:
-          process.env.VUE_APP_URL_MAIN +
+          import.meta.env.VUE_APP_URL_MAIN +
           `cargar_proveedor_x_rol?id_branch=${
             JSON.parse(sessionStorage.getItem("dataUser"))[0].id_branch
           }&rol=SHIPPER`,
@@ -2854,7 +2849,7 @@ export default new Vuex.Store({
       var config = {
         method: "get",
         url:
-          process.env.VUE_APP_URL_MAIN +
+          import.meta.env.VUE_APP_URL_MAIN +
           `getComentariosPredefinidos?id_branch=${
             JSON.parse(sessionStorage.getItem("dataUser"))[0].id_branch
           }`,

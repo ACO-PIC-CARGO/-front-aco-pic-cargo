@@ -57,7 +57,7 @@ let actions = {
   async GetListQuoteStatus({ commit, dispatch }) {
     var config = {
       method: "get",
-      url: process.env.VUE_APP_URL_MAIN + `list_quote_status`,
+      url: import.meta.env.VUE_APP_URL_MAIN + `list_quote_status`,
       params: {
         ...state.StatusFilter,
         id_branch: JSON.parse(sessionStorage.getItem("dataUser"))[0].id_branch,
@@ -103,7 +103,7 @@ let actions = {
     var config = {
       method: "get",
       url:
-        process.env.VUE_APP_URL_MAIN +
+        import.meta.env.VUE_APP_URL_MAIN +
         `max_position_quote_status?id_branch=${
           JSON.parse(sessionStorage.getItem("dataUser"))[0].id_branch
         }`,
@@ -139,7 +139,7 @@ let actions = {
     var config = {
       method: "get",
       url:
-        process.env.VUE_APP_URL_MAIN +
+        import.meta.env.VUE_APP_URL_MAIN +
         `validate_position_status_quote?id_branch=${
           JSON.parse(sessionStorage.getItem("dataUser"))[0].id_branch
         }&position=${state.StatusModel.position}`,
@@ -159,7 +159,7 @@ let actions = {
     var config = {
       method: "get",
       url:
-        process.env.VUE_APP_URL_MAIN +
+        import.meta.env.VUE_APP_URL_MAIN +
         `validate_position_select_status_quote?id_branch=${
           JSON.parse(sessionStorage.getItem("dataUser"))[0].id_branch
         }&position_select=${state.StatusModel.position_select}`,
@@ -179,7 +179,7 @@ let actions = {
     var config = {
       method: "get",
       url:
-        process.env.VUE_APP_URL_MAIN +
+        import.meta.env.VUE_APP_URL_MAIN +
         `validate_position_report_status_quote?id_branch=${
           JSON.parse(sessionStorage.getItem("dataUser"))[0].id_branch
         }&position_report=${state.StatusModel.position_report}`,
@@ -199,7 +199,7 @@ let actions = {
     var config = {
       method: "get",
       url:
-        process.env.VUE_APP_URL_MAIN +
+        import.meta.env.VUE_APP_URL_MAIN +
         `validate_position_calls_status_quote?id_branch=${
           JSON.parse(sessionStorage.getItem("dataUser"))[0].id_branch
         }&position_calls=${state.StatusModel.position_calls}`,
@@ -218,7 +218,7 @@ let actions = {
   async setQuoteStatus() {
     var config = {
       method: "post",
-      url: process.env.VUE_APP_URL_MAIN + `insertar_position_calls`,
+      url: import.meta.env.VUE_APP_URL_MAIN + `insertar_position_calls`,
 
       headers: {
         "Content-Type": "application/json",
@@ -246,7 +246,7 @@ let actions = {
     var config = {
       method: "get",
       url:
-        process.env.VUE_APP_URL_MAIN +
+        import.meta.env.VUE_APP_URL_MAIN +
         `validate_position_actualizar_status_quote?id_branch=${
           JSON.parse(sessionStorage.getItem("dataUser"))[0].id_branch
         }&id=${state.StatusModel.id}&position=${state.StatusModel.position}`,
@@ -266,7 +266,7 @@ let actions = {
     var config = {
       method: "get",
       url:
-        process.env.VUE_APP_URL_MAIN +
+        import.meta.env.VUE_APP_URL_MAIN +
         `validate_position_select_actualizar_status_quote?id_branch=${
           JSON.parse(sessionStorage.getItem("dataUser"))[0].id_branch
         }&id=${state.StatusModel.id}&position_select=${
@@ -288,7 +288,7 @@ let actions = {
     var config = {
       method: "get",
       url:
-        process.env.VUE_APP_URL_MAIN +
+        import.meta.env.VUE_APP_URL_MAIN +
         `validate_position_report_actualizar_status_quote?id_branch=${
           JSON.parse(sessionStorage.getItem("dataUser"))[0].id_branch
         }&id=${state.StatusModel.id}&position_report=${
@@ -310,7 +310,7 @@ let actions = {
     var config = {
       method: "get",
       url:
-        process.env.VUE_APP_URL_MAIN +
+        import.meta.env.VUE_APP_URL_MAIN +
         `validate_position_calls_actualizar_status_quote?id_branch=${
           JSON.parse(sessionStorage.getItem("dataUser"))[0].id_branch
         }&id=${state.StatusModel.id}&position_calls=${
@@ -332,7 +332,7 @@ let actions = {
   async actualizarQuoteStatus() {
     var config = {
       method: "put",
-      url: process.env.VUE_APP_URL_MAIN + `actualizar_position_calls`,
+      url: import.meta.env.VUE_APP_URL_MAIN + `actualizar_position_calls`,
 
       headers: {
         "Content-Type": "application/json",

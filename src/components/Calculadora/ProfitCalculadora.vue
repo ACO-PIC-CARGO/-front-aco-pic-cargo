@@ -187,7 +187,7 @@
 </template>
 
 <script>
-import { mapActions } from "vuex/dist/vuex.common.js";
+import { mapActions } from "vuex";
 import Swal from "sweetalert2";
 export default {
   props: {

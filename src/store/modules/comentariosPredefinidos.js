@@ -29,7 +29,7 @@ const actions = {
     var config = {
       method: "get",
       url:
-        process.env.VUE_APP_URL_MAIN + "listarComentariosPredefinidos?" +
+        import.meta.env.VUE_APP_URL_MAIN + "listarComentariosPredefinidos?" +
         `id_branch=${
           JSON.parse(sessionStorage.getItem("dataUser"))[0].id_branch
         }&code=${
@@ -80,7 +80,7 @@ const actions = {
     var config = {
       method: "get",
       url:
-        process.env.VUE_APP_URL_MAIN + "consultarMaxCodeComentariosPredefinidos?" +
+        import.meta.env.VUE_APP_URL_MAIN + "consultarMaxCodeComentariosPredefinidos?" +
         `id_branch=${
           JSON.parse(sessionStorage.getItem("dataUser"))[0].id_branch
         }`,
@@ -107,7 +107,7 @@ const actions = {
   async insertComentarioPredefinido({ commit, dispatch }, data) {
     var config = {
       method: "post",
-      url: process.env.VUE_APP_URL_MAIN + "insertarComentarioPredefinido",
+      url: import.meta.env.VUE_APP_URL_MAIN + "insertarComentarioPredefinido",
       headers: {
         "Content-Type": "application/json",
        
@@ -134,7 +134,7 @@ const actions = {
   async updateComentarioPredefinido({ commit, dispatch }, data) {
     var config = {
       method: "put",
-      url: process.env.VUE_APP_URL_MAIN + "actualizarComentarioPredefinido",
+      url: import.meta.env.VUE_APP_URL_MAIN + "actualizarComentarioPredefinido",
       headers: {
         "Content-Type": "application/json",
        
@@ -161,7 +161,7 @@ const actions = {
   async deleteComentarioPredefinido({ dispatch }, data) {
     var config = {
       method: "post",
-      url: process.env.VUE_APP_URL_MAIN + "eliminarComentarioPredefinido",
+      url: import.meta.env.VUE_APP_URL_MAIN + "eliminarComentarioPredefinido",
       headers: {
         "Content-Type": "application/json",
        
@@ -202,7 +202,7 @@ const actions = {
 
     await axios
       .post(
-        process.env.VUE_APP_URL_MAIN + "exportarListadoComentariosPredefinidos", 
+        import.meta.env.VUE_APP_URL_MAIN + "exportarListadoComentariosPredefinidos", 
         data, 
         headers
       )

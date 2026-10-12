@@ -398,7 +398,7 @@ export default {
       var config = {
         method: "get",
         url:
-          process.env.VUE_APP_URL_MAIN +
+          import.meta.env.VUE_APP_URL_MAIN +
           `validar_code_year?` +
           `description=${this.record.description}` +
           `&id_branch=${this.record.id_branch}`,

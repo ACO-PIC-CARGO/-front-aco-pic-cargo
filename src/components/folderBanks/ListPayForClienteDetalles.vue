@@ -393,8 +393,6 @@ export default {
     },
     _uploadFile() {
       if (this.payfile) {
-        var FormData = require("form-data");
-        var fs = require("fs");
         var data = new FormData();
         var vm = this;
         data.append("name", "Prueba");
@@ -402,7 +400,7 @@ export default {
 
         var config = {
           method: "post",
-          url: process.env.VUE_APP_URL_MAIN + "uploadAllPath",
+          url: import.meta.env.VUE_APP_URL_MAIN + "uploadAllPath",
           headers: {
             "Content-Type": "application/json",
           },
@@ -457,7 +455,7 @@ export default {
       let vm = this;
       var config = {
         method: "get",
-        url: process.env.VUE_APP_URL_MAIN + "getListBanksDetailsCargar",
+        url: import.meta.env.VUE_APP_URL_MAIN + "getListBanksDetailsCargar",
         params: {
           id_branch: JSON.parse(sessionStorage.getItem("dataUser"))[0]
             .id_branch,
@@ -485,7 +483,7 @@ export default {
       var config = {
         method: "get",
         url:
-          process.env.VUE_APP_URL_MAIN +
+          import.meta.env.VUE_APP_URL_MAIN +
           `getListarPayForCustomerDetalle?id_branch=${
             JSON.parse(sessionStorage.getItem("dataUser"))[0].id_branch
           }&nro_operacion=${
@@ -540,7 +538,7 @@ export default {
       vm.verflag = !editar;
       var config = {
         method: "get",
-        url: process.env.VUE_APP_URL_MAIN + "ver_ingresos_invoice?id=" + id,
+        url: import.meta.env.VUE_APP_URL_MAIN + "ver_ingresos_invoice?id=" + id,
 
         headers: {
           "Content-Type": "application/json",
@@ -564,7 +562,7 @@ export default {
       vm.verflag = !editar;
       var config = {
         method: "get",
-        url: process.env.VUE_APP_URL_MAIN + "ver_ingresos_debscliente?id=" + id,
+        url: import.meta.env.VUE_APP_URL_MAIN + "ver_ingresos_debscliente?id=" + id,
 
         headers: {
           "Content-Type": "application/json",
@@ -588,7 +586,7 @@ export default {
         vm.dato.usuario = vm.usuario;
         var config = {
           method: "put",
-          url: process.env.VUE_APP_URL_MAIN + "actualizar_ingreso_invoice",
+          url: import.meta.env.VUE_APP_URL_MAIN + "actualizar_ingreso_invoice",
 
           headers: {
             "Content-Type": "application/json",
@@ -623,7 +621,7 @@ export default {
         vm.dato.usuario = vm.usuario;
         var config = {
           method: "put",
-          url: process.env.VUE_APP_URL_MAIN + "actualizar_ingreso_debscliente",
+          url: import.meta.env.VUE_APP_URL_MAIN + "actualizar_ingreso_debscliente",
 
           headers: {
             "Content-Type": "application/json",
@@ -656,7 +654,7 @@ export default {
       var config = {
         method: "get",
         url:
-          process.env.VUE_APP_URL_MAIN +
+          import.meta.env.VUE_APP_URL_MAIN +
           `exportar_listado_reporte_ingresos?id_branch=${
             JSON.parse(sessionStorage.getItem("dataUser"))[0].id_branch
           }&nro_operacion=${

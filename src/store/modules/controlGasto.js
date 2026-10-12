@@ -34,7 +34,7 @@ const mutations = {
 
 const actions = {
   async getListControlGastos({ commit }, id) {
-    const routeParams = router.currentRoute.params;
+    const routeParams = router.currentRoute.value.params;
     // console.log(routeParams);
     var headers = {
       "Content-Type": "application/json",
@@ -42,7 +42,7 @@ const actions = {
     var config = {
       method: "get",
       url:
-        process.env.VUE_APP_URL_MAIN +
+        import.meta.env.VUE_APP_URL_MAIN +
         `control_gastos_list?id=${id}&id_branch=${routeParams.id_branch}`,
       headers: headers,
     };
@@ -73,7 +73,7 @@ const actions = {
     });
   },
   async getListControlGastosHouses({ commit }, id) {
-    const routeParams = router.currentRoute.params;
+    const routeParams = router.currentRoute.value.params;
     // console.log(routeParams);
     var headers = {
       "Content-Type": "application/json",
@@ -81,7 +81,7 @@ const actions = {
     var config = {
       method: "get",
       url:
-        process.env.VUE_APP_URL_MAIN +
+        import.meta.env.VUE_APP_URL_MAIN +
         `control_gastos_listhouses?id=${id}&id_branch=${routeParams.id_branch}`,
       headers: headers,
     };
@@ -112,7 +112,7 @@ const actions = {
     });
   },
   async getListControlGastosMaster({ commit }, id) {
-    const routeParams = router.currentRoute.params;
+    const routeParams = router.currentRoute.value.params;
     // console.log(routeParams);
     var headers = {
       "Content-Type": "application/json",
@@ -120,7 +120,7 @@ const actions = {
     var config = {
       method: "get",
       url:
-        process.env.VUE_APP_URL_MAIN +
+        import.meta.env.VUE_APP_URL_MAIN +
         `control_gastos_listmaster?id=${id}&id_branch=${routeParams.id_branch}`,
       headers: headers,
     };
@@ -156,7 +156,7 @@ const actions = {
     };
     var config = {
       method: "get",
-      url: process.env.VUE_APP_URL_MAIN + `cargar_correlativo`,
+      url: import.meta.env.VUE_APP_URL_MAIN + `cargar_correlativo`,
       headers: headers,
     };
 
@@ -177,7 +177,7 @@ const actions = {
     var config = {
       method: "get",
       url:
-        process.env.VUE_APP_URL_MAIN +
+        import.meta.env.VUE_APP_URL_MAIN +
         `listar_cge_corralativo?id_proveedor=${id_proveedor}`,
       headers: headers,
     };
@@ -207,7 +207,7 @@ const actions = {
     };
     var config = {
       method: "post",
-      url: process.env.VUE_APP_URL_MAIN + "setControl",
+      url: import.meta.env.VUE_APP_URL_MAIN + "setControl",
       headers: {
         "Content-Type": "application/json",
       },
@@ -240,7 +240,7 @@ const actions = {
     var data = data;
     var config = {
       method: "post",
-      url: process.env.VUE_APP_URL_MAIN + "setIngresos",
+      url: import.meta.env.VUE_APP_URL_MAIN + "setIngresos",
       headers: {
         "Content-Type": "application/json",
       },
@@ -272,7 +272,7 @@ const actions = {
     var data = data;
     var config = {
       method: "post",
-      url: process.env.VUE_APP_URL_MAIN + "editIngreso",
+      url: import.meta.env.VUE_APP_URL_MAIN + "editIngreso",
       headers: {
         "Content-Type": "application/json",
       },
@@ -303,7 +303,7 @@ const actions = {
   async copiarCGingresos({ dispatch }, data) {
     var config = {
       method: "put",
-      url: process.env.VUE_APP_URL_MAIN + "copiar_cgingresos",
+      url: import.meta.env.VUE_APP_URL_MAIN + "copiar_cgingresos",
       headers: {
         "Content-Type": "application/json",
       },
@@ -334,7 +334,7 @@ const actions = {
   async copiarCGEgresos({ dispatch }, data) {
     var config = {
       method: "put",
-      url: process.env.VUE_APP_URL_MAIN + "copiar_cgegresos",
+      url: import.meta.env.VUE_APP_URL_MAIN + "copiar_cgegresos",
       headers: {
         "Content-Type": "application/json",
       },
@@ -367,7 +367,7 @@ const actions = {
     var config = {
       method: "get",
       url:
-        process.env.VUE_APP_URL_MAIN +
+        import.meta.env.VUE_APP_URL_MAIN +
         "obtener_nombre_camapania?id_master=" +
         id_master,
       headers: {
@@ -396,7 +396,7 @@ const actions = {
     var data = data;
     var config = {
       method: "post",
-      url: process.env.VUE_APP_URL_MAIN + "delIngresos/" + data.id,
+      url: import.meta.env.VUE_APP_URL_MAIN + "delIngresos/" + data.id,
       headers: {
         "Content-Type": "application/json",
       },
@@ -423,7 +423,7 @@ const actions = {
     state.response = [];
     var config = {
       method: "post",
-      url: process.env.VUE_APP_URL_MAIN + "carga_masiva_controldegasto",
+      url: import.meta.env.VUE_APP_URL_MAIN + "carga_masiva_controldegasto",
       headers: {
         "Content-Type": "application/json",
       },
@@ -447,7 +447,7 @@ const actions = {
     var config = {
       method: "get",
       url:
-        process.env.VUE_APP_URL_MAIN +
+        import.meta.env.VUE_APP_URL_MAIN +
         "consolidado_carga_masiva?id_mastercontrol=" +
         id_mastercontrol,
       responseType: "blob",
@@ -479,7 +479,7 @@ const actions = {
     state.response = [];
     var config = {
       method: "post",
-      url: process.env.VUE_APP_URL_MAIN + "guardar_cuotas_cge_tipo_proveedor",
+      url: import.meta.env.VUE_APP_URL_MAIN + "guardar_cuotas_cge_tipo_proveedor",
       headers: {
         "Content-Type": "application/json",
       },
@@ -513,7 +513,7 @@ const actions = {
     console.log("imprimirGuardarControlDetallado", data);
     var config = {
       method: "post",
-      url: process.env.VUE_APP_URL_MAIN + "getPdfInstructivoDetallado",
+      url: import.meta.env.VUE_APP_URL_MAIN + "getPdfInstructivoDetallado",
       headers: {
         "Content-Type": "application/json",
       },

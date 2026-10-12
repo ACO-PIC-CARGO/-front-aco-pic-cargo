@@ -511,7 +511,7 @@ const actions = {
     };
     let config = {
       method: "put",
-      url: `${process.env.VUE_APP_URL_MAIN}set_emision-pdf`,
+      url: `${import.meta.env.VUE_APP_URL_MAIN}set_emision-pdf`,
       data: datos,
       headers: {
         "Content-Type": "application/json",
@@ -528,7 +528,7 @@ const actions = {
   async quotePreviewInstructivoManual({ dispatch }, datos) {
     let config = {
       method: "put",
-      url: `${process.env.VUE_APP_URL_MAIN}quote_preview_instructivo_manual`,
+      url: `${import.meta.env.VUE_APP_URL_MAIN}quote_preview_instructivo_manual`,
       data: datos,
       headers: {
         "Content-Type": "application/json",
@@ -537,7 +537,7 @@ const actions = {
     await axios(config).then((response) => {
       if (!datos.guardarFlag) {
         window.open(
-          `${process.env.VUE_APP_URL_MAIN}${response.data.path}`,
+          `${import.meta.env.VUE_APP_URL_MAIN}${response.data.path}`,
           // "",
           "_blank",
         );
@@ -547,7 +547,7 @@ const actions = {
   async guardarDatosInstructivo({ dispatch }, datos) {
     let config = {
       method: "put",
-      url: `${process.env.VUE_APP_URL_MAIN}actualizar_datos_instructivo_manual`,
+      url: `${import.meta.env.VUE_APP_URL_MAIN}actualizar_datos_instructivo_manual`,
       data: datos,
       headers: {
         "Content-Type": "application/json",
@@ -564,7 +564,7 @@ const actions = {
     try {
       const config = {
         method: "get",
-        url: `${process.env.VUE_APP_URL_MAIN}listar_montos_finales_quote`,
+        url: `${import.meta.env.VUE_APP_URL_MAIN}listar_montos_finales_quote`,
         params: {
           id_branch: JSON.parse(sessionStorage.getItem("dataUser"))[0]
             .id_branch,
@@ -594,7 +594,7 @@ const actions = {
   async getServices({ commit }) {
     let config = {
       method: "get",
-      url: `${process.env.VUE_APP_URL_MAIN}obtener_servicio_pricing`,
+      url: `${import.meta.env.VUE_APP_URL_MAIN}obtener_servicio_pricing`,
       params: {
         id_branch: JSON.parse(sessionStorage.getItem("dataUser"))[0].id_branch,
       },
@@ -614,7 +614,7 @@ const actions = {
   async getResumenPorEstado({ commit }) {
     let config = {
       method: "get",
-      url: `${process.env.VUE_APP_URL_MAIN}resumen_por_estado`,
+      url: `${import.meta.env.VUE_APP_URL_MAIN}resumen_por_estado`,
       params: {
         id_branch: JSON.parse(sessionStorage.getItem("dataUser"))[0].id_branch,
       },
@@ -634,7 +634,7 @@ const actions = {
   async getListQuote({ commit }) {
     var config = {
       method: "get",
-      url: process.env.VUE_APP_URL_MAIN + `getQuoteList`,
+      url: import.meta.env.VUE_APP_URL_MAIN + `getQuoteList`,
       params: {
         ...state.filtro,
         search: state.search,
@@ -685,7 +685,7 @@ const actions = {
     var config = {
       method: "get",
       url:
-        process.env.VUE_APP_URL_MAIN +
+        import.meta.env.VUE_APP_URL_MAIN +
         `tipo_costo_x_embarque?id_shipment=${
           state.datosPrincipales.idtipocarga.id
             ? state.datosPrincipales.idtipocarga.id
@@ -716,7 +716,7 @@ const actions = {
     var config = {
       method: "get",
       url:
-        process.env.VUE_APP_URL_MAIN +
+        import.meta.env.VUE_APP_URL_MAIN +
         `quote_cargar_noasignadoshouse?id_branch=${
           JSON.parse(sessionStorage.getItem("dataUser"))[0].id_branch
         }`,
@@ -744,7 +744,7 @@ const actions = {
     var config = {
       method: "get",
       url:
-        process.env.VUE_APP_URL_MAIN + `quote_data_house?id_quote=${id_quote}`,
+        import.meta.env.VUE_APP_URL_MAIN + `quote_data_house?id_quote=${id_quote}`,
       headers: {
         "Content-Type": "application/json",
       },
@@ -772,7 +772,7 @@ const actions = {
     };
     var config = {
       method: "get",
-      url: process.env.VUE_APP_URL_MAIN + `listado_llamadas`,
+      url: import.meta.env.VUE_APP_URL_MAIN + `listado_llamadas`,
       headers: header,
       params: state.filtroCalls,
     };
@@ -811,7 +811,7 @@ const actions = {
   async getMarketingList({ commit }) {
     var config = {
       method: "post",
-      url: process.env.VUE_APP_URL_MAIN + "getMarketingList",
+      url: import.meta.env.VUE_APP_URL_MAIN + "getMarketingList",
       headers: {
         "Content-Type": "application/json",
       },
@@ -830,7 +830,7 @@ const actions = {
   async getQuoteStatus({ commit }) {
     var config = {
       method: "post",
-      url: process.env.VUE_APP_URL_MAIN + "getQuoteStatus",
+      url: import.meta.env.VUE_APP_URL_MAIN + "getQuoteStatus",
       headers: {
         "Content-Type": "application/json",
       },
@@ -849,7 +849,7 @@ const actions = {
   async getModulesEntities({ commit }) {
     var config = {
       method: "post",
-      url: process.env.VUE_APP_URL_MAIN + "getModulesEntities",
+      url: import.meta.env.VUE_APP_URL_MAIN + "getModulesEntities",
       headers: {
         "Content-Type": "application/json",
       },
@@ -869,7 +869,7 @@ const actions = {
   async getCargarEjecutivo({ commit }) {
     var config = {
       method: "get",
-      url: process.env.VUE_APP_URL_MAIN + "cargar_ejecutivo",
+      url: import.meta.env.VUE_APP_URL_MAIN + "cargar_ejecutivo",
       headers: {
         "Content-Type": "application/json",
       },
@@ -890,7 +890,7 @@ const actions = {
     var config = {
       method: "get",
       url:
-        process.env.VUE_APP_URL_MAIN +
+        import.meta.env.VUE_APP_URL_MAIN +
         "get_personal_pricing?id_branch=" +
         JSON.parse(sessionStorage.getItem("dataUser"))[0].id_branch,
       headers: {
@@ -914,7 +914,7 @@ const actions = {
     };
     var config = {
       method: "post",
-      url: process.env.VUE_APP_URL_MAIN + "getBegEndList",
+      url: import.meta.env.VUE_APP_URL_MAIN + "getBegEndList",
       headers: headers,
       data: data,
     };
@@ -930,7 +930,7 @@ const actions = {
   async getModality({ commit }) {
     var config = {
       method: "post",
-      url: process.env.VUE_APP_URL_MAIN + "getModality",
+      url: import.meta.env.VUE_APP_URL_MAIN + "getModality",
       headers: {
         "Content-Type": "application/json",
       },
@@ -949,7 +949,7 @@ const actions = {
   async getShipment({ commit }) {
     var config = {
       method: "post",
-      url: process.env.VUE_APP_URL_MAIN + "getShipment",
+      url: import.meta.env.VUE_APP_URL_MAIN + "getShipment",
       headers: {
         "Content-Type": "application/json",
       },
@@ -968,7 +968,7 @@ const actions = {
   async getIncoterms({ commit }) {
     var config = {
       method: "post",
-      url: process.env.VUE_APP_URL_MAIN + "getIncoterms",
+      url: import.meta.env.VUE_APP_URL_MAIN + "getIncoterms",
       headers: {
         "Content-Type": "application/json",
       },
@@ -990,7 +990,7 @@ const actions = {
   ) {
     var config = {
       method: "post",
-      url: process.env.VUE_APP_URL_MAIN + "getPortBegin",
+      url: import.meta.env.VUE_APP_URL_MAIN + "getPortBegin",
       headers: {
         "Content-Type": "application/json",
       },
@@ -1016,7 +1016,7 @@ const actions = {
   ) {
     var config = {
       method: "post",
-      url: process.env.VUE_APP_URL_MAIN + "getPortEnd",
+      url: import.meta.env.VUE_APP_URL_MAIN + "getPortEnd",
       headers: {
         "Content-Type": "application/json",
       },
@@ -1040,7 +1040,7 @@ const actions = {
   async getItemsServices({ commit }) {
     var config = {
       method: "post",
-      url: process.env.VUE_APP_URL_MAIN + "getItemsServices",
+      url: import.meta.env.VUE_APP_URL_MAIN + "getItemsServices",
       headers: {
         "Content-Type": "application/json",
       },
@@ -1078,7 +1078,7 @@ const actions = {
     };
     var config = {
       method: "get",
-      url: process.env.VUE_APP_URL_MAIN + "obtener_costos_pricing",
+      url: import.meta.env.VUE_APP_URL_MAIN + "obtener_costos_pricing",
       headers: headers,
       params: data,
     };
@@ -1103,7 +1103,7 @@ const actions = {
     };
     var config = {
       method: "post",
-      url: process.env.VUE_APP_URL_MAIN + "getItemsServicesDetails",
+      url: import.meta.env.VUE_APP_URL_MAIN + "getItemsServicesDetails",
       headers: headers,
       data: data,
     };
@@ -1224,7 +1224,7 @@ const actions = {
     //
     var config = {
       method: "post",
-      url: process.env.VUE_APP_URL_MAIN + "getMultiplicador",
+      url: import.meta.env.VUE_APP_URL_MAIN + "getMultiplicador",
       data: data,
       headers: headers,
     };
@@ -1256,7 +1256,7 @@ const actions = {
     });
     var config = {
       method: "post",
-      url: process.env.VUE_APP_URL_MAIN + "getModuleRole",
+      url: import.meta.env.VUE_APP_URL_MAIN + "getModuleRole",
       headers: headers,
       data: data,
     };
@@ -1285,7 +1285,7 @@ const actions = {
     var config = {
       method: "post",
       url:
-        process.env.VUE_APP_URL_MAIN +
+        import.meta.env.VUE_APP_URL_MAIN +
         `cargar_master_detalle_notas_cotizacion?id_branch=${
           JSON.parse(sessionStorage.getItem("dataUser"))[0].id_branch
         }`,
@@ -1312,7 +1312,7 @@ const actions = {
     var config = {
       method: "post",
       url:
-        process.env.VUE_APP_URL_MAIN +
+        import.meta.env.VUE_APP_URL_MAIN +
         `cargar_master_detalle_impuesto?id_branch=${
           JSON.parse(sessionStorage.getItem("dataUser"))[0].id_branch
         }`,
@@ -1401,7 +1401,7 @@ const actions = {
     //  console.log(data.costocotizacion);
     let config = {
       method: "post",
-      url: process.env.VUE_APP_URL_MAIN + "setQuote",
+      url: import.meta.env.VUE_APP_URL_MAIN + "setQuote",
       headers: {
         "Content-Type": "application/json",
       },
@@ -1505,7 +1505,7 @@ const actions = {
     //  console.log(data.costocotizacion);
     let config = {
       method: "post",
-      url: process.env.VUE_APP_URL_MAIN + "setQuote",
+      url: import.meta.env.VUE_APP_URL_MAIN + "setQuote",
       headers: {
         "Content-Type": "application/json",
       },
@@ -1524,7 +1524,7 @@ const actions = {
     //  console.log(data.costocotizacion);
     let config = {
       method: "post",
-      url: process.env.VUE_APP_URL_MAIN + "copiar_cotizacion",
+      url: import.meta.env.VUE_APP_URL_MAIN + "copiar_cotizacion",
       headers: {
         "Content-Type": "application/json",
       },
@@ -1543,7 +1543,7 @@ const actions = {
     let config = {
       method: "get",
       url:
-        process.env.VUE_APP_URL_MAIN +
+        import.meta.env.VUE_APP_URL_MAIN +
         `crear-carpeta-cotizacion?nombrecotizacion=${folder}`,
       headers: {
         "Content-Type": "application/json",
@@ -1562,7 +1562,7 @@ const actions = {
   async actualizarURLEnElQuote(__, { id = "", url = "" }) {
     let config = {
       method: "put",
-      url: process.env.VUE_APP_URL_MAIN + `actualizar_quote_folderonedrive`,
+      url: import.meta.env.VUE_APP_URL_MAIN + `actualizar_quote_folderonedrive`,
       headers: {
         "Content-Type": "application/json",
       },
@@ -1578,7 +1578,7 @@ const actions = {
   async getQuote({ dispatch }, { id: id }) {
     let config = {
       method: "get",
-      url: process.env.VUE_APP_URL_MAIN + `getQuoteId?id=${id}`,
+      url: import.meta.env.VUE_APP_URL_MAIN + `getQuoteId?id=${id}`,
       headers: {
         "Content-Type": "application/json",
       },
@@ -1642,7 +1642,7 @@ const actions = {
   async getCotzacionCalculadora({ dispatch }, data) {
     let config = {
       method: "get",
-      url: process.env.VUE_APP_URL_MAIN + `calc/ver_cotizacion`,
+      url: import.meta.env.VUE_APP_URL_MAIN + `calc/ver_cotizacion`,
       params: data,
       headers: {
         "Content-Type": "application/json",
@@ -1717,7 +1717,7 @@ const actions = {
     };
     var config = {
       method: "post",
-      url: process.env.VUE_APP_URL_MAIN + "getInstructivoId/" + id,
+      url: import.meta.env.VUE_APP_URL_MAIN + "getInstructivoId/" + id,
       headers: headers,
       data: data,
     };
@@ -1739,7 +1739,7 @@ const actions = {
     var config = {
       method: "post",
       url:
-        process.env.VUE_APP_URL_MAIN +
+        import.meta.env.VUE_APP_URL_MAIN +
         `getBranch/${
           JSON.parse(sessionStorage.getItem("dataUser"))[0].id_branch
         }`,
@@ -3409,7 +3409,7 @@ const actions = {
     };
     await axios
       .post(
-        process.env.VUE_APP_URL_MAIN + "quote_preview_totales",
+        import.meta.env.VUE_APP_URL_MAIN + "quote_preview_totales",
         data,
         headers,
       )
@@ -3425,7 +3425,7 @@ const actions = {
           });
           if (!guardarFlag) {
             window.open(
-              `${process.env.VUE_APP_URL_MAIN}${response.data.path}`,
+              `${import.meta.env.VUE_APP_URL_MAIN}${response.data.path}`,
               // "",
               "_blank",
             );
@@ -3482,7 +3482,7 @@ const actions = {
     });
 
     await axios
-      .post(process.env.VUE_APP_URL_MAIN + "export_list_quote", data, headers)
+      .post(import.meta.env.VUE_APP_URL_MAIN + "export_list_quote", data, headers)
       .then((response) => {
         if (response.data.estadoflag) {
           Swal.fire({
@@ -3493,7 +3493,7 @@ const actions = {
           });
 
           window.open(
-            `${process.env.VUE_APP_URL_MAIN}${response.data.path}`,
+            `${import.meta.env.VUE_APP_URL_MAIN}${response.data.path}`,
             // "",
             "_blank",
           );
@@ -3529,7 +3529,7 @@ const actions = {
       id_branch: JSON.parse(sessionStorage.getItem("dataUser"))[0].id_branch,
     };
 
-    let url = process.env.VUE_APP_URL_MAIN + "export_list_quote_xls";
+    let url = import.meta.env.VUE_APP_URL_MAIN + "export_list_quote_xls";
     await axios.post(url, data, headers).then((response) => {
       const url = window.URL.createObjectURL(new Blob([response.data]));
       const link = document.createElement("a");
@@ -3591,7 +3591,7 @@ const actions = {
     });
     var config = {
       method: "post",
-      url: process.env.VUE_APP_URL_MAIN + "listado_cotizacion_mercadeo",
+      url: import.meta.env.VUE_APP_URL_MAIN + "listado_cotizacion_mercadeo",
       headers: {
         "Content-Type": "application/json",
       },
@@ -3611,7 +3611,7 @@ const actions = {
         });
         if (response.data.estadoflag == true) {
           window.open(
-            `${process.env.VUE_APP_URL_MAIN}${response.data.path}`,
+            `${import.meta.env.VUE_APP_URL_MAIN}${response.data.path}`,
             // "",
             "_blank",
           );
@@ -3656,7 +3656,7 @@ const actions = {
     });
     await axios
       .post(
-        process.env.VUE_APP_URL_MAIN + "reporte_llamadas_export",
+        import.meta.env.VUE_APP_URL_MAIN + "reporte_llamadas_export",
         data,
         headers,
       )
@@ -3670,7 +3670,7 @@ const actions = {
           });
           console.log("data", response.data);
           window.open(
-            `${process.env.VUE_APP_URL_MAIN}${response.data.path}`,
+            `${import.meta.env.VUE_APP_URL_MAIN}${response.data.path}`,
             // "",
             "_blank",
           );
@@ -3694,7 +3694,7 @@ const actions = {
     var config = {
       method: "post",
       url:
-        process.env.VUE_APP_URL_MAIN +
+        import.meta.env.VUE_APP_URL_MAIN +
         `cargar_master_detalle_recibido?id_branch=${
           JSON.parse(sessionStorage.getItem("dataUser"))[0].id_branch
         }`,
@@ -3721,7 +3721,7 @@ const actions = {
     var config = {
       method: "post",
       url:
-        process.env.VUE_APP_URL_MAIN +
+        import.meta.env.VUE_APP_URL_MAIN +
         `cargar_master_detalle_enviado?id_branch=${
           JSON.parse(sessionStorage.getItem("dataUser"))[0].id_branch
         }`,
@@ -3747,7 +3747,7 @@ const actions = {
 
     var config = {
       method: "put",
-      url: process.env.VUE_APP_URL_MAIN + `update_quote_recibido_enviado`,
+      url: import.meta.env.VUE_APP_URL_MAIN + `update_quote_recibido_enviado`,
       headers: headers,
       data: data,
     };
@@ -3763,7 +3763,7 @@ const actions = {
   async guardarNotaQuote(__, data) {
     var config = {
       method: "post",
-      url: process.env.VUE_APP_URL_MAIN + "setCalls",
+      url: import.meta.env.VUE_APP_URL_MAIN + "setCalls",
       headers: {
         "Content-Type": "application/json",
       },
@@ -3829,7 +3829,7 @@ const actions = {
     };
     let config = {
       method: "put",
-      url: process.env.VUE_APP_URL_MAIN + "putQuote",
+      url: import.meta.env.VUE_APP_URL_MAIN + "putQuote",
       headers: {
         "Content-Type": "application/json",
       },
@@ -3851,7 +3851,7 @@ const actions = {
     };
     var config = {
       method: "post",
-      url: process.env.VUE_APP_URL_MAIN + `delQuote`,
+      url: import.meta.env.VUE_APP_URL_MAIN + `delQuote`,
       headers: headers,
       data: { id: id },
     };
@@ -5548,7 +5548,7 @@ const actions = {
   async aprobarCotizacion({ dispatch }, dataParaAprobar) {
     var config = {
       method: "put",
-      url: process.env.VUE_APP_URL_MAIN + "aprobar_cotizacion",
+      url: import.meta.env.VUE_APP_URL_MAIN + "aprobar_cotizacion",
       headers: {
         "Content-Type": "application/json",
         "idempotency-key": dataParaAprobar.IdempotencyKey,
@@ -5630,7 +5630,7 @@ const actions = {
         }
         if (res.isDenied) {
           // La ruta actual está en 'currentRoute'
-          const idActual = router.currentRoute.params.id;
+          const idActual = router.currentRoute.value.params.id;
 
           if (idActual) {
             router.push({
@@ -6332,7 +6332,7 @@ const actions = {
     });
 
     await axios
-      .post(process.env.VUE_APP_URL_MAIN + "quote_instructivo", data, headers)
+      .post(import.meta.env.VUE_APP_URL_MAIN + "quote_instructivo", data, headers)
       .then((response) => {
         Swal.fire({
           icon: "success",
@@ -6342,7 +6342,7 @@ const actions = {
         });
 
         window.open(
-          `${process.env.VUE_APP_URL_MAIN}${response.data.path}`,
+          `${import.meta.env.VUE_APP_URL_MAIN}${response.data.path}`,
           // "",
           "_blank",
         );
@@ -6414,7 +6414,7 @@ const actions = {
 
     await axios
       .post(
-        process.env.VUE_APP_URL_MAIN + "insert_monto_finales_quote",
+        import.meta.env.VUE_APP_URL_MAIN + "insert_monto_finales_quote",
         data,
         headers,
       )
@@ -6435,7 +6435,7 @@ const actions = {
   async setNoteQuote({}, data) {
     var config = {
       method: "post",
-      url: process.env.VUE_APP_URL_MAIN + "quote_note_insert",
+      url: import.meta.env.VUE_APP_URL_MAIN + "quote_note_insert",
       headers: {
         "Content-Type": "application/json",
       },
@@ -6460,7 +6460,7 @@ const actions = {
     }
     let config = {
       method: "get",
-      url: `${process.env.VUE_APP_URL_MAIN}listado_files`,
+      url: `${import.meta.env.VUE_APP_URL_MAIN}listado_files`,
       params: {
         folderUrl: folderUrl,
       },
@@ -6485,7 +6485,7 @@ const actions = {
     try {
       const config = {
         method: "get",
-        url: `${process.env.VUE_APP_URL_MAIN}get_texto_whatsapp`,
+        url: `${import.meta.env.VUE_APP_URL_MAIN}get_texto_whatsapp`,
         params: params,
         headers: {
           "Content-Type": "application/json",
@@ -6509,7 +6509,7 @@ const actions = {
     let res = {};
     var config = {
       method: "get",
-      url: process.env.VUE_APP_URL_MAIN + `cargar_trabajadores`,
+      url: import.meta.env.VUE_APP_URL_MAIN + `cargar_trabajadores`,
       headers: {
         "Content-Type": "application/json",
       },

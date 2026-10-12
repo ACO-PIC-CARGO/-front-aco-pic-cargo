@@ -39,7 +39,7 @@ let actions = {
     var config = {
       method: "get",
       url:
-        process.env.VUE_APP_URL_MAIN +
+        import.meta.env.VUE_APP_URL_MAIN +
         `listar_town?&id_branch=${
           JSON.parse(sessionStorage.getItem("dataUser"))[0].id_branch
         }&id_pais=${
@@ -94,7 +94,7 @@ let actions = {
   async cargarTownParaPricing({ commit }, params) {
     var config = {
       method: "get",
-      url: process.env.VUE_APP_URL_MAIN + `cargar_town_pricing`,
+      url: import.meta.env.VUE_APP_URL_MAIN + `cargar_town_pricing`,
       params: params,
       headers: {
         "Content-Type": "application/json",
@@ -120,7 +120,7 @@ let actions = {
   async setTown({ commit }) {
     var config = {
       method: "post",
-      url: process.env.VUE_APP_URL_MAIN + `insertar_town`,
+      url: import.meta.env.VUE_APP_URL_MAIN + `insertar_town`,
       headers: {
         "Content-Type": "application/json",
       },
@@ -146,7 +146,7 @@ let actions = {
   async ActualizarTown({ commit }) {
     var config = {
       method: "put",
-      url: process.env.VUE_APP_URL_MAIN + `actualizar_town`,
+      url: import.meta.env.VUE_APP_URL_MAIN + `actualizar_town`,
       headers: {
         "Content-Type": "application/json",
       },

@@ -1,6 +1,6 @@
 <template>
   <div>
-    <v-dialog v-model="dialog" width="1400">
+    <v-dialog :model-value="dialog" width="1400">
       <v-card>
         <v-card-title class="text-h5 grey lighten-2">
           SELECCIONE UN HOUSE

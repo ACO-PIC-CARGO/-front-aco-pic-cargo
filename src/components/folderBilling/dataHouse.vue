@@ -68,7 +68,7 @@ export default {
         };
         var config = {
           method: "post",
-          url: process.env.VUE_APP_URL_MAIN + "getHouseListId/",
+          url: import.meta.env.VUE_APP_URL_MAIN + "getHouseListId/",
           headers: {
            
             "Content-Type": "application/json",

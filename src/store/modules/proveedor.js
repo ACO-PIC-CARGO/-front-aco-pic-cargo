@@ -16,7 +16,7 @@ const actions = {
     )[0].id_branch;
     var config = {
       method: "get",
-      url: process.env.VUE_APP_URL_MAIN + `cargar_proveedor_pricing`,
+      url: import.meta.env.VUE_APP_URL_MAIN + `cargar_proveedor_pricing`,
 
       headers: {
        

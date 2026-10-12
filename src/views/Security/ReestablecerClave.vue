@@ -74,7 +74,7 @@ export default {
     
     await axios({
       method: "get",
-      url: `${process.env.VUE_APP_URL_MAIN}validar_token_recuperar_clave?token=${this.$route.params.token}`,
+      url: `${import.meta.env.VUE_APP_URL_MAIN}validar_token_recuperar_clave?token=${this.$route.params.token}`,
     })
       .then((response) => {
         if (!response.data.estadoflag) {
@@ -108,7 +108,7 @@ export default {
         return;
       }
       axios
-        .put(`${process.env.VUE_APP_URL_MAIN}reestablecer_clave`, {
+        .put(`${import.meta.env.VUE_APP_URL_MAIN}reestablecer_clave`, {
           email: this.email,
           clave: this.clave,
           token: this.$route.params.token,

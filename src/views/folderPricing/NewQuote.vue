@@ -85,7 +85,7 @@ import ComparativaComponent from "../../components/folderPricing/ComparativaComp
 import NotasComponent from "../../components/folderPricing/NotasComponent.vue";
 import { mapActions, mapState } from "vuex";
 import Swal from "sweetalert2";
-import readXlsFile from "read-excel-file";
+import { readSheet as readXlsFile } from "read-excel-file/browser";
 import mixins from "@/components/mixins/funciones.js";
 import moment from "moment";
 export default {

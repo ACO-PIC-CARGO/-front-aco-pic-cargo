@@ -26,7 +26,7 @@ const actions = {
     var config = {
       method: "get",
       url:
-        process.env.VUE_APP_URL_MAIN +
+        import.meta.env.VUE_APP_URL_MAIN +
         "ListProgrammedPaymentDetails/" +
         JSON.parse(sessionStorage.getItem("dataUser"))[0].id_branch,
 
@@ -72,7 +72,7 @@ const actions = {
     var config = {
       method: "get",
       url:
-        process.env.VUE_APP_URL_MAIN +
+        import.meta.env.VUE_APP_URL_MAIN +
         "cargar_programacion?id_branch=" +
         JSON.parse(sessionStorage.getItem("dataUser"))[0].id_branch,
       headers: headers,
@@ -92,7 +92,7 @@ const actions = {
     var config = {
       method: "get",
       url:
-        process.env.VUE_APP_URL_MAIN +
+        import.meta.env.VUE_APP_URL_MAIN +
         `pagos_programados_por_proveedor?id_branch=${
           JSON.parse(sessionStorage.getItem("dataUser"))[0].id_branch
         }&id_proveedor=${data.id_proveedor}&id_programend=${data.id}&id_coins=${
@@ -117,7 +117,7 @@ const actions = {
     };
     var config = {
       method: "post",
-      url: process.env.VUE_APP_URL_MAIN + `registrar_pagos_programado`,
+      url: import.meta.env.VUE_APP_URL_MAIN + `registrar_pagos_programado`,
       headers: headers,
       data: data,
     };
@@ -142,7 +142,7 @@ const actions = {
     };
     var config = {
       method: "put",
-      url: process.env.VUE_APP_URL_MAIN + `eliminar_programacion`,
+      url: import.meta.env.VUE_APP_URL_MAIN + `eliminar_programacion`,
       headers: headers,
       data: data,
     };
@@ -167,7 +167,7 @@ const actions = {
     };
     var config = {
       method: "put",
-      url: process.env.VUE_APP_URL_MAIN + `eliminar_programacion_detalle`,
+      url: import.meta.env.VUE_APP_URL_MAIN + `eliminar_programacion_detalle`,
       headers: headers,
       data: data,
     };

@@ -752,7 +752,7 @@ export default {
       var config = {
         method: "get",
         url:
-          process.env.VUE_APP_URL_MAIN +
+          import.meta.env.VUE_APP_URL_MAIN +
           `list_invoice_path/${vm.$route.params.id_house}/${vm.proveedorId}`,
 
         headers: {
@@ -790,7 +790,7 @@ export default {
       };
       var config = {
         method: "post",
-        url: process.env.VUE_APP_URL_MAIN + "setInvoice",
+        url: import.meta.env.VUE_APP_URL_MAIN + "setInvoice",
 
         headers: {
          
@@ -821,7 +821,7 @@ export default {
 
       var config = {
         method: "post",
-        url: process.env.VUE_APP_URL_MAIN + "delInvoice/" + id,
+        url: import.meta.env.VUE_APP_URL_MAIN + "delInvoice/" + id,
 
         headers: {
          
@@ -840,8 +840,6 @@ export default {
         });
     },
     _uploadFile() {
-      var FormData = require("form-data");
-      var fs = require("fs");
       var data = new FormData();
       var vm = this;
       data.append("name", "Prueba");
@@ -849,7 +847,7 @@ export default {
 
       var config = {
         method: "post",
-        url: process.env.VUE_APP_URL_MAIN + "uploadAllPath",
+        url: import.meta.env.VUE_APP_URL_MAIN + "uploadAllPath",
         headers: {
          
           "Content-Type": "application/json",
@@ -883,7 +881,7 @@ export default {
       }
     },
     viewPdf(pdf) {
-      window.open(process.env.VUE_APP_URL_MAIN + pdf, "_blank");
+      window.open(import.meta.env.VUE_APP_URL_MAIN + pdf, "_blank");
     },
     async _getAccountsNumber() {
       var vm = this;
@@ -893,7 +891,7 @@ export default {
       var config = {
         method: "post",
         url:
-          process.env.VUE_APP_URL_MAIN + "getAccountsNumber/" + vm.proveedorId,
+          import.meta.env.VUE_APP_URL_MAIN + "getAccountsNumber/" + vm.proveedorId,
         headers: {
          
           "Content-Type": "application/json",
@@ -931,7 +929,7 @@ export default {
           };
           var config = {
             method: "post",
-            url: process.env.VUE_APP_URL_MAIN + "putSPaymentPro/" + id,
+            url: import.meta.env.VUE_APP_URL_MAIN + "putSPaymentPro/" + id,
             headers: {
              
               "Content-Type": "application/json",
@@ -969,7 +967,7 @@ export default {
       var config = {
         method: "post",
         url:
-          process.env.VUE_APP_URL_MAIN +
+          import.meta.env.VUE_APP_URL_MAIN +
           "getSPaymentPro/" +
           vm.$route.params.id_house +
           "/" +
@@ -1073,7 +1071,7 @@ export default {
       };
       var config = {
         method: "post",
-        url: process.env.VUE_APP_URL_MAIN + "setSPaymentPro",
+        url: import.meta.env.VUE_APP_URL_MAIN + "setSPaymentPro",
         headers: {
          
           "Content-Type": "application/json",
@@ -1103,7 +1101,7 @@ export default {
           };
           var config = {
             method: "post",
-            url: process.env.VUE_APP_URL_MAIN + "pdfSolicitud",
+            url: import.meta.env.VUE_APP_URL_MAIN + "pdfSolicitud",
             headers: {
              
               "Content-Type": "application/json",
@@ -1120,7 +1118,7 @@ export default {
                 text: "El PDF se descargará automaticamente",
               });
               window.open(
-                process.env.VUE_APP_URL_MAIN + response.data.path,
+                import.meta.env.VUE_APP_URL_MAIN + response.data.path,
                 "_blank"
               );
             })
@@ -1190,7 +1188,7 @@ export default {
       };
       var config = {
         method: "post",
-        url: process.env.VUE_APP_URL_MAIN + "deleteServices",
+        url: import.meta.env.VUE_APP_URL_MAIN + "deleteServices",
         headers: {
          
           "Content-Type": "application/json",
@@ -1219,7 +1217,7 @@ export default {
         };
         var config = {
           method: "post",
-          url: process.env.VUE_APP_URL_MAIN + "getHouseServices",
+          url: import.meta.env.VUE_APP_URL_MAIN + "getHouseServices",
           headers: {
            
             "Content-Type": "application/json",
@@ -1242,7 +1240,7 @@ export default {
       var config = {
         method: "post",
         url:
-          process.env.VUE_APP_URL_MAIN +
+          import.meta.env.VUE_APP_URL_MAIN +
           "getEgresosDivision/" +
           vm.$route.params.id_orders +
           "/" +
@@ -1266,7 +1264,7 @@ export default {
       var config = {
         method: "post",
         url:
-          process.env.VUE_APP_URL_MAIN +
+          import.meta.env.VUE_APP_URL_MAIN +
           "getEgresosDivision/" +
           vm.$route.params.id_orders +
           "/" +

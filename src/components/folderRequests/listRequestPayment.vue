@@ -523,7 +523,7 @@ export default {
       };
       var config = {
         method: "post",
-        url: process.env.VUE_APP_URL_MAIN + "getListInvoice",
+        url: import.meta.env.VUE_APP_URL_MAIN + "getListInvoice",
 
         headers: {
          
@@ -541,8 +541,6 @@ export default {
         });
     },
     _uploadFile() {
-      var FormData = require("form-data");
-      var fs = require("fs");
       var data = new FormData();
       var vm = this;
       data.append("name", "Prueba");
@@ -550,7 +548,7 @@ export default {
 
       var config = {
         method: "post",
-        url: process.env.VUE_APP_URL_MAIN + "uploadAllPath",
+        url: import.meta.env.VUE_APP_URL_MAIN + "uploadAllPath",
         headers: {
          
           "Content-Type": "application/json",
@@ -612,7 +610,7 @@ export default {
       };
       var config = {
         method: "post",
-        url: process.env.VUE_APP_URL_MAIN + "setSPaymentFile/",
+        url: import.meta.env.VUE_APP_URL_MAIN + "setSPaymentFile/",
 
         headers: {
          
@@ -640,7 +638,7 @@ export default {
       var vm = this;
       var config = {
         method: "post",
-        url: process.env.VUE_APP_URL_MAIN + "getRequestPayment",
+        url: import.meta.env.VUE_APP_URL_MAIN + "getRequestPayment",
         data: {
           id_branch: JSON.parse(sessionStorage.getItem("dataUser"))[0]
             .id_branch,
@@ -663,7 +661,7 @@ export default {
       var vm = this;
       var config = {
         method: "post",
-        url: process.env.VUE_APP_URL_MAIN + "getRequestPaymentConceptos/" + id,
+        url: import.meta.env.VUE_APP_URL_MAIN + "getRequestPaymentConceptos/" + id,
 
         headers: {
          
@@ -679,7 +677,7 @@ export default {
         });
     },
     viewPdf(pdf) {
-      window.open(process.env.VUE_APP_URL_MAIN + pdf, "_blank");
+      window.open(import.meta.env.VUE_APP_URL_MAIN + pdf, "_blank");
     },
     abrirPagoProveedor(id) {
       // this.idProveedor = id;
@@ -705,7 +703,7 @@ export default {
       let vm = this;
       var config = {
         method: "put",
-        url: process.env.VUE_APP_URL_MAIN + "reversar_debsproveedor",
+        url: import.meta.env.VUE_APP_URL_MAIN + "reversar_debsproveedor",
 
         headers: {
          

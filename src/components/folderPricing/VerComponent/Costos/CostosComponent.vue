@@ -35,8 +35,9 @@
                 v-for="(valor, i) in valores.filter(
                   (v) => v.esfleteflag == 1 && v.status == 1,
                 )"
+                :key="'main-' + i"
               >
-                <tr :key="'main-' + i">
+                <tr>
                   <td>
                     <v-autocomplete
                       class="widthTD"
@@ -858,9 +859,10 @@
                 v-for="(valor, i) in valores.filter(
                   (v) => v.esfleteflag == 1 && v.status == 1,
                 )"
+                :key="'main-' + i"
               >
                 <!-- 1. FILA PRINCIPAL: Datos (x | x | x | x | x) -->
-                <tr :key="'main-' + i">
+                <tr>
                   <!-- Columna 1: Proveedor -->
                   <td>
                     <v-autocomplete

@@ -250,7 +250,7 @@
 </template>
 
 <script>
-import readXlsxFile from "read-excel-file";
+import { readSheet as readXlsxFile } from "read-excel-file/browser";
 import { mapActions } from "vuex";
 import Swal from "sweetalert2";
 export default {
@@ -368,7 +368,7 @@ export default {
     },
     descargarFormato() {
       window.open(
-        `${process.env.VUE_APP_URL_MAIN}uploads/Formato Cliente.xlsx`,
+        `${import.meta.env.VUE_APP_URL_MAIN}uploads/Formato Cliente.xlsx`,
         "_blank"
       );
     },

@@ -66,7 +66,7 @@ const actions = {
     datoEmpresa.TipoImp = state.datoEmpresa.tipoimpuesto;
     var config = {
       method: "put",
-      url: process.env.VUE_APP_URL_MAIN + `actualizar_datos_empresa_config`,
+      url: import.meta.env.VUE_APP_URL_MAIN + `actualizar_datos_empresa_config`,
       headers: {
        
         "Content-Type": "application/json",
@@ -92,7 +92,7 @@ const actions = {
     var config = {
       method: "put",
       url:
-        process.env.VUE_APP_URL_MAIN + `actualizar_datos_administrador_config`,
+        import.meta.env.VUE_APP_URL_MAIN + `actualizar_datos_administrador_config`,
       headers: {
        
         "Content-Type": "application/json",
@@ -119,7 +119,7 @@ const actions = {
     var config = {
       method: "put",
       url:
-        process.env.VUE_APP_URL_MAIN + `actualizar_datos_administrador_config`,
+        import.meta.env.VUE_APP_URL_MAIN + `actualizar_datos_administrador_config`,
       headers: {
        
         "Content-Type": "application/json",
@@ -145,7 +145,7 @@ const actions = {
   async actualizarDatoCMProveedor({}, subConjunto) {
     var config = {
       method: "post",
-      url: process.env.VUE_APP_URL_MAIN + `actualizar_datos_cm_proveedor`,
+      url: import.meta.env.VUE_APP_URL_MAIN + `actualizar_datos_cm_proveedor`,
       headers: {
        
         "Content-Type": "application/json",
@@ -173,7 +173,7 @@ const actions = {
   async actualizarDatoCMCliente({}, subConjunto) {
     var config = {
       method: "post",
-      url: process.env.VUE_APP_URL_MAIN + `actualizar_datos_cm_cliente`,
+      url: import.meta.env.VUE_APP_URL_MAIN + `actualizar_datos_cm_cliente`,
       headers: {
        
         "Content-Type": "application/json",
@@ -202,7 +202,7 @@ const actions = {
     var config = {
       method: "get",
       url:
-        process.env.VUE_APP_URL_MAIN +
+        import.meta.env.VUE_APP_URL_MAIN +
         `obtener_config_costos?id_branch=${
           JSON.parse(sessionStorage.getItem("dataUser"))[0].id_branch
         }&id_modality=${data.id_modality}&shipment=${data.shipment}`,
@@ -230,7 +230,7 @@ const actions = {
     var config = {
       method: "get",
       url:
-        process.env.VUE_APP_URL_MAIN +
+        import.meta.env.VUE_APP_URL_MAIN +
         `cargar_multiplicador_config?id_shipment=${
           data.id_shipment
         }&id_branch=${
@@ -261,7 +261,7 @@ const actions = {
     var config = {
       method: "get",
       url:
-        process.env.VUE_APP_URL_MAIN +
+        import.meta.env.VUE_APP_URL_MAIN +
         `tipo_costo_x_embarque?id_shipment=${data.id_shipment}&id_modality=${data.id_modality}`,
       headers: {
        
@@ -289,7 +289,7 @@ const actions = {
     data.id_branch = JSON.parse(sessionStorage.getItem("dataUser"))[0].id_branch;
     const config = {
       method: "post",
-      url: process.env.VUE_APP_URL_MAIN + `guardar_costos_config`,
+      url: import.meta.env.VUE_APP_URL_MAIN + `guardar_costos_config`,
       headers: {
        
         "Content-Type": "application/json",
@@ -314,7 +314,7 @@ const actions = {
     };
     var config = {
       method: "put",
-      url: process.env.VUE_APP_URL_MAIN + `omitir_config_cost`,
+      url: import.meta.env.VUE_APP_URL_MAIN + `omitir_config_cost`,
       headers: {
        
         "Content-Type": "application/json",
@@ -334,7 +334,7 @@ const actions = {
     };
     var config = {
       method: "put",
-      url: process.env.VUE_APP_URL_MAIN + `finalizar_config`,
+      url: import.meta.env.VUE_APP_URL_MAIN + `finalizar_config`,
       headers: {
        
         "Content-Type": "application/json",
@@ -352,7 +352,7 @@ const actions = {
     };
     var config = {
       method: "post",
-      url: process.env.VUE_APP_URL_MAIN + `guardar_existe_datos_config`,
+      url: import.meta.env.VUE_APP_URL_MAIN + `guardar_existe_datos_config`,
       headers: {
        
         "Content-Type": "application/json",

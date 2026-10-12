@@ -867,7 +867,7 @@ export default {
       try {
         const response = await axios
           .put(
-            process.env.VUE_APP_URL_MAIN + "updateFechasMaster",
+            import.meta.env.VUE_APP_URL_MAIN + "updateFechasMaster",
             {
               fecha_etd: this.exp.fecha_etd,
               fecha_eta: this.exp.fecha_eta,
@@ -978,7 +978,7 @@ export default {
 
           var config = {
             method: "post",
-            url: process.env.VUE_APP_URL_MAIN + "lockMaster/" + id,
+            url: import.meta.env.VUE_APP_URL_MAIN + "lockMaster/" + id,
             headers: {
               "Content-Type": "application/json",
             },
@@ -1030,7 +1030,7 @@ export default {
 
           var config = {
             method: "post",
-            url: process.env.VUE_APP_URL_MAIN + "nullMaster/" + id,
+            url: import.meta.env.VUE_APP_URL_MAIN + "nullMaster/" + id,
             headers: {
               "Content-Type": "application/json",
             },
@@ -1086,7 +1086,7 @@ export default {
 
           var config = {
             method: "post",
-            url: process.env.VUE_APP_URL_MAIN + "lockMasterAdm/" + id,
+            url: import.meta.env.VUE_APP_URL_MAIN + "lockMasterAdm/" + id,
             headers: {
               "Content-Type": "application/json",
             },
@@ -1251,7 +1251,7 @@ export default {
 
           var config = {
             method: "delete",
-            url: process.env.VUE_APP_URL_MAIN + "deleteMaster/" + id,
+            url: import.meta.env.VUE_APP_URL_MAIN + "deleteMaster/" + id,
             headers: {
               "Content-Type": "application/json",
             },

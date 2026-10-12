@@ -493,7 +493,7 @@ export default {
       var config = {
         method: "post",
         url:
-          process.env.VUE_APP_URL_MAIN +
+          import.meta.env.VUE_APP_URL_MAIN +
           "getAccountsNumber/" +
           vm.$route.params.id,
         headers: {
@@ -537,7 +537,7 @@ export default {
 
         var config = {
           method: "post",
-          url: process.env.VUE_APP_URL_MAIN + "getEntitiesListIc",
+          url: import.meta.env.VUE_APP_URL_MAIN + "getEntitiesListIc",
           headers: {
            
             "Content-Type": "application/json",
@@ -587,7 +587,7 @@ export default {
         };
         var config = {
           method: "post",
-          url: process.env.VUE_APP_URL_MAIN + "getEntitiesListId",
+          url: import.meta.env.VUE_APP_URL_MAIN + "getEntitiesListId",
           headers: {
            
             "Content-Type": "application/json",
@@ -665,7 +665,7 @@ export default {
         };
         var config = {
           method: "post",
-          url: process.env.VUE_APP_URL_MAIN + "addEntities",
+          url: import.meta.env.VUE_APP_URL_MAIN + "addEntities",
           headers: {
            
             "Content-Type": "application/json",
@@ -703,7 +703,7 @@ export default {
       };
       var config = {
         method: "post",
-        url: process.env.VUE_APP_URL_MAIN + "editRole/" + vm.$route.params.id,
+        url: import.meta.env.VUE_APP_URL_MAIN + "editRole/" + vm.$route.params.id,
         headers: {
          
           "Content-Type": "application/json",
@@ -763,7 +763,7 @@ export default {
         };
         var config = {
           method: "post",
-          url: process.env.VUE_APP_URL_MAIN + "editEntitie/" + vm.id_entitie,
+          url: import.meta.env.VUE_APP_URL_MAIN + "editEntitie/" + vm.id_entitie,
           headers: {
            
             "Content-Type": "application/json",
@@ -808,7 +808,7 @@ export default {
       };
       var config = {
         method: "post",
-        url: process.env.VUE_APP_URL_MAIN + "addRoleEntitie",
+        url: import.meta.env.VUE_APP_URL_MAIN + "addRoleEntitie",
         headers: {
          
           "Content-Type": "application/json",

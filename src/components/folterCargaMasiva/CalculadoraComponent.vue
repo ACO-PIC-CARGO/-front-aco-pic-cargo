@@ -460,7 +460,7 @@
 </template>
 
 <script>
-import readXlsFile from "read-excel-file";
+import { readSheet as readXlsFile } from "read-excel-file/browser";
 import exportXlsFile from "export-from-json";
 import moment from "moment";
 import Swal from "sweetalert2";
@@ -801,7 +801,7 @@ export default {
       };
       var config = {
         method: "post",
-        url: process.env.VUE_APP_URL_MAIN + `validar_registros_lcl`,
+        url: import.meta.env.VUE_APP_URL_MAIN + `validar_registros_lcl`,
         headers: headers,
         data: data,
       };
@@ -921,7 +921,7 @@ export default {
       };
       var config = {
         method: "post",
-        url: process.env.VUE_APP_URL_MAIN + `validar_registros_fcl`,
+        url: import.meta.env.VUE_APP_URL_MAIN + `validar_registros_fcl`,
         headers: headers,
         data: data,
       };
@@ -1064,7 +1064,7 @@ export default {
       };
       var config = {
         method: "post",
-        url: process.env.VUE_APP_URL_MAIN + `validar_registros_aereo`,
+        url: import.meta.env.VUE_APP_URL_MAIN + `validar_registros_aereo`,
         headers: headers,
         data: data,
       };
@@ -1337,7 +1337,7 @@ export default {
 
         config = {
           method: "post",
-          url: process.env.VUE_APP_URL_MAIN + `registrar_carga_masiva_lcl`,
+          url: import.meta.env.VUE_APP_URL_MAIN + `registrar_carga_masiva_lcl`,
           headers: headers,
           data: data,
         };
@@ -1383,7 +1383,7 @@ export default {
         };
         config = {
           method: "post",
-          url: process.env.VUE_APP_URL_MAIN + `registrar_carga_masiva_fcl`,
+          url: import.meta.env.VUE_APP_URL_MAIN + `registrar_carga_masiva_fcl`,
           headers: headers,
           data: data,
         };
@@ -1445,7 +1445,7 @@ export default {
         };
         config = {
           method: "post",
-          url: process.env.VUE_APP_URL_MAIN + `registrar_carga_masiva_aereo`,
+          url: import.meta.env.VUE_APP_URL_MAIN + `registrar_carga_masiva_aereo`,
           headers: headers,
           data: data,
         };

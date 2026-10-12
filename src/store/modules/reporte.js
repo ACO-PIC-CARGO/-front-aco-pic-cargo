@@ -32,7 +32,7 @@ const actions = {
     });
     var config = {
       method: "post",
-      url: process.env.VUE_APP_URL_MAIN + "createdPDF",
+      url: import.meta.env.VUE_APP_URL_MAIN + "createdPDF",
       headers: {
         "Content-Type": "application/json",
       },
@@ -49,7 +49,7 @@ const actions = {
         });
 
         window.open(
-          `${process.env.VUE_APP_URL_MAIN}REPORT_CONTROL_FILE.pdf`,
+          `${import.meta.env.VUE_APP_URL_MAIN}REPORT_CONTROL_FILE.pdf`,
           // "",
           "_blank",
         );
@@ -65,7 +65,7 @@ const actions = {
 
     var config = {
       method: "get",
-      url: process.env.VUE_APP_URL_MAIN + `listar_banco_gasto_detalles`,
+      url: import.meta.env.VUE_APP_URL_MAIN + `listar_banco_gasto_detalles`,
       headers: {
         "Content-Type": "application/json",
       },
@@ -86,7 +86,7 @@ const actions = {
   async getTotalesMasterAgrupado({ commit }, data) {
     var config = {
       method: "get",
-      url: process.env.VUE_APP_URL_MAIN + `obtener_totales_master_general`,
+      url: import.meta.env.VUE_APP_URL_MAIN + `obtener_totales_master_general`,
       params: data,
       headers: {
         "Content-Type": "application/json",
@@ -109,7 +109,7 @@ const actions = {
   async printTotalesMasterPorMes({ commit }, data) {
     var config = {
       method: "get",
-      url: process.env.VUE_APP_URL_MAIN + `imprimir_reporte_ganancia`,
+      url: import.meta.env.VUE_APP_URL_MAIN + `imprimir_reporte_ganancia`,
       params: data,
       headers: {
         "Content-Type": "application/json",
@@ -130,7 +130,7 @@ const actions = {
     await axios(config)
       .then(function (response) {
         let data = response.data;
-        window.open(process.env.VUE_APP_URL_MAIN + data.path, "_blank");
+        window.open(import.meta.env.VUE_APP_URL_MAIN + data.path, "_blank");
         Swal.close();
       })
       .catch(function (error) {
@@ -140,7 +140,7 @@ const actions = {
   async imprimirReporteGananciaDetallado({ commit }, data) {
     var config = {
       method: "get",
-      url: process.env.VUE_APP_URL_MAIN + `imprimir_reporte_ganancia_detallado`,
+      url: import.meta.env.VUE_APP_URL_MAIN + `imprimir_reporte_ganancia_detallado`,
       params: data,
       headers: {
         "Content-Type": "application/json",
@@ -161,7 +161,7 @@ const actions = {
     await axios(config)
       .then(function (response) {
         let data = response.data;
-        window.open(process.env.VUE_APP_URL_MAIN + data.path, "_blank");
+        window.open(import.meta.env.VUE_APP_URL_MAIN + data.path, "_blank");
         Swal.close();
       })
       .catch(function (error) {
@@ -171,7 +171,7 @@ const actions = {
   async getTotalesMasterPorMes({ commit }, data) {
     var config = {
       method: "get",
-      url: process.env.VUE_APP_URL_MAIN + `obtener_totales_master_por_mes`,
+      url: import.meta.env.VUE_APP_URL_MAIN + `obtener_totales_master_por_mes`,
       params: data,
       headers: {
         "Content-Type": "application/json",
@@ -195,7 +195,7 @@ const actions = {
     var config = {
       method: "get",
       url:
-        process.env.VUE_APP_URL_MAIN + `obtener_totales_master_genetal_general`,
+        import.meta.env.VUE_APP_URL_MAIN + `obtener_totales_master_genetal_general`,
       params: data,
       headers: {
         "Content-Type": "application/json",
@@ -219,7 +219,7 @@ const actions = {
     var config = {
       method: "get",
       url:
-        process.env.VUE_APP_URL_MAIN + `obtener_totales_master_genetal_por_mes`,
+        import.meta.env.VUE_APP_URL_MAIN + `obtener_totales_master_genetal_por_mes`,
       params: data,
       headers: {
         "Content-Type": "application/json",

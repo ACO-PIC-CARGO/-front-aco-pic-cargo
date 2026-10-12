@@ -1,6 +1,6 @@
 <template>
   <v-dialog
-    v-model="dialog"
+    :model-value="dialog"
     :overlay="false"
     max-width="80%"
     transition="dialog-transition"

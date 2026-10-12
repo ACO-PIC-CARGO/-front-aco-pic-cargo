@@ -101,9 +101,8 @@
             </tr>
           </thead>
           <tbody>
-            <template v-for="(item, index) in items">
+            <template v-for="(item, index) in items" :key="'row-' + index">
               <tr
-                :key="'row-' + index"
                 class="tipo"
                 @dblclick="item.subtipoflag = !item.subtipoflag"
               >

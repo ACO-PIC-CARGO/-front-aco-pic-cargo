@@ -484,10 +484,6 @@
 <script>
 import axios from "@/api/axios-config";
 import { mapActions, mapState } from "vuex";
-// import the component
-import Treeselect from "@riophae/vue-treeselect";
-// import the styles
-import "@riophae/vue-treeselect/dist/vue-treeselect.css";
 import CustomTreeSelect from "./../comun/CustomTreeSelect.vue";
 import Swal from "sweetalert2";
 import ArrastraYSolarComponent from "../comun/ArrastraYSolarComponent.vue";
@@ -500,7 +496,7 @@ export default {
     id_pro: "",
     tipo: "",
   },
-  components: { Treeselect, CustomTreeSelect, ArrastraYSolarComponent },
+  components: { CustomTreeSelect, ArrastraYSolarComponent },
 
   data: () => ({
     date: new Date(Date.now() - new Date().getTimezoneOffset() * 60000)
@@ -702,8 +698,6 @@ export default {
       }
     },
     _uploadFile() {
-      var FormData = require("form-data");
-      var fs = require("fs");
       var data = new FormData();
       var vm = this;
       if (vm.radio == 1) {
@@ -716,7 +710,7 @@ export default {
 
       var config = {
         method: "post",
-        url: process.env.VUE_APP_URL_MAIN + "uploadAllPath",
+        url: import.meta.env.VUE_APP_URL_MAIN + "uploadAllPath",
         headers: {
           "Content-Type": "application/json",
         },
@@ -740,7 +734,7 @@ export default {
       };
       var config = {
         method: "get",
-        url: process.env.VUE_APP_URL_MAIN + "getHouseListAll",
+        url: import.meta.env.VUE_APP_URL_MAIN + "getHouseListAll",
         data: data,
         headers: {
           "Content-Type": "application/json",
@@ -763,7 +757,7 @@ export default {
 
       var config = {
         method: "post",
-        url: process.env.VUE_APP_URL_MAIN + "getListInvoiceExp",
+        url: import.meta.env.VUE_APP_URL_MAIN + "getListInvoiceExp",
 
         headers: {
           "Content-Type": "application/json",
@@ -898,7 +892,7 @@ export default {
         };
         var config = {
           method: "post",
-          url: process.env.VUE_APP_URL_MAIN + "setInvoiceAdmin",
+          url: import.meta.env.VUE_APP_URL_MAIN + "setInvoiceAdmin",
 
           headers: {
             "Content-Type": "application/json",
@@ -967,7 +961,7 @@ export default {
         };
         var config = {
           method: "put",
-          url: process.env.VUE_APP_URL_MAIN + "setUpdateInvoiceAdmin",
+          url: import.meta.env.VUE_APP_URL_MAIN + "setUpdateInvoiceAdmin",
 
           headers: {
             "Content-Type": "application/json",
@@ -1010,7 +1004,7 @@ export default {
       };
       var config = {
         method: "post",
-        url: process.env.VUE_APP_URL_MAIN + "putPro",
+        url: import.meta.env.VUE_APP_URL_MAIN + "putPro",
 
         headers: {
           "Content-Type": "application/json",

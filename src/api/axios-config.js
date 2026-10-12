@@ -3,7 +3,7 @@ import router from "@/router";
 import CryptoJS from "crypto-js";
 
 const http = axios.create({
-  baseURL: process.env.VUE_APP_URL_MAIN,
+  baseURL: import.meta.env.VUE_APP_URL_MAIN,
   headers: {
     "Content-Type": "application/json",
   },
@@ -39,7 +39,7 @@ http.interceptors.response.use(
   (error) => {
     if (error?.response?.status === 401) {
       sessionStorage.clear(); // Limpieza más segura
-      if (router.currentRoute.name !== "Login") {
+      if (router.currentRoute.value.name !== "Login") {
         router.replace({ name: "Login" });
       }
     }

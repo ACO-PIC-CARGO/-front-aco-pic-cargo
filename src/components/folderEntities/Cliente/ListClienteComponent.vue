@@ -385,7 +385,7 @@ export default {
       try {
         const config = {
           method: "post",
-          url: process.env.VUE_APP_URL_MAIN + "singin",
+          url: import.meta.env.VUE_APP_URL_MAIN + "singin",
           headers: {
             "Content-Type": "application/json",
           },

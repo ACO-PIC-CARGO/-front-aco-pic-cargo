@@ -861,7 +861,7 @@ export default {
       }
       var config = {
         method: "post",
-        url: process.env.VUE_APP_URL_MAIN + urlLong,
+        url: import.meta.env.VUE_APP_URL_MAIN + urlLong,
 
         headers: {
          
@@ -879,7 +879,7 @@ export default {
 
           vm.dialogPdf = false;
           window.open(
-            process.env.VUE_APP_URL_MAIN + response.data.path,
+            import.meta.env.VUE_APP_URL_MAIN + response.data.path,
             "_blank",
           );
         })
@@ -899,7 +899,7 @@ export default {
       var config = {
         method: "get",
         url:
-          process.env.VUE_APP_URL_MAIN +
+          import.meta.env.VUE_APP_URL_MAIN +
           `getReporteCXP?id_branch=${
             JSON.parse(sessionStorage.getItem("dataUser"))[0].id_branch
           }&id_proveedor=${this.proveedorOp ? this.proveedorOp : ""}&llegada=${
@@ -931,7 +931,7 @@ export default {
       var config = {
         method: "get",
         url:
-          process.env.VUE_APP_URL_MAIN +
+          import.meta.env.VUE_APP_URL_MAIN +
           `getDebsToPayAdmin?id_branch=${
             JSON.parse(sessionStorage.getItem("dataUser"))[0].id_branch
           }&id_proveedor=${this.proveedorOp ? this.proveedorOp : ""}&llegada=${
@@ -971,7 +971,7 @@ export default {
       };
       var config = {
         method: "post",
-        url: process.env.VUE_APP_URL_MAIN + "getDebsToPayFilter",
+        url: import.meta.env.VUE_APP_URL_MAIN + "getDebsToPayFilter",
 
         headers: {
          
@@ -1130,7 +1130,7 @@ export default {
       };
       var config = {
         method: "post",
-        url: process.env.VUE_APP_URL_MAIN + "setProgrammedPayment",
+        url: import.meta.env.VUE_APP_URL_MAIN + "setProgrammedPayment",
         headers: {
          
           "Content-Type": "application/json",
@@ -1178,7 +1178,7 @@ export default {
       var config = {
         method: "get",
         url:
-          process.env.VUE_APP_URL_MAIN +
+          import.meta.env.VUE_APP_URL_MAIN +
           `reportcxpexcel?id_branch=${
             JSON.parse(sessionStorage.getItem("dataUser"))[0].id_branch
           }&id_proveedor=${this.proveedorOp ? this.proveedorOp : ""}&llegada=${
@@ -1242,7 +1242,7 @@ export default {
           var config = {
             method: "get",
             url:
-              process.env.VUE_APP_URL_MAIN +
+              import.meta.env.VUE_APP_URL_MAIN +
               `exportarPDFCXP?id_branch=${
                 JSON.parse(sessionStorage.getItem("dataUser"))[0].id_branch
               }&id_proveedor=${
@@ -1342,7 +1342,7 @@ export default {
       var config = {
         method: "get",
         url:
-          process.env.VUE_APP_URL_MAIN +
+          import.meta.env.VUE_APP_URL_MAIN +
           `listarComentariosCXP?id_proveedor=${vm.dataCXP.id}`,
         headers: {
          
@@ -1394,7 +1394,7 @@ export default {
 
         var config = {
           method: "post",
-          url: process.env.VUE_APP_URL_MAIN + `insertarComentarioCXP`,
+          url: import.meta.env.VUE_APP_URL_MAIN + `insertarComentarioCXP`,
           headers: {
            
             "Content-Type": "application/json",

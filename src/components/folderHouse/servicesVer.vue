@@ -276,7 +276,7 @@ export default {
         };
         const config = {
           method: "put",
-          url: process.env.VUE_APP_URL_MAIN + `setTrackingToken`,
+          url: import.meta.env.VUE_APP_URL_MAIN + `setTrackingToken`,
           headers: {
            
             "Content-Type": "application/json",
@@ -310,7 +310,7 @@ export default {
       };
       var config = {
         method: "post",
-        url: process.env.VUE_APP_URL_MAIN + "deleteServices",
+        url: import.meta.env.VUE_APP_URL_MAIN + "deleteServices",
         headers: {
          
           "Content-Type": "application/json",
@@ -334,7 +334,7 @@ export default {
       };
       var config = {
         method: "post",
-        url: process.env.VUE_APP_URL_MAIN + "activeServices",
+        url: import.meta.env.VUE_APP_URL_MAIN + "activeServices",
         headers: {
          
           "Content-Type": "application/json",
@@ -358,7 +358,7 @@ export default {
       };
       var config = {
         method: "post",
-        url: process.env.VUE_APP_URL_MAIN + "inactiveServices",
+        url: import.meta.env.VUE_APP_URL_MAIN + "inactiveServices",
         headers: {
          
           "Content-Type": "application/json",
@@ -383,7 +383,7 @@ export default {
       };
       var config = {
         method: "post",
-        url: process.env.VUE_APP_URL_MAIN + "editServices",
+        url: import.meta.env.VUE_APP_URL_MAIN + "editServices",
         headers: {
          
           "Content-Type": "application/json",
@@ -413,7 +413,7 @@ export default {
 
         var config = {
           method: "post",
-          url: process.env.VUE_APP_URL_MAIN + "getHouseServices",
+          url: import.meta.env.VUE_APP_URL_MAIN + "getHouseServices",
           headers: {
            
             "Content-Type": "application/json",
@@ -571,7 +571,7 @@ export default {
 
       var config = {
         method: "post",
-        url: process.env.VUE_APP_URL_MAIN + `getServicesByIncoterms`,
+        url: import.meta.env.VUE_APP_URL_MAIN + `getServicesByIncoterms`,
         headers: {
          
           "Content-Type": "application/json",
@@ -629,7 +629,7 @@ export default {
       try {
         const response = await axios({
           method: "get",
-          url: `${process.env.VUE_APP_URL_MAIN}generar_formato_awb`,
+          url: `${import.meta.env.VUE_APP_URL_MAIN}generar_formato_awb`,
           params: {
             id_house: this.$route.params.id,
             formatoflag: this.formatoflag,
@@ -662,7 +662,7 @@ export default {
       try {
         const response = await axios({
           method: "get",
-          url: `${process.env.VUE_APP_URL_MAIN}generar_formato_bl`,
+          url: `${import.meta.env.VUE_APP_URL_MAIN}generar_formato_bl`,
           params: {
             id_house: this.$route.params.id,
             formatoflag: this.formatoflag,

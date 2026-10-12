@@ -121,7 +121,7 @@ const actions = {
     };
     var config = {
       method: "post",
-      url: process.env.VUE_APP_URL_MAIN + "get_total_cotizacion",
+      url: import.meta.env.VUE_APP_URL_MAIN + "get_total_cotizacion",
       headers: headers,
       data: {
         iso_pais: JSON.parse(sessionStorage.getItem("iso_pais")),
@@ -141,7 +141,7 @@ const actions = {
     var config = {
       method: "get",
       url:
-        process.env.VUE_APP_URL_MAIN +
+        import.meta.env.VUE_APP_URL_MAIN +
         `CargarPuertoXPaisXTipo/${data.id_pais}/${data.tipo}`,
       headers: headers,
     };
@@ -164,7 +164,7 @@ const actions = {
     };
     var config = {
       method: "get",
-      url: process.env.VUE_APP_URL_MAIN + `cargar_navieras`,
+      url: import.meta.env.VUE_APP_URL_MAIN + `cargar_navieras`,
       headers: headers,
     };
     let valores = await axios(config);
@@ -186,7 +186,7 @@ const actions = {
     };
     var config = {
       method: "get",
-      url: process.env.VUE_APP_URL_MAIN + `cargar_contenedores`,
+      url: import.meta.env.VUE_APP_URL_MAIN + `cargar_contenedores`,
       headers: headers,
     };
     let valores = await axios(config);
@@ -207,7 +207,7 @@ const actions = {
     };
     var config = {
       method: "post",
-      url: process.env.VUE_APP_URL_MAIN + `cargar_sucursal`,
+      url: import.meta.env.VUE_APP_URL_MAIN + `cargar_sucursal`,
       headers: headers,
     };
     await axios(config).then((response) => {
@@ -224,7 +224,7 @@ const actions = {
 
     var config = {
       method: "post",
-      url: process.env.VUE_APP_URL_MAIN + "listar_usuarios_calculadora",
+      url: import.meta.env.VUE_APP_URL_MAIN + "listar_usuarios_calculadora",
       headers: headers,
       data: {
         iso_pais: JSON.parse(sessionStorage.getItem("iso_pais")),
@@ -241,7 +241,7 @@ const actions = {
 
     var config = {
       method: "post",
-      url: process.env.VUE_APP_URL_MAIN + "cargue_status",
+      url: import.meta.env.VUE_APP_URL_MAIN + "cargue_status",
       headers: headers,
     };
     let response = await axios(config);
@@ -255,7 +255,7 @@ const actions = {
 
     var config = {
       method: "post",
-      url: process.env.VUE_APP_URL_MAIN + "insert_call",
+      url: import.meta.env.VUE_APP_URL_MAIN + "insert_call",
       headers: headers,
       data: data,
     };
@@ -274,7 +274,7 @@ const actions = {
     var config = {
       method: "get",
       url:
-        process.env.VUE_APP_URL_MAIN +
+        import.meta.env.VUE_APP_URL_MAIN +
         "export_listar_usuarios_calculadora?id_pais=" +
         JSON.parse(sessionStorage.getItem("iso_pais")),
       headers: headers,
@@ -303,7 +303,7 @@ const actions = {
 
     var config = {
       method: "get",
-      url: process.env.VUE_APP_URL_MAIN + "get_cot_fcl?token=" + token,
+      url: import.meta.env.VUE_APP_URL_MAIN + "get_cot_fcl?token=" + token,
       headers: headers,
     };
     let response = await axios(config);
@@ -317,7 +317,7 @@ const actions = {
 
     var config = {
       method: "get",
-      url: process.env.VUE_APP_URL_MAIN + "get_cot_lcl?token=" + token,
+      url: import.meta.env.VUE_APP_URL_MAIN + "get_cot_lcl?token=" + token,
       headers: headers,
     };
     let response = await axios(config);
@@ -331,7 +331,7 @@ const actions = {
 
     var config = {
       method: "get",
-      url: process.env.VUE_APP_URL_MAIN + "get_cot_aereo?token=" + token,
+      url: import.meta.env.VUE_APP_URL_MAIN + "get_cot_aereo?token=" + token,
       headers: headers,
     };
     let response = await axios(config);
@@ -346,7 +346,7 @@ const actions = {
 
     var config = {
       method: "get",
-      url: process.env.VUE_APP_URL_MAIN + "get_cot_fcl_resumen?token=" + token,
+      url: import.meta.env.VUE_APP_URL_MAIN + "get_cot_fcl_resumen?token=" + token,
       headers: headers,
     };
     let response = await axios(config);
@@ -360,7 +360,7 @@ const actions = {
 
     var config = {
       method: "get",
-      url: process.env.VUE_APP_URL_MAIN + "get_cot_lcl_resumen?token=" + token,
+      url: import.meta.env.VUE_APP_URL_MAIN + "get_cot_lcl_resumen?token=" + token,
       headers: headers,
     };
     let response = await axios(config);
@@ -375,7 +375,7 @@ const actions = {
     var config = {
       method: "get",
       url:
-        process.env.VUE_APP_URL_MAIN + "get_cot_aereo_resumen?token=" + token,
+        import.meta.env.VUE_APP_URL_MAIN + "get_cot_aereo_resumen?token=" + token,
       headers: headers,
     };
     let response = await axios(config);
@@ -393,7 +393,7 @@ const actions = {
 
     var config = {
       method: "get",
-      url: process.env.VUE_APP_URL_MAIN + "calc/tipo_costo",
+      url: import.meta.env.VUE_APP_URL_MAIN + "calc/tipo_costo",
       headers: headers,
       params: data,
     };
@@ -412,7 +412,7 @@ const actions = {
 
     var config = {
       method: "get",
-      url: process.env.VUE_APP_URL_MAIN + "calc/servicio",
+      url: import.meta.env.VUE_APP_URL_MAIN + "calc/servicio",
       headers: headers,
       params: data,
     };
@@ -429,7 +429,7 @@ const actions = {
 
     var config = {
       method: "get",
-      url: process.env.VUE_APP_URL_MAIN + "calc/multiplicador",
+      url: import.meta.env.VUE_APP_URL_MAIN + "calc/multiplicador",
       headers: headers,
       params: data,
     };
@@ -446,7 +446,7 @@ const actions = {
 
     var config = {
       method: "post",
-      url: process.env.VUE_APP_URL_MAIN + "calc/servicio/guardar",
+      url: import.meta.env.VUE_APP_URL_MAIN + "calc/servicio/guardar",
       headers: headers,
       data: data,
     };
@@ -467,7 +467,7 @@ const actions = {
 
     var config = {
       method: "post",
-      url: process.env.VUE_APP_URL_MAIN + "calc/costos/insertar",
+      url: import.meta.env.VUE_APP_URL_MAIN + "calc/costos/insertar",
       headers: headers,
       data: data,
     };
@@ -485,7 +485,7 @@ const actions = {
     let params = { id_pais: id_pais };
     var config = {
       method: "get",
-      url: process.env.VUE_APP_URL_MAIN + "calc/costos",
+      url: import.meta.env.VUE_APP_URL_MAIN + "calc/costos",
       headers: headers,
       params: params,
     };
@@ -504,7 +504,7 @@ const actions = {
 
     var config = {
       method: "post",
-      url: process.env.VUE_APP_URL_MAIN + "calc/val_data_lcl",
+      url: import.meta.env.VUE_APP_URL_MAIN + "calc/val_data_lcl",
       headers: headers,
       data: {
         data: data,
@@ -529,7 +529,7 @@ const actions = {
 
     var config = {
       method: "post",
-      url: process.env.VUE_APP_URL_MAIN + "calc/costos_calc",
+      url: import.meta.env.VUE_APP_URL_MAIN + "calc/costos_calc",
       headers: headers,
       data: data,
     };
@@ -560,7 +560,7 @@ const actions = {
 
     var config = {
       method: "get",
-      url: process.env.VUE_APP_URL_MAIN + "calc/costos_list",
+      url: import.meta.env.VUE_APP_URL_MAIN + "calc/costos_list",
       headers: headers,
       params: data,
     };
@@ -581,7 +581,7 @@ const actions = {
 
     var config = {
       method: "get",
-      url: process.env.VUE_APP_URL_MAIN + "calc/profit_list",
+      url: import.meta.env.VUE_APP_URL_MAIN + "calc/profit_list",
       headers: headers,
       params: data,
     };
@@ -604,7 +604,7 @@ const actions = {
 
     var config = {
       method: "post",
-      url: process.env.VUE_APP_URL_MAIN + "calc/profit",
+      url: import.meta.env.VUE_APP_URL_MAIN + "calc/profit",
       headers: headers,
       data: data,
     };
@@ -638,7 +638,7 @@ const actions = {
 
     var config = {
       method: "put",
-      url: process.env.VUE_APP_URL_MAIN + "calc/profit/actualizar",
+      url: import.meta.env.VUE_APP_URL_MAIN + "calc/profit/actualizar",
       headers: headers,
       data: data,
     };
@@ -672,7 +672,7 @@ const actions = {
 
     var config = {
       method: "put",
-      url: process.env.VUE_APP_URL_MAIN + "calc/profit/anular",
+      url: import.meta.env.VUE_APP_URL_MAIN + "calc/profit/anular",
       headers: headers,
       data: data,
     };
@@ -702,7 +702,7 @@ const actions = {
 
     var config = {
       method: "put",
-      url: process.env.VUE_APP_URL_MAIN + "calc/costo/actualizar",
+      url: import.meta.env.VUE_APP_URL_MAIN + "calc/costo/actualizar",
       headers: headers,
       data: data,
     };
@@ -731,7 +731,7 @@ const actions = {
 
     var config = {
       method: "put",
-      url: process.env.VUE_APP_URL_MAIN + "calc/costo/eliminar",
+      url: import.meta.env.VUE_APP_URL_MAIN + "calc/costo/eliminar",
       headers: headers,
       data: data,
     };
@@ -762,7 +762,7 @@ const actions = {
 
     var config = {
       method: "get",
-      url: process.env.VUE_APP_URL_MAIN + "calc/transporte",
+      url: import.meta.env.VUE_APP_URL_MAIN + "calc/transporte",
       headers: headers,
       params: data,
     };
@@ -782,7 +782,7 @@ const actions = {
 
     var config = {
       method: "get",
-      url: process.env.VUE_APP_URL_MAIN + "calc/cargar/opciones",
+      url: import.meta.env.VUE_APP_URL_MAIN + "calc/cargar/opciones",
       headers: headers,
       // params: data,
     };
@@ -803,7 +803,7 @@ const actions = {
 
     var config = {
       method: "get",
-      url: process.env.VUE_APP_URL_MAIN + "calc/departamentos",
+      url: import.meta.env.VUE_APP_URL_MAIN + "calc/departamentos",
       headers: headers,
       params: data,
     };
@@ -824,7 +824,7 @@ const actions = {
 
     var config = {
       method: "get",
-      url: process.env.VUE_APP_URL_MAIN + "calc/distritos",
+      url: import.meta.env.VUE_APP_URL_MAIN + "calc/distritos",
       headers: headers,
       params: data,
     };
@@ -846,7 +846,7 @@ const actions = {
 
     var config = {
       method: "get",
-      url: process.env.VUE_APP_URL_MAIN + "calc/ciudades",
+      url: import.meta.env.VUE_APP_URL_MAIN + "calc/ciudades",
       headers: headers,
       params: data,
     };
@@ -868,7 +868,7 @@ const actions = {
 
   //   var config = {
   //     method: "post",
-  //     url: process.env.VUE_APP_URL_MAIN + "calc/transporte/guardar",
+  //     url: import.meta.env.VUE_APP_URL_MAIN + "calc/transporte/guardar",
   //     headers: headers,
   //     data: data,
   //   };
@@ -899,7 +899,7 @@ const actions = {
 
     var config = {
       method: "get",
-      url: process.env.VUE_APP_URL_MAIN + "calc/cargar/config",
+      url: import.meta.env.VUE_APP_URL_MAIN + "calc/cargar/config",
       headers: headers,
       data: data,
     };
@@ -922,7 +922,7 @@ const actions = {
 
     var config = {
       method: "put",
-      url: process.env.VUE_APP_URL_MAIN + "calc/config/actualizar",
+      url: import.meta.env.VUE_APP_URL_MAIN + "calc/config/actualizar",
       headers: headers,
       data: data,
     };
@@ -953,7 +953,7 @@ const actions = {
 
     var config = {
       method: "get",
-      url: process.env.VUE_APP_URL_MAIN + "calc/flete/grupal",
+      url: import.meta.env.VUE_APP_URL_MAIN + "calc/flete/grupal",
       headers: headers,
       params: data,
     };
@@ -976,7 +976,7 @@ const actions = {
 
     var config = {
       method: "get",
-      url: process.env.VUE_APP_URL_MAIN + "calc/flete/grupal/resumen",
+      url: import.meta.env.VUE_APP_URL_MAIN + "calc/flete/grupal/resumen",
       headers: headers,
       params: data,
     };
@@ -997,7 +997,7 @@ const actions = {
 
     var config = {
       method: "post",
-      url: process.env.VUE_APP_URL_MAIN + "calc/flete/grupal/guardar",
+      url: import.meta.env.VUE_APP_URL_MAIN + "calc/flete/grupal/guardar",
       headers: headers,
       data: data,
     };
@@ -1023,7 +1023,7 @@ const actions = {
 
     var config = {
       method: "put",
-      url: process.env.VUE_APP_URL_MAIN + "calc/flete/grupal/actualizar",
+      url: import.meta.env.VUE_APP_URL_MAIN + "calc/flete/grupal/actualizar",
       headers: headers,
       data: data,
     };
@@ -1048,7 +1048,7 @@ const actions = {
     };
     var config = {
       method: "get",
-      url: process.env.VUE_APP_URL_MAIN + "calc/flete/obtener_flete",
+      url: import.meta.env.VUE_APP_URL_MAIN + "calc/flete/obtener_flete",
       headers: headers,
       params: datos,
     };
@@ -1071,7 +1071,7 @@ const actions = {
 
     var config = {
       method: "get",
-      url: process.env.VUE_APP_URL_MAIN + "calc/flete/grupal_venta",
+      url: import.meta.env.VUE_APP_URL_MAIN + "calc/flete/grupal_venta",
       headers: headers,
       params: data,
     };
@@ -1092,7 +1092,7 @@ const actions = {
 
     var config = {
       method: "post",
-      url: process.env.VUE_APP_URL_MAIN + "calc/flete/grupal_venta/guardar",
+      url: import.meta.env.VUE_APP_URL_MAIN + "calc/flete/grupal_venta/guardar",
       headers: headers,
       data: data,
     };
@@ -1118,7 +1118,7 @@ const actions = {
 
     var config = {
       method: "put",
-      url: process.env.VUE_APP_URL_MAIN + "calc/flete/grupal_venta/actualizar",
+      url: import.meta.env.VUE_APP_URL_MAIN + "calc/flete/grupal_venta/actualizar",
       headers: headers,
       data: data,
     };
@@ -1145,7 +1145,7 @@ const actions = {
 
     var config = {
       method: "post",
-      url: process.env.VUE_APP_URL_MAIN + "calc/transporte/validate",
+      url: import.meta.env.VUE_APP_URL_MAIN + "calc/transporte/validate",
       headers: headers,
       data: data,
     };
@@ -1182,7 +1182,7 @@ const actions = {
 
     var config = {
       method: "post",
-      url: process.env.VUE_APP_URL_MAIN + "calc/transporte/guardar",
+      url: import.meta.env.VUE_APP_URL_MAIN + "calc/transporte/guardar",
       headers: headers,
       data: {
         ...data,
@@ -1219,7 +1219,7 @@ const actions = {
 
     var config = {
       method: "put",
-      url: process.env.VUE_APP_URL_MAIN + "calc/transporte/eliminar",
+      url: import.meta.env.VUE_APP_URL_MAIN + "calc/transporte/eliminar",
       headers: headers,
       data: data,
     };
@@ -1242,7 +1242,7 @@ const actions = {
 
     var config = {
       method: "put",
-      url: process.env.VUE_APP_URL_MAIN + "calc/transporte/actualizar",
+      url: import.meta.env.VUE_APP_URL_MAIN + "calc/transporte/actualizar",
       headers: headers,
       data: data,
     };
@@ -1265,7 +1265,7 @@ const actions = {
 
     var config = {
       method: "post",
-      url: process.env.VUE_APP_URL_MAIN + "calc/transporte/registro",
+      url: import.meta.env.VUE_APP_URL_MAIN + "calc/transporte/registro",
       headers: headers,
       data: data,
     };
@@ -1290,7 +1290,7 @@ const actions = {
     let data = { id_pais_destino: id_pais, vigencia: vigencia };
     var config = {
       method: "put",
-      url: process.env.VUE_APP_URL_MAIN + "calc/actualizar_fecha_flete",
+      url: import.meta.env.VUE_APP_URL_MAIN + "calc/actualizar_fecha_flete",
       headers: headers,
       data: data,
     };
@@ -1312,7 +1312,7 @@ const actions = {
 
     var config = {
       method: "post",
-      url: process.env.VUE_APP_URL_MAIN + "calc/enviar_pricing",
+      url: import.meta.env.VUE_APP_URL_MAIN + "calc/enviar_pricing",
       headers: headers,
       data: data,
     };
@@ -1341,7 +1341,7 @@ const actions = {
   async opcionListado({ commit }, data) {
     var config = {
       method: "get",
-      url: process.env.VUE_APP_URL_MAIN + `calc/opcion_listado`,
+      url: import.meta.env.VUE_APP_URL_MAIN + `calc/opcion_listado`,
     };
     await axios(config).then((res) => {
       let data = res.data;
@@ -1359,7 +1359,7 @@ const actions = {
   async opcionActualizar({ dispatch }, data) {
     var config = {
       method: "put",
-      url: process.env.VUE_APP_URL_MAIN + `calc/opcion_actualizar`,
+      url: import.meta.env.VUE_APP_URL_MAIN + `calc/opcion_actualizar`,
       data: data,
     };
     await axios(config).then((res) => {
@@ -1382,7 +1382,7 @@ const actions = {
 
     var config = {
       method: "put",
-      url: process.env.VUE_APP_URL_MAIN + "calc/flete/actualizar",
+      url: import.meta.env.VUE_APP_URL_MAIN + "calc/flete/actualizar",
       headers: headers,
       data: data,
     };
@@ -1401,7 +1401,7 @@ const actions = {
   async cargarEstatus({ commit }, data) {
     var config = {
       method: "get",
-      url: process.env.VUE_APP_URL_MAIN + `calc/estatus`,
+      url: import.meta.env.VUE_APP_URL_MAIN + `calc/estatus`,
     };
     await axios(config).then((res) => {
       let data = res.data;
@@ -1420,7 +1420,7 @@ const actions = {
 
     var config = {
       method: "put",
-      url: process.env.VUE_APP_URL_MAIN + "calc/flete/actualizar/individual",
+      url: import.meta.env.VUE_APP_URL_MAIN + "calc/flete/actualizar/individual",
       headers: headers,
       data: data,
     };

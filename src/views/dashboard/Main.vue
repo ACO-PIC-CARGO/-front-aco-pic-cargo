@@ -501,7 +501,7 @@ import BotonesHeader from "../../components/comun/BotonesHeader.vue";
 import PlanStatusBadge from "../../components/SubscriptionPackages/PlanStatusBadge.vue";
 export default {
   created() {
-    this.socket = io(process.env.VUE_APP_URL_MAIN, {
+    this.socket = io(import.meta.env.VUE_APP_URL_MAIN, {
       transports: ["polling"],
     });
     this.socket.on("connect_error", (err) => {
@@ -1498,7 +1498,7 @@ export default {
       try {
         const config = {
           method: "post",
-          url: process.env.VUE_APP_URL_MAIN + "singin",
+          url: import.meta.env.VUE_APP_URL_MAIN + "singin",
           headers: {
             "Content-Type": "application/json",
           },
@@ -2021,7 +2021,7 @@ export default {
       }
       const config = {
         method: "get",
-        url: process.env.VUE_APP_URL_MAIN + "entities/obtener_datos_tarifa",
+        url: import.meta.env.VUE_APP_URL_MAIN + "entities/obtener_datos_tarifa",
         headers: {
           "Content-Type": "application/json",
         },

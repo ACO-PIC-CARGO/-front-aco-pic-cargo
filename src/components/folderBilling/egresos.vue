@@ -214,12 +214,12 @@
             <tbody>
               <template
                 v-for="(grupo, idx) in groupDetallePorCliente(egreso.detalle)"
+                :key="`header-${
+                  grupo.id_house || grupo.code_house || grupo.consigner || idx
+                }`"
               >
                 <tr
                   class="blue lighten-5"
-                  :key="`header-${
-                    grupo.id_house || grupo.code_house || grupo.consigner || idx
-                  }`"
                   style="cursor: pointer"
                   @click="toggleCliente(egreso, grupo)"
                 >
@@ -1894,7 +1894,7 @@ export default {
       this.dialogPorcentajeProveedor = !this.dialogPorcentajeProveedor;
     },
     viewPdf(pdf) {
-      window.open(process.env.VUE_APP_URL_MAIN + pdf, "_blank");
+      window.open(import.meta.env.VUE_APP_URL_MAIN + pdf, "_blank");
     },
     validatePorcentaje() {
       let val = true;
@@ -1972,7 +1972,7 @@ export default {
 
       var config = {
         method: "post",
-        url: process.env.VUE_APP_URL_MAIN + "setEgresos",
+        url: import.meta.env.VUE_APP_URL_MAIN + "setEgresos",
         headers: {
           "Content-Type": "application/json",
         },
@@ -2071,7 +2071,7 @@ export default {
 
       var config = {
         method: "post",
-        url: process.env.VUE_APP_URL_MAIN + "setInvoice",
+        url: import.meta.env.VUE_APP_URL_MAIN + "setInvoice",
         headers: {
           "Content-Type": "application/json",
         },
@@ -2105,7 +2105,7 @@ export default {
 
       var config = {
         method: "post",
-        url: process.env.VUE_APP_URL_MAIN + "delInvoice/" + id,
+        url: import.meta.env.VUE_APP_URL_MAIN + "delInvoice/" + id,
         headers: {
           "Content-Type": "application/json",
         },
@@ -2161,7 +2161,7 @@ export default {
       var config = {
         method: "post",
         url:
-          process.env.VUE_APP_URL_MAIN + "getAccountsNumber/" + vm.proveedorId,
+          import.meta.env.VUE_APP_URL_MAIN + "getAccountsNumber/" + vm.proveedorId,
         headers: {
           "Content-Type": "application/json",
         },
@@ -2381,7 +2381,7 @@ export default {
           vm.$store.state.spiner = true;
           var config = {
             method: "put",
-            url: process.env.VUE_APP_URL_MAIN + "delEgregso/" + item.id,
+            url: import.meta.env.VUE_APP_URL_MAIN + "delEgregso/" + item.id,
             headers: {
               "Content-Type": "application/json",
             },
@@ -2425,7 +2425,7 @@ export default {
 
       var config = {
         method: "get",
-        url: process.env.VUE_APP_URL_MAIN + "getSPaymentPro",
+        url: import.meta.env.VUE_APP_URL_MAIN + "getSPaymentPro",
         params: {
           ...egreso,
           id_branch: JSON.parse(sessionStorage.getItem("dataUser"))[0]
@@ -2494,7 +2494,7 @@ export default {
 
       var config = {
         method: "post",
-        url: process.env.VUE_APP_URL_MAIN + "editEgreso/" + vm.egresos.id,
+        url: import.meta.env.VUE_APP_URL_MAIN + "editEgreso/" + vm.egresos.id,
         headers: {
           "Content-Type": "application/json",
         },
@@ -2583,7 +2583,7 @@ export default {
           };
           var config = {
             method: "post",
-            url: process.env.VUE_APP_URL_MAIN + "putSPaymentPro/" + id,
+            url: import.meta.env.VUE_APP_URL_MAIN + "putSPaymentPro/" + id,
             headers: {
               "Content-Type": "application/json",
             },
@@ -2623,7 +2623,7 @@ export default {
 
       var config = {
         method: "put",
-        url: process.env.VUE_APP_URL_MAIN + "eliminar_spaymentpro",
+        url: import.meta.env.VUE_APP_URL_MAIN + "eliminar_spaymentpro",
         headers: {
           "Content-Type": "application/json",
         },
@@ -2699,7 +2699,7 @@ export default {
       };
       var config = {
         method: "post",
-        url: process.env.VUE_APP_URL_MAIN + "setSPaymentPro",
+        url: import.meta.env.VUE_APP_URL_MAIN + "setSPaymentPro",
         headers: {
           "Content-Type": "application/json",
         },
@@ -2739,7 +2739,7 @@ export default {
           };
           var config = {
             method: "post",
-            url: process.env.VUE_APP_URL_MAIN + "pdfSolicitud",
+            url: import.meta.env.VUE_APP_URL_MAIN + "pdfSolicitud",
             headers: {
               "Content-Type": "application/json",
             },
@@ -2756,7 +2756,7 @@ export default {
               });
 
               window.open(
-                process.env.VUE_APP_URL_MAIN + response.data.path,
+                import.meta.env.VUE_APP_URL_MAIN + response.data.path,
                 "_blank",
               );
               vm.dialogSolicitudDivision = false;
@@ -2844,7 +2844,7 @@ export default {
       var config = {
         method: "get",
         url:
-          process.env.VUE_APP_URL_MAIN +
+          import.meta.env.VUE_APP_URL_MAIN +
           `list_invoice_path?id_master=${egreso.id_master}&id_proveedor=${egreso.id_proveedor}&id_correlativo=${egreso.id_correlativo}`,
         headers: {
           "Content-Type": "application/json",
@@ -2906,7 +2906,7 @@ export default {
 
             var config = {
               method: "post",
-              url: process.env.VUE_APP_URL_MAIN + "setAccount",
+              url: import.meta.env.VUE_APP_URL_MAIN + "setAccount",
               headers: {
                 "Content-Type": "application/json",
               },

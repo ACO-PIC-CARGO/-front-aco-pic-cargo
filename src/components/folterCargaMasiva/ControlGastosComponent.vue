@@ -163,7 +163,7 @@
 </template>
 
 <script>
-import readXlsxFile from "read-excel-file";
+import { readSheet as readXlsxFile } from "read-excel-file/browser";
 import { mapActions } from "vuex";
 import Swal from "sweetalert2";
 export default {

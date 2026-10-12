@@ -384,7 +384,7 @@ export default {
       };
       var config = {
         method: "post",
-        url: process.env.VUE_APP_URL_MAIN + "deleteServices",
+        url: import.meta.env.VUE_APP_URL_MAIN + "deleteServices",
         headers: {
           "Content-Type": "application/json",
         },
@@ -407,7 +407,7 @@ export default {
       };
       var config = {
         method: "post",
-        url: process.env.VUE_APP_URL_MAIN + "activeServices",
+        url: import.meta.env.VUE_APP_URL_MAIN + "activeServices",
         headers: {
           "Content-Type": "application/json",
         },
@@ -430,7 +430,7 @@ export default {
       };
       var config = {
         method: "post",
-        url: process.env.VUE_APP_URL_MAIN + "inactiveServices",
+        url: import.meta.env.VUE_APP_URL_MAIN + "inactiveServices",
         headers: {
           "Content-Type": "application/json",
         },
@@ -454,7 +454,7 @@ export default {
       };
       var config = {
         method: "post",
-        url: process.env.VUE_APP_URL_MAIN + "editServices",
+        url: import.meta.env.VUE_APP_URL_MAIN + "editServices",
         headers: {
           "Content-Type": "application/json",
         },
@@ -483,7 +483,7 @@ export default {
 
         var config = {
           method: "post",
-          url: process.env.VUE_APP_URL_MAIN + "getHouseServices",
+          url: import.meta.env.VUE_APP_URL_MAIN + "getHouseServices",
           headers: {
             "Content-Type": "application/json",
           },
@@ -635,7 +635,7 @@ export default {
 
       var config = {
         method: "post",
-        url: process.env.VUE_APP_URL_MAIN + `getServicesByIncoterms`,
+        url: import.meta.env.VUE_APP_URL_MAIN + `getServicesByIncoterms`,
         headers: {
           "Content-Type": "application/json",
         },

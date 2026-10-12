@@ -469,7 +469,7 @@
 
 <script>
 import Swal from "sweetalert2";
-import { mapActions } from "vuex/dist/vuex.common.js";
+import { mapActions } from "vuex";
 
 export default {
   components: {

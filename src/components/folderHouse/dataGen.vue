@@ -656,7 +656,7 @@ export default {
 
       var config = {
         method: "put",
-        url: process.env.VUE_APP_URL_MAIN + "setHouseEdit",
+        url: import.meta.env.VUE_APP_URL_MAIN + "setHouseEdit",
         headers: {
          
           "Content-Type": "application/json",
@@ -736,7 +736,7 @@ export default {
       if (this.id_opcion == "1") {
         var config = {
           method: "get",
-          url: process.env.VUE_APP_URL_MAIN + "validar_existe_pago_master",
+          url: import.meta.env.VUE_APP_URL_MAIN + "validar_existe_pago_master",
           headers: {
             "Content-Type": "application/json",
            
@@ -902,7 +902,7 @@ export default {
       //   };
       //   var config = {
       //     method: "post",
-      //     url: process.env.VUE_APP_URL_MAIN + "getHouseListId/",
+      //     url: import.meta.env.VUE_APP_URL_MAIN + "getHouseListId/",
       //     headers: {
       //      
       //       "Content-Type": "application/json",
@@ -1071,7 +1071,7 @@ export default {
       var config = {
         method: "get",
         url:
-          process.env.VUE_APP_URL_MAIN +
+          import.meta.env.VUE_APP_URL_MAIN +
           `ver_proveedor?id=${vm.$store.state.house_id_consigner}`,
         headers: {
          

@@ -2,7 +2,7 @@ import axios from '@/api/axios-config';
 import router from "@/router";
 
 const http = axios.create({
-  baseURL: process.env.VUE_APP_URL_MAIN,
+  baseURL: import.meta.env.VUE_APP_URL_MAIN,
   headers: {
     "Content-Type": "application/json",
   },
@@ -34,7 +34,7 @@ http.interceptors.response.use(
         sessionStorage.removeItem("auth-token");
         sessionStorage.removeItem("security");
       } catch (_) {}
-      if (router.currentRoute.name !== "Login") {
+      if (router.currentRoute.value.name !== "Login") {
         router.replace({ name: "Login" });
       }
     }

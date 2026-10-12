@@ -1800,7 +1800,7 @@ export default {
             const config = {
               method: "put",
               url:
-                process.env.VUE_APP_URL_MAIN +
+                import.meta.env.VUE_APP_URL_MAIN +
                 "setHouseIngresosDelete/" +
                 house.id_house,
               headers: {
@@ -2135,7 +2135,7 @@ export default {
         };
         var config = {
           method: "post",
-          url: process.env.VUE_APP_URL_MAIN + "setDebsClient",
+          url: import.meta.env.VUE_APP_URL_MAIN + "setDebsClient",
 
           headers: {
             "Content-Type": "application/json",
@@ -2271,7 +2271,7 @@ export default {
 
       var config = {
         method: "post",
-        url: process.env.VUE_APP_URL_MAIN + "delDebsClient/" + id,
+        url: import.meta.env.VUE_APP_URL_MAIN + "delDebsClient/" + id,
 
         headers: {
           "Content-Type": "application/json",
@@ -2580,7 +2580,7 @@ export default {
         };
         var config = {
           method: "put",
-          url: process.env.VUE_APP_URL_MAIN + "actualizar_debs_client",
+          url: import.meta.env.VUE_APP_URL_MAIN + "actualizar_debs_client",
 
           headers: {
             "Content-Type": "application/json",
@@ -2615,7 +2615,7 @@ export default {
       vm.datosFactura = [];
       var config = {
         method: "get",
-        url: `${process.env.VUE_APP_URL_MAIN}data_factura/${vm.house.id_house}/${vm.id_branch}`,
+        url: `${import.meta.env.VUE_APP_URL_MAIN}data_factura/${vm.house.id_house}/${vm.id_branch}`,
 
         headers: {
           "Content-Type": "application/json",
@@ -2677,7 +2677,7 @@ export default {
       // return;
       var config = {
         method: "post",
-        url: `${process.env.VUE_APP_URL_MAIN}generar_factura`,
+        url: `${import.meta.env.VUE_APP_URL_MAIN}generar_factura`,
         headers: {
           "Content-Type": "application/json",
         },
@@ -2700,7 +2700,7 @@ export default {
         id_house: vm.id_house,
         id_coins: vm.id_coins,
         nro_factura: data.nro_factura,
-        url_documento: process.env.VUE_APP_URL_MAIN + data.path,
+        url_documento: import.meta.env.VUE_APP_URL_MAIN + data.path,
         total_monto: vm.datosFactura.total_monto,
         total_igv: vm.datosFactura.total_igv,
         total: vm.datosFactura.total,
@@ -2709,14 +2709,14 @@ export default {
       };
       var config = {
         method: "post",
-        url: process.env.VUE_APP_URL_MAIN + "registrar_factura",
+        url: import.meta.env.VUE_APP_URL_MAIN + "registrar_factura",
         headers: {
           "Content-Type": "application/json",
         },
         data: dataFactura,
       };
       await axios(config);
-      window.open(process.env.VUE_APP_URL_MAIN + data.path, "_blank");
+      window.open(import.meta.env.VUE_APP_URL_MAIN + data.path, "_blank");
       await vm.getListControlGastosHouses(vm.$route.params.id);
     },
     isBotonEmitirProformaDisabled(house = {}) {
@@ -2779,7 +2779,7 @@ export default {
 
       var config = {
         method: "post",
-        url: process.env.VUE_APP_URL_MAIN + "setProformaFiscal",
+        url: import.meta.env.VUE_APP_URL_MAIN + "setProformaFiscal",
         headers: {
           "Content-Type": "application/json",
         },
@@ -2838,7 +2838,7 @@ export default {
           var vm = this;
           var config = {
             method: "post",
-            url: process.env.VUE_APP_URL_MAIN + "delProformaFiscal/" + id,
+            url: import.meta.env.VUE_APP_URL_MAIN + "delProformaFiscal/" + id,
             headers: {
               "Content-Type": "application/json",
             },
@@ -2894,7 +2894,7 @@ export default {
       let vm = this;
       var config = {
         method: "get",
-        url: `${process.env.VUE_APP_URL_MAIN}ver_factura_house`,
+        url: `${import.meta.env.VUE_APP_URL_MAIN}ver_factura_house`,
         params: {
           id: item.id_house,
           id_correlativo: item.id_correlativo,
@@ -2960,7 +2960,7 @@ export default {
         };
         const config = {
           method: "put",
-          url: process.env.VUE_APP_URL_MAIN + "reasignar_house",
+          url: import.meta.env.VUE_APP_URL_MAIN + "reasignar_house",
           headers: {
             "Content-Type": "application/json",
           },
@@ -3041,7 +3041,7 @@ export default {
       const datos = { id: item };
       const config = {
         method: "put",
-        url: process.env.VUE_APP_URL_MAIN + "anular_factura",
+        url: import.meta.env.VUE_APP_URL_MAIN + "anular_factura",
         headers: {
           "Content-Type": "application/json",
         },

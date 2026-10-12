@@ -39,9 +39,9 @@
             <tbody>
               <template
                 v-for="(valor, i) in obtenerCostosEnBaseTipoCosto(item.codigo)"
+                :key="'main-' + i"
               >
                 <tr
-                  :key="'main-' + i"
                   :class="{ 'bg-warning': valor.tieneprofitflag }"
                 >
                   <td class="btnAccion">

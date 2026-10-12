@@ -37,7 +37,7 @@ let actions = {
     var config = {
       method: "get",
       url:
-        process.env.VUE_APP_URL_MAIN +
+        import.meta.env.VUE_APP_URL_MAIN +
         `listar_subgasto?&id_branch=${
           JSON.parse(sessionStorage.getItem("dataUser"))[0].id_branch
         }&id_gasto=${
@@ -94,7 +94,7 @@ let actions = {
     var config = {
       method: "get",
       url:
-        process.env.VUE_APP_URL_MAIN +
+        import.meta.env.VUE_APP_URL_MAIN +
         `validate_code_subgasto?id_branch=${
           JSON.parse(sessionStorage.getItem("dataUser"))[0].id_branch
         }&code=${state.model.code}`,
@@ -114,7 +114,7 @@ let actions = {
   async setSubGasto({ commit }) {
     var config = {
       method: "post",
-      url: process.env.VUE_APP_URL_MAIN + `insertar_subgasto`,
+      url: import.meta.env.VUE_APP_URL_MAIN + `insertar_subgasto`,
       headers: {
        
         "Content-Type": "application/json",
@@ -141,7 +141,7 @@ let actions = {
   async ActualizarSubGasto({ commit }) {
     var config = {
       method: "put",
-      url: process.env.VUE_APP_URL_MAIN + `actualizar_subgasto`,
+      url: import.meta.env.VUE_APP_URL_MAIN + `actualizar_subgasto`,
       headers: {
        
         "Content-Type": "application/json",

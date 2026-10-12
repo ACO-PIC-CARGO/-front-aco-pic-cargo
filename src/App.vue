@@ -794,7 +794,7 @@ import { getRegistration } from "./registerServiceWorker";
 
 export default {
   created() {
-    this.socket = io(process.env.VUE_APP_URL_MAIN, {
+    this.socket = io(import.meta.env.VUE_APP_URL_MAIN, {
       transports: ["polling"],
     });
     this.socket.on("connect_error", (err) => {
@@ -832,7 +832,7 @@ export default {
         if (data.power == 1) {
           this.dialogPower = false;
         }
-        if (data.version != process.env.VUE_APP_VERSION) {
+        if (data.version != import.meta.env.VUE_APP_VERSION) {
           this.dialogVersion = true;
         }
       }
@@ -861,8 +861,8 @@ export default {
   },
   async beforeMount() {
     sessionStorage.removeItem("hasReloaded");
-    sessionStorage.setItem("version", process.env.VUE_APP_VERSION);
-    localStorage.setItem("version", process.env.VUE_APP_VERSION);
+    sessionStorage.setItem("version", import.meta.env.VUE_APP_VERSION);
+    localStorage.setItem("version", import.meta.env.VUE_APP_VERSION);
   },
 
   computed: {},
@@ -957,7 +957,7 @@ export default {
       };
       var config = {
         method: "post",
-        url: process.env.VUE_APP_URL_MAIN + "getVersion",
+        url: import.meta.env.VUE_APP_URL_MAIN + "getVersion",
         headers: {
           "Content-Type": "application/json",
         },
@@ -996,7 +996,7 @@ export default {
       var vm = this;
       var config = {
         method: "post",
-        url: process.env.VUE_APP_URL_MAIN + "delAccount/" + id,
+        url: import.meta.env.VUE_APP_URL_MAIN + "delAccount/" + id,
         headers: {
           "Content-Type": "application/json",
         },
@@ -1018,7 +1018,7 @@ export default {
       var config = {
         method: "post",
         url:
-          process.env.VUE_APP_URL_MAIN +
+          import.meta.env.VUE_APP_URL_MAIN +
           "getAccountsNumber/" +
           vm.$route.params.id,
         headers: {
@@ -1048,7 +1048,7 @@ export default {
       };
       var config = {
         method: "post",
-        url: process.env.VUE_APP_URL_MAIN + "setAccount",
+        url: import.meta.env.VUE_APP_URL_MAIN + "setAccount",
         headers: {
           "Content-Type": "application/json",
         },

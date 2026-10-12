@@ -13,7 +13,7 @@ const actions = {
   async generarConsolidacion({ commit }, data) {
     var config = {
       method: "post",
-      url: process.env.VUE_APP_URL_MAIN + "generar_consolidacion",
+      url: import.meta.env.VUE_APP_URL_MAIN + "generar_consolidacion",
       headers: {
        
         "Content-Type": "application/json",

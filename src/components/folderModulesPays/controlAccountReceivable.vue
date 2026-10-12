@@ -491,38 +491,20 @@
 </template>
 
 <script>
-import { validationMixin } from "vuelidate";
-import { required, maxLength, email } from "vuelidate/lib/validators";
 import axios from "@/api/axios-config";
 import Swal from "sweetalert2";
 import { mapActions, mapState } from "vuex";
-// import the component
-import Treeselect from "@riophae/vue-treeselect";
-// import the styles
-import "@riophae/vue-treeselect/dist/vue-treeselect.css";
 import ArrastraYSolarComponent from "../comun/ArrastraYSolarComponent.vue";
-import { type } from "os";
 
 export default {
-  components: { Treeselect, ArrastraYSolarComponent },
+  components: { ArrastraYSolarComponent },
   name: "moduleAccountReceivableCom",
-  mixins: [validationMixin],
   props: {
     operativa: "",
     exp: "",
     pro: "",
     id_pro: "",
     tipo: "",
-  },
-  validations: {
-    name: { required, maxLength: maxLength(10) },
-    email: { required, email },
-    select: { required },
-    checkbox: {
-      checked(val) {
-        return val;
-      },
-    },
   },
   data: () => ({
     tipoingreso: null,
@@ -657,7 +639,6 @@ export default {
       }
     },
     clear() {
-      this.$v.$reset();
       this.name = "";
       this.email = "";
       this.select = null;
@@ -729,8 +710,6 @@ export default {
       this.$store.state.modalAdmin = !this.$store.state.modalAdmin;
     },
     _uploadFile() {
-      var FormData = require("form-data");
-      var fs = require("fs");
       var data = new FormData();
       var vm = this;
       if (vm.radio == 1) {
@@ -743,7 +722,7 @@ export default {
 
       var config = {
         method: "post",
-        url: process.env.VUE_APP_URL_MAIN + "uploadAllPath",
+        url: import.meta.env.VUE_APP_URL_MAIN + "uploadAllPath",
         headers: {
           "Content-Type": "application/json",
         },
@@ -767,7 +746,7 @@ export default {
       var config = {
         data: data,
         method: "get",
-        url: process.env.VUE_APP_URL_MAIN + "getHouseListAll",
+        url: import.meta.env.VUE_APP_URL_MAIN + "getHouseListAll",
 
         headers: {
           "Content-Type": "application/json",
@@ -790,7 +769,7 @@ export default {
 
       var config = {
         method: "post",
-        url: process.env.VUE_APP_URL_MAIN + "getListInvoiceExp",
+        url: import.meta.env.VUE_APP_URL_MAIN + "getListInvoiceExp",
 
         headers: {
           "Content-Type": "application/json",
@@ -870,7 +849,7 @@ export default {
         };
         var config = {
           method: "post",
-          url: process.env.VUE_APP_URL_MAIN + "setInvoiceAdminCxC",
+          url: import.meta.env.VUE_APP_URL_MAIN + "setInvoiceAdminCxC",
 
           headers: {
             "Content-Type": "application/json",
@@ -933,7 +912,7 @@ export default {
         };
         var config = {
           method: "put",
-          url: process.env.VUE_APP_URL_MAIN + "setUpdateInvoiceAdminCxC",
+          url: import.meta.env.VUE_APP_URL_MAIN + "setUpdateInvoiceAdminCxC",
 
           headers: {
             "Content-Type": "application/json",
@@ -976,7 +955,7 @@ export default {
       };
       var config = {
         method: "post",
-        url: process.env.VUE_APP_URL_MAIN + "putPro",
+        url: import.meta.env.VUE_APP_URL_MAIN + "putPro",
 
         headers: {
           "Content-Type": "application/json",

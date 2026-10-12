@@ -1611,7 +1611,7 @@ export default {
       if (this.id_opcion == "1") {
         var config = {
           method: "get",
-          url: process.env.VUE_APP_URL_MAIN + "validar_existe_pago_master",
+          url: import.meta.env.VUE_APP_URL_MAIN + "validar_existe_pago_master",
           headers: {
             "Content-Type": "application/json",
           },
@@ -1635,7 +1635,7 @@ export default {
 
       var config = {
         method: "get",
-        url: process.env.VUE_APP_URL_MAIN + "validar_existe_pago_house",
+        url: import.meta.env.VUE_APP_URL_MAIN + "validar_existe_pago_house",
         headers: {
           "Content-Type": "application/json",
         },
@@ -1654,7 +1654,7 @@ export default {
       this.lstHouse = [];
       var config = {
         method: "get",
-        url: process.env.VUE_APP_URL_MAIN + "cargar_house_asociado_master",
+        url: import.meta.env.VUE_APP_URL_MAIN + "cargar_house_asociado_master",
         headers: {
           "Content-Type": "application/json",
         },

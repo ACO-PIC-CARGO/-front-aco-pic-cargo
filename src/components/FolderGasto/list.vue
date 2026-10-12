@@ -582,7 +582,7 @@ export default {
       var config = {
         method: "get",
         url:
-          process.env.VUE_APP_URL_MAIN +
+          import.meta.env.VUE_APP_URL_MAIN +
           `validar_nuevo_codigo_gasto?` +
           `id_branch=${this.record.id_branch}` +
           `&code=${encodeURIComponent(this.record.code)}`,

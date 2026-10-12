@@ -445,8 +445,6 @@ export default {
     },
 
     _uploadFile() {
-      var FormData = require("form-data");
-      var fs = require("fs");
       var data = new FormData();
       var vm = this;
       data.append("name", "Prueba");
@@ -454,7 +452,7 @@ export default {
 
       var config = {
         method: "post",
-        url: process.env.VUE_APP_URL_MAIN + "uploadAllPath",
+        url: import.meta.env.VUE_APP_URL_MAIN + "uploadAllPath",
         headers: {
           "Content-Type": "application/json",
         },
@@ -498,7 +496,7 @@ export default {
       var config = {
         method: "post",
         url:
-          process.env.VUE_APP_URL_MAIN + "paymentInvoiceAdminCxC/" + vm.id_pro,
+          import.meta.env.VUE_APP_URL_MAIN + "paymentInvoiceAdminCxC/" + vm.id_pro,
 
         headers: {
           "Content-Type": "application/json",
@@ -535,7 +533,7 @@ export default {
       vm.$store.state.spiner = true;
       var config = {
         method: "get",
-        url: process.env.VUE_APP_URL_MAIN + "getInvoiceAdminCxC",
+        url: import.meta.env.VUE_APP_URL_MAIN + "getInvoiceAdminCxC",
         params: {
           id_branch: JSON.parse(sessionStorage.getItem("dataUser"))[0]
             .id_branch,
@@ -638,7 +636,7 @@ export default {
 
       var config = {
         method: "post",
-        url: process.env.VUE_APP_URL_MAIN + "delProCxC",
+        url: import.meta.env.VUE_APP_URL_MAIN + "delProCxC",
 
         headers: {
           "Content-Type": "application/json",

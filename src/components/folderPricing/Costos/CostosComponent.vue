@@ -58,8 +58,9 @@
                       v-for="(valor, i) in valores.filter(
                         (v) => v.esfleteflag == 1 && v.status == 1,
                       )"
+                      :key="'main-' + i"
                     >
-                      <tr :key="'main-' + i">
+                      <tr>
                         <td class="btnAccion">
                           <v-btn
                             icon

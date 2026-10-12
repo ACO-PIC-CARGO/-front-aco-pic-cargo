@@ -1542,7 +1542,7 @@ export default {
         const id_branch = JSON.parse(sessionStorage.getItem("dataUser"))[0]
           .id_branch;
         const response = await axios.get(
-          process.env.VUE_APP_URL_MAIN + "listado_houses",
+          import.meta.env.VUE_APP_URL_MAIN + "listado_houses",
           {
             params: {
               id_branch,
@@ -1592,7 +1592,7 @@ export default {
 
       try {
         const response = await axios.post(
-          process.env.VUE_APP_URL_MAIN + "link_house_quote",
+          import.meta.env.VUE_APP_URL_MAIN + "link_house_quote",
           {
             id_house: house.id,
             id_quote: this.quoteSeleccionada.id,

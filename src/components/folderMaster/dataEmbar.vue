@@ -210,8 +210,7 @@
           <p>LISTA DE CONTENTEDORES</p>
         </div> -->
       </v-col>
- 
-    </v-row>
+
   </div>
 </template>
 

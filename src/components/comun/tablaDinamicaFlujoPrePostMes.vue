@@ -116,8 +116,8 @@
               </tr>
             </thead>
             <tbody>
-              <template v-for="(item, index) in dataTable">
-                <tr :key="'row-' + index" class="categoria">
+              <template v-for="(item, index) in dataTable" :key="'row-' + index">
+                <tr class="categoria">
                   <td colspan="7">
                     <v-btn
                       icon

@@ -330,7 +330,7 @@ export default {
       let vm = this;
       var config = {
         method: "get",
-        url: process.env.VUE_APP_URL_MAIN + "getListBanksDetailsCargar",
+        url: import.meta.env.VUE_APP_URL_MAIN + "getListBanksDetailsCargar",
         params: {
           id_branch: JSON.parse(sessionStorage.getItem("dataUser"))[0]
             .id_branch,
@@ -476,7 +476,7 @@ export default {
         };
         var config = {
           method: "post",
-          url: process.env.VUE_APP_URL_MAIN + "setPayForProveedor",
+          url: import.meta.env.VUE_APP_URL_MAIN + "setPayForProveedor",
 
           headers: {
            
@@ -584,7 +584,7 @@ export default {
         var config = {
           method: "get",
           url:
-            process.env.VUE_APP_URL_MAIN + `getVerPagosPorProveedor?id=` + id,
+            import.meta.env.VUE_APP_URL_MAIN + `getVerPagosPorProveedor?id=` + id,
 
           headers: {
            

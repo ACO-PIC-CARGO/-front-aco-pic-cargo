@@ -53,7 +53,7 @@ let actions = {
     var config = {
       method: "get",
       url:
-        process.env.VUE_APP_URL_MAIN +
+        import.meta.env.VUE_APP_URL_MAIN +
         `listar_usuarios?&id_branch=${
           JSON.parse(sessionStorage.getItem("dataUser"))[0].id_branch
         }&users=${
@@ -108,7 +108,7 @@ let actions = {
     var config = {
       method: "get",
       url:
-        process.env.VUE_APP_URL_MAIN +
+        import.meta.env.VUE_APP_URL_MAIN +
         `ver_usuario?&id_branch=${
           JSON.parse(sessionStorage.getItem("dataUser"))[0].id_branch
         }&id=${state.model.id}`,
@@ -164,7 +164,7 @@ let actions = {
     var config = {
       method: "get",
       url:
-        process.env.VUE_APP_URL_MAIN +
+        import.meta.env.VUE_APP_URL_MAIN +
         `validate_user_usuarios?users=${state.model.users}`,
 
       headers: {
@@ -183,7 +183,7 @@ let actions = {
     var config = {
       method: "get",
       url:
-        process.env.VUE_APP_URL_MAIN +
+        import.meta.env.VUE_APP_URL_MAIN +
         `validate_email_usuarios?email=${state.model.email}`,
 
       headers: {
@@ -202,7 +202,7 @@ let actions = {
     var config = {
       method: "get",
       url:
-        process.env.VUE_APP_URL_MAIN +
+        import.meta.env.VUE_APP_URL_MAIN +
         `validate_document_usuarios?id_branch=${
           JSON.parse(sessionStorage.getItem("dataUser"))[0].id_branch
         }&id_document=${state.model.id_document}&document=${
@@ -229,7 +229,7 @@ let actions = {
     datos.sucursales = state.sucursales;
     var config = {
       method: "post",
-      url: process.env.VUE_APP_URL_MAIN + `insertar_usuario`,
+      url: import.meta.env.VUE_APP_URL_MAIN + `insertar_usuario`,
       headers: {
        
         "Content-Type": "application/json",
@@ -267,7 +267,7 @@ let actions = {
     datos.sucursales = state.sucursales;
     var config = {
       method: "put",
-      url: process.env.VUE_APP_URL_MAIN + `actualizar_usuario`,
+      url: import.meta.env.VUE_APP_URL_MAIN + `actualizar_usuario`,
       headers: {
        
         "Content-Type": "application/json",
@@ -301,7 +301,7 @@ let actions = {
   async cambiarEstadoUsers({ commit }) {
     var config = {
       method: "put",
-      url: process.env.VUE_APP_URL_MAIN + `cambiar_estado_usuario`,
+      url: import.meta.env.VUE_APP_URL_MAIN + `cambiar_estado_usuario`,
       headers: {
        
         "Content-Type": "application/json",

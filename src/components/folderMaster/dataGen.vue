@@ -326,7 +326,7 @@ export default {
         var config = {
           method: "post",
           url:
-            process.env.VUE_APP_URL_MAIN +
+            import.meta.env.VUE_APP_URL_MAIN +
             "getMasterId/" +
             vm.$store.state.master_Id_get,
           headers: {

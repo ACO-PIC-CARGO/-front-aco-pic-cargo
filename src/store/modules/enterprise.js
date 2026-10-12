@@ -70,7 +70,7 @@ const actions = {
     commit("SET_LOADING", false);
     var config = {
       method: "get",
-      url: process.env.VUE_APP_URL_MAIN + `listar_enterprise`,
+      url: import.meta.env.VUE_APP_URL_MAIN + `listar_enterprise`,
       params: data,
       headers: {
         "Content-Type": "application/json",
@@ -114,7 +114,7 @@ const actions = {
     console.log(state.model);
     var config = {
       method: "post",
-      url: process.env.VUE_APP_URL_MAIN + "insertar_enterprise",
+      url: import.meta.env.VUE_APP_URL_MAIN + "insertar_enterprise",
       headers: {
         "Content-Type": "application/json",
       },
@@ -143,7 +143,7 @@ const actions = {
   async readEnterprise({ commit }, id) {
     var config = {
       method: "get",
-      url: process.env.VUE_APP_URL_MAIN + `ver_enterprise?id=${id}`,
+      url: import.meta.env.VUE_APP_URL_MAIN + `ver_enterprise?id=${id}`,
       headers: {
         "Content-Type": "application/json",
       },
@@ -169,7 +169,7 @@ const actions = {
   async updateEnterprise({ dispatch }, data) {
     var config = {
       method: "put",
-      url: process.env.VUE_APP_URL_MAIN + "actualizar_enterprise",
+      url: import.meta.env.VUE_APP_URL_MAIN + "actualizar_enterprise",
       headers: {
         "Content-Type": "application/json",
       },
@@ -186,7 +186,7 @@ const actions = {
           showCancelButton: false,
           confirmButtonText: "Ok",
         }).then((result) => {
-          const currentRoute = router.currentRoute;
+          const currentRoute = router.currentRoute.value;
           if (currentRoute.name !== "listEnterprise") {
             router.push({ name: "listEnterprise" });
           } else {
@@ -217,7 +217,7 @@ const actions = {
   async eliminarBranch({ dispatch }, data) {
     var config = {
       method: "delete",
-      url: process.env.VUE_APP_URL_MAIN + "eliminar_sucursal",
+      url: import.meta.env.VUE_APP_URL_MAIN + "eliminar_sucursal",
       headers: {
         "Content-Type": "application/json",
       },
@@ -234,7 +234,7 @@ const actions = {
           showCancelButton: false,
           confirmButtonText: "Ok",
         }).then((result) => {
-          const currentRoute = router.currentRoute;
+          const currentRoute = router.currentRoute.value;
           if (currentRoute.name !== "listEnterprise") {
             router.push({ name: "listEnterprise" });
           } else {
@@ -265,7 +265,7 @@ const actions = {
   async RegistroNuevaEmpresa({ commit, dispatch }) {
     var config = {
       method: "post",
-      url: process.env.VUE_APP_URL_MAIN + "registro_nueva_empresa",
+      url: import.meta.env.VUE_APP_URL_MAIN + "registro_nueva_empresa",
       headers: {
         "Content-Type": "application/json",
       },
@@ -301,7 +301,7 @@ const actions = {
     var config = {
       method: "get",
       url:
-        process.env.VUE_APP_URL_MAIN +
+        import.meta.env.VUE_APP_URL_MAIN +
         `enviar_codigo_validacion_email?email=${state.data.email}`,
       headers: {
         "Content-Type": "application/json",
@@ -321,7 +321,7 @@ const actions = {
     var config = {
       method: "get",
       url:
-        process.env.VUE_APP_URL_MAIN +
+        import.meta.env.VUE_APP_URL_MAIN +
         `validar_token_registro?email=${state.data.email}&codigo=${state.data.codigo}&eliminartoken=${eliminar}`,
       headers: {
         "Content-Type": "application/json",
@@ -343,7 +343,7 @@ const actions = {
     var config = {
       method: "get",
       url:
-        process.env.VUE_APP_URL_MAIN +
+        import.meta.env.VUE_APP_URL_MAIN +
         `validar_correo_registro?email=${state.data.email}`,
       headers: {
         "Content-Type": "application/json",
@@ -367,7 +367,7 @@ const actions = {
     var config = {
       method: "get",
       url:
-        process.env.VUE_APP_URL_MAIN +
+        import.meta.env.VUE_APP_URL_MAIN +
         "obtener_impuestos_branch?id_branch=" +
         branch,
       headers: {
@@ -387,7 +387,7 @@ const actions = {
     var config = {
       method: "get",
       url:
-        process.env.VUE_APP_URL_MAIN +
+        import.meta.env.VUE_APP_URL_MAIN +
         "listado_cuentas_empresa?id_branch=" +
         branch,
       headers: {
@@ -407,7 +407,7 @@ const actions = {
     data.id_branch = id_branch;
     var config = {
       method: "post",
-      url: process.env.VUE_APP_URL_MAIN + "banco_registrar",
+      url: import.meta.env.VUE_APP_URL_MAIN + "banco_registrar",
       headers: {
         "Content-Type": "application/json",
       },

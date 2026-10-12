@@ -24,7 +24,7 @@
 </template>
 
 <script>
-import readXlsFile from "read-excel-file";
+import { readSheet as readXlsFile } from "read-excel-file/browser";
 import moment from "moment";
 import { mapActions } from "vuex";
 export default {

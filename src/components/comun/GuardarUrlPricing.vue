@@ -2,7 +2,7 @@
   <v-container fluid>
     <v-card>
       <v-dialog
-        v-model="dialogUrl"
+        :model-value="dialogUrl"
         scrollable
         persistent
         max-width="30%"

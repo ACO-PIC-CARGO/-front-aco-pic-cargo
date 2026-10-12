@@ -34,7 +34,7 @@ let actions = {
     var config = {
       method: "get",
       url:
-        process.env.VUE_APP_URL_MAIN +
+        import.meta.env.VUE_APP_URL_MAIN +
         `listar_begend?&id_branch=${
           JSON.parse(sessionStorage.getItem("dataUser"))[0].id_branch
         }&status=${state.filtros.status ? state.filtros.status : ""}&position=${
@@ -86,7 +86,7 @@ let actions = {
     var config = {
       method: "get",
       url:
-        process.env.VUE_APP_URL_MAIN +
+        import.meta.env.VUE_APP_URL_MAIN +
         `validate_position_begend?id_branch=${
           JSON.parse(sessionStorage.getItem("dataUser"))[0].id_branch
         }&position=${state.model.position}`,
@@ -107,7 +107,7 @@ let actions = {
   async setBegend({ commit }) {
     var config = {
       method: "post",
-      url: process.env.VUE_APP_URL_MAIN + `insertar_begend`,
+      url: import.meta.env.VUE_APP_URL_MAIN + `insertar_begend`,
       headers: {
        
         "Content-Type": "application/json",
@@ -135,7 +135,7 @@ let actions = {
     var config = {
       method: "get",
       url:
-        process.env.VUE_APP_URL_MAIN +
+        import.meta.env.VUE_APP_URL_MAIN +
         `validate_position_actualizar_begend?id_branch=${
           JSON.parse(sessionStorage.getItem("dataUser"))[0].id_branch
         }&id=${state.model.id}&position=${state.model.position}`,
@@ -155,7 +155,7 @@ let actions = {
   async ActualizarBegend({ commit }) {
     var config = {
       method: "put",
-      url: process.env.VUE_APP_URL_MAIN + `actualizar_begend`,
+      url: import.meta.env.VUE_APP_URL_MAIN + `actualizar_begend`,
       headers: {
        
         "Content-Type": "application/json",

@@ -32,7 +32,7 @@
                   dense
                   item-value="id"
                   item-text="name"
-                  v-model="id_modality"
+                  :model-value="id_modality"
                   :rules="[(v) => !!v || 'Dato requerido']"
                   disabled
                 ></v-autocomplete>

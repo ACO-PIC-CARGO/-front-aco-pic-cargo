@@ -434,7 +434,7 @@ export default {
         var config = {
           method: "get",
           url:
-            process.env.VUE_APP_URL_MAIN +
+            import.meta.env.VUE_APP_URL_MAIN +
             "listPagoControlGastoXProveedor/" +
             vm.proveedor,
           headers: {
@@ -511,7 +511,7 @@ export default {
       let vm = this;
       var config = {
         method: "get",
-        url: process.env.VUE_APP_URL_MAIN + "getListBanksDetailsCargar",
+        url: import.meta.env.VUE_APP_URL_MAIN + "getListBanksDetailsCargar",
         params: {
           id_branch: JSON.parse(sessionStorage.getItem("dataUser"))[0]
             .id_branch,
@@ -542,8 +542,6 @@ export default {
       vm.msgfile = "";
       vm.errfile = "";
       if (vm.payfile) {
-        var FormData = require("form-data");
-        var fs = require("fs");
         var data = new FormData();
         var vm = this;
         data.append("name", "Prueba");
@@ -551,7 +549,7 @@ export default {
 
         var config = {
           method: "post",
-          url: process.env.VUE_APP_URL_MAIN + "uploadAllPath",
+          url: import.meta.env.VUE_APP_URL_MAIN + "uploadAllPath",
           headers: {
            
             "Content-Type": "application/json",
@@ -657,7 +655,7 @@ export default {
 
       var config = {
         method: "post",
-        url: process.env.VUE_APP_URL_MAIN + "registro_pago_detalles",
+        url: import.meta.env.VUE_APP_URL_MAIN + "registro_pago_detalles",
         headers: {
          
           "Content-Type": "application/json",

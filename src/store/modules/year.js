@@ -26,7 +26,7 @@ const actions = {
     var config = {
       method: "get",
       url:
-        process.env.VUE_APP_URL_MAIN +
+        import.meta.env.VUE_APP_URL_MAIN +
         `listar_year?` +
         `id_branch=${
           JSON.parse(sessionStorage.getItem("dataUser"))[0].id_branch
@@ -69,7 +69,7 @@ const actions = {
   async insertYear({ commit, dispatch }, data) {
     var config = {
       method: "post",
-      url: process.env.VUE_APP_URL_MAIN + "insertar_year",
+      url: import.meta.env.VUE_APP_URL_MAIN + "insertar_year",
       headers: {
         "Content-Type": "application/json",
       },
@@ -100,7 +100,7 @@ const actions = {
   async readYear({ commit }, id) {
     var config = {
       method: "get",
-      url: process.env.VUE_APP_URL_MAIN + `ver_year?id=${id}`,
+      url: import.meta.env.VUE_APP_URL_MAIN + `ver_year?id=${id}`,
       headers: {
         "Content-Type": "application/json",
       },
@@ -126,7 +126,7 @@ const actions = {
   async updateYear({ dispatch }, data) {
     var config = {
       method: "put",
-      url: process.env.VUE_APP_URL_MAIN + "actualizar_year",
+      url: import.meta.env.VUE_APP_URL_MAIN + "actualizar_year",
       headers: {
         "Content-Type": "application/json",
       },

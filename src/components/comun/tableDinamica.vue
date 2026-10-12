@@ -16,9 +16,8 @@
           </tr>
         </thead>
         <tbody>
-          <template v-for="(item, index) in dataTable">
+          <template v-for="(item, index) in dataTable" :key="'row-' + index">
             <tr
-              :key="'row-' + index"
               :class="{
                 categoria: true,
                 'text-red': item.diferencia < 0,
