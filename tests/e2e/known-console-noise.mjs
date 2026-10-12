@@ -175,6 +175,11 @@ export const KNOWN_CONSOLE_NOISE = [
     routes: ["controlHouseEditar"],
   },
   {
+    pattern: /^TypeError: Cannot read properties of undefined \(reading 'push'\)\n\s+at Proxy\.guardar \(\S+\/src\/components\/folderHouse\/dataGen\.vue:/,
+    reason: "same pre-existing issue as the 'at VueComponent.guardar' entry (folderHouse/dataGen.vue guardar() uses this.router), Vue 3 wording",
+    routes: ["controlHouseEditar"],
+  },
+  {
     pattern: /^Request failed with status code 500(\n|$)/,
     reason: "pre-existing on Vue 2: controlHouseEditar (crear-carpeta-house answers 500: the OneDrive/SharePoint folder is unreachable locally)",
     routes: ["controlHouseEditar"],
