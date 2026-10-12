@@ -35,7 +35,6 @@
                 :items="$store.state.pricing.listMarketing"
                 label="Tipo de Marketing"
                 density="compact"
-                search
                 item-title="name"
                 item-value="id"
                 v-model="$store.state.pricing.filtroCalls.id_marketing"
@@ -58,7 +57,6 @@
                 :items="$store.state.pricing.listEjecutivo"
                 label="Pricing."
                 density="compact"
-                search
                 item-title="name"
                 item-value="id_entitie"
                 v-model="$store.state.pricing.filtroCalls.id_pricing"
@@ -70,7 +68,6 @@
                 :items="$store.state.pricing.listEjecutivo"
                 label="Ejecutivo."
                 density="compact"
-                search
                 item-title="name"
                 item-value="id_entitie"
                 v-model="$store.state.pricing.filtroCalls.id_entities"

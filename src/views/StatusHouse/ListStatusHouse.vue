@@ -384,7 +384,6 @@
       location="right"
       absolute
       
-      persistent
       width="30%"
       temporary
       class="px-5 py-5"

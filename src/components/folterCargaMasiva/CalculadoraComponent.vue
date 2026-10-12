@@ -142,7 +142,6 @@
       v-if="offcanvas"
       v-model="offcanvas"
       absolute
-      persistent
       temporary
       location="right"
       width="28%"

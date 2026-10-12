@@ -6,7 +6,6 @@
       location="right"
       absolute
       
-      persistent
       width="50%"
       temporary
     >

@@ -7,7 +7,6 @@
       location="right"
       absolute
       
-      persistent
       width="30%"
       temporary
       v-if="$store.state.house_filtrarData"

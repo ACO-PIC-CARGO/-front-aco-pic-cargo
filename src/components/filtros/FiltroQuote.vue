@@ -58,7 +58,6 @@
                 :items="$store.state.pricing.listEjecutivo"
                 label="Pricing."
                 density="compact"
-                search
                 item-title="name"
                 item-value="id_entitie"
                 v-model="$store.state.pricing.filtro.id_pricing"
@@ -70,7 +69,6 @@
                 :items="$store.state.pricing.listEjecutivo"
                 label="Ejecutivo."
                 density="compact"
-                search
                 item-title="name"
                 item-value="id_entitie"
                 v-model="$store.state.pricing.filtro.id_entities"

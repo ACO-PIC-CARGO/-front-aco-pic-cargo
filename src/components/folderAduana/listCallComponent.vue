@@ -27,7 +27,6 @@
               :items="$store.state.pricing.listEjecutivo"
               label="Ejecutivo."
               density="compact"
-              search
               clearable
               item-title="name"
               item-value="id_entitie"
@@ -87,7 +86,6 @@
         class="elevation-1 contenido"
         :search="search"
         multi-sort
-        mobile
       >
         <template v-slot:item="row">
           <tr

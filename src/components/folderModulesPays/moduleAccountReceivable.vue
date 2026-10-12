@@ -158,7 +158,6 @@
       location="right"
       absolute
       
-      persistent
       width="40%"
       temporary
       class="filtro-container"

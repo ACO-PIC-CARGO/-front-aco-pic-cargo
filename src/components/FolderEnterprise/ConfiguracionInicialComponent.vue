@@ -119,7 +119,6 @@
                   hide-default-footer
                   :items-per-page="20"
                   disable-sort
-                  mobile
                 >
                   <template v-slot:[`item.exwflag`]="{ item }">
                     <v-icon color="green" v-if="item.exwflag"

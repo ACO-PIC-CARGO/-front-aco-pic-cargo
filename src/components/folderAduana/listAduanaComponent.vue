@@ -354,7 +354,6 @@
               :items="$store.state.pricing.listEjecutivo"
               label="Ejecutivo."
               density="compact"
-              search
               clearable
               item-title="name"
               item-value="id_entitie"
