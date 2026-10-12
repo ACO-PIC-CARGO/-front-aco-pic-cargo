@@ -67,7 +67,7 @@
                   variant="outlined"
                   placeholder="Nombre del cliente"
                   :append-inner-icon="'mdi-account-search'"
-                  @click:append-inner="abrirModalCliente()"
+                  @click:append-inner.stop="abrirModalCliente()"
                   @click="abrirModalCliente()"
                   :rules="[(v) => !!v || 'El nombre es requerido']"
                   density="compact"

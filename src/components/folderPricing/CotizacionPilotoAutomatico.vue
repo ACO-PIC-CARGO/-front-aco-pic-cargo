@@ -84,9 +84,16 @@
                   @update:search="recargarProveedores"
                   v-model="valor.id_proveedor"
                   hide-details
-                  append-inner-icon="mdi-plus"
-                  @click:append-inner="abrirModalRegistroProveedor(valor)"
-                ></v-autocomplete>
+                  menu-icon=""
+                >
+                  <template #append-inner>
+                    <v-icon
+                      icon="mdi-plus"
+                      @mousedown.stop
+                      @click.stop="abrirModalRegistroProveedor(valor)"
+                    />
+                  </template>
+                </v-autocomplete>
               </td>
               <td class="colConcepto">
                 <v-text-field
