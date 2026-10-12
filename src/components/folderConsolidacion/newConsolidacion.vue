@@ -2,7 +2,7 @@
   <v-container fluid>
     <v-row v-if="step == 1">
       <v-col cols="6">
-        <v-file-input @change="obtenerDatosExcel()" id="excel"></v-file-input>
+        <v-file-input @update:model-value="obtenerDatosExcel()" id="excel"></v-file-input>
         <v-btn color="success" :disabled="items.length == 0" @click="generar()"
           >Generar</v-btn
         >

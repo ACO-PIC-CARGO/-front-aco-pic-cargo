@@ -14,7 +14,7 @@
               placeholder="Buscar..."
               label="Buscar"
               v-model="search"
-              append-icon="mdi-magnify"
+              append-inner-icon="mdi-magnify"
             ></v-text-field>
           </v-col>
         </v-row>
@@ -80,7 +80,7 @@
               <tbody>
                 <tr v-for="(costo, index) in costosBase" :key="index">
                   <td>
-                    <v-chip :color="getTramoColor(costo.tramo)" text-color="white" size="small">
+                    <v-chip :color="getTramoColor(costo.tramo)" class="text-white" variant="flat" size="small">
                       {{ costo.tramo }}
                     </v-chip>
                   </td>
