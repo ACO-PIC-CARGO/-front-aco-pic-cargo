@@ -15,14 +15,13 @@
         v-model="password"
         :type="show3 ? 'text' : 'password'"
         label="Contraseña"
-        @click:append="show3 = !show3"
-        :append-icon="show3 ? 'mdi-eye' : 'mdi-eye-off'"
+        @click:append-inner="show3 = !show3"
+        :append-inner-icon="show3 ? 'mdi-eye' : 'mdi-eye-off'"
       ></v-text-field>
 
       <v-btn
         class="_btn__accept"
         rounded
-        dark
         size="x-large"
         @click="__getLogin()"
         :loading="loading"
@@ -51,7 +50,6 @@
         <v-spacer></v-spacer>
         <v-btn
           rounded
-          dark
           color="success"
           @click="ListProgrammedPayment()"
           :loading="cargandoBranch"
@@ -60,7 +58,6 @@
         </v-btn>
         <v-btn
           rounded
-          dark
           color="error"
           @click="branchdialog = !branchdialog"
           :loading="cargandoBranch"

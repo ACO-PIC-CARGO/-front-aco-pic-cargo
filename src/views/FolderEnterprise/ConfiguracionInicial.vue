@@ -8,65 +8,73 @@
     >
       <v-stepper alt-labels v-model="e1">
         <v-stepper-header>
-          <v-stepper-step step="1" :complete="e1 > 1" :editable="editarEmpresa">
-            <center>CONFIGURA TU EMPRESA</center>
-          </v-stepper-step>
+          <v-stepper-item
+            :value="1"
+            :complete="e1 > 1"
+            :editable="editarEmpresa"
+            title="CONFIGURA TU EMPRESA"
+          />
 
           <v-divider></v-divider>
 
-          <v-stepper-step
-            step="2"
+          <v-stepper-item
+            :value="2"
             :complete="e1 > 2"
             :editable="editarProveedor"
-          >
-            <center>CONFIGURACIÓN PROVEEDORES</center>
-          </v-stepper-step>
+            title="CONFIGURACIÓN PROVEEDORES"
+          />
 
           <v-divider></v-divider>
 
-          <v-stepper-step step="3" :complete="e1 > 3" :editable="editarCliente">
-            <center>CONFIGURACIÓN CLIENTES</center>
-          </v-stepper-step>
+          <v-stepper-item
+            :value="3"
+            :complete="e1 > 3"
+            :editable="editarCliente"
+            title="CONFIGURACIÓN CLIENTES"
+          />
           <v-divider></v-divider>
 
-          <v-stepper-step step="4" :complete="e1 > 4" :editable="editarConfig">
-            <center>CONFIGURACIÓN DE SERVICIO</center>
-          </v-stepper-step>
+          <v-stepper-item
+            :value="4"
+            :complete="e1 > 4"
+            :editable="editarConfig"
+            title="CONFIGURACIÓN DE SERVICIO"
+          />
         </v-stepper-header>
 
-        <v-stepper-items>
-          <v-stepper-content step="1" class="">
+        <v-stepper-window>
+          <v-stepper-window-item :value="1">
             <ConfiguraciónDatosEmpresaComponent
               v-if="e1 == 1"
               @GuardarDatosEmpresa="guardarDatosEmpresa()"
               @omitir="omitirStep()"
             />
-          </v-stepper-content>
-          <v-stepper-content step="2" class="">
+          </v-stepper-window-item>
+          <v-stepper-window-item :value="2">
             <ConfiguracionCargaProveedorComponent
               v-if="e1 == 2"
               @continuarClientes="continuarStepClientes()"
               @omitir="omitirStep()"
               @regresar="regresarStep()"
             />
-          </v-stepper-content>
-          <v-stepper-content step="3" class="">
+          </v-stepper-window-item>
+          <v-stepper-window-item :value="3">
             <ConfiguracionCargaClienteComponent
               v-if="e1 == 3"
               @continuarConfigurarTarifario="continuarStepConfigurarTarifario()"
               @omitir="omitirStep()"
               @regresar="regresarStep()"
             />
-          </v-stepper-content>
-          <v-stepper-content step="4" class="">
+          </v-stepper-window-item>
+          <v-stepper-window-item :value="4">
             <ConfiguracionCostosComponent
               v-if="e1 == 4"
               @finalizar="finalizar()"
               @omitir="omitirStep()"
               @regresar="regresarStep()"
             />
-          </v-stepper-content>
-        </v-stepper-items>
+          </v-stepper-window-item>
+        </v-stepper-window>
       </v-stepper>
       <v-row class="btn-actions py-5" v-if="!dialog">
         <v-col cols="1" class="mt-info mt-5">

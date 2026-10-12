@@ -119,7 +119,7 @@ export default {
   },
   computed: {
     detailsId() {
-      return `plan-details-${this._uid}`;
+      return `plan-details-${this.$.uid}`;
     },
   },
 };

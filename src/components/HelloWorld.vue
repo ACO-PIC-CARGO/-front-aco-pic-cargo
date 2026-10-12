@@ -3,9 +3,8 @@
     <v-row class="text-center">
       <v-col cols="12">
         <v-img
-          :src="require('../assets/logo.svg')"
+          :src="logoUrl"
           class="my-3"
-          contain
           height="200"
         />
       </v-col>
@@ -74,10 +73,13 @@
 </template>
 
 <script>
+import logoUrl from "../assets/logo.svg";
+
 export default {
   name: "HelloWorld",
 
   data: () => ({
+    logoUrl,
     ecosystem: [
       {
         text: "vuetify-loader",

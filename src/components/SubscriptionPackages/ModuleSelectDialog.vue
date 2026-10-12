@@ -3,7 +3,7 @@
     :model-value="value"
     max-width="520"
     persistent
-    :fullscreen="$vuetify.breakpoint.xsOnly"
+    :fullscreen="$vuetify.display.xs"
     content-class="plans-theme plans-theme--app package-dialog"
   >
     <v-form

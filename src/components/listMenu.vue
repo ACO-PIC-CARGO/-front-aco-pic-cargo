@@ -4,17 +4,17 @@
       <!-- {{ person. }} -->
       <v-row>
         <v-col cols="3" class="avatar">
-          <v-menu bottom min-width="200px" rounded offset-y>
-            <template v-slot:activator="{ on }">
-              <v-btn icon x-large aria-label="Cuenta" v-on="on">
+          <v-menu location="bottom">
+            <template v-slot:activator="{ props }">
+              <v-btn icon size="x-large" aria-label="Cuenta" v-bind="props">
                 <v-avatar size="45">
                   <v-img v-if="person.path" :src="branch.logo" />
                   <v-img v-else src="/img/png/user.png" />
                 </v-avatar>
               </v-btn>
             </template>
-            <v-card>
-              <v-list-item-content class="justify-center">
+            <v-card min-width="200px">
+              <div class="d-flex justify-center py-3">
                 <div class="mx-auto text-center">
                   <v-avatar color="brown">
                     <v-img v-if="branch.logo" :src="branch.logo" />
@@ -25,11 +25,11 @@
                   <!-- <v-divider class="my-3"></v-divider> -->
                   <!-- <v-btn depressed rounded text disabled> Edit Account </v-btn> -->
                   <v-divider class="my-3"></v-divider>
-                  <v-btn @click="cerrarSesion" depressed rounded text>
+                  <v-btn @click="cerrarSesion" rounded variant="text">
                     Cerrar Sesión
                   </v-btn>
                 </div>
-              </v-list-item-content>
+              </div>
             </v-card>
           </v-menu>
         </v-col>
@@ -46,24 +46,25 @@
 
     <v-treeview
       v-model="tree"
-      :open="initiallyOpen"
+      v-model:opened="initiallyOpen"
       :items="$store.state.lstMenu"
       activatable
-      item-key="id"
+      item-title="name"
+      item-value="id"
       open-on-click
       return-object
-      @update:active="handleClickTree"
+      @update:activated="handleClickTree"
     >
       <!-- ÍCONOS DEL MENÚ -->
-      <template v-slot:prepend="{ item, open }">
+      <template v-slot:prepend="{ item, isOpen }">
         <v-icon v-if="!item.icon">
-          {{ open ? "mdi-folder-open" : "mdi-folder" }}
+          {{ isOpen ? "mdi-folder-open" : "mdi-folder" }}
         </v-icon>
         <v-icon v-else>{{ item.icon }}</v-icon>
       </template>
 
       <!-- ENLACE NAVEGABLE DEL MENÚ -->
-      <template v-slot:label="{ item }">
+      <template v-slot:title="{ item }">
         <router-link
           v-if="item.route"
           :to="getRouteForItem(item)"
@@ -71,7 +72,7 @@
           style="text-decoration: none; color: inherit"
         >
           {{ item.name }}
-          <v-icon v-if="isLockedItem(item)" small class="ml-1">
+          <v-icon v-if="isLockedItem(item)" size="small" class="ml-1">
             mdi-lock-outline
           </v-icon>
         </router-link>
@@ -83,7 +84,7 @@
     <div class="">
       <v-btn
         color="blue-grey"
-        class="mt-2 white--text"
+        class="mt-2 text-white"
         block
         @click="dialogTutorial = true"
         style="padding: 10% 0"
@@ -97,7 +98,7 @@
       <v-row class="datosPricing">
         <v-card class="datosPricing">
           <v-card-title
-            class="custom-card-title justify-center white--text py-0 my-0"
+            class="custom-card-title justify-center text-white py-0 my-0"
           >
             <h6>DATOS DE LA COTIZACIÓN</h6>
           </v-card-title>
@@ -105,10 +106,10 @@
             <v-card-text>
               <v-select
                 label="Sentido"
-                dense
+                density="compact"
                 class="my-5 px-5 text-resumen"
                 :items="$store.state.pricing.listModality"
-                item-text="name"
+                item-title="name"
                 item-key="id"
                 item-value="id"
                 v-model="$store.state.pricing.datosPrincipales.idsentido"
@@ -117,10 +118,10 @@
 
               <v-select
                 label="Tipo de Embarque"
-                dense
+                density="compact"
                 class="my-1 px-5 text-resumen"
                 :items="$store.state.pricing.listShipment"
-                item-text="embarque"
+                item-title="embarque"
                 item-key="id"
                 item-value="id"
                 v-model="$store.state.pricing.datosPrincipales.idtipocarga"
@@ -130,16 +131,16 @@
 
               <v-select
                 label="Incoterms"
-                dense
+                density="compact"
                 class="my-1 px-5 text-resumen"
                 :items="$store.state.pricing.listIncoterms"
-                item-text="name"
+                item-title="name"
                 item-key="id"
                 item-value="id"
                 v-model="$store.state.pricing.datosPrincipales.idincoterms"
                 readonly
               >
-                <template slot="selection" slot-scope="data">
+                <template v-slot:selection="data">
                   {{ data.item.name }} - {{ data.item.description }}
                 </template>
               </v-select>
@@ -147,10 +148,10 @@
               <v-autocomplete
                 label="Puerto Origen"
                 class="my-1 px-5 text-resumen"
-                dense
+                density="compact"
                 :rules="[(v) => !!v || 'Dato requerido']"
                 :items="$store.state.pricing.listPortBegin"
-                item-text="name"
+                item-title="name"
                 item-value="id_port"
                 v-model="$store.state.pricing.datosPrincipales.idorigen"
               ></v-autocomplete>
@@ -158,10 +159,10 @@
               <v-autocomplete
                 label="Puerto Destino"
                 class="my-1 px-5 text-resumen"
-                dense
+                density="compact"
                 :rules="[(v) => !!v || 'Dato requerido']"
                 :items="this.$store.state.pricing.listPortEnd"
-                item-text="name"
+                item-title="name"
                 item-value="id_port"
                 v-model="$store.state.pricing.datosPrincipales.iddestino"
               >
@@ -174,7 +175,7 @@
                 label="Valor de la mercancia"
                 type="number"
                 placeholder="Valor de la mercancia..."
-                dense
+                density="compact"
                 readonly
               ></v-text-field>
               <p
@@ -246,16 +247,15 @@
         :rotate="360"
         :size="100"
         :width="15"
-        :value="branch.porcentaje_config"
+        :model-value="branch.porcentaje_config"
         color="teal"
       >
         {{ branch.porcentaje_config }} %
       </v-progress-circular>
       <v-btn
         color="#4256BE"
-        dark
         class="mt-2"
-        small
+        size="small"
         @click="
           $router.push({
             name: 'ConfiguracionInicial',
@@ -413,7 +413,7 @@ export default {
       );
     },
     getRouteForItem(item) {
-      if (!item || !item.route) {
+      if (!item || !item.route || !this.$router.hasRoute(item.route)) {
         return {};
       }
       return { name: item.route };

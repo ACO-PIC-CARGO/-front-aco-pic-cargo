@@ -3,7 +3,10 @@
     <v-main>
       <router-view />
     </v-main>
-    <v-overlay :model-value="$store.state.spiner">
+    <v-overlay
+      :model-value="$store.state.spiner"
+      class="align-center justify-center"
+    >
       <v-row class="fill-height align-content-center justify-center">
         <v-col class="text-subtitle-1 text-center" cols="12">
           Cargando Datos, espere un momento por favor...
@@ -45,9 +48,9 @@
       v-if="dialogVersion"
       persistent
       v-model="dialogVersion"
-      :width="$vuetify.breakpoint.smAndDown ? '100%' : '25%'"
+      :width="$vuetify.display.smAndDown ? '100%' : '25%'"
     >
-      <v-card class="px-1 py-2 text-center" elevation="2">
+      <v-card class="px-1 py-2 text-center align-center" elevation="2">
         <v-icon color="success" style="font-size: 6em"
           >mdi-check-circle-outline</v-icon
         >
@@ -72,7 +75,7 @@
     </v-dialog>
 
     <v-dialog v-model="dialogExito" max-width="400">
-      <v-card class="text-center pa-4">
+      <v-card class="text-center align-center pa-4">
         <v-icon color="success" style="font-size: 5em">mdi-thumb-up</v-icon>
         <h3 class="my-2">¡Gracias!</h3>
         <p>¡Ya tienes la última versión de ACO!</p>
@@ -88,7 +91,7 @@
         <v-card-title
           class="headline bg-error text-white py-3 px-4 d-flex align-center"
         >
-          <v-icon start dark size="large" class="mr-2">mdi-power-plug-off</v-icon>
+          <v-icon start size="large" class="mr-2">mdi-power-plug-off</v-icon>
           <span class="font-weight-bold">SISTEMA EN MANTENIMIENTO</span>
         </v-card-title>
 
@@ -248,7 +251,7 @@
                 </v-col>
                 <v-col>
                   <v-btn
-                    @click.native="
+                    @click="
                       _setDataContainers(
                         $store.state.master_id_containers.id,
                         $store.state.master_id_containers.name,
@@ -308,9 +311,8 @@
                   $store.state.phone_id != '' && $store.state.phone_number != ''
                 "
                 class="mx-2"
-                fab
+                icon
                 color="teal-darken-1"
-                dark
                 elevation="0"
                 @click="_addPhones($route.params.id)"
                 ><v-icon size="x-large">mdi-plus</v-icon></v-btn
@@ -336,7 +338,7 @@
                   <td>
                     <v-btn
                       @click="_deletePhones(item.id)"
-                      fab
+                      icon
                       size="x-small"
                       elevation="0"
                       ><v-icon color="red">mdi-delete</v-icon></v-btn
@@ -483,9 +485,8 @@
                   $store.state.contact_number != ''
                 "
                 class="mx-2"
-                fab
+                icon
                 color="teal-darken-1"
-                dark
                 elevation="0"
                 @click="_addContacts()"
                 ><v-icon size="x-large">mdi-plus</v-icon></v-btn
@@ -509,7 +510,7 @@
                   <td>{{ item.name }}</td>
                   <td>{{ item.number }}</td>
                   <td>
-                    <v-btn @click="_deleteContacts(i)" fab size="x-small" elevation="0"
+                    <v-btn @click="_deleteContacts(i)" icon size="x-small" elevation="0"
                       ><v-icon color="red">mdi-delete</v-icon></v-btn
                     >
                     <a
@@ -601,9 +602,8 @@
               <v-btn
                 v-if="$store.state.accountNumer != ''"
                 class="mx-2"
-                fab
+                icon
                 color="teal-darken-1"
-                dark
                 elevation="0"
                 @click="_setAccounts()"
                 ><v-icon size="x-large">mdi-plus</v-icon></v-btn
@@ -632,7 +632,7 @@
                   <td>{{ item.accountnumber }}</td>
                   <td>
                     <v-btn
-                      @click.native="_delAccount(item.id)"
+                      @click="_delAccount(item.id)"
                       color="white"
                       elevation="0"
                       ><v-icon color="error">mdi-delete</v-icon></v-btn
@@ -783,6 +783,7 @@
 </template>
 
 <script>
+import { defineAsyncComponent } from "vue";
 import { io } from "socket.io-client";
 import { mapActions, mapState } from "vuex";
 import axios from "@/api/axios-config";
@@ -921,8 +922,8 @@ export default {
         this.dialogWelcome = true;
       }
     },
-    _setDataContainers(id, name, nrocontainer, nroprecinto, cantidad) {
-      if (this.$refs.formContenedor.validate()) {
+    async _setDataContainers(id, name, nrocontainer, nroprecinto, cantidad) {
+      if ((await this.$refs.formContenedor.validate()).valid) {
         this.$store.state.master_itemsContainers.push({
           id_container: id,
           name: name,
@@ -1102,12 +1103,20 @@ export default {
   },
 
   components: {
-    ControlServices: () => import("@/components/servicesControl.vue"),
-    listEntitie: () => import("@/components/folderEntities/listEntities"),
-    NuevoCliente: () =>
-      import("@/components/folderEntities/Cliente/NuevoClienteComponent.vue"),
-    EditarCliente: () =>
-      import("@/components/folderEntities/Cliente/EditarClienteComponent.vue"),
+    ControlServices: defineAsyncComponent(
+      () => import("@/components/servicesControl.vue"),
+    ),
+    listEntitie: defineAsyncComponent(
+      () => import("@/components/folderEntities/listEntities"),
+    ),
+    NuevoCliente: defineAsyncComponent(
+      () =>
+        import("@/components/folderEntities/Cliente/NuevoClienteComponent.vue"),
+    ),
+    EditarCliente: defineAsyncComponent(
+      () =>
+        import("@/components/folderEntities/Cliente/EditarClienteComponent.vue"),
+    ),
   },
 };
 </script>
@@ -1118,7 +1127,7 @@ export default {
   font-family: "Roboto", sans-serif;
 }
 
-.v-application--wrap {
+.v-application__wrap {
   min-height: 85vh !important;
 }
 .title {

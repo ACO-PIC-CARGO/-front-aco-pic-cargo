@@ -24,7 +24,7 @@
           ></v-text-field>
         </v-col>
         <v-col cols="12">
-          <v-btn color="primary" @click.native="_setServices()" block>
+          <v-btn color="primary" @click="_setServices()" block>
             Agregar Servicio
           </v-btn>
         </v-col>

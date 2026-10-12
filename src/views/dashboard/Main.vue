@@ -3,13 +3,12 @@
     <v-navigation-drawer
       width="320"
       v-model="$store.state.drawer"
-      app
       v-if="mostrarBtnMenu"
     >
       <listMenu />
     </v-navigation-drawer>
 
-    <v-app-bar app elevation="0" v-if="mostrarBtnMenu" :color="colorBar()" dark>
+    <v-app-bar elevation="0" v-if="mostrarBtnMenu" :color="colorBar()">
       <v-app-bar-nav-icon
         aria-label="Abrir menú"
         v-if="mostrarBtnMenu"
@@ -23,8 +22,8 @@
       <v-chip
         v-if="operadorNombre"
         color="white"
-        text-color="primary"
-        class="mx-4"
+        variant="flat"
+        class="mx-4 text-primary"
       >
         <v-icon start color="primary">mdi-account</v-icon>
         VENDEDOR: {{ operadorNombre }}
@@ -80,7 +79,6 @@
 
       <v-btn
         color="#009688"
-        dark
         v-if="getNameUrl() == 'newQuote' && !!$store.state.pricing.btnRegistrar"
         @click="guardarCotizacion()"
         :disabled="$store.state.pricing.bloquearBtnImprimir"
@@ -100,7 +98,6 @@
 
       <v-btn
         color="#009688"
-        dark
         v-if="getNameUrl() == 'editQuote'"
         @click="editarCotizacion()"
       >
@@ -119,7 +116,6 @@
 
       <v-btn
         color="#009688"
-        dark
         v-if="getNameUrl() == 'verQuote'"
         @click="handleEditarQuote()"
       >
@@ -129,7 +125,6 @@
         v-if="getNameUrl() == 'verQuote'"
         class="mx-1"
         color="light-blue-darken-3"
-        dark
         @click="abrirCorreo()"
       >
         <v-icon class="mx-1" size="small">mdi-email-fast</v-icon>
@@ -140,7 +135,6 @@
         v-if="getNameUrl() == 'editQuote'"
         class="mx-1"
         color="light-blue-darken-3"
-        dark
         @click="abrirCorreo()"
       >
         <v-icon class="mx-1" size="small">mdi-email-fast</v-icon>
@@ -151,7 +145,6 @@
         v-if="getNameUrl() == 'editQuote' || getNameUrl() == 'verQuote'"
         class="mx-1"
         color="#FFD600"
-        dark
         @click="
           abrirCarpeta($store.state.pricing.datosPrincipales.url_folderonedrive)
         "
@@ -164,7 +157,6 @@
         v-if="getNameUrl() == 'verQuote'"
         class="mx-1"
         color="light-blue-darken-3"
-        dark
         @click="abrirModalCopiarCotizacion()"
       >
         <v-icon class="mx-1" size="small">mdi-content-copy</v-icon>
@@ -179,7 +171,6 @@
         "
         color="success"
         class="ml-auto"
-        dark
         @click="registrarCliente"
         >Guardar CLIENTE</v-btn
       >
@@ -192,7 +183,6 @@
         "
         color="success"
         class="ml-auto"
-        dark
         @click="registrarProveedor"
         :disabled="$store.state.entities.disabledBtnSave"
         >Guardar Proveedor</v-btn
@@ -213,7 +203,6 @@
 
       <v-btn
         color="#009688"
-        dark
         v-if="getNameUrl() == 'EditarAduana'"
         @click="editarCotizacionAduana()"
         size="small"
@@ -223,7 +212,6 @@
 
       <v-btn
         color="#009688"
-        dark
         v-if="
           getNameUrl() == 'VerAduana' &&
           $store.state.aduana.mostrarBtnActualizarFlag
@@ -235,7 +223,6 @@
 
       <v-btn
         color="#009688"
-        dark
         @click="abrirModalPilotoAutomatico()"
         v-if="getNameUrl() == 'editQuote'"
       >
@@ -244,7 +231,6 @@
 
       <v-btn
         color="info"
-        dark
         @click="ira('EditAccountPaysCxC', $route.params.id)"
         v-if="getNameUrl() == 'viewAccountPaysCxC'"
       >
@@ -253,7 +239,6 @@
 
       <v-btn
         color="info"
-        dark
         @click="ira('EditAccountPays', $route.params.id)"
         v-if="getNameUrl() == 'viewAccountPays'"
       >
@@ -298,8 +283,8 @@
             label="Contraseña"
             prepend-icon="mdi-lock"
             :type="showAdminPassword ? 'text' : 'password'"
-            :append-icon="showAdminPassword ? 'mdi-eye' : 'mdi-eye-off'"
-            @click:append="showAdminPassword = !showAdminPassword"
+            :append-inner-icon="showAdminPassword ? 'mdi-eye' : 'mdi-eye-off'"
+            @click:append-inner="showAdminPassword = !showAdminPassword"
             variant="outlined"
             density="compact"
           ></v-text-field>
@@ -330,7 +315,7 @@
           <v-autocomplete
             multiple
             :items="this.$store.state.itemsDataRoleList"
-            small-chips
+            chips
             item-value="id"
             item-title="name"
             persistent
@@ -399,7 +384,8 @@
             :items="$store.state.pricing.listadoFilesDrive"
             show-select
             v-model="$store.state.pricing.selectedFile"
-            item-key="id"
+            item-value="id"
+            return-object
           >
             <template v-slot:[`item.action`]="{ item }">
               <v-btn
@@ -435,13 +421,13 @@
         <v-card-title
           class="headline bg-primary text-white py-3 px-4 d-flex align-center"
         >
-          <v-icon start dark class="mr-2">mdi-calendar-clock</v-icon>
+          <v-icon start class="mr-2">mdi-calendar-clock</v-icon>
           <span class="font-weight-bold">Actualizar Vigencia de Flete</span>
         </v-card-title>
 
         <!-- Cuerpo del diálogo -->
         <v-card-text class="pt-4 pb-2">
-          <div class="text-body-2 text--darken-2 mb-4">
+          <div class="text-body-2 mb-4">
             Selecciona la nueva fecha límite de vigencia. Esto actualizará los
             cálculos en las nuevas cotizaciones, calculadora y bot de whatsapp.
           </div>
@@ -643,7 +629,7 @@ export default {
       window.open(url, "_blank");
     },
     async guardarNuevaFecha() {
-      if (this.$refs.formVigencia.validate()) {
+      if ((await this.$refs.formVigencia.validate()).valid) {
         await this.actualizarFechaVigencia(this.fechaVigencia);
         this.dialogCambiarFecha = false;
       }
@@ -2045,7 +2031,8 @@ export default {
 </script>
 <style lang="scss" scoped>
 .main {
-  padding: 10px !important;
+  padding: calc(var(--v-layout-top) + 10px) calc(var(--v-layout-right) + 10px)
+    calc(var(--v-layout-bottom) + 10px) calc(var(--v-layout-left) + 10px) !important;
   background: #f4f7fa;
 }
 .perdida {
