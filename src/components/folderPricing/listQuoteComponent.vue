@@ -363,6 +363,7 @@
                     v-on="on"
                     v-bind="attrs"
                     @click="ira('verQuote', item.id)"
+                    aria-label="Ver cotización"
                   >
                     <v-icon
                       color="#4A148C"
@@ -386,6 +387,7 @@
                     v-on="on"
                     v-bind="attrs"
                     @click="handleEditar(item)"
+                    aria-label="Editar cotización"
                     v-if="item.statusmain != 0"
                   >
                     <v-icon

@@ -60,6 +60,11 @@ export const KNOWN_CONSOLE_NOISE = [
     routes: ["verQuote", "editQuote"],
   },
   {
+    pattern: /^Error en crearCarpetaOneDrive: Error: Request failed with status code 500(\n|$)/,
+    reason: "pre-existing on Vue 2: newQuote (the OneDrive/SharePoint folder is unreachable locally)",
+    routes: ["newQuote"],
+  },
+  {
     pattern: /^\[Vue warn\]: Method "computed" has type "object" in the component definition\. Did you reference the function correctly\?(\n|$)/,
     reason: "pre-existing on Vue 2: cargaMasivaCalc",
     routes: ["cargaMasivaCalc"],
