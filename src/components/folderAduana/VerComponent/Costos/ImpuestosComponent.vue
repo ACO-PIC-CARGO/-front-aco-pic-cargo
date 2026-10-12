@@ -12,7 +12,7 @@
           <v-data-table
             :headers="headers"
             :items="impuestos"
-            item-key="id"
+            item-value="id"
             density="compact"
           >
             <template v-slot:[`item.index`]="{ item, index }">

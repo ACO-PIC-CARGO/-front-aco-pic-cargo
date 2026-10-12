@@ -2076,8 +2076,8 @@ export default {
       this.$refs.frmNuevoCosto.reset();
       this.dialog = !this.dialog;
     },
-    guardarCosto() {
-      if (this.$refs.frmNuevoCosto.validate()) {
+    async guardarCosto() {
+      if ((await this.$refs.frmNuevoCosto.validate()).valid) {
         if (this.fromDataService.idOpcion == "OR") {
           this.fromDataService.esorigenflag = 1;
         }
@@ -2271,8 +2271,8 @@ export default {
 
 <style scoped>
 .v-expansion-panels.condensed
-  .v-expansion-panel-header
-  .v-expansion-panel-content__wrap {
+  .v-expansion-panel-title
+  .v-expansion-panel-text__wrapper {
   /* padding-top: 2px;
   padding-bottom: 2px; */
   padding: 2px 8px 2px;
@@ -2293,7 +2293,7 @@ td {
   text-align: right !important;
   align-content: right !important;
 }
-.v-text-field__slot {
+.v-field__input {
   max-width: 5px !important;
 }
 
@@ -2315,7 +2315,7 @@ table td:nth-child(5) {
   padding: 0 8px 16px !important;
 }
 
-.v-expansion-panel-content >>> .v-expansion-panel-content__wrap {
+.v-expansion-panel-text :deep(.v-expansion-panel-text__wrapper) {
   padding: 2px 0 2px !important;
 }
 </style>
