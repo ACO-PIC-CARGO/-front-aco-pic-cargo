@@ -67,6 +67,12 @@ import legalPages from "./modules/legalPages";
 import Swal from "sweetalert2";
 import moment from "moment";
 
+// getPortBegin/getPortEnd can return the selected port twice; Vuetify 4 would show it twice in the field.
+const withoutDuplicatePorts = (ports) => {
+  const seen = new Set();
+  return ports.filter((port) => !seen.has(port.id_port) && seen.add(port.id_port));
+};
+
 export default createStore({
   state: {
     salidaflag: false,
@@ -628,10 +634,10 @@ export default createStore({
       state.itemsShipment = dataShipment;
     },
     _setPortBegin(state, dataPortBegint) {
-      state.itemsPortBegin = dataPortBegint;
+      state.itemsPortBegin = withoutDuplicatePorts(dataPortBegint);
     },
     _setPortEnd(state, dataPortEnd) {
-      state.itemsPortEnd = dataPortEnd;
+      state.itemsPortEnd = withoutDuplicatePorts(dataPortEnd);
     },
     _setIncoterms(state, dataIncoterms) {
       state.itemsIncoterms = dataIncoterms;
