@@ -4,7 +4,7 @@
       <v-col cols="12" md="6">
         <v-text-field
           v-model="search"
-          append-icon="mdi-magnify"
+          append-inner-icon="mdi-magnify"
           label="Search"
           single-line
           hide-details
@@ -13,7 +13,7 @@
         ></v-text-field>
       </v-col>
       <v-col cols="12" md="6">
-        <v-btn color="green" dark @click="exportar()" :loading="loading"
+        <v-btn color="green" @click="exportar()" :loading="loading"
           >Exportar</v-btn
         >
       </v-col>
@@ -22,10 +22,9 @@
           :headers="headers"
           :items="$store.state.calculadoras.listUser"
           :search="search"
-          item-key="index"
+          item-value="index"
           id="tblListUser"
           class="elevation-2"
-          striped
         >
           <!-- <template v-slot:[`item.accion`]="{ item }">
             
@@ -33,9 +32,9 @@
           <template v-slot:[`item.estadocotizacion`]="{ item }">
             <v-chip
               v-if="item.estadocotizacion == 2"
-              class="ma-2"
+              class="ma-2 text-white"
               color="green"
-              text-color="white"
+              variant="flat"
             >
               Aprobado
             </v-chip>
@@ -52,14 +51,12 @@
               color="warning"
               class="ma-1 btnCalc"
               block
-              dark
               @click="abrirModalCambiarEstado(item)"
             >
               Cambiar Estado
             </v-btn>
             <v-btn
               color="#B71C1C"
-              dark
               v-if="item.capture_cotizacion"
               block
               class="ma-1 btnCalc"
@@ -71,7 +68,6 @@
             <v-btn
               block
               color="#4A148C"
-              dark
               class="ma-1 btnCalc"
               @click="abrirModalPreview(item)"
               v-if="item.estadocotizacion == 1"
@@ -82,7 +78,6 @@
               block
               size="small"
               color="#01579B"
-              dark
               class="ma-1 btnCalc"
               @click="enviarCotizacionAPricing(item)"
               v-if="item.estadocotizacion == 1"
@@ -302,7 +297,7 @@ export default {
       this.dialogCalls = true;
     },
     async registrarLlamada() {
-      if (this.$refs.frmCall.validate()) {
+      if ((await this.$refs.frmCall.validate()).valid) {
         let data = {
           iduser: this.user.usuario_id,
           statuscall: this.call.statuscall,
