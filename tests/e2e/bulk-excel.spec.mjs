@@ -1,5 +1,6 @@
 import { fileURLToPath } from "node:url";
 import { test, expect } from "./fixtures.mjs";
+import { outsideInert } from "./support/fields.mjs";
 import { waitForPageToSettle } from "./support/page.mjs";
 
 const fixture = (name) => fileURLToPath(new URL(`./fixtures/${name}`, import.meta.url));
@@ -18,7 +19,7 @@ test("parses a tariff spreadsheet and sends its rows for validation", async ({ p
   );
   await page.goto("/home/folterCargaMasiva/carga_calculadora");
   await waitForPageToSettle(page);
-  await page.getByLabel("LCL").check({ force: true });
+  await outsideInert(page, page.getByLabel("LCL")).check({ force: true });
   await page.getByLabel("Excel", { exact: true }).setInputFiles(fixture("tarifas-lcl.xlsx"));
   const validation = page.waitForRequest(/validar_registros_lcl/);
   await page.getByRole("button", { name: "Procesar" }).click();
