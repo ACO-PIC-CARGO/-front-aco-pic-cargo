@@ -2,7 +2,11 @@ import { readFileSync } from "node:fs";
 
 const ENV_FILE = new URL("../../../.env.development", import.meta.url);
 
-const appVersion = () => readFileSync(ENV_FILE, "utf8").match(/^VUE_APP_VERSION=(.+)$/m)[1].trim();
+function appVersion() {
+  const match = readFileSync(ENV_FILE, "utf8").match(/^VUE_APP_VERSION=(.+)$/m);
+  if (!match) throw new Error("VUE_APP_VERSION is missing from .env.development");
+  return match[1].trim();
+}
 
 // The local database holds its own version row; when it differs from the app's, a blocking
 // "update available" dialog covers every page.

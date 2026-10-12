@@ -20,3 +20,10 @@ export function parseRoutes(source) {
 }
 
 export const appRoutes = () => parseRoutes(readFileSync(ROUTER_FILE, "utf8"));
+
+const pathRegex = (path) =>
+  new RegExp(`^${path.replace(/\/:\w+\?/g, "(?:/[^/]+)?").replace(/:\w+/g, "[^/]+")}/?$`);
+
+export function routeNameForPath(routes, pathname) {
+  return routes.find(({ path }) => pathRegex(path).test(pathname))?.name;
+}

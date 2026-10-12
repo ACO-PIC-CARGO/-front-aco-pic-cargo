@@ -1,9 +1,13 @@
 import { readFileSync } from "node:fs";
 import { test as base, expect } from "@playwright/test";
 import { isKnownNoise } from "./known-console-noise.mjs";
+import { appRoutes, routeNameForPath } from "./support/app-routes.mjs";
 import { SESSION_FILE } from "./support/env.mjs";
 import { stubRequestsThatCrashTheBackend } from "./support/backend-crashes.mjs";
 import { reportAppVersionAsServerVersion } from "./support/server-version.mjs";
+
+const ROUTES = appRoutes();
+const currentRouteName = (page) => routeNameForPath(ROUTES, new URL(page.url()).pathname);
 
 const RUNTIME_PROBLEM = /^(Uncaught )?\w*Error\b|\[Vue warn\]|\[Vue Router warn\]/;
 
@@ -23,11 +27,11 @@ export const test = base.extend({
     await stubRequestsThatCrashTheBackend(page);
     const problems = [];
     page.on("pageerror", (error) => {
-      if (!isKnownNoise(error.message)) problems.push(`[${page.url()}] pageerror: ${error.message}`);
+      if (!isKnownNoise(error.message, currentRouteName(page))) problems.push(`[${page.url()}] pageerror: ${error.message}`);
     });
     page.on("console", (message) => {
       const text = message.text();
-      if (RUNTIME_PROBLEM.test(text) && !isKnownNoise(text)) {
+      if (RUNTIME_PROBLEM.test(text) && !isKnownNoise(text, currentRouteName(page))) {
         problems.push(`[${page.url()}] ${message.type()}: ${text}`);
       }
     });
