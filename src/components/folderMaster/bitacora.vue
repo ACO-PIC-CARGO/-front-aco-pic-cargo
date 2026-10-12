@@ -12,23 +12,21 @@
         </v-expansion-panel-title>
         <v-expansion-panel-text>
           <v-list lines="three">
-            <template>
-              <v-list-item v-for="child in items.groupservice" :key="child">
-                <v-list-item-avatar>
-                  <v-checkbox></v-checkbox>
-                </v-list-item-avatar>
+            <v-list-item v-for="child in items.groupservice" :key="child">
+              <v-list-item-avatar>
+                <v-checkbox></v-checkbox>
+              </v-list-item-avatar>
 
-                
-                  <v-list-item-title>{{
-                    child.namebitacora
-                  }}</v-list-item-title>
-                  <v-list-item-subtitle>
-                    <v-text-field label="Comentario" type="text"></v-text-field
-                    ><v-text-field label="Fecha" type="date"></v-text-field
-                  ></v-list-item-subtitle>
-                
-              </v-list-item>
-            </template>
+              
+                <v-list-item-title>{{
+                  child.namebitacora
+                }}</v-list-item-title>
+                <v-list-item-subtitle>
+                  <v-text-field label="Comentario" type="text"></v-text-field
+                  ><v-text-field label="Fecha" type="date"></v-text-field
+                ></v-list-item-subtitle>
+              
+            </v-list-item>
           </v-list>
         </v-expansion-panel-text>
       </v-expansion-panel>

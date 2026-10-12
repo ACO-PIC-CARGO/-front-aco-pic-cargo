@@ -108,15 +108,13 @@
       </v-expansion-panel>
     </v-expansion-panels>
     <v-col cols="12" class="derecha">
-      <template>
-        <div class="text-center">
-          <v-pagination
-            v-model="$store.state.aduana.page"
-            :length="opcionesSeleccionadas.length"
-            rounded
-          ></v-pagination>
-        </div>
-      </template>
+      <div class="text-center">
+        <v-pagination
+          v-model="$store.state.aduana.page"
+          :length="opcionesSeleccionadas.length"
+          rounded
+        ></v-pagination>
+      </div>
     </v-col>
     <v-card-actions>
       <v-spacer></v-spacer>

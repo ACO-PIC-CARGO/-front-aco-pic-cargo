@@ -100,64 +100,62 @@
       </v-col>
     </v-row>
     <v-dialog v-model="dialog" max-width="50%" height="80%" persistent>
-      <template>
-        <v-card color="basil">
-          <v-card-title class="text-center justify-center py-6">
-            <h1 class="font-weight-bold text-h2 basil--text">SUBIR ARCHIVOS</h1>
-          </v-card-title>
+      <v-card color="basil">
+        <v-card-title class="text-center justify-center py-6">
+          <h1 class="font-weight-bold text-h2 basil--text">SUBIR ARCHIVOS</h1>
+        </v-card-title>
 
-          <v-tabs
-            v-model="tab"
-            bg-color="transparent"
-            color="basil"
-            grow
-          >
-            <!-- <v-tab> Seleccionar Archivos </v-tab> -->
-            <v-tab :loading="loadingArras"> Cargar Archivos </v-tab>
-          </v-tabs>
+        <v-tabs
+          v-model="tab"
+          bg-color="transparent"
+          color="basil"
+          grow
+        >
+          <!-- <v-tab> Seleccionar Archivos </v-tab> -->
+          <v-tab :loading="loadingArras"> Cargar Archivos </v-tab>
+        </v-tabs>
 
-          <v-tabs-items v-model="tab">
-            <v-tab-item>
-              <v-card color="basil" flat>
-                <v-card-text>
-                  <div
-                    class="drop-area"
-                    @dragover.prevent
-                    @drop="handleDrop"
-                    @click="openFileInput"
-                    v-if="!loading"
-                  >
-                    <label>
-                      Arrastra y suelta archivos aquí
-                      <v-file-input
-                        ref="fileInput"
-                        v-model="files"
-                        hide-details
-                        multiple
-                        @change="Procesar()"
-                        style="display: none"
-                      ></v-file-input>
-                    </label>
-                  </div>
-                  <div v-else>
-                    <v-card color="primary" dark>
-                      <v-card-text>
-                        Se está analizando los archivos, un momento por
-                        favor....
-                        <v-progress-linear
-                          indeterminate
-                          color="white"
-                          class="mb-0"
-                        ></v-progress-linear>
-                      </v-card-text>
-                    </v-card>
-                  </div>
-                </v-card-text>
-              </v-card>
-            </v-tab-item>
-          </v-tabs-items>
-        </v-card>
-      </template>
+        <v-tabs-items v-model="tab">
+          <v-tab-item>
+            <v-card color="basil" flat>
+              <v-card-text>
+                <div
+                  class="drop-area"
+                  @dragover.prevent
+                  @drop="handleDrop"
+                  @click="openFileInput"
+                  v-if="!loading"
+                >
+                  <label>
+                    Arrastra y suelta archivos aquí
+                    <v-file-input
+                      ref="fileInput"
+                      v-model="files"
+                      hide-details
+                      multiple
+                      @change="Procesar()"
+                      style="display: none"
+                    ></v-file-input>
+                  </label>
+                </div>
+                <div v-else>
+                  <v-card color="primary" dark>
+                    <v-card-text>
+                      Se está analizando los archivos, un momento por
+                      favor....
+                      <v-progress-linear
+                        indeterminate
+                        color="white"
+                        class="mb-0"
+                      ></v-progress-linear>
+                    </v-card-text>
+                  </v-card>
+                </div>
+              </v-card-text>
+            </v-card>
+          </v-tab-item>
+        </v-tabs-items>
+      </v-card>
     </v-dialog>
   </v-container>
 </template>

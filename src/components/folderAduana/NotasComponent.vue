@@ -40,15 +40,13 @@
         </v-btn>
       </v-col>
       <v-col cols="12" class="derecha">
-        <template>
-          <div class="text-center">
-            <v-pagination
-              v-model="$store.state.aduana.page"
-              :length="opcionesSeleccionadas.length"
-              rounded
-            ></v-pagination>
-          </div>
-        </template>
+        <div class="text-center">
+          <v-pagination
+            v-model="$store.state.aduana.page"
+            :length="opcionesSeleccionadas.length"
+            rounded
+          ></v-pagination>
+        </div>
       </v-col>
       <v-col cols="12">
         <v-expansion-panels class="my-1 condensed" hover>
@@ -356,15 +354,13 @@
           />
         </v-card-text>
         <v-card-actions>
-          <template>
-            <div class="text-center">
-              <v-pagination
-                v-model="pagePrev"
-                :length="opcionesSeleccionadas.length"
-                rounded
-              ></v-pagination>
-            </div>
-          </template>
+          <div class="text-center">
+            <v-pagination
+              v-model="pagePrev"
+              :length="opcionesSeleccionadas.length"
+              rounded
+            ></v-pagination>
+          </div>
 
           <v-spacer></v-spacer>
           <v-btn

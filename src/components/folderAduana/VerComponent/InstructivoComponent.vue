@@ -1,18 +1,16 @@
 <template>
   <v-container>
     <v-col cols="12">
-      <template>
-        <div class="text-center">
-          <v-pagination
-            v-model="page"
-            :length="
-              $store.state.aduana.opcionCostos.filter((v) => !!v.selected)
-                .length
-            "
-            rounded
-          ></v-pagination>
-        </div>
-      </template>
+      <div class="text-center">
+        <v-pagination
+          v-model="page"
+          :length="
+            $store.state.aduana.opcionCostos.filter((v) => !!v.selected)
+              .length
+          "
+          rounded
+        ></v-pagination>
+      </div>
     </v-col>
 
     <v-dialog

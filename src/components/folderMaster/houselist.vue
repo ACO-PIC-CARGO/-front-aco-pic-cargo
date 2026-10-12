@@ -1,158 +1,156 @@
 <template>
   <div>
-    <template>
-      <v-expansion-panels v-model="openExpand">
-        <v-expansion-panel>
-          <v-expansion-panel-text>
-            <v-tabs
-              v-model="activeTab"
-              bg-color="transparent"
-              color="primary"
-            >
-              <v-tab key="houses">
-                <v-icon start>mdi-home-group</v-icon>
-                Lista de House
-              </v-tab>
-              <v-tab key="comments">
-                <v-icon start>mdi-comment-text-multiple</v-icon>
-                Comentarios
-              </v-tab>
-            </v-tabs>
+    <v-expansion-panels v-model="openExpand">
+      <v-expansion-panel>
+        <v-expansion-panel-text>
+          <v-tabs
+            v-model="activeTab"
+            bg-color="transparent"
+            color="primary"
+          >
+            <v-tab key="houses">
+              <v-icon start>mdi-home-group</v-icon>
+              Lista de House
+            </v-tab>
+            <v-tab key="comments">
+              <v-icon start>mdi-comment-text-multiple</v-icon>
+              Comentarios
+            </v-tab>
+          </v-tabs>
 
-            <v-tabs-items v-model="activeTab">
-              <v-tab-item key="houses">
-                <v-row density="compact">
-                  <v-col cols="12" md="3">
-                    <v-text-field
-                      :model-value="totalHouses"
-                      label="Total de House"
-                      readonly
-                    ></v-text-field>
-                  </v-col>
-                  <v-col cols="12" md="3">
-                    <v-text-field
-                      :model-value="totalPesoHouse"
-                      label="Total de House Peso"
-                      suffix="kg"
-                      readonly
-                    ></v-text-field>
-                  </v-col>
-                  <v-col cols="12" md="3">
-                    <v-text-field
-                      :model-value="totalVolumenHouse"
-                      label="Total de House Volumen"
-                      suffix="m3"
-                      readonly
-                    ></v-text-field>
-                  </v-col>
-                </v-row>
-                <div
-                  v-if="
-                    $store.state.itemsHouseList &&
-                    $store.state.itemsHouseList.length > 3 &&
-                    !showAll
-                  "
-                  class="mb-2"
-                >
-                  <v-btn color="info" @click="showAll = true">Leer más</v-btn>
-                </div>
-                <v-table>
-                  <template v-slot:default>
-                    <thead>
-                      <tr>
-                        <th>Listado</th>
-                        <th>Código</th>
-                        <th>Cliente</th>
-                        <th>Incoterm</th>
-                        <th>Peso</th>
-                        <th>Volumen</th>
-                        <th v-if="esAereo">Peso volumétrico</th>
-                        <th v-if="esAereo">Peso Cargable</th>
-                        <th>Acciones</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      <tr
-                        v-for="(item, index) in displayedItems"
-                        :key="index"
-                        @click="showHouse(item.id)"
-                        style="cursor: pointer"
-                      >
-                        <td>{{ index + 1 }}</td>
-                        <td>{{ item.nro_hbl || item.code_house || "-" }}</td>
-                        <td>
-                          {{
-                            item.cliente_nombre ||
-                            item.nameconsigner ||
-                            item.cliente ||
-                            item.consigner ||
-                            "-"
-                          }}
-                        </td>
-                        <td>{{ getIncotermName(item) }}</td>
-                        <td>{{ item.peso || 0 }}</td>
-                        <td>{{ item.volumen || 0 }}</td>
-                        <td v-if="esAereo">
-                          {{ computePesoVolumetrico(item) }}
-                        </td>
-                        <td v-if="esAereo">{{ computePesoCargable(item) }}</td>
-                        <td>
-                          <v-btn icon color="info">
-                            <v-icon @click.stop="showHouse(item.id)">
-                              mdi-open-in-new
-                            </v-icon>
-                          </v-btn>
-                          <v-btn icon color="red">
-                            <v-icon @click.stop="eliminar(item.id)">
-                              mdi-delete
-                            </v-icon>
-                          </v-btn>
-                          <v-btn icon color="#F57F17">
-                            <v-icon
-                              @click.stop="abrirModalCambiarExpediente(item)"
-                            >
-                              mdi-folder-arrow-up-down
-                            </v-icon>
-                          </v-btn>
-                        </td>
-                      </tr>
-                    </tbody>
-                  </template>
-                </v-table>
-              </v-tab-item>
-
-              <v-tab-item key="comments">
-                <v-table
-                  v-if="masterComments && masterComments.length > 0"
-                >
+          <v-tabs-items v-model="activeTab">
+            <v-tab-item key="houses">
+              <v-row density="compact">
+                <v-col cols="12" md="3">
+                  <v-text-field
+                    :model-value="totalHouses"
+                    label="Total de House"
+                    readonly
+                  ></v-text-field>
+                </v-col>
+                <v-col cols="12" md="3">
+                  <v-text-field
+                    :model-value="totalPesoHouse"
+                    label="Total de House Peso"
+                    suffix="kg"
+                    readonly
+                  ></v-text-field>
+                </v-col>
+                <v-col cols="12" md="3">
+                  <v-text-field
+                    :model-value="totalVolumenHouse"
+                    label="Total de House Volumen"
+                    suffix="m3"
+                    readonly
+                  ></v-text-field>
+                </v-col>
+              </v-row>
+              <div
+                v-if="
+                  $store.state.itemsHouseList &&
+                  $store.state.itemsHouseList.length > 3 &&
+                  !showAll
+                "
+                class="mb-2"
+              >
+                <v-btn color="info" @click="showAll = true">Leer más</v-btn>
+              </div>
+              <v-table>
+                <template v-slot:default>
                   <thead>
                     <tr>
-                      <th>Fecha</th>
-                      <th>Ejecutivo</th>
-                      <th>Comentario</th>
+                      <th>Listado</th>
+                      <th>Código</th>
+                      <th>Cliente</th>
+                      <th>Incoterm</th>
+                      <th>Peso</th>
+                      <th>Volumen</th>
+                      <th v-if="esAereo">Peso volumétrico</th>
+                      <th v-if="esAereo">Peso Cargable</th>
+                      <th>Acciones</th>
                     </tr>
                   </thead>
                   <tbody>
                     <tr
-                      v-for="(comment, index) in masterComments"
+                      v-for="(item, index) in displayedItems"
                       :key="index"
-                      class="bg-comentarios"
+                      @click="showHouse(item.id)"
+                      style="cursor: pointer"
                     >
-                      <td class="bg-comentarios">{{ comment.fecha }}</td>
-                      <td class="bg-comentarios">{{ comment.ejecutivo }}</td>
-                      <td class="bg-comentarios">{{ comment.comentario }}</td>
+                      <td>{{ index + 1 }}</td>
+                      <td>{{ item.nro_hbl || item.code_house || "-" }}</td>
+                      <td>
+                        {{
+                          item.cliente_nombre ||
+                          item.nameconsigner ||
+                          item.cliente ||
+                          item.consigner ||
+                          "-"
+                        }}
+                      </td>
+                      <td>{{ getIncotermName(item) }}</td>
+                      <td>{{ item.peso || 0 }}</td>
+                      <td>{{ item.volumen || 0 }}</td>
+                      <td v-if="esAereo">
+                        {{ computePesoVolumetrico(item) }}
+                      </td>
+                      <td v-if="esAereo">{{ computePesoCargable(item) }}</td>
+                      <td>
+                        <v-btn icon color="info">
+                          <v-icon @click.stop="showHouse(item.id)">
+                            mdi-open-in-new
+                          </v-icon>
+                        </v-btn>
+                        <v-btn icon color="red">
+                          <v-icon @click.stop="eliminar(item.id)">
+                            mdi-delete
+                          </v-icon>
+                        </v-btn>
+                        <v-btn icon color="#F57F17">
+                          <v-icon
+                            @click.stop="abrirModalCambiarExpediente(item)"
+                          >
+                            mdi-folder-arrow-up-down
+                          </v-icon>
+                        </v-btn>
+                      </td>
                     </tr>
                   </tbody>
-                </v-table>
-                <v-alert v-else type="info" text>
-                  No hay comentarios disponibles
-                </v-alert>
-              </v-tab-item>
-            </v-tabs-items>
-          </v-expansion-panel-text>
-        </v-expansion-panel>
-      </v-expansion-panels>
-    </template>
+                </template>
+              </v-table>
+            </v-tab-item>
+
+            <v-tab-item key="comments">
+              <v-table
+                v-if="masterComments && masterComments.length > 0"
+              >
+                <thead>
+                  <tr>
+                    <th>Fecha</th>
+                    <th>Ejecutivo</th>
+                    <th>Comentario</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr
+                    v-for="(comment, index) in masterComments"
+                    :key="index"
+                    class="bg-comentarios"
+                  >
+                    <td class="bg-comentarios">{{ comment.fecha }}</td>
+                    <td class="bg-comentarios">{{ comment.ejecutivo }}</td>
+                    <td class="bg-comentarios">{{ comment.comentario }}</td>
+                  </tr>
+                </tbody>
+              </v-table>
+              <v-alert v-else type="info" text>
+                No hay comentarios disponibles
+              </v-alert>
+            </v-tab-item>
+          </v-tabs-items>
+        </v-expansion-panel-text>
+      </v-expansion-panel>
+    </v-expansion-panels>
 
     <!-- DDDDDDDDDDDDDDDDD -->
     <v-dialog v-model="dialogCambiarExpediente" max-width="500">
