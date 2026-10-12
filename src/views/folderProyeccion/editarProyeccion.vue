@@ -5,8 +5,8 @@
   </template>
   
   <script>
-  import { defineAsyncComponent } from "vue";
-export default {
+import { defineAsyncComponent } from "vue";
+  export default {
     components: {
       nuevaProyeccion: defineAsyncComponent(() =>
         import("../../components/proyeccion/editarProyeccion.vue")),

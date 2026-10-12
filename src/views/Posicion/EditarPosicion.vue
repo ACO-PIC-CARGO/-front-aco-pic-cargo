@@ -6,8 +6,8 @@
   </template>
   
   <script>
-  import { defineAsyncComponent } from "vue";
-export default {
+import { defineAsyncComponent } from "vue";
+  export default {
     components: {
       Posicion: defineAsyncComponent(() => import("../../components/Posicion/EditarPosicionComponet.vue")),
       FilterPosicion: defineAsyncComponent(() => import("../../components/filtros/FilterPosicion.vue")),
