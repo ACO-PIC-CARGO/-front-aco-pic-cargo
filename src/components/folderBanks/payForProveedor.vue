@@ -81,7 +81,6 @@
                       selected.filter((v) => v.id == item.id).length == 0
                     "
                     v-on:blur="calcularTotales()"
-                    @focus="calcularTotales()"
                   ></v-text-field>
                 </template>
 
@@ -91,7 +90,6 @@
                     type="number"
                     :prefix="symbol"
                     v-on:blur="calcularTotalesInput()"
-                    @focus="calcularTotalesInput()"
                     :error-messages="item.errorEx"
                   ></v-text-field>
                 </template>

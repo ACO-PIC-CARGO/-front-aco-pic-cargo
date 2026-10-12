@@ -66,7 +66,6 @@
                       selected.filter((v) => v.index == item.index).length == 0
                     "
                     v-on:blur="calcularTotal()"
-                    @focus="calcularTotal()"
                     :error-messages="item.err"
                   >
                   </v-text-field>
@@ -78,7 +77,6 @@
                   <v-text-field
                     v-on:blur="calcularMonto()"
                     v-model="item.tipocambio"
-                    @focus="calcularMonto()"
                     type="number"
                     :disabled="
                       selected.filter((v) => v.index == item.index).length == 0

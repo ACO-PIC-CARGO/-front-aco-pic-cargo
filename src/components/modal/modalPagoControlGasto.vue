@@ -87,7 +87,6 @@
                     selected.filter((v) => v.id == item.id).length == 0
                   "
                   v-on:blur="calcularTotales()"
-                  @focus="calcularTotales()"
                 ></v-text-field>
               </template>
               <!--  -->
@@ -116,7 +115,6 @@
                   v-model="item.monto_mon_ex"
                   v-on:update:model-value="calcularTotales()"
                   v-on:blur="calcularTotales()"
-                  @focus="calcularTotales()"
                   :error-messages="item.errorEx"
                 ></v-text-field>
               </template>

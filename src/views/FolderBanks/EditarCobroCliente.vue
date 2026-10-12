@@ -46,7 +46,6 @@
                   type="number"
                   :max="item.montodolar"
                   v-on:blur="calcularTotal()"
-                  @focus="calcularTotal()"
                   :error-messages="item.err"
                 >
                 </v-text-field>
@@ -58,7 +57,6 @@
                   type="number"
                   :max="item.montopagar"
                   v-on:blur="calcularTotal()"
-                  @focus="calcularTotal()"
                   :error-messages="item.err"
                 >
                 </v-text-field>
@@ -69,7 +67,6 @@
                   type="number"
                   :max="item.monto_destino"
                   v-on:blur="calcularTotal()"
-                  @focus="calcularTotal()"
                   :error-messages="item.err"
                 />
               </template>
@@ -77,7 +74,6 @@
                 <v-text-field
                   v-on:blur="calcularMonto()"
                   v-model="item.tipocambio"
-                  @focus="calcularMonto()"
                   type="number"
                 >
                 </v-text-field>
