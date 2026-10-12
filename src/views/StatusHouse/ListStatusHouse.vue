@@ -12,7 +12,6 @@
             </v-btn>
             <v-btn
               color="purple"
-              dark
               size="small"
               class="mx-2"
               @click="abrirModalOrden()"
@@ -37,7 +36,7 @@
           <v-data-table
             :headers="headers"
             :items="listStatusHouse"
-            item-key="id"
+            item-value="id"
             loading="true"
             :search="search"
           >
@@ -121,8 +120,8 @@
                   label="Sentido*"
                   item-title="name"
                   item-value="id"
-                  @update:model-value="obtenerOrden()"
                   v-model="id_modality"
+                  @update:model-value="obtenerOrden()"
                   :rules="[(v) => !!v || 'Dato Requerido']"
                 ></v-autocomplete>
               </v-col>
@@ -333,7 +332,7 @@
                 :headers="headerEstado"
                 :items="lstStatus"
                 class="elevation-1"
-                item-key="index"
+                item-value="index"
                 :loading="loadingTable"
               >
                 <template v-slot:[`item.exw`]="{ item }">
@@ -604,8 +603,8 @@ export default {
         this.$refs.frmOrdenEstatus.reset();
       });
     },
-    buscarEstatusPorModalidadYEmbarque() {
-      if (this.$refs.frmOrdenEstatus.validate()) {
+    async buscarEstatusPorModalidadYEmbarque() {
+      if ((await this.$refs.frmOrdenEstatus.validate()).valid) {
         this.lstStatus = [];
         this.lstStatus = [
           ...this.listStatusHouse.filter(
@@ -678,7 +677,7 @@ export default {
     },
     async guardarStatus() {
       this.errorInconterms = "";
-      if (this.$refs.frmStatus.validate()) {
+      if ((await this.$refs.frmStatus.validate()).valid) {
         if (!this.exw && !this.fca && !this.cfr && !this.cif && !this.ddp) {
           this.errorInconterms =
             "Es necesario seleccionar al menos un Incoterms";
