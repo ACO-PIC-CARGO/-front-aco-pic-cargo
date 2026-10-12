@@ -50,7 +50,6 @@
 
             <v-menu
               v-model="menuMeses"
-              offset-y
               :close-on-content-click="false"
             >
               <template v-slot:activator="{ props }">
@@ -737,7 +736,7 @@ export default {
   /* font-size: 11px; */
 }
 
-.filter-input >>> .v-input__slot {
+.filter-input :deep(.v-field) {
   min-height: 34px !important;
 }
 
@@ -903,12 +902,12 @@ export default {
   width: 100%;
 }
 
-.expedientes-table >>> table {
+.expedientes-table :deep(table) {
   width: 100%;
   border-collapse: collapse;
 }
 
-.expedientes-table >>> thead th {
+.expedientes-table :deep(thead th) {
   height: 37px !important;
   padding: 5px 8px !important;
   background: #063c79 !important;
@@ -920,7 +919,7 @@ export default {
   white-space: nowrap;
 }
 
-.expedientes-table >>> tbody td {
+.expedientes-table :deep(tbody td) {
   height: 27px !important;
   padding: 4px 9px !important;
   border-right: 1px solid #e0e6eb;
@@ -929,7 +928,7 @@ export default {
   /* font-size: 9px !important; */
 }
 
-.expedientes-table >>> tbody tr:hover {
+.expedientes-table :deep(tbody tr:hover) {
   background: #f6faff;
 }
 

@@ -1056,11 +1056,11 @@ export default {
   max-width: 180px;
 }
 
-.select-anio >>> .v-input__slot {
+.select-anio :deep(.v-field) {
   background: #fff;
 }
 
-.select-anio >>> .v-label {
+.select-anio :deep(.v-label) {
   color: #082d70;
   font-weight: 600;
 }

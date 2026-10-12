@@ -149,9 +149,9 @@
       <v-data-table
         :headers="headers"
         :items="$store.state.itemsReportFileAll"
-        item-key="index"
+        item-value="index"
         :loading="loading"
-        disable-pagination
+        :items-per-page="-1"
         fixed-header
         disable-sort
         hide-default-footer
