@@ -215,6 +215,7 @@
                       v-model="payfile"
                       @update:model-value="uploadFile()"
                       :messages="msgfile"
+                      :class="{ 'text-success': !!msgfile }"
                       :error-messages="errfile"
                       :rules="[(v) => !!v || 'Datos Requerido']"
                       :loading="loadingFile"
