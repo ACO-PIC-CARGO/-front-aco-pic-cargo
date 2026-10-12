@@ -20,6 +20,7 @@ async function captureSaveResponse(page, endpoint) {
   let resolveBody;
   const body = new Promise((resolve) => (resolveBody = resolve));
   await page.route(new RegExp(`/${endpoint}$`), async (route) => {
+    if (route.request().method() !== "POST") return route.fallback();
     const response = await route.fetch();
     resolveBody({ ok: response.ok(), json: await response.json() });
     await route.fulfill({ response });
@@ -47,7 +48,8 @@ test("registers an administrative payable and pays it from banks", async ({ page
   await waitForPageToSettle(page);
   await page.goto("/home/folderModulesPays/addmodulesAccountPays");
   await waitForPageToSettle(page);
-  await page.getByLabel("Administrativa").check({ force: true });
+  await page.getByText("Administrativa", { exact: true }).click();
+  await expect(page.getByRole("radio", { name: "Administrativa" })).toBeChecked();
   await pickFirstOption(page, "Mes del Gasto");
   await pickFirstOption(page, "Año del Gasto");
   await page.getByPlaceholder("Seleccione un Sub Gasto").click();
@@ -84,6 +86,7 @@ test("registers an administrative payable and pays it from banks", async ({ page
   const confirmPayment = page.getByRole("dialog").filter({ hasText: "Confirmar Pago" });
   await confirmPayment.getByLabel("Monto debitado en el banco").fill("100");
   await confirmPayment.getByRole("button", { name: "CONTINUAR" }).click();
+  await page.getByLabel("Buscar Expediente").fill(invoice);
   const invoiceRow = page.getByRole("row").filter({ hasText: invoice });
   await expect(invoiceRow).toHaveCount(1);
   const select = invoiceRow.getByRole("checkbox", { name: /Seleccionar factura/ });
@@ -119,7 +122,8 @@ test("registers an administrative receivable", async ({ page }) => {
   await page.goto("/home/viewAccountPaysCxC/controlAccountReceivable");
   await waitForPageToSettle(page);
   await expect(page.getByText("NUEVA CUENTA POR COBRAR")).toBeVisible();
-  await page.getByLabel("Administrativa").check({ force: true });
+  await page.getByText("Administrativa", { exact: true }).click();
+  await expect(page.getByRole("radio", { name: "Administrativa" })).toBeChecked();
   await pickFirstOption(page, "Mes del Ingreso");
   await pickFirstOption(page, "Año del Ingreso");
   await pickFirstOption(page, "Tipo de Ingreso");

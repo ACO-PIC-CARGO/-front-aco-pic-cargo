@@ -49,7 +49,7 @@
           :item-key="itemValue"
           activatable
           hoverable
-          open-on-click
+          :open-on-click="disableBranchNodes"
           dense
           :open.sync="openNodes"
           :active="activeNodes"

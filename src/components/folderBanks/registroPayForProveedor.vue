@@ -184,6 +184,7 @@
                     </template>
                     <template v-slot:[`item.data-table-select`]="{ item, isSelected, select }">
                       <v-simple-checkbox
+                        class="v-data-table__checkbox"
                         :value="isSelected"
                         role="checkbox"
                         :aria-checked="String(isSelected)"
