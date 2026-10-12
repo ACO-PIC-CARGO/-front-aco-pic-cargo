@@ -57,7 +57,7 @@ const TYPOGRAPHY_GUARD = {
   message: "Vuetify 2 typography class (recipe R17).",
 };
 
-// Their <style> defines the token as the app's own class, so recipe R17 leaves it.
+// Their <style> extends the token as the app's own class, so recipe R17 keeps it beside the mapped class.
 const OWN_TYPOGRAPHY_CLASS_FILES = [
   "src/components/FolderConfig/EstatusDefectoComponent.vue",
   "src/components/Membresia/OpcionesMembresia.vue",

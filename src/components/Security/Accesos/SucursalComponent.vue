@@ -1,7 +1,7 @@
 <template>
   <div class="formulario">
     <v-form ref="Login" autocomplete="off">
-      <div class="title">
+      <div class="title text-h6">
         <h1 class="_title__logo my-3">ACO</h1>
         <h3 class="text-white my-5">Selección de Sucursal</h3>
       </div>
