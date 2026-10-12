@@ -30,7 +30,7 @@ async function captureSaveResponse(page, endpoint) {
 
 async function pickToday(page, label) {
   await page.getByLabel(label).click();
-  await page.getByRole("button", { name: String(new Date().getDate()), exact: true }).click();
+  await page.getByRole("grid").getByText(String(new Date().getDate()), { exact: true }).click();
 }
 
 async function uploadSupport(page) {
