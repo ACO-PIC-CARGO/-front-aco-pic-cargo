@@ -1,7 +1,7 @@
 <template>
   <div class="customAutocomplete-container" v-click-outside="clickOutsideList">
     <v-text-field 
-      dense 
+      density="compact" 
       v-model="search" 
       :label="label" 
       :loading="loading" 
@@ -10,15 +10,15 @@
       @focus="showList"
     ></v-text-field>
 
-    <v-list dense class="customAutocomplete elevation-1" v-show="showOptionsList">
+    <v-list density="compact" class="customAutocomplete elevation-1" v-show="showOptionsList">
       <template v-for="(item, index) in items" v-if="items.length > 0 && !loading">
         <v-list-item-group>
           <v-list-item :key="index" @click="selectItem(item.id)">
-            <v-list-item-content>
+            
               <v-list-item-title>
                 {{ item.telefono ? item.nombrecompleto.concat(" - ", item.telefono) : item.nombrecompleto }}
               </v-list-item-title>
-            </v-list-item-content>
+            
           </v-list-item>
         </v-list-item-group>
 

@@ -3,10 +3,10 @@
     <v-card class="py-10 px-10">
       <v-tabs
         v-model="tab"
-        background-color="teal darken-4"
+        bg-color="teal darken-4"
         grow
         dark
-        icons-and-text
+        stacked
       >
         <v-tabs-slider></v-tabs-slider>
 
@@ -23,7 +23,7 @@
                   label="Tipo de Documento (*)"
                   v-model="$store.state.enterprises.model.id_document"
                   :items="itemsDocumentsPais"
-                  item-text="description"
+                  item-title="description"
                   item-value="id"
                   :rules="[(v) => !!v || 'Dato requerido']"
                 >
@@ -119,8 +119,8 @@
                   label="País (*)"
                   :items="itemsPais"
                   item-value="id"
-                  item-text="name"
-                  @change="get_state()"
+                  item-title="name"
+                  @update:model-value="get_state()"
                   v-model="$store.state.enterprises.model.id_pais"
                   :rules="[(v) => !!v || 'Dato requerido']"
                 >
@@ -131,8 +131,8 @@
                   label="Región (*)"
                   :items="itemsState"
                   item-value="id"
-                  item-text="name"
-                  @change="get_city()"
+                  item-title="name"
+                  @update:model-value="get_city()"
                   v-model="$store.state.enterprises.model.id_state"
                   :disabled="!$store.state.enterprises.model.id_pais"
                   :rules="[(v) => !!v || 'Dato requerido']"
@@ -143,8 +143,8 @@
                   label="Provincia (*)"
                   :items="itemsCity"
                   item-value="id"
-                  item-text="name"
-                  @change="get_town()"
+                  item-title="name"
+                  @update:model-value="get_town()"
                   v-model="$store.state.enterprises.model.id_city"
                   :disabled="!$store.state.enterprises.model.id_state"
                   :rules="[(v) => !!v || 'Dato requerido']"
@@ -156,7 +156,7 @@
                   v-model="$store.state.enterprises.model.id_town"
                   :items="itemsTown"
                   item-value="id"
-                  item-text="name"
+                  item-title="name"
                   :disabled="!$store.state.enterprises.model.id_city"
                   :rules="[(v) => !!v || 'Dato requerido']"
                 />
@@ -176,12 +176,12 @@
               </v-col>
               <v-col cols="4">
                 <v-switch
-                  dense
+                  density="compact"
                   label="Activo/Inactivo"
                   v-model="$store.state.enterprises.model.status"
                   hide-details
                   color="success"
-                  @change="updateStatus"
+                  @update:model-value="updateStatus"
                 ></v-switch>
               </v-col>
             </v-row>
@@ -201,15 +201,15 @@
                 ></v-text-field>
               </v-col>
             </v-row>
-            <v-row align-sm-center>
+            <v-row class="align-sm-center">
               <v-col cols="4">
                 <v-autocomplete
                   :items="$store.state.itemsDocumentsPais"
-                  item-text="description"
+                  item-title="description"
                   item-value="id"
                   label="Tipo de Documento (*)"
                   v-model="$store.state.user.model.id_document"
-                  @change="validarDocument()"
+                  @update:model-value="validarDocument()"
                   :rules="[(v) => !!v || 'Dato Requerido']"
                 ></v-autocomplete>
               </v-col>
@@ -285,7 +285,7 @@
               <v-col cols="4">
                 <v-autocomplete
                   :items="$store.state.itemsSex"
-                  item-text="name"
+                  item-title="name"
                   item-value="id"
                   label="Sexo (*)"
                   :rules="[(v) => !!v || 'Dato Requerido']"
@@ -371,7 +371,7 @@
               </v-col>
               <v-col cols="6">
                 Departamento
-                <v-icon small @click="snackbar = true" class="iconDepartamento"
+                <v-icon size="small" @click="snackbar = true" class="iconDepartamento"
                   >mdi-information-slab-circle-outline</v-icon
                 >
                 <v-radio-group
@@ -405,12 +405,12 @@
         >
       </v-card-actions> -->
     </v-card>
-    <v-snackbar v-model="snackbar" outlined vertical color="info">
+    <v-snackbar v-model="snackbar" variant="outlined" vertical color="info">
       El departamento, define como se comportará el usuario para el llendo de
       montos (Pricing u Operaciones) , en el CONTROL DE GASTOS
 
       <template v-slot:action="{ attrs }">
-        <v-btn text color="red" v-bind="attrs" @click="snackbar = false">
+        <v-btn variant="text" color="red" v-bind="attrs" @click="snackbar = false">
           Close
         </v-btn>
       </template>

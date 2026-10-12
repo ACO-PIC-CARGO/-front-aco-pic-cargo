@@ -17,7 +17,7 @@
           label="Pais"
           :items="$store.state.itemsPais"
           v-model="$store.state.states.StateFilter.id_pais"
-          item-text="name"
+          item-title="name"
           item-value="id"
           :clearable="$store.state.states.tipo != 'ver'"
         >
@@ -49,8 +49,8 @@
         <span> Estado</span>
         <v-radio-group
           v-model="$store.state.states.StateFilter.status"
-          row
-          dense
+          inline
+          density="compact"
         >
           <v-radio label="Activo" color="green" value="1"></v-radio>
           <v-radio label="Inactivo" color="red" value="0"></v-radio>
@@ -66,7 +66,7 @@
             :items="$store.state.itemsPais"
             v-model="$store.state.states.StateModel.id_pais"
             :readonly="$store.state.states.tipo == 'ver'"
-            item-text="name"
+            item-title="name"
             item-value="id"
             :rules="[(v) => !!v || 'Dato Requerido']"
             :item-disabled="(item) => item.status != 1"

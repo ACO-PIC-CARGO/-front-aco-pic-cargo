@@ -2,10 +2,10 @@
   <v-card class="cardDatos" width="100%">
     <v-tabs
       v-model="tab"
-      background-color="teal darken-4"
+      bg-color="teal darken-4"
       grow
       dark
-      icons-and-text
+      stacked
     >
       <v-tabs-slider></v-tabs-slider>
 
@@ -97,7 +97,7 @@
                 {{ index + 1 }}
               </template>
               <template v-slot:[`item.estado`]="{ item }">
-                <v-switch readonly v-model="item.estado" @change="guardarFlag = true">
+                <v-switch readonly v-model="item.estado" @update:model-value="guardarFlag = true">
                 </v-switch>
               </template>
               <template v-slot:[`item.departamentos`]="{ item }">

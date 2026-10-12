@@ -1,6 +1,6 @@
 <template>
   <v-card>
-    <v-tabs v-model="tab" slider-color="primary" centered>
+    <v-tabs v-model="tab" slider-color="primary" align-tabs="center">
       <v-tab href="#lcl">
         <span style="font-size: 1.3em; font-weight: bold">LCL</span>
       </v-tab>

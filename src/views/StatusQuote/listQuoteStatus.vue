@@ -3,9 +3,9 @@
     <listQuoteStatus />
     <v-navigation-drawer
       v-model="$store.state.QuoteStatus.drawer"
-      right
+      location="right bottom"
       absolute
-      bottom
+      
       persistent
       width="30%"
       temporary

@@ -4,9 +4,9 @@
 
     <v-navigation-drawer
       v-model="$store.state.house_filtrarData"
-      right
+      location="right bottom"
       absolute
-      bottom
+      
       persistent
       width="30%"
       temporary

@@ -2,7 +2,7 @@
   <v-container fluid>
     <v-row>
       <v-col cols="12" class="px-5 py-0">
-        <v-alert border="left" colored-border type="info" elevation="2" shaped>
+        <v-alert border="start" colored-border type="info" elevation="2" shaped>
           Los valores entre corchetes representan los datos que serán
           reemplazados automáticamente con la información correspondiente al
           house. Por favor, no modifique ni elimine el contenido dentro de los

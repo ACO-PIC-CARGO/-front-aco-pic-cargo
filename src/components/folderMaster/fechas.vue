@@ -1,6 +1,6 @@
 <template>
   <div>
-    <v-row dense>
+    <v-row density="compact">
       <v-col cols="12" md="6">
         <v-text-field
           @change="_getDate()"
@@ -50,7 +50,7 @@
       <v-col cols="12" md="6">
         <v-select
           :items="$store.state.masterusuarios.lstCanales"
-          item-text="descripcion"
+          item-title="descripcion"
           item-value="id"
           v-model="$store.state.id_canal"
           label="Canal"

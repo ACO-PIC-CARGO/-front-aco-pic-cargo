@@ -140,13 +140,13 @@
         <v-alert
           icon="mdi-currency-usd"
           class="my-1 text-center"
-          border="left"
+          border="start"
           colored-border
-          color="deep-purple accent-4"
+          color="deep-purple-accent-4"
           elevation="2"
-          outlined
+          variant="outlined"
           prominent
-          dense
+          density="compact"
         >
           <h2>
             PROFIT PR:
@@ -160,7 +160,7 @@
           class="my-1"
           block
           dark
-          small
+          size="small"
           v-if="!editable"
           @click="irAEditar(false)"
         >
@@ -171,16 +171,16 @@
           class="my-1"
           block
           dark
-          small
+          size="small"
           @click="imprimirControlDetallado(false)"
         >
           <v-icon class="mx-1">mdi-printer-outline</v-icon> CONTROL DETALLADO
         </v-btn>
         <v-btn
-          color="teal darken-4"
+          color="teal-darken-4"
           class="my-1"
           block
-          small
+          size="small"
           dark
           @click="imprimirControlDetallado(true)"
         >
@@ -190,7 +190,7 @@
         <v-btn
           color="#FFD600"
           class="my-1"
-          small
+          size="small"
           block
           v-if="
             Object.keys($store.state.controlGastos.listControlGastos).length >

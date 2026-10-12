@@ -8,7 +8,7 @@
           <v-select
             :items="begEndList"
             v-model="servicio.id_begend"
-            item-text="name"
+            item-title="name"
             item-value="id"
             label="Categoria..."
           ></v-select>
@@ -51,7 +51,7 @@
             <v-checkbox
               dense
               v-model="service.status"
-              @change="showConfirmationDialog(service)"
+              @update:model-value="showConfirmationDialog(service)"
               readonly
             >
               <template v-slot:label>
@@ -67,10 +67,10 @@
             >
               <v-autocomplete
                 :items="$store.state.town.lstTown"
-                item-text="nombrecompleto"
+                item-title="nombrecompleto"
                 item-value="id"
-                dense
-                outlined
+                density="compact"
+                variant="outlined"
                 label="Distrito"
                 class="pr-10"
                 v-model="$store.state.pricing.datosPrincipales.id_town"
@@ -92,7 +92,7 @@
               min="0"
               placeholder="Valor de la mercancia..."
               autocomplete="off"
-              dense
+              density="compact"
               :required="requiereValorMercancia"
               :rules="[
                 (v) =>
@@ -104,7 +104,7 @@
                   /^(?!0\d+|\d*e)\d*(?:\.\d+)?$/.test(v) ||
                   'Debe ser un número real entero positivo',
               ]"
-              @input="recargarCostos"
+              @update:model-value="recargarCostos"
               @blur="recargarCostos"
             ></v-text-field>
 
@@ -113,7 +113,7 @@
               label="Descripción de carga"
               placeholder="Descripción de carga"
               autocomplete="off"
-              dense
+              density="compact"
             ></v-text-field>
           </template>
         </v-col>

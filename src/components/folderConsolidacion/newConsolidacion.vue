@@ -8,14 +8,14 @@
         >
       </v-col>
       <v-col cols="6">
-        <v-data-table :headers="headers" :items="items" dense> </v-data-table>
+        <v-data-table :headers="headers" :items="items" density="compact"> </v-data-table>
       </v-col>
     </v-row>
     <v-row v-if="step == 2">
       <v-data-table
         :headers="headersStep2"
         :items="$store.state.consolidacion.lstConsolidacion"
-        dense
+        density="compact"
       >
       </v-data-table>
       <v-btn color="success" @click="step = 1">Volver</v-btn>

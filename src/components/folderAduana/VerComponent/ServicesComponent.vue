@@ -76,7 +76,7 @@
             min="0"
             placeholder="Valor de la mercancia..."
             autocomplete="off"
-            dense
+            density="compact"
             readonly
           >
           </v-text-field>
@@ -110,7 +110,7 @@
             label="Descripción de carga"
             placeholder="Descripción de carga"
             autocomplete="off"
-            dense
+            density="compact"
             readonly
           >
           </v-text-field>

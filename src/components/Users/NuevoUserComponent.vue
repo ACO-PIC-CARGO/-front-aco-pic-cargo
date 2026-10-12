@@ -2,10 +2,10 @@
   <v-card class="cardDatos pa-4">
     <v-tabs
       v-model="tab"
-      background-color="teal darken-4"
+      bg-color="teal darken-4"
       grow
       dark
-      icons-and-text
+      stacked
     >
       <v-tabs-slider></v-tabs-slider>
 
@@ -21,11 +21,11 @@
         @click="guardarUsuario()"
         color="success"
         dark
-        small
+        size="small"
       >
         Guardar
       </v-btn>
-      <v-btn v-else @click="continuar()" color="success" outlined small>
+      <v-btn v-else @click="continuar()" color="success" variant="outlined" size="small">
         Siguiente
       </v-btn>
     </v-card-actions>
@@ -50,15 +50,15 @@
               ></v-text-field>
             </v-col>
           </v-row> -->
-          <v-row align-sm-center>
+          <v-row class="align-sm-center">
             <v-col cols="4">
               <v-autocomplete
                 :items="$store.state.itemsDocumentsPais"
-                item-text="description"
+                item-title="description"
                 item-value="id"
                 label="Tipo de Documento (*)"
                 v-model="$store.state.user.model.id_document"
-                @change="validarDocument()"
+                @update:model-value="validarDocument()"
                 :rules="[(v) => !!v || 'Dato Requerido']"
               ></v-autocomplete>
             </v-col>
@@ -147,7 +147,7 @@
             <v-col cols="4">
               <v-autocomplete
                 :items="$store.state.itemsSex"
-                item-text="name"
+                item-title="name"
                 item-value="id"
                 label="Sexo (*)"
                 :rules="[(v) => !!v || 'Dato Requerido']"
@@ -160,9 +160,9 @@
                 label="Pais (*)"
                 :items="$store.state.itemsPais"
                 v-model="$store.state.user.model.id_pais"
-                item-text="name"
+                item-title="name"
                 item-value="id"
-                @change="ObtenerEstados($store.state.user.model.id_pais)"
+                @update:model-value="ObtenerEstados($store.state.user.model.id_pais)"
                 :item-disabled="(item) => item.status != 1"
                 :rules="[(v) => !!v || 'Dato Requerido']"
               >
@@ -173,10 +173,10 @@
                 label="Estado (Región)"
                 :items="$store.state.itemsState"
                 v-model="$store.state.user.model.id_state"
-                item-text="name"
+                item-title="name"
                 item-value="id"
                 :loading="loadingEstado"
-                @change="ObtenerCity($store.state.user.model.id_state)"
+                @update:model-value="ObtenerCity($store.state.user.model.id_state)"
                 :item-disabled="(item) => item.status != 1"
               >
               </v-autocomplete>
@@ -186,10 +186,10 @@
                 label="Ciudad"
                 :items="$store.state.itemsCity"
                 v-model="$store.state.user.model.id_city"
-                item-text="name"
+                item-title="name"
                 item-value="id"
                 :loading="loadingEstado"
-                @change="ObtenerDistrito($store.state.user.model.id_city)"
+                @update:model-value="ObtenerDistrito($store.state.user.model.id_city)"
                 :item-disabled="(item) => item.status != 1"
               >
               </v-autocomplete>
@@ -199,7 +199,7 @@
                 label="Distrito"
                 :items="$store.state.itemsTown"
                 v-model="$store.state.user.model.id_town"
-                item-text="name"
+                item-title="name"
                 item-value="id"
                 :loading="loadingDistrito"
                 :item-disabled="(item) => item.status != 1"
@@ -247,7 +247,7 @@
             <v-col cols="4" class="my-auto">
               <v-autocomplete
                 :items="$store.state.position.lstPosition"
-                item-text="name"
+                item-title="name"
                 item-value="id"
                 v-model="itemPositon"
                 return-object
@@ -260,7 +260,7 @@
             </v-col>
 
             <v-col cols="4" class="my-auto">
-              <v-btn @click="agregarPosicion()" small color="success"
+              <v-btn @click="agregarPosicion()" size="small" color="success"
                 >Agregar</v-btn
               >
             </v-col>
@@ -355,12 +355,12 @@
       </v-tab-item> -->
     </v-tabs-items>
 
-    <v-snackbar v-model="snackbar" outlined vertical color="info">
+    <v-snackbar v-model="snackbar" variant="outlined" vertical color="info">
       El departamento, define como se comportará el usuario para el llendo de
       montos (Pricing u Operaciones) , en el CONTROL DE GASTOS
 
       <template v-slot:action="{ attrs }">
-        <v-btn text color="red" v-bind="attrs" @click="snackbar = false">
+        <v-btn variant="text" color="red" v-bind="attrs" @click="snackbar = false">
           Close
         </v-btn>
       </template>

@@ -75,11 +75,11 @@
           :items="$store.state.provedores"
           v-model="filtro.id_proveedor"
           label="Proveedor"
-          item-text="namelong"
+          item-title="namelong"
           item-value="id"
-          outlined
+          variant="outlined"
           readonly
-          dense
+          density="compact"
           hide-details
         />
       </v-col>
@@ -89,11 +89,11 @@
           :items="$store.state.clientes"
           v-model="filtro.id_consigner"
           label="Consignatario"
-          item-text="namelong"
+          item-title="namelong"
           item-value="id"
           readonly
-          outlined
-          dense
+          variant="outlined"
+          density="compact"
           hide-details
         >
         </v-autocomplete>
@@ -104,11 +104,11 @@
           :items="$store.state.clientes"
           v-model="filtro.id_cliente"
           label="Consignatario"
-          item-text="namelong"
+          item-title="namelong"
           item-value="id"
           readonly
-          outlined
-          dense
+          variant="outlined"
+          density="compact"
           hide-details
         >
         </v-autocomplete>
@@ -121,10 +121,10 @@
           v-model="filtro.tipoingreso"
           auto-select-first
           readonly
-          outlined
-          dense
+          variant="outlined"
+          density="compact"
           hide-details
-          item-text="description"
+          item-title="description"
           item-value="id"
         ></v-autocomplete>
       </v-col>
@@ -136,10 +136,10 @@
           v-model="filtro.tiposubingreso"
           auto-select-first
           readonly
-          outlined
-          dense
+          variant="outlined"
+          density="compact"
           hide-details
-          item-text="description"
+          item-title="description"
           item-value="id"
         ></v-autocomplete>
       </v-col>
@@ -149,11 +149,11 @@
           :items="cuentas"
           v-model="filtro.id_cuenta"
           label="Cuenta Bancaria (PIC)"
-          item-text="label"
+          item-title="label"
           item-value="id"
-          outlined
+          variant="outlined"
           readonly
-          dense
+          density="compact"
           hide-details
         />
       </v-col>
@@ -163,11 +163,11 @@
           :items="$store.state.itemsDataBanksList"
           v-model="filtro.id_banco"
           label="Banco Origen"
-          item-text="acronym"
+          item-title="acronym"
           item-value="id"
           readonly
-          outlined
-          dense
+          variant="outlined"
+          density="compact"
           hide-details
         >
         </v-select>
@@ -175,11 +175,11 @@
 
       <v-col cols="12" md="2" class="py-1" v-if="filtro.expediente">
         <v-text-field
-          outlined
+          variant="outlined"
           readonly
           label="Nro Expediente"
           v-model="filtro.expediente"
-          dense
+          density="compact"
           hide-details
         />
       </v-col>
@@ -189,8 +189,8 @@
           label="Nro Operacion"
           v-model="filtro.nro_operacion"
           readonly
-          outlined
-          dense
+          variant="outlined"
+          density="compact"
           hide-details
         />
       </v-col>
@@ -199,8 +199,8 @@
           label="Nro Expediente"
           v-model="filtro.nro_exp"
           readonly
-          outlined
-          dense
+          variant="outlined"
+          density="compact"
           hide-details
         />
       </v-col>
@@ -210,8 +210,8 @@
           label="Nro Expediente"
           v-model="filtro.factura"
           readonly
-          outlined
-          dense
+          variant="outlined"
+          density="compact"
           hide-details
         />
       </v-col>
@@ -221,20 +221,20 @@
           label="Nro Expediente"
           v-model="filtro.serie"
           readonly
-          outlined
-          dense
+          variant="outlined"
+          density="compact"
           hide-details
         />
       </v-col>
 
       <v-col cols="12" md="2" class="py-1" v-if="filtro.monto">
         <v-text-field
-          outlined
+          variant="outlined"
           readonly
           type="number"
           label="Monto"
           v-model="filtro.monto"
-          dense
+          density="compact"
           hide-details
         />
       </v-col>

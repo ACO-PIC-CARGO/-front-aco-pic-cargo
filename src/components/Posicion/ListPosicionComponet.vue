@@ -54,13 +54,13 @@
               {{ !!item.estado ? "Activo" : "Inactivo" }}
             </template>
             <template v-slot:[`item.action`]="{ item }">
-              <v-tooltip bottom>
-                <template v-slot:activator="{ on, attrs }">
+              <v-tooltip location="bottom">
+                <template v-slot:activator="{ props }">
                   <v-icon
                     color="primary"
                     dark
-                    v-bind="attrs"
-                    v-on="on"
+                   
+                    v-bind="props"
                     @click="ver(item)"
                   >
                     mdi-eye
@@ -68,7 +68,7 @@
                 </template>
                 <span>Ver</span>
               </v-tooltip>
-              <v-tooltip bottom>
+              <v-tooltip location="bottom">
                 <!-- <template v-slot:activator="{ on, attrs }">
                   <v-icon
                     color="warning"

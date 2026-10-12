@@ -2,13 +2,13 @@
   <div style="min-height: 620px">
     <h3>Estatus del embarque</h3>
     <v-container style="padding: 0">
-      <v-row dense>
+      <v-row density="compact">
         <v-col cols="12" md="12">
           <v-autocomplete
-            append-outer-icon="mdi-plus"
-            @click:append-outer="abrirRegistroBitacora"
+            append-icon="mdi-plus"
+            @click:append="abrirRegistroBitacora"
             :items="$store.state.itemsBitacoraLineal"
-            item-text="name"
+            item-title="name"
             item-value="id"
             label="Estatus del embarque"
             v-model="$store.state.bitacora_id_bitacora"
@@ -16,7 +16,7 @@
             <template v-slot:item="{ item }">
               <v-list-item-avatar
                 :color="existeEnBitacora(item) ? 'bg-selected' : 'indigo'"
-                class="text-h5 font-weight-light white--text"
+                class="text-h5 font-weight-light text-white"
               >
                 {{ $store.state.itemsBitacoraLineal.indexOf(item) + 1 }}
               </v-list-item-avatar>
@@ -31,14 +31,14 @@
           <!-- @click:append-outer="iraComentarioManual" -->
           <v-autocomplete
             :items="ObtenerComentariosPredifinidos()"
-            item-text="descripcion"
+            item-title="descripcion"
             item-value="id"
             label="Seleccione un comentario predefinido"
             v-model="$store.state.bitacora_comentario_predefinido"
             content-class="custom-autocomplete-menu"
             v-if="$store.state.bitacora_id_bitacora"
             return-object
-            @change="activarComentarioFlag"
+            @update:model-value="activarComentarioFlag"
           >
             <template v-slot:item="{ item, on, attrs }">
               <v-list-item v-bind="attrs" v-on="on">
@@ -63,28 +63,28 @@
           <v-dialog
             ref="dialog"
             v-model="modal"
-            :return-value.sync="date"
+            v-model:return-value="date"
             persistent
             width="290px"
           >
-            <template v-slot:activator="{ on, attrs }">
+            <template v-slot:activator="{ props }">
               <v-text-field
                 v-model="$store.state.bitacora_fecha"
                 label="Fecha"
                 prepend-icon="mdi-calendar"
                 readonly
-                v-bind="attrs"
-                v-on="on"
+               
+                v-bind="props"
                 :disabled="isFormActionsDisabled"
               ></v-text-field>
             </template>
             <v-date-picker v-model="$store.state.bitacora_fecha" scrollable>
               <v-spacer></v-spacer>
-              <v-btn text color="primary" @click="modal = false">
+              <v-btn variant="text" color="primary" @click="modal = false">
                 Cancel
               </v-btn>
               <v-btn
-                text
+                variant="text"
                 color="primary"
                 @click="$refs.dialog.save($store.state.bitacora_fecha)"
               >
@@ -107,7 +107,7 @@
             block
             :loading="loadingBotonBitacora"
             @click="_setBitacora"
-            small
+            size="small"
             >Agregar</v-btn
           >
         </v-col>
@@ -115,7 +115,7 @@
 
       <v-row>
         <v-col cols="12">
-          <v-simple-table dense fixed-header>
+          <v-table density="compact" fixed-header>
             <template v-slot:default>
               <thead>
                 <tr>
@@ -133,7 +133,7 @@
                   <td>{{ item.date }}</td>
                   <td>
                     <v-switch
-                      dense
+                      density="compact"
                       color="primary"
                       v-model="item.visible_cliente"
                       @click="_changeStatusVisibleBitacora(item)"
@@ -143,7 +143,7 @@
                   <td class="text-center">
                     <v-icon
                       class="btn_add"
-                      dense
+                      size="small"
                       color="red"
                       @click.native="_deleteBitacora(item.id)"
                       :disabled="isFormActionsDisabled"
@@ -153,10 +153,10 @@
                 </tr>
               </tbody>
             </template>
-          </v-simple-table>
+          </v-table>
         </v-col>
         <v-col cols="12" class="text-center" v-if="mostrarBotonVerMas">
-          <v-btn small color="primary" outlined @click="dialogVerTodos = true">
+          <v-btn size="small" color="primary" variant="outlined" @click="dialogVerTodos = true">
             Ver más ({{ totalRegistros }} registros)
           </v-btn>
         </v-col>
@@ -173,7 +173,7 @@
             </v-btn>
           </v-card-title>
           <v-card-text style="max-height: 500px;">
-            <v-simple-table dense fixed-header>
+            <v-table density="compact" fixed-header>
               <template v-slot:default>
                 <thead>
                   <tr>
@@ -191,7 +191,7 @@
                     <td>{{ item.date }}</td>
                     <td>
                       <v-switch
-                        dense
+                        density="compact"
                         color="primary"
                         v-model="item.visible_cliente"
                         @click="_changeStatusVisibleBitacora(item)"
@@ -201,7 +201,7 @@
                     <td class="text-center">
                       <v-icon
                         class="btn_add"
-                        dense
+                        size="small"
                         color="red"
                         @click.native="_deleteBitacora(item.id)"
                         :disabled="isFormActionsDisabled"
@@ -211,11 +211,11 @@
                   </tr>
                 </tbody>
               </template>
-            </v-simple-table>
+            </v-table>
           </v-card-text>
           <v-card-actions>
             <v-spacer></v-spacer>
-            <v-btn color="primary" text @click="dialogVerTodos = false">Cerrar</v-btn>
+            <v-btn color="primary" variant="text" @click="dialogVerTodos = false">Cerrar</v-btn>
           </v-card-actions>
         </v-card>
       </v-dialog>
@@ -239,9 +239,9 @@
                 <v-autocomplete
                   :items="$store.state.pricing.listModality"
                   label="Sentido*"
-                  item-text="name"
+                  item-title="name"
                   item-value="id"
-                  @change="obtenerOrden()"
+                  @update:model-value="obtenerOrden()"
                   v-model="id_modality"
                   :rules="[(v) => !!v || 'Dato Requerido']"
                 ></v-autocomplete>
@@ -250,10 +250,10 @@
                 <v-autocomplete
                   :items="$store.state.pricing.listShipment"
                   label="Tipo de Embarque*"
-                  item-text="embarque"
+                  item-title="embarque"
                   item-value="id"
                   v-model="id_shipment"
-                  @change="obtenerOrden"
+                  @update:model-value="obtenerOrden"
                   :rules="[(v) => !!v || 'Dato Requerido']"
                 ></v-autocomplete>
               </v-col>
@@ -283,7 +283,7 @@
                 <h4>Incoterms</h4>
               </v-col>
               <v-col cols="12" v-if="errorInconterms">
-                <span class="red--text">
+                <span class="text-red">
                   {{ errorInconterms }}
                 </span>
               </v-col>
@@ -337,14 +337,14 @@
                 <v-btn
                   color="success"
                   :disabled="anadirComentarioFlag"
-                  small
+                  size="small"
                   @click="anadirComentario()"
                 >
                   Añadir Comentario
                 </v-btn>
               </v-col>
               <v-col cols="12">
-                <v-simple-table>
+                <v-table>
                   <thead>
                     <tr>
                       <th>Orden</th>
@@ -359,9 +359,9 @@
                         <v-textarea
                           auto-grow
                           v-model="item.descripcion"
-                          dense
+                          density="compact"
                           hide-details
-                          solo
+                          variant="solo"
                           rows="1"
                           :id="`description${index}`"
                         ></v-textarea>
@@ -392,26 +392,26 @@
                       </td>
                     </tr>
                   </tbody>
-                </v-simple-table>
+                </v-table>
               </v-col>
             </v-row>
           </v-form>
         </v-card-text>
         <v-card-actions v-if="!id">
           <v-spacer></v-spacer>
-          <v-btn small class="mx-1" color="success" @click="guardarStatus()">
+          <v-btn size="small" class="mx-1" color="success" @click="guardarStatus()">
             Guardar
           </v-btn>
-          <v-btn small class="mx-1" color="error" @click="dialog = false">
+          <v-btn size="small" class="mx-1" color="error" @click="dialog = false">
             Cancelar
           </v-btn>
         </v-card-actions>
         <v-card-actions v-else>
           <v-spacer></v-spacer>
-          <v-btn small class="mx-1" color="success" @click="guardarStatus()">
+          <v-btn size="small" class="mx-1" color="success" @click="guardarStatus()">
             Actualizar
           </v-btn>
-          <v-btn small class="mx-1" color="error" @click="dialog = false">
+          <v-btn size="small" class="mx-1" color="error" @click="dialog = false">
             Cancelar
           </v-btn>
         </v-card-actions>

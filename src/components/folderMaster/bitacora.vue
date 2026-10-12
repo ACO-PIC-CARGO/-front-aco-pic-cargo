@@ -7,18 +7,18 @@
         v-for="items in $store.state.itemsBitacoraList"
         :key="items"
       >
-        <v-expansion-panel-header>
+        <v-expansion-panel-title>
           {{ items.namegroupservice }}
-        </v-expansion-panel-header>
-        <v-expansion-panel-content>
-          <v-list three-line>
+        </v-expansion-panel-title>
+        <v-expansion-panel-text>
+          <v-list lines="three">
             <template>
               <v-list-item v-for="child in items.groupservice" :key="child">
                 <v-list-item-avatar>
                   <v-checkbox></v-checkbox>
                 </v-list-item-avatar>
 
-                <v-list-item-content>
+                
                   <v-list-item-title>{{
                     child.namebitacora
                   }}</v-list-item-title>
@@ -26,11 +26,11 @@
                     <v-text-field label="Comentario" type="text"></v-text-field
                     ><v-text-field label="Fecha" type="date"></v-text-field
                   ></v-list-item-subtitle>
-                </v-list-item-content>
+                
               </v-list-item>
             </template>
           </v-list>
-        </v-expansion-panel-content>
+        </v-expansion-panel-text>
       </v-expansion-panel>
     </v-expansion-panels>
   </div>

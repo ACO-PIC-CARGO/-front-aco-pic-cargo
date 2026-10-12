@@ -1,6 +1,6 @@
 <template>
   <div>
-    <v-btn @click="nueva()" color="success" text>Nueva</v-btn>
+    <v-btn @click="nueva()" color="success" variant="text">Nueva</v-btn>
   </div>
 </template>
 

@@ -1,6 +1,6 @@
 <template>
   <v-dialog
-    :value="value"
+    :model-value="value"
     max-width="520"
     persistent
     :fullscreen="$vuetify.breakpoint.xsOnly"
@@ -44,11 +44,11 @@
       <p class="module-select__count" aria-live="polite">{{ countLabel }}</p>
 
       <footer class="module-select__footer">
-        <v-btn text class="plans-button plans-button--ghost" @click="close">
+        <v-btn variant="text" class="plans-button plans-button--ghost" @click="close">
           Cancelar
         </v-btn>
         <v-btn
-          text
+          variant="text"
           type="submit"
           class="plans-button plans-button--primary"
           :disabled="!isComplete"

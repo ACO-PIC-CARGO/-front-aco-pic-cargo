@@ -95,7 +95,7 @@
     <footer class="plan__footer">
       <slot />
       <v-btn
-        text
+        variant="text"
         class="plan__details-toggle"
         :aria-expanded="String(expanded)"
         :aria-controls="detailsId"

@@ -1,13 +1,13 @@
 <template>
   <div>
-    <v-overlay :value="$store.state.spiner">
-      <v-row class="fill-height" align-content="center" justify="center">
+    <v-overlay :model-value="$store.state.spiner">
+      <v-row class="fill-height align-content-center justify-center">
         <v-col class="text-subtitle-1 text-center" cols="12">
           Cargando Datos, espere un momento por favor...
         </v-col>
         <v-col cols="6">
           <v-progress-linear
-            color="deep-purple accent-4"
+            color="deep-purple-accent-4"
             indeterminate
             rounded
             height="6"

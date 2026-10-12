@@ -8,19 +8,19 @@
     <!-- <v-btn @click="nuevoIngreso()" color="blue" dark small>
       Nuevo Control Gastos Ingresos
     </v-btn> -->
-    <v-expansion-panels v-model="openedPanel" accordion>
+    <v-expansion-panels v-model="openedPanel" variant="accordion">
       <v-expansion-panel
         v-for="(house, index) in master_houses || []"
         :key="index"
         :value="house.isExpanded"
       >
-        <v-expansion-panel-header @click.stop="abrirExpandIngreso(index)">
+        <v-expansion-panel-title @click.stop="abrirExpandIngreso(index)">
           <template #actions>
             <v-icon @click="abrirExpandIngreso(index)"
               >mdi-unfold-more-horizontal</v-icon
             >
           </template>
-          <v-simple-table dense>
+          <v-table density="compact">
             <thead>
               <tr>
                 <!-- <th width="10%">House</th> -->
@@ -86,7 +86,7 @@
                     @click.stop="handleNuevoIngreso(index, house)"
                     color="blue"
                     dark
-                    x-small
+                    size="x-small"
                   >
                     Nuevo Concepto
 
@@ -94,24 +94,24 @@
                   </v-btn>
                   <v-btn
                     v-else
-                    small
+                    size="small"
                     @click="nuevoControlGasto(house)"
-                    color="green darken-3"
+                    color="green-darken-3"
                     dark
                     @click.stop="abrirExpandIngreso(index)"
                     >Nuevo Control de Gastos Ingresos</v-btn
                   >
                   <v-tooltip
-                    bottom
+                    location="bottom"
                     color="error"
                     v-if="bloquearCopiarMontos(house.ingresos)"
                   >
-                    <template v-slot:activator="{ on, attrs }">
+                    <template v-slot:activator="{ props }">
                       <v-btn
-                        v-bind="attrs"
-                        v-on="on"
+                       
+                        v-bind="props"
                         color="success"
-                        x-small
+                        size="x-small"
                         @click="
                           abriModalCopiar(
                             house.ingresos,
@@ -129,7 +129,7 @@
                   <v-btn
                     v-else
                     color="success"
-                    x-small
+                    size="x-small"
                     @click="
                       abriModalCopiar(
                         house,
@@ -163,7 +163,7 @@
                   <v-btn
                     v-if="house.id_orders"
                     color="indigo"
-                    small
+                    size="small"
                     dark
                     class="mb-1"
                     @click.stop="abrirModalCambiarExpediente(house)"
@@ -173,8 +173,8 @@
                   </v-btn>
                   <v-btn
                     v-if="house.id_orders"
-                    color="red darken-1"
-                    small
+                    color="red-darken-1"
+                    size="small"
                     dark
                     @click.stop="eliminarHouseIngreso(house)"
                   >
@@ -194,7 +194,7 @@
                   <v-btn
                     :color="!house.tienefacturafiscal ? '#616161' : 'primary'"
                     dark
-                    small
+                    size="small"
                     @click.stop="abrirModalFacturasFiscales(house)"
                   >
                     {{
@@ -206,7 +206,7 @@
                   <v-btn
                     v-if="house.id_orders"
                     color="pink"
-                    small
+                    size="small"
                     class="mt-1"
                     :dark="!isBotonEmitirProformaDisabled(house)"
                     :disabled="isBotonEmitirProformaDisabled(house)"
@@ -218,10 +218,10 @@
                 </td>
               </tr>
             </tbody>
-          </v-simple-table>
-        </v-expansion-panel-header>
-        <v-expansion-panel-content>
-          <v-simple-table dense>
+          </v-table>
+        </v-expansion-panel-title>
+        <v-expansion-panel-text>
+          <v-table density="compact">
             <thead>
               <tr>
                 <th class="text-left">Descripción</th>
@@ -379,15 +379,15 @@
                 </td>
               </tr>
             </tbody>
-          </v-simple-table>
-        </v-expansion-panel-content>
+          </v-table>
+        </v-expansion-panel-text>
       </v-expansion-panel>
     </v-expansion-panels>
 
     <!--  -->
     <v-dialog v-model="dialogIngreso" width="800" persistent>
       <v-card>
-        <v-card-title class="text-h5 grey lighten-2">
+        <v-card-title class="text-h5 bg-grey-lighten-2">
           Datos del servicio
           <v-spacer></v-spacer>
           <v-btn icon color="default" @click="dialogIngreso = !dialogIngreso">
@@ -404,7 +404,7 @@
                   <v-autocomplete
                     :items="$store.state.controlGastos.listCorrelativo"
                     v-model="ingresos.id_correlativo"
-                    item-text="code"
+                    item-title="code"
                     item-value="id"
                     label="Correlativo"
                     :rules="[(v) => !!v || 'Dato Requerido']"
@@ -427,7 +427,7 @@
                           v-if="item.description"
                           class="correlativo-descripcion"
                         >
-                          <v-icon v-if="item.mdi_icon" small class="mr-2">
+                          <v-icon v-if="item.mdi_icon" size="small" class="mr-2">
                             {{ item.mdi_icon }}
                           </v-icon>
 
@@ -448,9 +448,9 @@
                 <v-col cols="3">
                   <v-switch
                     v-if="mostrarImpuesto"
-                    @change="calcularE()"
+                    @update:model-value="calcularE()"
                     v-model="ingresos.statusCalcula"
-                    dense
+                    density="compact"
                     :label="`Calcula ${$store.state.enterprises.impuesto.nombre_impuesto}`"
                   ></v-switch>
                   <!-- <p v-else>NO HA CONFIGURADO EL IMPUESTOS A LA VENTAS. Ir al Módulo de Configuración</p> -->
@@ -461,18 +461,18 @@
                   <v-autocomplete
                     :items="$store.state.itemsCoinsList"
                     v-model="ingresos.id_coins"
-                    item-text="acronym"
+                    item-title="acronym"
                     item-value="id"
                     label="Moneda de Banco Salida"
-                    @change="obtenerMoneda()"
-                    dense
+                    @update:model-value="obtenerMoneda()"
+                    density="compact"
                     :rules="[(v) => !!v || 'Dato Requerido']"
                   ></v-autocomplete>
                 </v-col>
 
                 <v-col cols="12" md="3" v-if="opFlag">
                   <v-text-field
-                    dense
+                    density="compact"
                     v-if="
                       ingresos.id_coins &&
                       $store.state.itemsCoinsList.find(
@@ -482,7 +482,7 @@
                     v-model="ingresos.tipocambio"
                     type="number"
                     label="Tipo de Cambio"
-                    @input="calcularE()"
+                    @update:model-value="calcularE()"
                     step="0.01"
                     :rules="[
                       (v) => !!v || 'Dato Requerido',
@@ -560,7 +560,7 @@
                 <!--  -->
                 <v-col cols="12" md="4" v-if="opFlag">
                   <v-text-field
-                    dense
+                    density="compact"
                     v-model="ingresos.montoopview"
                     type="number"
                     label="Monto Operaciones (Solo lectura) "
@@ -571,7 +571,7 @@
 
                 <v-col cols="12" md="4" v-if="opFlag && mostrarImpuesto">
                   <v-text-field
-                    dense
+                    density="compact"
                     v-model="ingresos.igvopview"
                     type="number"
                     :label="`${$store.state.enterprises.impuesto.nombre_impuesto} Operaciones (Solo lectura)`"
@@ -582,7 +582,7 @@
 
                 <v-col cols="12" md="4" v-if="opFlag">
                   <v-text-field
-                    dense
+                    density="compact"
                     v-model="ingresos.totalopview"
                     type="number"
                     label="Total Operaciones (Solo lectura) "
@@ -618,7 +618,7 @@
     <!--  -->
     <v-dialog max-width="90%" v-model="dialogDebs" persistent>
       <v-card>
-        <v-card-title class="text-h5 grey lighten-2">
+        <v-card-title class="text-h5 bg-grey-lighten-2">
           Abonos del cliente
           <v-spacer></v-spacer>
 
@@ -631,14 +631,14 @@
             <template v-slot:[`item.accion`]="{ item }">
               <v-icon
                 class="btn_add mr-2"
-                small
+                size="small"
                 color="default"
                 @click="openDoc(item.path)"
                 >mdi-eye</v-icon
               >
               <v-icon
                 class="btn_add mr-2"
-                small
+                size="small"
                 color="warning"
                 v-if="item.status == 1"
                 @click="editarDebs(item)"
@@ -646,7 +646,7 @@
               >
               <v-icon
                 class="btn_add mr-2"
-                small
+                size="small"
                 color="red"
                 v-if="item.status == 1"
                 @click="_delDebsClient(item.id)"
@@ -657,23 +657,23 @@
               <v-chip
                 block
                 v-if="item.status == 2"
-                small
+                size="small"
                 class=""
                 color="success"
-                outlined
+                variant="outlined"
               >
-                <v-icon left> mdi-check </v-icon>
+                <v-icon start> mdi-check </v-icon>
                 Confirmado
               </v-chip>
               <v-chip
                 block
                 v-if="item.status == 1"
-                small
+                size="small"
                 class=""
                 color="orange"
-                outlined
+                variant="outlined"
               >
-                <v-icon left> mdi-warning </v-icon>
+                <v-icon start> mdi-warning </v-icon>
                 Por Confirmar
               </v-chip>
             </template>
@@ -691,7 +691,7 @@
     <!--  -->
     <v-dialog max-width="80%" v-model="dialogNewDebs" v-if="dialogNewDebs">
       <v-card>
-        <v-card-title class="text-h5 grey lighten-2">
+        <v-card-title class="text-h5 bg-grey-lighten-2">
           Cargar un Nuevo abonos
           <v-spacer></v-spacer>
           <v-btn icon color="default" @click="dialogNewDebs = !dialogNewDebs">
@@ -701,7 +701,7 @@
         <v-card-text>
           <v-container>
             <v-form ref="frmNuevoAbono">
-              <v-row dense>
+              <v-row density="compact">
                 <v-col cols="12" md="3">
                   <v-text-field
                     label="Fecha de Operación"
@@ -725,10 +725,10 @@
                   <v-autocomplete
                     :items="$store.state.itemsCoinsList"
                     v-model="id_coins"
-                    item-text="acronym"
+                    item-title="acronym"
                     item-value="id"
                     label="Moneda "
-                    @change="obtenerMoneda()"
+                    @update:model-value="obtenerMoneda()"
                     :rules="[(v) => !!v || 'Dato Requerido']"
                   ></v-autocomplete>
                 </v-col>
@@ -771,7 +771,7 @@
                   <v-autocomplete
                     :items="$store.state.itemsDataBanksList"
                     v-model="id_banks"
-                    item-text="acronym"
+                    item-title="acronym"
                     item-value="id"
                     label="Banco Origen"
                     :rules="[(v) => !!v || 'Dato Requerido']"
@@ -786,7 +786,7 @@
                     "
                     v-model="id_cuenta_pic"
                     label="Cuenta Destino (PIC)"
-                    item-text="label"
+                    item-title="label"
                     item-value="id"
                     :rules="[(v) => !!v || 'Datos Requerido']"
                   ></v-select>
@@ -796,7 +796,7 @@
                   <v-textarea
                     auto-grow
                     rows="1"
-                    append-outer-icon="mdi-comment"
+                    append-icon="mdi-comment"
                     v-model="comentario"
                     label="Comentario"
                     :rules="[(v) => !!v || 'Dato Requerido']"
@@ -831,7 +831,7 @@
         <v-card-text>
           <v-container>
             <v-form ref="frmNuevoAbono">
-              <v-row dense>
+              <v-row density="compact">
                 <v-col cols="12" md="3">
                   <v-text-field
                     label="Fecha de Operación"
@@ -876,7 +876,7 @@
                   <v-autocomplete
                     :items="$store.state.itemsDataBanksList"
                     v-model="id_banks"
-                    item-text="acronym"
+                    item-title="acronym"
                     item-value="id"
                     label="Banco Origen"
                     :rules="[(v) => !!v || 'Dato Requerido']"
@@ -891,7 +891,7 @@
                     "
                     v-model="id_cuenta_pic"
                     label="Cuenta Destino (PIC)"
-                    item-text="label"
+                    item-title="label"
                     item-value="id"
                     :rules="[(v) => !!v || 'Datos Requerido']"
                   ></v-select>
@@ -901,10 +901,10 @@
                   <v-autocomplete
                     :items="$store.state.itemsCoinsList"
                     v-model="id_coins"
-                    item-text="acronym"
+                    item-title="acronym"
                     item-value="id"
                     label="Moneda En cuenta de Banco"
-                    @change="obtenerMoneda()"
+                    @update:model-value="obtenerMoneda()"
                     :rules="[(v) => !!v || 'Dato Requerido']"
                   ></v-autocomplete>
                 </v-col>
@@ -935,12 +935,12 @@
                     :disabled="boolFile || payfile == []"
                     color="blue-grey"
                     block
-                    class="ma-2 white--text"
-                    large
+                    class="ma-2 text-white"
+                    size="large"
                     @click="_uploadFile()"
                   >
                     Subir
-                    <v-icon right dark> mdi-cloud-upload </v-icon>
+                    <v-icon end dark> mdi-cloud-upload </v-icon>
                   </v-btn>
                 </v-col>
               </v-row>
@@ -950,7 +950,7 @@
         <v-card-actions>
           <v-btn color="primary" @click="actualizar()">GUARDAR ABONO</v-btn>
           <v-spacer></v-spacer>
-          <v-btn outlined color="red" @click="dialogDebsEdit = !dialogDebsEdit"
+          <v-btn variant="outlined" color="red" @click="dialogDebsEdit = !dialogDebsEdit"
             >Cerrar</v-btn
           >
         </v-card-actions>
@@ -1019,7 +1019,7 @@
                 <v-col cols="4">
                   <v-autocomplete
                     :items="$store.state.itemsCoinsList"
-                    item-text="symbol"
+                    item-title="symbol"
                     item-value="id"
                     label="Moneda"
                     placeholder="Seleccione una moneda"
@@ -1033,12 +1033,12 @@
                 <v-col cols="8" v-if="$store.state.branchs.length > 1">
                   <v-autocomplete
                     :items="$store.state.branchs"
-                    item-text="trade_name"
+                    item-title="trade_name"
                     item-value="id"
                     label="Sucursal"
                     placeholder="Seleccione una sucursal"
                     v-model="id_branch"
-                    @change="obtenerDatos()"
+                    @update:model-value="obtenerDatos()"
                   >
                   </v-autocomplete>
                 </v-col>
@@ -1083,7 +1083,7 @@
         <v-card-title>
           Facturas y Proformas Fiscales de {{ house.consigner }}
           <v-spacer></v-spacer>
-          <v-btn outlined @click="cargarProformaFiscal" color="primary">
+          <v-btn variant="outlined" @click="cargarProformaFiscal" color="primary">
             Cargar Nueva
           </v-btn>
         </v-card-title>
@@ -1091,7 +1091,7 @@
           <v-data-table
             :headers="headersFacturasFiscales"
             :items="$store.state.houses.lstFacturasFiscales"
-            dense
+            density="compact"
             item-key="id"
             class="elevation-0"
             :loading="isDataTableLoading"
@@ -1106,7 +1106,7 @@
                   item.type == 'jpg' ||
                   item.type == 'jpeg'
                 "
-                color="blue-grey darken-1"
+                color="blue-grey-darken-1"
                 class="mr-2"
                 >mdi-file-image</v-icon
               >
@@ -1121,11 +1121,10 @@
               {{ item.nro_factura }}
             </template>
             <template v-slot:[`item.path`]="{ item }">
-              <v-btn icon small>
+              <v-btn icon size="small">
                 <v-icon
                   class="btn_add mr-2"
-                  dense
-                  large
+                  size="large"
                   color="grey"
                   @click.native="openDoc(item.path)"
                 >
@@ -1134,11 +1133,10 @@
               >
             </template>
             <template v-slot:[`item.action`]="{ item }">
-              <v-btn icon small>
+              <v-btn icon size="small">
                 <v-icon
                   class="btn_add mr-2"
-                  dense
-                  large
+                  size="large"
                   color="red"
                   @click.native="eliminarProformaFiscal(item.id)"
                 >
@@ -1162,9 +1160,9 @@
         </v-card-title>
         <v-card-text>
           <v-container>
-            <v-row dense>
+            <v-row density="compact">
               <v-col cols="12" md="12">
-                <v-radio-group v-model="proformaFiscal.tipo_pago" row>
+                <v-radio-group v-model="proformaFiscal.tipo_pago" inline>
                   <v-radio label="Factura" value="1"></v-radio>
                   <v-radio label="Performance" value="2"></v-radio>
                   <v-radio label="Otro" value="3"></v-radio>
@@ -1214,7 +1212,7 @@
           </v-btn>
           <v-spacer></v-spacer>
           <v-btn
-            outlined
+            variant="outlined"
             color="red"
             @click="dialogProformaFiscal = !dialogProformaFiscal"
             >Cerrar</v-btn
@@ -1236,7 +1234,7 @@
         </v-card-title>
 
         <v-card-text class="px-5">
-          <v-simple-table width="100%">
+          <v-table width="100%">
             <thead>
               <th>#</th>
               <th>Nro Factura</th>
@@ -1265,7 +1263,7 @@
                 </td>
               </tr>
             </tbody>
-          </v-simple-table>
+          </v-table>
           <v-subheader class="blinking">
             <v-icon color="warning">mdi-alert</v-icon> PARA EDITAR , DEBES
             ELIMINAR Y VOLVER A GENERAR LA PROFORMA
@@ -1283,7 +1281,7 @@
     <!-- CAMBIAR EXPEDIENTE (HOUSE CODE) -->
     <v-dialog v-model="dialogCambiarExpediente" max-width="500">
       <v-card>
-        <v-card-title class="text-h5 grey lighten-2">
+        <v-card-title class="text-h5 bg-grey-lighten-2">
           Cambiar expediente (House)
           <v-spacer></v-spacer>
           <v-btn icon color="default" @click="dialogCambiarExpediente = false">
@@ -1299,16 +1297,16 @@
             "
             v-model="selectedNuevoExpediente"
             item-value="id"
-            item-text="code_master"
+            item-title="code_master"
             label="Seleccione nuevo expediente"
-            outlined
+            variant="outlined"
             class="my-5"
           ></v-autocomplete>
           <p class="caption mb-0">Actual: {{ house.code_house }}</p>
         </v-card-text>
         <v-card-actions>
           <v-spacer></v-spacer>
-          <v-btn outlined color="red" @click="dialogCambiarExpediente = false"
+          <v-btn variant="outlined" color="red" @click="dialogCambiarExpediente = false"
             >Cancelar</v-btn
           >
           <v-btn
@@ -1328,7 +1326,7 @@
       max-width="40%"
     >
       <v-card>
-        <v-card-title class="text-h5 grey lighten-2">
+        <v-card-title class="text-h5 bg-grey-lighten-2">
           Cargar Documentos de Cotización
           <v-spacer></v-spacer>
           <v-btn
@@ -1340,7 +1338,7 @@
           </v-btn>
         </v-card-title>
         <v-card-text>
-          <v-simple-table>
+          <v-table>
             <tbody>
               <tr
                 v-for="(doc, index) in listaDocumentos.filter(
@@ -1356,7 +1354,7 @@
                   <div v-if="doc.editable">
                     <v-text-field
                       v-model="doc.label"
-                      dense
+                      density="compact"
                       hide-details
                       placeholder="Nombre del documento personalizado"
                       variant="underlined"
@@ -1379,7 +1377,7 @@
                 </td>
               </tr>
             </tbody>
-          </v-simple-table>
+          </v-table>
         </v-card-text>
         <v-card-actions>
           <v-spacer></v-spacer>
@@ -1413,14 +1411,14 @@
             <v-autocomplete
               :items="$store.state.itemsCoinsList"
               v-model="ingresos.id_coins"
-              item-text="acronym"
+              item-title="acronym"
               item-value="id"
               label="Moneda de Banco Salida"
-              @change="obtenerMoneda()"
+              @update:model-value="obtenerMoneda()"
               :rules="[(v) => !!v || 'Dato Requerido']"
             />
             <v-text-field
-              dense
+              density="compact"
               v-model="ingresos.tipocambio"
               type="number"
               label="Tipo de Cambio"

@@ -36,10 +36,10 @@
           <v-fab-transition v-if="formControlMasterReadonly">
             <v-btn
               fab
-              large
+              size="large"
               dark
-              bottom
-              left
+              location="bottom left"
+              
               color="info"
               @click="irAVerMaster()"
             >
@@ -70,7 +70,7 @@
               @click="openURL({ url: $store.state.url_folderonedrive })"
               color="yellow"
             >
-              <v-icon left>mdi-folder</v-icon>
+              <v-icon start>mdi-folder</v-icon>
               Carpeta
             </v-btn>
             <v-btn
@@ -79,25 +79,25 @@
               color="primary"
               :loading="loadingBotonNuevoHouse"
             >
-              <v-icon left>mdi-home-plus</v-icon>
+              <v-icon start>mdi-home-plus</v-icon>
               Agregar House
             </v-btn>
             <v-btn
-              color="light-green lighten-1"
+              color="light-green-lighten-1"
               @click="_putMaster()"
               dark
               v-if="this.$route.params.id"
             >
-              <v-icon left>mdi-content-save</v-icon>
+              <v-icon start>mdi-content-save</v-icon>
               Guardar Cambios
             </v-btn>
             <v-btn
-              color="light-green lighten-1"
+              color="light-green-lighten-1"
               @click="_setMaster()"
               dark
               v-if="!this.$route.params.id"
             >
-              <v-icon left>mdi-content-save</v-icon>
+              <v-icon start>mdi-content-save</v-icon>
               Guardar
             </v-btn>
           </v-speed-dial>

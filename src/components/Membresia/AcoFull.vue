@@ -25,10 +25,10 @@
             <v-select
               :items="items"
               v-model="idTiempo"
-              item-text="label"
+              item-title="label"
               item-value="id"
-              outlined
-              dense
+              variant="outlined"
+              density="compact"
             ></v-select>
           </v-col>
         </v-row>
@@ -41,7 +41,7 @@
         Disfruta más tiempo de ACO y obtén un descuento exclusivo:
       </v-col>
       <v-col cols="12">
-        <v-simple-table class="tableDate">
+        <v-table class="tableDate">
           <thead>
             <tr>
               <th>Tiempo</th>
@@ -74,7 +74,7 @@
               <td>$324.00</td>
             </tr>
           </tbody>
-        </v-simple-table>
+        </v-table>
       </v-col>
       <v-col cols="12" class="centrado">
         <v-btn dark class="mx-5" color="red">Regresar</v-btn>

@@ -4,14 +4,14 @@
       <v-row>
         <v-autocomplete
           :items="provedores"
-          item-text="namelong"
+          item-title="namelong"
           item-value="id"
           label="Proveedor"
           v-model="id_proveedor"
           return-object
           clearable
           :readonly="tipo == 'ver'"
-          @change="obtenerListado()"
+          @update:model-value="obtenerListado()"
         >
         </v-autocomplete>
         <v-spacer></v-spacer>
@@ -42,7 +42,7 @@
             <v-col cols="3">
               <v-btn
                 v-if="selected.length > 0"
-                color="green darken-4"
+                color="green-darken-4"
                 @click="continuar()"
                 dark
                 >Continuar</v-btn
@@ -59,13 +59,13 @@
                   <v-autocomplete
                     :items="$store.state.itemsCoinsList"
                     v-model="id_coins"
-                    item-text="acronym"
+                    item-title="acronym"
                     item-value="id"
                     label="Moneda"
                     :disabled="
                       selected.filter((v) => v.id == item.id).length == 0
                     "
-                    @change="calcularTotales"
+                    @update:model-value="calcularTotales"
                   ></v-autocomplete>
                 </template>
                 <!--  -->
@@ -134,7 +134,7 @@
               <v-col md="4" cols="4">
                 <v-autocomplete
                   :items="(cuentas || []).filter((v) => v.symbol == symbol)"
-                  item-text="label"
+                  item-title="label"
                   item-value="id"
                   label="Cuenta de Salida de Banco"
                   v-model="id_cuenta"

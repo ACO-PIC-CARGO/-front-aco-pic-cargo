@@ -26,13 +26,13 @@
       </v-card-title>
 
       <v-container v-if="!$store.state.dataList" style="height: 400px">
-        <v-row class="fill-height" align-content="center" justify="center">
+        <v-row class="fill-height align-content-center justify-center">
           <v-col class="text-subtitle-1 text-center" cols="12">
             Cargando informacíon
           </v-col>
           <v-col cols="6">
             <v-progress-linear
-              color="deep-purple accent-4"
+              color="deep-purple-accent-4"
               indeterminate
               rounded
               height="6"
@@ -49,18 +49,18 @@
         :search="search"
       >
         <template v-slot:[`item.moredata`]="{ item }">
-          <v-tooltip top>
-            <template v-slot:activator="{ on, attrs }">
+          <v-tooltip location="top">
+            <template v-slot:activator="{ props }">
               <v-btn
                 class="mx-2"
                 fab
                 dark
                 elevation="0"
-                x-small
-                v-bind="attrs"
-                v-on="on"
+                size="x-small"
+               
+                v-bind="props"
                 @click="openPhone(item.id)"
-                color="blue-grey darken-3"
+                color="blue-grey-darken-3"
               >
                 <v-icon dark> mdi-phone </v-icon>
               </v-btn>
@@ -73,18 +73,18 @@
           </v-icon> -->
         </template>
         <template v-slot:[`item.moredata2`]="{ item }">
-          <v-tooltip bottom>
-            <template v-slot:activator="{ on, attrs }">
+          <v-tooltip location="bottom">
+            <template v-slot:activator="{ props }">
               <v-btn
                 class="mx-2"
                 fab
                 dark
                 elevation="0"
-                x-small
-                v-bind="attrs"
-                v-on="on"
+                size="x-small"
+               
+                v-bind="props"
                 @click="openContacts(item.id)"
-                color="blue-grey darken-3"
+                color="blue-grey-darken-3"
               >
                 <v-icon dark> mdi-account-multiple </v-icon>
               </v-btn>
@@ -98,7 +98,7 @@
         <template v-slot:[`item.actions`]="{ item }">
           <v-icon
             v-if="$route.params.id_role"
-            medium
+            size="medium"
             color="orange"
             class="mr-2"
             @click="editEntitie(item.id)"
@@ -107,7 +107,7 @@
           </v-icon>
           <v-icon
             v-if="!$route.params.id_role"
-            medium
+            size="medium"
             color="primary"
             class="mr-2"
             @click="sendData(item.id)"

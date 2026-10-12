@@ -11,7 +11,7 @@
           v-model="lcl.pdfindividual"
           label=""
           auto-grow
-          outlined
+          variant="outlined"
           hide-details
         >
           <template #label>
@@ -24,7 +24,7 @@
           v-model="lcl.pdfgrupal"
           label="Texto para envío de PDF - GRUPAL"
           auto-grow
-          outlined
+          variant="outlined"
           hide-details
         >
           <template #label>

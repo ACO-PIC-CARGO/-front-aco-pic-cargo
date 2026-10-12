@@ -1,6 +1,6 @@
 <template>
   <v-card elevation="0">
-    <v-card-title class="black white--text rounded-0"
+    <v-card-title class="bg-black text-white rounded-0"
       >EXPEDIENTES MÁSTER</v-card-title
     >
     <v-card-title>FILTRAR REGISTROS</v-card-title>
@@ -9,22 +9,22 @@
       <v-form ref="frmFiltro">
         <v-autocomplete
           :items="$store.state.itemsModality"
-          item-text="name"
+          item-title="name"
           item-value="id"
           label="Sentido"
-          dense
+          density="compact"
           v-model="$store.state.controlgastosfiltro.id_sentido"
         ></v-autocomplete>
 
         <v-autocomplete
           :items="$store.state.itemsShipment"
-          item-text="embarque"
+          item-title="embarque"
           item-value="id"
           label="Tipo Embarque"
-          dense
+          density="compact"
           v-model="$store.state.controlgastosfiltro.id_tipo_embarque"
           return-object
-          @change="
+          @update:model-value="
             activarPort(
               $store.state.controlgastosfiltro.id_tipo_embarque.id_transport,
             )
@@ -33,63 +33,63 @@
 
         <v-autocomplete
           :items="$store.state.itemsPortBegin"
-          item-text="name"
+          item-title="name"
           item-value="id_port"
           label="Origen"
-          dense
+          density="compact"
           v-model="$store.state.controlgastosfiltro.id_origen"
         ></v-autocomplete>
 
         <v-autocomplete
           :items="$store.state.itemsPortEnd"
-          item-text="name"
+          item-title="name"
           item-value="id_port"
           label="Destino"
-          dense
+          density="compact"
           v-model="$store.state.controlgastosfiltro.id_destino"
         ></v-autocomplete>
 
         <v-autocomplete
           :items="$store.state.masterusuarios.lstCanales"
-          item-text="descripcion"
+          item-title="descripcion"
           item-value="id"
           label="Canal"
-          dense
+          density="compact"
           v-model="$store.state.controlgastosfiltro.id_canal"
         ></v-autocomplete>
 
         <v-autocomplete
           :items="$store.state.itemsProveedorList"
-          item-text="namelong"
+          item-title="namelong"
           item-value="id"
           label="Agente"
-          dense
+          density="compact"
           v-model="$store.state.controlgastosfiltro.id_agente"
         ></v-autocomplete>
 
         <v-text-field
           
           label="Nro MBL"
-          dense
+          density="compact"
           v-model="$store.state.controlgastosfiltro.nro_mbl"
         ></v-text-field>
 
         <v-text-field
           type="date"
           label="Fecha ETD"
-          dense
+          density="compact"
           v-model="$store.state.controlgastosfiltro.fecha_etd"
         ></v-text-field>
 
         <v-text-field
           type="date"
           label="Fecha ETA"
-          dense
+          density="compact"
           v-model="$store.state.controlgastosfiltro.fecha_eta"
         ></v-text-field>
 
         <v-row>
-          <v-col col="6">
+          <v-col class="col">
             <p>Estado Operativo</p>
             <v-radio-group
               v-model="$store.state.controlgastosfiltro.status_operativo"
@@ -100,7 +100,7 @@
             </v-radio-group>
           </v-col>
 
-          <v-col col="6">
+          <v-col class="col">
             <p class="text-truncate">Estado Administrativo</p>
             <v-radio-group
               v-model="$store.state.controlgastosfiltro.status_administrativo"
@@ -115,18 +115,18 @@
     </v-card-text>
     <v-card-actions>
       <v-spacer></v-spacer>
-      <v-btn small class="mx-1" color="success" @click="filtrar()">
+      <v-btn size="small" class="mx-1" color="success" @click="filtrar()">
         Aceptar
       </v-btn>
       <v-btn
-        small
+        size="small"
         class="mx-1"
         color="error"
         @click="$store.state.cg_filtrarData = !$store.state.cg_filtrarData"
       >
         Cancelar
       </v-btn>
-      <v-btn small class="mx-1" color="default" @click="limpiar()">
+      <v-btn size="small" class="mx-1" color="default" @click="limpiar()">
         Limpiar
       </v-btn>
     </v-card-actions>

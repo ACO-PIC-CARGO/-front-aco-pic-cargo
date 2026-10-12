@@ -1,13 +1,13 @@
 <template>
   <v-card fluid class="px-5">
     <v-container v-if="loading" style="height: 400px">
-      <v-row class="fill-height" align-content="center" justify="center">
+      <v-row class="fill-height align-content-center justify-center">
         <v-col class="text-subtitle-1 text-center" cols="12">
           Cargando información ....
         </v-col>
         <v-col cols="6">
           <v-progress-linear
-            color="deep-purple accent-4"
+            color="deep-purple-accent-4"
             indeterminate
             rounded
             height="6"
@@ -26,11 +26,11 @@
       >
       </v-text-field>
       <v-spacer></v-spacer>
-      <v-btn small color="success" @click="open_new()"> Nuevo </v-btn>
-      <v-btn small class="mx-1" color="#2962FF" dark @click="open_filter()">
+      <v-btn size="small" color="success" @click="open_new()"> Nuevo </v-btn>
+      <v-btn size="small" class="mx-1" color="#2962FF" dark @click="open_filter()">
         Fitrar
       </v-btn>
-      <v-btn small class="mx-1" color="#004D40" dark> Exportar </v-btn>
+      <v-btn size="small" class="mx-1" color="#004D40" dark> Exportar </v-btn>
     </v-card-title>
 
     <v-data-table
@@ -63,16 +63,16 @@
     <v-navigation-drawer
       v-model="showFilterDrawerNew"
       absolute
-      bottom
+      location="bottom right"
       temporary
-      right
+      
       width="30%"
       height="100vh"
     >
       <v-list-item>
-        <v-list-item-content>
+        
           <v-list-item-title class="text-h6"> Nuevo Género </v-list-item-title>
-        </v-list-item-content>
+        
       </v-list-item>
 
       <v-spacer></v-spacer>
@@ -118,12 +118,12 @@
           </v-form>
           <v-row>
             <v-switch
-              dense
+              density="compact"
               :label="`Estado: ${record.status ? 'Activo' : 'Inactivo'}`"
               v-model="record.status"
               hide-details
               color="success"
-              @change="updateStatus"
+              @update:model-value="updateStatus"
             ></v-switch>
           </v-row>
         </v-card-text>
@@ -142,19 +142,19 @@
     <v-navigation-drawer
       v-model="showFilterDrawerRead"
       absolute
-      bottom
+      location="bottom right"
       temporary
-      right
+      
       width="30%"
       height="100vh"
     >
       <v-container v-if="!loading_as">
         <v-list-item class="px-0">
-          <v-list-item-content>
+          
             <v-list-item-title class="text-h6">
               Ver: {{ $store.state.sex.record.name }}
             </v-list-item-title>
-          </v-list-item-content>
+          
         </v-list-item>
 
         <v-spacer></v-spacer>
@@ -163,28 +163,28 @@
             <v-text-field
               label="Código"
               readonly
-              :value="$store.state.sex.record.code"
+              :model-value="$store.state.sex.record.code"
             ></v-text-field>
           </v-row>
           <v-row>
             <v-text-field
               label="Nombre"
               readonly
-              :value="$store.state.sex.record.name"
+              :model-value="$store.state.sex.record.name"
             ></v-text-field>
           </v-row>
           <v-row>
             <v-text-field
               label="Acrónimo"
               readonly
-              :value="$store.state.sex.record.acronym"
+              :model-value="$store.state.sex.record.acronym"
             ></v-text-field>
           </v-row>
           <v-row>
             <v-text-field
               label="Descripción"
               readonly
-              :value="$store.state.sex.record.description"
+              :model-value="$store.state.sex.record.description"
             ></v-text-field>
           </v-row>
           <v-row>
@@ -211,13 +211,13 @@
       </v-container>
 
       <v-container v-if="loading_as" style="height: 400px">
-        <v-row class="fill-height" align-content="center" justify="center">
+        <v-row class="fill-height align-content-center justify-center">
           <v-col class="text-subtitle-1 text-center" cols="12">
             Cargando información ....
           </v-col>
           <v-col cols="6">
             <v-progress-linear
-              color="deep-purple accent-4"
+              color="deep-purple-accent-4"
               indeterminate
               rounded
               height="6"
@@ -230,19 +230,19 @@
     <v-navigation-drawer
       v-model="showFilterDrawerUpdate"
       absolute
-      bottom
+      location="bottom right"
       temporary
-      right
+      
       width="30%"
       height="100vh"
     >
       <v-container v-if="!loading_as">
         <v-list-item class="px-0">
-          <v-list-item-content>
+          
             <v-list-item-title class="text-h6">
               Modificar: {{ $store.state.sex.record.name }}
             </v-list-item-title>
-          </v-list-item-content>
+          
         </v-list-item>
 
         <v-spacer></v-spacer>
@@ -301,7 +301,7 @@
               :label="`Estado: ${record.status ? 'Activo' : 'Inactivo'}`"
               v-model="record.status"
               color="success"
-              @change="updateStatus"
+              @update:model-value="updateStatus"
             ></v-switch>
           </v-row>
         </v-card-text>
@@ -322,13 +322,13 @@
       </v-container>
 
       <v-container v-if="loading_as" style="height: 400px">
-        <v-row class="fill-height" align-content="center" justify="center">
+        <v-row class="fill-height align-content-center justify-center">
           <v-col class="text-subtitle-1 text-center" cols="12">
             Cargando información ....
           </v-col>
           <v-col cols="6">
             <v-progress-linear
-              color="deep-purple accent-4"
+              color="deep-purple-accent-4"
               indeterminate
               rounded
               height="6"
@@ -341,18 +341,18 @@
     <v-navigation-drawer
       v-model="showFilterDrawer"
       absolute
-      bottom
+      location="bottom right"
       temporary
-      right
+      
       width="30%"
       height="100vh"
     >
       <v-list-item>
-        <v-list-item-content>
+        
           <v-list-item-title class="text-h6">
             Filtrar Registros
           </v-list-item-title>
-        </v-list-item-content>
+        
       </v-list-item>
 
       <v-spacer></v-spacer>
@@ -388,7 +388,7 @@
             ></v-text-field>
           </v-row>
           <v-row>
-            <v-radio-group v-model="records.status" row dense>
+            <v-radio-group v-model="records.status" inline density="compact">
               <v-radio label="Activo" color="green" :value="1"></v-radio>
               <v-radio label="Inactivo" color="red" :value="0"></v-radio>
               <v-radio label="Todos" color="blue" value="null"></v-radio>

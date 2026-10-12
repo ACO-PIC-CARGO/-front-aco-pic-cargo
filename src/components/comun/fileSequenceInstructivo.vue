@@ -32,7 +32,7 @@
               <v-stepper-content step="2">
                 <v-row>
                   <v-col cols="12">
-                    <p class="red--text">
+                    <p class="text-red">
                       Email de Seguimiento con el coloader o Agente donde se
                       consiguió la tarifa
                     </p>
@@ -118,13 +118,13 @@
               <v-stepper-content step="5">
                 <v-row>
                   <v-col cols="12">
-                    <p class="red--text">
+                    <p class="text-red">
                       si se adjunta todo lo que más puedas facturas permisos,
                       fotos, y cualquier información relevante
                     </p>
                   </v-col>
                   <v-col cols="12">
-                    <v-simple-table>
+                    <v-table>
                       <tbody>
                         <tr
                           v-for="(doc, index) in listaDocumentos"
@@ -142,7 +142,7 @@
                             <div v-if="doc.editable">
                               <v-text-field
                                 v-model="doc.label"
-                                dense
+                                density="compact"
                                 hide-details
                                 placeholder="Nombre del documento personalizado"
                                 variant="underlined"
@@ -166,7 +166,7 @@
                           </td>
                         </tr>
                       </tbody>
-                    </v-simple-table>
+                    </v-table>
                   </v-col>
                   <v-col cols="12">
                     <v-spacer></v-spacer>
@@ -188,15 +188,15 @@
               <v-stepper-content step="6">
                 <v-row>
                   <v-col cols="12">
-                    <p class="red--text">
+                    <p class="text-red">
                       solo aplica si el cliente nos cancela a nosotros y
                       nosotros debemos pagar al proveedor
                     </p>
                     <v-select
-                      dense
+                      density="compact"
                       :items="cboSiNo"
                       v-model="datosManuales.pagarProveedor"
-                      outlined
+                      variant="outlined"
                       label="Si/ No"
                       hide-details
                       style="width: 120px; margin-top: 10px"
@@ -233,7 +233,7 @@
                   <v-col cols="12">
                     <v-radio-group
                       v-model="datosManuales.metodoPagarProveedor"
-                      dense
+                      density="compact"
                     >
                       <v-radio label="Pago por Alibaba" value="1" />
                       <v-radio label="Transferencia Internacional" value="2" />
@@ -255,7 +255,7 @@
                 <v-stepper-content step="8">
                   <v-row>
                     <v-col cols="12">
-                      <p class="red--text">
+                      <p class="text-red">
                         Solo aplica si el cliente nos cancela a nosotros...
                       </p>
                       <v-text-field
@@ -293,7 +293,7 @@
                         <v-select
                           :items="cboSiNo"
                           v-model="datosManualesNoAplica.clientePago"
-                          outlined
+                          variant="outlined"
                           label="Si/ No"
                           style="width: 120px; margin-top: 10px"
                           hide-details
@@ -452,7 +452,7 @@
                     <v-row>
                       <v-col cols="12">
                         <v-checkbox
-                          @change="checkNoAplica(13)"
+                          @update:model-value="checkNoAplica(13)"
                           label="No Aplica"
                           v-model="datosManualesNoAplica.nroFactura"
                         ></v-checkbox>
@@ -685,11 +685,11 @@
                 <v-stepper-content step="22">
                   <v-row>
                     <v-col cols="12">
-                      <p class="red--text">
+                      <p class="text-red">
                         solo aplica si el cliente nos cancela a nosotros...
                       </p>
                       <v-checkbox
-                        @change="checkNoAplica(8)"
+                        @update:model-value="checkNoAplica(8)"
                         label="No Aplica"
                         v-model="datosManualesNoAplica.dondePagar"
                       ></v-checkbox>
@@ -731,7 +731,7 @@
                 <v-row>
                   <v-col cols="12">
                     <v-checkbox
-                      @change="checkNoAplica(24)"
+                      @update:model-value="checkNoAplica(24)"
                       label="No Aplica"
                       v-model="datosManualesNoAplica.observacion1"
                     ></v-checkbox>
@@ -760,7 +760,7 @@
                 <v-row>
                   <v-col cols="12">
                     <v-checkbox
-                      @change="checkNoAplica(25)"
+                      @update:model-value="checkNoAplica(25)"
                       label="No Aplica"
                       v-model="datosManualesNoAplica.observacion2"
                     ></v-checkbox>
@@ -789,7 +789,7 @@
           :cols="verDatosPreview ? 7 : 12"
           class="px-10"
         >
-          <v-tabs color="deep-purple accent-4" right v-model="tabPreview">
+          <v-tabs color="deep-purple-accent-4" align-tabs="end" v-model="tabPreview">
             <v-spacer></v-spacer>
             <v-tabs-slider></v-tabs-slider>
             <v-tab href="#op">INSTRUCTIVO A OPERACIONES</v-tab>
@@ -797,7 +797,7 @@
             <v-tabs-items v-model="tabPreview" class="mt-5">
               <v-tab-item value="op">
                 <div class="clsInstructivo">
-                  <v-simple-table>
+                  <v-table>
                     <tbody>
                       <tr>
                         <td valign="top" style="border: solid windowtext 1pt">
@@ -1574,12 +1574,12 @@
                         </td>
                       </tr>
                     </tbody>
-                  </v-simple-table>
+                  </v-table>
                 </div>
               </v-tab-item>
               <v-tab-item value="agente">
                 <div class="clsInstructivo">
-                  <v-simple-table>
+                  <v-table>
                     <tbody>
                       <tr>
                         <td valign="top" style="border: solid windowtext 1pt">
@@ -1747,7 +1747,7 @@
                         </td>
                       </tr>
                     </tbody>
-                  </v-simple-table>
+                  </v-table>
                 </div>
               </v-tab-item>
             </v-tabs-items>

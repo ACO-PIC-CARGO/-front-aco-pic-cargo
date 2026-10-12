@@ -1,6 +1,6 @@
 <template>
   <v-dialog
-    :value="value"
+    :model-value="value"
     max-width="1180"
     persistent
     :fullscreen="$vuetify.breakpoint.smAndDown"
@@ -47,8 +47,8 @@
               persistent-hint
               :error-messages="visibleErrors.name"
               :aria-invalid="String(Boolean(visibleErrors.name))"
-              outlined
-              dense
+              variant="outlined"
+              density="compact"
               @blur="touch('name')"
             />
             <v-text-field
@@ -62,8 +62,8 @@
               persistent-hint
               :error-messages="visibleErrors.tagline"
               :aria-invalid="String(Boolean(visibleErrors.tagline))"
-              outlined
-              dense
+              variant="outlined"
+              density="compact"
               @blur="touch('tagline')"
             />
             <v-switch
@@ -72,7 +72,7 @@
               label='Marcar como "Más elegido"'
               color="var(--planes-accent)"
               hide-details
-              dense
+              density="compact"
             />
           </section>
 
@@ -92,8 +92,8 @@
                 inputmode="decimal"
                 :error-messages="visibleErrors.monthlyPrice"
                 :aria-invalid="String(Boolean(visibleErrors.monthlyPrice))"
-                outlined
-                dense
+                variant="outlined"
+                density="compact"
                 @blur="touch('monthlyPrice')"
               />
               <v-text-field
@@ -107,8 +107,8 @@
                 inputmode="decimal"
                 :error-messages="visibleErrors.annualPrice"
                 :aria-invalid="String(Boolean(visibleErrors.annualPrice))"
-                outlined
-                dense
+                variant="outlined"
+                density="compact"
                 @blur="touch('annualPrice')"
               />
             </div>
@@ -130,7 +130,7 @@
 
             <div class="stepper">
               <v-btn
-                text
+                variant="text"
                 class="stepper__button"
                 aria-label="Quitar un usuario"
                 :disabled="draft.userLimit <= 1"
@@ -149,12 +149,12 @@
                 inputmode="numeric"
                 :error-messages="visibleErrors.userLimit"
                 :aria-invalid="String(Boolean(visibleErrors.userLimit))"
-                outlined
-                dense
+                variant="outlined"
+                density="compact"
                 @blur="touch('userLimit')"
               />
               <v-btn
-                text
+                variant="text"
                 class="stepper__button"
                 aria-label="Agregar un usuario"
                 @click="changeUsers(1)"
@@ -174,7 +174,7 @@
               label="Ofrecer periodo de prueba"
               color="var(--planes-accent)"
               hide-details
-              dense
+              density="compact"
             />
             <div v-if="trialEnabled" class="form-grid">
               <v-text-field
@@ -189,19 +189,19 @@
                 persistent-hint
                 :error-messages="visibleErrors.trialFrequency"
                 :aria-invalid="String(Boolean(visibleErrors.trialFrequency))"
-                outlined
-                dense
+                variant="outlined"
+                density="compact"
                 @blur="touch('trialFrequency')"
               />
               <v-select
                 v-model="trialInterval"
                 :items="trialUnits"
-                item-text="label"
+                item-title="label"
                 item-value="value"
                 aria-label="Unidad de la duración"
-                outlined
-                dense
-                @change="touch('trialFrequency')"
+                variant="outlined"
+                density="compact"
+                @update:model-value="touch('trialFrequency')"
               />
             </div>
           </section>
@@ -221,7 +221,7 @@
                 v-for="(module, position) in modules"
                 :id="position === 0 ? 'package-modules' : null"
                 :key="module.id"
-                text
+                variant="text"
                 class="chip"
                 :class="{ 'chip--selected': isModuleSelected(module.id) }"
                 :aria-pressed="String(isModuleSelected(module.id))"
@@ -250,21 +250,21 @@
             <div class="access">
               <span class="access__label">Acceso del cliente</span>
               <v-btn-toggle
-                :value="accessMode"
+                :model-value="accessMode"
                 mandatory
                 rounded
-                dense
+                density="compact"
                 class="segmented"
                 role="group"
                 aria-label="Acceso del cliente a los módulos"
-                @change="setAccessMode"
+                @update:model-value="setAccessMode"
               >
                 <v-btn
                   v-for="option in accessOptions"
                   :key="option.value"
                   :value="option.value"
                   :disabled="draft.moduleIds.length < 2"
-                  text
+                  variant="text"
                 >
                   {{ option.label }}
                 </v-btn>
@@ -277,7 +277,7 @@
                   aria-labelledby="selection-label"
                 >
                   <v-btn
-                    text
+                    variant="text"
                     class="stepper__button"
                     aria-label="Elegir un módulo menos"
                     :disabled="draft.selectionLimit <= 1"
@@ -296,7 +296,7 @@
                     {{ draft.selectionLimit }}
                   </output>
                   <v-btn
-                    text
+                    variant="text"
                     class="stepper__button"
                     aria-label="Elegir un módulo más"
                     :disabled="
@@ -339,22 +339,22 @@
                 :error="Boolean(visibleErrors.features)"
                 :aria-invalid="String(Boolean(visibleErrors.features))"
                 hide-details
-                outlined
-                dense
+                variant="outlined"
+                density="compact"
                 @keydown.enter.prevent="addFeature"
               />
               <v-select
                 v-model="newFeatureModuleId"
                 :items="featureTargets"
-                item-text="label"
+                item-title="label"
                 item-value="value"
                 aria-label="Dónde se muestra la característica"
                 hide-details
-                outlined
-                dense
+                variant="outlined"
+                density="compact"
               />
               <v-btn
-                text
+                variant="text"
                 class="plans-button plans-button--secondary"
                 :disabled="!newFeatureText.trim()"
                 @click="addFeature"
@@ -403,13 +403,13 @@
                 </v-btn>
                 <v-text-field
                   class="input--inline"
-                  :value="feature.description"
+                  :model-value="feature.description"
                   :maxlength="limits.feature"
                   aria-label="Texto de la característica"
                   hide-details
-                  outlined
-                  dense
-                  @input="updateFeature(feature, { description: $event })"
+                  variant="outlined"
+                  density="compact"
+                  @update:model-value="updateFeature(feature, { description: $event })"
                 />
                 <span v-if="feature.moduleId" class="feature-row__module">
                   {{ moduleName(feature.moduleId) }}
@@ -471,7 +471,7 @@
               v-model="previewAnnual"
               mandatory
               rounded
-              dense
+              density="compact"
               class="segmented"
               role="group"
               aria-label="Precio en la vista previa"
@@ -480,7 +480,7 @@
                 v-for="option in billingOptions"
                 :key="String(option.value)"
                 :value="option.value"
-                text
+                variant="text"
               >
                 {{ option.label }}
               </v-btn>
@@ -505,11 +505,11 @@
           Revisa los campos marcados para poder guardar.
         </p>
         <div class="package-form__actions">
-          <v-btn text class="plans-button plans-button--ghost" @click="close">
+          <v-btn variant="text" class="plans-button plans-button--ghost" @click="close">
             Cancelar
           </v-btn>
           <v-btn
-            text
+            variant="text"
             type="submit"
             class="plans-button plans-button--primary"
             :disabled="saving"

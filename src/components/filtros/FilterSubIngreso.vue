@@ -19,7 +19,7 @@
           label="Tipo de Ingreso"
           :items="$store.state.ingresos.list"
           v-model="$store.state.subingreso.filtros.id_ingreso"
-          item-text="descripcion"
+          item-title="descripcion"
           item-value="id"
         >
         </v-autocomplete>
@@ -49,8 +49,8 @@
         <span> Se calcula en reportes</span>
         <v-radio-group
           v-model="$store.state.subingreso.filtros.calculoflag"
-          row
-          dense
+          inline
+          density="compact"
         >
           <v-radio label="Si" color="green" :value="true"></v-radio>
           <v-radio label="No" color="red" :value="false"></v-radio>
@@ -61,8 +61,8 @@
         <span> Se muestra en reportes</span>
         <v-radio-group
           v-model="$store.state.subingreso.filtros.mostrarflag"
-          row
-          dense
+          inline
+          density="compact"
         >
           <v-radio label="Si" color="green" :value="true"></v-radio>
           <v-radio label="No" color="red" :value="false"></v-radio>
@@ -73,8 +73,8 @@
         <span> Estado</span>
         <v-radio-group
           v-model="$store.state.subingreso.filtros.status"
-          row
-          dense
+          inline
+          density="compact"
         >
           <v-radio label="Activo" color="green" :value="true"></v-radio>
           <v-radio label="Inactivo" color="red" :value="false"></v-radio>
@@ -89,7 +89,7 @@
             label="Tipo de Ingreso (*)"
             :items="$store.state.ingresos.list"
             v-model="$store.state.subingreso.model.id_ingreso"
-            item-text="descripcion"
+            item-title="descripcion"
             item-value="id"
             :rules="[(v) => !!v || 'Dato Requerido']"
             :readonly="$store.state.subingreso.tipo == 'ver'"

@@ -5,13 +5,13 @@
       <v-spacer></v-spacer>
       <v-btn
         v-if="!showNavigationButtons"
-        color="light-blue darken-2"
+        color="light-blue-darken-2"
         class="ma-2"
         dark
-        small
+        size="small"
         @click="modificarCliente"
       >
-        <v-icon left small>mdi-account-edit</v-icon>
+        <v-icon start size="small">mdi-account-edit</v-icon>
         {{ isFormReadonly ? "EDITAR CLIENTE" : "GUARDAR CAMBIOS" }}
       </v-btn>
     </v-card-title>
@@ -21,14 +21,14 @@
           <v-row>
             <v-col cols="12" md="6">
               <v-text-field
-                dense
+                density="compact"
                 label="Destinatario"
                 v-model="$store.state.entities.informacionEntrega.destinatario"
               ></v-text-field>
             </v-col>
             <v-col cols="12" md="6">
               <v-text-field
-                dense
+                density="compact"
                 label="DNI O RUC"
                 v-model="
                   $store.state.entities.informacionEntrega.dni_destinatario
@@ -39,14 +39,14 @@
           <v-row>
             <v-col cols="12" md="6">
               <v-text-field
-                dense
+                density="compact"
                 label="Persona que recoge"
                 v-model="$store.state.entities.informacionEntrega.receptor"
               ></v-text-field>
             </v-col>
             <v-col cols="12" md="6">
               <v-text-field
-                dense
+                density="compact"
                 label="DNI"
                 v-model="$store.state.entities.informacionEntrega.dni_receptor"
               ></v-text-field>
@@ -55,15 +55,15 @@
           <v-row>
             <v-col cols="12" md="6">
               <v-autocomplete
-                dense
+                density="compact"
                 :items="$store.state.itemsState"
-                item-text="name"
+                item-title="name"
                 item-value="id"
                 label="Departamento"
                 v-model="
                   $store.state.entities.informacionEntrega.id_departamento
                 "
-                @change="
+                @update:model-value="
                   _getCity(
                     $store.state.entities.informacionEntrega.id_departamento,
                   )
@@ -74,13 +74,13 @@
           <v-row>
             <v-col cols="12" md="6">
               <v-autocomplete
-                dense
+                density="compact"
                 :items="$store.state.itemsCity"
-                item-text="name"
+                item-title="name"
                 item-value="id"
                 label="Provincia"
                 v-model="$store.state.entities.informacionEntrega.id_provincia"
-                @change="
+                @update:model-value="
                   _getTown(
                     $store.state.entities.informacionEntrega.id_provincia,
                   )
@@ -91,9 +91,9 @@
           <v-row>
             <v-col cols="12" md="6">
               <v-autocomplete
-                dense
+                density="compact"
                 :items="$store.state.itemsTown"
-                item-text="name"
+                item-title="name"
                 item-value="id"
                 label="Distrito"
                 v-model="$store.state.entities.informacionEntrega.id_distrito"
@@ -103,14 +103,14 @@
           <v-row>
             <v-col cols="12" md="6">
               <v-text-field
-                dense
+                density="compact"
                 label="Agencia"
                 v-model="$store.state.entities.informacionEntrega.agencia"
               ></v-text-field>
             </v-col>
             <v-col cols="12" md="6">
               <v-text-field
-                dense
+                density="compact"
                 label="Celular"
                 v-model="
                   $store.state.entities.informacionEntrega.celular_agencia
@@ -131,7 +131,7 @@
           <v-row>
             <v-col cols="12" md="6">
               <v-text-field
-                dense
+                density="compact"
                 label="Cliente"
                 v-model="$store.state.entities.cliente.nombrecompleto"
                 readonly

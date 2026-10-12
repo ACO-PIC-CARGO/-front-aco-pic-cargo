@@ -5,23 +5,23 @@
       {{ parseFloat(egreso_pr).toFixed(2) }} USD /------ Operaciones:
       {{ parseFloat(egreso_op).toFixed(2) }} USD
       <v-spacer></v-spacer>
-      <v-btn @click="nuevoEngreso()" color="blue" dark small>
+      <v-btn @click="nuevoEngreso()" color="blue" dark size="small">
         Nuevo Control Gastos Egresos
       </v-btn>
     </h3>
-    <v-expansion-panels accordion>
+    <v-expansion-panels variant="accordion">
       <v-expansion-panel
         v-for="(egreso, index) in master_egresos || []"
         :key="index"
         :value="egreso.isExpanded"
       >
-        <v-expansion-panel-header @click.stop="abrirExpandEgreso(index)">
+        <v-expansion-panel-title @click.stop="abrirExpandEgreso(index)">
           <template #actions>
             <v-icon @click="abrirExpandEgreso(index)">
               mdi-unfold-more-horizontal
             </v-icon>
           </template>
-          <v-simple-table dense>
+          <v-table density="compact">
             <thead>
               <tr>
                 <th width="28%">Proveedor</th>
@@ -67,18 +67,18 @@
                   <v-btn
                     color="info"
                     class="my-1 mx-1"
-                    x-small
+                    size="x-small"
                     @click="nuevoEngreso(egreso)"
                   >
                     Nuevo Concepto
                   </v-btn>
                   <v-tooltip
-                    bottom
+                    location="bottom"
                     color="error"
                     v-if="bloquearCopiarMontos(egreso.detalle)"
                   >
-                    <template v-slot:activator="{ on, attrs }">
-                      <v-btn v-bind="attrs" v-on="on" color="info" x-small>
+                    <template v-slot:activator="{ props }">
+                      <v-btn v-bind="props" color="info" size="x-small">
                         Copiar Montos Pr->Op
                       </v-btn>
                     </template>
@@ -89,7 +89,7 @@
                   <v-btn
                     v-else
                     color="success"
-                    x-small
+                    size="x-small"
                     @click="
                       abriModalCopiar(
                         egreso,
@@ -103,7 +103,7 @@
                 <td v-if="editable">
                   <v-btn
                     icon
-                    small
+                    size="small"
                     :loading="loading"
                     :color="egreso.docs > 0 ? 'blue' : 'grey'"
                     @click.native="openInvoice(egreso)"
@@ -114,7 +114,7 @@
                 </td>
                 <td v-if="editable">
                   <v-btn
-                    small
+                    size="small"
                     color="white"
                     icon
                     @click.stop="validarSolicitudPago(egreso)"
@@ -126,7 +126,7 @@
 
                 <td v-if="editable">
                   <v-btn
-                    small
+                    size="small"
                     :color="egreso.solicitudes > 0 ? 'blue' : 'grey'"
                     icon
                     @click="openPayments(egreso)"
@@ -147,10 +147,10 @@
                 </td> -->
               </tr>
             </tbody>
-          </v-simple-table>
-        </v-expansion-panel-header>
-        <v-expansion-panel-content>
-          <v-simple-table dense>
+          </v-table>
+        </v-expansion-panel-title>
+        <v-expansion-panel-text>
+          <v-table density="compact">
             <thead>
               <tr>
                 <th class="text-left">Proveedor</th>
@@ -219,7 +219,7 @@
                 }`"
               >
                 <tr
-                  class="blue lighten-5"
+                  class="bg-blue-lighten-5"
                   style="cursor: pointer"
                   @click="toggleCliente(egreso, grupo)"
                 >
@@ -300,20 +300,20 @@
                   <td class="text-center">
                     <v-chip
                       v-if="item.statusadmin == 1 && item.pagado == 1"
-                      small
+                      size="small"
                       class="mx-auto"
                       color="green"
-                      outlined
+                      variant="outlined"
                       text-color="green"
                     >
                       SI
                     </v-chip>
                     <v-chip
                       v-if="item.statusadmin == 1 && item.pagado == 0"
-                      small
+                      size="small"
                       class="mx-auto"
                       color="orange"
-                      outlined
+                      variant="outlined"
                       text-color="orange"
                     >
                       SI
@@ -323,7 +323,7 @@
                   <td>
                     <v-chip
                       v-if="item.pagado == 1"
-                      small
+                      size="small"
                       class="ma-2"
                       color="green"
                       text-color="white"
@@ -332,7 +332,7 @@
                     </v-chip>
                   </td>
                   <td v-if="editable">
-                    <v-btn icon color="orange" small>
+                    <v-btn icon color="orange" size="small">
                       <v-icon @click.native="_editEgreso(item)">
                         mdi-pencil
                       </v-icon>
@@ -340,7 +340,7 @@
                     <v-btn
                       icon
                       color="red"
-                      small
+                      size="small"
                       v-if="!item.statusadmin && item.pagado == 0"
                     >
                       <v-icon @click.native="_delEngreso(item, egreso)"
@@ -351,19 +351,19 @@
                 </tr>
               </template>
             </tbody>
-          </v-simple-table>
-        </v-expansion-panel-content>
+          </v-table>
+        </v-expansion-panel-text>
       </v-expansion-panel>
     </v-expansion-panels>
 
     <!-- --------------------- -->
     <v-dialog id="mydiv" v-model="dialog" width="70%" persistent>
       <v-card>
-        <v-card-title id="mydivheader" class="text-h5 grey lighten-2">
+        <v-card-title id="mydivheader" class="text-h5 bg-grey-lighten-2">
           {{ getNameModalNuevoEditar }}
 
           <v-spacer></v-spacer>
-          <v-btn color="default" text @click="dialog = false">
+          <v-btn color="default" variant="text" @click="dialog = false">
             <v-icon>mdi-close</v-icon>
           </v-btn>
         </v-card-title>
@@ -376,7 +376,7 @@
                   <v-autocomplete
                     label="Costo Aspociado al Master o un House"
                     :items="listHouses"
-                    item-text="consigner"
+                    item-title="consigner"
                     item-value="id_orders"
                     v-model="egresos.id_orders"
                   />
@@ -384,7 +384,7 @@
                 <v-col cols="4">
                   <v-autocomplete
                     :items="$store.state.itemsProveedorList"
-                    item-text="namelong"
+                    item-title="namelong"
                     item-value="id"
                     v-model="egresos.id_proveedor"
                     label="Proveedor"
@@ -397,7 +397,7 @@
               <v-row v-show="showSeccion2NuevoEgreso">
                 <v-col cols="12" xl="6" lg="6">
                   <v-text-field
-                    dense
+                    density="compact"
                     v-model="egresos.concepto"
                     label="Concepto"
                     :rules="[(v) => !!v || 'Dato requerido']"
@@ -406,13 +406,13 @@
                 </v-col>
                 <v-col cols="12" xl="3" lg="3">
                   <v-autocomplete
-                    @change="activarSeccion3"
+                    @update:model-value="activarSeccion3"
                     :items="$store.state.controlGastos.listCorrelativo"
                     v-model="id_correlativo"
-                    item-text="code"
+                    item-title="code"
                     item-value="id"
                     label="Correlativo"
-                    dense
+                    density="compact"
                     :rules="[(v) => !!v || 'Dato Requerido']"
                     :disabled="!!egresos.pagado"
                   ></v-autocomplete>
@@ -420,9 +420,9 @@
                 <v-col cols="12" xl="3" lg="3">
                   <v-switch
                     v-if="mostrarImpuesto"
-                    dense
+                    density="compact"
                     :disabled="!!egresos.pagado"
-                    @change="calcularE()"
+                    @update:model-value="calcularE()"
                     v-model="egresos.statusCalcula"
                     :label="`Calcula ${$store.state.enterprises.impuesto.nombre_impuesto}`"
                   ></v-switch>
@@ -438,11 +438,11 @@
                   <v-autocomplete
                     :items="$store.state.itemsCoinsList"
                     v-model="id_coins"
-                    item-text="acronym"
+                    item-title="acronym"
                     item-value="id"
                     label="Moneda de Banco Salida"
-                    @change="obtenerMoneda()"
-                    dense
+                    @update:model-value="obtenerMoneda()"
+                    density="compact"
                     :rules="[(v) => !!v || 'Dato Requerido']"
                     :disabled="!!egresos.pagado"
                   ></v-autocomplete>
@@ -450,12 +450,12 @@
 
                 <v-col cols="12" md="3" v-if="opFlag">
                   <v-text-field
-                    dense
+                    density="compact"
                     v-if="this.sufmoneda != 'USD'"
                     v-model="tipocambio"
                     type="number"
                     label="Tipo de Cambio"
-                    @input="calcularE()"
+                    @update:model-value="calcularE()"
                     step="0.01"
                     :disabled="!!egresos.pagado"
                     :rules="[
@@ -469,8 +469,8 @@
               <v-row v-show="showSeccion4NuevoEgreso">
                 <v-col cols="12" md="4" v-if="opFlag">
                   <v-text-field
-                    dense
-                    @input="calcularE()"
+                    density="compact"
+                    @update:model-value="calcularE()"
                     v-model="egresos.montoopcuentabanco"
                     type="number"
                     label="Monto"
@@ -482,7 +482,7 @@
 
                 <v-col cols="12" md="4" v-if="opFlag && mostrarImpuesto">
                   <v-text-field
-                    dense
+                    density="compact"
                     v-model="egresos.igvopcuentabanco"
                     type="number"
                     :label="`${$store.state.enterprises.impuesto.nombre_impuesto}`"
@@ -494,7 +494,7 @@
 
                 <v-col cols="12" md="4" v-if="opFlag">
                   <v-text-field
-                    dense
+                    density="compact"
                     v-model="egresos.totalopcuentabanco"
                     type="number"
                     label="Total Operaciones"
@@ -506,8 +506,8 @@
 
                 <v-col cols="12" md="4" v-if="prFlag">
                   <v-text-field
-                    dense
-                    @input="calcularE()"
+                    density="compact"
+                    @update:model-value="calcularE()"
                     v-model="egresos.monto_pr"
                     type="number"
                     label="Monto"
@@ -518,7 +518,7 @@
 
                 <v-col cols="12" md="4" v-if="prFlag && mostrarImpuesto">
                   <v-text-field
-                    dense
+                    density="compact"
                     v-model="egresos.igv_pr"
                     type="number"
                     :label="`${$store.state.enterprises.impuesto.nombre_impuesto}`"
@@ -529,7 +529,7 @@
 
                 <v-col cols="12" md="4" v-if="prFlag">
                   <v-text-field
-                    dense
+                    density="compact"
                     v-model="egresos.total_pr"
                     type="number"
                     label="Total"
@@ -539,7 +539,7 @@
                 </v-col>
                 <v-col cols="12" md="4" v-if="opFlag">
                   <v-text-field
-                    dense
+                    density="compact"
                     v-model="egresos.montoopview"
                     type="number"
                     label="Monto Operaciones (Solo lectura) "
@@ -551,7 +551,7 @@
 
                 <v-col cols="12" md="4" v-if="opFlag && mostrarImpuesto">
                   <v-text-field
-                    dense
+                    density="compact"
                     v-model="egresos.igvopview"
                     type="number"
                     :label="`${$store.state.enterprises.impuesto.nombre_impuesto} Operaciones (Solo lectura)`"
@@ -563,7 +563,7 @@
 
                 <v-col cols="12" md="4" v-if="opFlag">
                   <v-text-field
-                    dense
+                    density="compact"
                     v-model="egresos.totalopview"
                     type="number"
                     label="Total Operaciones (Solo lectura) "
@@ -606,7 +606,7 @@
         <v-card-title>
           Facturas y Performance de {{ nameproveedor }}
           <v-spacer></v-spacer>
-          <v-btn outlined @click="cargarFactura" color="primary"
+          <v-btn variant="outlined" @click="cargarFactura" color="primary"
             >Cargar Nueva</v-btn
           >
         </v-card-title>
@@ -614,7 +614,7 @@
           <v-data-table
             :headers="headersInvoice"
             :items="itemsListInvoice"
-            dense
+            density="compact"
             item-key="id"
             class="elevation-0"
             :loading="isDataTableLoading"
@@ -629,7 +629,7 @@
                   item.type == 'jpg' ||
                   item.type == 'jpeg'
                 "
-                color="blue-grey darken-1"
+                color="blue-grey-darken-1"
                 class="mr-2"
                 >mdi-file-image</v-icon
               >
@@ -644,11 +644,10 @@
               {{ item.number }}
             </template>
             <template v-slot:[`item.path`]="{ item }">
-              <v-btn icon small>
+              <v-btn icon size="small">
                 <v-icon
                   class="btn_add mr-2"
-                  dense
-                  large
+                  size="large"
                   color="grey"
                   @click.native="openDoc(item.path)"
                 >
@@ -657,11 +656,10 @@
               >
             </template>
             <template v-slot:[`item.action`]="{ item }">
-              <v-btn icon small>
+              <v-btn icon size="small">
                 <v-icon
                   class="btn_add mr-2"
-                  dense
-                  large
+                  size="large"
                   color="red"
                   @click.native="_delInvoice(item.id)"
                 >
@@ -681,9 +679,9 @@
         </v-card-title>
         <v-card-text>
           <v-container>
-            <v-row dense>
+            <v-row density="compact">
               <v-col cols="12" md="12">
-                <v-radio-group v-model="radio" row>
+                <v-radio-group v-model="radio" inline>
                   <v-radio label="Factura" value="1"></v-radio>
                   <v-radio label="Performance" value="2"></v-radio>
                   <v-radio label="Otro" value="3"></v-radio>
@@ -691,7 +689,7 @@
               </v-col>
               <v-col cols="12" md="4">
                 <v-text-field
-                  dense
+                  density="compact"
                   label="Fecha de Operación"
                   prepend-icon="mdi-calendar"
                   type="date"
@@ -701,7 +699,7 @@
               </v-col>
               <v-col cols="12" md="4">
                 <v-text-field
-                  dense
+                  density="compact"
                   v-model="nro_invoice"
                   :label="`Nro de ${
                     radio == 1
@@ -714,7 +712,7 @@
               </v-col>
               <v-col cols="12" md="4">
                 <v-text-field
-                  dense
+                  density="compact"
                   v-model="monto_factura"
                   label="Monto de la Factura"
                   :rules="[(v) => v > 0 || 'Debe ser un monto numérico']"
@@ -740,7 +738,7 @@
             }}
           </v-btn>
 
-          <v-btn outlined color="red" @click="dialogInvoice = !dialogInvoice">
+          <v-btn variant="outlined" color="red" @click="dialogInvoice = !dialogInvoice">
             Cerrar
           </v-btn>
         </v-card-actions>
@@ -772,14 +770,14 @@
             <v-stepper-content step="1">
               <v-card class="mb-12" elevation="0" height="200px">
                 <v-card-text>
-                  <v-row dense>
+                  <v-row density="compact">
                     <v-col md="6" cols="12">
                       <v-checkbox
                         v-model="checkPago"
                         :label="`Aplica código de pago ${nombreCodigoPago}`"
                       ></v-checkbox>
                       <v-text-field
-                        dense
+                        density="compact"
                         v-if="checkPago"
                         v-model="codigo_pago"
                         label="CODIGO DE PAGO"
@@ -792,7 +790,7 @@
                         label="Aplica Número de Expediente"
                       ></v-checkbox>
                       <v-text-field
-                        dense
+                        density="compact"
                         v-if="checkMaster"
                         v-model="codigo_master"
                         label="CODIGO DE MASTER BL"
@@ -805,7 +803,7 @@
               >
 
               <v-btn color="primary" @click="e1 = 2"> Continuar </v-btn>
-              <v-btn text @click="dialogSolicitud = false"> Cerrar </v-btn>
+              <v-btn variant="text" @click="dialogSolicitud = false"> Cerrar </v-btn>
             </v-stepper-content>
 
             <v-stepper-content step="2">
@@ -813,7 +811,7 @@
                 <v-card-text>
                   <div class="text-right">
                     <v-btn
-                      small
+                      size="small"
                       color="primary"
                       @click="abrirModalCuentaBancaria()"
                     >
@@ -830,7 +828,7 @@
                     item-key="id"
                     show-select
                     class="elevation-0"
-                    dense
+                    density="compact"
                   >
                   </v-data-table>
                   <h2 v-else class="mt-5">Ya seleccionó el codigo de pago</h2>
@@ -840,8 +838,8 @@
               <v-btn color="primary" @click="validarStep2Solicitud">
                 Continuar
               </v-btn>
-              <v-btn text @click="e1 = 1"> Volver</v-btn>
-              <v-btn text @click="dialogSolicitud = false"> Cerrar </v-btn>
+              <v-btn variant="text" @click="e1 = 1"> Volver</v-btn>
+              <v-btn variant="text" @click="dialogSolicitud = false"> Cerrar </v-btn>
             </v-stepper-content>
 
             <v-stepper-content step="3">
@@ -863,8 +861,8 @@
                 </v-card-text>
               </v-card>
 
-              <v-btn text @click="e1 = 2"> Volver </v-btn>
-              <v-btn text @click="dialogSolicitud = false"> Cerrar </v-btn>
+              <v-btn variant="text" @click="e1 = 2"> Volver </v-btn>
+              <v-btn variant="text" @click="dialogSolicitud = false"> Cerrar </v-btn>
             </v-stepper-content>
           </v-stepper-items>
         </v-stepper>
@@ -876,15 +874,15 @@
         <v-card-title> Solicitar pago por concepto</v-card-title>
 
         <v-card-text>
-          <v-row dense>
+          <v-row density="compact">
             <v-col md="6" cols="12">
-              <v-text-field dense v-model="codigo_pago" label="CODIGO DE PAGO"
+              <v-text-field density="compact" v-model="codigo_pago" label="CODIGO DE PAGO"
                 >CODIGO DE PAGO</v-text-field
               >
             </v-col>
             <v-col md="6" cols="12">
               <v-text-field
-                dense
+                density="compact"
                 v-model="codigo_master"
                 label="CODIGO DE MASTER BL"
                 readonly
@@ -912,26 +910,26 @@
               'items-per-page-options': [10, 20, 30, 40, 50],
             }"
             :items-per-page="30"
-            dense
+            density="compact"
             show-select
             class="elevation-0"
           >
             <template
               v-slot:[`item.data-table-select`]="{ item, isSelected, select }"
             >
-              <v-simple-checkbox
+              <v-checkbox-btn
                 :value="isSelected"
                 :readonly="item.pagado == 1"
                 v-if="!item.pagado == 1"
                 @input="select($event)"
-              ></v-simple-checkbox>
+              ></v-checkbox-btn>
             </template>
             <template v-slot:[`item.pagado`]="{ item }">
               <v-chip
                 v-if="item.pagado == 1"
                 class="ma-2"
                 color="green"
-                small
+                size="small"
                 text-color="white"
               >
                 {{ item.pagado == 1 ? "Pagado" : "" }}
@@ -939,8 +937,7 @@
 
               <v-icon
                 class="btn__add mr-2"
-                dense
-                large
+                size="large"
                 color="grey"
                 v-if="item.pagado == 1"
                 @click.native="openPaymentFile(item.path)"
@@ -960,7 +957,7 @@
             hide-default-footer
             item-key="id"
             show-select
-            dense
+            density="compact"
             class="elevation-0"
           >
           </v-data-table>
@@ -986,7 +983,7 @@
         </v-toolbar>
         <v-card-title>
           <v-text-field
-            dense
+            density="compact"
             v-model="search"
             append-icon="mdi-magnify"
             label="Buscar solicitud"
@@ -995,13 +992,13 @@
           ></v-text-field>
         </v-card-title>
         <v-container v-if="!dataList" style="height: 400px">
-          <v-row class="fill-height" align-content="center" justify="center">
+          <v-row class="fill-height align-content-center justify-center">
             <v-col class="text-subtitle-1 text-center" cols="12">
               Cargando informacíon
             </v-col>
             <v-col cols="12" xl="6" lg="6">
               <v-progress-linear
-                color="deep-purple accent-4"
+                color="deep-purple-accent-4"
                 indeterminate
                 rounded
                 height="6"
@@ -1076,7 +1073,7 @@
             <v-row>
               <v-col cols="12">
                 <v-text-field
-                  dense
+                  density="compact"
                   class="col-3"
                   label="Nro Cuotas"
                   v-model="$store.state.nro_cuotas"
@@ -1093,7 +1090,7 @@
                 <v-row>
                   <v-col cols="4">
                     <v-text-field
-                      dense
+                      density="compact"
                       :label="`Porcentaje Cuota-${n}`"
                       v-model="$store.state.cuota[n - 1]"
                       type="number"
@@ -1111,7 +1108,7 @@
                   </v-col>
                   <v-col cols="8">
                     <v-text-field
-                      dense
+                      density="compact"
                       :rules="[(v) => !!v || 'Dato Requerido']"
                       :label="`Fecha de pago ${n}`"
                       v-model="$store.state.fechacuota[n - 1]"
@@ -1145,7 +1142,7 @@
               <v-row>
                 <v-col cols="12">
                   <v-text-field
-                    dense
+                    density="compact"
                     placeholder="Beneficiario"
                     label="Beneficiario"
                     v-model="cuentaBancaria.beneficiario"
@@ -1156,7 +1153,7 @@
               <v-row>
                 <v-col cols="12">
                   <v-text-field
-                    dense
+                    density="compact"
                     placeholder="Nro Cuenta"
                     label="Nro Cuenta"
                     v-model="cuentaBancaria.nro_cuenta"
@@ -1167,7 +1164,7 @@
               <v-row>
                 <v-col cols="12">
                   <v-text-field
-                    dense
+                    density="compact"
                     placeholder="CCI"
                     label="CCI"
                     v-model="cuentaBancaria.cci"
@@ -1178,9 +1175,9 @@
               <v-row>
                 <v-col cols="12">
                   <v-autocomplete
-                    dense
+                    density="compact"
                     :items="$store.state.bank.list"
-                    item-text="name"
+                    item-title="name"
                     item-value="id"
                     placeholder="Bancos"
                     label="Bancos"
@@ -1192,9 +1189,9 @@
               <v-row>
                 <v-col cols="12">
                   <v-autocomplete
-                    dense
+                    density="compact"
                     :items="$store.state.coins.itemsCoinsList"
-                    item-text="acronym"
+                    item-title="acronym"
                     item-value="id"
                     placeholder="Monedas"
                     label="Monedas"
@@ -1206,7 +1203,7 @@
               <v-row v-if="isProveedorInternacional()">
                 <v-col cols="12">
                   <v-text-field
-                    dense
+                    density="compact"
                     placeholder="Nro swift"
                     label="Nro swift"
                     v-model="cuentaBancaria.nro_swift"
@@ -1217,9 +1214,9 @@
               <v-row v-if="isProveedorInternacional()">
                 <v-col cols="12">
                   <v-autocomplete
-                    dense
+                    density="compact"
                     :items="$store.state.bank.list"
-                    item-text="name"
+                    item-title="name"
                     item-value="id"
                     placeholder="Bancos"
                     label="Bancos"
@@ -1231,7 +1228,7 @@
               <v-row v-if="isProveedorInternacional()">
                 <v-col cols="12">
                   <v-text-field
-                    dense
+                    density="compact"
                     placeholder="Cuenta Intermediario"
                     label="Cuenta Intermediario"
                     v-model="cuentaBancaria.nro_cuenta_intermediario"
@@ -1268,15 +1265,15 @@
             <v-autocomplete
               :items="$store.state.itemsCoinsList"
               v-model="egreso.id_coins"
-              item-text="acronym"
+              item-title="acronym"
               item-value="id"
               label="Moneda de Banco Salida"
-              @change="obtenerMoneda()"
+              @update:model-value="obtenerMoneda()"
               :rules="[(v) => !!v || 'Dato Requerido']"
             />
 
             <v-text-field
-              dense
+              density="compact"
               v-model="egreso.tipocambio"
               type="number"
               label="Tipo de Cambio"
@@ -1301,7 +1298,7 @@
     </v-dialog>
     <v-dialog v-model="dialogCambiarExp" persistent max-width="500px">
       <v-card>
-        <v-card-title class="text-h5 grey lighten-2">
+        <v-card-title class="text-h5 bg-grey-lighten-2">
           Mover {{ egreso.nombre_proveedor ? egreso.nombre_proveedor : null }}
         </v-card-title>
         <v-card-text>
@@ -1315,7 +1312,7 @@
                 )
               "
               item-value="id"
-              item-text="code_master"
+              item-title="code_master"
             />
           </v-form>
         </v-card-text>
@@ -1323,7 +1320,7 @@
           <v-spacer></v-spacer>
           <v-btn
             :loading="loading"
-            outlined
+            variant="outlined"
             color="error"
             @click="dialogCambiarExp = false"
             >Cancelar</v-btn

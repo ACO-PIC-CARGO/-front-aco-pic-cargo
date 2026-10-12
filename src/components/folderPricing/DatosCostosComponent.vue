@@ -52,7 +52,7 @@
             <v-btn
               color="#3363A2"
               class="mx-1 btn-ingresarcostos"
-              x-large
+              size="x-large"
               dark
               @click="pasarLlenadoCostos()"
               v-if="btnIngresarCostos"
@@ -64,7 +64,7 @@
             <v-btn
               color="red"
               class="mx-1"
-              x-large
+              size="x-large"
               dark
               @click="cancelarLlenadoCostos()"
               v-if="$store.state.pricing.index > 0 && btnIngresarCostos"
@@ -148,10 +148,10 @@
           <template>
             <div class="text-center">
               <v-pagination
-                :value="$store.state.pricing.page"
+                :model-value="$store.state.pricing.page"
                 :length="opcionesSeleccionadas.length"
-                @input="cambiarPagina"
-                circle
+                @update:model-value="cambiarPagina"
+                rounded
               ></v-pagination>
             </div>
           </template>

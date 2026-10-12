@@ -18,8 +18,7 @@
       <template v-slot:[`item.action`]="{ item }">
         <v-icon
           class="btn_add mr-2"
-          dense
-          large
+          size="large"
           color="blue"
           @click="_setReplace(item.id, item.id_house, item.id_pro)"
           >mdi-file-replace</v-icon
@@ -29,8 +28,7 @@
       <template v-slot:[`item.vpro`]="{ item }">
         <v-icon
           class="btn_add mr-2"
-          dense
-          large
+          size="large"
           color="grey"
           @click="_seePro(item.path)"
           >mdi-eye</v-icon

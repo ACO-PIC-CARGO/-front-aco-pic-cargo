@@ -7,21 +7,21 @@
     min-width="290"
   >
     <!-- INPUT QUE ACTÚA COMO EL SELECT -->
-    <template v-slot:activator="{ on, attrs }">
+    <template v-slot:activator="{ props }">
       <v-text-field
-        :value="selectedLabel"
+        :model-value="selectedLabel"
         :label="label"
         :placeholder="placeholder"
         :outlined="outlined"
-        :dense="dense"
+        :density="dense ? 'compact' : undefined"
         :rules="rules"
         :disabled="disabled"
         readonly
         clearable
         hide-details
         append-icon="mdi-chevron-down"
-        v-bind="attrs"
-        v-on="on"
+       
+        v-bind="props"
         @click:clear="clearSelection"
       ></v-text-field>
     </template>
@@ -33,8 +33,8 @@
         <v-text-field
           v-model="search"
           label=""
-          dense
-          outlined
+          density="compact"
+          variant="outlined"
           hide-details
         ></v-text-field>
       </div>
@@ -50,8 +50,8 @@
           activatable
           hoverable
           :open-on-click="disableBranchNodes"
-          dense
-          :open.sync="openNodes"
+          density="compact"
+          v-model:open="openNodes"
           :active="activeNodes"
           @update:active="onNodeSelect"
         ></v-treeview>

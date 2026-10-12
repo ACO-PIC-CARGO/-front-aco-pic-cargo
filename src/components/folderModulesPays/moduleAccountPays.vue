@@ -8,9 +8,9 @@
         <v-text-field
           hide-details
           v-model="searchFactura"
-          dense
+          density="compact"
           id="id"
-          outlined
+          variant="outlined"
           label="Buscar"
           placeholder="Buscar..."
           append-icon="mdi-text-search"
@@ -18,28 +18,28 @@
       </v-col>
       <v-col cols="12" md="9" class="text-right pt-0">
         <v-btn class="mx-1" @click="filtroflag = true" color="default">
-          <v-icon small>mdi-filter</v-icon> Filtro
+          <v-icon size="small">mdi-filter</v-icon> Filtro
         </v-btn>
         <v-btn class="mx-1" @click="toPageAdd()" color="primary">
-          <v-icon small>mdi-plus</v-icon> NUEVA FACTURA
+          <v-icon size="small">mdi-plus</v-icon> NUEVA FACTURA
         </v-btn>
-        <v-btn class="mx-1" @click="limpiar()" color="red" outlined>
-          <v-icon small>mdi-filter-remove</v-icon> LIMPIAR
+        <v-btn class="mx-1" @click="limpiar()" color="red" variant="outlined">
+          <v-icon size="small">mdi-filter-remove</v-icon> LIMPIAR
         </v-btn>
       </v-col>
       <v-col cols="12">
         <v-data-table
           :headers="headersFacturas"
           :items="itemsListInvoice"
-          dense
+          density="compact"
           :single-expand="true"
           @click:row="clickRow"
-          :expanded.sync="expanded"
+          v-model:expanded="expanded"
           :search="searchFactura"
         >
           <template v-slot:expanded-item="{ item }">
             <td :colspan="headersFacturas.length">
-              <v-simple-table>
+              <v-table>
                 <thead style="background: #e3f2fd; font-weight: bold">
                   <tr>
                     <td>Concepto</td>
@@ -71,7 +71,7 @@
                     <td>USD {{ parseFloat(detalle.totaldolar).toFixed(2) }}</td>
                   </tr>
                 </tbody>
-              </v-simple-table>
+              </v-table>
             </td>
           </template>
           <template v-slot:[`item.paymentname`]="{ item }">
@@ -80,7 +80,7 @@
           <template v-slot:[`item.accion`]="{ item }">
             <v-chip
               block
-              medium
+              size="medium"
               class=""
               color="orange"
               text-color="white"
@@ -90,7 +90,7 @@
             </v-chip>
             <v-chip
               block
-              medium
+              size="medium"
               class=""
               color="success"
               v-if="item.status == 2"
@@ -151,9 +151,9 @@
 
     <v-navigation-drawer
       v-model="filtroflag"
-      right
+      location="right bottom"
       absolute
-      bottom
+      
       persistent
       width="40%"
       temporary
@@ -163,7 +163,7 @@
         <v-card-title primary-title>
           Filtro Para Facturas
           <v-spacer></v-spacer>
-          <v-btn color="default" text @click="filtroflag = false">
+          <v-btn color="default" variant="text" @click="filtroflag = false">
             <v-icon>mdi-close</v-icon>
           </v-btn>
         </v-card-title>
@@ -172,12 +172,12 @@
           <v-autocomplete
             :items="$store.state.provedores"
             v-model="id_proveedor"
-            item-text="namelong"
+            item-title="namelong"
             item-value="id"
             clearable
             label="Proveedor"
-            outlined
-            dense
+            variant="outlined"
+            density="compact"
           ></v-autocomplete>
 
           <FormatFecha
@@ -195,15 +195,15 @@
           <v-text-field
             v-model="factura"
             clearable
-            outlined
-            dense
+            variant="outlined"
+            density="compact"
             label="Factura"
           />
           <v-text-field
             v-model="serie"
             clearable
-            outlined
-            dense
+            variant="outlined"
+            density="compact"
             label="Serie"
           />
         </v-card-text>

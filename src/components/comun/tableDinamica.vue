@@ -1,6 +1,6 @@
 <template>
   <div>
-    <v-simple-table>
+    <v-table>
       <template v-slot:default>
         <thead>
           <tr>
@@ -164,7 +164,7 @@
           </tr>
         </tbody>
       </template>
-    </v-simple-table>
+    </v-table>
     <!-- <v-data-table
       :headers="headers"
       :items="items"

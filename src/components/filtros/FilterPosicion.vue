@@ -35,7 +35,7 @@
       </div>
       <div class="col-12 py-1">
         <span> Estado</span>
-        <v-radio-group v-model="$store.state.position.filtros.estado" row dense>
+        <v-radio-group v-model="$store.state.position.filtros.estado" inline density="compact">
           <v-radio label="Activo" color="green" :value="true"></v-radio>
           <v-radio label="Inactivo" color="red" :value="false"></v-radio>
           <v-radio label="Todos" color="blue" value="null"></v-radio>

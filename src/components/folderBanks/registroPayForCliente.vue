@@ -5,15 +5,15 @@
         <v-col cols="12" md="4" class="pb-0">
           <v-autocomplete
             label="Cliente"
-            outlined
-            dense
+            variant="outlined"
+            density="compact"
             :items="clientes"
-            item-text="namelong"
+            item-title="namelong"
             item-value="id"
             placeholder="Clientes"
             v-model="cliente"
             clearable
-            @change="obtenerListado()"
+            @update:model-value="obtenerListado()"
             hide-details
             :error-messages="errorMesage.cliente"
           >
@@ -27,14 +27,14 @@
         >
           <v-text-field
             label="Monto Depositado En Banco:"
-            outlined
-            dense
+            variant="outlined"
+            density="compact"
             v-model="monto_local"
             type="number"
             :prefix="symbol"
             width="50px"
             :error-messages="errorMesage.monto_local"
-            @input="
+            @update:model-value="
               monto_local
                 ? (errorMesage.monto_local = '')
                 : (errorMesage.monto_local =
@@ -44,8 +44,8 @@
         </v-col>
         <v-col cols="12" md="2" class="pb-0" v-if="mostrarTipoCambio">
           <v-text-field
-            outlined
-            dense
+            variant="outlined"
+            density="compact"
             disabled
             v-model="totalGeneralAbonadoMonLocal"
             type="number"
@@ -61,8 +61,8 @@
           v-if="Object.keys(id_cuenta).length > 0"
         >
           <v-text-field
-            outlined
-            dense
+            variant="outlined"
+            density="compact"
             disabled
             v-model="monto"
             type="number"
@@ -74,8 +74,8 @@
         <v-col cols="12" md="2" class="pb-0" v-if="mostrarTipoCambio">
           <v-text-field
             label="Tipo Cambio"
-            outlined
-            dense
+            variant="outlined"
+            density="compact"
             v-model="tipocambio"
             type="number"
             prefix="USD"
@@ -88,9 +88,9 @@
         <v-col cols="12" v-if="cliente" class="pt-0">
           <v-tabs
             v-model="pasos"
-            centered
+            align-tabs="center"
             color="#000000"
-            background-color="#C8E6C9"
+            bg-color="#C8E6C9"
           >
             <v-tab key="detallesPago"> Facturas </v-tab>
             <v-tab key="datosPrincipales" :disabled="!editable">
@@ -106,13 +106,13 @@
                 <v-col cols="12" md="6" class="py-1">
                   <v-autocomplete
                     :items="$store.state.bancos.cuentas"
-                    item-text="label"
+                    item-title="label"
                     item-value="id"
                     label="Cuenta y Banco Ingreso de Banco"
                     v-model="id_cuenta"
                     return-object
-                    outlined
-                    dense
+                    variant="outlined"
+                    density="compact"
                     :rules="[
                       (v) =>
                         (v && Object.keys(v).length > 0 && !!v.id) ||
@@ -125,9 +125,9 @@
                     label="Buscar"
                     v-model="searchTableDetalle"
                     style="max-width: 400px"
-                    outlined
+                    variant="outlined"
                     :disabled="itemsOrdenados.length == 0"
-                    dense
+                    density="compact"
                     v-if="
                       id_cuenta &&
                       Object.keys(id_cuenta).length > 0 &&
@@ -144,7 +144,7 @@
                       border="top"
                       type="info"
                       elevation="2"
-                      dense
+                      density="compact"
                       width="450px"
                       color="purple"
                     >
@@ -164,7 +164,7 @@
                   >
                     <template v-slot:body.append>
                       <tr
-                        class="grey lighten-4 font-weight-bold"
+                        class="bg-grey-lighten-4 font-weight-bold"
                         v-if="symbol !== 'USD'"
                       >
                         <td :colspan="headers.length" class="text-right">
@@ -175,7 +175,7 @@
                           {{ totalGeneralAbonadoMonLocalSeleccionado }}
                         </td>
                       </tr>
-                      <tr class="grey lighten-4 font-weight-bold">
+                      <tr class="bg-grey-lighten-4 font-weight-bold">
                         <td :colspan="headers.length" class="text-right">
                           Total General Seleccionado (USD):
                         </td>
@@ -196,25 +196,25 @@
                       <v-select
                         :items="cboParcial"
                         v-model="item.parcialflag"
-                        dense
-                        outlined
+                        density="compact"
+                        variant="outlined"
                         :disabled="!selected.includes(item)"
                         hide-details
-                        @change="verificarMontoCompleto(item)"
+                        @update:model-value="verificarMontoCompleto(item)"
                         style="max-width: 200px"
                       ></v-select>
                     </template>
                     <template v-slot:[`item.montopagar`]="{ item }">
                       <v-text-field
                         hide-details
-                        dense
-                        outlined
+                        density="compact"
+                        variant="outlined"
                         v-model="item.montoparcial"
                         :disabled="
                           !selected.includes(item) || !item.parcialflag
                         "
                         :prefix="item.symbol"
-                        @input="calcularTotal"
+                        @update:model-value="calcularTotal"
                         :rules="[
                           (v) =>
                             !v ||
@@ -227,8 +227,8 @@
                       <v-text-field
                         v-model="item.concepto"
                         :id="`txtConcepto${index}`"
-                        outlined
-                        dense
+                        variant="outlined"
+                        density="compact"
                         hide-details
                         style="max-width: 150px"
                         placeholder="Nuevo Concepto"
@@ -299,23 +299,23 @@
                       :items="$store.state.itemsDataBanksList"
                       v-model="id_banco_origen"
                       label="Banco Origen"
-                      item-text="acronym"
+                      item-title="acronym"
                       item-value="id"
-                      outlined
-                      dense
+                      variant="outlined"
+                      density="compact"
                       :rules="[(v) => !!v || 'Dato Requerido']"
                     ></v-autocomplete>
                   </v-col>
                   <v-col cols="12" md="6" class="py-1">
                     <v-autocomplete
                       :items="$store.state.bancos.cuentas"
-                      item-text="label"
+                      item-title="label"
                       item-value="id"
                       label="Cuenta y Banco Ingreso de Banco"
                       v-model="id_cuenta"
                       return-object
-                      outlined
-                      dense
+                      variant="outlined"
+                      density="compact"
                       readonly
                       :rules="[
                         (v) =>
@@ -329,8 +329,8 @@
                       readonly
                       v-model="id_cuenta.banco"
                       label="Banco:"
-                      outlined
-                      dense
+                      variant="outlined"
+                      density="compact"
                     ></v-text-field>
                   </v-col>
 
@@ -339,8 +339,8 @@
                       readonly
                       v-model="id_cuenta.cuenta"
                       label="N° Cuenta:"
-                      outlined
-                      dense
+                      variant="outlined"
+                      density="compact"
                     ></v-text-field
                   ></v-col>
                   <v-col cols="12" md="6" class="py-1"
@@ -348,8 +348,8 @@
                       readonly
                       v-model="id_cuenta.cci"
                       label="CCI:"
-                      outlined
-                      dense
+                      variant="outlined"
+                      density="compact"
                     ></v-text-field
                   ></v-col>
                   <v-col cols="12" md="6" class="py-1">
@@ -366,18 +366,18 @@
                       readonly
                       v-model="id_cuenta.moneda"
                       label="Moneda:"
-                      outlined
-                      dense
+                      variant="outlined"
+                      density="compact"
                     ></v-text-field>
                   </v-col>
                   <v-col cols="12" md="6" class="py-1">
                     <v-text-field
                       label="Número de Operación"
-                      outlined
-                      dense
+                      variant="outlined"
+                      density="compact"
                       v-model="nro_operacion"
                       :rules="[(v) => !!v || 'Dato Requerido']"
-                      @input="
+                      @update:model-value="
                         nro_operacion !== ''
                           ? ((errorMesage.nro_operacion = null),
                             buscarOperacionAlEscribir())
@@ -396,7 +396,7 @@
                     >
                       <p
                         v-if="esDuplicado"
-                        class="red--text caption font-weight-bold pl-2"
+                        class="text-red caption font-weight-bold pl-2"
                       >
                         ⚠️ Ya existe un registro con este número exacto.
                       </p>
@@ -406,7 +406,7 @@
                           <v-chip
                             v-for="(item, index) in operacionesSimilares"
                             :key="index"
-                            small
+                            size="small"
                             class="mr-1 mb-1"
                           >
                             {{ item.numerooperacion }}
@@ -420,8 +420,8 @@
                     <v-textarea
                       label="Comentarios Usuario"
                       rows="1"
-                      outlined
-                      dense
+                      variant="outlined"
+                      density="compact"
                       auto-grow
                       v-model="comentarios"
                     ></v-textarea>
@@ -430,8 +430,8 @@
                     <v-textarea
                       label="Comentarios Administrativos"
                       rows="1"
-                      outlined
-                      dense
+                      variant="outlined"
+                      density="compact"
                       auto-grow
                       v-model="comentariosadmin"
                     ></v-textarea>
@@ -469,7 +469,7 @@
                   >
                     <template v-slot:body.append>
                       <tr
-                        class="grey lighten-4 font-weight-bold"
+                        class="bg-grey-lighten-4 font-weight-bold"
                         v-if="symbol !== 'USD'"
                       >
                         <td
@@ -483,7 +483,7 @@
                           {{ totalGeneralAbonadoMonLocalSeleccionado }}
                         </td>
                       </tr>
-                      <tr class="grey lighten-4 font-weight-bold">
+                      <tr class="bg-grey-lighten-4 font-weight-bold">
                         <td
                           :colspan="headersPagosGastosBancario.length - 1"
                           class="text-right"
@@ -520,8 +520,8 @@
 
                 <v-col cols="2" offset="7">
                   <v-text-field
-                    outlined
-                    dense
+                    variant="outlined"
+                    density="compact"
                     label="Comisión Bancaria"
                     id="id"
                     v-model="conceptogastobancario"
@@ -529,8 +529,8 @@
                 </v-col>
                 <v-col cols="3">
                   <v-text-field
-                    outlined
-                    dense
+                    variant="outlined"
+                    density="compact"
                     label="Monto Gasto Bancario"
                     id="id"
                     type="number"
@@ -540,8 +540,8 @@
                 </v-col>
                 <v-col cols="3" offset="9">
                   <v-text-field
-                    outlined
-                    dense
+                    variant="outlined"
+                    density="compact"
                     label="Monto Total a Pagar"
                     id="id"
                     type="number"
@@ -573,30 +573,30 @@
     >
       <v-card class="pa-2">
         <v-card-title class="headline pb-2">
-          <v-icon left color="primary">mdi-hand-coin</v-icon> Confirmar Depósito
+          <v-icon start color="primary">mdi-hand-coin</v-icon> Confirmar Depósito
         </v-card-title>
 
         <v-card-text class="pt-2">
           <!-- Banner de advertencia idéntico a la imagen -->
           <v-alert
             type="warning"
-            border="left"
+            border="start"
             colored-border
             elevation="0"
-            class="amber lighten-5 text--darken-3 mb-4 rounded-lg"
+            class="bg-amber-lighten-5 text--darken-3 mb-4 rounded-lg"
           >
             <template v-slot:prepend>
-              <v-icon size="36" color="amber darken-2" class="mr-3">
+              <v-icon size="36" color="amber-darken-2" class="mr-3">
                 mdi-alert
               </v-icon>
             </template>
             <div>
               <div
-                class="subtitle-2 font-weight-bold amber--text text--darken-4 text-uppercase"
+                class="subtitle-2 font-weight-bold text-amber-darken-4 text-uppercase"
               >
                 OBLIGATORIO PARA CONTINUAR
               </div>
-              <div class="caption font-weight-bold grey--text text--darken-3">
+              <div class="caption font-weight-bold text-grey-darken-3">
                 Ingresa el monto recibido en el banco, según tu estado de
                 cuenta.
               </div>
@@ -604,7 +604,7 @@
           </v-alert>
 
           <v-text-field
-            outlined
+            variant="outlined"
             label="Monto recibido en el banco"
             ref="txtMontoLocal"
             v-model="monto_local"
@@ -618,7 +618,7 @@
 
         <v-card-actions class="pa-4 pt-0">
           <v-spacer></v-spacer>
-          <v-btn color="error" @click="cancelarllenadoDeMonto()" text>
+          <v-btn color="error" @click="cancelarllenadoDeMonto()" variant="text">
             Cancelar
           </v-btn>
           <v-btn color="primary" @click="confirmarDeposito"> CONTINUAR </v-btn>

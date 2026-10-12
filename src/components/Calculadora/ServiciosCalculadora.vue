@@ -26,12 +26,12 @@
             <v-row>
               <v-col cols="12" class="py-0">
                 <v-autocomplete
-                  outlined
+                  variant="outlined"
                   label="Modalidad"
                   :items="$store.state.itemsModality"
-                  dense
+                  density="compact"
                   item-value="id"
-                  item-text="name"
+                  item-title="name"
                   :model-value="id_modality"
                   :rules="[(v) => !!v || 'Dato requerido']"
                   disabled
@@ -39,12 +39,12 @@
               </v-col>
               <v-col cols="12" class="py-0">
                 <v-autocomplete
-                  outlined
+                  variant="outlined"
                   label="Pais"
                   :items="$store.state.itemsPais"
-                  dense
+                  density="compact"
                   item-value="id"
-                  item-text="name"
+                  item-title="name"
                   v-model="id_pais"
                   :rules="[(v) => !!v || 'Dato requerido']"
                   disabled
@@ -59,8 +59,8 @@
               <v-col cols="12" class="py-0">
                 <v-text-field
                   label="Código"
-                  outlined
-                  dense
+                  variant="outlined"
+                  density="compact"
                   append-icon="mdi-information"
                   @click:append="mostrarAdvertencia()"
                   v-model="code"
@@ -70,8 +70,8 @@
               <v-col cols="12" class="py-0">
                 <v-text-field
                   label="Descripción"
-                  outlined
-                  dense
+                  variant="outlined"
+                  density="compact"
                   v-model="descripcion"
                   :rules="[(v) => !!v || 'Dato requerido']"
                 ></v-text-field>
@@ -80,8 +80,8 @@
                 <v-text-field
                   type="number"
                   label="Orden"
-                  outlined
-                  dense
+                  variant="outlined"
+                  density="compact"
                   v-model="orden"
                   :rules="[(v) => !!v || 'Dato requerido']"
                 ></v-text-field>
@@ -94,10 +94,10 @@
         </v-card-text>
         <v-card-actions>
           <v-spacer></v-spacer>
-          <v-btn small color="success" :loading="loading" @click="anadirServ"
+          <v-btn size="small" color="success" :loading="loading" @click="anadirServ"
             >Añadir</v-btn
           >
-          <v-btn small color="error" @click="dialogNuevo = false">Cerrar</v-btn>
+          <v-btn size="small" color="error" @click="dialogNuevo = false">Cerrar</v-btn>
         </v-card-actions>
       </v-card>
     </v-dialog>

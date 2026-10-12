@@ -3,7 +3,7 @@
     <div v-if="!branchdialog">
       <v-text-field
         rounded
-        filled
+        variant="filled"
         densed
         v-model="user"
         label="Usuario"
@@ -11,7 +11,7 @@
       <v-text-field
         rounded
         densed
-        filled
+        variant="filled"
         v-model="password"
         :type="show3 ? 'text' : 'password'"
         label="Contraseña"
@@ -23,7 +23,7 @@
         class="_btn__accept"
         rounded
         dark
-        x-large
+        size="x-large"
         @click="__getLogin()"
         :loading="loading"
         >Ingresar
@@ -36,10 +36,10 @@
         <v-select
           :items="lstBranch"
           v-model="branch"
-          item-text="trade_name"
+          item-title="trade_name"
           item-value="id"
           label="Sucursal"
-          dense
+          density="compact"
           required
           :rules="[(v) => !!v || 'Datos Requerido']"
           :error-messages="errorBranch"

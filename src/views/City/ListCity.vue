@@ -3,9 +3,9 @@
     <City />
     <v-navigation-drawer
       v-model="$store.state.city.drawer"
-      right
+      location="right bottom"
       absolute
-      bottom
+      
       persistent
       width="30%"
       temporary

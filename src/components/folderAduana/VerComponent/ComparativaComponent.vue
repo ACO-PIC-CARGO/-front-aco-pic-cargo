@@ -3,7 +3,7 @@
     <h1>Comparativa de Costos</h1>
     <v-row>
       <v-col cols="12">
-        <v-simple-table dense class="elevation-1 my-7">
+        <v-table density="compact" class="elevation-1 my-7">
           <thead>
             <tr>
               <th
@@ -51,7 +51,7 @@
               <!-- <td>{{ opcion }}</td> -->
             </tr>
           </tbody>
-        </v-simple-table>
+        </v-table>
       </v-col>
       <!-- <v-col cols="6" class="izquierda">
         <v-btn @click="regregar()" color="default">Anterior</v-btn>

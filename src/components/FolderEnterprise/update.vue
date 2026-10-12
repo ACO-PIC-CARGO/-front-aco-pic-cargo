@@ -2,13 +2,13 @@
   <v-container>
     <v-card class="py-10 px-10">
       <v-container v-if="loading_as" style="height: 400px">
-        <v-row class="fill-height" align-content="center" justify="center">
+        <v-row class="fill-height align-content-center justify-center">
           <v-col class="text-subtitle-1 text-center" cols="12">
             Cargando información ....
           </v-col>
           <v-col cols="6">
             <v-progress-linear
-              color="deep-purple accent-4"
+              color="deep-purple-accent-4"
               indeterminate
               rounded
               height="6"
@@ -32,7 +32,7 @@
                         label="Tipo de Documento (*)"
                         v-model="enterprise.id_document"
                         :items="itemsDocumentsPais"
-                        item-text="description"
+                        item-title="description"
                         item-value="id"
                         :rules="[(v) => !!v || 'Dato requerido']"
                         clearable
@@ -100,7 +100,7 @@
                       <v-text-field
                         label="Logo"
                         readonly
-                        :value="enterprise.name_file"
+                        :model-value="enterprise.name_file"
                       ></v-text-field>
 
                       <!-- <div>
@@ -140,8 +140,8 @@
                         label="País (*)"
                         :items="itemsPais"
                         item-value="id"
-                        item-text="name"
-                        @change="get_state()"
+                        item-title="name"
+                        @update:model-value="get_state()"
                         v-model="enterprise.id_pais"
                         :rules="[(v) => !!v || 'Dato requerido']"
                         clearable
@@ -153,8 +153,8 @@
                         label="Región (*)"
                         :items="itemsState"
                         item-value="id"
-                        item-text="name"
-                        @change="get_city()"
+                        item-title="name"
+                        @update:model-value="get_city()"
                         v-model="enterprise.id_state"
                         :disabled="!enterprise.id_pais"
                         clearable
@@ -166,8 +166,8 @@
                         label="Provincia (*)"
                         :items="itemsCity"
                         item-value="id"
-                        item-text="name"
-                        @change="get_town()"
+                        item-title="name"
+                        @update:model-value="get_town()"
                         v-model="enterprise.id_city"
                         :disabled="!enterprise.id_state"
                         clearable
@@ -179,7 +179,7 @@
                         label="Distrito (*)"
                         :items="itemsTown"
                         item-value="id"
-                        item-text="name"
+                        item-title="name"
                         v-model="enterprise.id_town"
                         :disabled="!enterprise.id_city"
                         clearable
@@ -200,7 +200,7 @@
                         label="Activo / Inactivo"
                         v-model="enterprise.status"
                         color="success"
-                        @change="updateStatus"
+                        @update:model-value="updateStatus"
                       ></v-switch>
                     </v-col>
                     <v-col cols="6">
@@ -208,8 +208,8 @@
                         label="Impuestos a las Ventas en tu País"
                         :items="$store.state.masterusuarios.lstImpRenta"
                         item-value="id"
-                        item-text="descripcion"
-                        dense
+                        item-title="descripcion"
+                        density="compact"
                         v-model="enterprise.tipoimpuesto"
                       >
                         <template v-slot:selection="data">
@@ -223,7 +223,7 @@
                         label="Porcentaje"
                         step="0.1"
                         suffix="%"
-                        dense
+                        density="compact"
                         hide-details
                         v-model="enterprise.impuesto"
                       ></v-text-field>
@@ -237,7 +237,7 @@
         <v-tab-item value="bancario">
           <v-row>
             <v-col cols="12" style="text-align: right">
-              <v-btn color="success" small @click="abrirModalNuevaCuenta"
+              <v-btn color="success" size="small" @click="abrirModalNuevaCuenta"
                 >Nueva Cuenta</v-btn
               >
             </v-col>
@@ -263,10 +263,10 @@
       </v-tabs-items>
 
       <v-card-actions v-if="!loading_as" class="justify-end mt-3">
-        <v-btn small class="mx-1" color="success" @click="update()" rounded>
+        <v-btn size="small" class="mx-1" color="success" @click="update()" rounded>
           Guardar
         </v-btn>
-        <v-btn small class="mx-1" dark color="red" @click="volver()" rounded>
+        <v-btn size="small" class="mx-1" dark color="red" @click="volver()" rounded>
           Cancelar
         </v-btn>
       </v-card-actions>
@@ -278,7 +278,7 @@
           <v-form ref="frmNuevaCuenta">
             <v-autocomplete
               :items="$store.state.bank.list"
-              item-text="name"
+              item-title="name"
               item-value="id"
               label="Banco"
               v-model="id_bank"
@@ -299,7 +299,7 @@
             ></v-text-field>
             <v-autocomplete
               :items="$store.state.coins.itemsCoinsList"
-              item-text="name"
+              item-title="name"
               item-value="id"
               label="Moneda"
               :rules="[(v) => v === '0' || v === 0 || !!v || 'Dato Requerido']"
@@ -334,11 +334,11 @@
           </v-form>
           <div style="text-align: right" class="mt-5">
             <v-spacer></v-spacer>
-            <v-btn small class="mx-1" color="success" @click="guardarCuenta"
+            <v-btn size="small" class="mx-1" color="success" @click="guardarCuenta"
               >Guardar</v-btn
             >
             <v-btn
-              small
+              size="small"
               class="mx-1"
               color="error"
               @click="dialogNuevaCuenta = false"

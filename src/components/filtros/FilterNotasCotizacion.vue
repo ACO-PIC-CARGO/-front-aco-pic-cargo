@@ -45,8 +45,8 @@
         <span> Estado</span>
         <v-radio-group
           v-model="$store.state.masterusuarios.filtros.status"
-          row
-          dense
+          inline
+          density="compact"
         >
           <v-radio label="Activo" color="green" :value="true"></v-radio>
           <v-radio label="Inactivo" color="red" :value="false"></v-radio>
@@ -82,8 +82,8 @@
                   (!!v && v.length <= 500) ||
                   'El nombre no puede tener más 500 de  carácteres',
               ]"
-              outlined
-              dense
+              variant="outlined"
+              density="compact"
               auto-grow
               rows="1"
             ></v-textarea>
@@ -93,8 +93,8 @@
               name="name"
               label="Orden"
               id="id"
-              outlined
-              dense
+              variant="outlined"
+              density="compact"
               v-model="$store.state.masterusuarios.model.orden"
               :readonly="$store.state.masterusuarios.tipo == 'ver'"
               :clearable="$store.state.masterusuarios.tipo != 'ver'"

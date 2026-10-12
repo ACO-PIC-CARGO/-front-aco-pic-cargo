@@ -7,33 +7,33 @@
           
           <v-autocomplete
             label="Tipo de Marketing"
-            outlined
-            dense
+            variant="outlined"
+            density="compact"
             class="my-1"
             :items="$store.state.pricing.listMarketing"
-            item-text="name"
+            item-title="name"
             item-value="id"
             v-model="$store.state.aduana.datosPrincipales.id_marketing"
             readonly
           ></v-autocomplete>
           <v-autocomplete
             label="Estado de la cotización"
-            outlined
-            dense
+            variant="outlined"
+            density="compact"
             class="my-1"
             :items="$store.state.pricing.listQuoteStatus"
-            item-text="name"
+            item-title="name"
             item-value="id"
             v-model="$store.state.aduana.datosPrincipales.id_status"
             readonly
           ></v-autocomplete>
           <v-autocomplete
             label="Ejecutivo"
-            outlined
-            dense
+            variant="outlined"
+            density="compact"
             class="my-1"
             :items="$store.state.pricing.listEjecutivo"
-            item-text="name"
+            item-title="name"
             item-value="id_entitie"
             item-key="id_entitie"
             v-model="$store.state.aduana.datosPrincipales.id_vendedor"
@@ -42,11 +42,11 @@
 
           <v-autocomplete
             label="Pricing"
-            outlined
-            dense
+            variant="outlined"
+            density="compact"
             class="my-1"
             :items="$store.state.pricing.listEjecutivo"
-            item-text="name"
+            item-title="name"
             item-value="id_entitie"
             item-key="id_entitie"
             v-model="$store.state.aduana.datosPrincipales.id_pricing"
@@ -54,9 +54,9 @@
           ></v-autocomplete>
           <v-text-field
             label="Nombres"
-            outlined
+            variant="outlined"
             placeholder="Nombres..."
-            dense
+            density="compact"
             requerid
             autocomplete="off"
             id="nombre"
@@ -66,20 +66,20 @@
           ></v-text-field>
           <v-text-field
             label="Teléfono"
-            outlined
+            variant="outlined"
             placeholder="Teléfono..."
-            dense
+            density="compact"
             readonly
             v-model="$store.state.aduana.datosPrincipales.telefono"
           ></v-text-field>
 
           <v-autocomplete
             label="Sentido"
-            outlined
-            dense
+            variant="outlined"
+            density="compact"
             class="my-1"
             :items="$store.state.aduana.listModality"
-            item-text="name"
+            item-title="name"
             item-key="id"
             item-value="id"
             v-model="$store.state.aduana.datosPrincipales.idsentido"
@@ -87,11 +87,11 @@
           ></v-autocomplete>
           <v-autocomplete
             label="Tipo de Embarque"
-            outlined
-            dense
+            variant="outlined"
+            density="compact"
             class="my-1"
             :items="$store.state.aduana.listShipment"
-            item-text="embarque"
+            item-title="embarque"
             item-key="id"
             item-value="id"
             v-model="$store.state.aduana.datosPrincipales.idtipocarga"
@@ -100,17 +100,17 @@
           ></v-autocomplete>
           <v-autocomplete
             label="Incoterms"
-            outlined
-            dense
+            variant="outlined"
+            density="compact"
             class="my-1"
             :items="$store.state.aduana.listIncoterms"
-            item-text="name"
+            item-title="name"
             item-key="id"
             item-value="id"
             v-model="$store.state.aduana.datosPrincipales.idincoterms"
             readonly
           >
-            <template slot="selection" slot-scope="data">
+            <template v-slot:selection="data" >
               {{ data.item.name }} - {{ data.item.description }}
             </template>
           </v-autocomplete>
@@ -120,8 +120,8 @@
             label="Nombre del proveedor"
             id="id"
             v-model="$store.state.aduana.datosPrincipales.proveedor"
-            dense
-            outlined
+            density="compact"
+            variant="outlined"
             readonly
             v-if="mostrarProveedorFlag()"
           ></v-text-field>
@@ -130,8 +130,8 @@
             name="Teléfono"
             label="Teléfono del proveedor"
             v-model="$store.state.aduana.datosPrincipales.telefonoproveedor"
-            dense
-            outlined
+            density="compact"
+            variant="outlined"
             readonly
             v-if="mostrarProveedorFlag()"
           ></v-text-field>
@@ -141,8 +141,8 @@
             label="Dirección del proveedor"
             id="id"
             v-model="$store.state.aduana.datosPrincipales.direccionproveedor"
-            dense
-            outlined
+            density="compact"
+            variant="outlined"
             readonly
             v-if="mostrarProveedorFlag()"
           ></v-text-field>

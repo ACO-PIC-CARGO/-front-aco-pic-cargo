@@ -3,7 +3,7 @@
     <v-data-table
       :headers="headers"
       :items="$store.state.programaciones.listado"
-      :expanded.sync="expanded"
+      v-model:expanded="expanded"
       :single-expand="singleExpand"
       item-key="id"
       show-expand
@@ -20,7 +20,7 @@
       </template>
       <template v-slot:expanded-item="{ item }">
         <td colspan="11">
-          <v-simple-table style="width: 100%">
+          <v-table style="width: 100%">
             <thead>
               <tr style="background: #fff1cf">
                 <th>Accion</th>
@@ -58,15 +58,15 @@
                 <td>{{ child.symbol }} {{ child.monto }}</td>
 
                 <td>
-                  <v-chip color="orange" outlined v-if="child.status == false">
+                  <v-chip color="orange" variant="outlined" v-if="child.status == false">
                     Por Pagar
                   </v-chip>
-                  <v-chip color="green" outlined v-if="child.status == true">
+                  <v-chip color="green" variant="outlined" v-if="child.status == true">
                     Pagado
                   </v-chip>
                 </td>
               </tr>
-            </tbody></v-simple-table
+            </tbody></v-table
           >
         </td>
       </template>
@@ -117,7 +117,7 @@
                 <v-col cols="3">
                   <v-btn
                     v-if="selected.length > 0"
-                    color="green darken-4"
+                    color="green-darken-4"
                     @click="continuar()"
                     dark
                     >Continuar</v-btn
@@ -137,7 +137,7 @@
                   <v-autocomplete
                     :items="$store.state.itemsCoinsList"
                     v-model="item.id_coins"
-                    item-text="acronym"
+                    item-title="acronym"
                     item-value="id"
                     label="Moneda"
                     v-on:blur="calcularTotales()"
@@ -222,7 +222,7 @@
                   <v-col md="4" cols="4">
                     <v-autocomplete
                       :items="cuentas.filter((v) => v.symbol == acronym)"
-                      item-text="label"
+                      item-title="label"
                       item-value="id"
                       label="CUENTA BANCARIA"
                       v-model="id_cuenta"
@@ -269,7 +269,7 @@
                       <v-btn
                         color="success"
                         :loading="loadingRegistro"
-                        text
+                        variant="text"
                         @click="registrarPago()"
                       >
                         PROCESAR PAGO

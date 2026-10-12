@@ -2,20 +2,20 @@
   <div>
     <v-card class="mx-auto">
       <v-card-text>
-        <v-tabs v-model="activeTab" background-color="transparent" color="primary">
+        <v-tabs v-model="activeTab" bg-color="transparent" color="primary">
           <v-tab key="houses">
-            <v-icon left>mdi-home-group</v-icon>
+            <v-icon start>mdi-home-group</v-icon>
             Lista de House
           </v-tab>
           <v-tab key="comments">
-            <v-icon left>mdi-comment-text-multiple</v-icon>
+            <v-icon start>mdi-comment-text-multiple</v-icon>
             Comentarios
           </v-tab>
         </v-tabs>
 
         <v-tabs-items v-model="activeTab">
           <v-tab-item key="houses">
-        <v-simple-table dense>
+        <v-table density="compact">
           <template v-slot:default>
             <thead>
               <tr>
@@ -41,11 +41,11 @@
               </tr>
             </tbody>
           </template>
-        </v-simple-table>
+        </v-table>
           </v-tab-item>
 
           <v-tab-item key="comments">
-            <v-simple-table v-if="houseComments && houseComments.length > 0">
+            <v-table v-if="houseComments && houseComments.length > 0">
               <thead>
                 <tr>
                   <th>Fecha</th>
@@ -64,7 +64,7 @@
                   <td class="bg-comentarios">{{ comment.comentario }}</td>
                 </tr>
               </tbody>
-            </v-simple-table>
+            </v-table>
             <v-alert v-else type="info" text>
               No hay comentarios disponibles
             </v-alert>

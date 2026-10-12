@@ -4,13 +4,13 @@
       <v-spacer></v-spacer>
       <v-btn
         v-if="!showNavigationButtons"
-        color="light-blue darken-2"
+        color="light-blue-darken-2"
         class="ma-2"
         dark
-        small
+        size="small"
         @click="modificarCliente"
       >
-        <v-icon left small>mdi-account-edit</v-icon>
+        <v-icon start size="small">mdi-account-edit</v-icon>
         {{ isFormReadonly ? "EDITAR CLIENTE" : "GUARDAR CAMBIOS" }}
       </v-btn>
     </v-card-title>
@@ -24,7 +24,7 @@
             <v-btn
               color="primary"
               rounded
-              small
+              size="small"
               class="ml-auto"
               @click="agregarConvenio()"
               >AGREGAR CONVENIO</v-btn
@@ -103,7 +103,7 @@
             <v-btn
               color="primary"
               rounded
-              small
+              size="small"
               class="ml-auto"
               @click="agregarTarifa()"
               >AGREGAR TARIFA</v-btn

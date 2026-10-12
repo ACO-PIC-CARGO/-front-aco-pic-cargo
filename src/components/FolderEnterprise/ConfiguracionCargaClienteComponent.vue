@@ -9,7 +9,7 @@
     <v-row v-if="!subirCliente" class="mx-1 my-1">
       <v-col cols="12" md="6" offset-md="4">
         <div style="text-align: center">
-          <v-icon style="color: #f57c00" x-large>mdi-account</v-icon>
+          <v-icon style="color: #f57c00" size="x-large">mdi-account</v-icon>
         </div>
         <div class="" style="text-align: center">
           <h2 style="color: #f57c00">CARGA MASIVA DE CLIENTES</h2>
@@ -68,7 +68,7 @@
             color="#7E7E7E"
             dark
             @click="subirCliente = !subirCliente"
-            x-small
+            size="x-small"
           >
             CARGA MASIVA
           </v-btn>
@@ -77,7 +77,7 @@
            color="#1A237E"
             dark
             @click="omitir"
-            x-small
+            size="x-small"
           >
             CONTINUAR <br class="ocultarPc" />
             LO HARÉ DESPUÉS
@@ -142,7 +142,7 @@
           seguir en el tutorial adjunto
         </v-col>
         <v-col cols="4">
-          <v-btn color="#5E9AD6" dark small @click="dialog = true">
+          <v-btn color="#5E9AD6" dark size="small" @click="dialog = true">
             Ver Tutorial
           </v-btn>
         </v-col>
@@ -153,7 +153,7 @@
               color="#7d8288"
               dark
               @click="descargarFormato()"
-              x-small
+              size="x-small"
               class="mx-1"
             >
               Descargar Plantilla
@@ -161,7 +161,7 @@
             <v-btn
               color="#062c52"
               dark
-              x-small
+              size="x-small"
               class="mx-1"
               @click="openFileInput()"
             >

@@ -8,8 +8,8 @@
           label="Search"
           single-line
           hide-details
-          outlined
-          dense
+          variant="outlined"
+          density="compact"
         ></v-text-field>
       </v-col>
       <v-col cols="12" md="6">
@@ -80,7 +80,7 @@
             </v-btn>
             <v-btn
               block
-              small
+              size="small"
               color="#01579B"
               dark
               class="ma-1 btnCalc"
@@ -114,10 +114,10 @@
           <v-select
             v-model="dataCotizacion.id_status_quote"
             :items="$store.state.calculadoras.estatusCotizacion"
-            item-text="name"
+            item-title="name"
             item-value="id"
             label="Estado Cotización"
-            outlined
+            variant="outlined"
           ></v-select>
         </v-card-text>
         <v-card-actions>
@@ -125,7 +125,7 @@
           <v-btn color="success" @click="guardarEstadoCotizacion()">
             Guardar
           </v-btn>
-          <v-btn color="red" text @click="dialogEditarEstado = false">
+          <v-btn color="red" variant="text" @click="dialogEditarEstado = false">
             Cancelar
           </v-btn>
         </v-card-actions>

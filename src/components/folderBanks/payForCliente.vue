@@ -14,14 +14,14 @@
             <v-col md="4" cols="4">
               <v-autocomplete
                 :items="clientes"
-                item-text="namelong"
+                item-title="namelong"
                 item-value="id"
                 label="Cliente"
                 v-model="id_proveedor"
                 return-object
                 clearable
                 :readonly="tipo == 'ver'"
-                @change="obtenerListado()"
+                @update:model-value="obtenerListado()"
               >
               </v-autocomplete>
             </v-col>
@@ -42,7 +42,7 @@
                   <v-autocomplete
                     :items="$store.state.itemsCoinsList"
                     v-model="id_coins"
-                    item-text="acronym"
+                    item-title="acronym"
                     item-value="id"
                     label="Moneda"
                     :disabled="
@@ -136,7 +136,7 @@
             </v-col> -->
             <v-col md="6" v-if="tipo != 'nuevo'">
               <h6>DOCUMENTO:</h6>
-              <v-simple-table>
+              <v-table>
                 <tbody>
                   <tr>
                     <td>{{ name_path }}</td>
@@ -152,12 +152,12 @@
                     </td>
                   </tr>
                 </tbody>
-              </v-simple-table>
+              </v-table>
             </v-col>
             <v-col md="4" cols="4">
               <v-autocomplete
                 :items="(cuentas || []).filter((v) => v.symbol == symbol)"
-                item-text="label"
+                item-title="label"
                 item-value="id"
                 label="Cuenta Destino (PIC)"
                 v-model="id_cuenta"
@@ -194,7 +194,7 @@
                 :items="$store.state.itemsDataBanksList"
                 v-model="id_banco_origen"
                 label="Banco Origen"
-                item-text="acronym"
+                item-title="acronym"
                 item-value="id"
               ></v-select>
             </v-col>

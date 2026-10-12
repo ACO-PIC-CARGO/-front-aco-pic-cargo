@@ -15,7 +15,7 @@
       role="alert"
     >
       <p>No pudimos cargar los días de prueba. {{ errorMessage }}</p>
-      <v-btn text class="plans-button plans-button--secondary" @click="load">
+      <v-btn variant="text" class="plans-button plans-button--secondary" @click="load">
         Reintentar
       </v-btn>
     </div>
@@ -38,11 +38,11 @@
           persistent-hint
           :error-messages="error"
           :disabled="saving"
-          outlined
-          dense
+          variant="outlined"
+          density="compact"
         />
         <v-btn
-          text
+          variant="text"
           type="submit"
           class="plans-button plans-button--primary"
           :disabled="saving"

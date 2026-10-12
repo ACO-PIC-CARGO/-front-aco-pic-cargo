@@ -13,7 +13,7 @@
         color="#3F51B5"
         class="mx-1"
         @click="dialogn = !dialogn"
-        small
+        size="small"
         rounded
         v-if="generarflag"
       >
@@ -23,14 +23,14 @@
         color="success"
         class="mx-1"
         @click="$router.push({ name: 'nuevaProyeccionCXP' })"
-        small
+        size="small"
         rounded
         >NUEVA
       </v-btn>
-      <v-btn color="info" class="mx-1" small rounded @click="filtar = !filtar"
+      <v-btn color="info" class="mx-1" size="small" rounded @click="filtar = !filtar"
         >FILTRAR</v-btn
       >
-      <v-btn color="success" class="mx-1" small rounded>EXPORTAR</v-btn>
+      <v-btn color="success" class="mx-1" size="small" rounded>EXPORTAR</v-btn>
       <v-col cols="12">
         <v-data-table
           :headers="headers"
@@ -52,7 +52,7 @@
               >
             </v-btn>
             <v-btn icon>
-              <v-icon color="blue-grey darken-4" @click="copiar(item)"
+              <v-icon color="blue-grey-darken-4" @click="copiar(item)"
                 >mdi-content-copy</v-icon
               >
             </v-btn>
@@ -96,8 +96,8 @@
                 :items="$store.state.month"
                 v-model="id_month"
                 label="Mes"
-                dense
-                item-text="description"
+                density="compact"
+                item-title="description"
                 item-value="id"
                 :rules="[(v) => !!v || 'Dato requerido']"
               ></v-select>
@@ -108,8 +108,8 @@
                 :items="$store.state.year"
                 v-model="id_year"
                 label="Año"
-                dense
-                item-text="description"
+                density="compact"
+                item-title="description"
                 item-value="id"
                 :rules="[(v) => !!v || 'Dato requerido']"
               ></v-select>
@@ -147,8 +147,8 @@
                 :items="$store.state.month"
                 v-model="id_monthn"
                 label="Mes"
-                dense
-                item-text="description"
+                density="compact"
+                item-title="description"
                 item-value="id"
                 :rules="[(v) => !!v || 'Dato requerido']"
               ></v-select>
@@ -159,8 +159,8 @@
                 :items="$store.state.year"
                 v-model="id_yearn"
                 label="Año"
-                dense
-                item-text="description"
+                density="compact"
+                item-title="description"
                 item-value="id"
                 :rules="[(v) => !!v || 'Dato requerido']"
               ></v-select>
@@ -185,30 +185,30 @@
     <v-navigation-drawer
       v-model="filtar"
       absolute
-      bottom
+      location="bottom right"
       temporary
-      right
+      
       width="20%"
       height="92vh"
     >
       <v-list-item>
-        <v-list-item-content>
+        
           <v-list-item-title class="text-h6"> Filtrar </v-list-item-title>
-        </v-list-item-content>
+        
       </v-list-item>
 
       <v-divider></v-divider>
 
       <v-divider></v-divider>
-      <v-list dense nav>
+      <v-list density="compact" nav>
         <v-row>
           <v-col cols="12">
             <v-select
               :items="$store.state.month"
               v-model="id_month"
               label="Mes"
-              dense
-              item-text="description"
+              density="compact"
+              item-title="description"
               item-value="id"
               clearable
             ></v-select>
@@ -218,8 +218,8 @@
               :items="$store.state.year"
               v-model="id_year"
               label="Año"
-              dense
-              item-text="description"
+              density="compact"
+              item-title="description"
               item-value="id"
               clearable
             ></v-select>
@@ -230,7 +230,7 @@
               label="Correlativo"
               v-model="correlativo"
               clearable
-              dense
+              density="compact"
               step="1"
             ></v-text-field>
           </v-col>
@@ -240,30 +240,30 @@
               label="Monto Proyectado (USD)"
               v-model="total_proyectado_ext"
               clearable
-              dense
+              density="compact"
               step="1"
             ></v-text-field>
           </v-col>
           <v-col cols="12">
             Estado
-            <v-radio-group v-model="estado" row dense>
+            <v-radio-group v-model="estado" inline density="compact">
               <v-radio label="Activo" :value="'true'"></v-radio>
               <v-radio label="Inactivo" color="red" :value="'false'"></v-radio>
-              <v-btn icon small @click="clearestado()" v-if="!!estado">
+              <v-btn icon size="small" @click="clearestado()" v-if="!!estado">
                 <v-icon>mdi-close</v-icon>
               </v-btn>
             </v-radio-group>
           </v-col>
           <v-col cols="12">
             Aprobados
-            <v-radio-group v-model="aprobado" row dense>
+            <v-radio-group v-model="aprobado" inline density="compact">
               <v-radio label="Aprobados" :value="'true'"></v-radio>
               <v-radio
                 label="No Aprobados"
                 color="red"
                 :value="'false'"
               ></v-radio>
-              <v-btn icon small @click="clearaprobado()" v-if="!!aprobado">
+              <v-btn icon size="small" @click="clearaprobado()" v-if="!!aprobado">
                 <v-icon>mdi-close</v-icon>
               </v-btn>
             </v-radio-group>
@@ -272,8 +272,8 @@
       </v-list>
       <v-card-actions>
         <v-spacer></v-spacer>
-        <v-btn small color="success" @click="filtrar()">Aceptar</v-btn>
-        <v-btn small dark color="red" @click="filtar = !filtar">Cerrar</v-btn>
+        <v-btn size="small" color="success" @click="filtrar()">Aceptar</v-btn>
+        <v-btn size="small" dark color="red" @click="filtar = !filtar">Cerrar</v-btn>
       </v-card-actions>
     </v-navigation-drawer>
   </v-container>

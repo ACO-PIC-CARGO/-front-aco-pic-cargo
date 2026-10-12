@@ -26,10 +26,10 @@
             <v-autocomplete
               :items="$store.state.pricing.listEjecutivo"
               label="Ejecutivo."
-              dense
+              density="compact"
               search
               clearable
-              item-text="name"
+              item-title="name"
               item-value="id_entitie"
               v-model="fromData.identities"
             ></v-autocomplete>
@@ -37,9 +37,9 @@
         </v-card-text>
         <v-card-actions>
           <v-flex text-right>
-            <v-btn text color="success" @click="guardarNota">Aceptar</v-btn>
+            <v-btn variant="text" color="success" @click="guardarNota">Aceptar</v-btn>
             <v-btn
-              text
+              variant="text"
               color="red"
               @click="dialogRegistroNotaLlamada = !dialogRegistroNotaLlamada"
             >
@@ -59,7 +59,7 @@
             :loading="loading4"
             :disabled="loading4"
             :dark="!loading4"
-            small
+            size="small"
           >
             <v-icon>mdi-file-pdf-box</v-icon> Imprimir
           </v-btn>
@@ -71,7 +71,7 @@
             "
             class="mx-1"
             dark
-            small
+            size="small"
           >
             Filtrar
           </v-btn>
@@ -80,7 +80,7 @@
     </v-row>
     <v-row>
       <v-data-table
-        dense
+        density="compact"
         :headers="headers"
         :items="$store.state.pricing.listCall"
         :items-per-page="5"
@@ -99,19 +99,19 @@
             }"
           >
             <td>
-              <v-tooltip bottom>
-                <template v-slot:activator="{ on, attrs }">
+              <v-tooltip location="bottom">
+                <template v-slot:activator="{ props }">
                   <v-btn
                     class="ma-2"
                     icon
                     dark
-                    x-small
-                    v-bind="attrs"
-                    v-on="on"
+                    size="x-small"
+                   
+                    v-bind="props"
                     color="#A43542 "
                     @click="registrarLlamada(row.item.id)"
                   >
-                    <v-icon dense small>mdi-phone-plus</v-icon>
+                    <v-icon size="small">mdi-phone-plus</v-icon>
                   </v-btn>
                 </template>
                 <span>Actualizar Registro Llamada</span>

@@ -17,12 +17,12 @@
             <v-row>
               <v-col cols="12">
                 <v-autocomplete
-                  dense
+                  density="compact"
                   autocomplete="none"
                   :items="$store.state.aduana.listTipoCostos"
                   label="Tipo"
                   item-value="codigo"
-                  item-text="name"
+                  item-title="name"
                   v-model="fromDataService.idOpcion"
                   :rules="[(v) => !!v || 'Dato requerido']"
                 ></v-autocomplete>
@@ -30,7 +30,7 @@
 
               <v-col cols="12">
                 <v-autocomplete
-                  dense
+                  density="compact"
                   label="Multiplicador"
                   :items="$store.state.aduana.listMultiplicador"
                   v-model="fromDataService.id_multiplicador"
@@ -39,7 +39,7 @@
               </v-col>
               <v-col cols="12">
                 <v-text-field
-                  dense
+                  density="compact"
                   label="Concepto"
                   :rules="[(v) => !!v || 'Dato requerido']"
                   v-model="fromDataService.nameservice"
@@ -48,7 +48,7 @@
               </v-col>
               <v-col cols="12">
                 <v-text-field
-                  dense
+                  density="compact"
                   label="Precio"
                   type="number"
                   min="0"
@@ -68,7 +68,7 @@
     </v-dialog>
     <v-expansion-panels class="condensed my-1" v-if="isFlete() && isImport()">
       <v-expansion-panel>
-        <v-expansion-panel-header>
+        <v-expansion-panel-title>
           {{
             $store.state.aduana.listTipoCostos.length > 0
               ? $store.state.aduana.listTipoCostos.filter(
@@ -77,9 +77,9 @@
               : ""
           }}:
           <span>{{ currencyFormat(resumenOpcion.flete) }}</span>
-        </v-expansion-panel-header>
-        <v-expansion-panel-content>
-          <v-simple-table dense>
+        </v-expansion-panel-title>
+        <v-expansion-panel-text>
+          <v-table density="compact">
             <thead>
               <tr>
                 <th></th>
@@ -102,7 +102,7 @@
                   <v-btn
                     icon
                     color="red"
-                    x-small
+                    size="x-small"
                     @click="eliminarCostos({ costo: valor })"
                   >
                     <v-icon>mdi-delete</v-icon>
@@ -111,7 +111,7 @@
 
                 <td class="colConcepto">
                   <v-text-field
-                    dense
+                    density="compact"
                     hide-details
                     v-model="valor.nameservice"
                   ></v-text-field>
@@ -123,8 +123,8 @@
                     v-model="valor.id_multiplicador"
                     placeholder="Multiplicador"
                     hide-details
-                    dense
-                    @change="calcTotales"
+                    density="compact"
+                    @update:model-value="calcTotales"
                     :readonly="
                       isITBM(valor.code_cost) ||
                       isConfeccion(valor.code_cost) ||
@@ -142,7 +142,7 @@
                       !isITBM(valor.code_cost) &&
                       !isNotaCredito(valor.code_cost)
                     "
-                    dense
+                    density="compact"
                     max-width="50%"
                     v-model="valor.costounitario"
                     @blur="reponerCero(valor)"
@@ -168,7 +168,7 @@
                     hide-details
                     max-width="50%"
                     suffix="%"
-                    dense
+                    density="compact"
                     max="100"
                     v-model="valor.cif"
                     type="number"
@@ -189,7 +189,7 @@
                       !isNotaCredito(valor.code_cost)
                     "
                     hide-details
-                    dense
+                    density="compact"
                     max="100"
                     v-model="valor.seguro"
                     type="number"
@@ -201,7 +201,7 @@
                   <v-text-field
                     v-if="isConfeccion(valor.code_cost)"
                     readonly
-                    dense
+                    density="compact"
                     v-model="valor.costounitario"
                     @blur="reponerCero(valor)"
                     :error-messages="valor.error"
@@ -210,7 +210,7 @@
                   <v-text-field
                     v-if="isITBM(valor.code_cost)"
                     readonly
-                    dense
+                    density="compact"
                     v-model="valor.costounitario"
                     @blur="reponerCero(valor)"
                     :error-messages="valor.error"
@@ -220,7 +220,7 @@
                   <v-text-field
                     v-if="isNotaCredito(valor.code_cost)"
                     readonly
-                    dense
+                    density="compact"
                     v-model="valor.costounitario"
                     @blur="reponerCero(valor)"
                     prefix="$"
@@ -313,14 +313,14 @@
                 </td>
               </tr>
             </tbody>
-          </v-simple-table>
-        </v-expansion-panel-content>
+          </v-table>
+        </v-expansion-panel-text>
       </v-expansion-panel>
     </v-expansion-panels>
     <!-- ORIGEN -->
     <v-expansion-panels class="condensed my-1" v-if="isOrigen()">
       <v-expansion-panel>
-        <v-expansion-panel-header>
+        <v-expansion-panel-title>
           {{
             $store.state.aduana.listTipoCostos.length > 0
               ? $store.state.aduana.listTipoCostos.filter(
@@ -329,9 +329,9 @@
               : ""
           }}:
           <span>{{ currencyFormat(resumenOpcion.origen) }}</span>
-        </v-expansion-panel-header>
-        <v-expansion-panel-content>
-          <v-simple-table dense>
+        </v-expansion-panel-title>
+        <v-expansion-panel-text>
+          <v-table density="compact">
             <thead>
               <tr>
                 <th></th>
@@ -354,7 +354,7 @@
                   <v-btn
                     icon
                     color="red"
-                    x-small
+                    size="x-small"
                     @click="eliminarCostos({ costo: valor })"
                   >
                     <v-icon>mdi-delete</v-icon>
@@ -363,7 +363,7 @@
 
                 <td class="colConcepto">
                   <v-text-field
-                    dense
+                    density="compact"
                     hide-details
                     v-model="valor.nameservice"
                   ></v-text-field>
@@ -375,8 +375,8 @@
                     v-model="valor.id_multiplicador"
                     placeholder="Multiplicador"
                     hide-details
-                    dense
-                    @change="calcTotales"
+                    density="compact"
+                    @update:model-value="calcTotales"
                     :readonly="
                       isITBM(valor.code_cost) ||
                       isConfeccion(valor.code_cost) ||
@@ -394,7 +394,7 @@
                       !isITBM(valor.code_cost) &&
                       !isNotaCredito(valor.code_cost)
                     "
-                    dense
+                    density="compact"
                     max-width="50%"
                     v-model="valor.costounitario"
                     @blur="reponerCero(valor)"
@@ -420,7 +420,7 @@
                     hide-details
                     max-width="50%"
                     suffix="%"
-                    dense
+                    density="compact"
                     max="100"
                     v-model="valor.cif"
                     type="number"
@@ -441,7 +441,7 @@
                       !isNotaCredito(valor.code_cost)
                     "
                     hide-details
-                    dense
+                    density="compact"
                     max="100"
                     v-model="valor.seguro"
                     type="number"
@@ -453,7 +453,7 @@
                   <v-text-field
                     v-if="isConfeccion(valor.code_cost)"
                     readonly
-                    dense
+                    density="compact"
                     v-model="valor.costounitario"
                     @blur="reponerCero(valor)"
                     :error-messages="valor.error"
@@ -462,7 +462,7 @@
                   <v-text-field
                     v-if="isITBM(valor.code_cost)"
                     readonly
-                    dense
+                    density="compact"
                     v-model="valor.costounitario"
                     @blur="reponerCero(valor)"
                     :error-messages="valor.error"
@@ -472,7 +472,7 @@
                   <v-text-field
                     v-if="isNotaCredito(valor.code_cost)"
                     readonly
-                    dense
+                    density="compact"
                     v-model="valor.costounitario"
                     @blur="reponerCero(valor)"
                     prefix="$"
@@ -565,14 +565,14 @@
                 </td>
               </tr>
             </tbody>
-          </v-simple-table>
-        </v-expansion-panel-content>
+          </v-table>
+        </v-expansion-panel-text>
       </v-expansion-panel>
     </v-expansion-panels>
     <!-- LOCAL -->
     <v-expansion-panels class="condensed my-1" v-if="isLocal()">
       <v-expansion-panel>
-        <v-expansion-panel-header>
+        <v-expansion-panel-title>
           {{
             $store.state.aduana.listTipoCostos.length > 0
               ? $store.state.aduana.listTipoCostos.filter(
@@ -581,9 +581,9 @@
               : ""
           }}:
           <span>{{ currencyFormat(resumenOpcion.gasto) }}</span>
-        </v-expansion-panel-header>
-        <v-expansion-panel-content>
-          <v-simple-table dense>
+        </v-expansion-panel-title>
+        <v-expansion-panel-text>
+          <v-table density="compact">
             <thead>
               <tr>
                 <th></th>
@@ -606,7 +606,7 @@
                   <v-btn
                     icon
                     color="red"
-                    x-small
+                    size="x-small"
                     @click="eliminarCostos({ costo: valor })"
                   >
                     <v-icon>mdi-delete</v-icon>
@@ -615,7 +615,7 @@
 
                 <td class="colConcepto">
                   <v-text-field
-                    dense
+                    density="compact"
                     hide-details
                     v-model="valor.nameservice"
                   ></v-text-field>
@@ -627,8 +627,8 @@
                     v-model="valor.id_multiplicador"
                     placeholder="Multiplicador"
                     hide-details
-                    dense
-                    @change="calcTotales"
+                    density="compact"
+                    @update:model-value="calcTotales"
                     :readonly="
                       isITBM(valor.code_cost) ||
                       isConfeccion(valor.code_cost) ||
@@ -646,7 +646,7 @@
                       !isITBM(valor.code_cost) &&
                       !isNotaCredito(valor.code_cost)
                     "
-                    dense
+                    density="compact"
                     max-width="50%"
                     v-model="valor.costounitario"
                     @blur="reponerCero(valor)"
@@ -672,7 +672,7 @@
                     hide-details
                     max-width="50%"
                     suffix="%"
-                    dense
+                    density="compact"
                     max="100"
                     v-model="valor.cif"
                     type="number"
@@ -693,7 +693,7 @@
                       !isNotaCredito(valor.code_cost)
                     "
                     hide-details
-                    dense
+                    density="compact"
                     max="100"
                     v-model="valor.seguro"
                     type="number"
@@ -705,7 +705,7 @@
                   <v-text-field
                     v-if="isConfeccion(valor.code_cost)"
                     readonly
-                    dense
+                    density="compact"
                     v-model="valor.costounitario"
                     @blur="reponerCero(valor)"
                     :error-messages="valor.error"
@@ -714,7 +714,7 @@
                   <v-text-field
                     v-if="isITBM(valor.code_cost)"
                     readonly
-                    dense
+                    density="compact"
                     v-model="valor.costounitario"
                     @blur="reponerCero(valor)"
                     :error-messages="valor.error"
@@ -724,7 +724,7 @@
                   <v-text-field
                     v-if="isNotaCredito(valor.code_cost)"
                     readonly
-                    dense
+                    density="compact"
                     v-model="valor.costounitario"
                     @blur="reponerCero(valor)"
                     prefix="$"
@@ -817,14 +817,14 @@
                 </td>
               </tr>
             </tbody>
-          </v-simple-table>
-        </v-expansion-panel-content>
+          </v-table>
+        </v-expansion-panel-text>
       </v-expansion-panel>
     </v-expansion-panels>
     <!-- ADUANA -->
     <v-expansion-panels class="condensed my-1" v-if="isAduana()">
       <v-expansion-panel>
-        <v-expansion-panel-header>
+        <v-expansion-panel-title>
           {{
             $store.state.aduana.listTipoCostos.length > 0
               ? $store.state.aduana.listTipoCostos.filter(
@@ -833,9 +833,9 @@
               : ""
           }}:
           <span>{{ currencyFormat(resumenOpcion.aduana) }}</span>
-        </v-expansion-panel-header>
-        <v-expansion-panel-content>
-          <v-simple-table dense>
+        </v-expansion-panel-title>
+        <v-expansion-panel-text>
+          <v-table density="compact">
             <thead>
               <tr>
                 <th></th>
@@ -858,7 +858,7 @@
                   <v-btn
                     icon
                     color="red"
-                    x-small
+                    size="x-small"
                     @click="eliminarCostos({ costo: valor })"
                   >
                     <v-icon>mdi-delete</v-icon>
@@ -867,7 +867,7 @@
 
                 <td class="colConcepto">
                   <v-text-field
-                    dense
+                    density="compact"
                     hide-details
                     v-model="valor.nameservice"
                   ></v-text-field>
@@ -879,8 +879,8 @@
                     v-model="valor.id_multiplicador"
                     placeholder="Multiplicador"
                     hide-details
-                    dense
-                    @change="calcTotales"
+                    density="compact"
+                    @update:model-value="calcTotales"
                     :readonly="
                       isITBM(valor.code_cost) ||
                       isConfeccion(valor.code_cost) ||
@@ -898,7 +898,7 @@
                       !isITBM(valor.code_cost) &&
                       !isNotaCredito(valor.code_cost)
                     "
-                    dense
+                    density="compact"
                     max-width="50%"
                     v-model="valor.costounitario"
                     @blur="reponerCero(valor)"
@@ -924,7 +924,7 @@
                     hide-details
                     max-width="50%"
                     suffix="%"
-                    dense
+                    density="compact"
                     max="100"
                     v-model="valor.cif"
                     type="number"
@@ -945,7 +945,7 @@
                       !isNotaCredito(valor.code_cost)
                     "
                     hide-details
-                    dense
+                    density="compact"
                     max="100"
                     v-model="valor.seguro"
                     type="number"
@@ -957,7 +957,7 @@
                   <v-text-field
                     v-if="isConfeccion(valor.code_cost)"
                     readonly
-                    dense
+                    density="compact"
                     v-model="valor.costounitario"
                     @blur="reponerCero(valor)"
                     :error-messages="valor.error"
@@ -966,7 +966,7 @@
                   <v-text-field
                     v-if="isITBM(valor.code_cost)"
                     readonly
-                    dense
+                    density="compact"
                     v-model="valor.costounitario"
                     @blur="reponerCero(valor)"
                     :error-messages="valor.error"
@@ -976,7 +976,7 @@
                   <v-text-field
                     v-if="isNotaCredito(valor.code_cost)"
                     readonly
-                    dense
+                    density="compact"
                     v-model="valor.costounitario"
                     @blur="reponerCero(valor)"
                     prefix="$"
@@ -1068,13 +1068,13 @@
                 </td>
               </tr>
             </tbody>
-          </v-simple-table>
-        </v-expansion-panel-content>
+          </v-table>
+        </v-expansion-panel-text>
       </v-expansion-panel>
     </v-expansion-panels>
     <v-expansion-panels class="condensed my-1" v-if="isFlete() && !isImport()">
       <v-expansion-panel>
-        <v-expansion-panel-header>
+        <v-expansion-panel-title>
           {{
             $store.state.aduana.listTipoCostos.length > 0
               ? $store.state.aduana.listTipoCostos.filter(
@@ -1083,9 +1083,9 @@
               : ""
           }}:
           <span>{{ currencyFormat(resumenOpcion.flete) }}</span>
-        </v-expansion-panel-header>
-        <v-expansion-panel-content>
-          <v-simple-table dense>
+        </v-expansion-panel-title>
+        <v-expansion-panel-text>
+          <v-table density="compact">
             <thead>
               <tr>
                 <th></th>
@@ -1108,7 +1108,7 @@
                   <v-btn
                     icon
                     color="red"
-                    x-small
+                    size="x-small"
                     @click="eliminarCostos({ costo: valor })"
                   >
                     <v-icon>mdi-delete</v-icon>
@@ -1117,7 +1117,7 @@
 
                 <td class="colConcepto">
                   <v-text-field
-                    dense
+                    density="compact"
                     hide-details
                     v-model="valor.nameservice"
                   ></v-text-field>
@@ -1129,8 +1129,8 @@
                     v-model="valor.id_multiplicador"
                     placeholder="Multiplicador"
                     hide-details
-                    dense
-                    @change="recalcularCostos()"
+                    density="compact"
+                    @update:model-value="recalcularCostos()"
                     :readonly="
                       isITBM(valor.code_cost) ||
                       isConfeccion(valor.code_cost) ||
@@ -1148,7 +1148,7 @@
                       !isITBM(valor.code_cost) &&
                       !isNotaCredito(valor.code_cost)
                     "
-                    dense
+                    density="compact"
                     max-width="50%"
                     v-model="valor.costounitario"
                     @blur="reponerCero(valor)"
@@ -1174,7 +1174,7 @@
                     hide-details
                     max-width="50%"
                     suffix="%"
-                    dense
+                    density="compact"
                     max="100"
                     v-model="valor.cif"
                     type="number"
@@ -1195,7 +1195,7 @@
                       !isNotaCredito(valor.code_cost)
                     "
                     hide-details
-                    dense
+                    density="compact"
                     max="100"
                     v-model="valor.seguro"
                     type="number"
@@ -1207,7 +1207,7 @@
                   <v-text-field
                     v-if="isConfeccion(valor.code_cost)"
                     readonly
-                    dense
+                    density="compact"
                     v-model="valor.costounitario"
                     @blur="reponerCero(valor)"
                     :error-messages="valor.error"
@@ -1216,7 +1216,7 @@
                   <v-text-field
                     v-if="isITBM(valor.code_cost)"
                     readonly
-                    dense
+                    density="compact"
                     v-model="valor.costounitario"
                     @blur="reponerCero(valor)"
                     :error-messages="valor.error"
@@ -1226,7 +1226,7 @@
                   <v-text-field
                     v-if="isNotaCredito(valor.code_cost)"
                     readonly
-                    dense
+                    density="compact"
                     v-model="valor.costounitario"
                     @blur="reponerCero(valor)"
                     prefix="$"
@@ -1319,15 +1319,15 @@
                 </td>
               </tr>
             </tbody>
-          </v-simple-table>
-        </v-expansion-panel-content>
+          </v-table>
+        </v-expansion-panel-text>
       </v-expansion-panel>
     </v-expansion-panels>
 
     <!-- ALMACEN -->
     <v-expansion-panels class="condensed my-1" v-if="isAlmacen()">
       <v-expansion-panel>
-        <v-expansion-panel-header>
+        <v-expansion-panel-title>
           {{
             $store.state.aduana.listTipoCostos.length > 0
               ? $store.state.aduana.listTipoCostos.filter(
@@ -1336,9 +1336,9 @@
               : ""
           }}:
           <span>{{ currencyFormat(resumenOpcion.almacen) }}</span>
-        </v-expansion-panel-header>
-        <v-expansion-panel-content>
-          <v-simple-table dense>
+        </v-expansion-panel-title>
+        <v-expansion-panel-text>
+          <v-table density="compact">
             <thead>
               <tr>
                 <th style=""></th>
@@ -1361,7 +1361,7 @@
                   <v-btn
                     icon
                     color="red"
-                    x-small
+                    size="x-small"
                     @click="eliminarCostos({ costo: valor })"
                   >
                     <v-icon>mdi-delete</v-icon>
@@ -1370,7 +1370,7 @@
 
                 <td class="colConcepto">
                   <v-text-field
-                    dense
+                    density="compact"
                     hide-details
                     v-model="valor.nameservice"
                   ></v-text-field>
@@ -1382,8 +1382,8 @@
                     v-model="valor.id_multiplicador"
                     placeholder="Multiplicador"
                     hide-details
-                    dense
-                    @change="calcTotales"
+                    density="compact"
+                    @update:model-value="calcTotales"
                     :readonly="
                       isITBM(valor.code_cost) ||
                       isConfeccion(valor.code_cost) ||
@@ -1401,7 +1401,7 @@
                       !isITBM(valor.code_cost) &&
                       !isNotaCredito(valor.code_cost)
                     "
-                    dense
+                    density="compact"
                     max-width="50%"
                     v-model="valor.costounitario"
                     @blur="reponerCero(valor)"
@@ -1427,7 +1427,7 @@
                     hide-details
                     max-width="50%"
                     suffix="%"
-                    dense
+                    density="compact"
                     max="100"
                     v-model="valor.cif"
                     type="number"
@@ -1448,7 +1448,7 @@
                       !isNotaCredito(valor.code_cost)
                     "
                     hide-details
-                    dense
+                    density="compact"
                     max="100"
                     v-model="valor.seguro"
                     type="number"
@@ -1460,7 +1460,7 @@
                   <v-text-field
                     v-if="isConfeccion(valor.code_cost)"
                     readonly
-                    dense
+                    density="compact"
                     v-model="valor.costounitario"
                     @blur="reponerCero(valor)"
                     :error-messages="valor.error"
@@ -1469,7 +1469,7 @@
                   <v-text-field
                     v-if="isITBM(valor.code_cost)"
                     readonly
-                    dense
+                    density="compact"
                     v-model="valor.costounitario"
                     @blur="reponerCero(valor)"
                     :error-messages="valor.error"
@@ -1479,7 +1479,7 @@
                   <v-text-field
                     v-if="isNotaCredito(valor.code_cost)"
                     readonly
-                    dense
+                    density="compact"
                     v-model="valor.costounitario"
                     @blur="reponerCero(valor)"
                     prefix="$"
@@ -1572,15 +1572,15 @@
                 </td>
               </tr>
             </tbody>
-          </v-simple-table>
-        </v-expansion-panel-content>
+          </v-table>
+        </v-expansion-panel-text>
       </v-expansion-panel>
     </v-expansion-panels>
 
     <!-- GASTOS DE TERCEROS -->
     <v-expansion-panels class="condensed my-1" v-if="isGastosTercero()">
       <v-expansion-panel>
-        <v-expansion-panel-header>
+        <v-expansion-panel-title>
           {{
             $store.state.aduana.listTipoCostos.length > 0
               ? $store.state.aduana.listTipoCostos.filter(
@@ -1589,9 +1589,9 @@
               : ""
           }}:
           <span>{{ currencyFormat(resumenOpcion.gastostercero) }}</span>
-        </v-expansion-panel-header>
-        <v-expansion-panel-content>
-          <v-simple-table dense>
+        </v-expansion-panel-title>
+        <v-expansion-panel-text>
+          <v-table density="compact">
             <thead>
               <tr>
                 <th style=""></th>
@@ -1614,7 +1614,7 @@
                   <v-btn
                     icon
                     color="red"
-                    x-small
+                    size="x-small"
                     @click="eliminarCostos({ costo: valor })"
                   >
                     <v-icon>mdi-delete</v-icon>
@@ -1623,7 +1623,7 @@
 
                 <td class="colConcepto">
                   <v-text-field
-                    dense
+                    density="compact"
                     hide-details
                     v-model="valor.nameservice"
                   ></v-text-field>
@@ -1635,8 +1635,8 @@
                     v-model="valor.id_multiplicador"
                     placeholder="Multiplicador"
                     hide-details
-                    dense
-                    @change="calcTotales"
+                    density="compact"
+                    @update:model-value="calcTotales"
                     :readonly="
                       isITBM(valor.code_cost) ||
                       isConfeccion(valor.code_cost) ||
@@ -1654,7 +1654,7 @@
                       !isITBM(valor.code_cost) &&
                       !isNotaCredito(valor.code_cost)
                     "
-                    dense
+                    density="compact"
                     max-width="50%"
                     v-model="valor.costounitario"
                     @blur="reponerCero(valor)"
@@ -1680,7 +1680,7 @@
                     hide-details
                     max-width="50%"
                     suffix="%"
-                    dense
+                    density="compact"
                     max="100"
                     v-model="valor.cif"
                     type="number"
@@ -1701,7 +1701,7 @@
                       !isNotaCredito(valor.code_cost)
                     "
                     hide-details
-                    dense
+                    density="compact"
                     max="100"
                     v-model="valor.seguro"
                     type="number"
@@ -1713,7 +1713,7 @@
                   <v-text-field
                     v-if="isConfeccion(valor.code_cost)"
                     readonly
-                    dense
+                    density="compact"
                     v-model="valor.costounitario"
                     @blur="reponerCero(valor)"
                     :error-messages="valor.error"
@@ -1722,7 +1722,7 @@
                   <v-text-field
                     v-if="isITBM(valor.code_cost)"
                     readonly
-                    dense
+                    density="compact"
                     v-model="valor.costounitario"
                     @blur="reponerCero(valor)"
                     :error-messages="valor.error"
@@ -1732,7 +1732,7 @@
                   <v-text-field
                     v-if="isNotaCredito(valor.code_cost)"
                     readonly
-                    dense
+                    density="compact"
                     v-model="valor.costounitario"
                     @blur="reponerCero(valor)"
                     prefix="$"
@@ -1825,8 +1825,8 @@
                 </td>
               </tr>
             </tbody>
-          </v-simple-table>
-        </v-expansion-panel-content>
+          </v-table>
+        </v-expansion-panel-text>
       </v-expansion-panel>
     </v-expansion-panels>
   </v-container>

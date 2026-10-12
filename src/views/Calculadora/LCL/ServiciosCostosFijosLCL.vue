@@ -2,10 +2,10 @@
   <v-card>
     <v-container fluid>
       <v-tabs
-        background-color="#B71C1C"
+        bg-color="#B71C1C"
         center-active
         dark
-        centered
+        align-tabs="center"
         v-model="tab"
       >
         <v-tabs-slider color="red"></v-tabs-slider>

@@ -5,15 +5,15 @@
       <!-- HEADER -->
 
       <div class="header-section">
-        <v-btn text small class="back-btn" @click="volverReporte">
-          <v-icon small left>mdi-arrow-left</v-icon>
+        <v-btn variant="text" size="small" class="back-btn" @click="volverReporte">
+          <v-icon size="small" start>mdi-arrow-left</v-icon>
           Volver al reporte general
         </v-btn>
         <h1 class="page-title">DETALLE DE EXPEDIENTES</h1>
 
         <!-- MENSAJE INFORMATIVO -->
         <div class="info-message">
-          <v-icon small>mdi-information</v-icon>
+          <v-icon size="small">mdi-information</v-icon>
 
           <span>
             Los datos mostrados corresponden al año
@@ -26,8 +26,8 @@
       </div>
 
       <!-- FILTROS -->
-      <v-card class="filters-card" flat outlined>
-        <v-row align="center" no-gutters class="filters-row">
+      <v-card class="filters-card" flat border>
+        <v-row no-gutters class="filters-row align-center">
           <!-- AÑO -->
           <v-col cols="12" sm="2" class="filter-col">
             <label>Año</label>
@@ -35,8 +35,8 @@
             <v-select
               v-model="year"
               :items="anios"
-              dense
-              outlined
+              density="compact"
+              variant="outlined"
               hide-details
               class="filter-input"
               style="max-width: 130px"
@@ -53,11 +53,11 @@
               offset-y
               :close-on-content-click="false"
             >
-              <template v-slot:activator="{ on, attrs }">
+              <template v-slot:activator="{ props }">
                 <v-btn
-                  v-bind="attrs"
-                  v-on="on"
-                  outlined
+                 
+                  v-bind="props"
+                  variant="outlined"
                   dense
                   block
                   class="month-selector"
@@ -66,25 +66,25 @@
                     Seleccionar meses ({{ mesesSeleccionados.length }})
                   </span>
 
-                  <v-icon small right> mdi-chevron-down </v-icon>
+                  <v-icon size="small" end> mdi-chevron-down </v-icon>
                 </v-btn>
               </template>
 
               <v-card class="">
-                <v-list dense>
+                <v-list density="compact">
                   <!-- TODOS -->
-                  <v-list-item dense @click="toggleTodos">
+                  <v-list-item density="compact" @click="toggleTodos">
                     <v-list-item-action>
                       <v-checkbox
-                        :input-value="todosLosMeses"
+                        :model-value="todosLosMeses"
                         hide-details
                         color="primary"
                       />
                     </v-list-item-action>
 
-                    <v-list-item-content>
+                    
                       <v-list-item-title> Todos los meses </v-list-item-title>
-                    </v-list-item-content>
+                    
                   </v-list-item>
 
                   <v-divider />
@@ -93,31 +93,31 @@
                   <v-list-item
                     v-for="mes in meses"
                     :key="mes.value"
-                    dense
+                    density="compact"
                     @click="toggleMes(mes.value)"
                   >
                     <v-list-item-action>
                       <v-checkbox
-                        :input-value="mesesTemporales.includes(mes.value)"
+                        :model-value="mesesTemporales.includes(mes.value)"
                         hide-details
                         color="primary"
                       />
                     </v-list-item-action>
 
-                    <v-list-item-content>
+                    
                       <v-list-item-title>
                         {{ mes.text }}
                       </v-list-item-title>
-                    </v-list-item-content>
+                    
                   </v-list-item>
                 </v-list>
 
                 <v-divider />
 
                 <div class="menu-actions">
-                  <v-btn text small @click="cancelarMeses"> Cancelar </v-btn>
+                  <v-btn variant="text" size="small" @click="cancelarMeses"> Cancelar </v-btn>
 
-                  <v-btn color="primary" small depressed @click="aplicarMeses">
+                  <v-btn color="primary" size="small" variant="flat" @click="aplicarMeses">
                     Aplicar
                   </v-btn>
                 </div>
@@ -132,8 +132,8 @@
             md="2"
             class="filter-col compare-col"
           >
-            <v-btn outlined dense class="compare-btn" @click="compararAnos">
-              <v-icon small left> mdi-calendar-sync </v-icon>
+            <v-btn variant="outlined" dense class="compare-btn" @click="compararAnos">
+              <v-icon size="small" start> mdi-calendar-sync </v-icon>
 
               Comparar con años anteriores
             </v-btn>
@@ -143,8 +143,8 @@
 
           <!-- IMPRIMIR -->
           <v-col cols="6" sm="2" md="2" class="action-col mt-4 mx-10">
-            <v-btn outlined block class="print-btn" @click="imprimirPDF">
-              <v-icon small left> mdi-printer </v-icon>
+            <v-btn variant="outlined" block class="print-btn" @click="imprimirPDF">
+              <v-icon size="small" start> mdi-printer </v-icon>
 
               Imprimir PDF
             </v-btn>
@@ -155,11 +155,11 @@
             <v-btn
               color="primary"
               block
-              depressed
+              variant="flat"
               class="apply-filter-btn"
               @click="recargarFiltro()"
             >
-              <v-icon small left> mdi-filter </v-icon>
+              <v-icon size="small" start> mdi-filter </v-icon>
 
               Aplicar filtros
             </v-btn>
@@ -306,13 +306,13 @@
 
         <div class="pagination-container my-5">
           <v-select
-            outlined
+            variant="outlined"
             :items="elementPorPage"
             v-model="itemsPerPage"
-            item-text="label"
+            item-title="label"
             label="Mostrar"
             hide-details
-            dense
+            density="compact"
             style="max-width: 150px"
           ></v-select>
           <v-pagination

@@ -10,11 +10,11 @@
           <v-select
             v-model="estatusSeleccionado"
             :items="estatusDisponibles"
-            item-text="name"
+            item-title="name"
             item-value="id"
             label="Estatus por defecto para cotizaciones"
-            dense
-            outlined
+            density="compact"
+            variant="outlined"
             :loading="loadingEstatus"
           ></v-select>
         </v-col>
@@ -25,7 +25,7 @@
             :disabled="!estatusSeleccionado"
             :loading="guardando"
           >
-            <v-icon left>mdi-content-save</v-icon>
+            <v-icon start>mdi-content-save</v-icon>
             Guardar Configuración
           </v-btn>
         </v-col>
@@ -39,19 +39,19 @@
           <v-chip 
             v-if="configuracionActual" 
             color="success" 
-            outlined
+            variant="outlined"
             class="ma-2"
           >
-            <v-icon left>mdi-check-circle</v-icon>
+            <v-icon start>mdi-check-circle</v-icon>
             Estatus actual: {{ configuracionActual.name }}
           </v-chip>
           <v-chip 
             v-else 
             color="warning" 
-            outlined
+            variant="outlined"
             class="ma-2"
           >
-            <v-icon left>mdi-alert-circle</v-icon>
+            <v-icon start>mdi-alert-circle</v-icon>
             Sin configuración establecida
           </v-chip>
         </v-col>

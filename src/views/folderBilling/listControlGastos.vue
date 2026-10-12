@@ -4,9 +4,9 @@
 
     <v-navigation-drawer
       v-model="$store.state.cg_filtrarData"
-      right
+      location="right bottom"
       absolute
-      bottom
+      
       persistent
       width="20%"
       temporary

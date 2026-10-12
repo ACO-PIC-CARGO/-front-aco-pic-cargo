@@ -5,11 +5,11 @@
         <v-col cols="3" v-if="nuevoExpedienteFlag()">
           <!--  -->
           <v-autocomplete
-            @change="nombreCampania()"
+            @update:model-value="nombreCampania()"
             :items="$store.state.itemsMasterList"
             v-model="id_exp"
             label="Expediente"
-            item-text="code_master"
+            item-title="code_master"
             item-value="id"
           >
           </v-autocomplete>
@@ -58,7 +58,7 @@
                 v-model="cuota[n - 1]"
                 type="number"
                 suffix="%"
-                dense
+                density="compact"
               ></v-text-field>
             </v-col>
             <v-col cols="6">
@@ -67,7 +67,7 @@
                 v-if="nuevoExpediente"
                 v-model="fechacuota[n - 1]"
                 type="date"
-                dense
+                density="compact"
               ></v-text-field>
             </v-col>
           </v-row>
@@ -108,7 +108,7 @@
 
           <v-tabs
             v-model="tab"
-            background-color="transparent"
+            bg-color="transparent"
             color="basil"
             grow
           >

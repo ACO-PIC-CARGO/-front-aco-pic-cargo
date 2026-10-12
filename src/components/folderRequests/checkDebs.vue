@@ -50,7 +50,7 @@
         <template v-slot:[`item.accions`]="{ item }">
           <v-icon
             v-if="item.status == 1"
-            color="blue-grey darken-2"
+            color="blue-grey-darken-2"
             class="mr-2"
             @click="
               processPayment(
@@ -66,7 +66,7 @@
           </v-icon>
           <v-icon
             v-if="item.status == 2 && security == 1"
-            color="blue-grey darken-2"
+            color="blue-grey-darken-2"
             class="mr-2"
             @click="reversar(item)"
           >
@@ -97,7 +97,7 @@
 
         <v-card-text>
           <v-container>
-            <v-row dense>
+            <v-row density="compact">
               <v-col cols="12">
                 <iframe
                   width="100%"
@@ -143,7 +143,7 @@
             >Aprobar Pago</v-btn
           >
           <v-spacer></v-spacer>
-          <v-btn outlined color="red" @click="dialogProcess = !dialogProcess"
+          <v-btn variant="outlined" color="red" @click="dialogProcess = !dialogProcess"
             >Cerrar</v-btn
           >
         </v-card-actions>

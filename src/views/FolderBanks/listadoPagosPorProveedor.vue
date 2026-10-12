@@ -1,6 +1,6 @@
 <template>
   <v-container fluid class="pt-0 mt-0">
-    <v-tabs v-model="tab" centered dense>
+    <v-tabs v-model="tab" align-tabs="center" dense>
       <v-tabs-slider></v-tabs-slider>
 
       <v-tab color="primary" href="#agrupado"> Datos Agrupado </v-tab>

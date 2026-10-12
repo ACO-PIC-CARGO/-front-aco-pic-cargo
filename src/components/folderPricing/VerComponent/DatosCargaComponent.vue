@@ -10,11 +10,11 @@
             <v-col cols="12">
               <v-autocomplete
                 label="Proveedor"
-                outlined
-                dense
+                variant="outlined"
+                density="compact"
                 class="my-1"
                 :items="$store.state.itemsProveedorList"
-                item-text="namelong"
+                item-title="namelong"
                 item-value="id"
                 readonly
                 v-model="$store.state.pricing.datosPrincipales.id_proveedor"
@@ -24,11 +24,11 @@
             <v-col cols="12" lg="6" xl="6">
               <v-autocomplete
                 label="Puerto Origen"
-                outlined
-                dense
+                variant="outlined"
+                density="compact"
                 class="my-1"
                 :items="$store.state.pricing.listPortBegin"
-                item-text="name"
+                item-title="name"
                 item-value="id_port"
                 v-model="$store.state.pricing.datosPrincipales.idorigen"
                 readonly
@@ -37,11 +37,11 @@
             <v-col cols="12" lg="6" xl="6">
               <v-autocomplete
                 label="Puerto Destino"
-                outlined
-                dense
+                variant="outlined"
+                density="compact"
                 class="my-1"
                 :items="$store.state.pricing.listPortEnd"
-                item-text="name"
+                item-title="name"
                 item-value="id_port"
                 v-model="$store.state.pricing.datosPrincipales.iddestino"
                 readonly
@@ -49,7 +49,7 @@
               </v-autocomplete>
             </v-col>
 
-            <v-col cols="12" lg="6" xl="6" class="py-1" rows>
+            <v-col cols="12" lg="6" xl="6" class="py-1 rows">
               <v-row>
                 <v-col cols="12" md="6">
                   <v-checkbox
@@ -84,12 +84,12 @@
               <v-autocomplete
                 label="Primera o Segunda Importación"
                 readonly
-                outlined
-                dense
+                variant="outlined"
+                density="compact"
                 :rules="[(v) => !!v || 'Dato requerido']"
                 class="my-1"
                 :items="$store.state.masterusuarios.lstPercepcionAduana"
-                item-text="descripcion"
+                item-title="descripcion"
                 item-value="id"
                 v-model="
                   $store.state.pricing.datosPrincipales.id_percepcionaduana
@@ -101,8 +101,8 @@
 
         <v-row v-if="isAereo()">
           <v-col cols="12">
-            <v-simple-table dense class="elevation-1 my-2">
-              <thead class="teal lighten-2 white--text">
+            <v-table density="compact" class="elevation-1 my-2">
+              <thead class="bg-teal-lighten-2 text-white">
                 <tr>
                   <th>Cant. Bultos</th>
                   <th>Peso (kg)</th>
@@ -128,7 +128,7 @@
                   </td>
                 </tr>
               </tbody>
-            </v-simple-table>
+            </v-table>
           </v-col>
         </v-row>
         <v-row v-else>
@@ -178,7 +178,7 @@
               :items="$store.state.itemsContainers"
               v-model="containers.container"
               label="Container"
-              item-text="name"
+              item-title="name"
               item-value="id"
               :rules="[(v) => !!v || 'Dato Requerido']"
               :error-messages="err"

@@ -17,7 +17,7 @@
           label="Pais"
           :items="$store.state.itemsPais"
           v-model="$store.state.airlines.AirlineFilter.id_pais"
-          item-text="name"
+          item-title="name"
           item-value="id"
           clearable
         >
@@ -53,7 +53,7 @@
         ></v-text-field>
       </div>
       <div class="col-12 py-1">
-        <v-radio-group v-model="$store.state.airlines.AirlineFilter.status" row>
+        <v-radio-group v-model="$store.state.airlines.AirlineFilter.status" inline>
           <v-radio label="Activo" color="green" :value="true"></v-radio>
           <v-radio label="Inactivo" color="red" :value="false"></v-radio>
           <v-radio label="Todos" color="blue" value="null"></v-radio>
@@ -67,7 +67,7 @@
             label="Pais (*)"
             :items="$store.state.itemsPais"
             v-model="$store.state.airlines.AirlineModel.id_pais"
-            item-text="name"
+            item-title="name"
             item-value="id"
             :readonly="$store.state.airlines.tipo == 'ver'"
             :item-disabled="(item) => item.status != 1"

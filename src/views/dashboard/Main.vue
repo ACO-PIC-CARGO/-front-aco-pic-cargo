@@ -26,7 +26,7 @@
         text-color="primary"
         class="mx-4"
       >
-        <v-icon left color="primary">mdi-account</v-icon>
+        <v-icon start color="primary">mdi-account</v-icon>
         VENDEDOR: {{ operadorNombre }}
       </v-chip>
 
@@ -104,7 +104,7 @@
         v-if="getNameUrl() == 'editQuote'"
         @click="editarCotizacion()"
       >
-        <v-icon small class="mx-1">mdi-content-save-all</v-icon> GUARDAR
+        <v-icon size="small" class="mx-1">mdi-content-save-all</v-icon> GUARDAR
       </v-btn>
       <!-- ver -->
       <label class="monto" v-if="getNameUrl() == 'verQuote'">
@@ -123,27 +123,27 @@
         v-if="getNameUrl() == 'verQuote'"
         @click="handleEditarQuote()"
       >
-        <v-icon small class="mx-1">mdi-pencil</v-icon> EDITAR
+        <v-icon size="small" class="mx-1">mdi-pencil</v-icon> EDITAR
       </v-btn>
       <v-btn
         v-if="getNameUrl() == 'verQuote'"
         class="mx-1"
-        color="light-blue darken-3"
+        color="light-blue-darken-3"
         dark
         @click="abrirCorreo()"
       >
-        <v-icon class="mx-1" dense small>mdi-email-fast</v-icon>
+        <v-icon class="mx-1" size="small">mdi-email-fast</v-icon>
         CORREO
       </v-btn>
 
       <v-btn
         v-if="getNameUrl() == 'editQuote'"
         class="mx-1"
-        color="light-blue darken-3"
+        color="light-blue-darken-3"
         dark
         @click="abrirCorreo()"
       >
-        <v-icon class="mx-1" dense small>mdi-email-fast</v-icon>
+        <v-icon class="mx-1" size="small">mdi-email-fast</v-icon>
         CORREO
       </v-btn>
 
@@ -156,18 +156,18 @@
           abrirCarpeta($store.state.pricing.datosPrincipales.url_folderonedrive)
         "
       >
-        <v-icon class="mx-1" dense small>mdi-folder</v-icon>
+        <v-icon class="mx-1" size="small">mdi-folder</v-icon>
         ABRIR
       </v-btn>
 
       <v-btn
         v-if="getNameUrl() == 'verQuote'"
         class="mx-1"
-        color="light-blue darken-3"
+        color="light-blue-darken-3"
         dark
         @click="abrirModalCopiarCotizacion()"
       >
-        <v-icon class="mx-1" dense small>mdi-content-copy</v-icon>
+        <v-icon class="mx-1" size="small">mdi-content-copy</v-icon>
         COPIAR
       </v-btn>
 
@@ -216,7 +216,7 @@
         dark
         v-if="getNameUrl() == 'EditarAduana'"
         @click="editarCotizacionAduana()"
-        small
+        size="small"
       >
         <v-icon class="mx-1">mdi-save</v-icon> GUARDAR
       </v-btn>
@@ -278,7 +278,7 @@
     <!-- Modal de autenticación admin para editar cotizaciones aprobadas -->
     <v-dialog v-model="dialogAdminAuth" max-width="400" persistent>
       <v-card>
-        <v-card-title class="headline grey lighten-2">
+        <v-card-title class="headline bg-grey-lighten-2">
           Autenticación Requerida
         </v-card-title>
         <v-card-text class="pt-4">
@@ -290,8 +290,8 @@
             v-model="adminUser"
             label="Usuario o Email"
             prepend-icon="mdi-account"
-            outlined
-            dense
+            variant="outlined"
+            density="compact"
           ></v-text-field>
           <v-text-field
             v-model="adminPassword"
@@ -300,16 +300,16 @@
             :type="showAdminPassword ? 'text' : 'password'"
             :append-icon="showAdminPassword ? 'mdi-eye' : 'mdi-eye-off'"
             @click:append="showAdminPassword = !showAdminPassword"
-            outlined
-            dense
+            variant="outlined"
+            density="compact"
           ></v-text-field>
-          <v-alert v-if="adminAuthError" type="error" dense class="mt-2">
+          <v-alert v-if="adminAuthError" type="error" density="compact" class="mt-2">
             {{ adminAuthError }}
           </v-alert>
         </v-card-text>
         <v-card-actions>
           <v-spacer></v-spacer>
-          <v-btn color="grey" text @click="cerrarDialogAdminAuth()">
+          <v-btn color="grey" variant="text" @click="cerrarDialogAdminAuth()">
             Cancelar
           </v-btn>
           <v-btn
@@ -332,15 +332,15 @@
             :items="this.$store.state.itemsDataRoleList"
             small-chips
             item-value="id"
-            item-text="name"
+            item-title="name"
             persistent
-            outlined
+            variant="outlined"
             label="Tipo Proveedor"
             v-model="idRole"
             :loading="this.$store.state.itemsDataRoleList.length == 0"
           >
           </v-autocomplete>
-          <v-simple-table>
+          <v-table>
             <thead>
               <tr>
                 <th></th>
@@ -357,7 +357,7 @@
                 <td>{{ dato.email }}</td>
               </tr>
             </tbody>
-          </v-simple-table>
+          </v-table>
         </v-card-text>
         <v-card-actions>
           <v-spacer></v-spacer>
@@ -404,7 +404,7 @@
             <template v-slot:[`item.action`]="{ item }">
               <v-btn
                 icon
-                small
+                size="small"
                 :color="getColorIcon(item)"
                 :href="item.webUrl"
                 target="_blank"
@@ -416,10 +416,10 @@
         </v-card-text>
         <v-card-actions>
           <v-spacer></v-spacer>
-          <v-btn small color="success" @click="copiarCotizacion"
+          <v-btn size="small" color="success" @click="copiarCotizacion"
             >Continuar</v-btn
           >
-          <v-btn small color="error" @click="dialogFiles = false"
+          <v-btn size="small" color="error" @click="dialogFiles = false"
             >Cancelar</v-btn
           >
         </v-card-actions>
@@ -433,9 +433,9 @@
       <v-card class="rounded-lg elevation-4">
         <!-- Cabecera profesional con color y título claro -->
         <v-card-title
-          class="headline primary white--text py-3 px-4 d-flex align-center"
+          class="headline bg-primary text-white py-3 px-4 d-flex align-center"
         >
-          <v-icon left dark class="mr-2">mdi-calendar-clock</v-icon>
+          <v-icon start dark class="mr-2">mdi-calendar-clock</v-icon>
           <span class="font-weight-bold">Actualizar Vigencia de Flete</span>
         </v-card-title>
 
@@ -462,8 +462,8 @@
         <!-- Acciones con botones bien diferenciados -->
         <v-card-actions class="px-4 py-3 justify-end">
           <v-btn
-            color="grey darken-1"
-            text
+            color="grey-darken-1"
+            variant="text"
             class="text-none font-weight-medium"
             @click="dialogCambiarFecha = false"
           >
@@ -475,7 +475,7 @@
             elevation="1"
             @click="guardarNuevaFecha"
           >
-            <v-icon left size="18">mdi-check</v-icon>
+            <v-icon start size="18">mdi-check</v-icon>
             Actualizar Fecha
           </v-btn>
         </v-card-actions>

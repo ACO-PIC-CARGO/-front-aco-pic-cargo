@@ -17,10 +17,10 @@
           label="Pais"
           :items="$store.state.itemsPais"
           v-model="$store.state.town.filtros.id_pais"
-          item-text="name"
+          item-title="name"
           item-value="id"
           :clearable="$store.state.town.tipo != 'ver'"
-          @change="ObtenerEstados($store.state.town.filtros.id_pais)"
+          @update:model-value="ObtenerEstados($store.state.town.filtros.id_pais)"
         >
         </v-autocomplete>
       </div>
@@ -29,11 +29,11 @@
           label="Estado (Región)"
           :items="$store.state.itemsState"
           v-model="$store.state.town.filtros.id_state"
-          item-text="name"
+          item-title="name"
           item-value="id"
           :clearable="$store.state.town.tipo != 'ver'"
           :loading="loadingEstado"
-          @change="ObtenerCity($store.state.town.filtros.id_state)"
+          @update:model-value="ObtenerCity($store.state.town.filtros.id_state)"
         >
         </v-autocomplete>
       </div>
@@ -42,7 +42,7 @@
           label="Ciudad"
           :items="$store.state.itemsCity"
           v-model="$store.state.town.filtros.id_city"
-          item-text="name"
+          item-title="name"
           item-value="id"
           :clearable="$store.state.town.tipo != 'ver'"
           :loading="loadingEstado"
@@ -73,7 +73,7 @@
       </div>
       <div class="col-12 py-1">
         <span> Estado</span>
-        <v-radio-group v-model="$store.state.town.filtros.status" row dense>
+        <v-radio-group v-model="$store.state.town.filtros.status" inline density="compact">
           <v-radio label="Activo" color="green" value="1"></v-radio>
           <v-radio label="Inactivo" color="red" value="0"></v-radio>
           <v-radio label="Todos" color="blue" value="null"></v-radio>
@@ -88,10 +88,10 @@
             :items="$store.state.itemsPais"
             v-model="$store.state.town.model.id_pais"
             :readonly="$store.state.town.tipo == 'ver'"
-            item-text="name"
+            item-title="name"
             item-value="id"
             :rules="[(v) => !!v || 'Dato Requerido']"
-            @change="ObtenerEstados($store.state.town.model.id_pais)"
+            @update:model-value="ObtenerEstados($store.state.town.model.id_pais)"
             :item-disabled="(item) => item.status != 1"
           >
           </v-autocomplete>
@@ -102,11 +102,11 @@
             :items="$store.state.itemsState"
             v-model="$store.state.town.model.id_state"
             :readonly="$store.state.town.tipo == 'ver'"
-            item-text="name"
+            item-title="name"
             item-value="id"
             :rules="[(v) => !!v || 'Dato Requerido']"
             :loading="loadingEstado"
-            @change="ObtenerCity($store.state.town.model.id_state)"
+            @update:model-value="ObtenerCity($store.state.town.model.id_state)"
             :item-disabled="(item) => item.status != 1"
           >
           </v-autocomplete>
@@ -117,7 +117,7 @@
             :items="$store.state.itemsCity"
             v-model="$store.state.town.model.id_city"
             :readonly="$store.state.town.tipo == 'ver'"
-            item-text="name"
+            item-title="name"
             item-value="id"
             :rules="[(v) => !!v || 'Dato Requerido']"
             :loading="loadingCity"

@@ -5,9 +5,9 @@
       <v-text-field
         class="mx-2"
         hide-details
-        dense
+        density="compact"
         id="id"
-        outlined
+        variant="outlined"
         placeholder="Buscar..."
         append-icon="mdi-text-search"
         v-model="search"
@@ -17,28 +17,28 @@
 
       <v-spacer></v-spacer>
 
-      <v-btn class="mr-2" color="success" small @click="nuevo">
-        NUEVO PAGO <v-icon small>mdi-plus</v-icon>
+      <v-btn class="mr-2" color="success" size="small" @click="nuevo">
+        NUEVO PAGO <v-icon size="small">mdi-plus</v-icon>
       </v-btn>
       <v-btn
         class="mr-2"
         color="success"
-        small
+        size="small"
         @click="exportar()"
         :loading="loading"
       >
-        EXCEL <v-icon small>mdi-file-excel</v-icon>
+        EXCEL <v-icon size="small">mdi-file-excel</v-icon>
       </v-btn>
       <v-btn
         class="mr-2"
         color="info"
-        small
+        size="small"
         @click="dialogFiltro = !dialogFiltro"
       >
-        Filtrar <v-icon small>mdi-filter</v-icon>
+        Filtrar <v-icon size="small">mdi-filter</v-icon>
       </v-btn>
-      <v-btn small color="default" @click="Limpiar">
-        <v-icon small>mdi-close</v-icon> Limpiar
+      <v-btn size="small" color="default" @click="Limpiar">
+        <v-icon size="small">mdi-close</v-icon> Limpiar
       </v-btn>
 
       <!-- <v-btn class="mr-2" color="default" small @click="limpiar()">
@@ -50,12 +50,12 @@
       :search="search"
       :headers="headersCabecera"
       :items="$store.state.bank.list"
-      :expanded.sync="expanded"
+      v-model:expanded="expanded"
       :single-expand="singleExpand"
       show-expand
       @click:row="clickRow"
       item-key="id"
-      dense
+      density="compact"
       disable-sort
     >
       <template v-slot:[`item.totalmonedalocal`]="{ item }">
@@ -67,13 +67,13 @@
           <v-btn icon color="default" @click="verSoport(item.ruta)">
             <v-icon>mdi-file</v-icon>
           </v-btn>
-          <v-btn small icon color="info" @click.native="ver(item)">
+          <v-btn size="small" icon color="info" @click.native="ver(item)">
             <v-icon>mdi-eye</v-icon>
           </v-btn>
-          <v-btn small icon color="orange" @click.native="editar(item)">
+          <v-btn size="small" icon color="orange" @click.native="editar(item)">
             <v-icon>mdi-pencil</v-icon>
           </v-btn>
-          <v-btn small icon color="red" @click.native="confirmarEliminar(item)">
+          <v-btn size="small" icon color="red" @click.native="confirmarEliminar(item)">
             <v-icon>mdi-delete</v-icon>
           </v-btn>
         </div>
@@ -81,7 +81,7 @@
       <template v-slot:expanded-item="{ item }">
         <td colspan="1"></td>
         <td colspan="12">
-          <v-simple-table style="width: 100%">
+          <v-table style="width: 100%">
             <thead style="background: #e3f2fd">
               <tr>
                 <!-- <th>Fecha Registro</th> -->
@@ -111,8 +111,8 @@
                 </td>-->
               </tr>
             </tbody>
-          </v-simple-table>
-          <v-simple-table
+          </v-table>
+          <v-table
             style="width: 100%"
             v-if="item.table_comisionbancaria.length > 0"
           >
@@ -137,7 +137,7 @@
                 </td>
               </tr>
             </tbody>
-          </v-simple-table>
+          </v-table>
         </td>
       </template>
       <!-- <template v-slot:[`item.action`]="{ item }">
@@ -210,7 +210,7 @@
               :items="cuentas"
               v-model="dato.id_cuenta"
               label="Cuenta Bancaria"
-              item-text="label"
+              item-title="label"
               item-value="id"
               :rules="[(v) => !!v || 'Datos Requerido']"
             >
@@ -230,12 +230,12 @@
         </v-card-text>
         <v-card-actions>
           <v-spacer> </v-spacer>
-          <v-btn color="success" text @click="actualizarCGEgreso()"
+          <v-btn color="success" variant="text" @click="actualizarCGEgreso()"
             >Guardar</v-btn
           >
           <v-btn
             color="warning"
-            text
+            variant="text"
             @click="dialogPayControlGasto = !dialogPayControlGasto"
             >Cancelar</v-btn
           >
@@ -247,7 +247,7 @@
       absolute
       permanent
       temporary
-      right
+      location="right"
       width="20%"
       v-if="dialogFiltro"
     >
@@ -258,12 +258,12 @@
             :items="cuentas"
             v-model="filtro.id_cuenta"
             label="Cuenta Bancaria (PIC)"
-            item-text="label"
+            item-title="label"
             item-value="id"
             clearable
-            outlined
+            variant="outlined"
             class="mb-2"
-            dense
+            density="compact"
             hide-details
           >
           </v-select>
@@ -271,46 +271,46 @@
             :items="$store.state.provedores"
             v-model="filtro.id_proveedor"
             label="Proveedor"
-            item-text="namelong"
+            item-title="namelong"
             item-value="id"
             clearable
-            outlined
+            variant="outlined"
             class="mb-2"
-            dense
+            density="compact"
             hide-details
           >
           </v-autocomplete>
 
           <v-text-field
             clearable
-            outlined
+            variant="outlined"
             class="mb-2"
             label="Nro Operacion"
             v-model="filtro.nro_operacion"
-            dense
+            density="compact"
             hide-details
           >
           </v-text-field>
 
           <v-text-field
             clearable
-            outlined
+            variant="outlined"
             class="mb-2"
             label="Nro Expediente"
             v-model="filtro.expediente"
-            dense
+            density="compact"
             hide-details
           >
           </v-text-field>
 
           <v-text-field
             clearable
-            outlined
+            variant="outlined"
             class="mb-2"
             type="number"
             label="Monto"
             v-model="filtro.monto"
-            dense
+            density="compact"
             hide-details
           >
           </v-text-field>
@@ -345,8 +345,8 @@
         </v-card-text>
         <v-card-actions>
           <v-spacer></v-spacer>
-          <v-btn color="success" small @click="filtrar()">Filtrar</v-btn>
-          <v-btn color="red" dark small @click="dialogFiltro = !dialogFiltro"
+          <v-btn color="success" size="small" @click="filtrar()">Filtrar</v-btn>
+          <v-btn color="red" dark size="small" @click="dialogFiltro = !dialogFiltro"
             >Cancelar</v-btn
           >
         </v-card-actions>

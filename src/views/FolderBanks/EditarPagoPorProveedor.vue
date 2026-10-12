@@ -4,12 +4,12 @@
       <v-row>
         <v-autocomplete
           :items="provedores"
-          item-text="namelong"
+          item-title="namelong"
           item-value="id"
           label="Proveedor"
           v-model="$store.state.bank.record.id_proveedor"
           readonly
-          @change="obtenerListado()"
+          @update:model-value="obtenerListado()"
         >
         </v-autocomplete>
         <v-spacer></v-spacer>
@@ -40,7 +40,7 @@
             <v-col cols="3">
               <v-btn
                 v-if="selected.length > 0"
-                color="green darken-4"
+                color="green-darken-4"
                 @click="continuar()"
                 dark
                 >Continuar</v-btn
@@ -56,7 +56,7 @@
                   <v-autocomplete
                     :items="$store.state.itemsCoinsList"
                     v-model="item.id_coins"
-                    item-text="acronym"
+                    item-title="acronym"
                     item-value="id"
                     label="Moneda"
                   ></v-autocomplete>
@@ -120,7 +120,7 @@
               </v-col>
               <v-col md="6" cols="6">
                 <v-btn
-                  text
+                  variant="text"
                   @click="abrirSoporte($store.state.bank.record.ruta)"
                 >
                   <v-icon color="red">mdi-file-pdf-box</v-icon>
@@ -141,7 +141,7 @@
               <v-col md="4" cols="4">
                 <v-autocomplete
                   :items="cuentas"
-                  item-text="label"
+                  item-title="label"
                   item-value="id"
                   label="Cuenta de Salida de Banco"
                   v-model="$store.state.bank.record.id_banco"

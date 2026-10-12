@@ -19,12 +19,12 @@
                   <div class="my-2">
                     <p>Ingresa Tu Usuario o Email</p>
                     <v-text-field
-                      outlined
+                      variant="outlined"
                       prepend-inner-icon="mdi-account"
                       v-model="$store.state.securitys.frmLogin.user"
                       type="text"
                       placeholder="Usuario o Email"
-                      dense
+                      density="compact"
                       :loading="loading"
                       autocomplete="username"
                       @keyup.enter="acceder()"
@@ -34,8 +34,8 @@
                     <p>Ingresa tu clave</p>
                     <v-text-field
                       autocomplete="current-password"
-                      outlined
-                      dense
+                      variant="outlined"
+                      density="compact"
                       v-model="$store.state.securitys.frmLogin.password"
                       :type="verClave == false ? 'password' : 'text'"
                       placeholder="Contraseña"
@@ -47,14 +47,14 @@
                     />
                   </div>
                 </v-form>
-                <span class="red--text">
+                <span class="text-red">
                   {{ $store.state.securitys.errorClave }}</span
                 >
                 <p class="rigth my-2">
-                  <a @click="ReEstablecerContrasenia()"><v-icon small class="mr-1">mdi-lock-reset</v-icon> Olvidé Contraseña</a>
+                  <a @click="ReEstablecerContrasenia()"><v-icon size="small" class="mr-1">mdi-lock-reset</v-icon> Olvidé Contraseña</a>
                 </p>
                 <v-btn class="my-5" block color="info" @click="acceder()">
-                  <v-icon left>mdi-login</v-icon>
+                  <v-icon start>mdi-login</v-icon>
                   Iniciar Sesión
                 </v-btn>
                 <p class="center my-2">O</p>
@@ -64,7 +64,7 @@
                   color="default"
                   @click="registroEmpresa()"
                 >
-                  <v-icon left>mdi-account-plus</v-icon>
+                  <v-icon start>mdi-account-plus</v-icon>
                   Registrate</v-btn
                 >
               </v-card>
@@ -75,13 +75,13 @@
                 <h1>SUCURSAL</h1>
                 <v-select
                   :items="$store.state.securitys.lstSucursal"
-                  item-text="trade_name"
+                  item-title="trade_name"
                   item-value="id"
-                  dense
+                  density="compact"
                   placeholder="Sucursal"
                   v-model="$store.state.securitys.frmLogin.id_sucursal"
                   label="Sucursal"
-                  outlined
+                  variant="outlined"
                   :rules="[(v) => !!v || 'Dato Requerido']"
                   :error-messages="errorSucursal"
                   :loading="loading"
@@ -93,11 +93,11 @@
                   @click="iraHome()"
                   :loading="loading"
                 >
-                  <v-icon left>mdi-arrow-right</v-icon>
+                  <v-icon start>mdi-arrow-right</v-icon>
                   Continuar</v-btn
                 >
                 <v-btn class="my-5" block color="red" dark @click="cancelar()">
-                  <v-icon left>mdi-close</v-icon>
+                  <v-icon start>mdi-close</v-icon>
                   Cancelar</v-btn
                 >
               </v-card>

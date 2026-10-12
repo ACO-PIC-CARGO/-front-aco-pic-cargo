@@ -3,35 +3,35 @@
     <template>
       <v-expansion-panels v-model="openExpand">
         <v-expansion-panel>
-          <v-expansion-panel-content>
+          <v-expansion-panel-text>
             <v-tabs
               v-model="activeTab"
-              background-color="transparent"
+              bg-color="transparent"
               color="primary"
             >
               <v-tab key="houses">
-                <v-icon left>mdi-home-group</v-icon>
+                <v-icon start>mdi-home-group</v-icon>
                 Lista de House
               </v-tab>
               <v-tab key="comments">
-                <v-icon left>mdi-comment-text-multiple</v-icon>
+                <v-icon start>mdi-comment-text-multiple</v-icon>
                 Comentarios
               </v-tab>
             </v-tabs>
 
             <v-tabs-items v-model="activeTab">
               <v-tab-item key="houses">
-                <v-row dense>
+                <v-row density="compact">
                   <v-col cols="12" md="3">
                     <v-text-field
-                      :value="totalHouses"
+                      :model-value="totalHouses"
                       label="Total de House"
                       readonly
                     ></v-text-field>
                   </v-col>
                   <v-col cols="12" md="3">
                     <v-text-field
-                      :value="totalPesoHouse"
+                      :model-value="totalPesoHouse"
                       label="Total de House Peso"
                       suffix="kg"
                       readonly
@@ -39,7 +39,7 @@
                   </v-col>
                   <v-col cols="12" md="3">
                     <v-text-field
-                      :value="totalVolumenHouse"
+                      :model-value="totalVolumenHouse"
                       label="Total de House Volumen"
                       suffix="m3"
                       readonly
@@ -56,7 +56,7 @@
                 >
                   <v-btn color="info" @click="showAll = true">Leer más</v-btn>
                 </div>
-                <v-simple-table>
+                <v-table>
                   <template v-slot:default>
                     <thead>
                       <tr>
@@ -118,11 +118,11 @@
                       </tr>
                     </tbody>
                   </template>
-                </v-simple-table>
+                </v-table>
               </v-tab-item>
 
               <v-tab-item key="comments">
-                <v-simple-table
+                <v-table
                   v-if="masterComments && masterComments.length > 0"
                 >
                   <thead>
@@ -143,13 +143,13 @@
                       <td class="bg-comentarios">{{ comment.comentario }}</td>
                     </tr>
                   </tbody>
-                </v-simple-table>
+                </v-table>
                 <v-alert v-else type="info" text>
                   No hay comentarios disponibles
                 </v-alert>
               </v-tab-item>
             </v-tabs-items>
-          </v-expansion-panel-content>
+          </v-expansion-panel-text>
         </v-expansion-panel>
       </v-expansion-panels>
     </template>
@@ -157,7 +157,7 @@
     <!-- DDDDDDDDDDDDDDDDD -->
     <v-dialog v-model="dialogCambiarExpediente" max-width="500">
       <v-card>
-        <v-card-title class="text-h5 grey lighten-2">
+        <v-card-title class="text-h5 bg-grey-lighten-2">
           Cambiar expediente (House)
           <v-spacer></v-spacer>
           <v-btn icon color="default" @click="dialogCambiarExpediente = false">
@@ -175,9 +175,9 @@
               :readonly="false"
               v-model="selectedNuevoExpediente"
               item-value="id"
-              item-text="code_master"
+              item-title="code_master"
               label="Seleccione nuevo expediente"
-              outlined
+              variant="outlined"
               class="my-5"
             ></v-autocomplete>
             <p class="caption mb-0">Actual: {{ house.code_house }}</p>
@@ -185,7 +185,7 @@
         </v-form>
         <v-card-actions>
           <v-spacer></v-spacer>
-          <v-btn outlined color="red" @click="dialogCambiarExpediente = false"
+          <v-btn variant="outlined" color="red" @click="dialogCambiarExpediente = false"
             >Cancelar</v-btn
           >
           <v-btn

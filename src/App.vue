@@ -3,14 +3,14 @@
     <v-main>
       <router-view />
     </v-main>
-    <v-overlay :value="$store.state.spiner">
-      <v-row class="fill-height" align-content="center" justify="center">
+    <v-overlay :model-value="$store.state.spiner">
+      <v-row class="fill-height align-content-center justify-center">
         <v-col class="text-subtitle-1 text-center" cols="12">
           Cargando Datos, espere un momento por favor...
         </v-col>
         <v-col cols="6">
           <v-progress-linear
-            color="deep-purple accent-4"
+            color="deep-purple-accent-4"
             indeterminate
             rounded
             height="6"
@@ -86,15 +86,15 @@
       <v-card class="rounded-lg elevation-4">
         <!-- Barra superior de advertencia -->
         <v-card-title
-          class="headline error white--text py-3 px-4 d-flex align-center"
+          class="headline bg-error text-white py-3 px-4 d-flex align-center"
         >
-          <v-icon left dark large class="mr-2">mdi-power-plug-off</v-icon>
+          <v-icon start dark size="large" class="mr-2">mdi-power-plug-off</v-icon>
           <span class="font-weight-bold">SISTEMA EN MANTENIMIENTO</span>
         </v-card-title>
 
         <v-card-text class="pt-4 pb-4">
           <v-container fluid>
-            <v-row align="center" justify="center">
+            <v-row class="align-center justify-center">
               <!-- Columna del ícono -->
               <v-col cols="4" class="text-center">
                 <v-img
@@ -107,7 +107,7 @@
 
               <!-- Columna del mensaje -->
               <v-col cols="8">
-                <div class="text-body-1 grey--text text--darken-3">
+                <div class="text-body-1 text-grey-darken-3">
                   <p class="font-weight-bold mb-2" style="font-size: 17px">
                     Estimado usuario:
                   </p>
@@ -118,7 +118,7 @@
                     <b>suspendido temporalmente</b>.
                   </p>
                   <p
-                    class="text-caption grey--text text--darken-1 mb-0 font-italic"
+                    class="text-caption text-grey-darken-1 mb-0 font-italic"
                   >
                     Agradecemos su comprensión y paciencia. Estaremos operando
                     con normalidad en breve.
@@ -195,8 +195,8 @@
         <v-card-actions>
           <v-spacer></v-spacer>
           <v-btn
-            color="green darken-1"
-            text
+            color="green-darken-1"
+            variant="text"
             @click="$store.state.modalvelocidad = false"
           >
             Cerrar
@@ -215,7 +215,7 @@
                 <v-col cols="12">
                   <v-autocomplete
                     :items="$store.state.itemsContainers"
-                    item-text="name"
+                    item-title="name"
                     item-value="id"
                     return-object
                     label="Tipo de contenedor"
@@ -269,8 +269,8 @@
         <v-card-actions>
           <v-spacer></v-spacer>
           <v-btn
-            color="green darken-1"
-            text
+            color="green-darken-1"
+            variant="text"
             @click="$store.state.modalContainers = false"
           >
             Cerrar
@@ -287,7 +287,7 @@
             <v-col cols="4">
               <v-autocomplete
                 :items="$store.state.itemsPhone"
-                item-text="name"
+                item-title="name"
                 item-value="id"
                 label="Tipo de Teléfono"
                 return-object
@@ -309,16 +309,15 @@
                 "
                 class="mx-2"
                 fab
-                color="teal darken-1
-"
+                color="teal-darken-1"
                 dark
                 elevation="0"
                 @click="_addPhones($route.params.id)"
-                ><v-icon x-large>mdi-plus</v-icon></v-btn
+                ><v-icon size="x-large">mdi-plus</v-icon></v-btn
               >
             </v-col>
           </v-row>
-          <v-simple-table dense>
+          <v-table density="compact">
             <template v-slot:default>
               <thead>
                 <tr>
@@ -338,7 +337,7 @@
                     <v-btn
                       @click="_deletePhones(item.id)"
                       fab
-                      x-small
+                      size="x-small"
                       elevation="0"
                       ><v-icon color="red">mdi-delete</v-icon></v-btn
                     >
@@ -363,19 +362,19 @@
                       class="ml-5"
                       style="text-decoration: none"
                       :href="`tel:+${item.number}`"
-                      ><v-icon color="blue-grey darken-3">mdi-phone</v-icon></a
+                      ><v-icon color="blue-grey-darken-3">mdi-phone</v-icon></a
                     >
                   </td>
                 </tr>
               </tbody>
             </template>
-          </v-simple-table>
+          </v-table>
         </v-card-text>
         <v-card-actions>
           <v-spacer></v-spacer>
           <v-btn
-            color="green darken-1"
-            text
+            color="green-darken-1"
+            variant="text"
             @click="$store.state.modalPhones = false"
           >
             Cerrar
@@ -388,7 +387,7 @@
       <v-card>
         <v-card-title class="text-h5"> Teléfonos </v-card-title>
         <v-card-text>
-          <v-simple-table dense>
+          <v-table density="compact">
             <template v-slot:default>
               <thead>
                 <tr>
@@ -436,19 +435,19 @@
                       class="ml-5"
                       style="text-decoration: none"
                       :href="`tel:+${item.number}`"
-                      ><v-icon color="blue-grey darken-3">mdi-phone</v-icon></a
+                      ><v-icon color="blue-grey-darken-3">mdi-phone</v-icon></a
                     >
                   </td>
                 </tr>
               </tbody>
             </template>
-          </v-simple-table>
+          </v-table>
         </v-card-text>
         <v-card-actions>
           <v-spacer></v-spacer>
           <v-btn
-            color="green darken-1"
-            text
+            color="green-darken-1"
+            variant="text"
             @click="$store.state.modalPhonesEdit = false"
           >
             Cerrar
@@ -485,16 +484,15 @@
                 "
                 class="mx-2"
                 fab
-                color="teal darken-1
-"
+                color="teal-darken-1"
                 dark
                 elevation="0"
                 @click="_addContacts()"
-                ><v-icon x-large>mdi-plus</v-icon></v-btn
+                ><v-icon size="x-large">mdi-plus</v-icon></v-btn
               >
             </v-col>
           </v-row>
-          <v-simple-table dense>
+          <v-table density="compact">
             <template v-slot:default>
               <thead>
                 <tr>
@@ -511,7 +509,7 @@
                   <td>{{ item.name }}</td>
                   <td>{{ item.number }}</td>
                   <td>
-                    <v-btn @click="_deleteContacts(i)" fab x-small elevation="0"
+                    <v-btn @click="_deleteContacts(i)" fab size="x-small" elevation="0"
                       ><v-icon color="red">mdi-delete</v-icon></v-btn
                     >
                     <a
@@ -534,19 +532,19 @@
                       class="ml-5"
                       style="text-decoration: none"
                       :href="`tel:+${item.number}`"
-                      ><v-icon color="blue-grey darken-3">mdi-phone</v-icon></a
+                      ><v-icon color="blue-grey-darken-3">mdi-phone</v-icon></a
                     >
                   </td>
                 </tr>
               </tbody>
             </template>
-          </v-simple-table>
+          </v-table>
         </v-card-text>
         <v-card-actions>
           <v-spacer></v-spacer>
           <v-btn
-            color="green darken-1"
-            text
+            color="green-darken-1"
+            variant="text"
             @click="$store.state.modalContacts = false"
           >
             Cerrar
@@ -564,7 +562,7 @@
               <v-autocomplete
                 v-model="$store.state.accountIdTypeAccount"
                 :items="$store.state.itemsDataAccountList"
-                item-text="name"
+                item-title="name"
                 item-value="id"
                 label="Cuenta"
               ></v-autocomplete>
@@ -574,7 +572,7 @@
               <v-autocomplete
                 v-model="$store.state.accountIdBanks"
                 :items="$store.state.itemsDataBanksList"
-                item-text="acronym"
+                item-title="acronym"
                 item-value="id"
                 label="Banco"
               ></v-autocomplete>
@@ -584,7 +582,7 @@
               <v-autocomplete
                 v-model="$store.state.accountIdCoins"
                 :items="$store.state.itemsCoinsList"
-                item-text="acronym"
+                item-title="acronym"
                 item-value="id"
                 label="Moneda"
               ></v-autocomplete>
@@ -604,16 +602,15 @@
                 v-if="$store.state.accountNumer != ''"
                 class="mx-2"
                 fab
-                color="teal darken-1
-"
+                color="teal-darken-1"
                 dark
                 elevation="0"
                 @click="_setAccounts()"
-                ><v-icon x-large>mdi-plus</v-icon></v-btn
+                ><v-icon size="x-large">mdi-plus</v-icon></v-btn
               >
             </v-col>
           </v-row>
-          <v-simple-table dense>
+          <v-table density="compact">
             <template v-slot:default>
               <thead>
                 <tr>
@@ -644,13 +641,13 @@
                 </tr>
               </tbody>
             </template>
-          </v-simple-table>
+          </v-table>
         </v-card-text>
         <v-card-actions>
           <v-spacer></v-spacer>
           <v-btn
-            color="green darken-1"
-            text
+            color="green-darken-1"
+            variant="text"
             @click="$store.state.modalCuentas = false"
           >
             Cerrar
@@ -696,7 +693,7 @@
               >
             </v-col> -->
           </v-row>
-          <v-simple-table dense>
+          <v-table density="compact">
             <template v-slot:default>
               <thead>
                 <tr>
@@ -736,19 +733,19 @@
                       class="ml-5"
                       style="text-decoration: none"
                       :href="`tel:+${item.number}`"
-                      ><v-icon color="blue-grey darken-3">mdi-phone</v-icon></a
+                      ><v-icon color="blue-grey-darken-3">mdi-phone</v-icon></a
                     >
                   </td>
                 </tr>
               </tbody>
             </template>
-          </v-simple-table>
+          </v-table>
         </v-card-text>
         <v-card-actions>
           <v-spacer></v-spacer>
           <v-btn
-            color="green darken-1"
-            text
+            color="green-darken-1"
+            variant="text"
             @click="$store.state.modalContactsEdit = false"
           >
             Cerrar

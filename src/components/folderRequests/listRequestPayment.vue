@@ -14,7 +14,7 @@
             ></v-text-field>
           </v-col>
           <v-col cols="6" class="ml-auto">
-            <v-btn text color="orange" @click="abrirPagoProveedor()">
+            <v-btn variant="text" color="orange" @click="abrirPagoProveedor()">
               NUEVO PAGO
               <v-icon> mdi-cash-check </v-icon>
             </v-btn>
@@ -22,13 +22,13 @@
         </v-row>
       </v-card-subtitle>
       <v-container v-if="!dataList" style="height: 400px">
-        <v-row class="fill-height" align-content="center" justify="center">
+        <v-row class="fill-height align-content-center justify-center">
           <v-col class="text-subtitle-1 text-center" cols="12">
             Cargando informacíon
           </v-col>
           <v-col cols="6">
             <v-progress-linear
-              color="deep-purple accent-4"
+              color="deep-purple-accent-4"
               indeterminate
               rounded
               height="6"
@@ -112,7 +112,7 @@
         <template v-slot:[`item.accions`]="{ item }">
           <v-icon
             v-if="item.status == 3 && security == 1"
-            color="blue-grey darken-2"
+            color="blue-grey-darken-2"
             class="mr-2"
             @click="reversar(item)"
           >
@@ -121,7 +121,7 @@
 
           <v-icon
             v-if="item.status == 3"
-            large
+            size="large"
             color="green"
             class="mr-2"
             @click="openPaymentFile(item.id, item.pathfile, item.namelong)"
@@ -143,25 +143,25 @@
         </v-card-title>
         <v-card-text>
           <v-container>
-            <v-row dense>
+            <v-row density="compact">
               <v-col cols="12" md="6">
                 <v-menu
                   ref="menu"
                   v-model="menu"
                   :close-on-content-click="false"
-                  :return-value.sync="date"
+                  v-model:return-value="date"
                   transition="scale-transition"
                   offset-y
                   min-width="auto"
                 >
-                  <template v-slot:activator="{ on, attrs }">
+                  <template v-slot:activator="{ props }">
                     <v-text-field
                       v-model="date"
                       label="Fecha de Operación"
                       prepend-icon="mdi-calendar"
                       readonly
-                      v-bind="attrs"
-                      v-on="on"
+                     
+                      v-bind="props"
                     ></v-text-field>
                   </template>
                   <v-date-picker
@@ -171,10 +171,10 @@
                     scrollable
                   >
                     <v-spacer></v-spacer>
-                    <v-btn text color="primary" @click="menu = false">
+                    <v-btn variant="text" color="primary" @click="menu = false">
                       Cancel
                     </v-btn>
-                    <v-btn text color="primary" @click="$refs.menu.save(date)">
+                    <v-btn variant="text" color="primary" @click="$refs.menu.save(date)">
                       OK
                     </v-btn>
                   </v-date-picker>
@@ -191,7 +191,7 @@
                 <v-autocomplete
                   :items="$store.state.itemsDataBanksList"
                   v-model="paybanco"
-                  item-text="acronym"
+                  item-title="acronym"
                   item-value="id"
                   label="Banco"
                 ></v-autocomplete>
@@ -200,7 +200,7 @@
                 <v-autocomplete
                   :items="$store.state.itemsCoinsList"
                   v-model="paymoneda"
-                  item-text="acronym"
+                  item-title="acronym"
                   item-value="id"
                   label="Moneda"
                 ></v-autocomplete>
@@ -224,12 +224,12 @@
                 <v-chip
                   block
                   v-if="boolFile"
-                  large
+                  size="large"
                   class=""
                   color="success"
-                  outlined
+                  variant="outlined"
                 >
-                  <v-icon left> mdi-check </v-icon>
+                  <v-icon start> mdi-check </v-icon>
                   Archivo cargado éxitosamente
                 </v-chip>
               </v-col>
@@ -238,12 +238,12 @@
                   :disabled="boolFile || payfile == []"
                   color="blue-grey"
                   block
-                  class="ma-2 white--text"
-                  large
+                  class="ma-2 text-white"
+                  size="large"
                   @click="_uploadFile()"
                 >
                   Subir
-                  <v-icon right dark> mdi-cloud-upload </v-icon>
+                  <v-icon end dark> mdi-cloud-upload </v-icon>
                 </v-btn>
               </v-col>
             </v-row>
@@ -257,7 +257,7 @@
             >Procesar Pago</v-btn
           >
           <v-spacer></v-spacer>
-          <v-btn outlined color="red" @click="dialogProcess = !dialogProcess"
+          <v-btn variant="outlined" color="red" @click="dialogProcess = !dialogProcess"
             >Cerrar</v-btn
           >
         </v-card-actions>
@@ -273,7 +273,7 @@
           <v-data-table
             :headers="headersInvoice"
             :items="itemsListInvoice"
-            dense
+            density="compact"
             item-key="id"
             class="elevation-0"
           >
@@ -287,8 +287,7 @@
                   item.type == 'jpg' ||
                   item.type == 'jpeg'
                 "
-                color="blue-grey darken-1
-"
+                color="blue-grey-darken-1"
                 class="mr-2"
                 >mdi-file-image</v-icon
               >
@@ -298,8 +297,7 @@
             <template v-slot:[`item.path`]="{ item }">
               <v-icon
                 class="btn_add mr-2"
-                dense
-                large
+                size="large"
                 color="grey"
                 @click="openDoc(item.path)"
                 >mdi-eye</v-icon

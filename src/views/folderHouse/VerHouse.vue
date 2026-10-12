@@ -22,7 +22,7 @@
                   @click="_setHouseEdit()"
                   block
                   dark
-                  small
+                  size="small"
                   :loading="loadingBotonGuardarHouse"
                   >GUARDAR CAMBIOS
                 </v-btn>
@@ -33,7 +33,7 @@
                   @click="eliminarHouse()"
                   block
                   dark
-                  small
+                  size="small"
                   :loading="loadingBotonEliminarHouse"
                 >
                   ELIMINAR
@@ -99,32 +99,32 @@
             :loading="loadingBotonEliminarHouse"
             @click="eliminarHouse()"
           >
-            <v-icon left>mdi-delete</v-icon>
+            <v-icon start>mdi-delete</v-icon>
             Eliminar
           </v-btn>
           <v-btn
-            color="orange darken-2"
+            color="orange-darken-2"
             dark
             :loading="loadingBotonTracking"
             @click="_generateTrackingToken"
           >
-            <v-icon left>mdi-link-variant</v-icon>
+            <v-icon start>mdi-link-variant</v-icon>
             Tracking
           </v-btn>
           <v-btn
             :style="{ backgroundColor: 'rgb(92, 116, 137)', color: 'white' }"
             @click="abrirModalFormato()"
           >
-            <v-icon left style="color: white">mdi-printer</v-icon>
+            <v-icon start style="color: white">mdi-printer</v-icon>
             Imprimir
           </v-btn>
 
           <v-btn color="deep-purple" dark @click="openNotificaciones">
-            <v-icon left style="transform: rotate(-45deg)">mdi-send</v-icon>
+            <v-icon start style="transform: rotate(-45deg)">mdi-send</v-icon>
             Notificaciones
           </v-btn>
-          <v-btn color="light-green lighten-1" dark @click="irAVerMaster()">
-            <v-icon left>mdi-pencil</v-icon>
+          <v-btn color="light-green-lighten-1" dark @click="irAVerMaster()">
+            <v-icon start>mdi-pencil</v-icon>
             Editar
           </v-btn>
         </v-speed-dial>
@@ -144,18 +144,18 @@
           v-model="$store.state.house_enlace_tracking"
           label="Enlace de Tracking"
           readonly
-          outlined
-          dense
+          variant="outlined"
+          density="compact"
           hide-details
         >
           <template v-slot:append>
             <v-btn
               icon
-              small
+              size="small"
               color="primary"
               @click="_copyEnlaceTracking($store.state.house_enlace_tracking)"
             >
-              <v-icon small>mdi-content-copy</v-icon>
+              <v-icon size="small">mdi-content-copy</v-icon>
             </v-btn>
           </template>
         </v-text-field>
@@ -163,12 +163,12 @@
       <!-- Menú de notificaciones -->
       <v-menu
         v-model="openMenuNotificaciones"
-        top
+        location="top"
         offset-y
         content-class="elevation-0"
       >
-        <template v-slot:activator="{ on, attrs }">
-          <span v-bind="attrs" v-on="on"></span>
+        <template v-slot:activator="{ props }">
+          <span v-bind="props"></span>
         </template>
         <v-list color="transparent" v-show="displayMenuNotificaciones">
           <v-list-item
@@ -178,9 +178,9 @@
           >
             <v-list-item-title>
               <v-btn
-                depressed
+                variant="flat"
                 block
-                small
+                size="small"
                 color="primary"
                 @click="sendNotificacion(item)"
               >
@@ -193,7 +193,7 @@
       <!-- Modal para seleccionar formato de impresión -->
       <v-dialog v-model="dialogFormato" max-width="400px">
         <v-card>
-          <v-card-title primary-title class="light-blue darken-2 white--text">
+          <v-card-title primary-title class="bg-light-blue-darken-2 text-white">
             Imprimir Formato {{ isAereo() ? "GUÍA AÉREA" : "BL" }}
           </v-card-title>
           <v-card-text class="pt-4">
@@ -210,14 +210,14 @@
               v-if="isAereo()"
               @click="exportarFormatoAWB()"
             >
-              <v-icon left>mdi-printer</v-icon>
+              <v-icon start>mdi-printer</v-icon>
               Imprimir Guía Aérea
             </v-btn>
             <v-btn color="success" v-else @click="exportarFormatoHBL()">
-              <v-icon left>mdi-printer</v-icon>
+              <v-icon start>mdi-printer</v-icon>
               Imprimir BL
             </v-btn>
-            <v-btn color="grey" text @click="dialogFormato = false">
+            <v-btn color="grey" variant="text" @click="dialogFormato = false">
               Cancelar
             </v-btn>
           </v-card-actions>
@@ -241,7 +241,7 @@
           Seleccione las cuentas a utilizar
         </v-card-title>
         <v-card-text>
-          <p class="red--text">{{ errorCuentas }}</p>
+          <p class="text-red">{{ errorCuentas }}</p>
           <v-data-table
             v-model="selected"
             :headers="headers"

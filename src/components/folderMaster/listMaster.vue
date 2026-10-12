@@ -8,7 +8,7 @@
       transition="dialog-transition"
     >
       <v-card>
-        <v-card-title class="text-h5 grey lighten-2">
+        <v-card-title class="text-h5 bg-grey-lighten-2">
           Escoger la cotización para redireccionar:
         </v-card-title>
         <v-card-text>
@@ -18,7 +18,7 @@
                 $store.state.pricing.listQuotes.filter((v) => !!v.porasignar)
               "
               v-model="id_quote"
-              item-text="code"
+              item-title="code"
               item-value="id"
               :rules="[(v) => !!v || 'Dato Requerido.']"
             />
@@ -45,8 +45,8 @@
           label="Buscar"
           placeholder="Texto Buscado..."
           hide-details
-          outlined
-          dense
+          variant="outlined"
+          density="compact"
           style="max-width: 300px"
         ></v-text-field>
         <v-spacer></v-spacer>
@@ -127,7 +127,7 @@
         :item-class="itemRowBackground"
         :single-expand="singleExpand"
         @click:row="clickRow"
-        :expanded.sync="expanded"
+        v-model:expanded="expanded"
         item-key="id"
         :loading="loadingDataTable"
         disable-sort
@@ -143,7 +143,7 @@
               item.status != 0
             "
           >
-            <v-simple-table v-if="item.list_comentarios.length > 0">
+            <v-table v-if="item.list_comentarios.length > 0">
               <thead>
                 <tr>
                   <th>Fecha</th>
@@ -162,9 +162,9 @@
                   <td class="bg-comentarios">{{ i.comentario }}</td>
                 </tr>
               </tbody>
-            </v-simple-table>
+            </v-table>
 
-            <v-simple-table v-if="item.list_houses.length > 0">
+            <v-table v-if="item.list_houses.length > 0">
               <thead>
                 <tr>
                   <th>Acción</th>
@@ -198,7 +198,7 @@
                   <td>{{ i.namelong }}</td>
                 </tr>
               </tbody>
-            </v-simple-table>
+            </v-table>
           </td>
         </template>
 
@@ -228,9 +228,9 @@
           }}</label>
         </template>
         <template v-slot:[`item.actions`]="{ item }">
-          <v-menu top :close-on-click="true" v-if="item.status == 1">
-            <template v-slot:activator="{ on, attrs }">
-              <v-btn icon color="#212121" v-bind="attrs" v-on="on">
+          <v-menu location="top" :persistent="!(true)" v-if="item.status == 1">
+            <template v-slot:activator="{ props }">
+              <v-btn icon color="#212121" v-bind="props">
                 <v-icon class="mx-1">mdi-menu</v-icon>
               </v-btn>
             </template>
@@ -368,17 +368,17 @@
           >
             <v-icon class="mx-1">mdi-delete-empty</v-icon>Activar
           </v-btn>
-          <v-tooltip top>
-            <template v-slot:activator="{ on, attrs }">
+          <v-tooltip location="top">
+            <template v-slot:activator="{ props }">
               <v-btn
                 v-if="item.status == 1"
                 color="#212121"
-                small
+                size="small"
                 icon
                 class="mx-1"
                 fab
-                v-on="on"
-                v-bind="attrs"
+                v-bind="props"
+               
                 @click="editFechas(item)"
               >
                 <v-icon class="mx-1">mdi-calendar-edit</v-icon>
@@ -403,16 +403,16 @@
             </template>
             <span>Editar Master</span>
           </v-tooltip> -->
-          <v-tooltip top>
-            <template v-slot:activator="{ on, attrs }">
+          <v-tooltip location="top">
+            <template v-slot:activator="{ props }">
               <v-btn
                 icon
                 fab
-                v-on="on"
-                v-bind="attrs"
+                v-bind="props"
+               
                 v-if="item.status == 1"
                 color="#212121"
-                small
+                size="small"
                 aria-label="Ver master"
                 @click="viewMaster(item.id)"
               >
@@ -474,17 +474,17 @@
             </template>
             <span>Cerrar Expediente Administrativo</span>
           </v-tooltip> -->
-          <v-tooltip top>
-            <template v-slot:activator="{ on, attrs }">
+          <v-tooltip location="top">
+            <template v-slot:activator="{ props }">
               <v-btn
                 v-if="item.status == 1"
                 icon
                 fab
-                v-on="on"
-                v-bind="attrs"
+                v-bind="props"
+               
                 @click="abrirCaperta(item)"
                 color="#212121"
-                small
+                size="small"
               >
                 <v-icon class="mx-1">mdi-folder</v-icon>
               </v-btn>
@@ -570,7 +570,7 @@
               label="Ejecutivo"
               class="my-1"
               :items="$store.state.pricing.listEjecutivo"
-              item-text="name"
+              item-title="name"
               item-value="id_entitie"
               item-key="id_entitie"
               v-model="id_vendedor"
@@ -588,7 +588,7 @@
         <v-card-actions>
           <v-spacer></v-spacer>
           <v-btn
-            small
+            size="small"
             color="success"
             @click="guardarComentario"
             :loading="loading"
@@ -648,11 +648,11 @@
           </v-row>
         </v-card-text>
         <v-card-actions class="justify-end">
-          <v-btn small color="success" :loading="loading" @click="guardarFechas"
+          <v-btn size="small" color="success" :loading="loading" @click="guardarFechas"
             >Guardar</v-btn
           >
           <v-btn
-            small
+            size="small"
             color="error"
             :loading="loading"
             @click="dialogFecha = false"

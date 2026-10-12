@@ -101,7 +101,7 @@
                 $store.state.pricing.opcionCostos.filter((v) => v.selected)
                   .length
               "
-              circle
+              rounded
             ></v-pagination>
           </div>
         </template>

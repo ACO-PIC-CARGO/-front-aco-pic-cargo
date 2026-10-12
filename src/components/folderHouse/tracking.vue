@@ -11,33 +11,33 @@
       <v-container class="py-5">
         <v-card 
           elevation="2" 
-          outlined
+          border
           class="mx-auto"
           max-width="920px"
         >
           <v-card-title>Estado de la Carga</v-card-title>           
 
           <v-card-text>
-            <p class="text-subtitle-2 black--text">Tipo de Carga: {{ getTipoEmbarque || "" }}</p>
+            <p class="text-subtitle-2 text-black">Tipo de Carga: {{ getTipoEmbarque || "" }}</p>
 
             <v-row no-gutters>
               <v-col cols="4" class="text-left">
-                <v-icon color="black" large>mdi-factory</v-icon>
+                <v-icon color="black" size="large">mdi-factory</v-icon>
               </v-col>
               <v-col cols="4" class="text-center">
-                <v-icon color="black" large>{{ getIconTipoEmbarque }}</v-icon>
+                <v-icon color="black" size="large">{{ getIconTipoEmbarque }}</v-icon>
               </v-col>
               <v-col cols="4" class="text-right">
-                <v-icon color="black" large>mdi-factory</v-icon>
+                <v-icon color="black" size="large">mdi-factory</v-icon>
               </v-col>
             </v-row>
 
             <v-row no-gutters class="my-2">
               <v-col>
                 <v-progress-linear
-                  :value="getEstadoBarraProgreso"
+                  :model-value="getEstadoBarraProgreso"
                   color="success"
-                  background-color="grey lighten-3"
+                  bg-color="grey lighten-3"
                   height="20"
                 ></v-progress-linear>
               </v-col>
@@ -45,10 +45,10 @@
 
             <v-row no-gutters>
               <v-col cols="6">
-                <p class="text-subtitle-2 black--text text-left mb-1">Origen: {{ tracking.namelong_portbegin || "" }}</p>
+                <p class="text-subtitle-2 text-black text-left mb-1">Origen: {{ tracking.namelong_portbegin || "" }}</p>
               </v-col>
               <v-col cols="6">
-                <p class="text-subtitle-2 black--text text-right mb-1">Destino: {{ tracking.namelong_portend || "" }}</p>
+                <p class="text-subtitle-2 text-black text-right mb-1">Destino: {{ tracking.namelong_portend || "" }}</p>
               </v-col>
             </v-row>
             
@@ -73,7 +73,7 @@
                 v-if="item.visible_cliente"
               >
                 <v-col cols="4">
-                  <p class="text-subtitle-2 black--text font-weight-medium">{{ getFechaParseada(item.fecha) }}</p>
+                  <p class="text-subtitle-2 text-black font-weight-medium">{{ getFechaParseada(item.fecha) }}</p>
                 </v-col>
 
                 <v-divider vertical></v-divider>
@@ -81,10 +81,10 @@
                 <v-col cols="8">
                   <v-list>
                     <v-list-item>
-                      <v-list-item-content>
+                      
                         <v-list-item-title class="font-weight-medium mb-2">{{ item.namebitacora }}</v-list-item-title>
                         <v-list-item-subtitle>{{ item.comentario }}</v-list-item-subtitle>
-                      </v-list-item-content>
+                      
                     </v-list-item>
                   </v-list>
                 </v-col>

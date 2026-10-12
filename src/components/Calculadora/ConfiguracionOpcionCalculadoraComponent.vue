@@ -6,8 +6,8 @@
           v-model="item.nombre"
           :disabled="!item.editarflag"
           hide-details
-          dense
-          outlined
+          density="compact"
+          variant="outlined"
           auto-grow
           rows="1"
         ></v-textarea>
@@ -17,8 +17,8 @@
           v-model="item.frecuencia"
           :disabled="!item.editarflag"
           hide-details
-          dense
-          outlined
+          density="compact"
+          variant="outlined"
           auto-grow
           rows="1"
         ></v-textarea>
@@ -28,8 +28,8 @@
           v-model="item.volumenmax"
           :disabled="!item.editarflag"
           :hide-details="!item.editarflag"
-          dense
-          outlined
+          density="compact"
+          variant="outlined"
           style="max-width: 100px"
           messages=" "
           type="number"
@@ -49,8 +49,8 @@
           v-model="item.toneladamax"
           :disabled="!item.editarflag"
           :hide-details="!item.editarflag"
-          dense
-          outlined
+          density="compact"
+          variant="outlined"
           style="max-width: 100px"
           messages=" "
           type="number"
@@ -91,7 +91,7 @@
           "
           v-if="item.esgrupalflag"
           color="success"
-          outlined
+          variant="outlined"
         >
           <v-icon class="ma-2"> mdi-account-group </v-icon>
           Grupal
@@ -106,7 +106,7 @@
           "
           v-else
           color="primary"
-          outlined
+          variant="outlined"
         >
           <v-icon class="ma-2"> mdi-account </v-icon>
           Individual
@@ -116,14 +116,14 @@
         <v-btn
           v-if="!item.editarflag"
           color="warning"
-          small
+          size="small"
           @click="item.editarflag = true"
           >Editar</v-btn
         >
         <v-btn
           v-if="item.editarflag"
           color="success"
-          small
+          size="small"
           @click="actualizarOpcion(item)"
           >Guardar</v-btn
         >

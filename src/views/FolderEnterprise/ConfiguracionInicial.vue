@@ -76,7 +76,7 @@
     </v-container>
     <v-dialog v-model="dialog" scrollable fullscreen persistent>
       <v-card>
-        <v-row class="fill-height" align="center" justify="center">
+        <v-row class="fill-height align-center justify-center">
           <v-col cols="12" md="8">
             <div style="text-align: center; padding: auto">
               <h1 class="my-3" style="font-weight: normal">

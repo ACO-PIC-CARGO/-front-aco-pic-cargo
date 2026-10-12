@@ -19,7 +19,7 @@
           label="Servicio"
           :items="$store.state.groupservices.list"
           v-model="$store.state.itemServices.filtros.id_groupservices"
-          item-text="name"
+          item-title="name"
           item-value="id"
           :clearable="$store.state.itemServices.tipo != 'ver'"
         >
@@ -51,8 +51,8 @@
         <span> Estado</span>
         <v-radio-group
           v-model="$store.state.itemServices.filtros.status"
-          row
-          dense
+          inline
+          density="compact"
         >
           <v-radio label="Activo" color="green" :value="1"></v-radio>
           <v-radio label="Inactivo" color="red" :value="0"></v-radio>
@@ -68,7 +68,7 @@
             :items="$store.state.groupservices.list"
             v-model="$store.state.itemServices.model.id_groupservices"
             :readonly="$store.state.itemServices.tipo == 'ver'"
-            item-text="name"
+            item-title="name"
             item-value="id"
             :rules="[(v) => !!v || 'Dato requerido']"
             :item-disabled="(item) => item.status != 1"

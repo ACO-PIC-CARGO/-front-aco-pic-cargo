@@ -1,23 +1,23 @@
 <template>
   <v-autocomplete
     :key="autocompleteKey"
-    :value="value"
+    :model-value="value"
     :items="$store.state.pricing.listMultiplicador"
-    :item-text="itemText"
+    :item-title="itemText"
     :item-value="itemValue"
     :label="label"
     :placeholder="placeholder"
     :disabled="disabled"
     :readonly="readonly"
     :outlined="outlined"
-    :dense="dense"
+    :density="dense ? 'compact' : undefined"
     :clearable="clearable"
     :hide-details="hideDetails"
     :error-messages="errorMessages"
     :error="!!errorMessages"
     :rules="rules"
     class="widthTD"
-    @input="onInputMultiplicador"
+    @update:model-value="onInputMultiplicador"
   />
 </template>
 

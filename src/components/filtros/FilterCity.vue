@@ -17,10 +17,10 @@
           label="Pais"
           :items="$store.state.itemsPais"
           v-model="$store.state.city.filtros.id_pais"
-          item-text="name"
+          item-title="name"
           item-value="id"
           :clearable="$store.state.city.tipo != 'ver'"
-          @change="ObtenerEstados($store.state.city.filtros.id_pais)"
+          @update:model-value="ObtenerEstados($store.state.city.filtros.id_pais)"
         >
         </v-autocomplete>
       </div>
@@ -29,7 +29,7 @@
           label="Estado"
           :items="$store.state.itemsState"
           v-model="$store.state.city.filtros.id_state"
-          item-text="name"
+          item-title="name"
           item-value="id"
           :clearable="$store.state.city.tipo != 'ver'"
           :loading="loadingEstado"
@@ -60,7 +60,7 @@
       </div>
       <div class="col-12 py-1">
         <span> Estado</span>
-        <v-radio-group v-model="$store.state.city.filtros.status" row dense>
+        <v-radio-group v-model="$store.state.city.filtros.status" inline density="compact">
           <v-radio label="Activo" color="green" value="1"></v-radio>
           <v-radio label="Inactivo" color="red" value="0"></v-radio>
           <v-radio label="Todos" color="blue" value="null"></v-radio>
@@ -75,10 +75,10 @@
             :items="$store.state.itemsPais"
             v-model="$store.state.city.model.id_pais"
             :readonly="$store.state.city.tipo == 'ver'"
-            item-text="name"
+            item-title="name"
             item-value="id"
             :rules="[(v) => !!v || 'Dato Requerido']"
-            @change="ObtenerEstados($store.state.city.model.id_pais)"
+            @update:model-value="ObtenerEstados($store.state.city.model.id_pais)"
             :item-disabled="(item) => item.status != 1"
           >
           </v-autocomplete>
@@ -89,7 +89,7 @@
             :items="$store.state.itemsState"
             v-model="$store.state.city.model.id_state"
             :readonly="$store.state.city.tipo == 'ver'"
-            item-text="name"
+            item-title="name"
             item-value="id"
             :rules="[(v) => !!v || 'Dato Requerido']"
             :loading="loadingEstado"

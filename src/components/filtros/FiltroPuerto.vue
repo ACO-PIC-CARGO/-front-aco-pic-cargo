@@ -17,7 +17,7 @@
           label="Tipo Transporte"
           :items="$store.state.transport.list"
           v-model="$store.state.puerto.PortFilter.id_transporte"
-          item-text="name"
+          item-title="name"
           item-value="id"
           :clearable="$store.state.puerto.tipo != 'ver'"
         >
@@ -28,7 +28,7 @@
           label="Pais"
           :items="$store.state.itemsPais"
           v-model="$store.state.puerto.PortFilter.id_pais"
-          item-text="name"
+          item-title="name"
           item-value="id"
           :clearable="$store.state.puerto.tipo != 'ver'"
         >
@@ -60,8 +60,8 @@
         <span> Estado</span>
         <v-radio-group
           v-model="$store.state.puerto.PortFilter.status"
-          row
-          dense
+          inline
+          density="compact"
         >
           <v-radio label="Activo" color="green" value="1"></v-radio>
           <v-radio label="Inactivo" color="red" value="0"></v-radio>
@@ -77,7 +77,7 @@
             :items="$store.state.transport.list"
             v-model="$store.state.puerto.PortModel.id_transporte"
             :readonly="$store.state.puerto.tipo != 'nuevo'"
-            item-text="name"
+            item-title="name"
             item-value="id"
             :rules="[(v) => !!v || 'Dato Requerido']"
             :item-disabled="(item) => item.status != 1"
@@ -90,7 +90,7 @@
             :items="$store.state.itemsPais"
             v-model="$store.state.puerto.PortModel.id_pais"
             :readonly="$store.state.puerto.tipo == 'ver'"
-            item-text="name"
+            item-title="name"
             item-value="id"
             :rules="[(v) => !!v || 'Dato Requerido']"
             :item-disabled="(item) => item.status != 1"

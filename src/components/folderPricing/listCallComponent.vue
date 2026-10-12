@@ -26,9 +26,9 @@
             <v-autocomplete
               :items="$store.state.pricing.listEjecutivo"
               label="Ejecutivo."
-              dense
+              density="compact"
               clearable
-              item-text="name"
+              item-title="name"
               item-value="id_entitie"
               v-model="fromData.identities"
             ></v-autocomplete>
@@ -36,9 +36,9 @@
         </v-card-text>
         <v-card-actions>
           <v-flex text-right>
-            <v-btn text color="success" @click="guardarNota">Aceptar</v-btn>
+            <v-btn variant="text" color="success" @click="guardarNota">Aceptar</v-btn>
             <v-btn
-              text
+              variant="text"
               color="red"
               @click="dialogRegistroNotaLlamada = !dialogRegistroNotaLlamada"
             >
@@ -55,12 +55,12 @@
             <v-row>
               <v-col cols="4" class="clsFechaPor">
                 <v-text-field
-                  value="Fecha Creación"
+                  model-value="Fecha Creación"
                   label="Fecha Por"
                   readonly
                   hide-details
-                  dense
-                  outlined
+                  density="compact"
+                  variant="outlined"
                   prepend-icon="mdi-calendar-month"
                 ></v-text-field>
               </v-col>
@@ -68,13 +68,13 @@
               <v-col cols="4">
                 <v-text-field
                   prepend-inner-icon="mdi-calendar-month"
-                  :value="
+                  :model-value="
                     formatearFecha($store.state.pricing.filtroCalls.fechainicio)
                   "
-                  dense
+                  density="compact"
                   readonly
                   hide-details
-                  outlined
+                  variant="outlined"
                   label="Desde"
                   id="frmFechaDesde"
                 ></v-text-field>
@@ -82,13 +82,13 @@
               <v-col cols="4">
                 <v-text-field
                   prepend-inner-icon="mdi-calendar-month"
-                  :value="
+                  :model-value="
                     formatearFecha($store.state.pricing.filtroCalls.fechafin)
                   "
-                  dense
+                  density="compact"
                   readonly
                   hide-details
-                  outlined
+                  variant="outlined"
                   label="Hasta"
                 ></v-text-field>
               </v-col>
@@ -105,42 +105,42 @@
             <v-row>
               <v-col cols="4" class="clsFechaPor">
                 <v-text-field
-                  value="Fecha Envíado"
+                  model-value="Fecha Envíado"
                   label="Fecha Por"
                   readonly
                   hide-details
-                  outlined
-                  dense
+                  variant="outlined"
+                  density="compact"
                   prepend-icon="mdi-calendar-month"
                 ></v-text-field>
               </v-col>
               <v-col cols="4">
                 <v-text-field
                   prepend-inner-icon="mdi-calendar-month"
-                  :value="
+                  :model-value="
                     formatearFecha(
                       $store.state.pricing.filtroCalls.fechaemisiondesde,
                     )
                   "
-                  dense
+                  density="compact"
                   readonly
                   hide-details
-                  outlined
+                  variant="outlined"
                   label="Desde"
                 ></v-text-field>
               </v-col>
               <v-col cols="4">
                 <v-text-field
                   prepend-inner-icon="mdi-calendar-month"
-                  :value="
+                  :model-value="
                     formatearFecha(
                       $store.state.pricing.filtroCalls.fechaemisionhasta,
                     )
                   "
-                  dense
+                  density="compact"
                   readonly
                   hide-details
-                  outlined
+                  variant="outlined"
                   label="Hasta"
                 ></v-text-field>
               </v-col>
@@ -156,11 +156,11 @@
             <v-autocomplete
               :items="$store.state.pricing.listMarketing"
               label="Tipo de Marketing"
-              dense
+              density="compact"
               readonly
               hide-details
-              outlined
-              item-text="name"
+              variant="outlined"
+              item-title="name"
               item-value="id"
               v-model="$store.state.pricing.filtroCalls.id_marketing"
             ></v-autocomplete>
@@ -187,11 +187,11 @@
             <v-autocomplete
               :items="$store.state.pricing.listEjecutivo"
               label="Pricing."
-              dense
+              density="compact"
               readonly
               hide-details
-              outlined
-              item-text="name"
+              variant="outlined"
+              item-title="name"
               item-value="id_entitie"
               v-model="$store.state.pricing.filtroCalls.id_pricing"
             ></v-autocomplete>
@@ -205,11 +205,11 @@
             <v-autocomplete
               :items="$store.state.pricing.listEjecutivo"
               label="Ejecutivo."
-              dense
+              density="compact"
               readonly
               hide-details
-              outlined
-              item-text="name"
+              variant="outlined"
+              item-title="name"
               item-value="id_entitie"
               v-model="$store.state.pricing.filtroCalls.id_entities"
             ></v-autocomplete>
@@ -224,11 +224,11 @@
               :items="$store.state.pricing.listModality"
               label="Sentido"
               v-model="$store.state.pricing.filtroCalls.id_modality"
-              dense
+              density="compact"
               readonly
               hide-details
-              outlined
-              item-text="name"
+              variant="outlined"
+              item-title="name"
               item-value="id"
             ></v-autocomplete>
           </v-col>
@@ -241,11 +241,11 @@
             <v-autocomplete
               :items="$store.state.pricing.listShipment"
               label="Tipo Embarque"
-              dense
+              density="compact"
               readonly
               hide-details
-              outlined
-              item-text="embarque"
+              variant="outlined"
+              item-title="embarque"
               item-value="id"
               v-model="$store.state.pricing.filtroCalls.id_shipment"
             >
@@ -260,11 +260,11 @@
             <v-autocomplete
               :items="$store.state.pricing.listIncoterms"
               label="Incoterm"
-              dense
+              density="compact"
               readonly
               hide-details
-              outlined
-              item-text="name"
+              variant="outlined"
+              item-title="name"
               item-value="id"
               v-model="$store.state.pricing.filtroCalls.id_incoterm"
             ></v-autocomplete>
@@ -278,8 +278,8 @@
           label="Buscar"
           v-model="search"
           append-icon="mdi-magnify"
-          dense
-          outlined
+          density="compact"
+          variant="outlined"
           messages=" "
         >
           <template v-slot:message>
@@ -299,7 +299,7 @@
             :loading="loading4"
             :disabled="loading4"
             :dark="!loading4"
-            small
+            size="small"
           >
             <v-icon>mdi-file-pdf-box</v-icon> REPORTE
           </v-btn>
@@ -311,12 +311,12 @@
             "
             class="mx-1"
             dark
-            small
+            size="small"
           >
             <v-icon>mdi-filter</v-icon>
             Filtrar
           </v-btn>
-          <v-btn color="default" class="mx-1 my-1" small @click="limpiar()">
+          <v-btn color="default" class="mx-1 my-1" size="small" @click="limpiar()">
             <v-icon class="mx-1">mdi-filter-remove</v-icon>
             Limpiar
           </v-btn>
@@ -325,7 +325,7 @@
     </v-row>
     <v-row>
       <v-data-table
-        dense
+        density="compact"
         :headers="headers"
         :items="$store.state.pricing.listCall"
         :items-per-page="5"

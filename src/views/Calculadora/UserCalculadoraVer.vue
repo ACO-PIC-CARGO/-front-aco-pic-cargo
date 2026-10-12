@@ -3,12 +3,12 @@
     <v-container>
       <v-tabs
         v-model="model"
-        centered
+        align-tabs="center"
         dark
-        background-color="teal darken-3"
+        bg-color="teal darken-3"
         show-arrows
       >
-        <v-tabs-slider color="teal lighten-3"></v-tabs-slider>
+        <v-tabs-slider color="teal-lighten-3"></v-tabs-slider>
         <v-tab key="principal">Datos Principales</v-tab>
         <v-tab key="xxx">Costos</v-tab>
       </v-tabs>
@@ -19,72 +19,72 @@
               <v-text-field
                 name="Cliente"
                 label="Cliente"
-                outlined
-                dense
+                variant="outlined"
+                density="compact"
               ></v-text-field>
             </v-col>
             <v-col cols="6">
               <v-text-field
                 name="Teléfono"
                 label="Teléfono"
-                outlined
-                dense
+                variant="outlined"
+                density="compact"
               ></v-text-field>
             </v-col>
             <v-col cols="6">
               <v-text-field
                 name="Email"
                 label="Email"
-                outlined
-                dense
+                variant="outlined"
+                density="compact"
               ></v-text-field>
             </v-col>
             <v-col cols="6">
               <v-text-field
                 name="Origen"
                 label="Origen"
-                outlined
-                dense
+                variant="outlined"
+                density="compact"
               ></v-text-field>
             </v-col>
             <v-col cols="6">
               <v-text-field
                 name="Destino"
                 label="Destino"
-                outlined
-                dense
+                variant="outlined"
+                density="compact"
               ></v-text-field>
             </v-col>
             <v-col cols="6">
               <v-text-field
                 name="Peso"
                 label="Peso"
-                outlined
-                dense
+                variant="outlined"
+                density="compact"
               ></v-text-field>
             </v-col>
             <v-col cols="6">
               <v-text-field
                 name="Volumen"
                 label="Volumen"
-                outlined
-                dense
+                variant="outlined"
+                density="compact"
               ></v-text-field>
             </v-col>
             <v-col cols="6">
               <v-text-field
                 name="ValorMercancia"
                 label="Valor Mercancia"
-                outlined
-                dense
+                variant="outlined"
+                density="compact"
               ></v-text-field>
             </v-col>
             <v-col cols="6">
               <v-text-field
                 name="Profit"
                 label="Profit"
-                outlined
-                dense
+                variant="outlined"
+                density="compact"
               ></v-text-field>
             </v-col>
           </v-row>

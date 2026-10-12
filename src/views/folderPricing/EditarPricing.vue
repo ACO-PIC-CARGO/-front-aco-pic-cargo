@@ -74,7 +74,7 @@
           <v-progress-linear
             color="light-blue"
             height="10"
-            value="10"
+            model-value="10"
             striped
             v-else
           ></v-progress-linear>

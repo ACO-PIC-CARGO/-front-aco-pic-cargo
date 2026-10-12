@@ -1,6 +1,6 @@
 <template>
   <v-container fluid>
-    <v-row justify="center">
+    <v-row class="justify-center">
       <v-col v-for="plan in planes" :key="plan.plan_id" cols="12" sm="4">
         <v-card class="plan-card" elevation="3">
           <v-card-title class="plan-title">
@@ -28,7 +28,7 @@
 
           <v-radio-group
             v-model="selectedUsers[plan.plan_id]"
-            @change="updatePrice(plan.plan_id)"
+            @update:model-value="updatePrice(plan.plan_id)"
             class="mt-1"
             inline
           >
@@ -51,14 +51,7 @@
           <v-divider class="my-0"></v-divider>
 
           <v-card-subtitle
-            class="
-              plan-subtitle
-              text-h4
-              black--text
-              font-weight-black
-              textestirado
-              textoprecmen
-            "
+            class="plan-subtitle text-h4 text-black font-weight-black textestirado textoprecmen"
           >
             {{
               selectedUsers[plan.plan_id]
@@ -152,9 +145,9 @@
                   v-for="feature in plan.caracteristicas"
                   :key="feature.descripcion"
                 >
-                  <v-list-item-content>
+                  
                     <v-icon
-                      small
+                      size="small"
                       :color="feature.estado == 1 ? 'blue' : 'grey'"
                       :class="
                         feature.estado == 1
@@ -172,7 +165,7 @@
                     >
                       {{ feature.descripcion }}</span
                     >
-                  </v-list-item-content>
+                  
                 </v-list-item>
               </v-list-item-group>
             </v-list>
@@ -185,7 +178,7 @@
             >
             <v-btn
               color="blue"
-              class="mt-3 white--text"
+              class="mt-3 text-white"
               @click="showPaymentForm(plan)"
               >Contratar</v-btn
             >

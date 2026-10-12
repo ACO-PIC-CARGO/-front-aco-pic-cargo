@@ -2,13 +2,13 @@
   <v-card class="px-5">
     <v-card elevation="0">
       <v-container v-if="loading" style="height: 400px">
-        <v-row class="fill-height" align-content="center" justify="center">
+        <v-row class="fill-height align-content-center justify-center">
           <v-col class="text-subtitle-1 text-center" cols="12">
             Cargando información ....
           </v-col>
           <v-col cols="6">
             <v-progress-linear
-              color="deep-purple accent-4"
+              color="deep-purple-accent-4"
               indeterminate
               height="6"
             ></v-progress-linear>
@@ -26,11 +26,11 @@
         >
         </v-text-field>
         <v-spacer></v-spacer>
-        <v-btn small color="success" @click="open_new()"> Nuevo </v-btn>
-        <v-btn small class="mx-1" color="#2962FF" dark @click="open_filter()">
+        <v-btn size="small" color="success" @click="open_new()"> Nuevo </v-btn>
+        <v-btn size="small" class="mx-1" color="#2962FF" dark @click="open_filter()">
           Fitrar
         </v-btn>
-        <v-btn small class="mx-1" color="#004D40" dark> Exportar </v-btn>
+        <v-btn size="small" class="mx-1" color="#004D40" dark> Exportar </v-btn>
       </v-card-title>
 
       <v-data-table
@@ -45,15 +45,15 @@
           {{ !!item.status ? "Activo" : "Inactivo" }}
         </template>
         <template v-slot:[`item.action`]="{ item }">
-          <v-btn class="mx-1" small icon>
+          <v-btn class="mx-1" size="small" icon>
             <v-icon color="primary" @click="open_read(item.id)">mdi-eye</v-icon>
           </v-btn>
-          <v-btn class="mx-1" small icon>
+          <v-btn class="mx-1" size="small" icon>
             <v-icon color="#0D47A1" @click="abrirCuentas(item)"
               >mdi-bank</v-icon
             >
           </v-btn>
-          <v-btn class="mx-1" small icon>
+          <v-btn class="mx-1" size="small" icon>
             <v-icon color="warning" @click="open_update(item.id)"
               >mdi-pencil</v-icon
             >
@@ -61,7 +61,7 @@
 
           <v-btn
             class="mx-1"
-            small
+            size="small"
             icon
             @click="switch_status(item)"
             v-if="item.status"
@@ -75,16 +75,16 @@
     <v-navigation-drawer
       v-model="showFilterDrawerNew"
       absolute
-      bottom
+      location="bottom right"
       temporary
-      right
+      
       width="30%"
       height="100vh"
     >
       <v-list-item>
-        <v-list-item-content>
+        
           <v-list-item-title class="text-h6"> Nuevo Banco </v-list-item-title>
-        </v-list-item-content>
+        
       </v-list-item>
 
       <v-spacer></v-spacer>
@@ -128,12 +128,12 @@
           </v-form>
           <v-row>
             <v-switch
-              dense
+              density="compact"
               :label="`Estado: ${record.status ? 'Activo' : 'Inactivo'}`"
               v-model="record.status"
               hide-details
               color="success"
-              @change="updateStatus"
+              @update:model-value="updateStatus"
             ></v-switch>
           </v-row>
         </v-card-text>
@@ -157,19 +157,19 @@
     <v-navigation-drawer
       v-model="showFilterDrawerRead"
       absolute
-      bottom
+      location="bottom right"
       temporary
-      right
+      
       width="30%"
       height="100vh"
     >
       <v-container v-if="!loading_as">
         <v-list-item class="px-0">
-          <v-list-item-content>
+          
             <v-list-item-title class="text-h6">
               Ver: {{ $store.state.bank.record.name }}
             </v-list-item-title>
-          </v-list-item-content>
+          
         </v-list-item>
 
         <v-spacer></v-spacer>
@@ -178,28 +178,28 @@
             <v-text-field
               label="Código"
               readonly
-              :value="$store.state.bank.record.code"
+              :model-value="$store.state.bank.record.code"
             ></v-text-field>
           </v-row>
           <v-row>
             <v-text-field
               label="Nombre"
               readonly
-              :value="$store.state.bank.record.name"
+              :model-value="$store.state.bank.record.name"
             ></v-text-field>
           </v-row>
           <v-row>
             <v-text-field
               label="Acrónimo"
               readonly
-              :value="$store.state.bank.record.acronym"
+              :model-value="$store.state.bank.record.acronym"
             ></v-text-field>
           </v-row>
           <v-row>
             <v-text-field
               label="Descripción"
               readonly
-              :value="$store.state.bank.record.description"
+              :model-value="$store.state.bank.record.description"
             ></v-text-field>
           </v-row>
           <v-row>
@@ -226,13 +226,13 @@
       </v-container>
 
       <v-container v-if="loading_as" style="height: 400px">
-        <v-row class="fill-height" align-content="center" justify="center">
+        <v-row class="fill-height align-content-center justify-center">
           <v-col class="text-subtitle-1 text-center" cols="12">
             Cargando información ....
           </v-col>
           <v-col cols="6">
             <v-progress-linear
-              color="deep-purple accent-4"
+              color="deep-purple-accent-4"
               indeterminate
               height="6"
             ></v-progress-linear>
@@ -244,19 +244,19 @@
     <v-navigation-drawer
       v-model="showFilterDrawerUpdate"
       absolute
-      bottom
+      location="bottom right"
       temporary
-      right
+      
       width="30%"
       height="100vh"
     >
       <v-container v-if="!loading_as">
         <v-list-item class="px-0">
-          <v-list-item-content>
+          
             <v-list-item-title class="text-h6">
               Modificar: {{ $store.state.bank.record.name }}
             </v-list-item-title>
-          </v-list-item-content>
+          
         </v-list-item>
 
         <v-spacer></v-spacer>
@@ -313,7 +313,7 @@
               label="Activo / Inactivo"
               v-model="record.status"
               color="success"
-              @change="updateStatus"
+              @update:model-value="updateStatus"
             ></v-switch>
           </v-row>
         </v-card-text>
@@ -334,13 +334,13 @@
       </v-container>
 
       <v-container v-if="loading_as" style="height: 400px">
-        <v-row class="fill-height" align-content="center" justify="center">
+        <v-row class="fill-height align-content-center justify-center">
           <v-col class="text-subtitle-1 text-center" cols="12">
             Cargando información ....
           </v-col>
           <v-col cols="6">
             <v-progress-linear
-              color="deep-purple accent-4"
+              color="deep-purple-accent-4"
               indeterminate
               height="6"
             ></v-progress-linear>
@@ -352,18 +352,18 @@
     <v-navigation-drawer
       v-model="showFilterDrawer"
       absolute
-      bottom
+      location="bottom right"
       temporary
-      right
+      
       width="30%"
       height="100vh"
     >
       <v-list-item>
-        <v-list-item-content>
+        
           <v-list-item-title class="text-h6">
             Filtrar Registros
           </v-list-item-title>
-        </v-list-item-content>
+        
       </v-list-item>
 
       <v-spacer></v-spacer>
@@ -399,7 +399,7 @@
             ></v-text-field>
           </v-row>
           <v-row>
-            <v-radio-group v-model="records.status" row dense>
+            <v-radio-group v-model="records.status" inline density="compact">
               <v-radio label="Activo" color="green" :value="1"></v-radio>
               <v-radio label="Inactivo" color="red" :value="0"></v-radio>
               <v-radio label="Todos" color="blue" value="null"></v-radio>
@@ -441,17 +441,17 @@
             :items="datosBanco.banks_details"
             class="elevation-1"
             item-key="index"
-            dense
+            density="compact"
             :items-per-page="5"
           >
             <template v-slot:[`item.coins`]="{ item }">
               <v-autocomplete
                 :items="$store.state.itemsCoinsList"
                 v-model="item.id_coin"
-                item-text="acronym"
+                item-title="acronym"
                 item-value="id"
                 readonly
-                dense
+                density="compact"
               />
             </template>
             <template v-slot:[`item.action`]="{ item }">
@@ -491,7 +491,7 @@
             <v-autocomplete
               :items="$store.state.itemsCoinsList"
               v-model="cuenta.id_coin"
-              item-text="acronym"
+              item-title="acronym"
               item-value="id"
               label="Moneda"
               :rules="[(v) => !!v || 'Dato Requerido']"

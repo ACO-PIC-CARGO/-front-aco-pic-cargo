@@ -3,9 +3,9 @@
     <Posicion />
     <v-navigation-drawer
       v-model="$store.state.position.drawer"
-      right
+      location="right bottom"
       absolute
-      bottom
+      
       persistent
       width="30%"
       temporary

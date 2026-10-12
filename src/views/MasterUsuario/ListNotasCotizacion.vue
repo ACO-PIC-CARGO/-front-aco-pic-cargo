@@ -3,9 +3,9 @@
     <NotasCotizacion />
     <v-navigation-drawer
       v-model="$store.state.masterusuarios.drawer"
-      right
+      location="right bottom"
       absolute
-      bottom
+      
       persistent
       width="50%"
       temporary

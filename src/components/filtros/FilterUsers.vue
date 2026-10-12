@@ -17,7 +17,7 @@
           label="Tipo Documento"
           :items="$store.state.itemsDocumentsPais"
           v-model="$store.state.user.filtros.id_document"
-          item-text="name"
+          item-title="name"
           item-value="id"
           clearable
         >
@@ -60,7 +60,7 @@
       </div>
       <div class="col-12 py-1">
         <span> Estado</span>
-        <v-radio-group v-model="$store.state.user.filtros.status" row dense>
+        <v-radio-group v-model="$store.state.user.filtros.status" inline density="compact">
           <v-radio label="Activo" color="green" value="1"></v-radio>
           <v-radio label="Inactivo" color="red" value="0"></v-radio>
           <v-radio label="Todos" color="blue" value="null"></v-radio>

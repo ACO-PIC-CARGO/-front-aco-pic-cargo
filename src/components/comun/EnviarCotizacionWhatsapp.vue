@@ -14,7 +14,7 @@
           <v-form ref="frmEnvioWsp">
             <v-row>
               <v-col cols="12">
-                <v-tabs v-model="tabIndex" centered slider-color="primary">
+                <v-tabs v-model="tabIndex" align-tabs="center" slider-color="primary">
                   <v-tab href="#pdfflag"> PDF </v-tab>
                 </v-tabs>
                 <v-tabs-items v-model="tabIndex">
@@ -23,7 +23,7 @@
                       <v-textarea
                         v-model="localTextoLink"
                         auto-grow
-                        outlined
+                        variant="outlined"
                         class="my-2"
                         :rules="[(v) => !!v || 'Dato Requerido']"
                       />
@@ -42,7 +42,7 @@
                     <v-textarea
                       v-model="localTextoPdf"
                       auto-grow
-                      outlined
+                      variant="outlined"
                       class="py-0 my-0"
                       :rules="[(v) => !!v || 'Dato Requerido']"
                     />
@@ -57,7 +57,7 @@
                 <v-text-field
                   label="Nombre de Archivo"
                   v-model="nombrePdfEnviarCliente"
-                  outlined
+                  variant="outlined"
                   :rules="[(v) => !!v || 'Dato Requerido']"
                 ></v-text-field>
               </v-col>
@@ -72,28 +72,28 @@
                   outline
                   v-if="$store.state.pricing.datosPrincipales.esgrupalflag"
                 >
-                  <template v-slot:activator="{ on, attrs }">
+                  <template v-slot:activator="{ props }">
                     <v-text-field
                       v-model="dateRangeText"
                       label="Fecha Aproximada de Salida"
                       prepend-icon="mdi-calendar"
                       readonly
-                      v-bind="attrs"
-                      v-on="on"
+                     
+                      v-bind="props"
                       :rules="[(v) => !!v || 'Dato Requerido']"
                       v-if="$store.state.pricing.datosPrincipales.esgrupalflag"
-                      color="blue-grey darken-2"
-                      outlined
-                      dense
+                      color="blue-grey-darken-2"
+                      variant="outlined"
+                      density="compact"
                     ></v-text-field>
                   </template>
 
                   <v-date-picker v-model="dates" range no-title scrollable>
                     <v-spacer></v-spacer>
-                    <v-btn text color="primary" @click="menu = false">
+                    <v-btn variant="text" color="primary" @click="menu = false">
                       Confirmar
                     </v-btn>
-                    <v-btn text color="error" @click="menu = false">
+                    <v-btn variant="text" color="error" @click="menu = false">
                       Cerrar
                     </v-btn>
                   </v-date-picker>
@@ -119,7 +119,7 @@
             Enviar
             {{ tabIndex == "pdfflag" ? "PDF" : "LINK" }} Cotización</v-btn
           >
-          <v-btn color="error" @click="dialog = false" text :loading="loading"
+          <v-btn color="error" @click="dialog = false" variant="text" :loading="loading"
             >Cancelar</v-btn
           >
         </v-card-actions>

@@ -59,23 +59,23 @@
         <v-col cols="12" md="8">
           <v-expansion-panels v-model="panel" multiple>
             <v-expansion-panel v-for="(item, i) in items" :key="i">
-              <v-expansion-panel-header>
+              <v-expansion-panel-title>
                 <b>Ingresos </b>
-              </v-expansion-panel-header>
-              <v-expansion-panel-content>
+              </v-expansion-panel-title>
+              <v-expansion-panel-text>
                 <ingresos />
-              </v-expansion-panel-content>
+              </v-expansion-panel-text>
             </v-expansion-panel>
           </v-expansion-panels>
 
           <v-expansion-panels class="mt-5" v-model="panels" multiple>
             <v-expansion-panel v-for="(item, i) in items" :key="i">
-              <v-expansion-panel-header>
+              <v-expansion-panel-title>
                 <b>Costos </b>
-              </v-expansion-panel-header>
-              <v-expansion-panel-content>
+              </v-expansion-panel-title>
+              <v-expansion-panel-text>
                 <egresos />
-              </v-expansion-panel-content>
+              </v-expansion-panel-text>
             </v-expansion-panel>
           </v-expansion-panels>
 
@@ -92,12 +92,12 @@
         <v-col cols="12" md="4">
           <v-expansion-panels>
             <v-expansion-panel>
-              <v-expansion-panel-header>
+              <v-expansion-panel-title>
                 <b>Servicios a Realizar</b>
-              </v-expansion-panel-header>
-              <v-expansion-panel-content>
+              </v-expansion-panel-title>
+              <v-expansion-panel-text>
                 <services />
-              </v-expansion-panel-content>
+              </v-expansion-panel-text>
             </v-expansion-panel>
           </v-expansion-panels>
 
@@ -117,7 +117,7 @@
             <v-card-title>
               Abonos del cliente
               <v-spacer></v-spacer>
-              <v-btn outlined color="primary" @click="_newDebs()"
+              <v-btn variant="outlined" color="primary" @click="_newDebs()"
                 >CARGAR NUEVO ABONO</v-btn
               >
             </v-card-title>
@@ -126,8 +126,7 @@
                 <template v-slot:[`item.accion`]="{ item }">
                   <v-icon
                     class="btn_add mr-2"
-                    dense
-                    large
+                    size="large"
                     color="grey"
                     @click="openDoc(item.path)"
                     >mdi-eye</v-icon
@@ -135,8 +134,7 @@
 
                   <v-icon
                     class="btn_add mr-2"
-                    dense
-                    large
+                    size="large"
                     color="red"
                     v-if="item.status == 1"
                     @click="_delDebsClient(item.id)"
@@ -147,23 +145,23 @@
                   <v-chip
                     block
                     v-if="item.status == 2"
-                    small
+                    size="small"
                     class=""
                     color="success"
-                    outlined
+                    variant="outlined"
                   >
-                    <v-icon left> mdi-check </v-icon>
+                    <v-icon start> mdi-check </v-icon>
                     Confirmado
                   </v-chip>
                   <v-chip
                     block
                     v-if="item.status == 1"
-                    small
+                    size="small"
                     class=""
                     color="orange"
-                    outlined
+                    variant="outlined"
                   >
-                    <v-icon left> mdi-warning </v-icon>
+                    <v-icon start> mdi-warning </v-icon>
                     Por Confirmar
                   </v-chip>
                 </template>
@@ -180,25 +178,25 @@
             </v-card-title>
             <v-card-text>
               <v-container>
-                <v-row dense>
+                <v-row density="compact">
                   <v-col cols="12" md="6">
                     <v-menu
                       ref="menu"
                       v-model="menu"
                       :close-on-content-click="false"
-                      :return-value.sync="date"
+                      v-model:return-value="date"
                       transition="scale-transition"
                       offset-y
                       min-width="auto"
                     >
-                      <template v-slot:activator="{ on, attrs }">
+                      <template v-slot:activator="{ props }">
                         <v-text-field
                           v-model="date"
                           label="Fecha de Operación"
                           prepend-icon="mdi-calendar"
                           readonly
-                          v-bind="attrs"
-                          v-on="on"
+                         
+                          v-bind="props"
                         ></v-text-field>
                       </template>
                       <v-date-picker
@@ -208,11 +206,11 @@
                         scrollable
                       >
                         <v-spacer></v-spacer>
-                        <v-btn text color="primary" @click="menu = false">
+                        <v-btn variant="text" color="primary" @click="menu = false">
                           Cancel
                         </v-btn>
                         <v-btn
-                          text
+                          variant="text"
                           color="primary"
                           @click="$refs.menu.save(date)"
                         >
@@ -232,7 +230,7 @@
                     <v-autocomplete
                       :items="$store.state.itemsDataBanksList"
                       v-model="id_banks"
-                      item-text="acronym"
+                      item-title="acronym"
                       item-value="id"
                       label="Banco"
                     ></v-autocomplete>
@@ -241,7 +239,7 @@
                     <v-autocomplete
                       :items="$store.state.itemsCoinsList"
                       v-model="id_coins"
-                      item-text="acronym"
+                      item-title="acronym"
                       item-value="id"
                       label="Moneda"
                     ></v-autocomplete>
@@ -272,12 +270,12 @@
                     <v-chip
                       block
                       v-if="boolFile"
-                      large
+                      size="large"
                       class=""
                       color="success"
-                      outlined
+                      variant="outlined"
                     >
-                      <v-icon left> mdi-check </v-icon>
+                      <v-icon start> mdi-check </v-icon>
                       Archivo cargado éxitosamente
                     </v-chip>
                   </v-col>
@@ -286,12 +284,12 @@
                       :disabled="boolFile || payfile == []"
                       color="blue-grey"
                       block
-                      class="ma-2 white--text"
-                      large
+                      class="ma-2 text-white"
+                      size="large"
                       @click="_uploadFile()"
                     >
                       Subir
-                      <v-icon right dark> mdi-cloud-upload </v-icon>
+                      <v-icon end dark> mdi-cloud-upload </v-icon>
                     </v-btn>
                   </v-col>
                 </v-row>
@@ -306,7 +304,7 @@
               >
               <v-spacer></v-spacer>
               <v-btn
-                outlined
+                variant="outlined"
                 color="red"
                 @click="dialogNewDebs = !dialogNewDebs"
                 >Cerrar</v-btn
@@ -331,12 +329,12 @@
             <v-col>
               <v-autocomplete
                 :items="branch"
-                item-text="trade_name"
+                item-title="trade_name"
                 item-value="id"
                 label="Sucursal"
                 placeholder="Seleccione una sucursal"
                 v-model="id_branch"
-                @change="obtenerDatos()"
+                @update:model-value="obtenerDatos()"
               >
               </v-autocomplete>
             </v-col>

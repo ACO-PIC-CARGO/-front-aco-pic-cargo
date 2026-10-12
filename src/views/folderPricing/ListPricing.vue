@@ -12,7 +12,7 @@
             :key="index"
           >
             <v-chip
-              small
+              size="small"
               style="cursor: pointer"
               :color="item.color"
               @click="filtrarCotizaciones(item)"
@@ -26,7 +26,7 @@
           <v-btn
             color="success"
             @click="redirect()"
-            small
+            size="small"
             class="ml-auto my-auto mr-5"
           >
             NUEVA COTIZACIÓN
@@ -35,7 +35,7 @@
       </v-card-title>
       <v-row>
         <v-col cols="12">
-          <v-tabs color="deep-purple accent-4" right v-model="tabs">
+          <v-tabs color="deep-purple-accent-4" align-tabs="end" v-model="tabs">
             <v-tab href="#quotes">Cotizaciones</v-tab>
             <v-tab href="#calls">Llamadas</v-tab>
           </v-tabs>
@@ -52,9 +52,9 @@
     </v-card>
     <v-navigation-drawer
       v-model="$store.state.pricing.filtrarQuoteFlag"
-      right
+      location="right bottom"
       absolute
-      bottom
+      
       persistent
       width="40%"
       temporary
@@ -65,9 +65,9 @@
     </v-navigation-drawer>
     <v-navigation-drawer
       v-model="$store.state.pricing.filtrarCallsFlag"
-      right
+      location="right bottom"
       absolute
-      bottom
+      
       persistent
       width="40%"
       temporary

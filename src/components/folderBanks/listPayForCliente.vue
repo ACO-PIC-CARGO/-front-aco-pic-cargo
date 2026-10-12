@@ -6,9 +6,9 @@
       <v-text-field
         class="mx-2"
         hide-details
-        dense
+        density="compact"
         id="id"
-        outlined
+        variant="outlined"
         placeholder="Buscar..."
         append-icon="mdi-text-search"
         v-model="search"
@@ -16,33 +16,33 @@
       >
       </v-text-field>
       <v-spacer> </v-spacer>
-      <v-btn color="success" @click="nuevo" small class="mx-1"
-        >NUEVO INGRESO <v-icon small>mdi-plus</v-icon>
+      <v-btn color="success" @click="nuevo" size="small" class="mx-1"
+        >NUEVO INGRESO <v-icon size="small">mdi-plus</v-icon>
       </v-btn>
       <v-btn
         color="success"
         @click="exportar()"
         :loading="loading"
-        small
+        size="small"
         class="mx-1"
-        >EXCEL <v-icon small>mdi-file-excel</v-icon>
+        >EXCEL <v-icon size="small">mdi-file-excel</v-icon>
       </v-btn>
       <v-btn
         color="info"
-        small
+        size="small"
         @click="dialogFiltro = !dialogFiltro"
         class="mx-1"
-        >Filtrar <v-icon small>mdi-filter</v-icon>
+        >Filtrar <v-icon size="small">mdi-filter</v-icon>
       </v-btn>
-      <v-btn color="red" small outlined @click="limpiarFiltro" class="mx-1"
-        > LIMPIAR <v-icon small>mdi-filter-remove</v-icon>
+      <v-btn color="red" size="small" variant="outlined" @click="limpiarFiltro" class="mx-1"
+        > LIMPIAR <v-icon size="small">mdi-filter-remove</v-icon>
       </v-btn>
     </v-card-title>
     <v-data-table
       :search="search"
       :headers="headersCabecera"
       :items="$store.state.bank.list"
-      :expanded.sync="expanded"
+      v-model:expanded="expanded"
       :single-expand="singleExpand"
       show-expand
       @click:row="clickRow"
@@ -58,13 +58,13 @@
           <v-btn icon color="" @click="verSoport(item.urlarchivo)">
             <v-icon>mdi-file</v-icon>
           </v-btn>
-          <v-btn small icon color="info" @click.native="ver(item)">
+          <v-btn size="small" icon color="info" @click.native="ver(item)">
             <v-icon>mdi-eye</v-icon>
           </v-btn>
-          <v-btn small icon color="orange" @click.native="editar(item)">
+          <v-btn size="small" icon color="orange" @click.native="editar(item)">
             <v-icon>mdi-pencil</v-icon>
           </v-btn>
-          <v-btn small icon color="red" @click.native="confirmarEliminar(item)">
+          <v-btn size="small" icon color="red" @click.native="confirmarEliminar(item)">
             <v-icon>mdi-delete</v-icon>
           </v-btn>
         </div>
@@ -72,7 +72,7 @@
       <template v-slot:expanded-item="{ item }">
         <td colspan="1"></td>
         <td colspan="16">
-          <v-simple-table style="width: 100%">
+          <v-table style="width: 100%">
             <thead>
               <tr>
                 <th>Concepto</th>
@@ -91,8 +91,8 @@
                 <td>{{ i.montodolar }}</td>
                 <td>{{ i.montomonedalocal }}</td>
               </tr>
-            </tbody> </v-simple-table
-          ><v-simple-table
+            </tbody> </v-table
+          ><v-table
             style="width: 100%"
             v-if="item.comisionbancaria.length > 0"
           >
@@ -117,14 +117,14 @@
                 </td>
               </tr>
             </tbody>
-          </v-simple-table>
+          </v-table>
         </td>
       </template>
       <template v-slot:[`item.action`]="{ item }">
-        <v-btn x-small icon color="primary" @click="verSoport(item.urlarchivo)">
+        <v-btn size="x-small" icon color="primary" @click="verSoport(item.urlarchivo)">
           <v-icon>mdi-file-cloud-outline</v-icon>
         </v-btn>
-        <v-btn x-small icon color="warning" @click.native="editar(item)">
+        <v-btn size="x-small" icon color="warning" @click.native="editar(item)">
           <v-icon>mdi-pencil</v-icon>
         </v-btn>
       </template>
@@ -134,7 +134,7 @@
       absolute
       permanent
       temporary
-      right
+      location="right"
       width="20%"
       v-if="dialogFiltro"
     >
@@ -151,12 +151,12 @@
             :items="$store.state.itemsDataBanksList"
             v-model="filtro.id_banco"
             label="Banco Origen"
-            item-text="acronym"
+            item-title="acronym"
             item-value="id"
             clearable
-            outlined
+            variant="outlined"
             class="mb-2"
-            dense
+            density="compact"
             hide-details
           >
           </v-select>
@@ -164,12 +164,12 @@
             :items="cuentas"
             v-model="filtro.id_cuenta"
             label="Cuenta Bancaria Destino (PIC)"
-            item-text="label"
+            item-title="label"
             item-value="id"
             clearable
-            outlined
+            variant="outlined"
             class="mb-2"
-            dense
+            density="compact"
             hide-details
           >
           </v-select>
@@ -177,12 +177,12 @@
             :items="$store.state.clientes"
             v-model="filtro.id_consigner"
             label="Consignatario"
-            item-text="namelong"
+            item-title="namelong"
             item-value="id"
             clearable
-            outlined
+            variant="outlined"
             class="mb-2"
-            dense
+            density="compact"
             hide-details
           >
           </v-autocomplete>
@@ -192,11 +192,11 @@
             v-model="filtro.tipoingreso"
             auto-select-first
             clearable
-            outlined
+            variant="outlined"
             class="mb-2"
-            dense
+            density="compact"
             hide-details
-            item-text="description"
+            item-title="description"
             item-value="id"
           ></v-autocomplete>
 
@@ -206,11 +206,11 @@
             v-model="filtro.tiposubingreso"
             auto-select-first
             clearable
-            outlined
+            variant="outlined"
             class="mb-2"
-            dense
+            density="compact"
             hide-details
-            item-text="description"
+            item-title="description"
             item-value="id"
           ></v-autocomplete>
 
@@ -218,9 +218,9 @@
             label="Nro Operacion"
             v-model="filtro.nro_operacion"
             clearable
-            outlined
+            variant="outlined"
             class="mb-2"
-            dense
+            density="compact"
             hide-details
           >
           </v-text-field>
@@ -228,9 +228,9 @@
             label="Nro Expediente"
             v-model="filtro.nro_exp"
             clearable
-            outlined
+            variant="outlined"
             class="mb-2"
-            dense
+            density="compact"
             hide-details
           >
           </v-text-field>
@@ -239,9 +239,9 @@
             label="Monto"
             v-model="filtro.monto"
             clearable
-            outlined
+            variant="outlined"
             class="mb-2"
-            dense
+            density="compact"
             hide-details
           >
           </v-text-field>

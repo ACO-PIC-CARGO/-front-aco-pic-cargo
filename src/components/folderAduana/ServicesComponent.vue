@@ -7,7 +7,7 @@
           <v-select
             :items="$store.state.aduana.begEndList"
             v-model="servicio.id_begend"
-            item-text="name"
+            item-title="name"
             item-value="id"
             label="Categoria..."
           ></v-select>
@@ -45,7 +45,7 @@
             )"
             :key="service.id"
             v-model="service.status"
-            @change="showConfirmationDialog(service)"
+            @update:model-value="showConfirmationDialog(service)"
           >
             <template v-slot:label>
               {{ service.service }}
@@ -61,7 +61,7 @@
             )"
             :key="service.id"
             v-model="service.status"
-            @change="showConfirmationDialog(service)"
+            @update:model-value="showConfirmationDialog(service)"
           >
             <template v-slot:label>
               {{ service.service }}
@@ -77,7 +77,7 @@
             )"
             :key="service.id"
             v-model="service.status"
-            @change="showConfirmationDialog(service)"
+            @update:model-value="showConfirmationDialog(service)"
           >
             <template v-slot:label>
               {{ service.service }}
@@ -93,7 +93,7 @@
             )"
             :key="service.id"
             v-model="service.status"
-            @change="showConfirmationDialog(service)"
+            @update:model-value="showConfirmationDialog(service)"
           >
             <template v-slot:label>
               {{ service.service }}
@@ -109,14 +109,14 @@
             min="0"
             placeholder="Valor de la mercancia..."
             autocomplete="off"
-            dense
+            density="compact"
             :rules="[
               (v) => !!v || 'Dato Requerido',
               (v) =>
                 /^(?!0\d+|\d*e)\d*(?:\.\d+)?$/.test(v) ||
                 'Debe ser un número real entero positivo',
             ]"
-            @input="recargarCostos()"
+            @update:model-value="recargarCostos()"
             @blur="recargarCostos()"
           >
           </v-text-field>
@@ -125,7 +125,7 @@
             label="Descripción de carga"
             placeholder="Descripción de carga"
             autocomplete="off"
-            dense
+            density="compact"
           >
           </v-text-field>
         </v-col>
@@ -140,7 +140,7 @@
             
             dark
             @click="continuarLlenadoCostos()"
-            small
+            size="small"
             >Continuar Llenado Costos</v-btn
           >
         </v-col>

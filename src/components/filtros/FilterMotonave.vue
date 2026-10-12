@@ -30,8 +30,8 @@
         <span> Estado</span>
         <v-radio-group
           v-model="$store.state.motonave.MotonaveFilter.status"
-          row
-          dense
+          inline
+          density="compact"
         >
           <v-radio label="Activo" color="green" value="1"></v-radio>
           <v-radio label="Inactivo" color="red" value="0"></v-radio>

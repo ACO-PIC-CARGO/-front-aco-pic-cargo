@@ -40,8 +40,8 @@
         <span> Estado</span>
         <v-radio-group
           v-model="$store.state.typepayment.filtros.status"
-          row
-          dense
+          inline
+          density="compact"
         >
           <v-radio label="Activo" color="green" :value="true"></v-radio>
           <v-radio label="Inactivo" color="red" :value="false"></v-radio>

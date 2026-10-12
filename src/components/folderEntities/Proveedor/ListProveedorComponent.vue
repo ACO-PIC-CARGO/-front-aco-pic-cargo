@@ -4,7 +4,7 @@
       <v-col cols="6">
         <v-btn
           rounded
-          small
+          size="small"
           class="mx-1"
           color="success"
           @click="cambiarRuta({ nameRuta: 'nuevoProveedor' })"
@@ -13,7 +13,7 @@
         </v-btn>
         <v-btn
           rounded
-          small
+          size="small"
           class="mx-1"
           color="secondary"
           @click="
@@ -25,7 +25,7 @@
         </v-btn>
         <v-btn
           rounded
-          small
+          size="small"
           class="mx-1"
           color="warning"
           @click="exportProveedor()"
@@ -60,15 +60,15 @@
           </template>
           <template v-slot:[`item.action`]="{ item }">
             <v-btn-toggle>
-              <v-btn x-small icon @click="obtenerTelContactoProveedor(item.id)">
-                <v-icon color="blue-grey darken-3">mdi-phone</v-icon>
+              <v-btn size="x-small" icon @click="obtenerTelContactoProveedor(item.id)">
+                <v-icon color="blue-grey-darken-3">mdi-phone</v-icon>
               </v-btn>
               <!-- <v-btn x-small icon @click="editar(item.id)">
                 <v-icon color="green">mdi-currency-usd</v-icon>
               </v-btn> -->
               <v-btn
                 v-if="item.status == 1"
-                x-small
+                size="x-small"
                 icon
                 @click="
                   $router.push({
@@ -80,7 +80,7 @@
                 <v-icon color="#E65100">mdi-pencil</v-icon>
               </v-btn>
               <v-btn
-                x-small
+                size="x-small"
                 icon
                 @click="
                   $router.push({
@@ -91,7 +91,7 @@
               >
                 <v-icon color="info">mdi-eye</v-icon>
               </v-btn>
-              <v-btn x-small icon v-if="item.status == 1">
+              <v-btn size="x-small" icon v-if="item.status == 1">
                 <v-icon color="red" @click="eliminar(item)">mdi-delete</v-icon>
               </v-btn>
             </v-btn-toggle>
@@ -124,7 +124,7 @@
                 <template v-slot:[`item.tipotelefono`]="{ item }">
                   <v-autocomplete
                     :items="$store.state.masterusuarios.lstTipoTelefono"
-                    item-text="descripcion"
+                    item-title="descripcion"
                     item-value="id"
                     label="Tipo de Teléfono"
                     v-model="item.id_tipotelefono"
@@ -170,7 +170,7 @@
                 <template v-slot:[`item.tipotelefono`]="{ item }">
                   <v-autocomplete
                     :items="$store.state.masterusuarios.lstTipoTelefono"
-                    item-text="descripcion"
+                    item-title="descripcion"
                     item-value="id"
                     label="Tipo de Teléfono"
                     v-model="item.id_tipotelefono"

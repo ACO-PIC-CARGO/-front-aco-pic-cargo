@@ -17,7 +17,7 @@
           <template v-slot:[`item.actions`]="{ item }">
             <v-icon
               v-if="statusList != '2'"
-              large
+              size="large"
               color="dark"
               class="mr-2"
               @click="setPayment(item.id, item.nro_master, item.nameconsigner)"
@@ -41,7 +41,7 @@
         </v-card-title>
         <v-card-text>
           <v-container fluid>
-            <v-row dense>
+            <v-row density="compact">
               <v-col cols="12">
                 <v-data-table
                   v-model="selected"
@@ -58,19 +58,19 @@
                       select,
                     }"
                   >
-                    <v-simple-checkbox
+                    <v-checkbox-btn
                       :value="isSelected"
                       :readonly="item.pagado == 1"
                       :disabled="item.pagado == 1"
                       @input="select($event)"
-                    ></v-simple-checkbox>
+                    ></v-checkbox-btn>
                   </template>
                   <template v-slot:[`item.status`]="{ item }">
                     <v-chip
                       v-if="item.pagado == 1"
                       class="ma-2"
                       color="green"
-                      small
+                      size="small"
                       text-color="white"
                     >
                       {{ item.status == 1 ? "Pagado" : "" }}
@@ -78,8 +78,7 @@
 
                     <v-icon
                       class="btn__add mr-2"
-                      dense
-                      large
+                      size="large"
                       color="grey"
                       v-if="item.pagado == 1"
                       @click.native="openPaymentFile(item.path)"
@@ -93,19 +92,19 @@
                   ref="menu"
                   v-model="menu"
                   :close-on-content-click="false"
-                  :return-value.sync="date"
+                  v-model:return-value="date"
                   transition="scale-transition"
                   offset-y
                   min-width="auto"
                 >
-                  <template v-slot:activator="{ on, attrs }">
+                  <template v-slot:activator="{ props }">
                     <v-text-field
                       v-model="date"
                       label="Fecha de Operación"
                       prepend-icon="mdi-calendar"
                       readonly
-                      v-bind="attrs"
-                      v-on="on"
+                     
+                      v-bind="props"
                     ></v-text-field>
                   </template>
                   <v-date-picker
@@ -115,10 +114,10 @@
                     scrollable
                   >
                     <v-spacer></v-spacer>
-                    <v-btn text color="primary" @click="menu = false">
+                    <v-btn variant="text" color="primary" @click="menu = false">
                       Cancel
                     </v-btn>
-                    <v-btn text color="primary" @click="$refs.menu.save(date)">
+                    <v-btn variant="text" color="primary" @click="$refs.menu.save(date)">
                       OK
                     </v-btn>
                   </v-date-picker>
@@ -135,7 +134,7 @@
                 <v-autocomplete
                   :items="$store.state.itemsDataBanksList"
                   v-model="paybanco"
-                  item-text="acronym"
+                  item-title="acronym"
                   item-value="id"
                   label="Banco"
                 ></v-autocomplete>
@@ -144,7 +143,7 @@
                 <v-autocomplete
                   :items="$store.state.itemsCoinsList"
                   v-model="paymoneda"
-                  item-text="acronym"
+                  item-title="acronym"
                   item-value="id"
                   label="Moneda"
                 ></v-autocomplete>
@@ -168,12 +167,12 @@
                 <v-chip
                   block
                   v-if="boolFile"
-                  large
+                  size="large"
                   class=""
                   color="success"
-                  outlined
+                  variant="outlined"
                 >
-                  <v-icon left> mdi-check </v-icon>
+                  <v-icon start> mdi-check </v-icon>
                   Archivo cargado éxitosamente
                 </v-chip>
               </v-col>
@@ -182,12 +181,12 @@
                   :disabled="boolFile || payfile == []"
                   color="blue-grey"
                   block
-                  class="ma-2 white--text"
-                  large
+                  class="ma-2 text-white"
+                  size="large"
                   @click="_uploadFile()"
                 >
                   Subir
-                  <v-icon right dark> mdi-cloud-upload </v-icon>
+                  <v-icon end dark> mdi-cloud-upload </v-icon>
                 </v-btn>
               </v-col>
             </v-row>
@@ -201,7 +200,7 @@
             >GUARDAR PAGO</v-btn
           >
           <v-spacer></v-spacer>
-          <v-btn outlined color="red" @click="dialogPayment = !dialogPayment"
+          <v-btn variant="outlined" color="red" @click="dialogPayment = !dialogPayment"
             >Cerrar</v-btn
           >
         </v-card-actions>

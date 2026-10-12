@@ -7,10 +7,10 @@
           label="Proveedores"
           v-model="proveedor"
           item-value="id"
-          item-text="namelong"
+          item-title="namelong"
           style="font-size: 20pt"
           clearable
-          @change="listarPagosXControlGasto()"
+          @update:model-value="listarPagosXControlGasto()"
         >
         </v-autocomplete>
         <v-spacer></v-spacer>
@@ -41,7 +41,7 @@
               <v-col cols="3">
                 <v-btn
                   v-if="selected.length > 0"
-                  color="green darken-4"
+                  color="green-darken-4"
                   @click="continuar()"
                   dark
                   >Continuar</v-btn
@@ -62,7 +62,7 @@
                 <v-autocomplete
                   :items="$store.state.itemsCoinsList"
                   v-model="id_coins"
-                  item-text="acronym"
+                  item-title="acronym"
                   item-value="id"
                   label="Moneda"
                   v-on:blur="calcularTotales()"
@@ -92,7 +92,7 @@
               <template v-slot:[`item.parcial`]="{ item }">
                 <v-btn
                   v-if="item.tipo == 'CG'"
-                  small
+                  size="small"
                   icon
                   color="primary"
                   @click="generarPagoParcial(item)"
@@ -112,7 +112,7 @@
                   :prefix="acronym"
                   type="number"
                   v-model="item.monto_mon_ex"
-                  v-on:input="calcularTotales()"
+                  v-on:update:model-value="calcularTotales()"
                   v-on:blur="calcularTotales()"
                   @focus.native="calcularTotales()"
                   :error-messages="item.errorEx"
@@ -145,7 +145,7 @@
               <v-col md="4" cols="4">
                 <v-autocomplete
                   :items="cuentas"
-                  item-text="label"
+                  item-title="label"
                   item-value="id"
                   label="CUENTA BANCARIA"
                   v-model="id_cuenta"
@@ -229,7 +229,7 @@
         </v-card-text>
         <v-card-actions>
           <v-spacer></v-spacer>
-          <v-btn text color="green" @click="guardarMontoParciales()"
+          <v-btn variant="text" color="green" @click="guardarMontoParciales()"
             >Aceptar</v-btn
           >
           <v-btn color="red" @click="dialog = !dialog">Cancelar</v-btn>

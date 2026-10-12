@@ -13,7 +13,7 @@
           <v-card-text>
             <v-btn
               color="success"
-              small
+              size="small"
               :disabled="!masterEditar.url_folderonedrive"
               @click="to_link({ url: masterEditar.url_folderonedrive })"
             >

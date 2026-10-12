@@ -2,13 +2,13 @@
   <v-card fluid class="px-5">
     <v-card elevation="0">
       <v-container v-if="loading" style="height: 400px">
-        <v-row class="fill-height" align-content="center" justify="center">
+        <v-row class="fill-height align-content-center justify-center">
           <v-col class="text-subtitle-1 text-center" cols="12">
             Cargando información ....
           </v-col>
           <v-col cols="6">
             <v-progress-linear
-              color="deep-purple accent-4"
+              color="deep-purple-accent-4"
               indeterminate
               rounded
               height="6"
@@ -75,16 +75,16 @@
     <v-navigation-drawer
       v-model="showFilterDrawerNew"
       absolute
-      bottom
+      location="bottom right"
       temporary
-      right
+      
       width="30%"
       height="100vh"
     >
       <v-list-item>
-        <v-list-item-content>
+        
           <v-list-item-title class="text-h6"> Nueva Moneda </v-list-item-title>
-        </v-list-item-content>
+        
       </v-list-item>
 
       <v-spacer></v-spacer>
@@ -139,12 +139,12 @@
           </v-form>
           <v-row>
             <v-switch
-              dense
+              density="compact"
               :label="`Estado: ${record.status ? 'Activo' : 'Inactivo'}`"
               v-model="record.status"
               hide-details
               color="success"
-              @change="updateStatus"
+              @update:model-value="updateStatus"
             >
             </v-switch>
           </v-row>
@@ -171,19 +171,19 @@
     <v-navigation-drawer
       v-model="showFilterDrawerRead"
       absolute
-      bottom
+      location="bottom right"
       temporary
-      right
+      
       width="30%"
       height="100vh"
     >
       <v-container v-if="!loading_as">
         <v-list-item class="px-0">
-          <v-list-item-content>
+          
             <v-list-item-title class="text-h6">
               Ver: {{ $store.state.coins.record.name }}
             </v-list-item-title>
-          </v-list-item-content>
+          
         </v-list-item>
 
         <v-spacer></v-spacer>
@@ -192,7 +192,7 @@
             <v-text-field
               label="Código"
               readonly
-              :value="$store.state.coins.record.code"
+              :model-value="$store.state.coins.record.code"
             >
             </v-text-field>
           </v-row>
@@ -200,7 +200,7 @@
             <v-text-field
               label="Símbolo"
               readonly
-              :value="$store.state.coins.record.symbol"
+              :model-value="$store.state.coins.record.symbol"
             >
             </v-text-field>
           </v-row>
@@ -208,7 +208,7 @@
             <v-text-field
               label="Acrónimo"
               readonly
-              :value="$store.state.coins.record.acronym"
+              :model-value="$store.state.coins.record.acronym"
             >
             </v-text-field>
           </v-row>
@@ -216,7 +216,7 @@
             <v-text-field
               label="Nombre"
               readonly
-              :value="$store.state.coins.record.name"
+              :model-value="$store.state.coins.record.name"
             >
             </v-text-field>
           </v-row>
@@ -224,7 +224,7 @@
             <v-text-field
               label="Descripción"
               readonly
-              :value="$store.state.coins.record.description"
+              :model-value="$store.state.coins.record.description"
             >
             </v-text-field>
           </v-row>
@@ -252,13 +252,13 @@
       </v-container>
 
       <v-container v-if="loading_as" style="height: 400px">
-        <v-row class="fill-height" align-content="center" justify="center">
+        <v-row class="fill-height align-content-center justify-center">
           <v-col class="text-subtitle-1 text-center" cols="12">
             Cargando información ....
           </v-col>
           <v-col cols="6">
             <v-progress-linear
-              color="deep-purple accent-4"
+              color="deep-purple-accent-4"
               indeterminate
               rounded
               height="6"
@@ -272,19 +272,19 @@
     <v-navigation-drawer
       v-model="showFilterDrawerUpdate"
       absolute
-      bottom
+      location="bottom right"
       temporary
-      right
+      
       width="30%"
       height="100vh"
     >
       <v-container v-if="!loading_as">
         <v-list-item class="px-0">
-          <v-list-item-content>
+          
             <v-list-item-title class="text-h6">
               Modificar: {{ $store.state.coins.record.name }}
             </v-list-item-title>
-          </v-list-item-content>
+          
         </v-list-item>
 
         <v-spacer></v-spacer>
@@ -352,7 +352,7 @@
               :label="`Estado: ${record.status ? 'Activo' : 'Inactivo'}`"
               v-model="record.status"
               color="success"
-              @change="updateStatus"
+              @update:model-value="updateStatus"
             >
             </v-switch>
           </v-row>
@@ -374,13 +374,13 @@
       </v-container>
 
       <v-container v-if="loading_as" style="height: 400px">
-        <v-row class="fill-height" align-content="center" justify="center">
+        <v-row class="fill-height align-content-center justify-center">
           <v-col class="text-subtitle-1 text-center" cols="12">
             Cargando información ....
           </v-col>
           <v-col cols="6">
             <v-progress-linear
-              color="deep-purple accent-4"
+              color="deep-purple-accent-4"
               indeterminate
               rounded
               height="6"
@@ -393,18 +393,18 @@
     <v-navigation-drawer
       v-model="showFilterDrawer"
       absolute
-      bottom
+      location="bottom right"
       temporary
-      right
+      
       width="30%"
       height="100vh"
     >
       <v-list-item>
-        <v-list-item-content>
+        
           <v-list-item-title class="text-h6">
             Filtrar Registros
           </v-list-item-title>
-        </v-list-item-content>
+        
       </v-list-item>
 
       <v-spacer></v-spacer>
@@ -440,7 +440,7 @@
             ></v-text-field>
           </v-row>
           <v-row>
-            <v-radio-group v-model="records.status" row dense>
+            <v-radio-group v-model="records.status" inline density="compact">
               <v-radio label="Activo" color="green" :value="1"></v-radio>
               <v-radio label="Inactivo" color="red" :value="0"></v-radio>
               <v-radio label="Todos" color="blue" value="null"></v-radio>

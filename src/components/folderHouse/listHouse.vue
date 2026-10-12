@@ -33,7 +33,7 @@
         :items="$store.state.houses.listHouse"
         :search="search"
         @click:row="handleClickRow"
-        :expanded.sync="expanded"
+        v-model:expanded="expanded"
         single-expand
         disable-sort
       >
@@ -43,7 +43,7 @@
             class="py-3 px-3"
             v-if="item.list_comentarios.length > 0 && item.status != 0"
           >
-            <v-simple-table v-if="item.list_comentarios.length > 0">
+            <v-table v-if="item.list_comentarios.length > 0">
               <thead>
                 <tr>
                   <th width="10%">Fecha</th>
@@ -62,7 +62,7 @@
                   <td class="bg-comentarios">{{ c.comentario }}</td>
                 </tr>
               </tbody>
-            </v-simple-table>
+            </v-table>
           </td>
         </template>
 
@@ -70,14 +70,14 @@
           <v-chip
             v-if="item.quote_number"
             color="primary"
-            small
+            size="small"
             @click.stop="verCotizacion(item.id_quote)"
             class="cursor-pointer"
           >
-            <v-icon small left>mdi-file-document-outline</v-icon>
+            <v-icon size="small" start>mdi-file-document-outline</v-icon>
             {{ item.quote_number }}
           </v-chip>
-          <span v-else class="grey--text text--lighten-1">Sin cotización</span>
+          <span v-else class="text-grey-lighten-1">Sin cotización</span>
         </template>
 
         <template v-slot:[`item.actions`]="{ item }">
@@ -120,7 +120,7 @@
 
             <v-icon
               v-if="statusList == '2'"
-              large
+              size="large"
               color="primary"
               class="mr-1"
               @click.stop="selectHouse(item)"
@@ -164,7 +164,7 @@
               <v-autocomplete
                 label="Ejecutivo"
                 :items="$store.state.pricing.listEjecutivo"
-                item-text="name"
+                item-title="name"
                 item-value="id_entitie"
                 item-key="id_entitie"
                 v-model="id_vendedor"
@@ -182,7 +182,7 @@
           <v-card-actions>
             <v-spacer></v-spacer>
             <v-btn
-              small
+              size="small"
               color="success"
               @click="guardarComentario"
               :loading="loading"
@@ -204,7 +204,7 @@
         <v-card-text>
           <v-btn
             color="success"
-            small
+            size="small"
             :disabled="!houseEditar.url_folderonedrive"
             @click="to_link({ url: houseEditar.url_folderonedrive })"
           >

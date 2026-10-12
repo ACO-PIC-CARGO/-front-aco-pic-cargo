@@ -27,7 +27,7 @@
         </p>
         <p>{{ errorMessage }}</p>
         <v-btn
-          text
+          variant="text"
           class="plans-button plans-button--secondary"
           @click="loadHistory"
         >
@@ -52,7 +52,7 @@
           </div>
           <v-btn
             v-if="canUpdatePaymentMethod"
-            text
+            variant="text"
             class="plans-button plans-button--secondary"
             :disabled="isUpdatingPaymentMethod"
             @click="updatePaymentMethod"
@@ -97,7 +97,7 @@
             <template #[`item.invoice`]="{ item }">
               <v-btn
                 v-if="item.hasInvoice"
-                text
+                variant="text"
                 class="plans-button plans-button--ghost"
                 :disabled="downloadingId === item.id"
                 :aria-label="`Descargar la factura del ${item.date}`"
@@ -159,7 +159,7 @@ export default {
     this.$store.state.mainTitle = "HISTORIAL DE FACTURACIÓN";
     this.loadHistory();
   },
-  beforeDestroy() {
+  beforeUnmount() {
     stopCheckoutEvents();
   },
   methods: {

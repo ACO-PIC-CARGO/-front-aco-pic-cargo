@@ -75,12 +75,12 @@
               </v-col>
               <v-col cols="12" lg="4" xl="4">
                 <v-btn
-                  outlined
+                  variant="outlined"
                   dense
                   hide-details
                   class="my-2"
                   color="success"
-                  small
+                  size="small"
                   @click="abrirNuevoCosto()"
                 >
                   Agregar nuevo Costo
@@ -161,7 +161,7 @@
                     <v-text-field
                       v-model="item.monto"
                       @blur="reponerCero(item)"
-                      dense
+                      density="compact"
                       hide-details
                       class="my-2"
                       v-if="item.concepto"
@@ -171,7 +171,7 @@
                     <v-autocomplete
                       :items="$store.state.configEmpresa.lstMultiplicador"
                       v-model="item.id_multiplicador"
-                      dense
+                      density="compact"
                       hide-details
                       class="my-2"
                       item-value="id"
@@ -182,10 +182,10 @@
                     <v-autocomplete
                       :items="$store.state.itemsProveedorList"
                       v-model="item.id_proveedor"
-                      dense
+                      density="compact"
                       hide-details
                       class="my-2"
-                      item-text="namelong"
+                      item-title="namelong"
                       item-value="id"
                       v-if="item.concepto"
                     />
@@ -266,7 +266,7 @@
               <!-- color="#4256BE" -->
               <v-btn
                 class="my-1 mx-1 buttonDosFilas"
-                x-small
+                size="x-small"
                 dark
                 color="#1A237E"
                 @click="finalizarSinLogin()"
@@ -277,7 +277,7 @@
               <v-btn
                 class="my-1 mx-1 buttonDosFilas"
                 @click="finalizarConfig()"
-                x-small
+                size="x-small"
               >
                 VOLVER A INGRESAR <br class="ocultarPc" />
                 PARA APLICAR CAMBIOS
@@ -309,8 +309,8 @@
               v-model="frmNuevoCosto.tramo"
               :rules="[(v) => !!v || 'Dato obligatorio']"
               label="Tramo*"
-              outlined
-              dense
+              variant="outlined"
+              density="compact"
               hide-details
               class="my-2"
             ></v-select>
@@ -318,8 +318,8 @@
             <v-text-field
               :rules="[(v) => !!v || 'Dato obligatorio']"
               label="Servicio*"
-              outlined
-              dense
+              variant="outlined"
+              density="compact"
               hide-details
               class="my-2"
               v-model="frmNuevoCosto.servicio"
@@ -330,17 +330,17 @@
               :rules="[(v) => !!v || 'Dato obligatorio']"
               item-value="name"
               label="Sección*"
-              item-text="name"
-              outlined
-              dense
+              item-title="name"
+              variant="outlined"
+              density="compact"
               hide-details
               class="my-2"
             />
             <v-text-field
               :rules="[(v) => !!v || 'Dato obligatorio']"
               label="Concepto*"
-              outlined
-              dense
+              variant="outlined"
+              density="compact"
               hide-details
               class="my-2"
               v-model="frmNuevoCosto.concepto"
@@ -352,15 +352,15 @@
               :rules="[(v) => !!v || 'Dato obligatorio']"
               item-value="id"
               label="Multiplicador*"
-              outlined
-              dense
+              variant="outlined"
+              density="compact"
               hide-details
               class="my-2"
             />
             <v-text-field
               label="Monto"
-              outlined
-              dense
+              variant="outlined"
+              density="compact"
               hide-details
               class="my-2"
               v-model="frmNuevoCosto.monto"
@@ -371,9 +371,9 @@
               v-model="frmNuevoCosto.id_proveedor"
               :rules="[(v) => !!v || 'Dato obligatorio']"
               label="Proveedor*"
-              item-text="namelong"
-              outlined
-              dense
+              item-title="namelong"
+              variant="outlined"
+              density="compact"
               hide-details
               class="my-2"
               item-value="id"

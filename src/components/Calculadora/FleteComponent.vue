@@ -4,7 +4,7 @@
       <v-col>
         <v-file-input
           show-size
-          dense
+          density="compact"
           v-model="excel"
           label="Excel"
           placeholder="Seleccione un archivo"
@@ -22,7 +22,7 @@
           :loading="procesando"
           v-if="!subir"
           class="mx-1"
-          small
+          size="small"
           :disabled="!procesarflag"
         >
           Procesar
@@ -32,7 +32,7 @@
           :loading="procesando"
           v-if="subir"
           class="mx-1"
-          small
+          size="small"
           @click="registrarFlag = true"
         >
           REGISTRAR
@@ -41,7 +41,7 @@
           color="info"
           :loading="procesando2"
           class="mx-1"
-          small
+          size="small"
           @click="exportarFormato()"
         >
           Descargar Formato
@@ -51,7 +51,7 @@
           color="#1D6F42"
           :loading="procesando3"
           class="mx-1"
-          small
+          size="small"
           @click="exportarMacro()"
           dark
         >
@@ -68,7 +68,7 @@
         <v-btn
           color="success"
           class="mx-1"
-          small
+          size="small"
           @click="guardarDatos"
           :disabled="
             itemsLCL.length == 0 && itemsFCL.length == 0 && itemsAereo == 0
@@ -86,7 +86,7 @@
           class="elevation-1"
           loading="true"
           item-key="id"
-          dense
+          density="compact"
           :items-per-page="10"
         >
           <template v-slot:[`item.puerto_origen_sistema`]="{ item }">
@@ -98,7 +98,7 @@
               "
               v-model="item.puerto_origen"
               item-value="puerto"
-              item-text="puerto"
+              item-title="puerto"
             />
           </template>
           <template v-slot:[`item.puerto_destino_sistema`]="{ item }">
@@ -110,14 +110,14 @@
               "
               v-model="item.puerto_destino"
               item-value="puerto"
-              item-text="puerto"
+              item-title="puerto"
             />
           </template>
           <template v-slot:[`item.pais_origen`]="{ item }">
             <v-autocomplete
               :items="$store.state.itemsPais"
               item-value="id"
-              item-text="name"
+              item-title="name"
               v-model="item.id_pais_origen"
             />
           </template>
@@ -125,7 +125,7 @@
             <v-autocomplete
               :items="$store.state.itemsPais"
               item-value="id"
-              item-text="name"
+              item-title="name"
               v-model="item.id_pais_destino"
             />
           </template>
@@ -138,7 +138,7 @@
           class="elevation-1"
           loading="true"
           item-key="id"
-          dense
+          density="compact"
           :items-per-page="10"
         >
         </v-data-table>
@@ -150,7 +150,7 @@
           class="elevation-1"
           loading="true"
           item-key="id"
-          dense
+          density="compact"
           :items-per-page="10"
         >
         </v-data-table>
@@ -168,18 +168,18 @@
           <v-autocomplete
             :items="$store.state.calculadoras.listSucursal"
             item-value="paises_id"
-            item-text="paises_nombre"
+            item-title="paises_nombre"
             label="Sucursal(s)"
             multiple
             placeholder="Selecciones un(as) sucursal(es)"
             v-model="sucursales"
             chips
             clearable
-            deletable-chips
+            closable-chips
             small-chips
           >
           </v-autocomplete>
-          <v-radio-group v-model="importacionflag" row hide-details dense>
+          <v-radio-group v-model="importacionflag" inline hide-details density="compact">
             <v-radio label="Importación" value="true"></v-radio>
             <v-radio label="Exportación" value="false"></v-radio>
           </v-radio-group>
@@ -198,7 +198,7 @@
       absolute
       persistent
       temporary
-      right
+      location="right"
       width="28%"
       class="px-2"
       height="100vh"
@@ -216,16 +216,16 @@
               <v-autocomplete
                 :items="$store.state.itemsPais"
                 v-model="datosFormulario.paisOrigen"
-                item-text="pais_descripcion"
+                item-title="pais_descripcion"
                 label="País de Origen"
                 placeholder="Seleccione un país"
                 clearable
-                dense
+                density="compact"
                 return-object
                 hide-details
                 hide-selected
                 hide-no-data
-                @change="cargarPuertoOrigen"
+                @update:model-value="cargarPuertoOrigen"
                 prepend-icon="mdi-ferry"
               >
               </v-autocomplete>
@@ -235,7 +235,7 @@
               <v-autocomplete
                 :items="puertosOrigen"
                 v-model="datosFormulario.puertoOrigen"
-                item-text="puerto_descripcion"
+                item-title="puerto_descripcion"
                 label="Puerto de Origen"
                 placeholder="Seleccione un puerto"
                 clearable
@@ -244,8 +244,8 @@
                 hide-selected
                 hide-no-data
                 multiple
-                dense
-                deletable-chips
+                density="compact"
+                closable-chips
                 small-chips
                 prepend-icon="mdi-ferry"
               >
@@ -256,14 +256,14 @@
               <v-autocomplete
                 :items="$store.state.itemsPais"
                 v-model="datosFormulario.paisDestino"
-                item-text="pais_descripcion"
+                item-title="pais_descripcion"
                 label="País de Destino"
                 placeholder="Seleccione un país"
                 clearable
                 return-object
                 hide-details
-                dense
-                @change="cargarPuertoDestino"
+                density="compact"
+                @update:model-value="cargarPuertoDestino"
                 prepend-icon="mdi-import"
               >
               </v-autocomplete>
@@ -273,7 +273,7 @@
               <v-autocomplete
                 :items="puertosDestino"
                 v-model="datosFormulario.puertoDestino"
-                item-text="puerto_descripcion"
+                item-title="puerto_descripcion"
                 label="Puerto de Destino"
                 placeholder="Seleccione un puerto"
                 clearable
@@ -282,9 +282,9 @@
                 hide-selected
                 hide-no-data
                 multiple
-                dense
+                density="compact"
                 prepend-icon="mdi-import"
-                deletable-chips
+                closable-chips
                 small-chips
               >
               </v-autocomplete>
@@ -294,11 +294,11 @@
               <v-autocomplete
                 :items="$store.state.calculadora.contendedorCalc"
                 v-model="datosFormulario.contenedor"
-                item-text="contenedores_nombre"
+                item-title="contenedores_nombre"
                 label="Tipo de Contenedor"
                 placeholder="Seleccione un type Contenedor"
                 clearable
-                dense
+                density="compact"
                 return-object
                 hide-details
                 hide-selected
@@ -315,7 +315,7 @@
                 step="0.01"
                 type="number"
                 suffix="m3"
-                dense
+                density="compact"
               ></v-text-field>
             </div>
             <!-- VOLUMEN DESDE -->
@@ -326,7 +326,7 @@
                 step="0.01"
                 type="number"
                 suffix="m3"
-                dense
+                density="compact"
               ></v-text-field>
             </div>
             <!-- VOLUMEN HASTA -->
@@ -337,7 +337,7 @@
                 step="0.01"
                 type="number"
                 suffix="m3"
-                dense
+                density="compact"
               ></v-text-field>
             </div>
 
@@ -346,7 +346,7 @@
               <v-autocomplete
                 :items="$store.state.moneda.moneda"
                 v-model="datosFormulario.moneda"
-                item-text="moneda_descripcion"
+                item-title="moneda_descripcion"
                 label="Moneda"
                 placeholder="Seleccione una moneda"
                 clearable
@@ -354,8 +354,8 @@
                 hide-details
                 hide-selected
                 hide-no-data
-                dense
-                @change="obtenerSimbol()"
+                density="compact"
+                @update:model-value="obtenerSimbol()"
               >
               </v-autocomplete>
             </div>
@@ -367,7 +367,7 @@
                 step="0.01"
                 type="number"
                 :prefix="symbol"
-                dense
+                density="compact"
               ></v-text-field>
             </div>
 
@@ -379,7 +379,7 @@
                 step="0.01"
                 type="number"
                 :prefix="symbol"
-                dense
+                density="compact"
               ></v-text-field>
             </div>
             <!-- SERVICIO -->
@@ -387,7 +387,7 @@
               <v-text-field
                 label="SERVICIO/ VÍA/ TRANSBORDO"
                 v-model="datosFormulario.servicio"
-                dense
+                density="compact"
               ></v-text-field>
             </div>
             <!-- FRECUENCIA -->
@@ -401,7 +401,7 @@
                 hide-details
                 hide-selected
                 hide-no-data
-                dense
+                density="compact"
               >
               </v-autocomplete>
             </div>
@@ -412,7 +412,7 @@
                 v-model="datosFormulario.tt_aprox"
                 step="0.01"
                 type="number"
-                dense
+                density="compact"
               >
               </v-text-field>
             </div>
@@ -421,7 +421,7 @@
               <v-text-field
                 label="Recargos"
                 v-model="datosFormulario.recargps"
-                dense
+                density="compact"
               >
               </v-text-field>
             </div>
@@ -430,7 +430,7 @@
               <v-text-field
                 label="Agente"
                 v-model="datosFormulario.agente"
-                dense
+                density="compact"
               >
               </v-text-field>
             </div>
@@ -439,7 +439,7 @@
               <v-autocomplete
                 :items="$store.state.calculadora.navieraCalc"
                 v-model="datosFormulario.naviera"
-                item-text="navieras_nombre"
+                item-title="navieras_nombre"
                 label="Naviera"
                 placeholder="Seleccione un Naviera"
                 clearable
@@ -447,7 +447,7 @@
                 hide-details
                 hide-selected
                 hide-no-data
-                dense
+                density="compact"
                 prepend-icon="mdi-shipping-pallet"
               >
               </v-autocomplete>
@@ -457,7 +457,7 @@
               <v-text-field
                 label="Cortes"
                 v-model="datosFormulario.cortes"
-                dense
+                density="compact"
               >
               </v-text-field>
             </div>
@@ -468,7 +468,7 @@
                 v-model="datosFormulario.carrier_tt"
                 step="0.01"
                 type="number"
-                dense
+                density="compact"
               >
               </v-text-field>
             </div>
@@ -481,7 +481,7 @@
               <v-text-field
                 label="Desde"
                 v-model="datosFormulario.vigencia_desde"
-                dense
+                density="compact"
                 type="date"
               >
               </v-text-field>
@@ -491,7 +491,7 @@
               <v-text-field
                 label="Hasta"
                 v-model="datosFormulario.vigencia_hasta"
-                dense
+                density="compact"
                 type="date"
               >
               </v-text-field>
@@ -500,10 +500,10 @@
         </v-card-actions>
         <v-card-actions>
           <v-flex text-right>
-            <v-btn class="mx-1" text color="success" @click="anadirRegistros()">
+            <v-btn class="mx-1" variant="text" color="success" @click="anadirRegistros()">
               Agregar
             </v-btn>
-            <v-btn class="mx-1" text color="red" @click="offcanvas = false">
+            <v-btn class="mx-1" variant="text" color="red" @click="offcanvas = false">
               Cancelar
             </v-btn>
           </v-flex>

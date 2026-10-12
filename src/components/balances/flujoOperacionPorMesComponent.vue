@@ -3,9 +3,9 @@
     <v-navigation-drawer
       v-model="filtroFlag"
       absolute
-      bottom
+      location="bottom right"
       temporary
-      right
+      
       width="20%"
     >
       <v-card min-height="80vh">
@@ -19,7 +19,7 @@
           <v-autocomplete
             :items="$store.state.provedores"
             v-model="filtro.id_proveedor"
-            item-text="namelong"
+            item-title="namelong"
             item-value="id"
             clearable
             label="Proveedor"
@@ -27,7 +27,7 @@
           <v-autocomplete
             :items="$store.state.clientes"
             v-model="filtro.id_cliente"
-            item-text="namelong"
+            item-title="namelong"
             item-value="id"
             clearable
             label="Cliente"
@@ -72,7 +72,7 @@
     </v-row>
     <v-row>
       <v-col cols="12">
-        <v-simple-table>
+        <v-table>
           <thead>
             <tr class="thead">
               <th :style="getColumnWidth(7)">CATEGORÍA</th>
@@ -82,7 +82,7 @@
 
               <th width="2%">
                 <v-btn color="default" @click="previous()" icon>
-                  <v-icon x-large>mdi-chevron-left</v-icon>
+                  <v-icon size="x-large">mdi-chevron-left</v-icon>
                 </v-btn>
               </th>
               <th
@@ -95,7 +95,7 @@
               <th>TOTALES</th>
               <th width="2%">
                 <v-btn icon color="default" @click="next()">
-                  <v-icon x-large>mdi-chevron-right</v-icon>
+                  <v-icon size="x-large">mdi-chevron-right</v-icon>
                 </v-btn>
               </th>
             </tr>
@@ -152,9 +152,9 @@
                       <v-icon v-if="!stipo.descripcionflag">mdi-plus</v-icon>
                       <v-icon v-else>mdi-minus-thick</v-icon>
                     </v-btn>
-                    <v-tooltip right color="primary">
-                      <template v-slot:activator="{ on, attrs }">
-                        <span v-bind="attrs" v-on="on">
+                    <v-tooltip location="right" color="primary">
+                      <template v-slot:activator="{ props }">
+                        <span v-bind="props">
                           {{ stipo.subtipo }}
                         </span>
                       </template>
@@ -272,7 +272,7 @@
               <td></td>
             </tr>
           </tbody>
-        </v-simple-table>
+        </v-table>
       </v-col>
     </v-row>
     <!-- <td

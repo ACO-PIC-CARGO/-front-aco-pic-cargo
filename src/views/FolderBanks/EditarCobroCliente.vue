@@ -12,12 +12,12 @@
           <v-col md="4" cols="4">
             <v-autocomplete
               :items="clientes"
-              item-text="namelong"
+              item-title="namelong"
               item-value="id"
               label="Cliente"
               v-model="$store.state.bank.record.id_cliente"
               readonly
-              @change="obtenerListado()"
+              @update:model-value="obtenerListado()"
             >
             </v-autocomplete>
           </v-col>
@@ -31,7 +31,7 @@
                 <v-autocomplete
                   :items="$store.state.itemsCoinsList"
                   v-model="id_coins"
-                  item-text="acronym"
+                  item-title="acronym"
                   item-value="id"
                   label="Moneda"
                   v-on:blur="obtenerSymbol()"
@@ -107,7 +107,7 @@
             ></v-text-field>
           </v-col>
           <v-col md="4" cols="4">
-            <v-btn text @click="abrirSoporte($store.state.bank.record.ruta)">
+            <v-btn variant="text" @click="abrirSoporte($store.state.bank.record.ruta)">
               <v-icon color="red">mdi-file-pdf-box</v-icon>
               {{ $store.state.bank.record.nombre_archivo }}
             </v-btn>
@@ -127,7 +127,7 @@
           <v-col md="4" cols="4">
             <v-autocomplete
               :items="cuentas"
-              item-text="label"
+              item-title="label"
               item-value="id"
               label="Cuenta Destino (PIC)"
               v-model="$store.state.bank.record.id_cuentadestino"
@@ -160,7 +160,7 @@
               :items="$store.state.itemsDataBanksList"
               v-model="$store.state.bank.record.id_banco_origin"
               label="Banco Origen"
-              item-text="acronym"
+              item-title="acronym"
               item-value="id"
             ></v-select>
           </v-col>

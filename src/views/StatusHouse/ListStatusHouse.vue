@@ -6,30 +6,30 @@
           <v-card-title primary-title>
             <v-text-field label="Buscar..." v-model="search"></v-text-field>
             <v-spacer></v-spacer>
-            <v-btn color="success" small class="mx-2" @click="nuevoStatus()">
+            <v-btn color="success" size="small" class="mx-2" @click="nuevoStatus()">
               CREAR ESTATUS
-              <v-icon class="ml-1" dense>mdi-plus</v-icon>
+              <v-icon class="ml-1" size="small">mdi-plus</v-icon>
             </v-btn>
             <v-btn
               color="purple"
               dark
-              small
+              size="small"
               class="mx-2"
               @click="abrirModalOrden()"
             >
               Cambiar Orden
-              <v-icon class="ml-1" dense>mdi-swap-vertical</v-icon>
+              <v-icon class="ml-1" size="small">mdi-swap-vertical</v-icon>
             </v-btn>
-            <v-btn color="info" small class="mx-2" @click="filtrar = !filtrar">
-              Filtrar <v-icon class="ml-1" dense>mdi-filter-outline</v-icon>
+            <v-btn color="info" size="small" class="mx-2" @click="filtrar = !filtrar">
+              Filtrar <v-icon class="ml-1" size="small">mdi-filter-outline</v-icon>
             </v-btn>
             <v-btn
               color="default"
-              small
+              size="small"
               class="mx-2"
               @click="getListStatusHouse()"
             >
-              Limpiar <v-icon class="ml-1" dense>mdi-clean</v-icon>
+              Limpiar <v-icon class="ml-1" size="small">mdi-clean</v-icon>
             </v-btn>
           </v-card-title>
         </v-col>
@@ -65,7 +65,7 @@
                   color="success"
                   v-if="!item.verComentarios"
                   @click="item.verComentarios = !item.verComentarios"
-                  x-small
+                  size="x-small"
                 >
                   Ver Comentarios
                 </v-btn>
@@ -73,7 +73,7 @@
                   color="warning"
                   v-else
                   @click="item.verComentarios = !item.verComentarios"
-                  x-small
+                  size="x-small"
                 >
                   Ocultar Comentarios
                 </v-btn>
@@ -90,10 +90,10 @@
             </template>
             <template v-slot:[`item.action`]="{ item }">
               <!-- <v-btn color="info" x-small @click="edi"> <v-icon dense>mdi-plus</v-icon> Comentario</v-btn> -->
-              <v-btn x-small color="warning" @click="editar(item)">
+              <v-btn size="x-small" color="warning" @click="editar(item)">
                 AÑADIR COMENTARIOS
               </v-btn>
-              <v-btn class="mx-1" x-small color="error" @click="eliminar(item)">
+              <v-btn class="mx-1" size="x-small" color="error" @click="eliminar(item)">
                 <v-icon size="medium">mdi-delete</v-icon>
               </v-btn>
               <!-- <v-btn color="error" icon @click="edi" > <v-icon dense>mdi-delete</v-icon></v-btn> -->
@@ -119,9 +119,9 @@
                 <v-autocomplete
                   :items="$store.state.pricing.listModality"
                   label="Sentido*"
-                  item-text="name"
+                  item-title="name"
                   item-value="id"
-                  @change="obtenerOrden()"
+                  @update:model-value="obtenerOrden()"
                   v-model="id_modality"
                   :rules="[(v) => !!v || 'Dato Requerido']"
                 ></v-autocomplete>
@@ -130,10 +130,10 @@
                 <v-autocomplete
                   :items="$store.state.pricing.listShipment"
                   label="Tipo de Embarque*"
-                  item-text="embarque"
+                  item-title="embarque"
                   item-value="id"
                   v-model="id_shipment"
-                  @change="obtenerOrden"
+                  @update:model-value="obtenerOrden"
                   :rules="[(v) => !!v || 'Dato Requerido']"
                 ></v-autocomplete>
               </v-col>
@@ -163,7 +163,7 @@
                 <h4>Incoterms</h4>
               </v-col>
               <v-col cols="12" v-if="errorInconterms">
-                <span class="red--text">
+                <span class="text-red">
                   {{ errorInconterms }}
                 </span>
               </v-col>
@@ -214,12 +214,12 @@
             </v-row>
             <v-row>
               <v-col cols="12">
-                <v-btn color="success" small @click="anadirComentario()">
+                <v-btn color="success" size="small" @click="anadirComentario()">
                   Añadir Comentario
                 </v-btn>
               </v-col>
               <v-col cols="12">
-                <v-simple-table>
+                <v-table>
                   <thead>
                     <tr>
                       <th>Orden</th>
@@ -234,9 +234,9 @@
                         <v-textarea
                           auto-grow
                           v-model="item.descripcion"
-                          dense
+                          density="compact"
                           hide-details
-                          solo
+                          variant="solo"
                           rows="1"
                         ></v-textarea>
                       </td>
@@ -266,26 +266,26 @@
                       </td>
                     </tr>
                   </tbody>
-                </v-simple-table>
+                </v-table>
               </v-col>
             </v-row>
           </v-form>
         </v-card-text>
         <v-card-actions v-if="!id">
           <v-spacer></v-spacer>
-          <v-btn small class="mx-1" color="success" @click="guardarStatus()">
+          <v-btn size="small" class="mx-1" color="success" @click="guardarStatus()">
             Guardar
           </v-btn>
-          <v-btn small class="mx-1" color="error" @click="dialog = false">
+          <v-btn size="small" class="mx-1" color="error" @click="dialog = false">
             Cancelar
           </v-btn>
         </v-card-actions>
         <v-card-actions v-else>
           <v-spacer></v-spacer>
-          <v-btn small class="mx-1" color="success" @click="guardarStatus()">
+          <v-btn size="small" class="mx-1" color="success" @click="guardarStatus()">
             Actualizar
           </v-btn>
-          <v-btn small class="mx-1" color="error" @click="dialog = false">
+          <v-btn size="small" class="mx-1" color="error" @click="dialog = false">
             Cancelar
           </v-btn>
         </v-card-actions>
@@ -301,7 +301,7 @@
                 <v-autocomplete
                   :items="$store.state.pricing.listModality"
                   label="Sentido*"
-                  item-text="name"
+                  item-title="name"
                   item-value="id"
                   v-model="id_modality"
                   :rules="[(v) => !!v || 'Dato Requerido']"
@@ -311,7 +311,7 @@
                 <v-autocomplete
                   :items="$store.state.pricing.listShipment"
                   label="Tipo de Embarque*"
-                  item-text="embarque"
+                  item-title="embarque"
                   item-value="id"
                   v-model="id_shipment"
                   :rules="[(v) => !!v || 'Dato Requerido']"
@@ -319,7 +319,7 @@
               </v-col>
               <v-col cols="4">
                 <v-btn
-                  small
+                  size="small"
                   color="info"
                   @click="buscarEstatusPorModalidadYEmbarque()"
                   >Buscar</v-btn
@@ -356,12 +356,12 @@
                 </template>
                 <template v-slot:[`item.orden`]="{ item, index }">
                   <v-text-field
-                    dense
+                    density="compact"
                     hide-details
                     v-model="item.orden"
                     type="number"
                     :min="0"
-                    @input="cambiarOrdenEstado(index)"
+                    @update:model-value="cambiarOrdenEstado(index)"
                   ></v-text-field>
                 </template>
               </v-data-table>
@@ -370,10 +370,10 @@
         </v-card-text>
         <v-card-actions>
           <v-spacer></v-spacer>
-          <v-btn color="success" class="mx-1" @click="guardarOrden()" small>
+          <v-btn color="success" class="mx-1" @click="guardarOrden()" size="small">
             Guardar
           </v-btn>
-          <v-btn color="error" class="mx-1" @click="dialogOrden = false" small>
+          <v-btn color="error" class="mx-1" @click="dialogOrden = false" size="small">
             Cerrar
           </v-btn>
         </v-card-actions>
@@ -381,9 +381,9 @@
     </v-dialog>
     <v-navigation-drawer
       v-model="filtrar"
-      right
+      location="right bottom"
       absolute
-      bottom
+      
       persistent
       width="30%"
       temporary
@@ -396,7 +396,7 @@
       <v-autocomplete
         :items="$store.state.pricing.listModality"
         label="Sentido*"
-        item-text="name"
+        item-title="name"
         item-value="id"
         v-model="id_modality"
         :rules="[(v) => !!v || 'Dato Requerido']"
@@ -405,7 +405,7 @@
       <v-autocomplete
         :items="$store.state.pricing.listShipment"
         label="Tipo de Embarque*"
-        item-text="embarque"
+        item-title="embarque"
         item-value="id"
         v-model="id_shipment"
         :rules="[(v) => !!v || 'Dato Requerido']"
@@ -455,10 +455,10 @@
         ></v-checkbox>
       </v-row> -->
       <v-divider class="mb-5"></v-divider>
-      <v-btn color="success" class="mx-1" small @click="filtrarListado()"
+      <v-btn color="success" class="mx-1" size="small" @click="filtrarListado()"
         >Filtrar</v-btn
       >
-      <v-btn color="error" class="mx-1" small>Cancelar</v-btn>
+      <v-btn color="error" class="mx-1" size="small">Cancelar</v-btn>
     </v-navigation-drawer>
   </v-card>
 </template>

@@ -8,7 +8,7 @@
     </v-subheader>
     <v-card-text>
       <v-text-field
-        outlined
+        variant="outlined"
         type="number"
         label="Correlativo de Cotización"
         v-model="$store.state.configEmpresa.configEmpresa.correlativopricing"

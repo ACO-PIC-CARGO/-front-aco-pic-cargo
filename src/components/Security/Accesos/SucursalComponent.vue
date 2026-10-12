@@ -3,7 +3,7 @@
     <v-form ref="Login" autocomplete="off">
       <div class="title">
         <h1 class="_title__logo my-3">ACO</h1>
-        <h3 class="white--text my-5">Selección de Sucursal</h3>
+        <h3 class="text-white my-5">Selección de Sucursal</h3>
       </div>
       <!-- <p class="white--text">
           Sistema para Agencia de Carga y Operadores Logísticos
@@ -13,9 +13,9 @@
         <v-select
           :items="$store.state.securitys.lstSucursal"
           v-model="$store.state.securitys.frmLogin.id_sucursal"
-          item-text="trade_name"
+          item-title="trade_name"
           item-value="id"
-          dense
+          density="compact"
           placeholder="Sucursal"
           label="Sucursal"
           dark

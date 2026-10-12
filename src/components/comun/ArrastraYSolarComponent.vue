@@ -2,7 +2,7 @@
   <!-- Contenedor nativo de validación de Vuetify -->
   <v-input
     :rules="rules"
-    :value="archivoValido"
+    :model-value="archivoValido"
     class="pa-0 ma-0"
     hide-details="auto"
   >
@@ -57,7 +57,7 @@
             v-if="!loading"
           >
             <label class="cursor-pointer">
-              <v-icon color="grey darken-1" class="mr-1"
+              <v-icon color="grey-darken-1" class="mr-1"
                 >mdi-cloud-upload</v-icon
               >
               Arrastra y suelta el archivo aquí o haz clic para seleccionar
@@ -88,8 +88,8 @@
         </div>
 
         <!-- 4. Estado: No hay archivo y es solo lectura -->
-        <div v-else class="text-caption grey--text text--darken-1 pa-2 italic">
-          <v-icon small color="grey">mdi-file-hidden</v-icon> No se ha adjuntado
+        <div v-else class="text-caption text-grey-darken-1 pa-2 italic">
+          <v-icon size="small" color="grey">mdi-file-hidden</v-icon> No se ha adjuntado
           ningún soporte.
         </div>
       </v-card-text>

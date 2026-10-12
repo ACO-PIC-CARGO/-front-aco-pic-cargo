@@ -1,6 +1,6 @@
 <template>
   <v-container>
-    <v-tabs v-model="tab" centered icons-and-text>
+    <v-tabs v-model="tab" align-tabs="center" stacked>
       <v-tabs-slider></v-tabs-slider>
       <v-tab href="#resumen"> Resumen </v-tab>
       <v-tab href="#costo"> Costo</v-tab>
@@ -14,16 +14,16 @@
           label="Buscar"
           single-line
           hide-details
-          outlined
+          variant="outlined"
           style="max-width: 30%"
-          dense
+          density="compact"
         />
         <br />
 
         <v-data-table
           :headers="headersResumen"
           :items="$store.state.calculadoras.lstFleteGrupalResumen"
-          dense
+          density="compact"
           :search="searchResumen"
         >
           <template v-slot:[`item.monto`]="{ item }">
@@ -59,9 +59,9 @@
                   label="Buscar"
                   single-line
                   hide-details
-                  outlined
+                  variant="outlined"
                   style="max-width: 40%"
-                  dense
+                  density="compact"
                 ></v-text-field>
               </v-col>
 
@@ -81,7 +81,7 @@
             <v-data-table
               :headers="headers"
               :items="$store.state.calculadoras.lstFleteGrupal"
-              dense
+              density="compact"
               :search="searchCosto"
             >
               <template v-slot:[`item.index`]="{ index }">
@@ -120,9 +120,9 @@
                   label="Buscar"
                   single-line
                   hide-details
-                  outlined
+                  variant="outlined"
                   style="max-width: 40%"
-                  dense
+                  density="compact"
                 ></v-text-field>
               </v-col>
 
@@ -143,7 +143,7 @@
               :headers="headers"
               :items="$store.state.calculadoras.lstFleteGrupalVenta"
               :search="searchVenta"
-              dense
+              density="compact"
             >
               <template v-slot:[`item.index`]="{ index }">
                 {{ index + 1 }}
@@ -220,15 +220,15 @@
             <v-btn
               color="success"
               v-if="nuevoflag"
-              small
+              size="small"
               @click="guardarFleteGrupal"
             >
               Guardar
             </v-btn>
-            <v-btn color="success" v-if="editarflag" @click="actualizar" small>
+            <v-btn color="success" v-if="editarflag" @click="actualizar" size="small">
               Guardar
             </v-btn>
-            <v-btn color="error" small @click="dialog = false">Cancelar</v-btn>
+            <v-btn color="error" size="small" @click="dialog = false">Cancelar</v-btn>
           </v-card-actions>
         </v-form>
       </v-card>

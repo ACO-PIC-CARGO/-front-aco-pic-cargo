@@ -1,6 +1,6 @@
 <template>
   <div>
-    <v-simple-table dense>
+    <v-table density="compact">
       <template v-slot:default>
         <thead>
           <tr>
@@ -21,7 +21,7 @@
           </tr>
         </tbody>
       </template>
-    </v-simple-table>
+    </v-table>
   </div>
 </template>
 <script>

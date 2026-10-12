@@ -32,7 +32,7 @@
                 class="acciones-dial"
               >
                 <template v-slot:activator>
-                  <v-btn color="indigo" dark fab small>
+                  <v-btn color="indigo" dark fab size="small">
                     <v-icon v-if="!fab">mdi-cog</v-icon>
                     <v-icon v-else>mdi-close</v-icon>
                   </v-btn>
@@ -40,45 +40,45 @@
 
                 <v-btn
                   v-if="$route.name != 'controlHouseVer'"
-                  small
+                  size="small"
                   color="red"
                   dark
                   :loading="loadingBotonEliminarHouse"
                   :disabled="formControlHouseReadonly"
                   @click="eliminarHouse()"
                 >
-                  <v-icon small left>mdi-delete</v-icon>
+                  <v-icon size="small" start>mdi-delete</v-icon>
                   Eliminar
                 </v-btn>
 
                 <!-- GENERAR TRACKING (siempre visible, no deshabilitar) -->
                 <v-btn
-                  small
-                  color="orange darken-2"
+                  size="small"
+                  color="orange-darken-2"
                   dark
                   :loading="loadingBotonTracking"
                   @click="_generateTrackingToken"
                 >
-                  <v-icon small left>mdi-link-variant</v-icon>
+                  <v-icon size="small" start>mdi-link-variant</v-icon>
                   Tracking
                 </v-btn>
 
                 <!-- IMPRIMIR -->
-                <v-btn small color="primary" @click="abrirModalFormato()">
-                  <v-icon small left>mdi-printer</v-icon>
+                <v-btn size="small" color="primary" @click="abrirModalFormato()">
+                  <v-icon size="small" start>mdi-printer</v-icon>
                   Imprimir
                 </v-btn>
 
                 <!-- NOTIFICACIONES -->
                 <v-btn
-                  small
+                  size="small"
                   color="deep-purple"
                   dark
                   :disabled="formControlHouseReadonly"
                   :loading="loadingBotonNotificaciones"
                   @click="openNotificaciones"
                 >
-                  <v-icon small left style="transform: rotate(-45deg)"
+                  <v-icon size="small" start style="transform: rotate(-45deg)"
                     >mdi-send</v-icon
                   >
                   Notificaciones
@@ -87,17 +87,17 @@
                 <!-- GUARDAR / EDITAR (queda más cerca del activador, o sea abajo visualmente con direction='top') -->
                 <v-btn
                   v-if="$route.name != 'controlHouseVer'"
-                  small
+                  size="small"
                   color="success"
                   :loading="loadingBotonGuardarHouse"
                   :disabled="formControlHouseReadonly"
                   @click="_setHouseEdit()"
                 >
-                  <v-icon small left>mdi-content-save</v-icon>
+                  <v-icon size="small" start>mdi-content-save</v-icon>
                   Guardar
                 </v-btn>
-                <v-btn v-else small color="info" @click="irAVerMaster()">
-                  <v-icon small left>mdi-pencil</v-icon>
+                <v-btn v-else size="small" color="info" @click="irAVerMaster()">
+                  <v-icon size="small" start>mdi-pencil</v-icon>
                   Editar
                 </v-btn>
               </v-speed-dial>
@@ -108,33 +108,33 @@
               v-model="$store.state.house_enlace_tracking"
               label="Enlace de Tracking"
               readonly
-              outlined
-              dense
+              variant="outlined"
+              density="compact"
               hide-details
               class="mt-3"
             >
               <template v-slot:append>
                 <v-btn
                   icon
-                  small
+                  size="small"
                   color="primary"
                   @click="
                     _copyEnlaceTracking($store.state.house_enlace_tracking)
                   "
                 >
-                  <v-icon small>mdi-content-copy</v-icon>
+                  <v-icon size="small">mdi-content-copy</v-icon>
                 </v-btn>
               </template>
             </v-text-field>
 
             <v-menu
               v-model="openMenuNotificaciones"
-              top
+              location="top"
               offset-y
               content-class="elevation-0"
             >
-              <template v-slot:activator="{ on, attrs }">
-                <span v-bind="attrs" v-on="on"></span>
+              <template v-slot:activator="{ props }">
+                <span v-bind="props"></span>
               </template>
               <v-list color="transparent" v-show="displayMenuNotificaciones">
                 <v-list-item
@@ -144,9 +144,9 @@
                 >
                   <v-list-item-title>
                     <v-btn
-                      depressed
+                      variant="flat"
                       block
-                      small
+                      size="small"
                       color="primary"
                       @click="sendNotificacion(item)"
                     >
@@ -171,10 +171,10 @@
         <v-fab-transition v-if="formControlHouseReadonly">
           <v-btn
             fab
-            large
+            size="large"
             dark
-            bottom
-            left
+            location="bottom left"
+            
             color="info"
             @click="irAVerMaster()"
           >
@@ -201,35 +201,35 @@
             :loading="loadingBotonEliminarHouse"
             @click="eliminarHouse()"
           >
-            <v-icon left>mdi-delete</v-icon>
+            <v-icon start>mdi-delete</v-icon>
             Eliminar
           </v-btn>
           <v-btn
-            color="orange darken-2"
+            color="orange-darken-2"
             dark
             :loading="loadingBotonTracking"
             @click="_generateTrackingToken"
           >
-            <v-icon left>mdi-link-variant</v-icon>
+            <v-icon start>mdi-link-variant</v-icon>
             Tracking
           </v-btn>
           <v-btn
             :style="{ backgroundColor: 'rgb(92, 116, 137)', color: 'white' }"
             @click="abrirModalFormato()"
           >
-            <v-icon left style="color: white">mdi-printer</v-icon>
+            <v-icon start style="color: white">mdi-printer</v-icon>
             Imprimir
           </v-btn>
-          <v-btn small color="primary" @click="abrirCarpeta">
-            <v-icon small left>mdi-folder-open</v-icon>
+          <v-btn size="small" color="primary" @click="abrirCarpeta">
+            <v-icon size="small" start>mdi-folder-open</v-icon>
             Carpeta
           </v-btn>
           <v-btn color="deep-purple" dark @click="openNotificaciones">
-            <v-icon left style="transform: rotate(-45deg)">mdi-send</v-icon>
+            <v-icon start style="transform: rotate(-45deg)">mdi-send</v-icon>
             Notificaciones
           </v-btn>
-          <v-btn color="light-green lighten-1" dark @click="_setHouseEdit()">
-            <v-icon left>mdi-content-save</v-icon>
+          <v-btn color="light-green-lighten-1" dark @click="_setHouseEdit()">
+            <v-icon start>mdi-content-save</v-icon>
             Guardar
           </v-btn>
         </v-speed-dial>
@@ -249,18 +249,18 @@
           v-model="$store.state.house_enlace_tracking"
           label="Enlace de Tracking"
           readonly
-          outlined
-          dense
+          variant="outlined"
+          density="compact"
           hide-details
         >
           <template v-slot:append>
             <v-btn
               icon
-              small
+              size="small"
               color="primary"
               @click="_copyEnlaceTracking($store.state.house_enlace_tracking)"
             >
-              <v-icon small>mdi-content-copy</v-icon>
+              <v-icon size="small">mdi-content-copy</v-icon>
             </v-btn>
           </template>
         </v-text-field>
@@ -268,12 +268,12 @@
       <!-- Menú de notificaciones reubicado fuera de la tarjeta oculta -->
       <v-menu
         v-model="openMenuNotificaciones"
-        top
+        location="top"
         offset-y
         content-class="elevation-0"
       >
-        <template v-slot:activator="{ on, attrs }">
-          <span v-bind="attrs" v-on="on"></span>
+        <template v-slot:activator="{ props }">
+          <span v-bind="props"></span>
         </template>
         <v-list color="transparent" v-show="displayMenuNotificaciones">
           <v-list-item
@@ -283,9 +283,9 @@
           >
             <v-list-item-title>
               <v-btn
-                depressed
+                variant="flat"
                 block
-                small
+                size="small"
                 color="primary"
                 @click="sendNotificacion(item)"
               >
@@ -302,7 +302,7 @@
     <!-- Modal para seleccionar formato de impresión -->
     <v-dialog v-model="dialogFormato" max-width="400px">
       <v-card>
-        <v-card-title primary-title class="light-blue darken-2 white--text">
+        <v-card-title primary-title class="bg-light-blue-darken-2 text-white">
           Imprimir Formato {{ isAereo() ? "GUÍA AÉREA" : "BL" }}
         </v-card-title>
         <v-card-text class="pt-4">
@@ -315,14 +315,14 @@
         <v-card-actions>
           <v-spacer></v-spacer>
           <v-btn color="success" v-if="isAereo()" @click="exportarFormatoAWB()">
-            <v-icon left>mdi-printer</v-icon>
+            <v-icon start>mdi-printer</v-icon>
             Imprimir Guía Aérea
           </v-btn>
           <v-btn color="success" v-else @click="exportarFormatoHBL()">
-            <v-icon left>mdi-printer</v-icon>
+            <v-icon start>mdi-printer</v-icon>
             Imprimir BL
           </v-btn>
-          <v-btn color="grey" text @click="dialogFormato = false">
+          <v-btn color="grey" variant="text" @click="dialogFormato = false">
             Cancelar
           </v-btn>
         </v-card-actions>
@@ -335,7 +335,7 @@
           Seleccione las cuentas a utilizar
         </v-card-title>
         <v-card-text>
-          <p class="red--text">{{ errorCuentas }}</p>
+          <p class="text-red">{{ errorCuentas }}</p>
           <v-data-table
             v-model="selected"
             :headers="headers"

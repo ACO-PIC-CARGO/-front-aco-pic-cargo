@@ -5,14 +5,14 @@
         <BarraFiltro :filtro="filtro" :cuentas="cuentas" />
       </v-col>
       <v-col cols="12" class="pt-0">
-        <v-row align="center">
+        <v-row class="align-center">
           <v-col cols="6">
             <v-text-field
               class="mx-2"
               hide-details
-              dense
+              density="compact"
               id="id"
-              outlined
+              variant="outlined"
               placeholder="Buscar..."
               append-icon="mdi-text-search"
               v-model="search"
@@ -22,11 +22,11 @@
           </v-col>
           <v-spacer></v-spacer>
           <v-col cols="auto">
-            <v-btn small color="info" class="mr-2" @click="abrirFiltro">
-              <v-icon small>mdi-filter</v-icon> Filtrar</v-btn
+            <v-btn size="small" color="info" class="mr-2" @click="abrirFiltro">
+              <v-icon size="small">mdi-filter</v-icon> Filtrar</v-btn
             >
-            <v-btn small color="default" @click="Limpiar">
-              <v-icon small>mdi-close</v-icon> Limpiar</v-btn
+            <v-btn size="small" color="default" @click="Limpiar">
+              <v-icon size="small">mdi-close</v-icon> Limpiar</v-btn
             >
           </v-col>
         </v-row>
@@ -36,13 +36,13 @@
           :search="search"
           :headers="headersCabecera"
           :items="$store.state.reportes.listDetalle"
-          dense
+          density="compact"
         >
           <template v-slot:[`item.action`]="{ item }">
             <div class="d-flex align-center">
               <v-btn
                 v-if="!!item.urlfile"
-                small
+                size="small"
                 icon
                 color="red"
                 :href="item.urlfile"
@@ -51,10 +51,10 @@
                 <v-icon>mdi-file</v-icon>
               </v-btn>
 
-              <v-btn small icon color="info" @click.native="ver(item)">
+              <v-btn size="small" icon color="info" @click.native="ver(item)">
                 <v-icon>mdi-eye</v-icon>
               </v-btn>
-              <v-btn small icon color="warning" @click.native="editar(item)">
+              <v-btn size="small" icon color="warning" @click.native="editar(item)">
                 <v-icon>mdi-pencil</v-icon>
               </v-btn>
             </div>
@@ -67,7 +67,7 @@
       absolute
       permanent
       temporary
-      right
+      location="right"
       width="20%"
       v-if="dialogFiltro"
     >
@@ -78,12 +78,12 @@
             :items="cuentas"
             v-model="filtro.id_cuenta"
             label="Cuenta Bancaria (PIC)"
-            item-text="label"
+            item-title="label"
             item-value="id"
             clearable
-            outlined
+            variant="outlined"
             class="mb-2"
-            dense
+            density="compact"
             hide-details
           >
           </v-select>
@@ -91,12 +91,12 @@
             :items="$store.state.provedores"
             v-model="filtro.id_proveedor"
             label="Proveedor"
-            item-text="namelong"
+            item-title="namelong"
             item-value="id"
             clearable
-            outlined
+            variant="outlined"
             class="mb-2"
-            dense
+            density="compact"
             hide-details
           >
           </v-autocomplete>
@@ -105,9 +105,9 @@
             label="Nro Operacion"
             v-model="filtro.nro_operacion"
             clearable
-            outlined
+            variant="outlined"
             class="mb-2"
-            dense
+            density="compact"
             hide-details
           >
           </v-text-field>
@@ -116,9 +116,9 @@
             label="Nro Expediente"
             v-model="filtro.nro_exp"
             clearable
-            outlined
+            variant="outlined"
             class="mb-2"
-            dense
+            density="compact"
             hide-details
           >
           </v-text-field>
@@ -127,9 +127,9 @@
             label="Monto"
             v-model="filtro.monto"
             clearable
-            outlined
+            variant="outlined"
             class="mb-2"
-            dense
+            density="compact"
             hide-details
           >
           </v-text-field>

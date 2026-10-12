@@ -35,10 +35,10 @@
               ></v-text-field>
             </v-col>
             <v-col cols="12">
-              <v-btn small class="mx-1" color="primary" @click="continuar(2)">
+              <v-btn size="small" class="mx-1" color="primary" @click="continuar(2)">
                 Continue
               </v-btn>
-              <v-btn small class="mx-1" color="error" @click="cancelar">
+              <v-btn size="small" class="mx-1" color="error" @click="cancelar">
                 Cancel
               </v-btn>
             </v-col>
@@ -51,7 +51,7 @@
       </v-stepper-step>
 
       <v-stepper-content step="2">
-        <v-simple-table dense>
+        <v-table density="compact">
           <thead>
             <tr>
               <th></th>
@@ -71,7 +71,7 @@
                 <v-btn
                   icon
                   color="red"
-                  x-small
+                  size="x-small"
                   @click="eliminarCostos({ costo: valor })"
                 >
                   <v-icon>mdi-delete</v-icon>
@@ -79,11 +79,11 @@
               </td>
               <td class="colProveedorMultiplicador">
                 <v-autocomplete
-                  dense
-                  item-text="namelong"
+                  density="compact"
+                  item-title="namelong"
                   item-value="id"
                   :items="$store.state.proveedor.lstProveedores"
-                  @update:search-input="recargarProveedores"
+                  @update:search="recargarProveedores"
                   v-model="valor.id_proveedor"
                   hide-details
                   append-icon="mdi-plus"
@@ -92,7 +92,7 @@
               </td>
               <td class="colConcepto">
                 <v-text-field
-                  dense
+                  density="compact"
                   hide-details
                   v-model="valor.nameservice"
                 ></v-text-field>
@@ -104,8 +104,8 @@
                   v-model="valor.id_multiplicador"
                   placeholder="Multiplicador"
                   hide-details
-                  dense
-                  @change="calcTotales"
+                  density="compact"
+                  @update:model-value="calcTotales"
                   :readonly="
                     isITBM(valor.code_cost) ||
                     isConfeccion(valor.code_cost) ||
@@ -123,7 +123,7 @@
                     !isITBM(valor.code_cost) &&
                     !isNotaCredito(valor.code_cost)
                   "
-                  dense
+                  density="compact"
                   max-width="50%"
                   v-model="valor.costounitario"
                   :error-messages="valor.error"
@@ -158,7 +158,7 @@
                   hide-details
                   max-width="50%"
                   suffix="%"
-                  dense
+                  density="compact"
                   max="100"
                   v-model="valor.cif"
                   type="number"
@@ -179,7 +179,7 @@
                     !isNotaCredito(valor.code_cost)
                   "
                   hide-details
-                  dense
+                  density="compact"
                   max="100"
                   v-model="valor.seguro"
                   type="number"
@@ -191,7 +191,7 @@
                 <v-text-field
                   v-if="isITBM(valor.code_cost)"
                   readonly
-                  dense
+                  density="compact"
                   v-model="valor.costounitario"
                   :error-messages="valor.error"
                   prefix="$"
@@ -200,7 +200,7 @@
                 <v-text-field
                   v-if="isConfeccion(valor.code_cost)"
                   readonly
-                  dense
+                  density="compact"
                   v-model="valor.costounitario"
                   :error-messages="valor.error"
                   prefix="$"
@@ -208,7 +208,7 @@
                 <v-text-field
                   v-if="isNotaCredito(valor.code_cost)"
                   readonly
-                  dense
+                  density="compact"
                   v-model="valor.costounitario"
                   prefix="$"
                 ></v-text-field>
@@ -303,12 +303,12 @@
               </td>
             </tr>
           </tbody>
-        </v-simple-table>
+        </v-table>
         <br />
-        <v-btn small class="mx-1" color="primary" @click="continuar(3)">
+        <v-btn size="small" class="mx-1" color="primary" @click="continuar(3)">
           Continue
         </v-btn>
-        <v-btn small class="mx-1" color="error" @click="cancelar">
+        <v-btn size="small" class="mx-1" color="error" @click="cancelar">
           Cancel
         </v-btn>
       </v-stepper-content>
@@ -338,10 +338,10 @@
             ></v-text-field>
           </v-col>
           <v-col cols="12">
-            <v-btn small color="primary" @click="continuar(5)">
+            <v-btn size="small" color="primary" @click="continuar(5)">
               Continue
             </v-btn>
-            <v-btn small class="mx-1" color="error" @click="cancelar">
+            <v-btn size="small" class="mx-1" color="error" @click="cancelar">
               Cancel
             </v-btn>
           </v-col>

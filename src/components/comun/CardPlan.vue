@@ -8,7 +8,7 @@
     <div class="clsprecioMes">
       $ <span>{{ plan.precioMes }}</span> / mes
     </div>
-    <div class=""><v-btn color="info" small block>Seleccionar Plan</v-btn></div>
+    <div class=""><v-btn color="info" size="small" block>Seleccionar Plan</v-btn></div>
     <div class="clsmaximoContactos">
       <p>Hasta {{ plan.maximoContactos }} usuario</p>
     </div>

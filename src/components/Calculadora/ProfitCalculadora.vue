@@ -8,7 +8,7 @@
             v-for="(opcion, index) in opciones"
             :key="index"
             class="mx-1"
-            small
+            size="small"
             @click="opcionCalculadora = opcion.id"
           >
             {{ opcion.nombre }}
@@ -16,7 +16,7 @@
         </center>
       </v-col>
       <v-col cols="12">
-        <v-btn color="success" small @click="abrirModal">Nuevo</v-btn>
+        <v-btn color="success" size="small" @click="abrirModal">Nuevo</v-btn>
       </v-col>
       <v-col cols="12">
         <v-data-table :headers="headers" :items="obtenerValoresProfitPorOpcion">
@@ -53,68 +53,68 @@
             <v-row>
               <v-col cols="12" class="py-0 my-0">
                 <v-text-field
-                  outlined
-                  dense
+                  variant="outlined"
+                  density="compact"
                   type="number"
                   name="Profit"
                   label="Profit"
                   v-model="profit"
                   :rules="[(v) => (!!v && v >= 0) || 'Dato Requerido']"
-                  @input="activarPesoMax"
+                  @update:model-value="activarPesoMax"
                 />
               </v-col>
               <v-col cols="6" class="py-0 my-0">
                 <v-text-field
-                  outlined
-                  dense
+                  variant="outlined"
+                  density="compact"
                   type="number"
                   name="Peso Min"
                   label="Peso Min"
                   v-model="pesomin"
                   :rules="[(v) => (!!v && v >= 0) || 'Dato Requerido']"
                   :disabled="pesominflag"
-                  @input="activarVolumenMax"
+                  @update:model-value="activarVolumenMax"
               /></v-col>
               <v-col cols="6" class="py-0 my-0">
                 <v-text-field
-                  outlined
-                  dense
+                  variant="outlined"
+                  density="compact"
                   type="number"
                   name="Peso Máximo"
                   label="Peso Máximo"
                   v-model="pesomax"
                   :rules="[(v) => (!!v && v >= 0) || 'Dato Requerido']"
                   :disabled="pesomaxflag"
-                  @input="activarVolumenMax"
+                  @update:model-value="activarVolumenMax"
               /></v-col>
               <v-col cols="6" class="py-0 my-0">
                 <v-text-field
-                  outlined
-                  dense
+                  variant="outlined"
+                  density="compact"
                   type="number"
                   name="volumen Mínimo"
                   label="Volumen Mínimo"
                   v-model="volumenmin"
                   :disabled="volumenminflag"
-                  @input="activarValorMercanciaMax"
+                  @update:model-value="activarValorMercanciaMax"
                   :rules="[(v) => (!!v && v >= 0) || 'Dato Requerido']"
               /></v-col>
               <v-col cols="6" class="py-0 my-0">
                 <v-text-field
-                  outlined
-                  dense
+                  variant="outlined"
+                  density="compact"
                   type="number"
                   name="volumen Máximo"
                   label="Volumen Máximo"
                   v-model="volumenmax"
                   :rules="[(v) => (!!v && v >= 0) || 'Dato Requerido']"
                   :disabled="volumenmaxflag"
-                  @input="activarValorMercanciaMax"
+                  @update:model-value="activarValorMercanciaMax"
               /></v-col>
               <v-col cols="6" class="py-0 my-0">
                 <v-text-field
-                  outlined
-                  dense
+                  variant="outlined"
+                  density="compact"
                   type="number"
                   name="valor Mercancia Mínimo"
                   label="Valor Mercancia Mínimo"
@@ -125,21 +125,21 @@
               </v-col>
               <v-col cols="6" class="py-0 my-0">
                 <v-text-field
-                  outlined
-                  dense
+                  variant="outlined"
+                  density="compact"
                   type="number"
                   name="valor Mercancía Máxima"
                   label="Valor Mercancía Máxima"
                   v-model="valormax"
                   :rules="[(v) => (!!v && v >= 0) || 'Dato Requerido']"
                   :disabled="valormaxflag"
-                  @input="activarMetroCCAdiconal"
+                  @update:model-value="activarMetroCCAdiconal"
                 />
               </v-col>
               <v-col cols="6" class="py-0 my-0">
                 <v-text-field
-                  outlined
-                  dense
+                  variant="outlined"
+                  density="compact"
                   type="number"
                   name="M³ Adicional"
                   label="M³ Adicional"
@@ -157,7 +157,7 @@
           <v-btn
             v-if="nuevoflag"
             color="success"
-            small
+            size="small"
             class="mx-1"
             @click="guardarProfit"
           >
@@ -166,7 +166,7 @@
           <v-btn
             v-if="editarflag"
             color="success"
-            small
+            size="small"
             class="mx-1"
             @click="actualizarProfit"
           >
@@ -174,7 +174,7 @@
           </v-btn>
           <v-btn
             color="error"
-            small
+            size="small"
             class="mx-1"
             @click="dialogNuevoProfit = !dialogNuevoProfit"
           >

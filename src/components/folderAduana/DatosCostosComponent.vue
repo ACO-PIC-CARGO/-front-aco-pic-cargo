@@ -52,7 +52,7 @@
             <v-btn
               color="#3363A2"
               class="mx-1 btn-ingresarcostos"
-              x-large
+              size="x-large"
               dark
               @click="pasarLlenadoCostos()"
               v-if="btnIngresarCostos"
@@ -64,7 +64,7 @@
             <v-btn
               color="red"
               class="mx-1"
-              x-large
+              size="x-large"
               dark
               @click="cancelarLlenadoCostos()"
               v-if="$store.state.aduana.index > 0 && btnIngresarCostos"
@@ -150,7 +150,7 @@
               <v-pagination
                 v-model="$store.state.aduana.page"
                 :length="opcionesSeleccionadas.length"
-                circle
+                rounded
               ></v-pagination>
             </div>
           </template>

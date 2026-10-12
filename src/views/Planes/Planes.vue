@@ -19,7 +19,7 @@
             mandatory
             role="group"
             rounded
-            dense
+            density="compact"
             class="segmented"
             aria-label="Periodo de facturación"
           >
@@ -27,7 +27,7 @@
               v-for="option in billingOptions"
               :key="String(option.value)"
               :value="option.value"
-              text
+              variant="text"
             >
               {{ option.label }}
             </v-btn>
@@ -52,7 +52,7 @@
       <div v-else-if="loadState === 'error'" class="planes__state" role="alert">
         <p class="planes__state-title">No pudimos cargar los planes.</p>
         <p>{{ errorMessage }}</p>
-        <v-btn text class="planes__retry" @click="loadPlans">
+        <v-btn variant="text" class="planes__retry" @click="loadPlans">
           Reintentar
         </v-btn>
       </div>
@@ -78,7 +78,7 @@
           @toggle-details="toggleDetails(plan)"
         >
           <v-btn
-            text
+            variant="text"
             class="plan__cta"
             :disabled="busy || isUnavailableAction(actionOf(plan))"
             @click="buyPlan(plan)"
@@ -100,7 +100,7 @@
       v-model="isPurchaseNoticeOpen"
       max-width="440"
       content-class="purchase-notice plans-theme"
-      overlay-color="#020a0d"
+      scrim="#020a0d"
       overlay-opacity="0.72"
     >
       <div
@@ -118,7 +118,7 @@
           esperando.
         </p>
         <div class="purchase-notice__actions">
-          <v-btn text :to="{ name: 'Login' }" class="plan__cta">
+          <v-btn variant="text" :to="{ name: 'Login' }" class="plan__cta">
             Iniciar sesión
           </v-btn>
           <router-link
@@ -129,7 +129,7 @@
           </router-link>
         </div>
         <v-btn
-          text
+          variant="text"
           class="purchase-notice__close"
           @click="isPurchaseNoticeOpen = false"
         >
@@ -213,7 +213,7 @@ export default {
     this.loadPlans();
     if (hasSession()) this.loadCompanyPlan();
   },
-  beforeDestroy() {
+  beforeUnmount() {
     stopCheckoutEvents();
   },
   methods: {

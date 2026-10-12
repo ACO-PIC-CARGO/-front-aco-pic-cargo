@@ -9,7 +9,7 @@
         <div class="d-flex align-center">
           <v-textarea
             :id="`texto${index}`"
-            outlined
+            variant="outlined"
             v-model="item.texto"
             :disabled="!item.editarflag"
             class="custom-field-sizing"
@@ -21,18 +21,18 @@
           v-if="!item.editarflag"
           @click="activarEditar(item, index)"
           color="#FFD600"
-          small
+          size="small"
         >
-          <v-icon small>mdi-square-edit-outline</v-icon>
+          <v-icon size="small">mdi-square-edit-outline</v-icon>
         </v-btn>
         <v-btn
           v-else
           color="#004D40"
           dark
-          small
+          size="small"
           @click="guardarCambios(item, index)"
         >
-          <v-icon small>mdi-content-save-all</v-icon></v-btn
+          <v-icon size="small">mdi-content-save-all</v-icon></v-btn
         >
       </template>
     </v-data-table>

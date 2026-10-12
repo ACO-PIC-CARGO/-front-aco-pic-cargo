@@ -4,13 +4,13 @@
       <v-spacer></v-spacer>
       <v-btn
         v-if="!showNavigationButtons"
-        color="light-blue darken-2"
+        color="light-blue-darken-2"
         class="ma-2"
         dark
-        small
+        size="small"
         @click="modificarProveedor"
       >
-        <v-icon left small>mdi-account-edit</v-icon>
+        <v-icon start size="small">mdi-account-edit</v-icon>
         {{ isFormReadonly ? "EDITAR PROVEEDOR" : "GUARDAR CAMBIOS" }}
       </v-btn>
     </v-card-title>
@@ -23,7 +23,7 @@
             <v-btn
               color="primary"
               rounded
-              small
+              size="small"
               class="ml-auto"
               @click="agregarCuentaBancaria()"
               >Agregar Cuenta</v-btn
@@ -70,7 +70,7 @@
                 <template v-slot:[`item.banco`]="{ item }">
                   <v-autocomplete
                     :items="$store.state.bank.list"
-                    item-text="name"
+                    item-title="name"
                     item-value="id"
                     placeholder="Bancos"
                     :rules="[(v) => !!v || 'Dato Requerido']"
@@ -80,7 +80,7 @@
                 <template v-slot:[`item.moneda`]="{ item }">
                   <v-autocomplete
                     :items="$store.state.coins.itemsCoinsList"
-                    item-text="acronym"
+                    item-title="acronym"
                     item-value="id"
                     placeholder="Monedas"
                     :rules="[(v) => !!v || 'Dato Requerido']"
@@ -97,7 +97,7 @@
                 <template v-slot:[`item.intermediario`]="{ item }">
                   <v-autocomplete
                     :items="$store.state.bank.list"
-                    item-text="name"
+                    item-title="name"
                     item-value="id"
                     placeholder="Bancos"
                     :rules="[(v) => !!v || 'Dato Requerido']"

@@ -2,13 +2,13 @@
   <v-card fluid class="px-5">
     <v-card elevation="0">
       <v-container v-if="loading" style="height: 400px">
-        <v-row class="fill-height" align-content="center" justify="center">
+        <v-row class="fill-height align-content-center justify-center">
           <v-col class="text-subtitle-1 text-center" cols="12">
             Cargando información ....
           </v-col>
           <v-col cols="6">
             <v-progress-linear
-              color="deep-purple accent-4"
+              color="deep-purple-accent-4"
               indeterminate
               rounded
               height="6"
@@ -27,13 +27,13 @@
         >
         </v-text-field>
         <v-spacer></v-spacer>
-        <v-btn small class="mx-1" color="success" @click="open_new()">
+        <v-btn size="small" class="mx-1" color="success" @click="open_new()">
           Nuevo
         </v-btn>
-        <v-btn small class="mx-1" color="info" @click="open_filter()">
+        <v-btn size="small" class="mx-1" color="info" @click="open_filter()">
           Fitrar
         </v-btn>
-        <v-btn small class="mx-1" color="#004D40" dark> Exportar </v-btn>
+        <v-btn size="small" class="mx-1" color="#004D40" dark> Exportar </v-btn>
       </v-card-title>
 
       <v-data-table
@@ -72,18 +72,18 @@
     <v-navigation-drawer
       v-model="showFilterDrawerRead"
       absolute
-      bottom
+      location="bottom right"
       temporary
-      right
+      
       width="30%"
       height="100vh"
     >
       <v-list-item>
-        <v-list-item-content>
+        
           <v-list-item-title class="text-h6">
             Ver: {{ $store.state.multiplicador.record.name }}
           </v-list-item-title>
-        </v-list-item-content>
+        
       </v-list-item>
 
       <v-container v-if="!loading_as">
@@ -92,35 +92,35 @@
             <v-text-field
               label="Código"
               readonly
-              :value="$store.state.multiplicador.record.code"
+              :model-value="$store.state.multiplicador.record.code"
             ></v-text-field>
           </v-row>
           <v-row>
             <v-text-field
               label="Nombre"
               readonly
-              :value="$store.state.multiplicador.record.name"
+              :model-value="$store.state.multiplicador.record.name"
             ></v-text-field>
           </v-row>
           <v-row>
             <v-text-field
               label="Descripción"
               readonly
-              :value="$store.state.multiplicador.record.description"
+              :model-value="$store.state.multiplicador.record.description"
             ></v-text-field>
           </v-row>
           <v-row>
             <v-text-field
               label="Tipo de Carga"
               readonly
-              :value="$store.state.multiplicador.record.type_carga"
+              :model-value="$store.state.multiplicador.record.type_carga"
             ></v-text-field>
           </v-row>
           <v-row>
             <v-text-field
               label="Valor"
               readonly
-              :value="$store.state.multiplicador.record.valor"
+              :model-value="$store.state.multiplicador.record.valor"
             ></v-text-field>
           </v-row>
           <v-row>
@@ -149,13 +149,13 @@
       </v-container>
 
       <v-container v-if="loading_as" style="height: 400px">
-        <v-row class="fill-height" align-content="center" justify="center">
+        <v-row class="fill-height align-content-center justify-center">
           <v-col class="text-subtitle-1 text-center" cols="12">
             Cargando información ....
           </v-col>
           <v-col cols="6">
             <v-progress-linear
-              color="deep-purple accent-4"
+              color="deep-purple-accent-4"
               indeterminate
               rounded
               height="6"
@@ -168,15 +168,15 @@
     <v-navigation-drawer
       v-model="showFilterDrawerUpdate"
       absolute
-      bottom
+      location="bottom right"
       temporary
-      right
+      
       width="30%"
       height="100vh"
     >
       <v-container v-if="!loading_as">
         <v-list-item class="px-0">
-          <v-list-item-content>
+          
             <v-list-item-title class="text-h6">
               {{
                 $store.state.multiplicador.record.id
@@ -185,7 +185,7 @@
               }}
               {{ $store.state.multiplicador.record.name }}
             </v-list-item-title>
-          </v-list-item-content>
+          
         </v-list-item>
 
         <v-spacer></v-spacer>
@@ -196,7 +196,7 @@
               label="Tipo de Carga (*)"
               v-model="$store.state.multiplicador.record.type_carga"
               :items="$store.state.multiplicador.shipments"
-              item-text="name"
+              item-title="name"
               item-value="name"
               :rules="[(v) => !!v || 'Dato requerido']"
             >
@@ -208,7 +208,7 @@
               clearable
               v-model="$store.state.multiplicador.record.id_containers"
               :items="$store.state.itemsContainers"
-              item-text="name"
+              item-title="name"
               item-value="id"
             >
             </v-autocomplete>
@@ -257,7 +257,7 @@
               }`"
               v-model="$store.state.multiplicador.record.status"
               color="success"
-              @change="updateStatus"
+              @update:model-value="updateStatus"
             ></v-switch>
           </v-row>
         </v-card-text>
@@ -291,13 +291,13 @@
       </v-container>
 
       <v-container v-if="loading_as" style="height: 400px">
-        <v-row class="fill-height" align-content="center" justify="center">
+        <v-row class="fill-height align-content-center justify-center">
           <v-col class="text-subtitle-1 text-center" cols="12">
             Cargando información ....
           </v-col>
           <v-col cols="6">
             <v-progress-linear
-              color="deep-purple accent-4"
+              color="deep-purple-accent-4"
               indeterminate
               rounded
               height="6"
@@ -310,19 +310,19 @@
     <v-navigation-drawer
       v-model="showFilterDrawer"
       absolute
-      bottom
+      location="bottom right"
       temporary
-      right
+      
       width="30%"
       height="100vh"
     >
       <v-container>
         <v-list-item class="px-0">
-          <v-list-item-content>
+          
             <v-list-item-title class="text-h6">
               Filtrar Registros
             </v-list-item-title>
-          </v-list-item-content>
+          
         </v-list-item>
 
         <v-spacer></v-spacer>
@@ -355,14 +355,14 @@
               clearable
               v-model="records.id_shipment"
               :items="$store.state.multiplicador.shipments"
-              item-text="name"
+              item-title="name"
               item-value="id"
             >
             </v-autocomplete>
           </v-row>
 
           <v-row>
-            <v-radio-group v-model="records.status" row dense>
+            <v-radio-group v-model="records.status" inline density="compact">
               <v-radio label="Activo" color="green" :value="1"></v-radio>
               <v-radio label="Inactivo" color="red" :value="0"></v-radio>
               <v-radio label="Todos" color="blue" value="null"></v-radio>

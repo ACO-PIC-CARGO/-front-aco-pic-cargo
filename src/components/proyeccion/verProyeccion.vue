@@ -16,8 +16,8 @@
                     :items="$store.state.month"
                     v-model="id_month"
                     label="Mes"
-                    dense
-                    item-text="description"
+                    density="compact"
+                    item-title="description"
                     item-value="id"
                     :rules="[(v) => !!v || 'Dato requerido']"
                     readonly
@@ -29,8 +29,8 @@
                     :items="$store.state.year"
                     v-model="id_year"
                     label="Año"
-                    dense
-                    item-text="description"
+                    density="compact"
+                    item-title="description"
                     item-value="id"
                     :rules="[(v) => !!v || 'Dato requerido']"
                     readonly
@@ -41,7 +41,7 @@
                   <v-text-field
                     v-model="tipocambio"
                     label="Tipo Cambio"
-                    dense
+                    density="compact"
                     v-on:blur="calcularTotalTipoCambio()"
                     :rules="[(v) => !!v || 'Dato requerido']"
                     readonly
@@ -51,7 +51,7 @@
                   <v-text-field
                     v-model="totalmonlocal"
                     :label="`Total Proyectado(${monExt})`"
-                    dense
+                    density="compact"
                     readonly
                   ></v-text-field>
                 </v-col>
@@ -59,7 +59,7 @@
                   <v-text-field
                     v-model="montoconversiondolar"
                     label="Conversión a Dolares(USD)"
-                    dense
+                    density="compact"
                     readonly
                   ></v-text-field>
                 </v-col>
@@ -67,7 +67,7 @@
                   <v-text-field
                     v-model="totaldolar"
                     label="Gastos(USD)"
-                    dense
+                    density="compact"
                     readonly
                   ></v-text-field>
                 </v-col>
@@ -76,7 +76,7 @@
                   <v-text-field
                     v-model="totalfinal"
                     :label="`Total Proyectado(${monExt})`"
-                    dense
+                    density="compact"
                     readonly
                   ></v-text-field>
                 </v-col>
@@ -100,8 +100,8 @@
                   "
                   placeholder="Tipo de Gasto"
                   v-model="item.id_gasto"
-                  dense
-                  item-text="description"
+                  density="compact"
+                  item-title="description"
                   item-value="id"
                   :error-messages="item.errgasto"
                   readonly
@@ -115,9 +115,9 @@
                     )
                   "
                   v-model="item.id_tiposubgasto"
-                  dense
+                  density="compact"
                   placeholder="Subtipo de Gasto"
-                  item-text="description"
+                  item-title="description"
                   item-value="id"
                   :error-messages="item.errsubgasto"
                   readonly
@@ -127,17 +127,17 @@
                 <v-autocomplete
                   :items="$store.state.provedores"
                   v-model="item.id_entitie"
-                  item-text="namelong"
+                  item-title="namelong"
                   placeholder="Proveedor"
                   item-value="id"
-                  dense
+                  density="compact"
                   :error-messages="item.errproveedor"
                   readonly
                 ></v-autocomplete>
               </template>
               <template v-slot:[`item.descripcion`]="{ item }">
                 <v-textarea
-                  dense
+                  density="compact"
                   placeholder="Descripcion"
                   v-model="item.description"
                   rows="1"
@@ -158,11 +158,11 @@
               <template v-slot:[`item.moneda`]="{ item }">
                 <v-select
                   :items="$store.state.itemsCoinsList"
-                  item-text="symbol"
+                  item-title="symbol"
                   v-model="item.id_coin"
                   label="Moneda"
                   item-value="id"
-                  @change="calcularMontoFinal(item)"
+                  @update:model-value="calcularMontoFinal(item)"
                   :error-messages="item.errmoneda"
                   readonly
                 ></v-select>
@@ -192,7 +192,7 @@
     <v-card-actions>
       <v-spacer></v-spacer>
       <v-btn
-        small
+        size="small"
         class="mx-1"
         v-if="!aprobado"
         color="success"
@@ -200,13 +200,13 @@
         rounded
         >Ir a Editar</v-btn
       >
-      <v-btn small class="mx-1" color="success" @click="exportar()" rounded
+      <v-btn size="small" class="mx-1" color="success" @click="exportar()" rounded
         >Exportar Detalles</v-btn
       >
-      <v-btn small class="mx-1" dark color="red" @click="volver()" rounded
+      <v-btn size="small" class="mx-1" dark color="red" @click="volver()" rounded
         >Cancelar</v-btn
       >
-      <v-btn small class="mx-1" v-if="!aprobado" color="info" rounded
+      <v-btn size="small" class="mx-1" v-if="!aprobado" color="info" rounded
         >APROBAR</v-btn
       >
     </v-card-actions>

@@ -8,7 +8,7 @@
           <v-select
             :items="begEndList"
             v-model="servicio.id_begend"
-            item-text="name"
+            item-title="name"
             item-value="id"
             label="Categoria..."
           ></v-select>
@@ -51,7 +51,7 @@
             <v-checkbox
               dense
               v-model="service.status"
-              @change="showConfirmationDialog(service)"
+              @update:model-value="showConfirmationDialog(service)"
             >
               <template v-slot:label>
                 {{ service.service }}
@@ -66,15 +66,15 @@
             >
               <v-autocomplete
                 :items="$store.state.town.lstTown"
-                item-text="nombrecompleto"
+                item-title="nombrecompleto"
                 item-value="id"
-                dense
-                outlined
+                density="compact"
+                variant="outlined"
                 label="Distrito"
                 class="pr-10"
                 v-model="$store.state.pricing.datosPrincipales.id_town"
                 :error-messages="errorIdTown"
-                @input="errorIdTown = ''"
+                @update:model-value="errorIdTown = ''"
               />
             </template>
           </div>
@@ -92,7 +92,7 @@
               min="0"
               placeholder="Valor de la mercancia..."
               autocomplete="off"
-              dense
+              density="compact"
               :required="requiereValorMercancia"
               :rules="[
                 (v) =>
@@ -104,7 +104,7 @@
                   /^(?!0\d+|\d*e)\d*(?:\.\d+)?$/.test(v) ||
                   'Debe ser un número real entero positivo',
               ]"
-              @input="recargarCostos"
+              @update:model-value="recargarCostos"
               @blur="recargarCostos"
             ></v-text-field>
 
@@ -113,7 +113,7 @@
               label="Descripción de carga"
               placeholder="Descripción de carga"
               autocomplete="off"
-              dense
+              density="compact"
             ></v-text-field>
           </template>
         </v-col>
@@ -124,8 +124,8 @@
 
     <v-card-actions class="sticky-actions pa-3" v-if="mostrarBtn">
       <v-spacer></v-spacer>
-      <v-btn color="primary" large @click="continuarLlenadoCostos">
-        <v-icon left>mdi-arrow-right-bold</v-icon>
+      <v-btn color="primary" size="large" @click="continuarLlenadoCostos">
+        <v-icon start>mdi-arrow-right-bold</v-icon>
         Continuar
       </v-btn>
     </v-card-actions>

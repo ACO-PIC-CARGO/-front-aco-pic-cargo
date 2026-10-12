@@ -2,7 +2,7 @@
   <div v-if="mostrarflag">
     <h3>Datos y Servicios a Realizar</h3>
 
-    <v-row dense>
+    <v-row density="compact">
       <v-col cols="12" md="12">
         <v-text-field
           v-model="$store.state.master_expediente"
@@ -46,7 +46,7 @@
                   suffix="%"
                   min="0"
                   max="100"
-                  dense
+                  density="compact"
                   :rules="[
                     (v) => !!v || 'Dato Requerido',
                     (v) => v > 0 || 'El porcentaje tiene que ser positivo',
@@ -61,7 +61,7 @@
                   :label="`Fecha de pago ${n}`"
                   v-model="$store.state.fechacuota[n - 1]"
                   type="date"
-                  dense
+                  density="compact"
                 ></v-text-field>
               </v-col>
             </v-row>
@@ -72,54 +72,54 @@
       <v-col cols="12" md="4">
         <v-autocomplete
           :items="itemsModality"
-          item-text="name"
+          item-title="name"
           item-value="id"
           label="Sentido"
-          @change="handleSentido(), _getDataService()"
+          @update:model-value="handleSentido(), _getDataService()"
           v-model="$store.state.master_sentido"
         ></v-autocomplete>
       </v-col>
       <v-col cols="12" md="4">
         <v-autocomplete
           :items="itemsShipment"
-          item-text="embarque"
+          item-title="embarque"
           item-value="id"
           label="Tipo de Embarque"
           return-object
           v-model="$store.state.master_id_trasnport"
-          @change="_activePort($store.state.master_id_trasnport.id_transport)"
+          @update:model-value="_activePort($store.state.master_id_trasnport.id_transport)"
         ></v-autocomplete>
       </v-col>
       <v-col cols="12" md="4">
         <v-autocomplete
           :items="itemsIncoterms"
-          item-text="name"
+          item-title="name"
           item-value="id"
           label="Incoterms"
           v-model="$store.state.master_incoterms"
-          @change="_getDataService()"
+          @update:model-value="_getDataService()"
         ></v-autocomplete>
       </v-col>
 
       <v-col cols="12" md="6">
         <v-autocomplete
           :items="itemsPortBegin"
-          item-text="name"
+          item-title="name"
           item-value="id_port"
           label="Origen"
           v-model="$store.state.master_origen"
-          @update:search-input="recargarPuertoOrigen"
+          @update:search="recargarPuertoOrigen"
         ></v-autocomplete>
       </v-col>
 
       <v-col cols="12" md="6">
         <v-autocomplete
           :items="itemsPortEnd"
-          item-text="name"
+          item-title="name"
           item-value="id_port"
           label="Destino"
           v-model="$store.state.master_destino"
-          @update:search-input="recargarPuertoDestino"
+          @update:search="recargarPuertoDestino"
         ></v-autocomplete>
       </v-col>
 
@@ -136,7 +136,7 @@
       <v-col cols="12" md="6">
         <v-autocomplete
           :items="itemsOperadorList"
-          item-text="namelong"
+          item-title="namelong"
           item-value="id"
           label="Operador"
           v-model="$store.state.master_id_operador"
@@ -145,7 +145,7 @@
       <v-col cols="12" md="6" v-if="isAereo() || isFCL() || isLCL()">
         <v-autocomplete
           :items="$store.state.itemsProveedorRolAgente"
-          item-text="namelong"
+          item-title="namelong"
           item-value="id"
           label="Agente"
           v-model="$store.state.master_id_agente"
@@ -154,7 +154,7 @@
       <v-col cols="12" md="6" v-if="isLCL()">
         <v-autocomplete
           :items="$store.state.itemsProveedorRolColoader"
-          item-text="namelong"
+          item-title="namelong"
           item-value="id"
           label="Coloader"
           v-model="$store.state.master_id_coloader"
@@ -163,7 +163,7 @@
       <v-col cols="12" md="6" v-if="isFCL()">
         <v-autocomplete
           :items="$store.state.itemsProveedorRolNaviera"
-          item-text="namelong"
+          item-title="namelong"
           item-value="id"
           label="Naviera"
           v-model="$store.state.master_id_naviera"

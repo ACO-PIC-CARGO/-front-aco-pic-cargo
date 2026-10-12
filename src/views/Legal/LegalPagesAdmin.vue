@@ -27,7 +27,7 @@
           No pudimos cargar las páginas legales.
         </p>
         <p>{{ errorMessage }}</p>
-        <v-btn text class="plans-button plans-button--secondary" @click="load">
+        <v-btn variant="text" class="plans-button plans-button--secondary" @click="load">
           Reintentar
         </v-btn>
       </div>
@@ -112,8 +112,8 @@
               :counter="limits.title"
               :error-messages="errors.title"
               :aria-invalid="String(Boolean(errors.title))"
-              outlined
-              dense
+              variant="outlined"
+              density="compact"
             />
 
             <p
@@ -141,7 +141,7 @@
             </ol>
 
             <v-btn
-              text
+              variant="text"
               class="plans-button plans-button--secondary legal-admin__add"
               :disabled="isAtSectionLimit"
               :aria-describedby="
@@ -170,7 +170,7 @@
             </p>
             <div class="legal-admin__bar-actions">
               <v-btn
-                text
+                variant="text"
                 class="plans-button plans-button--ghost"
                 :disabled="!isActiveDirty || saving"
                 @click="discardChanges"
@@ -178,7 +178,7 @@
                 Descartar cambios
               </v-btn>
               <v-btn
-                text
+                variant="text"
                 type="submit"
                 class="plans-button plans-button--primary"
                 :disabled="!isActiveDirty || saving"
@@ -301,7 +301,7 @@ export default {
     window.addEventListener("beforeunload", this.warnBeforeUnload);
     this.load();
   },
-  beforeDestroy() {
+  beforeUnmount() {
     window.removeEventListener("beforeunload", this.warnBeforeUnload);
   },
   methods: {

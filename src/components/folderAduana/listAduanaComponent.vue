@@ -19,18 +19,18 @@
             :loading="loading2"
             :disabled="loading2"
             :dark="!loading2"
-            small
+            size="small"
           >
             <v-icon>mdi-file-pdf-box</v-icon> REPORTE
           </v-btn>
           <v-btn
-            color="teal darken-4"
+            color="teal-darken-4"
             @click="excelListadoQuote()"
             class="mx-1"
             :loading="loading3"
             :disabled="loading3"
             :dark="!loading3"
-            small
+            size="small"
           >
             <v-icon>mdi-file-excel</v-icon> REPORTE
           </v-btn>
@@ -41,7 +41,7 @@
             :loading="loading"
             :disabled="loading"
             :dark="!loading"
-            small
+            size="small"
           >
             <v-icon>mdi-file-pdf-box</v-icon> MERCADEO
           </v-btn>
@@ -53,7 +53,7 @@
             "
             class="mx-1"
             dark
-            small
+            size="small"
           >
             Filtrar
           </v-btn>
@@ -65,7 +65,7 @@
       :headers="cabCotizaciones"
       :items="$store.state.pricing.listQuotes"
       :single-expand="singleExpand"
-      :expanded.sync="expanded"
+      v-model:expanded="expanded"
       item-key="index"
       show-expand
       class="elevation-1"
@@ -84,63 +84,63 @@
           <td></td>
           <td>
             <v-btn-toggle>
-              <v-tooltip top>
-                <template v-slot:activator="{ on, attrs }">
+              <v-tooltip location="top">
+                <template v-slot:activator="{ props }">
                   <v-btn
                     fab
-                    x-small
-                    v-on="on"
-                    v-bind="attrs"
+                    size="x-small"
+                    v-bind="props"
+                   
                     @click="ira('VerAduana', item.id)"
                   >
-                    <v-icon color="#4A148C" dense small>mdi-eye</v-icon>
+                    <v-icon color="#4A148C" size="small">mdi-eye</v-icon>
                   </v-btn>
                 </template>
                 <span>Ver</span>
               </v-tooltip>
               <!--  -->
-              <v-tooltip top>
-                <template v-slot:activator="{ on, attrs }">
+              <v-tooltip location="top">
+                <template v-slot:activator="{ props }">
                   <v-btn
                     fab
-                    x-small
-                    v-on="on"
-                    v-bind="attrs"
+                    size="x-small"
+                    v-bind="props"
+                   
                     @click="ira('EditarAduana', item.id)"
                     v-if="!(item.statusmain == 0 || item.aprobadoflag)"
                   >
-                    <v-icon color="#FB9514" dense small>mdi-pencil</v-icon>
+                    <v-icon color="#FB9514" size="small">mdi-pencil</v-icon>
                   </v-btn>
                 </template>
                 <span>Editar</span>
               </v-tooltip>
-              <v-tooltip top>
-                <template v-slot:activator="{ on, attrs }">
+              <v-tooltip location="top">
+                <template v-slot:activator="{ props }">
                   <v-btn
                     fab
-                    x-small
-                    v-on="on"
-                    v-bind="attrs"
+                    size="x-small"
+                    v-bind="props"
+                   
                     v-if="item.aprobadoflag"
                     @click="iraAprobado(item.id)"
                   >
-                    <v-icon color="#FB9514" dense small>mdi-pencil</v-icon>
+                    <v-icon color="#FB9514" size="small">mdi-pencil</v-icon>
                   </v-btn>
                 </template>
                 <span>Editar</span>
               </v-tooltip>
               <!--  -->
-              <v-tooltip top>
-                <template v-slot:activator="{ on, attrs }">
+              <v-tooltip location="top">
+                <template v-slot:activator="{ props }">
                   <v-btn
                     fab
-                    v-bind="attrs"
-                    v-on="on"
-                    x-small
+                   
+                    v-bind="props"
+                    size="x-small"
                     @click="abrirModal(item)"
                     v-if="!(item.statusmain == 0 || item.aprobadoflag)"
                   >
-                    <v-icon color="#E65100" dense small
+                    <v-icon color="#E65100" size="small"
                       >mdi-receipt-text-send-outline</v-icon
                     >
                   </v-btn>
@@ -148,64 +148,64 @@
                 <span>Actualizar Estado Cotización</span>
               </v-tooltip>
               <!--  -->
-              <v-tooltip top>
-                <template v-slot:activator="{ on, attrs }">
+              <v-tooltip location="top">
+                <template v-slot:activator="{ props }">
                   <v-btn
                     fab
-                    v-bind="attrs"
-                    v-on="on"
-                    x-small
+                   
+                    v-bind="props"
+                    size="x-small"
                     @click="registrarLlamada(item.id)"
                     v-if="!(item.statusmain == 0 || item.aprobadoflag)"
                   >
-                    <v-icon color="#1A237E" dense small>mdi-phone-plus</v-icon>
+                    <v-icon color="#1A237E" size="small">mdi-phone-plus</v-icon>
                   </v-btn>
                 </template>
                 <span>Actualizar Registro Llamada</span>
               </v-tooltip>
               <!--  -->
-              <v-tooltip top>
-                <template v-slot:activator="{ on, attrs }">
+              <v-tooltip location="top">
+                <template v-slot:activator="{ props }">
                   <v-btn
                     fab
-                    x-small
-                    v-bind="attrs"
-                    v-on="on"
+                    size="x-small"
+                   
+                    v-bind="props"
                     @click="to_direct({ url: item.url_folderonedrive })"
                     v-if="item.url_folderonedrive"
                   >
-                    <v-icon color="#FFAB00" dense small>mdi-folder</v-icon>
+                    <v-icon color="#FFAB00" size="small">mdi-folder</v-icon>
                   </v-btn>
                 </template>
                 <span>Abrir Carpeta cotización</span>
               </v-tooltip>
               <!--  -->
-              <v-tooltip top>
-                <template v-slot:activator="{ on, attrs }">
+              <v-tooltip location="top">
+                <template v-slot:activator="{ props }">
                   <v-btn
                     fab
-                    x-small
-                    v-bind="attrs"
-                    v-on="on"
+                    size="x-small"
+                   
+                    v-bind="props"
                     @click="eliminar(item.id, item.codigo)"
                     v-if="!(item.statusmain == 0 || item.aprobadoflag)"
                   >
-                    <v-icon color="#A43542" dense small>mdi-delete</v-icon>
+                    <v-icon color="#A43542" size="small">mdi-delete</v-icon>
                   </v-btn>
                 </template>
                 <span>Eliminar</span>
               </v-tooltip>
-              <v-tooltip top>
-                <template v-slot:activator="{ on, attrs }">
+              <v-tooltip location="top">
+                <template v-slot:activator="{ props }">
                   <v-btn
                     fab
-                    x-small
-                    v-bind="attrs"
-                    v-on="on"
+                    size="x-small"
+                   
+                    v-bind="props"
                     @click="toggleRow(item)"
                     v-if="!(item.statusmain == 0 || item.aprobadoflag)"
                   >
-                    <v-icon color="#263238" dense small>mdi-phone</v-icon>
+                    <v-icon color="#263238" size="small">mdi-phone</v-icon>
                   </v-btn>
                 </template>
                 <span>Historial llamada</span>
@@ -230,7 +230,7 @@
 
       <template v-slot:expanded-item="{ headers, item }">
         <td :colspan="headers.length">
-          <v-simple-table>
+          <v-table>
             <thead class="headerDetails">
               <tr>
                 <th v-if="item.details.length > 0">Notas</th>
@@ -250,7 +250,7 @@
                 <td>{{ item.fecha_enviocliente }}</td>
               </tr>
             </tbody>
-          </v-simple-table>
+          </v-table>
         </td>
       </template>
     </v-data-table>
@@ -280,13 +280,13 @@
               label="ESTADO DE LA COTIZACIÓN"
               v-model="id_status"
               :rules="[(v) => !!v || 'Dato Requerido']"
-              item-text="name"
+              item-title="name"
               item-value="id"
             ></v-select>
             <v-select
               :items="$store.state.pricing.listRecibidoCotizacion"
               item-value="id"
-              item-text="descripcion"
+              item-title="descripcion"
               v-model="id_master_recibidocotizacion"
               label="RECIBIDO COTIZACION EN PRICING"
               :rules="[(v) => !!v || 'Dato Requerido']"
@@ -294,7 +294,7 @@
             <v-select
               :items="$store.state.pricing.listEnviadoCliente"
               item-value="id"
-              item-text="descripcion"
+              item-title="descripcion"
               v-model="id_master_enviadocliente"
               label="ENVIADO AL CLIENTE"
               :rules="[(v) => !!v || 'Dato Requerido']"
@@ -353,10 +353,10 @@
             <v-autocomplete
               :items="$store.state.pricing.listEjecutivo"
               label="Ejecutivo."
-              dense
+              density="compact"
               search
               clearable
-              item-text="name"
+              item-title="name"
               item-value="id_entitie"
               v-model="fromData.identities"
             ></v-autocomplete>
@@ -364,9 +364,9 @@
         </v-card-text>
         <v-card-actions>
           <v-flex text-right>
-            <v-btn text color="success" @click="guardarNota">Aceptar</v-btn>
+            <v-btn variant="text" color="success" @click="guardarNota">Aceptar</v-btn>
             <v-btn
-              text
+              variant="text"
               color="red"
               @click="dialogRegistroNotaLlamada = !dialogRegistroNotaLlamada"
             >
@@ -398,7 +398,7 @@
                 :items="$store.state.itemsMasterList"
                 v-model="id_exp"
                 label="Expediente"
-                item-text="code_master"
+                item-title="code_master"
                 item-value="id"
                 :rules="[(v) => !!v || 'Dato Requerido']"
               >
@@ -408,12 +408,12 @@
         </v-card-text>
         <v-card-actions>
           <v-spacer></v-spacer>
-          <v-btn class="mx-1" small @click="aprobar()" color="success"
+          <v-btn class="mx-1" size="small" @click="aprobar()" color="success"
             >Generar</v-btn
           >
           <v-btn
             class="mx-1"
-            small
+            size="small"
             color="error"
             @click="aprobarflag = !aprobarflag"
             >Cancelar</v-btn

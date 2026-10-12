@@ -21,27 +21,27 @@
               <v-text-field
                 clearable
                 v-model="$store.state.QuoteStatus.StatusFilter.code"
-                dense
+                density="compact"
                 label="Código"
-                outlined
+                variant="outlined"
               ></v-text-field>
             </div>
             <div class="col-12 py-1">
               <v-text-field
                 clearable
                 v-model="$store.state.QuoteStatus.StatusFilter.name"
-                dense
+                density="compact"
                 label="Nombre"
-                outlined
+                variant="outlined"
               ></v-text-field>
             </div>
             <div class="col-12 py-1">
               <v-text-field
                 clearable
                 v-model="$store.state.QuoteStatus.StatusFilter.description"
-                dense
+                density="compact"
                 label="Descripción"
-                outlined
+                variant="outlined"
               ></v-text-field>
             </div>
             <div class="col-12 py-1">
@@ -49,9 +49,9 @@
                 clearable
                 v-model="$store.state.QuoteStatus.StatusFilter.position"
                 type="number"
-                dense
+                density="compact"
                 label="Posición Cotizaciones"
-                outlined
+                variant="outlined"
               ></v-text-field>
             </div>
             <div class="col-12 py-1">
@@ -62,9 +62,9 @@
                     .id_masterdetalletemperaturaventa
                 "
                 item-value="id"
-                item-text="descripcion"
-                dense
-                outlined
+                item-title="descripcion"
+                density="compact"
+                variant="outlined"
                 label="Temperatura de Lead"
               >
                 <template v-slot:item="{ item }">
@@ -137,8 +137,8 @@
               <span> Estado</span>
               <v-radio-group
                 v-model="$store.state.QuoteStatus.StatusFilter.status"
-                row
-                dense
+                inline
+                density="compact"
               >
                 <v-radio label="Activo" color="green" value="1"></v-radio>
                 <v-radio label="Inactivo" color="red" value="0"></v-radio>
@@ -158,28 +158,28 @@
                 v-if="$store.state.QuoteStatus.tipo != 'nuevo'"
                 :readonly="$store.state.QuoteStatus.tipo == 'ver'"
                 v-model="$store.state.QuoteStatus.StatusModel.code"
-                dense
+                density="compact"
                 label="Código"
-                outlined
+                variant="outlined"
               ></v-text-field>
             </div>
             <div class="col-12 py-0">
               <v-text-field
                 :readonly="$store.state.QuoteStatus.tipo == 'ver'"
                 v-model="$store.state.QuoteStatus.StatusModel.name"
-                dense
+                density="compact"
                 label="Nombre (*)"
                 :rules="[(v) => !!v || 'Dato requerido']"
-                outlined
+                variant="outlined"
               ></v-text-field>
             </div>
             <div class="col-12 py-0">
               <v-text-field
                 :readonly="$store.state.QuoteStatus.tipo == 'ver'"
                 v-model="$store.state.QuoteStatus.StatusModel.description"
-                dense
+                density="compact"
                 label="Descripción"
-                outlined
+                variant="outlined"
               ></v-text-field>
             </div>
             <div class="col-12 py-0">
@@ -190,9 +190,9 @@
                 :error-messages="errPosition"
                 :rules="[(v) => !!v || 'Dato requerido']"
                 type="number"
-                dense
+                density="compact"
                 label="Posición Cotizaciones"
-                outlined
+                variant="outlined"
               ></v-text-field>
             </div>
             <div class="col-12 py-0">
@@ -203,9 +203,9 @@
                     .id_masterdetalletemperaturaventa
                 "
                 item-value="id"
-                item-text="descripcion"
-                dense
-                outlined
+                item-title="descripcion"
+                density="compact"
+                variant="outlined"
                 label="Temperatura de Lead"
               >
                 <template v-slot:item="{ item }">

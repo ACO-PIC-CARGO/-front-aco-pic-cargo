@@ -26,11 +26,11 @@
               :items="modalidadesDisponibles"
               v-model="modalidadSeleccionada"
               label="Modalidad"
-              item-text="name"
+              item-title="name"
               item-value="id"
-              dense
-              outlined
-              @change="cargarCostosBase"
+              density="compact"
+              variant="outlined"
+              @update:model-value="cargarCostosBase"
             ></v-select>
           </v-col>
           <v-col cols="12" md="4">
@@ -38,11 +38,11 @@
               :items="tiposEnvioDisponibles"
               v-model="shipmentSeleccionado"
               label="Tipo de Envío"
-              item-text="embarque"
+              item-title="embarque"
               item-value="code"
-              dense
-              outlined
-              @change="cargarCostosBase"
+              density="compact"
+              variant="outlined"
+              @update:model-value="cargarCostosBase"
             ></v-select>
           </v-col>
           <v-col cols="12" md="4">
@@ -52,7 +52,7 @@
               :disabled="!modalidadSeleccionada || !shipmentSeleccionado || !costosBase.length"
               block
             >
-              <v-icon left>mdi-content-save</v-icon>
+              <v-icon start>mdi-content-save</v-icon>
               Guardar cambios
             </v-btn>
           </v-col>
@@ -61,11 +61,11 @@
         <!-- Resumen de Costos Base -->
         <v-card v-if="costosBase.length > 0" class="mb-4">
           <v-card-title>
-            <v-icon left>mdi-format-list-bulleted</v-icon>
+            <v-icon start>mdi-format-list-bulleted</v-icon>
             Costos Base Configurados
           </v-card-title>
           <v-card-text>
-            <v-simple-table>
+            <v-table>
               <thead>
                 <tr>
                   <th>Tramo</th>
@@ -80,27 +80,27 @@
               <tbody>
                 <tr v-for="(costo, index) in costosBase" :key="index">
                   <td>
-                    <v-chip :color="getTramoColor(costo.tramo)" text-color="white" small>
+                    <v-chip :color="getTramoColor(costo.tramo)" text-color="white" size="small">
                       {{ costo.tramo }}
                     </v-chip>
                   </td>
                   <td style="min-width:220px">
                     <v-text-field
-                      dense
+                      density="compact"
                       hide-details
                       v-model="costo.seccion"
                     />
                   </td>
                   <td style="min-width:200px">
                     <v-text-field
-                      dense
+                      density="compact"
                       hide-details
                       v-model="costo.servicio"
                     />
                   </td>
                   <td style="min-width:220px">
                     <v-text-field
-                      dense
+                      density="compact"
                       hide-details
                       v-model="costo.concepto"
                     />
@@ -109,7 +109,7 @@
                   <td style="min-width:140px">
                     <v-text-field
                       class="tdMontos"
-                      dense
+                      density="compact"
                       hide-details
                       type="number"
                       step="0.01"
@@ -120,7 +120,7 @@
                   <td>{{ costo.proveedor }}</td>
                 </tr>
               </tbody>
-            </v-simple-table>
+            </v-table>
           </v-card-text>
         </v-card>
         

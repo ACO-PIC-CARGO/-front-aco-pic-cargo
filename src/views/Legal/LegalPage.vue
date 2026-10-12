@@ -22,7 +22,7 @@
       <div v-else-if="loadState === 'error'" class="legal__state" role="alert">
         <p class="legal__state-title">No pudimos cargar esta página.</p>
         <p>Revisa tu conexión e intenta de nuevo.</p>
-        <v-btn text class="plans-button plans-button--secondary" @click="load">
+        <v-btn variant="text" class="plans-button plans-button--secondary" @click="load">
           Reintentar
         </v-btn>
       </div>

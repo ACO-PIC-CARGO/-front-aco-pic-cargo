@@ -8,7 +8,7 @@
             v-for="(opcion, index) in opciones"
             :key="index"
             class="mx-1"
-            small
+            size="small"
             @click="opcionCalculadora = opcion.id"
           >
             {{ opcion.nombre }}
@@ -72,31 +72,31 @@
               </v-col> -->
               <v-col cols="12">
                 <v-autocomplete
-                  dense
+                  density="compact"
                   label="Servicio"
                   placeholder="Servicio"
                   :items="$store.state.calculadoras.lstServicio"
                   item-value="id"
-                  item-text="descripcion"
+                  item-title="descripcion"
                   :rules="[(v) => !!v || 'Dato Requerido']"
                   v-model="id_service"
                 />
               </v-col>
               <v-col cols="12">
                 <v-autocomplete
-                  dense
+                  density="compact"
                   label="Sección"
                   placeholder="Sección"
                   :items="$store.state.calculadoras.lstTipoCosto"
                   item-value="id"
-                  item-text="nombre"
+                  item-title="nombre"
                   :rules="[(v) => !!v || 'Dato Requerido']"
                   v-model="id_tipocosto"
                 />
               </v-col>
               <v-col cols="12">
                 <v-text-field
-                  dense
+                  density="compact"
                   label="Concepto"
                   placeholder="Concepto"
                   :rules="[(v) => !!v || 'Dato Requerido']"
@@ -105,19 +105,19 @@
               </v-col>
               <v-col cols="12">
                 <v-autocomplete
-                  dense
+                  density="compact"
                   label="Multiplcador"
                   placeholder="Multiplicador"
                   :items="$store.state.calculadoras.lstMultiplicador"
                   item-value="id"
-                  item-text="name"
+                  item-title="name"
                   :rules="[(v) => !!v || 'Dato Requerido']"
                   v-model="id_multiplicador"
                 />
               </v-col>
               <v-col cols="12">
                 <v-text-field
-                  dense
+                  density="compact"
                   label="Costo Unitado"
                   placeholder="Costo Unitario"
                   :rules="[(v) => !!v || 'Dato Requerido']"
@@ -128,7 +128,7 @@
               </v-col>
               <v-col cols="12">
                 <v-text-field
-                  dense
+                  density="compact"
                   label="Costo Mínimo "
                   placeholder="Costo Mínimo"
                   :rules="[(v) => !!v || 'Dato Requerido']"
@@ -140,7 +140,7 @@
               <v-col cols="12">
                 <v-text-field
                   type="date"
-                  dense
+                  density="compact"
                   label="Fecha Validez"
                   placeholder="Fecha Validez"
                   :rules="[(v) => !!v || 'Dato Requerido']"
@@ -158,13 +158,13 @@
         <v-card-actions>
           <v-spacer></v-spacer>
           <v-btn
-            small
+            size="small"
             color="success"
             @click="guardarConcepto"
             :loading="loading"
             >Agregar Nuevo Costo</v-btn
           >
-          <v-btn small color="error" @click="dialogNuevoCosto = false">
+          <v-btn size="small" color="error" @click="dialogNuevoCosto = false">
             Cancelar
           </v-btn>
         </v-card-actions>

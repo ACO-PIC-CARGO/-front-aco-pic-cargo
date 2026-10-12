@@ -40,7 +40,7 @@
     </v-row>
     <v-row>
       <v-col cols="6">
-        <v-simple-table dense>
+        <v-table density="compact">
           <thead>
             <tr class="text-center">
               <th colspan="2" class="bg_total">DATOS EMBARQUE</th>
@@ -80,11 +80,11 @@
               <td width="60%">{{ data.volumen }}</td>
             </tr>
           </tbody>
-        </v-simple-table>
+        </v-table>
       </v-col>
 
       <v-col cols="6">
-        <v-simple-table dense>
+        <v-table density="compact">
           <thead>
             <tr class="text-center">
               <th colspan="2" class="bg_total">SERVICIOS</th>
@@ -96,7 +96,7 @@
               <td>{{ serv.estado }}</td>
             </tr>
           </tbody>
-        </v-simple-table>
+        </v-table>
       </v-col>
 
       <v-col cols="12" class="text-center py-0">
@@ -437,7 +437,7 @@
         </table>
       </v-col>
       <v-col cols="12">
-        <v-simple-table dense>
+        <v-table density="compact">
           <thead>
             <tr>
               <th colspan="2" class="bg_total">TOTALES</th>
@@ -449,7 +449,7 @@
               <td>{{ data.OpcionesSelecciondas[index - 1].totalServicios }}</td>
             </tr>
           </tbody>
-        </v-simple-table>
+        </v-table>
       </v-col>
 
       <v-col cols="12">
@@ -492,7 +492,7 @@
       </v-col>
 
       <v-col cols="12">
-        <v-simple-table dense>
+        <v-table density="compact">
           <thead>
             <tr>
               <th colspan="2" class="bg_total">TOTALES</th>
@@ -509,13 +509,13 @@
               </td>
             </tr>
           </tbody>
-        </v-simple-table>
+        </v-table>
       </v-col>
 
       <!--  -->
 
       <v-col cols="12">
-        <v-simple-table>
+        <v-table>
           <thead>
             <tr>
               <th colspan="2" class="bg_total">TOTAL COTIZACIÓN</th>
@@ -537,7 +537,7 @@
               </td>
             </tr>
           </tbody>
-        </v-simple-table>
+        </v-table>
       </v-col>
     </v-row>
     <v-row>
@@ -652,7 +652,7 @@ export default {
     this.generarData();
   },
 
-  beforeDestroy() {
+  beforeUnmount() {
     window.removeEventListener("keydown", this.handleKeyPress);
   },
   methods: {

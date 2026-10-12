@@ -4,7 +4,7 @@
       <v-col cols="6">
         <v-btn
           rounded
-          small
+          size="small"
           class="mx-1"
           color="success"
           @click="cambiarRuta({ nameRuta: 'nuevoClientes' })"
@@ -13,7 +13,7 @@
         </v-btn>
         <v-btn
           rounded
-          small
+          size="small"
           class="mx-1"
           color="secondary"
           @click="
@@ -25,7 +25,7 @@
         </v-btn>
         <v-btn
           rounded
-          small
+          size="small"
           class="mx-1"
           color="warning"
           @click="exportCliente()"
@@ -59,22 +59,22 @@
           </template>
           <template v-slot:[`item.action`]="{ item }">
             <v-btn-toggle>
-              <v-btn x-small icon @click="obtenerTelContactoProveedor(item)">
-                <v-icon color="blue-grey darken-3">mdi-phone</v-icon>
+              <v-btn size="x-small" icon @click="obtenerTelContactoProveedor(item)">
+                <v-icon color="blue-grey-darken-3">mdi-phone</v-icon>
               </v-btn>
               <!-- <v-btn x-small icon @click="editar(item.id)">
                 <v-icon color="green">mdi-currency-usd</v-icon>
               </v-btn> -->
               <v-btn
                 v-if="item.status == 1"
-                x-small
+                size="x-small"
                 icon
                 @click="irAEditar(item)"
               >
                 <v-icon color="#E65100">mdi-pencil</v-icon>
               </v-btn>
               <v-btn
-                x-small
+                size="x-small"
                 icon
                 @click="
                   $router.push({
@@ -85,7 +85,7 @@
               >
                 <v-icon color="info">mdi-eye</v-icon>
               </v-btn>
-              <v-btn x-small icon v-if="item.status == 1">
+              <v-btn size="x-small" icon v-if="item.status == 1">
                 <v-icon color="red" @click="eliminar(item)">mdi-delete</v-icon>
               </v-btn>
             </v-btn-toggle>
@@ -120,7 +120,7 @@
                 <template v-slot:[`item.tipotelefono`]="{ item }">
                   <v-autocomplete
                     :items="$store.state.masterusuarios.lstTipoTelefono"
-                    item-text="descripcion"
+                    item-title="descripcion"
                     item-value="id"
                     label="Tipo de Teléfono"
                     v-model="item.id_tipotelefono"
@@ -166,7 +166,7 @@
                 <template v-slot:[`item.tipotelefono`]="{ item }">
                   <v-autocomplete
                     :items="$store.state.masterusuarios.lstTipoTelefono"
-                    item-text="descripcion"
+                    item-title="descripcion"
                     item-value="id"
                     label="Tipo de Teléfono"
                     v-model="item.id_tipotelefono"
@@ -208,7 +208,7 @@
 
     <v-dialog v-model="dialogAdminAuth" max-width="400" persistent>
       <v-card>
-        <v-card-title class="headline grey lighten-2">
+        <v-card-title class="headline bg-grey-lighten-2">
           Autenticación Requerida
         </v-card-title>
         <v-card-text class="pt-4">
@@ -220,8 +220,8 @@
             v-model="adminUser"
             label="Usuario o Email"
             prepend-icon="mdi-account"
-            outlined
-            dense
+            variant="outlined"
+            density="compact"
           ></v-text-field>
           <v-text-field
             v-model="adminPassword"
@@ -230,16 +230,16 @@
             :type="showAdminPassword ? 'text' : 'password'"
             :append-icon="showAdminPassword ? 'mdi-eye' : 'mdi-eye-off'"
             @click:append="showAdminPassword = !showAdminPassword"
-            outlined
-            dense
+            variant="outlined"
+            density="compact"
           ></v-text-field>
-          <v-alert v-if="adminAuthError" type="error" dense class="mt-2">
+          <v-alert v-if="adminAuthError" type="error" density="compact" class="mt-2">
             {{ adminAuthError }}
           </v-alert>
         </v-card-text>
         <v-card-actions>
           <v-spacer></v-spacer>
-          <v-btn color="grey" text @click="cerrarDialogAdminAuth()">
+          <v-btn color="grey" variant="text" @click="cerrarDialogAdminAuth()">
             Cancelar
           </v-btn>
           <v-btn

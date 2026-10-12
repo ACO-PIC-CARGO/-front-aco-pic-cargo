@@ -4,7 +4,7 @@
 
     <h3>Servicios a Realizar</h3>
 
-    <v-simple-table dense>
+    <v-table density="compact">
       <template v-slot:default>
         <thead>
           <tr>
@@ -22,10 +22,10 @@
           >
             <td>
               <v-text-field
-                :value="formatFecha(item.date_service || item.updated_at)"
+                :model-value="formatFecha(item.date_service || item.updated_at)"
                 prepend-icon="mdi-calendar"
                 readonly
-                dense
+                density="compact"
                 disabled
                 hide-details
                 style="max-width: 140px;"
@@ -39,7 +39,7 @@
                 <!-- Switch normal -->
                 <v-switch
                   v-if="item.nameservice != 'CERTIFICADO DE ORIGEN'"
-                  dense
+                  density="compact"
                   color="primary"
                   v-model="item.status"
                   :disabled="true"
@@ -48,8 +48,8 @@
 
                 <!-- Menú especial -->
                 <v-menu v-else offset-y>
-                  <template v-slot:activator="{ on, attrs }">
-                    <v-btn large color="default" v-bind="attrs" v-on="on" :disabled="true">
+                  <template v-slot:activator="{ props }">
+                    <v-btn size="large" color="default" v-bind="props" :disabled="true">
                       {{
                         item.status == 1
                           ? "SI"
@@ -82,39 +82,39 @@
           </tr>
         </tbody>
       </template>
-    </v-simple-table>
+    </v-table>
 
     <!-- Campos de Aduana (solo lectura) -->
-    <v-card class="mt-4" outlined>
+    <v-card class="mt-4" border>
       <v-card-title class="py-2">
-        <v-icon left color="indigo">mdi-ferry</v-icon>
+        <v-icon start color="indigo">mdi-ferry</v-icon>
         Datos de Aduana
         <v-spacer></v-spacer>
-        <span class="caption grey--text text--darken-1">Información SUNAT</span>
+        <span class="caption text-grey-darken-1">Información SUNAT</span>
       </v-card-title>
       <v-card-text class="pt-0">
-        <v-row dense>
+        <v-row density="compact">
           <v-col cols="12" md="6">
             <v-text-field
-              :value="$store.state.house_nro_declaracion_aduana"
+              :model-value="$store.state.house_nro_declaracion_aduana"
               label="N° Declaración de Aduana"
               prepend-icon="mdi-file-document-outline"
               readonly
               disabled
-              outlined
-              dense
+              variant="outlined"
+              density="compact"
               hide-details="auto"
             ></v-text-field>
           </v-col>
           <v-col cols="12" md="6">
             <v-text-field
-              :value="$store.state.house_canal_aduana"
+              :model-value="$store.state.house_canal_aduana"
               label="Canal de Aduana"
               prepend-icon="mdi-traffic-light"
               readonly
               disabled
-              outlined
-              dense
+              variant="outlined"
+              density="compact"
               hide-details="auto"
             ></v-text-field>
           </v-col>
@@ -159,15 +159,15 @@
         </v-card-title>
 
         <v-card-text>
-          <v-list dense two-line>
+          <v-list density="compact" lines="two">
             <v-list-item
               v-for="(item, idx) in itemsNotificaciones"
               :key="idx"
               @click="seleccionarNotificacion(item)"
             >
-              <v-list-item-content>
+              
                 <v-list-item-title>{{ item.title }}</v-list-item-title>
-              </v-list-item-content>
+              
               <v-list-item-icon>
                 <v-icon color="primary">mdi-chevron-right</v-icon>
               </v-list-item-icon>
@@ -219,7 +219,7 @@ export default {
     window.addEventListener("resize", this.updateSpeedDialDirection);
     window.addEventListener("scroll", this.updateSpeedDialDirection, true);
   },
-  beforeDestroy() {
+  beforeUnmount() {
     window.removeEventListener("resize", this.updateSpeedDialDirection);
     window.removeEventListener("scroll", this.updateSpeedDialDirection, true);
   },

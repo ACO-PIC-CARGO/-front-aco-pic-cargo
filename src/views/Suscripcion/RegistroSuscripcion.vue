@@ -5,14 +5,14 @@
         <v-col cols="12"> <h3>Registro de Suscripción</h3> </v-col>
         <v-col cols="12" md="4">
           Nombre:
-          <v-text-field solo dense></v-text-field>
+          <v-text-field variant="solo" density="compact"></v-text-field>
         </v-col>
         <v-col cols="12" md="8">
           Descripcion:
-          <v-textarea solo rows="1" dense></v-textarea>
+          <v-textarea variant="solo" rows="1" density="compact"></v-textarea>
         </v-col>
         <v-col cols="12" class="pt-0">
-          <v-tabs v-model="tab" color="primary" centered slider-color="primary">
+          <v-tabs v-model="tab" color="primary" align-tabs="center" slider-color="primary">
             <v-tab key="usuarios"> Usuarios </v-tab>
             <v-tab key="Detalles"> Detalles </v-tab>
           </v-tabs>

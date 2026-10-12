@@ -26,7 +26,7 @@
 
         <v-select
           :items="$store.state.itemsDocumentsPais"
-          item-text="description"
+          item-title="description"
           item-value="id"
           label="Tipo de Documento Fiscal"
           clearable
@@ -42,7 +42,7 @@
 
         <v-autocomplete
           :items="$store.state.itemsDataRoleList"
-          item-text="name"
+          item-title="name"
           item-value="id"
           label="Tipo de Proveedor"
           v-model="$store.state.entities.filtro.id_tipoproveedor"
@@ -57,25 +57,25 @@
         ></v-text-field>
 
         <v-autocomplete
-          item-text="name"
+          item-title="name"
           item-value="id"
           :items="$store.state.itemsPais"
           label="País"
-          @change="_getState($store.state.entities.filtro.id_pais)"
+          @update:model-value="_getState($store.state.entities.filtro.id_pais)"
           clearable
           v-model="$store.state.entities.filtro.id_pais"
         ></v-autocomplete>
 
         <v-autocomplete
           :items="$store.state.itemsState"
-          item-text="name"
+          item-title="name"
           item-value="id"
           label="Departamento"
           clearable
           v-model="$store.state.entities.filtro.id_state"
         ></v-autocomplete>
 
-        <v-radio-group v-model="$store.state.entities.filtro.status" row>
+        <v-radio-group v-model="$store.state.entities.filtro.status" inline>
           <v-radio color="green" label="Activo" value="1"></v-radio>
           <v-radio color="error" label="Inactivo" value="0"></v-radio>
           <v-radio color="default" label="Todos" value=""></v-radio>
@@ -85,11 +85,11 @@
     </v-card-text>
     <v-card-actions>
       <v-spacer></v-spacer>
-      <v-btn small class="mx-1" color="success" @click="filtrar()">
+      <v-btn size="small" class="mx-1" color="success" @click="filtrar()">
         Filtrar
       </v-btn>
       <v-btn
-        small
+        size="small"
         class="mx-1"
         color="error"
         @click="
@@ -99,7 +99,7 @@
       >
         Cerrar
       </v-btn>
-      <v-btn small class="mx-1" color="default" @click="limpiar()">
+      <v-btn size="small" class="mx-1" color="default" @click="limpiar()">
         Limpiar
       </v-btn>
     </v-card-actions>

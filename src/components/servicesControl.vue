@@ -1,11 +1,11 @@
 <template>
   <div>
     <v-container>
-      <v-row dense>
+      <v-row density="compact">
         <v-col cols="12">
           <v-autocomplete
             :items="$store.state.itemsBegEndList"
-            item-text="name"
+            item-title="name"
             item-value="id"
             v-model="$store.state.service_id_begend"
           ></v-autocomplete>

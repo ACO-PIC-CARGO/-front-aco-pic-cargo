@@ -2,13 +2,13 @@
   <v-card fluid class="px-5">
     <v-card elevation="0">
       <v-container v-if="loading" style="height: 400px">
-        <v-row class="fill-height" align-content="center" justify="center">
+        <v-row class="fill-height align-content-center justify-center">
           <v-col class="text-subtitle-1 text-center" cols="12">
             Cargando información ....
           </v-col>
           <v-col cols="6">
             <v-progress-linear
-              color="deep-purple accent-4"
+              color="deep-purple-accent-4"
               indeterminate
               rounded
               height="6"
@@ -28,20 +28,20 @@
         </v-text-field>
         <v-spacer></v-spacer>
         <v-btn
-          small
+          size="small"
           color="success"
           @click="showFilterDrawerNew = !showFilterDrawerNew"
         >
           Nuevo
         </v-btn>
         <v-btn
-          small
+          size="small"
           color="success"
           @click="showFilterDrawer = !showFilterDrawer"
         >
           Fitrar
         </v-btn>
-        <v-btn small class="mx-1" color="#004D40" dark> Exportar </v-btn>
+        <v-btn size="small" class="mx-1" color="#004D40" dark> Exportar </v-btn>
       </v-card-title>
 
       <v-data-table
@@ -66,7 +66,7 @@
             <v-switch
               v-model="item.status"
               color="success"
-              @change="inactive(item)"
+              @update:model-value="inactive(item)"
             ></v-switch>
           </v-btn>
         </template>
@@ -76,9 +76,9 @@
     <v-navigation-drawer
       v-model="showFilterDrawerNew"
       absolute
-      bottom
+      location="bottom right"
       temporary
-      right
+      
       width="30%"
       height="92vh"
     >
@@ -110,21 +110,21 @@
             </v-row>
             <v-row>
               <v-switch
-                dense
+                density="compact"
                 label="Activo/Inactivo"
                 v-model="type.status"
                 hide-details
                 color="success"
-                @change="updateStatus"
+                @update:model-value="updateStatus"
               ></v-switch>
             </v-row>
           </v-card-text>
         </v-card-title>
         <v-card-actions class="justify-end mt-3">
-          <v-btn small class="mx-1" color="success" @click="insert()" rounded>
+          <v-btn size="small" class="mx-1" color="success" @click="insert()" rounded>
             Registrar</v-btn
           >
-          <v-btn small class="mx-1" dark color="red" @click="volver()" rounded>
+          <v-btn size="small" class="mx-1" dark color="red" @click="volver()" rounded>
             Cancelar</v-btn
           >
         </v-card-actions>
@@ -135,9 +135,9 @@
       v-model="showFilterDrawerRead"
       height="100vh"
       absolute
-      bottom
+      location="bottom right"
       temporary
-      right
+      
       width="30%"
     >
       <v-card class="">
@@ -151,14 +151,14 @@
                 <v-text-field
                   label="Código"
                   readonly
-                  :value="$store.state.type_phone.record.code"
+                  :model-value="$store.state.type_phone.record.code"
                 ></v-text-field>
               </v-row>
               <v-row>
                 <v-text-field
                   label="Nombre"
                   readonly
-                  :value="$store.state.type_phone.record.name"
+                  :model-value="$store.state.type_phone.record.name"
                 ></v-text-field>
               </v-row>
               <v-row>
@@ -187,13 +187,13 @@
           </v-card-actions>
         </v-container>
         <v-container v-if="loading_as" style="height: 400px">
-          <v-row class="fill-height" align-content="center" justify="center">
+          <v-row class="fill-height align-content-center justify-center">
             <v-col class="text-subtitle-1 text-center" cols="12">
               Cargando información ....
             </v-col>
             <v-col cols="6">
               <v-progress-linear
-                color="deep-purple accent-4"
+                color="deep-purple-accent-4"
                 indeterminate
                 rounded
                 height="6"
@@ -207,9 +207,9 @@
     <v-navigation-drawer
       v-model="showFilterDrawerUpdate"
       absolute
-      bottom
+      location="bottom right"
       temporary
-      right
+      
       width="30%"
       height="92vh"
     >
@@ -244,7 +244,7 @@
                   label="Activo / Inactivo"
                   v-model="type.status"
                   color="success"
-                  @change="updateStatus"
+                  @update:model-value="updateStatus"
                 ></v-switch>
               </v-row>
             </v-card-text>
@@ -265,13 +265,13 @@
         </v-container>
 
         <v-container v-if="loading_as" style="height: 400px">
-          <v-row class="fill-height" align-content="center" justify="center">
+          <v-row class="fill-height align-content-center justify-center">
             <v-col class="text-subtitle-1 text-center" cols="12">
               Cargando información ....
             </v-col>
             <v-col cols="6">
               <v-progress-linear
-                color="deep-purple accent-4"
+                color="deep-purple-accent-4"
                 indeterminate
                 rounded
                 height="6"
@@ -285,9 +285,9 @@
     <v-navigation-drawer
       v-model="showFilterDrawer"
       absolute
-      bottom
+      location="bottom right"
       temporary
-      right
+      
       width="30%"
       height="92vh"
     >
@@ -306,12 +306,12 @@
             </v-row>
             <v-row>
               <v-switch
-                dense
+                density="compact"
                 label="Activo/Inactivo"
                 v-model="type.status"
                 hide-details
                 color="success"
-                @change="updateStatus"
+                @update:model-value="updateStatus"
               ></v-switch>
             </v-row>
           </v-card-text>

@@ -11,28 +11,28 @@
                   ref="menuDesde"
                   v-model="menuDesde"
                   :close-on-content-click="false"
-                  :return-value.sync="dateDesde"
+                  v-model:return-value="dateDesde"
                   transition="scale-transition"
                   offset-y
                   min-width="auto"
                 >
-                  <template v-slot:activator="{ on, attrs }">
+                  <template v-slot:activator="{ props }">
                     <v-text-field
                       v-model="dateDesde"
                       label="Fecha desde"
                       prepend-icon="mdi-calendar"
                       readonly
-                      v-bind="attrs"
-                      v-on="on"
+                     
+                      v-bind="props"
                     ></v-text-field>
                   </template>
                   <v-date-picker v-model="dateDesde" no-title scrollable>
                     <v-spacer></v-spacer>
-                    <v-btn text color="primary" @click="menuDesde = false">
+                    <v-btn variant="text" color="primary" @click="menuDesde = false">
                       Cancel
                     </v-btn>
                     <v-btn
-                      text
+                      variant="text"
                       color="primary"
                       @click="$refs.menuDesde.save(dateDesde)"
                     >
@@ -46,28 +46,28 @@
                   ref="menuHasta"
                   v-model="menuHasta"
                   :close-on-content-click="false"
-                  :return-value.sync="dateHasta"
+                  v-model:return-value="dateHasta"
                   transition="scale-transition"
                   offset-y
                   min-width="auto"
                 >
-                  <template v-slot:activator="{ on, attrs }">
+                  <template v-slot:activator="{ props }">
                     <v-text-field
                       v-model="dateHasta"
                       label="Fecha Hasta"
                       prepend-icon="mdi-calendar"
                       readonly
-                      v-bind="attrs"
-                      v-on="on"
+                     
+                      v-bind="props"
                     ></v-text-field>
                   </template>
                   <v-date-picker v-model="dateHasta" no-title scrollable>
                     <v-spacer></v-spacer>
-                    <v-btn text color="primary" @click="menuHasta = false">
+                    <v-btn variant="text" color="primary" @click="menuHasta = false">
                       Cancel
                     </v-btn>
                     <v-btn
-                      text
+                      variant="text"
                       color="primary"
                       @click="$refs.menuHasta.save(dateHasta)"
                     >
@@ -84,7 +84,7 @@
             >Buscar</v-btn
           >
           <v-spacer></v-spacer>
-          <v-btn color="red" outlined elevation="0" @click="dialogDate = false"
+          <v-btn color="red" variant="outlined" elevation="0" @click="dialogDate = false"
             >Cerrar</v-btn
           >
         </v-card-actions>
@@ -94,7 +94,7 @@
     <v-card elevation="0">
       <v-card-title>
         REPORTE DE CONTROL DE FILE DETALLADO <v-spacer></v-spacer>
-        <v-btn outlined @click="dialogDate = true" color="primary" class="mr-5"
+        <v-btn variant="outlined" @click="dialogDate = true" color="primary" class="mr-5"
           >BUSCAR NUEVA FECHA</v-btn
         >
         <v-btn @click="_exportPdf()" color="primary" elevation="0"
@@ -104,7 +104,7 @@
       <v-container fluid>
         <v-row>
           <v-col cols="12" md="12">
-            <v-simple-table>
+            <v-table>
               <tbody>
                 <tr style="background: #ddd; font-weight: bold">
                   <td>
@@ -140,19 +140,19 @@
                   </td>
                 </tr>
               </tbody>
-            </v-simple-table>
+            </v-table>
           </v-col>
         </v-row>
       </v-container>
       <v-card-text>
         <v-container v-if="!dataList" style="height: 400px">
-          <v-row class="fill-height" align-content="center" justify="center">
+          <v-row class="fill-height align-content-center justify-center">
             <v-col class="text-subtitle-1 text-center" cols="12">
               Cargando informacíon
             </v-col>
             <v-col cols="6">
               <v-progress-linear
-                color="deep-purple accent-4"
+                color="deep-purple-accent-4"
                 indeterminate
                 rounded
                 height="6"
@@ -165,7 +165,7 @@
           :headers="dessertHeaders"
           :items="itemsDetails"
           :single-expand="singleExpand"
-          :expanded.sync="expanded"
+          v-model:expanded="expanded"
           item-key="id_master"
           show-expand
           class="elevation-0"
@@ -197,7 +197,7 @@
           <template v-slot:expanded-item="{ item }">
             <td colspan="1"></td>
             <td :colspan="dessertHeaders.length">
-              <v-simple-table style="width: 100%">
+              <v-table style="width: 100%">
                 <thead>
                   <tr style="background: #b2dfdb">
                     <th>Cliente</th>
@@ -228,8 +228,8 @@
                     </td>
                   </tr>
                 </tbody>
-              </v-simple-table>
-              <v-simple-table style="width: 100%">
+              </v-table>
+              <v-table style="width: 100%">
                 <thead>
                   <tr style="background: #ffccbc">
                     <th>Proveedor</th>
@@ -264,7 +264,7 @@
                     </td>
                   </tr>
                 </tbody>
-              </v-simple-table>
+              </v-table>
               <!-- <v-simple-table style="width: 100%">
                 <thead>
                   <tr style="background: #fff1cf">

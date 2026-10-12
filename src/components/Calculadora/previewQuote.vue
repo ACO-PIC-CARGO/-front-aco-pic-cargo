@@ -57,7 +57,7 @@
       
       <v-row>
         <v-col cols="6">
-          <v-simple-table dense>
+          <v-table density="compact">
             <thead>
               <tr class="text-center">
                 <th colspan="2" class="bg_total">DATOS EMBARQUE</th>
@@ -97,7 +97,7 @@
                 <td width="60%">{{ data.volumen }}</td>
               </tr>
             </tbody>
-          </v-simple-table>
+          </v-table>
         </v-col>
       </v-row>
       {{ data }} 
@@ -705,7 +705,7 @@ export default {
     this.datosEmpresa = JSON.parse(sessionStorage.getItem("dataBranch"))[0];
   },
 
-  beforeDestroy() {
+  beforeUnmount() {
     window.removeEventListener("keydown", this.handleKeyPress);
   },
   computed: {

@@ -1,7 +1,7 @@
 <template>
   <v-card>
     <v-container fluid>
-      <v-tabs centered v-model="tab">
+      <v-tabs align-tabs="center" v-model="tab">
         <v-tab href="#fletelst" active>Flete Listado </v-tab>
         <v-tab href="#section">Secciones </v-tab>
         <v-tab href="#serv">Servicios </v-tab>

@@ -20,9 +20,9 @@
             <v-col cols="12" md="6" class="py-1">
               <v-autocomplete
                 label="Cliente"
-                dense
+                density="compact"
                 :items="$store.state.clientes"
-                item-text="namelong"
+                item-title="namelong"
                 item-value="id"
                 placeholder="Clientes"
                 v-model="$store.state.pricing.filtro.id_cliente"
@@ -34,8 +34,8 @@
               <v-autocomplete
                 :items="$store.state.pricing.listMarketing"
                 label="Tipo de Marketing"
-                dense
-                item-text="name"
+                density="compact"
+                item-title="name"
                 item-value="id"
                 v-model="$store.state.pricing.filtro.id_marketing"
                 clearable
@@ -46,8 +46,8 @@
                 auto-select-first
                 :items="$store.state.pricing.listQuoteStatus"
                 label="Estado de la Cotización"
-                dense
-                item-text="name"
+                density="compact"
+                item-title="name"
                 item-value="id"
                 v-model="$store.state.pricing.filtro.id_status"
                 clearable
@@ -57,9 +57,9 @@
               <v-autocomplete
                 :items="$store.state.pricing.listEjecutivo"
                 label="Pricing."
-                dense
+                density="compact"
                 search
-                item-text="name"
+                item-title="name"
                 item-value="id_entitie"
                 v-model="$store.state.pricing.filtro.id_pricing"
                 clearable
@@ -69,9 +69,9 @@
               <v-autocomplete
                 :items="$store.state.pricing.listEjecutivo"
                 label="Ejecutivo."
-                dense
+                density="compact"
                 search
-                item-text="name"
+                item-title="name"
                 item-value="id_entitie"
                 v-model="$store.state.pricing.filtro.id_entities"
                 clearable
@@ -82,8 +82,8 @@
                 :items="$store.state.pricing.listModality"
                 label="Sentido"
                 v-model="$store.state.pricing.filtro.id_modality"
-                dense
-                item-text="name"
+                density="compact"
+                item-title="name"
                 item-value="id"
                 clearable
               ></v-autocomplete>
@@ -92,8 +92,8 @@
               <v-autocomplete
                 :items="$store.state.pricing.listShipment"
                 label="Carga*"
-                dense
-                item-text="embarque"
+                density="compact"
+                item-title="embarque"
                 item-value="id"
                 v-model="$store.state.pricing.filtro.id_shipment"
                 clearable
@@ -104,8 +104,8 @@
               <v-autocomplete
                 :items="$store.state.pricing.listIncoterms"
                 label="Incoterm*"
-                dense
-                item-text="name"
+                density="compact"
+                item-title="name"
                 item-value="id"
                 v-model="$store.state.pricing.filtro.id_incoterm"
                 clearable
@@ -118,8 +118,8 @@
                   $store.state.pricing.filtro.id_masterdetalletemperaturaventa
                 "
                 item-value="id"
-                item-text="descripcion"
-                dense
+                item-title="descripcion"
+                density="compact"
                 clearable
                 label="Temperatura de Lead"
               >
@@ -185,7 +185,7 @@
               />
             </v-col>
             <v-col cols="12" v-if="errorFiltroFecha">
-              <v-alert dense style="background: #ffcdd2; color: #b71c1c">
+              <v-alert density="compact" style="background: #ffcdd2; color: #b71c1c">
                 <b>{{ errorFiltroFecha }}</b>
               </v-alert>
               <span> </span>

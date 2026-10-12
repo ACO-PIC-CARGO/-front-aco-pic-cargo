@@ -6,7 +6,7 @@
         <v-btn
           :id="`${value.key}-up`"
           icon
-          text
+          variant="text"
           class="icon-button"
           :aria-label="`Subir la sección ${number}`"
           :disabled="index === 0"
@@ -17,7 +17,7 @@
         <v-btn
           :id="`${value.key}-down`"
           icon
-          text
+          variant="text"
           class="icon-button"
           :aria-label="`Bajar la sección ${number}`"
           :disabled="index === count - 1"
@@ -27,7 +27,7 @@
         </v-btn>
         <v-btn
           icon
-          text
+          variant="text"
           class="icon-button"
           :aria-label="`Eliminar la sección ${number}`"
           :disabled="count === 1"
@@ -40,21 +40,21 @@
 
     <v-text-field
       :id="`${value.key}-heading`"
-      :value="value.heading"
+      :model-value="value.heading"
       label="Título de la sección"
       autocomplete="off"
       :maxlength="limits.heading"
       :counter="limits.heading"
       :error-messages="errors.heading"
       :aria-invalid="String(Boolean(errors.heading))"
-      outlined
-      dense
-      @input="update('heading', $event)"
+      variant="outlined"
+      density="compact"
+      @update:model-value="update('heading', $event)"
     />
 
     <v-textarea
       :id="`${value.key}-text`"
-      :value="value.text"
+      :model-value="value.text"
       label="Texto"
       rows="6"
       auto-grow
@@ -62,9 +62,9 @@
       persistent-hint
       :error-messages="errors.text"
       :aria-invalid="String(Boolean(errors.text))"
-      outlined
-      dense
-      @input="update('text', $event)"
+      variant="outlined"
+      density="compact"
+      @update:model-value="update('text', $event)"
     />
   </li>
 </template>

@@ -4,13 +4,13 @@
       <v-spacer></v-spacer>
       <v-btn
         v-if="!showNavigationButtons"
-        color="light-blue darken-2"
+        color="light-blue-darken-2"
         class="ma-2"
         dark
-        small
+        size="small"
         @click="modificarProveedor"
       >
-        <v-icon left small>mdi-account-edit</v-icon>
+        <v-icon start size="small">mdi-account-edit</v-icon>
         {{ isFormReadonly ? 'EDITAR PROVEEDOR' : 'GUARDAR CAMBIOS' }}
       </v-btn>
     </v-card-title>
@@ -24,7 +24,7 @@
           <v-btn
             color="primary"
             rounded
-            small
+            size="small"
             class="ml-auto"
             @click="agregarTelefono()"
             >Agregar Teléfono</v-btn
@@ -43,7 +43,7 @@
               <template v-slot:[`item.id_tipotelefono`]="{ item }">
                 <v-autocomplete
                   :items="$store.state.masterusuarios.lstTipoTelefono"
-                  item-text="descripcion"
+                  item-title="descripcion"
                   item-value="id"
                   v-model="item.id_tipotelefono"
                   :rules="[(v) => !!v || 'Dato Requerido']"
@@ -83,7 +83,7 @@
           <v-btn
             color="primary"
             rounded
-            small
+            size="small"
             class="ml-auto"
             @click="agregarContacto()"
             >Agregar Contacto</v-btn
@@ -109,7 +109,7 @@
               <template v-slot:[`item.id_tipotelefono`]="{ item }">
                 <v-autocomplete
                   :items="$store.state.masterusuarios.lstTipoTelefono"
-                  item-text="descripcion"
+                  item-title="descripcion"
                   item-value="id"
                   v-model="item.id_tipotelefono"
                   :rules="[(v) => !!v || 'Dato Requerido']"

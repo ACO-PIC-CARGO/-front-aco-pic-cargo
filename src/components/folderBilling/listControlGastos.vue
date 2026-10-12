@@ -30,13 +30,13 @@
         ></v-text-field>
       </v-card-title>
       <v-container v-if="!$store.state.dataGastos" style="height: 400px">
-        <v-row class="fill-height" align-content="center" justify="center">
+        <v-row class="fill-height align-content-center justify-center">
           <v-col class="text-subtitle-1 text-center" cols="12">
             Cargando informacíon
           </v-col>
           <v-col cols="6">
             <v-progress-linear
-              color="deep-purple accent-4"
+              color="deep-purple-accent-4"
               indeterminate
               rounded
               height="6"
@@ -52,7 +52,7 @@
       >
         <template v-slot:[`item.actions`]="{ item }">
           <v-icon
-            large
+            size="large"
             color="blue"
             class="mr-2"
             @click="verControlGasto(item)"
@@ -60,7 +60,7 @@
             mdi-eye
           </v-icon>
           <v-icon
-            large
+            size="large"
             color="#FFD600"
             class="mr-2"
             @click="abrirCaperta(item)"
@@ -68,7 +68,7 @@
             mdi-folder
           </v-icon>
           <v-icon
-            large
+            size="large"
             color="orange"
             class="mr-2"
             @click="editControlGasto(item)"

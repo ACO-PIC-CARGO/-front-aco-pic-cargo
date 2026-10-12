@@ -18,20 +18,20 @@
               :key="child"
             >
               <v-list-item-avatar size="28">
-                <v-icon small class="grey lighten-1" dark> mdi-folder </v-icon>
+                <v-icon size="small" class="bg-grey-lighten-1" dark> mdi-folder </v-icon>
               </v-list-item-avatar>
 
-              <v-list-item-content>
+              
                 <v-list-item-title
                   style="font-size: 14px"
                   v-text="child.nameservice"
                 ></v-list-item-title>
                 <!-- 
                 <v-list-item-subtitle v-text="asfasf"></v-list-item-subtitle> -->
-              </v-list-item-content>
+              
 
               <v-list-item-action>
-                <v-switch v-model="child.id" dense></v-switch>
+                <v-switch v-model="child.id" density="compact"></v-switch>
               </v-list-item-action>
             </v-list-item>
           </v-list>

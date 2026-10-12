@@ -10,25 +10,25 @@
             ref="menu"
             v-model="menu"
             :close-on-content-click="false"
-            :return-value.sync="date"
+            v-model:return-value="date"
             transition="scale-transition"
             offset-y
             min-width="auto"
           >
-            <template v-slot:activator="{ on, attrs }">
+            <template v-slot:activator="{ props }">
               <v-text-field
                 v-model="dateRange"
                 label="Rango de Fechas"
                 prepend-icon="mdi-calendar"
                 readonly
-                v-bind="attrs"
-                v-on="on"
+               
+                v-bind="props"
               ></v-text-field>
             </template>
             <v-date-picker v-model="date" locale="es-pe" range scrollable>
               <v-spacer></v-spacer>
-              <v-btn text color="primary" @click="menu = false"> Cancel </v-btn>
-              <v-btn text color="primary" @click="$refs.menu.save(date)">
+              <v-btn variant="text" color="primary" @click="menu = false"> Cancel </v-btn>
+              <v-btn variant="text" color="primary" @click="$refs.menu.save(date)">
                 OK
               </v-btn>
             </v-date-picker>
@@ -38,7 +38,7 @@
             color="primary"
             @click="_getDebsToPayFilter()"
             elevation="0"
-            medium
+            size="medium"
             >Buscar</v-btn
           >
           <v-btn
@@ -46,7 +46,7 @@
             color="orange"
             @click="_cleanFilter()"
             elevation="0"
-            medium
+            size="medium"
             >Limpiar</v-btn
           >
           <v-btn
@@ -54,19 +54,19 @@
             color="orange"
             @click="viewPDF()"
             elevation="0"
-            medium
+            size="medium"
             >EXPORTAR A PDF</v-btn
           >
         </v-card-title>
         <v-card-text>
           <v-container v-if="!dataList" style="height: 400px">
-            <v-row class="fill-height" align-content="center" justify="center">
+            <v-row class="fill-height align-content-center justify-center">
               <v-col class="text-subtitle-1 text-center" cols="12">
                 Cargando información...
               </v-col>
               <v-col cols="6">
                 <v-progress-linear
-                  color="deep-purple accent-4"
+                  color="deep-purple-accent-4"
                   indeterminate
                   rounded
                   height="6"
@@ -125,7 +125,7 @@
 
                 <template v-slot:expanded-item="{ item }">
                   <td colspan="11">
-                    <v-simple-table style="width: 100%">
+                    <v-table style="width: 100%">
                       <thead>
                         <tr style="background: #fff1cf">
                           <th>Expediente</th>
@@ -171,7 +171,7 @@
                           </td> -->
                         </tr>
                       </tbody>
-                    </v-simple-table>
+                    </v-table>
                   </td>
                 </template>
 
@@ -286,7 +286,7 @@
 
                 <template v-slot:expanded-item="{ item }">
                   <td colspan="11">
-                    <v-simple-table style="width: 100%">
+                    <v-table style="width: 100%">
                       <thead>
                         <tr style="background: #fff1cf">
                           <th>Expediente</th>
@@ -332,7 +332,7 @@
                           </td> -->
                         </tr>
                       </tbody>
-                    </v-simple-table>
+                    </v-table>
                   </td>
                 </template>
 
@@ -417,11 +417,11 @@
             v-if="radiopdf != ''"
             color="primary"
             @click="_exportPdf()"
-            outlined
+            variant="outlined"
             >EXPORTAR</v-btn
           >
           <v-spacer></v-spacer>
-          <v-btn color="red" @click="dialogPdf = false" outlined>Cerrar</v-btn>
+          <v-btn color="red" @click="dialogPdf = false" variant="outlined">Cerrar</v-btn>
         </v-card-actions>
       </v-card>
     </v-dialog>

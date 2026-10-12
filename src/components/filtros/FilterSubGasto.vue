@@ -17,7 +17,7 @@
           label="Tipo de Gasto"
           :items="$store.state.gastos.list"
           v-model="$store.state.subgasto.filtros.id_gasto"
-          item-text="description"
+          item-title="description"
           item-value="id"
           clearable
         >
@@ -42,8 +42,8 @@
         <span> Se calcula en Reportes</span>
         <v-radio-group
           v-model="$store.state.subgasto.filtros.calculoflag"
-          row
-          dense
+          inline
+          density="compact"
         >
           <v-radio label="Si" color="green" :value="true"></v-radio>
           <v-radio label="No" color="red" :value="false"></v-radio>
@@ -54,8 +54,8 @@
         <span> Se muestra en Reportes</span>
         <v-radio-group
           v-model="$store.state.subgasto.filtros.mostrarflag"
-          row
-          dense
+          inline
+          density="compact"
         >
           <v-radio label="Si" color="green" :value="true"></v-radio>
           <v-radio label="No" color="red" :value="false"></v-radio>
@@ -64,7 +64,7 @@
       </div>
       <div class="col-12 py-1">
         <span> Estado</span>
-        <v-radio-group v-model="$store.state.subgasto.filtros.status" row dense>
+        <v-radio-group v-model="$store.state.subgasto.filtros.status" inline density="compact">
           <v-radio label="Activo" color="green" :value="true"></v-radio>
           <v-radio label="Inactivo" color="red" :value="false"></v-radio>
           <v-radio label="Todos" color="blue" value="null"></v-radio>
@@ -78,7 +78,7 @@
             label="Tipo de Gasto (*)"
             :items="$store.state.gastos.list"
             v-model="$store.state.subgasto.model.id_gasto"
-            item-text="description"
+            item-title="description"
             item-value="id"
             :rules="[(v) => !!v || 'Dato Requerido']"
             :readonly="$store.state.subgasto.tipo == 'ver'"

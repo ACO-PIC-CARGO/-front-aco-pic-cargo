@@ -3,7 +3,7 @@
     <v-form ref="Login" autocomplete="off">
       <div class="title">
         <h1 class="_title__logo my-3">ACO</h1>
-        <h3 class="white--text my-5">Bienvenido</h3>
+        <h3 class="text-white my-5">Bienvenido</h3>
       </div>
       <!-- <p class="white--text">
         Sistema para Agencia de Carga y Operadores Logísticos
@@ -39,7 +39,7 @@
           class="active"
         />
         <label for="">Clave</label>
-        <span class="red--text"> {{ $store.state.securitys.errorClave }}</span>
+        <span class="text-red"> {{ $store.state.securitys.errorClave }}</span>
       </div>
       <div class="RecuperarContrasenia">
         <a href="">¿Olvidé Contraseña?</a>

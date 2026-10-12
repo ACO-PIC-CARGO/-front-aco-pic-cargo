@@ -7,7 +7,7 @@
           v-for="(opcion, index) in opciones"
           :key="index"
           class="mx-1"
-          small
+          size="small"
           @click="opcionCalculadora = opcion.id"
         >
           {{ opcion.nombre }}
@@ -19,14 +19,14 @@
         <v-divider></v-divider>
       </v-col>
       <v-col cols="12">
-        <v-tabs v-model="tabTransporte" centered>
+        <v-tabs v-model="tabTransporte" align-tabs="center">
           <v-tabs-slider color="yellow"></v-tabs-slider>
           <v-tab href="#datosactuales">Datos Actuales</v-tab>
           <v-tab href="#cargamasiva">Carga Masiva</v-tab>
           <v-tab-item value="datosactuales">
             <v-row>
               <v-col cols="12" class="d-flex justify-end">
-                <v-btn color="success" small @click="abrirModalNuevo"
+                <v-btn color="success" size="small" @click="abrirModalNuevo"
                   >Nuevo Registro</v-btn
                 >
               </v-col>
@@ -54,16 +54,16 @@
                   type="number"
                   label="Tipo Cambio"
                   step="0.01"
-                  dense
-                  outlined
+                  density="compact"
+                  variant="outlined"
                   v-model="tipocambio"
                 ></v-text-field>
               </v-col>
               <v-col cols="12" md="4" style="text-align: right">
                 <v-file-input
-                  outlined
+                  variant="outlined"
                   show-size
-                  dense
+                  density="compact"
                   v-model="excel"
                   label="Cargar Excel de Transporte"
                   placeholder="Seleccione un archivo"
@@ -80,7 +80,7 @@
                   @click="procesarExcel()"
                   :loading="procesando"
                   class="mx-1"
-                  small
+                  size="small"
                   :disabled="!procesarflag"
                 >
                   Procesar
@@ -88,7 +88,7 @@
                 <!-- <v-btn color="success" small @click="abrirModalNuevo">Nuevo</v-btn> -->
                 <v-btn
                   color="success"
-                  small
+                  size="small"
                   @click="registrarDatos"
                   :disabled="!datosExcel.length"
                   >Guardar</v-btn
@@ -105,7 +105,7 @@
                           $store.state.calculadoras.opcionCalculadora,
                       )
                     "
-                    dense
+                    density="compact"
                   >
                     <template v-slot:[`item.index`]="{ item }">
                       {{ item.index }}
@@ -115,8 +115,8 @@
                         :items="$store.state.calculadoras.lstCiudades"
                         v-model="item.id_provincia"
                         item-value="id"
-                        item-text="name"
-                        dense
+                        item-title="name"
+                        density="compact"
                         :rules="[(v) => !!v || 'Datos requeridos']"
                       />
                     </template>
@@ -129,8 +129,8 @@
                         "
                         v-model="item.id_distrito"
                         item-value="id"
-                        item-text="name"
-                        dense
+                        item-title="name"
+                        density="compact"
                         :rules="[(v) => !!v || 'Datos requeridos']"
                       />
                     </template>
@@ -169,7 +169,7 @@
               label="Departamento"
               placeholder="Departamento"
               item-value="id"
-              item-text="name"
+              item-title="name"
               v-model="transporte.id_provincia"
               :rules="[(v) => !!v || 'Dato Requerido']"
             ></v-autocomplete>
@@ -183,7 +183,7 @@
               label="Distrito"
               placeholder="Distrito"
               item-value="id"
-              item-text="name"
+              item-title="name"
               :loading="loading"
               v-model="transporte.id_distrito"
               :rules="[(v) => !!v || 'Dato Requerido']"
@@ -220,7 +220,7 @@
             color="success"
             v-if="!transporte.id"
             @click="guardarRegistro"
-            small
+            size="small"
           >
             Guardar
           </v-btn>
@@ -228,11 +228,11 @@
             color="success"
             v-if="!!transporte.id"
             @click="actualizarRegistro"
-            small
+            size="small"
           >
             Actualizar
           </v-btn>
-          <v-btn color="error" small @click="dialogEditar = false"
+          <v-btn color="error" size="small" @click="dialogEditar = false"
             >Cerrar</v-btn
           >
         </v-card-actions>

@@ -8,9 +8,9 @@
         @click="showModalServices"
         color="green"
         absolute
-        top
-        right
-        small
+        location="top right"
+        
+        size="small"
         fab
         :dark="!isFormActionsDisabled"
         :disabled="isFormActionsDisabled"
@@ -18,7 +18,7 @@
         <v-icon>mdi-plus</v-icon>
       </v-btn>
     </v-fab-transition>
-    <v-simple-table dense>
+    <v-table density="compact">
       <template v-slot:default>
         <thead>
           <tr>
@@ -46,14 +46,14 @@
                 min-width="auto"
                 :disabled="isFormActionsDisabled"
               >
-                <template v-slot:activator="{ on, attrs }">
+                <template v-slot:activator="{ props }">
                   <v-text-field
-                    :value="formatFecha(item.date_service || item.updated_at)"
+                    :model-value="formatFecha(item.date_service || item.updated_at)"
                     prepend-icon="mdi-calendar"
                     readonly
-                    v-bind="attrs"
-                    v-on="on"
-                    dense
+                   
+                    v-bind="props"
+                    density="compact"
                     :disabled="isFormActionsDisabled"
                     hide-details
                     style="max-width: 140px"
@@ -75,13 +75,13 @@
               <div class="d-flex justify-center">
                 <v-switch
                   v-if="item.nameservice != 'CERTIFICADO DE ORIGEN'"
-                  dense
+                  density="compact"
                   color="primary"
                   :true-value="1"
                   :false-value="0"
                   v-model="item.status"
                   :disabled="getDisabledPropServiceStatus(index)"
-                  @change="toggleServiceStatusSwitch(item, index)"
+                  @update:model-value="toggleServiceStatusSwitch(item, index)"
                 ></v-switch>
               </div>
 
@@ -89,8 +89,8 @@
                 v-if="item.nameservice == 'CERTIFICADO DE ORIGEN'"
                 offset-y
               >
-                <template v-slot:activator="{ on, attrs }">
-                  <v-btn large color="default" v-bind="attrs" v-on="on">
+                <template v-slot:activator="{ props }">
+                  <v-btn size="large" color="default" v-bind="props">
                     {{
                       item.status == 1
                         ? "SI"
@@ -118,7 +118,7 @@
             <td class="text-center">
               <v-icon
                 class="btn_add"
-                dense
+                size="small"
                 color="red"
                 @click="deleteService(index)"
                 :disabled="isFormActionsDisabled"
@@ -128,26 +128,26 @@
           </tr>
         </tbody>
       </template>
-    </v-simple-table>
+    </v-table>
 
     <!-- Campos de Aduana -->
-    <v-card class="mt-4" outlined>
+    <v-card class="mt-4" border>
       <v-card-title class="py-2">
-        <v-icon left color="indigo">mdi-ferry</v-icon>
+        <v-icon start color="indigo">mdi-ferry</v-icon>
         Datos de Aduana
         <v-spacer></v-spacer>
-        <span class="caption grey--text text--darken-1">Información SUNAT</span>
+        <span class="caption text-grey-darken-1">Información SUNAT</span>
       </v-card-title>
       <v-card-text class="pt-0">
-        <v-row dense>
+        <v-row density="compact">
           <v-col cols="12" md="6">
             <v-text-field
               v-model="$store.state.house_nro_declaracion_aduana"
               label="N° Declaración de Aduana"
               prepend-icon="mdi-file-document-outline"
               :disabled="isFormActionsDisabled"
-              outlined
-              dense
+              variant="outlined"
+              density="compact"
               hide-details="auto"
             ></v-text-field>
           </v-col>
@@ -157,8 +157,8 @@
               label="Canal de Aduana"
               prepend-icon="mdi-traffic-light"
               :disabled="isFormActionsDisabled"
-              outlined
-              dense
+              variant="outlined"
+              density="compact"
               hide-details="auto"
             ></v-text-field>
           </v-col>
@@ -212,8 +212,8 @@
               :items="cboConfirmaTelex"
               v-model="$store.state.telexconfirmado"
               label="Estado del documento"
-              outlined
-              dense
+              variant="outlined"
+              density="compact"
             ></v-select>
             <FormatFecha
               :outlined="true"
@@ -233,7 +233,7 @@
             :loading="loading"
             color="error"
             @click="dialogConfirmarTelex = false"
-            text
+            variant="text"
             >Cancelar</v-btn
           >
         </v-card-actions>

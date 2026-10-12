@@ -2,10 +2,10 @@
   <v-card class="cardDatos">
     <v-tabs
       v-model="tab"
-      background-color="teal darken-4"
+      bg-color="teal darken-4"
       grow
       dark
-      icons-and-text
+      stacked
     >
       <v-tabs-slider></v-tabs-slider>
 
@@ -92,7 +92,7 @@
                 <v-autocomplete
                   :items="$store.state.position.lstUsuarioNoAsignado"
                   item-value="id"
-                  item-text="users"
+                  item-title="users"
                   label="Usuarios del sistema no asignados"
                   return-object
                   v-model="user"
@@ -125,7 +125,7 @@
                 {{ index + 1 }}
               </template>
               <template v-slot:[`item.estado`]="{ item }">
-                <v-switch v-model="item.estado" @change="guardarFlag = true">
+                <v-switch v-model="item.estado" @update:model-value="guardarFlag = true">
                 </v-switch>
               </template>
               <template v-slot:[`item.departamentos`]="{ item }">

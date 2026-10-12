@@ -3,9 +3,9 @@
     <ListAirlinesComponet />
     <v-navigation-drawer
       v-model="$store.state.airlines.drawer"
-      right
+      location="right bottom"
       absolute
-      bottom
+      
       persistent
       width="30%"
       temporary

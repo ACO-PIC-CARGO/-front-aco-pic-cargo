@@ -3,9 +3,9 @@
     <ListItemServiceComponet />
     <v-navigation-drawer
       v-model="$store.state.itemServices.drawer"
-      right
+      location="right bottom"
       absolute
-      bottom
+      
       persistent
       width="30%"
       temporary

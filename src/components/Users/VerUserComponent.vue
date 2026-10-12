@@ -2,10 +2,10 @@
   <v-card class="cardDatos pa-4">
     <v-tabs
       v-model="tab"
-      background-color="teal darken-4"
+      bg-color="teal darken-4"
       grow
       dark
-      icons-and-text
+      stacked
     >
       <v-tabs-slider></v-tabs-slider>
 
@@ -29,11 +29,11 @@
               ></v-text-field>
             </v-col>
           </v-row>
-          <v-row align-sm-center>
+          <v-row class="align-sm-center">
             <v-col cols="4">
               <v-autocomplete
                 :items="$store.state.itemsDocumentsPais"
-                item-text="description"
+                item-title="description"
                 item-value="id"
                 label="Tipo de Documento"
                 v-model="$store.state.user.model.id_document"
@@ -104,7 +104,7 @@
             <v-col cols="4">
               <v-autocomplete
                 :items="$store.state.itemsSex"
-                item-text="name"
+                item-title="name"
                 item-value="id"
                 label="Sexo *"
                 :item-disabled="(item) => item.status != 1"
@@ -117,9 +117,9 @@
                 label="Pais"
                 :items="$store.state.itemsPais"
                 v-model="$store.state.user.model.id_pais"
-                item-text="name"
+                item-title="name"
                 item-value="id"
-                @change="ObtenerEstados($store.state.user.model.id_pais)"
+                @update:model-value="ObtenerEstados($store.state.user.model.id_pais)"
                 readonly
                 :item-disabled="(item) => item.status != 1"
               >
@@ -130,10 +130,10 @@
                 label="Estado (Región)"
                 :items="$store.state.itemsState"
                 v-model="$store.state.user.model.id_state"
-                item-text="name"
+                item-title="name"
                 item-value="id"
                 :loading="loadingEstado"
-                @change="ObtenerCity($store.state.user.model.id_state)"
+                @update:model-value="ObtenerCity($store.state.user.model.id_state)"
                 readonly
                 :item-disabled="(item) => item.status != 1"
               >
@@ -144,10 +144,10 @@
                 label="Ciudad"
                 :items="$store.state.itemsCity"
                 v-model="$store.state.user.model.id_city"
-                item-text="name"
+                item-title="name"
                 item-value="id"
                 :loading="loadingEstado"
-                @change="ObtenerDistrito($store.state.user.model.id_city)"
+                @update:model-value="ObtenerDistrito($store.state.user.model.id_city)"
                 readonly
                 :item-disabled="(item) => item.status != 1"
               >
@@ -158,7 +158,7 @@
                 label="Distrito "
                 :items="$store.state.itemsTown"
                 v-model="$store.state.user.model.id_town"
-                item-text="name"
+                item-title="name"
                 item-value="id"
                 :loading="loadingDistrito"
                 :item-disabled="(item) => item.status != 1"
@@ -331,12 +331,12 @@
       </v-tab-item>
     </v-tabs-items>
 
-    <v-snackbar v-model="snackbar" outlined vertical color="info">
+    <v-snackbar v-model="snackbar" variant="outlined" vertical color="info">
       El departamento, define como se comportará el usuario para el llendo de
       montos (Pricing u Operaciones) , en el CONTROL DE GASTOS
 
       <template v-slot:action="{ attrs }">
-        <v-btn text color="red" v-bind="attrs" @click="snackbar = false">
+        <v-btn variant="text" color="red" v-bind="attrs" @click="snackbar = false">
           Close
         </v-btn>
       </template>

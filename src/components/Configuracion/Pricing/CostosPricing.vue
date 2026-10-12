@@ -9,9 +9,9 @@
                 <v-autocomplete
                   :items="$store.state.pricing.listModality"
                   label="Modalidad"
-                  outlined
-                  dense
-                  item-text="name"
+                  variant="outlined"
+                  density="compact"
+                  item-title="name"
                   item-value="id"
                   v-model="id_modality"
                   :rules="[(v) => !!v || 'Dato Requerido']"
@@ -21,9 +21,9 @@
                 <v-autocomplete
                   :items="$store.state.pricing.listShipment"
                   label="Tipo Mercancía"
-                  outlined
-                  dense
-                  item-text="embarque"
+                  variant="outlined"
+                  density="compact"
+                  item-title="embarque"
                   item-value="id"
                   v-model="id_shipment"
                   :rules="[(v) => !!v || 'Dato Requerido']"

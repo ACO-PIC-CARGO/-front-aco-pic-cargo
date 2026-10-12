@@ -8,8 +8,8 @@
           class="ml-5"
           color="primary"
           elevation="0"
-          small
-          plain
+          size="small"
+          variant="plain"
           @click="offcanvas = !offcanvas"
           ><v-icon>mdi-filter-multiple</v-icon> FILTRAR
         </v-btn>
@@ -20,8 +20,8 @@
           dark
           @click="exportar"
           :loading="exportando"
-          small
-          plain
+          size="small"
+          variant="plain"
           ><v-icon>mdi-file-excel</v-icon> EXCEL</v-btn
         >
         <v-btn
@@ -30,8 +30,8 @@
           :loading="exportandopdf"
           @click="exportarPDF()"
           elevation="0"
-          small
-          plain
+          size="small"
+          variant="plain"
         >
           <v-icon>mdi-file-pdf</v-icon> PDF</v-btn
         >
@@ -63,7 +63,7 @@
           :headers="headersdbp"
           :items="itemsCpp"
           :search="search"
-          :expanded.sync="expanded"
+          v-model:expanded="expanded"
           :single-expand="singleExpand"
           item-key="nameproveedor"
           show-expand
@@ -73,19 +73,19 @@
             <div class="d-flex">
               <div>{{ item.nameproveedor }}</div>
               <v-btn
-                small
+                size="small"
                 color="primary"
                 class="ml-auto"
                 @click.stop="mostrarComentariosOp(item)"
               >
-                <v-icon small class="mr-1">mdi-comment</v-icon> Comentarios
+                <v-icon size="small" class="mr-1">mdi-comment</v-icon> Comentarios
               </v-btn>
             </div>
           </template>
 
           <template v-slot:expanded-item="{ item }">
             <td colspan="11">
-              <v-simple-table style="width: 100%">
+              <v-table style="width: 100%">
                 <thead>
                   <tr style="background: #fff1cf">
                     <th>Expediente</th>
@@ -152,7 +152,7 @@
                     </td> -->
                   </tr>
                 </tbody>
-              </v-simple-table>
+              </v-table>
             </td>
           </template>
         </v-data-table>
@@ -165,7 +165,7 @@
           :search="search"
           :headers="headersdbpa"
           :items="itemsCppa"
-          :expanded.sync="expandeda"
+          v-model:expanded="expandeda"
           :single-expand="singleExpanda"
           item-key="nameconsigner"
           show-expand
@@ -175,19 +175,19 @@
             <div class="d-flex">
               <div>{{ item.nameconsigner }}</div>
               <v-btn
-                small
+                size="small"
                 color="primary"
                 class="ml-auto"
                 @click.stop="mostrarComentariosAdmin(item)"
               >
-                <v-icon small class="mr-1">mdi-comment</v-icon> Comentarios
+                <v-icon size="small" class="mr-1">mdi-comment</v-icon> Comentarios
               </v-btn>
             </div>
           </template>
 
           <template v-slot:expanded-item="{ item }">
             <td colspan="11">
-              <v-simple-table style="width: 100%">
+              <v-table style="width: 100%">
                 <thead>
                   <tr style="background: #fff1cf">
                     <th>Acción</th>
@@ -222,7 +222,7 @@
                     <td>{{ child.symbol }} {{ child.total }}</td>
                   </tr>
                 </tbody>
-              </v-simple-table>
+              </v-table>
             </td>
           </template>
         </v-data-table>
@@ -236,12 +236,12 @@
           Estados/Comentarios de la CxP - {{ dataCXP.proveedor }}
           <v-spacer></v-spacer>
           <template v-if="dataCXP.esoperativo">
-            <v-btn rounded small color="primary" @click="agregarComentarioOp"
+            <v-btn rounded size="small" color="primary" @click="agregarComentarioOp"
               >Nuevo Comentario</v-btn
             >
           </template>
           <template v-else-if="dataCXP.esadministrativo">
-            <v-btn rounded small color="primary" @click="agregarComentarioAdmin"
+            <v-btn rounded size="small" color="primary" @click="agregarComentarioAdmin"
               >Nuevo Comentario</v-btn
             >
           </template>
@@ -257,7 +257,7 @@
         <v-card-actions>
           <v-spacer></v-spacer>
           <v-btn
-            small
+            size="small"
             color="error"
             @click="dialogComentarios = !dialogComentarios"
             >Cerrar</v-btn
@@ -282,17 +282,17 @@
         <v-card-text>
           <v-form ref="frmComentario">
             <v-text-field
-              dense
+              density="compact"
               label="Fecha"
               v-model="comentario.fecha"
               type="date"
               readonly
             ></v-text-field>
             <v-autocomplete
-              dense
+              density="compact"
               label="Ejecutivo"
               :items="$store.state.pricing.listEjecutivo"
-              item-text="name"
+              item-title="name"
               item-value="id_entitie"
               item-key="id_entitie"
               v-model="comentario.id_ejecutivo"
@@ -300,7 +300,7 @@
               readonly
             ></v-autocomplete>
             <v-textarea
-              dense
+              density="compact"
               label="Estado/Comentario"
               v-model="comentario.texto"
               rows="4"
@@ -312,7 +312,7 @@
         <v-card-actions>
           <v-spacer></v-spacer>
           <v-btn
-            small
+            size="small"
             color="success"
             @click="guardarComentario"
             :loading="loadingBotonGuardarComentario"
@@ -336,12 +336,12 @@
             v-if="radiopdf != ''"
             color="primary"
             @click="_exportPdf()"
-            outlined
+            variant="outlined"
           >
             EXPORTAR
           </v-btn>
           <v-spacer></v-spacer>
-          <v-btn color="red" @click="dialogPdf = false" outlined>Cerrar</v-btn>
+          <v-btn color="red" @click="dialogPdf = false" variant="outlined">Cerrar</v-btn>
         </v-card-actions>
       </v-card>
     </v-dialog>
@@ -368,7 +368,7 @@
                     (v) => v.programend_id != 0,
                   )
                 "
-                item-text="programend_fecha"
+                item-title="programend_fecha"
                 item-value="programend_id"
                 v-model="programend_id"
               ></v-autocomplete>
@@ -408,8 +408,8 @@
       v-model="offcanvas"
       v-if="offcanvas"
       absolute
-      bottom
-      right
+      location="bottom right"
+      
       width="20%"
     >
       <v-card>
@@ -422,12 +422,12 @@
                 v-model="proveedorOp"
                 label="Proveedores"
                 :items="provedores"
-                item-text="namelong"
+                item-title="namelong"
                 item-value="id"
                 multiple
                 chips
-                outlined
-                dense
+                variant="outlined"
+                density="compact"
               ></v-autocomplete
             ></v-col>
             <v-col cols="12" class="py-0 my-0">
@@ -436,8 +436,8 @@
                 label="Nro Expediente"
                 v-model="nro_expediente"
                 clearable
-                outlined
-                dense
+                variant="outlined"
+                density="compact"
               ></v-text-field>
             </v-col>
             <v-col cols="12" class="py-0 my-0">
@@ -446,12 +446,12 @@
                 v-model="gasto"
                 label="Gasto"
                 :items="$store.state.gastos.list"
-                item-text="description"
+                item-title="description"
                 item-value="id"
                 multiple
                 small-chips
-                dense
-                outlined
+                density="compact"
+                variant="outlined"
               ></v-autocomplete>
             </v-col>
             <v-col cols="12" class="py-0 my-0">
@@ -460,12 +460,12 @@
                 v-model="subgasto"
                 label="Sub Gasto"
                 :items="$store.state.subgasto.lstSubGasto"
-                item-text="description"
+                item-title="description"
                 item-value="id"
                 multiple
                 small-chips
-                dense
-                outlined
+                density="compact"
+                variant="outlined"
               ></v-autocomplete>
             </v-col>
             <v-col cols="12" class="py-0 my-0">
@@ -474,13 +474,13 @@
                 type="date"
                 v-model="fechaOp"
                 clearable
-                outlined
-                dense
+                variant="outlined"
+                density="compact"
               ></v-text-field>
             </v-col>
             <v-col cols="12" class="py-0 my-0">
               <p class="py-0 my-0">Estado:</p>
-              <v-radio-group dense v-model="llegadaOp" row class="py-0 my-0">
+              <v-radio-group density="compact" v-model="llegadaOp" inline class="py-0 my-0">
                 <v-radio label="Llegada" value="1"></v-radio>
 
                 <v-radio label="No llegada" value="0"></v-radio>
@@ -492,9 +492,9 @@
 
       <v-card>
         <v-card-actions>
-          <v-btn color="success" medium @click="filtrar">Aceptar</v-btn>
-          <v-btn color="error" medium @click="limpiar">Limpiar</v-btn>
-          <v-btn color="info" medium @click="offcanvas = !offcanvas">
+          <v-btn color="success" size="medium" @click="filtrar">Aceptar</v-btn>
+          <v-btn color="error" size="medium" @click="limpiar">Limpiar</v-btn>
+          <v-btn color="info" size="medium" @click="offcanvas = !offcanvas">
             Cancelar
           </v-btn>
         </v-card-actions>

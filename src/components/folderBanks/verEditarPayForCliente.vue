@@ -5,15 +5,15 @@
         <v-col cols="12" md="2" class="pb-0">
           Cliente:
           <v-autocomplete
-            outlined
-            dense
+            variant="outlined"
+            density="compact"
             :items="clientes"
-            item-text="namelong"
+            item-title="namelong"
             item-value="id"
             placeholder="Clientes"
             v-model="cliente"
             clearable
-            @change="obtenerListado()"
+            @update:model-value="obtenerListado()"
             hide-details
             :error-messages="errorMesage.cliente"
             id="cboProveedor"
@@ -25,15 +25,15 @@
           Monto Depositado En Banco:
           <!-- <v-icon @click="snackbar = true">mdi-information</v-icon> -->
           <v-text-field
-            outlined
+            variant="outlined"
             :disabled="verflag"
-            dense
+            density="compact"
             v-model="monto_local"
             type="number"
             :prefix="symbol"
             width="50px"
             :error-messages="errorMesage.monto_local"
-            @input="
+            @update:model-value="
               monto_local
                 ? (errorMesage.monto_local = '')
                 : (errorMesage.monto_local =
@@ -44,8 +44,8 @@
         <v-col cols="12" md="2" class="pb-0">
           Total Factura Seleccionada:
           <v-text-field
-            outlined
-            dense
+            variant="outlined"
+            density="compact"
             disabled
             v-model="monto"
             type="number"
@@ -57,8 +57,8 @@
         <v-col cols="12" md="2" class="pb-0">
           Tipo Cambio:
           <v-text-field
-            outlined
-            dense
+            variant="outlined"
+            density="compact"
             v-model="tipocambio"
             type="number"
             prefix="USD"
@@ -120,9 +120,9 @@
         <v-col cols="12">
           <v-tabs
             v-model="pasos"
-            centered
+            align-tabs="center"
             color="#000000"
-            background-color="#C8E6C9"
+            bg-color="#C8E6C9"
           >
             <v-tab key="detallesPago">Detalles de Pago</v-tab>
             <v-tab key="datosPrincipales">Datos Principales</v-tab>
@@ -143,7 +143,7 @@
                     :search="searchTableDetalle"
                   >
                     <template v-slot:body.append>
-                      <tr class="grey lighten-4 font-weight-bold">
+                      <tr class="bg-grey-lighten-4 font-weight-bold">
                         <td :colspan="headers.length - 1" class="text-right">
                           Total General Seleccionado ({{ symbol }}):
                         </td>
@@ -156,22 +156,22 @@
                       <v-select
                         :items="cboParcial"
                         v-model="item.parcialflag"
-                        dense
-                        outlined
+                        density="compact"
+                        variant="outlined"
                         :disabled="!selected.includes(item)"
                         hide-details
-                        @change="verificarMontoCompleto(item)"
+                        @update:model-value="verificarMontoCompleto(item)"
                       ></v-select>
                     </template>
                     <template v-slot:[`item.montopagar`]="{ item }">
                       <v-text-field
                         hide-details
-                        dense
-                        outlined
+                        density="compact"
+                        variant="outlined"
                         v-model="item.montoparcial"
                         :disabled="verflag"
                         :prefix="symbol"
-                        @input="calcularTotal"
+                        @update:model-value="calcularTotal"
                         :rules="[
                           (v) =>
                             !v ||
@@ -184,8 +184,8 @@
                       <v-text-field
                         v-model="item.concepto"
                         :id="`txtConcepto${index}`"
-                        outlined
-                        dense
+                        variant="outlined"
+                        density="compact"
                         hide-details
                         style="max-width: 150px"
                         placeholder="Nuevo Concepto"
@@ -209,27 +209,27 @@
                     :items="$store.state.itemsDataBanksList"
                     v-model="id_banco_origen"
                     label="Banco Origen"
-                    item-text="acronym"
+                    item-title="acronym"
                     item-value="id"
-                    outlined
-                    dense
+                    variant="outlined"
+                    density="compact"
                     :error-messages="errorMesage.id_cuenta_origen"
-                    @change="errorMesage.id_cuenta_origen = null"
+                    @update:model-value="errorMesage.id_cuenta_origen = null"
                     :disabled="verflag"
                   ></v-select>
                 </v-col>
                 <v-col cols="12" md="6" class="py-1">
                   <v-autocomplete
                     :items="$store.state.bancos.cuentas"
-                    item-text="label"
+                    item-title="label"
                     item-value="id"
                     label="Cuenta de Ingreso de Banco"
                     v-model="id_cuenta"
                     return-object
-                    outlined
-                    dense
+                    variant="outlined"
+                    density="compact"
                     :error-messages="errorMesage.id_cuenta"
-                    @change="errorMesage.id_cuenta = null"
+                    @update:model-value="errorMesage.id_cuenta = null"
                     :disabled="verflag"
                   ></v-autocomplete>
                 </v-col>
@@ -238,8 +238,8 @@
                     readonly
                     v-model="id_cuenta.banco"
                     label="Banco:"
-                    outlined
-                    dense
+                    variant="outlined"
+                    density="compact"
                     :disabled="verflag"
                   ></v-text-field>
                 </v-col>
@@ -249,8 +249,8 @@
                     readonly
                     v-model="id_cuenta.cuenta"
                     label="N° Cuenta:"
-                    outlined
-                    dense
+                    variant="outlined"
+                    density="compact"
                     :disabled="verflag"
                   ></v-text-field
                 ></v-col>
@@ -259,8 +259,8 @@
                     readonly
                     v-model="id_cuenta.cci"
                     label="CCI:"
-                    outlined
-                    dense
+                    variant="outlined"
+                    density="compact"
                     :disabled="verflag"
                   ></v-text-field
                 ></v-col>
@@ -279,20 +279,20 @@
                     readonly
                     v-model="id_cuenta.moneda"
                     label="Moneda:"
-                    outlined
-                    dense
+                    variant="outlined"
+                    density="compact"
                     :disabled="verflag"
                   ></v-text-field>
                 </v-col>
                 <v-col cols="12" md="6" class="py-1">
                   <v-text-field
                     label="Número de Operación"
-                    outlined
-                    dense
+                    variant="outlined"
+                    density="compact"
                     v-model="nro_operacion"
                     :error-messages="errorMesage.nro_operacion"
                     :disabled="verflag"
-                    @input="
+                    @update:model-value="
                       nro_operacion !== ''
                         ? (errorMesage.nro_operacion = null)
                         : (errorMesage.nro_operacion =
@@ -305,8 +305,8 @@
                   <v-textarea
                     label="Comentarios Usuario"
                     rows="1"
-                    outlined
-                    dense
+                    variant="outlined"
+                    density="compact"
                     auto-grow
                     v-model="comentarios"
                     :disabled="verflag"
@@ -316,8 +316,8 @@
                   <v-textarea
                     label="Comentarios Administrativos"
                     rows="1"
-                    outlined
-                    dense
+                    variant="outlined"
+                    density="compact"
                     auto-grow
                     v-model="comentariosadmin"
                     :disabled="verflag"
@@ -328,7 +328,7 @@
                     Soporte de Pago:
                     <v-btn
                       color="error"
-                      small
+                      size="small"
                       class="mx-1"
                       @click="urlfile = null"
                       v-if="!verflag && urlfile"
@@ -339,11 +339,11 @@
                     <!-- CASO 1: SI ES IMAGEN (Miniatura + Visualizador al hacer clic) -->
                     <template v-if="esImagen(urlfile)">
                       <v-dialog max-width="800px">
-                        <template v-slot:activator="{ on: dialogOn, attrs }">
+                        <template v-slot:activator="{ props }">
                           <v-hover v-slot="{ hover }">
                             <div
-                              v-bind="attrs"
-                              v-on="dialogOn"
+                             
+                              v-bind="props"
                               class="d-inline-block rounded-circle elevation-2 position-relative cursor-zoom-in"
                               :class="{ 'white--overlay': hover }"
                             >
@@ -351,9 +351,7 @@
                                 <v-img :src="urlfile" alt="Miniatura">
                                   <template v-slot:placeholder>
                                     <v-row
-                                      class="fill-height ma-0"
-                                      align="center"
-                                      justify="center"
+                                      class="fill-height ma-0 align-center justify-center"
                                     >
                                       <v-progress-circular
                                         indeterminate
@@ -367,13 +365,13 @@
 
                               <v-overlay
                                 absolute
-                                :value="hover"
-                                color="white"
+                                :model-value="hover"
+                                scrim="white"
                                 opacity="0.6"
                                 class="rounded-circle"
                                 z-index="1"
                               >
-                                <v-icon color="grey darken-2" size="24"
+                                <v-icon color="grey-darken-2" size="24"
                                   >mdi-magnify</v-icon
                                 >
                               </v-overlay>
@@ -416,7 +414,7 @@
                     item-key="id"
                   >
                     <template v-slot:body.append>
-                      <tr class="grey lighten-4 font-weight-bold">
+                      <tr class="bg-grey-lighten-4 font-weight-bold">
                         <td
                           :colspan="headersPagosGastosBancario.length - 1"
                           class="text-right"
@@ -444,8 +442,8 @@
 
                 <v-col cols="2" offset="7">
                   <v-text-field
-                    outlined
-                    dense
+                    variant="outlined"
+                    density="compact"
                     label="Comisión Bancaria"
                     id="id"
                     v-model="conceptogastobancario"
@@ -454,8 +452,8 @@
                 </v-col>
                 <v-col cols="3">
                   <v-text-field
-                    outlined
-                    dense
+                    variant="outlined"
+                    density="compact"
                     label="Monto Gasto Bancario"
                     id="id"
                     type="number"
@@ -466,8 +464,8 @@
                 </v-col>
                 <v-col cols="3" offset="9">
                   <v-text-field
-                    outlined
-                    dense
+                    variant="outlined"
+                    density="compact"
                     label="Monto Total a Pagar"
                     id="id"
                     type="number"
@@ -496,7 +494,7 @@
       Monto en moneda {{ symbol }} para realizar el pago. El tipo de cambio se
       calculará automáticamente al ingresar el monto en moneda local.
       <template v-slot:action="{ attrs }">
-        <v-btn color="red" text v-bind="attrs" @click="snackbar = false">
+        <v-btn color="red" variant="text" v-bind="attrs" @click="snackbar = false">
           Close
         </v-btn>
       </template>

@@ -7,7 +7,7 @@
             label="Cantidad"
             type="number"
             v-model="cntUser"
-            outlined
+            variant="outlined"
             suffix="Usuarios"
           ></v-text-field>
         </v-col>
@@ -242,7 +242,7 @@ export default {
   mounted() {
     this.startAutoScroll();
   },
-  beforeDestroy() {
+  beforeUnmount() {
     clearInterval(this.autoScrollInterval);
   },
   methods: {

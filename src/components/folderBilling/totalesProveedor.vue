@@ -23,7 +23,7 @@
           <v-stepper-content step="1">
             <v-card class="mb-12" elevation="0" height="200px">
               <v-card-text>
-                <v-row dense>
+                <v-row density="compact">
                   <v-col md="6" cols="12">
                     <v-checkbox
                       v-model="checkPago"
@@ -54,8 +54,8 @@
 
             <v-btn color="primary" @click="e1 = 2"> Continuar </v-btn>
 
-            <v-btn text @click="e1 = 1"> Volver </v-btn>
-            <v-btn text @click="dialogSolicitud = false"> Cerrar </v-btn>
+            <v-btn variant="text" @click="e1 = 1"> Volver </v-btn>
+            <v-btn variant="text" @click="dialogSolicitud = false"> Cerrar </v-btn>
           </v-stepper-content>
 
           <v-stepper-content step="2">
@@ -71,7 +71,7 @@
                   item-key="id"
                   show-select
                   class="elevation-0"
-                  dense
+                  density="compact"
                 >
                 </v-data-table>
                 <h2 class="mt-5">Ya seleccionó el codigo de pago</h2>
@@ -80,8 +80,8 @@
 
             <v-btn color="primary" @click="e1 = 3"> Continuar </v-btn>
 
-            <v-btn text @click="e1 = 1"> Volver</v-btn>
-            <v-btn text @click="dialogSolicitud = false"> Cerrar </v-btn>
+            <v-btn variant="text" @click="e1 = 1"> Volver</v-btn>
+            <v-btn variant="text" @click="dialogSolicitud = false"> Cerrar </v-btn>
           </v-stepper-content>
 
           <v-stepper-content step="3">
@@ -103,8 +103,8 @@
               </v-card-text></v-card
             >
 
-            <v-btn text @click="e1 = 2"> Volver </v-btn>
-            <v-btn text @click="dialogSolicitud = false"> Cerrar </v-btn>
+            <v-btn variant="text" @click="e1 = 2"> Volver </v-btn>
+            <v-btn variant="text" @click="dialogSolicitud = false"> Cerrar </v-btn>
           </v-stepper-content>
         </v-stepper-items>
       </v-stepper>
@@ -115,7 +115,7 @@
         <v-card-title> Solicitar pago por concepto</v-card-title>
 
         <v-card-text>
-          <v-row dense>
+          <v-row density="compact">
             <v-col md="6" cols="12">
               <v-text-field v-model="codigo_pago" label="CODIGO DE PAGO"
                 >CODIGO DE PAGO</v-text-field
@@ -148,26 +148,26 @@
               'items-per-page-options': [10, 20, 30, 40, 50],
             }"
             :items-per-page="30"
-            dense
+            density="compact"
             show-select
             class="elevation-0"
           >
             <template
               v-slot:[`item.data-table-select`]="{ item, isSelected, select }"
             >
-              <v-simple-checkbox
+              <v-checkbox-btn
                 :value="isSelected"
                 :readonly="item.pagado == 1"
                 v-if="!item.pagado == 1"
                 @input="select($event)"
-              ></v-simple-checkbox>
+              ></v-checkbox-btn>
             </template>
             <template v-slot:[`item.status`]="{ item }">
               <v-chip
                 v-if="item.pagado == 1"
                 class="ma-2"
                 color="green"
-                small
+                size="small"
                 text-color="white"
               >
                 {{ item.status == 1 ? "Pagado" : "" }}
@@ -175,8 +175,7 @@
 
               <v-icon
                 class="btn__add mr-2"
-                dense
-                large
+                size="large"
                 color="grey"
                 v-if="item.pagado == 1"
                 @click.native="openPaymentFile(item.path)"
@@ -193,7 +192,7 @@
             hide-default-footer
             item-key="id"
             show-select
-            dense
+            density="compact"
             class="elevation-0"
           >
           </v-data-table>
@@ -226,13 +225,13 @@
           ></v-text-field>
         </v-card-title>
         <v-container v-if="!dataList" style="height: 400px">
-          <v-row class="fill-height" align-content="center" justify="center">
+          <v-row class="fill-height align-content-center justify-center">
             <v-col class="text-subtitle-1 text-center" cols="12">
               Cargando informacíon
             </v-col>
             <v-col cols="6">
               <v-progress-linear
-                color="deep-purple accent-4"
+                color="deep-purple-accent-4"
                 indeterminate
                 rounded
                 height="6"
@@ -285,7 +284,7 @@
         <v-card-title>
           Facturas y Performance de {{ nameproveedor }}
           <v-spacer></v-spacer>
-          <v-btn outlined @click="dialogInvoice = true" color="primary"
+          <v-btn variant="outlined" @click="dialogInvoice = true" color="primary"
             >Cargar Nueva</v-btn
           >
         </v-card-title>
@@ -293,7 +292,7 @@
           <v-data-table
             :headers="headersInvoice"
             :items="itemsListInvoice"
-            dense
+            density="compact"
             item-key="id"
             class="elevation-0"
           >
@@ -307,8 +306,7 @@
                   item.type == 'jpg' ||
                   item.type == 'jpeg'
                 "
-                color="blue-grey darken-1
-"
+                color="blue-grey-darken-1"
                 class="mr-2"
                 >mdi-file-image</v-icon
               >
@@ -325,8 +323,7 @@
             <template v-slot:[`item.path`]="{ item }">
               <v-icon
                 class="btn_add mr-2"
-                dense
-                large
+                size="large"
                 color="grey"
                 @click.native="openDoc(item.path)"
                 >mdi-eye</v-icon
@@ -335,8 +332,7 @@
             <template v-slot:[`item.action`]="{ item }">
               <v-icon
                 class="btn_add mr-2"
-                dense
-                large
+                size="large"
                 color="red"
                 @click.native="_delInvoice(item.id)"
                 >mdi-delete</v-icon
@@ -354,9 +350,9 @@
         </v-card-title>
         <v-card-text>
           <v-container>
-            <v-row dense>
+            <v-row density="compact">
               <v-col cols="12" md="12">
-                <v-radio-group v-model="radio" row>
+                <v-radio-group v-model="radio" inline>
                   <v-radio label="Factura" value="1"></v-radio>
                   <v-radio label="Performance" value="2"></v-radio>
                   <v-radio label="Otro" value="3"></v-radio>
@@ -367,12 +363,12 @@
                   ref="menu"
                   v-model="menu"
                   :close-on-content-click="false"
-                  :return-value.sync="date"
+                  v-model:return-value="date"
                   transition="scale-transition"
                   offset-y
                   min-width="auto"
                 >
-                  <template v-slot:activator="{ on, attrs }">
+                  <template v-slot:activator="{ props }">
                     <v-text-field
                       v-model="date"
                       :label="`Fecha de ${
@@ -384,8 +380,8 @@
                       }`"
                       prepend-icon="mdi-calendar"
                       readonly
-                      v-bind="attrs"
-                      v-on="on"
+                     
+                      v-bind="props"
                     ></v-text-field>
                   </template>
                   <v-date-picker
@@ -395,10 +391,10 @@
                     scrollable
                   >
                     <v-spacer></v-spacer>
-                    <v-btn text color="primary" @click="menu = false">
+                    <v-btn variant="text" color="primary" @click="menu = false">
                       Cancel
                     </v-btn>
-                    <v-btn text color="primary" @click="$refs.menu.save(date)">
+                    <v-btn variant="text" color="primary" @click="$refs.menu.save(date)">
                       OK
                     </v-btn>
                   </v-date-picker>
@@ -435,12 +431,12 @@
                 <v-chip
                   block
                   v-if="boolFile"
-                  large
+                  size="large"
                   class=""
                   color="success"
-                  outlined
+                  variant="outlined"
                 >
-                  <v-icon left> mdi-check </v-icon>
+                  <v-icon start> mdi-check </v-icon>
                   Archivo cargado éxitosamente
                 </v-chip>
               </v-col>
@@ -449,8 +445,8 @@
                   :disabled="boolFile || payfile == []"
                   color="blue-grey"
                   block
-                  class="ma-2 white--text"
-                  large
+                  class="ma-2 text-white"
+                  size="large"
                   @click="_uploadFile()"
                 >
                   Subir
@@ -461,7 +457,7 @@
                       ? "Performance"
                       : "Otro"
                   }}
-                  <v-icon right dark> mdi-cloud-upload </v-icon>
+                  <v-icon end dark> mdi-cloud-upload </v-icon>
                 </v-btn>
               </v-col>
             </v-row>
@@ -476,14 +472,14 @@
             }}</v-btn
           >
 
-          <v-btn outlined color="red" @click="dialogInvoice = !dialogInvoice">
+          <v-btn variant="outlined" color="red" @click="dialogInvoice = !dialogInvoice">
             Cerrar
           </v-btn>
         </v-card-actions>
       </v-card>
     </v-dialog>
 
-    <v-simple-table dense max-height="440" fixed-header>
+    <v-table density="compact" max-height="440" fixed-header>
       <template v-slot:default>
         <thead>
           <tr>
@@ -506,11 +502,11 @@
             <td>{{ item.total_pr }}</td>
             <td>{{ item.total_op }}</td>
             <td>
-              <v-tooltip bottom>
-                <template v-slot:activator="{ on, attrs }">
+              <v-tooltip location="bottom">
+                <template v-slot:activator="{ props }">
                   <v-btn
-                    v-bind="attrs"
-                    v-on="on"
+                   
+                    v-bind="props"
                     @click.native="
                       openInvoice(
                         item.id_proveedor,
@@ -519,7 +515,7 @@
                       )
                     "
                     elevation="0"
-                    small
+                    size="small"
                     color="white"
                     ><v-icon :color="item.docs > 0 ? 'blue' : 'grey'"
                       >mdi-file-compare</v-icon
@@ -540,20 +536,20 @@
                   )
                 "
                 elevation="0"
-                small
+                size="small"
                 color="white"
                 ><v-icon color="blue">mdi-send</v-icon></v-btn
               >
             </td>
             <td>
-              <v-tooltip bottom>
-                <template v-slot:activator="{ on, attrs }">
+              <v-tooltip location="bottom">
+                <template v-slot:activator="{ props }">
                   <v-btn
-                    v-bind="attrs"
-                    v-on="on"
+                   
+                    v-bind="props"
                     @click.native="openPayments(item.id_proveedor, item.type)"
                     elevation="0"
-                    small
+                    size="small"
                     color="white"
                     ><v-icon :color="item.solicitudes > 0 ? 'blue' : 'grey'"
                       >mdi-email-send</v-icon
@@ -566,7 +562,7 @@
           </tr>
         </tbody>
       </template>
-    </v-simple-table>
+    </v-table>
   </div>
 </template>
 <script>

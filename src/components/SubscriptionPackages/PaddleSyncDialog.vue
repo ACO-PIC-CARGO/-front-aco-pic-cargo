@@ -1,6 +1,6 @@
 <template>
   <v-dialog
-    :value="value"
+    :model-value="value"
     max-width="640"
     persistent
     :fullscreen="$vuetify.breakpoint.xsOnly"
@@ -44,7 +44,7 @@
         >
           <p>{{ message }}</p>
           <v-btn
-            text
+            variant="text"
             class="plans-button plans-button--secondary"
             @click="load"
           >
@@ -89,7 +89,7 @@
 
       <footer class="paddle-sync__footer">
         <v-btn
-          text
+          variant="text"
           class="plans-button plans-button--ghost"
           :disabled="applying"
           @click="close"
@@ -98,7 +98,7 @@
         </v-btn>
         <v-btn
           v-if="loadState === 'ready' && pendingCount"
-          text
+          variant="text"
           class="plans-button plans-button--primary"
           :disabled="applying"
           @click="apply"

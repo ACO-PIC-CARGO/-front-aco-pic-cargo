@@ -4,15 +4,15 @@
       <v-row>
         <v-col cols="10">
           <v-form ref="frmData">
-            <v-row dense>
+            <v-row density="compact">
               <v-col cols="12" md="6">
                 <v-autocomplete
                   :items="itemsDocumentsPais"
-                  item-text="description"
+                  item-title="description"
                   item-value="id"
                   label="Tipo de Documento Fiscal"
                   v-model="id_documents"
-                  @change="_validaDocumento()"
+                  @update:model-value="_validaDocumento()"
                   :rules="[(v) => !!v || 'Dato Requerido']"
                 ></v-autocomplete>
               </v-col>
@@ -28,7 +28,7 @@
               <v-col cols="12" md="6">
                 <v-autocomplete
                   :items="$store.state.masterusuarios.lstTipoProveedor"
-                  item-text="descripcion"
+                  item-title="descripcion"
                   item-value="id"
                   label="Tipo de Proveedor"
                   v-model="id_tipo_proveedor"
@@ -71,11 +71,11 @@
               </v-col>
               <v-col cols="12" md="6">
                 <v-autocomplete
-                  item-text="name"
+                  item-title="name"
                   item-value="id"
                   :items="itemsPais"
                   label="País"
-                  @change="_getState(id_pais)"
+                  @update:model-value="_getState(id_pais)"
                   v-model="id_pais"
                   :rules="[(v) => !!v || 'Dato Requerido']"
                 ></v-autocomplete>
@@ -83,9 +83,9 @@
               <v-col cols="12" md="6">
                 <v-autocomplete
                   :items="itemsState"
-                  item-text="name"
+                  item-title="name"
                   item-value="id"
-                  @change="_getCity(id_state)"
+                  @update:model-value="_getCity(id_state)"
                   v-model="id_state"
                   label="Departamento"
                 ></v-autocomplete>
@@ -93,9 +93,9 @@
               <v-col cols="12" md="6">
                 <v-autocomplete
                   :items="itemsCity"
-                  item-text="name"
+                  item-title="name"
                   item-value="id"
-                  @change="_getTown(id_city)"
+                  @update:model-value="_getTown(id_city)"
                   v-model="id_city"
                   label="Provincia"
                 ></v-autocomplete>
@@ -103,7 +103,7 @@
               <v-col cols="12" md="6">
                 <v-autocomplete
                   :items="itemsTown"
-                  item-text="name"
+                  item-title="name"
                   item-value="id"
                   label="Distrito"
                   v-model="id_town"
@@ -112,7 +112,7 @@
               <v-col v-if="id_documents != 2" cols="12" md="6">
                 <v-autocomplete
                   :items="itemsSex"
-                  item-text="name"
+                  item-title="name"
                   item-value="id"
                   v-model="id_sex"
                   label="Sexo"
@@ -145,7 +145,7 @@
                 ></v-text-field>
               </v-col>
             </v-row>
-            <v-row dense>
+            <v-row density="compact">
               <v-col cols="12" md="6">
                 <v-textarea
                   rows="3"
@@ -186,50 +186,50 @@
                 <v-autocomplete
                   v-model="$store.state.data_id_role"
                   :items="$store.state.itemsDataRoleList"
-                  item-text="name"
+                  item-title="name"
                   item-value="id"
                   label="Cambiar Tipo de Role"
                 ></v-autocomplete>
               </v-col>
               <v-col cols="4">
-                <v-btn @click="cambiarRole()" x-large block>CAMBIAR</v-btn>
+                <v-btn @click="cambiarRole()" size="x-large" block>CAMBIAR</v-btn>
               </v-col>
             </v-row>
           </v-form>
         </v-col>
         <v-col cols="2">
-          <v-tooltip top>
-            <template v-slot:activator="{ on, attrs }">
+          <v-tooltip location="top">
+            <template v-slot:activator="{ props }">
               <v-btn
                 class="mx-2 mt-5"
                 fab
                 dark
                 elevation="0"
-                large
-                v-bind="attrs"
-                v-on="on"
+                size="large"
+               
+                v-bind="props"
                 @click="getPhone()"
-                color="blue-grey darken-3"
+                color="blue-grey-darken-3"
               >
                 <v-icon dark> mdi-phone </v-icon>
               </v-btn>
             </template>
             <span>Teléfonos</span>
           </v-tooltip>
-          <v-tooltip bottom>
-            <template v-slot:activator="{ on, attrs }">
+          <v-tooltip location="bottom">
+            <template v-slot:activator="{ props }">
               <v-btn
                 class="mx-2 mt-5"
                 fab
                 dark
                 elevation="0"
-                large
-                v-bind="attrs"
-                v-on="on"
+                size="large"
+               
+                v-bind="props"
                 @click="
                   $store.state.modalContacts = !$store.state.modalContacts
                 "
-                color="blue-grey darken-3"
+                color="blue-grey-darken-3"
               >
                 <v-icon dark> mdi-account-multiple </v-icon>
               </v-btn>
@@ -237,36 +237,36 @@
             <span>Contactos</span>
           </v-tooltip>
 
-          <v-tooltip v-if="this.$route.params.id" bottom>
-            <template v-slot:activator="{ on, attrs }">
+          <v-tooltip v-if="this.$route.params.id" location="bottom">
+            <template v-slot:activator="{ props }">
               <v-btn
                 class="mx-2 mt-5"
                 fab
                 dark
                 elevation="0"
-                large
-                v-bind="attrs"
-                v-on="on"
+                size="large"
+               
+                v-bind="props"
                 @click="$store.state.modalCuentas = !$store.state.modalCuentas"
-                color="blue-grey darken-3"
+                color="blue-grey-darken-3"
               >
                 <v-icon dark> mdi-bank </v-icon>
               </v-btn>
             </template>
             <span>Cuentas</span>
           </v-tooltip>
-          <v-tooltip v-else bottom>
-            <template v-slot:activator="{ on, attrs }">
+          <v-tooltip v-else location="bottom">
+            <template v-slot:activator="{ props }">
               <v-btn
                 class="mx-2 mt-5"
                 fab
                 dark
                 elevation="0"
-                large
-                v-bind="attrs"
-                v-on="on"
+                size="large"
+               
+                v-bind="props"
                 @click="modalCuentas = !modalCuentas"
-                color="blue-grey darken-3"
+                color="blue-grey-darken-3"
               >
                 <v-icon dark> mdi-bank </v-icon>
               </v-btn>
@@ -285,7 +285,7 @@
               <v-autocomplete
                 v-model="$store.state.accountIdTypeAccount"
                 :items="$store.state.itemsDataAccountList"
-                item-text="name"
+                item-title="name"
                 item-value="id"
                 label="Cuenta"
               ></v-autocomplete>
@@ -295,7 +295,7 @@
               <v-autocomplete
                 v-model="$store.state.accountIdBanks"
                 :items="$store.state.itemsDataBanksList"
-                item-text="acronym"
+                item-title="acronym"
                 item-value="id"
                 label="Banco"
               ></v-autocomplete>
@@ -305,7 +305,7 @@
               <v-autocomplete
                 v-model="$store.state.accountIdCoins"
                 :items="$store.state.itemsCoinsList"
-                item-text="acronym"
+                item-title="acronym"
                 item-value="id"
                 label="Moneda"
               ></v-autocomplete>
@@ -325,16 +325,15 @@
                 v-if="$store.state.accountNumer != ''"
                 class="mx-2"
                 fab
-                color="teal darken-1
-"
+                color="teal-darken-1"
                 dark
                 elevation="0"
                 @click="_setAccounts()"
-                ><v-icon x-large>mdi-plus</v-icon></v-btn
+                ><v-icon size="x-large">mdi-plus</v-icon></v-btn
               >
             </v-col>
           </v-row>
-          <v-simple-table dense>
+          <v-table density="compact">
             <template v-slot:default>
               <thead>
                 <tr>
@@ -362,11 +361,11 @@
                 </tr>
               </tbody>
             </template>
-          </v-simple-table>
+          </v-table>
         </v-card-text>
         <v-card-actions>
           <v-spacer></v-spacer>
-          <v-btn color="green darken-1" text @click="modalCuentas = false">
+          <v-btn color="green-darken-1" variant="text" @click="modalCuentas = false">
             Cerrar
           </v-btn>
         </v-card-actions>

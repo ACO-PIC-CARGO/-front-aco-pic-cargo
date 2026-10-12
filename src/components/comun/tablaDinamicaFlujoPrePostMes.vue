@@ -10,7 +10,7 @@
             <!-- ingresosflag -->
             <v-col cols="6">
               <v-switch
-                dense
+                density="compact"
                 v-model="filtro.ingresosflag"
                 label="Ingresos"
                 hide-details
@@ -19,7 +19,7 @@
             <!-- gastoflag -->
             <v-col cols="6">
               <v-switch
-                dense
+                density="compact"
                 v-model="filtro.gastoflag"
                 label="Gastos"
                 hide-details
@@ -31,8 +31,8 @@
             <!-- anteriorflag -->
             <v-col cols="6">
               <v-switch
-                dense
-                color="orange darken-3"
+                density="compact"
+                color="orange-darken-3"
                 v-model="filtro.anteriorflag"
                 label="Anteriores"
                 hide-details
@@ -41,8 +41,8 @@
             <!-- posterioflag -->
             <v-col cols="6">
               <v-switch
-                dense
-                color="orange darken-3"
+                density="compact"
+                color="orange-darken-3"
                 v-model="filtro.posterioflag"
                 label="Posteriores"
                 hide-details
@@ -53,7 +53,7 @@
                 label="Expediente"
                 v-model="filtro.expediente"
                 clearable
-                dense
+                density="compact"
                 step="1"
               ></v-text-field>
             </v-col>
@@ -63,7 +63,7 @@
                 label="Monto"
                 v-model="filtro.monto"
                 clearable
-                dense
+                density="compact"
                 step="0.01"
               ></v-text-field>
             </v-col>
@@ -74,8 +74,8 @@
                 v-model="filtro.id_persona"
                 auto-select-first
                 clearable
-                dense
-                item-text="namelong"
+                density="compact"
+                item-title="namelong"
                 item-value="id"
               ></v-autocomplete>
             </v-col>
@@ -83,8 +83,8 @@
         </v-card-text>
         <v-card-actions>
           <v-spacer></v-spacer>
-          <v-btn small color="success" @click="filtraFlujo()">Aceptar</v-btn>
-          <v-btn small dark color="red" @click="filtrar = !filtrar"
+          <v-btn size="small" color="success" @click="filtraFlujo()">Aceptar</v-btn>
+          <v-btn size="small" dark color="red" @click="filtrar = !filtrar"
             >Cerrar</v-btn
           >
         </v-card-actions>
@@ -94,12 +94,12 @@
     <v-card>
       <v-card-title>
         <v-spacer></v-spacer>
-        <v-btn small color="#00789D" dark @click="filtrar = !filtrar"
+        <v-btn size="small" color="#00789D" dark @click="filtrar = !filtrar"
           >Filtrar</v-btn
         >
       </v-card-title>
       <v-card-text>
-        <v-simple-table>
+        <v-table>
           <template v-slot:default>
             <thead>
               <tr>
@@ -202,7 +202,7 @@
               </tr>
             </tbody>
           </template>
-        </v-simple-table>
+        </v-table>
       </v-card-text>
       <!--  -->
     </v-card>

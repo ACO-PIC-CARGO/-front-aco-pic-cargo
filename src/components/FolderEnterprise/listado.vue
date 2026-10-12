@@ -2,13 +2,13 @@
   <v-card class="px-5">
     <v-card elevation="0">
       <v-container v-if="loading" style="height: 400px">
-        <v-row class="fill-height" align-content="center" justify="center">
+        <v-row class="fill-height align-content-center justify-center">
           <v-col class="text-subtitle-1 text-center" cols="12">
             Cargando información ....
           </v-col>
           <v-col cols="6">
             <v-progress-linear
-              color="deep-purple accent-4"
+              color="deep-purple-accent-4"
               indeterminate
               rounded
               height="6"
@@ -36,10 +36,10 @@
         >
           Nuevo
         </v-btn> -->
-        <v-btn small class="mx-1" color="#2962FF" dark @click="open_filter()">
+        <v-btn size="small" class="mx-1" color="#2962FF" dark @click="open_filter()">
           Filtrar
         </v-btn>
-        <v-btn small class="mx-1" color="#004D40" dark> Exportar </v-btn>
+        <v-btn size="small" class="mx-1" color="#004D40" dark> Exportar </v-btn>
       </v-card-title>
 
       <v-data-table
@@ -49,7 +49,7 @@
         :items="$store.state.enterprises.list"
         item-key="id"
         :search="search"
-        dense
+        density="compact"
       >
         <template v-slot:[`item.status`]="{ item }">
           {{ item.status == 1 ? "Activo" : "Inactivo" }}
@@ -80,18 +80,18 @@
     <v-navigation-drawer
       v-model="showFilterDrawer"
       absolute
-      bottom
+      location="bottom right"
       temporary
-      right
+      
       width="30%"
       height="100vh"
     >
       <v-list-item>
-        <v-list-item-content>
+        
           <v-list-item-title class="text-h6">
             Filtrar Registros
           </v-list-item-title>
-        </v-list-item-content>
+        
       </v-list-item>
 
       <v-spacer></v-spacer>
@@ -103,7 +103,7 @@
               label="Tipo de Documento"
               v-model="enterprise.id_document"
               :items="itemsDocumentsPais"
-              item-text="description"
+              item-title="description"
               item-value="id"
               clearable
             ></v-autocomplete>
@@ -136,8 +136,8 @@
               label="País"
               :items="itemsPais"
               item-value="id"
-              item-text="name"
-              @change="_getState(enterprise.id_pais)"
+              item-title="name"
+              @update:model-value="_getState(enterprise.id_pais)"
               v-model="enterprise.id_pais"
             >
             </v-autocomplete>
@@ -148,8 +148,8 @@
               :items="itemsState"
               clearable
               item-value="id"
-              item-text="name"
-              @change="_getCity(enterprise.id_state)"
+              item-title="name"
+              @update:model-value="_getCity(enterprise.id_state)"
               v-model="enterprise.id_state"
             >
             </v-autocomplete>
@@ -160,8 +160,8 @@
               :items="itemsCity"
               clearable
               item-value="id"
-              item-text="name"
-              @change="_getTown(enterprise.id_city)"
+              item-title="name"
+              @update:model-value="_getTown(enterprise.id_city)"
               v-model="enterprise.id_city"
             >
             </v-autocomplete>
@@ -173,7 +173,7 @@
               clearable
               :items="itemsTown"
               item-value="id"
-              item-text="name"
+              item-title="name"
             ></v-autocomplete>
           </v-row>
           <v-row>
@@ -184,7 +184,7 @@
             ></v-text-field>
           </v-row>
           <v-row>
-            <v-radio-group v-model="enterprise.status" row dense>
+            <v-radio-group v-model="enterprise.status" inline density="compact">
               <v-radio label="Activo" color="green" :value="1"></v-radio>
               <v-radio label="Inactivo" color="red" :value="0"></v-radio>
               <v-radio label="Todos" color="blue" value="null"></v-radio>
