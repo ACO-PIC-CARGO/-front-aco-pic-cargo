@@ -37,6 +37,7 @@
   </div>
 </template>
 <script>
+import { defineAsyncComponent } from "vue";
 import { mapActions } from "vuex";
 import listMasterCom from "@/components/folderMaster/listMaster.vue";
 import FiltroMaster from "@/components/filtros/FiltroMaster.vue";
@@ -45,8 +46,8 @@ export default {
   components: {
     listMasterCom,
     FiltroMaster,
-    ConfigCotizacion: () =>
-      import("@/components/folderPricing/ConfigExpediente"),
+    ConfigCotizacion: defineAsyncComponent(() =>
+      import("@/components/folderPricing/ConfigExpediente")),
   },
   data() {
     return { dialogConfig: false };

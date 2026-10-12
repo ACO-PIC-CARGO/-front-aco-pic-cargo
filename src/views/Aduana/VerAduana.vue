@@ -99,38 +99,39 @@
 </template>
 
 <script>
+import { defineAsyncComponent } from "vue";
 import { mapActions } from "vuex";
 import mixins from "../../components/mixins/funciones.js";
 export default {
   mixins: [mixins],
   name: "VerQuoteView",
   components: {
-    DatosPrincipales: () =>
+    DatosPrincipales: defineAsyncComponent(() =>
       import(
         "../../components/folderAduana/VerComponent/DatosPrincipalesComponent.vue"
-      ),
-    DatosCarga: () =>
+      )),
+    DatosCarga: defineAsyncComponent(() =>
       import(
         "../../components/folderAduana/VerComponent/DatosCargaComponent.vue"
-      ),
-    Services: () =>
+      )),
+    Services: defineAsyncComponent(() =>
       import(
         "../../components/folderAduana/VerComponent/ServicesComponent.vue"
-      ),
-    Costos: () =>
+      )),
+    Costos: defineAsyncComponent(() =>
       import(
         "../../components/folderAduana/VerComponent/DatosCostosComponent.vue"
-      ),
-    Notas: () =>
-      import("../../components/folderAduana/VerComponent/NotasComponent.vue"),
-    Instructivo: () =>
+      )),
+    Notas: defineAsyncComponent(() =>
+      import("../../components/folderAduana/VerComponent/NotasComponent.vue")),
+    Instructivo: defineAsyncComponent(() =>
       import(
         "../../components/folderAduana/VerComponent/InstructivoComponent.vue"
-      ),
-    Comparativa: () =>
-      import("@/components/folderAduana/VerComponent/ComparativaComponent.vue"),
-    UnificarCotizacion: () =>
-      import("@/components/folderAduana/VerComponent/UnificarCotizacion.vue"),
+      )),
+    Comparativa: defineAsyncComponent(() =>
+      import("@/components/folderAduana/VerComponent/ComparativaComponent.vue")),
+    UnificarCotizacion: defineAsyncComponent(() =>
+      import("@/components/folderAduana/VerComponent/UnificarCotizacion.vue")),
   },
   data() {
     return {

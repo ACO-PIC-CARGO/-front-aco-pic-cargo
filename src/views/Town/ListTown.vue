@@ -16,10 +16,11 @@
 </template>
 
 <script>
+import { defineAsyncComponent } from "vue";
 export default {
   components: {
-    Town: () => import("../../components/Town/ListTownComponet.vue"),
-    FilterTown: () => import("../../components/filtros/FilterTown.vue"),
+    Town: defineAsyncComponent(() => import("../../components/Town/ListTownComponet.vue")),
+    FilterTown: defineAsyncComponent(() => import("../../components/filtros/FilterTown.vue")),
   },
   mounted() {
     this.$store.state.mainTitle = `LISTADO DE DISTRITOS`;

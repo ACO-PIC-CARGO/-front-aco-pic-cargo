@@ -3,10 +3,11 @@
 </template>
 
 <script>
+import { defineAsyncComponent } from "vue";
 export default {
   components: {
-    ListMultiplicadorComponent: () =>
-      import("@/components/FolderMultiplicador/list.vue"),
+    ListMultiplicadorComponent: defineAsyncComponent(() =>
+      import("@/components/FolderMultiplicador/list.vue")),
   },
   mounted() {
     this.$store.state.mainTitle = "Multiplicadores";

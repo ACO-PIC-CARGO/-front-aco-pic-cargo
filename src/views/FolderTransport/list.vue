@@ -3,10 +3,11 @@
 </template>
 
 <script>
+import { defineAsyncComponent } from "vue";
 export default {
   components: {
-    ListTransportComponent: () =>
-      import("@/components/FolderTransport/list.vue"),
+    ListTransportComponent: defineAsyncComponent(() =>
+      import("@/components/FolderTransport/list.vue")),
   },
   mounted() {
     this.$store.state.mainTitle = "TIPOS DE TRANSPORTE";

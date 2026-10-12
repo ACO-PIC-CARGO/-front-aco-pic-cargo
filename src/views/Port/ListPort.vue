@@ -16,11 +16,12 @@
 </template>
 
 <script>
+import { defineAsyncComponent } from "vue";
 export default {
   components: {
-    PuertoComponent: () =>
-      import("../../components/Port/ListPortComponent.vue"),
-    FilterPort: () => import("../../components/filtros/FiltroPuerto.vue"),
+    PuertoComponent: defineAsyncComponent(() =>
+      import("../../components/Port/ListPortComponent.vue")),
+    FilterPort: defineAsyncComponent(() => import("../../components/filtros/FiltroPuerto.vue")),
   },
   mounted() {
     this.$store.state.mainTitle = `LISTADO DE PUERTOS Y AEROLÍNEAS`;

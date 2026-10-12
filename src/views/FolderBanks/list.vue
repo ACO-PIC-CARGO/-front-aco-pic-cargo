@@ -3,10 +3,11 @@
 </template>
 
 <script>
+import { defineAsyncComponent } from "vue";
 export default {
   components: {
-    ListBankComponent: () =>
-      import("@/components/folderBanks/list.vue"),
+    ListBankComponent: defineAsyncComponent(() =>
+      import("@/components/folderBanks/list.vue")),
   },
   mounted() {
     this.$store.state.mainTitle = "Banco";

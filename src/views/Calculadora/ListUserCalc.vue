@@ -5,6 +5,7 @@
 </template>
 
 <script>
+import { defineAsyncComponent } from "vue";
 import { mapActions } from "vuex";
 
 export default {
@@ -14,8 +15,8 @@ export default {
     };
   },
   components: {
-    listUser: () =>
-      import("../../components/Calculadora/listUserCalcComponent.vue"),
+    listUser: defineAsyncComponent(() =>
+      import("../../components/Calculadora/listUserCalcComponent.vue")),
   },
   mounted() {
     this.$store.state.mainTitle = "Usuarios Calculadora";

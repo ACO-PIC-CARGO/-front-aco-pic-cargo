@@ -5,9 +5,10 @@
 </template>
 
 <script>
+import { defineAsyncComponent } from "vue";
 export default {
   components: {
-    Users: () => import("@/components/Users/EditUserComponent.vue"),
+    Users: defineAsyncComponent(() => import("@/components/Users/EditUserComponent.vue")),
   },
   mounted() {
     this.$store.state.mainTitle = `EDITAR USUARIO`;

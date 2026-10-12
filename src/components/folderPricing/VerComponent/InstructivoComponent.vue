@@ -863,6 +863,7 @@
 </template>
 
 <script>
+import { defineAsyncComponent } from "vue";
 import { mapActions } from "vuex";
 import Swal from "sweetalert2";
 import moment from "moment";
@@ -873,8 +874,8 @@ import Idempotency from "../../../components/mixins/utils.js";
 export default {
   mixins: [mixins, Idempotency],
   components: {
-    ConfigCotizacion: () =>
-      import("@/components/folderPricing/ConfigExpediente"),
+    ConfigCotizacion: defineAsyncComponent(() =>
+      import("@/components/folderPricing/ConfigExpediente")),
     FileSequenceInstructivo,
   },
   data() {

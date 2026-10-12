@@ -16,11 +16,12 @@
 </template>
 
 <script>
+import { defineAsyncComponent } from "vue";
 export default {
   components: {
-    SubIngreso: () =>
-      import("../../components/FolderIngresos/listSubIngresoCompponent.vue"),
-    FilterBegend: () => import("../../components/filtros/FilterSubIngreso.vue"),
+    SubIngreso: defineAsyncComponent(() =>
+      import("../../components/FolderIngresos/listSubIngresoCompponent.vue")),
+    FilterBegend: defineAsyncComponent(() => import("../../components/filtros/FilterSubIngreso.vue")),
   },
   mounted() {
     this.$store.state.mainTitle = `LISTADO DE SUB INGRESOS`;

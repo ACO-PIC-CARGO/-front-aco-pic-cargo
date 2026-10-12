@@ -29,21 +29,22 @@
   </v-card>
 </template>
 <script>
+import { defineAsyncComponent } from "vue";
 import { mapActions } from "vuex";
 export default {
   components: {
-    SectionCalculadora: () =>
-      import("../../../components/Calculadora/SectionCalculadora.vue"),
-    Servicios: () =>
-      import("../../../components/Calculadora/ServiciosCalculadora.vue"),
-    CostosCalculadora: () =>
-      import("../../../components/Calculadora/CostosCalculadora.vue"),
+    SectionCalculadora: defineAsyncComponent(() =>
+      import("../../../components/Calculadora/SectionCalculadora.vue")),
+    Servicios: defineAsyncComponent(() =>
+      import("../../../components/Calculadora/ServiciosCalculadora.vue")),
+    CostosCalculadora: defineAsyncComponent(() =>
+      import("../../../components/Calculadora/CostosCalculadora.vue")),
 
-    FleteComponent: () =>
-      import("../../../components/Calculadora/FleteComponent.vue"),
+    FleteComponent: defineAsyncComponent(() =>
+      import("../../../components/Calculadora/FleteComponent.vue")),
 
-    FleteListComponent: () =>
-      import("../../../components/Calculadora/FleteListComponent.vue"),
+    FleteListComponent: defineAsyncComponent(() =>
+      import("../../../components/Calculadora/FleteListComponent.vue")),
   },
   data() {
     return {

@@ -3,10 +3,11 @@
 </template>
 
 <script>
+import { defineAsyncComponent } from "vue";
 export default {
   components: {
-    ListCoinsComponent: () =>
-      import("@/components/FolderCoins/list.vue"),
+    ListCoinsComponent: defineAsyncComponent(() =>
+      import("@/components/FolderCoins/list.vue")),
   },
   mounted() {
     this.$store.state.mainTitle = "Monedas";

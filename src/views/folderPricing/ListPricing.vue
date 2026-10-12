@@ -97,18 +97,19 @@
 </template>
 
 <script>
+import { defineAsyncComponent } from "vue";
 import { mapActions } from "vuex";
 
 export default {
   name: "ListPricingView",
   components: {
-    ListQuote: () =>
-      import("@/components/folderPricing/listQuoteComponent.vue"),
-    ListCall: () => import("@/components/folderPricing/listCallComponent.vue"),
-    FiltroQuote: () => import("@/components/filtros/FiltroQuote.vue"),
-    FiltroCalls: () => import("@/components/filtros/FiltroCalls"),
-    ConfigCotizacion: () =>
-      import("@/components/folderPricing/ConfigCotizacion"),
+    ListQuote: defineAsyncComponent(() =>
+      import("@/components/folderPricing/listQuoteComponent.vue")),
+    ListCall: defineAsyncComponent(() => import("@/components/folderPricing/listCallComponent.vue")),
+    FiltroQuote: defineAsyncComponent(() => import("@/components/filtros/FiltroQuote.vue")),
+    FiltroCalls: defineAsyncComponent(() => import("@/components/filtros/FiltroCalls")),
+    ConfigCotizacion: defineAsyncComponent(() =>
+      import("@/components/folderPricing/ConfigCotizacion")),
 
     // ListCall: () => import("../folderPricing/comun/listCall.vue"),
   },

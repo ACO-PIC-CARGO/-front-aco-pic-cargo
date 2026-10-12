@@ -151,9 +151,10 @@
 </template>
 
 <script>
+import { defineAsyncComponent } from "vue";
 export default {
   components: {
-    AcoFull: () => import("../Membresia/AcoFull.vue"),
+    AcoFull: defineAsyncComponent(() => import("../Membresia/AcoFull.vue")),
   },
   data() {
     return {

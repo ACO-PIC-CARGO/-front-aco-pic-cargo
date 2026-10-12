@@ -3,10 +3,11 @@
 </template>
 
 <script>
+import { defineAsyncComponent } from "vue";
 export default {
   components: {
-    ListIncotermComponent: () =>
-      import("@/components/FolderIncoterm/list.vue"),
+    ListIncotermComponent: defineAsyncComponent(() =>
+      import("@/components/FolderIncoterm/list.vue")),
   },
   mounted() {
     this.$store.state.mainTitle = "Incoterm";

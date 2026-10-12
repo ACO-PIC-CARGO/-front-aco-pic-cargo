@@ -9,6 +9,7 @@
 </template>
 
 <script>
+import { defineAsyncComponent } from "vue";
 export default {
   data() {
     return {
@@ -16,10 +17,10 @@ export default {
     };
   },
   components: {
-    EditarProveedor: () =>
+    EditarProveedor: defineAsyncComponent(() =>
       import(
         "@/components/folderEntities/Proveedor/EditarProveedorComponet.vue"
-      ),
+      )),
   },
   mounted() {
     this.$store.state.mainTitle = `MODIFICAR PROVEEDOR`;

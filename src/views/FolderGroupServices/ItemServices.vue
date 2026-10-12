@@ -16,11 +16,12 @@
 </template>
 
 <script>
+import { defineAsyncComponent } from "vue";
 export default {
   components: {
-    ListItemServiceComponet: () =>
-      import("../../components/FolderGroupServices/ListItemServiceComponet.vue"),
-    FilterTown: () => import("../../components/filtros/FilterGrupoServices.vue"),
+    ListItemServiceComponet: defineAsyncComponent(() =>
+      import("../../components/FolderGroupServices/ListItemServiceComponet.vue")),
+    FilterTown: defineAsyncComponent(() => import("../../components/filtros/FilterGrupoServices.vue")),
   },
   mounted() {
     this.$store.state.mainTitle = `LISTADO DE DETALLES DE SERVICIO`;

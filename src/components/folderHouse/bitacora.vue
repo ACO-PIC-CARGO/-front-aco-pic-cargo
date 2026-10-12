@@ -507,6 +507,7 @@
 </template>
 
 <script>
+import { defineAsyncComponent } from "vue";
 import { mapActions, mapState } from "vuex";
 import axios from '@/api/axios-config';
 import { v4 as uuidv4 } from "uuid";
@@ -517,7 +518,7 @@ export default {
     isFormActionsDisabled: Boolean,
   },
   components: {
-    EstadoHouseForm: () => import("./../StatusHouse/EstadoHouseForm.vue"),
+    EstadoHouseForm: defineAsyncComponent(() => import("./../StatusHouse/EstadoHouseForm.vue")),
   },
   data: () => ({
     date: new Date(Date.now() - new Date().getTimezoneOffset() * 60000)

@@ -353,6 +353,7 @@
   </div>
 </template>
 <script>
+import { defineAsyncComponent } from "vue";
 import axios from '@/api/axios-config';
 import Swal from "sweetalert2";
 import { mapActions, mapState } from "vuex";
@@ -360,8 +361,8 @@ export default {
   props: ["filtrarFlag"],
   name: "RequestPayment",
   components: {
-    ModalPagoControlGastoComponent: () =>
-      import("../../components/modal/modalPagoControlGasto.vue"),
+    ModalPagoControlGastoComponent: defineAsyncComponent(() =>
+      import("../../components/modal/modalPagoControlGasto.vue")),
   },
   data: () => ({
     itemsSPayment: [],

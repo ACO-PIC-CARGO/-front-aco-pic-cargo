@@ -3,10 +3,11 @@
 </template>
 
 <script>
+import { defineAsyncComponent } from "vue";
 export default {
   components: {
-    ListModalityComponent: () =>
-      import("@/components/FolderModality/list.vue"),
+    ListModalityComponent: defineAsyncComponent(() =>
+      import("@/components/FolderModality/list.vue")),
   },
   mounted() {
     this.$store.state.mainTitle = "MODALIDADES (SENTIDOS)";

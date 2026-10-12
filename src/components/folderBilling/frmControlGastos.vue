@@ -239,6 +239,7 @@
   </v-container>
 </template>
 <script>
+import { defineAsyncComponent } from "vue";
 import { mapState, mapActions } from "vuex";
 import moment from "moment";
 import axios from "@/api/axios-config";
@@ -251,8 +252,8 @@ export default {
     },
   },
   components: {
-    Ingresos: () => import("./ingresos.vue"),
-    Egresos: () => import("./egresos.vue"),
+    Ingresos: defineAsyncComponent(() => import("./ingresos.vue")),
+    Egresos: defineAsyncComponent(() => import("./egresos.vue")),
   },
   data: () => {
     return {

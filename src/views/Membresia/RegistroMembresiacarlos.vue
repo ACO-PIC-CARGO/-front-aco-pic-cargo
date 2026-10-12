@@ -22,8 +22,9 @@
 </template>
 
 <script>
+import { defineAsyncComponent } from "vue";
 export default {
-  components: { CardPlan: () => import("../../components/comun/CardPlan.vue") },
+  components: { CardPlan: defineAsyncComponent(() => import("../../components/comun/CardPlan.vue")) },
   data() {
     return {
       cntUser: 1000,

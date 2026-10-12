@@ -3,10 +3,11 @@
 </template>
 
 <script>
+import { defineAsyncComponent } from "vue";
 export default {
   components: {
-    CalculadoraComponent: () =>
-      import("../../components/folterCargaMasiva/CalculadoraComponent.vue"),
+    CalculadoraComponent: defineAsyncComponent(() =>
+      import("../../components/folterCargaMasiva/CalculadoraComponent.vue")),
   },
   mounted() {
     this.$store.state.mainTitle = "CARGA MASIVA CALCULADORA";

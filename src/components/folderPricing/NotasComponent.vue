@@ -453,13 +453,14 @@
 </template>
 
 <script>
+import { defineAsyncComponent } from "vue";
 import { mapActions } from "vuex";
 import Swal from "sweetalert2";
 import { getNombreCotizacion } from "../../store/modules/pricing";
 export default {
   components: {
-    previewCotizacion: () =>
-      import("@/components/folderPricing/previewQuote.vue"),
+    previewCotizacion: defineAsyncComponent(() =>
+      import("@/components/folderPricing/previewQuote.vue")),
   },
   data() {
     return {

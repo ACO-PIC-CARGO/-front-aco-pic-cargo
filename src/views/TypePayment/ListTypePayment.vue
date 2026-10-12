@@ -16,12 +16,13 @@
 </template>
 
 <script>
+import { defineAsyncComponent } from "vue";
 export default {
   components: {
-    TypePayment: () =>
-      import("../../components/TypePayment/listTypePaymentComponent.vue"),
-    FilterTypePayment: () =>
-      import("../../components/filtros/FilterTypePayment.vue"),
+    TypePayment: defineAsyncComponent(() =>
+      import("../../components/TypePayment/listTypePaymentComponent.vue")),
+    FilterTypePayment: defineAsyncComponent(() =>
+      import("../../components/filtros/FilterTypePayment.vue")),
   },
   mounted() {
     this.$store.state.mainTitle = `LISTADO DE TIPOS DE PAGO`;

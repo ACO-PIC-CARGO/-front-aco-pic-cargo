@@ -21,18 +21,19 @@
 </template>
 
 <script>
+import { defineAsyncComponent } from "vue";
 import { mapActions } from "vuex";
 
 export default {
   components: {
-    LCLTextWhatsappCotizacion: () =>
+    LCLTextWhatsappCotizacion: defineAsyncComponent(() =>
       import(
         "@/components/Configuracion/Pricing/LCLTextWhatsappCotizacion.vue"
-      ),
-    FCLTextWhatsappCotizacion: () =>
+      )),
+    FCLTextWhatsappCotizacion: defineAsyncComponent(() =>
       import(
         "@/components/Configuracion/Pricing/FCLTextWhatsappCotizacion.vue"
-      ),
+      )),
   },
   data() {
     return {

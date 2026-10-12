@@ -9,10 +9,11 @@
 </template>
 
 <script>
+import { defineAsyncComponent } from "vue";
 export default {
   components: {
-    EditarCliente: () =>
-      import("@/components/folderEntities/Cliente/EditarClienteComponent.vue"),
+    EditarCliente: defineAsyncComponent(() =>
+      import("@/components/folderEntities/Cliente/EditarClienteComponent.vue")),
   },
   mounted() {
     this.$store.state.mainTitle = `MODIFICAR CLIENTE`;

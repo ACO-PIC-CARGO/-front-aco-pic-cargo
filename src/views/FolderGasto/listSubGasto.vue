@@ -16,11 +16,12 @@
 </template>
 
 <script>
+import { defineAsyncComponent } from "vue";
 export default {
   components: {
-    SubGasto: () =>
-      import("../../components/FolderGasto/listSubGastoCompponent.vue"),
-    FilterSubGasto: () => import("../../components/filtros/FilterSubGasto.vue"),
+    SubGasto: defineAsyncComponent(() =>
+      import("../../components/FolderGasto/listSubGastoCompponent.vue")),
+    FilterSubGasto: defineAsyncComponent(() => import("../../components/filtros/FilterSubGasto.vue")),
   },
   mounted() {
     this.$store.state.mainTitle = `LISTADO DE SUB GASTO`;

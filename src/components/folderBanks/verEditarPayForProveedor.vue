@@ -490,14 +490,15 @@
 </template>
 
 <script>
+import { defineAsyncComponent } from "vue";
 import { mapActions, mapState } from "vuex";
 import Swal from "sweetalert2";
 export default {
   components: {
     //  opciones: () => import("@/components/comun/opcionesRegistro.vue"),
-    FormatFecha: () => import("../comun/FormatFecha.vue"),
-    ArrastraYSolarComponent: () =>
-      import("../comun/ArrastraYSolarComponent.vue"),
+    FormatFecha: defineAsyncComponent(() => import("../comun/FormatFecha.vue")),
+    ArrastraYSolarComponent: defineAsyncComponent(() =>
+      import("../comun/ArrastraYSolarComponent.vue")),
   },
   props: {
     verflag: {

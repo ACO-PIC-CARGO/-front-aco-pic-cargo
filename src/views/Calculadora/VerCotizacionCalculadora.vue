@@ -47,28 +47,29 @@
 </template>
 
 <script>
+import { defineAsyncComponent } from "vue";
 import { mapActions } from "vuex";
 import mixins from "../../components/mixins/funciones.js";
 export default {
   mixins: [mixins],
   name: "VerQuoteView",
   components: {
-    DatosPrincipales: () =>
+    DatosPrincipales: defineAsyncComponent(() =>
       import(
         "../../components/folderPricing/VerComponent/DatosPrincipalesComponent.vue"
-      ),
-    DatosCarga: () =>
+      )),
+    DatosCarga: defineAsyncComponent(() =>
       import(
         "../../components/folderPricing/VerComponent/DatosCargaComponent.vue"
-      ),
-    Services: () =>
+      )),
+    Services: defineAsyncComponent(() =>
       import(
         "../../components/folderPricing/VerComponent/ServicesComponent.vue"
-      ),
-    Costos: () =>
+      )),
+    Costos: defineAsyncComponent(() =>
       import(
         "../../components/folderPricing/VerComponent/DatosCostosComponent.vue"
-      ),
+      )),
   },
   data() {
     return {

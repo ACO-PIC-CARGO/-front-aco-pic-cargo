@@ -3,10 +3,11 @@
 </template>
 
 <script>
+import { defineAsyncComponent } from "vue";
 export default {
   components: {
-    listConsolidacion: () =>
-      import("@/components/folderConsolidacion/lstConsolidacion.vue"),
+    listConsolidacion: defineAsyncComponent(() =>
+      import("@/components/folderConsolidacion/lstConsolidacion.vue")),
   },
 };
 </script>

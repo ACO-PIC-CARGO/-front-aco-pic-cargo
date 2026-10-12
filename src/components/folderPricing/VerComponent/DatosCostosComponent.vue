@@ -111,6 +111,7 @@
 </template>
 
 <script>
+import { defineAsyncComponent } from "vue";
 import moment from "moment";
 // import Swal from "sweetalert2";
 export default {
@@ -127,9 +128,9 @@ export default {
     );
   },
   components: {
-    CostosComponent: () => import("./Costos/CostosComponent.vue"),
-    VentasComponent: () => import("./Costos/VentasComponent.vue"),
-    ImpuestosComponent: () => import("./Costos/ImpuestosComponent.vue"),
+    CostosComponent: defineAsyncComponent(() => import("./Costos/CostosComponent.vue")),
+    VentasComponent: defineAsyncComponent(() => import("./Costos/VentasComponent.vue")),
+    ImpuestosComponent: defineAsyncComponent(() => import("./Costos/ImpuestosComponent.vue")),
   },
   methods: {
     mostrarImpuestos() {

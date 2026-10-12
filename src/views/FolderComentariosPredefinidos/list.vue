@@ -3,9 +3,10 @@
 </template>
 
 <script>
+import { defineAsyncComponent } from "vue";
 export default {
   components: {
-    ListComentariosPredefinidos: () => import("@/components/FolderComentariosPredefinidos/list.vue"),
+    ListComentariosPredefinidos: defineAsyncComponent(() => import("@/components/FolderComentariosPredefinidos/list.vue")),
   }
 }
 </script>

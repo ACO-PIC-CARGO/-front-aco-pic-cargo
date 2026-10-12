@@ -468,12 +468,13 @@
 </template>
 
 <script>
+import { defineAsyncComponent } from "vue";
 import Swal from "sweetalert2";
 import { mapActions } from "vuex";
 
 export default {
   components: {
-    Proceesing: () => import("../modal/modalProcessing.vue"),
+    Proceesing: defineAsyncComponent(() => import("../modal/modalProcessing.vue")),
   },
   data() {
     return {

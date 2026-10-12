@@ -9,10 +9,11 @@
 </template>
 
 <script>
+import { defineAsyncComponent } from "vue";
 export default {
   name: 'EstatusDefecto',
   components: {
-    EstatusDefectoComponent: () => import('@/components/FolderConfig/EstatusDefectoComponent.vue'),
+    EstatusDefectoComponent: defineAsyncComponent(() => import('@/components/FolderConfig/EstatusDefectoComponent.vue')),
   },
   data() {
     return {};

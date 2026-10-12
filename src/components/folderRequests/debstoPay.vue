@@ -503,6 +503,7 @@
   </v-container>
 </template>
 <script>
+import { defineAsyncComponent } from "vue";
 import axios from '@/api/axios-config';
 import { mapState, mapActions } from "vuex";
 import exportFromJSON from "export-from-json";
@@ -511,8 +512,8 @@ import Swal from "sweetalert2";
 export default {
   name: "debstoPay",
   components: {
-    newProgrammedPayment: () =>
-      import("../ProgrammedPayment/newProgrammedPayment.vue"),
+    newProgrammedPayment: defineAsyncComponent(() =>
+      import("../ProgrammedPayment/newProgrammedPayment.vue")),
   },
   data: () => ({
     moneda: "",

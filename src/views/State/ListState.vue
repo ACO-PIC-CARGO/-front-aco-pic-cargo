@@ -16,11 +16,12 @@
 </template>
 
 <script>
+import { defineAsyncComponent } from "vue";
 export default {
   components: {
-    StateComponent: () =>
-      import("../../components/State/ListStateComponent.vue"),
-    FilterState: () => import("../../components/filtros/FilterState.vue"),
+    StateComponent: defineAsyncComponent(() =>
+      import("../../components/State/ListStateComponent.vue")),
+    FilterState: defineAsyncComponent(() => import("../../components/filtros/FilterState.vue")),
   },
   mounted() {
     this.$store.state.mainTitle = `LISTADO DE ESTADOS`;

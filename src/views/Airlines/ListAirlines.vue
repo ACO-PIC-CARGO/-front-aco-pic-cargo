@@ -16,12 +16,13 @@
 </template>
 
 <script>
+import { defineAsyncComponent } from "vue";
 export default {
   components: {
-    ListAirlinesComponet: () =>
-      import("@/components/Maestros/Airlines/ListAirlinesComponet.vue"),
-    FilterAirlinesComponet: () =>
-      import("../../components/filtros/FiltroAirlines.vue"),
+    ListAirlinesComponet: defineAsyncComponent(() =>
+      import("@/components/Maestros/Airlines/ListAirlinesComponet.vue")),
+    FilterAirlinesComponet: defineAsyncComponent(() =>
+      import("../../components/filtros/FiltroAirlines.vue")),
   },
   data() {
     return {};

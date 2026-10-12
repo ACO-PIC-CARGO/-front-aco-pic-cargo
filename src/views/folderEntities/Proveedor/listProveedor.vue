@@ -20,13 +20,14 @@
 </template>
 
 <script>
+import { defineAsyncComponent } from "vue";
 export default {
   components: {
-    ListProveedorComponentVue: () =>
+    ListProveedorComponentVue: defineAsyncComponent(() =>
       import(
         "@/components/folderEntities/Proveedor/ListProveedorComponent.vue"
-      ),
-    FiltroProveedor: () => import("@/components/filtros/FiltroProveedor.vue"),
+      )),
+    FiltroProveedor: defineAsyncComponent(() => import("@/components/filtros/FiltroProveedor.vue")),
   },
   mounted() {
     this.$store.state.mainTitle = `LISTADO DE PROVEEDORES`;

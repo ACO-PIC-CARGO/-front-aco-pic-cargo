@@ -2,10 +2,11 @@
   <formularioControlGastos />
 </template>
 <script>
+import { defineAsyncComponent } from "vue";
 export default {
   components: {
-    formularioControlGastos: () =>
-      import("@/components/folderBilling/frmControlGastos.vue"),
+    formularioControlGastos: defineAsyncComponent(() =>
+      import("@/components/folderBilling/frmControlGastos.vue")),
   },
 };
 </script>

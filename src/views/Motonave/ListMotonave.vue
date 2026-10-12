@@ -16,11 +16,12 @@
 </template>
 
 <script>
+import { defineAsyncComponent } from "vue";
 export default {
   components: {
-    MotonaveComponent: () =>
-      import("../../components/Motonave/ListMotonaveComponent.vue"),
-    FilterMotonave: () => import("../../components/filtros/FilterMotonave.vue"),
+    MotonaveComponent: defineAsyncComponent(() =>
+      import("../../components/Motonave/ListMotonaveComponent.vue")),
+    FilterMotonave: defineAsyncComponent(() => import("../../components/filtros/FilterMotonave.vue")),
   },
   mounted() {
     this.$store.state.mainTitle = `LISTADO DE ESTADOS DE MOTO NAVES`;

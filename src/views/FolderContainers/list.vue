@@ -3,10 +3,11 @@
 </template>
 
 <script>
+import { defineAsyncComponent } from "vue";
 export default {
   components: {
-    ListContainersComponent: () =>
-      import("@/components/FolderContainers/list.vue"),
+    ListContainersComponent: defineAsyncComponent(() =>
+      import("@/components/FolderContainers/list.vue")),
   },
   mounted() {
     this.$store.state.mainTitle = "Tipos de Contenedores";

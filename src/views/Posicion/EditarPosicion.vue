@@ -6,10 +6,11 @@
   </template>
   
   <script>
-  export default {
+  import { defineAsyncComponent } from "vue";
+export default {
     components: {
-      Posicion: () => import("../../components/Posicion/EditarPosicionComponet.vue"),
-      FilterPosicion: () => import("../../components/filtros/FilterPosicion.vue"),
+      Posicion: defineAsyncComponent(() => import("../../components/Posicion/EditarPosicionComponet.vue")),
+      FilterPosicion: defineAsyncComponent(() => import("../../components/filtros/FilterPosicion.vue")),
     },
     mounted() {
       this.$store.state.mainTitle = `ROLES DE USUARIOS DEL SISTEMA POSICIÓN`;

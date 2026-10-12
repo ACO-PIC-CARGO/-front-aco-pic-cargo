@@ -52,27 +52,28 @@
   </v-card>
 </template>
 <script>
+import { defineAsyncComponent } from "vue";
 import { mapActions } from "vuex";
 export default {
   components: {
-    SectionCalculadora: () =>
-      import("../../../components/Calculadora/SectionCalculadora.vue"),
-    Servicios: () =>
-      import("../../../components/Calculadora/ServiciosCalculadora.vue"),
-    CostosCalculadora: () =>
-      import("../../../components/Calculadora/CostosCalculadora.vue"),
-    FleteComponent: () =>
-      import("../../../components/Calculadora/FleteComponent.vue"),
-    FleteListComponent: () =>
-      import("../../../components/Calculadora/FleteListComponent.vue"),
-    ProfitCalculadora: () =>
-      import("../../../components/Calculadora/ProfitCalculadora.vue"),
-    TransporteCalculadora: () =>
-      import("../../../components/Calculadora/TransporteCalculadora.vue"),
-    Configuracion: () =>
-      import("../../../components/Calculadora/Configuracion.vue"),
-    FleteGrupal: () =>
-      import("../../../components/Calculadora/FleteGrupal.vue"),
+    SectionCalculadora: defineAsyncComponent(() =>
+      import("../../../components/Calculadora/SectionCalculadora.vue")),
+    Servicios: defineAsyncComponent(() =>
+      import("../../../components/Calculadora/ServiciosCalculadora.vue")),
+    CostosCalculadora: defineAsyncComponent(() =>
+      import("../../../components/Calculadora/CostosCalculadora.vue")),
+    FleteComponent: defineAsyncComponent(() =>
+      import("../../../components/Calculadora/FleteComponent.vue")),
+    FleteListComponent: defineAsyncComponent(() =>
+      import("../../../components/Calculadora/FleteListComponent.vue")),
+    ProfitCalculadora: defineAsyncComponent(() =>
+      import("../../../components/Calculadora/ProfitCalculadora.vue")),
+    TransporteCalculadora: defineAsyncComponent(() =>
+      import("../../../components/Calculadora/TransporteCalculadora.vue")),
+    Configuracion: defineAsyncComponent(() =>
+      import("../../../components/Calculadora/Configuracion.vue")),
+    FleteGrupal: defineAsyncComponent(() =>
+      import("../../../components/Calculadora/FleteGrupal.vue")),
   },
   data() {
     return {

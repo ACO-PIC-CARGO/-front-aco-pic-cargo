@@ -16,12 +16,13 @@
 </template>
 
 <script>
+import { defineAsyncComponent } from "vue";
 export default {
   components: {
-    NotasCotizacion: () =>
-      import("../../components/MasterUsuario/ListNotaCotizacionComponent.vue"),
-    FilterNotasCotizacion: () =>
-      import("../../components/filtros/FilterNotasCotizacion.vue"),
+    NotasCotizacion: defineAsyncComponent(() =>
+      import("../../components/MasterUsuario/ListNotaCotizacionComponent.vue")),
+    FilterNotasCotizacion: defineAsyncComponent(() =>
+      import("../../components/filtros/FilterNotasCotizacion.vue")),
   },
   mounted() {
     this.$store.state.mainTitle = `LISTADO DE NOTAS DE LA COTIZACIÓN`;

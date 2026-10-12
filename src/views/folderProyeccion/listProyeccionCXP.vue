@@ -5,10 +5,11 @@
 </template>
 
 <script>
+import { defineAsyncComponent } from "vue";
 export default {
   components: {
-    listProyeccionCXP: () =>
-      import("../../components/proyeccion/proyeccionCxP.vue"),
+    listProyeccionCXP: defineAsyncComponent(() =>
+      import("../../components/proyeccion/proyeccionCxP.vue")),
   },
   mounted() {
     this.$store.state.mainTitle = "PROYECCIÓN DE GASTOS";

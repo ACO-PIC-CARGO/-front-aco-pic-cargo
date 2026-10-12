@@ -16,11 +16,12 @@
 </template>
 
 <script>
+import { defineAsyncComponent } from "vue";
 export default {
   components: {
-    TipoTelefono: () =>
-      import("../../components/MasterUsuario/ListTipoTelefonoComponet.vue"),
-    FilterTipoTelefono: () => import("../../components/filtros/FilterTipoTelefono.vue"),
+    TipoTelefono: defineAsyncComponent(() =>
+      import("../../components/MasterUsuario/ListTipoTelefonoComponet.vue")),
+    FilterTipoTelefono: defineAsyncComponent(() => import("../../components/filtros/FilterTipoTelefono.vue")),
   },
   mounted() {
     this.$store.state.mainTitle = `LISTADO DE TIPO DE TELÉFONO`;
