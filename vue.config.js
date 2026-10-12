@@ -2,7 +2,7 @@ const path = require("path");
 module.exports = {
   filenameHashing: true,
   productionSourceMap: false,
-  transpileDependencies: ["@sentry", "web-vitals"],
+  transpileDependencies: ["@sentry", "web-vitals", "uuid"],
   pwa: {
     name: "Sistema ChainSolver",
     themeColor: "#252C32",
@@ -22,6 +22,7 @@ module.exports = {
     resolve: {
       alias: {
         "@": path.resolve(__dirname, "src"),
+        uuid: path.resolve(__dirname, "node_modules/uuid/dist/index.js"),
       },
     },
     optimization: {
