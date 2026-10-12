@@ -150,12 +150,12 @@ export const KNOWN_CONSOLE_NOISE = [
     routes: ["controlHouseEditar"],
   },
   {
-    pattern: /^\[Vue warn\]: Error in v-on handler: "TypeError: Cannot read properties of undefined \(reading 'push'\)"(\n|$)/,
+    pattern: /^\[Vue warn\]: Error in v-on handler: "TypeError: Cannot read properties of undefined \(reading 'push'\)"[\s\S]*<DataGen> at src\/components\/folderHouse\/dataGen\.vue/,
     reason: "pre-existing: folderHouse/dataGen.vue guardar() uses this.router",
     routes: ["controlHouseEditar"],
   },
   {
-    pattern: /^TypeError: Cannot read properties of undefined \(reading 'push'\)(\n|$)/,
+    pattern: /^TypeError: Cannot read properties of undefined \(reading 'push'\)\n\s+at VueComponent\.guardar \(/,
     reason: "pre-existing: folderHouse/dataGen.vue guardar() uses this.router",
     routes: ["controlHouseEditar"],
   },

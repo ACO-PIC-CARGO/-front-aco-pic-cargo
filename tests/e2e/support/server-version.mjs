@@ -12,7 +12,10 @@ function appVersion() {
 // "update available" dialog covers every page.
 export async function reportAppVersionAsServerVersion(pageOrContext) {
   await pageOrContext.route("**/getVersion", async (route) => {
-    const response = await route.fetch();
+    const response = await route.fetch().catch((error) => {
+      if (!/ECONNRESET|socket hang up/.test(error.message)) throw error;
+      return route.fetch();
+    });
     const body = await response.json();
     body.data[0].version = appVersion();
     await route.fulfill({ response, json: body });

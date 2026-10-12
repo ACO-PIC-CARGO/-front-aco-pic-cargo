@@ -123,7 +123,6 @@
               large
               color="primary"
               class="mr-1"
-              aria-label="Abrir control de gastos"
               @click.stop="selectHouse(item)"
             >
               mdi-cursor-default-click

@@ -34,23 +34,34 @@ test("creates a master from scratch and assigns the house client", async ({ page
 
   const clientDialog = page.getByRole("dialog").filter({ hasText: "Es Necesario que registre un cliente" });
   await clientDialog.getByLabel("Cliente HBL").click();
-  await page.getByRole("option").first().click();
+  const clientOption = page.getByRole("option").first();
+  const clientName = (await clientOption.innerText()).trim();
+  await clientOption.click();
   const houseUpdated = page.waitForResponse((r) => r.url().endsWith("/setHouseEdit") && r.request().method() === "PUT");
   await clientDialog.getByRole("button", { name: "Guardar" }).click();
   expect((await houseUpdated).ok()).toBe(true);
   await expect(page.locator(".swal2-popup")).toContainText("House actualizado éxitosamente");
   await page.getByRole("button", { name: "OK" }).click();
-  await expect(clientDialog).toBeHidden();
-  await expect(page).toHaveURL(new RegExp(`/home/folderHouse/control/editar/${houseRow.insertid}/1$`));
+  await waitForPageToSettle(page);
+  await page.goto(`/home/folderHouse/control/ver/${houseRow.insertid}`);
+  await waitForPageToSettle(page);
+  const savedClientName = clientName.replace(/\s*\(\d+\)\s*$/, "").replace(/\s+/g, " ").trim();
+  await expect(page.getByText(/\[VER\]/)).toContainText(savedClientName);
 });
 
 const MASTER_CODE = /\d{4}MBL\d+/;
+
+const masterCodeIn = (rowText) => {
+  const code = rowText.match(MASTER_CODE)?.[0];
+  if (!code) throw new Error(`No master code (e.g. 2026MBL00001) found in row text: ${JSON.stringify(rowText)}`);
+  return code;
+};
 
 test("opens a master and a house in view mode from their lists", async ({ page }) => {
   await page.goto("/home/folderMaster/list");
   await waitForPageToSettle(page);
   const masterRow = page.getByRole("row").filter({ has: page.getByRole("button", { name: "Ver master" }) }).first();
-  const masterCode = (await masterRow.innerText()).match(MASTER_CODE)[0];
+  const masterCode = masterCodeIn(await masterRow.innerText());
   await masterRow.getByRole("button", { name: "Ver master" }).click();
   await expect(page).toHaveURL(/\/home\/folderMaster\/control\/ver\/\d+$/);
   await expect(page.getByText(/CONTROL DE EXPEDIENTE MÁSTER \[MODO VISTA\]/)).toBeVisible();
@@ -59,7 +70,7 @@ test("opens a master and a house in view mode from their lists", async ({ page }
   await page.goto("/home/folderHouse/list");
   await waitForPageToSettle(page);
   const houseRow = page.getByRole("row").filter({ has: page.getByRole("button", { name: "Ver house" }) }).first();
-  const houseMasterCode = (await houseRow.innerText()).match(MASTER_CODE)[0];
+  const houseMasterCode = masterCodeIn(await houseRow.innerText());
   await houseRow.getByRole("button", { name: "Ver house" }).click();
   await expect(page).toHaveURL(/\/home\/folderHouse\/control\/ver\/\d+$/);
   await expect(page.getByText(/\[VER\]/)).toBeVisible();
@@ -71,7 +82,7 @@ test("adds an income line to an expense control", async ({ page }) => {
   await page.goto("/home/folderMaster/list");
   await waitForPageToSettle(page);
   const masterRow = page.getByRole("row").filter({ has: page.getByRole("button", { name: "Ver master" }) }).first();
-  const masterCode = (await masterRow.innerText()).match(MASTER_CODE)[0];
+  const masterCode = masterCodeIn(await masterRow.innerText());
   await masterRow.getByRole("button", { name: "Ver master" }).click();
   const masterId = page.url().match(/\/control\/ver\/(\d+)$/)[1];
 
@@ -91,17 +102,23 @@ test("adds an income line to an expense control", async ({ page }) => {
     await service.getByLabel("Correlativo").click();
     await page.getByRole("option").first().click({ timeout: 5_000 });
     await page.keyboard.press("Tab");
-    await expect(service.getByRole("combobox").filter({ hasText: /\d{4}/ })).toBeVisible({ timeout: 2_000 });
-  }).toPass();
-  await service.getByLabel("Concepto").fill(`E2E ingreso ${Date.now()}`);
+    await expect(service.getByRole("combobox").filter({ has: page.getByLabel("Correlativo") }).filter({ hasText: /\d{4}/ })).toBeVisible({ timeout: 2_000 });
+  }).toPass({ timeout: 30_000 });
+  const concept = `E2E ingreso ${Date.now()}`;
+  await service.getByLabel("Concepto").fill(concept);
   await service.getByLabel("Moneda de Banco Salida").click();
   await page.getByRole("option", { name: /USD|DÓLAR/i }).first().click();
   await service.getByLabel("Monto").first().pressSequentially("100");
   const saved = page.waitForResponse((r) => r.url().endsWith("/setIngresos") && r.request().method() === "POST");
   await service.getByRole("button", { name: "Agregar servicio" }).click();
-  expect((await saved).ok()).toBe(true);
+  const response = await saved;
+  expect(response.ok()).toBe(true);
+  const body = await response.json();
+  expect(body.statusBol, "setIngresos response").toBe(true);
   await expect(page.locator(".swal2-popup")).toContainText("Registro Corrrecto.");
   await page.getByRole("button", { name: "OK" }).click();
+  await page.getByRole("cell", { name: /\(\d+\) - \d+/ }).first().click();
+  await expect(page.getByText(concept)).toBeVisible();
   await expect.poll(operationsTotal).toBe(totalBefore + 100);
 });
 
