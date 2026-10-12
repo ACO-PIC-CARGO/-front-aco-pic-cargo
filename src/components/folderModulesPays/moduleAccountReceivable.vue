@@ -13,7 +13,7 @@
           variant="outlined"
           label="Buscar"
           placeholder="Buscar..."
-          append-icon="mdi-text-search"
+          append-inner-icon="mdi-text-search"
         ></v-text-field>
       </v-col>
       <v-col cols="12" md="9" class="text-right pt-0">
@@ -32,47 +32,49 @@
           :headers="headersFacturas"
           :items="itemsListInvoice"
           density="compact"
-          :single-expand="true"
-          @click:row="clickRow"
+          expand-on-click
+          item-value="id"
           v-model:expanded="expanded"
           :search="searchFactura"
         >
-          <template v-slot:expanded-item="{ item }">
-            <td :colspan="headersFacturas.length">
-              <v-table>
-                <thead style="background: #e3f2fd; font-weight: bold">
-                  <tr>
-                    <td>Concepto</td>
-                    <td>Monto</td>
-                    <td>IGV</td>
-                    <td>Total</td>
-                    <td>Monto (USD)</td>
-                    <td>IGV (USD)</td>
-                    <td>Total (USD)</td>
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr v-for="(detalle, index) in item.detalle" :key="index">
-                    <td>{{ detalle.concepto }}</td>
-                    <td>
-                      {{ item.namecoins }}
-                      {{ parseFloat(detalle.monto).toFixed(2) }}
-                    </td>
-                    <td>
-                      {{ item.namecoins }}
-                      {{ parseFloat(detalle.igv).toFixed(2) }}
-                    </td>
-                    <td>
-                      {{ item.namecoins }}
-                      {{ parseFloat(detalle.total).toFixed(2) }}
-                    </td>
-                    <td>USD {{ parseFloat(detalle.montodolar).toFixed(2) }}</td>
-                    <td>USD {{ parseFloat(detalle.igvdolar).toFixed(2) }}</td>
-                    <td>USD {{ parseFloat(detalle.totaldolar).toFixed(2) }}</td>
-                  </tr>
-                </tbody>
-              </v-table>
-            </td>
+          <template v-slot:expanded-row="{ item }">
+            <tr>
+              <td :colspan="headersFacturas.length">
+                <v-table>
+                  <thead style="background: #e3f2fd; font-weight: bold">
+                    <tr>
+                      <td>Concepto</td>
+                      <td>Monto</td>
+                      <td>IGV</td>
+                      <td>Total</td>
+                      <td>Monto (USD)</td>
+                      <td>IGV (USD)</td>
+                      <td>Total (USD)</td>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr v-for="(detalle, index) in item.detalle" :key="index">
+                      <td>{{ detalle.concepto }}</td>
+                      <td>
+                        {{ item.namecoins }}
+                        {{ parseFloat(detalle.monto).toFixed(2) }}
+                      </td>
+                      <td>
+                        {{ item.namecoins }}
+                        {{ parseFloat(detalle.igv).toFixed(2) }}
+                      </td>
+                      <td>
+                        {{ item.namecoins }}
+                        {{ parseFloat(detalle.total).toFixed(2) }}
+                      </td>
+                      <td>USD {{ parseFloat(detalle.montodolar).toFixed(2) }}</td>
+                      <td>USD {{ parseFloat(detalle.igvdolar).toFixed(2) }}</td>
+                      <td>USD {{ parseFloat(detalle.totaldolar).toFixed(2) }}</td>
+                    </tr>
+                  </tbody>
+                </v-table>
+              </td>
+            </tr>
           </template>
           <template v-slot:[`item.totaldolar`]="{ item }">
             USD {{ item.totaldolar }}
@@ -91,9 +93,9 @@
           <template v-slot:[`item.accion`]="{ item }">
             <v-chip
               block
-              class=""
+              class="text-white"
               color="orange"
-              text-color="white"
+              variant="flat"
               v-if="item.status == 1"
             >
               Pendiente
@@ -517,14 +519,7 @@ export default {
           console.error(error);
         });
     },
-    clickRow(item, event) {
-      if (event.isExpanded) {
-        const index = this.expanded.findIndex((i) => i === item);
-        this.expanded.splice(index, 1);
-      } else {
-        this.expanded.push(item);
-      }
-    },
+
     async _getInvoiceAdminCxC(id_proveedor, id_house) {
       var vm = this;
       vm.$store.state.spiner = true;

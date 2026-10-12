@@ -45,7 +45,7 @@
               </v-col>
               <v-col cols="12" md="6">
                 <v-autocomplete
-                  :items="$store.state.year"
+                  :items="Array.isArray($store.state.year) ? $store.state.year : []"
                   item-title="description"
                   item-value="id"
                   label="Año del Gasto"
@@ -186,7 +186,6 @@
               <v-btn
                 block
                 color="#009688"
-                dark
                 size="x-large"
                 elevation="0"
                 class="text-uppercase font-weight-bold my-2"
@@ -808,7 +807,7 @@ export default {
       };
 
       // Usar Vue.set para actualizar reactividad en Vue 2
-      this.$set(this.itemsProductos, index, { ...producto });
+      this.itemsProductos[index] = { ...producto };
 
       // console.log(
       //   "Producto después de actualizar:",
@@ -848,7 +847,7 @@ export default {
         });
         return false;
       }
-      if (this.$refs.frmFactura.validate() && this.id_gastos) {
+      if ((await this.$refs.frmFactura.validate()).valid && this.id_gastos) {
         vm.$swal({
           icon: "info",
           title: "Guardando...",
@@ -929,7 +928,7 @@ export default {
     async setUpdateInvoiceAdmin() {
       var vm = this;
       vm.errorGasto = "";
-      if (this.$refs.frmFactura.validate() && this.id_gastos) {
+      if ((await this.$refs.frmFactura.validate()).valid && this.id_gastos) {
         vm.$swal({
           icon: "info",
           title: "Guardando...",
@@ -1024,8 +1023,8 @@ export default {
         });
     },
 
-    añadirProducto() {
-      if (!this.$refs.validacionConcepto.validate()) return;
+    async añadirProducto() {
+      if (!(await this.$refs.validacionConcepto.validate()).valid) return;
 
       let igv = 0;
       let igvdolar = 0;

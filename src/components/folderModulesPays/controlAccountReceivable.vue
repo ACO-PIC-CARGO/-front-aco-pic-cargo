@@ -45,7 +45,7 @@
               </v-col>
               <v-col cols="12" md="6">
                 <v-autocomplete
-                  :items="$store.state.year"
+                  :items="Array.isArray($store.state.year) ? $store.state.year : []"
                   item-title="description"
                   item-value="id"
                   label="Año del Ingreso"
@@ -106,17 +106,17 @@
               label="Cliente"
               v-model="id_cliente"
               :disabled="radio == ''"
+              menu-icon=""
             >
-              <template v-slot:append>
-<v-icon
-                @click.native="_callModalEntitie()"
-                
-                class="btn__add"
-                color="primary"
-              >
-                mdi-plus
-              </v-icon>
-</template>
+              <template v-slot:append-inner>
+                <v-icon
+                  @click="_callModalEntitie()"
+                  class="btn__add"
+                  color="primary"
+                >
+                  mdi-plus
+                </v-icon>
+              </template>
             </v-autocomplete>
           </v-col>
 
@@ -162,7 +162,7 @@
               label="Tipo de Cambio"
               v-model="tipocambio"
               :disabled="radio == ''"
-              @update:model-value.native="cambiarTipodeCambio()"
+              @update:model-value="cambiarTipodeCambio()"
               v-if="id_coins && symbol != 'USD'"
             ></v-text-field>
           </v-col>
@@ -206,7 +206,6 @@
               <v-btn
                 block
                 color="#009688"
-                dark
                 size="x-large"
                 elevation="0"
                 class="text-uppercase font-weight-bold my-2"
@@ -681,7 +680,7 @@ export default {
       };
 
       // Usar Vue.set para actualizar reactividad en Vue 2
-      this.$set(this.itemsproductos, index, { ...producto });
+      this.itemsproductos[index] = { ...producto };
 
       console.log(
         "Producto después de actualizar:",
@@ -977,8 +976,8 @@ export default {
         });
     },
 
-    añadirProducto() {
-      if (!this.$refs.validacionConcepto.validate()) return;
+    async añadirProducto() {
+      if (!(await this.$refs.validacionConcepto.validate()).valid) return;
       let igv = 0;
       let igvdolar = 0;
       let total = parseFloat(this.producto.monto);
