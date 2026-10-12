@@ -3,7 +3,7 @@
     <v-data-table
       :headers="headers"
       :items="lstFac"
-      item-key="id"
+      item-value="id"
       loading="true"
       :search="search"
       ><template v-slot:top>
@@ -14,11 +14,11 @@
         ></v-text-field>
       </template>
       <template v-slot:[`item.existe_fiscal`]="{ item }">
-        <v-chip v-if="item.existe_fiscal" class="ma-2" color="green" dark>
+        <v-chip v-if="item.existe_fiscal" class="ma-2 text-white" color="green" variant="flat">
           Si
         </v-chip>
 
-        <v-chip v-else class="ma-2" color="red" text-color="white">
+        <v-chip v-else class="ma-2 text-white" color="red" variant="flat">
           No
         </v-chip>
       </template>

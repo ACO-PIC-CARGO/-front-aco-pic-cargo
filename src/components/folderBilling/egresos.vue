@@ -5,7 +5,7 @@
       {{ parseFloat(egreso_pr).toFixed(2) }} USD /------ Operaciones:
       {{ parseFloat(egreso_op).toFixed(2) }} USD
       <v-spacer></v-spacer>
-      <v-btn @click="nuevoEngreso()" color="blue" dark size="small">
+      <v-btn @click="nuevoEngreso()" color="blue" size="small">
         Nuevo Control Gastos Egresos
       </v-btn>
     </h3>
@@ -106,7 +106,7 @@
                     size="small"
                     :loading="loading"
                     :color="egreso.docs > 0 ? 'blue' : 'grey'"
-                    @click.native="openInvoice(egreso)"
+                    @click="openInvoice(egreso)"
                     @click.stop="abrirExpandEgreso(index)"
                   >
                     <v-icon>mdi-file-compare</v-icon>
@@ -234,121 +234,120 @@
                     </span>
                   </td>
                 </tr>
-                <tr
-                  v-for="item in grupo.items"
-                  v-if="isClienteAbierto(egreso, grupo)"
-                  :key="`item-${
-                    grupo.id_house ||
-                    grupo.code_house ||
-                    grupo.consigner ||
-                    item.id
-                  }`"
-                >
-                  <td>{{ item.nombre_proveedor }}</td>
-                  <td>{{ item.concepto }}</td>
-                  <td style="background: #d6f4ff">
-                    {{ parseFloat(item.monto_pr).toFixed(2) }}
-                  </td>
-                  <td style="background: #d6f4ff" v-if="mostrarImpuesto">
-                    {{ parseFloat(item.igv_pr).toFixed(2) }}
-                  </td>
-                  <td style="background: #d6f4ff">
-                    {{ parseFloat(item.total_pr).toFixed(2) }}
-                  </td>
-                  <td style="background: #ffd6d6">
-                    {{ parseFloat(item.monto_op).toFixed(2) }}
-                  </td>
-                  <td style="background: #ffd6d6" v-if="mostrarImpuesto">
-                    {{ parseFloat(item.igv_op).toFixed(2) }}
-                  </td>
-                  <!-- <td style="background: #ffd6d6">
-                    {{ parseFloat(item.igv_op).toFixed(2) }}
-                  </td> -->
-                  <td style="background: #ffd6d6">
-                    {{ parseFloat(item.total_op).toFixed(2) }}
-                  </td>
-                  <td
-                    style="background: #d8ffde"
-                    v-if="mostrarColumnaMonedaDiferenteDolar(egreso)"
+                <template v-if="isClienteAbierto(egreso, grupo)">
+                  <tr
+                    v-for="item in grupo.items"
+                    :key="`item-${
+                      grupo.id_house ||
+                      grupo.code_house ||
+                      grupo.consigner ||
+                      item.id
+                    }`"
                   >
-                    {{ parseFloat(item.montoopcuentabanco).toFixed(2) }}
-                    {{ item.acronym }}
-                  </td>
-                  <td
-                    style="background: #d8ffde"
-                    v-if="
-                      mostrarImpuesto &&
-                      mostrarColumnaMonedaDiferenteDolar(egreso)
-                    "
-                  >
-                    {{ parseFloat(item.igvopcuentabanco).toFixed(2) }}
-                    {{ item.acronym }}
-                  </td>
-                  <td
-                    style="background: #d8ffde"
-                    v-if="mostrarColumnaMonedaDiferenteDolar(egreso)"
-                  >
-                    {{ parseFloat(item.totalopcuentabanco).toFixed(2) }}
-                    {{ item.acronym }}
-                  </td>
-                  <td
-                    style="background: #d8ffde"
-                    v-if="mostrarColumnaMonedaDiferenteDolar(egreso)"
-                  >
-                    {{ item.tipocambio == 1 ? "No Aplica" : item.tipocambio }}
-                  </td>
-                  <td class="text-center">
-                    <v-chip
-                      v-if="item.statusadmin == 1 && item.pagado == 1"
-                      size="small"
-                      class="mx-auto"
-                      color="green"
-                      variant="outlined"
-                      text-color="green"
+                    <td>{{ item.nombre_proveedor }}</td>
+                    <td>{{ item.concepto }}</td>
+                    <td style="background: #d6f4ff">
+                      {{ parseFloat(item.monto_pr).toFixed(2) }}
+                    </td>
+                    <td style="background: #d6f4ff" v-if="mostrarImpuesto">
+                      {{ parseFloat(item.igv_pr).toFixed(2) }}
+                    </td>
+                    <td style="background: #d6f4ff">
+                      {{ parseFloat(item.total_pr).toFixed(2) }}
+                    </td>
+                    <td style="background: #ffd6d6">
+                      {{ parseFloat(item.monto_op).toFixed(2) }}
+                    </td>
+                    <td style="background: #ffd6d6" v-if="mostrarImpuesto">
+                      {{ parseFloat(item.igv_op).toFixed(2) }}
+                    </td>
+                    <!-- <td style="background: #ffd6d6">
+                      {{ parseFloat(item.igv_op).toFixed(2) }}
+                    </td> -->
+                    <td style="background: #ffd6d6">
+                      {{ parseFloat(item.total_op).toFixed(2) }}
+                    </td>
+                    <td
+                      style="background: #d8ffde"
+                      v-if="mostrarColumnaMonedaDiferenteDolar(egreso)"
                     >
-                      SI
-                    </v-chip>
-                    <v-chip
-                      v-if="item.statusadmin == 1 && item.pagado == 0"
-                      size="small"
-                      class="mx-auto"
-                      color="orange"
-                      variant="outlined"
-                      text-color="orange"
+                      {{ parseFloat(item.montoopcuentabanco).toFixed(2) }}
+                      {{ item.acronym }}
+                    </td>
+                    <td
+                      style="background: #d8ffde"
+                      v-if="
+                        mostrarImpuesto &&
+                        mostrarColumnaMonedaDiferenteDolar(egreso)
+                      "
                     >
-                      SI
-                    </v-chip>
-                  </td>
-                  <td class="text-center">{{ item.fecha_pago_letra }}</td>
-                  <td>
-                    <v-chip
-                      v-if="item.pagado == 1"
-                      size="small"
-                      class="ma-2"
-                      color="green"
-                      text-color="white"
+                      {{ parseFloat(item.igvopcuentabanco).toFixed(2) }}
+                      {{ item.acronym }}
+                    </td>
+                    <td
+                      style="background: #d8ffde"
+                      v-if="mostrarColumnaMonedaDiferenteDolar(egreso)"
                     >
-                      Pagado
-                    </v-chip>
-                  </td>
-                  <td v-if="editable">
-                    <v-btn icon color="orange" size="small">
-                      <v-icon @click.native="_editEgreso(item)">
-                        mdi-pencil
-                      </v-icon>
-                    </v-btn>
-                    <v-btn
-                      icon
-                      color="red"
-                      size="small"
-                      v-if="!item.statusadmin && item.pagado == 0"
+                      {{ parseFloat(item.totalopcuentabanco).toFixed(2) }}
+                      {{ item.acronym }}
+                    </td>
+                    <td
+                      style="background: #d8ffde"
+                      v-if="mostrarColumnaMonedaDiferenteDolar(egreso)"
                     >
-                      <v-icon @click.native="_delEngreso(item, egreso)"
-                        >mdi-delete</v-icon
+                      {{ item.tipocambio == 1 ? "No Aplica" : item.tipocambio }}
+                    </td>
+                    <td class="text-center">
+                      <v-chip
+                        v-if="item.statusadmin == 1 && item.pagado == 1"
+                        size="small"
+                        class="mx-auto"
+                        color="green"
+                        variant="outlined"
                       >
-                    </v-btn>
-                  </td>
-                </tr>
+                        SI
+                      </v-chip>
+                      <v-chip
+                        v-if="item.statusadmin == 1 && item.pagado == 0"
+                        size="small"
+                        class="mx-auto"
+                        color="orange"
+                        variant="outlined"
+                      >
+                        SI
+                      </v-chip>
+                    </td>
+                    <td class="text-center">{{ item.fecha_pago_letra }}</td>
+                    <td>
+                      <v-chip
+                        v-if="item.pagado == 1"
+                        size="small"
+                        class="ma-2 text-white"
+                        color="green"
+                        variant="flat"
+                      >
+                        Pagado
+                      </v-chip>
+                    </td>
+                    <td v-if="editable">
+                      <v-btn icon color="orange" size="small">
+                        <v-icon @click="_editEgreso(item)">
+                          mdi-pencil
+                        </v-icon>
+                      </v-btn>
+                      <v-btn
+                        icon
+                        color="red"
+                        size="small"
+                        v-if="!item.statusadmin && item.pagado == 0"
+                      >
+                        <v-icon @click="_delEngreso(item, egreso)"
+                          >mdi-delete</v-icon
+                        >
+                      </v-btn>
+                    </td>
+                  </tr>
+                </template>
               </template>
             </tbody>
           </v-table>
@@ -406,9 +405,9 @@
                 </v-col>
                 <v-col cols="12" xl="3" lg="3">
                   <v-autocomplete
-                    @update:model-value="activarSeccion3"
                     :items="$store.state.controlGastos.listCorrelativo"
                     v-model="id_correlativo"
+                    @update:model-value="activarSeccion3"
                     item-title="code"
                     item-value="id"
                     label="Correlativo"
@@ -422,8 +421,8 @@
                     v-if="mostrarImpuesto"
                     density="compact"
                     :disabled="!!egresos.pagado"
-                    @update:model-value="calcularE()"
                     v-model="egresos.statusCalcula"
+                    @update:model-value="calcularE()"
                     :label="`Calcula ${$store.state.enterprises.impuesto.nombre_impuesto}`"
                   ></v-switch>
                   <p v-else>
@@ -470,8 +469,8 @@
                 <v-col cols="12" md="4" v-if="opFlag">
                   <v-text-field
                     density="compact"
-                    @update:model-value="calcularE()"
                     v-model="egresos.montoopcuentabanco"
+                    @update:model-value="calcularE()"
                     type="number"
                     label="Monto"
                     :rules="[(v) => !!v || 'Dato requerido']"
@@ -507,8 +506,8 @@
                 <v-col cols="12" md="4" v-if="prFlag">
                   <v-text-field
                     density="compact"
-                    @update:model-value="calcularE()"
                     v-model="egresos.monto_pr"
+                    @update:model-value="calcularE()"
                     type="number"
                     label="Monto"
                     :rules="[(v) => !!v || 'Dato requerido']"
@@ -579,7 +578,7 @@
         <v-card-actions class="pb-4">
           <v-btn
             v-if="this.statusBtn == 1"
-            @click.native="_setData()"
+            @click="_setData()"
             block
             color="success"
             elevation="0"
@@ -589,7 +588,7 @@
 
           <v-btn
             v-if="this.statusBtn == 2"
-            @click.native="_editEgresos()"
+            @click="_editEgresos()"
             block
             color="success"
             elevation="0"
@@ -615,7 +614,7 @@
             :headers="headersInvoice"
             :items="itemsListInvoice"
             density="compact"
-            item-key="id"
+            item-value="id"
             class="elevation-0"
             :loading="isDataTableLoading"
           >
@@ -649,7 +648,7 @@
                   class="btn_add mr-2"
                   size="large"
                   color="grey"
-                  @click.native="openDoc(item.path)"
+                  @click="openDoc(item.path)"
                 >
                   mdi-eye
                 </v-icon></v-btn
@@ -661,7 +660,7 @@
                   class="btn_add mr-2"
                   size="large"
                   color="red"
-                  @click.native="_delInvoice(item.id)"
+                  @click="_delInvoice(item.id)"
                 >
                   mdi-delete
                 </v-icon></v-btn
@@ -750,24 +749,26 @@
         <h2>{{ egreso.nombre_proveedor }}</h2>
         <v-stepper v-model="e1">
           <v-stepper-header>
-            <v-stepper-step :complete="e1 > 1" step="1">
-              Códigos
-            </v-stepper-step>
+            <v-stepper-item :complete="e1 > 1" :value="1" title="Códigos" />
 
             <v-divider></v-divider>
 
-            <v-stepper-step :complete="e1 > 2" step="2">
-              Cuentas Bancarias
-            </v-stepper-step>
+            <v-stepper-item
+              :complete="e1 > 2"
+              :value="2"
+              title="Cuentas Bancarias"
+            />
             <v-divider></v-divider>
 
-            <v-stepper-step :complete="e1 > 3" step="3">
-              Observaciones
-            </v-stepper-step>
+            <v-stepper-item
+              :complete="e1 > 3"
+              :value="3"
+              title="Observaciones"
+            />
           </v-stepper-header>
 
-          <v-stepper-items>
-            <v-stepper-content step="1">
+          <v-stepper-window>
+            <v-stepper-window-item :value="1">
               <v-card class="mb-12" elevation="0" height="200px">
                 <v-card-text>
                   <v-row density="compact">
@@ -804,9 +805,9 @@
 
               <v-btn color="primary" @click="e1 = 2"> Continuar </v-btn>
               <v-btn variant="text" @click="dialogSolicitud = false"> Cerrar </v-btn>
-            </v-stepper-content>
+            </v-stepper-window-item>
 
-            <v-stepper-content step="2">
+            <v-stepper-window-item :value="2">
               <v-card class="mb-12" elevation="0" min-height="200px">
                 <v-card-text>
                   <div class="text-right">
@@ -825,7 +826,8 @@
                     :headers="headersAccount"
                     :items="$store.state.itemsDataAccountsNumberList"
                     hide-default-footer
-                    item-key="id"
+                    item-value="id"
+                    return-object
                     show-select
                     class="elevation-0"
                     density="compact"
@@ -840,9 +842,9 @@
               </v-btn>
               <v-btn variant="text" @click="e1 = 1"> Volver</v-btn>
               <v-btn variant="text" @click="dialogSolicitud = false"> Cerrar </v-btn>
-            </v-stepper-content>
+            </v-stepper-window-item>
 
-            <v-stepper-content step="3">
+            <v-stepper-window-item :value="3">
               <v-card class="mb-12" elevation="0" height="200px">
                 <v-card-text>
                   <v-textarea
@@ -853,7 +855,7 @@
                   </v-textarea>
                   <v-btn
                     block
-                    @click.native="_generateSolicitud()"
+                    @click="_generateSolicitud()"
                     class="mt-2"
                     color="primary"
                     >ENVIAR A ADMINISTRACIÓN UNA SOLICITUD DE PAGO</v-btn
@@ -863,8 +865,8 @@
 
               <v-btn variant="text" @click="e1 = 2"> Volver </v-btn>
               <v-btn variant="text" @click="dialogSolicitud = false"> Cerrar </v-btn>
-            </v-stepper-content>
-          </v-stepper-items>
+            </v-stepper-window-item>
+          </v-stepper-window>
         </v-stepper>
       </v-card>
     </v-dialog>
@@ -905,32 +907,28 @@
             :headers="headers"
             :items="conceptos"
             hide-default-footer
-            item-key="concepto"
-            :footer-props="{
-              'items-per-page-options': [10, 20, 30, 40, 50],
-            }"
+            item-value="concepto"
+            return-object
+            :items-per-page-options="[10, 20, 30, 40, 50]"
             :items-per-page="30"
             density="compact"
             show-select
             class="elevation-0"
           >
-            <template
-              v-slot:[`item.data-table-select`]="{ item, isSelected, select }"
-            >
+            <template v-slot:[`item.data-table-select`]="{ item, props }">
               <v-checkbox-btn
-                :value="isSelected"
+                v-bind="props"
                 :readonly="item.pagado == 1"
                 v-if="!item.pagado == 1"
-                @input="select($event)"
               ></v-checkbox-btn>
             </template>
             <template v-slot:[`item.pagado`]="{ item }">
               <v-chip
                 v-if="item.pagado == 1"
-                class="ma-2"
+                class="ma-2 text-white"
                 color="green"
                 size="small"
-                text-color="white"
+                variant="flat"
               >
                 {{ item.pagado == 1 ? "Pagado" : "" }}
               </v-chip>
@@ -940,7 +938,7 @@
                 size="large"
                 color="grey"
                 v-if="item.pagado == 1"
-                @click.native="openPaymentFile(item.path)"
+                @click="openPaymentFile(item.path)"
                 >mdi-eye</v-icon
               >
             </template>
@@ -955,7 +953,8 @@
             :headers="headersAccount"
             :items="$store.state.itemsDataAccountsNumberList"
             hide-default-footer
-            item-key="id"
+            item-value="id"
+            return-object
             show-select
             density="compact"
             class="elevation-0"
@@ -964,7 +963,7 @@
 
           <v-btn
             block
-            @click.native="_generateSolicitud()"
+            @click="_generateSolicitud()"
             class="mt-2"
             color="primary"
             :loading="loading"
@@ -976,7 +975,7 @@
     <!--  -->
     <v-dialog width="80%" v-model="dialogPayment">
       <v-card class="mx-auto">
-        <v-toolbar color="cyan" dark>
+        <v-toolbar color="cyan" class="text-white">
           <v-toolbar-title>SOLICITUDES GENERADAS</v-toolbar-title>
 
           <v-spacer></v-spacer>
@@ -985,7 +984,7 @@
           <v-text-field
             density="compact"
             v-model="search"
-            append-icon="mdi-magnify"
+            append-inner-icon="mdi-magnify"
             label="Buscar solicitud"
             single-line
             hide-details
@@ -1015,17 +1014,17 @@
           <template v-slot:[`item.status`]="{ item }">
             <v-chip
               v-if="item.status == 2"
-              class="ma-2"
+              class="ma-2 text-white"
               color="orange"
-              text-color="white"
+              variant="flat"
             >
               {{ item.status == 2 ? "Pendiente" : "" }}
             </v-chip>
             <v-chip
               v-if="item.status == 3"
-              class="ma-2"
+              class="ma-2 text-white"
               color="green"
-              text-color="white"
+              variant="flat"
             >
               {{ item.status == 3 ? "Pagado" : "" }}
             </v-chip>
@@ -1341,6 +1340,7 @@ import Swal from "sweetalert2";
 import { mapActions } from "vuex";
 import ArrastraYSolarComponent from "../comun/ArrastraYSolarComponent.vue";
 export default {
+  emits: ["recalcularProfit", "statusBtn"],
   props: {
     statusBtn: {
       type: Number,
@@ -1366,7 +1366,7 @@ export default {
       type: Boolean,
       default: true,
     },
-    master_egresos: [],
+    master_egresos: null,
   },
   data: () => {
     return {
@@ -1559,7 +1559,7 @@ export default {
       this._getMasterList(),
     ]);
 
-    this.headers[2].text =
+    this.headers[2].title =
       this.$store.state.enterprises.impuesto.nombre_impuesto;
     this.mostrarImpuesto =
       this.$store.state.enterprises.impuesto.mostrarimpuesto;
@@ -1589,7 +1589,7 @@ export default {
       let id_controlgastos = this.egreso.detalle.map((v) => {
         return v.id;
       });
-      if (this.$refs.frmMoverCosto.validate()) {
+      if ((await this.$refs.frmMoverCosto.validate()).valid) {
         let data = {
           id_masterorigen: this.egreso.id_master,
           id_proveedor: this.egreso.id_proveedor,
@@ -1613,7 +1613,7 @@ export default {
     },
     toggleCliente(egreso, grupo) {
       const key = this.clienteKey(egreso, grupo);
-      this.$set(this.clientesAbiertos, key, !this.clientesAbiertos[key]);
+      this.clientesAbiertos[key] = !this.clientesAbiertos[key];
     },
     isClienteAbierto(egreso, grupo) {
       const key = this.clienteKey(egreso, grupo);
@@ -1914,7 +1914,7 @@ export default {
       return val;
     },
     async _setData() {
-      if (!this.$refs.frmEgreso.validate()) {
+      if (!(await this.$refs.frmEgreso.validate()).valid) {
         return;
       }
       var vm = this;
@@ -2122,7 +2122,7 @@ export default {
     },
     async InsertarActualizarPorcentajeProveedor() {
       if (
-        this.$refs.frmPorcentajeProveedor.validate() &&
+        (await this.$refs.frmPorcentajeProveedor.validate()).valid &&
         this.validatePorcentaje()
       ) {
         var vm = this;
@@ -2886,9 +2886,9 @@ export default {
       );
       return val;
     },
-    registrarCuentaBancaria() {
+    async registrarCuentaBancaria() {
       var vm = this;
-      if (vm.$refs.frmCuentaBancaria.validate()) {
+      if ((await vm.$refs.frmCuentaBancaria.validate()).valid) {
         Swal.fire({
           icon: "question",
           html: "<b>Si guarda este banco, se agregará a la lista de bancos de la ficha del proveedor. ¿Desea continuar?</b>",
@@ -3139,7 +3139,7 @@ export default {
       }
     },
     async copiarMontos() {
-      if (this.$refs.frmCopiar.validate()) {
+      if ((await this.$refs.frmCopiar.validate()).valid) {
         await this.copiarCGEgresos({
           ...this.egreso,
           tipocambio: this.egreso.tipocambio || 1,

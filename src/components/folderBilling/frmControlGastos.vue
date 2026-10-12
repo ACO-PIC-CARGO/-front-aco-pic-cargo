@@ -141,7 +141,7 @@
           icon="mdi-currency-usd"
           class="my-1 text-center"
           border="start"
-          colored-border
+          border-color="deep-purple-accent-4"
           color="deep-purple-accent-4"
           elevation="2"
           variant="outlined"
@@ -159,7 +159,6 @@
           color="info"
           class="my-1"
           block
-          dark
           size="small"
           v-if="!editable"
           @click="irAEditar(false)"
@@ -170,7 +169,6 @@
           color="red"
           class="my-1"
           block
-          dark
           size="small"
           @click="imprimirControlDetallado(false)"
         >
@@ -181,7 +179,6 @@
           class="my-1"
           block
           size="small"
-          dark
           @click="imprimirControlDetallado(true)"
         >
           <v-icon class="mx-1">mdi-content-save-all-outline</v-icon> CONTROL
@@ -210,7 +207,6 @@
       <v-col cols="12">
         <Ingresos
           @recargarDatos="recargarDatos()"
-          :statusBtn="statusBtn"
           :prFlag="prFlag"
           :opFlag="opFlag"
           :ingreso_pr="ingreso_pr"

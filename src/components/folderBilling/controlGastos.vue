@@ -30,7 +30,7 @@
 
           <v-btn
             :disabled="!this.$route.params.id_control"
-            @click.native="_generatePDF()"
+            @click="_generatePDF()"
             block
             color="orange"
             class="mt-2"
@@ -50,7 +50,6 @@
             block
             color="pink"
             class="mt-2"
-            dark
             @click="abrirModalFacturar()"
           >
             EMITIR FACTURA A CLIENTE
@@ -181,12 +180,9 @@
                 <v-row density="compact">
                   <v-col cols="12" md="6">
                     <v-menu
-                      ref="menu"
                       v-model="menu"
                       :close-on-content-click="false"
-                      v-model:return-value="date"
                       transition="scale-transition"
-                      offset-y
                       min-width="auto"
                     >
                       <template v-slot:activator="{ props }">
@@ -199,24 +195,31 @@
                           v-bind="props"
                         ></v-text-field>
                       </template>
-                      <v-date-picker
-                        locale="es-pe"
-                        v-model="date"
-                        no-title
-                        scrollable
-                      >
-                        <v-spacer></v-spacer>
-                        <v-btn variant="text" color="primary" @click="menu = false">
-                          Cancel
-                        </v-btn>
-                        <v-btn
-                          variant="text"
-                          color="primary"
-                          @click="$refs.menu.save(date)"
+                      <v-locale-provider locale="es">
+                        <v-date-picker
+                          :model-value="date"
+                          @update:model-value="setDate"
+                          hide-header
                         >
-                          OK
-                        </v-btn>
-                      </v-date-picker>
+                          <template #actions>
+                            <v-spacer></v-spacer>
+                            <v-btn
+                              variant="text"
+                              color="primary"
+                              @click="menu = false"
+                            >
+                              Cancel
+                            </v-btn>
+                            <v-btn
+                              variant="text"
+                              color="primary"
+                              @click="menu = false"
+                            >
+                              OK
+                            </v-btn>
+                          </template>
+                        </v-date-picker>
+                      </v-locale-provider>
                     </v-menu>
                   </v-col>
                   <v-col cols="12" md="6">
@@ -289,7 +292,7 @@
                       @click="_uploadFile()"
                     >
                       Subir
-                      <v-icon end dark> mdi-cloud-upload </v-icon>
+                      <v-icon end> mdi-cloud-upload </v-icon>
                     </v-btn>
                   </v-col>
                 </v-row>
@@ -366,6 +369,7 @@ import totalesProveedor from "./totalesProveedor.vue";
 import totales from "./totales.vue";
 import { mapState, mapActions } from "vuex";
 import axios from '@/api/axios-config';
+import moment from "moment";
 export default {
   name: "ControlGastos",
   components: {
@@ -454,6 +458,9 @@ export default {
       "_getBanksList",
       "_getCoinsList",
     ]),
+    setDate(value) {
+      this.date = moment(value).format("YYYY-MM-DD");
+    },
     openDoc(path) {
       window.open(path, "_blank");
     },

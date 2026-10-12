@@ -5,10 +5,9 @@
         <v-btn
           color="primary"
           elevation="0"
-          dark
           rounded
           class="mb-2 ml-5"
-          @click.native="statusDialog = !statusDialog"
+          @click="statusDialog = !statusDialog"
         >
           NUEVO CONTROL
         </v-btn>
@@ -23,7 +22,7 @@
 
         <v-text-field
           v-model="search"
-          append-icon="mdi-magnify"
+          append-inner-icon="mdi-magnify"
           label="Buscar"
           single-line
           hide-details

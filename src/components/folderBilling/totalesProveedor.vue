@@ -5,22 +5,22 @@
     <v-dialog width="780" v-model="dialogSolicitud">
       <v-stepper v-model="e1">
         <v-stepper-header>
-          <v-stepper-step :complete="e1 > 1" step="1"> Códigos </v-stepper-step>
+          <v-stepper-item :complete="e1 > 1" :value="1" title="Códigos" />
 
           <v-divider></v-divider>
 
-          <v-stepper-step :complete="e1 > 2" step="3">
-            Cuentas Bancarias
-          </v-stepper-step>
+          <v-stepper-item
+            :complete="e1 > 2"
+            :value="2"
+            title="Cuentas Bancarias"
+          />
           <v-divider></v-divider>
 
-          <v-stepper-step :complete="e1 > 3" step="3">
-            Observaciones
-          </v-stepper-step>
+          <v-stepper-item :complete="e1 > 3" :value="3" title="Observaciones" />
         </v-stepper-header>
 
-        <v-stepper-items>
-          <v-stepper-content step="1">
+        <v-stepper-window>
+          <v-stepper-window-item :value="1">
             <v-card class="mb-12" elevation="0" height="200px">
               <v-card-text>
                 <v-row density="compact">
@@ -56,9 +56,9 @@
 
             <v-btn variant="text" @click="e1 = 1"> Volver </v-btn>
             <v-btn variant="text" @click="dialogSolicitud = false"> Cerrar </v-btn>
-          </v-stepper-content>
+          </v-stepper-window-item>
 
-          <v-stepper-content step="2">
+          <v-stepper-window-item :value="2">
             <v-card class="mb-12" elevation="0" height="200px">
               <v-card-text>
                 <b>Cuentas</b>
@@ -68,7 +68,8 @@
                   :headers="headersAccount"
                   :items="$store.state.itemsDataAccountsNumberList"
                   hide-default-footer
-                  item-key="id"
+                  item-value="id"
+                  return-object
                   show-select
                   class="elevation-0"
                   density="compact"
@@ -82,9 +83,9 @@
 
             <v-btn variant="text" @click="e1 = 1"> Volver</v-btn>
             <v-btn variant="text" @click="dialogSolicitud = false"> Cerrar </v-btn>
-          </v-stepper-content>
+          </v-stepper-window-item>
 
-          <v-stepper-content step="3">
+          <v-stepper-window-item :value="3">
             <v-card class="mb-12" elevation="0" height="200px">
               <v-card-text>
                 <v-textarea
@@ -95,7 +96,7 @@
                 </v-textarea>
                 <v-btn
                   block
-                  @click.native="_generateSolicitud()"
+                  @click="_generateSolicitud()"
                   class="mt-2"
                   color="primary"
                   >GENERAR SOLICITUD</v-btn
@@ -105,8 +106,8 @@
 
             <v-btn variant="text" @click="e1 = 2"> Volver </v-btn>
             <v-btn variant="text" @click="dialogSolicitud = false"> Cerrar </v-btn>
-          </v-stepper-content>
-        </v-stepper-items>
+          </v-stepper-window-item>
+        </v-stepper-window>
       </v-stepper>
     </v-dialog>
 
@@ -143,32 +144,28 @@
             hide-default-header
             :items="$store.state.itemsDataConceptos"
             hide-default-footer
-            item-key="concepto"
-            :footer-props="{
-              'items-per-page-options': [10, 20, 30, 40, 50],
-            }"
+            item-value="concepto"
+            return-object
+            :items-per-page-options="[10, 20, 30, 40, 50]"
             :items-per-page="30"
             density="compact"
             show-select
             class="elevation-0"
           >
-            <template
-              v-slot:[`item.data-table-select`]="{ item, isSelected, select }"
-            >
+            <template v-slot:[`item.data-table-select`]="{ item, props }">
               <v-checkbox-btn
-                :value="isSelected"
+                v-bind="props"
                 :readonly="item.pagado == 1"
                 v-if="!item.pagado == 1"
-                @input="select($event)"
               ></v-checkbox-btn>
             </template>
             <template v-slot:[`item.status`]="{ item }">
               <v-chip
                 v-if="item.pagado == 1"
-                class="ma-2"
+                class="ma-2 text-white"
                 color="green"
                 size="small"
-                text-color="white"
+                variant="flat"
               >
                 {{ item.status == 1 ? "Pagado" : "" }}
               </v-chip>
@@ -178,7 +175,7 @@
                 size="large"
                 color="grey"
                 v-if="item.pagado == 1"
-                @click.native="openPaymentFile(item.path)"
+                @click="openPaymentFile(item.path)"
                 >mdi-eye</v-icon
               >
             </template>
@@ -190,7 +187,8 @@
             :headers="headersAccount"
             :items="$store.state.itemsDataAccountsNumberList"
             hide-default-footer
-            item-key="id"
+            item-value="id"
+            return-object
             show-select
             density="compact"
             class="elevation-0"
@@ -199,7 +197,7 @@
 
           <v-btn
             block
-            @click.native="_generateSolicitud()"
+            @click="_generateSolicitud()"
             class="mt-2"
             color="primary"
             >GENERAR SOLICITUD</v-btn
@@ -210,7 +208,7 @@
 
     <v-dialog width="70%" v-model="dialogPayment">
       <v-card class="mx-auto">
-        <v-toolbar color="cyan" dark>
+        <v-toolbar color="cyan" class="text-white">
           <v-toolbar-title>SOLICITUDES GENERADAS</v-toolbar-title>
 
           <v-spacer></v-spacer>
@@ -218,7 +216,7 @@
         <v-card-title>
           <v-text-field
             v-model="search"
-            append-icon="mdi-magnify"
+            append-inner-icon="mdi-magnify"
             label="Buscar solicitud"
             single-line
             hide-details
@@ -248,17 +246,17 @@
           <template v-slot:[`item.status`]="{ item }">
             <v-chip
               v-if="item.status == 2"
-              class="ma-2"
+              class="ma-2 text-white"
               color="orange"
-              text-color="white"
+              variant="flat"
             >
               {{ item.status == 2 ? "Pendiente" : "" }}
             </v-chip>
             <v-chip
               v-if="item.status == 3"
-              class="ma-2"
+              class="ma-2 text-white"
               color="green"
-              text-color="white"
+              variant="flat"
             >
               {{ item.status == 3 ? "Pagado" : "" }}
             </v-chip>
@@ -293,7 +291,7 @@
             :headers="headersInvoice"
             :items="itemsListInvoice"
             density="compact"
-            item-key="id"
+            item-value="id"
             class="elevation-0"
           >
             <template v-slot:[`item.originalname`]="{ item }">
@@ -325,7 +323,7 @@
                 class="btn_add mr-2"
                 size="large"
                 color="grey"
-                @click.native="openDoc(item.path)"
+                @click="openDoc(item.path)"
                 >mdi-eye</v-icon
               >
             </template>
@@ -334,7 +332,7 @@
                 class="btn_add mr-2"
                 size="large"
                 color="red"
-                @click.native="_delInvoice(item.id)"
+                @click="_delInvoice(item.id)"
                 >mdi-delete</v-icon
               >
             </template>
@@ -360,12 +358,9 @@
               </v-col>
               <v-col cols="12" md="6">
                 <v-menu
-                  ref="menu"
                   v-model="menu"
                   :close-on-content-click="false"
-                  v-model:return-value="date"
                   transition="scale-transition"
-                  offset-y
                   min-width="auto"
                 >
                   <template v-slot:activator="{ props }">
@@ -384,20 +379,23 @@
                       v-bind="props"
                     ></v-text-field>
                   </template>
-                  <v-date-picker
-                    locale="es-pe"
-                    v-model="date"
-                    no-title
-                    scrollable
-                  >
-                    <v-spacer></v-spacer>
-                    <v-btn variant="text" color="primary" @click="menu = false">
-                      Cancel
-                    </v-btn>
-                    <v-btn variant="text" color="primary" @click="$refs.menu.save(date)">
-                      OK
-                    </v-btn>
-                  </v-date-picker>
+                  <v-locale-provider locale="es">
+                    <v-date-picker
+                      :model-value="date"
+                      @update:model-value="setDate"
+                      hide-header
+                    >
+                      <template #actions>
+                        <v-spacer></v-spacer>
+                        <v-btn variant="text" color="primary" @click="menu = false">
+                          Cancel
+                        </v-btn>
+                        <v-btn variant="text" color="primary" @click="menu = false">
+                          OK
+                        </v-btn>
+                      </template>
+                    </v-date-picker>
+                  </v-locale-provider>
                 </v-menu>
               </v-col>
               <v-col cols="12" md="6">
@@ -457,7 +455,7 @@
                       ? "Performance"
                       : "Otro"
                   }}
-                  <v-icon end dark> mdi-cloud-upload </v-icon>
+                  <v-icon end> mdi-cloud-upload </v-icon>
                 </v-btn>
               </v-col>
             </v-row>
@@ -507,7 +505,7 @@
                   <v-btn
                    
                     v-bind="props"
-                    @click.native="
+                    @click="
                       openInvoice(
                         item.id_proveedor,
                         item.nameproveedor,
@@ -527,7 +525,7 @@
             </td>
             <td>
               <v-btn
-                @click.native="
+                @click="
                   solicitar(
                     item.nameproveedor,
                     item.total_op,
@@ -547,7 +545,7 @@
                   <v-btn
                    
                     v-bind="props"
-                    @click.native="openPayments(item.id_proveedor, item.type)"
+                    @click="openPayments(item.id_proveedor, item.type)"
                     elevation="0"
                     size="small"
                     color="white"
@@ -567,6 +565,7 @@
 </template>
 <script>
 import axios from '@/api/axios-config';
+import moment from "moment";
 import { mapState, mapActions } from "vuex";
 export default {
   name: "services",
@@ -714,6 +713,9 @@ export default {
 
   methods: {
     ...mapActions(["_getProveedor", "_getTotalesProveedor"]),
+    setDate(value) {
+      this.date = moment(value).format("YYYY-MM-DD");
+    },
     openDoc(path) {
       window.open(path, "_blank");
     },
