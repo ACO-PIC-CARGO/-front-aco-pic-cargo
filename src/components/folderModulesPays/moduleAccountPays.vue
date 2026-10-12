@@ -80,7 +80,6 @@
           <template v-slot:[`item.accion`]="{ item }">
             <v-chip
               block
-              size="medium"
               class=""
               color="orange"
               text-color="white"
@@ -90,7 +89,6 @@
             </v-chip>
             <v-chip
               block
-              size="medium"
               class=""
               color="success"
               v-if="item.status == 2"

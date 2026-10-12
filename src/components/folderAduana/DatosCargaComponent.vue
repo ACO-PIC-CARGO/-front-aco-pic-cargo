@@ -16,7 +16,7 @@
                 item-text="name"
                 item-value="id_port"
                 v-model="$store.state.aduana.datosPrincipales.idorigen"
-                @update:search-input="recargarPuertoOrigen"
+                @update:search="recargarPuertoOrigen"
               ></v-autocomplete>
             </v-col>
             <v-col cols="12" lg="6" xl="6" class="py-1">
@@ -30,7 +30,7 @@
                 item-text="name"
                 item-value="id_port"
                 v-model="$store.state.aduana.datosPrincipales.iddestino"
-                @update:search-input="recargarPuertoDestino"
+                @update:search="recargarPuertoDestino"
               >
               </v-autocomplete>
             </v-col>

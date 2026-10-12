@@ -94,7 +94,7 @@
                 AÑADIR COMENTARIOS
               </v-btn>
               <v-btn class="mx-1" size="x-small" color="error" @click="eliminar(item)">
-                <v-icon size="medium">mdi-delete</v-icon>
+                <v-icon size="28">mdi-delete</v-icon>
               </v-btn>
               <!-- <v-btn color="error" icon @click="edi" > <v-icon dense>mdi-delete</v-icon></v-btn> -->
             </template>

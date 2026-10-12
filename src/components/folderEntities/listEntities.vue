@@ -97,8 +97,7 @@
         </template>
         <template v-slot:[`item.actions`]="{ item }">
           <v-icon
-            v-if="$route.params.id_role"
-            size="medium"
+            v-if="$route.params.id_role" size="28"
             color="orange"
             class="mr-2"
             @click="editEntitie(item.id)"
@@ -106,8 +105,7 @@
             mdi-pencil
           </v-icon>
           <v-icon
-            v-if="!$route.params.id_role"
-            size="medium"
+            v-if="!$route.params.id_role" size="28"
             color="primary"
             class="mr-2"
             @click="sendData(item.id)"

@@ -74,7 +74,7 @@
           label="Origen"
           readonly
           v-model="$store.state.houses.house.port_begin"
-          @update:search-input="recargarPuertoOrigen"
+          @update:search="recargarPuertoOrigen"
         ></v-text-field>
       </v-col>
       <v-col cols="12" md="4">
@@ -82,7 +82,7 @@
           label="Destino"
           readonly
           v-model="$store.state.houses.house.port_end"
-          @update:search-input="recargarPuertoDestino"
+          @update:search="recargarPuertoDestino"
         ></v-text-field>
       </v-col>
       <v-col cols="12" md="4" v-if="esAereo">

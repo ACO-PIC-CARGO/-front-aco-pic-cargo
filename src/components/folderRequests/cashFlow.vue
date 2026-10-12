@@ -38,7 +38,6 @@
             color="primary"
             @click="_getDebsToPayFilter()"
             elevation="0"
-            size="medium"
             >Buscar</v-btn
           >
           <v-btn
@@ -46,7 +45,6 @@
             color="orange"
             @click="_cleanFilter()"
             elevation="0"
-            size="medium"
             >Limpiar</v-btn
           >
           <v-btn
@@ -54,7 +52,6 @@
             color="orange"
             @click="viewPDF()"
             elevation="0"
-            size="medium"
             >EXPORTAR A PDF</v-btn
           >
         </v-card-title>

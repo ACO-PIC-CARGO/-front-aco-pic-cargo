@@ -42,6 +42,25 @@ export default [
       "vuetify/no-elevation-overflow": "off",
       "vuetify/no-legacy-grid-props": "error",
       "vuetify/no-deprecated-snackbar": "error",
+      "vue/no-restricted-syntax": [
+        "error",
+        {
+          selector: "VAttribute[directive=true][key.name.name='model'][key.argument.name='return-value']",
+          message: "Vuetify 4 has no return-value: drop it and replace menu.save(v) with an assignment (recipe R7).",
+        },
+        {
+          selector: "VAttribute[directive=false][key.name='size'][value.value='medium']",
+          message: "Vuetify 4 has no 'medium' size (recipe R9).",
+        },
+        {
+          selector: "VAttribute[directive=true][key.argument.name=/search-input/]",
+          message: "Use v-model:search / @update:search (recipe R6).",
+        },
+        {
+          selector: "VAttribute[directive=true][key.name.name='on'][key.argument=null]",
+          message: 'Object v-on (e.g. v-on="on") - Vuetify 4 activators/slots pass props: use v-bind="props" (recipe R4).',
+        },
+      ],
       "no-restricted-syntax": [
         "error",
         {

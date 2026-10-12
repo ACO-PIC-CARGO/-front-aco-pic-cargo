@@ -492,9 +492,9 @@
 
       <v-card>
         <v-card-actions>
-          <v-btn color="success" size="medium" @click="filtrar">Aceptar</v-btn>
-          <v-btn color="error" size="medium" @click="limpiar">Limpiar</v-btn>
-          <v-btn color="info" size="medium" @click="offcanvas = !offcanvas">
+          <v-btn color="success" @click="filtrar">Aceptar</v-btn>
+          <v-btn color="error" @click="limpiar">Limpiar</v-btn>
+          <v-btn color="info" @click="offcanvas = !offcanvas">
             Cancelar
           </v-btn>
         </v-card-actions>

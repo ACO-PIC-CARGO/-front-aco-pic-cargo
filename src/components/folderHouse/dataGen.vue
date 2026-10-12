@@ -24,7 +24,7 @@
           :items="$store.state.pricing.listQuotes"
           item-title="code"
           item-value="id"
-          v-model:search-input="searchHouseCotizacion"
+          v-model:search="searchHouseCotizacion"
           @update:model-value="asignarDatos()"
           v-model="$store.state.house_cotizacion"
           clearable
@@ -38,7 +38,7 @@
           :items="$store.state.aduana.listQuotes2"
           item-title="quote"
           item-value="id"
-          v-model:search-input="searchHouseCotizacionAduana"
+          v-model:search="searchHouseCotizacionAduana"
           @update:model-value="asignarDatosAduana()"
           v-model="$store.state.house_cotizacionaduana"
           clearable
