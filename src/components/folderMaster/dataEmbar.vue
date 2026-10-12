@@ -190,7 +190,7 @@
                 <td>{{ item.cantidad }}</td>
                 <td>
                   <v-btn
-                    @click.native="_delContainers(index)"
+                    @click="_delContainers(index)"
                     size="small"
                     icon
                     :disabled="isFormActionsDisabled"

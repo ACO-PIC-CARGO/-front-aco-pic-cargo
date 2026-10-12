@@ -13,9 +13,9 @@
         <v-expansion-panel-text>
           <v-list lines="three">
             <v-list-item v-for="child in items.groupservice" :key="child">
-              <v-list-item-avatar>
+              <template #prepend>
                 <v-checkbox></v-checkbox>
-              </v-list-item-avatar>
+              </template>
 
               
                 <v-list-item-title>{{

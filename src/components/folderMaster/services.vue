@@ -9,7 +9,7 @@
           cols="12"
           md="6"
         >
-          <v-list subheader>
+          <v-list>
             <v-header>{{ items.namegroupservice }}</v-header>
 
             <v-list-item
@@ -17,9 +17,11 @@
               v-for="child in items.groupservice"
               :key="child"
             >
-              <v-list-item-avatar size="28">
-                <v-icon size="small" class="bg-grey-lighten-1" dark> mdi-folder </v-icon>
-              </v-list-item-avatar>
+              <template #prepend>
+                <v-avatar size="28">
+                  <v-icon size="small" class="bg-grey-lighten-1"> mdi-folder </v-icon>
+                </v-avatar>
+              </template>
 
               
                 <v-list-item-title

@@ -13,7 +13,7 @@
         <v-checkbox
           label="Salida Confirmada"
           v-model="$store.state.salidaflag"
-          dense
+          density="compact"
         ></v-checkbox>
       </v-col>
       <v-col cols="12" md="6">
@@ -28,7 +28,7 @@
         <v-checkbox
           label="Llegada Confirmada"
           v-model="$store.state.llegadaflag"
-          dense
+          density="compact"
         ></v-checkbox>
       </v-col>
 
@@ -44,7 +44,7 @@
         <v-checkbox
           label="Confirmación Disponibilidad"
           v-model="$store.state.disponibilidadflag"
-          dense
+          density="compact"
         ></v-checkbox>
       </v-col>
       <v-col cols="12" md="6">

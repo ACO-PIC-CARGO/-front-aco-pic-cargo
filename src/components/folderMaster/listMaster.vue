@@ -30,7 +30,6 @@
           </v-btn>
           <v-btn
             color="red"
-            dark
             @click="dialogEscogerCotizacion = !dialogEscogerCotizacion"
             >CANCELAR</v-btn
           >
@@ -41,7 +40,7 @@
       <v-card-title class="align-end">
         <v-text-field
           v-model="search"
-          append-icon="mdi-magnify"
+          append-inner-icon="mdi-magnify"
           label="Buscar"
           placeholder="Texto Buscado..."
           hide-details
@@ -81,7 +80,6 @@
             <v-btn
               color="success"
               elevation="0"
-              dark
               rounded
               @click="abrirModalSeleccionQuote()"
             >
@@ -90,7 +88,6 @@
             <v-btn
               color="secondary"
               elevation="0"
-              dark
               rounded
               class="ml-3"
               @click="
@@ -124,82 +121,85 @@
         :headers="headers"
         :items="mastersConHouse"
         :search="search"
-        :item-class="itemRowBackground"
-        :single-expand="singleExpand"
-        @click:row="clickRow"
+        :row-props="({ item }) => ({ class: itemRowBackground(item) })"
+        :expand-strategy="singleExpand ? 'single' : 'multiple'"
+        expand-on-click
         v-model:expanded="expanded"
-        item-key="id"
+        item-value="id"
+        return-object
         :loading="loadingDataTable"
         disable-sort
       >
-        <template v-slot:expanded-item="{ item }">
-          <!-- list_houses -->
-          <td
-            :colspan="headers.length + 1"
-            class="px-3"
-            v-if="
-              (item.list_comentarios.length > 0 ||
-                item.list_houses.length > 0) &&
-              item.status != 0
-            "
-          >
-            <v-table v-if="item.list_comentarios.length > 0">
-              <thead>
-                <tr>
-                  <th>Fecha</th>
-                  <th>Ejecutivo</th>
-                  <th>Comentario</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr
-                  v-for="(i, index) in item.list_comentarios"
-                  :key="index"
-                  class="bg-comentarios"
-                >
-                  <td class="bg-comentarios">{{ i.fecha }}</td>
-                  <td class="bg-comentarios">{{ i.ejecutivo }}</td>
-                  <td class="bg-comentarios">{{ i.comentario }}</td>
-                </tr>
-              </tbody>
-            </v-table>
+        <template v-slot:expanded-row="{ columns, item }">
+          <tr>
+            <!-- list_houses -->
+            <td
+              :colspan="columns.length"
+              class="px-3"
+              v-if="
+                (item.list_comentarios.length > 0 ||
+                  item.list_houses.length > 0) &&
+                item.status != 0
+              "
+            >
+              <v-table v-if="item.list_comentarios.length > 0">
+                <thead>
+                  <tr>
+                    <th>Fecha</th>
+                    <th>Ejecutivo</th>
+                    <th>Comentario</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr
+                    v-for="(i, index) in item.list_comentarios"
+                    :key="index"
+                    class="bg-comentarios"
+                  >
+                    <td class="bg-comentarios">{{ i.fecha }}</td>
+                    <td class="bg-comentarios">{{ i.ejecutivo }}</td>
+                    <td class="bg-comentarios">{{ i.comentario }}</td>
+                  </tr>
+                </tbody>
+              </v-table>
 
-            <v-table v-if="item.list_houses.length > 0">
-              <thead>
-                <tr>
-                  <th>Acción</th>
-                  <th>Code House</th>
-                  <th>Cliente</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr
-                  v-for="(i, index) in item.list_houses"
-                  :key="index"
-                  style="background: #e0f2f1"
-                >
-                  <td>
-                    <v-btn
-                      icon
-                      color="primary"
-                      @click="redirectHouseVer(i.id_house)"
-                    >
-                      <v-icon class="mx-1">mdi-eye</v-icon>
-                    </v-btn>
-                    <v-btn
-                      icon
-                      color="#FFD600"
-                      @click="redirectHouse(i.id_house)"
-                    >
-                      <v-icon class="mx-1">mdi-pencil</v-icon>
-                    </v-btn>
-                  </td>
-                  <td>{{ i.code_house }}</td>
-                  <td>{{ i.namelong }}</td>
-                </tr>
-              </tbody>
-            </v-table>
-          </td>
+              <v-table v-if="item.list_houses.length > 0">
+                <thead>
+                  <tr>
+                    <th>Acción</th>
+                    <th>Code House</th>
+                    <th>Cliente</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr
+                    v-for="(i, index) in item.list_houses"
+                    :key="index"
+                    style="background: #e0f2f1"
+                  >
+                    <td>
+                      <v-btn
+                        icon
+                        color="primary"
+                        @click="redirectHouseVer(i.id_house)"
+                      >
+                        <v-icon class="mx-1">mdi-eye</v-icon>
+                      </v-btn>
+                      <v-btn
+                        icon
+                        color="#FFD600"
+                        @click="redirectHouse(i.id_house)"
+                      >
+                        <v-icon class="mx-1">mdi-pencil</v-icon>
+                      </v-btn>
+                    </td>
+                    <td>{{ i.code_house }}</td>
+                    <td>{{ i.namelong }}</td>
+                  </tr>
+                </tbody>
+              </v-table>
+            </td>
+          </tr>
         </template>
 
         <template v-slot:[`item.canal`]="{ item }">
@@ -210,7 +210,6 @@
             ANULADO
           </label>
           <v-chip
-            dark
             :color="item.codigo01"
             v-if="item.descripcion_canal && item.status == 1"
           >
@@ -357,7 +356,6 @@
           </label> -->
           <v-btn
             color="red"
-            dark
             v-if="item.status == 0"
             @click="
               reactivarMaster({
@@ -376,7 +374,6 @@
                 size="small"
                 icon
                 class="mx-1"
-                fab
                 v-bind="props"
                
                 @click="editFechas(item)"
@@ -407,7 +404,6 @@
             <template v-slot:activator="{ props }">
               <v-btn
                 icon
-                fab
                 v-bind="props"
                
                 v-if="item.status == 1"
@@ -479,7 +475,6 @@
               <v-btn
                 v-if="item.status == 1"
                 icon
-                fab
                 v-bind="props"
                
                 @click="abrirCaperta(item)"
@@ -927,14 +922,6 @@ export default {
         }
       });
     },
-    clickRow(item, event) {
-      if (event.isExpanded) {
-        const index = this.expanded.findIndex((i) => i === item);
-        this.expanded.splice(index, 1);
-      } else {
-        this.expanded.push(item);
-      }
-    },
     itemRowBackground: function (item) {
       if (
         item.statusLock === 1 &&
@@ -1157,7 +1144,7 @@ export default {
       this.dialog = true;
     },
     async guardarComentario() {
-      if (this.$refs.frmComentario.validate()) {
+      if ((await this.$refs.frmComentario.validate()).valid) {
         this.loading = true;
         this.$store.state.spiner = true;
         await this.insertComentarioMaster({
@@ -1173,8 +1160,8 @@ export default {
         this.loading = false;
       }
     },
-    redireccionarQuote() {
-      if (this.$refs.frmQuote.validate()) {
+    async redireccionarQuote() {
+      if ((await this.$refs.frmQuote.validate()).valid) {
         this.$router.push({
           name: "verQuote",
           params: {

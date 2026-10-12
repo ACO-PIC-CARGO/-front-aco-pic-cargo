@@ -75,8 +75,8 @@
           item-title="name"
           item-value="id"
           label="Sentido"
-          @update:model-value="handleSentido(), _getDataService()"
           v-model="$store.state.master_sentido"
+          @update:model-value="handleSentido(), _getDataService()"
         ></v-autocomplete>
       </v-col>
       <v-col cols="12" md="4">

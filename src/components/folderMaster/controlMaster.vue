@@ -35,9 +35,8 @@
         <div style="position: fixed; bottom: 16px; right: 16px; z-index: 3000">
           <v-fab-transition v-if="formControlMasterReadonly">
             <v-btn
-              fab
+              icon
               size="large"
-              dark
               location="bottom left"
               
               color="info"
@@ -49,17 +48,13 @@
           <v-speed-dial
             v-else
             v-model="fab"
-            :top="top"
-            :bottom="bottom"
-            :right="right"
-            :left="left"
-            :direction="'top'"
+            location="top end"
             :open-on-hover="hover"
             :transition="transition"
-            class="acciones-dial"
+            content-class="acciones-dial"
           >
-            <template v-slot:activator>
-              <v-btn v-model="fab" color="info" dark fab aria-label="Acciones">
+            <template v-slot:activator="{ props }">
+              <v-btn v-bind="props" color="info" icon aria-label="Acciones">
                 <v-icon v-if="fab"> mdi-close </v-icon>
                 <v-icon v-else> mdi-tools </v-icon>
               </v-btn>
@@ -85,7 +80,6 @@
             <v-btn
               color="light-green-lighten-1"
               @click="_putMaster()"
-              dark
               v-if="this.$route.params.id"
             >
               <v-icon start>mdi-content-save</v-icon>
@@ -94,7 +88,6 @@
             <v-btn
               color="light-green-lighten-1"
               @click="_setMaster()"
-              dark
               v-if="!this.$route.params.id"
             >
               <v-icon start>mdi-content-save</v-icon>
@@ -132,10 +125,6 @@ export default {
       fling: false,
       hover: false,
       tabs: null,
-      top: false,
-      right: true,
-      bottom: true,
-      left: false,
       transition: "slide-y-reverse-transition",
     };
   },
@@ -1186,25 +1175,21 @@ export default {
   color: #252c32;
 }
 
-.acciones-dial ::v-deep .v-speed-dial__list {
-  align-items: flex-end !important;
+:global(.acciones-dial.v-speed-dial__content) {
+  flex-direction: column-reverse;
+  align-items: flex-end;
 }
-.acciones-dial ::v-deep .v-speed-dial__list .v-btn {
-  align-self: flex-end;
+.acciones-dial .v-btn {
   min-width: 220px;
 }
-.acciones-dial ::v-deep .v-speed-dial__list .v-btn .v-btn__content {
+.acciones-dial .v-btn :deep(.v-btn__content) {
   justify-content: flex-start;
   width: 100%;
   font-size: 1.2rem;
   line-height: 1.4;
 }
-.acciones-dial ::v-deep .v-speed-dial__list .v-btn .v-icon {
+.acciones-dial .v-btn .v-icon {
   font-size: 22px !important;
   margin-right: 8px;
-}
-.acciones-dial {
-  position: relative;
-  z-index: 4000 !important;
 }
 </style>
