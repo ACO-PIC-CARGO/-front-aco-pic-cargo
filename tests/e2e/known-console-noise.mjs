@@ -219,6 +219,11 @@ export const KNOWN_CONSOLE_NOISE = [
     reason: "same pre-existing issue as the EditarCobroCliente 'reading forEach' entries, Vue 3 wording: Sentry's component trace reads vm._isVue / vm.constructor during the failing render",
     routes: ["EditarCobroCliente"],
   },
+  {
+    pattern: /^\[Vue warn\]: Method "computed" has type "object" in the component definition\. Did you reference the function correctly\? \n\s+at <CalculadoraComponent>/,
+    reason: "same pre-existing issue as the cargaMasivaCalc 'Method \"computed\"' entry, Vue 3 wording: CalculadoraComponent nests a computed block inside methods",
+    routes: ["cargaMasivaCalc"],
+  },
 ];
 
 export const isKnownNoise = (text, routeName) =>
