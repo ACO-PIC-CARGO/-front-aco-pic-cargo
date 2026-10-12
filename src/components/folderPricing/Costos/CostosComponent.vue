@@ -80,8 +80,8 @@
                             @update:search="recargarProveedores"
                             v-model="valor.id_proveedor"
                             hide-details
-                            append-icon="mdi-plus"
-                            @click:append="abrirModalRegistroProveedor(valor)"
+                            append-inner-icon="mdi-plus"
+                            @click:append-inner="abrirModalRegistroProveedor(valor)"
                           ></v-autocomplete>
                         </td>
                         <td class="colConcepto">
@@ -352,8 +352,8 @@
                           :items="$store.state.proveedor.lstProveedores"
                           @update:search="recargarProveedores"
                           v-model="valor.id_proveedor"
-                          append-icon="mdi-plus"
-                          @click:append="abrirModalRegistroProveedor(valor)"
+                          append-inner-icon="mdi-plus"
+                          @click:append-inner="abrirModalRegistroProveedor(valor)"
                           hide-details
                         ></v-autocomplete>
                       </td>
@@ -613,8 +613,8 @@
                           @update:search="recargarProveedores"
                           v-model="valor.id_proveedor"
                           hide-details
-                          append-icon="mdi-plus"
-                          @click:append="abrirModalRegistroProveedor(valor)"
+                          append-inner-icon="mdi-plus"
+                          @click:append-inner="abrirModalRegistroProveedor(valor)"
                         ></v-autocomplete>
                       </td>
                       <td class="colConcepto">
@@ -873,8 +873,8 @@
                           @update:search="recargarProveedores"
                           v-model="valor.id_proveedor"
                           hide-details
-                          append-icon="mdi-plus"
-                          @click:append="abrirModalRegistroProveedor(valor)"
+                          append-inner-icon="mdi-plus"
+                          @click:append-inner="abrirModalRegistroProveedor(valor)"
                         ></v-autocomplete>
                       </td>
                       <td class="colConcepto">
@@ -1134,8 +1134,8 @@
                           @update:search="recargarProveedores"
                           v-model="valor.id_proveedor"
                           hide-details
-                          append-icon="mdi-plus"
-                          @click:append="abrirModalRegistroProveedor(valor)"
+                          append-inner-icon="mdi-plus"
+                          @click:append-inner="abrirModalRegistroProveedor(valor)"
                         ></v-autocomplete>
                       </td>
                       <td class="colConcepto">
@@ -1393,8 +1393,8 @@
                           @update:search="recargarProveedores"
                           v-model="valor.id_proveedor"
                           hide-details
-                          append-icon="mdi-plus"
-                          @click:append="abrirModalRegistroProveedor(valor)"
+                          append-inner-icon="mdi-plus"
+                          @click:append-inner="abrirModalRegistroProveedor(valor)"
                         ></v-autocomplete>
                       </td>
                       <td class="colConcepto">
@@ -1654,8 +1654,8 @@
                           @update:search="recargarProveedores"
                           v-model="valor.id_proveedor"
                           hide-details
-                          append-icon="mdi-plus"
-                          @click:append="abrirModalRegistroProveedor(valor)"
+                          append-inner-icon="mdi-plus"
+                          @click:append-inner="abrirModalRegistroProveedor(valor)"
                         ></v-autocomplete>
                       </td>
                       <td class="colConcepto">
@@ -1937,7 +1937,7 @@
           </v-card-text>
           <v-card-actions class="d-flex justify-end">
             <v-btn color="success" @click="guardarCosto()">Aceptar</v-btn>
-            <v-btn color="red" @click="dialog = !dialog" dark>cancelar</v-btn>
+            <v-btn color="red" @click="dialog = !dialog">cancelar</v-btn>
           </v-card-actions>
         </v-card>
       </v-form>
@@ -2976,8 +2976,8 @@ export default {
 
 <style scoped>
 .v-expansion-panels.condensed
-  .v-expansion-panel-header
-  .v-expansion-panel-content__wrap {
+  .v-expansion-panel-title
+  .v-expansion-panel-text__wrapper {
   /* padding-top: 2px;
   padding-bottom: 2px; */
   /* padding: 2px 8px 2px; */
@@ -3018,7 +3018,7 @@ td {
   text-align: right !important;
   align-content: right !important;
 }
-.v-text-field__slot {
+.v-field__input {
   max-width: 5px !important;
 }
 
@@ -3040,7 +3040,7 @@ table td:nth-child(6) {
   /* padding: 0 8px 16px !important; */
 }
 
-.v-expansion-panel-content >>> .v-expansion-panel-content__wrap {
+.v-expansion-panel-text :deep(.v-expansion-panel-text__wrapper) {
   padding: 0px !important;
 }
 </style>

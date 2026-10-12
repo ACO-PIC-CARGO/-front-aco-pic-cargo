@@ -12,10 +12,10 @@
           <v-data-table
             :headers="headers"
             :items="impuestos"
-            item-key="id"
+            item-value="id"
             density="compact"
             disable-sort
-            :item-class="claseFila"
+            :row-props="({ item }) => ({ class: claseFila(item) })"
           >
             <template v-slot:[`item.descripcion`]="{ item }">
               {{ item.descripcion }}
