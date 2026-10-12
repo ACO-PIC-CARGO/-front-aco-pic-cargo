@@ -43,12 +43,6 @@ export default defineConfig({
   },
   preview: { port: 8080 },
   optimizeDeps: {
-    include: [
-      "vuetify/components/VOverlay",
-      "vuetify/components/VDialog",
-      "vuetify/components/VMenu",
-      "vuetify/components/VSelect",
-      "vuetify/components/VTooltip",
-    ],
+    include: ["vuetify/components/**", "vuetify/directives/**"],
   },
 });
