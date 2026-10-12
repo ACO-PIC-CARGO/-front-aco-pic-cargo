@@ -47,31 +47,27 @@
                   v-model="selected"
                   :headers="headersEgresos"
                   :items="itemsEgresos"
-                  item-key="id"
+                  item-value="id"
+                  return-object
                   show-select
                   class="elevation-0"
                 >
                   <template
-                    v-slot:[`item.data-table-select`]="{
-                      item,
-                      isSelected,
-                      select,
-                    }"
+                    v-slot:[`item.data-table-select`]="{ item, props }"
                   >
                     <v-checkbox-btn
-                      :value="isSelected"
+                      v-bind="props"
                       :readonly="item.pagado == 1"
                       :disabled="item.pagado == 1"
-                      @input="select($event)"
                     ></v-checkbox-btn>
                   </template>
                   <template v-slot:[`item.status`]="{ item }">
                     <v-chip
                       v-if="item.pagado == 1"
-                      class="ma-2"
+                      class="ma-2 text-white"
                       color="green"
                       size="small"
-                      text-color="white"
+                      variant="flat"
                     >
                       {{ item.status == 1 ? "Pagado" : "" }}
                     </v-chip>
@@ -81,7 +77,7 @@
                       size="large"
                       color="grey"
                       v-if="item.pagado == 1"
-                      @click.native="openPaymentFile(item.path)"
+                      @click="openPaymentFile(item.path)"
                       >mdi-eye</v-icon
                     >
                   </template>
@@ -89,12 +85,9 @@
               </v-col>
               <v-col cols="12" md="6">
                 <v-menu
-                  ref="menu"
                   v-model="menu"
                   :close-on-content-click="false"
-                  v-model:return-value="date"
                   transition="scale-transition"
-                  offset-y
                   min-width="auto"
                 >
                   <template v-slot:activator="{ props }">
@@ -107,20 +100,23 @@
                       v-bind="props"
                     ></v-text-field>
                   </template>
-                  <v-date-picker
-                    locale="es-pe"
-                    v-model="date"
-                    no-title
-                    scrollable
-                  >
-                    <v-spacer></v-spacer>
-                    <v-btn variant="text" color="primary" @click="menu = false">
-                      Cancel
-                    </v-btn>
-                    <v-btn variant="text" color="primary" @click="$refs.menu.save(date)">
-                      OK
-                    </v-btn>
-                  </v-date-picker>
+                  <v-locale-provider locale="es">
+                    <v-date-picker
+                      :model-value="date"
+                      @update:model-value="setDate"
+                      hide-header
+                    >
+                      <template #actions>
+                        <v-spacer></v-spacer>
+                        <v-btn variant="text" color="primary" @click="menu = false">
+                          Cancel
+                        </v-btn>
+                        <v-btn variant="text" color="primary" @click="menu = false">
+                          OK
+                        </v-btn>
+                      </template>
+                    </v-date-picker>
+                  </v-locale-provider>
                 </v-menu>
               </v-col>
               <v-col cols="12" md="6">
@@ -186,7 +182,7 @@
                   @click="_uploadFile()"
                 >
                   Subir
-                  <v-icon end dark> mdi-cloud-upload </v-icon>
+                  <v-icon end> mdi-cloud-upload </v-icon>
                 </v-btn>
               </v-col>
             </v-row>
@@ -211,6 +207,7 @@
 <script>
 import { mapState, mapActions } from "vuex";
 import axios from '@/api/axios-config';
+import moment from "moment";
 export default {
   name: "ControlPaymentFile",
   data: () => ({
@@ -287,6 +284,9 @@ export default {
   },
   methods: {
     ...mapActions(["_getHouseListAll", "_getHouseListAll"]),
+    setDate(value) {
+      this.date = moment(value).format("YYYY-MM-DD");
+    },
 
     editHouse(id) {
       this.$router.push("/home/folderHouse/control/" + id);

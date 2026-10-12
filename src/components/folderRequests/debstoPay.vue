@@ -17,7 +17,6 @@
         <v-btn
           color="#1D6F42"
           class="mx-1"
-          dark
           @click="exportar"
           :loading="exportando"
           size="small"
@@ -64,10 +63,9 @@
           :items="itemsCpp"
           :search="search"
           v-model:expanded="expanded"
-          :single-expand="singleExpand"
-          item-key="nameproveedor"
+          item-value="nameproveedor"
           show-expand
-          @click:row="clickRow"
+          expand-on-click
         >
           <template v-slot:[`item.nameproveedor`]="{ item }">
             <div class="d-flex">
@@ -83,77 +81,79 @@
             </div>
           </template>
 
-          <template v-slot:expanded-item="{ item }">
-            <td colspan="11">
-              <v-table style="width: 100%">
-                <thead>
-                  <tr style="background: #fff1cf">
-                    <th>Expediente</th>
-                    <th>Correlativo Factura</th>
-                    <th>Correlativo Programación</th>
-                    <th>Cliente</th>
-                    <th>Facturas</th>
-                    <th>Fecha Disponibilidad</th>
-                    <th>Total a Pagar</th>
-                    <th>Status</th>
-                    <!-- <th>Pagado Cliente</th> -->
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr
-                    style="background: #fff1cf"
-                    v-for="(child, index) of item.details"
-                    :key="index"
-                  >
-                    <td>
-                      {{ child.nro_master }}
-                      <v-icon
-                        v-if="child.controlgastoegreso == 1"
-                        @click="editControl(child)"
-                      >
-                        mdi-eye
-                      </v-icon>
+          <template v-slot:expanded-row="{ item }">
+            <tr>
+              <td colspan="11">
+                <v-table style="width: 100%">
+                  <thead>
+                    <tr style="background: #fff1cf">
+                      <th>Expediente</th>
+                      <th>Correlativo Factura</th>
+                      <th>Correlativo Programación</th>
+                      <th>Cliente</th>
+                      <th>Facturas</th>
+                      <th>Fecha Disponibilidad</th>
+                      <th>Total a Pagar</th>
+                      <th>Status</th>
+                      <!-- <th>Pagado Cliente</th> -->
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr
+                      style="background: #fff1cf"
+                      v-for="(child, index) of item.details"
+                      :key="index"
+                    >
+                      <td>
+                        {{ child.nro_master }}
+                        <v-icon
+                          v-if="child.controlgastoegreso == 1"
+                          @click="editControl(child)"
+                        >
+                          mdi-eye
+                        </v-icon>
 
-                      <v-icon
-                        v-if="child.programado == 0"
-                        @click="
-                          nuevaFecha({
-                            item: item,
-                            tipo: 1,
-                          })
-                        "
-                        >mdi-clock-outline</v-icon
-                      >
-                    </td>
-                    <td>
-                      {{ child.code_correlativo }}
-                    </td>
-                    <td>
-                      {{ child.programado_correlativo }}
-                    </td>
-                    <td>
-                      {{ child.nameconsigner }}
-                    </td>
-                    <td>
-                      {{ child.expedientes }}
-                    </td>
-                    <td>
-                      {{ child.fecha_disponibilidad }}
-                    </td>
-                    <td>
-                      {{ child.symbol }}
-                      {{ parseFloat(child.total_pagar).toFixed(2) }}
-                    </td>
-                    <td>
-                      {{ child.llegada == 1 ? "LLEGADA" : "NO LLEGADA" }}
-                    </td>
-                    <!-- <td>
-                      {{ child.pagado == 1 ? "SI" : "NO" }}
-                    </td> -->
-                  </tr>
-                </tbody>
-              </v-table>
-            </td>
+                        <v-icon
+                          v-if="child.programado == 0"
+                          @click="
+                            nuevaFecha({
+                              item: item,
+                              tipo: 1,
+                            })
+                          "
+                          >mdi-clock-outline</v-icon
+                        >
+                      </td>
+                      <td>
+                        {{ child.code_correlativo }}
+                      </td>
+                      <td>
+                        {{ child.programado_correlativo }}
+                      </td>
+                      <td>
+                        {{ child.nameconsigner }}
+                      </td>
+                      <td>
+                        {{ child.expedientes }}
+                      </td>
+                      <td>
+                        {{ child.fecha_disponibilidad }}
+                      </td>
+                      <td>
+                        {{ child.symbol }}
+                        {{ parseFloat(child.total_pagar).toFixed(2) }}
+                      </td>
+                      <td>
+                        {{ child.llegada == 1 ? "LLEGADA" : "NO LLEGADA" }}
+                      </td>
+                      <!-- <td>
+                        {{ child.pagado == 1 ? "SI" : "NO" }}
+                      </td> -->
+                    </tr>
+                  </tbody>
+                </v-table>
+              </td>
+            </tr>
           </template>
         </v-data-table>
 
@@ -166,10 +166,10 @@
           :headers="headersdbpa"
           :items="itemsCppa"
           v-model:expanded="expandeda"
-          :single-expand="singleExpanda"
-          item-key="nameconsigner"
+          item-value="nameconsigner"
+          return-object
           show-expand
-          @click:row="clickRowa"
+          @click:row="(event, { item }) => clickRowa(item, event)"
         >
           <template v-slot:[`item.nameconsigner`]="{ item }">
             <div class="d-flex">
@@ -185,45 +185,47 @@
             </div>
           </template>
 
-          <template v-slot:expanded-item="{ item }">
-            <td colspan="11">
-              <v-table style="width: 100%">
-                <thead>
-                  <tr style="background: #fff1cf">
-                    <th>Acción</th>
-                    <th>Factura</th>
-                    <th>Fecha Registro</th>
-                    <th>Monto</th>
-                    <th>
-                      {{ $store.state.enterprises.impuesto.nombre_impuesto }}
-                    </th>
-                    <th>Total</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr
-                    style="background: #fff1cf"
-                    v-for="child of item.details"
-                    :key="child.id"
-                  >
-                    <td>
-                      <v-icon
-                        v-if="child.programado"
-                        @click="nuevaFecha({ item: item, tipo: 2 })"
-                        >mdi-clock-outline</v-icon
-                      >
-                    </td>
-                    <td>
-                      {{ child.nro_factura }}
-                    </td>
-                    <td>{{ child.fecha }}</td>
-                    <td>{{ child.symbol }} {{ child.monto }}</td>
-                    <td>{{ child.symbol }} {{ child.igv }}</td>
-                    <td>{{ child.symbol }} {{ child.total }}</td>
-                  </tr>
-                </tbody>
-              </v-table>
-            </td>
+          <template v-slot:expanded-row="{ item }">
+            <tr>
+              <td colspan="11">
+                <v-table style="width: 100%">
+                  <thead>
+                    <tr style="background: #fff1cf">
+                      <th>Acción</th>
+                      <th>Factura</th>
+                      <th>Fecha Registro</th>
+                      <th>Monto</th>
+                      <th>
+                        {{ $store.state.enterprises.impuesto.nombre_impuesto }}
+                      </th>
+                      <th>Total</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr
+                      style="background: #fff1cf"
+                      v-for="child of item.details"
+                      :key="child.id"
+                    >
+                      <td>
+                        <v-icon
+                          v-if="child.programado"
+                          @click="nuevaFecha({ item: item, tipo: 2 })"
+                          >mdi-clock-outline</v-icon
+                        >
+                      </td>
+                      <td>
+                        {{ child.nro_factura }}
+                      </td>
+                      <td>{{ child.fecha }}</td>
+                      <td>{{ child.symbol }} {{ child.monto }}</td>
+                      <td>{{ child.symbol }} {{ child.igv }}</td>
+                      <td>{{ child.symbol }} {{ child.total }}</td>
+                    </tr>
+                  </tbody>
+                </v-table>
+              </td>
+            </tr>
           </template>
         </v-data-table>
       </v-card-text>
@@ -394,7 +396,8 @@
                 v-model="selected"
                 :headers="headerProgramacion"
                 :items="details"
-                item-key="index"
+                item-value="index"
+                return-object
                 show-select
                 class="elevation-0"
               >
@@ -449,7 +452,7 @@
                 item-title="description"
                 item-value="id"
                 multiple
-                small-chips
+                chips
                 density="compact"
                 variant="outlined"
               ></v-autocomplete>
@@ -463,7 +466,7 @@
                 item-title="description"
                 item-value="id"
                 multiple
-                small-chips
+                chips
                 density="compact"
                 variant="outlined"
               ></v-autocomplete>
@@ -783,14 +786,6 @@ export default {
       return this.itemsCppa.reduce((a, b) => a + parseFloat(b[key] || 0), 0);
     },
 
-    clickRow(item, event) {
-      if (event.isExpanded) {
-        const index = this.expanded.findIndex((i) => i === item);
-        this.expanded.splice(index, 1);
-      } else {
-        this.expanded.push(item);
-      }
-    },
     clickRowa(item, event) {
       if (event.isExpandeda) {
         const index = this.expandeda.findIndex((i) => i === item);
@@ -1390,7 +1385,7 @@ export default {
     },
     async guardarComentario() {
       var vm = this;
-      if (vm.$refs.frmComentario.validate()) {
+      if ((await vm.$refs.frmComentario.validate()).valid) {
         vm.loadingBotonGuardarComentario = true;
 
         var config = {

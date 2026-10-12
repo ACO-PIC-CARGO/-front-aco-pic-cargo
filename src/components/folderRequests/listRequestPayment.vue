@@ -9,7 +9,7 @@
           <v-col cols="6">
             <v-text-field
               v-model="search"
-              append-icon="mdi-magnify"
+              append-inner-icon="mdi-magnify"
               label="Buscar solicitud"
             ></v-text-field>
           </v-col>
@@ -45,31 +45,31 @@
         <template v-slot:[`item.status`]="{ item }">
           <v-chip
             v-if="item.status == 2 && item.ajusteflag == 0"
-            class="ma-2"
+            class="ma-2 text-white"
             color="orange"
-            text-color="white"
+            variant="flat"
           >
             {{ item.status == 2 ? "Pendiente" : "" }}
           </v-chip>
           <v-chip
             v-if="item.status == 3 && item.ajusteflag == 0"
-            class="ma-2"
+            class="ma-2 text-white"
             color="green"
-            text-color="white"
+            variant="flat"
           >
             {{ item.status == 3 ? "Pagado" : "" }}
           </v-chip>
           <v-chip
             v-if="item.ajusteflag == 1"
-            class="ma-2"
+            class="ma-2 text-white"
             color="blue"
-            text-color="white"
+            variant="flat"
           >
             AJUSTADO
           </v-chip>
         </template>
         <!-- <template v-else>
-          <v-chip class="ma-2" color="blue" text-color="white">
+          <v-chip class="ma-2 text-white" color="blue" variant="flat">
             AJUSTADO
           </v-chip>
         </template> -->
@@ -79,17 +79,17 @@
         <template v-slot:[`item.pago_completo`]="{ item }">
           <v-chip
             v-if="item.pago_completo == 0"
-            class="ma-2"
+            class="ma-2 text-white"
             color="orange"
-            text-color="white"
+            variant="flat"
           >
             {{ item.pago_completo == 0 ? "POR COBRAR" : "" }}
           </v-chip>
           <v-chip
             v-if="item.pago_completo == 1"
-            class="ma-2"
+            class="ma-2 text-white"
             color="green"
-            text-color="white"
+            variant="flat"
           >
             {{ item.pago_completo == 1 ? "COBRADO" : "" }}
           </v-chip>
@@ -146,12 +146,9 @@
             <v-row density="compact">
               <v-col cols="12" md="6">
                 <v-menu
-                  ref="menu"
                   v-model="menu"
                   :close-on-content-click="false"
-                  v-model:return-value="date"
                   transition="scale-transition"
-                  offset-y
                   min-width="auto"
                 >
                   <template v-slot:activator="{ props }">
@@ -164,20 +161,23 @@
                       v-bind="props"
                     ></v-text-field>
                   </template>
-                  <v-date-picker
-                    locale="es-pe"
-                    v-model="date"
-                    no-title
-                    scrollable
-                  >
-                    <v-spacer></v-spacer>
-                    <v-btn variant="text" color="primary" @click="menu = false">
-                      Cancel
-                    </v-btn>
-                    <v-btn variant="text" color="primary" @click="$refs.menu.save(date)">
-                      OK
-                    </v-btn>
-                  </v-date-picker>
+                  <v-locale-provider locale="es">
+                    <v-date-picker
+                      :model-value="date"
+                      @update:model-value="setDate"
+                      hide-header
+                    >
+                      <template #actions>
+                        <v-spacer></v-spacer>
+                        <v-btn variant="text" color="primary" @click="menu = false">
+                          Cancel
+                        </v-btn>
+                        <v-btn variant="text" color="primary" @click="menu = false">
+                          OK
+                        </v-btn>
+                      </template>
+                    </v-date-picker>
+                  </v-locale-provider>
                 </v-menu>
               </v-col>
               <v-col cols="12" md="6">
@@ -243,7 +243,7 @@
                   @click="_uploadFile()"
                 >
                   Subir
-                  <v-icon end dark> mdi-cloud-upload </v-icon>
+                  <v-icon end> mdi-cloud-upload </v-icon>
                 </v-btn>
               </v-col>
             </v-row>
@@ -274,7 +274,7 @@
             :headers="headersInvoice"
             :items="itemsListInvoice"
             density="compact"
-            item-key="id"
+            item-value="id"
             class="elevation-0"
           >
             <template v-slot:[`item.originalname`]="{ item }">
@@ -355,6 +355,7 @@
 <script>
 import { defineAsyncComponent } from "vue";
 import axios from '@/api/axios-config';
+import moment from "moment";
 import Swal from "sweetalert2";
 import { mapActions, mapState } from "vuex";
 export default {
@@ -485,6 +486,9 @@ export default {
   },
   methods: {
     ...mapActions(["_getBanksList", "_getCoinsList"]),
+    setDate(value) {
+      this.date = moment(value).format("YYYY-MM-DD");
+    },
     onCerrarModal(cerrar) {
       if (cerrar) {
         this.dialogPagoControlGasto = !cerrar;

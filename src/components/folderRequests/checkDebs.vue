@@ -4,7 +4,7 @@
       <v-card-subtitle>
         <v-text-field
           v-model="search"
-          append-icon="mdi-magnify"
+          append-inner-icon="mdi-magnify"
           label="Buscar abono"
           single-line
           hide-details
@@ -19,17 +19,17 @@
         <template v-slot:[`item.status`]="{ item }">
           <v-chip
             v-if="item.status == 1"
-            class="ma-2"
+            class="ma-2 text-white"
             color="orange"
-            text-color="white"
+            variant="flat"
           >
             {{ item.status == 1 ? "Por Confirmar" : "" }}
           </v-chip>
           <v-chip
             v-if="item.status == 2"
-            class="ma-2"
+            class="ma-2 text-white"
             color="green"
-            text-color="white"
+            variant="flat"
           >
             {{ item.status == 2 ? "Confirmado" : "" }}
           </v-chip>

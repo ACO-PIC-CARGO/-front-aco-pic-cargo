@@ -16,7 +16,6 @@
         <v-btn
           color="#1D6F42"
           class="mx-1"
-          dark
           @click="descargarArchivos()"
           :loading="exportando"
           size="small"
@@ -63,10 +62,9 @@
           :items="itemsCpp"
           :search="search"
           v-model:expanded="expanded"
-          :single-expand="singleExpand"
-          item-key="id_consigner"
+          item-value="id_consigner"
           show-expand
-          @click:row="clickRow"
+          expand-on-click
         >
           <template v-slot:[`item.nameconsigner`]="{ item }">
             <div class="d-flex">
@@ -82,53 +80,55 @@
             </div>
           </template>
 
-          <template v-slot:expanded-item="{ item }">
-            <td colspan="11">
-              <v-table style="width: 100%">
-                <thead>
-                  <tr style="background: #fff1cf">
-                    <th>Expediente</th>
-                    <th>Cliente</th>
-                    <th>Fecha Disponibilidad</th>
-                    <th>Total a Cobrar</th>
-                    <th>Status</th>
-                    <th>Fecha de Vencimiento</th>
-                    <th>Días de atraso</th>
-                    <th>Estatus</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr
-                    style="background: #fff1cf"
-                    v-for="child of item.details"
-                    :key="child.id"
-                  >
-                    <td>
-                      {{ child.nro_master }}
-                      <v-icon
-                        v-if="child.operativa == 1"
-                        @click="editControl(child)"
-                        >mdi-eye</v-icon
-                      >
-                    </td>
-                    <td>
-                      {{ child.nameconsigner }}
-                    </td>
-                    <td>
-                      {{ child.fecha_disponibilidad }}
-                    </td>
-                    <td>{{ child.symbol }} {{ child.total_pagar }}</td>
+          <template v-slot:expanded-row="{ item }">
+            <tr>
+              <td colspan="11">
+                <v-table style="width: 100%">
+                  <thead>
+                    <tr style="background: #fff1cf">
+                      <th>Expediente</th>
+                      <th>Cliente</th>
+                      <th>Fecha Disponibilidad</th>
+                      <th>Total a Cobrar</th>
+                      <th>Status</th>
+                      <th>Fecha de Vencimiento</th>
+                      <th>Días de atraso</th>
+                      <th>Estatus</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr
+                      style="background: #fff1cf"
+                      v-for="child of item.details"
+                      :key="child.id"
+                    >
+                      <td>
+                        {{ child.nro_master }}
+                        <v-icon
+                          v-if="child.operativa == 1"
+                          @click="editControl(child)"
+                          >mdi-eye</v-icon
+                        >
+                      </td>
+                      <td>
+                        {{ child.nameconsigner }}
+                      </td>
+                      <td>
+                        {{ child.fecha_disponibilidad }}
+                      </td>
+                      <td>{{ child.symbol }} {{ child.total_pagar }}</td>
 
-                    <td>
-                      {{ child.llegada == 1 ? "LLEGADA" : "NO LLEGADA" }}
-                    </td>
-                    <td>{{ child.fechadevencimiento }}</td>
-                    <td>{{ child.diasatraso }}</td>
-                    <td>{{ child.estatus }}</td>
-                  </tr>
-                </tbody>
-              </v-table>
-            </td>
+                      <td>
+                        {{ child.llegada == 1 ? "LLEGADA" : "NO LLEGADA" }}
+                      </td>
+                      <td>{{ child.fechadevencimiento }}</td>
+                      <td>{{ child.diasatraso }}</td>
+                      <td>{{ child.estatus }}</td>
+                    </tr>
+                  </tbody>
+                </v-table>
+              </td>
+            </tr>
           </template>
         </v-data-table>
       </v-card-text>
@@ -140,10 +140,10 @@
           :items="itemsCxcAdmin"
           :search="search"
           v-model:expanded="expandeda"
-          :single-expand="singleExpanda"
-          item-key="nameconsigner"
+          item-value="nameconsigner"
+          return-object
           show-expand
-          @click:row="clickRowa"
+          @click:row="(event, { item }) => clickRowa(item, event)"
         >
           <template v-slot:[`item.nameconsigner`]="{ item }">
             <div class="d-flex">
@@ -159,46 +159,48 @@
             </div>
           </template>
 
-          <template v-slot:expanded-item="{ item }">
-            <td colspan="11">
-              <v-table style="width: 100%">
-                <thead>
-                  <tr style="background: #fff1cf">
-                    <!-- <th>Acción</th> -->
-                    <!-- <th>Factura</th> -->
-                    <th>Cliente</th>
-                    <th>Documento</th>
-                    <th>Monto Inicial</th>
+          <template v-slot:expanded-row="{ item }">
+            <tr>
+              <td colspan="11">
+                <v-table style="width: 100%">
+                  <thead>
+                    <tr style="background: #fff1cf">
+                      <!-- <th>Acción</th> -->
+                      <!-- <th>Factura</th> -->
+                      <th>Cliente</th>
+                      <th>Documento</th>
+                      <th>Monto Inicial</th>
 
-                    <th>Deuda Actual</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr
-                    style="background: #fff1cf"
-                    v-for="child of item.details"
-                    :key="child.id"
-                  >
-                    <!-- <td>
-                      <v-icon
-                        @click="
-                          programar({
-                            id: child.id,
-                            tipo: 0,
-                          })
-                        "
-                        >mdi-clock-outline</v-icon
-                      >
-                    </td> -->
-                    <td>{{ child.nameconsigner }}</td>
-                    <td>{{ child.concepto }}</td>
-                    <td>{{ child.symbol }} {{ child.monto }}</td>
+                      <th>Deuda Actual</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr
+                      style="background: #fff1cf"
+                      v-for="child of item.details"
+                      :key="child.id"
+                    >
+                      <!-- <td>
+                        <v-icon
+                          @click="
+                            programar({
+                              id: child.id,
+                              tipo: 0,
+                            })
+                          "
+                          >mdi-clock-outline</v-icon
+                        >
+                      </td> -->
+                      <td>{{ child.nameconsigner }}</td>
+                      <td>{{ child.concepto }}</td>
+                      <td>{{ child.symbol }} {{ child.monto }}</td>
 
-                    <td>{{ child.symbol }} {{ child.total_pagar }}</td>
-                  </tr>
-                </tbody>
-              </v-table>
-            </td>
+                      <td>{{ child.symbol }} {{ child.total_pagar }}</td>
+                    </tr>
+                  </tbody>
+                </v-table>
+              </td>
+            </tr>
           </template>
         </v-data-table>
       </v-card-text>
@@ -341,7 +343,7 @@
                 item-title="namelong"
                 item-value="id"
                 multiple
-                small-chips
+                chips
                 density="compact"
                 variant="outlined"
               ></v-autocomplete>
@@ -365,7 +367,7 @@
                 item-title="descripcion"
                 item-value="id"
                 multiple
-                small-chips
+                chips
                 density="compact"
                 variant="outlined"
               ></v-autocomplete>
@@ -379,7 +381,7 @@
                 item-title="description"
                 item-value="id"
                 multiple
-                small-chips
+                chips
                 density="compact"
                 variant="outlined"
               ></v-autocomplete>
@@ -629,14 +631,6 @@ export default {
 
       return this.itemsCpp.reduce((a, b) => a + parseFloat(b[key] || 0), 0);
     },
-    clickRow(item, event) {
-      if (event.isExpanded) {
-        const index = this.expanded.findIndex((i) => i === item);
-        this.expanded.splice(index, 1);
-      } else {
-        this.expanded.push(item);
-      }
-    },
     async exportarPDF() {
       Swal.fire({
         icon: "question",
@@ -856,14 +850,6 @@ export default {
           total: parseFloat(totalSoles).toFixed(2),
         }
       );
-    },
-    clickRow(item, event) {
-      if (event.isExpanded) {
-        const index = this.expanded.findIndex((i) => i === item);
-        this.expanded.splice(index, 1);
-      } else {
-        this.expanded.push(item);
-      }
     },
     clickRowa(item, event) {
       if (event.isExpandeda) {
@@ -1153,7 +1139,7 @@ export default {
     },
     async guardarComentario() {
       var vm = this;
-      if (vm.$refs.frmComentario.validate()) {
+      if ((await vm.$refs.frmComentario.validate()).valid) {
         vm.loadingBotonGuardarComentario = true;
 
         var config = {
