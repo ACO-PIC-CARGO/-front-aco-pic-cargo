@@ -24,7 +24,7 @@
 
               <v-col cols="12" md="2">
                 <v-select
-                  :items="$store.state.year"
+                  :items="Array.isArray($store.state.year) ? $store.state.year : []"
                   v-model="id_year"
                   label="Año"
                   density="compact"
@@ -94,8 +94,7 @@
             :headers="headers"
             :items="items.filter((v) => !!v.estado)"
             class="elevation-1"
-            pagination.sync="pagination"
-            item-key="index"
+            item-value="index"
             loading="true"
             disable-sort
           >
@@ -169,7 +168,7 @@
               {{ item.monto_monext }}
             </template>
             <template v-slot:[`item.action`]="{ item }">
-              <v-btn icon color="red" dark @click="eliminarfila(item)">
+              <v-btn icon color="red" @click="eliminarfila(item)">
                 <v-icon>mdi-delete</v-icon>
               </v-btn>
             </template>
@@ -207,7 +206,7 @@
         >APROBAR</v-btn
       >
 
-      <v-btn size="small" class="mx-1" dark color="red" @click="volver()" rounded
+      <v-btn size="small" class="mx-1" color="red" @click="volver()" rounded
         >Cancelar</v-btn
       >
     </v-card-actions>
@@ -236,7 +235,7 @@
 
             <v-col cols="12">
               <v-select
-                :items="$store.state.year"
+                :items="Array.isArray($store.state.year) ? $store.state.year : []"
                 v-model="id_yearn"
                 label="Año"
                 density="compact"
@@ -256,7 +255,7 @@
             :loading="loading"
             >Copiar</v-btn
           >
-          <v-btn color="red" dark class="mx-1" @click="dialogn = !dialogn"
+          <v-btn color="red" class="mx-1" @click="dialogn = !dialogn"
             >Cancelar</v-btn
           >
         </v-card-actions>
@@ -487,7 +486,7 @@ export default {
     async editar() {
       let validaciondetails = true;
       // let data = data;
-      if (this.$refs.frmProyeccion.validate()) {
+      if ((await this.$refs.frmProyeccion.validate()).valid) {
         this.items
           .filter((v) => v.estado == true)
           .forEach((item) => {

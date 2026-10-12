@@ -26,7 +26,7 @@
 
                 <v-col cols="12" md="2">
                   <v-select
-                    :items="$store.state.year"
+                    :items="Array.isArray($store.state.year) ? $store.state.year : []"
                     v-model="id_year"
                     label="Año"
                     density="compact"
@@ -88,8 +88,7 @@
               :headers="headers"
               :items="items"
               class="elevation-1"
-              pagination.sync="pagination"
-              item-key="index"
+              item-value="index"
               loading="true"
               disable-sort
             >
@@ -180,7 +179,7 @@
                 ></v-select>
               </template>
               <template v-slot:[`item.action`]="{ item }">
-                <v-btn icon color="red" dark @click="eliminarfila(item)">
+                <v-btn icon color="red" @click="eliminarfila(item)">
                   <v-icon>mdi-delete</v-icon>
                 </v-btn>
               </template>
@@ -203,7 +202,7 @@
       <v-btn size="small" class="mx-1" color="success" @click="exportar()" rounded
         >Exportar Detalles</v-btn
       >
-      <v-btn size="small" class="mx-1" dark color="red" @click="volver()" rounded
+      <v-btn size="small" class="mx-1" color="red" @click="volver()" rounded
         >Cancelar</v-btn
       >
       <v-btn size="small" class="mx-1" v-if="!aprobado" color="info" rounded
@@ -393,7 +392,7 @@ export default {
     async registrar() {
       let validaciondetails = true;
       let data = data;
-      if (this.$refs.frmProyeccion.validate()) {
+      if ((await this.$refs.frmProyeccion.validate()).valid) {
         this.items.forEach((item) => {
           if (!item.id_gasto) {
             item.errgasto = ["Dato Requerido"];

@@ -9,7 +9,6 @@
 
       <v-spacer></v-spacer>
       <v-btn
-        dark
         color="#3F51B5"
         class="mx-1"
         @click="dialogn = !dialogn"
@@ -36,7 +35,7 @@
           :headers="headers"
           :items="$store.state.proyecciones.listProyeccion"
           class="elevation-1"
-          item-key="id"
+          item-value="id"
           loading="true"
           :search="search"
         >
@@ -65,13 +64,12 @@
             </v-btn>
           </template>
           <template v-slot:[`item.proyeccion_estado`]="{ item }">
-            <v-chip dark :color="!!item.proyeccion_estado ? 'green' : 'red'">
+            <v-chip :color="!!item.proyeccion_estado ? 'green' : 'red'">
               {{ !!item.proyeccion_estado ? "Activo" : "Inactivo" }}
             </v-chip>
           </template>
           <template v-slot:[`item.proyeccion_aprobadoflag`]="{ item }">
             <v-chip
-              dark
               :color="!!item.proyeccion_aprobadoflag ? 'green' : 'red'"
             >
               {{ !!item.proyeccion_aprobadoflag ? "Si" : "No" }}</v-chip
@@ -105,7 +103,7 @@
 
             <v-col cols="12">
               <v-select
-                :items="$store.state.year"
+                :items="Array.isArray($store.state.year) ? $store.state.year : []"
                 v-model="id_year"
                 label="Año"
                 density="compact"
@@ -125,7 +123,7 @@
             :loading="loading"
             >Copiar</v-btn
           >
-          <v-btn color="red" dark class="mx-1" @click="dialog = !dialog"
+          <v-btn color="red" class="mx-1" @click="dialog = !dialog"
             >Cancelar</v-btn
           >
         </v-card-actions>
@@ -156,7 +154,7 @@
 
             <v-col cols="12">
               <v-select
-                :items="$store.state.year"
+                :items="Array.isArray($store.state.year) ? $store.state.year : []"
                 v-model="id_yearn"
                 label="Año"
                 density="compact"
@@ -176,7 +174,7 @@
             :loading="loading"
             >Copiar</v-btn
           >
-          <v-btn color="red" dark class="mx-1" @click="dialogn = !dialogn"
+          <v-btn color="red" class="mx-1" @click="dialogn = !dialogn"
             >Cancelar</v-btn
           >
         </v-card-actions>
@@ -189,7 +187,6 @@
       temporary
       
       width="20%"
-      height="92vh"
     >
       <v-list-item>
         
@@ -215,7 +212,7 @@
           </v-col>
           <v-col cols="12">
             <v-select
-              :items="$store.state.year"
+              :items="Array.isArray($store.state.year) ? $store.state.year : []"
               v-model="id_year"
               label="Año"
               density="compact"
@@ -273,7 +270,7 @@
       <v-card-actions>
         <v-spacer></v-spacer>
         <v-btn size="small" color="success" @click="filtrar()">Aceptar</v-btn>
-        <v-btn size="small" dark color="red" @click="filtar = !filtar">Cerrar</v-btn>
+        <v-btn size="small" color="red" @click="filtar = !filtar">Cerrar</v-btn>
       </v-card-actions>
     </v-navigation-drawer>
   </v-container>
