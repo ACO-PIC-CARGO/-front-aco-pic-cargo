@@ -610,7 +610,7 @@ export default {
   data() {
     return {
       nuevoexpediente: "",
-      aprobarflag: "",
+      aprobarflag: false,
       id_exp: "",
       fecha_validez: "",
       descripcionNota: "",
