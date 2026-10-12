@@ -1,0 +1,137 @@
+{
+  "listEntitie": {
+    "id_role": "3"
+  },
+  "verProveedor": {
+    "id": "9117"
+  },
+  "editarProveedor": {
+    "id": "9117"
+  },
+  "verCliente": {
+    "id": "9113"
+  },
+  "editarCliente": {
+    "id": "9113"
+  },
+  "controlEntitie": {
+    "id_role": "3"
+  },
+  "controlEntitieEdit": {
+    "id": "9117"
+  },
+  "controlMasterEditar": {
+    "id": "1"
+  },
+  "controlMasterVer": {
+    "id": "1"
+  },
+  "controlMasterId": {
+    "id": "1"
+  },
+  "controlMasterParams": {
+    "id": "1",
+    "params": "1"
+  },
+  "controlHouseEditar": {
+    "id": "1"
+  },
+  "controlHouseVer": {
+    "id": "1"
+  },
+  "controlHouseId": {
+    "id": "1"
+  },
+  "billControlGastos": {
+    "id_house": "1"
+  },
+  "billControlGastosControl": {
+    "id_house": "1",
+    "id_control": "1",
+    "id_orders": "1",
+    "code": "1"
+  },
+  "editControlGasto": {
+    "id": "1",
+    "id_branch": "22"
+  },
+  "verControlGasto": {
+    "id": "1",
+    "id_branch": "22"
+  },
+  "viewAccountPays": {
+    "id": "1"
+  },
+  "EditAccountPays": {
+    "id": "1"
+  },
+  "verProyeccion": {
+    "id": "1"
+  },
+  "editarProyeccion": {
+    "id": "1"
+  },
+  "viewAccountPaysCxC": {
+    "id": "1"
+  },
+  "EditAccountPaysCxC": {
+    "id": "1"
+  },
+  "verPagosPorProveedor": {
+    "id": "1"
+  },
+  "editarPagosPorProveedor": {
+    "id": "1"
+  },
+  "editarPagosPorCliente": {
+    "id": "1"
+  },
+  "verPagosPorCliente": {
+    "id": "1"
+  },
+  "verQuote": {
+    "id": "1"
+  },
+  "editQuote": {
+    "id": "1"
+  },
+  "readEnterprise": {
+    "id": "19"
+  },
+  "updateEnterprise": {
+    "id": "19"
+  },
+  "editarUser": {
+    "id": "95"
+  },
+  "verUser": {
+    "id": "95"
+  },
+  "editarPosicion": {
+    "id": "1"
+  },
+  "verPosicion": {
+    "id": "1"
+  },
+  "EditarSalida": {
+    "nro_operacion": "1"
+  },
+  "EditarCobroCliente": {
+    "nro_operacion": "1"
+  },
+  "EditarAduana": {
+    "id": "1"
+  },
+  "VerAduana": {
+    "id": "1"
+  },
+  "UserCalculadoraVer": {
+    "id": "1"
+  },
+  "tracking": {
+    "token": "e2e-invalid-token"
+  },
+  "ReestablecerClave": {
+    "token": "e2e-invalid-token"
+  }
+}
