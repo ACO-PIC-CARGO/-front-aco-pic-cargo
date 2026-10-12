@@ -11,6 +11,7 @@
 
     <v-app-bar app elevation="0" v-if="mostrarBtnMenu" :color="colorBar()" dark>
       <v-app-bar-nav-icon
+        aria-label="Abrir menú"
         v-if="mostrarBtnMenu"
         @click="$store.state.drawer = !$store.state.drawer"
       ></v-app-bar-nav-icon>

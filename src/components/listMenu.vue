@@ -6,7 +6,7 @@
         <v-col cols="3" class="avatar">
           <v-menu bottom min-width="200px" rounded offset-y>
             <template v-slot:activator="{ on }">
-              <v-btn icon x-large v-on="on">
+              <v-btn icon x-large aria-label="Cuenta" v-on="on">
                 <v-avatar size="45">
                   <v-img v-if="person.path" :src="branch.logo" />
                   <v-img v-else src="/img/png/user.png" />
