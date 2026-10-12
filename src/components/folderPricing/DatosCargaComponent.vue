@@ -518,6 +518,98 @@
         </v-card-actions>
       </v-card>
     </v-dialog>
+
+    <v-dialog
+      v-model="dialogCambiarPercepcionAduana"
+      max-width="560px"
+      persistent
+    >
+      <v-card class="dialog-impuestos" rounded="lg">
+        <!-- ENCABEZADO -->
+        <v-card-title class="px-6 pt-5 pb-3">
+          <div class="d-flex align-center flex-grow-1">
+            <v-avatar size="72" color="blue lighten-5" class="mr-4">
+              <v-icon size="38" color="blue darken-2">
+                mdi-file-percent-outline
+              </v-icon>
+            </v-avatar>
+
+            <div class="text-h5 font-weight-bold text-uppercase">
+              Cálculo de impuestos
+            </div>
+
+            <v-spacer />
+
+            <v-btn icon @click="dialogCambiarPercepcionAduana = false">
+              <v-icon color="blue-grey"> mdi-close </v-icon>
+            </v-btn>
+          </div>
+        </v-card-title>
+
+        <!-- CONTENIDO -->
+        <v-card-text class="px-6 pt-2 pb-5">
+          <v-alert color="blue lighten-5" text class="alerta-impuestos mb-5">
+            <div class="d-flex align-center">
+              <v-icon color="blue darken-1" size="32" class="mr-4">
+                mdi-information
+              </v-icon>
+
+              <div class="texto-aviso">
+                Confirma si se mantiene como
+                <strong>primera o segunda importación.</strong>
+              </div>
+            </div>
+          </v-alert>
+
+          <v-autocomplete
+            v-model="id_percepcionaduana"
+            :items="$store.state.masterusuarios.lstPercepcionAduana"
+            item-text="descripcion"
+            item-value="id"
+            label="Tipo de importación"
+            outlined
+            dense
+            hide-details="auto"
+            :rules="[
+              (v) =>
+                (v !== null && v !== undefined && v !== '') ||
+                'Selecciona el tipo de importación',
+            ]"
+          />
+        </v-card-text>
+
+        <v-divider />
+
+        <!-- BOTONES -->
+        <v-card-actions class="px-6 py-4">
+          <v-spacer />
+
+          <v-btn
+            color="blue-grey lighten-5"
+            depressed
+            class="btn-impuestos btn-cancelar"
+            @click="dialogCambiarPercepcionAduana = false"
+          >
+            Cancelar
+          </v-btn>
+
+          <v-btn
+            color="blue darken-1"
+            dark
+            depressed
+            class="btn-impuestos"
+            :disabled="
+              id_percepcionaduana === null ||
+              id_percepcionaduana === undefined ||
+              id_percepcionaduana === ''
+            "
+            @click="cambiarPercepcionAduana"
+          >
+            Confirmar
+          </v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
   </v-container>
 </template>
 
@@ -540,6 +632,7 @@ export default {
   },
   data() {
     return {
+      dialogCambiarPercepcionAduana: false,
       mostrarContinuarFlag: true,
       headers: [
         { text: "", value: "action" },
@@ -547,6 +640,7 @@ export default {
         { text: "Tipo Contendor", value: "description" },
         { text: "Cantidad", value: "cantidad" },
       ],
+      id_percepcionaduana: null,
       dialogConteiner: false,
       numerobultos: "",
       volumen: "",
@@ -1413,6 +1507,7 @@ export default {
       return monto;
     },
     async confirmarCambio(tipo, nuevoValor) {
+      this.id_percepcionaduana = null;
       // Si el usuario está desmarcando la opción, lo permitimos directamente
       if (!nuevoValor) {
         if (tipo === "grupal")
@@ -1493,6 +1588,9 @@ export default {
           this.$store.state.pricing.datosPrincipales.esgrupalflag = false;
           setTimeout(() => {
             this.cambiarGrupalIndividual();
+            this.id_percepcionaduana =
+              this.$store.state.pricing.datosPrincipales.id_percepcionaduana;
+            this.dialogCambiarPercepcionAduana = true;
           }, 100);
         } else {
           // SOLUCIÓN: Aplicamos el mismo parche para el caso de cancelar el individual
@@ -1503,6 +1601,14 @@ export default {
           });
         }
       }
+    },
+    cambiarPercepcionAduana() {
+      this.$store.state.pricing.datosPrincipales.id_percepcionaduana =
+        this.id_percepcionaduana;
+      setTimeout(() => {
+        this.cambiarImpuesto();
+        this.dialogCambiarPercepcionAduana = false;
+      }, 100);
     },
   },
   computed: {
@@ -1664,5 +1770,62 @@ export default {
 }
 .t-blue {
   color: blue !important;
+}
+</style>
+
+<style scoped>
+.dialog-impuestos {
+  border-radius: 12px !important;
+  overflow: hidden;
+}
+
+.alerta-impuestos {
+  border-radius: 9px;
+  margin-left: 0;
+  margin-right: 0;
+}
+
+.texto-aviso {
+  color: #173b69;
+  font-size: 16px;
+  line-height: 1.5;
+}
+
+.texto-aviso strong {
+  display: block;
+  color: #1565c0;
+  font-weight: 700;
+}
+
+.btn-impuestos {
+  min-width: 125px !important;
+  height: 42px !important;
+  border-radius: 7px;
+  font-weight: 700;
+  letter-spacing: 0.3px;
+}
+
+.btn-cancelar {
+  color: #526176 !important;
+}
+
+@media (max-width: 600px) {
+  .dialog-impuestos .text-h5 {
+    font-size: 17px !important;
+  }
+
+  .dialog-impuestos .v-avatar {
+    width: 48px !important;
+    height: 48px !important;
+  }
+
+  .texto-aviso {
+    font-size: 14px;
+  }
+
+  .btn-impuestos {
+    min-width: 0 !important;
+    padding: 0 12px !important;
+  }
 }
 </style>
