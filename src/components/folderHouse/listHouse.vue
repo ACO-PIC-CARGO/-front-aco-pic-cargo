@@ -103,6 +103,7 @@
               v-if="statusList != '2'"
               color="info"
               class="mr-1"
+              aria-label="Ver house"
               @click.stop="viewHouse(item.id)"
             >
               mdi-eye
@@ -122,6 +123,7 @@
               large
               color="primary"
               class="mr-1"
+              aria-label="Abrir control de gastos"
               @click.stop="selectHouse(item)"
             >
               mdi-cursor-default-click

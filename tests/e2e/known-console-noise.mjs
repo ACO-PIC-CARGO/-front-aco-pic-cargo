@@ -139,6 +139,31 @@ export const KNOWN_CONSOLE_NOISE = [
     reason: "pre-existing on Vue 2: VerCotizacionCalculadora",
     routes: ["VerCotizacionCalculadora"],
   },
+  {
+    pattern: /^\[Vue warn\]: Error in mounted hook \(Promise\/async\): "ReferenceError: vm is not defined"(\n|$)/,
+    reason: "pre-existing on Vue 2: controlHouseEditar (folderHouse/dataGen.vue _validaData uses vm outside its scope for a house without client)",
+    routes: ["controlHouseEditar"],
+  },
+  {
+    pattern: /^ReferenceError: vm is not defined(\n|$)/,
+    reason: "pre-existing on Vue 2: controlHouseEditar (folderHouse/dataGen.vue _validaData uses vm outside its scope for a house without client)",
+    routes: ["controlHouseEditar"],
+  },
+  {
+    pattern: /^\[Vue warn\]: Error in v-on handler: "TypeError: Cannot read properties of undefined \(reading 'push'\)"(\n|$)/,
+    reason: "pre-existing: folderHouse/dataGen.vue guardar() uses this.router",
+    routes: ["controlHouseEditar"],
+  },
+  {
+    pattern: /^TypeError: Cannot read properties of undefined \(reading 'push'\)(\n|$)/,
+    reason: "pre-existing: folderHouse/dataGen.vue guardar() uses this.router",
+    routes: ["controlHouseEditar"],
+  },
+  {
+    pattern: /^Request failed with status code 500(\n|$)/,
+    reason: "pre-existing on Vue 2: controlHouseEditar (crear-carpeta-house answers 500: the OneDrive/SharePoint folder is unreachable locally)",
+    routes: ["controlHouseEditar"],
+  },
 ];
 
 export const isKnownNoise = (text, routeName) =>

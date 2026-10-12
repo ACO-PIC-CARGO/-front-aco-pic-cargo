@@ -413,6 +413,7 @@
                 v-if="item.status == 1"
                 color="#212121"
                 small
+                aria-label="Ver master"
                 @click="viewMaster(item.id)"
               >
                 <v-icon class="mx-1">mdi-eye</v-icon>

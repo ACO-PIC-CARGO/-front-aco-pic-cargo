@@ -189,7 +189,7 @@
           class="acciones-dial"
         >
           <template v-slot:activator>
-            <v-btn v-model="fab" color="info" dark fab>
+            <v-btn v-model="fab" color="info" dark fab aria-label="Acciones">
               <v-icon v-if="fab"> mdi-close </v-icon>
               <v-icon v-else> mdi-tools </v-icon>
             </v-btn>
