@@ -379,15 +379,15 @@ export default {
       mostrarflag: false,
       tab: "datos",
       headersPosition: [
-        { text: "Código", value: "code" },
-        { text: "Módulo", value: "name" },
-        { text: "Acción", value: "action" },
+        { title: "Código", key: "code" },
+        { title: "Módulo", key: "name" },
+        { title: "Acción", key: "action" },
       ],
 
       headersSucursal: [
-        { text: "Documento", value: "document" },
-        { text: "Nombre", value: "trade_name" },
-        { text: "Acción", value: "action" },
+        { title: "Documento", key: "document" },
+        { title: "Nombre", key: "trade_name" },
+        { title: "Acción", key: "action" },
       ],
 
       itemPositon: "",

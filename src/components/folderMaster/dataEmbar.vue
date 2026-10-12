@@ -225,9 +225,9 @@ export default {
   data() {
     return {
       headers: [
-        { text: "Fecha", value: "fecha" },
-        { text: "Ejecutivo", value: "namelong" },
-        { text: "Estado/ Comentario", value: "comentario" },
+        { title: "Fecha", key: "fecha" },
+        { title: "Ejecutivo", key: "namelong" },
+        { title: "Estado/ Comentario", key: "comentario" },
         {},
       ],
       itemsAgente: [],

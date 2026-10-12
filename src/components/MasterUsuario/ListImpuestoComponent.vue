@@ -93,14 +93,14 @@ export default {
       mostrarflag: true,
       loading: false,
       headers: [
-        { text: "Código", value: "valorcodigo" },
-        { text: "Descripción", value: "description" },
-        { text: "Porcentaje", value: "codigo01" },
+        { title: "Código", key: "valorcodigo" },
+        { title: "Descripción", key: "description" },
+        { title: "Porcentaje", key: "codigo01" },
         // { text: "Fórmula", value: "codigo02" },
-                { text: "Estado", value: "estado" },{ text: "Creación", value: "created_at" },
+                { title: "Estado", key: "estado" },{ title: "Creación", key: "created_at" },
 
-        { text: "Última Actualización", value: "updated_at" },
-        { text: "Acciones", value: "action" },
+        { title: "Última Actualización", key: "updated_at" },
+        { title: "Acciones", key: "action" },
       ],
     };
   },

@@ -225,124 +225,124 @@ export default {
 
     headersInvoice: [
       {
-        text: "Nombre",
-        value: "originalname",
+        title: "Nombre",
+        key: "originalname",
       },
       {
-        text: "Fecha",
-        value: "date_letra",
+        title: "Fecha",
+        key: "date_letra",
       },
       {
-        text: "Ver",
-        value: "path",
+        title: "Ver",
+        key: "path",
       },
     ],
     errorNroOp: "",
     nro_operacion: "",
     headersdebs: [
       {
-        text: "Documento",
+        title: "Documento",
         align: "start",
         sortable: false,
-        value: "name",
+        key: "name",
       },
       {
-        text: "Expediente",
-        value: "nro_master",
+        title: "Expediente",
+        key: "nro_master",
       },
       {
-        text: "Nro Operación",
-        value: "nro_operacion",
-      },
-
-      {
-        text: "Cliente",
-        value: "nameconsigner",
-      },
-      {
-        text: "Fecha",
-        value: "date",
-      },
-      {
-        text: "Monto Factura Cliente (USD)",
-        value: "monto_letra_pic",
-      },
-      {
-        text: "Tipo de Cambio",
-        value: "tipocambio",
-      },
-      {
-        text: "Monto ingresado al Banco",
-        value: "monto_letra",
+        title: "Nro Operación",
+        key: "nro_operacion",
       },
 
       {
-        text: "Monto a pagar a proveedores",
-        value: "monto_pagar_pro",
+        title: "Cliente",
+        key: "nameconsigner",
+      },
+      {
+        title: "Fecha",
+        key: "date",
+      },
+      {
+        title: "Monto Factura Cliente (USD)",
+        key: "monto_letra_pic",
+      },
+      {
+        title: "Tipo de Cambio",
+        key: "tipocambio",
+      },
+      {
+        title: "Monto ingresado al Banco",
+        key: "monto_letra",
+      },
+
+      {
+        title: "Monto a pagar a proveedores",
+        key: "monto_pagar_pro",
       },
       // {
       //   text: "total cobrado al cliente",
       //   value: "monto_cobrado",
       // },
       {
-        text: "Comentario del solicitante",
-        value: "comentario_usuario",
+        title: "Comentario del solicitante",
+        key: "comentario_usuario",
       },
       {
-        text: "Status",
-        value: "status",
-      },
-
-      {
-        text: "Ver",
-        value: "accion",
-      },
-      {
-        text: "Instructivo",
-        value: "instructivo",
+        title: "Status",
+        key: "status",
       },
 
       {
-        text: "Acciones",
-        value: "accions",
+        title: "Ver",
+        key: "accion",
+      },
+      {
+        title: "Instructivo",
+        key: "instructivo",
+      },
+
+      {
+        title: "Acciones",
+        key: "accions",
       },
     ],
 
     headersPdf: [
       {
-        text: "Nombre",
+        title: "Nombre",
         align: "start",
         sortable: false,
-        value: "path",
+        key: "path",
       },
       {
-        text: "Expediente",
-        value: "nro_master",
+        title: "Expediente",
+        key: "nro_master",
       },
       {
-        text: "Quote",
-        value: "id_cot",
+        title: "Quote",
+        key: "id_cot",
       },
       {
-        text: "Monto",
-        value: "monto_letra",
+        title: "Monto",
+        key: "monto_letra",
       },
       {
-        text: "Ver Facturas",
-        value: "invoice",
+        title: "Ver Facturas",
+        key: "invoice",
       },
       {
-        text: "Ver Solicitud",
-        value: "accion",
+        title: "Ver Solicitud",
+        key: "accion",
       },
 
       {
-        text: "Status",
-        value: "status",
+        title: "Status",
+        key: "status",
       },
       {
-        text: "Adjuntar",
-        value: "accions",
+        title: "Adjuntar",
+        key: "accions",
       },
     ],
     dataList: false,

@@ -352,14 +352,14 @@ export default {
     return {
       tab: "datos",
       headersPosition: [
-        { text: "Código", value: "code" },
-        { text: "Posición", value: "name" },
+        { title: "Código", key: "code" },
+        { title: "Posición", key: "name" },
         // { text: "Acción", value: "action" },
       ],
 
       headersSucursal: [
-        { text: "Documento", value: "document" },
-        { text: "Nombre", value: "trade_name" },
+        { title: "Documento", key: "document" },
+        { title: "Nombre", key: "trade_name" },
         // { text: "Acción", value: "action" },
       ],
 

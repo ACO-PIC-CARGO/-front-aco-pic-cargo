@@ -270,9 +270,9 @@ export default {
       buscarClienteDialog: false,
       mostrarContinuarFlag: true,
       headers: [
-        { text: "Documento", value: "document" },
-        { text: "Nombres (s)", value: "nombrecompleto" },
-        { text: "Teléfono", value: "phone" },
+        { title: "Documento", key: "document" },
+        { title: "Nombres (s)", key: "nombrecompleto" },
+        { title: "Teléfono", key: "phone" },
         { value: "action" },
       ],
       mostrar: false,

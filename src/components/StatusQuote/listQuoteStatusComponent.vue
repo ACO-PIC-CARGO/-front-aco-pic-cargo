@@ -108,11 +108,11 @@ export default {
       search: "",
       loading: false,
       headers: [
-        { text: "Código", value: "code" },
-        { text: "Nombre", value: "name" },
+        { title: "Código", key: "code" },
+        { title: "Nombre", key: "name" },
         // { text: "Descripción", value: "description" },
-        { text: "Temperatura del lead ", value: "temperatura" },
-        { text: "Posición ", value: "position" },
+        { title: "Temperatura del lead ", key: "temperatura" },
+        { title: "Posición ", key: "position" },
         // temperatura
         // temperaturadescripcion
         // backgroundtemperatura
@@ -121,10 +121,10 @@ export default {
         // { text: "Posición Registro", value: "position_select" },
         // { text: "Uso Llamadas", value: "statuscalls" },
         // { text: "Uso Todas Llamadas", value: "statuscalls_all" },
-        { text: "Estado", value: "estado" },
-        { text: "Creación", value: "created_at" },
-        { text: "Última Actualización", value: "updated_at" },
-        { text: "Acciones", value: "action" },
+        { title: "Estado", key: "estado" },
+        { title: "Creación", key: "created_at" },
+        { title: "Última Actualización", key: "updated_at" },
+        { title: "Acciones", key: "action" },
       ],
     };
   },

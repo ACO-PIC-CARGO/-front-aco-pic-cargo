@@ -168,7 +168,7 @@
                     ></v-text-field>
                   </template>
                   <template v-slot:[`item.multiplicador`]="{ item }">
-                    <v-autocomplete
+                    <v-autocomplete item-title="text"
                       :items="$store.state.configEmpresa.lstMultiplicador"
                       v-model="item.id_multiplicador"
                       density="compact"
@@ -304,7 +304,7 @@
         </v-card-title>
         <v-form ref="frmNuevosCostos">
           <v-card-text>
-            <v-select
+            <v-select item-title="text"
               :items="lstTramo"
               v-model="frmNuevoCosto.tramo"
               :rules="[(v) => !!v || 'Dato obligatorio']"
@@ -346,7 +346,7 @@
               v-model="frmNuevoCosto.concepto"
             />
 
-            <v-autocomplete
+            <v-autocomplete item-title="text"
               :items="$store.state.configEmpresa.lstMultiplicador"
               v-model="frmNuevoCosto.id_multiplicador"
               :rules="[(v) => !!v || 'Dato obligatorio']"
@@ -485,12 +485,12 @@ export default {
       loading: false,
       items: [],
       headers: [
-        { text: "TRAMO", value: "tramo" },
-        { text: "SERVICIO", value: "servicio" },
-        { text: "CONCEPTO", value: "concepto" },
-        { text: "MULTIPLICADOR", value: "multiplicador" },
-        { text: "MONTO", value: "monto" },
-        { text: "PROVEEDOR", value: "proveedor" },
+        { title: "TRAMO", key: "tramo" },
+        { title: "SERVICIO", key: "servicio" },
+        { title: "CONCEPTO", key: "concepto" },
+        { title: "MULTIPLICADOR", key: "multiplicador" },
+        { title: "MONTO", key: "monto" },
+        { title: "PROVEEDOR", key: "proveedor" },
       ],
       dialog: false,
       ids_modality: [],

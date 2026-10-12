@@ -121,7 +121,7 @@ export default {
     },
     agregarFilasAlHeader() {
       this.headers = [
-        { text: "Tarifa de Costos", value: "tarifa" },
+        { title: "Tarifa de Costos", key: "tarifa" },
         // { text: "Proveedor Flete", value: "proveedor" },
       ];
 

@@ -222,21 +222,21 @@ export default {
   data() {
     return {
       headersTelefonos: [
-        { text: "Tipo de Teléfono", value: "id_tipotelefono", width: "35%" },
-        { text: "Nro Teléfono", value: "nro_telefono", width: "50%" },
-        { text: "Acciones", value: "action", width: "15%" },
+        { title: "Tipo de Teléfono", key: "id_tipotelefono", width: "35%" },
+        { title: "Nro Teléfono", key: "nro_telefono", width: "50%" },
+        { title: "Acciones", key: "action", width: "15%" },
       ],
       headersContactos: [
-        { text: "Nombres", value: "nombre", width: "35%" },
-        { text: "Tipo de Teléfono", value: "id_tipotelefono", width: "25%" },
-        { text: "Nro Teléfono", value: "nro_telefono", width: "25%" },
-        { text: "Acciones", value: "action", width: "15%" },
+        { title: "Nombres", key: "nombre", width: "35%" },
+        { title: "Tipo de Teléfono", key: "id_tipotelefono", width: "25%" },
+        { title: "Nro Teléfono", key: "nro_telefono", width: "25%" },
+        { title: "Acciones", key: "action", width: "15%" },
       ],
       headersEmails: [
-        { text: "Descripción", value: "description", width: "35%" },
-        { text: "Email", value: "email", width: "25%" },
+        { title: "Descripción", key: "description", width: "35%" },
+        { title: "Email", key: "email", width: "25%" },
         // { text: "Nro Teléfono", value: "nro_telefono", width: "25%" },
-        { text: "Acciones", value: "action", width: "15%" },
+        { title: "Acciones", key: "action", width: "15%" },
       ],
     };
   },

@@ -190,17 +190,17 @@ export default {
   data() {
     return {
       headersConvenios: [
-        { text: "Fecha", value: "fecha", width: "20%" },
-        { text: "Días para Crédito", value: "dias_credito", width: "30%" },
-        { text: "Email Soporte", value: "email_soporte", width: "40%" },
-        { text: "Acciones", value: "action", width: "10%" },
+        { title: "Fecha", key: "fecha", width: "20%" },
+        { title: "Días para Crédito", key: "dias_credito", width: "30%" },
+        { title: "Email Soporte", key: "email_soporte", width: "40%" },
+        { title: "Acciones", key: "action", width: "10%" },
       ],
       headersTarifas: [
-        { text: "Fecha", value: "fecha", width: "20%" },
-        { text: "Código", value: "codigo", width: "20%" },
-        { text: "Email Soporte", value: "email_soporte", width: "30%" },
-        { text: "Tarifa", value: "tarifa", width: "20%" },
-        { text: "Acciones", value: "action", width: "10%" },
+        { title: "Fecha", key: "fecha", width: "20%" },
+        { title: "Código", key: "codigo", width: "20%" },
+        { title: "Email Soporte", key: "email_soporte", width: "30%" },
+        { title: "Tarifa", key: "tarifa", width: "20%" },
+        { title: "Acciones", key: "action", width: "10%" },
       ],
       fileinput: null,
       isFileLoading: false,

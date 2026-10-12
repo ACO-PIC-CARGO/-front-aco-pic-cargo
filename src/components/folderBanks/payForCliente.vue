@@ -257,40 +257,40 @@ export default {
       successMessages: "",
       headers: [
         {
-          text: "Fecha",
-          value: "fecha",
+          title: "Fecha",
+          key: "fecha",
         },
 
         {
-          text: "House",
-          value: "codigo_house",
+          title: "House",
+          key: "codigo_house",
         },
 
         {
-          text: "Cliente Pagó",
-          value: "statuspago",
+          title: "Cliente Pagó",
+          key: "statuspago",
         },
         {
-          text: "Monto Dolar",
-          value: "monto_pagar",
-        },
-
-        {
-          text: "Monto Moneda Banco",
-          value: "maxpagar",
+          title: "Monto Dolar",
+          key: "monto_pagar",
         },
 
         {
-          text: "Moneda",
-          value: "moneda",
+          title: "Monto Moneda Banco",
+          key: "maxpagar",
+        },
+
+        {
+          title: "Moneda",
+          key: "moneda",
         },
         {
-          text: "Tipo Cambio",
-          value: "tipocambio",
+          title: "Tipo Cambio",
+          key: "tipocambio",
         },
         {
-          text: "Pago Parcial",
-          value: "montopagar",
+          title: "Pago Parcial",
+          key: "montopagar",
         },
       ],
     };

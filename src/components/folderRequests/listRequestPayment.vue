@@ -398,16 +398,16 @@ export default {
 
     headersInvoice: [
       {
-        text: "Nombre",
-        value: "originalname",
+        title: "Nombre",
+        key: "originalname",
       },
       {
-        text: "Fecha",
-        value: "date_letra",
+        title: "Fecha",
+        key: "date_letra",
       },
       {
-        text: "Ver",
-        value: "path",
+        title: "Ver",
+        key: "path",
       },
     ],
 
@@ -418,59 +418,59 @@ export default {
         value: "path",
       }, */
       {
-        text: "Expediente",
-        value: "nro_master",
+        title: "Expediente",
+        key: "nro_master",
       },
       {
-        text: "Fecha de Disponibilidad",
-        value: "fecha_disponibilidad",
+        title: "Fecha de Disponibilidad",
+        key: "fecha_disponibilidad",
       },
       {
-        text: "Proveedor",
-        value: "name_proveedor",
+        title: "Proveedor",
+        key: "name_proveedor",
       },
       {
-        text: "Quote",
-        value: "id_cot",
+        title: "Quote",
+        key: "id_cot",
       },
       {
-        text: "Monto",
-        value: "monto_letra",
+        title: "Monto",
+        key: "monto_letra",
       },
       {
-        text: "Consignatario",
-        value: "name_cosigner",
+        title: "Consignatario",
+        key: "name_cosigner",
       },
       {
-        text: "Ver Facturas",
-        value: "invoice",
+        title: "Ver Facturas",
+        key: "invoice",
       },
       {
-        text: "Ver Solicitud",
-        value: "accion",
-      },
-
-      {
-        text: "Ver Instructivo",
-        value: "inst",
-      },
-      {
-        text: "Status de Cobro al cliente",
-        value: "pago_completo",
-      },
-      {
-        text: "Ganancia",
-        value: "ganancia",
+        title: "Ver Solicitud",
+        key: "accion",
       },
 
       {
-        text: "Status",
-        value: "status",
+        title: "Ver Instructivo",
+        key: "inst",
+      },
+      {
+        title: "Status de Cobro al cliente",
+        key: "pago_completo",
+      },
+      {
+        title: "Ganancia",
+        key: "ganancia",
       },
 
       {
-        text: "Cargar Soporte de Pago",
-        value: "accions",
+        title: "Status",
+        key: "status",
+      },
+
+      {
+        title: "Cargar Soporte de Pago",
+        key: "accions",
       },
     ],
     dataList: false,

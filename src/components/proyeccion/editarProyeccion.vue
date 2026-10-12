@@ -174,7 +174,7 @@
               </v-btn>
             </template>
             <template v-slot:[`item.diavencimiento`]="{ item }">
-              <v-select
+              <v-select item-title="text"
                 :items="dias"
                 v-model="item.nrodias"
                 label="Día de vencimiento"
@@ -304,19 +304,19 @@ export default {
         { value: 28, text: "28" },
       ],
       headers: [
-        { text: "Tipo de Gasto", value: "gasto", width: "10%" },
-        { text: "Tipo de Subgasto", value: "subgasto", width: "10%" },
-        { text: "Proveedor", value: "proveedor", width: "10%" },
-        { text: "Descripción", value: "descripcion", width: "10%" },
-        { text: "Día Vencimiento", value: "diavencimiento", width: "10%" },
-        { text: "Moneda", value: "moneda", width: "10%" },
+        { title: "Tipo de Gasto", key: "gasto", width: "10%" },
+        { title: "Tipo de Subgasto", key: "subgasto", width: "10%" },
+        { title: "Proveedor", key: "proveedor", width: "10%" },
+        { title: "Descripción", key: "descripcion", width: "10%" },
+        { title: "Día Vencimiento", key: "diavencimiento", width: "10%" },
+        { title: "Moneda", key: "moneda", width: "10%" },
         {
-          text: "Monto Moneda Original",
-          value: "montomonoriginal",
+          title: "Monto Moneda Original",
+          key: "montomonoriginal",
           width: "10%",
         },
-        { text: "Monto Final en USD", value: "montofinaldolar", width: "10%" },
-        { text: "Acciones", value: "action", width: "10%" },
+        { title: "Monto Final en USD", key: "montofinaldolar", width: "10%" },
+        { title: "Acciones", key: "action", width: "10%" },
       ],
       items: [],
       mes: [],

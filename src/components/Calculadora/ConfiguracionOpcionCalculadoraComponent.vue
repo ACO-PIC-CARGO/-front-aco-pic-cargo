@@ -139,29 +139,29 @@ export default {
   data() {
     return {
       headers: [
-        { width: "25%", text: "Nombre", value: "nombre" },
-        { width: "25%", text: "Descripción", value: "frecuencia" },
-        { width: "5%", text: "Estado", value: "estado", align: "center" },
+        { width: "25%", title: "Nombre", key: "nombre" },
+        { width: "25%", title: "Descripción", key: "frecuencia" },
+        { width: "5%", title: "Estado", key: "estado", align: "center" },
         {
           width: "5%",
-          text: "Orden Presentación",
-          value: "orden",
+          title: "Orden Presentación",
+          key: "orden",
           align: "center",
         },
-        { width: "12%", text: "Tipo", value: "esgrupalflag", align: "center" },
+        { width: "12%", title: "Tipo", key: "esgrupalflag", align: "center" },
         {
           width: "10%",
-          text: "Volumen Máximo",
-          value: "volumenmax",
+          title: "Volumen Máximo",
+          key: "volumenmax",
           align: "center",
         },
         {
           width: "10%",
-          text: "Tonelada Máxima",
-          value: "toneladamax",
+          title: "Tonelada Máxima",
+          key: "toneladamax",
           align: "center",
         },
-        { text: "", value: "action", align: "center" },
+        { title: "", key: "action", align: "center" },
       ],
     };
   },

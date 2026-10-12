@@ -193,7 +193,7 @@
                       </v-btn>
                     </template>
                     <template v-slot:[`item.parcialflag`]="{ item }">
-                      <v-select
+                      <v-select item-title="text"
                         :items="cboParcial"
                         v-model="item.parcialflag"
                         density="compact"
@@ -662,45 +662,45 @@ export default {
       id_path: null,
       selected: [],
       headers: [
-        { text: "Abono Completo o Parcial", value: "parcialflag" },
-        { text: "Moneda Y Monto", value: "montopagar" },
+        { title: "Abono Completo o Parcial", key: "parcialflag" },
+        { title: "Moneda Y Monto", key: "montopagar" },
 
-        { text: "Expediente", value: "referencia" },
-        { text: "Tipo", value: "tipo" },
-        { text: "Ver Factura.", value: "action" },
-        { text: "Fecha Factura", value: "fecha" },
+        { title: "Expediente", key: "referencia" },
+        { title: "Tipo", key: "tipo" },
+        { title: "Ver Factura.", key: "action" },
+        { title: "Fecha Factura", key: "fecha" },
         {
-          text: "Moneda y Monto Facturado",
-          value: "monto_original_total",
+          title: "Moneda y Monto Facturado",
+          key: "monto_original_total",
         },
         {
-          text: "Monto Equivalente en Dólares",
-          value: "totaldolar",
+          title: "Monto Equivalente en Dólares",
+          key: "totaldolar",
         },
-        { text: "Saldo Actual", value: "total_mon_local" },
-        { text: "Saldo Final", value: "saldo" },
-        { text: "Factura", value: "documentos" },
-        { text: "Monto Total Abonado", value: "totalabonado" },
+        { title: "Saldo Actual", key: "total_mon_local" },
+        { title: "Saldo Final", key: "saldo" },
+        { title: "Factura", key: "documentos" },
+        { title: "Monto Total Abonado", key: "totalabonado" },
       ],
       headersPagosGastosBancario: [
-        { text: "Abono Completo o Parcial", value: "parcialflag" },
-        { text: "Moneda Y Monto", value: "montopagar" },
+        { title: "Abono Completo o Parcial", key: "parcialflag" },
+        { title: "Moneda Y Monto", key: "montopagar" },
         // { text: "Fecha Facturación", value: "fecha" },
-        { text: "Expediente", value: "referencia" },
-        { text: "Tipo", value: "tipo", align: "center" },
-        { text: "Fecha Factura", value: "fecha" },
+        { title: "Expediente", key: "referencia" },
+        { title: "Tipo", key: "tipo", align: "center" },
+        { title: "Fecha Factura", key: "fecha" },
         {
-          text: "Moneda y Monto Facturado",
-          value: "monto_original_total",
+          title: "Moneda y Monto Facturado",
+          key: "monto_original_total",
         },
-        { text: "Saldo Actual", value: "total_mon_local" },
+        { title: "Saldo Actual", key: "total_mon_local" },
         {
-          text: "Monto Equivalente en Dólares",
-          value: "totaldolar",
+          title: "Monto Equivalente en Dólares",
+          key: "totaldolar",
         },
-        { text: "Saldo Final", value: "saldo" },
+        { title: "Saldo Final", key: "saldo" },
         // { text: "Factura", value: "documentos" },
-        { text: "Monto Total Abonado", value: "totalabonado" },
+        { title: "Monto Total Abonado", key: "totalabonado" },
       ],
       items: [],
       errorMesage: {

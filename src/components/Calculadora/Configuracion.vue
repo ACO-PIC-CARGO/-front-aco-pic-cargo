@@ -47,13 +47,13 @@ export default {
     return {
       config: {},
       headers: [
-        { text: "codigo", value: "codigo", width: "10%" },
-        { text: "descripcion", value: "descripcion", width: "20%" },
-        { text: "texto", value: "texto", width: "30%" },
+        { title: "codigo", key: "codigo", width: "10%" },
+        { title: "descripcion", key: "descripcion", width: "20%" },
+        { title: "texto", key: "texto", width: "30%" },
         // { text: "valorjson", value: "valorjson", width: "10%" },
         // { text: "numero", value: "numero", width: "15%" },
         // { text: "fecha", value: "fecha", width: "15%" },
-        { text: "", value: "action", width: "5%" },
+        { title: "", key: "action", width: "5%" },
       ],
     };
   },

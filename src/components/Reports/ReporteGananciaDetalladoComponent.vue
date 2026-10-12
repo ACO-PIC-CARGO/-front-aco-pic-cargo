@@ -32,7 +32,7 @@
           <v-col cols="12" sm="2" class="filter-col">
             <label>Año</label>
 
-            <v-select
+            <v-select item-title="text"
               v-model="year"
               :items="anios"
               density="compact"
@@ -461,14 +461,14 @@ export default {
       ],
 
       headers: [
-        { value: "mes", text: "MES" },
-        { value: "exp_codemaster", text: "EXP" },
-        { value: "cliente", text: "CLIENTE" },
-        { value: "tipo_embarque", text: "TIPO EMBARQUE", align: "center" },
-        { value: "total_pr", text: "GANANCIA PRICING (USD)", align: "center" },
+        { key: "mes", title: "MES" },
+        { key: "exp_codemaster", title: "EXP" },
+        { key: "cliente", title: "CLIENTE" },
+        { key: "tipo_embarque", title: "TIPO EMBARQUE", align: "center" },
+        { key: "total_pr", title: "GANANCIA PRICING (USD)", align: "center" },
         {
-          value: "total_op",
-          text: "GANANCIA OPERACIONES (USD)",
+          key: "total_op",
+          title: "GANANCIA OPERACIONES (USD)",
           align: "center",
         },
       ],

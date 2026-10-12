@@ -153,7 +153,7 @@
                       </tr>
                     </template>
                     <template v-slot:[`item.parcialflag`]="{ item }">
-                      <v-select
+                      <v-select item-title="text"
                         :items="cboParcial"
                         v-model="item.parcialflag"
                         density="compact"
@@ -544,35 +544,35 @@ export default {
       id_path: null,
       selected: [],
       headers: [
-        { text: "Monto a Abonado", value: "montopagar" },
-        { text: "Expediente", value: "code_master" },
-        { text: "Módulo Origen", value: "tipo" },
+        { title: "Monto a Abonado", key: "montopagar" },
+        { title: "Expediente", key: "code_master" },
+        { title: "Módulo Origen", key: "tipo" },
         {
-          text: "Moneda y Monto Facturado",
-          value: "montomonedalocal",
+          title: "Moneda y Monto Facturado",
+          key: "montomonedalocal",
         },
 
         {
-          text: "Monto Equivalente en Dólares",
-          value: "montodolar",
+          title: "Monto Equivalente en Dólares",
+          key: "montodolar",
         },
 
-        { text: "Factura", value: "documentos" },
+        { title: "Factura", key: "documentos" },
       ],
       headersPagosGastosBancario: [
-        { text: "Expediente", value: "code_master" },
-        { text: "Módulo Origen", value: "tipo" },
+        { title: "Expediente", key: "code_master" },
+        { title: "Módulo Origen", key: "tipo" },
         {
-          text: "Moneda y Monto Facturado",
-          value: "montomonedalocal",
+          title: "Moneda y Monto Facturado",
+          key: "montomonedalocal",
         },
 
         {
-          text: "Monto Equivalente en Dólares",
-          value: "montodolar",
+          title: "Monto Equivalente en Dólares",
+          key: "montodolar",
         },
 
-        { text: "Factura", value: "documentos" },
+        { title: "Factura", key: "documentos" },
       ],
       items: [],
       errorMesage: {

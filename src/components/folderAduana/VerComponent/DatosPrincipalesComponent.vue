@@ -161,9 +161,9 @@ export default {
       buscarClienteDialog: false,
       search: "",
       headers: [
-        { text: "Documento", value: "document" },
-        { text: "Nombres (s)", value: "namelong" },
-        { text: "Teléfono", value: "phone" },
+        { title: "Documento", key: "document" },
+        { title: "Nombres (s)", key: "namelong" },
+        { title: "Teléfono", key: "phone" },
       ],
       registro: this.$store.state.entities.registroFlag,
     };

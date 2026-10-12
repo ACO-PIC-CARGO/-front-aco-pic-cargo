@@ -507,7 +507,7 @@
             @update:model-value="validarExistePagosHouse"
           >
           </v-autocomplete>
-          <v-autocomplete
+          <v-autocomplete item-title="text"
             v-if="id_house != 0 && !textValidacionPago"
             :items="optionHouse"
             v-model="id_opcion_house"
@@ -559,7 +559,7 @@
           </v-btn>
         </v-card-title>
         <v-card-text>
-          <v-autocomplete
+          <v-autocomplete item-title="text"
             :items="optionCostos"
             v-model="id_opcion"
             item-value="id"

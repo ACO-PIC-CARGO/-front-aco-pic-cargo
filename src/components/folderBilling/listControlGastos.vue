@@ -119,25 +119,25 @@ export default {
       statusDialog: false,
 
       headers: [
-        { text: "Master", value: "code_master" },
+        { title: "Master", key: "code_master" },
         // {
         //   text: "Codigo",
         //   align: "start",
         //   value: "code_control",
         // },
 
-        { text: "Versión", value: "posicion" },
-        { text: "Nro MBL", value: "nro_mbl" },
-        { text: "Sentido", value: "namemodality" },
-        { text: "Embarque", value: "nameshipment" },
-        { text: "Origen", value: "nameportbegin" },
-        { text: "Destino", value: "nameportend" },
+        { title: "Versión", key: "posicion" },
+        { title: "Nro MBL", key: "nro_mbl" },
+        { title: "Sentido", key: "namemodality" },
+        { title: "Embarque", key: "nameshipment" },
+        { title: "Origen", key: "nameportbegin" },
+        { title: "Destino", key: "nameportend" },
 
-        { text: "Consignatario", value: "nameconsigner" },
-        { text: "Fecha Etd", value: "fecha_etd" },
-        { text: "Fecha Eta", value: "fecha_eta" },
+        { title: "Consignatario", key: "nameconsigner" },
+        { title: "Fecha Etd", key: "fecha_etd" },
+        { title: "Fecha Eta", key: "fecha_eta" },
 
-        { text: "Acciones", value: "actions" },
+        { title: "Acciones", key: "actions" },
       ],
     };
   },

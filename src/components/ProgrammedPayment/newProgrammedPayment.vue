@@ -47,12 +47,12 @@ export default {
   data: () => ({
     headers: [
       {
-        text: "Correlativo",
-        value: "correlativo",
+        title: "Correlativo",
+        key: "correlativo",
       },
       {
-        text: "Fecha Programada",
-        value: "fecha",
+        title: "Fecha Programada",
+        key: "fecha",
       },
     ],
     listado: [],

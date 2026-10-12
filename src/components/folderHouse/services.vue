@@ -208,7 +208,7 @@
         </v-card-title>
         <v-card-text>
           <v-form ref="frmConfirmar">
-            <v-select
+            <v-select item-title="text"
               :items="cboConfirmaTelex"
               v-model="$store.state.telexconfirmado"
               label="Estado del documento"

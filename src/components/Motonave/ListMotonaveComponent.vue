@@ -110,12 +110,12 @@ export default {
       search: "",
       loading: false,
       headers: [
-        { text: "Nombre", value: "name" },
-        { text: "Descripción", value: "description" },
-        { text: "Estado", value: "estado" },
-        { text: "Creación", value: "created_at" },
-        { text: "Última Actualización", value: "updated_at" },
-        { text: "Acciones", value: "action" },
+        { title: "Nombre", key: "name" },
+        { title: "Descripción", key: "description" },
+        { title: "Estado", key: "estado" },
+        { title: "Creación", key: "created_at" },
+        { title: "Última Actualización", key: "updated_at" },
+        { title: "Acciones", key: "action" },
       ],
     };
   },

@@ -29,7 +29,7 @@
         <v-card-text>
           <v-form ref="frmCompare">
             <v-col>
-              <v-autocomplete
+              <v-autocomplete item-title="text"
                 :items="months"
                 v-model="id_month"
                 label="MES"
@@ -38,7 +38,7 @@
               </v-autocomplete>
             </v-col>
             <v-col>
-              <v-autocomplete
+              <v-autocomplete item-title="text"
                 :items="years"
                 item-value="value"
                 v-model="year"
@@ -205,7 +205,7 @@
       <v-card-text>
         <v-row>
           <v-col cols="12" md="6">
-            <v-autocomplete
+            <v-autocomplete item-title="text"
               :items="months"
               v-model="month"
               label="Mes(s)"
@@ -220,7 +220,7 @@
             </v-autocomplete>
           </v-col>
           <v-col cols="12" md="2">
-            <v-autocomplete
+            <v-autocomplete item-title="text"
               :items="years"
               item-value="value"
               v-model="year"
@@ -1701,37 +1701,37 @@ export default {
       itemsGananciaFiltro: [],
       itemsGastosFiltro: [],
       headersDetailsGanancia: [
-        { text: "Expediente", value: "exp", class: "header", sortable: false },
+        { title: "Expediente", key: "exp", headerProps: { class: "header" }, sortable: false },
         {
-          text: "Cliente / Cant. House",
-          value: "cliente",
-          class: "header",
+          title: "Cliente / Cant. House",
+          key: "cliente",
+          headerProps: { class: "header" },
           sortable: false,
         },
       ],
       headersDetailsGastos: [
         {
-          text: "Gastos",
-          value: "gasto_description",
-          class: "header",
+          title: "Gastos",
+          key: "gasto_description",
+          headerProps: { class: "header" },
           sortable: false,
         },
         {
-          text: "SubGasto",
-          value: "subgasto_description",
-          class: "header",
+          title: "SubGasto",
+          key: "subgasto_description",
+          headerProps: { class: "header" },
           sortable: false,
         },
         {
-          text: "Proveedor",
-          value: "proveedor",
-          class: "header",
+          title: "Proveedor",
+          key: "proveedor",
+          headerProps: { class: "header" },
           sortable: false,
         },
         {
-          text: "Concepto",
-          value: "concepto",
-          class: "header",
+          title: "Concepto",
+          key: "concepto",
+          headerProps: { class: "header" },
           sortable: false,
         },
       ],
@@ -1832,37 +1832,37 @@ export default {
       vm.itemsResumen = [];
       vm.itemsGastos = [];
       vm.headersDetailsGanancia = [
-        { text: "Expediente", value: "exp", class: "header", sortable: false },
+        { title: "Expediente", key: "exp", headerProps: { class: "header" }, sortable: false },
         {
-          text: "Cliente / Cant. House",
-          value: "cliente",
-          class: "header",
+          title: "Cliente / Cant. House",
+          key: "cliente",
+          headerProps: { class: "header" },
           sortable: false,
         },
       ];
       vm.headersDetailsGastos = [
         {
-          text: "Gastos",
-          value: "gasto_description",
-          class: "header",
+          title: "Gastos",
+          key: "gasto_description",
+          headerProps: { class: "header" },
           sortable: false,
         },
         {
-          text: "SubGasto",
-          value: "subgasto_description",
-          class: "header",
+          title: "SubGasto",
+          key: "subgasto_description",
+          headerProps: { class: "header" },
           sortable: false,
         },
         {
-          text: "Proveedor",
-          value: "proveedor",
-          class: "header",
+          title: "Proveedor",
+          key: "proveedor",
+          headerProps: { class: "header" },
           sortable: false,
         },
         {
-          text: "Concepto",
-          value: "concepto",
-          class: "header",
+          title: "Concepto",
+          key: "concepto",
+          headerProps: { class: "header" },
           sortable: false,
         },
       ];
@@ -3188,36 +3188,36 @@ export default {
       let vm = this;
       let meses = this.month.join();
       this.headersDetailsGananciaFiltro = [
-        { text: "Editar", value: "editar", class: "header" },
-        { text: "Expediente", value: "exp", class: "header" },
+        { title: "Editar", key: "editar", headerProps: { class: "header" } },
+        { title: "Expediente", key: "exp", headerProps: { class: "header" } },
         {
-          text: "Cliente / Cant. House",
-          value: "cliente",
-          class: "header",
+          title: "Cliente / Cant. House",
+          key: "cliente",
+          headerProps: { class: "header" },
         },
       ];
       vm.progress = 10;
       this.headersDetailsGastosFiltro = [
-        { text: "Editar", value: "editar", class: "header" },
+        { title: "Editar", key: "editar", headerProps: { class: "header" } },
         {
-          text: "Gastos",
-          value: "gasto_description",
-          class: "header",
+          title: "Gastos",
+          key: "gasto_description",
+          headerProps: { class: "header" },
         },
         {
-          text: "SubGasto",
-          value: "subgasto_description",
-          class: "header",
+          title: "SubGasto",
+          key: "subgasto_description",
+          headerProps: { class: "header" },
         },
         {
-          text: "Proveedor",
-          value: "proveedor",
-          class: "header",
+          title: "Proveedor",
+          key: "proveedor",
+          headerProps: { class: "header" },
         },
         {
-          text: "Concepto",
-          value: "concepto",
-          class: "header",
+          title: "Concepto",
+          key: "concepto",
+          headerProps: { class: "header" },
         },
       ];
       vm.progress = 20;

@@ -212,8 +212,8 @@ export default {
       id_banco_origen: "",
       headers: [
         {
-          text: "House",
-          value: "tipo_gasto",
+          title: "House",
+          key: "tipo_gasto",
         },
 
         // {
@@ -221,8 +221,8 @@ export default {
         //   value: "statuspago",
         // },
         {
-          text: "Monto Dolar",
-          value: "montodolar",
+          title: "Monto Dolar",
+          key: "montodolar",
         },
 
         // {
@@ -231,20 +231,20 @@ export default {
         // },
 
         {
-          text: "Moneda",
-          value: "moneda",
+          title: "Moneda",
+          key: "moneda",
         },
         {
-          text: "Tipo Cambio",
-          value: "tipocambio",
+          title: "Tipo Cambio",
+          key: "tipocambio",
         },
         {
-          text: "Pago Mon Ex",
-          value: "monto_destino",
+          title: "Pago Mon Ex",
+          key: "monto_destino",
         },
         {
-          text: "Acción",
-          value: "action",
+          title: "Acción",
+          key: "action",
         },
       ],
     };

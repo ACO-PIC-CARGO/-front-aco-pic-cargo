@@ -47,11 +47,11 @@ export default {
   data() {
     return {
       headers: [
-        { text: "#", value: "index" },
-        { text: "Código", value: "codigo" },
-        { text: "Descripción", value: "descripcion" },
-        { text: "Porcentaje", value: "porcentaje" },
-        { text: "Monto", value: "monto" },
+        { title: "#", key: "index" },
+        { title: "Código", key: "codigo" },
+        { title: "Descripción", key: "descripcion" },
+        { title: "Porcentaje", key: "porcentaje" },
+        { title: "Monto", key: "monto" },
       ],
       noPorcentaje: ["04", "01", "02", "10", "11", "12"],
     };

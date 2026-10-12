@@ -110,19 +110,19 @@ export default {
     return {
       loading: false,
       headersShippers: [
-        { text: "Código", value: "correlativo", width: "20%" },
-        { text: "Shipper", value: "nombrecompleto", width: "40%" },
-        { text: "Producto que vende", value: "producto", width: "30%" },
-        { text: "Acciones", value: "action", width: "10%" },
+        { title: "Código", key: "correlativo", width: "20%" },
+        { title: "Shipper", key: "nombrecompleto", width: "40%" },
+        { title: "Producto que vende", key: "producto", width: "30%" },
+        { title: "Acciones", key: "action", width: "10%" },
       ],
       headersProveedoresRolShipper: [
         {
-          text: "Razón Social/Nombre Comercial",
-          value: "namelong",
+          title: "Razón Social/Nombre Comercial",
+          key: "namelong",
           width: "35%",
         },
-        { text: "Teléfono", value: "telefono", width: "30%" },
-        { text: "Producto que vende", value: "producto", width: "35%" },
+        { title: "Teléfono", key: "telefono", width: "30%" },
+        { title: "Producto que vende", key: "producto", width: "35%" },
       ],
       search: "",
       dialogShippers: false,

@@ -549,39 +549,39 @@ export default {
     search: "",
     cabTotalOperativo: [
       {
-        text: "Operativo",
-        value: "moneda",
+        title: "Operativo",
+        key: "moneda",
       },
       {
-        text: "Llegados",
-        value: "llegada",
+        title: "Llegados",
+        key: "llegada",
       },
       {
-        text: "No Llegado",
-        value: "no_llegada",
+        title: "No Llegado",
+        key: "no_llegada",
       },
       {
-        text: "Total",
-        value: "total",
+        title: "Total",
+        key: "total",
       },
     ],
     totalOperativo: [],
     cabTotalAdministrativo: [
       {
-        text: "Administrativo",
-        value: "moneda",
+        title: "Administrativo",
+        key: "moneda",
       },
       {
-        text: "Nonto",
-        value: "monto",
+        title: "Nonto",
+        key: "monto",
       },
       {
-        text: "IGV",
-        value: "igv",
+        title: "IGV",
+        key: "igv",
       },
       {
-        text: "Total",
-        value: "total",
+        title: "Total",
+        key: "total",
       },
     ],
     offcanvas: false,
@@ -611,57 +611,57 @@ export default {
     fechaNuevaProgramacion: moment(new Date()).format("YYYY-MM-DD"),
     headersdbp: [
       {
-        text: "PROVEEDOR OPERATIVO",
+        title: "PROVEEDOR OPERATIVO",
         align: "start",
         sortable: true,
-        value: "nameproveedor",
-        class: "hProveedor",
+        key: "nameproveedor",
+        headerProps: { class: "hProveedor" },
       },
 
       {
-        text: "LLEGADAS",
-        value: "restante_llegada",
-        class: "hLlegada",
+        title: "LLEGADAS",
+        key: "restante_llegada",
+        headerProps: { class: "hLlegada" },
         sortable: false,
       },
 
       {
-        text: "NO LLEGADAS",
-        value: "restante_no_llegada",
-        class: "hNoLlegada",
+        title: "NO LLEGADAS",
+        key: "restante_no_llegada",
+        headerProps: { class: "hNoLlegada" },
         sortable: false,
       },
 
       {
-        text: "GENERAL",
-        value: "restante_pagar",
-        class: "hGeneral",
+        title: "GENERAL",
+        key: "restante_pagar",
+        headerProps: { class: "hGeneral" },
         sortable: false,
       },
-      { text: "", value: "data-table-expand" },
+      { title: "", key: "data-table-expand" },
     ],
 
     headersdbpa: [
       {
-        text: "Proveedor",
+        title: "Proveedor",
         align: "start",
         sortable: false,
-        value: "nameconsigner",
+        key: "nameconsigner",
       },
 
       {
-        text: "Pendiente por Pagar",
-        value: "pendiente_pago",
+        title: "Pendiente por Pagar",
+        key: "pendiente_pago",
       },
 
-      { text: "", value: "data-table-expand" },
+      { title: "", key: "data-table-expand" },
     ],
     headerProgramacion: [
-      { text: "Expediente", value: "nro_master" },
-      { text: "Consignatario", value: "nameconsigner" },
-      { text: "Fecha Disponibilidad", value: "fecha_disponibilidad" },
-      { text: "Moneda", value: "symbol" },
-      { text: "Monto Pagar", value: "total_pagar" },
+      { title: "Expediente", key: "nro_master" },
+      { title: "Consignatario", key: "nameconsigner" },
+      { title: "Fecha Disponibilidad", key: "fecha_disponibilidad" },
+      { title: "Moneda", key: "symbol" },
+      { title: "Monto Pagar", key: "total_pagar" },
     ],
     id: "",
     tipo: "",
@@ -674,9 +674,9 @@ export default {
     dialogComentarios: false,
     dialogNuevoComentario: false,
     headersLstComentarios: [
-      { text: "Fecha", value: "fecha", width: "15%" },
-      { text: "Ejecutivo", value: "ejecutivo", width: "30%" },
-      { text: "Comentario", value: "comentario", width: "55%" },
+      { title: "Fecha", key: "fecha", width: "15%" },
+      { title: "Ejecutivo", key: "ejecutivo", width: "30%" },
+      { title: "Comentario", key: "comentario", width: "55%" },
     ],
     comentario: {
       fecha: moment().format("YYYY-MM-DD"),
@@ -1087,11 +1087,11 @@ export default {
       switch (tipo) {
         case 1:
           this.headerProgramacion = [
-            { text: "Expediente", value: "nro_master" },
-            { text: "Consignatario", value: "nameconsigner" },
-            { text: "Fecha Disponibilidad", value: "fecha_disponibilidad" },
-            { text: "Moneda", value: "symbol" },
-            { text: "Monto Pagar", value: "total_pagar" },
+            { title: "Expediente", key: "nro_master" },
+            { title: "Consignatario", key: "nameconsigner" },
+            { title: "Fecha Disponibilidad", key: "fecha_disponibilidad" },
+            { title: "Moneda", key: "symbol" },
+            { title: "Monto Pagar", key: "total_pagar" },
           ];
           this.nameProveedor = item.nameproveedor;
           this.details = item.details.filter((v) => v.programado == 0);
@@ -1103,10 +1103,10 @@ export default {
           break;
         case 2:
           this.headerProgramacion = [
-            { text: "Consignatario", value: "nameconsigner" },
-            { text: "Fecha Registro", value: "fecha" },
-            { text: "Moneda", value: "symbol" },
-            { text: "Monto Pagar", value: "monto" },
+            { title: "Consignatario", key: "nameconsigner" },
+            { title: "Fecha Registro", key: "fecha" },
+            { title: "Moneda", key: "symbol" },
+            { title: "Monto Pagar", key: "monto" },
           ];
           this.nameProveedor = item.nameconsigner;
           this.details = item.details.filter((v) => v.programado == 1);

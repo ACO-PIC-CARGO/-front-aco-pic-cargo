@@ -247,40 +247,40 @@ export default {
       msgfile: "",
       headers: [
         {
-          text: "Factura",
-          value: "nro_factura",
+          title: "Factura",
+          key: "nro_factura",
         },
 
         {
-          text: "Expediente",
-          value: "codigo_house",
+          title: "Expediente",
+          key: "codigo_house",
         },
         {
-          text: "Procedencia",
-          value: "procedencia",
-        },
-
-        {
-          text: "Monto",
-          value: "monto_pagar",
+          title: "Procedencia",
+          key: "procedencia",
         },
 
         {
-          text: "Monto Deuda",
-          value: "monto_deuda",
+          title: "Monto",
+          key: "monto_pagar",
         },
 
         {
-          text: "Moneda Pagar",
-          value: "item_moneda",
+          title: "Monto Deuda",
+          key: "monto_deuda",
+        },
+
+        {
+          title: "Moneda Pagar",
+          key: "item_moneda",
         },
         {
-          text: "Tipo de Cambio",
-          value: "tipo_cambio",
+          title: "Tipo de Cambio",
+          key: "tipo_cambio",
         },
         {
-          text: "Monto Pagar",
-          value: "monto_pagar_ex",
+          title: "Monto Pagar",
+          key: "monto_pagar_ex",
           shortable: false,
         },
       ],

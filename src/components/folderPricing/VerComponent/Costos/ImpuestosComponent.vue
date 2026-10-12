@@ -59,11 +59,11 @@ export default {
   data() {
     return {
       headers: [
-        { text: "#", value: "index" },
+        { title: "#", key: "index" },
         // { text: "Código", value: "codigo" },
-        { text: "Descripción", value: "descripcion" },
-        { text: "Porcentaje", value: "porcentaje" },
-        { text: "Monto", value: "monto" },
+        { title: "Descripción", key: "descripcion" },
+        { title: "Porcentaje", key: "porcentaje" },
+        { title: "Monto", key: "monto" },
       ],
       noPorcentaje: ["04", "01", "02", "10", "11", "12"],
       siCalcula: ["05", "06", "07", "08", "09", "10", "11", "12"],

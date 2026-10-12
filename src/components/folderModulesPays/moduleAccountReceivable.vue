@@ -273,53 +273,53 @@ export default {
       banco_pago: "",
       headersFacturas: [
         {
-          text: "",
-          value: "action",
+          title: "",
+          key: "action",
         },
         {
-          text: "Tipo",
-          value: "paymentname",
+          title: "Tipo",
+          key: "paymentname",
         },
         {
-          text: "Ingreso",
-          value: "ingreso_description",
+          title: "Ingreso",
+          key: "ingreso_description",
         },
         {
-          text: "Sub Ingreso",
-          value: "subingreso_description",
+          title: "Sub Ingreso",
+          key: "subingreso_description",
         },
 
         {
-          text: "Fecha",
-          value: "fecha",
+          title: "Fecha",
+          key: "fecha",
         },
         {
-          text: "Expediente",
-          value: "nro_master",
+          title: "Expediente",
+          key: "nro_master",
         },
         {
-          text: "Cliente",
-          value: "nameconsigner",
+          title: "Cliente",
+          key: "nameconsigner",
         },
         {
-          text: "Nro. Factura",
-          value: "nro_factura",
+          title: "Nro. Factura",
+          key: "nro_factura",
         },
         {
-          text: "Nro. Serie",
-          value: "nro_serie",
+          title: "Nro. Serie",
+          key: "nro_serie",
         },
         // {
         //   text: "Moneda",
         //   value: "namecoins",
         // },
         {
-          text: "Total",
-          value: "total",
+          title: "Total",
+          key: "total",
         },
         {
-          text: "Tipo de cambio",
-          value: "tipo_cambio",
+          title: "Tipo de cambio",
+          key: "tipo_cambio",
         },
         // {
         //   text: "Monto Dolar",
@@ -327,12 +327,12 @@ export default {
         // },
 
         {
-          text: "Total",
-          value: "totaldolar",
+          title: "Total",
+          key: "totaldolar",
         },
         {
-          text: "",
-          value: "accion",
+          title: "",
+          key: "accion",
         },
       ],
       id_ingreso: null,

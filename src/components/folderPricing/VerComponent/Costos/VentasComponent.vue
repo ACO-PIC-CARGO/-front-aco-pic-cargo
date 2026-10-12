@@ -51,7 +51,7 @@
                     ></v-text-field>
                   </td>
                   <td class="colProveedorMultiplicador">
-                    <v-select
+                    <v-select item-title="text"
                       class="widthTD"
                       :items="$store.state.pricing.listMultiplicador"
                       v-model="valor.id_multiplicador"
@@ -227,7 +227,7 @@
                 ></v-autocomplete>
               </v-col>
               <v-col cols="12" class="my-1 py-1">
-                <v-autocomplete
+                <v-autocomplete item-title="text"
                   density="compact"
                   label="Multiplicador"
                   :items="$store.state.pricing.listMultiplicador"

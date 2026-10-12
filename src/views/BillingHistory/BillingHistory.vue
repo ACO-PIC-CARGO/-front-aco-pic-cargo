@@ -128,11 +128,11 @@ import { stopCheckoutEvents } from "@/plugins/paddle";
 const EMPTY_MESSAGE =
   "Todavía no tienes pagos. Cuando compres un plan, aquí verás tus facturas.";
 const HEADERS = [
-  { text: "Fecha", value: "date", sortable: false },
-  { text: "Concepto", value: "concept", sortable: false },
-  { text: "Monto", value: "amount", sortable: false },
-  { text: "Estado", value: "status", sortable: false },
-  { text: "Factura", value: "invoice", sortable: false },
+  { title: "Fecha", key: "date", sortable: false },
+  { title: "Concepto", key: "concept", sortable: false },
+  { title: "Monto", key: "amount", sortable: false },
+  { title: "Estado", key: "status", sortable: false },
+  { title: "Factura", key: "invoice", sortable: false },
 ];
 
 export default {

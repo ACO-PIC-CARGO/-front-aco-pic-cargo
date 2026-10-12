@@ -192,7 +192,7 @@
                       solo aplica si el cliente nos cancela a nosotros y
                       nosotros debemos pagar al proveedor
                     </p>
-                    <v-select
+                    <v-select item-title="text"
                       density="compact"
                       :items="cboSiNo"
                       v-model="datosManuales.pagarProveedor"
@@ -290,7 +290,7 @@
                   <v-stepper-content step="9">
                     <v-row>
                       <v-col cols="12">
-                        <v-select
+                        <v-select item-title="text"
                           :items="cboSiNo"
                           v-model="datosManualesNoAplica.clientePago"
                           variant="outlined"

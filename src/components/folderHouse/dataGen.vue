@@ -213,7 +213,7 @@
           </v-btn>
         </v-card-title>
         <v-card-text>
-          <v-autocomplete
+          <v-autocomplete item-title="text"
             :items="optionCostos"
             v-model="id_opcion"
             item-value="id"
@@ -263,7 +263,7 @@
           </v-btn>
         </v-card-title>
         <v-card-text>
-          <v-autocomplete
+          <v-autocomplete item-title="text"
             :items="optionCostos"
             v-model="id_opcion"
             item-value="id"

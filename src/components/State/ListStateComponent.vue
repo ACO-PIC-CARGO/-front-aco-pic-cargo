@@ -110,14 +110,14 @@ export default {
       search: "",
       loading: false,
       headers: [
-        { text: "Páis", value: "pais_description" },
-        { text: "Código", value: "code" },
-        { text: "Nombre", value: "name" },
-        { text: "Descripción", value: "description" },
-                { text: "Estado", value: "estado" },{ text: "Creación", value: "created_at" },
+        { title: "Páis", key: "pais_description" },
+        { title: "Código", key: "code" },
+        { title: "Nombre", key: "name" },
+        { title: "Descripción", key: "description" },
+                { title: "Estado", key: "estado" },{ title: "Creación", key: "created_at" },
 
-        { text: "Última Actualización", value: "updated_at" },
-        { text: "Acciones", value: "action" },
+        { title: "Última Actualización", key: "updated_at" },
+        { title: "Acciones", key: "action" },
       ],
     };
   },

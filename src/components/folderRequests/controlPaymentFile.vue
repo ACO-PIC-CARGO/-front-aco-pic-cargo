@@ -250,33 +250,33 @@ export default {
     selected: [],
 
     headersEgresos: [
-      { text: "Concepto", value: "concepto" },
+      { title: "Concepto", key: "concepto" },
 
-      { text: "Monto Pricing", value: "total_pr" },
-      { text: "Monto Operaciones", value: "total_op" },
-      { text: "Status", value: "status" },
+      { title: "Monto Pricing", key: "total_pr" },
+      { title: "Monto Operaciones", key: "total_op" },
+      { title: "Status", key: "status" },
     ],
 
     headers: [
-      { text: "Master", value: "code_master" },
+      { title: "Master", key: "code_master" },
       {
-        text: "Codigo",
+        title: "Codigo",
         align: "start",
-        value: "code_house",
+        key: "code_house",
       },
 
-      { text: "Expediente", value: "nro_master" },
-      { text: "Sentido", value: "namemodality" },
-      { text: "Origen", value: "nameportbegin" },
-      { text: "Destino", value: "nameportend" },
+      { title: "Expediente", key: "nro_master" },
+      { title: "Sentido", key: "namemodality" },
+      { title: "Origen", key: "nameportbegin" },
+      { title: "Destino", key: "nameportend" },
 
-      { text: "Consignatario", value: "nameconsigner" },
-      { text: "Fecha Disponibilidad", value: "fecha_disponibilidad" },
+      { title: "Consignatario", key: "nameconsigner" },
+      { title: "Fecha Disponibilidad", key: "fecha_disponibilidad" },
 
-      { text: "Notify", value: "namenotify" },
-      { text: "Pagado", value: "pagadode" },
+      { title: "Notify", key: "namenotify" },
+      { title: "Pagado", key: "pagadode" },
 
-      { text: "Pagar", value: "actions" },
+      { title: "Pagar", key: "actions" },
     ],
   }),
   mounted() {

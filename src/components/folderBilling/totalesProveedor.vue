@@ -618,91 +618,91 @@ export default {
     search: "",
     headers: [
       {
-        text: "Concepto",
+        title: "Concepto",
         align: "start",
         sortable: false,
 
-        value: "concepto",
+        key: "concepto",
       },
       {
-        text: "Monto",
+        title: "Monto",
 
-        value: "monto_op",
+        key: "monto_op",
       },
       {
-        text: "Status",
+        title: "Status",
 
-        value: "status",
+        key: "status",
       },
     ],
     sPaymentId: "",
 
     headersPdf: [
       {
-        text: "Nombre",
+        title: "Nombre",
         align: "start",
         sortable: false,
-        value: "path",
+        key: "path",
       },
       {
-        text: "Fecha Creado",
-        value: "fecha_letra",
+        title: "Fecha Creado",
+        key: "fecha_letra",
       },
       {
-        text: "Hora Creado",
-        value: "hora_letra",
+        title: "Hora Creado",
+        key: "hora_letra",
       },
       {
-        text: "Fecha de Solicitud",
-        value: "fecha_sol_letra",
+        title: "Fecha de Solicitud",
+        key: "fecha_sol_letra",
       },
       {
-        text: "Fecha de Pago",
-        value: "fecha_pago_letra",
+        title: "Fecha de Pago",
+        key: "fecha_pago_letra",
       },
       {
-        text: "Ver",
-        value: "accion",
+        title: "Ver",
+        key: "accion",
       },
       {
-        text: "Status",
-        value: "status",
+        title: "Status",
+        key: "status",
       },
       {
-        text: "Enviar",
-        value: "accions",
+        title: "Enviar",
+        key: "accions",
       },
     ],
 
     headersInvoice: [
       {
-        text: "Nombre",
-        value: "originalname",
+        title: "Nombre",
+        key: "originalname",
       },
       {
-        text: "Fecha",
-        value: "date_letra",
+        title: "Fecha",
+        key: "date_letra",
       },
       {
-        text: "Ver",
-        value: "path",
+        title: "Ver",
+        key: "path",
       },
       {
-        text: "Acción",
-        value: "action",
+        title: "Acción",
+        key: "action",
       },
     ],
 
     headersAccount: [
       {
-        text: "Cuenta",
+        title: "Cuenta",
         align: "start",
         sortable: false,
-        value: "nameaccount",
+        key: "nameaccount",
       },
-      { text: "Banco", value: "namebanks" },
-      { text: "Moneda", value: "namecoins" },
-      { text: "Número de cuenta", value: "accountnumber" },
+      { title: "Banco", key: "namebanks" },
+      { title: "Moneda", key: "namecoins" },
+      { title: "Número de cuenta", key: "accountnumber" },
     ],
   }),
   mounted() {

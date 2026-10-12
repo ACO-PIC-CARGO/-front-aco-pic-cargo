@@ -151,7 +151,7 @@
                       {{ symbol }} {{ fn_totalAbonado(item) }}
                     </template>
                     <template v-slot:[`item.parcialflag`]="{ item }">
-                      <v-select
+                      <v-select item-title="text"
                         :items="cboParcial"
                         v-model="item.parcialflag"
                         density="compact"
@@ -527,29 +527,29 @@ export default {
       loading: false,
       headers: [
         // { text: "Abono Completo o Parcial", value: "parcialflag" },
-        { text: "Monto DDL", value: "montopagar" },
+        { title: "Monto DDL", key: "montopagar" },
         // { text: "Fecha Facturación", value: "fecha" },
-        { text: "Expediente", value: "code_master" },
-        { text: "Procedencia", value: "tipo_gasto" },
+        { title: "Expediente", key: "code_master" },
+        { title: "Procedencia", key: "tipo_gasto" },
 
-        { text: "Moneda y Monto Facturado", value: "montomonedalocal" },
-        { text: "Monto Equivalente en Dólares", value: "montodolar" },
+        { title: "Moneda y Monto Facturado", key: "montomonedalocal" },
+        { title: "Monto Equivalente en Dólares", key: "montodolar" },
         // { text: "Saldo", value: "saldo" },
         // { text: "Factura", value: "documentos" },
-        { text: "Total Monto Abonado", value: "totalabonado" },
+        { title: "Total Monto Abonado", key: "totalabonado" },
       ],
       headersPagosGastosBancario: [
         // { text: "Abono Completo o Parcial", value: "parcialflag" },
-        { text: "Monto DDL", value: "montoparcial" },
+        { title: "Monto DDL", key: "montoparcial" },
         // { text: "Fecha Facturación", value: "fecha" },
-        { text: "Expediente", value: "code_master" },
-        { text: "Procedencia", value: "tipo_gasto" },
+        { title: "Expediente", key: "code_master" },
+        { title: "Procedencia", key: "tipo_gasto" },
 
-        { text: "Moneda y Monto Facturado", value: "montomonedalocal" },
-        { text: "Monto Equivalente en Dólares", value: "montodolar" },
+        { title: "Moneda y Monto Facturado", key: "montomonedalocal" },
+        { title: "Monto Equivalente en Dólares", key: "montodolar" },
         // { text: "Saldo", value: "saldo" },
         // { text: "Factura", value: "documentos" },
-        { text: "Total Monto Abonado", value: "totalabonado" },
+        { title: "Total Monto Abonado", key: "totalabonado" },
       ],
       items: [],
       errorMesage: {

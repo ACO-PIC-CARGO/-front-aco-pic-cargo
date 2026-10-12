@@ -29,7 +29,7 @@
               </v-col>
 
               <v-col cols="12">
-                <v-autocomplete
+                <v-autocomplete item-title="text"
                   density="compact"
                   label="Multiplicador"
                   :items="$store.state.aduana.listMultiplicador"
@@ -117,7 +117,7 @@
                   ></v-text-field>
                 </td>
                 <td class="colProveedorMultiplicador">
-                  <v-select
+                  <v-select item-title="text"
                     class="widthTD"
                     :items="$store.state.aduana.listMultiplicador"
                     v-model="valor.id_multiplicador"
@@ -369,7 +369,7 @@
                   ></v-text-field>
                 </td>
                 <td class="colProveedorMultiplicador">
-                  <v-select
+                  <v-select item-title="text"
                     class="widthTD"
                     :items="$store.state.aduana.listMultiplicador"
                     v-model="valor.id_multiplicador"
@@ -621,7 +621,7 @@
                   ></v-text-field>
                 </td>
                 <td class="colProveedorMultiplicador">
-                  <v-select
+                  <v-select item-title="text"
                     class="widthTD"
                     :items="$store.state.aduana.listMultiplicador"
                     v-model="valor.id_multiplicador"
@@ -873,7 +873,7 @@
                   ></v-text-field>
                 </td>
                 <td class="colProveedorMultiplicador">
-                  <v-select
+                  <v-select item-title="text"
                     class="widthTD"
                     :items="$store.state.aduana.listMultiplicador"
                     v-model="valor.id_multiplicador"
@@ -1123,7 +1123,7 @@
                   ></v-text-field>
                 </td>
                 <td class="colProveedorMultiplicador">
-                  <v-select
+                  <v-select item-title="text"
                     class="widthTD"
                     :items="$store.state.aduana.listMultiplicador"
                     v-model="valor.id_multiplicador"
@@ -1376,7 +1376,7 @@
                   ></v-text-field>
                 </td>
                 <td class="colProveedorMultiplicador">
-                  <v-select
+                  <v-select item-title="text"
                     class="widthTD"
                     :items="$store.state.aduana.listMultiplicador"
                     v-model="valor.id_multiplicador"
@@ -1629,7 +1629,7 @@
                   ></v-text-field>
                 </td>
                 <td class="colProveedorMultiplicador">
-                  <v-select
+                  <v-select item-title="text"
                     class="widthTD"
                     :items="$store.state.aduana.listMultiplicador"
                     v-model="valor.id_multiplicador"

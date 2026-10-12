@@ -252,64 +252,64 @@ export default {
       filtroflag: false,
       headersFacturas: [
         {
-          text: "",
-          value: "action",
+          title: "",
+          key: "action",
         },
         {
-          text: "Tipo",
-          value: "paymentname",
+          title: "Tipo",
+          key: "paymentname",
         },
         {
-          text: "Gasto",
-          value: "gasto_description",
+          title: "Gasto",
+          key: "gasto_description",
         },
         {
-          text: "Sub Gasto",
-          value: "subgasto_description",
+          title: "Sub Gasto",
+          key: "subgasto_description",
         },
 
         {
-          text: "Fecha Emisión",
-          value: "fecha",
+          title: "Fecha Emisión",
+          key: "fecha",
         },
         // {
         //   text: "Fecha Vencimiento",
         //   value: "fechavencimiento",
         // },
         {
-          text: "Expediente",
-          value: "nro_master",
+          title: "Expediente",
+          key: "nro_master",
         },
         {
-          text: "Proveedor",
-          value: "nameconsigner",
+          title: "Proveedor",
+          key: "nameconsigner",
         },
         {
-          text: "Nro. Factura",
-          value: "nro_factura",
+          title: "Nro. Factura",
+          key: "nro_factura",
         },
         {
-          text: "Nro. Serie",
-          value: "nro_serie",
+          title: "Nro. Serie",
+          key: "nro_serie",
         },
 
         {
-          text: "Total",
-          value: "total",
-          class: "totalcss",
+          title: "Total",
+          key: "total",
+          headerProps: { class: "totalcss" },
         },
         {
-          text: "Tipo de Cambio",
-          value: "tipocambio",
+          title: "Tipo de Cambio",
+          key: "tipocambio",
         },
         {
-          text: "Total",
-          value: "totaldolar",
-          class: "montodolarcss",
+          title: "Total",
+          key: "totaldolar",
+          headerProps: { class: "montodolarcss" },
         },
         {
-          text: "Estado",
-          value: "accion",
+          title: "Estado",
+          key: "accion",
         },
       ],
     };

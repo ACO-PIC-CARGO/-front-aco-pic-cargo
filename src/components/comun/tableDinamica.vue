@@ -181,13 +181,13 @@ export default {
   props: ["items", "mes"],
   data: () => ({
     headers: [
-      { text: "categoria", value: "categoria" },
-      { text: "tipo", value: "tipo" },
-      { text: "subtipo", value: "subtipo" },
-      { text: "proveedor", value: "proveedor" },
-      { text: "monto", value: "monto" },
-      { text: "proyeccion", value: "proyeccion" },
-      { text: "Resultado Mes", value: "result" },
+      { title: "categoria", key: "categoria" },
+      { title: "tipo", key: "tipo" },
+      { title: "subtipo", key: "subtipo" },
+      { title: "proveedor", key: "proveedor" },
+      { title: "monto", key: "monto" },
+      { title: "proyeccion", key: "proyeccion" },
+      { title: "Resultado Mes", key: "result" },
     ],
 
     dataTable: [],

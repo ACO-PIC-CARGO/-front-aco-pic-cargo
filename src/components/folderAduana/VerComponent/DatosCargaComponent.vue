@@ -166,10 +166,10 @@ export default {
   data() {
     return {
       headers: [
-        { text: "", value: "action" },
-        { text: "#", value: "number" },
-        { text: "Tipo Contendor", value: "description" },
-        { text: "Cantidad", value: "cantidad" },
+        { title: "", key: "action" },
+        { title: "#", key: "number" },
+        { title: "Tipo Contendor", key: "description" },
+        { title: "Cantidad", key: "cantidad" },
       ],
       dialogConteiner: false,
       numerobultos: "",

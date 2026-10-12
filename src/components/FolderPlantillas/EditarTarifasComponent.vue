@@ -584,7 +584,7 @@
         </v-card-title>
         <v-form ref="frmNuevosCostos">
           <v-card-text>
-            <v-select
+            <v-select item-title="text"
               :items="lstTramo"
               v-model="frmNuevoCosto.tramo"
               :rules="[(v) => !!v || 'Dato obligatorio']"
@@ -628,7 +628,7 @@
               v-model="frmNuevoCosto.concepto"
             ></v-text-field>
 
-            <v-autocomplete
+            <v-autocomplete item-title="text"
               :items="$store.state.configEmpresa.lstMultiplicador"
               v-model="frmNuevoCosto.id_multiplicador"
               :rules="[(v) => !!v || 'Dato obligatorio']"

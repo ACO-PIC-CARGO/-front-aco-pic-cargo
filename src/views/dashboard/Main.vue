@@ -518,8 +518,8 @@ export default {
       vertical: true,
       dialogFiles: false,
       headersFiles: [
-        { text: "Archivo", value: "name" },
-        { text: "", value: "action" },
+        { title: "Archivo", key: "name" },
+        { title: "", key: "action" },
       ],
       mostrarBtnMenu: true,
       routePricing: ["newQuote", "verQuote", "editQuote"],

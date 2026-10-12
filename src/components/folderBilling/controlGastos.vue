@@ -411,30 +411,30 @@ export default {
 
       headersdebs: [
         {
-          text: "Documento",
+          title: "Documento",
           align: "start",
           sortable: false,
-          value: "name",
+          key: "name",
         },
         {
-          text: "Fecha",
-          value: "date",
+          title: "Fecha",
+          key: "date",
         },
         {
-          text: "Monto",
-          value: "monto_letra",
+          title: "Monto",
+          key: "monto_letra",
         },
         {
-          text: "Comentario de Admin.",
-          value: "comentario_admin",
+          title: "Comentario de Admin.",
+          key: "comentario_admin",
         },
         {
-          text: "Status",
-          value: "status",
+          title: "Status",
+          key: "status",
         },
         {
-          text: "Ver",
-          value: "accion",
+          title: "Ver",
+          key: "accion",
         },
       ],
     };

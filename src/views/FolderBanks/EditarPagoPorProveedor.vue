@@ -234,26 +234,26 @@ export default {
       msgfile: "",
       headers: [
         {
-          text: "Factura",
-          value: "factura",
+          title: "Factura",
+          key: "factura",
         },
         {
-          text: "Serie",
-          value: "serie",
-        },
-
-        {
-          text: "Expediente",
-          value: "tipo_gasto",
-        },
-        {
-          text: "Procedencia",
-          value: "tipo_pago",
+          title: "Serie",
+          key: "serie",
         },
 
         {
-          text: "Monto Dolar",
-          value: "monto_dolar",
+          title: "Expediente",
+          key: "tipo_gasto",
+        },
+        {
+          title: "Procedencia",
+          key: "tipo_pago",
+        },
+
+        {
+          title: "Monto Dolar",
+          key: "monto_dolar",
         },
 
         // {
@@ -262,21 +262,21 @@ export default {
         // },
 
         {
-          text: "Tipo de Cambio",
-          value: "tipo_cambio",
+          title: "Tipo de Cambio",
+          key: "tipo_cambio",
         },
         {
-          text: "Moneda Pagar",
-          value: "item_moneda",
+          title: "Moneda Pagar",
+          key: "item_moneda",
         },
         {
-          text: "Monto Mon Ex",
-          value: "monto_mon_ex",
+          title: "Monto Mon Ex",
+          key: "monto_mon_ex",
           shortable: false,
         },
         {
-          text: "Acción",
-          value: "action",
+          title: "Acción",
+          key: "action",
           shortable: false,
         },
       ],

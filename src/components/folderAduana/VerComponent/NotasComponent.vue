@@ -225,8 +225,8 @@ export default {
   data() {
     return {
       headers: [
-        { value: "index", text: "#" },
-        { value: "description", text: "Descripción", align: "center" },
+        { key: "index", title: "#" },
+        { key: "description", title: "Descripción", align: "center" },
       ],
       previewFlag: false,
       tiporeporte: "",

@@ -178,17 +178,17 @@ export default {
   data() {
     return {
       headers: [
-        { text: "#", value: "index" },
+        { title: "#", key: "index" },
 
         {
-          text: "Contacto",
+          title: "Contacto",
           align: "start",
           sortable: false,
-          value: "contacto",
+          key: "contacto",
         },
-        { text: "Email", value: "email" },
-        { text: "Telefono", value: "telefono" },
-        { text: "Activo/ Inactivo", value: "action" },
+        { title: "Email", key: "email" },
+        { title: "Telefono", key: "telefono" },
+        { title: "Activo/ Inactivo", key: "action" },
       ],
       principalflag: false,
     };

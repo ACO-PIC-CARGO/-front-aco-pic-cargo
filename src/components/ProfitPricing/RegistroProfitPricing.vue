@@ -129,7 +129,7 @@
                             ></v-select>
                           </template>
                           <template v-slot:[`item.multiplicador`]="{ item }">
-                            <v-select
+                            <v-select item-title="text"
                               :items="
                                 $store.state.configEmpresa.lstMultiplicador
                               "
@@ -205,7 +205,7 @@
                             ></v-select>
                           </template>
                           <template v-slot:[`item.multiplicador`]="{ item }">
-                            <v-select
+                            <v-select item-title="text"
                               :items="
                                 $store.state.configEmpresa.lstMultiplicador
                               "
@@ -278,28 +278,28 @@ export default {
       tab: 0,
       loadingGuardar: false,
       headersIncoterms: [
-        { value: "text", text: "Icoterms" },
-        { value: "action", text: "" },
+        { key: "text", title: "Icoterms" },
+        { key: "action", title: "" },
       ],
       headers: [
-        { value: "proveedor", text: "Proveedor", width: "20%" },
-        { value: "multiplicador", text: "Multiplicador", width: "20%" },
-        { value: "concepto", text: "Concepto", width: "20%" },
+        { key: "proveedor", title: "Proveedor", width: "20%" },
+        { key: "multiplicador", title: "Multiplicador", width: "20%" },
+        { key: "concepto", title: "Concepto", width: "20%" },
         {
-          value: "profitprimeraimportacion",
-          text: "Ganancia Primera Importación",
+          key: "profitprimeraimportacion",
+          title: "Ganancia Primera Importación",
           sortable: false,
           width: "10%",
         },
         {
-          value: "profitsegundaimportacion",
-          text: "Ganancia Segunda Importación",
+          key: "profitsegundaimportacion",
+          title: "Ganancia Segunda Importación",
           sortable: false,
           width: "10%",
         },
         {
-          value: "estado",
-          text: "Activo/ Inactivo",
+          key: "estado",
+          title: "Activo/ Inactivo",
           sortable: false,
           width: "10%",
         },

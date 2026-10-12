@@ -481,16 +481,16 @@ export default {
   data() {
     return {
       headers: [
-        { text: "Código", align: "start", value: "code" },
-        { text: "Símbolo", value: "symbol" },
-        { text: "Acrónimo", value: "acronym" },
-        { text: "Nombre", value: "name" },
-        { text: "Descripción", value: "description" },
-        { text: "Estado", value: "status" },
-        { text: "Creación", value: "created_at" },
+        { title: "Código", align: "start", key: "code" },
+        { title: "Símbolo", key: "symbol" },
+        { title: "Acrónimo", key: "acronym" },
+        { title: "Nombre", key: "name" },
+        { title: "Descripción", key: "description" },
+        { title: "Estado", key: "status" },
+        { title: "Creación", key: "created_at" },
 
-        { text: "Última Actualización", value: "updated_at" },
-        { text: "Acciones", value: "action" },
+        { title: "Última Actualización", key: "updated_at" },
+        { title: "Acciones", key: "action" },
       ],
       loading: true,
       loading_as: true,

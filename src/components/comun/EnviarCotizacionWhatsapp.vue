@@ -51,7 +51,7 @@
               </v-col>
               <!-- <v-col cols="12">
               {{ $store.state.pricing.datosPrincipales }}
-              <v-select :items="cboTipoReporte" label="Tipo de Reporte a Envíar"></v-select>
+              <v-select item-title="text" :items="cboTipoReporte" label="Tipo de Reporte a Envíar"></v-select>
             </v-col> -->
               <v-col cols="12">
                 <v-text-field

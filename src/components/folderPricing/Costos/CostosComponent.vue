@@ -105,7 +105,7 @@
                               isNotaCredito(valor.code_cost)
                             "
                           />
-                          <!-- <v-select
+                          <!-- <v-select item-title="text"
                             class="widthTD"
                             :items="$store.state.pricing.listMultiplicador"
                             v-model="valor.id_multiplicador"
@@ -378,7 +378,7 @@
                             isNotaCredito(valor.code_cost)
                           "
                         />
-                        <!-- <v-select
+                        <!-- <v-select item-title="text"
                           class="widthTD"
                           :items="$store.state.pricing.listMultiplicador"
                           v-model="valor.id_multiplicador"
@@ -638,7 +638,7 @@
                             isNotaCredito(valor.code_cost)
                           "
                         />
-                        <!-- <v-select
+                        <!-- <v-select item-title="text"
                           class="widthTD"
                           :items="$store.state.pricing.listMultiplicador"
                           v-model="valor.id_multiplicador"
@@ -898,7 +898,7 @@
                             isNotaCredito(valor.code_cost)
                           "
                         />
-                        <!-- <v-select
+                        <!-- <v-select item-title="text"
                           class="widthTD"
                           :items="$store.state.pricing.listMultiplicador"
                           v-model="valor.id_multiplicador"
@@ -1159,7 +1159,7 @@
                             isNotaCredito(valor.code_cost)
                           "
                         />
-                        <!-- <v-select
+                        <!-- <v-select item-title="text"
                           class="widthTD"
                           :items="$store.state.pricing.listMultiplicador"
                           v-model="valor.id_multiplicador"
@@ -1418,7 +1418,7 @@
                             isNotaCredito(valor.code_cost)
                           "
                         />
-                        <!-- <v-select
+                        <!-- <v-select item-title="text"
                           class="widthTD"
                           :items="$store.state.pricing.listMultiplicador"
                           v-model="valor.id_multiplicador"
@@ -1679,7 +1679,7 @@
                             isNotaCredito(valor.code_cost)
                           "
                         />
-                        <!-- <v-select
+                        <!-- <v-select item-title="text"
                           class="widthTD"
                           :items="$store.state.pricing.listMultiplicador"
                           v-model="valor.id_multiplicador"
@@ -1892,7 +1892,7 @@
                   class="widthTD"
                   :rules="[(v) => !!v || 'Dato requerido']"
                 />
-                <!-- <v-autocomplete
+                <!-- <v-autocomplete item-title="text"
                   dense
                   label="Multiplicador"
                   :items="$store.state.pricing.listMultiplicador"

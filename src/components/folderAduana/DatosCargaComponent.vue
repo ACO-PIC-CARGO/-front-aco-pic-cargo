@@ -248,7 +248,7 @@
             <v-form ref="calcularPesoFrom">
               <div class="row">
                 <div class="col-4">
-                  <v-autocomplete
+                  <v-autocomplete item-title="text"
                     dense
                     :items="unidadesLongitud"
                     label="Longitud"
@@ -263,7 +263,7 @@
                 </div>
 
                 <div class="col-4">
-                  <v-autocomplete
+                  <v-autocomplete item-title="text"
                     dense
                     :items="unidadesPeso"
                     label="Peso"
@@ -488,10 +488,10 @@ export default {
     return {
       mostrarContinuarFlag: true,
       headers: [
-        { text: "", value: "action" },
-        { text: "#", value: "number" },
-        { text: "Tipo Contendor", value: "description" },
-        { text: "Cantidad", value: "cantidad" },
+        { title: "", key: "action" },
+        { title: "#", key: "number" },
+        { title: "Tipo Contendor", key: "description" },
+        { title: "Cantidad", key: "cantidad" },
       ],
       dialogConteiner: false,
       numerobultos: "",

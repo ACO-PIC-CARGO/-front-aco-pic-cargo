@@ -129,12 +129,12 @@ export default {
       dialogNuevo: false,
       snackbar: false,
       headers: [
-        { value: "modality", text: "Modalidad" },
-        { value: "pais", text: "Pais" },
-        { value: "code", text: "Código" },
-        { value: "descripcion", text: "Servicio" },
-        { value: "orden", text: "Orden" },
-        { value: "opcionflag", text: "Opcional" },
+        { key: "modality", title: "Modalidad" },
+        { key: "pais", title: "Pais" },
+        { key: "code", title: "Código" },
+        { key: "descripcion", title: "Servicio" },
+        { key: "orden", title: "Orden" },
+        { key: "opcionflag", title: "Opcional" },
       ],
       items: [
         {

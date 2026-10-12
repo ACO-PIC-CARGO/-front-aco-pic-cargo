@@ -336,15 +336,15 @@ export default {
       ],
 
       headers: [
-        { text: "EXP MASTER", value: "datos_expedientes" },
+        { title: "EXP MASTER", key: "datos_expedientes" },
         {
-          text: "GENERALES EMBARQUE",
+          title: "GENERALES EMBARQUE",
           align: "start",
-          value: "datos_embarque",
+          key: "datos_embarque",
         },
 
-        { text: "Telex", value: "house_telex" },
-        { text: "OPERADOR / FECHAS", value: "datos_operador" },
+        { title: "Telex", key: "house_telex" },
+        { title: "OPERADOR / FECHAS", key: "datos_operador" },
       ],
       loading: false,
       resumenOperador: [],

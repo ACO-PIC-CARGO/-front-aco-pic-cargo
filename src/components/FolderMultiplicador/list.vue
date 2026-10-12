@@ -398,16 +398,16 @@ export default {
   data() {
     return {
       headers: [
-        { text: "Tipo de Carga", align: "start", value: "type_carga" },
+        { title: "Tipo de Carga", align: "start", key: "type_carga" },
         // { text: "Código", value: "code" },
-        { text: "Nombre", value: "name" },
+        { title: "Nombre", key: "name" },
         // { text: "Descripción", value: "description" },
-        { text: "Valor", value: "valor" },
-        { text: "Estado", value: "status" },
-        { text: "Creación", value: "created_at" },
+        { title: "Valor", key: "valor" },
+        { title: "Estado", key: "status" },
+        { title: "Creación", key: "created_at" },
 
-        { text: "Última Actualización", value: "updated_at" },
-        { text: "Acciones", value: "action" },
+        { title: "Última Actualización", key: "updated_at" },
+        { title: "Acciones", key: "action" },
       ],
       loading: true,
       loading_as: true,

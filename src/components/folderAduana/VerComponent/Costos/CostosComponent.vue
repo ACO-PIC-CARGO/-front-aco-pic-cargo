@@ -58,7 +58,7 @@
                   ></v-text-field>
                 </td>
                 <td>
-                  <v-select
+                  <v-select item-title="text"
                     readonly
                     class="widthTD"
                     :items="$store.state.aduana.listMultiplicador"
@@ -313,7 +313,7 @@
                   ></v-text-field>
                 </td>
                 <td>
-                  <v-select
+                  <v-select item-title="text"
                     readonly
                     class="widthTD"
                     :items="$store.state.aduana.listMultiplicador"
@@ -569,7 +569,7 @@
                   ></v-text-field>
                 </td>
                 <td>
-                  <v-select
+                  <v-select item-title="text"
                     readonly
                     class="widthTD"
                     :items="$store.state.aduana.listMultiplicador"
@@ -825,7 +825,7 @@
                   ></v-text-field>
                 </td>
                 <td>
-                  <v-select
+                  <v-select item-title="text"
                     readonly
                     class="widthTD"
                     :items="$store.state.aduana.listMultiplicador"
@@ -1081,7 +1081,7 @@
                   ></v-text-field>
                 </td>
                 <td>
-                  <v-select
+                  <v-select item-title="text"
                     readonly
                     class="widthTD"
                     :items="$store.state.aduana.listMultiplicador"
@@ -1338,7 +1338,7 @@
                   ></v-text-field>
                 </td>
                 <td>
-                  <v-select
+                  <v-select item-title="text"
                     readonly
                     class="widthTD"
                     :items="$store.state.aduana.listMultiplicador"
@@ -1594,7 +1594,7 @@
                   ></v-text-field>
                 </td>
                 <td>
-                  <v-select
+                  <v-select item-title="text"
                     readonly
                     class="widthTD"
                     :items="$store.state.aduana.listMultiplicador"

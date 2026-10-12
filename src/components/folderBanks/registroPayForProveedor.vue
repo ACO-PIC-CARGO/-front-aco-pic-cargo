@@ -206,7 +206,7 @@
                       </v-btn>
                     </template>
                     <template v-slot:[`item.parcialflag`]="{ item }">
-                      <v-select
+                      <v-select item-title="text"
                         :items="cboParcial"
                         v-model="item.parcialflag"
                         density="compact"
@@ -622,31 +622,31 @@ export default {
       selected: [],
       loading: false,
       headers: [
-        { text: "Abono Completo o Parcial", value: "parcialflag" },
-        { text: "Moneda Y Monto", value: "montopagar" },
-        { text: "Expediente", value: "code_master" },
-        { text: "Tipo", value: "tipo_gasto" },
-        { text: "Ver Factura.", value: "action" },
-        { text: "Fecha Factura", value: "fecha" },
+        { title: "Abono Completo o Parcial", key: "parcialflag" },
+        { title: "Moneda Y Monto", key: "montopagar" },
+        { title: "Expediente", key: "code_master" },
+        { title: "Tipo", key: "tipo_gasto" },
+        { title: "Ver Factura.", key: "action" },
+        { title: "Fecha Factura", key: "fecha" },
 
-        { text: "Monto Equivalente en Dólares", value: "saldo_pendiente" },
-        { text: "Moneda y Monto Facturado", value: "saldo_pendiente_local" },
-        { text: "Saldo", value: "saldo" },
-        { text: "Total Monto Abonado", value: "totalabonado" },
+        { title: "Monto Equivalente en Dólares", key: "saldo_pendiente" },
+        { title: "Moneda y Monto Facturado", key: "saldo_pendiente_local" },
+        { title: "Saldo", key: "saldo" },
+        { title: "Total Monto Abonado", key: "totalabonado" },
       ],
       headersPagosGastosBancario: [
-        { text: "Abono Completo o Parcial", value: "parcialflag" },
-        { text: "Moneda Y Monto", value: "montoparcial" },
+        { title: "Abono Completo o Parcial", key: "parcialflag" },
+        { title: "Moneda Y Monto", key: "montoparcial" },
         // { text: "Fecha Facturación", value: "fecha" },
-        { text: "Expediente", value: "code_master" },
-        { text: "Fecha Factura", value: "fecha" },
-        { text: "Tipo", value: "tipo_gasto", align: "center" },
+        { title: "Expediente", key: "code_master" },
+        { title: "Fecha Factura", key: "fecha" },
+        { title: "Tipo", key: "tipo_gasto", align: "center" },
 
-        { text: "Moneda y Monto Facturado", value: "saldo_pendiente_local" },
-        { text: "Monto Equivalente en Dólares", value: "saldo_pendiente" },
-        { text: "Saldo", value: "saldo" },
+        { title: "Moneda y Monto Facturado", key: "saldo_pendiente_local" },
+        { title: "Monto Equivalente en Dólares", key: "saldo_pendiente" },
+        { title: "Saldo", key: "saldo" },
         // { text: "Factura", value: "documentos" },
-        { text: "Total Monto Abonado", value: "totalabonado" },
+        { title: "Total Monto Abonado", key: "totalabonado" },
       ],
       items: [],
       errorMesage: {

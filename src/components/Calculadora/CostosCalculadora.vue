@@ -64,7 +64,7 @@
           <v-form ref="frmConcepto">
             <v-row>
               <!-- <v-col cols="12">
-                <v-autocomplete
+                <v-autocomplete item-title="text"
                   dense
                   label="Proveedor"
                   placeholder="Proveedor"

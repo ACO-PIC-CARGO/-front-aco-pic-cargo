@@ -458,8 +458,8 @@ export default {
       // opcionesSeleccionadas: [{ listNotasQuote: [] }],
       dialog: false,
       headers: [
-        { value: "index", text: "#" },
-        { value: "description", text: "Descripción", align: "center" },
+        { key: "index", title: "#" },
+        { key: "description", title: "Descripción", align: "center" },
       ],
       guardarFlag: false,
       pagePrev: 1,

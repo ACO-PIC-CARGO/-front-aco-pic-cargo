@@ -112,14 +112,14 @@ export default {
       loadingNuevo: false,
       loadingFiltrar: false,
       headers: [
-        { text: "Servicio", value: "name_groupservices" },
-        { text: "Código", value: "code" },
-        { text: "Nombre", value: "name" },
-        { text: "Descripción", value: "description" },
-                { text: "Estado", value: "estado" },{ text: "Creación", value: "created_at" },
+        { title: "Servicio", key: "name_groupservices" },
+        { title: "Código", key: "code" },
+        { title: "Nombre", key: "name" },
+        { title: "Descripción", key: "description" },
+                { title: "Estado", key: "estado" },{ title: "Creación", key: "created_at" },
 
-        { text: "Última Actualización", value: "updated_at" },
-        { text: "Acciones", value: "action" },
+        { title: "Última Actualización", key: "updated_at" },
+        { title: "Acciones", key: "action" },
       ],
     };
   },

@@ -352,12 +352,12 @@
     data() {
       return {
         headers: [
-          { text: "Código", align: "start", value: "code", width: "15%" },
-          { text: "Comentario", value: "comentario", width: "32.5%" },
-          { text: "Estado", value: "status", width: "12.5%" },
-          { text: "Creación", value: "created_at", width: "15%" },  
-          { text: "Última Actualización", value: "updated_at", width: "15%" },
-          { text: "Acciones", value: "action", width: "10%" },
+          { title: "Código", align: "start", key: "code", width: "15%" },
+          { title: "Comentario", key: "comentario", width: "32.5%" },
+          { title: "Estado", key: "status", width: "12.5%" },
+          { title: "Creación", key: "created_at", width: "15%" },  
+          { title: "Última Actualización", key: "updated_at", width: "15%" },
+          { title: "Acciones", key: "action", width: "10%" },
         ],
         loading: false,
         search: "",

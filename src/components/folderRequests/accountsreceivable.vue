@@ -475,81 +475,81 @@ export default {
     dataList: false,
     cabTotalOperativo: [
       {
-        text: "Operativo",
-        value: "moneda",
+        title: "Operativo",
+        key: "moneda",
       },
       {
-        text: "Llegados",
-        value: "llegada",
+        title: "Llegados",
+        key: "llegada",
       },
       {
-        text: "No Llegado",
-        value: "no_llegada",
+        title: "No Llegado",
+        key: "no_llegada",
       },
       {
-        text: "Total",
-        value: "total",
+        title: "Total",
+        key: "total",
       },
     ],
     totalOperativo: [],
     cabTotalAdministrativo: [
       {
-        text: "Administrativo",
-        value: "moneda",
+        title: "Administrativo",
+        key: "moneda",
       },
       {
-        text: "Nonto",
-        value: "monto",
+        title: "Nonto",
+        key: "monto",
       },
       {
-        text: "IGV",
-        value: "igv",
+        title: "IGV",
+        key: "igv",
       },
       {
-        text: "Total",
-        value: "total",
+        title: "Total",
+        key: "total",
       },
     ],
     totalAdministrativo: [],
     headersdbp: [
       {
-        text: "Cliente",
+        title: "Cliente",
         align: "start",
         sortable: true,
-        value: "nameconsigner",
-        class: "hProveedor",
+        key: "nameconsigner",
+        headerProps: { class: "hProveedor" },
       },
 
       {
-        text: "LLEGADA",
-        value: "total_llegada",
-        class: "hLlegada",
+        title: "LLEGADA",
+        key: "total_llegada",
+        headerProps: { class: "hLlegada" },
         sortable: false,
       },
       {
-        text: "NO LLLEGADAS",
-        value: "total_no_llegada",
-        class: "hNoLlegada",
+        title: "NO LLLEGADAS",
+        key: "total_no_llegada",
+        headerProps: { class: "hNoLlegada" },
         sortable: false,
       },
       {
-        text: "GENERAL",
-        value: "total_pagar_llegada",
-        class: "hGeneral",
+        title: "GENERAL",
+        key: "total_pagar_llegada",
+        headerProps: { class: "hGeneral" },
         sortable: false,
       },
 
-      { text: "", value: "data-table-expand" },
+      { title: "", key: "data-table-expand" },
     ],
     headersdbpa: [
       {
-        text: "Cliente",
-        value: "nameconsigner",
+        title: "Cliente",
+        key: "nameconsigner",
       },
 
       {
-        text: "Total",
-        value: "total_pagar",
+        title: "Total",
+        key: "total_pagar",
       },
     ],
     itemsCxcAdmin: [],
@@ -559,9 +559,9 @@ export default {
     dialogComentarios: false,
     dialogNuevoComentario: false,
     headersLstComentarios: [
-      { text: "Fecha", value: "fecha", width: "15%" },
-      { text: "Ejecutivo", value: "ejecutivo", width: "30%" },
-      { text: "Comentario", value: "comentario", width: "55%" },
+      { title: "Fecha", key: "fecha", width: "15%" },
+      { title: "Ejecutivo", key: "ejecutivo", width: "30%" },
+      { title: "Comentario", key: "comentario", width: "55%" },
     ],
     comentario: {
       fecha: moment().format("YYYY-MM-DD"),

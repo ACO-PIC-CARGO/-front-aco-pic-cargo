@@ -237,7 +237,7 @@
                 ></v-autocomplete>
               </v-col>
               <v-col cols="12" class="my-1 py-1">
-                <v-autocomplete
+                <v-autocomplete item-title="text"
                   density="compact"
                   label="Multiplicador"
                   :items="$store.state.pricing.listMultiplicador"

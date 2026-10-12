@@ -98,7 +98,7 @@
                 ></v-text-field>
               </td>
               <td class="colProveedorMultiplicador">
-                <v-select
+                <v-select item-title="text"
                   class="widthTD"
                   :items="$store.state.pricing.listMultiplicador"
                   v-model="valor.id_multiplicador"

@@ -8,7 +8,7 @@
         Imprimir PDF
       </v-btn>
 
-      <v-select
+      <v-select item-title="text"
         v-model="anioSeleccionado"
         :items="listaAnios"
         label="Año"

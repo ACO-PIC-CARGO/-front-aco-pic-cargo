@@ -63,7 +63,7 @@
 
                   <!-- Columna 3: Multiplicador -->
                   <td>
-                    <v-select
+                    <v-select item-title="text"
                       readonly
                       class="widthTD"
                       :items="$store.state.pricing.listMultiplicador"
@@ -286,7 +286,7 @@
                   ></v-text-field>
                 </td>
                 <td>
-                  <v-select
+                  <v-select item-title="text"
                     readonly
                     class="widthTD"
                     :items="$store.state.pricing.listMultiplicador"
@@ -491,7 +491,7 @@
                   ></v-text-field>
                 </td>
                 <td>
-                  <v-select
+                  <v-select item-title="text"
                     class="widthTD"
                     :items="$store.state.pricing.listMultiplicador"
                     v-model="valor.id_multiplicador"
@@ -685,7 +685,7 @@
                   ></v-text-field>
                 </td>
                 <td>
-                  <v-select
+                  <v-select item-title="text"
                     readonly
                     class="widthTD"
                     :items="$store.state.pricing.listMultiplicador"
@@ -889,7 +889,7 @@
 
                   <!-- Columna 3: Multiplicador -->
                   <td>
-                    <v-select
+                    <v-select item-title="text"
                       readonly
                       class="widthTD"
                       :items="$store.state.pricing.listMultiplicador"
@@ -1112,7 +1112,7 @@
                   ></v-text-field>
                 </td>
                 <td>
-                  <v-select
+                  <v-select item-title="text"
                     readonly
                     class="widthTD"
                     :items="$store.state.pricing.listMultiplicador"
@@ -1317,7 +1317,7 @@
                   ></v-text-field>
                 </td>
                 <td>
-                  <v-select
+                  <v-select item-title="text"
                     readonly
                     class="widthTD"
                     :items="$store.state.pricing.listMultiplicador"
