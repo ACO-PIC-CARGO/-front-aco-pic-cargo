@@ -49,7 +49,7 @@
               <v-alert
                 border="start"
                 border-color="deep-purple-accent-4"
-                color="deep-purple-accent-4"
+                color="surface"
                 elevation="2"
               >
                 <p>VERSUS</p>

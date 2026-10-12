@@ -138,16 +138,17 @@
       </v-col>
       <v-col cols="12" lg="4" xl="4" md="4">
         <v-alert
-          icon="mdi-currency-usd"
           class="my-1 text-center"
           border="start"
           border-color="deep-purple-accent-4"
-          color="deep-purple-accent-4"
           elevation="2"
           variant="outlined"
           prominent
           density="compact"
         >
+          <template #prepend>
+            <v-icon color="deep-purple-accent-4">mdi-currency-usd</v-icon>
+          </template>
           <h2>
             PROFIT PR:
             {{ parseFloat(ingreso_pr - egreso_pr).toFixed(2) }} USD / OP:
