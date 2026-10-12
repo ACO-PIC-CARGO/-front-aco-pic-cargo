@@ -14,12 +14,13 @@
           :headers="headers"
           :items="listado"
           class="elevation-1"
-          item-key="id"
-          :single-select="true"
+          item-value="id"
+          return-object
+          select-strategy="single"
           show-select
           v-model="selected"
           :items-per-page="5"
-          @input="validarSeleccionado()"
+          @update:model-value="validarSeleccionado()"
         >
         </v-data-table>
       </div>
@@ -44,6 +45,7 @@ import moment from "moment";
 export default {
   props: ["id", "tipo", "id_master", "id_proveedor"],
   name: "newProgrammedPayment",
+  emits: ["cerrar"],
   data: () => ({
     headers: [
       {
