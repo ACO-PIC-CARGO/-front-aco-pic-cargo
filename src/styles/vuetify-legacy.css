@@ -777,3 +777,8 @@
     }
   }
 }
+
+/* Vuetify 4 overlays start at z-index 2000; Vuetify 2 dialogs stayed under SweetAlert2 (1060). */
+.swal2-container {
+  z-index: 2500 !important;
+}
