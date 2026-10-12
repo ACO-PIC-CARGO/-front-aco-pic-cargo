@@ -122,11 +122,9 @@
         :items="mastersConHouse"
         :search="search"
         :row-props="({ item }) => ({ class: itemRowBackground(item) })"
-        :expand-strategy="singleExpand ? 'single' : 'multiple'"
         expand-on-click
         v-model:expanded="expanded"
         item-value="id"
-        return-object
         :loading="loadingDataTable"
         disable-sort
       >
@@ -692,7 +690,6 @@ export default {
       master: "",
       search: "",
       expanded: [],
-      singleExpand: false,
       options: {},
       loadingDataTable: false,
       headers: [

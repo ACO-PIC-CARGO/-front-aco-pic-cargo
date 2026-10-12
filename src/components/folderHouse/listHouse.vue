@@ -34,8 +34,6 @@
         expand-on-click
         v-model:expanded="expanded"
         item-value="id"
-        return-object
-        expand-strategy="single"
         disable-sort
       >
         <template v-slot:expanded-row="{ columns, item }">
