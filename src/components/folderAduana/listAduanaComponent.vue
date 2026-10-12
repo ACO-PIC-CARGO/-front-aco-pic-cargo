@@ -6,7 +6,7 @@
           placeholder="Buscar..."
           label="Buscar"
           v-model="search"
-          append-icon="mdi-magnify"
+          append-inner-icon="mdi-magnify"
         >
         </v-text-field>
       </v-col>
@@ -18,7 +18,6 @@
             class="mx-1"
             :loading="loading2"
             :disabled="loading2"
-            :dark="!loading2"
             size="small"
           >
             <v-icon>mdi-file-pdf-box</v-icon> REPORTE
@@ -29,7 +28,6 @@
             class="mx-1"
             :loading="loading3"
             :disabled="loading3"
-            :dark="!loading3"
             size="small"
           >
             <v-icon>mdi-file-excel</v-icon> REPORTE
@@ -40,7 +38,6 @@
             class="mx-1"
             :loading="loading"
             :disabled="loading"
-            :dark="!loading"
             size="small"
           >
             <v-icon>mdi-file-pdf-box</v-icon> MERCADEO
@@ -52,7 +49,6 @@
                 !$store.state.pricing.filtrarQuoteFlag
             "
             class="mx-1"
-            dark
             size="small"
           >
             Filtrar
@@ -64,13 +60,14 @@
       :search="search"
       :headers="cabCotizaciones"
       :items="$store.state.pricing.listQuotes"
-      :single-expand="singleExpand"
+      :expand-strategy="singleExpand ? 'single' : 'multiple'"
       v-model:expanded="expanded"
-      item-key="index"
+      item-value="index"
+      return-object
       show-expand
       class="elevation-1"
     >
-      <template v-slot:item="{ item, expand, isExpanded }">
+      <template v-slot:item="{ item, internalItem, isExpanded, toggleExpand }">
         <tr
           :class="[
             item.status_code == 3
@@ -78,7 +75,7 @@
               : item.status_code == 5
               ? 't-green'
               : 't-black',
-            isExpanded ? 'filaActivda' : '',
+            isExpanded(internalItem) ? 'filaActivda' : '',
           ]"
         >
           <td></td>
@@ -87,7 +84,7 @@
               <v-tooltip location="top">
                 <template v-slot:activator="{ props }">
                   <v-btn
-                    fab
+                    icon
                     size="x-small"
                     v-bind="props"
                    
@@ -102,7 +99,7 @@
               <v-tooltip location="top">
                 <template v-slot:activator="{ props }">
                   <v-btn
-                    fab
+                    icon
                     size="x-small"
                     v-bind="props"
                    
@@ -117,7 +114,7 @@
               <v-tooltip location="top">
                 <template v-slot:activator="{ props }">
                   <v-btn
-                    fab
+                    icon
                     size="x-small"
                     v-bind="props"
                    
@@ -133,7 +130,7 @@
               <v-tooltip location="top">
                 <template v-slot:activator="{ props }">
                   <v-btn
-                    fab
+                    icon
                    
                     v-bind="props"
                     size="x-small"
@@ -151,7 +148,7 @@
               <v-tooltip location="top">
                 <template v-slot:activator="{ props }">
                   <v-btn
-                    fab
+                    icon
                    
                     v-bind="props"
                     size="x-small"
@@ -167,7 +164,7 @@
               <v-tooltip location="top">
                 <template v-slot:activator="{ props }">
                   <v-btn
-                    fab
+                    icon
                     size="x-small"
                    
                     v-bind="props"
@@ -183,7 +180,7 @@
               <v-tooltip location="top">
                 <template v-slot:activator="{ props }">
                   <v-btn
-                    fab
+                    icon
                     size="x-small"
                    
                     v-bind="props"
@@ -198,7 +195,7 @@
               <v-tooltip location="top">
                 <template v-slot:activator="{ props }">
                   <v-btn
-                    fab
+                    icon
                     size="x-small"
                    
                     v-bind="props"
@@ -212,24 +209,25 @@
               </v-tooltip>
             </v-btn-toggle>
           </td>
-          <td @click="expand(!isExpanded)">{{ fecha(item.created) }}</td>
-          <td @click="expand(!isExpanded)">{{ item.recibidocotizacion }}</td>
-          <td @click="expand(!isExpanded)">{{ item.enviadocliente }}</td>
-          <td @click="expand(!isExpanded)">{{ item.status }}</td>
-          <td @click="expand(!isExpanded)">{{ item.codigo }}</td>
-          <td @click="expand(!isExpanded)">{{ item.ejecutivo_ventas }}</td>
-          <td @click="expand(!isExpanded)">{{ item.nombres }}</td>
-          <td @click="expand(!isExpanded)">{{ item.telefono }}</td>
-          <td @click="expand(!isExpanded)">{{ item.sentido }}</td>
-          <td @click="expand(!isExpanded)">{{ item.tipo_de_carga }}</td>
-          <td @click="expand(!isExpanded)">{{ item.incoterms }}</td>
-          <td @click="expand(!isExpanded)">{{ item.origen }}</td>
-          <td @click="expand(!isExpanded)">{{ item.destino }}</td>
+          <td @click="toggleExpand(internalItem)">{{ fecha(item.created) }}</td>
+          <td @click="toggleExpand(internalItem)">{{ item.recibidocotizacion }}</td>
+          <td @click="toggleExpand(internalItem)">{{ item.enviadocliente }}</td>
+          <td @click="toggleExpand(internalItem)">{{ item.status }}</td>
+          <td @click="toggleExpand(internalItem)">{{ item.codigo }}</td>
+          <td @click="toggleExpand(internalItem)">{{ item.ejecutivo_ventas }}</td>
+          <td @click="toggleExpand(internalItem)">{{ item.nombres }}</td>
+          <td @click="toggleExpand(internalItem)">{{ item.telefono }}</td>
+          <td @click="toggleExpand(internalItem)">{{ item.sentido }}</td>
+          <td @click="toggleExpand(internalItem)">{{ item.tipo_de_carga }}</td>
+          <td @click="toggleExpand(internalItem)">{{ item.incoterms }}</td>
+          <td @click="toggleExpand(internalItem)">{{ item.origen }}</td>
+          <td @click="toggleExpand(internalItem)">{{ item.destino }}</td>
         </tr>
       </template>
 
-      <template v-slot:expanded-item="{ headers, item }">
-        <td :colspan="headers.length">
+      <template v-slot:expanded-row="{ columns, item }">
+        <tr>
+        <td :colspan="columns.length">
           <v-table>
             <thead class="headerDetails">
               <tr>
@@ -252,6 +250,7 @@
             </tbody>
           </v-table>
         </td>
+        </tr>
       </template>
     </v-data-table>
     <v-dialog
@@ -323,7 +322,7 @@
           <v-btn color="success" @click="updateQuoteRecibidoEnviado"
             >Guardar</v-btn
           >
-          <v-btn color="red" dark @click="dialog = !dialog">Cancelar</v-btn>
+          <v-btn color="red" @click="dialog = !dialog">Cancelar</v-btn>
         </v-card-actions>
       </v-card>
     </v-dialog>
@@ -362,7 +361,7 @@
           </v-form>
         </v-card-text>
         <v-card-actions>
-          <v-flex text-right>
+          <div class="flex-grow-1 text-right">
             <v-btn variant="text" color="success" @click="guardarNota">Aceptar</v-btn>
             <v-btn
               variant="text"
@@ -371,7 +370,7 @@
             >
               Cancelar
             </v-btn>
-          </v-flex>
+          </div>
         </v-card-actions>
       </v-card>
     </v-dialog>
@@ -695,7 +694,7 @@ export default {
       this.dialog = true;
     },
     async updateQuoteRecibidoEnviado() {
-      if (this.$refs.frmEstado.validate()) {
+      if ((await this.$refs.frmEstado.validate()).valid) {
         this.$store.state.spiner = true;
         let data = {
           id: this.quote.id,
@@ -725,7 +724,7 @@ export default {
       this.dialogRegistroNotaLlamada = true;
     },
     async guardarNota() {
-      if (this.$refs.detallenota.validate()) {
+      if ((await this.$refs.detallenota.validate()).valid) {
         this.dialogRegistroNotaLlamada = false;
         this.$store.state.spiner = true;
 
@@ -823,7 +822,7 @@ export default {
     },
 
     async aprobar() {
-      if (this.$refs.frmAprobar.validate()) {
+      if ((await this.$refs.frmAprobar.validate()).valid) {
         Swal.fire({
           icon: "info",
           title: "Aprobando Cotizacion",

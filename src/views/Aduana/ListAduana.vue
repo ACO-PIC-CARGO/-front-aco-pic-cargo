@@ -1,7 +1,7 @@
 <template>
   <v-container fluid>
     <v-card>
-      <v-card-title primary-title class="">
+      <v-card-title class="">
         <!-- DASHBOARD
         <v-chip
           style="cursor: pointer"
@@ -23,17 +23,17 @@
       <v-row>
         <v-col cols="12">
           <v-tabs color="deep-purple-accent-4" align-tabs="end" v-model="tabs">
-            <v-tab href="#quotes">Cotizaciones</v-tab>
-            <v-tab href="#calls">Llamadas</v-tab>
+            <v-tab value="quotes">Cotizaciones</v-tab>
+            <v-tab value="calls">Llamadas</v-tab>
           </v-tabs>
-          <v-tabs-items v-model="tabs">
-            <v-tab-item value="quotes">
+          <v-tabs-window v-model="tabs">
+            <v-tabs-window-item value="quotes">
               <ListQuote />
-            </v-tab-item>
-            <v-tab-item value="calls">
+            </v-tabs-window-item>
+            <v-tabs-window-item value="calls">
               <ListCall />
-            </v-tab-item>
-          </v-tabs-items>
+            </v-tabs-window-item>
+          </v-tabs-window>
         </v-col>
       </v-row>
     </v-card>

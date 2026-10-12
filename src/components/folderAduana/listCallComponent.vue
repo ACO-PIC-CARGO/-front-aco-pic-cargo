@@ -35,7 +35,7 @@
           </v-form>
         </v-card-text>
         <v-card-actions>
-          <v-flex text-right>
+          <div class="flex-grow-1 text-right">
             <v-btn variant="text" color="success" @click="guardarNota">Aceptar</v-btn>
             <v-btn
               variant="text"
@@ -44,7 +44,7 @@
             >
               Cancelar
             </v-btn>
-          </v-flex>
+          </div>
         </v-card-actions>
       </v-card>
     </v-dialog>
@@ -57,7 +57,6 @@
             class="mx-1"
             :loading="loading4"
             :disabled="loading4"
-            :dark="!loading4"
             size="small"
           >
             <v-icon>mdi-file-pdf-box</v-icon> Imprimir
@@ -69,7 +68,6 @@
                 !$store.state.pricing.filtrarCallsFlag
             "
             class="mx-1"
-            dark
             size="small"
           >
             Filtrar
@@ -102,7 +100,6 @@
                   <v-btn
                     class="ma-2"
                     icon
-                    dark
                     size="x-small"
                    
                     v-bind="props"
@@ -273,7 +270,7 @@ export default {
       this.dialogRegistroNotaLlamada = true;
     },
     async guardarNota() {
-      if (this.$refs.detallenota.validate()) {
+      if ((await this.$refs.detallenota.validate()).valid) {
         this.dialogRegistroNotaLlamada = false;
         this.$store.state.spiner = true;
 
