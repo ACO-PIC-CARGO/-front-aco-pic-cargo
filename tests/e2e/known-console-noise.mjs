@@ -115,6 +115,21 @@ export const KNOWN_CONSOLE_NOISE = [
     routes: ["newCotizacionAduana", "EditarAduana"],
   },
   {
+    pattern: /^Cannot read properties of undefined \(reading '(id_port|name|nro_propuesta)'\)$/,
+    reason: "same pre-existing issue as the VerAduana 'Error in render ... id_port / name / nro_propuesta' entries, Vue 3 wording: Sentry's Vue errorHandler rethrows render errors, so they surface as uncaught errors",
+    routes: ["VerAduana"],
+  },
+  {
+    pattern: /^\[Vue warn\]: (Unhandled error during execution of app errorHandler|Property "(_isVue|constructor)" was accessed during render but is not defined on instance\.)[\s\S]*\n\s+at <(DatosCargaComponent|DatosCostosComponent|InstructivoComponent)[ >]/,
+    reason: "same pre-existing issue as the VerAduana 'Error in render ...' entries, Vue 3 wording: Vue reports Sentry's rethrow, and Sentry's component trace reads vm._isVue / vm.constructor during the failing render",
+    routes: ["VerAduana"],
+  },
+  {
+    pattern: /^\[Vue warn\]: Write operation failed: computed property "opcionesSeleccionadas" is readonly\.(\n|$)/,
+    reason: "same pre-existing issue as the 'Computed property \"opcionesSeleccionadas\" was assigned to but it has no setter' entry, Vue 3 wording",
+    routes: ["newCotizacionAduana", "EditarAduana"],
+  },
+  {
     pattern: /^\[Vue warn\]: Error in render: "TypeError: Cannot read properties of undefined \(reading 'id_port'\)"(\n|$)/,
     reason: "pre-existing on Vue 2: VerAduana",
     routes: ["VerAduana"],
