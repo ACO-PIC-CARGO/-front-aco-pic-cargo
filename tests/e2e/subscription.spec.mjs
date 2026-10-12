@@ -7,13 +7,22 @@ test("shows the public plans page", async ({ page }) => {
 });
 
 test("opens the Paddle checkout when buying a plan from Mi plan", async ({ page }) => {
+  const checkout = page.locator('iframe[src*="paddle.com"]');
   await page.goto("/home/mi-plan");
   await waitForPageToSettle(page);
+  await expect(checkout).toHaveCount(0);
   await page.getByRole("button", { name: /^Comprar: ACO / }).first().click();
   const modules = page.getByRole("dialog").filter({ hasText: "Elige tus módulos" });
-  if (await modules.isVisible({ timeout: 3_000 }).catch(() => false)) {
-    await modules.getByText("PRICING", { exact: true }).click();
-    await modules.getByRole("button", { name: "Continuar al pago" }).click();
+  const needsModules = await modules.waitFor({ state: "visible", timeout: 5_000 }).then(() => true, () => false);
+  if (needsModules) {
+    const proceed = modules.getByRole("button", { name: "Continuar al pago" });
+    for (const box of await modules.getByRole("checkbox").all()) {
+      if (await proceed.isEnabled()) break;
+      await box.focus();
+      await page.keyboard.press("Space");
+    }
+    await expect(proceed).toBeEnabled();
+    await proceed.click();
   }
-  await expect(page.locator('iframe[src*="paddle.com"]')).toBeAttached({ timeout: 30_000 });
+  await expect(checkout).toBeAttached({ timeout: 30_000 });
 });
