@@ -21,7 +21,7 @@
                   v-model="n_documents"
                   type="text"
                   label="N° de Documento Fiscal"
-                  @focusout.native="_validaDocumento()"
+                  @focusout="_validaDocumento()"
                   :rules="[(v) => !!v || 'Dato Requerido']"
                 ></v-text-field>
               </v-col>
@@ -75,8 +75,8 @@
                   item-value="id"
                   :items="itemsPais"
                   label="País"
-                  @update:model-value="_getState(id_pais)"
                   v-model="id_pais"
+                  @update:model-value="_getState(id_pais)"
                   :rules="[(v) => !!v || 'Dato Requerido']"
                 ></v-autocomplete>
               </v-col>
@@ -85,8 +85,8 @@
                   :items="itemsState"
                   item-title="name"
                   item-value="id"
-                  @update:model-value="_getCity(id_state)"
                   v-model="id_state"
+                  @update:model-value="_getCity(id_state)"
                   label="Departamento"
                 ></v-autocomplete>
               </v-col>
@@ -95,8 +95,8 @@
                   :items="itemsCity"
                   item-title="name"
                   item-value="id"
-                  @update:model-value="_getTown(id_city)"
                   v-model="id_city"
+                  @update:model-value="_getTown(id_city)"
                   label="Provincia"
                 ></v-autocomplete>
               </v-col>
@@ -202,8 +202,7 @@
             <template v-slot:activator="{ props }">
               <v-btn
                 class="mx-2 mt-5"
-                fab
-                dark
+                icon
                 elevation="0"
                 size="large"
                
@@ -211,7 +210,7 @@
                 @click="getPhone()"
                 color="blue-grey-darken-3"
               >
-                <v-icon dark> mdi-phone </v-icon>
+                <v-icon> mdi-phone </v-icon>
               </v-btn>
             </template>
             <span>Teléfonos</span>
@@ -220,8 +219,7 @@
             <template v-slot:activator="{ props }">
               <v-btn
                 class="mx-2 mt-5"
-                fab
-                dark
+                icon
                 elevation="0"
                 size="large"
                
@@ -231,7 +229,7 @@
                 "
                 color="blue-grey-darken-3"
               >
-                <v-icon dark> mdi-account-multiple </v-icon>
+                <v-icon> mdi-account-multiple </v-icon>
               </v-btn>
             </template>
             <span>Contactos</span>
@@ -241,8 +239,7 @@
             <template v-slot:activator="{ props }">
               <v-btn
                 class="mx-2 mt-5"
-                fab
-                dark
+                icon
                 elevation="0"
                 size="large"
                
@@ -250,7 +247,7 @@
                 @click="$store.state.modalCuentas = !$store.state.modalCuentas"
                 color="blue-grey-darken-3"
               >
-                <v-icon dark> mdi-bank </v-icon>
+                <v-icon> mdi-bank </v-icon>
               </v-btn>
             </template>
             <span>Cuentas</span>
@@ -259,8 +256,7 @@
             <template v-slot:activator="{ props }">
               <v-btn
                 class="mx-2 mt-5"
-                fab
-                dark
+                icon
                 elevation="0"
                 size="large"
                
@@ -268,7 +264,7 @@
                 @click="modalCuentas = !modalCuentas"
                 color="blue-grey-darken-3"
               >
-                <v-icon dark> mdi-bank </v-icon>
+                <v-icon> mdi-bank </v-icon>
               </v-btn>
             </template>
             <span>Cuentas</span>
@@ -324,9 +320,8 @@
               <v-btn
                 v-if="$store.state.accountNumer != ''"
                 class="mx-2"
-                fab
+                icon
                 color="teal-darken-1"
-                dark
                 elevation="0"
                 @click="_setAccounts()"
                 ><v-icon size="x-large">mdi-plus</v-icon></v-btn
@@ -352,7 +347,7 @@
                   <td>{{ item.accountnumber }}</td>
                   <td>
                     <v-btn
-                      @click.native="_delAccount(item.id)"
+                      @click="_delAccount(item.id)"
                       color="white"
                       elevation="0"
                       ><v-icon color="error">mdi-delete</v-icon></v-btn
@@ -627,7 +622,7 @@ export default {
     },
 
     async _postEntitie() {
-      if (this.$refs.frmData.validate()) {
+      if ((await this.$refs.frmData.validate()).valid) {
         var vm = this;
         var dataEntitie = {
           names: !vm.names || vm.names == "" ? null : vm.names,
@@ -735,7 +730,7 @@ export default {
     },
 
     async _updatetEntitie() {
-      if (this.$refs.frmData.validate()) {
+      if ((await this.$refs.frmData.validate()).valid) {
         var vm = this;
         var dataEntitie = {
           names: vm.names,

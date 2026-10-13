@@ -7,7 +7,6 @@
         v-if="!showNavigationButtons"
         color="light-blue-darken-2"
         class="ma-2"
-        dark
         size="small"
         @click="modificarCliente"
       >

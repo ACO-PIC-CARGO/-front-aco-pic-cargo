@@ -6,7 +6,6 @@
         v-if="!showNavigationButtons"
         color="light-blue-darken-2"
         class="ma-2"
-        dark
         size="small"
         @click="modificarCliente"
       >
@@ -19,8 +18,8 @@
         <v-form ref="formDatosCliente" :readonly="isFormReadonly">
           <v-row>
             <v-col cols="12">
-              <v-subheader class="px-0 font-weight-bold"
-                >Identificación del Cliente</v-subheader
+              <v-list-subheader class="px-0 font-weight-bold"
+                >Identificación del Cliente</v-list-subheader
               >
               <v-row>
                 <v-col cols="12" md="6">
@@ -88,8 +87,8 @@
                   />
                 </v-col>
               </v-row>
-              <v-subheader class="px-0 font-weight-bold mt-2"
-                >Documento Fiscal</v-subheader
+              <v-list-subheader class="px-0 font-weight-bold mt-2"
+                >Documento Fiscal</v-list-subheader
               >
               <v-row>
                 <v-col cols="12" md="6">
@@ -121,8 +120,8 @@
                   />
                 </v-col>
               </v-row>
-              <v-subheader class="px-0 font-weight-bold mt-2"
-                >Ubicación y Contacto</v-subheader
+              <v-list-subheader class="px-0 font-weight-bold mt-2"
+                >Ubicación y Contacto</v-list-subheader
               >
               <v-row>
                 <v-col cols="12" md="6">
@@ -133,9 +132,9 @@
                     item-value="id"
                     :items="$store.state.itemsPais"
                     label="País"
-                    @update:model-value="_getState($store.state.entities.cliente.id_pais)"
                     :rules="[(v) => !!v || 'Dato Requerido']"
                     v-model="$store.state.entities.cliente.id_pais"
+                    @update:model-value="_getState($store.state.entities.cliente.id_pais)"
                   ></v-autocomplete>
                 </v-col>
                 <v-col cols="12" md="6">
@@ -171,7 +170,7 @@
                 </v-col>
               </v-row>
               <!--CONVENIO ACTUAL-->
-              <v-subheader class="px-0 font-weight-bold mt-2">
+              <v-list-subheader class="px-0 font-weight-bold mt-2">
                 Convenio Actual
                 <v-spacer></v-spacer>
                 <v-file-input
@@ -181,9 +180,9 @@
                   hide-input
                   class="customFile"
                   v-model="fileinput"
-                  @change="subirArchivoConvenio"
+                  @update:model-value="subirArchivoConvenio"
                 ></v-file-input>
-              </v-subheader>
+              </v-list-subheader>
               <v-row>
                 <v-col cols="12" md="4">
                   <v-text-field
@@ -228,8 +227,8 @@
                 </v-col>
               </v-row>
               <!--TELÉFONO ACTUAL-->
-              <v-subheader class="px-0 font-weight-bold mt-2"
-                >Teléfono Principal</v-subheader
+              <v-list-subheader class="px-0 font-weight-bold mt-2"
+                >Teléfono Principal</v-list-subheader
               >
               <v-row>
                 <v-col cols="12" md="6">
@@ -279,8 +278,8 @@
                 </v-col>
               </v-row>
               <!--CONTACTO ACTUAL-->
-              <v-subheader class="px-0 font-weight-bold mt-2"
-                >Teléfono Adicional</v-subheader
+              <v-list-subheader class="px-0 font-weight-bold mt-2"
+                >Teléfono Adicional</v-list-subheader
               >
               <v-row>
                 <v-col cols="12" md="4">
@@ -334,8 +333,8 @@
                 </v-col>
               </v-row>
               <!--NOTAS-->
-              <v-subheader class="px-0 font-weight-bold mt-2"
-                >Notas</v-subheader
+              <v-list-subheader class="px-0 font-weight-bold mt-2"
+                >Notas</v-list-subheader
               >
               <v-row>
                 <v-col cols="12">
@@ -358,7 +357,6 @@
       <v-btn
         color="light-blue-darken-2"
         class="ma-2"
-        dark
         size="small"
         @click="modificarCliente"
       >
@@ -719,9 +717,9 @@ export default {
         }
       }
     },
-    validarFormulario() {
+    async validarFormulario() {
       var vm = this;
-      if (vm.$refs.formDatosCliente.validate()) {
+      if ((await vm.$refs.formDatosCliente.validate()).valid) {
         vm.validarConvenioActual();
         vm.validarTelefonoActual();
         vm.validarContactoActual();
@@ -934,9 +932,9 @@ export default {
   },
   watch: {
     "$store.state.entities.isStep1Valid": {
-      handler(newValue) {
+      async handler(newValue) {
         if (!newValue) {
-          this.$refs.formDatosCliente.validate();
+          await this.$refs.formDatosCliente.validate();
         }
       },
       immediate: true,
@@ -953,7 +951,7 @@ export default {
   flex-grow: 0 !important;
   flex-direction: row-reverse !important;
 }
-.customFile .v-input__prepend-outer {
+.customFile .v-input__prepend {
   margin-right: 0;
 }
 .container-narrow {

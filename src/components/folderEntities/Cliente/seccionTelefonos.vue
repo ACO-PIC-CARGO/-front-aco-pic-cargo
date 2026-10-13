@@ -6,7 +6,6 @@
         v-if="!showNavigationButtons"
         color="light-blue-darken-2"
         class="ma-2"
-        dark
         size="small"
         @click="modificarCliente"
       >
@@ -17,7 +16,7 @@
     <v-card-text class="px-2">
       <div class="container-narrow">
         <!-- ===== TELÉFONOS PROVEEDOR ===== -->
-        <v-subheader class="px-0">
+        <v-list-subheader class="px-0">
           <b>Teléfono Principal</b>
 
           <template v-if="showFormActions">
@@ -30,14 +29,14 @@
               >Agregar Teléfono</v-btn
             >
           </template>
-        </v-subheader>
+        </v-list-subheader>
         <v-row>
           <v-col cols="12">
             <v-form ref="formTelefonos" :readonly="isFormReadonly">
               <v-data-table
                 :headers="headersTelefonos"
                 :items="$store.state.entities.lstTelefonos"
-                item-key="index"
+                item-value="index"
                 class="elevation-5"
                 disable-sort
               >
@@ -85,7 +84,7 @@
         <br />
 
         <!-- ===== CONTACTOS ===== -->
-        <v-subheader class="px-0">
+        <v-list-subheader class="px-0">
           <b>Contactos</b>
 
           <template v-if="showFormActions">
@@ -98,14 +97,14 @@
               >Agregar Contacto</v-btn
             >
           </template>
-        </v-subheader>
+        </v-list-subheader>
         <v-row>
           <v-col cols="12">
             <v-form ref="formContactos" :readonly="isFormReadonly">
               <v-data-table
                 :headers="headersContactos"
                 :items="$store.state.entities.lstContactos"
-                item-key="index"
+                item-value="index"
                 class="elevation-5"
               >
                 <template v-slot:[`item.nombre`]="{ item }">
@@ -156,7 +155,7 @@
               </v-data-table>
             </v-form>
 
-            <v-subheader class="px-0">
+            <v-list-subheader class="px-0">
               <b>Emails</b>
               <template v-if="showFormActions">
                 <v-btn
@@ -168,7 +167,7 @@
                   >Agregar Email</v-btn
                 >
               </template>
-            </v-subheader>
+            </v-list-subheader>
 
             <v-row>
               <v-col cols="12">
@@ -180,7 +179,7 @@
                         (v) => !!v && v.estado,
                       )
                     "
-                    item-key="index"
+                    item-value="index"
                     class="elevation-5"
                   >
                     <template v-slot:[`item.description`]="{ item }">
@@ -311,7 +310,7 @@ export default {
     eliminarContacto(index) {
       this.$store.state.entities.lstContactos.splice(index, 1);
     },
-    validarFormulario() {
+    async validarFormulario() {
       var vm = this;
       let ok = true;
       if (
@@ -326,10 +325,10 @@ export default {
         ok = false;
       }
 
-      if (!vm.$refs.formTelefonos.validate()) {
+      if (!(await vm.$refs.formTelefonos.validate()).valid) {
         ok = false;
       }
-      if (!vm.$refs.formContactos.validate()) {
+      if (!(await vm.$refs.formContactos.validate()).valid) {
         ok = false;
       }
 
@@ -407,10 +406,10 @@ export default {
   },
   watch: {
     "$store.state.entities.isStep2Valid": {
-      handler(newValue) {
+      async handler(newValue) {
         if (!newValue) {
-          this.$refs.formTelefonos.validate();
-          this.$refs.formContactos.validate();
+          await this.$refs.formTelefonos.validate();
+          await this.$refs.formContactos.validate();
         }
       },
       immediate: true,

@@ -7,7 +7,6 @@
           v-if="!showNavigationButtons"
           color="light-blue-darken-2"
           class="ma-2"
-          dark
           size="small"
           @click="modificarCliente"
         >
@@ -17,7 +16,7 @@
       </v-card-title>
       <v-card-text class="px-2">
         <div class="container-narrow">
-          <v-subheader class="px-0">
+          <v-list-subheader class="px-0">
             <b>Shippers</b>
 
             <template v-if="showFormActions">
@@ -30,7 +29,7 @@
                 >AGREGAR SHIPPER</v-btn
               >
             </template>
-          </v-subheader>
+          </v-list-subheader>
           <v-row>
             <v-col cols="12">
               <v-form ref="formShippers" :readonly="isFormReadonly">
@@ -38,7 +37,7 @@
                   :headers="headersShippers"
                   :items="$store.state.entities.lstShippers"
                   class="elevation-5"
-                  item-key="index"
+                  item-value="index"
                   disable-sort
                 >
                   <template v-slot:[`item.correlativo`]="{ item, index }">
@@ -85,10 +84,13 @@
             :items="$store.state.itemsProveedorRolShipper"
             fixed-header
             class="elevation-1"
-            item-key="id"
+            v-model="lstSelectedShippers"
+            item-value="id"
+            return-object
+            show-select
             :search="search"
             :loading="loading"
-            @click:row="seleccionarShippers"
+            @click:row="(event, { internalItem, toggleSelect }) => toggleSelect(internalItem)"
           >
           </v-data-table>
         </v-card-text>
@@ -154,18 +156,6 @@ export default {
       await vm._getProveedorRolShipper();
       vm.loading = false;
     },
-    seleccionarShippers(item, row) {
-      var vm = this;
-      if (vm.lstSelectedShippers.indexOf(item) == -1) {
-        row.select(true);
-        vm.lstSelectedShippers.push(item);
-      } else {
-        row.select(false);
-        vm.lstSelectedShippers = vm.lstSelectedShippers.filter(
-          (v) => v.id != item.id,
-        );
-      }
-    },
     eliminarShipper(index) {
       this.$store.state.entities.lstShippers.splice(index, 1);
     },
@@ -196,11 +186,11 @@ export default {
       this.lstSelectedShippers.length = 0;
       this.dialogShippers = !this.dialogShippers;
     },
-    validarFormulario() {
+    async validarFormulario() {
       var vm = this;
       let ok = true;
       if (vm.$store.state.entities.lstShippers.length > 0) {
-        if (!vm.$refs.formShippers.validate()) {
+        if (!(await vm.$refs.formShippers.validate()).valid) {
           ok = false;
         }
       }

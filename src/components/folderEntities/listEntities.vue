@@ -7,7 +7,6 @@
           color="primary"
           :to="`/home/folderEntities/control/${$route.params.id_role}`"
           elevation="0"
-          dark
           rounded
           class="mb-2 ml-5"
           :loading="!$store.state.dataList"
@@ -18,7 +17,7 @@
 
         <v-text-field
           v-model="search"
-          append-icon="mdi-magnify"
+          append-inner-icon="mdi-magnify"
           label="Buscar"
           single-line
           hide-details
@@ -43,7 +42,7 @@
 
       <v-data-table
         v-if="$store.state.dataList"
-        :item-class="itemRowBackground"
+        :row-props="({ item }) => ({ class: itemRowBackground(item) })"
         :headers="headers"
         :items="itemsEntities"
         :search="search"
@@ -53,8 +52,7 @@
             <template v-slot:activator="{ props }">
               <v-btn
                 class="mx-2"
-                fab
-                dark
+                icon
                 elevation="0"
                 size="x-small"
                
@@ -62,7 +60,7 @@
                 @click="openPhone(item.id)"
                 color="blue-grey-darken-3"
               >
-                <v-icon dark> mdi-phone </v-icon>
+                <v-icon> mdi-phone </v-icon>
               </v-btn>
             </template>
             <span>Teléfonos</span>
@@ -77,8 +75,7 @@
             <template v-slot:activator="{ props }">
               <v-btn
                 class="mx-2"
-                fab
-                dark
+                icon
                 elevation="0"
                 size="x-small"
                
@@ -86,7 +83,7 @@
                 @click="openContacts(item.id)"
                 color="blue-grey-darken-3"
               >
-                <v-icon dark> mdi-account-multiple </v-icon>
+                <v-icon> mdi-account-multiple </v-icon>
               </v-btn>
             </template>
             <span>Contactos</span>
@@ -119,7 +116,7 @@
       </v-data-table>
     </v-card>
 
-    <v-footer app color="transparent" height="72" inset>
+    <v-footer color="transparent" height="72">
       <div>
         <div class="circle__legends colorRed"></div>
         Entidad sin documento

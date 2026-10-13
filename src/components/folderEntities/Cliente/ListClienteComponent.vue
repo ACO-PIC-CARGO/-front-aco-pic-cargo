@@ -44,7 +44,7 @@
         <v-data-table
           :headers="headers"
           :items="$store.state.entities.lstProveedor"
-          item-key="id"
+          item-value="id"
           :search="search"
         >
           <template v-slot:[`item.documento`]="{ item }">
@@ -107,14 +107,14 @@
         <v-card-text>
           <v-row>
             <v-col cols="10">
-              <v-subheader> <b>Teléfonos:</b> <br /> </v-subheader>
+              <v-list-subheader> <b>Teléfonos:</b> <br /> </v-list-subheader>
             </v-col>
 
             <v-col cols="12">
               <v-data-table
                 :headers="headersTel"
                 :items="$store.state.entities.lstTelefono"
-                item-key="id"
+                item-value="id"
                 class="elevation-5"
               >
                 <template v-slot:[`item.tipotelefono`]="{ item }">
@@ -146,13 +146,13 @@
 
             <!-- -------------------------------- -->
             <v-col cols="10">
-              <v-subheader><b>Contactos</b></v-subheader>
+              <v-list-subheader><b>Contactos</b></v-list-subheader>
             </v-col>
             <v-col cols="12">
               <v-data-table
                 :headers="headersContact"
                 :items="$store.state.entities.lstContactos"
-                item-key="index"
+                item-value="index"
                 class="elevation-5"
               >
                 <template v-slot:[`item.nombre`]="{ item }">
@@ -228,8 +228,8 @@
             label="Contraseña"
             prepend-icon="mdi-lock"
             :type="showAdminPassword ? 'text' : 'password'"
-            :append-icon="showAdminPassword ? 'mdi-eye' : 'mdi-eye-off'"
-            @click:append="showAdminPassword = !showAdminPassword"
+            :append-inner-icon="showAdminPassword ? 'mdi-eye' : 'mdi-eye-off'"
+            @click:append-inner="showAdminPassword = !showAdminPassword"
             variant="outlined"
             density="compact"
           ></v-text-field>

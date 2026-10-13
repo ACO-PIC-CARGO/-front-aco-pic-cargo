@@ -6,7 +6,6 @@
         v-if="!showNavigationButtons"
         color="light-blue-darken-2"
         class="ma-2"
-        dark
         size="small"
         @click="modificarProveedor"
       >
@@ -16,7 +15,7 @@
     </v-card-title>
     <v-card-text class="px-2">
       <div class="container-narrow">
-        <v-subheader class="px-0">
+        <v-list-subheader class="px-0">
           <b>Información Bancaria</b>
 
           <template v-if="showFormActions">
@@ -29,7 +28,7 @@
               >Agregar Cuenta</v-btn
             >
           </template>
-        </v-subheader>
+        </v-list-subheader>
         <v-row>
           <v-col cols="12">
             <v-form
@@ -44,7 +43,7 @@
                 "
                 :items="$store.state.entities.lstInformacionBancaria"
                 class="elevation-5"
-                item-key="index"
+                item-value="index"
               >
                 <template v-slot:[`item.beneficiario`]="{ item }">
                   <v-text-field
@@ -147,25 +146,25 @@ export default {
   data() {
     return {
       headersInformacionBancaria1: [
-        { text: "Beneficiario", value: "beneficiario" },
-        { text: "Nro de Cuenta", value: "nrocuenta" },
-        { text: "CCI", value: "cci" },
-        { text: "Banco", value: "banco" },
-        { text: "Moneda", value: "moneda" },
-        { text: "Acciones", value: "action" },
+        { title: "Beneficiario", key: "beneficiario" },
+        { title: "Nro de Cuenta", key: "nrocuenta" },
+        { title: "CCI", key: "cci" },
+        { title: "Banco", key: "banco" },
+        { title: "Moneda", key: "moneda" },
+        { title: "Acciones", key: "action" },
       ],
       headersInformacionBancaria2: [
-        { text: "Nro de Cuenta", value: "nrocuenta" },
-        { text: "CCI", value: "cci" },
-        { text: "Banco", value: "banco" },
-        { text: "Moneda", value: "moneda" },
-        { text: "Nro. de Swift", value: "swift" },
-        { text: "Banco Intermediario", value: "intermediario" },
+        { title: "Nro de Cuenta", key: "nrocuenta" },
+        { title: "CCI", key: "cci" },
+        { title: "Banco", key: "banco" },
+        { title: "Moneda", key: "moneda" },
+        { title: "Nro. de Swift", key: "swift" },
+        { title: "Banco Intermediario", key: "intermediario" },
         {
-          text: "Nro Cuenta de Banco Intermediario",
-          value: "cuenta_intermediario",
+          title: "Nro Cuenta de Banco Intermediario",
+          key: "cuenta_intermediario",
         },
-        { text: "Acciones", value: "action" },
+        { title: "Acciones", key: "action" },
       ],
     };
   },
@@ -234,9 +233,9 @@ export default {
   },
   watch: {
     "$store.state.entities.isStep4Valid": {
-      handler(newValue) {
+      async handler(newValue) {
         if (!newValue) {
-          this.$refs.formProv_informacionBancaria.validate();
+          await this.$refs.formProv_informacionBancaria.validate();
         }
       },
       immediate: true,

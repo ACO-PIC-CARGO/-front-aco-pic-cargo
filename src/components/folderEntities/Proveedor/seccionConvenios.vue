@@ -6,7 +6,6 @@
         v-if="!showNavigationButtons"
         color="light-blue-darken-2"
         class="ma-2"
-        dark
         size="small"
         @click="modificarProveedor"
       >
@@ -17,7 +16,7 @@
     <v-card-text class="px-2">
       <div class="container-narrow">
         <!-- ===== CONVENIOS ===== -->
-        <v-subheader class="px-0">
+        <v-list-subheader class="px-0">
           <b>Convenios</b>
 
           <template v-if="showFormActions">
@@ -30,7 +29,7 @@
               >AGREGAR CONVENIO</v-btn
             >
           </template>
-        </v-subheader>
+        </v-list-subheader>
         <v-row>
           <v-col cols="12">
             <v-form ref="formProv_convenios" :readonly="isFormReadonly">
@@ -38,7 +37,7 @@
                 :headers="headersConvenios"
                 :items="$store.state.entities.lstConvenios"
                 class="elevation-5"
-                item-key="index"
+                item-value="index"
               >
                 <template v-slot:[`item.fecha`]="{ item }">
                   <v-text-field
@@ -74,7 +73,7 @@
                       hide-input
                       class="customFile"
                       v-model="fileinput"
-                      @change="subirArchivoConvenio(item)"
+                      @update:model-value="subirArchivoConvenio(item)"
                     ></v-file-input>
                   </div>
                 </template>
@@ -95,7 +94,7 @@
         <br />
 
         <!-- ===== TARIFAS ===== -->
-        <v-subheader class="px-0">
+        <v-list-subheader class="px-0">
           <b>Tarifas</b>
 
           <template v-if="showFormActions">
@@ -108,7 +107,7 @@
               >AGREGAR TARIFA</v-btn
             >
           </template>
-        </v-subheader>
+        </v-list-subheader>
         <v-row>
           <v-col cols="12">
             <v-form ref="formProv_tarifas" :readonly="isFormReadonly">
@@ -116,7 +115,7 @@
                 :headers="headersTarifas"
                 :items="$store.state.entities.lstTarifas"
                 class="elevation-5"
-                item-key="index"
+                item-value="index"
               >
                 <template v-slot:[`item.fecha`]="{ item }">
                   <v-text-field
@@ -146,7 +145,7 @@
                       hide-input
                       class="customFile"
                       v-model="fileinput"
-                      @change="subirArchivoTarifa(item)"
+                      @update:model-value="subirArchivoTarifa(item)"
                     ></v-file-input>
                   </div>
                 </template>
@@ -330,19 +329,19 @@ export default {
         }
       }
     },
-    validarFormulario() {
+    async validarFormulario() {
       var vm = this;
 
       let ok1 = true;
       if (vm.$store.state.entities.lstConvenios.length > 0) {
-        if (!vm.$refs.formProv_convenios.validate()) {
+        if (!(await vm.$refs.formProv_convenios.validate()).valid) {
           ok1 = false;
         }
       }
 
       let ok2 = true;
       if (vm.$store.state.entities.lstTarifas.length > 0) {
-        if (!vm.$refs.formProv_tarifas.validate()) {
+        if (!(await vm.$refs.formProv_tarifas.validate()).valid) {
           ok2 = false;
         }
       }
@@ -407,10 +406,10 @@ export default {
   },
   watch: {
     "$store.state.entities.isStep3Valid": {
-      handler(newValue) {
+      async handler(newValue) {
         if (!newValue) {
-          this.$refs.formProv_convenios.validate();
-          this.$refs.formProv_tarifas.validate();
+          await this.$refs.formProv_convenios.validate();
+          await this.$refs.formProv_tarifas.validate();
         }
       },
       immediate: true,
@@ -432,7 +431,7 @@ export default {
   flex-grow: 0 !important;
   flex-direction: row-reverse !important;
 }
-.customFile .v-input__prepend-outer {
+.customFile .v-input__prepend {
   margin-right: 0;
 }
 .container-narrow {

@@ -1,6 +1,9 @@
 <template>
   <div>
-    <v-overlay :model-value="$store.state.spiner">
+    <v-overlay
+      :model-value="$store.state.spiner"
+      class="align-center justify-center"
+    >
       <v-row class="fill-height align-content-center justify-center">
         <v-col class="text-subtitle-1 text-center" cols="12">
           Cargando Datos, espere un momento por favor...
@@ -17,85 +20,85 @@
     </v-overlay>
     <v-stepper v-model="$store.state.entities.stepper" non-linear>
       <v-stepper-header>
-        <v-stepper-step
+        <v-stepper-item
           :complete="$store.state.entities.stepper > 1"
           editable
-          step="1"
-          >Datos del Cliente</v-stepper-step
-        >
+          :value="1"
+          title="Datos del Cliente"
+        ></v-stepper-item>
 
         <v-divider></v-divider>
 
-        <v-stepper-step
+        <v-stepper-item
           :complete="$store.state.entities.stepper > 2"
           :editable="$store.state.entities.stepper > 2"
-          step="2"
-          >Teléfonos y Contactos</v-stepper-step
-        >
+          :value="2"
+          title="Teléfonos y Contactos"
+        ></v-stepper-item>
 
         <v-divider></v-divider>
 
-        <v-stepper-step
+        <v-stepper-item
           :complete="$store.state.entities.stepper > 3"
           :editable="$store.state.entities.stepper > 3"
-          step="3"
-          >Convenios y Tarifas</v-stepper-step
-        >
+          :value="3"
+          title="Convenios y Tarifas"
+        ></v-stepper-item>
 
         <v-divider></v-divider>
 
-        <v-stepper-step
+        <v-stepper-item
           :complete="$store.state.entities.stepper > 4"
           :editable="$store.state.entities.stepper > 4"
-          step="4"
-          >Información Bancaria</v-stepper-step
-        >
+          :value="4"
+          title="Información Bancaria"
+        ></v-stepper-item>
 
         <v-divider></v-divider>
 
-        <v-stepper-step
+        <v-stepper-item
           :complete="$store.state.entities.stepper > 5"
           :editable="$store.state.entities.stepper > 5"
-          step="5"
-          >Shipper</v-stepper-step
-        >
+          :value="5"
+          title="Shipper"
+        ></v-stepper-item>
 
         <v-divider></v-divider>
 
-        <v-stepper-step step="6">Destinatario</v-stepper-step>
+        <v-stepper-item :value="6" title="Destinatario"></v-stepper-item>
       </v-stepper-header>
 
-      <v-stepper-items>
+      <v-stepper-window>
         <!--DATOS DEL CLIENTE-->
-        <v-stepper-content step="1">
+        <v-stepper-window-item :value="1" eager>
           <SeccionCliente :isPricing="isPricing" />
-        </v-stepper-content>
+        </v-stepper-window-item>
 
         <!--TELÉFONOS-->
-        <v-stepper-content step="2">
+        <v-stepper-window-item :value="2" eager>
           <SeccionTelefonos />
-        </v-stepper-content>
+        </v-stepper-window-item>
 
         <!--CONVENIOS Y TARIFAS-->
-        <v-stepper-content step="3">
+        <v-stepper-window-item :value="3" eager>
           <SeccionConvenios />
-        </v-stepper-content>
+        </v-stepper-window-item>
 
         <!--INFORMACIÓN BANCARIA-->
-        <v-stepper-content step="4">
+        <v-stepper-window-item :value="4" eager>
           <SeccionInformacionBancaria />
-        </v-stepper-content>
+        </v-stepper-window-item>
 
         <!--SHIPPER-->
-        <v-stepper-content step="5">
+        <v-stepper-window-item :value="5" eager>
           <SeccionShippers />
-        </v-stepper-content>
+        </v-stepper-window-item>
 
         <!--INFORMACIÓN DE ENTREGA-->
-        <v-stepper-content step="6">
+        <v-stepper-window-item :value="6" eager>
           <SeccionInformacionEntrega />
-        </v-stepper-content>
-      </v-stepper-items>
+        </v-stepper-window-item>
+      </v-stepper-window>
     </v-stepper>
   </div>
 </template>
@@ -132,6 +135,7 @@ export default {
       default: false,
     },
   },
+  emits: ["btnGuardar"],
   methods: {
     ...mapActions([
       "getListProveedor",
@@ -286,7 +290,7 @@ export default {
 </script>
 
 <style>
-.v-stepper__content {
+.v-stepper-window-item {
   padding: 24px;
 }
 
