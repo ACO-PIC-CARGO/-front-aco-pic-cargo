@@ -224,6 +224,11 @@ export const KNOWN_CONSOLE_NOISE = [
     reason: "same pre-existing issue as the cargaMasivaCalc 'Method \"computed\"' entry, Vue 3 wording: CalculadoraComponent nests a computed block inside methods",
     routes: ["cargaMasivaCalc"],
   },
+  {
+    pattern: /^\[Vue warn\]: Property "showNombreFiscal" was accessed during render but is not defined on instance\./,
+    reason: "same pre-existing issue as the nuevoClientes 'showNombreFiscal' entry, Vue 3 wording: seccionCliente renders v-if=\"showNombreFiscal\" without defining it",
+    routes: ["nuevoClientes", "verCliente", "editarCliente"],
+  },
 ];
 
 export const isKnownNoise = (text, routeName) =>
