@@ -78,9 +78,9 @@
           <v-data-table
             :headers="headers"
             :items="rows"
-            item-key="id"
+            item-value="id"
             hide-default-footer
-            disable-pagination
+            :items-per-page="-1"
             class="payments"
           >
             <template #[`item.amount`]="{ item }">
@@ -293,14 +293,7 @@ export default {
   font-size: 15px;
 }
 
-.plans-theme
-  .payments.v-data-table
-  ::v-deep
-  .v-data-table__wrapper
-  > table
-  > thead
-  > tr
-  > th {
+.plans-theme .payments.v-data-table :deep(.v-table__wrapper > table > thead > tr > th) {
   height: auto;
   padding: 10px 12px;
   border-bottom: 1px solid var(--planes-border-strong);
@@ -309,31 +302,12 @@ export default {
   color: var(--planes-text-muted);
 }
 
-.plans-theme
-  .payments.v-data-table
-  ::v-deep
-  .v-data-table__wrapper
-  > table
-  > tbody
-  > tr
-  > td:not(.v-data-table__mobile-row) {
+.plans-theme .payments.v-data-table :deep(.v-table__wrapper > table > tbody > tr > td) {
   height: auto;
   padding: 10px 12px;
   border-bottom: 1px solid var(--planes-divider);
   font-size: 15px;
   vertical-align: middle;
-}
-
-.plans-theme
-  .payments.v-data-table
-  ::v-deep
-  .v-data-table__wrapper
-  > table
-  > tbody
-  > tr:hover:not(.v-data-table__expanded__content):not(
-    .v-data-table__empty-wrapper
-  ) {
-  background: transparent;
 }
 
 .payments__amount {
@@ -388,65 +362,6 @@ export default {
 
   .plans-theme .payment-method .plans-button.v-btn {
     width: 100%;
-  }
-
-  .plans-theme .payments.v-data-table ::v-deep .v-data-table__wrapper {
-    overflow: visible;
-  }
-
-  .plans-theme .payments.v-data-table ::v-deep .v-data-table-header-mobile {
-    display: none;
-  }
-
-  .plans-theme
-    .payments.v-data-table
-    ::v-deep
-    .v-data-table__wrapper
-    > table
-    > tbody
-    > tr.v-data-table__mobile-table-row {
-    margin-bottom: 12px;
-    padding: 8px 16px;
-    border-radius: var(--planes-radius-card);
-    border: 1px solid var(--planes-border);
-    box-shadow: var(--planes-card-shadow);
-  }
-
-  .plans-theme
-    .payments.v-data-table
-    ::v-deep
-    .v-data-table__wrapper
-    > table
-    > tbody
-    > tr
-    > td.v-data-table__mobile-row {
-    min-height: 0;
-    height: auto;
-    gap: 12px;
-    padding: 8px 0;
-    border-bottom: 1px solid var(--planes-divider);
-    text-align: right;
-  }
-
-  .plans-theme
-    .payments.v-data-table
-    ::v-deep
-    .v-data-table__wrapper
-    > table
-    > tbody
-    > tr
-    > td.v-data-table__mobile-row:last-child {
-    border-bottom: 0;
-  }
-
-  .plans-theme
-    .payments.v-data-table
-    ::v-deep
-    .v-data-table__mobile-row__header {
-    font-size: 13px;
-    font-weight: 600;
-    text-align: left;
-    color: var(--planes-text-muted);
   }
 }
 </style>

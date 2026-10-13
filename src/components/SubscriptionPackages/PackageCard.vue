@@ -117,6 +117,7 @@ export default {
     expanded: { type: Boolean, default: false },
     index: { type: Number, default: 0 },
   },
+  emits: ["toggle-details"],
   computed: {
     detailsId() {
       return `plan-details-${this.$.uid}`;
@@ -397,7 +398,7 @@ export default {
   color: var(--planes-text-muted);
 }
 
-.plans-theme .plan__details-toggle.v-btn >>> .v-btn__content {
+.plans-theme .plan__details-toggle.v-btn :deep(.v-btn__content) {
   flex: 0 1 auto;
   gap: 6px;
 }

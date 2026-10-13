@@ -15,7 +15,7 @@
           v-model="checkbox"
           :label="`${modulo.name}`"
           readonly
-          dense
+          density="compact"
         ></v-checkbox>
       </v-col>
       <v-col cols="12">
@@ -77,8 +77,8 @@
         </v-table>
       </v-col>
       <v-col cols="12" class="centrado">
-        <v-btn dark class="mx-5" color="red">Regresar</v-btn>
-        <v-btn dark class="mx-5" color="#527AC7">Continuar</v-btn>
+        <v-btn class="mx-5" color="red">Regresar</v-btn>
+        <v-btn class="mx-5" color="#527AC7">Continuar</v-btn>
       </v-col>
     </v-row>
   </v-container>

@@ -14,9 +14,9 @@
       <v-chip
         v-if="notice.ended"
         color="orange-lighten-4"
-        text-color="orange darken-4"
+        variant="flat"
         size="small"
-        class="font-weight-bold"
+        class="font-weight-bold text-orange-darken-4"
       >
         Tu prueba terminó
       </v-chip>
@@ -26,9 +26,9 @@
         >
         <v-chip
           color="green-lighten-4"
-          text-color="green darken-4"
+          variant="flat"
           size="small"
-          class="font-weight-bold"
+          class="font-weight-bold text-green-darken-4"
         >
           {{ daysLabel(notice.days) }}
         </v-chip>
@@ -37,7 +37,6 @@
     <v-btn
       v-if="notice.canBuy"
       color="blue-darken-2"
-      dark
       variant="flat"
       rounded
       class="text-none"

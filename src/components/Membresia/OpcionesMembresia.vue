@@ -38,7 +38,7 @@
             </div>
           </div>
           <div class="col-12 centrado">
-            <v-btn @click="abrirPorModulo()" color="#2749C1" dark
+            <v-btn @click="abrirPorModulo()" color="#2749C1"
               >Contratar</v-btn
             >
           </div>
@@ -87,7 +87,7 @@
             </div>
           </div>
           <div class="col-12 centrado">
-            <v-btn @click="abrirFull()" color="#2749C1" dark>Contratar</v-btn>
+            <v-btn @click="abrirFull()" color="#2749C1">Contratar</v-btn>
           </div>
         </v-card>
       </v-col>
@@ -128,7 +128,7 @@
             </div>
           </div>
           <div class="col-12 centrado">
-            <v-btn @click="abrirDosModulos()" color="#2749C1" dark
+            <v-btn @click="abrirDosModulos()" color="#2749C1"
               >Contratar</v-btn
             >
           </div>

@@ -1,9 +1,9 @@
 <template>
   <v-dialog
-    :model-value="value"
+    :model-value="modelValue"
     max-width="640"
     persistent
-    :fullscreen="$vuetify.breakpoint.xsOnly"
+    :fullscreen="$vuetify.display.xs"
     content-class="plans-theme plans-theme--app package-dialog"
   >
     <section class="paddle-sync" aria-labelledby="paddle-sync-title">
@@ -127,8 +127,9 @@ const STATUSES = {
 
 export default {
   name: "PaddleSyncDialog",
+  emits: ["update:modelValue"],
   props: {
-    value: { type: Boolean, default: false },
+    modelValue: { type: Boolean, default: false },
   },
   data: () => ({
     loadState: "loading",
@@ -145,7 +146,7 @@ export default {
     },
   },
   watch: {
-    value(isOpen) {
+    modelValue(isOpen) {
       if (isOpen) this.load();
     },
   },
@@ -176,7 +177,7 @@ export default {
       if (!response.data.length) this.loadState = "error";
     },
     close() {
-      this.$emit("input", false);
+      this.$emit("update:modelValue", false);
     },
   },
 };

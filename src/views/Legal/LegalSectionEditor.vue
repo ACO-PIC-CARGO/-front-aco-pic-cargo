@@ -4,7 +4,7 @@
       <h2 class="legal-section__title">Sección {{ number }}</h2>
       <div class="legal-section__actions">
         <v-btn
-          :id="`${value.key}-up`"
+          :id="`${modelValue.key}-up`"
           icon
           variant="text"
           class="icon-button"
@@ -15,7 +15,7 @@
           <v-icon>mdi-arrow-up</v-icon>
         </v-btn>
         <v-btn
-          :id="`${value.key}-down`"
+          :id="`${modelValue.key}-down`"
           icon
           variant="text"
           class="icon-button"
@@ -39,8 +39,8 @@
     </div>
 
     <v-text-field
-      :id="`${value.key}-heading`"
-      :model-value="value.heading"
+      :id="`${modelValue.key}-heading`"
+      :model-value="modelValue.heading"
       label="Título de la sección"
       autocomplete="off"
       :maxlength="limits.heading"
@@ -53,8 +53,8 @@
     />
 
     <v-textarea
-      :id="`${value.key}-text`"
-      :model-value="value.text"
+      :id="`${modelValue.key}-text`"
+      :model-value="modelValue.text"
       label="Texto"
       rows="6"
       auto-grow
@@ -74,8 +74,9 @@ import { mapGetters } from "vuex";
 
 export default {
   name: "LegalSectionEditor",
+  emits: ["update:modelValue", "move", "remove"],
   props: {
-    value: { type: Object, required: true },
+    modelValue: { type: Object, required: true },
     index: { type: Number, required: true },
     count: { type: Number, required: true },
     errors: { type: Object, default: () => ({ heading: "", text: "" }) },
@@ -86,14 +87,14 @@ export default {
       return this.index + 1;
     },
     hint() {
-      return `${this.textLength(this.value.text)} de ${
+      return `${this.textLength(this.modelValue.text)} de ${
         this.limits.text
       } caracteres. Separa los párrafos con una línea en blanco.`;
     },
   },
   methods: {
     update(field, text) {
-      this.$emit("input", { ...this.value, [field]: text });
+      this.$emit("update:modelValue", { ...this.modelValue, [field]: text });
     },
   },
 };

@@ -1,6 +1,6 @@
 <template>
   <v-dialog
-    :model-value="value"
+    :model-value="modelValue"
     max-width="520"
     persistent
     :fullscreen="$vuetify.display.xs"
@@ -38,7 +38,7 @@
           :label="module.name"
           :disabled="isLocked(module.id)"
           hide-details
-          dense
+          density="compact"
         />
       </fieldset>
       <p class="module-select__count" aria-live="polite">{{ countLabel }}</p>
@@ -63,8 +63,9 @@
 <script>
 export default {
   name: "ModuleSelectDialog",
+  emits: ["update:modelValue", "confirm"],
   props: {
-    value: { type: Boolean, default: false },
+    modelValue: { type: Boolean, default: false },
     pkg: { type: Object, default: null },
     confirmLabel: { type: String, default: "Continuar al pago" },
   },
@@ -86,7 +87,7 @@ export default {
     },
   },
   watch: {
-    value(isOpen) {
+    modelValue(isOpen) {
       if (isOpen) this.selectedIds = [];
     },
   },
@@ -95,7 +96,7 @@ export default {
       return this.isComplete && !this.selectedIds.includes(moduleId);
     },
     close() {
-      this.$emit("input", false);
+      this.$emit("update:modelValue", false);
     },
     confirm() {
       if (!this.isComplete) return;
@@ -162,17 +163,11 @@ export default {
   border-radius: var(--planes-radius-control);
 }
 
-.plans-theme .module-select__option.v-input >>> .v-input__slot {
-  margin: 0;
-}
-
-.plans-theme
-  .module-select__option.v-input:not(.v-input--is-disabled)
-  >>> .v-label {
+.plans-theme .module-select__option.v-input:not(.v-input--disabled) :deep(.v-label) {
   color: var(--planes-text);
 }
 
-.plans-theme .module-select__option.v-input--is-label-active >>> .v-icon {
+.plans-theme .module-select__option :deep(.v-selection-control--dirty .v-icon) {
   color: var(--planes-accent) !important;
 }
 

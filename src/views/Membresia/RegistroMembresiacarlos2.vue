@@ -140,7 +140,6 @@
 
             <v-divider class="my-2"></v-divider>
             <v-list>
-              <v-list-item-group>
                 <v-list-item
                   v-for="feature in plan.caracteristicas"
                   :key="feature.descripcion"
@@ -167,7 +166,6 @@
                     >
                   
                 </v-list-item>
-              </v-list-item-group>
             </v-list>
 
             <v-btn
@@ -285,8 +283,8 @@ export default {
         this.planes = response.data.data;
 
         this.planes.forEach((plan) => {
-          this.$set(this.selectedUsers, plan.plan_id, plan.usuarios_principal);
-          this.$set(this.selectedPlans, plan.plan_id, "mensual");
+          this.selectedUsers[plan.plan_id] = plan.usuarios_principal;
+          this.selectedPlans[plan.plan_id] = "mensual";
         });
       } catch (error) {
         console.error("Error al obtener planes:", error);
@@ -309,7 +307,7 @@ export default {
         : 0;
     },
     togglePlan(planId, planType) {
-      this.$set(this.selectedPlans, planId, planType);
+      this.selectedPlans[planId] = planType;
     },
     async subscribe(planId) {
       const usuarioId = 1;

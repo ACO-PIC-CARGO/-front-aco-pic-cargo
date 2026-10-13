@@ -101,7 +101,7 @@
       max-width="440"
       content-class="purchase-notice plans-theme"
       scrim="#020a0d"
-      overlay-opacity="0.72"
+      opacity="0.72"
     >
       <div
         role="dialog"
@@ -492,7 +492,7 @@ export default {
   color: var(--planes-accent-ink);
 }
 
-.plans-theme .plan__cta.v-btn >>> .v-btn__content {
+.plans-theme .plan__cta.v-btn :deep(.v-btn__content) {
   gap: 8px;
 }
 
@@ -678,7 +678,7 @@ export default {
 </style>
 
 <style>
-.v-dialog.plans-theme.purchase-notice {
+.v-dialog > .v-overlay__content.plans-theme.purchase-notice {
   width: min(400px, calc(100vw - 32px));
   padding: 28px 24px 24px;
   border-radius: var(--planes-radius-card);

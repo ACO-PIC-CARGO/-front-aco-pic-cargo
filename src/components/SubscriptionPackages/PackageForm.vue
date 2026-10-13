@@ -1,9 +1,9 @@
 <template>
   <v-dialog
-    :model-value="value"
+    :model-value="modelValue"
     max-width="1180"
     persistent
-    :fullscreen="$vuetify.breakpoint.smAndDown"
+    :fullscreen="$vuetify.display.smAndDown"
     content-class="plans-theme plans-theme--app package-dialog"
   >
     <v-form
@@ -561,8 +561,9 @@ const draftField = (field) => ({
 export default {
   name: "PackageForm",
   components: { PackageCard },
+  emits: ["update:modelValue", "saved"],
   props: {
-    value: { type: Boolean, default: false },
+    modelValue: { type: Boolean, default: false },
     pkg: { type: Object, default: null },
   },
   data: () => ({
@@ -643,7 +644,7 @@ export default {
     },
   },
   watch: {
-    value(isOpen) {
+    modelValue(isOpen) {
       if (isOpen) this.reset();
     },
   },
@@ -725,7 +726,7 @@ export default {
       if (element) element.focus();
     },
     close() {
-      this.$emit("input", false);
+      this.$emit("update:modelValue", false);
     },
     async save() {
       this.submitted = true;
@@ -847,7 +848,7 @@ export default {
   padding: 0;
 }
 
-.plans-theme .package-switch.v-input >>> .v-label {
+.plans-theme .package-switch.v-input :deep(.v-label) {
   color: var(--planes-text);
 }
 
@@ -910,7 +911,7 @@ export default {
   padding: 0;
 }
 
-.stepper__value >>> input {
+.stepper__value :deep(input) {
   text-align: center;
 }
 
@@ -951,7 +952,7 @@ export default {
   transition: border-color 0.2s, background-color 0.2s, color 0.2s;
 }
 
-.plans-theme .chip.v-btn >>> .v-btn__content {
+.plans-theme .chip.v-btn :deep(.v-btn__content) {
   gap: 6px;
 }
 
@@ -1044,7 +1045,7 @@ export default {
   background: var(--planes-overlay-faint);
 }
 
-.feature-row--excluded .input--inline >>> input {
+.feature-row--excluded .input--inline :deep(input) {
   color: var(--planes-text-subtle);
 }
 
