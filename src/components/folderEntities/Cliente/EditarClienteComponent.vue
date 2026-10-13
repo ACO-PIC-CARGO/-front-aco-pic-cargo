@@ -184,15 +184,7 @@ export default {
 </script>
 
 <style>
-.v-stepper-window-item {
-  padding: 24px;
-}
-
 .row + .row {
   margin-top: 0;
-}
-
-tr.v-data-table__selected {
-  background: #ffccab !important;
 }
 </style>
