@@ -229,7 +229,7 @@ export default {
     this.$store.state.entities.cliente.nombrecompleto = "";
     this.$store.state.entities.cliente.id_tipotransaccion = "56";
     this.$store.state.entities.cliente.nro_documento = "";
-    this.$store.state.entities.cliente.id_pais = 0;
+    this.$store.state.entities.cliente.id_pais = null;
     this.$store.state.entities.cliente.id_ciudad = 0;
     this.$store.state.entities.cliente.direccion = "";
     this.$store.state.entities.cliente.emailaddress = "";

@@ -226,7 +226,7 @@ export default {
     this.$store.state.entities.proveedor.id_tipoproveedor = "";
     this.$store.state.entities.proveedor.id_tipotransaccion = "56";
     this.$store.state.entities.proveedor.nro_documento = "";
-    this.$store.state.entities.proveedor.id_pais = 0;
+    this.$store.state.entities.proveedor.id_pais = null;
     this.$store.state.entities.proveedor.id_ciudad = 0;
     this.$store.state.entities.proveedor.direccion = "";
     this.$store.state.entities.proveedor.emailaddress = "";
