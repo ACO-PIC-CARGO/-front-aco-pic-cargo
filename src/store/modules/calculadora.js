@@ -1420,7 +1420,7 @@ const actions = {
 
     var config = {
       method: "put",
-      url: process.env.VUE_APP_URL_MAIN + "calc/flete/actualizar/individual",
+      url: process.env.VUE_APP_URL_MAIN + "calc/actualizar/estado/cotizacion",
       headers: headers,
       data: data,
     };

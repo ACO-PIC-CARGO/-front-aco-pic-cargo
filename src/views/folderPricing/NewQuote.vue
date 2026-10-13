@@ -14,7 +14,7 @@
 
         <v-divider></v-divider>
 
-        <v-stepper-step step="3"> Comparativa </v-stepper-step>
+        <v-stepper-step step="3" :editable="editableStep3"> Comparativa </v-stepper-step>
         <v-divider></v-divider>
         <v-stepper-step step="4"> Notas de Costos </v-stepper-step>
       </v-stepper-header>
@@ -39,6 +39,7 @@
                 v-if="DatosCargaComponentFlag"
                 @activarServicios="activarServicios()"
                 @recargarCostos="recargarCostos"
+                :ServicesComponentFlag="ServicesComponentFlag"
               />
             </v-col>
             <v-col cols="12" id="ServicesComponent">
@@ -65,7 +66,7 @@
           />
         </v-stepper-content>
 
-        <v-stepper-content step="3">
+        <v-stepper-content step="3" >
           <ComparativaComponent @irVentaCliente="irVentaCliente" />
         </v-stepper-content>
         <v-stepper-content step="4">
@@ -101,6 +102,7 @@ export default {
   data() {
     return {
       step: 1,
+      editableStep3:false,
       DatosCargaComponentFlag: false,
       ServicesComponentFlag: false,
       editableStep2: false,
@@ -266,7 +268,6 @@ export default {
           return v;
         });
       }
-      console.log("servicios filtrados", serv);
       this.$store.state.pricing.listServices = serv;
       this.$nextTick(() => {
         // setTimeout(() => {
@@ -991,6 +992,7 @@ export default {
     irVentaCliente() {
       this.step = 2;
       this.$store.state.pricing.step = 2;
+      this.editableStep3 = true
     },
     irANotas() {
       this.step = 4;
