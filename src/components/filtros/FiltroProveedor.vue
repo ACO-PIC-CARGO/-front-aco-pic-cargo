@@ -61,9 +61,9 @@
           item-value="id"
           :items="$store.state.itemsPais"
           label="País"
-          @update:model-value="_getState($store.state.entities.filtro.id_pais)"
           clearable
           v-model="$store.state.entities.filtro.id_pais"
+          @update:model-value="_getState($store.state.entities.filtro.id_pais)"
         ></v-autocomplete>
 
         <v-autocomplete

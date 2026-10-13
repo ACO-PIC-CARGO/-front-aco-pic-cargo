@@ -591,9 +591,9 @@
                 <v-row>
                   <v-col cols="12">
                     <v-checkbox
-                      @update:model-value="checkNoAplica(24)"
                       label="No Aplica"
                       v-model="datosManualesNoAplica.observacion1"
+                      @update:model-value="checkNoAplica(24)"
                     ></v-checkbox>
                     <v-textarea
                       v-model="datosManuales.observacion1"
@@ -617,9 +617,9 @@
                 <v-row>
                   <v-col cols="12">
                     <v-checkbox
-                      @update:model-value="checkNoAplica(25)"
                       label="No Aplica"
                       v-model="datosManualesNoAplica.observacion2"
+                      @update:model-value="checkNoAplica(25)"
                     ></v-checkbox>
                     <v-textarea
                       v-model="datosManuales.observacion2"
