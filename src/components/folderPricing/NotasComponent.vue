@@ -1,5 +1,5 @@
 <template>
-  <v-card fluid v-if="this.opcionesSeleccionadas.length > 0">
+  <v-card fluid v-if="opcionSeleccionadaActual">
     <v-dialog
       v-model="dialog"
       persistent
@@ -9,8 +9,7 @@
       <v-card>
         <v-card-title primary-title>
           Registro de nueva nota - Opción
-          {{ opcionesSeleccionadas[$store.state.pricing.page - 1].nro_propuesta
-          }}<v-spacer></v-spacer>
+          {{ opcionSeleccionadaActual.nro_propuesta }}<v-spacer></v-spacer>
           <v-btn icon color="default" @click="dialog = false">
             <v-icon>mdi-close</v-icon>
           </v-btn>
@@ -34,7 +33,7 @@
     <v-row>
       <v-col cols="12">
         Añadir nueva Nota: Opción
-        {{ opcionesSeleccionadas[$store.state.pricing.page - 1].nro_propuesta }}
+        {{ opcionSeleccionadaActual.nro_propuesta }}
         <v-btn icon color="primary" @click="dialog = !dialog">
           <v-icon>mdi-plus</v-icon>
         </v-btn>
@@ -60,9 +59,7 @@
               <v-data-table
                 :headers="headers"
                 :items="
-                  opcionesSeleccionadas[
-                    $store.state.pricing.page - 1
-                  ].listNotasQuote.filter(
+                  opcionSeleccionadaActual.listNotasQuote.filter(
                     (v) =>
                       v.estado == 1 && !v.statusincluye && !v.statusnoincluye,
                   )
@@ -568,9 +565,7 @@ export default {
     },
     anidarNota() {
       if (this.$refs.frmNota.validate()) {
-        this.opcionesSeleccionadas[
-          this.$store.state.pricing.page - 1
-        ].listNotasQuote.push({
+        this.opcionSeleccionadaActual.listNotasQuote.push({
           descripcion: this.descripcion,
           estado: 1,
           statusincluye: this.statusincluye,
@@ -721,6 +716,14 @@ export default {
     opcionesSeleccionadas() {
       return this.$store.state.pricing.opcionCostos.filter((v) => !!v.selected);
     },
+    opcionSeleccionadaActual() {
+      const page = this.$store.state.pricing.page - 1;
+      return (
+        this.opcionesSeleccionadas[page] ||
+        this.opcionesSeleccionadas[0] ||
+        null
+      );
+    },
     actualizarNotas: {
       get() {
         return this.$store.state.pricing.actualizarNotas;
@@ -734,16 +737,19 @@ export default {
         (v) => v.status == 1,
       );
 
-      let opcion = this.opcionesSeleccionadas[
-        this.$store.state.pricing.page - 1
-      ].listNotasQuote.filter((v) => v.estado == 1 && v.statusincluye == 1);
+      const opcionActual = this.opcionSeleccionadaActual;
+      if (!opcionActual) {
+        return val;
+      }
+      let opcion = opcionActual.listNotasQuote.filter(
+        (v) => v.estado == 1 && v.statusincluye == 1,
+      );
       opcion = opcion.map((v) => ({ ...v, service: v.descripcion }));
 
       let final = [...val, ...opcion];
 
-      // Agregar al final: Fecha de Vigencia y Tiempo de Tránsito (si existen)
-      const opt =
-        this.opcionesSeleccionadas[this.$store.state.pricing.page - 1] || {};
+      
+      const opt = opcionActual;
       const fechaVigencia =
         opt.date_end || this.$store.state.pricing.datosPrincipales.fecha_fin;
       const ttransito =
@@ -766,9 +772,13 @@ export default {
         (v) => v.status == 0,
       );
 
-      let opcion = this.opcionesSeleccionadas[
-        this.$store.state.pricing.page - 1
-      ].listNotasQuote.filter((v) => v.estado == 1 && v.statusnoincluye == 1);
+      const opcionActual = this.opcionSeleccionadaActual;
+      if (!opcionActual) {
+        return val;
+      }
+      let opcion = opcionActual.listNotasQuote.filter(
+        (v) => v.estado == 1 && v.statusnoincluye == 1,
+      );
       opcion = opcion.map((v) => ({ ...v, service: v.descripcion }));
 
       let final = [...val, ...opcion];
@@ -777,6 +787,9 @@ export default {
     },
   },
   watch: {
+    opcionesSeleccionadas() {
+      this.$store.state.pricing.page = 1;
+    },
     actualizarNotas() {
       this.llenarNotasSeleccionadas();
     },

@@ -117,25 +117,11 @@
                     /^-?\d+$/.test(v) || 'Debe ser un número entero válido',
                   (v) => v > 0 || 'El valor tiene que ser un númro positivo',
                 ]"
+                v-on:keyup.enter="anadirCarga()"
               >
               </v-text-field>
             </v-col>
 
-            <v-col cols="12" lg="4" xl="4">
-              <v-text-field
-                label="Volumen"
-                v-model="volumen"
-                outlined
-                dense
-                type="number"
-                suffix="m3"
-                :rules="[
-                  (v) => !!v || 'Dato Requerido',
-                  (v) => v > 0 || 'El valor tiene que ser un númro positivo',
-                ]"
-              >
-              </v-text-field>
-            </v-col>
             <v-col cols="12" lg="4" xl="4">
               <v-text-field
                 label="Peso"
@@ -144,6 +130,22 @@
                 dense
                 type="number"
                 suffix="kg"
+                :rules="[
+                  (v) => !!v || 'Dato Requerido',
+                  (v) => v > 0 || 'El valor tiene que ser un númro positivo',
+                ]"
+                v-on:keyup.enter="anadirCarga()"
+              >
+              </v-text-field>
+            </v-col>
+            <v-col cols="12" lg="4" xl="4">
+              <v-text-field
+                label="Volumen"
+                v-model="volumen"
+                outlined
+                dense
+                type="number"
+                suffix="m3"
                 :rules="[
                   (v) => !!v || 'Dato Requerido',
                   (v) => v > 0 || 'El valor tiene que ser un númro positivo',
@@ -540,7 +542,7 @@
 
             <v-spacer />
 
-            <v-btn icon @click="dialogCambiarPercepcionAduana = false">
+            <v-btn icon @click="cerrarDialogCambiarPercepcionAduana">
               <v-icon color="blue-grey"> mdi-close </v-icon>
             </v-btn>
           </div>
@@ -588,7 +590,7 @@
             color="blue-grey lighten-5"
             depressed
             class="btn-impuestos btn-cancelar"
-            @click="dialogCambiarPercepcionAduana = false"
+            @click="cerrarDialogCambiarPercepcionAduana"
           >
             Cancelar
           </v-btn>
@@ -606,6 +608,38 @@
             @click="cambiarPercepcionAduana"
           >
             Confirmar
+          </v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
+
+    <v-dialog v-model="dialogSeleccionDistrito" max-width="560px" persistent>
+      <v-card rounded="lg">
+        <v-card-title class="text-h5 font-weight-bold">
+          Seleccionar distrito
+        </v-card-title>
+        <v-card-text>
+          <p>Selecciona el distrito para calcular la tarifa de transporte.</p>
+          <v-autocomplete
+            v-model="idTownSeleccionado"
+            :items="$store.state.town.lstTown"
+            item-text="nombrecompleto"
+            item-value="id"
+            dense
+            outlined
+            label="Distrito"
+            :error-messages="errorIdTown"
+            @input="errorIdTown = ''"
+          />
+        </v-card-text>
+        <v-card-actions class="px-6 pb-4">
+          <v-spacer />
+          <v-btn
+            color="primary"
+            dark
+            @click="confirmarSeleccionDistrito"
+          >
+            Aceptar
           </v-btn>
         </v-card-actions>
       </v-card>
@@ -629,10 +663,17 @@ export default {
       type: Boolean,
       default: false,
     },
+    ServicesComponentFlag: {
+      type: Boolean,
+      default: false,
+    },
   },
   data() {
     return {
       dialogCambiarPercepcionAduana: false,
+      dialogSeleccionDistrito: false,
+      idTownSeleccionado: null,
+      errorIdTown: "",
       mostrarContinuarFlag: true,
       headers: [
         { text: "", value: "action" },
@@ -785,7 +826,7 @@ export default {
       let codeServicesActivos = new Set(
         this.$store.state.pricing.listServices
           .filter((v) => v.status === true || v.status === 1)
-          .map((v) => v.code_service),
+          .map((v) => Number(v.code_service)),
       );
 
       let costos = [...this.$store.state.pricing.preCostos];
@@ -817,6 +858,21 @@ export default {
 
       this.$store.state.pricing.opcionCostos.forEach((opcion) => {
         opcion.listCostos.forEach((element) => {
+          const esCostoTransporte = Number(element.code_cost) === 13;
+
+          if (
+            esCostoTransporte &&
+            !this.$store.state.pricing.datosPrincipales.id_town
+          ) {
+            element.costounitario = 0;
+            element.tienefleteflag = false;
+            element.fechavigencia = null;
+            element.tieneprofitflag = false;
+            element.cif = esgrupalflag ? 0 : parseFloat(0.35);
+            element.seguro = esgrupalflag ? 0 : parseFloat(0.45);
+            return;
+          }
+
           let flete = this.obtenerFleteOpcion(element, flags);
           let fleteVenta = this.obtenerFleteOpcionVenta(element, flags);
           let transporte = this.obtenerTransporte(element, flags);
@@ -1137,6 +1193,105 @@ export default {
           !this.$store.state.pricing.actualizarCostosFlag;
       }
     },
+    cambiarServicioTransporteActivo() {
+      const servicio = this.$store.state.pricing.listServices.find(
+        (s) => Number(s.code_service) === 14,
+      );
+
+      if (servicio) {
+        servicio.status = 1;
+      }
+
+      const { datosPrincipales, preCostos, opcionCostos } =
+        this.$store.state.pricing;
+      const idTipoCarga =
+        typeof datosPrincipales.idtipocarga === "object"
+          ? datosPrincipales.idtipocarga.id
+          : datosPrincipales.idtipocarga;
+      const idContainers = new Set(
+        (datosPrincipales.containers || []).map((container) =>
+          Number(container.id || container.id_containers),
+        ),
+      );
+      const costosServicio = (preCostos || []).filter(
+        (costo) =>
+          (Number(costo.code_service) === 14 ||
+            (servicio?.id_groupservices &&
+              Number(costo.id_groupservices) ===
+                Number(servicio.id_groupservices)) ||
+            (servicio?.id &&
+              Number(costo.id_services) === Number(servicio.id))) &&
+          Number(costo.id_incoterms) === Number(datosPrincipales.idincoterms) &&
+          Number(costo.id_modality) === Number(datosPrincipales.idsentido) &&
+          Number(costo.id_shipment) === Number(idTipoCarga) &&
+          (!costo.escontenedorflag ||
+            idContainers.has(Number(costo.id_container))),
+      );
+      const costosEspeciales = [69, 114, 105, 39];
+
+      opcionCostos.forEach((opcion) => {
+        const costosActuales = opcion.listCostos || [];
+        const nuevosCostos = costosServicio.flatMap((costo) => {
+          const tiposCosto = costosEspeciales.includes(Number(costo.code_cost))
+            ? [{ esopcionflag: 1, esventaflag: 0 }]
+            : [
+                { esopcionflag: 1, esventaflag: 0 },
+                { esopcionflag: 0, esventaflag: 1 },
+              ];
+
+          return tiposCosto
+            .filter(
+              ({ esopcionflag, esventaflag }) =>
+                !costosActuales.some(
+                  (actual) =>
+                    (Number(actual.code_service) === 14 ||
+                      (servicio?.id_groupservices &&
+                        Number(actual.id_groupservices) ===
+                          Number(servicio.id_groupservices)) ||
+                      (servicio?.id &&
+                        Number(actual.id_services) === Number(servicio.id))) &&
+                    Number(actual.code_cost) === Number(costo.code_cost) &&
+                    String(actual.id_multiplicador || "N") ===
+                      String(costo.id_multiplicador || "N") &&
+                    Number(actual.id_container || 0) ===
+                      Number(costo.id_container || 0) &&
+                    Number(actual.esopcionflag) === esopcionflag &&
+                    Number(actual.esventaflag) === esventaflag,
+                ),
+            )
+            .map((tipoCosto) => ({
+              ...costo,
+              ...tipoCosto,
+              id: 0,
+              nro_propuesta: opcion.nro_propuesta,
+              status: true,
+              costounitario: 0,
+              cif: 0.35,
+              seguro: 0.45,
+            }));
+        });
+
+        if (nuevosCostos.length) {
+          this.$set(opcion, "listCostos", [...costosActuales, ...nuevosCostos]);
+        }
+      });
+
+      this.$forceUpdate();
+    },
+    desactivarTransporteParaGrupal() {
+      const servicioTransporte =
+        this.$store.state.pricing.listServices.find(
+          (servicio) => Number(servicio.code_service) === 14,
+        );
+      if (servicioTransporte) {
+        servicioTransporte.status = false;
+      }
+      this.$set(
+        this.$store.state.pricing.datosPrincipales,
+        "id_town",
+        null,
+      );
+    },
     async guardarContainer() {
       let cantCostos = this.$store.state.pricing.listCostos.length;
 
@@ -1243,9 +1398,7 @@ export default {
     //
     calcular() {
       if (this.$refs.calcularPesoFrom.validate()) {
-        // bultos
-
-        // factores
+        
         let factLongitud = this.unidadesLongitud.filter(
           (v) => v.value == this.fromMedidas.idLongitud,
         )[0].factor;
@@ -1254,14 +1407,14 @@ export default {
           (v) => v.value == this.fromMedidas.idpeso,
         )[0].factor;
 
-        // volumen
+       
 
         let volumen =
           this.fromMedidas.largo *
           this.fromMedidas.ancho *
           this.fromMedidas.alto *
           Math.pow(factLongitud, 3);
-        // peso
+      
         let peso = facPeso * this.fromMedidas.peso * this.fromMedidas.bultos;
         this.tblMedida.push({
           uni: this.fromMedidas.bultos,
@@ -1465,15 +1618,7 @@ export default {
           }
         }
       }
-      if (costo.code_cost == 11) {
-        // console.log({
-        //   esopcionflag:costo.esopcionflag,
-        //   esventaflag:costo.esventaflag,
-        //   costounitario: costounitario,
-        //   flete: flete,
-        //   fleteVenta: fleteVenta,
-        // });
-      }
+      
       return {
         costounitario: costounitario,
         flete: flete,
@@ -1508,7 +1653,7 @@ export default {
     },
     async confirmarCambio(tipo, nuevoValor) {
       this.id_percepcionaduana = null;
-      // Si el usuario está desmarcando la opción, lo permitimos directamente
+      
       if (!nuevoValor) {
         if (tipo === "grupal")
           this.$store.state.pricing.datosPrincipales.esgrupalflag = false;
@@ -1517,7 +1662,7 @@ export default {
         return;
       }
 
-      // Lógica para cambio a GRUPAL
+      
       if (tipo === "grupal") {
         const result = await Swal.fire({
           title:
@@ -1545,11 +1690,12 @@ export default {
         if (result.isConfirmed) {
           this.$store.state.pricing.datosPrincipales.esgrupalflag = true;
           this.$store.state.pricing.datosPrincipales.esindividualflag = false;
+          this.desactivarTransporteParaGrupal();
           setTimeout(() => {
             this.cambiarGrupalIndividual();
           }, 100);
         } else {
-          // SOLUCIÓN: Forzamos un cambio para que Vue reactive la vista de Vuetify
+          
           this.$store.state.pricing.datosPrincipales.esgrupalflag = true;
           this.$nextTick(() => {
             this.$store.state.pricing.datosPrincipales.esgrupalflag = false;
@@ -1586,14 +1732,15 @@ export default {
         if (result.isConfirmed) {
           this.$store.state.pricing.datosPrincipales.esindividualflag = true;
           this.$store.state.pricing.datosPrincipales.esgrupalflag = false;
+          this.cambiarServicioTransporteActivo();
           setTimeout(() => {
             this.cambiarGrupalIndividual();
             this.id_percepcionaduana =
               this.$store.state.pricing.datosPrincipales.id_percepcionaduana;
             this.dialogCambiarPercepcionAduana = true;
-          }, 100);
+          }, 200);
         } else {
-          // SOLUCIÓN: Aplicamos el mismo parche para el caso de cancelar el individual
+          
           this.$store.state.pricing.datosPrincipales.esindividualflag = true;
           this.$nextTick(() => {
             this.$store.state.pricing.datosPrincipales.esindividualflag = false;
@@ -1605,10 +1752,51 @@ export default {
     cambiarPercepcionAduana() {
       this.$store.state.pricing.datosPrincipales.id_percepcionaduana =
         this.id_percepcionaduana;
-      setTimeout(() => {
-        this.cambiarImpuesto();
-        this.dialogCambiarPercepcionAduana = false;
-      }, 100);
+      this.cambiarImpuesto();
+      this.cerrarDialogCambiarPercepcionAduana();
+    },
+    cerrarDialogCambiarPercepcionAduana() {
+      this.dialogCambiarPercepcionAduana = false;
+      this.$nextTick(() => {
+        this.errorIdTown = "";
+        const servicioTransporteActivo =
+          this.$store.state.pricing.listServices.some(
+            (servicio) =>
+              Number(servicio.code_service) === 14 &&
+              (servicio.status === true || Number(servicio.status) === 1),
+          );
+        if (!servicioTransporteActivo) {
+          return;
+        }
+        this.idTownSeleccionado = null;
+        this.dialogSeleccionDistrito = true;
+      });
+    },
+    confirmarSeleccionDistrito() {
+      const idTown = this.idTownSeleccionado;
+      if (!idTown) {
+        this.errorIdTown = "Selecciona un distrito";
+        return;
+      }
+
+      this.$set(
+        this.$store.state.pricing.datosPrincipales,
+        "id_town",
+        idTown,
+      );
+
+      this.$store.state.pricing.opcionCostos.forEach((opcion) => {
+        (opcion.listCostos || []).forEach((costo) => {
+          if (Number(costo.code_cost) === 13) {
+            costo.costounitario = this.obtenerTransporte(costo);
+          }
+        });
+      });
+
+      this.dialogSeleccionDistrito = false;
+      this.$store.state.pricing.actualizarCostosFlag =
+        !this.$store.state.pricing.actualizarCostosFlag;
+      this.$forceUpdate();
     },
   },
   computed: {
@@ -1684,7 +1872,7 @@ export default {
       return it && inVal.includes(it.code);
     },
     pesoVolumetrico() {
-      // Solo aplica para embarques aéreos
+      
       if (!this.isAereo) return null;
 
       const datos = this.$store.state.pricing.datosPrincipales || {};
@@ -1696,7 +1884,7 @@ export default {
       return parseFloat(pv.toFixed(2));
     },
     pesoCargable() {
-      // Solo aplica para embarques aéreos
+      
       if (!this.isAereo) return null;
 
       const datos = this.$store.state.pricing.datosPrincipales || {};
@@ -1705,7 +1893,7 @@ export default {
 
       if (!pesoReal && !volumen) return null;
 
-      // Factor estándar aéreo: volumen (m³) * 166.66 kg/m³
+      
       const pesoVolumetrico = volumen > 0 ? volumen * 166.66 : 0;
 
       const chargeable = Math.max(pesoReal || 0, pesoVolumetrico || 0);
@@ -1720,10 +1908,20 @@ export default {
         if (this.$store.state.pricing.datosPrincipales.id) {
           this.confirmarCambio("individual", valor);
         } else {
+          const cambioDesdeGrupal =
+            this.$store.state.pricing.datosPrincipales.esgrupalflag;
           this.$store.state.pricing.datosPrincipales.esindividualflag = true;
           this.$store.state.pricing.datosPrincipales.esgrupalflag = false;
+          if (cambioDesdeGrupal) {
+            this.cambiarServicioTransporteActivo();
+          }
           setTimeout(() => {
             this.cambiarImpuesto();
+            if (cambioDesdeGrupal) {
+              this.id_percepcionaduana =
+                this.$store.state.pricing.datosPrincipales.id_percepcionaduana;
+              this.dialogCambiarPercepcionAduana = true;
+            }
           }, 100);
         }
       },
@@ -1744,6 +1942,7 @@ export default {
             percepcionAduana.id;
           this.$store.state.pricing.datosPrincipales.esgrupalflag = true;
           this.$store.state.pricing.datosPrincipales.esindividualflag = false;
+          this.desactivarTransporteParaGrupal();
           setTimeout(() => {
             this.cambiarImpuesto();
           }, 100);

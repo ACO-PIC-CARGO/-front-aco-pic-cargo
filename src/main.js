@@ -13,6 +13,7 @@ Sentry.init({
   dsn: "https://f882606bd1c8140835ba8bbd919fdf0f@o4512212057456640.ingest.us.sentry.io/4512212072595456",
   environment: process.env.NODE_ENV,
   release: process.env.VUE_APP_VERSION,
+  enabled: process.env.NODE_ENV === 'production',
 });
 
 Vue.use(VueSweetalert2);
