@@ -131,6 +131,7 @@
             }`"
             color="success"
             v-model="$store.state.begend.model.status"
+            :value-comparator="(value, checked) => Boolean(value) === checked"
           ></v-switch>
         </div>
       </v-form>

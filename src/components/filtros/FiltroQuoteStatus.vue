@@ -306,6 +306,7 @@
                 }`"
                 color="success"
                 v-model="$store.state.QuoteStatus.StatusModel.status"
+                :value-comparator="(value, checked) => Boolean(value) === checked"
               ></v-switch>
             </div>
           </div></div

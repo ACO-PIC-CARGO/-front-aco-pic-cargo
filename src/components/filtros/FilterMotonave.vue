@@ -79,6 +79,7 @@
             }`"
             color="success"
             v-model="$store.state.motonave.MotonaveModel.status"
+            :value-comparator="(value, checked) => Boolean(value) === checked"
           ></v-switch>
         </div>
       </v-form>

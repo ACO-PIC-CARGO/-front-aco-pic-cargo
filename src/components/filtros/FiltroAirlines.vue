@@ -134,6 +134,7 @@
             }`"
             color="success"
             v-model="$store.state.airlines.AirlineModel.status"
+            :value-comparator="(value, checked) => Boolean(value) === checked"
             :readonly="$store.state.airlines.tipo == 'ver'"
           ></v-switch>
         </div>

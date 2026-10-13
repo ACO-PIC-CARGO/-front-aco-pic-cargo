@@ -8,7 +8,7 @@
           placeholder="Buscar"
           v-model="search"
           clearable
-          append-icon="mdi-magnify"
+          append-inner-icon="mdi-magnify"
         ></v-text-field>
       </v-col>
       <v-col cols="4" offset="4" class="text-right my-auto">
@@ -22,17 +22,16 @@
               !$store.state.QuoteStatus.drawer) &&
               ($store.state.QuoteStatus.tipo = 'filter')
           "
-          dark
           >FILTRAR</v-btn
         >
-        <v-btn size="small" class="mx-1" color="#004D40" dark>EXPORTAR</v-btn>
+        <v-btn size="small" class="mx-1" color="#004D40">EXPORTAR</v-btn>
       </v-col>
       <v-col cols="12">
         <v-data-table
           :headers="headers"
           :items="$store.state.QuoteStatus.statusQuoteList"
           class="elevation-1"
-          item-key="id"
+          item-value="id"
           :loading="loading"
           :search="search"
         >
@@ -40,21 +39,20 @@
             {{ !!item.status == 1 ? "Activo" : "Inactivo" }}
           </template>
           <template v-slot:[`item.statuscalls`]="{ item }">
-            <v-chip color="green" v-if="item.status_calls == 1" dark>Si</v-chip>
-            <v-chip color="red" v-else dark>No</v-chip>
+            <v-chip color="green" v-if="item.status_calls == 1">Si</v-chip>
+            <v-chip color="red" v-else>No</v-chip>
           </template>
           <template v-slot:[`item.statuscalls_all`]="{ item }">
-            <v-chip color="green" v-if="item.status_calls_all == 1" dark
+            <v-chip color="green" v-if="item.status_calls_all == 1"
               >Si</v-chip
             >
-            <v-chip color="red" v-else dark>No</v-chip>
+            <v-chip color="red" v-else>No</v-chip>
           </template>
           <template v-slot:[`item.action`]="{ item }">
             <v-tooltip location="bottom">
               <template v-slot:activator="{ props }">
                 <v-icon
                   color="primary"
-                  dark
                  
                   v-bind="props"
                   @click="ver(item)"
@@ -68,7 +66,6 @@
               <template v-slot:activator="{ props }">
                 <v-icon
                   color="warning"
-                  dark
                  
                   v-bind="props"
                   @click="editar(item)"
@@ -82,7 +79,6 @@
               <template v-slot:activator="{ props }">
                 <v-icon
                   color="error"
-                  dark
                  
                   v-bind="props"
                   @click="eliminar(item)"
