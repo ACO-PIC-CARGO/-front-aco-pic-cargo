@@ -1520,7 +1520,10 @@ const actions = {
     });
   },
   async copiarQuote(__, { fullflag = true, id = null }) {
-    let data = { id: id };
+    let data = { 
+      id: state.datosPrincipales.id,
+      id_town: state.datosPrincipales.id_town
+    };
     //  console.log(data.costocotizacion);
     let config = {
       method: "post",
@@ -5665,9 +5668,10 @@ const actions = {
       });
     });
 
-    state.vendedor = state.listEjecutivo.filter(
-      (v) => v.id_entitie == state.datosPrincipales.id_pricing,
-    )[0].name;
+    state.vendedor =
+      state.listEjecutivo.find(
+        (v) => v.id_entitie == state.datosPrincipales.id_pricing,
+      )?.name || "";
     // console.log(state.opcionCostos)
     GenerarIngresosInstrictivo(state.tiporeporte);
     GenerarCostosInstrictivo(state.tiporeporte);
@@ -5688,9 +5692,10 @@ const actions = {
     let montoCostos = 0;
     let totalCostos = 0;
     let sentido = state.listInstructivo[0].sentido;
-    state.vendedor = state.listEjecutivo.filter(
-      (v) => v.id_entitie == state.datosPrincipales.id_pricing,
-    )[0].name;
+    state.vendedor =
+      state.listEjecutivo.find(
+        (v) => v.id_entitie == state.datosPrincipales.id_pricing,
+      )?.name || "";
 
     const opcionesSeleccionadas = state.opcionCostos.filter(
       (v) => !!v.selected,

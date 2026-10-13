@@ -480,6 +480,35 @@
         </v-card-actions>
       </v-card>
     </v-dialog>
+
+    <v-dialog v-model="dialogSeleccionDistrito" max-width="560px" persistent>
+      <v-card rounded="lg">
+        <v-card-title class="text-h5 font-weight-bold">
+          Seleccionar distrito
+        </v-card-title>
+        <v-card-text>
+          <p>Selecciona el distrito para calcular la tarifa de transporte.</p>
+          <v-autocomplete
+            v-model="$store.state.pricing.datosPrincipales.id_town"
+            :items="$store.state.town.lstTown"
+            item-text="nombrecompleto"
+            item-value="id"
+            dense
+            outlined
+          />
+        </v-card-text>
+        <v-card-actions class="px-6 pb-4">
+          <v-spacer />
+          <v-btn
+            color="primary"
+            :disabled="!$store.state.pricing.datosPrincipales.id_town"
+            @click="confirmarSeleccionDistrito"
+          >
+            Aceptar
+          </v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
   </v-app>
 </template>
 
@@ -510,6 +539,7 @@ export default {
   mixins: [mixins],
   data() {
     return {
+      dialogSeleccionDistrito: false,
       dialogCambiarFecha: false,
       fechaVigencia: "",
       snackbar: false,
@@ -1140,9 +1170,25 @@ export default {
         denyButtonText: `Cancelar`,
       }).then(async (result) => {
         if (result.isConfirmed) {
-          this.dialogFiles = true;
+          this.validarExistTransporte();
         }
       });
+    },
+    validarExistTransporte() {
+      let { servicios, id_town } = this.$store.state.pricing.datosPrincipales;
+
+      if (
+        servicios.some((v) => v.code_service == "14" && v.status == 1) &&
+        !id_town
+      ) {
+        this.dialogSeleccionDistrito = true;
+        return;
+      }
+      this.dialogFiles = true;
+    },
+    confirmarSeleccionDistrito() {
+      this.dialogSeleccionDistrito = false;
+      this.dialogFiles = true;
     },
     getColorIcon(item) {
       if (item.folder) return "amber";
