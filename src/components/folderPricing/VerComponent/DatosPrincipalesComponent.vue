@@ -139,9 +139,7 @@
           ></v-text-field>
 
           <v-text-field
-            name="name"
             label="Dirección del proveedor"
-            id="id"
             v-model="$store.state.pricing.datosPrincipales.direccionproveedor"
             density="compact"
             variant="outlined"

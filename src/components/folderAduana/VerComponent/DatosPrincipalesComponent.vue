@@ -137,9 +137,7 @@
           ></v-text-field>
 
           <v-text-field
-            name="name"
             label="Dirección del proveedor"
-            id="id"
             v-model="$store.state.aduana.datosPrincipales.direccionproveedor"
             density="compact"
             variant="outlined"

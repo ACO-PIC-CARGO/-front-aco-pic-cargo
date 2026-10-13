@@ -181,9 +181,7 @@
 
               <v-col cols="12" class="my-0 py-0">
                 <v-text-field
-                  name="name"
                   label="Dirección del proveedor"
-                  id="id"
                   v-model="
                     $store.state.pricing.datosPrincipales.direccionproveedor
                   "
