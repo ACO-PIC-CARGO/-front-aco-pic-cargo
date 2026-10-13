@@ -260,16 +260,13 @@
               <p class="justify">** Nota Importante **</p>
             </v-col>
             <v-col cols="12">
-              <v-list-subheader>
-                <!--  -->
-                <p class="justify">
-                  Está acción permitirá al usuario ajustar los montos dentro de
-                  la liquidación de costos operativos (Control de Gastos). Es
-                  necesario porque, aunque inicialmente se cotizan ciertos
-                  valores, pueden surgir pequeños ajustes durante la operación
-                  que requieren modificación
-                </p>
-              </v-list-subheader>
+              <p class="justify">
+                Está acción permitirá al usuario ajustar los montos dentro de
+                la liquidación de costos operativos (Control de Gastos). Es
+                necesario porque, aunque inicialmente se cotizan ciertos
+                valores, pueden surgir pequeños ajustes durante la operación
+                que requieren modificación
+              </p>
             </v-col>
           </v-col>
         </v-row>
