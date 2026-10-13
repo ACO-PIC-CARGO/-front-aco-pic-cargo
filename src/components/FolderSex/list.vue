@@ -18,7 +18,7 @@
 
     <v-card-title v-if="!loading" class="elevation-0">
       <v-text-field
-        append-icon="mdi-magnify"
+        append-inner-icon="mdi-magnify"
         label="Buscar"
         single-line
         hide-details
@@ -27,10 +27,10 @@
       </v-text-field>
       <v-spacer></v-spacer>
       <v-btn size="small" color="success" @click="open_new()"> Nuevo </v-btn>
-      <v-btn size="small" class="mx-1" color="#2962FF" dark @click="open_filter()">
+      <v-btn size="small" class="mx-1" color="#2962FF" @click="open_filter()">
         Fitrar
       </v-btn>
-      <v-btn size="small" class="mx-1" color="#004D40" dark> Exportar </v-btn>
+      <v-btn size="small" class="mx-1" color="#004D40"> Exportar </v-btn>
     </v-card-title>
 
     <v-data-table
@@ -38,7 +38,7 @@
       class="elevation-1"
       :headers="headers"
       :items="$store.state.sex.list"
-      item-key="id"
+      item-value="id"
       :search="search"
     >
       <template v-slot:[`item.status`]="{ item }">
@@ -67,7 +67,6 @@
       temporary
       
       width="30%"
-      height="100vh"
     >
       <v-list-item>
         
@@ -87,7 +86,6 @@
                 v-model="record.acronym"
                 @blur="validate_nuevo_acronym()"
                 :rules="[(v) => validateAcronym(v)]"
-                lazy-validation
                 :error-messages="errorAcronym"
                 clearable
               >
@@ -99,7 +97,6 @@
                 label="Nombre (*)"
                 v-model="record.name"
                 :rules="[(v) => validateName(v)]"
-                lazy-validation
                 clearable
               >
               </v-text-field>
@@ -110,7 +107,6 @@
                 label="Descripción"
                 v-model="record.description"
                 :rules="[(v) => validateDescription(v)]"
-                lazy-validation
                 clearable
               >
               </v-text-field>
@@ -121,6 +117,7 @@
               density="compact"
               :label="`Estado: ${record.status ? 'Activo' : 'Inactivo'}`"
               v-model="record.status"
+              :value-comparator="(value, checked) => Boolean(value) === checked"
               hide-details
               color="success"
               @update:model-value="updateStatus"
@@ -132,7 +129,7 @@
       <v-container>
         <v-card-actions class="justify-end mt-3">
           <v-btn class="mx-1" color="success" @click="insert()"> Aceptar</v-btn>
-          <v-btn class="mx-1" dark color="warning" @click="close_drawer('new')">
+          <v-btn class="mx-1" color="warning" @click="close_drawer('new')">
             Cerrar</v-btn
           >
         </v-card-actions>
@@ -146,7 +143,6 @@
       temporary
       
       width="30%"
-      height="100vh"
     >
       <v-container v-if="!loading_as">
         <v-list-item class="px-0">
@@ -195,13 +191,13 @@
               }`"
               color="success"
               v-model="$store.state.sex.record.status"
+              :value-comparator="(value, checked) => Boolean(value) === checked"
             ></v-switch>
           </v-row>
         </v-card-text>
         <v-card-actions class="justify-end mt-3">
           <v-btn
             class="mx-1"
-            dark
             color="warning"
             @click="showFilterDrawerRead = !showFilterDrawerRead"
           >
@@ -234,7 +230,6 @@
       temporary
       
       width="30%"
-      height="100vh"
     >
       <v-container v-if="!loading_as">
         <v-list-item class="px-0">
@@ -266,7 +261,6 @@
                 v-model="record.acronym"
                 @blur="validate_editar_acronym()"
                 :rules="[(v) => validateAcronym(v)]"
-                lazy-validation
                 :error-messages="errorAcronym"
                 clearable
               >
@@ -278,7 +272,6 @@
                 label="Nombre (*)"
                 v-model="record.name"
                 :rules="[(v) => validateName(v)]"
-                lazy-validation
                 clearable
               >
               </v-text-field>
@@ -289,7 +282,6 @@
                 label="Descripción"
                 v-model="record.description"
                 :rules="[(v) => validateDescription(v)]"
-                lazy-validation
                 clearable
               >
               </v-text-field>
@@ -300,6 +292,7 @@
             <v-switch
               :label="`Estado: ${record.status ? 'Activo' : 'Inactivo'}`"
               v-model="record.status"
+              :value-comparator="(value, checked) => Boolean(value) === checked"
               color="success"
               @update:model-value="updateStatus"
             ></v-switch>
@@ -312,7 +305,6 @@
           >
           <v-btn
             class="mx-1"
-            dark
             color="warning"
             @click="close_drawer('update')"
           >
@@ -345,7 +337,6 @@
       temporary
       
       width="30%"
-      height="100vh"
     >
       <v-list-item>
         
@@ -405,7 +396,6 @@
           >
           <v-btn
             class="mx-1"
-            dark
             color="warning"
             @click="showFilterDrawer = !showFilterDrawer"
           >
@@ -483,7 +473,7 @@ export default {
     insert() {
       this.validate_nuevo_acronym();
       setTimeout(async () => {
-        if (this.$refs.form1.validate() && this.errorAcronym == null) {
+        if ((await this.$refs.form1.validate()).valid && this.errorAcronym == null) {
           this.resetRecord("filter");
           await this.insertSex(this.record);
         }
@@ -534,7 +524,7 @@ export default {
     async btnUpdate() {
       this.validate_editar_acronym();
       setTimeout(async () => {
-        if (this.$refs.form.validate() && this.errorAcronym == null) {
+        if ((await this.$refs.form.validate()).valid && this.errorAcronym == null) {
           let data = {
             id: this.id,
             id_branch: JSON.parse(sessionStorage.getItem("dataUser"))[0]

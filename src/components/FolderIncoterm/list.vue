@@ -19,7 +19,7 @@
 
       <v-card-title v-if="!loading" class="elevation-0">
         <v-text-field
-          append-icon="mdi-magnify"
+          append-inner-icon="mdi-magnify"
           label="Buscar"
           single-line
           hide-details
@@ -28,10 +28,10 @@
         </v-text-field>
         <v-spacer></v-spacer>
         <v-btn size="small" color="success" @click="open_new()"> Nuevo </v-btn>
-        <v-btn size="small" class="mx-1" color="#2962FF" dark @click="open_filter()">
+        <v-btn size="small" class="mx-1" color="#2962FF" @click="open_filter()">
           Fitrar
         </v-btn>
-        <v-btn size="small" class="mx-1" color="#004D40" dark> Exportar </v-btn>
+        <v-btn size="small" class="mx-1" color="#004D40"> Exportar </v-btn>
       </v-card-title>
 
       <v-data-table
@@ -39,7 +39,7 @@
         class="elevation-1"
         :headers="headers"
         :items="$store.state.incoterm.list"
-        item-key="id"
+        item-value="id"
         :search="search"
       >
         <template v-slot:[`item.status`]="{ item }">
@@ -73,7 +73,6 @@
       temporary
       
       width="30%"
-      height="100vh"
     >
       <v-list-item>
         
@@ -94,7 +93,6 @@
                 v-model="record.name"
                 :rules="[(v) => validateName(v)]"
                 clearable
-                lazy-validation
               >
               </v-text-field>
             </v-row>
@@ -105,7 +103,6 @@
                 v-model="record.description"
                 :rules="[(v) => validateDescription(v)]"
                 clearable
-                lazy-validation
               >
               </v-text-field>
             </v-row>
@@ -115,6 +112,7 @@
               density="compact"
               label="Activo/Inactivo"
               v-model="record.status"
+              :value-comparator="(value, checked) => Boolean(value) === checked"
               hide-details
               color="success"
               @update:model-value="updateStatus"
@@ -126,7 +124,6 @@
           <v-btn class="mx-1" color="success" @click="insert()"> Aceptar</v-btn>
           <v-btn
             class="mx-1"
-            dark
             color="warning"
             @click="showFilterDrawerNew = !showFilterDrawerNew"
           >
@@ -143,7 +140,6 @@
       temporary
       
       width="30%"
-      height="100vh"
     >
       <v-container v-if="!loading_as">
         <v-list-item class="px-0">
@@ -177,13 +173,13 @@
               }`"
               color="success"
               v-model="$store.state.incoterm.record.status"
+              :value-comparator="(value, checked) => Boolean(value) === checked"
             ></v-switch>
           </v-row>
         </v-card-text>
         <v-card-actions class="justify-end mt-3">
           <v-btn
             class="mx-1"
-            dark
             color="warning"
             @click="showFilterDrawerRead = !showFilterDrawerRead"
           >
@@ -216,7 +212,6 @@
       temporary
       
       width="30%"
-      height="100vh"
     >
       <v-container v-if="!loading_as">
         <v-list-item class="px-0">
@@ -246,7 +241,6 @@
                 label="Descripción (*)"
                 v-model="record.description"
                 :rules="[(v) => validateDescription(v)]"
-                lazy-validation
                 clearable
               >
               </v-text-field>
@@ -256,6 +250,7 @@
             <v-switch
               :label="`Estado: ${record.status ? 'Activo' : 'Inactivo'}`"
               v-model="record.status"
+              :value-comparator="(value, checked) => Boolean(value) === checked"
               color="success"
               @update:model-value="updateStatus"
             ></v-switch>
@@ -269,7 +264,6 @@
           <v-btn
             size="small"
             class="mx-1"
-            dark
             color="warning"
             @click="showFilterDrawerUpdate = !showFilterDrawerUpdate"
           >
@@ -302,7 +296,6 @@
       temporary
       
       width="30%"
-      height="100vh"
     >
       <v-container>
         <v-list-item class="px-0">
@@ -350,7 +343,6 @@
           <v-btn
             size="small"
             class="mx-1"
-            dark
             color="warning"
             @click="showFilterDrawer = !showFilterDrawer"
           >
@@ -423,7 +415,7 @@ export default {
       this.record.status = newValue ? 1 : 0;
     },
     async insert() {
-      if (this.$refs.formNew.validate()) {
+      if ((await this.$refs.formNew.validate()).valid) {
         this.resetRecord("filter");
         await this.insertIncoterms(this.record);
       }
@@ -478,7 +470,7 @@ export default {
         status: this.record.status,
         id_branch: JSON.parse(sessionStorage.getItem("dataUser"))[0].id_branch,
       };
-      if (this.$refs.form.validate()) {
+      if ((await this.$refs.form.validate()).valid) {
         this.resetRecord("filter");
         await this.updateIncoterms(data);
       }

@@ -17,7 +17,7 @@
 
     <v-card-title v-if="!loading" class="elevation-0">
       <v-text-field
-        append-icon="mdi-magnify"
+        append-inner-icon="mdi-magnify"
         label="Buscar"
         single-line
         hide-details
@@ -26,18 +26,18 @@
       </v-text-field>
       <v-spacer></v-spacer>
       <v-btn size="small" color="success" @click="open_new()"> Nuevo </v-btn>
-      <v-btn size="small" class="mx-1" color="#2962FF" dark @click="open_filter()">
+      <v-btn size="small" class="mx-1" color="#2962FF" @click="open_filter()">
         Fitrar
       </v-btn>
-      <v-btn size="small" class="mx-1" color="#004D40" dark> Exportar </v-btn>
+      <v-btn size="small" class="mx-1" color="#004D40"> Exportar </v-btn>
     </v-card-title>
 
     <v-data-table
       v-if="!loading"
       class="elevation-1"
       :headers="headers"
-      :items="$store.state.year.list"
-      item-key="id"
+      :items="$store.state.year.list ?? []"
+      item-value="id"
       :search="search"
     >
       <template v-slot:[`item.status`]="{ item }">
@@ -78,7 +78,6 @@
       temporary
       
       width="30%"
-      height="100vh"
     >
       <v-list-item>
         
@@ -97,7 +96,6 @@
                 v-model="record.description"
                 clearable
                 :rules="[(v) => validateCode(v)]"
-                lazy-validation
                 @blur="validate_code()"
                 :error-messages="errorCode"
               >
@@ -109,6 +107,7 @@
               density="compact"
               :label="`Estado: ${record.status ? 'Activo' : 'Inactivo'}`"
               v-model="record.status"
+              :value-comparator="(value, checked) => Boolean(value) === checked"
               hide-details
               color="success"
               @update:model-value="updateStatus"
@@ -121,7 +120,6 @@
           >
           <v-btn
             class="mx-1"
-            dark
             color="warning"
             @click="showFilterDrawerNew = !showFilterDrawerNew"
           >
@@ -138,13 +136,12 @@
       temporary
       
       width="30%"
-      height="100vh"
     >
       <v-container v-if="!loading_as">
         <v-list-item class="px-0">
           
             <v-list-item-title class="text-h6">
-              Ver: {{ $store.state.year.record.description }}
+              Ver: {{ $store.state.year.record?.description }}
             </v-list-item-title>
           
         </v-list-item>
@@ -156,24 +153,24 @@
             <v-text-field
               label="Código"
               readonly
-              :model-value="$store.state.year.record.description"
+              :model-value="$store.state.year.record?.description"
             ></v-text-field>
           </v-row>
           <v-row>
             <v-switch
               readonly
               :label="`Estado: ${
-                !!$store.state.year.record.status ? 'Activo' : 'Inactivo'
+                !!$store.state.year.record?.status ? 'Activo' : 'Inactivo'
               }`"
               color="success"
-              v-model="$store.state.year.record.status"
+              :model-value="$store.state.year.record?.status"
+              :value-comparator="(value, checked) => Boolean(value) === checked"
             ></v-switch>
           </v-row>
         </v-card-text>
         <v-card-actions class="justify-end mt-3">
           <v-btn
             class="mx-1"
-            dark
             color="warning"
             @click="showFilterDrawerRead = !showFilterDrawerRead"
           >
@@ -205,13 +202,12 @@
       temporary
       
       width="30%"
-      height="100vh"
     >
       <v-container v-if="!loading_as">
         <v-list-item class="px-0">
           
             <v-list-item-title class="text-h6">
-              Modificar: {{ $store.state.year.record.description }}
+              Modificar: {{ $store.state.year.record?.description }}
             </v-list-item-title>
           
         </v-list-item>
@@ -227,6 +223,7 @@
             <v-switch
               :label="`Estado: ${record.status ? 'Activo' : 'Inactivo'}`"
               v-model="record.status"
+              :value-comparator="(value, checked) => Boolean(value) === checked"
               color="success"
               @update:model-value="updateStatus"
             ></v-switch>
@@ -239,7 +236,6 @@
           >
           <v-btn
             class="mx-1"
-            dark
             color="warning"
             @click="showFilterDrawerUpdate = !showFilterDrawerUpdate"
           >
@@ -271,7 +267,6 @@
       temporary
       
       width="30%"
-      height="100vh"
     >
       <v-container @click.stop>
         <v-list-item class="px-0">
@@ -308,7 +303,6 @@
           >
           <v-btn
             class="mx-1"
-            dark
             color="warning"
             @click="showFilterDrawer = !showFilterDrawer"
           >
@@ -377,7 +371,7 @@ export default {
       this.validate_code();
 
       setTimeout(async () => {
-        if (this.$refs.form.validate() && this.errorCode == null) {
+        if ((await this.$refs.form.validate()).valid && this.errorCode == null) {
           this.resetRecord("filter");
           await this.insertYear(this.record);
         }
@@ -449,7 +443,7 @@ export default {
       this.id = id;
     },
     async submit_update() {
-      if (this.$refs.form.validate()) {
+      if ((await this.$refs.form.validate()).valid) {
         let data = {
           id: this.id,
           description: this.record.description,

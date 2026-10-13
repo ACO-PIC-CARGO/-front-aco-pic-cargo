@@ -19,7 +19,7 @@
 
       <v-card-title v-if="!loading" class="elevation-0">
         <v-text-field
-          append-icon="mdi-magnify"
+          append-inner-icon="mdi-magnify"
           label="Buscar"
           single-line
           hide-details
@@ -28,10 +28,10 @@
         </v-text-field>
         <v-spacer></v-spacer>
         <v-btn size="small" color="success" @click="open_insert()"> Nuevo </v-btn>
-        <v-btn size="small" class="mx-1" color="#2962FF" dark @click="open_filter()">
+        <v-btn size="small" class="mx-1" color="#2962FF" @click="open_filter()">
           Filtrar
         </v-btn>
-        <v-btn size="small" class="mx-1" color="#004D40" dark> Exportar </v-btn>
+        <v-btn size="small" class="mx-1" color="#004D40"> Exportar </v-btn>
       </v-card-title>
 
       <v-data-table
@@ -39,7 +39,7 @@
         class="elevation-1"
         :headers="headers"
         :items="$store.state.marketing.list"
-        item-key="id"
+        item-value="id"
         :search="search"
       >
         <template v-slot:[`item.status`]="{ item }">
@@ -74,7 +74,6 @@
       temporary
       
       width="30%"
-      height="100vh"
     >
       <v-container v-if="!loading_as">
         <v-list-item class="px-0">
@@ -103,7 +102,6 @@
                 v-model="marketing.name"
                 clearable
                 :rules="[(v) => validateName(v)]"
-                lazy-validation
               >
               </v-text-field>
             </v-row>
@@ -114,7 +112,6 @@
                 v-model="marketing.description"
                 clearable
                 :rules="[(v) => validateDescription(v)]"
-                lazy-validation
               >
               </v-text-field>
             </v-row>
@@ -126,7 +123,6 @@
               label="Posición (*)"
               v-model="marketing.position"
               :rules="[(v) => validatePosition(v)]"
-              lazy-validation
               @blur="validateEditarPositionAPI"
               :error-messages="errorPosition"
               clearable
@@ -137,6 +133,7 @@
             <v-switch
               :label="`Estado: ${marketing.status ? 'Activo' : 'Inactivo'}`"
               v-model="marketing.status"
+              :value-comparator="(value, checked) => Boolean(value) === checked"
               color="success"
               @update:model-value="updateStatus"
             ></v-switch>
@@ -149,7 +146,6 @@
           >
           <v-btn
             class="mx-1"
-            dark
             color="warning"
             @click="showFilterDrawerUpdate = !showFilterDrawerUpdate"
           >
@@ -182,7 +178,6 @@
       temporary
       
       width="30%"
-      height="100vh"
     >
       <v-container v-if="!loading_as">
         <v-list-item class="px-0">
@@ -232,6 +227,7 @@
               }`"
               color="success"
               v-model="$store.state.marketing.record.status"
+              :value-comparator="(value, checked) => Boolean(value) === checked"
             ></v-switch>
           </v-row>
         </v-card-text>
@@ -239,7 +235,6 @@
         <v-card-actions class="justify-end mt-3">
           <v-btn
             class="mx-1"
-            dark
             color="warning"
             @click="showFilterDrawerRead = !showFilterDrawerRead"
           >
@@ -272,7 +267,6 @@
       temporary
       
       width="30%"
-      height="100vh"
     >
       <v-list-item>
         
@@ -326,7 +320,6 @@
           >
           <v-btn
             class="mx-1"
-            dark
             color="warning"
             @click="showFilterDrawer = !showFilterDrawer"
           >
@@ -343,7 +336,6 @@
       temporary
       
       width="30%"
-      height="100vh"
     >
       <v-list-item>
         
@@ -364,7 +356,6 @@
                 label="Nombre (*)"
                 v-model="marketing.name"
                 :rules="[(v) => validateName(v)]"
-                lazy-validation
                 clearable
               >
               </v-text-field>
@@ -375,7 +366,6 @@
                 label="Descripción"
                 v-model="marketing.description"
                 :rules="[(v) => validateDescription(v)]"
-                lazy-validation
                 clearable
               >
               </v-text-field>
@@ -387,7 +377,6 @@
                 label="Posición (*)"
                 v-model="marketing.position"
                 :rules="[(v) => validatePosition(v)]"
-                lazy-validation
                 clearable
                 @blur="validateNuevoPositionAPI"
                 :error-messages="errorPosition"
@@ -400,6 +389,7 @@
               density="compact"
               :label="`Estado: ${marketing.status ? 'Activo' : 'Inactivo'}`"
               v-model="marketing.status"
+              :value-comparator="(value, checked) => Boolean(value) === checked"
               hide-details
               color="success"
               @update:model-value="updateStatus"
@@ -413,7 +403,6 @@
           >
           <v-btn
             class="mx-1"
-            dark
             color="warning"
             @click="showFilterDrawerNew = !showFilterDrawerNew"
           >
@@ -522,7 +511,7 @@ export default {
     submit_insert() {
       this.validateNuevoPositionAPI();
       setTimeout(async () => {
-        if (this.$refs.formNew.validate() && this.errorPosition == null) {
+        if ((await this.$refs.formNew.validate()).valid && this.errorPosition == null) {
           this.clear("filter");
           await this.insertMarketing(this.marketing);
         }
@@ -553,7 +542,7 @@ export default {
     submit_update() {
       this.validateEditarPositionAPI();
       setTimeout(async () => {
-        if (this.$refs.form.validate() && this.errorPosition == null) {
+        if ((await this.$refs.form.validate()).valid && this.errorPosition == null) {
           this.clear("filter");
           await this.updateMarketing(this.marketing);
         }

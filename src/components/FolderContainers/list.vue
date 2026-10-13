@@ -17,7 +17,7 @@
 
     <v-card-title v-if="!loading">
       <v-text-field
-        append-icon="mdi-magnify"
+        append-inner-icon="mdi-magnify"
         label="Buscar"
         single-line
         hide-details
@@ -26,10 +26,10 @@
       </v-text-field>
       <v-spacer></v-spacer>
       <v-btn size="small" color="success" @click="open_new()"> Nuevo </v-btn>
-      <v-btn size="small" class="mx-1" color="#2962FF" dark @click="open_filter()">
+      <v-btn size="small" class="mx-1" color="#2962FF" @click="open_filter()">
         Fitrar
       </v-btn>
-      <v-btn size="small" class="mx-1" color="#004D40" dark> Exportar </v-btn>
+      <v-btn size="small" class="mx-1" color="#004D40"> Exportar </v-btn>
     </v-card-title>
 
     <v-data-table
@@ -37,7 +37,7 @@
       class="elevation-1"
       :headers="headers"
       :items="$store.state.containers.list"
-      item-key="id"
+      item-value="id"
       :search="search"
     >
       <template v-slot:[`item.calculoflag`]="{ item }">
@@ -69,7 +69,6 @@
       temporary
       
       width="30%"
-      height="100vh"
     >
       <v-list-item>
         
@@ -90,7 +89,6 @@
                 label="Nombre (*)"
                 v-model="record.name"
                 :rules="[(v) => validateFieldTextInForm(v, 50, false, 'max')]"
-                lazy-validation
                 clearable
               >
               </v-text-field>
@@ -101,7 +99,6 @@
                 label="Descripción"
                 v-model="record.description"
                 :rules="[(v) => validateFieldTextInForm(v, 50, true, 'max')]"
-                lazy-validation
                 clearable
               >
               </v-text-field>
@@ -112,7 +109,6 @@
                 label="Largo (*)"
                 v-model="record.long"
                 :rules="[(v) => validateNumber(v)]"
-                lazy-validation
                 clearable
               >
               </v-text-field>
@@ -123,7 +119,6 @@
                 label="Ancho (*)"
                 v-model="record.width"
                 :rules="[(v) => validateNumber(v)]"
-                lazy-validation
                 clearable
               >
               </v-text-field>
@@ -134,7 +129,6 @@
                 label="Altura (*)"
                 v-model="record.height"
                 :rules="[(v) => validateNumber(v)]"
-                lazy-validation
                 clearable
               >
               </v-text-field>
@@ -145,7 +139,6 @@
                 label="Peso Máximo (*)"
                 v-model="record.maximumweight"
                 :rules="[(v) => validateNumber(v)]"
-                lazy-validation
                 clearable
               >
               </v-text-field>
@@ -156,7 +149,6 @@
                 label="Volumen Máximo (*)"
                 v-model="record.maximunvolumen"
                 :rules="[(v) => validateNumber(v)]"
-                lazy-validation
                 clearable
               >
               </v-text-field>
@@ -167,6 +159,7 @@
               density="compact"
               :label="`Estado: ${!!record.status ? 'Activo' : 'Inactivo'}`"
               v-model="record.status"
+              :value-comparator="(value, checked) => Boolean(value) === checked"
               hide-details
               color="success"
               @update:model-value="updateStatus"
@@ -184,7 +177,6 @@
           <v-btn
             size="small"
             class="mx-1"
-            dark
             color="warning"
             @click="showFilterDrawerNew = !showFilterDrawerNew"
           >
@@ -196,7 +188,6 @@
 
     <v-navigation-drawer
       v-model="showFilterDrawerRead"
-      height="100vh"
       absolute
       location="right"
       temporary
@@ -286,6 +277,7 @@
               }`"
               color="success"
               v-model="$store.state.containers.record.status"
+              :value-comparator="(value, checked) => Boolean(value) === checked"
             ></v-switch>
           </v-row>
         </v-card-text>
@@ -293,7 +285,6 @@
           <v-btn
             size="small"
             class="mx-1"
-            dark
             color="warning"
             @click="showFilterDrawerRead = !showFilterDrawerRead"
           >
@@ -326,7 +317,6 @@
       temporary
       
       width="30%"
-      height="100vh"
     >
       <v-container v-if="!loading_as">
         <v-list-item class="px-0">
@@ -357,7 +347,6 @@
                 label="Nombre (*)"
                 v-model="record.name"
                 :rules="[(v) => validateFieldTextInForm(v, 50, false, 'max')]"
-                lazy-validation
                 clearable
               >
               </v-text-field>
@@ -368,7 +357,6 @@
                 label="Descripción"
                 v-model="record.description"
                 :rules="[(v) => validateFieldTextInForm(v, 50, true, 'max')]"
-                lazy-validation
                 clearable
               >
               </v-text-field>
@@ -379,7 +367,6 @@
                 label="Largo (*)"
                 v-model="record.long"
                 :rules="[(v) => validateNumber(v)]"
-                lazy-validation
                 clearable
               >
               </v-text-field>
@@ -390,7 +377,6 @@
                 label="Ancho (*)"
                 v-model="record.width"
                 :rules="[(v) => validateNumber(v)]"
-                lazy-validation
                 clearable
               >
               </v-text-field>
@@ -401,7 +387,6 @@
                 label="Altura (*)"
                 v-model="record.height"
                 :rules="[(v) => validateNumber(v)]"
-                lazy-validation
                 clearable
               >
               </v-text-field>
@@ -412,7 +397,6 @@
                 label="Peso Máximo (*)"
                 v-model="record.maximumweight"
                 :rules="[(v) => validateNumber(v)]"
-                lazy-validation
                 clearable
               >
               </v-text-field>
@@ -423,7 +407,6 @@
                 label="Volumen Máximo (*)"
                 v-model="record.maximunvolumen"
                 :rules="[(v) => validateNumber(v)]"
-                lazy-validation
                 clearable
               >
               </v-text-field>
@@ -434,6 +417,7 @@
             <v-switch
               :label="`Estado: ${record.status ? 'Activo' : 'Inactivo'}`"
               v-model="record.status"
+              :value-comparator="(value, checked) => Boolean(value) === checked"
               color="success"
               @update:model-value="updateStatus"
             >
@@ -447,7 +431,6 @@
           </v-btn>
           <v-btn
             class="mx-1"
-            dark
             color="warning"
             @click="showFilterDrawerUpdate = !showFilterDrawerUpdate"
           >
@@ -479,7 +462,6 @@
       temporary
       
       width="30%"
-      height="100vh"
     >
       <v-list-item>
         
@@ -535,7 +517,6 @@
 
           <v-btn
             class="mx-1"
-            dark
             color="warning"
             @click="showFilterDrawer = !showFilterDrawer"
           >
@@ -678,13 +659,13 @@ export default {
       this.id = id;
     },
     async submit_insert() {
-      if (this.$refs.formNew.validate()) {
+      if ((await this.$refs.formNew.validate()).valid) {
         this.resetRecord("filter");
         await this.insertContainers(this.record);
       }
     },
     async submit_update() {
-      if (this.$refs.form.validate()) {
+      if ((await this.$refs.form.validate()).valid) {
         let data = {
           id: this.id,
           name: this.record.name,

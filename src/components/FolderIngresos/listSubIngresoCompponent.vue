@@ -7,7 +7,7 @@
             label="Buscar"
             placeholder="Buscar"
             v-model="search"
-            append-icon="mdi-magnify"
+            append-inner-icon="mdi-magnify"
             clearable
           ></v-text-field>
         </v-col>
@@ -21,17 +21,16 @@
             :loading="loadingFiltrar"
             color="#2962FF"
             @click="filtrar()"
-            dark
             >FILTRAR</v-btn
           >
-          <v-btn size="small" class="mx-1" color="#004D40" dark>EXPORTAR</v-btn>
+          <v-btn size="small" class="mx-1" color="#004D40">EXPORTAR</v-btn>
         </v-col>
         <v-col cols="12">
           <v-data-table
             :headers="headers"
             :items="$store.state.subingreso.lstSubIngreso"
             class="elevation-1"
-            item-key="port_beginend_id"
+            item-value="port_beginend_id"
             :loading="loading"
             :search="search"
           >
@@ -44,19 +43,18 @@
               </v-chip>
             </template>
             <template v-slot:[`item.calculo`]="{ item }">
-              <v-chip color="green" v-if="item.calculoflag" dark>Si</v-chip>
-              <v-chip color="red" v-else dark>No</v-chip>
+              <v-chip color="green" v-if="item.calculoflag">Si</v-chip>
+              <v-chip color="red" v-else>No</v-chip>
             </template>
             <template v-slot:[`item.monstra`]="{ item }">
-              <v-chip color="green" v-if="item.mostrarflag" dark>Si</v-chip>
-              <v-chip color="red" v-else dark>No</v-chip>
+              <v-chip color="green" v-if="item.mostrarflag">Si</v-chip>
+              <v-chip color="red" v-else>No</v-chip>
             </template>
             <template v-slot:[`item.action`]="{ item }">
               <v-tooltip location="bottom">
                 <template v-slot:activator="{ props }">
                   <v-icon
                     color="primary"
-                    dark
                    
                     v-bind="props"
                     @click="ver(item)"
@@ -70,7 +68,6 @@
                 <template v-slot:activator="{ props }">
                   <v-icon
                     color="warning"
-                    dark
                    
                     v-bind="props"
                     @click="editar(item)"
@@ -84,7 +81,6 @@
                 <template v-slot:activator="{ props }">
                   <v-icon
                     color="error"
-                    dark
                    
                     v-bind="props"
                     @click="eliminar(item)"

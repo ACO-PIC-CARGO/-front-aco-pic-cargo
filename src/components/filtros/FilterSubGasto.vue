@@ -119,12 +119,14 @@
           <v-checkbox
             label="Se calcula en Reportes"
             v-model="$store.state.subgasto.model.calculoflag"
+            :value-comparator="(value, checked) => Boolean(value) === checked"
           ></v-checkbox>
         </div>
         <div class="col-12 py-1">
           <v-checkbox
             label="Se Muestra en Reportes"
             v-model="$store.state.subgasto.model.mostrarflag"
+            :value-comparator="(value, checked) => Boolean(value) === checked"
           ></v-checkbox>
         </div>
         <div class="col-12 py-1">
@@ -136,6 +138,7 @@
             }`"
             color="success"
             v-model="$store.state.subgasto.model.status"
+            :value-comparator="(value, checked) => Boolean(value) === checked"
           ></v-switch>
         </div>
       </v-form>

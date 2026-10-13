@@ -19,7 +19,7 @@
 
       <v-card-title v-if="!loading" class="elevation-0">
         <v-text-field
-          append-icon="mdi-magnify"
+          append-inner-icon="mdi-magnify"
           label="Buscar"
           single-line
           hide-details
@@ -28,10 +28,10 @@
         </v-text-field>
         <v-spacer></v-spacer>
         <v-btn size="small" color="success" @click="open_new()"> Nuevo </v-btn>
-        <v-btn size="small" class="mx-1" color="#2962FF" dark @click="open_filter()">
+        <v-btn size="small" class="mx-1" color="#2962FF" @click="open_filter()">
           Fitrar
         </v-btn>
-        <v-btn size="small" class="mx-1" color="#004D40" dark> Exportar </v-btn>
+        <v-btn size="small" class="mx-1" color="#004D40"> Exportar </v-btn>
       </v-card-title>
 
       <v-data-table
@@ -39,7 +39,7 @@
         class="elevation-1"
         :headers="headers"
         :items="$store.state.ingresos.list"
-        item-key="id"
+        item-value="id"
         :search="search"
       >
         <template v-slot:[`item.calculoflag`]="{ item }">
@@ -79,7 +79,6 @@
       temporary
       
       width="30%"
-      height="100vh"
     >
       <v-list-item>
         
@@ -101,7 +100,6 @@
                 v-model="record.code"
                 @blur="validate_code()"
                 :rules="[(v) => validateCode(v)]"
-                lazy-validation
                 :error-messages="errorCode"
                 clearable
               >
@@ -113,7 +111,6 @@
                 label="Descripción (*)"
                 v-model="record.description"
                 :rules="[(v) => validateDescription(v)]"
-                lazy-validation
                 clearable
               >
               </v-text-field>
@@ -122,6 +119,7 @@
               <v-checkbox
                 label="Se calcula en Reportes"
                 v-model="record.calculoflag"
+                :value-comparator="(value, checked) => Boolean(value) === checked"
               >
               </v-checkbox>
             </v-row>
@@ -131,6 +129,7 @@
               density="compact"
               :label="`Estado: ${record.status ? 'Activo' : 'Inactivo'}`"
               v-model="record.status"
+              :value-comparator="(value, checked) => Boolean(value) === checked"
               hide-details
               color="success"
             >
@@ -146,7 +145,6 @@
           </v-btn>
           <v-btn
             class="mx-1"
-            dark
             color="warning"
             @click="showFilterDrawerNew = !showFilterDrawerNew"
           >
@@ -163,7 +161,6 @@
       temporary
       
       width="30%"
-      height="100vh"
     >
       <v-container v-if="!loading_as">
         <v-list-item class="px-0">
@@ -197,6 +194,7 @@
               label="Se calcula en Reportes"
               readonly
               v-model="$store.state.ingresos.record.calculoflag"
+              :value-comparator="(value, checked) => Boolean(value) === checked"
             ></v-checkbox>
           </v-row>
           <v-row>
@@ -207,13 +205,13 @@
               }`"
               color="success"
               v-model="$store.state.ingresos.record.status"
+              :value-comparator="(value, checked) => Boolean(value) === checked"
             ></v-switch>
           </v-row>
         </v-card-text>
         <v-card-actions class="justify-end mt-3">
           <v-btn
             class="mx-1"
-            dark
             color="warning"
             @click="showFilterDrawerRead = !showFilterDrawerRead"
           >
@@ -247,7 +245,6 @@
       temporary
       
       width="30%"
-      height="100vh"
     >
       <v-container v-if="!loading_as">
         <v-list-item class="px-0">
@@ -278,7 +275,6 @@
                 label="Descripción (*)"
                 v-model="record.description"
                 :rules="[(v) => validateDescription(v)]"
-                lazy-validation
                 clearable
               >
               </v-text-field>
@@ -287,6 +283,7 @@
               <v-checkbox
                 label="Se calcula en Reportes"
                 v-model="record.calculoflag"
+                :value-comparator="(value, checked) => Boolean(value) === checked"
               ></v-checkbox>
             </v-row>
           </v-form>
@@ -295,6 +292,7 @@
             <v-switch
               :label="`Estado: ${record.status ? 'Activo' : 'Inactivo'}`"
               v-model="record.status"
+              :value-comparator="(value, checked) => Boolean(value) === checked"
               color="success"
             >
             </v-switch>
@@ -307,7 +305,6 @@
           </v-btn>
           <v-btn
             class="mx-1"
-            dark
             color="warning"
             @click="showFilterDrawerUpdate = !showFilterDrawerUpdate"
           >
@@ -340,7 +337,6 @@
       temporary
       
       width="30%"
-      height="100vh"
     >
       <v-list-item>
         
@@ -398,7 +394,6 @@
 
           <v-btn
             class="mx-1"
-            dark
             color="warning"
             @click="showFilterDrawer = !showFilterDrawer"
           >
@@ -533,14 +528,14 @@ export default {
     submit_insert() {
       this.validate_code();
       setTimeout(async () => {
-        if (this.$refs.formNew.validate() && this.errorCode == null) {
+        if ((await this.$refs.formNew.validate()).valid && this.errorCode == null) {
           this.resetRecord("filter");
           await this.insertIngreso(this.record);
         }
       }, 500);
     },
     async submit_update() {
-      if (this.$refs.form.validate() && this.errorCode == null) {
+      if ((await this.$refs.form.validate()).valid && this.errorCode == null) {
         let data = {
           id: this.id,
           description: this.record.description,

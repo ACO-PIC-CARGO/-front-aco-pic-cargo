@@ -19,7 +19,7 @@
 
       <v-card-title v-if="!loading" class="elevation-0">
         <v-text-field
-          append-icon="mdi-magnify"
+          append-inner-icon="mdi-magnify"
           label="Buscar"
           single-line
           hide-details
@@ -33,7 +33,7 @@
         <v-btn size="small" class="mx-1" color="info" @click="open_filter()">
           Fitrar
         </v-btn>
-        <v-btn size="small" class="mx-1" color="#004D40" dark> Exportar </v-btn>
+        <v-btn size="small" class="mx-1" color="#004D40"> Exportar </v-btn>
       </v-card-title>
 
       <v-data-table
@@ -41,7 +41,7 @@
         class="elevation-1"
         :headers="headers"
         :items="$store.state.multiplicador.list"
-        item-key="id"
+        item-value="id"
         :search="search"
       >
         <template v-slot:[`item.status`]="{ item }">
@@ -76,7 +76,6 @@
       temporary
       
       width="30%"
-      height="100vh"
     >
       <v-list-item>
         
@@ -133,13 +132,13 @@
               }`"
               color="success"
               v-model="$store.state.multiplicador.record.status"
+              :value-comparator="(value, checked) => Boolean(value) === checked"
             ></v-switch>
           </v-row>
         </v-card-text>
         <v-card-actions class="justify-end mt-3">
           <v-btn
             class="mx-1"
-            dark
             color="warning"
             @click="showFilterDrawerRead = !showFilterDrawerRead"
           >
@@ -172,7 +171,6 @@
       temporary
       
       width="30%"
-      height="100vh"
     >
       <v-container v-if="!loading_as">
         <v-list-item class="px-0">
@@ -220,7 +218,6 @@
                 label="Nombre (*)"
                 v-model="$store.state.multiplicador.record.name"
                 :rules="[(v) => validateFieldTextInForm(v, 50, false, 'max')]"
-                lazy-validation
                 clearable
                 v-if="!$store.state.multiplicador.record.id_containers"
               >
@@ -232,7 +229,6 @@
                 label="Descripción"
                 v-model="record.description"
                 :rules="[(v) => validateFieldTextInForm(v, 255, true, 'max')]"
-                lazy-validation
                 clearable
               >
               </v-text-field>
@@ -244,7 +240,6 @@
                 label="Valor (*)"
                 v-model="$store.state.multiplicador.record.valor"
                 :rules="[(v) => validateNumber(v)]"
-                lazy-validation
                 clearable
               >
               </v-text-field>
@@ -256,6 +251,7 @@
                 $store.state.multiplicador.record.status ? 'Activo' : 'Inactivo'
               }`"
               v-model="$store.state.multiplicador.record.status"
+              :value-comparator="(value, checked) => Boolean(value) === checked"
               color="success"
               @update:model-value="updateStatus"
             ></v-switch>
@@ -281,7 +277,6 @@
           </v-btn>
           <v-btn
             class="mx-1"
-            dark
             color="warning"
             @click="showFilterDrawerUpdate = !showFilterDrawerUpdate"
           >
@@ -314,7 +309,6 @@
       temporary
       
       width="30%"
-      height="100vh"
     >
       <v-container>
         <v-list-item class="px-0">
@@ -377,7 +371,6 @@
           </v-btn>
           <v-btn
             class="mx-1"
-            dark
             color="warning"
             @click="showFilterDrawer = !showFilterDrawer"
           >
@@ -523,13 +516,13 @@ export default {
         });
         return;
       }
-      if (this.$refs.form.validate()) {
+      if ((await this.$refs.form.validate()).valid) {
         this.resetRecord("filter");
         await this.nuevoMultiplicador(this.$store.state.multiplicador.record);
       }
     },
     async btnUpdate() {
-      if (this.$refs.form.validate()) {
+      if ((await this.$refs.form.validate()).valid) {
         this.resetRecord("filter");
         await this.updateMultiplicador(this.$store.state.multiplicador.record);
       }

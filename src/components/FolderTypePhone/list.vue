@@ -19,7 +19,7 @@
 
       <v-card-title v-if="!loading" class="elevation-0">
         <v-text-field
-          append-icon="mdi-magnify"
+          append-inner-icon="mdi-magnify"
           label="Buscar"
           single-line
           hide-details
@@ -41,7 +41,7 @@
         >
           Fitrar
         </v-btn>
-        <v-btn size="small" class="mx-1" color="#004D40" dark> Exportar </v-btn>
+        <v-btn size="small" class="mx-1" color="#004D40"> Exportar </v-btn>
       </v-card-title>
 
       <v-data-table
@@ -49,7 +49,7 @@
         class="elevation-1"
         :headers="headers"
         :items="$store.state.type_phone.list"
-        item-key="id"
+        item-value="id"
         :search="search"
       >
         <template v-slot:[`item.status`]="{ item }">
@@ -65,6 +65,7 @@
           <v-btn icon>
             <v-switch
               v-model="item.status"
+              :value-comparator="(value, checked) => Boolean(value) === checked"
               color="success"
               @update:model-value="inactive(item)"
             ></v-switch>
@@ -80,7 +81,6 @@
       temporary
       
       width="30%"
-      height="92vh"
     >
       <v-card class="">
         <v-card-title>
@@ -94,7 +94,6 @@
                 label="Código (*)"
                 v-model="type.code"
                 :rules="[(v) => validateCode(v)]"
-                lazy-validation
               >
               </v-text-field>
             </v-row>
@@ -104,7 +103,6 @@
                 label="Nombre (*)"
                 v-model="type.name"
                 :rules="[(v) => validateName(v)]"
-                lazy-validation
               >
               </v-text-field>
             </v-row>
@@ -113,6 +111,7 @@
                 density="compact"
                 label="Activo/Inactivo"
                 v-model="type.status"
+                :value-comparator="(value, checked) => Boolean(value) === checked"
                 hide-details
                 color="success"
                 @update:model-value="updateStatus"
@@ -124,7 +123,7 @@
           <v-btn size="small" class="mx-1" color="success" @click="insert()" rounded>
             Registrar</v-btn
           >
-          <v-btn size="small" class="mx-1" dark color="red" @click="volver()" rounded>
+          <v-btn size="small" class="mx-1" color="red" @click="volver()" rounded>
             Cancelar</v-btn
           >
         </v-card-actions>
@@ -133,7 +132,6 @@
 
     <v-navigation-drawer
       v-model="showFilterDrawerRead"
-      height="100vh"
       absolute
       location="right"
       temporary
@@ -171,6 +169,7 @@
                   }`"
                   color="success"
                   v-model="$store.state.type_phone.record.status"
+                  :value-comparator="(value, checked) => Boolean(value) === checked"
                 ></v-switch>
               </v-row>
             </v-card-text>
@@ -178,7 +177,6 @@
           <v-card-actions class="justify-end mt-3">
             <v-btn
               class="mx-1"
-              dark
               color="red"
               @click="showFilterDrawerRead = !showFilterDrawerRead"
             >
@@ -211,7 +209,6 @@
       temporary
       
       width="30%"
-      height="92vh"
     >
       <v-card class="">
         <v-container v-if="!loading_as">
@@ -235,7 +232,6 @@
                   label="Nombre (*)"
                   v-model="type.name"
                   :rules="[(v) => validateName(v)]"
-                  lazy-validation
                 >
                 </v-text-field>
               </v-row>
@@ -243,6 +239,7 @@
                 <v-switch
                   label="Activo / Inactivo"
                   v-model="type.status"
+                  :value-comparator="(value, checked) => Boolean(value) === checked"
                   color="success"
                   @update:model-value="updateStatus"
                 ></v-switch>
@@ -255,7 +252,6 @@
             >
             <v-btn
               class="mx-1"
-              dark
               color="red"
               @click="showFilterDrawerUpdate = !showFilterDrawerUpdate"
             >
@@ -289,7 +285,6 @@
       temporary
       
       width="30%"
-      height="92vh"
     >
       <v-card class="">
         <v-card-title>
@@ -309,6 +304,7 @@
                 density="compact"
                 label="Activo/Inactivo"
                 v-model="type.status"
+                :value-comparator="(value, checked) => Boolean(value) === checked"
                 hide-details
                 color="success"
                 @update:model-value="updateStatus"
@@ -320,7 +316,6 @@
           <v-btn class="mx-1" color="success" @click="filter()"> Aceptar</v-btn>
           <v-btn
             class="mx-1"
-            dark
             color="red"
             @click="showFilterDrawer = !showFilterDrawer"
           >

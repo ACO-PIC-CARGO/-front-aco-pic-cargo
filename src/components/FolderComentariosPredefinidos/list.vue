@@ -19,7 +19,7 @@
     
         <v-card-title v-if="!loading" class="elevation-0">
           <v-text-field
-            append-icon="mdi-magnify"
+            append-inner-icon="mdi-magnify"
             label="Buscar"
             single-line
             hide-details
@@ -28,8 +28,8 @@
           </v-text-field>
           <v-spacer></v-spacer>
           <v-btn size="small" color="success" @click="addComentarioPredefinido()">Nuevo</v-btn>
-          <v-btn size="small" class="ml-1" color="#2962FF" dark @click="showFilterComentariosPredefinidos()">Filtrar</v-btn>
-          <v-btn size="small" class="ml-1" color="#004D40" dark @click="exportToExcel" :loading="isExportBtnLoading">Exportar</v-btn>
+          <v-btn size="small" class="ml-1" color="#2962FF" @click="showFilterComentariosPredefinidos()">Filtrar</v-btn>
+          <v-btn size="small" class="ml-1" color="#004D40" @click="exportToExcel" :loading="isExportBtnLoading">Exportar</v-btn>
         </v-card-title>
     
         <v-data-table
@@ -37,7 +37,7 @@
           class="elevation-1"
           :headers="headers"
           :items="$store.state.comentariosPredefinidos.list"
-          item-key="id"
+          item-value="id"
           :search="search"
           :loading="isDataTableLoading"
         >
@@ -71,7 +71,6 @@
           temporary
           
           width="30%"
-          height="100vh"
         >
           <v-list-item>
             
@@ -90,7 +89,6 @@
                     label="Código"
                     v-model="record.code"
                     :rules="[(v) => validateCodigo(v)]"
-                    lazy-validation
                     :error-messages="errorCodigo"
                     readonly
                     :loading="isAutoGeneratingCode"
@@ -103,7 +101,6 @@
                     label="Comentario"
                     v-model="record.comentario"
                     :rules="[(v) => validateComentario(v)]"
-                    lazy-validation
                     :error-messages="errorComentario"
                     clearable
                   >
@@ -114,6 +111,7 @@
                     density="compact"
                     :label="`Estado: ${record.status ? 'Activo' : 'Inactivo'}`"
                     v-model="record.status"
+                    :value-comparator="(value, checked) => Boolean(value) === checked"
                     hide-details
                     color="success"
                   ></v-switch>
@@ -132,7 +130,6 @@
               >Aceptar</v-btn>
               <v-btn 
                 class="mx-1" 
-                dark 
                 color="warning" 
                 @click="showFilterDrawerNew = !showFilterDrawerNew"
               >Cerrar</v-btn>
@@ -148,7 +145,6 @@
           temporary
           
           width="30%"
-          height="100vh"
         >
           <v-container>
             <v-list-item class="px-0">
@@ -183,13 +179,13 @@
                   }`"
                   color="success"
                   v-model="record.status"
+                  :value-comparator="(value, checked) => Boolean(value) === checked"
                 ></v-switch>
               </v-row>
             </v-card-text>
             <v-card-actions class="justify-end mt-3">
               <v-btn
                 class="mx-1"
-                dark
                 color="warning"
                 @click="showFilterDrawerView = !showFilterDrawerView"
               >Cerrar</v-btn>
@@ -205,7 +201,6 @@
           temporary
           
           width="30%"
-          height="100vh"
         >
           <v-container>
             <v-list-item class="px-0">
@@ -237,7 +232,6 @@
                     v-model="record.comentario"
                     @blur="validateComentario()"
                     :rules="[(v) => validateComentario(v)]"
-                    lazy-validation
                     :error-messages="errorComentario"
                     clearable
                   >
@@ -247,6 +241,7 @@
                   <v-switch
                     :label="`Estado: ${record.status ? 'Activo' : 'Inactivo'}`"
                     v-model="record.status"
+                    :value-comparator="(value, checked) => Boolean(value) === checked"
                     color="success"
                   ></v-switch>
                 </v-row>
@@ -262,7 +257,6 @@
               >Aceptar</v-btn>
               <v-btn
                 class="mx-1"
-                dark
                 color="warning"
                 @click="showFilterDrawerEdit = !showFilterDrawerEdit"
               >Cerrar</v-btn>
@@ -278,7 +272,6 @@
           temporary
           
           width="30%"
-          height="100vh"
         >
           <v-list-item>
             
@@ -331,7 +324,6 @@
               >Limpiar</v-btn>
               <v-btn
                 class="mx-1"
-                dark
                 color="warning"
                 @click="showFilterDrawer = !showFilterDrawer"
               >Cerrar</v-btn>
@@ -453,7 +445,7 @@
       },
       async saveComentarioPredefinido() {
         var vm = this;
-        if (vm.$refs.formNewComentarioPredefinido.validate()) {
+        if ((await vm.$refs.formNewComentarioPredefinido.validate()).valid) {
           vm.isSubmitBtnLoading = true;
           await vm.insertComentarioPredefinido(vm.record);
           vm.isSubmitBtnLoading = false;
@@ -506,7 +498,7 @@
       },
       async saveChangesComentarioPredefinido() {
         var vm = this;
-        if (vm.$refs.formEditComentarioPredefinido.validate())
+        if ((await vm.$refs.formEditComentarioPredefinido.validate()).valid)
         {
           vm.isSubmitBtnLoading = true;
           await vm.updateComentarioPredefinido(vm.record);

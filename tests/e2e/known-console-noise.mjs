@@ -95,6 +95,11 @@ export const KNOWN_CONSOLE_NOISE = [
     routes: ["newEnterprise"],
   },
   {
+    pattern: /^Error al obtener los datos: AxiosError: Request failed with status code 500(\n|$)/,
+    reason: "same pre-existing issue as the listTypePhone getListTypePhone entry below, axios 1 wording (AxiosError)",
+    routes: ["listTypePhone"],
+  },
+  {
     pattern: /^Error al obtener los datos: Error: Request failed with status code 500(\n|$)/,
     reason: "pre-existing on Vue 2: listTypePhone (getListTypePhone answers 500: the development DB has no function_list_table_type_phone)",
     routes: ["listTypePhone"],
