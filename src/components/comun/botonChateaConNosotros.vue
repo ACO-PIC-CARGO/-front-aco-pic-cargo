@@ -2,9 +2,8 @@
   <v-btn
     color="success"
     class="mt-10 py-6 btnChatea"
-    fixed
+    position="fixed"
     location="bottom right"
-    
     @click="abriChat()"
   >
     <v-icon class="mx-5" size="x-large">mdi-whatsapp</v-icon>
