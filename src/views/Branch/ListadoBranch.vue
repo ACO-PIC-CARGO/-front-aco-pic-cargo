@@ -11,7 +11,7 @@
             :headers="header"
             :items="$store.state.branch.lstBranch"
             class="elevation-1"
-            item-key="id"
+            item-value="id"
             :search="search"
           >
             <template v-slot:[`item.status`]="{ item }">
@@ -19,11 +19,10 @@
                 v-if="item.status == 1"
                 class="ma-2"
                 color="green"
-                text-color="white"
               >
                 Activo
               </v-chip>
-              <v-chip v-else class="ma-2" color="red" text-color="white">
+              <v-chip v-else class="ma-2" color="red">
                 Inactivo
               </v-chip>
             </template>

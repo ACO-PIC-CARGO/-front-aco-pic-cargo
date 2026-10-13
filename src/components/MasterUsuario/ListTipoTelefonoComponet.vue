@@ -7,23 +7,23 @@
             label="Buscar"
             placeholder="Buscar"
             v-model="search"
-            append-icon="mdi-magnify"
+            append-inner-icon="mdi-magnify"
             clearable
           ></v-text-field>
         </v-col>
         <v-col cols="4" offset="4" class="text-right my-auto">
           <v-btn size="small" color="success" @click="nuevo()">NUEVO</v-btn>
-          <v-btn size="small" class="mx-1" color="#2962FF" @click="filtrar()" dark
+          <v-btn size="small" class="mx-1" color="#2962FF" @click="filtrar()"
             >FILTRAR</v-btn
           >
-          <v-btn size="small" class="mx-1" color="#004D40" dark>EXPORTAR</v-btn>
+          <v-btn size="small" class="mx-1" color="#004D40">EXPORTAR</v-btn>
         </v-col>
         <v-col cols="12">
           <v-data-table
             :headers="headers"
             :items="$store.state.masterusuarios.lstTipoTelefono"
             class="elevation-1"
-            item-key="port_beginend_id"
+            item-value="port_beginend_id"
             :loading="loading"
             :search="search"
           >
@@ -36,7 +36,6 @@
                 <template v-slot:activator="{ props }">
                   <v-icon
                     color="primary"
-                    dark
                    
                     v-bind="props"
                     @click="ver(item)"
@@ -50,7 +49,6 @@
                 <template v-slot:activator="{ props }">
                   <v-icon
                     color="warning"
-                    dark
                    
                     v-bind="props"
                     @click="editar(item)"
@@ -64,7 +62,6 @@
                 <template v-slot:activator="{ props }">
                   <v-icon
                     color="error"
-                    dark
                    
                     v-bind="props"
                     v-if="item.status == true"
