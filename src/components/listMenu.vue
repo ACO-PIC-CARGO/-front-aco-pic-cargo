@@ -296,9 +296,7 @@
   </div>
 </template>
 <script>
-import { mapState, mapActions } from "vuex";
-import { lockedModuleForRoute } from "@/views/MyPlan/planAccess";
-import { reloadPlanAccess, planAccessState } from "@/views/MyPlan/planAccessStore";
+import { mapState, mapActions, mapGetters } from "vuex";
 export default {
   name: "listMenu",
   data: () => ({
@@ -321,13 +319,14 @@ export default {
     person: JSON.parse(sessionStorage.getItem("dataUser"))[0],
   }),
   mounted() {
-    reloadPlanAccess();
+    this.reloadPlanAccess();
     setTimeout(() => {
       this.$store.state.lstMenu = JSON.parse(sessionStorage.getItem("menu"));
     }, 10);
   },
   computed: {
     ...mapState(["itemsList", "itemsMenu", "datosPrincipales"]),
+    ...mapGetters("subscriptions", ["lockedModuleForRoute"]),
     actualizarCostosFlag() {
       return this.$store.state.pricing.actualizarCostosFlag;
     },
@@ -384,6 +383,7 @@ export default {
   },
   methods: {
     ...mapActions(["_getMenuItem", "_getGroupList", "_getEntities"]),
+    ...mapActions("subscriptions", ["reloadPlanAccess"]),
     _nextView(name, id_role, namemodule) {
       this.$store.state.dataList = false;
       this.$store.state.menuName = namemodule;
@@ -409,7 +409,7 @@ export default {
     },
     isLockedItem(item) {
       return Boolean(
-        lockedModuleForRoute(this.$store.state.lstMenu, item.route, planAccessState.access)
+        this.lockedModuleForRoute(this.$store.state.lstMenu, item.route)
       );
     },
     getRouteForItem(item) {

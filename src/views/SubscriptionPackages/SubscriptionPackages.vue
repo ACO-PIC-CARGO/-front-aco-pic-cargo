@@ -19,23 +19,22 @@
             class="plans-button plans-button--ghost"
             aria-label="Ver la página de planes como cliente (se abre en una pestaña nueva)"
           >
-            <i class="mdi mdi-open-in-new" aria-hidden="true"></i> Ver como
-            cliente
+            <v-icon>mdi-open-in-new</v-icon> Ver como cliente
           </router-link>
-          <button
-            type="button"
+          <v-btn
+            text
             class="plans-button plans-button--ghost"
             @click="isSyncOpen = true"
           >
-            <i class="mdi mdi-sync" aria-hidden="true"></i> Verificar Paddle
-          </button>
-          <button
-            type="button"
+            <v-icon>mdi-sync</v-icon> Verificar Paddle
+          </v-btn>
+          <v-btn
+            text
             class="plans-button plans-button--primary"
             @click="openCreate"
           >
-            <i class="mdi mdi-plus" aria-hidden="true"></i> Nuevo paquete
-          </button>
+            <v-icon>mdi-plus</v-icon> Nuevo paquete
+          </v-btn>
         </div>
       </header>
 
@@ -45,16 +44,42 @@
         v-if="loadState === 'ready' && packages.length"
         class="subscription-admin__toolbar"
       >
-        <SegmentedControl
+        <v-btn-toggle
           v-model="statusFilter"
-          :options="filterOptions"
-          label="Mostrar paquetes"
-        />
-        <SegmentedControl
+          mandatory
+          rounded
+          dense
+          class="segmented"
+          role="group"
+          aria-label="Mostrar paquetes"
+        >
+          <v-btn
+            v-for="option in filterOptions"
+            :key="String(option.value)"
+            :value="option.value"
+            text
+          >
+            {{ option.label }}
+          </v-btn>
+        </v-btn-toggle>
+        <v-btn-toggle
           v-model="isAnnual"
-          :options="billingOptions"
-          label="Precio mostrado"
-        />
+          mandatory
+          rounded
+          dense
+          class="segmented"
+          role="group"
+          aria-label="Precio mostrado"
+        >
+          <v-btn
+            v-for="option in billingOptions"
+            :key="String(option.value)"
+            :value="option.value"
+            text
+          >
+            {{ option.label }}
+          </v-btn>
+        </v-btn-toggle>
       </div>
 
       <section
@@ -75,17 +100,19 @@
           No pudimos cargar los paquetes.
         </p>
         <p>{{ errorMessage }}</p>
-        <button
-          type="button"
+        <v-btn
+          text
           class="plans-button plans-button--secondary"
-          @click="loadPackages"
+          @click="loadAll"
         >
           Reintentar
-        </button>
+        </v-btn>
       </div>
 
       <div v-else-if="!packages.length" class="subscription-admin__state">
-        <i class="mdi mdi-package-variant subscription-admin__state-icon" aria-hidden="true"></i>
+        <v-icon class="subscription-admin__state-icon">
+          mdi-package-variant
+        </v-icon>
         <p class="subscription-admin__state-title">Aún no hay paquetes.</p>
         <p>
           Crea el primero con sus módulos, precio y características. Aparecerá
@@ -93,7 +120,10 @@
         </p>
       </div>
 
-      <div v-else-if="!visiblePackages.length" class="subscription-admin__state">
+      <div
+        v-else-if="!visiblePackages.length"
+        class="subscription-admin__state"
+      >
         <p class="subscription-admin__state-title">{{ emptyFilterMessage }}</p>
       </div>
 
@@ -108,73 +138,51 @@
           @toggle-details="toggleDetails(pkg)"
         >
           <div class="card-actions">
-            <button
-              type="button"
+            <v-btn
+              text
               class="plans-button plans-button--secondary"
               :aria-label="`Editar ACO ${pkg.name}`"
               @click="openEdit(pkg)"
             >
-              <i class="mdi mdi-pencil-outline" aria-hidden="true"></i> Editar
-            </button>
-            <button
-              type="button"
+              <v-icon>mdi-pencil-outline</v-icon> Editar
+            </v-btn>
+            <v-btn
+              text
               class="plans-button plans-button--ghost"
-              :aria-label="`${pkg.is_active ? 'Desactivar' : 'Activar'} ACO ${pkg.name}`"
+              :aria-label="`${pkg.is_active ? 'Desactivar' : 'Activar'} ACO ${
+                pkg.name
+              }`"
               :disabled="busyId === pkg.id"
               @click="toggleActive(pkg)"
             >
-              <i
-                class="mdi"
-                :class="pkg.is_active ? 'mdi-eye-off-outline' : 'mdi-eye-outline'"
-                aria-hidden="true"
-              ></i>
+              <v-icon>
+                {{ pkg.is_active ? "mdi-eye-off-outline" : "mdi-eye-outline" }}
+              </v-icon>
               {{ pkg.is_active ? "Desactivar" : "Activar" }}
-            </button>
+            </v-btn>
           </div>
         </PackageCard>
       </section>
     </div>
 
-    <PackageForm
-      v-model="isFormOpen"
-      :pkg="editingPackage"
-      :modules="modules"
-      @saved="onSaved"
-    />
-    <PaddleSyncDialog v-model="isSyncOpen" @synced="onSynced" />
+    <PackageForm v-model="isFormOpen" :pkg="editingPackage" @saved="loadAll" />
+    <PaddleSyncDialog v-model="isSyncOpen" />
   </div>
 </template>
 
 <script>
 import Swal from "sweetalert2";
 import "@/styles/plans-theme.css";
+import { mapActions, mapGetters, mapState } from "vuex";
 import PackageCard from "@/components/SubscriptionPackages/PackageCard.vue";
 import PackageForm from "@/components/SubscriptionPackages/PackageForm.vue";
 import PaddleSyncDialog from "@/components/SubscriptionPackages/PaddleSyncDialog.vue";
 import RegistrationTrialSetting from "@/components/SubscriptionPackages/RegistrationTrialSetting.vue";
-import SegmentedControl from "@/components/SubscriptionPackages/SegmentedControl.vue";
-import { toPlanView } from "@/components/SubscriptionPackages/packageView";
-import {
-  fetchPackageModules,
-  fetchPackages,
-  isEmptyResult,
-  setPackageActive,
-} from "@/api/subscriptionPackages";
 
 const BILLING_OPTIONS = [
   { value: false, label: "Mensual" },
   { value: true, label: "Anual" },
 ];
-
-const notifySuccess = (message) =>
-  Swal.fire({
-    toast: true,
-    position: "top-end",
-    icon: "success",
-    title: message,
-    showConfirmButton: false,
-    timer: 3000,
-  });
 
 const confirmDeactivation = (pkg) =>
   Swal.fire({
@@ -195,11 +203,8 @@ export default {
     PackageForm,
     PaddleSyncDialog,
     RegistrationTrialSetting,
-    SegmentedControl,
   },
   data: () => ({
-    packages: [],
-    modules: [],
     loadState: "loading",
     errorMessage: "",
     statusFilter: "active",
@@ -212,21 +217,22 @@ export default {
     billingOptions: BILLING_OPTIONS,
   }),
   computed: {
-    activeCount() {
-      return this.packages.filter((pkg) => pkg.is_active).length;
-    },
+    ...mapState("subscriptions", ["packages"]),
+    ...mapGetters("subscriptions", [
+      "activePackageCount",
+      "packagesWithStatus",
+      "toPlanView",
+    ]),
     filterOptions() {
-      const inactiveCount = this.packages.length - this.activeCount;
+      const inactiveCount = this.packages.length - this.activePackageCount;
       return [
-        { value: "active", label: `Activos (${this.activeCount})` },
+        { value: "active", label: `Activos (${this.activePackageCount})` },
         { value: "inactive", label: `Inactivos (${inactiveCount})` },
         { value: "all", label: `Todos (${this.packages.length})` },
       ];
     },
     visiblePackages() {
-      if (this.statusFilter === "all") return this.packages;
-      const wantActive = this.statusFilter === "active";
-      return this.packages.filter((pkg) => pkg.is_active === wantActive);
+      return this.packagesWithStatus(this.statusFilter);
     },
     emptyFilterMessage() {
       return this.statusFilter === "active"
@@ -236,27 +242,20 @@ export default {
   },
   mounted() {
     this.$store.state.mainTitle = "PAQUETES DE SUSCRIPCIÓN";
-    this.loadPackages();
-    this.loadModules();
+    this.loadAll();
+    this.loadPackageModules();
   },
   methods: {
-    toPlanView,
-    async loadPackages() {
+    ...mapActions("subscriptions", [
+      "loadPackages",
+      "loadPackageModules",
+      "setPackageActive",
+    ]),
+    async loadAll() {
       if (!this.packages.length) this.loadState = "loading";
-      const response = await fetchPackages();
-
-      if (response.estadoflag || isEmptyResult(response)) {
-        this.packages = response.data;
-        this.loadState = "ready";
-        return;
-      }
-
-      this.errorMessage = response.mensaje;
-      this.loadState = "error";
-    },
-    async loadModules() {
-      const response = await fetchPackageModules();
-      this.modules = response.estadoflag ? response.data : [];
+      const error = await this.loadPackages();
+      this.errorMessage = error || "";
+      this.loadState = error ? "error" : "ready";
     },
     toggleDetails(pkg) {
       this.expandedId = this.expandedId === pkg.id ? null : pkg.id;
@@ -269,29 +268,14 @@ export default {
       this.editingPackage = pkg;
       this.isFormOpen = true;
     },
-    async onSaved(message) {
-      notifySuccess(message);
-      await this.loadPackages();
-    },
-    onSynced(message) {
-      notifySuccess(message);
-    },
     async toggleActive(pkg) {
       if (pkg.is_active) {
         const { isConfirmed } = await confirmDeactivation(pkg);
         if (!isConfirmed) return;
       }
-
       this.busyId = pkg.id;
-      const response = await setPackageActive(pkg.id, !pkg.is_active);
+      await this.setPackageActive({ id: pkg.id, isActive: !pkg.is_active });
       this.busyId = null;
-
-      if (!response.estadoflag) {
-        Swal.fire({ icon: "error", text: response.mensaje });
-        return;
-      }
-      pkg.is_active = !pkg.is_active;
-      notifySuccess(response.mensaje);
     },
   },
 };
@@ -333,6 +317,10 @@ export default {
   display: flex;
   flex-wrap: wrap;
   gap: 10px;
+}
+
+.plans-theme a.plans-button .v-icon.v-icon {
+  font-size: 18px;
 }
 
 .subscription-admin__accent {
@@ -399,7 +387,7 @@ export default {
   margin-top: 8px;
 }
 
-.subscription-admin__state-icon {
+.plans-theme .subscription-admin__state-icon.v-icon {
   font-size: 40px;
   color: var(--planes-accent);
 }

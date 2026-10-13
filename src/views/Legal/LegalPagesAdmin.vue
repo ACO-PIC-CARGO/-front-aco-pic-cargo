@@ -14,7 +14,7 @@
         class="legal-admin__state"
         aria-busy="true"
       >
-        <i class="mdi mdi-loading mdi-spin" aria-hidden="true"></i>
+        <v-icon class="mdi-spin">mdi-loading</v-icon>
         Cargando las páginas…
       </p>
 
@@ -27,13 +27,9 @@
           No pudimos cargar las páginas legales.
         </p>
         <p>{{ errorMessage }}</p>
-        <button
-          type="button"
-          class="plans-button plans-button--secondary"
-          @click="loadPages"
-        >
+        <v-btn text class="plans-button plans-button--secondary" @click="load">
           Reintentar
-        </button>
+        </v-btn>
       </div>
 
       <div v-else-if="!pages.length" class="legal-admin__state">
@@ -43,23 +39,19 @@
       </div>
 
       <template v-else>
-        <div
+        <v-tabs
+          v-model="activeSlug"
           class="legal-admin__tabs"
-          role="tablist"
+          fixed-tabs
           aria-label="Páginas legales"
-          @keydown="onTabKeydown"
         >
-          <button
+          <v-tab
             v-for="page in pages"
             :id="`tab-${page.slug}`"
             :key="page.slug"
-            type="button"
-            role="tab"
+            :tab-value="page.slug"
             class="legal-admin__tab"
-            :aria-selected="String(page.slug === activeSlug)"
             :aria-controls="`panel-${page.slug}`"
-            :tabindex="page.slug === activeSlug ? 0 : -1"
-            @click="activeSlug = page.slug"
           >
             <span class="legal-admin__tab-long">
               {{ pageView(page.slug).label }}
@@ -71,16 +63,15 @@
               <span class="legal-admin__dot" aria-hidden="true"></span>
               <span class="d-sr-only">(cambios sin guardar)</span>
             </template>
-          </button>
-        </div>
+          </v-tab>
+        </v-tabs>
 
-        <form
+        <v-form
           :id="`panel-${activeSlug}`"
           ref="panel"
           class="legal-admin__panel"
           role="tabpanel"
           :aria-labelledby="`tab-${activeSlug}`"
-          novalidate
           @submit.prevent="save"
         >
           <div class="legal-admin__meta">
@@ -94,39 +85,36 @@
               class="legal-admin__link"
               aria-label="Ver página publicada (se abre en una pestaña nueva)"
             >
-              <i class="mdi mdi-open-in-new" aria-hidden="true"></i> Ver página
-              publicada
+              <v-icon>mdi-open-in-new</v-icon> Ver página publicada
             </router-link>
           </div>
 
-          <p v-if="placeholders.length" class="legal-admin__notice" role="note">
-            <i class="mdi mdi-alert-circle-outline" aria-hidden="true"></i>
+          <p
+            v-if="activePlaceholders.length"
+            class="legal-admin__notice"
+            role="note"
+          >
+            <v-icon>mdi-alert-circle-outline</v-icon>
             <span>
               Reemplaza estos datos entre corchetes por los reales:
-              <strong>{{ placeholders.join(", ") }}</strong
+              <strong>{{ activePlaceholders.join(", ") }}</strong
               >.
             </span>
           </p>
 
           <fieldset class="legal-admin__fields" :disabled="saving">
-            <FormField
+            <v-text-field
+              id="legal-page-title"
+              v-model="draftTitle"
               label="Título de la página"
-              input-id="legal-page-title"
-              :error="errors.title"
-            >
-              <template #default="field">
-                <input
-                  id="legal-page-title"
-                  v-model="draft.title"
-                  class="legal-admin__input"
-                  type="text"
-                  autocomplete="off"
-                  :maxlength="limits.title"
-                  :aria-describedby="field.describedby"
-                  :aria-invalid="String(field.invalid)"
-                />
-              </template>
-            </FormField>
+              autocomplete="off"
+              :maxlength="limits.title"
+              :counter="limits.title"
+              :error-messages="errors.title"
+              :aria-invalid="String(Boolean(errors.title))"
+              outlined
+              dense
+            />
 
             <p
               v-if="errors.size || errors.sections"
@@ -142,17 +130,18 @@
               <LegalSectionEditor
                 v-for="(section, index) in draft.sections"
                 :key="section.key"
-                v-model="draft.sections[index]"
+                :value="section"
                 :index="index"
                 :count="draft.sections.length"
                 :errors="errors.items[index]"
+                @input="updateSection(index, $event)"
                 @move="onMoveSection(index, $event)"
                 @remove="removeSection(index)"
               />
             </ol>
 
-            <button
-              type="button"
+            <v-btn
+              text
               class="plans-button plans-button--secondary legal-admin__add"
               :disabled="isAtSectionLimit"
               :aria-describedby="
@@ -160,8 +149,8 @@
               "
               @click="addSection"
             >
-              <i class="mdi mdi-plus" aria-hidden="true"></i> Agregar sección
-            </button>
+              <v-icon>mdi-plus</v-icon> Agregar sección
+            </v-btn>
             <p
               v-if="isAtSectionLimit"
               id="legal-section-limit"
@@ -180,29 +169,26 @@
               }}
             </p>
             <div class="legal-admin__bar-actions">
-              <button
-                type="button"
+              <v-btn
+                text
                 class="plans-button plans-button--ghost"
                 :disabled="!isActiveDirty || saving"
                 @click="discardChanges"
               >
                 Descartar cambios
-              </button>
-              <button
+              </v-btn>
+              <v-btn
+                text
                 type="submit"
                 class="plans-button plans-button--primary"
                 :disabled="!isActiveDirty || saving"
               >
-                <i
-                  v-if="saving"
-                  class="mdi mdi-loading mdi-spin"
-                  aria-hidden="true"
-                ></i>
+                <v-icon v-if="saving" class="mdi-spin">mdi-loading</v-icon>
                 {{ saving ? "Guardando…" : "Guardar cambios" }}
-              </button>
+              </v-btn>
             </div>
           </div>
-        </form>
+        </v-form>
       </template>
     </div>
   </div>
@@ -211,23 +197,8 @@
 <script>
 import Swal from "sweetalert2";
 import "@/styles/plans-theme.css";
-import FormField from "@/components/SubscriptionPackages/FormField.vue";
-import { isEmptyResult } from "@/api/subscriptionPackages";
-import { fetchLegalPages, saveLegalPage } from "@/api/legalPages";
-import { notifySuccess } from "@/views/MyPlan/planPurchase";
+import { mapActions, mapGetters, mapState } from "vuex";
 import LegalSectionEditor from "./LegalSectionEditor.vue";
-import {
-  LEGAL_LIMITS,
-  emptySection,
-  findPlaceholders,
-  formatUpdatedAt,
-  hasErrors,
-  isDirty,
-  moveSection,
-  toDraft,
-  toPayload,
-  validateDraft,
-} from "./legalPageEditor";
 
 const PAGE_VIEWS = {
   terminos: {
@@ -256,7 +227,7 @@ const focusById = (id) => {
 
 export default {
   name: "LegalPagesAdmin",
-  components: { FormField, LegalSectionEditor },
+  components: { LegalSectionEditor },
   beforeRouteLeave(to, from, next) {
     if (this.saving) {
       next(false);
@@ -277,31 +248,43 @@ export default {
     }).then(({ isConfirmed }) => next(isConfirmed));
   },
   data: () => ({
-    pages: [],
-    drafts: {},
     showErrors: {},
     activeSlug: "",
     loadState: "loading",
     errorMessage: "",
     saving: false,
-    limits: LEGAL_LIMITS,
   }),
   computed: {
+    ...mapState("legalPages", ["pages", "drafts"]),
+    ...mapGetters("legalPages", [
+      "limits",
+      "formatUpdatedAt",
+      "draftErrors",
+      "hasDraftErrors",
+      "dirtySlugs",
+      "placeholders",
+    ]),
     activePage() {
       return this.pages.find((page) => page.slug === this.activeSlug);
     },
     draft() {
       return this.drafts[this.activeSlug];
     },
+    draftTitle: {
+      get() {
+        return this.draft.title;
+      },
+      set(title) {
+        this.$store.commit("legalPages/SET_DRAFT_TITLE", {
+          slug: this.activeSlug,
+          title,
+        });
+      },
+    },
     errors() {
       return this.showErrors[this.activeSlug]
-        ? validateDraft(this.draft)
+        ? this.draftErrors(this.activeSlug)
         : NO_ERRORS;
-    },
-    dirtySlugs() {
-      return this.pages
-        .filter((page) => isDirty(this.drafts[page.slug], page))
-        .map((page) => page.slug);
     },
     isAtSectionLimit() {
       return this.draft.sections.length >= this.limits.sections;
@@ -309,65 +292,56 @@ export default {
     isActiveDirty() {
       return this.dirtySlugs.includes(this.activeSlug);
     },
-    placeholders() {
-      return findPlaceholders(this.draft);
+    activePlaceholders() {
+      return this.placeholders(this.activeSlug);
     },
   },
   mounted() {
     this.$store.state.mainTitle = "PÁGINAS LEGALES";
     window.addEventListener("beforeunload", this.warnBeforeUnload);
-    this.loadPages();
+    this.load();
   },
   beforeDestroy() {
     window.removeEventListener("beforeunload", this.warnBeforeUnload);
   },
   methods: {
-    formatUpdatedAt,
+    ...mapActions("legalPages", ["loadPages", "savePage"]),
     pageView(slug) {
       return PAGE_VIEWS[slug];
     },
-    async loadPages() {
+    async load() {
       this.loadState = "loading";
-      const response = await fetchLegalPages();
-      if (!response.estadoflag && !isEmptyResult(response)) {
-        this.errorMessage = response.mensaje;
+      const error = await this.loadPages();
+      if (error) {
+        this.errorMessage = error;
         this.loadState = "error";
         return;
       }
-      this.pages = response.data;
-      this.drafts = Object.fromEntries(
-        this.pages.map((page) => [page.slug, toDraft(page)])
-      );
       this.showErrors = {};
       if (!this.activeSlug && this.pages.length) {
         this.activeSlug = this.pages[0].slug;
       }
       this.loadState = "ready";
     },
-    onTabKeydown(event) {
-      const count = this.pages.length;
-      const index = this.pages.findIndex(
-        (page) => page.slug === this.activeSlug
-      );
-      const target = {
-        ArrowLeft: (index - 1 + count) % count,
-        ArrowRight: (index + 1) % count,
-        Home: 0,
-        End: count - 1,
-      }[event.key];
-      if (target === undefined) return;
-      event.preventDefault();
-      this.activeSlug = this.pages[target].slug;
-      focusById(`tab-${this.activeSlug}`);
+    updateSection(index, section) {
+      this.$store.commit("legalPages/SET_SECTION", {
+        slug: this.activeSlug,
+        index,
+        section,
+      });
     },
     addSection() {
-      const section = emptySection();
-      this.draft.sections.push(section);
+      this.$store.commit("legalPages/ADD_SECTION", this.activeSlug);
+      const section = this.draft.sections[this.draft.sections.length - 1];
       this.$nextTick(() => focusById(`${section.key}-heading`));
     },
     onMoveSection(index, offset) {
       const { key } = this.draft.sections[index];
-      this.draft.sections = moveSection(this.draft.sections, index, offset);
+      this.$store.commit("legalPages/MOVE_SECTION", {
+        slug: this.activeSlug,
+        index,
+        offset,
+      });
       const [preferred, other] = offset < 0 ? ["up", "down"] : ["down", "up"];
       this.$nextTick(() => {
         const button = document.getElementById(`${key}-${preferred}`);
@@ -375,8 +349,7 @@ export default {
       });
     },
     async removeSection(index) {
-      const { sections } = this.draft;
-      const { heading, text } = sections[index];
+      const { heading, text } = this.draft.sections[index];
       if (heading.trim() || text.trim()) {
         const { isConfirmed } = await Swal.fire({
           icon: "warning",
@@ -389,47 +362,35 @@ export default {
         });
         if (!isConfirmed) return;
       }
-      sections.splice(index, 1);
+      this.$store.commit("legalPages/REMOVE_SECTION", {
+        slug: this.activeSlug,
+        index,
+      });
+      const { sections } = this.draft;
       const neighbor = sections[Math.min(index, sections.length - 1)];
       this.$nextTick(() => focusById(`${neighbor.key}-heading`));
     },
     discardChanges() {
-      this.drafts[this.activeSlug] = toDraft(this.activePage);
+      this.$store.commit("legalPages/RESET_DRAFT", this.activeSlug);
       this.$set(this.showErrors, this.activeSlug, false);
     },
     focusFirstInvalid() {
       const field =
-        this.$refs.panel.querySelector('[aria-invalid="true"]') ||
+        this.$refs.panel.$el.querySelector('[aria-invalid="true"]') ||
         this.$refs.pageError;
       if (field) field.focus();
     },
     async save() {
       const slug = this.activeSlug;
-      const draft = this.drafts[slug];
       this.$set(this.showErrors, slug, true);
-      if (hasErrors(validateDraft(draft))) {
+      if (this.hasDraftErrors(slug)) {
         this.$nextTick(this.focusFirstInvalid);
         return;
       }
-
       this.saving = true;
-      const response = await saveLegalPage(slug, toPayload(draft));
+      const saved = await this.savePage(slug);
       this.saving = false;
-
-      if (!response.estadoflag) {
-        Swal.fire({
-          icon: response.tipomensaje === "TMSGADV" ? "warning" : "error",
-          text: response.mensaje,
-        });
-        return;
-      }
-      const saved = response.data[0];
-      this.pages = this.pages.map((page) =>
-        page.slug === slug ? saved : page
-      );
-      this.drafts[slug] = toDraft(saved);
-      this.$set(this.showErrors, slug, false);
-      notifySuccess(response.mensaje);
+      if (saved) this.$set(this.showErrors, slug, false);
     },
     warnBeforeUnload(event) {
       if (!this.dirtySlugs.length) return;
@@ -493,36 +454,42 @@ export default {
   color: var(--planes-text);
 }
 
-.legal-admin__tabs {
-  display: grid;
-  grid-auto-flow: column;
-  grid-auto-columns: minmax(0, 1fr);
+.plans-theme .legal-admin__tabs.v-tabs ::v-deep .v-tabs-bar {
+  height: auto;
+  background: transparent;
   border-bottom: 1px solid var(--planes-divider);
 }
 
-.legal-admin__tab {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  min-height: 48px;
-  padding: 0 12px;
-  border-bottom: 2px solid transparent;
-  font-size: 15px;
-  font-weight: 600;
-  color: var(--planes-text-muted);
-  cursor: pointer;
-  transition: color 0.2s, background-color 0.2s, border-color 0.2s;
+.plans-theme .legal-admin__tabs.v-tabs ::v-deep .v-tabs-slider {
+  background-color: var(--planes-accent);
 }
 
-.legal-admin__tab:hover {
+.plans-theme .legal-admin__tabs .legal-admin__tab.v-tab {
+  flex: 1 1 0;
+  gap: 8px;
+  min-width: 0;
+  max-width: none;
+  min-height: 48px;
+  padding: 0 12px;
+  font-size: 15px;
+  font-weight: 600;
+  letter-spacing: normal;
+  text-transform: none;
+  color: var(--planes-text-muted);
+  transition: color 0.2s, background-color 0.2s;
+}
+
+.plans-theme .legal-admin__tabs .legal-admin__tab.v-tab::before {
+  display: none;
+}
+
+.plans-theme .legal-admin__tabs .legal-admin__tab.v-tab:hover {
   color: var(--planes-text);
   background: var(--planes-overlay-hover);
 }
 
-.legal-admin__tab[aria-selected="true"] {
+.plans-theme .legal-admin__tabs .legal-admin__tab.v-tab.v-tab--active {
   color: var(--planes-accent);
-  border-bottom-color: var(--planes-accent);
   background: var(--planes-accent-tint);
 }
 
@@ -580,39 +547,10 @@ export default {
   color: var(--planes-text);
 }
 
-.legal-admin__notice .mdi {
+.plans-theme .legal-admin__notice .v-icon.v-icon {
   font-size: 20px;
   line-height: 1;
   color: var(--planes-text-muted);
-}
-
-.legal-admin__panel ::v-deep .legal-admin__input {
-  width: 100%;
-  min-height: 44px;
-  padding: 0 12px;
-  border-radius: var(--planes-radius-control);
-  border: 1px solid var(--planes-border-strong);
-  background: var(--planes-field);
-  font-size: 15px;
-  color: var(--planes-text);
-  transition: border-color 0.2s;
-}
-
-.legal-admin__panel ::v-deep .legal-admin__textarea {
-  min-height: 140px;
-  padding: 10px 12px;
-  line-height: 1.5;
-  resize: vertical;
-  field-sizing: content;
-}
-
-.legal-admin__panel ::v-deep .legal-admin__input:focus-visible {
-  outline: 2px solid var(--planes-accent);
-  outline-offset: 1px;
-}
-
-.legal-admin__panel ::v-deep .legal-admin__input[aria-invalid="true"] {
-  border-color: var(--planes-danger);
 }
 
 .legal-admin__error {
@@ -630,7 +568,7 @@ export default {
   display: contents;
 }
 
-.legal-admin__add {
+.plans-theme .legal-admin__add.v-btn {
   width: 100%;
 }
 
@@ -665,15 +603,14 @@ export default {
   gap: 10px;
 }
 
-.legal-admin__tab:focus-visible,
+.plans-theme .legal-admin__tabs .legal-admin__tab.v-tab:focus-visible,
 .legal-admin__link:focus-visible {
   outline: 2px solid var(--planes-accent);
   outline-offset: -2px;
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .legal-admin__tab,
-  .legal-admin__panel ::v-deep .legal-admin__input {
+  .plans-theme .legal-admin__tabs .legal-admin__tab.v-tab {
     transition: none;
   }
 }

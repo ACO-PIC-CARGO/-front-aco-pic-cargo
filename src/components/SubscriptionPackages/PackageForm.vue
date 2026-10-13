@@ -6,10 +6,9 @@
     :fullscreen="$vuetify.breakpoint.smAndDown"
     content-class="plans-theme plans-theme--app package-dialog"
   >
-    <form
+    <v-form
       ref="form"
       class="package-form"
-      novalidate
       aria-labelledby="package-form-title"
       @submit.prevent="save"
     >
@@ -22,71 +21,59 @@
             Revisa la vista previa antes de guardar.
           </p>
         </div>
-        <button
-          type="button"
+        <v-btn
+          icon
           class="icon-button"
           aria-label="Cerrar sin guardar"
           @click="close"
         >
-          <i class="mdi mdi-close" aria-hidden="true"></i>
-        </button>
+          <v-icon>mdi-close</v-icon>
+        </v-btn>
       </header>
 
       <div class="package-form__body">
         <div class="package-form__fields">
           <section class="form-section" aria-labelledby="section-identity">
             <h3 id="section-identity" class="form-section__title">Identidad</h3>
-            <FormField
+            <v-text-field
+              id="package-name"
+              v-model="name"
               label="Nombre"
-              input-id="package-name"
-              :error="visibleErrors.name"
-              :hint="`Se muestra como ACO ${previewName}.`"
-            >
-              <template #default="field">
-                <input
-                  id="package-name"
-                  v-model="draft.name"
-                  class="input"
-                  type="text"
-                  autocomplete="off"
-                  placeholder="Ej. START"
-                  :maxlength="limits.name"
-                  :aria-describedby="field.describedby"
-                  :aria-invalid="String(field.invalid)"
-                  @blur="touch('name')"
-                />
-              </template>
-            </FormField>
-            <FormField
+              placeholder="Ej. START"
+              autocomplete="off"
+              :maxlength="limits.name"
+              :counter="limits.name"
+              :hint="`Se muestra como ACO ${previewPlan.name}.`"
+              persistent-hint
+              :error-messages="visibleErrors.name"
+              :aria-invalid="String(Boolean(visibleErrors.name))"
+              outlined
+              dense
+              @blur="touch('name')"
+            />
+            <v-text-field
+              id="package-tagline"
+              v-model="tagline"
               label="Descripción corta (opcional)"
-              input-id="package-tagline"
-              :error="visibleErrors.tagline"
+              autocomplete="off"
+              :maxlength="limits.tagline"
+              :counter="limits.tagline"
               hint="Una línea bajo el nombre, por ejemplo: Para empezar."
-            >
-              <template #default="field">
-                <input
-                  id="package-tagline"
-                  v-model="draft.tagline"
-                  class="input"
-                  type="text"
-                  autocomplete="off"
-                  :maxlength="limits.tagline"
-                  :aria-describedby="field.describedby"
-                  :aria-invalid="String(field.invalid)"
-                  @blur="touch('tagline')"
-                />
-              </template>
-            </FormField>
-            <label class="switch">
-              <input
-                v-model="draft.isFeatured"
-                class="switch__input"
-                type="checkbox"
-                role="switch"
-              />
-              <span class="switch__track" aria-hidden="true"></span>
-              Marcar como "Más elegido"
-            </label>
+              persistent-hint
+              :error-messages="visibleErrors.tagline"
+              :aria-invalid="String(Boolean(visibleErrors.tagline))"
+              outlined
+              dense
+              @blur="touch('tagline')"
+            />
+            <v-switch
+              v-model="isFeatured"
+              class="package-switch"
+              label='Marcar como "Más elegido"'
+              color="var(--planes-accent)"
+              hide-details
+              dense
+            />
           </section>
 
           <section class="form-section" aria-labelledby="section-pricing">
@@ -94,52 +81,36 @@
               Precio y usuarios
             </h3>
             <div class="form-grid">
-              <FormField
+              <v-text-field
+                id="package-monthly-price"
+                v-model="monthlyPrice"
                 label="Precio mensual"
-                input-id="package-monthly-price"
-                :error="visibleErrors.monthlyPrice"
-              >
-                <template #default="field">
-                  <div class="input-prefix">
-                    <span aria-hidden="true">US$</span>
-                    <input
-                      id="package-monthly-price"
-                      v-model="draft.monthlyPrice"
-                      class="input"
-                      type="number"
-                      min="0"
-                      step="0.01"
-                      inputmode="decimal"
-                      :aria-describedby="field.describedby"
-                      :aria-invalid="String(field.invalid)"
-                      @blur="touch('monthlyPrice')"
-                    />
-                  </div>
-                </template>
-              </FormField>
-              <FormField
+                prefix="US$"
+                type="number"
+                min="0"
+                step="0.01"
+                inputmode="decimal"
+                :error-messages="visibleErrors.monthlyPrice"
+                :aria-invalid="String(Boolean(visibleErrors.monthlyPrice))"
+                outlined
+                dense
+                @blur="touch('monthlyPrice')"
+              />
+              <v-text-field
+                id="package-annual-price"
+                v-model="annualPrice"
                 label="Precio anual"
-                input-id="package-annual-price"
-                :error="visibleErrors.annualPrice"
-              >
-                <template #default="field">
-                  <div class="input-prefix">
-                    <span aria-hidden="true">US$</span>
-                    <input
-                      id="package-annual-price"
-                      v-model="draft.annualPrice"
-                      class="input"
-                      type="number"
-                      min="0"
-                      step="0.01"
-                      inputmode="decimal"
-                      :aria-describedby="field.describedby"
-                      :aria-invalid="String(field.invalid)"
-                      @blur="touch('annualPrice')"
-                    />
-                  </div>
-                </template>
-              </FormField>
+                prefix="US$"
+                type="number"
+                min="0"
+                step="0.01"
+                inputmode="decimal"
+                :error-messages="visibleErrors.annualPrice"
+                :aria-invalid="String(Boolean(visibleErrors.annualPrice))"
+                outlined
+                dense
+                @blur="touch('annualPrice')"
+              />
             </div>
             <p
               v-if="savingsHint"
@@ -147,107 +118,92 @@
               :class="{ 'savings-hint--positive': savingsHint.positive }"
               aria-live="polite"
             >
-              <i
-                class="mdi"
-                :class="savingsHint.positive ? 'mdi-tag-outline' : 'mdi-information-outline'"
-                aria-hidden="true"
-              ></i>
+              <v-icon>
+                {{
+                  savingsHint.positive
+                    ? "mdi-tag-outline"
+                    : "mdi-information-outline"
+                }}
+              </v-icon>
               {{ savingsHint.text }}
             </p>
 
-            <FormField
-              label="Usuarios incluidos"
-              input-id="package-users"
-              :error="visibleErrors.userLimit"
-            >
-              <template #default="field">
-                <div class="stepper">
-                  <button
-                    type="button"
-                    class="stepper__button"
-                    aria-label="Quitar un usuario"
-                    :disabled="draft.userLimit <= 1"
-                    @click="changeUsers(-1)"
-                  >
-                    <i class="mdi mdi-minus" aria-hidden="true"></i>
-                  </button>
-                  <input
-                    id="package-users"
-                    v-model.number="draft.userLimit"
-                    class="input stepper__value"
-                    type="number"
-                    min="1"
-                    step="1"
-                    inputmode="numeric"
-                    :aria-describedby="field.describedby"
-                    :aria-invalid="String(field.invalid)"
-                    @blur="touch('userLimit')"
-                  />
-                  <button
-                    type="button"
-                    class="stepper__button"
-                    aria-label="Agregar un usuario"
-                    @click="changeUsers(1)"
-                  >
-                    <i class="mdi mdi-plus" aria-hidden="true"></i>
-                  </button>
-                </div>
-              </template>
-            </FormField>
+            <div class="stepper">
+              <v-btn
+                text
+                class="stepper__button"
+                aria-label="Quitar un usuario"
+                :disabled="draft.userLimit <= 1"
+                @click="changeUsers(-1)"
+              >
+                <v-icon>mdi-minus</v-icon>
+              </v-btn>
+              <v-text-field
+                id="package-users"
+                v-model.number="userLimit"
+                class="stepper__value"
+                label="Usuarios incluidos"
+                type="number"
+                min="1"
+                step="1"
+                inputmode="numeric"
+                :error-messages="visibleErrors.userLimit"
+                :aria-invalid="String(Boolean(visibleErrors.userLimit))"
+                outlined
+                dense
+                @blur="touch('userLimit')"
+              />
+              <v-btn
+                text
+                class="stepper__button"
+                aria-label="Agregar un usuario"
+                @click="changeUsers(1)"
+              >
+                <v-icon>mdi-plus</v-icon>
+              </v-btn>
+            </div>
           </section>
 
           <section class="form-section" aria-labelledby="section-trial">
             <h3 id="section-trial" class="form-section__title">
               Periodo de prueba
             </h3>
-            <label class="switch">
-              <input
-                v-model="draft.trialEnabled"
-                class="switch__input"
-                type="checkbox"
-                role="switch"
+            <v-switch
+              v-model="trialEnabled"
+              class="package-switch"
+              label="Ofrecer periodo de prueba"
+              color="var(--planes-accent)"
+              hide-details
+              dense
+            />
+            <div v-if="trialEnabled" class="form-grid">
+              <v-text-field
+                id="package-trial-length"
+                v-model="trialFrequency"
+                label="Duración"
+                type="number"
+                min="1"
+                step="1"
+                inputmode="numeric"
+                hint="El cliente deja su tarjeta y se le cobra cuando termina la prueba."
+                persistent-hint
+                :error-messages="visibleErrors.trialFrequency"
+                :aria-invalid="String(Boolean(visibleErrors.trialFrequency))"
+                outlined
+                dense
+                @blur="touch('trialFrequency')"
               />
-              <span class="switch__track" aria-hidden="true"></span>
-              Ofrecer periodo de prueba
-            </label>
-            <FormField
-              v-if="draft.trialEnabled"
-              label="Duración"
-              input-id="package-trial-length"
-              :error="visibleErrors.trialFrequency"
-              hint="El cliente deja su tarjeta y se le cobra cuando termina la prueba."
-            >
-              <template #default="field">
-                <div class="form-grid">
-                  <input
-                    id="package-trial-length"
-                    v-model="draft.trialFrequency"
-                    class="input"
-                    type="number"
-                    min="1"
-                    step="1"
-                    inputmode="numeric"
-                    :aria-describedby="field.describedby"
-                    :aria-invalid="String(field.invalid)"
-                    @blur="touch('trialFrequency')"
-                  />
-                  <select
-                    v-model="draft.trialInterval"
-                    class="input"
-                    aria-label="Unidad de la duración"
-                    @change="touch('trialFrequency')"
-                  >
-                    <option
-                      v-for="unit in trialUnits"
-                      :key="unit.value"
-                      :value="unit.value"
-                    >
-                      {{ unit.label }}
-                    </option>
-                  </select>
-                </div>
-              </template>
-            </FormField>
+              <v-select
+                v-model="trialInterval"
+                :items="trialUnits"
+                item-text="label"
+                item-value="value"
+                aria-label="Unidad de la duración"
+                outlined
+                dense
+                @change="touch('trialFrequency')"
+              />
+            </div>
           </section>
 
           <section class="form-section" aria-labelledby="section-modules">
@@ -261,71 +217,95 @@
               role="group"
               aria-labelledby="section-modules"
             >
-              <button
+              <v-btn
                 v-for="(module, position) in modules"
                 :id="position === 0 ? 'package-modules' : null"
                 :key="module.id"
-                type="button"
+                text
                 class="chip"
                 :class="{ 'chip--selected': isModuleSelected(module.id) }"
                 :aria-pressed="String(isModuleSelected(module.id))"
-                :aria-invalid="String(position === 0 && Boolean(visibleErrors.moduleIds))"
+                :aria-invalid="
+                  String(position === 0 && Boolean(visibleErrors.moduleIds))
+                "
                 @click="onToggleModule(module.id)"
               >
-                <i
-                  class="mdi"
-                  :class="isModuleSelected(module.id) ? 'mdi-check' : 'mdi-plus'"
-                  aria-hidden="true"
-                ></i>
+                <v-icon>
+                  {{ isModuleSelected(module.id) ? "mdi-check" : "mdi-plus" }}
+                </v-icon>
                 {{ module.name }}
-              </button>
+              </v-btn>
             </div>
             <p v-else class="form-message form-message--error">
               No pudimos cargar los módulos. Cierra el formulario, actualiza la
               página e intenta de nuevo.
             </p>
-            <p v-if="visibleErrors.moduleIds" class="form-message form-message--error">
+            <p
+              v-if="visibleErrors.moduleIds"
+              class="form-message form-message--error"
+            >
               {{ visibleErrors.moduleIds }}
             </p>
 
             <div class="access">
               <span class="access__label">Acceso del cliente</span>
-              <SegmentedControl
+              <v-btn-toggle
                 :value="accessMode"
-                :options="accessOptions"
-                label="Acceso del cliente a los módulos"
-                :disabled="draft.moduleIds.length < 2"
-                @input="setAccessMode"
-              />
+                mandatory
+                rounded
+                dense
+                class="segmented"
+                role="group"
+                aria-label="Acceso del cliente a los módulos"
+                @change="setAccessMode"
+              >
+                <v-btn
+                  v-for="option in accessOptions"
+                  :key="option.value"
+                  :value="option.value"
+                  :disabled="draft.moduleIds.length < 2"
+                  text
+                >
+                  {{ option.label }}
+                </v-btn>
+              </v-btn-toggle>
               <div v-if="accessMode === 'choose'" class="access__choose">
                 <span id="selection-label">El cliente elige</span>
-                <div class="stepper stepper--compact" role="group" aria-labelledby="selection-label">
-                  <button
-                    type="button"
+                <div
+                  class="stepper stepper--compact"
+                  role="group"
+                  aria-labelledby="selection-label"
+                >
+                  <v-btn
+                    text
                     class="stepper__button"
                     aria-label="Elegir un módulo menos"
                     :disabled="draft.selectionLimit <= 1"
                     @click="changeSelection(-1)"
                   >
-                    <i class="mdi mdi-minus" aria-hidden="true"></i>
-                  </button>
+                    <v-icon>mdi-minus</v-icon>
+                  </v-btn>
                   <output
                     id="package-selection"
                     class="stepper__output"
                     tabindex="-1"
-                    :aria-invalid="String(Boolean(visibleErrors.selectionLimit))"
+                    :aria-invalid="
+                      String(Boolean(visibleErrors.selectionLimit))
+                    "
                   >
                     {{ draft.selectionLimit }}
                   </output>
-                  <button
-                    type="button"
+                  <v-btn
+                    text
                     class="stepper__button"
                     aria-label="Elegir un módulo más"
-                    :disabled="draft.selectionLimit >= draft.moduleIds.length - 1"
+                    :disabled="
+                      draft.selectionLimit >= draft.moduleIds.length - 1
+                    "
                     @click="changeSelection(1)"
                   >
-                    <i class="mdi mdi-plus" aria-hidden="true"></i>
-                  </button>
+                    <v-icon>mdi-plus</v-icon>
+                  </v-btn>
                 </div>
                 <span>de {{ draft.moduleIds.length }} módulos</span>
               </div>
@@ -348,43 +328,44 @@
               para mostrarla dentro de él.
             </p>
 
-            <label for="new-feature" class="access__label">Nueva característica</label>
             <div class="feature-add">
-              <input
+              <v-text-field
                 id="new-feature"
                 v-model="newFeatureText"
-                class="input"
-                type="text"
-                autocomplete="off"
+                label="Nueva característica"
                 placeholder="Ej. Soporte prioritario"
+                autocomplete="off"
                 :maxlength="limits.feature"
+                :error="Boolean(visibleErrors.features)"
                 :aria-invalid="String(Boolean(visibleErrors.features))"
+                hide-details
+                outlined
+                dense
                 @keydown.enter.prevent="addFeature"
               />
-              <select
+              <v-select
                 v-model="newFeatureModuleId"
-                class="input feature-add__select"
+                :items="featureTargets"
+                item-text="label"
+                item-value="value"
                 aria-label="Dónde se muestra la característica"
-              >
-                <option :value="null">General</option>
-                <option
-                  v-for="module in selectedModules"
-                  :key="module.id"
-                  :value="module.id"
-                >
-                  En {{ module.name }}
-                </option>
-              </select>
-              <button
-                type="button"
+                hide-details
+                outlined
+                dense
+              />
+              <v-btn
+                text
                 class="plans-button plans-button--secondary"
                 :disabled="!newFeatureText.trim()"
                 @click="addFeature"
               >
-                <i class="mdi mdi-plus" aria-hidden="true"></i> Agregar
-              </button>
+                <v-icon>mdi-plus</v-icon> Agregar
+              </v-btn>
             </div>
-            <p v-if="visibleErrors.features" class="form-message form-message--error">
+            <p
+              v-if="visibleErrors.features"
+              class="form-message form-message--error"
+            >
               {{ visibleErrors.features }}
             </p>
 
@@ -395,55 +376,79 @@
                 class="feature-row"
                 :class="{ 'feature-row--excluded': !feature.isIncluded }"
               >
-                <button
-                  type="button"
+                <v-btn
+                  icon
                   class="icon-button icon-button--small"
-                  :class="feature.isIncluded ? 'icon-button--included' : 'icon-button--excluded'"
+                  :class="
+                    feature.isIncluded
+                      ? 'icon-button--included'
+                      : 'icon-button--excluded'
+                  "
                   :disabled="Boolean(feature.moduleId)"
                   :aria-pressed="String(feature.isIncluded)"
-                  :aria-label="feature.isIncluded ? 'Incluida. Cambiar a no incluida' : 'No incluida. Cambiar a incluida'"
+                  :aria-label="
+                    feature.isIncluded
+                      ? 'Incluida. Cambiar a no incluida'
+                      : 'No incluida. Cambiar a incluida'
+                  "
                   @click="toggleIncluded(feature)"
                 >
-                  <i
-                    class="mdi"
-                    :class="feature.isIncluded ? 'mdi-check-circle' : 'mdi-close-circle'"
-                    aria-hidden="true"
-                  ></i>
-                </button>
-                <input
-                  v-model="feature.description"
-                  class="input input--inline"
-                  type="text"
+                  <v-icon>
+                    {{
+                      feature.isIncluded
+                        ? "mdi-check-circle"
+                        : "mdi-close-circle"
+                    }}
+                  </v-icon>
+                </v-btn>
+                <v-text-field
+                  class="input--inline"
+                  :value="feature.description"
                   :maxlength="limits.feature"
                   aria-label="Texto de la característica"
+                  hide-details
+                  outlined
+                  dense
+                  @input="updateFeature(feature, { description: $event })"
                 />
                 <span v-if="feature.moduleId" class="feature-row__module">
                   {{ moduleName(feature.moduleId) }}
                 </span>
-                <button
+                <v-btn
                   v-else
-                  type="button"
+                  icon
                   class="icon-button icon-button--small"
-                  :class="{ 'icon-button--starred': feature.isHighlighted && feature.isIncluded }"
+                  :class="{
+                    'icon-button--starred':
+                      feature.isHighlighted && feature.isIncluded,
+                  }"
                   :disabled="!canHighlight(feature)"
-                  :aria-pressed="String(feature.isHighlighted && feature.isIncluded)"
+                  :aria-pressed="
+                    String(feature.isHighlighted && feature.isIncluded)
+                  "
                   aria-label="Destacar en el resumen"
-                  @click="feature.isHighlighted = !feature.isHighlighted"
+                  @click="
+                    updateFeature(feature, {
+                      isHighlighted: !feature.isHighlighted,
+                    })
+                  "
                 >
-                  <i
-                    class="mdi"
-                    :class="feature.isHighlighted && feature.isIncluded ? 'mdi-star' : 'mdi-star-outline'"
-                    aria-hidden="true"
-                  ></i>
-                </button>
-                <button
-                  type="button"
+                  <v-icon>
+                    {{
+                      feature.isHighlighted && feature.isIncluded
+                        ? "mdi-star"
+                        : "mdi-star-outline"
+                    }}
+                  </v-icon>
+                </v-btn>
+                <v-btn
+                  icon
                   class="icon-button icon-button--small"
                   aria-label="Quitar característica"
                   @click="removeFeature(feature)"
                 >
-                  <i class="mdi mdi-trash-can-outline" aria-hidden="true"></i>
-                </button>
+                  <v-icon>mdi-trash-can-outline</v-icon>
+                </v-btn>
               </li>
             </ul>
             <p v-else class="feature-empty">
@@ -456,14 +461,30 @@
           </section>
         </div>
 
-        <aside class="package-form__preview" aria-label="Vista previa de la tarjeta">
+        <aside
+          class="package-form__preview"
+          aria-label="Vista previa de la tarjeta"
+        >
           <div class="preview-bar">
             <span class="access__label">Vista previa</span>
-            <SegmentedControl
+            <v-btn-toggle
               v-model="previewAnnual"
-              :options="billingOptions"
-              label="Precio en la vista previa"
-            />
+              mandatory
+              rounded
+              dense
+              class="segmented"
+              role="group"
+              aria-label="Precio en la vista previa"
+            >
+              <v-btn
+                v-for="option in billingOptions"
+                :key="String(option.value)"
+                :value="option.value"
+                text
+              >
+                {{ option.label }}
+              </v-btn>
+            </v-btn-toggle>
           </div>
           <PackageCard
             :plan="previewPlan"
@@ -476,57 +497,35 @@
 
       <footer class="package-form__footer">
         <p v-if="serverMessage" class="form-alert" role="alert">
-          <i class="mdi mdi-alert-circle-outline" aria-hidden="true"></i>
+          <v-icon>mdi-alert-circle-outline</v-icon>
           {{ serverMessage }}
         </p>
         <p v-else-if="submitted && hasErrors" class="form-alert" role="alert">
-          <i class="mdi mdi-alert-circle-outline" aria-hidden="true"></i>
+          <v-icon>mdi-alert-circle-outline</v-icon>
           Revisa los campos marcados para poder guardar.
         </p>
         <div class="package-form__actions">
-          <button type="button" class="plans-button plans-button--ghost" @click="close">
+          <v-btn text class="plans-button plans-button--ghost" @click="close">
             Cancelar
-          </button>
-          <button
+          </v-btn>
+          <v-btn
+            text
             type="submit"
             class="plans-button plans-button--primary"
             :disabled="saving"
           >
-            <i
-              v-if="saving"
-              class="mdi mdi-loading mdi-spin"
-              aria-hidden="true"
-            ></i>
+            <v-icon v-if="saving" class="mdi-spin">mdi-loading</v-icon>
             {{ submitLabel }}
-          </button>
+          </v-btn>
         </div>
       </footer>
-    </form>
+    </v-form>
   </v-dialog>
 </template>
 
 <script>
-import FormField from "./FormField.vue";
+import { mapActions, mapGetters, mapState } from "vuex";
 import PackageCard from "./PackageCard.vue";
-import SegmentedControl from "./SegmentedControl.vue";
-import {
-  FEATURE_MAX_LENGTH,
-  MAX_HIGHLIGHTS,
-  NAME_MAX_LENGTH,
-  TAGLINE_MAX_LENGTH,
-  TRIAL_UNITS,
-  canBeHighlighted,
-  draftFromPackage,
-  draftToPackage,
-  emptyDraft,
-  highlightedCount,
-  newFeature,
-  toPayload,
-  toggleModule,
-  validateDraft,
-} from "./packageForm";
-import { formatPrice, toPlanView } from "./packageView";
-import { createPackage, updatePackage } from "@/api/subscriptionPackages";
 
 const ACCESS_OPTIONS = [
   { value: "all", label: "Todos incluidos" },
@@ -550,16 +549,23 @@ const FIELD_ORDER = [
   ["features", "new-feature"],
 ];
 
+const draftField = (field) => ({
+  get() {
+    return this.$store.state.subscriptions.packageDraft[field];
+  },
+  set(value) {
+    this.$store.commit("subscriptions/SET_DRAFT_FIELD", { field, value });
+  },
+});
+
 export default {
   name: "PackageForm",
-  components: { FormField, PackageCard, SegmentedControl },
+  components: { PackageCard },
   props: {
     value: { type: Boolean, default: false },
     pkg: { type: Object, default: null },
-    modules: { type: Array, default: () => [] },
   },
   data: () => ({
-    draft: emptyDraft(),
     touched: {},
     submitted: false,
     saving: false,
@@ -569,16 +575,30 @@ export default {
     previewAnnual: true,
     previewExpanded: true,
     accessOptions: ACCESS_OPTIONS,
-    trialUnits: TRIAL_UNITS,
     billingOptions: BILLING_OPTIONS,
-    limits: {
-      name: NAME_MAX_LENGTH,
-      tagline: TAGLINE_MAX_LENGTH,
-      feature: FEATURE_MAX_LENGTH,
-      highlights: MAX_HIGHLIGHTS,
-    },
   }),
   computed: {
+    ...mapState("subscriptions", {
+      draft: "packageDraft",
+      modules: "packageModules",
+    }),
+    ...mapGetters("subscriptions", {
+      errors: "packageDraftErrors",
+      previewPlan: "packageDraftPreview",
+      savingsHint: "packageDraftSavings",
+      canHighlight: "canHighlightFeature",
+      limits: "limits",
+      trialUnits: "trialUnits",
+    }),
+    name: draftField("name"),
+    tagline: draftField("tagline"),
+    monthlyPrice: draftField("monthlyPrice"),
+    annualPrice: draftField("annualPrice"),
+    userLimit: draftField("userLimit"),
+    isFeatured: draftField("isFeatured"),
+    trialEnabled: draftField("trialEnabled"),
+    trialInterval: draftField("trialInterval"),
+    trialFrequency: draftField("trialFrequency"),
     isEditing() {
       return Boolean(this.pkg);
     },
@@ -589,9 +609,6 @@ export default {
       if (this.saving) return "Guardando";
       return this.isEditing ? "Guardar cambios" : "Crear paquete";
     },
-    errors() {
-      return validateDraft(this.draft);
-    },
     hasErrors() {
       return Object.keys(this.errors).length > 0;
     },
@@ -601,45 +618,28 @@ export default {
         Object.entries(this.errors).filter(([field]) => this.touched[field])
       );
     },
-    previewName() {
-      return this.draft.name.trim() || "NUEVO";
-    },
-    previewPlan() {
-      return toPlanView({
-        ...draftToPackage(this.draft, this.modules),
-        name: this.previewName,
-      });
-    },
     selectedModules() {
       return this.modules.filter((module) => this.isModuleSelected(module.id));
+    },
+    featureTargets() {
+      return [
+        { value: null, label: "General" },
+        ...this.selectedModules.map((module) => ({
+          value: module.id,
+          label: `En ${module.name}`,
+        })),
+      ];
     },
     accessMode() {
       return this.draft.selectionLimit === null ? "all" : "choose";
     },
     accessHint() {
       const count = this.draft.moduleIds.length;
-      if (count < 2) return "Con un solo módulo, el cliente lo recibe incluido.";
-      if (this.accessMode === "all") return `El cliente recibe los ${count} módulos.`;
+      if (count < 2)
+        return "Con un solo módulo, el cliente lo recibe incluido.";
+      if (this.accessMode === "all")
+        return `El cliente recibe los ${count} módulos.`;
       return "Así funciona START: el cliente escoge al contratar.";
-    },
-    savingsHint() {
-      const monthly = Number(this.draft.monthlyPrice);
-      const annual = Number(this.draft.annualPrice);
-      if (!this.draft.monthlyPrice || !this.draft.annualPrice || monthly <= 0) {
-        return null;
-      }
-      const savings = Math.round((monthly * 12 - annual) * 100) / 100;
-      if (savings > 0) {
-        const months = Math.round(savings / monthly);
-        return {
-          positive: true,
-          text: `El cliente ahorra ${formatPrice(savings)} al año (${months} ${months === 1 ? "mes" : "meses"}).`,
-        };
-      }
-      return {
-        positive: false,
-        text: "Sin ahorro anual: el precio anual es igual o mayor a 12 mensualidades.",
-      };
     },
   },
   watch: {
@@ -648,8 +648,12 @@ export default {
     },
   },
   methods: {
+    ...mapActions("subscriptions", ["openPackageDraft", "savePackageDraft"]),
+    setDraft(field, value) {
+      this.$store.commit("subscriptions/SET_DRAFT_FIELD", { field, value });
+    },
     reset() {
-      this.draft = this.pkg ? draftFromPackage(this.pkg) : emptyDraft();
+      this.openPackageDraft(this.pkg);
       this.touched = {};
       this.submitted = false;
       this.serverMessage = "";
@@ -659,7 +663,7 @@ export default {
       this.$nextTick(this.startAtTop);
     },
     startAtTop() {
-      const form = this.$refs.form;
+      const form = this.$refs.form && this.$refs.form.$el;
       if (!form) return;
       form.closest(".v-dialog").scrollTop = 0;
       form.querySelector("#package-name").focus();
@@ -675,43 +679,49 @@ export default {
       return module ? module.name : "Módulo";
     },
     onToggleModule(moduleId) {
-      this.draft = toggleModule(this.draft, moduleId);
+      this.$store.commit("subscriptions/TOGGLE_DRAFT_MODULE", moduleId);
       if (!this.isModuleSelected(this.newFeatureModuleId)) {
         this.newFeatureModuleId = null;
       }
       this.touch("moduleIds");
     },
     setAccessMode(mode) {
-      this.draft.selectionLimit = mode === "all" ? null : 1;
+      this.setDraft("selectionLimit", mode === "all" ? null : 1);
     },
     changeSelection(delta) {
-      this.draft.selectionLimit += delta;
+      this.setDraft("selectionLimit", this.draft.selectionLimit + delta);
     },
     changeUsers(delta) {
-      this.draft.userLimit = Math.max(1, (Number(this.draft.userLimit) || 1) + delta);
+      this.setDraft(
+        "userLimit",
+        Math.max(1, (Number(this.draft.userLimit) || 1) + delta)
+      );
     },
-    canHighlight(feature) {
-      if (!canBeHighlighted(feature)) return false;
-      return feature.isHighlighted || highlightedCount(this.draft.features) < MAX_HIGHLIGHTS;
+    updateFeature(feature, changes) {
+      this.$store.commit("subscriptions/UPDATE_DRAFT_FEATURE", {
+        key: feature.key,
+        changes,
+      });
     },
     toggleIncluded(feature) {
-      feature.isIncluded = !feature.isIncluded;
+      this.updateFeature(feature, { isIncluded: !feature.isIncluded });
     },
     addFeature() {
       const description = this.newFeatureText.trim();
       if (!description) return;
-      this.draft.features.push(newFeature(description, this.newFeatureModuleId));
+      this.$store.commit("subscriptions/ADD_DRAFT_FEATURE", {
+        description,
+        moduleId: this.newFeatureModuleId,
+      });
       this.newFeatureText = "";
     },
     removeFeature(feature) {
-      this.draft.features = this.draft.features.filter(
-        (item) => item.key !== feature.key
-      );
+      this.$store.commit("subscriptions/REMOVE_DRAFT_FEATURE", feature.key);
     },
     focusFirstError() {
       const firstInvalid = FIELD_ORDER.find(([field]) => this.errors[field]);
       if (!firstInvalid) return;
-      const element = this.$refs.form.querySelector(`#${firstInvalid[1]}`);
+      const element = this.$refs.form.$el.querySelector(`#${firstInvalid[1]}`);
       if (element) element.focus();
     },
     close() {
@@ -724,19 +734,14 @@ export default {
         this.$nextTick(this.focusFirstError);
         return;
       }
-
       this.saving = true;
-      const payload = toPayload(this.draft);
-      const response = this.isEditing
-        ? await updatePackage(this.pkg.id, payload)
-        : await createPackage(payload);
+      const response = await this.savePackageDraft();
       this.saving = false;
-
       if (!response.estadoflag) {
         this.serverMessage = response.mensaje;
         return;
       }
-      this.$emit("saved", response.mensaje);
+      this.$emit("saved");
       this.close();
     },
   },
@@ -830,109 +835,20 @@ export default {
 .form-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
+  align-items: start;
   gap: 16px;
 }
 
-.input {
-  width: 100%;
-  min-height: 44px;
-  padding: 0 12px;
-  border-radius: var(--planes-radius-control);
-  border: 1px solid var(--planes-border-strong);
-  background: var(--planes-field);
-  font-size: 15px;
-  color: var(--planes-text);
-  transition: border-color 0.2s, box-shadow 0.2s;
-}
-
-.input::placeholder {
-  color: var(--planes-text-subtle);
-}
-
-.input:focus {
-  outline: none;
-  border-color: var(--planes-accent);
-  box-shadow: 0 0 0 3px var(--planes-accent-ring);
-}
-
-.input[aria-invalid="true"] {
-  border-color: var(--planes-danger);
-}
-
-.input-prefix {
-  position: relative;
-}
-
-.input-prefix span {
-  position: absolute;
-  top: 50%;
-  left: 12px;
-  transform: translateY(-50%);
-  font-size: 14px;
-  color: var(--planes-text-subtle);
-  pointer-events: none;
-}
-
-.input-prefix .input {
-  padding-left: 46px;
-}
-
-.feature-add__select option {
-  background: var(--planes-surface-solid);
-  color: var(--planes-text);
-}
-
-.switch {
-  display: inline-flex;
+.plans-theme .package-switch.v-input {
   align-items: center;
-  gap: 10px;
   width: fit-content;
   min-height: 44px;
-  font-size: 14px;
-  cursor: pointer;
+  margin: 0;
+  padding: 0;
 }
 
-.switch__input {
-  position: absolute;
-  opacity: 0;
-  pointer-events: none;
-}
-
-.switch__track {
-  position: relative;
-  width: 40px;
-  height: 22px;
-  border-radius: 999px;
-  border: 1px solid var(--planes-border-strong);
-  background: var(--planes-field);
-  transition: background-color 0.2s, border-color 0.2s;
-}
-
-.switch__track::after {
-  content: "";
-  position: absolute;
-  top: 2px;
-  left: 2px;
-  width: 16px;
-  height: 16px;
-  border-radius: 50%;
-  background: var(--planes-text-muted);
-  transition: transform 0.2s var(--planes-ease), background-color 0.2s;
-}
-
-.switch__input:checked + .switch__track {
-  border-color: var(--planes-accent);
-  background: var(--planes-accent-tint);
-}
-
-.switch__input:checked + .switch__track::after {
-  transform: translateX(18px);
-  background: var(--planes-accent);
-}
-
-.switch__input:focus-visible + .switch__track {
-  outline: 2px solid var(--planes-accent);
-  outline-offset: 3px;
+.plans-theme .package-switch.v-input >>> .v-label {
+  color: var(--planes-text);
 }
 
 .savings-hint {
@@ -950,46 +866,67 @@ export default {
 
 .stepper {
   display: inline-flex;
-  align-items: center;
+  align-items: flex-start;
   gap: 6px;
   width: fit-content;
 }
 
-.stepper__button {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 44px;
-  height: 44px;
-  border-radius: var(--planes-radius-control);
+.plans-theme .stepper__button.v-btn {
+  width: 40px;
+  height: 40px;
+  min-width: 0;
+  padding: 0;
   border: 1px solid var(--planes-border-strong);
+  border-radius: var(--planes-radius-control);
   font-size: 18px;
+  text-indent: 0;
   color: var(--planes-text);
-  cursor: pointer;
 }
 
-.stepper__button:hover:not(:disabled) {
+.plans-theme .stepper__button.v-btn::before {
+  display: none;
+}
+
+.plans-theme .stepper__button.v-btn:hover:not(.v-btn--disabled) {
   border-color: var(--planes-accent);
 }
 
-.stepper__button:disabled {
+.plans-theme .stepper__button.v-btn.v-btn--disabled {
   opacity: 0.4;
   cursor: not-allowed;
+  pointer-events: auto;
+  color: var(--planes-text) !important;
 }
 
-.stepper__value {
-  width: 76px;
+.plans-theme .stepper__button.v-btn:focus-visible {
+  outline: 2px solid var(--planes-accent);
+  outline-offset: 2px;
+}
+
+.plans-theme .stepper__value.v-text-field {
+  width: 190px;
+  flex: none;
+  margin: 0;
+  padding: 0;
+}
+
+.stepper__value >>> input {
   text-align: center;
 }
 
 .stepper__output {
+  align-self: center;
   min-width: 28px;
   font-size: 18px;
   font-weight: 700;
   text-align: center;
 }
 
-.stepper--compact .stepper__button {
+.stepper--compact {
+  align-items: center;
+}
+
+.plans-theme .stepper--compact .stepper__button.v-btn {
   width: 36px;
   height: 36px;
 }
@@ -1000,38 +937,50 @@ export default {
   gap: 8px;
 }
 
-.chip {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
+.plans-theme .chip.v-btn {
+  height: auto;
+  min-width: 0;
   min-height: 40px;
   padding: 0 14px;
-  border-radius: 999px;
   border: 1px solid var(--planes-border-strong);
+  border-radius: 999px;
   font-size: 14px;
   font-weight: 500;
+  text-indent: 0;
   color: var(--planes-text-muted);
-  cursor: pointer;
   transition: border-color 0.2s, background-color 0.2s, color 0.2s;
 }
 
-.chip:hover {
+.plans-theme .chip.v-btn >>> .v-btn__content {
+  gap: 6px;
+}
+
+.plans-theme .chip.v-btn::before {
+  display: none;
+}
+
+.plans-theme .chip.v-btn:hover {
   color: var(--planes-text);
   border-color: var(--planes-accent-border);
 }
 
-.chip--selected {
+.plans-theme .chip.v-btn.chip--selected {
   border-color: var(--planes-accent);
   background: var(--planes-accent-tint);
   color: var(--planes-text);
 }
 
-.chip--selected .mdi {
+.plans-theme .chip.v-btn.chip--selected .v-icon.v-icon {
   color: var(--planes-accent);
 }
 
-.chip[aria-invalid="true"] {
+.plans-theme .chip.v-btn[aria-invalid="true"] {
   border-color: var(--planes-danger);
+}
+
+.plans-theme .chip.v-btn:focus-visible {
+  outline: 2px solid var(--planes-accent);
+  outline-offset: 2px;
 }
 
 .access {
@@ -1072,8 +1021,12 @@ export default {
 .feature-add {
   display: grid;
   grid-template-columns: minmax(0, 1fr) 170px auto;
+  align-items: center;
   gap: 8px;
-  margin-top: -6px;
+}
+
+.feature-add .plans-button {
+  min-height: 40px;
 }
 
 .feature-rows {
@@ -1091,19 +1044,13 @@ export default {
   background: var(--planes-overlay-faint);
 }
 
-.feature-row--excluded .input--inline {
+.feature-row--excluded .input--inline >>> input {
   color: var(--planes-text-subtle);
 }
 
-.input--inline {
-  min-height: 36px;
-  border-color: transparent;
-  background: transparent;
-  font-size: 14px;
-}
-
-.input--inline:hover {
-  border-color: var(--planes-border-strong);
+.plans-theme .input--inline.v-text-field {
+  margin: 0;
+  padding: 0;
 }
 
 .feature-row__module {
@@ -1128,28 +1075,30 @@ export default {
   color: var(--planes-text-muted);
 }
 
-.icon-button--small {
+.plans-theme .icon-button--small.v-btn {
   width: 36px;
   height: 36px;
   font-size: 19px;
 }
 
-.icon-button--included {
+.plans-theme .icon-button--included.v-btn {
   color: var(--planes-accent);
 }
 
-.icon-button--excluded {
+.plans-theme .icon-button--excluded.v-btn {
   color: var(--planes-excluded);
 }
 
-.icon-button--starred {
+.plans-theme .icon-button--starred.v-btn {
   color: var(--planes-star);
 }
 
-.chip:focus-visible,
-.stepper__button:focus-visible {
-  outline: 2px solid var(--planes-accent);
-  outline-offset: 2px;
+.plans-theme .icon-button--included.v-btn.v-btn--disabled {
+  color: var(--planes-accent) !important;
+}
+
+.plans-theme .icon-button--excluded.v-btn.v-btn--disabled {
+  color: var(--planes-excluded) !important;
 }
 
 .package-form__preview {
@@ -1189,7 +1138,7 @@ export default {
   color: var(--planes-danger);
 }
 
-.form-alert .mdi {
+.plans-theme .form-alert .v-icon.v-icon {
   font-size: 18px;
 }
 
@@ -1199,10 +1148,7 @@ export default {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .input,
-  .chip,
-  .switch__track,
-  .switch__track::after {
+  .plans-theme .chip.v-btn {
     transition: none;
   }
 }

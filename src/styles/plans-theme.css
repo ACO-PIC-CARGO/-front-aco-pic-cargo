@@ -112,10 +112,6 @@
   transition: filter 0.2s, border-color 0.2s, color 0.2s, transform 0.2s;
 }
 
-.plans-button .mdi {
-  font-size: 18px;
-}
-
 .plans-button:active:not(:disabled) {
   transform: scale(0.98);
 }
@@ -205,4 +201,159 @@
 .icon-button:focus-visible {
   outline: 2px solid var(--planes-accent);
   outline-offset: 2px;
+}
+
+.plans-theme .v-icon.v-icon {
+  color: inherit;
+  font-size: inherit;
+}
+
+.plans-theme .v-btn.v-btn--disabled .v-icon.v-icon {
+  color: inherit !important;
+}
+
+.plans-theme .v-btn.v-btn {
+  text-transform: none;
+  letter-spacing: normal;
+}
+
+.plans-theme .v-btn.plans-button {
+  height: auto;
+  min-width: 0;
+  min-height: 44px;
+  padding: 0 18px;
+  border: 1px solid transparent;
+  border-radius: var(--planes-radius-control);
+  font-size: 14px;
+  font-weight: 600;
+  text-indent: 0;
+  transition: filter 0.2s, border-color 0.2s, color 0.2s, transform 0.2s;
+}
+
+.plans-theme .v-btn.plans-button--primary {
+  background: var(--planes-action);
+  color: var(--planes-action-ink);
+}
+
+.plans-theme .v-btn.plans-button--secondary {
+  border-color: var(--planes-accent-border);
+  color: var(--planes-accent);
+}
+
+.plans-theme .v-btn.plans-button--ghost {
+  border-color: var(--planes-border-strong);
+  color: var(--planes-text-muted);
+}
+
+.plans-theme .v-btn.plans-button--secondary:hover:not(:disabled),
+.plans-theme .v-btn.plans-button--ghost:hover:not(:disabled) {
+  border-color: var(--planes-accent);
+  color: var(--planes-text);
+}
+
+.plans-theme .v-btn.plans-button--primary.v-btn--disabled {
+  color: var(--planes-action-ink) !important;
+}
+
+.plans-theme .v-btn.plans-button--secondary.v-btn--disabled {
+  color: var(--planes-accent) !important;
+}
+
+.plans-theme .v-btn.plans-button--ghost.v-btn--disabled {
+  color: var(--planes-text-muted) !important;
+}
+
+.plans-theme .v-btn.plans-button.v-btn--disabled {
+  pointer-events: auto;
+}
+
+.plans-theme .v-btn.icon-button {
+  width: 44px;
+  height: 44px;
+  min-width: 0;
+  border-radius: var(--planes-radius-control);
+  font-size: 22px;
+  color: var(--planes-text-muted);
+}
+
+.plans-theme .v-btn.icon-button:hover:not(:disabled) {
+  color: var(--planes-text);
+  background: var(--planes-overlay-hover);
+}
+
+.plans-theme .v-btn.icon-button.v-btn--disabled {
+  color: var(--planes-text-muted) !important;
+  opacity: 0.45;
+  pointer-events: auto;
+}
+
+.plans-theme .v-btn.icon-button .v-icon {
+  width: auto;
+  height: auto;
+  font-size: inherit;
+}
+
+.plans-theme .v-btn.plans-button .v-btn__content {
+  gap: 6px;
+}
+
+.plans-theme .v-btn.plans-button .v-icon.v-icon {
+  font-size: 18px;
+}
+
+.plans-theme .v-btn.plans-button::before,
+.plans-theme .v-btn.icon-button::before {
+  display: none;
+}
+
+.plans-theme .segmented.v-btn-toggle:not(.v-btn-toggle--group) {
+  display: inline-flex;
+  padding: 3px;
+  border-radius: 999px;
+  border: 1px solid var(--planes-border);
+  background: var(--planes-overlay-faint);
+  box-shadow: none;
+}
+
+.plans-theme .segmented.v-btn-toggle .v-btn.v-btn {
+  height: auto;
+  min-width: 76px;
+  min-height: 34px;
+  padding: 6px 18px;
+  border: 0;
+  border-radius: 999px;
+  box-shadow: none;
+  opacity: 1;
+  font-size: 13px;
+  font-weight: 500;
+  text-indent: 0;
+  white-space: nowrap;
+  color: var(--planes-text-muted);
+  transition: background-color 0.2s, color 0.2s;
+}
+
+.plans-theme .segmented.v-btn-toggle .v-btn.v-btn::before {
+  display: none;
+}
+
+.plans-theme .segmented.v-btn-toggle .v-btn.v-btn:not(.v-btn--active):not(.v-btn--disabled):hover {
+  color: var(--planes-text);
+}
+
+.plans-theme .segmented.v-btn-toggle .v-btn.v-btn.v-btn--active {
+  background: var(--planes-accent);
+  color: var(--planes-accent-ink);
+  font-weight: 600;
+}
+
+.plans-theme .segmented.v-btn-toggle .v-btn.v-btn:focus-visible {
+  outline: 2px solid var(--planes-accent);
+  outline-offset: 3px;
+}
+
+.plans-theme .segmented.v-btn-toggle .v-btn.v-btn.v-btn--disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  pointer-events: auto;
+  color: var(--planes-text-muted) !important;
 }

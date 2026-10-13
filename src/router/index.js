@@ -44,7 +44,8 @@ import registroPayForCliente from "../views/FolderBanks/registroPagoCliente";
 import verPagosPorCliente from "../views/FolderBanks/verPagosPorCliente";
 import litProgrammedPayment from "../views/programmedPayment/listProgrammedPayment";
 import listFacturacion from "../views/folderBilling/listFacturacionView";
-import { planAccessGuard } from "@/views/MyPlan/planAccessGuard";
+import planAccessGuard from "./planAccessGuard";
+import resetSessionOnLogin from "./resetSessionOnLogin";
 
 Vue.use(VueRouter);
 
@@ -70,18 +71,21 @@ const routes = [
     name: "LegalTerms",
     component: () => import("../views/Legal/LegalPage.vue"),
     props: { page: "terminos" },
+    meta: { scrollToTop: true },
   },
   {
     path: "/privacidad",
     name: "LegalPrivacy",
     component: () => import("../views/Legal/LegalPage.vue"),
     props: { page: "privacidad" },
+    meta: { scrollToTop: true },
   },
   {
     path: "/reembolsos",
     name: "LegalRefunds",
     component: () => import("../views/Legal/LegalPage.vue"),
     props: { page: "reembolsos" },
+    meta: { scrollToTop: true },
   },
 
   {
@@ -911,9 +915,9 @@ const router = new VueRouter({
         selector: to.hash,
         behavior: "smooth",
       };
-    } else {
-      return savedPosition;
     }
+    if (savedPosition || !to.meta.scrollToTop) return savedPosition;
+    return { x: 0, y: 0 };
   },
 });
 // Guard global de autenticación
@@ -926,5 +930,6 @@ router.beforeEach((to, from, next) => {
   }
   next();
 });
-router.beforeEach(planAccessGuard(router));
+router.beforeEach(resetSessionOnLogin);
+router.beforeEach(planAccessGuard);
 export default router;
