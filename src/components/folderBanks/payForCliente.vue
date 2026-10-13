@@ -73,8 +73,8 @@
                 </template>
                 <template v-slot:[`item.tipocambio`]="{ item }">
                   <v-text-field
-                    v-on:blur="calcularMonto()"
                     v-model="item.tipocambio"
+                    v-on:blur="calcularMonto()"
                     type="number"
                     :disabled="
                       selected.filter((v) => v.index == item.index).length == 0

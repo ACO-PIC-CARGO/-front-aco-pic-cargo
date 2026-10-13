@@ -81,8 +81,8 @@
                   item-title="namelong"
                   item-value="id"
                   :items="$store.state.proveedor.lstProveedores"
-                  @update:search="recargarProveedores"
                   v-model="valor.id_proveedor"
+                  @update:search="recargarProveedores"
                   hide-details
                   menu-icon=""
                 >

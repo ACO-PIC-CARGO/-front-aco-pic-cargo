@@ -489,8 +489,8 @@
               <v-row>
                 <v-col cols="12" md="4" v-if="opFlag">
                   <v-text-field
-                    @keyup="calcularE()"
                     v-model="ingresos.montoopcuentabanco"
+                    @keyup="calcularE()"
                     :rules="[(v) => !!v || 'Dato es requerido']"
                     type="number"
                     label="Monto"
@@ -525,8 +525,8 @@
 
                 <v-col cols="12" md="4" v-if="prFlag">
                   <v-text-field
-                    @keyup="calcularE()"
                     v-model="ingresos.monto_pr"
+                    @keyup="calcularE()"
                     :rules="[(v) => !!v || 'Dato es requerido']"
                     type="number"
                     label="Monto"

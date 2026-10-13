@@ -67,6 +67,7 @@
                   variant="outlined"
                   placeholder="Nombre del cliente"
                   :append-inner-icon="'mdi-account-search'"
+                  v-model="$store.state.pricing.datosPrincipales.nombre"
                   @click:append-inner.stop="abrirModalCliente()"
                   @click="abrirModalCliente()"
                   :rules="[(v) => !!v || 'El nombre es requerido']"
@@ -75,7 +76,6 @@
                   autocomplete="off"
                   id="nombre"
                   name="nombre"
-                  v-model="$store.state.pricing.datosPrincipales.nombre"
                   readonly
                 ></v-text-field
               ></v-col>

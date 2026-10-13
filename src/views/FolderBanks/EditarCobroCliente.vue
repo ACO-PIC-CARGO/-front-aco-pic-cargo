@@ -72,8 +72,8 @@
               </template>
               <template v-slot:[`item.tipocambio`]="{ item }">
                 <v-text-field
-                  v-on:blur="calcularMonto()"
                   v-model="item.tipocambio"
+                  v-on:blur="calcularMonto()"
                   type="number"
                 >
                 </v-text-field>

@@ -183,8 +183,8 @@
               <v-text-field
                 :type="espassword ? 'password' : 'text '"
                 :append-inner-icon="!espassword ? 'mdi-eye' : 'mdi-eye-off'"
-                @click:append-inner="espassword = !espassword"
                 v-model="$store.state.user.model.confirmclave"
+                @click:append-inner="espassword = !espassword"
                 :rules="[(v) => !!v || 'Dato Requerido']"
                 :error-messages="errorClave"
               ></v-text-field>

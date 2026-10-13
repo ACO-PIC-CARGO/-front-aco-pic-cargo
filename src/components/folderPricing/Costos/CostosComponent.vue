@@ -77,8 +77,8 @@
                             item-title="namelong"
                             item-value="id"
                             :items="$store.state.proveedor.lstProveedores"
-                            @update:search="recargarProveedores"
                             v-model="valor.id_proveedor"
+                            @update:search="recargarProveedores"
                             hide-details
                             menu-icon=""
                           >
@@ -357,8 +357,8 @@
                           item-title="namelong"
                           item-value="id"
                           :items="$store.state.proveedor.lstProveedores"
-                          @update:search="recargarProveedores"
                           v-model="valor.id_proveedor"
+                          @update:search="recargarProveedores"
                           menu-icon=""
                           hide-details
                         >
@@ -624,8 +624,8 @@
                           item-title="namelong"
                           item-value="id"
                           :items="$store.state.proveedor.lstProveedores"
-                          @update:search="recargarProveedores"
                           v-model="valor.id_proveedor"
+                          @update:search="recargarProveedores"
                           hide-details
                           menu-icon=""
                         >
@@ -891,8 +891,8 @@
                           item-title="namelong"
                           item-value="id"
                           :items="$store.state.proveedor.lstProveedores"
-                          @update:search="recargarProveedores"
                           v-model="valor.id_proveedor"
+                          @update:search="recargarProveedores"
                           hide-details
                           menu-icon=""
                         >
@@ -1159,8 +1159,8 @@
                           item-title="namelong"
                           item-value="id"
                           :items="$store.state.proveedor.lstProveedores"
-                          @update:search="recargarProveedores"
                           v-model="valor.id_proveedor"
+                          @update:search="recargarProveedores"
                           hide-details
                           menu-icon=""
                         >
@@ -1425,8 +1425,8 @@
                           item-title="namelong"
                           item-value="id"
                           :items="$store.state.proveedor.lstProveedores"
-                          @update:search="recargarProveedores"
                           v-model="valor.id_proveedor"
+                          @update:search="recargarProveedores"
                           hide-details
                           menu-icon=""
                         >
@@ -1693,8 +1693,8 @@
                           item-title="namelong"
                           item-value="id"
                           :items="$store.state.proveedor.lstProveedores"
-                          @update:search="recargarProveedores"
                           v-model="valor.id_proveedor"
+                          @update:search="recargarProveedores"
                           hide-details
                           menu-icon=""
                         >
@@ -1926,8 +1926,8 @@
                   item-title="namelong"
                   item-value="id"
                   :items="$store.state.proveedor.lstProveedores"
-                  @update:search="recargarProveedores"
                   v-model="fromDataService.id_proveedor"
+                  @update:search="recargarProveedores"
                   :rules="[(v) => !!v || 'Dato requerido']"
                 ></v-autocomplete>
               </v-col>

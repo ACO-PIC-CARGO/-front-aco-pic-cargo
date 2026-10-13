@@ -6,12 +6,12 @@
         <v-col cols="12" md="12">
           <v-autocomplete
             append-icon="mdi-plus"
+            v-model="$store.state.bitacora_id_bitacora"
             @click:append="abrirRegistroBitacora"
             :items="$store.state.itemsBitacoraLineal"
             item-title="name"
             item-value="id"
             label="Estatus del embarque"
-            v-model="$store.state.bitacora_id_bitacora"
           >
             <template v-slot:item="{ item, props }">
               <v-list-item v-bind="props" role="option" :title="item.name">

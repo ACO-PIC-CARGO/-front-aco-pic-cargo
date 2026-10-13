@@ -101,6 +101,8 @@ export default [
       "vuetify/no-legacy-grid-props": "error",
       "vuetify/no-deprecated-snackbar": "error",
       "vue/no-restricted-syntax": ["error", ...TEMPLATE_GUARDS, TYPOGRAPHY_GUARD],
+      // A listener written before v-model runs before the model updates (recipe R3).
+      "vue/attributes-order": ["error", { order: ["TWO_WAY_BINDING", "EVENTS"] }],
       "no-restricted-syntax": [
         "error",
         {

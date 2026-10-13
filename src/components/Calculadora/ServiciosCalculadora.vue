@@ -60,8 +60,8 @@
                   variant="outlined"
                   density="compact"
                   append-inner-icon="mdi-information"
-                  @click:append-inner="mostrarAdvertencia()"
                   v-model="code"
+                  @click:append-inner="mostrarAdvertencia()"
                   :rules="[(v) => !!v || 'Dato requerido']"
                 ></v-text-field>
               </v-col>

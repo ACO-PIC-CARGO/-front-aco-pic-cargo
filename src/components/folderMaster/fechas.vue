@@ -3,9 +3,9 @@
     <v-row density="compact">
       <v-col cols="12" md="6">
         <v-text-field
+          v-model="$store.state.master_fecha_etd"
           @change="_getDate()"
           type="date"
-          v-model="$store.state.master_fecha_etd"
           label="Salida (ETD)"
         ></v-text-field>
       </v-col>
@@ -18,9 +18,9 @@
       </v-col>
       <v-col cols="12" md="6">
         <v-text-field
+          v-model="$store.state.master_fecha_eta"
           @change="_getDate()"
           type="date"
-          v-model="$store.state.master_fecha_eta"
           label="Llegada (ETA)"
         ></v-text-field>
       </v-col>

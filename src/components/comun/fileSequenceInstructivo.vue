@@ -375,9 +375,9 @@
                     <v-row>
                       <v-col cols="12">
                         <v-checkbox
+                          v-model="datosManualesNoAplica.nroFactura"
                           @update:model-value="checkNoAplica(13)"
                           label="No Aplica"
-                          v-model="datosManualesNoAplica.nroFactura"
                         ></v-checkbox>
                         <v-text-field
                           v-model="datosManuales.nroFactura"
@@ -555,9 +555,9 @@
                         solo aplica si el cliente nos cancela a nosotros...
                       </p>
                       <v-checkbox
+                        v-model="datosManualesNoAplica.dondePagar"
                         @update:model-value="checkNoAplica(8)"
                         label="No Aplica"
-                        v-model="datosManualesNoAplica.dondePagar"
                       ></v-checkbox>
                       <v-text-field
                         v-model="datosManuales.dondePagar"
