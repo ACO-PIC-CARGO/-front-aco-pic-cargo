@@ -66,7 +66,6 @@
           <v-btn
             class="my-1 mx-1 button"
             color="#7E7E7E"
-            dark
             @click="subirCliente = !subirCliente"
             size="x-small"
           >
@@ -75,7 +74,6 @@
           <v-btn
             class="my-1 mx-1 buttonDosFilas"
            color="#1A237E"
-            dark
             @click="omitir"
             size="x-small"
           >
@@ -142,7 +140,7 @@
           seguir en el tutorial adjunto
         </v-col>
         <v-col cols="4">
-          <v-btn color="#5E9AD6" dark size="small" @click="dialog = true">
+          <v-btn color="#5E9AD6" size="small" @click="dialog = true">
             Ver Tutorial
           </v-btn>
         </v-col>
@@ -151,7 +149,6 @@
             LISTADO DE CLIENTES <v-spacer></v-spacer>
             <v-btn
               color="#7d8288"
-              dark
               @click="descargarFormato()"
               size="x-small"
               class="mx-1"
@@ -160,7 +157,6 @@
             </v-btn>
             <v-btn
               color="#062c52"
-              dark
               size="x-small"
               class="mx-1"
               @click="openFileInput()"
@@ -171,15 +167,14 @@
               v-model="files"
               id="fileInput"
               style="display: none"
-              @change="handleFileChange"
+              @update:model-value="handleFileChange"
               accept=".xlsx, .xls"
             />
           </v-card-title>
           <v-data-table
             :headers="headers"
             :items="$store.state.configEmpresa.lstClientes"
-            pagination.sync="pagination"
-            item-key="index"
+            item-value="index"
             class="elevation-5"
           >
             <template v-slot:[`item.action`]="{ item, index }">
@@ -203,7 +198,6 @@
       <v-btn
         @click="$emit('regresar')"
         color="#78909C"
-        dark
         class="mx-5 mt-1 mb-10"
       >
         REGRESAR A LA ANTERIOR
@@ -213,7 +207,6 @@
         @click="continuar()"
         v-if="subirCliente"
         color="#1A237E"
-        :dark="subirCliente"
       >
         Guardar y Continuar
       </v-btn>
@@ -254,6 +247,7 @@ import { readSheet as readXlsxFile } from "read-excel-file/browser";
 import { mapActions } from "vuex";
 import Swal from "sweetalert2";
 export default {
+  emits: ["omitir", "regresar", "continuarConfigurarTarifario"],
   data() {
     return {
       dialog: false,

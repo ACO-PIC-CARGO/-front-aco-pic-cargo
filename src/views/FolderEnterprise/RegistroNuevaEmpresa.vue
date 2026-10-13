@@ -16,7 +16,6 @@
           <v-row>
             <v-col class="py-2 my-0" cols="12">
               <v-text-field
-                name="name"
                 label="Nombre Empresa"
                 id="id"
                 variant="outlined"
@@ -51,7 +50,6 @@
 
             <v-col class="py-2 my-0" cols="12" lg="4" xl="4">
               <v-text-field
-                name="name"
                 label="Apellidos*"
                 placeholder=""
                 variant="outlined"
@@ -67,7 +65,6 @@
             </v-col>
             <v-col class="py-2 my-0" cols="12" lg="4" xl="4">
               <v-text-field
-                name="name"
                 label="Apellido Materno*"
                 placeholder=""
                 variant="outlined"
@@ -132,8 +129,8 @@
                 :type="typePassword ? 'password' : 'text'"
                 label="Contraseña"
                 prepend-inner-icon="mdi-lock"
-                :append-icon="typePassword ? 'mdi-eye' : 'mdi-eye-off'"
-                @click:append="typePassword = !typePassword"
+                :append-inner-icon="typePassword ? 'mdi-eye' : 'mdi-eye-off'"
+                @click:append-inner="typePassword = !typePassword"
                 autocomplete="new-password"
                 class="my-0"
                 :hide-details="!errorClave"
@@ -145,14 +142,13 @@
               <CboPais
                 @paisSeleccionado="handlePaisSeleccionado"
                 outlined
-                persistent-placeholder="true"
+                persistent-placeholder
                 dense
                 :errorPais="errorPais"
               />
             </v-col>
             <v-col class="py-2 my-0" cols="12" lg="6" xl="6">
               <v-text-field
-                name="name"
                 label="Teléfono*"
                 variant="outlined"
                 persistent-placeholder
@@ -206,7 +202,6 @@
             </v-col>
             <v-col class="py-2 my-0" cols="12" lg="4" xl="4">
               <v-text-field
-                name="name"
                 label="Código de acceso*"
                 variant="outlined"
                 persistent-placeholder
@@ -233,7 +228,6 @@
             <v-col class="py-2 my-0 centrado" cols="12">
               <v-btn
                 color="#1A237E"
-                dark
                 class="custom-button"
                 @click="crearNuevaEmpresa()"
                 block
@@ -245,7 +239,6 @@
             <v-col class="py-2 my-0 centrado" cols="12">
               <v-btn
                 color="#1E88E5"
-                dark
                 class="custom-button"
                 @click="irALogin()"
                 block
@@ -507,7 +500,7 @@ export default {
         return false;
       }
       if (
-        this.$refs.frmRegistro.validate() &&
+        (await this.$refs.frmRegistro.validate()).valid &&
         this.$store.state.enterprises.data.id_pais &&
         this.validarCorreo() &&
         !res.estadoflag

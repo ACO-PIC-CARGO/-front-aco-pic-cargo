@@ -39,7 +39,6 @@
             <v-btn
               class="mt-1 mb-1"
               color="#7E7E7E"
-              dark
               @click="OmitirConfiguracionCostos()"
               v-if="!subirCostos"
             >
@@ -49,7 +48,6 @@
             <v-btn
               color="#5E9AD6"
               @click="subirCostos = !subirCostos"
-              dark
               class="mt-1 mb-1"
             >
               CONFIGURAR TARIFAS
@@ -59,7 +57,6 @@
             <v-btn
               @click="retroceder()"
               color="#78909C"
-              dark
               class="mt-1 mb-1"
               v-if="!subirCostos"
             >
@@ -114,7 +111,7 @@
                   :headers="headers"
                   :items="$store.state.configEmpresa.lstCostos"
                   class="elevation-1 table_costos"
-                  item-key="id"
+                  item-value="id"
                   :loading="loadingTable"
                   hide-default-footer
                   :items-per-page="20"
@@ -202,7 +199,6 @@
           v-if="subirCostos"
           class="mx-5 mt-1 mb-1"
           color="#7E7E7E"
-          dark
           @click="omitir()"
         >
           Omitir
@@ -210,7 +206,6 @@
         <v-btn
           class="mx-5 mt-1 mb-1"
           color="#1A237E"
-          :dark="subirCostos"
           v-if="subirCostos"
           @click="guardarCosto()"
         >
@@ -221,7 +216,6 @@
         <v-btn
           @click="retroceder()"
           color="#78909C"
-          dark
           class="mx-5 mt-1 mb-1"
           v-if="subirCostos"
         >
@@ -266,7 +260,6 @@
               <v-btn
                 class="my-1 mx-1 buttonDosFilas"
                 size="x-small"
-                dark
                 color="#1A237E"
                 @click="finalizarSinLogin()"
               >
@@ -289,6 +282,7 @@
     <!-- max-width="30%" -->
     <v-dialog
       v-model="dialog"
+      eager
       scrollable
       :max-width="isMobile ? '100%' : '30%'"
       transition="dialog-transition"
@@ -448,7 +442,6 @@
             class="mx-1 mt-1 mb-5"
             @click="dialog = !dialog"
             color="#923939"
-            dark
           >
             CANCELAR
           </v-btn>
@@ -456,7 +449,6 @@
             class="mx-1 mt-1 mb-5"
             @click="agregarNuevoCosto()"
             color="#346E3D"
-            dark
           >
             AGREGAR
           </v-btn>
@@ -475,6 +467,7 @@ export default {
   components: {
     Proceesing: defineAsyncComponent(() => import("../modal/modalProcessing.vue")),
   },
+  emits: ["regresar"],
   data() {
     return {
       isMobile: false,
@@ -603,8 +596,8 @@ export default {
       this.dialog = true;
       this.$refs.frmNuevosCostos.reset();
     },
-    agregarNuevoCosto() {
-      if (this.$refs.frmNuevosCostos.validate()) {
+    async agregarNuevoCosto() {
+      if ((await this.$refs.frmNuevosCostos.validate()).valid) {
         this.$store.state.configEmpresa.lstCostos.push({
           exwflag: this.frmNuevoCosto.exwflag,
           fcaflag: this.frmNuevoCosto.fcaflag,
@@ -936,29 +929,29 @@ export default {
     generarHeader() {
       this.headers = [];
       if (this.$store.state.configEmpresa.lstCostos.some((v) => v.exwflag)) {
-        this.headers.push({ text: "EXW", value: "exwflag" });
+        this.headers.push({ title: "EXW", key: "exwflag" });
       }
       if (this.$store.state.configEmpresa.lstCostos.some((v) => v.fcaflag)) {
-        this.headers.push({ text: "FCA", value: "fcaflag" });
+        this.headers.push({ title: "FCA", key: "fcaflag" });
       }
       if (this.$store.state.configEmpresa.lstCostos.some((v) => v.fobflag)) {
-        this.headers.push({ text: "FOB", value: "fobflag" });
+        this.headers.push({ title: "FOB", key: "fobflag" });
       }
       if (this.$store.state.configEmpresa.lstCostos.some((v) => v.cfrflag)) {
-        this.headers.push({ text: "CFR", value: "cfrflag" });
+        this.headers.push({ title: "CFR", key: "cfrflag" });
       }
       if (this.$store.state.configEmpresa.lstCostos.some((v) => v.cifflag)) {
-        this.headers.push({ text: "CIF", value: "cifflag" });
+        this.headers.push({ title: "CIF", key: "cifflag" });
       }
       if (this.$store.state.configEmpresa.lstCostos.some((v) => v.ddpflag)) {
-        this.headers.push({ text: "DDP", value: "ddpflag" });
+        this.headers.push({ title: "DDP", key: "ddpflag" });
       }
-      this.headers.push({ text: "TRAMO", value: "tramo" });
-      this.headers.push({ text: "SERVICIO", value: "servicio" });
-      this.headers.push({ text: "CONCEPTO", value: "concepto" });
-      this.headers.push({ text: "MULTIPLICADOR", value: "multiplicador" });
-      this.headers.push({ text: "MONTO", value: "monto" });
-      this.headers.push({ text: "PROVEEDOR", value: "proveedor" });
+      this.headers.push({ title: "TRAMO", key: "tramo" });
+      this.headers.push({ title: "SERVICIO", key: "servicio" });
+      this.headers.push({ title: "CONCEPTO", key: "concepto" });
+      this.headers.push({ title: "MULTIPLICADOR", key: "multiplicador" });
+      this.headers.push({ title: "MONTO", key: "monto" });
+      this.headers.push({ title: "PROVEEDOR", key: "proveedor" });
     },
     generarSecciones() {
       this.$store.state.configEmpresa.listTipoCostos = [];
@@ -1085,7 +1078,7 @@ export default {
   .infoImportante {
     padding: 0 2% 0 0 !important;
   }
-  ::v-deep .v-data-table__sort-label {
+  :deep(.v-data-table__sort-label) {
     display: none !important;
   }
   .button {

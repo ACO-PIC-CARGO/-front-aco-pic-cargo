@@ -170,7 +170,7 @@
         </v-card-text>
       </v-card-title>
       <v-card-actions v-if="!loading_as" class="justify-end mt-3">
-        <v-btn size="small" class="mx-1" dark color="red" @click="volver()" rounded>
+        <v-btn size="small" class="mx-1" color="red" @click="volver()" rounded>
           Aceptar</v-btn
         >
       </v-card-actions>

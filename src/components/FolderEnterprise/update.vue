@@ -17,11 +17,11 @@
         </v-row>
       </v-container>
       <v-tabs v-model="tab" v-else>
-        <v-tab href="#principal">Datos Principales</v-tab>
-        <v-tab href="#bancario">Datos Bancarios</v-tab>
+        <v-tab value="principal">Datos Principales</v-tab>
+        <v-tab value="bancario">Datos Bancarios</v-tab>
       </v-tabs>
-      <v-tabs-items v-model="tab" v-if="!loading_as">
-        <v-tab-item value="principal" class="px-10">
+      <v-tabs-window v-model="tab" v-if="!loading_as">
+        <v-tabs-window-item value="principal" class="px-10">
           <v-card-title>
             <v-card-text>
               <v-row>
@@ -118,12 +118,12 @@
                         label="Actualizar logo"
                         v-model="payfile"
                         accept=".png"
-                        :success-messages="msgfile"
+                        :messages="msgfile"
                         :error-messages="errfile"
                         :loading="loadingFile"
                         show-size
                         prepend-icon="mdi-camera"
-                        @change="uploadFile()"
+                        @update:model-value="uploadFile()"
                       >
                       </v-file-input>
                     </v-col>
@@ -141,8 +141,8 @@
                         :items="itemsPais"
                         item-value="id"
                         item-title="name"
-                        @update:model-value="get_state()"
                         v-model="enterprise.id_pais"
+                        @update:model-value="get_state()"
                         :rules="[(v) => !!v || 'Dato requerido']"
                         clearable
                       >
@@ -154,8 +154,8 @@
                         :items="itemsState"
                         item-value="id"
                         item-title="name"
-                        @update:model-value="get_city()"
                         v-model="enterprise.id_state"
+                        @update:model-value="get_city()"
                         :disabled="!enterprise.id_pais"
                         clearable
                       >
@@ -167,8 +167,8 @@
                         :items="itemsCity"
                         item-value="id"
                         item-title="name"
-                        @update:model-value="get_town()"
                         v-model="enterprise.id_city"
+                        @update:model-value="get_town()"
                         :disabled="!enterprise.id_state"
                         clearable
                       >
@@ -199,6 +199,7 @@
                       <v-switch
                         label="Activo / Inactivo"
                         v-model="enterprise.status"
+                        :value-comparator="(value, checked) => Boolean(value) === checked"
                         color="success"
                         @update:model-value="updateStatus"
                       ></v-switch>
@@ -233,8 +234,8 @@
               </v-row>
             </v-card-text>
           </v-card-title>
-        </v-tab-item>
-        <v-tab-item value="bancario">
+        </v-tabs-window-item>
+        <v-tabs-window-item value="bancario">
           <v-row>
             <v-col cols="12" style="text-align: right">
               <v-btn color="success" size="small" @click="abrirModalNuevaCuenta"
@@ -251,7 +252,6 @@
                     v-if="item.esprincipalflag"
                     class="ma-2"
                     color="green"
-                    text-color="white"
                   >
                     SI
                   </v-chip>
@@ -259,14 +259,14 @@
               </v-data-table>
             </v-col>
           </v-row>
-        </v-tab-item>
-      </v-tabs-items>
+        </v-tabs-window-item>
+      </v-tabs-window>
 
       <v-card-actions v-if="!loading_as" class="justify-end mt-3">
         <v-btn size="small" class="mx-1" color="success" @click="update()" rounded>
           Guardar
         </v-btn>
-        <v-btn size="small" class="mx-1" dark color="red" @click="volver()" rounded>
+        <v-btn size="small" class="mx-1" color="red" @click="volver()" rounded>
           Cancelar
         </v-btn>
       </v-card-actions>
@@ -287,14 +287,12 @@
               v-if="id_bank == 0"
               :rules="[(v) => !!v || 'Dato Requerido']"
               label="Acrónimo Banco"
-              id="id"
               v-model="acronymbanco"
             ></v-text-field>
             <v-text-field
               v-if="id_bank == 0"
               :rules="[(v) => !!v || 'Dato Requerido']"
               label="Nombre Banco"
-              id="id"
               v-model="nombrebanco"
             ></v-text-field>
             <v-autocomplete
@@ -527,7 +525,7 @@ export default {
       await this._getTown(this.enterprise.id_city);
     },
     async update() {
-      if (this.$refs.form.validate()) {
+      if ((await this.$refs.form.validate()).valid) {
         await this.updateEnterprise(this.enterprise);
       }
     },
@@ -588,7 +586,7 @@ export default {
       }
     },
     async guardarCuenta() {
-      if (this.$refs.frmNuevaCuenta.validate()) {
+      if ((await this.$refs.frmNuevaCuenta.validate()).valid) {
         await this.registrarCuentaEmpresa({
           id_banco: this.id_bank,
           id_coins: this.id_coins,

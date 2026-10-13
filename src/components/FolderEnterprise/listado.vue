@@ -19,7 +19,7 @@
 
       <v-card-title v-if="!loading" class="elevation-0">
         <v-text-field
-          append-icon="mdi-magnify"
+          append-inner-icon="mdi-magnify"
           label="Buscar"
           single-line
           hide-details
@@ -36,10 +36,10 @@
         >
           Nuevo
         </v-btn> -->
-        <v-btn size="small" class="mx-1" color="#2962FF" dark @click="open_filter()">
+        <v-btn size="small" class="mx-1" color="#2962FF" @click="open_filter()">
           Filtrar
         </v-btn>
-        <v-btn size="small" class="mx-1" color="#004D40" dark> Exportar </v-btn>
+        <v-btn size="small" class="mx-1" color="#004D40"> Exportar </v-btn>
       </v-card-title>
 
       <v-data-table
@@ -47,7 +47,7 @@
         class="elevation-1"
         :headers="headers"
         :items="$store.state.enterprises.list"
-        item-key="id"
+        item-value="id"
         :search="search"
         density="compact"
       >
@@ -84,7 +84,6 @@
       temporary
       
       width="30%"
-      height="100vh"
     >
       <v-list-item>
         
@@ -137,8 +136,8 @@
               :items="itemsPais"
               item-value="id"
               item-title="name"
-              @update:model-value="_getState(enterprise.id_pais)"
               v-model="enterprise.id_pais"
+              @update:model-value="_getState(enterprise.id_pais)"
             >
             </v-autocomplete>
           </v-row>
@@ -149,8 +148,8 @@
               clearable
               item-value="id"
               item-title="name"
-              @update:model-value="_getCity(enterprise.id_state)"
               v-model="enterprise.id_state"
+              @update:model-value="_getCity(enterprise.id_state)"
             >
             </v-autocomplete>
           </v-row>
@@ -161,8 +160,8 @@
               clearable
               item-value="id"
               item-title="name"
-              @update:model-value="_getTown(enterprise.id_city)"
               v-model="enterprise.id_city"
+              @update:model-value="_getTown(enterprise.id_city)"
             >
             </v-autocomplete>
           </v-row>
@@ -197,7 +196,7 @@
         <v-btn class="mx-1" color="ligth" @click="reset_records()"
           >Limpiar</v-btn
         >
-        <v-btn class="mx-1" dark color="warning" @click="volver()">
+        <v-btn class="mx-1" color="warning" @click="volver()">
           Cerrar
         </v-btn>
       </v-card-actions>

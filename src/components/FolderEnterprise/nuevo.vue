@@ -3,19 +3,16 @@
     <v-card class="py-10 px-10">
       <v-tabs
         v-model="tab"
-        bg-color="teal darken-4"
+        bg-color="teal-darken-4"
         grow
-        dark
         stacked
       >
-        <v-tabs-slider></v-tabs-slider>
+        <v-tab value="datos"> Datos de la Empresa</v-tab>
 
-        <v-tab href="#datos"> Datos de la Empresa</v-tab>
-
-        <v-tab href="#admin"> Administrador Principal SISTEMA </v-tab>
+        <v-tab value="admin"> Administrador Principal SISTEMA </v-tab>
       </v-tabs>
-      <v-tabs-items v-model="tab">
-        <v-tab-item value="datos" class="px-5 items">
+      <v-tabs-window v-model="tab">
+        <v-tabs-window-item value="datos" class="px-5 items">
           <v-form ref="frmEmpresa">
             <v-row>
               <v-col cols="4">
@@ -95,12 +92,12 @@
                   label="Logo"
                   v-model="payfile"
                   accept=".png"
-                  :success-messages="msgfile"
+                  :messages="msgfile"
                   :error-messages="errfile"
                   :loading="loadingFile"
                   show-size
                   prepend-icon="mdi-camera"
-                  @change="uploadFile()"
+                  @update:model-value="uploadFile()"
                 >
                 </v-file-input>
               </v-col>
@@ -120,8 +117,8 @@
                   :items="itemsPais"
                   item-value="id"
                   item-title="name"
-                  @update:model-value="get_state()"
                   v-model="$store.state.enterprises.model.id_pais"
+                  @update:model-value="get_state()"
                   :rules="[(v) => !!v || 'Dato requerido']"
                 >
                 </v-autocomplete>
@@ -132,8 +129,8 @@
                   :items="itemsState"
                   item-value="id"
                   item-title="name"
-                  @update:model-value="get_city()"
                   v-model="$store.state.enterprises.model.id_state"
+                  @update:model-value="get_city()"
                   :disabled="!$store.state.enterprises.model.id_pais"
                   :rules="[(v) => !!v || 'Dato requerido']"
                 />
@@ -144,8 +141,8 @@
                   :items="itemsCity"
                   item-value="id"
                   item-title="name"
-                  @update:model-value="get_town()"
                   v-model="$store.state.enterprises.model.id_city"
+                  @update:model-value="get_town()"
                   :disabled="!$store.state.enterprises.model.id_state"
                   :rules="[(v) => !!v || 'Dato requerido']"
                 />
@@ -179,6 +176,7 @@
                   density="compact"
                   label="Activo/Inactivo"
                   v-model="$store.state.enterprises.model.status"
+                  :value-comparator="(value, checked) => Boolean(value) === checked"
                   hide-details
                   color="success"
                   @update:model-value="updateStatus"
@@ -186,8 +184,8 @@
               </v-col>
             </v-row>
           </v-form>
-        </v-tab-item>
-        <v-tab-item value="admin" class="px-5 items">
+        </v-tabs-window-item>
+        <v-tabs-window-item value="admin" class="px-5 items">
           <v-form ref="frmDatos">
             <v-row>
               <v-col cols="4">
@@ -216,7 +214,6 @@
               <v-col cols="4">
                 <v-text-field
                   label="Documento (*)"
-                  id="id"
                   v-model="$store.state.user.model.document"
                   :rules="[(v) => !!v || 'Dato Requerido']"
                   v-on:blur="validarDocument()"
@@ -229,7 +226,6 @@
                   v-model="$store.state.user.model.names"
                   :rules="[(v) => !!v || 'Dato Requerido']"
                   label="Nombres (*)"
-                  id="id"
                 ></v-text-field>
               </v-col>
               <v-col cols="4">
@@ -237,7 +233,6 @@
                   v-model="$store.state.user.model.surname"
                   :rules="[(v) => !!v || 'Dato Requerido']"
                   label="Apellido Paterno (*)"
-                  id="id"
                 ></v-text-field>
               </v-col>
               <v-col cols="4">
@@ -245,7 +240,6 @@
                   v-model="$store.state.user.model.second_surname"
                   :rules="[(v) => !!v || 'Dato Requerido']"
                   label="Apellido Materno (*)"
-                  id="id"
                 ></v-text-field>
               </v-col>
               <v-col cols="4">
@@ -253,13 +247,11 @@
                   label="Teléfono (*)"
                   v-model="$store.state.user.model.phone"
                   :rules="[(v) => !!v || 'Dato Requerido']"
-                  id="id"
                 ></v-text-field>
               </v-col>
               <v-col cols="4">
                 <v-text-field
                   label="Correo (*)"
-                  id="id"
                   v-model="$store.state.user.model.email"
                   :rules="[
                     (v) => !!v || 'Dato requerido',
@@ -275,7 +267,6 @@
                 <v-text-field
                   type="date"
                   label="Fecha Nacimiento (*)"
-                  id="id"
                   v-model="$store.state.user.model.birthday"
                   :rules="[(v) => !!v || 'Dato Requerido']"
                 ></v-text-field>
@@ -289,7 +280,7 @@
                   item-value="id"
                   label="Sexo (*)"
                   :rules="[(v) => !!v || 'Dato Requerido']"
-                  :item-disabled="(item) => item.status != 1"
+                  :item-props="(item) => ({ disabled: item.status != 1 })"
                   v-model="$store.state.user.model.id_sex"
                 ></v-autocomplete>
               </v-col>
@@ -351,7 +342,6 @@
                 <v-text-field
                   v-model="$store.state.user.model.address"
                   label="Dirección (*)"
-                  id="id"
                   :rules="[(v) => !!v || 'Dato Requerido']"
                 ></v-text-field>
               </v-col>
@@ -359,14 +349,12 @@
                 <v-text-field
                   v-model="$store.state.user.model.socialprincipal"
                   label="URL Red Social Principal"
-                  id="id"
                 ></v-text-field>
               </v-col>
               <v-col cols="4">
                 <v-text-field
                   v-model="$store.state.user.model.socialsecundary"
                   label="URL Red Social Alternativa"
-                  id="id"
                 ></v-text-field>
               </v-col>
               <v-col cols="6">
@@ -376,7 +364,6 @@
                 >
                 <v-radio-group
                   :rules="[(v) => !!v || 'Dato Requerido']"
-                  column
                   v-model="$store.state.user.model.departamento"
                 >
                   <v-radio label="Operativo" value="1"></v-radio>
@@ -387,13 +374,14 @@
                 <v-switch
                   label="Estado"
                   v-model="$store.state.user.model.status"
+                  :value-comparator="(value, checked) => Boolean(value) === checked"
                 ></v-switch>
               </v-col>
             </v-row>
           </v-form>
-        </v-tab-item>
-      </v-tabs-items>
-      <v-btn block color="success" @click="insert()" class="mt-10" dark>{{
+        </v-tabs-window-item>
+      </v-tabs-window>
+      <v-btn block color="success" @click="insert()" class="mt-10">{{
         tab == "datos" ? "Siguiente" : "Guardar"
       }}</v-btn>
       <!-- <v-card-actions class="justify-end mt-3">
@@ -409,8 +397,8 @@
       El departamento, define como se comportará el usuario para el llendo de
       montos (Pricing u Operaciones) , en el CONTROL DE GASTOS
 
-      <template v-slot:action="{ attrs }">
-        <v-btn variant="text" color="red" v-bind="attrs" @click="snackbar = false">
+      <template v-slot:actions>
+        <v-btn variant="text" color="red" @click="snackbar = false">
           Close
         </v-btn>
       </template>
@@ -518,17 +506,17 @@ export default {
     },
     async insert() {
       if (this.tab == "datos") {
-        if (this.$refs.frmEmpresa.validate()) {
+        if ((await this.$refs.frmEmpresa.validate()).valid) {
           this.tab = "admin";
           return true;
         }
       }
       if (this.tab == "admin") {
-        if (!this.$refs.frmEmpresa.validate()) {
+        if (!(await this.$refs.frmEmpresa.validate()).valid) {
           this.tab = "datos";
           return false;
         }
-        if (this.$refs.frmDatos.validate()) {
+        if ((await this.$refs.frmDatos.validate()).valid) {
           this.$store.state.spiner = true;
           await this.insertEnterprise(this.$store.state.enterprises);
           this.$store.state.spiner = false;
@@ -551,7 +539,7 @@ export default {
       await this._getTown(this.$store.state.enterprises.model.id_city);
     },
     async update() {
-      if (this.$refs.form.validate()) {
+      if ((await this.$refs.form.validate()).valid) {
         await this.updateEnterprise(this.$store.state.enterprises);
       }
     },

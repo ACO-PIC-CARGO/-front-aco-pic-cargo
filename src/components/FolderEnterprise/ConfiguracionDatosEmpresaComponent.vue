@@ -21,13 +21,13 @@
         variant="outlined"
         accept="image/png, image/jpeg, image/bmp"
         placeholder="Subir tu logo te ayudará a personalizar tus documentos"
-        append-icon="mdi-camera"
+        append-inner-icon="mdi-camera"
         hide-details
         prepend-icon=""
         density="compact"
         v-model="$store.state.configEmpresa.datoEmpresa.img"
-        @change="cargarLogo()"
-        @click:append="abrirSelector"
+        @update:model-value="cargarLogo()"
+        @click:append-inner.stop="abrirSelector"
       ></v-file-input>
     </v-col>
     <v-col cols="12">
@@ -141,10 +141,10 @@
       <p><b>Email:</b> {{ $store.state.configEmpresa.dataUsuario.email }}</p>
     </v-col>
     <v-col cols="12" style="align-items: center; text-align: center">
-      <v-btn class="mx-10" color="#7E7E7E" dark @click="$emit('omitir')">
+      <v-btn class="mx-10" color="#7E7E7E" @click="$emit('omitir')">
         Omitir
       </v-btn>
-      <v-btn class="mx-10" color="#1A237E" dark @click="guardarEmpresa()">
+      <v-btn class="mx-10" color="#1A237E" @click="guardarEmpresa()">
         Guardar y Continuar
       </v-btn>
     </v-col>
@@ -158,6 +158,7 @@ export default {
   components: {
     CboPais,
   },
+  emits: ["omitir", "GuardarDatosEmpresa"],
   data() {
     return { datosEmpresa: { id_pais: null }, errorImp: "" };
   },
