@@ -2,25 +2,21 @@
   <v-card class="cardDatos pa-4">
     <v-tabs
       v-model="tab"
-      bg-color="teal darken-4"
+      bg-color="teal-darken-4"
       grow
-      dark
       stacked
     >
-      <v-tabs-slider></v-tabs-slider>
+      <v-tab value="datos"> Datos del Usuario </v-tab>
 
-      <v-tab href="#datos"> Datos del Usuario </v-tab>
+      <v-tab value="posicion"> Módulos a Usar </v-tab>
 
-      <v-tab href="#posicion"> Módulos a Usar </v-tab>
-
-      <!-- <v-tab href="#sucursal"> Sucursal </v-tab> -->
+      <!-- <v-tab value="sucursal"> Sucursal </v-tab> -->
     </v-tabs>
     <v-card-actions class="justify-end px-5 pt-4 pb-0">
       <v-btn
         v-if="tab == 'posicion'"
         @click="guardarUsuario()"
         color="success"
-        dark
         size="small"
       >
         Guardar
@@ -29,8 +25,8 @@
         Siguiente
       </v-btn>
     </v-card-actions>
-    <v-tabs-items v-model="tab">
-      <v-tab-item value="datos" class="px-5 items">
+    <v-tabs-window v-model="tab">
+      <v-tabs-window-item value="datos" class="px-5 items">
         <v-form ref="frmDatos">
           <!-- <v-row>
             <v-col cols="4">
@@ -129,8 +125,8 @@
                 :type="verClave == false ? 'password' : 'text'"
                 label="Clave*"
                 v-model="$store.state.user.model.clave"
-                :append-icon="!verClave ? 'mdi-eye' : 'mdi-eye-off'"
-                @click:append="verClave = !verClave"
+                :append-inner-icon="!verClave ? 'mdi-eye' : 'mdi-eye-off'"
+                @click:append-inner="verClave = !verClave"
               ></v-text-field>
             </v-col>
             <v-col cols="4">
@@ -138,8 +134,8 @@
                 :type="confirverClave == false ? 'password' : 'text'"
                 label="Confirmar Clave*"
                 v-model="$store.state.user.model.confirmclave"
-                :append-icon="!confirverClave ? 'mdi-eye' : 'mdi-eye-off'"
-                @click:append="confirverClave = !confirverClave"
+                :append-inner-icon="!confirverClave ? 'mdi-eye' : 'mdi-eye-off'"
+                @click:append-inner="confirverClave = !confirverClave"
               ></v-text-field>
             </v-col>
           </v-row>
@@ -151,7 +147,7 @@
                 item-value="id"
                 label="Sexo (*)"
                 :rules="[(v) => !!v || 'Dato Requerido']"
-                :item-disabled="(item) => item.status != 1"
+                :item-props="(item) => ({ disabled: item.status != 1 })"
                 v-model="$store.state.user.model.id_sex"
               ></v-autocomplete>
             </v-col>
@@ -163,7 +159,7 @@
                 item-title="name"
                 item-value="id"
                 @update:model-value="ObtenerEstados($store.state.user.model.id_pais)"
-                :item-disabled="(item) => item.status != 1"
+                :item-props="(item) => ({ disabled: item.status != 1 })"
                 :rules="[(v) => !!v || 'Dato Requerido']"
               >
               </v-autocomplete>
@@ -177,7 +173,7 @@
                 item-value="id"
                 :loading="loadingEstado"
                 @update:model-value="ObtenerCity($store.state.user.model.id_state)"
-                :item-disabled="(item) => item.status != 1"
+                :item-props="(item) => ({ disabled: item.status != 1 })"
               >
               </v-autocomplete>
             </v-col>
@@ -190,7 +186,7 @@
                 item-value="id"
                 :loading="loadingEstado"
                 @update:model-value="ObtenerDistrito($store.state.user.model.id_city)"
-                :item-disabled="(item) => item.status != 1"
+                :item-props="(item) => ({ disabled: item.status != 1 })"
               >
               </v-autocomplete>
             </v-col>
@@ -202,7 +198,7 @@
                 item-title="name"
                 item-value="id"
                 :loading="loadingDistrito"
-                :item-disabled="(item) => item.status != 1"
+                :item-props="(item) => ({ disabled: item.status != 1 })"
               >
               </v-autocomplete>
             </v-col>
@@ -236,12 +232,13 @@
                   $store.state.user.model.status == 1 ? 'Activo' : 'Inactivo'
                 "
                 v-model="$store.state.user.model.status"
+                :value-comparator="(value, checked) => Boolean(value) === checked"
               ></v-switch>
             </v-col>
           </v-row>
         </v-form>
-      </v-tab-item>
-      <v-tab-item value="posicion" class="px-5 items">
+      </v-tabs-window-item>
+      <v-tabs-window-item value="posicion" class="px-5 items">
         <v-form ref="frmPosicion">
           <v-row>
             <v-col cols="4" class="my-auto">
@@ -255,7 +252,7 @@
                 placeholder="Módulo"
                 :rules="[(v) => !!v || 'Dato Requerido']"
                 :error-messages="errPosition"
-                :item-disabled="(item) => !item.estado"
+                :item-props="(item) => ({ disabled: !item.estado })"
               />
             </v-col>
 
@@ -271,7 +268,7 @@
             <v-data-table
               :headers="headersPosition"
               :items="$store.state.user.positions"
-              item-key="id"
+              item-value="id"
               loading="true"
             >
               <template v-slot:[`item.action`]="{ index }">
@@ -287,7 +284,6 @@
 
               <v-radio-group
                 :rules="[(v) => !!v || 'Dato Requerido']"
-                column
                 v-model="$store.state.user.model.departamento"
               >
                 <v-radio label="Pricing" value="1"></v-radio>
@@ -298,7 +294,7 @@
               <p class="justify">** Nota Importante **</p>
             </v-col>
             <v-col cols="12">
-              <v-subheader>
+              <v-list-subheader>
                 <!--  -->
                 <p class="justify">
                   Está acción permitirá al usuario ajustar los montos dentro de
@@ -307,12 +303,12 @@
                   valores, pueden surgir pequeños ajustes durante la operación
                   que requieren modificación
                 </p>
-              </v-subheader>
+              </v-list-subheader>
             </v-col>
           </v-col>
         </v-row>
-      </v-tab-item>
-      <!-- <v-tab-item value="sucursal" class="px-5 py-5 items">
+      </v-tabs-window-item>
+      <!-- <v-tabs-window-item value="sucursal" class="px-5 py-5 items">
         <v-form ref="frmSucursal">
           <v-row>
             <v-col cols="4" class="my-auto">
@@ -341,7 +337,7 @@
             <v-data-table
               :headers="headersSucursal"
               :items="$store.state.user.sucursales"
-              item-key="id"
+              item-value="id"
               loading="true"
             >
               <template v-slot:[`item.action`]="{ index }">
@@ -352,15 +348,15 @@
             </v-data-table>
           </v-col>
         </v-row>
-      </v-tab-item> -->
-    </v-tabs-items>
+      </v-tabs-window-item> -->
+    </v-tabs-window>
 
     <v-snackbar v-model="snackbar" variant="outlined" vertical color="info">
       El departamento, define como se comportará el usuario para el llendo de
       montos (Pricing u Operaciones) , en el CONTROL DE GASTOS
 
-      <template v-slot:action="{ attrs }">
-        <v-btn variant="text" color="red" v-bind="attrs" @click="snackbar = false">
+      <template v-slot:actions>
+        <v-btn variant="text" color="red" @click="snackbar = false">
           Close
         </v-btn>
       </template>
@@ -540,7 +536,7 @@ export default {
 
     async agregarSucursal() {
       this.errSucursal = "";
-      if (this.$refs.frmSucursal.validate()) {
+      if ((await this.$refs.frmSucursal.validate()).valid) {
         if (
           this.$store.state.user.sucursales.some(
             (v) => v.id == this.itemSucursal.id,
@@ -554,7 +550,7 @@ export default {
     },
     async agregarPosicion() {
       this.errPosition = "";
-      if (this.$refs.frmPosicion.validate()) {
+      if ((await this.$refs.frmPosicion.validate()).valid) {
         if (
           this.$store.state.user.positions.some(
             (v) => v.id == this.itemPositon.id,
@@ -604,7 +600,7 @@ export default {
         });
         return false;
       }
-      if (this.$refs.frmDatos.validate()) {
+      if ((await this.$refs.frmDatos.validate()).valid) {
         if (this.$store.state.user.positions.length == 0) {
           this.errPosition =
             "Es necesario asignar al menos una Position, al usuario";
@@ -630,7 +626,7 @@ export default {
       }
     },
     async guardarUsuario() {
-      if (this.$refs.frmDatos.validate()) {
+      if ((await this.$refs.frmDatos.validate()).valid) {
         if (this.$store.state.user.positions.length == 0) {
           this.errPosition =
             "Es necesario asignar al menos una Position, al usuario";

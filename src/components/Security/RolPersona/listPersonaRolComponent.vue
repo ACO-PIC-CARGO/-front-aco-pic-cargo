@@ -38,8 +38,7 @@
         :headers="headers"
         :items="$store.state.entities.lstPersona"
         class="elevation-1"
-        pagination.sync="pagination"
-        item-key="id"
+        item-value="id"
         loading="true"
         :search="search"
       >

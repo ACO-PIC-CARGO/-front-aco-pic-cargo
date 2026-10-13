@@ -25,7 +25,6 @@
                 variant="outlined"
                 label="Clave"
                 :type="esClave ? 'password' : 'text'"
-                id="id"
                 v-model="clave"
                 density="compact"
               ></v-text-field>
@@ -35,7 +34,6 @@
                 variant="outlined"
                 label="Confirmar Clave"
                 :type="esClave ? 'password' : 'text'"
-                id="id"
                 v-model="confirmaclave"
                 density="compact"
               ></v-text-field>

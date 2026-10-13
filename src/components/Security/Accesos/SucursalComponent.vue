@@ -18,7 +18,6 @@
           density="compact"
           placeholder="Sucursal"
           label="Sucursal"
-          dark
           :rules="[(v) => !!v || 'Dato Requerido']"
         ></v-select>
         <!-- <span class="red--text"> {{ errorUsuario }}</span> -->
@@ -68,7 +67,7 @@ export default {
       "ObtenerDatosConfig",
     ]),
     async guardarSucursal() {
-      if (this.$refs.Login.validate()) {
+      if ((await this.$refs.Login.validate()).valid) {
         this.loading = true;
         // --------------------------------------------
         let dataBranch = this.$store.state.securitys.lstSucursal.filter(
