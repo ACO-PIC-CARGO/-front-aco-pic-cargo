@@ -234,7 +234,6 @@
               :headers="headersPosition"
               :items="$store.state.user.positions.filter((v) => !!v.status)"
               item-value="id"
-              loading="true"
             >
               <template v-slot:[`item.action`]="{ item }">
                 <v-btn icon color="red" @click="item.status = !item.status">
@@ -301,7 +300,6 @@
               :headers="headersSucursal"
               :items="$store.state.user.sucursales.filter((v) => !!v.status)"
               item-value="id"
-              loading="true"
             >
               <template v-slot:[`item.action`]="{ item }">
                 <v-btn icon color="red" @click="item.status = !item.status">

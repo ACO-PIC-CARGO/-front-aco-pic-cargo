@@ -37,7 +37,6 @@
             :headers="headers"
             :items="listStatusHouse"
             item-value="id"
-            loading="true"
             :search="search"
           >
             <template v-slot:[`item.exw`]="{ item }">

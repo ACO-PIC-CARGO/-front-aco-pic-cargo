@@ -36,7 +36,6 @@
           :items="$store.state.proyecciones.listProyeccion"
           class="elevation-1"
           item-value="id"
-          loading="true"
           :search="search"
         >
           <template v-slot:[`item.action`]="{ item }">

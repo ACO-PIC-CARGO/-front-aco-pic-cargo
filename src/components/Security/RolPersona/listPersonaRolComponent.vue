@@ -39,7 +39,6 @@
         :items="$store.state.entities.lstPersona"
         class="elevation-1"
         item-value="id"
-        loading="true"
         :search="search"
       >
         <template v-slot:[`item.proveedor`]="{ item }">

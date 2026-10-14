@@ -95,7 +95,6 @@
             :items="items.filter((v) => !!v.estado)"
             class="elevation-1"
             item-value="index"
-            loading="true"
             disable-sort
           >
             <template v-slot:[`item.gasto`]="{ item }">

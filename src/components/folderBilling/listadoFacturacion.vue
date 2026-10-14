@@ -4,7 +4,6 @@
       :headers="headers"
       :items="lstFac"
       item-value="id"
-      loading="true"
       :search="search"
       ><template v-slot:top>
         <v-text-field

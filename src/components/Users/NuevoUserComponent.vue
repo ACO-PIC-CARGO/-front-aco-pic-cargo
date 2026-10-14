@@ -269,7 +269,6 @@
               :headers="headersPosition"
               :items="$store.state.user.positions"
               item-value="id"
-              loading="true"
             >
               <template v-slot:[`item.action`]="{ index }">
                 <v-btn icon color="red" @click="eliminarPosicion(index)">
@@ -335,7 +334,6 @@
               :headers="headersSucursal"
               :items="$store.state.user.sucursales"
               item-value="id"
-              loading="true"
             >
               <template v-slot:[`item.action`]="{ index }">
                 <v-btn icon color="red" @click="eliminarSucursal(index)">
