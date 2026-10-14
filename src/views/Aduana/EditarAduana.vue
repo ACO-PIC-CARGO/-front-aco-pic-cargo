@@ -53,7 +53,7 @@
 
       <v-stepper-window>
         <v-stepper-window-item :value="1" eager>
-          <v-row>
+          <v-row class="my-1">
             <v-col cols="12" md="6" class="pt-0">
               <v-row>
                 <v-col cols="12" class="my-0 py-0">
