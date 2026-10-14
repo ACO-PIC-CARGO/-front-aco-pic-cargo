@@ -15,7 +15,7 @@
         @click="$store.state.drawer = !$store.state.drawer"
       ></v-app-bar-nav-icon>
 
-      <v-toolbar-title>{{ $store.state.mainTitle }}</v-toolbar-title>
+      <v-toolbar-title class="flex-0-1">{{ $store.state.mainTitle }}</v-toolbar-title>
 
       <v-spacer></v-spacer>
 
@@ -78,6 +78,7 @@
       ></v-spacer>
 
       <v-btn
+        variant="elevated"
         color="#009688"
         v-if="getNameUrl() == 'newQuote' && !!$store.state.pricing.btnRegistrar"
         @click="guardarCotizacion()"
@@ -97,6 +98,7 @@
       <v-spacer v-if="getNameUrl() == 'editQuote'"></v-spacer>
 
       <v-btn
+        variant="elevated"
         color="#009688"
         v-if="getNameUrl() == 'editQuote'"
         @click="editarCotizacion()"
@@ -115,6 +117,7 @@
       <v-spacer v-if="getNameUrl() == 'verQuote'"></v-spacer>
 
       <v-btn
+        variant="elevated"
         color="#009688"
         v-if="getNameUrl() == 'verQuote'"
         @click="handleEditarQuote()"
@@ -122,6 +125,7 @@
         <v-icon size="small" class="mx-1">mdi-pencil</v-icon> EDITAR
       </v-btn>
       <v-btn
+        variant="elevated"
         v-if="getNameUrl() == 'verQuote'"
         class="mx-1"
         color="light-blue-darken-3"
@@ -132,6 +136,7 @@
       </v-btn>
 
       <v-btn
+        variant="elevated"
         v-if="getNameUrl() == 'editQuote'"
         class="mx-1"
         color="light-blue-darken-3"
@@ -142,6 +147,7 @@
       </v-btn>
 
       <v-btn
+        variant="elevated"
         v-if="getNameUrl() == 'editQuote' || getNameUrl() == 'verQuote'"
         class="mx-1"
         color="#FFD600"
@@ -154,6 +160,7 @@
       </v-btn>
 
       <v-btn
+        variant="elevated"
         v-if="getNameUrl() == 'verQuote'"
         class="mx-1"
         color="light-blue-darken-3"
@@ -165,6 +172,7 @@
 
       <!--MODULO CLIENTES-->
       <v-btn
+        variant="elevated"
         v-if="
           getNameUrl() == 'nuevoClientes' &&
           $store.state.entities.showBtnSaveFlag
@@ -177,6 +185,7 @@
 
       <!--MODULO PROVEEDORES-->
       <v-btn
+        variant="elevated"
         v-if="
           getNameUrl() == 'nuevoProveedor' &&
           $store.state.entities.showBtnSaveFlag
@@ -202,6 +211,7 @@
       </label>
 
       <v-btn
+        variant="elevated"
         color="#009688"
         v-if="getNameUrl() == 'EditarAduana'"
         @click="editarCotizacionAduana()"
@@ -211,6 +221,7 @@
       </v-btn>
 
       <v-btn
+        variant="elevated"
         color="#009688"
         v-if="
           getNameUrl() == 'VerAduana' &&
@@ -222,6 +233,7 @@
       </v-btn>
 
       <v-btn
+        variant="elevated"
         color="#009688"
         @click="abrirModalPilotoAutomatico()"
         v-if="getNameUrl() == 'editQuote'"
@@ -230,6 +242,7 @@
       </v-btn>
 
       <v-btn
+        variant="elevated"
         color="info"
         @click="ira('EditAccountPaysCxC', $route.params.id)"
         v-if="getNameUrl() == 'viewAccountPaysCxC'"
@@ -238,6 +251,7 @@
       </v-btn>
 
       <v-btn
+        variant="elevated"
         color="info"
         @click="ira('EditAccountPays', $route.params.id)"
         v-if="getNameUrl() == 'viewAccountPays'"

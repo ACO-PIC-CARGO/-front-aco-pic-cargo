@@ -701,6 +701,7 @@
             <v-toolbar-title>Datos Manuales Instructivo</v-toolbar-title>
             <v-spacer></v-spacer>
             <v-btn
+              variant="elevated"
               class="mx-1"
               color="#FFD600"
               @click="
@@ -713,6 +714,7 @@
               ABRIR
             </v-btn>
             <v-btn
+              variant="elevated"
               size="small"
               class="mx-1"
               v-if="verPrevisualizacion"
@@ -726,6 +728,7 @@
               {{ verDatosPreview ? "Ocultar Datos" : "Editar Datos" }}
             </v-btn>
             <v-btn
+              variant="elevated"
               size="small"
               class="mx-1"
               v-if="verDatosPreview"

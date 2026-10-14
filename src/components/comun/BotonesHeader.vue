@@ -1,6 +1,7 @@
 <template>
   <div>
     <v-btn
+      variant="elevated"
       color="#01579B"
       class="ma-1 btnCalc"
       @click="enviarCotizacionAPricing"

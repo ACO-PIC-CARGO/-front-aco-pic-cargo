@@ -1,5 +1,6 @@
 <template>
   <v-btn
+    variant="elevated"
     color="info"
     class="mx-1"
     v-if="routeVerEditarParaVolverListado.includes(getNameUrl())"
