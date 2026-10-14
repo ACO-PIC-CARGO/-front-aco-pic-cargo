@@ -23,6 +23,7 @@
           <div class="d-flex align-center">
             <!-- Botón Ver/Descargar -->
             <v-btn
+              variant="text"
               v-if="urlVisor"
               color="info"
               icon
@@ -35,6 +36,7 @@
 
             <!-- Botón Eliminar (Deshabilitado si solo es lectura / modo 'ver') -->
             <v-btn
+              variant="text"
               v-if="!readOnly"
               color="red"
               icon

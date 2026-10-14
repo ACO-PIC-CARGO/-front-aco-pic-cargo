@@ -5,10 +5,10 @@
         <span><b>Archivo Cargado:</b></span>
         {{ file ? file.name : "Archivo listo" }}
 
-        <v-btn color="info" icon :href="rutaDescarga" target="_blank">
+        <v-btn variant="text" color="info" icon :href="rutaDescarga" target="_blank">
           <v-icon color="info" size="xl">mdi-file</v-icon>
         </v-btn>
-        <v-btn color="red" icon @click="eliminarFile">
+        <v-btn variant="text" color="red" icon @click="eliminarFile">
           <v-icon color="red" size="xl">mdi-close-circle</v-icon>
         </v-btn>
       </div>
