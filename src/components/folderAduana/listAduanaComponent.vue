@@ -262,7 +262,7 @@
       transition="dialog-transition"
     >
       <v-card>
-        <v-card-title primary-title>
+        <v-card-title class="d-flex align-center flex-wrap" primary-title>
           Actualizar Recibido / Enviado
           <v-spacer></v-spacer>
           <v-btn icon color="default" @click="dialog = !dialog">
@@ -382,7 +382,7 @@
       transition="dialog-transition"
     >
       <v-card>
-        <v-card-title primary-title>
+        <v-card-title class="d-flex align-center flex-wrap" primary-title>
           SELECCIONE EL EXPEDIENTE A ASOCIAR:
           <v-spacer></v-spacer>
           <v-btn icon color="default" @click="aprobarflag = !aprobarflag">

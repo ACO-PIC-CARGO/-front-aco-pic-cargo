@@ -155,7 +155,7 @@
     <!-- DDDDDDDDDDDDDDDDD -->
     <v-dialog v-model="dialogCambiarExpediente" max-width="500">
       <v-card>
-        <v-card-title class="text-h5 bg-grey-lighten-2">
+        <v-card-title class="text-h5 bg-grey-lighten-2 d-flex align-center flex-wrap">
           Cambiar expediente (House)
           <v-spacer></v-spacer>
           <v-btn icon color="default" @click="dialogCambiarExpediente = false">

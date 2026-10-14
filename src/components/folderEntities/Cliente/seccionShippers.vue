@@ -1,7 +1,7 @@
 <template>
   <div>
     <v-card>
-      <v-card-title class="px-2 container-narrow">
+      <v-card-title class="px-2 container-narrow d-flex align-center flex-wrap">
         <v-spacer></v-spacer>
         <v-btn
           v-if="!showNavigationButtons"

@@ -101,7 +101,7 @@
       </v-card>
     </v-dialog>
     <v-card elevation="0">
-      <v-card-title>
+      <v-card-title class="d-flex align-center flex-wrap">
         LISTA DE EXPEDIENTES MASTER's
         <v-btn
           @click="$store.state.reportsDialog = !$store.state.reportsDialog"

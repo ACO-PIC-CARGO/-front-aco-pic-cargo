@@ -1,6 +1,6 @@
 <template>
   <v-card>
-    <v-card-title class="px-2 container-narrow">
+    <v-card-title class="px-2 container-narrow d-flex align-center flex-wrap">
       Datos para rótulos en la entrega del producto
       <v-spacer></v-spacer>
       <v-btn

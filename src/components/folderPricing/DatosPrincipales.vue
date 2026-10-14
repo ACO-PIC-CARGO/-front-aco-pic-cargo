@@ -211,7 +211,7 @@
       v-if="buscarClienteDialog"
     >
       <v-card>
-        <v-card-title
+        <v-card-title class="d-flex align-center flex-wrap"
           >Buscar Cliente<v-spacer></v-spacer>
           <v-btn color="success" @click="registrarNuevoCliente" size="small">
             Nuevo Cliente

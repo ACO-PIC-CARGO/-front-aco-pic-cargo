@@ -1,7 +1,7 @@
 <template>
   <div>
     <v-card elevation="0">
-      <v-card-title>
+      <v-card-title class="d-flex align-center flex-wrap">
         <h3>REPORTE DE CUENTAS POR COBRAR</h3>
         <v-spacer></v-spacer>
         <v-btn
@@ -232,7 +232,7 @@
     <!--COMENTARIOS-->
     <v-dialog v-model="dialogComentarios" persistent width="70%">
       <v-card>
-        <v-card-title>
+        <v-card-title class="d-flex align-center flex-wrap">
           Estados/Comentarios de la CxC - {{ dataCXC.nameconsigner }}
           <v-spacer></v-spacer>
           <template v-if="dataCXC.esoperativo">
@@ -268,7 +268,7 @@
     <!--NUEVO COMENTARIO-->
     <v-dialog v-model="dialogNuevoComentario" persistent width="50%">
       <v-card>
-        <v-card-title>
+        <v-card-title class="d-flex align-center flex-wrap">
           Registro de Estado/Comentario de la CxC - {{ dataCXC.nameconsigner }}
           <v-spacer></v-spacer>
           <v-btn

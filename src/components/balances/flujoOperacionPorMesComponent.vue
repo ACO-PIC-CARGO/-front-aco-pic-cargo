@@ -9,7 +9,7 @@
       width="20%"
     >
       <v-card min-height="80vh">
-        <v-card-title primary-title>
+        <v-card-title class="d-flex align-center flex-wrap" primary-title>
           Filtrar Flujo <v-spacer></v-spacer>
           <v-btn icon color="default" @click="filtroFlag = !filtroFlag">
             <v-icon>mdi-close</v-icon>

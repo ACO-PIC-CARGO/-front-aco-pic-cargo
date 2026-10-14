@@ -1,7 +1,7 @@
 <template>
   <div>
     <v-card elevation="0">
-      <v-card-title>
+      <v-card-title class="d-flex align-center flex-wrap">
         Pagar Expedientes sin Solicitud
         <v-spacer></v-spacer>
         <v-text-field v-model="search" label="Buscar"></v-text-field>

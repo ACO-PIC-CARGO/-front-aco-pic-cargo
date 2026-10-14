@@ -207,7 +207,7 @@
 
     <v-dialog v-model="$store.state.modalServices_manualMode" max-width="400">
       <v-card>
-        <v-card-title class="text-h6">
+        <v-card-title class="text-h6 d-flex align-center flex-wrap">
           Agregar Servicio Manual <v-spacer></v-spacer>
           <v-btn
             icon

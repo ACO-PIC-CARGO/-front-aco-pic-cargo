@@ -90,7 +90,7 @@
     </v-dialog>
 
     <v-card elevation="0">
-      <v-card-title>
+      <v-card-title class="d-flex align-center flex-wrap">
         REPORTE DE CONTROL DE FILE DETALLADO <v-spacer></v-spacer>
         <v-btn variant="outlined" @click="dialogDate = true" color="primary" class="mr-5"
           >BUSCAR NUEVA FECHA</v-btn

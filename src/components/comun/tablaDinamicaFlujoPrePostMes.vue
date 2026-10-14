@@ -92,7 +92,7 @@
     </v-dialog>
 
     <v-card>
-      <v-card-title>
+      <v-card-title class="d-flex align-center flex-wrap">
         <v-spacer></v-spacer>
         <v-btn size="small" color="#00789D" @click="filtrar = !filtrar"
           >Filtrar</v-btn

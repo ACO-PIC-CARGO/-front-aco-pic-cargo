@@ -2,7 +2,7 @@
   <v-card min-height="80vh">
     <BarraFiltro :filtro="filtro" :cuentas="cuentas" />
     
-    <v-card-title class="pt-0">
+    <v-card-title class="pt-0 d-flex align-center flex-wrap">
       <v-text-field
         class="mx-2"
         hide-details
@@ -140,7 +140,7 @@
       v-if="dialogFiltro"
     >
       <v-card height="100%" elevation="10">
-        <v-card-title primary-title>
+        <v-card-title class="d-flex align-center flex-wrap" primary-title>
           Filtrar Ingresos
           <v-spacer></v-spacer>
           <v-btn icon color="default" @click="dialogFiltro = !dialogFiltro">

@@ -2,7 +2,7 @@
   <div>
     <v-container fluid>
       <v-card elevation="0">
-        <v-card-title>
+        <v-card-title class="d-flex align-center flex-wrap">
           Flujo de Caja
 
           <v-spacer></v-spacer>

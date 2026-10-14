@@ -1,7 +1,7 @@
 <template>
   <v-card min-height="80vh" elevation="0">
     <BarraFiltro :filtro="filtro" :cuentas="cuentas" />
-    <v-card-title class="pt-0">
+    <v-card-title class="pt-0 d-flex align-center flex-wrap">
       <v-text-field
         class="mx-2"
         hide-details
@@ -166,7 +166,7 @@
       transition="dialog-transition"
     >
       <v-card>
-        <v-card-title primary-title>
+        <v-card-title class="d-flex align-center flex-wrap" primary-title>
           {{ verflag ? "Ver " : "Editar" }}
           <v-spacer> </v-spacer>
           <v-btn icon color="default" @click="dialog = !dialog">

@@ -1,7 +1,7 @@
 <template>
   <div>
     <v-card elevation="10">
-      <v-card-title>
+      <v-card-title class="d-flex align-center flex-wrap">
         <v-btn
           color="primary"
           elevation="0"

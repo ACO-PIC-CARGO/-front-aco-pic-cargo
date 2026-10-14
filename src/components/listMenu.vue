@@ -98,7 +98,7 @@
       <v-row class="datosPricing">
         <v-card class="datosPricing">
           <v-card-title
-            class="custom-card-title justify-center text-white py-0 my-0"
+            class="custom-card-title justify-center text-white py-0 my-0 d-flex align-center flex-wrap"
           >
             <h6>DATOS DE LA COTIZACIÓN</h6>
           </v-card-title>
@@ -273,7 +273,7 @@
       v-if="dialogTutorial"
     >
       <v-card>
-        <v-card-title primary-title>
+        <v-card-title class="d-flex align-center flex-wrap" primary-title>
           <v-spacer></v-spacer>
           <v-btn icon color="" @click="dialogTutorial = false"
             ><v-icon>mdi-close</v-icon></v-btn

@@ -128,7 +128,7 @@
 
     <!-- Campos de Aduana -->
     <v-card class="mt-4" border>
-      <v-card-title class="py-2">
+      <v-card-title class="py-2 d-flex align-center flex-wrap">
         <v-icon start color="indigo">mdi-ferry</v-icon>
         Datos de Aduana
         <v-spacer></v-spacer>
@@ -195,7 +195,7 @@
 
     <v-dialog v-model="dialogConfirmarTelex" max-width="30%">
       <v-card>
-        <v-card-title primary-title>
+        <v-card-title class="d-flex align-center flex-wrap" primary-title>
           Confirmar liberación de Telex
           <v-spacer></v-spacer>
           <v-btn icon @click="dialogConfirmarTelex = false">

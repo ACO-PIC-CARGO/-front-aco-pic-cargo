@@ -7,7 +7,7 @@
       transition="dialog-transition"
     >
       <v-card>
-        <v-card-title primary-title>
+        <v-card-title class="d-flex align-center flex-wrap" primary-title>
           Registro de nueva nota - Opción
           {{ opcionesSeleccionadas[page].nro_propuesta }}<v-spacer></v-spacer>
           <v-btn icon color="default" @click="abrirDialog()">
@@ -336,7 +336,7 @@
       transition="dialog-transition"
     >
       <v-card>
-        <v-card-title class="bg-indigo text-white my-0 py-0" dark>
+        <v-card-title class="bg-indigo text-white my-0 py-0 d-flex align-center flex-wrap" dark>
           PREVISUALIZACIÓN DE LA COTIZACIÓN - NO TIENE NINGÚN VALOR COMERCIAL
 
           <v-spacer></v-spacer>

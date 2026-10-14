@@ -37,7 +37,7 @@
       </v-card>
     </v-dialog>
     <v-card elevation="0">
-      <v-card-title class="align-end">
+      <v-card-title class="align-end d-flex flex-wrap">
         <v-text-field
           v-model="search"
           append-inner-icon="mdi-magnify"
@@ -544,7 +544,7 @@
     </v-card>
     <v-dialog v-model="dialog" persistent width="50%">
       <v-card>
-        <v-card-title>
+        <v-card-title class="d-flex align-center flex-wrap">
           Registro de Estado/ Comentario - {{ master.code_master }}
           <v-spacer></v-spacer>
           <v-btn icon color="default" @click="dialog = !dialog">

@@ -1,7 +1,7 @@
 <template>
   <v-container fluid>
     <v-card>
-      <v-card-title>
+      <v-card-title class="d-flex align-center flex-wrap">
         Datos Principales:
         <v-spacer></v-spacer>
         <b :style="{ fontSize: textSize }">{{ totalfinal }} USD</b>

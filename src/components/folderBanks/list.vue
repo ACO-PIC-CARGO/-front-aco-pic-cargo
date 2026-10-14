@@ -16,7 +16,7 @@
         </v-row>
       </v-container>
 
-      <v-card-title v-if="!loading" class="elevation-0">
+      <v-card-title v-if="!loading" class="elevation-0 d-flex align-center flex-wrap">
         <v-text-field
           append-inner-icon="mdi-magnify"
           label="Buscar"
@@ -423,7 +423,7 @@
 
     <v-dialog v-model="cuentasFlag" scrollable persistent width="80%">
       <v-card v-if="datosBanco">
-        <v-card-title primary-title>
+        <v-card-title class="d-flex align-center flex-wrap" primary-title>
           {{ datosBanco.name }} {{ datosBanco.acronym }}
           <v-spacer></v-spacer>
           <v-btn icon @click="cuentasFlag = !cuentasFlag"

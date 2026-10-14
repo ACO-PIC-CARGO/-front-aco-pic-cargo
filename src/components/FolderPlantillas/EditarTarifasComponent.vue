@@ -1,7 +1,7 @@
 <template>
   <v-container fluid>
     <v-card>
-      <v-card-title>
+      <v-card-title class="d-flex align-center flex-wrap">
         <v-btn icon @click="volverALista" class="mr-3">
           <v-icon>mdi-arrow-left</v-icon>
         </v-btn>
@@ -577,7 +577,7 @@
 
     <v-dialog v-model="dialog" max-width="600px" persistent>
       <v-card>
-        <v-card-title>
+        <v-card-title class="d-flex align-center flex-wrap">
           Nuevo servicio
           <v-spacer></v-spacer>
           <v-icon @click="dialog = false">mdi-close</v-icon>

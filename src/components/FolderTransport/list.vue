@@ -17,7 +17,7 @@
         </v-row>
       </v-container>
 
-      <v-card-title v-if="!loading" class="elevation-0">
+      <v-card-title v-if="!loading" class="elevation-0 d-flex align-center flex-wrap">
         <v-text-field
           append-inner-icon="mdi-magnify"
           label="Buscar"

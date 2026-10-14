@@ -24,7 +24,7 @@
       class="classDialog"
     >
       <v-card>
-        <v-card-title primary-title>
+        <v-card-title class="d-flex align-center flex-wrap" primary-title>
           SELECCIONE EL EXPEDIENTE A ASOCIAR:
           <v-spacer></v-spacer>
           <v-btn icon color="default" @click="aprobarflag = !aprobarflag">
@@ -525,7 +525,7 @@
       class="classDialog"
     >
       <v-card cass="px-5 ">
-        <v-card-title primary-title>
+        <v-card-title class="d-flex align-center flex-wrap" primary-title>
           CREAR NUEVO HOUSE O ASOCIAR A UNO
           <v-spacer></v-spacer>
           <v-btn icon color="default" @click="dialogHouse = !dialogHouse">
@@ -584,7 +584,7 @@
       class="classDialog"
     >
       <v-card cass="px-5">
-        <v-card-title primary-title>
+        <v-card-title class="d-flex align-center flex-wrap" primary-title>
           OPCIÓN SOBRE LOS COSTOS
           <v-spacer></v-spacer>
           <v-btn icon color="default" @click="dialogCostos = !dialogCostos">

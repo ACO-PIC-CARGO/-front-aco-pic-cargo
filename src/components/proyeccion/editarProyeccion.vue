@@ -1,7 +1,7 @@
 <template>
   <v-container fluid>
     <v-card>
-      <v-card-title>
+      <v-card-title class="d-flex align-center flex-wrap">
         Datos Principales:
         <v-spacer></v-spacer>
         <b :style="{ fontSize: textSize }">{{ totalfinal }} USD</b>
@@ -211,7 +211,7 @@
     </v-card-actions>
     <v-dialog v-model="dialogn" persistent :overlay="false" max-width="30%">
       <v-card>
-        <v-card-title primary-title>
+        <v-card-title class="d-flex align-center flex-wrap" primary-title>
           REALIZAR COPIA
           <v-spacer></v-spacer>
           <v-btn icon color="defaul" @click="dialogn = !dialogn">

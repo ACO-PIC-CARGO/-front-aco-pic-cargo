@@ -17,7 +17,7 @@
         </v-row>
       </v-container>
 
-      <v-card-title v-if="!loading" class="elevation-0">
+      <v-card-title v-if="!loading" class="elevation-0 d-flex align-center flex-wrap">
         <v-text-field
           append-inner-icon="mdi-magnify"
           label="Buscar"
@@ -83,7 +83,7 @@
       width="30%"
     >
       <v-card class="">
-        <v-card-title>
+        <v-card-title class="d-flex align-center flex-wrap">
           Nuevo Tipo de Teléfono
           <v-spacer></v-spacer>
 
@@ -140,7 +140,7 @@
     >
       <v-card class="">
         <v-container v-if="!loading_as">
-          <v-card-title>
+          <v-card-title class="d-flex align-center flex-wrap">
             Tipo de Teléfono {{ $store.state.type_phone.record.code }}
             {{ $store.state.type_phone.record.name }}
             <v-spacer></v-spacer>
@@ -212,7 +212,7 @@
     >
       <v-card class="">
         <v-container v-if="!loading_as">
-          <v-card-title>
+          <v-card-title class="d-flex align-center flex-wrap">
             Editar Tipo de Teléfono {{ $store.state.type_phone.record.name }}
             <v-spacer></v-spacer>
 
@@ -287,7 +287,7 @@
       width="30%"
     >
       <v-card class="">
-        <v-card-title>
+        <v-card-title class="d-flex align-center flex-wrap">
           Filtrar Tipo de Teléfono
           <v-spacer></v-spacer>
 

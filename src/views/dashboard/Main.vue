@@ -375,7 +375,7 @@
       max-width="75%"
     >
       <v-card v-if="dialogPilotoAutomatico">
-        <v-card-title primary-title>
+        <v-card-title class="d-flex align-center flex-wrap" primary-title>
           COTIZACIÓN PILOTO AUTOMÁTICO
           <v-spacer></v-spacer>
           <v-btn color="info" icon @click="dialogPilotoAutomatico = false">

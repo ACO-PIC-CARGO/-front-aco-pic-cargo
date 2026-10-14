@@ -145,7 +145,7 @@
           </v-btn>
         </v-col>
         <v-card>
-          <v-card-title>
+          <v-card-title class="d-flex align-center flex-wrap">
             LISTADO DE CLIENTES <v-spacer></v-spacer>
             <v-btn
               color="#7d8288"
@@ -219,7 +219,7 @@
       max-width="60%"
     >
       <v-card>
-        <v-card-title primary-title>
+        <v-card-title class="d-flex align-center flex-wrap" primary-title>
           <v-spacer></v-spacer>
           <v-btn icon @click="dialog = !dialog">
             <v-icon>mdi-close</v-icon>

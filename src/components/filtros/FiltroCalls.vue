@@ -1,6 +1,6 @@
 <template>
   <v-card elevation="1" class="clsCardFiltro">
-    <v-card-title primary-title>
+    <v-card-title class="d-flex align-center flex-wrap" primary-title>
       Filtrar Cotización <v-spacer></v-spacer>
       <v-btn
         icon

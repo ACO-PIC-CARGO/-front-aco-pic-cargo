@@ -3,7 +3,7 @@
     <v-container fluid>
       <v-row>
         <v-col cols="12">
-          <v-card-title primary-title>
+          <v-card-title class="d-flex align-center flex-wrap" primary-title>
             <v-text-field label="Buscar..." v-model="search"></v-text-field>
             <v-spacer></v-spacer>
             <v-btn color="success" size="small" class="mx-2" @click="nuevoStatus()">

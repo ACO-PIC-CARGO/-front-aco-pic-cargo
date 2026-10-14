@@ -15,7 +15,7 @@
       </v-row>
     </v-container>
 
-    <v-card-title v-if="!loading">
+    <v-card-title class="d-flex align-center flex-wrap" v-if="!loading">
       <v-text-field
         append-inner-icon="mdi-magnify"
         label="Buscar"

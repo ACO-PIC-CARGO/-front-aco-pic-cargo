@@ -159,7 +159,7 @@
       class="filtro-container"
     >
       <v-card min-height="800px">
-        <v-card-title primary-title>
+        <v-card-title class="d-flex align-center flex-wrap" primary-title>
           Filtro Para Facturas
           <v-spacer></v-spacer>
           <v-btn color="default" variant="text" @click="filtroflag = false">

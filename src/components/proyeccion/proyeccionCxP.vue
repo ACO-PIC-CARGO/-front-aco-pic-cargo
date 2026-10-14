@@ -79,7 +79,7 @@
     </v-row>
     <v-dialog v-model="dialog" persistent :overlay="false" max-width="30%">
       <v-card>
-        <v-card-title primary-title>
+        <v-card-title class="d-flex align-center flex-wrap" primary-title>
           Copiar Proyección {{ item.proyeccion_correlativo }}
           <v-spacer></v-spacer>
           <v-btn icon color="defaul" @click="dialog = !dialog">
@@ -130,7 +130,7 @@
     </v-dialog>
     <v-dialog v-model="dialogn" persistent :overlay="false" max-width="30%">
       <v-card>
-        <v-card-title primary-title>
+        <v-card-title class="d-flex align-center flex-wrap" primary-title>
           REALIZAR PRIMERA PROYECCIÓN
           <v-spacer></v-spacer>
           <v-btn icon color="defaul" @click="dialogn = !dialogn">

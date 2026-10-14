@@ -166,7 +166,7 @@
       <!-- Modal para ver todos los registros -->
       <v-dialog v-model="dialogVerTodos" max-width="900px" scrollable>
         <v-card>
-          <v-card-title>
+          <v-card-title class="d-flex align-center flex-wrap">
             Todos los registros de bitácora
             <v-spacer></v-spacer>
             <v-btn icon @click="dialogVerTodos = false">

@@ -358,7 +358,7 @@
     <!-- --------------------- -->
     <v-dialog id="mydiv" v-model="dialog" width="70%" persistent>
       <v-card>
-        <v-card-title id="mydivheader" class="text-h5 bg-grey-lighten-2">
+        <v-card-title id="mydivheader" class="text-h5 bg-grey-lighten-2 d-flex align-center flex-wrap">
           {{ getNameModalNuevoEditar }}
 
           <v-spacer></v-spacer>
@@ -602,7 +602,7 @@
     <!-- ---------------------------------------------------- -->
     <v-dialog max-width="80%" v-model="dialogListInvoice">
       <v-card>
-        <v-card-title>
+        <v-card-title class="d-flex align-center flex-wrap">
           Facturas y Performance de {{ nameproveedor }}
           <v-spacer></v-spacer>
           <v-btn variant="outlined" @click="cargarFactura" color="primary"
@@ -1061,7 +1061,7 @@
       transition=""
     >
       <v-card>
-        <v-card-title primary-title>
+        <v-card-title class="d-flex align-center flex-wrap" primary-title>
           Registrar División de Pagos <v-spacer></v-spacer>
           <v-btn icon color="default" @click="cerrarModal()">
             <v-icon>mdi-close</v-icon>

@@ -113,7 +113,7 @@
 
         <v-dialog max-width="900" v-model="dialogDebs">
           <v-card>
-            <v-card-title>
+            <v-card-title class="d-flex align-center flex-wrap">
               Abonos del cliente
               <v-spacer></v-spacer>
               <v-btn variant="outlined" color="primary" @click="_newDebs()"
@@ -171,7 +171,7 @@
 
         <v-dialog max-width="800" v-model="dialogNewDebs">
           <v-card>
-            <v-card-title>
+            <v-card-title class="d-flex align-center flex-wrap">
               Cargar un nuevo abono
               <v-spacer></v-spacer>
             </v-card-title>

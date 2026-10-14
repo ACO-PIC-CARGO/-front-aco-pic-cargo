@@ -1973,7 +1973,7 @@
 
     <v-dialog v-model="dialogNuevoProveedor" persistent max-width="80%">
       <v-card>
-        <v-card-title primary-title>
+        <v-card-title class="d-flex align-center flex-wrap" primary-title>
           Ficha de Proveedores <v-spacer></v-spacer>
           <v-btn
             icon

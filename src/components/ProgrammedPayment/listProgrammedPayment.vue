@@ -80,7 +80,7 @@
       transition="dialog-transition"
     >
       <v-card>
-        <v-card-title primary-title>
+        <v-card-title class="d-flex align-center flex-wrap" primary-title>
           PROVEEDOR: {{ nameproveedor }}
           <v-spacer></v-spacer>
           <v-btn icon color="default" @click="dialog = !dialog">

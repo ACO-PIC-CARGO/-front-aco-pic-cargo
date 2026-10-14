@@ -279,7 +279,7 @@
 
     <v-dialog max-width="800" v-model="dialogListInvoince">
       <v-card>
-        <v-card-title>
+        <v-card-title class="d-flex align-center flex-wrap">
           Facturas y Performance de {{ nameproveedor }}
           <v-spacer></v-spacer>
           <v-btn variant="outlined" @click="dialogInvoice = true" color="primary"

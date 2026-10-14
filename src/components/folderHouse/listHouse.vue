@@ -143,7 +143,7 @@
 
       <v-dialog v-model="dialogComentario" persistent width="50%">
         <v-card>
-          <v-card-title>
+          <v-card-title class="d-flex align-center flex-wrap">
             Registro de Estado/ Comentario - {{ house.code_house }}
             <v-spacer></v-spacer>
             <v-btn

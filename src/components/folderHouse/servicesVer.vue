@@ -87,7 +87,7 @@
 
     <!-- Campos de Aduana (solo lectura) -->
     <v-card class="mt-4" border>
-      <v-card-title class="py-2">
+      <v-card-title class="py-2 d-flex align-center flex-wrap">
         <v-icon start color="indigo">mdi-ferry</v-icon>
         Datos de Aduana
         <v-spacer></v-spacer>
@@ -151,7 +151,7 @@
 
     <v-dialog v-model="dialogNotificacionesLista" max-width="500" v-if="false">
       <v-card>
-        <v-card-title class="text-h6">
+        <v-card-title class="text-h6 d-flex align-center flex-wrap">
           Seleccione notificación
           <v-spacer></v-spacer>
           <v-btn icon @click="dialogNotificacionesLista = false">

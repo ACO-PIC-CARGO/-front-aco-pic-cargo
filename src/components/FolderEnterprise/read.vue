@@ -17,7 +17,7 @@
     </v-container>
 
     <v-card class="py-10 px-10">
-      <v-card-title v-if="!loading_as">
+      <v-card-title class="d-flex align-center flex-wrap" v-if="!loading_as">
         Ver: {{ $store.state.enterprises.record.business_name }}
         <v-spacer></v-spacer>
 

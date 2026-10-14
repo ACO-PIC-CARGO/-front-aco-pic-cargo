@@ -1,7 +1,7 @@
 <template>
   <v-container fluid>
     <v-card>
-      <v-card-title>
+      <v-card-title class="d-flex align-center flex-wrap">
         <span class="text-h5">Plantillas de Costos Base</span>
         <v-spacer></v-spacer>
        

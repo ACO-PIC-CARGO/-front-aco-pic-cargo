@@ -19,7 +19,7 @@
       transition="dialog-transition"
     >
       <v-card>
-        <v-card-title primary-title>
+        <v-card-title class="d-flex align-center flex-wrap" primary-title>
           SE REALIZARÁ LA COMPARACIÓN ENTRE REPORTE DE GANANCIAS
           <v-spacer></v-spacer>
           <v-btn icon color="default" @click="dialogComparar = !dialogComparar">

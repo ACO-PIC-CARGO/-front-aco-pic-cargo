@@ -381,7 +381,7 @@
     <!--  -->
     <v-dialog v-model="dialogIngreso" width="800" persistent>
       <v-card>
-        <v-card-title class="text-h5 bg-grey-lighten-2">
+        <v-card-title class="text-h5 bg-grey-lighten-2 d-flex align-center flex-wrap">
           Datos del servicio
           <v-spacer></v-spacer>
           <v-btn icon color="default" @click="dialogIngreso = !dialogIngreso">
@@ -613,7 +613,7 @@
     <!--  -->
     <v-dialog max-width="90%" v-model="dialogDebs" persistent>
       <v-card>
-        <v-card-title class="text-h5 bg-grey-lighten-2">
+        <v-card-title class="text-h5 bg-grey-lighten-2 d-flex align-center flex-wrap">
           Abonos del cliente
           <v-spacer></v-spacer>
 
@@ -686,7 +686,7 @@
     <!--  -->
     <v-dialog max-width="80%" v-model="dialogNewDebs" v-if="dialogNewDebs">
       <v-card>
-        <v-card-title class="text-h5 bg-grey-lighten-2">
+        <v-card-title class="text-h5 bg-grey-lighten-2 d-flex align-center flex-wrap">
           Cargar un Nuevo abonos
           <v-spacer></v-spacer>
           <v-btn icon color="default" @click="dialogNewDebs = !dialogNewDebs">
@@ -819,7 +819,7 @@
     <!--  -->
     <v-dialog max-width="80%" v-model="dialogDebsEdit">
       <v-card>
-        <v-card-title>
+        <v-card-title class="d-flex align-center flex-wrap">
           Cargar un nuevo abono
           <v-spacer></v-spacer>
         </v-card-title>
@@ -962,7 +962,7 @@
       v-if="dialogFacturar"
     >
       <v-card>
-        <v-card-title primary-title>
+        <v-card-title class="d-flex align-center flex-wrap" primary-title>
           GENERAR PROFORMA
           <v-spacer></v-spacer>
           <v-btn
@@ -1072,7 +1072,7 @@
     <!--FACTURAS FISCALES-->
     <v-dialog max-width="80%" v-model="dialogFacturasFiscales">
       <v-card>
-        <v-card-title>
+        <v-card-title class="d-flex align-center flex-wrap">
           Facturas y Proformas Fiscales de {{ house.consigner }}
           <v-spacer></v-spacer>
           <v-btn variant="outlined" @click="cargarProformaFiscal" color="primary">
@@ -1273,7 +1273,7 @@
     <!-- CAMBIAR EXPEDIENTE (HOUSE CODE) -->
     <v-dialog v-model="dialogCambiarExpediente" max-width="500">
       <v-card>
-        <v-card-title class="text-h5 bg-grey-lighten-2">
+        <v-card-title class="text-h5 bg-grey-lighten-2 d-flex align-center flex-wrap">
           Cambiar expediente (House)
           <v-spacer></v-spacer>
           <v-btn icon color="default" @click="dialogCambiarExpediente = false">
@@ -1318,7 +1318,7 @@
       max-width="40%"
     >
       <v-card>
-        <v-card-title class="text-h5 bg-grey-lighten-2">
+        <v-card-title class="text-h5 bg-grey-lighten-2 d-flex align-center flex-wrap">
           Cargar Documentos de Cotización
           <v-spacer></v-spacer>
           <v-btn

@@ -290,7 +290,7 @@
       class="modalNuevoCosto"
     >
       <v-card>
-        <v-card-title primary-title>
+        <v-card-title class="d-flex align-center flex-wrap" primary-title>
           AGREGAR NUEVO COSTO
           <v-spacer></v-spacer>
           <v-icon @click="dialog = !dialog" color="default">mdi-close</v-icon>

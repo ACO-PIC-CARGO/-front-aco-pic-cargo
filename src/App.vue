@@ -140,7 +140,7 @@
       width="90%"
     >
       <v-card>
-        <v-card-title class="text-h5">
+        <v-card-title class="text-h5 d-flex align-center flex-wrap">
           Ficha de Clientes <v-spacer></v-spacer>
           <v-btn
             icon
@@ -756,7 +756,7 @@
 
     <v-dialog v-model="$store.state.modalServices" max-width="400">
       <v-card>
-        <v-card-title class="text-h5">
+        <v-card-title class="text-h5 d-flex align-center flex-wrap">
           Control de Servicios <v-spacer></v-spacer>
           <v-btn
             icon

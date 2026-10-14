@@ -1,6 +1,6 @@
 <template>
   <v-card>
-    <v-card-title>
+    <v-card-title class="d-flex align-center flex-wrap">
       <h4 class="mx-auto">
         ACTUALIZAR COSTOS -
         {{ Modality }} | {{ Shipment }} |

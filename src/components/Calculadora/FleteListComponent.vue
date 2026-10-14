@@ -26,7 +26,7 @@
     </v-data-table>
     <v-dialog v-model="dialog" max-width="35%">
       <v-card>
-        <v-card-title>
+        <v-card-title class="d-flex align-center flex-wrap">
           {{ flete.puerto_origin }} <v-icon>mdi-arrow-right-thin</v-icon>
           {{ flete.puerto_destino }} <v-spacer></v-spacer>
           <v-icon @click="dialog = false">mdi-close</v-icon>

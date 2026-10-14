@@ -1,7 +1,7 @@
 <template>
   <div>
     <v-card elevation="0">
-      <v-card-title>
+      <v-card-title class="d-flex align-center flex-wrap">
         <v-btn
           v-if="$route.params.id_role"
           color="primary"

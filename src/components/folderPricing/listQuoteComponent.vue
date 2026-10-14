@@ -573,7 +573,7 @@
       transition="dialog-transition"
     >
       <v-card>
-        <v-card-title primary-title>
+        <v-card-title class="d-flex align-center flex-wrap" primary-title>
           Actualizar Recibido / Enviado
           <v-spacer></v-spacer>
           <v-btn icon color="default" @click="dialog = !dialog">
@@ -707,7 +707,7 @@
       transition="dialog-transition"
     >
       <v-card>
-        <v-card-title primary-title>
+        <v-card-title class="d-flex align-center flex-wrap" primary-title>
           SELECCIONE EL EXPEDIENTE A ASOCIAR:
           <v-spacer></v-spacer>
           <v-btn icon color="default" @click="aprobarflag = !aprobarflag">
@@ -748,7 +748,7 @@
     <!-- Modal para enlazar Houses -->
     <v-dialog v-model="modalEnlazarHouse" max-width="900">
       <v-card>
-        <v-card-title>
+        <v-card-title class="d-flex align-center flex-wrap">
           Enlazar Houses a Cotización
           {{ quoteSeleccionada ? quoteSeleccionada.codigo : "" }}
           <v-spacer></v-spacer>

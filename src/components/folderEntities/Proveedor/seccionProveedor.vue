@@ -1,6 +1,6 @@
 <template>
   <v-card>
-    <v-card-title class="px-2 container-narrow">
+    <v-card-title class="px-2 container-narrow d-flex align-center flex-wrap">
       <v-spacer></v-spacer>
       <v-btn
         v-if="!showNavigationButtons"
@@ -155,8 +155,10 @@
               </v-row>
 
               <!--CONVENIO ACTUAL-->
-              <v-list-subheader class="px-0 font-weight-bold mt-2">
-                Convenio Actual
+              <div class="d-flex align-center mt-2">
+                <v-list-subheader class="px-0 font-weight-bold">
+                  Convenio Actual
+                </v-list-subheader>
                 <v-spacer></v-spacer>
                 <v-file-input
                   v-if="showFormActions"
@@ -167,7 +169,7 @@
                   v-model="fileinput"
                   @update:model-value="subirArchivoConvenio"
                 ></v-file-input>
-              </v-list-subheader>
+              </div>
               <v-row>
                 <v-col cols="12" md="4">
                   <v-text-field

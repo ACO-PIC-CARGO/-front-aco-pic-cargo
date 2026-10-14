@@ -1,7 +1,7 @@
 <template>
   <v-container fluid>
     <v-card>
-      <v-card-title class="">
+      <v-card-title class="d-flex align-center flex-wrap">
         <!-- DASHBOARD
         <v-chip
           style="cursor: pointer"
