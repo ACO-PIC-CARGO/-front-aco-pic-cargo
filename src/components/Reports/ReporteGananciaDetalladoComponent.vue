@@ -755,6 +755,7 @@ export default {
 }
 
 .compare-btn {
+  max-width: none;
   min-height: 34px !important;
   border-color: #d3dfe9 !important;
   color: #234773 !important;
