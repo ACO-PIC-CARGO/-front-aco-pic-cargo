@@ -515,12 +515,12 @@ export default {
     },
   },
   mounted() {
-    const { code_mes, year } = this.$route.params;
-    console.log("params", this.$route.params);
+    const { code_mes, year } = this.$route.query;
+    console.log("query", this.$route.query);
     if (code_mes && year) {
       this.mesesSeleccionados = [code_mes];
       this.mesesTemporales = [code_mes];
-      this.year = year;
+      this.year = Number(year);
       console.log("year", year);
       this.recargarFiltro();
       return;

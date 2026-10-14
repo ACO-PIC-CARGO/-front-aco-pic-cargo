@@ -452,7 +452,7 @@ export default {
     abrirReporteGananciaDetallado(item) {
       this.$router.push({
         name: "ReporteGananciaDetallado",
-        params: { code_mes: item.mes, year: this.anioSeleccionado },
+        query: { code_mes: item.mes, year: this.anioSeleccionado },
       });
     },
     formatMoney(value) {
