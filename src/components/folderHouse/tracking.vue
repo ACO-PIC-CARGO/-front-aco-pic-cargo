@@ -100,7 +100,7 @@
 <script>
 import axios from 'axios';
 import moment from 'moment';
-import 'moment/locale/es';
+import 'moment/dist/locale/es';
 
 export default {
   name: "TrackingComponent",

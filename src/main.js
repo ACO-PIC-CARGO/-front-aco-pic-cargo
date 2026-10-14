@@ -1,7 +1,7 @@
 import { createApp } from "vue";
 import * as Sentry from "@sentry/vue";
 import moment from "moment";
-import "moment/locale/es";
+import "moment/dist/locale/es";
 import VueSweetalert2 from "vue-sweetalert2";
 import "sweetalert2/dist/sweetalert2.min.css";
 import App from "./App.vue";
