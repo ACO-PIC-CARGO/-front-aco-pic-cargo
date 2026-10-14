@@ -39,13 +39,10 @@ export default {
       editorInit: {
         height: 920,
         menubar: false,
-        plugins: [
-          "advlist autolink lists link image charmap print preview anchor",
-          "searchreplace visualblocks code fullscreen",
-          "insertdatetime media table paste code help wordcount",
-        ],
+        plugins:
+          "advlist autolink lists link image charmap preview anchor searchreplace visualblocks code fullscreen insertdatetime media table help wordcount",
         toolbar:
-          "undo redo | formatselect | bold italic | alignleft aligncenter alignright | code | link image",
+          "undo redo | blocks | bold italic | alignleft aligncenter alignright | code | link image",
         placeholder: "Escribe tu contenido aquí...", // Placeholder en el editor
         setup: (editor) => {
           // Aquí puedes asegurarte de que TinyMCE se inicializa correctamente
