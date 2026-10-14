@@ -462,7 +462,7 @@ export default {
             this.startTimer();
           } else {
             this.snackbarEmail = !val;
-            this.colorSnakBar = "orange darken-2";
+            this.colorSnakBar = "orange-darken-2";
             this.text = "Ingrese un correo valido.";
             this.icon = "alert";
           }
@@ -517,7 +517,7 @@ export default {
         } else {
           this.validatedCodigo = res.mensaje;
           this.snackbarEmail = true;
-          this.colorSnakBar = "orange darken-2";
+          this.colorSnakBar = "orange-darken-2";
           this.text = res.mensaje;
           this.icon = "alert";
         }
