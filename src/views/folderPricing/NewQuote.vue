@@ -395,9 +395,9 @@ export default {
       let existeTransporteDestino = this.$store.state.pricing.listServices.some(
         (v) => v.code_service == 14 && v.status == 1,
       );
-
       let { id_town, peso } = this.$store.state.pricing.datosPrincipales;
-      let val = this.$store.state.calculadoras.lstTransporte.find(
+      
+      let val = this.$store.state.calculadoras.lstTransporte.some(
         (v) =>
           v.id_distrito == id_town &&
           peso >= v.peso_desde &&
@@ -405,7 +405,7 @@ export default {
       );
 
       if (existeTransporteDestino && !val) {
-        val = this.$store.state.calculadoras.lstTransporte.find(
+        val = this.$store.state.calculadoras.lstTransporte.some(
           (v) => v.id_distrito == id_town,
         );
         if (!val) {
@@ -1493,5 +1493,4 @@ export default {
     padding: 9px 6px;
   }
 }
-
 </style>
