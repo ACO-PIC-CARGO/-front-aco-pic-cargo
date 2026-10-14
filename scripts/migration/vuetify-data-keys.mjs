@@ -5,6 +5,7 @@ import { babelParse, parse as parseSfc } from "vue/compiler-sfc";
 const HEADER_NAME = /^(headers?|cab\w*|encabezados?\w*|columns?)$/i;
 const SELECT_TAG = /<(v-select|v-autocomplete|v-combobox)(?=[\s>/])/g;
 const HEADERS_BINDING = /(?:^|\s)(?::|v-bind:)headers="([^"]+)"/g;
+const V_FOR = /v-for="\(?\s*(\w+)[^"]*\s(?:in|of)\s+([\w.]+)\s*"/g;
 
 const walk = (dir) =>
   readdirSync(dir, { withFileTypes: true }).flatMap((entry) =>
@@ -103,6 +104,17 @@ function selectEdits(template) {
   return edits;
 }
 
+const lastSegment = (expression) => expression.trim().split(".").pop();
+
+function handBuiltHeaderLists(template) {
+  const bound = new Set([...template.matchAll(HEADERS_BINDING)].map(([, expression]) => lastSegment(expression)));
+  return new Set(
+    [...template.matchAll(V_FOR)]
+      .filter(([, item, list]) => new RegExp(`\\b${item}\\.text\\b`).test(template) && !bound.has(lastSegment(list)))
+      .map(([, , list]) => lastSegment(list))
+  );
+}
+
 const applyEdits = (source, edits) =>
   [...edits]
     .sort((a, b) => b[0] - a[0])
@@ -127,10 +139,12 @@ for (const file of files) {
   let edits = [];
   if (file.endsWith(".vue")) {
     const { descriptor } = parseSfc(source, { filename: file });
+    const handBuilt = handBuiltHeaderLists(descriptor.template?.content ?? "");
+    const isFileHeaderName = { has: (name) => !handBuilt.has(name) && isHeaderName.has(name) };
     for (const block of [descriptor.script, descriptor.scriptSetup].filter(Boolean)) {
       const offset = block.loc.start.offset;
       edits.push(
-        ...scriptEdits(block.content, isHeaderName, transformedOwners).map(([s, e, r]) => [s + offset, e + offset, r])
+        ...scriptEdits(block.content, isFileHeaderName, transformedOwners).map(([s, e, r]) => [s + offset, e + offset, r])
       );
     }
     if (descriptor.template) {
