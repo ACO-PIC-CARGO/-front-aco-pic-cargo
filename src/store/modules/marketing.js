@@ -1,6 +1,7 @@
-import axios from '@/api/axios-config';
+import axios from "@/api/axios-config";
 import Swal from "sweetalert2";
 import router from "@/router";
+import moment from "moment";
 
 const state = {
   list: [],
@@ -15,14 +16,7 @@ const mutations = {
     state.loading = data;
   },
   SET_LIST_MARKETING(state, data) {
-    var sorted = (data || []).slice().sort(function(a, b) {
-      var nameA = (a.name || '').toLowerCase();
-      var nameB = (b.name || '').toLowerCase();
-      if (nameA < nameB) return -1;
-      if (nameA > nameB) return 1;
-      return 0;
-    });
-    state.list = sorted;
+    state.list = data;
   },
   SET_MARKETING(state, data) {
     state.record = data;
@@ -37,44 +31,19 @@ const actions = {
 
     var config = {
       method: "get",
-      url:
-        import.meta.env.VUE_APP_URL_MAIN +
-        `listar_marketing?` +
-        `id_branch=${
-          JSON.parse(sessionStorage.getItem("dataUser"))[0].id_branch
-        }` +
-        `&name=${encodeURIComponent(data.name)}` +
-        `&description=${encodeURIComponent(data.description)}` +
-        `&position=${data.position}` +
-        `&status=${data.status}`,
+      url: import.meta.env.VUE_APP_URL_MAIN + `listar_marketing`,
+      params: data,
       headers: {
         "Content-Type": "application/json",
-       
       },
     };
-   await axios(config)
+    await axios(config)
       .then((response) => {
         let data = response.data;
-        sessionStorage.setItem("auth-token", data.token);
         let list = data.estadoflag ? data.data : [];
+
         commit("SET_LIST_MARKETING", list);
         commit("SET_LOADING", true);
-        if (!data.estadoflag) {
-          Swal.fire({
-            icon: data.status == "401" ? "error" : "info",
-            text: data.mensaje,
-            allowOutsideClick: false,
-            allowEscapeKey: false,
-            allowEnterKey: false,
-          }).then((resSwal) => {
-            if (resSwal.isConfirmed && data.status == "401") {
-              router.push({ name: "Login" });
-              setTimeout(() => {
-                window.location.reload();
-              }, 10);
-            }
-          });
-        }
       })
       .catch((error) => {
         console.log("Error al obtener los datos:", error);
@@ -86,12 +55,11 @@ const actions = {
       url: import.meta.env.VUE_APP_URL_MAIN + "insertar_marketing",
       headers: {
         "Content-Type": "application/json",
-       
       },
       data: data,
     };
 
-   await axios(config)
+    await axios(config)
       .then((response) => {
         let data = response.data;
         let model = { name: "", description: "", position: "", status: 1 };
@@ -115,11 +83,10 @@ const actions = {
       url: import.meta.env.VUE_APP_URL_MAIN + `ver_marketing?id=${id}`,
       headers: {
         "Content-Type": "application/json",
-       
       },
     };
 
-   await axios(config)
+    await axios(config)
       .then((response) => {
         let data = response.data;
         if (data.estadoflag) {
@@ -141,12 +108,11 @@ const actions = {
       url: import.meta.env.VUE_APP_URL_MAIN + "actualizar_marketing",
       headers: {
         "Content-Type": "application/json",
-       
       },
       data: data,
     };
 
-   await axios(config)
+    await axios(config)
       .then((response) => {
         let data = response.data;
         let model = { name: "", description: "", position: "", status: 1 };
@@ -174,10 +140,9 @@ const actions = {
         }`,
       headers: {
         "Content-Type": "application/json",
-       
       },
     };
-   await axios(config)
+    await axios(config)
       .then((response) => {
         let data = response.data;
         if (data.estadoflag) {
@@ -186,6 +151,35 @@ const actions = {
       })
       .catch((error) => {
         console.log("Error al obtener los datos:", error);
+      });
+  },
+
+  async ExportMarketing({ commit },data) {
+    var config = {
+      method: "get",
+      url: import.meta.env.VUE_APP_URL_MAIN + `exportar_list_marketing`,
+      params: data,
+      responseType: "blob",
+      headers: {
+        "Content-Type": "application/json",
+      },
+    };
+    await axios(config)
+      .then(function (response) {
+        const url = window.URL.createObjectURL(new Blob([response.data]));
+        const link = document.createElement("a");
+        link.href = url;
+        link.setAttribute(
+          "download",
+          `Reporte Listado Marketing ${moment().format(
+            "DD_MM_YYYY_h_mm_ss",
+          )} .xlsx`,
+        );
+        document.body.appendChild(link);
+        link.click();
+      })
+      .catch(function (error) {
+        console.error(error);
       });
   },
 };

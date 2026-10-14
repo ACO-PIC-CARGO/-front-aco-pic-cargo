@@ -98,24 +98,18 @@
       </v-container>
     </v-card>
     <!--  -->
-    <v-card class="px-5" v-else>
+    <v-card class="px-5" v-else-if="opcionSeleccionadaActual">
       <h1>
         OPCIÓN COSTOS
-        {{ opcionesSeleccionadas[$store.state.pricing.page - 1].nro_propuesta }}
+        {{ opcionSeleccionadaActual.nro_propuesta }}
       </h1>
       <v-row>
         <v-col cols="12" lg="4" xl="4">
           <v-text-field
             type="date"
-            :name="`Fecha Validez de la Opción ${
-              opcionesSeleccionadas[$store.state.pricing.page - 1].nro_propuesta
-            }`"
-            :label="`Fecha Validez de la Opción ${
-              opcionesSeleccionadas[$store.state.pricing.page - 1].nro_propuesta
-            }`"
-            v-model="
-              opcionesSeleccionadas[$store.state.pricing.page - 1].date_end
-            "
+            :name="`Fecha Validez de la Opción ${opcionSeleccionadaActual.nro_propuesta}`"
+            :label="`Fecha Validez de la Opción ${opcionSeleccionadaActual.nro_propuesta}`"
+            v-model="opcionSeleccionadaActual.date_end"
             :rules="[
               (v) => !!v || 'Dato Requerido',
               (v) => isDateValid(v) || 'La fecha debe ser mayor que hoy.',
@@ -125,16 +119,9 @@
         <v-col cols="12" lg="4" xl="4">
           <v-text-field
             type="number"
-            :name="`Tiempo en tránsito de la Opción ${
-              opcionesSeleccionadas[$store.state.pricing.page - 1].nro_propuesta
-            }`"
-            :label="`Tiempo en tránsito de la Opción ${
-              opcionesSeleccionadas[$store.state.pricing.page - 1].nro_propuesta
-            }`"
-            v-model="
-              opcionesSeleccionadas[$store.state.pricing.page - 1]
-                .tiempo_transito
-            "
+            :name="`Tiempo en tránsito de la Opción ${opcionSeleccionadaActual.nro_propuesta}`"
+            :label="`Tiempo en tránsito de la Opción ${opcionSeleccionadaActual.nro_propuesta}`"
+            v-model="opcionSeleccionadaActual.tiempo_transito"
             :rules="[
               (v) => !!v || 'Dato Requerido',
               (v) => v > 0 || 'El valor tiene que ser positivo.',
@@ -157,11 +144,11 @@
           <v-row>
             <v-col cols="12" lg="6" xl="6">
               <CostosComponent
-                :key="`costos-${opcionesSeleccionadas[$store.state.pricing.page - 1].nro_propuesta}`"
+                :key="`costos-${opcionSeleccionadaActual.nro_propuesta}`"
                 :valores="
-                  opcionesSeleccionadas[
-                    $store.state.pricing.page - 1
-                  ].listCostos.filter((v) => v.esopcionflag == 1)
+                  opcionSeleccionadaActual.listCostos.filter(
+                    (v) => v.esopcionflag == 1,
+                  )
                 "
                 :actualizarCostosFlag="
                   $store.state.pricing.actualizarCostosFlag
@@ -172,11 +159,11 @@
             </v-col>
             <v-col cols="12" lg="6" xl="6">
               <VentasComponent
-                :key="`ventas-${opcionesSeleccionadas[$store.state.pricing.page - 1].nro_propuesta}`"
+                :key="`ventas-${opcionSeleccionadaActual.nro_propuesta}`"
                 :valores="
-                  opcionesSeleccionadas[
-                    $store.state.pricing.page - 1
-                  ].listCostos.filter((v) => v.esventaflag == 1)
+                  opcionSeleccionadaActual.listCostos.filter(
+                    (v) => v.esventaflag == 1,
+                  )
                 "
                 :amount="$store.state.pricing.datosPrincipales.amount"
               />
@@ -204,14 +191,12 @@
             <h3>Impuestos de Aduana</h3>
           </center>
           <ImpuestosComponent
-            :key="`impuestos-${opcionesSeleccionadas[$store.state.pricing.page - 1].nro_propuesta}`"
+            :key="`impuestos-${opcionSeleccionadaActual.nro_propuesta}`"
             class="col-12"
             v-if="mostrarImpuestos && mostrarImpuestosEditar"
-            :index="opcionesSeleccionadas[$store.state.pricing.page - 1].nro_propuesta"
+            :index="opcionSeleccionadaActual.nro_propuesta"
             :amount="$store.state.pricing.datosPrincipales.amount"
-            :impuestos="
-              opcionesSeleccionadas[$store.state.pricing.page - 1].listImpuestos
-            "
+            :impuestos="opcionSeleccionadaActual.listImpuestos"
           />
         </v-col>
         <v-col cols="12">
@@ -332,6 +317,8 @@ export default {
           if (action.isDenied) {
             this.$store.state.pricing.opcionCostos[0].selected = 1;
             this.$store.state.pricing.llenadoCostos = false;
+            this.$store.state.pricing.btnRegistrar = true;
+            this.$store.state.pricing.bloquearBtnImprimir = false;
           }
         });
       }
@@ -355,8 +342,7 @@ export default {
           showCloseButton: true,
         }).then((action) => {
           if (action.isConfirmed) {
-            const nro_propuesta =
-              Number(this.$store.state.pricing.index) + 2;
+            const nro_propuesta = Number(this.$store.state.pricing.index) + 2;
             this.$emit("anadirNuevaOpcion", nro_propuesta);
             this.$store.state.pricing.index =
               parseInt(this.$store.state.pricing.index) + 1;
@@ -391,11 +377,8 @@ export default {
     },
     activarImpuesto() {
       this.mostrarContinuarVentas = false;
-      console.log(
-        this.$store.state.pricing.listServices.some(
-          (v) => v.code_service == "15" || v.code_service == 15,
-        ),
-      );
+      this.$store.state.pricing.btnRegistrar = true;
+      this.$store.state.pricing.bloquearBtnImprimir= false
       if (
         this.$store.state.pricing.listServices.some(
           (v) => v.code_service == "15" || v.code_service == 15,
@@ -473,6 +456,14 @@ export default {
     opcionesSeleccionadas() {
       return this.$store.state.pricing.opcionCostos.filter((v) => !!v.selected);
     },
+    opcionSeleccionadaActual() {
+      const page = this.$store.state.pricing.page - 1;
+      return (
+        this.opcionesSeleccionadas[page] ||
+        this.opcionesSeleccionadas[0] ||
+        null
+      );
+    },
     llenadoCostos: {
       get() {
         return this.$store.state.pricing.llenadoCostos;
@@ -515,6 +506,9 @@ export default {
     },
   },
   watch: {
+    opcionesSeleccionadas() {
+      this.$store.state.pricing.page = 1;
+    },
     llenadoCostos() {
       if (!this.llenadoCostos) {
         this.$store.state.pricing.page = 1;

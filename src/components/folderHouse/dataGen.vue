@@ -559,9 +559,13 @@ export default {
     aduanaaprobada(item) {
       return item.aprobadoflag; // Deshabilita si el estado no es "activo"
     },
-    guardar() {
-      this._setHouseEdit();
-      this.router.push({
+    async guardar() {
+      const guardado = await this._setHouseEdit();
+      if (!guardado) {
+        return;
+      }
+
+      this.$router.push({
         name: "controlHouseVer",
         params: {
           id: this.$route.params.id,
@@ -574,7 +578,7 @@ export default {
       this.error = "";
       if (!vm.$store.state.house_id_consigner) {
         this.error = "Dato Requerido";
-        return;
+        return false;
       }
 
       vm.loadingBotonGuardarHouse = true;
@@ -690,7 +694,7 @@ export default {
               }, 10);
             }
           });
-          return;
+          return false;
         }
 
         vm.statusData = true;
@@ -711,19 +715,15 @@ export default {
         }
 
         vm.loadingBotonGuardarHouse = false;
-        await vm
-          .$swal({
-            icon: "success",
-            title: "Excelente",
-            text: "House actualizado éxitosamente",
-            allowEnterKey: false,
-            allowOutsideClick: false,
-            allowEscapeKey: false,
-          })
-          .then(() => {
-            vm.$router.go(0); // Recarga la página para reflejar los cambios
-          });
-        // Refresh data in background (non-blocking)
+        await vm.$swal({
+          icon: "success",
+          title: "Excelente",
+          text: "House actualizado éxitosamente",
+          allowEnterKey: false,
+          allowOutsideClick: false,
+          allowEscapeKey: false,
+        });
+        return true;
       } catch (error) {
         console.error(error);
         vm.loadingBotonGuardarHouse = false;
@@ -732,6 +732,7 @@ export default {
           title: "Lo sentimos",
           text: error,
         });
+        return false;
       } finally {
         vm.loadingBotonGuardarHouse = false;
       }
@@ -895,7 +896,7 @@ export default {
           !this.$store.state.house_id_consigner &&
           !!this.$route.params.activar
         ) {
-          vm.dialogCliente = true;
+          this.dialogCliente = true;
         } else {
           this.dialogCliente = false;
         }

@@ -22,13 +22,38 @@
           :headers="headers"
           :items="$store.state.calculadoras.listUser"
           :search="search"
-          item-value="index"
+          item-value="id"
           id="tblListUser"
           class="elevation-2"
+          show-expand
+          expand-strategy="single"
+          v-model:expanded="expanded"
         >
           <!-- <template v-slot:[`item.accion`]="{ item }">
             
           </template> -->
+          <template v-slot:expanded-row="{ columns, item }">
+            <tr>
+              <td :colspan="columns.length">
+                <v-table>
+                  <thead class="headerDetails">
+                    <tr>
+                      <th>Fecha</th>
+                      <th>Comentario</th>
+                      <th>Usuario</th>
+                    </tr>
+                  </thead>
+                  <tbody v-if="item.detalle.length > 0">
+                    <tr v-for="(i, index) in item.detalle" :key="i.id || index">
+                      <td>{{ i.fecha }}</td>
+                      <td>{{ i.comentario }}</td>
+                      <td>{{ i.nombrecompleto }}</td>
+                    </tr>
+                  </tbody>
+                </v-table>
+              </td>
+            </tr>
+          </template>
           <template v-slot:[`item.estadocotizacion`]="{ item }">
             <v-chip
               v-if="item.estadocotizacion == 2"
@@ -100,20 +125,45 @@
     <v-dialog v-model="dialogEditarEstado" max-width="30%">
       <v-card>
         <v-card-title class="text-h5 pb-0">
-          <p>Editar Estado Cotización</p>
+          <p>Detalle de Nota de llamada</p>
         </v-card-title>
         <v-card-text>
           <v-card-subtitle class="pt-0">
             {{ dataCotizacion.nombre }} | {{ dataCotizacion.telefono }}
           </v-card-subtitle>
-          <v-select
-            v-model="dataCotizacion.id_status_quote"
-            :items="$store.state.calculadoras.estatusCotizacion"
-            item-title="name"
-            item-value="id"
-            label="Estado Cotización"
-            variant="outlined"
-          ></v-select>
+          <br />
+          <v-form ref="frmComentario">
+            <v-text-field
+              label="Fecha "
+              id="id"
+              v-model="fecha"
+              readonly
+              variant="outlined"
+              prepend-inner-icon="mdi-calendar-account-outline"
+              density="compact"
+            ></v-text-field>
+
+            <v-textarea
+              auto-grow
+              rows="1"
+              label="Descripción"
+              variant="outlined"
+              :rules="[(v) => !!v || 'Dato Requerido']"
+              density="compact"
+              v-model="dataCotizacion.comentario"
+            />
+
+            <v-select
+              v-model="dataCotizacion.id_status_quote"
+              :items="$store.state.calculadoras.estatusCotizacion"
+              item-title="name"
+              item-value="id"
+              label="Estado Cotización"
+              :rules="[(v) => !!v || 'Dato Requerido']"
+              density="compact"
+              variant="outlined"
+            ></v-select>
+          </v-form>
         </v-card-text>
         <v-card-actions>
           <v-spacer></v-spacer>
@@ -156,8 +206,10 @@ export default {
       costos: [],
       item: {},
       itemResumen: [],
+      fecha: moment().format("YYYY-MM-DD"),
+      comentario: "",
       headers: [
-        { title: "", key: "accion" },
+        // { title: "", key: "accion" },
         { title: "Fecha Registro", key: "created_at" },
         { title: "Estado Cotización", key: "estado_cotizacion" },
         { title: "Cliente", key: "nombre" },
@@ -170,7 +222,7 @@ export default {
         { title: "Valor Mercancía", key: "valormercancia" },
         { title: "Correo", key: "email" },
         { title: "Teléfono", key: "telefono" },
-        { title: "Estado", key: "estadocotizacion" },
+        // { title: "Estado", key: "estadocotizacion" },
         { title: "", key: "action", sortable: false },
       ],
 
@@ -236,11 +288,13 @@ export default {
       return index % 2 === 0 ? "fila-par" : "fila-impar";
     },
     async guardarEstadoCotizacion() {
-      await this.actualizarEstadoCotizacionCalculadora(this.dataCotizacion);
-      this.dialogEditarEstado = false;
-      this.$store.state.spiner = true;
-      await this.getListUserCalc();
-      this.$store.state.spiner = false;
+      if ((await this.$refs.frmComentario.validate()).valid) {
+        await this.actualizarEstadoCotizacionCalculadora(this.dataCotizacion);
+        this.dialogEditarEstado = false;
+        this.$store.state.spiner = true;
+        await this.getListUserCalc();
+        this.$store.state.spiner = false;
+      }
     },
     getFecha(fecha) {
       moment.locale("es");

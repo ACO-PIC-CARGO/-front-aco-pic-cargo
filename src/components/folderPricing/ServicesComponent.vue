@@ -75,7 +75,12 @@
                 class="pr-10"
                 v-model="$store.state.pricing.datosPrincipales.id_town"
                 :error-messages="errorIdTown"
-                @update:model-value="errorIdTown = ''"
+                @update:model-value="
+                  (value) => {
+                    errorIdTown = '';
+                    actualizarCostoTransporte(value);
+                  }
+                "
               />
             </template>
           </div>
@@ -135,6 +140,7 @@
 
 <script>
 import { mapState, mapActions, mapGetters } from "vuex";
+import Swal from "sweetalert2";
 
 export default {
   emits: ["activarLlenadoCostos", "recargarCostos"],
@@ -272,6 +278,36 @@ export default {
         !this.$store.state.pricing.actualizarCostosFlag;
     },
 
+    actualizarCostoTransporte(idTown) {
+      const { datosPrincipales } = this.$store.state.pricing;
+      const opcionTransporte = datosPrincipales.esindividualflag
+        ? 1
+        : datosPrincipales.esgrupalflag
+        ? 2
+        : 0;
+      const peso = parseFloat(datosPrincipales.peso) || 0;
+      const tarifa = this.$store.state.calculadoras.lstTransporte.find(
+        (transporte) =>
+          String(transporte.id_distrito) === String(idTown) &&
+          Number(transporte.opcion) === opcionTransporte &&
+          peso >= parseFloat(transporte.peso_desde) &&
+          peso <= parseFloat(transporte.peso_hasta),
+      );
+      const monto = tarifa ? parseFloat(tarifa.tarifadolar) : 0;
+
+      (this.opcionCostos || []).forEach((opcion) => {
+        (opcion.listCostos || []).forEach((costo) => {
+          if (Number(costo.code_cost) === 13) {
+            costo.costounitario = monto;
+          }
+        });
+      });
+
+      this.$store.state.pricing.actualizarCostosFlag =
+        !this.$store.state.pricing.actualizarCostosFlag;
+      this.$forceUpdate();
+    },
+
     continuarLlenadoCostos() {
       this.errorIdTown = "";
       this.$store.state.pricing.errorValorMercancia = "";
@@ -305,7 +341,33 @@ export default {
       }
     },
 
-    showConfirmationDialog(service) {
+    async showConfirmationDialog(service) {
+      const { datosPrincipales } = this.$store.state.pricing;
+      const esActivacionTransporteGrupal =
+        Number(service.code_service) === 14 &&
+        service.status &&
+        datosPrincipales.esgrupalflag;
+
+      if (esActivacionTransporteGrupal) {
+        const resultado = await Swal.fire({
+          icon: "warning",
+          title: "Cotización grupal",
+          text: 'Está en una cotización grupal. ¿Está seguro de activar el "transporte"?',
+          showCancelButton: true,
+          confirmButtonColor: "#d33",
+          cancelButtonColor: "#28a745",
+          confirmButtonText: "Sí, activar",
+          cancelButtonText: "No, cancelar",
+          allowOutsideClick: false,
+        });
+
+        if (!resultado.isConfirmed) {
+          service.status = 0;
+          this.$forceUpdate();
+          return;
+        }
+      }
+
       const mensajeTransporte =
         "Tarifa no incluye transporte en destino se puede hacer pero necesitamos dirección de entrega";
       const esServicioTransporte =

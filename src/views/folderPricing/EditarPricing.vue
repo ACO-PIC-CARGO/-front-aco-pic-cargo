@@ -55,6 +55,7 @@
                 @recargarGrupalFlag="recargarGrupalFlag"
                 :mostrarBtn="false"
                 :abrirModalContenedorRecargar="abrirModalContenedorRecargar"
+                :ServicesComponentFlag="true"
               />
             </v-col>
             <v-col cols="12">
@@ -231,6 +232,14 @@ export default {
         id_branch: JSON.parse(sessionStorage.getItem("dataUser"))[0].id_branch,
       }),
     ]);
+    const puertoDestino = this.$store.state.pricing.listPortEnd.find(
+      (puerto) =>
+        String(puerto.id_port) ===
+        String(this.$store.state.pricing.datosPrincipales.iddestino),
+    );
+    if (puertoDestino) {
+      await this.cargarTownParaPricing({ id_pais: puertoDestino.id_pais });
+    }
 
     this.$store.state.pricing.actualizarComparativa =
       !this.$store.state.pricing.actualizarComparativa;
@@ -265,6 +274,7 @@ export default {
       "getCargarMasterDetalleNotasCotizacion",
       "obtenerFleteCalculadora",
       "getTransporte",
+      "cargarTownParaPricing",
     ]),
     async recargar() {
       await this.recargarServicios();

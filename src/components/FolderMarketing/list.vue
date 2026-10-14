@@ -31,7 +31,7 @@
         <v-btn size="small" class="mx-1" color="#2962FF" @click="open_filter()">
           Filtrar
         </v-btn>
-        <v-btn size="small" class="mx-1" color="#004D40"> Exportar </v-btn>
+        <v-btn size="small" class="mx-1" color="#004D40" @click="exportar"> Exportar </v-btn>
       </v-card-title>
 
       <v-data-table
@@ -433,7 +433,7 @@
 <script>
 import { mapState, mapActions } from "vuex";
 import Swal from "sweetalert2";
-import axios from '@/api/axios-config';
+import axios from "@/api/axios-config";
 
 export default {
   name: "ListMarketingComponent",
@@ -496,7 +496,11 @@ export default {
       "lastPositionMarketing",
       "readMarketing",
       "updateMarketing",
+      "ExportMarketing",
     ]),
+    async exportar() {
+      await this.ExportMarketing(this.marketing_list);
+    },
     updateStatus(newValue) {
       this.marketing.status = newValue ? 1 : 0;
     },
@@ -553,7 +557,7 @@ export default {
       fields.forEach((field) => {
         finalObject[field] = initialObject[field];
         finalObject["id_branch"] = JSON.parse(
-          sessionStorage.getItem("dataUser")
+          sessionStorage.getItem("dataUser"),
         )[0].id_branch;
       });
     },
@@ -587,7 +591,6 @@ export default {
           `&position=${this.marketing.position}`,
         headers: {
           "Content-Type": "application/json",
-         
         },
       };
       await axios(config)
@@ -613,7 +616,6 @@ export default {
           `&position=${this.marketing.position}`,
         headers: {
           "Content-Type": "application/json",
-         
         },
       };
       await axios(config)

@@ -262,7 +262,7 @@
           >
             <v-icon>mdi-file-pdf-box</v-icon> REPORTE
           </v-btn>
-          <v-btn
+          <!-- <v-btn
             color="teal-darken-4"
             @click="excelListadoQuote()"
             class="mx-1 my-1"
@@ -271,8 +271,8 @@
             size="small"
           >
             <v-icon>mdi-file-excel</v-icon> REPORTE
-          </v-btn>
-          <v-btn
+          </v-btn> -->
+          <!-- <v-btn
             color="red"
             @click="imprimirListMercadeo()"
             class="mx-1 my-1"
@@ -281,7 +281,7 @@
             size="small"
           >
             <v-icon>mdi-file-pdf-box</v-icon> MERCADEO
-          </v-btn>
+          </v-btn> -->
           <v-btn
             color="info"
             @click="

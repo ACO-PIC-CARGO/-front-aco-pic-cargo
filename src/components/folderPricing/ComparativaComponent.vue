@@ -239,11 +239,11 @@ export default {
           allowOutsideClick: false,
         }).then((action) => {
           if (action.isConfirmed) {
-            this.$emit("irVentaCliente");
             this.$store.state.pricing.llenadoCostos = false;
             this.$store.state.pricing.recargarCostoSeleccionados =
               !this.$store.state.pricing.recargarCostoSeleccionados;
             this.$store.state.pricing.page = 1;
+            this.$emit("irVentaCliente");
           }
         });
       } else {
@@ -259,56 +259,50 @@ export default {
       this.opcionesSeleccionadas = [];
 
       const listaCostos = this.$store.state.pricing.opcionCostos || [];
+      const opcionesCalculadas = [];
 
-      // Mapeamos y resolvemos las promesas en orden sin necesidad de setTimeout
-      this.opcionesSeleccionadas = await Promise.all(
-        listaCostos.map(async (element) => {
-          // 1. Obtener nombre del proveedor
-          let nameProveedor = "";
-          const opcionProveedor = element.listCostos.find(
-            (v) => v.esopcionflag === 1 && v.code_cost === 4,
-          );
+      for (const element of listaCostos) {
+        let nameProveedor = "";
+        const opcionProveedor = element.listCostos.find(
+          (v) => v.esopcionflag === 1 && v.code_cost === 4,
+        );
 
-          if (opcionProveedor) {
-            const proveedorEncontrado =
-              this.$store.state.proveedor.lstProveedores.find(
-                (v) => v.id === opcionProveedor.id_proveedor,
-              );
-            if (proveedorEncontrado) {
-              nameProveedor = proveedorEncontrado.namelong;
-            }
+        if (opcionProveedor) {
+          const proveedorEncontrado =
+            this.$store.state.proveedor.lstProveedores.find(
+              (v) => v.id === opcionProveedor.id_proveedor,
+            );
+          if (proveedorEncontrado) {
+            nameProveedor = proveedorEncontrado.namelong;
           }
+        }
 
-          // 2. Calcular totales asíncronos
-          await this.calcTotales(element.listCostos);
+        await this.calcTotales(element.listCostos);
 
-          // 3. Extraer y formatear valores de resumen
-          const flete = parseFloat(this.resumenOpcion.flete || 0);
-          const origen = parseFloat(this.resumenOpcion.origen || 0);
-          const gasto = parseFloat(this.resumenOpcion.gasto || 0);
-          const aduana = parseFloat(this.resumenOpcion.aduana || 0);
-          const almacen = parseFloat(this.resumenOpcion.almacen || 0);
-          const gastostercero = parseFloat(
-            this.resumenOpcion.gastostercero || 0,
-          );
+        const flete = parseFloat(this.resumenOpcion.flete || 0);
+        const origen = parseFloat(this.resumenOpcion.origen || 0);
+        const gasto = parseFloat(this.resumenOpcion.gasto || 0);
+        const aduana = parseFloat(this.resumenOpcion.aduana || 0);
+        const almacen = parseFloat(this.resumenOpcion.almacen || 0);
+        const gastostercero = parseFloat(this.resumenOpcion.gastostercero || 0);
 
-          const totalSuma =
-            flete + origen + gasto + aduana + almacen + gastostercero;
+        const totalSuma =
+          flete + origen + gasto + aduana + almacen + gastostercero;
 
-          // 4. Retornamos una copia del objeto formateado
-          return {
-            ...element,
-            proveedor: nameProveedor,
-            flete: this.currencyFormat(flete),
-            origen: this.currencyFormat(origen),
-            local: this.currencyFormat(gasto),
-            aduana: this.currencyFormat(aduana),
-            almacen: this.currencyFormat(almacen),
-            gastostercero: this.currencyFormat(gastostercero),
-            total: this.currencyFormat(totalSuma),
-          };
-        }),
-      );
+        opcionesCalculadas.push({
+          ...element,
+          proveedor: nameProveedor,
+          flete: this.currencyFormat(flete),
+          origen: this.currencyFormat(origen),
+          local: this.currencyFormat(gasto),
+          aduana: this.currencyFormat(aduana),
+          almacen: this.currencyFormat(almacen),
+          gastostercero: this.currencyFormat(gastostercero),
+          total: this.currencyFormat(totalSuma),
+        });
+      }
+
+      this.opcionesSeleccionadas = opcionesCalculadas;
 
       this.loadingTable = false;
     },
@@ -316,6 +310,35 @@ export default {
       await this.calcularTotalesFleteVentas(data);
       await this.calcularTotalesFlete(data);
       await this.calcularTotalesNoFlete(data);
+    },
+    calcularCostoPorMultiplicador(element) {
+      const { datosPrincipales, listMultiplicador } =
+        this.$store.state.pricing;
+      const multiplicador = listMultiplicador.find(
+        (item) => item.id == element.id_multiplicador,
+      );
+      let factor = this.calcularFac(
+        multiplicador ? multiplicador.code : "N",
+        datosPrincipales.volumen,
+        datosPrincipales.peso,
+        datosPrincipales.containers,
+        datosPrincipales.amount,
+      );
+
+      if (element.code_cost == 4 && datosPrincipales.volumen < 1) {
+        factor = Math.max(1, factor);
+      }
+
+      let monto =
+        (multiplicador ? parseFloat(multiplicador.valor) : 0) *
+        parseFloat(element.costounitario || 0) *
+        factor;
+
+      if (element.considerarvalorminimoflag && element.costounitario != 0) {
+        monto = Math.max(Number(element.minimo || 0), Number(monto));
+      }
+
+      return monto;
     },
     calcularTotalesFleteVentas(data) {
       this.totalFleteVentas = 0;
@@ -328,27 +351,7 @@ export default {
           .forEach((element) => {
             if (this.isNotPorcentaje(element, element.id_multiplicador)) {
               this.totalFleteVentas +=
-                (this.$store.state.pricing.listMultiplicador.filter(
-                  (v) => v.id == element.id_multiplicador,
-                ).length > 0
-                  ? this.$store.state.pricing.listMultiplicador.filter(
-                      (v) => v.id == element.id_multiplicador,
-                    )[0].valor
-                  : 0) *
-                element.costounitario *
-                this.calcularFac(
-                  this.$store.state.pricing.listMultiplicador.filter(
-                    (v) => v.id == element.id_multiplicador,
-                  ).length > 0
-                    ? this.$store.state.pricing.listMultiplicador.filter(
-                        (v) => v.id == element.id_multiplicador,
-                      )[0].code
-                    : "N",
-                  this.$store.state.pricing.datosPrincipales.volumen,
-                  this.$store.state.pricing.datosPrincipales.peso,
-                  this.$store.state.pricing.datosPrincipales.containers,
-                  this.$store.state.pricing.datosPrincipales.amount,
-                );
+                this.calcularCostoPorMultiplicador(element);
             }
           });
       }
@@ -372,27 +375,7 @@ export default {
           .forEach((element) => {
             if (this.isNotPorcentaje(element, element.id_multiplicador)) {
               this.resumenOpcion.flete +=
-                (this.$store.state.pricing.listMultiplicador.filter(
-                  (v) => v.id == element.id_multiplicador,
-                ).length > 0
-                  ? this.$store.state.pricing.listMultiplicador.filter(
-                      (v) => v.id == element.id_multiplicador,
-                    )[0].valor
-                  : 0) *
-                element.costounitario *
-                this.calcularFac(
-                  this.$store.state.pricing.listMultiplicador.filter(
-                    (v) => v.id == element.id_multiplicador,
-                  ).length > 0
-                    ? this.$store.state.pricing.listMultiplicador.filter(
-                        (v) => v.id == element.id_multiplicador,
-                      )[0].code
-                    : "N",
-                  this.$store.state.pricing.datosPrincipales.volumen,
-                  this.$store.state.pricing.datosPrincipales.peso,
-                  this.$store.state.pricing.datosPrincipales.containers,
-                  this.$store.state.pricing.datosPrincipales.amount,
-                );
+                this.calcularCostoPorMultiplicador(element);
             } else {
               this.resumenOpcion.flete += this.calcularValor(
                 this.$store.state.pricing.datosPrincipales.amount,
@@ -439,27 +422,7 @@ export default {
             if (element.esorigenflag == 1) {
               if (this.isNotPorcentaje(element, element.id_multiplicador)) {
                 this.resumenOpcion.origen +=
-                  (this.$store.state.pricing.listMultiplicador.filter(
-                    (v) => v.id == element.id_multiplicador,
-                  ).length > 0
-                    ? this.$store.state.pricing.listMultiplicador.filter(
-                        (v) => v.id == element.id_multiplicador,
-                      )[0].valor
-                    : 0) *
-                  element.costounitario *
-                  this.calcularFac(
-                    this.$store.state.pricing.listMultiplicador.filter(
-                      (v) => v.id == element.id_multiplicador,
-                    ).length > 0
-                      ? this.$store.state.pricing.listMultiplicador.filter(
-                          (v) => v.id == element.id_multiplicador,
-                        )[0].code
-                      : "N",
-                    this.$store.state.pricing.datosPrincipales.volumen,
-                    this.$store.state.pricing.datosPrincipales.peso,
-                    this.$store.state.pricing.datosPrincipales.containers,
-                    this.$store.state.pricing.datosPrincipales.amount,
-                  );
+                  this.calcularCostoPorMultiplicador(element);
               } else {
                 this.resumenOpcion.origen += this.calcularValor(
                   this.$store.state.pricing.datosPrincipales.amount,
@@ -492,27 +455,7 @@ export default {
             if (element.eslocalflag) {
               if (this.isNotPorcentaje(element, element.id_multiplicador)) {
                 this.resumenOpcion.gasto +=
-                  (this.$store.state.pricing.listMultiplicador.filter(
-                    (v) => v.id == element.id_multiplicador,
-                  ).length > 0
-                    ? this.$store.state.pricing.listMultiplicador.filter(
-                        (v) => v.id == element.id_multiplicador,
-                      )[0].valor
-                    : 0) *
-                  element.costounitario *
-                  this.calcularFac(
-                    this.$store.state.pricing.listMultiplicador.filter(
-                      (v) => v.id == element.id_multiplicador,
-                    ).length > 0
-                      ? this.$store.state.pricing.listMultiplicador.filter(
-                          (v) => v.id == element.id_multiplicador,
-                        )[0].code
-                      : "N",
-                    this.$store.state.pricing.datosPrincipales.volumen,
-                    this.$store.state.pricing.datosPrincipales.peso,
-                    this.$store.state.pricing.datosPrincipales.containers,
-                    this.$store.state.pricing.datosPrincipales.amount,
-                  );
+                  this.calcularCostoPorMultiplicador(element);
               } else {
                 this.resumenOpcion.gasto += this.calcularValor(
                   this.$store.state.pricing.datosPrincipales.amount,
@@ -546,27 +489,7 @@ export default {
             if (element.esaduanaflag == 1) {
               if (this.isNotPorcentaje(element, element.id_multiplicador)) {
                 this.resumenOpcion.aduana +=
-                  (this.$store.state.pricing.listMultiplicador.filter(
-                    (v) => v.id == element.id_multiplicador,
-                  ).length > 0
-                    ? this.$store.state.pricing.listMultiplicador.filter(
-                        (v) => v.id == element.id_multiplicador,
-                      )[0].valor
-                    : 0) *
-                  element.costounitario *
-                  this.calcularFac(
-                    this.$store.state.pricing.listMultiplicador.filter(
-                      (v) => v.id == element.id_multiplicador,
-                    ).length > 0
-                      ? this.$store.state.pricing.listMultiplicador.filter(
-                          (v) => v.id == element.id_multiplicador,
-                        )[0].code
-                      : "N",
-                    this.$store.state.pricing.datosPrincipales.volumen,
-                    this.$store.state.pricing.datosPrincipales.peso,
-                    this.$store.state.pricing.datosPrincipales.containers,
-                    this.$store.state.pricing.datosPrincipales.amount,
-                  );
+                  this.calcularCostoPorMultiplicador(element);
               } else {
                 this.resumenOpcion.aduana += this.calcularValor(
                   this.$store.state.pricing.datosPrincipales.amount,
@@ -600,27 +523,7 @@ export default {
             if (element.esalmacenflag) {
               if (this.isNotPorcentaje(element, element.id_multiplicador)) {
                 this.resumenOpcion.almacen +=
-                  (this.$store.state.pricing.listMultiplicador.filter(
-                    (v) => v.id == element.id_multiplicador,
-                  ).length > 0
-                    ? this.$store.state.pricing.listMultiplicador.filter(
-                        (v) => v.id == element.id_multiplicador,
-                      )[0].valor
-                    : 0) *
-                  element.costounitario *
-                  this.calcularFac(
-                    this.$store.state.pricing.listMultiplicador.filter(
-                      (v) => v.id == element.id_multiplicador,
-                    ).length > 0
-                      ? this.$store.state.pricing.listMultiplicador.filter(
-                          (v) => v.id == element.id_multiplicador,
-                        )[0].code
-                      : "N",
-                    this.$store.state.pricing.datosPrincipales.volumen,
-                    this.$store.state.pricing.datosPrincipales.peso,
-                    this.$store.state.pricing.datosPrincipales.containers,
-                    this.$store.state.pricing.datosPrincipales.amount,
-                  );
+                  this.calcularCostoPorMultiplicador(element);
               } else {
                 this.resumenOpcion.almacen += this.calcularValor(
                   this.$store.state.pricing.datosPrincipales.amount,
@@ -654,27 +557,7 @@ export default {
             if (element.esgastostercerosflag) {
               if (this.isNotPorcentaje(element, element.id_multiplicador)) {
                 this.resumenOpcion.gastostercero +=
-                  (this.$store.state.pricing.listMultiplicador.filter(
-                    (v) => v.id == element.id_multiplicador,
-                  ).length > 0
-                    ? this.$store.state.pricing.listMultiplicador.filter(
-                        (v) => v.id == element.id_multiplicador,
-                      )[0].valor
-                    : 0) *
-                  element.costounitario *
-                  this.calcularFac(
-                    this.$store.state.pricing.listMultiplicador.filter(
-                      (v) => v.id == element.id_multiplicador,
-                    ).length > 0
-                      ? this.$store.state.pricing.listMultiplicador.filter(
-                          (v) => v.id == element.id_multiplicador,
-                        )[0].code
-                      : "N",
-                    this.$store.state.pricing.datosPrincipales.volumen,
-                    this.$store.state.pricing.datosPrincipales.peso,
-                    this.$store.state.pricing.datosPrincipales.containers,
-                    this.$store.state.pricing.datosPrincipales.amount,
-                  );
+                  this.calcularCostoPorMultiplicador(element);
               } else {
                 this.resumenOpcion.gastostercero += this.calcularValor(
                   this.$store.state.pricing.datosPrincipales.amount,
@@ -813,7 +696,7 @@ export default {
       return this.currencyFormat(-1 * parseFloat(monto * 0.5).toFixed(2));
     },
     isNotPorcentaje(element, id_multiplicador) {
-      let code = [5, 13, 14];
+      let code = [5, 13, 14, 15];
 
       let mul = this.$store.state.pricing.listMultiplicador.some(
         (v) => v.id == id_multiplicador && code.includes(v.code),
@@ -833,6 +716,7 @@ export default {
       if (opcionEnStore) {
         opcionEnStore.selected = selected;
       }
+      this.$store.state.pricing.page = 1;
     },
   },
   watch: {
