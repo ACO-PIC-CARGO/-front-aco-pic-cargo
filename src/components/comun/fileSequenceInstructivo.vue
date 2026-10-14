@@ -279,7 +279,6 @@
                         <v-text-field
                           type="number"
                           v-model="datosManuales.montoRecibido"
-                          width="150px"
                         >
                         </v-text-field>
                       </v-col>

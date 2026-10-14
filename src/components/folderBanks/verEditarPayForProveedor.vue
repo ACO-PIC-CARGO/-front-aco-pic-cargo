@@ -30,7 +30,6 @@
             v-model="monto_local"
             type="number"
             :prefix="symbol"
-            width="50px"
             hide-details
             :disabled="verflag"
           ></v-text-field>
@@ -44,7 +43,6 @@
             v-model="monto"
             type="number"
             prefix="USD"
-            width="50px"
             hide-details
           ></v-text-field>
         </v-col>
@@ -57,7 +55,6 @@
             v-model="tipocambio"
             type="number"
             prefix="USD"
-            width="50px"
             hide-details
             disabled
           ></v-text-field>

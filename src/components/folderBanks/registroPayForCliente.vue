@@ -32,7 +32,6 @@
             v-model="monto_local"
             type="number"
             :prefix="symbol"
-            width="50px"
             :error-messages="errorMesage.monto_local"
             @update:model-value="
               monto_local
@@ -79,7 +78,6 @@
             v-model="tipocambio"
             type="number"
             prefix="USD"
-            width="50px"
             hide-details
             disabled
           ></v-text-field>

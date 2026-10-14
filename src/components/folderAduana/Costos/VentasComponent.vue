@@ -143,7 +143,6 @@
                       !isNotaCredito(valor.code_cost)
                     "
                     density="compact"
-                    max-width="50%"
                     v-model="valor.costounitario"
                     @blur="reponerCero(valor)"
                     :error-messages="valor.error"
@@ -166,7 +165,6 @@
                       !isNotaCredito(valor.code_cost)
                     "
                     hide-details
-                    max-width="50%"
                     suffix="%"
                     density="compact"
                     max="100"
@@ -177,7 +175,6 @@
                     v-on:blur="calcTotales"
                   ></v-text-field>
                   <v-text-field
-                    max-width="50%"
                     suffix="%"
                     class="derecha tdMontos"
                     v-if="
@@ -395,7 +392,6 @@
                       !isNotaCredito(valor.code_cost)
                     "
                     density="compact"
-                    max-width="50%"
                     v-model="valor.costounitario"
                     @blur="reponerCero(valor)"
                     :error-messages="valor.error"
@@ -418,7 +414,6 @@
                       !isNotaCredito(valor.code_cost)
                     "
                     hide-details
-                    max-width="50%"
                     suffix="%"
                     density="compact"
                     max="100"
@@ -429,7 +424,6 @@
                     v-on:blur="calcTotales"
                   ></v-text-field>
                   <v-text-field
-                    max-width="50%"
                     suffix="%"
                     class="derecha tdMontos"
                     v-if="
@@ -647,7 +641,6 @@
                       !isNotaCredito(valor.code_cost)
                     "
                     density="compact"
-                    max-width="50%"
                     v-model="valor.costounitario"
                     @blur="reponerCero(valor)"
                     :error-messages="valor.error"
@@ -670,7 +663,6 @@
                       !isNotaCredito(valor.code_cost)
                     "
                     hide-details
-                    max-width="50%"
                     suffix="%"
                     density="compact"
                     max="100"
@@ -681,7 +673,6 @@
                     v-on:blur="calcTotales"
                   ></v-text-field>
                   <v-text-field
-                    max-width="50%"
                     suffix="%"
                     class="derecha tdMontos"
                     v-if="
@@ -899,7 +890,6 @@
                       !isNotaCredito(valor.code_cost)
                     "
                     density="compact"
-                    max-width="50%"
                     v-model="valor.costounitario"
                     @blur="reponerCero(valor)"
                     :error-messages="valor.error"
@@ -922,7 +912,6 @@
                       !isNotaCredito(valor.code_cost)
                     "
                     hide-details
-                    max-width="50%"
                     suffix="%"
                     density="compact"
                     max="100"
@@ -933,7 +922,6 @@
                     v-on:blur="calcTotales"
                   ></v-text-field>
                   <v-text-field
-                    max-width="50%"
                     suffix="%"
                     class="derecha tdMontos"
                     v-if="
@@ -1149,7 +1137,6 @@
                       !isNotaCredito(valor.code_cost)
                     "
                     density="compact"
-                    max-width="50%"
                     v-model="valor.costounitario"
                     @blur="reponerCero(valor)"
                     :error-messages="valor.error"
@@ -1172,7 +1159,6 @@
                       !isNotaCredito(valor.code_cost)
                     "
                     hide-details
-                    max-width="50%"
                     suffix="%"
                     density="compact"
                     max="100"
@@ -1183,7 +1169,6 @@
                     v-on:blur="recalcularCostos"
                   ></v-text-field>
                   <v-text-field
-                    max-width="50%"
                     suffix="%"
                     class="derecha tdMontos"
                     v-if="
@@ -1402,7 +1387,6 @@
                       !isNotaCredito(valor.code_cost)
                     "
                     density="compact"
-                    max-width="50%"
                     v-model="valor.costounitario"
                     @blur="reponerCero(valor)"
                     :error-messages="valor.error"
@@ -1425,7 +1409,6 @@
                       !isNotaCredito(valor.code_cost)
                     "
                     hide-details
-                    max-width="50%"
                     suffix="%"
                     density="compact"
                     max="100"
@@ -1436,7 +1419,6 @@
                     v-on:blur="calcTotales"
                   ></v-text-field>
                   <v-text-field
-                    max-width="50%"
                     suffix="%"
                     class="derecha tdMontos"
                     v-if="
@@ -1655,7 +1637,6 @@
                       !isNotaCredito(valor.code_cost)
                     "
                     density="compact"
-                    max-width="50%"
                     v-model="valor.costounitario"
                     @blur="reponerCero(valor)"
                     :error-messages="valor.error"
@@ -1678,7 +1659,6 @@
                       !isNotaCredito(valor.code_cost)
                     "
                     hide-details
-                    max-width="50%"
                     suffix="%"
                     density="compact"
                     max="100"
@@ -1689,7 +1669,6 @@
                     v-on:blur="calcTotales"
                   ></v-text-field>
                   <v-text-field
-                    max-width="50%"
                     suffix="%"
                     class="derecha tdMontos"
                     v-if="
