@@ -644,7 +644,6 @@ export default {
               nombre: this.$store.state.pricing.datosPrincipales.nombre,
             });
 
-            console.log("URL capturada en generar():", urlGenerada);
 
             if (urlGenerada) {
               await this.actualizarURLEnElQuote({
@@ -660,10 +659,18 @@ export default {
           }
 
           // 4. Redirección final
-          this.$router.push({
+          const destino = {
             name: "verQuote",
             params: { id: this.$store.state.pricing.id },
-          });
+          };
+          if (
+            this.$router.resolve(destino).route.fullPath !==
+            this.$route.fullPath
+          ) {
+            await this.$router.push(destino);
+          }else{
+            window.location.reload()
+          }
         }
       }
     },

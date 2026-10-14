@@ -1181,7 +1181,9 @@ export default {
 
       if (idxMarketing > -1) {
         const val = norm(row[idxMarketing]);
-        const it = (sp.listMarketing || []).find((x) => norm(x.name) === val);
+        const it = (sp.listMarketing || []).find(
+          (x) => x && norm(x.name) === val,
+        );
         if (it) {
           sp.datosPrincipales.id_marketing = it.id;
           cambios++;
@@ -1189,7 +1191,9 @@ export default {
       }
       if (idxStatus > -1) {
         const val = norm(row[idxStatus]);
-        const it = (sp.listQuoteStatus || []).find((x) => norm(x.name) === val);
+        const it = (sp.listQuoteStatus || []).find(
+          (x) => x && norm(x.name) === val,
+        );
         if (it) {
           sp.datosPrincipales.id_status = it.id;
           cambios++;
@@ -1198,7 +1202,7 @@ export default {
       if (idxEjecutivo > -1) {
         const val = norm(row[idxEjecutivo]);
         const it = (sp.listEjecutivo || []).find(
-          (x) => norm(x.nombrecompleto) === val,
+          (x) => x && norm(x.nombrecompleto) === val,
         );
         if (it) {
           sp.datosPrincipales.id_vendedor = it.id;
@@ -1208,7 +1212,7 @@ export default {
       if (idxPricing > -1) {
         const val = norm(row[idxPricing]);
         const it = (sp.listEjecutivo || []).find(
-          (x) => norm(x.nombrecompleto) === val,
+          (x) => x && norm(x.nombrecompleto) === val,
         );
         if (it) {
           sp.datosPrincipales.id_pricing = it.id;
@@ -1258,7 +1262,7 @@ export default {
       if (idxIncoterms > -1) {
         const val = norm(row[idxIncoterms]);
         const it = (sp.listIncoterms || []).find(
-          (x) => norm(x.name) === val || norm(x.text || "") === val,
+          (x) => x && (norm(x.name) === val || norm(x.text || "") === val),
         );
         if (it) {
           sp.datosPrincipales.idincoterms = it.id;

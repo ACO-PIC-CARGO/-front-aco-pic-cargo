@@ -78,11 +78,14 @@
           :amount="$store.state.pricing.datosPrincipales.amount"
         />
       </v-col>
-      <v-col cols="6" v-if="getExisteImpuesto">
+      <v-col cols="12" md="6" v-if="getExisteImpuesto">
         <center><h3>Impuestos de Aduana</h3></center>
         <ImpuestosComponent
           v-if="mostrarImpuestos()"
           :amount="$store.state.pricing.datosPrincipales.amount"
+          :list-costos="
+            opcionesSeleccionadas[$store.state.pricing.page - 1].listCostos
+          "
           :index="$store.state.pricing.page"
           :impuestos="
             $store.state.pricing.opcionCostos.filter((v) => v.selected)[

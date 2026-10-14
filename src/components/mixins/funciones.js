@@ -1,4 +1,13 @@
 import store from "@/store/index";
+
+function numeroSeguro(value) {
+  if (value === null || value === undefined || value === "") return 0;
+  const normalized =
+    typeof value === "string" ? value.trim().replace(/,/g, "") : value;
+  const number = Number(normalized);
+  return Number.isFinite(number) ? number : 0;
+}
+
 const miMixin = {
   methods: {
     probarFunction() {
@@ -464,7 +473,7 @@ const miMixin = {
           id: impuesto.id ? impuesto.id : "",
           type: parseInt(impuesto.codigo),
           name: impuesto.descripcion,
-          percentage: parseFloat(impuesto.codigo01 ? impuesto.codigo01 : 0),
+          percentage: numeroSeguro(impuesto.codigo01),
           valor: this.calcularImpuestos({
             impuestos: impuestos,
             item: impuesto,
@@ -477,189 +486,123 @@ const miMixin = {
       });
       return imp;
     },
+    calcularTotalFleteVentaPorOpcion({ listCostos = [] } = {}) {
+      const pricing = store.state.pricing;
+      const datosPrincipales = pricing.datosPrincipales || {};
+      const costosFlete = (Array.isArray(listCostos) ? listCostos : []).filter(
+        (costo) =>
+          costo &&
+          costo.esfleteflag == 1 &&
+          costo.status == 1 &&
+          costo.esventaflag == 1,
+      );
+
+      return costosFlete.reduce((total, costo) => {
+        const multiplicador = (pricing.listMultiplicador || []).find(
+          (item) => item.id == costo.id_multiplicador,
+        );
+        let factor = numeroSeguro(
+          this.calcularFac(
+            multiplicador ? multiplicador.code : "N",
+            datosPrincipales.volumen,
+            datosPrincipales.peso,
+            datosPrincipales.containers,
+            datosPrincipales.amount,
+          ),
+        );
+
+        if (
+          costo.code_cost == 4 &&
+          numeroSeguro(datosPrincipales.volumen) < 1
+        ) {
+          factor = Math.max(factor, 1);
+        }
+
+        if ([5, 13, 14].includes(Number(multiplicador && multiplicador.code))) {
+          return total;
+        }
+
+        return (
+          total +
+          numeroSeguro(multiplicador && multiplicador.valor) *
+            numeroSeguro(costo.costounitario) *
+            factor
+        );
+      }, 0);
+    },
     calcularImpuestos({
       impuestos = [],
       item = null,
       totalFlete = 0,
       datosPrincipales = {},
-    }) {
+    } = {}) {
+      if (!item) return "0.00";
+
+      const codigo = String(item.codigo);
+      const fob = numeroSeguro(datosPrincipales.amount);
+      const flete = numeroSeguro(totalFlete);
+      const porcentaje = (code) => {
+        const impuesto = (impuestos || []).find(
+          (entry) => entry && String(entry.codigo) === code,
+        );
+        return numeroSeguro(impuesto && impuesto.codigo01);
+      };
+      const rate = numeroSeguro(item.codigo01);
+      const seguro = ((flete + fob) * porcentaje("03")) / 100;
+      const cif = fob + flete + seguro;
+      const adv = (cif * porcentaje("05")) / 100;
+      const isc = ((cif + adv) * porcentaje("06")) / 100;
       let monto = 0;
-      let codeImp = [
-        "01",
-        "02",
-        "03",
-        "05",
-        "06",
-        "07",
-        "08",
-        "09",
-        "10",
-        "11",
-        "12",
-      ];
-      if (item.codigo === "01") {
-        monto = parseFloat(datosPrincipales.amount).toFixed(2);
-      }
-      if (item.codigo === "02") {
-        monto = parseFloat(totalFlete).toFixed(2);
-      }
-      if (item.codigo === "03") {
-        monto = parseFloat(
-          ((parseFloat(totalFlete) + parseFloat(datosPrincipales.amount)) *
-            parseFloat(
-              this.obtenerPorcentaje({ listImpuestos: impuestos, code: "03" }),
-            )) /
-            100,
-        ).toFixed(2);
-      }
-      if (item.codigo === "04") {
-        let fob = parseFloat(datosPrincipales.amount);
-        let flet = parseFloat(totalFlete);
-        let seguro = parseFloat(
-          ((parseFloat(totalFlete) + parseFloat(datosPrincipales.amount)) *
-            parseFloat(
-              this.obtenerPorcentaje({ listImpuestos: impuestos, code: "03" }),
-            )) /
-            100,
-        );
-        monto = parseFloat(fob) + parseFloat(flet) + parseFloat(seguro);
-      }
-      if (item.codigo === "05") {
-        let fob = parseFloat(datosPrincipales.amount);
-        let flet = parseFloat(totalFlete);
-        let seguro = parseFloat(
-          ((parseFloat(totalFlete) + parseFloat(datosPrincipales.amount)) *
-            parseFloat(
-              this.obtenerPorcentaje({ listImpuestos: impuestos, code: "03" }),
-            )) /
-            100,
-        );
-        let cif = parseFloat(fob) + parseFloat(flet) + parseFloat(seguro);
 
-        monto = (cif * item.codigo01) / 100;
-      }
-      if (item.codigo === "06") {
-        let fob = parseFloat(datosPrincipales.amount);
-        let flet = parseFloat(totalFlete);
-
-        let seguro = parseFloat(
-          ((parseFloat(totalFlete) + parseFloat(datosPrincipales.amount)) *
-            this.obtenerPorcentaje({ listImpuestos: impuestos, code: "03" })) /
-            100,
-        );
-        let cif = parseFloat(fob) + parseFloat(flet) + parseFloat(seguro);
-        let adv =
-          (cif *
-            this.obtenerPorcentaje({ listImpuestos: impuestos, code: "05" })) /
-          100;
-        monto = ((cif + adv) * item.codigo01) / 100;
-      }
-      if (item.codigo === "07") {
-        let fob = parseFloat(datosPrincipales.amount);
-        let flet = parseFloat(totalFlete);
-
-        let seguro = parseFloat(
-          ((parseFloat(totalFlete) + parseFloat(datosPrincipales.amount)) *
-            parseFloat(
-              this.obtenerPorcentaje({ listImpuestos: impuestos, code: "03" }),
-            )) /
-            100,
-        );
-        let cif = parseFloat(fob) + parseFloat(flet) + parseFloat(seguro);
-        let adv =
-          (cif *
-            this.obtenerPorcentaje({ listImpuestos: impuestos, code: "05" })) /
-          100;
-        let isc =
-          ((cif + adv) *
-            this.obtenerPorcentaje({ listImpuestos: impuestos, code: "06" })) /
-          100;
-
-        monto = ((cif + adv + isc) * item.codigo01) / 100;
-      }
-      if (item.codigo === "08") {
-        let fob = parseFloat(datosPrincipales.amount);
-        let flet = parseFloat(totalFlete);
-
-        let seguro = parseFloat(
-          ((parseFloat(totalFlete) + parseFloat(datosPrincipales.amount)) *
-            parseFloat(
-              this.obtenerPorcentaje({ listImpuestos: impuestos, code: "03" }),
-            )) /
-            100,
-        );
-        let cif = parseFloat(fob) + parseFloat(flet) + parseFloat(seguro);
-        let adv =
-          (cif *
-            this.obtenerPorcentaje({ listImpuestos: impuestos, code: "05" })) /
-          100;
-        let isc =
-          ((cif + adv) *
-            this.obtenerPorcentaje({ listImpuestos: impuestos, code: "06" })) /
-          100;
-        monto = ((cif + adv + isc) * item.codigo01) / 100;
-      }
-      if (item.codigo === "09") {
-        let fob = parseFloat(datosPrincipales.amount);
-        let flet = parseFloat(totalFlete);
-
-        let seguro = parseFloat(
-          ((parseFloat(totalFlete) + parseFloat(datosPrincipales.amount)) *
-            parseFloat(
-              this.obtenerPorcentaje({ listImpuestos: impuestos, code: "03" }),
-            )) /
-            100,
-        );
-        let cif = parseFloat(fob) + parseFloat(flet) + parseFloat(seguro);
-        let adv =
-          (cif *
-            this.obtenerPorcentaje({ listImpuestos: impuestos, code: "05" })) /
-          100;
-        let isc =
-          ((cif + adv) *
-            this.obtenerPorcentaje({ listImpuestos: impuestos, code: "06" })) /
-          100;
-        let ipm =
-          ((cif + adv + isc) *
-            this.obtenerPorcentaje({ listImpuestos: impuestos, code: "07" })) /
-          100;
-        let igv =
-          ((cif + adv + isc) *
-            this.obtenerPorcentaje({ listImpuestos: impuestos, code: "08" })) /
-          100;
-
-        monto = ((cif + adv + isc + igv + ipm) * item.codigo01) / 100;
-      }
-      if (item.codigo === "10") {
-        monto = 100;
-      }
-      if (item.codigo === "11") {
-        monto = 7;
-      }
-      if (item.codigo === "12") {
-        monto = 3;
+      switch (codigo) {
+        case "01":
+          monto = fob;
+          break;
+        case "02":
+          monto = flete;
+          break;
+        case "03":
+          monto = seguro;
+          break;
+        case "04":
+          monto = cif;
+          break;
+        case "05":
+          monto = (cif * rate) / 100;
+          break;
+        case "06":
+          monto = ((cif + adv) * rate) / 100;
+          break;
+        case "07":
+          monto = ((cif + adv + isc) * rate) / 100;
+          break;
+        case "08":
+          monto = ((cif + adv + isc) * rate) / 100;
+          break;
+        case "09": {
+          const ipm = ((cif + adv + isc) * porcentaje("07")) / 100;
+          const igv = ((cif + adv + isc) * porcentaje("08")) / 100;
+          monto = ((cif + adv + isc + igv + ipm) * rate) / 100;
+          break;
+        }
+        case "10":
+          monto = 100;
+          break;
+        case "11":
+          monto = 7;
+          break;
+        case "12":
+          monto = 3;
+          break;
       }
 
-      if (!codeImp.includes(item.codigo)) {
-        parseFloat(
-          ((parseFloat(totalFlete) + parseFloat(datosPrincipales.amount)) *
-            parseFloat(
-              this.obtenerPorcentaje({
-                listImpuestos: impuestos,
-                code: item.codigo,
-              }),
-            )) /
-            100,
-        ).toFixed(2);
-      }
-      return parseFloat(monto).toFixed(2);
+      return numeroSeguro(monto).toFixed(2);
     },
     obtenerPorcentaje({ listImpuestos = [], code = "" }) {
-      let porcentaje =
-        listImpuestos.filter((v) => v.codigo == code).length > 0
-          ? listImpuestos.filter((v) => v.codigo == code)[0].codigo01
-          : 0;
-      return porcentaje ? porcentaje : 0;
+      const impuesto = (listImpuestos || []).find(
+        (entry) => entry && String(entry.codigo) === String(code),
+      );
+      return numeroSeguro(impuesto && impuesto.codigo01);
     },
     validateLength(value, maxLength) {
       if (!value) {

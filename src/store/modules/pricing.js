@@ -5661,7 +5661,7 @@ const actions = {
     // -------------------------------------------------------
     state.listServiciosInstructivo = [];
 
-    state.listServices.forEach((element) => {
+    (state.listServices || []).filter(Boolean).forEach((element) => {
       state.listServiciosInstructivo.push({
         name: element.service,
         status: element.status == true ? "SI" : "NO",
@@ -5669,7 +5669,7 @@ const actions = {
     });
 
     state.vendedor =
-      state.listEjecutivo.find(
+      (state.listEjecutivo || []).find(
         (v) => v.id_entitie == state.datosPrincipales.id_pricing,
       )?.name || "";
     // console.log(state.opcionCostos)
@@ -5679,6 +5679,16 @@ const actions = {
   },
   async generaInstructivoparaguardata({ dispatch }) {
     state.listIngresosInstructivoAprobar = [];
+
+    if (!Array.isArray(state.listInstructivo) || !state.listInstructivo[0]) {
+      Swal.fire({
+        icon: "error",
+        title: "Ocurrió un error",
+        text: "No se encontraron los datos del instructivo para generar los costos.",
+        showConfirmButton: true,
+      });
+      return;
+    }
 
     let isImport = state.listModality.some(
       (v) => v.id == state.datosPrincipales.idsentido && v.code == "I",
@@ -5795,20 +5805,14 @@ const actions = {
 
           // Creando el agrupamiento
           if (element.esfleteflag == 1 && isImport) {
-            name =
-              state.listTipoCostos.length > 0
-                ? state.listTipoCostos.filter((v) => v.codigo == "FL")[0].name
-                : "";
+            name = obtenerNombreTipoCosto("FL");
             orden = 1;
           }
           if (element.esorigenflag == 1) {
             if (!isImport && !excluirIgv) {
               totalImpuestosIGV += parseFloat(montoDetails);
             }
-            name =
-              state.listTipoCostos.length > 0
-                ? state.listTipoCostos.filter((v) => v.codigo == "OR")[0].name
-                : "";
+            name = obtenerNombreTipoCosto("OR");
             orden = 2;
           }
           if (element.eslocalflag == 1) {
@@ -5816,10 +5820,7 @@ const actions = {
             if (!excluirIgv) {
               totalImpuestosIGV += parseFloat(montoDetails);
             }
-            name =
-              state.listTipoCostos.length > 0
-                ? state.listTipoCostos.filter((v) => v.codigo == "LO")[0].name
-                : "";
+            name = obtenerNombreTipoCosto("LO");
             orden = 3;
           }
           if (element.esaduanaflag == 1) {
@@ -5827,16 +5828,10 @@ const actions = {
               totalImpuestosIGV += parseFloat(montoDetails);
             }
             orden = 4;
-            name =
-              state.listTipoCostos.length > 0
-                ? state.listTipoCostos.filter((v) => v.codigo == "AD")[0].name
-                : "";
+            name = obtenerNombreTipoCosto("AD");
           }
           if (element.esfleteflag == 1 && !isImport) {
-            name =
-              state.listTipoCostos.length > 0
-                ? state.listTipoCostos.filter((v) => v.codigo == "FL")[0].name
-                : "";
+            name = obtenerNombreTipoCosto("FL");
             orden = 5;
           }
           if (element.esalmacenflag == 1) {
@@ -5844,10 +5839,7 @@ const actions = {
               totalImpuestosIGV += parseFloat(montoDetails);
             }
             orden = 6;
-            name =
-              state.listTipoCostos.length > 0
-                ? state.listTipoCostos.filter((v) => v.codigo == "AL")[0].name
-                : "";
+            name = obtenerNombreTipoCosto("AL");
           }
 
           if (element.esgastostercerosflag == 1) {
@@ -5855,10 +5847,7 @@ const actions = {
               totalImpuestosIGV += parseFloat(montoDetails);
             }
             orden = 7;
-            name =
-              state.listTipoCostos.length > 0
-                ? state.listTipoCostos.filter((v) => v.codigo == "GT")[0].name
-                : "";
+            name = obtenerNombreTipoCosto("GT");
           }
 
           let igv = 0;
@@ -5927,49 +5916,31 @@ const actions = {
           }
           // Creando el agrupamiento
           if (element.esfleteflag == 1 && isImport) {
-            name =
-              state.listTipoCostos.length > 0
-                ? state.listTipoCostos.filter((v) => v.codigo == "FL")[0].name
-                : "";
+            name = obtenerNombreTipoCosto("FL");
             orden = 1;
           }
           if (element.esorigenflag == 1) {
-            name =
-              state.listTipoCostos.length > 0
-                ? state.listTipoCostos.filter((v) => v.codigo == "OR")[0].name
-                : "";
+            name = obtenerNombreTipoCosto("OR");
             orden = 2;
           }
           if (element.eslocalflag == 1) {
             // totalImpuestosIGV += montoDetails;
-            name =
-              state.listTipoCostos.length > 0
-                ? state.listTipoCostos.filter((v) => v.codigo == "LO")[0].name
-                : "";
+            name = obtenerNombreTipoCosto("LO");
             orden = 3;
           }
           if (element.esaduanaflag == 1) {
             // totalImpuestosIGV += montoDetails;
             orden = 4;
-            name =
-              state.listTipoCostos.length > 0
-                ? state.listTipoCostos.filter((v) => v.codigo == "AD")[0].name
-                : "";
+            name = obtenerNombreTipoCosto("AD");
           }
           if (element.esfleteflag == 1 && !isImport) {
-            name =
-              state.listTipoCostos.length > 0
-                ? state.listTipoCostos.filter((v) => v.codigo == "FL")[0].name
-                : "";
+            name = obtenerNombreTipoCosto("FL");
             orden = 5;
           }
           if (element.esalmacenflag == 1) {
             // totalImpuestosIGV += montoDetails;
             orden = 6;
-            name =
-              state.listTipoCostos.length > 0
-                ? state.listTipoCostos.filter((v) => v.codigo == "AL")[0].name
-                : "";
+            name = obtenerNombreTipoCosto("AL");
           }
           // ------------------------------------
 
@@ -6036,10 +6007,7 @@ const actions = {
               totalImpuestosIGV += parseFloat(montoDetails);
             }
             orden = 7;
-            name =
-              state.listTipoCostos.length > 0
-                ? state.listTipoCostos.filter((v) => v.codigo == "GT")[0].name
-                : "";
+            name = obtenerNombreTipoCosto("GT");
           }
 
           let igv = 0;
@@ -6362,6 +6330,15 @@ const actions = {
       );
   },
   async GuardaCostosFinalesQuote({ dispatch }) {
+    if (!Array.isArray(state.listInstructivo) || !state.listInstructivo[0]) {
+      Swal.fire({
+        icon: "error",
+        title: "Ocurrió un error",
+        text: "No se encontraron los datos del instructivo para guardar los costos.",
+        showConfirmButton: true,
+      });
+      return;
+    }
     await dispatch("generaInstructivoparaguardata");
     let listServiciosInstructivo = [];
     state.listServices.forEach((element) => {
@@ -6536,6 +6513,13 @@ function aplicarMinimoCosto(element, importe) {
     return Math.max(Number(element.minimo || 0), Number(importe));
   }
   return importe;
+}
+
+function obtenerNombreTipoCosto(codigo) {
+  const tipoCosto = (state.listTipoCostos || []).find(
+    (tipo) => tipo && tipo.codigo == codigo,
+  );
+  return tipoCosto?.name || "";
 }
 
 function GenerarIngresosInstrictivo(tipo) {
@@ -8069,10 +8053,7 @@ function GenerarIngresosInstrictivo(tipo) {
       if (datosFlete.length > 0 && isImport) {
         if (tipo != "AGRUPADO") {
           DatosFinalesIngresos.push({
-            descripcion:
-              state.listTipoCostos.length > 0
-                ? state.listTipoCostos.filter((v) => v.codigo == "FL")[0].name
-                : "",
+            descripcion: obtenerNombreTipoCosto("FL"),
             service: "",
             igv: "",
             total: "",
@@ -8100,10 +8081,7 @@ function GenerarIngresosInstrictivo(tipo) {
       if (datosOrigen.length > 0) {
         if (tipo != "AGRUPADO") {
           DatosFinalesIngresos.push({
-            descripcion:
-              state.listTipoCostos.length > 0
-                ? state.listTipoCostos.filter((v) => v.codigo == "OR")[0].name
-                : "",
+            descripcion: obtenerNombreTipoCosto("OR"),
             service: "",
             igv: "",
             total: "",
@@ -8132,10 +8110,7 @@ function GenerarIngresosInstrictivo(tipo) {
       if (datosLocales.length > 0) {
         if (tipo != "AGRUPADO") {
           DatosFinalesIngresos.push({
-            descripcion:
-              state.listTipoCostos.length > 0
-                ? state.listTipoCostos.filter((v) => v.codigo == "LO")[0].name
-                : "",
+            descripcion: obtenerNombreTipoCosto("LO"),
             service: "",
             total: "",
           });
@@ -8161,10 +8136,7 @@ function GenerarIngresosInstrictivo(tipo) {
       if (datosAduanas.length > 0) {
         if (tipo != "AGRUPADO") {
           DatosFinalesIngresos.push({
-            descripcion:
-              state.listTipoCostos.length > 0
-                ? state.listTipoCostos.filter((v) => v.codigo == "AD")[0].name
-                : "",
+            descripcion: obtenerNombreTipoCosto("AD"),
             service: "",
             total: "",
           });
@@ -8190,10 +8162,7 @@ function GenerarIngresosInstrictivo(tipo) {
       if (datosFlete.length > 0 && !isImport) {
         if (tipo != "AGRUPADO") {
           DatosFinalesIngresos.push({
-            descripcion:
-              state.listTipoCostos.length > 0
-                ? state.listTipoCostos.filter((v) => v.codigo == "FL")[0].name
-                : "",
+            descripcion: obtenerNombreTipoCosto("FL"),
             service: "",
             igv: "",
             total: "",
@@ -8221,10 +8190,7 @@ function GenerarIngresosInstrictivo(tipo) {
       if (datosAlmacenes.length > 0) {
         if (tipo != "AGRUPADO") {
           DatosFinalesIngresos.push({
-            descripcion:
-              state.listTipoCostos.length > 0
-                ? state.listTipoCostos.filter((v) => v.codigo == "AL")[0].name
-                : "",
+            descripcion: obtenerNombreTipoCosto("AL"),
             service: "",
             total: "",
           });
@@ -8249,10 +8215,7 @@ function GenerarIngresosInstrictivo(tipo) {
       if (datosGastosTerceros.length > 0) {
         if (tipo != "AGRUPADO") {
           DatosFinalesIngresos.push({
-            descripcion:
-              state.listTipoCostos.length > 0
-                ? state.listTipoCostos.filter((v) => v.codigo == "GT")[0].name
-                : "",
+            descripcion: obtenerNombreTipoCosto("GT"),
             service: "",
             total: "",
           });
@@ -8528,41 +8491,7 @@ function GenerarImpInstructivo() {
   // console.log(state.listImpuestosInstructivo);
 }
 async function calcularTotalFleteVentaPorOpcion(data) {
-  let totalFlete = 0;
-  data
-    .filter((v) => v.esfleteflag == 1 && v.status == 1 && v.esventaflag == 1)
-    .forEach(async (element) => {
-      let factor = miMixin.methods.calcularFac(
-        state.listMultiplicador.filter((v) => v.id == element.id_multiplicador)
-          .length > 0
-          ? state.listMultiplicador.filter(
-              (v) => v.id == element.id_multiplicador,
-            )[0].code
-          : "N",
-        state.datosPrincipales.volumen,
-        state.datosPrincipales.peso,
-        state.datosPrincipales.containers,
-        state.datosPrincipales.amount,
-      );
-      if (element.code_cost == 4 && state.datosPrincipales.volumen < 1) {
-        if (factor < 1) {
-          factor = 1;
-        }
-      }
-      if (isNotPorcentaje(element, element.id_multiplicador)) {
-        totalFlete +=
-          (state.listMultiplicador.filter(
-            (v) => v.id == element.id_multiplicador,
-          ).length > 0
-            ? state.listMultiplicador.filter(
-                (v) => v.id == element.id_multiplicador,
-              )[0].valor
-            : 0) *
-          element.costounitario *
-          factor;
-      }
-    });
-  return totalFlete;
+  return miMixin.methods.calcularTotalFleteVentaPorOpcion({ listCostos: data });
 }
 
 function isNotPorcentaje(element, id_multiplicador) {

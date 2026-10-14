@@ -133,9 +133,7 @@ export default {
 
       if (this.opcionesSeleccionadas.some((v) => parseFloat(v.flete) > 0)) {
         this.headers.push({
-          text: this.$store.state.pricing.listTipoCostos.filter(
-            (v) => v.codigo == "FL"
-          )[0].name,
+          text: this.nombreTipoCosto("FL", "Flete"),
           value: "flete",
         });
       }
@@ -146,9 +144,7 @@ export default {
         )
       ) {
         this.headers.push({
-          text: this.$store.state.pricing.listTipoCostos.filter(
-            (v) => v.codigo == "FL"
-          )[0].name,
+          text: this.nombreTipoCosto("FL", "Flete"),
           value: "flete",
           cellClass: "centrado",
         });
@@ -161,9 +157,7 @@ export default {
         )
       ) {
         this.headers.push({
-          text: this.$store.state.pricing.listTipoCostos.filter(
-            (v) => v.codigo == "OR"
-          )[0].name,
+          text: this.nombreTipoCosto("OR", "Origen"),
           value: "origen",
         });
         this.origen = true;
@@ -174,9 +168,7 @@ export default {
         )
       ) {
         this.headers.push({
-          text: this.$store.state.pricing.listTipoCostos.filter(
-            (v) => v.codigo == "LO"
-          )[0].name,
+          text: this.nombreTipoCosto("LO", "Local"),
           value: "local",
         });
         this.local = true;
@@ -187,9 +179,7 @@ export default {
         )
       ) {
         this.headers.push({
-          text: this.$store.state.pricing.listTipoCostos.filter(
-            (v) => v.codigo == "AD"
-          )[0].name,
+          text: this.nombreTipoCosto("AD", "Aduana"),
           value: "aduana",
         });
         this.aduana = true;
@@ -200,9 +190,7 @@ export default {
         )
       ) {
         this.headers.push({
-          text: this.$store.state.pricing.listTipoCostos.filter(
-            (v) => v.codigo == "AL"
-          )[0].name,
+          text: this.nombreTipoCosto("AL", "Almacén"),
           value: "almacen",
         });
         this.almacen = true;
@@ -214,9 +202,7 @@ export default {
         )
       ) {
         this.headers.push({
-          text: this.$store.state.pricing.listTipoCostos.filter(
-            (v) => v.codigo == "GT"
-          )[0].name,
+          text: this.nombreTipoCosto("GT", "Gastos de tercero"),
           value: "gastostercero",
         });
         this.gastostercero = true;
@@ -227,6 +213,12 @@ export default {
         value: "tiempo_transito",
       });
       this.headers.push({ text: "SELECCIONE", value: "selected" });
+    },
+    nombreTipoCosto(codigo, nombrePredeterminado) {
+      const tipoCosto = (this.$store.state.pricing.listTipoCostos || []).find(
+        (tipo) => tipo && tipo.codigo == codigo,
+      );
+      return tipoCosto?.name || nombrePredeterminado;
     },
     continuar() {
       this.$store.state.pricing.tab = 2;

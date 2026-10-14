@@ -1356,9 +1356,7 @@ export default {
         }
       }
       if (this.$refs.frmPuerto.validate()) {
-        if (
-          this.$store.state.pricing.datosPrincipales.idtipocarga.code == "FCL"
-        ) {
+        if (this.isFcl()) {
           if (
             this.$store.state.pricing.datosPrincipales.containers.length == 0
           ) {
@@ -1370,9 +1368,7 @@ export default {
             validate = false;
           }
         }
-        if (
-          this.$store.state.pricing.datosPrincipales.idtipocarga.code != "FCL"
-        ) {
+        if (!this.isFcl()) {
           if (
             !this.$store.state.pricing.datosPrincipales.numerobultos &&
             !this.$store.state.pricing.datosPrincipales.volumen &&
@@ -1833,25 +1829,14 @@ export default {
     },
 
     isFcl() {
-      if (
-        typeof this.$store.state.pricing.datosPrincipales.idtipocarga ===
-        "object"
-      ) {
-        return (
-          this.$store.state.pricing.datosPrincipales.idtipocarga.code === "FCL"
-        );
+      const tipoCarga =
+        this.$store.state.pricing.datosPrincipales.idtipocarga;
+      if (tipoCarga && typeof tipoCarga === "object") {
+        return tipoCarga.code === "FCL";
       }
-      if (
-        typeof this.$store.state.pricing.datosPrincipales.idtipocarga !==
-        "object"
-      ) {
-        return this.$store.state.pricing.listShipment.some(
-          (v) =>
-            v.id == this.$store.state.pricing.datosPrincipales.idtipocarga &&
-            v.code == "FCL",
-        );
-      }
-      return false;
+      return (this.$store.state.pricing.listShipment || []).some(
+        (item) => item && item.id == tipoCarga && item.code == "FCL",
+      );
     },
     isAereo() {
       let inVal = ["Aéreo", "LCL"];

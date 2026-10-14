@@ -675,17 +675,17 @@ export default {
         });
     },
     incoterms() {
-      let Icoterms = [];
-      [...this.$store.state.pricing.listIncoterms].forEach((element) => {
-        element.text = element.name + " - " + element.description;
-        Icoterms.push(element);
-      });
-
-      return Icoterms;
+      return (this.$store.state.pricing.listIncoterms || [])
+        .filter((element) => element && typeof element === "object")
+        .map((element) => ({
+          ...element,
+          text: `${element.name || ""} - ${element.description || ""}`,
+        }));
     },
     mostrarProveedorFlag() {
-      let exw = this.$store.state.pricing.listIncoterms.filter(
+      let exw = (this.$store.state.pricing.listIncoterms || []).filter(
         (v) =>
+          v &&
           v.id == this.$store.state.pricing.datosPrincipales.idincoterms &&
           v.name == "EXW",
       );

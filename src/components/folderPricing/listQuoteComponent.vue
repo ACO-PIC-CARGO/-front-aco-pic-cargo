@@ -535,29 +535,31 @@
       </template>
 
       <template v-slot:expanded-item="{ headers, item }">
-        <td :colspan="headers.length">
-          <v-simple-table>
-            <thead class="headerDetails">
-              <tr>
-                <th v-if="item.details.length > 0">Fecha</th>
-                <th v-if="item.details.length > 0">Comentario</th>
-                <th>Usuario</th>
-              </tr>
-            </thead>
-            <tbody v-if="item.details.length > 0">
-              <tr v-for="(i, index) in item.details" :key="i.id || index">
-                <td>{{ i.fecha }}</td>
-                <td>{{ i.notes }}</td>
-                <td>{{ i.namelong }}</td>
-              </tr>
-            </tbody>
-            <!-- <tbody v-else>
-              <tr>
-                <td>{{ item.fecha_enviocliente }}</td>
-              </tr>
-            </tbody> -->
-          </v-simple-table>
-        </td>
+        <template v-if="item">
+          <td :colspan="headers.length">
+            <v-simple-table>
+              <thead class="headerDetails">
+                <tr>
+                  <th v-if="(item.details || []).length > 0">Fecha</th>
+                  <th v-if="(item.details || []).length > 0">Comentario</th>
+                  <th>Usuario</th>
+                </tr>
+              </thead>
+              <tbody v-if="(item.details || []).length > 0">
+                <tr v-for="(i, index) in item.details || []" :key="i.id || index">
+                  <td>{{ i.fecha }}</td>
+                  <td>{{ i.notes }}</td>
+                  <td>{{ i.namelong }}</td>
+                </tr>
+              </tbody>
+              <!-- <tbody v-else>
+                <tr>
+                  <td>{{ item.fecha_enviocliente }}</td>
+                </tr>
+              </tbody> -->
+            </v-simple-table>
+          </td>
+        </template>
       </template>
     </v-data-table>
     <!-- <template>

@@ -719,12 +719,10 @@ export default {
         id = tipoCarga;
       }
 
-      let code = this.$store.state.pricing.listShipment.filter(
-        (v) => v.id == id,
-      )[0].code;
-
-      let validate = code == "FCL" ? true : false;
-      return validate;
+      const shipment = (this.$store.state.pricing.listShipment || []).find(
+        (item) => item && item.id == id,
+      );
+      return shipment?.code === "FCL";
     },
   },
   methods: {

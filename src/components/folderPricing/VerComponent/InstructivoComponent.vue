@@ -1,12 +1,12 @@
 <template>
-  <v-container v-if="$store.state.pricing.listInstructivo.length">
+  <v-container v-if="($store.state.pricing.listInstructivo || []).length">
     <v-col cols="12">
       <template>
         <div class="text-center">
           <v-pagination
             v-model="page"
             :length="
-              $store.state.pricing.opcionCostos.filter((v) => !!v.selected)
+              ($store.state.pricing.opcionCostos || []).filter((v) => !!v.selected)
                 .length
             "
             circle
@@ -31,7 +31,7 @@
           </v-btn>
         </v-card-title>
         <v-card-text>
-          <v-form ref="frmAprobar">
+          <v-form ref="frmAsociarExpediente">
             <v-row>
               <v-autocomplete
                 :items="$store.state.itemsMasterList"
@@ -98,7 +98,7 @@
         Seleccione la opción aprobada por el cliente:
 
         <v-card-text>
-          <v-form ref="frmAprobar">
+          <v-form ref="frmSeleccionQuote">
             <v-radio-group
               v-model="nro_propuesta"
               :rules="[(v) => !!v || 'Seleccione una opción']"
@@ -438,7 +438,7 @@
 
           <v-col
             cols="12"
-            v-if="$store.state.pricing.listImpuestosInstructivo.length > 0"
+            v-if="($store.state.pricing.listImpuestosInstructivo || []).length > 0"
           >
             <v-card class="pa-1" elevation="5">
               <h4 class="mb-1 ml-1">IMPUESTOS</h4>
@@ -1315,7 +1315,12 @@ export default {
       this.dialogFiles = false;
       this.dialogSequenceInstructivo = false;
       await this.generaInstructivoparaguardata();
-      if (this.$refs.frmAprobar.validate()) {
+      await this.$nextTick();
+      const formulario = this.$refs.frmSeleccionQuote;
+      if (!formulario) {
+        return false;
+      }
+      if (formulario.validate()) {
         let fecha_validez = this.$store.state.pricing.opcionCostos.filter(
           (v) => v.nro_propuesta == this.nro_propuesta,
         )[0].date_end;
@@ -1720,7 +1725,11 @@ export default {
         this.$store.state.pricing.listIngresosInstructivoAprobar.filter(
           (v) => v.nro_propuesta == this.nro_propuesta,
         )[0].dataVentas;
-      if (this.$refs.frmAprobar.validate()) {
+      const formulario = this.$refs.frmAsociarExpediente;
+      if (formulario && !formulario.validate()) {
+        return;
+      }
+      if (formulario || this.id_exp || this.nuevoexpediente) {
         Swal.fire({
           icon: "info",
           title: "Aprobando Cotizacion",
