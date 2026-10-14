@@ -32,7 +32,7 @@
           size="small"
           variant="plain"
         >
-          <v-icon>mdi-file-pdf</v-icon> PDF</v-btn
+          <v-icon>mdi-file-pdf-box</v-icon> PDF</v-btn
         >
       </v-card-title>
       <v-card-text>

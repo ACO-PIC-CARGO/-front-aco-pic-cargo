@@ -169,7 +169,7 @@
             </v-col>
             <v-col class="py-2 my-0" cols="12">
               <v-btn color="info" v-if="enviarCodigo" @click="enviarCorreo()">
-                <v-icon start>mdi-email-send-outline</v-icon>
+                <v-icon start>mdi-email-arrow-right-outline</v-icon>
                 Enviar Código
               </v-btn>
               <p v-if="mostrarAdvertencia">

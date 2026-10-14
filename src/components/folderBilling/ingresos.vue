@@ -1090,7 +1090,7 @@
           >
             <template v-slot:[`item.originalname`]="{ item }">
               <v-icon v-if="item.type == 'pdf'" color="red" class="mr-2"
-                >mdi-file-pdf</v-icon
+                >mdi-file-pdf-box</v-icon
               >
               <v-icon
                 v-if="

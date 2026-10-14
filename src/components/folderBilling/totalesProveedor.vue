@@ -296,7 +296,7 @@
           >
             <template v-slot:[`item.originalname`]="{ item }">
               <v-icon v-if="item.type == 'pdf'" color="red" class="mr-2"
-                >mdi-file-pdf</v-icon
+                >mdi-file-pdf-box</v-icon
               >
               <v-icon
                 v-if="
@@ -550,7 +550,7 @@
                     size="small"
                     color="white"
                     ><v-icon :color="item.solicitudes > 0 ? 'blue' : 'grey'"
-                      >mdi-email-send</v-icon
+                      >mdi-email-arrow-right</v-icon
                     ></v-btn
                   >
                 </template>
