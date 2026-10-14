@@ -70,6 +70,15 @@ const TEMPLATE_GUARDS = [
       "VElement[name=/^(v-autocomplete|vautocomplete|v-combobox|vcombobox)$/i] > VStartTag > VAttribute[directive=false][key.name='search']",
     message: "A bare search attribute pins the search to an empty string in Vuetify 4 (recipe R22).",
   },
+  {
+    selector:
+      "VElement[name=/^(v-card-title|vcardtitle)$/]:not(:has(> VStartTag:has(VAttribute[directive=false][key.name='class'][value.value=/(^|\\s)d-flex(\\s|$)/]))) > VElement[name=/^(v-spacer|vspacer)$/]",
+    message: 'Vuetify 4 v-card-title is not a flex row: add class="d-flex align-center flex-wrap" so v-spacer works (recipe R35).',
+  },
+  {
+    selector: "VElement[name=/^(v-list-subheader|vlistsubheader)$/] > VElement[name=/^(v-spacer|vspacer)$/]",
+    message: "Vuetify 4 wraps v-list-subheader content in a text block, so v-spacer does nothing: lay the row out in a d-flex wrapper (recipe R35).",
+  },
 ];
 
 const TYPOGRAPHY_GUARD = {
