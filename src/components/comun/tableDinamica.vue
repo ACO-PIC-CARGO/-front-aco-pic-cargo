@@ -396,7 +396,7 @@ export default {
 .categoria {
   background: #c5cae9 !important;
 }
-.totales[data-v-a30aadea] {
+.totales {
   background: #bdbdbd !important;
   font-weight: bold;
   /* color: #fff !important; */
@@ -409,9 +409,6 @@ th {
   text-align: center;
 }
 .text-red {
-  color: red !important;
-}
-.text-red[data-v-a30aadea] {
   color: red !important;
 }
 </style>

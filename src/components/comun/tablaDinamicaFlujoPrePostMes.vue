@@ -355,15 +355,12 @@ export default {
 .drawer-oculto {
   visibility: hidden;
 }
-.totales[data-v-10da2a35] {
+.totales {
   background: #bdbdbd !important;
   font-weight: bold;
   /* color: #fff !important; */
 }
 .text-red {
-  color: red !important;
-}
-.text-red[data-v-10da2a35] {
   color: red !important;
 }
 thead {

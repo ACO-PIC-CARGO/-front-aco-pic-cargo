@@ -606,7 +606,7 @@ export default {
   background: #e6ffe6 !important;
   color: #333333 !important;
 }
-.thead [data-v-ed7f846e] {
+.thead th {
   font-size: 1rem;
   text-align: center;
   align-content: center;

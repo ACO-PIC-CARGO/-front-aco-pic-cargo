@@ -1774,7 +1774,7 @@ export default {
 </script>
 
 <style scoped>
-.header[data-v-44bc4a93] {
+.header {
   background: #3949ab;
   color: white !important;
   align-content: center !important;
