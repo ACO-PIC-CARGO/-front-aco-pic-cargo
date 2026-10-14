@@ -211,7 +211,7 @@
             <v-col cols="12">
               <v-data-table
                 :headers="headers"
-                :items="$store.state.pricing.datosPrincipales.containers"
+                :items="containersList"
                 class="elevation-1"
               >
                 <template v-slot:[`item.action`]="item">
@@ -737,10 +737,14 @@ export default {
         return this.$store.state.pricing.abrirModalContenedor;
       },
     },
+    containersList() {
+      const containers = this.$store.state.pricing.datosPrincipales.containers;
+      return Array.isArray(containers) ? containers : [];
+    },
   },
   watch: {
     abrirModalContenedorRecargar() {
-      if (this.$store.state.pricing.datosPrincipales.containers.length == 0) {
+      if (this.containersList.length == 0) {
         this.dialogConteiner = true;
       }
     },
@@ -755,7 +759,7 @@ export default {
       );
       if (
         isFCL &&
-        this.$store.state.pricing.datosPrincipales.containers.length == 0
+        this.containersList.length == 0
       ) {
         this.dialogConteiner = true;
       }
@@ -1298,11 +1302,18 @@ export default {
       this.err = "";
       if (this.$refs.frmContainer.validate()) {
         if (
-          this.$store.state.pricing.datosPrincipales.containers.filter(
+          !Array.isArray(
+            this.$store.state.pricing.datosPrincipales.containers,
+          )
+        ) {
+          this.$set(this.$store.state.pricing.datosPrincipales, "containers", []);
+        }
+        if (
+          this.containersList.filter(
             (v) => v.id == this.containers.container.id,
           ).length == 0
         ) {
-          this.$store.state.pricing.datosPrincipales.containers.push({
+          this.containersList.push({
             id_containers: this.containers.container.id,
             id: this.containers.container.id,
             description: this.containers.container.name,
@@ -1321,7 +1332,7 @@ export default {
       }
     },
     async eliminarContainer({ index = null }) {
-      this.$store.state.pricing.datosPrincipales.containers.splice(index, 1);
+      this.containersList.splice(index, 1);
       this.$emit("recargarCostos");
     },
     async aceptar() {
@@ -1356,9 +1367,9 @@ export default {
         }
       }
       if (this.$refs.frmPuerto.validate()) {
-        if (this.isFcl()) {
+        if (this.isFcl) {
           if (
-            this.$store.state.pricing.datosPrincipales.containers.length == 0
+            this.containersList.length == 0
           ) {
             Swal.fire({
               icon: "error",
@@ -1368,7 +1379,7 @@ export default {
             validate = false;
           }
         }
-        if (!this.isFcl()) {
+        if (!this.isFcl) {
           if (
             !this.$store.state.pricing.datosPrincipales.numerobultos &&
             !this.$store.state.pricing.datosPrincipales.volumen &&
