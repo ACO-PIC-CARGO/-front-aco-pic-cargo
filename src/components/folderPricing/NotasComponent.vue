@@ -662,7 +662,7 @@ export default {
             params: { id: this.$store.state.pricing.id },
           };
           if (
-            this.$router.resolve(destino).route.fullPath !==
+            this.$router.resolve(destino).fullPath !==
             this.$route.fullPath
           ) {
             await this.$router.push(destino);
