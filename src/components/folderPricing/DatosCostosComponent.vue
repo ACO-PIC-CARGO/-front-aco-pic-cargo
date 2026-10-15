@@ -196,6 +196,7 @@
             v-if="mostrarImpuestos && mostrarImpuestosEditar"
             :index="opcionSeleccionadaActual.nro_propuesta"
             :amount="$store.state.pricing.datosPrincipales.amount"
+            :list-costos="opcionSeleccionadaActual.listCostos"
             :impuestos="opcionSeleccionadaActual.listImpuestos"
           />
         </v-col>

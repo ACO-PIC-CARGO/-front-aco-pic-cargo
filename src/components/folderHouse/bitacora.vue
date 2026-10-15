@@ -707,16 +707,19 @@ export default {
       return val;
     },
     ObtenerComentariosPredifinidos() {
-      let bitacora = this.$store.state.itemsBitacoraLineal.filter(
-        (v) => v.id == this.$store.state.bitacora_id_bitacora
-      )[0];
-      if (!bitacora.comentarios.some((v) => v.id == -1)) {
+      let bitacora = (this.$store.state.itemsBitacoraLineal || []).find(
+        (v) => v && v.id == this.$store.state.bitacora_id_bitacora
+      );
+      if (!bitacora || !Array.isArray(bitacora.comentarios)) {
+        return [];
+      }
+      if (!bitacora.comentarios.some((v) => v && v.id == -1)) {
         bitacora.comentarios.push({
           id: -1,
           descripcion: "Comentario Manual",
         });
       }
-      return bitacora ? bitacora.comentarios : [];
+      return bitacora.comentarios;
     },
     activarComentarioFlag() {
       let data = { ...this.$store.state.bitacora_comentario_predefinido };

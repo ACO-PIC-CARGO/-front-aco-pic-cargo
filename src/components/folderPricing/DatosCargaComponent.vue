@@ -211,7 +211,7 @@
             <v-col cols="12">
               <v-data-table
                 :headers="headers"
-                :items="$store.state.pricing.datosPrincipales.containers"
+                :items="containersList"
                 class="elevation-1"
               >
                 <template v-slot:[`item.action`]="item">
@@ -725,16 +725,10 @@ export default {
     clearTimeout(this.puertoOrigenDebounce);
     clearTimeout(this.puertoDestinoDebounce);
   },
-  computed: {
-    abrirModalContenedor: {
-      get() {
-        return this.$store.state.pricing.abrirModalContenedor;
-      },
-    },
-  },
+
   watch: {
     abrirModalContenedorRecargar() {
-      if (this.$store.state.pricing.datosPrincipales.containers.length == 0) {
+      if (this.containersList.length == 0) {
         this.dialogConteiner = true;
       }
     },
@@ -747,10 +741,7 @@ export default {
               : this.$store.state.pricing.datosPrincipales.idtipocarga) &&
           v.code == "FCL",
       );
-      if (
-        isFCL &&
-        this.$store.state.pricing.datosPrincipales.containers.length == 0
-      ) {
+      if (isFCL && this.containersList.length == 0) {
         this.dialogConteiner = true;
       }
       if (
@@ -1273,10 +1264,9 @@ export default {
       this.$forceUpdate();
     },
     desactivarTransporteParaGrupal() {
-      const servicioTransporte =
-        this.$store.state.pricing.listServices.find(
-          (servicio) => Number(servicio.code_service) === 14,
-        );
+      const servicioTransporte = this.$store.state.pricing.listServices.find(
+        (servicio) => Number(servicio.code_service) === 14,
+      );
       if (servicioTransporte) {
         servicioTransporte.status = false;
       }
@@ -1288,11 +1278,16 @@ export default {
       this.err = "";
       if ((await this.$refs.frmContainer.validate()).valid) {
         if (
-          this.$store.state.pricing.datosPrincipales.containers.filter(
+          !Array.isArray(this.$store.state.pricing.datosPrincipales.containers)
+        ) {
+          this.$store.state.pricing.datosPrincipales.containers = [];
+        }
+        if (
+          this.containersList.filter(
             (v) => v.id == this.containers.container.id,
           ).length == 0
         ) {
-          this.$store.state.pricing.datosPrincipales.containers.push({
+          this.containersList.push({
             id_containers: this.containers.container.id,
             id: this.containers.container.id,
             description: this.containers.container.name,
@@ -1311,7 +1306,7 @@ export default {
       }
     },
     async eliminarContainer({ index = null }) {
-      this.$store.state.pricing.datosPrincipales.containers.splice(index, 1);
+      this.containersList.splice(index, 1);
       this.$emit("recargarCostos");
     },
     async aceptar() {
@@ -1346,12 +1341,8 @@ export default {
         }
       }
       if ((await this.$refs.frmPuerto.validate()).valid) {
-        if (
-          this.$store.state.pricing.datosPrincipales.idtipocarga.code == "FCL"
-        ) {
-          if (
-            this.$store.state.pricing.datosPrincipales.containers.length == 0
-          ) {
+        if (this.isFcl) {
+          if (this.containersList.length == 0) {
             Swal.fire({
               icon: "error",
               title: "Aviso",
@@ -1360,9 +1351,7 @@ export default {
             validate = false;
           }
         }
-        if (
-          this.$store.state.pricing.datosPrincipales.idtipocarga.code != "FCL"
-        ) {
+        if (!this.isFcl) {
           if (
             !this.$store.state.pricing.datosPrincipales.numerobultos &&
             !this.$store.state.pricing.datosPrincipales.volumen &&
@@ -1388,7 +1377,6 @@ export default {
     //
     async calcular() {
       if ((await this.$refs.calcularPesoFrom.validate()).valid) {
-        
         let factLongitud = this.unidadesLongitud.filter(
           (v) => v.value == this.fromMedidas.idLongitud,
         )[0].factor;
@@ -1397,14 +1385,12 @@ export default {
           (v) => v.value == this.fromMedidas.idpeso,
         )[0].factor;
 
-       
-
         let volumen =
           this.fromMedidas.largo *
           this.fromMedidas.ancho *
           this.fromMedidas.alto *
           Math.pow(factLongitud, 3);
-      
+
         let peso = facPeso * this.fromMedidas.peso * this.fromMedidas.bultos;
         this.tblMedida.push({
           uni: this.fromMedidas.bultos,
@@ -1608,7 +1594,7 @@ export default {
           }
         }
       }
-      
+
       return {
         costounitario: costounitario,
         flete: flete,
@@ -1643,7 +1629,7 @@ export default {
     },
     async confirmarCambio(tipo, nuevoValor) {
       this.id_percepcionaduana = null;
-      
+
       if (!nuevoValor) {
         if (tipo === "grupal")
           this.$store.state.pricing.datosPrincipales.esgrupalflag = false;
@@ -1652,7 +1638,6 @@ export default {
         return;
       }
 
-      
       if (tipo === "grupal") {
         const result = await Swal.fire({
           title:
@@ -1685,7 +1670,6 @@ export default {
             this.cambiarGrupalIndividual();
           }, 100);
         } else {
-          
           this.$store.state.pricing.datosPrincipales.esgrupalflag = true;
           this.$nextTick(() => {
             this.$store.state.pricing.datosPrincipales.esgrupalflag = false;
@@ -1730,7 +1714,6 @@ export default {
             this.dialogCambiarPercepcionAduana = true;
           }, 200);
         } else {
-          
           this.$store.state.pricing.datosPrincipales.esindividualflag = true;
           this.$nextTick(() => {
             this.$store.state.pricing.datosPrincipales.esindividualflag = false;
@@ -1786,6 +1769,15 @@ export default {
     },
   },
   computed: {
+    abrirModalContenedor: {
+      get() {
+        return this.$store.state.pricing.abrirModalContenedor;
+      },
+    },
+    containersList() {
+      const containers = this.$store.state.pricing.datosPrincipales.containers;
+      return Array.isArray(containers) ? containers : [];
+    },
     getPuertoOrigen() {
       let puertos = [];
 
@@ -1819,25 +1811,13 @@ export default {
     },
 
     isFcl() {
-      if (
-        typeof this.$store.state.pricing.datosPrincipales.idtipocarga ===
-        "object"
-      ) {
-        return (
-          this.$store.state.pricing.datosPrincipales.idtipocarga.code === "FCL"
-        );
+      const tipoCarga = this.$store.state.pricing.datosPrincipales.idtipocarga;
+      if (tipoCarga && typeof tipoCarga === "object") {
+        return tipoCarga.code === "FCL";
       }
-      if (
-        typeof this.$store.state.pricing.datosPrincipales.idtipocarga !==
-        "object"
-      ) {
-        return this.$store.state.pricing.listShipment.some(
-          (v) =>
-            v.id == this.$store.state.pricing.datosPrincipales.idtipocarga &&
-            v.code == "FCL",
-        );
-      }
-      return false;
+      return (this.$store.state.pricing.listShipment || []).some(
+        (item) => item && item.id == tipoCarga && item.code == "FCL",
+      );
     },
     isAereo() {
       let inVal = ["Aéreo", "LCL"];
@@ -1858,7 +1838,6 @@ export default {
       return it && inVal.includes(it.code);
     },
     pesoVolumetrico() {
-      
       if (!this.isAereo) return null;
 
       const datos = this.$store.state.pricing.datosPrincipales || {};
@@ -1870,7 +1849,6 @@ export default {
       return parseFloat(pv.toFixed(2));
     },
     pesoCargable() {
-      
       if (!this.isAereo) return null;
 
       const datos = this.$store.state.pricing.datosPrincipales || {};
@@ -1879,7 +1857,6 @@ export default {
 
       if (!pesoReal && !volumen) return null;
 
-      
       const pesoVolumetrico = volumen > 0 ? volumen * 166.66 : 0;
 
       const chargeable = Math.max(pesoReal || 0, pesoVolumetrico || 0);

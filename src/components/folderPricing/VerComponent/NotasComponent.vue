@@ -642,10 +642,16 @@ export default {
           }
 
           // 4. Redirección final
-          this.$router.push({
+          const destino = {
             name: "verQuote",
             params: { id: this.$store.state.pricing.id },
-          });
+          };
+          if (
+            this.$router.resolve(destino).route.fullPath !==
+            this.$route.fullPath
+          ) {
+            await this.$router.push(destino);
+          }
         }
       }
     },

@@ -80,6 +80,76 @@
         </v-stepper-window-item>
       </v-stepper-window>
     </v-stepper>
+
+    <!-- DIÁLOGO: NO EXISTE TARIFA DE TRANSPORTE -->
+    <v-dialog v-model="dialogPesoVolumen" max-width="30%" persistent>
+      <v-card class="alert-card text-center" elevation="0">
+        <div class="alert-illustration">
+          <v-img
+            src="/img/jpg/transporte.jpg"
+            max-width="250"
+            height="225"
+          />
+        </div>
+
+        <div class="alert-heading">
+          <div class="alert-title">NO EXISTE TARIFA DE</div>
+
+          <div class="alert-banner">TRANSPORTE</div>
+        </div>
+
+        <div class="alert-description">
+          El peso o volumen ingresado
+          <strong>supera lo registrado</strong>
+          en el sistema.
+        </div>
+
+        <v-card-actions class="justify-center alert-actions">
+          <v-btn
+            color="primary"
+            class="alert-button"
+            rounded
+            variant="flat"
+            @click="dialogPesoVolumen = false"
+          >
+            Entendido
+          </v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
+
+    <!-- DIÁLOGO: DISTRITO SIN TARIFA -->
+    <v-dialog v-model="dialogDistrito" max-width="30%" persistent>
+      <v-card class="alert-card text-center" elevation="0">
+        <div class="alert-illustration">
+          <v-img src="/img/jpg/map.jpg" max-width="250" height="225" />
+        </div>
+
+        <div class="alert-heading">
+          <div class="alert-title alert-title-single">DISTRITO</div>
+
+          <div class="alert-banner">SIN TARIFA</div>
+        </div>
+
+        <div class="alert-description">
+          El distrito seleccionado
+          <strong>no cuenta con tarifa</strong>
+          en el sistema.
+        </div>
+
+        <v-card-actions class="justify-center alert-actions">
+          <v-btn
+            color="primary"
+            class="alert-button"
+            rounded
+            variant="flat"
+            @click="dialogDistrito = false"
+          >
+            Entendido
+          </v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
   </v-container>
 </template>
 
@@ -108,13 +178,15 @@ export default {
   data() {
     return {
       step: 1,
-      editableStep3:false,
+      editableStep3: false,
       DatosCargaComponentFlag: false,
       ServicesComponentFlag: false,
       editableStep2: false,
       editableStep4: false,
       recargarSegmentos: false,
       indexCostos: 0,
+      dialogDistrito: false,
+      dialogPesoVolumen: false,
     };
   },
   async mounted() {
@@ -259,8 +331,7 @@ export default {
             .id_branch,
         }),
       ]);
-       const {  esgrupalflag } =
-        this.$store.state.pricing.datosPrincipales;
+      const { esgrupalflag } = this.$store.state.pricing.datosPrincipales;
 
       if (esgrupalflag) {
         serv = serv.map((v) => {
@@ -324,6 +395,33 @@ export default {
       });
     },
     async activarLlenadoCostos() {
+      let existeTransporteDestino = this.$store.state.pricing.listServices.some(
+        (v) => v.code_service == 14 && v.status == 1,
+      );
+      let { id_town, peso } = this.$store.state.pricing.datosPrincipales;
+      
+      let val = this.$store.state.calculadoras.lstTransporte.some(
+        (v) =>
+          v.id_distrito == id_town &&
+          peso >= v.peso_desde &&
+          peso <= v.peso_hasta,
+      );
+
+      if (existeTransporteDestino && !val) {
+        val = this.$store.state.calculadoras.lstTransporte.some(
+          (v) => v.id_distrito == id_town,
+        );
+        if (!val) {
+          this.dialogDistrito = true;
+
+          return;
+        } else {
+          this.dialogPesoVolumen = true;
+
+          return;
+        }
+      }
+
       let idTipoCarga =
         typeof this.$store.state.pricing.datosPrincipales.idtipocarga ===
         "object"
@@ -359,7 +457,10 @@ export default {
         await this.activarLlenadoCostosIndividual();
       }
     },
-    async activarLlenadoCostosGrupal(indiceOpcion = 0, mostrarConfirmacion = true) {
+    async activarLlenadoCostosGrupal(
+      indiceOpcion = 0,
+      mostrarConfirmacion = true,
+    ) {
       this.$store.state.spiner = true;
 
       const {
@@ -697,8 +798,7 @@ export default {
       }
       if (item.code_cost == 4) {
         const tieneFleteVenta =
-          !!this.$store.state.calculadoras.fletePricing
-            .monto_flete_grupal;
+          !!this.$store.state.calculadoras.fletePricing.monto_flete_grupal;
         datoFlete.monto = tieneFleteVenta
           ? this.obtenerPrecioUnitarioGrupal(
               item,
@@ -707,8 +807,7 @@ export default {
           : 0;
         datoFlete.tienefleteflag = tieneFleteVenta;
         datoFlete.fechavigencia = tieneFleteVenta
-          ? this.$store.state.calculadoras.fletePricing
-              .vigencia_grupal || null
+          ? this.$store.state.calculadoras.fletePricing.vigencia_grupal || null
           : null;
       }
       if (datoFlete.monto < 0) {
@@ -746,7 +845,7 @@ export default {
         );
 
         if (transporte) {
-          monto = parseFloat(transporte.tarifadolar); 
+          monto = parseFloat(transporte.tarifadolar);
         }
       }
       return monto;
@@ -998,7 +1097,7 @@ export default {
     irVentaCliente() {
       this.step = 2;
       this.$store.state.pricing.step = 2;
-      this.editableStep3 = true
+      this.editableStep3 = true;
     },
     irANotas() {
       this.step = 4;
@@ -1085,7 +1184,9 @@ export default {
 
       if (idxMarketing > -1) {
         const val = norm(row[idxMarketing]);
-        const it = (sp.listMarketing || []).find((x) => norm(x.name) === val);
+        const it = (sp.listMarketing || []).find(
+          (x) => x && norm(x.name) === val,
+        );
         if (it) {
           sp.datosPrincipales.id_marketing = it.id;
           cambios++;
@@ -1093,7 +1194,9 @@ export default {
       }
       if (idxStatus > -1) {
         const val = norm(row[idxStatus]);
-        const it = (sp.listQuoteStatus || []).find((x) => norm(x.name) === val);
+        const it = (sp.listQuoteStatus || []).find(
+          (x) => x && norm(x.name) === val,
+        );
         if (it) {
           sp.datosPrincipales.id_status = it.id;
           cambios++;
@@ -1102,7 +1205,7 @@ export default {
       if (idxEjecutivo > -1) {
         const val = norm(row[idxEjecutivo]);
         const it = (sp.listEjecutivo || []).find(
-          (x) => norm(x.nombrecompleto) === val,
+          (x) => x && norm(x.nombrecompleto) === val,
         );
         if (it) {
           sp.datosPrincipales.id_vendedor = it.id;
@@ -1112,7 +1215,7 @@ export default {
       if (idxPricing > -1) {
         const val = norm(row[idxPricing]);
         const it = (sp.listEjecutivo || []).find(
-          (x) => norm(x.nombrecompleto) === val,
+          (x) => x && norm(x.nombrecompleto) === val,
         );
         if (it) {
           sp.datosPrincipales.id_pricing = it.id;
@@ -1162,7 +1265,7 @@ export default {
       if (idxIncoterms > -1) {
         const val = norm(row[idxIncoterms]);
         const it = (sp.listIncoterms || []).find(
-          (x) => norm(x.name) === val || norm(x.text || "") === val,
+          (x) => x && (norm(x.name) === val || norm(x.text || "") === val),
         );
         if (it) {
           sp.datosPrincipales.idincoterms = it.id;
@@ -1294,5 +1397,103 @@ export default {
 <style scoped>
 .align-right {
   text-align: right;
+}
+
+.alert-card {
+  padding: 10px 10px 8px;
+  border: 2px solid #d2edfc;
+  border-radius: 17px !important;
+  background: #edf7fd !important;
+  overflow: hidden;
+}
+
+.alert-illustration {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 120px;
+  margin-bottom: 3px;
+}
+
+.alert-illustration .v-img {
+  max-width: 145px !important;
+  height: 120px !important;
+}
+
+.alert-heading {
+  margin: 0 0 10px;
+  color: #08234d;
+  font-weight: 900;
+  letter-spacing: -0.4px;
+  line-height: 1.1;
+}
+
+.alert-title {
+  font-size: 19px;
+  margin-bottom: 5px;
+}
+
+.alert-title-single {
+  font-size: 27px;
+  margin-bottom: 5px;
+}
+
+.alert-banner {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 43px;
+  padding: 5px 6px;
+  border-radius: 8px;
+  background: #2169b4;
+  color: #fff;
+  font-size: 27px;
+  font-weight: 900;
+  letter-spacing: -0.5px;
+  line-height: 1.05;
+}
+
+.alert-description {
+  padding: 10px 7px;
+  margin-bottom: 3px;
+  border: 1px solid #edf1f5;
+  border-radius: 13px;
+  background: #fff;
+  color: #435977;
+  font-size: 14px;
+  line-height: 1.4;
+}
+
+.alert-description strong {
+  color: #2169b4;
+  font-weight: 800;
+}
+
+.alert-actions {
+  padding: 6px 0 0;
+}
+
+.alert-button {
+  min-width: 110px !important;
+  min-height: 34px !important;
+  padding: 0 18px !important;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+@media (max-width: 400px) {
+  .alert-title {
+    font-size: 16px;
+  }
+
+  .alert-banner {
+    font-size: 23px;
+    min-height: 39px;
+  }
+
+  .alert-description {
+    font-size: 12px;
+    padding: 9px 6px;
+  }
 }
 </style>

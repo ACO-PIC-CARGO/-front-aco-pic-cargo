@@ -122,13 +122,14 @@
               <v-row class="mt-1">
                 <v-col cols="12">
                   <!-- show-select -->
+                  <!-- @input="calcularTotal" -->
+
                   <v-data-table
                     :headers="headers"
                     :items="itemsOrdenados"
                     v-model="selected"
                     item-value="id"
                     return-object
-                    @update:model-value="calcularTotal"
                     :search="searchTableDetalle"
                   >
                     <template v-slot:body.append>
@@ -695,7 +696,7 @@ export default {
         item.montoparcial = 0;
         item.parcialflag = false;
       }
-      this.calcularTotal();
+      // this.calcularTotal();
     },
     esImagen(url) {
       if (!url) return false;
@@ -714,7 +715,7 @@ export default {
           item.parcialflag = false;
         }
       });
-      this.calcularTotal();
+      // this.calcularTotal();
     },
     recibirId(file) {
       console.log("Archivo recibido en el componente padre:", file);
@@ -984,7 +985,7 @@ export default {
     },
     selected: {
       handler(newVal) {
-        this.calcularTotal();
+        // this.calcularTotal();
       },
       deep: true, // Esto detecta cambios en las propiedades internas de los items
     },

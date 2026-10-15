@@ -526,18 +526,18 @@
       </template>
 
       <template v-slot:expanded-row="{ columns, item }">
-        <tr>
+        <tr v-if="item">
         <td :colspan="columns.length">
           <v-table>
             <thead class="headerDetails">
               <tr>
-                <th v-if="item.details.length > 0">Fecha</th>
-                <th v-if="item.details.length > 0">Comentario</th>
+                <th v-if="(item.details || []).length > 0">Fecha</th>
+                <th v-if="(item.details || []).length > 0">Comentario</th>
                 <th>Usuario</th>
               </tr>
             </thead>
-            <tbody v-if="item.details.length > 0">
-              <tr v-for="(i, index) in item.details" :key="i.id || index">
+            <tbody v-if="(item.details || []).length > 0">
+              <tr v-for="(i, index) in item.details || []" :key="i.id || index">
                 <td>{{ i.fecha }}</td>
                 <td>{{ i.notes }}</td>
                 <td>{{ i.namelong }}</td>
