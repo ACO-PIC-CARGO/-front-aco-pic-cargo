@@ -801,7 +801,10 @@ export default {
               esgrupalflag: esgrupalflag,
               esindividualflag: esindividualflag,
             }),
-            this.cambiarNotasIndividualGrupal(),
+            this.cambiarNotasIndividualGrupal({
+              esgrupalflag: false,
+              esindividualflag: true,
+            }),
           ]);
         }, 100);
       }
@@ -949,34 +952,18 @@ export default {
         this.$emit("recargarGrupalFlag");
       }, 500);
     },
-    cambiarNotasIndividualGrupal(
+    cambiarNotasIndividualGrupal({
       esgrupalflag = false,
       esindividualflag = false,
-    ) {
-      let newNotas = this.$store.state.pricing.listNotasQuote.filter((v) =>
-        esindividualflag
-          ? v.individualflag
-          : esgrupalflag
-          ? v.grupalflag
-          : false,
+    } = {}) {
+      const newNotas = this.$store.state.pricing.listNotasQuote.filter((v) =>
+        esindividualflag ? v.individualflag : esgrupalflag && v.grupalflag,
       );
 
       this.$store.state.pricing.opcionCostos.forEach((element) => {
         element.listNotasQuote = [
-          ...element.listNotasQuote.map((v) => {
-            return v.estado == 0;
-          }),
-          ...newNotas
-            .filter((v) =>
-              esindividualflag
-                ? v.individual
-                : esgrupalflag
-                ? v.grupalflag
-                : true,
-            )
-            .map((v) => {
-              return { ...v, id: null, estado: 1 };
-            }),
+          ...element.listNotasQuote.filter((v) => v.estado == 0),
+          ...newNotas.map((v) => ({ ...v, id: null, estado: 1 })),
         ];
       });
     },
@@ -1884,6 +1871,10 @@ export default {
           if (cambioDesdeGrupal) {
             this.cambiarServicioTransporteActivo();
           }
+          this.cambiarNotasIndividualGrupal({
+            esgrupalflag: false,
+            esindividualflag: true,
+          });
           setTimeout(() => {
             this.cambiarImpuesto();
             if (cambioDesdeGrupal) {
@@ -1912,6 +1903,10 @@ export default {
           this.$store.state.pricing.datosPrincipales.esgrupalflag = true;
           this.$store.state.pricing.datosPrincipales.esindividualflag = false;
           this.desactivarTransporteParaGrupal();
+          this.cambiarNotasIndividualGrupal({
+            esgrupalflag: true,
+            esindividualflag: false,
+          });
           setTimeout(() => {
             this.cambiarImpuesto();
           }, 100);

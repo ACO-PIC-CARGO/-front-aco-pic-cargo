@@ -1373,8 +1373,11 @@ const actions = {
       });
     });
 
+    const datosPrincipales = { ...state.datosPrincipales };
+    delete datosPrincipales.opcioncostos;
+
     let data = {
-      ...state.datosPrincipales,
+      ...datosPrincipales,
       tiporeporte: state.tiporeporte ? state.tiporeporte : "TOTAL",
       fullflag: fullflag,
       idtipocarga: state.datosPrincipales.idtipocarga.id
@@ -3811,8 +3814,11 @@ const actions = {
         selected: opcionCosto.selected,
       });
     });
+    const datosPrincipales = { ...state.datosPrincipales };
+    delete datosPrincipales.opcioncostos;
+
     let data = {
-      ...state.datosPrincipales,
+      ...datosPrincipales,
       tiporeporte: state.tiporeporte ? state.tiporeporte : "TOTAL",
       id_quote: state.id,
       fullflag: true,
