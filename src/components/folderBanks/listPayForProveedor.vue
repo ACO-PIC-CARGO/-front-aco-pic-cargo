@@ -114,7 +114,7 @@
           </v-simple-table>
           <v-simple-table
             style="width: 100%"
-            v-if="item.table_comisionbancaria.length > 0"
+            v-if="mostrarComisionBancaria(item.table_comisionbancaria)"
           >
             <thead style="background: #e3f2fd">
               <tr>
@@ -928,6 +928,12 @@ export default {
       } else {
         this.tiposubgastosFilter = this.$store.state.balances.tiposubgastos;
       }
+    },
+    mostrarComisionBancaria(table_comisionbancaria) {
+      let cantRegistros = table_comisionbancaria
+        ? table_comisionbancaria.length
+        : 0;
+      return cantRegistros > 0;
     },
   },
   watch: {
