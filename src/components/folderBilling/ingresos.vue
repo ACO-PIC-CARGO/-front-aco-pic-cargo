@@ -1687,7 +1687,7 @@ export default {
     setTimeout(() => {
       this.headersFacturas[2].title =
         this.$store.state.enterprises.impuesto.nombre_impuesto;
-      this.headersFacturas[4].text =
+      this.headersFacturas[4].title =
         this.$store.state.enterprises.impuesto.nombre_impuesto;
       this.mostrarImpuesto =
         this.$store.state.enterprises.impuesto.mostrarimpuesto;
