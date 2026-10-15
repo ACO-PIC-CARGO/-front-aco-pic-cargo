@@ -492,10 +492,10 @@
           <v-autocomplete
             v-model="$store.state.pricing.datosPrincipales.id_town"
             :items="$store.state.town.lstTown"
-            item-text="nombrecompleto"
+            item-title="nombrecompleto"
             item-value="id"
-            dense
-            outlined
+            density="compact"
+            variant="outlined"
           />
         </v-card-text>
         <v-card-actions class="px-6 pb-4">
