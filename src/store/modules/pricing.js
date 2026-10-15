@@ -5681,12 +5681,12 @@ const actions = {
     state.listIngresosInstructivoAprobar = [];
 
     if (!Array.isArray(state.listInstructivo) || !state.listInstructivo[0]) {
-      Swal.fire({
-        icon: "error",
-        title: "Ocurrió un error",
-        text: "No se encontraron los datos del instructivo para generar los costos.",
-        showConfirmButton: true,
-      });
+      // Swal.fire({
+      //   icon: "error",
+      //   title: "Ocurrió un error",
+      //   text: "No se encontraron los datos del instructivo para generar los costos.",
+      //   showConfirmButton: true,
+      // });
       return;
     }
 
@@ -6331,12 +6331,12 @@ const actions = {
   },
   async GuardaCostosFinalesQuote({ dispatch }) {
     if (!Array.isArray(state.listInstructivo) || !state.listInstructivo[0]) {
-      Swal.fire({
-        icon: "error",
-        title: "Ocurrió un error",
-        text: "No se encontraron los datos del instructivo para guardar los costos.",
-        showConfirmButton: true,
-      });
+      // Swal.fire({
+      //   icon: "error",
+      //   title: "Ocurrió un error",
+      //   text: "No se encontraron los datos del instructivo para guardar los costos.",
+      //   showConfirmButton: true,
+      // });
       return;
     }
     await dispatch("generaInstructivoparaguardata");
