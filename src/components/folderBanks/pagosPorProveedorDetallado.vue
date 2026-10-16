@@ -64,7 +64,6 @@
     </v-row>
 
     <v-navigation-drawer
-      absolute
       permanent
       temporary
       location="right"

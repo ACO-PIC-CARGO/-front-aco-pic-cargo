@@ -66,7 +66,6 @@
         <!--ADD NEW RECORD-->
         <v-navigation-drawer
           v-model="showFilterDrawerNew"
-          absolute
           location="right"
           temporary
           
@@ -140,7 +139,6 @@
         <!--VIEW RECORD-->
         <v-navigation-drawer
           v-model="showFilterDrawerView"
-          absolute
           location="right"
           temporary
           
@@ -196,7 +194,6 @@
         <!--EDIT RECORD-->
         <v-navigation-drawer
           v-model="showFilterDrawerEdit"
-          absolute
           location="right"
           temporary
           
@@ -267,7 +264,6 @@
         <!--FILTER RECORD-->
         <v-navigation-drawer
           v-model="showFilterDrawer"
-          absolute
           location="right"
           temporary
           

@@ -380,7 +380,6 @@
     <v-navigation-drawer
       v-model="filtrar"
       location="right"
-      absolute
       
       width="30%"
       temporary

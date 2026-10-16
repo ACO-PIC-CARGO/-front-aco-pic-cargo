@@ -198,7 +198,6 @@
     <v-navigation-drawer
       v-if="offcanvas"
       v-model="offcanvas"
-      absolute
       temporary
       location="right"
       width="28%"

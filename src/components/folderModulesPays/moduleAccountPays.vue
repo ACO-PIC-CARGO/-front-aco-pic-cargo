@@ -152,7 +152,6 @@
     <v-navigation-drawer
       v-model="filtroflag"
       location="right"
-      absolute
       
       width="40%"
       temporary

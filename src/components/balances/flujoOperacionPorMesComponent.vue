@@ -2,7 +2,6 @@
   <v-container fluid>
     <v-navigation-drawer
       v-model="filtroFlag"
-      absolute
       location="right"
       temporary
       

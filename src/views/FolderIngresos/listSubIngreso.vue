@@ -4,7 +4,6 @@
     <v-navigation-drawer
       v-model="$store.state.subingreso.drawer"
       location="right"
-      absolute
       
       width="30%"
       temporary

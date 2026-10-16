@@ -79,7 +79,6 @@
 
     <v-navigation-drawer
       v-model="showFilterDrawer"
-      absolute
       location="right"
       temporary
       

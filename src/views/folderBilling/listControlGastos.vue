@@ -5,7 +5,6 @@
     <v-navigation-drawer
       v-model="$store.state.cg_filtrarData"
       location="right"
-      absolute
       
       width="20%"
       temporary

@@ -181,7 +181,6 @@
     </v-dialog>
     <v-navigation-drawer
       v-model="filtar"
-      absolute
       location="right"
       temporary
       

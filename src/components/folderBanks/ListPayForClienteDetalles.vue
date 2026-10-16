@@ -114,7 +114,6 @@
       </v-data-table>
 
       <v-navigation-drawer
-        absolute
         permanent
         temporary
         location="right"

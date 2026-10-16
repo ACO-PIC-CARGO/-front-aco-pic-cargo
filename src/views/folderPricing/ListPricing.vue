@@ -53,7 +53,6 @@
     <v-navigation-drawer
       v-model="$store.state.pricing.filtrarQuoteFlag"
       location="right"
-      absolute
       width="40%"
       temporary
     >
@@ -64,7 +63,6 @@
     <v-navigation-drawer
       v-model="$store.state.pricing.filtrarCallsFlag"
       location="right"
-      absolute
       width="40%"
       temporary
     >

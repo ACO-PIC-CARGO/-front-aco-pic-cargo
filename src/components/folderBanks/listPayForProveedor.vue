@@ -245,7 +245,6 @@
     </v-dialog>
 
     <v-navigation-drawer
-      absolute
       permanent
       temporary
       location="right"

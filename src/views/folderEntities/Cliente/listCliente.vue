@@ -6,7 +6,6 @@
     <v-navigation-drawer
       v-model="$store.state.entities.filtrarProveedor"
       location="right"
-      absolute
       
       width="20%"
       temporary
