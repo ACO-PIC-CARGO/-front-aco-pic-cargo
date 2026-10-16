@@ -4,12 +4,13 @@
       <v-tabs
         v-model="tab"
         bg-color="teal-darken-4"
+        color="white"
         grow
         stacked
       >
-        <v-tab value="datos"> Datos de la Empresa</v-tab>
+        <v-tab base-color="rgba(255, 255, 255, 0.6)" value="datos"> Datos de la Empresa</v-tab>
 
-        <v-tab value="admin"> Administrador Principal SISTEMA </v-tab>
+        <v-tab base-color="rgba(255, 255, 255, 0.6)" value="admin"> Administrador Principal SISTEMA </v-tab>
       </v-tabs>
       <v-tabs-window v-model="tab">
         <v-tabs-window-item value="datos" class="px-5 items">

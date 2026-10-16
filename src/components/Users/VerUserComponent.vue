@@ -3,14 +3,15 @@
     <v-tabs
       v-model="tab"
       bg-color="teal-darken-4"
+      color="white"
       grow
       stacked
     >
-      <v-tab value="datos"> Datos del Usuario </v-tab>
+      <v-tab base-color="rgba(255, 255, 255, 0.6)" value="datos"> Datos del Usuario </v-tab>
 
-      <v-tab value="posicion"> Módulos a Usar </v-tab>
+      <v-tab base-color="rgba(255, 255, 255, 0.6)" value="posicion"> Módulos a Usar </v-tab>
 
-      <!-- <v-tab value="sucursal"> Sucursal </v-tab> -->
+      <!-- <v-tab base-color="rgba(255, 255, 255, 0.6)" value="sucursal"> Sucursal </v-tab> -->
     </v-tabs>
     <v-tabs-window v-model="tab">
       <v-tabs-window-item value="datos" class="px-5 items">

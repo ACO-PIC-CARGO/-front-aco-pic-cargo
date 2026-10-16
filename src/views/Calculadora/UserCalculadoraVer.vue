@@ -5,11 +5,12 @@
         v-model="model"
         align-tabs="center"
         bg-color="teal-darken-3"
+        color="white"
         slider-color="teal-lighten-3"
         show-arrows
       >
-        <v-tab key="principal">Datos Principales</v-tab>
-        <v-tab key="xxx">Costos</v-tab>
+        <v-tab base-color="rgba(255, 255, 255, 0.6)" key="principal">Datos Principales</v-tab>
+        <v-tab base-color="rgba(255, 255, 255, 0.6)" key="xxx">Costos</v-tab>
       </v-tabs>
       <v-tabs-window v-model="model" class="mt-3">
         <v-tabs-window-item key="principal">

@@ -3,20 +3,21 @@
     <v-container fluid>
       <v-tabs
         bg-color="#B71C1C"
+        color="white"
         center-active
         align-tabs="center"
         slider-color="red"
         v-model="tab"
       >
-        <v-tab value="flete">Carga Masiva Flete</v-tab>
-        <v-tab value="config">Configuracion</v-tab>
-        <v-tab value="fletelst">Listado Fletes </v-tab>
-        <!-- <v-tab href="#fletegrup" active>Listado Fletes Grupal</v-tab> -->
-        <!-- <v-tab href="#section">Secciones </v-tab> -->
-        <!-- <v-tab href="#serv">Servicios </v-tab> -->
-        <!-- <v-tab href="#cost">Costos Fijos</v-tab> -->
-        <!-- <v-tab href="#profit">Profit</v-tab> -->
-        <v-tab value="Transporte">Transporte</v-tab>
+        <v-tab base-color="rgba(255, 255, 255, 0.6)" value="flete">Carga Masiva Flete</v-tab>
+        <v-tab base-color="rgba(255, 255, 255, 0.6)" value="config">Configuracion</v-tab>
+        <v-tab base-color="rgba(255, 255, 255, 0.6)" value="fletelst">Listado Fletes </v-tab>
+        <!-- <v-tab base-color="rgba(255, 255, 255, 0.6)" href="#fletegrup" active>Listado Fletes Grupal</v-tab> -->
+        <!-- <v-tab base-color="rgba(255, 255, 255, 0.6)" href="#section">Secciones </v-tab> -->
+        <!-- <v-tab base-color="rgba(255, 255, 255, 0.6)" href="#serv">Servicios </v-tab> -->
+        <!-- <v-tab base-color="rgba(255, 255, 255, 0.6)" href="#cost">Costos Fijos</v-tab> -->
+        <!-- <v-tab base-color="rgba(255, 255, 255, 0.6)" href="#profit">Profit</v-tab> -->
+        <v-tab base-color="rgba(255, 255, 255, 0.6)" value="Transporte">Transporte</v-tab>
       </v-tabs>
       <v-tabs-window v-model="tab">
         <v-tabs-window-item value="fletelst">
