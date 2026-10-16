@@ -909,7 +909,7 @@
                             NOMBRE: {{ proveedor.namelong || "" }} <br />
                             CONTACTO: {{ proveedor.contacto || "" }} <br />
                             EMAIL:
-                            <a :href="`mailto:${proveedor.emailaddress}`">
+                            <a class="text-primary" :href="`mailto:${proveedor.emailaddress}`">
                               {{ proveedor.emailaddress || "" }} </a
                             ><br />
                             TELEFONO: {{ proveedor.contacto_phone || "" }}
@@ -1525,7 +1525,7 @@
                             NOMBRE: {{ proveedor.namelong || "" }} <br />
                             CONTACTO: {{ proveedor.contacto || "" }} <br />
                             EMAIL:
-                            <a :href="`mailto:${proveedor.emailaddress}`">
+                            <a class="text-primary" :href="`mailto:${proveedor.emailaddress}`">
                               {{ proveedor.emailaddress || "" }} </a
                             ><br />
                             TELEFONO: {{ proveedor.contacto_phone || "" }}

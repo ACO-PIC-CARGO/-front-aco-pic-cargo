@@ -40,7 +40,7 @@
                 :key="'main-' + i"
               >
                 <tr
-                  :class="{ 'bg-warning': valor.tieneprofitflag }"
+                  :class="{ 'bg-warning text-black': valor.tieneprofitflag }"
                 >
                   <td class="colConcepto">
                     <v-text-field

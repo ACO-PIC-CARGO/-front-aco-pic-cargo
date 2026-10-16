@@ -221,7 +221,7 @@
               }}
             </v-col>
             <v-col class="py-2 my-0" cols="6">
-              <a @click="enviarCorreo()" v-if="!enviarCodigo && timeLeft <= 0"
+              <a class="text-primary" @click="enviarCorreo()" v-if="!enviarCodigo && timeLeft <= 0"
                 >Reenviar Código</a
               >
             </v-col>

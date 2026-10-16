@@ -51,7 +51,7 @@
                   {{ $store.state.securitys.errorClave }}</span
                 >
                 <p class="rigth my-2">
-                  <a @click="ReEstablecerContrasenia()"><v-icon size="small" class="mr-1">mdi-lock-reset</v-icon> Olvidé Contraseña</a>
+                  <a class="text-primary" @click="ReEstablecerContrasenia()"><v-icon size="small" class="mr-1 text-medium-emphasis">mdi-lock-reset</v-icon> Olvidé Contraseña</a>
                 </p>
                 <v-btn class="my-5" block color="info" @click="acceder()">
                   <v-icon start>mdi-login</v-icon>
