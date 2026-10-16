@@ -234,6 +234,11 @@ export const KNOWN_CONSOLE_NOISE = [
     reason: "same pre-existing issue as the nuevoClientes 'showNombreFiscal' entry, Vue 3 wording: seccionCliente renders v-if=\"showNombreFiscal\" without defining it",
     routes: ["nuevoClientes", "verCliente", "editarCliente"],
   },
+  {
+    pattern: /^\[Vue warn\]: Invalid prop: type check failed for prop "newId"\. Expected Number with value 0, got String with value ""\./,
+    reason: "pre-existing on Vue 2 (same binding at 5b31ae9): ConfiguracionDatosEmpresaComponent passes datoEmpresa.id_pais \"\" to CboPais's Number prop newId; the baseline smoke never opened step 1",
+    routes: ["ConfiguracionInicial"],
+  },
 ];
 
 export const isKnownNoise = (text, routeName) =>

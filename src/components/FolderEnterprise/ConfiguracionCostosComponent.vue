@@ -578,7 +578,7 @@ export default {
       await this._getMenuItem();
 
       setTimeout(async () => {
-        this.$router.push({
+        await this.$router.push({
           name: "Main",
         });
         this.$swal.close();
@@ -987,7 +987,7 @@ export default {
       if (sessionStorage.getItem("dataBranch")) {
         sessionStorage.removeItem("dataBranch");
       }
-      this.$router.push({ name: "Login" });
+      await this.$router.push({ name: "Login" });
       window.location.reload(true);
     },
     reponerCero(valor) {

@@ -1289,9 +1289,9 @@ export default {
           title: "Aviso",
           text: vm.$store.state.pricing.mensaje,
           confirmButtonText: "Ir a ver",
-        }).then((result) => {
+        }).then(async (result) => {
           if (result.isConfirmed) {
-            vm.$router.push({
+            await vm.$router.push({
               name: "verQuote",
               params: { id: vm.$store.state.pricing.id },
             });

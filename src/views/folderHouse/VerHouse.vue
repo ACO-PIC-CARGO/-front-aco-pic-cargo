@@ -367,8 +367,8 @@ export default {
       "getQuoteNoAsignadoHouse",
       "getCargarEjecutivo",
     ]),
-    irAVerMaster() {
-      this.$router.push({
+    async irAVerMaster() {
+      await this.$router.push({
         name: "controlHouseEditar",
         id: this.$route.params.id,
       });

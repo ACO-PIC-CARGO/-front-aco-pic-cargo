@@ -944,7 +944,7 @@ export default {
       if (sessionStorage.getItem("dataBranch")) {
         sessionStorage.removeItem("dataBranch");
       }
-      this.$router.push({ name: "Login" });
+      await this.$router.push({ name: "Login" });
       window.location.reload(true);
     },
     reponerCero(valor) {

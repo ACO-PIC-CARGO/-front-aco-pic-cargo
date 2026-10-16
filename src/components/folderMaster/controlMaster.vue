@@ -178,8 +178,8 @@ export default {
     async recargarDatos() {
       await this._getHouseList();
     },
-    irAVerMaster() {
-      this.$router.push({
+    async irAVerMaster() {
+      await this.$router.push({
         name: "controlMasterEditar",
         id: this.$route.params.id,
       });

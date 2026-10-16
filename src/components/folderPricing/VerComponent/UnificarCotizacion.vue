@@ -59,9 +59,9 @@ export default {
           text: this.$store.state.aduana.mensaje,
           confirmButtonText: "Ir a la cotización",
           showConfirmButton: true,
-        }).then((result) => {
+        }).then(async (result) => {
           if (result.isConfirmed) {
-            this.$router.push({
+            await this.$router.push({
               name: "verQuote",
               params: {
                 id: this.$store.state.aduana.IdQuote,
