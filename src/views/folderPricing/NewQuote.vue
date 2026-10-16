@@ -941,6 +941,9 @@ export default {
     },
     async anadirNuevaOpcion(nro_propuesta) {
       const pricing = this.$store.state.pricing;
+      if (pricing.opcionCostos[0]) {
+        pricing.opcionCostos[0].selected = true;
+      }
       pricing.opcionCostos.push({
         nro_propuesta,
         date_end: moment().add(7, "days").format("YYYY-MM-DD"),
