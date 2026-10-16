@@ -267,6 +267,7 @@ export default {
     continuarComparativa() {
       this.step = 3;
       this.$store.state.pricing.step = 3;
+      this.editableStep3 = true;
     },
     async activarDatosCarga() {
       this.$store.state.spiner = true;
@@ -600,6 +601,8 @@ export default {
             this.step = 2;
             this.$store.state.pricing.step = 2;
             this.editableStep2 = true;
+            this.$store.state.pricing.btnRegistrar = true;
+            this.$store.state.pricing.bloquearBtnImprimir = false;
           } else if (result.isDenied) {
             await this.guardar();
           }
@@ -748,6 +751,8 @@ export default {
             this.step = 2;
             this.$store.state.pricing.step = 2;
             this.editableStep2 = true;
+            this.$store.state.pricing.btnRegistrar = true;
+             this.$store.state.pricing.bloquearBtnImprimir = false;
           } else if (result.isDenied) {
             await this.guardar();
           }
@@ -1098,13 +1103,13 @@ export default {
     irVentaCliente() {
       this.step = 2;
       this.$store.state.pricing.step = 2;
-      this.editableStep3 = true;
+      
     },
     irANotas() {
       this.step = 4;
       this.$store.state.pricing.step = 4;
       this.editableStep4 = true;
-      this.$store.state.pricing.btnRegistrar = true;
+      
     },
     triggerExcel() {
       if (this.$refs.excelInput) this.$refs.excelInput.click();

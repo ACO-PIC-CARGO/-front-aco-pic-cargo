@@ -99,7 +99,7 @@
               @click="abrirModalPreview(item)"
               v-if="item.estadocotizacion == 1"
             >
-              <v-icon class="mx-1">mdi-eye</v-icon> Ver Preview
+              <v-icon class="mx-1">mdi-eye</v-icon> Ver Costos
             </v-btn>
             <v-btn
               block
