@@ -7,6 +7,7 @@
       <v-btn
         @click="showModalServices"
         color="green"
+        class="mt-4 mr-4"
         position="absolute"
         location="top right"
         size="small"

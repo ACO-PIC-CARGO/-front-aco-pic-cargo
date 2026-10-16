@@ -1,7 +1,7 @@
 <template>
   <v-btn
     color="success"
-    class="mt-10 py-6 btnChatea"
+    class="mt-10 mb-4 mr-4 py-6 btnChatea"
     position="fixed"
     location="bottom right"
     @click="abriChat()"
