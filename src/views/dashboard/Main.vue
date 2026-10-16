@@ -1,5 +1,5 @@
 <template>
-  <v-app id="inspire">
+  <div id="inspire">
     <v-navigation-drawer
       width="320"
       v-model="$store.state.drawer"
@@ -510,7 +510,7 @@
         </v-card-actions>
       </v-card>
     </v-dialog>
-  </v-app>
+  </div>
 </template>
 
 <script>
@@ -2099,8 +2099,7 @@ export default {
 </script>
 <style lang="scss" scoped>
 .main {
-  padding: calc(var(--v-layout-top) + 10px) calc(var(--v-layout-right) + 10px)
-    calc(var(--v-layout-bottom) + 10px) calc(var(--v-layout-left) + 10px) !important;
+  padding: 10px !important;
   background: #f4f7fa;
 }
 .perdida {
