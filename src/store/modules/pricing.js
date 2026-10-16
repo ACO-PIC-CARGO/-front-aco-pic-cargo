@@ -1373,8 +1373,11 @@ const actions = {
       });
     });
 
+    const datosPrincipales = { ...state.datosPrincipales };
+    delete datosPrincipales.opcioncostos;
+
     let data = {
-      ...state.datosPrincipales,
+      ...datosPrincipales,
       tiporeporte: state.tiporeporte ? state.tiporeporte : "TOTAL",
       fullflag: fullflag,
       idtipocarga: state.datosPrincipales.idtipocarga.id
@@ -3811,8 +3814,11 @@ const actions = {
         selected: opcionCosto.selected,
       });
     });
+    const datosPrincipales = { ...state.datosPrincipales };
+    delete datosPrincipales.opcioncostos;
+
     let data = {
-      ...state.datosPrincipales,
+      ...datosPrincipales,
       tiporeporte: state.tiporeporte ? state.tiporeporte : "TOTAL",
       id_quote: state.id,
       fullflag: true,
@@ -8533,8 +8539,11 @@ export function getNombreCotizacion(state) {
       break;
   }
   let containers = "";
-  let nota = state.opcionCostos[0].listNotasQuote[0].descripcion;
-  let name = `COTIZACION ${nota} ${state.datosPrincipales.nombre}`;
+  let nota =
+    state.opcionCostos?.[0]?.listNotasQuote?.[0]?.descripcion || "";
+  let name = ["COTIZACION", nota, state.datosPrincipales.nombre]
+    .filter(Boolean)
+    .join(" ");
   if (shipment.code == "FCL") {
     containers = state.datosPrincipales.containers.map((c) => c.code).join("_");
     name = `COTIZACION ${containers} FCL ${state.datosPrincipales.nombre}`;

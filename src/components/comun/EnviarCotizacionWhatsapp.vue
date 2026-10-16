@@ -166,7 +166,7 @@ export default {
     this.obtenerDatosEmpresa();
     let contenedor = [];
 
-    this.$store.state.pricing.datosPrincipales.containers.forEach((element) => {
+    (this.$store.state.pricing.datosPrincipales.containers || []).forEach((element) => {
       contenedor.push({
         name: element.description,
         valor: element.cantidad,
@@ -187,14 +187,14 @@ export default {
       (v) => v.id == this.$store.state.pricing.datosPrincipales.idtipocarga,
     );
 
-    if (shipment.code == "FCL") {
+    if (shipment?.code == "FCL") {
       this.nombrePdfEnviarCliente += contenedor
         .map((v) => {
           return "_" + v.valor + "x" + v.code;
         })
         .join("_");
     }
-    if (shipment.code == "LCL") {
+    if (shipment?.code == "LCL") {
       this.nombrePdfEnviarCliente += "_CONSOLIDADOS";
     }
     this.nombrePdfEnviarCliente +=

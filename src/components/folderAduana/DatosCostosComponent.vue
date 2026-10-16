@@ -98,7 +98,7 @@
       </v-container>
     </v-card>
     <!--  -->
-    <v-card class="px-5" v-else>
+    <v-card class="px-5" v-else-if="opcionesSeleccionadas.length > 0">
       <h1>
         OPCIÓN COSTOS
         {{ opcionesSeleccionadas[$store.state.aduana.page - 1].nro_propuesta }}
@@ -271,10 +271,7 @@ export default {
     };
   },
   mounted() {
-    if (!this.llenadoCostos) {
-      this.opcionesSeleccionadas =
-        this.$store.state.aduana.opcionCostos.filter((v) => !!v.selected);
-    }
+    if (!this.llenadoCostos) this.$store.state.aduana.page = 1;
   },
   methods: {
     irAComparativa() {
@@ -537,14 +534,10 @@ export default {
   watch: {
     llenadoCostos() {
       if (!this.llenadoCostos) {
-        this.opcionesSeleccionadas =
-          this.$store.state.aduana.opcionCostos.filter((v) => !!v.selected);
         this.$store.state.aduana.page = 1;
       }
     },
     recargarCostoSeleccionados() {
-      this.opcionesSeleccionadas =
-        this.$store.state.aduana.opcionCostos.filter((v) => !!v.selected);
       this.$store.state.aduana.page = 1;
     },
     reset() {

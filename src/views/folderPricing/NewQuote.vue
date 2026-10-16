@@ -110,7 +110,7 @@
             class="alert-button"
             rounded
             variant="flat"
-            @click="dialogPesoVolumen = false"
+            @click="continuarLlenadoCostos()"
           >
             Entendido
           </v-btn>
@@ -143,7 +143,7 @@
             class="alert-button"
             rounded
             variant="flat"
-            @click="dialogDistrito = false"
+            @click="continuarLlenadoCostos()"
           >
             Entendido
           </v-btn>
@@ -399,12 +399,12 @@ export default {
         (v) => v.code_service == 14 && v.status == 1,
       );
       let { id_town, peso } = this.$store.state.pricing.datosPrincipales;
-      
+
       let val = this.$store.state.calculadoras.lstTransporte.some(
         (v) =>
           v.id_distrito == id_town &&
-          peso >= v.peso_desde &&
-          peso <= v.peso_hasta,
+          Number(peso || 0) >= Number(v.peso_desde || 0) &&
+          Number(peso || 0) <= Number(v.peso_hasta || 0),
       );
 
       if (existeTransporteDestino && !val) {
@@ -421,7 +421,11 @@ export default {
           return;
         }
       }
-
+      this.continuarLlenadoCostos();
+    },
+    async continuarLlenadoCostos() {
+      this.dialogPesoVolumen = false;
+      this.dialogDistrito = false;
       let idTipoCarga =
         typeof this.$store.state.pricing.datosPrincipales.idtipocarga ===
         "object"
