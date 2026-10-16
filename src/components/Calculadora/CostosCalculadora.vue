@@ -25,7 +25,7 @@
           "
         >
           Costos:
-          <v-btn @click="abrirModalNuevoCosto({ tipo: 1 })" color="info" icon
+          <v-btn variant="text" @click="abrirModalNuevoCosto({ tipo: 1 })" color="info" icon
             ><v-icon>mdi-plus</v-icon></v-btn
           >
         </p>

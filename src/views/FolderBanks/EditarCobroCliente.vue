@@ -79,7 +79,7 @@
                 </v-text-field>
               </template>
               <template v-slot:[`item.action`]="{ item }">
-                <v-btn icon>
+                <v-btn variant="text" icon>
                   <v-icon color="red" @click="anularCobro(item)"
                     >mdi-circle-off-outline</v-icon
                   >

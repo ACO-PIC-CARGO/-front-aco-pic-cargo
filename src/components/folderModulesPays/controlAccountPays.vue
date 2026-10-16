@@ -232,7 +232,7 @@
                     :key="index"
                   >
                     <td v-if="tipo != 'ver'">
-                      <v-btn
+                      <v-btn variant="text"
                         icon
                         color="red"
                         size="x-small"

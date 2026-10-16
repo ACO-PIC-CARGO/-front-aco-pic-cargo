@@ -147,7 +147,7 @@
       <v-card>
         <v-card-title class="text-h6 d-flex align-center flex-wrap">
           Agregar Servicio Manual <v-spacer></v-spacer>
-          <v-btn
+          <v-btn variant="text"
             icon
             color="red"
             @click="
@@ -211,7 +211,7 @@
         <v-card-title class="d-flex align-center flex-wrap" primary-title>
           OPCIÓN SOBRE LOS COSTOS
           <v-spacer></v-spacer>
-          <v-btn icon color="default" @click="dialogCostos = !dialogCostos">
+          <v-btn variant="text" icon color="default" @click="dialogCostos = !dialogCostos">
             <v-icon>mdi-close</v-icon>
           </v-btn>
         </v-card-title>
@@ -261,7 +261,7 @@
         <v-card-title class="d-flex align-center flex-wrap" primary-title>
           OPCIÓN SOBRE LOS COSTOS
           <v-spacer></v-spacer>
-          <v-btn icon color="default" @click="dialogCostos = !dialogCostos">
+          <v-btn variant="text" icon color="default" @click="dialogCostos = !dialogCostos">
             <v-icon>mdi-close</v-icon>
           </v-btn>
         </v-card-title>

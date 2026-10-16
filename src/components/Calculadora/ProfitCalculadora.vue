@@ -24,7 +24,7 @@
             {{ item.estado ? "Activo" : "Anulado" }}
           </template>
           <template v-slot:[`item.action`]="{ item }">
-            <v-btn
+            <v-btn variant="text"
               color="warning"
               v-if="item.estado"
               icon
@@ -32,7 +32,7 @@
             >
               <v-icon>mdi-pencil</v-icon>
             </v-btn>
-            <v-btn
+            <v-btn variant="text"
               color="error"
               v-if="item.estado"
               icon

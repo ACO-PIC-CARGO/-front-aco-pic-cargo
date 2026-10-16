@@ -19,7 +19,7 @@
       item-value="id"
     >
       <template v-slot:item.action="{ item }">
-        <v-btn color="warning" @click="editFlete(item)" size="small" icon>
+        <v-btn variant="text" color="warning" @click="editFlete(item)" size="small" icon>
           <v-icon>mdi-pencil</v-icon>
         </v-btn>
       </template>

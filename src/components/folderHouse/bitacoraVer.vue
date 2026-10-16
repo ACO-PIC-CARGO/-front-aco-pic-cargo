@@ -169,7 +169,7 @@
           <v-card-title class="d-flex align-center flex-wrap">
             Todos los registros de bitácora
             <v-spacer></v-spacer>
-            <v-btn icon @click="dialogVerTodos = false">
+            <v-btn variant="text" icon @click="dialogVerTodos = false">
               <v-icon>mdi-close</v-icon>
             </v-btn>
           </v-card-title>

@@ -105,7 +105,7 @@
                   v-slot:[`item.action`]="{ item, index }"
                   v-if="showFormActions"
                 >
-                  <v-btn
+                  <v-btn variant="text"
                     color="red"
                     icon
                     @click="eliminarInformacionBancaria(index)"

@@ -5,7 +5,7 @@
       <span class="text-h6"
         >Ventas {{ currencyFormat($store.state.aduana.totalVenta) }}</span
       >
-      <v-btn icon color="primary" @click="abrirModal">
+      <v-btn variant="text" icon color="primary" @click="abrirModal">
         <v-icon>mdi-plus</v-icon>
       </v-btn>
     </div>
@@ -99,7 +99,7 @@
                 :key="i"
               >
                 <td class="btnAccion">
-                  <v-btn
+                  <v-btn variant="text"
                     icon
                     color="red"
                     size="x-small"
@@ -348,7 +348,7 @@
                 :key="i"
               >
                 <td class="btnAccion">
-                  <v-btn
+                  <v-btn variant="text"
                     icon
                     color="red"
                     size="x-small"
@@ -597,7 +597,7 @@
                 :key="i"
               >
                 <td class="btnAccion">
-                  <v-btn
+                  <v-btn variant="text"
                     icon
                     color="red"
                     size="x-small"
@@ -846,7 +846,7 @@
                 :key="i"
               >
                 <td class="btnAccion">
-                  <v-btn
+                  <v-btn variant="text"
                     icon
                     color="red"
                     size="x-small"
@@ -1093,7 +1093,7 @@
                 :key="i"
               >
                 <td class="btnAccion">
-                  <v-btn
+                  <v-btn variant="text"
                     icon
                     color="red"
                     size="x-small"
@@ -1343,7 +1343,7 @@
                 :key="i"
               >
                 <td class="btnAccion">
-                  <v-btn
+                  <v-btn variant="text"
                     icon
                     color="red"
                     size="x-small"
@@ -1593,7 +1593,7 @@
                 :key="i"
               >
                 <td class="btnAccion">
-                  <v-btn
+                  <v-btn variant="text"
                     icon
                     color="red"
                     size="x-small"

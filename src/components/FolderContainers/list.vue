@@ -47,16 +47,16 @@
         {{ !!item.status ? "Activo" : "Inactivo" }}
       </template>
       <template v-slot:[`item.action`]="{ item }">
-        <v-btn icon>
+        <v-btn variant="text" icon>
           <v-icon color="primary" @click="open_read(item.id)">mdi-eye</v-icon>
         </v-btn>
-        <v-btn icon>
+        <v-btn variant="text" icon>
           <v-icon color="warning" @click="open_update(item.id)"
             >mdi-pencil</v-icon
           >
         </v-btn>
 
-        <v-btn icon color="red" @click="switch_status(item)" v-if="item.status">
+        <v-btn variant="text" icon color="red" @click="switch_status(item)" v-if="item.status">
           <v-icon>mdi-delete</v-icon>
         </v-btn>
       </template>

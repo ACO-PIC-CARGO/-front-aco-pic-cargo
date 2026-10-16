@@ -178,7 +178,7 @@
             class="elevation-5"
           >
             <template v-slot:[`item.action`]="{ item, index }">
-              <v-btn icon color="red" @click="eliminar(index)">
+              <v-btn variant="text" icon color="red" @click="eliminar(index)">
                 <v-icon>mdi-delete</v-icon>
               </v-btn>
             </template>
@@ -221,7 +221,7 @@
       <v-card>
         <v-card-title class="d-flex align-center flex-wrap" primary-title>
           <v-spacer></v-spacer>
-          <v-btn icon @click="dialog = !dialog">
+          <v-btn variant="text" icon @click="dialog = !dialog">
             <v-icon>mdi-close</v-icon>
           </v-btn>
         </v-card-title>

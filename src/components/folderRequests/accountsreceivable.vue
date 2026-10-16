@@ -271,7 +271,7 @@
         <v-card-title class="d-flex align-center flex-wrap">
           Registro de Estado/Comentario de la CxC - {{ dataCXC.nameconsigner }}
           <v-spacer></v-spacer>
-          <v-btn
+          <v-btn variant="text"
             icon
             color="default"
             @click="dialogNuevoComentario = !dialogNuevoComentario"

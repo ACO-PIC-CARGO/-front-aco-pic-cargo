@@ -5,7 +5,7 @@
         <v-col cols="12" lg="4" xl="4" class="my-1 py-2">
           <span class="text-h6">
             Costos {{ currencyFormat($store.state.pricing.totalCosto) }}
-            <v-btn icon color="primary" @click="abrirModal">
+            <v-btn variant="text" icon color="primary" @click="abrirModal">
               <v-icon>mdi-plus</v-icon>
             </v-btn>
           </span>
@@ -62,7 +62,7 @@
                     >
                       <tr>
                         <td class="btnAccion">
-                          <v-btn
+                          <v-btn variant="text"
                             icon
                             color="red"
                             size="x-small"
@@ -339,7 +339,7 @@
                       :key="i"
                     >
                       <td class="btnAccion">
-                        <v-btn
+                        <v-btn variant="text"
                           icon
                           color="red"
                           size="x-small"
@@ -603,7 +603,7 @@
                       :key="i"
                     >
                       <td class="btnAccion">
-                        <v-btn
+                        <v-btn variant="text"
                           icon
                           color="red"
                           size="x-small"
@@ -867,7 +867,7 @@
                       :key="i"
                     >
                       <td class="btnAccion">
-                        <v-btn
+                        <v-btn variant="text"
                           icon
                           color="red"
                           size="x-small"
@@ -1132,7 +1132,7 @@
                       :key="i"
                     >
                       <td class="btnAccion">
-                        <v-btn
+                        <v-btn variant="text"
                           icon
                           color="red"
                           size="x-small"
@@ -1395,7 +1395,7 @@
                       :key="i"
                     >
                       <td class="btnAccion">
-                        <v-btn
+                        <v-btn variant="text"
                           icon
                           color="red"
                           size="x-small"
@@ -1660,7 +1660,7 @@
                       :key="i"
                     >
                       <td class="btnAccion">
-                        <v-btn
+                        <v-btn variant="text"
                           icon
                           color="red"
                           size="x-small"
@@ -1975,7 +1975,7 @@
       <v-card>
         <v-card-title class="d-flex align-center flex-wrap" primary-title>
           Ficha de Proveedores <v-spacer></v-spacer>
-          <v-btn
+          <v-btn variant="text"
             icon
             color="red"
             @click="dialogNuevoProveedor = !dialogNuevoProveedor"

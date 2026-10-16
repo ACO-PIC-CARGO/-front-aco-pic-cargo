@@ -65,7 +65,7 @@
                   ></v-text-field>
                 </td>
                 <td>
-                  <v-btn
+                  <v-btn variant="text"
                     v-if="Monto.bloqueadoflag"
                     icon
                     size="small"
@@ -73,7 +73,7 @@
                     @click="Monto.bloqueadoflag = false"
                     ><v-icon>mdi-pencil</v-icon></v-btn
                   >
-                  <v-btn
+                  <v-btn variant="text"
                     icon
                     size="small"
                     color="warning"
@@ -82,7 +82,7 @@
                   >
                     <v-icon>mdi-content-save</v-icon>
                   </v-btn>
-                  <v-btn icon size="small" color="error" @click="elimimarCosto(Monto)">
+                  <v-btn variant="text" icon size="small" color="error" @click="elimimarCosto(Monto)">
                     <v-icon>mdi-delete</v-icon>
                   </v-btn>
                 </td>

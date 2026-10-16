@@ -72,7 +72,7 @@
                   v-slot:[`item.action`]="{ item, index }"
                   v-if="showFormActions"
                 >
-                  <v-btn icon color="red" @click="eliminarTelefono(index)">
+                  <v-btn variant="text" icon color="red" @click="eliminarTelefono(index)">
                     <v-icon>mdi-delete</v-icon>
                   </v-btn>
                 </template>
@@ -148,7 +148,7 @@
                   v-slot:[`item.action`]="{ item, index }"
                   v-if="showFormActions"
                 >
-                  <v-btn icon color="red" @click="eliminarContacto(index)">
+                  <v-btn variant="text" icon color="red" @click="eliminarContacto(index)">
                     <v-icon>mdi-delete</v-icon>
                   </v-btn>
                 </template>
@@ -207,7 +207,7 @@
                       v-slot:[`item.action`]="{ item, index }"
                       v-if="showFormActions"
                     >
-                      <v-btn icon color="red" @click="eliminarEmail(item)">
+                      <v-btn variant="text" icon color="red" @click="eliminarEmail(item)">
                         <v-icon>mdi-delete</v-icon>
                       </v-btn>
                     </template>

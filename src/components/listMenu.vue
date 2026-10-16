@@ -6,7 +6,7 @@
         <v-col cols="3" class="avatar">
           <v-menu location="bottom">
             <template v-slot:activator="{ props }">
-              <v-btn icon size="x-large" aria-label="Cuenta" v-bind="props">
+              <v-btn variant="text" icon size="x-large" aria-label="Cuenta" v-bind="props">
                 <v-avatar size="45">
                   <v-img v-if="person.path" :src="branch.logo" />
                   <v-img v-else src="/img/png/user.png" />
@@ -275,7 +275,7 @@
       <v-card>
         <v-card-title class="d-flex align-center flex-wrap" primary-title>
           <v-spacer></v-spacer>
-          <v-btn icon color="" @click="dialogTutorial = false"
+          <v-btn variant="text" icon color="" @click="dialogTutorial = false"
             ><v-icon>mdi-close</v-icon></v-btn
           >
         </v-card-title>

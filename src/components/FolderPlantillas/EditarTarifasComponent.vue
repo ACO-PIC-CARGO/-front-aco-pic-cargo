@@ -2,7 +2,7 @@
   <v-container fluid>
     <v-card>
       <v-card-title class="d-flex align-center flex-wrap">
-        <v-btn icon @click="volverALista" class="mr-3">
+        <v-btn variant="text" icon @click="volverALista" class="mr-3">
           <v-icon>mdi-arrow-left</v-icon>
         </v-btn>
         {{ modoPlantilla ? 'Editor de Plantillas de Tarifas' : `Editar Tarifas - ${cotizacionData.quote}` }}
@@ -78,7 +78,7 @@
             <v-col cols="12" lg="4" xl="4" class="my-1 py-2">
               <span class="text-h6">
                 Costos de la Cotización
-                <v-btn icon color="primary" @click="abrirNuevoCosto">
+                <v-btn variant="text" icon color="primary" @click="abrirNuevoCosto">
                   <v-icon>mdi-plus</v-icon>
                 </v-btn>
               </span>
@@ -111,7 +111,7 @@
                       <tbody>
                         <tr v-for="(valor, i) in tarifasFlete" :key="i">
                           <td class="btnAccion">
-                            <v-btn icon color="red" size="x-small" @click="eliminarTarifa(valor)">
+                            <v-btn variant="text" icon color="red" size="x-small" @click="eliminarTarifa(valor)">
                               <v-icon>mdi-delete</v-icon>
                             </v-btn>
                           </td>
@@ -195,7 +195,7 @@
                       <tbody>
                         <tr v-for="(valor, i) in tarifasOrigen" :key="i">
                           <td class="btnAccion">
-                            <v-btn icon color="red" size="x-small" @click="eliminarTarifa(valor)">
+                            <v-btn variant="text" icon color="red" size="x-small" @click="eliminarTarifa(valor)">
                               <v-icon>mdi-delete</v-icon>
                             </v-btn>
                           </td>
@@ -271,7 +271,7 @@
                       <tbody>
                         <tr v-for="(valor, i) in tarifasDestino" :key="i">
                           <td class="btnAccion">
-                            <v-btn icon color="red" size="x-small" @click="eliminarTarifa(valor)">
+                            <v-btn variant="text" icon color="red" size="x-small" @click="eliminarTarifa(valor)">
                               <v-icon>mdi-delete</v-icon>
                             </v-btn>
                           </td>
@@ -347,7 +347,7 @@
                       <tbody>
                         <tr v-for="(valor, i) in tarifasLocal" :key="i">
                           <td class="btnAccion">
-                            <v-btn icon color="red" size="x-small" @click="eliminarTarifa(valor)">
+                            <v-btn variant="text" icon color="red" size="x-small" @click="eliminarTarifa(valor)">
                               <v-icon>mdi-delete</v-icon>
                             </v-btn>
                           </td>
@@ -423,7 +423,7 @@
                       <tbody>
                         <tr v-for="(valor, i) in tarifasAduana" :key="i">
                           <td class="btnAccion">
-                            <v-btn icon color="red" size="x-small" @click="eliminarTarifa(valor)">
+                            <v-btn variant="text" icon color="red" size="x-small" @click="eliminarTarifa(valor)">
                               <v-icon>mdi-delete</v-icon>
                             </v-btn>
                           </td>
@@ -499,7 +499,7 @@
                       <tbody>
                         <tr v-for="(valor, i) in tarifasAlmacen" :key="i">
                           <td class="btnAccion">
-                            <v-btn icon color="red" size="x-small" @click="eliminarTarifa(valor)">
+                            <v-btn variant="text" icon color="red" size="x-small" @click="eliminarTarifa(valor)">
                               <v-icon>mdi-delete</v-icon>
                             </v-btn>
                           </td>

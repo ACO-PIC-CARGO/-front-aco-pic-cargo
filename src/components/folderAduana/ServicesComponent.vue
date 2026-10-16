@@ -26,7 +26,7 @@
     <!--  -->
     <v-card-title primary-title>
       SERVICIOS A REALIZAR:
-      <v-btn icon color="primary" @click="dialog = !dialog">
+      <v-btn variant="text" icon color="primary" @click="dialog = !dialog">
         <v-icon>mdi-plus</v-icon>
       </v-btn>
     </v-card-title>

@@ -273,7 +273,7 @@
         <v-card-title class="d-flex align-center flex-wrap">
           Registro de Estado/Comentario de la CxP - {{ dataCXP.proveedor }}
           <v-spacer></v-spacer>
-          <v-btn
+          <v-btn variant="text"
             icon
             color="default"
             @click="dialogNuevoComentario = !dialogNuevoComentario"
@@ -353,7 +353,7 @@
         <v-card-title class="d-flex align-center flex-wrap" primary-title>
           Programación de Pago del Proveedor {{ nameProveedor }}
           <v-spacer></v-spacer>
-          <v-btn
+          <v-btn variant="text"
             icon
             color="default"
             @click="dialogNuevoPago = !dialogNuevoPago"

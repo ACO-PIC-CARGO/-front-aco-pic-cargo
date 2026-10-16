@@ -209,7 +209,7 @@
       <v-card>
         <v-card-title class="text-h6 d-flex align-center flex-wrap">
           Agregar Servicio Manual <v-spacer></v-spacer>
-          <v-btn
+          <v-btn variant="text"
             icon
             color="red"
             @click="

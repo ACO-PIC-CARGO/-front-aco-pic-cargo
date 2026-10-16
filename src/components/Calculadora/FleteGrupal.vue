@@ -87,10 +87,10 @@
                 {{ index + 1 }}
               </template>
               <template v-slot:[`item.action`]="{ item }">
-                <v-btn color="error" icon @click="eliminar(item)">
+                <v-btn variant="text" color="error" icon @click="eliminar(item)">
                   <v-icon>mdi-delete</v-icon>
                 </v-btn>
-                <v-btn
+                <v-btn variant="text"
                   color="warning"
                   icon
                   @click="
@@ -148,10 +148,10 @@
                 {{ index + 1 }}
               </template>
               <template v-slot:[`item.action`]="{ item }">
-                <v-btn color="error" icon @click="eliminar(item)">
+                <v-btn variant="text" color="error" icon @click="eliminar(item)">
                   <v-icon>mdi-delete</v-icon>
                 </v-btn>
-                <v-btn
+                <v-btn variant="text"
                   color="warning"
                   icon
                   @click="

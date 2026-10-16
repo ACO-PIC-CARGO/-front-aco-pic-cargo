@@ -145,7 +145,7 @@
           hide-details
         >
           <template v-slot:append-inner>
-            <v-btn
+            <v-btn variant="text"
               icon
               size="small"
               color="primary"

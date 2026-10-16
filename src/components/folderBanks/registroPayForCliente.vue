@@ -220,7 +220,7 @@
                       </tr>
                     </template>
                     <template v-slot:[`item.action`]="{ item }">
-                      <v-btn
+                      <v-btn variant="text"
                         icon
                         color="primary"
                         v-if="item.tipo == 'A'"

@@ -37,10 +37,10 @@
                   :items="obtenerValoresTransportePorOpcion"
                 >
                   <template v-slot:[`item.action`]="{ item }">
-                    <v-btn color="#E65100" icon @click="editar(item)">
+                    <v-btn variant="text" color="#E65100" icon @click="editar(item)">
                       <v-icon>mdi-pencil</v-icon>
                     </v-btn>
-                    <v-btn color="#D50000" icon @click="borrar(item)">
+                    <v-btn variant="text" color="#D50000" icon @click="borrar(item)">
                       <v-icon>mdi-delete</v-icon>
                     </v-btn>
                   </template>

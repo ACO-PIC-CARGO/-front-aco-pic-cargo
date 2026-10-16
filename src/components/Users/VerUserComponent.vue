@@ -236,7 +236,7 @@
               item-value="id"
             >
               <template v-slot:[`item.action`]="{ item }">
-                <v-btn icon color="red" @click="item.status = !item.status">
+                <v-btn variant="text" icon color="red" @click="item.status = !item.status">
                   <v-icon>mdi-delete</v-icon>
                 </v-btn>
               </template>
@@ -302,7 +302,7 @@
               item-value="id"
             >
               <template v-slot:[`item.action`]="{ item }">
-                <v-btn icon color="red" @click="item.status = !item.status">
+                <v-btn variant="text" icon color="red" @click="item.status = !item.status">
                   <v-icon>mdi-delete</v-icon>
                 </v-btn>
               </template>

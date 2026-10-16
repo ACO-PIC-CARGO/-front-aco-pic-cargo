@@ -54,16 +54,16 @@
       </template>
       <template v-slot:[`item.urlarchivo`]="{ item }">
         <div class="d-flex align-center">
-          <v-btn icon color="" @click="verSoport(item.urlarchivo)">
+          <v-btn variant="text" icon color="" @click="verSoport(item.urlarchivo)">
             <v-icon>mdi-file</v-icon>
           </v-btn>
-          <v-btn size="small" icon color="info" @click="ver(item)">
+          <v-btn variant="text" size="small" icon color="info" @click="ver(item)">
             <v-icon>mdi-eye</v-icon>
           </v-btn>
-          <v-btn size="small" icon color="orange" @click="editar(item)">
+          <v-btn variant="text" size="small" icon color="orange" @click="editar(item)">
             <v-icon>mdi-pencil</v-icon>
           </v-btn>
-          <v-btn size="small" icon color="red" @click="confirmarEliminar(item)">
+          <v-btn variant="text" size="small" icon color="red" @click="confirmarEliminar(item)">
             <v-icon>mdi-delete</v-icon>
           </v-btn>
         </div>
@@ -122,10 +122,10 @@
         </tr>
       </template>
       <template v-slot:[`item.action`]="{ item }">
-        <v-btn size="x-small" icon color="primary" @click="verSoport(item.urlarchivo)">
+        <v-btn variant="text" size="x-small" icon color="primary" @click="verSoport(item.urlarchivo)">
           <v-icon>mdi-file-cloud-outline</v-icon>
         </v-btn>
-        <v-btn size="x-small" icon color="warning" @click="editar(item)">
+        <v-btn variant="text" size="x-small" icon color="warning" @click="editar(item)">
           <v-icon>mdi-pencil</v-icon>
         </v-btn>
       </template>
@@ -143,7 +143,7 @@
         <v-card-title class="d-flex align-center flex-wrap" primary-title>
           Filtrar Ingresos
           <v-spacer></v-spacer>
-          <v-btn icon color="default" @click="dialogFiltro = !dialogFiltro">
+          <v-btn variant="text" icon color="default" @click="dialogFiltro = !dialogFiltro">
             <v-icon>mdi-close</v-icon>
           </v-btn></v-card-title
         >

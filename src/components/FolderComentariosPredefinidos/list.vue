@@ -51,13 +51,13 @@
             {{ getFechaBonita(item.updated_at) }}
           </template>
           <template v-slot:[`item.action`]="{ item }">            
-            <v-btn icon>
+            <v-btn variant="text" icon>
               <v-icon color="warning" @click="editComentarioPredefinido(item)">mdi-pencil</v-icon>
             </v-btn> 
-            <v-btn icon>
+            <v-btn variant="text" icon>
               <v-icon color="primary" @click="viewComentarioPredefinido(item)">mdi-eye</v-icon>
             </v-btn>   
-            <v-btn icon color="red" @click="changeStatusComentarioPredefinido(item)" v-if="item.status">
+            <v-btn variant="text" icon color="red" @click="changeStatusComentarioPredefinido(item)" v-if="item.status">
               <v-icon>mdi-delete</v-icon>
             </v-btn>
           </template>

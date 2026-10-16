@@ -171,7 +171,7 @@
                 class="elevation-1"
               >
                 <template v-slot:[`item.action`]="item">
-                  <v-btn
+                  <v-btn variant="text"
                     icon
                     color="red"
                     @click="eliminarContainer({ index: item.index })"
@@ -419,7 +419,7 @@
                       ></v-text-field>
                     </td>
                     <td>
-                      <v-btn class="ma-0 pa-0" icon>
+                      <v-btn variant="text" class="ma-0 pa-0" icon>
                         <v-icon color="orange-darken-4" @click="borrarFila(i)"
                           >mdi-delete-circle</v-icon
                         >

@@ -45,21 +45,21 @@
           {{ !!item.status ? "Activo" : "Inactivo" }}
         </template>
         <template v-slot:[`item.action`]="{ item }">
-          <v-btn class="mx-1" size="small" icon>
+          <v-btn variant="text" class="mx-1" size="small" icon>
             <v-icon color="primary" @click="open_read(item.id)">mdi-eye</v-icon>
           </v-btn>
-          <v-btn class="mx-1" size="small" icon>
+          <v-btn variant="text" class="mx-1" size="small" icon>
             <v-icon color="#0D47A1" @click="abrirCuentas(item)"
               >mdi-bank</v-icon
             >
           </v-btn>
-          <v-btn class="mx-1" size="small" icon>
+          <v-btn variant="text" class="mx-1" size="small" icon>
             <v-icon color="warning" @click="open_update(item.id)"
               >mdi-pencil</v-icon
             >
           </v-btn>
 
-          <v-btn
+          <v-btn variant="text"
             class="mx-1"
             size="small"
             icon
@@ -426,7 +426,7 @@
         <v-card-title class="d-flex align-center flex-wrap" primary-title>
           {{ datosBanco.name }} {{ datosBanco.acronym }}
           <v-spacer></v-spacer>
-          <v-btn icon @click="cuentasFlag = !cuentasFlag"
+          <v-btn variant="text" icon @click="cuentasFlag = !cuentasFlag"
             ><v-icon>mdi-close</v-icon></v-btn
           >
         </v-card-title>
@@ -452,14 +452,14 @@
             <template v-slot:[`item.action`]="{ item }">
               <v-row>
                 <v-col>
-                  <v-btn icon>
+                  <v-btn variant="text" icon>
                     <v-icon color="warning" @click="abrirCuenta(item)"
                       >mdi-pencil</v-icon
                     >
                   </v-btn>
                 </v-col>
                 <v-col>
-                  <v-btn color="error" icon @click="EliminarCuenta(item)"
+                  <v-btn variant="text" color="error" icon @click="EliminarCuenta(item)"
                     ><v-icon>mdi-delete</v-icon></v-btn
                   >
                 </v-col>

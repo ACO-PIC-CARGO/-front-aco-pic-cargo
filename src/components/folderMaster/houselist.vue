@@ -96,17 +96,17 @@
                       </td>
                       <td v-if="esAereo">{{ computePesoCargable(item) }}</td>
                       <td>
-                        <v-btn icon color="info">
+                        <v-btn variant="text" icon color="info">
                           <v-icon @click.stop="showHouse(item.id)">
                             mdi-open-in-new
                           </v-icon>
                         </v-btn>
-                        <v-btn icon color="red">
+                        <v-btn variant="text" icon color="red">
                           <v-icon @click.stop="eliminar(item.id)">
                             mdi-delete
                           </v-icon>
                         </v-btn>
-                        <v-btn icon color="#F57F17">
+                        <v-btn variant="text" icon color="#F57F17">
                           <v-icon
                             @click.stop="abrirModalCambiarExpediente(item)"
                           >
@@ -158,7 +158,7 @@
         <v-card-title class="text-h5 bg-grey-lighten-2 d-flex align-center flex-wrap">
           Cambiar expediente (House)
           <v-spacer></v-spacer>
-          <v-btn icon color="default" @click="dialogCambiarExpediente = false">
+          <v-btn variant="text" icon color="default" @click="dialogCambiarExpediente = false">
             <v-icon>mdi-close</v-icon>
           </v-btn>
         </v-card-title>

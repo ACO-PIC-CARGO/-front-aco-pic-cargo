@@ -21,7 +21,7 @@
             Revisa la vista previa antes de guardar.
           </p>
         </div>
-        <v-btn
+        <v-btn variant="text"
           icon
           class="icon-button"
           aria-label="Cerrar sin guardar"
@@ -376,7 +376,7 @@
                 class="feature-row"
                 :class="{ 'feature-row--excluded': !feature.isIncluded }"
               >
-                <v-btn
+                <v-btn variant="text"
                   icon
                   class="icon-button icon-button--small"
                   :class="
@@ -414,7 +414,7 @@
                 <span v-if="feature.moduleId" class="feature-row__module">
                   {{ moduleName(feature.moduleId) }}
                 </span>
-                <v-btn
+                <v-btn variant="text"
                   v-else
                   icon
                   class="icon-button icon-button--small"
@@ -441,7 +441,7 @@
                     }}
                   </v-icon>
                 </v-btn>
-                <v-btn
+                <v-btn variant="text"
                   icon
                   class="icon-button icon-button--small"
                   aria-label="Quitar característica"

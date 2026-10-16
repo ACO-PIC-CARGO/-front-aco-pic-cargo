@@ -44,7 +44,7 @@
                 <td>{{ house.consigner }} - {{ house.correlativo }}</td>
                 <td>
                   {{ house.quote }}
-                  <v-btn
+                  <v-btn variant="text"
                     color="info"
                     icon
                     v-if="house.id_quote"
@@ -53,7 +53,7 @@
                     <v-icon>mdi-eye</v-icon>
                   </v-btn>
 
-                  <v-btn
+                  <v-btn variant="text"
                     color="default"
                     icon
                     v-if="house.ruta_cotizacion"
@@ -62,7 +62,7 @@
                     <v-icon>mdi-file</v-icon>
                   </v-btn>
 
-                  <v-btn
+                  <v-btn variant="text"
                     color="default"
                     icon
                     v-if="!house.ruta_cotizacion"
@@ -384,7 +384,7 @@
         <v-card-title class="text-h5 bg-grey-lighten-2 d-flex align-center flex-wrap">
           Datos del servicio
           <v-spacer></v-spacer>
-          <v-btn icon color="default" @click="dialogIngreso = !dialogIngreso">
+          <v-btn variant="text" icon color="default" @click="dialogIngreso = !dialogIngreso">
             <v-icon>mdi-close</v-icon>
           </v-btn>
         </v-card-title>
@@ -617,7 +617,7 @@
           Abonos del cliente
           <v-spacer></v-spacer>
 
-          <v-btn icon color="default" @click="dialogDebs = !dialogDebs">
+          <v-btn variant="text" icon color="default" @click="dialogDebs = !dialogDebs">
             <v-icon>mdi-close</v-icon></v-btn
           >
         </v-card-title>
@@ -689,7 +689,7 @@
         <v-card-title class="text-h5 bg-grey-lighten-2 d-flex align-center flex-wrap">
           Cargar un Nuevo abonos
           <v-spacer></v-spacer>
-          <v-btn icon color="default" @click="dialogNewDebs = !dialogNewDebs">
+          <v-btn variant="text" icon color="default" @click="dialogNewDebs = !dialogNewDebs">
             <v-icon>mdi-close</v-icon></v-btn
           >
         </v-card-title>
@@ -965,7 +965,7 @@
         <v-card-title class="d-flex align-center flex-wrap" primary-title>
           GENERAR PROFORMA
           <v-spacer></v-spacer>
-          <v-btn
+          <v-btn variant="text"
             color="default"
             icon
             @click="dialogFacturar = false"
@@ -1113,7 +1113,7 @@
               {{ item.nro_factura }}
             </template>
             <template v-slot:[`item.path`]="{ item }">
-              <v-btn icon size="small">
+              <v-btn variant="text" icon size="small">
                 <v-icon
                   class="btn_add mr-2"
                   size="large"
@@ -1125,7 +1125,7 @@
               >
             </template>
             <template v-slot:[`item.action`]="{ item }">
-              <v-btn icon size="small">
+              <v-btn variant="text" icon size="small">
                 <v-icon
                   class="btn_add mr-2"
                   size="large"
@@ -1276,7 +1276,7 @@
         <v-card-title class="text-h5 bg-grey-lighten-2 d-flex align-center flex-wrap">
           Cambiar expediente (House)
           <v-spacer></v-spacer>
-          <v-btn icon color="default" @click="dialogCambiarExpediente = false">
+          <v-btn variant="text" icon color="default" @click="dialogCambiarExpediente = false">
             <v-icon>mdi-close</v-icon>
           </v-btn>
         </v-card-title>
@@ -1321,7 +1321,7 @@
         <v-card-title class="text-h5 bg-grey-lighten-2 d-flex align-center flex-wrap">
           Cargar Documentos de Cotización
           <v-spacer></v-spacer>
-          <v-btn
+          <v-btn variant="text"
             color="default"
             icon
             @click="dialogCargarArchivoCotizacion = false"

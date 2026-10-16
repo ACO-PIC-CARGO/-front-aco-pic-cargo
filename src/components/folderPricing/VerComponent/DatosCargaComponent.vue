@@ -144,7 +144,7 @@
               class="elevation-1"
             >
               <template v-slot:[`item.action`]="item">
-                <v-btn
+                <v-btn variant="text"
                   icon
                   color="red"
                   @click="eliminarContainer({ index: item.index })"

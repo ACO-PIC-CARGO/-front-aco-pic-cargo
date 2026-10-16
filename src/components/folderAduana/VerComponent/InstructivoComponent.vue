@@ -26,7 +26,7 @@
         <v-card-title class="d-flex align-center flex-wrap" primary-title>
           SELECCIONE EL EXPEDIENTE A ASOCIAR:
           <v-spacer></v-spacer>
-          <v-btn icon color="default" @click="aprobarflag = !aprobarflag">
+          <v-btn variant="text" icon color="default" @click="aprobarflag = !aprobarflag">
             <v-icon>mdi-close</v-icon>
           </v-btn>
         </v-card-title>
@@ -288,7 +288,7 @@
           <v-card class="pa-1" elevation="5">
             <h4 class="mb-5 ml-1">
               NOTAS ESPECIALES:
-              <v-btn color="success" @click="dialog = !dialog" icon>
+              <v-btn variant="text" color="success" @click="dialog = !dialog" icon>
                 <v-icon>mdi-plus</v-icon>
               </v-btn>
             </h4>
@@ -494,7 +494,7 @@
         <v-card-title class="d-flex align-center flex-wrap" primary-title>
           CREAR NUEVO HOUSE O ASOCIAR A UNO
           <v-spacer></v-spacer>
-          <v-btn icon color="default" @click="dialogHouse = !dialogHouse">
+          <v-btn variant="text" icon color="default" @click="dialogHouse = !dialogHouse">
             <v-icon>mdi-close</v-icon>
           </v-btn>
         </v-card-title>
@@ -554,7 +554,7 @@
         <v-card-title class="d-flex align-center flex-wrap" primary-title>
           OPCIÓN SOBRE LOS COSTOS
           <v-spacer></v-spacer>
-          <v-btn icon color="default" @click="dialogCostos = !dialogCostos">
+          <v-btn variant="text" icon color="default" @click="dialogCostos = !dialogCostos">
             <v-icon>mdi-close</v-icon>
           </v-btn>
         </v-card-title>

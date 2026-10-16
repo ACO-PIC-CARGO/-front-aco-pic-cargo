@@ -17,7 +17,7 @@
         ACO <span class="plan__accent">{{ plan.name }}</span>
       </h2>
       <span v-if="!plan.isActive" class="plan__status">Inactivo</span>
-      <v-btn
+      <v-btn variant="text"
         icon
         class="plan__chevron"
         :aria-label="`Ver detalles de ACO ${plan.name}`"

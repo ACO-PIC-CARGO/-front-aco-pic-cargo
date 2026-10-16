@@ -271,7 +271,7 @@
               item-value="id"
             >
               <template v-slot:[`item.action`]="{ index }">
-                <v-btn icon color="red" @click="eliminarPosicion(index)">
+                <v-btn variant="text" icon color="red" @click="eliminarPosicion(index)">
                   <v-icon>mdi-delete</v-icon>
                 </v-btn>
               </template>

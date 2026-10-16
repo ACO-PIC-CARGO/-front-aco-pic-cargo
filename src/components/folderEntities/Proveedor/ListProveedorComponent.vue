@@ -60,13 +60,13 @@
           </template>
           <template v-slot:[`item.action`]="{ item }">
             <v-btn-toggle>
-              <v-btn size="x-small" icon @click="obtenerTelContactoProveedor(item.id)">
+              <v-btn variant="text" size="x-small" icon @click="obtenerTelContactoProveedor(item.id)">
                 <v-icon color="blue-grey-darken-3">mdi-phone</v-icon>
               </v-btn>
               <!-- <v-btn x-small icon @click="editar(item.id)">
                 <v-icon color="green">mdi-currency-usd</v-icon>
               </v-btn> -->
-              <v-btn
+              <v-btn variant="text"
                 v-if="item.status == 1"
                 size="x-small"
                 icon
@@ -79,7 +79,7 @@
               >
                 <v-icon color="#E65100">mdi-pencil</v-icon>
               </v-btn>
-              <v-btn
+              <v-btn variant="text"
                 size="x-small"
                 icon
                 @click="
@@ -91,7 +91,7 @@
               >
                 <v-icon color="info">mdi-eye</v-icon>
               </v-btn>
-              <v-btn size="x-small" icon v-if="item.status == 1">
+              <v-btn variant="text" size="x-small" icon v-if="item.status == 1">
                 <v-icon color="red" @click="eliminar(item)">mdi-delete</v-icon>
               </v-btn>
             </v-btn-toggle>
@@ -141,7 +141,7 @@
                   ></v-text-field>
                 </template>
                 <template v-slot:[`item.action`]="{ item, index }">
-                  <v-btn icon color="red" @click="eliminarTelefono(index)">
+                  <v-btn variant="text" icon color="red" @click="eliminarTelefono(index)">
                     <v-icon>mdi-delete</v-icon>
                   </v-btn>
                 </template>
@@ -189,7 +189,7 @@
                 </template>
 
                 <template v-slot:[`item.action`]="{ item, index }">
-                  <v-btn icon color="red" @click="eliminarContacto(index)">
+                  <v-btn variant="text" icon color="red" @click="eliminarContacto(index)">
                     <v-icon>mdi-delete</v-icon>
                   </v-btn>
                 </template>

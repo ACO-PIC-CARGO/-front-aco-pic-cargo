@@ -167,7 +167,7 @@
               {{ item.monto_monext }}
             </template>
             <template v-slot:[`item.action`]="{ item }">
-              <v-btn icon color="red" @click="eliminarfila(item)">
+              <v-btn variant="text" icon color="red" @click="eliminarfila(item)">
                 <v-icon>mdi-delete</v-icon>
               </v-btn>
             </template>
@@ -214,7 +214,7 @@
         <v-card-title class="d-flex align-center flex-wrap" primary-title>
           REALIZAR COPIA
           <v-spacer></v-spacer>
-          <v-btn icon color="defaul" @click="dialogn = !dialogn">
+          <v-btn variant="text" icon color="defaul" @click="dialogn = !dialogn">
             <v-icon>mdi-close</v-icon>
           </v-btn>
         </v-card-title>

@@ -98,15 +98,15 @@
         </template>
         <template v-slot:[`item.action`]="{ item }">
           <div class="d-flex align-center">
-            <v-btn size="small" icon color="red" @click="verSoport(item.soporte)">
+            <v-btn variant="text" size="small" icon color="red" @click="verSoport(item.soporte)">
               <v-icon>mdi-file</v-icon>
             </v-btn>
 
-            <v-btn size="small" icon color="info" @click="ver(item)">
+            <v-btn variant="text" size="small" icon color="info" @click="ver(item)">
               <v-icon>mdi-eye</v-icon>
             </v-btn>
 
-            <v-btn size="small" icon color="warning" @click="editar(item)">
+            <v-btn variant="text" size="small" icon color="warning" @click="editar(item)">
               <v-icon>mdi-pencil</v-icon>
             </v-btn>
           </div>
@@ -125,7 +125,7 @@
           <v-card-title class="d-flex align-center flex-wrap" primary-title>
             Filtrar Ingresos
             <v-spacer></v-spacer>
-            <v-btn icon color="default" @click="dialogFiltro = !dialogFiltro">
+            <v-btn variant="text" icon color="default" @click="dialogFiltro = !dialogFiltro">
               <v-icon>mdi-close</v-icon>
             </v-btn></v-card-title
           >

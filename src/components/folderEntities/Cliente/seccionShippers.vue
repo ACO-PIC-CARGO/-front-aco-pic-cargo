@@ -47,7 +47,7 @@
                     v-slot:[`item.action`]="{ item, index }"
                     v-if="showFormActions"
                   >
-                    <v-btn icon color="red" @click="eliminarShipper(index)">
+                    <v-btn variant="text" icon color="red" @click="eliminarShipper(index)">
                       <v-icon>mdi-delete</v-icon>
                     </v-btn>
                   </template>

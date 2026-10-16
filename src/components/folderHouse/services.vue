@@ -198,7 +198,7 @@
         <v-card-title class="d-flex align-center flex-wrap" primary-title>
           Confirmar liberación de Telex
           <v-spacer></v-spacer>
-          <v-btn icon @click="dialogConfirmarTelex = false">
+          <v-btn variant="text" icon @click="dialogConfirmarTelex = false">
             <v-icon>mdi-close</v-icon>
           </v-btn>
         </v-card-title>

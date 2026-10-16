@@ -45,7 +45,7 @@
         <v-col cols="12">
           <v-data-table :headers="headersIcoterms" :items="lstIncoterms">
             <template v-slot:[`item.action`]="{ item }">
-              <v-btn
+              <v-btn variant="text"
                 color="#E65100"
                 @click="abrirModal(item.id, item.name)"
                 icon

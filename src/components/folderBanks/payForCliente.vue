@@ -143,7 +143,7 @@
                   <tr>
                     <td>{{ name_path }}</td>
                     <td>
-                      <v-btn
+                      <v-btn variant="text"
                         icon
                         color="red"
                         :href="url_documento"

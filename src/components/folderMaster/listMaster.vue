@@ -176,14 +176,14 @@
                     style="background: #e0f2f1"
                   >
                     <td>
-                      <v-btn
+                      <v-btn variant="text"
                         icon
                         color="primary"
                         @click="redirectHouseVer(i.id_house)"
                       >
                         <v-icon class="mx-1">mdi-eye</v-icon>
                       </v-btn>
-                      <v-btn
+                      <v-btn variant="text"
                         icon
                         color="#FFD600"
                         @click="redirectHouse(i.id_house)"
@@ -227,7 +227,7 @@
         <template v-slot:[`item.actions`]="{ item }">
           <v-menu location="top" :persistent="!(true)" v-if="item.status == 1">
             <template v-slot:activator="{ props }">
-              <v-btn icon color="#212121" v-bind="props">
+              <v-btn variant="text" icon color="#212121" v-bind="props">
                 <v-icon class="mx-1">mdi-menu</v-icon>
               </v-btn>
             </template>
@@ -366,7 +366,7 @@
           </v-btn>
           <v-tooltip location="top">
             <template v-slot:activator="{ props }">
-              <v-btn
+              <v-btn variant="text"
                 v-if="item.status == 1"
                 color="#212121"
                 size="small"
@@ -400,7 +400,7 @@
           </v-tooltip> -->
           <v-tooltip location="top">
             <template v-slot:activator="{ props }">
-              <v-btn
+              <v-btn variant="text"
                 icon
                 v-bind="props"
                
@@ -470,7 +470,7 @@
           </v-tooltip> -->
           <v-tooltip location="top">
             <template v-slot:activator="{ props }">
-              <v-btn
+              <v-btn variant="text"
                 v-if="item.status == 1"
                 icon
                 v-bind="props"
@@ -547,7 +547,7 @@
         <v-card-title class="d-flex align-center flex-wrap">
           Registro de Estado/ Comentario - {{ master.code_master }}
           <v-spacer></v-spacer>
-          <v-btn icon color="default" @click="dialog = !dialog">
+          <v-btn variant="text" icon color="default" @click="dialog = !dialog">
             <v-icon class="mx-1">mdi-close</v-icon>
           </v-btn>
         </v-card-title>

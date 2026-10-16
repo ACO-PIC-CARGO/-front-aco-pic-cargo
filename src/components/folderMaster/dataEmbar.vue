@@ -189,7 +189,7 @@
                 <td>{{ item.nro_precinto }}</td>
                 <td>{{ item.cantidad }}</td>
                 <td>
-                  <v-btn
+                  <v-btn variant="text"
                     @click="_delContainers(index)"
                     size="small"
                     icon

@@ -51,7 +51,7 @@
           <!-- <v-btn icon>
             <v-icon  color="warning" @click="open_update(item.id)">mdi-pencil</v-icon>
           </v-btn> -->
-          <v-btn icon>
+          <v-btn variant="text" icon>
             <v-icon color="primary" @click="open_read(item.id)">mdi-eye</v-icon>
           </v-btn>
           <!-- <v-btn icon>

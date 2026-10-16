@@ -365,7 +365,7 @@
 
                     <!-- CASO 2: SI NO ES IMAGEN (Tu botón original para PDF/otros archivos) -->
                     <template v-else>
-                      <v-btn color="info" icon :href="urlfile" target="_blank">
+                      <v-btn variant="text" color="info" icon :href="urlfile" target="_blank">
                         <v-icon color="info" size="large"
                           >mdi-file-pdf-box</v-icon
                         >

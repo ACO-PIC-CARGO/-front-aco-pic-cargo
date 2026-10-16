@@ -22,10 +22,10 @@
         </v-chip>
       </template>
       <template v-slot:[`item.url`]="{ item }">
-        <v-btn color="red" @click="verFactura(item.url)" icon>
+        <v-btn variant="text" color="red" @click="verFactura(item.url)" icon>
           <v-icon>mdi-file-pdf-box</v-icon></v-btn
         >
-        <v-btn
+        <v-btn variant="text"
           color="red"
           @click="eliminar(item)"
           icon

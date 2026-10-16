@@ -66,7 +66,7 @@
               :key="i"
             >
               <td class="btnAccion">
-                <v-btn
+                <v-btn variant="text"
                   icon
                   color="red"
                   size="x-small"

@@ -119,7 +119,7 @@
               <template v-for="(item, index) in dataTable" :key="'row-' + index">
                 <tr class="categoria">
                   <td colspan="7">
-                    <v-btn
+                    <v-btn variant="text"
                       icon
                       color="default"
                       @click="item.tipoflag = !item.tipoflag"
@@ -141,7 +141,7 @@
                   >
                     <td></td>
                     <td colspan="6">
-                      <v-btn
+                      <v-btn variant="text"
                         icon
                         color="default"
                         @click="t.costoflag = !t.costoflag"

@@ -63,16 +63,16 @@
       </template>
       <template v-slot:[`item.action`]="{ item }">
         <div class="d-flex align-center">
-          <v-btn icon color="default" @click="verSoport(item.ruta)">
+          <v-btn variant="text" icon color="default" @click="verSoport(item.ruta)">
             <v-icon>mdi-file</v-icon>
           </v-btn>
-          <v-btn size="small" icon color="info" @click="ver(item)">
+          <v-btn variant="text" size="small" icon color="info" @click="ver(item)">
             <v-icon>mdi-eye</v-icon>
           </v-btn>
-          <v-btn size="small" icon color="orange" @click="editar(item)">
+          <v-btn variant="text" size="small" icon color="orange" @click="editar(item)">
             <v-icon>mdi-pencil</v-icon>
           </v-btn>
-          <v-btn size="small" icon color="red" @click="confirmarEliminar(item)">
+          <v-btn variant="text" size="small" icon color="red" @click="confirmarEliminar(item)">
             <v-icon>mdi-delete</v-icon>
           </v-btn>
         </div>
@@ -169,7 +169,7 @@
         <v-card-title class="d-flex align-center flex-wrap" primary-title>
           {{ verflag ? "Ver " : "Editar" }}
           <v-spacer> </v-spacer>
-          <v-btn icon color="default" @click="dialog = !dialog">
+          <v-btn variant="text" icon color="default" @click="dialog = !dialog">
             <v-icon>mdi-close</v-icon>
           </v-btn>
         </v-card-title>

@@ -22,7 +22,7 @@
             desde que se active tu plan.
           </p>
         </div>
-        <v-btn icon class="icon-button" aria-label="Cerrar" @click="close">
+        <v-btn variant="text" icon class="icon-button" aria-label="Cerrar" @click="close">
           <v-icon>mdi-close</v-icon>
         </v-btn>
       </header>

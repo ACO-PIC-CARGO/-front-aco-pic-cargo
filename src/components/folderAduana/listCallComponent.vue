@@ -97,7 +97,7 @@
             <td>
               <v-tooltip location="bottom">
                 <template v-slot:activator="{ props }">
-                  <v-btn
+                  <v-btn variant="text"
                     class="ma-2"
                     icon
                     size="x-small"

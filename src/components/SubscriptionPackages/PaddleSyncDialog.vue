@@ -17,7 +17,7 @@
             algo.
           </p>
         </div>
-        <v-btn
+        <v-btn variant="text"
           icon
           class="icon-button"
           aria-label="Cerrar"

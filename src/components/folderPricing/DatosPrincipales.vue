@@ -262,7 +262,7 @@
             return-object
           >
             <template v-slot:[`item.action`]="{ item }">
-              <v-btn
+              <v-btn variant="text"
                 icon
                 size="small"
                 :color="getColorIcon(item)"

@@ -33,7 +33,7 @@
               <tbody>
                 <tr v-for="child of item.details" :key="child.id">
                   <td>
-                    <v-btn
+                    <v-btn variant="text"
                       icon
                       color="primary"
                       @click="payment(child, item.id)"
@@ -41,7 +41,7 @@
                     >
                       <v-icon>mdi-hand-coin</v-icon>
                     </v-btn>
-                    <v-btn
+                    <v-btn variant="text"
                       icon
                       color="red"
                       @click="
@@ -83,7 +83,7 @@
         <v-card-title class="d-flex align-center flex-wrap" primary-title>
           PROVEEDOR: {{ nameproveedor }}
           <v-spacer></v-spacer>
-          <v-btn icon color="default" @click="dialog = !dialog">
+          <v-btn variant="text" icon color="default" @click="dialog = !dialog">
             <v-icon>mdi-close</v-icon>
           </v-btn>
         </v-card-title>
@@ -166,7 +166,7 @@
                   {{ item.acronym }} {{ item.monto_mon_ex }}
                 </template>
                 <template v-slot:[`item.action`]="{ item }">
-                  <v-btn icon color="red" @click="eliminarDetalle(item)">
+                  <v-btn variant="text" icon color="red" @click="eliminarDetalle(item)">
                     <v-icon>mdi-delete</v-icon>
                   </v-btn>
                 </template>

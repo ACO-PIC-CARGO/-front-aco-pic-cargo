@@ -142,7 +142,7 @@
       <v-card>
         <v-card-title class="text-h5 d-flex align-center flex-wrap">
           Ficha de Clientes <v-spacer></v-spacer>
-          <v-btn
+          <v-btn variant="text"
             icon
             color="red"
             @click="$store.state.modalEntitie = !$store.state.modalEntitie"
@@ -758,7 +758,7 @@
       <v-card>
         <v-card-title class="text-h5 d-flex align-center flex-wrap">
           Control de Servicios <v-spacer></v-spacer>
-          <v-btn
+          <v-btn variant="text"
             icon
             color="red"
             @click="$store.state.modalServices = !$store.state.modalServices"

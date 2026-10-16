@@ -56,13 +56,13 @@
           {{ !!item.status ? "Activo" : "Inactivo" }}
         </template>
         <template v-slot:[`item.action`]="{ item }">
-          <v-btn icon>
+          <v-btn variant="text" icon>
             <v-icon color="warning" @click="update(item.id)">mdi-pencil</v-icon>
           </v-btn>
-          <v-btn icon>
+          <v-btn variant="text" icon>
             <v-icon color="success" @click="read(item.id)">mdi-eye</v-icon>
           </v-btn>
-          <v-btn icon>
+          <v-btn variant="text" icon>
             <v-switch
               v-model="item.status"
               :value-comparator="(value, checked) => Boolean(value) === checked"

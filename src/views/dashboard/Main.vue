@@ -378,7 +378,7 @@
         <v-card-title class="d-flex align-center flex-wrap" primary-title>
           COTIZACIÓN PILOTO AUTOMÁTICO
           <v-spacer></v-spacer>
-          <v-btn color="info" icon @click="dialogPilotoAutomatico = false">
+          <v-btn variant="text" color="info" icon @click="dialogPilotoAutomatico = false">
             <v-icon>mdi-close</v-icon>
           </v-btn>
         </v-card-title>
@@ -402,7 +402,7 @@
             return-object
           >
             <template v-slot:[`item.action`]="{ item }">
-              <v-btn
+              <v-btn variant="text"
                 icon
                 size="small"
                 :color="getColorIcon(item)"

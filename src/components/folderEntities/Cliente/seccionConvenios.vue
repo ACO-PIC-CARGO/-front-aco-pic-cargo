@@ -83,7 +83,7 @@
                   v-slot:[`item.action`]="{ item, index }"
                   v-if="showFormActions"
                 >
-                  <v-btn icon color="red" @click="eliminarConvenio(index)">
+                  <v-btn variant="text" icon color="red" @click="eliminarConvenio(index)">
                     <v-icon>mdi-delete</v-icon>
                   </v-btn>
                 </template>
@@ -160,7 +160,7 @@
                   v-slot:[`item.action`]="{ item, index }"
                   v-if="showFormActions"
                 >
-                  <v-btn icon color="red" @click="eliminarTarifa(index)">
+                  <v-btn variant="text" icon color="red" @click="eliminarTarifa(index)">
                     <v-icon>mdi-delete</v-icon>
                   </v-btn>
                 </template>

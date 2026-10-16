@@ -39,22 +39,22 @@
           :search="search"
         >
           <template v-slot:[`item.action`]="{ item }">
-            <v-btn icon>
+            <v-btn variant="text" icon>
               <v-icon color="info" @click="ver(item.proyeccion_id)"
                 >mdi-eye</v-icon
               >
             </v-btn>
-            <v-btn icon v-if="!item.proyeccion_aprobadoflag">
+            <v-btn variant="text" icon v-if="!item.proyeccion_aprobadoflag">
               <v-icon color="orange" @click="editar(item.proyeccion_id)"
                 >mdi-pencil</v-icon
               >
             </v-btn>
-            <v-btn icon>
+            <v-btn variant="text" icon>
               <v-icon color="blue-grey-darken-4" @click="copiar(item)"
                 >mdi-content-copy</v-icon
               >
             </v-btn>
-            <v-btn
+            <v-btn variant="text"
               icon
               v-if="!item.proyeccion_aprobadoflag && !!item.proyeccion_estado"
               @click="eliminar(item.proyeccion_id)"
@@ -82,7 +82,7 @@
         <v-card-title class="d-flex align-center flex-wrap" primary-title>
           Copiar Proyección {{ item.proyeccion_correlativo }}
           <v-spacer></v-spacer>
-          <v-btn icon color="defaul" @click="dialog = !dialog">
+          <v-btn variant="text" icon color="defaul" @click="dialog = !dialog">
             <v-icon>mdi-close</v-icon>
           </v-btn>
         </v-card-title>
@@ -133,7 +133,7 @@
         <v-card-title class="d-flex align-center flex-wrap" primary-title>
           REALIZAR PRIMERA PROYECCIÓN
           <v-spacer></v-spacer>
-          <v-btn icon color="defaul" @click="dialogn = !dialogn">
+          <v-btn variant="text" icon color="defaul" @click="dialogn = !dialogn">
             <v-icon>mdi-close</v-icon>
           </v-btn>
         </v-card-title>
@@ -245,7 +245,7 @@
             <v-radio-group v-model="estado" inline density="compact">
               <v-radio label="Activo" :value="'true'"></v-radio>
               <v-radio label="Inactivo" color="red" :value="'false'"></v-radio>
-              <v-btn icon size="small" @click="clearestado()" v-if="!!estado">
+              <v-btn variant="text" icon size="small" @click="clearestado()" v-if="!!estado">
                 <v-icon>mdi-close</v-icon>
               </v-btn>
             </v-radio-group>
@@ -259,7 +259,7 @@
                 color="red"
                 :value="'false'"
               ></v-radio>
-              <v-btn icon size="small" @click="clearaprobado()" v-if="!!aprobado">
+              <v-btn variant="text" icon size="small" @click="clearaprobado()" v-if="!!aprobado">
                 <v-icon>mdi-close</v-icon>
               </v-btn>
             </v-radio-group>

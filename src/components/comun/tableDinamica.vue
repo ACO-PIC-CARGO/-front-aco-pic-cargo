@@ -24,7 +24,7 @@
               }"
             >
               <td colspan="4">
-                <v-btn
+                <v-btn variant="text"
                   icon
                   color="default"
                   @click="item.tipoflag = !item.tipoflag"
@@ -53,7 +53,7 @@
               >
                 <td></td>
                 <td>
-                  <v-btn
+                  <v-btn variant="text"
                     icon
                     color="default"
                     @click="subItem.subtipoflag = !subItem.subtipoflag"
@@ -88,7 +88,7 @@
                 >
                   <td colspan="2"></td>
                   <td>
-                    <v-btn
+                    <v-btn variant="text"
                       icon
                       color="default"
                       @click="stipo.costoflag = !stipo.costoflag"

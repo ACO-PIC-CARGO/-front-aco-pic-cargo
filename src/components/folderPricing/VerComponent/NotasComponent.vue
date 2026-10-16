@@ -11,7 +11,7 @@
           Registro de nueva nota - Opción
           {{ opcionesSeleccionadas[$store.state.pricing.page - 1].nro_propuesta
           }}<v-spacer></v-spacer>
-          <v-btn icon color="default" @click="dialog = false">
+          <v-btn variant="text" icon color="default" @click="dialog = false">
             <v-icon>mdi-close</v-icon>
           </v-btn>
         </v-card-title>
@@ -35,7 +35,7 @@
       <v-col cols="12">
         Añadir nueva Nota: Opción
         {{ opcionesSeleccionadas[$store.state.pricing.page - 1].nro_propuesta }}
-        <v-btn icon color="primary" @click="dialog = !dialog">
+        <v-btn variant="text" icon color="primary" @click="dialog = !dialog">
           <v-icon>mdi-plus</v-icon>
         </v-btn>
       </v-col>
@@ -85,7 +85,7 @@
                       ></v-textarea>
                     </td>
                     <td class="btnTblClass">
-                      <v-btn
+                      <v-btn variant="text"
                         icon
                         color="red"
                         size="x-small"
@@ -107,7 +107,7 @@
             <v-expansion-panel-title>
               <span class="d-inline-flex align-center">
                 Se incluye
-                <v-btn
+                <v-btn variant="text"
                   color="success"
                   size="x-small"
                   icon
@@ -154,7 +154,7 @@
           <v-expansion-panel-title>
             <span class="d-inline-flex align-center">
               No Se Incluye
-              <v-btn
+              <v-btn variant="text"
                 color="success"
                 size="x-small"
                 icon
@@ -373,7 +373,7 @@
           PREVISUALIZACIÓN DE LA COTIZACIÓN - NO TIENE NINGÚN VALOR COMERCIAL
 
           <v-spacer></v-spacer>
-          <v-btn icon color="white" @click="dialogPreview = !dialogPreview">
+          <v-btn variant="text" icon color="white" @click="dialogPreview = !dialogPreview">
             <v-icon>mdi-close</v-icon>
           </v-btn>
         </v-card-title>

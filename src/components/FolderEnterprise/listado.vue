@@ -55,17 +55,17 @@
           {{ item.status == 1 ? "Activo" : "Inactivo" }}
         </template>
         <template v-slot:[`item.action`]="{ item }">
-          <v-btn icon>
+          <v-btn variant="text" icon>
             <v-icon color="warning" @click="updateEnterpriseRoute(item.id)"
               >mdi-pencil</v-icon
             >
           </v-btn>
-          <v-btn icon>
+          <v-btn variant="text" icon>
             <v-icon color="success" @click="readEnterprise(item.id)"
               >mdi-eye</v-icon
             >
           </v-btn>
-          <v-btn
+          <v-btn variant="text"
             icon
             color="red"
             @click="switch_status(item)"

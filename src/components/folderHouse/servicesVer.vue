@@ -154,7 +154,7 @@
         <v-card-title class="text-h6 d-flex align-center flex-wrap">
           Seleccione notificación
           <v-spacer></v-spacer>
-          <v-btn icon @click="dialogNotificacionesLista = false">
+          <v-btn variant="text" icon @click="dialogNotificacionesLista = false">
             <v-icon>mdi-close</v-icon>
           </v-btn>
         </v-card-title>

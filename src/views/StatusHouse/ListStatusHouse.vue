@@ -239,7 +239,7 @@
                         ></v-textarea>
                       </td>
                       <td>
-                        <v-btn
+                        <v-btn variant="text"
                           color="error"
                           icon
                           @click="moveUp(index)"
@@ -247,7 +247,7 @@
                         >
                           <v-icon>mdi-arrow-up-drop-circle-outline</v-icon>
                         </v-btn>
-                        <v-btn
+                        <v-btn variant="text"
                           color="success"
                           icon
                           @click="moveDown(index)"
@@ -255,7 +255,7 @@
                         >
                           <v-icon>mdi-arrow-down-drop-circle-outline</v-icon>
                         </v-btn>
-                        <v-btn
+                        <v-btn variant="text"
                           icon
                           color="error"
                           @click="eliminarComentario(item)"

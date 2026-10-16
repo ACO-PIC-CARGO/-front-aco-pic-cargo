@@ -11,7 +11,7 @@
       <v-card min-height="80vh">
         <v-card-title class="d-flex align-center flex-wrap" primary-title>
           Filtrar Flujo <v-spacer></v-spacer>
-          <v-btn icon color="default" @click="filtroFlag = !filtroFlag">
+          <v-btn variant="text" icon color="default" @click="filtroFlag = !filtroFlag">
             <v-icon>mdi-close</v-icon>
           </v-btn>
         </v-card-title>
@@ -81,7 +81,7 @@
               <th :style="getColumnWidth(7)">CLIENTE/ PROVEEDOR</th>
 
               <th width="2%">
-                <v-btn color="default" @click="previous()" icon>
+                <v-btn variant="text" color="default" @click="previous()" icon>
                   <v-icon size="x-large">mdi-chevron-left</v-icon>
                 </v-btn>
               </th>
@@ -94,7 +94,7 @@
               </th>
               <th>TOTALES</th>
               <th width="2%">
-                <v-btn icon color="default" @click="next()">
+                <v-btn variant="text" icon color="default" @click="next()">
                   <v-icon size="x-large">mdi-chevron-right</v-icon>
                 </v-btn>
               </th>
@@ -107,7 +107,7 @@
                 @dblclick="item.subtipoflag = !item.subtipoflag"
               >
                 <td :colspan="5">
-                  <v-btn
+                  <v-btn variant="text"
                     icon
                     color="default"
                     @click="item.subtipoflag = !item.subtipoflag"
@@ -146,7 +146,7 @@
                 >
                   <td :colspan="1"></td>
                   <td :colspan="4">
-                    <v-btn
+                    <v-btn variant="text"
                       icon
                       color="default"
                       @click="stipo.descripcionflag = !stipo.descripcionflag"
@@ -196,7 +196,7 @@
                   >
                     <td colspan="2"></td>
                     <td colspan="2">
-                      <v-btn
+                      <v-btn variant="text"
                         icon
                         color="default"
                         @click="desc.costoflag = !desc.costoflag"

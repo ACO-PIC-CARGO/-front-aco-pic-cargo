@@ -173,7 +173,7 @@
           <v-card-title class="d-flex align-center flex-wrap">
             Todos los registros de bitácora
             <v-spacer></v-spacer>
-            <v-btn icon @click="dialogVerTodos = false">
+            <v-btn variant="text" icon @click="dialogVerTodos = false">
               <v-icon>mdi-close</v-icon>
             </v-btn>
           </v-card-title>
@@ -373,7 +373,7 @@
                         ></v-textarea>
                       </td>
                       <td>
-                        <v-btn
+                        <v-btn variant="text"
                           color="error"
                           icon
                           @click="moveUp(index)"
@@ -381,7 +381,7 @@
                         >
                           <v-icon>mdi-arrow-up-drop-circle-outline</v-icon>
                         </v-btn>
-                        <v-btn
+                        <v-btn variant="text"
                           color="success"
                           icon
                           @click="moveDown(index)"
@@ -389,7 +389,7 @@
                         >
                           <v-icon>mdi-arrow-down-drop-circle-outline</v-icon>
                         </v-btn>
-                        <v-btn
+                        <v-btn variant="text"
                           icon
                           color="error"
                           @click="eliminarComentario(item, index)"

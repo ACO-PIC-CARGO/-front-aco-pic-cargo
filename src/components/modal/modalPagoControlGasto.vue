@@ -91,7 +91,7 @@
               </template>
               <!--  -->
               <template v-slot:[`item.parcial`]="{ item }">
-                <v-btn
+                <v-btn variant="text"
                   v-if="item.tipo == 'CG'"
                   size="small"
                   icon

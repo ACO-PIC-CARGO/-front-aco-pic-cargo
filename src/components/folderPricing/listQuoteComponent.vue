@@ -352,7 +352,7 @@
               </v-tooltip> -->
               <v-tooltip location="top">
                 <template v-slot:activator="{ props }">
-                  <v-btn
+                  <v-btn variant="text"
                     icon
                     size="x-small"
                     v-bind="props"
@@ -375,7 +375,7 @@
               <!--  -->
               <v-tooltip location="top">
                 <template v-slot:activator="{ props }">
-                  <v-btn
+                  <v-btn variant="text"
                     size="x-small"
                     icon
                     v-bind="props"
@@ -399,7 +399,7 @@
 
               <v-tooltip location="top">
                 <template v-slot:activator="{ props }">
-                  <v-btn
+                  <v-btn variant="text"
                     icon
                    
                     v-bind="props"
@@ -425,7 +425,7 @@
               <!--  -->
               <v-tooltip location="top">
                 <template v-slot:activator="{ props }">
-                  <v-btn
+                  <v-btn variant="text"
                     icon
                     size="x-small"
                    
@@ -448,7 +448,7 @@
 
               <v-tooltip location="top">
                 <template v-slot:activator="{ props }">
-                  <v-btn
+                  <v-btn variant="text"
                     icon
                     size="x-small"
                    
@@ -470,7 +470,7 @@
               </v-tooltip>
               <v-tooltip location="top">
                 <template v-slot:activator="{ props }">
-                  <v-btn
+                  <v-btn variant="text"
                     icon
                     size="x-small"
                    
@@ -576,7 +576,7 @@
         <v-card-title class="d-flex align-center flex-wrap" primary-title>
           Actualizar Recibido / Enviado
           <v-spacer></v-spacer>
-          <v-btn icon color="default" @click="dialog = !dialog">
+          <v-btn variant="text" icon color="default" @click="dialog = !dialog">
             <v-icon>mdi-close</v-icon>
           </v-btn>
         </v-card-title>
@@ -710,7 +710,7 @@
         <v-card-title class="d-flex align-center flex-wrap" primary-title>
           SELECCIONE EL EXPEDIENTE A ASOCIAR:
           <v-spacer></v-spacer>
-          <v-btn icon color="default" @click="aprobarflag = !aprobarflag">
+          <v-btn variant="text" icon color="default" @click="aprobarflag = !aprobarflag">
             <v-icon>mdi-close</v-icon>
           </v-btn>
         </v-card-title>
@@ -752,7 +752,7 @@
           Enlazar Houses a Cotización
           {{ quoteSeleccionada ? quoteSeleccionada.codigo : "" }}
           <v-spacer></v-spacer>
-          <v-btn icon @click="modalEnlazarHouse = false">
+          <v-btn variant="text" icon @click="modalEnlazarHouse = false">
             <v-icon>mdi-close</v-icon>
           </v-btn>
         </v-card-title>

@@ -35,7 +35,7 @@
         <v-col cols="12" class="px-10 icons-and-text" v-if="mostrarIncoterms">
           <v-data-table :headers="headersIncoterms" :items="incoterms">
             <template v-slot:[`item.action`]="{ item }">
-              <v-btn
+              <v-btn variant="text"
                 color="info"
                 icon
                 @click="abrirModalActualizacionConceptos(item.id)"

@@ -5,7 +5,7 @@
         <v-col cols="12" lg="4" xl="4" class="my-1 py-2">
           <span class="text-h6">
             Ventas {{ currencyFormat($store.state.pricing.totalVenta) }}
-            <v-btn icon color="primary" @click="abrirModal">
+            <v-btn variant="text" icon color="primary" @click="abrirModal">
               <v-icon>mdi-plus</v-icon>
             </v-btn>
           </span>
@@ -45,7 +45,7 @@
                   :class="{ 'bg-warning': valor.tieneprofitflag }"
                 >
                   <td class="btnAccion">
-                    <v-btn
+                    <v-btn variant="text"
                       icon
                       color="red"
                       size="x-small"

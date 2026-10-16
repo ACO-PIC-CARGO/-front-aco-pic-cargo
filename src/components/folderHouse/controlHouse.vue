@@ -111,7 +111,7 @@
               class="mt-3"
             >
               <template v-slot:append-inner>
-                <v-btn
+                <v-btn variant="text"
                   icon
                   size="small"
                   color="primary"
@@ -247,7 +247,7 @@
           hide-details
         >
           <template v-slot:append-inner>
-            <v-btn
+            <v-btn variant="text"
               icon
               size="small"
               color="primary"

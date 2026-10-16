@@ -51,7 +51,7 @@
               <tr>
                 <td>
                   {{ egreso.nombre_proveedor }}
-                  <v-btn
+                  <v-btn variant="text"
                     icon
                     color="success"
                     v-if="egreso.code_tipo_proveedor === '01'"
@@ -101,7 +101,7 @@
                   </v-btn>
                 </td>
                 <td v-if="editable">
-                  <v-btn
+                  <v-btn variant="text"
                     icon
                     size="small"
                     :loading="loading"
@@ -113,7 +113,7 @@
                   </v-btn>
                 </td>
                 <td v-if="editable">
-                  <v-btn
+                  <v-btn variant="text"
                     size="small"
                     color="white"
                     icon
@@ -125,7 +125,7 @@
                 </td>
 
                 <td v-if="editable">
-                  <v-btn
+                  <v-btn variant="text"
                     size="small"
                     :color="egreso.solicitudes > 0 ? 'blue' : 'grey'"
                     icon
@@ -330,12 +330,12 @@
                       </v-chip>
                     </td>
                     <td v-if="editable">
-                      <v-btn icon color="orange" size="small">
+                      <v-btn variant="text" icon color="orange" size="small">
                         <v-icon @click="_editEgreso(item)">
                           mdi-pencil
                         </v-icon>
                       </v-btn>
-                      <v-btn
+                      <v-btn variant="text"
                         icon
                         color="red"
                         size="small"
@@ -643,7 +643,7 @@
               {{ item.number }}
             </template>
             <template v-slot:[`item.path`]="{ item }">
-              <v-btn icon size="small">
+              <v-btn variant="text" icon size="small">
                 <v-icon
                   class="btn_add mr-2"
                   size="large"
@@ -655,7 +655,7 @@
               >
             </template>
             <template v-slot:[`item.action`]="{ item }">
-              <v-btn icon size="small">
+              <v-btn variant="text" icon size="small">
                 <v-icon
                   class="btn_add mr-2"
                   size="large"
@@ -1063,7 +1063,7 @@
       <v-card>
         <v-card-title class="d-flex align-center flex-wrap" primary-title>
           Registrar División de Pagos <v-spacer></v-spacer>
-          <v-btn icon color="default" @click="cerrarModal()">
+          <v-btn variant="text" icon color="default" @click="cerrarModal()">
             <v-icon>mdi-close</v-icon>
           </v-btn>
         </v-card-title>
