@@ -11,62 +11,62 @@
         <v-icon>mdi-close</v-icon>
       </v-btn>
     </v-card-title>
-    <v-card-text>
-      <div class="col-12 py-1">
-        <v-autocomplete
-          label="Tipo Documento"
-          :items="$store.state.itemsDocumentsPais"
-          v-model="$store.state.user.filtros.id_document"
-          item-text="name"
-          item-value="id"
-          clearable
-        >
-        </v-autocomplete>
-      </div>
-
-      <div class="col-12 py-1">
-        <v-text-field
-          v-model="$store.state.user.filtros.document"
-          label="Nro Documento"
-          clearable
-        ></v-text-field>
-      </div>
-      <div class="col-12 py-1">
-        <v-text-field
-          v-model="$store.state.user.filtros.users"
-          label="Nombre de usuario"
-          clearable
-        ></v-text-field>
-      </div>
-      <div class="col-12 py-1">
-        <v-text-field
-          v-model="$store.state.user.filtros.nombrecompleto"
-          label="Nombre Completo"
-          clearable
-        ></v-text-field>
-      </div>
-      <div class="col-12 py-1">
-        <v-text-field
-          v-model="$store.state.user.filtros.phone"
-          label="Teléfono"
-          :clearable="$store.state.user.tipo != 'ver'"
-        ></v-text-field>
-      </div>
-      <div class="col-12 py-1">
-        <v-text-field
-          v-model="$store.state.user.filtros.email"
-          label="Email"
-        ></v-text-field>
-      </div>
-      <div class="col-12 py-1">
-        <span> Estado</span>
-        <v-radio-group v-model="$store.state.user.filtros.status" row dense>
-          <v-radio label="Activo" color="green" value="1"></v-radio>
-          <v-radio label="Inactivo" color="red" value="0"></v-radio>
-          <v-radio label="Todos" color="blue" value="null"></v-radio>
-        </v-radio-group>
-      </div>
-    </v-card-text>
+    <v-form ref="frmDML">
+      <v-card-text>
+        <div class="col-12 py-1">
+          <v-autocomplete
+            label="Tipo Documento"
+            :items="$store.state.itemsDocumentsPais"
+            v-model="$store.state.user.filtros.id_document"
+            item-text="name"
+            item-value="id"
+            clearable
+          ></v-autocomplete>
+        </div>
+        <div class="col-12 py-1">
+          <v-text-field
+            v-model="$store.state.user.filtros.document"
+            label="Nro Documento"
+            clearable
+          ></v-text-field>
+        </div>
+        <div class="col-12 py-1">
+          <v-text-field
+            v-model="$store.state.user.filtros.users"
+            label="Nombre de usuario"
+            clearable
+          ></v-text-field>
+        </div>
+        <div class="col-12 py-1">
+          <v-text-field
+            v-model="$store.state.user.filtros.nombrecompleto"
+            label="Nombre Completo"
+            clearable
+          ></v-text-field>
+        </div>
+        <div class="col-12 py-1">
+          <v-text-field
+            v-model="$store.state.user.filtros.phone"
+            label="Teléfono"
+            :clearable="$store.state.user.tipo != 'ver'"
+          ></v-text-field>
+        </div>
+        <div class="col-12 py-1">
+          <v-text-field
+            v-model="$store.state.user.filtros.email"
+            label="Email"
+          ></v-text-field>
+        </div>
+        <div class="col-12 py-1">
+          <span> Estado</span>
+          <v-radio-group v-model="$store.state.user.filtros.status" row dense>
+            <v-radio label="Activo" color="green" value="1"></v-radio>
+            <v-radio label="Inactivo" color="red" value="0"></v-radio>
+            <v-radio label="Todos" color="blue" value="null"></v-radio>
+          </v-radio-group>
+        </div>
+      </v-card-text>
+    </v-form>
 
     <v-card-actions>
       <v-spacer></v-spacer>

@@ -101,6 +101,7 @@ const state = {
   listServices: [],
   copylistServices: [],
   listCostos: [],
+  listImpuestos: [],
   listModality: [],
   listShipment: [],
   listIncoterms: [],
@@ -150,6 +151,12 @@ const mutations = {
   },
   SET_LIST_COSTES(state, data) {
     state.listCostos = data;
+  },
+  SET_CARGAR_IMPUESTOS(state, data) {
+    state.listImpuestos = data;
+  },
+  ACTUALIZAR_IMPUEST(state, data) {
+    state.listImpuestos = data;
   },
   PRE_COSTOS(state, data) {
     state.preCostos = data;

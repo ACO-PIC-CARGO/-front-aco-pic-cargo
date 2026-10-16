@@ -680,10 +680,12 @@ export default {
     abrirSwalConfigFlete() {
       let routesHome = ["Home", "Main"];
       let positions = ["01", "02"];
-      let dataBranch = JSON.parse(sessionStorage.getItem("dataBranch"));
-      let dataUser = JSON.parse(sessionStorage.getItem("dataUser"));
-      let position = dataUser[0].position_code[0];
-      let { tienefleteactivo, dias_restantes, vigencia } = dataBranch[0];
+      let dataBranch = JSON.parse(sessionStorage.getItem("dataBranch"))?.[0];
+      let dataUser = JSON.parse(sessionStorage.getItem("dataUser"))?.[0];
+      let position = dataUser?.position_code?.[0];
+      if (!dataBranch || !position) return;
+
+      let { tienefleteactivo, dias_restantes, vigencia } = dataBranch;
       let routeHome = this.$route.name;
 
       if (
@@ -855,7 +857,7 @@ export default {
         this.$store.state.spiner = false;
         await this.updateQuote();
 
-        this.$router.push({
+        const destino = {
           name: "verQuote",
           params: {
             id: this.$store.state.pricing.id,
@@ -863,7 +865,13 @@ export default {
               ? this.$store.state.pricing.step
               : 1,
           },
-        });
+        };
+        if (
+          this.$router.resolve(destino).route.fullPath !==
+          this.$route.fullPath
+        ) {
+          await this.$router.push(destino);
+        }
         this.$store.state.spiner = false;
       } else {
         Swal.fire({

@@ -776,38 +776,37 @@ export default {
 
     cambiarImpuesto() {
       let porcentaje = "10";
-      if (this.$store.state.aduana.listImpuestos.length > 0) {
-        this.$store.state.aduana.listImpuestos.filter(
-          (v) => v.codigo == "09"
-        )[0].codigo01 = "10";
-      }
-
+      const impuestos = Array.isArray(this.$store.state.aduana.listImpuestos)
+        ? this.$store.state.aduana.listImpuestos
+        : [];
       if (this.$store.state.aduana.datosPrincipales.id_percepcionaduana) {
-        porcentaje =
-          this.$store.state.masterusuarios.lstPercepcionAduana.filter(
-            (v) =>
-              v.id ==
-              this.$store.state.aduana.datosPrincipales.id_percepcionaduana
-          )[0].codigo01;
-
-        if (this.$store.state.aduana.listImpuestos.length > 0) {
-          this.$store.state.aduana.listImpuestos.filter(
-            (v) => v.codigo == "09"
-          )[0].codigo01 = "10";
-        }
+        const percepciones = Array.isArray(
+          this.$store.state.masterusuarios.lstPercepcionAduana
+        )
+          ? this.$store.state.masterusuarios.lstPercepcionAduana
+          : [];
+        const percepcion = percepciones.find(
+          (v) =>
+            v.id ==
+            this.$store.state.aduana.datosPrincipales.id_percepcionaduana
+        );
+        if (percepcion) porcentaje = percepcion.codigo01;
       }
-      let newImpuesto = [...this.$store.state.aduana.listImpuestos];
-      if (newImpuesto.length > 0) {
-        newImpuesto.filter((v) => v.codigo == "09")[0].codigo01 = porcentaje;
-
-        this.$store.commit("ACTUALIZAR_IMPUEST", newImpuesto);
-      }
-
+      const newImpuesto = impuestos.map((impuesto) =>
+        impuesto.codigo == "09"
+          ? { ...impuesto, codigo01: porcentaje }
+          : impuesto
+      );
+      this.$store.commit("ACTUALIZAR_IMPUEST", newImpuesto);
       this.$store.state.aduana.opcionCostos.forEach((element) => {
-        if (element.listImpuestos.length > 0) {
-          element.listImpuestos.filter((v) => v.codigo == "09")[0].codigo01 =
-            porcentaje;
-        }
+        const impuestosOpcion = Array.isArray(element.listImpuestos)
+          ? element.listImpuestos
+          : [];
+        element.listImpuestos = impuestosOpcion.map((impuesto) =>
+          impuesto.codigo == "09"
+            ? { ...impuesto, codigo01: porcentaje }
+            : impuesto
+        );
       });
       this.$forceUpdate();
     },

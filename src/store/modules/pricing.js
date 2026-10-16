@@ -8539,8 +8539,11 @@ export function getNombreCotizacion(listNotasQuote) {
       break;
   }
   let containers = "";
-  let nota = state.opcionCostos[0].listNotasQuote[0].descripcion;
-  let name = `COTIZACION ${nota} ${state.datosPrincipales.nombre}`;
+  let nota =
+    state.opcionCostos?.[0]?.listNotasQuote?.[0]?.descripcion || "";
+  let name = ["COTIZACION", nota, state.datosPrincipales.nombre]
+    .filter(Boolean)
+    .join(" ");
   if (shipment.code == "FCL") {
     containers = state.datosPrincipales.containers.map((c) => c.code).join("_");
     name = `COTIZACION ${containers} FCL ${state.datosPrincipales.nombre}`;
