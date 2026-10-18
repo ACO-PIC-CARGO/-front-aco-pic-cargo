@@ -1,6 +1,6 @@
 <template>
   <div>
-    <v-simple-table>
+    <v-table>
       <template v-slot:default>
         <thead>
           <tr>
@@ -16,16 +16,15 @@
           </tr>
         </thead>
         <tbody>
-          <template v-for="(item, index) in dataTable">
+          <template v-for="(item, index) in dataTable" :key="'row-' + index">
             <tr
-              :key="'row-' + index"
               :class="{
                 categoria: true,
                 'text-red': item.diferencia < 0,
               }"
             >
               <td colspan="4">
-                <v-btn
+                <v-btn variant="text"
                   icon
                   color="default"
                   @click="item.tipoflag = !item.tipoflag"
@@ -54,7 +53,7 @@
               >
                 <td></td>
                 <td>
-                  <v-btn
+                  <v-btn variant="text"
                     icon
                     color="default"
                     @click="subItem.subtipoflag = !subItem.subtipoflag"
@@ -89,7 +88,7 @@
                 >
                   <td colspan="2"></td>
                   <td>
-                    <v-btn
+                    <v-btn variant="text"
                       icon
                       color="default"
                       @click="stipo.costoflag = !stipo.costoflag"
@@ -165,7 +164,7 @@
           </tr>
         </tbody>
       </template>
-    </v-simple-table>
+    </v-table>
     <!-- <v-data-table
       :headers="headers"
       :items="items"
@@ -182,13 +181,13 @@ export default {
   props: ["items", "mes"],
   data: () => ({
     headers: [
-      { text: "categoria", value: "categoria" },
-      { text: "tipo", value: "tipo" },
-      { text: "subtipo", value: "subtipo" },
-      { text: "proveedor", value: "proveedor" },
-      { text: "monto", value: "monto" },
-      { text: "proyeccion", value: "proyeccion" },
-      { text: "Resultado Mes", value: "result" },
+      { title: "categoria", key: "categoria" },
+      { title: "tipo", key: "tipo" },
+      { title: "subtipo", key: "subtipo" },
+      { title: "proveedor", key: "proveedor" },
+      { title: "monto", key: "monto" },
+      { title: "proyeccion", key: "proyeccion" },
+      { title: "Resultado Mes", key: "result" },
     ],
 
     dataTable: [],
@@ -397,7 +396,7 @@ export default {
 .categoria {
   background: #c5cae9 !important;
 }
-.totales[data-v-a30aadea] {
+.totales {
   background: #bdbdbd !important;
   font-weight: bold;
   /* color: #fff !important; */
@@ -410,9 +409,6 @@ th {
   text-align: center;
 }
 .text-red {
-  color: red !important;
-}
-.text-red[data-v-a30aadea] {
   color: red !important;
 }
 </style>

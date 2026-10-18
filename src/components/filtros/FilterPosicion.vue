@@ -1,9 +1,9 @@
 <template>
   <v-card>
-    <v-card-title primary-title>
+    <v-card-title class="d-flex align-center flex-wrap" primary-title>
       {{ getName() }}
       <v-spacer></v-spacer>
-      <v-btn
+      <v-btn variant="text"
         icon
         color="default"
         @click="$store.state.position.drawer = !$store.state.position.drawer"
@@ -35,7 +35,7 @@
       </div>
       <div class="col-12 py-1">
         <span> Estado</span>
-        <v-radio-group v-model="$store.state.position.filtros.estado" row dense>
+        <v-radio-group v-model="$store.state.position.filtros.estado" inline density="compact">
           <v-radio label="Activo" color="green" :value="true"></v-radio>
           <v-radio label="Inactivo" color="red" :value="false"></v-radio>
           <v-radio label="Todos" color="blue" value="null"></v-radio>
@@ -129,7 +129,7 @@ export default {
     },
     async Aceptar() {
       if (this.$store.state.position.tipo == "nuevo") {
-        if (this.$refs.frmDML.validate()) {
+        if ((await this.$refs.frmDML.validate()).valid) {
           this.loading = true;
           await this.setTown();
           await this.GetListPosition();
@@ -138,7 +138,7 @@ export default {
       }
       if (this.$store.state.position.tipo == "editar") {
         this.loading = true;
-        if (this.$refs.frmDML.validate()) {
+        if ((await this.$refs.frmDML.validate()).valid) {
           await this.ActualizarTown();
           await this.GetListPosition();
         }

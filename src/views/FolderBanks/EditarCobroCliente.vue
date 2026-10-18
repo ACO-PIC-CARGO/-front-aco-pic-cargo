@@ -5,19 +5,21 @@
       <h1>MONTO A COBRAR :{{ symbol }} {{ getMontoTotal() }}</h1>
     </v-col>
     <v-tabs color="#A43542" slider-color="primary" fixed-tabs v-model="tab">
-      <v-tab href="#ref1">STEP 1</v-tab>
-      <v-tab href="#ref2">STEP 2</v-tab>
-      <v-tab-item value="ref1" class="px-5">
+      <v-tab value="ref1">STEP 1</v-tab>
+      <v-tab value="ref2">STEP 2</v-tab>
+    </v-tabs>
+    <v-tabs-window v-model="tab">
+      <v-tabs-window-item value="ref1" class="px-5">
         <v-row class="mt-5">
           <v-col md="4" cols="4">
             <v-autocomplete
               :items="clientes"
-              item-text="namelong"
+              item-title="namelong"
               item-value="id"
               label="Cliente"
               v-model="$store.state.bank.record.id_cliente"
               readonly
-              @change="obtenerListado()"
+              @update:model-value="obtenerListado()"
             >
             </v-autocomplete>
           </v-col>
@@ -31,7 +33,7 @@
                 <v-autocomplete
                   :items="$store.state.itemsCoinsList"
                   v-model="id_coins"
-                  item-text="acronym"
+                  item-title="acronym"
                   item-value="id"
                   label="Moneda"
                   v-on:blur="obtenerSymbol()"
@@ -44,7 +46,6 @@
                   type="number"
                   :max="item.montodolar"
                   v-on:blur="calcularTotal()"
-                  @focus.native="calcularTotal()"
                   :error-messages="item.err"
                 >
                 </v-text-field>
@@ -56,7 +57,6 @@
                   type="number"
                   :max="item.montopagar"
                   v-on:blur="calcularTotal()"
-                  @focus.native="calcularTotal()"
                   :error-messages="item.err"
                 >
                 </v-text-field>
@@ -67,21 +67,19 @@
                   type="number"
                   :max="item.monto_destino"
                   v-on:blur="calcularTotal()"
-                  @focus.native="calcularTotal()"
                   :error-messages="item.err"
                 />
               </template>
               <template v-slot:[`item.tipocambio`]="{ item }">
                 <v-text-field
-                  v-on:blur="calcularMonto()"
                   v-model="item.tipocambio"
-                  @focus.native="calcularMonto()"
+                  v-on:blur="calcularMonto()"
                   type="number"
                 >
                 </v-text-field>
               </template>
               <template v-slot:[`item.action`]="{ item }">
-                <v-btn icon>
+                <v-btn variant="text" icon>
                   <v-icon color="red" @click="anularCobro(item)"
                     >mdi-circle-off-outline</v-icon
                   >
@@ -90,8 +88,8 @@
             </v-data-table>
           </v-col>
         </v-row>
-      </v-tab-item>
-      <v-tab-item value="ref2" class="px-5">
+      </v-tabs-window-item>
+      <v-tabs-window-item value="ref2" class="px-5">
         <v-row class="mt-5">
           <v-col md="4" cols="4"
             ><v-text-field
@@ -107,11 +105,11 @@
             ></v-text-field>
           </v-col>
           <v-col md="4" cols="4">
-            <v-btn text @click="abrirSoporte($store.state.bank.record.ruta)">
+            <v-btn variant="text" @click="abrirSoporte($store.state.bank.record.ruta)">
               <v-icon color="red">mdi-file-pdf-box</v-icon>
               {{ $store.state.bank.record.nombre_archivo }}
             </v-btn>
-            <v-flex>
+            <div>
               <v-file-input
                 v-model="payfile"
                 label="Soporte de Pago"
@@ -121,13 +119,13 @@
                 v-if="!boolFile"
               >
               </v-file-input>
-            </v-flex>
+            </div>
           </v-col>
 
           <v-col md="4" cols="4">
             <v-autocomplete
               :items="cuentas"
-              item-text="label"
+              item-title="label"
               item-value="id"
               label="Cuenta Destino (PIC)"
               v-model="$store.state.bank.record.id_cuentadestino"
@@ -160,13 +158,13 @@
               :items="$store.state.itemsDataBanksList"
               v-model="$store.state.bank.record.id_banco_origin"
               label="Banco Origen"
-              item-text="acronym"
+              item-title="acronym"
               item-value="id"
             ></v-select>
           </v-col>
 
           <v-col md="12" cols="12">
-            <v-flex text-right>
+            <div class="text-right">
               <v-btn
                 :loading="loading"
                 color="success"
@@ -174,11 +172,11 @@
               >
                 Actualizar
               </v-btn>
-            </v-flex>
+            </div>
           </v-col>
         </v-row>
-      </v-tab-item>
-    </v-tabs>
+      </v-tabs-window-item>
+    </v-tabs-window>
   </v-card>
 </template>
 
@@ -212,8 +210,8 @@ export default {
       id_banco_origen: "",
       headers: [
         {
-          text: "House",
-          value: "tipo_gasto",
+          title: "House",
+          key: "tipo_gasto",
         },
 
         // {
@@ -221,8 +219,8 @@ export default {
         //   value: "statuspago",
         // },
         {
-          text: "Monto Dolar",
-          value: "montodolar",
+          title: "Monto Dolar",
+          key: "montodolar",
         },
 
         // {
@@ -231,20 +229,20 @@ export default {
         // },
 
         {
-          text: "Moneda",
-          value: "moneda",
+          title: "Moneda",
+          key: "moneda",
         },
         {
-          text: "Tipo Cambio",
-          value: "tipocambio",
+          title: "Tipo Cambio",
+          key: "tipocambio",
         },
         {
-          text: "Pago Mon Ex",
-          value: "monto_destino",
+          title: "Pago Mon Ex",
+          key: "monto_destino",
         },
         {
-          text: "Acción",
-          value: "action",
+          title: "Acción",
+          key: "action",
         },
       ],
     };
@@ -315,7 +313,7 @@ export default {
       let vm = this;
       var config = {
         method: "get",
-        url: process.env.VUE_APP_URL_MAIN + "getListBanksDetailsCargar",
+        url: import.meta.env.VUE_APP_URL_MAIN + "getListBanksDetailsCargar",
         params: {
           id_branch: JSON.parse(sessionStorage.getItem("dataUser"))[0]
             .id_branch,
@@ -386,8 +384,6 @@ export default {
       });
     },
     _uploadFile() {
-      var FormData = require("form-data");
-      var fs = require("fs");
       var data = new FormData();
       var vm = this;
       data.append("name", "Prueba");
@@ -395,7 +391,7 @@ export default {
 
       var config = {
         method: "post",
-        url: process.env.VUE_APP_URL_MAIN + "uploadAllPath",
+        url: import.meta.env.VUE_APP_URL_MAIN + "uploadAllPath",
         headers: {
           "Content-Type": "application/json",
         },
@@ -466,7 +462,7 @@ export default {
           };
           var config = {
             method: "post",
-            url: process.env.VUE_APP_URL_MAIN + "setPayForCustomer",
+            url: import.meta.env.VUE_APP_URL_MAIN + "setPayForCustomer",
 
             headers: {
               "Content-Type": "application/json",
@@ -517,7 +513,7 @@ export default {
 
         var config = {
           method: "get",
-          url: process.env.VUE_APP_URL_MAIN + `getVerPagosPorCustomer?id=` + id,
+          url: import.meta.env.VUE_APP_URL_MAIN + `getVerPagosPorCustomer?id=` + id,
 
           headers: {
             "Content-Type": "application/json",

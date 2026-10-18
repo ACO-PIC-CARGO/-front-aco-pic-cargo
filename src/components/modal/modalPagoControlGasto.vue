@@ -7,10 +7,10 @@
           label="Proveedores"
           v-model="proveedor"
           item-value="id"
-          item-text="namelong"
+          item-title="namelong"
           style="font-size: 20pt"
           clearable
-          @change="listarPagosXControlGasto()"
+          @update:model-value="listarPagosXControlGasto()"
         >
         </v-autocomplete>
         <v-spacer></v-spacer>
@@ -30,9 +30,11 @@
         </v-col>
       </v-row>
       <v-tabs color="#A43542" slider-color="primary" fixed-tabs v-model="tab">
-        <v-tab href="#ref1">STEP 1</v-tab>
-        <v-tab href="#ref2" v-if="selected.length > 0">STEP 2</v-tab>
-        <v-tab-item value="ref1" class="mt-5">
+        <v-tab value="ref1">STEP 1</v-tab>
+        <v-tab value="ref2" v-if="selected.length > 0">STEP 2</v-tab>
+      </v-tabs>
+      <v-tabs-window v-model="tab">
+        <v-tabs-window-item value="ref1" class="mt-5">
           <v-card-text>
             <v-row>
               <v-col cols="3">
@@ -41,9 +43,8 @@
               <v-col cols="3">
                 <v-btn
                   v-if="selected.length > 0"
-                  color="green darken-4"
+                  color="green-darken-4"
                   @click="continuar()"
-                  dark
                   >Continuar</v-btn
                 >
               </v-col>
@@ -52,7 +53,8 @@
             <v-data-table
               :headers="cabPagos"
               :items="lstPagos"
-              item-key="index"
+              item-value="index"
+              return-object
               :search="search"
               :loading="loadingTable"
               show-select
@@ -62,7 +64,7 @@
                 <v-autocomplete
                   :items="$store.state.itemsCoinsList"
                   v-model="id_coins"
-                  item-text="acronym"
+                  item-title="acronym"
                   item-value="id"
                   label="Moneda"
                   v-on:blur="calcularTotales()"
@@ -85,14 +87,13 @@
                     selected.filter((v) => v.id == item.id).length == 0
                   "
                   v-on:blur="calcularTotales()"
-                  @focus.native="calcularTotales()"
                 ></v-text-field>
               </template>
               <!--  -->
               <template v-slot:[`item.parcial`]="{ item }">
-                <v-btn
+                <v-btn variant="text"
                   v-if="item.tipo == 'CG'"
-                  small
+                  size="small"
                   icon
                   color="primary"
                   @click="generarPagoParcial(item)"
@@ -112,16 +113,15 @@
                   :prefix="acronym"
                   type="number"
                   v-model="item.monto_mon_ex"
-                  v-on:input="calcularTotales()"
+                  v-on:update:model-value="calcularTotales()"
                   v-on:blur="calcularTotales()"
-                  @focus.native="calcularTotales()"
                   :error-messages="item.errorEx"
                 ></v-text-field>
               </template>
             </v-data-table>
           </v-card-text>
-        </v-tab-item>
-        <v-tab-item value="ref2">
+        </v-tabs-window-item>
+        <v-tabs-window-item value="ref2">
           <v-card-text>
             <v-row class="mt-5">
               <v-col cols="3">
@@ -145,7 +145,7 @@
               <v-col md="4" cols="4">
                 <v-autocomplete
                   :items="cuentas"
-                  item-text="label"
+                  item-title="label"
                   item-value="id"
                   label="CUENTA BANCARIA"
                   v-model="id_cuenta"
@@ -204,8 +204,8 @@
             </v-btn>
             <v-btn color="red" @click="$emit('cancelar')">Cancelar</v-btn>
           </v-card-actions>
-        </v-tab-item>
-      </v-tabs>
+        </v-tabs-window-item>
+      </v-tabs-window>
     </v-card-text>
     <!-- ---------------------------------------------- -->
     <v-dialog
@@ -223,13 +223,14 @@
             :headers="headersParcial"
             :items="detalles"
             class="elevation-1"
-            item-key="id"
+            item-value="id"
+            return-object
           >
           </v-data-table>
         </v-card-text>
         <v-card-actions>
           <v-spacer></v-spacer>
-          <v-btn text color="green" @click="guardarMontoParciales()"
+          <v-btn variant="text" color="green" @click="guardarMontoParciales()"
             >Aceptar</v-btn
           >
           <v-btn color="red" @click="dialog = !dialog">Cancelar</v-btn>
@@ -246,6 +247,7 @@ import { mapActions, mapState } from "vuex";
 import Swal from "sweetalert2";
 import ArrastraYSolarComponent from "../comun/ArrastraYSolarComponent.vue";
 export default {
+  emits: ["cancelar", "cerrarModal"],
   props: { limpar: Boolean },
   async mounted() {
     await this.cargarProveedores();
@@ -266,10 +268,10 @@ export default {
       dialog: false,
       loadingPago: false,
       headersParcial: [
-        { text: "Concepto", value: "concepto" },
-        { text: "Total Operaciones (USD)", value: "total_op" },
-        { text: "Moneda Cuenta Banco", value: "acronym" },
-        { text: "Total Cuenta Banco", value: "totalopcuentabanco" },
+        { title: "Concepto", key: "concepto" },
+        { title: "Total Operaciones (USD)", key: "total_op" },
+        { title: "Moneda Cuenta Banco", key: "acronym" },
+        { title: "Total Cuenta Banco", key: "totalopcuentabanco" },
       ],
       detalles: [],
       lstPagos: [],
@@ -297,34 +299,34 @@ export default {
         // },
 
         {
-          text: "Master",
-          value: "code_master",
+          title: "Master",
+          key: "code_master",
           shortable: false,
         },
-        { text: "Factura/ Proforma", value: "expedientes" },
+        { title: "Factura/ Proforma", key: "expedientes" },
         {
-          text: "Procedencia",
-          value: "procedencia",
+          title: "Procedencia",
+          key: "procedencia",
           shortable: false,
         },
-        { text: "Monto (USD)", value: "monto_dolar" },
+        { title: "Monto (USD)", key: "monto_dolar" },
         {
-          text: "Monto Factura",
-          value: "monto_banco",
+          title: "Monto Factura",
+          key: "monto_banco",
           shortable: false,
         },
         {
-          text: "Tipo Cambio",
-          value: "tipo_cambio",
+          title: "Tipo Cambio",
+          key: "tipo_cambio",
         },
 
         {
-          text: "Moneda Pagar",
-          value: "item_moneda",
+          title: "Moneda Pagar",
+          key: "item_moneda",
         },
         {
-          text: "Monto Pagar",
-          value: "parcial",
+          title: "Monto Pagar",
+          key: "parcial",
           shortable: false,
         },
       ],
@@ -434,7 +436,7 @@ export default {
         var config = {
           method: "get",
           url:
-            process.env.VUE_APP_URL_MAIN +
+            import.meta.env.VUE_APP_URL_MAIN +
             "listPagoControlGastoXProveedor/" +
             vm.proveedor,
           headers: {
@@ -511,7 +513,7 @@ export default {
       let vm = this;
       var config = {
         method: "get",
-        url: process.env.VUE_APP_URL_MAIN + "getListBanksDetailsCargar",
+        url: import.meta.env.VUE_APP_URL_MAIN + "getListBanksDetailsCargar",
         params: {
           id_branch: JSON.parse(sessionStorage.getItem("dataUser"))[0]
             .id_branch,
@@ -542,8 +544,6 @@ export default {
       vm.msgfile = "";
       vm.errfile = "";
       if (vm.payfile) {
-        var FormData = require("form-data");
-        var fs = require("fs");
         var data = new FormData();
         var vm = this;
         data.append("name", "Prueba");
@@ -551,7 +551,7 @@ export default {
 
         var config = {
           method: "post",
-          url: process.env.VUE_APP_URL_MAIN + "uploadAllPath",
+          url: import.meta.env.VUE_APP_URL_MAIN + "uploadAllPath",
           headers: {
            
             "Content-Type": "application/json",
@@ -657,7 +657,7 @@ export default {
 
       var config = {
         method: "post",
-        url: process.env.VUE_APP_URL_MAIN + "registro_pago_detalles",
+        url: import.meta.env.VUE_APP_URL_MAIN + "registro_pago_detalles",
         headers: {
          
           "Content-Type": "application/json",

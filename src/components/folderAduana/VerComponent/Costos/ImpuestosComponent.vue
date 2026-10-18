@@ -2,18 +2,18 @@
   <v-container>
     <v-expansion-panels multiple class="condensed my-1">
       <v-expansion-panel>
-        <v-expansion-panel-header color="#90CAF9" dark>
+        <v-expansion-panel-title color="#90CAF9" dark>
           <p>
             Impuestos Opción - {{ index }} :
             <b>{{ calcularTotalImpuesto() }}</b>
           </p>
-        </v-expansion-panel-header>
-        <v-expansion-panel-content>
+        </v-expansion-panel-title>
+        <v-expansion-panel-text>
           <v-data-table
             :headers="headers"
             :items="impuestos"
-            item-key="id"
-            dense
+            item-value="id"
+            density="compact"
           >
             <template v-slot:[`item.index`]="{ item, index }">
               {{ index + 1 }}
@@ -21,7 +21,7 @@
             <template v-slot:[`item.porcentaje`]="{ item }">
               <v-text-field
                 v-model="item.codigo01"
-                dense
+                density="compact"
                 v-if="!noPorcentaje.includes(item.codigo)"
                 type="number"
                 step="0.01"
@@ -33,7 +33,7 @@
               {{ calcularImpuestos({ item: item }) }}
             </template>
           </v-data-table>
-        </v-expansion-panel-content>
+        </v-expansion-panel-text>
       </v-expansion-panel>
     </v-expansion-panels>
   </v-container>
@@ -47,11 +47,11 @@ export default {
   data() {
     return {
       headers: [
-        { text: "#", value: "index" },
-        { text: "Código", value: "codigo" },
-        { text: "Descripción", value: "descripcion" },
-        { text: "Porcentaje", value: "porcentaje" },
-        { text: "Monto", value: "monto" },
+        { title: "#", key: "index" },
+        { title: "Código", key: "codigo" },
+        { title: "Descripción", key: "descripcion" },
+        { title: "Porcentaje", key: "porcentaje" },
+        { title: "Monto", key: "monto" },
       ],
       noPorcentaje: ["04", "01", "02", "10", "11", "12"],
     };

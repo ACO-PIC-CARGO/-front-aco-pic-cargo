@@ -1,22 +1,21 @@
 <template>
   <v-container>
     <v-col cols="12">
-      <template>
-        <div class="text-center">
-          <v-pagination
-            v-model="page"
-            :length="
-              $store.state.aduana.opcionCostos.filter((v) => !!v.selected)
-                .length
-            "
-            circle
-          ></v-pagination>
-        </div>
-      </template>
+      <div class="text-center">
+        <v-pagination
+          v-model="page"
+          :length="
+            $store.state.aduana.opcionCostos.filter((v) => !!v.selected)
+              .length
+          "
+          rounded
+        ></v-pagination>
+      </div>
     </v-col>
 
     <v-dialog
       v-model="aprobarflag"
+      eager
       scrollable
       persistent
       max-width="50%"
@@ -24,25 +23,25 @@
       class="classDialog"
     >
       <v-card>
-        <v-card-title primary-title>
+        <v-card-title class="d-flex align-center flex-wrap" primary-title>
           SELECCIONE EL EXPEDIENTE A ASOCIAR:
           <v-spacer></v-spacer>
-          <v-btn icon color="default" @click="aprobarflag = !aprobarflag">
+          <v-btn variant="text" icon color="default" @click="aprobarflag = !aprobarflag">
             <v-icon>mdi-close</v-icon>
           </v-btn>
         </v-card-title>
         <v-card-text>
-          <v-form ref="frmAprobar">
+          <v-form ref="masterForm">
             <v-row>
               <v-autocomplete
                 :items="$store.state.itemsMasterList"
                 v-model="id_exp"
                 label="Expediente"
-                item-text="code_master"
+                item-title="code_master"
                 item-value="id"
                 :rules="[(v) => !!v || 'Dato Requerido']"
                 :no-data-text="noDataText()"
-                @change="verificarMaster()"
+                @update:model-value="verificarMaster()"
                 class="mx-5 my-5"
               >
               </v-autocomplete>
@@ -50,8 +49,8 @@
           </v-form>
           <v-alert
             v-if="mostrarAdvertencia"
-            border="left"
-            colored-border
+            border="start"
+            border-color="error"
             type="error"
             elevation="2"
           >
@@ -65,7 +64,7 @@
           <v-spacer></v-spacer>
           <v-btn
             class="mx-1"
-            small
+            size="small"
             @click="continuarAprobar()"
             color="success"
             :loading="loading"
@@ -74,7 +73,7 @@
           </v-btn>
           <v-btn
             class="mx-1"
-            small
+            size="small"
             color="error"
             @click="aprobarflag = !aprobarflag"
           >
@@ -85,6 +84,7 @@
     </v-dialog>
     <v-dialog
       v-model="seleccionQuoteAprobar"
+      eager
       scrollable
       persistent
       max-width="35%"
@@ -92,7 +92,7 @@
       class="classDialog"
     >
       <v-card class="pa-5">
-        <h2 class="blue--text">
+        <h2 class="text-blue">
           ESTÁS A PUNTO DE GENERAR UN INSTRUCTIVO A OPERACIONES
         </h2>
         Seleccione la opción aprobada por el cliente:
@@ -138,7 +138,7 @@
         color="#004D40"
         elevation="2"
         v-if="mostrarBtnAprobar()"
-        small
+        size="small"
         @click="abrirSeleccionDeQuoteAAprobar()"
       >
         <span style="color: #ffffff">Enviar a Operaciones/ Tráfico</span>
@@ -187,21 +187,21 @@
               readonly
               v-model="$store.state.aduana.datosPrincipales.nombre"
               label="NOMBRE:"
-              dense
+              density="compact"
             ></v-text-field>
             <v-text-field
               class="my-1"
               readonly
               v-model="$store.state.aduana.listInstructivo[0].direccion"
               label="DIRECCIÓN:"
-              dense
+              density="compact"
             ></v-text-field>
             <v-text-field
               class="my-1"
               readonly
               v-model="$store.state.aduana.datosPrincipales.telefono"
               label="CONTACTO:"
-              dense
+              density="compact"
             ></v-text-field>
 
             <v-text-field
@@ -209,14 +209,14 @@
               readonly
               v-model="$store.state.aduana.vendedor"
               label="VENDEDOR:"
-              dense
+              density="compact"
             ></v-text-field>
           </v-card>
         </v-col>
         <v-col cols="12">
           <v-card class="pa-1" elevation="5">
             <h4 class="mb-1 ml-1">SERVICIOS A REALIZAR</h4>
-            <v-simple-table dense>
+            <v-table density="compact">
               <tbody>
                 <tr
                   v-for="(servicio, i) in $store.state.aduana
@@ -227,7 +227,7 @@
                   <td>{{ servicio.status }}</td>
                 </tr>
               </tbody>
-            </v-simple-table>
+            </v-table>
           </v-card>
         </v-col>
         <v-col cols="12">
@@ -235,7 +235,7 @@
             <h4 class="mb-5 ml-1">DATOS DE MOVIMIENTO DE MERCANCIA</h4>
             <v-text-field
               class="my-1"
-              dense
+              density="compact"
               label="NOMBRE DEL PROVEEDOR:"
               v-model="$store.state.aduana.listInstructivo[0].proveedor"
               required
@@ -243,7 +243,7 @@
             </v-text-field>
             <v-text-field
               class="my-1"
-              dense
+              density="compact"
               readonly
               v-model="$store.state.aduana.listInstructivo[0].direccionorigen"
               label="DIRECCION ORIGEN:"
@@ -252,7 +252,7 @@
             </v-text-field>
             <v-text-field
               class="my-1"
-              dense
+              density="compact"
               readonly
               v-model="$store.state.aduana.listInstructivo[0].origen"
               label="POL:"
@@ -260,7 +260,7 @@
             </v-text-field>
             <v-text-field
               class="my-1"
-              dense
+              density="compact"
               readonly
               v-model="$store.state.aduana.listInstructivo[0].destino"
               label="POD:"
@@ -268,7 +268,7 @@
             </v-text-field>
             <v-text-field
               class="my-1"
-              dense
+              density="compact"
               v-model="$store.state.aduana.listInstructivo[0].fiscal"
               required
               label="NOMBRE FISCAL"
@@ -276,7 +276,7 @@
             </v-text-field>
             <v-text-field
               class="my-1"
-              dense
+              density="compact"
               readonly
               v-model="$store.state.aduana.listInstructivo[0].ruc"
               label="RUC:"
@@ -288,11 +288,11 @@
           <v-card class="pa-1" elevation="5">
             <h4 class="mb-5 ml-1">
               NOTAS ESPECIALES:
-              <v-btn color="success" @click="dialog = !dialog" icon>
+              <v-btn variant="text" color="success" @click="dialog = !dialog" icon>
                 <v-icon>mdi-plus</v-icon>
               </v-btn>
             </h4>
-            <v-simple-table dense border>
+            <v-table density="compact" border>
               <tbody>
                 <tr
                   v-for="(nota, i) in $store.state.aduana.listInstructivo[0]
@@ -302,7 +302,7 @@
                   <td>{{ nota.description }}</td>
                 </tr>
               </tbody>
-            </v-simple-table>
+            </v-table>
           </v-card>
         </v-col>
         <div class="col-12"></div>
@@ -313,7 +313,7 @@
           <v-col cols="12">
             <v-card class="pa-1" elevation="5">
               <h4 class="mb-1 ml-1">INGRESOS</h4>
-              <v-simple-table dense>
+              <v-table density="compact">
                 <thead>
                   <tr>
                     <th class="header align-right"></th>
@@ -354,7 +354,7 @@
                     </td>
                   </tr>
                 </tbody>
-              </v-simple-table>
+              </v-table>
             </v-card>
           </v-col>
 
@@ -362,7 +362,7 @@
             <v-card class="pa-1" elevation="5">
               <h4 class="mb-1 ml-1">COSTOS:</h4>
 
-              <v-simple-table dense>
+              <v-table density="compact">
                 <thead>
                   <tr>
                     <th class="header"></th>
@@ -399,7 +399,7 @@
                     </td>
                   </tr>
                 </tbody>
-              </v-simple-table>
+              </v-table>
             </v-card>
           </v-col>
 
@@ -410,7 +410,7 @@
             <v-card class="pa-1" elevation="5">
               <h4 class="mb-1 ml-1">IMPUESTOS</h4>
 
-              <v-simple-table dense>
+              <v-table density="compact">
                 <thead>
                   <tr>
                     <th class="header align-left">DESCRIPCIÓN</th>
@@ -444,7 +444,7 @@
                     </td>
                   </tr>
                 </tbody>
-              </v-simple-table>
+              </v-table>
             </v-card>
           </v-col>
         </v-row>
@@ -462,7 +462,7 @@
           </v-form>
         </v-card-text>
         <v-card-actions>
-          <v-btn color="success" text @click="guardarNota">Añadir</v-btn>
+          <v-btn color="success" variant="text" @click="guardarNota">Añadir</v-btn>
         </v-card-actions>
       </v-card>
     </v-dialog>
@@ -491,10 +491,10 @@
       class="classDialog"
     >
       <v-card cass="px-5 ">
-        <v-card-title primary-title>
+        <v-card-title class="d-flex align-center flex-wrap" primary-title>
           CREAR NUEVO HOUSE O ASOCIAR A UNO
           <v-spacer></v-spacer>
-          <v-btn icon color="default" @click="dialogHouse = !dialogHouse">
+          <v-btn variant="text" icon color="default" @click="dialogHouse = !dialogHouse">
             <v-icon>mdi-close</v-icon>
           </v-btn>
         </v-card-title>
@@ -502,19 +502,19 @@
           <v-autocomplete
             :items="lstHouse"
             v-model="id_house"
-            item-text="code_house"
+            item-title="code_house"
             item-value="id"
-            @change="validarExistePagosHouse"
+            @update:model-value="validarExistePagosHouse"
           >
           </v-autocomplete>
-          <v-autocomplete
+          <v-autocomplete item-title="text"
             v-if="id_house != 0 && !textValidacionPago"
             :items="optionHouse"
             v-model="id_opcion_house"
             item-value="id"
-            @change="validarExistePagosMaster"
+            @update:model-value="validarExistePagosMaster"
           />
-          <p class="red--text mx-5 my-0">
+          <p class="text-red mx-5 my-0">
             {{ textValidacionPago }}
           </p>
         </v-card-text>
@@ -523,7 +523,7 @@
           <v-spacer></v-spacer>
           <v-btn
             class="mx-1"
-            small
+            size="small"
             color="success"
             @click="aprobar()"
             :disabled="activarBtnContinuar"
@@ -533,7 +533,7 @@
           </v-btn>
           <v-btn
             class="mx-1"
-            small
+            size="small"
             color="error"
             @click="dialogHouse = !dialogHouse"
           >
@@ -551,29 +551,29 @@
       class="classDialog"
     >
       <v-card cass="px-5">
-        <v-card-title primary-title>
+        <v-card-title class="d-flex align-center flex-wrap" primary-title>
           OPCIÓN SOBRE LOS COSTOS
           <v-spacer></v-spacer>
-          <v-btn icon color="default" @click="dialogCostos = !dialogCostos">
+          <v-btn variant="text" icon color="default" @click="dialogCostos = !dialogCostos">
             <v-icon>mdi-close</v-icon>
           </v-btn>
         </v-card-title>
         <v-card-text>
-          <v-autocomplete
+          <v-autocomplete item-title="text"
             :items="optionCostos"
             v-model="id_opcion"
             item-value="id"
-            @change="validarExistePagosMaster"
+            @update:model-value="validarExistePagosMaster"
           />
         </v-card-text>
-        <p class="red--text mx-5 my-0">
+        <p class="text-red mx-5 my-0">
           {{ textValidacionPago }}
         </p>
         <v-card-actions>
           <v-spacer></v-spacer>
           <v-btn
             class="mx-1"
-            small
+            size="small"
             color="success"
             @click="buscarHouseAsociadosAMaster"
             :disabled="activarBtnContinuar"
@@ -583,7 +583,7 @@
           </v-btn>
           <v-btn
             class="mx-1"
-            small
+            size="small"
             color="error"
             :loading="loading"
             @click="dialogCostos = !dialogCostos"
@@ -597,6 +597,7 @@
 </template>
 
 <script>
+import { defineAsyncComponent } from "vue";
 import { mapActions } from "vuex";
 import Swal from "sweetalert2";
 import moment from "moment";
@@ -605,13 +606,13 @@ import axios from '@/api/axios-config';
 export default {
   mixins: [mixins],
   components: {
-    ConfigCotizacion: () =>
-      import("@/components/folderPricing/ConfigExpediente"),
+    ConfigCotizacion: defineAsyncComponent(() =>
+      import("@/components/folderPricing/ConfigExpediente")),
   },
   data() {
     return {
       nuevoexpediente: "",
-      aprobarflag: "",
+      aprobarflag: false,
       id_exp: "",
       fecha_validez: "",
       descripcionNota: "",
@@ -749,7 +750,7 @@ export default {
       }
     },
     async guardarNota() {
-      if (this.$refs.nota.validate()) {
+      if ((await this.$refs.nota.validate()).valid) {
         this.$store.state.spiner = true;
         let data = {
           name: this.descripcionNota,
@@ -777,7 +778,7 @@ export default {
     },
     async abrirModalAprobar() {
       await this.generaInstructivoparaguardataAduana();
-      if (this.$refs.frmAprobar.validate()) {
+      if ((await this.$refs.frmAprobar.validate()).valid) {
         let fecha_validez = this.$store.state.aduana.opcionCostos.filter(
           (v) => v.nro_propuesta == this.nro_propuesta
         )[0].date_end;
@@ -1064,7 +1065,7 @@ export default {
       if (this.id_opcion == "1") {
         var config = {
           method: "get",
-          url: process.env.VUE_APP_URL_MAIN + "validar_existe_pago_master",
+          url: import.meta.env.VUE_APP_URL_MAIN + "validar_existe_pago_master",
           headers: {
             "Content-Type": "application/json",
            
@@ -1090,7 +1091,7 @@ export default {
       this.loading = true;
       var config = {
         method: "get",
-        url: process.env.VUE_APP_URL_MAIN + "validar_existe_pago_house",
+        url: import.meta.env.VUE_APP_URL_MAIN + "validar_existe_pago_house",
         headers: {
           "Content-Type": "application/json",
          
@@ -1110,7 +1111,7 @@ export default {
       this.lstHouse = [];
       var config = {
         method: "get",
-        url: process.env.VUE_APP_URL_MAIN + "cargar_house_asociado_master",
+        url: import.meta.env.VUE_APP_URL_MAIN + "cargar_house_asociado_master",
         headers: {
           "Content-Type": "application/json",
          
@@ -1162,7 +1163,7 @@ export default {
         this.$store.state.aduana.listIngresosInstructivoAprobar.filter(
           (v) => v.nro_propuesta == this.nro_propuesta
         )[0].dataVentas;
-      if (this.$refs.frmAprobar.validate()) {
+      if ((await this.$refs.masterForm.validate()).valid) {
         Swal.fire({
           icon: "info",
           title: "Aprobando Cotizacion",

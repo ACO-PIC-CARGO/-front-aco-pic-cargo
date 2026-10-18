@@ -3,25 +3,25 @@
     <div class="titulo-reporte">REPORTE DE GANANCIA</div>
 
     <div class="filtro-anio">
-      <v-btn outlined class="print-btn mx-2" @click="imprimir">
-        <v-icon small left> mdi-printer </v-icon>
+      <v-btn variant="outlined" class="print-btn mx-2" @click="imprimir">
+        <v-icon size="small" start> mdi-printer </v-icon>
         Imprimir PDF
       </v-btn>
 
-      <v-select
+      <v-select item-title="text"
         v-model="anioSeleccionado"
         :items="listaAnios"
         label="Año"
-        outlined
-        dense
+        variant="outlined"
+        density="compact"
         hide-details
         prepend-inner-icon="far fa-calendar-alt"
         class="select-anio"
-        @change="cambiarAnio"
+        @update:model-value="cambiarAnio"
       />
     </div>
 
-    <v-card outlined class="info-card">
+    <v-card border class="info-card">
       <div class="info-icon">
         <i class="fas fa-info"></i>
       </div>
@@ -452,7 +452,7 @@ export default {
     abrirReporteGananciaDetallado(item) {
       this.$router.push({
         name: "ReporteGananciaDetallado",
-        params: { code_mes: item.mes, year: this.anioSeleccionado },
+        query: { code_mes: item.mes, year: this.anioSeleccionado },
       });
     },
     formatMoney(value) {
@@ -1056,11 +1056,11 @@ export default {
   max-width: 180px;
 }
 
-.select-anio >>> .v-input__slot {
+.select-anio :deep(.v-field) {
   background: #fff;
 }
 
-.select-anio >>> .v-label {
+.select-anio :deep(.v-label) {
   color: #082d70;
   font-weight: 600;
 }

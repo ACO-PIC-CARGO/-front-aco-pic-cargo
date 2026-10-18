@@ -9,10 +9,11 @@
 </template>
 
 <script>
+import { defineAsyncComponent } from "vue";
 export default {
   components: {
-    VerCliente: () =>
-      import("@/components/folderEntities/Cliente/VerClienteComponent.vue"),
+    VerCliente: defineAsyncComponent(() =>
+      import("@/components/folderEntities/Cliente/VerClienteComponent.vue")),
   },
   mounted() {
     this.$store.state.mainTitle = `VER CLIENTE`;

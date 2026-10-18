@@ -2,7 +2,7 @@
   <div>
     <v-dialog v-model="$store.state.reportsDialog" width="600" persistent>
       <v-card>
-        <v-card-title class="text-h5 grey lighten-2">
+        <v-card-title class="text-h5 bg-grey-lighten-2">
           Filtros Generales
         </v-card-title>
 
@@ -11,40 +11,40 @@
             :items="itemsStatusExpedientes"
             v-model="filtro.status_op"
             item-value="id"
-            item-text="name"
+            item-title="name"
             label="Estado de Expediente Operativo"
-            dense
+            density="compact"
           ></v-autocomplete>
           <v-autocomplete
             :items="itemsStatusExpedientes"
             v-model="filtro.status_admin"
             item-value="id"
-            item-text="name"
+            item-title="name"
             label="Estado de Expediente Administrativo"
-            dense
+            density="compact"
           ></v-autocomplete>
           <v-autocomplete
             :items="itemsSentido"
             item-value="id"
-            item-text="name"
+            item-title="name"
             label="Sentido"
             v-model="filtro.sentido"
-            dense
+            density="compact"
           ></v-autocomplete>
           <p class="my-0 py-0">Confirmación Salida</p>
-          <v-radio-group v-model="filtro.salidaflag" row dense>
+          <v-radio-group v-model="filtro.salidaflag" inline density="compact">
             <v-radio label="Si" :value="true"></v-radio>
             <v-radio label="No" :value="false"></v-radio>
             <v-radio label="Todos" :value="null"></v-radio>
           </v-radio-group>
           <p class="my-0 py-0">Confirmación Llegada</p>
-          <v-radio-group v-model="filtro.llegadaflag" row dense>
+          <v-radio-group v-model="filtro.llegadaflag" inline density="compact">
             <v-radio label="Si" :value="true"></v-radio>
             <v-radio label="No" :value="false"></v-radio>
             <v-radio label="Todos" :value="null"></v-radio>
           </v-radio-group>
           <p class="my-0 py-0">Confirmación Disponibilidad</p>
-          <v-radio-group v-model="filtro.disponibilidadflag" row dense>
+          <v-radio-group v-model="filtro.disponibilidadflag" inline density="compact">
             <v-radio label="Si" :value="true"></v-radio>
             <v-radio label="No" :value="false"></v-radio>
             <v-radio label="Todos" :value="null"></v-radio>
@@ -52,11 +52,11 @@
           <v-autocomplete
             :items="$store.state.itemsOperadorList"
             item-value="id"
-            item-text="namelong"
+            item-title="namelong"
             label="Operador"
             v-model="filtro.id_operativo"
             clearable
-            dense
+            density="compact"
           ></v-autocomplete>
           <p>Fecha de Disponibilidad</p>
           <FormatFecha
@@ -84,7 +84,7 @@
           <v-btn
             color="primary"
             :loading="loading"
-            text
+            variant="text"
             @click="refreshReport()"
           >
             BUSCAR
@@ -92,7 +92,7 @@
           <v-btn
             color="error"
             :loading="loading"
-            text
+            variant="text"
             @click="$store.state.reportsDialog = !$store.state.reportsDialog"
           >
             Cerrar
@@ -101,7 +101,7 @@
       </v-card>
     </v-dialog>
     <v-card elevation="0">
-      <v-card-title>
+      <v-card-title class="d-flex align-center flex-wrap">
         LISTA DE EXPEDIENTES MASTER's
         <v-btn
           @click="$store.state.reportsDialog = !$store.state.reportsDialog"
@@ -149,15 +149,15 @@
       <v-data-table
         :headers="headers"
         :items="$store.state.itemsReportFileAll"
-        item-key="index"
+        item-value="index"
         :loading="loading"
-        disable-pagination
+        :items-per-page="-1"
         fixed-header
         disable-sort
         hide-default-footer
         class="div_table__Main"
         height="650"
-        dense
+        density="compact"
       >
         <template v-slot:item="{ item }">
           <tr :style="{ backgroundColor: item.background }">
@@ -263,7 +263,7 @@
           </v-col>
 
           <v-col cols="12" md="5">
-            <v-simple-table dense>
+            <v-table density="compact">
               <template v-slot:default>
                 <thead>
                   <tr>
@@ -282,7 +282,7 @@
                   </tr>
                 </tbody>
               </template>
-            </v-simple-table>
+            </v-table>
           </v-col>
         </v-row>
       </v-container>
@@ -336,15 +336,15 @@ export default {
       ],
 
       headers: [
-        { text: "EXP MASTER", value: "datos_expedientes" },
+        { title: "EXP MASTER", key: "datos_expedientes" },
         {
-          text: "GENERALES EMBARQUE",
+          title: "GENERALES EMBARQUE",
           align: "start",
-          value: "datos_embarque",
+          key: "datos_embarque",
         },
 
-        { text: "Telex", value: "house_telex" },
-        { text: "OPERADOR / FECHAS", value: "datos_operador" },
+        { title: "Telex", key: "house_telex" },
+        { title: "OPERADOR / FECHAS", key: "datos_operador" },
       ],
       loading: false,
       resumenOperador: [],

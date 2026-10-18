@@ -1,9 +1,9 @@
 <template>
   <v-card>
-    <v-card-title primary-title>
+    <v-card-title class="d-flex align-center flex-wrap" primary-title>
       {{ getName() }}
       <v-spacer></v-spacer>
-      <v-btn
+      <v-btn variant="text"
         icon
         color="default"
         @click="$store.state.states.drawer = !$store.state.states.drawer"
@@ -17,7 +17,7 @@
           label="Pais"
           :items="$store.state.itemsPais"
           v-model="$store.state.states.StateFilter.id_pais"
-          item-text="name"
+          item-title="name"
           item-value="id"
           :clearable="$store.state.states.tipo != 'ver'"
         >
@@ -49,8 +49,8 @@
         <span> Estado</span>
         <v-radio-group
           v-model="$store.state.states.StateFilter.status"
-          row
-          dense
+          inline
+          density="compact"
         >
           <v-radio label="Activo" color="green" value="1"></v-radio>
           <v-radio label="Inactivo" color="red" value="0"></v-radio>
@@ -66,10 +66,10 @@
             :items="$store.state.itemsPais"
             v-model="$store.state.states.StateModel.id_pais"
             :readonly="$store.state.states.tipo == 'ver'"
-            item-text="name"
+            item-title="name"
             item-value="id"
             :rules="[(v) => !!v || 'Dato Requerido']"
-            :item-disabled="(item) => item.status != 1"
+            :item-props="(item) => ({ disabled: item.status != 1 })"
           >
           </v-autocomplete>
         </div>
@@ -117,6 +117,7 @@
             }`"
             color="success"
             v-model="$store.state.states.StateModel.status"
+            :value-comparator="(value, checked) => Boolean(value) === checked"
           ></v-switch>
         </div>
       </v-form>
@@ -202,7 +203,7 @@ export default {
     },
     async Aceptar() {
       if (this.$store.state.states.tipo == "nuevo") {
-        if (this.$refs.frmDML.validate()) {
+        if ((await this.$refs.frmDML.validate()).valid) {
           this.loading = true;
           await this.setState();
           await this.GetListState();
@@ -211,7 +212,7 @@ export default {
       }
       if (this.$store.state.states.tipo == "editar") {
         this.loading = true;
-        if (this.$refs.frmDML.validate()) {
+        if ((await this.$refs.frmDML.validate()).valid) {
           await this.ActualizarState();
           await this.GetListState();
         }

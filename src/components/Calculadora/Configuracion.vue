@@ -3,13 +3,13 @@
     <v-data-table
       :headers="headers"
       :items="$store.state.calculadoras.config"
-      item-key="id"
+      item-value="id"
     >
       <template v-slot:[`item.texto`]="{ item, index }">
         <div class="d-flex align-center">
           <v-textarea
             :id="`texto${index}`"
-            outlined
+            variant="outlined"
             v-model="item.texto"
             :disabled="!item.editarflag"
             class="custom-field-sizing"
@@ -21,18 +21,17 @@
           v-if="!item.editarflag"
           @click="activarEditar(item, index)"
           color="#FFD600"
-          small
+          size="small"
         >
-          <v-icon small>mdi-square-edit-outline</v-icon>
+          <v-icon size="small">mdi-square-edit-outline</v-icon>
         </v-btn>
         <v-btn
           v-else
           color="#004D40"
-          dark
-          small
+          size="small"
           @click="guardarCambios(item, index)"
         >
-          <v-icon small>mdi-content-save-all</v-icon></v-btn
+          <v-icon size="small">mdi-content-save-all</v-icon></v-btn
         >
       </template>
     </v-data-table>
@@ -47,13 +46,13 @@ export default {
     return {
       config: {},
       headers: [
-        { text: "codigo", value: "codigo", width: "10%" },
-        { text: "descripcion", value: "descripcion", width: "20%" },
-        { text: "texto", value: "texto", width: "30%" },
+        { title: "codigo", key: "codigo", width: "10%" },
+        { title: "descripcion", key: "descripcion", width: "20%" },
+        { title: "texto", key: "texto", width: "30%" },
         // { text: "valorjson", value: "valorjson", width: "10%" },
         // { text: "numero", value: "numero", width: "15%" },
         // { text: "fecha", value: "fecha", width: "15%" },
-        { text: "", value: "action", width: "5%" },
+        { title: "", key: "action", width: "5%" },
       ],
     };
   },

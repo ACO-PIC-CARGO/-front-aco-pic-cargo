@@ -1,19 +1,19 @@
 <template>
   <v-container fluid>
     <v-card>
-      <v-card-title>
-        <v-btn icon @click="volverALista" class="mr-3">
+      <v-card-title class="d-flex align-center flex-wrap">
+        <v-btn variant="text" icon @click="volverALista" class="mr-3">
           <v-icon>mdi-arrow-left</v-icon>
         </v-btn>
         {{ modoPlantilla ? 'Editor de Plantillas de Tarifas' : `Editar Tarifas - ${cotizacionData.quote}` }}
         <v-spacer></v-spacer>
         <v-btn-toggle v-model="modoEditor" class="mr-3">
-          <v-btn small value="cotizacion" :disabled="!cotizacionId">
-            <v-icon left>mdi-file-document</v-icon>
+          <v-btn size="small" value="cotizacion" :disabled="!cotizacionId">
+            <v-icon start>mdi-file-document</v-icon>
             Cotización
           </v-btn>
-          <v-btn small value="plantilla">
-            <v-icon left>mdi-content-save-settings</v-icon>
+          <v-btn size="small" value="plantilla">
+            <v-icon start>mdi-content-save-settings</v-icon>
             Plantilla
           </v-btn>
         </v-btn-toggle> 
@@ -22,7 +22,7 @@
         <!-- Información de la Cotización o Plantilla -->
         <v-row>
           <v-col cols="12">
-            <v-alert :type="modoPlantilla ? 'success' : 'info'" dense class="mb-4">
+            <v-alert :type="modoPlantilla ? 'success' : 'info'" density="compact" class="mb-4">
               <div v-if="modoPlantilla">
                 <strong>Modo Plantilla:</strong> Editando tarifas por defecto para reutilizar en nuevas cotizaciones
                 <v-row class="mt-2">
@@ -31,10 +31,10 @@
                       :items="modalidadesDisponibles"
                       v-model="plantillaConfig.modalidad"
                       label="Modalidad"
-                      item-text="name"
+                      item-title="name"
                       item-value="id"
-                      dense
-                      outlined
+                      density="compact"
+                      variant="outlined"
                       hide-details
                     ></v-select>
                   </v-col>
@@ -43,10 +43,10 @@
                       :items="tiposEnvioDisponibles"
                       v-model="plantillaConfig.tipoEnvio"
                       label="Tipo de Envío"
-                      item-text="code"
+                      item-title="code"
                       item-value="id"
-                      dense
-                      outlined
+                      density="compact"
+                      variant="outlined"
                       hide-details
                     ></v-select>
                   </v-col>
@@ -54,8 +54,8 @@
                     <v-text-field
                       v-model="plantillaConfig.nombre"
                       label="Nombre de Plantilla"
-                      dense
-                      outlined
+                      density="compact"
+                      variant="outlined"
                       hide-details
                       placeholder="Ej: Plantilla FCL Importación"
                     ></v-text-field>
@@ -76,9 +76,9 @@
         <div class="">
           <v-row>
             <v-col cols="12" lg="4" xl="4" class="my-1 py-2">
-              <span class="title">
+              <span class="text-h6">
                 Costos de la Cotización
-                <v-btn icon color="primary" @click="abrirNuevoCosto">
+                <v-btn variant="text" icon color="primary" @click="abrirNuevoCosto">
                   <v-icon>mdi-plus</v-icon>
                 </v-btn>
               </span>
@@ -92,11 +92,11 @@
             <v-col cols="12" class="my-1 py-1">
               <v-expansion-panels class="condensed" v-model="valueFlete">
                 <v-expansion-panel>
-                  <v-expansion-panel-header>
+                  <v-expansion-panel-title>
                     FLETE: <span>{{ totalFlete }}</span>
-                  </v-expansion-panel-header>
-                  <v-expansion-panel-content>
-                    <v-simple-table dense>
+                  </v-expansion-panel-title>
+                  <v-expansion-panel-text>
+                    <v-table density="compact">
                       <thead>
                         <tr>
                           <th></th>
@@ -111,51 +111,51 @@
                       <tbody>
                         <tr v-for="(valor, i) in tarifasFlete" :key="i">
                           <td class="btnAccion">
-                            <v-btn icon color="red" x-small @click="eliminarTarifa(valor)">
+                            <v-btn variant="text" icon color="red" size="x-small" @click="eliminarTarifa(valor)">
                               <v-icon>mdi-delete</v-icon>
                             </v-btn>
                           </td>
                           <td class="colSeccion">
                             <v-text-field
-                              dense
+                              density="compact"
                               hide-details
                               v-model="valor.seccion"
-                              @input="marcarComoModificado(valor)"
+                              @update:model-value="marcarComoModificado(valor)"
                             ></v-text-field>
                           </td>
                           <td class="colServicio">
                             <v-text-field
-                              dense
+                              density="compact"
                               hide-details
                               v-model="valor.servicio"
-                              @input="marcarComoModificado(valor)"
+                              @update:model-value="marcarComoModificado(valor)"
                             ></v-text-field>
                           </td>
                           <td class="colConcepto">
                             <v-text-field
-                              dense
+                              density="compact"
                               hide-details
                               v-model="valor.concepto"
-                              @input="marcarComoModificado(valor)"
+                              @update:model-value="marcarComoModificado(valor)"
                             ></v-text-field>
                           </td>
                           <td class="colProveedorMultiplicador">
                             <v-text-field
-                              dense
+                              density="compact"
                               hide-details
                               v-model="valor.multiplicador"
-                              @input="marcarComoModificado(valor)"
+                              @update:model-value="marcarComoModificado(valor)"
                             ></v-text-field>
                           </td>
                           <td class="colCostos">
                             <v-text-field
                               class="derecha tdMontos"
-                              dense
+                              density="compact"
                               v-model="valor.monto"
                               prefix="$"
                               type="number"
                               step="0.01"
-                              @input="marcarComoModificado(valor)"
+                              @update:model-value="marcarComoModificado(valor)"
                             ></v-text-field>
                           </td>
                           <td class="colCostos">
@@ -163,8 +163,8 @@
                           </td>
                         </tr>
                       </tbody>
-                    </v-simple-table>
-                  </v-expansion-panel-content>
+                    </v-table>
+                  </v-expansion-panel-text>
                 </v-expansion-panel>
               </v-expansion-panels>
             </v-col>
@@ -177,11 +177,11 @@
             <v-col cols="12" class="my-1 py-1">
               <v-expansion-panels class="condensed" v-model="valueOrigen">
                 <v-expansion-panel>
-                  <v-expansion-panel-header>
+                  <v-expansion-panel-title>
                     ORIGEN: <span>{{ totalOrigen }}</span>
-                  </v-expansion-panel-header>
-                  <v-expansion-panel-content>
-                    <v-simple-table dense>
+                  </v-expansion-panel-title>
+                  <v-expansion-panel-text>
+                    <v-table density="compact">
                       <thead>
                         <tr>
                           <th></th>
@@ -195,43 +195,43 @@
                       <tbody>
                         <tr v-for="(valor, i) in tarifasOrigen" :key="i">
                           <td class="btnAccion">
-                            <v-btn icon color="red" x-small @click="eliminarTarifa(valor)">
+                            <v-btn variant="text" icon color="red" size="x-small" @click="eliminarTarifa(valor)">
                               <v-icon>mdi-delete</v-icon>
                             </v-btn>
                           </td>
                           <td class="colProveedorMultiplicador">
                             <v-text-field
-                              dense
+                              density="compact"
                               hide-details
                               v-model="valor.proveedor"
-                              @input="marcarComoModificado(valor)"
+                              @update:model-value="marcarComoModificado(valor)"
                             ></v-text-field>
                           </td>
                           <td class="colConcepto">
                             <v-text-field
-                              dense
+                              density="compact"
                               hide-details
                               v-model="valor.concepto"
-                              @input="marcarComoModificado(valor)"
+                              @update:model-value="marcarComoModificado(valor)"
                             ></v-text-field>
                           </td>
                           <td class="colProveedorMultiplicador">
                             <v-text-field
-                              dense
+                              density="compact"
                               hide-details
                               v-model="valor.multiplicador"
-                              @input="marcarComoModificado(valor)"
+                              @update:model-value="marcarComoModificado(valor)"
                             ></v-text-field>
                           </td>
                           <td class="colCostos">
                             <v-text-field
                               class="derecha tdMontos"
-                              dense
+                              density="compact"
                               v-model="valor.monto"
                               prefix="$"
                               type="number"
                               step="0.01"
-                              @input="marcarComoModificado(valor)"
+                              @update:model-value="marcarComoModificado(valor)"
                             ></v-text-field>
                           </td>
                           <td class="colCostos">
@@ -239,8 +239,8 @@
                           </td>
                         </tr>
                       </tbody>
-                    </v-simple-table>
-                  </v-expansion-panel-content>
+                    </v-table>
+                  </v-expansion-panel-text>
                 </v-expansion-panel>
               </v-expansion-panels>
             </v-col>
@@ -253,11 +253,11 @@
             <v-col cols="12" class="my-1 py-1">
               <v-expansion-panels class="condensed" v-model="valueDestino">
                 <v-expansion-panel>
-                  <v-expansion-panel-header>
+                  <v-expansion-panel-title>
                     DESTINO: <span>{{ totalDestino }}</span>
-                  </v-expansion-panel-header>
-                  <v-expansion-panel-content>
-                    <v-simple-table dense>
+                  </v-expansion-panel-title>
+                  <v-expansion-panel-text>
+                    <v-table density="compact">
                       <thead>
                         <tr>
                           <th></th>
@@ -271,43 +271,43 @@
                       <tbody>
                         <tr v-for="(valor, i) in tarifasDestino" :key="i">
                           <td class="btnAccion">
-                            <v-btn icon color="red" x-small @click="eliminarTarifa(valor)">
+                            <v-btn variant="text" icon color="red" size="x-small" @click="eliminarTarifa(valor)">
                               <v-icon>mdi-delete</v-icon>
                             </v-btn>
                           </td>
                           <td class="colProveedorMultiplicador">
                             <v-text-field
-                              dense
+                              density="compact"
                               hide-details
                               v-model="valor.proveedor"
-                              @input="marcarComoModificado(valor)"
+                              @update:model-value="marcarComoModificado(valor)"
                             ></v-text-field>
                           </td>
                           <td class="colConcepto">
                             <v-text-field
-                              dense
+                              density="compact"
                               hide-details
                               v-model="valor.concepto"
-                              @input="marcarComoModificado(valor)"
+                              @update:model-value="marcarComoModificado(valor)"
                             ></v-text-field>
                           </td>
                           <td class="colProveedorMultiplicador">
                             <v-text-field
-                              dense
+                              density="compact"
                               hide-details
                               v-model="valor.multiplicador"
-                              @input="marcarComoModificado(valor)"
+                              @update:model-value="marcarComoModificado(valor)"
                             ></v-text-field>
                           </td>
                           <td class="colCostos">
                             <v-text-field
                               class="derecha tdMontos"
-                              dense
+                              density="compact"
                               v-model="valor.monto"
                               prefix="$"
                               type="number"
                               step="0.01"
-                              @input="marcarComoModificado(valor)"
+                              @update:model-value="marcarComoModificado(valor)"
                             ></v-text-field>
                           </td>
                           <td class="colCostos">
@@ -315,8 +315,8 @@
                           </td>
                         </tr>
                       </tbody>
-                    </v-simple-table>
-                  </v-expansion-panel-content>
+                    </v-table>
+                  </v-expansion-panel-text>
                 </v-expansion-panel>
               </v-expansion-panels>
             </v-col>
@@ -329,11 +329,11 @@
             <v-col cols="12" class="my-1 py-1">
               <v-expansion-panels class="condensed" v-model="valueLocal">
                 <v-expansion-panel>
-                  <v-expansion-panel-header>
+                  <v-expansion-panel-title>
                     LOCAL: <span>{{ totalLocal }}</span>
-                  </v-expansion-panel-header>
-                  <v-expansion-panel-content>
-                    <v-simple-table dense>
+                  </v-expansion-panel-title>
+                  <v-expansion-panel-text>
+                    <v-table density="compact">
                       <thead>
                         <tr>
                           <th></th>
@@ -347,43 +347,43 @@
                       <tbody>
                         <tr v-for="(valor, i) in tarifasLocal" :key="i">
                           <td class="btnAccion">
-                            <v-btn icon color="red" x-small @click="eliminarTarifa(valor)">
+                            <v-btn variant="text" icon color="red" size="x-small" @click="eliminarTarifa(valor)">
                               <v-icon>mdi-delete</v-icon>
                             </v-btn>
                           </td>
                           <td class="colProveedorMultiplicador">
                             <v-text-field
-                              dense
+                              density="compact"
                               hide-details
                               v-model="valor.proveedor"
-                              @input="marcarComoModificado(valor)"
+                              @update:model-value="marcarComoModificado(valor)"
                             ></v-text-field>
                           </td>
                           <td class="colConcepto">
                             <v-text-field
-                              dense
+                              density="compact"
                               hide-details
                               v-model="valor.concepto"
-                              @input="marcarComoModificado(valor)"
+                              @update:model-value="marcarComoModificado(valor)"
                             ></v-text-field>
                           </td>
                           <td class="colProveedorMultiplicador">
                             <v-text-field
-                              dense
+                              density="compact"
                               hide-details
                               v-model="valor.multiplicador"
-                              @input="marcarComoModificado(valor)"
+                              @update:model-value="marcarComoModificado(valor)"
                             ></v-text-field>
                           </td>
                           <td class="colCostos">
                             <v-text-field
                               class="derecha tdMontos"
-                              dense
+                              density="compact"
                               v-model="valor.monto"
                               prefix="$"
                               type="number"
                               step="0.01"
-                              @input="marcarComoModificado(valor)"
+                              @update:model-value="marcarComoModificado(valor)"
                             ></v-text-field>
                           </td>
                           <td class="colCostos">
@@ -391,8 +391,8 @@
                           </td>
                         </tr>
                       </tbody>
-                    </v-simple-table>
-                  </v-expansion-panel-content>
+                    </v-table>
+                  </v-expansion-panel-text>
                 </v-expansion-panel>
               </v-expansion-panels>
             </v-col>
@@ -405,11 +405,11 @@
             <v-col cols="12" class="my-1 py-1">
               <v-expansion-panels class="condensed" v-model="valueAduana">
                 <v-expansion-panel>
-                  <v-expansion-panel-header>
+                  <v-expansion-panel-title>
                     ADUANA: <span>{{ totalAduana }}</span>
-                  </v-expansion-panel-header>
-                  <v-expansion-panel-content>
-                    <v-simple-table dense>
+                  </v-expansion-panel-title>
+                  <v-expansion-panel-text>
+                    <v-table density="compact">
                       <thead>
                         <tr>
                           <th></th>
@@ -423,43 +423,43 @@
                       <tbody>
                         <tr v-for="(valor, i) in tarifasAduana" :key="i">
                           <td class="btnAccion">
-                            <v-btn icon color="red" x-small @click="eliminarTarifa(valor)">
+                            <v-btn variant="text" icon color="red" size="x-small" @click="eliminarTarifa(valor)">
                               <v-icon>mdi-delete</v-icon>
                             </v-btn>
                           </td>
                           <td class="colProveedorMultiplicador">
                             <v-text-field
-                              dense
+                              density="compact"
                               hide-details
                               v-model="valor.proveedor"
-                              @input="marcarComoModificado(valor)"
+                              @update:model-value="marcarComoModificado(valor)"
                             ></v-text-field>
                           </td>
                           <td class="colConcepto">
                             <v-text-field
-                              dense
+                              density="compact"
                               hide-details
                               v-model="valor.concepto"
-                              @input="marcarComoModificado(valor)"
+                              @update:model-value="marcarComoModificado(valor)"
                             ></v-text-field>
                           </td>
                           <td class="colProveedorMultiplicador">
                             <v-text-field
-                              dense
+                              density="compact"
                               hide-details
                               v-model="valor.multiplicador"
-                              @input="marcarComoModificado(valor)"
+                              @update:model-value="marcarComoModificado(valor)"
                             ></v-text-field>
                           </td>
                           <td class="colCostos">
                             <v-text-field
                               class="derecha tdMontos"
-                              dense
+                              density="compact"
                               v-model="valor.monto"
                               prefix="$"
                               type="number"
                               step="0.01"
-                              @input="marcarComoModificado(valor)"
+                              @update:model-value="marcarComoModificado(valor)"
                             ></v-text-field>
                           </td>
                           <td class="colCostos">
@@ -467,8 +467,8 @@
                           </td>
                         </tr>
                       </tbody>
-                    </v-simple-table>
-                  </v-expansion-panel-content>
+                    </v-table>
+                  </v-expansion-panel-text>
                 </v-expansion-panel>
               </v-expansion-panels>
             </v-col>
@@ -481,11 +481,11 @@
             <v-col cols="12" class="my-1 py-1">
               <v-expansion-panels class="condensed" v-model="valueAlmacen">
                 <v-expansion-panel>
-                  <v-expansion-panel-header>
+                  <v-expansion-panel-title>
                     ALMACÉN: <span>{{ totalAlmacen }}</span>
-                  </v-expansion-panel-header>
-                  <v-expansion-panel-content>
-                    <v-simple-table dense>
+                  </v-expansion-panel-title>
+                  <v-expansion-panel-text>
+                    <v-table density="compact">
                       <thead>
                         <tr>
                           <th></th>
@@ -499,43 +499,43 @@
                       <tbody>
                         <tr v-for="(valor, i) in tarifasAlmacen" :key="i">
                           <td class="btnAccion">
-                            <v-btn icon color="red" x-small @click="eliminarTarifa(valor)">
+                            <v-btn variant="text" icon color="red" size="x-small" @click="eliminarTarifa(valor)">
                               <v-icon>mdi-delete</v-icon>
                             </v-btn>
                           </td>
                           <td class="colProveedorMultiplicador">
                             <v-text-field
-                              dense
+                              density="compact"
                               hide-details
                               v-model="valor.proveedor"
-                              @input="marcarComoModificado(valor)"
+                              @update:model-value="marcarComoModificado(valor)"
                             ></v-text-field>
                           </td>
                           <td class="colConcepto">
                             <v-text-field
-                              dense
+                              density="compact"
                               hide-details
                               v-model="valor.concepto"
-                              @input="marcarComoModificado(valor)"
+                              @update:model-value="marcarComoModificado(valor)"
                             ></v-text-field>
                           </td>
                           <td class="colProveedorMultiplicador">
                             <v-text-field
-                              dense
+                              density="compact"
                               hide-details
                               v-model="valor.multiplicador"
-                              @input="marcarComoModificado(valor)"
+                              @update:model-value="marcarComoModificado(valor)"
                             ></v-text-field>
                           </td>
                           <td class="colCostos">
                             <v-text-field
                               class="derecha tdMontos"
-                              dense
+                              density="compact"
                               v-model="valor.monto"
                               prefix="$"
                               type="number"
                               step="0.01"
-                              @input="marcarComoModificado(valor)"
+                              @update:model-value="marcarComoModificado(valor)"
                             ></v-text-field>
                           </td>
                           <td class="colCostos">
@@ -543,8 +543,8 @@
                           </td>
                         </tr>
                       </tbody>
-                    </v-simple-table>
-                  </v-expansion-panel-content>
+                    </v-table>
+                  </v-expansion-panel-text>
                 </v-expansion-panel>
               </v-expansion-panels>
             </v-col>
@@ -560,7 +560,7 @@
           :loading="loadingCargar"
           class="mr-2"
         >
-          <v-icon left>mdi-download</v-icon>
+          <v-icon start>mdi-download</v-icon>
           Cargar Plantilla
         </v-btn>
         <v-btn
@@ -569,7 +569,7 @@
           :loading="loadingGuardar"
           :disabled="!modoPlantilla && !cotizacionId"
         >
-          <v-icon left>{{ modoPlantilla ? 'mdi-content-save-settings' : 'mdi-content-save' }}</v-icon>
+          <v-icon start>{{ modoPlantilla ? 'mdi-content-save-settings' : 'mdi-content-save' }}</v-icon>
           {{ modoPlantilla ? 'Guardar como Plantilla' : 'Guardar Tarifas' }}
         </v-btn>
       </v-card-actions>
@@ -577,20 +577,20 @@
 
     <v-dialog v-model="dialog" max-width="600px" persistent>
       <v-card>
-        <v-card-title>
+        <v-card-title class="d-flex align-center flex-wrap">
           Nuevo servicio
           <v-spacer></v-spacer>
           <v-icon @click="dialog = false">mdi-close</v-icon>
         </v-card-title>
         <v-form ref="frmNuevosCostos">
           <v-card-text>
-            <v-select
+            <v-select item-title="text"
               :items="lstTramo"
               v-model="frmNuevoCosto.tramo"
               :rules="[(v) => !!v || 'Dato obligatorio']"
               label="Tramo*"
-              outlined
-              dense
+              variant="outlined"
+              density="compact"
               hide-details
               class="my-2"
             ></v-select>
@@ -598,8 +598,8 @@
             <v-text-field
               :rules="[(v) => !!v || 'Dato obligatorio']"
               label="Servicio*"
-              outlined
-              dense
+              variant="outlined"
+              density="compact"
               hide-details
               class="my-2"
               v-model="frmNuevoCosto.servicio"
@@ -611,9 +611,9 @@
               :rules="[(v) => !!v || 'Dato obligatorio']"
               item-value="name"
               label="Sección*"
-              item-text="name"
-              outlined
-              dense
+              item-title="name"
+              variant="outlined"
+              density="compact"
               hide-details
               class="my-2"
             ></v-autocomplete>
@@ -621,29 +621,29 @@
             <v-text-field
               :rules="[(v) => !!v || 'Dato obligatorio']"
               label="Concepto*"
-              outlined
-              dense
+              variant="outlined"
+              density="compact"
               hide-details
               class="my-2"
               v-model="frmNuevoCosto.concepto"
             ></v-text-field>
 
-            <v-autocomplete
+            <v-autocomplete item-title="text"
               :items="$store.state.configEmpresa.lstMultiplicador"
               v-model="frmNuevoCosto.id_multiplicador"
               :rules="[(v) => !!v || 'Dato obligatorio']"
               item-value="id"
               label="Multiplicador*"
-              outlined
-              dense
+              variant="outlined"
+              density="compact"
               hide-details
               class="my-2"
             ></v-autocomplete>
 
             <v-text-field
               label="Monto"
-              outlined
-              dense
+              variant="outlined"
+              density="compact"
               hide-details
               class="my-2"
               v-model="frmNuevoCosto.monto"
@@ -654,9 +654,9 @@
               v-model="frmNuevoCosto.id_proveedor"
               :rules="[(v) => !!v || 'Dato obligatorio']"
               label="Proveedor*"
-              item-text="namelong"
-              outlined
-              dense
+              item-title="namelong"
+              variant="outlined"
+              density="compact"
               hide-details
               class="my-2"
               item-value="id"
@@ -699,8 +699,8 @@
         </v-form>
         <v-card-actions>
           <v-spacer></v-spacer>
-          <v-btn text color="red" @click="dialog = false">Cancelar</v-btn>
-          <v-btn color="green" dark @click="agregarNuevoCosto">Agregar</v-btn>
+          <v-btn variant="text" color="red" @click="dialog = false">Cancelar</v-btn>
+          <v-btn color="green" @click="agregarNuevoCosto">Agregar</v-btn>
         </v-card-actions>
       </v-card>
     </v-dialog>
@@ -814,7 +814,7 @@ export default {
 
         const config = {
           method: "get",
-          url: `${process.env.VUE_APP_URL_MAIN}obtener_costos_base?id_modality=${idModality}&shipment=${shipment}`,
+          url: `${import.meta.env.VUE_APP_URL_MAIN}obtener_costos_base?id_modality=${idModality}&shipment=${shipment}`,
           headers: {
             Authorization: `Bearer ${sessionStorage.getItem("auth-token")}`,
             "Content-Type": "application/json",
@@ -1021,7 +1021,7 @@ export default {
         
         const config = {
           method: "put",
-          url: `${process.env.VUE_APP_URL_MAIN}editar_costos_base`,
+          url: `${import.meta.env.VUE_APP_URL_MAIN}editar_costos_base`,
           headers: {
             Authorization: `Bearer ${sessionStorage.getItem("auth-token")}`,
             "Content-Type": "application/json",

@@ -7,7 +7,7 @@
           <v-select
             :items="$store.state.aduana.begEndList"
             v-model="servicio.id_begend"
-            item-text="name"
+            item-title="name"
             item-value="id"
             label="Categoria..."
           ></v-select>
@@ -19,33 +19,34 @@
         <v-card-actions>
           <v-spacer></v-spacer>
           <v-btn color="success" @click="guardarServicio()">Guardar</v-btn>
-          <v-btn color="red" @click="dialog = !dialog" dark>Cancelar</v-btn>
+          <v-btn color="red" @click="dialog = !dialog">Cancelar</v-btn>
         </v-card-actions>
       </v-card>
     </v-dialog>
     <!--  -->
     <v-card-title primary-title>
       SERVICIOS A REALIZAR:
-      <v-btn icon color="primary" @click="dialog = !dialog">
+      <v-btn variant="text" icon color="primary" @click="dialog = !dialog">
         <v-icon>mdi-plus</v-icon>
       </v-btn>
     </v-card-title>
-    <v-subheader class="mt-0">
+    <v-list-subheader class="mt-0">
       <h4>Desmarque los servicios que NO desea utilizar.</h4>
-    </v-subheader>
+    </v-list-subheader>
 
     <v-card-text>
       <v-row>
         <v-col cols="3">
           <h4 class="mb-2">ORIGEN</h4>
           <v-checkbox
-            dense
+            density="compact"
             v-for="service in $store.state.aduana.listServices.filter(
               (v) => v.codebegend == 'OR'
             )"
             :key="service.id"
             v-model="service.status"
-            @change="showConfirmationDialog(service)"
+            :value-comparator="(value, checked) => Boolean(value) === checked"
+            @update:model-value="showConfirmationDialog(service)"
           >
             <template v-slot:label>
               {{ service.service }}
@@ -55,13 +56,14 @@
         <v-col cols="3">
           <h4 class="mb-2">FLETE</h4>
           <v-checkbox
-            dense
+            density="compact"
             v-for="service in $store.state.aduana.listServices.filter(
               (v) => v.codebegend == 'FL'
             )"
             :key="service.id"
             v-model="service.status"
-            @change="showConfirmationDialog(service)"
+            :value-comparator="(value, checked) => Boolean(value) === checked"
+            @update:model-value="showConfirmationDialog(service)"
           >
             <template v-slot:label>
               {{ service.service }}
@@ -71,13 +73,14 @@
         <v-col cols="3">
           <h4 class="mb-2">DESTINO</h4>
           <v-checkbox
-            dense
+            density="compact"
             v-for="service in $store.state.aduana.listServices.filter(
               (v) => v.codebegend == 'DE'
             )"
             :key="service.id"
             v-model="service.status"
-            @change="showConfirmationDialog(service)"
+            :value-comparator="(value, checked) => Boolean(value) === checked"
+            @update:model-value="showConfirmationDialog(service)"
           >
             <template v-slot:label>
               {{ service.service }}
@@ -87,13 +90,14 @@
         <v-col cols="3">
           <h4 class="mb-2">OPCIONAL</h4>
           <v-checkbox
-            dense
+            density="compact"
             v-for="service in $store.state.aduana.listServices.filter(
               (v) => v.codebegend == 'OP'
             )"
             :key="service.id"
             v-model="service.status"
-            @change="showConfirmationDialog(service)"
+            :value-comparator="(value, checked) => Boolean(value) === checked"
+            @update:model-value="showConfirmationDialog(service)"
           >
             <template v-slot:label>
               {{ service.service }}
@@ -109,14 +113,14 @@
             min="0"
             placeholder="Valor de la mercancia..."
             autocomplete="off"
-            dense
+            density="compact"
             :rules="[
               (v) => !!v || 'Dato Requerido',
               (v) =>
                 /^(?!0\d+|\d*e)\d*(?:\.\d+)?$/.test(v) ||
                 'Debe ser un número real entero positivo',
             ]"
-            @input="recargarCostos()"
+            @update:model-value="recargarCostos()"
             @blur="recargarCostos()"
           >
           </v-text-field>
@@ -125,7 +129,7 @@
             label="Descripción de carga"
             placeholder="Descripción de carga"
             autocomplete="off"
-            dense
+            density="compact"
           >
           </v-text-field>
         </v-col>
@@ -137,10 +141,8 @@
         >
           <v-btn
             color="#3F51B5"
-            
-            dark
             @click="continuarLlenadoCostos()"
-            small
+            size="small"
             >Continuar Llenado Costos</v-btn
           >
         </v-col>
@@ -153,6 +155,7 @@
 import Swal from "sweetalert2";
 import { mapActions } from "vuex";
 export default {
+  emits: ["activarLlenadoCostos", "recargarCostos"],
   props: {
     mostrarBtn: {
       type: Boolean,

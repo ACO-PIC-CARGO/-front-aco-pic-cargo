@@ -1,9 +1,9 @@
 <template>
   <v-card>
-    <v-card-title primary-title>
+    <v-card-title class="d-flex align-center flex-wrap" primary-title>
       {{ getName() }}
       <v-spacer></v-spacer>
-      <v-btn
+      <v-btn variant="text"
         icon
         color="default"
         @click="
@@ -21,27 +21,27 @@
               <v-text-field
                 clearable
                 v-model="$store.state.QuoteStatus.StatusFilter.code"
-                dense
+                density="compact"
                 label="Código"
-                outlined
+                variant="outlined"
               ></v-text-field>
             </div>
             <div class="col-12 py-1">
               <v-text-field
                 clearable
                 v-model="$store.state.QuoteStatus.StatusFilter.name"
-                dense
+                density="compact"
                 label="Nombre"
-                outlined
+                variant="outlined"
               ></v-text-field>
             </div>
             <div class="col-12 py-1">
               <v-text-field
                 clearable
                 v-model="$store.state.QuoteStatus.StatusFilter.description"
-                dense
+                density="compact"
                 label="Descripción"
-                outlined
+                variant="outlined"
               ></v-text-field>
             </div>
             <div class="col-12 py-1">
@@ -49,9 +49,9 @@
                 clearable
                 v-model="$store.state.QuoteStatus.StatusFilter.position"
                 type="number"
-                dense
+                density="compact"
                 label="Posición Cotizaciones"
-                outlined
+                variant="outlined"
               ></v-text-field>
             </div>
             <div class="col-12 py-1">
@@ -62,22 +62,25 @@
                     .id_masterdetalletemperaturaventa
                 "
                 item-value="id"
-                item-text="descripcion"
-                dense
-                outlined
+                item-title="descripcion"
+                density="compact"
+                variant="outlined"
                 label="Temperatura de Lead"
               >
-                <template v-slot:item="{ item }">
-                  <span
-                    class="mr-3 d-inline-block"
-                    :style="{
-                      backgroundColor: item.codigo,
+                <template v-slot:item="{ item, props }">
+                  <v-list-item v-bind="props">
+                    <template v-slot:prepend>
+                      <span
+                        class="d-inline-block"
+                        :style="{
+                          backgroundColor: item.codigo,
                       width: '14px',
                       height: '14px',
                       borderRadius: '50%',
                     }"
-                  ></span>
-                  {{ item.descripcion }}
+                      ></span>
+                    </template>
+                  </v-list-item>
                 </template>
               </v-autocomplete>
             </div>
@@ -137,8 +140,8 @@
               <span> Estado</span>
               <v-radio-group
                 v-model="$store.state.QuoteStatus.StatusFilter.status"
-                row
-                dense
+                inline
+                density="compact"
               >
                 <v-radio label="Activo" color="green" value="1"></v-radio>
                 <v-radio label="Inactivo" color="red" value="0"></v-radio>
@@ -158,28 +161,28 @@
                 v-if="$store.state.QuoteStatus.tipo != 'nuevo'"
                 :readonly="$store.state.QuoteStatus.tipo == 'ver'"
                 v-model="$store.state.QuoteStatus.StatusModel.code"
-                dense
+                density="compact"
                 label="Código"
-                outlined
+                variant="outlined"
               ></v-text-field>
             </div>
             <div class="col-12 py-0">
               <v-text-field
                 :readonly="$store.state.QuoteStatus.tipo == 'ver'"
                 v-model="$store.state.QuoteStatus.StatusModel.name"
-                dense
+                density="compact"
                 label="Nombre (*)"
                 :rules="[(v) => !!v || 'Dato requerido']"
-                outlined
+                variant="outlined"
               ></v-text-field>
             </div>
             <div class="col-12 py-0">
               <v-text-field
                 :readonly="$store.state.QuoteStatus.tipo == 'ver'"
                 v-model="$store.state.QuoteStatus.StatusModel.description"
-                dense
+                density="compact"
                 label="Descripción"
-                outlined
+                variant="outlined"
               ></v-text-field>
             </div>
             <div class="col-12 py-0">
@@ -190,9 +193,9 @@
                 :error-messages="errPosition"
                 :rules="[(v) => !!v || 'Dato requerido']"
                 type="number"
-                dense
+                density="compact"
                 label="Posición Cotizaciones"
-                outlined
+                variant="outlined"
               ></v-text-field>
             </div>
             <div class="col-12 py-0">
@@ -203,22 +206,25 @@
                     .id_masterdetalletemperaturaventa
                 "
                 item-value="id"
-                item-text="descripcion"
-                dense
-                outlined
+                item-title="descripcion"
+                density="compact"
+                variant="outlined"
                 label="Temperatura de Lead"
               >
-                <template v-slot:item="{ item }">
-                  <span
-                    class="mr-3 d-inline-block"
-                    :style="{
-                      backgroundColor: item.codigo,
+                <template v-slot:item="{ item, props }">
+                  <v-list-item v-bind="props">
+                    <template v-slot:prepend>
+                      <span
+                        class="d-inline-block"
+                        :style="{
+                          backgroundColor: item.codigo,
                       width: '14px',
                       height: '14px',
                       borderRadius: '50%',
                     }"
-                  ></span>
-                  {{ item.descripcion }}
+                      ></span>
+                    </template>
+                  </v-list-item>
                 </template>
               </v-autocomplete>
             </div>
@@ -300,6 +306,7 @@
                 }`"
                 color="success"
                 v-model="$store.state.QuoteStatus.StatusModel.status"
+                :value-comparator="(value, checked) => Boolean(value) === checked"
               ></v-switch>
             </div>
           </div></div
@@ -477,7 +484,7 @@ export default {
       if (this.$store.state.QuoteStatus.tipo == "nuevo") {
         this.loading = true;
         setTimeout(async () => {
-          if (this.$refs.frmDML.validate()) {
+          if ((await this.$refs.frmDML.validate()).valid) {
             this.loading = true;
             await this.setQuoteStatus();
             await this.GetListQuoteStatus();
@@ -489,7 +496,7 @@ export default {
       if (this.$store.state.QuoteStatus.tipo == "editar") {
         this.loading = true;
         setTimeout(async () => {
-          if (this.$refs.frmDML.validate()) {
+          if ((await this.$refs.frmDML.validate()).valid) {
             await this.actualizarQuoteStatus();
             await this.GetListQuoteStatus();
           }

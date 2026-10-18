@@ -7,12 +7,12 @@
       </v-col>
       <v-col cols="12" lg="2" xl="2" class="py-0">
         <v-select
-          dense
-          outlined
+          density="compact"
+          variant="outlined"
           label="Cotización"
           :items="$store.state.aduana.listQuotes"
           v-model="id_quote"
-          item-text="quote"
+          item-title="quote"
           item-value="id"
           clearable
           hide-details
@@ -26,7 +26,7 @@
         >
       </v-col>
       <v-col v-if="unificarflag" cols="6">
-        <v-alert dense outlined type="error">
+        <v-alert density="compact" variant="outlined" type="error">
           Recuerde que solo se puede unificar, cotizaciones que solo tengan una
           opción activa. O tengas los servicios Aduanas desactivados
         </v-alert>
@@ -59,9 +59,9 @@ export default {
           text: this.$store.state.aduana.mensaje,
           confirmButtonText: "Ir a la cotización",
           showConfirmButton: true,
-        }).then((result) => {
+        }).then(async (result) => {
           if (result.isConfirmed) {
-            this.$router.push({
+            await this.$router.push({
               name: "verQuote",
               params: {
                 id: this.$store.state.aduana.IdQuote,

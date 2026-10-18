@@ -33,7 +33,7 @@ let actions = {
     var config = {
       method: "get",
       url:
-        process.env.VUE_APP_URL_MAIN +
+        import.meta.env.VUE_APP_URL_MAIN +
         `listar_state?&id_branch=${
           JSON.parse(sessionStorage.getItem("dataUser"))[0].id_branch
         }&name=${state.StateFilter.name}&description=${
@@ -85,7 +85,7 @@ let actions = {
   async setState({ commit }) {
     var config = {
       method: "post",
-      url: process.env.VUE_APP_URL_MAIN + `insertar_state`,
+      url: import.meta.env.VUE_APP_URL_MAIN + `insertar_state`,
       headers: {
        
         "Content-Type": "application/json",
@@ -112,7 +112,7 @@ let actions = {
   async ActualizarState({ commit }) {
     var config = {
       method: "put",
-      url: process.env.VUE_APP_URL_MAIN + `actualizar_state`,
+      url: import.meta.env.VUE_APP_URL_MAIN + `actualizar_state`,
       headers: {
        
         "Content-Type": "application/json",

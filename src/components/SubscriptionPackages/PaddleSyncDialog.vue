@@ -1,9 +1,9 @@
 <template>
   <v-dialog
-    :value="value"
+    :model-value="modelValue"
     max-width="640"
     persistent
-    :fullscreen="$vuetify.breakpoint.xsOnly"
+    :fullscreen="$vuetify.display.xs"
     content-class="plans-theme plans-theme--app package-dialog"
   >
     <section class="paddle-sync" aria-labelledby="paddle-sync-title">
@@ -17,7 +17,7 @@
             algo.
           </p>
         </div>
-        <v-btn
+        <v-btn variant="text"
           icon
           class="icon-button"
           aria-label="Cerrar"
@@ -44,7 +44,7 @@
         >
           <p>{{ message }}</p>
           <v-btn
-            text
+            variant="text"
             class="plans-button plans-button--secondary"
             @click="load"
           >
@@ -89,7 +89,7 @@
 
       <footer class="paddle-sync__footer">
         <v-btn
-          text
+          variant="text"
           class="plans-button plans-button--ghost"
           :disabled="applying"
           @click="close"
@@ -98,7 +98,7 @@
         </v-btn>
         <v-btn
           v-if="loadState === 'ready' && pendingCount"
-          text
+          variant="text"
           class="plans-button plans-button--primary"
           :disabled="applying"
           @click="apply"
@@ -127,8 +127,9 @@ const STATUSES = {
 
 export default {
   name: "PaddleSyncDialog",
+  emits: ["update:modelValue"],
   props: {
-    value: { type: Boolean, default: false },
+    modelValue: { type: Boolean, default: false },
   },
   data: () => ({
     loadState: "loading",
@@ -145,7 +146,7 @@ export default {
     },
   },
   watch: {
-    value(isOpen) {
+    modelValue(isOpen) {
       if (isOpen) this.load();
     },
   },
@@ -176,7 +177,7 @@ export default {
       if (!response.data.length) this.loadState = "error";
     },
     close() {
-      this.$emit("input", false);
+      this.$emit("update:modelValue", false);
     },
   },
 };

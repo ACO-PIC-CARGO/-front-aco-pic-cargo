@@ -1,9 +1,9 @@
 <template>
   <v-card fluid>
-    <v-expansion-panels class="my-1 condensed" hover>
+    <v-expansion-panels class="my-1 condensed">
       <v-expansion-panel>
-        <v-expansion-panel-header> Notas Principales </v-expansion-panel-header>
-        <v-expansion-panel-content>
+        <v-expansion-panel-title> Notas Principales </v-expansion-panel-title>
+        <v-expansion-panel-text>
           <v-data-table
             :headers="headers"
             :items="
@@ -14,7 +14,7 @@
               )
             "
             hide-default-footer
-            dense
+            density="compact"
             disable-sort
             :items-per-page="-1"
           >
@@ -25,7 +25,7 @@
                   <v-textarea
                     v-model="row.item.descripcion"
                     hide-details
-                    dense
+                    density="compact"
                     rows="1"
                     auto-grow
                   ></v-textarea>
@@ -38,19 +38,19 @@
               </tr>
             </template>
           </v-data-table>
-        </v-expansion-panel-content>
+        </v-expansion-panel-text>
       </v-expansion-panel>
     </v-expansion-panels>
     <v-divider></v-divider>
-    <v-expansion-panels class="my-1 condensed" hover>
+    <v-expansion-panels class="my-1 condensed">
       <v-expansion-panel>
-        <v-expansion-panel-header> Se incluye </v-expansion-panel-header>
-        <v-expansion-panel-content>
+        <v-expansion-panel-title> Se incluye </v-expansion-panel-title>
+        <v-expansion-panel-text>
           <v-data-table
             :headers="headers"
             :items="lstSeIncluye"
             hide-default-footer
-            dense
+            density="compact"
             :items-per-page="-1"
             disable-sort
           >
@@ -63,7 +63,7 @@
                     v-model="row.item.namegroupservice"
                     readonly
                     hide-details
-                    dense
+                    density="compact"
                     rows="1"
                     auto-grow
                   ></v-textarea>
@@ -71,19 +71,19 @@
               </tr>
             </template>
           </v-data-table>
-        </v-expansion-panel-content>
+        </v-expansion-panel-text>
       </v-expansion-panel>
     </v-expansion-panels>
     <v-divider></v-divider>
-    <v-expansion-panels class="my-1 condensed" hover>
+    <v-expansion-panels class="my-1 condensed">
       <v-expansion-panel>
-        <v-expansion-panel-header> No se incluye </v-expansion-panel-header>
-        <v-expansion-panel-content>
+        <v-expansion-panel-title> No se incluye </v-expansion-panel-title>
+        <v-expansion-panel-text>
           <v-data-table
             :headers="headers"
             :items="lstNoIncluye"
             hide-default-footer
-            dense
+            density="compact"
             :items-per-page="-1"
             disable-sort
           >
@@ -96,7 +96,7 @@
                     v-model="row.item.namegroupservice"
                     readonly
                     hide-details
-                    dense
+                    density="compact"
                     rows="1"
                     auto-grow
                   ></v-textarea>
@@ -104,23 +104,21 @@
               </tr>
             </template>
           </v-data-table>
-        </v-expansion-panel-content>
+        </v-expansion-panel-text>
       </v-expansion-panel>
     </v-expansion-panels>
     <v-col cols="12" class="derecha">
-      <template>
-        <div class="text-center">
-          <v-pagination
-            v-model="$store.state.aduana.page"
-            :length="opcionesSeleccionadas.length"
-            circle
-          ></v-pagination>
-        </div>
-      </template>
+      <div class="text-center">
+        <v-pagination
+          v-model="$store.state.aduana.page"
+          :length="opcionesSeleccionadas.length"
+          rounded
+        ></v-pagination>
+      </div>
     </v-col>
     <v-card-actions>
       <v-spacer></v-spacer>
-      <v-btn color="info" class="mx-1" small @click="abrirModalCambioHeader()">
+      <v-btn color="info" class="mx-1" size="small" @click="abrirModalCambioHeader()">
         Imprimir Cotizacion
       </v-btn>
     </v-card-actions>
@@ -133,7 +131,7 @@
       <v-card>
         <v-card-title> Secciones de los costos </v-card-title>
         <v-card-text>
-          <v-simple-table>
+          <v-table>
             <thead>
               <tr>
                 <th>Código</th>
@@ -151,7 +149,7 @@
                 </td>
               </tr>
             </tbody>
-          </v-simple-table>
+          </v-table>
         </v-card-text>
         <v-card-actions>
           <v-btn class="mx-1" @click="abrirModalTipoReporte()" color="success"
@@ -171,7 +169,7 @@
         <v-card-title primary-title>
           <p>TIPO DE REPORTE</p>
 
-          <p class="red--text">
+          <p class="text-red">
             Si necesita cambiar el tipo de reporte, lo debe realizar desde el
             editar
           </p>
@@ -181,25 +179,24 @@
           <v-form ref="frmReporte">
             <v-radio-group
               v-model="$store.state.aduana.tiporeporte"
-              column
               :rules="[(v) => !!v || 'Dato requerido']"
               disabled
             >
               <v-radio
                 label="Costo detallado por cada item"
-                color="red darken-3"
+                color="red-darken-3"
                 value="DETALLE"
               ></v-radio>
 
               <v-radio
                 label="Totales por servicios"
-                color="indigo darken-3"
+                color="indigo-darken-3"
                 value="TOTAL"
               ></v-radio>
 
               <v-radio
                 label="Reporte total general sin desglose"
-                color="orange darken-3"
+                color="orange-darken-3"
                 value="AGRUPADO"
               ></v-radio>
             </v-radio-group>
@@ -208,8 +205,8 @@
 
         <v-card-actions>
           <v-spacer></v-spacer>
-          <v-btn color="primary" text @click="generar"> Aceptar </v-btn>
-          <v-btn color="red" text @click="previewFlag = false">
+          <v-btn color="primary" variant="text" @click="generar"> Aceptar </v-btn>
+          <v-btn color="red" variant="text" @click="previewFlag = false">
             Cancelar
           </v-btn>
         </v-card-actions>
@@ -225,8 +222,8 @@ export default {
   data() {
     return {
       headers: [
-        { value: "index", text: "#" },
-        { value: "description", text: "Descripción", align: "center" },
+        { key: "index", title: "#" },
+        { key: "description", title: "Descripción", align: "center" },
       ],
       previewFlag: false,
       tiporeporte: "",

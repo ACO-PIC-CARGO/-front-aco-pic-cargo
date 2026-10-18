@@ -9,6 +9,7 @@
 </template>
 
 <script>
+import { defineAsyncComponent } from "vue";
 export default {
   data() {
     return {
@@ -16,8 +17,8 @@ export default {
     };
   },
   components: {
-    VerComponent: () =>
-      import("@/components/folderEntities/Proveedor/verProveedorComponent.vue"),
+    VerComponent: defineAsyncComponent(() =>
+      import("@/components/folderEntities/Proveedor/verProveedorComponent.vue")),
   },
   mounted() {
     this.$store.state.mainTitle = `VER PROVEEDOR`;

@@ -5,7 +5,7 @@
 </template>
 
 <script>
-import { mapActions } from "vuex/dist/vuex.common.js";
+import { mapActions } from "vuex";
 import RegistroProfitPricing from "../../components/ProfitPricing/RegistroProfitPricing.vue";
 
 export default {

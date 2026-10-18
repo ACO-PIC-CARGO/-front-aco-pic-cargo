@@ -25,7 +25,7 @@ const actions = {
     )[0].id_branch;
     var config = {
       method: "get",
-      url: process.env.VUE_APP_URL_MAIN + `listar_status_house`,
+      url: import.meta.env.VUE_APP_URL_MAIN + `listar_status_house`,
       params: data,
       headers: {
         "Content-Type": "application/json",
@@ -63,7 +63,7 @@ const actions = {
   async getObtenerOrdenStatusHouse({ commit }, data) {
     var config = {
       method: "get",
-      url: process.env.VUE_APP_URL_MAIN + `obtener_orden_status_house`,
+      url: import.meta.env.VUE_APP_URL_MAIN + `obtener_orden_status_house`,
       params: data,
       headers: {
         "Content-Type": "application/json",
@@ -86,7 +86,7 @@ const actions = {
     )[0].id_branch;
     var config = {
       method: "post",
-      url: process.env.VUE_APP_URL_MAIN + `guardar_orden_statuscomentarios`,
+      url: import.meta.env.VUE_APP_URL_MAIN + `guardar_orden_statuscomentarios`,
       data: data,
       headers: {
         "Content-Type": "application/json",
@@ -110,7 +110,7 @@ const actions = {
     // data.id_branch = JSON.parse(sessionStorage.getItem("dataUser"))[0].id_branch;
     var config = {
       method: "put",
-      url: process.env.VUE_APP_URL_MAIN + `guardar_orden_status`,
+      url: import.meta.env.VUE_APP_URL_MAIN + `guardar_orden_status`,
       data: { lstStatus: data },
       headers: {
         "Content-Type": "application/json",
@@ -134,7 +134,7 @@ const actions = {
   async EliminarStatus({ dispatch, commit }, data) {
     var config = {
       method: "put",
-      url: process.env.VUE_APP_URL_MAIN + `eliminar_status`,
+      url: import.meta.env.VUE_APP_URL_MAIN + `eliminar_status`,
       data: data,
       headers: {
         "Content-Type": "application/json",
@@ -158,7 +158,7 @@ const actions = {
   async EliminarComentario({ dispatch, commit }, data) {
     var config = {
       method: "put",
-      url: process.env.VUE_APP_URL_MAIN + `eliminar_comentario`,
+      url: import.meta.env.VUE_APP_URL_MAIN + `eliminar_comentario`,
       data: data,
       headers: {
         "Content-Type": "application/json",

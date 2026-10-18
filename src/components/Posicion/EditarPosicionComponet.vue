@@ -2,21 +2,19 @@
   <v-card class="cardDatos">
     <v-tabs
       v-model="tab"
-      background-color="teal darken-4"
+      bg-color="teal-darken-4"
+      color="white"
       grow
-      dark
-      icons-and-text
+      stacked
     >
-      <v-tabs-slider></v-tabs-slider>
+      <v-tab base-color="rgba(255, 255, 255, 0.6)" value="datos"> Datos Principales </v-tab>
 
-      <v-tab href="#datos"> Datos Principales </v-tab>
+      <v-tab base-color="rgba(255, 255, 255, 0.6)" value="permisos"> Permisos y Restricciones </v-tab>
 
-      <v-tab href="#permisos"> Permisos y Restricciones </v-tab>
-
-      <v-tab href="#usuarios"> Usuarios </v-tab>
+      <v-tab base-color="rgba(255, 255, 255, 0.6)" value="usuarios"> Usuarios </v-tab>
     </v-tabs>
-    <v-tabs-items v-model="tab">
-      <v-tab-item value="datos" class="px-5 items">
+    <v-tabs-window v-model="tab">
+      <v-tabs-window-item value="datos" class="px-5 items">
         <v-form ref="frmDatos">
           <v-row>
             <v-col cols="12">
@@ -24,7 +22,6 @@
                 v-model="$store.state.position.model.code"
                 label="Código"
                 readonly
-                id="id"
               ></v-text-field>
             </v-col>
             <v-col cols="12">
@@ -32,7 +29,6 @@
                 v-model="$store.state.position.model.name"
                 label="Nombre"
                 readonly
-                id="id"
               ></v-text-field>
             </v-col>
             <v-col cols="12">
@@ -40,7 +36,6 @@
                 v-model="$store.state.position.model.description"
                 label="Descripción"
                 readonly
-                id="id"
               ></v-text-field>
             </v-col>
 
@@ -53,15 +48,15 @@
             </v-col>
           </v-row>
         </v-form>
-      </v-tab-item>
-      <v-tab-item value="permisos" class="px-5 items">
+      </v-tabs-window-item>
+      <v-tabs-window-item value="permisos" class="px-5 items">
         <v-row class="pa-5">
           <v-col cols="6">
             <p>Módulos</p>
             <v-data-table
               :headers="headersRoles"
               :items="$store.state.position.model.modules_position"
-              item-key="id"
+              item-value="id"
             >
               <template v-slot:[`item.index`]="{ index }">
                 {{ index + 1 }}
@@ -74,7 +69,7 @@
             <v-data-table
               :headers="headersRoles"
               :items="$store.state.position.model.button_position"
-              item-key="id"
+              item-value="id"
             >
               <template v-slot:[`item.index`]="{ index }">
                 {{ index + 1 }}
@@ -82,9 +77,9 @@
             </v-data-table>
           </v-col>
         </v-row>
-      </v-tab-item>
+      </v-tabs-window-item>
 
-      <v-tab-item value="usuarios" class="px-5 items">
+      <v-tabs-window-item value="usuarios" class="px-5 items">
         <v-row>
           <v-col cols="12">
             <v-row>
@@ -92,7 +87,7 @@
                 <v-autocomplete
                   :items="$store.state.position.lstUsuarioNoAsignado"
                   item-value="id"
-                  item-text="users"
+                  item-title="users"
                   label="Usuarios del sistema no asignados"
                   return-object
                   v-model="user"
@@ -119,13 +114,13 @@
               :headers="headersUsuarios"
               :items="$store.state.position.model.user_position"
               class="elevation-1"
-              item-key="id"
+              item-value="id"
             >
               <template v-slot:[`item.index`]="{ index }">
                 {{ index + 1 }}
               </template>
               <template v-slot:[`item.estado`]="{ item }">
-                <v-switch v-model="item.estado" @change="guardarFlag = true">
+                <v-switch v-model="item.estado" @update:model-value="guardarFlag = true">
                 </v-switch>
               </template>
               <template v-slot:[`item.departamentos`]="{ item }">
@@ -134,8 +129,8 @@
             </v-data-table>
           </v-col>
         </v-row>
-      </v-tab-item>
-    </v-tabs-items>
+      </v-tabs-window-item>
+    </v-tabs-window>
   </v-card>
 </template>
 
@@ -149,25 +144,25 @@ export default {
       errUsuario: "",
       guardarFlag: false,
       headersRoles: [
-        { text: "#", value: "index" },
-        { text: "Nombre", value: "name" },
-        { text: "Si/ No", value: "uso" },
+        { title: "#", key: "index" },
+        { title: "Nombre", key: "name" },
+        { title: "Si/ No", key: "uso" },
       ],
       headersRoles: [
-        { text: "#", value: "index" },
-        { text: "Nombre", value: "name" },
-        { text: "Si/ No", value: "uso" },
+        { title: "#", key: "index" },
+        { title: "Nombre", key: "name" },
+        { title: "Si/ No", key: "uso" },
       ],
       headersUsuarios: [
-        { text: "#", value: "index" },
-        { text: "Documento", value: "document" },
-        { text: "Nombre", value: "nombrecompleto" },
-        { text: "Usuario", value: "users" },
-        { text: "Teléfono", value: "phone" },
-        { text: "Departamento", value: "departamentos" },
-        { text: "Estado", value: "estado" },
-        { text: "Creación", value: "created_at" },
-        { text: "Última Actualización", value: "updated_at" },
+        { title: "#", key: "index" },
+        { title: "Documento", key: "document" },
+        { title: "Nombre", key: "nombrecompleto" },
+        { title: "Usuario", key: "users" },
+        { title: "Teléfono", key: "phone" },
+        { title: "Departamento", key: "departamentos" },
+        { title: "Estado", key: "estado" },
+        { title: "Creación", key: "created_at" },
+        { title: "Última Actualización", key: "updated_at" },
         // { text: "Nombre", value: "Nombre completo" },
       ],
     };

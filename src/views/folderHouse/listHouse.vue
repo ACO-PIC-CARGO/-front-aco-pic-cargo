@@ -4,10 +4,8 @@
 
     <v-navigation-drawer
       v-model="$store.state.house_filtrarData"
-      right
-      absolute
-      bottom
-      persistent
+      location="right"
+      
       width="30%"
       temporary
       v-if="$store.state.house_filtrarData"

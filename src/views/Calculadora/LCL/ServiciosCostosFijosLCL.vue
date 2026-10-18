@@ -2,77 +2,78 @@
   <v-card>
     <v-container fluid>
       <v-tabs
-        background-color="#B71C1C"
+        bg-color="#B71C1C"
+        color="white"
         center-active
-        dark
-        centered
+        align-tabs="center"
+        slider-color="red"
         v-model="tab"
       >
-        <v-tabs-slider color="red"></v-tabs-slider>
-        <v-tab href="#flete">Carga Masiva Flete</v-tab>
-        <v-tab href="#config">Configuracion</v-tab>
-        <v-tab href="#fletelst" active>Listado Fletes </v-tab>
-        <v-tab href="#fletegrup" active>Listado Fletes Grupal</v-tab>
-        <!-- <v-tab href="#section">Secciones </v-tab> -->
-        <!-- <v-tab href="#serv">Servicios </v-tab> -->
-        <!-- <v-tab href="#cost">Costos Fijos</v-tab> -->
-        <!-- <v-tab href="#profit">Profit</v-tab> -->
-        <v-tab href="#Transporte">Transporte</v-tab>
+        <v-tab base-color="rgba(255, 255, 255, 0.6)" value="flete">Carga Masiva Flete</v-tab>
+        <v-tab base-color="rgba(255, 255, 255, 0.6)" value="config">Configuracion</v-tab>
+        <v-tab base-color="rgba(255, 255, 255, 0.6)" value="fletelst">Listado Fletes </v-tab>
+        <v-tab base-color="rgba(255, 255, 255, 0.6)" value="fletegrup">Listado Fletes Grupal</v-tab>
+        <!-- <v-tab base-color="rgba(255, 255, 255, 0.6)" href="#section">Secciones </v-tab> -->
+        <!-- <v-tab base-color="rgba(255, 255, 255, 0.6)" href="#serv">Servicios </v-tab> -->
+        <!-- <v-tab base-color="rgba(255, 255, 255, 0.6)" href="#cost">Costos Fijos</v-tab> -->
+        <!-- <v-tab base-color="rgba(255, 255, 255, 0.6)" href="#profit">Profit</v-tab> -->
+        <v-tab base-color="rgba(255, 255, 255, 0.6)" value="Transporte">Transporte</v-tab>
       </v-tabs>
-      <v-tabs-items v-model="tab">
-        <v-tab-item value="fletelst">
+      <v-tabs-window v-model="tab">
+        <v-tabs-window-item value="fletelst">
           <FleteListComponent type="LCL" :id_modality="id_modality" @flete-actualizado="handleFleteActualizado" />
-        </v-tab-item>
-        <v-tab-item value="config">
+        </v-tabs-window-item>
+        <v-tabs-window-item value="config">
           <Configuracion type="LCL" :id_modality="id_modality" />
-        </v-tab-item>
+        </v-tabs-window-item>
         <!-- <v-tab-item value="section">
           <SectionCalculadora type="LCL" :id_modality="id_modality" />
         </v-tab-item> -->
-        <v-tab-item value="serv">
+        <v-tabs-window-item value="serv">
           <Servicios type="LCL" :id_modality="id_modality" />
-        </v-tab-item>
-        <v-tab-item value="cost">
+        </v-tabs-window-item>
+        <v-tabs-window-item value="cost">
           <CostosCalculadora type="LCL" :id_modality="id_modality" />
-        </v-tab-item>
-        <v-tab-item value="profit">
+        </v-tabs-window-item>
+        <v-tabs-window-item value="profit">
           <ProfitCalculadora type="LCL" :id_modality="id_modality" />
-        </v-tab-item>
-        <v-tab-item value="flete">
+        </v-tabs-window-item>
+        <v-tabs-window-item value="flete">
           <FleteComponent type="LCL" :id_modality="id_modality" />
-        </v-tab-item>
-        <v-tab-item value="fletegrup">
+        </v-tabs-window-item>
+        <v-tabs-window-item value="fletegrup">
           <FleteGrupal type="LCL" :id_modality="id_modality" />
-        </v-tab-item>
-        <v-tab-item value="Transporte">
+        </v-tabs-window-item>
+        <v-tabs-window-item value="Transporte">
           <TransporteCalculadora type="LCL" :id_modality="id_modality" />
-        </v-tab-item>
-      </v-tabs-items>
+        </v-tabs-window-item>
+      </v-tabs-window>
     </v-container>
   </v-card>
 </template>
 <script>
+import { defineAsyncComponent } from "vue";
 import { mapActions } from "vuex";
 export default {
   components: {
-    SectionCalculadora: () =>
-      import("../../../components/Calculadora/SectionCalculadora.vue"),
-    Servicios: () =>
-      import("../../../components/Calculadora/ServiciosCalculadora.vue"),
-    CostosCalculadora: () =>
-      import("../../../components/Calculadora/CostosCalculadora.vue"),
-    FleteComponent: () =>
-      import("../../../components/Calculadora/FleteComponent.vue"),
-    FleteListComponent: () =>
-      import("../../../components/Calculadora/FleteListComponent.vue"),
-    ProfitCalculadora: () =>
-      import("../../../components/Calculadora/ProfitCalculadora.vue"),
-    TransporteCalculadora: () =>
-      import("../../../components/Calculadora/TransporteCalculadora.vue"),
-    Configuracion: () =>
-      import("../../../components/Calculadora/Configuracion.vue"),
-    FleteGrupal: () =>
-      import("../../../components/Calculadora/FleteGrupal.vue"),
+    SectionCalculadora: defineAsyncComponent(() =>
+      import("../../../components/Calculadora/SectionCalculadora.vue")),
+    Servicios: defineAsyncComponent(() =>
+      import("../../../components/Calculadora/ServiciosCalculadora.vue")),
+    CostosCalculadora: defineAsyncComponent(() =>
+      import("../../../components/Calculadora/CostosCalculadora.vue")),
+    FleteComponent: defineAsyncComponent(() =>
+      import("../../../components/Calculadora/FleteComponent.vue")),
+    FleteListComponent: defineAsyncComponent(() =>
+      import("../../../components/Calculadora/FleteListComponent.vue")),
+    ProfitCalculadora: defineAsyncComponent(() =>
+      import("../../../components/Calculadora/ProfitCalculadora.vue")),
+    TransporteCalculadora: defineAsyncComponent(() =>
+      import("../../../components/Calculadora/TransporteCalculadora.vue")),
+    Configuracion: defineAsyncComponent(() =>
+      import("../../../components/Calculadora/Configuracion.vue")),
+    FleteGrupal: defineAsyncComponent(() =>
+      import("../../../components/Calculadora/FleteGrupal.vue")),
   },
   data() {
     return {

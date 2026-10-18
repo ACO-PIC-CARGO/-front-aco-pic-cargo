@@ -5,7 +5,7 @@
         <v-card class="cards" elevation="10">
           <div class="cuerpoMembresia">
             <p class="pt-5 centrado">
-              <span class="title"> ACO Por Módulo</span>
+              <span class="title text-h6"> ACO Por Módulo</span>
             </p>
             <p class="mt-2 mb-0 centrado subtitle">
               75.<span class="decimales">00</span> $/mes
@@ -38,7 +38,7 @@
             </div>
           </div>
           <div class="col-12 centrado">
-            <v-btn @click="abrirPorModulo()" color="#2749C1" dark
+            <v-btn @click="abrirPorModulo()" color="#2749C1"
               >Contratar</v-btn
             >
           </div>
@@ -51,7 +51,7 @@
               <span class="flotante">RECOMENDADO</span>
             </section>
             <p class="mt-5 centrado">
-              <span class="title"> ACO FULL</span>
+              <span class="title text-h6"> ACO FULL</span>
             </p>
             <p class="mt-2 mb-0 centrado subtitle">
               180.<span class="decimales">00</span> $/mes
@@ -87,7 +87,7 @@
             </div>
           </div>
           <div class="col-12 centrado">
-            <v-btn @click="abrirFull()" color="#2749C1" dark>Contratar</v-btn>
+            <v-btn @click="abrirFull()" color="#2749C1">Contratar</v-btn>
           </div>
         </v-card>
       </v-col>
@@ -95,7 +95,7 @@
         <v-card class="cards" elevation="10">
           <div class="cuerpoMembresia">
             <p class="pt-5 centrado">
-              <span class="title"> ACO Dos Módulos</span>
+              <span class="title text-h6"> ACO Dos Módulos</span>
             </p>
             <p class="mt-2 mb-0 centrado subtitle">
               130.<span class="decimales">00</span> $/mes
@@ -128,7 +128,7 @@
             </div>
           </div>
           <div class="col-12 centrado">
-            <v-btn @click="abrirDosModulos()" color="#2749C1" dark
+            <v-btn @click="abrirDosModulos()" color="#2749C1"
               >Contratar</v-btn
             >
           </div>
@@ -151,9 +151,10 @@
 </template>
 
 <script>
+import { defineAsyncComponent } from "vue";
 export default {
   components: {
-    AcoFull: () => import("../Membresia/AcoFull.vue"),
+    AcoFull: defineAsyncComponent(() => import("../Membresia/AcoFull.vue")),
   },
   data() {
     return {

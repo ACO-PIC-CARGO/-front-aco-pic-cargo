@@ -1,11 +1,11 @@
 <template>
   <div>
-    <v-row dense>
+    <v-row density="compact">
       <v-col cols="12" md="6">
         <v-text-field
+          v-model="$store.state.master_fecha_etd"
           @change="_getDate()"
           type="date"
-          v-model="$store.state.master_fecha_etd"
           label="Salida (ETD)"
         ></v-text-field>
       </v-col>
@@ -13,14 +13,14 @@
         <v-checkbox
           label="Salida Confirmada"
           v-model="$store.state.salidaflag"
-          dense
+          density="compact"
         ></v-checkbox>
       </v-col>
       <v-col cols="12" md="6">
         <v-text-field
+          v-model="$store.state.master_fecha_eta"
           @change="_getDate()"
           type="date"
-          v-model="$store.state.master_fecha_eta"
           label="Llegada (ETA)"
         ></v-text-field>
       </v-col>
@@ -28,7 +28,7 @@
         <v-checkbox
           label="Llegada Confirmada"
           v-model="$store.state.llegadaflag"
-          dense
+          density="compact"
         ></v-checkbox>
       </v-col>
 
@@ -44,13 +44,13 @@
         <v-checkbox
           label="Confirmación Disponibilidad"
           v-model="$store.state.disponibilidadflag"
-          dense
+          density="compact"
         ></v-checkbox>
       </v-col>
       <v-col cols="12" md="6">
         <v-select
           :items="$store.state.masterusuarios.lstCanales"
-          item-text="descripcion"
+          item-title="descripcion"
           item-value="id"
           v-model="$store.state.id_canal"
           label="Canal"

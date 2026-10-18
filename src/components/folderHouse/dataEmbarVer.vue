@@ -2,7 +2,7 @@
   <div>
     <h3>Datos del Embarque</h3>
 
-    <v-row dense>
+    <v-row density="compact">
       <v-col cols="12" md="12">
         <!--  v-if="$store.state.house_id_trasnport.id != 3" -->
         <v-text-field
@@ -29,7 +29,7 @@
       <v-col cols="12">
         <v-autocomplete
           :items="$store.state.pricing.listEjecutivo"
-          item-text="nombrecompleto"
+          item-title="nombrecompleto"
           item-value="id"
           item-key="id"
           label="Vendedor"
@@ -41,7 +41,7 @@
       <v-col cols="12">
         <v-autocomplete
           :items="$store.state.pricing.listEjecutivo"
-          item-text="nombrecompleto"
+          item-title="nombrecompleto"
           item-value="id"
           item-key="id"
           label="Pricing"
@@ -99,7 +99,7 @@
       >
         <v-autocomplete
           :items="itemsContainers"
-          item-text="name"
+          item-title="name"
           item-value="id"
           return-object
           label="Tipo de contenedor"
@@ -138,27 +138,28 @@
         v-if="$store.state.master_id_trasnport.id == 2"
       >
         <v-text-field v-model="$store.state.house_cantidad" label="Cant.">
-          <v-icon
-            class="btn__add"
-            @click.native="
-              _setHouseContainers(
-                $store.state.house_id_containers.id,
-                $store.state.house_id_containers.name,
-                $store.state.house_nro_containers,
-                $store.state.house_nro_precinto,
-                $store.state.house_cantidad,
-              )
-            "
-            slot="append"
-            color="green"
-          >
-            mdi-plus
-          </v-icon>
+          <template v-slot:append-inner>
+            <v-icon
+              class="btn__add"
+              @click="
+                _setHouseContainers(
+                  $store.state.house_id_containers.id,
+                  $store.state.house_id_containers.name,
+                  $store.state.house_nro_containers,
+                  $store.state.house_nro_precinto,
+                  $store.state.house_cantidad,
+                )
+              "
+              color="green"
+            >
+              mdi-plus
+            </v-icon>
+          </template>
         </v-text-field>
       </v-col>
 
       <v-col cols="12" v-if="$store.state.master_id_trasnport.id == 2">
-        <v-simple-table fixed-header height="180px">
+        <v-table fixed-header height="180px">
           <template v-slot:default>
             <thead>
               <tr>
@@ -182,16 +183,16 @@
                 <td>
                   <v-icon
                     class="btn__add"
-                    dense
+                    size="small"
                     color="red"
-                    @click.native="_deleteContainers(item.id)"
+                    @click="_deleteContainers(item.id)"
                     >mdi-delete</v-icon
                   >
                 </td>
               </tr>
             </tbody>
           </template>
-        </v-simple-table>
+        </v-table>
       </v-col>
     </v-row>
   </div>
@@ -270,7 +271,7 @@ export default {
       };
       var config = {
         method: "post",
-        url: process.env.VUE_APP_URL_MAIN + "deleteContainers",
+        url: import.meta.env.VUE_APP_URL_MAIN + "deleteContainers",
         headers: {
           "Content-Type": "application/json",
         },
@@ -299,7 +300,7 @@ export default {
       };
       var config = {
         method: "post",
-        url: process.env.VUE_APP_URL_MAIN + "setHouseContainers",
+        url: import.meta.env.VUE_APP_URL_MAIN + "setHouseContainers",
         headers: {
           "Content-Type": "application/json",
         },
@@ -328,7 +329,7 @@ export default {
         // };
         // var config = {
         //   method: "post",
-        //   url: process.env.VUE_APP_URL_MAIN + "getHouseListId/",
+        //   url: import.meta.env.VUE_APP_URL_MAIN + "getHouseListId/",
         //   headers: {
         //
         //     "Content-Type": "application/json",

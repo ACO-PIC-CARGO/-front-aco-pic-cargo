@@ -2,7 +2,7 @@
   <v-container fluid>
     <v-card>
       <v-dialog
-        v-model="dialogUrl"
+        :model-value="dialogUrl"
         scrollable
         persistent
         max-width="30%"
@@ -13,7 +13,7 @@
           <v-card-text>
             <v-btn
               color="success"
-              small
+              size="small"
               :disabled="!masterEditar.url_folderonedrive"
               @click="to_link({ url: masterEditar.url_folderonedrive })"
             >
@@ -44,6 +44,7 @@
 <script>
 import { mapActions } from "vuex";
 export default {
+  emits: ["cerrar"],
   props: {
     dialogUrl: {
       type: Boolean,

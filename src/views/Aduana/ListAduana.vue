@@ -1,7 +1,7 @@
 <template>
   <v-container fluid>
     <v-card>
-      <v-card-title primary-title class="">
+      <v-card-title class="d-flex align-center flex-wrap">
         <!-- DASHBOARD
         <v-chip
           style="cursor: pointer"
@@ -16,33 +16,31 @@
         </v-chip> -->
 
         <v-spacer></v-spacer>
-        <v-btn color="success" @click="redirect()" small class="ml-auto">
+        <v-btn color="success" @click="redirect()" size="small" class="ml-auto">
           NUEVA COTIZACIÓN
         </v-btn>
       </v-card-title>
       <v-row>
         <v-col cols="12">
-          <v-tabs color="deep-purple accent-4" right v-model="tabs">
-            <v-tab href="#quotes">Cotizaciones</v-tab>
-            <v-tab href="#calls">Llamadas</v-tab>
+          <v-tabs color="deep-purple-accent-4" align-tabs="end" v-model="tabs">
+            <v-tab value="quotes">Cotizaciones</v-tab>
+            <v-tab value="calls">Llamadas</v-tab>
           </v-tabs>
-          <v-tabs-items v-model="tabs">
-            <v-tab-item value="quotes">
+          <v-tabs-window v-model="tabs">
+            <v-tabs-window-item value="quotes">
               <ListQuote />
-            </v-tab-item>
-            <v-tab-item value="calls">
+            </v-tabs-window-item>
+            <v-tabs-window-item value="calls">
               <ListCall />
-            </v-tab-item>
-          </v-tabs-items>
+            </v-tabs-window-item>
+          </v-tabs-window>
         </v-col>
       </v-row>
     </v-card>
     <v-navigation-drawer
       v-model="$store.state.pricing.filtrarQuoteFlag"
-      right
-      absolute
-      bottom
-      persistent
+      location="right"
+      
       width="20%"
       temporary
     >
@@ -52,10 +50,8 @@
     </v-navigation-drawer>
     <v-navigation-drawer
       v-model="$store.state.pricing.filtrarCallsFlag"
-      right
-      absolute
-      bottom
-      persistent
+      location="right"
+      
       width="20%"
       temporary
     >
@@ -84,18 +80,19 @@
 </template>
 
 <script>
+import { defineAsyncComponent } from "vue";
 import { mapActions } from "vuex";
 
 export default {
   name: "ListPricingView",
   components: {
-    ListQuote: () =>
-      import("@/components/folderAduana/listAduanaComponent.vue"),
-    ListCall: () => import("@/components/folderAduana/listCallComponent.vue"),
+    ListQuote: defineAsyncComponent(() =>
+      import("@/components/folderAduana/listAduanaComponent.vue")),
+    ListCall: defineAsyncComponent(() => import("@/components/folderAduana/listCallComponent.vue")),
     // FiltroQuote: () => import("@/components/filtros/FiltroQuote.vue"),
     // FiltroCalls: () => import("@/components/filtros/FiltroCalls"),
-    ConfigCotizacion: () =>
-      import("@/components/folderPricing/ConfigCotizacion"),
+    ConfigCotizacion: defineAsyncComponent(() =>
+      import("@/components/folderPricing/ConfigCotizacion")),
 
     // ListCall: () => import("../folderPricing/comun/listCall.vue"),
   },

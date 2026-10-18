@@ -6,12 +6,13 @@
         <v-col cols="3">
           <h4 class="mb-2">ORIGEN</h4>
           <v-checkbox
-            dense
+            density="compact"
             v-for="service in $store.state.aduana.listServices.filter(
               (v) => v.codebegend == 'OR'
             )"
             :key="service.id"
             v-model="service.status"
+            :value-comparator="(value, checked) => Boolean(value) === checked"
             readonly
           >
             <template v-slot:label>
@@ -22,12 +23,13 @@
         <v-col cols="3">
           <h4 class="mb-2">FLETE</h4>
           <v-checkbox
-            dense
+            density="compact"
             v-for="service in $store.state.aduana.listServices.filter(
               (v) => v.codebegend == 'FL'
             )"
             :key="service.id"
             v-model="service.status"
+            :value-comparator="(value, checked) => Boolean(value) === checked"
             readonly
           >
             <template v-slot:label>
@@ -38,12 +40,13 @@
         <v-col cols="3">
           <h4 class="mb-2">DESTINO</h4>
           <v-checkbox
-            dense
+            density="compact"
             v-for="service in $store.state.aduana.listServices.filter(
               (v) => v.codebegend == 'DE'
             )"
             :key="service.id"
             v-model="service.status"
+            :value-comparator="(value, checked) => Boolean(value) === checked"
             readonly
           >
             <template v-slot:label>
@@ -54,12 +57,13 @@
         <v-col cols="3">
           <h4 class="mb-2">OPCIONAL</h4>
           <v-checkbox
-            dense
+            density="compact"
             v-for="service in $store.state.aduana.listServices.filter(
               (v) => v.codebegend == 'OP'
             )"
             :key="service.id"
             v-model="service.status"
+            :value-comparator="(value, checked) => Boolean(value) === checked"
             readonly
           >
             <template v-slot:label>
@@ -76,7 +80,7 @@
             min="0"
             placeholder="Valor de la mercancia..."
             autocomplete="off"
-            dense
+            density="compact"
             readonly
           >
           </v-text-field>
@@ -110,7 +114,7 @@
             label="Descripción de carga"
             placeholder="Descripción de carga"
             autocomplete="off"
-            dense
+            density="compact"
             readonly
           >
           </v-text-field>

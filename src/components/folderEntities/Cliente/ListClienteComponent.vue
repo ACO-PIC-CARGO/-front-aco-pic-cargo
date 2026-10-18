@@ -4,7 +4,7 @@
       <v-col cols="6">
         <v-btn
           rounded
-          small
+          size="small"
           class="mx-1"
           color="success"
           @click="cambiarRuta({ nameRuta: 'nuevoClientes' })"
@@ -13,7 +13,7 @@
         </v-btn>
         <v-btn
           rounded
-          small
+          size="small"
           class="mx-1"
           color="secondary"
           @click="
@@ -25,7 +25,7 @@
         </v-btn>
         <v-btn
           rounded
-          small
+          size="small"
           class="mx-1"
           color="warning"
           @click="exportCliente()"
@@ -44,7 +44,7 @@
         <v-data-table
           :headers="headers"
           :items="$store.state.entities.lstProveedor"
-          item-key="id"
+          item-value="id"
           :search="search"
         >
           <template v-slot:[`item.documento`]="{ item }">
@@ -59,22 +59,22 @@
           </template>
           <template v-slot:[`item.action`]="{ item }">
             <v-btn-toggle>
-              <v-btn x-small icon @click="obtenerTelContactoProveedor(item)">
-                <v-icon color="blue-grey darken-3">mdi-phone</v-icon>
+              <v-btn variant="text" size="x-small" icon @click="obtenerTelContactoProveedor(item)">
+                <v-icon color="blue-grey-darken-3">mdi-phone</v-icon>
               </v-btn>
               <!-- <v-btn x-small icon @click="editar(item.id)">
                 <v-icon color="green">mdi-currency-usd</v-icon>
               </v-btn> -->
-              <v-btn
+              <v-btn variant="text"
                 v-if="item.status == 1"
-                x-small
+                size="x-small"
                 icon
                 @click="irAEditar(item)"
               >
                 <v-icon color="#E65100">mdi-pencil</v-icon>
               </v-btn>
-              <v-btn
-                x-small
+              <v-btn variant="text"
+                size="x-small"
                 icon
                 @click="
                   $router.push({
@@ -85,7 +85,7 @@
               >
                 <v-icon color="info">mdi-eye</v-icon>
               </v-btn>
-              <v-btn x-small icon v-if="item.status == 1">
+              <v-btn variant="text" size="x-small" icon v-if="item.status == 1">
                 <v-icon color="red" @click="eliminar(item)">mdi-delete</v-icon>
               </v-btn>
             </v-btn-toggle>
@@ -107,20 +107,20 @@
         <v-card-text>
           <v-row>
             <v-col cols="10">
-              <v-subheader> <b>Teléfonos:</b> <br /> </v-subheader>
+              <v-list-subheader> <b>Teléfonos:</b> <br /> </v-list-subheader>
             </v-col>
 
             <v-col cols="12">
               <v-data-table
                 :headers="headersTel"
                 :items="$store.state.entities.lstTelefono"
-                item-key="id"
+                item-value="id"
                 class="elevation-5"
               >
                 <template v-slot:[`item.tipotelefono`]="{ item }">
                   <v-autocomplete
                     :items="$store.state.masterusuarios.lstTipoTelefono"
-                    item-text="descripcion"
+                    item-title="descripcion"
                     item-value="id"
                     label="Tipo de Teléfono"
                     v-model="item.id_tipotelefono"
@@ -137,7 +137,7 @@
                   ></v-text-field>
                 </template>
                 <template v-slot:[`item.action`]="{ item, index }">
-                  <v-btn icon color="red" @click="eliminarTelefono(index)">
+                  <v-btn variant="text" icon color="red" @click="eliminarTelefono(index)">
                     <v-icon>mdi-delete</v-icon>
                   </v-btn>
                 </template>
@@ -146,13 +146,13 @@
 
             <!-- -------------------------------- -->
             <v-col cols="10">
-              <v-subheader><b>Contactos</b></v-subheader>
+              <v-list-subheader><b>Contactos</b></v-list-subheader>
             </v-col>
             <v-col cols="12">
               <v-data-table
                 :headers="headersContact"
                 :items="$store.state.entities.lstContactos"
-                item-key="index"
+                item-value="index"
                 class="elevation-5"
               >
                 <template v-slot:[`item.nombre`]="{ item }">
@@ -166,7 +166,7 @@
                 <template v-slot:[`item.tipotelefono`]="{ item }">
                   <v-autocomplete
                     :items="$store.state.masterusuarios.lstTipoTelefono"
-                    item-text="descripcion"
+                    item-title="descripcion"
                     item-value="id"
                     label="Tipo de Teléfono"
                     v-model="item.id_tipotelefono"
@@ -185,7 +185,7 @@
                 </template>
 
                 <template v-slot:[`item.action`]="{ item, index }">
-                  <v-btn icon color="red" @click="eliminarContacto(index)">
+                  <v-btn variant="text" icon color="red" @click="eliminarContacto(index)">
                     <v-icon>mdi-delete</v-icon>
                   </v-btn>
                 </template>
@@ -208,7 +208,7 @@
 
     <v-dialog v-model="dialogAdminAuth" max-width="400" persistent>
       <v-card>
-        <v-card-title class="headline grey lighten-2">
+        <v-card-title class="text-h5 bg-grey-lighten-2">
           Autenticación Requerida
         </v-card-title>
         <v-card-text class="pt-4">
@@ -220,26 +220,26 @@
             v-model="adminUser"
             label="Usuario o Email"
             prepend-icon="mdi-account"
-            outlined
-            dense
+            variant="outlined"
+            density="compact"
           ></v-text-field>
           <v-text-field
             v-model="adminPassword"
             label="Contraseña"
             prepend-icon="mdi-lock"
             :type="showAdminPassword ? 'text' : 'password'"
-            :append-icon="showAdminPassword ? 'mdi-eye' : 'mdi-eye-off'"
-            @click:append="showAdminPassword = !showAdminPassword"
-            outlined
-            dense
+            :append-inner-icon="showAdminPassword ? 'mdi-eye' : 'mdi-eye-off'"
+            @click:append-inner="showAdminPassword = !showAdminPassword"
+            variant="outlined"
+            density="compact"
           ></v-text-field>
-          <v-alert v-if="adminAuthError" type="error" dense class="mt-2">
+          <v-alert v-if="adminAuthError" type="error" density="compact" class="mt-2">
             {{ adminAuthError }}
           </v-alert>
         </v-card-text>
         <v-card-actions>
           <v-spacer></v-spacer>
-          <v-btn color="grey" text @click="cerrarDialogAdminAuth()">
+          <v-btn color="grey" variant="text" @click="cerrarDialogAdminAuth()">
             Cancelar
           </v-btn>
           <v-btn
@@ -275,22 +275,22 @@ export default {
       adminAuthError: "",
       msg: "",
       headers: [
-        { text: "Correlativo", value: "correlativo" },
-        { text: "Documento", value: "documento" },
-        { text: "Nombre Completo", value: "nombrecompleto" },
-        { text: "Ubigeo", value: "ubigeo" },
-        { text: "Dirección", value: "address" },
-        { text: "Estado", value: "estado" },
-        { text: "Acciones", value: "action" },
+        { title: "Correlativo", key: "correlativo" },
+        { title: "Documento", key: "documento" },
+        { title: "Nombre Completo", key: "nombrecompleto" },
+        { title: "Ubigeo", key: "ubigeo" },
+        { title: "Dirección", key: "address" },
+        { title: "Estado", key: "estado" },
+        { title: "Acciones", key: "action" },
       ],
       headersTel: [
-        { text: "Tipo de Teléfono", value: "tipotelefono", width: "30%" },
-        { text: "Nro Teléfono", value: "nro_telefono", width: "50%" },
+        { title: "Tipo de Teléfono", key: "tipotelefono", width: "30%" },
+        { title: "Nro Teléfono", key: "nro_telefono", width: "50%" },
       ],
       headersContact: [
-        { text: "Nombres", value: "nombre" },
-        { text: "Tipo de Teléfono", value: "tipotelefono" },
-        { text: "Nro Teléfono", value: "nro_telefono" },
+        { title: "Nombres", key: "nombre" },
+        { title: "Tipo de Teléfono", key: "tipotelefono" },
+        { title: "Nro Teléfono", key: "nro_telefono" },
       ],
     };
   },
@@ -385,7 +385,7 @@ export default {
       try {
         const config = {
           method: "post",
-          url: process.env.VUE_APP_URL_MAIN + "singin",
+          url: import.meta.env.VUE_APP_URL_MAIN + "singin",
           headers: {
             "Content-Type": "application/json",
           },

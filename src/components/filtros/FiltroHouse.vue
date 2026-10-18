@@ -1,6 +1,6 @@
 <template>
   <v-card elevation="0">
-    <v-card-title class="black white--text rounded-0"
+    <v-card-title class="bg-black text-white rounded-0"
       >EXPEDIENTES HOUSE's</v-card-title
     >
     <v-card-title>FILTRAR REGISTROS</v-card-title>
@@ -9,58 +9,58 @@
       <v-form ref="frmFiltro">
         <v-autocomplete
           :items="$store.state.itemsMasterList"
-          item-text="code_master"
+          item-title="code_master"
           item-value="id"
           label="Exp. Máster"
-          dense
+          density="compact"
           v-model="$store.state.house_filtro.id_master"
         ></v-autocomplete>
 
         <v-autocomplete
           :items="$store.state.itemsModality"
-          item-text="name"
+          item-title="name"
           item-value="id"
           label="Sentido"
-          dense
+          density="compact"
           v-model="$store.state.house_filtro.id_sentido"
         ></v-autocomplete>
 
         <v-autocomplete
           :items="$store.state.itemsShipment"
-          item-text="embarque"
+          item-title="embarque"
           item-value="id"
           label="Tipo Embarque"
-          dense
+          density="compact"
           v-model="$store.state.house_filtro.id_tipo_embarque"
           return-object
-          @change="
+          @update:model-value="
             activarPort($store.state.house_filtro.id_tipo_embarque.id_transport)
           "
         ></v-autocomplete>
         <v-autocomplete
           :items="$store.state.itemsPortEnd"
-          item-text="name"
+          item-title="name"
           item-value="id_port"
           label="Destino"
-          dense
+          density="compact"
           v-model="$store.state.house_filtro.id_destino"
         ></v-autocomplete>
 
         <v-autocomplete
           :items="$store.state.clientes"
-          item-text="namelong"
+          item-title="namelong"
           item-value="id"
           label="Cliente del House"
-          dense
+          density="compact"
           v-model="$store.state.house_filtro.id_cliente"
         ></v-autocomplete>
 
         <v-autocomplete
           :items="$store.state.itemsPortBegin"
-          item-text="name"
+          item-title="name"
           item-value="id_port"
           label="Origen"
-          dense
+          density="compact"
           v-model="$store.state.house_filtro.id_origen"
         ></v-autocomplete>
 
@@ -116,11 +116,11 @@
     </v-card-text>
     <v-card-actions>
       <v-spacer></v-spacer>
-      <v-btn small class="mx-1" color="success" @click="filtrar()">
+      <v-btn size="small" class="mx-1" color="success" @click="filtrar()">
         Aceptar
       </v-btn>
       <v-btn
-        small
+        size="small"
         class="mx-1"
         color="error"
         @click="
@@ -129,7 +129,7 @@
       >
         Cancelar
       </v-btn>
-      <v-btn small class="mx-1" color="default" @click="limpiar()">
+      <v-btn size="small" class="mx-1" color="default" @click="limpiar()">
         Limpiar
       </v-btn>
     </v-card-actions>

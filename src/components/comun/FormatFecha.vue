@@ -3,21 +3,19 @@
     v-model="menuDesde"
     :close-on-content-click="false"
     transition="scale-transition"
-    offset-y
     min-width="auto"
     :disabled="verflag || disabled"
   >
-    <template v-slot:activator="{ on, attrs }">
+    <template v-slot:activator="{ props }">
       <v-text-field
-        :value="labelFormateada"
+        :model-value="labelFormateada"
         :label="label"
         prepend-icon="mdi-calendar"
         readonly
         :disabled="verflag"
-        v-bind="attrs"
-        v-on="verflag ? {} : on"
-        :outlined="outlined"
-        :dense="dense"
+        v-bind="verflag ? {} : props"
+        :variant="outlined ? 'outlined' : undefined"
+        :density="dense ? 'compact' : undefined"
         :error-messages="errorMessages"
         :error="!!errorMessages"
         :clearable="clearable"
@@ -26,19 +24,23 @@
         :hide-details="hideDetails"
       ></v-text-field>
     </template>
-    <v-date-picker
-      v-model="fechaInterna"
-      @input="menuDesde = false"
-      locale="es-es"
-      no-title
-    ></v-date-picker>
+    <v-locale-provider locale="es">
+      <v-date-picker
+        :model-value="modelValue"
+        @update:model-value="selectDate"
+        hide-header
+      ></v-date-picker>
+    </v-locale-provider>
   </v-menu>
 </template>
 
 <script>
+import moment from "moment";
+
 export default {
+  emits: ["update:modelValue"],
   props: {
-    value: {
+    modelValue: {
       type: String,
       default: null,
     },
@@ -84,17 +86,9 @@ export default {
     menuDesde: false,
   }),
   computed: {
-    fechaInterna: {
-      get() {
-        return this.value;
-      },
-      set(val) {
-        this.$emit("input", val);
-      },
-    },
     labelFormateada() {
-      if (!this.value) return "";
-      const [year, month, day] = this.value.split("-");
+      if (!this.modelValue) return "";
+      const [year, month, day] = this.modelValue.split("-");
       const meses = [
         "ENE",
         "FEB",
@@ -113,8 +107,12 @@ export default {
     },
   },
   methods: {
+    selectDate(date) {
+      this.$emit("update:modelValue", moment(date).format("YYYY-MM-DD"));
+      this.menuDesde = false;
+    },
     limpiarFecha() {
-      this.$emit("input", null);
+      this.$emit("update:modelValue", null);
     },
   },
 };

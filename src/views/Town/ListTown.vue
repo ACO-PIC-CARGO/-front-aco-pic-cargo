@@ -3,10 +3,8 @@
     <Town />
     <v-navigation-drawer
       v-model="$store.state.town.drawer"
-      right
-      absolute
-      bottom
-      persistent
+      location="right"
+      
       width="30%"
       temporary
     >
@@ -16,10 +14,11 @@
 </template>
 
 <script>
+import { defineAsyncComponent } from "vue";
 export default {
   components: {
-    Town: () => import("../../components/Town/ListTownComponet.vue"),
-    FilterTown: () => import("../../components/filtros/FilterTown.vue"),
+    Town: defineAsyncComponent(() => import("../../components/Town/ListTownComponet.vue")),
+    FilterTown: defineAsyncComponent(() => import("../../components/filtros/FilterTown.vue")),
   },
   mounted() {
     this.$store.state.mainTitle = `LISTADO DE DISTRITOS`;

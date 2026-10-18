@@ -14,12 +14,13 @@
           :headers="headers"
           :items="listado"
           class="elevation-1"
-          item-key="id"
-          :single-select="true"
+          item-value="id"
+          return-object
+          select-strategy="single"
           show-select
           v-model="selected"
           :items-per-page="5"
-          @input="validarSeleccionado()"
+          @update:model-value="validarSeleccionado()"
         >
         </v-data-table>
       </div>
@@ -44,15 +45,16 @@ import moment from "moment";
 export default {
   props: ["id", "tipo", "id_master", "id_proveedor"],
   name: "newProgrammedPayment",
+  emits: ["cerrar"],
   data: () => ({
     headers: [
       {
-        text: "Correlativo",
-        value: "correlativo",
+        title: "Correlativo",
+        key: "correlativo",
       },
       {
-        text: "Fecha Programada",
-        value: "fecha",
+        title: "Fecha Programada",
+        key: "fecha",
       },
     ],
     listado: [],
@@ -73,7 +75,7 @@ export default {
       var vm = this;
       var config = {
         method: "get",
-        url: process.env.VUE_APP_URL_MAIN + "ListProgrammedPayment",
+        url: import.meta.env.VUE_APP_URL_MAIN + "ListProgrammedPayment",
 
         headers: {
          
@@ -114,7 +116,7 @@ export default {
       };
       var config = {
         method: "post",
-        url: process.env.VUE_APP_URL_MAIN + "setProgrammedPayment",
+        url: import.meta.env.VUE_APP_URL_MAIN + "setProgrammedPayment",
         headers: {
          
           "Content-Type": "application/json",

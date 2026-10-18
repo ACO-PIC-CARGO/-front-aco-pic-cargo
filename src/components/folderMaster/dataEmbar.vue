@@ -3,12 +3,12 @@
     <h3>Datos del Embarque</h3>
 
     <!-- FILA 1: Motonave/Vuelo y Viaje -->
-    <v-row dense>
+    <v-row density="compact">
       <v-col cols="12" md="6">
         <template v-if="isFCL() || isLCL()">
           <v-autocomplete
             :items="itemsMotonave"
-            item-text="name"
+            item-title="name"
             item-value="id"
             label="Motonave"
             v-model="$store.state.master_id_motonave"
@@ -30,13 +30,13 @@
     </v-row>
 
     <!-- FILA 2: FCL vs LCL/Aéreo -->
-    <v-row dense>
+    <v-row density="compact">
       <template v-if="isFCL()">
         <!-- FCL: Tipo de Contenedor, Cantidad, Número de Contenedor, Sello -->
         <v-col cols="12" md="3">
           <v-autocomplete
             :items="itemsContainers"
-            item-text="name"
+            item-title="name"
             item-value="id"
             return-object
             label="Tipo de Contenedor"
@@ -83,7 +83,7 @@
         </v-col>
         <v-col cols="12" md="4" v-if="isAereo()">
           <v-text-field
-            :value="pesoVolumetrico"
+            :model-value="pesoVolumetrico"
             label="Peso Volumétrico"
             suffix="kg"
             readonly
@@ -91,7 +91,7 @@
         </v-col>
         <v-col cols="12" md="4" v-if="isAereo()">
           <v-text-field
-            :value="pesoCargable"
+            :model-value="pesoCargable"
             label="Peso Cargable"
             suffix="kg"
             readonly
@@ -101,11 +101,11 @@
     </v-row>
 
     <!-- FILA 3: Tipo de flete y Monto -->
-    <v-row dense>
+    <v-row density="compact">
       <v-col cols="12" md="6">
         <v-autocomplete
           :items="itemsFleteCon"
-          item-text="name"
+          item-title="name"
           item-value="id"
           label="Condición"
           v-model="$store.state.master_id_condicion"
@@ -159,7 +159,7 @@
 
       <v-col cols="12" md="12" v-if="isFCL()">
         <v-btn
-          small
+          size="small"
           color="primary"
           elevation="0"
           rounded
@@ -168,7 +168,7 @@
           >AGREGAR CONTENEDOR</v-btn
         >
 
-        <v-simple-table fixed-header height="180px">
+        <v-table fixed-header height="180px">
           <template v-slot:default>
             <thead>
               <tr>
@@ -189,9 +189,9 @@
                 <td>{{ item.nro_precinto }}</td>
                 <td>{{ item.cantidad }}</td>
                 <td>
-                  <v-btn
-                    @click.native="_delContainers(index)"
-                    small
+                  <v-btn variant="text"
+                    @click="_delContainers(index)"
+                    size="small"
                     icon
                     :disabled="isFormActionsDisabled"
                   >
@@ -201,7 +201,7 @@
               </tr>
             </tbody>
           </template>
-        </v-simple-table>
+        </v-table>
         <!-- <div
           v-if="$store.state.master_itemsContainers.length === 0"
           class="text-center"
@@ -210,8 +210,7 @@
           <p>LISTA DE CONTENTEDORES</p>
         </div> -->
       </v-col>
- 
-    </v-row>
+
   </div>
 </template>
 
@@ -226,9 +225,9 @@ export default {
   data() {
     return {
       headers: [
-        { text: "Fecha", value: "fecha" },
-        { text: "Ejecutivo", value: "namelong" },
-        { text: "Estado/ Comentario", value: "comentario" },
+        { title: "Fecha", key: "fecha" },
+        { title: "Ejecutivo", key: "namelong" },
+        { title: "Estado/ Comentario", key: "comentario" },
         {},
       ],
       itemsAgente: [],

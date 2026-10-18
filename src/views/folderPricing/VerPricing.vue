@@ -3,36 +3,49 @@
     <v-card elevation="10">
       <v-stepper v-model="$store.state.pricing.e1" non-linear>
         <v-stepper-header>
-          <v-stepper-step complete step="1" :editable="editable1">
-            Datos de la Carga
-          </v-stepper-step>
+          <v-stepper-item
+            complete
+            :value="1"
+            title="Datos de la Carga"
+            :editable="editable1"
+          />
 
           <v-divider></v-divider>
 
-          <v-stepper-step complete step="2" editable>
-            <span> costos de la Cotización </span>
-          </v-stepper-step>
+          <v-stepper-item
+            complete
+            :value="2"
+            title="costos de la Cotización"
+            editable
+          />
 
           <v-divider></v-divider>
-          <v-stepper-step step="3" complete editable>
-            Comparativa
-          </v-stepper-step>
+          <v-stepper-item :value="3" title="Comparativa" complete editable />
           <v-divider></v-divider>
-          <v-stepper-step complete step="4" editable>
-            <span> Notas de Costos </span>
-          </v-stepper-step>
+          <v-stepper-item
+            complete
+            :value="4"
+            title="Notas de Costos"
+            editable
+          />
           <v-divider></v-divider>
 
-          <v-stepper-step complete step="5" editable>
-            Enviar a Operaciones
-          </v-stepper-step>
-          <v-stepper-step complete step="6" editable>
-            Unificar Cotización
-          </v-stepper-step>
+          <v-stepper-item
+            complete
+            :value="5"
+            title="Enviar a Operaciones"
+            editable
+          />
+          <v-stepper-item
+            complete
+            :value="6"
+            title="Unificar Cotización"
+            editable
+          />
         </v-stepper-header>
         <!-- DATA -->
-        <v-stepper-items>
-          <v-stepper-content step="1">
+        <v-stepper-window>
+          <v-stepper-window-item :value="1" eager>
             <v-row class="my-1">
               <v-col cols="12" md="6" class="pa-0">
                 <DatosPrincipales />
@@ -44,67 +57,68 @@
                 <Services />
               </v-col>
             </v-row>
-          </v-stepper-content>
-          <v-stepper-content step="2">
+          </v-stepper-window-item>
+          <v-stepper-window-item :value="2" eager>
             <v-row class="my-1">
               <v-col cols="12">
                 <Costos />
               </v-col>
             </v-row>
-          </v-stepper-content>
-          <v-stepper-content step="3">
+          </v-stepper-window-item>
+          <v-stepper-window-item :value="3" eager>
             <Comparativa />
-          </v-stepper-content>
-          <v-stepper-content step="4">
+          </v-stepper-window-item>
+          <v-stepper-window-item :value="4" eager>
             <Notas />
-          </v-stepper-content>
-          <v-stepper-content step="5">
+          </v-stepper-window-item>
+          <v-stepper-window-item :value="5" eager>
             <Instructivo />
-          </v-stepper-content>
-          <v-stepper-content step="6">
+          </v-stepper-window-item>
+          <v-stepper-window-item :value="6" eager>
             <UnificarCotizacion />
-          </v-stepper-content>
-        </v-stepper-items>
+          </v-stepper-window-item>
+        </v-stepper-window>
       </v-stepper>
     </v-card>
   </v-container>
 </template>
 
 <script>
+import { defineAsyncComponent } from "vue";
 import { mapActions } from "vuex";
 import mixins from "../../components/mixins/funciones.js";
 export default {
   mixins: [mixins],
   name: "VerQuoteView",
   components: {
-    DatosPrincipales: () =>
+    DatosPrincipales: defineAsyncComponent(() =>
       import(
         "../../components/folderPricing/VerComponent/DatosPrincipalesComponent.vue"
-      ),
-    DatosCarga: () =>
+      )),
+    DatosCarga: defineAsyncComponent(() =>
       import(
         "../../components/folderPricing/VerComponent/DatosCargaComponent.vue"
-      ),
-    Services: () =>
+      )),
+    Services: defineAsyncComponent(() =>
       import(
         "../../components/folderPricing/VerComponent/ServicesComponent.vue"
-      ),
-    Costos: () =>
+      )),
+    Costos: defineAsyncComponent(() =>
       import(
         "../../components/folderPricing/VerComponent/DatosCostosComponent.vue"
-      ),
-    Notas: () =>
-      import("../../components/folderPricing/VerComponent/NotasComponent.vue"),
-    Instructivo: () =>
+      )),
+    Notas: defineAsyncComponent(() =>
+      import("../../components/folderPricing/VerComponent/NotasComponent.vue")),
+    Instructivo: defineAsyncComponent(() =>
       import(
         "../../components/folderPricing/VerComponent/InstructivoComponent.vue"
-      ),
-    Comparativa: () =>
+      )),
+    Comparativa: defineAsyncComponent(() =>
       import(
         "@/components/folderPricing/VerComponent/ComparativaComponent.vue"
-      ),
-    UnificarCotizacion: () =>
-      import("@/components/folderPricing/VerComponent/UnificarCotizacion.vue"),
+      )),
+    UnificarCotizacion: defineAsyncComponent(() =>
+      import("@/components/folderPricing/VerComponent/UnificarCotizacion.vue")),
   },
   data() {
     return {
@@ -231,7 +245,7 @@ export default {
       this.$nextTick(() => {
         setTimeout(() => {
           this.$store.state.pricing.e1 = this.$route.params.step
-            ? this.$route.params.step
+            ? Number(this.$route.params.step)
             : 1;
         }, 100);
       });

@@ -8,7 +8,7 @@
           <v-select
             :items="begEndList"
             v-model="servicio.id_begend"
-            item-text="name"
+            item-title="name"
             item-value="id"
             label="Categoria..."
           ></v-select>
@@ -20,7 +20,7 @@
         <v-card-actions>
           <v-spacer></v-spacer>
           <v-btn color="success" @click="guardarServicio">Guardar</v-btn>
-          <v-btn color="red" @click="dialog = false" dark>Cancelar</v-btn>
+          <v-btn color="red" @click="dialog = false">Cancelar</v-btn>
         </v-card-actions>
       </v-card>
     </v-dialog>
@@ -28,13 +28,13 @@
     <!-- Título y Subcabecera -->
     <v-card-title primary-title>
       SERVICIOS A REALIZAR:
-      <v-btn icon color="primary" @click="dialog = true">
+      <v-btn variant="text" icon color="primary" @click="dialog = true">
         <v-icon>mdi-plus</v-icon>
       </v-btn>
     </v-card-title>
-    <v-subheader class="mt-0">
+    <v-list-subheader class="mt-0">
       <h4>Desmarque los servicios que NO desea utilizar.</h4>
-    </v-subheader>
+    </v-list-subheader>
 
     <!-- Lista de Servicios por Categoría -->
     <v-card-text>
@@ -49,9 +49,10 @@
           <h4 class="mb-2">{{ cat.title }}</h4>
           <div v-for="service in getServicesByCode(cat.code)" :key="service.id">
             <v-checkbox
-              dense
+              density="compact"
               v-model="service.status"
-              @change="showConfirmationDialog(service)"
+              :value-comparator="(value, checked) => Boolean(value) === checked"
+              @update:model-value="showConfirmationDialog(service)"
               readonly
             >
               <template v-slot:label>
@@ -67,10 +68,10 @@
             >
               <v-autocomplete
                 :items="$store.state.town.lstTown"
-                item-text="nombrecompleto"
+                item-title="nombrecompleto"
                 item-value="id"
-                dense
-                outlined
+                density="compact"
+                variant="outlined"
                 label="Distrito"
                 class="pr-10"
                 v-model="$store.state.pricing.datosPrincipales.id_town"
@@ -92,7 +93,7 @@
               min="0"
               placeholder="Valor de la mercancia..."
               autocomplete="off"
-              dense
+              density="compact"
               :required="requiereValorMercancia"
               :rules="[
                 (v) =>
@@ -104,7 +105,7 @@
                   /^(?!0\d+|\d*e)\d*(?:\.\d+)?$/.test(v) ||
                   'Debe ser un número real entero positivo',
               ]"
-              @input="recargarCostos"
+              @update:model-value="recargarCostos"
               @blur="recargarCostos"
             ></v-text-field>
 
@@ -113,7 +114,7 @@
               label="Descripción de carga"
               placeholder="Descripción de carga"
               autocomplete="off"
-              dense
+              density="compact"
             ></v-text-field>
           </template>
         </v-col>
@@ -136,6 +137,7 @@
 import { mapState, mapActions, mapGetters } from "vuex";
 
 export default {
+  emits: ["activarLlenadoCostos", "recargarCostos"],
   props: {
     mostrarBtn: {
       type: Boolean,

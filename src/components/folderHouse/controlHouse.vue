@@ -27,77 +27,74 @@
             <div class="d-flex align-center">
               <v-speed-dial
                 v-model="fab"
-                :direction="'top'"
+                location="top"
                 :transition="transition"
-                class="acciones-dial"
+                content-class="acciones-dial"
               >
-                <template v-slot:activator>
-                  <v-btn color="indigo" dark fab small>
+                <template v-slot:activator="{ props }">
+                  <v-btn v-bind="props" color="indigo" icon size="small">
                     <v-icon v-if="!fab">mdi-cog</v-icon>
                     <v-icon v-else>mdi-close</v-icon>
                   </v-btn>
                 </template>
 
-                <v-btn
+                <v-btn key="eliminar"
                   v-if="$route.name != 'controlHouseVer'"
-                  small
+                  size="small"
                   color="red"
-                  dark
                   :loading="loadingBotonEliminarHouse"
                   :disabled="formControlHouseReadonly"
                   @click="eliminarHouse()"
                 >
-                  <v-icon small left>mdi-delete</v-icon>
+                  <v-icon size="small" start>mdi-delete</v-icon>
                   Eliminar
                 </v-btn>
 
                 <!-- GENERAR TRACKING (siempre visible, no deshabilitar) -->
-                <v-btn
-                  small
-                  color="orange darken-2"
-                  dark
+                <v-btn key="tracking"
+                  size="small"
+                  color="orange-darken-2"
                   :loading="loadingBotonTracking"
                   @click="_generateTrackingToken"
                 >
-                  <v-icon small left>mdi-link-variant</v-icon>
+                  <v-icon size="small" start>mdi-link-variant</v-icon>
                   Tracking
                 </v-btn>
 
                 <!-- IMPRIMIR -->
-                <v-btn small color="primary" @click="abrirModalFormato()">
-                  <v-icon small left>mdi-printer</v-icon>
+                <v-btn key="imprimir" size="small" color="primary" @click="abrirModalFormato()">
+                  <v-icon size="small" start>mdi-printer</v-icon>
                   Imprimir
                 </v-btn>
 
                 <!-- NOTIFICACIONES -->
-                <v-btn
-                  small
+                <v-btn key="notificaciones"
+                  size="small"
                   color="deep-purple"
-                  dark
                   :disabled="formControlHouseReadonly"
                   :loading="loadingBotonNotificaciones"
                   @click="openNotificaciones"
                 >
-                  <v-icon small left style="transform: rotate(-45deg)"
+                  <v-icon size="small" start style="transform: rotate(-45deg)"
                     >mdi-send</v-icon
                   >
                   Notificaciones
                 </v-btn>
 
                 <!-- GUARDAR / EDITAR (queda más cerca del activador, o sea abajo visualmente con direction='top') -->
-                <v-btn
+                <v-btn key="guardar"
                   v-if="$route.name != 'controlHouseVer'"
-                  small
+                  size="small"
                   color="success"
                   :loading="loadingBotonGuardarHouse"
                   :disabled="formControlHouseReadonly"
                   @click="_setHouseEdit()"
                 >
-                  <v-icon small left>mdi-content-save</v-icon>
+                  <v-icon size="small" start>mdi-content-save</v-icon>
                   Guardar
                 </v-btn>
-                <v-btn v-else small color="info" @click="irAVerMaster()">
-                  <v-icon small left>mdi-pencil</v-icon>
+                <v-btn key="editar" v-else size="small" color="info" @click="irAVerMaster()">
+                  <v-icon size="small" start>mdi-pencil</v-icon>
                   Editar
                 </v-btn>
               </v-speed-dial>
@@ -108,33 +105,32 @@
               v-model="$store.state.house_enlace_tracking"
               label="Enlace de Tracking"
               readonly
-              outlined
-              dense
+              variant="outlined"
+              density="compact"
               hide-details
               class="mt-3"
             >
-              <template v-slot:append>
-                <v-btn
+              <template v-slot:append-inner>
+                <v-btn variant="text"
                   icon
-                  small
+                  size="small"
                   color="primary"
                   @click="
                     _copyEnlaceTracking($store.state.house_enlace_tracking)
                   "
                 >
-                  <v-icon small>mdi-content-copy</v-icon>
+                  <v-icon size="small">mdi-content-copy</v-icon>
                 </v-btn>
               </template>
             </v-text-field>
 
             <v-menu
               v-model="openMenuNotificaciones"
-              top
-              offset-y
+              location="top"
               content-class="elevation-0"
             >
-              <template v-slot:activator="{ on, attrs }">
-                <span v-bind="attrs" v-on="on"></span>
+              <template v-slot:activator="{ props }">
+                <span v-bind="props"></span>
               </template>
               <v-list color="transparent" v-show="displayMenuNotificaciones">
                 <v-list-item
@@ -144,9 +140,9 @@
                 >
                   <v-list-item-title>
                     <v-btn
-                      depressed
+                      variant="flat"
                       block
-                      small
+                      size="small"
                       color="primary"
                       @click="sendNotificacion(item)"
                     >
@@ -170,11 +166,10 @@
       <div style="position: fixed; bottom: 16px; right: 16px; z-index: 3000">
         <v-fab-transition v-if="formControlHouseReadonly">
           <v-btn
-            fab
-            large
-            dark
-            bottom
-            left
+            icon
+            size="large"
+            location="bottom left"
+            
             color="info"
             @click="irAVerMaster()"
           >
@@ -184,52 +179,50 @@
         <v-speed-dial
           v-else
           v-model="fab"
-          :direction="'top'"
+          location="top end"
           :transition="transition"
-          class="acciones-dial"
+          content-class="acciones-dial"
         >
-          <template v-slot:activator>
-            <v-btn v-model="fab" color="info" dark fab>
+          <template v-slot:activator="{ props }">
+            <v-btn v-bind="props" color="info" icon aria-label="Acciones">
               <v-icon v-if="fab"> mdi-close </v-icon>
               <v-icon v-else> mdi-tools </v-icon>
             </v-btn>
           </template>
 
-          <v-btn
+          <v-btn key="eliminar"
             color="red"
-            dark
             :loading="loadingBotonEliminarHouse"
             @click="eliminarHouse()"
           >
-            <v-icon left>mdi-delete</v-icon>
+            <v-icon start>mdi-delete</v-icon>
             Eliminar
           </v-btn>
-          <v-btn
-            color="orange darken-2"
-            dark
+          <v-btn key="tracking"
+            color="orange-darken-2"
             :loading="loadingBotonTracking"
             @click="_generateTrackingToken"
           >
-            <v-icon left>mdi-link-variant</v-icon>
+            <v-icon start>mdi-link-variant</v-icon>
             Tracking
           </v-btn>
-          <v-btn
+          <v-btn key="imprimir"
             :style="{ backgroundColor: 'rgb(92, 116, 137)', color: 'white' }"
             @click="abrirModalFormato()"
           >
-            <v-icon left style="color: white">mdi-printer</v-icon>
+            <v-icon start style="color: white">mdi-printer</v-icon>
             Imprimir
           </v-btn>
-          <v-btn small color="primary" @click="abrirCarpeta">
-            <v-icon small left>mdi-folder-open</v-icon>
+          <v-btn key="carpeta" size="small" color="primary" @click="abrirCarpeta">
+            <v-icon size="small" start>mdi-folder-open</v-icon>
             Carpeta
           </v-btn>
-          <v-btn color="deep-purple" dark @click="openNotificaciones">
-            <v-icon left style="transform: rotate(-45deg)">mdi-send</v-icon>
+          <v-btn key="notificaciones" color="deep-purple" @click="openNotificaciones">
+            <v-icon start style="transform: rotate(-45deg)">mdi-send</v-icon>
             Notificaciones
           </v-btn>
-          <v-btn color="light-green lighten-1" dark @click="_setHouseEdit()">
-            <v-icon left>mdi-content-save</v-icon>
+          <v-btn key="guardar" color="light-green-lighten-1" @click="_setHouseEdit()">
+            <v-icon start>mdi-content-save</v-icon>
             Guardar
           </v-btn>
         </v-speed-dial>
@@ -249,18 +242,18 @@
           v-model="$store.state.house_enlace_tracking"
           label="Enlace de Tracking"
           readonly
-          outlined
-          dense
+          variant="outlined"
+          density="compact"
           hide-details
         >
-          <template v-slot:append>
-            <v-btn
+          <template v-slot:append-inner>
+            <v-btn variant="text"
               icon
-              small
+              size="small"
               color="primary"
               @click="_copyEnlaceTracking($store.state.house_enlace_tracking)"
             >
-              <v-icon small>mdi-content-copy</v-icon>
+              <v-icon size="small">mdi-content-copy</v-icon>
             </v-btn>
           </template>
         </v-text-field>
@@ -268,12 +261,11 @@
       <!-- Menú de notificaciones reubicado fuera de la tarjeta oculta -->
       <v-menu
         v-model="openMenuNotificaciones"
-        top
-        offset-y
+        location="top"
         content-class="elevation-0"
       >
-        <template v-slot:activator="{ on, attrs }">
-          <span v-bind="attrs" v-on="on"></span>
+        <template v-slot:activator="{ props }">
+          <span v-bind="props"></span>
         </template>
         <v-list color="transparent" v-show="displayMenuNotificaciones">
           <v-list-item
@@ -283,9 +275,9 @@
           >
             <v-list-item-title>
               <v-btn
-                depressed
+                variant="flat"
                 block
-                small
+                size="small"
                 color="primary"
                 @click="sendNotificacion(item)"
               >
@@ -302,11 +294,11 @@
     <!-- Modal para seleccionar formato de impresión -->
     <v-dialog v-model="dialogFormato" max-width="400px">
       <v-card>
-        <v-card-title primary-title class="light-blue darken-2 white--text">
+        <v-card-title primary-title class="bg-light-blue-darken-2 text-white">
           Imprimir Formato {{ isAereo() ? "GUÍA AÉREA" : "BL" }}
         </v-card-title>
         <v-card-text class="pt-4">
-          <p class="subtitle-1 mb-2">¿Imprimir con fondo?</p>
+          <p class="text-subtitle-1 mb-2">¿Imprimir con fondo?</p>
           <v-radio-group v-model="formatoflag">
             <v-radio label="Sí" :value="true"></v-radio>
             <v-radio label="No" :value="false"></v-radio>
@@ -315,14 +307,14 @@
         <v-card-actions>
           <v-spacer></v-spacer>
           <v-btn color="success" v-if="isAereo()" @click="exportarFormatoAWB()">
-            <v-icon left>mdi-printer</v-icon>
+            <v-icon start>mdi-printer</v-icon>
             Imprimir Guía Aérea
           </v-btn>
           <v-btn color="success" v-else @click="exportarFormatoHBL()">
-            <v-icon left>mdi-printer</v-icon>
+            <v-icon start>mdi-printer</v-icon>
             Imprimir BL
           </v-btn>
-          <v-btn color="grey" text @click="dialogFormato = false">
+          <v-btn color="grey" variant="text" @click="dialogFormato = false">
             Cancelar
           </v-btn>
         </v-card-actions>
@@ -335,12 +327,13 @@
           Seleccione las cuentas a utilizar
         </v-card-title>
         <v-card-text>
-          <p class="red--text">{{ errorCuentas }}</p>
+          <p class="text-red">{{ errorCuentas }}</p>
           <v-data-table
             v-model="selected"
             :headers="headers"
             :items="$store.state.cuentas_pic"
-            item-key="id"
+            item-value="id"
+            return-object
             show-select
             class="elevation-1"
           >
@@ -373,13 +366,14 @@
             indeterminate
             size="48"
           ></v-progress-circular>
-          <div class="subtitle-1 mt-4">Guardando cambios...</div>
+          <div class="text-subtitle-1 mt-4">Guardando cambios...</div>
         </div>
       </v-card>
     </v-dialog>
   </v-form>
 </template>
 <script>
+import { v4 as uuidv4 } from "uuid";
 import dataGen from "./dataGen.vue";
 //import houselist from "./houselist.vue";
 import dataEmbar from "./dataEmbar.vue";
@@ -448,10 +442,10 @@ export default {
     selected: [],
     errorCuentas: "",
     headers: [
-      { value: "label", text: "Nombre" },
-      { value: "cuenta", text: "Cuenta" },
-      { value: "cci", text: "CCI" },
-      { value: "symbol", text: "Moneda" },
+      { key: "label", title: "Nombre" },
+      { key: "cuenta", title: "Cuenta" },
+      { key: "cci", title: "CCI" },
+      { key: "symbol", title: "Moneda" },
     ],
     notificacion: null,
     abrirModalCuentasNotificacion: false,
@@ -622,7 +616,7 @@ export default {
       try {
         const response = await axios({
           method: "get",
-          url: `${process.env.VUE_APP_URL_MAIN}generar_formato_awb`,
+          url: `${import.meta.env.VUE_APP_URL_MAIN}generar_formato_awb`,
           params: {
             id_house: this.$route.params.id,
             formatoflag: this.formatoflag,
@@ -660,7 +654,7 @@ export default {
       try {
         const response = await axios({
           method: "get",
-          url: `${process.env.VUE_APP_URL_MAIN}generar_formato_bl`,
+          url: `${import.meta.env.VUE_APP_URL_MAIN}generar_formato_bl`,
           params: {
             id_house: this.$route.params.id,
             formatoflag: this.formatoflag,
@@ -695,7 +689,6 @@ export default {
       this.dialogFormato = false;
     },
     async _generateTrackingToken() {
-      const { v4: uuidv4 } = require("uuid");
       const token = uuidv4();
 
       this.loadingBotonTracking = !this.loadingBotonTracking;
@@ -715,7 +708,7 @@ export default {
 
       var config = {
         method: "put",
-        url: process.env.VUE_APP_URL_MAIN + `setTrackingToken`,
+        url: import.meta.env.VUE_APP_URL_MAIN + `setTrackingToken`,
         headers: {
           "Content-Type": "application/json",
         },
@@ -790,7 +783,7 @@ export default {
 
       var config = {
         method: "post",
-        url: process.env.VUE_APP_URL_MAIN + "setMasterContainers",
+        url: import.meta.env.VUE_APP_URL_MAIN + "setMasterContainers",
         headers: {
           "Content-Type": "application/json",
         },
@@ -908,7 +901,7 @@ export default {
 
       var config = {
         method: "put",
-        url: process.env.VUE_APP_URL_MAIN + "setHouseEdit",
+        url: import.meta.env.VUE_APP_URL_MAIN + "setHouseEdit",
         headers: {
           "Content-Type": "application/json",
         },
@@ -1217,7 +1210,7 @@ export default {
 
       var config = {
         method: "post",
-        url: process.env.VUE_APP_URL_MAIN + "getHouseListId/",
+        url: import.meta.env.VUE_APP_URL_MAIN + "getHouseListId/",
         headers: {
           "Content-Type": "application/json",
         },
@@ -1247,7 +1240,7 @@ export default {
 
         var config = {
           method: "post",
-          url: process.env.VUE_APP_URL_MAIN + "getHouseServices",
+          url: import.meta.env.VUE_APP_URL_MAIN + "getHouseServices",
           headers: {
             "Content-Type": "application/json",
           },
@@ -1311,7 +1304,7 @@ export default {
 
       var config = {
         method: "post",
-        url: process.env.VUE_APP_URL_MAIN + "sendNotificacionHouse",
+        url: import.meta.env.VUE_APP_URL_MAIN + "sendNotificacionHouse",
         headers: {
           "Content-Type": "application/json",
         },
@@ -1399,25 +1392,21 @@ export default {
   color: #252c32;
 }
 
-.acciones-dial ::v-deep .v-speed-dial__list {
-  align-items: flex-end !important;
+:global(.acciones-dial.v-speed-dial__content) {
+  flex-direction: column-reverse;
+  align-items: flex-end;
 }
-.acciones-dial ::v-deep .v-speed-dial__list .v-btn {
-  align-self: flex-end;
+.acciones-dial .v-btn {
   min-width: 220px;
 }
-.acciones-dial ::v-deep .v-speed-dial__list .v-btn .v-btn__content {
+.acciones-dial .v-btn :deep(.v-btn__content) {
   justify-content: flex-start;
   width: 100%;
   font-size: 1.2rem;
   line-height: 1.4;
 }
-.acciones-dial ::v-deep .v-speed-dial__list .v-btn .v-icon {
+.acciones-dial .v-btn .v-icon {
   font-size: 22px !important;
   margin-right: 8px;
-}
-.acciones-dial {
-  position: relative;
-  z-index: 4000 !important;
 }
 </style>

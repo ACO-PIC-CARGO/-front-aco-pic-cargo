@@ -1,15 +1,15 @@
 <template>
   <v-card min-height="80vh" elevation="0">
     <BarraFiltro :filtro="filtro" :cuentas="cuentas" />
-    <v-card-title class="pt-0">
+    <v-card-title class="pt-0 d-flex align-center flex-wrap">
       <v-text-field
         class="mx-2"
         hide-details
-        dense
+        density="compact"
         id="id"
-        outlined
+        variant="outlined"
         placeholder="Buscar..."
-        append-icon="mdi-text-search"
+        append-inner-icon="mdi-text-search"
         v-model="search"
         label="Buscar"
       >
@@ -17,28 +17,28 @@
 
       <v-spacer></v-spacer>
 
-      <v-btn class="mr-2" color="success" small @click="nuevo">
-        NUEVO PAGO <v-icon small>mdi-plus</v-icon>
+      <v-btn class="mr-2" color="success" size="small" @click="nuevo">
+        NUEVO PAGO <v-icon size="small">mdi-plus</v-icon>
       </v-btn>
       <v-btn
         class="mr-2"
         color="success"
-        small
+        size="small"
         @click="exportar()"
         :loading="loading"
       >
-        EXCEL <v-icon small>mdi-file-excel</v-icon>
+        EXCEL <v-icon size="small">mdi-file-excel</v-icon>
       </v-btn>
       <v-btn
         class="mr-2"
         color="info"
-        small
+        size="small"
         @click="dialogFiltro = !dialogFiltro"
       >
-        Filtrar <v-icon small>mdi-filter</v-icon>
+        Filtrar <v-icon size="small">mdi-filter</v-icon>
       </v-btn>
-      <v-btn small color="default" @click="Limpiar">
-        <v-icon small>mdi-close</v-icon> Limpiar
+      <v-btn size="small" color="default" @click="Limpiar">
+        <v-icon size="small">mdi-close</v-icon> Limpiar
       </v-btn>
 
       <!-- <v-btn class="mr-2" color="default" small @click="limpiar()">
@@ -50,12 +50,11 @@
       :search="search"
       :headers="headersCabecera"
       :items="$store.state.bank.list"
-      :expanded.sync="expanded"
-      :single-expand="singleExpand"
+      v-model:expanded="expanded"
       show-expand
-      @click:row="clickRow"
-      item-key="id"
-      dense
+      expand-on-click
+      item-value="id"
+      density="compact"
       disable-sort
     >
       <template v-slot:[`item.totalmonedalocal`]="{ item }">
@@ -64,81 +63,83 @@
       </template>
       <template v-slot:[`item.action`]="{ item }">
         <div class="d-flex align-center">
-          <v-btn icon color="default" @click="verSoport(item.ruta)">
+          <v-btn variant="text" icon color="default" @click="verSoport(item.ruta)">
             <v-icon>mdi-file</v-icon>
           </v-btn>
-          <v-btn small icon color="info" @click.native="ver(item)">
+          <v-btn variant="text" size="small" icon color="info" @click="ver(item)">
             <v-icon>mdi-eye</v-icon>
           </v-btn>
-          <v-btn small icon color="orange" @click.native="editar(item)">
+          <v-btn variant="text" size="small" icon color="orange" @click="editar(item)">
             <v-icon>mdi-pencil</v-icon>
           </v-btn>
-          <v-btn small icon color="red" @click.native="confirmarEliminar(item)">
+          <v-btn variant="text" size="small" icon color="red" @click="confirmarEliminar(item)">
             <v-icon>mdi-delete</v-icon>
           </v-btn>
         </div>
       </template>
-      <template v-slot:expanded-item="{ item }">
-        <td colspan="1"></td>
-        <td colspan="12">
-          <v-simple-table style="width: 100%">
-            <thead style="background: #e3f2fd">
-              <tr>
-                <!-- <th>Fecha Registro</th> -->
-                <th>O/A</th>
-                <th>Expediente</th>
-                <th>Factura</th>
-                <th>Serie</th>
-                <th>Monto (USD)</th>
-                <th>Monto</th>
-                <!-- <th>Nro Serie</th> -->
-                <!-- <th>Accion</th> -->
-              </tr>
-            </thead>
-            <tbody>
-              <tr v-for="i in item.detalles" :key="i.id">
-                <td>{{ i.tipo }}</td>
-                <td>{{ i.code_master }}</td>
-                <td>{{ i.nro_factura }}</td>
-                <td>{{ i.nro_serie }}</td>
-                <td>{{ i.montodolar }}</td>
-                <td>{{ i.montomonedalocal }}</td>
+      <template v-slot:expanded-row="{ item }">
+        <tr>
+          <td colspan="1"></td>
+          <td colspan="12">
+            <v-table style="width: 100%">
+              <thead style="background: #e3f2fd">
+                <tr>
+                  <!-- <th>Fecha Registro</th> -->
+                  <th>O/A</th>
+                  <th>Expediente</th>
+                  <th>Factura</th>
+                  <th>Serie</th>
+                  <th>Monto (USD)</th>
+                  <th>Monto</th>
+                  <!-- <th>Nro Serie</th> -->
+                  <!-- <th>Accion</th> -->
+                </tr>
+              </thead>
+              <tbody>
+                <tr v-for="i in item.detalles" :key="i.id">
+                  <td>{{ i.tipo }}</td>
+                  <td>{{ i.code_master }}</td>
+                  <td>{{ i.nro_factura }}</td>
+                  <td>{{ i.nro_serie }}</td>
+                  <td>{{ i.montodolar }}</td>
+                  <td>{{ i.montomonedalocal }}</td>
 
-                <!--  <td>
-                 <v-btn small color="warning" @click.native="verFactura(i)">
-                    VER FACTURAS
-                  </v-btn> 
-                </td>-->
-              </tr>
-            </tbody>
-          </v-simple-table>
-          <v-simple-table
-            style="width: 100%"
-            v-if="mostrarComisionBancaria(item.table_comisionbancaria)"
-          >
-            <thead style="background: #e3f2fd">
-              <tr>
-                <!-- <th>Fecha Registro</th> -->
-                <th>Comisión Bancaria</th>
-                <th>Monto(USD)</th>
-                <th>Monto (ML)</th>
-                <th>Accion</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr v-for="i in item.table_comisionbancaria" :key="i.id">
-                <td>{{ i.concepto }}</td>
-                <td>{{ i.montodolar }}</td>
-                <td>{{ i.monto }}</td>
-                <td>
-                  <!-- <v-btn small color="warning" @click.native="verFactura(i)">
-                    VER FACTURAS
-                  </v-btn> -->
-                </td>
-              </tr>
-            </tbody>
-          </v-simple-table>
-        </td>
+                  <!--  <td>
+                   <v-btn small color="warning" @click.native="verFactura(i)">
+                      VER FACTURAS
+                    </v-btn> 
+                  </td>-->
+                </tr>
+              </tbody>
+            </v-table>
+            <v-table
+              style="width: 100%"
+              v-if="mostrarComisionBancaria(item.table_comisionbancaria)"
+            >
+              <thead style="background: #e3f2fd">
+                <tr>
+                  <!-- <th>Fecha Registro</th> -->
+                  <th>Comisión Bancaria</th>
+                  <th>Monto(USD)</th>
+                  <th>Monto (ML)</th>
+                  <th>Accion</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr v-for="i in item.table_comisionbancaria" :key="i.id">
+                  <td>{{ i.concepto }}</td>
+                  <td>{{ i.montodolar }}</td>
+                  <td>{{ i.monto }}</td>
+                  <td>
+                    <!-- <v-btn small color="warning" @click.native="verFactura(i)">
+                      VER FACTURAS
+                    </v-btn> -->
+                  </td>
+                </tr>
+              </tbody>
+            </v-table>
+          </td>
+        </tr>
       </template>
       <!-- <template v-slot:[`item.action`]="{ item }">
         <v-btn x-small icon color="primary" @click="verSoport(item.soporte)">
@@ -165,10 +166,10 @@
       transition="dialog-transition"
     >
       <v-card>
-        <v-card-title primary-title>
+        <v-card-title class="d-flex align-center flex-wrap" primary-title>
           {{ verflag ? "Ver " : "Editar" }}
           <v-spacer> </v-spacer>
-          <v-btn icon color="default" @click="dialog = !dialog">
+          <v-btn variant="text" icon color="default" @click="dialog = !dialog">
             <v-icon>mdi-close</v-icon>
           </v-btn>
         </v-card-title>
@@ -210,7 +211,7 @@
               :items="cuentas"
               v-model="dato.id_cuenta"
               label="Cuenta Bancaria"
-              item-text="label"
+              item-title="label"
               item-value="id"
               :rules="[(v) => !!v || 'Datos Requerido']"
             >
@@ -223,19 +224,19 @@
               truncate-length="50"
               hide-details
               clearable
-              @change="_uploadFile()"
+              @update:model-value="_uploadFile()"
             >
             </v-file-input>
           </v-form>
         </v-card-text>
         <v-card-actions>
           <v-spacer> </v-spacer>
-          <v-btn color="success" text @click="actualizarCGEgreso()"
+          <v-btn color="success" variant="text" @click="actualizarCGEgreso()"
             >Guardar</v-btn
           >
           <v-btn
             color="warning"
-            text
+            variant="text"
             @click="dialogPayControlGasto = !dialogPayControlGasto"
             >Cancelar</v-btn
           >
@@ -244,10 +245,9 @@
     </v-dialog>
 
     <v-navigation-drawer
-      absolute
       permanent
       temporary
-      right
+      location="right"
       width="20%"
       v-if="dialogFiltro"
     >
@@ -258,12 +258,12 @@
             :items="cuentas"
             v-model="filtro.id_cuenta"
             label="Cuenta Bancaria (PIC)"
-            item-text="label"
+            item-title="label"
             item-value="id"
             clearable
-            outlined
+            variant="outlined"
             class="mb-2"
-            dense
+            density="compact"
             hide-details
           >
           </v-select>
@@ -271,46 +271,46 @@
             :items="$store.state.provedores"
             v-model="filtro.id_proveedor"
             label="Proveedor"
-            item-text="namelong"
+            item-title="namelong"
             item-value="id"
             clearable
-            outlined
+            variant="outlined"
             class="mb-2"
-            dense
+            density="compact"
             hide-details
           >
           </v-autocomplete>
 
           <v-text-field
             clearable
-            outlined
+            variant="outlined"
             class="mb-2"
             label="Nro Operacion"
             v-model="filtro.nro_operacion"
-            dense
+            density="compact"
             hide-details
           >
           </v-text-field>
 
           <v-text-field
             clearable
-            outlined
+            variant="outlined"
             class="mb-2"
             label="Nro Expediente"
             v-model="filtro.expediente"
-            dense
+            density="compact"
             hide-details
           >
           </v-text-field>
 
           <v-text-field
             clearable
-            outlined
+            variant="outlined"
             class="mb-2"
             type="number"
             label="Monto"
             v-model="filtro.monto"
-            dense
+            density="compact"
             hide-details
           >
           </v-text-field>
@@ -345,8 +345,8 @@
         </v-card-text>
         <v-card-actions>
           <v-spacer></v-spacer>
-          <v-btn color="success" small @click="filtrar()">Filtrar</v-btn>
-          <v-btn color="red" dark small @click="dialogFiltro = !dialogFiltro"
+          <v-btn color="success" size="small" @click="filtrar()">Filtrar</v-btn>
+          <v-btn color="red" size="small" @click="dialogFiltro = !dialogFiltro"
             >Cancelar</v-btn
           >
         </v-card-actions>
@@ -407,23 +407,23 @@ export default {
       Ingreso: {},
       dataList: false,
       headersCabecera: [
-        { text: "Accion", value: "action" },
-        { text: "Fecha Operacion", value: "fechaoperacion" },
+        { title: "Accion", key: "action" },
+        { title: "Fecha Operacion", key: "fechaoperacion" },
         // { text: "Fecha Registro", value: "create_at" },
-        { text: "Nro Operación	", value: "numerooperacion" },
-        { text: "Cuenta Salida", value: "cuenta" },
+        { title: "Nro Operación	", key: "numerooperacion" },
+        { title: "Cuenta Salida", key: "cuenta" },
         //{ text: "O/A	", value: "tipo" },
         //{ text: "Tipo Gasto	", value: "tipo_gasto" },
         //{ text: "Sub Tipo de Gasto", value: "subtipo_gasto" },
-        { text: "Proveedor	", value: "proveedor" },
-        { text: "Total en Dólares", value: "totaldolar" },
-        { text: "Tipo de Cambio	", value: "tipocambio" },
+        { title: "Proveedor	", key: "proveedor" },
+        { title: "Total en Dólares", key: "totaldolar" },
+        { title: "Tipo de Cambio	", key: "tipocambio" },
         {
-          text: "Monto y Moneda que Salió al Banco",
-          value: "totalmonedalocal",
+          title: "Monto y Moneda que Salió al Banco",
+          key: "totalmonedalocal",
         },
         // { text: "Moneda	", value: "moneda" },
-        { text: "Comentarios", value: "comentario" },
+        { title: "Comentarios", key: "comentario" },
         // { text: "concepto	", value: "concepto" },
         // { text: "Nro Factura", value: "factura" },
         // { text: "Nro Serie", value: "serie" },
@@ -431,7 +431,6 @@ export default {
       expanded: [],
       expand: [],
       dialog: false,
-      singleExpand: false,
       // dialogInvoice: false,
       // dialogPayControlGasto: false,
       dialogFiltro: false,
@@ -612,8 +611,6 @@ export default {
     },
     _uploadFile() {
       if (this.payfile) {
-        var FormData = require("form-data");
-        var fs = require("fs");
         var data = new FormData();
         var vm = this;
         data.append("name", "Prueba");
@@ -621,7 +618,7 @@ export default {
 
         var config = {
           method: "post",
-          url: process.env.VUE_APP_URL_MAIN + "uploadAllPath",
+          url: import.meta.env.VUE_APP_URL_MAIN + "uploadAllPath",
           headers: {
             "Content-Type": "application/json",
           },
@@ -674,7 +671,7 @@ export default {
       vm.verflag = !editar;
       var config = {
         method: "get",
-        url: process.env.VUE_APP_URL_MAIN + "ver_pago_invoice?id=" + id,
+        url: import.meta.env.VUE_APP_URL_MAIN + "ver_pago_invoice?id=" + id,
 
         headers: {
           "Content-Type": "application/json",
@@ -698,7 +695,7 @@ export default {
       vm.verflag = !editar;
       var config = {
         method: "get",
-        url: process.env.VUE_APP_URL_MAIN + "ver_pago_cgegreso?id=" + id,
+        url: import.meta.env.VUE_APP_URL_MAIN + "ver_pago_cgegreso?id=" + id,
 
         headers: {
           "Content-Type": "application/json",
@@ -722,7 +719,7 @@ export default {
       var config = {
         method: "get",
         url:
-          process.env.VUE_APP_URL_MAIN +
+          import.meta.env.VUE_APP_URL_MAIN +
           "ver_pagoscontrol_egresos?id=" +
           item.id,
 
@@ -741,11 +738,11 @@ export default {
     },
     async actualizarInvoice() {
       let vm = this;
-      if (this.$refs.formInvoice.validate()) {
+      if ((await this.$refs.formInvoice.validate()).valid) {
         vm.dato.usuario = vm.usuario;
         var config = {
           method: "put",
-          url: process.env.VUE_APP_URL_MAIN + "actualizar_pago_invoice",
+          url: import.meta.env.VUE_APP_URL_MAIN + "actualizar_pago_invoice",
 
           headers: {
             "Content-Type": "application/json",
@@ -777,11 +774,11 @@ export default {
     },
     async actualizarCGEgreso() {
       let vm = this;
-      if (this.$refs.formInvoice.validate()) {
+      if ((await this.$refs.formInvoice.validate()).valid) {
         vm.dato.usuario = vm.usuario;
         var config = {
           method: "put",
-          url: process.env.VUE_APP_URL_MAIN + "actualizar_pago_cgegreso",
+          url: import.meta.env.VUE_APP_URL_MAIN + "actualizar_pago_cgegreso",
 
           headers: {
             "Content-Type": "application/json",
@@ -826,14 +823,6 @@ export default {
       };
       vm.$store.state.spiner = false;
     },
-    clickRow(item, event) {
-      if (event.isExpanded) {
-        const index = this.expanded.findIndex((i) => i === item);
-        this.expanded.splice(index, 1);
-      } else {
-        this.expanded.push(item);
-      }
-    },
     verSoport(ruta) {
       window.open(ruta, "_blank");
     },
@@ -848,7 +837,7 @@ export default {
       var config = {
         method: "get",
         url:
-          process.env.VUE_APP_URL_MAIN +
+          import.meta.env.VUE_APP_URL_MAIN +
           `exportar_listado_reporte_egresos?id_branch=${
             JSON.parse(sessionStorage.getItem("dataUser"))[0].id_branch
           }&desde=${
@@ -901,7 +890,7 @@ export default {
       let vm = this;
       var config = {
         method: "get",
-        url: process.env.VUE_APP_URL_MAIN + "getListBanksDetailsCargar",
+        url: import.meta.env.VUE_APP_URL_MAIN + "getListBanksDetailsCargar",
         params: {
           id_branch: JSON.parse(sessionStorage.getItem("dataUser"))[0]
             .id_branch,

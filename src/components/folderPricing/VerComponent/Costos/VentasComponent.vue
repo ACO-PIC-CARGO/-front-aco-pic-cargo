@@ -3,7 +3,7 @@
     <div class="">
       <v-row>
         <v-col cols="12" lg="4" xl="4" class="my-1 py-2">
-          <span class="title">
+          <span class="text-h6">
             Ventas {{ currencyFormat($store.state.pricing.totalVenta) }}
             <!-- <v-btn icon color="primary" @click="abrirModal">
               <v-icon>mdi-plus</v-icon>
@@ -19,12 +19,12 @@
         dense
         class="my-1"
       >
-        <v-expansion-panel-header>
+        <v-expansion-panel-title>
           {{ item.name }} : {{ obtenerTotalEnBaseTipoCosto(item.codigo) }}
-        </v-expansion-panel-header>
+        </v-expansion-panel-title>
 
-        <v-expansion-panel-content>
-          <v-simple-table dense>
+        <v-expansion-panel-text>
+          <v-table density="compact">
             <thead>
               <tr>
                 <th style="">Conceptos</th>
@@ -37,28 +37,28 @@
             <tbody>
               <template
                 v-for="(valor, i) in obtenerCostosEnBaseTipoCosto(item.codigo)"
+                :key="'main-' + i"
               >
                 <tr
-                  :key="'main-' + i"
-                  :class="{ 'bg-warning': valor.tieneprofitflag }"
+                  :class="{ 'bg-warning text-black': valor.tieneprofitflag }"
                 >
                   <td class="colConcepto">
                     <v-text-field
-                      dense
+                      density="compact"
                       hide-details
                       v-model="valor.nameservice"
                       readonly
                     ></v-text-field>
                   </td>
                   <td class="colProveedorMultiplicador">
-                    <v-select
+                    <v-select item-title="text"
                       class="widthTD"
                       :items="$store.state.pricing.listMultiplicador"
                       v-model="valor.id_multiplicador"
                       placeholder="Multiplicador"
                       hide-details
-                      dense
-                      @change="calcTotales"
+                      density="compact"
+                      @update:model-value="calcTotales"
                       :readonly="
                         isITBM(valor.code_cost) ||
                         isConfeccion(valor.code_cost) ||
@@ -76,8 +76,7 @@
                         !isITBM(valor.code_cost) &&
                         !isNotaCredito(valor.code_cost)
                       "
-                      dense
-                      max-width="50%"
+                      density="compact"
                       v-model="valor.costounitario"
                       prefix="$"
                       type="number"
@@ -100,9 +99,8 @@
                         !isNotaCredito(valor.code_cost)
                       "
                       hide-details
-                      max-width="50%"
                       suffix="%"
-                      dense
+                      density="compact"
                       max="100"
                       v-model="valor.cif"
                       type="number"
@@ -111,7 +109,6 @@
                       v-on:blur="calcTotales"
                     ></v-text-field>
                     <v-text-field
-                      max-width="50%"
                       suffix="%"
                       class="derecha tdMontos"
                       v-if="
@@ -123,7 +120,7 @@
                         !isNotaCredito(valor.code_cost)
                       "
                       hide-details
-                      dense
+                      density="compact"
                       max="100"
                       v-model="valor.seguro"
                       type="number"
@@ -135,7 +132,7 @@
                     <v-text-field
                       v-if="isITBM(valor.code_cost)"
                       readonly
-                      dense
+                      density="compact"
                       v-model="valor.costounitario"
                       :error-messages="valor.error"
                       prefix="$"
@@ -144,7 +141,7 @@
                     <v-text-field
                       v-if="isConfeccion(valor.code_cost)"
                       readonly
-                      dense
+                      density="compact"
                       v-model="valor.costounitario"
                       :error-messages="valor.error"
                       prefix="$"
@@ -152,7 +149,7 @@
                     <v-text-field
                       v-if="isNotaCredito(valor.code_cost)"
                       readonly
-                      dense
+                      density="compact"
                       v-model="valor.costounitario"
                       prefix="$"
                     ></v-text-field>
@@ -203,8 +200,8 @@
                 </tr>
               </template>
             </tbody>
-          </v-simple-table>
-        </v-expansion-panel-content>
+          </v-table>
+        </v-expansion-panel-text>
       </v-expansion-panel>
     </v-expansion-panels>
 
@@ -216,19 +213,19 @@
             <v-row>
               <v-col cols="12" class="my-1 py-1">
                 <v-autocomplete
-                  dense
+                  density="compact"
                   autocomplete="none"
                   :items="tipoOpcion"
                   label="Tipo"
                   item-value="codigo"
-                  item-text="name"
+                  item-title="name"
                   v-model="fromDataService.idOpcion"
                   :rules="[(v) => !!v || 'Dato requerido']"
                 ></v-autocomplete>
               </v-col>
               <v-col cols="12" class="my-1 py-1">
-                <v-autocomplete
-                  dense
+                <v-autocomplete item-title="text"
+                  density="compact"
                   label="Multiplicador"
                   :items="$store.state.pricing.listMultiplicador"
                   v-model="fromDataService.id_multiplicador"
@@ -237,7 +234,7 @@
               </v-col>
               <v-col cols="12" class="my-1 py-1">
                 <v-text-field
-                  dense
+                  density="compact"
                   label="Concepto"
                   :rules="[(v) => !!v || 'Dato requerido']"
                   v-model="fromDataService.nameservice"
@@ -246,7 +243,7 @@
               </v-col>
               <v-col cols="12" class="my-1 py-1">
                 <v-text-field
-                  dense
+                  density="compact"
                   label="Precio"
                   type="number"
                   min="0"
@@ -257,12 +254,12 @@
               </v-col>
               <v-col cols="12" class="my-0 py-0">
                 <v-alert
-                  outlined
+                  variant="outlined"
                   type="warning"
                   prominent
-                  border="left"
+                  border="start"
                   class="px-5 mx-5"
-                  dense
+                  density="compact"
                 >
                   El concepto se verá reflejado al abrir la sección
                   correspondiente.
@@ -272,7 +269,7 @@
           </v-card-text>
           <v-card-actions class="d-flex justify-end">
             <v-btn color="success" @click="guardarCosto()">Aceptar</v-btn>
-            <v-btn color="red" @click="dialog = !dialog" dark>cancelar</v-btn>
+            <v-btn color="red" @click="dialog = !dialog">cancelar</v-btn>
           </v-card-actions>
         </v-card>
       </v-form>
@@ -496,8 +493,8 @@ export default {
       this.$refs.frmNuevoCosto.reset();
       this.dialog = !this.dialog;
     },
-    guardarCosto() {
-      if (this.$refs.frmNuevoCosto.validate()) {
+    async guardarCosto() {
+      if ((await this.$refs.frmNuevoCosto.validate()).valid) {
         if (this.fromDataService.idOpcion == "OR") {
           this.fromDataService.esorigenflag = 1;
         }
@@ -931,8 +928,8 @@ export default {
 
 <style scoped>
 .v-expansion-panels.condensed
-  .v-expansion-panel-header
-  .v-expansion-panel-content__wrap {
+  .v-expansion-panel-title
+  .v-expansion-panel-text__wrapper {
   /* padding-top: 2px;
   padding-bottom: 2px; */
   padding: 2px 8px 2px;
@@ -972,7 +969,7 @@ td {
   text-align: right !important;
   align-content: right !important;
 }
-.v-text-field__slot {
+.v-field__input {
   max-width: 5px !important;
 }
 
@@ -994,7 +991,7 @@ table td:nth-child(5) {
   padding: 0 8px 16px !important;
 }
 
-.v-expansion-panel-content >>> .v-expansion-panel-content__wrap {
+.v-expansion-panel-text :deep(.v-expansion-panel-text__wrapper) {
   padding: 2px 0 2px !important;
 }
 

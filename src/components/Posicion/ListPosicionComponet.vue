@@ -8,7 +8,7 @@
             placeholder="Buscar"
             v-model="search"
             clearable
-            append-icon="mdi-magnify"
+            append-inner-icon="mdi-magnify"
           ></v-text-field>
         </v-col>
         <v-col cols="4" offset="4" class="text-right my-auto">
@@ -31,7 +31,7 @@
             :headers="headers"
             :items="$store.state.position.lstPosition"
             class="elevation-1"
-            item-key="port_beginend_id"
+            item-value="port_beginend_id"
             :loading="loading"
             :search="search"
           >
@@ -39,28 +39,27 @@
               {{ !!item.estado ? "Activo" : "Inactivo" }}
             </template>
             <template v-slot:[`item.statuscalls`]="{ item }">
-              <v-chip color="green" v-if="item.status_calls == 1" dark
+              <v-chip color="green" v-if="item.status_calls == 1"
                 >Si</v-chip
               >
-              <v-chip color="red" v-else dark>No</v-chip>
+              <v-chip color="red" v-else>No</v-chip>
             </template>
             <template v-slot:[`item.statuscalls_all`]="{ item }">
-              <v-chip color="green" v-if="item.status_calls_all == 1" dark
+              <v-chip color="green" v-if="item.status_calls_all == 1"
                 >Si</v-chip
               >
-              <v-chip color="red" v-else dark>No</v-chip>
+              <v-chip color="red" v-else>No</v-chip>
             </template>
             <template v-slot:[`item.estado`]="{ item }">
               {{ !!item.estado ? "Activo" : "Inactivo" }}
             </template>
             <template v-slot:[`item.action`]="{ item }">
-              <v-tooltip bottom>
-                <template v-slot:activator="{ on, attrs }">
+              <v-tooltip location="bottom">
+                <template v-slot:activator="{ props }">
                   <v-icon
                     color="primary"
-                    dark
-                    v-bind="attrs"
-                    v-on="on"
+                   
+                    v-bind="props"
                     @click="ver(item)"
                   >
                     mdi-eye
@@ -68,7 +67,7 @@
                 </template>
                 <span>Ver</span>
               </v-tooltip>
-              <v-tooltip bottom>
+              <v-tooltip location="bottom">
                 <!-- <template v-slot:activator="{ on, attrs }">
                   <v-icon
                     color="warning"
@@ -115,14 +114,14 @@ export default {
       loadingNuevo: false,
       loadingFiltrar: false,
       headers: [
-        { text: "Código", value: "code" },
-        { text: "Nombre", value: "name" },
+        { title: "Código", key: "code" },
+        { title: "Nombre", key: "name" },
         // { text: "Descripción", value: "description" },
-        { text: "Estado", value: "estado" },
-        { text: "Creación", value: "created_at" },
+        { title: "Estado", key: "estado" },
+        { title: "Creación", key: "created_at" },
 
-        { text: "Última Actualización", value: "updated_at" },
-        { text: "Acciones", value: "action" },
+        { title: "Última Actualización", key: "updated_at" },
+        { title: "Acciones", key: "action" },
       ],
     };
   },

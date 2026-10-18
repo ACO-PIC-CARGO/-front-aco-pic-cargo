@@ -194,7 +194,7 @@ const actions = {
     try {
       const config = {
         method: "get",
-        url: `${process.env.VUE_APP_URL_MAIN}listar_montos_finales_aduana`,
+        url: `${import.meta.env.VUE_APP_URL_MAIN}listar_montos_finales_aduana`,
         params: {
           id_branch: JSON.parse(sessionStorage.getItem("dataUser"))[0]
             .id_branch,
@@ -267,7 +267,7 @@ const actions = {
 
     await axios
       .post(
-        process.env.VUE_APP_URL_MAIN + "insert_monto_finales_aduana",
+        import.meta.env.VUE_APP_URL_MAIN + "insert_monto_finales_aduana",
         data,
         headers
       )
@@ -287,7 +287,7 @@ const actions = {
     var config = {
       method: "get",
       url:
-        process.env.VUE_APP_URL_MAIN +
+        import.meta.env.VUE_APP_URL_MAIN +
         "get_personal_pricing?id_branch=" +
         JSON.parse(sessionStorage.getItem("dataUser"))[0].id_branch,
       headers: {
@@ -306,7 +306,7 @@ const actions = {
   async aprobarCotizacionAduana({ dispatch }, dataParaAprobar) {
     var config = {
       method: "put",
-      url: process.env.VUE_APP_URL_MAIN + "aprobar_cotizacion_aduana",
+      url: import.meta.env.VUE_APP_URL_MAIN + "aprobar_cotizacion_aduana",
       headers: {
        
         "Content-Type": "application/json",
@@ -359,7 +359,7 @@ const actions = {
   async getServicesAduana({ commit }) {
     let config = {
       method: "get",
-      url: `${process.env.VUE_APP_URL_MAIN}obtenerListadoServiciosAduanaQuote`,
+      url: `${import.meta.env.VUE_APP_URL_MAIN}obtenerListadoServiciosAduanaQuote`,
       params: {
         id_branch: JSON.parse(sessionStorage.getItem("dataUser"))[0].id_branch,
       },
@@ -381,7 +381,7 @@ const actions = {
   async cargarListadoQuoteAduana({ commit }) {
     let config = {
       method: "get",
-      url: `${process.env.VUE_APP_URL_MAIN}cargar__quote_aduana`,
+      url: `${import.meta.env.VUE_APP_URL_MAIN}cargar__quote_aduana`,
       params: {
         id_branch: JSON.parse(sessionStorage.getItem("dataUser"))[0].id_branch,
       },
@@ -401,7 +401,7 @@ const actions = {
   async getCotizacionUnificar({ commit }, id) {
     let config = {
       method: "get",
-      url: `${process.env.VUE_APP_URL_MAIN}obtener_cotizacion_unificar`,
+      url: `${import.meta.env.VUE_APP_URL_MAIN}obtener_cotizacion_unificar`,
       params: {
         id: id,
       },
@@ -425,7 +425,7 @@ const actions = {
   async getAduanaUnificar({ commit }, id) {
     let config = {
       method: "get",
-      url: `${process.env.VUE_APP_URL_MAIN}obtener_aduana_unificar`,
+      url: `${import.meta.env.VUE_APP_URL_MAIN}obtener_aduana_unificar`,
       params: {
         id: id,
       },
@@ -449,7 +449,7 @@ const actions = {
   async getItemsServices({ commit }) {
     var config = {
       method: "post",
-      url: process.env.VUE_APP_URL_MAIN + "getItemsServices",
+      url: import.meta.env.VUE_APP_URL_MAIN + "getItemsServices",
       headers: {
        
         "Content-Type": "application/json",
@@ -489,7 +489,7 @@ const actions = {
     };
     var config = {
       method: "get",
-      url: process.env.VUE_APP_URL_MAIN + "obtener_costos_pricing",
+      url: import.meta.env.VUE_APP_URL_MAIN + "obtener_costos_pricing",
       headers: headers,
       params: data,
     };
@@ -514,7 +514,7 @@ const actions = {
     //
     var config = {
       method: "post",
-      url: process.env.VUE_APP_URL_MAIN + "getMultiplicador",
+      url: import.meta.env.VUE_APP_URL_MAIN + "getMultiplicador",
       data: data,
       headers: headers,
     };
@@ -541,7 +541,7 @@ const actions = {
     var config = {
       method: "get",
       url:
-        process.env.VUE_APP_URL_MAIN +
+        import.meta.env.VUE_APP_URL_MAIN +
         `tipo_costo_x_embarque?id_shipment=${
           state.datosPrincipales.idtipocarga.id
             ? state.datosPrincipales.idtipocarga.id
@@ -2588,7 +2588,7 @@ const actions = {
   async getModalityAduana({ commit }) {
     var config = {
       method: "post",
-      url: process.env.VUE_APP_URL_MAIN + "getModality",
+      url: import.meta.env.VUE_APP_URL_MAIN + "getModality",
       headers: {
        
         "Content-Type": "application/json",
@@ -2605,7 +2605,7 @@ const actions = {
         console.error(error);
       });
   },
-  async obtenerDatosEmpresaAduana() {
+  async obtenerDatosEmpresaAduana({ state }) {
     var headers = {
      
       "Content-Type": "application/json",
@@ -2616,7 +2616,7 @@ const actions = {
     var config = {
       method: "post",
       url:
-        process.env.VUE_APP_URL_MAIN +
+        import.meta.env.VUE_APP_URL_MAIN +
         `getBranch/${
           JSON.parse(sessionStorage.getItem("dataUser"))[0].id_branch
         }`,
@@ -2634,7 +2634,7 @@ const actions = {
   ) {
     var config = {
       method: "post",
-      url: process.env.VUE_APP_URL_MAIN + "getPortBegin",
+      url: import.meta.env.VUE_APP_URL_MAIN + "getPortBegin",
       headers: {
        
         "Content-Type": "application/json",
@@ -2660,7 +2660,7 @@ const actions = {
   ) {
     var config = {
       method: "post",
-      url: process.env.VUE_APP_URL_MAIN + "getPortEnd",
+      url: import.meta.env.VUE_APP_URL_MAIN + "getPortEnd",
       headers: {
        
         "Content-Type": "application/json",
@@ -2683,7 +2683,7 @@ const actions = {
   async getShipmentAduana({ commit }) {
     var config = {
       method: "post",
-      url: process.env.VUE_APP_URL_MAIN + "getShipment",
+      url: import.meta.env.VUE_APP_URL_MAIN + "getShipment",
       headers: {
        
         "Content-Type": "application/json",
@@ -2703,7 +2703,7 @@ const actions = {
   async getIncotermsAduana({ commit }) {
     var config = {
       method: "post",
-      url: process.env.VUE_APP_URL_MAIN + "getIncoterms",
+      url: import.meta.env.VUE_APP_URL_MAIN + "getIncoterms",
       headers: {
        
         "Content-Type": "application/json",
@@ -2720,7 +2720,7 @@ const actions = {
         console.error(error);
       });
   },
-  async registrarAduana(__, { fullflag = true }) {
+  async registrarAduana({ state }, { fullflag = true }) {
     let imp = state.listServices.filter(
       (v) => v.code_service == "15" && v.status == true
     );
@@ -2807,7 +2807,7 @@ const actions = {
     //  console.log(data.costocotizacion);
     let config = {
       method: "post",
-      url: process.env.VUE_APP_URL_MAIN + "insert_aduana  ",
+      url: import.meta.env.VUE_APP_URL_MAIN + "insert_aduana  ",
       headers: {
        
         "Content-Type": "application/json",
@@ -2826,7 +2826,7 @@ const actions = {
     var config = {
       method: "get",
       url:
-        process.env.VUE_APP_URL_MAIN +
+        import.meta.env.VUE_APP_URL_MAIN +
         `listar_aduana?id_branch=${
           JSON.parse(sessionStorage.getItem("dataUser"))[0].id_branch
         }&id_marketing=${
@@ -2891,10 +2891,10 @@ const actions = {
         console.error(error);
       });
   },
-  async getAdunaVer(__, { id: id }) {
+  async getAdunaVer({ state }, { id: id }) {
     let config = {
       method: "get",
-      url: process.env.VUE_APP_URL_MAIN + `ver_aduana?id=${id}`,
+      url: import.meta.env.VUE_APP_URL_MAIN + `ver_aduana?id=${id}`,
       headers: {
        
         "Content-Type": "application/json",
@@ -3037,7 +3037,7 @@ const actions = {
     };
     let config = {
       method: "put",
-      url: process.env.VUE_APP_URL_MAIN + "actualizar_aduana",
+      url: import.meta.env.VUE_APP_URL_MAIN + "actualizar_aduana",
       headers: {
        
         "Content-Type": "application/json",
@@ -3064,7 +3064,7 @@ const actions = {
     var config = {
       method: "post",
       url:
-        process.env.VUE_APP_URL_MAIN +
+        import.meta.env.VUE_APP_URL_MAIN +
         `cargar_master_detalle_notas_cotizacion?id_branch=${
           JSON.parse(sessionStorage.getItem("dataUser"))[0].id_branch
         }`,
@@ -3083,7 +3083,7 @@ const actions = {
       }
     });
   },
-  async obtenerDatosEmpresaAduana() {
+  async obtenerDatosEmpresaAduana({ state }) {
     var headers = {
      
       "Content-Type": "application/json",
@@ -3094,7 +3094,7 @@ const actions = {
     var config = {
       method: "post",
       url:
-        process.env.VUE_APP_URL_MAIN +
+        import.meta.env.VUE_APP_URL_MAIN +
         `getBranch/${
           JSON.parse(sessionStorage.getItem("dataUser"))[0].id_branch
         }`,
@@ -3106,10 +3106,10 @@ const actions = {
       state.datosEmpresa = data;
     });
   },
-  async unificarQuoteAduana({}, data) {
+  async unificarQuoteAduana({ state }, data) {
     let config = {
       method: "post",
-      url: process.env.VUE_APP_URL_MAIN + "aduana_unificar",
+      url: import.meta.env.VUE_APP_URL_MAIN + "aduana_unificar",
       headers: {
        
         "Content-Type": "application/json",
@@ -3133,7 +3133,7 @@ const actions = {
 
     var config = {
       method: "put",
-      url: process.env.VUE_APP_URL_MAIN + `update_aduana_recibido_enviado`,
+      url: import.meta.env.VUE_APP_URL_MAIN + `update_aduana_recibido_enviado`,
       headers: headers,
       data: data,
     };
@@ -3149,7 +3149,7 @@ const actions = {
   async guardarNotaAduana(__, data) {
     var config = {
       method: "post",
-      url: process.env.VUE_APP_URL_MAIN + "set_calls_aduana",
+      url: import.meta.env.VUE_APP_URL_MAIN + "set_calls_aduana",
       headers: {
        
         "Content-Type": "application/json",
@@ -3178,7 +3178,7 @@ const actions = {
     var config = {
       method: "get",
       url:
-        process.env.VUE_APP_URL_MAIN +
+        import.meta.env.VUE_APP_URL_MAIN +
         `list_calls_aduana?id_branch=${
           JSON.parse(sessionStorage.getItem("dataUser"))[0].id_branch
         }&id_marketing=${
@@ -5194,7 +5194,7 @@ const actions = {
 
     await axios
       .post(
-        process.env.VUE_APP_URL_MAIN + "quote_preview_totales",
+        import.meta.env.VUE_APP_URL_MAIN + "quote_preview_totales",
         data,
         headers
       )
@@ -5207,7 +5207,7 @@ const actions = {
         });
 
         window.open(
-          `${process.env.VUE_APP_URL_MAIN}${response.data.path}`,
+          `${import.meta.env.VUE_APP_URL_MAIN}${response.data.path}`,
           // "",
           "_blank"
         );
@@ -5224,7 +5224,7 @@ const actions = {
     };
     var config = {
       method: "post",
-      url: process.env.VUE_APP_URL_MAIN + "getInstructivoIdAduana/" + id,
+      url: import.meta.env.VUE_APP_URL_MAIN + "getInstructivoIdAduana/" + id,
       headers: headers,
       data: data,
     };
@@ -5236,7 +5236,7 @@ const actions = {
         console.error(error);
       });
   },
-  generaInstructivoAduana({ dispatch }) {
+  generaInstructivoAduana({ dispatch, state }) {
     // -------------------------------------------------------
     state.listServiciosInstructivo = [];
 
@@ -5252,11 +5252,11 @@ const actions = {
     )[0].name;
 
     // console.log(state.opcionCostos)
-    GenerarIngresosInstrictivo(state.tiporeporte);
-    GenerarCostosInstrictivo(state.tiporeporte);
-    GenerarImpInstructivo();
+    GenerarIngresosInstrictivo(state.tiporeporte, state);
+    GenerarCostosInstrictivo(state.tiporeporte, state);
+    GenerarImpInstructivo(state);
   },
-  async generaInstructivoparaguardataAduana({ dispatch }) {
+  async generaInstructivoparaguardataAduana({ dispatch, state }) {
     state.listIngresosInstructivoAprobar = [];
     let isImport = state.listModality.some(
       (v) => v.id == state.datosPrincipales.idsentido && v.code == "I"
@@ -5757,7 +5757,7 @@ function isNotPorcentaje(element, id_multiplicador) {
   return !mul;
 }
 
-function GenerarIngresosInstrictivo(tipo) {
+function GenerarIngresosInstrictivo(tipo, state) {
   let iso = JSON.parse(sessionStorage.getItem("iso_pais"));
   let isImport = state.listModality.some(
     (v) => v.id == state.datosPrincipales.idsentido && v.code == "I"
@@ -7673,7 +7673,7 @@ function GenerarIngresosInstrictivo(tipo) {
     });
 }
 
-async function GenerarCostosInstrictivo(tipo) {
+async function GenerarCostosInstrictivo(tipo, state) {
   state.opcionCostos
     .filter((v) => !!v.selected)
     .forEach(async (opcion) => {
@@ -7810,7 +7810,7 @@ async function GenerarCostosInstrictivo(tipo) {
     });
 }
 
-function GenerarImpInstructivo() {
+function GenerarImpInstructivo(state) {
   let totalFleteVentas = 0;
   let impuestoflag = state.listServices.some(
     (v) => v.code_service == 15 && v.status == 1

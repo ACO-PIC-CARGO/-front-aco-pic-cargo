@@ -1,0 +1,137 @@
+{
+  "listEntitie": {
+    "id_role": "3"
+  },
+  "verProveedor": {
+    "id": "64"
+  },
+  "editarProveedor": {
+    "id": "64"
+  },
+  "verCliente": {
+    "id": "656"
+  },
+  "editarCliente": {
+    "id": "656"
+  },
+  "controlEntitie": {
+    "id_role": "3"
+  },
+  "controlEntitieEdit": {
+    "id": "64"
+  },
+  "controlMasterEditar": {
+    "id": "2697"
+  },
+  "controlMasterVer": {
+    "id": "2697"
+  },
+  "controlMasterId": {
+    "id": "2697"
+  },
+  "controlMasterParams": {
+    "id": "2697",
+    "params": "2697"
+  },
+  "controlHouseEditar": {
+    "id": "4568"
+  },
+  "controlHouseVer": {
+    "id": "4568"
+  },
+  "controlHouseId": {
+    "id": "4568"
+  },
+  "billControlGastos": {
+    "id_house": "4568"
+  },
+  "billControlGastosControl": {
+    "id_house": "4568",
+    "id_control": "2697",
+    "id_orders": "4568",
+    "code": "2026MBL01723"
+  },
+  "editControlGasto": {
+    "id": "2697",
+    "id_branch": "1"
+  },
+  "verControlGasto": {
+    "id": "2697",
+    "id_branch": "1"
+  },
+  "viewAccountPays": {
+    "id": "4733"
+  },
+  "EditAccountPays": {
+    "id": "4733"
+  },
+  "verProyeccion": {
+    "id": "23"
+  },
+  "editarProyeccion": {
+    "id": "23"
+  },
+  "viewAccountPaysCxC": {
+    "id": "1000"
+  },
+  "EditAccountPaysCxC": {
+    "id": "1000"
+  },
+  "verPagosPorProveedor": {
+    "id": "6714"
+  },
+  "editarPagosPorProveedor": {
+    "id": "6714"
+  },
+  "editarPagosPorCliente": {
+    "id": "7060"
+  },
+  "verPagosPorCliente": {
+    "id": "7060"
+  },
+  "verQuote": {
+    "id": "12895"
+  },
+  "editQuote": {
+    "id": "12895"
+  },
+  "readEnterprise": {
+    "id": "1"
+  },
+  "updateEnterprise": {
+    "id": "1"
+  },
+  "editarUser": {
+    "id": "173"
+  },
+  "verUser": {
+    "id": "173"
+  },
+  "editarPosicion": {
+    "id": "1"
+  },
+  "verPosicion": {
+    "id": "1"
+  },
+  "EditarSalida": {
+    "nro_operacion": "03790014"
+  },
+  "EditarCobroCliente": {
+    "nro_operacion": "00180064"
+  },
+  "EditarAduana": {
+    "id": "14"
+  },
+  "VerAduana": {
+    "id": "14"
+  },
+  "UserCalculadoraVer": {
+    "id": "577"
+  },
+  "tracking": {
+    "token": "e2e-invalid-token"
+  },
+  "ReestablecerClave": {
+    "token": "e2e-invalid-token"
+  }
+}

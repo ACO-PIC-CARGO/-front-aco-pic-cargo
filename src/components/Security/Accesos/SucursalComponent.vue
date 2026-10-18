@@ -1,9 +1,9 @@
 <template>
   <div class="formulario">
     <v-form ref="Login" autocomplete="off">
-      <div class="title">
+      <div class="title text-h6">
         <h1 class="_title__logo my-3">ACO</h1>
-        <h3 class="white--text my-5">Selección de Sucursal</h3>
+        <h3 class="text-white my-5">Selección de Sucursal</h3>
       </div>
       <!-- <p class="white--text">
           Sistema para Agencia de Carga y Operadores Logísticos
@@ -13,12 +13,11 @@
         <v-select
           :items="$store.state.securitys.lstSucursal"
           v-model="$store.state.securitys.frmLogin.id_sucursal"
-          item-text="trade_name"
+          item-title="trade_name"
           item-value="id"
-          dense
+          density="compact"
           placeholder="Sucursal"
           label="Sucursal"
-          dark
           :rules="[(v) => !!v || 'Dato Requerido']"
         ></v-select>
         <!-- <span class="red--text"> {{ errorUsuario }}</span> -->
@@ -68,7 +67,7 @@ export default {
       "ObtenerDatosConfig",
     ]),
     async guardarSucursal() {
-      if (this.$refs.Login.validate()) {
+      if ((await this.$refs.Login.validate()).valid) {
         this.loading = true;
         // --------------------------------------------
         let dataBranch = this.$store.state.securitys.lstSucursal.filter(

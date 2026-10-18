@@ -37,7 +37,7 @@ const state = {
     id_role: 0,
     id_tipotransaccion: 56,
     id_tipodocumento: 0,
-    id_pais: 0,
+    id_pais: null,
     id_ciudad: 0,
     dias_credito: 0,
     dias_sobreestadia: 0,
@@ -73,7 +73,7 @@ const state = {
     id_role: 0,
     id_tipotransaccion: 56,
     id_tipodocumento: 0,
-    id_pais: 0,
+    id_pais: null,
     id_sex: 0,
     id_ciudad: 0,
     dias_credito: 0,
@@ -158,7 +158,7 @@ const actions = {
     var config = {
       method: "get",
       url:
-        process.env.VUE_APP_URL_MAIN +
+        import.meta.env.VUE_APP_URL_MAIN +
         `cargar_persona?id_branch=${
           JSON.parse(sessionStorage.getItem("dataUser"))[0].id_branch
         }`,
@@ -186,7 +186,7 @@ const actions = {
     var config = {
       method: "get",
       url:
-        process.env.VUE_APP_URL_MAIN +
+        import.meta.env.VUE_APP_URL_MAIN +
         `listar_persona_tipo_persona?id_branch=${
           JSON.parse(sessionStorage.getItem("dataUser"))[0].id_branch
         }`,
@@ -213,7 +213,7 @@ const actions = {
   async guardarRolProveedor({ commit, dispatch }) {
     var config = {
       method: "put",
-      url: process.env.VUE_APP_URL_MAIN + `actualizar_rol_proveedor`,
+      url: import.meta.env.VUE_APP_URL_MAIN + `actualizar_rol_proveedor`,
       headers: {
        
         "Content-Type": "application/json",
@@ -253,7 +253,7 @@ const actions = {
     var config = {
       method: "get",
       url:
-        process.env.VUE_APP_URL_MAIN +
+        import.meta.env.VUE_APP_URL_MAIN +
         `listado_proveedor?id_branch=${
           JSON.parse(sessionStorage.getItem("dataUser"))[0].id_branch
         }&correlativo=${
@@ -316,7 +316,7 @@ const actions = {
     var config = {
       method: "get",
       url:
-        process.env.VUE_APP_URL_MAIN +
+        import.meta.env.VUE_APP_URL_MAIN +
         `validar_razon_social?id_branch=${
           JSON.parse(sessionStorage.getItem("dataUser"))[0].id_branch
         }&razonsocial=${
@@ -346,7 +346,7 @@ const actions = {
     var config = {
       method: "get",
       url:
-        process.env.VUE_APP_URL_MAIN +
+        import.meta.env.VUE_APP_URL_MAIN +
         `validar_documento?id_branch=${
           JSON.parse(sessionStorage.getItem("dataUser"))[0].id_branch
         }&id_tipodocumento=${state.proveedor.id_tipodocumento}&documento=${
@@ -372,12 +372,12 @@ const actions = {
         console.error(error);
       });
   },
-  async getVerProveedor({ commit }) {
+  async getVerProveedor({ commit, state }) {
     var config = {
       method: "get",
       url:
-        process.env.VUE_APP_URL_MAIN +
-        `ver_proveedor?id=${router.currentRoute.params.id}`,
+        import.meta.env.VUE_APP_URL_MAIN +
+        `ver_proveedor?id=${router.currentRoute.value.params.id}`,
       headers: {
        
         "Content-Type": "application/json",
@@ -473,7 +473,7 @@ const actions = {
         console.error(error);
       });
   },
-  async guardarProveedor({ commit }) {
+  async guardarProveedor({ commit, state }) {
     let res = {};
     state.proveedor.id_branch = JSON.parse(
       sessionStorage.getItem("dataUser"),
@@ -491,7 +491,7 @@ const actions = {
 
     var config = {
       method: "post",
-      url: process.env.VUE_APP_URL_MAIN + `registrar_proveedor`,
+      url: import.meta.env.VUE_APP_URL_MAIN + `registrar_proveedor`,
       headers: {
        
         "Content-Type": "application/json",
@@ -523,8 +523,8 @@ const actions = {
           });
         } else {
           let quote = ["newQuote", "verQuote", "editQuote"];
-          console.log(router.currentRoute.name);
-          if (!quote.includes(router.currentRoute.name)) {
+          console.log(router.currentRoute.value.name);
+          if (!quote.includes(router.currentRoute.value.name)) {
             Swal.fire({
               icon: !!data.estadoflag ? "success" : "error",
               title: "Aviso",
@@ -559,7 +559,7 @@ const actions = {
       });
     return res;
   },
-  async actualizarProveedor({ commit }) {
+  async actualizarProveedor({ commit, state }) {
     state.proveedor.id_branch = JSON.parse(
       sessionStorage.getItem("dataUser"),
     )[0].id_branch;
@@ -572,7 +572,7 @@ const actions = {
 
     var config = {
       method: "put",
-      url: process.env.VUE_APP_URL_MAIN + `actualizar_proveedor`,
+      url: import.meta.env.VUE_APP_URL_MAIN + `actualizar_proveedor`,
       headers: {
        
         "Content-Type": "application/json",
@@ -624,7 +624,7 @@ const actions = {
   async eliminarPersona({ commit, dispatch }, data) {
     var config = {
       method: "put",
-      url: process.env.VUE_APP_URL_MAIN + `eliminar_proveedor`,
+      url: import.meta.env.VUE_APP_URL_MAIN + `eliminar_proveedor`,
       headers: {
        
         "Content-Type": "application/json",
@@ -648,11 +648,11 @@ const actions = {
       });
     dispatch("getListProveedor");
   },
-  async telConctactoProveedor({ commit, dispatch }, data) {
+  async telConctactoProveedor({ commit, dispatch, state }, data) {
     var config = {
       method: "get",
       url:
-        process.env.VUE_APP_URL_MAIN + `tel_contacto_proveedor?id=${data.id}`,
+        import.meta.env.VUE_APP_URL_MAIN + `tel_contacto_proveedor?id=${data.id}`,
       headers: {
        
         "Content-Type": "application/json",
@@ -716,7 +716,7 @@ const actions = {
     });
     await axios
       .post(
-        process.env.VUE_APP_URL_MAIN + `export_list_proveedor`,
+        import.meta.env.VUE_APP_URL_MAIN + `export_list_proveedor`,
         data,
         headers,
       )
@@ -747,7 +747,7 @@ const actions = {
     var config = {
       method: "get",
       url:
-        process.env.VUE_APP_URL_MAIN +
+        import.meta.env.VUE_APP_URL_MAIN +
         `validar_nombre_proveedor?id_branch=${
           JSON.parse(sessionStorage.getItem("dataUser"))[0].id_branch
         }&nombre=${
@@ -778,7 +778,7 @@ const actions = {
     var config = {
       method: "get",
       url:
-        process.env.VUE_APP_URL_MAIN +
+        import.meta.env.VUE_APP_URL_MAIN +
         `validar_documento_proveedor?id_branch=${
           JSON.parse(sessionStorage.getItem("dataUser"))[0].id_branch
         }&id_tipodocumento=${
@@ -814,7 +814,7 @@ const actions = {
     var config = {
       method: "get",
       url:
-        process.env.VUE_APP_URL_MAIN +
+        import.meta.env.VUE_APP_URL_MAIN +
         `listado_clientes?id_branch=${
           JSON.parse(sessionStorage.getItem("dataUser"))[0].id_branch
         }&correlativo=${
@@ -875,7 +875,7 @@ const actions = {
     var config = {
       method: "get",
       url:
-        process.env.VUE_APP_URL_MAIN +
+        import.meta.env.VUE_APP_URL_MAIN +
         `validar_documento?id_branch=${
           JSON.parse(sessionStorage.getItem("dataUser"))[0].id_branch
         }&id_tipodocumento=${state.cliente.id_tipodocumento}&documento=${
@@ -901,7 +901,7 @@ const actions = {
         console.error(error);
       });
   },
-  async guardarCliente({ commit }) {
+  async guardarCliente({ commit, state }) {
     state.cliente.id_branch = JSON.parse(
       sessionStorage.getItem("dataUser"),
     )[0].id_branch;
@@ -915,7 +915,7 @@ const actions = {
     state.cliente.lstEmails = state.lstEmails;
     var config = {
       method: "post",
-      url: process.env.VUE_APP_URL_MAIN + `registrar_cliente`,
+      url: import.meta.env.VUE_APP_URL_MAIN + `registrar_cliente`,
       headers: {
        
         "Content-Type": "application/json",
@@ -946,7 +946,7 @@ const actions = {
           });
         } else {
           let quote = ["newQuote", "verQuote", "editQuote"];
-          console.log(router.currentRoute.name);
+          console.log(router.currentRoute.value.name);
 
           Swal.fire({
             icon: !!data.estadoflag ? "success" : "error",
@@ -979,12 +979,12 @@ const actions = {
         console.error(error);
       });
   },
-  async verCliente({ commit }, id = null) {
+  async verCliente({ commit, state }, id = null) {
     var config = {
       method: "get",
       url:
-        process.env.VUE_APP_URL_MAIN +
-        `ver_cliente?id=${id ? id : router.currentRoute.params.id}`,
+        import.meta.env.VUE_APP_URL_MAIN +
+        `ver_cliente?id=${id ? id : router.currentRoute.value.params.id}`,
       headers: {
        
         "Content-Type": "application/json",
@@ -1080,10 +1080,10 @@ const actions = {
         console.error(error);
       });
   },
-  async actualizarCliente({ commit }) {
+  async actualizarCliente({ commit, state }) {
     const nombreRuta = router.currentRoute.value
       ? router.currentRoute.value.name
-      : router.currentRoute.name;
+      : router.currentRoute.value.name;
     state.cliente.id_branch = JSON.parse(
       sessionStorage.getItem("dataUser"),
     )[0].id_branch;
@@ -1100,7 +1100,7 @@ const actions = {
     state.cliente.lstEmails = state.lstEmails;
     var config = {
       method: "put",
-      url: process.env.VUE_APP_URL_MAIN + `actualizar_cliente`,
+      url: import.meta.env.VUE_APP_URL_MAIN + `actualizar_cliente`,
       headers: {
        
         "Content-Type": "application/json",
@@ -1189,7 +1189,7 @@ const actions = {
       allowOutsideClick: false,
     });
     await axios
-      .post(process.env.VUE_APP_URL_MAIN + `export_list_cliente`, data, headers)
+      .post(import.meta.env.VUE_APP_URL_MAIN + `export_list_cliente`, data, headers)
       .then((response) => {
         const url = window.URL.createObjectURL(new Blob([response.data]));
         const link = document.createElement("a");
@@ -1217,7 +1217,7 @@ const actions = {
     var config = {
       method: "get",
       url:
-        process.env.VUE_APP_URL_MAIN +
+        import.meta.env.VUE_APP_URL_MAIN +
         `validar_nombre_cliente?id_branch=${
           JSON.parse(sessionStorage.getItem("dataUser"))[0].id_branch
         }&nombre=${
@@ -1248,7 +1248,7 @@ const actions = {
     var config = {
       method: "get",
       url:
-        process.env.VUE_APP_URL_MAIN +
+        import.meta.env.VUE_APP_URL_MAIN +
         `validar_documento_cliente?id_branch=${
           JSON.parse(sessionStorage.getItem("dataUser"))[0].id_branch
         }&id_tipodocumento=${
@@ -1280,7 +1280,7 @@ const actions = {
   async cargarDatosTatifasEntite({ commit }, data) {
     var config = {
       method: "get",
-      url: process.env.VUE_APP_URL_MAIN + `entitie/cargar_datos_tarifas`,
+      url: import.meta.env.VUE_APP_URL_MAIN + `entitie/cargar_datos_tarifas`,
       headers: {
        
         "Content-Type": "application/json",
@@ -1306,7 +1306,7 @@ const actions = {
     let res = {};
     var config = {
       method: "get",
-      url: process.env.VUE_APP_URL_MAIN + `entities/validar_eliminar_cliente`,
+      url: import.meta.env.VUE_APP_URL_MAIN + `entities/validar_eliminar_cliente`,
       headers: {
        
         "Content-Type": "application/json",

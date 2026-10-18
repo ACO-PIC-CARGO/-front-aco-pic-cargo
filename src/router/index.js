@@ -1,5 +1,4 @@
-import Vue from "vue";
-import VueRouter from "vue-router";
+import { createRouter, createWebHistory } from "vue-router";
 import Login from "../views/Login.vue";
 import Main from "../views/dashboard/Main.vue";
 import Home from "../views/dashboard/Home.vue";
@@ -46,8 +45,6 @@ import litProgrammedPayment from "../views/programmedPayment/listProgrammedPayme
 import listFacturacion from "../views/folderBilling/listFacturacionView";
 import planAccessGuard from "./planAccessGuard";
 import resetSessionOnLogin from "./resetSessionOnLogin";
-
-Vue.use(VueRouter);
 
 const routes = [
   {
@@ -905,30 +902,19 @@ const routes = [
   // },
 ];
 
-const router = new VueRouter({
-  base: process.env.BASE_URL,
-  mode: "history",
+const router = createRouter({
+  history: createWebHistory(import.meta.env.BASE_URL),
   routes,
   scrollBehavior(to, from, savedPosition) {
-    if (to.hash) {
-      return {
-        selector: to.hash,
-        behavior: "smooth",
-      };
-    }
+    if (to.hash) return { el: to.hash, behavior: "smooth" };
     if (savedPosition || !to.meta.scrollToTop) return savedPosition;
-    return { x: 0, y: 0 };
+    return { left: 0, top: 0 };
   },
 });
-// Guard global de autenticación
-router.beforeEach((to, from, next) => {
-  if (to.matched.some((record) => record.meta && record.meta.requiresAuth)) {
-    const token = sessionStorage.getItem("auth-token");
-    if (!token) {
-      return next({ name: "Login" });
-    }
-  }
-  next();
+
+router.beforeEach((to) => {
+  const requiresAuth = to.matched.some((record) => record.meta && record.meta.requiresAuth);
+  if (requiresAuth && !sessionStorage.getItem("auth-token")) return { name: "Login" };
 });
 router.beforeEach(resetSessionOnLogin);
 router.beforeEach(planAccessGuard);

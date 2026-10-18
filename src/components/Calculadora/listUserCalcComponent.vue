@@ -4,16 +4,16 @@
       <v-col cols="12" md="6">
         <v-text-field
           v-model="search"
-          append-icon="mdi-magnify"
+          append-inner-icon="mdi-magnify"
           label="Search"
           single-line
           hide-details
-          outlined
-          dense
+          variant="outlined"
+          density="compact"
         ></v-text-field>
       </v-col>
       <v-col cols="12" md="6">
-        <v-btn color="green" dark @click="exportar()" :loading="loading"
+        <v-btn color="green" @click="exportar()" :loading="loading"
           >Exportar</v-btn
         >
       </v-col>
@@ -22,43 +22,44 @@
           :headers="headers"
           :items="$store.state.calculadoras.listUser"
           :search="search"
-          item-key="id"
+          item-value="id"
           id="tblListUser"
           class="elevation-2"
-          striped
           show-expand
-          :single-expand="true"
-          :expanded.sync="expanded"
+          expand-strategy="single"
+          v-model:expanded="expanded"
         >
           <!-- <template v-slot:[`item.accion`]="{ item }">
             
           </template> -->
-          <template v-slot:expanded-item="{ headers, item }">
-            <td :colspan="headers.length">
-              <v-simple-table>
-                <thead class="headerDetails">
-                  <tr>
-                    <th>Fecha</th>
-                    <th>Comentario</th>
-                    <th>Usuario</th>
-                  </tr>
-                </thead>
-                <tbody v-if="item.detalle.length > 0">
-                  <tr v-for="(i, index) in item.detalle" :key="i.id || index">
-                    <td>{{ i.fecha }}</td>
-                    <td>{{ i.comentario }}</td>
-                    <td>{{ i.nombrecompleto }}</td>
-                  </tr>
-                </tbody>
-              </v-simple-table>
-            </td>
+          <template v-slot:expanded-row="{ columns, item }">
+            <tr>
+              <td :colspan="columns.length">
+                <v-table>
+                  <thead class="headerDetails">
+                    <tr>
+                      <th>Fecha</th>
+                      <th>Comentario</th>
+                      <th>Usuario</th>
+                    </tr>
+                  </thead>
+                  <tbody v-if="item.detalle.length > 0">
+                    <tr v-for="(i, index) in item.detalle" :key="i.id || index">
+                      <td>{{ i.fecha }}</td>
+                      <td>{{ i.comentario }}</td>
+                      <td>{{ i.nombrecompleto }}</td>
+                    </tr>
+                  </tbody>
+                </v-table>
+              </td>
+            </tr>
           </template>
           <template v-slot:[`item.estadocotizacion`]="{ item }">
             <v-chip
               v-if="item.estadocotizacion == 2"
-              class="ma-2"
+              class="ma-2 text-white"
               color="green"
-              text-color="white"
+              variant="flat"
             >
               Aprobado
             </v-chip>
@@ -75,14 +76,12 @@
               color="warning"
               class="ma-1 btnCalc"
               block
-              dark
               @click="abrirModalCambiarEstado(item)"
             >
               Cambiar Estado
             </v-btn>
             <v-btn
               color="#B71C1C"
-              dark
               v-if="item.capture_cotizacion"
               block
               class="ma-1 btnCalc"
@@ -94,7 +93,6 @@
             <v-btn
               block
               color="#4A148C"
-              dark
               class="ma-1 btnCalc"
               @click="abrirModalPreview(item)"
               v-if="item.estadocotizacion == 1"
@@ -103,9 +101,8 @@
             </v-btn>
             <v-btn
               block
-              small
+              size="small"
               color="#01579B"
-              dark
               class="ma-1 btnCalc"
               @click="enviarCotizacionAPricing(item)"
               v-if="item.estadocotizacion == 1"
@@ -127,7 +124,7 @@
     <previewQuote :dialog="dialog" :data="dataCotizacion" />
     <v-dialog v-model="dialogEditarEstado" max-width="30%">
       <v-card>
-        <v-card-title class="headline pb-0">
+        <v-card-title class="text-h5 pb-0">
           <p>Detalle de Nota de llamada</p>
         </v-card-title>
         <v-card-text>
@@ -141,30 +138,30 @@
               id="id"
               v-model="fecha"
               readonly
-              outlined
+              variant="outlined"
               prepend-inner-icon="mdi-calendar-account-outline"
-              dense
+              density="compact"
             ></v-text-field>
 
             <v-textarea
               auto-grow
               rows="1"
               label="Descripción"
-              outlined
+              variant="outlined"
               :rules="[(v) => !!v || 'Dato Requerido']"
-              dense
+              density="compact"
               v-model="dataCotizacion.comentario"
             />
 
             <v-select
               v-model="dataCotizacion.id_status_quote"
               :items="$store.state.calculadoras.estatusCotizacion"
-              item-text="name"
+              item-title="name"
               item-value="id"
               label="Estado Cotización"
               :rules="[(v) => !!v || 'Dato Requerido']"
-              dense
-              outlined
+              density="compact"
+              variant="outlined"
             ></v-select>
           </v-form>
         </v-card-text>
@@ -173,7 +170,7 @@
           <v-btn color="success" @click="guardarEstadoCotizacion()">
             Guardar
           </v-btn>
-          <v-btn color="red" text @click="dialogEditarEstado = false">
+          <v-btn color="red" variant="text" @click="dialogEditarEstado = false">
             Cancelar
           </v-btn>
         </v-card-actions>
@@ -212,21 +209,21 @@ export default {
       fecha: moment().format("YYYY-MM-DD"),
       comentario: "",
       headers: [
-        // { text: "", value: "accion" },
-        { text: "Fecha Registro", value: "created_at" },
-        { text: "Estado Cotización", value: "estado_cotizacion" },
-        { text: "Cliente", value: "nombre" },
-        { text: "Tipo", value: "tipo" },
-        { text: "Puerto Origen", value: "port_origen" },
-        { text: "Puerto Destino", value: "port_destino" },
-        { text: "Peso", value: "peso" },
-        { text: "Volumen", value: "volumen" },
+        // { title: "", key: "accion" },
+        { title: "Fecha Registro", key: "created_at" },
+        { title: "Estado Cotización", key: "estado_cotizacion" },
+        { title: "Cliente", key: "nombre" },
+        { title: "Tipo", key: "tipo" },
+        { title: "Puerto Origen", key: "port_origen" },
+        { title: "Puerto Destino", key: "port_destino" },
+        { title: "Peso", key: "peso" },
+        { title: "Volumen", key: "volumen" },
         // { text: "", value: "servicios" },
-        { text: "Valor Mercancía", value: "valormercancia" },
-        { text: "Correo", value: "email" },
-        { text: "Teléfono", value: "telefono" },
-        // { text: "Estado", value: "estadocotizacion" },
-        { text: "", value: "action", sortable: false },
+        { title: "Valor Mercancía", key: "valormercancia" },
+        { title: "Correo", key: "email" },
+        { title: "Teléfono", key: "telefono" },
+        // { title: "Estado", key: "estadocotizacion" },
+        { title: "", key: "action", sortable: false },
       ],
 
       datos: {
@@ -291,7 +288,7 @@ export default {
       return index % 2 === 0 ? "fila-par" : "fila-impar";
     },
     async guardarEstadoCotizacion() {
-      if (this.$refs.frmComentario.validate()) {
+      if ((await this.$refs.frmComentario.validate()).valid) {
         await this.actualizarEstadoCotizacionCalculadora(this.dataCotizacion);
         this.dialogEditarEstado = false;
         this.$store.state.spiner = true;
@@ -354,7 +351,7 @@ export default {
       this.dialogCalls = true;
     },
     async registrarLlamada() {
-      if (this.$refs.frmCall.validate()) {
+      if ((await this.$refs.frmCall.validate()).valid) {
         let data = {
           iduser: this.user.usuario_id,
           statuscall: this.call.statuscall,

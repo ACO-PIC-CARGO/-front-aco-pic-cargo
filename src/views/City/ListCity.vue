@@ -3,10 +3,8 @@
     <City />
     <v-navigation-drawer
       v-model="$store.state.city.drawer"
-      right
-      absolute
-      bottom
-      persistent
+      location="right"
+      
       width="30%"
       temporary
     >
@@ -16,10 +14,11 @@
 </template>
 
 <script>
+import { defineAsyncComponent } from "vue";
 export default {
   components: {
-    City: () => import("../../components/City/ListCityComponet.vue"),
-    FilterCity: () => import("../../components/filtros/FilterCity.vue"),
+    City: defineAsyncComponent(() => import("../../components/City/ListCityComponet.vue")),
+    FilterCity: defineAsyncComponent(() => import("../../components/filtros/FilterCity.vue")),
   },
   mounted() {
     this.$store.state.mainTitle = `LISTADO DE CIUDADES`;

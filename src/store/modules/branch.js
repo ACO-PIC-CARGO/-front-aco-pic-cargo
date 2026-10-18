@@ -13,7 +13,7 @@ let actions = {
   async ListadoSucursal({ commit }) {
     var config = {
       method: "get",
-      url: `${process.env.VUE_APP_URL_MAIN}listar_sucursal`,
+      url: `${import.meta.env.VUE_APP_URL_MAIN}listar_sucursal`,
 
       headers: {
        
@@ -56,7 +56,7 @@ let actions = {
   async inactivarSucursal({ commit }, id) {
     var config = {
       method: "put",
-      url: `${process.env.VUE_APP_URL_MAIN}inactivar_sucursal`,
+      url: `${import.meta.env.VUE_APP_URL_MAIN}inactivar_sucursal`,
       data: {
         id: id,
       },

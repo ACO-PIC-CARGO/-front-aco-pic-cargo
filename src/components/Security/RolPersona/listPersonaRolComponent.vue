@@ -38,9 +38,7 @@
         :headers="headers"
         :items="$store.state.entities.lstPersona"
         class="elevation-1"
-        pagination.sync="pagination"
-        item-key="id"
-        loading="true"
+        item-value="id"
         :search="search"
       >
         <template v-slot:[`item.proveedor`]="{ item }">
@@ -65,10 +63,10 @@ export default {
       search: "",
       dialog: false,
       headers: [
-        { text: "Persona", value: "nombrecompleto", width: "70%" },
-        { text: "Es Proveedor", value: "proveedor", width: "10%" },
-        { text: "Es Cliente", value: "cliente", width: "10%" },
-        { text: "Es Personal", value: "personal", width: "10%" },
+        { title: "Persona", key: "nombrecompleto", width: "70%" },
+        { title: "Es Proveedor", key: "proveedor", width: "10%" },
+        { title: "Es Cliente", key: "cliente", width: "10%" },
+        { title: "Es Personal", key: "personal", width: "10%" },
       ],
       items: [],
       rol: "",

@@ -63,7 +63,7 @@
     </v-row>
     <v-row>
       <v-col cols="6">
-        <v-simple-table dense>
+        <v-table density="compact">
           <thead>
             <tr class="text-center">
               <th colspan="2" class="bg_total">DATOS EMBARQUE</th>
@@ -103,11 +103,11 @@
               <td width="60%">{{ data.volumen }}</td>
             </tr>
           </tbody>
-        </v-simple-table>
+        </v-table>
       </v-col>
 
       <v-col cols="6">
-        <v-simple-table dense>
+        <v-table density="compact">
           <thead>
             <tr class="text-center">
               <th colspan="2" class="bg_total">SERVICIOS</th>
@@ -137,7 +137,7 @@
               </td>
             </tr>
           </tbody>
-        </v-simple-table>
+        </v-table>
       </v-col>
 
       <v-col cols="12" class="text-center py-0">
@@ -486,7 +486,7 @@
         </table>
       </v-col>
       <v-col cols="12">
-        <v-simple-table dense>
+        <v-table density="compact">
           <thead>
             <tr>
               <th colspan="2" class="bg_total">TOTALES</th>
@@ -498,7 +498,7 @@
               <td>{{ data.OpcionesSelecciondas[index - 1].totalServicios }}</td>
             </tr>
           </tbody>
-        </v-simple-table>
+        </v-table>
       </v-col>
 
       <v-col cols="12">
@@ -541,7 +541,7 @@
       </v-col>
 
       <v-col cols="12">
-        <v-simple-table dense>
+        <v-table density="compact">
           <thead>
             <tr>
               <th colspan="2" class="bg_total">TOTALES</th>
@@ -558,13 +558,13 @@
               </td>
             </tr>
           </tbody>
-        </v-simple-table>
+        </v-table>
       </v-col>
 
       <!--  -->
 
       <v-col cols="12">
-        <v-simple-table>
+        <v-table>
           <thead>
             <tr>
               <th colspan="2" class="bg_total">TOTAL COTIZACIÓN</th>
@@ -586,15 +586,15 @@
               </td>
             </tr>
           </tbody>
-        </v-simple-table>
+        </v-table>
       </v-col>
     </v-row>
     <v-row>
       <v-col cols="6">
         <v-row>
           <v-col cols="12">
-            <v-simple-table
-              dense
+            <v-table
+              density="compact"
               style="
                 width: 100% !important;
                 display: table !important;
@@ -618,11 +618,11 @@
                   {{ i.name }}
                 </td>
               </tr>
-            </v-simple-table>
+            </v-table>
           </v-col>
           <v-col cols="12">
-            <v-simple-table
-              dense
+            <v-table
+              density="compact"
               style="
                 width: 100% !important;
                 display: table !important;
@@ -648,13 +648,13 @@
                   {{ i.name }}
                 </td>
               </tr>
-            </v-simple-table>
+            </v-table>
           </v-col>
         </v-row>
       </v-col>
       <v-col cols="6">
-        <v-simple-table
-          dense
+        <v-table
+          density="compact"
           style="
             width: 100% !important;
             display: table !important;
@@ -669,7 +669,7 @@
               {{ i.name }}
             </td>
           </tr>
-        </v-simple-table>
+        </v-table>
       </v-col>
     </v-row>
   </v-card>
@@ -678,6 +678,7 @@
 <script>
 import moment from "moment";
 export default {
+  emits: ["cerrar"],
   props: ["data", "index"],
   name: "PreviewQuote",
   data() {
@@ -706,7 +707,7 @@ export default {
     this.datosEmpresa = JSON.parse(sessionStorage.getItem("dataBranch"))[0];
   },
 
-  beforeDestroy() {
+  beforeUnmount() {
     window.removeEventListener("keydown", this.handleKeyPress);
   },
   computed: {
@@ -840,12 +841,12 @@ export default {
 * {
   font-size: 0.8rem;
 }
-.v-data-table > .v-data-table__wrapper > table > tbody > tr > td,
-.v-data-table > .v-data-table__wrapper > table > tbody > tr > th,
-.v-data-table > .v-data-table__wrapper > table > thead > tr > td,
-.v-data-table > .v-data-table__wrapper > table > thead > tr > th,
-.v-data-table > .v-data-table__wrapper > table > tfoot > tr > td,
-.v-data-table > .v-data-table__wrapper > table > tfoot > tr > th {
+.v-table > .v-table__wrapper > table > tbody > tr > td,
+.v-table > .v-table__wrapper > table > tbody > tr > th,
+.v-table > .v-table__wrapper > table > thead > tr > td,
+.v-table > .v-table__wrapper > table > thead > tr > th,
+.v-table > .v-table__wrapper > table > tfoot > tr > td,
+.v-table > .v-table__wrapper > table > tfoot > tr > th {
   padding: 0;
   transition: height 0.2s cubic-bezier(0.4, 0, 0.6, 1);
 }

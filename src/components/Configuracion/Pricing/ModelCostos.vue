@@ -1,36 +1,36 @@
 <template>
   <v-card>
-    <v-card-title>
+    <v-card-title class="d-flex align-center flex-wrap">
       <h4 class="mx-auto">
         ACTUALIZAR COSTOS -
         {{ Modality }} | {{ Shipment }} |
         {{ incoterms }}
       </h4>
     </v-card-title>
-    <v-expansion-panels multiple class="px-5 py-2" :value="panelesAbiertos">
+    <v-expansion-panels multiple class="px-5 py-2" :model-value="panelesAbiertos">
       <!-- Ahora iteramos sobre la propiedad computada filtrada -->
       <v-expansion-panel
         v-for="(item, index) in panelesConDatos"
         :key="index"
         dense
       >
-        <v-expansion-panel-header>
+        <v-expansion-panel-title>
           {{ item.name }}
           <v-btn
             color="success"
-            small
+            size="small"
             style="max-width: 370px"
             @click.stop="abrirModal(item.codigo)"
             class="ml-auto"
           >
             Añadir Costo {{ item.name }}</v-btn
           >
-        </v-expansion-panel-header>
-        <v-expansion-panel-content>
+        </v-expansion-panel-title>
+        <v-expansion-panel-text>
           <v-data-table
             :headers="headers"
             :items="obtenerCostosEnBaseTipoCosto(item.codigo)"
-            dense
+            density="compact"
             hide-default-footer
             :items-per-page="-1"
           >
@@ -38,10 +38,10 @@
               <v-autocomplete
                 :items="lstServicios"
                 item-value="id"
-                item-text="service"
+                item-title="service"
                 v-model="item.id_service"
-                outlined
-                dense
+                variant="outlined"
+                density="compact"
                 hide-details
               ></v-autocomplete>
             </template>
@@ -49,37 +49,37 @@
               <v-autocomplete
                 :items="lstMultiplicador"
                 item-value="id"
-                item-text="name"
+                item-title="name"
                 v-model="item.id_multiplicador"
-                outlined
-                dense
+                variant="outlined"
+                density="compact"
                 hide-details
               ></v-autocomplete>
             </template>
             <template v-slot:[`item.costo`]="{ item }">
               <v-text-field
-                dense
+                density="compact"
                 v-model="item.costo"
-                outlined
+                variant="outlined"
                 hide-details
               ></v-text-field>
             </template>
             <template v-slot:[`item.minimo`]="{ item }">
               <v-text-field
                 v-if="item.considerarvalorminimoflag"
-                dense
+                density="compact"
                 v-model="item.minimo"
-                outlined
+                variant="outlined"
                 hide-details
               ></v-text-field>
             </template>
             <template v-slot:[`item.precio`]="{ item }">
               <v-text-field
-                dense
+                density="compact"
                 v-model="item.precio"
                 type="number"
                 step="0.01"
-                outlined
+                variant="outlined"
                 hide-details
               ></v-text-field>
             </template>
@@ -92,14 +92,14 @@
             </template>
             <template v-slot:[`item.proveedor`]="{ item }">
               <v-autocomplete
-                dense
-                item-text="namelong"
+                density="compact"
+                item-title="namelong"
                 item-value="id"
                 :items="$store.state.proveedor.lstProveedores"
-                @update:search-input="recargarProveedores"
                 v-model="item.id_proveedor"
+                @update:search="recargarProveedores"
                 hide-details
-                outlined
+                variant="outlined"
               ></v-autocomplete>
             </template>
             <template v-slot:[`item.considerarvalorminimoflag`]="{ item }">
@@ -109,7 +109,7 @@
               ></v-switch>
             </template>
             <template v-slot:[`item.action`]="{ item }">
-              <v-btn
+              <v-btn variant="text"
                 color="success"
                 icon
                 @click="copiarCosto(item)"
@@ -118,7 +118,7 @@
                 <v-icon>mdi-content-copy</v-icon>
               </v-btn>
 
-              <v-btn
+              <v-btn variant="text"
                 color="red"
                 icon
                 @click="eliminarRegistro(item)"
@@ -127,7 +127,7 @@
                 <v-icon>mdi-delete</v-icon>
               </v-btn>
 
-              <v-btn
+              <v-btn variant="text"
                 color="red"
                 icon
                 @click="quitarRegistro(item)"
@@ -139,14 +139,14 @@
               <v-chip
                 class="ma-2"
                 color="green"
-                text-color="white"
+                variant="flat"
                 v-if="!item.id"
               >
                 Nuevo
               </v-chip>
             </template>
           </v-data-table>
-        </v-expansion-panel-content>
+        </v-expansion-panel-text>
       </v-expansion-panel>
     </v-expansion-panels>
     <v-card-actions>
@@ -170,9 +170,9 @@
             <v-row>
               <v-col cols="12" class="my-1 py-1">
                 <v-autocomplete
-                  dense
+                  density="compact"
                   label="Servicio Asociado"
-                  item-text="service"
+                  item-title="service"
                   item-value="id"
                   :items="lstServicios"
                   v-model="fromDataService.id_service"
@@ -181,30 +181,30 @@
               </v-col>
               <v-col cols="12" class="my-1 py-1">
                 <v-autocomplete
-                  dense
+                  density="compact"
                   label="Proveedor"
-                  item-text="namelong"
+                  item-title="namelong"
                   item-value="id"
                   :items="$store.state.proveedor.lstProveedores"
-                  @update:search-input="recargarProveedores"
                   v-model="fromDataService.id_proveedor"
+                  @update:search="recargarProveedores"
                   :rules="[(v) => !!v || 'Dato requerido']"
                 ></v-autocomplete>
               </v-col>
               <v-col cols="12" class="my-1 py-1">
                 <v-autocomplete
-                  dense
+                  density="compact"
                   label="Multiplicador"
                   :items="lstMultiplicador"
                   item-value="id"
-                  item-text="name"
+                  item-title="name"
                   v-model="fromDataService.id_multiplicador"
                   :rules="[(v) => !!v || 'Dato requerido']"
                 ></v-autocomplete>
               </v-col>
               <v-col cols="12" class="my-1 py-1">
                 <v-text-field
-                  dense
+                  density="compact"
                   label="Concepto"
                   :rules="[(v) => !!v || 'Dato requerido']"
                   v-model="fromDataService.costo"
@@ -213,7 +213,7 @@
               </v-col>
               <v-col cols="12" class="my-1 py-1">
                 <v-text-field
-                  dense
+                  density="compact"
                   label="Precio"
                   type="number"
                   min="0"
@@ -224,7 +224,7 @@
               </v-col>
               <v-col cols="12" class="my-1 py-1">
                 <v-text-field
-                  dense
+                  density="compact"
                   label="Valor Mínimo"
                   type="number"
                   min="0"
@@ -238,7 +238,7 @@
           </v-card-text>
           <v-card-actions class="d-flex justify-end">
             <v-btn color="success" @click="guardarCosto()">Aceptar</v-btn>
-            <v-btn color="red" @click="dialog = !dialog" dark>cancelar</v-btn>
+            <v-btn color="red" @click="dialog = !dialog">cancelar</v-btn>
           </v-card-actions>
         </v-card>
       </v-form>
@@ -248,11 +248,12 @@
 
 <script>
 import { mapState } from "vuex";
-import { mapActions } from "vuex/dist/vuex.common.js";
+import { mapActions } from "vuex";
 import _ from "lodash";
 import Swal from "sweetalert2";
 
 export default {
+  emits: ["cerrarModal", "cerrarModalGuardar", "recargarCostos"],
   props: {
     id_modality: {
       type: Number,
@@ -285,19 +286,19 @@ export default {
       loading: false,
       fromDataService: { id_multiplicador: 0, minimo: 0 },
       headers: [
-        { value: "servicio", text: "Servicio", width: "15%" },
-        { value: "proveedor", text: "Proveedor", width: "15%" },
-        { value: "multiplicador", text: "Multiplicador", width: "15%" },
-        { value: "costo", text: "Costo", width: "15%" },
-        { value: "precio", text: "Precio", width: "10%" },
+        { key: "servicio", title: "Servicio", width: "15%" },
+        { key: "proveedor", title: "Proveedor", width: "15%" },
+        { key: "multiplicador", title: "Multiplicador", width: "15%" },
+        { key: "costo", title: "Costo", width: "15%" },
+        { key: "precio", title: "Precio", width: "10%" },
         {
-          value: "considerarvalorminimoflag",
-          text: "Considerar Valor Mínimo",
+          key: "considerarvalorminimoflag",
+          title: "Considerar Valor Mínimo",
           width: "10%",
         },
-        { value: "minimo", text: "Valor Mínimo", width: "10%" },
-        { value: "status", text: "Activo / Inactivo", width: "5%" },
-        { value: "action", text: "", width: "10%" },
+        { key: "minimo", title: "Valor Mínimo", width: "10%" },
+        { key: "status", title: "Activo / Inactivo", width: "5%" },
+        { key: "action", title: "", width: "10%" },
       ],
     };
   },
@@ -417,8 +418,8 @@ export default {
         this.lstCostos.splice(index, 1);
       }
     },
-    guardarCosto() {
-      if (!this.$refs.frmNuevoCosto.validate()) return;
+    async guardarCosto() {
+      if (!(await this.$refs.frmNuevoCosto.validate()).valid) return;
       const nuevoCosto = { ...this.fromDataService };
       nuevoCosto.esgastostercerosflag = 0;
       nuevoCosto.esfleteflag = 0;

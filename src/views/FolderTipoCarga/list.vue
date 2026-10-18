@@ -3,10 +3,11 @@
 </template>
 
 <script>
+import { defineAsyncComponent } from "vue";
 export default {
   components: {
-    ListShipmentComponent: () =>
-      import("@/components/FolderTipoCarga/list.vue"),
+    ListShipmentComponent: defineAsyncComponent(() =>
+      import("@/components/FolderTipoCarga/list.vue")),
   },
   mounted() {
     this.$store.state.mainTitle = "Tipos de Carga";

@@ -10,11 +10,11 @@
             <v-col cols="6">
               <v-autocomplete
                 label="Puerto Origen"
-                outlined
-                dense
+                variant="outlined"
+                density="compact"
                 class="my-1"
                 :items="getPuertoOrigen()"
-                item-text="name"
+                item-title="name"
                 item-value="id_port"
                 v-model="$store.state.aduana.datosPrincipales.idorigen"
                 readonly
@@ -23,11 +23,11 @@
             <v-col cols="6">
               <v-autocomplete
                 label="Puerto Destino"
-                outlined
-                dense
+                variant="outlined"
+                density="compact"
                 class="my-1"
                 :items="getPuertoDestino()"
-                item-text="name"
+                item-title="name"
                 item-value="id_port"
                 v-model="$store.state.aduana.datosPrincipales.iddestino"
                 readonly
@@ -38,12 +38,12 @@
               <v-autocomplete
                 label="Primera o Segunda Importación"
                 readonly
-                outlined
-                dense
+                variant="outlined"
+                density="compact"
                 :rules="[(v) => !!v || 'Dato requerido']"
                 class="my-1"
                 :items="$store.state.masterusuarios.lstPercepcionAduana"
-                item-text="descripcion"
+                item-title="descripcion"
                 item-value="id"
                 v-model="
                   $store.state.aduana.datosPrincipales.id_percepcionaduana
@@ -56,8 +56,8 @@
 
         <v-row v-if="isAereo()">
           <v-col cols="12">
-            <v-simple-table dense class="elevation-1 my-2">
-              <thead class="teal lighten-2 white--text">
+            <v-table density="compact" class="elevation-1 my-2">
+              <thead class="bg-teal-lighten-2 text-white">
                 <tr>
                   <th>Cant. Bultos</th>
                   <th>Peso (kg)</th>
@@ -81,7 +81,7 @@
                   </td>
                 </tr>
               </tbody>
-            </v-simple-table>
+            </v-table>
           </v-col>
         </v-row>
         <v-row v-else>
@@ -97,10 +97,9 @@
               class="elevation-1"
             >
               <template v-slot:[`item.action`]="item">
-                <v-btn
+                <v-btn variant="text"
                   icon
                   color="red"
-                  dark
                   @click="eliminarContainer({ index: item.index })"
                 >
                   <v-icon>mdi-delete</v-icon>
@@ -131,7 +130,7 @@
               :items="$store.state.itemsContainers"
               v-model="containers.container"
               label="Container"
-              item-text="name"
+              item-title="name"
               item-value="id"
               :rules="[(v) => !!v || 'Dato Requerido']"
               :error-messages="err"
@@ -149,7 +148,7 @@
         <v-card-actions>
           <v-spacer></v-spacer>
           <v-btn color="success" @click="guardarContainer()">Aceptar</v-btn>
-          <v-btn color="red" dark @click="dialogConteiner = !dialogConteiner">
+          <v-btn color="red" @click="dialogConteiner = !dialogConteiner">
             Cancelar
           </v-btn>
         </v-card-actions>
@@ -166,10 +165,10 @@ export default {
   data() {
     return {
       headers: [
-        { text: "", value: "action" },
-        { text: "#", value: "number" },
-        { text: "Tipo Contendor", value: "description" },
-        { text: "Cantidad", value: "cantidad" },
+        { title: "", key: "action" },
+        { title: "#", key: "number" },
+        { title: "Tipo Contendor", key: "description" },
+        { title: "Cantidad", key: "cantidad" },
       ],
       dialogConteiner: false,
       numerobultos: "",
@@ -198,9 +197,9 @@ export default {
         this.err = "Datos requerido y mayor que cero";
       }
     },
-    guardarContainer() {
+    async guardarContainer() {
       this.err = "";
-      if (this.$refs.frmContainer.validate()) {
+      if ((await this.$refs.frmContainer.validate()).valid) {
         if (
           this.$store.state.aduana.datosPrincipales.containers.filter(
             (v) => v.id == this.containers.container.id
@@ -226,7 +225,7 @@ export default {
     },
     async aceptar() {
       let validate = true;
-      if (this.$refs.frmPuerto.validate()) {
+      if ((await this.$refs.frmPuerto.validate()).valid) {
         if (
           this.$store.state.aduana.datosPrincipales.idtipocarga.code == "FCL"
         ) {

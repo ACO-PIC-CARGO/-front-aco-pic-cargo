@@ -2,16 +2,15 @@
   <v-container fluid>
     <v-navigation-drawer
       v-model="filtroFlag"
-      absolute
-      bottom
+      location="right"
       temporary
-      right
+      
       width="20%"
     >
       <v-card min-height="80vh">
-        <v-card-title primary-title>
+        <v-card-title class="d-flex align-center flex-wrap" primary-title>
           Filtrar Flujo <v-spacer></v-spacer>
-          <v-btn icon color="default" @click="filtroFlag = !filtroFlag">
+          <v-btn variant="text" icon color="default" @click="filtroFlag = !filtroFlag">
             <v-icon>mdi-close</v-icon>
           </v-btn>
         </v-card-title>
@@ -19,7 +18,7 @@
           <v-autocomplete
             :items="$store.state.provedores"
             v-model="filtro.id_proveedor"
-            item-text="namelong"
+            item-title="namelong"
             item-value="id"
             clearable
             label="Proveedor"
@@ -27,7 +26,7 @@
           <v-autocomplete
             :items="$store.state.clientes"
             v-model="filtro.id_cliente"
-            item-text="namelong"
+            item-title="namelong"
             item-value="id"
             clearable
             label="Cliente"
@@ -72,7 +71,7 @@
     </v-row>
     <v-row>
       <v-col cols="12">
-        <v-simple-table>
+        <v-table>
           <thead>
             <tr class="thead">
               <th :style="getColumnWidth(7)">CATEGORÍA</th>
@@ -81,8 +80,8 @@
               <th :style="getColumnWidth(7)">CLIENTE/ PROVEEDOR</th>
 
               <th width="2%">
-                <v-btn color="default" @click="previous()" icon>
-                  <v-icon x-large>mdi-chevron-left</v-icon>
+                <v-btn variant="text" color="default" @click="previous()" icon>
+                  <v-icon size="x-large">mdi-chevron-left</v-icon>
                 </v-btn>
               </th>
               <th
@@ -94,21 +93,20 @@
               </th>
               <th>TOTALES</th>
               <th width="2%">
-                <v-btn icon color="default" @click="next()">
-                  <v-icon x-large>mdi-chevron-right</v-icon>
+                <v-btn variant="text" icon color="default" @click="next()">
+                  <v-icon size="x-large">mdi-chevron-right</v-icon>
                 </v-btn>
               </th>
             </tr>
           </thead>
           <tbody>
-            <template v-for="(item, index) in items">
+            <template v-for="(item, index) in items" :key="'row-' + index">
               <tr
-                :key="'row-' + index"
                 class="tipo"
                 @dblclick="item.subtipoflag = !item.subtipoflag"
               >
                 <td :colspan="5">
-                  <v-btn
+                  <v-btn variant="text"
                     icon
                     color="default"
                     @click="item.subtipoflag = !item.subtipoflag"
@@ -135,17 +133,19 @@
                 <td>{{ parseFloat(item.totalTipo).toFixed(2) }}</td>
                 <td></td>
               </tr>
-              <template v-for="(stipo, subIndex) in item.subtipo">
+              <template
+                v-for="(stipo, subIndex) in item.subtipo"
+                :key="'subdetail-' + index + '-' + subIndex"
+              >
                 <!-- -->
                 <tr
-                  :key="'subdetail-' + index + '-' + subIndex"
                   class="subtipo"
                   v-if="item.subtipoflag"
                   @dblclick="stipo.descripcionflag = !stipo.descripcionflag"
                 >
                   <td :colspan="1"></td>
                   <td :colspan="4">
-                    <v-btn
+                    <v-btn variant="text"
                       icon
                       color="default"
                       @click="stipo.descripcionflag = !stipo.descripcionflag"
@@ -153,9 +153,9 @@
                       <v-icon v-if="!stipo.descripcionflag">mdi-plus</v-icon>
                       <v-icon v-else>mdi-minus-thick</v-icon>
                     </v-btn>
-                    <v-tooltip right color="primary">
-                      <template v-slot:activator="{ on, attrs }">
-                        <span v-bind="attrs" v-on="on">
+                    <v-tooltip location="right" color="primary">
+                      <template v-slot:activator="{ props }">
+                        <span v-bind="props">
                           {{ stipo.subtipo }}
                         </span>
                       </template>
@@ -185,17 +185,17 @@
                     <!-- {{ stipo.descripcion }} -->
                   </td>
                 </tr>
-                <template v-for="(desc, IndexCost) in stipo.descripcion">
+                <template
+                  v-for="(desc, IndexCost) in stipo.descripcion"
+                  :key="'subdetail-' + index + '-' + subIndex + '-' + IndexCost"
+                >
                   <tr
-                    :key="
-                      'subdetail-' + index + '-' + subIndex + '-' + IndexCost
-                    "
                     v-if="stipo.descripcionflag && item.subtipoflag"
                     class="descripcion"
                   >
                     <td colspan="2"></td>
                     <td colspan="2">
-                      <v-btn
+                      <v-btn variant="text"
                         icon
                         color="default"
                         @click="desc.costoflag = !desc.costoflag"
@@ -226,11 +226,11 @@
                     <td>{{ parseFloat(desc.totalDescripcion).toFixed(2) }}</td>
                     <td></td>
                   </tr>
-                  <template v-for="(cost, IndexCost) in desc.costo">
+                  <template
+                    v-for="(cost, IndexCost) in desc.costo"
+                    :key="'subdetail-' + index + '-' + subIndex + '-' + IndexCost"
+                  >
                     <tr
-                      :key="
-                        'subdetail-' + index + '-' + subIndex + '-' + IndexCost
-                      "
                       v-if="
                         stipo.descripcionflag &&
                         desc.costoflag &&
@@ -273,7 +273,7 @@
               <td></td>
             </tr>
           </tbody>
-        </v-simple-table>
+        </v-table>
       </v-col>
     </v-row>
     <!-- <td
@@ -605,7 +605,7 @@ export default {
   background: #e6ffe6 !important;
   color: #333333 !important;
 }
-.thead [data-v-ed7f846e] {
+.thead th {
   font-size: 1rem;
   text-align: center;
   align-content: center;

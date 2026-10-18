@@ -8,7 +8,7 @@
             v-for="(opcion, index) in opciones"
             :key="index"
             class="mx-1"
-            small
+            size="small"
             @click="opcionCalculadora = opcion.id"
           >
             {{ opcion.nombre }}
@@ -16,7 +16,7 @@
         </center>
       </v-col>
       <v-col cols="12">
-        <v-btn color="success" small @click="abrirModal">Nuevo</v-btn>
+        <v-btn color="success" size="small" @click="abrirModal">Nuevo</v-btn>
       </v-col>
       <v-col cols="12">
         <v-data-table :headers="headers" :items="obtenerValoresProfitPorOpcion">
@@ -24,7 +24,7 @@
             {{ item.estado ? "Activo" : "Anulado" }}
           </template>
           <template v-slot:[`item.action`]="{ item }">
-            <v-btn
+            <v-btn variant="text"
               color="warning"
               v-if="item.estado"
               icon
@@ -32,7 +32,7 @@
             >
               <v-icon>mdi-pencil</v-icon>
             </v-btn>
-            <v-btn
+            <v-btn variant="text"
               color="error"
               v-if="item.estado"
               icon
@@ -53,68 +53,68 @@
             <v-row>
               <v-col cols="12" class="py-0 my-0">
                 <v-text-field
-                  outlined
-                  dense
+                  variant="outlined"
+                  density="compact"
                   type="number"
                   name="Profit"
                   label="Profit"
                   v-model="profit"
                   :rules="[(v) => (!!v && v >= 0) || 'Dato Requerido']"
-                  @input="activarPesoMax"
+                  @update:model-value="activarPesoMax"
                 />
               </v-col>
               <v-col cols="6" class="py-0 my-0">
                 <v-text-field
-                  outlined
-                  dense
+                  variant="outlined"
+                  density="compact"
                   type="number"
                   name="Peso Min"
                   label="Peso Min"
                   v-model="pesomin"
                   :rules="[(v) => (!!v && v >= 0) || 'Dato Requerido']"
                   :disabled="pesominflag"
-                  @input="activarVolumenMax"
+                  @update:model-value="activarVolumenMax"
               /></v-col>
               <v-col cols="6" class="py-0 my-0">
                 <v-text-field
-                  outlined
-                  dense
+                  variant="outlined"
+                  density="compact"
                   type="number"
                   name="Peso Máximo"
                   label="Peso Máximo"
                   v-model="pesomax"
                   :rules="[(v) => (!!v && v >= 0) || 'Dato Requerido']"
                   :disabled="pesomaxflag"
-                  @input="activarVolumenMax"
+                  @update:model-value="activarVolumenMax"
               /></v-col>
               <v-col cols="6" class="py-0 my-0">
                 <v-text-field
-                  outlined
-                  dense
+                  variant="outlined"
+                  density="compact"
                   type="number"
                   name="volumen Mínimo"
                   label="Volumen Mínimo"
                   v-model="volumenmin"
                   :disabled="volumenminflag"
-                  @input="activarValorMercanciaMax"
+                  @update:model-value="activarValorMercanciaMax"
                   :rules="[(v) => (!!v && v >= 0) || 'Dato Requerido']"
               /></v-col>
               <v-col cols="6" class="py-0 my-0">
                 <v-text-field
-                  outlined
-                  dense
+                  variant="outlined"
+                  density="compact"
                   type="number"
                   name="volumen Máximo"
                   label="Volumen Máximo"
                   v-model="volumenmax"
                   :rules="[(v) => (!!v && v >= 0) || 'Dato Requerido']"
                   :disabled="volumenmaxflag"
-                  @input="activarValorMercanciaMax"
+                  @update:model-value="activarValorMercanciaMax"
               /></v-col>
               <v-col cols="6" class="py-0 my-0">
                 <v-text-field
-                  outlined
-                  dense
+                  variant="outlined"
+                  density="compact"
                   type="number"
                   name="valor Mercancia Mínimo"
                   label="Valor Mercancia Mínimo"
@@ -125,21 +125,21 @@
               </v-col>
               <v-col cols="6" class="py-0 my-0">
                 <v-text-field
-                  outlined
-                  dense
+                  variant="outlined"
+                  density="compact"
                   type="number"
                   name="valor Mercancía Máxima"
                   label="Valor Mercancía Máxima"
                   v-model="valormax"
                   :rules="[(v) => (!!v && v >= 0) || 'Dato Requerido']"
                   :disabled="valormaxflag"
-                  @input="activarMetroCCAdiconal"
+                  @update:model-value="activarMetroCCAdiconal"
                 />
               </v-col>
               <v-col cols="6" class="py-0 my-0">
                 <v-text-field
-                  outlined
-                  dense
+                  variant="outlined"
+                  density="compact"
                   type="number"
                   name="M³ Adicional"
                   label="M³ Adicional"
@@ -157,7 +157,7 @@
           <v-btn
             v-if="nuevoflag"
             color="success"
-            small
+            size="small"
             class="mx-1"
             @click="guardarProfit"
           >
@@ -166,7 +166,7 @@
           <v-btn
             v-if="editarflag"
             color="success"
-            small
+            size="small"
             class="mx-1"
             @click="actualizarProfit"
           >
@@ -174,7 +174,7 @@
           </v-btn>
           <v-btn
             color="error"
-            small
+            size="small"
             class="mx-1"
             @click="dialogNuevoProfit = !dialogNuevoProfit"
           >
@@ -187,7 +187,7 @@
 </template>
 
 <script>
-import { mapActions } from "vuex/dist/vuex.common.js";
+import { mapActions } from "vuex";
 import Swal from "sweetalert2";
 export default {
   props: {
@@ -204,16 +204,16 @@ export default {
     return {
       dialogNuevoProfit: false,
       headers: [
-        { value: "profit", text: "PROFIT" },
-        { value: "pesomin", text: "PESO MÍNIMO" },
-        { value: "pesomax", text: "PESO MÁXIMO" },
-        { value: "volumenmin", text: "VOLUMEN MÍNIMO" },
-        { value: "volumenmax", text: "VOLUMEN MÁXIMO" },
-        { value: "valormin", text: "VALOR DE CARGA MÍNIMO" },
-        { value: "valormax", text: "VALOR DE CARGA MÁXIMO" },
-        { value: "estado", text: "Estado" },
-        { value: "metromcad", text: "M³ Adicional" },
-        { value: "action", text: "" },
+        { key: "profit", title: "PROFIT" },
+        { key: "pesomin", title: "PESO MÍNIMO" },
+        { key: "pesomax", title: "PESO MÁXIMO" },
+        { key: "volumenmin", title: "VOLUMEN MÍNIMO" },
+        { key: "volumenmax", title: "VOLUMEN MÁXIMO" },
+        { key: "valormin", title: "VALOR DE CARGA MÍNIMO" },
+        { key: "valormax", title: "VALOR DE CARGA MÁXIMO" },
+        { key: "estado", title: "Estado" },
+        { key: "metromcad", title: "M³ Adicional" },
+        { key: "action", title: "" },
       ],
       items: [],
       id: null,
@@ -244,7 +244,7 @@ export default {
       "eliminarGuardarProfit",
     ]),
     async guardarProfit() {
-      if (this.$refs.frmNuevo.validate()) {
+      if ((await this.$refs.frmNuevo.validate()).valid) {
         let data = {
           id_modality: this.id_modality,
           shimpent: this.type,
@@ -318,7 +318,7 @@ export default {
       });
     },
     async actualizarProfit() {
-      if (this.$refs.frmNuevo.validate()) {
+      if ((await this.$refs.frmNuevo.validate()).valid) {
         let data = {
           id: this.id,
           id_modality: this.id_modality,

@@ -25,7 +25,7 @@ const actions = {
     var config = {
       method: "get",
       url:
-        process.env.VUE_APP_URL_MAIN +
+        import.meta.env.VUE_APP_URL_MAIN +
         `cargar_ingreso?id_branch=${
           JSON.parse(sessionStorage.getItem("dataUser"))[0].id_branch
         }`,
@@ -67,7 +67,7 @@ const actions = {
     var config = {
       method: "get",
       url:
-        process.env.VUE_APP_URL_MAIN +
+        import.meta.env.VUE_APP_URL_MAIN +
         `listar_ingreso?` +
         `id_branch=${
           JSON.parse(sessionStorage.getItem("dataUser"))[0].id_branch
@@ -114,7 +114,7 @@ const actions = {
   async insertIngreso({ commit, dispatch }, data) {
     var config = {
       method: "post",
-      url: process.env.VUE_APP_URL_MAIN + "insertar_ingreso",
+      url: import.meta.env.VUE_APP_URL_MAIN + "insertar_ingreso",
       headers: {
         "Content-Type": "application/json",
        
@@ -148,7 +148,7 @@ const actions = {
   async readIngreso({ commit }, id) {
     var config = {
       method: "get",
-      url: process.env.VUE_APP_URL_MAIN + `ver_ingreso?id=${id}`,
+      url: import.meta.env.VUE_APP_URL_MAIN + `ver_ingreso?id=${id}`,
       headers: {
         "Content-Type": "application/json",
        
@@ -175,7 +175,7 @@ const actions = {
   async updateIngreso({ dispatch }, data) {
     var config = {
       method: "put",
-      url: process.env.VUE_APP_URL_MAIN + "actualizar_ingreso",
+      url: import.meta.env.VUE_APP_URL_MAIN + "actualizar_ingreso",
       headers: {
         "Content-Type": "application/json",
        
@@ -210,7 +210,7 @@ const actions = {
   async ActualizarCXC({}, data) {
     var config = {
       method: "put",
-      url: process.env.VUE_APP_URL_MAIN + "actualizar_cxc",
+      url: import.meta.env.VUE_APP_URL_MAIN + "actualizar_cxc",
       headers: {
         "Content-Type": "application/json",
        
@@ -237,7 +237,7 @@ const actions = {
   async ActualizarCXP({}, data) {
     var config = {
       method: "put",
-      url: process.env.VUE_APP_URL_MAIN + "actualizar_cxp",
+      url: import.meta.env.VUE_APP_URL_MAIN + "actualizar_cxp",
       headers: {
         "Content-Type": "application/json",
        

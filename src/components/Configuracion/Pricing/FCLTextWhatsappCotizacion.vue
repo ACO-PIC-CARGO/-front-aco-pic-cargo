@@ -5,7 +5,7 @@
         <div class="d-flex align-center my-2">
           <v-divider></v-divider>
           <span
-            class="mx-3 grey--text"
+            class="mx-3 text-grey"
             style="font-size: 1.2em; font-weight: bold"
           >
             {{ text.name }}
@@ -19,7 +19,7 @@
           v-model="text.texto.pdfindividual"
          
           auto-grow
-          outlined
+          variant="outlined"
           hide-details
         >
           <template #label>
@@ -32,7 +32,7 @@
           v-model="text.texto.pdfgrupal"
          
           auto-grow
-          outlined
+          variant="outlined"
           hide-details
         >
           <template #label>

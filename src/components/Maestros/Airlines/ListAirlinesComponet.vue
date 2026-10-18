@@ -7,30 +7,29 @@
           placeholder="Buscar"
           v-model="search"
           clearable
-          append-icon="mdi-magnify"
+          append-inner-icon="mdi-magnify"
         ></v-text-field>
       </v-col>
       <v-col cols="4" offset="4" class="text-right my-auto">
-        <v-btn small color="success" @click="nuevo()">NUEVO</v-btn>
+        <v-btn size="small" color="success" @click="nuevo()">NUEVO</v-btn>
         <v-btn
-          small
+          size="small"
           class="mx-1"
           color="#2962FF"
-          dark
           @click="
             ($store.state.airlines.drawer = !$store.state.airlines.drawer) &&
               ($store.state.airlines.tipo = 'filter')
           "
           >FILTRAR</v-btn
         >
-        <v-btn small class="mx-1" color="#004D40" dark>EXPORTAR</v-btn>
+        <v-btn size="small" class="mx-1" color="#004D40">EXPORTAR</v-btn>
       </v-col>
       <v-col cols="12">
         <v-data-table
           :headers="headers"
           :items="$store.state.airlines.lstAirline"
           class="elevation-1"
-          item-key="id"
+          item-value="id"
           :loading="loading"
           :search="search"
         >
@@ -38,13 +37,11 @@
             {{ !!item.status ? "Activo" : "Inactivo" }}
           </template>
           <template v-slot:[`item.action`]="{ item }">
-            <v-tooltip bottom>
-              <template v-slot:activator="{ on, attrs }">
+            <v-tooltip location="bottom">
+              <template v-slot:activator="{ props }">
                 <v-icon
                   color="primary"
-                  dark
-                  v-bind="attrs"
-                  v-on="on"
+                  v-bind="props"
                   @click="ver(item)"
                 >
                   mdi-eye
@@ -52,13 +49,11 @@
               </template>
               <span>Ver</span>
             </v-tooltip>
-            <v-tooltip bottom>
-              <template v-slot:activator="{ on, attrs }">
+            <v-tooltip location="bottom">
+              <template v-slot:activator="{ props }">
                 <v-icon
                   color="warning"
-                  dark
-                  v-bind="attrs"
-                  v-on="on"
+                  v-bind="props"
                   @click="editar(item)"
                 >
                   mdi-pencil
@@ -66,13 +61,11 @@
               </template>
               <span>Editar</span>
             </v-tooltip>
-            <v-tooltip bottom v-if="!!item.status">
-              <template v-slot:activator="{ on, attrs }">
+            <v-tooltip location="bottom" v-if="!!item.status">
+              <template v-slot:activator="{ props }">
                 <v-icon
                   color="error"
-                  dark
-                  v-bind="attrs"
-                  v-on="on"
+                  v-bind="props"
                   @click="eliminar(item)"
                 >
                   mdi-delete
@@ -96,15 +89,15 @@ export default {
       search: "",
       loading: false,
       headers: [
-        { value: "pais_name", text: "País" },
-        { value: "code", text: "Código" },
-        { value: "code_iata", text: "Código IATA" },
-        { value: "code_icao", text: "Código ICAO" },
-        { value: "name", text: "Nombre" },
-        { text: "Estado", value: "estado" },
-        { text: "Creación", value: "created_at" },
-        { text: "Última Actualización", value: "updated_at" },
-        { value: "action", text: "Acciones" },
+        { key: "pais_name", title: "País" },
+        { key: "code", title: "Código" },
+        { key: "code_iata", title: "Código IATA" },
+        { key: "code_icao", title: "Código ICAO" },
+        { key: "name", title: "Nombre" },
+        { title: "Estado", key: "estado" },
+        { title: "Creación", key: "created_at" },
+        { title: "Última Actualización", key: "updated_at" },
+        { key: "action", title: "Acciones" },
       ],
     };
   },

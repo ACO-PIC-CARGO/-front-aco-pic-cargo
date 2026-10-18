@@ -3,10 +3,11 @@
 </template>
 
 <script>
+import { defineAsyncComponent } from "vue";
 export default {
   components: {
-    ListSexComponent: () =>
-      import("@/components/FolderSex/list.vue"),
+    ListSexComponent: defineAsyncComponent(() =>
+      import("@/components/FolderSex/list.vue")),
   },
   mounted() {
     this.$store.state.mainTitle = "Géneros";

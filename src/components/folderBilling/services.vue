@@ -1,6 +1,6 @@
 <template>
   <div>
-    <v-simple-table dense>
+    <v-table density="compact">
       <template v-slot:default>
         <thead>
           <tr>
@@ -21,7 +21,7 @@
           </tr>
         </tbody>
       </template>
-    </v-simple-table>
+    </v-table>
   </div>
 </template>
 <script>
@@ -40,7 +40,7 @@ export default {
       };
       var config = {
         method: "post",
-        url: process.env.VUE_APP_URL_MAIN + "deleteServices",
+        url: import.meta.env.VUE_APP_URL_MAIN + "deleteServices",
         headers: {
          
           "Content-Type": "application/json",
@@ -68,7 +68,7 @@ export default {
         };
         var config = {
           method: "post",
-          url: process.env.VUE_APP_URL_MAIN + "getHouseServices",
+          url: import.meta.env.VUE_APP_URL_MAIN + "getHouseServices",
           headers: {
            
             "Content-Type": "application/json",

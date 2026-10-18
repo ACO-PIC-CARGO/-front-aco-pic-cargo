@@ -3,19 +3,25 @@
     <v-card elevation="10">
       <v-stepper v-model="$store.state.pricing.e1" non-linear>
         <v-stepper-header>
-          <v-stepper-step complete step="1" :editable="editable1">
-            Datos de la Carga
-          </v-stepper-step>
+          <v-stepper-item
+            complete
+            :value="1"
+            title="Datos de la Carga"
+            :editable="editable1"
+          />
 
           <v-divider></v-divider>
 
-          <v-stepper-step complete step="2" editable>
-            <span> costos de la Cotización </span>
-          </v-stepper-step>
+          <v-stepper-item
+            complete
+            :value="2"
+            title="costos de la Cotización"
+            editable
+          />
         </v-stepper-header>
         <!-- DATA -->
-        <v-stepper-items>
-          <v-stepper-content step="1">
+        <v-stepper-window>
+          <v-stepper-window-item :value="1" eager>
             <v-row class="my-1">
               <v-col cols="12" md="6" class="pa-0">
                 <DatosPrincipales
@@ -32,43 +38,44 @@
                 <Services />
               </v-col>
             </v-row>
-          </v-stepper-content>
-          <v-stepper-content step="2">
+          </v-stepper-window-item>
+          <v-stepper-window-item :value="2" eager>
             <v-row class="my-1">
               <v-col cols="12">
                 <Costos />
               </v-col>
             </v-row>
-          </v-stepper-content>
-        </v-stepper-items>
+          </v-stepper-window-item>
+        </v-stepper-window>
       </v-stepper>
     </v-card>
   </v-container>
 </template>
 
 <script>
+import { defineAsyncComponent } from "vue";
 import { mapActions } from "vuex";
 import mixins from "../../components/mixins/funciones.js";
 export default {
   mixins: [mixins],
   name: "VerQuoteView",
   components: {
-    DatosPrincipales: () =>
+    DatosPrincipales: defineAsyncComponent(() =>
       import(
         "../../components/folderPricing/VerComponent/DatosPrincipalesComponent.vue"
-      ),
-    DatosCarga: () =>
+      )),
+    DatosCarga: defineAsyncComponent(() =>
       import(
         "../../components/folderPricing/VerComponent/DatosCargaComponent.vue"
-      ),
-    Services: () =>
+      )),
+    Services: defineAsyncComponent(() =>
       import(
         "../../components/folderPricing/VerComponent/ServicesComponent.vue"
-      ),
-    Costos: () =>
+      )),
+    Costos: defineAsyncComponent(() =>
       import(
         "../../components/folderPricing/VerComponent/DatosCostosComponent.vue"
-      ),
+      )),
   },
   data() {
     return {

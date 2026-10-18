@@ -1,26 +1,25 @@
 <template>
   <div>
     <v-card elevation="0">
-      <v-card-title>
+      <v-card-title class="d-flex align-center flex-wrap">
         <h3>REPORTE DE CUENTAS POR COBRAR</h3>
         <v-spacer></v-spacer>
         <v-btn
           class="ml-5"
           color="primary"
           elevation="0"
-          small
-          plain
+          size="small"
+          variant="plain"
           @click="offcanvas = !offcanvas"
           ><v-icon>mdi-filter-multiple</v-icon> FILTRAR
         </v-btn>
         <v-btn
           color="#1D6F42"
           class="mx-1"
-          dark
           @click="descargarArchivos()"
           :loading="exportando"
-          small
-          plain
+          size="small"
+          variant="plain"
         >
           <v-icon>mdi-file-excel</v-icon>
           EXCEL</v-btn
@@ -31,10 +30,10 @@
           :loading="exportandopdf"
           @click="exportarPDF()"
           elevation="0"
-          small
-          plain
+          size="small"
+          variant="plain"
         >
-          <v-icon>mdi-file-pdf</v-icon> PDF</v-btn
+          <v-icon>mdi-file-pdf-box</v-icon> PDF</v-btn
         >
       </v-card-title>
       <v-card-text>
@@ -62,73 +61,74 @@
           :headers="headersdbp"
           :items="itemsCpp"
           :search="search"
-          :expanded.sync="expanded"
-          :single-expand="singleExpand"
-          item-key="id_consigner"
+          v-model:expanded="expanded"
+          item-value="id_consigner"
           show-expand
-          @click:row="clickRow"
+          expand-on-click
         >
           <template v-slot:[`item.nameconsigner`]="{ item }">
             <div class="d-flex">
               <div>{{ item.nameconsigner }}</div>
               <v-btn
-                small
+                size="small"
                 color="primary"
                 class="ml-auto"
                 @click.stop="mostrarComentariosOp(item)"
               >
-                <v-icon small class="mr-1">mdi-comment</v-icon> Comentarios
+                <v-icon size="small" class="mr-1">mdi-comment</v-icon> Comentarios
               </v-btn>
             </div>
           </template>
 
-          <template v-slot:expanded-item="{ item }">
-            <td colspan="11">
-              <v-simple-table style="width: 100%">
-                <thead>
-                  <tr style="background: #fff1cf">
-                    <th>Expediente</th>
-                    <th>Cliente</th>
-                    <th>Fecha Disponibilidad</th>
-                    <th>Total a Cobrar</th>
-                    <th>Status</th>
-                    <th>Fecha de Vencimiento</th>
-                    <th>Días de atraso</th>
-                    <th>Estatus</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr
-                    style="background: #fff1cf"
-                    v-for="child of item.details"
-                    :key="child.id"
-                  >
-                    <td>
-                      {{ child.nro_master }}
-                      <v-icon
-                        v-if="child.operativa == 1"
-                        @click="editControl(child)"
-                        >mdi-eye</v-icon
-                      >
-                    </td>
-                    <td>
-                      {{ child.nameconsigner }}
-                    </td>
-                    <td>
-                      {{ child.fecha_disponibilidad }}
-                    </td>
-                    <td>{{ child.symbol }} {{ child.total_pagar }}</td>
+          <template v-slot:expanded-row="{ item }">
+            <tr>
+              <td colspan="11">
+                <v-table style="width: 100%">
+                  <thead>
+                    <tr style="background: #fff1cf">
+                      <th>Expediente</th>
+                      <th>Cliente</th>
+                      <th>Fecha Disponibilidad</th>
+                      <th>Total a Cobrar</th>
+                      <th>Status</th>
+                      <th>Fecha de Vencimiento</th>
+                      <th>Días de atraso</th>
+                      <th>Estatus</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr
+                      style="background: #fff1cf"
+                      v-for="child of item.details"
+                      :key="child.id"
+                    >
+                      <td>
+                        {{ child.nro_master }}
+                        <v-icon
+                          v-if="child.operativa == 1"
+                          @click="editControl(child)"
+                          >mdi-eye</v-icon
+                        >
+                      </td>
+                      <td>
+                        {{ child.nameconsigner }}
+                      </td>
+                      <td>
+                        {{ child.fecha_disponibilidad }}
+                      </td>
+                      <td>{{ child.symbol }} {{ child.total_pagar }}</td>
 
-                    <td>
-                      {{ child.llegada == 1 ? "LLEGADA" : "NO LLEGADA" }}
-                    </td>
-                    <td>{{ child.fechadevencimiento }}</td>
-                    <td>{{ child.diasatraso }}</td>
-                    <td>{{ child.estatus }}</td>
-                  </tr>
-                </tbody>
-              </v-simple-table>
-            </td>
+                      <td>
+                        {{ child.llegada == 1 ? "LLEGADA" : "NO LLEGADA" }}
+                      </td>
+                      <td>{{ child.fechadevencimiento }}</td>
+                      <td>{{ child.diasatraso }}</td>
+                      <td>{{ child.estatus }}</td>
+                    </tr>
+                  </tbody>
+                </v-table>
+              </td>
+            </tr>
           </template>
         </v-data-table>
       </v-card-text>
@@ -139,66 +139,68 @@
           :headers="headersdbpa"
           :items="itemsCxcAdmin"
           :search="search"
-          :expanded.sync="expandeda"
-          :single-expand="singleExpanda"
-          item-key="nameconsigner"
+          v-model:expanded="expandeda"
+          item-value="nameconsigner"
+          return-object
           show-expand
-          @click:row="clickRowa"
+          @click:row="(event, { item }) => clickRowa(item, event)"
         >
           <template v-slot:[`item.nameconsigner`]="{ item }">
             <div class="d-flex">
               <div>{{ item.nameconsigner }}</div>
               <v-btn
-                small
+                size="small"
                 color="primary"
                 class="ml-auto"
                 @click.stop="mostrarComentariosAdmin(item)"
               >
-                <v-icon small class="mr-1">mdi-comment</v-icon> Comentarios
+                <v-icon size="small" class="mr-1">mdi-comment</v-icon> Comentarios
               </v-btn>
             </div>
           </template>
 
-          <template v-slot:expanded-item="{ item }">
-            <td colspan="11">
-              <v-simple-table style="width: 100%">
-                <thead>
-                  <tr style="background: #fff1cf">
-                    <!-- <th>Acción</th> -->
-                    <!-- <th>Factura</th> -->
-                    <th>Cliente</th>
-                    <th>Documento</th>
-                    <th>Monto Inicial</th>
+          <template v-slot:expanded-row="{ item }">
+            <tr>
+              <td colspan="11">
+                <v-table style="width: 100%">
+                  <thead>
+                    <tr style="background: #fff1cf">
+                      <!-- <th>Acción</th> -->
+                      <!-- <th>Factura</th> -->
+                      <th>Cliente</th>
+                      <th>Documento</th>
+                      <th>Monto Inicial</th>
 
-                    <th>Deuda Actual</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr
-                    style="background: #fff1cf"
-                    v-for="child of item.details"
-                    :key="child.id"
-                  >
-                    <!-- <td>
-                      <v-icon
-                        @click="
-                          programar({
-                            id: child.id,
-                            tipo: 0,
-                          })
-                        "
-                        >mdi-clock-outline</v-icon
-                      >
-                    </td> -->
-                    <td>{{ child.nameconsigner }}</td>
-                    <td>{{ child.concepto }}</td>
-                    <td>{{ child.symbol }} {{ child.monto }}</td>
+                      <th>Deuda Actual</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr
+                      style="background: #fff1cf"
+                      v-for="child of item.details"
+                      :key="child.id"
+                    >
+                      <!-- <td>
+                        <v-icon
+                          @click="
+                            programar({
+                              id: child.id,
+                              tipo: 0,
+                            })
+                          "
+                          >mdi-clock-outline</v-icon
+                        >
+                      </td> -->
+                      <td>{{ child.nameconsigner }}</td>
+                      <td>{{ child.concepto }}</td>
+                      <td>{{ child.symbol }} {{ child.monto }}</td>
 
-                    <td>{{ child.symbol }} {{ child.total_pagar }}</td>
-                  </tr>
-                </tbody>
-              </v-simple-table>
-            </td>
+                      <td>{{ child.symbol }} {{ child.total_pagar }}</td>
+                    </tr>
+                  </tbody>
+                </v-table>
+              </td>
+            </tr>
           </template>
         </v-data-table>
       </v-card-text>
@@ -218,11 +220,11 @@
             v-if="radiopdf != ''"
             color="primary"
             @click="_exportPdf()"
-            outlined
+            variant="outlined"
             >EXPORTAR</v-btn
           >
           <v-spacer></v-spacer>
-          <v-btn color="red" @click="dialogPdf = false" outlined>Cerrar</v-btn>
+          <v-btn color="red" @click="dialogPdf = false" variant="outlined">Cerrar</v-btn>
         </v-card-actions>
       </v-card>
     </v-dialog>
@@ -230,16 +232,16 @@
     <!--COMENTARIOS-->
     <v-dialog v-model="dialogComentarios" persistent width="70%">
       <v-card>
-        <v-card-title>
+        <v-card-title class="d-flex align-center flex-wrap">
           Estados/Comentarios de la CxC - {{ dataCXC.nameconsigner }}
           <v-spacer></v-spacer>
           <template v-if="dataCXC.esoperativo">
-            <v-btn rounded small color="primary" @click="agregarComentarioOp"
+            <v-btn rounded size="small" color="primary" @click="agregarComentarioOp"
               >Nuevo Comentario</v-btn
             >
           </template>
           <template v-else-if="dataCXC.esadministrativo">
-            <v-btn rounded small color="primary" @click="agregarComentarioAdmin"
+            <v-btn rounded size="small" color="primary" @click="agregarComentarioAdmin"
               >Nuevo Comentario</v-btn
             >
           </template>
@@ -255,7 +257,7 @@
         <v-card-actions>
           <v-spacer></v-spacer>
           <v-btn
-            small
+            size="small"
             color="error"
             @click="dialogComentarios = !dialogComentarios"
             >Cerrar</v-btn
@@ -266,10 +268,10 @@
     <!--NUEVO COMENTARIO-->
     <v-dialog v-model="dialogNuevoComentario" persistent width="50%">
       <v-card>
-        <v-card-title>
+        <v-card-title class="d-flex align-center flex-wrap">
           Registro de Estado/Comentario de la CxC - {{ dataCXC.nameconsigner }}
           <v-spacer></v-spacer>
-          <v-btn
+          <v-btn variant="text"
             icon
             color="default"
             @click="dialogNuevoComentario = !dialogNuevoComentario"
@@ -280,17 +282,17 @@
         <v-card-text>
           <v-form ref="frmComentario">
             <v-text-field
-              dense
+              density="compact"
               label="Fecha"
               v-model="comentario.fecha"
               type="date"
               readonly
             ></v-text-field>
             <v-autocomplete
-              dense
+              density="compact"
               label="Ejecutivo"
               :items="$store.state.pricing.listEjecutivo"
-              item-text="name"
+              item-title="name"
               item-value="id_entitie"
               item-key="id_entitie"
               v-model="comentario.id_ejecutivo"
@@ -298,7 +300,7 @@
               readonly
             ></v-autocomplete>
             <v-textarea
-              dense
+              density="compact"
               label="Estado/Comentario"
               v-model="comentario.texto"
               rows="4"
@@ -310,7 +312,7 @@
         <v-card-actions>
           <v-spacer></v-spacer>
           <v-btn
-            small
+            size="small"
             color="success"
             @click="guardarComentario"
             :loading="loadingBotonGuardarComentario"
@@ -324,8 +326,8 @@
       v-model="offcanvas"
       v-if="offcanvas"
       absolute
-      bottom
-      right
+      location="right"
+      
       width="20%"
     >
       <v-card elevation="0">
@@ -338,12 +340,12 @@
                 v-model="proveedorOp"
                 label="Clientes"
                 :items="clientes"
-                item-text="namelong"
+                item-title="namelong"
                 item-value="id"
                 multiple
-                small-chips
-                dense
-                outlined
+                chips
+                density="compact"
+                variant="outlined"
               ></v-autocomplete>
             </v-col>
             <v-col cols="12" class="py-0 my-0">
@@ -352,8 +354,8 @@
                 label="Nro Expediente"
                 v-model="nro_expediente"
                 clearable
-                dense
-                outlined
+                density="compact"
+                variant="outlined"
               ></v-text-field>
             </v-col>
             <v-col cols="12" class="py-0 my-0">
@@ -362,12 +364,12 @@
                 v-model="ingreso"
                 label="Ingresos"
                 :items="$store.state.ingresos.list"
-                item-text="descripcion"
+                item-title="descripcion"
                 item-value="id"
                 multiple
-                small-chips
-                dense
-                outlined
+                chips
+                density="compact"
+                variant="outlined"
               ></v-autocomplete>
             </v-col>
             <v-col cols="12" class="py-0 my-0">
@@ -376,12 +378,12 @@
                 v-model="subingreso"
                 label="Sub Ingresos"
                 :items="$store.state.subingreso.lstSubIngreso"
-                item-text="description"
+                item-title="description"
                 item-value="id"
                 multiple
-                small-chips
-                dense
-                outlined
+                chips
+                density="compact"
+                variant="outlined"
               ></v-autocomplete>
             </v-col>
             <v-col cols="12">
@@ -390,16 +392,16 @@
                 type="date"
                 v-model="fechaOp"
                 clearable
-                outlined
+                variant="outlined"
               ></v-text-field
             ></v-col>
             <v-col cols="12" class="py-0 my-0">
               <p>Estado:</p>
               <v-radio-group
                 v-model="llegadaOp"
-                dense
-                row
-                outlined
+                density="compact"
+                inline
+                variant="outlined"
                 class="py-0 my-0"
               >
                 <v-radio label="Llegada" value="1"></v-radio>
@@ -413,9 +415,9 @@
 
       <v-card>
         <v-card-actions>
-          <v-btn color="success" medium @click="filtrar">Aceptar</v-btn>
-          <v-btn color="error" medium @click="limpiar">Limpiar</v-btn>
-          <v-btn color="info" medium @click="offcanvas = !offcanvas">
+          <v-btn color="success" @click="filtrar">Aceptar</v-btn>
+          <v-btn color="error" @click="limpiar">Limpiar</v-btn>
+          <v-btn color="info" @click="offcanvas = !offcanvas">
             Cancelar
           </v-btn>
         </v-card-actions>
@@ -475,81 +477,81 @@ export default {
     dataList: false,
     cabTotalOperativo: [
       {
-        text: "Operativo",
-        value: "moneda",
+        title: "Operativo",
+        key: "moneda",
       },
       {
-        text: "Llegados",
-        value: "llegada",
+        title: "Llegados",
+        key: "llegada",
       },
       {
-        text: "No Llegado",
-        value: "no_llegada",
+        title: "No Llegado",
+        key: "no_llegada",
       },
       {
-        text: "Total",
-        value: "total",
+        title: "Total",
+        key: "total",
       },
     ],
     totalOperativo: [],
     cabTotalAdministrativo: [
       {
-        text: "Administrativo",
-        value: "moneda",
+        title: "Administrativo",
+        key: "moneda",
       },
       {
-        text: "Nonto",
-        value: "monto",
+        title: "Nonto",
+        key: "monto",
       },
       {
-        text: "IGV",
-        value: "igv",
+        title: "IGV",
+        key: "igv",
       },
       {
-        text: "Total",
-        value: "total",
+        title: "Total",
+        key: "total",
       },
     ],
     totalAdministrativo: [],
     headersdbp: [
       {
-        text: "Cliente",
+        title: "Cliente",
         align: "start",
         sortable: true,
-        value: "nameconsigner",
-        class: "hProveedor",
+        key: "nameconsigner",
+        headerProps: { class: "hProveedor" },
       },
 
       {
-        text: "LLEGADA",
-        value: "total_llegada",
-        class: "hLlegada",
+        title: "LLEGADA",
+        key: "total_llegada",
+        headerProps: { class: "hLlegada" },
         sortable: false,
       },
       {
-        text: "NO LLLEGADAS",
-        value: "total_no_llegada",
-        class: "hNoLlegada",
+        title: "NO LLLEGADAS",
+        key: "total_no_llegada",
+        headerProps: { class: "hNoLlegada" },
         sortable: false,
       },
       {
-        text: "GENERAL",
-        value: "total_pagar_llegada",
-        class: "hGeneral",
+        title: "GENERAL",
+        key: "total_pagar_llegada",
+        headerProps: { class: "hGeneral" },
         sortable: false,
       },
 
-      { text: "", value: "data-table-expand" },
+      { title: "", key: "data-table-expand" },
     ],
     headersdbpa: [
       {
-        text: "Cliente",
-        value: "nameconsigner",
+        title: "Cliente",
+        key: "nameconsigner",
       },
 
       {
-        text: "Total",
-        value: "total_pagar",
+        title: "Total",
+        key: "total_pagar",
       },
     ],
     itemsCxcAdmin: [],
@@ -559,9 +561,9 @@ export default {
     dialogComentarios: false,
     dialogNuevoComentario: false,
     headersLstComentarios: [
-      { text: "Fecha", value: "fecha", width: "15%" },
-      { text: "Ejecutivo", value: "ejecutivo", width: "30%" },
-      { text: "Comentario", value: "comentario", width: "55%" },
+      { title: "Fecha", key: "fecha", width: "15%" },
+      { title: "Ejecutivo", key: "ejecutivo", width: "30%" },
+      { title: "Comentario", key: "comentario", width: "55%" },
     ],
     comentario: {
       fecha: moment().format("YYYY-MM-DD"),
@@ -629,14 +631,6 @@ export default {
 
       return this.itemsCpp.reduce((a, b) => a + parseFloat(b[key] || 0), 0);
     },
-    clickRow(item, event) {
-      if (event.isExpanded) {
-        const index = this.expanded.findIndex((i) => i === item);
-        this.expanded.splice(index, 1);
-      } else {
-        this.expanded.push(item);
-      }
-    },
     async exportarPDF() {
       Swal.fire({
         icon: "question",
@@ -667,7 +661,7 @@ export default {
           var config = {
             method: "get",
             url:
-              process.env.VUE_APP_URL_MAIN +
+              import.meta.env.VUE_APP_URL_MAIN +
               `exportarPDFCXC?id_branch=${
                 JSON.parse(sessionStorage.getItem("dataUser"))[0].id_branch
               }&id_proveedor=${
@@ -714,7 +708,7 @@ export default {
       var config = {
         method: "get",
         url:
-          process.env.VUE_APP_URL_MAIN +
+          import.meta.env.VUE_APP_URL_MAIN +
           `getReporteCXC?id_branch=${
             JSON.parse(sessionStorage.getItem("dataUser"))[0].id_branch
           }&id_cliente=${
@@ -752,7 +746,7 @@ export default {
       };
       var config = {
         method: "post",
-        url: process.env.VUE_APP_URL_MAIN + "getReportAccountsFilter",
+        url: import.meta.env.VUE_APP_URL_MAIN + "getReportAccountsFilter",
 
         headers: {
          
@@ -776,7 +770,7 @@ export default {
       var config = {
         method: "get",
         url:
-          process.env.VUE_APP_URL_MAIN +
+          import.meta.env.VUE_APP_URL_MAIN +
           `getReporteCXCAdmin?id_branch=${
             JSON.parse(sessionStorage.getItem("dataUser"))[0].id_branch
           }&id_cliente=${
@@ -856,14 +850,6 @@ export default {
           total: parseFloat(totalSoles).toFixed(2),
         }
       );
-    },
-    clickRow(item, event) {
-      if (event.isExpanded) {
-        const index = this.expanded.findIndex((i) => i === item);
-        this.expanded.splice(index, 1);
-      } else {
-        this.expanded.push(item);
-      }
     },
     clickRowa(item, event) {
       if (event.isExpandeda) {
@@ -1007,7 +993,7 @@ export default {
       var config = {
         method: "get",
         url:
-          process.env.VUE_APP_URL_MAIN +
+          import.meta.env.VUE_APP_URL_MAIN +
           `reportcxcexcel?id_branch=${
             JSON.parse(sessionStorage.getItem("dataUser"))[0].id_branch
           }&id_cliente=${
@@ -1105,7 +1091,7 @@ export default {
       var config = {
         method: "get",
         url:
-          process.env.VUE_APP_URL_MAIN +
+          import.meta.env.VUE_APP_URL_MAIN +
           `listarComentariosCXC?id_cliente=${vm.dataCXC.id_consigner}`,
         headers: {
          
@@ -1153,12 +1139,12 @@ export default {
     },
     async guardarComentario() {
       var vm = this;
-      if (vm.$refs.frmComentario.validate()) {
+      if ((await vm.$refs.frmComentario.validate()).valid) {
         vm.loadingBotonGuardarComentario = true;
 
         var config = {
           method: "post",
-          url: process.env.VUE_APP_URL_MAIN + `insertarComentarioCXC`,
+          url: import.meta.env.VUE_APP_URL_MAIN + `insertarComentarioCXC`,
           headers: {
            
             "Content-Type": "application/json",

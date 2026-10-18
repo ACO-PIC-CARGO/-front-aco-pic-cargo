@@ -9,10 +9,11 @@
 </template>
 
 <script>
+import { defineAsyncComponent } from "vue";
 export default {
   components: {
-    OpcionesMembresia: () =>
-      import("@/components/Membresia/OpcionesMembresia.vue"),
+    OpcionesMembresia: defineAsyncComponent(() =>
+      import("@/components/Membresia/OpcionesMembresia.vue")),
   },
   mounted() {
     this.$store.state.drawer = false;

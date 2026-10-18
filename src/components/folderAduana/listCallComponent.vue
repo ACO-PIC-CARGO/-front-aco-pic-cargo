@@ -7,7 +7,7 @@
     >
       <v-card>
         <v-card-title>
-          <span class="headline">Detalle de Nota de llamada</span>
+          <span class="text-h5">Detalle de Nota de llamada</span>
         </v-card-title>
 
         <v-card-text>
@@ -26,26 +26,25 @@
             <v-autocomplete
               :items="$store.state.pricing.listEjecutivo"
               label="Ejecutivo."
-              dense
-              search
+              density="compact"
               clearable
-              item-text="name"
+              item-title="name"
               item-value="id_entitie"
               v-model="fromData.identities"
             ></v-autocomplete>
           </v-form>
         </v-card-text>
         <v-card-actions>
-          <v-flex text-right>
-            <v-btn text color="success" @click="guardarNota">Aceptar</v-btn>
+          <div class="flex-grow-1 text-right">
+            <v-btn variant="text" color="success" @click="guardarNota">Aceptar</v-btn>
             <v-btn
-              text
+              variant="text"
               color="red"
               @click="dialogRegistroNotaLlamada = !dialogRegistroNotaLlamada"
             >
               Cancelar
             </v-btn>
-          </v-flex>
+          </div>
         </v-card-actions>
       </v-card>
     </v-dialog>
@@ -58,8 +57,7 @@
             class="mx-1"
             :loading="loading4"
             :disabled="loading4"
-            :dark="!loading4"
-            small
+            size="small"
           >
             <v-icon>mdi-file-pdf-box</v-icon> Imprimir
           </v-btn>
@@ -70,8 +68,7 @@
                 !$store.state.pricing.filtrarCallsFlag
             "
             class="mx-1"
-            dark
-            small
+            size="small"
           >
             Filtrar
           </v-btn>
@@ -80,14 +77,13 @@
     </v-row>
     <v-row>
       <v-data-table
-        dense
+        density="compact"
         :headers="headers"
         :items="$store.state.pricing.listCall"
         :items-per-page="5"
         class="elevation-1 contenido"
         :search="search"
         multi-sort
-        mobile
       >
         <template v-slot:item="row">
           <tr
@@ -99,19 +95,18 @@
             }"
           >
             <td>
-              <v-tooltip bottom>
-                <template v-slot:activator="{ on, attrs }">
-                  <v-btn
+              <v-tooltip location="bottom">
+                <template v-slot:activator="{ props }">
+                  <v-btn variant="text"
                     class="ma-2"
                     icon
-                    dark
-                    x-small
-                    v-bind="attrs"
-                    v-on="on"
+                    size="x-small"
+                   
+                    v-bind="props"
                     color="#A43542 "
                     @click="registrarLlamada(row.item.id)"
                   >
-                    <v-icon dense small>mdi-phone-plus</v-icon>
+                    <v-icon size="small">mdi-phone-plus</v-icon>
                   </v-btn>
                 </template>
                 <span>Actualizar Registro Llamada</span>
@@ -174,52 +169,52 @@ export default {
       loading4: false,
       dialogRegistroNotaLlamada: false,
       headers: [
-        { value: "acciones", text: "", align: "center", estado: true },
-        { value: "status", text: "ESTATUS ", aling: "center", estado: true },
+        { key: "acciones", title: "", align: "center", estado: true },
+        { key: "status", title: "ESTATUS ", aling: "center", estado: true },
         {
-          value: "codigo_quote",
-          text: "CÓDIGO ",
+          key: "codigo_quote",
+          title: "CÓDIGO ",
           aling: "center",
           estado: true,
         },
         {
-          value: "fecha_ultima_llamada",
-          text: "FECHA ÚLTIMA LLAMADA",
+          key: "fecha_ultima_llamada",
+          title: "FECHA ÚLTIMA LLAMADA",
           aling: "center",
           estado: true,
         },
         {
-          value: "ejecutivo_ventas",
-          text: "EJECUTIVO",
+          key: "ejecutivo_ventas",
+          title: "EJECUTIVO",
           aling: "center",
           estado: true,
         },
-        { value: "cliente", text: "CLIENTE", aling: "center", estado: true },
+        { key: "cliente", title: "CLIENTE", aling: "center", estado: true },
         {
-          value: "ultimo_comentario",
-          text: "ULTIMO COMENTARIO",
+          key: "ultimo_comentario",
+          title: "ULTIMO COMENTARIO",
           aling: "center",
           estado: true,
         },
-        { value: "telefono", text: "TELEFONO", aling: "center", estado: true },
+        { key: "telefono", title: "TELEFONO", aling: "center", estado: true },
         {
-          value: "fecha_solicitud",
-          text: "FECHA SOLICITUD",
+          key: "fecha_solicitud",
+          title: "FECHA SOLICITUD",
           aling: "center",
           estado: true,
         },
-        { value: "sentido", text: "SENTIDO", aling: "center", estado: true },
-        { value: "origen", text: "ORIGEN ", aling: "center", estado: true },
-        { value: "destino", text: "DESTINO", aling: "center", estado: true },
+        { key: "sentido", title: "SENTIDO", aling: "center", estado: true },
+        { key: "origen", title: "ORIGEN ", aling: "center", estado: true },
+        { key: "destino", title: "DESTINO", aling: "center", estado: true },
         {
-          value: "incoterms",
-          text: "INCOTERMS",
+          key: "incoterms",
+          title: "INCOTERMS",
           aling: "center",
           estado: true,
         },
         {
-          value: "tipo_de_carga",
-          text: "TIPO DE CARGA",
+          key: "tipo_de_carga",
+          title: "TIPO DE CARGA",
           aling: "center",
           estado: true,
         },
@@ -275,7 +270,7 @@ export default {
       this.dialogRegistroNotaLlamada = true;
     },
     async guardarNota() {
-      if (this.$refs.detallenota.validate()) {
+      if ((await this.$refs.detallenota.validate()).valid) {
         this.dialogRegistroNotaLlamada = false;
         this.$store.state.spiner = true;
 

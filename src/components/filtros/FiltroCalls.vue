@@ -1,8 +1,8 @@
 <template>
   <v-card elevation="1" class="clsCardFiltro">
-    <v-card-title primary-title>
+    <v-card-title class="d-flex align-center flex-wrap" primary-title>
       Filtrar Cotización <v-spacer></v-spacer>
-      <v-btn
+      <v-btn variant="text"
         icon
         color="default"
         @click="
@@ -20,9 +20,9 @@
             <v-col cols="12" md="6" class="py-1">
               <v-autocomplete
                 label="Cliente"
-                dense
+                density="compact"
                 :items="$store.state.clientes"
-                item-text="namelong"
+                item-title="namelong"
                 item-value="id"
                 placeholder="Clientes"
                 v-model="$store.state.pricing.filtroCalls.id_cliente"
@@ -34,9 +34,8 @@
               <v-autocomplete
                 :items="$store.state.pricing.listMarketing"
                 label="Tipo de Marketing"
-                dense
-                search
-                item-text="name"
+                density="compact"
+                item-title="name"
                 item-value="id"
                 v-model="$store.state.pricing.filtroCalls.id_marketing"
                 clearable
@@ -46,8 +45,8 @@
               <v-autocomplete
                 :items="$store.state.pricing.listQuoteStatus"
                 label="Estado de la Cotización"
-                dense
-                item-text="name"
+                density="compact"
+                item-title="name"
                 item-value="id"
                 v-model="$store.state.pricing.filtroCalls.id_status"
                 clearable
@@ -57,9 +56,8 @@
               <v-autocomplete
                 :items="$store.state.pricing.listEjecutivo"
                 label="Pricing."
-                dense
-                search
-                item-text="name"
+                density="compact"
+                item-title="name"
                 item-value="id_entitie"
                 v-model="$store.state.pricing.filtroCalls.id_pricing"
                 clearable
@@ -69,9 +67,8 @@
               <v-autocomplete
                 :items="$store.state.pricing.listEjecutivo"
                 label="Ejecutivo."
-                dense
-                search
-                item-text="name"
+                density="compact"
+                item-title="name"
                 item-value="id_entitie"
                 v-model="$store.state.pricing.filtroCalls.id_entities"
                 clearable
@@ -82,8 +79,8 @@
                 :items="$store.state.pricing.listModality"
                 label="Sentido"
                 v-model="$store.state.pricing.filtroCalls.id_modality"
-                dense
-                item-text="name"
+                density="compact"
+                item-title="name"
                 item-value="id"
                 clearable
               ></v-autocomplete>
@@ -92,8 +89,8 @@
               <v-autocomplete
                 :items="$store.state.pricing.listShipment"
                 label="Carga*"
-                dense
-                item-text="embarque"
+                density="compact"
+                item-title="embarque"
                 item-value="id"
                 v-model="$store.state.pricing.filtroCalls.id_shipment"
                 clearable
@@ -104,8 +101,8 @@
               <v-autocomplete
                 :items="$store.state.pricing.listIncoterms"
                 label="Incoterm*"
-                dense
-                item-text="name"
+                density="compact"
+                item-title="name"
                 item-value="id"
                 v-model="$store.state.pricing.filtroCalls.id_incoterm"
                 clearable
@@ -120,22 +117,25 @@
                     .id_masterdetalletemperaturaventa
                 "
                 item-value="id"
-                item-text="descripcion"
-                dense
+                item-title="descripcion"
+                density="compact"
                 clearable
                 label="Temperatura de Lead"
               >
-                <template v-slot:item="{ item }">
-                  <span
-                    class="mr-3 d-inline-block"
-                    :style="{
-                      backgroundColor: item.codigo,
+                <template v-slot:item="{ item, props }">
+                  <v-list-item v-bind="props">
+                    <template v-slot:prepend>
+                      <span
+                        class="d-inline-block"
+                        :style="{
+                          backgroundColor: item.codigo,
                       width: '14px',
                       height: '14px',
                       borderRadius: '50%',
                     }"
-                  ></span>
-                  {{ item.descripcion }}
+                      ></span>
+                    </template>
+                  </v-list-item>
                 </template>
               </v-autocomplete>
             </v-col>
@@ -187,7 +187,7 @@
               />
             </v-col>
             <v-col cols="12" v-if="errorFiltroFecha">
-              <v-alert dense style="background: #ffcdd2; color: #b71c1c">
+              <v-alert density="compact" style="background: #ffcdd2; color: #b71c1c">
                 <b>{{ errorFiltroFecha }}</b>
               </v-alert>
               <span> </span>

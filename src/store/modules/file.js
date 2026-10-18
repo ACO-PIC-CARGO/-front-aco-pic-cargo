@@ -14,15 +14,13 @@ const mutations = {
 };
 const actions = {
   async _uploadFile({ commit }, file) {
-    var FormData = require("form-data");
-    var fs = require("fs");
     var data = new FormData();
     let nameWithoutExtension = file.name.replace(/\.[^/.]+$/, "");
     data.append("name", nameWithoutExtension);
     data.append("file", file);
     var config = {
       method: "post",
-      url: process.env.VUE_APP_URL_MAIN + "uploadAllPath",
+      url: import.meta.env.VUE_APP_URL_MAIN + "uploadAllPath",
       headers: {
        
         "Content-Type": "application/json",
@@ -43,7 +41,7 @@ const actions = {
   async uploadFileFromUrlToOneDrive({ commit }, data) {
     var config = {
       method: "put",
-      url: process.env.VUE_APP_URL_MAIN + "mover_files_servidor_onedrive",
+      url: import.meta.env.VUE_APP_URL_MAIN + "mover_files_servidor_onedrive",
       headers: {
         "Content-Type": "application/json",
        
@@ -56,7 +54,7 @@ const actions = {
   async moveFileToOneDrive({ commit }, data) {
     var config = {
       method: "put",
-      url: process.env.VUE_APP_URL_MAIN + "mover_files",
+      url: import.meta.env.VUE_APP_URL_MAIN + "mover_files",
       headers: {
         "Content-Type": "application/json",
        

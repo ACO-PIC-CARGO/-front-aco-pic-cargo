@@ -9,12 +9,12 @@
           <v-col cols="6">
             <v-text-field
               v-model="search"
-              append-icon="mdi-magnify"
+              append-inner-icon="mdi-magnify"
               label="Buscar solicitud"
             ></v-text-field>
           </v-col>
           <v-col cols="6" class="ml-auto">
-            <v-btn text color="orange" @click="abrirPagoProveedor()">
+            <v-btn variant="text" color="orange" @click="abrirPagoProveedor()">
               NUEVO PAGO
               <v-icon> mdi-cash-check </v-icon>
             </v-btn>
@@ -22,13 +22,13 @@
         </v-row>
       </v-card-subtitle>
       <v-container v-if="!dataList" style="height: 400px">
-        <v-row class="fill-height" align-content="center" justify="center">
+        <v-row class="fill-height align-content-center justify-center">
           <v-col class="text-subtitle-1 text-center" cols="12">
             Cargando informacíon
           </v-col>
           <v-col cols="6">
             <v-progress-linear
-              color="deep-purple accent-4"
+              color="deep-purple-accent-4"
               indeterminate
               rounded
               height="6"
@@ -45,31 +45,31 @@
         <template v-slot:[`item.status`]="{ item }">
           <v-chip
             v-if="item.status == 2 && item.ajusteflag == 0"
-            class="ma-2"
+            class="ma-2 text-white"
             color="orange"
-            text-color="white"
+            variant="flat"
           >
             {{ item.status == 2 ? "Pendiente" : "" }}
           </v-chip>
           <v-chip
             v-if="item.status == 3 && item.ajusteflag == 0"
-            class="ma-2"
+            class="ma-2 text-white"
             color="green"
-            text-color="white"
+            variant="flat"
           >
             {{ item.status == 3 ? "Pagado" : "" }}
           </v-chip>
           <v-chip
             v-if="item.ajusteflag == 1"
-            class="ma-2"
+            class="ma-2 text-white"
             color="blue"
-            text-color="white"
+            variant="flat"
           >
             AJUSTADO
           </v-chip>
         </template>
         <!-- <template v-else>
-          <v-chip class="ma-2" color="blue" text-color="white">
+          <v-chip class="ma-2 text-white" color="blue" variant="flat">
             AJUSTADO
           </v-chip>
         </template> -->
@@ -79,17 +79,17 @@
         <template v-slot:[`item.pago_completo`]="{ item }">
           <v-chip
             v-if="item.pago_completo == 0"
-            class="ma-2"
+            class="ma-2 text-white"
             color="orange"
-            text-color="white"
+            variant="flat"
           >
             {{ item.pago_completo == 0 ? "POR COBRAR" : "" }}
           </v-chip>
           <v-chip
             v-if="item.pago_completo == 1"
-            class="ma-2"
+            class="ma-2 text-white"
             color="green"
-            text-color="white"
+            variant="flat"
           >
             {{ item.pago_completo == 1 ? "COBRADO" : "" }}
           </v-chip>
@@ -112,7 +112,7 @@
         <template v-slot:[`item.accions`]="{ item }">
           <v-icon
             v-if="item.status == 3 && security == 1"
-            color="blue-grey darken-2"
+            color="blue-grey-darken-2"
             class="mr-2"
             @click="reversar(item)"
           >
@@ -121,7 +121,7 @@
 
           <v-icon
             v-if="item.status == 3"
-            large
+            size="large"
             color="green"
             class="mr-2"
             @click="openPaymentFile(item.id, item.pathfile, item.namelong)"
@@ -143,41 +143,41 @@
         </v-card-title>
         <v-card-text>
           <v-container>
-            <v-row dense>
+            <v-row density="compact">
               <v-col cols="12" md="6">
                 <v-menu
-                  ref="menu"
                   v-model="menu"
                   :close-on-content-click="false"
-                  :return-value.sync="date"
                   transition="scale-transition"
-                  offset-y
                   min-width="auto"
                 >
-                  <template v-slot:activator="{ on, attrs }">
+                  <template v-slot:activator="{ props }">
                     <v-text-field
                       v-model="date"
                       label="Fecha de Operación"
                       prepend-icon="mdi-calendar"
                       readonly
-                      v-bind="attrs"
-                      v-on="on"
+                     
+                      v-bind="props"
                     ></v-text-field>
                   </template>
-                  <v-date-picker
-                    locale="es-pe"
-                    v-model="date"
-                    no-title
-                    scrollable
-                  >
-                    <v-spacer></v-spacer>
-                    <v-btn text color="primary" @click="menu = false">
-                      Cancel
-                    </v-btn>
-                    <v-btn text color="primary" @click="$refs.menu.save(date)">
-                      OK
-                    </v-btn>
-                  </v-date-picker>
+                  <v-locale-provider locale="es">
+                    <v-date-picker
+                      :model-value="date || undefined"
+                      @update:model-value="setDate"
+                      hide-header
+                    >
+                      <template #actions>
+                        <v-spacer></v-spacer>
+                        <v-btn variant="text" color="primary" @click="menu = false">
+                          Cancel
+                        </v-btn>
+                        <v-btn variant="text" color="primary" @click="dateOnOpen = date; menu = false">
+                          OK
+                        </v-btn>
+                      </template>
+                    </v-date-picker>
+                  </v-locale-provider>
                 </v-menu>
               </v-col>
               <v-col cols="12" md="6">
@@ -191,7 +191,7 @@
                 <v-autocomplete
                   :items="$store.state.itemsDataBanksList"
                   v-model="paybanco"
-                  item-text="acronym"
+                  item-title="acronym"
                   item-value="id"
                   label="Banco"
                 ></v-autocomplete>
@@ -200,7 +200,7 @@
                 <v-autocomplete
                   :items="$store.state.itemsCoinsList"
                   v-model="paymoneda"
-                  item-text="acronym"
+                  item-title="acronym"
                   item-value="id"
                   label="Moneda"
                 ></v-autocomplete>
@@ -224,12 +224,12 @@
                 <v-chip
                   block
                   v-if="boolFile"
-                  large
+                  size="large"
                   class=""
                   color="success"
-                  outlined
+                  variant="outlined"
                 >
-                  <v-icon left> mdi-check </v-icon>
+                  <v-icon start> mdi-check </v-icon>
                   Archivo cargado éxitosamente
                 </v-chip>
               </v-col>
@@ -238,12 +238,12 @@
                   :disabled="boolFile || payfile == []"
                   color="blue-grey"
                   block
-                  class="ma-2 white--text"
-                  large
+                  class="ma-2 text-white"
+                  size="large"
                   @click="_uploadFile()"
                 >
                   Subir
-                  <v-icon right dark> mdi-cloud-upload </v-icon>
+                  <v-icon end> mdi-cloud-upload </v-icon>
                 </v-btn>
               </v-col>
             </v-row>
@@ -257,7 +257,7 @@
             >Procesar Pago</v-btn
           >
           <v-spacer></v-spacer>
-          <v-btn outlined color="red" @click="dialogProcess = !dialogProcess"
+          <v-btn variant="outlined" color="red" @click="dialogProcess = !dialogProcess"
             >Cerrar</v-btn
           >
         </v-card-actions>
@@ -265,7 +265,7 @@
     </v-dialog>
     <v-dialog max-width="800" v-model="dialogListInvoince">
       <v-card>
-        <v-card-title>
+        <v-card-title class="d-flex align-center flex-wrap">
           Facturas y Performance de {{ nameproveedor }}
           <v-spacer></v-spacer>
         </v-card-title>
@@ -273,13 +273,13 @@
           <v-data-table
             :headers="headersInvoice"
             :items="itemsListInvoice"
-            dense
-            item-key="id"
+            density="compact"
+            item-value="id"
             class="elevation-0"
           >
             <template v-slot:[`item.originalname`]="{ item }">
               <v-icon v-if="item.type == 'pdf'" color="red" class="mr-2"
-                >mdi-file-pdf</v-icon
+                >mdi-file-pdf-box</v-icon
               >
               <v-icon
                 v-if="
@@ -287,8 +287,7 @@
                   item.type == 'jpg' ||
                   item.type == 'jpeg'
                 "
-                color="blue-grey darken-1
-"
+                color="blue-grey-darken-1"
                 class="mr-2"
                 >mdi-file-image</v-icon
               >
@@ -298,8 +297,7 @@
             <template v-slot:[`item.path`]="{ item }">
               <v-icon
                 class="btn_add mr-2"
-                dense
-                large
+                size="large"
                 color="grey"
                 @click="openDoc(item.path)"
                 >mdi-eye</v-icon
@@ -355,15 +353,17 @@
   </div>
 </template>
 <script>
+import { defineAsyncComponent } from "vue";
 import axios from '@/api/axios-config';
+import moment from "moment";
 import Swal from "sweetalert2";
 import { mapActions, mapState } from "vuex";
 export default {
   props: ["filtrarFlag"],
   name: "RequestPayment",
   components: {
-    ModalPagoControlGastoComponent: () =>
-      import("../../components/modal/modalPagoControlGasto.vue"),
+    ModalPagoControlGastoComponent: defineAsyncComponent(() =>
+      import("../../components/modal/modalPagoControlGasto.vue")),
   },
   data: () => ({
     itemsSPayment: [],
@@ -375,6 +375,7 @@ export default {
       .toISOString()
       .substr(0, 10),
     menu: false,
+    dateOnOpen: null,
     modal: false,
     menu2: false,
     security: JSON.parse(sessionStorage.getItem("security")),
@@ -400,16 +401,16 @@ export default {
 
     headersInvoice: [
       {
-        text: "Nombre",
-        value: "originalname",
+        title: "Nombre",
+        key: "originalname",
       },
       {
-        text: "Fecha",
-        value: "date_letra",
+        title: "Fecha",
+        key: "date_letra",
       },
       {
-        text: "Ver",
-        value: "path",
+        title: "Ver",
+        key: "path",
       },
     ],
 
@@ -420,59 +421,59 @@ export default {
         value: "path",
       }, */
       {
-        text: "Expediente",
-        value: "nro_master",
+        title: "Expediente",
+        key: "nro_master",
       },
       {
-        text: "Fecha de Disponibilidad",
-        value: "fecha_disponibilidad",
+        title: "Fecha de Disponibilidad",
+        key: "fecha_disponibilidad",
       },
       {
-        text: "Proveedor",
-        value: "name_proveedor",
+        title: "Proveedor",
+        key: "name_proveedor",
       },
       {
-        text: "Quote",
-        value: "id_cot",
+        title: "Quote",
+        key: "id_cot",
       },
       {
-        text: "Monto",
-        value: "monto_letra",
+        title: "Monto",
+        key: "monto_letra",
       },
       {
-        text: "Consignatario",
-        value: "name_cosigner",
+        title: "Consignatario",
+        key: "name_cosigner",
       },
       {
-        text: "Ver Facturas",
-        value: "invoice",
+        title: "Ver Facturas",
+        key: "invoice",
       },
       {
-        text: "Ver Solicitud",
-        value: "accion",
-      },
-
-      {
-        text: "Ver Instructivo",
-        value: "inst",
-      },
-      {
-        text: "Status de Cobro al cliente",
-        value: "pago_completo",
-      },
-      {
-        text: "Ganancia",
-        value: "ganancia",
+        title: "Ver Solicitud",
+        key: "accion",
       },
 
       {
-        text: "Status",
-        value: "status",
+        title: "Ver Instructivo",
+        key: "inst",
+      },
+      {
+        title: "Status de Cobro al cliente",
+        key: "pago_completo",
+      },
+      {
+        title: "Ganancia",
+        key: "ganancia",
       },
 
       {
-        text: "Cargar Soporte de Pago",
-        value: "accions",
+        title: "Status",
+        key: "status",
+      },
+
+      {
+        title: "Cargar Soporte de Pago",
+        key: "accions",
       },
     ],
     dataList: false,
@@ -486,6 +487,9 @@ export default {
   },
   methods: {
     ...mapActions(["_getBanksList", "_getCoinsList"]),
+    setDate(value) {
+      this.date = moment(value).format("YYYY-MM-DD");
+    },
     onCerrarModal(cerrar) {
       if (cerrar) {
         this.dialogPagoControlGasto = !cerrar;
@@ -523,7 +527,7 @@ export default {
       };
       var config = {
         method: "post",
-        url: process.env.VUE_APP_URL_MAIN + "getListInvoice",
+        url: import.meta.env.VUE_APP_URL_MAIN + "getListInvoice",
 
         headers: {
          
@@ -541,8 +545,6 @@ export default {
         });
     },
     _uploadFile() {
-      var FormData = require("form-data");
-      var fs = require("fs");
       var data = new FormData();
       var vm = this;
       data.append("name", "Prueba");
@@ -550,7 +552,7 @@ export default {
 
       var config = {
         method: "post",
-        url: process.env.VUE_APP_URL_MAIN + "uploadAllPath",
+        url: import.meta.env.VUE_APP_URL_MAIN + "uploadAllPath",
         headers: {
          
           "Content-Type": "application/json",
@@ -612,7 +614,7 @@ export default {
       };
       var config = {
         method: "post",
-        url: process.env.VUE_APP_URL_MAIN + "setSPaymentFile/",
+        url: import.meta.env.VUE_APP_URL_MAIN + "setSPaymentFile/",
 
         headers: {
          
@@ -640,7 +642,7 @@ export default {
       var vm = this;
       var config = {
         method: "post",
-        url: process.env.VUE_APP_URL_MAIN + "getRequestPayment",
+        url: import.meta.env.VUE_APP_URL_MAIN + "getRequestPayment",
         data: {
           id_branch: JSON.parse(sessionStorage.getItem("dataUser"))[0]
             .id_branch,
@@ -663,7 +665,7 @@ export default {
       var vm = this;
       var config = {
         method: "post",
-        url: process.env.VUE_APP_URL_MAIN + "getRequestPaymentConceptos/" + id,
+        url: import.meta.env.VUE_APP_URL_MAIN + "getRequestPaymentConceptos/" + id,
 
         headers: {
          
@@ -679,7 +681,7 @@ export default {
         });
     },
     viewPdf(pdf) {
-      window.open(process.env.VUE_APP_URL_MAIN + pdf, "_blank");
+      window.open(import.meta.env.VUE_APP_URL_MAIN + pdf, "_blank");
     },
     abrirPagoProveedor(id) {
       // this.idProveedor = id;
@@ -705,7 +707,7 @@ export default {
       let vm = this;
       var config = {
         method: "put",
-        url: process.env.VUE_APP_URL_MAIN + "reversar_debsproveedor",
+        url: import.meta.env.VUE_APP_URL_MAIN + "reversar_debsproveedor",
 
         headers: {
          
@@ -738,6 +740,10 @@ export default {
     ...mapState(["actualizar"]),
   },
   watch: {
+    menu(open) {
+      if (open) this.dateOnOpen = this.date;
+      else this.date = this.dateOnOpen;
+    },
     filtrarFlag() {
       if (this.filtrarFlag == true) {
         this.itemsSPayment = this.itemsSPayment.filter((v) => v.status == 2);

@@ -2,54 +2,61 @@
   <div class="mb-10">
     <h3>Datos del Embarque</h3>
 
-    <v-row dense>
+    <v-row density="compact">
       <v-col cols="12" md="12">
         <!--  v-if="$store.state.house_id_trasnport.id != 3" -->
         <v-autocomplete
           :items="$store.state.itemsProveedorRolShipper"
-          item-text="namelong"
+          item-title="namelong"
           item-value="id"
           label="Proveedor"
           v-model="$store.state.house_id_agente"
+          menu-icon=""
         >
-          <v-icon
-            @click.native="_callModalEntitie(1)"
-            slot="append"
-            class="btn__add"
-            color="primary"
-            :disabled="isFormActionsDisabled"
-          >
-            mdi-plus
-          </v-icon>
+          <template v-slot:append-inner>
+            <v-icon
+              @mousedown.stop
+              @click.stop="_callModalEntitie(1)"
+              class="btn__add"
+              color="primary"
+              :disabled="isFormActionsDisabled"
+            >
+              mdi-plus
+            </v-icon>
+          </template>
         </v-autocomplete>
       </v-col>
       <v-col cols="12" md="12">
         <v-autocomplete
           :items="$store.state.clientes"
-          item-text="namelong"
+          item-title="namelong"
           item-value="id"
           label="Cliente HBL"
           v-model="$store.state.house_id_consigner"
+          menu-icon=""
         >
-          <v-icon
-            @click.native="_callModalEntitie(11)"
-            slot="append"
-            class="btn__add"
-            color="primary"
-            :disabled="isFormActionsDisabled"
-          >
-            mdi-plus
-          </v-icon>
-          <v-icon
-            @click.native="abrirEditarClinte(11)"
-            slot="prepend"
-            class="btn__add"
-            color="primary"
-            v-if="$store.state.house_id_consigner"
-            :disabled="isFormActionsDisabled"
-          >
-            mdi-pencil
-          </v-icon>
+          <template v-slot:append-inner>
+            <v-icon
+              @mousedown.stop
+              @click.stop="_callModalEntitie(11)"
+              class="btn__add"
+              color="primary"
+              :disabled="isFormActionsDisabled"
+            >
+              mdi-plus
+            </v-icon>
+          </template>
+          <template v-slot:prepend>
+            <v-icon
+              @click="abrirEditarClinte(11)"
+              class="btn__add"
+              color="primary"
+              v-if="$store.state.house_id_consigner"
+              :disabled="isFormActionsDisabled"
+            >
+              mdi-pencil
+            </v-icon>
+          </template>
         </v-autocomplete>
       </v-col>
       <v-col cols="12" md="6">
@@ -62,46 +69,52 @@
       <v-col cols="12" md="6">
         <v-autocomplete
           :items="$store.state.clientes"
-          item-text="namelong"
+          item-title="namelong"
           item-value="id"
           label="Consigne HBL"
           v-model="$store.state.house_id_consigner_real"
+          menu-icon=""
         >
-          <v-icon
-            @click.native="_callModalEntitie(11)"
-            slot="append"
-            class="btn__add"
-            color="primary"
-            :disabled="isFormActionsDisabled"
-          >
-            mdi-plus
-          </v-icon>
+          <template v-slot:append-inner>
+            <v-icon
+              @mousedown.stop
+              @click.stop="_callModalEntitie(11)"
+              class="btn__add"
+              color="primary"
+              :disabled="isFormActionsDisabled"
+            >
+              mdi-plus
+            </v-icon>
+          </template>
         </v-autocomplete>
       </v-col>
       <v-col cols="12" md="6">
         <v-autocomplete
           :items="$store.state.clientes"
-          item-text="namelong"
+          item-title="namelong"
           item-value="id"
           label="Notify HBL"
           v-model="$store.state.house_id_notify"
+          menu-icon=""
         >
-          <v-icon
-            @click.native="_callModalEntitie(11)"
-            slot="append"
-            class="btn__add"
-            color="primary"
-            :disabled="isFormActionsDisabled"
-          >
-            mdi-plus
-          </v-icon>
+          <template v-slot:append-inner>
+            <v-icon
+              @mousedown.stop
+              @click.stop="_callModalEntitie(11)"
+              class="btn__add"
+              color="primary"
+              :disabled="isFormActionsDisabled"
+            >
+              mdi-plus
+            </v-icon>
+          </template>
         </v-autocomplete>
       </v-col>
 
       <v-col cols="12">
         <v-autocomplete
           :items="$store.state.pricing.listEjecutivo"
-          item-text="nombrecompleto"
+          item-title="nombrecompleto"
           item-value="id"
           item-key="id"
           label="Vendedor"
@@ -112,7 +125,7 @@
       <v-col cols="12">
         <v-autocomplete
           :items="$store.state.pricing.listEjecutivo"
-          item-text="nombrecompleto"
+          item-title="nombrecompleto"
           item-value="id"
           item-key="id"
           label="Pricing"
@@ -124,7 +137,7 @@
       <v-col cols="12" md="6">
         <v-autocomplete
           :items="itemsMotonave"
-          item-text="name"
+          item-title="name"
           item-value="id"
           label="Motonave"
           v-model="$store.state.house_id_motonave"
@@ -140,7 +153,7 @@
       <v-col cols="12" md="3" lg="3" xl="3">
         <v-autocomplete
           :items="itemsFleteCon"
-          item-text="name"
+          item-title="name"
           item-value="id"
           label="Condición"
           v-model="$store.state.house_id_condicion"
@@ -156,7 +169,7 @@
       <v-col cols="12" md="3" lg="3" xl="3">
         <v-autocomplete
           :items="itemsCoinsList"
-          item-text="symbol"
+          item-title="symbol"
           item-value="id"
           label="Moneda"
           v-model="$store.state.house_id_coins"
@@ -167,8 +180,8 @@
           :items="lstHouse"
           v-model="idHouse"
           label="Cambiar de House"
-          item-text="house"
-          @change="cambiarHouse"
+          item-title="house"
+          @update:model-value="cambiarHouse"
           return-object
         ></v-select>
       </v-col>
@@ -177,7 +190,7 @@
       <v-col cols="12" md="3" lg="3" xl="3" v-if="mostrarContenedor">
         <v-autocomplete
           :items="itemsContainers"
-          item-text="name"
+          item-title="name"
           item-value="id"
           return-object
           label="Tipo de contenedor"
@@ -198,27 +211,28 @@
       </v-col>
       <v-col cols="12" md="3" lg="3" xl="3" v-if="mostrarContenedor">
         <v-text-field v-model="$store.state.house_cantidad" label="Cant.">
-          <v-icon
-            class="btn__add"
-            @click.native="
-              _setHouseContainers(
-                $store.state.house_id_containers.id,
-                $store.state.house_id_containers.name,
-                $store.state.house_nro_containers,
-                $store.state.house_nro_precinto,
-                $store.state.house_cantidad,
-              )
-            "
-            slot="append"
-            color="green"
-          >
-            mdi-plus
-          </v-icon>
+          <template v-slot:append-inner>
+            <v-icon
+              class="btn__add"
+              @click="
+                _setHouseContainers(
+                  $store.state.house_id_containers.id,
+                  $store.state.house_id_containers.name,
+                  $store.state.house_nro_containers,
+                  $store.state.house_nro_precinto,
+                  $store.state.house_cantidad,
+                )
+              "
+              color="green"
+            >
+              mdi-plus
+            </v-icon>
+          </template>
         </v-text-field>
       </v-col>
 
       <v-col cols="12" v-if="mostrarContenedor">
-        <v-simple-table fixed-header height="180px">
+        <v-table fixed-header height="180px">
           <template v-slot:default>
             <thead>
               <tr>
@@ -242,16 +256,16 @@
                 <td>
                   <v-icon
                     class="btn__add"
-                    dense
+                    size="small"
                     color="red"
-                    @click.native="_deleteContainers(item.id)"
+                    @click="_deleteContainers(item.id)"
                     >mdi-delete</v-icon
                   >
                 </td>
               </tr>
             </tbody>
           </template>
-        </v-simple-table>
+        </v-table>
       </v-col>
     </v-row>
   </div>
@@ -352,7 +366,7 @@ export default {
       let vm = this;
       var config = {
         method: "get",
-        url: process.env.VUE_APP_URL_MAIN + "obtener_house_master_asociados",
+        url: import.meta.env.VUE_APP_URL_MAIN + "obtener_house_master_asociados",
         headers: {
           "Content-Type": "application/json",
         },
@@ -403,7 +417,7 @@ export default {
       };
       var config = {
         method: "post",
-        url: process.env.VUE_APP_URL_MAIN + "deleteContainers",
+        url: import.meta.env.VUE_APP_URL_MAIN + "deleteContainers",
         headers: {
           "Content-Type": "application/json",
         },
@@ -432,7 +446,7 @@ export default {
       };
       var config = {
         method: "post",
-        url: process.env.VUE_APP_URL_MAIN + "setHouseContainers",
+        url: import.meta.env.VUE_APP_URL_MAIN + "setHouseContainers",
         headers: {
           "Content-Type": "application/json",
         },

@@ -1,7 +1,7 @@
 <template>
   <div>
     <v-container>
-      <v-row dense>
+      <v-row density="compact">
         <v-col cols="12">
           <h3>Totales</h3>
         </v-col>

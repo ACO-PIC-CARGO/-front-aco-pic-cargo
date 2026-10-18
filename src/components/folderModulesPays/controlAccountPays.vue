@@ -10,31 +10,31 @@
     >
     <v-card-title v-else> CARGAR UNA CUENTA POR PAGAR </v-card-title>
     <v-card-text>
-      <v-radio-group v-model="radio" row v-if="tipo == 'nuevo'">
+      <v-radio-group v-model="radio" inline v-if="tipo == 'nuevo'">
         <v-radio value="1" label="Administrativa"></v-radio>
         <v-radio value="2" label="Operativa"></v-radio>
       </v-radio-group>
       <v-form ref="frmFactura">
-        <v-row dense>
+        <v-row density="compact">
           <v-col cols="12" md="6" v-if="radio == 2">
             <v-autocomplete
               :items="itemsExpedientes"
-              item-text="namelong"
+              item-title="namelong"
               item-value="id"
               label="Expediente"
               v-model="id_expediente"
               :disabled="radio == ''"
-              @change="_getProformace()"
+              @update:model-value="_getProformace()"
               :rules="[(v) => !!v || 'Datos Requerido']"
             >
             </v-autocomplete>
           </v-col>
           <v-col cols="12" md="6" v-if="radio == 1">
-            <v-row dense>
+            <v-row density="compact">
               <v-col cols="12" md="6">
                 <v-autocomplete
                   :items="$store.state.month"
-                  item-text="description"
+                  item-title="description"
                   item-value="id"
                   label="Mes del Gasto"
                   v-model="id_month"
@@ -45,8 +45,8 @@
               </v-col>
               <v-col cols="12" md="6">
                 <v-autocomplete
-                  :items="$store.state.year"
-                  item-text="description"
+                  :items="Array.isArray($store.state.year) ? $store.state.year : []"
+                  item-title="description"
                   item-value="id"
                   label="Año del Gasto"
                   v-model="id_year"
@@ -74,12 +74,12 @@
           <v-col cols="12" md="6">
             <v-autocomplete
               :items="$store.state.performances"
-              item-text="description"
+              item-title="description"
               item-value="id"
               label="Tipo de Comprobante"
               v-model="id_proformace"
               :disabled="radio == ''"
-              @change="validacionesRequeridas()"
+              @update:model-value="validacionesRequeridas()"
               return-object
               :rules="[(v) => !!v || 'Datos Requerido']"
             >
@@ -88,7 +88,7 @@
           <v-col cols="12" md="6">
             <v-autocomplete
               :items="$store.state.itemsProveedorList"
-              item-text="namelong"
+              item-title="namelong"
               item-value="id"
               label="Proveedor"
               v-model="id_proveedor"
@@ -127,11 +127,11 @@
               :disabled="radio == ''"
               :items="$store.state.itemsCoinsList"
               v-model="id_coins"
-              item-text="acronym"
+              item-title="acronym"
               item-value="id"
               label="Moneda"
               return-object
-              @change="obtenerPrefixCoins()"
+              @update:model-value="obtenerPrefixCoins()"
               :rules="[(v) => !!v || 'Datos Requerido']"
             ></v-autocomplete>
           </v-col>
@@ -141,7 +141,7 @@
               label="Tipo de Cambio"
               v-model="tipocambio"
               :disabled="radio == ''"
-              @input="cambiarTipodeCambio()"
+              @update:model-value="cambiarTipodeCambio()"
               v-if="id_coins && symbol != 'USD'"
             ></v-text-field>
           </v-col>
@@ -149,7 +149,7 @@
           <!-- SECCIÓN CONCEPTOS DE PAGO -->
           <v-col cols="12" class="mt-4">
             <v-card
-              outlined
+              border
               color="#f2f8fd"
               class="pa-4 rounded-lg"
               style="border: 1.5px solid #a8d5e5 !important"
@@ -169,15 +169,15 @@
 
               <!-- Alerta Informativa -->
               <div class="d-flex align-center mb-4 pl-1" v-if="tipo !== 'ver'">
-                <v-icon color="orange darken-2" small class="mr-1"
+                <v-icon color="orange-darken-2" size="small" class="mr-1"
                   >mdi-alert-circle-outline</v-icon
                 >
                 <span
-                  class="caption text-uppercase font-weight-bold orange--text text--darken-3"
+                  class="text-caption text-uppercase font-weight-bold text-orange-darken-3"
                 >
                   OBLIGATORIO:
                 </span>
-                <span class="caption grey--text text--darken-2 ml-1">
+                <span class="text-caption text-grey-darken-2 ml-1">
                   Añade al menos un concepto para continuar.
                 </span>
               </div>
@@ -186,22 +186,21 @@
               <v-btn
                 block
                 color="#009688"
-                dark
-                x-large
+                size="x-large"
                 elevation="0"
                 class="text-uppercase font-weight-bold my-2"
                 @click="abrirDialogNuevoProducto()"
                 v-if="tipo !== 'ver'"
               >
-                <v-icon left>mdi-plus</v-icon>
+                <v-icon start>mdi-plus</v-icon>
                 Añadir Concepto de Pago
               </v-btn>
 
               <!-- Tabla de Conceptos (Muestra si existen registros activos) -->
-              <v-simple-table
-                dense
+              <v-table
+                density="compact"
                 v-if="itemsProductos.filter((v) => v.status == 1).length > 0"
-                class="mt-4 white rounded"
+                class="mt-4 bg-white rounded"
               >
                 <thead>
                   <tr>
@@ -233,10 +232,10 @@
                     :key="index"
                   >
                     <td v-if="tipo != 'ver'">
-                      <v-btn
+                      <v-btn variant="text"
                         icon
                         color="red"
-                        x-small
+                        size="x-small"
                         @click="eliminar(productos)"
                       >
                         <v-icon>mdi-delete</v-icon>
@@ -245,9 +244,9 @@
                     <td>
                       <v-text-field
                         v-model="productos.concepto"
-                        dense
+                        density="compact"
                         hide-details="auto"
-                        outlined
+                        variant="outlined"
                       ></v-text-field>
                     </td>
                     <td>
@@ -257,10 +256,10 @@
                         type="number"
                         v-model="productos.monto"
                         step="0.01"
-                        @input="recalcularMonto(productos, index)"
+                        @update:model-value="recalcularMonto(productos, index)"
                         style="max-width: 150px"
-                        outlined
-                        dense
+                        variant="outlined"
+                        density="compact"
                         hide-details
                         :prefix="symbol"
                       ></v-text-field>
@@ -372,7 +371,7 @@
                     </td>
                   </tr>
                 </tbody>
-              </v-simple-table>
+              </v-table>
             </v-card>
           </v-col>
           <v-col cols="12">
@@ -392,7 +391,7 @@
                 itemsProductos.length == 0 &&
                 (tipo == 'nuevo' || tipo == 'editar')
               "
-              class="caption grey--text text--darken-1 mb-2"
+              class="text-caption text-grey-darken-1 mb-2"
             >
               Primero añade un concepto de pago.
             </span>
@@ -402,7 +401,7 @@
               elevation="0"
               @click="_setInvoice()"
               color="primary"
-              large
+              size="large"
               v-if="tipo == 'nuevo'"
               :disabled="itemsProductos.length == 0"
               class="font-weight-bold text-uppercase"
@@ -413,7 +412,7 @@
             <v-btn
               elevation="0"
               color="primary"
-              large
+              size="large"
               v-if="tipo == 'editar'"
               @click="setUpdateInvoiceAdmin()"
               :disabled="itemsProductos.length == 0"
@@ -457,7 +456,7 @@
               ></v-text-field>
             </v-col>
             <v-col cols="12" md="12">
-              <v-radio-group row v-model="producto.afecto">
+              <v-radio-group inline v-model="producto.afecto">
                 <v-radio label="Afecto" value="true"></v-radio>
                 <v-radio label="No Afecto" value="false"></v-radio>
               </v-radio-group>
@@ -466,12 +465,12 @@
               <v-btn
                 color="success"
                 class="mx-1"
-                small
+                size="small"
                 @click="añadirProducto()"
               >
                 Aceptar
               </v-btn>
-              <v-btn color="warning" class="mx-1" small @click="dialog = false">
+              <v-btn color="warning" class="mx-1" size="small" @click="dialog = false">
                 Cancelar
               </v-btn>
             </v-col>
@@ -484,10 +483,6 @@
 <script>
 import axios from "@/api/axios-config";
 import { mapActions, mapState } from "vuex";
-// import the component
-import Treeselect from "@riophae/vue-treeselect";
-// import the styles
-import "@riophae/vue-treeselect/dist/vue-treeselect.css";
 import CustomTreeSelect from "./../comun/CustomTreeSelect.vue";
 import Swal from "sweetalert2";
 import ArrastraYSolarComponent from "../comun/ArrastraYSolarComponent.vue";
@@ -500,7 +495,7 @@ export default {
     id_pro: "",
     tipo: "",
   },
-  components: { Treeselect, CustomTreeSelect, ArrastraYSolarComponent },
+  components: { CustomTreeSelect, ArrastraYSolarComponent },
 
   data: () => ({
     date: new Date(Date.now() - new Date().getTimezoneOffset() * 60000)
@@ -702,8 +697,6 @@ export default {
       }
     },
     _uploadFile() {
-      var FormData = require("form-data");
-      var fs = require("fs");
       var data = new FormData();
       var vm = this;
       if (vm.radio == 1) {
@@ -716,7 +709,7 @@ export default {
 
       var config = {
         method: "post",
-        url: process.env.VUE_APP_URL_MAIN + "uploadAllPath",
+        url: import.meta.env.VUE_APP_URL_MAIN + "uploadAllPath",
         headers: {
           "Content-Type": "application/json",
         },
@@ -740,7 +733,7 @@ export default {
       };
       var config = {
         method: "get",
-        url: process.env.VUE_APP_URL_MAIN + "getHouseListAll",
+        url: import.meta.env.VUE_APP_URL_MAIN + "getHouseListAll",
         data: data,
         headers: {
           "Content-Type": "application/json",
@@ -763,7 +756,7 @@ export default {
 
       var config = {
         method: "post",
-        url: process.env.VUE_APP_URL_MAIN + "getListInvoiceExp",
+        url: import.meta.env.VUE_APP_URL_MAIN + "getListInvoiceExp",
 
         headers: {
           "Content-Type": "application/json",
@@ -814,7 +807,7 @@ export default {
       };
 
       // Usar Vue.set para actualizar reactividad en Vue 2
-      this.$set(this.itemsProductos, index, { ...producto });
+      this.itemsProductos[index] = { ...producto };
 
       // console.log(
       //   "Producto después de actualizar:",
@@ -854,7 +847,7 @@ export default {
         });
         return false;
       }
-      if (this.$refs.frmFactura.validate() && this.id_gastos) {
+      if ((await this.$refs.frmFactura.validate()).valid && this.id_gastos) {
         vm.$swal({
           icon: "info",
           title: "Guardando...",
@@ -898,7 +891,7 @@ export default {
         };
         var config = {
           method: "post",
-          url: process.env.VUE_APP_URL_MAIN + "setInvoiceAdmin",
+          url: import.meta.env.VUE_APP_URL_MAIN + "setInvoiceAdmin",
 
           headers: {
             "Content-Type": "application/json",
@@ -935,7 +928,7 @@ export default {
     async setUpdateInvoiceAdmin() {
       var vm = this;
       vm.errorGasto = "";
-      if (this.$refs.frmFactura.validate() && this.id_gastos) {
+      if ((await this.$refs.frmFactura.validate()).valid && this.id_gastos) {
         vm.$swal({
           icon: "info",
           title: "Guardando...",
@@ -967,7 +960,7 @@ export default {
         };
         var config = {
           method: "put",
-          url: process.env.VUE_APP_URL_MAIN + "setUpdateInvoiceAdmin",
+          url: import.meta.env.VUE_APP_URL_MAIN + "setUpdateInvoiceAdmin",
 
           headers: {
             "Content-Type": "application/json",
@@ -1010,7 +1003,7 @@ export default {
       };
       var config = {
         method: "post",
-        url: process.env.VUE_APP_URL_MAIN + "putPro",
+        url: import.meta.env.VUE_APP_URL_MAIN + "putPro",
 
         headers: {
           "Content-Type": "application/json",
@@ -1030,8 +1023,8 @@ export default {
         });
     },
 
-    añadirProducto() {
-      if (!this.$refs.validacionConcepto.validate()) return;
+    async añadirProducto() {
+      if (!(await this.$refs.validacionConcepto.validate()).valid) return;
 
       let igv = 0;
       let igvdolar = 0;

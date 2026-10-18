@@ -7,10 +7,10 @@
     </v-col>
     <v-col cols="12">
       <v-text-field
-        outlined
+        variant="outlined"
         label="Nombre de la empresa *"
         hide-details
-        dense
+        density="compact"
         v-model="$store.state.configEmpresa.datoEmpresa.trade_name"
         class="mayuscula"
       ></v-text-field>
@@ -18,16 +18,16 @@
     <v-col cols="12">
       <v-file-input
         ref="fileInput"
-        outlined
+        variant="outlined"
         accept="image/png, image/jpeg, image/bmp"
         placeholder="Subir tu logo te ayudará a personalizar tus documentos"
-        append-icon="mdi-camera"
+        append-inner-icon="mdi-camera"
         hide-details
         prepend-icon=""
-        dense
+        density="compact"
         v-model="$store.state.configEmpresa.datoEmpresa.img"
-        @change="cargarLogo()"
-        @click:append="abrirSelector"
+        @update:model-value="cargarLogo()"
+        @click:append-inner.stop="abrirSelector"
       ></v-file-input>
     </v-col>
     <v-col cols="12">
@@ -47,13 +47,13 @@
         label="Impuestos a las Ventas en tu País"
         :items="$store.state.masterusuarios.lstImpRenta"
         item-value="id"
-        item-text="descripcion"
-        outlined
-        dense
+        item-title="descripcion"
+        variant="outlined"
+        density="compact"
         :error-messages="errorImp"
         :hide-details="!errorImp"
         v-model="$store.state.configEmpresa.datoEmpresa.tipoimpuesto"
-        @change="errorImp = ''"
+        @update:model-value="errorImp = ''"
         placeholder="Indicanos el Nombre"
         persistent-placeholder
       >
@@ -68,8 +68,8 @@
         label="Porcentaje"
         step="0.1"
         suffix="%"
-        outlined
-        dense
+        variant="outlined"
+        density="compact"
         hide-details
         v-model="$store.state.configEmpresa.datoEmpresa.impuesto"
       ></v-text-field>
@@ -93,7 +93,7 @@
       Deseas que Aplique al Calculo de Impuestos de Aduana para tu clientes
       <v-radio-group
         v-model="$store.state.configEmpresa.datoEmpresa.usarclientes"
-        row
+        inline
       >
         <v-radio label="Si" :value="true" />
         <v-radio label="No" :value="false" />
@@ -108,7 +108,7 @@
       Deseas que aplique este para tus costos opertivos y administrativos
       <v-radio-group
         v-model="$store.state.configEmpresa.datoEmpresa.usaropadmin"
-        row
+        inline
       >
         <v-radio label="Si" :value="true" />
         <v-radio label="No" :value="false" />
@@ -121,10 +121,10 @@
     </v-col>
     <v-col cols="12">
       <v-text-field
-        outlined
+        variant="outlined"
         label="Dirección fiscal (Opcional)"
         hide-details
-        dense
+        density="compact"
         v-model="$store.state.configEmpresa.datoEmpresa.address"
       ></v-text-field>
     </v-col>
@@ -141,10 +141,10 @@
       <p><b>Email:</b> {{ $store.state.configEmpresa.dataUsuario.email }}</p>
     </v-col>
     <v-col cols="12" style="align-items: center; text-align: center">
-      <v-btn class="mx-10" color="#7E7E7E" dark @click="$emit('omitir')">
+      <v-btn class="mx-10" color="#7E7E7E" @click="$emit('omitir')">
         Omitir
       </v-btn>
-      <v-btn class="mx-10" color="#1A237E" dark @click="guardarEmpresa()">
+      <v-btn class="mx-10" color="#1A237E" @click="guardarEmpresa()">
         Guardar y Continuar
       </v-btn>
     </v-col>
@@ -158,6 +158,7 @@ export default {
   components: {
     CboPais,
   },
+  emits: ["omitir", "GuardarDatosEmpresa"],
   data() {
     return { datosEmpresa: { id_pais: null }, errorImp: "" };
   },

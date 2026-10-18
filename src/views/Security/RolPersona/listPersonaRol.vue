@@ -7,12 +7,13 @@
 </template>
 
 <script>
+import { defineAsyncComponent } from "vue";
 export default {
   components: {
-    ListPersonaRol: () =>
+    ListPersonaRol: defineAsyncComponent(() =>
       import(
         "../../../components/Security/RolPersona/listPersonaRolComponent.vue"
-      ),
+      )),
   },
   mounted(){
     this.$store.state.mainTitle = 'ASIGNAR ROLES A PERSONAS'

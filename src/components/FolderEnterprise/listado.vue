@@ -2,13 +2,13 @@
   <v-card class="px-5">
     <v-card elevation="0">
       <v-container v-if="loading" style="height: 400px">
-        <v-row class="fill-height" align-content="center" justify="center">
+        <v-row class="fill-height align-content-center justify-center">
           <v-col class="text-subtitle-1 text-center" cols="12">
             Cargando información ....
           </v-col>
           <v-col cols="6">
             <v-progress-linear
-              color="deep-purple accent-4"
+              color="deep-purple-accent-4"
               indeterminate
               rounded
               height="6"
@@ -17,9 +17,9 @@
         </v-row>
       </v-container>
 
-      <v-card-title v-if="!loading" class="elevation-0">
+      <v-card-title v-if="!loading" class="elevation-0 d-flex align-center flex-wrap">
         <v-text-field
-          append-icon="mdi-magnify"
+          append-inner-icon="mdi-magnify"
           label="Buscar"
           single-line
           hide-details
@@ -36,10 +36,10 @@
         >
           Nuevo
         </v-btn> -->
-        <v-btn small class="mx-1" color="#2962FF" dark @click="open_filter()">
+        <v-btn size="small" class="mx-1" color="#2962FF" @click="open_filter()">
           Filtrar
         </v-btn>
-        <v-btn small class="mx-1" color="#004D40" dark> Exportar </v-btn>
+        <v-btn size="small" class="mx-1" color="#004D40"> Exportar </v-btn>
       </v-card-title>
 
       <v-data-table
@@ -47,25 +47,25 @@
         class="elevation-1"
         :headers="headers"
         :items="$store.state.enterprises.list"
-        item-key="id"
+        item-value="id"
         :search="search"
-        dense
+        density="compact"
       >
         <template v-slot:[`item.status`]="{ item }">
           {{ item.status == 1 ? "Activo" : "Inactivo" }}
         </template>
         <template v-slot:[`item.action`]="{ item }">
-          <v-btn icon>
+          <v-btn variant="text" icon>
             <v-icon color="warning" @click="updateEnterpriseRoute(item.id)"
               >mdi-pencil</v-icon
             >
           </v-btn>
-          <v-btn icon>
+          <v-btn variant="text" icon>
             <v-icon color="success" @click="readEnterprise(item.id)"
               >mdi-eye</v-icon
             >
           </v-btn>
-          <v-btn
+          <v-btn variant="text"
             icon
             color="red"
             @click="switch_status(item)"
@@ -79,19 +79,17 @@
 
     <v-navigation-drawer
       v-model="showFilterDrawer"
-      absolute
-      bottom
+      location="right"
       temporary
-      right
+      
       width="30%"
-      height="100vh"
     >
       <v-list-item>
-        <v-list-item-content>
+        
           <v-list-item-title class="text-h6">
             Filtrar Registros
           </v-list-item-title>
-        </v-list-item-content>
+        
       </v-list-item>
 
       <v-spacer></v-spacer>
@@ -103,7 +101,7 @@
               label="Tipo de Documento"
               v-model="enterprise.id_document"
               :items="itemsDocumentsPais"
-              item-text="description"
+              item-title="description"
               item-value="id"
               clearable
             ></v-autocomplete>
@@ -136,9 +134,9 @@
               label="País"
               :items="itemsPais"
               item-value="id"
-              item-text="name"
-              @change="_getState(enterprise.id_pais)"
+              item-title="name"
               v-model="enterprise.id_pais"
+              @update:model-value="_getState(enterprise.id_pais)"
             >
             </v-autocomplete>
           </v-row>
@@ -148,9 +146,9 @@
               :items="itemsState"
               clearable
               item-value="id"
-              item-text="name"
-              @change="_getCity(enterprise.id_state)"
+              item-title="name"
               v-model="enterprise.id_state"
+              @update:model-value="_getCity(enterprise.id_state)"
             >
             </v-autocomplete>
           </v-row>
@@ -160,9 +158,9 @@
               :items="itemsCity"
               clearable
               item-value="id"
-              item-text="name"
-              @change="_getTown(enterprise.id_city)"
+              item-title="name"
               v-model="enterprise.id_city"
+              @update:model-value="_getTown(enterprise.id_city)"
             >
             </v-autocomplete>
           </v-row>
@@ -173,7 +171,7 @@
               clearable
               :items="itemsTown"
               item-value="id"
-              item-text="name"
+              item-title="name"
             ></v-autocomplete>
           </v-row>
           <v-row>
@@ -184,7 +182,7 @@
             ></v-text-field>
           </v-row>
           <v-row>
-            <v-radio-group v-model="enterprise.status" row dense>
+            <v-radio-group v-model="enterprise.status" inline density="compact">
               <v-radio label="Activo" color="green" :value="1"></v-radio>
               <v-radio label="Inactivo" color="red" :value="0"></v-radio>
               <v-radio label="Todos" color="blue" value="null"></v-radio>
@@ -197,7 +195,7 @@
         <v-btn class="mx-1" color="ligth" @click="reset_records()"
           >Limpiar</v-btn
         >
-        <v-btn class="mx-1" dark color="warning" @click="volver()">
+        <v-btn class="mx-1" color="warning" @click="volver()">
           Cerrar
         </v-btn>
       </v-card-actions>
@@ -216,21 +214,21 @@ export default {
       idPrincipales: ["1", "2", 1, 2],
       headers: [
         // { text: "Código", align: "start", value: "code" },
-        { text: "Tipo de Documento", value: "td_name" },
-        { text: "Nro. Documento", value: "document" },
-        { text: "Nombre Comercial", value: "trade_name" },
-        { text: "Nombre Negocio", value: "business_name" },
-        { text: "País", value: "lp_name" },
-        { text: "Región", value: "ls_name" },
-        { text: "Provincia", value: "lc_name" },
-        { text: "Distrito", value: "lt_name" },
-        { text: "Dirección", value: "address" },
-        { text: "Teléfono", value: "phone" },
-        { text: "Estado", value: "status" },
-        { text: "Creación", value: "created_at" },
+        { title: "Tipo de Documento", key: "td_name" },
+        { title: "Nro. Documento", key: "document" },
+        { title: "Nombre Comercial", key: "trade_name" },
+        { title: "Nombre Negocio", key: "business_name" },
+        { title: "País", key: "lp_name" },
+        { title: "Región", key: "ls_name" },
+        { title: "Provincia", key: "lc_name" },
+        { title: "Distrito", key: "lt_name" },
+        { title: "Dirección", key: "address" },
+        { title: "Teléfono", key: "phone" },
+        { title: "Estado", key: "status" },
+        { title: "Creación", key: "created_at" },
 
-        { text: "Última Actualización", value: "updated_at" },
-        { text: "Acciones", value: "action" },
+        { title: "Última Actualización", key: "updated_at" },
+        { title: "Acciones", key: "action" },
       ],
       dataList: false,
       item: "",

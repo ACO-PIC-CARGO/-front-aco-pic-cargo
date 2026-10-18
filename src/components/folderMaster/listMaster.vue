@@ -8,7 +8,7 @@
       transition="dialog-transition"
     >
       <v-card>
-        <v-card-title class="text-h5 grey lighten-2">
+        <v-card-title class="text-h5 bg-grey-lighten-2">
           Escoger la cotización para redireccionar:
         </v-card-title>
         <v-card-text>
@@ -18,7 +18,7 @@
                 $store.state.pricing.listQuotes.filter((v) => !!v.porasignar)
               "
               v-model="id_quote"
-              item-text="code"
+              item-title="code"
               item-value="id"
               :rules="[(v) => !!v || 'Dato Requerido.']"
             />
@@ -30,7 +30,6 @@
           </v-btn>
           <v-btn
             color="red"
-            dark
             @click="dialogEscogerCotizacion = !dialogEscogerCotizacion"
             >CANCELAR</v-btn
           >
@@ -38,15 +37,15 @@
       </v-card>
     </v-dialog>
     <v-card elevation="0">
-      <v-card-title class="align-end">
+      <v-card-title class="align-end d-flex flex-wrap">
         <v-text-field
           v-model="search"
-          append-icon="mdi-magnify"
+          append-inner-icon="mdi-magnify"
           label="Buscar"
           placeholder="Texto Buscado..."
           hide-details
-          outlined
-          dense
+          variant="outlined"
+          density="compact"
           style="max-width: 300px"
         ></v-text-field>
         <v-spacer></v-spacer>
@@ -81,7 +80,6 @@
             <v-btn
               color="success"
               elevation="0"
-              dark
               rounded
               @click="abrirModalSeleccionQuote()"
             >
@@ -90,7 +88,6 @@
             <v-btn
               color="secondary"
               elevation="0"
-              dark
               rounded
               class="ml-3"
               @click="
@@ -124,82 +121,83 @@
         :headers="headers"
         :items="mastersConHouse"
         :search="search"
-        :item-class="itemRowBackground"
-        :single-expand="singleExpand"
-        @click:row="clickRow"
-        :expanded.sync="expanded"
-        item-key="id"
+        :row-props="({ item }) => ({ class: itemRowBackground(item) })"
+        expand-on-click
+        v-model:expanded="expanded"
+        item-value="id"
         :loading="loadingDataTable"
         disable-sort
       >
-        <template v-slot:expanded-item="{ item }">
-          <!-- list_houses -->
-          <td
-            :colspan="headers.length + 1"
-            class="px-3"
-            v-if="
-              (item.list_comentarios.length > 0 ||
-                item.list_houses.length > 0) &&
-              item.status != 0
-            "
-          >
-            <v-simple-table v-if="item.list_comentarios.length > 0">
-              <thead>
-                <tr>
-                  <th>Fecha</th>
-                  <th>Ejecutivo</th>
-                  <th>Comentario</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr
-                  v-for="(i, index) in item.list_comentarios"
-                  :key="index"
-                  class="bg-comentarios"
-                >
-                  <td class="bg-comentarios">{{ i.fecha }}</td>
-                  <td class="bg-comentarios">{{ i.ejecutivo }}</td>
-                  <td class="bg-comentarios">{{ i.comentario }}</td>
-                </tr>
-              </tbody>
-            </v-simple-table>
+        <template v-slot:expanded-row="{ columns, item }">
+          <tr>
+            <!-- list_houses -->
+            <td
+              :colspan="columns.length"
+              class="px-3"
+              v-if="
+                (item.list_comentarios.length > 0 ||
+                  item.list_houses.length > 0) &&
+                item.status != 0
+              "
+            >
+              <v-table v-if="item.list_comentarios.length > 0">
+                <thead>
+                  <tr>
+                    <th>Fecha</th>
+                    <th>Ejecutivo</th>
+                    <th>Comentario</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr
+                    v-for="(i, index) in item.list_comentarios"
+                    :key="index"
+                    class="bg-comentarios"
+                  >
+                    <td class="bg-comentarios">{{ i.fecha }}</td>
+                    <td class="bg-comentarios">{{ i.ejecutivo }}</td>
+                    <td class="bg-comentarios">{{ i.comentario }}</td>
+                  </tr>
+                </tbody>
+              </v-table>
 
-            <v-simple-table v-if="item.list_houses.length > 0">
-              <thead>
-                <tr>
-                  <th>Acción</th>
-                  <th>Code House</th>
-                  <th>Cliente</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr
-                  v-for="(i, index) in item.list_houses"
-                  :key="index"
-                  style="background: #e0f2f1"
-                >
-                  <td>
-                    <v-btn
-                      icon
-                      color="primary"
-                      @click="redirectHouseVer(i.id_house)"
-                    >
-                      <v-icon class="mx-1">mdi-eye</v-icon>
-                    </v-btn>
-                    <v-btn
-                      icon
-                      color="#FFD600"
-                      @click="redirectHouse(i.id_house)"
-                    >
-                      <v-icon class="mx-1">mdi-pencil</v-icon>
-                    </v-btn>
-                  </td>
-                  <td>{{ i.code_house }}</td>
-                  <td>{{ i.namelong }}</td>
-                </tr>
-              </tbody>
-            </v-simple-table>
-          </td>
+              <v-table v-if="item.list_houses.length > 0">
+                <thead>
+                  <tr>
+                    <th>Acción</th>
+                    <th>Code House</th>
+                    <th>Cliente</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr
+                    v-for="(i, index) in item.list_houses"
+                    :key="index"
+                    style="background: #e0f2f1"
+                  >
+                    <td>
+                      <v-btn variant="text"
+                        icon
+                        color="primary"
+                        @click="redirectHouseVer(i.id_house)"
+                      >
+                        <v-icon class="mx-1">mdi-eye</v-icon>
+                      </v-btn>
+                      <v-btn variant="text"
+                        icon
+                        color="#FFD600"
+                        @click="redirectHouse(i.id_house)"
+                      >
+                        <v-icon class="mx-1">mdi-pencil</v-icon>
+                      </v-btn>
+                    </td>
+                    <td>{{ i.code_house }}</td>
+                    <td>{{ i.namelong }}</td>
+                  </tr>
+                </tbody>
+              </v-table>
+            </td>
+          </tr>
         </template>
 
         <template v-slot:[`item.canal`]="{ item }">
@@ -210,7 +208,6 @@
             ANULADO
           </label>
           <v-chip
-            dark
             :color="item.codigo01"
             v-if="item.descripcion_canal && item.status == 1"
           >
@@ -228,9 +225,9 @@
           }}</label>
         </template>
         <template v-slot:[`item.actions`]="{ item }">
-          <v-menu top :close-on-click="true" v-if="item.status == 1">
-            <template v-slot:activator="{ on, attrs }">
-              <v-btn icon color="#212121" v-bind="attrs" v-on="on">
+          <v-menu location="top" :persistent="!(true)" v-if="item.status == 1">
+            <template v-slot:activator="{ props }">
+              <v-btn variant="text" icon color="#212121" v-bind="props">
                 <v-icon class="mx-1">mdi-menu</v-icon>
               </v-btn>
             </template>
@@ -357,7 +354,6 @@
           </label> -->
           <v-btn
             color="red"
-            dark
             v-if="item.status == 0"
             @click="
               reactivarMaster({
@@ -368,17 +364,16 @@
           >
             <v-icon class="mx-1">mdi-delete-empty</v-icon>Activar
           </v-btn>
-          <v-tooltip top>
-            <template v-slot:activator="{ on, attrs }">
-              <v-btn
+          <v-tooltip location="top">
+            <template v-slot:activator="{ props }">
+              <v-btn variant="text"
                 v-if="item.status == 1"
                 color="#212121"
-                small
+                size="small"
                 icon
                 class="mx-1"
-                fab
-                v-on="on"
-                v-bind="attrs"
+                v-bind="props"
+               
                 @click="editFechas(item)"
               >
                 <v-icon class="mx-1">mdi-calendar-edit</v-icon>
@@ -403,16 +398,16 @@
             </template>
             <span>Editar Master</span>
           </v-tooltip> -->
-          <v-tooltip top>
-            <template v-slot:activator="{ on, attrs }">
-              <v-btn
+          <v-tooltip location="top">
+            <template v-slot:activator="{ props }">
+              <v-btn variant="text"
                 icon
-                fab
-                v-on="on"
-                v-bind="attrs"
+                v-bind="props"
+               
                 v-if="item.status == 1"
                 color="#212121"
-                small
+                size="small"
+                aria-label="Ver master"
                 @click="viewMaster(item.id)"
               >
                 <v-icon class="mx-1">mdi-eye</v-icon>
@@ -473,17 +468,16 @@
             </template>
             <span>Cerrar Expediente Administrativo</span>
           </v-tooltip> -->
-          <v-tooltip top>
-            <template v-slot:activator="{ on, attrs }">
-              <v-btn
+          <v-tooltip location="top">
+            <template v-slot:activator="{ props }">
+              <v-btn variant="text"
                 v-if="item.status == 1"
                 icon
-                fab
-                v-on="on"
-                v-bind="attrs"
+                v-bind="props"
+               
                 @click="abrirCaperta(item)"
                 color="#212121"
-                small
+                size="small"
               >
                 <v-icon class="mx-1">mdi-folder</v-icon>
               </v-btn>
@@ -550,10 +544,10 @@
     </v-card>
     <v-dialog v-model="dialog" persistent width="50%">
       <v-card>
-        <v-card-title>
+        <v-card-title class="d-flex align-center flex-wrap">
           Registro de Estado/ Comentario - {{ master.code_master }}
           <v-spacer></v-spacer>
-          <v-btn icon color="default" @click="dialog = !dialog">
+          <v-btn variant="text" icon color="default" @click="dialog = !dialog">
             <v-icon class="mx-1">mdi-close</v-icon>
           </v-btn>
         </v-card-title>
@@ -569,7 +563,7 @@
               label="Ejecutivo"
               class="my-1"
               :items="$store.state.pricing.listEjecutivo"
-              item-text="name"
+              item-title="name"
               item-value="id_entitie"
               item-key="id_entitie"
               v-model="id_vendedor"
@@ -587,7 +581,7 @@
         <v-card-actions>
           <v-spacer></v-spacer>
           <v-btn
-            small
+            size="small"
             color="success"
             @click="guardarComentario"
             :loading="loading"
@@ -647,11 +641,11 @@
           </v-row>
         </v-card-text>
         <v-card-actions class="justify-end">
-          <v-btn small color="success" :loading="loading" @click="guardarFechas"
+          <v-btn size="small" color="success" :loading="loading" @click="guardarFechas"
             >Guardar</v-btn
           >
           <v-btn
-            small
+            size="small"
             color="error"
             :loading="loading"
             @click="dialogFecha = false"
@@ -696,22 +690,21 @@ export default {
       master: "",
       search: "",
       expanded: [],
-      singleExpand: false,
       options: {},
       loadingDataTable: false,
       headers: [
-        { text: "Canal", value: "canal" },
-        { text: "Codigo", value: "code_master", align: "start" },
-        { text: "BL Master", value: "nro_mbl", align: "start" },
-        { text: "Sentido", value: "namemodality" },
-        { text: "Origen", value: "nameportbegin" },
-        { text: "Destino", value: "nameportend" },
-        { text: "Agente", value: "nameagent" },
-        { text: "Consignatario del House", value: "nameconsigner" },
-        { text: "Fecha ETD", value: "fecha_etd" },
-        { text: "Fecha ETA", value: "fecha_eta" },
-        { text: "House", value: "cantidad_houses" },
-        { text: "Acciones", value: "actions", sortable: false },
+        { title: "Canal", key: "canal" },
+        { title: "Codigo", key: "code_master", align: "start" },
+        { title: "BL Master", key: "nro_mbl", align: "start" },
+        { title: "Sentido", key: "namemodality" },
+        { title: "Origen", key: "nameportbegin" },
+        { title: "Destino", key: "nameportend" },
+        { title: "Agente", key: "nameagent" },
+        { title: "Consignatario del House", key: "nameconsigner" },
+        { title: "Fecha ETD", key: "fecha_etd" },
+        { title: "Fecha ETA", key: "fecha_eta" },
+        { title: "House", key: "cantidad_houses" },
+        { title: "Acciones", key: "actions", sortable: false },
       ],
     };
   },
@@ -866,7 +859,7 @@ export default {
       try {
         const response = await axios
           .put(
-            process.env.VUE_APP_URL_MAIN + "updateFechasMaster",
+            import.meta.env.VUE_APP_URL_MAIN + "updateFechasMaster",
             {
               fecha_etd: this.exp.fecha_etd,
               fecha_eta: this.exp.fecha_eta,
@@ -926,14 +919,6 @@ export default {
         }
       });
     },
-    clickRow(item, event) {
-      if (event.isExpanded) {
-        const index = this.expanded.findIndex((i) => i === item);
-        this.expanded.splice(index, 1);
-      } else {
-        this.expanded.push(item);
-      }
-    },
     itemRowBackground: function (item) {
       if (
         item.statusLock === 1 &&
@@ -977,7 +962,7 @@ export default {
 
           var config = {
             method: "post",
-            url: process.env.VUE_APP_URL_MAIN + "lockMaster/" + id,
+            url: import.meta.env.VUE_APP_URL_MAIN + "lockMaster/" + id,
             headers: {
               "Content-Type": "application/json",
             },
@@ -1029,7 +1014,7 @@ export default {
 
           var config = {
             method: "post",
-            url: process.env.VUE_APP_URL_MAIN + "nullMaster/" + id,
+            url: import.meta.env.VUE_APP_URL_MAIN + "nullMaster/" + id,
             headers: {
               "Content-Type": "application/json",
             },
@@ -1085,7 +1070,7 @@ export default {
 
           var config = {
             method: "post",
-            url: process.env.VUE_APP_URL_MAIN + "lockMasterAdm/" + id,
+            url: import.meta.env.VUE_APP_URL_MAIN + "lockMasterAdm/" + id,
             headers: {
               "Content-Type": "application/json",
             },
@@ -1156,7 +1141,7 @@ export default {
       this.dialog = true;
     },
     async guardarComentario() {
-      if (this.$refs.frmComentario.validate()) {
+      if ((await this.$refs.frmComentario.validate()).valid) {
         this.loading = true;
         this.$store.state.spiner = true;
         await this.insertComentarioMaster({
@@ -1172,8 +1157,8 @@ export default {
         this.loading = false;
       }
     },
-    redireccionarQuote() {
-      if (this.$refs.frmQuote.validate()) {
+    async redireccionarQuote() {
+      if ((await this.$refs.frmQuote.validate()).valid) {
         this.$router.push({
           name: "verQuote",
           params: {
@@ -1250,7 +1235,7 @@ export default {
 
           var config = {
             method: "delete",
-            url: process.env.VUE_APP_URL_MAIN + "deleteMaster/" + id,
+            url: import.meta.env.VUE_APP_URL_MAIN + "deleteMaster/" + id,
             headers: {
               "Content-Type": "application/json",
             },

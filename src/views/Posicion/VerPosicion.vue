@@ -5,9 +5,10 @@
 </template>
 
 <script>
+import { defineAsyncComponent } from "vue";
 export default {
   components: {
-    Posicion: () => import("../../components/Posicion/VerPosicionComponet.vue"),
+    Posicion: defineAsyncComponent(() => import("../../components/Posicion/VerPosicionComponet.vue")),
   },
   mounted() {
     this.$store.state.mainTitle = `ROLES DE USUARIOS DEL SISTEMA – Modo Vista`;

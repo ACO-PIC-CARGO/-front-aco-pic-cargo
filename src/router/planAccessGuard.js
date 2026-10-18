@@ -8,18 +8,18 @@ const readMenu = () => {
   }
 };
 
-export default async function planAccessGuard(to, from, next) {
+export default async function planAccessGuard(to, from) {
   const menu = readMenu();
   const modules = store.getters["subscriptions/modulesForRoute"](menu, to.name);
-  if (to.name === "miPlan" || !modules.length) return next();
+  if (to.name === "miPlan" || !modules.length) return;
 
   await store.dispatch("subscriptions/loadPlanAccess");
   const module = store.getters["subscriptions/lockedModuleForRoute"](menu, to.name);
-  if (!module) return next();
+  if (!module) return;
 
-  next(from.name ? false : { name: "miPlan" });
   store.dispatch(
     "subscriptions/promptPlanUpgrade",
     store.getters["subscriptions/lockedModuleNotice"](module.name)
   );
+  return from.name ? false : { name: "miPlan" };
 }

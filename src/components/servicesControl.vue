@@ -1,11 +1,11 @@
 <template>
   <div>
     <v-container>
-      <v-row dense>
+      <v-row density="compact">
         <v-col cols="12">
           <v-autocomplete
             :items="$store.state.itemsBegEndList"
-            item-text="name"
+            item-title="name"
             item-value="id"
             v-model="$store.state.service_id_begend"
           ></v-autocomplete>
@@ -24,7 +24,7 @@
           ></v-text-field>
         </v-col>
         <v-col cols="12">
-          <v-btn color="primary" @click.native="_setServices()" block>
+          <v-btn color="primary" @click="_setServices()" block>
             Agregar Servicio
           </v-btn>
         </v-col>
@@ -56,7 +56,7 @@ export default {
       };
       var config = {
         method: "post",
-        url: process.env.VUE_APP_URL_MAIN + "getHouseServices",
+        url: import.meta.env.VUE_APP_URL_MAIN + "getHouseServices",
         headers: {
          
           "Content-Type": "application/json",
@@ -82,7 +82,7 @@ export default {
       };
       var config = {
         method: "post",
-        url: process.env.VUE_APP_URL_MAIN + "setServices",
+        url: import.meta.env.VUE_APP_URL_MAIN + "setServices",
         headers: {
          
           "Content-Type": "application/json",

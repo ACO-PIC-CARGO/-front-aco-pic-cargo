@@ -1,14 +1,13 @@
 <template>
   <div>
     <v-card elevation="10">
-      <v-card-title>
+      <v-card-title class="d-flex align-center flex-wrap">
         <v-btn
           color="primary"
           elevation="0"
-          dark
           rounded
           class="mb-2 ml-5"
-          @click.native="statusDialog = !statusDialog"
+          @click="statusDialog = !statusDialog"
         >
           NUEVO CONTROL
         </v-btn>
@@ -23,20 +22,20 @@
 
         <v-text-field
           v-model="search"
-          append-icon="mdi-magnify"
+          append-inner-icon="mdi-magnify"
           label="Buscar"
           single-line
           hide-details
         ></v-text-field>
       </v-card-title>
       <v-container v-if="!$store.state.dataGastos" style="height: 400px">
-        <v-row class="fill-height" align-content="center" justify="center">
+        <v-row class="fill-height align-content-center justify-center">
           <v-col class="text-subtitle-1 text-center" cols="12">
             Cargando informacíon
           </v-col>
           <v-col cols="6">
             <v-progress-linear
-              color="deep-purple accent-4"
+              color="deep-purple-accent-4"
               indeterminate
               rounded
               height="6"
@@ -52,7 +51,7 @@
       >
         <template v-slot:[`item.actions`]="{ item }">
           <v-icon
-            large
+            size="large"
             color="blue"
             class="mr-2"
             @click="verControlGasto(item)"
@@ -60,7 +59,7 @@
             mdi-eye
           </v-icon>
           <v-icon
-            large
+            size="large"
             color="#FFD600"
             class="mr-2"
             @click="abrirCaperta(item)"
@@ -68,7 +67,7 @@
             mdi-folder
           </v-icon>
           <v-icon
-            large
+            size="large"
             color="orange"
             class="mr-2"
             @click="editControlGasto(item)"
@@ -88,7 +87,7 @@
       </v-container>
     </v-card>
 
-    <modalListHouse :dialog="statusDialog" />
+    <modalListHouse v-model:dialog="statusDialog" />
     <GuardarUrlMaster
       :dialogUrl="dialogUrl"
       :masterEditar="masterEditar"
@@ -119,25 +118,25 @@ export default {
       statusDialog: false,
 
       headers: [
-        { text: "Master", value: "code_master" },
+        { title: "Master", key: "code_master" },
         // {
         //   text: "Codigo",
         //   align: "start",
         //   value: "code_control",
         // },
 
-        { text: "Versión", value: "posicion" },
-        { text: "Nro MBL", value: "nro_mbl" },
-        { text: "Sentido", value: "namemodality" },
-        { text: "Embarque", value: "nameshipment" },
-        { text: "Origen", value: "nameportbegin" },
-        { text: "Destino", value: "nameportend" },
+        { title: "Versión", key: "posicion" },
+        { title: "Nro MBL", key: "nro_mbl" },
+        { title: "Sentido", key: "namemodality" },
+        { title: "Embarque", key: "nameshipment" },
+        { title: "Origen", key: "nameportbegin" },
+        { title: "Destino", key: "nameportend" },
 
-        { text: "Consignatario", value: "nameconsigner" },
-        { text: "Fecha Etd", value: "fecha_etd" },
-        { text: "Fecha Eta", value: "fecha_eta" },
+        { title: "Consignatario", key: "nameconsigner" },
+        { title: "Fecha Etd", key: "fecha_etd" },
+        { title: "Fecha Eta", key: "fecha_eta" },
 
-        { text: "Acciones", value: "actions" },
+        { title: "Acciones", key: "actions" },
       ],
     };
   },

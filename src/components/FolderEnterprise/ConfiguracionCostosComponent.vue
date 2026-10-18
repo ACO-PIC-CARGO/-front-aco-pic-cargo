@@ -39,7 +39,6 @@
             <v-btn
               class="mt-1 mb-1"
               color="#7E7E7E"
-              dark
               @click="OmitirConfiguracionCostos()"
               v-if="!subirCostos"
             >
@@ -49,7 +48,6 @@
             <v-btn
               color="#5E9AD6"
               @click="subirCostos = !subirCostos"
-              dark
               class="mt-1 mb-1"
             >
               CONFIGURAR TARIFAS
@@ -59,7 +57,6 @@
             <v-btn
               @click="retroceder()"
               color="#78909C"
-              dark
               class="mt-1 mb-1"
               v-if="!subirCostos"
             >
@@ -75,12 +72,12 @@
               </v-col>
               <v-col cols="12" lg="4" xl="4">
                 <v-btn
-                  outlined
+                  variant="outlined"
                   dense
                   hide-details
                   class="my-2"
                   color="success"
-                  small
+                  size="small"
                   @click="abrirNuevoCosto()"
                 >
                   Agregar nuevo Costo
@@ -114,12 +111,11 @@
                   :headers="headers"
                   :items="$store.state.configEmpresa.lstCostos"
                   class="elevation-1 table_costos"
-                  item-key="id"
+                  item-value="id"
                   :loading="loadingTable"
                   hide-default-footer
                   :items-per-page="20"
                   disable-sort
-                  mobile
                 >
                   <template v-slot:[`item.exwflag`]="{ item }">
                     <v-icon color="green" v-if="item.exwflag"
@@ -161,17 +157,17 @@
                     <v-text-field
                       v-model="item.monto"
                       @blur="reponerCero(item)"
-                      dense
+                      density="compact"
                       hide-details
                       class="my-2"
                       v-if="item.concepto"
                     ></v-text-field>
                   </template>
                   <template v-slot:[`item.multiplicador`]="{ item }">
-                    <v-autocomplete
+                    <v-autocomplete item-title="text"
                       :items="$store.state.configEmpresa.lstMultiplicador"
                       v-model="item.id_multiplicador"
-                      dense
+                      density="compact"
                       hide-details
                       class="my-2"
                       item-value="id"
@@ -182,10 +178,10 @@
                     <v-autocomplete
                       :items="$store.state.itemsProveedorList"
                       v-model="item.id_proveedor"
-                      dense
+                      density="compact"
                       hide-details
                       class="my-2"
-                      item-text="namelong"
+                      item-title="namelong"
                       item-value="id"
                       v-if="item.concepto"
                     />
@@ -203,7 +199,6 @@
           v-if="subirCostos"
           class="mx-5 mt-1 mb-1"
           color="#7E7E7E"
-          dark
           @click="omitir()"
         >
           Omitir
@@ -211,7 +206,6 @@
         <v-btn
           class="mx-5 mt-1 mb-1"
           color="#1A237E"
-          :dark="subirCostos"
           v-if="subirCostos"
           @click="guardarCosto()"
         >
@@ -222,7 +216,6 @@
         <v-btn
           @click="retroceder()"
           color="#78909C"
-          dark
           class="mx-5 mt-1 mb-1"
           v-if="subirCostos"
         >
@@ -266,8 +259,7 @@
               <!-- color="#4256BE" -->
               <v-btn
                 class="my-1 mx-1 buttonDosFilas"
-                x-small
-                dark
+                size="x-small"
                 color="#1A237E"
                 @click="finalizarSinLogin()"
               >
@@ -277,7 +269,7 @@
               <v-btn
                 class="my-1 mx-1 buttonDosFilas"
                 @click="finalizarConfig()"
-                x-small
+                size="x-small"
               >
                 VOLVER A INGRESAR <br class="ocultarPc" />
                 PARA APLICAR CAMBIOS
@@ -290,6 +282,7 @@
     <!-- max-width="30%" -->
     <v-dialog
       v-model="dialog"
+      eager
       scrollable
       :max-width="isMobile ? '100%' : '30%'"
       transition="dialog-transition"
@@ -297,20 +290,20 @@
       class="modalNuevoCosto"
     >
       <v-card>
-        <v-card-title primary-title>
+        <v-card-title class="d-flex align-center flex-wrap" primary-title>
           AGREGAR NUEVO COSTO
           <v-spacer></v-spacer>
           <v-icon @click="dialog = !dialog" color="default">mdi-close</v-icon>
         </v-card-title>
         <v-form ref="frmNuevosCostos">
           <v-card-text>
-            <v-select
+            <v-select item-title="text"
               :items="lstTramo"
               v-model="frmNuevoCosto.tramo"
               :rules="[(v) => !!v || 'Dato obligatorio']"
               label="Tramo*"
-              outlined
-              dense
+              variant="outlined"
+              density="compact"
               hide-details
               class="my-2"
             ></v-select>
@@ -318,8 +311,8 @@
             <v-text-field
               :rules="[(v) => !!v || 'Dato obligatorio']"
               label="Servicio*"
-              outlined
-              dense
+              variant="outlined"
+              density="compact"
               hide-details
               class="my-2"
               v-model="frmNuevoCosto.servicio"
@@ -330,37 +323,37 @@
               :rules="[(v) => !!v || 'Dato obligatorio']"
               item-value="name"
               label="Sección*"
-              item-text="name"
-              outlined
-              dense
+              item-title="name"
+              variant="outlined"
+              density="compact"
               hide-details
               class="my-2"
             />
             <v-text-field
               :rules="[(v) => !!v || 'Dato obligatorio']"
               label="Concepto*"
-              outlined
-              dense
+              variant="outlined"
+              density="compact"
               hide-details
               class="my-2"
               v-model="frmNuevoCosto.concepto"
             />
 
-            <v-autocomplete
+            <v-autocomplete item-title="text"
               :items="$store.state.configEmpresa.lstMultiplicador"
               v-model="frmNuevoCosto.id_multiplicador"
               :rules="[(v) => !!v || 'Dato obligatorio']"
               item-value="id"
               label="Multiplicador*"
-              outlined
-              dense
+              variant="outlined"
+              density="compact"
               hide-details
               class="my-2"
             />
             <v-text-field
               label="Monto"
-              outlined
-              dense
+              variant="outlined"
+              density="compact"
               hide-details
               class="my-2"
               v-model="frmNuevoCosto.monto"
@@ -371,9 +364,9 @@
               v-model="frmNuevoCosto.id_proveedor"
               :rules="[(v) => !!v || 'Dato obligatorio']"
               label="Proveedor*"
-              item-text="namelong"
-              outlined
-              dense
+              item-title="namelong"
+              variant="outlined"
+              density="compact"
               hide-details
               class="my-2"
               item-value="id"
@@ -449,7 +442,6 @@
             class="mx-1 mt-1 mb-5"
             @click="dialog = !dialog"
             color="#923939"
-            dark
           >
             CANCELAR
           </v-btn>
@@ -457,7 +449,6 @@
             class="mx-1 mt-1 mb-5"
             @click="agregarNuevoCosto()"
             color="#346E3D"
-            dark
           >
             AGREGAR
           </v-btn>
@@ -468,13 +459,15 @@
 </template>
 
 <script>
+import { defineAsyncComponent } from "vue";
 import Swal from "sweetalert2";
-import { mapActions } from "vuex/dist/vuex.common.js";
+import { mapActions } from "vuex";
 
 export default {
   components: {
-    Proceesing: () => import("../modal/modalProcessing.vue"),
+    Proceesing: defineAsyncComponent(() => import("../modal/modalProcessing.vue")),
   },
+  emits: ["regresar"],
   data() {
     return {
       isMobile: false,
@@ -485,12 +478,12 @@ export default {
       loading: false,
       items: [],
       headers: [
-        { text: "TRAMO", value: "tramo" },
-        { text: "SERVICIO", value: "servicio" },
-        { text: "CONCEPTO", value: "concepto" },
-        { text: "MULTIPLICADOR", value: "multiplicador" },
-        { text: "MONTO", value: "monto" },
-        { text: "PROVEEDOR", value: "proveedor" },
+        { title: "TRAMO", key: "tramo" },
+        { title: "SERVICIO", key: "servicio" },
+        { title: "CONCEPTO", key: "concepto" },
+        { title: "MULTIPLICADOR", key: "multiplicador" },
+        { title: "MONTO", key: "monto" },
+        { title: "PROVEEDOR", key: "proveedor" },
       ],
       dialog: false,
       ids_modality: [],
@@ -585,7 +578,7 @@ export default {
       await this._getMenuItem();
 
       setTimeout(async () => {
-        this.$router.push({
+        await this.$router.push({
           name: "Main",
         });
         this.$swal.close();
@@ -603,8 +596,8 @@ export default {
       this.dialog = true;
       this.$refs.frmNuevosCostos.reset();
     },
-    agregarNuevoCosto() {
-      if (this.$refs.frmNuevosCostos.validate()) {
+    async agregarNuevoCosto() {
+      if ((await this.$refs.frmNuevosCostos.validate()).valid) {
         this.$store.state.configEmpresa.lstCostos.push({
           exwflag: this.frmNuevoCosto.exwflag,
           fcaflag: this.frmNuevoCosto.fcaflag,
@@ -936,29 +929,29 @@ export default {
     generarHeader() {
       this.headers = [];
       if (this.$store.state.configEmpresa.lstCostos.some((v) => v.exwflag)) {
-        this.headers.push({ text: "EXW", value: "exwflag" });
+        this.headers.push({ title: "EXW", key: "exwflag" });
       }
       if (this.$store.state.configEmpresa.lstCostos.some((v) => v.fcaflag)) {
-        this.headers.push({ text: "FCA", value: "fcaflag" });
+        this.headers.push({ title: "FCA", key: "fcaflag" });
       }
       if (this.$store.state.configEmpresa.lstCostos.some((v) => v.fobflag)) {
-        this.headers.push({ text: "FOB", value: "fobflag" });
+        this.headers.push({ title: "FOB", key: "fobflag" });
       }
       if (this.$store.state.configEmpresa.lstCostos.some((v) => v.cfrflag)) {
-        this.headers.push({ text: "CFR", value: "cfrflag" });
+        this.headers.push({ title: "CFR", key: "cfrflag" });
       }
       if (this.$store.state.configEmpresa.lstCostos.some((v) => v.cifflag)) {
-        this.headers.push({ text: "CIF", value: "cifflag" });
+        this.headers.push({ title: "CIF", key: "cifflag" });
       }
       if (this.$store.state.configEmpresa.lstCostos.some((v) => v.ddpflag)) {
-        this.headers.push({ text: "DDP", value: "ddpflag" });
+        this.headers.push({ title: "DDP", key: "ddpflag" });
       }
-      this.headers.push({ text: "TRAMO", value: "tramo" });
-      this.headers.push({ text: "SERVICIO", value: "servicio" });
-      this.headers.push({ text: "CONCEPTO", value: "concepto" });
-      this.headers.push({ text: "MULTIPLICADOR", value: "multiplicador" });
-      this.headers.push({ text: "MONTO", value: "monto" });
-      this.headers.push({ text: "PROVEEDOR", value: "proveedor" });
+      this.headers.push({ title: "TRAMO", key: "tramo" });
+      this.headers.push({ title: "SERVICIO", key: "servicio" });
+      this.headers.push({ title: "CONCEPTO", key: "concepto" });
+      this.headers.push({ title: "MULTIPLICADOR", key: "multiplicador" });
+      this.headers.push({ title: "MONTO", key: "monto" });
+      this.headers.push({ title: "PROVEEDOR", key: "proveedor" });
     },
     generarSecciones() {
       this.$store.state.configEmpresa.listTipoCostos = [];
@@ -994,7 +987,7 @@ export default {
       if (sessionStorage.getItem("dataBranch")) {
         sessionStorage.removeItem("dataBranch");
       }
-      this.$router.push({ name: "Login" });
+      await this.$router.push({ name: "Login" });
       window.location.reload(true);
     },
     reponerCero(valor) {
@@ -1085,7 +1078,7 @@ export default {
   .infoImportante {
     padding: 0 2% 0 0 !important;
   }
-  ::v-deep .v-data-table__sort-label {
+  :deep(.v-data-table__sort-label) {
     display: none !important;
   }
   .button {

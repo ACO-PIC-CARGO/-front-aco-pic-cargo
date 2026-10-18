@@ -1,9 +1,9 @@
 <template>
   <v-card>
-    <v-card-title primary-title>
+    <v-card-title class="d-flex align-center flex-wrap" primary-title>
       {{ getName() }}
       <v-spacer></v-spacer>
-      <v-btn
+      <v-btn variant="text"
         icon
         color="default"
         @click="
@@ -40,8 +40,8 @@
         <span> Estado</span>
         <v-radio-group
           v-model="$store.state.typepayment.filtros.status"
-          row
-          dense
+          inline
+          density="compact"
         >
           <v-radio label="Activo" color="green" :value="true"></v-radio>
           <v-radio label="Inactivo" color="red" :value="false"></v-radio>
@@ -95,6 +95,7 @@
             }`"
             color="success"
             v-model="$store.state.typepayment.model.status"
+            :value-comparator="(value, checked) => Boolean(value) === checked"
           ></v-switch>
         </div>
       </v-form>
@@ -197,7 +198,7 @@ export default {
     },
     async Aceptar() {
       if (this.$store.state.typepayment.tipo == "nuevo") {
-        if (this.$refs.frmDML.validate()) {
+        if ((await this.$refs.frmDML.validate()).valid) {
           this.loading = true;
           await this.setTypePayment();
           await this.GetListTypePayment();
@@ -206,7 +207,7 @@ export default {
       }
       if (this.$store.state.typepayment.tipo == "editar") {
         this.loading = true;
-        if (this.$refs.frmDML.validate()) {
+        if ((await this.$refs.frmDML.validate()).valid) {
           await this.ActualizarTypePayment();
           await this.GetListTypePayment();
         }

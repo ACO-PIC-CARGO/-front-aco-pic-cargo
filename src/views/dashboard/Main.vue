@@ -1,31 +1,31 @@
 <template>
-  <v-app id="inspire">
+  <div id="inspire">
     <v-navigation-drawer
       width="320"
       v-model="$store.state.drawer"
-      app
       v-if="mostrarBtnMenu"
     >
       <listMenu />
     </v-navigation-drawer>
 
-    <v-app-bar app elevation="0" v-if="mostrarBtnMenu" :color="colorBar()" dark>
+    <v-app-bar elevation="0" v-if="mostrarBtnMenu" :color="colorBar()">
       <v-app-bar-nav-icon
+        aria-label="Abrir menú"
         v-if="mostrarBtnMenu"
         @click="$store.state.drawer = !$store.state.drawer"
       ></v-app-bar-nav-icon>
 
-      <v-toolbar-title>{{ $store.state.mainTitle }}</v-toolbar-title>
+      <v-toolbar-title class="flex-0-1">{{ $store.state.mainTitle }}</v-toolbar-title>
 
       <v-spacer></v-spacer>
 
       <v-chip
         v-if="operadorNombre"
         color="white"
-        text-color="primary"
-        class="mx-4"
+        variant="flat"
+        class="mx-4 text-primary"
       >
-        <v-icon left color="primary">mdi-account</v-icon>
+        <v-icon start color="primary">mdi-account</v-icon>
         VENDEDOR: {{ operadorNombre }}
       </v-chip>
 
@@ -78,8 +78,8 @@
       ></v-spacer>
 
       <v-btn
+        variant="elevated"
         color="#009688"
-        dark
         v-if="getNameUrl() == 'newQuote' && !!$store.state.pricing.btnRegistrar"
         @click="guardarCotizacion()"
         :disabled="$store.state.pricing.bloquearBtnImprimir"
@@ -98,12 +98,12 @@
       <v-spacer v-if="getNameUrl() == 'editQuote'"></v-spacer>
 
       <v-btn
+        variant="elevated"
         color="#009688"
-        dark
         v-if="getNameUrl() == 'editQuote'"
         @click="editarCotizacion()"
       >
-        <v-icon small class="mx-1">mdi-content-save-all</v-icon> GUARDAR
+        <v-icon size="small" class="mx-1">mdi-content-save-all</v-icon> GUARDAR
       </v-btn>
       <!-- ver -->
       <label class="monto" v-if="getNameUrl() == 'verQuote'">
@@ -117,81 +117,81 @@
       <v-spacer v-if="getNameUrl() == 'verQuote'"></v-spacer>
 
       <v-btn
+        variant="elevated"
         color="#009688"
-        dark
         v-if="getNameUrl() == 'verQuote'"
         @click="handleEditarQuote()"
       >
-        <v-icon small class="mx-1">mdi-pencil</v-icon> EDITAR
+        <v-icon size="small" class="mx-1">mdi-pencil</v-icon> EDITAR
       </v-btn>
       <v-btn
+        variant="elevated"
         v-if="getNameUrl() == 'verQuote'"
         class="mx-1"
-        color="light-blue darken-3"
-        dark
+        color="light-blue-darken-3"
         @click="abrirCorreo()"
       >
-        <v-icon class="mx-1" dense small>mdi-email-fast</v-icon>
+        <v-icon class="mx-1" size="small">mdi-email-fast</v-icon>
         CORREO
       </v-btn>
 
       <v-btn
+        variant="elevated"
         v-if="getNameUrl() == 'editQuote'"
         class="mx-1"
-        color="light-blue darken-3"
-        dark
+        color="light-blue-darken-3"
         @click="abrirCorreo()"
       >
-        <v-icon class="mx-1" dense small>mdi-email-fast</v-icon>
+        <v-icon class="mx-1" size="small">mdi-email-fast</v-icon>
         CORREO
       </v-btn>
 
       <v-btn
+        variant="elevated"
         v-if="getNameUrl() == 'editQuote' || getNameUrl() == 'verQuote'"
         class="mx-1"
         color="#FFD600"
-        dark
         @click="
           abrirCarpeta($store.state.pricing.datosPrincipales.url_folderonedrive)
         "
       >
-        <v-icon class="mx-1" dense small>mdi-folder</v-icon>
+        <v-icon class="mx-1" size="small">mdi-folder</v-icon>
         ABRIR
       </v-btn>
 
       <v-btn
+        variant="elevated"
         v-if="getNameUrl() == 'verQuote'"
         class="mx-1"
-        color="light-blue darken-3"
-        dark
+        color="light-blue-darken-3"
         @click="abrirModalCopiarCotizacion()"
       >
-        <v-icon class="mx-1" dense small>mdi-content-copy</v-icon>
+        <v-icon class="mx-1" size="small">mdi-content-copy</v-icon>
         COPIAR
       </v-btn>
 
       <!--MODULO CLIENTES-->
       <v-btn
+        variant="elevated"
         v-if="
           getNameUrl() == 'nuevoClientes' &&
           $store.state.entities.showBtnSaveFlag
         "
         color="success"
         class="ml-auto"
-        dark
         @click="registrarCliente"
         >Guardar CLIENTE</v-btn
       >
 
       <!--MODULO PROVEEDORES-->
       <v-btn
+        variant="elevated"
         v-if="
           getNameUrl() == 'nuevoProveedor' &&
           $store.state.entities.showBtnSaveFlag
         "
         color="success"
         class="ml-auto"
-        dark
         @click="registrarProveedor"
         :disabled="$store.state.entities.disabledBtnSave"
         >Guardar Proveedor</v-btn
@@ -211,18 +211,18 @@
       </label>
 
       <v-btn
+        variant="elevated"
         color="#009688"
-        dark
         v-if="getNameUrl() == 'EditarAduana'"
         @click="editarCotizacionAduana()"
-        small
+        size="small"
       >
         <v-icon class="mx-1">mdi-save</v-icon> GUARDAR
       </v-btn>
 
       <v-btn
+        variant="elevated"
         color="#009688"
-        dark
         v-if="
           getNameUrl() == 'VerAduana' &&
           $store.state.aduana.mostrarBtnActualizarFlag
@@ -233,8 +233,8 @@
       </v-btn>
 
       <v-btn
+        variant="elevated"
         color="#009688"
-        dark
         @click="abrirModalPilotoAutomatico()"
         v-if="getNameUrl() == 'editQuote'"
       >
@@ -242,8 +242,8 @@
       </v-btn>
 
       <v-btn
+        variant="elevated"
         color="info"
-        dark
         @click="ira('EditAccountPaysCxC', $route.params.id)"
         v-if="getNameUrl() == 'viewAccountPaysCxC'"
       >
@@ -251,8 +251,8 @@
       </v-btn>
 
       <v-btn
+        variant="elevated"
         color="info"
-        dark
         @click="ira('EditAccountPays', $route.params.id)"
         v-if="getNameUrl() == 'viewAccountPays'"
       >
@@ -277,7 +277,7 @@
     <!-- Modal de autenticación admin para editar cotizaciones aprobadas -->
     <v-dialog v-model="dialogAdminAuth" max-width="400" persistent>
       <v-card>
-        <v-card-title class="headline grey lighten-2">
+        <v-card-title class="text-h5 bg-grey-lighten-2">
           Autenticación Requerida
         </v-card-title>
         <v-card-text class="pt-4">
@@ -289,26 +289,26 @@
             v-model="adminUser"
             label="Usuario o Email"
             prepend-icon="mdi-account"
-            outlined
-            dense
+            variant="outlined"
+            density="compact"
           ></v-text-field>
           <v-text-field
             v-model="adminPassword"
             label="Contraseña"
             prepend-icon="mdi-lock"
             :type="showAdminPassword ? 'text' : 'password'"
-            :append-icon="showAdminPassword ? 'mdi-eye' : 'mdi-eye-off'"
-            @click:append="showAdminPassword = !showAdminPassword"
-            outlined
-            dense
+            :append-inner-icon="showAdminPassword ? 'mdi-eye' : 'mdi-eye-off'"
+            @click:append-inner="showAdminPassword = !showAdminPassword"
+            variant="outlined"
+            density="compact"
           ></v-text-field>
-          <v-alert v-if="adminAuthError" type="error" dense class="mt-2">
+          <v-alert v-if="adminAuthError" type="error" density="compact" class="mt-2">
             {{ adminAuthError }}
           </v-alert>
         </v-card-text>
         <v-card-actions>
           <v-spacer></v-spacer>
-          <v-btn color="grey" text @click="cerrarDialogAdminAuth()">
+          <v-btn color="grey" variant="text" @click="cerrarDialogAdminAuth()">
             Cancelar
           </v-btn>
           <v-btn
@@ -329,17 +329,17 @@
           <v-autocomplete
             multiple
             :items="this.$store.state.itemsDataRoleList"
-            small-chips
+            chips
             item-value="id"
-            item-text="name"
+            item-title="name"
             persistent
-            outlined
+            variant="outlined"
             label="Tipo Proveedor"
             v-model="idRole"
             :loading="this.$store.state.itemsDataRoleList.length == 0"
           >
           </v-autocomplete>
-          <v-simple-table>
+          <v-table>
             <thead>
               <tr>
                 <th></th>
@@ -356,7 +356,7 @@
                 <td>{{ dato.email }}</td>
               </tr>
             </tbody>
-          </v-simple-table>
+          </v-table>
         </v-card-text>
         <v-card-actions>
           <v-spacer></v-spacer>
@@ -375,10 +375,10 @@
       max-width="75%"
     >
       <v-card v-if="dialogPilotoAutomatico">
-        <v-card-title primary-title>
+        <v-card-title class="d-flex align-center flex-wrap" primary-title>
           COTIZACIÓN PILOTO AUTOMÁTICO
           <v-spacer></v-spacer>
-          <v-btn color="info" icon @click="dialogPilotoAutomatico = false">
+          <v-btn variant="text" color="info" icon @click="dialogPilotoAutomatico = false">
             <v-icon>mdi-close</v-icon>
           </v-btn>
         </v-card-title>
@@ -398,12 +398,13 @@
             :items="$store.state.pricing.listadoFilesDrive"
             show-select
             v-model="$store.state.pricing.selectedFile"
-            item-key="id"
+            item-value="id"
+            return-object
           >
             <template v-slot:[`item.action`]="{ item }">
-              <v-btn
+              <v-btn variant="text"
                 icon
-                small
+                size="small"
                 :color="getColorIcon(item)"
                 :href="item.webUrl"
                 target="_blank"
@@ -415,10 +416,10 @@
         </v-card-text>
         <v-card-actions>
           <v-spacer></v-spacer>
-          <v-btn small color="success" @click="copiarCotizacion"
+          <v-btn size="small" color="success" @click="copiarCotizacion"
             >Continuar</v-btn
           >
-          <v-btn small color="error" @click="dialogFiles = false"
+          <v-btn size="small" color="error" @click="dialogFiles = false"
             >Cancelar</v-btn
           >
         </v-card-actions>
@@ -432,15 +433,15 @@
       <v-card class="rounded-lg elevation-4">
         <!-- Cabecera profesional con color y título claro -->
         <v-card-title
-          class="headline primary white--text py-3 px-4 d-flex align-center"
+          class="text-h5 bg-primary text-white py-3 px-4 d-flex align-center"
         >
-          <v-icon left dark class="mr-2">mdi-calendar-clock</v-icon>
+          <v-icon start class="mr-2">mdi-calendar-clock</v-icon>
           <span class="font-weight-bold">Actualizar Vigencia de Flete</span>
         </v-card-title>
 
         <!-- Cuerpo del diálogo -->
         <v-card-text class="pt-4 pb-2">
-          <div class="text-body-2 text--darken-2 mb-4">
+          <div class="text-body-2 mb-4">
             Selecciona la nueva fecha límite de vigencia. Esto actualizará los
             cálculos en las nuevas cotizaciones, calculadora y bot de whatsapp.
           </div>
@@ -461,8 +462,8 @@
         <!-- Acciones con botones bien diferenciados -->
         <v-card-actions class="px-4 py-3 justify-end">
           <v-btn
-            color="grey darken-1"
-            text
+            color="grey-darken-1"
+            variant="text"
             class="text-none font-weight-medium"
             @click="dialogCambiarFecha = false"
           >
@@ -474,7 +475,7 @@
             elevation="1"
             @click="guardarNuevaFecha"
           >
-            <v-icon left size="18">mdi-check</v-icon>
+            <v-icon start size="18">mdi-check</v-icon>
             Actualizar Fecha
           </v-btn>
         </v-card-actions>
@@ -491,10 +492,10 @@
           <v-autocomplete
             v-model="$store.state.pricing.datosPrincipales.id_town"
             :items="$store.state.town.lstTown"
-            item-text="nombrecompleto"
+            item-title="nombrecompleto"
             item-value="id"
-            dense
-            outlined
+            density="compact"
+            variant="outlined"
           />
         </v-card-text>
         <v-card-actions class="px-6 pb-4">
@@ -509,7 +510,7 @@
         </v-card-actions>
       </v-card>
     </v-dialog>
-  </v-app>
+  </div>
 </template>
 
 <script>
@@ -529,7 +530,7 @@ import BotonesHeader from "../../components/comun/BotonesHeader.vue";
 import PlanStatusBadge from "../../components/SubscriptionPackages/PlanStatusBadge.vue";
 export default {
   created() {
-    this.socket = io(process.env.VUE_APP_URL_MAIN, {
+    this.socket = io(import.meta.env.VUE_APP_URL_MAIN, {
       transports: ["polling"],
     });
     this.socket.on("connect_error", (err) => {
@@ -547,8 +548,8 @@ export default {
       vertical: true,
       dialogFiles: false,
       headersFiles: [
-        { text: "Archivo", value: "name" },
-        { text: "", value: "action" },
+        { title: "Archivo", key: "name" },
+        { title: "", key: "action" },
       ],
       mostrarBtnMenu: true,
       routePricing: ["newQuote", "verQuote", "editQuote"],
@@ -672,7 +673,7 @@ export default {
       window.open(url, "_blank");
     },
     async guardarNuevaFecha() {
-      if (this.$refs.formVigencia.validate()) {
+      if ((await this.$refs.formVigencia.validate()).valid) {
         await this.actualizarFechaVigencia(this.fechaVigencia);
         this.dialogCambiarFecha = false;
       }
@@ -867,7 +868,7 @@ export default {
           },
         };
         if (
-          this.$router.resolve(destino).route.fullPath !==
+          this.$router.resolve(destino).fullPath !==
           this.$route.fullPath
         ) {
           await this.$router.push(destino);
@@ -1296,9 +1297,9 @@ export default {
           title: "Aviso",
           text: vm.$store.state.pricing.mensaje,
           confirmButtonText: "Ir a ver",
-        }).then((result) => {
+        }).then(async (result) => {
           if (result.isConfirmed) {
-            vm.$router.push({
+            await vm.$router.push({
               name: "verQuote",
               params: { id: vm.$store.state.pricing.id },
             });
@@ -1551,7 +1552,7 @@ export default {
       try {
         const config = {
           method: "post",
-          url: process.env.VUE_APP_URL_MAIN + "singin",
+          url: import.meta.env.VUE_APP_URL_MAIN + "singin",
           headers: {
             "Content-Type": "application/json",
           },
@@ -2074,7 +2075,7 @@ export default {
       }
       const config = {
         method: "get",
-        url: process.env.VUE_APP_URL_MAIN + "entities/obtener_datos_tarifa",
+        url: import.meta.env.VUE_APP_URL_MAIN + "entities/obtener_datos_tarifa",
         headers: {
           "Content-Type": "application/json",
         },

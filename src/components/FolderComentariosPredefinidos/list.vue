@@ -2,13 +2,13 @@
     <v-card>
       <v-container fluid>
         <v-container v-if="loading" style="height: 400px">
-          <v-row class="fill-height" align-content="center" justify="center">
+          <v-row class="fill-height align-content-center justify-center">
             <v-col class="text-subtitle-1 text-center" cols="12">
               Cargando información ....
             </v-col>
             <v-col cols="6">
               <v-progress-linear
-                color="deep-purple accent-4"
+                color="deep-purple-accent-4"
                 indeterminate
                 rounded
                 height="6"
@@ -17,9 +17,9 @@
           </v-row>
         </v-container>
     
-        <v-card-title v-if="!loading" class="elevation-0">
+        <v-card-title v-if="!loading" class="elevation-0 d-flex align-center flex-wrap">
           <v-text-field
-            append-icon="mdi-magnify"
+            append-inner-icon="mdi-magnify"
             label="Buscar"
             single-line
             hide-details
@@ -27,9 +27,9 @@
           >
           </v-text-field>
           <v-spacer></v-spacer>
-          <v-btn small color="success" @click="addComentarioPredefinido()">Nuevo</v-btn>
-          <v-btn small class="ml-1" color="#2962FF" dark @click="showFilterComentariosPredefinidos()">Filtrar</v-btn>
-          <v-btn small class="ml-1" color="#004D40" dark @click="exportToExcel" :loading="isExportBtnLoading">Exportar</v-btn>
+          <v-btn size="small" color="success" @click="addComentarioPredefinido()">Nuevo</v-btn>
+          <v-btn size="small" class="ml-1" color="#2962FF" @click="showFilterComentariosPredefinidos()">Filtrar</v-btn>
+          <v-btn size="small" class="ml-1" color="#004D40" @click="exportToExcel" :loading="isExportBtnLoading">Exportar</v-btn>
         </v-card-title>
     
         <v-data-table
@@ -37,7 +37,7 @@
           class="elevation-1"
           :headers="headers"
           :items="$store.state.comentariosPredefinidos.list"
-          item-key="id"
+          item-value="id"
           :search="search"
           :loading="isDataTableLoading"
         >
@@ -51,13 +51,13 @@
             {{ getFechaBonita(item.updated_at) }}
           </template>
           <template v-slot:[`item.action`]="{ item }">            
-            <v-btn icon>
+            <v-btn variant="text" icon>
               <v-icon color="warning" @click="editComentarioPredefinido(item)">mdi-pencil</v-icon>
             </v-btn> 
-            <v-btn icon>
+            <v-btn variant="text" icon>
               <v-icon color="primary" @click="viewComentarioPredefinido(item)">mdi-eye</v-icon>
             </v-btn>   
-            <v-btn icon color="red" @click="changeStatusComentarioPredefinido(item)" v-if="item.status">
+            <v-btn variant="text" icon color="red" @click="changeStatusComentarioPredefinido(item)" v-if="item.status">
               <v-icon>mdi-delete</v-icon>
             </v-btn>
           </template>
@@ -66,17 +66,15 @@
         <!--ADD NEW RECORD-->
         <v-navigation-drawer
           v-model="showFilterDrawerNew"
-          absolute
-          bottom
+          location="right"
           temporary
-          right
+          
           width="30%"
-          height="100vh"
         >
           <v-list-item>
-            <v-list-item-content>
+            
               <v-list-item-title class="text-h6">NUEVO COMENTARIO</v-list-item-title>
-            </v-list-item-content>
+            
           </v-list-item>
     
           <v-spacer></v-spacer>
@@ -90,7 +88,6 @@
                     label="Código"
                     v-model="record.code"
                     :rules="[(v) => validateCodigo(v)]"
-                    lazy-validation
                     :error-messages="errorCodigo"
                     readonly
                     :loading="isAutoGeneratingCode"
@@ -103,7 +100,6 @@
                     label="Comentario"
                     v-model="record.comentario"
                     :rules="[(v) => validateComentario(v)]"
-                    lazy-validation
                     :error-messages="errorComentario"
                     clearable
                   >
@@ -111,9 +107,10 @@
                 </v-row>
                 <v-row>
                   <v-switch
-                    dense
+                    density="compact"
                     :label="`Estado: ${record.status ? 'Activo' : 'Inactivo'}`"
                     v-model="record.status"
+                    :value-comparator="(value, checked) => Boolean(value) === checked"
                     hide-details
                     color="success"
                   ></v-switch>
@@ -132,7 +129,6 @@
               >Aceptar</v-btn>
               <v-btn 
                 class="mx-1" 
-                dark 
                 color="warning" 
                 @click="showFilterDrawerNew = !showFilterDrawerNew"
               >Cerrar</v-btn>
@@ -143,20 +139,18 @@
         <!--VIEW RECORD-->
         <v-navigation-drawer
           v-model="showFilterDrawerView"
-          absolute
-          bottom
+          location="right"
           temporary
-          right
+          
           width="30%"
-          height="100vh"
         >
           <v-container>
             <v-list-item class="px-0">
-              <v-list-item-content>
+              
                 <v-list-item-title class="text-h6">
                   COMENTARIO {{ record.code ? `[${record.code}]` : "" }} - MODO VISTA
                 </v-list-item-title>
-              </v-list-item-content>
+              
             </v-list-item>
     
             <v-spacer></v-spacer>
@@ -165,14 +159,14 @@
                 <v-text-field
                   label="Código"
                   readonly
-                  :value="record.code"
+                  :model-value="record.code"
                 ></v-text-field>
               </v-row>
               <v-row>
                 <v-text-field
                   label="Comentario"
                   readonly
-                  :value="record.comentario"
+                  :model-value="record.comentario"
                 ></v-text-field>
               </v-row>
               <v-row>
@@ -183,13 +177,13 @@
                   }`"
                   color="success"
                   v-model="record.status"
+                  :value-comparator="(value, checked) => Boolean(value) === checked"
                 ></v-switch>
               </v-row>
             </v-card-text>
             <v-card-actions class="justify-end mt-3">
               <v-btn
                 class="mx-1"
-                dark
                 color="warning"
                 @click="showFilterDrawerView = !showFilterDrawerView"
               >Cerrar</v-btn>
@@ -200,20 +194,18 @@
         <!--EDIT RECORD-->
         <v-navigation-drawer
           v-model="showFilterDrawerEdit"
-          absolute
-          bottom
+          location="right"
           temporary
-          right
+          
           width="30%"
-          height="100vh"
         >
           <v-container>
             <v-list-item class="px-0">
-              <v-list-item-content>
+              
                 <v-list-item-title class="text-h6">
                   MODIFICAR COMENTARIO: {{ record.code ? `[${record.code}]` : "" }}
                 </v-list-item-title>
-              </v-list-item-content>
+              
             </v-list-item>
     
             <v-spacer></v-spacer>
@@ -237,7 +229,6 @@
                     v-model="record.comentario"
                     @blur="validateComentario()"
                     :rules="[(v) => validateComentario(v)]"
-                    lazy-validation
                     :error-messages="errorComentario"
                     clearable
                   >
@@ -247,6 +238,7 @@
                   <v-switch
                     :label="`Estado: ${record.status ? 'Activo' : 'Inactivo'}`"
                     v-model="record.status"
+                    :value-comparator="(value, checked) => Boolean(value) === checked"
                     color="success"
                   ></v-switch>
                 </v-row>
@@ -262,7 +254,6 @@
               >Aceptar</v-btn>
               <v-btn
                 class="mx-1"
-                dark
                 color="warning"
                 @click="showFilterDrawerEdit = !showFilterDrawerEdit"
               >Cerrar</v-btn>
@@ -273,19 +264,17 @@
         <!--FILTER RECORD-->
         <v-navigation-drawer
           v-model="showFilterDrawer"
-          absolute
-          bottom
+          location="right"
           temporary
-          right
+          
           width="30%"
-          height="100vh"
         >
           <v-list-item>
-            <v-list-item-content>
+            
               <v-list-item-title class="text-h6">
                 FILTRAR REGISTROS
               </v-list-item-title>
-            </v-list-item-content>
+            
           </v-list-item>
     
           <v-spacer></v-spacer>
@@ -307,7 +296,7 @@
                 ></v-text-field>
               </v-row>
               <v-row>
-                <v-radio-group v-model="filterData.status" row dense>
+                <v-radio-group v-model="filterData.status" inline density="compact">
                   <v-radio label="Activo" color="green" :value="1"></v-radio>
                   <v-radio label="Inactivo" color="red" :value="0"></v-radio>
                   <v-radio label="Todos" color="blue" value="null"></v-radio>
@@ -331,7 +320,6 @@
               >Limpiar</v-btn>
               <v-btn
                 class="mx-1"
-                dark
                 color="warning"
                 @click="showFilterDrawer = !showFilterDrawer"
               >Cerrar</v-btn>
@@ -352,12 +340,12 @@
     data() {
       return {
         headers: [
-          { text: "Código", align: "start", value: "code", width: "15%" },
-          { text: "Comentario", value: "comentario", width: "32.5%" },
-          { text: "Estado", value: "status", width: "12.5%" },
-          { text: "Creación", value: "created_at", width: "15%" },  
-          { text: "Última Actualización", value: "updated_at", width: "15%" },
-          { text: "Acciones", value: "action", width: "10%" },
+          { title: "Código", align: "start", key: "code", width: "15%" },
+          { title: "Comentario", key: "comentario", width: "32.5%" },
+          { title: "Estado", key: "status", width: "12.5%" },
+          { title: "Creación", key: "created_at", width: "15%" },  
+          { title: "Última Actualización", key: "updated_at", width: "15%" },
+          { title: "Acciones", key: "action", width: "10%" },
         ],
         loading: false,
         search: "",
@@ -453,7 +441,7 @@
       },
       async saveComentarioPredefinido() {
         var vm = this;
-        if (vm.$refs.formNewComentarioPredefinido.validate()) {
+        if ((await vm.$refs.formNewComentarioPredefinido.validate()).valid) {
           vm.isSubmitBtnLoading = true;
           await vm.insertComentarioPredefinido(vm.record);
           vm.isSubmitBtnLoading = false;
@@ -506,7 +494,7 @@
       },
       async saveChangesComentarioPredefinido() {
         var vm = this;
-        if (vm.$refs.formEditComentarioPredefinido.validate())
+        if ((await vm.$refs.formEditComentarioPredefinido.validate()).valid)
         {
           vm.isSubmitBtnLoading = true;
           await vm.updateComentarioPredefinido(vm.record);

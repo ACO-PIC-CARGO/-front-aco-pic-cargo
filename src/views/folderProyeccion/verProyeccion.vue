@@ -5,10 +5,11 @@
   </template>
   
   <script>
+import { defineAsyncComponent } from "vue";
   export default {
     components: {
-      nuevaProyeccion: () =>
-        import("../../components/proyeccion/verProyeccion.vue"),
+      nuevaProyeccion: defineAsyncComponent(() =>
+        import("../../components/proyeccion/verProyeccion.vue")),
     },
     mounted() {
       this.$store.state.mainTitle =

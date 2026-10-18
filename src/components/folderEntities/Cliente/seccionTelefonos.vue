@@ -1,50 +1,49 @@
 <template>
   <v-card>
-    <v-card-title class="px-2 container-narrow">
+    <v-card-title class="px-2 container-narrow d-flex align-center flex-wrap">
       <v-spacer></v-spacer>
       <v-btn
         v-if="!showNavigationButtons"
-        color="light-blue darken-2"
+        color="light-blue-darken-2"
         class="ma-2"
-        dark
-        small
+        size="small"
         @click="modificarCliente"
       >
-        <v-icon left small>mdi-account-edit</v-icon>
+        <v-icon start size="small">mdi-account-edit</v-icon>
         {{ isFormReadonly ? "EDITAR CLIENTE" : "GUARDAR CAMBIOS" }}
       </v-btn>
     </v-card-title>
     <v-card-text class="px-2">
       <div class="container-narrow">
         <!-- ===== TELÉFONOS PROVEEDOR ===== -->
-        <v-subheader class="px-0">
+        <v-list-subheader class="px-0">
           <b>Teléfono Principal</b>
 
           <template v-if="showFormActions">
             <v-btn
               color="primary"
               rounded
-              small
+              size="small"
               class="ml-auto"
               @click="agregarTelefono()"
               >Agregar Teléfono</v-btn
             >
           </template>
-        </v-subheader>
+        </v-list-subheader>
         <v-row>
           <v-col cols="12">
             <v-form ref="formTelefonos" :readonly="isFormReadonly">
               <v-data-table
                 :headers="headersTelefonos"
                 :items="$store.state.entities.lstTelefonos"
-                item-key="index"
+                item-value="index"
                 class="elevation-5"
                 disable-sort
               >
                 <template v-slot:[`item.id_tipotelefono`]="{ item }">
                   <v-autocomplete
                     :items="$store.state.masterusuarios.lstTipoTelefono"
-                    item-text="descripcion"
+                    item-title="descripcion"
                     item-value="id"
                     v-model="item.id_tipotelefono"
                     :rules="[(v) => !!v || 'Dato Requerido']"
@@ -73,7 +72,7 @@
                   v-slot:[`item.action`]="{ item, index }"
                   v-if="showFormActions"
                 >
-                  <v-btn icon color="red" @click="eliminarTelefono(index)">
+                  <v-btn variant="text" icon color="red" @click="eliminarTelefono(index)">
                     <v-icon>mdi-delete</v-icon>
                   </v-btn>
                 </template>
@@ -85,27 +84,27 @@
         <br />
 
         <!-- ===== CONTACTOS ===== -->
-        <v-subheader class="px-0">
+        <v-list-subheader class="px-0">
           <b>Contactos</b>
 
           <template v-if="showFormActions">
             <v-btn
               color="primary"
               rounded
-              small
+              size="small"
               class="ml-auto"
               @click="agregarContacto()"
               >Agregar Contacto</v-btn
             >
           </template>
-        </v-subheader>
+        </v-list-subheader>
         <v-row>
           <v-col cols="12">
             <v-form ref="formContactos" :readonly="isFormReadonly">
               <v-data-table
                 :headers="headersContactos"
                 :items="$store.state.entities.lstContactos"
-                item-key="index"
+                item-value="index"
                 class="elevation-5"
               >
                 <template v-slot:[`item.nombre`]="{ item }">
@@ -118,7 +117,7 @@
                 <template v-slot:[`item.id_tipotelefono`]="{ item }">
                   <v-autocomplete
                     :items="$store.state.masterusuarios.lstTipoTelefono"
-                    item-text="descripcion"
+                    item-title="descripcion"
                     item-value="id"
                     v-model="item.id_tipotelefono"
                     :rules="[(v) => !!v || 'Dato Requerido']"
@@ -149,26 +148,26 @@
                   v-slot:[`item.action`]="{ item, index }"
                   v-if="showFormActions"
                 >
-                  <v-btn icon color="red" @click="eliminarContacto(index)">
+                  <v-btn variant="text" icon color="red" @click="eliminarContacto(index)">
                     <v-icon>mdi-delete</v-icon>
                   </v-btn>
                 </template>
               </v-data-table>
             </v-form>
 
-            <v-subheader class="px-0">
+            <v-list-subheader class="px-0">
               <b>Emails</b>
               <template v-if="showFormActions">
                 <v-btn
                   color="primary"
                   rounded
-                  small
+                  size="small"
                   class="ml-auto"
                   @click="agregarEmail()"
                   >Agregar Email</v-btn
                 >
               </template>
-            </v-subheader>
+            </v-list-subheader>
 
             <v-row>
               <v-col cols="12">
@@ -180,7 +179,7 @@
                         (v) => !!v && v.estado,
                       )
                     "
-                    item-key="index"
+                    item-value="index"
                     class="elevation-5"
                   >
                     <template v-slot:[`item.description`]="{ item }">
@@ -208,7 +207,7 @@
                       v-slot:[`item.action`]="{ item, index }"
                       v-if="showFormActions"
                     >
-                      <v-btn icon color="red" @click="eliminarEmail(item)">
+                      <v-btn variant="text" icon color="red" @click="eliminarEmail(item)">
                         <v-icon>mdi-delete</v-icon>
                       </v-btn>
                     </template>
@@ -239,21 +238,21 @@ export default {
   data() {
     return {
       headersTelefonos: [
-        { text: "Tipo de Teléfono", value: "id_tipotelefono", width: "35%" },
-        { text: "Nro Teléfono", value: "nro_telefono", width: "50%" },
-        { text: "Acciones", value: "action", width: "15%" },
+        { title: "Tipo de Teléfono", key: "id_tipotelefono", width: "35%" },
+        { title: "Nro Teléfono", key: "nro_telefono", width: "50%" },
+        { title: "Acciones", key: "action", width: "15%" },
       ],
       headersContactos: [
-        { text: "Nombres", value: "nombre", width: "35%" },
-        { text: "Tipo de Teléfono", value: "id_tipotelefono", width: "25%" },
-        { text: "Nro Teléfono", value: "nro_telefono", width: "25%" },
-        { text: "Acciones", value: "action", width: "15%" },
+        { title: "Nombres", key: "nombre", width: "35%" },
+        { title: "Tipo de Teléfono", key: "id_tipotelefono", width: "25%" },
+        { title: "Nro Teléfono", key: "nro_telefono", width: "25%" },
+        { title: "Acciones", key: "action", width: "15%" },
       ],
       headersEmails: [
-        { text: "Descripción", value: "description", width: "35%" },
-        { text: "Email", value: "email", width: "25%" },
+        { title: "Descripción", key: "description", width: "35%" },
+        { title: "Email", key: "email", width: "25%" },
         // { text: "Nro Teléfono", value: "nro_telefono", width: "25%" },
-        { text: "Acciones", value: "action", width: "15%" },
+        { title: "Acciones", key: "action", width: "15%" },
       ],
     };
   },
@@ -311,7 +310,7 @@ export default {
     eliminarContacto(index) {
       this.$store.state.entities.lstContactos.splice(index, 1);
     },
-    validarFormulario() {
+    async validarFormulario() {
       var vm = this;
       let ok = true;
       if (
@@ -326,10 +325,10 @@ export default {
         ok = false;
       }
 
-      if (!vm.$refs.formTelefonos.validate()) {
+      if (!(await vm.$refs.formTelefonos.validate()).valid) {
         ok = false;
       }
-      if (!vm.$refs.formContactos.validate()) {
+      if (!(await vm.$refs.formContactos.validate()).valid) {
         ok = false;
       }
 
@@ -407,10 +406,10 @@ export default {
   },
   watch: {
     "$store.state.entities.isStep2Valid": {
-      handler(newValue) {
+      async handler(newValue) {
         if (!newValue) {
-          this.$refs.formTelefonos.validate();
-          this.$refs.formContactos.validate();
+          await this.$refs.formTelefonos.validate();
+          await this.$refs.formContactos.validate();
         }
       },
       immediate: true,

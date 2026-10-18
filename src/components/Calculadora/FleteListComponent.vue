@@ -2,13 +2,13 @@
   <v-container fluid>
     <v-text-field
       v-model="search"
-      append-icon="mdi-magnify"
+      append-inner-icon="mdi-magnify"
       label="Buscar"
       single-line
       hide-details
-      outlined
+      variant="outlined"
       style="max-width: 30%"
-      dense
+      density="compact"
     />
     <br />
 
@@ -16,17 +16,17 @@
       :headers="headers"
       :items="$store.state.calculadoras.lstFlete"
       :search="search"
-      item-key="id"
+      item-value="id"
     >
       <template v-slot:item.action="{ item }">
-        <v-btn color="warning" @click="editFlete(item)" small icon>
+        <v-btn variant="text" color="warning" @click="editFlete(item)" size="small" icon>
           <v-icon>mdi-pencil</v-icon>
         </v-btn>
       </template>
     </v-data-table>
     <v-dialog v-model="dialog" max-width="35%">
       <v-card>
-        <v-card-title>
+        <v-card-title class="d-flex align-center flex-wrap">
           {{ flete.puerto_origin }} <v-icon>mdi-arrow-right-thin</v-icon>
           {{ flete.puerto_destino }} <v-spacer></v-spacer>
           <v-icon @click="dialog = false">mdi-close</v-icon>
@@ -35,27 +35,27 @@
           <v-text-field
             v-model="flete.flete_0_5"
             label="De 0.1 - 5"
-            outlined
-            dense
+            variant="outlined"
+            density="compact"
           />
           <v-text-field
             v-model="flete.flete_5_10"
             label="De 5 - 10"
-            outlined
-            dense
+            variant="outlined"
+            density="compact"
           />
           <v-text-field
             v-model="flete.flete_10_15"
             label="De 10 - 15"
-            outlined
-            dense
+            variant="outlined"
+            density="compact"
           />
           <FormatFecha v-model="flete.vigencia" label="Vigencia" outlined dense />
         </v-card-text>
         <v-card-actions>
           <v-spacer></v-spacer>
           <v-btn color="success" @click="guardarFlete">Guardar</v-btn>
-          <v-btn color="red" @click="dialog = false" text>Cancelar</v-btn>
+          <v-btn color="red" @click="dialog = false" variant="text">Cancelar</v-btn>
         </v-card-actions>
       </v-card>
     </v-dialog>
@@ -66,6 +66,7 @@
 import FormatFecha from "@/components/comun/FormatFecha.vue";
 import { mapActions } from 'vuex';
 export default {
+  emits: ["flete-actualizado"],
   components: {
     FormatFecha,
   },
@@ -74,18 +75,18 @@ export default {
       search: "",
       dialog: false,
       headers: [
-        { value: "action", text: "" },
-        { value: "pais_origen", text: "Pais Origen" },
-        { value: "puerto_origin", text: "Puerto Origin" },
-        { value: "pais_destino", text: "Pais Destino" },
-        { value: "puerto_destino", text: "Puerto Destino" },
-        { value: "flete_0_5", text: "De 0.1 - 5" },
-        { value: "flete_5_10", text: "De 5 - 10" },
-        { value: "flete_10_15", text: "De 10 - 15" },
-        { value: "moneda", text: "Moneda" },
-        { value: "vigencia", text: "Vigencia" },
-        { value: "created_user", text: "Usuario" },
-        { value: "created_at", text: "Fecha Reg." },
+        { key: "action", title: "" },
+        { key: "pais_origen", title: "Pais Origen" },
+        { key: "puerto_origin", title: "Puerto Origin" },
+        { key: "pais_destino", title: "Pais Destino" },
+        { key: "puerto_destino", title: "Puerto Destino" },
+        { key: "flete_0_5", title: "De 0.1 - 5" },
+        { key: "flete_5_10", title: "De 5 - 10" },
+        { key: "flete_10_15", title: "De 10 - 15" },
+        { key: "moneda", title: "Moneda" },
+        { key: "vigencia", title: "Vigencia" },
+        { key: "created_user", title: "Usuario" },
+        { key: "created_at", title: "Fecha Reg." },
       ],
       flete: {},
     };

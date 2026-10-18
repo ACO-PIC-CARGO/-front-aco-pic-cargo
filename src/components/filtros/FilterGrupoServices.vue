@@ -1,9 +1,9 @@
 <template>
   <v-card>
-    <v-card-title primary-title>
+    <v-card-title class="d-flex align-center flex-wrap" primary-title>
       {{ getName() }}
       <v-spacer></v-spacer>
-      <v-btn
+      <v-btn variant="text"
         icon
         color="default"
         @click="
@@ -19,7 +19,7 @@
           label="Servicio"
           :items="$store.state.groupservices.list"
           v-model="$store.state.itemServices.filtros.id_groupservices"
-          item-text="name"
+          item-title="name"
           item-value="id"
           :clearable="$store.state.itemServices.tipo != 'ver'"
         >
@@ -51,8 +51,8 @@
         <span> Estado</span>
         <v-radio-group
           v-model="$store.state.itemServices.filtros.status"
-          row
-          dense
+          inline
+          density="compact"
         >
           <v-radio label="Activo" color="green" :value="1"></v-radio>
           <v-radio label="Inactivo" color="red" :value="0"></v-radio>
@@ -68,10 +68,10 @@
             :items="$store.state.groupservices.list"
             v-model="$store.state.itemServices.model.id_groupservices"
             :readonly="$store.state.itemServices.tipo == 'ver'"
-            item-text="name"
+            item-title="name"
             item-value="id"
             :rules="[(v) => !!v || 'Dato requerido']"
-            :item-disabled="(item) => item.status != 1"
+            :item-props="(item) => ({ disabled: item.status != 1 })"
           >
           </v-autocomplete>
         </div>
@@ -126,6 +126,7 @@
             }`"
             color="success"
             v-model="$store.state.itemServices.model.status"
+            :value-comparator="(value, checked) => Boolean(value) === checked"
           ></v-switch>
         </div>
       </v-form>
@@ -227,7 +228,7 @@ export default {
     },
     async Aceptar() {
       if (this.$store.state.itemServices.tipo == "nuevo") {
-        if (this.$refs.frmDML.validate()) {
+        if ((await this.$refs.frmDML.validate()).valid) {
           this.loading = true;
           await this.setItemServices();
           await this.GetListItemServices();
@@ -236,7 +237,7 @@ export default {
       }
       if (this.$store.state.itemServices.tipo == "editar") {
         this.loading = true;
-        if (this.$refs.frmDML.validate()) {
+        if ((await this.$refs.frmDML.validate()).valid) {
           await this.ActualizarItemServices();
           await this.GetListItemServices();
         }

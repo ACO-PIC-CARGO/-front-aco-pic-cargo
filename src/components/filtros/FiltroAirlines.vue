@@ -1,9 +1,9 @@
 <template>
   <v-card>
-    <v-card-title primary-title>
+    <v-card-title class="d-flex align-center flex-wrap" primary-title>
       {{ getName() }}
       <v-spacer></v-spacer>
-      <v-btn
+      <v-btn variant="text"
         icon
         color="default"
         @click="$store.state.airlines.drawer = !$store.state.airlines.drawer"
@@ -17,7 +17,7 @@
           label="Pais"
           :items="$store.state.itemsPais"
           v-model="$store.state.airlines.AirlineFilter.id_pais"
-          item-text="name"
+          item-title="name"
           item-value="id"
           clearable
         >
@@ -53,7 +53,7 @@
         ></v-text-field>
       </div>
       <div class="col-12 py-1">
-        <v-radio-group v-model="$store.state.airlines.AirlineFilter.status" row>
+        <v-radio-group v-model="$store.state.airlines.AirlineFilter.status" inline>
           <v-radio label="Activo" color="green" :value="true"></v-radio>
           <v-radio label="Inactivo" color="red" :value="false"></v-radio>
           <v-radio label="Todos" color="blue" value="null"></v-radio>
@@ -67,10 +67,10 @@
             label="Pais (*)"
             :items="$store.state.itemsPais"
             v-model="$store.state.airlines.AirlineModel.id_pais"
-            item-text="name"
+            item-title="name"
             item-value="id"
             :readonly="$store.state.airlines.tipo == 'ver'"
-            :item-disabled="(item) => item.status != 1"
+            :item-props="(item) => ({ disabled: item.status != 1 })"
             clearable
             :rules="[(v) => !!v || 'Dato Requerido']"
           >
@@ -134,6 +134,7 @@
             }`"
             color="success"
             v-model="$store.state.airlines.AirlineModel.status"
+            :value-comparator="(value, checked) => Boolean(value) === checked"
             :readonly="$store.state.airlines.tipo == 'ver'"
           ></v-switch>
         </div>
@@ -252,7 +253,7 @@ export default {
       this.loading = true;
       if (this.$store.state.airlines.tipo == "nuevo") {
         setTimeout(async () => {
-          if (this.$refs.frmDML.validate() && !this.errIATA && !this.errICAO) {
+          if ((await this.$refs.frmDML.validate()).valid && !this.errIATA && !this.errICAO) {
             this.loading = true;
             await this.setAirline();
             await this.GetListAirline();
@@ -264,7 +265,7 @@ export default {
       }
       if (this.$store.state.airlines.tipo == "editar") {
         setTimeout(async () => {
-          if (this.$refs.frmDML.validate() && !this.errIATA && !this.errICAO) {
+          if ((await this.$refs.frmDML.validate()).valid && !this.errIATA && !this.errICAO) {
             await this.actualizarAirline();
             await this.GetListAirline();
             this.loading = false;

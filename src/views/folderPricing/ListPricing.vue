@@ -1,7 +1,7 @@
 <template>
   <v-container fluid>
     <v-card>
-      <v-card-title primary-title class="">
+      <v-card-title class="">
         <v-row>
           <v-col
             cols="12"
@@ -12,7 +12,7 @@
             :key="index"
           >
             <v-chip
-              small
+              size="small"
               style="cursor: pointer"
               :color="item.color"
               @click="filtrarCotizaciones(item)"
@@ -26,7 +26,7 @@
           <v-btn
             color="success"
             @click="redirect()"
-            small
+            size="small"
             class="ml-auto my-auto mr-5"
           >
             NUEVA COTIZACIÓN
@@ -35,27 +35,24 @@
       </v-card-title>
       <v-row>
         <v-col cols="12">
-          <v-tabs color="deep-purple accent-4" right v-model="tabs">
-            <v-tab href="#quotes">Cotizaciones</v-tab>
-            <v-tab href="#calls">Llamadas</v-tab>
+          <v-tabs color="deep-purple-accent-4" align-tabs="end" v-model="tabs">
+            <v-tab value="quotes">Cotizaciones</v-tab>
+            <v-tab value="calls">Llamadas</v-tab>
           </v-tabs>
-          <v-tabs-items v-model="tabs">
-            <v-tab-item value="quotes">
+          <v-tabs-window v-model="tabs">
+            <v-tabs-window-item value="quotes">
               <ListQuote />
-            </v-tab-item>
-            <v-tab-item value="calls">
+            </v-tabs-window-item>
+            <v-tabs-window-item value="calls">
               <ListCall />
-            </v-tab-item>
-          </v-tabs-items>
+            </v-tabs-window-item>
+          </v-tabs-window>
         </v-col>
       </v-row>
     </v-card>
     <v-navigation-drawer
       v-model="$store.state.pricing.filtrarQuoteFlag"
-      right
-      absolute
-      bottom
-      persistent
+      location="right"
       width="40%"
       temporary
     >
@@ -65,10 +62,7 @@
     </v-navigation-drawer>
     <v-navigation-drawer
       v-model="$store.state.pricing.filtrarCallsFlag"
-      right
-      absolute
-      bottom
-      persistent
+      location="right"
       width="40%"
       temporary
     >
@@ -97,18 +91,19 @@
 </template>
 
 <script>
+import { defineAsyncComponent } from "vue";
 import { mapActions } from "vuex";
 
 export default {
   name: "ListPricingView",
   components: {
-    ListQuote: () =>
-      import("@/components/folderPricing/listQuoteComponent.vue"),
-    ListCall: () => import("@/components/folderPricing/listCallComponent.vue"),
-    FiltroQuote: () => import("@/components/filtros/FiltroQuote.vue"),
-    FiltroCalls: () => import("@/components/filtros/FiltroCalls"),
-    ConfigCotizacion: () =>
-      import("@/components/folderPricing/ConfigCotizacion"),
+    ListQuote: defineAsyncComponent(() =>
+      import("@/components/folderPricing/listQuoteComponent.vue")),
+    ListCall: defineAsyncComponent(() => import("@/components/folderPricing/listCallComponent.vue")),
+    FiltroQuote: defineAsyncComponent(() => import("@/components/filtros/FiltroQuote.vue")),
+    FiltroCalls: defineAsyncComponent(() => import("@/components/filtros/FiltroCalls")),
+    ConfigCotizacion: defineAsyncComponent(() =>
+      import("@/components/folderPricing/ConfigCotizacion")),
 
     // ListCall: () => import("../folderPricing/comun/listCall.vue"),
   },

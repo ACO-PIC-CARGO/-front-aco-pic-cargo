@@ -27,7 +27,7 @@
         </p>
         <p>{{ errorMessage }}</p>
         <v-btn
-          text
+          variant="text"
           class="plans-button plans-button--secondary"
           @click="loadHistory"
         >
@@ -52,7 +52,7 @@
           </div>
           <v-btn
             v-if="canUpdatePaymentMethod"
-            text
+            variant="text"
             class="plans-button plans-button--secondary"
             :disabled="isUpdatingPaymentMethod"
             @click="updatePaymentMethod"
@@ -78,9 +78,9 @@
           <v-data-table
             :headers="headers"
             :items="rows"
-            item-key="id"
+            item-value="id"
             hide-default-footer
-            disable-pagination
+            :items-per-page="-1"
             class="payments"
           >
             <template #[`item.amount`]="{ item }">
@@ -97,7 +97,7 @@
             <template #[`item.invoice`]="{ item }">
               <v-btn
                 v-if="item.hasInvoice"
-                text
+                variant="text"
                 class="plans-button plans-button--ghost"
                 :disabled="downloadingId === item.id"
                 :aria-label="`Descargar la factura del ${item.date}`"
@@ -128,11 +128,11 @@ import { stopCheckoutEvents } from "@/plugins/paddle";
 const EMPTY_MESSAGE =
   "Todavía no tienes pagos. Cuando compres un plan, aquí verás tus facturas.";
 const HEADERS = [
-  { text: "Fecha", value: "date", sortable: false },
-  { text: "Concepto", value: "concept", sortable: false },
-  { text: "Monto", value: "amount", sortable: false },
-  { text: "Estado", value: "status", sortable: false },
-  { text: "Factura", value: "invoice", sortable: false },
+  { title: "Fecha", key: "date", sortable: false },
+  { title: "Concepto", key: "concept", sortable: false },
+  { title: "Monto", key: "amount", sortable: false },
+  { title: "Estado", key: "status", sortable: false },
+  { title: "Factura", key: "invoice", sortable: false },
 ];
 
 export default {
@@ -159,7 +159,7 @@ export default {
     this.$store.state.mainTitle = "HISTORIAL DE FACTURACIÓN";
     this.loadHistory();
   },
-  beforeDestroy() {
+  beforeUnmount() {
     stopCheckoutEvents();
   },
   methods: {
@@ -293,14 +293,7 @@ export default {
   font-size: 15px;
 }
 
-.plans-theme
-  .payments.v-data-table
-  ::v-deep
-  .v-data-table__wrapper
-  > table
-  > thead
-  > tr
-  > th {
+.plans-theme .payments.v-data-table :deep(.v-table__wrapper > table > thead > tr > th) {
   height: auto;
   padding: 10px 12px;
   border-bottom: 1px solid var(--planes-border-strong);
@@ -309,31 +302,12 @@ export default {
   color: var(--planes-text-muted);
 }
 
-.plans-theme
-  .payments.v-data-table
-  ::v-deep
-  .v-data-table__wrapper
-  > table
-  > tbody
-  > tr
-  > td:not(.v-data-table__mobile-row) {
+.plans-theme .payments.v-data-table :deep(.v-table__wrapper > table > tbody > tr > td) {
   height: auto;
   padding: 10px 12px;
   border-bottom: 1px solid var(--planes-divider);
   font-size: 15px;
   vertical-align: middle;
-}
-
-.plans-theme
-  .payments.v-data-table
-  ::v-deep
-  .v-data-table__wrapper
-  > table
-  > tbody
-  > tr:hover:not(.v-data-table__expanded__content):not(
-    .v-data-table__empty-wrapper
-  ) {
-  background: transparent;
 }
 
 .payments__amount {
@@ -388,65 +362,6 @@ export default {
 
   .plans-theme .payment-method .plans-button.v-btn {
     width: 100%;
-  }
-
-  .plans-theme .payments.v-data-table ::v-deep .v-data-table__wrapper {
-    overflow: visible;
-  }
-
-  .plans-theme .payments.v-data-table ::v-deep .v-data-table-header-mobile {
-    display: none;
-  }
-
-  .plans-theme
-    .payments.v-data-table
-    ::v-deep
-    .v-data-table__wrapper
-    > table
-    > tbody
-    > tr.v-data-table__mobile-table-row {
-    margin-bottom: 12px;
-    padding: 8px 16px;
-    border-radius: var(--planes-radius-card);
-    border: 1px solid var(--planes-border);
-    box-shadow: var(--planes-card-shadow);
-  }
-
-  .plans-theme
-    .payments.v-data-table
-    ::v-deep
-    .v-data-table__wrapper
-    > table
-    > tbody
-    > tr
-    > td.v-data-table__mobile-row {
-    min-height: 0;
-    height: auto;
-    gap: 12px;
-    padding: 8px 0;
-    border-bottom: 1px solid var(--planes-divider);
-    text-align: right;
-  }
-
-  .plans-theme
-    .payments.v-data-table
-    ::v-deep
-    .v-data-table__wrapper
-    > table
-    > tbody
-    > tr
-    > td.v-data-table__mobile-row:last-child {
-    border-bottom: 0;
-  }
-
-  .plans-theme
-    .payments.v-data-table
-    ::v-deep
-    .v-data-table__mobile-row__header {
-    font-size: 13px;
-    font-weight: 600;
-    text-align: left;
-    color: var(--planes-text-muted);
   }
 }
 </style>

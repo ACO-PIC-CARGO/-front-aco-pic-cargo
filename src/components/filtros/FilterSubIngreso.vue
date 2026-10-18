@@ -1,9 +1,9 @@
 <template>
   <v-card>
-    <v-card-title primary-title>
+    <v-card-title class="d-flex align-center flex-wrap" primary-title>
       {{ getName() }}
       <v-spacer></v-spacer>
-      <v-btn
+      <v-btn variant="text"
         icon
         color="default"
         @click="
@@ -19,7 +19,7 @@
           label="Tipo de Ingreso"
           :items="$store.state.ingresos.list"
           v-model="$store.state.subingreso.filtros.id_ingreso"
-          item-text="descripcion"
+          item-title="descripcion"
           item-value="id"
         >
         </v-autocomplete>
@@ -49,8 +49,8 @@
         <span> Se calcula en reportes</span>
         <v-radio-group
           v-model="$store.state.subingreso.filtros.calculoflag"
-          row
-          dense
+          inline
+          density="compact"
         >
           <v-radio label="Si" color="green" :value="true"></v-radio>
           <v-radio label="No" color="red" :value="false"></v-radio>
@@ -61,8 +61,8 @@
         <span> Se muestra en reportes</span>
         <v-radio-group
           v-model="$store.state.subingreso.filtros.mostrarflag"
-          row
-          dense
+          inline
+          density="compact"
         >
           <v-radio label="Si" color="green" :value="true"></v-radio>
           <v-radio label="No" color="red" :value="false"></v-radio>
@@ -73,8 +73,8 @@
         <span> Estado</span>
         <v-radio-group
           v-model="$store.state.subingreso.filtros.status"
-          row
-          dense
+          inline
+          density="compact"
         >
           <v-radio label="Activo" color="green" :value="true"></v-radio>
           <v-radio label="Inactivo" color="red" :value="false"></v-radio>
@@ -89,11 +89,11 @@
             label="Tipo de Ingreso (*)"
             :items="$store.state.ingresos.list"
             v-model="$store.state.subingreso.model.id_ingreso"
-            item-text="descripcion"
+            item-title="descripcion"
             item-value="id"
             :rules="[(v) => !!v || 'Dato Requerido']"
             :readonly="$store.state.subingreso.tipo == 'ver'"
-            :item-disabled="(item) => item.status != 1"
+            :item-props="(item) => ({ disabled: item.status != 1 })"
           >
           </v-autocomplete>
         </div>
@@ -130,12 +130,14 @@
           <v-checkbox
             label="Se calcula en Reportes"
             v-model="$store.state.subingreso.model.calculoflag"
+            :value-comparator="(value, checked) => Boolean(value) === checked"
           ></v-checkbox>
         </div>
         <div class="col-12 py-1">
           <v-checkbox
             label="Se Muestra en Reportes"
             v-model="$store.state.subingreso.model.mostrarflag"
+            :value-comparator="(value, checked) => Boolean(value) === checked"
           ></v-checkbox>
         </div>
         <div class="col-12 py-1">
@@ -147,6 +149,7 @@
             }`"
             color="success"
             v-model="$store.state.subingreso.model.status"
+            :value-comparator="(value, checked) => Boolean(value) === checked"
           ></v-switch>
         </div>
       </v-form>
@@ -261,7 +264,7 @@ export default {
     },
     async Aceptar() {
       if (this.$store.state.subingreso.tipo == "nuevo") {
-        if (this.$refs.frmDML.validate()) {
+        if ((await this.$refs.frmDML.validate()).valid) {
           this.loading = true;
           await this.setSubIngreso();
           await this.GetListSubIngreso();
@@ -270,7 +273,7 @@ export default {
       }
       if (this.$store.state.subingreso.tipo == "editar") {
         this.loading = true;
-        if (this.$refs.frmDML.validate()) {
+        if ((await this.$refs.frmDML.validate()).valid) {
           await this.ActualizarSubIngreso();
           await this.GetListSubIngreso();
         }

@@ -1,9 +1,7 @@
 <template>
   <v-container>
-    <v-stepper v-model="e6" vertical>
-      <v-stepper-step :complete="e6 > 1" step="1"> Fechas: </v-stepper-step>
-
-      <v-stepper-content step="1">
+    <v-stepper-vertical v-model="e6" hide-actions eager>
+      <v-stepper-vertical-item :complete="e6 > 1" :value="1" title="Fechas:">
         <v-form ref="frmFecha">
           <v-row>
             <v-col cols="12" md="6">
@@ -35,23 +33,23 @@
               ></v-text-field>
             </v-col>
             <v-col cols="12">
-              <v-btn small class="mx-1" color="primary" @click="continuar(2)">
+              <v-btn size="small" class="mx-1" color="primary" @click="continuar(2)">
                 Continue
               </v-btn>
-              <v-btn small class="mx-1" color="error" @click="cancelar">
+              <v-btn size="small" class="mx-1" color="error" @click="cancelar">
                 Cancel
               </v-btn>
             </v-col>
           </v-row>
         </v-form>
-      </v-stepper-content>
+      </v-stepper-vertical-item>
 
-      <v-stepper-step :complete="e6 > 2" step="2">
-        Costos Requerido:
-      </v-stepper-step>
-
-      <v-stepper-content step="2">
-        <v-simple-table dense>
+      <v-stepper-vertical-item
+        :complete="e6 > 2"
+        :value="2"
+        title="Costos Requerido:"
+      >
+        <v-table density="compact">
           <thead>
             <tr>
               <th></th>
@@ -68,10 +66,10 @@
               :key="i"
             >
               <td class="btnAccion">
-                <v-btn
+                <v-btn variant="text"
                   icon
                   color="red"
-                  x-small
+                  size="x-small"
                   @click="eliminarCostos({ costo: valor })"
                 >
                   <v-icon>mdi-delete</v-icon>
@@ -79,33 +77,40 @@
               </td>
               <td class="colProveedorMultiplicador">
                 <v-autocomplete
-                  dense
-                  item-text="namelong"
+                  density="compact"
+                  item-title="namelong"
                   item-value="id"
                   :items="$store.state.proveedor.lstProveedores"
-                  @update:search-input="recargarProveedores"
                   v-model="valor.id_proveedor"
+                  @update:search="recargarProveedores"
                   hide-details
-                  append-icon="mdi-plus"
-                  @click:append="abrirModalRegistroProveedor(valor)"
-                ></v-autocomplete>
+                  menu-icon=""
+                >
+                  <template #append-inner>
+                    <v-icon
+                      icon="mdi-plus"
+                      @mousedown.stop
+                      @click.stop="abrirModalRegistroProveedor(valor)"
+                    />
+                  </template>
+                </v-autocomplete>
               </td>
               <td class="colConcepto">
                 <v-text-field
-                  dense
+                  density="compact"
                   hide-details
                   v-model="valor.nameservice"
                 ></v-text-field>
               </td>
               <td class="colProveedorMultiplicador">
-                <v-select
+                <v-select item-title="text"
                   class="widthTD"
                   :items="$store.state.pricing.listMultiplicador"
                   v-model="valor.id_multiplicador"
                   placeholder="Multiplicador"
                   hide-details
-                  dense
-                  @change="calcTotales"
+                  density="compact"
+                  @update:model-value="calcTotales"
                   :readonly="
                     isITBM(valor.code_cost) ||
                     isConfeccion(valor.code_cost) ||
@@ -123,8 +128,7 @@
                     !isITBM(valor.code_cost) &&
                     !isNotaCredito(valor.code_cost)
                   "
-                  dense
-                  max-width="50%"
+                  density="compact"
                   v-model="valor.costounitario"
                   :error-messages="valor.error"
                   :rules="[
@@ -156,9 +160,8 @@
                     !isNotaCredito(valor.code_cost)
                   "
                   hide-details
-                  max-width="50%"
                   suffix="%"
-                  dense
+                  density="compact"
                   max="100"
                   v-model="valor.cif"
                   type="number"
@@ -167,7 +170,6 @@
                   v-on:blur="calcTotales"
                 ></v-text-field>
                 <v-text-field
-                  max-width="50%"
                   suffix="%"
                   class="derecha tdMontos"
                   v-if="
@@ -179,7 +181,7 @@
                     !isNotaCredito(valor.code_cost)
                   "
                   hide-details
-                  dense
+                  density="compact"
                   max="100"
                   v-model="valor.seguro"
                   type="number"
@@ -191,7 +193,7 @@
                 <v-text-field
                   v-if="isITBM(valor.code_cost)"
                   readonly
-                  dense
+                  density="compact"
                   v-model="valor.costounitario"
                   :error-messages="valor.error"
                   prefix="$"
@@ -200,7 +202,7 @@
                 <v-text-field
                   v-if="isConfeccion(valor.code_cost)"
                   readonly
-                  dense
+                  density="compact"
                   v-model="valor.costounitario"
                   :error-messages="valor.error"
                   prefix="$"
@@ -208,7 +210,7 @@
                 <v-text-field
                   v-if="isNotaCredito(valor.code_cost)"
                   readonly
-                  dense
+                  density="compact"
                   v-model="valor.costounitario"
                   prefix="$"
                 ></v-text-field>
@@ -303,21 +305,21 @@
               </td>
             </tr>
           </tbody>
-        </v-simple-table>
+        </v-table>
         <br />
-        <v-btn small class="mx-1" color="primary" @click="continuar(3)">
+        <v-btn size="small" class="mx-1" color="primary" @click="continuar(3)">
           Continue
         </v-btn>
-        <v-btn small class="mx-1" color="error" @click="cancelar">
+        <v-btn size="small" class="mx-1" color="error" @click="cancelar">
           Cancel
         </v-btn>
-      </v-stepper-content>
+      </v-stepper-vertical-item>
 
-      <v-stepper-step :complete="e6 > 3" step="3">
-        Copiar costos a la sección de ventas:
-      </v-stepper-step>
-
-      <v-stepper-content step="3">
+      <v-stepper-vertical-item
+        :complete="e6 > 3"
+        :value="3"
+        title="Copiar costos a la sección de ventas:"
+      >
         <v-spacer></v-spacer>
         <v-btn class="mx-2" color="success" @click="copiarCostostoVentas(4)"
           >Si, Copiar</v-btn
@@ -325,10 +327,9 @@
         <v-btn class="mx-2" color="warning" @click="continuar(4)"
           >No Copiar</v-btn
         >
-      </v-stepper-content>
+      </v-stepper-vertical-item>
 
-      <v-stepper-step step="4"> Profit Estimado </v-stepper-step>
-      <v-stepper-content step="4">
+      <v-stepper-vertical-item :value="4" title="Profit Estimado">
         <v-row>
           <v-col cols="12">
             <v-text-field
@@ -338,20 +339,19 @@
             ></v-text-field>
           </v-col>
           <v-col cols="12">
-            <v-btn small color="primary" @click="continuar(5)">
+            <v-btn size="small" color="primary" @click="continuar(5)">
               Continue
             </v-btn>
-            <v-btn small class="mx-1" color="error" @click="cancelar">
+            <v-btn size="small" class="mx-1" color="error" @click="cancelar">
               Cancel
             </v-btn>
           </v-col>
         </v-row>
-      </v-stepper-content>
-      <v-stepper-step step="5"> Finalizar </v-stepper-step>
-      <v-stepper-content step="5">
+      </v-stepper-vertical-item>
+      <v-stepper-vertical-item :value="5" title="Finalizar">
         <v-btn color="success" @click="editarCotizacion">Finalizar</v-btn>
-      </v-stepper-content>
-    </v-stepper>
+      </v-stepper-vertical-item>
+    </v-stepper-vertical>
   </v-container>
 </template>
 
@@ -360,6 +360,7 @@ import moment from "moment";
 import mixins from "@/components/mixins/funciones.js";
 import { mapActions } from "vuex";
 export default {
+  emits: ["close"],
   mixins: [mixins],
   mounted() {
     this.$nextTick(() => {
@@ -454,9 +455,9 @@ export default {
 
       return selectedDate.isAfter(today);
     },
-    continuar(step) {
+    async continuar(step) {
       this.$store.state.pricing.tiporeporte = "AGRUPADO";
-      if (step == 2 && !this.$refs.frmFecha.validate()) {
+      if (step == 2 && !(await this.$refs.frmFecha.validate()).valid) {
         return;
       }
       if (step === 5) {

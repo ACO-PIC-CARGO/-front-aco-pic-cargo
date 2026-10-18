@@ -138,16 +138,17 @@
       </v-col>
       <v-col cols="12" lg="4" xl="4" md="4">
         <v-alert
-          icon="mdi-currency-usd"
           class="my-1 text-center"
-          border="left"
-          colored-border
-          color="deep-purple accent-4"
+          border="start"
+          border-color="deep-purple-accent-4"
           elevation="2"
-          outlined
+          variant="outlined"
           prominent
-          dense
+          density="compact"
         >
+          <template #prepend>
+            <v-icon color="deep-purple-accent-4">mdi-currency-usd</v-icon>
+          </template>
           <h2>
             PROFIT PR:
             {{ parseFloat(ingreso_pr - egreso_pr).toFixed(2) }} USD / OP:
@@ -159,8 +160,7 @@
           color="info"
           class="my-1"
           block
-          dark
-          small
+          size="small"
           v-if="!editable"
           @click="irAEditar(false)"
         >
@@ -170,18 +170,16 @@
           color="red"
           class="my-1"
           block
-          dark
-          small
+          size="small"
           @click="imprimirControlDetallado(false)"
         >
           <v-icon class="mx-1">mdi-printer-outline</v-icon> CONTROL DETALLADO
         </v-btn>
         <v-btn
-          color="teal darken-4"
+          color="teal-darken-4"
           class="my-1"
           block
-          small
-          dark
+          size="small"
           @click="imprimirControlDetallado(true)"
         >
           <v-icon class="mx-1">mdi-content-save-all-outline</v-icon> CONTROL
@@ -190,7 +188,7 @@
         <v-btn
           color="#FFD600"
           class="my-1"
-          small
+          size="small"
           block
           v-if="
             Object.keys($store.state.controlGastos.listControlGastos).length >
@@ -210,7 +208,6 @@
       <v-col cols="12">
         <Ingresos
           @recargarDatos="recargarDatos()"
-          :statusBtn="statusBtn"
           :prFlag="prFlag"
           :opFlag="opFlag"
           :ingreso_pr="ingreso_pr"
@@ -239,6 +236,7 @@
   </v-container>
 </template>
 <script>
+import { defineAsyncComponent } from "vue";
 import { mapState, mapActions } from "vuex";
 import moment from "moment";
 import axios from "@/api/axios-config";
@@ -251,8 +249,8 @@ export default {
     },
   },
   components: {
-    Ingresos: () => import("./ingresos.vue"),
-    Egresos: () => import("./egresos.vue"),
+    Ingresos: defineAsyncComponent(() => import("./ingresos.vue")),
+    Egresos: defineAsyncComponent(() => import("./egresos.vue")),
   },
   data: () => {
     return {
@@ -485,7 +483,7 @@ export default {
       }
       var config = {
         method: "post",
-        url: process.env.VUE_APP_URL_MAIN + "getPdfInstructivoDetallado",
+        url: import.meta.env.VUE_APP_URL_MAIN + "getPdfInstructivoDetallado",
         headers: {
           "Content-Type": "application/json",
         },
@@ -508,7 +506,7 @@ export default {
           });
           if (!guardarEnCarpeta) {
             window.open(
-              process.env.VUE_APP_URL_MAIN + response.data.path,
+              import.meta.env.VUE_APP_URL_MAIN + response.data.path,
               "_blank",
             );
           }

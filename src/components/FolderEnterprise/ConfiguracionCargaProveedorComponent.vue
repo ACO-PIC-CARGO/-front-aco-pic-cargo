@@ -11,7 +11,7 @@
       </v-col> -->
       <v-col cols="12" md="6" offset-md="4">
         <div style="text-align: center">
-          <v-icon style="color: #1a237e" x-large>mdi-account</v-icon>
+          <v-icon style="color: #1a237e" size="x-large">mdi-account</v-icon>
         </div>
         <div class="" style="text-align: center">
           <h2 style="color: #1a237e">CARGA MASIVA DE PROVEEDORES</h2>
@@ -60,18 +60,16 @@
           <v-btn
             class="my-1 mx-1 button"
             color="#7E7E7E"
-            dark
             @click="subirProveedor = !subirProveedor"
-            x-small
+            size="x-small"
           >
             CARGA MASIVA
           </v-btn>
           <v-btn
             class="my-1 mx-1 buttonDosFilas"
             color="#1A237E"
-            dark
             @click="$emit('omitir')"
-            x-small
+            size="x-small"
           >
             CONTINUAR <br class="ocultarPc" />
             LO HARÉ DESPUÉS
@@ -132,27 +130,25 @@
           seguir en el tutorial adjunto
         </v-col>
         <v-col cols="4">
-          <v-btn color="#5E9AD6" dark small @click="dialog = true">
+          <v-btn color="#5E9AD6" size="small" @click="dialog = true">
             Ver Tutorial
           </v-btn>
         </v-col>
         <v-col cols="12">
           <v-card>
-            <v-card-title>
+            <v-card-title class="d-flex align-center flex-wrap">
               LISTADO DE PROVEEDORES <v-spacer></v-spacer>
               <v-btn
                 color="#7d8288"
-                dark
                 @click="descargarFormato()"
-                x-small
+                size="x-small"
                 class="mx-1"
               >
                 Descargar Plantilla
               </v-btn>
               <v-btn
                 color="#062c52"
-                dark
-                x-small
+                size="x-small"
                 class="mx-1"
                 @click="openFileInput()"
               >
@@ -162,19 +158,18 @@
                 v-model="files"
                 id="fileInput"
                 style="display: none"
-                @change="handleFileChange"
+                @update:model-value="handleFileChange"
                 accept=".xlsx, .xls"
               />
             </v-card-title>
             <v-data-table
               :headers="headers"
               :items="$store.state.configEmpresa.lstProveedor"
-              pagination.sync="pagination"
-              item-key="index"
+              item-value="index"
               class="elevation-5"
             >
               <template v-slot:[`item.action`]="{ item, index }">
-                <v-btn icon color="red" @click="eliminar(index)">
+                <v-btn variant="text" icon color="red" @click="eliminar(index)">
                   <v-icon>mdi-delete</v-icon>
                 </v-btn>
               </template>
@@ -187,7 +182,6 @@
       <v-btn
         @click="$emit('regresar')"
         color="#78909C"
-        dark
         class="mx-5 mt-1 mb-10"
       >
         REGRESAR A LA ANTERIOR
@@ -197,7 +191,6 @@
         @click="continuar()"
         v-if="subirProveedor"
         color="#1A237E"
-        :dark="subirProveedor"
       >
         Guardar y Continuar
       </v-btn>
@@ -210,9 +203,9 @@
       max-width="60%"
     >
       <v-card>
-        <v-card-title primary-title>
+        <v-card-title class="d-flex align-center flex-wrap" primary-title>
           <v-spacer></v-spacer>
-          <v-btn icon @click="dialog = !dialog">
+          <v-btn variant="text" icon @click="dialog = !dialog">
             <v-icon>mdi-close</v-icon>
           </v-btn>
         </v-card-title>
@@ -233,27 +226,28 @@
 </template>
 
 <script>
-import readXlsxFile from "read-excel-file";
+import { readSheet as readXlsxFile } from "read-excel-file/browser";
 import { mapActions } from "vuex";
 import Swal from "sweetalert2";
 export default {
+  emits: ["omitir", "regresar", "continuarClientes"],
   data() {
     return {
       dialog: false,
       subirProveedor: false,
       files: [],
       headers: [
-        { text: "Acción", value: "action" },
-        { text: "TAX ID / RUC /  VAT / RIF", value: "nro_documento" },
-        { text: "Razón social/Nombre Comercial", value: "nombre_comercial" },
-        { text: "Email", value: "email" },
-        { text: "Persona Contacto 1", value: "contacto_1" },
-        { text: "Teléfono Contacto 1", value: "contacto_telf_1" },
-        { text: "Persona Contacto 2", value: "contacto_2" },
-        { text: "Teléfono Contacto 2", value: "contacto_telf_2" },
-        { text: "Dirección", value: "direccion" },
-        { text: "Teléfono adicional 1", value: "telefono_1" },
-        { text: "Teléfono adicional 2", value: "telefono_2" },
+        { title: "Acción", key: "action" },
+        { title: "TAX ID / RUC /  VAT / RIF", key: "nro_documento" },
+        { title: "Razón social/Nombre Comercial", key: "nombre_comercial" },
+        { title: "Email", key: "email" },
+        { title: "Persona Contacto 1", key: "contacto_1" },
+        { title: "Teléfono Contacto 1", key: "contacto_telf_1" },
+        { title: "Persona Contacto 2", key: "contacto_2" },
+        { title: "Teléfono Contacto 2", key: "contacto_telf_2" },
+        { title: "Dirección", key: "direccion" },
+        { title: "Teléfono adicional 1", key: "telefono_1" },
+        { title: "Teléfono adicional 2", key: "telefono_2" },
       ],
       mostrarGuardar: false,
       index_nombre_comercial: 0,
@@ -321,7 +315,7 @@ export default {
     },
     descargarFormato() {
       window.open(
-        `${process.env.VUE_APP_URL_MAIN}uploads/Formato Proveedor.xlsx`,
+        `${import.meta.env.VUE_APP_URL_MAIN}uploads/Formato Proveedor.xlsx`,
         "_blank"
       );
     },

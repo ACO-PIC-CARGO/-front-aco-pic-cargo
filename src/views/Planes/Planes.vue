@@ -19,7 +19,7 @@
             mandatory
             role="group"
             rounded
-            dense
+            density="compact"
             class="segmented"
             aria-label="Periodo de facturación"
           >
@@ -27,7 +27,7 @@
               v-for="option in billingOptions"
               :key="String(option.value)"
               :value="option.value"
-              text
+              variant="text"
             >
               {{ option.label }}
             </v-btn>
@@ -52,7 +52,7 @@
       <div v-else-if="loadState === 'error'" class="planes__state" role="alert">
         <p class="planes__state-title">No pudimos cargar los planes.</p>
         <p>{{ errorMessage }}</p>
-        <v-btn text class="planes__retry" @click="loadPlans">
+        <v-btn variant="text" class="planes__retry" @click="loadPlans">
           Reintentar
         </v-btn>
       </div>
@@ -78,7 +78,7 @@
           @toggle-details="toggleDetails(plan)"
         >
           <v-btn
-            text
+            variant="text"
             class="plan__cta"
             :disabled="busy || isUnavailableAction(actionOf(plan))"
             @click="buyPlan(plan)"
@@ -100,8 +100,8 @@
       v-model="isPurchaseNoticeOpen"
       max-width="440"
       content-class="purchase-notice plans-theme"
-      overlay-color="#020a0d"
-      overlay-opacity="0.72"
+      scrim="#020a0d"
+      opacity="0.72"
     >
       <div
         role="dialog"
@@ -118,7 +118,7 @@
           esperando.
         </p>
         <div class="purchase-notice__actions">
-          <v-btn text :to="{ name: 'Login' }" class="plan__cta">
+          <v-btn variant="text" :to="{ name: 'Login' }" class="plan__cta">
             Iniciar sesión
           </v-btn>
           <router-link
@@ -129,7 +129,7 @@
           </router-link>
         </div>
         <v-btn
-          text
+          variant="text"
           class="purchase-notice__close"
           @click="isPurchaseNoticeOpen = false"
         >
@@ -213,7 +213,7 @@ export default {
     this.loadPlans();
     if (hasSession()) this.loadCompanyPlan();
   },
-  beforeDestroy() {
+  beforeUnmount() {
     stopCheckoutEvents();
   },
   methods: {
@@ -492,7 +492,7 @@ export default {
   color: var(--planes-accent-ink);
 }
 
-.plans-theme .plan__cta.v-btn >>> .v-btn__content {
+.plans-theme .plan__cta.v-btn :deep(.v-btn__content) {
   gap: 8px;
 }
 
@@ -678,7 +678,7 @@ export default {
 </style>
 
 <style>
-.v-dialog.plans-theme.purchase-notice {
+.v-dialog > .v-overlay__content.plans-theme.purchase-notice {
   width: min(400px, calc(100vw - 32px));
   padding: 28px 24px 24px;
   border-radius: var(--planes-radius-card);

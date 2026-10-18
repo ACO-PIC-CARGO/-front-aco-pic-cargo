@@ -3,10 +3,11 @@
 </template>
 
 <script>
+import { defineAsyncComponent } from "vue";
 export default {
   components: {
-    ListDocumentsComponent: () =>
-      import("@/components/FolderDocument/list.vue"),
+    ListDocumentsComponent: defineAsyncComponent(() =>
+      import("@/components/FolderDocument/list.vue")),
   },
   mounted() {
     this.$store.state.mainTitle = "TIPO DE DOCUMENTOS";

@@ -9,12 +9,13 @@
 </template>
 
 <script>
+import { defineAsyncComponent } from "vue";
 export default {
   components: {
-    NuevoComponent: () =>
+    NuevoComponent: defineAsyncComponent(() =>
       import(
         "@/components/folderEntities/Proveedor/NuevoProveedorComponent.vue"
-      ),
+      )),
   },
   mounted() {
     this.$store.state.mainTitle = `REGISTRAR PROVEEDOR`;

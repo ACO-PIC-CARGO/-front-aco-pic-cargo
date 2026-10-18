@@ -37,7 +37,7 @@ const actions = {
     var config = {
       method: "get",
       url:
-        process.env.VUE_APP_URL_MAIN +
+        import.meta.env.VUE_APP_URL_MAIN +
         `listar_bank?` +
         `id_branch=${
           JSON.parse(sessionStorage.getItem("dataUser"))[0].id_branch
@@ -84,7 +84,7 @@ const actions = {
   async insertBank({ commit, dispatch }, data) {
     var config = {
       method: "post",
-      url: process.env.VUE_APP_URL_MAIN + "insertar_bank",
+      url: import.meta.env.VUE_APP_URL_MAIN + "insertar_bank",
       headers: {
         "Content-Type": "application/json",
       },
@@ -118,7 +118,7 @@ const actions = {
   async readBank({ commit }, id) {
     var config = {
       method: "get",
-      url: process.env.VUE_APP_URL_MAIN + `ver_bank?id=${id}`,
+      url: import.meta.env.VUE_APP_URL_MAIN + `ver_bank?id=${id}`,
       headers: {
         "Content-Type": "application/json",
       },
@@ -154,7 +154,7 @@ const actions = {
   async updateBank({ dispatch }, data) {
     var config = {
       method: "put",
-      url: process.env.VUE_APP_URL_MAIN + "actualizar_bank",
+      url: import.meta.env.VUE_APP_URL_MAIN + "actualizar_bank",
       headers: {
         "Content-Type": "application/json",
       },
@@ -190,7 +190,7 @@ const actions = {
   async getBanksListCargar({ commit }) {
     var config = {
       method: "post",
-      url: process.env.VUE_APP_URL_MAIN + "getBanksList/",
+      url: import.meta.env.VUE_APP_URL_MAIN + "getBanksList/",
       headers: {
         "Content-Type": "application/json",
       },
@@ -214,7 +214,7 @@ const actions = {
   async guardarCuentaDetalle({ dispatch }, data) {
     var config = {
       method: "post",
-      url: process.env.VUE_APP_URL_MAIN + "insertar_cuenta",
+      url: import.meta.env.VUE_APP_URL_MAIN + "insertar_cuenta",
       headers: {
         "Content-Type": "application/json",
       },
@@ -247,7 +247,7 @@ const actions = {
   async eliminarCuentaDetalle({ dispatch }, data) {
     var config = {
       method: "put",
-      url: process.env.VUE_APP_URL_MAIN + "eliminar_cuenta",
+      url: import.meta.env.VUE_APP_URL_MAIN + "eliminar_cuenta",
       headers: {
         "Content-Type": "application/json",
       },
@@ -281,7 +281,7 @@ const actions = {
     var config = {
       method: "get",
       url:
-        process.env.VUE_APP_URL_MAIN +
+        import.meta.env.VUE_APP_URL_MAIN +
         `ver_pago?nro_operacion=${nro_operacion}&id_branch=${
           JSON.parse(sessionStorage.getItem("dataUser"))[0].id_branch
         }`,
@@ -314,7 +314,7 @@ const actions = {
     let res = null;
     var config = {
       method: "put",
-      url: process.env.VUE_APP_URL_MAIN + `anular_pago`,
+      url: import.meta.env.VUE_APP_URL_MAIN + `anular_pago`,
       headers: {
         "Content-Type": "application/json",
       },
@@ -335,7 +335,7 @@ const actions = {
     let res = null;
     var config = {
       method: "put",
-      url: process.env.VUE_APP_URL_MAIN + `actualizar_pago`,
+      url: import.meta.env.VUE_APP_URL_MAIN + `actualizar_pago`,
       headers: {
         "Content-Type": "application/json",
       },
@@ -354,7 +354,7 @@ const actions = {
     var config = {
       method: "get",
       url:
-        process.env.VUE_APP_URL_MAIN +
+        import.meta.env.VUE_APP_URL_MAIN +
         `ver_cobro?nro_operacion=${nro_operacion}&id_branch=${
           JSON.parse(sessionStorage.getItem("dataUser"))[0].id_branch
         }`,
@@ -387,7 +387,7 @@ const actions = {
     let res = null;
     var config = {
       method: "put",
-      url: process.env.VUE_APP_URL_MAIN + `anular_cobro`,
+      url: import.meta.env.VUE_APP_URL_MAIN + `anular_cobro`,
       headers: {
         "Content-Type": "application/json",
       },
@@ -406,7 +406,7 @@ const actions = {
     let res = null;
     var config = {
       method: "put",
-      url: process.env.VUE_APP_URL_MAIN + `actualizar_cobro`,
+      url: import.meta.env.VUE_APP_URL_MAIN + `actualizar_cobro`,
       headers: {
         "Content-Type": "application/json",
       },
@@ -425,7 +425,7 @@ const actions = {
     let res = null;
     var config = {
       method: "get",
-      url: process.env.VUE_APP_URL_MAIN + `validate_nro_operacion_cobro`,
+      url: import.meta.env.VUE_APP_URL_MAIN + `validate_nro_operacion_cobro`,
       headers: {
         "Content-Type": "application/json",
       },
@@ -444,7 +444,7 @@ const actions = {
     let res = null;
     var config = {
       method: "get",
-      url: process.env.VUE_APP_URL_MAIN + `ver_facturas`,
+      url: import.meta.env.VUE_APP_URL_MAIN + `ver_facturas`,
       headers: {
         "Content-Type": "application/json",
       },
@@ -464,7 +464,7 @@ const actions = {
     let res = null;
     var config = {
       method: "get",
-      url: process.env.VUE_APP_URL_MAIN + `deuda_a_proveedor_por_sucursal`,
+      url: import.meta.env.VUE_APP_URL_MAIN + `deuda_a_proveedor_por_sucursal`,
       headers: {
         "Content-Type": "application/json",
       },
@@ -513,7 +513,7 @@ const actions = {
     let res = null;
     var config = {
       method: "get",
-      url: process.env.VUE_APP_URL_MAIN + `deuda_de_cliente_por_sucursal`,
+      url: import.meta.env.VUE_APP_URL_MAIN + `deuda_de_cliente_por_sucursal`,
       headers: {
         "Content-Type": "application/json",
       },
@@ -555,7 +555,7 @@ const actions = {
   async setRegistroEgresos({ commit, dispatch }, data) {
     var config = {
       method: "post",
-      url: process.env.VUE_APP_URL_MAIN + "registro_egresos",
+      url: import.meta.env.VUE_APP_URL_MAIN + "registro_egresos",
       headers: {
         "Content-Type": "application/json",
       },
@@ -597,7 +597,7 @@ const actions = {
   async updateRegistroEgresos({ commit }, data) {
     var config = {
       method: "put",
-      url: process.env.VUE_APP_URL_MAIN + "actualizar_egresos",
+      url: import.meta.env.VUE_APP_URL_MAIN + "actualizar_egresos",
       headers: {
         "Content-Type": "application/json",
       },
@@ -618,7 +618,7 @@ const actions = {
   async updateRegistroIgresos({ commit }, data) {
     var config = {
       method: "put",
-      url: process.env.VUE_APP_URL_MAIN + "actualizar_ingresos",
+      url: import.meta.env.VUE_APP_URL_MAIN + "actualizar_ingresos",
       headers: {
         "Content-Type": "application/json",
       },
@@ -640,7 +640,7 @@ const actions = {
   async setRegistroIgresos({ commit, dispatch }, data) {
     var config = {
       method: "post",
-      url: process.env.VUE_APP_URL_MAIN + "registro_ingresos",
+      url: import.meta.env.VUE_APP_URL_MAIN + "registro_ingresos",
       headers: {
         "Content-Type": "application/json",
       },
@@ -689,7 +689,7 @@ const actions = {
   async getRegistroEgresos({ commit }, data) {
     var config = {
       method: "get",
-      url: process.env.VUE_APP_URL_MAIN + "listado_egresos",
+      url: import.meta.env.VUE_APP_URL_MAIN + "listado_egresos",
       headers: {
         "Content-Type": "application/json",
       },
@@ -710,7 +710,7 @@ const actions = {
   async getRegistroIngresos({ commit }, data) {
     var config = {
       method: "get",
-      url: process.env.VUE_APP_URL_MAIN + "listado_ingresos",
+      url: import.meta.env.VUE_APP_URL_MAIN + "listado_ingresos",
       headers: {
         "Content-Type": "application/json",
       },
@@ -732,7 +732,7 @@ const actions = {
     let res = {};
     var config = {
       method: "get",
-      url: process.env.VUE_APP_URL_MAIN + "ver_registro_ingresos",
+      url: import.meta.env.VUE_APP_URL_MAIN + "ver_registro_ingresos",
       headers: {
         "Content-Type": "application/json",
       },
@@ -757,7 +757,7 @@ const actions = {
     let res = {};
     var config = {
       method: "delete",
-      url: process.env.VUE_APP_URL_MAIN + "eliminar_registro_ingresos",
+      url: import.meta.env.VUE_APP_URL_MAIN + "eliminar_registro_ingresos",
       headers: {
         "Content-Type": "application/json",
       },
@@ -783,7 +783,7 @@ const actions = {
     let res = {};
     var config = {
       method: "delete",
-      url: process.env.VUE_APP_URL_MAIN + "eliminar_registro_egresos",
+      url: import.meta.env.VUE_APP_URL_MAIN + "eliminar_registro_egresos",
       headers: {
         "Content-Type": "application/json",
       },
@@ -808,7 +808,7 @@ const actions = {
     let res = {};
     var config = {
       method: "get",
-      url: process.env.VUE_APP_URL_MAIN + "ver_registro_egresos",
+      url: import.meta.env.VUE_APP_URL_MAIN + "ver_registro_egresos",
       headers: {
         "Content-Type": "application/json",
       },
@@ -833,7 +833,7 @@ const actions = {
     let res = {};
     var config = {
       method: "get",
-      url: process.env.VUE_APP_URL_MAIN + "validar_nrooperacion_ingreso",
+      url: import.meta.env.VUE_APP_URL_MAIN + "validar_nrooperacion_ingreso",
       headers: {
         "Content-Type": "application/json",
       },
@@ -856,7 +856,7 @@ const actions = {
     let res = {};
     var config = {
       method: "get",
-      url: process.env.VUE_APP_URL_MAIN + "validar_nrooperacion_egreso",
+      url: import.meta.env.VUE_APP_URL_MAIN + "validar_nrooperacion_egreso",
       headers: {
         "Content-Type": "application/json",
       },
@@ -879,7 +879,7 @@ const actions = {
     let res = {};
     var config = {
       method: "get",
-      url: process.env.VUE_APP_URL_MAIN + "imprimir_registro_ingresos",
+      url: import.meta.env.VUE_APP_URL_MAIN + "imprimir_registro_ingresos",
       headers: {
         "Content-Type": "application/json",
       },
@@ -904,7 +904,7 @@ const actions = {
     await axios(config)
       .then(function (response) {
         let data = response.data;
-        window.open(process.env.VUE_APP_URL_MAIN + data.path, "_blank");
+        window.open(import.meta.env.VUE_APP_URL_MAIN + data.path, "_blank");
         Swal.close();
       })
       .catch(function (error) {
@@ -915,7 +915,7 @@ const actions = {
     let res = {};
     var config = {
       method: "get",
-      url: process.env.VUE_APP_URL_MAIN + "imprimir_registro_egreso",
+      url: import.meta.env.VUE_APP_URL_MAIN + "imprimir_registro_egreso",
       headers: {
         "Content-Type": "application/json",
       },
@@ -940,7 +940,7 @@ const actions = {
     await axios(config)
       .then(function (response) {
         let data = response.data;
-        window.open(process.env.VUE_APP_URL_MAIN + data.path, "_blank");
+        window.open(import.meta.env.VUE_APP_URL_MAIN + data.path, "_blank");
         Swal.close();
       })
       .catch(function (error) {

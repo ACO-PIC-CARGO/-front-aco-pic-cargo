@@ -4,12 +4,9 @@
       <v-row no-gutters>
         <v-col v-if="verDatosPreview" :cols="verPrevisualizacion ? 5 : 12">
           <div class="clsSequence">
-            <v-stepper v-model="e6" vertical non-linear>
+            <v-stepper-vertical v-model="e6" non-linear hide-actions>
               <!-- SERVICIO -->
-              <v-stepper-step :editable="true" :complete="e6 > 1" step="1">
-                SERVICIO
-              </v-stepper-step>
-              <v-stepper-content step="1">
+              <v-stepper-vertical-item :editable="true" :complete="e6 > 1" :value="1" title="SERVICIO">
                 <v-row>
                   <v-col cols="12">
                     <v-text-field
@@ -23,16 +20,12 @@
                     <v-btn color="primary" @click="continuar"> Continue </v-btn>
                   </v-col>
                 </v-row>
-              </v-stepper-content>
+              </v-stepper-vertical-item>
 
-              <v-stepper-step :editable="true" :complete="e6 > 2" step="2">
-                EMAIL DE SEGUIMIENTO
-              </v-stepper-step>
-
-              <v-stepper-content step="2">
+              <v-stepper-vertical-item :editable="true" :complete="e6 > 2" :value="2" title="EMAIL DE SEGUIMIENTO">
                 <v-row>
                   <v-col cols="12">
-                    <p class="red--text">
+                    <p class="text-red">
                       Email de Seguimiento con el coloader o Agente donde se
                       consiguió la tarifa
                     </p>
@@ -52,14 +45,10 @@
                     </v-btn>
                   </v-col>
                 </v-row>
-              </v-stepper-content>
+              </v-stepper-vertical-item>
 
               <!--  -->
-              <v-stepper-step :editable="true" :complete="e6 > 3" step="3">
-                CARGA LISTA DIA FECHA
-              </v-stepper-step>
-
-              <v-stepper-content step="3" class="pt-0">
+              <v-stepper-vertical-item :editable="true" :complete="e6 > 3" :value="3" title="CARGA LISTA DIA FECHA" class="pt-0">
                 <v-row>
                   <v-col cols="12" class="pt-0">
                     <v-textarea
@@ -81,13 +70,9 @@
                     </v-btn>
                   </v-col>
                 </v-row>
-              </v-stepper-content>
+              </v-stepper-vertical-item>
               <!--  -->
-              <v-stepper-step :editable="true" :complete="e6 > 4" step="4">
-                GRUPO DE WHATSAPP
-              </v-stepper-step>
-
-              <v-stepper-content step="4">
+              <v-stepper-vertical-item :editable="true" :complete="e6 > 4" :value="4" title="GRUPO DE WHATSAPP">
                 <v-row>
                   <v-col cols="12">
                     <v-textarea
@@ -109,22 +94,18 @@
                     </v-btn>
                   </v-col>
                 </v-row>
-              </v-stepper-content>
+              </v-stepper-vertical-item>
               <!--  -->
-              <v-stepper-step :editable="true" :complete="e6 > 5" step="5">
-                SE ADJUNTA
-              </v-stepper-step>
-
-              <v-stepper-content step="5">
+              <v-stepper-vertical-item :editable="true" :complete="e6 > 5" :value="5" title="SE ADJUNTA">
                 <v-row>
                   <v-col cols="12">
-                    <p class="red--text">
+                    <p class="text-red">
                       si se adjunta todo lo que más puedas facturas permisos,
                       fotos, y cualquier información relevante
                     </p>
                   </v-col>
                   <v-col cols="12">
-                    <v-simple-table>
+                    <v-table>
                       <tbody>
                         <tr
                           v-for="(doc, index) in listaDocumentos"
@@ -142,7 +123,7 @@
                             <div v-if="doc.editable">
                               <v-text-field
                                 v-model="doc.label"
-                                dense
+                                density="compact"
                                 hide-details
                                 placeholder="Nombre del documento personalizado"
                                 variant="underlined"
@@ -166,7 +147,7 @@
                           </td>
                         </tr>
                       </tbody>
-                    </v-simple-table>
+                    </v-table>
                   </v-col>
                   <v-col cols="12">
                     <v-spacer></v-spacer>
@@ -178,25 +159,21 @@
                     </v-btn>
                   </v-col>
                 </v-row>
-              </v-stepper-content>
+              </v-stepper-vertical-item>
 
               <!--  -->
-              <v-stepper-step :editable="true" :complete="e6 > 6" step="6">
-                DEBEMOS PAGAR AL PROVEEDOR
-              </v-stepper-step>
-
-              <v-stepper-content step="6">
+              <v-stepper-vertical-item :editable="true" :complete="e6 > 6" :value="6" title="DEBEMOS PAGAR AL PROVEEDOR">
                 <v-row>
                   <v-col cols="12">
-                    <p class="red--text">
+                    <p class="text-red">
                       solo aplica si el cliente nos cancela a nosotros y
                       nosotros debemos pagar al proveedor
                     </p>
-                    <v-select
-                      dense
+                    <v-select item-title="text"
+                      density="compact"
                       :items="cboSiNo"
                       v-model="datosManuales.pagarProveedor"
-                      outlined
+                      variant="outlined"
                       label="Si/ No"
                       hide-details
                       style="width: 120px; margin-top: 10px"
@@ -217,23 +194,15 @@
                     </v-btn>
                   </v-col>
                 </v-row>
-              </v-stepper-content>
+              </v-stepper-vertical-item>
 
               <!--  -->
-              <v-stepper-step
-                :editable="true"
-                :complete="e6 > 7"
-                step="7"
-                v-if="datosManuales.pagarProveedor"
-              >
-                ESCOGE UNA OPCIÓN DE PAGO
-              </v-stepper-step>
-              <v-stepper-content step="7">
+              <v-stepper-vertical-item :editable="true" :complete="e6 > 7" v-if="datosManuales.pagarProveedor" :value="7" title="ESCOGE UNA OPCIÓN DE PAGO">
                 <v-row>
                   <v-col cols="12">
                     <v-radio-group
                       v-model="datosManuales.metodoPagarProveedor"
-                      dense
+                      density="compact"
                     >
                       <v-radio label="Pago por Alibaba" value="1" />
                       <v-radio label="Transferencia Internacional" value="2" />
@@ -245,17 +214,14 @@
                     <v-btn color="primary" @click="continuar"> Continue </v-btn>
                   </v-col>
                 </v-row>
-              </v-stepper-content>
+              </v-stepper-vertical-item>
               <!-- MONTO A PAGAR -->
               <div class="" v-if="datosManuales.pagarProveedor">
                 <!-- Monto -->
-                <v-stepper-step :editable="true" :complete="e6 > 8" step="8">
-                  MONTO A PAGAR
-                </v-stepper-step>
-                <v-stepper-content step="8">
+                <v-stepper-vertical-item :editable="true" :complete="e6 > 8" :value="8" title="MONTO A PAGAR">
                   <v-row>
                     <v-col cols="12">
-                      <p class="red--text">
+                      <p class="text-red">
                         Solo aplica si el cliente nos cancela a nosotros...
                       </p>
                       <v-text-field
@@ -275,25 +241,17 @@
                       </v-btn>
                     </v-col>
                   </v-row>
-                </v-stepper-content>
+                </v-stepper-vertical-item>
                 <!-- ALIBABA -->
                 <div v-if="mostrarPagarProveedorAlibaba">
                   <!--  -->
-                  <v-stepper-step
-                    :editable="true"
-                    :complete="e6 > 9"
-                    step="9"
-                    v-if="datosManuales.pagarProveedor"
-                  >
-                    CLIENTE YA NOS PAGÓ
-                  </v-stepper-step>
-                  <v-stepper-content step="9">
+                  <v-stepper-vertical-item :editable="true" :complete="e6 > 9" v-if="datosManuales.pagarProveedor" :value="9" title="CLIENTE YA NOS PAGÓ">
                     <v-row>
                       <v-col cols="12">
-                        <v-select
+                        <v-select item-title="text"
                           :items="cboSiNo"
                           v-model="datosManualesNoAplica.clientePago"
-                          outlined
+                          variant="outlined"
                           label="Si/ No"
                           style="width: 120px; margin-top: 10px"
                           hide-details
@@ -312,23 +270,15 @@
                         </v-btn>
                       </v-col>
                     </v-row>
-                  </v-stepper-content>
+                  </v-stepper-vertical-item>
 
                   <!-- MONTO RECIBIDO  -->
-                  <v-stepper-step
-                    :editable="true"
-                    :complete="e6 > 10"
-                    step="10"
-                  >
-                    MONTO RECIBIDO DEL CLIENTE
-                  </v-stepper-step>
-                  <v-stepper-content step="10">
+                  <v-stepper-vertical-item :editable="true" :complete="e6 > 10" :value="10" title="MONTO RECIBIDO DEL CLIENTE">
                     <v-row>
                       <v-col cols="12">
                         <v-text-field
                           type="number"
                           v-model="datosManuales.montoRecibido"
-                          width="150px"
                         >
                         </v-text-field>
                       </v-col>
@@ -342,17 +292,10 @@
                         </v-btn>
                       </v-col>
                     </v-row>
-                  </v-stepper-content>
+                  </v-stepper-vertical-item>
 
                   <!-- FECHA DE PAGO DEL CLIENTE -->
-                  <v-stepper-step
-                    :editable="true"
-                    :complete="e6 > 11"
-                    step="11"
-                  >
-                    FECHA DE PAGO DEL CLIENTE
-                  </v-stepper-step>
-                  <v-stepper-content step="11">
+                  <v-stepper-vertical-item :editable="true" :complete="e6 > 11" :value="11" title="FECHA DE PAGO DEL CLIENTE">
                     <v-row>
                       <v-col cols="12">
                         <v-text-field
@@ -372,17 +315,10 @@
                         </v-btn>
                       </v-col>
                     </v-row>
-                  </v-stepper-content>
+                  </v-stepper-vertical-item>
 
                   <!-- LINK DE PAGO ALIBABA -->
-                  <v-stepper-step
-                    :editable="true"
-                    :complete="e6 > 12"
-                    step="12"
-                  >
-                    LINK DE PAGO ALIBABA
-                  </v-stepper-step>
-                  <v-stepper-content step="12">
+                  <v-stepper-vertical-item :editable="true" :complete="e6 > 12" :value="12" title="LINK DE PAGO ALIBABA">
                     <v-row>
                       <v-col cols="12">
                         <v-text-field
@@ -402,17 +338,10 @@
                         </v-btn>
                       </v-col>
                     </v-row>
-                  </v-stepper-content>
+                  </v-stepper-vertical-item>
 
                   <!-- NRO DE CONTRATO DE ALIBABA -->
-                  <v-stepper-step
-                    :editable="true"
-                    :complete="e6 > 13"
-                    step="13"
-                  >
-                    NÚMERO DE CONTRATO DE ALIBABA
-                  </v-stepper-step>
-                  <v-stepper-content step="13">
+                  <v-stepper-vertical-item :editable="true" :complete="e6 > 13" :value="13" title="NÚMERO DE CONTRATO DE ALIBABA">
                     <v-row>
                       <v-col cols="12">
                         <v-text-field
@@ -436,25 +365,18 @@
                         </v-btn>
                       </v-col>
                     </v-row>
-                  </v-stepper-content>
+                  </v-stepper-vertical-item>
                 </div>
 
                 <div v-if="mostrarPagarProveedorInternacional">
                   <!-- Nro Factura -->
-                  <v-stepper-step
-                    :editable="true"
-                    :complete="e6 > 14"
-                    step="14"
-                  >
-                    NRO DE FACTURA
-                  </v-stepper-step>
-                  <v-stepper-content step="14">
+                  <v-stepper-vertical-item :editable="true" :complete="e6 > 14" :value="14" title="NRO DE FACTURA">
                     <v-row>
                       <v-col cols="12">
                         <v-checkbox
-                          @change="checkNoAplica(13)"
-                          label="No Aplica"
                           v-model="datosManualesNoAplica.nroFactura"
+                          @update:model-value="checkNoAplica(13)"
+                          label="No Aplica"
                         ></v-checkbox>
                         <v-text-field
                           v-model="datosManuales.nroFactura"
@@ -471,17 +393,10 @@
                         </v-btn>
                       </v-col>
                     </v-row>
-                  </v-stepper-content>
+                  </v-stepper-vertical-item>
 
                   <!-- Banco Beneficiario o Cuenta Beneficiario -->
-                  <v-stepper-step
-                    :editable="true"
-                    :complete="e6 > 15"
-                    step="15"
-                  >
-                    BANCO BENEFICIARIO
-                  </v-stepper-step>
-                  <v-stepper-content step="15">
+                  <v-stepper-vertical-item :editable="true" :complete="e6 > 15" :value="15" title="BANCO BENEFICIARIO">
                     <v-row>
                       <v-col cols="12">
                         <v-text-field
@@ -499,17 +414,10 @@
                         </v-btn>
                       </v-col>
                     </v-row>
-                  </v-stepper-content>
+                  </v-stepper-vertical-item>
 
                   <!-- Dirección del banco beneficiario -->
-                  <v-stepper-step
-                    :editable="true"
-                    :complete="e6 > 16"
-                    step="16"
-                  >
-                    DIRECCIÓN DEL BANCO BENEFICIARIO
-                  </v-stepper-step>
-                  <v-stepper-content step="16">
+                  <v-stepper-vertical-item :editable="true" :complete="e6 > 16" :value="16" title="DIRECCIÓN DEL BANCO BENEFICIARIO">
                     <v-row>
                       <v-col cols="12">
                         <v-text-field
@@ -527,16 +435,9 @@
                         </v-btn>
                       </v-col>
                     </v-row>
-                  </v-stepper-content>
+                  </v-stepper-vertical-item>
                   <!-- Nombre del Beneficiario -->
-                  <v-stepper-step
-                    :editable="true"
-                    :complete="e6 > 17"
-                    step="17"
-                  >
-                    NOMBRE DEL BENEFICIARIO
-                  </v-stepper-step>
-                  <v-stepper-content step="17">
+                  <v-stepper-vertical-item :editable="true" :complete="e6 > 17" :value="17" title="NOMBRE DEL BENEFICIARIO">
                     <v-row>
                       <v-col cols="12">
                         <v-text-field
@@ -554,16 +455,9 @@
                         </v-btn>
                       </v-col>
                     </v-row>
-                  </v-stepper-content>
+                  </v-stepper-vertical-item>
                   <!-- Dirección del Beneficiario -->
-                  <v-stepper-step
-                    :editable="true"
-                    :complete="e6 > 18"
-                    step="18"
-                  >
-                    DIRECCIÓN DEL BENEFICIARIO
-                  </v-stepper-step>
-                  <v-stepper-content step="18">
+                  <v-stepper-vertical-item :editable="true" :complete="e6 > 18" :value="18" title="DIRECCIÓN DEL BENEFICIARIO">
                     <v-row>
                       <v-col cols="12">
                         <v-text-field
@@ -581,16 +475,9 @@
                         </v-btn>
                       </v-col>
                     </v-row>
-                  </v-stepper-content>
+                  </v-stepper-vertical-item>
                   <!-- Número de Cuenta -->
-                  <v-stepper-step
-                    :editable="true"
-                    :complete="e6 > 19"
-                    step="19"
-                  >
-                    NÚMERO DE CUENTA
-                  </v-stepper-step>
-                  <v-stepper-content step="19">
+                  <v-stepper-vertical-item :editable="true" :complete="e6 > 19" :value="19" title="NÚMERO DE CUENTA">
                     <v-row>
                       <v-col cols="12">
                         <v-text-field
@@ -608,16 +495,9 @@
                         </v-btn>
                       </v-col>
                     </v-row>
-                  </v-stepper-content>
+                  </v-stepper-vertical-item>
                   <!-- Porcentaje de Pago -->
-                  <v-stepper-step
-                    :editable="true"
-                    :complete="e6 > 20"
-                    step="20"
-                  >
-                    PORCENTAJE DE PAGO
-                  </v-stepper-step>
-                  <v-stepper-content step="20">
+                  <v-stepper-vertical-item :editable="true" :complete="e6 > 20" :value="20" title="PORCENTAJE DE PAGO">
                     <v-row>
                       <v-col cols="12">
                         <v-text-field
@@ -640,16 +520,9 @@
                         </v-btn>
                       </v-col>
                     </v-row>
-                  </v-stepper-content>
+                  </v-stepper-vertical-item>
                   <!-- País Recepto -->
-                  <v-stepper-step
-                    :editable="true"
-                    :complete="e6 > 21"
-                    step="21"
-                  >
-                    PAÍS RECEPTOR
-                  </v-stepper-step>
-                  <v-stepper-content step="21">
+                  <v-stepper-vertical-item :editable="true" :complete="e6 > 21" :value="21" title="PAÍS RECEPTOR">
                     <v-row>
                       <v-col cols="12">
                         <v-text-field
@@ -671,27 +544,19 @@
                         </v-btn>
                       </v-col>
                     </v-row>
-                  </v-stepper-content>
+                  </v-stepper-vertical-item>
                 </div>
                 <!-- ------------------------------------------ -->
-                <v-stepper-step
-                  :editable="true"
-                  :complete="e6 > 22"
-                  step="22"
-                  v-if="false"
-                >
-                  DONDE SE DEBE PAGAR
-                </v-stepper-step>
-                <v-stepper-content step="22">
+                <v-stepper-vertical-item :editable="true" :complete="e6 > 22" v-if="false" :value="22" title="DONDE SE DEBE PAGAR">
                   <v-row>
                     <v-col cols="12">
-                      <p class="red--text">
+                      <p class="text-red">
                         solo aplica si el cliente nos cancela a nosotros...
                       </p>
                       <v-checkbox
-                        @change="checkNoAplica(8)"
-                        label="No Aplica"
                         v-model="datosManualesNoAplica.dondePagar"
+                        @update:model-value="checkNoAplica(8)"
+                        label="No Aplica"
                       ></v-checkbox>
                       <v-text-field
                         v-model="datosManuales.dondePagar"
@@ -699,13 +564,10 @@
                       ></v-text-field>
                     </v-col>
                   </v-row>
-                </v-stepper-content>
+                </v-stepper-vertical-item>
               </div>
               <!-- SEGURO DE MERCANCIA -->
-              <v-stepper-step :editable="true" :complete="e6 > 23" step="23">
-                SEGURO DE MERCANCIA
-              </v-stepper-step>
-              <v-stepper-content step="23">
+              <v-stepper-vertical-item :editable="true" :complete="e6 > 23" :value="23" title="SEGURO DE MERCANCIA">
                 <v-row>
                   <v-col cols="12">
                     <v-text-field
@@ -723,17 +585,14 @@
                     </v-btn>
                   </v-col>
                 </v-row>
-              </v-stepper-content>
-              <v-stepper-step :editable="true" :complete="e6 > 24" step="24">
-                OBSERVACIONES ADICIONALES 1
-              </v-stepper-step>
-              <v-stepper-content step="24">
+              </v-stepper-vertical-item>
+              <v-stepper-vertical-item :editable="true" :complete="e6 > 24" :value="24" title="OBSERVACIONES ADICIONALES 1">
                 <v-row>
                   <v-col cols="12">
                     <v-checkbox
-                      @change="checkNoAplica(24)"
                       label="No Aplica"
                       v-model="datosManualesNoAplica.observacion1"
+                      @update:model-value="checkNoAplica(24)"
                     ></v-checkbox>
                     <v-textarea
                       v-model="datosManuales.observacion1"
@@ -751,18 +610,15 @@
                     </v-btn>
                   </v-col>
                 </v-row>
-              </v-stepper-content>
+              </v-stepper-vertical-item>
               <!--  -->
-              <v-stepper-step :editable="true" :complete="e6 > 25" step="25">
-                OBSERVACIONES ADICIONALES 2
-              </v-stepper-step>
-              <v-stepper-content step="25">
+              <v-stepper-vertical-item :editable="true" :complete="e6 > 25" :value="25" title="OBSERVACIONES ADICIONALES 2">
                 <v-row>
                   <v-col cols="12">
                     <v-checkbox
-                      @change="checkNoAplica(25)"
                       label="No Aplica"
                       v-model="datosManualesNoAplica.observacion2"
+                      @update:model-value="checkNoAplica(25)"
                     ></v-checkbox>
                     <v-textarea
                       v-model="datosManuales.observacion2"
@@ -780,8 +636,8 @@
                     </v-btn>
                   </v-col>
                 </v-row>
-              </v-stepper-content>
-            </v-stepper>
+              </v-stepper-vertical-item>
+            </v-stepper-vertical>
           </div>
         </v-col>
         <v-col
@@ -789,15 +645,15 @@
           :cols="verDatosPreview ? 7 : 12"
           class="px-10"
         >
-          <v-tabs color="deep-purple accent-4" right v-model="tabPreview">
+          <v-tabs color="deep-purple-accent-4" align-tabs="end" v-model="tabPreview">
             <v-spacer></v-spacer>
-            <v-tabs-slider></v-tabs-slider>
-            <v-tab href="#op">INSTRUCTIVO A OPERACIONES</v-tab>
-            <v-tab href="#agente">INSTRUCTIVO AL AGENTE</v-tab>
-            <v-tabs-items v-model="tabPreview" class="mt-5">
-              <v-tab-item value="op">
+            <v-tab value="op">INSTRUCTIVO A OPERACIONES</v-tab>
+            <v-tab value="agente">INSTRUCTIVO AL AGENTE</v-tab>
+          </v-tabs>
+          <v-tabs-window v-model="tabPreview" class="mt-5">
+              <v-tabs-window-item value="op">
                 <div class="clsInstructivo">
-                  <v-simple-table>
+                  <v-table>
                     <tbody>
                       <tr>
                         <td valign="top" style="border: solid windowtext 1pt">
@@ -1053,7 +909,7 @@
                             NOMBRE: {{ proveedor.namelong || "" }} <br />
                             CONTACTO: {{ proveedor.contacto || "" }} <br />
                             EMAIL:
-                            <a :href="`mailto:${proveedor.emailaddress}`">
+                            <a class="text-primary" :href="`mailto:${proveedor.emailaddress}`">
                               {{ proveedor.emailaddress || "" }} </a
                             ><br />
                             TELEFONO: {{ proveedor.contacto_phone || "" }}
@@ -1574,12 +1430,12 @@
                         </td>
                       </tr>
                     </tbody>
-                  </v-simple-table>
+                  </v-table>
                 </div>
-              </v-tab-item>
-              <v-tab-item value="agente">
+              </v-tabs-window-item>
+              <v-tabs-window-item value="agente">
                 <div class="clsInstructivo">
-                  <v-simple-table>
+                  <v-table>
                     <tbody>
                       <tr>
                         <td valign="top" style="border: solid windowtext 1pt">
@@ -1669,7 +1525,7 @@
                             NOMBRE: {{ proveedor.namelong || "" }} <br />
                             CONTACTO: {{ proveedor.contacto || "" }} <br />
                             EMAIL:
-                            <a :href="`mailto:${proveedor.emailaddress}`">
+                            <a class="text-primary" :href="`mailto:${proveedor.emailaddress}`">
                               {{ proveedor.emailaddress || "" }} </a
                             ><br />
                             TELEFONO: {{ proveedor.contacto_phone || "" }}
@@ -1747,11 +1603,10 @@
                         </td>
                       </tr>
                     </tbody>
-                  </v-simple-table>
+                  </v-table>
                 </div>
-              </v-tab-item>
-            </v-tabs-items>
-          </v-tabs>
+              </v-tabs-window-item>
+          </v-tabs-window>
         </v-col>
         <v-col cols="12 my-5">
           <v-spacer></v-spacer>
@@ -1775,13 +1630,12 @@
           <v-btn
             color="red"
             class="mx-1"
-            dark
             v-if="aprobadoflag"
             @click="generarHTMLPDF()"
           >
             <v-icon class="mx-2">mdi-file-pdf-box</v-icon> Imprimir
           </v-btn>
-          <v-btn color="#E65100" dark @click="$emit('cerrarDialogo')">
+          <v-btn color="#E65100" @click="$emit('cerrarDialogo')">
             <v-icon class="mx-1">mdi-close</v-icon> Cerrar
           </v-btn>
         </v-col>
@@ -1800,6 +1654,7 @@ export default {
   components: {
     ArrastraYSolarComponent,
   },
+  emits: ["cerrarDialogo", "continuar"],
   props: {
     aprobadoflag: {
       type: Boolean,
@@ -2083,7 +1938,7 @@ export default {
       data.append("file", file);
       var config = {
         method: "post",
-        url: process.env.VUE_APP_URL_MAIN + "uploadAllPath",
+        url: import.meta.env.VUE_APP_URL_MAIN + "uploadAllPath",
         headers: {},
         data: data,
       };

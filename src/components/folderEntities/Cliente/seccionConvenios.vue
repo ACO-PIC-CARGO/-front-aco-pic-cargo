@@ -1,36 +1,35 @@
 <template>
   <v-card>
-    <v-card-title class="px-2 container-narrow">
+    <v-card-title class="px-2 container-narrow d-flex align-center flex-wrap">
       <v-spacer></v-spacer>
       <v-btn
         v-if="!showNavigationButtons"
-        color="light-blue darken-2"
+        color="light-blue-darken-2"
         class="ma-2"
-        dark
-        small
+        size="small"
         @click="modificarCliente"
       >
-        <v-icon left small>mdi-account-edit</v-icon>
+        <v-icon start size="small">mdi-account-edit</v-icon>
         {{ isFormReadonly ? "EDITAR CLIENTE" : "GUARDAR CAMBIOS" }}
       </v-btn>
     </v-card-title>
     <v-card-text class="px-2">
       <div class="container-narrow">
         <!-- ===== CONVENIOS ===== -->
-        <v-subheader class="px-0">
+        <v-list-subheader class="px-0">
           <b>Convenios</b>
 
           <template v-if="showFormActions">
             <v-btn
               color="primary"
               rounded
-              small
+              size="small"
               class="ml-auto"
               @click="agregarConvenio()"
               >AGREGAR CONVENIO</v-btn
             >
           </template>
-        </v-subheader>
+        </v-list-subheader>
         <v-row>
           <v-col cols="12">
             <v-form ref="formConvenios" :readonly="isFormReadonly">
@@ -38,7 +37,7 @@
                 :headers="headersConvenios"
                 :items="$store.state.entities.lstConvenios"
                 class="elevation-5"
-                item-key="index"
+                item-value="index"
                 disable-sort
               >
                 <template v-slot:[`item.fecha`]="{ item }">
@@ -75,7 +74,7 @@
                       hide-input
                       class="customFile"
                       v-model="fileinput"
-                      @change="subirArchivoConvenio(item)"
+                      @update:model-value="subirArchivoConvenio(item)"
                     ></v-file-input>
                   </div>
                 </template>
@@ -84,7 +83,7 @@
                   v-slot:[`item.action`]="{ item, index }"
                   v-if="showFormActions"
                 >
-                  <v-btn icon color="red" @click="eliminarConvenio(index)">
+                  <v-btn variant="text" icon color="red" @click="eliminarConvenio(index)">
                     <v-icon>mdi-delete</v-icon>
                   </v-btn>
                 </template>
@@ -96,20 +95,20 @@
         <br />
 
         <!-- ===== TARIFAS ===== -->
-        <v-subheader class="px-0">
+        <v-list-subheader class="px-0">
           <b>Tarifas</b>
 
           <template v-if="showFormActions">
             <v-btn
               color="primary"
               rounded
-              small
+              size="small"
               class="ml-auto"
               @click="agregarTarifa()"
               >AGREGAR TARIFA</v-btn
             >
           </template>
-        </v-subheader>
+        </v-list-subheader>
         <v-row>
           <v-col cols="12">
             <v-form ref="formTarifas" :readonly="isFormReadonly">
@@ -117,7 +116,7 @@
                 :headers="headersTarifas"
                 :items="$store.state.entities.lstTarifas"
                 class="elevation-5"
-                item-key="index"
+                item-value="index"
                 disable-sort
               >
                 <template v-slot:[`item.fecha`]="{ item }">
@@ -148,7 +147,7 @@
                       hide-input
                       class="customFile"
                       v-model="fileinput"
-                      @change="subirArchivoTarifa(item)"
+                      @update:model-value="subirArchivoTarifa(item)"
                     ></v-file-input>
                   </div>
                 </template>
@@ -161,7 +160,7 @@
                   v-slot:[`item.action`]="{ item, index }"
                   v-if="showFormActions"
                 >
-                  <v-btn icon color="red" @click="eliminarTarifa(index)">
+                  <v-btn variant="text" icon color="red" @click="eliminarTarifa(index)">
                     <v-icon>mdi-delete</v-icon>
                   </v-btn>
                 </template>
@@ -190,17 +189,17 @@ export default {
   data() {
     return {
       headersConvenios: [
-        { text: "Fecha", value: "fecha", width: "20%" },
-        { text: "Días para Crédito", value: "dias_credito", width: "30%" },
-        { text: "Email Soporte", value: "email_soporte", width: "40%" },
-        { text: "Acciones", value: "action", width: "10%" },
+        { title: "Fecha", key: "fecha", width: "20%" },
+        { title: "Días para Crédito", key: "dias_credito", width: "30%" },
+        { title: "Email Soporte", key: "email_soporte", width: "40%" },
+        { title: "Acciones", key: "action", width: "10%" },
       ],
       headersTarifas: [
-        { text: "Fecha", value: "fecha", width: "20%" },
-        { text: "Código", value: "codigo", width: "20%" },
-        { text: "Email Soporte", value: "email_soporte", width: "30%" },
-        { text: "Tarifa", value: "tarifa", width: "20%" },
-        { text: "Acciones", value: "action", width: "10%" },
+        { title: "Fecha", key: "fecha", width: "20%" },
+        { title: "Código", key: "codigo", width: "20%" },
+        { title: "Email Soporte", key: "email_soporte", width: "30%" },
+        { title: "Tarifa", key: "tarifa", width: "20%" },
+        { title: "Acciones", key: "action", width: "10%" },
       ],
       fileinput: null,
       isFileLoading: false,
@@ -333,19 +332,19 @@ export default {
         }
       }
     },
-    validarFormulario() {
+    async validarFormulario() {
       var vm = this;
 
       let ok1 = true;
       if (vm.$store.state.entities.lstConvenios.length > 0) {
-        if (!vm.$refs.formConvenios.validate()) {
+        if (!(await vm.$refs.formConvenios.validate()).valid) {
           ok1 = false;
         }
       }
 
       let ok2 = true;
       if (vm.$store.state.entities.lstTarifas.length > 0) {
-        if (!vm.$refs.formTarifas.validate()) {
+        if (!(await vm.$refs.formTarifas.validate()).valid) {
           ok2 = false;
         }
       }
@@ -413,10 +412,10 @@ export default {
   },
   watch: {
     "$store.state.entities.isStep3Valid": {
-      handler(newValue) {
+      async handler(newValue) {
         if (!newValue) {
-          this.$refs.formConvenios.validate();
-          this.$refs.formTarifas.validate();
+          await this.$refs.formConvenios.validate();
+          await this.$refs.formTarifas.validate();
         }
       },
       immediate: true,
@@ -438,7 +437,7 @@ export default {
   flex-grow: 0 !important;
   flex-direction: row-reverse !important;
 }
-.customFile .v-input__prepend-outer {
+.customFile .v-input__prepend {
   margin-right: 0;
 }
 </style>

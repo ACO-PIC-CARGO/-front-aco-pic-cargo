@@ -7,7 +7,7 @@
           v-for="(opcion, index) in opciones"
           :key="index"
           class="mx-1"
-          small
+          size="small"
           @click="opcionCalculadora = opcion.id"
         >
           {{ opcion.nombre }}
@@ -19,14 +19,15 @@
         <v-divider></v-divider>
       </v-col>
       <v-col cols="12">
-        <v-tabs v-model="tabTransporte" centered>
-          <v-tabs-slider color="yellow"></v-tabs-slider>
-          <v-tab href="#datosactuales">Datos Actuales</v-tab>
-          <v-tab href="#cargamasiva">Carga Masiva</v-tab>
-          <v-tab-item value="datosactuales">
+        <v-tabs v-model="tabTransporte" align-tabs="center" slider-color="yellow">
+          <v-tab value="datosactuales">Datos Actuales</v-tab>
+          <v-tab value="cargamasiva">Carga Masiva</v-tab>
+        </v-tabs>
+        <v-tabs-window v-model="tabTransporte">
+          <v-tabs-window-item value="datosactuales">
             <v-row>
               <v-col cols="12" class="d-flex justify-end">
-                <v-btn color="success" small @click="abrirModalNuevo"
+                <v-btn color="success" size="small" @click="abrirModalNuevo"
                   >Nuevo Registro</v-btn
                 >
               </v-col>
@@ -36,42 +37,42 @@
                   :items="obtenerValoresTransportePorOpcion"
                 >
                   <template v-slot:[`item.action`]="{ item }">
-                    <v-btn color="#E65100" icon @click="editar(item)">
+                    <v-btn variant="text" color="#E65100" icon @click="editar(item)">
                       <v-icon>mdi-pencil</v-icon>
                     </v-btn>
-                    <v-btn color="#D50000" icon @click="borrar(item)">
+                    <v-btn variant="text" color="#D50000" icon @click="borrar(item)">
                       <v-icon>mdi-delete</v-icon>
                     </v-btn>
                   </template>
                 </v-data-table>
               </v-col>
             </v-row>
-          </v-tab-item>
-          <v-tab-item value="cargamasiva">
+          </v-tabs-window-item>
+          <v-tabs-window-item value="cargamasiva">
             <v-row class="my-2">
               <v-col cols="12" md="2" style="text-align: right">
                 <v-text-field
                   type="number"
                   label="Tipo Cambio"
                   step="0.01"
-                  dense
-                  outlined
+                  density="compact"
+                  variant="outlined"
                   v-model="tipocambio"
                 ></v-text-field>
               </v-col>
               <v-col cols="12" md="4" style="text-align: right">
                 <v-file-input
-                  outlined
+                  variant="outlined"
                   show-size
-                  dense
+                  density="compact"
                   v-model="excel"
                   label="Cargar Excel de Transporte"
                   placeholder="Seleccione un archivo"
                   id="excel"
                   hide-details
                   @click:clear="subir = false"
-                  @change="subir = false"
-                  @click.native="subir = false"
+                  @update:model-value="subir = false"
+                  @click="subir = false"
                 ></v-file-input>
               </v-col>
               <v-col cols="12" md="6" style="text-align: right">
@@ -80,7 +81,7 @@
                   @click="procesarExcel()"
                   :loading="procesando"
                   class="mx-1"
-                  small
+                  size="small"
                   :disabled="!procesarflag"
                 >
                   Procesar
@@ -88,7 +89,7 @@
                 <!-- <v-btn color="success" small @click="abrirModalNuevo">Nuevo</v-btn> -->
                 <v-btn
                   color="success"
-                  small
+                  size="small"
                   @click="registrarDatos"
                   :disabled="!datosExcel.length"
                   >Guardar</v-btn
@@ -105,7 +106,7 @@
                           $store.state.calculadoras.opcionCalculadora,
                       )
                     "
-                    dense
+                    density="compact"
                   >
                     <template v-slot:[`item.index`]="{ item }">
                       {{ item.index }}
@@ -115,8 +116,8 @@
                         :items="$store.state.calculadoras.lstCiudades"
                         v-model="item.id_provincia"
                         item-value="id"
-                        item-text="name"
-                        dense
+                        item-title="name"
+                        density="compact"
                         :rules="[(v) => !!v || 'Datos requeridos']"
                       />
                     </template>
@@ -129,8 +130,8 @@
                         "
                         v-model="item.id_distrito"
                         item-value="id"
-                        item-text="name"
-                        dense
+                        item-title="name"
+                        density="compact"
                         :rules="[(v) => !!v || 'Datos requeridos']"
                       />
                     </template>
@@ -138,8 +139,8 @@
                 </v-form>
               </v-col>
             </v-row>
-          </v-tab-item>
-        </v-tabs>
+          </v-tabs-window-item>
+        </v-tabs-window>
       </v-col>
     </v-row>
     <v-dialog v-model="dialogEditar" persistent max-width="30%">
@@ -169,7 +170,7 @@
               label="Departamento"
               placeholder="Departamento"
               item-value="id"
-              item-text="name"
+              item-title="name"
               v-model="transporte.id_provincia"
               :rules="[(v) => !!v || 'Dato Requerido']"
             ></v-autocomplete>
@@ -183,7 +184,7 @@
               label="Distrito"
               placeholder="Distrito"
               item-value="id"
-              item-text="name"
+              item-title="name"
               :loading="loading"
               v-model="transporte.id_distrito"
               :rules="[(v) => !!v || 'Dato Requerido']"
@@ -220,7 +221,7 @@
             color="success"
             v-if="!transporte.id"
             @click="guardarRegistro"
-            small
+            size="small"
           >
             Guardar
           </v-btn>
@@ -228,11 +229,11 @@
             color="success"
             v-if="!!transporte.id"
             @click="actualizarRegistro"
-            small
+            size="small"
           >
             Actualizar
           </v-btn>
-          <v-btn color="error" small @click="dialogEditar = false"
+          <v-btn color="error" size="small" @click="dialogEditar = false"
             >Cerrar</v-btn
           >
         </v-card-actions>
@@ -243,7 +244,7 @@
 
 <script>
 import { mapActions } from "vuex";
-import readXlsFile from "read-excel-file";
+import { readSheet as readXlsFile } from "read-excel-file/browser";
 import Swal from "sweetalert2";
 export default {
   props: {
@@ -265,26 +266,26 @@ export default {
       items: [],
       id_town: 0,
       headers: [
-        { value: "index", text: "#" },
-        { value: "peso_desde", text: "Peso Desde" },
-        { value: "peso_hasta", text: "Peso Hasta" },
-        { value: "provinciacbo", text: "Provincia Sistema" },
-        { value: "provincia", text: "Provincia Excel" },
-        { value: "distritocbo", text: "Distrito Sistema" },
-        { value: "distrito", text: "Distrito Excel" },
-        { value: "tarifamonlocal", text: "Tarifa Soles" },
-        { value: "tarifadolar", text: "Tarifa En Dolares" },
+        { key: "index", title: "#" },
+        { key: "peso_desde", title: "Peso Desde" },
+        { key: "peso_hasta", title: "Peso Hasta" },
+        { key: "provinciacbo", title: "Provincia Sistema" },
+        { key: "provincia", title: "Provincia Excel" },
+        { key: "distritocbo", title: "Distrito Sistema" },
+        { key: "distrito", title: "Distrito Excel" },
+        { key: "tarifamonlocal", title: "Tarifa Soles" },
+        { key: "tarifadolar", title: "Tarifa En Dolares" },
       ],
 
       headersListado: [
-        { value: "peso_desde", text: "Peso Desde" },
-        { value: "peso_hasta", text: "Peso Hasta" },
-        { value: "provincia", text: "Provincia" },
-        { value: "distrito", text: "Distrito" },
-        { value: "tarifamonlocal", text: "Tarifa Soles" },
-        { value: "tipocambio", text: "Tipo Cambio" },
-        { value: "tarifadolar", text: "Tarifa En Dolares" },
-        { value: "action" },
+        { key: "peso_desde", title: "Peso Desde" },
+        { key: "peso_hasta", title: "Peso Hasta" },
+        { key: "provincia", title: "Provincia" },
+        { key: "distrito", title: "Distrito" },
+        { key: "tarifamonlocal", title: "Tarifa Soles" },
+        { key: "tipocambio", title: "Tipo Cambio" },
+        { key: "tarifadolar", title: "Tarifa En Dolares" },
+        { key: "action" },
       ],
       procesando: false,
       excel: null,
@@ -336,7 +337,7 @@ export default {
     },
     async guardarRegistro() {
       console.log("frmEditar", this.$refs.frmEditar);
-      if (this.$refs.frmEditar.validate()) {
+      if ((await this.$refs.frmEditar.validate()).valid) {
         await this.RegistroTransporte(this.transporte);
         await this.getTransporte({
           shimpent: this.type,
@@ -414,7 +415,7 @@ export default {
 
     async registrarDatos() {
       // 1. Primero validamos el formulario para evitar cálculos si hay errores
-      if (!this.$refs.frmDatos.validate()) {
+      if (!(await this.$refs.frmDatos.validate()).valid) {
         Swal.fire({
           icon: "error",
           title: "Verificar",

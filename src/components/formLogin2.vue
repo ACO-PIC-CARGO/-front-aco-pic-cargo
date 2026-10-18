@@ -3,7 +3,7 @@
     <div v-if="!branchdialog">
       <v-text-field
         rounded
-        filled
+        variant="filled"
         densed
         v-model="user"
         label="Usuario"
@@ -11,19 +11,18 @@
       <v-text-field
         rounded
         densed
-        filled
+        variant="filled"
         v-model="password"
         :type="show3 ? 'text' : 'password'"
         label="Contraseña"
-        @click:append="show3 = !show3"
-        :append-icon="show3 ? 'mdi-eye' : 'mdi-eye-off'"
+        @click:append-inner="show3 = !show3"
+        :append-inner-icon="show3 ? 'mdi-eye' : 'mdi-eye-off'"
       ></v-text-field>
 
       <v-btn
         class="_btn__accept"
         rounded
-        dark
-        x-large
+        size="x-large"
         @click="__getLogin()"
         :loading="loading"
         >Ingresar
@@ -36,10 +35,10 @@
         <v-select
           :items="lstBranch"
           v-model="branch"
-          item-text="trade_name"
+          item-title="trade_name"
           item-value="id"
           label="Sucursal"
-          dense
+          density="compact"
           required
           :rules="[(v) => !!v || 'Datos Requerido']"
           :error-messages="errorBranch"
@@ -51,7 +50,6 @@
         <v-spacer></v-spacer>
         <v-btn
           rounded
-          dark
           color="success"
           @click="ListProgrammedPayment()"
           :loading="cargandoBranch"
@@ -60,7 +58,6 @@
         </v-btn>
         <v-btn
           rounded
-          dark
           color="error"
           @click="branchdialog = !branchdialog"
           :loading="cargandoBranch"
@@ -104,7 +101,7 @@ export default {
 
       var config = {
         method: "post",
-        url: process.env.VUE_APP_URL_MAIN + "singin",
+        url: import.meta.env.VUE_APP_URL_MAIN + "singin",
         headers: {
           "Content-Type": "application/json",
         },
@@ -180,7 +177,7 @@ export default {
       var vm = this;
       var config = {
         method: "get",
-        url: process.env.VUE_APP_URL_MAIN + "CargarBranch/" + id_usuario,
+        url: import.meta.env.VUE_APP_URL_MAIN + "CargarBranch/" + id_usuario,
 
         headers: {
          
@@ -217,7 +214,7 @@ export default {
         );
         var config = {
           method: "get",
-          url: process.env.VUE_APP_URL_MAIN + "ListProgrammedPayment",
+          url: import.meta.env.VUE_APP_URL_MAIN + "ListProgrammedPayment",
 
           headers: {
            

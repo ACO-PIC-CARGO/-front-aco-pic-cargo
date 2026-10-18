@@ -18,8 +18,7 @@
       <template v-slot:[`item.action`]="{ item }">
         <v-icon
           class="btn_add mr-2"
-          dense
-          large
+          size="large"
           color="blue"
           @click="_setReplace(item.id, item.id_house, item.id_pro)"
           >mdi-file-replace</v-icon
@@ -29,8 +28,7 @@
       <template v-slot:[`item.vpro`]="{ item }">
         <v-icon
           class="btn_add mr-2"
-          dense
-          large
+          size="large"
           color="grey"
           @click="_seePro(item.path)"
           >mdi-eye</v-icon
@@ -53,45 +51,45 @@ export default {
     searchFactura: "",
     headersPro: [
       {
-        text: "Expediente",
-        value: "nro_master",
+        title: "Expediente",
+        key: "nro_master",
       },
       {
-        text: "Proveedor",
-        value: "nameconsigner",
+        title: "Proveedor",
+        key: "nameconsigner",
       },
       {
-        text: "Fecha",
-        value: "date_letra",
+        title: "Fecha",
+        key: "date_letra",
       },
       /* {
         text: "Nro. Serie",
         value: "number",
       }, */
       {
-        text: "Moneda",
-        value: "namecoins",
+        title: "Moneda",
+        key: "namecoins",
       },
 
       {
-        text: "Monto",
-        value: "total",
+        title: "Monto",
+        key: "total",
       },
       {
-        text: "Fecha de Pago",
-        value: "fecha_pago",
+        title: "Fecha de Pago",
+        key: "fecha_pago",
       },
       {
-        text: "Soporte de Pago",
-        value: "soporte_pago",
+        title: "Soporte de Pago",
+        key: "soporte_pago",
       },
       {
-        text: "Ver Proformace",
-        value: "vpro",
+        title: "Ver Proformace",
+        key: "vpro",
       },
       {
-        text: "Acción",
-        value: "action",
+        title: "Acción",
+        key: "action",
       },
     ],
 
@@ -117,7 +115,7 @@ export default {
 
       var config = {
         method: "post",
-        url: process.env.VUE_APP_URL_MAIN + "getRegularizar",
+        url: import.meta.env.VUE_APP_URL_MAIN + "getRegularizar",
 
         headers: {
          

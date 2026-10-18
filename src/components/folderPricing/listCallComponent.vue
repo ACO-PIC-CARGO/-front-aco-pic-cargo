@@ -7,7 +7,7 @@
     >
       <v-card>
         <v-card-title>
-          <span class="headline">Detalle de Nota de llamada</span>
+          <span class="text-h5">Detalle de Nota de llamada</span>
         </v-card-title>
 
         <v-card-text>
@@ -26,25 +26,25 @@
             <v-autocomplete
               :items="$store.state.pricing.listEjecutivo"
               label="Ejecutivo."
-              dense
+              density="compact"
               clearable
-              item-text="name"
+              item-title="name"
               item-value="id_entitie"
               v-model="fromData.identities"
             ></v-autocomplete>
           </v-form>
         </v-card-text>
         <v-card-actions>
-          <v-flex text-right>
-            <v-btn text color="success" @click="guardarNota">Aceptar</v-btn>
+          <div class="flex-grow-1 text-right">
+            <v-btn variant="text" color="success" @click="guardarNota">Aceptar</v-btn>
             <v-btn
-              text
+              variant="text"
               color="red"
               @click="dialogRegistroNotaLlamada = !dialogRegistroNotaLlamada"
             >
               Cancelar
             </v-btn>
-          </v-flex>
+          </div>
         </v-card-actions>
       </v-card>
     </v-dialog>
@@ -55,12 +55,12 @@
             <v-row>
               <v-col cols="4" class="clsFechaPor">
                 <v-text-field
-                  value="Fecha Creación"
+                  model-value="Fecha Creación"
                   label="Fecha Por"
                   readonly
                   hide-details
-                  dense
-                  outlined
+                  density="compact"
+                  variant="outlined"
                   prepend-icon="mdi-calendar-month"
                 ></v-text-field>
               </v-col>
@@ -68,13 +68,13 @@
               <v-col cols="4">
                 <v-text-field
                   prepend-inner-icon="mdi-calendar-month"
-                  :value="
+                  :model-value="
                     formatearFecha($store.state.pricing.filtroCalls.fechainicio)
                   "
-                  dense
+                  density="compact"
                   readonly
                   hide-details
-                  outlined
+                  variant="outlined"
                   label="Desde"
                   id="frmFechaDesde"
                 ></v-text-field>
@@ -82,13 +82,13 @@
               <v-col cols="4">
                 <v-text-field
                   prepend-inner-icon="mdi-calendar-month"
-                  :value="
+                  :model-value="
                     formatearFecha($store.state.pricing.filtroCalls.fechafin)
                   "
-                  dense
+                  density="compact"
                   readonly
                   hide-details
-                  outlined
+                  variant="outlined"
                   label="Hasta"
                 ></v-text-field>
               </v-col>
@@ -105,42 +105,42 @@
             <v-row>
               <v-col cols="4" class="clsFechaPor">
                 <v-text-field
-                  value="Fecha Envíado"
+                  model-value="Fecha Envíado"
                   label="Fecha Por"
                   readonly
                   hide-details
-                  outlined
-                  dense
+                  variant="outlined"
+                  density="compact"
                   prepend-icon="mdi-calendar-month"
                 ></v-text-field>
               </v-col>
               <v-col cols="4">
                 <v-text-field
                   prepend-inner-icon="mdi-calendar-month"
-                  :value="
+                  :model-value="
                     formatearFecha(
                       $store.state.pricing.filtroCalls.fechaemisiondesde,
                     )
                   "
-                  dense
+                  density="compact"
                   readonly
                   hide-details
-                  outlined
+                  variant="outlined"
                   label="Desde"
                 ></v-text-field>
               </v-col>
               <v-col cols="4">
                 <v-text-field
                   prepend-inner-icon="mdi-calendar-month"
-                  :value="
+                  :model-value="
                     formatearFecha(
                       $store.state.pricing.filtroCalls.fechaemisionhasta,
                     )
                   "
-                  dense
+                  density="compact"
                   readonly
                   hide-details
-                  outlined
+                  variant="outlined"
                   label="Hasta"
                 ></v-text-field>
               </v-col>
@@ -156,11 +156,11 @@
             <v-autocomplete
               :items="$store.state.pricing.listMarketing"
               label="Tipo de Marketing"
-              dense
+              density="compact"
               readonly
               hide-details
-              outlined
-              item-text="name"
+              variant="outlined"
+              item-title="name"
               item-value="id"
               v-model="$store.state.pricing.filtroCalls.id_marketing"
             ></v-autocomplete>
@@ -187,11 +187,11 @@
             <v-autocomplete
               :items="$store.state.pricing.listEjecutivo"
               label="Pricing."
-              dense
+              density="compact"
               readonly
               hide-details
-              outlined
-              item-text="name"
+              variant="outlined"
+              item-title="name"
               item-value="id_entitie"
               v-model="$store.state.pricing.filtroCalls.id_pricing"
             ></v-autocomplete>
@@ -205,11 +205,11 @@
             <v-autocomplete
               :items="$store.state.pricing.listEjecutivo"
               label="Ejecutivo."
-              dense
+              density="compact"
               readonly
               hide-details
-              outlined
-              item-text="name"
+              variant="outlined"
+              item-title="name"
               item-value="id_entitie"
               v-model="$store.state.pricing.filtroCalls.id_entities"
             ></v-autocomplete>
@@ -224,11 +224,11 @@
               :items="$store.state.pricing.listModality"
               label="Sentido"
               v-model="$store.state.pricing.filtroCalls.id_modality"
-              dense
+              density="compact"
               readonly
               hide-details
-              outlined
-              item-text="name"
+              variant="outlined"
+              item-title="name"
               item-value="id"
             ></v-autocomplete>
           </v-col>
@@ -241,11 +241,11 @@
             <v-autocomplete
               :items="$store.state.pricing.listShipment"
               label="Tipo Embarque"
-              dense
+              density="compact"
               readonly
               hide-details
-              outlined
-              item-text="embarque"
+              variant="outlined"
+              item-title="embarque"
               item-value="id"
               v-model="$store.state.pricing.filtroCalls.id_shipment"
             >
@@ -260,11 +260,11 @@
             <v-autocomplete
               :items="$store.state.pricing.listIncoterms"
               label="Incoterm"
-              dense
+              density="compact"
               readonly
               hide-details
-              outlined
-              item-text="name"
+              variant="outlined"
+              item-title="name"
               item-value="id"
               v-model="$store.state.pricing.filtroCalls.id_incoterm"
             ></v-autocomplete>
@@ -277,9 +277,9 @@
           placeholder="Buscar..."
           label="Buscar"
           v-model="search"
-          append-icon="mdi-magnify"
-          dense
-          outlined
+          append-inner-icon="mdi-magnify"
+          density="compact"
+          variant="outlined"
           messages=" "
         >
           <template v-slot:message>
@@ -298,8 +298,7 @@
             class="mx-1"
             :loading="loading4"
             :disabled="loading4"
-            :dark="!loading4"
-            small
+            size="small"
           >
             <v-icon>mdi-file-pdf-box</v-icon> REPORTE
           </v-btn>
@@ -310,13 +309,12 @@
                 !$store.state.pricing.filtrarCallsFlag
             "
             class="mx-1"
-            dark
-            small
+            size="small"
           >
             <v-icon>mdi-filter</v-icon>
             Filtrar
           </v-btn>
-          <v-btn color="default" class="mx-1 my-1" small @click="limpiar()">
+          <v-btn color="default" class="mx-1 my-1" size="small" @click="limpiar()">
             <v-icon class="mx-1">mdi-filter-remove</v-icon>
             Limpiar
           </v-btn>
@@ -325,16 +323,15 @@
     </v-row>
     <v-row>
       <v-data-table
-        dense
+        density="compact"
         :headers="headers"
         :items="$store.state.pricing.listCall"
         :items-per-page="5"
         class="elevation-1 contenido"
         :search="search"
         multi-sort
-        mobile
         disable-sort
-        item-key="rowId"
+        item-value="rowId"
       >
         <template v-slot:[`item.fechaemisionpdf`]="{ item }">
           <span v-if="item.fechaemisionpdf">
@@ -453,8 +450,8 @@ export default {
         //   estado: true,
         // },
         {
-          value: "created_at",
-          text: "FECHA CREACIÓN",
+          key: "created_at",
+          title: "FECHA CREACIÓN",
           align: "center",
           groupable: true,
           estado: true,
@@ -475,100 +472,100 @@ export default {
         //    estado: true,
         //  },
         {
-          value: "llamadas",
-          text: "DATOS LLAMADA",
+          key: "llamadas",
+          title: "DATOS LLAMADA",
           align: "center",
           groupable: true,
           estado: true,
         },
         {
-          value: "status",
-          text: "ESTATUS",
+          key: "status",
+          title: "ESTATUS",
           align: "center",
           groupable: true,
           estado: true,
         },
 
         {
-          value: "codigo",
-          text: "NÚMERO DE COTIZACIÓN",
+          key: "codigo",
+          title: "NÚMERO DE COTIZACIÓN",
           align: "center",
           groupable: true,
           estado: true,
         },
         {
-          value: "ejecutivo_pricing",
-          text: "EJECUTIVO PRICING",
+          key: "ejecutivo_pricing",
+          title: "EJECUTIVO PRICING",
           align: "center",
           groupable: true,
           estado: true,
         },
         {
-          value: "ejecutivo_ventas",
-          text: "EJECUTIVO VENTAS",
+          key: "ejecutivo_ventas",
+          title: "EJECUTIVO VENTAS",
           align: "center",
           groupable: true,
           estado: true,
         },
         {
-          value: "cliente",
-          text: "CLIENTE",
+          key: "cliente",
+          title: "CLIENTE",
           align: "center",
           groupable: true,
           estado: true,
         },
         {
-          value: "telefono",
-          text: "TÉLEFONO",
+          key: "telefono",
+          title: "TÉLEFONO",
           align: "center",
           groupable: true,
           estado: true,
         },
         {
-          value: "sentido",
-          text: "SENTIDO",
+          key: "sentido",
+          title: "SENTIDO",
           align: "center",
           groupable: true,
           estado: true,
         },
         {
-          value: "tipo_de_carga",
-          text: "T. C.",
+          key: "tipo_de_carga",
+          title: "T. C.",
           align: "center",
           groupable: true,
           estado: true,
         },
         {
-          value: "incoterms",
-          text: "INCOTERMS",
+          key: "incoterms",
+          title: "INCOTERMS",
           align: "center",
           groupable: true,
           estado: true,
         },
         {
-          value: "origen",
-          text: "ORIGEN",
+          key: "origen",
+          title: "ORIGEN",
           align: "center",
           groupable: true,
           estado: true,
         },
         {
-          value: "destino",
-          text: "DESTINO",
+          key: "destino",
+          title: "DESTINO",
           align: "center",
           groupable: true,
           estado: true,
         },
         {
-          value: "marketing",
-          text: "MARKETING",
+          key: "marketing",
+          title: "MARKETING",
           align: "center",
           groupable: true,
           estado: true,
         },
         {
-          value: "fechaemisionpdf",
-          text: "FECHA ENVÍADO A CLIENTE",
+          key: "fechaemisionpdf",
+          title: "FECHA ENVÍADO A CLIENTE",
           align: "center",
         },
       ],
@@ -750,7 +747,7 @@ export default {
       this.dialogRegistroNotaLlamada = true;
     },
     async guardarNota() {
-      if (this.$refs.detallenota.validate()) {
+      if ((await this.$refs.detallenota.validate()).valid) {
         this.dialogRegistroNotaLlamada = false;
         this.$store.state.spiner = true;
 

@@ -5,10 +5,8 @@
     </v-card>
     <v-navigation-drawer
       v-model="$store.state.entities.filtrarProveedor"
-      right
-      absolute
-      bottom
-      persistent
+      location="right"
+      
       width="20%"
       temporary
     >
@@ -20,13 +18,14 @@
 </template>
 
 <script>
+import { defineAsyncComponent } from "vue";
 export default {
   components: {
-    ListProveedorComponentVue: () =>
+    ListProveedorComponentVue: defineAsyncComponent(() =>
       import(
         "@/components/folderEntities/Proveedor/ListProveedorComponent.vue"
-      ),
-    FiltroProveedor: () => import("@/components/filtros/FiltroProveedor.vue"),
+      )),
+    FiltroProveedor: defineAsyncComponent(() => import("@/components/filtros/FiltroProveedor.vue")),
   },
   mounted() {
     this.$store.state.mainTitle = `LISTADO DE PROVEEDORES`;

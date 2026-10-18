@@ -1,18 +1,18 @@
 <template>
   <v-container fluid class="pa-0">
     <v-card elevation="0">
-      <v-card-title primary-title> Datos de la Carga </v-card-title>
+      <v-card-title> Datos de la Carga </v-card-title>
       <v-card-text>
         <v-form ref="frmPuerto">
           <v-row>
             <v-col cols="12">
               <v-autocomplete
                 label="Proveedor"
-                outlined
-                dense
+                variant="outlined"
+                density="compact"
                 class="my-1"
                 :items="$store.state.itemsProveedorList"
-                item-text="namelong"
+                item-title="namelong"
                 item-value="id"
                 v-model="$store.state.pricing.datosPrincipales.id_proveedor"
               ></v-autocomplete>
@@ -20,47 +20,47 @@
             <v-col cols="12" lg="6" xl="6" class="py-1">
               <v-autocomplete
                 label="Puerto Origen"
-                outlined
-                dense
+                variant="outlined"
+                density="compact"
                 :rules="[(v) => !!v || 'Dato requerido']"
                 class="my-1"
                 :items="$store.state.pricing.listPortBegin"
-                item-text="name"
+                item-title="name"
                 item-value="id_port"
                 v-model="$store.state.pricing.datosPrincipales.idorigen"
-                @update:search-input="recargarPuertoOrigen"
+                @update:search="recargarPuertoOrigen"
               ></v-autocomplete>
             </v-col>
             <v-col cols="12" lg="6" xl="6" class="py-1">
               <v-autocomplete
                 label="Puerto Destino"
-                outlined
-                dense
+                variant="outlined"
+                density="compact"
                 :rules="[(v) => !!v || 'Dato requerido']"
                 class="my-1"
                 :items="$store.state.pricing.listPortEnd"
-                item-text="name"
+                item-title="name"
                 item-value="id_port"
                 v-model="$store.state.pricing.datosPrincipales.iddestino"
-                @update:search-input="recargarPuertoDestino"
+                @update:search="recargarPuertoDestino"
               >
               </v-autocomplete>
             </v-col>
 
-            <v-col cols="12" lg="6" xl="6" class="py-1" rows v-if="esFobFlag()">
+            <v-col cols="12" lg="6" xl="6" class="py-1 rows" v-if="esFobFlag()">
               <v-row>
                 <v-col cols="12" md="6">
                   <v-checkbox
                     label="Individual"
                     v-model="proxyIndividual"
-                    dense
+                    density="compact"
                   ></v-checkbox>
                 </v-col>
                 <v-col cols="12" md="6">
                   <v-checkbox
                     label="Grupal"
                     v-model="proxyGrupal"
-                    dense
+                    density="compact"
                   ></v-checkbox>
                 </v-col>
               </v-row>
@@ -75,17 +75,17 @@
             >
               <v-autocomplete
                 label="Primera o Segunda Importación"
-                outlined
-                dense
+                variant="outlined"
+                density="compact"
                 :rules="[(v) => !!v || 'Dato requerido']"
                 class="my-1"
                 :items="$store.state.masterusuarios.lstPercepcionAduana"
-                item-text="descripcion"
+                item-title="descripcion"
                 item-value="id"
                 v-model="
                   $store.state.pricing.datosPrincipales.id_percepcionaduana
                 "
-                @change="cambiarImpuesto()"
+                @update:model-value="cambiarImpuesto()"
               >
               </v-autocomplete>
             </v-col>
@@ -105,8 +105,8 @@
               <v-text-field
                 label="Número Bultos"
                 v-model="numerobultos"
-                outlined
-                dense
+                variant="outlined"
+                density="compact"
                 type="number"
                 suffix="uni"
                 :error-messages="err"
@@ -126,8 +126,8 @@
               <v-text-field
                 label="Peso"
                 v-model="peso"
-                outlined
-                dense
+                variant="outlined"
+                density="compact"
                 type="number"
                 suffix="kg"
                 :rules="[
@@ -142,8 +142,8 @@
               <v-text-field
                 label="Volumen"
                 v-model="volumen"
-                outlined
-                dense
+                variant="outlined"
+                density="compact"
                 type="number"
                 suffix="m3"
                 :rules="[
@@ -155,12 +155,12 @@
               </v-text-field>
             </v-col>
             <v-col cols="12" align="center">
-              <v-btn class="mx-1" small color="info" @click="anadirCarga()">
+              <v-btn class="mx-1" size="small" color="info" @click="anadirCarga()">
                 AGREGAR
               </v-btn>
               <v-btn
                 class="mx-1"
-                small
+                size="small"
                 color="warning"
                 @click="calculadoraFlag = !calculadoraFlag"
               >
@@ -168,8 +168,8 @@
               </v-btn>
             </v-col>
             <v-col cols="12" v-if="isAereo">
-              <v-simple-table dense class="elevation-1 my-2">
-                <thead class="teal lighten-2 white--text">
+              <v-table density="compact" class="elevation-1 my-2">
+                <thead class="bg-teal-lighten-2 text-white">
                   <tr>
                     <th>Cant. Bultos</th>
                     <th>Peso (kg)</th>
@@ -195,7 +195,7 @@
                     </td>
                   </tr>
                 </tbody>
-              </v-simple-table>
+              </v-table>
             </v-col>
           </v-row>
 
@@ -215,10 +215,9 @@
                 class="elevation-1"
               >
                 <template v-slot:[`item.action`]="item">
-                  <v-btn
+                  <v-btn variant="text"
                     icon
                     color="red"
-                    dark
                     @click="eliminarContainer({ index: item.index })"
                   >
                     <v-icon>mdi-delete</v-icon>
@@ -234,7 +233,7 @@
       </v-card-text>
       <v-card-actions class="mt-auto" v-if="mostrarContinuarFlag && mostrarBtn">
         <v-spacer></v-spacer>
-        <v-btn color="#3F51B5" small dark @click="aceptar()">
+        <v-btn color="#3F51B5" size="small" @click="aceptar()">
           Continuar Servicios
         </v-btn>
       </v-card-actions>
@@ -248,7 +247,7 @@
       transition="dialog-transition"
     >
       <v-card>
-        <v-card-title primary-title> Añadir Contenedor </v-card-title>
+        <v-card-title> Añadir Contenedor </v-card-title>
         <v-card-text>
           <!-- {{ $store.state.itemsContainers }} -->
           <v-form ref="frmContainer">
@@ -256,7 +255,7 @@
               :items="$store.state.itemsContainers"
               v-model="containers.container"
               label="Container"
-              item-text="name"
+              item-title="name"
               item-value="id"
               :rules="[(v) => !!v || 'Dato Requerido']"
               :error-messages="err"
@@ -274,7 +273,7 @@
         <v-card-actions>
           <v-spacer></v-spacer>
           <v-btn color="success" @click="guardarContainer()">Aceptar</v-btn>
-          <v-btn color="red" dark @click="dialogConteiner = !dialogConteiner">
+          <v-btn color="red" @click="dialogConteiner = !dialogConteiner">
             Cancelar
           </v-btn>
         </v-card-actions>
@@ -292,8 +291,8 @@
             <v-form ref="calcularPesoFrom">
               <div class="row">
                 <div class="col-4">
-                  <v-autocomplete
-                    dense
+                  <v-autocomplete item-title="text"
+                    density="compact"
                     :items="unidadesLongitud"
                     label="Longitud"
                     :rules="[
@@ -307,8 +306,8 @@
                 </div>
 
                 <div class="col-4">
-                  <v-autocomplete
-                    dense
+                  <v-autocomplete item-title="text"
+                    density="compact"
                     :items="unidadesPeso"
                     label="Peso"
                     :rules="[(v) => !!v || 'Dato Requerido.']"
@@ -322,7 +321,7 @@
                     min="1"
                     label="N° Bultos"
                     required
-                    dense
+                    density="compact"
                     step="1"
                     :rules="[
                       (v) => !!v || 'Dato Requerido.',
@@ -341,7 +340,7 @@
                     type="text"
                     label="Largo"
                     required
-                    dense
+                    density="compact"
                     :rules="[
                       (v) => !!v || 'Dato Requerido.',
                       (v) =>
@@ -356,7 +355,7 @@
                     type="text"
                     label="Ancho"
                     required
-                    dense
+                    density="compact"
                     :rules="[
                       (v) => !!v || 'Dato Requerido.',
                       (v) =>
@@ -371,7 +370,7 @@
                     type="text"
                     label="Alto"
                     required
-                    dense
+                    density="compact"
                     :rules="[
                       (v) => !!v || 'Dato Requerido.',
                       (v) =>
@@ -389,7 +388,7 @@
                     step="0.01"
                     label="Peso X Bulto"
                     required
-                    dense
+                    density="compact"
                     :rules="[
                       (v) => !!v || 'Dato Requerido.',
                       (v) =>
@@ -398,18 +397,16 @@
                     v-model="fromMedidas.peso"
                   ></v-text-field>
                 </div>
-                <v-flex text-right>
+                <div class="flex-grow-1 text-right">
                   <v-btn
-                    dense
-                    small
+                    size="small"
                     color="#fb9514"
-                    dark
                     class="me-2 text-white"
                     @click="calcular()"
                   >
                     <b>Calcular</b>
                   </v-btn>
-                </v-flex>
+                </div>
               </div>
             </v-form>
             <div class="col-12">
@@ -418,12 +415,12 @@
                 automáticamente al sistema MKS (Metros, Kilogramos, segundos)
                 respectivamente.
               </span>
-              <v-simple-table
-                dense
+              <v-table
+                density="compact"
                 class="elevation-1"
                 v-if="tblMedida.length > 0"
               >
-                <thead class="success white--text">
+                <thead class="bg-success text-white">
                   <tr>
                     <td>#</td>
                     <td>Uni(s)</td>
@@ -441,11 +438,10 @@
                       <v-text-field
                         v-model="medida.uni"
                         type="number"
-                        outlined
-                        solo
-                        dense
+                        variant="outlined"
+                        density="compact"
                         hide-details
-                        @input="recalcularCalculadora"
+                        @update:model-value="recalcularCalculadora"
                       ></v-text-field>
                     </td>
                     <td>
@@ -459,27 +455,25 @@
                       <v-text-field
                         v-model="medida.peso"
                         type="number"
-                        outlined
-                        solo
-                        dense
+                        variant="outlined"
+                        density="compact"
                         hide-details
-                        @input="recalcularCalculadora"
+                        @update:model-value="recalcularCalculadora"
                       ></v-text-field>
                     </td>
                     <td>
                       <v-text-field
                         v-model="medida.volumen"
                         type="number"
-                        outlined
-                        solo
-                        dense
+                        variant="outlined"
+                        density="compact"
                         hide-details
-                        @input="recalcularCalculadora"
+                        @update:model-value="recalcularCalculadora"
                       ></v-text-field>
                     </td>
                     <td>
-                      <v-btn dense class="ma-0 pa-0" icon>
-                        <v-icon color="orange darken-4" @click="borrarFila(i)"
+                      <v-btn variant="text" class="ma-0 pa-0" icon>
+                        <v-icon color="orange-darken-4" @click="borrarFila(i)"
                           >mdi-delete-circle</v-icon
                         >
                       </v-btn>
@@ -495,7 +489,7 @@
                     <td></td>
                   </tr>
                 </tbody>
-              </v-simple-table>
+              </v-table>
             </div>
           </v-container>
         </v-card-text>
@@ -503,16 +497,16 @@
           <v-spacer></v-spacer>
           <v-btn
             color="success"
-            dark
-            small
+            size="small"
             :disabled="tblMedida.length < 0"
             @click="guardarDatosCalculadora()"
           >
             Aceptar
           </v-btn>
           <v-btn
-            color="red white--text"
-            small
+            color="red"
+            class="text-white"
+            size="small"
             @click="calculadoraFlag = !calculadoraFlag"
           >
             Cerrar
@@ -530,8 +524,8 @@
         <!-- ENCABEZADO -->
         <v-card-title class="px-6 pt-5 pb-3">
           <div class="d-flex align-center flex-grow-1">
-            <v-avatar size="72" color="blue lighten-5" class="mr-4">
-              <v-icon size="38" color="blue darken-2">
+            <v-avatar size="72" color="blue-lighten-5" class="mr-4">
+              <v-icon size="38" color="blue-darken-2">
                 mdi-file-percent-outline
               </v-icon>
             </v-avatar>
@@ -542,7 +536,7 @@
 
             <v-spacer />
 
-            <v-btn icon @click="cerrarDialogCambiarPercepcionAduana">
+            <v-btn variant="text" icon @click="cerrarDialogCambiarPercepcionAduana">
               <v-icon color="blue-grey"> mdi-close </v-icon>
             </v-btn>
           </div>
@@ -550,9 +544,13 @@
 
         <!-- CONTENIDO -->
         <v-card-text class="px-6 pt-2 pb-5">
-          <v-alert color="blue lighten-5" text class="alerta-impuestos mb-5">
+          <v-alert
+            color="blue-lighten-5"
+            variant="tonal"
+            class="alerta-impuestos mb-5"
+          >
             <div class="d-flex align-center">
-              <v-icon color="blue darken-1" size="32" class="mr-4">
+              <v-icon color="blue-darken-1" size="32" class="mr-4">
                 mdi-information
               </v-icon>
 
@@ -566,11 +564,11 @@
           <v-autocomplete
             v-model="id_percepcionaduana"
             :items="$store.state.masterusuarios.lstPercepcionAduana"
-            item-text="descripcion"
+            item-title="descripcion"
             item-value="id"
             label="Tipo de importación"
-            outlined
-            dense
+            variant="outlined"
+            density="compact"
             hide-details="auto"
             :rules="[
               (v) =>
@@ -587,8 +585,8 @@
           <v-spacer />
 
           <v-btn
-            color="blue-grey lighten-5"
-            depressed
+            color="blue-grey-lighten-5"
+            variant="flat"
             class="btn-impuestos btn-cancelar"
             @click="cerrarDialogCambiarPercepcionAduana"
           >
@@ -596,9 +594,8 @@
           </v-btn>
 
           <v-btn
-            color="blue darken-1"
-            dark
-            depressed
+            color="blue-darken-1"
+            variant="flat"
             class="btn-impuestos"
             :disabled="
               id_percepcionaduana === null ||
@@ -623,18 +620,18 @@
           <v-autocomplete
             v-model="idTownSeleccionado"
             :items="$store.state.town.lstTown"
-            item-text="nombrecompleto"
+            item-title="nombrecompleto"
             item-value="id"
-            dense
-            outlined
+            density="compact"
+            variant="outlined"
             label="Distrito"
             :error-messages="errorIdTown"
-            @input="errorIdTown = ''"
+            @update:model-value="errorIdTown = ''"
           />
         </v-card-text>
         <v-card-actions class="px-6 pb-4">
           <v-spacer />
-          <v-btn color="primary" dark @click="confirmarSeleccionDistrito">
+          <v-btn color="primary" @click="confirmarSeleccionDistrito">
             Aceptar
           </v-btn>
         </v-card-actions>
@@ -650,6 +647,7 @@ import funcion from "@/components/mixins/funciones";
 export default {
   name: "DatosCargaComponent",
   mixins: [funcion],
+  emits: ["recargarGrupalFlag", "recargarCostos", "activarServicios"],
   props: {
     mostrarBtn: {
       type: Boolean,
@@ -672,10 +670,10 @@ export default {
       errorIdTown: "",
       mostrarContinuarFlag: true,
       headers: [
-        { text: "", value: "action" },
-        { text: "#", value: "number" },
-        { text: "Tipo Contendor", value: "description" },
-        { text: "Cantidad", value: "cantidad" },
+        { title: "", key: "action" },
+        { title: "#", key: "number" },
+        { title: "Tipo Contendor", key: "description" },
+        { title: "Cantidad", key: "cantidad" },
       ],
       id_percepcionaduana: null,
       dialogConteiner: false,
@@ -723,7 +721,7 @@ export default {
   async mounted() {
     // console.log("listPortEnd", this.$store.state.pricing.listPortEnd);
   },
-  beforeDestroy() {
+  beforeUnmount() {
     clearTimeout(this.puertoOrigenDebounce);
     clearTimeout(this.puertoDestinoDebounce);
   },
@@ -1130,7 +1128,7 @@ export default {
       });
     },
     async anadirCarga() {
-      if (this.$refs.frmDatosCarga.validate()) {
+      if ((await this.$refs.frmDatosCarga.validate()).valid) {
         this.$store.state.pricing.datosPrincipales.numerobultos =
           this.numerobultos;
         this.$store.state.pricing.datosPrincipales.volumen = this.volumen;
@@ -1246,7 +1244,7 @@ export default {
         });
 
         if (nuevosCostos.length) {
-          this.$set(opcion, "listCostos", [...costosActuales, ...nuevosCostos]);
+          opcion.listCostos = [...costosActuales, ...nuevosCostos];
         }
       });
 
@@ -1259,21 +1257,17 @@ export default {
       if (servicioTransporte) {
         servicioTransporte.status = false;
       }
-      this.$set(this.$store.state.pricing.datosPrincipales, "id_town", null);
+      this.$store.state.pricing.datosPrincipales.id_town = null;
     },
     async guardarContainer() {
       let cantCostos = this.$store.state.pricing.listCostos.length;
 
       this.err = "";
-      if (this.$refs.frmContainer.validate()) {
+      if ((await this.$refs.frmContainer.validate()).valid) {
         if (
           !Array.isArray(this.$store.state.pricing.datosPrincipales.containers)
         ) {
-          this.$set(
-            this.$store.state.pricing.datosPrincipales,
-            "containers",
-            [],
-          );
+          this.$store.state.pricing.datosPrincipales.containers = [];
         }
         if (
           this.containersList.filter(
@@ -1333,7 +1327,7 @@ export default {
           return;
         }
       }
-      if (this.$refs.frmPuerto.validate()) {
+      if ((await this.$refs.frmPuerto.validate()).valid) {
         if (this.isFcl) {
           if (this.containersList.length == 0) {
             Swal.fire({
@@ -1368,8 +1362,8 @@ export default {
     },
 
     //
-    calcular() {
-      if (this.$refs.calcularPesoFrom.validate()) {
+    async calcular() {
+      if ((await this.$refs.calcularPesoFrom.validate()).valid) {
         let factLongitud = this.unidadesLongitud.filter(
           (v) => v.value == this.fromMedidas.idLongitud,
         )[0].factor;
@@ -1745,7 +1739,7 @@ export default {
         return;
       }
 
-      this.$set(this.$store.state.pricing.datosPrincipales, "id_town", idTown);
+      this.$store.state.pricing.datosPrincipales.id_town = idTown;
 
       this.$store.state.pricing.opcionCostos.forEach((opcion) => {
         (opcion.listCostos || []).forEach((costo) => {

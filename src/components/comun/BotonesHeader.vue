@@ -1,8 +1,8 @@
 <template>
   <div>
     <v-btn
+      variant="elevated"
       color="#01579B"
-      dark
       class="ma-1 btnCalc"
       @click="enviarCotizacionAPricing"
       v-if="getNameUrl == 'VerCotizacionCalculadora'"

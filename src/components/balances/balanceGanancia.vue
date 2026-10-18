@@ -19,17 +19,17 @@
       transition="dialog-transition"
     >
       <v-card>
-        <v-card-title primary-title>
+        <v-card-title class="d-flex align-center flex-wrap" primary-title>
           SE REALIZARÁ LA COMPARACIÓN ENTRE REPORTE DE GANANCIAS
           <v-spacer></v-spacer>
-          <v-btn icon color="default" @click="dialogComparar = !dialogComparar">
+          <v-btn variant="text" icon color="default" @click="dialogComparar = !dialogComparar">
             <v-icon>mdi-close</v-icon>
           </v-btn>
         </v-card-title>
         <v-card-text>
           <v-form ref="frmCompare">
             <v-col>
-              <v-autocomplete
+              <v-autocomplete item-title="text"
                 :items="months"
                 v-model="id_month"
                 label="MES"
@@ -38,7 +38,7 @@
               </v-autocomplete>
             </v-col>
             <v-col>
-              <v-autocomplete
+              <v-autocomplete item-title="text"
                 :items="years"
                 item-value="value"
                 v-model="year"
@@ -47,9 +47,9 @@
             </v-col>
             <v-col>
               <v-alert
-                border="left"
-                colored-border
-                color="deep-purple accent-4"
+                border="start"
+                border-color="deep-purple-accent-4"
+                color="surface"
                 elevation="2"
               >
                 <p>VERSUS</p>
@@ -61,11 +61,10 @@
         </v-card-text>
         <v-card-actions>
           <v-spacer></v-spacer>
-          <v-btn small color="success" @click="comparar">Comparar</v-btn>
+          <v-btn size="small" color="success" @click="comparar">Comparar</v-btn>
           <v-btn
-            small
+            size="small"
             color="red"
-            dark
             @click="dialogComparar = !dialogComparar"
             >Cerrar</v-btn
           >
@@ -74,29 +73,27 @@
     </v-dialog>
     <v-navigation-drawer
       v-model="filtar"
-      absolute
-      bottom
+      location="right"
       temporary
-      right
       width="20%"
     >
       <v-list-item>
-        <v-list-item-content>
+        
           <v-list-item-title class="text-h6">
             Filtrar Detalle
           </v-list-item-title>
-        </v-list-item-content>
+        
       </v-list-item>
 
       <v-divider></v-divider>
-      <v-list dense nav>
-        <v-radio-group v-model="tipofiltro" row>
+      <v-list density="compact" nav>
+        <v-radio-group v-model="tipofiltro" inline>
           <v-radio label="Ingreso" :value="1"></v-radio>
           <v-radio label="Gasto" color="red" :value="2"></v-radio>
         </v-radio-group>
       </v-list>
       <v-divider></v-divider>
-      <v-list dense nav>
+      <v-list density="compact" nav>
         <v-row v-if="tipofiltro == 1">
           <v-col cols="12">
             <v-autocomplete
@@ -105,8 +102,8 @@
               v-model="tipoingreso"
               auto-select-first
               clearable
-              dense
-              item-text="description"
+              density="compact"
+              item-title="description"
               item-value="id"
             ></v-autocomplete>
           </v-col>
@@ -117,8 +114,8 @@
               v-model="tiposubingreso"
               auto-select-first
               clearable
-              dense
-              item-text="description"
+              density="compact"
+              item-title="description"
               item-value="id"
             ></v-autocomplete>
           </v-col>
@@ -128,7 +125,7 @@
               label="Expediente"
               v-model="nro_expediente"
               clearable
-              dense
+              density="compact"
               step="1"
             ></v-text-field>
           </v-col>
@@ -138,7 +135,7 @@
               label="Monto"
               v-model="monto"
               clearable
-              dense
+              density="compact"
               step="0.01"
             ></v-text-field>
           </v-col>
@@ -151,8 +148,8 @@
               v-model="tipogastos"
               auto-select-first
               clearable
-              dense
-              item-text="description"
+              density="compact"
+              item-title="description"
               item-value="id"
             ></v-autocomplete>
           </v-col>
@@ -163,8 +160,8 @@
               v-model="tiposubgastos"
               auto-select-first
               clearable
-              dense
-              item-text="description"
+              density="compact"
+              item-title="description"
               item-value="id"
             ></v-autocomplete>
           </v-col>
@@ -175,8 +172,8 @@
               v-model="proveedor"
               auto-select-first
               clearable
-              dense
-              item-text="namelong"
+              density="compact"
+              item-title="namelong"
               item-value="id"
             ></v-autocomplete>
           </v-col>
@@ -186,7 +183,7 @@
               label="Monto"
               v-model="monto"
               clearable
-              dense
+              density="compact"
               step="0.01"
             ></v-text-field>
           </v-col>
@@ -194,10 +191,10 @@
       </v-list>
       <v-card-actions>
         <v-spacer></v-spacer>
-        <v-btn small color="success" :disabled="!tipofiltro" @click="filtrar()"
+        <v-btn size="small" color="success" :disabled="!tipofiltro" @click="filtrar()"
           >Aceptar</v-btn
         >
-        <v-btn small dark color="red" @click="filtar = !filtar">Cerrar</v-btn>
+        <v-btn size="small" color="red" @click="filtar = !filtar">Cerrar</v-btn>
       </v-card-actions>
     </v-navigation-drawer>
     <!--  -->
@@ -205,27 +202,26 @@
       <v-card-text>
         <v-row>
           <v-col cols="12" md="6">
-            <v-autocomplete
+            <v-autocomplete item-title="text"
               :items="months"
               v-model="month"
               label="Mes(s)"
               auto-select-first
               chips
               multiple
-              small-chips
-              deletable-chips
-              dense
+              closable-chips
+              density="compact"
               clearable
             >
             </v-autocomplete>
           </v-col>
           <v-col cols="12" md="2">
-            <v-autocomplete
+            <v-autocomplete item-title="text"
               :items="years"
               item-value="value"
               v-model="year"
               label="Año"
-              dense
+              density="compact"
             ></v-autocomplete>
           </v-col>
 
@@ -233,68 +229,66 @@
           <v-col cols="12" md="4">
             <v-btn
               class="mx-1"
-              small
+              size="small"
               color="#0500EE"
-              dark
               @click="ListBalanaceGanancia()"
               >Generar</v-btn
             >
-            <v-btn class="mx-1" small color="success" @click="exportar()"
+            <v-btn class="mx-1" size="small" color="success" @click="exportar()"
               >Exportar</v-btn
             >
             <v-btn
               class="mx-1"
-              small
+              size="small"
               color="#00789D"
-              dark
               @click="filtar = !filtar"
               >Filtrar</v-btn
             >
             <v-btn
               class="mx-1"
-              small
+              size="small"
               color="#FF6D00"
               @click="dialogComparar = !dialogComparar"
-              dark
               >Comparar</v-btn
             >
           </v-col>
         </v-row>
-        <v-tabs v-model="tab" centered icons-and-text>
-          <v-tabs-slider></v-tabs-slider>
-
-          <v-tab href="#resumen" :disabled="itemsResumen.length == 0">
+        <v-tabs v-model="tab" align-tabs="center" stacked>
+          <v-tab
+            value="resumen"
+            prepend-icon="mdi-all-inclusive"
+            :disabled="itemsResumen.length == 0"
+          >
             Resumen
-            <v-icon>mdi-all-inclusive</v-icon>
           </v-tab>
 
           <v-tab
-            href="#filtro"
+            value="filtro"
+            prepend-icon="mdi-filter-multiple"
             :disabled="
               itemsGananciaFiltro.length == 0 && itemsGastosFiltro.length == 0
             "
           >
             Filtro
-            <v-icon>mdi-filter-multiple</v-icon>
           </v-tab>
           <v-tab
-            href="#compare"
+            value="compare"
+            prepend-icon="mdi-compare-horizontal"
             :disabled="this.$store.state.balances.comparativo.length == 0"
           >
             Comparación
-            <v-icon>mdi-compare-horizontal</v-icon>
           </v-tab>
         </v-tabs>
         <!--  -->
-        <v-tabs-items v-model="tab" class="mt-5">
-          <v-tab-item value="resumen" v-if="itemsResumen.length > 0">
+        <v-tabs-window v-model="tab" class="mt-5">
+          <v-tabs-window-item value="resumen" v-if="itemsResumen.length > 0">
             <v-card flat>
               <v-row>
                 <v-col cols="12">
                   <center><h2>Ganancia</h2></center>
                 </v-col>
                 <v-col cols="12">
-                  <v-simple-table>
+                  <v-table>
                     <thead>
                       <tr>
                         <th>Descripcion</th>
@@ -341,19 +335,19 @@
                         </td>
                       </tr>
                     </tbody>
-                  </v-simple-table>
+                  </v-table>
                 </v-col>
                 <v-col cols="12">
-                  <v-expansion-panels accordion popout>
+                  <v-expansion-panels variant="popout">
                     <v-expansion-panel>
-                      <v-expansion-panel-header class="t-siaplican">
+                      <v-expansion-panel-title class="t-siaplican">
                         <h2>Conceptos que SI aplican</h2>
                         <template v-slot:actions>
                           <v-icon color="#000000"> mdi-currency-usd </v-icon>
                         </template>
-                      </v-expansion-panel-header>
-                      <v-expansion-panel-content>
-                        <v-simple-table class="myTable">
+                      </v-expansion-panel-title>
+                      <v-expansion-panel-text>
+                        <v-table class="myTable">
                           <thead class="headerTable">
                             <tr>
                               <th class="headerTable">Descripcion</th>
@@ -916,8 +910,8 @@
                               </td>
                             </tr>
                           </tbody>
-                        </v-simple-table>
-                      </v-expansion-panel-content>
+                        </v-table>
+                      </v-expansion-panel-text>
                     </v-expansion-panel>
                   </v-expansion-panels>
                 </v-col>
@@ -925,33 +919,33 @@
                   cols="12"
                   v-if="$store.state.balances.flujoprepostmes.length > 0"
                 >
-                  <v-expansion-panels accordion popout>
+                  <v-expansion-panels variant="popout">
                     <v-expansion-panel>
-                      <v-expansion-panel-header class="t-flujoprepost">
+                      <v-expansion-panel-title class="t-flujoprepost">
                         <h2>Fluje de Dinero</h2>
                         <template v-slot:actions>
                           <v-icon color="#fff"> mdi-cash-100 </v-icon>
                         </template>
-                      </v-expansion-panel-header>
-                      <v-expansion-panel-content>
+                      </v-expansion-panel-title>
+                      <v-expansion-panel-text>
                         <FlujoPrePostComponet :month="month" :year="year" />
-                      </v-expansion-panel-content> </v-expansion-panel
+                      </v-expansion-panel-text> </v-expansion-panel
                   ></v-expansion-panels>
                 </v-col>
 
                 <v-col cols="12">
-                  <v-expansion-panels accordion popout>
+                  <v-expansion-panels variant="popout">
                     <v-expansion-panel>
-                      <v-expansion-panel-header class="t-noaplican">
+                      <v-expansion-panel-title class="t-noaplican">
                         <h2>Conceptos que NO aplican</h2>
                         <template v-slot:actions>
                           <v-icon color="#ffffff">
                             mdi-currency-usd-off
                           </v-icon>
                         </template>
-                      </v-expansion-panel-header>
-                      <v-expansion-panel-content>
-                        <v-simple-table class="myTable">
+                      </v-expansion-panel-title>
+                      <v-expansion-panel-text>
+                        <v-table class="myTable">
                           <thead>
                             <tr class="headerTable">
                               <th class="headerTable">Descripcion</th>
@@ -1514,21 +1508,21 @@
                               </td>
                             </tr>
                           </tbody>
-                        </v-simple-table>
-                      </v-expansion-panel-content>
+                        </v-table>
+                      </v-expansion-panel-text>
                     </v-expansion-panel></v-expansion-panels
                   >
                 </v-col>
                 <v-col cols="12">
-                  <v-expansion-panels accordion popout>
+                  <v-expansion-panels variant="popout">
                     <v-expansion-panel>
-                      <v-expansion-panel-header class="t-info">
+                      <v-expansion-panel-title class="t-info">
                         <h2>Resumen Detallado</h2>
                         <template v-slot:actions>
                           <v-icon color="#000000"> mdi-alert-circle </v-icon>
                         </template>
-                      </v-expansion-panel-header>
-                      <v-expansion-panel-content>
+                      </v-expansion-panel-title>
+                      <v-expansion-panel-text>
                         <v-data-table
                           :headers="headersDetailsGanancia"
                           :items="itemsGanancia"
@@ -1543,7 +1537,7 @@
                           width="100%"
                         >
                         </v-data-table>
-                      </v-expansion-panel-content>
+                      </v-expansion-panel-text>
                     </v-expansion-panel>
                   </v-expansion-panels>
                 </v-col>
@@ -1551,8 +1545,8 @@
                 <!--  -->
               </v-row>
             </v-card>
-          </v-tab-item>
-          <v-tab-item
+          </v-tabs-window-item>
+          <v-tabs-window-item
             value="filtro"
             v-if="
               itemsGananciaFiltro.length > 0 || itemsGastosFiltro.length > 0
@@ -1578,7 +1572,7 @@
                         item.isoperativo ||
                         (!item.isoperativo && item.editarflag)
                       "
-                      color="orange darken-2"
+                      color="orange-darken-2"
                       class="mr-2"
                       @click="redirectEditarGanancia(item.id, item.isoperativo)"
                     >
@@ -1586,7 +1580,7 @@
                     </v-icon>
                     <v-icon
                       v-if="!item.isoperativo && !item.editarflag"
-                      color="blue-grey darken-2"
+                      color="blue-grey-darken-2"
                       class="mr-2"
                       @click="redirectViewGanancia(item.id, item.isoperativo)"
                     >
@@ -1603,7 +1597,7 @@
                 >
                   <template v-slot:[`item.editar`]="{ item }">
                     <v-icon
-                      color="blue-grey darken-2"
+                      color="blue-grey-darken-2"
                       class="mr-2"
                       @click="redirectGasto(item.id)"
                     >
@@ -1611,7 +1605,7 @@
                     </v-icon>
                     <v-icon
                       v-if="item.editarflag"
-                      color="orange darken-2"
+                      color="orange-darken-2"
                       class="mr-2"
                       @click="redirectGasto(item.id)"
                     >
@@ -1621,8 +1615,8 @@
                 </v-data-table>
               </v-card-text>
             </v-card>
-          </v-tab-item>
-          <v-tab-item
+          </v-tabs-window-item>
+          <v-tabs-window-item
             value="compare"
             v-if="$store.state.balances.comparativo.length > 0"
           >
@@ -1634,8 +1628,8 @@
                   : ''
               "
             />
-          </v-tab-item>
-        </v-tabs-items>
+          </v-tabs-window-item>
+        </v-tabs-window>
       </v-card-text>
     </v-card>
   </v-container>
@@ -1701,37 +1695,37 @@ export default {
       itemsGananciaFiltro: [],
       itemsGastosFiltro: [],
       headersDetailsGanancia: [
-        { text: "Expediente", value: "exp", class: "header", sortable: false },
+        { title: "Expediente", key: "exp", headerProps: { class: "header" }, sortable: false },
         {
-          text: "Cliente / Cant. House",
-          value: "cliente",
-          class: "header",
+          title: "Cliente / Cant. House",
+          key: "cliente",
+          headerProps: { class: "header" },
           sortable: false,
         },
       ],
       headersDetailsGastos: [
         {
-          text: "Gastos",
-          value: "gasto_description",
-          class: "header",
+          title: "Gastos",
+          key: "gasto_description",
+          headerProps: { class: "header" },
           sortable: false,
         },
         {
-          text: "SubGasto",
-          value: "subgasto_description",
-          class: "header",
+          title: "SubGasto",
+          key: "subgasto_description",
+          headerProps: { class: "header" },
           sortable: false,
         },
         {
-          text: "Proveedor",
-          value: "proveedor",
-          class: "header",
+          title: "Proveedor",
+          key: "proveedor",
+          headerProps: { class: "header" },
           sortable: false,
         },
         {
-          text: "Concepto",
-          value: "concepto",
-          class: "header",
+          title: "Concepto",
+          key: "concepto",
+          headerProps: { class: "header" },
           sortable: false,
         },
       ],
@@ -1832,37 +1826,37 @@ export default {
       vm.itemsResumen = [];
       vm.itemsGastos = [];
       vm.headersDetailsGanancia = [
-        { text: "Expediente", value: "exp", class: "header", sortable: false },
+        { title: "Expediente", key: "exp", headerProps: { class: "header" }, sortable: false },
         {
-          text: "Cliente / Cant. House",
-          value: "cliente",
-          class: "header",
+          title: "Cliente / Cant. House",
+          key: "cliente",
+          headerProps: { class: "header" },
           sortable: false,
         },
       ];
       vm.headersDetailsGastos = [
         {
-          text: "Gastos",
-          value: "gasto_description",
-          class: "header",
+          title: "Gastos",
+          key: "gasto_description",
+          headerProps: { class: "header" },
           sortable: false,
         },
         {
-          text: "SubGasto",
-          value: "subgasto_description",
-          class: "header",
+          title: "SubGasto",
+          key: "subgasto_description",
+          headerProps: { class: "header" },
           sortable: false,
         },
         {
-          text: "Proveedor",
-          value: "proveedor",
-          class: "header",
+          title: "Proveedor",
+          key: "proveedor",
+          headerProps: { class: "header" },
           sortable: false,
         },
         {
-          text: "Concepto",
-          value: "concepto",
-          class: "header",
+          title: "Concepto",
+          key: "concepto",
+          headerProps: { class: "header" },
           sortable: false,
         },
       ];
@@ -2875,145 +2869,145 @@ export default {
     generarCabeceras() {
       if (this.month.includes("01")) {
         this.headersDetailsGanancia.push({
-          text: "Enero",
-          value: "enero",
+          title: "Enero",
+          key: "enero",
           sortable: false,
         });
         this.headersDetailsGastos.push({
-          text: "Enero",
-          value: "enero",
+          title: "Enero",
+          key: "enero",
           sortable: false,
         });
       }
       if (this.month.includes("02")) {
         this.headersDetailsGanancia.push({
-          text: "Febrero",
-          value: "febrero",
+          title: "Febrero",
+          key: "febrero",
           sortable: false,
         });
         this.headersDetailsGastos.push({
-          text: "Febrero",
-          value: "febrero",
+          title: "Febrero",
+          key: "febrero",
           sortable: false,
         });
       }
       if (this.month.includes("03")) {
         this.headersDetailsGanancia.push({
-          text: "Marzo",
-          value: "marzo",
+          title: "Marzo",
+          key: "marzo",
           sortable: false,
         });
         this.headersDetailsGastos.push({
-          text: "Marzo",
-          value: "marzo",
+          title: "Marzo",
+          key: "marzo",
           sortable: false,
         });
       }
       if (this.month.includes("04")) {
         this.headersDetailsGanancia.push({
-          text: "Abril",
-          value: "abril",
+          title: "Abril",
+          key: "abril",
           sortable: false,
         });
         this.headersDetailsGastos.push({
-          text: "Abril",
-          value: "abril",
+          title: "Abril",
+          key: "abril",
           sortable: false,
         });
       }
       if (this.month.includes("05")) {
         this.headersDetailsGanancia.push({
-          text: "Mayo",
-          value: "mayo",
+          title: "Mayo",
+          key: "mayo",
           sortable: false,
         });
         this.headersDetailsGastos.push({
-          text: "Mayo",
-          value: "mayo",
+          title: "Mayo",
+          key: "mayo",
           sortable: false,
         });
       }
       if (this.month.includes("06")) {
         this.headersDetailsGanancia.push({
-          text: "Junio",
-          value: "junio",
+          title: "Junio",
+          key: "junio",
           sortable: false,
         });
         this.headersDetailsGastos.push({
-          text: "Junio",
-          value: "junio",
+          title: "Junio",
+          key: "junio",
           sortable: false,
         });
       }
       if (this.month.includes("07")) {
         this.headersDetailsGanancia.push({
-          text: "Julio",
-          value: "julio",
+          title: "Julio",
+          key: "julio",
           sortable: false,
         });
         this.headersDetailsGastos.push({
-          text: "Julio",
-          value: "julio",
+          title: "Julio",
+          key: "julio",
           sortable: false,
         });
       }
       if (this.month.includes("08")) {
         this.headersDetailsGanancia.push({
-          text: "Agosto",
-          value: "agosto",
+          title: "Agosto",
+          key: "agosto",
           sortable: false,
         });
         this.headersDetailsGastos.push({
-          text: "Agosto",
-          value: "agosto",
+          title: "Agosto",
+          key: "agosto",
           sortable: false,
         });
       }
       if (this.month.includes("09")) {
         this.headersDetailsGanancia.push({
-          text: "Septiembre",
-          value: "septiembre",
+          title: "Septiembre",
+          key: "septiembre",
           sortable: false,
         });
         this.headersDetailsGastos.push({
-          text: "Septiembre",
-          value: "septiembre",
+          title: "Septiembre",
+          key: "septiembre",
           sortable: false,
         });
       }
       if (this.month.includes("10")) {
         this.headersDetailsGanancia.push({
-          text: "Octubre",
-          value: "octubre",
+          title: "Octubre",
+          key: "octubre",
           sortable: false,
         });
         this.headersDetailsGastos.push({
-          text: "Octubre",
-          value: "octubre",
+          title: "Octubre",
+          key: "octubre",
           sortable: false,
         });
       }
       if (this.month.includes("11")) {
         this.headersDetailsGanancia.push({
-          text: "Noviembre",
-          value: "noviembre",
+          title: "Noviembre",
+          key: "noviembre",
           sortable: false,
         });
         this.headersDetailsGastos.push({
-          text: "Noviembre",
-          value: "noviembre",
+          title: "Noviembre",
+          key: "noviembre",
           sortable: false,
         });
       }
       if (this.month.includes("12")) {
         this.headersDetailsGanancia.push({
-          text: "Diciembre",
-          value: "diciembre",
+          title: "Diciembre",
+          key: "diciembre",
           sortable: false,
         });
         this.headersDetailsGastos.push({
-          text: "Diciembre",
-          value: "diciembre",
+          title: "Diciembre",
+          key: "diciembre",
           sortable: false,
         });
       }
@@ -3021,122 +3015,122 @@ export default {
     generarCabecerasFiltro() {
       if (this.month.includes("01")) {
         this.headersDetailsGananciaFiltro.push({
-          text: "Enero",
-          value: "enero",
+          title: "Enero",
+          key: "enero",
         });
         this.headersDetailsGastosFiltro.push({
-          text: "Enero",
-          value: "enero",
+          title: "Enero",
+          key: "enero",
         });
       }
       if (this.month.includes("02")) {
         this.headersDetailsGananciaFiltro.push({
-          text: "Febrero",
-          value: "febrero",
+          title: "Febrero",
+          key: "febrero",
         });
         this.headersDetailsGastosFiltro.push({
-          text: "Febrero",
-          value: "febrero",
+          title: "Febrero",
+          key: "febrero",
         });
       }
       if (this.month.includes("03")) {
         this.headersDetailsGananciaFiltro.push({
-          text: "Marzo",
-          value: "marzo",
+          title: "Marzo",
+          key: "marzo",
         });
         this.headersDetailsGastosFiltro.push({
-          text: "Marzo",
-          value: "marzo",
+          title: "Marzo",
+          key: "marzo",
         });
       }
       if (this.month.includes("04")) {
         this.headersDetailsGananciaFiltro.push({
-          text: "Abril",
-          value: "abril",
+          title: "Abril",
+          key: "abril",
         });
         this.headersDetailsGastosFiltro.push({
-          text: "Abril",
-          value: "abril",
+          title: "Abril",
+          key: "abril",
         });
       }
       if (this.month.includes("05")) {
         this.headersDetailsGananciaFiltro.push({
-          text: "Mayo",
-          value: "mayo",
+          title: "Mayo",
+          key: "mayo",
         });
         this.headersDetailsGastosFiltro.push({
-          text: "Mayo",
-          value: "mayo",
+          title: "Mayo",
+          key: "mayo",
         });
       }
       if (this.month.includes("06")) {
         this.headersDetailsGananciaFiltro.push({
-          text: "Junio",
-          value: "junio",
+          title: "Junio",
+          key: "junio",
         });
         this.headersDetailsGastosFiltro.push({
-          text: "Junio",
-          value: "junio",
+          title: "Junio",
+          key: "junio",
         });
       }
       if (this.month.includes("07")) {
         this.headersDetailsGananciaFiltro.push({
-          text: "Julio",
-          value: "julio",
+          title: "Julio",
+          key: "julio",
         });
         this.headersDetailsGastosFiltro.push({
-          text: "Julio",
-          value: "julio",
+          title: "Julio",
+          key: "julio",
         });
       }
       if (this.month.includes("08")) {
         this.headersDetailsGananciaFiltro.push({
-          text: "Agosto",
-          value: "agosto",
+          title: "Agosto",
+          key: "agosto",
         });
         this.headersDetailsGastosFiltro.push({
-          text: "Agosto",
-          value: "agosto",
+          title: "Agosto",
+          key: "agosto",
         });
       }
       if (this.month.includes("09")) {
         this.headersDetailsGananciaFiltro.push({
-          text: "Septiembre",
-          value: "septiembre",
+          title: "Septiembre",
+          key: "septiembre",
         });
         this.headersDetailsGastosFiltro.push({
-          text: "Septiembre",
-          value: "septiembre",
+          title: "Septiembre",
+          key: "septiembre",
         });
       }
       if (this.month.includes("10")) {
         this.headersDetailsGananciaFiltro.push({
-          text: "Octubre",
-          value: "octubre",
+          title: "Octubre",
+          key: "octubre",
         });
         this.headersDetailsGastosFiltro.push({
-          text: "Octubre",
-          value: "octubre",
+          title: "Octubre",
+          key: "octubre",
         });
       }
       if (this.month.includes("11")) {
         this.headersDetailsGananciaFiltro.push({
-          text: "Noviembre",
-          value: "noviembre",
+          title: "Noviembre",
+          key: "noviembre",
         });
         this.headersDetailsGastosFiltro.push({
-          text: "Noviembre",
-          value: "noviembre",
+          title: "Noviembre",
+          key: "noviembre",
         });
       }
       if (this.month.includes("12")) {
         this.headersDetailsGananciaFiltro.push({
-          text: "Diciembre",
-          value: "diciembre",
+          title: "Diciembre",
+          key: "diciembre",
         });
         this.headersDetailsGastosFiltro.push({
-          text: "Diciembre",
-          value: "diciembre",
+          title: "Diciembre",
+          key: "diciembre",
         });
       }
     },
@@ -3188,36 +3182,36 @@ export default {
       let vm = this;
       let meses = this.month.join();
       this.headersDetailsGananciaFiltro = [
-        { text: "Editar", value: "editar", class: "header" },
-        { text: "Expediente", value: "exp", class: "header" },
+        { title: "Editar", key: "editar", headerProps: { class: "header" } },
+        { title: "Expediente", key: "exp", headerProps: { class: "header" } },
         {
-          text: "Cliente / Cant. House",
-          value: "cliente",
-          class: "header",
+          title: "Cliente / Cant. House",
+          key: "cliente",
+          headerProps: { class: "header" },
         },
       ];
       vm.progress = 10;
       this.headersDetailsGastosFiltro = [
-        { text: "Editar", value: "editar", class: "header" },
+        { title: "Editar", key: "editar", headerProps: { class: "header" } },
         {
-          text: "Gastos",
-          value: "gasto_description",
-          class: "header",
+          title: "Gastos",
+          key: "gasto_description",
+          headerProps: { class: "header" },
         },
         {
-          text: "SubGasto",
-          value: "subgasto_description",
-          class: "header",
+          title: "SubGasto",
+          key: "subgasto_description",
+          headerProps: { class: "header" },
         },
         {
-          text: "Proveedor",
-          value: "proveedor",
-          class: "header",
+          title: "Proveedor",
+          key: "proveedor",
+          headerProps: { class: "header" },
         },
         {
-          text: "Concepto",
-          value: "concepto",
-          class: "header",
+          title: "Concepto",
+          key: "concepto",
+          headerProps: { class: "header" },
         },
       ];
       vm.progress = 20;
@@ -3861,7 +3855,7 @@ export default {
       window.open(ruta.href, "_blank");
     },
     async comparar() {
-      if (this.$refs.frmCompare.validate()) {
+      if ((await this.$refs.frmCompare.validate()).valid) {
         await this.getComparativo({
           month: this.id_month,
           year: this.year,

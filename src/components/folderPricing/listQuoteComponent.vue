@@ -11,12 +11,12 @@
             <v-row>
               <v-col cols="4" class="clsFechaPor">
                 <v-text-field
-                  value="Fecha Creación"
+                  model-value="Fecha Creación"
                   label="Fecha Por"
                   readonly
                   hide-details
-                  dense
-                  outlined
+                  density="compact"
+                  variant="outlined"
                   prepend-icon="mdi-calendar-month"
                 ></v-text-field>
               </v-col>
@@ -24,13 +24,13 @@
               <v-col cols="4">
                 <v-text-field
                   prepend-inner-icon="mdi-calendar-month"
-                  :value="
+                  :model-value="
                     formatearFecha($store.state.pricing.filtro.fechainicio)
                   "
-                  dense
+                  density="compact"
                   readonly
                   hide-details
-                  outlined
+                  variant="outlined"
                   label="Desde"
                   id="frmFechaDesde"
                 ></v-text-field>
@@ -38,11 +38,11 @@
               <v-col cols="4">
                 <v-text-field
                   prepend-inner-icon="mdi-calendar-month"
-                  :value="formatearFecha($store.state.pricing.filtro.fechafin)"
-                  dense
+                  :model-value="formatearFecha($store.state.pricing.filtro.fechafin)"
+                  density="compact"
                   readonly
                   hide-details
-                  outlined
+                  variant="outlined"
                   label="Hasta"
                 ></v-text-field>
               </v-col>
@@ -59,42 +59,42 @@
             <v-row>
               <v-col cols="4" class="clsFechaPor">
                 <v-text-field
-                  value="Fecha Envíado"
+                  model-value="Fecha Envíado"
                   label="Fecha Por"
                   readonly
                   hide-details
-                  outlined
-                  dense
+                  variant="outlined"
+                  density="compact"
                   prepend-icon="mdi-calendar-month"
                 ></v-text-field>
               </v-col>
               <v-col cols="4">
                 <v-text-field
                   prepend-inner-icon="mdi-calendar-month"
-                  :value="
+                  :model-value="
                     formatearFecha(
                       $store.state.pricing.filtro.fechaemisiondesde,
                     )
                   "
-                  dense
+                  density="compact"
                   readonly
                   hide-details
-                  outlined
+                  variant="outlined"
                   label="Desde"
                 ></v-text-field>
               </v-col>
               <v-col cols="4">
                 <v-text-field
                   prepend-inner-icon="mdi-calendar-month"
-                  :value="
+                  :model-value="
                     formatearFecha(
                       $store.state.pricing.filtro.fechaemisionhasta,
                     )
                   "
-                  dense
+                  density="compact"
                   readonly
                   hide-details
-                  outlined
+                  variant="outlined"
                   label="Hasta"
                 ></v-text-field>
               </v-col>
@@ -110,12 +110,11 @@
             <v-autocomplete
               :items="$store.state.pricing.listMarketing"
               label="Tipo de Marketing"
-              dense
+              density="compact"
               readonly
               hide-details
-              outlined
-              search
-              item-text="name"
+              variant="outlined"
+              item-title="name"
               item-value="id"
               v-model="$store.state.pricing.filtro.id_marketing"
             ></v-autocomplete>
@@ -130,11 +129,11 @@
               auto-select-first
               :items="$store.state.pricing.listQuoteStatus"
               label="Estado de la Cotización"
-              dense
+              density="compact"
               readonly
               hide-details
-              outlined
-              item-text="name"
+              variant="outlined"
+              item-title="name"
               item-value="id"
               v-model="$store.state.pricing.filtro.id_status"
             ></v-autocomplete>
@@ -148,12 +147,11 @@
             <v-autocomplete
               :items="$store.state.pricing.listEjecutivo"
               label="Pricing."
-              dense
+              density="compact"
               readonly
               hide-details
-              outlined
-              search
-              item-text="name"
+              variant="outlined"
+              item-title="name"
               item-value="id_entitie"
               v-model="$store.state.pricing.filtro.id_pricing"
             ></v-autocomplete>
@@ -167,11 +165,11 @@
             <v-autocomplete
               :items="$store.state.pricing.listEjecutivo"
               label="Ejecutivo."
-              dense
+              density="compact"
               readonly
               hide-details
-              outlined
-              item-text="name"
+              variant="outlined"
+              item-title="name"
               item-value="id_entitie"
               v-model="$store.state.pricing.filtro.id_entities"
             ></v-autocomplete>
@@ -186,11 +184,11 @@
               :items="$store.state.pricing.listModality"
               label="Sentido"
               v-model="$store.state.pricing.filtro.id_modality"
-              dense
+              density="compact"
               readonly
               hide-details
-              outlined
-              item-text="name"
+              variant="outlined"
+              item-title="name"
               item-value="id"
             ></v-autocomplete>
           </v-col>
@@ -203,11 +201,11 @@
             <v-autocomplete
               :items="$store.state.pricing.listShipment"
               label="Tipo Embarque"
-              dense
+              density="compact"
               readonly
               hide-details
-              outlined
-              item-text="embarque"
+              variant="outlined"
+              item-title="embarque"
               item-value="id"
               v-model="$store.state.pricing.filtro.id_shipment"
             >
@@ -222,11 +220,11 @@
             <v-autocomplete
               :items="$store.state.pricing.listIncoterms"
               label="Incoterm"
-              dense
+              density="compact"
               readonly
               hide-details
-              outlined
-              item-text="name"
+              variant="outlined"
+              item-title="name"
               item-value="id"
               v-model="$store.state.pricing.filtro.id_incoterm"
             ></v-autocomplete>
@@ -239,9 +237,9 @@
           placeholder="Buscar..."
           label="Buscar"
           v-model="search"
-          append-icon="mdi-magnify"
-          dense
-          outlined
+          append-inner-icon="mdi-magnify"
+          density="compact"
+          variant="outlined"
           messages=" "
         >
           <template v-slot:message>
@@ -260,19 +258,17 @@
             class="mx-1 my-1"
             :loading="loading2"
             :disabled="loading2"
-            :dark="!loading2"
-            small
+            size="small"
           >
             <v-icon>mdi-file-pdf-box</v-icon> REPORTE
           </v-btn>
           <!-- <v-btn
-            color="teal darken-4"
+            color="teal-darken-4"
             @click="excelListadoQuote()"
             class="mx-1 my-1"
             :loading="loading3"
             :disabled="loading3"
-            :dark="!loading3"
-            small
+            size="small"
           >
             <v-icon>mdi-file-excel</v-icon> REPORTE
           </v-btn> -->
@@ -282,8 +278,7 @@
             class="mx-1 my-1"
             :loading="loading"
             :disabled="loading"
-            :dark="!loading"
-            small
+            size="small"
           >
             <v-icon>mdi-file-pdf-box</v-icon> MERCADEO
           </v-btn> -->
@@ -294,14 +289,13 @@
                 !$store.state.pricing.filtrarQuoteFlag
             "
             class="mx-1 my-1"
-            dark
-            small
+            size="small"
           >
             <v-icon>mdi-filter</v-icon>
             Filtrar
           </v-btn>
 
-          <v-btn color="default" class="mx-1 my-1" small @click="limpiar()">
+          <v-btn color="default" class="mx-1 my-1" size="small" @click="limpiar()">
             <v-icon class="mx-1">mdi-filter-remove</v-icon>
             Limpiar
           </v-btn>
@@ -312,14 +306,15 @@
       :search="search"
       :headers="cabCotizaciones"
       :items="$store.state.pricing.listQuotes"
-      :single-expand="singleExpand"
-      :expanded.sync="expanded"
-      item-key="rowId"
+      :expand-strategy="singleExpand ? 'single' : 'multiple'"
+      v-model:expanded="expanded"
+      item-value="rowId"
+      return-object
       show-expand
       class="elevation-1"
       disable-sort
     >
-      <template v-slot:item="{ item, expand, isExpanded }">
+      <template v-slot:item="{ item, internalItem, isExpanded, toggleExpand }">
         <tr
           :key="item.rowId"
           :class="[
@@ -335,7 +330,7 @@
               : item.status_code == 5
               ? 't-green'
               : 't-black',
-            isExpanded ? 'filaActivda' : '',
+            isExpanded(internalItem) ? 'filaActivda' : '',
           ]"
         >
           <!-- <td></td> -->
@@ -344,7 +339,7 @@
               <!-- <v-tooltip top>
                 <template v-slot:activator="{ on, attrs }">
                   <v-btn
-                    fab
+                    icon
                     x-small
                     v-on="on"
                     v-bind="attrs"
@@ -355,22 +350,22 @@
                 </template>
                 <span>Ver</span>
               </v-tooltip> -->
-              <v-tooltip top>
-                <template v-slot:activator="{ on, attrs }">
-                  <v-btn
-                    fab
-                    x-small
-                    v-on="on"
-                    v-bind="attrs"
+              <v-tooltip location="top">
+                <template v-slot:activator="{ props }">
+                  <v-btn variant="text"
+                    icon
+                    size="x-small"
+                    v-bind="props"
+                   
                     @click="ira('verQuote', item.id)"
+                    aria-label="Ver cotización"
                   >
                     <v-icon
                       color="#4A148C"
-                      dense
+                      size="small"
                       readonly
                       hide-details
                       outlined
-                      small
                       >mdi-eye</v-icon
                     >
                   </v-btn>
@@ -378,23 +373,23 @@
                 <span>Ver</span>
               </v-tooltip>
               <!--  -->
-              <v-tooltip top>
-                <template v-slot:activator="{ on, attrs }">
-                  <v-btn
-                    x-small
-                    fab
-                    v-on="on"
-                    v-bind="attrs"
+              <v-tooltip location="top">
+                <template v-slot:activator="{ props }">
+                  <v-btn variant="text"
+                    size="x-small"
+                    icon
+                    v-bind="props"
+                   
                     @click="handleEditar(item)"
+                    aria-label="Editar cotización"
                     v-if="item.statusmain != 0"
                   >
                     <v-icon
                       color="#FB9514"
-                      dense
+                      size="small"
                       readonly
                       hide-details
                       outlined
-                      small
                       >mdi-pencil</v-icon
                     >
                   </v-btn>
@@ -402,23 +397,22 @@
                 <span>Editar</span>
               </v-tooltip>
 
-              <v-tooltip top>
-                <template v-slot:activator="{ on, attrs }">
-                  <v-btn
-                    fab
-                    v-bind="attrs"
-                    v-on="on"
-                    x-small
+              <v-tooltip location="top">
+                <template v-slot:activator="{ props }">
+                  <v-btn variant="text"
+                    icon
+                   
+                    v-bind="props"
+                    size="x-small"
                     @click="registrarLlamada(item)"
                     v-if="item.statusmain != 0"
                   >
                     <v-icon
                       color="#1A237E"
-                      dense
+                      size="small"
                       readonly
                       hide-details
                       outlined
-                      small
                       >mdi-phone-plus</v-icon
                     >
                   </v-btn>
@@ -429,22 +423,21 @@
             </v-btn-toggle>
             <v-btn-toggle>
               <!--  -->
-              <v-tooltip top>
-                <template v-slot:activator="{ on, attrs }">
-                  <v-btn
-                    fab
-                    x-small
-                    v-bind="attrs"
-                    v-on="on"
+              <v-tooltip location="top">
+                <template v-slot:activator="{ props }">
+                  <v-btn variant="text"
+                    icon
+                    size="x-small"
+                   
+                    v-bind="props"
                     @click="abrirCaperta(item)"
                   >
                     <v-icon
                       color="#FFAB00"
-                      dense
+                      size="small"
                       readonly
                       hide-details
                       outlined
-                      small
                       >mdi-folder</v-icon
                     >
                   </v-btn>
@@ -453,46 +446,44 @@
               </v-tooltip>
               <!--  -->
 
-              <v-tooltip top>
-                <template v-slot:activator="{ on, attrs }">
-                  <v-btn
-                    fab
-                    x-small
-                    v-bind="attrs"
-                    v-on="on"
+              <v-tooltip location="top">
+                <template v-slot:activator="{ props }">
+                  <v-btn variant="text"
+                    icon
+                    size="x-small"
+                   
+                    v-bind="props"
                     @click="toggleRow(item)"
                     v-if="mostrarBoton(item)"
                   >
                     <v-icon
                       color="#263238"
-                      dense
+                      size="small"
                       readonly
                       hide-details
                       outlined
-                      small
                       >mdi-phone</v-icon
                     >
                   </v-btn>
                 </template>
                 <span>Historial llamada</span>
               </v-tooltip>
-              <v-tooltip top>
-                <template v-slot:activator="{ on, attrs }">
-                  <v-btn
-                    fab
-                    x-small
-                    v-bind="attrs"
-                    v-on="on"
+              <v-tooltip location="top">
+                <template v-slot:activator="{ props }">
+                  <v-btn variant="text"
+                    icon
+                    size="x-small"
+                   
+                    v-bind="props"
                     @click="eliminar(item.id, item.codigo)"
                     v-if="mostrarBoton(item)"
                   >
                     <v-icon
                       color="#A43542"
-                      dense
+                      size="small"
                       readonly
                       hide-details
                       outlined
-                      small
                       >mdi-delete</v-icon
                     >
                   </v-btn>
@@ -501,22 +492,22 @@
               </v-tooltip>
             </v-btn-toggle>
           </td>
-          <!-- <td @click="expand(!isExpanded)">{{ item.recibidocotizacion }}</td> -->
-          <!-- <td @click="expand(!isExpanded)">{{ item.enviadocliente }}</td> -->
-          <td @click="expand(!isExpanded)">{{ item.created }}</td>
-          <td @click="expand(!isExpanded)">{{ item.status }}</td>
-          <td @click="expand(!isExpanded)">{{ item.codigo }}</td>
-          <td @click="expand(!isExpanded)">{{ item.pricing }}</td>
-          <td @click="expand(!isExpanded)">{{ item.ejecutivo_ventas }}</td>
-          <td @click="expand(!isExpanded)">{{ item.nombres }}</td>
-          <td @click="expand(!isExpanded)">{{ item.telefono }}</td>
-          <td @click="expand(!isExpanded)">{{ item.sentido }}</td>
-          <td @click="expand(!isExpanded)">{{ item.tipo_de_carga }}</td>
-          <td @click="expand(!isExpanded)">{{ item.incoterms }}</td>
-          <td @click="expand(!isExpanded)">{{ item.origen }}</td>
-          <td @click="expand(!isExpanded)">{{ item.destino }}</td>
-          <td @click="expand(!isExpanded)">{{ displayMarketing(item) }}</td>
-          <td @click="expand(!isExpanded)">
+          <!-- <td @click="toggleExpand(internalItem)">{{ item.recibidocotizacion }}</td> -->
+          <!-- <td @click="toggleExpand(internalItem)">{{ item.enviadocliente }}</td> -->
+          <td @click="toggleExpand(internalItem)">{{ item.created }}</td>
+          <td @click="toggleExpand(internalItem)">{{ item.status }}</td>
+          <td @click="toggleExpand(internalItem)">{{ item.codigo }}</td>
+          <td @click="toggleExpand(internalItem)">{{ item.pricing }}</td>
+          <td @click="toggleExpand(internalItem)">{{ item.ejecutivo_ventas }}</td>
+          <td @click="toggleExpand(internalItem)">{{ item.nombres }}</td>
+          <td @click="toggleExpand(internalItem)">{{ item.telefono }}</td>
+          <td @click="toggleExpand(internalItem)">{{ item.sentido }}</td>
+          <td @click="toggleExpand(internalItem)">{{ item.tipo_de_carga }}</td>
+          <td @click="toggleExpand(internalItem)">{{ item.incoterms }}</td>
+          <td @click="toggleExpand(internalItem)">{{ item.origen }}</td>
+          <td @click="toggleExpand(internalItem)">{{ item.destino }}</td>
+          <td @click="toggleExpand(internalItem)">{{ displayMarketing(item) }}</td>
+          <td @click="toggleExpand(internalItem)">
             {{ item.fechaemisionpdf }}
 
             <!-- <span
@@ -534,32 +525,32 @@
         </tr>
       </template>
 
-      <template v-slot:expanded-item="{ headers, item }">
-        <template v-if="item">
-          <td :colspan="headers.length">
-            <v-simple-table>
-              <thead class="headerDetails">
-                <tr>
-                  <th v-if="(item.details || []).length > 0">Fecha</th>
-                  <th v-if="(item.details || []).length > 0">Comentario</th>
-                  <th>Usuario</th>
-                </tr>
-              </thead>
-              <tbody v-if="(item.details || []).length > 0">
-                <tr v-for="(i, index) in item.details || []" :key="i.id || index">
-                  <td>{{ i.fecha }}</td>
-                  <td>{{ i.notes }}</td>
-                  <td>{{ i.namelong }}</td>
-                </tr>
-              </tbody>
-              <!-- <tbody v-else>
-                <tr>
-                  <td>{{ item.fecha_enviocliente }}</td>
-                </tr>
-              </tbody> -->
-            </v-simple-table>
-          </td>
-        </template>
+      <template v-slot:expanded-row="{ columns, item }">
+        <tr v-if="item">
+        <td :colspan="columns.length">
+          <v-table>
+            <thead class="headerDetails">
+              <tr>
+                <th v-if="(item.details || []).length > 0">Fecha</th>
+                <th v-if="(item.details || []).length > 0">Comentario</th>
+                <th>Usuario</th>
+              </tr>
+            </thead>
+            <tbody v-if="(item.details || []).length > 0">
+              <tr v-for="(i, index) in item.details || []" :key="i.id || index">
+                <td>{{ i.fecha }}</td>
+                <td>{{ i.notes }}</td>
+                <td>{{ i.namelong }}</td>
+              </tr>
+            </tbody>
+            <!-- <tbody v-else>
+              <tr>
+                <td>{{ item.fecha_enviocliente }}</td>
+              </tr>
+            </tbody> -->
+          </v-table>
+        </td>
+        </tr>
       </template>
     </v-data-table>
     <!-- <template>
@@ -582,10 +573,10 @@
       transition="dialog-transition"
     >
       <v-card>
-        <v-card-title primary-title>
+        <v-card-title class="d-flex align-center flex-wrap" primary-title>
           Actualizar Recibido / Enviado
           <v-spacer></v-spacer>
-          <v-btn icon color="default" @click="dialog = !dialog">
+          <v-btn variant="text" icon color="default" @click="dialog = !dialog">
             <v-icon>mdi-close</v-icon>
           </v-btn>
         </v-card-title>
@@ -599,13 +590,13 @@
               label="ESTADO DE LA COTIZACIÓN"
               v-model="id_status"
               :rules="[(v) => !!v || 'Dato Requerido']"
-              item-text="name"
+              item-title="name"
               item-value="id"
             ></v-select>
             <v-select
               :items="$store.state.pricing.listRecibidoCotizacion"
               item-value="id"
-              item-text="descripcion"
+              item-title="descripcion"
               v-model="id_master_recibidocotizacion"
               label="RECIBIDO COTIZACION EN PRICING"
               :rules="[(v) => !!v || 'Dato Requerido']"
@@ -613,7 +604,7 @@
             <v-select
               :items="$store.state.pricing.listEnviadoCliente"
               item-value="id"
-              item-text="descripcion"
+              item-title="descripcion"
               v-model="id_master_enviadocliente"
               label="ENVIADO AL CLIENTE"
               :rules="[(v) => !!v || 'Dato Requerido']"
@@ -642,7 +633,7 @@
           <v-btn color="success" @click="updateQuoteRecibidoEnviado"
             >Guardar</v-btn
           >
-          <v-btn color="red" dark @click="dialog = !dialog">Cancelar</v-btn>
+          <v-btn color="red" @click="dialog = !dialog">Cancelar</v-btn>
         </v-card-actions>
       </v-card>
     </v-dialog>
@@ -653,7 +644,7 @@
     >
       <v-card>
         <v-card-title>
-          <span class="headline">Detalle de Nota de llamada</span>
+          <span class="text-h5">Detalle de Nota de llamada</span>
         </v-card-title>
 
         <v-card-text>
@@ -672,39 +663,39 @@
             <v-autocomplete
               :items="$store.state.pricing.listEjecutivo"
               label="Ejecutivo."
-              dense
+              density="compact"
               readonly
               hide-details
-              outlined
-              item-text="name"
+              variant="outlined"
+              item-title="name"
               item-value="id_entitie"
               v-model="fromData.identities"
             ></v-autocomplete>
 
             <v-autocomplete
-              outlined
+              variant="outlined"
               :items="$store.state.pricing.listQuoteStatus"
               label="ESTADO DE LA COTIZACIÓN"
               v-model="id_status"
               :rules="[(v) => !!v || 'Dato Requerido']"
-              item-text="name"
+              item-title="name"
               item-value="id"
-              dense
+              density="compact"
               class="mt-5"
             ></v-autocomplete>
           </v-form>
         </v-card-text>
         <v-card-actions>
-          <v-flex text-right>
-            <v-btn text color="success" @click="guardarNota">Aceptar</v-btn>
+          <div class="flex-grow-1 text-right">
+            <v-btn variant="text" color="success" @click="guardarNota">Aceptar</v-btn>
             <v-btn
-              text
+              variant="text"
               color="red"
               @click="dialogRegistroNotaLlamada = !dialogRegistroNotaLlamada"
             >
               Cancelar
             </v-btn>
-          </v-flex>
+          </div>
         </v-card-actions>
       </v-card>
     </v-dialog>
@@ -716,10 +707,10 @@
       transition="dialog-transition"
     >
       <v-card>
-        <v-card-title primary-title>
+        <v-card-title class="d-flex align-center flex-wrap" primary-title>
           SELECCIONE EL EXPEDIENTE A ASOCIAR:
           <v-spacer></v-spacer>
-          <v-btn icon color="default" @click="aprobarflag = !aprobarflag">
+          <v-btn variant="text" icon color="default" @click="aprobarflag = !aprobarflag">
             <v-icon>mdi-close</v-icon>
           </v-btn>
         </v-card-title>
@@ -730,7 +721,7 @@
                 :items="$store.state.itemsMasterList"
                 v-model="id_exp"
                 label="Expediente"
-                item-text="code_master"
+                item-title="code_master"
                 item-value="id"
                 :rules="[(v) => !!v || 'Dato Requerido']"
               >
@@ -740,12 +731,12 @@
         </v-card-text>
         <v-card-actions>
           <v-spacer></v-spacer>
-          <v-btn class="mx-1 my-1" small @click="aprobar()" color="success"
+          <v-btn class="mx-1 my-1" size="small" @click="aprobar()" color="success"
             >Generar</v-btn
           >
           <v-btn
             class="mx-1 my-1"
-            small
+            size="small"
             color="error"
             @click="aprobarflag = !aprobarflag"
             >Cancelar</v-btn
@@ -757,11 +748,11 @@
     <!-- Modal para enlazar Houses -->
     <v-dialog v-model="modalEnlazarHouse" max-width="900">
       <v-card>
-        <v-card-title>
+        <v-card-title class="d-flex align-center flex-wrap">
           Enlazar Houses a Cotización
           {{ quoteSeleccionada ? quoteSeleccionada.codigo : "" }}
           <v-spacer></v-spacer>
-          <v-btn icon @click="modalEnlazarHouse = false">
+          <v-btn variant="text" icon @click="modalEnlazarHouse = false">
             <v-icon>mdi-close</v-icon>
           </v-btn>
         </v-card-title>
@@ -773,7 +764,7 @@
             class="elevation-1"
           >
             <template v-slot:[`item.actions`]="{ item }">
-              <v-btn small color="primary" @click="enlazarHouse(item)">
+              <v-btn size="small" color="primary" @click="enlazarHouse(item)">
                 Enlazar
               </v-btn>
             </template>
@@ -847,12 +838,12 @@ export default {
       loadingHouses: false,
       quoteSeleccionada: null,
       headersHouses: [
-        { text: "Código House", value: "codigo" },
-        { text: "Master", value: "master" },
-        { text: "Cliente", value: "cliente" },
-        { text: "Origen", value: "origen" },
-        { text: "Destino", value: "destino" },
-        { text: "Acciones", value: "actions", sortable: false },
+        { title: "Código House", key: "codigo" },
+        { title: "Master", key: "master" },
+        { title: "Cliente", key: "cliente" },
+        { title: "Origen", key: "origen" },
+        { title: "Destino", key: "destino" },
+        { title: "Acciones", key: "actions", sortable: false },
       ],
       cabCotizaciones: [
         // {
@@ -863,8 +854,8 @@ export default {
         //   estado: true,
         // },
         {
-          value: "created",
-          text: "FECHA CREACIÓN",
+          key: "created",
+          title: "FECHA CREACIÓN",
           align: "center",
           groupable: true,
           estado: true,
@@ -885,93 +876,93 @@ export default {
         //   estado: true,
         // },
         {
-          value: "status",
-          text: "ESTATUS",
+          key: "status",
+          title: "ESTATUS",
           align: "center",
           groupable: true,
           estado: true,
         },
 
         {
-          value: "codigo",
-          text: "NÚMERO DE COTIZACIÓN",
+          key: "codigo",
+          title: "NÚMERO DE COTIZACIÓN",
           align: "center",
           groupable: true,
           estado: true,
         },
         {
-          value: "pricing",
-          text: "EJECUTIVO PRICING",
+          key: "pricing",
+          title: "EJECUTIVO PRICING",
           align: "center",
           groupable: true,
           estado: true,
         },
         {
-          value: "ejecutivo_ventas",
-          text: "EJECUTIVO VENTAS",
+          key: "ejecutivo_ventas",
+          title: "EJECUTIVO VENTAS",
           align: "center",
           groupable: true,
           estado: true,
         },
         {
-          value: "nombres",
-          text: "CLIENTE",
+          key: "nombres",
+          title: "CLIENTE",
           align: "center",
           groupable: true,
           estado: true,
         },
         {
-          value: "telefono",
-          text: "TÉLEFONO",
+          key: "telefono",
+          title: "TÉLEFONO",
           align: "center",
           groupable: true,
           estado: true,
         },
         {
-          value: "sentido",
-          text: "SENTIDO",
+          key: "sentido",
+          title: "SENTIDO",
           align: "center",
           groupable: true,
           estado: true,
         },
         {
-          value: "tipo_de_carga",
-          text: "T. C.",
+          key: "tipo_de_carga",
+          title: "T. C.",
           align: "center",
           groupable: true,
           estado: true,
         },
         {
-          value: "incoterms",
-          text: "INCOTERMS",
+          key: "incoterms",
+          title: "INCOTERMS",
           align: "center",
           groupable: true,
           estado: true,
         },
         {
-          value: "origen",
-          text: "ORIGEN",
+          key: "origen",
+          title: "ORIGEN",
           align: "center",
           groupable: true,
           estado: true,
         },
         {
-          value: "destino",
-          text: "DESTINO",
+          key: "destino",
+          title: "DESTINO",
           align: "center",
           groupable: true,
           estado: true,
         },
         {
-          value: "marketing",
-          text: "MARKETING",
+          key: "marketing",
+          title: "MARKETING",
           align: "center",
           groupable: true,
           estado: true,
         },
         {
-          value: "fechaemisionpdf",
-          text: "FECHA ENVIADO A CLIENTE",
+          key: "fechaemisionpdf",
+          title: "FECHA ENVIADO A CLIENTE",
           align: "center",
         },
       ],
@@ -1342,7 +1333,7 @@ export default {
       this.dialog = true;
     },
     async updateQuoteRecibidoEnviado() {
-      if (this.$refs.frmEstado.validate()) {
+      if ((await this.$refs.frmEstado.validate()).valid) {
         this.$store.state.spiner = true;
         let data = {
           id: this.quote.id,
@@ -1373,7 +1364,7 @@ export default {
       this.dialogRegistroNotaLlamada = true;
     },
     async guardarNota() {
-      if (this.$refs.detallenota.validate()) {
+      if ((await this.$refs.detallenota.validate()).valid) {
         this.dialogRegistroNotaLlamada = false;
         this.$store.state.spiner = true;
 
@@ -1472,7 +1463,7 @@ export default {
     },
 
     async aprobar() {
-      if (this.$refs.frmAprobar.validate()) {
+      if ((await this.$refs.frmAprobar.validate()).valid) {
         Swal.fire({
           icon: "info",
           title: "Aprobando Cotizacion",
@@ -1542,7 +1533,7 @@ export default {
         const id_branch = JSON.parse(sessionStorage.getItem("dataUser"))[0]
           .id_branch;
         const response = await axios.get(
-          process.env.VUE_APP_URL_MAIN + "listado_houses",
+          import.meta.env.VUE_APP_URL_MAIN + "listado_houses",
           {
             params: {
               id_branch,
@@ -1592,7 +1583,7 @@ export default {
 
       try {
         const response = await axios.post(
-          process.env.VUE_APP_URL_MAIN + "link_house_quote",
+          import.meta.env.VUE_APP_URL_MAIN + "link_house_quote",
           {
             id_house: house.id,
             id_quote: this.quoteSeleccionada.id,

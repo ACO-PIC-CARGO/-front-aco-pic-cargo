@@ -2,15 +2,15 @@
   <v-container fluid>
     <v-card min-height="80vh" elevation="0">
       <BarraFiltro :filtro="filtro" :cuentas="cuentas" />
-      <v-card-title class="pt-0">
+      <v-card-title class="pt-0 d-flex align-center flex-wrap">
         <v-text-field
           class="mx-2"
           hide-details
-          dense
+          density="compact"
           id="id"
-          outlined
+          variant="outlined"
           placeholder="Buscar..."
-          append-icon="mdi-text-search"
+          append-inner-icon="mdi-text-search"
           v-model="search"
           label="Buscar"
         >
@@ -18,7 +18,7 @@
         <v-spacer> </v-spacer>
         <v-btn
           color="info"
-          text
+          variant="text"
           @click="dialogFiltro = !dialogFiltro"
           class="mx-1"
           >Filtrar <v-icon>mdi-filter</v-icon>
@@ -28,53 +28,55 @@
         :search="search"
         :headers="headersCabecera"
         :items="listado"
-        item-key="index"
+        item-value="index"
         disable-sort
-        dense
+        density="compact"
       >
-        <template v-slot:expanded-item="{ item }">
-          <td colspan="1"></td>
-          <td colspan="16">
-            <v-simple-table style="width: 100%">
-              <thead>
-                <tr>
-                  <th>Banco Origen</th>
-                  <th>Cuenta Destino (PIC)</th>
-                  <!-- <th>O/A</th> -->
-                  <th>Tipo Ingreso</th>
-                  <th>Sub Tipo de ingreso</th>
-                  <th>Monto</th>
-                  <th>Moneda</th>
-                  <th>Monto Ingresado</th>
-                  <th>Moneda Ingresado</th>
-                  <th>Tipo de Cambio</th>
-                  <th>concepto</th>
-                  <th>Nro Factura</th>
-                  <th>Nro Serie</th>
-                  <th>Accion</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr v-for="(i, index) in item.detalles" :key="index">
-                  <td>{{ i.banco }}</td>
-                  <td>{{ i.cuenta_destino }}</td>
-                  <!-- <td>{{ i.tipo }}</td> -->
-                  <!-- <td>{{ i.tipo_gasto }}</td>  -->
-                  <td>{{ i.tipo_ingreso }}</td>
-                  <td>{{ i.subtipo_ingreso }}</td>
-                  <td>{{ i.monto }}</td>
-                  <td>{{ i.moneda_simbolo }}</td>
-                  <td>{{ i.monto_destino }}</td>
-                  <td>{{ i.moneda_destino }}</td>
-                  <td>{{ i.tipocambio }}</td>
-                  <td>{{ i.concepto }}</td>
-                  <td>{{ i.factura }}</td>
-                  <td>{{ i.serie }}</td>
-                  <td>{{ i.action }}</td>
-                </tr>
-              </tbody>
-            </v-simple-table>
-          </td>
+        <template v-slot:expanded-row="{ item }">
+          <tr>
+            <td colspan="1"></td>
+            <td colspan="16">
+              <v-table style="width: 100%">
+                <thead>
+                  <tr>
+                    <th>Banco Origen</th>
+                    <th>Cuenta Destino (PIC)</th>
+                    <!-- <th>O/A</th> -->
+                    <th>Tipo Ingreso</th>
+                    <th>Sub Tipo de ingreso</th>
+                    <th>Monto</th>
+                    <th>Moneda</th>
+                    <th>Monto Ingresado</th>
+                    <th>Moneda Ingresado</th>
+                    <th>Tipo de Cambio</th>
+                    <th>concepto</th>
+                    <th>Nro Factura</th>
+                    <th>Nro Serie</th>
+                    <th>Accion</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr v-for="(i, index) in item.detalles" :key="index">
+                    <td>{{ i.banco }}</td>
+                    <td>{{ i.cuenta_destino }}</td>
+                    <!-- <td>{{ i.tipo }}</td> -->
+                    <!-- <td>{{ i.tipo_gasto }}</td>  -->
+                    <td>{{ i.tipo_ingreso }}</td>
+                    <td>{{ i.subtipo_ingreso }}</td>
+                    <td>{{ i.monto }}</td>
+                    <td>{{ i.moneda_simbolo }}</td>
+                    <td>{{ i.monto_destino }}</td>
+                    <td>{{ i.moneda_destino }}</td>
+                    <td>{{ i.tipocambio }}</td>
+                    <td>{{ i.concepto }}</td>
+                    <td>{{ i.factura }}</td>
+                    <td>{{ i.serie }}</td>
+                    <td>{{ i.action }}</td>
+                  </tr>
+                </tbody>
+              </v-table>
+            </td>
+          </tr>
         </template>
         <template v-slot:[`item.tipocambio`]="{ item }">
           {{ item.tipocambio ? parseFloat(item.tipocambio).toFixed(2) : 0 }}
@@ -96,15 +98,15 @@
         </template>
         <template v-slot:[`item.action`]="{ item }">
           <div class="d-flex align-center">
-            <v-btn small icon color="red" @click="verSoport(item.soporte)">
+            <v-btn variant="text" size="small" icon color="red" @click="verSoport(item.soporte)">
               <v-icon>mdi-file</v-icon>
             </v-btn>
 
-            <v-btn small icon color="info" @click.native="ver(item)">
+            <v-btn variant="text" size="small" icon color="info" @click="ver(item)">
               <v-icon>mdi-eye</v-icon>
             </v-btn>
 
-            <v-btn small icon color="warning" @click.native="editar(item)">
+            <v-btn variant="text" size="small" icon color="warning" @click="editar(item)">
               <v-icon>mdi-pencil</v-icon>
             </v-btn>
           </div>
@@ -112,18 +114,17 @@
       </v-data-table>
 
       <v-navigation-drawer
-        absolute
         permanent
         temporary
-        right
+        location="right"
         width="20%"
         v-if="dialogFiltro"
       >
         <v-card height="100%" elevation="10">
-          <v-card-title primary-title>
+          <v-card-title class="d-flex align-center flex-wrap" primary-title>
             Filtrar Ingresos
             <v-spacer></v-spacer>
-            <v-btn icon color="default" @click="dialogFiltro = !dialogFiltro">
+            <v-btn variant="text" icon color="default" @click="dialogFiltro = !dialogFiltro">
               <v-icon>mdi-close</v-icon>
             </v-btn></v-card-title
           >
@@ -132,12 +133,12 @@
               :items="$store.state.itemsDataBanksList"
               v-model="filtro.id_banco"
               label="Banco Origen"
-              item-text="acronym"
+              item-title="acronym"
               item-value="id"
               clearable
-              outlined
+              variant="outlined"
               class="mb-2"
-              dense
+              density="compact"
               hide-details
             >
             </v-select>
@@ -145,12 +146,12 @@
               :items="cuentas"
               v-model="filtro.id_cuenta"
               label="Cuenta Bancaria Destino (PIC)"
-              item-text="label"
+              item-title="label"
               item-value="id"
               clearable
-              outlined
+              variant="outlined"
               class="mb-2"
-              dense
+              density="compact"
               hide-details
             >
             </v-select>
@@ -158,12 +159,12 @@
               :items="$store.state.clientes"
               v-model="filtro.id_consigner"
               label="Consignatario"
-              item-text="namelong"
+              item-title="namelong"
               item-value="id"
               clearable
-              outlined
+              variant="outlined"
               class="mb-2"
-              dense
+              density="compact"
               hide-details
             >
             </v-autocomplete>
@@ -173,11 +174,11 @@
               v-model="filtro.tipoingreso"
               auto-select-first
               clearable
-              outlined
+              variant="outlined"
               class="mb-2"
-              dense
+              density="compact"
               hide-details
-              item-text="description"
+              item-title="description"
               item-value="id"
             ></v-autocomplete>
 
@@ -187,19 +188,19 @@
               v-model="filtro.tiposubingreso"
               auto-select-first
               clearable
-              outlined
+              variant="outlined"
               class="mb-2"
-              dense
+              density="compact"
               hide-details
-              item-text="description"
+              item-title="description"
               item-value="id"
             ></v-autocomplete>
 
             <v-text-field
               clearable
-              outlined
+              variant="outlined"
               class="mb-2"
-              dense
+              density="compact"
               hide-details
               label="Nro Operacion"
               v-model="filtro.nro_operacion"
@@ -207,9 +208,9 @@
             </v-text-field>
             <v-text-field
               clearable
-              outlined
+              variant="outlined"
               class="mb-2"
-              dense
+              density="compact"
               hide-details
               label="Nro Expediente"
               v-model="filtro.nro_exp"
@@ -217,9 +218,9 @@
             </v-text-field>
             <v-text-field
               clearable
-              outlined
+              variant="outlined"
               class="mb-2"
-              dense
+              density="compact"
               hide-details
               type="number"
               label="Monto"
@@ -286,33 +287,33 @@ export default {
       listado: [],
       dataList: false,
       headersCabecera: [
-        { text: "Accion", value: "action" },
-        { text: "Fecha Operacion", value: "fecha_pago" },
+        { title: "Accion", key: "action" },
+        { title: "Fecha Operacion", key: "fecha_pago" },
         // { text: "Fecha Registro",value: "fecha_creacion",filterable: false,with: "5%",},
-        { text: "Nro Operación	", value: "nro_operacion" },
+        { title: "Nro Operación	", key: "nro_operacion" },
         // { text: "Banco Origen", value: "banco" },
-        { text: "Cuenta Destino (PIC)", value: "cuenta_destino" },
-        { text: "O/A	", value: "tipo" },
-        { text: "Tipo de Pago", value: "tipo_gasto", with: "5%" },
-        { text: "Tipo Ingreso", value: "tipo_ingreso", with: "5%" },
-        { text: "Sub Tipo de ingreso", value: "subtipo_ingreso" },
-        { text: "Cliente	", value: "name_consigner" },
-        { text: "Monto	", value: "monto" },
-        { text: "Moneda	", value: "moneda_simbolo", with: "5%" },
+        { title: "Cuenta Destino (PIC)", key: "cuenta_destino" },
+        { title: "O/A	", key: "tipo" },
+        { title: "Tipo de Pago", key: "tipo_gasto", with: "5%" },
+        { title: "Tipo Ingreso", key: "tipo_ingreso", with: "5%" },
+        { title: "Sub Tipo de ingreso", key: "subtipo_ingreso" },
+        { title: "Cliente	", key: "name_consigner" },
+        { title: "Monto	", key: "monto" },
+        { title: "Moneda	", key: "moneda_simbolo", with: "5%" },
         {
-          text: "Monto Ingresado al Banco	",
-          value: "monto_destino",
+          title: "Monto Ingresado al Banco	",
+          key: "monto_destino",
           with: "5%",
         },
         {
-          text: "Moneda Ingresado al Banco	",
-          value: "moneda_destino",
+          title: "Moneda Ingresado al Banco	",
+          key: "moneda_destino",
           with: "5%",
         },
-        { text: "Tipo de Cambio	", value: "tipocambio", with: "5%" },
+        { title: "Tipo de Cambio	", key: "tipocambio", with: "5%" },
         // { text: "Concepto	", value: "concepto", with: "20%" },
-        { text: "Nro Factura", value: "factura", with: "5%" },
-        { text: "Nro Serie", value: "serie", with: "5%" },
+        { title: "Nro Factura", key: "factura", with: "5%" },
+        { title: "Nro Serie", key: "serie", with: "5%" },
       ],
       filtro: {
         id_branch: "",
@@ -393,8 +394,6 @@ export default {
     },
     _uploadFile() {
       if (this.payfile) {
-        var FormData = require("form-data");
-        var fs = require("fs");
         var data = new FormData();
         var vm = this;
         data.append("name", "Prueba");
@@ -402,7 +401,7 @@ export default {
 
         var config = {
           method: "post",
-          url: process.env.VUE_APP_URL_MAIN + "uploadAllPath",
+          url: import.meta.env.VUE_APP_URL_MAIN + "uploadAllPath",
           headers: {
             "Content-Type": "application/json",
           },
@@ -457,7 +456,7 @@ export default {
       let vm = this;
       var config = {
         method: "get",
-        url: process.env.VUE_APP_URL_MAIN + "getListBanksDetailsCargar",
+        url: import.meta.env.VUE_APP_URL_MAIN + "getListBanksDetailsCargar",
         params: {
           id_branch: JSON.parse(sessionStorage.getItem("dataUser"))[0]
             .id_branch,
@@ -485,7 +484,7 @@ export default {
       var config = {
         method: "get",
         url:
-          process.env.VUE_APP_URL_MAIN +
+          import.meta.env.VUE_APP_URL_MAIN +
           `getListarPayForCustomerDetalle?id_branch=${
             JSON.parse(sessionStorage.getItem("dataUser"))[0].id_branch
           }&nro_operacion=${
@@ -540,7 +539,7 @@ export default {
       vm.verflag = !editar;
       var config = {
         method: "get",
-        url: process.env.VUE_APP_URL_MAIN + "ver_ingresos_invoice?id=" + id,
+        url: import.meta.env.VUE_APP_URL_MAIN + "ver_ingresos_invoice?id=" + id,
 
         headers: {
           "Content-Type": "application/json",
@@ -564,7 +563,7 @@ export default {
       vm.verflag = !editar;
       var config = {
         method: "get",
-        url: process.env.VUE_APP_URL_MAIN + "ver_ingresos_debscliente?id=" + id,
+        url: import.meta.env.VUE_APP_URL_MAIN + "ver_ingresos_debscliente?id=" + id,
 
         headers: {
           "Content-Type": "application/json",
@@ -584,11 +583,11 @@ export default {
     },
     async actualizarInvoice() {
       let vm = this;
-      if (vm.$refs.formInvoice.validate()) {
+      if ((await vm.$refs.formInvoice.validate()).valid) {
         vm.dato.usuario = vm.usuario;
         var config = {
           method: "put",
-          url: process.env.VUE_APP_URL_MAIN + "actualizar_ingreso_invoice",
+          url: import.meta.env.VUE_APP_URL_MAIN + "actualizar_ingreso_invoice",
 
           headers: {
             "Content-Type": "application/json",
@@ -619,11 +618,11 @@ export default {
     },
     async actualizarDebs() {
       let vm = this;
-      if (this.$refs.formInvoice.validate()) {
+      if ((await this.$refs.formInvoice.validate()).valid) {
         vm.dato.usuario = vm.usuario;
         var config = {
           method: "put",
-          url: process.env.VUE_APP_URL_MAIN + "actualizar_ingreso_debscliente",
+          url: import.meta.env.VUE_APP_URL_MAIN + "actualizar_ingreso_debscliente",
 
           headers: {
             "Content-Type": "application/json",
@@ -656,7 +655,7 @@ export default {
       var config = {
         method: "get",
         url:
-          process.env.VUE_APP_URL_MAIN +
+          import.meta.env.VUE_APP_URL_MAIN +
           `exportar_listado_reporte_ingresos?id_branch=${
             JSON.parse(sessionStorage.getItem("dataUser"))[0].id_branch
           }&nro_operacion=${

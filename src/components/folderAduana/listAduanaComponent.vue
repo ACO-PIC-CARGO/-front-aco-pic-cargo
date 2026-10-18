@@ -6,7 +6,7 @@
           placeholder="Buscar..."
           label="Buscar"
           v-model="search"
-          append-icon="mdi-magnify"
+          append-inner-icon="mdi-magnify"
         >
         </v-text-field>
       </v-col>
@@ -18,19 +18,17 @@
             class="mx-1"
             :loading="loading2"
             :disabled="loading2"
-            :dark="!loading2"
-            small
+            size="small"
           >
             <v-icon>mdi-file-pdf-box</v-icon> REPORTE
           </v-btn>
           <v-btn
-            color="teal darken-4"
+            color="teal-darken-4"
             @click="excelListadoQuote()"
             class="mx-1"
             :loading="loading3"
             :disabled="loading3"
-            :dark="!loading3"
-            small
+            size="small"
           >
             <v-icon>mdi-file-excel</v-icon> REPORTE
           </v-btn>
@@ -40,8 +38,7 @@
             class="mx-1"
             :loading="loading"
             :disabled="loading"
-            :dark="!loading"
-            small
+            size="small"
           >
             <v-icon>mdi-file-pdf-box</v-icon> MERCADEO
           </v-btn>
@@ -52,8 +49,7 @@
                 !$store.state.pricing.filtrarQuoteFlag
             "
             class="mx-1"
-            dark
-            small
+            size="small"
           >
             Filtrar
           </v-btn>
@@ -64,13 +60,14 @@
       :search="search"
       :headers="cabCotizaciones"
       :items="$store.state.pricing.listQuotes"
-      :single-expand="singleExpand"
-      :expanded.sync="expanded"
-      item-key="index"
+      :expand-strategy="singleExpand ? 'single' : 'multiple'"
+      v-model:expanded="expanded"
+      item-value="index"
+      return-object
       show-expand
       class="elevation-1"
     >
-      <template v-slot:item="{ item, expand, isExpanded }">
+      <template v-slot:item="{ item, internalItem, isExpanded, toggleExpand }">
         <tr
           :class="[
             item.status_code == 3
@@ -78,69 +75,69 @@
               : item.status_code == 5
               ? 't-green'
               : 't-black',
-            isExpanded ? 'filaActivda' : '',
+            isExpanded(internalItem) ? 'filaActivda' : '',
           ]"
         >
           <td></td>
           <td>
             <v-btn-toggle>
-              <v-tooltip top>
-                <template v-slot:activator="{ on, attrs }">
-                  <v-btn
-                    fab
-                    x-small
-                    v-on="on"
-                    v-bind="attrs"
+              <v-tooltip location="top">
+                <template v-slot:activator="{ props }">
+                  <v-btn variant="text"
+                    icon
+                    size="x-small"
+                    v-bind="props"
+                   
                     @click="ira('VerAduana', item.id)"
                   >
-                    <v-icon color="#4A148C" dense small>mdi-eye</v-icon>
+                    <v-icon color="#4A148C" size="small">mdi-eye</v-icon>
                   </v-btn>
                 </template>
                 <span>Ver</span>
               </v-tooltip>
               <!--  -->
-              <v-tooltip top>
-                <template v-slot:activator="{ on, attrs }">
-                  <v-btn
-                    fab
-                    x-small
-                    v-on="on"
-                    v-bind="attrs"
+              <v-tooltip location="top">
+                <template v-slot:activator="{ props }">
+                  <v-btn variant="text"
+                    icon
+                    size="x-small"
+                    v-bind="props"
+                   
                     @click="ira('EditarAduana', item.id)"
                     v-if="!(item.statusmain == 0 || item.aprobadoflag)"
                   >
-                    <v-icon color="#FB9514" dense small>mdi-pencil</v-icon>
+                    <v-icon color="#FB9514" size="small">mdi-pencil</v-icon>
                   </v-btn>
                 </template>
                 <span>Editar</span>
               </v-tooltip>
-              <v-tooltip top>
-                <template v-slot:activator="{ on, attrs }">
-                  <v-btn
-                    fab
-                    x-small
-                    v-on="on"
-                    v-bind="attrs"
+              <v-tooltip location="top">
+                <template v-slot:activator="{ props }">
+                  <v-btn variant="text"
+                    icon
+                    size="x-small"
+                    v-bind="props"
+                   
                     v-if="item.aprobadoflag"
                     @click="iraAprobado(item.id)"
                   >
-                    <v-icon color="#FB9514" dense small>mdi-pencil</v-icon>
+                    <v-icon color="#FB9514" size="small">mdi-pencil</v-icon>
                   </v-btn>
                 </template>
                 <span>Editar</span>
               </v-tooltip>
               <!--  -->
-              <v-tooltip top>
-                <template v-slot:activator="{ on, attrs }">
-                  <v-btn
-                    fab
-                    v-bind="attrs"
-                    v-on="on"
-                    x-small
+              <v-tooltip location="top">
+                <template v-slot:activator="{ props }">
+                  <v-btn variant="text"
+                    icon
+                   
+                    v-bind="props"
+                    size="x-small"
                     @click="abrirModal(item)"
                     v-if="!(item.statusmain == 0 || item.aprobadoflag)"
                   >
-                    <v-icon color="#E65100" dense small
+                    <v-icon color="#E65100" size="small"
                       >mdi-receipt-text-send-outline</v-icon
                     >
                   </v-btn>
@@ -148,89 +145,90 @@
                 <span>Actualizar Estado Cotización</span>
               </v-tooltip>
               <!--  -->
-              <v-tooltip top>
-                <template v-slot:activator="{ on, attrs }">
-                  <v-btn
-                    fab
-                    v-bind="attrs"
-                    v-on="on"
-                    x-small
+              <v-tooltip location="top">
+                <template v-slot:activator="{ props }">
+                  <v-btn variant="text"
+                    icon
+                   
+                    v-bind="props"
+                    size="x-small"
                     @click="registrarLlamada(item.id)"
                     v-if="!(item.statusmain == 0 || item.aprobadoflag)"
                   >
-                    <v-icon color="#1A237E" dense small>mdi-phone-plus</v-icon>
+                    <v-icon color="#1A237E" size="small">mdi-phone-plus</v-icon>
                   </v-btn>
                 </template>
                 <span>Actualizar Registro Llamada</span>
               </v-tooltip>
               <!--  -->
-              <v-tooltip top>
-                <template v-slot:activator="{ on, attrs }">
-                  <v-btn
-                    fab
-                    x-small
-                    v-bind="attrs"
-                    v-on="on"
+              <v-tooltip location="top">
+                <template v-slot:activator="{ props }">
+                  <v-btn variant="text"
+                    icon
+                    size="x-small"
+                   
+                    v-bind="props"
                     @click="to_direct({ url: item.url_folderonedrive })"
                     v-if="item.url_folderonedrive"
                   >
-                    <v-icon color="#FFAB00" dense small>mdi-folder</v-icon>
+                    <v-icon color="#FFAB00" size="small">mdi-folder</v-icon>
                   </v-btn>
                 </template>
                 <span>Abrir Carpeta cotización</span>
               </v-tooltip>
               <!--  -->
-              <v-tooltip top>
-                <template v-slot:activator="{ on, attrs }">
-                  <v-btn
-                    fab
-                    x-small
-                    v-bind="attrs"
-                    v-on="on"
+              <v-tooltip location="top">
+                <template v-slot:activator="{ props }">
+                  <v-btn variant="text"
+                    icon
+                    size="x-small"
+                   
+                    v-bind="props"
                     @click="eliminar(item.id, item.codigo)"
                     v-if="!(item.statusmain == 0 || item.aprobadoflag)"
                   >
-                    <v-icon color="#A43542" dense small>mdi-delete</v-icon>
+                    <v-icon color="#A43542" size="small">mdi-delete</v-icon>
                   </v-btn>
                 </template>
                 <span>Eliminar</span>
               </v-tooltip>
-              <v-tooltip top>
-                <template v-slot:activator="{ on, attrs }">
-                  <v-btn
-                    fab
-                    x-small
-                    v-bind="attrs"
-                    v-on="on"
+              <v-tooltip location="top">
+                <template v-slot:activator="{ props }">
+                  <v-btn variant="text"
+                    icon
+                    size="x-small"
+                   
+                    v-bind="props"
                     @click="toggleRow(item)"
                     v-if="!(item.statusmain == 0 || item.aprobadoflag)"
                   >
-                    <v-icon color="#263238" dense small>mdi-phone</v-icon>
+                    <v-icon color="#263238" size="small">mdi-phone</v-icon>
                   </v-btn>
                 </template>
                 <span>Historial llamada</span>
               </v-tooltip>
             </v-btn-toggle>
           </td>
-          <td @click="expand(!isExpanded)">{{ fecha(item.created) }}</td>
-          <td @click="expand(!isExpanded)">{{ item.recibidocotizacion }}</td>
-          <td @click="expand(!isExpanded)">{{ item.enviadocliente }}</td>
-          <td @click="expand(!isExpanded)">{{ item.status }}</td>
-          <td @click="expand(!isExpanded)">{{ item.codigo }}</td>
-          <td @click="expand(!isExpanded)">{{ item.ejecutivo_ventas }}</td>
-          <td @click="expand(!isExpanded)">{{ item.nombres }}</td>
-          <td @click="expand(!isExpanded)">{{ item.telefono }}</td>
-          <td @click="expand(!isExpanded)">{{ item.sentido }}</td>
-          <td @click="expand(!isExpanded)">{{ item.tipo_de_carga }}</td>
-          <td @click="expand(!isExpanded)">{{ item.incoterms }}</td>
-          <td @click="expand(!isExpanded)">{{ item.origen }}</td>
-          <td @click="expand(!isExpanded)">{{ item.destino }}</td>
+          <td @click="toggleExpand(internalItem)">{{ fecha(item.created) }}</td>
+          <td @click="toggleExpand(internalItem)">{{ item.recibidocotizacion }}</td>
+          <td @click="toggleExpand(internalItem)">{{ item.enviadocliente }}</td>
+          <td @click="toggleExpand(internalItem)">{{ item.status }}</td>
+          <td @click="toggleExpand(internalItem)">{{ item.codigo }}</td>
+          <td @click="toggleExpand(internalItem)">{{ item.ejecutivo_ventas }}</td>
+          <td @click="toggleExpand(internalItem)">{{ item.nombres }}</td>
+          <td @click="toggleExpand(internalItem)">{{ item.telefono }}</td>
+          <td @click="toggleExpand(internalItem)">{{ item.sentido }}</td>
+          <td @click="toggleExpand(internalItem)">{{ item.tipo_de_carga }}</td>
+          <td @click="toggleExpand(internalItem)">{{ item.incoterms }}</td>
+          <td @click="toggleExpand(internalItem)">{{ item.origen }}</td>
+          <td @click="toggleExpand(internalItem)">{{ item.destino }}</td>
         </tr>
       </template>
 
-      <template v-slot:expanded-item="{ headers, item }">
-        <td :colspan="headers.length">
-          <v-simple-table>
+      <template v-slot:expanded-row="{ columns, item }">
+        <tr>
+        <td :colspan="columns.length">
+          <v-table>
             <thead class="headerDetails">
               <tr>
                 <th v-if="item.details.length > 0">Notas</th>
@@ -250,8 +248,9 @@
                 <td>{{ item.fecha_enviocliente }}</td>
               </tr>
             </tbody>
-          </v-simple-table>
+          </v-table>
         </td>
+        </tr>
       </template>
     </v-data-table>
     <v-dialog
@@ -263,10 +262,10 @@
       transition="dialog-transition"
     >
       <v-card>
-        <v-card-title primary-title>
+        <v-card-title class="d-flex align-center flex-wrap" primary-title>
           Actualizar Recibido / Enviado
           <v-spacer></v-spacer>
-          <v-btn icon color="default" @click="dialog = !dialog">
+          <v-btn variant="text" icon color="default" @click="dialog = !dialog">
             <v-icon>mdi-close</v-icon>
           </v-btn>
         </v-card-title>
@@ -280,13 +279,13 @@
               label="ESTADO DE LA COTIZACIÓN"
               v-model="id_status"
               :rules="[(v) => !!v || 'Dato Requerido']"
-              item-text="name"
+              item-title="name"
               item-value="id"
             ></v-select>
             <v-select
               :items="$store.state.pricing.listRecibidoCotizacion"
               item-value="id"
-              item-text="descripcion"
+              item-title="descripcion"
               v-model="id_master_recibidocotizacion"
               label="RECIBIDO COTIZACION EN PRICING"
               :rules="[(v) => !!v || 'Dato Requerido']"
@@ -294,7 +293,7 @@
             <v-select
               :items="$store.state.pricing.listEnviadoCliente"
               item-value="id"
-              item-text="descripcion"
+              item-title="descripcion"
               v-model="id_master_enviadocliente"
               label="ENVIADO AL CLIENTE"
               :rules="[(v) => !!v || 'Dato Requerido']"
@@ -323,7 +322,7 @@
           <v-btn color="success" @click="updateQuoteRecibidoEnviado"
             >Guardar</v-btn
           >
-          <v-btn color="red" dark @click="dialog = !dialog">Cancelar</v-btn>
+          <v-btn color="red" @click="dialog = !dialog">Cancelar</v-btn>
         </v-card-actions>
       </v-card>
     </v-dialog>
@@ -334,7 +333,7 @@
     >
       <v-card>
         <v-card-title>
-          <span class="headline">Detalle de Nota de llamada</span>
+          <span class="text-h5">Detalle de Nota de llamada</span>
         </v-card-title>
 
         <v-card-text>
@@ -353,26 +352,25 @@
             <v-autocomplete
               :items="$store.state.pricing.listEjecutivo"
               label="Ejecutivo."
-              dense
-              search
+              density="compact"
               clearable
-              item-text="name"
+              item-title="name"
               item-value="id_entitie"
               v-model="fromData.identities"
             ></v-autocomplete>
           </v-form>
         </v-card-text>
         <v-card-actions>
-          <v-flex text-right>
-            <v-btn text color="success" @click="guardarNota">Aceptar</v-btn>
+          <div class="flex-grow-1 text-right">
+            <v-btn variant="text" color="success" @click="guardarNota">Aceptar</v-btn>
             <v-btn
-              text
+              variant="text"
               color="red"
               @click="dialogRegistroNotaLlamada = !dialogRegistroNotaLlamada"
             >
               Cancelar
             </v-btn>
-          </v-flex>
+          </div>
         </v-card-actions>
       </v-card>
     </v-dialog>
@@ -384,10 +382,10 @@
       transition="dialog-transition"
     >
       <v-card>
-        <v-card-title primary-title>
+        <v-card-title class="d-flex align-center flex-wrap" primary-title>
           SELECCIONE EL EXPEDIENTE A ASOCIAR:
           <v-spacer></v-spacer>
-          <v-btn icon color="default" @click="aprobarflag = !aprobarflag">
+          <v-btn variant="text" icon color="default" @click="aprobarflag = !aprobarflag">
             <v-icon>mdi-close</v-icon>
           </v-btn>
         </v-card-title>
@@ -398,7 +396,7 @@
                 :items="$store.state.itemsMasterList"
                 v-model="id_exp"
                 label="Expediente"
-                item-text="code_master"
+                item-title="code_master"
                 item-value="id"
                 :rules="[(v) => !!v || 'Dato Requerido']"
               >
@@ -408,12 +406,12 @@
         </v-card-text>
         <v-card-actions>
           <v-spacer></v-spacer>
-          <v-btn class="mx-1" small @click="aprobar()" color="success"
+          <v-btn class="mx-1" size="small" @click="aprobar()" color="success"
             >Generar</v-btn
           >
           <v-btn
             class="mx-1"
-            small
+            size="small"
             color="error"
             @click="aprobarflag = !aprobarflag"
             >Cancelar</v-btn
@@ -453,101 +451,101 @@ export default {
       aprobarflag: false,
       cabCotizaciones: [
         {
-          value: "acciones",
-          text: "",
+          key: "acciones",
+          title: "",
           align: "center",
           groupable: true,
           estado: true,
         },
         {
-          value: "created",
-          text: "FECHA REGISTRO",
+          key: "created",
+          title: "FECHA REGISTRO",
           align: "center",
           groupable: true,
           estado: true,
           dataType: "Date",
         },
         {
-          value: "recibidocotizacion",
-          text: "RECIBIDO COTIZACION EN PRICING",
+          key: "recibidocotizacion",
+          title: "RECIBIDO COTIZACION EN PRICING",
           align: "center",
           groupable: true,
           estado: true,
         },
         {
-          value: "enviadocliente",
-          text: "ENVIADO AL CLIENTE",
+          key: "enviadocliente",
+          title: "ENVIADO AL CLIENTE",
           align: "center",
           groupable: true,
           estado: true,
         },
         {
-          value: "status",
-          text: "ESTATUS",
+          key: "status",
+          title: "ESTATUS",
           align: "center",
           groupable: true,
           estado: true,
         },
 
         {
-          value: "codigo",
-          text: "CÓD.",
+          key: "codigo",
+          title: "CÓD.",
           align: "center",
           groupable: true,
           estado: true,
         },
         {
-          value: "ejecutivo_ventas",
-          text: "EJECUTIVO",
+          key: "ejecutivo_ventas",
+          title: "EJECUTIVO",
           align: "center",
           groupable: true,
           estado: true,
         },
         {
-          value: "nombres",
-          text: "CLIENTE",
+          key: "nombres",
+          title: "CLIENTE",
           align: "center",
           groupable: true,
           estado: true,
         },
         {
-          value: "telefono",
-          text: "TÉLEFONO",
+          key: "telefono",
+          title: "TÉLEFONO",
           align: "center",
           groupable: true,
           estado: true,
         },
         {
-          value: "sentido",
-          text: "SENTIDO",
+          key: "sentido",
+          title: "SENTIDO",
           align: "center",
           groupable: true,
           estado: true,
         },
         {
-          value: "tipo_de_carga",
-          text: "TIPO DE CARGA",
+          key: "tipo_de_carga",
+          title: "TIPO DE CARGA",
           align: "center",
           groupable: true,
           estado: true,
         },
         {
-          value: "incoterms",
-          text: "INCOTERMS",
+          key: "incoterms",
+          title: "INCOTERMS",
           align: "center",
           groupable: true,
           estado: true,
         },
         {
-          value: "origen",
-          text: "ORIGEN",
+          key: "origen",
+          title: "ORIGEN",
           align: "center",
           groupable: true,
           estado: true,
         },
         {
-          value: "destino",
-          text: "DESTINO",
+          key: "destino",
+          title: "DESTINO",
           align: "center",
           groupable: true,
           estado: true,
@@ -696,7 +694,7 @@ export default {
       this.dialog = true;
     },
     async updateQuoteRecibidoEnviado() {
-      if (this.$refs.frmEstado.validate()) {
+      if ((await this.$refs.frmEstado.validate()).valid) {
         this.$store.state.spiner = true;
         let data = {
           id: this.quote.id,
@@ -726,7 +724,7 @@ export default {
       this.dialogRegistroNotaLlamada = true;
     },
     async guardarNota() {
-      if (this.$refs.detallenota.validate()) {
+      if ((await this.$refs.detallenota.validate()).valid) {
         this.dialogRegistroNotaLlamada = false;
         this.$store.state.spiner = true;
 
@@ -824,7 +822,7 @@ export default {
     },
 
     async aprobar() {
-      if (this.$refs.frmAprobar.validate()) {
+      if ((await this.$refs.frmAprobar.validate()).valid) {
         Swal.fire({
           icon: "info",
           title: "Aprobando Cotizacion",

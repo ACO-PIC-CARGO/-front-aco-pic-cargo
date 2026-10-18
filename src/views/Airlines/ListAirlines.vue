@@ -3,10 +3,8 @@
     <ListAirlinesComponet />
     <v-navigation-drawer
       v-model="$store.state.airlines.drawer"
-      right
-      absolute
-      bottom
-      persistent
+      location="right"
+      
       width="30%"
       temporary
     >
@@ -16,12 +14,13 @@
 </template>
 
 <script>
+import { defineAsyncComponent } from "vue";
 export default {
   components: {
-    ListAirlinesComponet: () =>
-      import("@/components/Maestros/Airlines/ListAirlinesComponet.vue"),
-    FilterAirlinesComponet: () =>
-      import("../../components/filtros/FiltroAirlines.vue"),
+    ListAirlinesComponet: defineAsyncComponent(() =>
+      import("@/components/Maestros/Airlines/ListAirlinesComponet.vue")),
+    FilterAirlinesComponet: defineAsyncComponent(() =>
+      import("../../components/filtros/FiltroAirlines.vue")),
   },
   data() {
     return {};

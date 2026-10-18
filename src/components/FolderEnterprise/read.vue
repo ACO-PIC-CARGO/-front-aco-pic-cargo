@@ -1,13 +1,13 @@
 <template>
   <v-container>
     <v-container v-if="loading_as" style="height: 400px">
-      <v-row class="fill-height" align-content="center" justify="center">
+      <v-row class="fill-height align-content-center justify-center">
         <v-col class="text-subtitle-1 text-center" cols="6">
           Cargando información ....
         </v-col>
         <v-col cols="6">
           <v-progress-linear
-            color="deep-purple accent-4"
+            color="deep-purple-accent-4"
             indeterminate
             rounded
             height="6"
@@ -17,7 +17,7 @@
     </v-container>
 
     <v-card class="py-10 px-10">
-      <v-card-title v-if="!loading_as">
+      <v-card-title class="d-flex align-center flex-wrap" v-if="!loading_as">
         Ver: {{ $store.state.enterprises.record.business_name }}
         <v-spacer></v-spacer>
 
@@ -27,56 +27,56 @@
               <v-text-field
                 label="Tipo de Documento"
                 readonly
-                dense
-                :value="$store.state.enterprises.record.td_name"
+                density="compact"
+                :model-value="$store.state.enterprises.record.td_name"
               ></v-text-field>
             </v-col>
             <v-col cols="6">
               <v-text-field
                 label="N° de Documento"
                 readonly
-                dense
-                :value="$store.state.enterprises.record.document"
+                density="compact"
+                :model-value="$store.state.enterprises.record.document"
               ></v-text-field>
             </v-col>
             <v-col cols="6">
               <v-text-field
                 label="Nombre Comercial"
                 readonly
-                dense
-                :value="$store.state.enterprises.record.trade_name"
+                density="compact"
+                :model-value="$store.state.enterprises.record.trade_name"
               ></v-text-field>
             </v-col>
             <v-col cols="6">
               <v-text-field
                 label="Nombre Negocio"
                 readonly
-                dense
-                :value="$store.state.enterprises.record.business_name"
+                density="compact"
+                :model-value="$store.state.enterprises.record.business_name"
               ></v-text-field>
             </v-col>
             <v-col cols="6">
               <v-text-field
                 label="Slogan"
                 readonly
-                dense
-                :value="$store.state.enterprises.record.slogan"
+                density="compact"
+                :model-value="$store.state.enterprises.record.slogan"
               ></v-text-field>
             </v-col>
             <v-col cols="6">
               <v-text-field
                 label="IC"
                 readonly
-                dense
-                :value="$store.state.enterprises.record.ic"
+                density="compact"
+                :model-value="$store.state.enterprises.record.ic"
               ></v-text-field>
             </v-col>
             <v-col cols="6">
               <v-text-field
                 label="Logo"
                 readonly
-                dense
-                :value="$store.state.enterprises.record.name_file"
+                density="compact"
+                :model-value="$store.state.enterprises.record.name_file"
               ></v-text-field>
               <!-- <div>
                 <label for="image">Logo</label>
@@ -91,48 +91,48 @@
               <v-text-field
                 label="País"
                 readonly
-                dense
-                :value="$store.state.enterprises.record.lp_name"
+                density="compact"
+                :model-value="$store.state.enterprises.record.lp_name"
               ></v-text-field>
             </v-col>
             <v-col cols="6">
               <v-text-field
                 label="Región"
                 readonly
-                dense
-                :value="$store.state.enterprises.record.ls_name"
+                density="compact"
+                :model-value="$store.state.enterprises.record.ls_name"
               ></v-text-field>
             </v-col>
             <v-col cols="6">
               <v-text-field
                 label="Provincia"
                 readonly
-                dense
-                :value="$store.state.enterprises.record.lc_name"
+                density="compact"
+                :model-value="$store.state.enterprises.record.lc_name"
               ></v-text-field>
             </v-col>
             <v-col cols="6">
               <v-text-field
                 label="Distrito"
                 readonly
-                dense
-                :value="$store.state.enterprises.record.lt_name"
+                density="compact"
+                :model-value="$store.state.enterprises.record.lt_name"
               ></v-text-field>
             </v-col>
             <v-col cols="6">
               <v-text-field
                 label="Dirección"
                 readonly
-                dense
-                :value="$store.state.enterprises.record.address"
+                density="compact"
+                :model-value="$store.state.enterprises.record.address"
               ></v-text-field>
             </v-col>
             <v-col cols="6">
               <v-text-field
                 label="Estado"
                 readonly
-                dense
-                :value="
+                density="compact"
+                :model-value="
                   $store.state.enterprises.record.status == 1
                     ? 'Activo'
                     : 'Inactivo'
@@ -144,9 +144,9 @@
                 label="Impuestos a las Ventas en tu País"
                 :items="$store.state.masterusuarios.lstImpRenta"
                 item-value="id"
-                item-text="descripcion"
+                item-title="descripcion"
                 readonly
-                dense
+                density="compact"
                 v-model="$store.state.enterprises.record.tipoimpuesto"
               >
                 <template v-slot:selection="data">
@@ -161,7 +161,7 @@
                 step="0.1"
                 suffix="%"
                 readonly
-                dense
+                density="compact"
                 hide-details
                 v-model="$store.state.enterprises.record.impuesto"
               ></v-text-field>
@@ -170,7 +170,7 @@
         </v-card-text>
       </v-card-title>
       <v-card-actions v-if="!loading_as" class="justify-end mt-3">
-        <v-btn small class="mx-1" dark color="red" @click="volver()" rounded>
+        <v-btn size="small" class="mx-1" color="red" @click="volver()" rounded>
           Aceptar</v-btn
         >
       </v-card-actions>

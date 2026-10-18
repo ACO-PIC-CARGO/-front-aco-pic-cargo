@@ -6,8 +6,8 @@
           v-model="item.nombre"
           :disabled="!item.editarflag"
           hide-details
-          dense
-          outlined
+          density="compact"
+          variant="outlined"
           auto-grow
           rows="1"
         ></v-textarea>
@@ -17,8 +17,8 @@
           v-model="item.frecuencia"
           :disabled="!item.editarflag"
           hide-details
-          dense
-          outlined
+          density="compact"
+          variant="outlined"
           auto-grow
           rows="1"
         ></v-textarea>
@@ -28,8 +28,8 @@
           v-model="item.volumenmax"
           :disabled="!item.editarflag"
           :hide-details="!item.editarflag"
-          dense
-          outlined
+          density="compact"
+          variant="outlined"
           style="max-width: 100px"
           messages=" "
           type="number"
@@ -49,8 +49,8 @@
           v-model="item.toneladamax"
           :disabled="!item.editarflag"
           :hide-details="!item.editarflag"
-          dense
-          outlined
+          density="compact"
+          variant="outlined"
           style="max-width: 100px"
           messages=" "
           type="number"
@@ -68,15 +68,15 @@
 
       <template v-slot:[`item.estado`]="{ item }">
         <v-chip
-          class="ma-2"
+          class="ma-2 text-white"
           color="green"
-          text-color="white"
+          variant="flat"
           v-if="item.estado"
         >
           Activo
         </v-chip>
 
-        <v-chip class="ma-2" color="orange" text-color="white" v-else>
+        <v-chip class="ma-2 text-white" color="orange" variant="flat" v-else>
           Inactivo
         </v-chip>
       </template>
@@ -91,7 +91,7 @@
           "
           v-if="item.esgrupalflag"
           color="success"
-          outlined
+          variant="outlined"
         >
           <v-icon class="ma-2"> mdi-account-group </v-icon>
           Grupal
@@ -106,7 +106,7 @@
           "
           v-else
           color="primary"
-          outlined
+          variant="outlined"
         >
           <v-icon class="ma-2"> mdi-account </v-icon>
           Individual
@@ -116,14 +116,14 @@
         <v-btn
           v-if="!item.editarflag"
           color="warning"
-          small
+          size="small"
           @click="item.editarflag = true"
           >Editar</v-btn
         >
         <v-btn
           v-if="item.editarflag"
           color="success"
-          small
+          size="small"
           @click="actualizarOpcion(item)"
           >Guardar</v-btn
         >
@@ -139,29 +139,29 @@ export default {
   data() {
     return {
       headers: [
-        { width: "25%", text: "Nombre", value: "nombre" },
-        { width: "25%", text: "Descripción", value: "frecuencia" },
-        { width: "5%", text: "Estado", value: "estado", align: "center" },
+        { width: "25%", title: "Nombre", key: "nombre" },
+        { width: "25%", title: "Descripción", key: "frecuencia" },
+        { width: "5%", title: "Estado", key: "estado", align: "center" },
         {
           width: "5%",
-          text: "Orden Presentación",
-          value: "orden",
+          title: "Orden Presentación",
+          key: "orden",
           align: "center",
         },
-        { width: "12%", text: "Tipo", value: "esgrupalflag", align: "center" },
+        { width: "12%", title: "Tipo", key: "esgrupalflag", align: "center" },
         {
           width: "10%",
-          text: "Volumen Máximo",
-          value: "volumenmax",
+          title: "Volumen Máximo",
+          key: "volumenmax",
           align: "center",
         },
         {
           width: "10%",
-          text: "Tonelada Máxima",
-          value: "toneladamax",
+          title: "Tonelada Máxima",
+          key: "toneladamax",
           align: "center",
         },
-        { text: "", value: "action", align: "center" },
+        { title: "", key: "action", align: "center" },
       ],
     };
   },

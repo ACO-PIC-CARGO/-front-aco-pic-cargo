@@ -16,18 +16,17 @@
           <v-row>
             <v-col class="py-2 my-0" cols="12">
               <v-text-field
-                name="name"
                 label="Nombre Empresa"
                 id="id"
-                outlined
+                variant="outlined"
                 persistent-placeholder
-                dense
+                density="compact"
                 prepend-inner-icon="mdi-domain"
                 :hide-details="!errortrade_name"
                 v-model="$store.state.enterprises.data.trade_name"
                 autocomplete="off"
                 :error-messages="errortrade_name"
-                @input="errortrade_name = ''"
+                @update:model-value="errortrade_name = ''"
                 class="textUppercase"
               ></v-text-field>
             </v-col>
@@ -37,47 +36,45 @@
             <v-col class="py-2 my-0" cols="12" lg="4" xl="4">
               <v-text-field
                 label="Nombre*"
-                outlined
+                variant="outlined"
                 persistent-placeholder
-                dense
+                density="compact"
                 prepend-inner-icon="mdi-account"
                 :hide-details="!errornames"
                 v-model="$store.state.enterprises.data.names"
                 :error-messages="errornames"
-                @input="errornames = ''"
+                @update:model-value="errornames = ''"
                 class="textUppercase"
               ></v-text-field>
             </v-col>
 
             <v-col class="py-2 my-0" cols="12" lg="4" xl="4">
               <v-text-field
-                name="name"
                 label="Apellidos*"
                 placeholder=""
-                outlined
+                variant="outlined"
                 persistent-placeholder
-                dense
+                density="compact"
                 prepend-inner-icon="mdi-account"
                 :hide-details="!errorsurname"
                 v-model="$store.state.enterprises.data.surname"
                 :error-messages="errorsurname"
-                @input="errorsurname = ''"
+                @update:model-value="errorsurname = ''"
                 class="textUppercase"
               ></v-text-field>
             </v-col>
             <v-col class="py-2 my-0" cols="12" lg="4" xl="4">
               <v-text-field
-                name="name"
                 label="Apellido Materno*"
                 placeholder=""
-                outlined
+                variant="outlined"
                 persistent-placeholder
-                dense
+                density="compact"
                 prepend-inner-icon="mdi-account"
                 :hide-details="!errorsecond_surname"
                 v-model="$store.state.enterprises.data.second_surname"
                 :error-messages="errorsecond_surname"
-                @input="errorsecond_surname = ''"
+                @update:model-value="errorsecond_surname = ''"
                 class="textUppercase"
               ></v-text-field>
             </v-col>
@@ -85,14 +82,14 @@
             <v-col class="py-2 my-0" cols="12" lg="6" xl="6">
               <v-text-field
                 label="Email*"
-                outlined
+                variant="outlined"
                 persistent-placeholder
-                dense
+                density="compact"
                 prepend-inner-icon="mdi-email"
                 :hide-details="!errorEmail"
                 v-model="$store.state.enterprises.data.email"
                 @change="validarCorreoExiste()"
-                @input="validarCorreoExiste()"
+                @update:model-value="validarCorreoExiste()"
                 @blur="validarCorreoExiste()"
                 :error-messages="errorEmail"
                 id="Email"
@@ -103,9 +100,9 @@
             <v-col class="py-2 my-0" cols="12" lg="6" xl="6">
               <v-text-field
                 label="Email Confirmación*"
-                outlined
+                variant="outlined"
                 persistent-placeholder
-                dense
+                density="compact"
                 prepend-inner-icon="mdi-email-check-outline"
                 v-model="$store.state.enterprises.data.emailconfirmacion"
                 :error-messages="errorEmail"
@@ -125,19 +122,19 @@
             </v-col>
             <v-col class="py-2 my-0" cols="12" lg="6" xl="6">
               <v-text-field
-                outlined
-                dense
+                variant="outlined"
+                density="compact"
                 v-model="$store.state.enterprises.data.clave"
                 :error-messages="errorClave"
                 :type="typePassword ? 'password' : 'text'"
                 label="Contraseña"
                 prepend-inner-icon="mdi-lock"
-                :append-icon="typePassword ? 'mdi-eye' : 'mdi-eye-off'"
-                @click:append="typePassword = !typePassword"
+                :append-inner-icon="typePassword ? 'mdi-eye' : 'mdi-eye-off'"
+                @click:append-inner="typePassword = !typePassword"
                 autocomplete="new-password"
                 class="my-0"
                 :hide-details="!errorClave"
-                @input="errorClave = ''"
+                @update:model-value="errorClave = ''"
               ></v-text-field>
             </v-col>
             <!-- :rules="passwordRules" -->
@@ -145,23 +142,22 @@
               <CboPais
                 @paisSeleccionado="handlePaisSeleccionado"
                 outlined
-                persistent-placeholder="true"
+                persistent-placeholder
                 dense
                 :errorPais="errorPais"
               />
             </v-col>
             <v-col class="py-2 my-0" cols="12" lg="6" xl="6">
               <v-text-field
-                name="name"
                 label="Teléfono*"
-                outlined
+                variant="outlined"
                 persistent-placeholder
-                dense
+                density="compact"
                 prepend-inner-icon="mdi-phone"
                 v-model="$store.state.enterprises.data.phone"
                 :error-messages="errorPhone"
                 :hide-details="!errorPhone"
-                @input="errorPhone = ''"
+                @update:model-value="errorPhone = ''"
               ></v-text-field>
               <p
                 v-if="$store.state.enterprises.data.phone"
@@ -173,16 +169,16 @@
             </v-col>
             <v-col class="py-2 my-0" cols="12">
               <v-btn color="info" v-if="enviarCodigo" @click="enviarCorreo()">
-                <v-icon left>mdi-email-send-outline</v-icon>
+                <v-icon start>mdi-email-arrow-right-outline</v-icon>
                 Enviar Código
               </v-btn>
               <p v-if="mostrarAdvertencia">
                 Ingresa el código de 4 dígitos enviado a tu correo.
 
                 <v-alert
-                  outlined
+                  variant="outlined"
                   icon="mdi-email-alert-outline"
-                  dense
+                  density="compact"
                   color="red"
                 >
                   <p class="my-0 py-0 text--black">
@@ -196,7 +192,7 @@
               </p>
               <v-snackbar
                 v-model="snackbarEmail"
-                :multi-line="multiLine"
+                :min-height="multiLine ? '68' : undefined"
                 :color="colorSnakBar"
                 :timeout="timeout"
               >
@@ -206,11 +202,10 @@
             </v-col>
             <v-col class="py-2 my-0" cols="12" lg="4" xl="4">
               <v-text-field
-                name="name"
                 label="Código de acceso*"
-                outlined
+                variant="outlined"
                 persistent-placeholder
-                dense
+                density="compact"
                 hide-details
                 prepend-inner-icon="mdi-shield-key-outline"
                 v-model="$store.state.enterprises.data.codigo"
@@ -226,31 +221,29 @@
               }}
             </v-col>
             <v-col class="py-2 my-0" cols="6">
-              <a @click="enviarCorreo()" v-if="!enviarCodigo && timeLeft <= 0"
+              <a class="text-primary" @click="enviarCorreo()" v-if="!enviarCodigo && timeLeft <= 0"
                 >Reenviar Código</a
               >
             </v-col>
             <v-col class="py-2 my-0 centrado" cols="12">
               <v-btn
                 color="#1A237E"
-                dark
                 class="custom-button"
                 @click="crearNuevaEmpresa()"
                 block
               >
-                <v-icon left>mdi-rocket-launch</v-icon>
+                <v-icon start>mdi-rocket-launch</v-icon>
                 Iniciar tu PRUEBA GRATUITA por 30 días</v-btn
               >
             </v-col>
             <v-col class="py-2 my-0 centrado" cols="12">
               <v-btn
                 color="#1E88E5"
-                dark
                 class="custom-button"
                 @click="irALogin()"
                 block
               >
-                <v-icon left>mdi-login</v-icon>
+                <v-icon start>mdi-login</v-icon>
                 Ya Tengo una cuenta
               </v-btn>
             </v-col>
@@ -309,7 +302,7 @@
             Hemos enviados estos datos a tu correo, guárdalos para futuros
             ingresos.
           </h3>
-          <v-btn color="info" @click="iniciarConfiguración()" x-large>
+          <v-btn color="info" @click="iniciarConfiguración()" size="x-large">
             Continuar</v-btn
           >
         </div>
@@ -469,7 +462,7 @@ export default {
             this.startTimer();
           } else {
             this.snackbarEmail = !val;
-            this.colorSnakBar = "orange darken-2";
+            this.colorSnakBar = "orange-darken-2";
             this.text = "Ingrese un correo valido.";
             this.icon = "alert";
           }
@@ -507,7 +500,7 @@ export default {
         return false;
       }
       if (
-        this.$refs.frmRegistro.validate() &&
+        (await this.$refs.frmRegistro.validate()).valid &&
         this.$store.state.enterprises.data.id_pais &&
         this.validarCorreo() &&
         !res.estadoflag
@@ -524,7 +517,7 @@ export default {
         } else {
           this.validatedCodigo = res.mensaje;
           this.snackbarEmail = true;
-          this.colorSnakBar = "orange darken-2";
+          this.colorSnakBar = "orange-darken-2";
           this.text = res.mensaje;
           this.icon = "alert";
         }
@@ -597,7 +590,7 @@ export default {
       this.$router.push({ name: "Login" });
     },
   },
-  beforeDestroy() {
+  beforeUnmount() {
     // Asegúrate de limpiar el intervalo si el componente es destruido
     clearInterval(this.intervalId);
   },

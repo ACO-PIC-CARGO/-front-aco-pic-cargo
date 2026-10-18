@@ -9,7 +9,7 @@
         <v-btn
           color="success"
           @click="guardarContactos"
-          small
+          size="small"
           v-if="guardarFlag"
         >
           Guardar
@@ -24,9 +24,9 @@
           >
           </v-checkbox>
 
-          <v-tooltip bottom class="my-auto">
-            <template v-slot:activator="{ on, attrs }">
-              <v-icon v-bind="attrs" v-on="on"> mdi-information </v-icon>
+          <v-tooltip location="bottom" class="my-auto">
+            <template v-slot:activator="{ props }">
+              <v-icon v-bind="props"> mdi-information </v-icon>
             </template>
             <span>
               Al marcar esta opción, este registro se mostrará
@@ -43,7 +43,7 @@
       </v-col>
 
       <v-col cols="12" class="py-1">
-        <v-btn color="info" x-small @click="agregarContacto">
+        <v-btn color="info" size="x-small" @click="agregarContacto">
           Añadir Nuevo Contacto</v-btn
         >
       </v-col>
@@ -61,8 +61,8 @@
             <v-text-field
               hide-details
               v-model="item.contacto"
-              dense
-              outlined
+              density="compact"
+              variant="outlined"
               :disabled="!editable"
               :id="`contactoimport${index}`"
             ></v-text-field>
@@ -71,17 +71,17 @@
             <v-text-field
               hide-details
               v-model="item.email"
-              dense
+              density="compact"
               :disabled="!editable"
-              outlined
+              variant="outlined"
             ></v-text-field>
           </template>
           <template v-slot:[`item.telefono`]="{ item }">
             <v-text-field
               hide-details
               v-model="item.telefono"
-              dense
-              outlined
+              density="compact"
+              variant="outlined"
               :disabled="!editable"
             ></v-text-field>
           </template>
@@ -103,7 +103,7 @@
       </v-col>
 
       <v-col cols="12" class="py-1">
-        <v-btn color="info" x-small @click="agregarContactoExportacion">
+        <v-btn color="info" size="x-small" @click="agregarContactoExportacion">
           Añadir Nuevo Contacto
         </v-btn>
       </v-col>
@@ -121,8 +121,8 @@
             <v-text-field
               hide-details
               v-model="item.contacto"
-              dense
-              outlined
+              density="compact"
+              variant="outlined"
               :disabled="!editable"
               :id="`contactoexport${index}`"
             ></v-text-field>
@@ -131,18 +131,18 @@
             <v-text-field
               hide-details
               v-model="item.email"
-              dense
+              density="compact"
               :disabled="!editable"
-              outlined
+              variant="outlined"
             ></v-text-field>
           </template>
           <template v-slot:[`item.telefono`]="{ item }">
             <v-text-field
               hide-details
               v-model="item.telefono"
-              dense
+              density="compact"
               :disabled="!editable"
-              outlined
+              variant="outlined"
             ></v-text-field>
           </template>
           <template v-slot:[`item.action`]="{ item }">
@@ -178,17 +178,17 @@ export default {
   data() {
     return {
       headers: [
-        { text: "#", value: "index" },
+        { title: "#", key: "index" },
 
         {
-          text: "Contacto",
+          title: "Contacto",
           align: "start",
           sortable: false,
-          value: "contacto",
+          key: "contacto",
         },
-        { text: "Email", value: "email" },
-        { text: "Telefono", value: "telefono" },
-        { text: "Activo/ Inactivo", value: "action" },
+        { title: "Email", key: "email" },
+        { title: "Telefono", key: "telefono" },
+        { title: "Activo/ Inactivo", key: "action" },
       ],
       principalflag: false,
     };
@@ -253,7 +253,7 @@ export default {
 
       var config = {
         method: "post",
-        url: process.env.VUE_APP_URL_MAIN + "entitie/guardar_datos_tarifas",
+        url: import.meta.env.VUE_APP_URL_MAIN + "entitie/guardar_datos_tarifas",
         headers: {
          
           "Content-Type": "application/json",

@@ -9,9 +9,9 @@
                 <v-autocomplete
                   :items="$store.state.pricing.listModality"
                   label="Modalidad"
-                  outlined
-                  dense
-                  item-text="name"
+                  variant="outlined"
+                  density="compact"
+                  item-title="name"
                   item-value="id"
                   v-model="id_modality"
                   :rules="[(v) => !!v || 'Dato Requerido']"
@@ -21,9 +21,9 @@
                 <v-autocomplete
                   :items="$store.state.pricing.listShipment"
                   label="Tipo Mercancía"
-                  outlined
-                  dense
-                  item-text="embarque"
+                  variant="outlined"
+                  density="compact"
+                  item-title="embarque"
                   item-value="id"
                   v-model="id_shipment"
                   :rules="[(v) => !!v || 'Dato Requerido']"
@@ -45,7 +45,7 @@
         <v-col cols="12">
           <v-data-table :headers="headersIcoterms" :items="lstIncoterms">
             <template v-slot:[`item.action`]="{ item }">
-              <v-btn
+              <v-btn variant="text"
                 color="#E65100"
                 @click="abrirModal(item.id, item.name)"
                 icon
@@ -142,7 +142,7 @@
                 item-text="namelong"
                 item-value="id"
                 :items="$store.state.proveedor.lstProveedores"
-                @update:search-input="recargarProveedores"
+                @update:search="recargarProveedores"
                 v-model="item.id_proveedor"
                 hide-details
                 outlined
@@ -175,20 +175,20 @@ export default {
       dialog: false,
       editarflag: false,
       headersIcoterms: [
-        { value: "name", text: "Incoterms", width: "40%" },
-        { value: "updated_config", text: "Ult. Fecha Modif", width: "40%" },
-        { value: "action", text: "", width: "20%" },
+        { key: "name", title: "Incoterms", width: "40%" },
+        { key: "updated_config", title: "Ult. Fecha Modif", width: "40%" },
+        { key: "action", title: "", width: "20%" },
       ],
       headers: [
         // { value: "incoterms", text: "Inc.", width: "5%" },
         // { key: "id_proveedor", text: "id_proveedor" },
-        { value: "proveedor", text: "Proveedor", width: "25%" },
+        { key: "proveedor", title: "Proveedor", width: "25%" },
         // { key: "id_costo", text: "id_costo" },
         // { value: "id_multiplicador", text: "id_multiplicador" },
-        { value: "multiplicador", text: "Multiplicador", width: "25%" },
-        { value: "costo", text: "Costo", width: "30%" },
-        { value: "precio", text: "Precio", width: "10%" },
-        { value: "status", text: "Status", width: "5%" },
+        { key: "multiplicador", title: "Multiplicador", width: "25%" },
+        { key: "costo", title: "Costo", width: "30%" },
+        { key: "precio", title: "Precio", width: "10%" },
+        { key: "status", title: "Status", width: "5%" },
       ],
       id_modality: "",
       id_shipment: "",
@@ -248,7 +248,7 @@ export default {
       });
     },
     async abrirModal(id, incoterms) {
-      if (!this.$refs.frmBuscar.validate()) {
+      if (!(await this.$refs.frmBuscar.validate()).valid) {
         return;
       }
       this.loading = true;

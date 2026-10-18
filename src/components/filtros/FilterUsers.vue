@@ -1,9 +1,9 @@
 <template>
   <v-card>
-    <v-card-title primary-title>
+    <v-card-title class="d-flex align-center flex-wrap" primary-title>
       {{ getName() }}
       <v-spacer></v-spacer>
-      <v-btn
+      <v-btn variant="text"
         icon
         color="default"
         @click="$store.state.user.drawer = !$store.state.user.drawer"
@@ -18,11 +18,13 @@
             label="Tipo Documento"
             :items="$store.state.itemsDocumentsPais"
             v-model="$store.state.user.filtros.id_document"
-            item-text="name"
+            item-title="name"
             item-value="id"
             clearable
-          ></v-autocomplete>
+          >
+          </v-autocomplete>
         </div>
+
         <div class="col-12 py-1">
           <v-text-field
             v-model="$store.state.user.filtros.document"
@@ -59,7 +61,7 @@
         </div>
         <div class="col-12 py-1">
           <span> Estado</span>
-          <v-radio-group v-model="$store.state.user.filtros.status" row dense>
+          <v-radio-group v-model="$store.state.user.filtros.status" inline density="compact">
             <v-radio label="Activo" color="green" value="1"></v-radio>
             <v-radio label="Inactivo" color="red" value="0"></v-radio>
             <v-radio label="Todos" color="blue" value="null"></v-radio>
@@ -154,7 +156,7 @@ export default {
     },
     async Aceptar() {
       if (this.$store.state.user.tipo == "nuevo") {
-        if (this.$refs.frmDML.validate()) {
+        if ((await this.$refs.frmDML.validate()).valid) {
           this.loading = true;
           await this.setTown();
           await this.GetListUsers();

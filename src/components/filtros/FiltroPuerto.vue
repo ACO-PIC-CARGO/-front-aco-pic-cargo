@@ -1,9 +1,9 @@
 <template>
   <v-card>
-    <v-card-title primary-title>
+    <v-card-title class="d-flex align-center flex-wrap" primary-title>
       {{ getName() }}
       <v-spacer></v-spacer>
-      <v-btn
+      <v-btn variant="text"
         icon
         color="default"
         @click="$store.state.puerto.drawer = !$store.state.puerto.drawer"
@@ -17,7 +17,7 @@
           label="Tipo Transporte"
           :items="$store.state.transport.list"
           v-model="$store.state.puerto.PortFilter.id_transporte"
-          item-text="name"
+          item-title="name"
           item-value="id"
           :clearable="$store.state.puerto.tipo != 'ver'"
         >
@@ -28,7 +28,7 @@
           label="Pais"
           :items="$store.state.itemsPais"
           v-model="$store.state.puerto.PortFilter.id_pais"
-          item-text="name"
+          item-title="name"
           item-value="id"
           :clearable="$store.state.puerto.tipo != 'ver'"
         >
@@ -60,8 +60,8 @@
         <span> Estado</span>
         <v-radio-group
           v-model="$store.state.puerto.PortFilter.status"
-          row
-          dense
+          inline
+          density="compact"
         >
           <v-radio label="Activo" color="green" value="1"></v-radio>
           <v-radio label="Inactivo" color="red" value="0"></v-radio>
@@ -77,10 +77,10 @@
             :items="$store.state.transport.list"
             v-model="$store.state.puerto.PortModel.id_transporte"
             :readonly="$store.state.puerto.tipo != 'nuevo'"
-            item-text="name"
+            item-title="name"
             item-value="id"
             :rules="[(v) => !!v || 'Dato Requerido']"
-            :item-disabled="(item) => item.status != 1"
+            :item-props="(item) => ({ disabled: item.status != 1 })"
           >
           </v-autocomplete>
         </div>
@@ -90,10 +90,10 @@
             :items="$store.state.itemsPais"
             v-model="$store.state.puerto.PortModel.id_pais"
             :readonly="$store.state.puerto.tipo == 'ver'"
-            item-text="name"
+            item-title="name"
             item-value="id"
             :rules="[(v) => !!v || 'Dato Requerido']"
-            :item-disabled="(item) => item.status != 1"
+            :item-props="(item) => ({ disabled: item.status != 1 })"
           >
           </v-autocomplete>
         </div>
@@ -241,7 +241,7 @@ export default {
     },
     async Aceptar() {
       if (this.$store.state.puerto.tipo == "nuevo") {
-        if (this.$refs.frmDML.validate()) {
+        if ((await this.$refs.frmDML.validate()).valid) {
           this.loading = true;
           await this.setPuerto();
           await this.GetListPort();
@@ -250,7 +250,7 @@ export default {
       }
       if (this.$store.state.puerto.tipo == "editar") {
         this.loading = true;
-        if (this.$refs.frmDML.validate()) {
+        if ((await this.$refs.frmDML.validate()).valid) {
           await this.ActualizarPuerto();
           await this.GetListPort();
         }

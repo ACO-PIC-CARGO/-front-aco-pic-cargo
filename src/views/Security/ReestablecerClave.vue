@@ -15,41 +15,39 @@
             <v-col cols="12" class="py-0">
               <v-text-field
                 label="Email"
-                outlined
+                variant="outlined"
                 v-model="email"
-                dense
+                density="compact"
               ></v-text-field>
             </v-col>
             <v-col cols="12" class="py-0">
               <v-text-field
-                outlined
+                variant="outlined"
                 label="Clave"
                 :type="esClave ? 'password' : 'text'"
-                id="id"
                 v-model="clave"
-                dense
+                density="compact"
               ></v-text-field>
             </v-col>
             <v-col cols="12" class="py-0">
               <v-text-field
-                outlined
+                variant="outlined"
                 label="Confirmar Clave"
                 :type="esClave ? 'password' : 'text'"
-                id="id"
                 v-model="confirmaclave"
-                dense
+                density="compact"
               ></v-text-field>
             </v-col>
             <v-col cols="12" class="py-0">
               <v-btn
                 color="success"
-                x-small
+                size="x-small"
                 class="mx-1"
                 @click="reestablecerClave()"
               >
                 Reestablecer Clave
               </v-btn>
-              <v-btn color="error" x-small class="mx-1"> Ir al Login </v-btn>
+              <v-btn color="error" size="x-small" class="mx-1"> Ir al Login </v-btn>
             </v-col>
           </v-row>
         </v-card>
@@ -74,7 +72,7 @@ export default {
     
     await axios({
       method: "get",
-      url: `${process.env.VUE_APP_URL_MAIN}validar_token_recuperar_clave?token=${this.$route.params.token}`,
+      url: `${import.meta.env.VUE_APP_URL_MAIN}validar_token_recuperar_clave?token=${this.$route.params.token}`,
     })
       .then((response) => {
         if (!response.data.estadoflag) {
@@ -108,7 +106,7 @@ export default {
         return;
       }
       axios
-        .put(`${process.env.VUE_APP_URL_MAIN}reestablecer_clave`, {
+        .put(`${import.meta.env.VUE_APP_URL_MAIN}reestablecer_clave`, {
           email: this.email,
           clave: this.clave,
           token: this.$route.params.token,

@@ -96,7 +96,7 @@
       </v-col>
 
       <v-col cols="12" class="derecha">
-        <template>
+        
           <div class="text-center">
             <v-pagination
               v-model="$store.state.pricing.page"
@@ -104,16 +104,17 @@
                 $store.state.pricing.opcionCostos.filter((v) => v.selected)
                   .length
               "
-              circle
+              rounded
             ></v-pagination>
           </div>
-        </template>
+        
       </v-col>
     </v-row>
   </v-card>
 </template>
 
 <script>
+import { defineAsyncComponent } from "vue";
 import moment from "moment";
 // import Swal from "sweetalert2";
 export default {
@@ -130,9 +131,9 @@ export default {
     );
   },
   components: {
-    CostosComponent: () => import("./Costos/CostosComponent.vue"),
-    VentasComponent: () => import("./Costos/VentasComponent.vue"),
-    ImpuestosComponent: () => import("./Costos/ImpuestosComponent.vue"),
+    CostosComponent: defineAsyncComponent(() => import("./Costos/CostosComponent.vue")),
+    VentasComponent: defineAsyncComponent(() => import("./Costos/VentasComponent.vue")),
+    ImpuestosComponent: defineAsyncComponent(() => import("./Costos/ImpuestosComponent.vue")),
   },
   methods: {
     mostrarImpuestos() {
@@ -142,8 +143,8 @@ export default {
 
       return imp;
     },
-    agregarNuevaOpcion() {
-      if (this.$refs.frmDatosOpcion.validate()) {
+    async agregarNuevaOpcion() {
+      if ((await this.$refs.frmDatosOpcion.validate()).valid) {
         let nro_propuesta = this.$store.state.pricing.index + 1;
         let costos = this.$store.state.pricing.listCostos.map((objeto) => ({
           ...objeto,
@@ -221,7 +222,7 @@ export default {
   text-align: right !important;
   align-content: right !important;
 }
-.v-btn.v-size--x-large {
+.v-btn.v-btn--size-x-large {
   font-size: 1.5rem !important;
 }
 </style>

@@ -1,14 +1,14 @@
 <template>
   <div>
     <h3>Datos y Servicios a Realizar</h3>
-    <v-row dense>
+    <v-row density="compact">
       <v-col cols="12" md="4">
         <v-text-field
           readonly
           v-model="$store.state.house_master_expediente"
           label="N° de Expedientes Master"
-          append-icon="mdi-eye"
-          @click:append="irAMaster()"
+          append-inner-icon="mdi-eye"
+          @click:append-inner="irAMaster()"
         ></v-text-field>
       </v-col>
       <!-- <v-col cols="12" md="6">
@@ -22,11 +22,11 @@
         <v-autocomplete
           label="Cot Nro"
           :items="$store.state.pricing.listQuotes"
-          item-text="code"
+          item-title="code"
           item-value="id"
-          :search-input.sync="searchHouseCotizacion"
-          @change="asignarDatos()"
+          v-model:search="searchHouseCotizacion"
           v-model="$store.state.house_cotizacion"
+          @update:model-value="asignarDatos()"
           clearable
           :disabled="bloquearQuote"
         >
@@ -36,56 +36,56 @@
         <v-autocomplete
           label="Aduana Asociado al House"
           :items="$store.state.aduana.listQuotes2"
-          item-text="quote"
+          item-title="quote"
           item-value="id"
-          :search-input.sync="searchHouseCotizacionAduana"
-          @change="asignarDatosAduana()"
+          v-model:search="searchHouseCotizacionAduana"
           v-model="$store.state.house_cotizacionaduana"
+          @update:model-value="asignarDatosAduana()"
           clearable
-          :item-disabled="aduanaaprobada"
+          :item-props="(item) => ({ disabled: aduanaaprobada(item) })"
           :disabled="bloquearQuote"
         >
         </v-autocomplete>
       </v-col>
     </v-row>
-    <v-row dense>
+    <v-row density="compact">
       <v-col cols="12" md="4">
         <v-autocomplete
           :items="$store.state.itemsModality"
-          item-text="name"
+          item-title="name"
           item-value="id"
           label="Sentido"
-          @change="_getDataService()"
           v-model="$store.state.house_sentido"
+          @update:model-value="_getDataService()"
         ></v-autocomplete>
       </v-col>
       <v-col cols="12" md="4">
         <v-autocomplete
           :items="$store.state.itemsShipment"
-          item-text="embarque"
+          item-title="embarque"
           item-value="id"
           label="Tipo de Embarque"
           return-object
           v-model="$store.state.house_id_trasnport"
-          @change="_activePort($store.state.house_id_trasnport.id_transport)"
+          @update:model-value="_activePort($store.state.house_id_trasnport.id_transport)"
         ></v-autocomplete>
       </v-col>
       <v-col cols="12" md="4">
         <v-autocomplete
           :items="$store.state.itemsIncoterms"
-          item-text="name"
+          item-title="name"
           item-value="id"
           label="Incoterms"
           v-model="$store.state.house_incoterms"
-          @change="_getDataService()"
+          @update:model-value="_getDataService()"
         ></v-autocomplete>
       </v-col>
     </v-row>
-    <v-row dense>
+    <v-row density="compact">
       <v-col cols="12" md="4">
         <v-autocomplete
           :items="$store.state.itemsPortBegin"
-          item-text="name"
+          item-title="name"
           item-value="id_port"
           label="Origen"
           readonly
@@ -95,7 +95,7 @@
       <v-col cols="12" md="4">
         <v-autocomplete
           :items="$store.state.itemsPortEnd"
-          item-text="name"
+          item-title="name"
           item-value="id_port"
           label="Destino"
           readonly
@@ -105,15 +105,19 @@
       <v-col cols="12" md="4">
         <v-autocomplete
           :items="$store.state.itemsColoaders"
-          item-text="namelong"
+          item-title="namelong"
           item-value="id"
           label="Coloader"
           v-model="$store.state.house_id_coloader"
-        ></v-autocomplete>
+        >
+          <template #selection="{ item, internalItem }">
+            <span v-if="typeof item === 'object'" class="v-autocomplete__selection-text">{{ internalItem.title }}</span>
+          </template>
+        </v-autocomplete>
       </v-col>
     </v-row>
 
-    <v-row dense class="mt-0">
+    <v-row density="compact" class="mt-0">
       <v-col cols="12" md="4">
         <v-text-field
           type="number"
@@ -141,9 +145,9 @@
 
     <v-dialog v-model="$store.state.modalServices_manualMode" max-width="400">
       <v-card>
-        <v-card-title class="text-h6">
+        <v-card-title class="text-h6 d-flex align-center flex-wrap">
           Agregar Servicio Manual <v-spacer></v-spacer>
-          <v-btn
+          <v-btn variant="text"
             icon
             color="red"
             @click="
@@ -161,7 +165,7 @@
                 <v-col cols="12">
                   <v-autocomplete
                     :items="$store.state.itemsBegEndList"
-                    item-text="name"
+                    item-title="name"
                     item-value="id"
                     label="Ubicación/Tramo"
                     v-model="house_service_id_begend"
@@ -181,14 +185,13 @@
         </v-card-text>
         <v-card-actions>
           <v-spacer></v-spacer>
-          <v-btn color="red" rounded dark @click="cancelNewService"
+          <v-btn color="red" rounded @click="cancelNewService"
             >CANCELAR
           </v-btn>
           <v-btn
             color="success"
             class="ml-2"
             rounded
-            dark
             @click="setNewService"
             >ACEPTAR
           </v-btn>
@@ -205,22 +208,22 @@
       class="classDialog"
     >
       <v-card cass="px-5">
-        <v-card-title primary-title>
+        <v-card-title class="d-flex align-center flex-wrap" primary-title>
           OPCIÓN SOBRE LOS COSTOS
           <v-spacer></v-spacer>
-          <v-btn icon color="default" @click="dialogCostos = !dialogCostos">
+          <v-btn variant="text" icon color="default" @click="dialogCostos = !dialogCostos">
             <v-icon>mdi-close</v-icon>
           </v-btn>
         </v-card-title>
         <v-card-text>
-          <v-autocomplete
+          <v-autocomplete item-title="text"
             :items="optionCostos"
             v-model="id_opcion"
             item-value="id"
-            @change="validarExistePagosMaster"
+            @update:model-value="validarExistePagosMaster"
           />
         </v-card-text>
-        <p class="red--text mx-5 my-0">
+        <p class="text-red mx-5 my-0">
           {{ textValidacionPago }}
         </p>
         <v-card-actions>
@@ -228,7 +231,7 @@
           <!-- <v-btn class="mx-1" small color="success" @click="aprobar"> -->
           <v-btn
             class="mx-1"
-            small
+            size="small"
             color="success"
             @click="asociarCotizacionP"
             :disabled="activarBtnContinuar"
@@ -237,7 +240,7 @@
           </v-btn>
           <v-btn
             class="mx-1"
-            small
+            size="small"
             color="error"
             @click="dialogCostos = !dialogCostos"
           >
@@ -255,22 +258,22 @@
       class="classDialog"
     >
       <v-card cass="px-5">
-        <v-card-title primary-title>
+        <v-card-title class="d-flex align-center flex-wrap" primary-title>
           OPCIÓN SOBRE LOS COSTOS
           <v-spacer></v-spacer>
-          <v-btn icon color="default" @click="dialogCostos = !dialogCostos">
+          <v-btn variant="text" icon color="default" @click="dialogCostos = !dialogCostos">
             <v-icon>mdi-close</v-icon>
           </v-btn>
         </v-card-title>
         <v-card-text>
-          <v-autocomplete
+          <v-autocomplete item-title="text"
             :items="optionCostos"
             v-model="id_opcion"
             item-value="id"
-            @change="validarExistePagosMaster"
+            @update:model-value="validarExistePagosMaster"
           />
         </v-card-text>
-        <p class="red--text mx-5 my-0">
+        <p class="text-red mx-5 my-0">
           {{ textValidacionPago }}
         </p>
         <v-card-actions>
@@ -278,7 +281,7 @@
           <!-- <v-btn class="mx-1" small color="success" @click="aprobar"> -->
           <v-btn
             class="mx-1"
-            small
+            size="small"
             color="success"
             @click="asociarCotizacionA"
             :disabled="activarBtnContinuar"
@@ -287,7 +290,7 @@
           </v-btn>
           <v-btn
             class="mx-1"
-            small
+            size="small"
             color="error"
             @click="dialogCostos = !dialogCostos"
           >
@@ -304,20 +307,23 @@
         <v-card-text>
           <v-autocomplete
             :items="$store.state.clientes"
-            item-text="namelong"
+            item-title="namelong"
             item-value="id"
             label="Cliente HBL"
             v-model="$store.state.house_id_consigner"
             :error-messages="error"
+            menu-icon=""
           >
-            <v-icon
-              @click.native="_callModalEntitie(11)"
-              slot="append"
-              class="btn__add"
-              color="primary"
-            >
-              mdi-plus
-            </v-icon>
+            <template v-slot:append-inner>
+              <v-icon
+                @mousedown.stop
+                @click.stop="_callModalEntitie(11)"
+                class="btn__add"
+                color="primary"
+              >
+                mdi-plus
+              </v-icon>
+            </template>
           </v-autocomplete>
         </v-card-text>
         <v-card-actions>
@@ -660,7 +666,7 @@ export default {
 
       var config = {
         method: "put",
-        url: process.env.VUE_APP_URL_MAIN + "setHouseEdit",
+        url: import.meta.env.VUE_APP_URL_MAIN + "setHouseEdit",
         headers: {
          
           "Content-Type": "application/json",
@@ -737,7 +743,7 @@ export default {
       if (this.id_opcion == "1") {
         var config = {
           method: "get",
-          url: process.env.VUE_APP_URL_MAIN + "validar_existe_pago_master",
+          url: import.meta.env.VUE_APP_URL_MAIN + "validar_existe_pago_master",
           headers: {
             "Content-Type": "application/json",
            
@@ -903,7 +909,7 @@ export default {
       //   };
       //   var config = {
       //     method: "post",
-      //     url: process.env.VUE_APP_URL_MAIN + "getHouseListId/",
+      //     url: import.meta.env.VUE_APP_URL_MAIN + "getHouseListId/",
       //     headers: {
       //      
       //       "Content-Type": "application/json",
@@ -1024,9 +1030,9 @@ export default {
       // this._getBitacoraList();
       // this._getBitacoraLineal();
     },
-    setNewService() {
+    async setNewService() {
       var vm = this;
-      if (vm.$refs.formNewService.validate()) {
+      if ((await vm.$refs.formNewService.validate()).valid) {
         const dataBegend =
           vm.$store.state.itemsBegEndList.find(
             (v) => v.id === vm.house_service_id_begend,
@@ -1072,7 +1078,7 @@ export default {
       var config = {
         method: "get",
         url:
-          process.env.VUE_APP_URL_MAIN +
+          import.meta.env.VUE_APP_URL_MAIN +
           `ver_proveedor?id=${vm.$store.state.house_id_consigner}`,
         headers: {
          

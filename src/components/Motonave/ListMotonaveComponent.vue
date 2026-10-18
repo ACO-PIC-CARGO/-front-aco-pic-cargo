@@ -8,30 +8,29 @@
             placeholder="Buscar"
             v-model="search"
             clearable
-            append-icon="mdi-magnify"
+            append-inner-icon="mdi-magnify"
           ></v-text-field>
         </v-col>
         <v-col cols="4" offset="4" class="text-right my-auto">
-          <v-btn small color="success" @click="nuevo()">NUEVO</v-btn>
+          <v-btn size="small" color="success" @click="nuevo()">NUEVO</v-btn>
           <v-btn
-            small
+            size="small"
             class="mx-1"
             color="#2962FF"
             @click="
               ($store.state.motonave.drawer = !$store.state.motonave.drawer) &&
                 ($store.state.motonave.tipo = 'filter')
             "
-            dark
             >FILTRAR</v-btn
           >
-          <v-btn small class="mx-1" color="#004D40" dark>EXPORTAR</v-btn>
+          <v-btn size="small" class="mx-1" color="#004D40">EXPORTAR</v-btn>
         </v-col>
         <v-col cols="12">
           <v-data-table
             :headers="headers"
             :items="$store.state.motonave.lstMotonave"
             class="elevation-1"
-            item-key="port_beginend_id"
+            item-value="port_beginend_id"
             :loading="loading"
             :search="search"
           >
@@ -39,25 +38,24 @@
               {{ !!item.status == 1 ? "Activo" : "Inactivo" }}
             </template>
             <template v-slot:[`item.statuscalls`]="{ item }">
-              <v-chip color="green" v-if="item.status_calls == 1" dark
+              <v-chip color="green" v-if="item.status_calls == 1"
                 >Si</v-chip
               >
-              <v-chip color="red" v-else dark>No</v-chip>
+              <v-chip color="red" v-else>No</v-chip>
             </template>
             <template v-slot:[`item.statuscalls_all`]="{ item }">
-              <v-chip color="green" v-if="item.status_calls_all == 1" dark
+              <v-chip color="green" v-if="item.status_calls_all == 1"
                 >Si</v-chip
               >
-              <v-chip color="red" v-else dark>No</v-chip>
+              <v-chip color="red" v-else>No</v-chip>
             </template>
             <template v-slot:[`item.action`]="{ item }">
-              <v-tooltip bottom>
-                <template v-slot:activator="{ on, attrs }">
+              <v-tooltip location="bottom">
+                <template v-slot:activator="{ props }">
                   <v-icon
                     color="primary"
-                    dark
-                    v-bind="attrs"
-                    v-on="on"
+                   
+                    v-bind="props"
                     @click="ver(item)"
                   >
                     mdi-eye
@@ -65,13 +63,12 @@
                 </template>
                 <span>Ver</span>
               </v-tooltip>
-              <v-tooltip bottom>
-                <template v-slot:activator="{ on, attrs }">
+              <v-tooltip location="bottom">
+                <template v-slot:activator="{ props }">
                   <v-icon
                     color="warning"
-                    dark
-                    v-bind="attrs"
-                    v-on="on"
+                   
+                    v-bind="props"
                     @click="editar(item)"
                   >
                     mdi-pencil
@@ -79,13 +76,12 @@
                 </template>
                 <span>Editar</span>
               </v-tooltip>
-              <v-tooltip bottom v-if="item.status == 1">
-                <template v-slot:activator="{ on, attrs }">
+              <v-tooltip location="bottom" v-if="item.status == 1">
+                <template v-slot:activator="{ props }">
                   <v-icon
                     color="error"
-                    dark
-                    v-bind="attrs"
-                    v-on="on"
+                   
+                    v-bind="props"
                     @click="eliminar(item)"
                   >
                     mdi-delete
@@ -110,12 +106,12 @@ export default {
       search: "",
       loading: false,
       headers: [
-        { text: "Nombre", value: "name" },
-        { text: "Descripción", value: "description" },
-        { text: "Estado", value: "estado" },
-        { text: "Creación", value: "created_at" },
-        { text: "Última Actualización", value: "updated_at" },
-        { text: "Acciones", value: "action" },
+        { title: "Nombre", key: "name" },
+        { title: "Descripción", key: "description" },
+        { title: "Estado", key: "estado" },
+        { title: "Creación", key: "created_at" },
+        { title: "Última Actualización", key: "updated_at" },
+        { title: "Acciones", key: "action" },
       ],
     };
   },

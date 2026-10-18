@@ -3,10 +3,8 @@
     <MotonaveComponent />
     <v-navigation-drawer
       v-model="$store.state.motonave.drawer"
-      right
-      absolute
-      bottom
-      persistent
+      location="right"
+      
       width="30%"
       temporary
     >
@@ -16,11 +14,12 @@
 </template>
 
 <script>
+import { defineAsyncComponent } from "vue";
 export default {
   components: {
-    MotonaveComponent: () =>
-      import("../../components/Motonave/ListMotonaveComponent.vue"),
-    FilterMotonave: () => import("../../components/filtros/FilterMotonave.vue"),
+    MotonaveComponent: defineAsyncComponent(() =>
+      import("../../components/Motonave/ListMotonaveComponent.vue")),
+    FilterMotonave: defineAsyncComponent(() => import("../../components/filtros/FilterMotonave.vue")),
   },
   mounted() {
     this.$store.state.mainTitle = `LISTADO DE ESTADOS DE MOTO NAVES`;

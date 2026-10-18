@@ -3,14 +3,17 @@
     <v-main>
       <router-view />
     </v-main>
-    <v-overlay :value="$store.state.spiner">
-      <v-row class="fill-height" align-content="center" justify="center">
+    <v-overlay
+      :model-value="$store.state.spiner"
+      class="align-center justify-center"
+    >
+      <v-row class="fill-height align-content-center justify-center">
         <v-col class="text-subtitle-1 text-center" cols="12">
           Cargando Datos, espere un momento por favor...
         </v-col>
         <v-col cols="6">
           <v-progress-linear
-            color="deep-purple accent-4"
+            color="deep-purple-accent-4"
             indeterminate
             rounded
             height="6"
@@ -45,9 +48,9 @@
       v-if="dialogVersion"
       persistent
       v-model="dialogVersion"
-      :width="$vuetify.breakpoint.smAndDown ? '100%' : '25%'"
+      :width="$vuetify.display.smAndDown ? '100%' : '25%'"
     >
-      <v-card class="px-1 py-2 text-center" elevation="2">
+      <v-card class="px-1 py-2 text-center align-center" elevation="2">
         <v-icon color="success" style="font-size: 6em"
           >mdi-check-circle-outline</v-icon
         >
@@ -72,7 +75,7 @@
     </v-dialog>
 
     <v-dialog v-model="dialogExito" max-width="400">
-      <v-card class="text-center pa-4">
+      <v-card class="text-center align-center pa-4">
         <v-icon color="success" style="font-size: 5em">mdi-thumb-up</v-icon>
         <h3 class="my-2">¡Gracias!</h3>
         <p>¡Ya tienes la última versión de ACO!</p>
@@ -86,15 +89,15 @@
       <v-card class="rounded-lg elevation-4">
         <!-- Barra superior de advertencia -->
         <v-card-title
-          class="headline error white--text py-3 px-4 d-flex align-center"
+          class="text-h5 bg-error text-white py-3 px-4 d-flex align-center"
         >
-          <v-icon left dark large class="mr-2">mdi-power-plug-off</v-icon>
+          <v-icon start size="large" class="mr-2">mdi-power-plug-off</v-icon>
           <span class="font-weight-bold">SISTEMA EN MANTENIMIENTO</span>
         </v-card-title>
 
         <v-card-text class="pt-4 pb-4">
           <v-container fluid>
-            <v-row align="center" justify="center">
+            <v-row class="align-center justify-center">
               <!-- Columna del ícono -->
               <v-col cols="4" class="text-center">
                 <v-img
@@ -107,7 +110,7 @@
 
               <!-- Columna del mensaje -->
               <v-col cols="8">
-                <div class="text-body-1 grey--text text--darken-3">
+                <div class="text-body-1 text-grey-darken-3">
                   <p class="font-weight-bold mb-2" style="font-size: 17px">
                     Estimado usuario:
                   </p>
@@ -118,7 +121,7 @@
                     <b>suspendido temporalmente</b>.
                   </p>
                   <p
-                    class="text-caption grey--text text--darken-1 mb-0 font-italic"
+                    class="text-caption text-grey-darken-1 mb-0 font-italic"
                   >
                     Agradecemos su comprensión y paciencia. Estaremos operando
                     con normalidad en breve.
@@ -137,9 +140,9 @@
       width="90%"
     >
       <v-card>
-        <v-card-title class="text-h5">
+        <v-card-title class="text-h5 d-flex align-center flex-wrap">
           Ficha de Clientes <v-spacer></v-spacer>
-          <v-btn
+          <v-btn variant="text"
             icon
             color="red"
             @click="$store.state.modalEntitie = !$store.state.modalEntitie"
@@ -195,8 +198,8 @@
         <v-card-actions>
           <v-spacer></v-spacer>
           <v-btn
-            color="green darken-1"
-            text
+            color="green-darken-1"
+            variant="text"
             @click="$store.state.modalvelocidad = false"
           >
             Cerrar
@@ -215,7 +218,7 @@
                 <v-col cols="12">
                   <v-autocomplete
                     :items="$store.state.itemsContainers"
-                    item-text="name"
+                    item-title="name"
                     item-value="id"
                     return-object
                     label="Tipo de contenedor"
@@ -248,7 +251,7 @@
                 </v-col>
                 <v-col>
                   <v-btn
-                    @click.native="
+                    @click="
                       _setDataContainers(
                         $store.state.master_id_containers.id,
                         $store.state.master_id_containers.name,
@@ -269,8 +272,8 @@
         <v-card-actions>
           <v-spacer></v-spacer>
           <v-btn
-            color="green darken-1"
-            text
+            color="green-darken-1"
+            variant="text"
             @click="$store.state.modalContainers = false"
           >
             Cerrar
@@ -287,7 +290,7 @@
             <v-col cols="4">
               <v-autocomplete
                 :items="$store.state.itemsPhone"
-                item-text="name"
+                item-title="name"
                 item-value="id"
                 label="Tipo de Teléfono"
                 return-object
@@ -308,17 +311,15 @@
                   $store.state.phone_id != '' && $store.state.phone_number != ''
                 "
                 class="mx-2"
-                fab
-                color="teal darken-1
-"
-                dark
+                icon
+                color="teal-darken-1"
                 elevation="0"
                 @click="_addPhones($route.params.id)"
-                ><v-icon x-large>mdi-plus</v-icon></v-btn
+                ><v-icon size="x-large">mdi-plus</v-icon></v-btn
               >
             </v-col>
           </v-row>
-          <v-simple-table dense>
+          <v-table density="compact">
             <template v-slot:default>
               <thead>
                 <tr>
@@ -337,8 +338,8 @@
                   <td>
                     <v-btn
                       @click="_deletePhones(item.id)"
-                      fab
-                      x-small
+                      icon
+                      size="x-small"
                       elevation="0"
                       ><v-icon color="red">mdi-delete</v-icon></v-btn
                     >
@@ -363,19 +364,19 @@
                       class="ml-5"
                       style="text-decoration: none"
                       :href="`tel:+${item.number}`"
-                      ><v-icon color="blue-grey darken-3">mdi-phone</v-icon></a
+                      ><v-icon color="blue-grey-darken-3">mdi-phone</v-icon></a
                     >
                   </td>
                 </tr>
               </tbody>
             </template>
-          </v-simple-table>
+          </v-table>
         </v-card-text>
         <v-card-actions>
           <v-spacer></v-spacer>
           <v-btn
-            color="green darken-1"
-            text
+            color="green-darken-1"
+            variant="text"
             @click="$store.state.modalPhones = false"
           >
             Cerrar
@@ -388,7 +389,7 @@
       <v-card>
         <v-card-title class="text-h5"> Teléfonos </v-card-title>
         <v-card-text>
-          <v-simple-table dense>
+          <v-table density="compact">
             <template v-slot:default>
               <thead>
                 <tr>
@@ -436,19 +437,19 @@
                       class="ml-5"
                       style="text-decoration: none"
                       :href="`tel:+${item.number}`"
-                      ><v-icon color="blue-grey darken-3">mdi-phone</v-icon></a
+                      ><v-icon color="blue-grey-darken-3">mdi-phone</v-icon></a
                     >
                   </td>
                 </tr>
               </tbody>
             </template>
-          </v-simple-table>
+          </v-table>
         </v-card-text>
         <v-card-actions>
           <v-spacer></v-spacer>
           <v-btn
-            color="green darken-1"
-            text
+            color="green-darken-1"
+            variant="text"
             @click="$store.state.modalPhonesEdit = false"
           >
             Cerrar
@@ -484,17 +485,15 @@
                   $store.state.contact_number != ''
                 "
                 class="mx-2"
-                fab
-                color="teal darken-1
-"
-                dark
+                icon
+                color="teal-darken-1"
                 elevation="0"
                 @click="_addContacts()"
-                ><v-icon x-large>mdi-plus</v-icon></v-btn
+                ><v-icon size="x-large">mdi-plus</v-icon></v-btn
               >
             </v-col>
           </v-row>
-          <v-simple-table dense>
+          <v-table density="compact">
             <template v-slot:default>
               <thead>
                 <tr>
@@ -511,7 +510,7 @@
                   <td>{{ item.name }}</td>
                   <td>{{ item.number }}</td>
                   <td>
-                    <v-btn @click="_deleteContacts(i)" fab x-small elevation="0"
+                    <v-btn @click="_deleteContacts(i)" icon size="x-small" elevation="0"
                       ><v-icon color="red">mdi-delete</v-icon></v-btn
                     >
                     <a
@@ -534,19 +533,19 @@
                       class="ml-5"
                       style="text-decoration: none"
                       :href="`tel:+${item.number}`"
-                      ><v-icon color="blue-grey darken-3">mdi-phone</v-icon></a
+                      ><v-icon color="blue-grey-darken-3">mdi-phone</v-icon></a
                     >
                   </td>
                 </tr>
               </tbody>
             </template>
-          </v-simple-table>
+          </v-table>
         </v-card-text>
         <v-card-actions>
           <v-spacer></v-spacer>
           <v-btn
-            color="green darken-1"
-            text
+            color="green-darken-1"
+            variant="text"
             @click="$store.state.modalContacts = false"
           >
             Cerrar
@@ -564,7 +563,7 @@
               <v-autocomplete
                 v-model="$store.state.accountIdTypeAccount"
                 :items="$store.state.itemsDataAccountList"
-                item-text="name"
+                item-title="name"
                 item-value="id"
                 label="Cuenta"
               ></v-autocomplete>
@@ -574,7 +573,7 @@
               <v-autocomplete
                 v-model="$store.state.accountIdBanks"
                 :items="$store.state.itemsDataBanksList"
-                item-text="acronym"
+                item-title="acronym"
                 item-value="id"
                 label="Banco"
               ></v-autocomplete>
@@ -584,7 +583,7 @@
               <v-autocomplete
                 v-model="$store.state.accountIdCoins"
                 :items="$store.state.itemsCoinsList"
-                item-text="acronym"
+                item-title="acronym"
                 item-value="id"
                 label="Moneda"
               ></v-autocomplete>
@@ -603,17 +602,15 @@
               <v-btn
                 v-if="$store.state.accountNumer != ''"
                 class="mx-2"
-                fab
-                color="teal darken-1
-"
-                dark
+                icon
+                color="teal-darken-1"
                 elevation="0"
                 @click="_setAccounts()"
-                ><v-icon x-large>mdi-plus</v-icon></v-btn
+                ><v-icon size="x-large">mdi-plus</v-icon></v-btn
               >
             </v-col>
           </v-row>
-          <v-simple-table dense>
+          <v-table density="compact">
             <template v-slot:default>
               <thead>
                 <tr>
@@ -635,7 +632,7 @@
                   <td>{{ item.accountnumber }}</td>
                   <td>
                     <v-btn
-                      @click.native="_delAccount(item.id)"
+                      @click="_delAccount(item.id)"
                       color="white"
                       elevation="0"
                       ><v-icon color="error">mdi-delete</v-icon></v-btn
@@ -644,13 +641,13 @@
                 </tr>
               </tbody>
             </template>
-          </v-simple-table>
+          </v-table>
         </v-card-text>
         <v-card-actions>
           <v-spacer></v-spacer>
           <v-btn
-            color="green darken-1"
-            text
+            color="green-darken-1"
+            variant="text"
             @click="$store.state.modalCuentas = false"
           >
             Cerrar
@@ -696,7 +693,7 @@
               >
             </v-col> -->
           </v-row>
-          <v-simple-table dense>
+          <v-table density="compact">
             <template v-slot:default>
               <thead>
                 <tr>
@@ -736,19 +733,19 @@
                       class="ml-5"
                       style="text-decoration: none"
                       :href="`tel:+${item.number}`"
-                      ><v-icon color="blue-grey darken-3">mdi-phone</v-icon></a
+                      ><v-icon color="blue-grey-darken-3">mdi-phone</v-icon></a
                     >
                   </td>
                 </tr>
               </tbody>
             </template>
-          </v-simple-table>
+          </v-table>
         </v-card-text>
         <v-card-actions>
           <v-spacer></v-spacer>
           <v-btn
-            color="green darken-1"
-            text
+            color="green-darken-1"
+            variant="text"
             @click="$store.state.modalContactsEdit = false"
           >
             Cerrar
@@ -759,9 +756,9 @@
 
     <v-dialog v-model="$store.state.modalServices" max-width="400">
       <v-card>
-        <v-card-title class="text-h5">
+        <v-card-title class="text-h5 d-flex align-center flex-wrap">
           Control de Servicios <v-spacer></v-spacer>
-          <v-btn
+          <v-btn variant="text"
             icon
             color="red"
             @click="$store.state.modalServices = !$store.state.modalServices"
@@ -786,6 +783,7 @@
 </template>
 
 <script>
+import { defineAsyncComponent } from "vue";
 import { io } from "socket.io-client";
 import { mapActions, mapState } from "vuex";
 import axios from "@/api/axios-config";
@@ -794,7 +792,7 @@ import { getRegistration } from "./registerServiceWorker";
 
 export default {
   created() {
-    this.socket = io(process.env.VUE_APP_URL_MAIN, {
+    this.socket = io(import.meta.env.VUE_APP_URL_MAIN, {
       transports: ["polling"],
     });
     this.socket.on("connect_error", (err) => {
@@ -832,7 +830,7 @@ export default {
         if (data.power == 1) {
           this.dialogPower = false;
         }
-        if (data.version != process.env.VUE_APP_VERSION) {
+        if (data.version != import.meta.env.VUE_APP_VERSION) {
           this.dialogVersion = true;
         }
       }
@@ -861,8 +859,8 @@ export default {
   },
   async beforeMount() {
     sessionStorage.removeItem("hasReloaded");
-    sessionStorage.setItem("version", process.env.VUE_APP_VERSION);
-    localStorage.setItem("version", process.env.VUE_APP_VERSION);
+    sessionStorage.setItem("version", import.meta.env.VUE_APP_VERSION);
+    localStorage.setItem("version", import.meta.env.VUE_APP_VERSION);
   },
 
   computed: {},
@@ -924,8 +922,8 @@ export default {
         this.dialogWelcome = true;
       }
     },
-    _setDataContainers(id, name, nrocontainer, nroprecinto, cantidad) {
-      if (this.$refs.formContenedor.validate()) {
+    async _setDataContainers(id, name, nrocontainer, nroprecinto, cantidad) {
+      if ((await this.$refs.formContenedor.validate()).valid) {
         this.$store.state.master_itemsContainers.push({
           id_container: id,
           name: name,
@@ -957,7 +955,7 @@ export default {
       };
       var config = {
         method: "post",
-        url: process.env.VUE_APP_URL_MAIN + "getVersion",
+        url: import.meta.env.VUE_APP_URL_MAIN + "getVersion",
         headers: {
           "Content-Type": "application/json",
         },
@@ -996,7 +994,7 @@ export default {
       var vm = this;
       var config = {
         method: "post",
-        url: process.env.VUE_APP_URL_MAIN + "delAccount/" + id,
+        url: import.meta.env.VUE_APP_URL_MAIN + "delAccount/" + id,
         headers: {
           "Content-Type": "application/json",
         },
@@ -1018,7 +1016,7 @@ export default {
       var config = {
         method: "post",
         url:
-          process.env.VUE_APP_URL_MAIN +
+          import.meta.env.VUE_APP_URL_MAIN +
           "getAccountsNumber/" +
           vm.$route.params.id,
         headers: {
@@ -1048,7 +1046,7 @@ export default {
       };
       var config = {
         method: "post",
-        url: process.env.VUE_APP_URL_MAIN + "setAccount",
+        url: import.meta.env.VUE_APP_URL_MAIN + "setAccount",
         headers: {
           "Content-Type": "application/json",
         },
@@ -1105,12 +1103,20 @@ export default {
   },
 
   components: {
-    ControlServices: () => import("@/components/servicesControl.vue"),
-    listEntitie: () => import("@/components/folderEntities/listEntities"),
-    NuevoCliente: () =>
-      import("@/components/folderEntities/Cliente/NuevoClienteComponent.vue"),
-    EditarCliente: () =>
-      import("@/components/folderEntities/Cliente/EditarClienteComponent.vue"),
+    ControlServices: defineAsyncComponent(
+      () => import("@/components/servicesControl.vue"),
+    ),
+    listEntitie: defineAsyncComponent(
+      () => import("@/components/folderEntities/listEntities"),
+    ),
+    NuevoCliente: defineAsyncComponent(
+      () =>
+        import("@/components/folderEntities/Cliente/NuevoClienteComponent.vue"),
+    ),
+    EditarCliente: defineAsyncComponent(
+      () =>
+        import("@/components/folderEntities/Cliente/EditarClienteComponent.vue"),
+    ),
   },
 };
 </script>
@@ -1121,7 +1127,7 @@ export default {
   font-family: "Roboto", sans-serif;
 }
 
-.v-application--wrap {
+.v-application__wrap {
   min-height: 85vh !important;
 }
 .title {

@@ -4,14 +4,14 @@
       <v-row>
         <v-autocomplete
           :items="provedores"
-          item-text="namelong"
+          item-title="namelong"
           item-value="id"
           label="Proveedor"
           v-model="id_proveedor"
           return-object
           clearable
           :readonly="tipo == 'ver'"
-          @change="obtenerListado()"
+          @update:model-value="obtenerListado()"
         >
         </v-autocomplete>
         <v-spacer></v-spacer>
@@ -32,9 +32,11 @@
       </v-row>
       <!-- v-model="value" -->
       <v-tabs color="#A43542" slider-color="primary" fixed-tabs v-model="tab">
-        <v-tab href="#ref1">STEP 1</v-tab>
-        <v-tab href="#ref2" :disabled="step2">STEP 2</v-tab>
-        <v-tab-item value="ref1">
+        <v-tab value="ref1">STEP 1</v-tab>
+        <v-tab value="ref2" :disabled="step2">STEP 2</v-tab>
+      </v-tabs>
+      <v-tabs-window v-model="tab">
+        <v-tabs-window-item value="ref1">
           <v-row class="mt-5">
             <v-col cols="3">
               <v-text-field label="Buscar..." v-model="search"></v-text-field>
@@ -42,9 +44,8 @@
             <v-col cols="3">
               <v-btn
                 v-if="selected.length > 0"
-                color="green darken-4"
+                color="green-darken-4"
                 @click="continuar()"
-                dark
                 >Continuar</v-btn
               >
             </v-col>
@@ -53,19 +54,21 @@
                 :headers="headers"
                 :items="listPagosXProveedorCxP"
                 show-select
+                item-value="id"
+                return-object
                 v-model="selected"
               >
                 <template v-slot:[`item.item_moneda`]="{ item }">
                   <v-autocomplete
                     :items="$store.state.itemsCoinsList"
                     v-model="id_coins"
-                    item-text="acronym"
+                    item-title="acronym"
                     item-value="id"
                     label="Moneda"
                     :disabled="
                       selected.filter((v) => v.id == item.id).length == 0
                     "
-                    @change="calcularTotales"
+                    @update:model-value="calcularTotales"
                   ></v-autocomplete>
                 </template>
                 <!--  -->
@@ -78,7 +81,6 @@
                       selected.filter((v) => v.id == item.id).length == 0
                     "
                     v-on:blur="calcularTotales()"
-                    @focus.native="calcularTotales()"
                   ></v-text-field>
                 </template>
 
@@ -88,15 +90,14 @@
                     type="number"
                     :prefix="symbol"
                     v-on:blur="calcularTotalesInput()"
-                    @focus.native="calcularTotalesInput()"
                     :error-messages="item.errorEx"
                   ></v-text-field>
                 </template>
               </v-data-table>
             </v-col>
           </v-row>
-        </v-tab-item>
-        <v-tab-item value="ref2">
+        </v-tabs-window-item>
+        <v-tabs-window-item value="ref2">
           <v-form ref="frmRegister">
             <v-row class="mt-5">
               <v-col md="3" cols="3">
@@ -107,7 +108,7 @@
                   :error-messages="msgNroOperacion"
                   id="nro_operacion"
                   :rules="[(v) => !!v || 'Datos Requerido']"
-                  :success-messages="successMessages"
+                  :messages="successMessages"
                 ></v-text-field>
               </v-col>
               <v-col cols="3" md="3">
@@ -124,7 +125,7 @@
                   v-model="payfile"
                   ref="fileInput"
                   @change="uploadFile()"
-                  :success-messages="msgfile"
+                  :messages="msgfile"
                   :error-messages="errfile"
                   :loading="loadingFile"
                 >
@@ -134,7 +135,7 @@
               <v-col md="4" cols="4">
                 <v-autocomplete
                   :items="(cuentas || []).filter((v) => v.symbol == symbol)"
-                  item-text="label"
+                  item-title="label"
                   item-value="id"
                   label="Cuenta de Salida de Banco"
                   v-model="id_cuenta"
@@ -186,7 +187,7 @@
                 <ArrastraYSolarComponent @idArchivoCargado="recibirId" />
               </v-col>
               <v-col md="12" cols="12" v-if="tipo == 'nuevo'">
-                <v-flex text-right>
+                <div class="text-right">
                   <v-btn
                     color="success"
                     :loading="loading"
@@ -194,12 +195,12 @@
                   >
                     PROCESAR PAGO
                   </v-btn>
-                </v-flex>
+                </div>
               </v-col>
             </v-row>
           </v-form>
-        </v-tab-item>
-      </v-tabs>
+        </v-tabs-window-item>
+      </v-tabs-window>
     </v-card-text>
   </v-card>
 </template>
@@ -247,40 +248,40 @@ export default {
       msgfile: "",
       headers: [
         {
-          text: "Factura",
-          value: "nro_factura",
+          title: "Factura",
+          key: "nro_factura",
         },
 
         {
-          text: "Expediente",
-          value: "codigo_house",
+          title: "Expediente",
+          key: "codigo_house",
         },
         {
-          text: "Procedencia",
-          value: "procedencia",
-        },
-
-        {
-          text: "Monto",
-          value: "monto_pagar",
+          title: "Procedencia",
+          key: "procedencia",
         },
 
         {
-          text: "Monto Deuda",
-          value: "monto_deuda",
+          title: "Monto",
+          key: "monto_pagar",
         },
 
         {
-          text: "Moneda Pagar",
-          value: "item_moneda",
+          title: "Monto Deuda",
+          key: "monto_deuda",
+        },
+
+        {
+          title: "Moneda Pagar",
+          key: "item_moneda",
         },
         {
-          text: "Tipo de Cambio",
-          value: "tipo_cambio",
+          title: "Tipo de Cambio",
+          key: "tipo_cambio",
         },
         {
-          text: "Monto Pagar",
-          value: "monto_pagar_ex",
+          title: "Monto Pagar",
+          key: "monto_pagar_ex",
           shortable: false,
         },
       ],
@@ -330,7 +331,7 @@ export default {
       let vm = this;
       var config = {
         method: "get",
-        url: process.env.VUE_APP_URL_MAIN + "getListBanksDetailsCargar",
+        url: import.meta.env.VUE_APP_URL_MAIN + "getListBanksDetailsCargar",
         params: {
           id_branch: JSON.parse(sessionStorage.getItem("dataUser"))[0]
             .id_branch,
@@ -460,7 +461,7 @@ export default {
     },
     async procesarPago() {
       this.loading = true;
-      if (this.$refs.frmRegister.validate() && !this.msgNroOperacion) {
+      if ((await this.$refs.frmRegister.validate()).valid && !this.msgNroOperacion) {
         let vm = this;
         var data = {
           id_coins: vm.id_coins,
@@ -476,7 +477,7 @@ export default {
         };
         var config = {
           method: "post",
-          url: process.env.VUE_APP_URL_MAIN + "setPayForProveedor",
+          url: import.meta.env.VUE_APP_URL_MAIN + "setPayForProveedor",
 
           headers: {
            
@@ -584,7 +585,7 @@ export default {
         var config = {
           method: "get",
           url:
-            process.env.VUE_APP_URL_MAIN + `getVerPagosPorProveedor?id=` + id,
+            import.meta.env.VUE_APP_URL_MAIN + `getVerPagosPorProveedor?id=` + id,
 
           headers: {
            

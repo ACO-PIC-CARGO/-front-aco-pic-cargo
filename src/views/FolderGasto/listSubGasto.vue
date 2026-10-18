@@ -3,10 +3,8 @@
     <SubGasto />
     <v-navigation-drawer
       v-model="$store.state.subgasto.drawer"
-      right
-      absolute
-      bottom
-      persistent
+      location="right"
+      
       width="30%"
       temporary
     >
@@ -16,11 +14,12 @@
 </template>
 
 <script>
+import { defineAsyncComponent } from "vue";
 export default {
   components: {
-    SubGasto: () =>
-      import("../../components/FolderGasto/listSubGastoCompponent.vue"),
-    FilterSubGasto: () => import("../../components/filtros/FilterSubGasto.vue"),
+    SubGasto: defineAsyncComponent(() =>
+      import("../../components/FolderGasto/listSubGastoCompponent.vue")),
+    FilterSubGasto: defineAsyncComponent(() => import("../../components/filtros/FilterSubGasto.vue")),
   },
   mounted() {
     this.$store.state.mainTitle = `LISTADO DE SUB GASTO`;

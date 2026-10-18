@@ -29,7 +29,7 @@ const actions = {
     var config = {
       method: "get",
       url:
-        process.env.VUE_APP_URL_MAIN +
+        import.meta.env.VUE_APP_URL_MAIN +
         `listar_documents?` +
         `code=${encodeURIComponent(data.code)}` +
         `&name=${encodeURIComponent(data.name)}` +
@@ -75,7 +75,7 @@ const actions = {
   async insertDocument({ commit, dispatch }, data) {
     var config = {
       method: "post",
-      url: process.env.VUE_APP_URL_MAIN + "insertar_documents",
+      url: import.meta.env.VUE_APP_URL_MAIN + "insertar_documents",
       headers: {
         "Content-Type": "application/json",
        
@@ -104,7 +104,7 @@ const actions = {
   async readDocument({ commit }, id) {
     var config = {
       method: "get",
-      url: process.env.VUE_APP_URL_MAIN + `ver_documents?id=${id}`,
+      url: import.meta.env.VUE_APP_URL_MAIN + `ver_documents?id=${id}`,
       headers: {
         "Content-Type": "application/json",
        
@@ -131,7 +131,7 @@ const actions = {
   async updateDocument({ dispatch }, data) {
     var config = {
       method: "put",
-      url: process.env.VUE_APP_URL_MAIN + "actualizar_documents",
+      url: import.meta.env.VUE_APP_URL_MAIN + "actualizar_documents",
       headers: {
         "Content-Type": "application/json",
        

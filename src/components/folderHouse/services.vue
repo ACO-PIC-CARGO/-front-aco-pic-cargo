@@ -7,18 +7,17 @@
       <v-btn
         @click="showModalServices"
         color="green"
-        absolute
-        top
-        right
-        small
-        fab
-        :dark="!isFormActionsDisabled"
+        class="mt-4 mr-4"
+        position="absolute"
+        location="top right"
+        size="small"
+        icon
         :disabled="isFormActionsDisabled"
       >
         <v-icon>mdi-plus</v-icon>
       </v-btn>
     </v-fab-transition>
-    <v-simple-table dense>
+    <v-table density="compact">
       <template v-slot:default>
         <thead>
           <tr>
@@ -42,31 +41,30 @@
                 v-model="item.showDatePicker"
                 :close-on-content-click="false"
                 transition="scale-transition"
-                offset-y
                 min-width="auto"
                 :disabled="isFormActionsDisabled"
               >
-                <template v-slot:activator="{ on, attrs }">
+                <template v-slot:activator="{ props }">
                   <v-text-field
-                    :value="formatFecha(item.date_service || item.updated_at)"
+                    :model-value="formatFecha(item.date_service || item.updated_at)"
                     prepend-icon="mdi-calendar"
                     readonly
-                    v-bind="attrs"
-                    v-on="on"
-                    dense
+                    v-bind="props"
+                    density="compact"
                     :disabled="isFormActionsDisabled"
                     hide-details
                     style="max-width: 140px"
                   ></v-text-field>
                 </template>
-                <v-date-picker
-                  :value="
-                    getDateForPicker(item.date_service || item.updated_at)
-                  "
-                  @input="updateServiceDate(item, $event)"
-                  locale="es"
-                  :first-day-of-week="1"
-                ></v-date-picker>
+                <v-locale-provider locale="es">
+                  <v-date-picker
+                    :model-value="
+                      getDateForPicker(item.date_service || item.updated_at)
+                    "
+                    @update:model-value="updateServiceDate(item, $event)"
+                    :first-day-of-week="1"
+                  ></v-date-picker>
+                </v-locale-provider>
               </v-menu>
             </td>
             <td>{{ item.nameservice }}</td>
@@ -75,22 +73,21 @@
               <div class="d-flex justify-center">
                 <v-switch
                   v-if="item.nameservice != 'CERTIFICADO DE ORIGEN'"
-                  dense
+                  density="compact"
                   color="primary"
                   :true-value="1"
                   :false-value="0"
                   v-model="item.status"
                   :disabled="getDisabledPropServiceStatus(index)"
-                  @change="toggleServiceStatusSwitch(item, index)"
+                  @update:model-value="toggleServiceStatusSwitch(item, index)"
                 ></v-switch>
               </div>
 
               <v-menu
                 v-if="item.nameservice == 'CERTIFICADO DE ORIGEN'"
-                offset-y
               >
-                <template v-slot:activator="{ on, attrs }">
-                  <v-btn large color="default" v-bind="attrs" v-on="on">
+                <template v-slot:activator="{ props }">
+                  <v-btn size="large" color="default" v-bind="props">
                     {{
                       item.status == 1
                         ? "SI"
@@ -118,7 +115,7 @@
             <td class="text-center">
               <v-icon
                 class="btn_add"
-                dense
+                size="small"
                 color="red"
                 @click="deleteService(index)"
                 :disabled="isFormActionsDisabled"
@@ -128,26 +125,26 @@
           </tr>
         </tbody>
       </template>
-    </v-simple-table>
+    </v-table>
 
     <!-- Campos de Aduana -->
-    <v-card class="mt-4" outlined>
-      <v-card-title class="py-2">
-        <v-icon left color="indigo">mdi-ferry</v-icon>
+    <v-card class="mt-4" border>
+      <v-card-title class="py-2 d-flex align-center flex-wrap">
+        <v-icon start color="indigo">mdi-ferry</v-icon>
         Datos de Aduana
         <v-spacer></v-spacer>
-        <span class="caption grey--text text--darken-1">Información SUNAT</span>
+        <span class="text-caption text-grey-darken-1">Información SUNAT</span>
       </v-card-title>
       <v-card-text class="pt-0">
-        <v-row dense>
+        <v-row density="compact">
           <v-col cols="12" md="6">
             <v-text-field
               v-model="$store.state.house_nro_declaracion_aduana"
               label="N° Declaración de Aduana"
               prepend-icon="mdi-file-document-outline"
               :disabled="isFormActionsDisabled"
-              outlined
-              dense
+              variant="outlined"
+              density="compact"
               hide-details="auto"
             ></v-text-field>
           </v-col>
@@ -157,8 +154,8 @@
               label="Canal de Aduana"
               prepend-icon="mdi-traffic-light"
               :disabled="isFormActionsDisabled"
-              outlined
-              dense
+              variant="outlined"
+              density="compact"
               hide-details="auto"
             ></v-text-field>
           </v-col>
@@ -199,21 +196,21 @@
 
     <v-dialog v-model="dialogConfirmarTelex" max-width="30%">
       <v-card>
-        <v-card-title primary-title>
+        <v-card-title class="d-flex align-center flex-wrap" primary-title>
           Confirmar liberación de Telex
           <v-spacer></v-spacer>
-          <v-btn icon @click="dialogConfirmarTelex = false">
+          <v-btn variant="text" icon @click="dialogConfirmarTelex = false">
             <v-icon>mdi-close</v-icon>
           </v-btn>
         </v-card-title>
         <v-card-text>
           <v-form ref="frmConfirmar">
-            <v-select
+            <v-select item-title="text"
               :items="cboConfirmaTelex"
               v-model="$store.state.telexconfirmado"
               label="Estado del documento"
-              outlined
-              dense
+              variant="outlined"
+              density="compact"
             ></v-select>
             <FormatFecha
               :outlined="true"
@@ -233,7 +230,7 @@
             :loading="loading"
             color="error"
             @click="dialogConfirmarTelex = false"
-            text
+            variant="text"
             >Cancelar</v-btn
           >
         </v-card-actions>
@@ -372,7 +369,7 @@ export default {
       item.showDatePicker = false;
 
       const formattedDate = moment(newDate).format("YYYY-MM-DD");
-      this.$set(item, "date_service", formattedDate);
+      item.date_service = formattedDate;
     },
     send() {
       alert("Jpla");
@@ -384,7 +381,7 @@ export default {
       };
       var config = {
         method: "post",
-        url: process.env.VUE_APP_URL_MAIN + "deleteServices",
+        url: import.meta.env.VUE_APP_URL_MAIN + "deleteServices",
         headers: {
           "Content-Type": "application/json",
         },
@@ -407,7 +404,7 @@ export default {
       };
       var config = {
         method: "post",
-        url: process.env.VUE_APP_URL_MAIN + "activeServices",
+        url: import.meta.env.VUE_APP_URL_MAIN + "activeServices",
         headers: {
           "Content-Type": "application/json",
         },
@@ -430,7 +427,7 @@ export default {
       };
       var config = {
         method: "post",
-        url: process.env.VUE_APP_URL_MAIN + "inactiveServices",
+        url: import.meta.env.VUE_APP_URL_MAIN + "inactiveServices",
         headers: {
           "Content-Type": "application/json",
         },
@@ -454,7 +451,7 @@ export default {
       };
       var config = {
         method: "post",
-        url: process.env.VUE_APP_URL_MAIN + "editServices",
+        url: import.meta.env.VUE_APP_URL_MAIN + "editServices",
         headers: {
           "Content-Type": "application/json",
         },
@@ -483,7 +480,7 @@ export default {
 
         var config = {
           method: "post",
-          url: process.env.VUE_APP_URL_MAIN + "getHouseServices",
+          url: import.meta.env.VUE_APP_URL_MAIN + "getHouseServices",
           headers: {
             "Content-Type": "application/json",
           },
@@ -635,7 +632,7 @@ export default {
 
       var config = {
         method: "post",
-        url: process.env.VUE_APP_URL_MAIN + `getServicesByIncoterms`,
+        url: import.meta.env.VUE_APP_URL_MAIN + `getServicesByIncoterms`,
         headers: {
           "Content-Type": "application/json",
         },

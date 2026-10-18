@@ -1,9 +1,9 @@
 <template>
   <v-card>
-    <v-card-title primary-title>
+    <v-card-title class="d-flex align-center flex-wrap" primary-title>
       {{ getName() }}
       <v-spacer></v-spacer>
-      <v-btn
+      <v-btn variant="text"
         icon
         color="default"
         @click="$store.state.begend.drawer = !$store.state.begend.drawer"
@@ -52,7 +52,7 @@
 
       <div class="col-12 py-1">
         <span> Estado</span>
-        <v-radio-group v-model="$store.state.begend.filtros.status" row dense>
+        <v-radio-group v-model="$store.state.begend.filtros.status" inline density="compact">
           <v-radio label="Activo" color="green" value="1"></v-radio>
           <v-radio label="Inactivo" color="red" value="0"></v-radio>
           <v-radio label="Todos" color="blue" value="null"></v-radio>
@@ -131,6 +131,7 @@
             }`"
             color="success"
             v-model="$store.state.begend.model.status"
+            :value-comparator="(value, checked) => Boolean(value) === checked"
           ></v-switch>
         </div>
       </v-form>
@@ -239,7 +240,7 @@ export default {
       if (this.$store.state.begend.tipo == "nuevo") {
         this.loading = true;
         setTimeout(async () => {
-          if (this.$refs.frmDML.validate()) {
+          if ((await this.$refs.frmDML.validate()).valid) {
             this.loading = true;
             await this.setBegend();
             await this.GetListBegend();
@@ -252,7 +253,7 @@ export default {
       if (this.$store.state.begend.tipo == "editar") {
         this.loading = true;
         setTimeout(async () => {
-          if (this.$refs.frmDML.validate() && !this.errPosition) {
+          if ((await this.$refs.frmDML.validate()).valid && !this.errPosition) {
             await this.ActualizarBegend();
             await this.GetListBegend();
             this.loading = false;

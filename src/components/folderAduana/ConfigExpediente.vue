@@ -3,12 +3,12 @@
     <v-card-title primary-title class="text-uppercase">
       Configuración Correlativo Expediente</v-card-title
     >
-    <v-subheader class="text-uppercase">
+    <v-list-subheader class="text-uppercase">
       Configurar desde que número se empezará su correlativo del Expediente
-    </v-subheader>
+    </v-list-subheader>
     <v-card-text>
       <v-text-field
-        outlined
+        variant="outlined"
         type="number"
         label="Correlativo de Expediente"
         v-model="$store.state.configEmpresa.configEmpresa.correlativomaster"

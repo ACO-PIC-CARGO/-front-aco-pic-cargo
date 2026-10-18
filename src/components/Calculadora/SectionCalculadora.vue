@@ -25,8 +25,8 @@ export default {
   data() {
     return {
       headers: [
-        { text: "Modalidad", value: "modality" },
-        { text: "Sección", value: "nombre" },
+        { title: "Modalidad", key: "modality" },
+        { title: "Sección", key: "nombre" },
       ],
     };
   },

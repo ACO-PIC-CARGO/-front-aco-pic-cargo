@@ -8,71 +8,73 @@
         <v-text-field
           hide-details
           v-model="searchFactura"
-          dense
+          density="compact"
           id="id"
-          outlined
+          variant="outlined"
           label="Buscar"
           placeholder="Buscar..."
-          append-icon="mdi-text-search"
+          append-inner-icon="mdi-text-search"
         ></v-text-field>
       </v-col>
       <v-col cols="12" md="9" class="text-right pt-0">
         <v-btn class="mx-1" @click="filtroflag = true" color="default">
-          <v-icon small>mdi-filter</v-icon> Filtro
+          <v-icon size="small">mdi-filter</v-icon> Filtro
         </v-btn>
         <v-btn class="mx-1" @click="toGoPage()" color="primary">
-          <v-icon small>mdi-plus</v-icon> NUEVO COBRO
+          <v-icon size="small">mdi-plus</v-icon> NUEVO COBRO
         </v-btn>
-        <v-btn class="mx-1" @click="limpiar()" color="red" outlined>
-          <v-icon small>mdi-filter-remove</v-icon> LIMPIAR
+        <v-btn class="mx-1" @click="limpiar()" color="red" variant="outlined">
+          <v-icon size="small">mdi-filter-remove</v-icon> LIMPIAR
         </v-btn>
       </v-col>
       <v-col cols="12">
         <v-data-table
           :headers="headersFacturas"
           :items="itemsListInvoice"
-          dense
-          :single-expand="true"
-          @click:row="clickRow"
-          :expanded.sync="expanded"
+          density="compact"
+          expand-on-click
+          item-value="id"
+          v-model:expanded="expanded"
           :search="searchFactura"
         >
-          <template v-slot:expanded-item="{ item }">
-            <td :colspan="headersFacturas.length">
-              <v-simple-table>
-                <thead style="background: #e3f2fd; font-weight: bold">
-                  <tr>
-                    <td>Concepto</td>
-                    <td>Monto</td>
-                    <td>IGV</td>
-                    <td>Total</td>
-                    <td>Monto (USD)</td>
-                    <td>IGV (USD)</td>
-                    <td>Total (USD)</td>
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr v-for="(detalle, index) in item.detalle" :key="index">
-                    <td>{{ detalle.concepto }}</td>
-                    <td>
-                      {{ item.namecoins }}
-                      {{ parseFloat(detalle.monto).toFixed(2) }}
-                    </td>
-                    <td>
-                      {{ item.namecoins }}
-                      {{ parseFloat(detalle.igv).toFixed(2) }}
-                    </td>
-                    <td>
-                      {{ item.namecoins }}
-                      {{ parseFloat(detalle.total).toFixed(2) }}
-                    </td>
-                    <td>USD {{ parseFloat(detalle.montodolar).toFixed(2) }}</td>
-                    <td>USD {{ parseFloat(detalle.igvdolar).toFixed(2) }}</td>
-                    <td>USD {{ parseFloat(detalle.totaldolar).toFixed(2) }}</td>
-                  </tr>
-                </tbody>
-              </v-simple-table>
-            </td>
+          <template v-slot:expanded-row="{ item }">
+            <tr>
+              <td :colspan="headersFacturas.length">
+                <v-table>
+                  <thead style="background: #e3f2fd; font-weight: bold">
+                    <tr>
+                      <td>Concepto</td>
+                      <td>Monto</td>
+                      <td>IGV</td>
+                      <td>Total</td>
+                      <td>Monto (USD)</td>
+                      <td>IGV (USD)</td>
+                      <td>Total (USD)</td>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr v-for="(detalle, index) in item.detalle" :key="index">
+                      <td>{{ detalle.concepto }}</td>
+                      <td>
+                        {{ item.namecoins }}
+                        {{ parseFloat(detalle.monto).toFixed(2) }}
+                      </td>
+                      <td>
+                        {{ item.namecoins }}
+                        {{ parseFloat(detalle.igv).toFixed(2) }}
+                      </td>
+                      <td>
+                        {{ item.namecoins }}
+                        {{ parseFloat(detalle.total).toFixed(2) }}
+                      </td>
+                      <td>USD {{ parseFloat(detalle.montodolar).toFixed(2) }}</td>
+                      <td>USD {{ parseFloat(detalle.igvdolar).toFixed(2) }}</td>
+                      <td>USD {{ parseFloat(detalle.totaldolar).toFixed(2) }}</td>
+                    </tr>
+                  </tbody>
+                </v-table>
+              </td>
+            </tr>
           </template>
           <template v-slot:[`item.totaldolar`]="{ item }">
             USD {{ item.totaldolar }}
@@ -91,17 +93,15 @@
           <template v-slot:[`item.accion`]="{ item }">
             <v-chip
               block
-              medium
-              class=""
+              class="text-white"
               color="orange"
-              text-color="white"
+              variant="flat"
               v-if="item.status == 1"
             >
               Pendiente
             </v-chip>
             <v-chip
               block
-              medium
               class=""
               color="success"
               v-if="item.status == 2"
@@ -157,19 +157,17 @@
 
     <v-navigation-drawer
       v-model="filtroflag"
-      right
-      absolute
-      bottom
-      persistent
+      location="right"
+      
       width="40%"
       temporary
       class="filtro-container"
     >
       <v-card min-height="800px">
-        <v-card-title primary-title>
+        <v-card-title class="d-flex align-center flex-wrap" primary-title>
           Filtro Para Facturas
           <v-spacer></v-spacer>
-          <v-btn color="default" text @click="filtroflag = false">
+          <v-btn color="default" variant="text" @click="filtroflag = false">
             <v-icon>mdi-close</v-icon>
           </v-btn>
         </v-card-title>
@@ -178,12 +176,12 @@
           <v-autocomplete
             :items="$store.state.clientes"
             v-model="id_cliente"
-            item-text="namelong"
+            item-title="namelong"
             item-value="id"
             clearable
             label="Cliente"
-            outlined
-            dense
+            variant="outlined"
+            density="compact"
           ></v-autocomplete>
 
           <FormatFecha
@@ -201,15 +199,15 @@
           <v-text-field
             v-model="factura"
             clearable
-            outlined
-            dense
+            variant="outlined"
+            density="compact"
             label="Factura"
           />
           <v-text-field
             v-model="serie"
             clearable
-            outlined
-            dense
+            variant="outlined"
+            density="compact"
             label="Serie"
           />
         </v-card-text>
@@ -273,53 +271,53 @@ export default {
       banco_pago: "",
       headersFacturas: [
         {
-          text: "",
-          value: "action",
+          title: "",
+          key: "action",
         },
         {
-          text: "Tipo",
-          value: "paymentname",
+          title: "Tipo",
+          key: "paymentname",
         },
         {
-          text: "Ingreso",
-          value: "ingreso_description",
+          title: "Ingreso",
+          key: "ingreso_description",
         },
         {
-          text: "Sub Ingreso",
-          value: "subingreso_description",
+          title: "Sub Ingreso",
+          key: "subingreso_description",
         },
 
         {
-          text: "Fecha",
-          value: "fecha",
+          title: "Fecha",
+          key: "fecha",
         },
         {
-          text: "Expediente",
-          value: "nro_master",
+          title: "Expediente",
+          key: "nro_master",
         },
         {
-          text: "Cliente",
-          value: "nameconsigner",
+          title: "Cliente",
+          key: "nameconsigner",
         },
         {
-          text: "Nro. Factura",
-          value: "nro_factura",
+          title: "Nro. Factura",
+          key: "nro_factura",
         },
         {
-          text: "Nro. Serie",
-          value: "nro_serie",
+          title: "Nro. Serie",
+          key: "nro_serie",
         },
         // {
         //   text: "Moneda",
         //   value: "namecoins",
         // },
         {
-          text: "Total",
-          value: "total",
+          title: "Total",
+          key: "total",
         },
         {
-          text: "Tipo de cambio",
-          value: "tipo_cambio",
+          title: "Tipo de cambio",
+          key: "tipo_cambio",
         },
         // {
         //   text: "Monto Dolar",
@@ -327,12 +325,12 @@ export default {
         // },
 
         {
-          text: "Total",
-          value: "totaldolar",
+          title: "Total",
+          key: "totaldolar",
         },
         {
-          text: "",
-          value: "accion",
+          title: "",
+          key: "accion",
         },
       ],
       id_ingreso: null,
@@ -445,8 +443,6 @@ export default {
     },
 
     _uploadFile() {
-      var FormData = require("form-data");
-      var fs = require("fs");
       var data = new FormData();
       var vm = this;
       data.append("name", "Prueba");
@@ -454,7 +450,7 @@ export default {
 
       var config = {
         method: "post",
-        url: process.env.VUE_APP_URL_MAIN + "uploadAllPath",
+        url: import.meta.env.VUE_APP_URL_MAIN + "uploadAllPath",
         headers: {
           "Content-Type": "application/json",
         },
@@ -498,7 +494,7 @@ export default {
       var config = {
         method: "post",
         url:
-          process.env.VUE_APP_URL_MAIN + "paymentInvoiceAdminCxC/" + vm.id_pro,
+          import.meta.env.VUE_APP_URL_MAIN + "paymentInvoiceAdminCxC/" + vm.id_pro,
 
         headers: {
           "Content-Type": "application/json",
@@ -522,20 +518,13 @@ export default {
           console.error(error);
         });
     },
-    clickRow(item, event) {
-      if (event.isExpanded) {
-        const index = this.expanded.findIndex((i) => i === item);
-        this.expanded.splice(index, 1);
-      } else {
-        this.expanded.push(item);
-      }
-    },
+
     async _getInvoiceAdminCxC(id_proveedor, id_house) {
       var vm = this;
       vm.$store.state.spiner = true;
       var config = {
         method: "get",
-        url: process.env.VUE_APP_URL_MAIN + "getInvoiceAdminCxC",
+        url: import.meta.env.VUE_APP_URL_MAIN + "getInvoiceAdminCxC",
         params: {
           id_branch: JSON.parse(sessionStorage.getItem("dataUser"))[0]
             .id_branch,
@@ -638,7 +627,7 @@ export default {
 
       var config = {
         method: "post",
-        url: process.env.VUE_APP_URL_MAIN + "delProCxC",
+        url: import.meta.env.VUE_APP_URL_MAIN + "delProCxC",
 
         headers: {
           "Content-Type": "application/json",

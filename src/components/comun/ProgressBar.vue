@@ -11,6 +11,8 @@
 </template>
 
 <script>
+import runnerUrl from "@/assets/runner.webp";
+
 export default {
   props: {
     progress: {
@@ -21,7 +23,7 @@ export default {
   computed: {
     runnerImage() {
       // Cambia la ruta de la imagen de acuerdo a tu estructura de carpetas
-      return require("@/assets/runner.webp");
+      return runnerUrl;
     },
   },
 };

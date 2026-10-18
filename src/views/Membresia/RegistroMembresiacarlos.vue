@@ -7,7 +7,7 @@
             label="Cantidad"
             type="number"
             v-model="cntUser"
-            outlined
+            variant="outlined"
             suffix="Usuarios"
           ></v-text-field>
         </v-col>
@@ -22,8 +22,9 @@
 </template>
 
 <script>
+import { defineAsyncComponent } from "vue";
 export default {
-  components: { CardPlan: () => import("../../components/comun/CardPlan.vue") },
+  components: { CardPlan: defineAsyncComponent(() => import("../../components/comun/CardPlan.vue")) },
   data() {
     return {
       cntUser: 1000,
@@ -242,7 +243,7 @@ export default {
   mounted() {
     this.startAutoScroll();
   },
-  beforeDestroy() {
+  beforeUnmount() {
     clearInterval(this.autoScrollInterval);
   },
   methods: {

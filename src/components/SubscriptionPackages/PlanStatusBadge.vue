@@ -3,20 +3,20 @@
     <v-chip
       v-if="notice.paidText"
       color="success"
-      small
+      size="small"
       :to="{ name: 'miPlan' }"
     >
-      <v-icon left small>mdi-check-decagram</v-icon>
+      <v-icon start size="small">mdi-check-decagram</v-icon>
       {{ notice.paidText }}
     </v-chip>
     <template v-else-if="notice.ended || notice.days !== null">
       <v-icon>mdi-clock-outline</v-icon>
       <v-chip
         v-if="notice.ended"
-        color="orange lighten-4"
-        text-color="orange darken-4"
-        small
-        class="font-weight-bold"
+        color="orange-lighten-4"
+        variant="flat"
+        size="small"
+        class="font-weight-bold text-orange-darken-4"
       >
         Tu prueba terminó
       </v-chip>
@@ -25,10 +25,10 @@
           >Días de prueba restantes</span
         >
         <v-chip
-          color="green lighten-4"
-          text-color="green darken-4"
-          small
-          class="font-weight-bold"
+          color="green-lighten-4"
+          variant="flat"
+          size="small"
+          class="font-weight-bold text-green-darken-4"
         >
           {{ daysLabel(notice.days) }}
         </v-chip>
@@ -36,9 +36,8 @@
     </template>
     <v-btn
       v-if="notice.canBuy"
-      color="blue darken-2"
-      dark
-      depressed
+      color="blue-darken-2"
+      variant="flat"
       rounded
       class="text-none"
       :to="{ name: 'miPlan' }"

@@ -1,38 +1,39 @@
 <template>
   <v-card>
-    <v-tabs v-model="tab" slider-color="primary" centered>
-      <v-tab href="#lcl">
+    <v-tabs v-model="tab" slider-color="primary" align-tabs="center">
+      <v-tab value="lcl">
         <span style="font-size: 1.3em; font-weight: bold">LCL</span>
       </v-tab>
-      <v-tab href="#fcl">
+      <v-tab value="fcl">
         <span style="font-size: 1.3em; font-weight: bold">FCL</span>
       </v-tab>
     </v-tabs>
 
-    <v-tabs-items v-model="tab">
-      <v-tab-item value="lcl" class="px-10">
+    <v-tabs-window v-model="tab">
+      <v-tabs-window-item value="lcl" class="px-10">
         <LCLTextWhatsappCotizacion />
-      </v-tab-item>
-      <v-tab-item value="fcl" class="px-10">
+      </v-tabs-window-item>
+      <v-tabs-window-item value="fcl" class="px-10">
         <FCLTextWhatsappCotizacion />
-      </v-tab-item>
-    </v-tabs-items>
+      </v-tabs-window-item>
+    </v-tabs-window>
   </v-card>
 </template>
 
 <script>
+import { defineAsyncComponent } from "vue";
 import { mapActions } from "vuex";
 
 export default {
   components: {
-    LCLTextWhatsappCotizacion: () =>
+    LCLTextWhatsappCotizacion: defineAsyncComponent(() =>
       import(
         "@/components/Configuracion/Pricing/LCLTextWhatsappCotizacion.vue"
-      ),
-    FCLTextWhatsappCotizacion: () =>
+      )),
+    FCLTextWhatsappCotizacion: defineAsyncComponent(() =>
       import(
         "@/components/Configuracion/Pricing/FCLTextWhatsappCotizacion.vue"
-      ),
+      )),
   },
   data() {
     return {

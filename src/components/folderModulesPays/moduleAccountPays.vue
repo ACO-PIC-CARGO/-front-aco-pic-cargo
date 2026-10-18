@@ -8,71 +8,73 @@
         <v-text-field
           hide-details
           v-model="searchFactura"
-          dense
+          density="compact"
           id="id"
-          outlined
+          variant="outlined"
           label="Buscar"
           placeholder="Buscar..."
-          append-icon="mdi-text-search"
+          append-inner-icon="mdi-text-search"
         ></v-text-field>
       </v-col>
       <v-col cols="12" md="9" class="text-right pt-0">
         <v-btn class="mx-1" @click="filtroflag = true" color="default">
-          <v-icon small>mdi-filter</v-icon> Filtro
+          <v-icon size="small">mdi-filter</v-icon> Filtro
         </v-btn>
         <v-btn class="mx-1" @click="toPageAdd()" color="primary">
-          <v-icon small>mdi-plus</v-icon> NUEVA FACTURA
+          <v-icon size="small">mdi-plus</v-icon> NUEVA FACTURA
         </v-btn>
-        <v-btn class="mx-1" @click="limpiar()" color="red" outlined>
-          <v-icon small>mdi-filter-remove</v-icon> LIMPIAR
+        <v-btn class="mx-1" @click="limpiar()" color="red" variant="outlined">
+          <v-icon size="small">mdi-filter-remove</v-icon> LIMPIAR
         </v-btn>
       </v-col>
       <v-col cols="12">
         <v-data-table
           :headers="headersFacturas"
           :items="itemsListInvoice"
-          dense
-          :single-expand="true"
-          @click:row="clickRow"
-          :expanded.sync="expanded"
+          density="compact"
+          expand-on-click
+          item-value="id"
+          v-model:expanded="expanded"
           :search="searchFactura"
         >
-          <template v-slot:expanded-item="{ item }">
-            <td :colspan="headersFacturas.length">
-              <v-simple-table>
-                <thead style="background: #e3f2fd; font-weight: bold">
-                  <tr>
-                    <td>Concepto</td>
-                    <td>Monto</td>
-                    <td>IGV</td>
-                    <td>Total</td>
-                    <td>Monto (USD)</td>
-                    <td>IGV (USD)</td>
-                    <td>Total (USD)</td>
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr v-for="(detalle, index) in item.detalle" :key="index">
-                    <td>{{ detalle.concepto }}</td>
-                    <td>
-                      {{ item.namecoins }}
-                      {{ parseFloat(detalle.monto).toFixed(2) }}
-                    </td>
-                    <td>
-                      {{ item.namecoins }}
-                      {{ parseFloat(detalle.igv).toFixed(2) }}
-                    </td>
-                    <td>
-                      {{ item.namecoins }}
-                      {{ parseFloat(detalle.total).toFixed(2) }}
-                    </td>
-                    <td>USD {{ parseFloat(detalle.montodolar).toFixed(2) }}</td>
-                    <td>USD {{ parseFloat(detalle.igvdolar).toFixed(2) }}</td>
-                    <td>USD {{ parseFloat(detalle.totaldolar).toFixed(2) }}</td>
-                  </tr>
-                </tbody>
-              </v-simple-table>
-            </td>
+          <template v-slot:expanded-row="{ item }">
+            <tr>
+              <td :colspan="headersFacturas.length">
+                <v-table>
+                  <thead style="background: #e3f2fd; font-weight: bold">
+                    <tr>
+                      <td>Concepto</td>
+                      <td>Monto</td>
+                      <td>IGV</td>
+                      <td>Total</td>
+                      <td>Monto (USD)</td>
+                      <td>IGV (USD)</td>
+                      <td>Total (USD)</td>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr v-for="(detalle, index) in item.detalle" :key="index">
+                      <td>{{ detalle.concepto }}</td>
+                      <td>
+                        {{ item.namecoins }}
+                        {{ parseFloat(detalle.monto).toFixed(2) }}
+                      </td>
+                      <td>
+                        {{ item.namecoins }}
+                        {{ parseFloat(detalle.igv).toFixed(2) }}
+                      </td>
+                      <td>
+                        {{ item.namecoins }}
+                        {{ parseFloat(detalle.total).toFixed(2) }}
+                      </td>
+                      <td>USD {{ parseFloat(detalle.montodolar).toFixed(2) }}</td>
+                      <td>USD {{ parseFloat(detalle.igvdolar).toFixed(2) }}</td>
+                      <td>USD {{ parseFloat(detalle.totaldolar).toFixed(2) }}</td>
+                    </tr>
+                  </tbody>
+                </v-table>
+              </td>
+            </tr>
           </template>
           <template v-slot:[`item.paymentname`]="{ item }">
             {{ item.paymentname.charAt(0) }}
@@ -80,17 +82,15 @@
           <template v-slot:[`item.accion`]="{ item }">
             <v-chip
               block
-              medium
-              class=""
+              class="text-white"
               color="orange"
-              text-color="white"
+              variant="flat"
               v-if="item.status == 1"
             >
               Pendiente
             </v-chip>
             <v-chip
               block
-              medium
               class=""
               color="success"
               v-if="item.status == 2"
@@ -151,19 +151,17 @@
 
     <v-navigation-drawer
       v-model="filtroflag"
-      right
-      absolute
-      bottom
-      persistent
+      location="right"
+      
       width="40%"
       temporary
       class="filtro-container"
     >
       <v-card min-height="800px">
-        <v-card-title primary-title>
+        <v-card-title class="d-flex align-center flex-wrap" primary-title>
           Filtro Para Facturas
           <v-spacer></v-spacer>
-          <v-btn color="default" text @click="filtroflag = false">
+          <v-btn color="default" variant="text" @click="filtroflag = false">
             <v-icon>mdi-close</v-icon>
           </v-btn>
         </v-card-title>
@@ -172,12 +170,12 @@
           <v-autocomplete
             :items="$store.state.provedores"
             v-model="id_proveedor"
-            item-text="namelong"
+            item-title="namelong"
             item-value="id"
             clearable
             label="Proveedor"
-            outlined
-            dense
+            variant="outlined"
+            density="compact"
           ></v-autocomplete>
 
           <FormatFecha
@@ -195,15 +193,15 @@
           <v-text-field
             v-model="factura"
             clearable
-            outlined
-            dense
+            variant="outlined"
+            density="compact"
             label="Factura"
           />
           <v-text-field
             v-model="serie"
             clearable
-            outlined
-            dense
+            variant="outlined"
+            density="compact"
             label="Serie"
           />
         </v-card-text>
@@ -252,64 +250,64 @@ export default {
       filtroflag: false,
       headersFacturas: [
         {
-          text: "",
-          value: "action",
+          title: "",
+          key: "action",
         },
         {
-          text: "Tipo",
-          value: "paymentname",
+          title: "Tipo",
+          key: "paymentname",
         },
         {
-          text: "Gasto",
-          value: "gasto_description",
+          title: "Gasto",
+          key: "gasto_description",
         },
         {
-          text: "Sub Gasto",
-          value: "subgasto_description",
+          title: "Sub Gasto",
+          key: "subgasto_description",
         },
 
         {
-          text: "Fecha Emisión",
-          value: "fecha",
+          title: "Fecha Emisión",
+          key: "fecha",
         },
         // {
         //   text: "Fecha Vencimiento",
         //   value: "fechavencimiento",
         // },
         {
-          text: "Expediente",
-          value: "nro_master",
+          title: "Expediente",
+          key: "nro_master",
         },
         {
-          text: "Proveedor",
-          value: "nameconsigner",
+          title: "Proveedor",
+          key: "nameconsigner",
         },
         {
-          text: "Nro. Factura",
-          value: "nro_factura",
+          title: "Nro. Factura",
+          key: "nro_factura",
         },
         {
-          text: "Nro. Serie",
-          value: "nro_serie",
+          title: "Nro. Serie",
+          key: "nro_serie",
         },
 
         {
-          text: "Total",
-          value: "total",
-          class: "totalcss",
+          title: "Total",
+          key: "total",
+          headerProps: { class: "totalcss" },
         },
         {
-          text: "Tipo de Cambio",
-          value: "tipocambio",
+          title: "Tipo de Cambio",
+          key: "tipocambio",
         },
         {
-          text: "Total",
-          value: "totaldolar",
-          class: "montodolarcss",
+          title: "Total",
+          key: "totaldolar",
+          headerProps: { class: "montodolarcss" },
         },
         {
-          text: "Estado",
-          value: "accion",
+          title: "Estado",
+          key: "accion",
         },
       ],
     };
@@ -415,8 +413,6 @@ export default {
     },
 
     _uploadFile() {
-      var FormData = require("form-data");
-      var fs = require("fs");
       var data = new FormData();
       var vm = this;
       data.append("name", "Prueba");
@@ -424,7 +420,7 @@ export default {
 
       var config = {
         method: "post",
-        url: process.env.VUE_APP_URL_MAIN + "uploadAllPath",
+        url: import.meta.env.VUE_APP_URL_MAIN + "uploadAllPath",
         headers: {
           "Content-Type": "application/json",
         },
@@ -467,7 +463,7 @@ export default {
 
       var config = {
         method: "post",
-        url: process.env.VUE_APP_URL_MAIN + "paymentInvoiceAdmin/" + vm.id_pro,
+        url: import.meta.env.VUE_APP_URL_MAIN + "paymentInvoiceAdmin/" + vm.id_pro,
 
         headers: {
           "Content-Type": "application/json",
@@ -507,7 +503,7 @@ export default {
       vm.$store.state.spiner = true;
       var config = {
         method: "get",
-        url: process.env.VUE_APP_URL_MAIN + "getInvoiceAdmin",
+        url: import.meta.env.VUE_APP_URL_MAIN + "getInvoiceAdmin",
         params: {
           id_branch: JSON.parse(sessionStorage.getItem("dataUser"))[0]
             .id_branch,
@@ -600,14 +596,7 @@ export default {
       await this.EliminarCuenta(id);
       await this.limpiar();
     },
-    clickRow(item, event) {
-      if (event.isExpanded) {
-        const index = this.expanded.findIndex((i) => i === item);
-        this.expanded.splice(index, 1);
-      } else {
-        this.expanded.push(item);
-      }
-    },
+
     async EliminarCuenta(id) {
       var vm = this;
 
@@ -617,7 +606,7 @@ export default {
 
       var config = {
         method: "post",
-        url: process.env.VUE_APP_URL_MAIN + "delPro",
+        url: import.meta.env.VUE_APP_URL_MAIN + "delPro",
 
         headers: {
           "Content-Type": "application/json",

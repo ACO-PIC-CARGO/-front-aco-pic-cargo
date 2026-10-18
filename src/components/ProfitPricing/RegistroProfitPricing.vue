@@ -5,12 +5,12 @@
         <v-col cols="12" md="2">
           <v-autocomplete
             label="Sentido"
-            outlined
-            dense
+            variant="outlined"
+            density="compact"
             :rules="[(v) => !!v || 'Dato requerido']"
             class="my-0"
             :items="$store.state.pricing.listModality"
-            item-text="name"
+            item-title="name"
             item-key="id"
             item-value="id"
             v-model="$store.state.profitPricing.id_modality"
@@ -20,22 +20,22 @@
         <v-col cols="12" md="2">
           <v-autocomplete
             label="Tipo de Embarque"
-            outlined
-            dense
+            variant="outlined"
+            density="compact"
             :rules="[(v) => !!v || 'Dato requerido']"
             class="my-0"
             :items="$store.state.pricing.listShipment"
-            item-text="embarque"
+            item-title="embarque"
             item-key="id"
             item-value="id"
             v-model="$store.state.profitPricing.id_shipment"
           ></v-autocomplete>
         </v-col>
 
-        <v-col cols="12" icons-and-text class="px-10" v-if="mostrarIncoterms">
+        <v-col cols="12" class="px-10 icons-and-text" v-if="mostrarIncoterms">
           <v-data-table :headers="headersIncoterms" :items="incoterms">
             <template v-slot:[`item.action`]="{ item }">
-              <v-btn
+              <v-btn variant="text"
                 color="info"
                 icon
                 @click="abrirModalActualizacionConceptos(item.id)"
@@ -45,8 +45,8 @@
             </template>
           </v-data-table>
         </v-col>
-        <v-col cols="12" icons-and-text>
-          <template> </template>
+        <v-col class="icons-and-text" cols="12">
+           
         </v-col>
       </v-row>
     </v-form>
@@ -88,7 +88,7 @@
         <v-card-text>
           <v-row class="ma-0 py-0">
             <v-col cols="12">
-              <v-tabs centered v-model="tab">
+              <v-tabs align-tabs="center" v-model="tab">
                 <v-tab>
                   Individual
                   <v-icon class="mx-1">mdi-account</v-icon>
@@ -98,44 +98,44 @@
                   <v-icon class="mx-1">mdi-account-group</v-icon>
                 </v-tab>
               </v-tabs>
-              <v-tabs-items v-model="tab">
-                <v-tab-item>
+              <v-tabs-window v-model="tab">
+                <v-tabs-window-item>
                   <v-expansion-panels multiple class="px-5 py-2">
                     <v-expansion-panel
                       v-for="(item, index) in panelesConDatos"
                       :key="index"
                       dense
                     >
-                      <v-expansion-panel-header>
+                      <v-expansion-panel-title>
                         {{ item.name }}
-                      </v-expansion-panel-header>
-                      <v-expansion-panel-content>
+                      </v-expansion-panel-title>
+                      <v-expansion-panel-text>
                         <v-data-table
                           :headers="headers"
                           :items="obtenerCostosEnBaseTipoCosto(item.codigo)"
-                          item-key="id"
-                          dense
+                          item-value="id"
+                          density="compact"
                         >
                           <template v-slot:[`item.proveedor`]="{ item }">
                             <v-select
                               :items="$store.state.proveedor.lstProveedores"
                               v-model="item.id_proveedor"
-                              outlined
-                              dense
+                              variant="outlined"
+                              density="compact"
                               hide-details
-                              item-text="namelong"
+                              item-title="namelong"
                               item-value="id"
                               disabled
                             ></v-select>
                           </template>
                           <template v-slot:[`item.multiplicador`]="{ item }">
-                            <v-select
+                            <v-select item-title="text"
                               :items="
                                 $store.state.configEmpresa.lstMultiplicador
                               "
                               v-model="item.id_multiplicador"
-                              outlined
-                              dense
+                              variant="outlined"
+                              density="compact"
                               hide-details
                               disabled
                             ></v-select>
@@ -145,8 +145,8 @@
                             v-slot:[`item.profitprimeraimportacion`]="{ item }"
                           >
                             <v-text-field
-                              dense
-                              outlined
+                              density="compact"
+                              variant="outlined"
                               type="number"
                               hide-details
                               v-model="item.profitprimeraimportacion"
@@ -156,8 +156,8 @@
                             v-slot:[`item.profitsegundaimportacion`]="{ item }"
                           >
                             <v-text-field
-                              dense
-                              outlined
+                              density="compact"
+                              variant="outlined"
                               v-model="item.profitsegundaimportacion"
                               type="number"
                               hide-details
@@ -166,52 +166,52 @@
                           <template v-slot:[`item.estado`]="{ item }">
                             <v-switch
                               label=""
-                              dense
+                              density="compact"
                               v-model="item.estado"
                             ></v-switch>
                           </template>
                         </v-data-table>
-                      </v-expansion-panel-content>
+                      </v-expansion-panel-text>
                     </v-expansion-panel>
                   </v-expansion-panels>
-                </v-tab-item>
-                <v-tab-item>
+                </v-tabs-window-item>
+                <v-tabs-window-item>
                   <v-expansion-panels multiple class="px-5 py-2">
                     <v-expansion-panel
                       v-for="(item, index) in panelesConDatos"
                       :key="index"
                       dense
                     >
-                      <v-expansion-panel-header>
+                      <v-expansion-panel-title>
                         {{ item.name }}
-                      </v-expansion-panel-header>
-                      <v-expansion-panel-content>
+                      </v-expansion-panel-title>
+                      <v-expansion-panel-text>
                         <v-data-table
                           :headers="headers"
                           :items="obtenerCostosEnBaseTipoCosto(item.codigo)"
-                          item-key="id"
-                          dense
+                          item-value="id"
+                          density="compact"
                         >
                           <template v-slot:[`item.proveedor`]="{ item }">
                             <v-select
                               :items="$store.state.proveedor.lstProveedores"
                               v-model="item.id_proveedor"
-                              outlined
-                              dense
+                              variant="outlined"
+                              density="compact"
                               hide-details
-                              item-text="namelong"
+                              item-title="namelong"
                               item-value="id"
                               disabled
                             ></v-select>
                           </template>
                           <template v-slot:[`item.multiplicador`]="{ item }">
-                            <v-select
+                            <v-select item-title="text"
                               :items="
                                 $store.state.configEmpresa.lstMultiplicador
                               "
                               v-model="item.id_multiplicador"
-                              outlined
-                              dense
+                              variant="outlined"
+                              density="compact"
                               hide-details
                               disabled
                             ></v-select>
@@ -221,8 +221,8 @@
                             v-slot:[`item.profitprimeraimportacion`]="{ item }"
                           >
                             <v-text-field
-                              dense
-                              outlined
+                              density="compact"
+                              variant="outlined"
                               type="number"
                               hide-details
                               v-model="item.profitprimeraimportacion"
@@ -232,8 +232,8 @@
                             v-slot:[`item.profitsegundaimportacion`]="{ item }"
                           >
                             <v-text-field
-                              dense
-                              outlined
+                              density="compact"
+                              variant="outlined"
                               v-model="item.profitsegundaimportacion"
                               type="number"
                               hide-details
@@ -242,16 +242,16 @@
                           <template v-slot:[`item.estado`]="{ item }">
                             <v-switch
                               label=""
-                              dense
+                              density="compact"
                               v-model="item.estado"
                             ></v-switch>
                           </template>
                         </v-data-table>
-                      </v-expansion-panel-content>
+                      </v-expansion-panel-text>
                     </v-expansion-panel>
                   </v-expansion-panels>
-                </v-tab-item>
-              </v-tabs-items>
+                </v-tabs-window-item>
+              </v-tabs-window>
             </v-col>
           </v-row>
         </v-card-text>
@@ -278,28 +278,28 @@ export default {
       tab: 0,
       loadingGuardar: false,
       headersIncoterms: [
-        { value: "text", text: "Icoterms" },
-        { value: "action", text: "" },
+        { key: "text", title: "Icoterms" },
+        { key: "action", title: "" },
       ],
       headers: [
-        { value: "proveedor", text: "Proveedor", width: "20%" },
-        { value: "multiplicador", text: "Multiplicador", width: "20%" },
-        { value: "concepto", text: "Concepto", width: "20%" },
+        { key: "proveedor", title: "Proveedor", width: "20%" },
+        { key: "multiplicador", title: "Multiplicador", width: "20%" },
+        { key: "concepto", title: "Concepto", width: "20%" },
         {
-          value: "profitprimeraimportacion",
-          text: "Ganancia Primera Importación",
+          key: "profitprimeraimportacion",
+          title: "Ganancia Primera Importación",
           sortable: false,
           width: "10%",
         },
         {
-          value: "profitsegundaimportacion",
-          text: "Ganancia Segunda Importación",
+          key: "profitsegundaimportacion",
+          title: "Ganancia Segunda Importación",
           sortable: false,
           width: "10%",
         },
         {
-          value: "estado",
-          text: "Activo/ Inactivo",
+          key: "estado",
+          title: "Activo/ Inactivo",
           sortable: false,
           width: "10%",
         },
@@ -406,7 +406,7 @@ export default {
       this.dialogNuevoProfit = true;
     },
     async cargarDatos() {
-      if (this.$refs.frmDatos.validate()) {
+      if ((await this.$refs.frmDatos.validate()).valid) {
         this.loadingObtenerDatos = true;
         await Promise.all([
           this.getProfitPricing(),
@@ -429,8 +429,8 @@ export default {
         this.bloquearBotonAnadirConcepto = false;
       }
     },
-    anadirConcepto() {
-      if (this.$refs.frmAsignarCosto.validate()) {
+    async anadirConcepto() {
+      if ((await this.$refs.frmAsignarCosto.validate()).valid) {
         if (this.tab == 0) {
           this.$store.state.profitPricing.lstProfigIndividual.unshift({
             ...this.formData,

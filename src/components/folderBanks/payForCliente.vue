@@ -7,21 +7,23 @@
       </v-col>
       <!-- v-model="value" -->
       <v-tabs color="#A43542" slider-color="primary" fixed-tabs v-model="tab">
-        <v-tab href="#ref1">STEP 1</v-tab>
-        <v-tab href="#ref2" :disabled="step2">STEP 2</v-tab>
-        <v-tab-item value="ref1">
+        <v-tab value="ref1">STEP 1</v-tab>
+        <v-tab value="ref2" :disabled="step2">STEP 2</v-tab>
+      </v-tabs>
+      <v-tabs-window v-model="tab">
+        <v-tabs-window-item value="ref1">
           <v-row class="mt-5">
             <v-col md="4" cols="4">
               <v-autocomplete
                 :items="clientes"
-                item-text="namelong"
+                item-title="namelong"
                 item-value="id"
                 label="Cliente"
                 v-model="id_proveedor"
                 return-object
                 clearable
                 :readonly="tipo == 'ver'"
-                @change="obtenerListado()"
+                @update:model-value="obtenerListado()"
               >
               </v-autocomplete>
             </v-col>
@@ -35,6 +37,8 @@
                 :headers="headers"
                 :items="listPagosXProveedorCxP"
                 show-select
+                item-value="id"
+                return-object
                 v-model="selected"
                 @item-selected="validarAprobacion"
               >
@@ -42,7 +46,7 @@
                   <v-autocomplete
                     :items="$store.state.itemsCoinsList"
                     v-model="id_coins"
-                    item-text="acronym"
+                    item-title="acronym"
                     item-value="id"
                     label="Moneda"
                     :disabled="
@@ -60,7 +64,6 @@
                       selected.filter((v) => v.index == item.index).length == 0
                     "
                     v-on:blur="calcularTotal()"
-                    @focus.native="calcularTotal()"
                     :error-messages="item.err"
                   >
                   </v-text-field>
@@ -70,9 +73,8 @@
                 </template>
                 <template v-slot:[`item.tipocambio`]="{ item }">
                   <v-text-field
-                    v-on:blur="calcularMonto()"
                     v-model="item.tipocambio"
-                    @focus.native="calcularMonto()"
+                    v-on:blur="calcularMonto()"
                     type="number"
                     :disabled="
                       selected.filter((v) => v.index == item.index).length == 0
@@ -87,13 +89,13 @@
               cols="12"
               v-if="$store.state.listPagosXProveedorCxP.length > 0"
             >
-              <v-flex text-right v-if="tipo == 'nuevo'">
+              <div class="text-right" v-if="tipo == 'nuevo'">
                 <v-btn color="success" @click="continuar()"> Continuar </v-btn>
-              </v-flex>
+              </div>
             </v-col>
           </v-row>
-        </v-tab-item>
-        <v-tab-item value="ref2">
+        </v-tabs-window-item>
+        <v-tabs-window-item value="ref2">
           <v-row class="mt-5">
             <v-col md="4" cols="4"
               ><v-text-field
@@ -103,7 +105,7 @@
                 @blur="ValidateNroOperacion()"
                 id="nro_operacion"
                 :error-messages="errorNroOperacion"
-                :success-messages="successMessages"
+                :messages="successMessages"
               ></v-text-field
             ></v-col>
             <v-col cols="4" md="4">
@@ -114,7 +116,7 @@
               ></v-text-field>
             </v-col>
             <v-col md="6" cols="6" v-if="tipo == 'nuevo'">
-              <!-- <v-flex>
+              <!-- <div>
                 <v-file-input
                   v-model="payfile"
                   label="Cargar Archivo"
@@ -124,7 +126,7 @@
                   @change="uploadFile()"
                 >
                 </v-file-input>
-              </v-flex> -->
+              </div> -->
             </v-col>
             <!-- <v-col md="2" cols="2" v-if="!boolFile && tipo == 'nuevo'">
               <v-btn color="info" @click="_uploadFile()">
@@ -136,12 +138,12 @@
             </v-col> -->
             <v-col md="6" v-if="tipo != 'nuevo'">
               <h6>DOCUMENTO:</h6>
-              <v-simple-table>
+              <v-table>
                 <tbody>
                   <tr>
                     <td>{{ name_path }}</td>
                     <td>
-                      <v-btn
+                      <v-btn variant="text"
                         icon
                         color="red"
                         :href="url_documento"
@@ -152,12 +154,12 @@
                     </td>
                   </tr>
                 </tbody>
-              </v-simple-table>
+              </v-table>
             </v-col>
             <v-col md="4" cols="4">
               <v-autocomplete
                 :items="(cuentas || []).filter((v) => v.symbol == symbol)"
-                item-text="label"
+                item-title="label"
                 item-value="id"
                 label="Cuenta Destino (PIC)"
                 v-model="id_cuenta"
@@ -194,7 +196,7 @@
                 :items="$store.state.itemsDataBanksList"
                 v-model="id_banco_origen"
                 label="Banco Origen"
-                item-text="acronym"
+                item-title="acronym"
                 item-value="id"
               ></v-select>
             </v-col>
@@ -202,7 +204,7 @@
               <ArrastraYSolarComponent @idArchivoCargado="recibirId" />
             </v-col>
             <v-col md="12" cols="12" v-if="tipo == 'nuevo'">
-              <v-flex text-right>
+              <div class="text-right">
                 <v-btn
                   :loading="loading"
                   :disabled="
@@ -213,11 +215,11 @@
                 >
                   PROCESAR PAGO
                 </v-btn>
-              </v-flex>
+              </div>
             </v-col>
           </v-row>
-        </v-tab-item>
-      </v-tabs>
+        </v-tabs-window-item>
+      </v-tabs-window>
     </v-container>
   </div>
 </template>
@@ -257,40 +259,40 @@ export default {
       successMessages: "",
       headers: [
         {
-          text: "Fecha",
-          value: "fecha",
+          title: "Fecha",
+          key: "fecha",
         },
 
         {
-          text: "House",
-          value: "codigo_house",
+          title: "House",
+          key: "codigo_house",
         },
 
         {
-          text: "Cliente Pagó",
-          value: "statuspago",
+          title: "Cliente Pagó",
+          key: "statuspago",
         },
         {
-          text: "Monto Dolar",
-          value: "monto_pagar",
-        },
-
-        {
-          text: "Monto Moneda Banco",
-          value: "maxpagar",
+          title: "Monto Dolar",
+          key: "monto_pagar",
         },
 
         {
-          text: "Moneda",
-          value: "moneda",
+          title: "Monto Moneda Banco",
+          key: "maxpagar",
+        },
+
+        {
+          title: "Moneda",
+          key: "moneda",
         },
         {
-          text: "Tipo Cambio",
-          value: "tipocambio",
+          title: "Tipo Cambio",
+          key: "tipocambio",
         },
         {
-          text: "Pago Parcial",
-          value: "montopagar",
+          title: "Pago Parcial",
+          key: "montopagar",
         },
       ],
     };
@@ -356,7 +358,7 @@ export default {
       let vm = this;
       var config = {
         method: "get",
-        url: process.env.VUE_APP_URL_MAIN + "getListBanksDetailsCargar",
+        url: import.meta.env.VUE_APP_URL_MAIN + "getListBanksDetailsCargar",
         params: {
           id_branch: JSON.parse(sessionStorage.getItem("dataUser"))[0]
             .id_branch,
@@ -498,7 +500,7 @@ export default {
           };
           var config = {
             method: "post",
-            url: process.env.VUE_APP_URL_MAIN + "setPayForCustomer",
+            url: import.meta.env.VUE_APP_URL_MAIN + "setPayForCustomer",
 
             headers: {
              
@@ -554,7 +556,7 @@ export default {
 
         var config = {
           method: "get",
-          url: process.env.VUE_APP_URL_MAIN + `getVerPagosPorCustomer?id=` + id,
+          url: import.meta.env.VUE_APP_URL_MAIN + `getVerPagosPorCustomer?id=` + id,
 
           headers: {
            

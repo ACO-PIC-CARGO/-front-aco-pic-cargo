@@ -2,21 +2,19 @@
   <v-card class="cardDatos pa-4">
     <v-tabs
       v-model="tab"
-      background-color="teal darken-4"
+      bg-color="teal-darken-4"
+      color="white"
       grow
-      dark
-      icons-and-text
+      stacked
     >
-      <v-tabs-slider></v-tabs-slider>
+      <v-tab base-color="rgba(255, 255, 255, 0.6)" value="datos"> Datos del Usuario </v-tab>
 
-      <v-tab href="#datos"> Datos del Usuario </v-tab>
+      <v-tab base-color="rgba(255, 255, 255, 0.6)" value="posicion"> Módulos a Usar </v-tab>
 
-      <v-tab href="#posicion"> Módulos a Usar </v-tab>
-
-      <!-- <v-tab href="#sucursal"> Sucursal </v-tab> -->
+      <!-- <v-tab base-color="rgba(255, 255, 255, 0.6)" value="sucursal"> Sucursal </v-tab> -->
     </v-tabs>
-    <v-tabs-items v-model="tab">
-      <v-tab-item value="datos" class="px-5 items">
+    <v-tabs-window v-model="tab">
+      <v-tabs-window-item value="datos" class="px-5 items">
         <v-form ref="frmDatos">
           <v-row>
             <v-col cols="4">
@@ -29,11 +27,11 @@
               ></v-text-field>
             </v-col>
           </v-row>
-          <v-row align-sm-center>
+          <v-row class="align-sm-center">
             <v-col cols="4">
               <v-autocomplete
                 :items="$store.state.itemsDocumentsPais"
-                item-text="description"
+                item-title="description"
                 item-value="id"
                 label="Tipo de Documento"
                 v-model="$store.state.user.model.id_document"
@@ -43,7 +41,6 @@
             <v-col cols="4">
               <v-text-field
                 label="Documento"
-                id="id"
                 v-model="$store.state.user.model.document"
                 readonly
               ></v-text-field>
@@ -55,7 +52,6 @@
                 v-model="$store.state.user.model.names"
                 label="Nombres"
                 readonly
-                id="id"
               ></v-text-field>
             </v-col>
             <v-col cols="4">
@@ -63,7 +59,6 @@
                 v-model="$store.state.user.model.surname"
                 label="Apellido Paterno"
                 readonly
-                id="id"
               ></v-text-field>
             </v-col>
             <v-col cols="4">
@@ -71,7 +66,6 @@
                 v-model="$store.state.user.model.second_surname"
                 label="Apellido Materno"
                 readonly
-                id="id"
               ></v-text-field>
             </v-col>
             <v-col cols="4">
@@ -79,13 +73,11 @@
                 label="Teléfono"
                 v-model="$store.state.user.model.phone"
                 readonly
-                id="id"
               ></v-text-field>
             </v-col>
             <v-col cols="4">
               <v-text-field
                 label="Correo"
-                id="id"
                 v-model="$store.state.user.model.email"
                 readonly
               ></v-text-field>
@@ -94,7 +86,6 @@
               <v-text-field
                 type="date"
                 label="Fecha Nacimiento"
-                id="id"
                 v-model="$store.state.user.model.birthday"
                 readonly
               ></v-text-field>
@@ -104,10 +95,10 @@
             <v-col cols="4">
               <v-autocomplete
                 :items="$store.state.itemsSex"
-                item-text="name"
+                item-title="name"
                 item-value="id"
                 label="Sexo *"
-                :item-disabled="(item) => item.status != 1"
+                :item-props="(item) => ({ disabled: item.status != 1 })"
                 v-model="$store.state.user.model.id_sex"
                 readonly
               ></v-autocomplete>
@@ -117,11 +108,11 @@
                 label="Pais"
                 :items="$store.state.itemsPais"
                 v-model="$store.state.user.model.id_pais"
-                item-text="name"
+                item-title="name"
                 item-value="id"
-                @change="ObtenerEstados($store.state.user.model.id_pais)"
+                @update:model-value="ObtenerEstados($store.state.user.model.id_pais)"
                 readonly
-                :item-disabled="(item) => item.status != 1"
+                :item-props="(item) => ({ disabled: item.status != 1 })"
               >
               </v-autocomplete>
             </v-col>
@@ -130,12 +121,12 @@
                 label="Estado (Región)"
                 :items="$store.state.itemsState"
                 v-model="$store.state.user.model.id_state"
-                item-text="name"
+                item-title="name"
                 item-value="id"
                 :loading="loadingEstado"
-                @change="ObtenerCity($store.state.user.model.id_state)"
+                @update:model-value="ObtenerCity($store.state.user.model.id_state)"
                 readonly
-                :item-disabled="(item) => item.status != 1"
+                :item-props="(item) => ({ disabled: item.status != 1 })"
               >
               </v-autocomplete>
             </v-col>
@@ -144,12 +135,12 @@
                 label="Ciudad"
                 :items="$store.state.itemsCity"
                 v-model="$store.state.user.model.id_city"
-                item-text="name"
+                item-title="name"
                 item-value="id"
                 :loading="loadingEstado"
-                @change="ObtenerDistrito($store.state.user.model.id_city)"
+                @update:model-value="ObtenerDistrito($store.state.user.model.id_city)"
                 readonly
-                :item-disabled="(item) => item.status != 1"
+                :item-props="(item) => ({ disabled: item.status != 1 })"
               >
               </v-autocomplete>
             </v-col>
@@ -158,10 +149,10 @@
                 label="Distrito "
                 :items="$store.state.itemsTown"
                 v-model="$store.state.user.model.id_town"
-                item-text="name"
+                item-title="name"
                 item-value="id"
                 :loading="loadingDistrito"
-                :item-disabled="(item) => item.status != 1"
+                :item-props="(item) => ({ disabled: item.status != 1 })"
                 readonly
               >
               </v-autocomplete>
@@ -170,7 +161,6 @@
               <v-text-field
                 v-model="$store.state.user.model.address"
                 label="Dirección"
-                id="id"
                 readonly
               ></v-text-field>
             </v-col>
@@ -179,7 +169,6 @@
                 v-model="$store.state.user.model.socialprincipal"
                 readonly
                 label="URL Red Social Principal"
-                id="id"
               ></v-text-field>
             </v-col>
             <v-col cols="4">
@@ -187,7 +176,6 @@
                 v-model="$store.state.user.model.socialsecundary"
                 readonly
                 label="URL Red Social Alternativa"
-                id="id"
               ></v-text-field>
             </v-col> -->
             <!-- <v-col cols="6">
@@ -196,7 +184,6 @@
                 >mdi-information-slab-circle-outline</v-icon
               >
               <v-radio-group
-                column
                 v-model="$store.state.user.model.departamento"
                 readonly
               >
@@ -212,12 +199,13 @@
                   $store.state.user.model.status == 1 ? 'Activo' : 'Inactivo'
                 "
                 v-model="$store.state.user.model.status"
+                :value-comparator="(value, checked) => Boolean(value) === checked"
               ></v-switch>
             </v-col>
           </v-row>
         </v-form>
-      </v-tab-item>
-      <v-tab-item value="posicion" class="px-5 items">
+      </v-tabs-window-item>
+      <v-tabs-window-item value="posicion" class="px-5 items">
         <!-- <v-form ref="frmPosicion">
           <v-row>
             <v-col cols="4" class="my-auto">
@@ -231,7 +219,7 @@
                 placeholder="Posición"
                 
                 :error-messages="errPosition"
-                :item-disabled="(item) => !item.estado"
+                :item-props="(item) => ({ disabled: !item.estado })"
               />
             </v-col>
             <v-col cols="4" class="my-auto">
@@ -246,11 +234,10 @@
             <v-data-table
               :headers="headersPosition"
               :items="$store.state.user.positions.filter((v) => !!v.status)"
-              item-key="id"
-              loading="true"
+              item-value="id"
             >
               <template v-slot:[`item.action`]="{ item }">
-                <v-btn icon color="red" @click="item.status = !item.status">
+                <v-btn variant="text" icon color="red" @click="item.status = !item.status">
                   <v-icon>mdi-delete</v-icon>
                 </v-btn>
               </template>
@@ -262,7 +249,6 @@
 
               <v-radio-group
                 :rules="[(v) => !!v || 'Dato Requerido']"
-                column
                 v-model="$store.state.user.model.departamento"
               >
                 <v-radio label="Pricing" :value="1"></v-radio>
@@ -273,21 +259,18 @@
               <p class="justify">** Nota Importante **</p>
             </v-col>
             <v-col cols="12">
-              <v-subheader>
-                <!--  -->
-                <p class="justify">
-                  Está acción permitirá al usuario ajustar los montos dentro de
-                  la liquidación de costos operativos (Control de Gastos). Es
-                  necesario porque, aunque inicialmente se cotizan ciertos
-                  valores, pueden surgir pequeños ajustes durante la operación
-                  que requieren modificación
-                </p>
-              </v-subheader>
+              <p class="justify">
+                Está acción permitirá al usuario ajustar los montos dentro de
+                la liquidación de costos operativos (Control de Gastos). Es
+                necesario porque, aunque inicialmente se cotizan ciertos
+                valores, pueden surgir pequeños ajustes durante la operación
+                que requieren modificación
+              </p>
             </v-col>
           </v-col>
         </v-row>
-      </v-tab-item>
-      <v-tab-item value="sucursal" class="px-5 py-5 items">
+      </v-tabs-window-item>
+      <v-tabs-window-item value="sucursal" class="px-5 py-5 items">
         <!-- <v-form ref="frmSucursal">
           <v-row>
             <v-col cols="4" class="my-auto">
@@ -302,7 +285,7 @@
                 
                 return-object
                 :error-messages="errSucursal"
-                :item-disabled="(item) => !item.status"
+                :item-props="(item) => ({ disabled: !item.status })"
               ></v-autocomplete>
             </v-col>
             <v-col cols="4" class="my-auto">
@@ -317,26 +300,25 @@
             <v-data-table
               :headers="headersSucursal"
               :items="$store.state.user.sucursales.filter((v) => !!v.status)"
-              item-key="id"
-              loading="true"
+              item-value="id"
             >
               <template v-slot:[`item.action`]="{ item }">
-                <v-btn icon color="red" @click="item.status = !item.status">
+                <v-btn variant="text" icon color="red" @click="item.status = !item.status">
                   <v-icon>mdi-delete</v-icon>
                 </v-btn>
               </template>
             </v-data-table>
           </v-col>
         </v-row>
-      </v-tab-item>
-    </v-tabs-items>
+      </v-tabs-window-item>
+    </v-tabs-window>
 
-    <v-snackbar v-model="snackbar" outlined vertical color="info">
+    <v-snackbar v-model="snackbar" variant="outlined" vertical color="info">
       El departamento, define como se comportará el usuario para el llendo de
       montos (Pricing u Operaciones) , en el CONTROL DE GASTOS
 
-      <template v-slot:action="{ attrs }">
-        <v-btn text color="red" v-bind="attrs" @click="snackbar = false">
+      <template v-slot:actions>
+        <v-btn variant="text" color="red" @click="snackbar = false">
           Close
         </v-btn>
       </template>
@@ -352,14 +334,14 @@ export default {
     return {
       tab: "datos",
       headersPosition: [
-        { text: "Código", value: "code" },
-        { text: "Posición", value: "name" },
+        { title: "Código", key: "code" },
+        { title: "Posición", key: "name" },
         // { text: "Acción", value: "action" },
       ],
 
       headersSucursal: [
-        { text: "Documento", value: "document" },
-        { text: "Nombre", value: "trade_name" },
+        { title: "Documento", key: "document" },
+        { title: "Nombre", key: "trade_name" },
         // { text: "Acción", value: "action" },
       ],
 
@@ -488,7 +470,7 @@ export default {
 
     async agregarSucursal() {
       this.errSucursal = "";
-      if (this.$refs.frmSucursal.validate()) {
+      if ((await this.$refs.frmSucursal.validate()).valid) {
         if (
           this.$store.state.user.sucursales.some(
             (v) => v.id == this.itemSucursal.id
@@ -502,7 +484,7 @@ export default {
     },
     async agregarPosicion() {
       this.errPosition = "";
-      if (this.$refs.frmPosicion.validate()) {
+      if ((await this.$refs.frmPosicion.validate()).valid) {
         if (
           this.$store.state.user.positions.some(
             (v) => v.id == this.itemPositon.id
@@ -534,7 +516,7 @@ export default {
 
     async guardarUsuario() {
       console.log(this.$store.state.itemsDocumentsPais);
-      if (this.$refs.frmDatos.validate()) {
+      if ((await this.$refs.frmDatos.validate()).valid) {
         if (
           this.$store.state.user.positions.filter((v) => !!v.status).length == 0
         ) {

@@ -16,10 +16,10 @@ const loadScript = () =>
   });
 
 const initializePaddle = async () => {
-  const token = process.env.VUE_APP_PADDLE_CLIENT_TOKEN;
+  const token = import.meta.env.VUE_APP_PADDLE_CLIENT_TOKEN;
   if (!token) throw new Error("VUE_APP_PADDLE_CLIENT_TOKEN is not set");
   await loadScript();
-  if (process.env.VUE_APP_PADDLE_ENV !== "production") {
+  if (import.meta.env.VUE_APP_PADDLE_ENV !== "production") {
     window.Paddle.Environment.set("sandbox");
   }
   window.Paddle.Initialize({

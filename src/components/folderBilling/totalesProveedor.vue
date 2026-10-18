@@ -5,25 +5,25 @@
     <v-dialog width="780" v-model="dialogSolicitud">
       <v-stepper v-model="e1">
         <v-stepper-header>
-          <v-stepper-step :complete="e1 > 1" step="1"> Códigos </v-stepper-step>
+          <v-stepper-item :complete="e1 > 1" :value="1" title="Códigos" />
 
           <v-divider></v-divider>
 
-          <v-stepper-step :complete="e1 > 2" step="3">
-            Cuentas Bancarias
-          </v-stepper-step>
+          <v-stepper-item
+            :complete="e1 > 2"
+            :value="2"
+            title="Cuentas Bancarias"
+          />
           <v-divider></v-divider>
 
-          <v-stepper-step :complete="e1 > 3" step="3">
-            Observaciones
-          </v-stepper-step>
+          <v-stepper-item :complete="e1 > 3" :value="3" title="Observaciones" />
         </v-stepper-header>
 
-        <v-stepper-items>
-          <v-stepper-content step="1">
+        <v-stepper-window>
+          <v-stepper-window-item :value="1">
             <v-card class="mb-12" elevation="0" height="200px">
               <v-card-text>
-                <v-row dense>
+                <v-row density="compact">
                   <v-col md="6" cols="12">
                     <v-checkbox
                       v-model="checkPago"
@@ -54,11 +54,11 @@
 
             <v-btn color="primary" @click="e1 = 2"> Continuar </v-btn>
 
-            <v-btn text @click="e1 = 1"> Volver </v-btn>
-            <v-btn text @click="dialogSolicitud = false"> Cerrar </v-btn>
-          </v-stepper-content>
+            <v-btn variant="text" @click="e1 = 1"> Volver </v-btn>
+            <v-btn variant="text" @click="dialogSolicitud = false"> Cerrar </v-btn>
+          </v-stepper-window-item>
 
-          <v-stepper-content step="2">
+          <v-stepper-window-item :value="2">
             <v-card class="mb-12" elevation="0" height="200px">
               <v-card-text>
                 <b>Cuentas</b>
@@ -68,10 +68,11 @@
                   :headers="headersAccount"
                   :items="$store.state.itemsDataAccountsNumberList"
                   hide-default-footer
-                  item-key="id"
+                  item-value="id"
+                  return-object
                   show-select
                   class="elevation-0"
-                  dense
+                  density="compact"
                 >
                 </v-data-table>
                 <h2 class="mt-5">Ya seleccionó el codigo de pago</h2>
@@ -80,11 +81,11 @@
 
             <v-btn color="primary" @click="e1 = 3"> Continuar </v-btn>
 
-            <v-btn text @click="e1 = 1"> Volver</v-btn>
-            <v-btn text @click="dialogSolicitud = false"> Cerrar </v-btn>
-          </v-stepper-content>
+            <v-btn variant="text" @click="e1 = 1"> Volver</v-btn>
+            <v-btn variant="text" @click="dialogSolicitud = false"> Cerrar </v-btn>
+          </v-stepper-window-item>
 
-          <v-stepper-content step="3">
+          <v-stepper-window-item :value="3">
             <v-card class="mb-12" elevation="0" height="200px">
               <v-card-text>
                 <v-textarea
@@ -95,7 +96,7 @@
                 </v-textarea>
                 <v-btn
                   block
-                  @click.native="_generateSolicitud()"
+                  @click="_generateSolicitud()"
                   class="mt-2"
                   color="primary"
                   >GENERAR SOLICITUD</v-btn
@@ -103,10 +104,10 @@
               </v-card-text></v-card
             >
 
-            <v-btn text @click="e1 = 2"> Volver </v-btn>
-            <v-btn text @click="dialogSolicitud = false"> Cerrar </v-btn>
-          </v-stepper-content>
-        </v-stepper-items>
+            <v-btn variant="text" @click="e1 = 2"> Volver </v-btn>
+            <v-btn variant="text" @click="dialogSolicitud = false"> Cerrar </v-btn>
+          </v-stepper-window-item>
+        </v-stepper-window>
       </v-stepper>
     </v-dialog>
 
@@ -115,7 +116,7 @@
         <v-card-title> Solicitar pago por concepto</v-card-title>
 
         <v-card-text>
-          <v-row dense>
+          <v-row density="compact">
             <v-col md="6" cols="12">
               <v-text-field v-model="codigo_pago" label="CODIGO DE PAGO"
                 >CODIGO DE PAGO</v-text-field
@@ -143,43 +144,38 @@
             hide-default-header
             :items="$store.state.itemsDataConceptos"
             hide-default-footer
-            item-key="concepto"
-            :footer-props="{
-              'items-per-page-options': [10, 20, 30, 40, 50],
-            }"
+            item-value="concepto"
+            return-object
+            :items-per-page-options="[10, 20, 30, 40, 50]"
             :items-per-page="30"
-            dense
+            density="compact"
             show-select
             class="elevation-0"
           >
-            <template
-              v-slot:[`item.data-table-select`]="{ item, isSelected, select }"
-            >
-              <v-simple-checkbox
-                :value="isSelected"
+            <template v-slot:[`item.data-table-select`]="{ item, props }">
+              <v-checkbox-btn
+                v-bind="props"
                 :readonly="item.pagado == 1"
                 v-if="!item.pagado == 1"
-                @input="select($event)"
-              ></v-simple-checkbox>
+              ></v-checkbox-btn>
             </template>
             <template v-slot:[`item.status`]="{ item }">
               <v-chip
                 v-if="item.pagado == 1"
-                class="ma-2"
+                class="ma-2 text-white"
                 color="green"
-                small
-                text-color="white"
+                size="small"
+                variant="flat"
               >
                 {{ item.status == 1 ? "Pagado" : "" }}
               </v-chip>
 
               <v-icon
                 class="btn__add mr-2"
-                dense
-                large
+                size="large"
                 color="grey"
                 v-if="item.pagado == 1"
-                @click.native="openPaymentFile(item.path)"
+                @click="openPaymentFile(item.path)"
                 >mdi-eye</v-icon
               >
             </template>
@@ -191,16 +187,17 @@
             :headers="headersAccount"
             :items="$store.state.itemsDataAccountsNumberList"
             hide-default-footer
-            item-key="id"
+            item-value="id"
+            return-object
             show-select
-            dense
+            density="compact"
             class="elevation-0"
           >
           </v-data-table>
 
           <v-btn
             block
-            @click.native="_generateSolicitud()"
+            @click="_generateSolicitud()"
             class="mt-2"
             color="primary"
             >GENERAR SOLICITUD</v-btn
@@ -211,7 +208,7 @@
 
     <v-dialog width="70%" v-model="dialogPayment">
       <v-card class="mx-auto">
-        <v-toolbar color="cyan" dark>
+        <v-toolbar color="cyan" class="text-white">
           <v-toolbar-title>SOLICITUDES GENERADAS</v-toolbar-title>
 
           <v-spacer></v-spacer>
@@ -219,20 +216,20 @@
         <v-card-title>
           <v-text-field
             v-model="search"
-            append-icon="mdi-magnify"
+            append-inner-icon="mdi-magnify"
             label="Buscar solicitud"
             single-line
             hide-details
           ></v-text-field>
         </v-card-title>
         <v-container v-if="!dataList" style="height: 400px">
-          <v-row class="fill-height" align-content="center" justify="center">
+          <v-row class="fill-height align-content-center justify-center">
             <v-col class="text-subtitle-1 text-center" cols="12">
               Cargando informacíon
             </v-col>
             <v-col cols="6">
               <v-progress-linear
-                color="deep-purple accent-4"
+                color="deep-purple-accent-4"
                 indeterminate
                 rounded
                 height="6"
@@ -249,17 +246,17 @@
           <template v-slot:[`item.status`]="{ item }">
             <v-chip
               v-if="item.status == 2"
-              class="ma-2"
+              class="ma-2 text-white"
               color="orange"
-              text-color="white"
+              variant="flat"
             >
               {{ item.status == 2 ? "Pendiente" : "" }}
             </v-chip>
             <v-chip
               v-if="item.status == 3"
-              class="ma-2"
+              class="ma-2 text-white"
               color="green"
-              text-color="white"
+              variant="flat"
             >
               {{ item.status == 3 ? "Pagado" : "" }}
             </v-chip>
@@ -282,10 +279,10 @@
 
     <v-dialog max-width="800" v-model="dialogListInvoince">
       <v-card>
-        <v-card-title>
+        <v-card-title class="d-flex align-center flex-wrap">
           Facturas y Performance de {{ nameproveedor }}
           <v-spacer></v-spacer>
-          <v-btn outlined @click="dialogInvoice = true" color="primary"
+          <v-btn variant="outlined" @click="dialogInvoice = true" color="primary"
             >Cargar Nueva</v-btn
           >
         </v-card-title>
@@ -293,13 +290,13 @@
           <v-data-table
             :headers="headersInvoice"
             :items="itemsListInvoice"
-            dense
-            item-key="id"
+            density="compact"
+            item-value="id"
             class="elevation-0"
           >
             <template v-slot:[`item.originalname`]="{ item }">
               <v-icon v-if="item.type == 'pdf'" color="red" class="mr-2"
-                >mdi-file-pdf</v-icon
+                >mdi-file-pdf-box</v-icon
               >
               <v-icon
                 v-if="
@@ -307,8 +304,7 @@
                   item.type == 'jpg' ||
                   item.type == 'jpeg'
                 "
-                color="blue-grey darken-1
-"
+                color="blue-grey-darken-1"
                 class="mr-2"
                 >mdi-file-image</v-icon
               >
@@ -325,20 +321,18 @@
             <template v-slot:[`item.path`]="{ item }">
               <v-icon
                 class="btn_add mr-2"
-                dense
-                large
+                size="large"
                 color="grey"
-                @click.native="openDoc(item.path)"
+                @click="openDoc(item.path)"
                 >mdi-eye</v-icon
               >
             </template>
             <template v-slot:[`item.action`]="{ item }">
               <v-icon
                 class="btn_add mr-2"
-                dense
-                large
+                size="large"
                 color="red"
-                @click.native="_delInvoice(item.id)"
+                @click="_delInvoice(item.id)"
                 >mdi-delete</v-icon
               >
             </template>
@@ -354,9 +348,9 @@
         </v-card-title>
         <v-card-text>
           <v-container>
-            <v-row dense>
+            <v-row density="compact">
               <v-col cols="12" md="12">
-                <v-radio-group v-model="radio" row>
+                <v-radio-group v-model="radio" inline>
                   <v-radio label="Factura" value="1"></v-radio>
                   <v-radio label="Performance" value="2"></v-radio>
                   <v-radio label="Otro" value="3"></v-radio>
@@ -364,15 +358,12 @@
               </v-col>
               <v-col cols="12" md="6">
                 <v-menu
-                  ref="menu"
                   v-model="menu"
                   :close-on-content-click="false"
-                  :return-value.sync="date"
                   transition="scale-transition"
-                  offset-y
                   min-width="auto"
                 >
-                  <template v-slot:activator="{ on, attrs }">
+                  <template v-slot:activator="{ props }">
                     <v-text-field
                       v-model="date"
                       :label="`Fecha de ${
@@ -384,24 +375,27 @@
                       }`"
                       prepend-icon="mdi-calendar"
                       readonly
-                      v-bind="attrs"
-                      v-on="on"
+                     
+                      v-bind="props"
                     ></v-text-field>
                   </template>
-                  <v-date-picker
-                    locale="es-pe"
-                    v-model="date"
-                    no-title
-                    scrollable
-                  >
-                    <v-spacer></v-spacer>
-                    <v-btn text color="primary" @click="menu = false">
-                      Cancel
-                    </v-btn>
-                    <v-btn text color="primary" @click="$refs.menu.save(date)">
-                      OK
-                    </v-btn>
-                  </v-date-picker>
+                  <v-locale-provider locale="es">
+                    <v-date-picker
+                      :model-value="date"
+                      @update:model-value="setDate"
+                      hide-header
+                    >
+                      <template #actions>
+                        <v-spacer></v-spacer>
+                        <v-btn variant="text" color="primary" @click="menu = false">
+                          Cancel
+                        </v-btn>
+                        <v-btn variant="text" color="primary" @click="dateOnOpen = date; menu = false">
+                          OK
+                        </v-btn>
+                      </template>
+                    </v-date-picker>
+                  </v-locale-provider>
                 </v-menu>
               </v-col>
               <v-col cols="12" md="6">
@@ -435,12 +429,12 @@
                 <v-chip
                   block
                   v-if="boolFile"
-                  large
+                  size="large"
                   class=""
                   color="success"
-                  outlined
+                  variant="outlined"
                 >
-                  <v-icon left> mdi-check </v-icon>
+                  <v-icon start> mdi-check </v-icon>
                   Archivo cargado éxitosamente
                 </v-chip>
               </v-col>
@@ -449,8 +443,8 @@
                   :disabled="boolFile || payfile == []"
                   color="blue-grey"
                   block
-                  class="ma-2 white--text"
-                  large
+                  class="ma-2 text-white"
+                  size="large"
                   @click="_uploadFile()"
                 >
                   Subir
@@ -461,7 +455,7 @@
                       ? "Performance"
                       : "Otro"
                   }}
-                  <v-icon right dark> mdi-cloud-upload </v-icon>
+                  <v-icon end> mdi-cloud-upload </v-icon>
                 </v-btn>
               </v-col>
             </v-row>
@@ -476,14 +470,14 @@
             }}</v-btn
           >
 
-          <v-btn outlined color="red" @click="dialogInvoice = !dialogInvoice">
+          <v-btn variant="outlined" color="red" @click="dialogInvoice = !dialogInvoice">
             Cerrar
           </v-btn>
         </v-card-actions>
       </v-card>
     </v-dialog>
 
-    <v-simple-table dense max-height="440" fixed-header>
+    <v-table density="compact" max-height="440" fixed-header>
       <template v-slot:default>
         <thead>
           <tr>
@@ -506,12 +500,12 @@
             <td>{{ item.total_pr }}</td>
             <td>{{ item.total_op }}</td>
             <td>
-              <v-tooltip bottom>
-                <template v-slot:activator="{ on, attrs }">
+              <v-tooltip location="bottom">
+                <template v-slot:activator="{ props }">
                   <v-btn
-                    v-bind="attrs"
-                    v-on="on"
-                    @click.native="
+                   
+                    v-bind="props"
+                    @click="
                       openInvoice(
                         item.id_proveedor,
                         item.nameproveedor,
@@ -519,7 +513,7 @@
                       )
                     "
                     elevation="0"
-                    small
+                    size="small"
                     color="white"
                     ><v-icon :color="item.docs > 0 ? 'blue' : 'grey'"
                       >mdi-file-compare</v-icon
@@ -531,7 +525,7 @@
             </td>
             <td>
               <v-btn
-                @click.native="
+                @click="
                   solicitar(
                     item.nameproveedor,
                     item.total_op,
@@ -540,23 +534,23 @@
                   )
                 "
                 elevation="0"
-                small
+                size="small"
                 color="white"
                 ><v-icon color="blue">mdi-send</v-icon></v-btn
               >
             </td>
             <td>
-              <v-tooltip bottom>
-                <template v-slot:activator="{ on, attrs }">
+              <v-tooltip location="bottom">
+                <template v-slot:activator="{ props }">
                   <v-btn
-                    v-bind="attrs"
-                    v-on="on"
-                    @click.native="openPayments(item.id_proveedor, item.type)"
+                   
+                    v-bind="props"
+                    @click="openPayments(item.id_proveedor, item.type)"
                     elevation="0"
-                    small
+                    size="small"
                     color="white"
                     ><v-icon :color="item.solicitudes > 0 ? 'blue' : 'grey'"
-                      >mdi-email-send</v-icon
+                      >mdi-email-arrow-right</v-icon
                     ></v-btn
                   >
                 </template>
@@ -566,11 +560,12 @@
           </tr>
         </tbody>
       </template>
-    </v-simple-table>
+    </v-table>
   </div>
 </template>
 <script>
 import axios from '@/api/axios-config';
+import moment from "moment";
 import { mapState, mapActions } from "vuex";
 export default {
   name: "services",
@@ -600,6 +595,7 @@ export default {
       .toISOString()
       .substr(0, 10),
     menu: false,
+    dateOnOpen: null,
     modal: false,
     menu2: false,
 
@@ -622,91 +618,91 @@ export default {
     search: "",
     headers: [
       {
-        text: "Concepto",
+        title: "Concepto",
         align: "start",
         sortable: false,
 
-        value: "concepto",
+        key: "concepto",
       },
       {
-        text: "Monto",
+        title: "Monto",
 
-        value: "monto_op",
+        key: "monto_op",
       },
       {
-        text: "Status",
+        title: "Status",
 
-        value: "status",
+        key: "status",
       },
     ],
     sPaymentId: "",
 
     headersPdf: [
       {
-        text: "Nombre",
+        title: "Nombre",
         align: "start",
         sortable: false,
-        value: "path",
+        key: "path",
       },
       {
-        text: "Fecha Creado",
-        value: "fecha_letra",
+        title: "Fecha Creado",
+        key: "fecha_letra",
       },
       {
-        text: "Hora Creado",
-        value: "hora_letra",
+        title: "Hora Creado",
+        key: "hora_letra",
       },
       {
-        text: "Fecha de Solicitud",
-        value: "fecha_sol_letra",
+        title: "Fecha de Solicitud",
+        key: "fecha_sol_letra",
       },
       {
-        text: "Fecha de Pago",
-        value: "fecha_pago_letra",
+        title: "Fecha de Pago",
+        key: "fecha_pago_letra",
       },
       {
-        text: "Ver",
-        value: "accion",
+        title: "Ver",
+        key: "accion",
       },
       {
-        text: "Status",
-        value: "status",
+        title: "Status",
+        key: "status",
       },
       {
-        text: "Enviar",
-        value: "accions",
+        title: "Enviar",
+        key: "accions",
       },
     ],
 
     headersInvoice: [
       {
-        text: "Nombre",
-        value: "originalname",
+        title: "Nombre",
+        key: "originalname",
       },
       {
-        text: "Fecha",
-        value: "date_letra",
+        title: "Fecha",
+        key: "date_letra",
       },
       {
-        text: "Ver",
-        value: "path",
+        title: "Ver",
+        key: "path",
       },
       {
-        text: "Acción",
-        value: "action",
+        title: "Acción",
+        key: "action",
       },
     ],
 
     headersAccount: [
       {
-        text: "Cuenta",
+        title: "Cuenta",
         align: "start",
         sortable: false,
-        value: "nameaccount",
+        key: "nameaccount",
       },
-      { text: "Banco", value: "namebanks" },
-      { text: "Moneda", value: "namecoins" },
-      { text: "Número de cuenta", value: "accountnumber" },
+      { title: "Banco", key: "namebanks" },
+      { title: "Moneda", key: "namecoins" },
+      { title: "Número de cuenta", key: "accountnumber" },
     ],
   }),
   mounted() {
@@ -718,6 +714,9 @@ export default {
 
   methods: {
     ...mapActions(["_getProveedor", "_getTotalesProveedor"]),
+    setDate(value) {
+      this.date = moment(value).format("YYYY-MM-DD");
+    },
     openDoc(path) {
       window.open(path, "_blank");
     },
@@ -752,7 +751,7 @@ export default {
       var config = {
         method: "get",
         url:
-          process.env.VUE_APP_URL_MAIN +
+          import.meta.env.VUE_APP_URL_MAIN +
           `list_invoice_path/${vm.$route.params.id_house}/${vm.proveedorId}`,
 
         headers: {
@@ -790,7 +789,7 @@ export default {
       };
       var config = {
         method: "post",
-        url: process.env.VUE_APP_URL_MAIN + "setInvoice",
+        url: import.meta.env.VUE_APP_URL_MAIN + "setInvoice",
 
         headers: {
          
@@ -821,7 +820,7 @@ export default {
 
       var config = {
         method: "post",
-        url: process.env.VUE_APP_URL_MAIN + "delInvoice/" + id,
+        url: import.meta.env.VUE_APP_URL_MAIN + "delInvoice/" + id,
 
         headers: {
          
@@ -840,8 +839,6 @@ export default {
         });
     },
     _uploadFile() {
-      var FormData = require("form-data");
-      var fs = require("fs");
       var data = new FormData();
       var vm = this;
       data.append("name", "Prueba");
@@ -849,7 +846,7 @@ export default {
 
       var config = {
         method: "post",
-        url: process.env.VUE_APP_URL_MAIN + "uploadAllPath",
+        url: import.meta.env.VUE_APP_URL_MAIN + "uploadAllPath",
         headers: {
          
           "Content-Type": "application/json",
@@ -883,7 +880,7 @@ export default {
       }
     },
     viewPdf(pdf) {
-      window.open(process.env.VUE_APP_URL_MAIN + pdf, "_blank");
+      window.open(import.meta.env.VUE_APP_URL_MAIN + pdf, "_blank");
     },
     async _getAccountsNumber() {
       var vm = this;
@@ -893,7 +890,7 @@ export default {
       var config = {
         method: "post",
         url:
-          process.env.VUE_APP_URL_MAIN + "getAccountsNumber/" + vm.proveedorId,
+          import.meta.env.VUE_APP_URL_MAIN + "getAccountsNumber/" + vm.proveedorId,
         headers: {
          
           "Content-Type": "application/json",
@@ -931,7 +928,7 @@ export default {
           };
           var config = {
             method: "post",
-            url: process.env.VUE_APP_URL_MAIN + "putSPaymentPro/" + id,
+            url: import.meta.env.VUE_APP_URL_MAIN + "putSPaymentPro/" + id,
             headers: {
              
               "Content-Type": "application/json",
@@ -969,7 +966,7 @@ export default {
       var config = {
         method: "post",
         url:
-          process.env.VUE_APP_URL_MAIN +
+          import.meta.env.VUE_APP_URL_MAIN +
           "getSPaymentPro/" +
           vm.$route.params.id_house +
           "/" +
@@ -1073,7 +1070,7 @@ export default {
       };
       var config = {
         method: "post",
-        url: process.env.VUE_APP_URL_MAIN + "setSPaymentPro",
+        url: import.meta.env.VUE_APP_URL_MAIN + "setSPaymentPro",
         headers: {
          
           "Content-Type": "application/json",
@@ -1103,7 +1100,7 @@ export default {
           };
           var config = {
             method: "post",
-            url: process.env.VUE_APP_URL_MAIN + "pdfSolicitud",
+            url: import.meta.env.VUE_APP_URL_MAIN + "pdfSolicitud",
             headers: {
              
               "Content-Type": "application/json",
@@ -1120,7 +1117,7 @@ export default {
                 text: "El PDF se descargará automaticamente",
               });
               window.open(
-                process.env.VUE_APP_URL_MAIN + response.data.path,
+                import.meta.env.VUE_APP_URL_MAIN + response.data.path,
                 "_blank"
               );
             })
@@ -1190,7 +1187,7 @@ export default {
       };
       var config = {
         method: "post",
-        url: process.env.VUE_APP_URL_MAIN + "deleteServices",
+        url: import.meta.env.VUE_APP_URL_MAIN + "deleteServices",
         headers: {
          
           "Content-Type": "application/json",
@@ -1219,7 +1216,7 @@ export default {
         };
         var config = {
           method: "post",
-          url: process.env.VUE_APP_URL_MAIN + "getHouseServices",
+          url: import.meta.env.VUE_APP_URL_MAIN + "getHouseServices",
           headers: {
            
             "Content-Type": "application/json",
@@ -1242,7 +1239,7 @@ export default {
       var config = {
         method: "post",
         url:
-          process.env.VUE_APP_URL_MAIN +
+          import.meta.env.VUE_APP_URL_MAIN +
           "getEgresosDivision/" +
           vm.$route.params.id_orders +
           "/" +
@@ -1266,7 +1263,7 @@ export default {
       var config = {
         method: "post",
         url:
-          process.env.VUE_APP_URL_MAIN +
+          import.meta.env.VUE_APP_URL_MAIN +
           "getEgresosDivision/" +
           vm.$route.params.id_orders +
           "/" +
@@ -1287,6 +1284,10 @@ export default {
     },
   },
   watch: {
+    menu(open) {
+      if (open) this.dateOnOpen = this.date;
+      else this.date = this.dateOnOpen;
+    },
     actualizar() {
       this._getTotalesProveedor();
     },

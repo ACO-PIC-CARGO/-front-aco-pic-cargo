@@ -3,10 +3,11 @@
 </template>
 
 <script>
+import { defineAsyncComponent } from "vue";
 export default {
   components: {
-    ReadEnterpriseComponent: () =>
-      import("@/components/FolderEnterprise/read.vue"),
+    ReadEnterpriseComponent: defineAsyncComponent(() =>
+      import("@/components/FolderEnterprise/read.vue")),
   },
 };
 </script>

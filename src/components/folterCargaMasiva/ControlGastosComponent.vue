@@ -5,11 +5,11 @@
         <v-col cols="3" v-if="nuevoExpedienteFlag()">
           <!--  -->
           <v-autocomplete
-            @change="nombreCampania()"
             :items="$store.state.itemsMasterList"
             v-model="id_exp"
+            @update:model-value="nombreCampania()"
             label="Expediente"
-            item-text="code_master"
+            item-title="code_master"
             item-value="id"
           >
           </v-autocomplete>
@@ -58,7 +58,7 @@
                 v-model="cuota[n - 1]"
                 type="number"
                 suffix="%"
-                dense
+                density="compact"
               ></v-text-field>
             </v-col>
             <v-col cols="6">
@@ -67,7 +67,7 @@
                 v-if="nuevoExpediente"
                 v-model="fechacuota[n - 1]"
                 type="date"
-                dense
+                density="compact"
               ></v-text-field>
             </v-col>
           </v-row>
@@ -83,8 +83,7 @@
           :headers="headers"
           :items="datos"
           class="elevation-1"
-          pagination.sync="pagination"
-          item-key="index"
+          item-value="index"
           :loading="datos.length != files.length"
         >
         </v-data-table>
@@ -99,71 +98,69 @@
         >
       </v-col>
     </v-row>
-    <v-dialog v-model="dialog" max-width="50%" height="80%" persistent>
-      <template>
-        <v-card color="basil">
-          <v-card-title class="text-center justify-center py-6">
-            <h1 class="font-weight-bold text-h2 basil--text">SUBIR ARCHIVOS</h1>
-          </v-card-title>
+    <v-dialog v-model="dialog" max-width="50%" persistent>
+      <v-card color="basil">
+        <v-card-title class="text-center justify-center py-6">
+          <h1 class="font-weight-bold text-h2 basil--text">SUBIR ARCHIVOS</h1>
+        </v-card-title>
 
-          <v-tabs
-            v-model="tab"
-            background-color="transparent"
-            color="basil"
-            grow
-          >
-            <!-- <v-tab> Seleccionar Archivos </v-tab> -->
-            <v-tab :loading="loadingArras"> Cargar Archivos </v-tab>
-          </v-tabs>
+        <v-tabs
+          v-model="tab"
+          bg-color="transparent"
+          color="basil"
+          grow
+        >
+          <!-- <v-tab> Seleccionar Archivos </v-tab> -->
+          <v-tab> Cargar Archivos </v-tab>
+        </v-tabs>
 
-          <v-tabs-items v-model="tab">
-            <v-tab-item>
-              <v-card color="basil" flat>
-                <v-card-text>
-                  <div
-                    class="drop-area"
-                    @dragover.prevent
-                    @drop="handleDrop"
-                    @click="openFileInput"
-                    v-if="!loading"
-                  >
-                    <label>
-                      Arrastra y suelta archivos aquí
-                      <v-file-input
-                        ref="fileInput"
-                        v-model="files"
-                        hide-details
-                        multiple
-                        @change="Procesar()"
-                        style="display: none"
-                      ></v-file-input>
-                    </label>
-                  </div>
-                  <div v-else>
-                    <v-card color="primary" dark>
-                      <v-card-text>
-                        Se está analizando los archivos, un momento por
-                        favor....
-                        <v-progress-linear
-                          indeterminate
-                          color="white"
-                          class="mb-0"
-                        ></v-progress-linear>
-                      </v-card-text>
-                    </v-card>
-                  </div>
-                </v-card-text>
-              </v-card>
-            </v-tab-item>
-          </v-tabs-items>
-        </v-card>
-      </template>
+        <v-tabs-window v-model="tab">
+          <v-tabs-window-item>
+            <v-card color="basil" flat>
+              <v-card-text>
+                <div
+                  class="drop-area"
+                  @dragover.prevent
+                  @drop="handleDrop"
+                  @click="openFileInput"
+                  v-if="!loading"
+                >
+                  <label>
+                    Arrastra y suelta archivos aquí
+                    <v-file-input
+                      ref="fileInput"
+                      v-model="files"
+                      hide-details
+                      multiple
+                      @update:model-value="Procesar()"
+                      style="display: none"
+                    ></v-file-input>
+                  </label>
+                </div>
+                <div v-else>
+                  <v-card color="primary">
+                    <v-card-text>
+                      Se está analizando los archivos, un momento por
+                      favor....
+                      <v-progress-linear
+                        indeterminate
+                        color="white"
+                        class="mb-0"
+                      ></v-progress-linear>
+                    </v-card-text>
+                  </v-card>
+                </div>
+              </v-card-text>
+            </v-card>
+          </v-tabs-window-item>
+        </v-tabs-window>
+      </v-card>
     </v-dialog>
   </v-container>
 </template>
 
 <script>
-import readXlsxFile from "read-excel-file";
+import { readSheet as readXlsxFile } from "read-excel-file/browser";
 import { mapActions } from "vuex";
 import Swal from "sweetalert2";
 export default {
@@ -188,14 +185,14 @@ export default {
       cuota: [],
       fechacuota: [],
       headers: [
-        { text: "Nombres", value: "nombres" },
-        { text: "Apellidos Paterno", value: "apaterno" },
-        { text: "Apellido  Materno", value: "amaterno" },
-        { text: "Teléfono", value: "telefono" },
-        { text: "Teléfono 2", value: "telefono2" },
-        { text: "Monto ($)", value: "monto" },
-        { text: "Pedidos", value: "pedidos" },
-        { text: "Nombre del documento", value: "document" },
+        { title: "Nombres", key: "nombres" },
+        { title: "Apellidos Paterno", key: "apaterno" },
+        { title: "Apellido  Materno", key: "amaterno" },
+        { title: "Teléfono", key: "telefono" },
+        { title: "Teléfono 2", key: "telefono2" },
+        { title: "Monto ($)", key: "monto" },
+        { title: "Pedidos", key: "pedidos" },
+        { title: "Nombre del documento", key: "document" },
       ],
     };
   },

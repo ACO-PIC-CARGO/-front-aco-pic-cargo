@@ -3,10 +3,11 @@
 </template>
 
 <script>
+import { defineAsyncComponent } from "vue";
 export default {
   components: {
-    flujoOperacionPorMesComponent: () =>
-      import("../../components/balances/flujoOperacionPorMesComponent.vue"),
+    flujoOperacionPorMesComponent: defineAsyncComponent(() =>
+      import("../../components/balances/flujoOperacionPorMesComponent.vue")),
   },
   mounted() {
     this.$store.state.mainTitle = "FLUJO PROYECCIÓN MES";

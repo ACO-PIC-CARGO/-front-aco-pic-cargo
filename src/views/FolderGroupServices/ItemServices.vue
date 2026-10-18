@@ -3,10 +3,8 @@
     <ListItemServiceComponet />
     <v-navigation-drawer
       v-model="$store.state.itemServices.drawer"
-      right
-      absolute
-      bottom
-      persistent
+      location="right"
+      
       width="30%"
       temporary
     >
@@ -16,11 +14,12 @@
 </template>
 
 <script>
+import { defineAsyncComponent } from "vue";
 export default {
   components: {
-    ListItemServiceComponet: () =>
-      import("../../components/FolderGroupServices/ListItemServiceComponet.vue"),
-    FilterTown: () => import("../../components/filtros/FilterGrupoServices.vue"),
+    ListItemServiceComponet: defineAsyncComponent(() =>
+      import("../../components/FolderGroupServices/ListItemServiceComponet.vue")),
+    FilterTown: defineAsyncComponent(() => import("../../components/filtros/FilterGrupoServices.vue")),
   },
   mounted() {
     this.$store.state.mainTitle = `LISTADO DE DETALLES DE SERVICIO`;

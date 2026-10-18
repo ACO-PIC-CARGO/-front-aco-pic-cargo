@@ -5,9 +5,10 @@
 </template>
 
 <script>
+import { defineAsyncComponent } from "vue";
 export default {
   components: {
-    Users: () => import("@/components/Users/VerUserComponent.vue"),
+    Users: defineAsyncComponent(() => import("@/components/Users/VerUserComponent.vue")),
   },
   mounted() {
     this.$store.state.mainTitle = `VER USUARIO`;

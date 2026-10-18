@@ -2,60 +2,80 @@
   <div>
     <v-stepper v-model="$store.state.entities.stepper" non-linear>
       <v-stepper-header>
-        <v-stepper-step editable step="1">Datos del Cliente</v-stepper-step>
+        <v-stepper-item
+          editable
+          :value="1"
+          title="Datos del Cliente"
+        ></v-stepper-item>
 
         <v-divider></v-divider>
 
-        <v-stepper-step editable step="2">Teléfonos y Contactos</v-stepper-step>
+        <v-stepper-item
+          editable
+          :value="2"
+          title="Teléfonos y Contactos"
+        ></v-stepper-item>
 
         <v-divider></v-divider>
 
-        <v-stepper-step editable step="3">Convenios y Tarifas</v-stepper-step>
+        <v-stepper-item
+          editable
+          :value="3"
+          title="Convenios y Tarifas"
+        ></v-stepper-item>
 
         <v-divider></v-divider>
 
-        <v-stepper-step editable step="4">Información Bancaria</v-stepper-step>
+        <v-stepper-item
+          editable
+          :value="4"
+          title="Información Bancaria"
+        ></v-stepper-item>
 
         <v-divider></v-divider>
 
-        <v-stepper-step editable step="5">Shipper</v-stepper-step>
+        <v-stepper-item editable :value="5" title="Shipper"></v-stepper-item>
 
         <v-divider></v-divider>
 
-        <v-stepper-step editable step="6">Destinatario</v-stepper-step>
+        <v-stepper-item
+          editable
+          :value="6"
+          title="Destinatario"
+        ></v-stepper-item>
       </v-stepper-header>
 
-      <v-stepper-items>
+      <v-stepper-window>
         <!--DATOS DEL CLIENTE-->
-        <v-stepper-content step="1">
+        <v-stepper-window-item :value="1" eager>
           <SeccionCliente />
-        </v-stepper-content>
+        </v-stepper-window-item>
 
         <!--TELÉFONOS-->
-        <v-stepper-content step="2">
+        <v-stepper-window-item :value="2" eager>
           <SeccionTelefonos />
-        </v-stepper-content>
+        </v-stepper-window-item>
 
         <!--CONVENIOS Y TARIFAS-->
-        <v-stepper-content step="3">
+        <v-stepper-window-item :value="3" eager>
           <SeccionConvenios />
-        </v-stepper-content>
+        </v-stepper-window-item>
 
         <!--INFORMACIÓN BANCARIA-->
-        <v-stepper-content step="4">
+        <v-stepper-window-item :value="4" eager>
           <SeccionInformacionBancaria />
-        </v-stepper-content>
+        </v-stepper-window-item>
 
         <!--SHIPPER-->
-        <v-stepper-content step="5">
+        <v-stepper-window-item :value="5" eager>
           <SeccionShippers />
-        </v-stepper-content>
+        </v-stepper-window-item>
 
         <!--INFORMACIÓN DE ENTREGA-->
-        <v-stepper-content step="6">
+        <v-stepper-window-item :value="6" eager>
           <SeccionInformacionEntrega />
-        </v-stepper-content>
-      </v-stepper-items>
+        </v-stepper-window-item>
+      </v-stepper-window>
     </v-stepper>
   </div>
 </template>
@@ -149,15 +169,7 @@ export default {
 </script>
 
 <style>
-.v-stepper__content {
-  padding: 24px;
-}
-
 .row + .row {
   margin-top: 0;
-}
-
-tr.v-data-table__selected {
-  background: #ffccab !important;
 }
 </style>

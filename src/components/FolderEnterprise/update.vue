@@ -2,13 +2,13 @@
   <v-container>
     <v-card class="py-10 px-10">
       <v-container v-if="loading_as" style="height: 400px">
-        <v-row class="fill-height" align-content="center" justify="center">
+        <v-row class="fill-height align-content-center justify-center">
           <v-col class="text-subtitle-1 text-center" cols="12">
             Cargando información ....
           </v-col>
           <v-col cols="6">
             <v-progress-linear
-              color="deep-purple accent-4"
+              color="deep-purple-accent-4"
               indeterminate
               rounded
               height="6"
@@ -17,11 +17,11 @@
         </v-row>
       </v-container>
       <v-tabs v-model="tab" v-else>
-        <v-tab href="#principal">Datos Principales</v-tab>
-        <v-tab href="#bancario">Datos Bancarios</v-tab>
+        <v-tab value="principal">Datos Principales</v-tab>
+        <v-tab value="bancario">Datos Bancarios</v-tab>
       </v-tabs>
-      <v-tabs-items v-model="tab" v-if="!loading_as">
-        <v-tab-item value="principal" class="px-10">
+      <v-tabs-window v-model="tab" v-if="!loading_as">
+        <v-tabs-window-item value="principal" class="px-10">
           <v-card-title>
             <v-card-text>
               <v-row>
@@ -32,7 +32,7 @@
                         label="Tipo de Documento (*)"
                         v-model="enterprise.id_document"
                         :items="itemsDocumentsPais"
-                        item-text="description"
+                        item-title="description"
                         item-value="id"
                         :rules="[(v) => !!v || 'Dato requerido']"
                         clearable
@@ -100,7 +100,7 @@
                       <v-text-field
                         label="Logo"
                         readonly
-                        :value="enterprise.name_file"
+                        :model-value="enterprise.name_file"
                       ></v-text-field>
 
                       <!-- <div>
@@ -118,12 +118,12 @@
                         label="Actualizar logo"
                         v-model="payfile"
                         accept=".png"
-                        :success-messages="msgfile"
+                        :messages="msgfile"
                         :error-messages="errfile"
                         :loading="loadingFile"
                         show-size
                         prepend-icon="mdi-camera"
-                        @change="uploadFile()"
+                        @update:model-value="uploadFile()"
                       >
                       </v-file-input>
                     </v-col>
@@ -140,9 +140,9 @@
                         label="País (*)"
                         :items="itemsPais"
                         item-value="id"
-                        item-text="name"
-                        @change="get_state()"
+                        item-title="name"
                         v-model="enterprise.id_pais"
+                        @update:model-value="get_state()"
                         :rules="[(v) => !!v || 'Dato requerido']"
                         clearable
                       >
@@ -153,9 +153,9 @@
                         label="Región (*)"
                         :items="itemsState"
                         item-value="id"
-                        item-text="name"
-                        @change="get_city()"
+                        item-title="name"
                         v-model="enterprise.id_state"
+                        @update:model-value="get_city()"
                         :disabled="!enterprise.id_pais"
                         clearable
                       >
@@ -166,9 +166,9 @@
                         label="Provincia (*)"
                         :items="itemsCity"
                         item-value="id"
-                        item-text="name"
-                        @change="get_town()"
+                        item-title="name"
                         v-model="enterprise.id_city"
+                        @update:model-value="get_town()"
                         :disabled="!enterprise.id_state"
                         clearable
                       >
@@ -179,7 +179,7 @@
                         label="Distrito (*)"
                         :items="itemsTown"
                         item-value="id"
-                        item-text="name"
+                        item-title="name"
                         v-model="enterprise.id_town"
                         :disabled="!enterprise.id_city"
                         clearable
@@ -199,8 +199,9 @@
                       <v-switch
                         label="Activo / Inactivo"
                         v-model="enterprise.status"
+                        :value-comparator="(value, checked) => Boolean(value) === checked"
                         color="success"
-                        @change="updateStatus"
+                        @update:model-value="updateStatus"
                       ></v-switch>
                     </v-col>
                     <v-col cols="6">
@@ -208,8 +209,8 @@
                         label="Impuestos a las Ventas en tu País"
                         :items="$store.state.masterusuarios.lstImpRenta"
                         item-value="id"
-                        item-text="descripcion"
-                        dense
+                        item-title="descripcion"
+                        density="compact"
                         v-model="enterprise.tipoimpuesto"
                       >
                         <template v-slot:selection="data">
@@ -223,7 +224,7 @@
                         label="Porcentaje"
                         step="0.1"
                         suffix="%"
-                        dense
+                        density="compact"
                         hide-details
                         v-model="enterprise.impuesto"
                       ></v-text-field>
@@ -233,11 +234,11 @@
               </v-row>
             </v-card-text>
           </v-card-title>
-        </v-tab-item>
-        <v-tab-item value="bancario">
+        </v-tabs-window-item>
+        <v-tabs-window-item value="bancario">
           <v-row>
             <v-col cols="12" style="text-align: right">
-              <v-btn color="success" small @click="abrirModalNuevaCuenta"
+              <v-btn color="success" size="small" @click="abrirModalNuevaCuenta"
                 >Nueva Cuenta</v-btn
               >
             </v-col>
@@ -251,7 +252,6 @@
                     v-if="item.esprincipalflag"
                     class="ma-2"
                     color="green"
-                    text-color="white"
                   >
                     SI
                   </v-chip>
@@ -259,14 +259,14 @@
               </v-data-table>
             </v-col>
           </v-row>
-        </v-tab-item>
-      </v-tabs-items>
+        </v-tabs-window-item>
+      </v-tabs-window>
 
       <v-card-actions v-if="!loading_as" class="justify-end mt-3">
-        <v-btn small class="mx-1" color="success" @click="update()" rounded>
+        <v-btn size="small" class="mx-1" color="success" @click="update()" rounded>
           Guardar
         </v-btn>
-        <v-btn small class="mx-1" dark color="red" @click="volver()" rounded>
+        <v-btn size="small" class="mx-1" color="red" @click="volver()" rounded>
           Cancelar
         </v-btn>
       </v-card-actions>
@@ -278,7 +278,7 @@
           <v-form ref="frmNuevaCuenta">
             <v-autocomplete
               :items="$store.state.bank.list"
-              item-text="name"
+              item-title="name"
               item-value="id"
               label="Banco"
               v-model="id_bank"
@@ -287,19 +287,17 @@
               v-if="id_bank == 0"
               :rules="[(v) => !!v || 'Dato Requerido']"
               label="Acrónimo Banco"
-              id="id"
               v-model="acronymbanco"
             ></v-text-field>
             <v-text-field
               v-if="id_bank == 0"
               :rules="[(v) => !!v || 'Dato Requerido']"
               label="Nombre Banco"
-              id="id"
               v-model="nombrebanco"
             ></v-text-field>
             <v-autocomplete
               :items="$store.state.coins.itemsCoinsList"
-              item-text="name"
+              item-title="name"
               item-value="id"
               label="Moneda"
               :rules="[(v) => v === '0' || v === 0 || !!v || 'Dato Requerido']"
@@ -334,11 +332,11 @@
           </v-form>
           <div style="text-align: right" class="mt-5">
             <v-spacer></v-spacer>
-            <v-btn small class="mx-1" color="success" @click="guardarCuenta"
+            <v-btn size="small" class="mx-1" color="success" @click="guardarCuenta"
               >Guardar</v-btn
             >
             <v-btn
-              small
+              size="small"
               class="mx-1"
               color="error"
               @click="dialogNuevaCuenta = false"
@@ -392,13 +390,13 @@ export default {
       errorDocument: null,
       tab: "principal",
       headerCuentas: [
-        { text: "Banco", value: "banco" },
-        { text: "Abrv.", value: "banco_acronym" },
-        { text: "Nro Cuenta", value: "nrocuenta" },
-        { text: "CCI", value: "nrocci" },
-        { text: "Usar Facturación", value: "esprincipalflag" },
-        { text: "Moneda", value: "moneda" },
-        { text: "Abrv. Moneda", value: "monedacronym" },
+        { title: "Banco", key: "banco" },
+        { title: "Abrv.", key: "banco_acronym" },
+        { title: "Nro Cuenta", key: "nrocuenta" },
+        { title: "CCI", key: "nrocci" },
+        { title: "Usar Facturación", key: "esprincipalflag" },
+        { title: "Moneda", key: "moneda" },
+        { title: "Abrv. Moneda", key: "monedacronym" },
       ],
       id_bank: 0,
       id_coins: "",
@@ -527,7 +525,7 @@ export default {
       await this._getTown(this.enterprise.id_city);
     },
     async update() {
-      if (this.$refs.form.validate()) {
+      if ((await this.$refs.form.validate()).valid) {
         await this.updateEnterprise(this.enterprise);
       }
     },
@@ -540,7 +538,7 @@ export default {
       var config = {
         method: "get",
         url:
-          process.env.VUE_APP_URL_MAIN +
+          import.meta.env.VUE_APP_URL_MAIN +
           `validar_editar_documento_enterprise?` +
           `id=${this.enterprise.id}` +
           `&id_document=${this.enterprise.id_document}` +
@@ -588,7 +586,7 @@ export default {
       }
     },
     async guardarCuenta() {
-      if (this.$refs.frmNuevaCuenta.validate()) {
+      if ((await this.$refs.frmNuevaCuenta.validate()).valid) {
         await this.registrarCuentaEmpresa({
           id_banco: this.id_bank,
           id_coins: this.id_coins,

@@ -3,11 +3,10 @@
     <v-data-table
       :headers="headers"
       :items="$store.state.programaciones.listado"
-      :expanded.sync="expanded"
-      :single-expand="singleExpand"
-      item-key="id"
+      v-model:expanded="expanded"
+      item-value="id"
       show-expand
-      @click:row="clickRow"
+      expand-on-click
       class="mx-4 ext-uppercase"
       :custom-filter="filterOnlyCapsText"
       fixed-header
@@ -18,57 +17,59 @@
       <template v-slot:[`item.total_soles_total`]="{ item }">
         {{ monExt }} {{ item.total_soles }}
       </template>
-      <template v-slot:expanded-item="{ item }">
-        <td colspan="11">
-          <v-simple-table style="width: 100%">
-            <thead>
-              <tr style="background: #fff1cf">
-                <th>Accion</th>
-                <th>Proveedor</th>
-                <th>Monto</th>
-                <th>Deuda Actual</th>
-                <th>Estado</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr v-for="child of item.details" :key="child.id">
-                <td>
-                  <v-btn
-                    icon
-                    color="primary"
-                    @click="payment(child, item.id)"
-                    v-if="child.status == false"
-                  >
-                    <v-icon>mdi-hand-coin</v-icon>
-                  </v-btn>
-                  <v-btn
-                    icon
-                    color="red"
-                    @click="
-                      eliminar(item, child.id_proveedor, child.id_details)
-                    "
-                    v-if="child.status == false"
-                  >
-                    <v-icon>mdi-delete</v-icon>
-                  </v-btn>
-                </td>
-                <td>{{ child.proveedor }}</td>
+      <template v-slot:expanded-row="{ item }">
+        <tr>
+          <td colspan="11">
+            <v-table style="width: 100%">
+              <thead>
+                <tr style="background: #fff1cf">
+                  <th>Accion</th>
+                  <th>Proveedor</th>
+                  <th>Monto</th>
+                  <th>Deuda Actual</th>
+                  <th>Estado</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr v-for="child of item.details" :key="child.id">
+                  <td>
+                    <v-btn variant="text"
+                      icon
+                      color="primary"
+                      @click="payment(child, item.id)"
+                      v-if="child.status == false"
+                    >
+                      <v-icon>mdi-hand-coin</v-icon>
+                    </v-btn>
+                    <v-btn variant="text"
+                      icon
+                      color="red"
+                      @click="
+                        eliminar(item, child.id_proveedor, child.id_details)
+                      "
+                      v-if="child.status == false"
+                    >
+                      <v-icon>mdi-delete</v-icon>
+                    </v-btn>
+                  </td>
+                  <td>{{ child.proveedor }}</td>
 
-                <td>{{ child.symbol }} {{ child.monto_original }}</td>
-                <td>{{ child.symbol }} {{ child.monto }}</td>
+                  <td>{{ child.symbol }} {{ child.monto_original }}</td>
+                  <td>{{ child.symbol }} {{ child.monto }}</td>
 
-                <td>
-                  <v-chip color="orange" outlined v-if="child.status == false">
-                    Por Pagar
-                  </v-chip>
-                  <v-chip color="green" outlined v-if="child.status == true">
-                    Pagado
-                  </v-chip>
-                </td>
-              </tr>
-            </tbody></v-simple-table
-          >
-        </td>
+                  <td>
+                    <v-chip color="orange" variant="outlined" v-if="child.status == false">
+                      Por Pagar
+                    </v-chip>
+                    <v-chip color="green" variant="outlined" v-if="child.status == true">
+                      Pagado
+                    </v-chip>
+                  </td>
+                </tr>
+              </tbody></v-table
+            >
+          </td>
+        </tr>
       </template>
     </v-data-table>
 
@@ -79,10 +80,10 @@
       transition="dialog-transition"
     >
       <v-card>
-        <v-card-title primary-title>
+        <v-card-title class="d-flex align-center flex-wrap" primary-title>
           PROVEEDOR: {{ nameproveedor }}
           <v-spacer></v-spacer>
-          <v-btn icon color="default" @click="dialog = !dialog">
+          <v-btn variant="text" icon color="default" @click="dialog = !dialog">
             <v-icon>mdi-close</v-icon>
           </v-btn>
         </v-card-title>
@@ -104,9 +105,11 @@
             fixed-tabs
             v-model="tab"
           >
-            <v-tab href="#ref1">STEP 1</v-tab>
-            <v-tab href="#ref2" v-if="selected.length > 0">STEP 2</v-tab>
-            <v-tab-item value="ref1">
+            <v-tab value="ref1">STEP 1</v-tab>
+            <v-tab value="ref2" v-if="selected.length > 0">STEP 2</v-tab>
+          </v-tabs>
+          <v-tabs-window v-model="tab">
+            <v-tabs-window-item value="ref1">
               <v-row>
                 <v-col cols="3">
                   <v-text-field
@@ -117,9 +120,8 @@
                 <v-col cols="3">
                   <v-btn
                     v-if="selected.length > 0"
-                    color="green darken-4"
+                    color="green-darken-4"
                     @click="continuar()"
-                    dark
                     >Continuar</v-btn
                   >
                 </v-col>
@@ -129,7 +131,8 @@
                 :items="$store.state.programaciones.listProgramacionxProveedor"
                 class="elevation-1"
                 show-select
-                item-key="id"
+                item-value="id"
+                return-object
                 v-model="selected"
                 :search="search"
               >
@@ -137,7 +140,7 @@
                   <v-autocomplete
                     :items="$store.state.itemsCoinsList"
                     v-model="item.id_coins"
-                    item-text="acronym"
+                    item-title="acronym"
                     item-value="id"
                     label="Moneda"
                     v-on:blur="calcularTotales()"
@@ -156,7 +159,6 @@
                       selected.filter((v) => v.id == item.id).length == 0
                     "
                     v-on:blur="calcularTotales()"
-                    @focus.native="calcularTotales()"
                   ></v-text-field>
                 </template>
                 <!--  -->
@@ -164,7 +166,7 @@
                   {{ item.acronym }} {{ item.monto_mon_ex }}
                 </template>
                 <template v-slot:[`item.action`]="{ item }">
-                  <v-btn icon color="red" @click="eliminarDetalle(item)">
+                  <v-btn variant="text" icon color="red" @click="eliminarDetalle(item)">
                     <v-icon>mdi-delete</v-icon>
                   </v-btn>
                 </template>
@@ -179,13 +181,12 @@
                     "
                     :prefix="acronym"
                     v-on:blur="calcularTotalesInput()"
-                    @focus.native="calcularTotalesInput()"
                     :error-messages="item.errorEx"
                   ></v-text-field>
                 </template>
               </v-data-table>
-            </v-tab-item>
-            <v-tab-item value="ref2">
+            </v-tabs-window-item>
+            <v-tabs-window-item value="ref2">
               <v-form ref="frmPagoStep2">
                 <v-row class="mt-5">
                   <v-col cols="3">
@@ -210,8 +211,9 @@
                     <v-file-input
                       label="Cargar Archivo"
                       v-model="payfile"
-                      @change="uploadFile()"
-                      :success-messages="msgfile"
+                      @update:model-value="uploadFile()"
+                      :messages="msgfile"
+                      :class="{ 'text-success': !!msgfile }"
                       :error-messages="errfile"
                       :rules="[(v) => !!v || 'Datos Requerido']"
                       :loading="loadingFile"
@@ -222,7 +224,7 @@
                   <v-col md="4" cols="4">
                     <v-autocomplete
                       :items="cuentas.filter((v) => v.symbol == acronym)"
-                      item-text="label"
+                      item-title="label"
                       item-value="id"
                       label="CUENTA BANCARIA"
                       v-model="id_cuenta"
@@ -265,21 +267,21 @@
                     ></v-text-field
                   ></v-col>
                   <v-col md="12" cols="12">
-                    <v-flex text-right>
+                    <div class="text-right">
                       <v-btn
                         color="success"
                         :loading="loadingRegistro"
-                        text
+                        variant="text"
                         @click="registrarPago()"
                       >
                         PROCESAR PAGO
                       </v-btn>
-                    </v-flex>
+                    </div>
                   </v-col>
                 </v-row>
               </v-form>
-            </v-tab-item>
-          </v-tabs>
+            </v-tabs-window-item>
+          </v-tabs-window>
         </v-card-text>
       </v-card>
     </v-dialog>
@@ -287,6 +289,7 @@
 </template>
 
 <script>
+import { defineAsyncComponent } from "vue";
 import axios from '@/api/axios-config';
 import moment from "moment";
 import { mapActions, mapState } from "vuex";
@@ -294,9 +297,10 @@ import { mapActions, mapState } from "vuex";
 import Swal from "sweetalert2";
 export default {
   name: "listProgrammedPaymentComponent",
+  emits: ["cerrar"],
   components: {
-    ModalPagoControlGastoComponent: () =>
-      import("../../components/modal/modalPagoControlGasto.vue"),
+    ModalPagoControlGastoComponent: defineAsyncComponent(() =>
+      import("../../components/modal/modalPagoControlGasto.vue")),
   },
   data: () => ({
     monExt: "",
@@ -314,20 +318,20 @@ export default {
     search: "",
     headers: [
       {
-        text: "Correlativo",
-        value: "correlativo",
+        title: "Correlativo",
+        key: "correlativo",
       },
       {
-        text: "Fecha Programada",
-        value: "fecha",
+        title: "Fecha Programada",
+        key: "fecha",
       },
       {
-        text: "Total Pagar Dolares",
-        value: "total_dolar_total",
+        title: "Total Pagar Dolares",
+        key: "total_dolar_total",
       },
       {
-        text: "Total Pagar Soles",
-        value: "total_soles_total",
+        title: "Total Pagar Soles",
+        key: "total_soles_total",
       },
     ],
     listado: [],
@@ -422,26 +426,25 @@ export default {
       },
     ],
     headersProgXProveedor: [
-      { text: "Expediente", value: "nro_master" },
+      { title: "Expediente", key: "nro_master" },
       // { text: "Master", value: "code_control" },
-      { text: "Factura/ Proforma", value: "expedientes" },
-      { text: "Procedencia", value: "procedencia" },
-      { text: "Monto (USD)", value: "monto" },
-      { text: "Monto Factura", value: "monto_mon_extranjera" },
+      { title: "Factura/ Proforma", key: "expedientes" },
+      { title: "Procedencia", key: "procedencia" },
+      { title: "Monto (USD)", key: "monto" },
+      { title: "Monto Factura", key: "monto_mon_extranjera" },
       {
-        text: "Tipo Cambio",
-        value: "tipo_cambio",
+        title: "Tipo Cambio",
+        key: "tipo_cambio",
       },
       {
-        text: "Moneda Pagar",
-        value: "item_moneda",
+        title: "Moneda Pagar",
+        key: "item_moneda",
       },
-      { text: "Monto Pagar", value: "monto_pagar" },
-      { text: "Acción", value: "action" },
+      { title: "Monto Pagar", key: "monto_pagar" },
+      { title: "Acción", key: "action" },
     ],
     expanded: [],
     expand: [],
-    singleExpand: false,
     idDetails: "",
     dialog: false,
     nameproveedor: "",
@@ -521,14 +524,7 @@ export default {
       this.total = 0;
       this.$store.state.listPagosXProveedorCxP = [];
     },
-    clickRow(item, event) {
-      if (event.isExpanded) {
-        const index = this.expanded.findIndex((i) => i === item);
-        this.expanded.splice(index, 1);
-      } else {
-        this.expanded.push(item);
-      }
-    },
+
     async obtenerListado() {
       await this._getListaPagosXProveedorCxP(this.id_proveedor);
     },
@@ -612,7 +608,7 @@ export default {
       var vm = this;
       var config = {
         method: "post",
-        url: process.env.VUE_APP_URL_MAIN + "getRequestPaymentConceptos/" + id,
+        url: import.meta.env.VUE_APP_URL_MAIN + "getRequestPaymentConceptos/" + id,
 
         headers: {
          
@@ -642,7 +638,7 @@ export default {
       }
     },
     async registrarPago() {
-      if (this.$refs.frmPagoStep2.validate()) {
+      if ((await this.$refs.frmPagoStep2.validate()).valid) {
         this.loadingRegistro = true;
         let data = {
           id_coins: this.id_coins,
@@ -664,7 +660,7 @@ export default {
       let vm = this;
       var config = {
         method: "get",
-        url: process.env.VUE_APP_URL_MAIN + "getListBanksDetailsCargar",
+        url: import.meta.env.VUE_APP_URL_MAIN + "getListBanksDetailsCargar",
         params: {
           id_branch: JSON.parse(sessionStorage.getItem("dataUser"))[0]
             .id_branch,
@@ -763,7 +759,7 @@ export default {
         };
         var config = {
           method: "post",
-          url: process.env.VUE_APP_URL_MAIN + "setPayForProveedor",
+          url: import.meta.env.VUE_APP_URL_MAIN + "setPayForProveedor",
 
           headers: {
            
@@ -813,7 +809,7 @@ export default {
       };
       var config = {
         method: "post",
-        url: process.env.VUE_APP_URL_MAIN + "setSPaymentFile/",
+        url: import.meta.env.VUE_APP_URL_MAIN + "setSPaymentFile/",
 
         headers: {
          
@@ -859,7 +855,7 @@ export default {
         var config = {
           method: "get",
           url:
-            process.env.VUE_APP_URL_MAIN + `getVerPagosPorProveedor?id=` + id,
+            import.meta.env.VUE_APP_URL_MAIN + `getVerPagosPorProveedor?id=` + id,
 
           headers: {
            
@@ -890,7 +886,7 @@ export default {
       var config = {
         method: "put",
         url:
-          process.env.VUE_APP_URL_MAIN +
+          import.meta.env.VUE_APP_URL_MAIN +
           `updateProgrammedPayment/${vm.idDetails}`,
         headers: {
          

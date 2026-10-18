@@ -4,7 +4,7 @@
 
     <h3>Servicios a Realizar</h3>
 
-    <v-simple-table dense>
+    <v-table density="compact">
       <template v-slot:default>
         <thead>
           <tr>
@@ -22,10 +22,10 @@
           >
             <td>
               <v-text-field
-                :value="formatFecha(item.date_service || item.updated_at)"
+                :model-value="formatFecha(item.date_service || item.updated_at)"
                 prepend-icon="mdi-calendar"
                 readonly
-                dense
+                density="compact"
                 disabled
                 hide-details
                 style="max-width: 140px;"
@@ -39,17 +39,18 @@
                 <!-- Switch normal -->
                 <v-switch
                   v-if="item.nameservice != 'CERTIFICADO DE ORIGEN'"
-                  dense
+                  density="compact"
                   color="primary"
                   v-model="item.status"
+                  :value-comparator="(value, checked) => Boolean(value) === checked"
                   :disabled="true"
                   readonly
                 ></v-switch>
 
                 <!-- Menú especial -->
-                <v-menu v-else offset-y>
-                  <template v-slot:activator="{ on, attrs }">
-                    <v-btn large color="default" v-bind="attrs" v-on="on" :disabled="true">
+                <v-menu v-else>
+                  <template v-slot:activator="{ props }">
+                    <v-btn size="large" color="default" v-bind="props" :disabled="true">
                       {{
                         item.status == 1
                           ? "SI"
@@ -82,39 +83,39 @@
           </tr>
         </tbody>
       </template>
-    </v-simple-table>
+    </v-table>
 
     <!-- Campos de Aduana (solo lectura) -->
-    <v-card class="mt-4" outlined>
-      <v-card-title class="py-2">
-        <v-icon left color="indigo">mdi-ferry</v-icon>
+    <v-card class="mt-4" border>
+      <v-card-title class="py-2 d-flex align-center flex-wrap">
+        <v-icon start color="indigo">mdi-ferry</v-icon>
         Datos de Aduana
         <v-spacer></v-spacer>
-        <span class="caption grey--text text--darken-1">Información SUNAT</span>
+        <span class="text-caption text-grey-darken-1">Información SUNAT</span>
       </v-card-title>
       <v-card-text class="pt-0">
-        <v-row dense>
+        <v-row density="compact">
           <v-col cols="12" md="6">
             <v-text-field
-              :value="$store.state.house_nro_declaracion_aduana"
+              :model-value="$store.state.house_nro_declaracion_aduana"
               label="N° Declaración de Aduana"
               prepend-icon="mdi-file-document-outline"
               readonly
               disabled
-              outlined
-              dense
+              variant="outlined"
+              density="compact"
               hide-details="auto"
             ></v-text-field>
           </v-col>
           <v-col cols="12" md="6">
             <v-text-field
-              :value="$store.state.house_canal_aduana"
+              :model-value="$store.state.house_canal_aduana"
               label="Canal de Aduana"
               prepend-icon="mdi-traffic-light"
               readonly
               disabled
-              outlined
-              dense
+              variant="outlined"
+              density="compact"
               hide-details="auto"
             ></v-text-field>
           </v-col>
@@ -150,27 +151,25 @@
 
     <v-dialog v-model="dialogNotificacionesLista" max-width="500" v-if="false">
       <v-card>
-        <v-card-title class="text-h6">
+        <v-card-title class="text-h6 d-flex align-center flex-wrap">
           Seleccione notificación
           <v-spacer></v-spacer>
-          <v-btn icon @click="dialogNotificacionesLista = false">
+          <v-btn variant="text" icon @click="dialogNotificacionesLista = false">
             <v-icon>mdi-close</v-icon>
           </v-btn>
         </v-card-title>
 
         <v-card-text>
-          <v-list dense two-line>
+          <v-list density="compact" lines="two">
             <v-list-item
               v-for="(item, idx) in itemsNotificaciones"
               :key="idx"
               @click="seleccionarNotificacion(item)"
             >
-              <v-list-item-content>
-                <v-list-item-title>{{ item.title }}</v-list-item-title>
-              </v-list-item-content>
-              <v-list-item-icon>
+              <v-list-item-title>{{ item.title }}</v-list-item-title>
+              <template #append>
                 <v-icon color="primary">mdi-chevron-right</v-icon>
-              </v-list-item-icon>
+              </template>
             </v-list-item>
           </v-list>
         </v-card-text>
@@ -186,6 +185,7 @@ import moment from "moment";
 import { v4 as uuidv4 } from "uuid";
 export default {
   name: "services",
+  emits: ["ir-editar", "guardar-house", "eliminar-house", "send-notificacion"],
   props: {
     isFormActionsDisabled: Boolean,
     itemsNotificaciones: {
@@ -219,7 +219,7 @@ export default {
     window.addEventListener("resize", this.updateSpeedDialDirection);
     window.addEventListener("scroll", this.updateSpeedDialDirection, true);
   },
-  beforeDestroy() {
+  beforeUnmount() {
     window.removeEventListener("resize", this.updateSpeedDialDirection);
     window.removeEventListener("scroll", this.updateSpeedDialDirection, true);
   },
@@ -276,7 +276,7 @@ export default {
         };
         const config = {
           method: "put",
-          url: process.env.VUE_APP_URL_MAIN + `setTrackingToken`,
+          url: import.meta.env.VUE_APP_URL_MAIN + `setTrackingToken`,
           headers: {
            
             "Content-Type": "application/json",
@@ -310,7 +310,7 @@ export default {
       };
       var config = {
         method: "post",
-        url: process.env.VUE_APP_URL_MAIN + "deleteServices",
+        url: import.meta.env.VUE_APP_URL_MAIN + "deleteServices",
         headers: {
          
           "Content-Type": "application/json",
@@ -334,7 +334,7 @@ export default {
       };
       var config = {
         method: "post",
-        url: process.env.VUE_APP_URL_MAIN + "activeServices",
+        url: import.meta.env.VUE_APP_URL_MAIN + "activeServices",
         headers: {
          
           "Content-Type": "application/json",
@@ -358,7 +358,7 @@ export default {
       };
       var config = {
         method: "post",
-        url: process.env.VUE_APP_URL_MAIN + "inactiveServices",
+        url: import.meta.env.VUE_APP_URL_MAIN + "inactiveServices",
         headers: {
          
           "Content-Type": "application/json",
@@ -383,7 +383,7 @@ export default {
       };
       var config = {
         method: "post",
-        url: process.env.VUE_APP_URL_MAIN + "editServices",
+        url: import.meta.env.VUE_APP_URL_MAIN + "editServices",
         headers: {
          
           "Content-Type": "application/json",
@@ -413,7 +413,7 @@ export default {
 
         var config = {
           method: "post",
-          url: process.env.VUE_APP_URL_MAIN + "getHouseServices",
+          url: import.meta.env.VUE_APP_URL_MAIN + "getHouseServices",
           headers: {
            
             "Content-Type": "application/json",
@@ -571,7 +571,7 @@ export default {
 
       var config = {
         method: "post",
-        url: process.env.VUE_APP_URL_MAIN + `getServicesByIncoterms`,
+        url: import.meta.env.VUE_APP_URL_MAIN + `getServicesByIncoterms`,
         headers: {
          
           "Content-Type": "application/json",
@@ -629,7 +629,7 @@ export default {
       try {
         const response = await axios({
           method: "get",
-          url: `${process.env.VUE_APP_URL_MAIN}generar_formato_awb`,
+          url: `${import.meta.env.VUE_APP_URL_MAIN}generar_formato_awb`,
           params: {
             id_house: this.$route.params.id,
             formatoflag: this.formatoflag,
@@ -662,7 +662,7 @@ export default {
       try {
         const response = await axios({
           method: "get",
-          url: `${process.env.VUE_APP_URL_MAIN}generar_formato_bl`,
+          url: `${import.meta.env.VUE_APP_URL_MAIN}generar_formato_bl`,
           params: {
             id_house: this.$route.params.id,
             formatoflag: this.formatoflag,
@@ -716,20 +716,20 @@ export default {
   cursor: pointer;
 }
 
-.acciones-dial ::v-deep .v-speed-dial__list {
+.acciones-dial :deep(.v-speed-dial__list) {
   align-items: flex-start !important;
 }
-.acciones-dial ::v-deep .v-speed-dial__list .v-btn {
+.acciones-dial :deep(.v-speed-dial__list .v-btn) {
   align-self: flex-start;
   min-width: 180px;
 }
-.acciones-dial ::v-deep .v-speed-dial__list .v-btn .v-btn__content {
+.acciones-dial :deep(.v-speed-dial__list .v-btn .v-btn__content) {
   justify-content: flex-start;
   width: 100%;
   font-size: 0.98rem;
   line-height: 1.2;
 }
-.acciones-dial ::v-deep .v-speed-dial__list .v-btn .v-icon {
+.acciones-dial :deep(.v-speed-dial__list .v-btn .v-icon) {
   font-size: 22px !important;
 }
 </style>

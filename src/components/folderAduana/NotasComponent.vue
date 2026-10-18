@@ -7,10 +7,10 @@
       transition="dialog-transition"
     >
       <v-card>
-        <v-card-title primary-title>
+        <v-card-title class="d-flex align-center flex-wrap" primary-title>
           Registro de nueva nota - Opción
           {{ opcionesSeleccionadas[page].nro_propuesta }}<v-spacer></v-spacer>
-          <v-btn icon color="default" @click="abrirDialog()">
+          <v-btn variant="text" icon color="default" @click="abrirDialog()">
             <v-icon>mdi-close</v-icon>
           </v-btn>
         </v-card-title>
@@ -35,28 +35,26 @@
       <v-col cols="12">
         Añadir nueva Nota: Opción
         {{ opcionesSeleccionadas[page].nro_propuesta }}
-        <v-btn icon color="primary" @click="dialog = !dialog">
+        <v-btn variant="text" icon color="primary" @click="dialog = !dialog">
           <v-icon>mdi-plus</v-icon>
         </v-btn>
       </v-col>
       <v-col cols="12" class="derecha">
-        <template>
-          <div class="text-center">
-            <v-pagination
-              v-model="$store.state.aduana.page"
-              :length="opcionesSeleccionadas.length"
-              circle
-            ></v-pagination>
-          </div>
-        </template>
+        <div class="text-center">
+          <v-pagination
+            v-model="$store.state.aduana.page"
+            :length="opcionesSeleccionadas.length"
+            rounded
+          ></v-pagination>
+        </div>
       </v-col>
       <v-col cols="12">
-        <v-expansion-panels class="my-1 condensed" hover>
+        <v-expansion-panels class="my-1 condensed">
           <v-expansion-panel>
-            <v-expansion-panel-header>
+            <v-expansion-panel-title>
               Notas Principales
-            </v-expansion-panel-header>
-            <v-expansion-panel-content>
+            </v-expansion-panel-title>
+            <v-expansion-panel-text>
               <v-data-table
                 :headers="headers"
                 :items="
@@ -68,7 +66,7 @@
                   )
                 "
                 hide-default-footer
-                dense
+                density="compact"
                 disable-sort
                 :items-per-page="-1"
               >
@@ -79,16 +77,16 @@
                       <v-textarea
                         v-model="row.item.descripcion"
                         hide-details
-                        dense
+                        density="compact"
                         rows="1"
                         auto-grow
                       ></v-textarea>
                     </td>
                     <td class="btnTblClass">
-                      <v-btn
+                      <v-btn variant="text"
                         icon
                         color="red"
-                        x-small
+                        size="x-small"
                         @click="row.item.estado = 0"
                       >
                         <v-icon>mdi-delete</v-icon>
@@ -97,19 +95,19 @@
                   </tr>
                 </template>
               </v-data-table>
-            </v-expansion-panel-content>
+            </v-expansion-panel-text>
           </v-expansion-panel>
         </v-expansion-panels>
       </v-col>
       <v-col cols="12">
-        <v-expansion-panels class="my-1 condensed" hover>
+        <v-expansion-panels class="my-1 condensed">
           <v-expansion-panel>
-            <v-expansion-panel-header>
+            <v-expansion-panel-title>
               <span class="d-inline-flex align-center">
                 Se incluye
-                <v-btn
+                <v-btn variant="text"
                   color="success"
-                  x-small
+                  size="x-small"
                   icon
                   class="ml-2"
                   @click="abrirDialog({ statusincluye: 1 })"
@@ -117,13 +115,13 @@
                   <v-icon>mdi-plus</v-icon>
                 </v-btn>
               </span>
-            </v-expansion-panel-header>
-            <v-expansion-panel-content>
+            </v-expansion-panel-title>
+            <v-expansion-panel-text>
               <v-data-table
                 :headers="headers"
                 :items="lstSeIncluye"
                 hide-default-footer
-                dense
+                density="compact"
                 :items-per-page="-1"
                 disable-sort
               >
@@ -136,7 +134,7 @@
                         v-model="row.item.service"
                         readonly
                         hide-details
-                        dense
+                        density="compact"
                         rows="1"
                         auto-grow
                       ></v-textarea>
@@ -144,18 +142,18 @@
                   </tr>
                 </template>
               </v-data-table>
-            </v-expansion-panel-content>
+            </v-expansion-panel-text>
           </v-expansion-panel>
         </v-expansion-panels>
       </v-col>
-      <v-expansion-panels class="my-1 condensed" hover>
+      <v-expansion-panels class="my-1 condensed">
         <v-expansion-panel>
-          <v-expansion-panel-header
+          <v-expansion-panel-title
             ><span class="d-inline-flex align-center">
               No Se Incluye
-              <v-btn
+              <v-btn variant="text"
                 color="success"
-                x-small
+                size="x-small"
                 icon
                 class="ml-2"
                 @click="abrirDialog({ statusnoincluye: 1 })"
@@ -163,13 +161,13 @@
                 <v-icon>mdi-plus</v-icon>
               </v-btn>
             </span>
-          </v-expansion-panel-header>
-          <v-expansion-panel-content>
+          </v-expansion-panel-title>
+          <v-expansion-panel-text>
             <v-data-table
               :headers="headers"
               :items="lstNoIncluye"
               hide-default-footer
-              dense
+              density="compact"
               :items-per-page="-1"
               disable-sort
             >
@@ -182,7 +180,7 @@
                       v-model="row.item.service"
                       readonly
                       hide-details
-                      dense
+                      density="compact"
                       rows="1"
                       auto-grow
                     ></v-textarea>
@@ -190,12 +188,12 @@
                 </tr>
               </template>
             </v-data-table>
-          </v-expansion-panel-content>
+          </v-expansion-panel-text>
         </v-expansion-panel>
       </v-expansion-panels>
 
       <v-col class="derecha">
-        <v-btn color="#3363A2" dark @click="abrirModalCambioNombreSecciones()">
+        <v-btn color="#3363A2" @click="abrirModalCambioNombreSecciones()">
           PREVIEW COTIZACIÓN(es)</v-btn
         >
       </v-col>
@@ -209,7 +207,7 @@
       <v-card>
         <v-card-title> Secciones de los costos </v-card-title>
         <v-card-text>
-          <v-simple-table>
+          <v-table>
             <thead>
               <tr>
                 <th>Código</th>
@@ -227,7 +225,7 @@
                 </td>
               </tr>
             </tbody>
-          </v-simple-table>
+          </v-table>
         </v-card-text>
         <v-card-actions>
           <v-btn
@@ -255,24 +253,23 @@
             <v-radio-group
               v-model="tiporeporte"
               disabled
-              column
               :rules="[(v) => !!v || 'Dato requerido']"
             >
               <v-radio
                 label="Costo detallado por cada item"
-                color="red darken-3"
+                color="red-darken-3"
                 value="DETALLE"
               ></v-radio>
 
               <v-radio
                 label="Totales por servicios"
-                color="indigo darken-3"
+                color="indigo-darken-3"
                 value="TOTAL"
               ></v-radio>
 
               <v-radio
                 label="Reporte total general sin desglose"
-                color="orange darken-3"
+                color="orange-darken-3"
                 value="AGRUPADO"
               ></v-radio>
             </v-radio-group>
@@ -281,10 +278,10 @@
 
         <v-card-actions>
           <v-spacer></v-spacer>
-          <v-btn color="primary" :loading="loading" text @click="generar">
+          <v-btn color="primary" :loading="loading" variant="text" @click="generar">
             Aceptar
           </v-btn>
-          <v-btn color="red" text @click="imprimirFlag = false">
+          <v-btn color="red" variant="text" @click="imprimirFlag = false">
             Cancelar
           </v-btn>
         </v-card-actions>
@@ -299,24 +296,23 @@
           <v-form ref="frmReporte">
             <v-radio-group
               v-model="tiporeporte"
-              column
               :rules="[(v) => !!v || 'Dato requerido']"
             >
               <v-radio
                 label="Costo detallado por cada item"
-                color="red darken-3"
+                color="red-darken-3"
                 value="DETALLE"
               ></v-radio>
 
               <v-radio
                 label="Totales por servicios"
-                color="indigo darken-3"
+                color="indigo-darken-3"
                 value="TOTAL"
               ></v-radio>
 
               <v-radio
                 label="Reporte total general sin desglose"
-                color="orange darken-3"
+                color="orange-darken-3"
                 value="AGRUPADO"
               ></v-radio>
             </v-radio-group>
@@ -325,8 +321,8 @@
 
         <v-card-actions>
           <v-spacer></v-spacer>
-          <v-btn color="primary" text @click="generarPreview"> Aceptar </v-btn>
-          <v-btn color="red" text @click="previewFlag = false">
+          <v-btn color="primary" variant="text" @click="generarPreview"> Aceptar </v-btn>
+          <v-btn color="red" variant="text" @click="previewFlag = false">
             Cancelar
           </v-btn>
         </v-card-actions>
@@ -340,11 +336,11 @@
       transition="dialog-transition"
     >
       <v-card>
-        <v-card-title class="indigo white--text my-0 py-0" dark>
+        <v-card-title class="bg-indigo text-white my-0 py-0 d-flex align-center flex-wrap" dark>
           PREVISUALIZACIÓN DE LA COTIZACIÓN - NO TIENE NINGÚN VALOR COMERCIAL
 
           <v-spacer></v-spacer>
-          <v-btn icon color="white" @click="dialogPreview = !dialogPreview">
+          <v-btn variant="text" icon color="white" @click="dialogPreview = !dialogPreview">
             <v-icon>mdi-close</v-icon>
           </v-btn>
         </v-card-title>
@@ -356,22 +352,20 @@
           />
         </v-card-text>
         <v-card-actions>
-          <template>
-            <div class="text-center">
-              <v-pagination
-                v-model="pagePrev"
-                :length="opcionesSeleccionadas.length"
-                circle
-              ></v-pagination>
-            </div>
-          </template>
+          <div class="text-center">
+            <v-pagination
+              v-model="pagePrev"
+              :length="opcionesSeleccionadas.length"
+              rounded
+            ></v-pagination>
+          </div>
 
           <v-spacer></v-spacer>
           <v-btn
             color="#A43542"
             class="mx-1"
             style="color: white !important"
-            small
+            size="small"
             :disabled="$store.state.aduana.bloquearBtnImprimir"
             @click="abrirModalTipoReporte()"
           >
@@ -384,20 +378,21 @@
 </template>
 
 <script>
+import { defineAsyncComponent } from "vue";
 import { mapActions } from "vuex";
 import Swal from "sweetalert2";
 export default {
   components: {
-    previewCotizacion: () =>
-      import("@/components/folderPricing/previewQuote.vue"),
+    previewCotizacion: defineAsyncComponent(() =>
+      import("@/components/folderPricing/previewQuote.vue")),
   },
   data() {
     return {
       // opcionesSeleccionadas: [{ listNotasQuote: [] }],
       dialog: false,
       headers: [
-        { value: "index", text: "#" },
-        { value: "description", text: "Descripción", align: "center" },
+        { key: "index", title: "#" },
+        { key: "description", title: "Descripción", align: "center" },
       ],
 
       pagePrev: 1,
@@ -479,8 +474,8 @@ export default {
       this.statusnoincluye = statusnoincluye;
       this.dialog = true;
     },
-    anidarNota() {
-      if (this.$refs.frmNota.validate()) {
+    async anidarNota() {
+      if ((await this.$refs.frmNota.validate()).valid) {
         this.opcionesSeleccionadas[
           this.$store.state.aduana.page - 1
         ].listNotasQuote.push({
@@ -501,7 +496,7 @@ export default {
       this.$store.state.aduana.tiporeporte = this.tiporeporte;
       this.loading = true;
       if (!this.$route.params.id) {
-        if (this.$refs.frmReporte.validate()) {
+        if ((await this.$refs.frmReporte.validate()).valid) {
           this.$store.state.spiner = true;
           await this.registrarAduana({ fullflag: true }).catch((e) => {
            console.error(e);
@@ -561,7 +556,7 @@ export default {
           }
         }
       } else {
-        if (this.$refs.frmReporte.validate()) {
+        if ((await this.$refs.frmReporte.validate()).valid) {
           this.$store.state.spiner = true;
           this.imprimirFlag = false;
 
@@ -616,7 +611,7 @@ export default {
       this.$store.state.aduana.bloquearBtnImprimir = false;
     },
     async generarPreview() {
-      if (this.$refs.frmReporte.validate()) {
+      if ((await this.$refs.frmReporte.validate()).valid) {
         this.$store.state.spiner = true;
         this.previewFlag = false;
         await this.obtenerDatosEmpresaAduana();

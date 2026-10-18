@@ -1,7 +1,7 @@
 <template>
   <v-container fluid>
     <v-card>
-      <v-card-title>
+      <v-card-title class="d-flex align-center flex-wrap">
         Datos Principales:
         <v-spacer></v-spacer>
         <b :style="{ fontSize: textSize }">{{ totalfinal }} USD</b>
@@ -15,8 +15,8 @@
                   :items="$store.state.month"
                   v-model="id_month"
                   label="Mes"
-                  dense
-                  item-text="description"
+                  density="compact"
+                  item-title="description"
                   item-value="id"
                   :rules="[(v) => !!v || 'Dato requerido']"
                 ></v-select>
@@ -24,11 +24,11 @@
 
               <v-col cols="12" md="2">
                 <v-select
-                  :items="$store.state.year"
+                  :items="Array.isArray($store.state.year) ? $store.state.year : []"
                   v-model="id_year"
                   label="Año"
-                  dense
-                  item-text="description"
+                  density="compact"
+                  item-title="description"
                   item-value="id"
                   :rules="[(v) => !!v || 'Dato requerido']"
                 ></v-select>
@@ -38,7 +38,7 @@
                 <v-text-field
                   v-model="tipocambio"
                   label="Tipo Cambio"
-                  dense
+                  density="compact"
                   v-on:blur="calcularTotalTipoCambio()"
                   :rules="[(v) => !!v || 'Dato requerido']"
                 ></v-text-field>
@@ -47,7 +47,7 @@
                 <v-text-field
                   v-model="totalmonlocal"
                   :label="`Total Proyectado(${monExt})`"
-                  dense
+                  density="compact"
                   readonly
                 ></v-text-field>
               </v-col>
@@ -55,7 +55,7 @@
                 <v-text-field
                   v-model="montoconversiondolar"
                   label="Conversión a Dolares(USD)"
-                  dense
+                  density="compact"
                   readonly
                 ></v-text-field>
               </v-col>
@@ -63,7 +63,7 @@
                 <v-text-field
                   v-model="totaldolar"
                   label="Gastos(USD)"
-                  dense
+                  density="compact"
                   readonly
                 ></v-text-field>
               </v-col>
@@ -72,7 +72,7 @@
                 <v-text-field
                   v-model="totalfinal"
                   :label="`Total Proyectado(${monExt})`"
-                  dense
+                  density="compact"
                   readonly
                 ></v-text-field>
               </v-col>
@@ -81,7 +81,7 @@
         </v-col>
         <v-col>
           <v-btn
-            small
+            size="small"
             class="mx-1"
             color="info"
             rounded
@@ -94,9 +94,7 @@
             :headers="headers"
             :items="items.filter((v) => !!v.estado)"
             class="elevation-1"
-            pagination.sync="pagination"
-            item-key="index"
-            loading="true"
+            item-value="index"
             disable-sort
           >
             <template v-slot:[`item.gasto`]="{ item }">
@@ -106,8 +104,8 @@
                 "
                 placeholder="Tipo de Gasto"
                 v-model="item.id_gasto"
-                dense
-                item-text="description"
+                density="compact"
+                item-title="description"
                 item-value="id"
                 :error-messages="item.errgasto"
               ></v-select>
@@ -121,7 +119,7 @@
                 "
                 placeholder="Tipo de SubGasto"
                 v-model="item.id_tiposubgasto"
-                item-text="description"
+                item-title="description"
                 item-value="id"
               ></v-select>
             </template>
@@ -129,16 +127,16 @@
               <v-autocomplete
                 :items="$store.state.provedores"
                 v-model="item.id_entitie"
-                item-text="namelong"
+                item-title="namelong"
                 placeholder="Proveedor"
                 item-value="id"
-                dense
+                density="compact"
                 :error-messages="item.errproveedor"
               ></v-autocomplete>
             </template>
             <template v-slot:[`item.descripcion`]="{ item }">
               <v-textarea
-                dense
+                density="compact"
                 placeholder="Descripcion"
                 v-model="item.description"
                 rows="1"
@@ -157,11 +155,11 @@
             <template v-slot:[`item.moneda`]="{ item }">
               <v-select
                 :items="$store.state.itemsCoinsList"
-                item-text="symbol"
+                item-title="symbol"
                 v-model="item.id_coin"
                 label="Moneda"
                 item-value="id"
-                @change="calcularMontoFinal(item)"
+                @update:model-value="calcularMontoFinal(item)"
                 :error-messages="item.errmoneda"
               ></v-select>
             </template>
@@ -169,12 +167,12 @@
               {{ item.monto_monext }}
             </template>
             <template v-slot:[`item.action`]="{ item }">
-              <v-btn icon color="red" dark @click="eliminarfila(item)">
+              <v-btn variant="text" icon color="red" @click="eliminarfila(item)">
                 <v-icon>mdi-delete</v-icon>
               </v-btn>
             </template>
             <template v-slot:[`item.diavencimiento`]="{ item }">
-              <v-select
+              <v-select item-title="text"
                 :items="dias"
                 v-model="item.nrodias"
                 label="Día de vencimiento"
@@ -188,7 +186,7 @@
     <v-card-actions>
       <v-spacer></v-spacer>
       <v-btn
-        small
+        size="small"
         class="mx-1"
         color="success"
         v-if="!aprobado"
@@ -198,7 +196,7 @@
       >
 
       <v-btn
-        small
+        size="small"
         class="mx-1"
         v-if="!aprobado"
         @click="validateAprobacion()"
@@ -207,16 +205,16 @@
         >APROBAR</v-btn
       >
 
-      <v-btn small class="mx-1" dark color="red" @click="volver()" rounded
+      <v-btn size="small" class="mx-1" color="red" @click="volver()" rounded
         >Cancelar</v-btn
       >
     </v-card-actions>
     <v-dialog v-model="dialogn" persistent :overlay="false" max-width="30%">
       <v-card>
-        <v-card-title primary-title>
+        <v-card-title class="d-flex align-center flex-wrap" primary-title>
           REALIZAR COPIA
           <v-spacer></v-spacer>
-          <v-btn icon color="defaul" @click="dialogn = !dialogn">
+          <v-btn variant="text" icon color="defaul" @click="dialogn = !dialogn">
             <v-icon>mdi-close</v-icon>
           </v-btn>
         </v-card-title>
@@ -227,8 +225,8 @@
                 :items="$store.state.month"
                 v-model="id_monthn"
                 label="Mes"
-                dense
-                item-text="description"
+                density="compact"
+                item-title="description"
                 item-value="id"
                 :rules="[(v) => !!v || 'Dato requerido']"
               ></v-select>
@@ -236,11 +234,11 @@
 
             <v-col cols="12">
               <v-select
-                :items="$store.state.year"
+                :items="Array.isArray($store.state.year) ? $store.state.year : []"
                 v-model="id_yearn"
                 label="Año"
-                dense
-                item-text="description"
+                density="compact"
+                item-title="description"
                 item-value="id"
                 :rules="[(v) => !!v || 'Dato requerido']"
               ></v-select>
@@ -256,7 +254,7 @@
             :loading="loading"
             >Copiar</v-btn
           >
-          <v-btn color="red" dark class="mx-1" @click="dialogn = !dialogn"
+          <v-btn color="red" class="mx-1" @click="dialogn = !dialogn"
             >Cancelar</v-btn
           >
         </v-card-actions>
@@ -304,19 +302,19 @@ export default {
         { value: 28, text: "28" },
       ],
       headers: [
-        { text: "Tipo de Gasto", value: "gasto", width: "10%" },
-        { text: "Tipo de Subgasto", value: "subgasto", width: "10%" },
-        { text: "Proveedor", value: "proveedor", width: "10%" },
-        { text: "Descripción", value: "descripcion", width: "10%" },
-        { text: "Día Vencimiento", value: "diavencimiento", width: "10%" },
-        { text: "Moneda", value: "moneda", width: "10%" },
+        { title: "Tipo de Gasto", key: "gasto", width: "10%" },
+        { title: "Tipo de Subgasto", key: "subgasto", width: "10%" },
+        { title: "Proveedor", key: "proveedor", width: "10%" },
+        { title: "Descripción", key: "descripcion", width: "10%" },
+        { title: "Día Vencimiento", key: "diavencimiento", width: "10%" },
+        { title: "Moneda", key: "moneda", width: "10%" },
         {
-          text: "Monto Moneda Original",
-          value: "montomonoriginal",
+          title: "Monto Moneda Original",
+          key: "montomonoriginal",
           width: "10%",
         },
-        { text: "Monto Final en USD", value: "montofinaldolar", width: "10%" },
-        { text: "Acciones", value: "action", width: "10%" },
+        { title: "Monto Final en USD", key: "montofinaldolar", width: "10%" },
+        { title: "Acciones", key: "action", width: "10%" },
       ],
       items: [],
       mes: [],
@@ -487,7 +485,7 @@ export default {
     async editar() {
       let validaciondetails = true;
       // let data = data;
-      if (this.$refs.frmProyeccion.validate()) {
+      if ((await this.$refs.frmProyeccion.validate()).valid) {
         this.items
           .filter((v) => v.estado == true)
           .forEach((item) => {

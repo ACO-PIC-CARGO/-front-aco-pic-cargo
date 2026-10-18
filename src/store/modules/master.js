@@ -7,7 +7,7 @@ const actions = {
     var config = {
       method: "get",
       url:
-        process.env.VUE_APP_URL_MAIN + `crear-carpeta-master?nromaster=${name}`,
+        import.meta.env.VUE_APP_URL_MAIN + `crear-carpeta-master?nromaster=${name}`,
       headers: {
         "Content-Type": "application/json",
       },
@@ -25,7 +25,7 @@ const actions = {
   async actualizarMaster(__, { id = 0, url = "" }) {
     var config = {
       method: "put",
-      url: process.env.VUE_APP_URL_MAIN + `update_folder_onedrive`,
+      url: import.meta.env.VUE_APP_URL_MAIN + `update_folder_onedrive`,
       headers: {
         "Content-Type": "application/json",
       },
@@ -44,7 +44,7 @@ const actions = {
   ) {
     var config = {
       method: "post",
-      url: process.env.VUE_APP_URL_MAIN + `insert_comentario_master`,
+      url: import.meta.env.VUE_APP_URL_MAIN + `insert_comentario_master`,
       headers: {
         "Content-Type": "application/json",
       },
@@ -87,7 +87,7 @@ const actions = {
     console.log("crearCarpetaOneDrive", url);
     let config = {
       method: "put",
-      url: process.env.VUE_APP_URL_MAIN + `actualizar_folder_onedrive_master`,
+      url: import.meta.env.VUE_APP_URL_MAIN + `actualizar_folder_onedrive_master`,
       headers: {
         "Content-Type": "application/json",
       },
@@ -103,7 +103,7 @@ const actions = {
   async moverCostos(__, data) {
     let config = {
       method: "put",
-      url: process.env.VUE_APP_URL_MAIN + `mover_cgegresos`,
+      url: import.meta.env.VUE_APP_URL_MAIN + `mover_cgegresos`,
       headers: {
         "Content-Type": "application/json",
       },
@@ -120,7 +120,7 @@ const actions = {
   async controlGastosReactivar({ dispatch }, data) {
     let config = {
       method: "put",
-      url: process.env.VUE_APP_URL_MAIN + `master_control_reactivar`,
+      url: import.meta.env.VUE_APP_URL_MAIN + `master_control_reactivar`,
       headers: {
         "Content-Type": "application/json",
       },

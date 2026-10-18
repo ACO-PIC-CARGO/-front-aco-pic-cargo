@@ -3,12 +3,12 @@
     <v-card-title primary-title class="text-uppercase">
       Configuración Correlativo Cotización</v-card-title
     >
-    <v-subheader class="text-uppercase">
+    <v-list-subheader class="text-uppercase">
       Configurar desde que número se empezará su correlativo de Cotización
-    </v-subheader>
+    </v-list-subheader>
     <v-card-text>
       <v-text-field
-        outlined
+        variant="outlined"
         type="number"
         label="Correlativo de Cotización"
         v-model="$store.state.configEmpresa.configEmpresa.correlativopricing"

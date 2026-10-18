@@ -4,7 +4,7 @@
       <v-card-subtitle>
         <v-text-field
           v-model="search"
-          append-icon="mdi-magnify"
+          append-inner-icon="mdi-magnify"
           label="Buscar abono"
           single-line
           hide-details
@@ -19,17 +19,17 @@
         <template v-slot:[`item.status`]="{ item }">
           <v-chip
             v-if="item.status == 1"
-            class="ma-2"
+            class="ma-2 text-white"
             color="orange"
-            text-color="white"
+            variant="flat"
           >
             {{ item.status == 1 ? "Por Confirmar" : "" }}
           </v-chip>
           <v-chip
             v-if="item.status == 2"
-            class="ma-2"
+            class="ma-2 text-white"
             color="green"
-            text-color="white"
+            variant="flat"
           >
             {{ item.status == 2 ? "Confirmado" : "" }}
           </v-chip>
@@ -50,7 +50,7 @@
         <template v-slot:[`item.accions`]="{ item }">
           <v-icon
             v-if="item.status == 1"
-            color="blue-grey darken-2"
+            color="blue-grey-darken-2"
             class="mr-2"
             @click="
               processPayment(
@@ -66,7 +66,7 @@
           </v-icon>
           <v-icon
             v-if="item.status == 2 && security == 1"
-            color="blue-grey darken-2"
+            color="blue-grey-darken-2"
             class="mr-2"
             @click="reversar(item)"
           >
@@ -97,7 +97,7 @@
 
         <v-card-text>
           <v-container>
-            <v-row dense>
+            <v-row density="compact">
               <v-col cols="12">
                 <iframe
                   width="100%"
@@ -143,7 +143,7 @@
             >Aprobar Pago</v-btn
           >
           <v-spacer></v-spacer>
-          <v-btn outlined color="red" @click="dialogProcess = !dialogProcess"
+          <v-btn variant="outlined" color="red" @click="dialogProcess = !dialogProcess"
             >Cerrar</v-btn
           >
         </v-card-actions>
@@ -225,124 +225,124 @@ export default {
 
     headersInvoice: [
       {
-        text: "Nombre",
-        value: "originalname",
+        title: "Nombre",
+        key: "originalname",
       },
       {
-        text: "Fecha",
-        value: "date_letra",
+        title: "Fecha",
+        key: "date_letra",
       },
       {
-        text: "Ver",
-        value: "path",
+        title: "Ver",
+        key: "path",
       },
     ],
     errorNroOp: "",
     nro_operacion: "",
     headersdebs: [
       {
-        text: "Documento",
+        title: "Documento",
         align: "start",
         sortable: false,
-        value: "name",
+        key: "name",
       },
       {
-        text: "Expediente",
-        value: "nro_master",
+        title: "Expediente",
+        key: "nro_master",
       },
       {
-        text: "Nro Operación",
-        value: "nro_operacion",
-      },
-
-      {
-        text: "Cliente",
-        value: "nameconsigner",
-      },
-      {
-        text: "Fecha",
-        value: "date",
-      },
-      {
-        text: "Monto Factura Cliente (USD)",
-        value: "monto_letra_pic",
-      },
-      {
-        text: "Tipo de Cambio",
-        value: "tipocambio",
-      },
-      {
-        text: "Monto ingresado al Banco",
-        value: "monto_letra",
+        title: "Nro Operación",
+        key: "nro_operacion",
       },
 
       {
-        text: "Monto a pagar a proveedores",
-        value: "monto_pagar_pro",
+        title: "Cliente",
+        key: "nameconsigner",
+      },
+      {
+        title: "Fecha",
+        key: "date",
+      },
+      {
+        title: "Monto Factura Cliente (USD)",
+        key: "monto_letra_pic",
+      },
+      {
+        title: "Tipo de Cambio",
+        key: "tipocambio",
+      },
+      {
+        title: "Monto ingresado al Banco",
+        key: "monto_letra",
+      },
+
+      {
+        title: "Monto a pagar a proveedores",
+        key: "monto_pagar_pro",
       },
       // {
       //   text: "total cobrado al cliente",
       //   value: "monto_cobrado",
       // },
       {
-        text: "Comentario del solicitante",
-        value: "comentario_usuario",
+        title: "Comentario del solicitante",
+        key: "comentario_usuario",
       },
       {
-        text: "Status",
-        value: "status",
-      },
-
-      {
-        text: "Ver",
-        value: "accion",
-      },
-      {
-        text: "Instructivo",
-        value: "instructivo",
+        title: "Status",
+        key: "status",
       },
 
       {
-        text: "Acciones",
-        value: "accions",
+        title: "Ver",
+        key: "accion",
+      },
+      {
+        title: "Instructivo",
+        key: "instructivo",
+      },
+
+      {
+        title: "Acciones",
+        key: "accions",
       },
     ],
 
     headersPdf: [
       {
-        text: "Nombre",
+        title: "Nombre",
         align: "start",
         sortable: false,
-        value: "path",
+        key: "path",
       },
       {
-        text: "Expediente",
-        value: "nro_master",
+        title: "Expediente",
+        key: "nro_master",
       },
       {
-        text: "Quote",
-        value: "id_cot",
+        title: "Quote",
+        key: "id_cot",
       },
       {
-        text: "Monto",
-        value: "monto_letra",
+        title: "Monto",
+        key: "monto_letra",
       },
       {
-        text: "Ver Facturas",
-        value: "invoice",
+        title: "Ver Facturas",
+        key: "invoice",
       },
       {
-        text: "Ver Solicitud",
-        value: "accion",
+        title: "Ver Solicitud",
+        key: "accion",
       },
 
       {
-        text: "Status",
-        value: "status",
+        title: "Status",
+        key: "status",
       },
       {
-        text: "Adjuntar",
-        value: "accions",
+        title: "Adjuntar",
+        key: "accions",
       },
     ],
     dataList: false,
@@ -409,7 +409,7 @@ export default {
       let vm = this;
       var config = {
         method: "put",
-        url: process.env.VUE_APP_URL_MAIN + "reversar_debscliente",
+        url: import.meta.env.VUE_APP_URL_MAIN + "reversar_debscliente",
 
         headers: {
          
@@ -451,7 +451,7 @@ export default {
       };
       var config = {
         method: "post",
-        url: process.env.VUE_APP_URL_MAIN + "getDebsClientList",
+        url: import.meta.env.VUE_APP_URL_MAIN + "getDebsClientList",
 
         headers: {
          
@@ -470,8 +470,6 @@ export default {
     },
 
     _uploadFile() {
-      var FormData = require("form-data");
-      var fs = require("fs");
       var data = new FormData();
       var vm = this;
       data.append("name", "Prueba");
@@ -479,7 +477,7 @@ export default {
 
       var config = {
         method: "post",
-        url: process.env.VUE_APP_URL_MAIN + "uploadAllPath",
+        url: import.meta.env.VUE_APP_URL_MAIN + "uploadAllPath",
         headers: {
          
           "Content-Type": "application/json",
@@ -534,7 +532,7 @@ export default {
         };
         var config = {
           method: "post",
-          url: process.env.VUE_APP_URL_MAIN + "setCheckDebsClient/",
+          url: import.meta.env.VUE_APP_URL_MAIN + "setCheckDebsClient/",
 
           headers: {
            
@@ -566,7 +564,7 @@ export default {
       var vm = this;
       var config = {
         method: "post",
-        url: process.env.VUE_APP_URL_MAIN + "getRequestPayment",
+        url: import.meta.env.VUE_APP_URL_MAIN + "getRequestPayment",
         data: {
           id_branch: JSON.parse(sessionStorage.getItem("dataUser"))[0].id_branch,
         },
@@ -588,7 +586,7 @@ export default {
       var vm = this;
       var config = {
         method: "post",
-        url: process.env.VUE_APP_URL_MAIN + "getRequestPaymentConceptos/" + id,
+        url: import.meta.env.VUE_APP_URL_MAIN + "getRequestPaymentConceptos/" + id,
 
         headers: {
          

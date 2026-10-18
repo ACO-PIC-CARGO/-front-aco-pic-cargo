@@ -1,9 +1,9 @@
 <template>
   <v-card>
-    <v-card-title primary-title>
+    <v-card-title class="d-flex align-center flex-wrap" primary-title>
       {{ getName() }}
       <v-spacer></v-spacer>
-      <v-btn
+      <v-btn variant="text"
         icon
         color="default"
         @click="$store.state.town.drawer = !$store.state.town.drawer"
@@ -17,10 +17,10 @@
           label="Pais"
           :items="$store.state.itemsPais"
           v-model="$store.state.town.filtros.id_pais"
-          item-text="name"
+          item-title="name"
           item-value="id"
           :clearable="$store.state.town.tipo != 'ver'"
-          @change="ObtenerEstados($store.state.town.filtros.id_pais)"
+          @update:model-value="ObtenerEstados($store.state.town.filtros.id_pais)"
         >
         </v-autocomplete>
       </div>
@@ -29,11 +29,11 @@
           label="Estado (Región)"
           :items="$store.state.itemsState"
           v-model="$store.state.town.filtros.id_state"
-          item-text="name"
+          item-title="name"
           item-value="id"
           :clearable="$store.state.town.tipo != 'ver'"
           :loading="loadingEstado"
-          @change="ObtenerCity($store.state.town.filtros.id_state)"
+          @update:model-value="ObtenerCity($store.state.town.filtros.id_state)"
         >
         </v-autocomplete>
       </div>
@@ -42,7 +42,7 @@
           label="Ciudad"
           :items="$store.state.itemsCity"
           v-model="$store.state.town.filtros.id_city"
-          item-text="name"
+          item-title="name"
           item-value="id"
           :clearable="$store.state.town.tipo != 'ver'"
           :loading="loadingEstado"
@@ -73,7 +73,7 @@
       </div>
       <div class="col-12 py-1">
         <span> Estado</span>
-        <v-radio-group v-model="$store.state.town.filtros.status" row dense>
+        <v-radio-group v-model="$store.state.town.filtros.status" inline density="compact">
           <v-radio label="Activo" color="green" value="1"></v-radio>
           <v-radio label="Inactivo" color="red" value="0"></v-radio>
           <v-radio label="Todos" color="blue" value="null"></v-radio>
@@ -88,11 +88,11 @@
             :items="$store.state.itemsPais"
             v-model="$store.state.town.model.id_pais"
             :readonly="$store.state.town.tipo == 'ver'"
-            item-text="name"
+            item-title="name"
             item-value="id"
             :rules="[(v) => !!v || 'Dato Requerido']"
-            @change="ObtenerEstados($store.state.town.model.id_pais)"
-            :item-disabled="(item) => item.status != 1"
+            @update:model-value="ObtenerEstados($store.state.town.model.id_pais)"
+            :item-props="(item) => ({ disabled: item.status != 1 })"
           >
           </v-autocomplete>
         </div>
@@ -102,12 +102,12 @@
             :items="$store.state.itemsState"
             v-model="$store.state.town.model.id_state"
             :readonly="$store.state.town.tipo == 'ver'"
-            item-text="name"
+            item-title="name"
             item-value="id"
             :rules="[(v) => !!v || 'Dato Requerido']"
             :loading="loadingEstado"
-            @change="ObtenerCity($store.state.town.model.id_state)"
-            :item-disabled="(item) => item.status != 1"
+            @update:model-value="ObtenerCity($store.state.town.model.id_state)"
+            :item-props="(item) => ({ disabled: item.status != 1 })"
           >
           </v-autocomplete>
         </div>
@@ -117,11 +117,11 @@
             :items="$store.state.itemsCity"
             v-model="$store.state.town.model.id_city"
             :readonly="$store.state.town.tipo == 'ver'"
-            item-text="name"
+            item-title="name"
             item-value="id"
             :rules="[(v) => !!v || 'Dato Requerido']"
             :loading="loadingCity"
-            :item-disabled="(item) => item.status != 1"
+            :item-props="(item) => ({ disabled: item.status != 1 })"
           >
           </v-autocomplete>
         </div>
@@ -170,6 +170,7 @@
             }`"
             color="success"
             v-model="$store.state.town.model.status"
+            :value-comparator="(value, checked) => Boolean(value) === checked"
           ></v-switch>
         </div>
       </v-form>
@@ -284,7 +285,7 @@ export default {
     },
     async Aceptar() {
       if (this.$store.state.town.tipo == "nuevo") {
-        if (this.$refs.frmDML.validate()) {
+        if ((await this.$refs.frmDML.validate()).valid) {
           this.loading = true;
           await this.setTown();
           await this.GetListTown();
@@ -293,7 +294,7 @@ export default {
       }
       if (this.$store.state.town.tipo == "editar") {
         this.loading = true;
-        if (this.$refs.frmDML.validate()) {
+        if ((await this.$refs.frmDML.validate()).valid) {
           await this.ActualizarTown();
           await this.GetListTown();
         }

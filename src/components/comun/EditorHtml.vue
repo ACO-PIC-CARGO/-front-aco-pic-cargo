@@ -2,7 +2,7 @@
   <v-container fluid>
     <v-row>
       <v-col cols="12" class="px-5 py-0">
-        <v-alert border="left" colored-border type="info" elevation="2" shaped>
+        <v-alert border="start" border-color="info" type="info" elevation="2" rounded="shaped">
           Los valores entre corchetes representan los datos que serán
           reemplazados automáticamente con la información correspondiente al
           house. Por favor, no modifique ni elimine el contenido dentro de los
@@ -39,13 +39,10 @@ export default {
       editorInit: {
         height: 920,
         menubar: false,
-        plugins: [
-          "advlist autolink lists link image charmap print preview anchor",
-          "searchreplace visualblocks code fullscreen",
-          "insertdatetime media table paste code help wordcount",
-        ],
+        plugins:
+          "advlist autolink lists link image charmap preview anchor searchreplace visualblocks code fullscreen insertdatetime media table help wordcount",
         toolbar:
-          "undo redo | formatselect | bold italic | alignleft aligncenter alignright | code | link image",
+          "undo redo | blocks | bold italic | alignleft aligncenter alignright | code | link image",
         placeholder: "Escribe tu contenido aquí...", // Placeholder en el editor
         setup: (editor) => {
           // Aquí puedes asegurarte de que TinyMCE se inicializa correctamente

@@ -1,15 +1,15 @@
 <template>
   <v-container fluid>
     <v-card elevation="0">
-      <v-card-title>
+      <v-card-title class="d-flex align-center flex-wrap">
         <h3>REPORTE DE CUENTAS POR PAGAR</h3>
         <v-spacer></v-spacer>
         <v-btn
           class="ml-5"
           color="primary"
           elevation="0"
-          small
-          plain
+          size="small"
+          variant="plain"
           @click="offcanvas = !offcanvas"
           ><v-icon>mdi-filter-multiple</v-icon> FILTRAR
         </v-btn>
@@ -17,11 +17,10 @@
         <v-btn
           color="#1D6F42"
           class="mx-1"
-          dark
           @click="exportar"
           :loading="exportando"
-          small
-          plain
+          size="small"
+          variant="plain"
           ><v-icon>mdi-file-excel</v-icon> EXCEL</v-btn
         >
         <v-btn
@@ -30,10 +29,10 @@
           :loading="exportandopdf"
           @click="exportarPDF()"
           elevation="0"
-          small
-          plain
+          size="small"
+          variant="plain"
         >
-          <v-icon>mdi-file-pdf</v-icon> PDF</v-btn
+          <v-icon>mdi-file-pdf-box</v-icon> PDF</v-btn
         >
       </v-card-title>
       <v-card-text>
@@ -63,97 +62,98 @@
           :headers="headersdbp"
           :items="itemsCpp"
           :search="search"
-          :expanded.sync="expanded"
-          :single-expand="singleExpand"
-          item-key="nameproveedor"
+          v-model:expanded="expanded"
+          item-value="nameproveedor"
           show-expand
-          @click:row="clickRow"
+          expand-on-click
         >
           <template v-slot:[`item.nameproveedor`]="{ item }">
             <div class="d-flex">
               <div>{{ item.nameproveedor }}</div>
               <v-btn
-                small
+                size="small"
                 color="primary"
                 class="ml-auto"
                 @click.stop="mostrarComentariosOp(item)"
               >
-                <v-icon small class="mr-1">mdi-comment</v-icon> Comentarios
+                <v-icon size="small" class="mr-1">mdi-comment</v-icon> Comentarios
               </v-btn>
             </div>
           </template>
 
-          <template v-slot:expanded-item="{ item }">
-            <td colspan="11">
-              <v-simple-table style="width: 100%">
-                <thead>
-                  <tr style="background: #fff1cf">
-                    <th>Expediente</th>
-                    <th>Correlativo Factura</th>
-                    <th>Correlativo Programación</th>
-                    <th>Cliente</th>
-                    <th>Facturas</th>
-                    <th>Fecha Disponibilidad</th>
-                    <th>Total a Pagar</th>
-                    <th>Status</th>
-                    <!-- <th>Pagado Cliente</th> -->
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr
-                    style="background: #fff1cf"
-                    v-for="(child, index) of item.details"
-                    :key="index"
-                  >
-                    <td>
-                      {{ child.nro_master }}
-                      <v-icon
-                        v-if="child.controlgastoegreso == 1"
-                        @click="editControl(child)"
-                      >
-                        mdi-eye
-                      </v-icon>
+          <template v-slot:expanded-row="{ item }">
+            <tr>
+              <td colspan="11">
+                <v-table style="width: 100%">
+                  <thead>
+                    <tr style="background: #fff1cf">
+                      <th>Expediente</th>
+                      <th>Correlativo Factura</th>
+                      <th>Correlativo Programación</th>
+                      <th>Cliente</th>
+                      <th>Facturas</th>
+                      <th>Fecha Disponibilidad</th>
+                      <th>Total a Pagar</th>
+                      <th>Status</th>
+                      <!-- <th>Pagado Cliente</th> -->
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr
+                      style="background: #fff1cf"
+                      v-for="(child, index) of item.details"
+                      :key="index"
+                    >
+                      <td>
+                        {{ child.nro_master }}
+                        <v-icon
+                          v-if="child.controlgastoegreso == 1"
+                          @click="editControl(child)"
+                        >
+                          mdi-eye
+                        </v-icon>
 
-                      <v-icon
-                        v-if="child.programado == 0"
-                        @click="
-                          nuevaFecha({
-                            item: item,
-                            tipo: 1,
-                          })
-                        "
-                        >mdi-clock-outline</v-icon
-                      >
-                    </td>
-                    <td>
-                      {{ child.code_correlativo }}
-                    </td>
-                    <td>
-                      {{ child.programado_correlativo }}
-                    </td>
-                    <td>
-                      {{ child.nameconsigner }}
-                    </td>
-                    <td>
-                      {{ child.expedientes }}
-                    </td>
-                    <td>
-                      {{ child.fecha_disponibilidad }}
-                    </td>
-                    <td>
-                      {{ child.symbol }}
-                      {{ parseFloat(child.total_pagar).toFixed(2) }}
-                    </td>
-                    <td>
-                      {{ child.llegada == 1 ? "LLEGADA" : "NO LLEGADA" }}
-                    </td>
-                    <!-- <td>
-                      {{ child.pagado == 1 ? "SI" : "NO" }}
-                    </td> -->
-                  </tr>
-                </tbody>
-              </v-simple-table>
-            </td>
+                        <v-icon
+                          v-if="child.programado == 0"
+                          @click="
+                            nuevaFecha({
+                              item: item,
+                              tipo: 1,
+                            })
+                          "
+                          >mdi-clock-outline</v-icon
+                        >
+                      </td>
+                      <td>
+                        {{ child.code_correlativo }}
+                      </td>
+                      <td>
+                        {{ child.programado_correlativo }}
+                      </td>
+                      <td>
+                        {{ child.nameconsigner }}
+                      </td>
+                      <td>
+                        {{ child.expedientes }}
+                      </td>
+                      <td>
+                        {{ child.fecha_disponibilidad }}
+                      </td>
+                      <td>
+                        {{ child.symbol }}
+                        {{ parseFloat(child.total_pagar).toFixed(2) }}
+                      </td>
+                      <td>
+                        {{ child.llegada == 1 ? "LLEGADA" : "NO LLEGADA" }}
+                      </td>
+                      <!-- <td>
+                        {{ child.pagado == 1 ? "SI" : "NO" }}
+                      </td> -->
+                    </tr>
+                  </tbody>
+                </v-table>
+              </td>
+            </tr>
           </template>
         </v-data-table>
 
@@ -165,65 +165,67 @@
           :search="search"
           :headers="headersdbpa"
           :items="itemsCppa"
-          :expanded.sync="expandeda"
-          :single-expand="singleExpanda"
-          item-key="nameconsigner"
+          v-model:expanded="expandeda"
+          item-value="nameconsigner"
+          return-object
           show-expand
-          @click:row="clickRowa"
+          @click:row="(event, { item }) => clickRowa(item, event)"
         >
           <template v-slot:[`item.nameconsigner`]="{ item }">
             <div class="d-flex">
               <div>{{ item.nameconsigner }}</div>
               <v-btn
-                small
+                size="small"
                 color="primary"
                 class="ml-auto"
                 @click.stop="mostrarComentariosAdmin(item)"
               >
-                <v-icon small class="mr-1">mdi-comment</v-icon> Comentarios
+                <v-icon size="small" class="mr-1">mdi-comment</v-icon> Comentarios
               </v-btn>
             </div>
           </template>
 
-          <template v-slot:expanded-item="{ item }">
-            <td colspan="11">
-              <v-simple-table style="width: 100%">
-                <thead>
-                  <tr style="background: #fff1cf">
-                    <th>Acción</th>
-                    <th>Factura</th>
-                    <th>Fecha Registro</th>
-                    <th>Monto</th>
-                    <th>
-                      {{ $store.state.enterprises.impuesto.nombre_impuesto }}
-                    </th>
-                    <th>Total</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr
-                    style="background: #fff1cf"
-                    v-for="child of item.details"
-                    :key="child.id"
-                  >
-                    <td>
-                      <v-icon
-                        v-if="child.programado"
-                        @click="nuevaFecha({ item: item, tipo: 2 })"
-                        >mdi-clock-outline</v-icon
-                      >
-                    </td>
-                    <td>
-                      {{ child.nro_factura }}
-                    </td>
-                    <td>{{ child.fecha }}</td>
-                    <td>{{ child.symbol }} {{ child.monto }}</td>
-                    <td>{{ child.symbol }} {{ child.igv }}</td>
-                    <td>{{ child.symbol }} {{ child.total }}</td>
-                  </tr>
-                </tbody>
-              </v-simple-table>
-            </td>
+          <template v-slot:expanded-row="{ item }">
+            <tr>
+              <td colspan="11">
+                <v-table style="width: 100%">
+                  <thead>
+                    <tr style="background: #fff1cf">
+                      <th>Acción</th>
+                      <th>Factura</th>
+                      <th>Fecha Registro</th>
+                      <th>Monto</th>
+                      <th>
+                        {{ $store.state.enterprises.impuesto.nombre_impuesto }}
+                      </th>
+                      <th>Total</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr
+                      style="background: #fff1cf"
+                      v-for="child of item.details"
+                      :key="child.id"
+                    >
+                      <td>
+                        <v-icon
+                          v-if="child.programado"
+                          @click="nuevaFecha({ item: item, tipo: 2 })"
+                          >mdi-clock-outline</v-icon
+                        >
+                      </td>
+                      <td>
+                        {{ child.nro_factura }}
+                      </td>
+                      <td>{{ child.fecha }}</td>
+                      <td>{{ child.symbol }} {{ child.monto }}</td>
+                      <td>{{ child.symbol }} {{ child.igv }}</td>
+                      <td>{{ child.symbol }} {{ child.total }}</td>
+                    </tr>
+                  </tbody>
+                </v-table>
+              </td>
+            </tr>
           </template>
         </v-data-table>
       </v-card-text>
@@ -232,16 +234,16 @@
     <!--COMENTARIOS-->
     <v-dialog v-model="dialogComentarios" persistent width="70%">
       <v-card>
-        <v-card-title>
+        <v-card-title class="d-flex align-center flex-wrap">
           Estados/Comentarios de la CxP - {{ dataCXP.proveedor }}
           <v-spacer></v-spacer>
           <template v-if="dataCXP.esoperativo">
-            <v-btn rounded small color="primary" @click="agregarComentarioOp"
+            <v-btn rounded size="small" color="primary" @click="agregarComentarioOp"
               >Nuevo Comentario</v-btn
             >
           </template>
           <template v-else-if="dataCXP.esadministrativo">
-            <v-btn rounded small color="primary" @click="agregarComentarioAdmin"
+            <v-btn rounded size="small" color="primary" @click="agregarComentarioAdmin"
               >Nuevo Comentario</v-btn
             >
           </template>
@@ -257,7 +259,7 @@
         <v-card-actions>
           <v-spacer></v-spacer>
           <v-btn
-            small
+            size="small"
             color="error"
             @click="dialogComentarios = !dialogComentarios"
             >Cerrar</v-btn
@@ -268,10 +270,10 @@
     <!--NUEVO COMENTARIO-->
     <v-dialog v-model="dialogNuevoComentario" persistent width="50%">
       <v-card>
-        <v-card-title>
+        <v-card-title class="d-flex align-center flex-wrap">
           Registro de Estado/Comentario de la CxP - {{ dataCXP.proveedor }}
           <v-spacer></v-spacer>
-          <v-btn
+          <v-btn variant="text"
             icon
             color="default"
             @click="dialogNuevoComentario = !dialogNuevoComentario"
@@ -282,17 +284,17 @@
         <v-card-text>
           <v-form ref="frmComentario">
             <v-text-field
-              dense
+              density="compact"
               label="Fecha"
               v-model="comentario.fecha"
               type="date"
               readonly
             ></v-text-field>
             <v-autocomplete
-              dense
+              density="compact"
               label="Ejecutivo"
               :items="$store.state.pricing.listEjecutivo"
-              item-text="name"
+              item-title="name"
               item-value="id_entitie"
               item-key="id_entitie"
               v-model="comentario.id_ejecutivo"
@@ -300,7 +302,7 @@
               readonly
             ></v-autocomplete>
             <v-textarea
-              dense
+              density="compact"
               label="Estado/Comentario"
               v-model="comentario.texto"
               rows="4"
@@ -312,7 +314,7 @@
         <v-card-actions>
           <v-spacer></v-spacer>
           <v-btn
-            small
+            size="small"
             color="success"
             @click="guardarComentario"
             :loading="loadingBotonGuardarComentario"
@@ -336,22 +338,22 @@
             v-if="radiopdf != ''"
             color="primary"
             @click="_exportPdf()"
-            outlined
+            variant="outlined"
           >
             EXPORTAR
           </v-btn>
           <v-spacer></v-spacer>
-          <v-btn color="red" @click="dialogPdf = false" outlined>Cerrar</v-btn>
+          <v-btn color="red" @click="dialogPdf = false" variant="outlined">Cerrar</v-btn>
         </v-card-actions>
       </v-card>
     </v-dialog>
 
     <v-dialog v-model="dialogNuevoPago" scrollable persistent max-width="70%">
       <v-card>
-        <v-card-title primary-title>
+        <v-card-title class="d-flex align-center flex-wrap" primary-title>
           Programación de Pago del Proveedor {{ nameProveedor }}
           <v-spacer></v-spacer>
-          <v-btn
+          <v-btn variant="text"
             icon
             color="default"
             @click="dialogNuevoPago = !dialogNuevoPago"
@@ -368,7 +370,7 @@
                     (v) => v.programend_id != 0,
                   )
                 "
-                item-text="programend_fecha"
+                item-title="programend_fecha"
                 item-value="programend_id"
                 v-model="programend_id"
               ></v-autocomplete>
@@ -394,7 +396,8 @@
                 v-model="selected"
                 :headers="headerProgramacion"
                 :items="details"
-                item-key="index"
+                item-value="index"
+                return-object
                 show-select
                 class="elevation-0"
               >
@@ -408,8 +411,8 @@
       v-model="offcanvas"
       v-if="offcanvas"
       absolute
-      bottom
-      right
+      location="right"
+      
       width="20%"
     >
       <v-card>
@@ -422,12 +425,12 @@
                 v-model="proveedorOp"
                 label="Proveedores"
                 :items="provedores"
-                item-text="namelong"
+                item-title="namelong"
                 item-value="id"
                 multiple
                 chips
-                outlined
-                dense
+                variant="outlined"
+                density="compact"
               ></v-autocomplete
             ></v-col>
             <v-col cols="12" class="py-0 my-0">
@@ -436,8 +439,8 @@
                 label="Nro Expediente"
                 v-model="nro_expediente"
                 clearable
-                outlined
-                dense
+                variant="outlined"
+                density="compact"
               ></v-text-field>
             </v-col>
             <v-col cols="12" class="py-0 my-0">
@@ -446,12 +449,12 @@
                 v-model="gasto"
                 label="Gasto"
                 :items="$store.state.gastos.list"
-                item-text="description"
+                item-title="description"
                 item-value="id"
                 multiple
-                small-chips
-                dense
-                outlined
+                chips
+                density="compact"
+                variant="outlined"
               ></v-autocomplete>
             </v-col>
             <v-col cols="12" class="py-0 my-0">
@@ -460,12 +463,12 @@
                 v-model="subgasto"
                 label="Sub Gasto"
                 :items="$store.state.subgasto.lstSubGasto"
-                item-text="description"
+                item-title="description"
                 item-value="id"
                 multiple
-                small-chips
-                dense
-                outlined
+                chips
+                density="compact"
+                variant="outlined"
               ></v-autocomplete>
             </v-col>
             <v-col cols="12" class="py-0 my-0">
@@ -474,13 +477,13 @@
                 type="date"
                 v-model="fechaOp"
                 clearable
-                outlined
-                dense
+                variant="outlined"
+                density="compact"
               ></v-text-field>
             </v-col>
             <v-col cols="12" class="py-0 my-0">
               <p class="py-0 my-0">Estado:</p>
-              <v-radio-group dense v-model="llegadaOp" row class="py-0 my-0">
+              <v-radio-group density="compact" v-model="llegadaOp" inline class="py-0 my-0">
                 <v-radio label="Llegada" value="1"></v-radio>
 
                 <v-radio label="No llegada" value="0"></v-radio>
@@ -492,9 +495,9 @@
 
       <v-card>
         <v-card-actions>
-          <v-btn color="success" medium @click="filtrar">Aceptar</v-btn>
-          <v-btn color="error" medium @click="limpiar">Limpiar</v-btn>
-          <v-btn color="info" medium @click="offcanvas = !offcanvas">
+          <v-btn color="success" @click="filtrar">Aceptar</v-btn>
+          <v-btn color="error" @click="limpiar">Limpiar</v-btn>
+          <v-btn color="info" @click="offcanvas = !offcanvas">
             Cancelar
           </v-btn>
         </v-card-actions>
@@ -503,6 +506,7 @@
   </v-container>
 </template>
 <script>
+import { defineAsyncComponent } from "vue";
 import axios from '@/api/axios-config';
 import { mapState, mapActions } from "vuex";
 import exportFromJSON from "export-from-json";
@@ -511,8 +515,8 @@ import Swal from "sweetalert2";
 export default {
   name: "debstoPay",
   components: {
-    newProgrammedPayment: () =>
-      import("../ProgrammedPayment/newProgrammedPayment.vue"),
+    newProgrammedPayment: defineAsyncComponent(() =>
+      import("../ProgrammedPayment/newProgrammedPayment.vue")),
   },
   data: () => ({
     moneda: "",
@@ -549,39 +553,39 @@ export default {
     search: "",
     cabTotalOperativo: [
       {
-        text: "Operativo",
-        value: "moneda",
+        title: "Operativo",
+        key: "moneda",
       },
       {
-        text: "Llegados",
-        value: "llegada",
+        title: "Llegados",
+        key: "llegada",
       },
       {
-        text: "No Llegado",
-        value: "no_llegada",
+        title: "No Llegado",
+        key: "no_llegada",
       },
       {
-        text: "Total",
-        value: "total",
+        title: "Total",
+        key: "total",
       },
     ],
     totalOperativo: [],
     cabTotalAdministrativo: [
       {
-        text: "Administrativo",
-        value: "moneda",
+        title: "Administrativo",
+        key: "moneda",
       },
       {
-        text: "Nonto",
-        value: "monto",
+        title: "Nonto",
+        key: "monto",
       },
       {
-        text: "IGV",
-        value: "igv",
+        title: "IGV",
+        key: "igv",
       },
       {
-        text: "Total",
-        value: "total",
+        title: "Total",
+        key: "total",
       },
     ],
     offcanvas: false,
@@ -611,57 +615,57 @@ export default {
     fechaNuevaProgramacion: moment(new Date()).format("YYYY-MM-DD"),
     headersdbp: [
       {
-        text: "PROVEEDOR OPERATIVO",
+        title: "PROVEEDOR OPERATIVO",
         align: "start",
         sortable: true,
-        value: "nameproveedor",
-        class: "hProveedor",
+        key: "nameproveedor",
+        headerProps: { class: "hProveedor" },
       },
 
       {
-        text: "LLEGADAS",
-        value: "restante_llegada",
-        class: "hLlegada",
+        title: "LLEGADAS",
+        key: "restante_llegada",
+        headerProps: { class: "hLlegada" },
         sortable: false,
       },
 
       {
-        text: "NO LLEGADAS",
-        value: "restante_no_llegada",
-        class: "hNoLlegada",
+        title: "NO LLEGADAS",
+        key: "restante_no_llegada",
+        headerProps: { class: "hNoLlegada" },
         sortable: false,
       },
 
       {
-        text: "GENERAL",
-        value: "restante_pagar",
-        class: "hGeneral",
+        title: "GENERAL",
+        key: "restante_pagar",
+        headerProps: { class: "hGeneral" },
         sortable: false,
       },
-      { text: "", value: "data-table-expand" },
+      { title: "", key: "data-table-expand" },
     ],
 
     headersdbpa: [
       {
-        text: "Proveedor",
+        title: "Proveedor",
         align: "start",
         sortable: false,
-        value: "nameconsigner",
+        key: "nameconsigner",
       },
 
       {
-        text: "Pendiente por Pagar",
-        value: "pendiente_pago",
+        title: "Pendiente por Pagar",
+        key: "pendiente_pago",
       },
 
-      { text: "", value: "data-table-expand" },
+      { title: "", key: "data-table-expand" },
     ],
     headerProgramacion: [
-      { text: "Expediente", value: "nro_master" },
-      { text: "Consignatario", value: "nameconsigner" },
-      { text: "Fecha Disponibilidad", value: "fecha_disponibilidad" },
-      { text: "Moneda", value: "symbol" },
-      { text: "Monto Pagar", value: "total_pagar" },
+      { title: "Expediente", key: "nro_master" },
+      { title: "Consignatario", key: "nameconsigner" },
+      { title: "Fecha Disponibilidad", key: "fecha_disponibilidad" },
+      { title: "Moneda", key: "symbol" },
+      { title: "Monto Pagar", key: "total_pagar" },
     ],
     id: "",
     tipo: "",
@@ -674,9 +678,9 @@ export default {
     dialogComentarios: false,
     dialogNuevoComentario: false,
     headersLstComentarios: [
-      { text: "Fecha", value: "fecha", width: "15%" },
-      { text: "Ejecutivo", value: "ejecutivo", width: "30%" },
-      { text: "Comentario", value: "comentario", width: "55%" },
+      { title: "Fecha", key: "fecha", width: "15%" },
+      { title: "Ejecutivo", key: "ejecutivo", width: "30%" },
+      { title: "Comentario", key: "comentario", width: "55%" },
     ],
     comentario: {
       fecha: moment().format("YYYY-MM-DD"),
@@ -699,7 +703,7 @@ export default {
     )[0].moneda[0].acronym;
     this.offcanvas = false;
     this.$store.state.spiner = true;
-    this.cabTotalAdministrativo[2].text =
+    this.cabTotalAdministrativo[2].title =
       this.$store.state.enterprises.impuesto.nombre_impuesto;
     await Promise.all([
       this._getDebsToPay(),
@@ -782,14 +786,6 @@ export default {
       return this.itemsCppa.reduce((a, b) => a + parseFloat(b[key] || 0), 0);
     },
 
-    clickRow(item, event) {
-      if (event.isExpanded) {
-        const index = this.expanded.findIndex((i) => i === item);
-        this.expanded.splice(index, 1);
-      } else {
-        this.expanded.push(item);
-      }
-    },
     clickRowa(item, event) {
       if (event.isExpandeda) {
         const index = this.expandeda.findIndex((i) => i === item);
@@ -861,7 +857,7 @@ export default {
       }
       var config = {
         method: "post",
-        url: process.env.VUE_APP_URL_MAIN + urlLong,
+        url: import.meta.env.VUE_APP_URL_MAIN + urlLong,
 
         headers: {
          
@@ -879,7 +875,7 @@ export default {
 
           vm.dialogPdf = false;
           window.open(
-            process.env.VUE_APP_URL_MAIN + response.data.path,
+            import.meta.env.VUE_APP_URL_MAIN + response.data.path,
             "_blank",
           );
         })
@@ -899,7 +895,7 @@ export default {
       var config = {
         method: "get",
         url:
-          process.env.VUE_APP_URL_MAIN +
+          import.meta.env.VUE_APP_URL_MAIN +
           `getReporteCXP?id_branch=${
             JSON.parse(sessionStorage.getItem("dataUser"))[0].id_branch
           }&id_proveedor=${this.proveedorOp ? this.proveedorOp : ""}&llegada=${
@@ -931,7 +927,7 @@ export default {
       var config = {
         method: "get",
         url:
-          process.env.VUE_APP_URL_MAIN +
+          import.meta.env.VUE_APP_URL_MAIN +
           `getDebsToPayAdmin?id_branch=${
             JSON.parse(sessionStorage.getItem("dataUser"))[0].id_branch
           }&id_proveedor=${this.proveedorOp ? this.proveedorOp : ""}&llegada=${
@@ -971,7 +967,7 @@ export default {
       };
       var config = {
         method: "post",
-        url: process.env.VUE_APP_URL_MAIN + "getDebsToPayFilter",
+        url: import.meta.env.VUE_APP_URL_MAIN + "getDebsToPayFilter",
 
         headers: {
          
@@ -1087,11 +1083,11 @@ export default {
       switch (tipo) {
         case 1:
           this.headerProgramacion = [
-            { text: "Expediente", value: "nro_master" },
-            { text: "Consignatario", value: "nameconsigner" },
-            { text: "Fecha Disponibilidad", value: "fecha_disponibilidad" },
-            { text: "Moneda", value: "symbol" },
-            { text: "Monto Pagar", value: "total_pagar" },
+            { title: "Expediente", key: "nro_master" },
+            { title: "Consignatario", key: "nameconsigner" },
+            { title: "Fecha Disponibilidad", key: "fecha_disponibilidad" },
+            { title: "Moneda", key: "symbol" },
+            { title: "Monto Pagar", key: "total_pagar" },
           ];
           this.nameProveedor = item.nameproveedor;
           this.details = item.details.filter((v) => v.programado == 0);
@@ -1103,10 +1099,10 @@ export default {
           break;
         case 2:
           this.headerProgramacion = [
-            { text: "Consignatario", value: "nameconsigner" },
-            { text: "Fecha Registro", value: "fecha" },
-            { text: "Moneda", value: "symbol" },
-            { text: "Monto Pagar", value: "monto" },
+            { title: "Consignatario", key: "nameconsigner" },
+            { title: "Fecha Registro", key: "fecha" },
+            { title: "Moneda", key: "symbol" },
+            { title: "Monto Pagar", key: "monto" },
           ];
           this.nameProveedor = item.nameconsigner;
           this.details = item.details.filter((v) => v.programado == 1);
@@ -1130,7 +1126,7 @@ export default {
       };
       var config = {
         method: "post",
-        url: process.env.VUE_APP_URL_MAIN + "setProgrammedPayment",
+        url: import.meta.env.VUE_APP_URL_MAIN + "setProgrammedPayment",
         headers: {
          
           "Content-Type": "application/json",
@@ -1178,7 +1174,7 @@ export default {
       var config = {
         method: "get",
         url:
-          process.env.VUE_APP_URL_MAIN +
+          import.meta.env.VUE_APP_URL_MAIN +
           `reportcxpexcel?id_branch=${
             JSON.parse(sessionStorage.getItem("dataUser"))[0].id_branch
           }&id_proveedor=${this.proveedorOp ? this.proveedorOp : ""}&llegada=${
@@ -1242,7 +1238,7 @@ export default {
           var config = {
             method: "get",
             url:
-              process.env.VUE_APP_URL_MAIN +
+              import.meta.env.VUE_APP_URL_MAIN +
               `exportarPDFCXP?id_branch=${
                 JSON.parse(sessionStorage.getItem("dataUser"))[0].id_branch
               }&id_proveedor=${
@@ -1342,7 +1338,7 @@ export default {
       var config = {
         method: "get",
         url:
-          process.env.VUE_APP_URL_MAIN +
+          import.meta.env.VUE_APP_URL_MAIN +
           `listarComentariosCXP?id_proveedor=${vm.dataCXP.id}`,
         headers: {
          
@@ -1389,12 +1385,12 @@ export default {
     },
     async guardarComentario() {
       var vm = this;
-      if (vm.$refs.frmComentario.validate()) {
+      if ((await vm.$refs.frmComentario.validate()).valid) {
         vm.loadingBotonGuardarComentario = true;
 
         var config = {
           method: "post",
-          url: process.env.VUE_APP_URL_MAIN + `insertarComentarioCXP`,
+          url: import.meta.env.VUE_APP_URL_MAIN + `insertarComentarioCXP`,
           headers: {
            
             "Content-Type": "application/json",

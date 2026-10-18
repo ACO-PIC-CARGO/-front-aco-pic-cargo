@@ -9,10 +9,11 @@
 </template>
 
 <script>
+import { defineAsyncComponent } from "vue";
 export default {
   components: {
-    NuevoComponent: () =>
-      import("@/components/folderEntities/Cliente/NuevoClienteComponent.vue"),
+    NuevoComponent: defineAsyncComponent(() =>
+      import("@/components/folderEntities/Cliente/NuevoClienteComponent.vue")),
   },
   mounted() {
     this.$store.state.mainTitle = `REGISTRAR CLIENTE`;

@@ -2,13 +2,13 @@
   <v-card fluid class="px-5">
     <v-card elevation="0">
       <v-container v-if="loading" style="height: 400px">
-        <v-row class="fill-height" align-content="center" justify="center">
+        <v-row class="fill-height align-content-center justify-center">
           <v-col class="text-subtitle-1 text-center" cols="12">
             Cargando información ....
           </v-col>
           <v-col cols="6">
             <v-progress-linear
-              color="deep-purple accent-4"
+              color="deep-purple-accent-4"
               indeterminate
               rounded
               height="6"
@@ -17,9 +17,9 @@
         </v-row>
       </v-container>
 
-      <v-card-title v-if="!loading" class="elevation-0">
+      <v-card-title v-if="!loading" class="elevation-0 d-flex align-center flex-wrap">
         <v-text-field
-          append-icon="mdi-magnify"
+          append-inner-icon="mdi-magnify"
           label="Buscar"
           single-line
           hide-details
@@ -27,11 +27,11 @@
         >
         </v-text-field>
         <v-spacer></v-spacer>
-        <v-btn small color="success" @click="open_new()"> Nuevo </v-btn>
-        <v-btn small class="mx-1" color="#2962FF" dark @click="open_filter()">
+        <v-btn size="small" color="success" @click="open_new()"> Nuevo </v-btn>
+        <v-btn size="small" class="mx-1" color="#2962FF" @click="open_filter()">
           Fitrar
         </v-btn>
-        <v-btn small class="mx-1" color="#004D40" dark> Exportar </v-btn>
+        <v-btn size="small" class="mx-1" color="#004D40"> Exportar </v-btn>
       </v-card-title>
 
       <v-data-table
@@ -39,22 +39,22 @@
         class="elevation-1"
         :headers="headers"
         :items="$store.state.incoterm.list"
-        item-key="id"
+        item-value="id"
         :search="search"
       >
         <template v-slot:[`item.status`]="{ item }">
           {{ !!item.status ? "Activo" : "Inactivo" }}
         </template>
         <template v-slot:[`item.action`]="{ item }">
-          <v-btn icon>
+          <v-btn variant="text" icon>
             <v-icon color="primary" @click="open_read(item.id)">mdi-eye</v-icon>
           </v-btn>
-          <v-btn icon>
+          <v-btn variant="text" icon>
             <v-icon color="warning" @click="open_update(item.id)"
               >mdi-pencil</v-icon
             >
           </v-btn>
-          <v-btn
+          <v-btn variant="text"
             icon
             color="red"
             @click="switch_status(item)"
@@ -68,19 +68,17 @@
 
     <v-navigation-drawer
       v-model="showFilterDrawerNew"
-      absolute
-      bottom
+      location="right"
       temporary
-      right
+      
       width="30%"
-      height="100vh"
     >
       <v-list-item>
-        <v-list-item-content>
+        
           <v-list-item-title class="text-h6">
             Nuevo Incoterm
           </v-list-item-title>
-        </v-list-item-content>
+        
       </v-list-item>
 
       <v-spacer></v-spacer>
@@ -94,7 +92,6 @@
                 v-model="record.name"
                 :rules="[(v) => validateName(v)]"
                 clearable
-                lazy-validation
               >
               </v-text-field>
             </v-row>
@@ -105,19 +102,19 @@
                 v-model="record.description"
                 :rules="[(v) => validateDescription(v)]"
                 clearable
-                lazy-validation
               >
               </v-text-field>
             </v-row>
           </v-form>
           <v-row>
             <v-switch
-              dense
+              density="compact"
               label="Activo/Inactivo"
               v-model="record.status"
+              :value-comparator="(value, checked) => Boolean(value) === checked"
               hide-details
               color="success"
-              @change="updateStatus"
+              @update:model-value="updateStatus"
             ></v-switch>
           </v-row>
         </v-card-text>
@@ -126,7 +123,6 @@
           <v-btn class="mx-1" color="success" @click="insert()"> Aceptar</v-btn>
           <v-btn
             class="mx-1"
-            dark
             color="warning"
             @click="showFilterDrawerNew = !showFilterDrawerNew"
           >
@@ -138,20 +134,18 @@
 
     <v-navigation-drawer
       v-model="showFilterDrawerRead"
-      absolute
-      bottom
+      location="right"
       temporary
-      right
+      
       width="30%"
-      height="100vh"
     >
       <v-container v-if="!loading_as">
         <v-list-item class="px-0">
-          <v-list-item-content>
+          
             <v-list-item-title class="text-h6">
               Ver: {{ $store.state.incoterm.record.name }}
             </v-list-item-title>
-          </v-list-item-content>
+          
         </v-list-item>
 
         <v-card-text>
@@ -159,14 +153,14 @@
             <v-text-field
               label="Código"
               readonly
-              :value="$store.state.incoterm.record.name"
+              :model-value="$store.state.incoterm.record.name"
             ></v-text-field>
           </v-row>
           <v-row>
             <v-text-field
               label="Descripción"
               readonly
-              :value="$store.state.incoterm.record.description"
+              :model-value="$store.state.incoterm.record.description"
             ></v-text-field>
           </v-row>
           <v-row
@@ -177,13 +171,13 @@
               }`"
               color="success"
               v-model="$store.state.incoterm.record.status"
+              :value-comparator="(value, checked) => Boolean(value) === checked"
             ></v-switch>
           </v-row>
         </v-card-text>
         <v-card-actions class="justify-end mt-3">
           <v-btn
             class="mx-1"
-            dark
             color="warning"
             @click="showFilterDrawerRead = !showFilterDrawerRead"
           >
@@ -193,13 +187,13 @@
       </v-container>
 
       <v-container v-if="loading_as" style="height: 400px">
-        <v-row class="fill-height" align-content="center" justify="center">
+        <v-row class="fill-height align-content-center justify-center">
           <v-col class="text-subtitle-1 text-center" cols="12">
             Cargando información ....
           </v-col>
           <v-col cols="6">
             <v-progress-linear
-              color="deep-purple accent-4"
+              color="deep-purple-accent-4"
               indeterminate
               rounded
               height="6"
@@ -211,20 +205,18 @@
 
     <v-navigation-drawer
       v-model="showFilterDrawerUpdate"
-      absolute
-      bottom
+      location="right"
       temporary
-      right
+      
       width="30%"
-      height="100vh"
     >
       <v-container v-if="!loading_as">
         <v-list-item class="px-0">
-          <v-list-item-content>
+          
             <v-list-item-title class="text-h6">
               Modificar: {{ $store.state.incoterm.record.name }}
             </v-list-item-title>
-          </v-list-item-content>
+          
         </v-list-item>
 
         <v-spacer></v-spacer>
@@ -246,7 +238,6 @@
                 label="Descripción (*)"
                 v-model="record.description"
                 :rules="[(v) => validateDescription(v)]"
-                lazy-validation
                 clearable
               >
               </v-text-field>
@@ -256,20 +247,20 @@
             <v-switch
               :label="`Estado: ${record.status ? 'Activo' : 'Inactivo'}`"
               v-model="record.status"
+              :value-comparator="(value, checked) => Boolean(value) === checked"
               color="success"
-              @change="updateStatus"
+              @update:model-value="updateStatus"
             ></v-switch>
           </v-row>
         </v-card-text>
 
         <v-card-actions class="justify-end mt-3">
-          <v-btn small class="mx-1" color="success" @click="btnUpdate">
+          <v-btn size="small" class="mx-1" color="success" @click="btnUpdate">
             Aceptar</v-btn
           >
           <v-btn
-            small
+            size="small"
             class="mx-1"
-            dark
             color="warning"
             @click="showFilterDrawerUpdate = !showFilterDrawerUpdate"
           >
@@ -279,13 +270,13 @@
       </v-container>
 
       <v-container v-if="loading_as" style="height: 400px">
-        <v-row class="fill-height" align-content="center" justify="center">
+        <v-row class="fill-height align-content-center justify-center">
           <v-col class="text-subtitle-1 text-center" cols="12">
             Cargando información ....
           </v-col>
           <v-col cols="6">
             <v-progress-linear
-              color="deep-purple accent-4"
+              color="deep-purple-accent-4"
               indeterminate
               rounded
               height="6"
@@ -297,20 +288,18 @@
 
     <v-navigation-drawer
       v-model="showFilterDrawer"
-      absolute
-      bottom
+      location="right"
       temporary
-      right
+      
       width="30%"
-      height="100vh"
     >
       <v-container>
         <v-list-item class="px-0">
-          <v-list-item-content>
+          
             <v-list-item-title class="text-h6">
               Filtrar Registros
             </v-list-item-title>
-          </v-list-item-content>
+          
         </v-list-item>
 
         <v-spacer></v-spacer>
@@ -331,7 +320,7 @@
             ></v-text-field>
           </v-row>
           <v-row>
-            <v-radio-group v-model="records.status" row dense>
+            <v-radio-group v-model="records.status" inline density="compact">
               <v-radio label="Activo" color="green" :value="1"></v-radio>
               <v-radio label="Inactivo" color="red" :value="0"></v-radio>
               <v-radio label="Todos" color="blue" value="null"></v-radio>
@@ -340,17 +329,16 @@
         </v-card-text>
 
         <v-card-actions class="justify-end mt-3">
-          <v-btn small class="mx-1" color="success" @click="filter()">
+          <v-btn size="small" class="mx-1" color="success" @click="filter()">
             Aceptar</v-btn
           >
-          <v-btn small class="mx-1" color="ligth" @click="reset_records()">
+          <v-btn size="small" class="mx-1" color="ligth" @click="reset_records()">
             Limpiar</v-btn
           >
 
           <v-btn
-            small
+            size="small"
             class="mx-1"
-            dark
             color="warning"
             @click="showFilterDrawer = !showFilterDrawer"
           >
@@ -372,13 +360,13 @@ export default {
   data() {
     return {
       headers: [
-        { text: "Código", align: "start", value: "name" },
-        { text: "Descripción", value: "description" },
-        { text: "Estado", value: "status" },
-        { text: "Creación", value: "created_at" },
+        { title: "Código", align: "start", key: "name" },
+        { title: "Descripción", key: "description" },
+        { title: "Estado", key: "status" },
+        { title: "Creación", key: "created_at" },
 
-        { text: "Última Actualización", value: "updated_at" },
-        { text: "Acciones", value: "action" },
+        { title: "Última Actualización", key: "updated_at" },
+        { title: "Acciones", key: "action" },
       ],
       loading: true,
       loading_as: true,
@@ -423,7 +411,7 @@ export default {
       this.record.status = newValue ? 1 : 0;
     },
     async insert() {
-      if (this.$refs.formNew.validate()) {
+      if ((await this.$refs.formNew.validate()).valid) {
         this.resetRecord("filter");
         await this.insertIncoterms(this.record);
       }
@@ -478,7 +466,7 @@ export default {
         status: this.record.status,
         id_branch: JSON.parse(sessionStorage.getItem("dataUser"))[0].id_branch,
       };
-      if (this.$refs.form.validate()) {
+      if ((await this.$refs.form.validate()).valid) {
         this.resetRecord("filter");
         await this.updateIncoterms(data);
       }

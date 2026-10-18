@@ -3,8 +3,7 @@
     <v-data-table
       :headers="headers"
       :items="lstFac"
-      item-key="id"
-      loading="true"
+      item-value="id"
       :search="search"
       ><template v-slot:top>
         <v-text-field
@@ -14,19 +13,19 @@
         ></v-text-field>
       </template>
       <template v-slot:[`item.existe_fiscal`]="{ item }">
-        <v-chip v-if="item.existe_fiscal" class="ma-2" color="green" dark>
+        <v-chip v-if="item.existe_fiscal" class="ma-2 text-white" color="green" variant="flat">
           Si
         </v-chip>
 
-        <v-chip v-else class="ma-2" color="red" text-color="white">
+        <v-chip v-else class="ma-2 text-white" color="red" variant="flat">
           No
         </v-chip>
       </template>
       <template v-slot:[`item.url`]="{ item }">
-        <v-btn color="red" @click="verFactura(item.url)" icon>
+        <v-btn variant="text" color="red" @click="verFactura(item.url)" icon>
           <v-icon>mdi-file-pdf-box</v-icon></v-btn
         >
-        <v-btn
+        <v-btn variant="text"
           color="red"
           @click="eliminar(item)"
           icon
@@ -50,72 +49,72 @@ export default {
       lstFac: [],
       headers: [
         {
-          text: "Correlativo",
-          value: "correlativo",
+          title: "Correlativo",
+          key: "correlativo",
           align: "start",
           sortable: false,
         },
 
         {
-          text: "Expediente",
-          value: "nro_master",
+          title: "Expediente",
+          key: "nro_master",
           align: "start",
           sortable: true,
         },
-        { text: "Cliente", value: "cliente", align: "start", sortable: true },
+        { title: "Cliente", key: "cliente", align: "start", sortable: true },
         {
-          text: "Origen",
-          value: "pais_origen",
+          title: "Origen",
+          key: "pais_origen",
           align: "start",
           sortable: true,
         },
         {
-          text: "Destino",
-          value: "pais_destino",
+          title: "Destino",
+          key: "pais_destino",
           align: "start",
           sortable: true,
         },
 
         {
-          text: "Shipment",
-          value: "shipment",
+          title: "Shipment",
+          key: "shipment",
           align: "start",
           sortable: true,
         },
         {
-          text: "Moneda",
-          value: "symbol",
+          title: "Moneda",
+          key: "symbol",
           align: "start",
           sortable: true,
         },
         {
-          text: "Monto",
-          value: "total_monto",
+          title: "Monto",
+          key: "total_monto",
           align: "start",
           sortable: false,
         },
         {
-          text: "IGV",
-          value: "total_igv",
+          title: "IGV",
+          key: "total_igv",
           align: "start",
           sortable: false,
         },
-        { text: "Total", value: "total", align: "start", sortable: false },
-        { text: "Estado", value: "estado", align: "start", sortable: false },
+        { title: "Total", key: "total", align: "start", sortable: false },
+        { title: "Estado", key: "estado", align: "start", sortable: false },
         {
-          text: "Tiene Fac. Fiscal",
-          value: "existe_fiscal",
+          title: "Tiene Fac. Fiscal",
+          key: "existe_fiscal",
           align: "center",
           sortable: false,
         },
-        { text: "Acciones", value: "url", align: "start", sortable: false },
+        { title: "Acciones", key: "url", align: "start", sortable: false },
       ],
     };
   },
   async mounted() {
     await this.listadoFacturacion();
     await this.obtenerImpuestoXEmpresa();
-    this.headers[8].text =
+    this.headers[8].title =
       this.$store.state.enterprises.impuesto.nombre_impuesto;
   },
   methods: {
@@ -128,7 +127,7 @@ export default {
       var config = {
         method: "get",
         url:
-          process.env.VUE_APP_URL_MAIN +
+          import.meta.env.VUE_APP_URL_MAIN +
           "listar_Factura/" +
           JSON.parse(sessionStorage.getItem("dataUser"))[0].id_branch,
 
@@ -172,7 +171,7 @@ export default {
           };
           var config = {
             method: "put",
-            url: process.env.VUE_APP_URL_MAIN + "anular_factura",
+            url: import.meta.env.VUE_APP_URL_MAIN + "anular_factura",
 
             headers: {
               "Content-Type": "application/json",

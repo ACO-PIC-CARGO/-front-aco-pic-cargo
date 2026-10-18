@@ -30,7 +30,7 @@
 
           <v-btn
             :disabled="!this.$route.params.id_control"
-            @click.native="_generatePDF()"
+            @click="_generatePDF()"
             block
             color="orange"
             class="mt-2"
@@ -50,7 +50,6 @@
             block
             color="pink"
             class="mt-2"
-            dark
             @click="abrirModalFacturar()"
           >
             EMITIR FACTURA A CLIENTE
@@ -59,23 +58,23 @@
         <v-col cols="12" md="8">
           <v-expansion-panels v-model="panel" multiple>
             <v-expansion-panel v-for="(item, i) in items" :key="i">
-              <v-expansion-panel-header>
+              <v-expansion-panel-title>
                 <b>Ingresos </b>
-              </v-expansion-panel-header>
-              <v-expansion-panel-content>
+              </v-expansion-panel-title>
+              <v-expansion-panel-text>
                 <ingresos />
-              </v-expansion-panel-content>
+              </v-expansion-panel-text>
             </v-expansion-panel>
           </v-expansion-panels>
 
           <v-expansion-panels class="mt-5" v-model="panels" multiple>
             <v-expansion-panel v-for="(item, i) in items" :key="i">
-              <v-expansion-panel-header>
+              <v-expansion-panel-title>
                 <b>Costos </b>
-              </v-expansion-panel-header>
-              <v-expansion-panel-content>
+              </v-expansion-panel-title>
+              <v-expansion-panel-text>
                 <egresos />
-              </v-expansion-panel-content>
+              </v-expansion-panel-text>
             </v-expansion-panel>
           </v-expansion-panels>
 
@@ -92,12 +91,12 @@
         <v-col cols="12" md="4">
           <v-expansion-panels>
             <v-expansion-panel>
-              <v-expansion-panel-header>
+              <v-expansion-panel-title>
                 <b>Servicios a Realizar</b>
-              </v-expansion-panel-header>
-              <v-expansion-panel-content>
+              </v-expansion-panel-title>
+              <v-expansion-panel-text>
                 <services />
-              </v-expansion-panel-content>
+              </v-expansion-panel-text>
             </v-expansion-panel>
           </v-expansion-panels>
 
@@ -114,10 +113,10 @@
 
         <v-dialog max-width="900" v-model="dialogDebs">
           <v-card>
-            <v-card-title>
+            <v-card-title class="d-flex align-center flex-wrap">
               Abonos del cliente
               <v-spacer></v-spacer>
-              <v-btn outlined color="primary" @click="_newDebs()"
+              <v-btn variant="outlined" color="primary" @click="_newDebs()"
                 >CARGAR NUEVO ABONO</v-btn
               >
             </v-card-title>
@@ -126,8 +125,7 @@
                 <template v-slot:[`item.accion`]="{ item }">
                   <v-icon
                     class="btn_add mr-2"
-                    dense
-                    large
+                    size="large"
                     color="grey"
                     @click="openDoc(item.path)"
                     >mdi-eye</v-icon
@@ -135,8 +133,7 @@
 
                   <v-icon
                     class="btn_add mr-2"
-                    dense
-                    large
+                    size="large"
                     color="red"
                     v-if="item.status == 1"
                     @click="_delDebsClient(item.id)"
@@ -147,23 +144,23 @@
                   <v-chip
                     block
                     v-if="item.status == 2"
-                    small
+                    size="small"
                     class=""
                     color="success"
-                    outlined
+                    variant="outlined"
                   >
-                    <v-icon left> mdi-check </v-icon>
+                    <v-icon start> mdi-check </v-icon>
                     Confirmado
                   </v-chip>
                   <v-chip
                     block
                     v-if="item.status == 1"
-                    small
+                    size="small"
                     class=""
                     color="orange"
-                    outlined
+                    variant="outlined"
                   >
-                    <v-icon left> mdi-warning </v-icon>
+                    <v-icon start> mdi-warning </v-icon>
                     Por Confirmar
                   </v-chip>
                 </template>
@@ -174,51 +171,55 @@
 
         <v-dialog max-width="800" v-model="dialogNewDebs">
           <v-card>
-            <v-card-title>
+            <v-card-title class="d-flex align-center flex-wrap">
               Cargar un nuevo abono
               <v-spacer></v-spacer>
             </v-card-title>
             <v-card-text>
               <v-container>
-                <v-row dense>
+                <v-row density="compact">
                   <v-col cols="12" md="6">
                     <v-menu
-                      ref="menu"
                       v-model="menu"
                       :close-on-content-click="false"
-                      :return-value.sync="date"
                       transition="scale-transition"
-                      offset-y
                       min-width="auto"
                     >
-                      <template v-slot:activator="{ on, attrs }">
+                      <template v-slot:activator="{ props }">
                         <v-text-field
                           v-model="date"
                           label="Fecha de Operación"
                           prepend-icon="mdi-calendar"
                           readonly
-                          v-bind="attrs"
-                          v-on="on"
+                         
+                          v-bind="props"
                         ></v-text-field>
                       </template>
-                      <v-date-picker
-                        locale="es-pe"
-                        v-model="date"
-                        no-title
-                        scrollable
-                      >
-                        <v-spacer></v-spacer>
-                        <v-btn text color="primary" @click="menu = false">
-                          Cancel
-                        </v-btn>
-                        <v-btn
-                          text
-                          color="primary"
-                          @click="$refs.menu.save(date)"
+                      <v-locale-provider locale="es">
+                        <v-date-picker
+                          :model-value="date"
+                          @update:model-value="setDate"
+                          hide-header
                         >
-                          OK
-                        </v-btn>
-                      </v-date-picker>
+                          <template #actions>
+                            <v-spacer></v-spacer>
+                            <v-btn
+                              variant="text"
+                              color="primary"
+                              @click="menu = false"
+                            >
+                              Cancel
+                            </v-btn>
+                            <v-btn
+                              variant="text"
+                              color="primary"
+                              @click="dateOnOpen = date; menu = false"
+                            >
+                              OK
+                            </v-btn>
+                          </template>
+                        </v-date-picker>
+                      </v-locale-provider>
                     </v-menu>
                   </v-col>
                   <v-col cols="12" md="6">
@@ -232,7 +233,7 @@
                     <v-autocomplete
                       :items="$store.state.itemsDataBanksList"
                       v-model="id_banks"
-                      item-text="acronym"
+                      item-title="acronym"
                       item-value="id"
                       label="Banco"
                     ></v-autocomplete>
@@ -241,7 +242,7 @@
                     <v-autocomplete
                       :items="$store.state.itemsCoinsList"
                       v-model="id_coins"
-                      item-text="acronym"
+                      item-title="acronym"
                       item-value="id"
                       label="Moneda"
                     ></v-autocomplete>
@@ -272,12 +273,12 @@
                     <v-chip
                       block
                       v-if="boolFile"
-                      large
+                      size="large"
                       class=""
                       color="success"
-                      outlined
+                      variant="outlined"
                     >
-                      <v-icon left> mdi-check </v-icon>
+                      <v-icon start> mdi-check </v-icon>
                       Archivo cargado éxitosamente
                     </v-chip>
                   </v-col>
@@ -286,12 +287,12 @@
                       :disabled="boolFile || payfile == []"
                       color="blue-grey"
                       block
-                      class="ma-2 white--text"
-                      large
+                      class="ma-2 text-white"
+                      size="large"
                       @click="_uploadFile()"
                     >
                       Subir
-                      <v-icon right dark> mdi-cloud-upload </v-icon>
+                      <v-icon end> mdi-cloud-upload </v-icon>
                     </v-btn>
                   </v-col>
                 </v-row>
@@ -306,7 +307,7 @@
               >
               <v-spacer></v-spacer>
               <v-btn
-                outlined
+                variant="outlined"
                 color="red"
                 @click="dialogNewDebs = !dialogNewDebs"
                 >Cerrar</v-btn
@@ -331,12 +332,12 @@
             <v-col>
               <v-autocomplete
                 :items="branch"
-                item-text="trade_name"
+                item-title="trade_name"
                 item-value="id"
                 label="Sucursal"
                 placeholder="Seleccione una sucursal"
                 v-model="id_branch"
-                @change="obtenerDatos()"
+                @update:model-value="obtenerDatos()"
               >
               </v-autocomplete>
             </v-col>
@@ -368,6 +369,7 @@ import totalesProveedor from "./totalesProveedor.vue";
 import totales from "./totales.vue";
 import { mapState, mapActions } from "vuex";
 import axios from '@/api/axios-config';
+import moment from "moment";
 export default {
   name: "ControlGastos",
   components: {
@@ -408,35 +410,36 @@ export default {
         .toISOString()
         .substr(0, 10),
       menu: false,
+      dateOnOpen: null,
       modal: false,
       menu2: false,
 
       headersdebs: [
         {
-          text: "Documento",
+          title: "Documento",
           align: "start",
           sortable: false,
-          value: "name",
+          key: "name",
         },
         {
-          text: "Fecha",
-          value: "date",
+          title: "Fecha",
+          key: "date",
         },
         {
-          text: "Monto",
-          value: "monto_letra",
+          title: "Monto",
+          key: "monto_letra",
         },
         {
-          text: "Comentario de Admin.",
-          value: "comentario_admin",
+          title: "Comentario de Admin.",
+          key: "comentario_admin",
         },
         {
-          text: "Status",
-          value: "status",
+          title: "Status",
+          key: "status",
         },
         {
-          text: "Ver",
-          value: "accion",
+          title: "Ver",
+          key: "accion",
         },
       ],
     };
@@ -448,6 +451,12 @@ export default {
     this._getDebsClient();
   },
 
+  watch: {
+    menu(open) {
+      if (open) this.dateOnOpen = this.date;
+      else this.date = this.dateOnOpen;
+    },
+  },
   methods: {
     ...mapActions([
       "_setControl",
@@ -456,6 +465,9 @@ export default {
       "_getBanksList",
       "_getCoinsList",
     ]),
+    setDate(value) {
+      this.date = moment(value).format("YYYY-MM-DD");
+    },
     openDoc(path) {
       window.open(path, "_blank");
     },
@@ -476,7 +488,7 @@ export default {
       var config = {
         method: "get",
         url:
-          process.env.VUE_APP_URL_MAIN +
+          import.meta.env.VUE_APP_URL_MAIN +
           "CargarBranch/" +
           JSON.parse(sessionStorage.getItem("dataUser"))[0].id_user,
 
@@ -503,7 +515,7 @@ export default {
       vm.datosFactura = [];
       var config = {
         method: "get",
-        url: `${process.env.VUE_APP_URL_MAIN}data_factura/${vm.$route.params.id_house}/${vm.id_branch}`,
+        url: `${import.meta.env.VUE_APP_URL_MAIN}data_factura/${vm.$route.params.id_house}/${vm.id_branch}`,
 
         headers: {
          
@@ -523,7 +535,7 @@ export default {
       let data = vm.datosFactura;
       var config = {
         method: "post",
-        url: `${process.env.VUE_APP_URL_MAIN}factura`,
+        url: `${import.meta.env.VUE_APP_URL_MAIN}factura`,
         headers: {
          
           "Content-Type": "application/json",
@@ -546,14 +558,14 @@ export default {
       let dataFactura = {
         id_house: vm.$route.params.id_house,
         nro_factura: data.nro_factura,
-        url_documento: process.env.VUE_APP_URL_MAIN + data.path,
+        url_documento: import.meta.env.VUE_APP_URL_MAIN + data.path,
         total_monto: vm.datosFactura.total_monto,
         total_igv: vm.datosFactura.total_igv,
         total: vm.datosFactura.total,
       };
       var config = {
         method: "post",
-        url: process.env.VUE_APP_URL_MAIN + "registrar_factura",
+        url: import.meta.env.VUE_APP_URL_MAIN + "registrar_factura",
         headers: {
          
           "Content-Type": "application/json",
@@ -561,7 +573,7 @@ export default {
         data: dataFactura,
       };
       await axios(config);
-      window.open(process.env.VUE_APP_URL_MAIN + data.path, "_blank");
+      window.open(import.meta.env.VUE_APP_URL_MAIN + data.path, "_blank");
     },
     cleandData() {
       this.date = new Date(Date.now() - new Date().getTimezoneOffset() * 60000)
@@ -580,7 +592,7 @@ export default {
 
       var config = {
         method: "post",
-        url: process.env.VUE_APP_URL_MAIN + "delDebsClient/" + id,
+        url: import.meta.env.VUE_APP_URL_MAIN + "delDebsClient/" + id,
 
         headers: {
          
@@ -616,7 +628,7 @@ export default {
       };
       var config = {
         method: "post",
-        url: process.env.VUE_APP_URL_MAIN + "setDebsClient",
+        url: import.meta.env.VUE_APP_URL_MAIN + "setDebsClient",
 
         headers: {
          
@@ -652,7 +664,7 @@ export default {
       var config = {
         method: "post",
         url:
-          process.env.VUE_APP_URL_MAIN +
+          import.meta.env.VUE_APP_URL_MAIN +
           "getDebsClient/" +
           vm.$route.params.id_house,
 
@@ -672,8 +684,6 @@ export default {
     },
 
     _uploadFile() {
-      var FormData = require("form-data");
-      var fs = require("fs");
       var data = new FormData();
       var vm = this;
       data.append("name", "Prueba");
@@ -681,7 +691,7 @@ export default {
 
       var config = {
         method: "post",
-        url: process.env.VUE_APP_URL_MAIN + "uploadAllPath",
+        url: import.meta.env.VUE_APP_URL_MAIN + "uploadAllPath",
         headers: {
          
           "Content-Type": "application/json",
@@ -793,7 +803,7 @@ export default {
 
       var config = {
         method: "post",
-        url: process.env.VUE_APP_URL_MAIN + "getPdfInstructivo",
+        url: import.meta.env.VUE_APP_URL_MAIN + "getPdfInstructivo",
         headers: {
          
           "Content-Type": "application/json",
@@ -810,7 +820,7 @@ export default {
           });
 
           window.open(
-            process.env.VUE_APP_URL_MAIN + "INSTRUCTIVO.pdf",
+            import.meta.env.VUE_APP_URL_MAIN + "INSTRUCTIVO.pdf",
             "_blank"
           );
         })

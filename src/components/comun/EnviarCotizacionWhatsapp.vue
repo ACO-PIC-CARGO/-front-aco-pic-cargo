@@ -1,6 +1,6 @@
 <template>
   <div class="">
-    <v-btn color="#25D366" dark @click="abrirModal">
+    <v-btn color="#25D366" @click="abrirModal">
       <v-icon class="mr-2">mdi-whatsapp</v-icon> ENVIAR A WHATSAPP
     </v-btn>
     <v-dialog v-model="dialog" persistent max-width="50%">
@@ -14,22 +14,22 @@
           <v-form ref="frmEnvioWsp">
             <v-row>
               <v-col cols="12">
-                <v-tabs v-model="tabIndex" centered slider-color="primary">
-                  <v-tab href="#pdfflag"> PDF </v-tab>
+                <v-tabs v-model="tabIndex" align-tabs="center" slider-color="primary">
+                  <v-tab value="pdfflag"> PDF </v-tab>
                 </v-tabs>
-                <v-tabs-items v-model="tabIndex">
-                  <v-tab-item value="linkflag">
+                <v-tabs-window v-model="tabIndex">
+                  <v-tabs-window-item value="linkflag">
                     <v-card-text>
                       <v-textarea
                         v-model="localTextoLink"
                         auto-grow
-                        outlined
+                        variant="outlined"
                         class="my-2"
                         :rules="[(v) => !!v || 'Dato Requerido']"
                       />
                     </v-card-text>
-                  </v-tab-item>
-                  <v-tab-item value="pdfflag">
+                  </v-tabs-window-item>
+                  <v-tabs-window-item value="pdfflag">
                     <p class="py-0 mt-5" style="font-size: 1.2em; color: red">
                       <center>
                         <v-icon color="warning" class="mx-2">mdi-alert</v-icon>
@@ -42,22 +42,22 @@
                     <v-textarea
                       v-model="localTextoPdf"
                       auto-grow
-                      outlined
+                      variant="outlined"
                       class="py-0 my-0"
                       :rules="[(v) => !!v || 'Dato Requerido']"
                     />
-                  </v-tab-item>
-                </v-tabs-items>
+                  </v-tabs-window-item>
+                </v-tabs-window>
               </v-col>
               <!-- <v-col cols="12">
               {{ $store.state.pricing.datosPrincipales }}
-              <v-select :items="cboTipoReporte" label="Tipo de Reporte a Envíar"></v-select>
+              <v-select item-title="text" :items="cboTipoReporte" label="Tipo de Reporte a Envíar"></v-select>
             </v-col> -->
               <v-col cols="12">
                 <v-text-field
                   label="Nombre de Archivo"
                   v-model="nombrePdfEnviarCliente"
-                  outlined
+                  variant="outlined"
                   :rules="[(v) => !!v || 'Dato Requerido']"
                 ></v-text-field>
               </v-col>
@@ -66,36 +66,41 @@
                   v-model="menu"
                   :close-on-content-click="false"
                   transition="scale-transition"
-                  offset-y
                   max-width="290px"
                   min-width="auto"
                   outline
                   v-if="$store.state.pricing.datosPrincipales.esgrupalflag"
                 >
-                  <template v-slot:activator="{ on, attrs }">
+                  <template v-slot:activator="{ props }">
                     <v-text-field
                       v-model="dateRangeText"
                       label="Fecha Aproximada de Salida"
                       prepend-icon="mdi-calendar"
                       readonly
-                      v-bind="attrs"
-                      v-on="on"
+                      v-bind="props"
                       :rules="[(v) => !!v || 'Dato Requerido']"
                       v-if="$store.state.pricing.datosPrincipales.esgrupalflag"
-                      color="blue-grey darken-2"
-                      outlined
-                      dense
+                      color="blue-grey-darken-2"
+                      variant="outlined"
+                      density="compact"
                     ></v-text-field>
                   </template>
 
-                  <v-date-picker v-model="dates" range no-title scrollable>
-                    <v-spacer></v-spacer>
-                    <v-btn text color="primary" @click="menu = false">
-                      Confirmar
-                    </v-btn>
-                    <v-btn text color="error" @click="menu = false">
-                      Cerrar
-                    </v-btn>
+                  <v-date-picker
+                    :model-value="dates"
+                    @update:model-value="selectDateRange"
+                    multiple="range"
+                    hide-header
+                  >
+                    <template v-slot:actions>
+                      <v-spacer></v-spacer>
+                      <v-btn variant="text" color="primary" @click="menu = false">
+                        Confirmar
+                      </v-btn>
+                      <v-btn variant="text" color="error" @click="menu = false">
+                        Cerrar
+                      </v-btn>
+                    </template>
                   </v-date-picker>
                 </v-menu>
               </v-col>
@@ -119,7 +124,7 @@
             Enviar
             {{ tabIndex == "pdfflag" ? "PDF" : "LINK" }} Cotización</v-btn
           >
-          <v-btn color="error" @click="dialog = false" text :loading="loading"
+          <v-btn color="error" @click="dialog = false" variant="text" :loading="loading"
             >Cancelar</v-btn
           >
         </v-card-actions>
@@ -131,6 +136,7 @@
 <script>
 import { mapActions, mapState } from "vuex";
 import Swal from "sweetalert2";
+import moment from "moment";
 import FormatFecha from "../comun/FormatFecha.vue";
 export default {
   components: {
@@ -271,6 +277,9 @@ export default {
     },
   },
   methods: {
+    selectDateRange(value) {
+      this.dates = value.map((date) => moment(date).format("YYYY-MM-DD"));
+    },
     ...mapActions([
       "generarReporte",
       "obtenerDatosEmpresa",
@@ -292,7 +301,7 @@ export default {
     async enviarWsp() {
       this.errorFechaEntrega = "";
 
-      if (!this.$refs.frmEnvioWsp.validate()) {
+      if (!(await this.$refs.frmEnvioWsp.validate()).valid) {
         return;
       }
 

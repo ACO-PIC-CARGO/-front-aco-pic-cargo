@@ -27,7 +27,7 @@
           No pudimos cargar las páginas legales.
         </p>
         <p>{{ errorMessage }}</p>
-        <v-btn text class="plans-button plans-button--secondary" @click="load">
+        <v-btn variant="text" class="plans-button plans-button--secondary" @click="load">
           Reintentar
         </v-btn>
       </div>
@@ -49,7 +49,7 @@
             v-for="page in pages"
             :id="`tab-${page.slug}`"
             :key="page.slug"
-            :tab-value="page.slug"
+            :value="page.slug"
             class="legal-admin__tab"
             :aria-controls="`panel-${page.slug}`"
           >
@@ -112,8 +112,8 @@
               :counter="limits.title"
               :error-messages="errors.title"
               :aria-invalid="String(Boolean(errors.title))"
-              outlined
-              dense
+              variant="outlined"
+              density="compact"
             />
 
             <p
@@ -130,18 +130,18 @@
               <LegalSectionEditor
                 v-for="(section, index) in draft.sections"
                 :key="section.key"
-                :value="section"
+                :model-value="section"
                 :index="index"
                 :count="draft.sections.length"
                 :errors="errors.items[index]"
-                @input="updateSection(index, $event)"
+                @update:model-value="updateSection(index, $event)"
                 @move="onMoveSection(index, $event)"
                 @remove="removeSection(index)"
               />
             </ol>
 
             <v-btn
-              text
+              variant="text"
               class="plans-button plans-button--secondary legal-admin__add"
               :disabled="isAtSectionLimit"
               :aria-describedby="
@@ -170,7 +170,7 @@
             </p>
             <div class="legal-admin__bar-actions">
               <v-btn
-                text
+                variant="text"
                 class="plans-button plans-button--ghost"
                 :disabled="!isActiveDirty || saving"
                 @click="discardChanges"
@@ -178,7 +178,7 @@
                 Descartar cambios
               </v-btn>
               <v-btn
-                text
+                variant="text"
                 type="submit"
                 class="plans-button plans-button--primary"
                 :disabled="!isActiveDirty || saving"
@@ -228,16 +228,10 @@ const focusById = (id) => {
 export default {
   name: "LegalPagesAdmin",
   components: { LegalSectionEditor },
-  beforeRouteLeave(to, from, next) {
-    if (this.saving) {
-      next(false);
-      return;
-    }
-    if (!this.dirtySlugs.length) {
-      next();
-      return;
-    }
-    Swal.fire({
+  async beforeRouteLeave() {
+    if (this.saving) return false;
+    if (!this.dirtySlugs.length) return;
+    const { isConfirmed } = await Swal.fire({
       icon: "warning",
       title: "Tienes cambios sin guardar",
       text: "Si sales ahora, se perderán.",
@@ -245,7 +239,8 @@ export default {
       confirmButtonText: "Salir sin guardar",
       cancelButtonText: "Seguir editando",
       reverseButtons: true,
-    }).then(({ isConfirmed }) => next(isConfirmed));
+    });
+    return isConfirmed;
   },
   data: () => ({
     showErrors: {},
@@ -301,7 +296,7 @@ export default {
     window.addEventListener("beforeunload", this.warnBeforeUnload);
     this.load();
   },
-  beforeDestroy() {
+  beforeUnmount() {
     window.removeEventListener("beforeunload", this.warnBeforeUnload);
   },
   methods: {
@@ -372,7 +367,7 @@ export default {
     },
     discardChanges() {
       this.$store.commit("legalPages/RESET_DRAFT", this.activeSlug);
-      this.$set(this.showErrors, this.activeSlug, false);
+      this.showErrors[this.activeSlug] = false;
     },
     focusFirstInvalid() {
       const field =
@@ -382,7 +377,7 @@ export default {
     },
     async save() {
       const slug = this.activeSlug;
-      this.$set(this.showErrors, slug, true);
+      this.showErrors[slug] = true;
       if (this.hasDraftErrors(slug)) {
         this.$nextTick(this.focusFirstInvalid);
         return;
@@ -390,7 +385,7 @@ export default {
       this.saving = true;
       const saved = await this.savePage(slug);
       this.saving = false;
-      if (saved) this.$set(this.showErrors, slug, false);
+      if (saved) this.showErrors[slug] = false;
     },
     warnBeforeUnload(event) {
       if (!this.dirtySlugs.length) return;
@@ -454,13 +449,13 @@ export default {
   color: var(--planes-text);
 }
 
-.plans-theme .legal-admin__tabs.v-tabs ::v-deep .v-tabs-bar {
+.plans-theme .legal-admin__tabs.v-tabs {
   height: auto;
   background: transparent;
   border-bottom: 1px solid var(--planes-divider);
 }
 
-.plans-theme .legal-admin__tabs.v-tabs ::v-deep .v-tabs-slider {
+.plans-theme .legal-admin__tabs.v-tabs :deep(.v-tab__slider) {
   background-color: var(--planes-accent);
 }
 
@@ -488,7 +483,7 @@ export default {
   background: var(--planes-overlay-hover);
 }
 
-.plans-theme .legal-admin__tabs .legal-admin__tab.v-tab.v-tab--active {
+.plans-theme .legal-admin__tabs .legal-admin__tab.v-tab.v-tab--selected {
   color: var(--planes-accent);
   background: var(--planes-accent-tint);
 }

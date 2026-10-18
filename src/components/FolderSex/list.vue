@@ -1,13 +1,13 @@
 <template>
   <v-card fluid class="px-5">
     <v-container v-if="loading" style="height: 400px">
-      <v-row class="fill-height" align-content="center" justify="center">
+      <v-row class="fill-height align-content-center justify-center">
         <v-col class="text-subtitle-1 text-center" cols="12">
           Cargando información ....
         </v-col>
         <v-col cols="6">
           <v-progress-linear
-            color="deep-purple accent-4"
+            color="deep-purple-accent-4"
             indeterminate
             rounded
             height="6"
@@ -16,9 +16,9 @@
       </v-row>
     </v-container>
 
-    <v-card-title v-if="!loading" class="elevation-0">
+    <v-card-title v-if="!loading" class="elevation-0 d-flex align-center flex-wrap">
       <v-text-field
-        append-icon="mdi-magnify"
+        append-inner-icon="mdi-magnify"
         label="Buscar"
         single-line
         hide-details
@@ -26,11 +26,11 @@
       >
       </v-text-field>
       <v-spacer></v-spacer>
-      <v-btn small color="success" @click="open_new()"> Nuevo </v-btn>
-      <v-btn small class="mx-1" color="#2962FF" dark @click="open_filter()">
+      <v-btn size="small" color="success" @click="open_new()"> Nuevo </v-btn>
+      <v-btn size="small" class="mx-1" color="#2962FF" @click="open_filter()">
         Fitrar
       </v-btn>
-      <v-btn small class="mx-1" color="#004D40" dark> Exportar </v-btn>
+      <v-btn size="small" class="mx-1" color="#004D40"> Exportar </v-btn>
     </v-card-title>
 
     <v-data-table
@@ -38,23 +38,23 @@
       class="elevation-1"
       :headers="headers"
       :items="$store.state.sex.list"
-      item-key="id"
+      item-value="id"
       :search="search"
     >
       <template v-slot:[`item.status`]="{ item }">
         {{ !!item.status ? "Activo" : "Inactivo" }}
       </template>
       <template v-slot:[`item.action`]="{ item }">
-        <v-btn icon>
+        <v-btn variant="text" icon>
           <v-icon color="primary" @click="open_read(item.id)">mdi-eye</v-icon>
         </v-btn>
-        <v-btn icon>
+        <v-btn variant="text" icon>
           <v-icon color="warning" @click="open_update(item.id)"
             >mdi-pencil</v-icon
           >
         </v-btn>
 
-        <v-btn icon color="red" @click="switch_status(item)" v-if="item.status">
+        <v-btn variant="text" icon color="red" @click="switch_status(item)" v-if="item.status">
           <v-icon>mdi-delete</v-icon>
         </v-btn>
       </template>
@@ -62,17 +62,15 @@
 
     <v-navigation-drawer
       v-model="showFilterDrawerNew"
-      absolute
-      bottom
+      location="right"
       temporary
-      right
+      
       width="30%"
-      height="100vh"
     >
       <v-list-item>
-        <v-list-item-content>
+        
           <v-list-item-title class="text-h6"> Nuevo Género </v-list-item-title>
-        </v-list-item-content>
+        
       </v-list-item>
 
       <v-spacer></v-spacer>
@@ -87,7 +85,6 @@
                 v-model="record.acronym"
                 @blur="validate_nuevo_acronym()"
                 :rules="[(v) => validateAcronym(v)]"
-                lazy-validation
                 :error-messages="errorAcronym"
                 clearable
               >
@@ -99,7 +96,6 @@
                 label="Nombre (*)"
                 v-model="record.name"
                 :rules="[(v) => validateName(v)]"
-                lazy-validation
                 clearable
               >
               </v-text-field>
@@ -110,7 +106,6 @@
                 label="Descripción"
                 v-model="record.description"
                 :rules="[(v) => validateDescription(v)]"
-                lazy-validation
                 clearable
               >
               </v-text-field>
@@ -118,12 +113,13 @@
           </v-form>
           <v-row>
             <v-switch
-              dense
+              density="compact"
               :label="`Estado: ${record.status ? 'Activo' : 'Inactivo'}`"
               v-model="record.status"
+              :value-comparator="(value, checked) => Boolean(value) === checked"
               hide-details
               color="success"
-              @change="updateStatus"
+              @update:model-value="updateStatus"
             ></v-switch>
           </v-row>
         </v-card-text>
@@ -132,7 +128,7 @@
       <v-container>
         <v-card-actions class="justify-end mt-3">
           <v-btn class="mx-1" color="success" @click="insert()"> Aceptar</v-btn>
-          <v-btn class="mx-1" dark color="warning" @click="close_drawer('new')">
+          <v-btn class="mx-1" color="warning" @click="close_drawer('new')">
             Cerrar</v-btn
           >
         </v-card-actions>
@@ -141,20 +137,18 @@
 
     <v-navigation-drawer
       v-model="showFilterDrawerRead"
-      absolute
-      bottom
+      location="right"
       temporary
-      right
+      
       width="30%"
-      height="100vh"
     >
       <v-container v-if="!loading_as">
         <v-list-item class="px-0">
-          <v-list-item-content>
+          
             <v-list-item-title class="text-h6">
               Ver: {{ $store.state.sex.record.name }}
             </v-list-item-title>
-          </v-list-item-content>
+          
         </v-list-item>
 
         <v-spacer></v-spacer>
@@ -163,28 +157,28 @@
             <v-text-field
               label="Código"
               readonly
-              :value="$store.state.sex.record.code"
+              :model-value="$store.state.sex.record.code"
             ></v-text-field>
           </v-row>
           <v-row>
             <v-text-field
               label="Nombre"
               readonly
-              :value="$store.state.sex.record.name"
+              :model-value="$store.state.sex.record.name"
             ></v-text-field>
           </v-row>
           <v-row>
             <v-text-field
               label="Acrónimo"
               readonly
-              :value="$store.state.sex.record.acronym"
+              :model-value="$store.state.sex.record.acronym"
             ></v-text-field>
           </v-row>
           <v-row>
             <v-text-field
               label="Descripción"
               readonly
-              :value="$store.state.sex.record.description"
+              :model-value="$store.state.sex.record.description"
             ></v-text-field>
           </v-row>
           <v-row>
@@ -195,13 +189,13 @@
               }`"
               color="success"
               v-model="$store.state.sex.record.status"
+              :value-comparator="(value, checked) => Boolean(value) === checked"
             ></v-switch>
           </v-row>
         </v-card-text>
         <v-card-actions class="justify-end mt-3">
           <v-btn
             class="mx-1"
-            dark
             color="warning"
             @click="showFilterDrawerRead = !showFilterDrawerRead"
           >
@@ -211,13 +205,13 @@
       </v-container>
 
       <v-container v-if="loading_as" style="height: 400px">
-        <v-row class="fill-height" align-content="center" justify="center">
+        <v-row class="fill-height align-content-center justify-center">
           <v-col class="text-subtitle-1 text-center" cols="12">
             Cargando información ....
           </v-col>
           <v-col cols="6">
             <v-progress-linear
-              color="deep-purple accent-4"
+              color="deep-purple-accent-4"
               indeterminate
               rounded
               height="6"
@@ -229,20 +223,18 @@
 
     <v-navigation-drawer
       v-model="showFilterDrawerUpdate"
-      absolute
-      bottom
+      location="right"
       temporary
-      right
+      
       width="30%"
-      height="100vh"
     >
       <v-container v-if="!loading_as">
         <v-list-item class="px-0">
-          <v-list-item-content>
+          
             <v-list-item-title class="text-h6">
               Modificar: {{ $store.state.sex.record.name }}
             </v-list-item-title>
-          </v-list-item-content>
+          
         </v-list-item>
 
         <v-spacer></v-spacer>
@@ -266,7 +258,6 @@
                 v-model="record.acronym"
                 @blur="validate_editar_acronym()"
                 :rules="[(v) => validateAcronym(v)]"
-                lazy-validation
                 :error-messages="errorAcronym"
                 clearable
               >
@@ -278,7 +269,6 @@
                 label="Nombre (*)"
                 v-model="record.name"
                 :rules="[(v) => validateName(v)]"
-                lazy-validation
                 clearable
               >
               </v-text-field>
@@ -289,7 +279,6 @@
                 label="Descripción"
                 v-model="record.description"
                 :rules="[(v) => validateDescription(v)]"
-                lazy-validation
                 clearable
               >
               </v-text-field>
@@ -300,8 +289,9 @@
             <v-switch
               :label="`Estado: ${record.status ? 'Activo' : 'Inactivo'}`"
               v-model="record.status"
+              :value-comparator="(value, checked) => Boolean(value) === checked"
               color="success"
-              @change="updateStatus"
+              @update:model-value="updateStatus"
             ></v-switch>
           </v-row>
         </v-card-text>
@@ -312,7 +302,6 @@
           >
           <v-btn
             class="mx-1"
-            dark
             color="warning"
             @click="close_drawer('update')"
           >
@@ -322,13 +311,13 @@
       </v-container>
 
       <v-container v-if="loading_as" style="height: 400px">
-        <v-row class="fill-height" align-content="center" justify="center">
+        <v-row class="fill-height align-content-center justify-center">
           <v-col class="text-subtitle-1 text-center" cols="12">
             Cargando información ....
           </v-col>
           <v-col cols="6">
             <v-progress-linear
-              color="deep-purple accent-4"
+              color="deep-purple-accent-4"
               indeterminate
               rounded
               height="6"
@@ -340,19 +329,17 @@
 
     <v-navigation-drawer
       v-model="showFilterDrawer"
-      absolute
-      bottom
+      location="right"
       temporary
-      right
+      
       width="30%"
-      height="100vh"
     >
       <v-list-item>
-        <v-list-item-content>
+        
           <v-list-item-title class="text-h6">
             Filtrar Registros
           </v-list-item-title>
-        </v-list-item-content>
+        
       </v-list-item>
 
       <v-spacer></v-spacer>
@@ -388,7 +375,7 @@
             ></v-text-field>
           </v-row>
           <v-row>
-            <v-radio-group v-model="records.status" row dense>
+            <v-radio-group v-model="records.status" inline density="compact">
               <v-radio label="Activo" color="green" :value="1"></v-radio>
               <v-radio label="Inactivo" color="red" :value="0"></v-radio>
               <v-radio label="Todos" color="blue" value="null"></v-radio>
@@ -405,7 +392,6 @@
           >
           <v-btn
             class="mx-1"
-            dark
             color="warning"
             @click="showFilterDrawer = !showFilterDrawer"
           >
@@ -427,15 +413,15 @@ export default {
   data() {
     return {
       headers: [
-        { text: "Código", align: "start", value: "code" },
-        { text: "Acrónimo", value: "acronym" },
-        { text: "Nombre", value: "name" },
-        { text: "Descripción", value: "description" },
-        { text: "Estado", value: "status" },
-        { text: "Creación", value: "created_at" },
+        { title: "Código", align: "start", key: "code" },
+        { title: "Acrónimo", key: "acronym" },
+        { title: "Nombre", key: "name" },
+        { title: "Descripción", key: "description" },
+        { title: "Estado", key: "status" },
+        { title: "Creación", key: "created_at" },
 
-        { text: "Última Actualización", value: "updated_at" },
-        { text: "Acciones", value: "action" },
+        { title: "Última Actualización", key: "updated_at" },
+        { title: "Acciones", key: "action" },
       ],
       loading: true,
       loading_as: true,
@@ -483,7 +469,7 @@ export default {
     insert() {
       this.validate_nuevo_acronym();
       setTimeout(async () => {
-        if (this.$refs.form1.validate() && this.errorAcronym == null) {
+        if ((await this.$refs.form1.validate()).valid && this.errorAcronym == null) {
           this.resetRecord("filter");
           await this.insertSex(this.record);
         }
@@ -534,7 +520,7 @@ export default {
     async btnUpdate() {
       this.validate_editar_acronym();
       setTimeout(async () => {
-        if (this.$refs.form.validate() && this.errorAcronym == null) {
+        if ((await this.$refs.form.validate()).valid && this.errorAcronym == null) {
           let data = {
             id: this.id,
             id_branch: JSON.parse(sessionStorage.getItem("dataUser"))[0]
@@ -603,7 +589,7 @@ export default {
       var config = {
         method: "get",
         url:
-          process.env.VUE_APP_URL_MAIN +
+          import.meta.env.VUE_APP_URL_MAIN +
           `validar_nuevo_acronimo_sex?` +
           `acronym=${encodeURIComponent(this.record.acronym)}` +
           `&id_branch=${this.record.id_branch}`,
@@ -629,7 +615,7 @@ export default {
       var config = {
         method: "get",
         url:
-          process.env.VUE_APP_URL_MAIN +
+          import.meta.env.VUE_APP_URL_MAIN +
           `validar_editar_acronimo_sex?` +
           `id=${this.id}` +
           `&acronym=${encodeURIComponent(this.record.acronym)}` +

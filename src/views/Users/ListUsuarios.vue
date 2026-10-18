@@ -3,10 +3,8 @@
     <Users />
     <v-navigation-drawer
       v-model="$store.state.user.drawer"
-      right
-      absolute
-      bottom
-      persistent
+      location="right"
+      
       width="30%"
       temporary
     >
@@ -16,10 +14,11 @@
 </template>
 
 <script>
+import { defineAsyncComponent } from "vue";
 export default {
   components: {
-    Users: () => import("@/components/Users/ListUserComponet.vue"),
-    FilterUsers: () => import("@/components/filtros/FilterUsers.vue"),
+    Users: defineAsyncComponent(() => import("@/components/Users/ListUserComponet.vue")),
+    FilterUsers: defineAsyncComponent(() => import("@/components/filtros/FilterUsers.vue")),
   },
   mounted() {
     this.$store.state.mainTitle = `LISTADO DE USUARIOS`;

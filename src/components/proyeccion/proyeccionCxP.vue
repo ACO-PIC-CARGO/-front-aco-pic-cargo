@@ -9,11 +9,10 @@
 
       <v-spacer></v-spacer>
       <v-btn
-        dark
         color="#3F51B5"
         class="mx-1"
         @click="dialogn = !dialogn"
-        small
+        size="small"
         rounded
         v-if="generarflag"
       >
@@ -23,40 +22,39 @@
         color="success"
         class="mx-1"
         @click="$router.push({ name: 'nuevaProyeccionCXP' })"
-        small
+        size="small"
         rounded
         >NUEVA
       </v-btn>
-      <v-btn color="info" class="mx-1" small rounded @click="filtar = !filtar"
+      <v-btn color="info" class="mx-1" size="small" rounded @click="filtar = !filtar"
         >FILTRAR</v-btn
       >
-      <v-btn color="success" class="mx-1" small rounded>EXPORTAR</v-btn>
+      <v-btn color="success" class="mx-1" size="small" rounded>EXPORTAR</v-btn>
       <v-col cols="12">
         <v-data-table
           :headers="headers"
           :items="$store.state.proyecciones.listProyeccion"
           class="elevation-1"
-          item-key="id"
-          loading="true"
+          item-value="id"
           :search="search"
         >
           <template v-slot:[`item.action`]="{ item }">
-            <v-btn icon>
+            <v-btn variant="text" icon>
               <v-icon color="info" @click="ver(item.proyeccion_id)"
                 >mdi-eye</v-icon
               >
             </v-btn>
-            <v-btn icon v-if="!item.proyeccion_aprobadoflag">
+            <v-btn variant="text" icon v-if="!item.proyeccion_aprobadoflag">
               <v-icon color="orange" @click="editar(item.proyeccion_id)"
                 >mdi-pencil</v-icon
               >
             </v-btn>
-            <v-btn icon>
-              <v-icon color="blue-grey darken-4" @click="copiar(item)"
+            <v-btn variant="text" icon>
+              <v-icon color="blue-grey-darken-4" @click="copiar(item)"
                 >mdi-content-copy</v-icon
               >
             </v-btn>
-            <v-btn
+            <v-btn variant="text"
               icon
               v-if="!item.proyeccion_aprobadoflag && !!item.proyeccion_estado"
               @click="eliminar(item.proyeccion_id)"
@@ -65,13 +63,12 @@
             </v-btn>
           </template>
           <template v-slot:[`item.proyeccion_estado`]="{ item }">
-            <v-chip dark :color="!!item.proyeccion_estado ? 'green' : 'red'">
+            <v-chip :color="!!item.proyeccion_estado ? 'green' : 'red'">
               {{ !!item.proyeccion_estado ? "Activo" : "Inactivo" }}
             </v-chip>
           </template>
           <template v-slot:[`item.proyeccion_aprobadoflag`]="{ item }">
             <v-chip
-              dark
               :color="!!item.proyeccion_aprobadoflag ? 'green' : 'red'"
             >
               {{ !!item.proyeccion_aprobadoflag ? "Si" : "No" }}</v-chip
@@ -82,10 +79,10 @@
     </v-row>
     <v-dialog v-model="dialog" persistent :overlay="false" max-width="30%">
       <v-card>
-        <v-card-title primary-title>
+        <v-card-title class="d-flex align-center flex-wrap" primary-title>
           Copiar Proyección {{ item.proyeccion_correlativo }}
           <v-spacer></v-spacer>
-          <v-btn icon color="defaul" @click="dialog = !dialog">
+          <v-btn variant="text" icon color="defaul" @click="dialog = !dialog">
             <v-icon>mdi-close</v-icon>
           </v-btn>
         </v-card-title>
@@ -96,8 +93,8 @@
                 :items="$store.state.month"
                 v-model="id_month"
                 label="Mes"
-                dense
-                item-text="description"
+                density="compact"
+                item-title="description"
                 item-value="id"
                 :rules="[(v) => !!v || 'Dato requerido']"
               ></v-select>
@@ -105,11 +102,11 @@
 
             <v-col cols="12">
               <v-select
-                :items="$store.state.year"
+                :items="Array.isArray($store.state.year) ? $store.state.year : []"
                 v-model="id_year"
                 label="Año"
-                dense
-                item-text="description"
+                density="compact"
+                item-title="description"
                 item-value="id"
                 :rules="[(v) => !!v || 'Dato requerido']"
               ></v-select>
@@ -125,7 +122,7 @@
             :loading="loading"
             >Copiar</v-btn
           >
-          <v-btn color="red" dark class="mx-1" @click="dialog = !dialog"
+          <v-btn color="red" class="mx-1" @click="dialog = !dialog"
             >Cancelar</v-btn
           >
         </v-card-actions>
@@ -133,10 +130,10 @@
     </v-dialog>
     <v-dialog v-model="dialogn" persistent :overlay="false" max-width="30%">
       <v-card>
-        <v-card-title primary-title>
+        <v-card-title class="d-flex align-center flex-wrap" primary-title>
           REALIZAR PRIMERA PROYECCIÓN
           <v-spacer></v-spacer>
-          <v-btn icon color="defaul" @click="dialogn = !dialogn">
+          <v-btn variant="text" icon color="defaul" @click="dialogn = !dialogn">
             <v-icon>mdi-close</v-icon>
           </v-btn>
         </v-card-title>
@@ -147,8 +144,8 @@
                 :items="$store.state.month"
                 v-model="id_monthn"
                 label="Mes"
-                dense
-                item-text="description"
+                density="compact"
+                item-title="description"
                 item-value="id"
                 :rules="[(v) => !!v || 'Dato requerido']"
               ></v-select>
@@ -156,11 +153,11 @@
 
             <v-col cols="12">
               <v-select
-                :items="$store.state.year"
+                :items="Array.isArray($store.state.year) ? $store.state.year : []"
                 v-model="id_yearn"
                 label="Año"
-                dense
-                item-text="description"
+                density="compact"
+                item-title="description"
                 item-value="id"
                 :rules="[(v) => !!v || 'Dato requerido']"
               ></v-select>
@@ -176,7 +173,7 @@
             :loading="loading"
             >Copiar</v-btn
           >
-          <v-btn color="red" dark class="mx-1" @click="dialogn = !dialogn"
+          <v-btn color="red" class="mx-1" @click="dialogn = !dialogn"
             >Cancelar</v-btn
           >
         </v-card-actions>
@@ -184,42 +181,40 @@
     </v-dialog>
     <v-navigation-drawer
       v-model="filtar"
-      absolute
-      bottom
+      location="right"
       temporary
-      right
+      
       width="20%"
-      height="92vh"
     >
       <v-list-item>
-        <v-list-item-content>
+        
           <v-list-item-title class="text-h6"> Filtrar </v-list-item-title>
-        </v-list-item-content>
+        
       </v-list-item>
 
       <v-divider></v-divider>
 
       <v-divider></v-divider>
-      <v-list dense nav>
+      <v-list density="compact" nav>
         <v-row>
           <v-col cols="12">
             <v-select
               :items="$store.state.month"
               v-model="id_month"
               label="Mes"
-              dense
-              item-text="description"
+              density="compact"
+              item-title="description"
               item-value="id"
               clearable
             ></v-select>
           </v-col>
           <v-col cols="12">
             <v-select
-              :items="$store.state.year"
+              :items="Array.isArray($store.state.year) ? $store.state.year : []"
               v-model="id_year"
               label="Año"
-              dense
-              item-text="description"
+              density="compact"
+              item-title="description"
               item-value="id"
               clearable
             ></v-select>
@@ -230,7 +225,7 @@
               label="Correlativo"
               v-model="correlativo"
               clearable
-              dense
+              density="compact"
               step="1"
             ></v-text-field>
           </v-col>
@@ -240,30 +235,30 @@
               label="Monto Proyectado (USD)"
               v-model="total_proyectado_ext"
               clearable
-              dense
+              density="compact"
               step="1"
             ></v-text-field>
           </v-col>
           <v-col cols="12">
             Estado
-            <v-radio-group v-model="estado" row dense>
+            <v-radio-group v-model="estado" inline density="compact">
               <v-radio label="Activo" :value="'true'"></v-radio>
               <v-radio label="Inactivo" color="red" :value="'false'"></v-radio>
-              <v-btn icon small @click="clearestado()" v-if="!!estado">
+              <v-btn variant="text" icon size="small" @click="clearestado()" v-if="!!estado">
                 <v-icon>mdi-close</v-icon>
               </v-btn>
             </v-radio-group>
           </v-col>
           <v-col cols="12">
             Aprobados
-            <v-radio-group v-model="aprobado" row dense>
+            <v-radio-group v-model="aprobado" inline density="compact">
               <v-radio label="Aprobados" :value="'true'"></v-radio>
               <v-radio
                 label="No Aprobados"
                 color="red"
                 :value="'false'"
               ></v-radio>
-              <v-btn icon small @click="clearaprobado()" v-if="!!aprobado">
+              <v-btn variant="text" icon size="small" @click="clearaprobado()" v-if="!!aprobado">
                 <v-icon>mdi-close</v-icon>
               </v-btn>
             </v-radio-group>
@@ -272,8 +267,8 @@
       </v-list>
       <v-card-actions>
         <v-spacer></v-spacer>
-        <v-btn small color="success" @click="filtrar()">Aceptar</v-btn>
-        <v-btn small dark color="red" @click="filtar = !filtar">Cerrar</v-btn>
+        <v-btn size="small" color="success" @click="filtrar()">Aceptar</v-btn>
+        <v-btn size="small" color="red" @click="filtar = !filtar">Cerrar</v-btn>
       </v-card-actions>
     </v-navigation-drawer>
   </v-container>
@@ -297,18 +292,18 @@ export default {
       id_monthn: "",
       id_yearn: "",
       headers: [
-        { text: "Correlativo", value: "proyeccion_correlativo" },
-        { text: "Mes", value: "month_description" },
-        { text: "Año", value: "year_description" },
+        { title: "Correlativo", key: "proyeccion_correlativo" },
+        { title: "Mes", key: "month_description" },
+        { title: "Año", key: "year_description" },
         // { text:'Tipo de Cambio' ,value: "proyeccion_tipocambio" },
         // { text:'Total Moneda Local' ,value: "proyeccion_total_monlocal" },
         // { text:'Total Conversion' ,value: "proyeccion_total_conversionext" },
         // { text:'Total Dolar' ,value: "proyeccion_total_monext" },
-        { text: "Proyectado (USD)", value: "proyeccion_total_proyectado_ext" },
-        { text: "Usuario Creación", value: "entitie_namelong" },
-        { text: "Estado", value: "proyeccion_estado" },
-        { text: "Aprobado", value: "proyeccion_aprobadoflag" },
-        { text: "Acciones", value: "action" },
+        { title: "Proyectado (USD)", key: "proyeccion_total_proyectado_ext" },
+        { title: "Usuario Creación", key: "entitie_namelong" },
+        { title: "Estado", key: "proyeccion_estado" },
+        { title: "Aprobado", key: "proyeccion_aprobadoflag" },
+        { title: "Acciones", key: "action" },
       ],
       items: [
         {

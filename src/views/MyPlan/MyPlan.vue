@@ -22,7 +22,7 @@
         <p class="my-plan__state-title">No pudimos cargar tu plan.</p>
         <p>{{ errorMessage }}</p>
         <v-btn
-          text
+          variant="text"
           class="plans-button plans-button--secondary"
           @click="loadAndStart"
         >
@@ -48,7 +48,7 @@
             minutos.
           </p>
           <v-btn
-            text
+            variant="text"
             class="plans-button plans-button--secondary"
             @click="confirmPayment(0)"
           >
@@ -112,7 +112,7 @@
         <div class="plan-summary__actions">
           <v-btn
             v-if="canChange && canUpgrade"
-            text
+            variant="text"
             class="plans-button plans-button--primary"
             :disabled="busy"
             @click="startChangingPlan"
@@ -122,7 +122,7 @@
           </v-btn>
           <v-btn
             v-if="plan.scheduled_change_action === 'cancel'"
-            text
+            variant="text"
             class="plans-button plans-button--secondary"
             :disabled="busy"
             @click="keepPlan"
@@ -131,7 +131,7 @@
           </v-btn>
           <v-btn
             v-if="plan.scheduled_change_action !== 'cancel'"
-            text
+            variant="text"
             class="plans-button plans-button--ghost"
             :disabled="busy"
             @click="cancelPlan"
@@ -165,7 +165,7 @@
             v-model="isAnnual"
             mandatory
             rounded
-            dense
+            density="compact"
             class="segmented"
             role="group"
             aria-label="Precio mostrado"
@@ -174,7 +174,7 @@
               v-for="option in billingOptions"
               :key="String(option.value)"
               :value="option.value"
-              text
+              variant="text"
             >
               {{ option.label }}
             </v-btn>
@@ -182,7 +182,7 @@
         </div>
         <v-btn
           v-if="isChangingPlan"
-          text
+          variant="text"
           class="plans-button plans-button--ghost my-plan__back"
           :disabled="busy"
           @click="isChangingPlan = false"
@@ -206,7 +206,7 @@
             @toggle-details="toggleDetails(pkg)"
           >
             <v-btn
-              text
+              variant="text"
               class="plans-button plans-button--primary my-plan__buy"
               :disabled="busy || isUnavailableAction(cardActionOf(pkg))"
               :aria-label="`${cardLabel(pkg)}: ACO ${pkg.name}`"
@@ -319,7 +319,7 @@ export default {
     this.pendingStart = { transactionId, choice };
     await this.loadAndStart();
   },
-  beforeDestroy() {
+  beforeUnmount() {
     this.isLeaving = true;
     clearTimeout(this.confirmTimer);
     stopCheckoutEvents();

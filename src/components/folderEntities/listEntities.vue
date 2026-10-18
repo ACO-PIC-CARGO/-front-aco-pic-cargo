@@ -1,13 +1,12 @@
 <template>
   <div>
     <v-card elevation="0">
-      <v-card-title>
+      <v-card-title class="d-flex align-center flex-wrap">
         <v-btn
           v-if="$route.params.id_role"
           color="primary"
           :to="`/home/folderEntities/control/${$route.params.id_role}`"
           elevation="0"
-          dark
           rounded
           class="mb-2 ml-5"
           :loading="!$store.state.dataList"
@@ -18,7 +17,7 @@
 
         <v-text-field
           v-model="search"
-          append-icon="mdi-magnify"
+          append-inner-icon="mdi-magnify"
           label="Buscar"
           single-line
           hide-details
@@ -26,13 +25,13 @@
       </v-card-title>
 
       <v-container v-if="!$store.state.dataList" style="height: 400px">
-        <v-row class="fill-height" align-content="center" justify="center">
+        <v-row class="fill-height align-content-center justify-center">
           <v-col class="text-subtitle-1 text-center" cols="12">
             Cargando informacíon
           </v-col>
           <v-col cols="6">
             <v-progress-linear
-              color="deep-purple accent-4"
+              color="deep-purple-accent-4"
               indeterminate
               rounded
               height="6"
@@ -43,26 +42,25 @@
 
       <v-data-table
         v-if="$store.state.dataList"
-        :item-class="itemRowBackground"
+        :row-props="({ item }) => ({ class: itemRowBackground(item) })"
         :headers="headers"
         :items="itemsEntities"
         :search="search"
       >
         <template v-slot:[`item.moredata`]="{ item }">
-          <v-tooltip top>
-            <template v-slot:activator="{ on, attrs }">
+          <v-tooltip location="top">
+            <template v-slot:activator="{ props }">
               <v-btn
                 class="mx-2"
-                fab
-                dark
+                icon
                 elevation="0"
-                x-small
-                v-bind="attrs"
-                v-on="on"
+                size="x-small"
+               
+                v-bind="props"
                 @click="openPhone(item.id)"
-                color="blue-grey darken-3"
+                color="blue-grey-darken-3"
               >
-                <v-icon dark> mdi-phone </v-icon>
+                <v-icon> mdi-phone </v-icon>
               </v-btn>
             </template>
             <span>Teléfonos</span>
@@ -73,20 +71,19 @@
           </v-icon> -->
         </template>
         <template v-slot:[`item.moredata2`]="{ item }">
-          <v-tooltip bottom>
-            <template v-slot:activator="{ on, attrs }">
+          <v-tooltip location="bottom">
+            <template v-slot:activator="{ props }">
               <v-btn
                 class="mx-2"
-                fab
-                dark
+                icon
                 elevation="0"
-                x-small
-                v-bind="attrs"
-                v-on="on"
+                size="x-small"
+               
+                v-bind="props"
                 @click="openContacts(item.id)"
-                color="blue-grey darken-3"
+                color="blue-grey-darken-3"
               >
-                <v-icon dark> mdi-account-multiple </v-icon>
+                <v-icon> mdi-account-multiple </v-icon>
               </v-btn>
             </template>
             <span>Contactos</span>
@@ -97,8 +94,7 @@
         </template>
         <template v-slot:[`item.actions`]="{ item }">
           <v-icon
-            v-if="$route.params.id_role"
-            medium
+            v-if="$route.params.id_role" size="28"
             color="orange"
             class="mr-2"
             @click="editEntitie(item.id)"
@@ -106,8 +102,7 @@
             mdi-pencil
           </v-icon>
           <v-icon
-            v-if="!$route.params.id_role"
-            medium
+            v-if="!$route.params.id_role" size="28"
             color="primary"
             class="mr-2"
             @click="sendData(item.id)"
@@ -121,7 +116,7 @@
       </v-data-table>
     </v-card>
 
-    <v-footer app color="transparent" height="72" inset>
+    <v-footer color="transparent" height="72">
       <div>
         <div class="circle__legends colorRed"></div>
         Entidad sin documento
@@ -139,17 +134,17 @@ export default {
       search: "",
       headers: [
         {
-          text: "Documento",
+          title: "Documento",
           align: "start",
-          value: "documentlong",
+          key: "documentlong",
         },
-        { text: "Nombre Comercial", value: "namelong" },
-        { text: "Ubigeo", value: "location" },
-        { text: "Dirección", value: "address" },
-        { text: "Notas", value: "notes" },
-        { text: "Teléfonos", value: "moredata" },
-        { text: "Contactos", value: "moredata2" },
-        { text: "Acciones", value: "actions" },
+        { title: "Nombre Comercial", key: "namelong" },
+        { title: "Ubigeo", key: "location" },
+        { title: "Dirección", key: "address" },
+        { title: "Notas", key: "notes" },
+        { title: "Teléfonos", key: "moredata" },
+        { title: "Contactos", key: "moredata2" },
+        { title: "Acciones", key: "actions" },
       ],
       dataList: false,
 

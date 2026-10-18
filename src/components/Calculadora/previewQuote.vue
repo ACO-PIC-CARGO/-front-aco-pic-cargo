@@ -1,6 +1,6 @@
 <template>
   <v-dialog
-    v-model="dialog"
+    :model-value="dialog"
     :overlay="false"
     max-width="80%"
     transition="dialog-transition"
@@ -57,7 +57,7 @@
       
       <v-row>
         <v-col cols="6">
-          <v-simple-table dense>
+          <v-table density="compact">
             <thead>
               <tr class="text-center">
                 <th colspan="2" class="bg_total">DATOS EMBARQUE</th>
@@ -97,7 +97,7 @@
                 <td width="60%">{{ data.volumen }}</td>
               </tr>
             </tbody>
-          </v-simple-table>
+          </v-table>
         </v-col>
       </v-row>
       {{ data }} 
@@ -679,6 +679,7 @@ export default {
     },
   },
   name: "PreviewQuote",
+  emits: ["cerrar"],
   data() {
     return {
       lstServices: [],
@@ -705,7 +706,7 @@ export default {
     this.datosEmpresa = JSON.parse(sessionStorage.getItem("dataBranch"))[0];
   },
 
-  beforeDestroy() {
+  beforeUnmount() {
     window.removeEventListener("keydown", this.handleKeyPress);
   },
   computed: {
@@ -842,12 +843,12 @@ export default {
 * {
   font-size: 0.8rem;
 }
-.v-data-table > .v-data-table__wrapper > table > tbody > tr > td,
-.v-data-table > .v-data-table__wrapper > table > tbody > tr > th,
-.v-data-table > .v-data-table__wrapper > table > thead > tr > td,
-.v-data-table > .v-data-table__wrapper > table > thead > tr > th,
-.v-data-table > .v-data-table__wrapper > table > tfoot > tr > td,
-.v-data-table > .v-data-table__wrapper > table > tfoot > tr > th {
+.v-table > .v-table__wrapper > table > tbody > tr > td,
+.v-table > .v-table__wrapper > table > tbody > tr > th,
+.v-table > .v-table__wrapper > table > thead > tr > td,
+.v-table > .v-table__wrapper > table > thead > tr > th,
+.v-table > .v-table__wrapper > table > tfoot > tr > td,
+.v-table > .v-table__wrapper > table > tfoot > tr > th {
   padding: 0;
   transition: height 0.2s cubic-bezier(0.4, 0, 0.6, 1);
 }

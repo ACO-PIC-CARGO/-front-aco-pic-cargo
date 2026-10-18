@@ -3,10 +3,11 @@
 </template>
 
 <script>
+import { defineAsyncComponent } from "vue";
 export default {
   components: {
-    ListPerformanceComponent: () =>
-      import("@/components/FolderPerformance/list.vue"),
+    ListPerformanceComponent: defineAsyncComponent(() =>
+      import("@/components/FolderPerformance/list.vue")),
   },
   mounted() {
     this.$store.state.mainTitle = "Tipos de Documentos Comerciales";

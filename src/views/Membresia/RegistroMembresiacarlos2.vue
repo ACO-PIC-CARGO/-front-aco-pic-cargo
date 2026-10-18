@@ -1,6 +1,6 @@
 <template>
   <v-container fluid>
-    <v-row justify="center">
+    <v-row class="justify-center">
       <v-col v-for="plan in planes" :key="plan.plan_id" cols="12" sm="4">
         <v-card class="plan-card" elevation="3">
           <v-card-title class="plan-title">
@@ -28,7 +28,7 @@
 
           <v-radio-group
             v-model="selectedUsers[plan.plan_id]"
-            @change="updatePrice(plan.plan_id)"
+            @update:model-value="updatePrice(plan.plan_id)"
             class="mt-1"
             inline
           >
@@ -51,14 +51,7 @@
           <v-divider class="my-0"></v-divider>
 
           <v-card-subtitle
-            class="
-              plan-subtitle
-              text-h4
-              black--text
-              font-weight-black
-              textestirado
-              textoprecmen
-            "
+            class="plan-subtitle text-h4 text-black font-weight-black textestirado textoprecmen"
           >
             {{
               selectedUsers[plan.plan_id]
@@ -147,14 +140,13 @@
 
             <v-divider class="my-2"></v-divider>
             <v-list>
-              <v-list-item-group>
                 <v-list-item
                   v-for="feature in plan.caracteristicas"
                   :key="feature.descripcion"
                 >
-                  <v-list-item-content>
+                  
                     <v-icon
-                      small
+                      size="small"
                       :color="feature.estado == 1 ? 'blue' : 'grey'"
                       :class="
                         feature.estado == 1
@@ -172,9 +164,8 @@
                     >
                       {{ feature.descripcion }}</span
                     >
-                  </v-list-item-content>
+                  
                 </v-list-item>
-              </v-list-item-group>
             </v-list>
 
             <v-btn
@@ -185,7 +176,7 @@
             >
             <v-btn
               color="blue"
-              class="mt-3 white--text"
+              class="mt-3 text-white"
               @click="showPaymentForm(plan)"
               >Contratar</v-btn
             >
@@ -198,7 +189,7 @@
     <v-dialog v-model="paymentDialog" max-width="600px">
       <v-card>
         <v-card-title>
-          <span class="headline">Pago</span>
+          <span class="text-h5">Pago</span>
         </v-card-title>
         <v-card-text>
           <v-form @submit.prevent="processPayment(selectedPlanId)">
@@ -287,13 +278,13 @@ export default {
     async fetchPlans() {
       try {
         const response = await axios.post(
-          process.env.VUE_APP_URL_MAIN + "getPlanes"
+          import.meta.env.VUE_APP_URL_MAIN + "getPlanes"
         );
         this.planes = response.data.data;
 
         this.planes.forEach((plan) => {
-          this.$set(this.selectedUsers, plan.plan_id, plan.usuarios_principal);
-          this.$set(this.selectedPlans, plan.plan_id, "mensual");
+          this.selectedUsers[plan.plan_id] = plan.usuarios_principal;
+          this.selectedPlans[plan.plan_id] = "mensual";
         });
       } catch (error) {
         console.error("Error al obtener planes:", error);
@@ -316,13 +307,13 @@ export default {
         : 0;
     },
     togglePlan(planId, planType) {
-      this.$set(this.selectedPlans, planId, planType);
+      this.selectedPlans[planId] = planType;
     },
     async subscribe(planId) {
       const usuarioId = 1;
       try {
         const response = await axios.post(
-          process.env.VUE_APP_URL_MAIN + "getPayment",
+          import.meta.env.VUE_APP_URL_MAIN + "getPayment",
           {
             planId,
             usuarioId,
@@ -341,7 +332,7 @@ export default {
     async processPayment(planId) {
       try {
         const response = await this.$axios.post(
-          process.env.VUE_APP_URL_MAIN + "getPayment",
+          import.meta.env.VUE_APP_URL_MAIN + "getPayment",
           {
             cardNumber: this.cardNumber,
             securityCode: this.securityCode,

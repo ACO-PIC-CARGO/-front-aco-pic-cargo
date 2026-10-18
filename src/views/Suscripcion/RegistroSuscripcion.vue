@@ -5,21 +5,21 @@
         <v-col cols="12"> <h3>Registro de Suscripción</h3> </v-col>
         <v-col cols="12" md="4">
           Nombre:
-          <v-text-field solo dense></v-text-field>
+          <v-text-field variant="solo" density="compact"></v-text-field>
         </v-col>
         <v-col cols="12" md="8">
           Descripcion:
-          <v-textarea solo rows="1" dense></v-textarea>
+          <v-textarea variant="solo" rows="1" density="compact"></v-textarea>
         </v-col>
         <v-col cols="12" class="pt-0">
-          <v-tabs v-model="tab" color="primary" centered slider-color="primary">
-            <v-tab key="usuarios"> Usuarios </v-tab>
-            <v-tab key="Detalles"> Detalles </v-tab>
+          <v-tabs v-model="tab" color="primary" align-tabs="center" slider-color="primary">
+            <v-tab value="usuarios"> Usuarios </v-tab>
+            <v-tab value="Detalles"> Detalles </v-tab>
           </v-tabs>
-          <v-tabs-items v-model="tab">
-            <v-tab-item key="usuarios">dddd </v-tab-item>
-            <v-tab-item key="Detalles"> aaa</v-tab-item>
-          </v-tabs-items>
+          <v-tabs-window v-model="tab">
+            <v-tabs-window-item value="usuarios">dddd </v-tabs-window-item>
+            <v-tabs-window-item value="Detalles"> aaa</v-tabs-window-item>
+          </v-tabs-window>
         </v-col>
       </v-row>
     </v-container>

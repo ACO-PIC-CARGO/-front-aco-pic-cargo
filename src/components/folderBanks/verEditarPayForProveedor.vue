@@ -5,15 +5,15 @@
         <v-col cols="12" md="4" class="pb-0">
           Proveedor:
           <v-autocomplete
-            outlined
-            dense
+            variant="outlined"
+            density="compact"
             :items="provedores"
-            item-text="namelong"
+            item-title="namelong"
             item-value="id"
             placeholder="Proveedor"
             v-model="proveedor"
             clearable
-            @change="obtenerListado()"
+            @update:model-value="obtenerListado()"
             hide-details
             :error-messages="errorMesage.proveedor"
             disabled
@@ -25,12 +25,11 @@
           Monto Debitado en el banco:
           <!-- <v-icon @click="snackbar = true">mdi-information</v-icon> -->
           <v-text-field
-            outlined
-            dense
+            variant="outlined"
+            density="compact"
             v-model="monto_local"
             type="number"
             :prefix="symbol"
-            width="50px"
             hide-details
             :disabled="verflag"
           ></v-text-field>
@@ -38,13 +37,12 @@
         <v-col cols="12" md="2" class="pb-0">
           Total Factura Seleccionada:
           <v-text-field
-            outlined
-            dense
+            variant="outlined"
+            density="compact"
             disabled
             v-model="monto"
             type="number"
             prefix="USD"
-            width="50px"
             hide-details
           ></v-text-field>
         </v-col>
@@ -52,12 +50,11 @@
         <v-col cols="12" md="2" class="pb-0" v-if="mostrarTipoCambio">
           Tipo Cambio:
           <v-text-field
-            outlined
-            dense
+            variant="outlined"
+            density="compact"
             v-model="tipocambio"
             type="number"
             prefix="USD"
-            width="50px"
             hide-details
             disabled
           ></v-text-field>
@@ -82,7 +79,6 @@
           v-if="verflag"
           color="red"
           class="mt-5 ml-3"
-          dark
           @click="imprimirComprobanteEgreso({ id: $route.params.id })"
         >
           <v-icon class="mx-2">mdi-file-pdf-box</v-icon> Imprimir
@@ -102,7 +98,6 @@
           v-if="!verflag"
           class="mt-5"
           color="red"
-          dark
           :loading="loading"
           @click="confirmarEliminar()"
         >
@@ -113,17 +108,17 @@
         <v-col cols="12">
           <v-tabs
             v-model="pasos"
-            centered
+            align-tabs="center"
             color="#000000"
-            background-color="#C8E6C9"
+            bg-color="#C8E6C9"
           >
             <v-tab key="detallesPago">Detalles de Pago</v-tab>
             <v-tab key="datosPrincipales">Datos Principales</v-tab>
             <v-tab key="gastoBancario"> Resumen y Comisión Bancario</v-tab>
           </v-tabs>
 
-          <v-tabs-items v-model="pasos">
-            <v-tab-item key="detallesPago">
+          <v-tabs-window v-model="pasos">
+            <v-tabs-window-item key="detallesPago">
               <v-row class="mt-1">
                 <v-col cols="12">
                   <!-- show-select -->
@@ -133,13 +128,12 @@
                     :headers="headers"
                     :items="itemsOrdenados"
                     v-model="selected"
-                    item-key="id"
+                    item-value="id"
+                    return-object
                     :search="searchTableDetalle"
-                    @item-selected="onItemSelected"
-                    @toggle-select-all="onSelectAll"
                   >
                     <template v-slot:body.append>
-                      <tr class="grey lighten-4 font-weight-bold">
+                      <tr class="bg-grey-lighten-4 font-weight-bold">
                         <td :colspan="headers.length - 1" class="text-right">
                           Total General Seleccionado ({{ symbol }}):
                         </td>
@@ -152,11 +146,11 @@
                       {{ symbol }} {{ fn_totalAbonado(item) }}
                     </template>
                     <template v-slot:[`item.parcialflag`]="{ item }">
-                      <v-select
+                      <v-select item-title="text"
                         :items="cboParcial"
                         v-model="item.parcialflag"
-                        dense
-                        outlined
+                        density="compact"
+                        variant="outlined"
                         :disabled="!selected.includes(item)"
                         style="max-width: 200px"
                         hide-details
@@ -165,22 +159,22 @@
                     <template v-slot:[`item.montopagar`]="{ item }">
                       <v-text-field
                         hide-details
-                        dense
-                        outlined
+                        density="compact"
+                        variant="outlined"
                         v-model="item.montoparcial"
                         :disabled="verflag"
                         style="max-width: 120px"
                         :prefix="item.symbol"
                         type="number"
-                        @input="recalcularTotal"
+                        @update:model-value="recalcularTotal"
                       ></v-text-field>
                     </template>
                     <template v-slot:[`item.concepto`]="{ item, index }">
                       <v-text-field
                         v-model="item.concepto"
                         :id="`txtConcepto${index}`"
-                        outlined
-                        dense
+                        variant="outlined"
+                        density="compact"
                         hide-details
                         :disabled="verflag"
                         style="max-width: 150px"
@@ -208,22 +202,22 @@
                   </v-data-table>
                 </v-col>
               </v-row>
-            </v-tab-item>
+            </v-tabs-window-item>
 
-            <v-tab-item key="datosPrincipales">
+            <v-tabs-window-item key="datosPrincipales">
               <v-row class="mt-1">
                 <v-col cols="12" md="6" class="py-1">
                   <v-autocomplete
                     :items="$store.state.bancos.cuentas"
-                    item-text="label"
+                    item-title="label"
                     item-value="id"
                     label="Cuenta de Salida de Banco"
                     v-model="id_cuenta"
                     return-object
-                    outlined
-                    dense
+                    variant="outlined"
+                    density="compact"
                     :error-messages="errorMesage.id_cuenta"
-                    @change="errorMesage.id_cuenta = null"
+                    @update:model-value="errorMesage.id_cuenta = null"
                     :disabled="verflag"
                   ></v-autocomplete>
                 </v-col>
@@ -232,8 +226,8 @@
                     readonly
                     v-model="id_cuenta.banco"
                     label="Banco:"
-                    outlined
-                    dense
+                    variant="outlined"
+                    density="compact"
                     :disabled="verflag"
                   ></v-text-field>
                 </v-col>
@@ -243,8 +237,8 @@
                     readonly
                     v-model="id_cuenta.cuenta"
                     label="N° Cuenta:"
-                    outlined
-                    dense
+                    variant="outlined"
+                    density="compact"
                     :disabled="verflag"
                   ></v-text-field
                 ></v-col>
@@ -253,8 +247,8 @@
                     readonly
                     v-model="id_cuenta.cci"
                     label="CCI:"
-                    outlined
-                    dense
+                    variant="outlined"
+                    density="compact"
                     :disabled="verflag"
                   ></v-text-field
                 ></v-col>
@@ -273,19 +267,19 @@
                     readonly
                     v-model="id_cuenta.moneda"
                     label="Moneda:"
-                    outlined
-                    dense
+                    variant="outlined"
+                    density="compact"
                     :disabled="verflag"
                   ></v-text-field>
                 </v-col>
                 <v-col cols="12" md="6" class="py-1">
                   <v-text-field
                     label="Número de Operación"
-                    outlined
-                    dense
+                    variant="outlined"
+                    density="compact"
                     v-model="numerooperacion"
                     :error-messages="errorMesage.numerooperacion"
-                    @input="
+                    @update:model-value="
                       numerooperacion !== ''
                         ? (errorMesage.numerooperacion = null)
                         : (errorMesage.numerooperacion =
@@ -298,8 +292,8 @@
                   <v-textarea
                     label="Comentarios"
                     rows="1"
-                    outlined
-                    dense
+                    variant="outlined"
+                    density="compact"
                     auto-grow
                     v-model="comentarios"
                     :disabled="verflag"
@@ -310,7 +304,7 @@
                     Soporte de Pago:
                     <v-btn
                       color="error"
-                      small
+                      size="small"
                       class="mx-1"
                       @click="urlfile = null"
                       v-if="!verflag && urlfile"
@@ -321,21 +315,18 @@
                     <!-- CASO 1: SI ES IMAGEN (Miniatura + Visualizador al hacer clic) -->
                     <template v-if="esImagen(urlfile)">
                       <v-dialog max-width="800px">
-                        <template v-slot:activator="{ on: dialogOn, attrs }">
-                          <v-hover v-slot="{ hover }">
+                        <template v-slot:activator="{ props }">
+                          <v-hover v-slot="{ isHovering, props: hoverProps }">
                             <div
-                              v-bind="attrs"
-                              v-on="dialogOn"
+                              v-bind="mergeProps(props, hoverProps)"
                               class="d-inline-block rounded-circle elevation-2 position-relative cursor-zoom-in"
-                              :class="{ 'white--overlay': hover }"
+                              :class="{ 'white--overlay': isHovering }"
                             >
                               <v-avatar size="120" class="flex-shrink-0">
                                 <v-img :src="urlfile" alt="Miniatura">
                                   <template v-slot:placeholder>
                                     <v-row
-                                      class="fill-height ma-0"
-                                      align="center"
-                                      justify="center"
+                                      class="fill-height ma-0 align-center justify-center"
                                     >
                                       <v-progress-circular
                                         indeterminate
@@ -348,14 +339,14 @@
                               </v-avatar>
 
                               <v-overlay
-                                absolute
-                                :value="hover"
-                                color="white"
+                                contained
+                                :model-value="isHovering"
+                                scrim="white"
                                 opacity="0.6"
-                                class="rounded-circle"
+                                class="rounded-circle align-center justify-center"
                                 z-index="1"
                               >
-                                <v-icon color="grey darken-2" size="24"
+                                <v-icon color="grey-darken-2" size="24"
                                   >mdi-magnify</v-icon
                                 >
                               </v-overlay>
@@ -367,7 +358,6 @@
                           <v-img
                             :src="urlfile"
                             max-height="85vh"
-                            contain
                           ></v-img>
                         </v-card>
                       </v-dialog>
@@ -375,7 +365,7 @@
 
                     <!-- CASO 2: SI NO ES IMAGEN (Tu botón original para PDF/otros archivos) -->
                     <template v-else>
-                      <v-btn color="info" icon :href="urlfile" target="_blank">
+                      <v-btn variant="text" color="info" icon :href="urlfile" target="_blank">
                         <v-icon color="info" size="large"
                           >mdi-file-pdf-box</v-icon
                         >
@@ -395,19 +385,20 @@
                   <v-btn text> Cancel </v-btn>
                 </v-col> -->
               </v-row>
-            </v-tab-item>
+            </v-tabs-window-item>
 
-            <v-tab-item key="gastoBancario">
+            <v-tabs-window-item key="gastoBancario">
               <v-row class="mt-1">
                 <v-col cols="12">
                   <v-data-table
                     :headers="headersPagosGastosBancario"
                     :items="selected"
                     v-model="selected"
-                    item-key="id"
+                    item-value="id"
+                    return-object
                   >
                     <template v-slot:body.append>
-                      <tr class="grey lighten-4 font-weight-bold">
+                      <tr class="bg-grey-lighten-4 font-weight-bold">
                         <td
                           :colspan="headersPagosGastosBancario.length - 1"
                           class="text-right"
@@ -432,8 +423,8 @@
 
                 <v-col cols="12" md="2" offset="8">
                   <v-text-field
-                    outlined
-                    dense
+                    variant="outlined"
+                    density="compact"
                     label="Comisión Bancaria"
                     id="id"
                     v-model="conceptogastobancario"
@@ -442,8 +433,8 @@
                 </v-col>
                 <v-col cols="12" md="2">
                   <v-text-field
-                    outlined
-                    dense
+                    variant="outlined"
+                    density="compact"
                     label="Monto Gasto Bancario"
                     id="id"
                     type="number"
@@ -454,8 +445,8 @@
                 </v-col>
                 <v-col cols="12" md="2" offset="10">
                   <v-text-field
-                    outlined
-                    dense
+                    variant="outlined"
+                    density="compact"
                     label="Monto Total a Pagar"
                     id="id"
                     type="number"
@@ -475,16 +466,16 @@
                   </v-btn>
                 </v-col> -->
               </v-row>
-            </v-tab-item>
-          </v-tabs-items>
+            </v-tabs-window-item>
+          </v-tabs-window>
         </v-col>
       </v-row>
     </v-container>
     <v-snackbar v-model="snackbar">
       Monto en moneda {{ symbol }} para realizar el pago. El tipo de cambio se
       calculará automáticamente al ingresar el monto en moneda local.
-      <template v-slot:action="{ attrs }">
-        <v-btn color="red" text v-bind="attrs" @click="snackbar = false">
+      <template v-slot:actions>
+        <v-btn color="red" variant="text" @click="snackbar = false">
           Close
         </v-btn>
       </template>
@@ -493,14 +484,15 @@
 </template>
 
 <script>
+import { defineAsyncComponent, mergeProps } from "vue";
 import { mapActions, mapState } from "vuex";
 import Swal from "sweetalert2";
 export default {
   components: {
     //  opciones: () => import("@/components/comun/opcionesRegistro.vue"),
-    FormatFecha: () => import("../comun/FormatFecha.vue"),
-    ArrastraYSolarComponent: () =>
-      import("../comun/ArrastraYSolarComponent.vue"),
+    FormatFecha: defineAsyncComponent(() => import("../comun/FormatFecha.vue")),
+    ArrastraYSolarComponent: defineAsyncComponent(() =>
+      import("../comun/ArrastraYSolarComponent.vue")),
   },
   props: {
     verflag: {
@@ -530,29 +522,29 @@ export default {
       loading: false,
       headers: [
         // { text: "Abono Completo o Parcial", value: "parcialflag" },
-        { text: "Monto DDL", value: "montopagar" },
+        { title: "Monto DDL", key: "montopagar" },
         // { text: "Fecha Facturación", value: "fecha" },
-        { text: "Expediente", value: "code_master" },
-        { text: "Procedencia", value: "tipo_gasto" },
+        { title: "Expediente", key: "code_master" },
+        { title: "Procedencia", key: "tipo_gasto" },
 
-        { text: "Moneda y Monto Facturado", value: "montomonedalocal" },
-        { text: "Monto Equivalente en Dólares", value: "montodolar" },
+        { title: "Moneda y Monto Facturado", key: "montomonedalocal" },
+        { title: "Monto Equivalente en Dólares", key: "montodolar" },
         // { text: "Saldo", value: "saldo" },
         // { text: "Factura", value: "documentos" },
-        { text: "Total Monto Abonado", value: "totalabonado" },
+        { title: "Total Monto Abonado", key: "totalabonado" },
       ],
       headersPagosGastosBancario: [
         // { text: "Abono Completo o Parcial", value: "parcialflag" },
-        { text: "Monto DDL", value: "montoparcial" },
+        { title: "Monto DDL", key: "montoparcial" },
         // { text: "Fecha Facturación", value: "fecha" },
-        { text: "Expediente", value: "code_master" },
-        { text: "Procedencia", value: "tipo_gasto" },
+        { title: "Expediente", key: "code_master" },
+        { title: "Procedencia", key: "tipo_gasto" },
 
-        { text: "Moneda y Monto Facturado", value: "montomonedalocal" },
-        { text: "Monto Equivalente en Dólares", value: "montodolar" },
+        { title: "Moneda y Monto Facturado", key: "montomonedalocal" },
+        { title: "Monto Equivalente en Dólares", key: "montodolar" },
         // { text: "Saldo", value: "saldo" },
         // { text: "Factura", value: "documentos" },
-        { text: "Total Monto Abonado", value: "totalabonado" },
+        { title: "Total Monto Abonado", key: "totalabonado" },
       ],
       items: [],
       errorMesage: {
@@ -601,6 +593,7 @@ export default {
       data.comisionbancaria.length > 0 ? data.comisionbancaria[0].monto : 0;
   },
   methods: {
+    mergeProps,
     ...mapActions([
       "_getListaPagosXProveedorCxP",
       "_uploadFile",

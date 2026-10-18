@@ -17,7 +17,6 @@
             <v-btn
               color="secondary"
               elevation="0"
-              dark
               @click="
                 $store.state.house_filtrarData = !$store.state.house_filtrarData
               "
@@ -32,52 +31,54 @@
         :headers="headers"
         :items="$store.state.houses.listHouse"
         :search="search"
-        @click:row="handleClickRow"
-        :expanded.sync="expanded"
-        single-expand
+        expand-on-click
+        v-model:expanded="expanded"
+        item-value="id"
         disable-sort
       >
-        <template v-slot:expanded-item="{ item }">
-          <td
-            :colspan="headers.length"
-            class="py-3 px-3"
-            v-if="item.list_comentarios.length > 0 && item.status != 0"
-          >
-            <v-simple-table v-if="item.list_comentarios.length > 0">
-              <thead>
-                <tr>
-                  <th width="10%">Fecha</th>
-                  <th width="20%">Ejecutivo</th>
-                  <th width="70%">Comentario</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr
-                  v-for="(c, index) in item.list_comentarios"
-                  :key="index"
-                  class="bg-comentarios"
-                >
-                  <td class="bg-comentarios">{{ c.fecha }}</td>
-                  <td class="bg-comentarios">{{ c.ejecutivo }}</td>
-                  <td class="bg-comentarios">{{ c.comentario }}</td>
-                </tr>
-              </tbody>
-            </v-simple-table>
-          </td>
+        <template v-slot:expanded-row="{ columns, item }">
+          <tr>
+            <td
+              :colspan="columns.length"
+              class="py-3 px-3"
+              v-if="item.list_comentarios.length > 0 && item.status != 0"
+            >
+              <v-table v-if="item.list_comentarios.length > 0">
+                <thead>
+                  <tr>
+                    <th width="10%">Fecha</th>
+                    <th width="20%">Ejecutivo</th>
+                    <th width="70%">Comentario</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr
+                    v-for="(c, index) in item.list_comentarios"
+                    :key="index"
+                    class="bg-comentarios"
+                  >
+                    <td class="bg-comentarios">{{ c.fecha }}</td>
+                    <td class="bg-comentarios">{{ c.ejecutivo }}</td>
+                    <td class="bg-comentarios">{{ c.comentario }}</td>
+                  </tr>
+                </tbody>
+              </v-table>
+            </td>
+          </tr>
         </template>
 
         <template v-slot:[`item.quote_number`]="{ item }">
           <v-chip
             v-if="item.quote_number"
             color="primary"
-            small
+            size="small"
             @click.stop="verCotizacion(item.id_quote)"
             class="cursor-pointer"
           >
-            <v-icon small left>mdi-file-document-outline</v-icon>
+            <v-icon size="small" start>mdi-file-document-outline</v-icon>
             {{ item.quote_number }}
           </v-chip>
-          <span v-else class="grey--text text--lighten-1">Sin cotización</span>
+          <span v-else class="text-grey-lighten-1">Sin cotización</span>
         </template>
 
         <template v-slot:[`item.actions`]="{ item }">
@@ -103,6 +104,7 @@
               v-if="statusList != '2'"
               color="info"
               class="mr-1"
+              aria-label="Ver house"
               @click.stop="viewHouse(item.id)"
             >
               mdi-eye
@@ -119,7 +121,7 @@
 
             <v-icon
               v-if="statusList == '2'"
-              large
+              size="large"
               color="primary"
               class="mr-1"
               @click.stop="selectHouse(item)"
@@ -141,10 +143,10 @@
 
       <v-dialog v-model="dialogComentario" persistent width="50%">
         <v-card>
-          <v-card-title>
+          <v-card-title class="d-flex align-center flex-wrap">
             Registro de Estado/ Comentario - {{ house.code_house }}
             <v-spacer></v-spacer>
-            <v-btn
+            <v-btn variant="text"
               icon
               color="default"
               @click="dialogComentario = !dialogComentario"
@@ -163,7 +165,7 @@
               <v-autocomplete
                 label="Ejecutivo"
                 :items="$store.state.pricing.listEjecutivo"
-                item-text="name"
+                item-title="name"
                 item-value="id_entitie"
                 item-key="id_entitie"
                 v-model="id_vendedor"
@@ -181,7 +183,7 @@
           <v-card-actions>
             <v-spacer></v-spacer>
             <v-btn
-              small
+              size="small"
               color="success"
               @click="guardarComentario"
               :loading="loading"
@@ -203,7 +205,7 @@
         <v-card-text>
           <v-btn
             color="success"
-            small
+            size="small"
             :disabled="!houseEditar.url_folderonedrive"
             @click="to_link({ url: houseEditar.url_folderonedrive })"
           >
@@ -214,8 +216,8 @@
             label="Nueva URL"
             id="id"
             v-model="url_folderonedrive"
-            append-icon="mdi-folder-check"
-            @click:append="actualizarUrl"
+            append-inner-icon="mdi-folder-check"
+            @click:append-inner="actualizarUrl"
           ></v-text-field>
           <v-card-actions>
             <v-spacer></v-spacer>
@@ -247,18 +249,18 @@ export default {
       singleExpand: false,
       loadingDataTable: false,
       headers: [
-        { text: "Master", value: "code_master" },
-        { text: "Nro BL House", value: "nro_hbl", align: "start" },
-        { text: "Cotización", value: "quote_number" },
-        { text: "Sentido", value: "namemodality" },
-        { text: "Origen", value: "nameportbegin" },
-        { text: "Destino", value: "nameportend" },
-        { text: "Proveedor", value: "nameproveedor" },
-        { text: "Cliente del House", value: "nameconsigner" },
-        { text: "Salida ETD", value: "fecha_etd" },
-        { text: "Llegada ETA", value: "fecha_eta" },
-        { text: "Naviera", value: "naviera" },
-        { text: "Acciones", value: "actions", sortable: false },
+        { title: "Master", key: "code_master" },
+        { title: "Nro BL House", key: "nro_hbl", align: "start" },
+        { title: "Cotización", key: "quote_number" },
+        { title: "Sentido", key: "namemodality" },
+        { title: "Origen", key: "nameportbegin" },
+        { title: "Destino", key: "nameportend" },
+        { title: "Proveedor", key: "nameproveedor" },
+        { title: "Cliente del House", key: "nameconsigner" },
+        { title: "Salida ETD", key: "fecha_etd" },
+        { title: "Llegada ETA", key: "fecha_eta" },
+        { title: "Naviera", key: "naviera" },
+        { title: "Acciones", key: "actions", sortable: false },
       ],
       dialogComentario: false,
       loading: false,
@@ -351,7 +353,7 @@ export default {
       this.comentario = "";
     },
     async guardarComentario() {
-      if (this.$refs.frmComentario.validate()) {
+      if ((await this.$refs.frmComentario.validate()).valid) {
         this.loading = true;
         this.$store.state.spiner = true;
 
@@ -368,14 +370,6 @@ export default {
 
         this.$store.state.spiner = false;
         this.loading = false;
-      }
-    },
-    handleClickRow(item, event) {
-      if (event.isExpanded) {
-        const index = this.expanded.findIndex((i) => i === item);
-        this.expanded.splice(index, 1);
-      } else {
-        this.expanded.push(item);
       }
     },
   },

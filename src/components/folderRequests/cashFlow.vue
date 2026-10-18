@@ -2,43 +2,47 @@
   <div>
     <v-container fluid>
       <v-card elevation="0">
-        <v-card-title>
+        <v-card-title class="d-flex align-center flex-wrap">
           Flujo de Caja
 
           <v-spacer></v-spacer>
           <v-menu
-            ref="menu"
             v-model="menu"
             :close-on-content-click="false"
-            :return-value.sync="date"
             transition="scale-transition"
-            offset-y
             min-width="auto"
           >
-            <template v-slot:activator="{ on, attrs }">
+            <template v-slot:activator="{ props }">
               <v-text-field
                 v-model="dateRange"
                 label="Rango de Fechas"
                 prepend-icon="mdi-calendar"
                 readonly
-                v-bind="attrs"
-                v-on="on"
+               
+                v-bind="props"
               ></v-text-field>
             </template>
-            <v-date-picker v-model="date" locale="es-pe" range scrollable>
-              <v-spacer></v-spacer>
-              <v-btn text color="primary" @click="menu = false"> Cancel </v-btn>
-              <v-btn text color="primary" @click="$refs.menu.save(date)">
-                OK
-              </v-btn>
-            </v-date-picker>
+            <v-locale-provider locale="es">
+              <v-date-picker
+                :model-value="date.filter(Boolean)"
+                @update:model-value="setDateRange"
+                multiple="range"
+              >
+                <template #actions>
+                  <v-spacer></v-spacer>
+                  <v-btn variant="text" color="primary" @click="menu = false"> Cancel </v-btn>
+                  <v-btn variant="text" color="primary" @click="dateOnOpen = date; menu = false">
+                    OK
+                  </v-btn>
+                </template>
+              </v-date-picker>
+            </v-locale-provider>
           </v-menu>
           <v-btn
             class="ml-5"
             color="primary"
             @click="_getDebsToPayFilter()"
             elevation="0"
-            medium
             >Buscar</v-btn
           >
           <v-btn
@@ -46,7 +50,6 @@
             color="orange"
             @click="_cleanFilter()"
             elevation="0"
-            medium
             >Limpiar</v-btn
           >
           <v-btn
@@ -54,19 +57,18 @@
             color="orange"
             @click="viewPDF()"
             elevation="0"
-            medium
             >EXPORTAR A PDF</v-btn
           >
         </v-card-title>
         <v-card-text>
           <v-container v-if="!dataList" style="height: 400px">
-            <v-row class="fill-height" align-content="center" justify="center">
+            <v-row class="fill-height align-content-center justify-center">
               <v-col class="text-subtitle-1 text-center" cols="12">
                 Cargando información...
               </v-col>
               <v-col cols="6">
                 <v-progress-linear
-                  color="deep-purple accent-4"
+                  color="deep-purple-accent-4"
                   indeterminate
                   rounded
                   height="6"
@@ -81,10 +83,10 @@
                 :headers="headersdbp"
                 :items="itemsCpp"
                 :search="search"
-                item-key="nameproveedor"
-                @click:row="clickRow"
+                item-value="nameproveedor"
+                @click:row="(event, { item }) => clickRow(item, event)"
               >
-                <template slot="body.prepend">
+                <template v-slot:body.prepend>
                   <tr style="">
                     <th style="font-size: 18px; background: #e9e9e9">
                       CUENTAS POR PAGAR
@@ -123,56 +125,58 @@
                   </tr>
                 </template>
 
-                <template v-slot:expanded-item="{ item }">
-                  <td colspan="11">
-                    <v-simple-table style="width: 100%">
-                      <thead>
-                        <tr style="background: #fff1cf">
-                          <th>Expediente</th>
-                          <th>Cliente</th>
-                          <th>Fecha Disponibilidad</th>
-                          <th>Total a Pagar</th>
-                          <th>Status</th>
-                          <!-- <th>Pagado Cliente</th> -->
-                        </tr>
-                      </thead>
-                      <tbody>
-                        <tr
-                          style="background: #fff1cf"
-                          v-for="child of item.details"
-                          :key="child.id"
-                        >
-                          <td>
-                            {{ child.nro_master }}
-                            <v-icon
-                              @click="
-                                editControl(
-                                  child.id_control,
-                                  child.id_house,
-                                  child.id_orders,
-                                  child.code_control
-                                )
-                              "
-                              >mdi-eye</v-icon
-                            >
-                          </td>
-                          <td>
-                            {{ child.nameconsigner }}
-                          </td>
-                          <td>
-                            {{ child.fecha_disponibilidad }}
-                          </td>
-                          <td>{{ child.total_pagar }} USD</td>
-                          <td>
-                            {{ child.llegada == 1 ? "LLEGADA" : "NO LLEGADA" }}
-                          </td>
-                          <!-- <td>
-                            {{ child.llegada == 1 ? "SI" : "NO" }}
-                          </td> -->
-                        </tr>
-                      </tbody>
-                    </v-simple-table>
-                  </td>
+                <template v-slot:expanded-row="{ item }">
+                  <tr>
+                    <td colspan="11">
+                      <v-table style="width: 100%">
+                        <thead>
+                          <tr style="background: #fff1cf">
+                            <th>Expediente</th>
+                            <th>Cliente</th>
+                            <th>Fecha Disponibilidad</th>
+                            <th>Total a Pagar</th>
+                            <th>Status</th>
+                            <!-- <th>Pagado Cliente</th> -->
+                          </tr>
+                        </thead>
+                        <tbody>
+                          <tr
+                            style="background: #fff1cf"
+                            v-for="child of item.details"
+                            :key="child.id"
+                          >
+                            <td>
+                              {{ child.nro_master }}
+                              <v-icon
+                                @click="
+                                  editControl(
+                                    child.id_control,
+                                    child.id_house,
+                                    child.id_orders,
+                                    child.code_control
+                                  )
+                                "
+                                >mdi-eye</v-icon
+                              >
+                            </td>
+                            <td>
+                              {{ child.nameconsigner }}
+                            </td>
+                            <td>
+                              {{ child.fecha_disponibilidad }}
+                            </td>
+                            <td>{{ child.total_pagar }} USD</td>
+                            <td>
+                              {{ child.llegada == 1 ? "LLEGADA" : "NO LLEGADA" }}
+                            </td>
+                            <!-- <td>
+                              {{ child.llegada == 1 ? "SI" : "NO" }}
+                            </td> -->
+                          </tr>
+                        </tbody>
+                      </v-table>
+                    </td>
+                  </tr>
                 </template>
 
                 <!--  <template v-slot:item="{ item }">
@@ -201,7 +205,7 @@
             </tr>
           </template> -->
 
-                <template slot="body.append">
+                <template v-slot:body.append>
                   <tr style="">
                     <th style="font-size: 18px; background: #e9e9e9">
                       TOTALES
@@ -243,9 +247,9 @@
                 :headers="headersdbc"
                 :items="itemsCpc"
                 :search="searchc"
-                item-key="nameproveedor"
+                item-value="nameproveedor"
               >
-                <template slot="body.prepend">
+                <template v-slot:body.prepend>
                   <tr style="">
                     <th style="font-size: 18px; background: #e9e9e9">
                       CUENTAS POR COBRAR
@@ -284,56 +288,58 @@
                   </tr>
                 </template>
 
-                <template v-slot:expanded-item="{ item }">
-                  <td colspan="11">
-                    <v-simple-table style="width: 100%">
-                      <thead>
-                        <tr style="background: #fff1cf">
-                          <th>Expediente</th>
-                          <th>Cliente</th>
-                          <th>Fecha Disponibilidad</th>
-                          <th>Total a Pagar</th>
-                          <th>Status</th>
-                          <!-- <th>Pagado Cliente</th> -->
-                        </tr>
-                      </thead>
-                      <tbody>
-                        <tr
-                          style="background: #fff1cf"
-                          v-for="child of item.details"
-                          :key="child.id"
-                        >
-                          <td>
-                            {{ child.nro_master }}
-                            <v-icon
-                              @click="
-                                editControl(
-                                  child.id_control,
-                                  child.id_house,
-                                  child.id_orders,
-                                  child.code_control
-                                )
-                              "
-                              >mdi-eye</v-icon
-                            >
-                          </td>
-                          <td>
-                            {{ child.nameconsigner }}
-                          </td>
-                          <td>
-                            {{ child.fecha_disponibilidad }}
-                          </td>
-                          <td>{{ child.total_pagar }} USD</td>
-                          <td>
-                            {{ child.llegada == 1 ? "LLEGADA" : "NO LLEGADA" }}
-                          </td>
-                          <!-- <td>
-                            {{ child.llegada == 1 ? "SI" : "NO" }}
-                          </td> -->
-                        </tr>
-                      </tbody>
-                    </v-simple-table>
-                  </td>
+                <template v-slot:expanded-row="{ item }">
+                  <tr>
+                    <td colspan="11">
+                      <v-table style="width: 100%">
+                        <thead>
+                          <tr style="background: #fff1cf">
+                            <th>Expediente</th>
+                            <th>Cliente</th>
+                            <th>Fecha Disponibilidad</th>
+                            <th>Total a Pagar</th>
+                            <th>Status</th>
+                            <!-- <th>Pagado Cliente</th> -->
+                          </tr>
+                        </thead>
+                        <tbody>
+                          <tr
+                            style="background: #fff1cf"
+                            v-for="child of item.details"
+                            :key="child.id"
+                          >
+                            <td>
+                              {{ child.nro_master }}
+                              <v-icon
+                                @click="
+                                  editControl(
+                                    child.id_control,
+                                    child.id_house,
+                                    child.id_orders,
+                                    child.code_control
+                                  )
+                                "
+                                >mdi-eye</v-icon
+                              >
+                            </td>
+                            <td>
+                              {{ child.nameconsigner }}
+                            </td>
+                            <td>
+                              {{ child.fecha_disponibilidad }}
+                            </td>
+                            <td>{{ child.total_pagar }} USD</td>
+                            <td>
+                              {{ child.llegada == 1 ? "LLEGADA" : "NO LLEGADA" }}
+                            </td>
+                            <!-- <td>
+                              {{ child.llegada == 1 ? "SI" : "NO" }}
+                            </td> -->
+                          </tr>
+                        </tbody>
+                      </v-table>
+                    </td>
+                  </tr>
                 </template>
 
                 <!--  <template v-slot:item="{ item }">
@@ -362,7 +368,7 @@
             </tr>
           </template> -->
 
-                <template slot="body.append">
+                <template v-slot:body.append>
                   <tr style="">
                     <th style="font-size: 18px; background: #e9e9e9">
                       TOTALES
@@ -417,11 +423,11 @@
             v-if="radiopdf != ''"
             color="primary"
             @click="_exportPdf()"
-            outlined
+            variant="outlined"
             >EXPORTAR</v-btn
           >
           <v-spacer></v-spacer>
-          <v-btn color="red" @click="dialogPdf = false" outlined>Cerrar</v-btn>
+          <v-btn color="red" @click="dialogPdf = false" variant="outlined">Cerrar</v-btn>
         </v-card-actions>
       </v-card>
     </v-dialog>
@@ -429,6 +435,7 @@
 </template>
 <script>
 import axios from '@/api/axios-config';
+import moment from "moment";
 
 export default {
   name: "cashflow",
@@ -449,6 +456,8 @@ export default {
     radio: 1,
 
     menu: false,
+
+    dateOnOpen: null,
     modal: false,
     menu2: false,
     radiopdf: "",
@@ -518,7 +527,16 @@ export default {
       return this.date.join(" ~ ");
     },
   },
+  watch: {
+    menu(open) {
+      if (open) this.dateOnOpen = this.date;
+      else this.date = this.dateOnOpen;
+    },
+  },
   methods: {
+    setDateRange(value) {
+      this.date = value.map((date) => moment(date).format("YYYY-MM-DD"));
+    },
     viewPDF() {
       this.dialogPdf = true;
     },
@@ -620,7 +638,7 @@ export default {
       }
       var config = {
         method: "post",
-        url: process.env.VUE_APP_URL_MAIN + urlLong,
+        url: import.meta.env.VUE_APP_URL_MAIN + urlLong,
 
         headers: {
          
@@ -638,7 +656,7 @@ export default {
 
           vm.dialogPdf = false;
           window.open(
-            process.env.VUE_APP_URL_MAIN + response.data.path,
+            import.meta.env.VUE_APP_URL_MAIN + response.data.path,
             "_blank"
           );
         })
@@ -652,7 +670,7 @@ export default {
       vm.dataList = false;
       var config = {
         method: "post",
-        url: process.env.VUE_APP_URL_MAIN + "getDebsToPay",
+        url: import.meta.env.VUE_APP_URL_MAIN + "getDebsToPay",
 
         headers: {
          
@@ -675,7 +693,7 @@ export default {
       vm.dataList = false;
       var config = {
         method: "post",
-        url: process.env.VUE_APP_URL_MAIN + "getReportAccounts",
+        url: import.meta.env.VUE_APP_URL_MAIN + "getReportAccounts",
 
         headers: {
          
@@ -703,7 +721,7 @@ export default {
       };
       var config = {
         method: "post",
-        url: process.env.VUE_APP_URL_MAIN + "getDebsToPayFilter",
+        url: import.meta.env.VUE_APP_URL_MAIN + "getDebsToPayFilter",
 
         headers: {
          

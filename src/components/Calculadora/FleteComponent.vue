@@ -4,15 +4,15 @@
       <v-col>
         <v-file-input
           show-size
-          dense
+          density="compact"
           v-model="excel"
           label="Excel"
           placeholder="Seleccione un archivo"
           id="excel"
           hide-details
           @click:clear="subir = false"
-          @change="subir = false"
-          @click.native="subir = false"
+          @update:model-value="subir = false"
+          @click="subir = false"
         ></v-file-input>
       </v-col>
       <v-col>
@@ -22,7 +22,7 @@
           :loading="procesando"
           v-if="!subir"
           class="mx-1"
-          small
+          size="small"
           :disabled="!procesarflag"
         >
           Procesar
@@ -32,7 +32,7 @@
           :loading="procesando"
           v-if="subir"
           class="mx-1"
-          small
+          size="small"
           @click="registrarFlag = true"
         >
           REGISTRAR
@@ -41,7 +41,7 @@
           color="info"
           :loading="procesando2"
           class="mx-1"
-          small
+          size="small"
           @click="exportarFormato()"
         >
           Descargar Formato
@@ -51,9 +51,8 @@
           color="#1D6F42"
           :loading="procesando3"
           class="mx-1"
-          small
+          size="small"
           @click="exportarMacro()"
-          dark
         >
           Descargar Macro
         </v-btn>
@@ -68,7 +67,7 @@
         <v-btn
           color="success"
           class="mx-1"
-          small
+          size="small"
           @click="guardarDatos"
           :disabled="
             itemsLCL.length == 0 && itemsFCL.length == 0 && itemsAereo == 0
@@ -84,9 +83,8 @@
           :headers="headerLCL"
           :items="itemsLCL"
           class="elevation-1"
-          loading="true"
-          item-key="id"
-          dense
+          item-value="id"
+          density="compact"
           :items-per-page="10"
         >
           <template v-slot:[`item.puerto_origen_sistema`]="{ item }">
@@ -98,8 +96,12 @@
               "
               v-model="item.puerto_origen"
               item-value="puerto"
-              item-text="puerto"
-            />
+              item-title="puerto"
+            >
+              <template #selection="{ item: port, internalItem }">
+                <span v-if="typeof port === 'object'" class="v-autocomplete__selection-text">{{ internalItem.title }}</span>
+              </template>
+            </v-autocomplete>
           </template>
           <template v-slot:[`item.puerto_destino_sistema`]="{ item }">
             <v-autocomplete
@@ -110,14 +112,18 @@
               "
               v-model="item.puerto_destino"
               item-value="puerto"
-              item-text="puerto"
-            />
+              item-title="puerto"
+            >
+              <template #selection="{ item: port, internalItem }">
+                <span v-if="typeof port === 'object'" class="v-autocomplete__selection-text">{{ internalItem.title }}</span>
+              </template>
+            </v-autocomplete>
           </template>
           <template v-slot:[`item.pais_origen`]="{ item }">
             <v-autocomplete
               :items="$store.state.itemsPais"
               item-value="id"
-              item-text="name"
+              item-title="name"
               v-model="item.id_pais_origen"
             />
           </template>
@@ -125,7 +131,7 @@
             <v-autocomplete
               :items="$store.state.itemsPais"
               item-value="id"
-              item-text="name"
+              item-title="name"
               v-model="item.id_pais_destino"
             />
           </template>
@@ -136,9 +142,8 @@
           :headers="headerFCL"
           :items="itemsFCL"
           class="elevation-1"
-          loading="true"
-          item-key="id"
-          dense
+          item-value="id"
+          density="compact"
           :items-per-page="10"
         >
         </v-data-table>
@@ -148,9 +153,8 @@
           :headers="headerAereo"
           :items="itemsAereo"
           class="elevation-1"
-          loading="true"
-          item-key="id"
-          dense
+          item-value="id"
+          density="compact"
           :items-per-page="10"
         >
         </v-data-table>
@@ -168,18 +172,17 @@
           <v-autocomplete
             :items="$store.state.calculadoras.listSucursal"
             item-value="paises_id"
-            item-text="paises_nombre"
+            item-title="paises_nombre"
             label="Sucursal(s)"
             multiple
             placeholder="Selecciones un(as) sucursal(es)"
             v-model="sucursales"
             chips
             clearable
-            deletable-chips
-            small-chips
+            closable-chips
           >
           </v-autocomplete>
-          <v-radio-group v-model="importacionflag" row hide-details dense>
+          <v-radio-group v-model="importacionflag" inline hide-details density="compact">
             <v-radio label="Importación" value="true"></v-radio>
             <v-radio label="Exportación" value="false"></v-radio>
           </v-radio-group>
@@ -195,13 +198,10 @@
     <v-navigation-drawer
       v-if="offcanvas"
       v-model="offcanvas"
-      absolute
-      persistent
       temporary
-      right
+      location="right"
       width="28%"
       class="px-2"
-      height="100vh"
     >
       <v-card elevation="5">
         <v-card-title primary-title>
@@ -216,16 +216,16 @@
               <v-autocomplete
                 :items="$store.state.itemsPais"
                 v-model="datosFormulario.paisOrigen"
-                item-text="pais_descripcion"
+                item-title="pais_descripcion"
                 label="País de Origen"
                 placeholder="Seleccione un país"
                 clearable
-                dense
+                density="compact"
                 return-object
                 hide-details
                 hide-selected
                 hide-no-data
-                @change="cargarPuertoOrigen"
+                @update:model-value="cargarPuertoOrigen"
                 prepend-icon="mdi-ferry"
               >
               </v-autocomplete>
@@ -235,7 +235,7 @@
               <v-autocomplete
                 :items="puertosOrigen"
                 v-model="datosFormulario.puertoOrigen"
-                item-text="puerto_descripcion"
+                item-title="puerto_descripcion"
                 label="Puerto de Origen"
                 placeholder="Seleccione un puerto"
                 clearable
@@ -244,9 +244,9 @@
                 hide-selected
                 hide-no-data
                 multiple
-                dense
-                deletable-chips
-                small-chips
+                density="compact"
+                closable-chips
+                chips
                 prepend-icon="mdi-ferry"
               >
               </v-autocomplete>
@@ -256,14 +256,14 @@
               <v-autocomplete
                 :items="$store.state.itemsPais"
                 v-model="datosFormulario.paisDestino"
-                item-text="pais_descripcion"
+                item-title="pais_descripcion"
                 label="País de Destino"
                 placeholder="Seleccione un país"
                 clearable
                 return-object
                 hide-details
-                dense
-                @change="cargarPuertoDestino"
+                density="compact"
+                @update:model-value="cargarPuertoDestino"
                 prepend-icon="mdi-import"
               >
               </v-autocomplete>
@@ -273,7 +273,7 @@
               <v-autocomplete
                 :items="puertosDestino"
                 v-model="datosFormulario.puertoDestino"
-                item-text="puerto_descripcion"
+                item-title="puerto_descripcion"
                 label="Puerto de Destino"
                 placeholder="Seleccione un puerto"
                 clearable
@@ -282,10 +282,10 @@
                 hide-selected
                 hide-no-data
                 multiple
-                dense
+                density="compact"
                 prepend-icon="mdi-import"
-                deletable-chips
-                small-chips
+                closable-chips
+                chips
               >
               </v-autocomplete>
             </div>
@@ -294,11 +294,11 @@
               <v-autocomplete
                 :items="$store.state.calculadora.contendedorCalc"
                 v-model="datosFormulario.contenedor"
-                item-text="contenedores_nombre"
+                item-title="contenedores_nombre"
                 label="Tipo de Contenedor"
                 placeholder="Seleccione un type Contenedor"
                 clearable
-                dense
+                density="compact"
                 return-object
                 hide-details
                 hide-selected
@@ -315,7 +315,7 @@
                 step="0.01"
                 type="number"
                 suffix="m3"
-                dense
+                density="compact"
               ></v-text-field>
             </div>
             <!-- VOLUMEN DESDE -->
@@ -326,7 +326,7 @@
                 step="0.01"
                 type="number"
                 suffix="m3"
-                dense
+                density="compact"
               ></v-text-field>
             </div>
             <!-- VOLUMEN HASTA -->
@@ -337,7 +337,7 @@
                 step="0.01"
                 type="number"
                 suffix="m3"
-                dense
+                density="compact"
               ></v-text-field>
             </div>
 
@@ -346,7 +346,7 @@
               <v-autocomplete
                 :items="$store.state.moneda.moneda"
                 v-model="datosFormulario.moneda"
-                item-text="moneda_descripcion"
+                item-title="moneda_descripcion"
                 label="Moneda"
                 placeholder="Seleccione una moneda"
                 clearable
@@ -354,8 +354,8 @@
                 hide-details
                 hide-selected
                 hide-no-data
-                dense
-                @change="obtenerSimbol()"
+                density="compact"
+                @update:model-value="obtenerSimbol()"
               >
               </v-autocomplete>
             </div>
@@ -367,7 +367,7 @@
                 step="0.01"
                 type="number"
                 :prefix="symbol"
-                dense
+                density="compact"
               ></v-text-field>
             </div>
 
@@ -379,7 +379,7 @@
                 step="0.01"
                 type="number"
                 :prefix="symbol"
-                dense
+                density="compact"
               ></v-text-field>
             </div>
             <!-- SERVICIO -->
@@ -387,12 +387,12 @@
               <v-text-field
                 label="SERVICIO/ VÍA/ TRANSBORDO"
                 v-model="datosFormulario.servicio"
-                dense
+                density="compact"
               ></v-text-field>
             </div>
             <!-- FRECUENCIA -->
             <div class="col-6" v-if="type != 'FCL'">
-              <v-autocomplete
+              <v-autocomplete item-title="text"
                 :items="frecuencias"
                 v-model="datosFormulario.frecuencia"
                 label="Frecuencia"
@@ -401,7 +401,7 @@
                 hide-details
                 hide-selected
                 hide-no-data
-                dense
+                density="compact"
               >
               </v-autocomplete>
             </div>
@@ -412,7 +412,7 @@
                 v-model="datosFormulario.tt_aprox"
                 step="0.01"
                 type="number"
-                dense
+                density="compact"
               >
               </v-text-field>
             </div>
@@ -421,7 +421,7 @@
               <v-text-field
                 label="Recargos"
                 v-model="datosFormulario.recargps"
-                dense
+                density="compact"
               >
               </v-text-field>
             </div>
@@ -430,7 +430,7 @@
               <v-text-field
                 label="Agente"
                 v-model="datosFormulario.agente"
-                dense
+                density="compact"
               >
               </v-text-field>
             </div>
@@ -439,7 +439,7 @@
               <v-autocomplete
                 :items="$store.state.calculadora.navieraCalc"
                 v-model="datosFormulario.naviera"
-                item-text="navieras_nombre"
+                item-title="navieras_nombre"
                 label="Naviera"
                 placeholder="Seleccione un Naviera"
                 clearable
@@ -447,7 +447,7 @@
                 hide-details
                 hide-selected
                 hide-no-data
-                dense
+                density="compact"
                 prepend-icon="mdi-shipping-pallet"
               >
               </v-autocomplete>
@@ -457,7 +457,7 @@
               <v-text-field
                 label="Cortes"
                 v-model="datosFormulario.cortes"
-                dense
+                density="compact"
               >
               </v-text-field>
             </div>
@@ -468,7 +468,7 @@
                 v-model="datosFormulario.carrier_tt"
                 step="0.01"
                 type="number"
-                dense
+                density="compact"
               >
               </v-text-field>
             </div>
@@ -481,7 +481,7 @@
               <v-text-field
                 label="Desde"
                 v-model="datosFormulario.vigencia_desde"
-                dense
+                density="compact"
                 type="date"
               >
               </v-text-field>
@@ -491,7 +491,7 @@
               <v-text-field
                 label="Hasta"
                 v-model="datosFormulario.vigencia_hasta"
-                dense
+                density="compact"
                 type="date"
               >
               </v-text-field>
@@ -499,14 +499,14 @@
           </div>
         </v-card-actions>
         <v-card-actions>
-          <v-flex text-right>
-            <v-btn class="mx-1" text color="success" @click="anadirRegistros()">
+          <div class="flex-grow-1 text-right">
+            <v-btn class="mx-1" variant="text" color="success" @click="anadirRegistros()">
               Agregar
             </v-btn>
-            <v-btn class="mx-1" text color="red" @click="offcanvas = false">
+            <v-btn class="mx-1" variant="text" color="red" @click="offcanvas = false">
               Cancelar
             </v-btn>
-          </v-flex>
+          </div>
         </v-card-actions>
       </v-card>
     </v-navigation-drawer>
@@ -514,7 +514,7 @@
 </template>
 
 <script>
-import readXlsFile from "read-excel-file";
+import { readSheet as readXlsFile } from "read-excel-file/browser";
 import exportXlsFile from "export-from-json";
 import moment from "moment";
 import Swal from "sweetalert2";
@@ -550,56 +550,56 @@ export default {
         "https://api.agentedecargaonline.com/uploads/MACRO_CARLOS_AGOSTO_2026_08_11_11_43_00.xlsm",
       headerLCL: [
         // { text: "PAIS ORIGEN", value: "pais_origen", sortable: false },
-        { text: "Pais Origen", value: "pais_origen", sortable: false },
-        { text: "Puerto Origen", value: "puerto_origen", sortable: false },
+        { title: "Pais Origen", key: "pais_origen", sortable: false },
+        { title: "Puerto Origen", key: "puerto_origen", sortable: false },
         {
-          text: "Puerto Origen Según Sistema",
-          value: "puerto_origen_sistema",
+          title: "Puerto Origen Según Sistema",
+          key: "puerto_origen_sistema",
           sortable: false,
         },
-        { text: "Pais Origen", value: "pais_destino", sortable: false },
-        { text: "Puertos Origen", value: "puerto_destino", sortable: false },
+        { title: "Pais Origen", key: "pais_destino", sortable: false },
+        { title: "Puertos Origen", key: "puerto_destino", sortable: false },
         {
-          text: "Puertos Origen Según Sistema",
-          value: "puerto_destino_sistema",
+          title: "Puertos Origen Según Sistema",
+          key: "puerto_destino_sistema",
           sortable: false,
         },
-        { text: "0.1 a 5 cbm	", value: "flete_0_5", sortable: false },
-        { text: "5.01 a 10 cbm	", value: "flete_5_10", sortable: false },
-        { text: "10.01 a 15 cbm", value: "flete_10_15", sortable: false },
-        { text: "Moneda", value: "moneda", sortable: false },
-        { text: "Vigencia", value: "vigencia", sortable: false },
+        { title: "0.1 a 5 cbm	", key: "flete_0_5", sortable: false },
+        { title: "5.01 a 10 cbm	", key: "flete_5_10", sortable: false },
+        { title: "10.01 a 15 cbm", key: "flete_10_15", sortable: false },
+        { title: "Moneda", key: "moneda", sortable: false },
+        { title: "Vigencia", key: "vigencia", sortable: false },
       ],
       headerFCL: [
-        { text: "PAÍS ORIGEN", value: "pais_origen", sortable: false },
-        { text: "PUERTO ORIGEN", value: "puerto_origen", sortable: false },
-        { text: "PAÍS DESTINO", value: "pais_destino", sortable: false },
-        { text: "PUERTO DESTINO", value: "puerto_destino", sortable: false },
-        { text: "TIPO CONTENEDOR", value: "Tipo_contenedor", sortable: false },
-        { text: "COSTO", value: "costo", sortable: false },
-        { text: "MONEDA", value: "moneda", sortable: false },
-        { text: "NAVIERA", value: "Naviera", sortable: false },
-        { text: "DESDE", value: "vigencia_desde", sortable: false },
-        { text: "HASTA", value: "vigencia_hasta", sortable: false },
+        { title: "PAÍS ORIGEN", key: "pais_origen", sortable: false },
+        { title: "PUERTO ORIGEN", key: "puerto_origen", sortable: false },
+        { title: "PAÍS DESTINO", key: "pais_destino", sortable: false },
+        { title: "PUERTO DESTINO", key: "puerto_destino", sortable: false },
+        { title: "TIPO CONTENEDOR", key: "Tipo_contenedor", sortable: false },
+        { title: "COSTO", key: "costo", sortable: false },
+        { title: "MONEDA", key: "moneda", sortable: false },
+        { title: "NAVIERA", key: "Naviera", sortable: false },
+        { title: "DESDE", key: "vigencia_desde", sortable: false },
+        { title: "HASTA", key: "vigencia_hasta", sortable: false },
       ],
       headerAereo: [
-        { text: "PAÍS DESTINO", value: "pais_origen", sortable: false },
-        { text: "PUERTO DESTINO", value: "puerto_origen", sortable: false },
-        { text: "PAÍS DESTINO", value: "pais_destino", sortable: false },
-        { text: "PUERTO DESTINO", value: "puerto_destino", sortable: false },
-        { text: "VOL. MÍNIMO", value: "volumen_minimo", sortable: false },
-        { text: "VOL. DESDE", value: "volumen_desde", sortable: false },
-        { text: "VOL. HASTA", value: "volumen_hasta", sortable: false },
-        { text: "COSTO MÍNIMO", value: "costo_minimo", sortable: false },
-        { text: "COSTO ", value: "costo", sortable: false },
-        { text: "MONEDA", value: "moneda", sortable: false },
-        { text: "SERVICIO", value: "servicio", sortable: false },
-        { text: "FRECUENCIA", value: "frecuencia", sortable: false },
-        { text: "CORTES", value: "cortes", sortable: false },
-        { text: "CARRIER TT", value: "carrier_tt", sortable: false },
-        { text: "AGENTE", value: "agente", sortable: false },
-        { text: "DESDE", value: "vigencia_desde", sortable: false },
-        { text: "HASTA", value: "vigencia_hasta", sortable: false },
+        { title: "PAÍS DESTINO", key: "pais_origen", sortable: false },
+        { title: "PUERTO DESTINO", key: "puerto_origen", sortable: false },
+        { title: "PAÍS DESTINO", key: "pais_destino", sortable: false },
+        { title: "PUERTO DESTINO", key: "puerto_destino", sortable: false },
+        { title: "VOL. MÍNIMO", key: "volumen_minimo", sortable: false },
+        { title: "VOL. DESDE", key: "volumen_desde", sortable: false },
+        { title: "VOL. HASTA", key: "volumen_hasta", sortable: false },
+        { title: "COSTO MÍNIMO", key: "costo_minimo", sortable: false },
+        { title: "COSTO ", key: "costo", sortable: false },
+        { title: "MONEDA", key: "moneda", sortable: false },
+        { title: "SERVICIO", key: "servicio", sortable: false },
+        { title: "FRECUENCIA", key: "frecuencia", sortable: false },
+        { title: "CORTES", key: "cortes", sortable: false },
+        { title: "CARRIER TT", key: "carrier_tt", sortable: false },
+        { title: "AGENTE", key: "agente", sortable: false },
+        { title: "DESDE", key: "vigencia_desde", sortable: false },
+        { title: "HASTA", key: "vigencia_hasta", sortable: false },
       ],
       itemsLCL: [],
       itemsFCL: [],
@@ -879,7 +879,7 @@ export default {
       var fileName = "";
 
       var exportType = exportXlsFile.types.xls;
-      let url = `${process.env.VUE_APP_URL_MAIN}uploads/`;
+      let url = `${import.meta.env.VUE_APP_URL_MAIN}uploads/`;
       switch (this.type) {
         case "LCL":
           url += `FORMATO_LCL_CARGA_FELTE.xlsx`;
@@ -1039,7 +1039,7 @@ export default {
       // };
       // var config = {
       //   method: "post",
-      //   url: process.env.VUE_APP_URL_MAIN + `validar_registros_lcl`,
+      //   url: import.meta.env.VUE_APP_URL_MAIN + `validar_registros_lcl`,
       //   headers: headers,
       //   data: data,
       // };
@@ -1154,7 +1154,7 @@ export default {
       };
       var config = {
         method: "post",
-        url: process.env.VUE_APP_URL_MAIN + `validar_registros_fcl`,
+        url: import.meta.env.VUE_APP_URL_MAIN + `validar_registros_fcl`,
         headers: headers,
         data: data,
       };
@@ -1296,7 +1296,7 @@ export default {
       };
       var config = {
         method: "post",
-        url: process.env.VUE_APP_URL_MAIN + `validar_registros_aereo`,
+        url: import.meta.env.VUE_APP_URL_MAIN + `validar_registros_aereo`,
         headers: headers,
         data: data,
       };
@@ -1557,7 +1557,7 @@ export default {
 
         config = {
           method: "post",
-          url: process.env.VUE_APP_URL_MAIN + `registrar_carga_masiva_lcl`,
+          url: import.meta.env.VUE_APP_URL_MAIN + `registrar_carga_masiva_lcl`,
           headers: headers,
           data: data,
         };
@@ -1603,7 +1603,7 @@ export default {
         };
         config = {
           method: "post",
-          url: process.env.VUE_APP_URL_MAIN + `registrar_carga_masiva_fcl`,
+          url: import.meta.env.VUE_APP_URL_MAIN + `registrar_carga_masiva_fcl`,
           headers: headers,
           data: data,
         };
@@ -1665,7 +1665,7 @@ export default {
         };
         config = {
           method: "post",
-          url: process.env.VUE_APP_URL_MAIN + `registrar_carga_masiva_aereo`,
+          url: import.meta.env.VUE_APP_URL_MAIN + `registrar_carga_masiva_aereo`,
           headers: headers,
           data: data,
         };
@@ -1682,7 +1682,6 @@ export default {
       this.limpiarData();
     },
     limpiarData() {
-      this.type = "LCL";
       this.tipoSelected = "LCL";
       this.excel = null;
       this.count = 0;

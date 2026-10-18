@@ -8,22 +8,22 @@
             placeholder="Buscar"
             v-model="search"
             clearable
-            append-icon="mdi-magnify"
+            append-inner-icon="mdi-magnify"
           ></v-text-field>
         </v-col>
         <v-col cols="4" offset="4" class="text-right my-auto">
-          <v-btn small color="success" @click="nuevo()">NUEVO</v-btn>
-          <v-btn small class="mx-1" color="#2962FF" @click="filtrar()" dark
+          <v-btn size="small" color="success" @click="nuevo()">NUEVO</v-btn>
+          <v-btn size="small" class="mx-1" color="#2962FF" @click="filtrar()"
             >FILTRAR</v-btn
           >
-          <v-btn small class="mx-1" color="#004D40" dark>EXPORTAR</v-btn>
+          <v-btn size="small" class="mx-1" color="#004D40">EXPORTAR</v-btn>
         </v-col>
         <v-col cols="12">
           <v-data-table
             :headers="headersPorEmpresa"
             :items="$store.state.masterusuarios.lstNotasQuote"
             class="elevation-1"
-            item-key="port_beginend_id"
+            item-value="port_beginend_id"
             :loading="loading"
             :search="search"
           >
@@ -42,13 +42,12 @@
             </template>
 
             <template v-slot:[`item.action`]="{ item }">
-              <v-tooltip bottom>
-                <template v-slot:activator="{ on, attrs }">
+              <v-tooltip location="bottom">
+                <template v-slot:activator="{ props }">
                   <v-icon
                     color="primary"
-                    dark
-                    v-bind="attrs"
-                    v-on="on"
+                   
+                    v-bind="props"
                     @click="ver(item)"
                   >
                     mdi-eye
@@ -56,13 +55,12 @@
                 </template>
                 <span>Ver</span>
               </v-tooltip>
-              <v-tooltip bottom>
-                <template v-slot:activator="{ on, attrs }">
+              <v-tooltip location="bottom">
+                <template v-slot:activator="{ props }">
                   <v-icon
                     color="warning"
-                    dark
-                    v-bind="attrs"
-                    v-on="on"
+                   
+                    v-bind="props"
                     @click="editar(item)"
                   >
                     mdi-pencil
@@ -70,13 +68,12 @@
                 </template>
                 <span>Editar</span>
               </v-tooltip>
-              <v-tooltip bottom v-if="item.status == 1">
-                <template v-slot:activator="{ on, attrs }">
+              <v-tooltip location="bottom" v-if="item.status == 1">
+                <template v-slot:activator="{ props }">
                   <v-icon
                     color="error"
-                    dark
-                    v-bind="attrs"
-                    v-on="on"
+                   
+                    v-bind="props"
                     v-if="item.status == true"
                     @click="eliminar(item)"
                   >
@@ -103,39 +100,39 @@ export default {
       mostrarflag: true,
       loading: false,
       headers: [
-        { width: "5%", mostrarflag: true, text: "Orden", value: "orden" },
+        { width: "5%", mostrarflag: true, title: "Orden", key: "orden" },
         {
           width: "5%",
           mostrarflag: true,
-          text: "Código",
-          value: "valorcodigo",
+          title: "Código",
+          key: "valorcodigo",
         },
         {
           width: "50%",
           mostrarflag: true,
-          text: "Nombre",
-          value: "description",
+          title: "Nombre",
+          key: "description",
         },
         {
           width: "10%",
           mostrarflag: false,
-          text: "Invidual",
-          value: "individualflag",
+          title: "Invidual",
+          key: "individualflag",
         },
         {
           width: "10%",
           mostrarflag: false,
-          text: "Grupal",
-          value: "grupalflag",
+          title: "Grupal",
+          key: "grupalflag",
         },
-        { width: "10%", mostrarflag: true, text: "Estado", value: "estado" },
+        { width: "10%", mostrarflag: true, title: "Estado", key: "estado" },
         // { mostrarflag: true, text: "Creación", value: "created_at" },
         // {
         //   mostrarflag: true,
         //   text: "Última Actualización",
         //   value: "updated_at",
         // },
-        { width: "10%", mostrarflag: true, text: "Acciones", value: "action" },
+        { width: "10%", mostrarflag: true, title: "Acciones", key: "action" },
       ],
     };
   },

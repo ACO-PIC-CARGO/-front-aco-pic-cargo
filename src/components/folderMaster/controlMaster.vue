@@ -35,11 +35,10 @@
         <div style="position: fixed; bottom: 16px; right: 16px; z-index: 3000">
           <v-fab-transition v-if="formControlMasterReadonly">
             <v-btn
-              fab
-              large
-              dark
-              bottom
-              left
+              icon
+              size="large"
+              location="bottom left"
+              
               color="info"
               @click="irAVerMaster()"
             >
@@ -49,17 +48,13 @@
           <v-speed-dial
             v-else
             v-model="fab"
-            :top="top"
-            :bottom="bottom"
-            :right="right"
-            :left="left"
-            :direction="'top'"
+            location="top end"
             :open-on-hover="hover"
             :transition="transition"
-            class="acciones-dial"
+            content-class="acciones-dial"
           >
-            <template v-slot:activator>
-              <v-btn v-model="fab" color="info" dark fab>
+            <template v-slot:activator="{ props }">
+              <v-btn v-bind="props" color="info" icon aria-label="Acciones">
                 <v-icon v-if="fab"> mdi-close </v-icon>
                 <v-icon v-else> mdi-tools </v-icon>
               </v-btn>
@@ -70,7 +65,7 @@
               @click="openURL({ url: $store.state.url_folderonedrive })"
               color="yellow"
             >
-              <v-icon left>mdi-folder</v-icon>
+              <v-icon start>mdi-folder</v-icon>
               Carpeta
             </v-btn>
             <v-btn
@@ -79,25 +74,23 @@
               color="primary"
               :loading="loadingBotonNuevoHouse"
             >
-              <v-icon left>mdi-home-plus</v-icon>
+              <v-icon start>mdi-home-plus</v-icon>
               Agregar House
             </v-btn>
             <v-btn
-              color="light-green lighten-1"
+              color="light-green-lighten-1"
               @click="_putMaster()"
-              dark
               v-if="this.$route.params.id"
             >
-              <v-icon left>mdi-content-save</v-icon>
+              <v-icon start>mdi-content-save</v-icon>
               Guardar Cambios
             </v-btn>
             <v-btn
-              color="light-green lighten-1"
+              color="light-green-lighten-1"
               @click="_setMaster()"
-              dark
               v-if="!this.$route.params.id"
             >
-              <v-icon left>mdi-content-save</v-icon>
+              <v-icon start>mdi-content-save</v-icon>
               Guardar
             </v-btn>
           </v-speed-dial>
@@ -132,10 +125,6 @@ export default {
       fling: false,
       hover: false,
       tabs: null,
-      top: false,
-      right: true,
-      bottom: true,
-      left: false,
       transition: "slide-y-reverse-transition",
     };
   },
@@ -189,8 +178,8 @@ export default {
     async recargarDatos() {
       await this._getHouseList();
     },
-    irAVerMaster() {
-      this.$router.push({
+    async irAVerMaster() {
+      await this.$router.push({
         name: "controlMasterEditar",
         id: this.$route.params.id,
       });
@@ -200,7 +189,7 @@ export default {
       var config = {
         method: "get",
         url:
-          process.env.VUE_APP_URL_MAIN +
+          import.meta.env.VUE_APP_URL_MAIN +
           `crear-carpeta-master?nromaster=${name}`,
         headers: {
           "Content-Type": "application/json",
@@ -219,7 +208,7 @@ export default {
     async actualizarMaster({ id = 0, url = "" }) {
       var config = {
         method: "put",
-        url: process.env.VUE_APP_URL_MAIN + `update_folder_onedrive`,
+        url: import.meta.env.VUE_APP_URL_MAIN + `update_folder_onedrive`,
         headers: {
           "Content-Type": "application/json",
         },
@@ -252,7 +241,7 @@ export default {
 
       var config = {
         method: "post",
-        url: process.env.VUE_APP_URL_MAIN + "setMasterContainers",
+        url: import.meta.env.VUE_APP_URL_MAIN + "setMasterContainers",
         headers: {
           "Content-Type": "application/json",
         },
@@ -292,7 +281,7 @@ export default {
 
       var config = {
         method: "post",
-        url: process.env.VUE_APP_URL_MAIN + "setHouseContainers",
+        url: import.meta.env.VUE_APP_URL_MAIN + "setHouseContainers",
         headers: {
           "Content-Type": "application/json",
         },
@@ -322,7 +311,7 @@ export default {
         };
         var config = {
           method: "post",
-          url: process.env.VUE_APP_URL_MAIN + "setServices",
+          url: import.meta.env.VUE_APP_URL_MAIN + "setServices",
           headers: {
             "Content-Type": "application/json",
           },
@@ -424,7 +413,7 @@ export default {
 
       var config = {
         method: "post",
-        url: process.env.VUE_APP_URL_MAIN + "setHouse",
+        url: import.meta.env.VUE_APP_URL_MAIN + "setHouse",
         headers: {
           "Content-Type": "application/json",
         },
@@ -554,7 +543,7 @@ export default {
 
         var config = {
           method: "post",
-          url: process.env.VUE_APP_URL_MAIN + "setHouse",
+          url: import.meta.env.VUE_APP_URL_MAIN + "setHouse",
           headers: {
             "Content-Type": "application/json",
           },
@@ -742,7 +731,7 @@ export default {
         var config = {
           method: "post",
           url:
-            process.env.VUE_APP_URL_MAIN +
+            import.meta.env.VUE_APP_URL_MAIN +
             "editMaster/" +
             vm.$store.state.master_Id_get,
           headers: {
@@ -1054,7 +1043,7 @@ export default {
 
         var config = {
           method: "post",
-          url: process.env.VUE_APP_URL_MAIN + "setMaster",
+          url: import.meta.env.VUE_APP_URL_MAIN + "setMaster",
           headers: {
             "Content-Type": "application/json",
           },
@@ -1186,25 +1175,21 @@ export default {
   color: #252c32;
 }
 
-.acciones-dial ::v-deep .v-speed-dial__list {
-  align-items: flex-end !important;
+:global(.acciones-dial.v-speed-dial__content) {
+  flex-direction: column-reverse;
+  align-items: flex-end;
 }
-.acciones-dial ::v-deep .v-speed-dial__list .v-btn {
-  align-self: flex-end;
+.acciones-dial .v-btn {
   min-width: 220px;
 }
-.acciones-dial ::v-deep .v-speed-dial__list .v-btn .v-btn__content {
+.acciones-dial .v-btn :deep(.v-btn__content) {
   justify-content: flex-start;
   width: 100%;
   font-size: 1.2rem;
   line-height: 1.4;
 }
-.acciones-dial ::v-deep .v-speed-dial__list .v-btn .v-icon {
+.acciones-dial .v-btn .v-icon {
   font-size: 22px !important;
   margin-right: 8px;
-}
-.acciones-dial {
-  position: relative;
-  z-index: 4000 !important;
 }
 </style>

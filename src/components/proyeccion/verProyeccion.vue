@@ -1,7 +1,7 @@
 <template>
   <v-container fluid>
     <v-card>
-      <v-card-title>
+      <v-card-title class="d-flex align-center flex-wrap">
         Datos Principales:
         <v-spacer></v-spacer>
         <b :style="{ fontSize: textSize }">{{ totalfinal }} USD</b>
@@ -16,8 +16,8 @@
                     :items="$store.state.month"
                     v-model="id_month"
                     label="Mes"
-                    dense
-                    item-text="description"
+                    density="compact"
+                    item-title="description"
                     item-value="id"
                     :rules="[(v) => !!v || 'Dato requerido']"
                     readonly
@@ -26,11 +26,11 @@
 
                 <v-col cols="12" md="2">
                   <v-select
-                    :items="$store.state.year"
+                    :items="Array.isArray($store.state.year) ? $store.state.year : []"
                     v-model="id_year"
                     label="Año"
-                    dense
-                    item-text="description"
+                    density="compact"
+                    item-title="description"
                     item-value="id"
                     :rules="[(v) => !!v || 'Dato requerido']"
                     readonly
@@ -41,7 +41,7 @@
                   <v-text-field
                     v-model="tipocambio"
                     label="Tipo Cambio"
-                    dense
+                    density="compact"
                     v-on:blur="calcularTotalTipoCambio()"
                     :rules="[(v) => !!v || 'Dato requerido']"
                     readonly
@@ -51,7 +51,7 @@
                   <v-text-field
                     v-model="totalmonlocal"
                     :label="`Total Proyectado(${monExt})`"
-                    dense
+                    density="compact"
                     readonly
                   ></v-text-field>
                 </v-col>
@@ -59,7 +59,7 @@
                   <v-text-field
                     v-model="montoconversiondolar"
                     label="Conversión a Dolares(USD)"
-                    dense
+                    density="compact"
                     readonly
                   ></v-text-field>
                 </v-col>
@@ -67,7 +67,7 @@
                   <v-text-field
                     v-model="totaldolar"
                     label="Gastos(USD)"
-                    dense
+                    density="compact"
                     readonly
                   ></v-text-field>
                 </v-col>
@@ -76,7 +76,7 @@
                   <v-text-field
                     v-model="totalfinal"
                     :label="`Total Proyectado(${monExt})`"
-                    dense
+                    density="compact"
                     readonly
                   ></v-text-field>
                 </v-col>
@@ -88,9 +88,7 @@
               :headers="headers"
               :items="items"
               class="elevation-1"
-              pagination.sync="pagination"
-              item-key="index"
-              loading="true"
+              item-value="index"
               disable-sort
             >
               <template v-slot:[`item.gasto`]="{ item }">
@@ -100,8 +98,8 @@
                   "
                   placeholder="Tipo de Gasto"
                   v-model="item.id_gasto"
-                  dense
-                  item-text="description"
+                  density="compact"
+                  item-title="description"
                   item-value="id"
                   :error-messages="item.errgasto"
                   readonly
@@ -115,9 +113,9 @@
                     )
                   "
                   v-model="item.id_tiposubgasto"
-                  dense
+                  density="compact"
                   placeholder="Subtipo de Gasto"
-                  item-text="description"
+                  item-title="description"
                   item-value="id"
                   :error-messages="item.errsubgasto"
                   readonly
@@ -127,17 +125,17 @@
                 <v-autocomplete
                   :items="$store.state.provedores"
                   v-model="item.id_entitie"
-                  item-text="namelong"
+                  item-title="namelong"
                   placeholder="Proveedor"
                   item-value="id"
-                  dense
+                  density="compact"
                   :error-messages="item.errproveedor"
                   readonly
                 ></v-autocomplete>
               </template>
               <template v-slot:[`item.descripcion`]="{ item }">
                 <v-textarea
-                  dense
+                  density="compact"
                   placeholder="Descripcion"
                   v-model="item.description"
                   rows="1"
@@ -158,11 +156,11 @@
               <template v-slot:[`item.moneda`]="{ item }">
                 <v-select
                   :items="$store.state.itemsCoinsList"
-                  item-text="symbol"
+                  item-title="symbol"
                   v-model="item.id_coin"
                   label="Moneda"
                   item-value="id"
-                  @change="calcularMontoFinal(item)"
+                  @update:model-value="calcularMontoFinal(item)"
                   :error-messages="item.errmoneda"
                   readonly
                 ></v-select>
@@ -171,7 +169,7 @@
                 {{ item.monto_monext }}
               </template>
               <template v-slot:[`item.diavencimiento`]="{ item }">
-                <v-select
+                <v-select item-title="text"
                   :items="dias"
                   v-model="item.nrodias"
                   label="Día de vencimiento"
@@ -180,7 +178,7 @@
                 ></v-select>
               </template>
               <template v-slot:[`item.action`]="{ item }">
-                <v-btn icon color="red" dark @click="eliminarfila(item)">
+                <v-btn variant="text" icon color="red" @click="eliminarfila(item)">
                   <v-icon>mdi-delete</v-icon>
                 </v-btn>
               </template>
@@ -192,7 +190,7 @@
     <v-card-actions>
       <v-spacer></v-spacer>
       <v-btn
-        small
+        size="small"
         class="mx-1"
         v-if="!aprobado"
         color="success"
@@ -200,13 +198,13 @@
         rounded
         >Ir a Editar</v-btn
       >
-      <v-btn small class="mx-1" color="success" @click="exportar()" rounded
+      <v-btn size="small" class="mx-1" color="success" @click="exportar()" rounded
         >Exportar Detalles</v-btn
       >
-      <v-btn small class="mx-1" dark color="red" @click="volver()" rounded
+      <v-btn size="small" class="mx-1" color="red" @click="volver()" rounded
         >Cancelar</v-btn
       >
-      <v-btn small class="mx-1" v-if="!aprobado" color="info" rounded
+      <v-btn size="small" class="mx-1" v-if="!aprobado" color="info" rounded
         >APROBAR</v-btn
       >
     </v-card-actions>
@@ -221,18 +219,18 @@ export default {
       monExt: "",
       textSize: "2rem",
       headers: [
-        { text: "Tipo de Gasto", value: "gasto", width: "10%" },
-        { text: "Tipo de Subgasto", value: "subgasto", width: "10%" },
-        { text: "Proveedor", value: "proveedor", width: "10%" },
-        { text: "Descripción", value: "descripcion", width: "10%" },
-        { text: "Día Vencimiento", value: "diavencimiento", width: "10%" },
-        { text: "Moneda", value: "moneda", width: "10%" },
+        { title: "Tipo de Gasto", key: "gasto", width: "10%" },
+        { title: "Tipo de Subgasto", key: "subgasto", width: "10%" },
+        { title: "Proveedor", key: "proveedor", width: "10%" },
+        { title: "Descripción", key: "descripcion", width: "10%" },
+        { title: "Día Vencimiento", key: "diavencimiento", width: "10%" },
+        { title: "Moneda", key: "moneda", width: "10%" },
         {
-          text: "Monto Moneda Original",
-          value: "montomonoriginal",
+          title: "Monto Moneda Original",
+          key: "montomonoriginal",
           width: "10%",
         },
-        { text: "Monto Final en USD", value: "montofinaldolar", width: "10%" },
+        { title: "Monto Final en USD", key: "montofinaldolar", width: "10%" },
         // { text: "Acciones", value: "action", width: "10%" },
       ],
       dias: [
@@ -393,7 +391,7 @@ export default {
     async registrar() {
       let validaciondetails = true;
       let data = data;
-      if (this.$refs.frmProyeccion.validate()) {
+      if ((await this.$refs.frmProyeccion.validate()).valid) {
         this.items.forEach((item) => {
           if (!item.id_gasto) {
             item.errgasto = ["Dato Requerido"];

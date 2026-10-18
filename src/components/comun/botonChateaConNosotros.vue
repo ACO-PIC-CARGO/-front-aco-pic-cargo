@@ -1,13 +1,12 @@
 <template>
   <v-btn
     color="success"
-    class="mt-10 py-6 btnChatea"
-    fixed
-    bottom
-    right
+    class="mt-10 mb-4 mr-4 py-6 btnChatea"
+    position="fixed"
+    location="bottom right"
     @click="abriChat()"
   >
-    <v-icon class="mx-5" x-large>mdi-whatsapp</v-icon>
+    <v-icon class="mx-5" size="x-large">mdi-whatsapp</v-icon>
     Chatea con nosotros
   </v-btn>
 </template>

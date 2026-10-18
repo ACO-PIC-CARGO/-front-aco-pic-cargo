@@ -1,7 +1,7 @@
 <template>
   <v-container fluid class="pa-0">
     <v-card elevation="0" ref="frmPuerto">
-      <v-card-title primary-title> Datos Principales </v-card-title>
+      <v-card-title> Datos Principales </v-card-title>
       <v-card-text>
         <v-form class="" ref="frmDatosPrincipales">
           <v-container>
@@ -9,37 +9,37 @@
               <v-col cols="12" class="my-0 py-0">
                 <v-autocomplete
                   label="Tipo de Marketing"
-                  outlined
-                  dense
+                  variant="outlined"
+                  density="compact"
                   :rules="[(v) => !!v || 'Dato requerido']"
                   class="my-1"
                   :items="$store.state.pricing.listMarketing"
-                  item-text="name"
+                  item-title="name"
                   item-value="id"
                   v-model="$store.state.aduana.datosPrincipales.id_marketing"
                 ></v-autocomplete>
                 <v-autocomplete
                   label="Estado de la cotización"
-                  outlined
-                  dense
+                  variant="outlined"
+                  density="compact"
                   :rules="[(v) => !!v || 'Dato requerido']"
                   class="my-0"
                   :items="$store.state.pricing.listQuoteStatus"
-                  item-text="name"
+                  item-title="name"
                   item-value="id"
                   v-model="$store.state.aduana.datosPrincipales.id_status"
-                  :item-disabled="(item) => item.status != 1"
+                  :item-props="(item) => ({ disabled: item.status != 1 })"
                 ></v-autocomplete>
               </v-col>
               <v-col cols="12" class="my-0 py-0">
                 <v-autocomplete
                   label="Ejecutivo"
-                  outlined
-                  dense
+                  variant="outlined"
+                  density="compact"
                   :rules="[(v) => !!v || 'Dato requerido']"
                   class="my-0"
                   :items="$store.state.pricing.listEjecutivo"
-                  item-text="nombrecompleto"
+                  item-title="nombrecompleto"
                   item-value="id"
                   item-key="id"
                   v-model="$store.state.aduana.datosPrincipales.id_vendedor"
@@ -49,12 +49,12 @@
               <v-col cols="12" class="my-0 py-0">
                 <v-autocomplete
                   label="Pricing"
-                  outlined
-                  dense
+                  variant="outlined"
+                  density="compact"
                   :rules="[(v) => !!v || 'Dato requerido']"
                   class="my-0"
                   :items="$store.state.pricing.listEjecutivo"
-                  item-text="nombrecompleto"
+                  item-title="nombrecompleto"
                   item-value="id"
                   item-key="id"
                   v-model="$store.state.aduana.datosPrincipales.id_pricing"
@@ -64,18 +64,18 @@
               <v-col cols="12" class="my-0 py-0">
                 <v-text-field
                   label="Nombre del cliente"
-                  outlined
+                  variant="outlined"
                   placeholder="Nombre del cliente"
-                  :append-icon="'mdi-account-search'"
-                  @click:append="abrirModalCliente()"
+                  :append-inner-icon="'mdi-account-search'"
+                  v-model="$store.state.aduana.datosPrincipales.nombre"
+                  @click:append-inner.stop="abrirModalCliente()"
                   @click="abrirModalCliente()"
                   :rules="[(v) => !!v || 'El nombre es requerido']"
-                  dense
+                  density="compact"
                   required
                   autocomplete="off"
                   id="nombre"
                   name="nombre"
-                  v-model="$store.state.aduana.datosPrincipales.nombre"
                   readonly
                 ></v-text-field
               ></v-col>
@@ -83,9 +83,9 @@
               <v-col cols="12" class="my-0 py-0">
                 <v-text-field
                   label="Teléfono"
-                  outlined
+                  variant="outlined"
                   placeholder="Teléfono..."
-                  dense
+                  density="compact"
                   readonly
                   v-model="$store.state.aduana.datosPrincipales.telefono"
                 ></v-text-field
@@ -94,16 +94,16 @@
               <v-col cols="12" class="my-0 py-0">
                 <v-autocomplete
                   label="Sentido"
-                  outlined
-                  dense
+                  variant="outlined"
+                  density="compact"
                   :rules="[(v) => !!v || 'Dato requerido']"
                   class="my-0"
                   :items="$store.state.aduana.listModality"
-                  item-text="name"
+                  item-title="name"
                   item-key="id"
                   item-value="id"
                   v-model="$store.state.aduana.datosPrincipales.idsentido"
-                  @change="recargarServiciosCostos()"
+                  @update:model-value="recargarServiciosCostos()"
                   :disabled="!EditableFlag"
                 ></v-autocomplete
               ></v-col>
@@ -111,16 +111,16 @@
               <v-col cols="12" class="my-0 py-0">
                 <v-autocomplete
                   label="Tipo de Embarque"
-                  outlined
-                  dense
+                  variant="outlined"
+                  density="compact"
                   :rules="[(v) => !!v || 'Dato requerido']"
                   class="my-0"
                   :items="$store.state.aduana.listShipment"
-                  item-text="embarque"
+                  item-title="embarque"
                   item-key="id"
                   item-value="id"
                   v-model="$store.state.aduana.datosPrincipales.idtipocarga"
-                  @change="recargarServiciosCostos()"
+                  @update:model-value="recargarServiciosCostos()"
                   return-object
                   :disabled="!EditableFlag"
                 ></v-autocomplete
@@ -128,18 +128,18 @@
               <v-col cols="12" class="my-0 py-0">
                 <v-autocomplete
                   label="Incoterms"
-                  outlined
-                  dense
+                  variant="outlined"
+                  density="compact"
                   :rules="[(v) => !!v || 'Dato requerido']"
                   class="my-0"
                   :items="incoterms"
-                  item-text="text"
+                  item-title="text"
                   item-key="id"
                   item-value="id"
                   v-model="$store.state.aduana.datosPrincipales.idincoterms"
-                  @change="recargarServiciosCostos()"
+                  @update:model-value="recargarServiciosCostos()"
                 >
-                  <template slot="selection" slot-scope="data">
+                  <template v-slot:selection="data" >
                     {{ data.item.name }} - {{ data.item.description }}
                   </template>
                 </v-autocomplete></v-col
@@ -151,8 +151,8 @@
                   label="Nombre del proveedor"
                   id="id"
                   v-model="$store.state.aduana.datosPrincipales.proveedor"
-                  dense
-                  outlined
+                  density="compact"
+                  variant="outlined"
                   v-if="mostrarProveedorFlag"
                 ></v-text-field
               ></v-col>
@@ -164,8 +164,8 @@
                   v-model="
                     $store.state.aduana.datosPrincipales.telefonoproveedor
                   "
-                  dense
-                  outlined
+                  density="compact"
+                  variant="outlined"
                   :rules="[
                     (v) => {
                       if (v === '' || /^\+?\d+$/.test(v)) {
@@ -181,14 +181,12 @@
 
               <v-col cols="12" class="my-0 py-0">
                 <v-text-field
-                  name="name"
                   label="Dirección del proveedor"
-                  id="id"
                   v-model="
                     $store.state.aduana.datosPrincipales.direccionproveedor
                   "
-                  dense
-                  outlined
+                  density="compact"
+                  variant="outlined"
                   v-if="mostrarProveedorFlag"
                 ></v-text-field>
               </v-col>
@@ -197,7 +195,7 @@
                 class="my-0 py-0 align-right"
                 v-if="mostrarContinuarFlag && mostrarBtn"
               >
-                <v-btn color="#3F51B5" dark @click="continuarDatosCarga()" small
+                <v-btn color="#3F51B5" @click="continuarDatosCarga()" size="small"
                   >Continuar Datos Carga</v-btn
                 >
               </v-col>
@@ -209,9 +207,9 @@
     <!-- dIALOG -->
     <v-dialog v-model="buscarClienteDialog" max-width="80%">
       <v-card>
-        <v-card-title
+        <v-card-title class="d-flex align-center flex-wrap"
           >Buscar Cliente<v-spacer></v-spacer>
-          <v-btn color="success" @click="registrarNuevoCliente" small>
+          <v-btn color="success" @click="registrarNuevoCliente" size="small">
             Nuevo Cliente
           </v-btn>
         </v-card-title>
@@ -227,13 +225,13 @@
                   :items="$store.state.itemsEntities"
                   :search="search"
                   @dblclick:row="guardarCliente"
-                  item-key="index"
+                  item-value="index"
                   :loading="$store.state.itemsEntities.length == 0"
                   loading-text="Buscando Clientes..."
                 >
                   <template v-slot:[`item.action`]="{ item }">
                     <v-btn
-                      small
+                      size="small"
                       color="success"
                       @click="guardarCliente(null, { item })"
                     >
@@ -254,6 +252,7 @@
 import { mapActions, mapState } from "vuex";
 import Swal from "sweetalert2";
 export default {
+  emits: ["activarDatosCarga", "recargarServiciosCostos"],
   props: {
     mostrarBtn: {
       type: Boolean,
@@ -270,9 +269,9 @@ export default {
       buscarClienteDialog: false,
       mostrarContinuarFlag: true,
       headers: [
-        { text: "Documento", value: "document" },
-        { text: "Nombres (s)", value: "nombrecompleto" },
-        { text: "Teléfono", value: "phone" },
+        { title: "Documento", key: "document" },
+        { title: "Nombres (s)", key: "nombrecompleto" },
+        { title: "Teléfono", key: "phone" },
         { value: "action" },
       ],
       mostrar: false,
@@ -312,8 +311,8 @@ export default {
       this.$store.state.aduana.datosPrincipales.telefono = item.phone;
       this.buscarClienteDialog = false;
     },
-    continuarDatosCarga() {
-      if (this.$refs.frmDatosPrincipales.validate()) {
+    async continuarDatosCarga() {
+      if ((await this.$refs.frmDatosPrincipales.validate()).valid) {
         this.$emit("activarDatosCarga", true);
         this.mostrarContinuarFlag = false;
       }

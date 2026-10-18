@@ -26,7 +26,7 @@ const actions = {
     var config = {
       method: "get",
       url:
-        process.env.VUE_APP_URL_MAIN +
+        import.meta.env.VUE_APP_URL_MAIN +
         `listar_incoterms?` +
         `id_branch=${
           JSON.parse(sessionStorage.getItem("dataUser"))[0].id_branch
@@ -71,7 +71,7 @@ const actions = {
   async insertIncoterms({ commit, dispatch }, data) {
     var config = {
       method: "post",
-      url: process.env.VUE_APP_URL_MAIN + "insertar_incoterms",
+      url: import.meta.env.VUE_APP_URL_MAIN + "insertar_incoterms",
       headers: {
         "Content-Type": "application/json",
        
@@ -100,7 +100,7 @@ const actions = {
   async readIncoterms({ commit }, id) {
     var config = {
       method: "get",
-      url: process.env.VUE_APP_URL_MAIN + `ver_incoterms?id=${id}`,
+      url: import.meta.env.VUE_APP_URL_MAIN + `ver_incoterms?id=${id}`,
       headers: {
         "Content-Type": "application/json",
        
@@ -127,7 +127,7 @@ const actions = {
   async updateIncoterms({ dispatch }, data) {
     var config = {
       method: "put",
-      url: process.env.VUE_APP_URL_MAIN + "actualizar_incoterms",
+      url: import.meta.env.VUE_APP_URL_MAIN + "actualizar_incoterms",
       headers: {
         "Content-Type": "application/json",
        
@@ -159,7 +159,7 @@ const actions = {
     };
     var config = {
       method: "get",
-      url: process.env.VUE_APP_URL_MAIN + `ver_incoterms_config`,
+      url: import.meta.env.VUE_APP_URL_MAIN + `ver_incoterms_config`,
       headers: {
        
         "Content-Type": "application/json",

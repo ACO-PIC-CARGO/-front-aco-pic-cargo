@@ -3,10 +3,11 @@
 </template>
 
 <script>
+import { defineAsyncComponent } from "vue";
 export default {
   components: {
-    BalanceGeneral: () =>
-      import("../../components/balances/balanceGanancia.vue"),
+    BalanceGeneral: defineAsyncComponent(() =>
+      import("../../components/balances/balanceGanancia.vue")),
   },
   mounted() {
     this.$store.state.mainTitle = "ESTADO DE GANANCIA Y PERDIDAS";

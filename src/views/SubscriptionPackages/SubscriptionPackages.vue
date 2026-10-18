@@ -22,14 +22,14 @@
             <v-icon>mdi-open-in-new</v-icon> Ver como cliente
           </router-link>
           <v-btn
-            text
+            variant="text"
             class="plans-button plans-button--ghost"
             @click="isSyncOpen = true"
           >
             <v-icon>mdi-sync</v-icon> Verificar Paddle
           </v-btn>
           <v-btn
-            text
+            variant="text"
             class="plans-button plans-button--primary"
             @click="openCreate"
           >
@@ -48,7 +48,7 @@
           v-model="statusFilter"
           mandatory
           rounded
-          dense
+          density="compact"
           class="segmented"
           role="group"
           aria-label="Mostrar paquetes"
@@ -57,7 +57,7 @@
             v-for="option in filterOptions"
             :key="String(option.value)"
             :value="option.value"
-            text
+            variant="text"
           >
             {{ option.label }}
           </v-btn>
@@ -66,7 +66,7 @@
           v-model="isAnnual"
           mandatory
           rounded
-          dense
+          density="compact"
           class="segmented"
           role="group"
           aria-label="Precio mostrado"
@@ -75,7 +75,7 @@
             v-for="option in billingOptions"
             :key="String(option.value)"
             :value="option.value"
-            text
+            variant="text"
           >
             {{ option.label }}
           </v-btn>
@@ -101,7 +101,7 @@
         </p>
         <p>{{ errorMessage }}</p>
         <v-btn
-          text
+          variant="text"
           class="plans-button plans-button--secondary"
           @click="loadAll"
         >
@@ -139,7 +139,7 @@
         >
           <div class="card-actions">
             <v-btn
-              text
+              variant="text"
               class="plans-button plans-button--secondary"
               :aria-label="`Editar ACO ${pkg.name}`"
               @click="openEdit(pkg)"
@@ -147,7 +147,7 @@
               <v-icon>mdi-pencil-outline</v-icon> Editar
             </v-btn>
             <v-btn
-              text
+              variant="text"
               class="plans-button plans-button--ghost"
               :aria-label="`${pkg.is_active ? 'Desactivar' : 'Activar'} ACO ${
                 pkg.name

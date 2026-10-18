@@ -1,29 +1,28 @@
 <template>
   <v-container>
-    <v-tabs v-model="tab" centered icons-and-text>
-      <v-tabs-slider></v-tabs-slider>
-      <v-tab href="#resumen"> Resumen </v-tab>
-      <v-tab href="#costo"> Costo</v-tab>
-      <v-tab href="#venta"> Venta</v-tab>
+    <v-tabs v-model="tab" align-tabs="center" stacked>
+      <v-tab value="resumen"> Resumen </v-tab>
+      <v-tab value="costo"> Costo</v-tab>
+      <v-tab value="venta"> Venta</v-tab>
     </v-tabs>
-    <v-tabs-items v-model="tab" class="mt-5">
-      <v-tab-item value="resumen">
+    <v-tabs-window v-model="tab" class="mt-5">
+      <v-tabs-window-item value="resumen">
         <v-text-field
           v-model="searchResumen"
-          append-icon="mdi-magnify"
+          append-inner-icon="mdi-magnify"
           label="Buscar"
           single-line
           hide-details
-          outlined
+          variant="outlined"
           style="max-width: 30%"
-          dense
+          density="compact"
         />
         <br />
 
         <v-data-table
           :headers="headersResumen"
           :items="$store.state.calculadoras.lstFleteGrupalResumen"
-          dense
+          density="compact"
           :search="searchResumen"
         >
           <template v-slot:[`item.monto`]="{ item }">
@@ -47,21 +46,21 @@
             </span>
           </template>
         </v-data-table>
-      </v-tab-item>
-      <v-tab-item value="costo">
+      </v-tabs-window-item>
+      <v-tabs-window-item value="costo">
         <v-row>
           <v-col cols="12">
             <v-row>
               <v-col cols="6">
                 <v-text-field
                   v-model="searchCosto"
-                  append-icon="mdi-magnify"
+                  append-inner-icon="mdi-magnify"
                   label="Buscar"
                   single-line
                   hide-details
-                  outlined
+                  variant="outlined"
                   style="max-width: 40%"
-                  dense
+                  density="compact"
                 ></v-text-field>
               </v-col>
 
@@ -81,17 +80,17 @@
             <v-data-table
               :headers="headers"
               :items="$store.state.calculadoras.lstFleteGrupal"
-              dense
+              density="compact"
               :search="searchCosto"
             >
               <template v-slot:[`item.index`]="{ index }">
                 {{ index + 1 }}
               </template>
               <template v-slot:[`item.action`]="{ item }">
-                <v-btn color="error" icon @click="eliminar(item)">
+                <v-btn variant="text" color="error" icon @click="eliminar(item)">
                   <v-icon>mdi-delete</v-icon>
                 </v-btn>
-                <v-btn
+                <v-btn variant="text"
                   color="warning"
                   icon
                   @click="
@@ -108,21 +107,21 @@
             </v-data-table>
           </v-col>
         </v-row>
-      </v-tab-item>
-      <v-tab-item value="venta">
+      </v-tabs-window-item>
+      <v-tabs-window-item value="venta">
         <v-row>
           <v-col cols="12">
             <v-row>
               <v-col cols="6">
                 <v-text-field
                   v-model="searchVenta"
-                  append-icon="mdi-magnify"
+                  append-inner-icon="mdi-magnify"
                   label="Buscar"
                   single-line
                   hide-details
-                  outlined
+                  variant="outlined"
                   style="max-width: 40%"
-                  dense
+                  density="compact"
                 ></v-text-field>
               </v-col>
 
@@ -143,16 +142,16 @@
               :headers="headers"
               :items="$store.state.calculadoras.lstFleteGrupalVenta"
               :search="searchVenta"
-              dense
+              density="compact"
             >
               <template v-slot:[`item.index`]="{ index }">
                 {{ index + 1 }}
               </template>
               <template v-slot:[`item.action`]="{ item }">
-                <v-btn color="error" icon @click="eliminar(item)">
+                <v-btn variant="text" color="error" icon @click="eliminar(item)">
                   <v-icon>mdi-delete</v-icon>
                 </v-btn>
-                <v-btn
+                <v-btn variant="text"
                   color="warning"
                   icon
                   @click="
@@ -169,8 +168,8 @@
             </v-data-table>
           </v-col>
         </v-row>
-      </v-tab-item>
-    </v-tabs-items>
+      </v-tabs-window-item>
+    </v-tabs-window>
 
     <v-dialog
       v-model="dialog"
@@ -220,15 +219,15 @@
             <v-btn
               color="success"
               v-if="nuevoflag"
-              small
+              size="small"
               @click="guardarFleteGrupal"
             >
               Guardar
             </v-btn>
-            <v-btn color="success" v-if="editarflag" @click="actualizar" small>
+            <v-btn color="success" v-if="editarflag" @click="actualizar" size="small">
               Guardar
             </v-btn>
-            <v-btn color="error" small @click="dialog = false">Cancelar</v-btn>
+            <v-btn color="error" size="small" @click="dialog = false">Cancelar</v-btn>
           </v-card-actions>
         </v-form>
       </v-card>
@@ -252,45 +251,45 @@ export default {
       searchCosto: "",
       searchVenta: "",
       headers: [
-        { width: "18%", text: "#", value: "index", sortable: false },
-        { width: "18%", value: "volumen", text: "Volumen" },
-        { width: "18%", value: "peso", text: "Peso" },
-        { width: "18%", value: "valor", text: "Valor" },
-        { width: "18%", value: "vigencia_text", text: "Fec. Vigencia" },
-        { width: "10%", text: "", value: "action" },
+        { width: "18%", title: "#", key: "index", sortable: false },
+        { width: "18%", key: "volumen", title: "Volumen" },
+        { width: "18%", key: "peso", title: "Peso" },
+        { width: "18%", key: "valor", title: "Valor" },
+        { width: "18%", key: "vigencia_text", title: "Fec. Vigencia" },
+        { width: "10%", title: "", key: "action" },
       ],
       searchResumen: "",
       headersResumen: [
-        { width: "15%", value: "volumen", text: "Volumen" },
-        { width: "15%", value: "peso", text: "Peso" },
+        { width: "15%", key: "volumen", title: "Volumen" },
+        { width: "15%", key: "peso", title: "Peso" },
         {
           width: "16%",
-          value: "monto",
-          text: "Valor",
-          class: "col-fondo-monto",
-          cellClass: "col-fondo-monto",
+          key: "monto",
+          title: "Valor",
+          headerProps: { class: "col-fondo-monto" },
+          cellProps: { class: "col-fondo-monto" },
         },
         {
           width: "14%",
-          value: "vigencia",
-          text: "Fec. Vigencia",
-          class: "col-fondo-monto",
-          cellClass: "col-fondo-monto",
+          key: "vigencia",
+          title: "Fec. Vigencia",
+          headerProps: { class: "col-fondo-monto" },
+          cellProps: { class: "col-fondo-monto" },
         },
         {
           width: "16%",
-          value: "montoventa",
-          text: "Valor Venta",
-          class: "col-fondo-venta",
-          cellClass: "col-fondo-venta",
+          key: "montoventa",
+          title: "Valor Venta",
+          headerProps: { class: "col-fondo-venta" },
+          cellProps: { class: "col-fondo-venta" },
         },
 
         {
           width: "14%",
-          value: "vigenciaventa",
-          text: "Fec. Vigencia Venta",
-          class: "col-fondo-venta",
-          cellClass: "col-fondo-venta",
+          key: "vigenciaventa",
+          title: "Fec. Vigencia Venta",
+          headerProps: { class: "col-fondo-venta" },
+          cellProps: { class: "col-fondo-venta" },
         },
       ],
       dialog: false,
@@ -391,7 +390,7 @@ export default {
     },
     async guardarFleteGrupal() {
       this.errorFechaVigencia = "";
-      if (this.$refs.frmNuevo.validate() && this.form.vigencia) {
+      if ((await this.$refs.frmNuevo.validate()).valid && this.form.vigencia) {
         if (
           (this.$store.state.calculadoras.lstFleteGrupal.some(
             (v) => Number(v.volumen) === Number(this.form.volumen),

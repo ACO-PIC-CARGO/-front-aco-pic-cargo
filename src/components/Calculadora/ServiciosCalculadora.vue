@@ -26,52 +26,50 @@
             <v-row>
               <v-col cols="12" class="py-0">
                 <v-autocomplete
-                  outlined
+                  variant="outlined"
                   label="Modalidad"
                   :items="$store.state.itemsModality"
-                  dense
+                  density="compact"
                   item-value="id"
-                  item-text="name"
-                  v-model="id_modality"
+                  item-title="name"
+                  v-model="modalityId"
                   :rules="[(v) => !!v || 'Dato requerido']"
                   disabled
                 ></v-autocomplete>
               </v-col>
               <v-col cols="12" class="py-0">
                 <v-autocomplete
-                  outlined
+                  variant="outlined"
                   label="Pais"
                   :items="$store.state.itemsPais"
-                  dense
+                  density="compact"
                   item-value="id"
-                  item-text="name"
+                  item-title="name"
                   v-model="id_pais"
                   :rules="[(v) => !!v || 'Dato requerido']"
                   disabled
                 >
-                  <template v-slot:item="{ item }">
-                    <div class="text-uppercase">
-                      {{ item.name }}
-                    </div>
+                  <template v-slot:item="{ props }">
+                    <v-list-item v-bind="props" class="text-uppercase" />
                   </template>
                 </v-autocomplete>
               </v-col>
               <v-col cols="12" class="py-0">
                 <v-text-field
                   label="Código"
-                  outlined
-                  dense
-                  append-icon="mdi-information"
-                  @click:append="mostrarAdvertencia()"
+                  variant="outlined"
+                  density="compact"
+                  append-inner-icon="mdi-information"
                   v-model="code"
+                  @click:append-inner="mostrarAdvertencia()"
                   :rules="[(v) => !!v || 'Dato requerido']"
                 ></v-text-field>
               </v-col>
               <v-col cols="12" class="py-0">
                 <v-text-field
                   label="Descripción"
-                  outlined
-                  dense
+                  variant="outlined"
+                  density="compact"
                   v-model="descripcion"
                   :rules="[(v) => !!v || 'Dato requerido']"
                 ></v-text-field>
@@ -80,8 +78,8 @@
                 <v-text-field
                   type="number"
                   label="Orden"
-                  outlined
-                  dense
+                  variant="outlined"
+                  density="compact"
                   v-model="orden"
                   :rules="[(v) => !!v || 'Dato requerido']"
                 ></v-text-field>
@@ -94,10 +92,10 @@
         </v-card-text>
         <v-card-actions>
           <v-spacer></v-spacer>
-          <v-btn small color="success" :loading="loading" @click="anadirServ"
+          <v-btn size="small" color="success" :loading="loading" @click="anadirServ"
             >Añadir</v-btn
           >
-          <v-btn small color="error" @click="dialogNuevo = false">Cerrar</v-btn>
+          <v-btn size="small" color="error" @click="dialogNuevo = false">Cerrar</v-btn>
         </v-card-actions>
       </v-card>
     </v-dialog>
@@ -128,13 +126,14 @@ export default {
     return {
       dialogNuevo: false,
       snackbar: false,
+      modalityId: this.id_modality,
       headers: [
-        { value: "modality", text: "Modalidad" },
-        { value: "pais", text: "Pais" },
-        { value: "code", text: "Código" },
-        { value: "descripcion", text: "Servicio" },
-        { value: "orden", text: "Orden" },
-        { value: "opcionflag", text: "Opcional" },
+        { key: "modality", title: "Modalidad" },
+        { key: "pais", title: "Pais" },
+        { key: "code", title: "Código" },
+        { key: "descripcion", title: "Servicio" },
+        { key: "orden", title: "Orden" },
+        { key: "opcionflag", title: "Opcional" },
       ],
       items: [
         {
@@ -176,15 +175,15 @@ export default {
         setTimeout(() => {
           let branch = JSON.parse(sessionStorage.getItem("dataBranch"));
           this.id_pais = branch[0].id_pais;
-          this.id_modality = 1;
+          this.modalityId = 1;
         }, 100);
       });
     },
     async anadirServ() {
-      if (this.$refs.frmServicio.validate()) {
+      if ((await this.$refs.frmServicio.validate()).valid) {
         this.loading = true;
         let serv = {
-          id_modality: this.id_modality,
+          id_modality: this.modalityId,
           modality: this.modality.name,
           id_pais: this.id_pais,
           pais: this.pais.name,

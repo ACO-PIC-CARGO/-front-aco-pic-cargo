@@ -5,23 +5,23 @@
       {{ parseFloat(egreso_pr).toFixed(2) }} USD /------ Operaciones:
       {{ parseFloat(egreso_op).toFixed(2) }} USD
       <v-spacer></v-spacer>
-      <v-btn @click="nuevoEngreso()" color="blue" dark small>
+      <v-btn @click="nuevoEngreso()" color="blue" size="small">
         Nuevo Control Gastos Egresos
       </v-btn>
     </h3>
-    <v-expansion-panels accordion>
+    <v-expansion-panels variant="accordion">
       <v-expansion-panel
         v-for="(egreso, index) in master_egresos || []"
         :key="index"
         :value="egreso.isExpanded"
       >
-        <v-expansion-panel-header @click.stop="abrirExpandEgreso(index)">
+        <v-expansion-panel-title @click.stop="abrirExpandEgreso(index)">
           <template #actions>
             <v-icon @click="abrirExpandEgreso(index)">
               mdi-unfold-more-horizontal
             </v-icon>
           </template>
-          <v-simple-table dense>
+          <v-table density="compact">
             <thead>
               <tr>
                 <th width="28%">Proveedor</th>
@@ -51,7 +51,7 @@
               <tr>
                 <td>
                   {{ egreso.nombre_proveedor }}
-                  <v-btn
+                  <v-btn variant="text"
                     icon
                     color="success"
                     v-if="egreso.code_tipo_proveedor === '01'"
@@ -67,18 +67,18 @@
                   <v-btn
                     color="info"
                     class="my-1 mx-1"
-                    x-small
+                    size="x-small"
                     @click="nuevoEngreso(egreso)"
                   >
                     Nuevo Concepto
                   </v-btn>
                   <v-tooltip
-                    bottom
+                    location="bottom"
                     color="error"
                     v-if="bloquearCopiarMontos(egreso.detalle)"
                   >
-                    <template v-slot:activator="{ on, attrs }">
-                      <v-btn v-bind="attrs" v-on="on" color="info" x-small>
+                    <template v-slot:activator="{ props }">
+                      <v-btn v-bind="props" color="info" size="x-small">
                         Copiar Montos Pr->Op
                       </v-btn>
                     </template>
@@ -89,7 +89,7 @@
                   <v-btn
                     v-else
                     color="success"
-                    x-small
+                    size="x-small"
                     @click="
                       abriModalCopiar(
                         egreso,
@@ -101,20 +101,20 @@
                   </v-btn>
                 </td>
                 <td v-if="editable">
-                  <v-btn
+                  <v-btn variant="text"
                     icon
-                    small
+                    size="small"
                     :loading="loading"
                     :color="egreso.docs > 0 ? 'blue' : 'grey'"
-                    @click.native="openInvoice(egreso)"
+                    @click="openInvoice(egreso)"
                     @click.stop="abrirExpandEgreso(index)"
                   >
                     <v-icon>mdi-file-compare</v-icon>
                   </v-btn>
                 </td>
                 <td v-if="editable">
-                  <v-btn
-                    small
+                  <v-btn variant="text"
+                    size="small"
                     color="white"
                     icon
                     @click.stop="validarSolicitudPago(egreso)"
@@ -125,15 +125,15 @@
                 </td>
 
                 <td v-if="editable">
-                  <v-btn
-                    small
+                  <v-btn variant="text"
+                    size="small"
                     :color="egreso.solicitudes > 0 ? 'blue' : 'grey'"
                     icon
                     @click="openPayments(egreso)"
                     @click.stop="abrirExpandEgreso(index)"
                     :disabled="!(egreso.solicitudes && egreso.solicitudes > 0)"
                   >
-                    <v-icon :color="'blue'">mdi-email-send</v-icon>
+                    <v-icon :color="'blue'">mdi-email-arrow-right</v-icon>
                   </v-btn>
                 </td>
                 <!-- <td v-if="editable">
@@ -147,10 +147,10 @@
                 </td> -->
               </tr>
             </tbody>
-          </v-simple-table>
-        </v-expansion-panel-header>
-        <v-expansion-panel-content>
-          <v-simple-table dense>
+          </v-table>
+        </v-expansion-panel-title>
+        <v-expansion-panel-text>
+          <v-table density="compact">
             <thead>
               <tr>
                 <th class="text-left">Proveedor</th>
@@ -214,12 +214,12 @@
             <tbody>
               <template
                 v-for="(grupo, idx) in groupDetallePorCliente(egreso.detalle)"
+                :key="`header-${
+                  grupo.id_house || grupo.code_house || grupo.consigner || idx
+                }`"
               >
                 <tr
-                  class="blue lighten-5"
-                  :key="`header-${
-                    grupo.id_house || grupo.code_house || grupo.consigner || idx
-                  }`"
+                  class="bg-blue-lighten-5"
                   style="cursor: pointer"
                   @click="toggleCliente(egreso, grupo)"
                 >
@@ -234,136 +234,135 @@
                     </span>
                   </td>
                 </tr>
-                <tr
-                  v-for="item in grupo.items"
-                  v-if="isClienteAbierto(egreso, grupo)"
-                  :key="`item-${
-                    grupo.id_house ||
-                    grupo.code_house ||
-                    grupo.consigner ||
-                    item.id
-                  }`"
-                >
-                  <td>{{ item.nombre_proveedor }}</td>
-                  <td>{{ item.concepto }}</td>
-                  <td style="background: #d6f4ff">
-                    {{ parseFloat(item.monto_pr).toFixed(2) }}
-                  </td>
-                  <td style="background: #d6f4ff" v-if="mostrarImpuesto">
-                    {{ parseFloat(item.igv_pr).toFixed(2) }}
-                  </td>
-                  <td style="background: #d6f4ff">
-                    {{ parseFloat(item.total_pr).toFixed(2) }}
-                  </td>
-                  <td style="background: #ffd6d6">
-                    {{ parseFloat(item.monto_op).toFixed(2) }}
-                  </td>
-                  <td style="background: #ffd6d6" v-if="mostrarImpuesto">
-                    {{ parseFloat(item.igv_op).toFixed(2) }}
-                  </td>
-                  <!-- <td style="background: #ffd6d6">
-                    {{ parseFloat(item.igv_op).toFixed(2) }}
-                  </td> -->
-                  <td style="background: #ffd6d6">
-                    {{ parseFloat(item.total_op).toFixed(2) }}
-                  </td>
-                  <td
-                    style="background: #d8ffde"
-                    v-if="mostrarColumnaMonedaDiferenteDolar(egreso)"
+                <template v-if="isClienteAbierto(egreso, grupo)">
+                  <tr
+                    v-for="item in grupo.items"
+                    :key="`item-${
+                      grupo.id_house ||
+                      grupo.code_house ||
+                      grupo.consigner ||
+                      item.id
+                    }`"
                   >
-                    {{ parseFloat(item.montoopcuentabanco).toFixed(2) }}
-                    {{ item.acronym }}
-                  </td>
-                  <td
-                    style="background: #d8ffde"
-                    v-if="
-                      mostrarImpuesto &&
-                      mostrarColumnaMonedaDiferenteDolar(egreso)
-                    "
-                  >
-                    {{ parseFloat(item.igvopcuentabanco).toFixed(2) }}
-                    {{ item.acronym }}
-                  </td>
-                  <td
-                    style="background: #d8ffde"
-                    v-if="mostrarColumnaMonedaDiferenteDolar(egreso)"
-                  >
-                    {{ parseFloat(item.totalopcuentabanco).toFixed(2) }}
-                    {{ item.acronym }}
-                  </td>
-                  <td
-                    style="background: #d8ffde"
-                    v-if="mostrarColumnaMonedaDiferenteDolar(egreso)"
-                  >
-                    {{ item.tipocambio == 1 ? "No Aplica" : item.tipocambio }}
-                  </td>
-                  <td class="text-center">
-                    <v-chip
-                      v-if="item.statusadmin == 1 && item.pagado == 1"
-                      small
-                      class="mx-auto"
-                      color="green"
-                      outlined
-                      text-color="green"
+                    <td>{{ item.nombre_proveedor }}</td>
+                    <td>{{ item.concepto }}</td>
+                    <td style="background: #d6f4ff">
+                      {{ parseFloat(item.monto_pr).toFixed(2) }}
+                    </td>
+                    <td style="background: #d6f4ff" v-if="mostrarImpuesto">
+                      {{ parseFloat(item.igv_pr).toFixed(2) }}
+                    </td>
+                    <td style="background: #d6f4ff">
+                      {{ parseFloat(item.total_pr).toFixed(2) }}
+                    </td>
+                    <td style="background: #ffd6d6">
+                      {{ parseFloat(item.monto_op).toFixed(2) }}
+                    </td>
+                    <td style="background: #ffd6d6" v-if="mostrarImpuesto">
+                      {{ parseFloat(item.igv_op).toFixed(2) }}
+                    </td>
+                    <!-- <td style="background: #ffd6d6">
+                      {{ parseFloat(item.igv_op).toFixed(2) }}
+                    </td> -->
+                    <td style="background: #ffd6d6">
+                      {{ parseFloat(item.total_op).toFixed(2) }}
+                    </td>
+                    <td
+                      style="background: #d8ffde"
+                      v-if="mostrarColumnaMonedaDiferenteDolar(egreso)"
                     >
-                      SI
-                    </v-chip>
-                    <v-chip
-                      v-if="item.statusadmin == 1 && item.pagado == 0"
-                      small
-                      class="mx-auto"
-                      color="orange"
-                      outlined
-                      text-color="orange"
+                      {{ parseFloat(item.montoopcuentabanco).toFixed(2) }}
+                      {{ item.acronym }}
+                    </td>
+                    <td
+                      style="background: #d8ffde"
+                      v-if="
+                        mostrarImpuesto &&
+                        mostrarColumnaMonedaDiferenteDolar(egreso)
+                      "
                     >
-                      SI
-                    </v-chip>
-                  </td>
-                  <td class="text-center">{{ item.fecha_pago_letra }}</td>
-                  <td>
-                    <v-chip
-                      v-if="item.pagado == 1"
-                      small
-                      class="ma-2"
-                      color="green"
-                      text-color="white"
+                      {{ parseFloat(item.igvopcuentabanco).toFixed(2) }}
+                      {{ item.acronym }}
+                    </td>
+                    <td
+                      style="background: #d8ffde"
+                      v-if="mostrarColumnaMonedaDiferenteDolar(egreso)"
                     >
-                      Pagado
-                    </v-chip>
-                  </td>
-                  <td v-if="editable">
-                    <v-btn icon color="orange" small>
-                      <v-icon @click.native="_editEgreso(item)">
-                        mdi-pencil
-                      </v-icon>
-                    </v-btn>
-                    <v-btn
-                      icon
-                      color="red"
-                      small
-                      v-if="!item.statusadmin && item.pagado == 0"
+                      {{ parseFloat(item.totalopcuentabanco).toFixed(2) }}
+                      {{ item.acronym }}
+                    </td>
+                    <td
+                      style="background: #d8ffde"
+                      v-if="mostrarColumnaMonedaDiferenteDolar(egreso)"
                     >
-                      <v-icon @click.native="_delEngreso(item, egreso)"
-                        >mdi-delete</v-icon
+                      {{ item.tipocambio == 1 ? "No Aplica" : item.tipocambio }}
+                    </td>
+                    <td class="text-center">
+                      <v-chip
+                        v-if="item.statusadmin == 1 && item.pagado == 1"
+                        size="small"
+                        class="mx-auto"
+                        color="green"
+                        variant="outlined"
                       >
-                    </v-btn>
-                  </td>
-                </tr>
+                        SI
+                      </v-chip>
+                      <v-chip
+                        v-if="item.statusadmin == 1 && item.pagado == 0"
+                        size="small"
+                        class="mx-auto"
+                        color="orange"
+                        variant="outlined"
+                      >
+                        SI
+                      </v-chip>
+                    </td>
+                    <td class="text-center">{{ item.fecha_pago_letra }}</td>
+                    <td>
+                      <v-chip
+                        v-if="item.pagado == 1"
+                        size="small"
+                        class="ma-2 text-white"
+                        color="green"
+                        variant="flat"
+                      >
+                        Pagado
+                      </v-chip>
+                    </td>
+                    <td v-if="editable">
+                      <v-btn variant="text" icon color="orange" size="small">
+                        <v-icon @click="_editEgreso(item)">
+                          mdi-pencil
+                        </v-icon>
+                      </v-btn>
+                      <v-btn variant="text"
+                        icon
+                        color="red"
+                        size="small"
+                        v-if="!item.statusadmin && item.pagado == 0"
+                      >
+                        <v-icon @click="_delEngreso(item, egreso)"
+                          >mdi-delete</v-icon
+                        >
+                      </v-btn>
+                    </td>
+                  </tr>
+                </template>
               </template>
             </tbody>
-          </v-simple-table>
-        </v-expansion-panel-content>
+          </v-table>
+        </v-expansion-panel-text>
       </v-expansion-panel>
     </v-expansion-panels>
 
     <!-- --------------------- -->
     <v-dialog id="mydiv" v-model="dialog" width="70%" persistent>
       <v-card>
-        <v-card-title id="mydivheader" class="text-h5 grey lighten-2">
+        <v-card-title id="mydivheader" class="text-h5 bg-grey-lighten-2 d-flex align-center flex-wrap">
           {{ getNameModalNuevoEditar }}
 
           <v-spacer></v-spacer>
-          <v-btn color="default" text @click="dialog = false">
+          <v-btn color="default" variant="text" @click="dialog = false">
             <v-icon>mdi-close</v-icon>
           </v-btn>
         </v-card-title>
@@ -376,7 +375,7 @@
                   <v-autocomplete
                     label="Costo Aspociado al Master o un House"
                     :items="listHouses"
-                    item-text="consigner"
+                    item-title="consigner"
                     item-value="id_orders"
                     v-model="egresos.id_orders"
                   />
@@ -384,7 +383,7 @@
                 <v-col cols="4">
                   <v-autocomplete
                     :items="$store.state.itemsProveedorList"
-                    item-text="namelong"
+                    item-title="namelong"
                     item-value="id"
                     v-model="egresos.id_proveedor"
                     label="Proveedor"
@@ -397,7 +396,7 @@
               <v-row v-show="showSeccion2NuevoEgreso">
                 <v-col cols="12" xl="6" lg="6">
                   <v-text-field
-                    dense
+                    density="compact"
                     v-model="egresos.concepto"
                     label="Concepto"
                     :rules="[(v) => !!v || 'Dato requerido']"
@@ -406,13 +405,13 @@
                 </v-col>
                 <v-col cols="12" xl="3" lg="3">
                   <v-autocomplete
-                    @change="activarSeccion3"
                     :items="$store.state.controlGastos.listCorrelativo"
                     v-model="id_correlativo"
-                    item-text="code"
+                    @update:model-value="activarSeccion3"
+                    item-title="code"
                     item-value="id"
                     label="Correlativo"
-                    dense
+                    density="compact"
                     :rules="[(v) => !!v || 'Dato Requerido']"
                     :disabled="!!egresos.pagado"
                   ></v-autocomplete>
@@ -420,10 +419,10 @@
                 <v-col cols="12" xl="3" lg="3">
                   <v-switch
                     v-if="mostrarImpuesto"
-                    dense
+                    density="compact"
                     :disabled="!!egresos.pagado"
-                    @change="calcularE()"
                     v-model="egresos.statusCalcula"
+                    @update:model-value="calcularE()"
                     :label="`Calcula ${$store.state.enterprises.impuesto.nombre_impuesto}`"
                   ></v-switch>
                   <p v-else>
@@ -438,11 +437,11 @@
                   <v-autocomplete
                     :items="$store.state.itemsCoinsList"
                     v-model="id_coins"
-                    item-text="acronym"
+                    item-title="acronym"
                     item-value="id"
                     label="Moneda de Banco Salida"
-                    @change="obtenerMoneda()"
-                    dense
+                    @update:model-value="obtenerMoneda()"
+                    density="compact"
                     :rules="[(v) => !!v || 'Dato Requerido']"
                     :disabled="!!egresos.pagado"
                   ></v-autocomplete>
@@ -450,12 +449,12 @@
 
                 <v-col cols="12" md="3" v-if="opFlag">
                   <v-text-field
-                    dense
+                    density="compact"
                     v-if="this.sufmoneda != 'USD'"
                     v-model="tipocambio"
                     type="number"
                     label="Tipo de Cambio"
-                    @input="calcularE()"
+                    @update:model-value="calcularE()"
                     step="0.01"
                     :disabled="!!egresos.pagado"
                     :rules="[
@@ -469,9 +468,9 @@
               <v-row v-show="showSeccion4NuevoEgreso">
                 <v-col cols="12" md="4" v-if="opFlag">
                   <v-text-field
-                    dense
-                    @input="calcularE()"
+                    density="compact"
                     v-model="egresos.montoopcuentabanco"
+                    @update:model-value="calcularE()"
                     type="number"
                     label="Monto"
                     :rules="[(v) => !!v || 'Dato requerido']"
@@ -482,7 +481,7 @@
 
                 <v-col cols="12" md="4" v-if="opFlag && mostrarImpuesto">
                   <v-text-field
-                    dense
+                    density="compact"
                     v-model="egresos.igvopcuentabanco"
                     type="number"
                     :label="`${$store.state.enterprises.impuesto.nombre_impuesto}`"
@@ -494,7 +493,7 @@
 
                 <v-col cols="12" md="4" v-if="opFlag">
                   <v-text-field
-                    dense
+                    density="compact"
                     v-model="egresos.totalopcuentabanco"
                     type="number"
                     label="Total Operaciones"
@@ -506,9 +505,9 @@
 
                 <v-col cols="12" md="4" v-if="prFlag">
                   <v-text-field
-                    dense
-                    @input="calcularE()"
+                    density="compact"
                     v-model="egresos.monto_pr"
+                    @update:model-value="calcularE()"
                     type="number"
                     label="Monto"
                     :rules="[(v) => !!v || 'Dato requerido']"
@@ -518,7 +517,7 @@
 
                 <v-col cols="12" md="4" v-if="prFlag && mostrarImpuesto">
                   <v-text-field
-                    dense
+                    density="compact"
                     v-model="egresos.igv_pr"
                     type="number"
                     :label="`${$store.state.enterprises.impuesto.nombre_impuesto}`"
@@ -529,7 +528,7 @@
 
                 <v-col cols="12" md="4" v-if="prFlag">
                   <v-text-field
-                    dense
+                    density="compact"
                     v-model="egresos.total_pr"
                     type="number"
                     label="Total"
@@ -539,7 +538,7 @@
                 </v-col>
                 <v-col cols="12" md="4" v-if="opFlag">
                   <v-text-field
-                    dense
+                    density="compact"
                     v-model="egresos.montoopview"
                     type="number"
                     label="Monto Operaciones (Solo lectura) "
@@ -551,7 +550,7 @@
 
                 <v-col cols="12" md="4" v-if="opFlag && mostrarImpuesto">
                   <v-text-field
-                    dense
+                    density="compact"
                     v-model="egresos.igvopview"
                     type="number"
                     :label="`${$store.state.enterprises.impuesto.nombre_impuesto} Operaciones (Solo lectura)`"
@@ -563,7 +562,7 @@
 
                 <v-col cols="12" md="4" v-if="opFlag">
                   <v-text-field
-                    dense
+                    density="compact"
                     v-model="egresos.totalopview"
                     type="number"
                     label="Total Operaciones (Solo lectura) "
@@ -579,7 +578,7 @@
         <v-card-actions class="pb-4">
           <v-btn
             v-if="this.statusBtn == 1"
-            @click.native="_setData()"
+            @click="_setData()"
             block
             color="success"
             elevation="0"
@@ -589,7 +588,7 @@
 
           <v-btn
             v-if="this.statusBtn == 2"
-            @click.native="_editEgresos()"
+            @click="_editEgresos()"
             block
             color="success"
             elevation="0"
@@ -603,10 +602,10 @@
     <!-- ---------------------------------------------------- -->
     <v-dialog max-width="80%" v-model="dialogListInvoice">
       <v-card>
-        <v-card-title>
+        <v-card-title class="d-flex align-center flex-wrap">
           Facturas y Performance de {{ nameproveedor }}
           <v-spacer></v-spacer>
-          <v-btn outlined @click="cargarFactura" color="primary"
+          <v-btn variant="outlined" @click="cargarFactura" color="primary"
             >Cargar Nueva</v-btn
           >
         </v-card-title>
@@ -614,14 +613,14 @@
           <v-data-table
             :headers="headersInvoice"
             :items="itemsListInvoice"
-            dense
-            item-key="id"
+            density="compact"
+            item-value="id"
             class="elevation-0"
             :loading="isDataTableLoading"
           >
             <template v-slot:[`item.originalname`]="{ item }">
               <v-icon v-if="item.type == 'pdf'" color="red" class="mr-2"
-                >mdi-file-pdf</v-icon
+                >mdi-file-pdf-box</v-icon
               >
               <v-icon
                 v-if="
@@ -629,7 +628,7 @@
                   item.type == 'jpg' ||
                   item.type == 'jpeg'
                 "
-                color="blue-grey darken-1"
+                color="blue-grey-darken-1"
                 class="mr-2"
                 >mdi-file-image</v-icon
               >
@@ -644,26 +643,24 @@
               {{ item.number }}
             </template>
             <template v-slot:[`item.path`]="{ item }">
-              <v-btn icon small>
+              <v-btn variant="text" icon size="small">
                 <v-icon
                   class="btn_add mr-2"
-                  dense
-                  large
+                  size="large"
                   color="grey"
-                  @click.native="openDoc(item.path)"
+                  @click="openDoc(item.path)"
                 >
                   mdi-eye
                 </v-icon></v-btn
               >
             </template>
             <template v-slot:[`item.action`]="{ item }">
-              <v-btn icon small>
+              <v-btn variant="text" icon size="small">
                 <v-icon
                   class="btn_add mr-2"
-                  dense
-                  large
+                  size="large"
                   color="red"
-                  @click.native="_delInvoice(item.id)"
+                  @click="_delInvoice(item.id)"
                 >
                   mdi-delete
                 </v-icon></v-btn
@@ -681,9 +678,9 @@
         </v-card-title>
         <v-card-text>
           <v-container>
-            <v-row dense>
+            <v-row density="compact">
               <v-col cols="12" md="12">
-                <v-radio-group v-model="radio" row>
+                <v-radio-group v-model="radio" inline>
                   <v-radio label="Factura" value="1"></v-radio>
                   <v-radio label="Performance" value="2"></v-radio>
                   <v-radio label="Otro" value="3"></v-radio>
@@ -691,7 +688,7 @@
               </v-col>
               <v-col cols="12" md="4">
                 <v-text-field
-                  dense
+                  density="compact"
                   label="Fecha de Operación"
                   prepend-icon="mdi-calendar"
                   type="date"
@@ -701,7 +698,7 @@
               </v-col>
               <v-col cols="12" md="4">
                 <v-text-field
-                  dense
+                  density="compact"
                   v-model="nro_invoice"
                   :label="`Nro de ${
                     radio == 1
@@ -714,7 +711,7 @@
               </v-col>
               <v-col cols="12" md="4">
                 <v-text-field
-                  dense
+                  density="compact"
                   v-model="monto_factura"
                   label="Monto de la Factura"
                   :rules="[(v) => v > 0 || 'Debe ser un monto numérico']"
@@ -740,7 +737,7 @@
             }}
           </v-btn>
 
-          <v-btn outlined color="red" @click="dialogInvoice = !dialogInvoice">
+          <v-btn variant="outlined" color="red" @click="dialogInvoice = !dialogInvoice">
             Cerrar
           </v-btn>
         </v-card-actions>
@@ -752,34 +749,36 @@
         <h2>{{ egreso.nombre_proveedor }}</h2>
         <v-stepper v-model="e1">
           <v-stepper-header>
-            <v-stepper-step :complete="e1 > 1" step="1">
-              Códigos
-            </v-stepper-step>
+            <v-stepper-item :complete="e1 > 1" :value="1" title="Códigos" />
 
             <v-divider></v-divider>
 
-            <v-stepper-step :complete="e1 > 2" step="2">
-              Cuentas Bancarias
-            </v-stepper-step>
+            <v-stepper-item
+              :complete="e1 > 2"
+              :value="2"
+              title="Cuentas Bancarias"
+            />
             <v-divider></v-divider>
 
-            <v-stepper-step :complete="e1 > 3" step="3">
-              Observaciones
-            </v-stepper-step>
+            <v-stepper-item
+              :complete="e1 > 3"
+              :value="3"
+              title="Observaciones"
+            />
           </v-stepper-header>
 
-          <v-stepper-items>
-            <v-stepper-content step="1">
+          <v-stepper-window>
+            <v-stepper-window-item :value="1">
               <v-card class="mb-12" elevation="0" height="200px">
                 <v-card-text>
-                  <v-row dense>
+                  <v-row density="compact">
                     <v-col md="6" cols="12">
                       <v-checkbox
                         v-model="checkPago"
                         :label="`Aplica código de pago ${nombreCodigoPago}`"
                       ></v-checkbox>
                       <v-text-field
-                        dense
+                        density="compact"
                         v-if="checkPago"
                         v-model="codigo_pago"
                         label="CODIGO DE PAGO"
@@ -792,7 +791,7 @@
                         label="Aplica Número de Expediente"
                       ></v-checkbox>
                       <v-text-field
-                        dense
+                        density="compact"
                         v-if="checkMaster"
                         v-model="codigo_master"
                         label="CODIGO DE MASTER BL"
@@ -805,15 +804,15 @@
               >
 
               <v-btn color="primary" @click="e1 = 2"> Continuar </v-btn>
-              <v-btn text @click="dialogSolicitud = false"> Cerrar </v-btn>
-            </v-stepper-content>
+              <v-btn variant="text" @click="dialogSolicitud = false"> Cerrar </v-btn>
+            </v-stepper-window-item>
 
-            <v-stepper-content step="2">
+            <v-stepper-window-item :value="2">
               <v-card class="mb-12" elevation="0" min-height="200px">
                 <v-card-text>
                   <div class="text-right">
                     <v-btn
-                      small
+                      size="small"
                       color="primary"
                       @click="abrirModalCuentaBancaria()"
                     >
@@ -827,10 +826,11 @@
                     :headers="headersAccount"
                     :items="$store.state.itemsDataAccountsNumberList"
                     hide-default-footer
-                    item-key="id"
+                    item-value="id"
+                    return-object
                     show-select
                     class="elevation-0"
-                    dense
+                    density="compact"
                   >
                   </v-data-table>
                   <h2 v-else class="mt-5">Ya seleccionó el codigo de pago</h2>
@@ -840,11 +840,11 @@
               <v-btn color="primary" @click="validarStep2Solicitud">
                 Continuar
               </v-btn>
-              <v-btn text @click="e1 = 1"> Volver</v-btn>
-              <v-btn text @click="dialogSolicitud = false"> Cerrar </v-btn>
-            </v-stepper-content>
+              <v-btn variant="text" @click="e1 = 1"> Volver</v-btn>
+              <v-btn variant="text" @click="dialogSolicitud = false"> Cerrar </v-btn>
+            </v-stepper-window-item>
 
-            <v-stepper-content step="3">
+            <v-stepper-window-item :value="3">
               <v-card class="mb-12" elevation="0" height="200px">
                 <v-card-text>
                   <v-textarea
@@ -855,7 +855,7 @@
                   </v-textarea>
                   <v-btn
                     block
-                    @click.native="_generateSolicitud()"
+                    @click="_generateSolicitud()"
                     class="mt-2"
                     color="primary"
                     >ENVIAR A ADMINISTRACIÓN UNA SOLICITUD DE PAGO</v-btn
@@ -863,10 +863,10 @@
                 </v-card-text>
               </v-card>
 
-              <v-btn text @click="e1 = 2"> Volver </v-btn>
-              <v-btn text @click="dialogSolicitud = false"> Cerrar </v-btn>
-            </v-stepper-content>
-          </v-stepper-items>
+              <v-btn variant="text" @click="e1 = 2"> Volver </v-btn>
+              <v-btn variant="text" @click="dialogSolicitud = false"> Cerrar </v-btn>
+            </v-stepper-window-item>
+          </v-stepper-window>
         </v-stepper>
       </v-card>
     </v-dialog>
@@ -876,15 +876,15 @@
         <v-card-title> Solicitar pago por concepto</v-card-title>
 
         <v-card-text>
-          <v-row dense>
+          <v-row density="compact">
             <v-col md="6" cols="12">
-              <v-text-field dense v-model="codigo_pago" label="CODIGO DE PAGO"
+              <v-text-field density="compact" v-model="codigo_pago" label="CODIGO DE PAGO"
                 >CODIGO DE PAGO</v-text-field
               >
             </v-col>
             <v-col md="6" cols="12">
               <v-text-field
-                dense
+                density="compact"
                 v-model="codigo_master"
                 label="CODIGO DE MASTER BL"
                 readonly
@@ -907,43 +907,38 @@
             :headers="headers"
             :items="conceptos"
             hide-default-footer
-            item-key="concepto"
-            :footer-props="{
-              'items-per-page-options': [10, 20, 30, 40, 50],
-            }"
+            item-value="concepto"
+            return-object
+            :items-per-page-options="[10, 20, 30, 40, 50]"
             :items-per-page="30"
-            dense
+            density="compact"
             show-select
             class="elevation-0"
           >
-            <template
-              v-slot:[`item.data-table-select`]="{ item, isSelected, select }"
-            >
-              <v-simple-checkbox
-                :value="isSelected"
+            <template v-slot:[`item.data-table-select`]="{ item, props }">
+              <v-checkbox-btn
+                v-bind="props"
                 :readonly="item.pagado == 1"
                 v-if="!item.pagado == 1"
-                @input="select($event)"
-              ></v-simple-checkbox>
+              ></v-checkbox-btn>
             </template>
             <template v-slot:[`item.pagado`]="{ item }">
               <v-chip
                 v-if="item.pagado == 1"
-                class="ma-2"
+                class="ma-2 text-white"
                 color="green"
-                small
-                text-color="white"
+                size="small"
+                variant="flat"
               >
                 {{ item.pagado == 1 ? "Pagado" : "" }}
               </v-chip>
 
               <v-icon
                 class="btn__add mr-2"
-                dense
-                large
+                size="large"
                 color="grey"
                 v-if="item.pagado == 1"
-                @click.native="openPaymentFile(item.path)"
+                @click="openPaymentFile(item.path)"
                 >mdi-eye</v-icon
               >
             </template>
@@ -958,16 +953,17 @@
             :headers="headersAccount"
             :items="$store.state.itemsDataAccountsNumberList"
             hide-default-footer
-            item-key="id"
+            item-value="id"
+            return-object
             show-select
-            dense
+            density="compact"
             class="elevation-0"
           >
           </v-data-table>
 
           <v-btn
             block
-            @click.native="_generateSolicitud()"
+            @click="_generateSolicitud()"
             class="mt-2"
             color="primary"
             :loading="loading"
@@ -979,29 +975,29 @@
     <!--  -->
     <v-dialog width="80%" v-model="dialogPayment">
       <v-card class="mx-auto">
-        <v-toolbar color="cyan" dark>
+        <v-toolbar color="cyan" class="text-white">
           <v-toolbar-title>SOLICITUDES GENERADAS</v-toolbar-title>
 
           <v-spacer></v-spacer>
         </v-toolbar>
         <v-card-title>
           <v-text-field
-            dense
+            density="compact"
             v-model="search"
-            append-icon="mdi-magnify"
+            append-inner-icon="mdi-magnify"
             label="Buscar solicitud"
             single-line
             hide-details
           ></v-text-field>
         </v-card-title>
         <v-container v-if="!dataList" style="height: 400px">
-          <v-row class="fill-height" align-content="center" justify="center">
+          <v-row class="fill-height align-content-center justify-center">
             <v-col class="text-subtitle-1 text-center" cols="12">
               Cargando informacíon
             </v-col>
             <v-col cols="12" xl="6" lg="6">
               <v-progress-linear
-                color="deep-purple accent-4"
+                color="deep-purple-accent-4"
                 indeterminate
                 rounded
                 height="6"
@@ -1018,17 +1014,17 @@
           <template v-slot:[`item.status`]="{ item }">
             <v-chip
               v-if="item.status == 2"
-              class="ma-2"
+              class="ma-2 text-white"
               color="orange"
-              text-color="white"
+              variant="flat"
             >
               {{ item.status == 2 ? "Pendiente" : "" }}
             </v-chip>
             <v-chip
               v-if="item.status == 3"
-              class="ma-2"
+              class="ma-2 text-white"
               color="green"
-              text-color="white"
+              variant="flat"
             >
               {{ item.status == 3 ? "Pagado" : "" }}
             </v-chip>
@@ -1065,9 +1061,9 @@
       transition=""
     >
       <v-card>
-        <v-card-title primary-title>
+        <v-card-title class="d-flex align-center flex-wrap" primary-title>
           Registrar División de Pagos <v-spacer></v-spacer>
-          <v-btn icon color="default" @click="cerrarModal()">
+          <v-btn variant="text" icon color="default" @click="cerrarModal()">
             <v-icon>mdi-close</v-icon>
           </v-btn>
         </v-card-title>
@@ -1076,7 +1072,7 @@
             <v-row>
               <v-col cols="12">
                 <v-text-field
-                  dense
+                  density="compact"
                   class="col-3"
                   label="Nro Cuotas"
                   v-model="$store.state.nro_cuotas"
@@ -1093,7 +1089,7 @@
                 <v-row>
                   <v-col cols="4">
                     <v-text-field
-                      dense
+                      density="compact"
                       :label="`Porcentaje Cuota-${n}`"
                       v-model="$store.state.cuota[n - 1]"
                       type="number"
@@ -1111,7 +1107,7 @@
                   </v-col>
                   <v-col cols="8">
                     <v-text-field
-                      dense
+                      density="compact"
                       :rules="[(v) => !!v || 'Dato Requerido']"
                       :label="`Fecha de pago ${n}`"
                       v-model="$store.state.fechacuota[n - 1]"
@@ -1145,7 +1141,7 @@
               <v-row>
                 <v-col cols="12">
                   <v-text-field
-                    dense
+                    density="compact"
                     placeholder="Beneficiario"
                     label="Beneficiario"
                     v-model="cuentaBancaria.beneficiario"
@@ -1156,7 +1152,7 @@
               <v-row>
                 <v-col cols="12">
                   <v-text-field
-                    dense
+                    density="compact"
                     placeholder="Nro Cuenta"
                     label="Nro Cuenta"
                     v-model="cuentaBancaria.nro_cuenta"
@@ -1167,7 +1163,7 @@
               <v-row>
                 <v-col cols="12">
                   <v-text-field
-                    dense
+                    density="compact"
                     placeholder="CCI"
                     label="CCI"
                     v-model="cuentaBancaria.cci"
@@ -1178,9 +1174,9 @@
               <v-row>
                 <v-col cols="12">
                   <v-autocomplete
-                    dense
+                    density="compact"
                     :items="$store.state.bank.list"
-                    item-text="name"
+                    item-title="name"
                     item-value="id"
                     placeholder="Bancos"
                     label="Bancos"
@@ -1192,9 +1188,9 @@
               <v-row>
                 <v-col cols="12">
                   <v-autocomplete
-                    dense
+                    density="compact"
                     :items="$store.state.coins.itemsCoinsList"
-                    item-text="acronym"
+                    item-title="acronym"
                     item-value="id"
                     placeholder="Monedas"
                     label="Monedas"
@@ -1206,7 +1202,7 @@
               <v-row v-if="isProveedorInternacional()">
                 <v-col cols="12">
                   <v-text-field
-                    dense
+                    density="compact"
                     placeholder="Nro swift"
                     label="Nro swift"
                     v-model="cuentaBancaria.nro_swift"
@@ -1217,9 +1213,9 @@
               <v-row v-if="isProveedorInternacional()">
                 <v-col cols="12">
                   <v-autocomplete
-                    dense
+                    density="compact"
                     :items="$store.state.bank.list"
-                    item-text="name"
+                    item-title="name"
                     item-value="id"
                     placeholder="Bancos"
                     label="Bancos"
@@ -1231,7 +1227,7 @@
               <v-row v-if="isProveedorInternacional()">
                 <v-col cols="12">
                   <v-text-field
-                    dense
+                    density="compact"
                     placeholder="Cuenta Intermediario"
                     label="Cuenta Intermediario"
                     v-model="cuentaBancaria.nro_cuenta_intermediario"
@@ -1268,15 +1264,15 @@
             <v-autocomplete
               :items="$store.state.itemsCoinsList"
               v-model="egreso.id_coins"
-              item-text="acronym"
+              item-title="acronym"
               item-value="id"
               label="Moneda de Banco Salida"
-              @change="obtenerMoneda()"
+              @update:model-value="obtenerMoneda()"
               :rules="[(v) => !!v || 'Dato Requerido']"
             />
 
             <v-text-field
-              dense
+              density="compact"
               v-model="egreso.tipocambio"
               type="number"
               label="Tipo de Cambio"
@@ -1301,7 +1297,7 @@
     </v-dialog>
     <v-dialog v-model="dialogCambiarExp" persistent max-width="500px">
       <v-card>
-        <v-card-title class="text-h5 grey lighten-2">
+        <v-card-title class="text-h5 bg-grey-lighten-2">
           Mover {{ egreso.nombre_proveedor ? egreso.nombre_proveedor : null }}
         </v-card-title>
         <v-card-text>
@@ -1315,7 +1311,7 @@
                 )
               "
               item-value="id"
-              item-text="code_master"
+              item-title="code_master"
             />
           </v-form>
         </v-card-text>
@@ -1323,7 +1319,7 @@
           <v-spacer></v-spacer>
           <v-btn
             :loading="loading"
-            outlined
+            variant="outlined"
             color="error"
             @click="dialogCambiarExp = false"
             >Cancelar</v-btn
@@ -1344,6 +1340,7 @@ import Swal from "sweetalert2";
 import { mapActions } from "vuex";
 import ArrastraYSolarComponent from "../comun/ArrastraYSolarComponent.vue";
 export default {
+  emits: ["recalcularProfit", "statusBtn"],
   props: {
     statusBtn: {
       type: Number,
@@ -1369,7 +1366,7 @@ export default {
       type: Boolean,
       default: true,
     },
-    master_egresos: [],
+    master_egresos: null,
   },
   data: () => {
     return {
@@ -1430,97 +1427,97 @@ export default {
       },
       headersInvoice: [
         {
-          text: "Nombre",
-          value: "originalname",
+          title: "Nombre",
+          key: "originalname",
         },
         {
-          text: "Fecha",
-          value: "date_letra",
+          title: "Fecha",
+          key: "date_letra",
         },
         {
-          text: "Monto de la Factura",
-          value: "monto",
+          title: "Monto de la Factura",
+          key: "monto",
         },
         {
-          text: "Ver",
-          value: "path",
+          title: "Ver",
+          key: "path",
         },
         {
-          text: "Acción",
-          value: "action",
+          title: "Acción",
+          key: "action",
         },
       ],
       headersPdf: [
         {
-          text: "Nombre",
+          title: "Nombre",
           align: "start",
           sortable: false,
-          value: "path",
+          key: "path",
         },
         {
-          text: "Fecha Creado",
-          value: "fecha_letra",
+          title: "Fecha Creado",
+          key: "fecha_letra",
         },
         {
-          text: "Hora Creado",
-          value: "hora_letra",
+          title: "Hora Creado",
+          key: "hora_letra",
         },
         {
-          text: "Fecha de Solicitud",
-          value: "fecha_sol_letra",
+          title: "Fecha de Solicitud",
+          key: "fecha_sol_letra",
         },
         {
-          text: "Fecha de Pago",
-          value: "fecha_pago_letra",
+          title: "Fecha de Pago",
+          key: "fecha_pago_letra",
         },
         {
-          text: "Ver",
-          value: "accion",
+          title: "Ver",
+          key: "accion",
         },
         {
-          text: "Status",
-          value: "status",
+          title: "Status",
+          key: "status",
         },
         {
-          text: "Enviar",
-          value: "accions",
+          title: "Enviar",
+          key: "accions",
         },
       ],
       headersAccount: [
-        { text: "Beneficiario", value: "beneficiario" },
+        { title: "Beneficiario", key: "beneficiario" },
         {
-          text: "Cuenta",
+          title: "Cuenta",
           align: "start",
           sortable: false,
-          value: "nameaccount",
+          key: "nameaccount",
         },
-        { text: "Banco", value: "namebanks" },
-        { text: "Moneda", value: "namecoins" },
-        { text: "Número de cuenta", value: "accountnumber" },
+        { title: "Banco", key: "namebanks" },
+        { title: "Moneda", key: "namecoins" },
+        { title: "Número de cuenta", key: "accountnumber" },
       ],
       headers: [
         {
-          text: "Concepto",
+          title: "Concepto",
           align: "start",
           sortable: false,
 
-          value: "concepto",
+          key: "concepto",
         },
         {
-          text: "Monto",
-          value: "monto",
+          title: "Monto",
+          key: "monto",
         },
         {
-          text: "IGV",
-          value: "igv_op",
+          title: "IGV",
+          key: "igv_op",
         },
         {
-          text: "Total",
-          value: "total_op",
+          title: "Total",
+          key: "total_op",
         },
         {
-          text: "Status",
-          value: "pagado",
+          title: "Status",
+          key: "pagado",
         },
       ],
       itemsListInvoice: [],
@@ -1562,7 +1559,7 @@ export default {
       this._getMasterList(),
     ]);
 
-    this.headers[2].text =
+    this.headers[2].title =
       this.$store.state.enterprises.impuesto.nombre_impuesto;
     this.mostrarImpuesto =
       this.$store.state.enterprises.impuesto.mostrarimpuesto;
@@ -1592,7 +1589,7 @@ export default {
       let id_controlgastos = this.egreso.detalle.map((v) => {
         return v.id;
       });
-      if (this.$refs.frmMoverCosto.validate()) {
+      if ((await this.$refs.frmMoverCosto.validate()).valid) {
         let data = {
           id_masterorigen: this.egreso.id_master,
           id_proveedor: this.egreso.id_proveedor,
@@ -1616,7 +1613,7 @@ export default {
     },
     toggleCliente(egreso, grupo) {
       const key = this.clienteKey(egreso, grupo);
-      this.$set(this.clientesAbiertos, key, !this.clientesAbiertos[key]);
+      this.clientesAbiertos[key] = !this.clientesAbiertos[key];
     },
     isClienteAbierto(egreso, grupo) {
       const key = this.clienteKey(egreso, grupo);
@@ -1894,7 +1891,7 @@ export default {
       this.dialogPorcentajeProveedor = !this.dialogPorcentajeProveedor;
     },
     viewPdf(pdf) {
-      window.open(process.env.VUE_APP_URL_MAIN + pdf, "_blank");
+      window.open(import.meta.env.VUE_APP_URL_MAIN + pdf, "_blank");
     },
     validatePorcentaje() {
       let val = true;
@@ -1917,7 +1914,7 @@ export default {
       return val;
     },
     async _setData() {
-      if (!this.$refs.frmEgreso.validate()) {
+      if (!(await this.$refs.frmEgreso.validate()).valid) {
         return;
       }
       var vm = this;
@@ -1972,7 +1969,7 @@ export default {
 
       var config = {
         method: "post",
-        url: process.env.VUE_APP_URL_MAIN + "setEgresos",
+        url: import.meta.env.VUE_APP_URL_MAIN + "setEgresos",
         headers: {
           "Content-Type": "application/json",
         },
@@ -2071,7 +2068,7 @@ export default {
 
       var config = {
         method: "post",
-        url: process.env.VUE_APP_URL_MAIN + "setInvoice",
+        url: import.meta.env.VUE_APP_URL_MAIN + "setInvoice",
         headers: {
           "Content-Type": "application/json",
         },
@@ -2105,7 +2102,7 @@ export default {
 
       var config = {
         method: "post",
-        url: process.env.VUE_APP_URL_MAIN + "delInvoice/" + id,
+        url: import.meta.env.VUE_APP_URL_MAIN + "delInvoice/" + id,
         headers: {
           "Content-Type": "application/json",
         },
@@ -2125,7 +2122,7 @@ export default {
     },
     async InsertarActualizarPorcentajeProveedor() {
       if (
-        this.$refs.frmPorcentajeProveedor.validate() &&
+        (await this.$refs.frmPorcentajeProveedor.validate()).valid &&
         this.validatePorcentaje()
       ) {
         var vm = this;
@@ -2161,7 +2158,7 @@ export default {
       var config = {
         method: "post",
         url:
-          process.env.VUE_APP_URL_MAIN + "getAccountsNumber/" + vm.proveedorId,
+          import.meta.env.VUE_APP_URL_MAIN + "getAccountsNumber/" + vm.proveedorId,
         headers: {
           "Content-Type": "application/json",
         },
@@ -2381,7 +2378,7 @@ export default {
           vm.$store.state.spiner = true;
           var config = {
             method: "put",
-            url: process.env.VUE_APP_URL_MAIN + "delEgregso/" + item.id,
+            url: import.meta.env.VUE_APP_URL_MAIN + "delEgregso/" + item.id,
             headers: {
               "Content-Type": "application/json",
             },
@@ -2425,7 +2422,7 @@ export default {
 
       var config = {
         method: "get",
-        url: process.env.VUE_APP_URL_MAIN + "getSPaymentPro",
+        url: import.meta.env.VUE_APP_URL_MAIN + "getSPaymentPro",
         params: {
           ...egreso,
           id_branch: JSON.parse(sessionStorage.getItem("dataUser"))[0]
@@ -2494,7 +2491,7 @@ export default {
 
       var config = {
         method: "post",
-        url: process.env.VUE_APP_URL_MAIN + "editEgreso/" + vm.egresos.id,
+        url: import.meta.env.VUE_APP_URL_MAIN + "editEgreso/" + vm.egresos.id,
         headers: {
           "Content-Type": "application/json",
         },
@@ -2583,7 +2580,7 @@ export default {
           };
           var config = {
             method: "post",
-            url: process.env.VUE_APP_URL_MAIN + "putSPaymentPro/" + id,
+            url: import.meta.env.VUE_APP_URL_MAIN + "putSPaymentPro/" + id,
             headers: {
               "Content-Type": "application/json",
             },
@@ -2623,7 +2620,7 @@ export default {
 
       var config = {
         method: "put",
-        url: process.env.VUE_APP_URL_MAIN + "eliminar_spaymentpro",
+        url: import.meta.env.VUE_APP_URL_MAIN + "eliminar_spaymentpro",
         headers: {
           "Content-Type": "application/json",
         },
@@ -2699,7 +2696,7 @@ export default {
       };
       var config = {
         method: "post",
-        url: process.env.VUE_APP_URL_MAIN + "setSPaymentPro",
+        url: import.meta.env.VUE_APP_URL_MAIN + "setSPaymentPro",
         headers: {
           "Content-Type": "application/json",
         },
@@ -2739,7 +2736,7 @@ export default {
           };
           var config = {
             method: "post",
-            url: process.env.VUE_APP_URL_MAIN + "pdfSolicitud",
+            url: import.meta.env.VUE_APP_URL_MAIN + "pdfSolicitud",
             headers: {
               "Content-Type": "application/json",
             },
@@ -2756,7 +2753,7 @@ export default {
               });
 
               window.open(
-                process.env.VUE_APP_URL_MAIN + response.data.path,
+                import.meta.env.VUE_APP_URL_MAIN + response.data.path,
                 "_blank",
               );
               vm.dialogSolicitudDivision = false;
@@ -2844,7 +2841,7 @@ export default {
       var config = {
         method: "get",
         url:
-          process.env.VUE_APP_URL_MAIN +
+          import.meta.env.VUE_APP_URL_MAIN +
           `list_invoice_path?id_master=${egreso.id_master}&id_proveedor=${egreso.id_proveedor}&id_correlativo=${egreso.id_correlativo}`,
         headers: {
           "Content-Type": "application/json",
@@ -2889,9 +2886,9 @@ export default {
       );
       return val;
     },
-    registrarCuentaBancaria() {
+    async registrarCuentaBancaria() {
       var vm = this;
-      if (vm.$refs.frmCuentaBancaria.validate()) {
+      if ((await vm.$refs.frmCuentaBancaria.validate()).valid) {
         Swal.fire({
           icon: "question",
           html: "<b>Si guarda este banco, se agregará a la lista de bancos de la ficha del proveedor. ¿Desea continuar?</b>",
@@ -2906,7 +2903,7 @@ export default {
 
             var config = {
               method: "post",
-              url: process.env.VUE_APP_URL_MAIN + "setAccount",
+              url: import.meta.env.VUE_APP_URL_MAIN + "setAccount",
               headers: {
                 "Content-Type": "application/json",
               },
@@ -3142,7 +3139,7 @@ export default {
       }
     },
     async copiarMontos() {
-      if (this.$refs.frmCopiar.validate()) {
+      if ((await this.$refs.frmCopiar.validate()).valid) {
         await this.copiarCGEgresos({
           ...this.egreso,
           tipocambio: this.egreso.tipocambio || 1,

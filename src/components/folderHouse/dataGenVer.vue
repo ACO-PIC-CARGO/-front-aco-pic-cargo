@@ -1,7 +1,7 @@
 <template>
   <div>
     <h3>Datos y Servicios a Realizar</h3>
-    <v-row dense>
+    <v-row density="compact">
       <v-col cols="12" md="4">
         <v-text-field
           readonly
@@ -20,11 +20,11 @@
       <v-col cols="12" md="4">
         <v-text-field
           label="Cot Nro"
-          :value="quoteCodeDisplay"
+          :model-value="quoteCodeDisplay"
           readonly
           @click="verCotizacion"
           :style="quoteCodeDisplay ? 'cursor: pointer;' : ''"
-          :append-icon="quoteCodeDisplay ? 'mdi-eye' : ''"
+          :append-inner-icon="quoteCodeDisplay ? 'mdi-eye' : ''"
         >
         </v-text-field>
       </v-col>
@@ -33,7 +33,7 @@
         <v-autocomplete
           label="Quote aduana"
           :items="$store.state.aduana.listQuotes2"
-          item-text="quote"
+          item-title="quote"
           item-value="id"
           v-model="$store.state.house_cotizacionaduana"
           clearable
@@ -42,7 +42,7 @@
       </v-col>
     </v-row>
 
-    <v-row dense>
+    <v-row density="compact">
       <v-col cols="12" md="4">
         <v-text-field
           label="Sentido"
@@ -68,13 +68,13 @@
       </v-col>
     </v-row>
 
-    <v-row dense>
+    <v-row density="compact">
       <v-col cols="12" md="4">
         <v-text-field
           label="Origen"
           readonly
           v-model="$store.state.houses.house.port_begin"
-          @update:search-input="recargarPuertoOrigen"
+          @update:search="recargarPuertoOrigen"
         ></v-text-field>
       </v-col>
       <v-col cols="12" md="4">
@@ -82,38 +82,38 @@
           label="Destino"
           readonly
           v-model="$store.state.houses.house.port_end"
-          @update:search-input="recargarPuertoDestino"
+          @update:search="recargarPuertoDestino"
         ></v-text-field>
       </v-col>
       <v-col cols="12" md="4" v-if="esAereo">
         <v-text-field
           label="Aerolínea"
-          :value="$store.state.houses.house.aerolinea"
+          :model-value="$store.state.houses.house.aerolinea"
           readonly
         ></v-text-field>
       </v-col>
       <v-col cols="12" md="4" v-else-if="esFCL">
         <v-text-field
           label="Naviera"
-          :value="$store.state.houses.house.naviera"
+          :model-value="$store.state.houses.house.naviera"
           readonly
         ></v-text-field>
       </v-col>
       <v-col cols="12" md="4" v-else-if="esLCL">
         <v-text-field
           label="Coloader"
-          :value="$store.state.houses.house.coloader"
+          :model-value="$store.state.houses.house.coloader"
           readonly
         ></v-text-field>
       </v-col>
     </v-row>
 
-    <v-row dense>
+    <v-row density="compact">
       <template v-if="esLCL">
         <v-col cols="12" md="4">
           <v-text-field
             label="Bultos"
-            :value="$store.state.houses.house.bultos"
+            :model-value="$store.state.houses.house.bultos"
             readonly
           ></v-text-field>
         </v-col>
@@ -121,7 +121,7 @@
           <v-text-field
             label="Peso"
             suffix="kg"
-            :value="$store.state.houses.house.peso"
+            :model-value="$store.state.houses.house.peso"
             readonly
           ></v-text-field>
         </v-col>
@@ -129,7 +129,7 @@
           <v-text-field
             label="Volumen"
             suffix="m3"
-            :value="$store.state.houses.house.volumen"
+            :model-value="$store.state.houses.house.volumen"
             readonly
           ></v-text-field>
         </v-col>
@@ -138,7 +138,7 @@
         <v-col cols="12" md="4">
           <v-text-field
             label="Bultos"
-            :value="$store.state.houses.house.bultos"
+            :model-value="$store.state.houses.house.bultos"
             readonly
           ></v-text-field>
         </v-col>
@@ -146,7 +146,7 @@
           <v-text-field
             label="Peso"
             suffix="kg"
-            :value="$store.state.houses.house.peso"
+            :model-value="$store.state.houses.house.peso"
             readonly
           ></v-text-field>
         </v-col>
@@ -154,7 +154,7 @@
           <v-text-field
             label="Peso Cargable"
             suffix="kg"
-            :value="$store.state.houses.house.peso_cargable"
+            :model-value="$store.state.houses.house.peso_cargable"
             readonly
           ></v-text-field>
         </v-col>
@@ -162,7 +162,7 @@
           <v-text-field
             label="Peso Volumétrico"
             suffix="kg"
-            :value="pesoVolumetrico"
+            :model-value="pesoVolumetrico"
             readonly
           ></v-text-field>
         </v-col>
@@ -171,7 +171,7 @@
         <v-col cols="12" md="3">
           <v-text-field
             label="Tipo de contenedor"
-            :value="
+            :model-value="
               ($store.state.house_id_containers &&
                 $store.state.house_id_containers.name) ||
               ''
@@ -182,7 +182,7 @@
         <v-col cols="12" md="3">
           <v-text-field
             label="Cantidad de contenedores"
-            :value="$store.state.house_cantidad"
+            :model-value="$store.state.house_cantidad"
             readonly
           ></v-text-field>
         </v-col>
@@ -190,7 +190,7 @@
           <v-text-field
             label="Peso"
             suffix="kg"
-            :value="$store.state.houses.house.peso"
+            :model-value="$store.state.houses.house.peso"
             readonly
           ></v-text-field>
         </v-col>
@@ -198,7 +198,7 @@
           <v-text-field
             label="Volumen"
             suffix="m3"
-            :value="$store.state.houses.house.volumen"
+            :model-value="$store.state.houses.house.volumen"
             readonly
           ></v-text-field>
         </v-col>
@@ -207,9 +207,9 @@
 
     <v-dialog v-model="$store.state.modalServices_manualMode" max-width="400">
       <v-card>
-        <v-card-title class="text-h6">
+        <v-card-title class="text-h6 d-flex align-center flex-wrap">
           Agregar Servicio Manual <v-spacer></v-spacer>
-          <v-btn
+          <v-btn variant="text"
             icon
             color="red"
             @click="
@@ -227,7 +227,7 @@
                 <v-col cols="12">
                   <v-autocomplete
                     :items="$store.state.itemsBegEndList"
-                    item-text="name"
+                    item-title="name"
                     item-value="id"
                     label="Ubicación/Tramo"
                     v-model="house_service_id_begend"
@@ -247,14 +247,13 @@
         </v-card-text>
         <v-card-actions>
           <v-spacer></v-spacer>
-          <v-btn color="red" rounded dark @click="cancelNewService"
+          <v-btn color="red" rounded @click="cancelNewService"
             >CANCELAR
           </v-btn>
           <v-btn
             color="success"
             class="ml-2"
             rounded
-            dark
             @click="setNewService"
             >ACEPTAR
           </v-btn>
@@ -535,7 +534,7 @@ export default {
         };
         var config = {
           method: "post",
-          url: process.env.VUE_APP_URL_MAIN + "getHouseListId/",
+          url: import.meta.env.VUE_APP_URL_MAIN + "getHouseListId/",
           headers: {
             "Content-Type": "application/json",
           },
@@ -634,9 +633,9 @@ export default {
       // this._getBitacoraList();
       // this._getBitacoraLineal();
     },
-    setNewService() {
+    async setNewService() {
       var vm = this;
-      if (vm.$refs.formNewService.validate()) {
+      if ((await vm.$refs.formNewService.validate()).valid) {
         const dataBegend =
           vm.$store.state.itemsBegEndList.find(
             (v) => v.id === vm.house_service_id_begend,

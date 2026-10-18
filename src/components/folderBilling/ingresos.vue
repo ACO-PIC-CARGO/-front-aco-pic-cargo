@@ -8,19 +8,19 @@
     <!-- <v-btn @click="nuevoIngreso()" color="blue" dark small>
       Nuevo Control Gastos Ingresos
     </v-btn> -->
-    <v-expansion-panels v-model="openedPanel" accordion>
+    <v-expansion-panels v-model="openedPanel" variant="accordion">
       <v-expansion-panel
         v-for="(house, index) in master_houses || []"
         :key="index"
         :value="house.isExpanded"
       >
-        <v-expansion-panel-header @click.stop="abrirExpandIngreso(index)">
+        <v-expansion-panel-title @click.stop="abrirExpandIngreso(index)">
           <template #actions>
             <v-icon @click="abrirExpandIngreso(index)"
               >mdi-unfold-more-horizontal</v-icon
             >
           </template>
-          <v-simple-table dense>
+          <v-table density="compact">
             <thead>
               <tr>
                 <!-- <th width="10%">House</th> -->
@@ -44,7 +44,7 @@
                 <td>{{ house.consigner }} - {{ house.correlativo }}</td>
                 <td>
                   {{ house.quote }}
-                  <v-btn
+                  <v-btn variant="text"
                     color="info"
                     icon
                     v-if="house.id_quote"
@@ -53,7 +53,7 @@
                     <v-icon>mdi-eye</v-icon>
                   </v-btn>
 
-                  <v-btn
+                  <v-btn variant="text"
                     color="default"
                     icon
                     v-if="house.ruta_cotizacion"
@@ -62,7 +62,7 @@
                     <v-icon>mdi-file</v-icon>
                   </v-btn>
 
-                  <v-btn
+                  <v-btn variant="text"
                     color="default"
                     icon
                     v-if="!house.ruta_cotizacion"
@@ -85,8 +85,7 @@
                     v-if="house.id_orders"
                     @click.stop="handleNuevoIngreso(index, house)"
                     color="blue"
-                    dark
-                    x-small
+                    size="x-small"
                   >
                     Nuevo Concepto
 
@@ -94,24 +93,23 @@
                   </v-btn>
                   <v-btn
                     v-else
-                    small
+                    size="small"
                     @click="nuevoControlGasto(house)"
-                    color="green darken-3"
-                    dark
+                    color="green-darken-3"
                     @click.stop="abrirExpandIngreso(index)"
                     >Nuevo Control de Gastos Ingresos</v-btn
                   >
                   <v-tooltip
-                    bottom
+                    location="bottom"
                     color="error"
                     v-if="bloquearCopiarMontos(house.ingresos)"
                   >
-                    <template v-slot:activator="{ on, attrs }">
+                    <template v-slot:activator="{ props }">
                       <v-btn
-                        v-bind="attrs"
-                        v-on="on"
+                       
+                        v-bind="props"
                         color="success"
-                        x-small
+                        size="x-small"
                         @click="
                           abriModalCopiar(
                             house.ingresos,
@@ -129,7 +127,7 @@
                   <v-btn
                     v-else
                     color="success"
-                    x-small
+                    size="x-small"
                     @click="
                       abriModalCopiar(
                         house,
@@ -163,8 +161,7 @@
                   <v-btn
                     v-if="house.id_orders"
                     color="indigo"
-                    small
-                    dark
+                    size="small"
                     class="mb-1"
                     @click.stop="abrirModalCambiarExpediente(house)"
                     :loading="flagCambiarExpediente"
@@ -173,9 +170,8 @@
                   </v-btn>
                   <v-btn
                     v-if="house.id_orders"
-                    color="red darken-1"
-                    small
-                    dark
+                    color="red-darken-1"
+                    size="small"
                     @click.stop="eliminarHouseIngreso(house)"
                   >
                     Eliminar
@@ -193,8 +189,7 @@
                 <td v-if="editable">
                   <v-btn
                     :color="!house.tienefacturafiscal ? '#616161' : 'primary'"
-                    dark
-                    small
+                    size="small"
                     @click.stop="abrirModalFacturasFiscales(house)"
                   >
                     {{
@@ -206,9 +201,8 @@
                   <v-btn
                     v-if="house.id_orders"
                     color="pink"
-                    small
+                    size="small"
                     class="mt-1"
-                    :dark="!isBotonEmitirProformaDisabled(house)"
                     :disabled="isBotonEmitirProformaDisabled(house)"
                     @click="abrirModalFacturar(house)"
                     @click.stop="abrirExpandIngreso(index)"
@@ -218,10 +212,10 @@
                 </td>
               </tr>
             </tbody>
-          </v-simple-table>
-        </v-expansion-panel-header>
-        <v-expansion-panel-content>
-          <v-simple-table dense>
+          </v-table>
+        </v-expansion-panel-title>
+        <v-expansion-panel-text>
+          <v-table density="compact">
             <thead>
               <tr>
                 <th class="text-left">Descripción</th>
@@ -332,14 +326,14 @@
                 </td>
                 <td>
                   <v-chip
-                    class="ma-2"
+                    class="ma-2 text-white"
                     color="orange"
-                    text-color="white"
+                    variant="flat"
                     v-if="item.facturado == true"
                   >
                     Si
                   </v-chip>
-                  <v-chip class="ma-2" color="green" text-color="white" v-else>
+                  <v-chip class="ma-2 text-white" color="green" variant="flat" v-else>
                     No
                   </v-chip>
                   <br />
@@ -352,7 +346,7 @@
                 <td v-if="editable">
                   <v-icon
                     color="info"
-                    @click.native="activarFactura(item)"
+                    @click="activarFactura(item)"
                     v-if="item.facturado == true && item.pagado == 0"
                   >
                     mdi-eye
@@ -379,18 +373,18 @@
                 </td>
               </tr>
             </tbody>
-          </v-simple-table>
-        </v-expansion-panel-content>
+          </v-table>
+        </v-expansion-panel-text>
       </v-expansion-panel>
     </v-expansion-panels>
 
     <!--  -->
     <v-dialog v-model="dialogIngreso" width="800" persistent>
       <v-card>
-        <v-card-title class="text-h5 grey lighten-2">
+        <v-card-title class="text-h5 bg-grey-lighten-2 d-flex align-center flex-wrap">
           Datos del servicio
           <v-spacer></v-spacer>
-          <v-btn icon color="default" @click="dialogIngreso = !dialogIngreso">
+          <v-btn variant="text" icon color="default" @click="dialogIngreso = !dialogIngreso">
             <v-icon>mdi-close</v-icon>
           </v-btn>
         </v-card-title>
@@ -404,7 +398,7 @@
                   <v-autocomplete
                     :items="$store.state.controlGastos.listCorrelativo"
                     v-model="ingresos.id_correlativo"
-                    item-text="code"
+                    item-title="code"
                     item-value="id"
                     label="Correlativo"
                     :rules="[(v) => !!v || 'Dato Requerido']"
@@ -417,23 +411,24 @@
                     </template>
 
                     <!-- Cada opción del dropdown -->
-                    <template v-slot:item="{ item }">
-                      <v-list-item-content class="py-3">
-                        <v-list-item-title class="correlativo-code">
-                          {{ item.code }}
-                        </v-list-item-title>
+                    <template v-slot:item="{ item, props }">
+                      <v-list-item v-bind="props" role="option" class="py-3">
+                        <template #title>
+                          <span class="correlativo-code">
+                            {{ item.code }}
+                          </span>
+                        </template>
 
-                        <v-list-item-subtitle
-                          v-if="item.description"
-                          class="correlativo-descripcion"
-                        >
-                          <v-icon v-if="item.mdi_icon" small class="mr-2">
-                            {{ item.mdi_icon }}
-                          </v-icon>
+                        <template v-if="item.description" #subtitle>
+                          <span class="correlativo-descripcion">
+                            <v-icon v-if="item.mdi_icon" size="small" class="mr-2">
+                              {{ item.mdi_icon }}
+                            </v-icon>
 
-                          {{ item.description }}
-                        </v-list-item-subtitle>
-                      </v-list-item-content>
+                            {{ item.description }}
+                          </span>
+                        </template>
+                      </v-list-item>
                     </template>
                   </v-autocomplete>
                 </v-col>
@@ -448,9 +443,9 @@
                 <v-col cols="3">
                   <v-switch
                     v-if="mostrarImpuesto"
-                    @change="calcularE()"
                     v-model="ingresos.statusCalcula"
-                    dense
+                    @update:model-value="calcularE()"
+                    density="compact"
                     :label="`Calcula ${$store.state.enterprises.impuesto.nombre_impuesto}`"
                   ></v-switch>
                   <!-- <p v-else>NO HA CONFIGURADO EL IMPUESTOS A LA VENTAS. Ir al Módulo de Configuración</p> -->
@@ -461,18 +456,18 @@
                   <v-autocomplete
                     :items="$store.state.itemsCoinsList"
                     v-model="ingresos.id_coins"
-                    item-text="acronym"
+                    item-title="acronym"
                     item-value="id"
                     label="Moneda de Banco Salida"
-                    @change="obtenerMoneda()"
-                    dense
+                    @update:model-value="obtenerMoneda()"
+                    density="compact"
                     :rules="[(v) => !!v || 'Dato Requerido']"
                   ></v-autocomplete>
                 </v-col>
 
                 <v-col cols="12" md="3" v-if="opFlag">
                   <v-text-field
-                    dense
+                    density="compact"
                     v-if="
                       ingresos.id_coins &&
                       $store.state.itemsCoinsList.find(
@@ -482,7 +477,7 @@
                     v-model="ingresos.tipocambio"
                     type="number"
                     label="Tipo de Cambio"
-                    @input="calcularE()"
+                    @update:model-value="calcularE()"
                     step="0.01"
                     :rules="[
                       (v) => !!v || 'Dato Requerido',
@@ -494,8 +489,8 @@
               <v-row>
                 <v-col cols="12" md="4" v-if="opFlag">
                   <v-text-field
-                    @keyup="calcularE()"
                     v-model="ingresos.montoopcuentabanco"
+                    @keyup="calcularE()"
                     :rules="[(v) => !!v || 'Dato es requerido']"
                     type="number"
                     label="Monto"
@@ -530,8 +525,8 @@
 
                 <v-col cols="12" md="4" v-if="prFlag">
                   <v-text-field
-                    @keyup="calcularE()"
                     v-model="ingresos.monto_pr"
+                    @keyup="calcularE()"
                     :rules="[(v) => !!v || 'Dato es requerido']"
                     type="number"
                     label="Monto"
@@ -560,7 +555,7 @@
                 <!--  -->
                 <v-col cols="12" md="4" v-if="opFlag">
                   <v-text-field
-                    dense
+                    density="compact"
                     v-model="ingresos.montoopview"
                     type="number"
                     label="Monto Operaciones (Solo lectura) "
@@ -571,7 +566,7 @@
 
                 <v-col cols="12" md="4" v-if="opFlag && mostrarImpuesto">
                   <v-text-field
-                    dense
+                    density="compact"
                     v-model="ingresos.igvopview"
                     type="number"
                     :label="`${$store.state.enterprises.impuesto.nombre_impuesto} Operaciones (Solo lectura)`"
@@ -582,7 +577,7 @@
 
                 <v-col cols="12" md="4" v-if="opFlag">
                   <v-text-field
-                    dense
+                    density="compact"
                     v-model="ingresos.totalopview"
                     type="number"
                     label="Total Operaciones (Solo lectura) "
@@ -597,7 +592,7 @@
         <v-card-actions>
           <v-btn
             v-if="this.statusBtn == 1"
-            @click.native="setIngresos()"
+            @click="setIngresos()"
             block
             color="success"
             elevation="0"
@@ -605,7 +600,7 @@
           >
           <v-btn
             v-if="this.statusBtn == 2"
-            @click.native="editIngresos()"
+            @click="editIngresos()"
             block
             color="success"
             elevation="0"
@@ -618,11 +613,11 @@
     <!--  -->
     <v-dialog max-width="90%" v-model="dialogDebs" persistent>
       <v-card>
-        <v-card-title class="text-h5 grey lighten-2">
+        <v-card-title class="text-h5 bg-grey-lighten-2 d-flex align-center flex-wrap">
           Abonos del cliente
           <v-spacer></v-spacer>
 
-          <v-btn icon color="default" @click="dialogDebs = !dialogDebs">
+          <v-btn variant="text" icon color="default" @click="dialogDebs = !dialogDebs">
             <v-icon>mdi-close</v-icon></v-btn
           >
         </v-card-title>
@@ -631,14 +626,14 @@
             <template v-slot:[`item.accion`]="{ item }">
               <v-icon
                 class="btn_add mr-2"
-                small
+                size="small"
                 color="default"
                 @click="openDoc(item.path)"
                 >mdi-eye</v-icon
               >
               <v-icon
                 class="btn_add mr-2"
-                small
+                size="small"
                 color="warning"
                 v-if="item.status == 1"
                 @click="editarDebs(item)"
@@ -646,7 +641,7 @@
               >
               <v-icon
                 class="btn_add mr-2"
-                small
+                size="small"
                 color="red"
                 v-if="item.status == 1"
                 @click="_delDebsClient(item.id)"
@@ -657,23 +652,23 @@
               <v-chip
                 block
                 v-if="item.status == 2"
-                small
+                size="small"
                 class=""
                 color="success"
-                outlined
+                variant="outlined"
               >
-                <v-icon left> mdi-check </v-icon>
+                <v-icon start> mdi-check </v-icon>
                 Confirmado
               </v-chip>
               <v-chip
                 block
                 v-if="item.status == 1"
-                small
+                size="small"
                 class=""
                 color="orange"
-                outlined
+                variant="outlined"
               >
-                <v-icon left> mdi-warning </v-icon>
+                <v-icon start> mdi-warning </v-icon>
                 Por Confirmar
               </v-chip>
             </template>
@@ -691,17 +686,17 @@
     <!--  -->
     <v-dialog max-width="80%" v-model="dialogNewDebs" v-if="dialogNewDebs">
       <v-card>
-        <v-card-title class="text-h5 grey lighten-2">
+        <v-card-title class="text-h5 bg-grey-lighten-2 d-flex align-center flex-wrap">
           Cargar un Nuevo abonos
           <v-spacer></v-spacer>
-          <v-btn icon color="default" @click="dialogNewDebs = !dialogNewDebs">
+          <v-btn variant="text" icon color="default" @click="dialogNewDebs = !dialogNewDebs">
             <v-icon>mdi-close</v-icon></v-btn
           >
         </v-card-title>
         <v-card-text>
           <v-container>
             <v-form ref="frmNuevoAbono">
-              <v-row dense>
+              <v-row density="compact">
                 <v-col cols="12" md="3">
                   <v-text-field
                     label="Fecha de Operación"
@@ -725,10 +720,10 @@
                   <v-autocomplete
                     :items="$store.state.itemsCoinsList"
                     v-model="id_coins"
-                    item-text="acronym"
+                    item-title="acronym"
                     item-value="id"
                     label="Moneda "
-                    @change="obtenerMoneda()"
+                    @update:model-value="obtenerMoneda()"
                     :rules="[(v) => !!v || 'Dato Requerido']"
                   ></v-autocomplete>
                 </v-col>
@@ -748,7 +743,7 @@
                     type="number"
                     label="Monto Ingresado al Banco"
                     :rules="[(v) => !!v || 'Dato Requerido']"
-                    @change.native="calcularMontoDolar()"
+                    @change="calcularMontoDolar()"
                     :prefix="sufmoneda"
                   >
                   </v-text-field>
@@ -771,7 +766,7 @@
                   <v-autocomplete
                     :items="$store.state.itemsDataBanksList"
                     v-model="id_banks"
-                    item-text="acronym"
+                    item-title="acronym"
                     item-value="id"
                     label="Banco Origen"
                     :rules="[(v) => !!v || 'Dato Requerido']"
@@ -786,7 +781,7 @@
                     "
                     v-model="id_cuenta_pic"
                     label="Cuenta Destino (PIC)"
-                    item-text="label"
+                    item-title="label"
                     item-value="id"
                     :rules="[(v) => !!v || 'Datos Requerido']"
                   ></v-select>
@@ -796,7 +791,7 @@
                   <v-textarea
                     auto-grow
                     rows="1"
-                    append-outer-icon="mdi-comment"
+                    append-icon="mdi-comment"
                     v-model="comentario"
                     label="Comentario"
                     :rules="[(v) => !!v || 'Dato Requerido']"
@@ -815,7 +810,7 @@
             >GUARDAR ABONO</v-btn
           >
 
-          <v-btn color="red" dark @click="dialogNewDebs = !dialogNewDebs"
+          <v-btn color="red" @click="dialogNewDebs = !dialogNewDebs"
             >Cerrar</v-btn
           >
         </v-card-actions>
@@ -824,14 +819,14 @@
     <!--  -->
     <v-dialog max-width="80%" v-model="dialogDebsEdit">
       <v-card>
-        <v-card-title>
+        <v-card-title class="d-flex align-center flex-wrap">
           Cargar un nuevo abono
           <v-spacer></v-spacer>
         </v-card-title>
         <v-card-text>
           <v-container>
             <v-form ref="frmNuevoAbono">
-              <v-row dense>
+              <v-row density="compact">
                 <v-col cols="12" md="3">
                   <v-text-field
                     label="Fecha de Operación"
@@ -876,7 +871,7 @@
                   <v-autocomplete
                     :items="$store.state.itemsDataBanksList"
                     v-model="id_banks"
-                    item-text="acronym"
+                    item-title="acronym"
                     item-value="id"
                     label="Banco Origen"
                     :rules="[(v) => !!v || 'Dato Requerido']"
@@ -891,7 +886,7 @@
                     "
                     v-model="id_cuenta_pic"
                     label="Cuenta Destino (PIC)"
-                    item-text="label"
+                    item-title="label"
                     item-value="id"
                     :rules="[(v) => !!v || 'Datos Requerido']"
                   ></v-select>
@@ -901,10 +896,10 @@
                   <v-autocomplete
                     :items="$store.state.itemsCoinsList"
                     v-model="id_coins"
-                    item-text="acronym"
+                    item-title="acronym"
                     item-value="id"
                     label="Moneda En cuenta de Banco"
-                    @change="obtenerMoneda()"
+                    @update:model-value="obtenerMoneda()"
                     :rules="[(v) => !!v || 'Dato Requerido']"
                   ></v-autocomplete>
                 </v-col>
@@ -915,7 +910,7 @@
                     type="number"
                     label="Monto En cuenta de Banco"
                     :rules="[(v) => !!v || 'Dato Requerido']"
-                    @change.native="calcularMontoDolar()"
+                    @change="calcularMontoDolar()"
                     :prefix="sufmoneda"
                   ></v-text-field>
                 </v-col>
@@ -935,12 +930,12 @@
                     :disabled="boolFile || payfile == []"
                     color="blue-grey"
                     block
-                    class="ma-2 white--text"
-                    large
+                    class="ma-2 text-white"
+                    size="large"
                     @click="_uploadFile()"
                   >
                     Subir
-                    <v-icon right dark> mdi-cloud-upload </v-icon>
+                    <v-icon end> mdi-cloud-upload </v-icon>
                   </v-btn>
                 </v-col>
               </v-row>
@@ -950,7 +945,7 @@
         <v-card-actions>
           <v-btn color="primary" @click="actualizar()">GUARDAR ABONO</v-btn>
           <v-spacer></v-spacer>
-          <v-btn outlined color="red" @click="dialogDebsEdit = !dialogDebsEdit"
+          <v-btn variant="outlined" color="red" @click="dialogDebsEdit = !dialogDebsEdit"
             >Cerrar</v-btn
           >
         </v-card-actions>
@@ -967,10 +962,10 @@
       v-if="dialogFacturar"
     >
       <v-card>
-        <v-card-title primary-title>
+        <v-card-title class="d-flex align-center flex-wrap" primary-title>
           GENERAR PROFORMA
           <v-spacer></v-spacer>
-          <v-btn
+          <v-btn variant="text"
             color="default"
             icon
             @click="dialogFacturar = false"
@@ -980,26 +975,22 @@
           </v-btn>
         </v-card-title>
         <v-card-text>
-          <v-stepper v-model="stepProforma" vertical>
-            <v-stepper-step
-              step="1"
+          <v-stepper-vertical v-model="stepProforma" hide-actions>
+            <v-stepper-vertical-item
+              :value="1"
               :complete="stepProforma > 1"
               :editable="firstCompleteProforma"
+              title="Descripción de la Cabecera del Documento"
             >
-              Descripción de la Cabecera del Documento
-            </v-stepper-step>
-            <v-stepper-content step="1">
               <v-text-field
                 v-model="nombreProforma"
                 label="Nombre a Imprimir"
                 :rules="[(v) => !!v || 'Dato Requerido']"
               />
               <v-btn color="primary" @click="continueStep2"> Continue </v-btn>
-            </v-stepper-content>
+            </v-stepper-vertical-item>
 
-            <v-stepper-step step="2"> Conceptos a Facturar </v-stepper-step>
-
-            <v-stepper-content step="2">
+            <v-stepper-vertical-item :value="2" title="Conceptos a Facturar">
               <v-row>
                 <v-col cols="12">
                   <v-data-table
@@ -1007,7 +998,8 @@
                     :headers="headersFacturas"
                     :items="conceptos.filter((v) => !v.facturado)"
                     show-select
-                    item-key="id"
+                    item-value="id"
+                    return-object
                     hide-default-footer
                     :items-per-page="-1"
                   >
@@ -1019,7 +1011,7 @@
                 <v-col cols="4">
                   <v-autocomplete
                     :items="$store.state.itemsCoinsList"
-                    item-text="symbol"
+                    item-title="symbol"
                     item-value="id"
                     label="Moneda"
                     placeholder="Seleccione una moneda"
@@ -1033,19 +1025,19 @@
                 <v-col cols="8" v-if="$store.state.branchs.length > 1">
                   <v-autocomplete
                     :items="$store.state.branchs"
-                    item-text="trade_name"
+                    item-title="trade_name"
                     item-value="id"
                     label="Sucursal"
                     placeholder="Seleccione una sucursal"
                     v-model="id_branch"
-                    @change="obtenerDatos()"
+                    @update:model-value="obtenerDatos()"
                   >
                   </v-autocomplete>
                 </v-col>
                 <v-col cols="12"> </v-col>
               </v-row>
-            </v-stepper-content>
-          </v-stepper>
+            </v-stepper-vertical-item>
+          </v-stepper-vertical>
         </v-card-text>
         <v-card-actions>
           <v-spacer></v-spacer>
@@ -1080,10 +1072,10 @@
     <!--FACTURAS FISCALES-->
     <v-dialog max-width="80%" v-model="dialogFacturasFiscales">
       <v-card>
-        <v-card-title>
+        <v-card-title class="d-flex align-center flex-wrap">
           Facturas y Proformas Fiscales de {{ house.consigner }}
           <v-spacer></v-spacer>
-          <v-btn outlined @click="cargarProformaFiscal" color="primary">
+          <v-btn variant="outlined" @click="cargarProformaFiscal" color="primary">
             Cargar Nueva
           </v-btn>
         </v-card-title>
@@ -1091,14 +1083,14 @@
           <v-data-table
             :headers="headersFacturasFiscales"
             :items="$store.state.houses.lstFacturasFiscales"
-            dense
-            item-key="id"
+            density="compact"
+            item-value="id"
             class="elevation-0"
             :loading="isDataTableLoading"
           >
             <template v-slot:[`item.originalname`]="{ item }">
               <v-icon v-if="item.type == 'pdf'" color="red" class="mr-2"
-                >mdi-file-pdf</v-icon
+                >mdi-file-pdf-box</v-icon
               >
               <v-icon
                 v-if="
@@ -1106,7 +1098,7 @@
                   item.type == 'jpg' ||
                   item.type == 'jpeg'
                 "
-                color="blue-grey darken-1"
+                color="blue-grey-darken-1"
                 class="mr-2"
                 >mdi-file-image</v-icon
               >
@@ -1121,26 +1113,24 @@
               {{ item.nro_factura }}
             </template>
             <template v-slot:[`item.path`]="{ item }">
-              <v-btn icon small>
+              <v-btn variant="text" icon size="small">
                 <v-icon
                   class="btn_add mr-2"
-                  dense
-                  large
+                  size="large"
                   color="grey"
-                  @click.native="openDoc(item.path)"
+                  @click="openDoc(item.path)"
                 >
                   mdi-eye
                 </v-icon></v-btn
               >
             </template>
             <template v-slot:[`item.action`]="{ item }">
-              <v-btn icon small>
+              <v-btn variant="text" icon size="small">
                 <v-icon
                   class="btn_add mr-2"
-                  dense
-                  large
+                  size="large"
                   color="red"
-                  @click.native="eliminarProformaFiscal(item.id)"
+                  @click="eliminarProformaFiscal(item.id)"
                 >
                   mdi-delete
                 </v-icon></v-btn
@@ -1162,9 +1152,9 @@
         </v-card-title>
         <v-card-text>
           <v-container>
-            <v-row dense>
+            <v-row density="compact">
               <v-col cols="12" md="12">
-                <v-radio-group v-model="proformaFiscal.tipo_pago" row>
+                <v-radio-group v-model="proformaFiscal.tipo_pago" inline>
                   <v-radio label="Factura" value="1"></v-radio>
                   <v-radio label="Performance" value="2"></v-radio>
                   <v-radio label="Otro" value="3"></v-radio>
@@ -1214,7 +1204,7 @@
           </v-btn>
           <v-spacer></v-spacer>
           <v-btn
-            outlined
+            variant="outlined"
             color="red"
             @click="dialogProformaFiscal = !dialogProformaFiscal"
             >Cerrar</v-btn
@@ -1236,7 +1226,7 @@
         </v-card-title>
 
         <v-card-text class="px-5">
-          <v-simple-table width="100%">
+          <v-table width="100%">
             <thead>
               <th>#</th>
               <th>Nro Factura</th>
@@ -1265,11 +1255,11 @@
                 </td>
               </tr>
             </tbody>
-          </v-simple-table>
-          <v-subheader class="blinking">
+          </v-table>
+          <v-list-subheader class="blinking">
             <v-icon color="warning">mdi-alert</v-icon> PARA EDITAR , DEBES
             ELIMINAR Y VOLVER A GENERAR LA PROFORMA
-          </v-subheader>
+          </v-list-subheader>
         </v-card-text>
         <v-card-actions>
           <v-btn
@@ -1283,10 +1273,10 @@
     <!-- CAMBIAR EXPEDIENTE (HOUSE CODE) -->
     <v-dialog v-model="dialogCambiarExpediente" max-width="500">
       <v-card>
-        <v-card-title class="text-h5 grey lighten-2">
+        <v-card-title class="text-h5 bg-grey-lighten-2 d-flex align-center flex-wrap">
           Cambiar expediente (House)
           <v-spacer></v-spacer>
-          <v-btn icon color="default" @click="dialogCambiarExpediente = false">
+          <v-btn variant="text" icon color="default" @click="dialogCambiarExpediente = false">
             <v-icon>mdi-close</v-icon>
           </v-btn>
         </v-card-title>
@@ -1299,16 +1289,16 @@
             "
             v-model="selectedNuevoExpediente"
             item-value="id"
-            item-text="code_master"
+            item-title="code_master"
             label="Seleccione nuevo expediente"
-            outlined
+            variant="outlined"
             class="my-5"
           ></v-autocomplete>
-          <p class="caption mb-0">Actual: {{ house.code_house }}</p>
+          <p class="text-caption mb-0">Actual: {{ house.code_house }}</p>
         </v-card-text>
         <v-card-actions>
           <v-spacer></v-spacer>
-          <v-btn outlined color="red" @click="dialogCambiarExpediente = false"
+          <v-btn variant="outlined" color="red" @click="dialogCambiarExpediente = false"
             >Cancelar</v-btn
           >
           <v-btn
@@ -1328,10 +1318,10 @@
       max-width="40%"
     >
       <v-card>
-        <v-card-title class="text-h5 grey lighten-2">
+        <v-card-title class="text-h5 bg-grey-lighten-2 d-flex align-center flex-wrap">
           Cargar Documentos de Cotización
           <v-spacer></v-spacer>
-          <v-btn
+          <v-btn variant="text"
             color="default"
             icon
             @click="dialogCargarArchivoCotizacion = false"
@@ -1340,7 +1330,7 @@
           </v-btn>
         </v-card-title>
         <v-card-text>
-          <v-simple-table>
+          <v-table>
             <tbody>
               <tr
                 v-for="(doc, index) in listaDocumentos.filter(
@@ -1356,7 +1346,7 @@
                   <div v-if="doc.editable">
                     <v-text-field
                       v-model="doc.label"
-                      dense
+                      density="compact"
                       hide-details
                       placeholder="Nombre del documento personalizado"
                       variant="underlined"
@@ -1379,7 +1369,7 @@
                 </td>
               </tr>
             </tbody>
-          </v-simple-table>
+          </v-table>
         </v-card-text>
         <v-card-actions>
           <v-spacer></v-spacer>
@@ -1413,14 +1403,14 @@
             <v-autocomplete
               :items="$store.state.itemsCoinsList"
               v-model="ingresos.id_coins"
-              item-text="acronym"
+              item-title="acronym"
               item-value="id"
               label="Moneda de Banco Salida"
-              @change="obtenerMoneda()"
+              @update:model-value="obtenerMoneda()"
               :rules="[(v) => !!v || 'Dato Requerido']"
             />
             <v-text-field
-              dense
+              density="compact"
               v-model="ingresos.tipocambio"
               type="number"
               label="Tipo de Cambio"
@@ -1460,11 +1450,8 @@ import ArrastraYSolarComponent from "../comun/ArrastraYSolarComponent.vue";
 import ArrastraYSolarComponent2 from "../comun/ArrastraYSolarComponentFile.vue";
 import swal from "sweetalert2";
 export default {
+  emits: ["recalcularProfit"],
   props: {
-    statusBtn: {
-      default: 0,
-      type: Number,
-    },
     prFlag: {
       default: false,
       type: Boolean,
@@ -1485,11 +1472,12 @@ export default {
       type: Boolean,
       default: true,
     },
-    master_houses: [],
+    master_houses: null,
   },
 
   data() {
     return {
+      statusBtn: 1,
       dialogCopiar: false,
       loadingFile: false,
       loadingCopiarMonto: false,
@@ -1611,56 +1599,56 @@ export default {
       },
       headersdebs: [
         {
-          text: "Documento",
+          title: "Documento",
           align: "start",
           sortable: false,
-          value: "name",
+          key: "name",
         },
         {
-          text: "Fecha",
-          value: "date",
+          title: "Fecha",
+          key: "date",
         },
         {
-          text: "Monto En Dolares",
-          value: "monto_letra",
+          title: "Monto En Dolares",
+          key: "monto_letra",
         },
         {
-          text: "Monto en Destino",
-          value: "monto_destino",
+          title: "Monto en Destino",
+          key: "monto_destino",
         },
         {
-          text: "Tipo Moneda En Destino.",
-          value: "symbol_destino",
+          title: "Tipo Moneda En Destino.",
+          key: "symbol_destino",
         },
         {
-          text: "Comentario del Usuario.",
-          value: "comentario_usuario",
+          title: "Comentario del Usuario.",
+          key: "comentario_usuario",
         },
         {
-          text: "Comentario de Admin.",
-          value: "comentario_admin",
+          title: "Comentario de Admin.",
+          key: "comentario_admin",
         },
         {
-          text: "Status",
-          value: "status",
+          title: "Status",
+          key: "status",
         },
         {
-          text: "Ver",
-          value: "accion",
+          title: "Ver",
+          key: "accion",
         },
       ],
       headersFacturas: [
-        { text: "Concepto", value: "concepto" },
+        { title: "Concepto", key: "concepto" },
         // { text: "Monto Pr", value: "monto_pr" },
         // { text: "IGV Pr", value: "igv_pr" },
         // { text: "Total Pr", value: "total_pr" },
         // { text: "Monto Op", value: "monto_op" },
         // { text: "IGV Op", value: "igv_op" },
         // { text: "Total Op", value: "total_op" },
-        { text: "Monto Op", value: "montoopcuentabanco" },
-        { text: "IGV Op.", value: "igvopcuentabanco" },
-        { text: "Total Op", value: "totalopcuentabanco" },
-        { text: "Tipo Cambio", value: "tipocambio" },
+        { title: "Monto Op", key: "montoopcuentabanco" },
+        { title: "IGV Op.", key: "igvopcuentabanco" },
+        { title: "Total Op", key: "totalopcuentabanco" },
+        { title: "Tipo Cambio", key: "tipocambio" },
       ],
       conceptos: [],
       selected: [],
@@ -1669,10 +1657,10 @@ export default {
       dialogFacturasFiscales: false,
       dialogProformaFiscal: false,
       headersFacturasFiscales: [
-        { text: "Nombre", value: "originalname" },
-        { text: "Fecha", value: "fecha" },
-        { text: "Ver", value: "path" },
-        { text: "Acción", value: "action" },
+        { title: "Nombre", key: "originalname" },
+        { title: "Fecha", key: "fecha" },
+        { title: "Ver", key: "path" },
+        { title: "Acción", key: "action" },
       ],
       lstFacturasFiscales: [],
       proformaFiscal: {
@@ -1697,9 +1685,9 @@ export default {
   async mounted() {
     this.id_branch = Number(this.$route.params.id_branch);
     setTimeout(() => {
-      this.headersFacturas[2].text =
+      this.headersFacturas[2].title =
         this.$store.state.enterprises.impuesto.nombre_impuesto;
-      this.headersFacturas[4].text =
+      this.headersFacturas[4].title =
         this.$store.state.enterprises.impuesto.nombre_impuesto;
       this.mostrarImpuesto =
         this.$store.state.enterprises.impuesto.mostrarimpuesto;
@@ -1800,7 +1788,7 @@ export default {
             const config = {
               method: "put",
               url:
-                process.env.VUE_APP_URL_MAIN +
+                import.meta.env.VUE_APP_URL_MAIN +
                 "setHouseIngresosDelete/" +
                 house.id_house,
               headers: {
@@ -1951,7 +1939,7 @@ export default {
       }
     },
     async copiarMontos() {
-      if (this.$refs.frmCopiar.validate()) {
+      if ((await this.$refs.frmCopiar.validate()).valid) {
         this.loadingCopiarMonto = true;
         await this.copiarCGingresos({
           ...this.ingresos,
@@ -2112,7 +2100,7 @@ export default {
     async _setDebsClient() {
       this.calcularMontoDolar();
       this.loading = true;
-      if (this.$refs.frmNuevoAbono.validate()) {
+      if ((await this.$refs.frmNuevoAbono.validate()).valid) {
         var vm = this;
         vm.$swal({
           icon: "info",
@@ -2135,7 +2123,7 @@ export default {
         };
         var config = {
           method: "post",
-          url: process.env.VUE_APP_URL_MAIN + "setDebsClient",
+          url: import.meta.env.VUE_APP_URL_MAIN + "setDebsClient",
 
           headers: {
             "Content-Type": "application/json",
@@ -2271,7 +2259,7 @@ export default {
 
       var config = {
         method: "post",
-        url: process.env.VUE_APP_URL_MAIN + "delDebsClient/" + id,
+        url: import.meta.env.VUE_APP_URL_MAIN + "delDebsClient/" + id,
 
         headers: {
           "Content-Type": "application/json",
@@ -2287,7 +2275,7 @@ export default {
         });
     },
     async editIngresos() {
-      if (!this.$refs.frmIngreso.validate()) {
+      if (!(await this.$refs.frmIngreso.validate()).valid) {
         return;
       }
 
@@ -2516,7 +2504,7 @@ export default {
     },
 
     async setIngresos() {
-      if (!this.$refs.frmIngreso.validate()) {
+      if (!(await this.$refs.frmIngreso.validate()).valid) {
         return;
       }
       let house = this.master_houses.find(
@@ -2556,7 +2544,7 @@ export default {
       this.$emit("recalcularProfit");
     },
     async actualizar() {
-      if (this.$refs.frmNuevoAbono.validate()) {
+      if ((await this.$refs.frmNuevoAbono.validate()).valid) {
         var vm = this;
         vm.$swal({
           icon: "info",
@@ -2580,7 +2568,7 @@ export default {
         };
         var config = {
           method: "put",
-          url: process.env.VUE_APP_URL_MAIN + "actualizar_debs_client",
+          url: import.meta.env.VUE_APP_URL_MAIN + "actualizar_debs_client",
 
           headers: {
             "Content-Type": "application/json",
@@ -2615,7 +2603,7 @@ export default {
       vm.datosFactura = [];
       var config = {
         method: "get",
-        url: `${process.env.VUE_APP_URL_MAIN}data_factura/${vm.house.id_house}/${vm.id_branch}`,
+        url: `${import.meta.env.VUE_APP_URL_MAIN}data_factura/${vm.house.id_house}/${vm.id_branch}`,
 
         headers: {
           "Content-Type": "application/json",
@@ -2677,7 +2665,7 @@ export default {
       // return;
       var config = {
         method: "post",
-        url: `${process.env.VUE_APP_URL_MAIN}generar_factura`,
+        url: `${import.meta.env.VUE_APP_URL_MAIN}generar_factura`,
         headers: {
           "Content-Type": "application/json",
         },
@@ -2700,7 +2688,7 @@ export default {
         id_house: vm.id_house,
         id_coins: vm.id_coins,
         nro_factura: data.nro_factura,
-        url_documento: process.env.VUE_APP_URL_MAIN + data.path,
+        url_documento: import.meta.env.VUE_APP_URL_MAIN + data.path,
         total_monto: vm.datosFactura.total_monto,
         total_igv: vm.datosFactura.total_igv,
         total: vm.datosFactura.total,
@@ -2709,14 +2697,14 @@ export default {
       };
       var config = {
         method: "post",
-        url: process.env.VUE_APP_URL_MAIN + "registrar_factura",
+        url: import.meta.env.VUE_APP_URL_MAIN + "registrar_factura",
         headers: {
           "Content-Type": "application/json",
         },
         data: dataFactura,
       };
       await axios(config);
-      window.open(process.env.VUE_APP_URL_MAIN + data.path, "_blank");
+      window.open(import.meta.env.VUE_APP_URL_MAIN + data.path, "_blank");
       await vm.getListControlGastosHouses(vm.$route.params.id);
     },
     isBotonEmitirProformaDisabled(house = {}) {
@@ -2779,7 +2767,7 @@ export default {
 
       var config = {
         method: "post",
-        url: process.env.VUE_APP_URL_MAIN + "setProformaFiscal",
+        url: import.meta.env.VUE_APP_URL_MAIN + "setProformaFiscal",
         headers: {
           "Content-Type": "application/json",
         },
@@ -2838,7 +2826,7 @@ export default {
           var vm = this;
           var config = {
             method: "post",
-            url: process.env.VUE_APP_URL_MAIN + "delProformaFiscal/" + id,
+            url: import.meta.env.VUE_APP_URL_MAIN + "delProformaFiscal/" + id,
             headers: {
               "Content-Type": "application/json",
             },
@@ -2894,7 +2882,7 @@ export default {
       let vm = this;
       var config = {
         method: "get",
-        url: `${process.env.VUE_APP_URL_MAIN}ver_factura_house`,
+        url: `${import.meta.env.VUE_APP_URL_MAIN}ver_factura_house`,
         params: {
           id: item.id_house,
           id_correlativo: item.id_correlativo,
@@ -2960,7 +2948,7 @@ export default {
         };
         const config = {
           method: "put",
-          url: process.env.VUE_APP_URL_MAIN + "reasignar_house",
+          url: import.meta.env.VUE_APP_URL_MAIN + "reasignar_house",
           headers: {
             "Content-Type": "application/json",
           },
@@ -3041,7 +3029,7 @@ export default {
       const datos = { id: item };
       const config = {
         method: "put",
-        url: process.env.VUE_APP_URL_MAIN + "anular_factura",
+        url: import.meta.env.VUE_APP_URL_MAIN + "anular_factura",
         headers: {
           "Content-Type": "application/json",
         },

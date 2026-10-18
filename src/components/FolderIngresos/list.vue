@@ -2,13 +2,13 @@
   <v-card fluid class="px-5">
     <v-card elevation="0">
       <v-container v-if="loading" style="height: 400px">
-        <v-row class="fill-height" align-content="center" justify="center">
+        <v-row class="fill-height align-content-center justify-center">
           <v-col class="text-subtitle-1 text-center" cols="12">
             Cargando información ....
           </v-col>
           <v-col cols="6">
             <v-progress-linear
-              color="deep-purple accent-4"
+              color="deep-purple-accent-4"
               indeterminate
               rounded
               height="6"
@@ -17,9 +17,9 @@
         </v-row>
       </v-container>
 
-      <v-card-title v-if="!loading" class="elevation-0">
+      <v-card-title v-if="!loading" class="elevation-0 d-flex align-center flex-wrap">
         <v-text-field
-          append-icon="mdi-magnify"
+          append-inner-icon="mdi-magnify"
           label="Buscar"
           single-line
           hide-details
@@ -27,11 +27,11 @@
         >
         </v-text-field>
         <v-spacer></v-spacer>
-        <v-btn small color="success" @click="open_new()"> Nuevo </v-btn>
-        <v-btn small class="mx-1" color="#2962FF" dark @click="open_filter()">
+        <v-btn size="small" color="success" @click="open_new()"> Nuevo </v-btn>
+        <v-btn size="small" class="mx-1" color="#2962FF" @click="open_filter()">
           Fitrar
         </v-btn>
-        <v-btn small class="mx-1" color="#004D40" dark> Exportar </v-btn>
+        <v-btn size="small" class="mx-1" color="#004D40"> Exportar </v-btn>
       </v-card-title>
 
       <v-data-table
@@ -39,7 +39,7 @@
         class="elevation-1"
         :headers="headers"
         :items="$store.state.ingresos.list"
-        item-key="id"
+        item-value="id"
         :search="search"
       >
         <template v-slot:[`item.calculoflag`]="{ item }">
@@ -49,17 +49,17 @@
           {{ !!item.status ? "Activo" : "Inactivo" }}
         </template>
         <template v-slot:[`item.action`]="{ item }">
-          <v-btn icon>
+          <v-btn variant="text" icon>
             <v-icon color="primary" @click="open_read(item.id)">mdi-eye</v-icon>
           </v-btn>
-          <v-btn icon>
+          <v-btn variant="text" icon>
             <v-icon color="warning" @click="open_update(item.id)"
               >mdi-pencil</v-icon
             >
           </v-btn>
 
-          <v-btn icon>
-            <v-btn
+          <v-btn variant="text" icon>
+            <v-btn variant="text"
               icon
               color="red"
               @click="switch_status(item)"
@@ -74,19 +74,17 @@
 
     <v-navigation-drawer
       v-model="showFilterDrawerNew"
-      absolute
-      bottom
+      location="right"
       temporary
-      right
+      
       width="30%"
-      height="100vh"
     >
       <v-list-item>
-        <v-list-item-content>
+        
           <v-list-item-title class="text-h6">
             Nuevo Tipo de Ingreso
           </v-list-item-title>
-        </v-list-item-content>
+        
       </v-list-item>
 
       <v-spacer></v-spacer>
@@ -101,7 +99,6 @@
                 v-model="record.code"
                 @blur="validate_code()"
                 :rules="[(v) => validateCode(v)]"
-                lazy-validation
                 :error-messages="errorCode"
                 clearable
               >
@@ -113,7 +110,6 @@
                 label="Descripción (*)"
                 v-model="record.description"
                 :rules="[(v) => validateDescription(v)]"
-                lazy-validation
                 clearable
               >
               </v-text-field>
@@ -122,15 +118,17 @@
               <v-checkbox
                 label="Se calcula en Reportes"
                 v-model="record.calculoflag"
+                :value-comparator="(value, checked) => Boolean(value) === checked"
               >
               </v-checkbox>
             </v-row>
           </v-form>
           <v-row>
             <v-switch
-              dense
+              density="compact"
               :label="`Estado: ${record.status ? 'Activo' : 'Inactivo'}`"
               v-model="record.status"
+              :value-comparator="(value, checked) => Boolean(value) === checked"
               hide-details
               color="success"
             >
@@ -146,7 +144,6 @@
           </v-btn>
           <v-btn
             class="mx-1"
-            dark
             color="warning"
             @click="showFilterDrawerNew = !showFilterDrawerNew"
           >
@@ -158,20 +155,18 @@
 
     <v-navigation-drawer
       v-model="showFilterDrawerRead"
-      absolute
-      bottom
+      location="right"
       temporary
-      right
+      
       width="30%"
-      height="100vh"
     >
       <v-container v-if="!loading_as">
         <v-list-item class="px-0">
-          <v-list-item-content>
+          
             <v-list-item-title class="text-h6">
               Ver: {{ $store.state.ingresos.record.description }}
             </v-list-item-title>
-          </v-list-item-content>
+          
         </v-list-item>
 
         <v-spacer></v-spacer>
@@ -180,7 +175,7 @@
             <v-text-field
               label="Código"
               readonly
-              :value="$store.state.ingresos.record.code"
+              :model-value="$store.state.ingresos.record.code"
             >
             </v-text-field>
           </v-row>
@@ -188,7 +183,7 @@
             <v-text-field
               label="Descripción"
               readonly
-              :value="$store.state.ingresos.record.description"
+              :model-value="$store.state.ingresos.record.description"
             >
             </v-text-field>
           </v-row>
@@ -197,6 +192,7 @@
               label="Se calcula en Reportes"
               readonly
               v-model="$store.state.ingresos.record.calculoflag"
+              :value-comparator="(value, checked) => Boolean(value) === checked"
             ></v-checkbox>
           </v-row>
           <v-row>
@@ -207,13 +203,13 @@
               }`"
               color="success"
               v-model="$store.state.ingresos.record.status"
+              :value-comparator="(value, checked) => Boolean(value) === checked"
             ></v-switch>
           </v-row>
         </v-card-text>
         <v-card-actions class="justify-end mt-3">
           <v-btn
             class="mx-1"
-            dark
             color="warning"
             @click="showFilterDrawerRead = !showFilterDrawerRead"
           >
@@ -223,13 +219,13 @@
       </v-container>
 
       <v-container v-if="loading_as" style="height: 400px">
-        <v-row class="fill-height" align-content="center" justify="center">
+        <v-row class="fill-height align-content-center justify-center">
           <v-col class="text-subtitle-1 text-center" cols="12">
             Cargando información ....
           </v-col>
           <v-col cols="6">
             <v-progress-linear
-              color="deep-purple accent-4"
+              color="deep-purple-accent-4"
               indeterminate
               rounded
               height="6"
@@ -242,20 +238,18 @@
 
     <v-navigation-drawer
       v-model="showFilterDrawerUpdate"
-      absolute
-      bottom
+      location="right"
       temporary
-      right
+      
       width="30%"
-      height="100vh"
     >
       <v-container v-if="!loading_as">
         <v-list-item class="px-0">
-          <v-list-item-content>
+          
             <v-list-item-title class="text-h6">
               Modificar: {{ $store.state.ingresos.record.description }}
             </v-list-item-title>
-          </v-list-item-content>
+          
         </v-list-item>
 
         <v-spacer></v-spacer>
@@ -278,7 +272,6 @@
                 label="Descripción (*)"
                 v-model="record.description"
                 :rules="[(v) => validateDescription(v)]"
-                lazy-validation
                 clearable
               >
               </v-text-field>
@@ -287,6 +280,7 @@
               <v-checkbox
                 label="Se calcula en Reportes"
                 v-model="record.calculoflag"
+                :value-comparator="(value, checked) => Boolean(value) === checked"
               ></v-checkbox>
             </v-row>
           </v-form>
@@ -295,6 +289,7 @@
             <v-switch
               :label="`Estado: ${record.status ? 'Activo' : 'Inactivo'}`"
               v-model="record.status"
+              :value-comparator="(value, checked) => Boolean(value) === checked"
               color="success"
             >
             </v-switch>
@@ -307,7 +302,6 @@
           </v-btn>
           <v-btn
             class="mx-1"
-            dark
             color="warning"
             @click="showFilterDrawerUpdate = !showFilterDrawerUpdate"
           >
@@ -317,13 +311,13 @@
       </v-container>
 
       <v-container v-if="loading_as" style="height: 400px">
-        <v-row class="fill-height" align-content="center" justify="center">
+        <v-row class="fill-height align-content-center justify-center">
           <v-col class="text-subtitle-1 text-center" cols="12">
             Cargando información ....
           </v-col>
           <v-col cols="6">
             <v-progress-linear
-              color="deep-purple accent-4"
+              color="deep-purple-accent-4"
               indeterminate
               rounded
               height="6"
@@ -335,19 +329,17 @@
 
     <v-navigation-drawer
       v-model="showFilterDrawer"
-      absolute
-      bottom
+      location="right"
       temporary
-      right
+      
       width="30%"
-      height="100vh"
     >
       <v-list-item>
-        <v-list-item-content>
+        
           <v-list-item-title class="text-h6">
             Filtrar Registros
           </v-list-item-title>
-        </v-list-item-content>
+        
       </v-list-item>
 
       <v-spacer></v-spacer>
@@ -378,7 +370,7 @@
             </v-col>
           </v-row>
           <v-row>
-            <v-radio-group v-model="records.status" row dense>
+            <v-radio-group v-model="records.status" inline density="compact">
               <v-radio label="Activo" color="green" :value="true"></v-radio>
               <v-radio label="Inactivo" color="red" :value="false"></v-radio>
               <v-radio label="Todos" color="blue" value="null"></v-radio>
@@ -398,7 +390,6 @@
 
           <v-btn
             class="mx-1"
-            dark
             color="warning"
             @click="showFilterDrawer = !showFilterDrawer"
           >
@@ -420,14 +411,14 @@ export default {
   data() {
     return {
       headers: [
-        { text: "Código", align: "start", value: "code" },
-        { text: "Descripción", value: "description" },
-        { text: "Calculado en Reportes", value: "calculoflag" },
-        { text: "Estado", value: "status" },
-        { text: "Creación", value: "created_at" },
+        { title: "Código", align: "start", key: "code" },
+        { title: "Descripción", key: "description" },
+        { title: "Calculado en Reportes", key: "calculoflag" },
+        { title: "Estado", key: "status" },
+        { title: "Creación", key: "created_at" },
 
-        { text: "Última Actualización", value: "updated_at" },
-        { text: "Acciones", value: "action" },
+        { title: "Última Actualización", key: "updated_at" },
+        { title: "Acciones", key: "action" },
       ],
       loading: true,
       loading_as: true,
@@ -533,14 +524,14 @@ export default {
     submit_insert() {
       this.validate_code();
       setTimeout(async () => {
-        if (this.$refs.formNew.validate() && this.errorCode == null) {
+        if ((await this.$refs.formNew.validate()).valid && this.errorCode == null) {
           this.resetRecord("filter");
           await this.insertIngreso(this.record);
         }
       }, 500);
     },
     async submit_update() {
-      if (this.$refs.form.validate() && this.errorCode == null) {
+      if ((await this.$refs.form.validate()).valid && this.errorCode == null) {
         let data = {
           id: this.id,
           description: this.record.description,
@@ -584,7 +575,7 @@ export default {
       var config = {
         method: "get",
         url:
-          process.env.VUE_APP_URL_MAIN +
+          import.meta.env.VUE_APP_URL_MAIN +
           `validar_nuevo_codigo_ingreso?` +
           `id_branch=${this.record.id_branch}` +
           `&code=${encodeURIComponent(this.record.code)}`,

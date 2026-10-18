@@ -1,10 +1,10 @@
 <template>
   <v-container>
-    <v-expansion-panels accordion>
+    <v-expansion-panels variant="accordion">
       <v-expansion-panel>
-        <v-expansion-panel-header>{{ tipo.nombre }}</v-expansion-panel-header>
-        <v-expansion-panel-content>
-          <v-simple-table>
+        <v-expansion-panel-title>{{ tipo.nombre }}</v-expansion-panel-title>
+        <v-expansion-panel-text>
+          <v-table>
             <thead>
               <tr>
                 <th>Multiplicador</th>
@@ -19,10 +19,10 @@
               <tr v-for="(Monto, index) in lstMontos" :key="index">
                 <td>
                   <v-autocomplete
-                    dense
+                    density="compact"
                     :items="$store.state.calculadoras.lstMultiplicador"
                     item-value="id"
-                    item-text="name"
+                    item-title="name"
                     :rules="[(v) => !!v || 'Dato Requerido']"
                     v-model="Monto.id_multiplicador"
                     hide-details
@@ -31,7 +31,7 @@
                 </td>
                 <td>
                   <v-text-field
-                    dense
+                    density="compact"
                     hide-details
                     v-model="Monto.concepto"
                     :disabled="Monto.bloqueadoflag"
@@ -39,7 +39,7 @@
                 </td>
                 <td>
                   <v-text-field
-                    dense
+                    density="compact"
                     hide-details
                     type="number"
                     v-model="Monto.punitario"
@@ -48,7 +48,7 @@
                 </td>
                 <td>
                   <v-text-field
-                    dense
+                    density="compact"
                     hide-details
                     v-model="Monto.costominimo"
                     :disabled="Monto.bloqueadoflag"
@@ -57,7 +57,7 @@
                 </td>
                 <td>
                   <v-text-field
-                    dense
+                    density="compact"
                     hide-details
                     v-model="Monto.fechavalidez"
                     type="date"
@@ -65,31 +65,31 @@
                   ></v-text-field>
                 </td>
                 <td>
-                  <v-btn
+                  <v-btn variant="text"
                     v-if="Monto.bloqueadoflag"
                     icon
-                    small
+                    size="small"
                     color="info"
                     @click="Monto.bloqueadoflag = false"
                     ><v-icon>mdi-pencil</v-icon></v-btn
                   >
-                  <v-btn
+                  <v-btn variant="text"
                     icon
-                    small
+                    size="small"
                     color="warning"
                     v-else
                     @click="actualizarCosto(Monto)"
                   >
                     <v-icon>mdi-content-save</v-icon>
                   </v-btn>
-                  <v-btn icon small color="error" @click="elimimarCosto(Monto)">
+                  <v-btn variant="text" icon size="small" color="error" @click="elimimarCosto(Monto)">
                     <v-icon>mdi-delete</v-icon>
                   </v-btn>
                 </td>
               </tr>
             </tbody>
-          </v-simple-table>
-        </v-expansion-panel-content>
+          </v-table>
+        </v-expansion-panel-text>
       </v-expansion-panel>
     </v-expansion-panels>
   </v-container>

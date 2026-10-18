@@ -17,7 +17,7 @@
         ACO <span class="plan__accent">{{ plan.name }}</span>
       </h2>
       <span v-if="!plan.isActive" class="plan__status">Inactivo</span>
-      <v-btn
+      <v-btn variant="text"
         icon
         class="plan__chevron"
         :aria-label="`Ver detalles de ACO ${plan.name}`"
@@ -95,7 +95,7 @@
     <footer class="plan__footer">
       <slot />
       <v-btn
-        text
+        variant="text"
         class="plan__details-toggle"
         :aria-expanded="String(expanded)"
         :aria-controls="detailsId"
@@ -117,9 +117,10 @@ export default {
     expanded: { type: Boolean, default: false },
     index: { type: Number, default: 0 },
   },
+  emits: ["toggle-details"],
   computed: {
     detailsId() {
-      return `plan-details-${this._uid}`;
+      return `plan-details-${this.$.uid}`;
     },
   },
 };
@@ -397,7 +398,7 @@ export default {
   color: var(--planes-text-muted);
 }
 
-.plans-theme .plan__details-toggle.v-btn >>> .v-btn__content {
+.plans-theme .plan__details-toggle.v-btn :deep(.v-btn__content) {
   flex: 0 1 auto;
   gap: 6px;
 }

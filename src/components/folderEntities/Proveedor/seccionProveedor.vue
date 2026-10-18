@@ -1,16 +1,15 @@
 <template>
   <v-card>
-    <v-card-title class="px-2 container-narrow">
+    <v-card-title class="px-2 container-narrow d-flex align-center flex-wrap">
       <v-spacer></v-spacer>
       <v-btn
         v-if="!showNavigationButtons"
-        color="light-blue darken-2"
+        color="light-blue-darken-2"
         class="ma-2"
-        dark
-        small
+        size="small"
         @click="modificarProveedor"
       >
-        <v-icon left small>mdi-account-edit</v-icon>
+        <v-icon start size="small">mdi-account-edit</v-icon>
         {{ isFormReadonly ? "EDITAR PROVEEDOR" : "GUARDAR CAMBIOS" }}
       </v-btn>
     </v-card-title>
@@ -29,8 +28,8 @@
             </v-row>-->
 
               <!--CUSTOM AUTOCOMPLETE-->
-              <v-subheader class="px-0 font-weight-bold"
-                >Identificación del Proveedor</v-subheader
+              <v-list-subheader class="px-0 font-weight-bold"
+                >Identificación del Proveedor</v-list-subheader
               >
               <v-row>
                 <v-col cols="12">
@@ -49,10 +48,10 @@
               <v-row>
                 <v-col cols="12" md="6">
                   <v-autocomplete
-                    dense
-                    outlined
+                    density="compact"
+                    variant="outlined"
                     :items="$store.state.itemsDataRoleList"
-                    item-text="name"
+                    item-title="name"
                     item-value="id"
                     label="Tipo de Proveedor"
                     :rules="[(v) => !!v || 'Dato Requerido']"
@@ -61,10 +60,10 @@
                 </v-col>
                 <v-col cols="12" md="6">
                   <v-autocomplete
-                    dense
-                    outlined
+                    density="compact"
+                    variant="outlined"
                     :items="$store.state.masterusuarios.lstTipoTransaccion"
-                    item-text="descripcion"
+                    item-title="descripcion"
                     item-value="id"
                     label="Nacional / Extranjero"
                     :rules="[(v) => !!v || 'Dato Requerido']"
@@ -72,16 +71,16 @@
                   ></v-autocomplete>
                 </v-col>
               </v-row>
-              <v-subheader class="px-0 font-weight-bold mt-2"
-                >Documento Fiscal</v-subheader
+              <v-list-subheader class="px-0 font-weight-bold mt-2"
+                >Documento Fiscal</v-list-subheader
               >
               <v-row>
                 <v-col cols="12" md="6">
                   <v-autocomplete
-                    dense
-                    outlined
+                    density="compact"
+                    variant="outlined"
                     :items="$store.state.itemsDocumentsPais"
-                    item-text="description"
+                    item-title="description"
                     item-value="id"
                     label="Tipo de Documento Fiscal"
                     v-model="$store.state.entities.proveedor.id_tipodocumento"
@@ -105,29 +104,29 @@
                   />
                 </v-col>
               </v-row>
-              <v-subheader class="px-0 font-weight-bold mt-2"
-                >Ubicación y Contacto</v-subheader
+              <v-list-subheader class="px-0 font-weight-bold mt-2"
+                >Ubicación y Contacto</v-list-subheader
               >
               <v-row>
                 <v-col cols="12" md="6">
                   <v-autocomplete
-                    dense
-                    outlined
-                    item-text="name"
+                    density="compact"
+                    variant="outlined"
+                    item-title="name"
                     item-value="id"
                     :items="$store.state.itemsPais"
                     label="País"
-                    @change="_getState($store.state.entities.proveedor.id_pais)"
                     :rules="[(v) => !!v || 'Dato Requerido']"
                     v-model="$store.state.entities.proveedor.id_pais"
+                    @update:model-value="_getState($store.state.entities.proveedor.id_pais)"
                   ></v-autocomplete>
                 </v-col>
                 <v-col cols="12" md="6">
                   <v-autocomplete
-                    dense
-                    outlined
+                    density="compact"
+                    variant="outlined"
                     :items="$store.state.itemsState"
-                    item-text="name"
+                    item-title="name"
                     item-value="id"
                     label="Región / Estado"
                     v-model="$store.state.entities.proveedor.id_ciudad"
@@ -137,16 +136,16 @@
               <v-row>
                 <v-col cols="12" md="6">
                   <v-text-field
-                    dense
-                    outlined
+                    density="compact"
+                    variant="outlined"
                     label="Dirección"
                     v-model="$store.state.entities.proveedor.direccion"
                   ></v-text-field>
                 </v-col>
                 <v-col cols="12" md="6">
                   <v-text-field
-                    dense
-                    outlined
+                    density="compact"
+                    variant="outlined"
                     label="Correo Electrónico"
                     v-model="$store.state.entities.proveedor.emailaddress"
                     :rules="[(v) => validarCorreoElectronico(v)]"
@@ -156,8 +155,10 @@
               </v-row>
 
               <!--CONVENIO ACTUAL-->
-              <v-subheader class="px-0 font-weight-bold mt-2">
-                Convenio Actual
+              <div class="d-flex align-center mt-2">
+                <v-list-subheader class="px-0 font-weight-bold">
+                  Convenio Actual
+                </v-list-subheader>
                 <v-spacer></v-spacer>
                 <v-file-input
                   v-if="showFormActions"
@@ -166,14 +167,14 @@
                   hide-input
                   class="customFile"
                   v-model="fileinput"
-                  @change="subirArchivoConvenio"
+                  @update:model-value="subirArchivoConvenio"
                 ></v-file-input>
-              </v-subheader>
+              </div>
               <v-row>
                 <v-col cols="12" md="4">
                   <v-text-field
-                    dense
-                    outlined
+                    density="compact"
+                    variant="outlined"
                     type="number"
                     suffix="días"
                     v-model="
@@ -189,8 +190,8 @@
                 </v-col>
                 <v-col cols="12" md="4">
                   <v-text-field
-                    dense
-                    outlined
+                    density="compact"
+                    variant="outlined"
                     type="date"
                     v-model="
                       $store.state.entities.proveedor.convenioActual.fecha
@@ -201,8 +202,8 @@
                 </v-col>
                 <v-col cols="12" md="4">
                   <v-text-field
-                    dense
-                    outlined
+                    density="compact"
+                    variant="outlined"
                     v-model="
                       $store.state.entities.proveedor.convenioActual
                         .email_soporte
@@ -219,29 +220,29 @@
               </v-row>
 
               <!--TELÉFONO ACTUAL-->
-              <v-subheader class="px-0 font-weight-bold mt-2"
-                >Teléfono Principal</v-subheader
+              <v-list-subheader class="px-0 font-weight-bold mt-2"
+                >Teléfono Principal</v-list-subheader
               >
               <v-row>
                 <v-col cols="12" md="6">
                   <v-autocomplete
-                    dense
-                    outlined
+                    density="compact"
+                    variant="outlined"
                     :items="$store.state.masterusuarios.lstTipoTelefono"
-                    item-text="descripcion"
+                    item-title="descripcion"
                     item-value="id"
                     label="Tipo de Teléfono"
                     v-model="
                       $store.state.entities.proveedor.telefonoActual
                         .id_tipotelefono
                     "
-                    @change="validarTelefonoActual"
+                    @update:model-value="validarTelefonoActual"
                   ></v-autocomplete>
                 </v-col>
                 <v-col cols="12" md="6">
                   <v-text-field
-                    dense
-                    outlined
+                    density="compact"
+                    variant="outlined"
                     label="Teléfono"
                     v-model="
                       $store.state.entities.proveedor.telefonoActual.telefono
@@ -252,14 +253,14 @@
               </v-row>
 
               <!--CONTACTO ACTUAL-->
-              <v-subheader class="px-0 font-weight-bold mt-2"
-                >Teléfono Adicional</v-subheader
+              <v-list-subheader class="px-0 font-weight-bold mt-2"
+                >Teléfono Adicional</v-list-subheader
               >
               <v-row>
                 <v-col cols="12" md="4">
                   <v-text-field
-                    dense
-                    outlined
+                    density="compact"
+                    variant="outlined"
                     label="Nombre"
                     v-model="
                       $store.state.entities.proveedor.contactoActual.nombre
@@ -269,23 +270,23 @@
                 </v-col>
                 <v-col cols="12" md="4">
                   <v-autocomplete
-                    dense
-                    outlined
+                    density="compact"
+                    variant="outlined"
                     :items="$store.state.masterusuarios.lstTipoTelefono"
-                    item-text="descripcion"
+                    item-title="descripcion"
                     item-value="id"
                     label="Tipo de Teléfono"
                     v-model="
                       $store.state.entities.proveedor.contactoActual
                         .id_tipotelefono
                     "
-                    @change="validarContactoActual"
+                    @update:model-value="validarContactoActual"
                   ></v-autocomplete>
                 </v-col>
                 <v-col cols="12" md="4">
                   <v-text-field
-                    dense
-                    outlined
+                    density="compact"
+                    variant="outlined"
                     label="Teléfono"
                     v-model="
                       $store.state.entities.proveedor.contactoActual.telefono
@@ -296,14 +297,14 @@
               </v-row>
 
               <!--PRODUCTO QUE VENDE-->
-              <v-subheader class="px-0 font-weight-bold mt-2"
-                >Producto</v-subheader
+              <v-list-subheader class="px-0 font-weight-bold mt-2"
+                >Producto</v-list-subheader
               >
-              <v-row :disabled="isProductoDisabled">
+              <v-row>
                 <v-col cols="12">
                   <v-textarea
-                    dense
-                    outlined
+                    density="compact"
+                    variant="outlined"
                     rows="2"
                     label="Producto que vende"
                     :rules="[(v) => validarProducto(v)]"
@@ -314,14 +315,14 @@
               </v-row>
 
               <!--DÍAS LIBRES DE SOBREESTADÍA-->
-              <v-subheader class="px-0 font-weight-bold mt-2"
-                >Condiciones del Servicio</v-subheader
+              <v-list-subheader class="px-0 font-weight-bold mt-2"
+                >Condiciones del Servicio</v-list-subheader
               >
               <v-row v-show="showDiasSobreestadia">
                 <v-col cols="12" md="6">
                   <v-text-field
-                    dense
-                    outlined
+                    density="compact"
+                    variant="outlined"
                     type="number"
                     label="Días Libres de Sobreestadía"
                     :rules="[
@@ -336,8 +337,8 @@
               <v-row v-show="showDiasAlmacenaje">
                 <v-col cols="12" md="6">
                   <v-text-field
-                    dense
-                    outlined
+                    density="compact"
+                    variant="outlined"
                     type="number"
                     label="Días Libres de Almacenaje"
                     :rules="[
@@ -349,14 +350,14 @@
               </v-row>
 
               <!--NOTAS-->
-              <v-subheader class="px-0 font-weight-bold mt-2"
-                >Notas</v-subheader
+              <v-list-subheader class="px-0 font-weight-bold mt-2"
+                >Notas</v-list-subheader
               >
               <v-row>
                 <v-col cols="12">
                   <v-textarea
-                    dense
-                    outlined
+                    density="compact"
+                    variant="outlined"
                     rows="3"
                     label="Comentarios / Notas Importantes"
                     v-model="$store.state.entities.proveedor.notas"
@@ -371,13 +372,12 @@
     <v-card-actions v-if="!showNavigationButtons" class="px-2 container-narrow">
       <v-spacer></v-spacer>
       <v-btn
-        color="light-blue darken-2"
+        color="light-blue-darken-2"
         class="ma-2"
-        dark
-        small
+        size="small"
         @click="modificarProveedor"
       >
-        <v-icon left small>mdi-account-edit</v-icon>
+        <v-icon start size="small">mdi-account-edit</v-icon>
         {{ isFormReadonly ? "EDITAR PROVEEDOR" : "GUARDAR CAMBIOS" }}
       </v-btn>
     </v-card-actions>
@@ -403,6 +403,7 @@ export default {
       default: false,
     },
   },
+  emits: ["ObtenerProveedor"],
   data() {
     return {
       showNombreCompleto: true,
@@ -636,9 +637,9 @@ export default {
         }
       }
     },
-    validarFormulario() {
+    async validarFormulario() {
       var vm = this;
-      if (vm.$refs.formProv_datosProveedor.validate()) {
+      if ((await vm.$refs.formProv_datosProveedor.validate()).valid) {
         vm.validarConvenioActual();
         vm.validarTelefonoActual();
         vm.validarContactoActual();
@@ -828,9 +829,9 @@ export default {
   },
   watch: {
     "$store.state.entities.isStep1Valid": {
-      handler(newValue) {
+      async handler(newValue) {
         if (!newValue) {
-          this.$refs.formProv_datosProveedor.validate();
+          await this.$refs.formProv_datosProveedor.validate();
         }
       },
       immediate: true,
@@ -844,7 +845,7 @@ export default {
   flex-grow: 0 !important;
   flex-direction: row-reverse !important;
 }
-.customFile .v-input__prepend-outer {
+.customFile .v-input__prepend {
   margin-right: 0;
 }
 .container-narrow {
