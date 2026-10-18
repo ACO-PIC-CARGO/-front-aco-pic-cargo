@@ -104,7 +104,7 @@
 </template>
 
 <script>
-import BotonChateaConNosotros from "../../components/comun/botonChateaConNosotros.vue";
+import BotonChateaConNosotros from "../../components/comun/BotonChateaConNosotros.vue";
 import ConfiguracionCargaClienteComponent from "../../components/FolderEnterprise/ConfiguracionCargaClienteComponent.vue";
 import ConfiguracionCargaProveedorComponent from "../../components/FolderEnterprise/ConfiguracionCargaProveedorComponent.vue";
 import ConfiguracionCostosComponent from "../../components/FolderEnterprise/ConfiguracionCostosComponent.vue";

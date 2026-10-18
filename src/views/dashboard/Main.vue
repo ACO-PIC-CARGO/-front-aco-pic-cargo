@@ -525,9 +525,9 @@ import mixins from "@/components/mixins/funciones";
 import Swal from "sweetalert2";
 import moment from "moment";
 import axios from "@/api/http";
-import LoadingComponent from "../../components/comun/loadingComponent.vue";
+import LoadingComponent from "../../components/comun/LoadingComponent.vue";
 import { io } from "socket.io-client";
-import BtnIrAlListado from "../../components/comun/btnIrAlListado.vue";
+import BtnIrAlListado from "../../components/comun/BtnIrAlListado.vue";
 import BotonesHeader from "../../components/comun/BotonesHeader.vue";
 import PlanStatusBadge from "../../components/SubscriptionPackages/PlanStatusBadge.vue";
 export default {
