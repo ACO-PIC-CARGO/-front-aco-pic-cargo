@@ -265,7 +265,9 @@
     </v-app-bar>
 
     <v-main class="main">
-      <router-view />
+      <div class="main-content">
+        <router-view />
+      </div>
     </v-main>
 
     <div v-if="$store.state.dialogProcessing" class="dialogOverlay"></div>
@@ -2099,8 +2101,10 @@ export default {
 </script>
 <style lang="scss" scoped>
 .main {
-  padding: 10px !important;
   background: #f4f7fa;
+}
+.main-content {
+  padding: 10px;
 }
 .perdida {
   background: red !important;
