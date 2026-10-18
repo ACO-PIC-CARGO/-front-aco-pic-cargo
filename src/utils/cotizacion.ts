@@ -13,8 +13,6 @@ import type {
 
 type ImpuestoOpcional = Impuesto | null;
 
-export const looseEquals = (a: unknown, b: unknown): boolean => a == b;
-
 export function numeroSeguro(value: unknown): number {
   if (value === null || value === undefined || value === "") return 0;
   const normalized =
@@ -28,7 +26,7 @@ export function probarFunction(): number {
 }
 
 export function obtenerFlagOrigen(item: ItemBegEnd): number {
-  return item.codebegend === "OR" || item.codebegend === "FL" ? 1 : 0;
+  return item.codebegend == "OR" || item.codebegend == "FL" ? 1 : 0;
 }
 
 export function obtenerStatus({
@@ -36,28 +34,28 @@ export function obtenerStatus({
 }: {
   lstStatus: EstadoCotizacion[];
 }): number | string | undefined {
-  const found = lstStatus.filter((v) => looseEquals(v.code, "3"));
+  const found = lstStatus.filter((v) => v.code == "3");
   return found.length > 0 ? found[0]!.id : "";
 }
 
 export function obtenerLocalFlag(item: ItemBegEnd): number {
-  return item.codebegend === "DE" &&
-    item.categoria_role !== "AD" &&
-    item.categoria_role !== "TR" &&
-    item.categoria_role !== "AL"
+  return item.codebegend == "DE" &&
+    item.categoria_role != "AD" &&
+    item.categoria_role != "TR" &&
+    item.categoria_role != "AL"
     ? 1
     : 0;
 }
 
 export function obtenerAduanaFlag(item: ItemBegEnd): number {
-  return item.codebegend === "DE" &&
-    (item.categoria_role === "AD" || item.categoria_role === "TR")
+  return item.codebegend == "DE" &&
+    (item.categoria_role == "AD" || item.categoria_role == "TR")
     ? 1
     : 0;
 }
 
 export function obtenerAlmacenFlag(item: ItemBegEnd): number {
-  return item.codebegend === "DE" && item.categoria_role === "AL" ? 1 : 0;
+  return item.codebegend == "DE" && item.categoria_role == "AL" ? 1 : 0;
 }
 
 export function calcularValor(
@@ -71,7 +69,7 @@ export function calcularValor(
     parseFloat(String(precio)) + parseFloat(String(flete ? flete : 0));
   const seguro = 0.015 * cif;
   const porcentajeDe = (base: number, piso: number): number => {
-    if (looseEquals(porcentaje, 0)) return 0;
+    if (porcentaje == 0) return 0;
     const monto = (parseFloat(String(porcentaje)) / 100) * base;
     return monto >= piso ? monto : piso;
   };
@@ -119,7 +117,7 @@ export function validateCost({
   multiplicador?: Multiplicador[];
   services?: Servicio[];
 }): { estado: boolean; mensaje: string } {
-  const service = services.filter((v) => looseEquals(v.status, 1));
+  const service = services.filter((v) => v.status == 1);
   const listMultiplicador = multiplicador.filter((v) =>
     comienzaNoConCaracter(v.text!, "%"),
   );
@@ -131,7 +129,7 @@ export function validateCost({
       idMultiplicador.includes(v.id_multiplicador) &&
       idServices.includes(v.id_groupservices),
   );
-  const val = listCostos.filter((v) => looseEquals(v.costounitario, 0));
+  const val = listCostos.filter((v) => v.costounitario == 0);
   return {
     estado: val.length > 0 ? false : true,
     mensaje: "Existe un costo que tiene un valor 0.00. Verifique",

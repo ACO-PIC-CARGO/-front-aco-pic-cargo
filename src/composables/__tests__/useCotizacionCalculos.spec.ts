@@ -97,6 +97,20 @@ describe("calcularFac", () => {
     expect(calcularFac(24, 15, 0)).toBe(5);
   });
 
+  test("string inputs are coerced for arithmetic and returned raw where the formula picks them", () => {
+    expect(calcularFac(2, "4,5")).toBe("4,5");
+    expect(calcularFac(2, null)).toBe(null);
+    expect(calcularFac(3, "5", "2000")).toBe("5");
+    expect(calcularFac(3, "1", "2000")).toBe(2);
+    expect(calcularFac(6, "2", "100")).toBeCloseTo(333.32, 10);
+    expect(calcularFac(6, "1", "1000")).toBe("1000");
+    expect(calcularFac(18, 0, "77")).toBe("77");
+    expect(calcularFac(4, 0, null)).toBe(0);
+    expect(calcularFac(15, 0, 0, [], "1,000")).toBeNaN();
+    expect(calcularFac(24, "30", "20000")).toBe(20);
+    expect(calcularFac(24, "10", "3000")).toBe(3);
+  });
+
   test("unknown, string or missing codes give 1", () => {
     expect(calcularFac(99, 5, 5)).toBe(1);
     expect(calcularFac("2", 5, 5)).toBe(1);

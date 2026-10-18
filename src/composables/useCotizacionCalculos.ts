@@ -6,7 +6,7 @@ import type {
   Multiplicador,
   Numerico,
 } from "@/types/cotizacion";
-import { calcularValor, looseEquals, numeroSeguro } from "@/utils/cotizacion";
+import { calcularValor, numeroSeguro } from "@/utils/cotizacion";
 
 type CodigoMultiplicador = number | string | null | undefined;
 type MultiplicadorBuscado = Multiplicador & { length?: number };
@@ -30,13 +30,13 @@ export function useCotizacionCalculos() {
       store.state.pricing.listMultiplicador;
 
     const configMult = listMultiplicador.find((item) =>
-      looseEquals(item.code, code),
+      item.code == code,
     );
 
     const getContainerCount = (identificador: Multiplicador["id_container"]) => {
       if (!Array.isArray(containers)) return 0;
       const found = containers.find((v) =>
-        looseEquals(v.id_containers, identificador),
+        v.id_containers == identificador,
       );
       return found ? found.cantidad : 0;
     };
@@ -85,14 +85,14 @@ export function useCotizacionCalculos() {
     const costosFlete = (Array.isArray(listCostos) ? listCostos : []).filter(
       (costo) =>
         costo &&
-        looseEquals(costo.esfleteflag, 1) &&
-        looseEquals(costo.status, 1) &&
-        looseEquals(costo.esventaflag, 1),
+        costo.esfleteflag == 1 &&
+        costo.status == 1 &&
+        costo.esventaflag == 1,
     ) as Costo[];
 
     return costosFlete.reduce((total, costo) => {
       const multiplicador = ((pricing.listMultiplicador || []) as Multiplicador[])
-        .find((item) => looseEquals(item.id, costo.id_multiplicador));
+        .find((item) => item.id == costo.id_multiplicador);
       let factor = numeroSeguro(
         calcularFac(
           multiplicador ? multiplicador.code : "N",
@@ -104,7 +104,7 @@ export function useCotizacionCalculos() {
       );
 
       if (
-        looseEquals(costo.code_cost, 4) &&
+        costo.code_cost == 4 &&
         numeroSeguro(datosPrincipales.volumen) < 1
       ) {
         factor = Math.max(factor, 1);
@@ -128,7 +128,7 @@ export function useCotizacionCalculos() {
     multiplicadores: Multiplicador[],
   ): MultiplicadorBuscado | undefined {
     return costo.id_multiplicador
-      ? multiplicadores.filter((v) => looseEquals(v.id, costo.id_multiplicador))[0]
+      ? multiplicadores.filter((v) => v.id == costo.id_multiplicador)[0]
       : [];
   }
 
@@ -140,7 +140,7 @@ export function useCotizacionCalculos() {
   ): number {
     const code = codemultiplicador.code;
     const esPorcentaje =
-      looseEquals(code, 5) || looseEquals(code, 13) || looseEquals(code, 14);
+      code == 5 || code == 13 || code == 14;
     if (!esPorcentaje) {
       return (
         Number(codemultiplicador.valor) *
@@ -160,7 +160,7 @@ export function useCotizacionCalculos() {
       datosPrincipales.amount,
       totalDeFlete,
       code,
-      looseEquals(code, 14) ? (costo.cif as Numerico) : (costo.seguro as Numerico),
+      code == 14 ? (costo.cif as Numerico) : (costo.seguro as Numerico),
       costo.minimo ? Number(costo.minimo) : 118,
     );
     return 0;
@@ -204,7 +204,7 @@ export function useCotizacionCalculos() {
             v.esaduanaflag ||
             v.esgastostercerosflag ||
             v.esalmacenflag) &&
-          looseEquals(v.status, 1),
+          v.status == 1,
       )
       .forEach((costo) => {
         const codemultiplicador = buscarMultiplicador(costo, multiplicadores);
@@ -218,15 +218,7 @@ export function useCotizacionCalculos() {
             totalDeFlete,
           );
         }
-        if (
-          codemultiplicador &&
-          !(
-            looseEquals(codemultiplicador.code, 5) &&
-            looseEquals(codemultiplicador.code, 13) &&
-            looseEquals(codemultiplicador.code, 14) &&
-            costo.esorigenflag
-          )
-        ) {
+        if (codemultiplicador) {
           cost.push({
             ...costo,
             code_service: costo.code_service ? costo.code_service : "",
@@ -251,13 +243,13 @@ export function useCotizacionCalculos() {
     costos
       .filter(
         (v) =>
-          (looseEquals(v.esorigenflag, true) ||
-            looseEquals(v.eslocalflag, true) ||
-            looseEquals(v.esfleteflag, true) ||
-            looseEquals(v.esaduanaflag, true) ||
-            looseEquals(v.esgastostercerosflag, true) ||
-            looseEquals(v.esalmacenflag, true)) &&
-          looseEquals(v.status, 1),
+          (v.esorigenflag == true ||
+            v.eslocalflag == true ||
+            v.esfleteflag == true ||
+            v.esaduanaflag == true ||
+            v.esgastostercerosflag == true ||
+            v.esalmacenflag == true) &&
+          v.status == 1,
       )
       .forEach((costo) => {
         const codemultiplicador = buscarMultiplicador(costo, multiplicadores);
@@ -271,15 +263,7 @@ export function useCotizacionCalculos() {
             totalDeFlete,
           );
         }
-        if (
-          codemultiplicador &&
-          !(
-            looseEquals(codemultiplicador.code, 5) &&
-            looseEquals(codemultiplicador.code, 13) &&
-            looseEquals(codemultiplicador.code, 14) &&
-            costo.esorigenflag
-          )
-        ) {
+        if (codemultiplicador) {
           cost.push({
             ...costo,
             code_cost: costo.code_cost ? costo.code_cost : null,

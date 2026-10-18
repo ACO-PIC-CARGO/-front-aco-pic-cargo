@@ -576,6 +576,19 @@ describe("origin, local, customs and warehouse flags", () => {
   });
 });
 
+describe("flag functions compare loosely", () => {
+  const loose = (codebegend: string, categoria_role?: string) =>
+    ({ codebegend: [codebegend], categoria_role: [categoria_role] }) as never;
+
+  test("a single-element array matches like its string", () => {
+    expect(obtenerFlagOrigen(loose("OR"))).toBe(1);
+    expect(obtenerLocalFlag(loose("DE", "XX"))).toBe(1);
+    expect(obtenerLocalFlag(loose("DE", "AD"))).toBe(0);
+    expect(obtenerAduanaFlag(loose("DE", "AD"))).toBe(1);
+    expect(obtenerAlmacenFlag(loose("DE", "AL"))).toBe(1);
+  });
+});
+
 describe("obtenerStatus", () => {
   test("returns the id of the first status with code 3", () => {
     expect(
