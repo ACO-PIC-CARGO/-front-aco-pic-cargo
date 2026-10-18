@@ -507,7 +507,7 @@
 </template>
 <script>
 import { defineAsyncComponent } from "vue";
-import axios from '@/api/axios-config';
+import axios from '@/api/http';
 import { mapState, mapActions } from "vuex";
 import exportFromJSON from "export-from-json";
 import moment from "moment";

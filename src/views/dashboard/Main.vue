@@ -522,7 +522,7 @@ import { Store, mapActions, mapState } from "vuex";
 import mixins from "@/components/mixins/funciones";
 import Swal from "sweetalert2";
 import moment from "moment";
-import axios from "@/api/axios-config";
+import axios from "@/api/http";
 import LoadingComponent from "../../components/comun/loadingComponent.vue";
 import { io } from "socket.io-client";
 import BtnIrAlListado from "../../components/comun/btnIrAlListado.vue";

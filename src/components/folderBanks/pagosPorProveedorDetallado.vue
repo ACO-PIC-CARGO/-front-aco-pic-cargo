@@ -167,7 +167,7 @@
 import moment from "moment";
 import { mapActions } from "vuex";
 import FormatFecha from "../comun/FormatFecha.vue";
-import axios from "@/api/axios-config";
+import axios from "@/api/http";
 import Swal from "sweetalert2";
 import BarraFiltro from "../BarraMostrarFiltro/BarraFiltro.vue";
 export default {

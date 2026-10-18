@@ -354,7 +354,7 @@
 </template>
 <script>
 import { defineAsyncComponent } from "vue";
-import axios from '@/api/axios-config';
+import axios from '@/api/http';
 import moment from "moment";
 import Swal from "sweetalert2";
 import { mapActions, mapState } from "vuex";

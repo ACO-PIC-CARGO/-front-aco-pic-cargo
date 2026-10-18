@@ -264,7 +264,7 @@
 </template>
 <script>
 import { mapState, mapActions } from "vuex";
-import axios from "@/api/axios-config";
+import axios from "@/api/http";
 export default {
   name: "dataGen",
   data() {

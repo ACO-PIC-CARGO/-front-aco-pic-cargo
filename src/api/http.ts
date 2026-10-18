@@ -1,6 +1,14 @@
 import axios from "axios";
+import type { AxiosError, AxiosResponse, InternalAxiosRequestConfig } from "axios";
 import router from "@/router";
-import CryptoJS from "crypto-js";
+
+interface SessionUserEntry {
+  id_branch?: number | string;
+  users?: number | string;
+}
+
+const readSessionUser = (): [SessionUserEntry, ...SessionUserEntry[]] | null =>
+  JSON.parse(sessionStorage.getItem("dataUser") as string);
 
 const http = axios.create({
   baseURL: import.meta.env.VITE_URL_MAIN,
@@ -9,9 +17,9 @@ const http = axios.create({
   },
 });
 
-http.interceptors.request.use((config) => {
-  const userData = JSON.parse(sessionStorage.getItem("dataUser"));
-  const branch = JSON.parse(sessionStorage.getItem("dataUser"));
+http.interceptors.request.use((config: InternalAxiosRequestConfig) => {
+  const userData = readSessionUser();
+  const branch = readSessionUser();
   const token = sessionStorage.getItem("auth-token");
 
   if (branch && branch[0].id_branch) {
@@ -34,16 +42,15 @@ http.interceptors.request.use((config) => {
   return config;
 });
 
-// Interceptor de respuesta (igual al que tenías)
 http.interceptors.response.use(
-  (response) => {
+  (response: AxiosResponse) => {
     const token = response?.data?.token;
     if (token) sessionStorage.setItem("auth-token", token);
     return response;
   },
-  (error) => {
+  (error: AxiosError) => {
     if (error?.response?.status === 401) {
-      sessionStorage.clear(); // Limpieza más segura
+      sessionStorage.clear();
       if (router.currentRoute.value.name !== "Login") {
         router.replace({ name: "Login" });
       }

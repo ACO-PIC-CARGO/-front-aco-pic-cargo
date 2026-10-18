@@ -368,7 +368,7 @@ import services from "./services.vue";
 import totalesProveedor from "./totalesProveedor.vue";
 import totales from "./totales.vue";
 import { mapState, mapActions } from "vuex";
-import axios from '@/api/axios-config';
+import axios from '@/api/http';
 import moment from "moment";
 export default {
   name: "ControlGastos",

@@ -219,7 +219,7 @@
 
 <script>
 import { mapActions } from "vuex";
-import axios from '@/api/axios-config';
+import axios from '@/api/http';
 import { v4 as uuidv4 } from "uuid";
 import moment from "moment";
 export default {

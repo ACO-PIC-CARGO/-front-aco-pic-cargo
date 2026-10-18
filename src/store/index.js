@@ -1,5 +1,5 @@
 import { createStore } from "vuex";
-import axios from "@/api/axios-config";
+import axios from "@/api/http";
 import router from "@/router";
 const imgSave = "/img/svg/save.svg";
 const imgFolder = "/img/svg/folder.svg";

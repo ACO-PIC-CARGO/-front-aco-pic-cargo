@@ -290,7 +290,7 @@
 
 <script>
 import { defineAsyncComponent } from "vue";
-import axios from '@/api/axios-config';
+import axios from '@/api/http';
 import moment from "moment";
 import { mapActions, mapState } from "vuex";
 

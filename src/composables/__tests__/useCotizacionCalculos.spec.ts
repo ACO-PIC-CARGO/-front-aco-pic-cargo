@@ -3,7 +3,7 @@ import store from "@/store/index";
 import { useCotizacionCalculos } from "@/composables/useCotizacionCalculos";
 
 vi.mock("@/router", () => ({ default: {} }));
-vi.mock("@/api/axios-config", () => ({ default: {} }));
+vi.mock("@/api/http", () => ({ default: {} }));
 
 const pricing = store.state.pricing;
 const originalMultiplicadores = pricing.listMultiplicador;

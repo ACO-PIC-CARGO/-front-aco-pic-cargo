@@ -786,7 +786,7 @@
 import { defineAsyncComponent } from "vue";
 import { io } from "socket.io-client";
 import { mapActions, mapState } from "vuex";
-import axios from "@/api/axios-config";
+import axios from "@/api/http";
 import Swal from "sweetalert2";
 import { getRegistration } from "./registerServiceWorker";
 

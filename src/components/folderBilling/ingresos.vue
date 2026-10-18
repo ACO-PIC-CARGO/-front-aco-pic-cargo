@@ -1443,7 +1443,7 @@
 
 <script>
 import moment from "moment";
-import axios from "@/api/axios-config";
+import axios from "@/api/http";
 import Swal from "sweetalert2";
 import { mapActions } from "vuex";
 import ArrastraYSolarComponent from "../comun/ArrastraYSolarComponent.vue";

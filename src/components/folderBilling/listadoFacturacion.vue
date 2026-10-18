@@ -39,7 +39,7 @@
 </template>
 
 <script>
-import axios from "@/api/axios-config";
+import axios from "@/api/http";
 import { mapActions } from "vuex";
 export default {
   name: "lstFacturacionComponent",

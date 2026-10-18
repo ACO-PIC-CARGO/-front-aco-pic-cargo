@@ -320,7 +320,7 @@
 </template>
 
 <script>
-import axios from '@/api/axios-config';
+import axios from '@/api/http';
 import Swal from "sweetalert2";
 import moment from "moment";
 import mixins from "../mixins/funciones.js";

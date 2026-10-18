@@ -408,7 +408,7 @@
 </template>
 
 <script>
-import axios from '@/api/axios-config';
+import axios from '@/api/http';
 import miMixin from "../mixins/funciones";
 import { mapState, mapActions } from "vuex";
 import Swal from "sweetalert2";

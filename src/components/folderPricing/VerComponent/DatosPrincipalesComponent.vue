@@ -154,7 +154,7 @@
 
 <script>
 import { mapActions, mapState } from "vuex";
-import axios from "@/api/axios-config";
+import axios from "@/api/http";
 
 export default {
   props: {

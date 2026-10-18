@@ -106,7 +106,7 @@ import dataEmbar from "./dataEmbar.vue";
 import dataFechas from "./fechas.vue";
 import { mapActions, mapState } from "vuex";
 import Swal from "sweetalert2";
-import axios from "@/api/axios-config";
+import axios from "@/api/http";
 export default {
   name: "controlMasterCom",
   components: {

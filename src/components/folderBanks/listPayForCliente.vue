@@ -271,7 +271,7 @@
 </template>
 
 <script>
-import axios from "@/api/axios-config";
+import axios from "@/api/http";
 import swal from "sweetalert2";
 import moment from "moment";
 import { mapActions } from "vuex";

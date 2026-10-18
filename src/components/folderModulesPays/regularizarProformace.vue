@@ -38,7 +38,7 @@
   </div>
 </template>
 <script>
-import axios from '@/api/axios-config';
+import axios from '@/api/http';
 import controlAccountPaysCom from "@/components/folderModulesPays/controlAccountPays.vue";
 export default {
   name: "RegularizarFacturaCom",

@@ -273,7 +273,7 @@
 
 <script>
 import { mapState, mapActions } from "vuex";
-import axios from "@/api/axios-config";
+import axios from "@/api/http";
 import Swal from "sweetalert2";
 export default {
   name: "dataEmbar",

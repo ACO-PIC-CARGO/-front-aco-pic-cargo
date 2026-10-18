@@ -241,7 +241,7 @@
 </template>
 <script>
 import { mapActions } from "vuex";
-import axios from "@/api/axios-config";
+import axios from "@/api/http";
 import moment from "moment";
 import FormatFecha from "../comun/FormatFecha.vue";
 import Swal from "sweetalert2";

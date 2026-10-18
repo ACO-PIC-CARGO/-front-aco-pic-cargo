@@ -239,7 +239,7 @@
 import { defineAsyncComponent } from "vue";
 import { mapState, mapActions } from "vuex";
 import moment from "moment";
-import axios from "@/api/axios-config";
+import axios from "@/api/http";
 import Swal from "sweetalert2";
 export default {
   props: {

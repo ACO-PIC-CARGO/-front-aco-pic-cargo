@@ -250,7 +250,7 @@
 </template>
 
 <script>
-import axios from '@/api/axios-config';
+import axios from '@/api/http';
 
 export default {
   data() {

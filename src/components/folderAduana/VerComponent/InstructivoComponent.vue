@@ -602,7 +602,7 @@ import { mapActions } from "vuex";
 import Swal from "sweetalert2";
 import moment from "moment";
 import mixins from "../../../components/mixins/funciones.js";
-import axios from '@/api/axios-config';
+import axios from '@/api/http';
 export default {
   mixins: [mixins],
   components: {

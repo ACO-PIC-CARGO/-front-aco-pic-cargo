@@ -1,6 +1,6 @@
 import Swal from "sweetalert2";
 import router from "@/router";
-import axios from "@/api/axios-config";
+import axios from "@/api/http";
 const state = {
   list: [],
   response: [],
