@@ -209,6 +209,7 @@
           </label>
           <v-chip
             :color="item.codigo01"
+            variant="flat"
             v-if="item.descripcion_canal && item.status == 1"
           >
             {{ item.descripcion_canal }}

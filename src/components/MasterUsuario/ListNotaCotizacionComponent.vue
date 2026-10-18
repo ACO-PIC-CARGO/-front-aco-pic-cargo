@@ -28,12 +28,12 @@
             :search="search"
           >
             <template v-slot:[`item.individualflag`]="{ item }">
-              <v-chip :color="item.individualflag ? 'success' : 'warning'">
+              <v-chip :color="item.individualflag ? 'success' : 'warning'" variant="flat">
                 {{ item.individualflag ? "SI" : "NO" }}
               </v-chip>
             </template>
             <template v-slot:[`item.grupalflag`]="{ item }">
-              <v-chip :color="item.grupalflag ? 'success' : 'warning'">
+              <v-chip :color="item.grupalflag ? 'success' : 'warning'" variant="flat">
                 {{ item.grupalflag ? "SI" : "NO" }}
               </v-chip>
             </template>

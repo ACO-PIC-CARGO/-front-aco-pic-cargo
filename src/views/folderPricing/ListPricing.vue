@@ -15,6 +15,7 @@
               size="small"
               style="cursor: pointer"
               :color="item.color"
+              variant="flat"
               @click="filtrarCotizaciones(item)"
             >
               {{ item.nombre_estado }}

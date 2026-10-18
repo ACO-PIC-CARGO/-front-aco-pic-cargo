@@ -38,7 +38,7 @@
               {{ !!item.status == 1 ? "Activo" : "Inactivo" }}
             </template>
             <template v-slot:[`item.colors`]="{ item }">
-              <v-chip :color="item.color" v-if="item.color">
+              <v-chip :color="item.color" variant="flat" v-if="item.color">
                 {{ item.color }}
               </v-chip>
             </template>
