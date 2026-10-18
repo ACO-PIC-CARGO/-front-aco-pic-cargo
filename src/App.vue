@@ -8,7 +8,7 @@
       class="align-center justify-center"
     >
       <v-row class="fill-height align-content-center justify-center">
-        <v-col class="text-subtitle-1 text-center" cols="12">
+        <v-col class="text-body-large text-center" cols="12">
           Cargando Datos, espere un momento por favor...
         </v-col>
         <v-col cols="6">
@@ -89,7 +89,7 @@
       <v-card class="rounded-lg elevation-4">
         <!-- Barra superior de advertencia -->
         <v-card-title
-          class="text-h5 bg-error text-white py-3 px-4 d-flex align-center"
+          class="text-headline-medium bg-error text-white py-3 px-4 d-flex align-center"
         >
           <v-icon start size="large" class="mr-2">mdi-power-plug-off</v-icon>
           <span class="font-weight-bold">SISTEMA EN MANTENIMIENTO</span>
@@ -110,7 +110,7 @@
 
               <!-- Columna del mensaje -->
               <v-col cols="8">
-                <div class="text-body-1 text-grey-darken-3">
+                <div class="text-body-large text-grey-darken-3">
                   <p class="font-weight-bold mb-2" style="font-size: 17px">
                     Estimado usuario:
                   </p>
@@ -121,7 +121,7 @@
                     <b>suspendido temporalmente</b>.
                   </p>
                   <p
-                    class="text-caption text-grey-darken-1 mb-0 font-italic"
+                    class="text-body-small text-grey-darken-1 mb-0 font-italic"
                   >
                     Agradecemos su comprensión y paciencia. Estaremos operando
                     con normalidad en breve.
@@ -140,7 +140,7 @@
       width="90%"
     >
       <v-card>
-        <v-card-title class="text-h5 d-flex align-center flex-wrap">
+        <v-card-title class="text-headline-medium d-flex align-center flex-wrap">
           Ficha de Clientes <v-spacer></v-spacer>
           <v-btn variant="text"
             icon
@@ -210,7 +210,7 @@
 
     <v-dialog v-model="$store.state.modalContainers" max-width="390">
       <v-card>
-        <v-card-title class="text-h5"> Control de Contenedores </v-card-title>
+        <v-card-title class="text-headline-medium"> Control de Contenedores </v-card-title>
         <v-card-text>
           <v-form ref="formContenedor">
             <v-container>
@@ -284,7 +284,7 @@
 
     <v-dialog v-model="$store.state.modalPhones" max-width="550">
       <v-card>
-        <v-card-title class="text-h5"> Teléfono </v-card-title>
+        <v-card-title class="text-headline-medium"> Teléfono </v-card-title>
         <v-card-text>
           <v-row>
             <v-col cols="4">
@@ -387,7 +387,7 @@
 
     <v-dialog v-model="$store.state.modalPhonesEdit" max-width="550">
       <v-card>
-        <v-card-title class="text-h5"> Teléfonos </v-card-title>
+        <v-card-title class="text-headline-medium"> Teléfonos </v-card-title>
         <v-card-text>
           <v-table density="compact">
             <template v-slot:default>
@@ -460,7 +460,7 @@
 
     <v-dialog v-model="$store.state.modalContacts" max-width="750">
       <v-card>
-        <v-card-title class="text-h5"> Contactos </v-card-title>
+        <v-card-title class="text-headline-medium"> Contactos </v-card-title>
         <v-card-text>
           <v-row>
             <v-col cols="7">
@@ -556,7 +556,7 @@
 
     <v-dialog v-model="$store.state.modalCuentas" max-width="750">
       <v-card>
-        <v-card-title class="text-h5"> Cuentas </v-card-title>
+        <v-card-title class="text-headline-medium"> Cuentas </v-card-title>
         <v-card-text>
           <v-row>
             <v-col cols="2">
@@ -658,7 +658,7 @@
 
     <v-dialog v-model="$store.state.modalContactsEdit" max-width="750">
       <v-card>
-        <v-card-title class="text-h5"> Contactos </v-card-title>
+        <v-card-title class="text-headline-medium"> Contactos </v-card-title>
         <v-card-text>
           <v-row>
             <v-col cols="7">
@@ -756,7 +756,7 @@
 
     <v-dialog v-model="$store.state.modalServices" max-width="400">
       <v-card>
-        <v-card-title class="text-h5 d-flex align-center flex-wrap">
+        <v-card-title class="text-headline-medium d-flex align-center flex-wrap">
           Control de Servicios <v-spacer></v-spacer>
           <v-btn variant="text"
             icon

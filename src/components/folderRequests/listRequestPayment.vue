@@ -23,7 +23,7 @@
       </v-card-subtitle>
       <v-container v-if="!dataList" style="height: 400px">
         <v-row class="fill-height align-content-center justify-center">
-          <v-col class="text-subtitle-1 text-center" cols="12">
+          <v-col class="text-body-large text-center" cols="12">
             Cargando informacíon
           </v-col>
           <v-col cols="6">
@@ -314,7 +314,7 @@
           <v-row>
             <v-col cols="4">
               <h2>Proveedor</h2>
-              <p class="text-h4 mt-2">{{ nameproveedor }}</p>
+              <p class="text-headline-large mt-2">{{ nameproveedor }}</p>
               <h2>Conceptos pagados</h2>
               <p
                 v-for="item in itemsSPaymentConceptos"

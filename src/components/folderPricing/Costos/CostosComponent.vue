@@ -3,7 +3,7 @@
     <div class="">
       <v-row>
         <v-col cols="12" lg="4" xl="4" class="my-1 py-2">
-          <span class="text-h6">
+          <span class="text-headline-small">
             Costos {{ currencyFormat($store.state.pricing.totalCosto) }}
             <v-btn variant="text" icon color="primary" @click="abrirModal">
               <v-icon>mdi-plus</v-icon>
@@ -272,7 +272,7 @@
                       <tr :key="'flete-' + i" v-if="textoFlete(valor)">
                         <td
                           colspan="5"
-                          class="text-caption text-left pt-0 pl-2"
+                          class="text-body-small text-left pt-0 pl-2"
                           style="color: #d50000"
                         >
                           {{ textoFlete(valor) }}

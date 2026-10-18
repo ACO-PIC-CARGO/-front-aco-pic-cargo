@@ -22,7 +22,7 @@
                 <template #prepend>
                   <v-avatar
                     color="indigo"
-                    class="text-h5 font-weight-light text-white mr-3"
+                    class="text-headline-medium font-weight-light text-white mr-3"
                   >
                     {{ $store.state.itemsBitacoraLineal.indexOf(item) + 1 }}
                   </v-avatar>

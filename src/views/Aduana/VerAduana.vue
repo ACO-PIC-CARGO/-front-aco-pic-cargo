@@ -1,6 +1,6 @@
 <template>
   <v-container fluid class="pa-0" v-if="verFlag">
-    <v-card elevation="10">
+    <v-card elevation="5">
       <v-stepper v-model="$store.state.aduana.e1" non-linear>
         <v-stepper-header>
           <v-stepper-item

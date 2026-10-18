@@ -6,7 +6,7 @@
       width="1400"
     >
       <v-card>
-        <v-card-title class="text-h5 bg-grey-lighten-2">
+        <v-card-title class="text-headline-medium bg-grey-lighten-2">
           SELECCIONE UN HOUSE
         </v-card-title>
 

@@ -101,7 +101,7 @@
     <v-dialog v-model="dialog" max-width="50%" persistent>
       <v-card color="basil">
         <v-card-title class="text-center justify-center py-6">
-          <h1 class="font-weight-bold text-h2 basil--text">SUBIR ARCHIVOS</h1>
+          <h1 class="font-weight-bold text-display-medium basil--text">SUBIR ARCHIVOS</h1>
         </v-card-title>
 
         <v-tabs

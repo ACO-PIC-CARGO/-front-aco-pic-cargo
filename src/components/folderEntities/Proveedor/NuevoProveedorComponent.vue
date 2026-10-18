@@ -5,7 +5,7 @@
       class="align-center justify-center"
     >
       <v-row class="fill-height align-content-center justify-center">
-        <v-col class="text-subtitle-1 text-center" cols="12">
+        <v-col class="text-body-large text-center" cols="12">
           Cargando Datos, espere un momento por favor...
         </v-col>
         <v-col cols="6">

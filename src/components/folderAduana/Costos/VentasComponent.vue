@@ -2,7 +2,7 @@
   <v-container fluid>
     <!-- {{  valores }} -->
     <div class="">
-      <span class="text-h6"
+      <span class="text-headline-small"
         >Ventas {{ currencyFormat($store.state.aduana.totalVenta) }}</span
       >
       <v-btn variant="text" icon color="primary" @click="abrirModal">

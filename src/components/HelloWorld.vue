@@ -10,9 +10,9 @@
       </v-col>
 
       <v-col class="mb-4">
-        <h1 class="text-h3 font-weight-bold mb-3">Welcome to Vuetify</h1>
+        <h1 class="text-display-small font-weight-bold mb-3">Welcome to Vuetify</h1>
 
-        <p class="text-subtitle-1 font-weight-regular">
+        <p class="text-body-large font-weight-regular">
           For help and collaboration with other Vuetify developers,
           <br />please join our online
           <a href="https://community.vuetifyjs.com" target="_blank"
@@ -22,14 +22,14 @@
       </v-col>
 
       <v-col class="mb-5" cols="12">
-        <h2 class="text-h5 font-weight-bold mb-3">What's next?</h2>
+        <h2 class="text-headline-medium font-weight-bold mb-3">What's next?</h2>
 
         <v-row class="justify-center">
           <a
             v-for="(next, i) in whatsNext"
             :key="i"
             :href="next.href"
-            class="text-subtitle-1 mx-3"
+            class="text-body-large mx-3"
             target="_blank"
           >
             {{ next.text }}
@@ -38,14 +38,14 @@
       </v-col>
 
       <v-col class="mb-5" cols="12">
-        <h2 class="text-h5 font-weight-bold mb-3">Important Links</h2>
+        <h2 class="text-headline-medium font-weight-bold mb-3">Important Links</h2>
 
         <v-row class="justify-center">
           <a
             v-for="(link, i) in importantLinks"
             :key="i"
             :href="link.href"
-            class="text-subtitle-1 mx-3"
+            class="text-body-large mx-3"
             target="_blank"
           >
             {{ link.text }}
@@ -54,14 +54,14 @@
       </v-col>
 
       <v-col class="mb-5" cols="12">
-        <h2 class="text-h5 font-weight-bold mb-3">Ecosystem</h2>
+        <h2 class="text-headline-medium font-weight-bold mb-3">Ecosystem</h2>
 
         <v-row class="justify-center">
           <a
             v-for="(eco, i) in ecosystem"
             :key="i"
             :href="eco.href"
-            class="text-subtitle-1 mx-3"
+            class="text-body-large mx-3"
             target="_blank"
           >
             {{ eco.text }}

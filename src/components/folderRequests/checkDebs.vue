@@ -157,7 +157,7 @@
           <v-row>
             <v-col cols="4">
               <h2>Proveedor</h2>
-              <p class="text-h4 mt-2">{{ nameproveedor }}</p>
+              <p class="text-headline-large mt-2">{{ nameproveedor }}</p>
               <h2>Conceptos pagados</h2>
               <p
                 v-for="item in itemsSPaymentConceptos"

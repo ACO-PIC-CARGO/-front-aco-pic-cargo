@@ -2,7 +2,7 @@
   <div>
     <v-dialog v-model="$store.state.reportsDialog" width="600" persistent>
       <v-card>
-        <v-card-title class="text-h5 bg-grey-lighten-2">
+        <v-card-title class="text-headline-medium bg-grey-lighten-2">
           Filtros Generales
         </v-card-title>
 

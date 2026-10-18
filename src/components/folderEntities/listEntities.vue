@@ -26,7 +26,7 @@
 
       <v-container v-if="!$store.state.dataList" style="height: 400px">
         <v-row class="fill-height align-content-center justify-center">
-          <v-col class="text-subtitle-1 text-center" cols="12">
+          <v-col class="text-body-large text-center" cols="12">
             Cargando informacíon
           </v-col>
           <v-col cols="6">

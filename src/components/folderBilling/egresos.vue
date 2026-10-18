@@ -358,7 +358,7 @@
     <!-- --------------------- -->
     <v-dialog id="mydiv" v-model="dialog" width="70%" persistent>
       <v-card>
-        <v-card-title id="mydivheader" class="text-h5 bg-grey-lighten-2 d-flex align-center flex-wrap">
+        <v-card-title id="mydivheader" class="text-headline-medium bg-grey-lighten-2 d-flex align-center flex-wrap">
           {{ getNameModalNuevoEditar }}
 
           <v-spacer></v-spacer>
@@ -992,7 +992,7 @@
         </v-card-title>
         <v-container v-if="!dataList" style="height: 400px">
           <v-row class="fill-height align-content-center justify-center">
-            <v-col class="text-subtitle-1 text-center" cols="12">
+            <v-col class="text-body-large text-center" cols="12">
               Cargando informacíon
             </v-col>
             <v-col cols="12" xl="6" lg="6">
@@ -1297,7 +1297,7 @@
     </v-dialog>
     <v-dialog v-model="dialogCambiarExp" persistent max-width="500px">
       <v-card>
-        <v-card-title class="text-h5 bg-grey-lighten-2">
+        <v-card-title class="text-headline-medium bg-grey-lighten-2">
           Mover {{ egreso.nombre_proveedor ? egreso.nombre_proveedor : null }}
         </v-card-title>
         <v-card-text>

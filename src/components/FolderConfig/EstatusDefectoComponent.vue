@@ -1,7 +1,7 @@
 <template>
   <v-card>
     <v-card-title class="d-flex align-center flex-wrap">
-      <span class="headline text-h5">Configuración de Estatus por Defecto</span>
+      <span class="headline text-headline-medium">Configuración de Estatus por Defecto</span>
       <v-spacer></v-spacer>
     </v-card-title>
     <v-card-text>

@@ -274,7 +274,7 @@
     </v-container>
     <v-dialog v-model="modalCuentas" max-width="750">
       <v-card>
-        <v-card-title class="text-h5"> Cuentas </v-card-title>
+        <v-card-title class="text-headline-medium"> Cuentas </v-card-title>
         <v-card-text>
           <v-row>
             <v-col cols="2">

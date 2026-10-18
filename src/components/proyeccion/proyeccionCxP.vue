@@ -188,7 +188,7 @@
     >
       <v-list-item>
         
-          <v-list-item-title class="text-h6"> Filtrar </v-list-item-title>
+          <v-list-item-title class="text-headline-small"> Filtrar </v-list-item-title>
         
       </v-list-item>
 

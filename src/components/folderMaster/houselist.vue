@@ -155,7 +155,7 @@
     <!-- DDDDDDDDDDDDDDDDD -->
     <v-dialog v-model="dialogCambiarExpediente" max-width="500">
       <v-card>
-        <v-card-title class="text-h5 bg-grey-lighten-2 d-flex align-center flex-wrap">
+        <v-card-title class="text-headline-medium bg-grey-lighten-2 d-flex align-center flex-wrap">
           Cambiar expediente (House)
           <v-spacer></v-spacer>
           <v-btn variant="text" icon color="default" @click="dialogCambiarExpediente = false">
@@ -178,7 +178,7 @@
               variant="outlined"
               class="my-5"
             ></v-autocomplete>
-            <p class="text-caption mb-0">Actual: {{ house.code_house }}</p>
+            <p class="text-body-small mb-0">Actual: {{ house.code_house }}</p>
           </v-card-text>
         </v-form>
         <v-card-actions>

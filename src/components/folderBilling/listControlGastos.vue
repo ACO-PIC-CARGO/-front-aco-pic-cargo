@@ -1,6 +1,6 @@
 <template>
   <div>
-    <v-card elevation="10">
+    <v-card elevation="5">
       <v-card-title class="d-flex align-center flex-wrap">
         <v-btn
           color="primary"
@@ -30,7 +30,7 @@
       </v-card-title>
       <v-container v-if="!$store.state.dataGastos" style="height: 400px">
         <v-row class="fill-height align-content-center justify-center">
-          <v-col class="text-subtitle-1 text-center" cols="12">
+          <v-col class="text-body-large text-center" cols="12">
             Cargando informacíon
           </v-col>
           <v-col cols="6">

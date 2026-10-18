@@ -1,5 +1,5 @@
 <template>
-  <v-card elevation="10" class="pb-5">
+  <v-card elevation="5" class="pb-5">
     <!-- v-model="value" -->
     <v-col md="12" cols="12">
       <h1>MONTO A COBRAR :{{ symbol }} {{ getMontoTotal() }}</h1>

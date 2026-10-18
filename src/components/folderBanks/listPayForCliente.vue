@@ -138,7 +138,7 @@
       width="20%"
       v-if="dialogFiltro"
     >
-      <v-card height="100%" elevation="10">
+      <v-card height="100%" elevation="5">
         <v-card-title class="d-flex align-center flex-wrap" primary-title>
           Filtrar Ingresos
           <v-spacer></v-spacer>

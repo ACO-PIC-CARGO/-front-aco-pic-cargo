@@ -10,7 +10,7 @@
                 class="text-start bg-titulouse font-weight-bold text-center"
                 >{{ plan.nombre }}</v-col
               >
-              <v-col cols="8" class="text-overline text-end">
+              <v-col cols="8" class="text-label-small text-end">
                 <span
                   :class="{ active: selectedPlans[plan.plan_id] === 'mensual' }"
                   @click="togglePlan(plan.plan_id, 'mensual')"
@@ -51,7 +51,7 @@
           <v-divider class="my-0"></v-divider>
 
           <v-card-subtitle
-            class="plan-subtitle text-h4 text-black font-weight-black textestirado textoprecmen"
+            class="plan-subtitle text-headline-large text-black font-weight-black textestirado textoprecmen"
           >
             {{
               selectedUsers[plan.plan_id]
@@ -71,7 +71,7 @@
             <div
               class="
                 plan-price
-                text-h4
+                text-headline-large
                 font-weight-black
                 textestirado
                 textoprecmen
@@ -189,7 +189,7 @@
     <v-dialog v-model="paymentDialog" max-width="600px">
       <v-card>
         <v-card-title>
-          <span class="text-h5">Pago</span>
+          <span class="text-headline-medium">Pago</span>
         </v-card-title>
         <v-card-text>
           <v-form @submit.prevent="processPayment(selectedPlanId)">
@@ -442,7 +442,7 @@ export default {
   font-weight: bold;
   color: blue;
 }
-.text-overline.text-end.col.col-8 span {
+.text-label-small.text-end.col.col-8 span {
   cursor: pointer;
 }
 </style>

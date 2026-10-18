@@ -160,7 +160,7 @@
                   <v-icon color="#009688">mdi-file-document-outline</v-icon>
                 </v-avatar>
                 <span
-                  class="text-subtitle-1 font-weight-bold"
+                  class="text-body-large font-weight-bold"
                   style="letter-spacing: 0.5px"
                 >
                   CONCEPTOS DE PAGO
@@ -173,11 +173,11 @@
                   >mdi-alert-circle-outline</v-icon
                 >
                 <span
-                  class="text-caption text-uppercase font-weight-bold text-orange-darken-3"
+                  class="text-body-small text-uppercase font-weight-bold text-orange-darken-3"
                 >
                   OBLIGATORIO:
                 </span>
-                <span class="text-caption text-grey-darken-2 ml-1">
+                <span class="text-body-small text-grey-darken-2 ml-1">
                   Añade al menos un concepto para continuar.
                 </span>
               </div>
@@ -391,7 +391,7 @@
                 itemsProductos.length == 0 &&
                 (tipo == 'nuevo' || tipo == 'editar')
               "
-              class="text-caption text-grey-darken-1 mb-2"
+              class="text-body-small text-grey-darken-1 mb-2"
             >
               Primero añade un concepto de pago.
             </span>

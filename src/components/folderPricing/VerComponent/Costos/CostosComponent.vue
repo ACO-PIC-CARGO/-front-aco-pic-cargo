@@ -1,7 +1,7 @@
 <template>
   <v-container fluid>
     <div class="">
-      <span class="text-h6">
+      <span class="text-headline-small">
         Costos {{ currencyFormat($store.state.pricing.totalCosto) }}</span
       >
     </div>
@@ -219,7 +219,7 @@
                 <tr :key="'flete-' + i" v-if="textoFlete(valor)">
                   <td
                     colspan="5"
-                    class="text-caption text-left pt-0 pl-2"
+                    class="text-body-small text-left pt-0 pl-2"
                     style="color: #d50000"
                   >
                     {{ textoFlete(valor) }}
@@ -1033,7 +1033,7 @@
                 <tr :key="'flete-' + i" v-if="textoFlete(valor)">
                   <td
                     colspan="5"
-                    class="text-caption text-left text-grey pt-0"
+                    class="text-body-small text-left text-grey pt-0"
                   >
                     {{ textoFlete(valor) }}
                   </td>

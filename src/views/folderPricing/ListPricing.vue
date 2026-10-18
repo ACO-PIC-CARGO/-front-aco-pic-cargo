@@ -57,7 +57,7 @@
       width="40%"
       temporary
     >
-      <v-card elevation="10">
+      <v-card elevation="5">
         <FiltroQuote />
       </v-card>
     </v-navigation-drawer>
@@ -67,7 +67,7 @@
       width="40%"
       temporary
     >
-      <v-card elevation="10">
+      <v-card elevation="5">
         <FiltroCalls />
       </v-card>
     </v-navigation-drawer>

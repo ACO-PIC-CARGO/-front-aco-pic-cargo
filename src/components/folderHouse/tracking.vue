@@ -18,7 +18,7 @@
           <v-card-title>Estado de la Carga</v-card-title>           
 
           <v-card-text>
-            <p class="text-subtitle-2 text-black">Tipo de Carga: {{ getTipoEmbarque || "" }}</p>
+            <p class="text-body-medium text-black">Tipo de Carga: {{ getTipoEmbarque || "" }}</p>
 
             <v-row no-gutters>
               <v-col cols="4" class="text-left">
@@ -45,10 +45,10 @@
 
             <v-row no-gutters>
               <v-col cols="6">
-                <p class="text-subtitle-2 text-black text-left mb-1">Origen: {{ tracking.namelong_portbegin || "" }}</p>
+                <p class="text-body-medium text-black text-left mb-1">Origen: {{ tracking.namelong_portbegin || "" }}</p>
               </v-col>
               <v-col cols="6">
-                <p class="text-subtitle-2 text-black text-right mb-1">Destino: {{ tracking.namelong_portend || "" }}</p>
+                <p class="text-body-medium text-black text-right mb-1">Destino: {{ tracking.namelong_portend || "" }}</p>
               </v-col>
             </v-row>
             
@@ -72,7 +72,7 @@
                   v-if="item.visible_cliente"
                 >
                   <v-col cols="4">
-                    <p class="text-subtitle-2 text-black font-weight-medium">{{ getFechaParseada(item.fecha) }}</p>
+                    <p class="text-body-medium text-black font-weight-medium">{{ getFechaParseada(item.fecha) }}</p>
                   </v-col>
 
                   <v-divider vertical></v-divider>

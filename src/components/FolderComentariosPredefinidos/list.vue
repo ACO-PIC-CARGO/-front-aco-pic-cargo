@@ -3,7 +3,7 @@
       <v-container fluid>
         <v-container v-if="loading" style="height: 400px">
           <v-row class="fill-height align-content-center justify-center">
-            <v-col class="text-subtitle-1 text-center" cols="12">
+            <v-col class="text-body-large text-center" cols="12">
               Cargando información ....
             </v-col>
             <v-col cols="6">
@@ -73,7 +73,7 @@
         >
           <v-list-item>
             
-              <v-list-item-title class="text-h6">NUEVO COMENTARIO</v-list-item-title>
+              <v-list-item-title class="text-headline-small">NUEVO COMENTARIO</v-list-item-title>
             
           </v-list-item>
     
@@ -147,7 +147,7 @@
           <v-container>
             <v-list-item class="px-0">
               
-                <v-list-item-title class="text-h6">
+                <v-list-item-title class="text-headline-small">
                   COMENTARIO {{ record.code ? `[${record.code}]` : "" }} - MODO VISTA
                 </v-list-item-title>
               
@@ -202,7 +202,7 @@
           <v-container>
             <v-list-item class="px-0">
               
-                <v-list-item-title class="text-h6">
+                <v-list-item-title class="text-headline-small">
                   MODIFICAR COMENTARIO: {{ record.code ? `[${record.code}]` : "" }}
                 </v-list-item-title>
               
@@ -271,7 +271,7 @@
         >
           <v-list-item>
             
-              <v-list-item-title class="text-h6">
+              <v-list-item-title class="text-headline-small">
                 FILTRAR REGISTROS
               </v-list-item-title>
             

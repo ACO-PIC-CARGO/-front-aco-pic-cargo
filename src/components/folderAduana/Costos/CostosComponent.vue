@@ -3,7 +3,7 @@
     <div class="">
       <v-row>
         <v-col cols="4" class="my-1 py-2">
-          <span class="text-h6">
+          <span class="text-headline-small">
             Costos {{ currencyFormat($store.state.aduana.totalCosto) }}
             <v-btn variant="text" icon color="primary" @click="abrirModal">
               <v-icon>mdi-plus</v-icon>

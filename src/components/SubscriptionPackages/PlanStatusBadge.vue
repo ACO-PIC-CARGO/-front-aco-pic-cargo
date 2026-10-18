@@ -21,7 +21,7 @@
         Tu prueba terminó
       </v-chip>
       <template v-else>
-        <span class="plan-status__label text-body-2 font-weight-medium"
+        <span class="plan-status__label text-body-medium font-weight-medium"
           >Días de prueba restantes</span
         >
         <v-chip

@@ -79,7 +79,7 @@
     >
       <v-list-item>
         
-          <v-list-item-title class="text-h6">
+          <v-list-item-title class="text-headline-small">
             Filtrar Detalle
           </v-list-item-title>
         

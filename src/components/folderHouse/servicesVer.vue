@@ -91,7 +91,7 @@
         <v-icon start color="indigo">mdi-ferry</v-icon>
         Datos de Aduana
         <v-spacer></v-spacer>
-        <span class="text-caption text-grey-darken-1">Información SUNAT</span>
+        <span class="text-body-small text-grey-darken-1">Información SUNAT</span>
       </v-card-title>
       <v-card-text class="pt-0">
         <v-row density="compact">
@@ -151,7 +151,7 @@
 
     <v-dialog v-model="dialogNotificacionesLista" max-width="500" v-if="false">
       <v-card>
-        <v-card-title class="text-h6 d-flex align-center flex-wrap">
+        <v-card-title class="text-headline-small d-flex align-center flex-wrap">
           Seleccione notificación
           <v-spacer></v-spacer>
           <v-btn variant="text" icon @click="dialogNotificacionesLista = false">

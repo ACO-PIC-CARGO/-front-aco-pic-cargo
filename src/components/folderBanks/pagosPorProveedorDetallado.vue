@@ -70,7 +70,7 @@
       width="20%"
       v-if="dialogFiltro"
     >
-      <v-card height="100%" elevation="10">
+      <v-card height="100%" elevation="5">
         <v-card-title primary-title> Filtrar Gastos </v-card-title>
         <v-card-text>
           <v-select

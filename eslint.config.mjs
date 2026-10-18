@@ -89,6 +89,12 @@ const TYPOGRAPHY_GUARD = {
   message: "Vuetify 2 typography class (recipe R17).",
 };
 
+const MD2_TYPOGRAPHY_GUARD = {
+  selector:
+    "VAttribute[directive=false][key.name='class'][value.value=/(^|\\s)text-(h[1-6]|subtitle-[12]|body-[12]|caption|button|overline)(\\s|$)/]",
+  message: "Material Design 2 typography class: use its Material Design 3 token (recipe R5).",
+};
+
 // Their <style> extends the token as the app's own class, so recipe R17 keeps it beside the mapped class.
 const OWN_TYPOGRAPHY_CLASS_FILES = [
   "src/components/FolderConfig/EstatusDefectoComponent.vue",
@@ -112,10 +118,10 @@ export default defineConfigWithVueTs(
       "vue/component-api-style": ["error", ["script-setup"]],
       ...Object.fromEntries(VUE3_RULES.map((rule) => [`vue/${rule}`, "error"])),
       "vuetify/no-deprecated-typography": "off",
-      "vuetify/no-elevation-overflow": "off",
+      "vuetify/no-elevation-overflow": "error",
       "vuetify/no-legacy-grid-props": "error",
       "vuetify/no-deprecated-snackbar": "error",
-      "vue/no-restricted-syntax": ["error", ...TEMPLATE_GUARDS, TYPOGRAPHY_GUARD],
+      "vue/no-restricted-syntax": ["error", ...TEMPLATE_GUARDS, TYPOGRAPHY_GUARD, MD2_TYPOGRAPHY_GUARD],
       // A listener written before v-model runs before the model updates (recipe R3).
       "vue/attributes-order": ["error", { order: ["TWO_WAY_BINDING", "EVENTS"] }],
       "no-restricted-syntax": [
@@ -138,7 +144,7 @@ export default defineConfigWithVueTs(
   },
   {
     files: OWN_TYPOGRAPHY_CLASS_FILES,
-    rules: { "vue/no-restricted-syntax": ["error", ...TEMPLATE_GUARDS] },
+    rules: { "vue/no-restricted-syntax": ["error", ...TEMPLATE_GUARDS, MD2_TYPOGRAPHY_GUARD] },
   },
   { files: LEGACY, rules: LEGACY_OFF },
 );

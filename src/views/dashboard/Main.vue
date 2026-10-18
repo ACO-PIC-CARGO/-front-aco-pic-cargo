@@ -31,7 +31,7 @@
 
       <v-spacer></v-spacer>
 
-      <b v-if="this.$route.params.id_house" class="mr-10 text-h4">
+      <b v-if="this.$route.params.id_house" class="mr-10 text-headline-large">
         PROFIT PR:
         {{
           (
@@ -46,7 +46,7 @@
         USD
       </b>
 
-      <b v-if="this.$route.params.id_house" class="mr-10 text-h4">
+      <b v-if="this.$route.params.id_house" class="mr-10 text-headline-large">
         / OP:
         {{
           (
@@ -277,7 +277,7 @@
     <!-- Modal de autenticación admin para editar cotizaciones aprobadas -->
     <v-dialog v-model="dialogAdminAuth" max-width="400" persistent>
       <v-card>
-        <v-card-title class="text-h5 bg-grey-lighten-2">
+        <v-card-title class="text-headline-medium bg-grey-lighten-2">
           Autenticación Requerida
         </v-card-title>
         <v-card-text class="pt-4">
@@ -433,7 +433,7 @@
       <v-card class="rounded-lg elevation-4">
         <!-- Cabecera profesional con color y título claro -->
         <v-card-title
-          class="text-h5 bg-primary text-white py-3 px-4 d-flex align-center"
+          class="text-headline-medium bg-primary text-white py-3 px-4 d-flex align-center"
         >
           <v-icon start class="mr-2">mdi-calendar-clock</v-icon>
           <span class="font-weight-bold">Actualizar Vigencia de Flete</span>
@@ -441,7 +441,7 @@
 
         <!-- Cuerpo del diálogo -->
         <v-card-text class="pt-4 pb-2">
-          <div class="text-body-2 mb-4">
+          <div class="text-body-medium mb-4">
             Selecciona la nueva fecha límite de vigencia. Esto actualizará los
             cálculos en las nuevas cotizaciones, calculadora y bot de whatsapp.
           </div>
@@ -484,7 +484,7 @@
 
     <v-dialog v-model="dialogSeleccionDistrito" max-width="560px" persistent>
       <v-card rounded="lg">
-        <v-card-title class="text-h5 font-weight-bold">
+        <v-card-title class="text-headline-medium font-weight-bold">
           Seleccionar distrito
         </v-card-title>
         <v-card-text>

@@ -1,7 +1,7 @@
 <template>
   <v-container fluid>
     <div class="">
-      <span class="text-h6">
+      <span class="text-headline-small">
         Costos {{ currencyFormat($store.state.aduana.totalCosto) }}</span
       >
     </div>

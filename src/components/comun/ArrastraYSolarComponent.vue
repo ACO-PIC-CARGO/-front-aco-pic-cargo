@@ -90,7 +90,7 @@
         </div>
 
         <!-- 4. Estado: No hay archivo y es solo lectura -->
-        <div v-else class="text-caption text-grey-darken-1 pa-2 italic">
+        <div v-else class="text-body-small text-grey-darken-1 pa-2 italic">
           <v-icon size="small" color="grey">mdi-file-hidden</v-icon> No se ha adjuntado
           ningún soporte.
         </div>

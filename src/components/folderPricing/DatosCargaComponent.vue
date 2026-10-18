@@ -530,7 +530,7 @@
               </v-icon>
             </v-avatar>
 
-            <div class="text-h5 font-weight-bold text-uppercase">
+            <div class="text-headline-medium font-weight-bold text-uppercase">
               Cálculo de impuestos
             </div>
 
@@ -612,7 +612,7 @@
 
     <v-dialog v-model="dialogSeleccionDistrito" max-width="560px" persistent>
       <v-card rounded="lg">
-        <v-card-title class="text-h5 font-weight-bold">
+        <v-card-title class="text-headline-medium font-weight-bold">
           Seleccionar distrito
         </v-card-title>
         <v-card-text>
@@ -1967,7 +1967,7 @@ export default {
 }
 
 @media (max-width: 600px) {
-  .dialog-impuestos .text-h5 {
+  .dialog-impuestos .text-headline-medium {
     font-size: 17px !important;
   }
 

@@ -124,7 +124,7 @@
     <previewQuote :dialog="dialog" :data="dataCotizacion" />
     <v-dialog v-model="dialogEditarEstado" max-width="30%">
       <v-card>
-        <v-card-title class="text-h5 pb-0">
+        <v-card-title class="text-headline-medium pb-0">
           <p>Detalle de Nota de llamada</p>
         </v-card-title>
         <v-card-text>

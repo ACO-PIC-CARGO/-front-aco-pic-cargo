@@ -2,7 +2,7 @@
   <v-container fluid>
     <v-dialog v-model="filtrar" persistent width="50%">
       <v-card>
-        <v-card-title primary-title class="text-h6">
+        <v-card-title primary-title class="text-headline-small">
           Filtrar Ingresos/ Gastos - Anteriores/Posteriores
         </v-card-title>
         <v-card-text>

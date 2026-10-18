@@ -3,7 +3,7 @@
     <v-card elevation="0">
       <v-container v-if="loading" style="height: 400px">
         <v-row class="fill-height align-content-center justify-center">
-          <v-col class="text-subtitle-1 text-center" cols="12">
+          <v-col class="text-body-large text-center" cols="12">
             Cargando información ....
           </v-col>
           <v-col cols="6">
@@ -75,7 +75,7 @@
     >
       <v-list-item>
         
-          <v-list-item-title class="text-h6">
+          <v-list-item-title class="text-headline-small">
             Nuevo Incoterm
           </v-list-item-title>
         
@@ -142,7 +142,7 @@
       <v-container v-if="!loading_as">
         <v-list-item class="px-0">
           
-            <v-list-item-title class="text-h6">
+            <v-list-item-title class="text-headline-small">
               Ver: {{ $store.state.incoterm.record.name }}
             </v-list-item-title>
           
@@ -188,7 +188,7 @@
 
       <v-container v-if="loading_as" style="height: 400px">
         <v-row class="fill-height align-content-center justify-center">
-          <v-col class="text-subtitle-1 text-center" cols="12">
+          <v-col class="text-body-large text-center" cols="12">
             Cargando información ....
           </v-col>
           <v-col cols="6">
@@ -213,7 +213,7 @@
       <v-container v-if="!loading_as">
         <v-list-item class="px-0">
           
-            <v-list-item-title class="text-h6">
+            <v-list-item-title class="text-headline-small">
               Modificar: {{ $store.state.incoterm.record.name }}
             </v-list-item-title>
           
@@ -271,7 +271,7 @@
 
       <v-container v-if="loading_as" style="height: 400px">
         <v-row class="fill-height align-content-center justify-center">
-          <v-col class="text-subtitle-1 text-center" cols="12">
+          <v-col class="text-body-large text-center" cols="12">
             Cargando información ....
           </v-col>
           <v-col cols="6">
@@ -296,7 +296,7 @@
       <v-container>
         <v-list-item class="px-0">
           
-            <v-list-item-title class="text-h6">
+            <v-list-item-title class="text-headline-small">
               Filtrar Registros
             </v-list-item-title>
           
