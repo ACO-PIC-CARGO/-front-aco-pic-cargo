@@ -105,7 +105,7 @@ function abrirModal() {
 function limpiarNombre(str: string) {
   return str
     .normalize("NFD") // Separa los acentos del carácter base
-    .replace(/[̀-ͯ]/g, "") // Elimina los acentos
+    .replace(/[\u0300-\u036f]/g, "") // Elimina los acentos
     .replace(/ñ/g, "n") // Convierte ñ a n
     .replace(/Ñ/g, "N") // Convierte Ñ a N
     .replace(/\s+/g, "_") // Convierte espacios a guion bajo

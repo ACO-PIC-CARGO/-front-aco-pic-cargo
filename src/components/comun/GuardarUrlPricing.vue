@@ -27,8 +27,8 @@ async function actualizarUrl() {
     id: props.masterEditar.id,
     url: url_folderonedrive.value,
   });
-  const registro = props.masterEditar;
-  registro.url_folderonedrive = url_folderonedrive.value;
+  // eslint-disable-next-line vue/no-mutating-props
+  props.masterEditar.url_folderonedrive = url_folderonedrive.value;
   cerrarDialog();
 }
 function cerrarDialog() {
