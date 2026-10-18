@@ -1,3 +1,66 @@
+<script setup lang="ts">
+import { computed, ref } from "vue";
+import moment from "moment";
+import type { ValidationRule } from "vuetify";
+
+withDefaults(
+  defineProps<{
+    label?: string;
+    outlined?: boolean;
+    dense?: boolean;
+    errorMessages?: string | string[];
+    verflag?: boolean;
+    clearable?: boolean;
+    hideDetails?: boolean;
+    disabled?: boolean;
+    // Añadir esta prop para interceptar las reglas del padre
+    rules?: ValidationRule[];
+  }>(),
+  {
+    label: "Fecha",
+    outlined: false,
+    dense: false,
+    errorMessages: "",
+    verflag: false,
+    clearable: false,
+    hideDetails: false,
+    disabled: false,
+    rules: () => [],
+  },
+);
+const model = defineModel<string | null>({ default: null });
+
+const menuDesde = ref(false);
+
+const labelFormateada = computed(() => {
+  if (!model.value) return "";
+  const [year, month, day] = model.value.split("-");
+  const meses = [
+    "ENE",
+    "FEB",
+    "MAR",
+    "ABR",
+    "MAY",
+    "JUN",
+    "JUL",
+    "AGO",
+    "SEP",
+    "OCT",
+    "NOV",
+    "DIC",
+  ];
+  return `${day}/${meses[parseInt(month!) - 1]}/${year}`;
+});
+
+function selectDate(date: moment.MomentInput) {
+  model.value = moment(date).format("YYYY-MM-DD");
+  menuDesde.value = false;
+}
+function limpiarFecha() {
+  model.value = null;
+}
+</script>
+
 <template>
   <v-menu
     v-model="menuDesde"
@@ -6,7 +69,7 @@
     min-width="auto"
     :disabled="verflag || disabled"
   >
-    <template v-slot:activator="{ props }">
+    <template #activator="{ props }">
       <v-text-field
         :model-value="labelFormateada"
         :label="label"
@@ -22,98 +85,14 @@
         :rules="rules"
         @click:clear="limpiarFecha"
         :hide-details="hideDetails"
-      ></v-text-field>
+      />
     </template>
     <v-locale-provider locale="es">
       <v-date-picker
-        :model-value="modelValue"
+        :model-value="model"
         @update:model-value="selectDate"
         hide-header
-      ></v-date-picker>
+      />
     </v-locale-provider>
   </v-menu>
 </template>
-
-<script>
-import moment from "moment";
-
-export default {
-  emits: ["update:modelValue"],
-  props: {
-    modelValue: {
-      type: String,
-      default: null,
-    },
-    label: {
-      type: String,
-      default: "Fecha",
-    },
-    outlined: {
-      type: Boolean,
-      default: false,
-    },
-    dense: {
-      type: Boolean,
-      default: false,
-    },
-    errorMessages: {
-      type: [String, Array],
-      default: "",
-    },
-    verflag: {
-      type: Boolean,
-      default: false,
-    },
-    clearable: {
-      type: Boolean,
-      default: false,
-    },
-    hideDetails: {
-      type: Boolean,
-      default: false,
-    },
-    disabled: {
-      type: Boolean,
-      default: false,
-    },
-    // Añadir esta prop para interceptar las reglas del padre
-    rules: {
-      type: Array,
-      default: () => [],
-    },
-  },
-  data: () => ({
-    menuDesde: false,
-  }),
-  computed: {
-    labelFormateada() {
-      if (!this.modelValue) return "";
-      const [year, month, day] = this.modelValue.split("-");
-      const meses = [
-        "ENE",
-        "FEB",
-        "MAR",
-        "ABR",
-        "MAY",
-        "JUN",
-        "JUL",
-        "AGO",
-        "SEP",
-        "OCT",
-        "NOV",
-        "DIC",
-      ];
-      return `${day}/${meses[parseInt(month) - 1]}/${year}`;
-    },
-  },
-  methods: {
-    selectDate(date) {
-      this.$emit("update:modelValue", moment(date).format("YYYY-MM-DD"));
-      this.menuDesde = false;
-    },
-    limpiarFecha() {
-      this.$emit("update:modelValue", null);
-    },
-  },
-};
-</script>

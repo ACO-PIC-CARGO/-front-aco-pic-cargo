@@ -1,3 +1,54 @@
+<script setup lang="ts">
+import { ref, watch } from "vue";
+import { useStore } from "vuex";
+import type { RegistroConUrlCarpeta } from "@/types/archivos";
+
+const props = withDefaults(
+  defineProps<{ dialogUrl?: boolean; masterEditar?: RegistroConUrlCarpeta }>(),
+  { dialogUrl: false, masterEditar: () => ({}) },
+);
+const emit = defineEmits<{ cerrar: [] }>();
+
+const rootStore = useStore();
+
+const url_folderonedrive = ref("");
+const err = ref("");
+
+function to_link({ url = "" }) {
+  window.open(url, "_blank");
+}
+async function actualizarUrl() {
+  err.value = "";
+  if (!url_folderonedrive.value) {
+    err.value = "Dato requerido";
+    return;
+  }
+  await rootStore.dispatch("actualizarURLEnElQuote", {
+    id: props.masterEditar.id,
+    url: url_folderonedrive.value,
+  });
+  const registro = props.masterEditar;
+  registro.url_folderonedrive = url_folderonedrive.value;
+  cerrarDialog();
+}
+function cerrarDialog() {
+  emit("cerrar");
+}
+
+watch(
+  () => props.dialogUrl,
+  () => {
+    url_folderonedrive.value = "";
+  },
+);
+watch(url_folderonedrive, () => {
+  err.value = "";
+  if (url_folderonedrive.value.length == 0) {
+    err.value = "Dato requerido";
+  }
+});
+</script>
+
 <template>
   <v-container fluid>
     <v-card>
@@ -17,22 +68,32 @@
               :disabled="!masterEditar.url_folderonedrive"
               @click="to_link({ url: masterEditar.url_folderonedrive })"
             >
-              Abrir <v-icon class="mx-1">mdi-folder-open-outline</v-icon>
+              Abrir <v-icon class="mx-1">
+                mdi-folder-open-outline
+              </v-icon>
             </v-btn>
-            <v-divider class="my-3"></v-divider>
+            <v-divider class="my-3" />
             <v-text-field
               label="Nueva URL"
               id="id"
               v-model="url_folderonedrive"
               :error-messages="err"
-            ></v-text-field>
+            />
 
             <v-card-actions>
-              <v-spacer></v-spacer>
-              <v-btn color="success" @click="actualizarUrl">
+              <v-spacer />
+              <v-btn
+                color="success"
+                @click="actualizarUrl"
+              >
                 <v-icon>mdi-save</v-icon> Guardar
               </v-btn>
-              <v-btn color="error" @click="cerrarDialog">Cerrar</v-btn>
+              <v-btn
+                color="error"
+                @click="cerrarDialog"
+              >
+                Cerrar
+              </v-btn>
             </v-card-actions>
           </v-card-text>
         </v-card>
@@ -40,58 +101,3 @@
     </v-card>
   </v-container>
 </template>
-
-<script>
-import { mapActions } from "vuex";
-export default {
-  emits: ["cerrar"],
-  props: {
-    dialogUrl: {
-      type: Boolean,
-      default: false,
-    },
-    masterEditar: {
-      type: Object,
-      default: () => ({}),
-    },
-  },
-  data() {
-    return { url_folderonedrive: "", err: "" };
-  },
-  methods: {
-    ...mapActions(["actualizarURLEnElQuote"]),
-    to_link({ url = "" }) {
-      window.open(url, "_blank");
-    },
-    async actualizarUrl() {
-      this.err = "";
-      if (!this.url_folderonedrive) {
-        this.err = "Dato requerido";
-        return;
-      }
-      await this.actualizarURLEnElQuote({
-        id: this.masterEditar.id,
-        url: this.url_folderonedrive,
-      });
-      this.masterEditar.url_folderonedrive = this.url_folderonedrive;
-      this.cerrarDialog();
-    },
-    cerrarDialog() {
-      this.$emit("cerrar");
-    },
-  },
-  watch: {
-    dialogUrl() {
-      this.url_folderonedrive = "";
-    },
-    url_folderonedrive() {
-      this.err = "";
-      if (this.url_folderonedrive.length == 0) {
-        this.err = "Dato requerido";
-      }
-    },
-  },
-};
-</script>
-
-<style></style>

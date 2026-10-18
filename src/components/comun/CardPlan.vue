@@ -1,3 +1,12 @@
+<script setup lang="ts">
+import type { PlanMembresia } from "@/types/membresia";
+
+withDefaults(defineProps<{ plan?: PlanMembresia; index?: number }>(), {
+  plan: () => ({}),
+  index: 0,
+});
+</script>
+
 <template>
   <v-container class="clsContenedor">
     <div class="clsname">
@@ -8,42 +17,49 @@
     <div class="clsprecioMes">
       $ <span>{{ plan.precioMes }}</span> / mes
     </div>
-    <div class=""><v-btn color="info" size="small" block>Seleccionar Plan</v-btn></div>
+    <div class="">
+      <v-btn
+        color="info"
+        size="small"
+        block
+      >
+        Seleccionar Plan
+      </v-btn>
+    </div>
     <div class="clsmaximoContactos">
       <p>Hasta {{ plan.maximoContactos }} usuario</p>
     </div>
     <h3>Qué Incluye:</h3>
     <div class="clsCaracteristicas">
       <p
-        v-for="(car, index) in plan.caracteristicas"
-        :key="index"
+        v-for="(car, carIndex) in plan.caracteristicas"
+        :key="carIndex"
         class="py-0 my-0"
       >
-        <v-icon v-if="car.estado" color="success"
-          >mdi-check-circle-outline</v-icon
+        <v-icon
+          v-if="car.estado"
+          color="success"
         >
-        <v-icon v-else color="error">mdi-close-circle-outline</v-icon>
+          mdi-check-circle-outline
+        </v-icon>
+        <v-icon
+          v-else
+          color="error"
+        >
+          mdi-close-circle-outline
+        </v-icon>
         <span :class="car.estado ? 'activo' : 'tachado'">{{ car.name }}</span>
       </p>
     </div>
-    <v-btn class="mt-5" color="success" block>Escoger Plan</v-btn>
+    <v-btn
+      class="mt-5"
+      color="success"
+      block
+    >
+      Escoger Plan
+    </v-btn>
   </v-container>
 </template>
-
-<script>
-export default {
-  props: {
-    plan: {
-      type: Object,
-      default: {},
-    },
-    index: {
-      type: Number,
-      default: 0,
-    },
-  },
-};
-</script>
 
 <style scoped>
 .clsContenedor {

@@ -1,33 +1,18 @@
+<script setup lang="ts">
+defineProps<{ progress: number }>();
+</script>
+
 <template>
   <body>
     <div class="container">
-      <div class="ring"></div>
-      <div class="ring"></div>
-      <div class="ring"></div>
-      <div class="ring"></div>
+      <div class="ring" />
+      <div class="ring" />
+      <div class="ring" />
+      <div class="ring" />
       <span class="loading">Cargando {{ progress }} %</span>
     </div>
   </body>
 </template>
-
-<script>
-import runnerUrl from "@/assets/runner.webp";
-
-export default {
-  props: {
-    progress: {
-      type: Number,
-      required: true,
-    },
-  },
-  computed: {
-    runnerImage() {
-      // Cambia la ruta de la imagen de acuerdo a tu estructura de carpetas
-      return runnerUrl;
-    },
-  },
-};
-</script>
 
 <style scoped>
 * {
