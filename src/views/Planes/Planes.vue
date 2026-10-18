@@ -1,150 +1,152 @@
 <template>
-  <div class="planes plans-theme">
-    <div class="planes__container">
-      <header class="planes__header">
-        <img
-          class="planes__logo"
-          src="/img/login/logo-aco.png"
-          alt="ACO, Agencia de Carga Online"
-        />
-        <h1 class="planes__title">
-          Precios <span class="planes__accent">ACO</span>
-        </h1>
-        <p class="planes__subtitle">Elige el plan ideal para tu agencia</p>
-        <p v-if="moduleLine" class="planes__modules">{{ moduleLine }}</p>
+  <v-main>
+    <div class="planes plans-theme">
+      <div class="planes__container">
+        <header class="planes__header">
+          <img
+            class="planes__logo"
+            src="/img/login/logo-aco.png"
+            alt="ACO, Agencia de Carga Online"
+          />
+          <h1 class="planes__title">
+            Precios <span class="planes__accent">ACO</span>
+          </h1>
+          <p class="planes__subtitle">Elige el plan ideal para tu agencia</p>
+          <p v-if="moduleLine" class="planes__modules">{{ moduleLine }}</p>
 
-        <div v-if="plans.length" class="planes__billing">
-          <v-btn-toggle
-            v-model="isAnnual"
-            mandatory
-            role="group"
-            rounded
-            density="compact"
-            class="segmented"
-            aria-label="Periodo de facturación"
+          <div v-if="plans.length" class="planes__billing">
+            <v-btn-toggle
+              v-model="isAnnual"
+              mandatory
+              role="group"
+              rounded
+              density="compact"
+              class="segmented"
+              aria-label="Periodo de facturación"
+            >
+              <v-btn
+                v-for="option in billingOptions"
+                :key="String(option.value)"
+                :value="option.value"
+                variant="text"
+              >
+                {{ option.label }}
+              </v-btn>
+            </v-btn-toggle>
+            <span v-if="monthsSaved" class="billing-badge">
+              <v-icon>mdi-tag-outline</v-icon>
+              Ahorra hasta {{ monthsSaved }}
+              {{ monthsSaved === 1 ? "mes" : "meses" }}
+            </span>
+          </div>
+        </header>
+
+        <section
+          v-if="loadState === 'loading'"
+          class="planes__grid"
+          aria-busy="true"
+          aria-label="Cargando planes"
+        >
+          <div v-for="n in 3" :key="n" class="plan-skeleton"></div>
+        </section>
+
+        <div v-else-if="loadState === 'error'" class="planes__state" role="alert">
+          <p class="planes__state-title">No pudimos cargar los planes.</p>
+          <p>{{ errorMessage }}</p>
+          <v-btn variant="text" class="planes__retry" @click="loadPlans">
+            Reintentar
+          </v-btn>
+        </div>
+
+        <div v-else-if="!plans.length" class="planes__state">
+          <p class="planes__state-title">Pronto publicaremos nuestros planes.</p>
+          <p>Vuelve en unos días para conocerlos.</p>
+        </div>
+
+        <section
+          v-else
+          class="planes__grid"
+          :style="{ '--plan-count': plans.length }"
+          aria-label="Planes disponibles"
+        >
+          <PackageCard
+            v-for="(plan, index) in plans"
+            :key="plan.id"
+            :plan="plan"
+            :annual="isAnnual"
+            :expanded="expandedPlanId === plan.id"
+            :index="index"
+            @toggle-details="toggleDetails(plan)"
           >
             <v-btn
-              v-for="option in billingOptions"
-              :key="String(option.value)"
-              :value="option.value"
               variant="text"
+              class="plan__cta"
+              :disabled="busy || isUnavailableAction(actionOf(plan))"
+              @click="buyPlan(plan)"
             >
-              {{ option.label }}
+              <v-icon v-if="buyingId === plan.id" class="mdi-spin">
+                mdi-loading
+              </v-icon>
+              {{ ctaLabel(plan) }}
+              <v-icon v-if="buyingId !== plan.id">mdi-arrow-right</v-icon>
             </v-btn>
-          </v-btn-toggle>
-          <span v-if="monthsSaved" class="billing-badge">
-            <v-icon>mdi-tag-outline</v-icon>
-            Ahorra hasta {{ monthsSaved }}
-            {{ monthsSaved === 1 ? "mes" : "meses" }}
-          </span>
-        </div>
-      </header>
+            <p class="plan__note">Pago seguro procesado por Paddle</p>
+          </PackageCard>
+        </section>
 
-      <section
-        v-if="loadState === 'loading'"
-        class="planes__grid"
-        aria-busy="true"
-        aria-label="Cargando planes"
-      >
-        <div v-for="n in 3" :key="n" class="plan-skeleton"></div>
-      </section>
-
-      <div v-else-if="loadState === 'error'" class="planes__state" role="alert">
-        <p class="planes__state-title">No pudimos cargar los planes.</p>
-        <p>{{ errorMessage }}</p>
-        <v-btn variant="text" class="planes__retry" @click="loadPlans">
-          Reintentar
-        </v-btn>
+        <LegalLinks class="planes__legal" />
       </div>
 
-      <div v-else-if="!plans.length" class="planes__state">
-        <p class="planes__state-title">Pronto publicaremos nuestros planes.</p>
-        <p>Vuelve en unos días para conocerlos.</p>
-      </div>
-
-      <section
-        v-else
-        class="planes__grid"
-        :style="{ '--plan-count': plans.length }"
-        aria-label="Planes disponibles"
+      <v-dialog
+        v-model="isPurchaseNoticeOpen"
+        max-width="440"
+        content-class="purchase-notice plans-theme"
+        scrim="#020a0d"
+        opacity="0.72"
       >
-        <PackageCard
-          v-for="(plan, index) in plans"
-          :key="plan.id"
-          :plan="plan"
-          :annual="isAnnual"
-          :expanded="expandedPlanId === plan.id"
-          :index="index"
-          @toggle-details="toggleDetails(plan)"
+        <div
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="purchase-notice-title"
         >
+          <v-icon class="purchase-notice__icon">mdi-account-key-outline</v-icon>
+          <h2 id="purchase-notice-title" class="purchase-notice__title">
+            Entra para comprar ACO {{ selectedPlanName }}
+          </h2>
+          <p class="purchase-notice__text">
+            El plan se asigna a tu empresa. Inicia sesión o crea tu cuenta;
+            después entra a Configuración → Mi plan y tu elección te estará
+            esperando.
+          </p>
+          <div class="purchase-notice__actions">
+            <v-btn variant="text" :to="{ name: 'Login' }" class="plan__cta">
+              Iniciar sesión
+            </v-btn>
+            <router-link
+              :to="{ name: 'RegistroEmpresa' }"
+              class="purchase-notice__link"
+            >
+              Crear cuenta
+            </router-link>
+          </div>
           <v-btn
             variant="text"
-            class="plan__cta"
-            :disabled="busy || isUnavailableAction(actionOf(plan))"
-            @click="buyPlan(plan)"
+            class="purchase-notice__close"
+            @click="isPurchaseNoticeOpen = false"
           >
-            <v-icon v-if="buyingId === plan.id" class="mdi-spin">
-              mdi-loading
-            </v-icon>
-            {{ ctaLabel(plan) }}
-            <v-icon v-if="buyingId !== plan.id">mdi-arrow-right</v-icon>
+            Ahora no
           </v-btn>
-          <p class="plan__note">Pago seguro procesado por Paddle</p>
-        </PackageCard>
-      </section>
-
-      <LegalLinks class="planes__legal" />
-    </div>
-
-    <v-dialog
-      v-model="isPurchaseNoticeOpen"
-      max-width="440"
-      content-class="purchase-notice plans-theme"
-      scrim="#020a0d"
-      opacity="0.72"
-    >
-      <div
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby="purchase-notice-title"
-      >
-        <v-icon class="purchase-notice__icon">mdi-account-key-outline</v-icon>
-        <h2 id="purchase-notice-title" class="purchase-notice__title">
-          Entra para comprar ACO {{ selectedPlanName }}
-        </h2>
-        <p class="purchase-notice__text">
-          El plan se asigna a tu empresa. Inicia sesión o crea tu cuenta;
-          después entra a Configuración → Mi plan y tu elección te estará
-          esperando.
-        </p>
-        <div class="purchase-notice__actions">
-          <v-btn variant="text" :to="{ name: 'Login' }" class="plan__cta">
-            Iniciar sesión
-          </v-btn>
-          <router-link
-            :to="{ name: 'RegistroEmpresa' }"
-            class="purchase-notice__link"
-          >
-            Crear cuenta
-          </router-link>
         </div>
-        <v-btn
-          variant="text"
-          class="purchase-notice__close"
-          @click="isPurchaseNoticeOpen = false"
-        >
-          Ahora no
-        </v-btn>
-      </div>
-    </v-dialog>
+      </v-dialog>
 
-    <ModuleSelectDialog
-      v-model="isModuleDialogOpen"
-      :pkg="modulePackage"
-      :confirm-label="livePlan ? 'Ver el cambio' : undefined"
-      @confirm="onModulesChosen"
-    />
-  </div>
+      <ModuleSelectDialog
+        v-model="isModuleDialogOpen"
+        :pkg="modulePackage"
+        :confirm-label="livePlan ? 'Ver el cambio' : undefined"
+        @confirm="onModulesChosen"
+      />
+    </div>
+  </v-main>
 </template>
 
 <script>

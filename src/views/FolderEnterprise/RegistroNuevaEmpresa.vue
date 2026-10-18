@@ -1,314 +1,316 @@
 <template>
-  <v-container fluid class="fill-height">
-    <v-row>
-      <v-col class="py-0 my-0" lg="6" md="6" sm="12">
-        <v-form class="frmRegistro" ref="frmRegistro">
-          <span class="centrado">
-            <h1>Comienza ya con</h1>
-          </span>
-          <div style="text-align: center">
-            <img
-              src="../../../public/img/login/logo-aco.png"
-              alt="logo"
-              width="350px"
-            />
-          </div>
-          <v-row>
-            <v-col class="py-2 my-0" cols="12">
-              <v-text-field
-                label="Nombre Empresa"
-                id="id"
-                variant="outlined"
-                persistent-placeholder
-                density="compact"
-                prepend-inner-icon="mdi-domain"
-                :hide-details="!errortrade_name"
-                v-model="$store.state.enterprises.data.trade_name"
-                autocomplete="off"
-                :error-messages="errortrade_name"
-                @update:model-value="errortrade_name = ''"
-                class="textUppercase"
-              ></v-text-field>
-            </v-col>
-            <v-col class="py-2 my-0" cols="12">
-              <b>Persona de contacto (Administrador del sistema) </b>
-            </v-col>
-            <v-col class="py-2 my-0" cols="12" lg="4" xl="4">
-              <v-text-field
-                label="Nombre*"
-                variant="outlined"
-                persistent-placeholder
-                density="compact"
-                prepend-inner-icon="mdi-account"
-                :hide-details="!errornames"
-                v-model="$store.state.enterprises.data.names"
-                :error-messages="errornames"
-                @update:model-value="errornames = ''"
-                class="textUppercase"
-              ></v-text-field>
-            </v-col>
-
-            <v-col class="py-2 my-0" cols="12" lg="4" xl="4">
-              <v-text-field
-                label="Apellidos*"
-                placeholder=""
-                variant="outlined"
-                persistent-placeholder
-                density="compact"
-                prepend-inner-icon="mdi-account"
-                :hide-details="!errorsurname"
-                v-model="$store.state.enterprises.data.surname"
-                :error-messages="errorsurname"
-                @update:model-value="errorsurname = ''"
-                class="textUppercase"
-              ></v-text-field>
-            </v-col>
-            <v-col class="py-2 my-0" cols="12" lg="4" xl="4">
-              <v-text-field
-                label="Apellido Materno*"
-                placeholder=""
-                variant="outlined"
-                persistent-placeholder
-                density="compact"
-                prepend-inner-icon="mdi-account"
-                :hide-details="!errorsecond_surname"
-                v-model="$store.state.enterprises.data.second_surname"
-                :error-messages="errorsecond_surname"
-                @update:model-value="errorsecond_surname = ''"
-                class="textUppercase"
-              ></v-text-field>
-            </v-col>
-
-            <v-col class="py-2 my-0" cols="12" lg="6" xl="6">
-              <v-text-field
-                label="Email*"
-                variant="outlined"
-                persistent-placeholder
-                density="compact"
-                prepend-inner-icon="mdi-email"
-                :hide-details="!errorEmail"
-                v-model="$store.state.enterprises.data.email"
-                @change="validarCorreoExiste()"
-                @update:model-value="validarCorreoExiste()"
-                @blur="validarCorreoExiste()"
-                :error-messages="errorEmail"
-                id="Email"
-                placeholder="Ingresa tu email."
-                :loading="validandoCorreo"
-              ></v-text-field>
-            </v-col>
-            <v-col class="py-2 my-0" cols="12" lg="6" xl="6">
-              <v-text-field
-                label="Email Confirmación*"
-                variant="outlined"
-                persistent-placeholder
-                density="compact"
-                prepend-inner-icon="mdi-email-check-outline"
-                v-model="$store.state.enterprises.data.emailconfirmacion"
-                :error-messages="errorEmail"
-                id="EmailConfirmación"
-                placeholder="Confirme su correo."
-                :hide-details="!errorEmail"
-              ></v-text-field>
-            </v-col>
-            <v-col>
-              <p
-                v-if="$store.state.enterprises.data.email"
-                class="my-0 py-0"
-                style="color: red; font-weight: bold; padding: 0 5%"
-              >
-                **Deberás tener acceso.**
-              </p>
-            </v-col>
-            <v-col class="py-2 my-0" cols="12" lg="6" xl="6">
-              <v-text-field
-                variant="outlined"
-                density="compact"
-                v-model="$store.state.enterprises.data.clave"
-                :error-messages="errorClave"
-                :type="typePassword ? 'password' : 'text'"
-                label="Contraseña"
-                prepend-inner-icon="mdi-lock"
-                :append-inner-icon="typePassword ? 'mdi-eye' : 'mdi-eye-off'"
-                @click:append-inner="typePassword = !typePassword"
-                autocomplete="new-password"
-                class="my-0"
-                :hide-details="!errorClave"
-                @update:model-value="errorClave = ''"
-              ></v-text-field>
-            </v-col>
-            <!-- :rules="passwordRules" -->
-            <v-col class="py-2 my-0" cols="12" lg="6" xl="6">
-              <CboPais
-                @paisSeleccionado="handlePaisSeleccionado"
-                outlined
-                persistent-placeholder
-                dense
-                :errorPais="errorPais"
+  <v-main>
+    <v-container fluid class="fill-height">
+      <v-row>
+        <v-col class="py-0 my-0" lg="6" md="6" sm="12">
+          <v-form class="frmRegistro" ref="frmRegistro">
+            <span class="centrado">
+              <h1>Comienza ya con</h1>
+            </span>
+            <div style="text-align: center">
+              <img
+                src="../../../public/img/login/logo-aco.png"
+                alt="logo"
+                width="350px"
               />
-            </v-col>
-            <v-col class="py-2 my-0" cols="12" lg="6" xl="6">
-              <v-text-field
-                label="Teléfono*"
-                variant="outlined"
-                persistent-placeholder
-                density="compact"
-                prepend-inner-icon="mdi-phone"
-                v-model="$store.state.enterprises.data.phone"
-                :error-messages="errorPhone"
-                :hide-details="!errorPhone"
-                @update:model-value="errorPhone = ''"
-              ></v-text-field>
-              <p
-                v-if="$store.state.enterprises.data.phone"
-                class="my-0 py-0"
-                style="color: red; font-weight: bold; padding: 0 5%"
-              >
-                **Deberás tener acceso.**
-              </p>
-            </v-col>
-            <v-col class="py-2 my-0" cols="12">
-              <v-btn color="info" v-if="enviarCodigo" @click="enviarCorreo()">
-                <v-icon start>mdi-email-arrow-right-outline</v-icon>
-                Enviar Código
-              </v-btn>
-              <p v-if="mostrarAdvertencia">
-                Ingresa el código de 4 dígitos enviado a tu correo.
-
-                <v-alert
+            </div>
+            <v-row>
+              <v-col class="py-2 my-0" cols="12">
+                <v-text-field
+                  label="Nombre Empresa"
+                  id="id"
                   variant="outlined"
-                  icon="mdi-email-alert-outline"
+                  persistent-placeholder
                   density="compact"
-                  color="red"
-                >
-                  <p class="my-0 py-0 text--black">
-                    Se le ha enviado un email, el mismo puede tardar
-                    <span class="text--red">1 minuto</span><br />
-                    <span class="text--red">
-                      REVISAR TU BANDEJA DE SPAM / NO DESEADOS.
-                    </span>
-                  </p>
-                </v-alert>
-              </p>
-              <v-snackbar
-                v-model="snackbarEmail"
-                :min-height="multiLine ? '68' : undefined"
-                :color="colorSnakBar"
-                :timeout="timeout"
-              >
-                <v-icon class="mx-1">mdi-{{ icon }}</v-icon>
-                {{ text }}
-              </v-snackbar>
-            </v-col>
-            <v-col class="py-2 my-0" cols="12" lg="4" xl="4">
-              <v-text-field
-                label="Código de acceso*"
-                variant="outlined"
-                persistent-placeholder
-                density="compact"
-                hide-details
-                prepend-inner-icon="mdi-shield-key-outline"
-                v-model="$store.state.enterprises.data.codigo"
-              ></v-text-field>
-            </v-col>
-            <v-col
-              class="py-2 my-0 centrado"
-              cols="6"
-              v-if="!reenviarCodigo && timeLeft > 0"
-            >
-              Puedes Solicitar un Nuevo código en {{ minutes }}:{{
-                secondsFormatted
-              }}
-            </v-col>
-            <v-col class="py-2 my-0" cols="6">
-              <a class="text-primary" @click="enviarCorreo()" v-if="!enviarCodigo && timeLeft <= 0"
-                >Reenviar Código</a
-              >
-            </v-col>
-            <v-col class="py-2 my-0 centrado" cols="12">
-              <v-btn
-                color="#1A237E"
-                class="custom-button"
-                @click="crearNuevaEmpresa()"
-                block
-              >
-                <v-icon start>mdi-rocket-launch</v-icon>
-                Iniciar tu PRUEBA GRATUITA por 30 días</v-btn
-              >
-            </v-col>
-            <v-col class="py-2 my-0 centrado" cols="12">
-              <v-btn
-                color="#1E88E5"
-                class="custom-button"
-                @click="irALogin()"
-                block
-              >
-                <v-icon start>mdi-login</v-icon>
-                Ya Tengo una cuenta
-              </v-btn>
-            </v-col>
-          </v-row>
-        </v-form>
-      </v-col>
-      <!-- v-show="$vuetify.breakpoint.lg" -->
-      <v-col class="py-2 my-0 centrado Slider ocultarMovil" cols="6">
-        <v-carousel
-          v-model="model"
-          :cycle="true"
-          continuous
-          :show-arrows="false"
-          reverse-transition="fade-transition"
-          transition="fade-transition"
-          hide-delimiter-background
-          class="px-0"
-        >
-          <v-carousel-item v-for="(text, i) in textCarrusel" :key="i">
-            <v-img :src="`img/png/${text.urlImg}`"> </v-img>
-          </v-carousel-item>
-        </v-carousel>
-        <div class="divBtnWhasapp">
-          <v-btn color="success" class="btnWhasapp" @click="abriChat()">
-            <v-icon class="mx-1">mdi-whatsapp</v-icon> CHATEA CON
-            NOSOTROS</v-btn
-          >
-        </div>
-      </v-col>
-    </v-row>
-    <v-dialog v-model="dialogRegistrandoEmpresa" max-width="30%">
-      <v-card class="py-5 px-5">
-        <center>
-          <v-img max-width="100px" src="img/png/Tiempo de espera.svg"></v-img>
-        </center>
-        <h1 class="py-2 txtRegistro">
-          ESTAMOS CREANDO TU EMPRESA y LOS ACCESOS A TODOS LOS MODULSO
-        </h1>
-        <h2 class="py-2" style="text-align: center">
-          Esto tardara aproximadamente 1 minutos o menos
-        </h2>
-      </v-card>
-    </v-dialog>
-    <v-dialog v-model="confirmRegistro" scrollable max-width="30%">
-      <v-card>
-        <div class="centrado modalConfirm">
-          <center>
-            <v-img
-              max-width="100px"
-              src="img/png/Cuenta creada con exito.svg"
-            ></v-img>
-          </center>
-          <h1 class="txtRegistro">¡TU ACCESO HA SIDO CREADO CON ÉXITO!</h1>
+                  prepend-inner-icon="mdi-domain"
+                  :hide-details="!errortrade_name"
+                  v-model="$store.state.enterprises.data.trade_name"
+                  autocomplete="off"
+                  :error-messages="errortrade_name"
+                  @update:model-value="errortrade_name = ''"
+                  class="textUppercase"
+                ></v-text-field>
+              </v-col>
+              <v-col class="py-2 my-0" cols="12">
+                <b>Persona de contacto (Administrador del sistema) </b>
+              </v-col>
+              <v-col class="py-2 my-0" cols="12" lg="4" xl="4">
+                <v-text-field
+                  label="Nombre*"
+                  variant="outlined"
+                  persistent-placeholder
+                  density="compact"
+                  prepend-inner-icon="mdi-account"
+                  :hide-details="!errornames"
+                  v-model="$store.state.enterprises.data.names"
+                  :error-messages="errornames"
+                  @update:model-value="errornames = ''"
+                  class="textUppercase"
+                ></v-text-field>
+              </v-col>
 
-          <h3 class="">
-            Hemos enviados estos datos a tu correo, guárdalos para futuros
-            ingresos.
-          </h3>
-          <v-btn color="info" @click="iniciarConfiguración()" size="x-large">
-            Continuar</v-btn
+              <v-col class="py-2 my-0" cols="12" lg="4" xl="4">
+                <v-text-field
+                  label="Apellidos*"
+                  placeholder=""
+                  variant="outlined"
+                  persistent-placeholder
+                  density="compact"
+                  prepend-inner-icon="mdi-account"
+                  :hide-details="!errorsurname"
+                  v-model="$store.state.enterprises.data.surname"
+                  :error-messages="errorsurname"
+                  @update:model-value="errorsurname = ''"
+                  class="textUppercase"
+                ></v-text-field>
+              </v-col>
+              <v-col class="py-2 my-0" cols="12" lg="4" xl="4">
+                <v-text-field
+                  label="Apellido Materno*"
+                  placeholder=""
+                  variant="outlined"
+                  persistent-placeholder
+                  density="compact"
+                  prepend-inner-icon="mdi-account"
+                  :hide-details="!errorsecond_surname"
+                  v-model="$store.state.enterprises.data.second_surname"
+                  :error-messages="errorsecond_surname"
+                  @update:model-value="errorsecond_surname = ''"
+                  class="textUppercase"
+                ></v-text-field>
+              </v-col>
+
+              <v-col class="py-2 my-0" cols="12" lg="6" xl="6">
+                <v-text-field
+                  label="Email*"
+                  variant="outlined"
+                  persistent-placeholder
+                  density="compact"
+                  prepend-inner-icon="mdi-email"
+                  :hide-details="!errorEmail"
+                  v-model="$store.state.enterprises.data.email"
+                  @change="validarCorreoExiste()"
+                  @update:model-value="validarCorreoExiste()"
+                  @blur="validarCorreoExiste()"
+                  :error-messages="errorEmail"
+                  id="Email"
+                  placeholder="Ingresa tu email."
+                  :loading="validandoCorreo"
+                ></v-text-field>
+              </v-col>
+              <v-col class="py-2 my-0" cols="12" lg="6" xl="6">
+                <v-text-field
+                  label="Email Confirmación*"
+                  variant="outlined"
+                  persistent-placeholder
+                  density="compact"
+                  prepend-inner-icon="mdi-email-check-outline"
+                  v-model="$store.state.enterprises.data.emailconfirmacion"
+                  :error-messages="errorEmail"
+                  id="EmailConfirmación"
+                  placeholder="Confirme su correo."
+                  :hide-details="!errorEmail"
+                ></v-text-field>
+              </v-col>
+              <v-col>
+                <p
+                  v-if="$store.state.enterprises.data.email"
+                  class="my-0 py-0"
+                  style="color: red; font-weight: bold; padding: 0 5%"
+                >
+                  **Deberás tener acceso.**
+                </p>
+              </v-col>
+              <v-col class="py-2 my-0" cols="12" lg="6" xl="6">
+                <v-text-field
+                  variant="outlined"
+                  density="compact"
+                  v-model="$store.state.enterprises.data.clave"
+                  :error-messages="errorClave"
+                  :type="typePassword ? 'password' : 'text'"
+                  label="Contraseña"
+                  prepend-inner-icon="mdi-lock"
+                  :append-inner-icon="typePassword ? 'mdi-eye' : 'mdi-eye-off'"
+                  @click:append-inner="typePassword = !typePassword"
+                  autocomplete="new-password"
+                  class="my-0"
+                  :hide-details="!errorClave"
+                  @update:model-value="errorClave = ''"
+                ></v-text-field>
+              </v-col>
+              <!-- :rules="passwordRules" -->
+              <v-col class="py-2 my-0" cols="12" lg="6" xl="6">
+                <CboPais
+                  @paisSeleccionado="handlePaisSeleccionado"
+                  outlined
+                  persistent-placeholder
+                  dense
+                  :errorPais="errorPais"
+                />
+              </v-col>
+              <v-col class="py-2 my-0" cols="12" lg="6" xl="6">
+                <v-text-field
+                  label="Teléfono*"
+                  variant="outlined"
+                  persistent-placeholder
+                  density="compact"
+                  prepend-inner-icon="mdi-phone"
+                  v-model="$store.state.enterprises.data.phone"
+                  :error-messages="errorPhone"
+                  :hide-details="!errorPhone"
+                  @update:model-value="errorPhone = ''"
+                ></v-text-field>
+                <p
+                  v-if="$store.state.enterprises.data.phone"
+                  class="my-0 py-0"
+                  style="color: red; font-weight: bold; padding: 0 5%"
+                >
+                  **Deberás tener acceso.**
+                </p>
+              </v-col>
+              <v-col class="py-2 my-0" cols="12">
+                <v-btn color="info" v-if="enviarCodigo" @click="enviarCorreo()">
+                  <v-icon start>mdi-email-arrow-right-outline</v-icon>
+                  Enviar Código
+                </v-btn>
+                <p v-if="mostrarAdvertencia">
+                  Ingresa el código de 4 dígitos enviado a tu correo.
+
+                  <v-alert
+                    variant="outlined"
+                    icon="mdi-email-alert-outline"
+                    density="compact"
+                    color="red"
+                  >
+                    <p class="my-0 py-0 text--black">
+                      Se le ha enviado un email, el mismo puede tardar
+                      <span class="text--red">1 minuto</span><br />
+                      <span class="text--red">
+                        REVISAR TU BANDEJA DE SPAM / NO DESEADOS.
+                      </span>
+                    </p>
+                  </v-alert>
+                </p>
+                <v-snackbar
+                  v-model="snackbarEmail"
+                  :min-height="multiLine ? '68' : undefined"
+                  :color="colorSnakBar"
+                  :timeout="timeout"
+                >
+                  <v-icon class="mx-1">mdi-{{ icon }}</v-icon>
+                  {{ text }}
+                </v-snackbar>
+              </v-col>
+              <v-col class="py-2 my-0" cols="12" lg="4" xl="4">
+                <v-text-field
+                  label="Código de acceso*"
+                  variant="outlined"
+                  persistent-placeholder
+                  density="compact"
+                  hide-details
+                  prepend-inner-icon="mdi-shield-key-outline"
+                  v-model="$store.state.enterprises.data.codigo"
+                ></v-text-field>
+              </v-col>
+              <v-col
+                class="py-2 my-0 centrado"
+                cols="6"
+                v-if="!reenviarCodigo && timeLeft > 0"
+              >
+                Puedes Solicitar un Nuevo código en {{ minutes }}:{{
+                  secondsFormatted
+                }}
+              </v-col>
+              <v-col class="py-2 my-0" cols="6">
+                <a class="text-primary" @click="enviarCorreo()" v-if="!enviarCodigo && timeLeft <= 0"
+                  >Reenviar Código</a
+                >
+              </v-col>
+              <v-col class="py-2 my-0 centrado" cols="12">
+                <v-btn
+                  color="#1A237E"
+                  class="custom-button"
+                  @click="crearNuevaEmpresa()"
+                  block
+                >
+                  <v-icon start>mdi-rocket-launch</v-icon>
+                  Iniciar tu PRUEBA GRATUITA por 30 días</v-btn
+                >
+              </v-col>
+              <v-col class="py-2 my-0 centrado" cols="12">
+                <v-btn
+                  color="#1E88E5"
+                  class="custom-button"
+                  @click="irALogin()"
+                  block
+                >
+                  <v-icon start>mdi-login</v-icon>
+                  Ya Tengo una cuenta
+                </v-btn>
+              </v-col>
+            </v-row>
+          </v-form>
+        </v-col>
+        <!-- v-show="$vuetify.breakpoint.lg" -->
+        <v-col class="py-2 my-0 centrado Slider ocultarMovil" cols="6">
+          <v-carousel
+            v-model="model"
+            :cycle="true"
+            continuous
+            :show-arrows="false"
+            reverse-transition="fade-transition"
+            transition="fade-transition"
+            hide-delimiter-background
+            class="px-0"
           >
-        </div>
-      </v-card>
-    </v-dialog>
-  </v-container>
+            <v-carousel-item v-for="(text, i) in textCarrusel" :key="i">
+              <v-img :src="`img/png/${text.urlImg}`"> </v-img>
+            </v-carousel-item>
+          </v-carousel>
+          <div class="divBtnWhasapp">
+            <v-btn color="success" class="btnWhasapp" @click="abriChat()">
+              <v-icon class="mx-1">mdi-whatsapp</v-icon> CHATEA CON
+              NOSOTROS</v-btn
+            >
+          </div>
+        </v-col>
+      </v-row>
+      <v-dialog v-model="dialogRegistrandoEmpresa" max-width="30%">
+        <v-card class="py-5 px-5">
+          <center>
+            <v-img max-width="100px" src="img/png/Tiempo de espera.svg"></v-img>
+          </center>
+          <h1 class="py-2 txtRegistro">
+            ESTAMOS CREANDO TU EMPRESA y LOS ACCESOS A TODOS LOS MODULSO
+          </h1>
+          <h2 class="py-2" style="text-align: center">
+            Esto tardara aproximadamente 1 minutos o menos
+          </h2>
+        </v-card>
+      </v-dialog>
+      <v-dialog v-model="confirmRegistro" scrollable max-width="30%">
+        <v-card>
+          <div class="centrado modalConfirm">
+            <center>
+              <v-img
+                max-width="100px"
+                src="img/png/Cuenta creada con exito.svg"
+              ></v-img>
+            </center>
+            <h1 class="txtRegistro">¡TU ACCESO HA SIDO CREADO CON ÉXITO!</h1>
+
+            <h3 class="">
+              Hemos enviados estos datos a tu correo, guárdalos para futuros
+              ingresos.
+            </h3>
+            <v-btn color="info" @click="iniciarConfiguración()" size="x-large">
+              Continuar</v-btn
+            >
+          </div>
+        </v-card>
+      </v-dialog>
+    </v-container>
+  </v-main>
 </template>
 
 <script>
