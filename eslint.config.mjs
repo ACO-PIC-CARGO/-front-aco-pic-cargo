@@ -1,5 +1,7 @@
 import pluginVue from "eslint-plugin-vue";
 import vuetify from "eslint-plugin-vuetify";
+import { configureVueProject, defineConfigWithVueTs, vueTsConfigs } from "@vue/eslint-config-typescript";
+import { LEGACY, LEGACY_OFF } from "./eslint.legacy.mjs";
 
 const VUE3_RULES = [
   "no-deprecated-data-object-declaration",
@@ -95,15 +97,19 @@ const OWN_TYPOGRAPHY_CLASS_FILES = [
   "src/components/Security/Accesos/SucursalComponent.vue",
 ];
 
-export default [
+configureVueProject({ scriptLangs: ["ts", "js"] });
+
+export default defineConfigWithVueTs(
   { ignores: ["dist/**", "node_modules/**", "src/**/* copy.vue"] },
-  ...pluginVue.configs["flat/base"],
-  ...vuetify.configs["flat/base"],
+  ...pluginVue.configs["flat/recommended"],
+  vueTsConfigs.recommended,
   ...vuetify.configs["flat/recommended"],
   {
-    files: ["src/**/*.{js,vue}"],
+    files: ["src/**/*.{js,ts,vue}"],
     languageOptions: { ecmaVersion: "latest", sourceType: "module" },
     rules: {
+      "vue/block-order": ["error", { order: ["script", "template", "style"] }],
+      "vue/component-api-style": ["error", ["script-setup"]],
       ...Object.fromEntries(VUE3_RULES.map((rule) => [`vue/${rule}`, "error"])),
       "vuetify/no-deprecated-typography": "off",
       "vuetify/no-elevation-overflow": "off",
@@ -134,4 +140,5 @@ export default [
     files: OWN_TYPOGRAPHY_CLASS_FILES,
     rules: { "vue/no-restricted-syntax": ["error", ...TEMPLATE_GUARDS] },
   },
-];
+  { files: LEGACY, rules: LEGACY_OFF },
+);
