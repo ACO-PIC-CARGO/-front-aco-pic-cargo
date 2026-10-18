@@ -2,6 +2,7 @@ import { createApp } from "vue";
 import * as Sentry from "@sentry/vue";
 import moment from "moment";
 import "moment/dist/locale/es";
+import { createPinia } from "pinia";
 import VueSweetalert2 from "vue-sweetalert2";
 import "sweetalert2/dist/sweetalert2.min.css";
 import App from "./App.vue";
@@ -25,13 +26,18 @@ Sentry.init({
 });
 
 // -------------
-let deferredPrompt;
+interface BeforeInstallPromptEvent extends Event {
+  prompt(): Promise<void>;
+  userChoice: Promise<{ outcome: "accepted" | "dismissed" }>;
+}
+
+let deferredPrompt: BeforeInstallPromptEvent | null = null;
 
 // Detectar si el navegador soporta `beforeinstallprompt`
 window.addEventListener("beforeinstallprompt", (e) => {
   // Prevenir el comportamiento predeterminado
   e.preventDefault();
-  deferredPrompt = e;
+  deferredPrompt = e as BeforeInstallPromptEvent;
 
   // Mostrar el botón de "Agregar a la pantalla de inicio"
   const addButton = document.getElementById("add-to-home");
@@ -41,9 +47,9 @@ window.addEventListener("beforeinstallprompt", (e) => {
     // Agregar evento al botón
     addButton.addEventListener("click", () => {
       // Mostrar el cuadro de diálogo de instalación
-      deferredPrompt.prompt();
+      deferredPrompt!.prompt();
 
-      deferredPrompt.userChoice.then((choiceResult) => {
+      deferredPrompt!.userChoice.then((choiceResult) => {
         if (choiceResult.outcome === "accepted") {
           console.log("El usuario añadió la app a la pantalla de inicio");
         } else {
@@ -91,9 +97,9 @@ window.addEventListener("storage", (event) => {
     "version",
   ];
   if (keysToSync.includes(event.key)) {
-    sessionStorage.setItem(event.key, event.newValue);
+    sessionStorage.setItem(event.key, event.newValue!);
   }
 });
 
-app.use(router).use(store).use(vuetify).use(VueSweetalert2);
+app.use(createPinia()).use(router).use(store).use(vuetify).use(VueSweetalert2);
 app.mount("#app");

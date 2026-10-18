@@ -1,7 +1,7 @@
  
 import { register } from "register-service-worker";
 
-let registrationWorker = null;
+let registrationWorker: ServiceWorkerRegistration | null = null;
 
 export function getRegistration() {
   return registrationWorker;
