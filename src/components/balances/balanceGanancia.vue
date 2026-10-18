@@ -1637,8 +1637,8 @@
 
 <script>
 import ProgressBar from "@/components/comun/ProgressBar.vue";
-import TableDinamica from "@/components/comun/tableDinamica.vue";
-import FlujoPrePostComponet from "@/components/comun/tablaDinamicaFlujoPrePostMes.vue";
+import TableDinamica from "@/components/comun/TableDinamica.vue";
+import FlujoPrePostComponet from "@/components/comun/TablaDinamicaFlujoPrePostMes.vue";
 import moment from "moment";
 import { mapActions, mapState } from "vuex";
 import entities from "../../store/modules/entitie";
