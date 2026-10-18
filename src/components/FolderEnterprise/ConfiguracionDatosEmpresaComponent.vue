@@ -153,7 +153,7 @@
 
 <script>
 import { mapActions } from "vuex";
-import CboPais from "@/components/comun/cboPais.vue";
+import CboPais from "@/components/comun/CboPais.vue";
 export default {
   components: {
     CboPais,

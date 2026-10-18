@@ -1,8 +1,56 @@
+<script setup lang="ts">
+import { ref } from "vue";
+import { useStore } from "vuex";
+import type { ValidationRule } from "vuetify";
+
+withDefaults(
+  defineProps<{
+    itemText?: string;
+    itemValue?: string;
+    label?: string;
+    placeholder?: string;
+    disabled?: boolean;
+    readonly?: boolean;
+    outlined?: boolean;
+    dense?: boolean;
+    clearable?: boolean;
+    hideDetails?: boolean | "auto";
+    errorMessages?: string | string[];
+    rules?: ValidationRule[];
+  }>(),
+  {
+    itemText: "name",
+    itemValue: "id",
+    label: "",
+    placeholder: "",
+    disabled: false,
+    readonly: false,
+    outlined: false,
+    dense: false,
+    clearable: false,
+    hideDetails: false,
+    errorMessages: "",
+    rules: () => [],
+  },
+);
+const model = defineModel<string | number | Record<string, unknown> | null>({ default: null });
+const emit = defineEmits<{ change: [id: unknown] }>();
+
+const rootStore = useStore();
+
+const autocompleteKey = ref(0);
+
+function onInputMultiplicador(id: string | number | Record<string, unknown> | null) {
+  model.value = id;
+  emit("change", id);
+}
+</script>
+
 <template>
   <v-autocomplete
     :key="autocompleteKey"
-    :model-value="modelValue"
-    :items="$store.state.pricing.listMultiplicador"
+    :model-value="model"
+    :items="rootStore.state.pricing.listMultiplicador"
     :item-title="itemText"
     :item-value="itemValue"
     :label="label"
@@ -20,98 +68,6 @@
     @update:model-value="onInputMultiplicador"
   />
 </template>
-
-<script>
-import Swal from "sweetalert2";
-
-export default {
-  emits: ["update:modelValue", "change"],
-  props: {
-    modelValue: {
-      type: [String, Number, Object],
-      default: null,
-    },
-    itemText: {
-      type: String,
-      default: "name",
-    },
-    itemValue: {
-      type: String,
-      default: "id",
-    },
-    label: {
-      type: String,
-      default: "",
-    },
-    placeholder: {
-      type: String,
-      default: "",
-    },
-    disabled: {
-      type: Boolean,
-      default: false,
-    },
-    readonly: {
-      type: Boolean,
-      default: false,
-    },
-    outlined: {
-      type: Boolean,
-      default: false,
-    },
-    dense: {
-      type: Boolean,
-      default: false,
-    },
-    clearable: {
-      type: Boolean,
-      default: false,
-    },
-    hideDetails: {
-      type: [Boolean, String],
-      default: false,
-    },
-    errorMessages: {
-      type: [String, Array],
-      default: "",
-    },
-    rules: {
-      type: Array,
-      default: () => [],
-    },
-  },
-
-  data: () => ({
-    valorAnterior: null,
-    autocompleteKey: 0,
-  }),
-
-  created() {
-    this.valorAnterior = this.modelValue;
-  },
-
-  watch: {
-    modelValue(newValue) {
-      this.valorAnterior = newValue;
-    },
-  },
-
-  methods: {
-    onInputMultiplicador(id) {
-      const item = this.$store.state.pricing.listMultiplicador.find(
-        (item) => item.id == id,
-      );
-
-      const code = item?.code || null;
-
-      this.valorAnterior = id;
-
-      this.$emit("update:modelValue", id);
-      this.$emit("change", id);
-    },
-  },
-};
-</script>
 
 <style>
 .widthTD {

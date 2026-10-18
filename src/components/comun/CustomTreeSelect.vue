@@ -1,3 +1,128 @@
+<script setup lang="ts">
+import { computed, ref, watch } from "vue";
+import type { ValidationRule } from "vuetify";
+
+interface TreeNode {
+  [campo: string]: unknown;
+  children?: TreeNode[];
+}
+
+const props = withDefaults(
+  defineProps<{
+    options: TreeNode[];
+    label?: string;
+    placeholder?: string;
+    outlined?: boolean;
+    dense?: boolean;
+    disabled?: boolean;
+    rules?: ValidationRule[];
+    searchNested?: boolean;
+    disableBranchNodes?: boolean;
+    itemText?: string;
+    itemValue?: string;
+  }>(),
+  {
+    label: undefined,
+    placeholder: undefined,
+    rules: undefined,
+    searchNested: false,
+    disableBranchNodes: true,
+    itemText: "label",
+    itemValue: "id",
+  },
+);
+const internalValue = defineModel<string | number | null>({ default: null });
+
+const menu = ref(false);
+const search = ref("");
+const openNodes = ref<unknown[]>([]);
+
+const activeNodes = computed(() =>
+  internalValue.value !== null && internalValue.value !== undefined && internalValue.value !== ""
+    ? [internalValue.value]
+    : [],
+);
+const selectedLabel = computed(() => {
+  if (
+    internalValue.value === null ||
+    internalValue.value === undefined ||
+    internalValue.value === ""
+  ) {
+    return "";
+  }
+
+  const node = findNode(props.options, internalValue.value);
+  return node ? node[props.itemText] : "";
+});
+
+function findNode(items: TreeNode[], id: unknown): TreeNode | null {
+  if (!items || items.length === 0) return null;
+  for (const item of items) {
+    if (String(item[props.itemValue]) === String(id)) {
+      return item;
+    }
+    if (item.children && item.children.length > 0) {
+      const found = findNode(item.children, id);
+      if (found) return found;
+    }
+  }
+  return null;
+}
+
+function onNodeSelect(activeArray: Array<string | number>) {
+  if (!activeArray || activeArray.length === 0) {
+    internalValue.value = null;
+    return;
+  }
+  const selectedKey = activeArray[0]!;
+  const node = findNode(props.options, selectedKey);
+
+  if (props.disableBranchNodes && node && node.children && node.children.length > 0) {
+    return;
+  }
+
+  internalValue.value = selectedKey;
+  menu.value = false;
+  search.value = "";
+}
+
+function clearSelection() {
+  internalValue.value = null;
+}
+function findPath(items: TreeNode[], targetId: unknown): unknown[] | null {
+  if (!items || items.length === 0) return null;
+
+  for (const item of items) {
+    if (String(item[props.itemValue]) === String(targetId)) {
+      return [];
+    }
+
+    if (item.children && item.children.length > 0) {
+      const childPath = findPath(item.children, targetId);
+
+      if (childPath !== null) {
+        return [item[props.itemValue], ...childPath];
+      }
+    }
+  }
+  return null;
+}
+
+watch(
+  internalValue,
+  (newVal) => {
+    if (newVal !== null && newVal !== undefined && newVal !== "") {
+      // Si hay un valor, calculamos la ruta para llegar a él
+      const path = findPath(props.options, newVal);
+      openNodes.value = path || [];
+    } else {
+      openNodes.value = [];
+    }
+  },
+  { immediate: true },
+);
+</script>
+
 <template>
   <v-menu
     v-model="menu"
@@ -6,7 +131,7 @@
     min-width="290"
   >
     <!-- INPUT QUE ACTÚA COMO EL SELECT -->
-    <template v-slot:activator="{ props }">
+    <template #activator="{ props: activatorProps }">
       <v-text-field
         :model-value="selectedLabel"
         :label="label"
@@ -19,27 +144,33 @@
         clearable
         hide-details
         append-inner-icon="mdi-chevron-down"
-        v-bind="props"
+        v-bind="activatorProps"
         @click:clear="clearSelection"
-      ></v-text-field>
+      />
     </template>
 
     <!-- CAJA DESPLEGABLE CON EL ÁRBOL -->
     <v-card>
       <!-- Buscador -->
-      <div class="pa-2" v-if="searchNested">
+      <div
+        class="pa-2"
+        v-if="searchNested"
+      >
         <v-text-field
           v-model="search"
           label=""
           density="compact"
           variant="outlined"
           hide-details
-        ></v-text-field>
+        />
       </div>
-      <v-divider v-if="searchNested"></v-divider>
+      <v-divider v-if="searchNested" />
 
       <!-- Árbol de Vuetify -->
-      <v-card-text class="pa-0" style="max-height: 300px; overflow-y: auto">
+      <v-card-text
+        class="pa-0"
+        style="max-height: 300px; overflow-y: auto"
+      >
         <v-treeview
           :items="options"
           :search="search"
@@ -51,157 +182,8 @@
           v-model:opened="openNodes"
           :activated="activeNodes"
           @update:activated="onNodeSelect"
-        ></v-treeview>
+        />
       </v-card-text>
     </v-card>
   </v-menu>
 </template>
-
-<script>
-export default {
-  name: "VTreeSelect",
-  emits: ["update:modelValue"],
-  props: {
-    modelValue: {
-      type: [String, Number],
-      default: null,
-    },
-    options: {
-      type: Array,
-      required: true,
-    },
-    label: String,
-    placeholder: String,
-    outlined: Boolean,
-    dense: Boolean,
-    disabled: Boolean,
-    rules: Array,
-    searchNested: {
-      type: Boolean,
-      default: false,
-    },
-    disableBranchNodes: {
-      type: Boolean,
-      default: true,
-    },
-
-    itemText: {
-      type: String,
-      default: "label",
-    },
-    itemValue: {
-      type: String,
-      default: "id",
-    },
-  },
-  data() {
-    return {
-      menu: false,
-      search: "",
-      openNodes: [],
-    };
-  },
-  computed: {
-    internalValue: {
-      get() {
-        return this.modelValue;
-      },
-      set(val) {
-        this.$emit("update:modelValue", val);
-      },
-    },
-    activeNodes() {
-      return this.internalValue !== null &&
-        this.internalValue !== undefined &&
-        this.internalValue !== ""
-        ? [this.internalValue]
-        : [];
-    },
-    selectedLabel() {
-      if (
-        this.internalValue === null ||
-        this.internalValue === undefined ||
-        this.internalValue === ""
-      ) {
-        return "";
-      }
-
-      const node = this.findNode(this.options, this.internalValue);
-      return node ? node[this.itemText] : "";
-    },
-  },
-  methods: {
-    findNode(items, id) {
-      if (!items || items.length === 0) return null;
-      for (const item of items) {
-        if (String(item[this.itemValue]) === String(id)) {
-          return item;
-        }
-        if (item.children && item.children.length > 0) {
-          const found = this.findNode(item.children, id);
-          if (found) return found;
-        }
-      }
-      return null;
-    },
-
-    onNodeSelect(activeArray) {
-      if (!activeArray || activeArray.length === 0) {
-        this.internalValue = null;
-        return;
-      }
-      const selectedKey = activeArray[0];
-      const node = this.findNode(this.options, selectedKey);
-
-      if (
-        this.disableBranchNodes &&
-        node &&
-        node.children &&
-        node.children.length > 0
-      ) {
-        return;
-      }
-
-      this.internalValue = selectedKey;
-      this.menu = false;
-      this.search = "";
-    },
-
-    clearSelection() {
-      this.internalValue = null;
-    },
-    findPath(items, targetId) {
-      if (!items || items.length === 0) return null;
-
-      for (const item of items) {
-        if (String(item[this.itemValue]) === String(targetId)) {
-          return [];
-        }
-
-        if (item.children && item.children.length > 0) {
-          const childPath = this.findPath(item.children, targetId);
-
-          if (childPath !== null) {
-            return [item[this.itemValue], ...childPath];
-          }
-        }
-      }
-      return null;
-    },
-  },
-  watch: {
-    internalValue: {
-      handler(newVal) {
-        if (newVal !== null && newVal !== undefined && newVal !== "") {
-          // Si hay un valor, calculamos la ruta para llegar a él
-          const path = this.findPath(this.options, newVal);
-          this.openNodes = path || [];
-        } else {
-          this.openNodes = [];
-        }
-      },
-      immediate: true,
-    },
-  },
-};
-</script>

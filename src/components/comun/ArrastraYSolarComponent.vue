@@ -1,3 +1,164 @@
+<script setup lang="ts">
+import { computed, onMounted, ref, useTemplateRef, watch } from "vue";
+import Swal from "sweetalert2";
+import { useStore } from "vuex";
+import type { ValidationRule } from "vuetify";
+
+const props = withDefaults(
+  defineProps<{
+    // Reglas de validación para v-form
+    rules?: ValidationRule[];
+    // URL previa del archivo (si la tienes desde BD)
+    initialUrl?: string | null;
+    // ID previo del archivo (si la tienes desde BD)
+    initialId?: string | number | null;
+    // Si se pasa true, deshabilita eliminar y subir (Ideal para tipo == 'ver')
+    readOnly?: boolean;
+  }>(),
+  { rules: () => [], initialUrl: null, initialId: null, readOnly: false },
+);
+const emit = defineEmits<{
+  idArchivoCargado: [payload: { id: unknown; archivo: unknown }];
+}>();
+
+const rootStore = useStore();
+
+const loading = ref(false);
+const isDragging = ref(false);
+const file = ref<File | null>(null);
+const errorState = ref(false);
+// Manejo local cuando se pasa prop previa
+const existingUrl = ref<string | null>(null);
+const existingId = ref<string | number | null>(null);
+const fileInput = useTemplateRef("fileInput");
+
+// Evalúa si hay archivo (ya sea subido nuevo o enviado por Props)
+const tieneArchivo = computed(
+  () => !!rootStore.state.files.payPath || !!existingUrl.value || !!existingId.value,
+);
+// Retorna el ID actual para que v-input valide si existe
+const archivoValido = computed(
+  () => rootStore.state.files.payPath || existingId.value || existingUrl.value || null,
+);
+// URL para ver el archivo en el botón
+const urlVisor = computed(() => {
+  if (rootStore.state.files.datosPath?.ruta) {
+    return rootStore.state.files.datosPath.ruta;
+  }
+  return existingUrl.value || null;
+});
+// Nombre a mostrar en la tarjeta
+// Nombre a mostrar en la tarjeta
+const nombreArchivo = computed(() => {
+  if (file.value) return file.value.name;
+  if (existingUrl.value !== null && existingUrl.value !== undefined) {
+    // Convierte a String por si acaso se pasa un número por error desde el padre
+    const urlStr = String(existingUrl.value);
+    // Extrae el nombre del archivo si es una URL válida, o muestra el valor/ID
+    const filename = urlStr.includes("/") ? urlStr.split("/").pop() : urlStr;
+    return filename || "Soporte adjunto";
+  }
+  return "Soporte adjunto";
+});
+
+watch(
+  () => props.initialUrl,
+  (val) => {
+    existingUrl.value = val;
+  },
+  { immediate: true },
+);
+watch(
+  () => props.initialId,
+  (val) => {
+    existingId.value = val;
+  },
+  { immediate: true },
+);
+
+onMounted(() => {
+  // Reseteamos el store al montar para no arrastrar basura de otras vistas
+  rootStore.state.files.payPath = null;
+  rootStore.state.files.datosPath = null;
+});
+
+async function handleDrop(event: DragEvent) {
+  if (props.readOnly) return;
+  event.preventDefault();
+  isDragging.value = false;
+  const droppedFiles = event.dataTransfer!.files;
+
+  if (droppedFiles.length > 0) {
+    file.value = droppedFiles[0]!;
+    await uploadFile();
+  }
+}
+
+function openFileInput() {
+  if (props.readOnly) return;
+  fileInput.value!.$el.click();
+}
+
+async function uploadFile() {
+  // BLOQUEO: Si ya está cargando, ignora nuevos intentos para romper el bucle
+  if (loading.value || !file.value) return;
+
+  const isValidType =
+    file.value.type === "application/pdf" || file.value.type.startsWith("image/");
+
+  if (!isValidType) {
+    file.value = null;
+    Swal.fire({
+      icon: "error",
+      title: "Formato no válido",
+      text: "Por favor, selecciona únicamente una imagen o un archivo PDF.",
+    });
+    return;
+  }
+
+  loading.value = true;
+
+  try {
+    await rootStore.dispatch("_uploadFile", file.value);
+
+    existingUrl.value = null;
+    existingId.value = null;
+
+    Swal.fire({
+      icon: "success",
+      title: "Archivo Cargado Correctamente",
+      toast: true,
+      position: "top-end",
+      showConfirmButton: false,
+      timer: 3000,
+    });
+
+    emit("idArchivoCargado", {
+      id: rootStore.state.files.payPath,
+      archivo: rootStore.state.files.datosPath,
+    });
+  } catch {
+    Swal.fire({
+      icon: "error",
+      title: "Error al cargar",
+      text: "Ocurrió un problema al subir el archivo.",
+    });
+  } finally {
+    loading.value = false;
+    file.value = null; // Limpia la referencia para permitir reintentos limpios
+  }
+}
+
+function eliminarFile() {
+  rootStore.state.files.payPath = null;
+  rootStore.state.files.datosPath = null;
+  existingUrl.value = null;
+  existingId.value = null;
+  file.value = null;
+  emit("idArchivoCargado", { id: null, archivo: null });
+}
+</script>
+
 <template>
   <!-- Contenedor nativo de validación de Vuetify -->
   <v-input
@@ -9,11 +170,17 @@
     <v-card class="py-0 elevation-0 width-100">
       <v-card-text class="pa-0">
         <!-- 1. Estado: Archivo Cargado (Ya sea por Prop Inicial o subido recientemente) -->
-        <div v-if="tieneArchivo" class="clsArchivoCargado">
+        <div
+          v-if="tieneArchivo"
+          class="clsArchivoCargado"
+        >
           <div class="d-flex align-center overflow-hidden">
-            <v-icon color="success" class="mr-2"
-              >mdi-check-circle-outline</v-icon
+            <v-icon
+              color="success"
+              class="mr-2"
             >
+              mdi-check-circle-outline
+            </v-icon>
             <span class="text-truncate">
               <b>Archivo Cargado:</b>
               {{ nombreArchivo }}
@@ -31,7 +198,12 @@
               target="_blank"
               title="Ver archivo"
             >
-              <v-icon color="info" size="22">mdi-eye</v-icon>
+              <v-icon
+                color="info"
+                size="22"
+              >
+                mdi-eye
+              </v-icon>
             </v-btn>
 
             <!-- Botón Eliminar (Deshabilitado si solo es lectura / modo 'ver') -->
@@ -43,7 +215,12 @@
               @click="eliminarFile"
               title="Eliminar archivo"
             >
-              <v-icon color="red" size="22">mdi-close-circle</v-icon>
+              <v-icon
+                color="red"
+                size="22"
+              >
+                mdi-close-circle
+              </v-icon>
             </v-btn>
           </div>
         </div>
@@ -59,9 +236,10 @@
             v-if="!loading"
           >
             <label class="cursor-pointer">
-              <v-icon color="grey-darken-1" class="mr-1"
-                >mdi-cloud-upload</v-icon
-              >
+              <v-icon
+                color="grey-darken-1"
+                class="mr-1"
+              >mdi-cloud-upload</v-icon>
               Arrastra y suelta el archivo aquí o haz clic para seleccionar
               <v-file-input
                 ref="fileInput"
@@ -70,217 +248,45 @@
                 accept="image/*, application/pdf"
                 @update:model-value="uploadFile()"
                 style="display: none"
-              ></v-file-input>
+              />
             </label>
           </div>
 
           <!-- 3. Estado: Cargando -->
           <div v-else>
-            <v-card color="primary" class="pa-2">
+            <v-card
+              color="primary"
+              class="pa-2"
+            >
               <v-card-text class="pa-2 text-center">
                 Se está procesando el archivo, un momento por favor...
                 <v-progress-linear
                   indeterminate
                   color="white"
                   class="mb-0 mt-2"
-                ></v-progress-linear>
+                />
               </v-card-text>
             </v-card>
           </div>
         </div>
 
         <!-- 4. Estado: No hay archivo y es solo lectura -->
-        <div v-else class="text-body-small text-grey-darken-1 pa-2 italic">
-          <v-icon size="small" color="grey">mdi-file-hidden</v-icon> No se ha adjuntado
+        <div
+          v-else
+          class="text-body-small text-grey-darken-1 pa-2 italic"
+        >
+          <v-icon
+            size="small"
+            color="grey"
+          >
+            mdi-file-hidden
+          </v-icon> No se ha adjuntado
           ningún soporte.
         </div>
       </v-card-text>
     </v-card>
   </v-input>
 </template>
-
-<script>
-import Swal from "sweetalert2";
-import { mapActions } from "vuex";
-
-export default {
-  name: "ArrastraYSolarComponent",
-  emits: ["idArchivoCargado"],
-  props: {
-    // Reglas de validación para v-form
-    rules: {
-      type: Array,
-      default: () => [],
-    },
-    // URL previa del archivo (si la tienes desde BD)
-    initialUrl: {
-      type: String,
-      default: null,
-    },
-    // ID previo del archivo (si la tienes desde BD)
-    initialId: {
-      type: [String, Number],
-      default: null,
-    },
-    // Si se pasa true, deshabilita eliminar y subir (Ideal para tipo == 'ver')
-    readOnly: {
-      type: Boolean,
-      default: false,
-    },
-  },
-  data() {
-    return {
-      loading: false,
-      isDragging: false,
-      file: null,
-      errorState: false,
-      // Manejo local cuando se pasa prop previa
-      existingUrl: null,
-      existingId: null,
-    };
-  },
-  computed: {
-    // Evalúa si hay archivo (ya sea subido nuevo o enviado por Props)
-    tieneArchivo() {
-      return (
-        !!this.$store.state.files.payPath ||
-        !!this.existingUrl ||
-        !!this.existingId
-      );
-    },
-    // Retorna el ID actual para que v-input valide si existe
-    archivoValido() {
-      return (
-        this.$store.state.files.payPath ||
-        this.existingId ||
-        this.existingUrl ||
-        null
-      );
-    },
-    // URL para ver el archivo en el botón
-    urlVisor() {
-      if (this.$store.state.files.datosPath?.ruta) {
-        return this.$store.state.files.datosPath.ruta;
-      }
-      return this.existingUrl || null;
-    },
-    // Nombre a mostrar en la tarjeta
-    // Nombre a mostrar en la tarjeta
-    nombreArchivo() {
-      if (this.file) return this.file.name;
-      if (this.existingUrl !== null && this.existingUrl !== undefined) {
-        // Convierte a String por si acaso se pasa un número por error desde el padre
-        const urlStr = String(this.existingUrl);
-        // Extrae el nombre del archivo si es una URL válida, o muestra el valor/ID
-        const filename = urlStr.includes("/")
-          ? urlStr.split("/").pop()
-          : urlStr;
-        return filename || "Soporte adjunto";
-      }
-      return "Soporte adjunto";
-    },
-  },
-  watch: {
-    initialUrl: {
-      immediate: true,
-      handler(val) {
-        this.existingUrl = val;
-      },
-    },
-    initialId: {
-      immediate: true,
-      handler(val) {
-        this.existingId = val;
-      },
-    },
-  },
-  mounted() {
-    // Reseteamos el store al montar para no arrastrar basura de otras vistas
-    this.$store.state.files.payPath = null;
-    this.$store.state.files.datosPath = null;
-  },
-  methods: {
-    ...mapActions(["_uploadFile"]),
-
-    async handleDrop(event) {
-      if (this.readOnly) return;
-      event.preventDefault();
-      this.isDragging = false;
-      const droppedFiles = event.dataTransfer.files;
-
-      if (droppedFiles.length > 0) {
-        this.file = droppedFiles[0];
-        await this.uploadFile();
-      }
-    },
-
-    openFileInput() {
-      if (this.readOnly) return;
-      this.$refs.fileInput.$el.click();
-    },
-
-    async uploadFile() {
-      const vm = this;
-      // BLOQUEO: Si ya está cargando, ignora nuevos intentos para romper el bucle
-      if (vm.loading || !vm.file) return;
-
-      const isValidType =
-        vm.file.type === "application/pdf" || vm.file.type.startsWith("image/");
-
-      if (!isValidType) {
-        vm.file = null;
-        Swal.fire({
-          icon: "error",
-          title: "Formato no válido",
-          text: "Por favor, selecciona únicamente una imagen o un archivo PDF.",
-        });
-        return;
-      }
-
-      vm.loading = true;
-
-      try {
-        await this._uploadFile(vm.file);
-
-        this.existingUrl = null;
-        this.existingId = null;
-
-        Swal.fire({
-          icon: "success",
-          title: "Archivo Cargado Correctamente",
-          toast: true,
-          position: "top-end",
-          showConfirmButton: false,
-          timer: 3000,
-        });
-
-        vm.$emit("idArchivoCargado", {
-          id: vm.$store.state.files.payPath,
-          archivo: vm.$store.state.files.datosPath,
-        });
-      } catch (error) {
-        Swal.fire({
-          icon: "error",
-          title: "Error al cargar",
-          text: "Ocurrió un problema al subir el archivo.",
-        });
-      } finally {
-        vm.loading = false;
-        vm.file = null; // Limpia la referencia para permitir reintentos limpios
-      }
-    },
-
-    eliminarFile() {
-      this.$store.state.files.payPath = null;
-      this.$store.state.files.datosPath = null;
-      this.existingUrl = null;
-      this.existingId = null;
-      this.file = null;
-      this.$emit("idArchivoCargado", { id: null, archivo: null });
-    },
-  },
-};
-</script>
 
 <style scoped>
 .width-100 {

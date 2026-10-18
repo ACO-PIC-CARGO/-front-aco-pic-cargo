@@ -314,7 +314,7 @@
 </template>
 
 <script>
-import CboPais from "@/components/comun/cboPais.vue";
+import CboPais from "@/components/comun/CboPais.vue";
 import { mapActions } from "vuex";
 export default {
   components: {
