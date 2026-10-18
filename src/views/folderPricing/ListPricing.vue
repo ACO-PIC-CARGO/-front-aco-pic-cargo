@@ -101,9 +101,9 @@ export default {
       import("@/components/folderPricing/listQuoteComponent.vue")),
     ListCall: defineAsyncComponent(() => import("@/components/folderPricing/listCallComponent.vue")),
     FiltroQuote: defineAsyncComponent(() => import("@/components/filtros/FiltroQuote.vue")),
-    FiltroCalls: defineAsyncComponent(() => import("@/components/filtros/FiltroCalls")),
+    FiltroCalls: defineAsyncComponent(() => import("@/components/filtros/FiltroCalls.vue")),
     ConfigCotizacion: defineAsyncComponent(() =>
-      import("@/components/folderPricing/ConfigCotizacion")),
+      import("@/components/folderPricing/ConfigCotizacion.vue")),
 
     // ListCall: () => import("../folderPricing/comun/listCall.vue"),
   },

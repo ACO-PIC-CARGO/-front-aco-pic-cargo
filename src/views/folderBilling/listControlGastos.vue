@@ -17,7 +17,7 @@
 </template>
 <script>
 import listControlGastosCom from "@/components/folderBilling/listControlGastos.vue";
-import FiltroControlGastos from "@/components/filtros/FiltroControlGastos";
+import FiltroControlGastos from "@/components/filtros/FiltroControlGastos.vue";
 
 export default {
   name: "listEntities",

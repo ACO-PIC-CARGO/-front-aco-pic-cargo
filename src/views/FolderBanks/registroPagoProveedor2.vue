@@ -3,7 +3,7 @@
 </template>
 
 <script>
-import registroPayForProveedor from "@/components/folderBanks/registroPayForProveedor";
+import registroPayForProveedor from "@/components/folderBanks/registroPayForProveedor.vue";
 
 export default {
   components: {

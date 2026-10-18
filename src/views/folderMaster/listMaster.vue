@@ -45,7 +45,7 @@ export default {
     listMasterCom,
     FiltroMaster,
     ConfigCotizacion: defineAsyncComponent(() =>
-      import("@/components/folderPricing/ConfigExpediente")),
+      import("@/components/folderPricing/ConfigExpediente.vue")),
   },
   data() {
     return { dialogConfig: false };

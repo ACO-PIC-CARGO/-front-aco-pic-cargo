@@ -17,7 +17,7 @@
 </template>
 
 <script>
-import listPayForCliente from "../../components/folderBanks/listPayForCliente";
+import listPayForCliente from "../../components/folderBanks/listPayForCliente.vue";
 // Cambia la "l" por "L"
 import listPayForClienteDetalle from "../../components/folderBanks/ListPayForClienteDetalles.vue";
 export default {

@@ -17,7 +17,7 @@
 </template>
 
 <script>
-import listPayForProveedor from "@/components/folderBanks/listPayForProveedor";
+import listPayForProveedor from "@/components/folderBanks/listPayForProveedor.vue";
 import pagosPorProveedorDetallado from "../../components/folderBanks/pagosPorProveedorDetallado.vue";
 
 export default {

@@ -11,7 +11,7 @@
   </div>
 </template>
 <script>
-import RegularizarFacturaCom from "@/components/folderModulesPays/regularizarProformace";
+import RegularizarFacturaCom from "@/components/folderModulesPays/regularizarProformace.vue";
 
 export default {
   components: {

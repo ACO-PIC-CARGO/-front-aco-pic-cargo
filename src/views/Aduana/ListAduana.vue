@@ -90,9 +90,9 @@ export default {
       import("@/components/folderAduana/listAduanaComponent.vue")),
     ListCall: defineAsyncComponent(() => import("@/components/folderAduana/listCallComponent.vue")),
     // FiltroQuote: () => import("@/components/filtros/FiltroQuote.vue"),
-    // FiltroCalls: () => import("@/components/filtros/FiltroCalls"),
+    // FiltroCalls: () => import("@/components/filtros/FiltroCalls.vue"),
     ConfigCotizacion: defineAsyncComponent(() =>
-      import("@/components/folderPricing/ConfigCotizacion")),
+      import("@/components/folderPricing/ConfigCotizacion.vue")),
 
     // ListCall: () => import("../folderPricing/comun/listCall.vue"),
   },

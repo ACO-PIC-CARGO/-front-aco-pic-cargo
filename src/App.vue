@@ -1107,7 +1107,7 @@ export default {
       () => import("@/components/servicesControl.vue"),
     ),
     listEntitie: defineAsyncComponent(
-      () => import("@/components/folderEntities/listEntities"),
+      () => import("@/components/folderEntities/listEntities.vue"),
     ),
     NuevoCliente: defineAsyncComponent(
       () =>

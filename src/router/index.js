@@ -15,34 +15,34 @@ import ConfiguracionAvisoLlegada from "../views/folderHouse/ConfiguracionAvisoLl
 import reportControlFile from "../views/folderReports/reportsControlFile.vue";
 import reportControlFileDetails from "../views/folderReports/reportsControlFileDetails.vue";
 
-import billingControlGastos from "../views/folderBilling/billControlGastos";
-import listControlGastos from "../views/folderBilling/listControlGastos";
+import billingControlGastos from "../views/folderBilling/billControlGastos.vue";
+import listControlGastos from "../views/folderBilling/listControlGastos.vue";
 
-import ControlRequest from "../views/requests/controlRequest";
-import ControlPaymentFile from "../views/requests/controlPaymentFile";
-import debstopay from "../views/requests/reportDebstoPay";
-import accountsreceivable from "../views/requests/accountsreceivable";
-import checkDebs from "../views/requests/checkDebs";
-import cashFlow from "../views/requests/cashFlow";
-import controlAccountPays from "../views/folderModulesPays/moduleAccountPays";
-import moduleAccountReceivable from "../views/folderModulesPays/moduleAccountReceivable";
-import addAccountPays from "../views/folderModulesPays/controlAccountPays";
-import viewAccountPays from "../views/folderModulesPays/controlAccountPaysView";
-import viewAccountPaysCxC from "../views/folderModulesPays/controlAccountPaysCxCView";
-import EditviewAccountPays from "../views/folderModulesPays/controlAccountPaysEdit";
-import EditviewAccountPaysCxC from "../views/folderModulesPays/controlAccountPaysCxCEdit";
-import regularizarProformace from "../views/folderModulesPays/regularizarProformace";
-import controlAccountReceivable from "../views/folderModulesPays/controlAccountReceivable";
-import listadoPagosPorProveedor from "../views/FolderBanks/listadoPagosPorProveedor";
-import registroPayForProveedor from "../views/FolderBanks/registroPagoProveedor";
-import verPagosPorProveedor from "../views/FolderBanks/verPagosPorProveedor";
-import editarPagosPorProveedor from "../views/FolderBanks/editarPagosPorProveedor";
-import editarPagosPorCliente from "../views/FolderBanks/editarPagosPorCliente";
-import listadoPagosPorCliente from "../views/FolderBanks/listadoPagosPorCliente";
-import registroPayForCliente from "../views/FolderBanks/registroPagoCliente";
-import verPagosPorCliente from "../views/FolderBanks/verPagosPorCliente";
-import litProgrammedPayment from "../views/programmedPayment/listProgrammedPayment";
-import listFacturacion from "../views/folderBilling/listFacturacionView";
+import ControlRequest from "../views/requests/controlRequest.vue";
+import ControlPaymentFile from "../views/requests/controlPaymentFile.vue";
+import debstopay from "../views/requests/reportDebstoPay.vue";
+import accountsreceivable from "../views/requests/accountsreceivable.vue";
+import checkDebs from "../views/requests/checkDebs.vue";
+import cashFlow from "../views/requests/cashFlow.vue";
+import controlAccountPays from "../views/folderModulesPays/moduleAccountPays.vue";
+import moduleAccountReceivable from "../views/folderModulesPays/moduleAccountReceivable.vue";
+import addAccountPays from "../views/folderModulesPays/controlAccountPays.vue";
+import viewAccountPays from "../views/folderModulesPays/controlAccountPaysView.vue";
+import viewAccountPaysCxC from "../views/folderModulesPays/controlAccountPaysCxCView.vue";
+import EditviewAccountPays from "../views/folderModulesPays/controlAccountPaysEdit.vue";
+import EditviewAccountPaysCxC from "../views/folderModulesPays/controlAccountPaysCxCEdit.vue";
+import regularizarProformace from "../views/folderModulesPays/regularizarProformace.vue";
+import controlAccountReceivable from "../views/folderModulesPays/controlAccountReceivable.vue";
+import listadoPagosPorProveedor from "../views/FolderBanks/listadoPagosPorProveedor.vue";
+import registroPayForProveedor from "../views/FolderBanks/registroPagoProveedor.vue";
+import verPagosPorProveedor from "../views/FolderBanks/verPagosPorProveedor.vue";
+import editarPagosPorProveedor from "../views/FolderBanks/editarPagosPorProveedor.vue";
+import editarPagosPorCliente from "../views/FolderBanks/editarPagosPorCliente.vue";
+import listadoPagosPorCliente from "../views/FolderBanks/listadoPagosPorCliente.vue";
+import registroPayForCliente from "../views/FolderBanks/registroPagoCliente.vue";
+import verPagosPorCliente from "../views/FolderBanks/verPagosPorCliente.vue";
+import litProgrammedPayment from "../views/programmedPayment/listProgrammedPayment.vue";
+import listFacturacion from "../views/folderBilling/listFacturacionView.vue";
 import planAccessGuard from "./planAccessGuard";
 import resetSessionOnLogin from "./resetSessionOnLogin";
 
@@ -122,19 +122,19 @@ const routes = [
         path: "folderEntities/nuevo-proveedor",
         name: "nuevoProveedor",
         component: () =>
-          import("@/views/folderEntities/Proveedor/nuevoProveedor"),
+          import("@/views/folderEntities/Proveedor/nuevoProveedor.vue"),
       },
       {
         path: "folderEntities/ver-proveedor/:id",
         name: "verProveedor",
         component: () =>
-          import("@/views/folderEntities/Proveedor/verProveedor"),
+          import("@/views/folderEntities/Proveedor/verProveedor.vue"),
       },
       {
         path: "folderEntities/editar-proveedor/:id",
         name: "editarProveedor",
         component: () =>
-          import("@/views/folderEntities/Proveedor/editarProveedor"),
+          import("@/views/folderEntities/Proveedor/editarProveedor.vue"),
       },
       {
         path: "folderEntities/listado-cliente",
@@ -163,7 +163,7 @@ const routes = [
       {
         path: "folderEntities/list-personal-rol",
         name: "listPersonaRol",
-        component: () => import("../views/Security/RolPersona/listPersonaRol"),
+        component: () => import("../views/Security/RolPersona/listPersonaRol.vue"),
       },
       {
         path: "folderEntities/control/:id_role",
@@ -351,12 +351,12 @@ const routes = [
       {
         path: "folderModulesPays/verProyeccion/:id",
         name: "verProyeccion",
-        component: () => import("../views/folderProyeccion/verProyeccion"),
+        component: () => import("../views/folderProyeccion/verProyeccion.vue"),
       },
       {
         path: "folderModulesPays/editarProyeccion/:id",
         name: "editarProyeccion",
-        component: () => import("../views/folderProyeccion/editarProyeccion"),
+        component: () => import("../views/folderProyeccion/editarProyeccion.vue"),
       },
 
       {
@@ -434,12 +434,12 @@ const routes = [
         path: "folderConsolidation/registro",
         name: "newConsolidation",
         component: () =>
-          import("../views/folderConsolidacion/NuevaConsolidacionView"),
+          import("../views/folderConsolidacion/NuevaConsolidacionView.vue"),
       },
       {
         path: "folderReports/balanceGanancia",
         name: "lstEstadoGanancias",
-        component: () => import("../views/balance/balanceGanancia"),
+        component: () => import("../views/balance/balanceGanancia.vue"),
       },
       {
         path: "folderRequest/listFlujoMensual",
@@ -470,7 +470,7 @@ const routes = [
         path: "folterCargaMasiva/carga_calculadora",
         name: "cargaMasivaCalc",
         component: () =>
-          import("../../src/views/folterCargaMasiva/Calculadora"),
+          import("../../src/views/folterCargaMasiva/Calculadora.vue"),
       },
       {
         path: "folterCargaMasiva/carga_control_gastos",
@@ -800,24 +800,24 @@ const routes = [
         path: "ServiciosCostosFijosFCL",
         name: "ServiciosCostosFijosFCL",
         component: () =>
-          import("../views/Calculadora/FCL/ServiciosCostosFijosFCL"),
+          import("../views/Calculadora/FCL/ServiciosCostosFijosFCL.vue"),
       },
       {
         path: "ServiciosCostosFijosLCL",
         name: "ServiciosCostosFijosLCL",
         component: () =>
-          import("../views/Calculadora/LCL/ServiciosCostosFijosLCL"),
+          import("../views/Calculadora/LCL/ServiciosCostosFijosLCL.vue"),
       },
       {
         path: "ServiciosCostosFijosAereo",
         name: "ServiciosCostosFijosAereo",
         component: () =>
-          import("../views/Calculadora/AEREO/ServiciosCostosFijosAereo"),
+          import("../views/Calculadora/AEREO/ServiciosCostosFijosAereo.vue"),
       },
       {
         path: "folterCalculadora/cotizacion/:id",
         name: "UserCalculadoraVer",
-        component: () => import("../views/Calculadora/UserCalculadoraVer"),
+        component: () => import("../views/Calculadora/UserCalculadoraVer.vue"),
         path: "folderPlantillas/servicios_tarifas",
         name: "ServiciosTarifasPlantillas",
         component: () =>

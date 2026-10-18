@@ -11,7 +11,7 @@
 </template>
 
 <script>
-import controlAccountPaysCom from "@/components/folderModulesPays/controlAccountPays";
+import controlAccountPaysCom from "@/components/folderModulesPays/controlAccountPays.vue";
 export default {
   name: "controlAccountPays",
   components: {

@@ -14,7 +14,7 @@
   </div>
 </template>
 <script>
-import controlEntitiesCom from "@/components/folderEntities/controlEntities";
+import controlEntitiesCom from "@/components/folderEntities/controlEntities.vue";
 export default {
   name: "controlEntities",
   components: {

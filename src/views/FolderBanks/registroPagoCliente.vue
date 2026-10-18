@@ -5,7 +5,7 @@
 </template>
 
 <script>
-import registroPayForCliente from "@/components/folderBanks/registroPayForCliente";
+import registroPayForCliente from "@/components/folderBanks/registroPayForCliente.vue";
 
 export default {
   components: {

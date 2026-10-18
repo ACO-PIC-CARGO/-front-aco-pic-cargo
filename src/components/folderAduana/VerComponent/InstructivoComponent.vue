@@ -607,7 +607,7 @@ export default {
   mixins: [mixins],
   components: {
     ConfigCotizacion: defineAsyncComponent(() =>
-      import("@/components/folderPricing/ConfigExpediente")),
+      import("@/components/folderPricing/ConfigExpediente.vue")),
   },
   data() {
     return {

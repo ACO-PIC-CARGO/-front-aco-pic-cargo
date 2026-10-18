@@ -5,7 +5,7 @@
 </template>
 
 <script>
-import AccountPaysCom from "@/components/folderModulesPays/moduleAccountPays";
+import AccountPaysCom from "@/components/folderModulesPays/moduleAccountPays.vue";
 export default {
   name: "moduleAccountPays",
   components: {

@@ -5,7 +5,7 @@
 </template>
 
 <script>
-import verEditarPayForProveedor from "@/components/folderBanks/verEditarPayForProveedor";
+import verEditarPayForProveedor from "@/components/folderBanks/verEditarPayForProveedor.vue";
 
 export default {
   components: {
