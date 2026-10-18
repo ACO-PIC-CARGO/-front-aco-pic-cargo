@@ -73,7 +73,6 @@
               <v-col cols="12" lg="4" xl="4">
                 <v-btn
                   variant="outlined"
-                  dense
                   hide-details
                   class="my-2"
                   color="success"

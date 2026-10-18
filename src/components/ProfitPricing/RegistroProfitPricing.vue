@@ -11,7 +11,6 @@
             class="my-0"
             :items="$store.state.pricing.listModality"
             item-title="name"
-            item-key="id"
             item-value="id"
             v-model="$store.state.profitPricing.id_modality"
           ></v-autocomplete>
@@ -26,7 +25,6 @@
             class="my-0"
             :items="$store.state.pricing.listShipment"
             item-title="embarque"
-            item-key="id"
             item-value="id"
             v-model="$store.state.profitPricing.id_shipment"
           ></v-autocomplete>
@@ -104,7 +102,6 @@
                     <v-expansion-panel
                       v-for="(item, index) in panelesConDatos"
                       :key="index"
-                      dense
                     >
                       <v-expansion-panel-title>
                         {{ item.name }}
@@ -180,7 +177,6 @@
                     <v-expansion-panel
                       v-for="(item, index) in panelesConDatos"
                       :key="index"
-                      dense
                     >
                       <v-expansion-panel-title>
                         {{ item.name }}

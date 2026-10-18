@@ -36,7 +36,6 @@
             :items="$store.state.pricing.listEjecutivo"
             item-title="name"
             item-value="id_entitie"
-            item-key="id_entitie"
             v-model="$store.state.pricing.datosPrincipales.id_vendedor"
             readonly
             v-if="mostrarmarejecutivo"
@@ -50,7 +49,6 @@
             :items="$store.state.pricing.listEjecutivo"
             item-title="name"
             item-value="id_entitie"
-            item-key="id_entitie"
             v-model="$store.state.pricing.datosPrincipales.id_pricing"
             readonly
             v-if="mostrarmarpricing"
@@ -83,7 +81,6 @@
             class="my-1"
             :items="$store.state.pricing.listModality"
             item-title="name"
-            item-key="id"
             item-value="id"
             v-model="$store.state.pricing.datosPrincipales.idsentido"
             readonly
@@ -95,7 +92,6 @@
             class="my-1"
             :items="$store.state.pricing.listShipment"
             item-title="embarque"
-            item-key="id"
             item-value="id"
             v-model="$store.state.pricing.datosPrincipales.idtipocarga"
             readonly
@@ -107,7 +103,6 @@
             class="my-1"
             :items="$store.state.pricing.listIncoterms"
             item-title="name"
-            item-key="id"
             item-value="id"
             v-model="$store.state.pricing.datosPrincipales.idincoterms"
             readonly

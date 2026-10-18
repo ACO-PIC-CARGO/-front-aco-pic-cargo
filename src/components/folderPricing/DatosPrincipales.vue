@@ -41,7 +41,6 @@
                   :items="$store.state.pricing.listEjecutivo"
                   item-title="nombrecompleto"
                   item-value="id"
-                  item-key="id"
                   v-model="$store.state.pricing.datosPrincipales.id_vendedor"
                 ></v-autocomplete>
               </v-col>
@@ -56,7 +55,6 @@
                   :items="$store.state.pricing.listEjecutivo"
                   item-title="nombrecompleto"
                   item-value="id"
-                  item-key="id"
                   v-model="$store.state.pricing.datosPrincipales.id_pricing"
                 ></v-autocomplete
               ></v-col>
@@ -100,7 +98,6 @@
                   class="my-0"
                   :items="$store.state.pricing.listModality"
                   item-title="name"
-                  item-key="id"
                   item-value="id"
                   v-model="$store.state.pricing.datosPrincipales.idsentido"
                   @update:model-value="recargarServiciosCostos()"
@@ -117,7 +114,6 @@
                   class="my-0"
                   :items="$store.state.pricing.listShipment"
                   item-title="embarque"
-                  item-key="id"
                   item-value="id"
                   v-model="$store.state.pricing.datosPrincipales.idtipocarga"
                   @update:model-value="recargarServiciosCostos()"
@@ -134,7 +130,6 @@
                   class="my-0"
                   :items="incoterms"
                   item-title="text"
-                  item-key="id"
                   item-value="id"
                   v-model="$store.state.pricing.datosPrincipales.idincoterms"
                   @update:model-value="recargarServiciosCostos"

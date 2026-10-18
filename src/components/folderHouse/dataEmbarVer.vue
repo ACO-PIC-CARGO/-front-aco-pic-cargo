@@ -31,7 +31,6 @@
           :items="$store.state.pricing.listEjecutivo"
           item-title="nombrecompleto"
           item-value="id"
-          item-key="id"
           label="Vendedor"
           v-model="$store.state.houses.house.id_vendedor"
           
@@ -43,7 +42,6 @@
           :items="$store.state.pricing.listEjecutivo"
           item-title="nombrecompleto"
           item-value="id"
-          item-key="id"
           label="Pricing"
           v-model="$store.state.houses.house.id_pricing"
           

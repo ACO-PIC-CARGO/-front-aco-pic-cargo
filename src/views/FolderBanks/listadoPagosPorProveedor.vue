@@ -1,6 +1,6 @@
 <template>
   <v-container fluid class="pt-0 mt-0">
-    <v-tabs v-model="tab" align-tabs="center" dense>
+    <v-tabs v-model="tab" align-tabs="center">
       <v-tab color="primary" value="agrupado"> Datos Agrupado </v-tab>
 
       <v-tab value="detallado"> Detallado </v-tab>

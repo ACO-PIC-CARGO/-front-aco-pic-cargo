@@ -294,7 +294,6 @@
               :items="$store.state.pricing.listEjecutivo"
               item-title="name"
               item-value="id_entitie"
-              item-key="id_entitie"
               v-model="comentario.id_ejecutivo"
               :rules="[(v) => !!v || 'Dato requerido']"
               readonly
@@ -1192,14 +1191,8 @@ export default {
 </script>
 
 <style lang="scss">
-.v-data-table
-  > .v-data-table__wrapper
-  tbody
-  tr.v-data-table__expanded__content {
-  box-shadow: none !important;
-}
-
-.v-data-table > .v-data-table__wrapper tbody tr.v-data-table__expanded {
+.v-data-table > .v-table__wrapper tbody tr.v-data-table__tr:has(> .v-data-table__td--expanded-row .mdi-chevron-up),
+.v-data-table > .v-table__wrapper tbody tr.v-data-table__tr:has(> .v-data-table__td--expanded-row .mdi-chevron-up) + tr {
   background: #ffccab;
 }
 

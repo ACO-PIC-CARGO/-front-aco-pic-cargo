@@ -369,7 +369,7 @@
       transition="dialog-transition"
     >
       <v-card>
-        <v-card-title class="bg-indigo text-white my-0 py-0 d-flex align-center flex-wrap" dark>
+        <v-card-title class="bg-indigo text-white my-0 py-0 d-flex align-center flex-wrap">
           PREVISUALIZACIÓN DE LA COTIZACIÓN - NO TIENE NINGÚN VALOR COMERCIAL
 
           <v-spacer></v-spacer>

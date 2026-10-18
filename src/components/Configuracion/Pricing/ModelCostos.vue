@@ -12,7 +12,6 @@
       <v-expansion-panel
         v-for="(item, index) in panelesConDatos"
         :key="index"
-        dense
       >
         <v-expansion-panel-title>
           {{ item.name }}

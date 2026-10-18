@@ -14,8 +14,8 @@
               v-model="descripcionSaludo"
               class="my-2"
               hide-details
-              solo
-              dense
+              variant="solo"
+              density="compact"
               style="display: inline-block; width: auto; max-width: 200px"
             />
             <b>[NOMBRE_CLIENTE]</b>
@@ -25,8 +25,8 @@
             <v-text-field
               style="display: inline-block; width: auto; max-width: 200px"
               v-model="descripcionDatosCarga"
-              solo
-              dense
+              variant="solo"
+              density="compact"
               hide-details
               class="my-2"
             ></v-text-field>

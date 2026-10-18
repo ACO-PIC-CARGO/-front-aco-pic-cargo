@@ -238,7 +238,7 @@
                 class="itemMenu"
                 v-if="!item.statuslock && item.status == 1"
               >
-                <v-list-item-title small @click="editMaster(item.id)" icon fab>
+                <v-list-item-title small @click="editMaster(item.id)" icon>
                   <v-icon class="mx-1" color="#FFD600">mdi-pencil</v-icon>
                   Editar Master
                 </v-list-item-title>
@@ -246,7 +246,6 @@
               <v-list-item class="itemMenu" v-if="item.status == 1">
                 <v-list-item-title
                   icon
-                  fab
                   small
                   @click="irControlGastos(item.id)"
                 >
@@ -260,7 +259,7 @@
                 class="itemMenu"
                 v-if="!item.statuslock && item.status == 1"
               >
-                <v-list-item-title icon fab small @click="_lockMaster(item.id)">
+                <v-list-item-title icon small @click="_lockMaster(item.id)">
                   <v-icon class="mx-1" color="#E65100">mdi-lock</v-icon> Cerrar
                   Expediente Operativo
                 </v-list-item-title>
@@ -268,7 +267,6 @@
               <v-list-item class="itemMenu" v-else>
                 <v-list-item-title
                   icon
-                  fab
                   small
                   @click="
                     reactivarMaster({
@@ -289,7 +287,6 @@
               >
                 <v-list-item-title
                   icon
-                  fab
                   @click="_lockMasterAdm(item.id)"
                   small
                 >
@@ -300,7 +297,6 @@
               <v-list-item class="itemMenu" v-else>
                 <v-list-item-title
                   icon
-                  fab
                   @click="
                     reactivarMaster({
                       id: item.id,
@@ -316,7 +312,7 @@
                 </v-list-item-title>
               </v-list-item>
               <v-list-item class="itemMenu" v-if="item.status == 1">
-                <v-list-item-title icon fab small @click="abrirCaperta(item)">
+                <v-list-item-title icon small @click="abrirCaperta(item)">
                   <v-icon class="mx-1" color="#FFD600">mdi-folder</v-icon>Abrir
                   Carpeta
                 </v-list-item-title>
@@ -566,7 +562,6 @@
               :items="$store.state.pricing.listEjecutivo"
               item-title="name"
               item-value="id_entitie"
-              item-key="id_entitie"
               v-model="id_vendedor"
               :rules="[(v) => !!v || 'Dato requerido']"
             ></v-autocomplete>

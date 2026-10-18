@@ -697,7 +697,7 @@
     >
       <v-card tile shadow="none">
         <v-card-title class="pa-0">
-          <v-toolbar flat dark color="primary">
+          <v-toolbar flat theme="dark" color="primary">
             <v-toolbar-title>Datos Manuales Instructivo</v-toolbar-title>
             <v-spacer></v-spacer>
             <v-btn

@@ -57,7 +57,6 @@
                  
                   v-bind="props"
                   variant="outlined"
-                  dense
                   block
                   class="month-selector"
                 >
@@ -131,7 +130,7 @@
             md="2"
             class="filter-col compare-col"
           >
-            <v-btn variant="outlined" dense class="compare-btn" @click="compararAnos">
+            <v-btn variant="outlined" class="compare-btn" @click="compararAnos">
               <v-icon size="small" start> mdi-calendar-sync </v-icon>
 
               Comparar con años anteriores

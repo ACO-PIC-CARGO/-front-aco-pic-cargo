@@ -35,7 +35,6 @@
             :items="$store.state.pricing.listEjecutivo"
             item-title="name"
             item-value="id_entitie"
-            item-key="id_entitie"
             v-model="$store.state.aduana.datosPrincipales.id_vendedor"
             readonly
           ></v-autocomplete>
@@ -48,7 +47,6 @@
             :items="$store.state.pricing.listEjecutivo"
             item-title="name"
             item-value="id_entitie"
-            item-key="id_entitie"
             v-model="$store.state.aduana.datosPrincipales.id_pricing"
             readonly
           ></v-autocomplete>
@@ -80,7 +78,6 @@
             class="my-1"
             :items="$store.state.aduana.listModality"
             item-title="name"
-            item-key="id"
             item-value="id"
             v-model="$store.state.aduana.datosPrincipales.idsentido"
             readonly
@@ -92,7 +89,6 @@
             class="my-1"
             :items="$store.state.aduana.listShipment"
             item-title="embarque"
-            item-key="id"
             item-value="id"
             v-model="$store.state.aduana.datosPrincipales.idtipocarga"
             return-object
@@ -105,7 +101,6 @@
             class="my-1"
             :items="$store.state.aduana.listIncoterms"
             item-title="name"
-            item-key="id"
             item-value="id"
             v-model="$store.state.aduana.datosPrincipales.idincoterms"
             readonly

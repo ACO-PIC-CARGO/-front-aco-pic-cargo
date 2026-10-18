@@ -365,7 +365,6 @@
                       size="small"
                       readonly
                       hide-details
-                      outlined
                       >mdi-eye</v-icon
                     >
                   </v-btn>
@@ -389,7 +388,6 @@
                       size="small"
                       readonly
                       hide-details
-                      outlined
                       >mdi-pencil</v-icon
                     >
                   </v-btn>
@@ -412,7 +410,6 @@
                       size="small"
                       readonly
                       hide-details
-                      outlined
                       >mdi-phone-plus</v-icon
                     >
                   </v-btn>
@@ -437,7 +434,6 @@
                       size="small"
                       readonly
                       hide-details
-                      outlined
                       >mdi-folder</v-icon
                     >
                   </v-btn>
@@ -461,7 +457,6 @@
                       size="small"
                       readonly
                       hide-details
-                      outlined
                       >mdi-phone</v-icon
                     >
                   </v-btn>
@@ -483,7 +478,6 @@
                       size="small"
                       readonly
                       hide-details
-                      outlined
                       >mdi-delete</v-icon
                     >
                   </v-btn>

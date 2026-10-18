@@ -167,7 +167,6 @@
                 :items="$store.state.pricing.listEjecutivo"
                 item-title="name"
                 item-value="id_entitie"
-                item-key="id_entitie"
                 v-model="id_vendedor"
                 :rules="[(v) => !!v || 'Dato requerido']"
               ></v-autocomplete>

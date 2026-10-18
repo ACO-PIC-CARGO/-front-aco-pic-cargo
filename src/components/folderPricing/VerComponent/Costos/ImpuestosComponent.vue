@@ -2,7 +2,7 @@
   <v-container>
     <v-expansion-panels multiple class="condensed my-1">
       <v-expansion-panel>
-        <v-expansion-panel-title color="#90CAF9" dark>
+        <v-expansion-panel-title color="#90CAF9">
           <p>
             Impuestos Opción - {{ index }} :
             <b>{{ calcularTotalImpuesto() }}</b>

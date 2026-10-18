@@ -116,7 +116,6 @@
           :items="$store.state.pricing.listEjecutivo"
           item-title="nombrecompleto"
           item-value="id"
-          item-key="id"
           label="Vendedor"
           v-model="$store.state.house_id_vendedor"
         >
@@ -127,7 +126,6 @@
           :items="$store.state.pricing.listEjecutivo"
           item-title="nombrecompleto"
           item-value="id"
-          item-key="id"
           label="Pricing"
           v-model="$store.state.house_id_pricing"
         >
