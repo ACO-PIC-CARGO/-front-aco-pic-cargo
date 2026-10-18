@@ -26,7 +26,7 @@ const actions = {
     var config = {
       method: "get",
       url:
-        import.meta.env.VUE_APP_URL_MAIN +
+        import.meta.env.VITE_URL_MAIN +
         `cargar_groupservices?id_branch=${
           JSON.parse(sessionStorage.getItem("dataUser"))[0].id_branch
         }
@@ -71,7 +71,7 @@ const actions = {
     var config = {
       method: "get",
       url:
-        import.meta.env.VUE_APP_URL_MAIN +
+        import.meta.env.VITE_URL_MAIN +
         `listar_groupservices?` +
         `id_branch=${
           JSON.parse(sessionStorage.getItem("dataUser"))[0].id_branch
@@ -117,7 +117,7 @@ const actions = {
   async insertGroupServices({ commit, dispatch }, data) {
     var config = {
       method: "post",
-      url: import.meta.env.VUE_APP_URL_MAIN + "insertar_groupservices",
+      url: import.meta.env.VITE_URL_MAIN + "insertar_groupservices",
       headers: {
         "Content-Type": "application/json",
        
@@ -147,7 +147,7 @@ const actions = {
   async readGroupServices({ commit }, id) {
     var config = {
       method: "get",
-      url: import.meta.env.VUE_APP_URL_MAIN + `ver_groupservices?id=${id}`,
+      url: import.meta.env.VITE_URL_MAIN + `ver_groupservices?id=${id}`,
       headers: {
         "Content-Type": "application/json",
        
@@ -174,7 +174,7 @@ const actions = {
   async updateGroupServices({ dispatch }, data) {
     var config = {
       method: "put",
-      url: import.meta.env.VUE_APP_URL_MAIN + "actualizar_groupservices",
+      url: import.meta.env.VITE_URL_MAIN + "actualizar_groupservices",
       headers: {
         "Content-Type": "application/json",
        

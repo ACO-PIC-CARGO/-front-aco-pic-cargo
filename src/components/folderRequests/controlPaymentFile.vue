@@ -315,7 +315,7 @@ export default {
 
       var config = {
         method: "post",
-        url: import.meta.env.VUE_APP_URL_MAIN + "uploadAllPath",
+        url: import.meta.env.VITE_URL_MAIN + "uploadAllPath",
         headers: {
          
           "Content-Type": "application/json",
@@ -357,7 +357,7 @@ export default {
       };
       var config = {
         method: "post",
-        url: import.meta.env.VUE_APP_URL_MAIN + "setSPaymentFile/",
+        url: import.meta.env.VITE_URL_MAIN + "setSPaymentFile/",
 
         headers: {
          
@@ -406,7 +406,7 @@ export default {
       var config = {
         method: "post",
         url:
-          import.meta.env.VUE_APP_URL_MAIN + "getEgresosExpediente/" + vm.id_house,
+          import.meta.env.VITE_URL_MAIN + "getEgresosExpediente/" + vm.id_house,
         headers: {
          
           "Content-Type": "application/json",

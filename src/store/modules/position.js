@@ -47,7 +47,7 @@ let actions = {
     var config = {
       method: "get",
       url:
-        import.meta.env.VUE_APP_URL_MAIN +
+        import.meta.env.VITE_URL_MAIN +
         `cargar_posicion?&id_branch=${
           JSON.parse(sessionStorage.getItem("dataUser"))[0].id_branch
         }`,
@@ -94,7 +94,7 @@ let actions = {
     var config = {
       method: "get",
       url:
-        import.meta.env.VUE_APP_URL_MAIN +
+        import.meta.env.VITE_URL_MAIN +
         `listar_posicion?&id_branch=${
           JSON.parse(sessionStorage.getItem("dataUser"))[0].id_branch
         }&code=${state.filtros.code ? state.filtros.code : ""}&name=${
@@ -145,7 +145,7 @@ let actions = {
     var config = {
       method: "get",
       url:
-        import.meta.env.VUE_APP_URL_MAIN +
+        import.meta.env.VITE_URL_MAIN +
         `ver_posicion?id_branch=${
           JSON.parse(sessionStorage.getItem("dataUser"))[0].id_branch
         }&id=${state.model.id}`,
@@ -192,7 +192,7 @@ let actions = {
     var config = {
       method: "get",
       url:
-        import.meta.env.VUE_APP_URL_MAIN +
+        import.meta.env.VITE_URL_MAIN +
         `cargar_usuario_no_asignado_posicion?id_branch=${
           JSON.parse(sessionStorage.getItem("dataUser"))[0].id_branch
         }&id=${state.model.id}`,
@@ -243,7 +243,7 @@ let actions = {
 
     var config = {
       method: "put",
-      url: import.meta.env.VUE_APP_URL_MAIN + `insertar_actualizar_posicion`,
+      url: import.meta.env.VITE_URL_MAIN + `insertar_actualizar_posicion`,
       headers: {
        
         "Content-Type": "application/json",
@@ -270,7 +270,7 @@ let actions = {
   async ActualizarEstadoPosition({ commit }) {
     var config = {
       method: "put",
-      url: import.meta.env.VUE_APP_URL_MAIN + `cambiar_estado_posicion`,
+      url: import.meta.env.VITE_URL_MAIN + `cambiar_estado_posicion`,
       headers: {
        
         "Content-Type": "application/json",

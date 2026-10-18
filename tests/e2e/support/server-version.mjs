@@ -3,8 +3,8 @@ import { readFileSync } from "node:fs";
 const ENV_FILE = new URL("../../../.env.development", import.meta.url);
 
 function appVersion() {
-  const match = readFileSync(ENV_FILE, "utf8").match(/^VUE_APP_VERSION=(.+)$/m);
-  if (!match) throw new Error("VUE_APP_VERSION is missing from .env.development");
+  const match = readFileSync(ENV_FILE, "utf8").match(/^VITE_VERSION=(.+)$/m);
+  if (!match) throw new Error("VITE_VERSION is missing from .env.development");
   return match[1].trim();
 }
 

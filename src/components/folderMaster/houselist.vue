@@ -353,7 +353,7 @@ export default {
         };
         const config = {
           method: "put",
-          url: import.meta.env.VUE_APP_URL_MAIN + "reasignar_house",
+          url: import.meta.env.VITE_URL_MAIN + "reasignar_house",
           headers: {
             "Content-Type": "application/json",
           },

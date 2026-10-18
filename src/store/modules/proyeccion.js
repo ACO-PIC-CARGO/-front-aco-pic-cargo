@@ -21,7 +21,7 @@ const actions = {
   async setProyeccion(_, data) {
     var config = {
       method: "post",
-      url: import.meta.env.VUE_APP_URL_MAIN + `insertar_proyeccion`,
+      url: import.meta.env.VITE_URL_MAIN + `insertar_proyeccion`,
 
       headers: {
        
@@ -48,7 +48,7 @@ const actions = {
     var config = {
       method: "get",
       url:
-        import.meta.env.VUE_APP_URL_MAIN +
+        import.meta.env.VITE_URL_MAIN +
         `list_proyeccion?id_branch=${
           JSON.parse(sessionStorage.getItem("dataUser"))[0].id_branch
         }&id_month=${data.id_month}&id_year=${data.id_year}&correlativo=${
@@ -93,7 +93,7 @@ const actions = {
   async verProyeccion({ commit }, id) {
     var config = {
       method: "get",
-      url: import.meta.env.VUE_APP_URL_MAIN + `ver_proyeccion?id=${id}`,
+      url: import.meta.env.VITE_URL_MAIN + `ver_proyeccion?id=${id}`,
 
       headers: {
        
@@ -121,7 +121,7 @@ const actions = {
   async updateProyeccion(_, data) {
     var config = {
       method: "put",
-      url: import.meta.env.VUE_APP_URL_MAIN + `update_proyeccion`,
+      url: import.meta.env.VITE_URL_MAIN + `update_proyeccion`,
 
       headers: {
        
@@ -150,7 +150,7 @@ const actions = {
     var config = {
       method: "put",
       url:
-        import.meta.env.VUE_APP_URL_MAIN +
+        import.meta.env.VITE_URL_MAIN +
         `validate_proyeccion_aprobacion?id_branch=${
           JSON.parse(sessionStorage.getItem("dataUser"))[0].id_branch
         }`,
@@ -173,7 +173,7 @@ const actions = {
   async copiarProyeccion(_, data) {
     var config = {
       method: "put",
-      url: import.meta.env.VUE_APP_URL_MAIN + `copiar_proyeccion`,
+      url: import.meta.env.VITE_URL_MAIN + `copiar_proyeccion`,
 
       headers: {
        
@@ -197,7 +197,7 @@ const actions = {
   async aprobarProyeccion(_, data) {
     var config = {
       method: "put",
-      url: import.meta.env.VUE_APP_URL_MAIN + `aprobar_proyeccion`,
+      url: import.meta.env.VITE_URL_MAIN + `aprobar_proyeccion`,
 
       headers: {
        
@@ -221,7 +221,7 @@ const actions = {
   async eliminarProyeccion(_, data) {
     var config = {
       method: "put",
-      url: import.meta.env.VUE_APP_URL_MAIN + `eliminar_proyeccion`,
+      url: import.meta.env.VITE_URL_MAIN + `eliminar_proyeccion`,
 
       headers: {
        
@@ -244,7 +244,7 @@ const actions = {
   async primeraProyeccion(_, data) {
     var config = {
       method: "post",
-      url: import.meta.env.VUE_APP_URL_MAIN + `generar_primerar_proyeccion`,
+      url: import.meta.env.VITE_URL_MAIN + `generar_primerar_proyeccion`,
 
       headers: {
        
@@ -274,7 +274,7 @@ const actions = {
   async exportarVerProyeccion(__, id) {
     var config = {
       method: "get",
-      url: import.meta.env.VUE_APP_URL_MAIN + `excel_proyeccion?id=${id}`,
+      url: import.meta.env.VITE_URL_MAIN + `excel_proyeccion?id=${id}`,
       responseType: "blob",
       headers: {
        
@@ -298,7 +298,7 @@ const actions = {
     var config = {
       method: "get",
       url:
-        import.meta.env.VUE_APP_URL_MAIN +
+        import.meta.env.VITE_URL_MAIN +
         `proyeccion_aprobada?id_branch=${
           JSON.parse(sessionStorage.getItem("dataUser"))[0].id_branch
         }`,

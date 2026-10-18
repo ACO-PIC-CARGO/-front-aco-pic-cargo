@@ -589,7 +589,7 @@ export default {
       var config = {
         method: "get",
         url:
-          import.meta.env.VUE_APP_URL_MAIN +
+          import.meta.env.VITE_URL_MAIN +
           `validar_nuevo_acronimo_sex?` +
           `acronym=${encodeURIComponent(this.record.acronym)}` +
           `&id_branch=${this.record.id_branch}`,
@@ -615,7 +615,7 @@ export default {
       var config = {
         method: "get",
         url:
-          import.meta.env.VUE_APP_URL_MAIN +
+          import.meta.env.VITE_URL_MAIN +
           `validar_editar_acronimo_sex?` +
           `id=${this.id}` +
           `&acronym=${encodeURIComponent(this.record.acronym)}` +

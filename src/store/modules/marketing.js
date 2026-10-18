@@ -31,7 +31,7 @@ const actions = {
 
     var config = {
       method: "get",
-      url: import.meta.env.VUE_APP_URL_MAIN + `listar_marketing`,
+      url: import.meta.env.VITE_URL_MAIN + `listar_marketing`,
       params: data,
       headers: {
         "Content-Type": "application/json",
@@ -52,7 +52,7 @@ const actions = {
   async insertMarketing({ commit, dispatch }, data) {
     var config = {
       method: "post",
-      url: import.meta.env.VUE_APP_URL_MAIN + "insertar_marketing",
+      url: import.meta.env.VITE_URL_MAIN + "insertar_marketing",
       headers: {
         "Content-Type": "application/json",
       },
@@ -80,7 +80,7 @@ const actions = {
   async readMarketing({ commit }, id) {
     var config = {
       method: "get",
-      url: import.meta.env.VUE_APP_URL_MAIN + `ver_marketing?id=${id}`,
+      url: import.meta.env.VITE_URL_MAIN + `ver_marketing?id=${id}`,
       headers: {
         "Content-Type": "application/json",
       },
@@ -105,7 +105,7 @@ const actions = {
   async updateMarketing({ dispatch }, data) {
     var config = {
       method: "put",
-      url: import.meta.env.VUE_APP_URL_MAIN + "actualizar_marketing",
+      url: import.meta.env.VITE_URL_MAIN + "actualizar_marketing",
       headers: {
         "Content-Type": "application/json",
       },
@@ -133,7 +133,7 @@ const actions = {
     var config = {
       method: "get",
       url:
-        import.meta.env.VUE_APP_URL_MAIN +
+        import.meta.env.VITE_URL_MAIN +
         `ultima_posicion_marketing?` +
         `id_branch=${
           JSON.parse(sessionStorage.getItem("dataUser"))[0].id_branch
@@ -157,7 +157,7 @@ const actions = {
   async ExportMarketing({ commit },data) {
     var config = {
       method: "get",
-      url: import.meta.env.VUE_APP_URL_MAIN + `exportar_list_marketing`,
+      url: import.meta.env.VITE_URL_MAIN + `exportar_list_marketing`,
       params: data,
       responseType: "blob",
       headers: {

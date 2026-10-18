@@ -527,7 +527,7 @@ export default {
       };
       var config = {
         method: "post",
-        url: import.meta.env.VUE_APP_URL_MAIN + "getListInvoice",
+        url: import.meta.env.VITE_URL_MAIN + "getListInvoice",
 
         headers: {
          
@@ -552,7 +552,7 @@ export default {
 
       var config = {
         method: "post",
-        url: import.meta.env.VUE_APP_URL_MAIN + "uploadAllPath",
+        url: import.meta.env.VITE_URL_MAIN + "uploadAllPath",
         headers: {
          
           "Content-Type": "application/json",
@@ -614,7 +614,7 @@ export default {
       };
       var config = {
         method: "post",
-        url: import.meta.env.VUE_APP_URL_MAIN + "setSPaymentFile/",
+        url: import.meta.env.VITE_URL_MAIN + "setSPaymentFile/",
 
         headers: {
          
@@ -642,7 +642,7 @@ export default {
       var vm = this;
       var config = {
         method: "post",
-        url: import.meta.env.VUE_APP_URL_MAIN + "getRequestPayment",
+        url: import.meta.env.VITE_URL_MAIN + "getRequestPayment",
         data: {
           id_branch: JSON.parse(sessionStorage.getItem("dataUser"))[0]
             .id_branch,
@@ -665,7 +665,7 @@ export default {
       var vm = this;
       var config = {
         method: "post",
-        url: import.meta.env.VUE_APP_URL_MAIN + "getRequestPaymentConceptos/" + id,
+        url: import.meta.env.VITE_URL_MAIN + "getRequestPaymentConceptos/" + id,
 
         headers: {
          
@@ -681,7 +681,7 @@ export default {
         });
     },
     viewPdf(pdf) {
-      window.open(import.meta.env.VUE_APP_URL_MAIN + pdf, "_blank");
+      window.open(import.meta.env.VITE_URL_MAIN + pdf, "_blank");
     },
     abrirPagoProveedor(id) {
       // this.idProveedor = id;
@@ -707,7 +707,7 @@ export default {
       let vm = this;
       var config = {
         method: "put",
-        url: import.meta.env.VUE_APP_URL_MAIN + "reversar_debsproveedor",
+        url: import.meta.env.VITE_URL_MAIN + "reversar_debsproveedor",
 
         headers: {
          

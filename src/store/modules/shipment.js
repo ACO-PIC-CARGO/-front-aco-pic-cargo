@@ -28,7 +28,7 @@ const actions = {
     var config = {
       method: "get",
       url:
-        import.meta.env.VUE_APP_URL_MAIN +
+        import.meta.env.VITE_URL_MAIN +
         `cargar_transports?` +
         `id_branch=${
           JSON.parse(sessionStorage.getItem("dataUser"))[0].id_branch
@@ -70,7 +70,7 @@ const actions = {
     var config = {
       method: "get",
       url:
-        import.meta.env.VUE_APP_URL_MAIN +
+        import.meta.env.VITE_URL_MAIN +
         `listar_shipment?` +
         `id_branch=${
           JSON.parse(sessionStorage.getItem("dataUser"))[0].id_branch
@@ -117,7 +117,7 @@ const actions = {
   async insertShipment({ commit, dispatch }, data) {
     var config = {
       method: "post",
-      url: import.meta.env.VUE_APP_URL_MAIN + "insertar_shipment",
+      url: import.meta.env.VITE_URL_MAIN + "insertar_shipment",
       headers: {
         "Content-Type": "application/json",
        
@@ -146,7 +146,7 @@ const actions = {
   async readShipment({ commit }, id) {
     var config = {
       method: "get",
-      url: import.meta.env.VUE_APP_URL_MAIN + `ver_shipment?id=${id}`,
+      url: import.meta.env.VITE_URL_MAIN + `ver_shipment?id=${id}`,
       headers: {
         "Content-Type": "application/json",
        
@@ -173,7 +173,7 @@ const actions = {
   async updateShipment({ dispatch }, data) {
     var config = {
       method: "put",
-      url: import.meta.env.VUE_APP_URL_MAIN + "actualizar_shipment",
+      url: import.meta.env.VITE_URL_MAIN + "actualizar_shipment",
       headers: {
         "Content-Type": "application/json",
        

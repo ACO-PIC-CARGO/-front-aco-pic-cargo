@@ -21,7 +21,7 @@ Sentry.init({
   app,
   dsn: "https://f882606bd1c8140835ba8bbd919fdf0f@o4512212057456640.ingest.us.sentry.io/4512212072595456",
   environment: import.meta.env.MODE,
-  release: import.meta.env.VUE_APP_VERSION,
+  release: import.meta.env.VITE_VERSION,
   enabled: import.meta.env.PROD,
 });
 

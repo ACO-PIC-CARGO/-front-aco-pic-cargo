@@ -115,7 +115,7 @@ export default {
 
       var config = {
         method: "post",
-        url: import.meta.env.VUE_APP_URL_MAIN + "getRegularizar",
+        url: import.meta.env.VITE_URL_MAIN + "getRegularizar",
 
         headers: {
          

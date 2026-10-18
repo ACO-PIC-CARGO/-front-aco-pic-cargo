@@ -608,7 +608,7 @@ export default {
       var vm = this;
       var config = {
         method: "post",
-        url: import.meta.env.VUE_APP_URL_MAIN + "getRequestPaymentConceptos/" + id,
+        url: import.meta.env.VITE_URL_MAIN + "getRequestPaymentConceptos/" + id,
 
         headers: {
          
@@ -660,7 +660,7 @@ export default {
       let vm = this;
       var config = {
         method: "get",
-        url: import.meta.env.VUE_APP_URL_MAIN + "getListBanksDetailsCargar",
+        url: import.meta.env.VITE_URL_MAIN + "getListBanksDetailsCargar",
         params: {
           id_branch: JSON.parse(sessionStorage.getItem("dataUser"))[0]
             .id_branch,
@@ -759,7 +759,7 @@ export default {
         };
         var config = {
           method: "post",
-          url: import.meta.env.VUE_APP_URL_MAIN + "setPayForProveedor",
+          url: import.meta.env.VITE_URL_MAIN + "setPayForProveedor",
 
           headers: {
            
@@ -809,7 +809,7 @@ export default {
       };
       var config = {
         method: "post",
-        url: import.meta.env.VUE_APP_URL_MAIN + "setSPaymentFile/",
+        url: import.meta.env.VITE_URL_MAIN + "setSPaymentFile/",
 
         headers: {
          
@@ -855,7 +855,7 @@ export default {
         var config = {
           method: "get",
           url:
-            import.meta.env.VUE_APP_URL_MAIN + `getVerPagosPorProveedor?id=` + id,
+            import.meta.env.VITE_URL_MAIN + `getVerPagosPorProveedor?id=` + id,
 
           headers: {
            
@@ -886,7 +886,7 @@ export default {
       var config = {
         method: "put",
         url:
-          import.meta.env.VUE_APP_URL_MAIN +
+          import.meta.env.VITE_URL_MAIN +
           `updateProgrammedPayment/${vm.idDetails}`,
         headers: {
          

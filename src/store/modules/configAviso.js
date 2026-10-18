@@ -15,7 +15,7 @@ let actions = {
   async obtenerConfigAviso({ commit }) {
     var config = {
       method: "get",
-      url: import.meta.env.VUE_APP_URL_MAIN + "get_ver_configaviso",
+      url: import.meta.env.VITE_URL_MAIN + "get_ver_configaviso",
       params: {
         id_branch: JSON.parse(sessionStorage.getItem("dataUser"))[0].id_branch,
       },
@@ -39,7 +39,7 @@ let actions = {
   async actualizarConfigAviso({ commit }, data) {
     var config = {
       method: "PUT",
-      url: import.meta.env.VUE_APP_URL_MAIN + "actualizarConfigAviso",
+      url: import.meta.env.VITE_URL_MAIN + "actualizarConfigAviso",
       data,
       headers: {
        

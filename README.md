@@ -18,5 +18,5 @@ Run the pricing deep flow on one worker (`npx playwright test tests/e2e/pricing.
 
 Unit tests (e2e helpers and migration scripts): `node --test "tests/e2e/support/*.test.mjs" "scripts/migration/*.test.mjs"`.
 
-Environment variables keep the `VUE_APP_` prefix (`.env.development`, `.env.development.local`).
+Environment variables keep the `VITE_` prefix (`.env.development`, `.env.development.local`).
 To expose the dev server through a tunnel, set `VITE_ALLOWED_HOSTS=.trycloudflare.com`.

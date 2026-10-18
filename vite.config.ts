@@ -5,7 +5,6 @@ import { VitePWA } from "vite-plugin-pwa";
 import vuetify from "vite-plugin-vuetify";
 
 export default defineConfig({
-  envPrefix: ["VITE_", "VUE_APP_"],
   plugins: [
     // Vue 3 dropped the obsolete <center> tag from its HTML list; templates still use it 83 times.
     vue({ template: { compilerOptions: { isCustomElement: (tag) => tag === "center" } } }),

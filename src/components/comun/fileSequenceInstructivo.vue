@@ -1938,7 +1938,7 @@ export default {
       data.append("file", file);
       var config = {
         method: "post",
-        url: import.meta.env.VUE_APP_URL_MAIN + "uploadAllPath",
+        url: import.meta.env.VITE_URL_MAIN + "uploadAllPath",
         headers: {},
         data: data,
       };

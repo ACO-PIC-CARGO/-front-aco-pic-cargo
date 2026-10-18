@@ -2,7 +2,7 @@ import axios from '@/api/axios-config';
 import router from "@/router";
 
 const http = axios.create({
-  baseURL: import.meta.env.VUE_APP_URL_MAIN,
+  baseURL: import.meta.env.VITE_URL_MAIN,
   headers: {
     "Content-Type": "application/json",
   },

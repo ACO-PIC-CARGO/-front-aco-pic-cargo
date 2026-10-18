@@ -313,7 +313,7 @@ export default {
       let vm = this;
       var config = {
         method: "get",
-        url: import.meta.env.VUE_APP_URL_MAIN + "getListBanksDetailsCargar",
+        url: import.meta.env.VITE_URL_MAIN + "getListBanksDetailsCargar",
         params: {
           id_branch: JSON.parse(sessionStorage.getItem("dataUser"))[0]
             .id_branch,
@@ -391,7 +391,7 @@ export default {
 
       var config = {
         method: "post",
-        url: import.meta.env.VUE_APP_URL_MAIN + "uploadAllPath",
+        url: import.meta.env.VITE_URL_MAIN + "uploadAllPath",
         headers: {
           "Content-Type": "application/json",
         },
@@ -462,7 +462,7 @@ export default {
           };
           var config = {
             method: "post",
-            url: import.meta.env.VUE_APP_URL_MAIN + "setPayForCustomer",
+            url: import.meta.env.VITE_URL_MAIN + "setPayForCustomer",
 
             headers: {
               "Content-Type": "application/json",
@@ -513,7 +513,7 @@ export default {
 
         var config = {
           method: "get",
-          url: import.meta.env.VUE_APP_URL_MAIN + `getVerPagosPorCustomer?id=` + id,
+          url: import.meta.env.VITE_URL_MAIN + `getVerPagosPorCustomer?id=` + id,
 
           headers: {
             "Content-Type": "application/json",

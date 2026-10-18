@@ -103,7 +103,7 @@ export default {
       const id_branch = JSON.parse(sessionStorage.getItem('dataUser'))[0].id_branch;
       const config = {
         method: 'post',
-        url: `${import.meta.env.VUE_APP_URL_MAIN}getQuoteStatus`,
+        url: `${import.meta.env.VITE_URL_MAIN}getQuoteStatus`,
         headers: {
           'auth-token': sessionStorage.getItem('auth-token'),
           'Content-Type': 'application/json',
@@ -165,7 +165,7 @@ export default {
         
         const config = {
           method: 'put',
-          url: `${import.meta.env.VUE_APP_URL_MAIN}configurar_estatus_defecto`,
+          url: `${import.meta.env.VITE_URL_MAIN}configurar_estatus_defecto`,
           headers: {
             'auth-token': sessionStorage.getItem('auth-token'),
             'Content-Type': 'application/json',

@@ -253,7 +253,7 @@ export default {
 
       var config = {
         method: "post",
-        url: import.meta.env.VUE_APP_URL_MAIN + "entitie/guardar_datos_tarifas",
+        url: import.meta.env.VITE_URL_MAIN + "entitie/guardar_datos_tarifas",
         headers: {
          
           "Content-Type": "application/json",

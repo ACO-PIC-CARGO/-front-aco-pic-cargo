@@ -761,7 +761,7 @@ export default {
 
       var config = {
         method: "post",
-        url: import.meta.env.VUE_APP_URL_MAIN + "deleteBitacora",
+        url: import.meta.env.VITE_URL_MAIN + "deleteBitacora",
         headers: {
          
           "Content-Type": "application/json",
@@ -808,7 +808,7 @@ export default {
 
       var config = {
         method: "put",
-        url: import.meta.env.VUE_APP_URL_MAIN + "changeStatusBitacora",
+        url: import.meta.env.VITE_URL_MAIN + "changeStatusBitacora",
         headers: {
          
           "Content-Type": "application/json",
@@ -853,7 +853,7 @@ export default {
 
       var config = {
         method: "put",
-        url: import.meta.env.VUE_APP_URL_MAIN + "changeStatusVisibleBitacora",
+        url: import.meta.env.VITE_URL_MAIN + "changeStatusVisibleBitacora",
         headers: {
          
           "Content-Type": "application/json",
@@ -973,7 +973,7 @@ export default {
           // return;
           var config = {
             method: "post",
-            url: import.meta.env.VUE_APP_URL_MAIN + "setBitacora",
+            url: import.meta.env.VITE_URL_MAIN + "setBitacora",
             headers: {
              
               "Content-Type": "application/json",

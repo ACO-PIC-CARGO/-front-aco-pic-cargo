@@ -22,7 +22,7 @@ const actions = {
   async getProfitPricing({ commit }) {
     var config = {
       method: "get",
-      url: import.meta.env.VUE_APP_URL_MAIN + "profit_pricing_listado",
+      url: import.meta.env.VITE_URL_MAIN + "profit_pricing_listado",
       params: {
         id_shipment: state.id_shipment,
         id_incoterms: state.id_incoterms,
@@ -48,7 +48,7 @@ const actions = {
   async getProfitPricingCostos({ commit }) {
     var config = {
       method: "get",
-      url: import.meta.env.VUE_APP_URL_MAIN + "profit_pricing_listado_costos",
+      url: import.meta.env.VITE_URL_MAIN + "profit_pricing_listado_costos",
       params: {
         id_shipment: state.id_shipment,
         id_incoterms: state.id_incoterms,
@@ -74,7 +74,7 @@ const actions = {
   async setProfitPricingCostos({ commit }) {
     var config = {
       method: "post",
-      url: import.meta.env.VUE_APP_URL_MAIN + "profit_pricing_costos_set",
+      url: import.meta.env.VITE_URL_MAIN + "profit_pricing_costos_set",
       data: {
         lstProfigIndividual: state.lstProfigIndividual,
         lstProfigGrupal: state.lstProfigGrupal,

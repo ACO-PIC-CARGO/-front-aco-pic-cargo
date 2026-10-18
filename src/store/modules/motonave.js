@@ -35,7 +35,7 @@ let actions = {
     var config = {
       method: "get",
       url:
-        import.meta.env.VUE_APP_URL_MAIN +
+        import.meta.env.VITE_URL_MAIN +
         `listar_motonave?&id_branch=${
           JSON.parse(sessionStorage.getItem("dataUser"))[0].id_branch
         }&name=${state.MotonaveFilter.name}&description=${
@@ -87,7 +87,7 @@ let actions = {
   async setMotonave({ commit }) {
     var config = {
       method: "post",
-      url: import.meta.env.VUE_APP_URL_MAIN + `insertar_motonave`,
+      url: import.meta.env.VITE_URL_MAIN + `insertar_motonave`,
       headers: {
        
         "Content-Type": "application/json",
@@ -114,7 +114,7 @@ let actions = {
   async ActualizarMotonave({ commit }) {
     var config = {
       method: "put",
-      url: import.meta.env.VUE_APP_URL_MAIN + `actualizar_motonave`,
+      url: import.meta.env.VITE_URL_MAIN + `actualizar_motonave`,
       headers: {
        
         "Content-Type": "application/json",

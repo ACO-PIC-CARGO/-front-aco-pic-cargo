@@ -483,7 +483,7 @@ export default {
       }
       var config = {
         method: "post",
-        url: import.meta.env.VUE_APP_URL_MAIN + "getPdfInstructivoDetallado",
+        url: import.meta.env.VITE_URL_MAIN + "getPdfInstructivoDetallado",
         headers: {
           "Content-Type": "application/json",
         },
@@ -506,7 +506,7 @@ export default {
           });
           if (!guardarEnCarpeta) {
             window.open(
-              import.meta.env.VUE_APP_URL_MAIN + response.data.path,
+              import.meta.env.VITE_URL_MAIN + response.data.path,
               "_blank",
             );
           }

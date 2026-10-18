@@ -27,7 +27,7 @@ const actions = {
     var config = {
       method: "get",
       url:
-        import.meta.env.VUE_APP_URL_MAIN +
+        import.meta.env.VITE_URL_MAIN +
         `listar_modality?` +
         `id_branch=${
           JSON.parse(sessionStorage.getItem("dataUser"))[0].id_branch
@@ -72,7 +72,7 @@ const actions = {
   async insertModality({ commit, dispatch }, data) {
     var config = {
       method: "post",
-      url: import.meta.env.VUE_APP_URL_MAIN + "insertar_modality",
+      url: import.meta.env.VITE_URL_MAIN + "insertar_modality",
       headers: {
         "Content-Type": "application/json",
        
@@ -106,7 +106,7 @@ const actions = {
   async readModality({ commit }, id) {
     var config = {
       method: "get",
-      url: import.meta.env.VUE_APP_URL_MAIN + `ver_modality?id=${id}`,
+      url: import.meta.env.VITE_URL_MAIN + `ver_modality?id=${id}`,
       headers: {
         "Content-Type": "application/json",
        
@@ -133,7 +133,7 @@ const actions = {
   async updateModality({ dispatch }, data) {
     var config = {
       method: "put",
-      url: import.meta.env.VUE_APP_URL_MAIN + "actualizar_modality",
+      url: import.meta.env.VITE_URL_MAIN + "actualizar_modality",
       headers: {
         "Content-Type": "application/json",
        

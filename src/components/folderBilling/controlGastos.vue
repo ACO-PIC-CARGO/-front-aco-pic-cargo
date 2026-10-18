@@ -488,7 +488,7 @@ export default {
       var config = {
         method: "get",
         url:
-          import.meta.env.VUE_APP_URL_MAIN +
+          import.meta.env.VITE_URL_MAIN +
           "CargarBranch/" +
           JSON.parse(sessionStorage.getItem("dataUser"))[0].id_user,
 
@@ -515,7 +515,7 @@ export default {
       vm.datosFactura = [];
       var config = {
         method: "get",
-        url: `${import.meta.env.VUE_APP_URL_MAIN}data_factura/${vm.$route.params.id_house}/${vm.id_branch}`,
+        url: `${import.meta.env.VITE_URL_MAIN}data_factura/${vm.$route.params.id_house}/${vm.id_branch}`,
 
         headers: {
          
@@ -535,7 +535,7 @@ export default {
       let data = vm.datosFactura;
       var config = {
         method: "post",
-        url: `${import.meta.env.VUE_APP_URL_MAIN}factura`,
+        url: `${import.meta.env.VITE_URL_MAIN}factura`,
         headers: {
          
           "Content-Type": "application/json",
@@ -558,14 +558,14 @@ export default {
       let dataFactura = {
         id_house: vm.$route.params.id_house,
         nro_factura: data.nro_factura,
-        url_documento: import.meta.env.VUE_APP_URL_MAIN + data.path,
+        url_documento: import.meta.env.VITE_URL_MAIN + data.path,
         total_monto: vm.datosFactura.total_monto,
         total_igv: vm.datosFactura.total_igv,
         total: vm.datosFactura.total,
       };
       var config = {
         method: "post",
-        url: import.meta.env.VUE_APP_URL_MAIN + "registrar_factura",
+        url: import.meta.env.VITE_URL_MAIN + "registrar_factura",
         headers: {
          
           "Content-Type": "application/json",
@@ -573,7 +573,7 @@ export default {
         data: dataFactura,
       };
       await axios(config);
-      window.open(import.meta.env.VUE_APP_URL_MAIN + data.path, "_blank");
+      window.open(import.meta.env.VITE_URL_MAIN + data.path, "_blank");
     },
     cleandData() {
       this.date = new Date(Date.now() - new Date().getTimezoneOffset() * 60000)
@@ -592,7 +592,7 @@ export default {
 
       var config = {
         method: "post",
-        url: import.meta.env.VUE_APP_URL_MAIN + "delDebsClient/" + id,
+        url: import.meta.env.VITE_URL_MAIN + "delDebsClient/" + id,
 
         headers: {
          
@@ -628,7 +628,7 @@ export default {
       };
       var config = {
         method: "post",
-        url: import.meta.env.VUE_APP_URL_MAIN + "setDebsClient",
+        url: import.meta.env.VITE_URL_MAIN + "setDebsClient",
 
         headers: {
          
@@ -664,7 +664,7 @@ export default {
       var config = {
         method: "post",
         url:
-          import.meta.env.VUE_APP_URL_MAIN +
+          import.meta.env.VITE_URL_MAIN +
           "getDebsClient/" +
           vm.$route.params.id_house,
 
@@ -691,7 +691,7 @@ export default {
 
       var config = {
         method: "post",
-        url: import.meta.env.VUE_APP_URL_MAIN + "uploadAllPath",
+        url: import.meta.env.VITE_URL_MAIN + "uploadAllPath",
         headers: {
          
           "Content-Type": "application/json",
@@ -803,7 +803,7 @@ export default {
 
       var config = {
         method: "post",
-        url: import.meta.env.VUE_APP_URL_MAIN + "getPdfInstructivo",
+        url: import.meta.env.VITE_URL_MAIN + "getPdfInstructivo",
         headers: {
          
           "Content-Type": "application/json",
@@ -820,7 +820,7 @@ export default {
           });
 
           window.open(
-            import.meta.env.VUE_APP_URL_MAIN + "INSTRUCTIVO.pdf",
+            import.meta.env.VITE_URL_MAIN + "INSTRUCTIVO.pdf",
             "_blank"
           );
         })

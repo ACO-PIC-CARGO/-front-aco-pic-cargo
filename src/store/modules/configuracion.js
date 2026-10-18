@@ -34,7 +34,7 @@ const actions = {
     let vm = this;
     var config = {
       method: "get",
-      url: import.meta.env.VUE_APP_URL_MAIN + "costo_pricing",
+      url: import.meta.env.VITE_URL_MAIN + "costo_pricing",
       params: data,
       headers: {
         "Content-Type": "application/json",
@@ -56,7 +56,7 @@ const actions = {
     let vm = this;
     var config = {
       method: "get",
-      url: import.meta.env.VUE_APP_URL_MAIN + "obtener_servicio_pricing_config",
+      url: import.meta.env.VITE_URL_MAIN + "obtener_servicio_pricing_config",
       params: data,
       headers: {
         "Content-Type": "application/json",
@@ -82,7 +82,7 @@ const actions = {
     //
     var config = {
       method: "get",
-      url: import.meta.env.VUE_APP_URL_MAIN + "cargar_multiplicador_config_costo",
+      url: import.meta.env.VITE_URL_MAIN + "cargar_multiplicador_config_costo",
       params: data,
       headers: headers,
     };
@@ -103,7 +103,7 @@ const actions = {
     let vm = this;
     var config = {
       method: "put",
-      url: import.meta.env.VUE_APP_URL_MAIN + "costo_pricing_actualizar",
+      url: import.meta.env.VITE_URL_MAIN + "costo_pricing_actualizar",
       data: data,
       headers: {
         "Content-Type": "application/json",
@@ -126,7 +126,7 @@ const actions = {
     let vm = this;
     var config = {
       method: "get",
-      url: import.meta.env.VUE_APP_URL_MAIN + "text_whatsapp",
+      url: import.meta.env.VITE_URL_MAIN + "text_whatsapp",
       params: {
         id_branch: JSON.parse(sessionStorage.getItem("dataUser"))[0].id_branch,
       },
@@ -154,7 +154,7 @@ const actions = {
     let vm = this;
     var config = {
       method: "put",
-      url: import.meta.env.VUE_APP_URL_MAIN + "text_whatsapp_lcl",
+      url: import.meta.env.VITE_URL_MAIN + "text_whatsapp_lcl",
       data: data,
       headers: {
         "Content-Type": "application/json",
@@ -180,7 +180,7 @@ const actions = {
     let vm = this;
     var config = {
       method: "put",
-      url: import.meta.env.VUE_APP_URL_MAIN + "text_whatsapp_fcl",
+      url: import.meta.env.VITE_URL_MAIN + "text_whatsapp_fcl",
       data: data,
       headers: {
         "Content-Type": "application/json",
@@ -203,7 +203,7 @@ const actions = {
     let vm = this;
     var config = {
       method: "delete",
-      url: import.meta.env.VUE_APP_URL_MAIN + "costo_eliminar",
+      url: import.meta.env.VITE_URL_MAIN + "costo_eliminar",
       data: data,
       headers: {
         "Content-Type": "application/json",
@@ -228,7 +228,7 @@ const actions = {
     )[0].id_branch;
     var config = {
       method: "get",
-      url: import.meta.env.VUE_APP_URL_MAIN + "incoterms_config_costos",
+      url: import.meta.env.VITE_URL_MAIN + "incoterms_config_costos",
       params: data,
       headers: {
         "Content-Type": "application/json",

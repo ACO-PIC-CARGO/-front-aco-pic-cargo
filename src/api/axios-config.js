@@ -3,7 +3,7 @@ import router from "@/router";
 import CryptoJS from "crypto-js";
 
 const http = axios.create({
-  baseURL: import.meta.env.VUE_APP_URL_MAIN,
+  baseURL: import.meta.env.VITE_URL_MAIN,
   headers: {
     "Content-Type": "application/json",
   },

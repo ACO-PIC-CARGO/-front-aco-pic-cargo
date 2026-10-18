@@ -35,7 +35,7 @@ let actions = {
     var config = {
       method: "get",
       url:
-        import.meta.env.VUE_APP_URL_MAIN +
+        import.meta.env.VITE_URL_MAIN +
         `listar_puerto?&id_branch=${
           JSON.parse(sessionStorage.getItem("dataUser"))[0].id_branch
         }&name=${state.PortFilter.name}&description=${
@@ -87,7 +87,7 @@ let actions = {
   async setPuerto({ commit }) {
     var config = {
       method: "post",
-      url: import.meta.env.VUE_APP_URL_MAIN + `insertar_puerto`,
+      url: import.meta.env.VITE_URL_MAIN + `insertar_puerto`,
       headers: {
        
         "Content-Type": "application/json",
@@ -114,7 +114,7 @@ let actions = {
   async ActualizarPuerto({ commit }) {
     var config = {
       method: "put",
-      url: import.meta.env.VUE_APP_URL_MAIN + `actualizar_puerto`,
+      url: import.meta.env.VITE_URL_MAIN + `actualizar_puerto`,
       headers: {
        
         "Content-Type": "application/json",
@@ -142,7 +142,7 @@ let actions = {
     let res = null;
     var config = {
       method: "get",
-      url: import.meta.env.VUE_APP_URL_MAIN + `ver_puerto`,
+      url: import.meta.env.VITE_URL_MAIN + `ver_puerto`,
       headers: {
        
         "Content-Type": "application/json",

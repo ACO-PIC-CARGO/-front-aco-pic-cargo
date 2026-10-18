@@ -37,7 +37,7 @@ let actions = {
     var config = {
       method: "get",
       url:
-        import.meta.env.VUE_APP_URL_MAIN +
+        import.meta.env.VITE_URL_MAIN +
         `listar_subingreso?&id_branch=${
           JSON.parse(sessionStorage.getItem("dataUser"))[0].id_branch
         }&id_ingreso=${
@@ -94,7 +94,7 @@ let actions = {
     var config = {
       method: "get",
       url:
-        import.meta.env.VUE_APP_URL_MAIN +
+        import.meta.env.VITE_URL_MAIN +
         `validate_code_subingreso?id_branch=${
           JSON.parse(sessionStorage.getItem("dataUser"))[0].id_branch
         }&code=${state.model.code}`,
@@ -114,7 +114,7 @@ let actions = {
   async setSubIngreso({ commit }) {
     var config = {
       method: "post",
-      url: import.meta.env.VUE_APP_URL_MAIN + `insertar_subingreso`,
+      url: import.meta.env.VITE_URL_MAIN + `insertar_subingreso`,
       headers: {
        
         "Content-Type": "application/json",
@@ -141,7 +141,7 @@ let actions = {
   async ActualizarSubIngreso({ commit }) {
     var config = {
       method: "put",
-      url: import.meta.env.VUE_APP_URL_MAIN + `actualizar_subingreso`,
+      url: import.meta.env.VITE_URL_MAIN + `actualizar_subingreso`,
       headers: {
        
         "Content-Type": "application/json",

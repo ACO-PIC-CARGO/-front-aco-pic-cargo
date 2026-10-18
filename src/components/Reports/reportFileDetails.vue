@@ -388,7 +388,7 @@ export default {
       var config = {
         method: "get",
         url:
-          import.meta.env.VUE_APP_URL_MAIN +
+          import.meta.env.VITE_URL_MAIN +
           `getReportFileDetails?id_branch=${
             JSON.parse(sessionStorage.getItem("dataUser"))[0].id_branch
           }&desde=${vm.dateDesde ? vm.dateDesde : ""}&hasta=${
@@ -491,7 +491,7 @@ export default {
       };
       var config = {
         method: "post",
-        url: import.meta.env.VUE_APP_URL_MAIN + "pdfFD",
+        url: import.meta.env.VITE_URL_MAIN + "pdfFD",
 
         headers: {
          
@@ -507,7 +507,7 @@ export default {
             text: "El PDF se descargará automaticamente",
           });
           window.open(
-            import.meta.env.VUE_APP_URL_MAIN + response.data.path,
+            import.meta.env.VITE_URL_MAIN + response.data.path,
             "_blank"
           );
         })

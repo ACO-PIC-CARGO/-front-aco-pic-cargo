@@ -29,7 +29,7 @@ const actions = {
     var config = {
       method: "get",
       url:
-        import.meta.env.VUE_APP_URL_MAIN +
+        import.meta.env.VITE_URL_MAIN +
         `cargar_shipment?` +
         `id_branch=${
           JSON.parse(sessionStorage.getItem("dataUser"))[0].id_branch
@@ -55,7 +55,7 @@ const actions = {
     var config = {
       method: "get",
       url:
-        import.meta.env.VUE_APP_URL_MAIN +
+        import.meta.env.VITE_URL_MAIN +
         `listar_multiplicador?` +
         `id_branch=${
           JSON.parse(sessionStorage.getItem("dataUser"))[0].id_branch
@@ -102,7 +102,7 @@ const actions = {
   async readMultiplicador({ commit }, id) {
     var config = {
       method: "get",
-      url: import.meta.env.VUE_APP_URL_MAIN + `ver_multiplicador?id=${id}`,
+      url: import.meta.env.VITE_URL_MAIN + `ver_multiplicador?id=${id}`,
       headers: {
         "Content-Type": "application/json",
       },
@@ -128,7 +128,7 @@ const actions = {
   async updateMultiplicador({ dispatch }, data) {
     var config = {
       method: "put",
-      url: import.meta.env.VUE_APP_URL_MAIN + "actualizar_multiplicador",
+      url: import.meta.env.VITE_URL_MAIN + "actualizar_multiplicador",
       headers: {
         "Content-Type": "application/json",
       },
@@ -163,7 +163,7 @@ const actions = {
   async nuevoMultiplicador({ dispatch }, data) {
     var config = {
       method: "post",
-      url: import.meta.env.VUE_APP_URL_MAIN + "nuevo_multiplicador",
+      url: import.meta.env.VITE_URL_MAIN + "nuevo_multiplicador",
       headers: {
         "Content-Type": "application/json",
       },

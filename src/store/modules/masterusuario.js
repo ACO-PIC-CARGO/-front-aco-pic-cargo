@@ -80,7 +80,7 @@ const actions = {
   async ActualizarMasterDetalle({ commit }) {
     var config = {
       method: "put",
-      url: import.meta.env.VUE_APP_URL_MAIN + `actualizar_master_detalle`,
+      url: import.meta.env.VITE_URL_MAIN + `actualizar_master_detalle`,
       headers: {
         "Content-Type": "application/json",
       },
@@ -107,7 +107,7 @@ const actions = {
     var config = {
       method: "get",
       url:
-        import.meta.env.VUE_APP_URL_MAIN +
+        import.meta.env.VITE_URL_MAIN +
         `listar_master_detalle_impuesto?&id_branch=${
           JSON.parse(sessionStorage.getItem("dataUser"))[0].id_branch
         }&id_master=${state.filtros.id_master}&valorcodigo=${
@@ -167,7 +167,7 @@ const actions = {
     var config = {
       method: "get",
       url:
-        import.meta.env.VUE_APP_URL_MAIN +
+        import.meta.env.VITE_URL_MAIN +
         `listar_master_detalle_notas_cotizacion?&id_branch=${
           JSON.parse(sessionStorage.getItem("dataUser"))[0].id_branch
         }&id_master=${state.filtros.id_master}&valorcodigo=${
@@ -227,7 +227,7 @@ const actions = {
     var config = {
       method: "get",
       url:
-        import.meta.env.VUE_APP_URL_MAIN +
+        import.meta.env.VITE_URL_MAIN +
         `listar_master_detalle_tipotelefono?&id_branch=${
           JSON.parse(sessionStorage.getItem("dataUser"))[0].id_branch
         }&id_master=${state.filtros.id_master}&valorcodigo=${
@@ -291,7 +291,7 @@ const actions = {
     var config = {
       method: "post",
       url:
-        import.meta.env.VUE_APP_URL_MAIN +
+        import.meta.env.VITE_URL_MAIN +
         `cargar_master_detalle_canal?id_branch=${
           JSON.parse(sessionStorage.getItem("dataUser"))[0].id_branch
         }`,
@@ -316,7 +316,7 @@ const actions = {
     var config = {
       method: "post",
       url:
-        import.meta.env.VUE_APP_URL_MAIN +
+        import.meta.env.VITE_URL_MAIN +
         `cargar_master_detalle_tipo_proveedor?id_branch=${
           JSON.parse(sessionStorage.getItem("dataUser"))[0].id_branch
         }`,
@@ -344,7 +344,7 @@ const actions = {
     var config = {
       method: "get",
       url:
-        import.meta.env.VUE_APP_URL_MAIN +
+        import.meta.env.VITE_URL_MAIN +
         `cargar_master_detalle_percepcion_aduana?id_branch=${
           JSON.parse(sessionStorage.getItem("dataUser"))[0].id_branch
         }`,
@@ -368,7 +368,7 @@ const actions = {
     var config = {
       method: "get",
       url:
-        import.meta.env.VUE_APP_URL_MAIN +
+        import.meta.env.VITE_URL_MAIN +
         `cargar_master_detalle_tipo_percepcion?id_branch=${
           JSON.parse(sessionStorage.getItem("dataUser"))[0].id_branch
         }`,
@@ -392,7 +392,7 @@ const actions = {
     var config = {
       method: "get",
       url:
-        import.meta.env.VUE_APP_URL_MAIN +
+        import.meta.env.VITE_URL_MAIN +
         `cargar_master_detalle_tipo_telefono?id_branch=${
           JSON.parse(sessionStorage.getItem("dataUser"))[0].id_branch
         }`,
@@ -412,7 +412,7 @@ const actions = {
     var config = {
       method: "post",
       url:
-        import.meta.env.VUE_APP_URL_MAIN + `insertar_master_detalle_tipotelefono`,
+        import.meta.env.VITE_URL_MAIN + `insertar_master_detalle_tipotelefono`,
       headers: {
         "Content-Type": "application/json",
       },
@@ -439,7 +439,7 @@ const actions = {
     var config = {
       method: "post",
       url:
-        import.meta.env.VUE_APP_URL_MAIN +
+        import.meta.env.VITE_URL_MAIN +
         `insertar_master_detalle_notas_cotizacion`,
       headers: {
         "Content-Type": "application/json",
@@ -471,7 +471,7 @@ const actions = {
     var config = {
       method: "get",
       url:
-        import.meta.env.VUE_APP_URL_MAIN +
+        import.meta.env.VITE_URL_MAIN +
         `cargar_master_detalle_tipo_persona?id_branch=${
           JSON.parse(sessionStorage.getItem("dataUser"))[0].id_branch
         }`,
@@ -495,7 +495,7 @@ const actions = {
     var config = {
       method: "get",
       url:
-        import.meta.env.VUE_APP_URL_MAIN +
+        import.meta.env.VITE_URL_MAIN +
         `cargar_master_detalle_impuesto_renta?id_branch=${
           JSON.parse(sessionStorage.getItem("dataUser"))[0].id_branch
         }`,
@@ -519,7 +519,7 @@ const actions = {
     var config = {
       method: "get",
       url:
-        import.meta.env.VUE_APP_URL_MAIN +
+        import.meta.env.VITE_URL_MAIN +
         `cargar_master_detalle_temperatura_leads`,
       headers: headers,
     };

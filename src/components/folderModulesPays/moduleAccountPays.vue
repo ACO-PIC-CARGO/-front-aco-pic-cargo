@@ -420,7 +420,7 @@ export default {
 
       var config = {
         method: "post",
-        url: import.meta.env.VUE_APP_URL_MAIN + "uploadAllPath",
+        url: import.meta.env.VITE_URL_MAIN + "uploadAllPath",
         headers: {
           "Content-Type": "application/json",
         },
@@ -463,7 +463,7 @@ export default {
 
       var config = {
         method: "post",
-        url: import.meta.env.VUE_APP_URL_MAIN + "paymentInvoiceAdmin/" + vm.id_pro,
+        url: import.meta.env.VITE_URL_MAIN + "paymentInvoiceAdmin/" + vm.id_pro,
 
         headers: {
           "Content-Type": "application/json",
@@ -503,7 +503,7 @@ export default {
       vm.$store.state.spiner = true;
       var config = {
         method: "get",
-        url: import.meta.env.VUE_APP_URL_MAIN + "getInvoiceAdmin",
+        url: import.meta.env.VITE_URL_MAIN + "getInvoiceAdmin",
         params: {
           id_branch: JSON.parse(sessionStorage.getItem("dataUser"))[0]
             .id_branch,
@@ -606,7 +606,7 @@ export default {
 
       var config = {
         method: "post",
-        url: import.meta.env.VUE_APP_URL_MAIN + "delPro",
+        url: import.meta.env.VITE_URL_MAIN + "delPro",
 
         headers: {
           "Content-Type": "application/json",

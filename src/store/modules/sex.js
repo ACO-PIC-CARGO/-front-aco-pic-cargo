@@ -25,7 +25,7 @@ const actions = {
     var config = {
       method: "get",
       url:
-        import.meta.env.VUE_APP_URL_MAIN +
+        import.meta.env.VITE_URL_MAIN +
         `listar_sex?` +
         `id_branch=${
           JSON.parse(sessionStorage.getItem("dataUser"))[0].id_branch
@@ -72,7 +72,7 @@ const actions = {
   async insertSex({ commit, dispatch }, data) {
     var config = {
       method: "post",
-      url: import.meta.env.VUE_APP_URL_MAIN + "insertar_sex",
+      url: import.meta.env.VITE_URL_MAIN + "insertar_sex",
       headers: {
         "Content-Type": "application/json",
        
@@ -108,7 +108,7 @@ const actions = {
   async readSex({ commit }, id) {
     var config = {
       method: "get",
-      url: import.meta.env.VUE_APP_URL_MAIN + `ver_sex?id=${id}`,
+      url: import.meta.env.VITE_URL_MAIN + `ver_sex?id=${id}`,
       headers: {
         "Content-Type": "application/json",
        
@@ -135,7 +135,7 @@ const actions = {
   async updateSex({ dispatch }, data) {
     var config = {
       method: "put",
-      url: import.meta.env.VUE_APP_URL_MAIN + "actualizar_sex",
+      url: import.meta.env.VITE_URL_MAIN + "actualizar_sex",
       headers: {
         "Content-Type": "application/json",
        

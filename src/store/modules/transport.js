@@ -26,7 +26,7 @@ const actions = {
     var config = {
       method: "get",
       url:
-        import.meta.env.VUE_APP_URL_MAIN +
+        import.meta.env.VITE_URL_MAIN +
         `listar_transport?` +
         `id_branch=${
           JSON.parse(sessionStorage.getItem("dataUser"))[0].id_branch
@@ -72,7 +72,7 @@ const actions = {
   async insertTransport({ commit, dispatch }, data) {
     var config = {
       method: "post",
-      url: import.meta.env.VUE_APP_URL_MAIN + "insertar_transport",
+      url: import.meta.env.VITE_URL_MAIN + "insertar_transport",
       headers: {
         "Content-Type": "application/json",
        
@@ -107,7 +107,7 @@ const actions = {
   async readTransport({ commit }, id) {
     var config = {
       method: "get",
-      url: import.meta.env.VUE_APP_URL_MAIN + `ver_transport?id=${id}`,
+      url: import.meta.env.VITE_URL_MAIN + `ver_transport?id=${id}`,
       headers: {
         "Content-Type": "application/json",
        
@@ -134,7 +134,7 @@ const actions = {
   async updateTransport({ dispatch }, data) {
     var config = {
       method: "put",
-      url: import.meta.env.VUE_APP_URL_MAIN + "actualizar_transport",
+      url: import.meta.env.VITE_URL_MAIN + "actualizar_transport",
       headers: {
         "Content-Type": "application/json",
        
@@ -170,7 +170,7 @@ const actions = {
     var config = {
       method: "get",
       url:
-        import.meta.env.VUE_APP_URL_MAIN +
+        import.meta.env.VITE_URL_MAIN +
         `cargar_transport?` +
         `id_branch=${
           JSON.parse(sessionStorage.getItem("dataUser"))[0].id_branch

@@ -579,7 +579,7 @@ export default {
       var config = {
         method: "get",
         url:
-          import.meta.env.VUE_APP_URL_MAIN +
+          import.meta.env.VITE_URL_MAIN +
           `validar_nuevo_posicion_marketing?` +
           `id_branch=${
             JSON.parse(sessionStorage.getItem("dataUser"))[0].id_branch
@@ -603,7 +603,7 @@ export default {
       var config = {
         method: "get",
         url:
-          import.meta.env.VUE_APP_URL_MAIN +
+          import.meta.env.VITE_URL_MAIN +
           `validar_editar_posicion_marketing?` +
           `id=${this.marketing.id}` +
           `&id_branch=${

@@ -271,7 +271,7 @@ export default {
       };
       var config = {
         method: "post",
-        url: import.meta.env.VUE_APP_URL_MAIN + "deleteContainers",
+        url: import.meta.env.VITE_URL_MAIN + "deleteContainers",
         headers: {
           "Content-Type": "application/json",
         },
@@ -300,7 +300,7 @@ export default {
       };
       var config = {
         method: "post",
-        url: import.meta.env.VUE_APP_URL_MAIN + "setHouseContainers",
+        url: import.meta.env.VITE_URL_MAIN + "setHouseContainers",
         headers: {
           "Content-Type": "application/json",
         },
@@ -329,7 +329,7 @@ export default {
         // };
         // var config = {
         //   method: "post",
-        //   url: import.meta.env.VUE_APP_URL_MAIN + "getHouseListId/",
+        //   url: import.meta.env.VITE_URL_MAIN + "getHouseListId/",
         //   headers: {
         //
         //     "Content-Type": "application/json",

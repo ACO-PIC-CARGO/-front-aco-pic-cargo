@@ -723,7 +723,7 @@ export default {
 
       var config = {
         method: "post",
-        url: import.meta.env.VUE_APP_URL_MAIN + "uploadAllPath",
+        url: import.meta.env.VITE_URL_MAIN + "uploadAllPath",
         headers: {
           "Content-Type": "application/json",
         },
@@ -747,7 +747,7 @@ export default {
       var config = {
         data: data,
         method: "get",
-        url: import.meta.env.VUE_APP_URL_MAIN + "getHouseListAll",
+        url: import.meta.env.VITE_URL_MAIN + "getHouseListAll",
 
         headers: {
           "Content-Type": "application/json",
@@ -770,7 +770,7 @@ export default {
 
       var config = {
         method: "post",
-        url: import.meta.env.VUE_APP_URL_MAIN + "getListInvoiceExp",
+        url: import.meta.env.VITE_URL_MAIN + "getListInvoiceExp",
 
         headers: {
           "Content-Type": "application/json",
@@ -850,7 +850,7 @@ export default {
         };
         var config = {
           method: "post",
-          url: import.meta.env.VUE_APP_URL_MAIN + "setInvoiceAdminCxC",
+          url: import.meta.env.VITE_URL_MAIN + "setInvoiceAdminCxC",
 
           headers: {
             "Content-Type": "application/json",
@@ -913,7 +913,7 @@ export default {
         };
         var config = {
           method: "put",
-          url: import.meta.env.VUE_APP_URL_MAIN + "setUpdateInvoiceAdminCxC",
+          url: import.meta.env.VITE_URL_MAIN + "setUpdateInvoiceAdminCxC",
 
           headers: {
             "Content-Type": "application/json",
@@ -956,7 +956,7 @@ export default {
       };
       var config = {
         method: "post",
-        url: import.meta.env.VUE_APP_URL_MAIN + "putPro",
+        url: import.meta.env.VITE_URL_MAIN + "putPro",
 
         headers: {
           "Content-Type": "application/json",

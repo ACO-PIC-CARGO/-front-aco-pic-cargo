@@ -189,7 +189,7 @@ export default {
       var config = {
         method: "get",
         url:
-          import.meta.env.VUE_APP_URL_MAIN +
+          import.meta.env.VITE_URL_MAIN +
           `crear-carpeta-master?nromaster=${name}`,
         headers: {
           "Content-Type": "application/json",
@@ -208,7 +208,7 @@ export default {
     async actualizarMaster({ id = 0, url = "" }) {
       var config = {
         method: "put",
-        url: import.meta.env.VUE_APP_URL_MAIN + `update_folder_onedrive`,
+        url: import.meta.env.VITE_URL_MAIN + `update_folder_onedrive`,
         headers: {
           "Content-Type": "application/json",
         },
@@ -241,7 +241,7 @@ export default {
 
       var config = {
         method: "post",
-        url: import.meta.env.VUE_APP_URL_MAIN + "setMasterContainers",
+        url: import.meta.env.VITE_URL_MAIN + "setMasterContainers",
         headers: {
           "Content-Type": "application/json",
         },
@@ -281,7 +281,7 @@ export default {
 
       var config = {
         method: "post",
-        url: import.meta.env.VUE_APP_URL_MAIN + "setHouseContainers",
+        url: import.meta.env.VITE_URL_MAIN + "setHouseContainers",
         headers: {
           "Content-Type": "application/json",
         },
@@ -311,7 +311,7 @@ export default {
         };
         var config = {
           method: "post",
-          url: import.meta.env.VUE_APP_URL_MAIN + "setServices",
+          url: import.meta.env.VITE_URL_MAIN + "setServices",
           headers: {
             "Content-Type": "application/json",
           },
@@ -413,7 +413,7 @@ export default {
 
       var config = {
         method: "post",
-        url: import.meta.env.VUE_APP_URL_MAIN + "setHouse",
+        url: import.meta.env.VITE_URL_MAIN + "setHouse",
         headers: {
           "Content-Type": "application/json",
         },
@@ -543,7 +543,7 @@ export default {
 
         var config = {
           method: "post",
-          url: import.meta.env.VUE_APP_URL_MAIN + "setHouse",
+          url: import.meta.env.VITE_URL_MAIN + "setHouse",
           headers: {
             "Content-Type": "application/json",
           },
@@ -731,7 +731,7 @@ export default {
         var config = {
           method: "post",
           url:
-            import.meta.env.VUE_APP_URL_MAIN +
+            import.meta.env.VITE_URL_MAIN +
             "editMaster/" +
             vm.$store.state.master_Id_get,
           headers: {
@@ -1043,7 +1043,7 @@ export default {
 
         var config = {
           method: "post",
-          url: import.meta.env.VUE_APP_URL_MAIN + "setMaster",
+          url: import.meta.env.VITE_URL_MAIN + "setMaster",
           headers: {
             "Content-Type": "application/json",
           },

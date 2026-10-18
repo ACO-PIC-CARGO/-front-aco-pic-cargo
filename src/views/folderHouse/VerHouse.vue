@@ -381,7 +381,7 @@ export default {
       try {
         const response = await axios({
           method: "get",
-          url: `${import.meta.env.VUE_APP_URL_MAIN}generar_formato_awb`,
+          url: `${import.meta.env.VITE_URL_MAIN}generar_formato_awb`,
           params: {
             id_house: this.$route.params.id,
             formatoflag: this.formatoflag,
@@ -419,7 +419,7 @@ export default {
       try {
         const response = await axios({
           method: "get",
-          url: `${import.meta.env.VUE_APP_URL_MAIN}generar_formato_bl`,
+          url: `${import.meta.env.VITE_URL_MAIN}generar_formato_bl`,
           params: {
             id_house: this.$route.params.id,
             formatoflag: this.formatoflag,
@@ -473,7 +473,7 @@ export default {
 
       var config = {
         method: "put",
-        url: import.meta.env.VUE_APP_URL_MAIN + `setTrackingToken`,
+        url: import.meta.env.VITE_URL_MAIN + `setTrackingToken`,
         headers: {
           "Content-Type": "application/json",
         },
@@ -538,7 +538,7 @@ export default {
 
       var config = {
         method: "post",
-        url: import.meta.env.VUE_APP_URL_MAIN + "setMasterContainers",
+        url: import.meta.env.VITE_URL_MAIN + "setMasterContainers",
         headers: {
           "Content-Type": "application/json",
         },
@@ -632,7 +632,7 @@ export default {
 
       var config = {
         method: "put",
-        url: import.meta.env.VUE_APP_URL_MAIN + "setHouseEdit",
+        url: import.meta.env.VITE_URL_MAIN + "setHouseEdit",
         headers: {
           "Content-Type": "application/json",
         },
@@ -727,7 +727,7 @@ export default {
             var config = {
               method: "put",
               url:
-                import.meta.env.VUE_APP_URL_MAIN +
+                import.meta.env.VITE_URL_MAIN +
                 "setHouseDelete/" +
                 vm.$route.params.id,
               headers: {
@@ -957,7 +957,7 @@ export default {
 
       var config = {
         method: "post",
-        url: import.meta.env.VUE_APP_URL_MAIN + "getHouseListId/",
+        url: import.meta.env.VITE_URL_MAIN + "getHouseListId/",
         headers: {
           "Content-Type": "application/json",
         },
@@ -987,7 +987,7 @@ export default {
 
         var config = {
           method: "post",
-          url: import.meta.env.VUE_APP_URL_MAIN + "getHouseServices",
+          url: import.meta.env.VITE_URL_MAIN + "getHouseServices",
           headers: {
             "Content-Type": "application/json",
           },
@@ -1056,7 +1056,7 @@ export default {
 
       var config = {
         method: "post",
-        url: import.meta.env.VUE_APP_URL_MAIN + "sendNotificacionHouse",
+        url: import.meta.env.VITE_URL_MAIN + "sendNotificacionHouse",
         headers: {
           "Content-Type": "application/json",
         },

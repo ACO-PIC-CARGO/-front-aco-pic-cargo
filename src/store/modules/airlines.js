@@ -45,7 +45,7 @@ const actions = {
     var config = {
       method: "get",
       url:
-        import.meta.env.VUE_APP_URL_MAIN +
+        import.meta.env.VITE_URL_MAIN +
         `listar_airlines?id_branch=${
           JSON.parse(sessionStorage.getItem("dataUser"))[0].id_branch
         }&code=${
@@ -119,7 +119,7 @@ const actions = {
     var config = {
       method: "get",
       url:
-        import.meta.env.VUE_APP_URL_MAIN +
+        import.meta.env.VITE_URL_MAIN +
         `validate_iata_airlines_nuevo?id_branch=${
           JSON.parse(sessionStorage.getItem("dataUser"))[0].id_branch
         }&code_iata=${state.AirlineModel.code_iata}
@@ -156,7 +156,7 @@ const actions = {
     var config = {
       method: "get",
       url:
-        import.meta.env.VUE_APP_URL_MAIN +
+        import.meta.env.VITE_URL_MAIN +
         `validate_icao_airlines_nuevo?id_branch=${
           JSON.parse(sessionStorage.getItem("dataUser"))[0].id_branch
         }&code_icao=${state.AirlineModel.code_icao}`,
@@ -195,7 +195,7 @@ const actions = {
     )[0].id_branch;
     var config = {
       method: "post",
-      url: import.meta.env.VUE_APP_URL_MAIN + `insert_airlines`,
+      url: import.meta.env.VITE_URL_MAIN + `insert_airlines`,
       data: state.AirlineModel,
       headers: {
        
@@ -238,7 +238,7 @@ const actions = {
     var config = {
       method: "get",
       url:
-        import.meta.env.VUE_APP_URL_MAIN +
+        import.meta.env.VITE_URL_MAIN +
         `validate_iata_airlines_editar?id=${state.AirlineModel.id}&id_branch=${state.AirlineModel.id_branch}&code_iata=${state.AirlineModel.code_iata}
         `,
 
@@ -273,7 +273,7 @@ const actions = {
     var config = {
       method: "get",
       url:
-        import.meta.env.VUE_APP_URL_MAIN +
+        import.meta.env.VITE_URL_MAIN +
         `validate_icao_airlines_editar?id=${state.AirlineModel.id}&id_branch=${state.AirlineModel.id_branch}&code_icao=${state.AirlineModel.code_icao}`,
 
       headers: {
@@ -310,7 +310,7 @@ const actions = {
     )[0].id_branch;
     var config = {
       method: "put",
-      url: import.meta.env.VUE_APP_URL_MAIN + `actualizar_airlines`,
+      url: import.meta.env.VITE_URL_MAIN + `actualizar_airlines`,
       data: state.AirlineModel,
 
       headers: {

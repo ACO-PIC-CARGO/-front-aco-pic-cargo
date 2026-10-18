@@ -20,7 +20,7 @@ const actions = {
     data.append("file", file);
     var config = {
       method: "post",
-      url: import.meta.env.VUE_APP_URL_MAIN + "uploadAllPath",
+      url: import.meta.env.VITE_URL_MAIN + "uploadAllPath",
       headers: {
        
         "Content-Type": "application/json",
@@ -41,7 +41,7 @@ const actions = {
   async uploadFileFromUrlToOneDrive({ commit }, data) {
     var config = {
       method: "put",
-      url: import.meta.env.VUE_APP_URL_MAIN + "mover_files_servidor_onedrive",
+      url: import.meta.env.VITE_URL_MAIN + "mover_files_servidor_onedrive",
       headers: {
         "Content-Type": "application/json",
        
@@ -54,7 +54,7 @@ const actions = {
   async moveFileToOneDrive({ commit }, data) {
     var config = {
       method: "put",
-      url: import.meta.env.VUE_APP_URL_MAIN + "mover_files",
+      url: import.meta.env.VITE_URL_MAIN + "mover_files",
       headers: {
         "Content-Type": "application/json",
        

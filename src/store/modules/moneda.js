@@ -17,7 +17,7 @@ const actions = {
     };
     var config = {
       method: "get",
-      url: import.meta.env.VUE_APP_URL_MAIN + `cargar_moneda`,
+      url: import.meta.env.VITE_URL_MAIN + `cargar_moneda`,
       headers: headers,
     };
     let valores = await axios(config);

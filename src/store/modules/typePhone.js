@@ -21,7 +21,7 @@ const actions = {
     var config = {
       method: "get",
       url:
-        import.meta.env.VUE_APP_URL_MAIN +
+        import.meta.env.VITE_URL_MAIN +
         `getListTypePhone?` +
         `id_branch=${
           JSON.parse(sessionStorage.getItem("dataUser"))[0].id_branch
@@ -65,7 +65,7 @@ const actions = {
   async insertTypePhone({ commit }, data) {
     var config = {
       method: "post",
-      url: import.meta.env.VUE_APP_URL_MAIN + "insertTypePhone",
+      url: import.meta.env.VITE_URL_MAIN + "insertTypePhone",
       headers: {
         "Content-Type": "application/json",
       },
@@ -94,7 +94,7 @@ const actions = {
   async readTypePhone({ commit }, id) {
     var config = {
       method: "get",
-      url: import.meta.env.VUE_APP_URL_MAIN + `readTypePhone?id=${id}`,
+      url: import.meta.env.VITE_URL_MAIN + `readTypePhone?id=${id}`,
       headers: {
         "Content-Type": "application/json",
       },
@@ -120,7 +120,7 @@ const actions = {
   async inactiveTypePhone(_, data) {
     var config = {
       method: "put",
-      url: import.meta.env.VUE_APP_URL_MAIN + "deleteTypePhone",
+      url: import.meta.env.VITE_URL_MAIN + "deleteTypePhone",
       headers: {
         "Content-Type": "application/json",
       },
@@ -151,7 +151,7 @@ const actions = {
 
     var config = {
       method: "put",
-      url: import.meta.env.VUE_APP_URL_MAIN + "updateTypePhone",
+      url: import.meta.env.VITE_URL_MAIN + "updateTypePhone",
       headers: {
         "Content-Type": "application/json",
       },

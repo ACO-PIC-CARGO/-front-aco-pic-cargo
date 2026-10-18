@@ -661,7 +661,7 @@ export default {
           var config = {
             method: "get",
             url:
-              import.meta.env.VUE_APP_URL_MAIN +
+              import.meta.env.VITE_URL_MAIN +
               `exportarPDFCXC?id_branch=${
                 JSON.parse(sessionStorage.getItem("dataUser"))[0].id_branch
               }&id_proveedor=${
@@ -708,7 +708,7 @@ export default {
       var config = {
         method: "get",
         url:
-          import.meta.env.VUE_APP_URL_MAIN +
+          import.meta.env.VITE_URL_MAIN +
           `getReporteCXC?id_branch=${
             JSON.parse(sessionStorage.getItem("dataUser"))[0].id_branch
           }&id_cliente=${
@@ -746,7 +746,7 @@ export default {
       };
       var config = {
         method: "post",
-        url: import.meta.env.VUE_APP_URL_MAIN + "getReportAccountsFilter",
+        url: import.meta.env.VITE_URL_MAIN + "getReportAccountsFilter",
 
         headers: {
          
@@ -770,7 +770,7 @@ export default {
       var config = {
         method: "get",
         url:
-          import.meta.env.VUE_APP_URL_MAIN +
+          import.meta.env.VITE_URL_MAIN +
           `getReporteCXCAdmin?id_branch=${
             JSON.parse(sessionStorage.getItem("dataUser"))[0].id_branch
           }&id_cliente=${
@@ -993,7 +993,7 @@ export default {
       var config = {
         method: "get",
         url:
-          import.meta.env.VUE_APP_URL_MAIN +
+          import.meta.env.VITE_URL_MAIN +
           `reportcxcexcel?id_branch=${
             JSON.parse(sessionStorage.getItem("dataUser"))[0].id_branch
           }&id_cliente=${
@@ -1091,7 +1091,7 @@ export default {
       var config = {
         method: "get",
         url:
-          import.meta.env.VUE_APP_URL_MAIN +
+          import.meta.env.VITE_URL_MAIN +
           `listarComentariosCXC?id_cliente=${vm.dataCXC.id_consigner}`,
         headers: {
          
@@ -1144,7 +1144,7 @@ export default {
 
         var config = {
           method: "post",
-          url: import.meta.env.VUE_APP_URL_MAIN + `insertarComentarioCXC`,
+          url: import.meta.env.VITE_URL_MAIN + `insertarComentarioCXC`,
           headers: {
            
             "Content-Type": "application/json",

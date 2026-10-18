@@ -80,7 +80,7 @@ const actions = {
     var config = {
       method: "get",
       url:
-        import.meta.env.VUE_APP_URL_MAIN +
+        import.meta.env.VITE_URL_MAIN +
         `flujo_gasto_pre_post_mes?id_branch=${
           JSON.parse(sessionStorage.getItem("dataUser"))[0].id_branch
         }&month=${data.month}&year=${data.year}&ingresosflag=${
@@ -123,7 +123,7 @@ const actions = {
     var config = {
       method: "get",
       url:
-        import.meta.env.VUE_APP_URL_MAIN +
+        import.meta.env.VITE_URL_MAIN +
         `generar_comparativo?id_branch=${
           JSON.parse(sessionStorage.getItem("dataUser"))[0].id_branch
         }&month=${data.month}&year=${data.year}`,
@@ -156,7 +156,7 @@ const actions = {
     var config = {
       method: "get",
       url:
-        import.meta.env.VUE_APP_URL_MAIN +
+        import.meta.env.VITE_URL_MAIN +
         `cargar_tipo_ingreso?id_branch=${
           JSON.parse(sessionStorage.getItem("dataUser"))[0].id_branch
         }`,
@@ -189,7 +189,7 @@ const actions = {
     var config = {
       method: "get",
       url:
-        import.meta.env.VUE_APP_URL_MAIN +
+        import.meta.env.VITE_URL_MAIN +
         `cargar_tipo_subingreso?id_branch=${
           JSON.parse(sessionStorage.getItem("dataUser"))[0].id_branch
         }`,
@@ -222,7 +222,7 @@ const actions = {
     var config = {
       method: "get",
       url:
-        import.meta.env.VUE_APP_URL_MAIN +
+        import.meta.env.VITE_URL_MAIN +
         `cargar_tipo_gastos?id_branch=${
           JSON.parse(sessionStorage.getItem("dataUser"))[0].id_branch
         }`,
@@ -255,7 +255,7 @@ const actions = {
     var config = {
       method: "get",
       url:
-        import.meta.env.VUE_APP_URL_MAIN +
+        import.meta.env.VITE_URL_MAIN +
         `cargar_tipo_subgastos?id_branch=${
           JSON.parse(sessionStorage.getItem("dataUser"))[0].id_branch
         }`,
@@ -289,7 +289,7 @@ const actions = {
     var config = {
       method: "get",
       url:
-        import.meta.env.VUE_APP_URL_MAIN +
+        import.meta.env.VITE_URL_MAIN +
         `detalle_ganancia?year=${data.year}&month=${data.month}&tipoingreso=${data.tipoingreso}&tiposubingreso=${data.tiposubingreso}&nro_expediente=${data.nro_expediente}&monto=${data.monto}`,
 
       headers: {
@@ -320,7 +320,7 @@ const actions = {
     var config = {
       method: "get",
       url:
-        import.meta.env.VUE_APP_URL_MAIN +
+        import.meta.env.VITE_URL_MAIN +
         `detalle_ganancia?year=${data.year}&month=${data.month}&tipoingreso=${data.tipoingreso}&tiposubingreso=${data.tiposubingreso}&nro_expediente=${data.nro_expediente}&monto=${data.monto}`,
 
       headers: {
@@ -351,7 +351,7 @@ const actions = {
     var config = {
       method: "get",
       url:
-        import.meta.env.VUE_APP_URL_MAIN +
+        import.meta.env.VITE_URL_MAIN +
         `resumen_ganancia?year=${data.year}&month=${data.month}`,
 
       headers: {
@@ -383,7 +383,7 @@ const actions = {
     var config = {
       method: "get",
       url:
-        import.meta.env.VUE_APP_URL_MAIN +
+        import.meta.env.VITE_URL_MAIN +
         `detalle_gastos?year=${data.year}&month=${data.month}&tipogastos=${data.tipogastos}&tiposubgastos=${data.tiposubgastos}&proveedor=${data.proveedor}&monto=${data.monto}`,
 
       headers: {
@@ -414,7 +414,7 @@ const actions = {
     var config = {
       method: "get",
       url:
-        import.meta.env.VUE_APP_URL_MAIN +
+        import.meta.env.VITE_URL_MAIN +
         `detalle_gastos?year=${data.year}&month=${data.month}&tipogastos=${data.tipogastos}&tiposubgastos=${data.tiposubgastos}&proveedor=${data.proveedor}&monto=${data.monto}`,
 
       headers: {
@@ -445,7 +445,7 @@ const actions = {
     var config = {
       method: "get",
       url:
-        import.meta.env.VUE_APP_URL_MAIN +
+        import.meta.env.VITE_URL_MAIN +
         `resumen_gastos?year=${data.year}&month=${data.month}`,
 
       headers: {
@@ -476,7 +476,7 @@ const actions = {
     var config = {
       method: "get",
       url:
-        import.meta.env.VUE_APP_URL_MAIN +
+        import.meta.env.VITE_URL_MAIN +
         `resumen_gastos_tipogasto?year=${data.year}&month=${data.month}`,
 
       headers: {
@@ -507,7 +507,7 @@ const actions = {
     var config = {
       method: "get",
       url:
-        import.meta.env.VUE_APP_URL_MAIN +
+        import.meta.env.VITE_URL_MAIN +
         `resumen_ingreso_tipo?year=${data.year}&month=${data.month}`,
 
       headers: {
@@ -538,7 +538,7 @@ const actions = {
     var config = {
       method: "get",
       url:
-        import.meta.env.VUE_APP_URL_MAIN +
+        import.meta.env.VITE_URL_MAIN +
         `arbol_gastos?id_branch=${
           JSON.parse(sessionStorage.getItem("dataUser"))[0].id_branch
         }`,
@@ -571,7 +571,7 @@ const actions = {
     var config = {
       method: "get",
       url:
-        import.meta.env.VUE_APP_URL_MAIN +
+        import.meta.env.VITE_URL_MAIN +
         `arbol_ingresos?id_branch=${
           JSON.parse(sessionStorage.getItem("dataUser"))[0].id_branch
         }`,
@@ -604,7 +604,7 @@ const actions = {
     var config = {
       method: "get",
       url:
-        import.meta.env.VUE_APP_URL_MAIN +
+        import.meta.env.VITE_URL_MAIN +
         `excel_reporte?year=${data.year}&month=${data.month}`,
       responseType: "blob",
       headers: {
@@ -629,7 +629,7 @@ const actions = {
     var config = {
       method: "get",
       url:
-        import.meta.env.VUE_APP_URL_MAIN +
+        import.meta.env.VITE_URL_MAIN +
         `flujo_dinero_por_mes?id_branch=${
           JSON.parse(sessionStorage.getItem("dataUser"))[0].id_branch
         }&cantidadmes=${data.cantidadmes}&id_proveedor=${

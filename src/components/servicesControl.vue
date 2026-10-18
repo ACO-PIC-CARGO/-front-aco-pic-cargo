@@ -56,7 +56,7 @@ export default {
       };
       var config = {
         method: "post",
-        url: import.meta.env.VUE_APP_URL_MAIN + "getHouseServices",
+        url: import.meta.env.VITE_URL_MAIN + "getHouseServices",
         headers: {
          
           "Content-Type": "application/json",
@@ -82,7 +82,7 @@ export default {
       };
       var config = {
         method: "post",
-        url: import.meta.env.VUE_APP_URL_MAIN + "setServices",
+        url: import.meta.env.VITE_URL_MAIN + "setServices",
         headers: {
          
           "Content-Type": "application/json",

@@ -35,7 +35,7 @@ let actions = {
     var config = {
       method: "get",
       url:
-        import.meta.env.VUE_APP_URL_MAIN +
+        import.meta.env.VITE_URL_MAIN +
         `listar_itemservices?&id_branch=${
           JSON.parse(sessionStorage.getItem("dataUser"))[0].id_branch
         }&id_groupservices=${
@@ -87,7 +87,7 @@ let actions = {
   async setItemServices({ commit }) {
     var config = {
       method: "post",
-      url: import.meta.env.VUE_APP_URL_MAIN + `insertar_itemservices`,
+      url: import.meta.env.VITE_URL_MAIN + `insertar_itemservices`,
       headers: {
        
         "Content-Type": "application/json",
@@ -114,7 +114,7 @@ let actions = {
   async ActualizarItemServices({ commit }) {
     var config = {
       method: "put",
-      url: import.meta.env.VUE_APP_URL_MAIN + `actualizar_itemservices`,
+      url: import.meta.env.VITE_URL_MAIN + `actualizar_itemservices`,
       headers: {
        
         "Content-Type": "application/json",

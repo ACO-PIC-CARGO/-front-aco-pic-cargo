@@ -638,7 +638,7 @@ export default {
       }
       var config = {
         method: "post",
-        url: import.meta.env.VUE_APP_URL_MAIN + urlLong,
+        url: import.meta.env.VITE_URL_MAIN + urlLong,
 
         headers: {
          
@@ -656,7 +656,7 @@ export default {
 
           vm.dialogPdf = false;
           window.open(
-            import.meta.env.VUE_APP_URL_MAIN + response.data.path,
+            import.meta.env.VITE_URL_MAIN + response.data.path,
             "_blank"
           );
         })
@@ -670,7 +670,7 @@ export default {
       vm.dataList = false;
       var config = {
         method: "post",
-        url: import.meta.env.VUE_APP_URL_MAIN + "getDebsToPay",
+        url: import.meta.env.VITE_URL_MAIN + "getDebsToPay",
 
         headers: {
          
@@ -693,7 +693,7 @@ export default {
       vm.dataList = false;
       var config = {
         method: "post",
-        url: import.meta.env.VUE_APP_URL_MAIN + "getReportAccounts",
+        url: import.meta.env.VITE_URL_MAIN + "getReportAccounts",
 
         headers: {
          
@@ -721,7 +721,7 @@ export default {
       };
       var config = {
         method: "post",
-        url: import.meta.env.VUE_APP_URL_MAIN + "getDebsToPayFilter",
+        url: import.meta.env.VITE_URL_MAIN + "getDebsToPayFilter",
 
         headers: {
          

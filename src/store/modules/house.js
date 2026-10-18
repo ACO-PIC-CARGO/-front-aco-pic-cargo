@@ -25,7 +25,7 @@ const actions = {
       sessionStorage.getItem("dataUser"),
     )[0].id_branch;
     await axios
-      .get(import.meta.env.VUE_APP_URL_MAIN + `house_ver`, {
+      .get(import.meta.env.VITE_URL_MAIN + `house_ver`, {
         params: filtros,
 
         "Content-Type": "application/json",
@@ -41,7 +41,7 @@ const actions = {
 
   async setConfirmarTelex({ commit }, data) {
     await axios
-      .put(import.meta.env.VUE_APP_URL_MAIN + `houses_confirmar_telex`, data, {
+      .put(import.meta.env.VITE_URL_MAIN + `houses_confirmar_telex`, data, {
         "Content-Type": "application/json",
       })
       .then(function (response) {
@@ -65,7 +65,7 @@ const actions = {
 
     var config = {
       method: "put",
-      url: import.meta.env.VUE_APP_URL_MAIN + `crear-carpeta-house`,
+      url: import.meta.env.VITE_URL_MAIN + `crear-carpeta-house`,
       headers: headers,
       data: data,
     };
@@ -80,7 +80,7 @@ const actions = {
       sessionStorage.getItem("dataUser"),
     )[0].id_branch;
     await axios
-      .get(import.meta.env.VUE_APP_URL_MAIN + `listado_houses`, {
+      .get(import.meta.env.VITE_URL_MAIN + `listado_houses`, {
         params: filtros,
 
         "Content-Type": "application/json",
@@ -98,7 +98,7 @@ const actions = {
     var config = {
       method: "get",
       url:
-        import.meta.env.VUE_APP_URL_MAIN +
+        import.meta.env.VITE_URL_MAIN +
         `cargar_house?id_branch=${
           JSON.parse(sessionStorage.getItem("dataUser"))[0].id_branch
         }`,
@@ -120,7 +120,7 @@ const actions = {
   async insertComentarioHouse(__, dataObj = {}) {
     var config = {
       method: "post",
-      url: import.meta.env.VUE_APP_URL_MAIN + `insertComentarioHouse`,
+      url: import.meta.env.VITE_URL_MAIN + `insertComentarioHouse`,
       headers: {
         "Content-Type": "application/json",
       },
@@ -161,7 +161,7 @@ const actions = {
   async deleteHouse({ commit, state, rootState }, data) {
     var config = {
       method: "put",
-      url: import.meta.env.VUE_APP_URL_MAIN + "setHouseDelete",
+      url: import.meta.env.VITE_URL_MAIN + "setHouseDelete",
       headers: {
         "Content-Type": "application/json",
       },
@@ -221,7 +221,7 @@ const actions = {
 
     var config = {
       method: "get",
-      url: import.meta.env.VUE_APP_URL_MAIN + `getFacturasFiscales`,
+      url: import.meta.env.VITE_URL_MAIN + `getFacturasFiscales`,
       params: {
         id_house: house.id_house,
         id_correlativo: house.id_correlativo,

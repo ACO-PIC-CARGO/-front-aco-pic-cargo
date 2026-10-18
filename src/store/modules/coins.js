@@ -30,7 +30,7 @@ const actions = {
     var config = {
       method: "get",
       url:
-        import.meta.env.VUE_APP_URL_MAIN +
+        import.meta.env.VITE_URL_MAIN +
         `listar_coins?` +
         `id_branch=${
           JSON.parse(sessionStorage.getItem("dataUser"))[0].id_branch
@@ -78,7 +78,7 @@ const actions = {
   async insertCoins({ commit, dispatch }, data) {
     var config = {
       method: "post",
-      url: import.meta.env.VUE_APP_URL_MAIN + "insertar_coins",
+      url: import.meta.env.VITE_URL_MAIN + "insertar_coins",
       headers: {
         "Content-Type": "application/json",
        
@@ -114,7 +114,7 @@ const actions = {
   async readCoins({ commit }, id) {
     var config = {
       method: "get",
-      url: import.meta.env.VUE_APP_URL_MAIN + `ver_coins?id=${id}`,
+      url: import.meta.env.VITE_URL_MAIN + `ver_coins?id=${id}`,
       headers: {
         "Content-Type": "application/json",
        
@@ -141,7 +141,7 @@ const actions = {
   async updateCoins({ dispatch }, data) {
     var config = {
       method: "put",
-      url: import.meta.env.VUE_APP_URL_MAIN + "actualizar_coins",
+      url: import.meta.env.VITE_URL_MAIN + "actualizar_coins",
       headers: {
         "Content-Type": "application/json",
        
@@ -178,7 +178,7 @@ const actions = {
     var config = {
       method: "get",
       url:
-        import.meta.env.VUE_APP_URL_MAIN +
+        import.meta.env.VITE_URL_MAIN +
         `getCoinsList?id_branch=${
           JSON.parse(sessionStorage.getItem("dataUser"))[0].id_branch
         }`,

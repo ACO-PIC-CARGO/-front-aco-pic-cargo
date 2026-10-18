@@ -34,7 +34,7 @@ let actions = {
     var config = {
       method: "get",
       url:
-        import.meta.env.VUE_APP_URL_MAIN +
+        import.meta.env.VITE_URL_MAIN +
         `listar_city?&id_branch=${
           JSON.parse(sessionStorage.getItem("dataUser"))[0].id_branch
         }&name=${state.filtros.name ? state.filtros.name : ""}&description=${
@@ -88,7 +88,7 @@ let actions = {
   async setCity({ commit }) {
     var config = {
       method: "post",
-      url: import.meta.env.VUE_APP_URL_MAIN + `insertar_city`,
+      url: import.meta.env.VITE_URL_MAIN + `insertar_city`,
       headers: {
        
         "Content-Type": "application/json",
@@ -115,7 +115,7 @@ let actions = {
   async ActualizarCity({ commit }) {
     var config = {
       method: "put",
-      url: import.meta.env.VUE_APP_URL_MAIN + `actualizar_city`,
+      url: import.meta.env.VITE_URL_MAIN + `actualizar_city`,
       headers: {
        
         "Content-Type": "application/json",

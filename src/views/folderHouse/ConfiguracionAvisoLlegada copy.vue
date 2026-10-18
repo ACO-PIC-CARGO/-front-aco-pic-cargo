@@ -117,7 +117,7 @@
 
           <div style="text-align: center; padding: 10px">
             <img
-              :src="`${process.env.VUE_APP_URL_MAIN}uploads/logo-aco.png`"
+              :src="`${process.env.VITE_URL_MAIN}uploads/logo-aco.png`"
               alt="Logo ACO"
               style="width: 100%; max-width: 300px; height: auto"
             />
@@ -218,7 +218,7 @@
 
           <div style="text-align: center; padding: 10px">
             <img
-              :src="`${process.env.VUE_APP_URL_MAIN}uploads/logo-aco.png`"
+              :src="`${process.env.VITE_URL_MAIN}uploads/logo-aco.png`"
               alt="Logo ACO"
               style="width: 100%; max-width: 300px; height: auto"
             />

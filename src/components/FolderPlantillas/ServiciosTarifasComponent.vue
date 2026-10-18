@@ -298,7 +298,7 @@ export default {
       try {
         const config = {
           method: 'put',
-          url: `${import.meta.env.VUE_APP_URL_MAIN}editar_costos_base`,
+          url: `${import.meta.env.VITE_URL_MAIN}editar_costos_base`,
           headers: {
             'auth-token': sessionStorage.getItem('auth-token'),
             'Content-Type': 'application/json',
@@ -336,7 +336,7 @@ export default {
         
         const config = {
           method: "get",
-          url: `${import.meta.env.VUE_APP_URL_MAIN}obtener_costos_base?id_modality=${this.modalidadSeleccionada}&shipment=${this.shipmentSeleccionado}`,
+          url: `${import.meta.env.VITE_URL_MAIN}obtener_costos_base?id_modality=${this.modalidadSeleccionada}&shipment=${this.shipmentSeleccionado}`,
           headers: {
             Authorization: `Bearer ${sessionStorage.getItem("auth-token")}`,
             "Content-Type": "application/json",

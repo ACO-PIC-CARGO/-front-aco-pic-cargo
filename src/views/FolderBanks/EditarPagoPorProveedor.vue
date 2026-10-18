@@ -313,7 +313,7 @@ export default {
       let vm = this;
       var config = {
         method: "get",
-        url: import.meta.env.VUE_APP_URL_MAIN + "getListBanksDetailsCargar",
+        url: import.meta.env.VITE_URL_MAIN + "getListBanksDetailsCargar",
         params: {
           id_branch: JSON.parse(sessionStorage.getItem("dataUser"))[0]
             .id_branch,

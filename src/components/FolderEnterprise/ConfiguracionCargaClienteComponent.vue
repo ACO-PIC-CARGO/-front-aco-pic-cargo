@@ -362,7 +362,7 @@ export default {
     },
     descargarFormato() {
       window.open(
-        `${import.meta.env.VUE_APP_URL_MAIN}uploads/Formato Cliente.xlsx`,
+        `${import.meta.env.VITE_URL_MAIN}uploads/Formato Cliente.xlsx`,
         "_blank"
       );
     },

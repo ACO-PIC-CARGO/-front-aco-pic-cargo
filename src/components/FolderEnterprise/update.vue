@@ -538,7 +538,7 @@ export default {
       var config = {
         method: "get",
         url:
-          import.meta.env.VUE_APP_URL_MAIN +
+          import.meta.env.VITE_URL_MAIN +
           `validar_editar_documento_enterprise?` +
           `id=${this.enterprise.id}` +
           `&id_document=${this.enterprise.id_document}` +

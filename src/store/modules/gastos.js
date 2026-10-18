@@ -25,7 +25,7 @@ const actions = {
     var config = {
       method: "get",
       url:
-        import.meta.env.VUE_APP_URL_MAIN +
+        import.meta.env.VITE_URL_MAIN +
         `cargar_gasto?id_branch=${
           JSON.parse(sessionStorage.getItem("dataUser"))[0].id_branch
         }`,
@@ -54,7 +54,7 @@ const actions = {
     var config = {
       method: "get",
       url:
-        import.meta.env.VUE_APP_URL_MAIN +
+        import.meta.env.VITE_URL_MAIN +
         `listar_gasto?` +
         `id_branch=${
           JSON.parse(sessionStorage.getItem("dataUser"))[0].id_branch
@@ -100,7 +100,7 @@ const actions = {
   async insertGasto({ commit, dispatch }, data) {
     var config = {
       method: "post",
-      url: import.meta.env.VUE_APP_URL_MAIN + "insertar_gasto",
+      url: import.meta.env.VITE_URL_MAIN + "insertar_gasto",
       headers: {
         "Content-Type": "application/json",
        
@@ -134,7 +134,7 @@ const actions = {
   async readGasto({ commit }, id) {
     var config = {
       method: "get",
-      url: import.meta.env.VUE_APP_URL_MAIN + `ver_gasto?id=${id}`,
+      url: import.meta.env.VITE_URL_MAIN + `ver_gasto?id=${id}`,
       headers: {
         "Content-Type": "application/json",
        
@@ -161,7 +161,7 @@ const actions = {
   async updateGasto({ dispatch }, data) {
     var config = {
       method: "put",
-      url: import.meta.env.VUE_APP_URL_MAIN + "actualizar_gasto",
+      url: import.meta.env.VITE_URL_MAIN + "actualizar_gasto",
       headers: {
         "Content-Type": "application/json",
        

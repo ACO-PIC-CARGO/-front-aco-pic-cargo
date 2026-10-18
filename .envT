@@ -1,2 +1,2 @@
-VUE_APP_URL_MAIN=https://api.agentedecargaonline.com/
-VUE_APP_VERSION=2.40
+VITE_URL_MAIN=https://api.agentedecargaonline.com/
+VITE_VERSION=2.40

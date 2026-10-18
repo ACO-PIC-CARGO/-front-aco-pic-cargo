@@ -26,7 +26,7 @@ const actions = {
     var config = {
       method: "get",
       url:
-        import.meta.env.VUE_APP_URL_MAIN +
+        import.meta.env.VITE_URL_MAIN +
         `listar_performance?` +
         `id_branch=${
           JSON.parse(sessionStorage.getItem("dataUser"))[0].id_branch
@@ -70,7 +70,7 @@ const actions = {
   async insertPerformance({ commit, dispatch }, data) {
     var config = {
       method: "post",
-      url: import.meta.env.VUE_APP_URL_MAIN + "insertar_performance",
+      url: import.meta.env.VITE_URL_MAIN + "insertar_performance",
       headers: {
         "Content-Type": "application/json",
        
@@ -103,7 +103,7 @@ const actions = {
   async readPerformance({ commit }, id) {
     var config = {
       method: "get",
-      url: import.meta.env.VUE_APP_URL_MAIN + `ver_performance?id=${id}`,
+      url: import.meta.env.VITE_URL_MAIN + `ver_performance?id=${id}`,
       headers: {
         "Content-Type": "application/json",
        
@@ -130,7 +130,7 @@ const actions = {
   async updatePerformance({ dispatch }, data) {
     var config = {
       method: "put",
-      url: import.meta.env.VUE_APP_URL_MAIN + "actualizar_performance",
+      url: import.meta.env.VITE_URL_MAIN + "actualizar_performance",
       headers: {
         "Content-Type": "application/json",
        

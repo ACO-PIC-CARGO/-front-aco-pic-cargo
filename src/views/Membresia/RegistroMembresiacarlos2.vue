@@ -278,7 +278,7 @@ export default {
     async fetchPlans() {
       try {
         const response = await axios.post(
-          import.meta.env.VUE_APP_URL_MAIN + "getPlanes"
+          import.meta.env.VITE_URL_MAIN + "getPlanes"
         );
         this.planes = response.data.data;
 
@@ -313,7 +313,7 @@ export default {
       const usuarioId = 1;
       try {
         const response = await axios.post(
-          import.meta.env.VUE_APP_URL_MAIN + "getPayment",
+          import.meta.env.VITE_URL_MAIN + "getPayment",
           {
             planId,
             usuarioId,
@@ -332,7 +332,7 @@ export default {
     async processPayment(planId) {
       try {
         const response = await this.$axios.post(
-          import.meta.env.VUE_APP_URL_MAIN + "getPayment",
+          import.meta.env.VITE_URL_MAIN + "getPayment",
           {
             cardNumber: this.cardNumber,
             securityCode: this.securityCode,

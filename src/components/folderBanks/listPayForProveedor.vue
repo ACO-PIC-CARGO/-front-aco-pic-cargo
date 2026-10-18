@@ -618,7 +618,7 @@ export default {
 
         var config = {
           method: "post",
-          url: import.meta.env.VUE_APP_URL_MAIN + "uploadAllPath",
+          url: import.meta.env.VITE_URL_MAIN + "uploadAllPath",
           headers: {
             "Content-Type": "application/json",
           },
@@ -671,7 +671,7 @@ export default {
       vm.verflag = !editar;
       var config = {
         method: "get",
-        url: import.meta.env.VUE_APP_URL_MAIN + "ver_pago_invoice?id=" + id,
+        url: import.meta.env.VITE_URL_MAIN + "ver_pago_invoice?id=" + id,
 
         headers: {
           "Content-Type": "application/json",
@@ -695,7 +695,7 @@ export default {
       vm.verflag = !editar;
       var config = {
         method: "get",
-        url: import.meta.env.VUE_APP_URL_MAIN + "ver_pago_cgegreso?id=" + id,
+        url: import.meta.env.VITE_URL_MAIN + "ver_pago_cgegreso?id=" + id,
 
         headers: {
           "Content-Type": "application/json",
@@ -719,7 +719,7 @@ export default {
       var config = {
         method: "get",
         url:
-          import.meta.env.VUE_APP_URL_MAIN +
+          import.meta.env.VITE_URL_MAIN +
           "ver_pagoscontrol_egresos?id=" +
           item.id,
 
@@ -742,7 +742,7 @@ export default {
         vm.dato.usuario = vm.usuario;
         var config = {
           method: "put",
-          url: import.meta.env.VUE_APP_URL_MAIN + "actualizar_pago_invoice",
+          url: import.meta.env.VITE_URL_MAIN + "actualizar_pago_invoice",
 
           headers: {
             "Content-Type": "application/json",
@@ -778,7 +778,7 @@ export default {
         vm.dato.usuario = vm.usuario;
         var config = {
           method: "put",
-          url: import.meta.env.VUE_APP_URL_MAIN + "actualizar_pago_cgegreso",
+          url: import.meta.env.VITE_URL_MAIN + "actualizar_pago_cgegreso",
 
           headers: {
             "Content-Type": "application/json",
@@ -837,7 +837,7 @@ export default {
       var config = {
         method: "get",
         url:
-          import.meta.env.VUE_APP_URL_MAIN +
+          import.meta.env.VITE_URL_MAIN +
           `exportar_listado_reporte_egresos?id_branch=${
             JSON.parse(sessionStorage.getItem("dataUser"))[0].id_branch
           }&desde=${
@@ -890,7 +890,7 @@ export default {
       let vm = this;
       var config = {
         method: "get",
-        url: import.meta.env.VUE_APP_URL_MAIN + "getListBanksDetailsCargar",
+        url: import.meta.env.VITE_URL_MAIN + "getListBanksDetailsCargar",
         params: {
           id_branch: JSON.parse(sessionStorage.getItem("dataUser"))[0]
             .id_branch,

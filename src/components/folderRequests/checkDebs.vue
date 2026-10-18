@@ -409,7 +409,7 @@ export default {
       let vm = this;
       var config = {
         method: "put",
-        url: import.meta.env.VUE_APP_URL_MAIN + "reversar_debscliente",
+        url: import.meta.env.VITE_URL_MAIN + "reversar_debscliente",
 
         headers: {
          
@@ -451,7 +451,7 @@ export default {
       };
       var config = {
         method: "post",
-        url: import.meta.env.VUE_APP_URL_MAIN + "getDebsClientList",
+        url: import.meta.env.VITE_URL_MAIN + "getDebsClientList",
 
         headers: {
          
@@ -477,7 +477,7 @@ export default {
 
       var config = {
         method: "post",
-        url: import.meta.env.VUE_APP_URL_MAIN + "uploadAllPath",
+        url: import.meta.env.VITE_URL_MAIN + "uploadAllPath",
         headers: {
          
           "Content-Type": "application/json",
@@ -532,7 +532,7 @@ export default {
         };
         var config = {
           method: "post",
-          url: import.meta.env.VUE_APP_URL_MAIN + "setCheckDebsClient/",
+          url: import.meta.env.VITE_URL_MAIN + "setCheckDebsClient/",
 
           headers: {
            
@@ -564,7 +564,7 @@ export default {
       var vm = this;
       var config = {
         method: "post",
-        url: import.meta.env.VUE_APP_URL_MAIN + "getRequestPayment",
+        url: import.meta.env.VITE_URL_MAIN + "getRequestPayment",
         data: {
           id_branch: JSON.parse(sessionStorage.getItem("dataUser"))[0].id_branch,
         },
@@ -586,7 +586,7 @@ export default {
       var vm = this;
       var config = {
         method: "post",
-        url: import.meta.env.VUE_APP_URL_MAIN + "getRequestPaymentConceptos/" + id,
+        url: import.meta.env.VITE_URL_MAIN + "getRequestPaymentConceptos/" + id,
 
         headers: {
          

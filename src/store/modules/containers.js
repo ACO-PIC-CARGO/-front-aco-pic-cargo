@@ -27,7 +27,7 @@ const actions = {
     var config = {
       method: "get",
       url:
-        import.meta.env.VUE_APP_URL_MAIN +
+        import.meta.env.VITE_URL_MAIN +
         `listar_containers?` +
         `id_branch=${
           JSON.parse(sessionStorage.getItem("dataUser"))[0].id_branch
@@ -72,7 +72,7 @@ const actions = {
   async insertContainers({ commit, dispatch }, data) {
     var config = {
       method: "post",
-      url: import.meta.env.VUE_APP_URL_MAIN + "insertar_containers",
+      url: import.meta.env.VITE_URL_MAIN + "insertar_containers",
       headers: {
         "Content-Type": "application/json",
        
@@ -101,7 +101,7 @@ const actions = {
   async readContainers({ commit }, id) {
     var config = {
       method: "get",
-      url: import.meta.env.VUE_APP_URL_MAIN + `ver_containers?id=${id}`,
+      url: import.meta.env.VITE_URL_MAIN + `ver_containers?id=${id}`,
       headers: {
         "Content-Type": "application/json",
        
@@ -128,7 +128,7 @@ const actions = {
   async updateContainers({ dispatch }, data) {
     var config = {
       method: "put",
-      url: import.meta.env.VUE_APP_URL_MAIN + "actualizar_containers",
+      url: import.meta.env.VITE_URL_MAIN + "actualizar_containers",
       headers: {
         "Content-Type": "application/json",
        
