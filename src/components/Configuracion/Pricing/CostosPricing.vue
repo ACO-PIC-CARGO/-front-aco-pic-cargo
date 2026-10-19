@@ -7,11 +7,13 @@ import _ from "lodash";
 import ModelCostos from "./ModelCostos.vue";
 import { useConfiguracionStore } from "@/stores/configuracion";
 import { useIncotermStore } from "@/stores/incoterm";
+import { useProveedorStore } from "@/stores/proveedor";
 import type { Modalidad } from "@/types/catalogos";
 import type { TipoCarga } from "@/types/cotizacion";
 
 const rootStore = useStore();
 const incotermStore = useIncotermStore();
+const proveedorStore = useProveedorStore();
 const configuracionStore = useConfiguracionStore();
 const { lstCostos, lstIncoterms } = storeToRefs(configuracionStore);
 
@@ -78,7 +80,7 @@ async function cargarDatos() {
     return v.id_proveedor;
   });
 
-  await rootStore.dispatch("obtenerProveedorPricing", {
+  await proveedorStore.obtenerProveedorPricing({
     id: IdProveedor.join(","),
     search: null,
   });
@@ -107,7 +109,7 @@ const recargarProveedores: (e: string | null) => void = _.debounce(async (e: str
   if (!e) return; // No buscar si el input está vacío
 
   const IdProveedor = lstCostos.value.map((v) => v.id_proveedor);
-  await rootStore.dispatch("obtenerProveedorPricing", {
+  await proveedorStore.obtenerProveedorPricing({
     id: IdProveedor.join(","),
     search: e,
   });

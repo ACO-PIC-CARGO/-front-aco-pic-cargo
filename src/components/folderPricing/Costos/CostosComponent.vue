@@ -76,7 +76,7 @@
                             density="compact"
                             item-title="namelong"
                             item-value="id"
-                            :items="$store.state.proveedor.lstProveedores"
+                            :items="proveedorStore.lstProveedores"
                             v-model="valor.id_proveedor"
                             @update:search="recargarProveedores"
                             hide-details
@@ -353,7 +353,7 @@
                           density="compact"
                           item-title="namelong"
                           item-value="id"
-                          :items="$store.state.proveedor.lstProveedores"
+                          :items="proveedorStore.lstProveedores"
                           v-model="valor.id_proveedor"
                           @update:search="recargarProveedores"
                           menu-icon=""
@@ -617,7 +617,7 @@
                           density="compact"
                           item-title="namelong"
                           item-value="id"
-                          :items="$store.state.proveedor.lstProveedores"
+                          :items="proveedorStore.lstProveedores"
                           v-model="valor.id_proveedor"
                           @update:search="recargarProveedores"
                           hide-details
@@ -881,7 +881,7 @@
                           density="compact"
                           item-title="namelong"
                           item-value="id"
-                          :items="$store.state.proveedor.lstProveedores"
+                          :items="proveedorStore.lstProveedores"
                           v-model="valor.id_proveedor"
                           @update:search="recargarProveedores"
                           hide-details
@@ -1146,7 +1146,7 @@
                           density="compact"
                           item-title="namelong"
                           item-value="id"
-                          :items="$store.state.proveedor.lstProveedores"
+                          :items="proveedorStore.lstProveedores"
                           v-model="valor.id_proveedor"
                           @update:search="recargarProveedores"
                           hide-details
@@ -1409,7 +1409,7 @@
                           density="compact"
                           item-title="namelong"
                           item-value="id"
-                          :items="$store.state.proveedor.lstProveedores"
+                          :items="proveedorStore.lstProveedores"
                           v-model="valor.id_proveedor"
                           @update:search="recargarProveedores"
                           hide-details
@@ -1674,7 +1674,7 @@
                           density="compact"
                           item-title="namelong"
                           item-value="id"
-                          :items="$store.state.proveedor.lstProveedores"
+                          :items="proveedorStore.lstProveedores"
                           v-model="valor.id_proveedor"
                           @update:search="recargarProveedores"
                           hide-details
@@ -1904,7 +1904,7 @@
                   label="Proveedor"
                   item-title="namelong"
                   item-value="id"
-                  :items="$store.state.proveedor.lstProveedores"
+                  :items="proveedorStore.lstProveedores"
                   v-model="fromDataService.id_proveedor"
                   @update:search="recargarProveedores"
                   :rules="[(v) => !!v || 'Dato requerido']"
@@ -2010,6 +2010,7 @@ import mixins from "@/components/mixins/funciones.js";
 import CboMultiplicador from "@/components/comun/CboMultiplicador.vue";
 import { mapActions as mapPiniaActions, mapStores } from "pinia";
 import { useEntitiesStore } from "@/stores/entities";
+import { useProveedorStore } from "@/stores/proveedor";
 export default {
   mixins: [mixins],
   props: [
@@ -2092,8 +2093,8 @@ export default {
   methods: {
     ...mapActions([
       "cargarProveedores",
-      "obtenerProveedorPricing",
     ]),
+    ...mapPiniaActions(useProveedorStore, ["obtenerProveedorPricing"]),
     ...mapPiniaActions(useEntitiesStore, ["guardarProveedor"]),
     async nuevoProveedor() {
       let res = await this.guardarProveedor();
@@ -2871,7 +2872,7 @@ export default {
     },
   },
   computed: {
-    ...mapStores(useEntitiesStore),
+    ...mapStores(useProveedorStore, useEntitiesStore),
     cancelarLlenadoNuevaOpcion: {
       get() {
         return this.$store.state.pricing.cancelarLlenadoNuevaOpcion;

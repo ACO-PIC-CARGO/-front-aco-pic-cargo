@@ -268,6 +268,17 @@ export interface CuentaEntidadNueva {
   accountnumber: string;
 }
 
+export interface ProveedorPricing {
+  id: number;
+  namelong?: string;
+}
+
+export interface FiltroProveedorPricing {
+  id: string;
+  search?: string | null;
+  id_branch?: number;
+}
+
 export interface ProveedorShipper {
   id: number;
   correlativo?: number | string;

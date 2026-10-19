@@ -80,7 +80,7 @@
                   density="compact"
                   item-title="namelong"
                   item-value="id"
-                  :items="$store.state.proveedor.lstProveedores"
+                  :items="proveedorStore.lstProveedores"
                   v-model="valor.id_proveedor"
                   @update:search="recargarProveedores"
                   hide-details
@@ -359,6 +359,8 @@
 import moment from "moment";
 import mixins from "@/components/mixins/funciones.js";
 import { mapActions } from "vuex";
+import { mapActions as mapPiniaActions, mapStores } from "pinia";
+import { useProveedorStore } from "@/stores/proveedor";
 export default {
   emits: ["close"],
   mixins: [mixins],
@@ -409,7 +411,8 @@ export default {
     };
   },
   methods: {
-    ...mapActions(["obtenerProveedorPricing", "updateQuote"]),
+    ...mapActions(["updateQuote"]),
+    ...mapPiniaActions(useProveedorStore, ["obtenerProveedorPricing"]),
     recargarHayOpciones() {
       if (this.isOrigen) {
         this.mostrarOrigenFlag = true;
@@ -1387,6 +1390,7 @@ export default {
     },
   },
   computed: {
+    ...mapStores(useProveedorStore),
     mostrarOrigen() {
       return this.mostrarOrigenFlag;
     },

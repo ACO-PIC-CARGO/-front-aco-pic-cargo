@@ -21,7 +21,6 @@ import bank from "./modules/bank";
 import reportes from "./modules/reporte";
 import configAviso from "./modules/configAviso";
 import aduana from "./modules/aduana";
-import proveedor from "./modules/proveedor";
 import profitPricing from "./modules/profitPricing";
 import subscriptions from "./modules/subscriptions";
 import legalPages from "./modules/legalPages";
@@ -2856,7 +2855,6 @@ export default createStore({
     bank,
     configAviso,
     aduana,
-    proveedor,
     profitPricing,
     subscriptions,
     legalPages,

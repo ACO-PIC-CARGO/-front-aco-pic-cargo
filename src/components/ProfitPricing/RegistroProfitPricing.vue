@@ -115,7 +115,7 @@
                         >
                           <template v-slot:[`item.proveedor`]="{ item }">
                             <v-select
-                              :items="$store.state.proveedor.lstProveedores"
+                              :items="proveedorStore.lstProveedores"
                               v-model="item.id_proveedor"
                               variant="outlined"
                               density="compact"
@@ -190,7 +190,7 @@
                         >
                           <template v-slot:[`item.proveedor`]="{ item }">
                             <v-select
-                              :items="$store.state.proveedor.lstProveedores"
+                              :items="proveedorStore.lstProveedores"
                               v-model="item.id_proveedor"
                               variant="outlined"
                               density="compact"
@@ -269,6 +269,7 @@
 import { mapActions, mapState } from "vuex";
 import { mapActions as mapPiniaActions, mapStores } from "pinia";
 import { useConfigEmpresaStore } from "@/stores/configEmpresa";
+import { useProveedorStore } from "@/stores/proveedor";
 
 export default {
   data() {
@@ -315,7 +316,7 @@ export default {
     };
   },
   computed: {
-    ...mapStores(useConfigEmpresaStore),
+    ...mapStores(useProveedorStore, useConfigEmpresaStore),
     incoterms() {
       let Icoterms = [];
       [...this.$store.state.pricing.listIncoterms].forEach((element) => {
@@ -367,9 +368,7 @@ export default {
       "getProfitPricingCostos",
       "setProfitPricingCostos",
     ]),
-    ...mapActions([
-      "obtenerProveedorPricing",
-    ]),
+    ...mapPiniaActions(useProveedorStore, ["obtenerProveedorPricing"]),
     ...mapPiniaActions(useConfigEmpresaStore, ["getTipoCostosConfig", "getMultiplicadorConfig"]),
     obtenerCostosEnBaseTipoCosto(codigoTipoCosto) {
       console.log("tab", this.tab);

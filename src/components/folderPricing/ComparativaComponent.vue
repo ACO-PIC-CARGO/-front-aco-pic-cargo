@@ -67,6 +67,8 @@
 <script>
 import mixins from "@/components/mixins/funciones.js";
 import Swal from "sweetalert2";
+import { mapStores } from "pinia";
+import { useProveedorStore } from "@/stores/proveedor";
 export default {
   emits: ["irVentaCliente"],
   mixins: [mixins],
@@ -269,7 +271,7 @@ export default {
 
         if (opcionProveedor) {
           const proveedorEncontrado =
-            this.$store.state.proveedor.lstProveedores.find(
+            this.proveedorStore.lstProveedores.find(
               (v) => v.id === opcionProveedor.id_proveedor,
             );
           if (proveedorEncontrado) {
@@ -728,6 +730,7 @@ export default {
     },
   },
   computed: {
+    ...mapStores(useProveedorStore),
     actualizarComparativa: {
       get() {
         return this.$store.state.pricing.actualizarComparativa;

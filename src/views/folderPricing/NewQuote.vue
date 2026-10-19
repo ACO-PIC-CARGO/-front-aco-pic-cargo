@@ -169,6 +169,7 @@ import { mapActions as mapPiniaActions, mapStores } from "pinia";
 import { useQuoteStatusStore } from "@/stores/QuoteStatus";
 import { useMasterusuariosStore } from "@/stores/masterusuarios";
 import { useEnterprisesStore } from "@/stores/enterprises";
+import { useProveedorStore } from "@/stores/proveedor";
 export default {
   mixins: [mixins],
   components: {
@@ -235,7 +236,6 @@ export default {
   methods: {
     ...mapActions([
       "resetQuoteNew",
-      "obtenerProveedorPricing",
       "getMarketingList",
       "getQuoteStatus",
       "getModality",
@@ -259,6 +259,7 @@ export default {
       "obtenerFleteCalculadora",
       "getTransporte",
     ]),
+    ...mapPiniaActions(useProveedorStore, ["obtenerProveedorPricing"]),
     ...mapPiniaActions(useEnterprisesStore, ["obtenerImpuestoXEmpresa"]),
     ...mapPiniaActions(useMasterusuariosStore, ["cargarMasterDetallePercepcionAduana"]),
     recargar() {

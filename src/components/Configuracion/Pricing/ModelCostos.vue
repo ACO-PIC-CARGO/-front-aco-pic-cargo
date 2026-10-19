@@ -6,6 +6,7 @@ import { useStore } from "vuex";
 import _ from "lodash";
 import Swal from "sweetalert2";
 import { useConfiguracionStore } from "@/stores/configuracion";
+import { useProveedorStore } from "@/stores/proveedor";
 import type { CostoPricing, FormNuevoCostoPricing } from "@/types/configuracion";
 import type { TipoCostoConfig } from "@/types/empresas";
 
@@ -31,6 +32,7 @@ const emit = defineEmits<{ cerrarModal: []; cerrarModalGuardar: []; recargarCost
 
 const rootStore = useStore();
 const configuracionStore = useConfiguracionStore();
+const proveedorStore = useProveedorStore();
 const { lstCostos, lstMultiplicador, lstServicios } = storeToRefs(configuracionStore);
 
 const dialog = ref(false);
@@ -120,7 +122,7 @@ const recargarProveedores: (e: string | null) => void = _.debounce(async (e: str
   if (!e) return;
 
   const IdProveedor = lstCostos.value.map((v) => v.id_proveedor);
-  await rootStore.dispatch("obtenerProveedorPricing", {
+  await proveedorStore.obtenerProveedorPricing({
     id: IdProveedor.join(","),
     search: e,
   });
@@ -326,7 +328,7 @@ const panelesAbiertos = computed(() => {
                 density="compact"
                 item-title="namelong"
                 item-value="id"
-                :items="rootStore.state.proveedor.lstProveedores"
+                :items="proveedorStore.lstProveedores"
                 v-model="item.id_proveedor"
                 @update:search="recargarProveedores"
                 hide-details
@@ -436,7 +438,7 @@ const panelesAbiertos = computed(() => {
                   label="Proveedor"
                   item-title="namelong"
                   item-value="id"
-                  :items="rootStore.state.proveedor.lstProveedores"
+                  :items="proveedorStore.lstProveedores"
                   v-model="fromDataService.id_proveedor"
                   @update:search="recargarProveedores"
                   :rules="[(v) => !!v || 'Dato requerido']"
