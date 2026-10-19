@@ -166,10 +166,3 @@ export interface OpcionCosto {
   tiempo_transito?: Numerico;
   listCostos: Costo[];
 }
-
-export interface DatoTarifaProveedor {
-  contacto?: string;
-  email?: string;
-  proveedorprincipalflag?: boolean;
-  selected?: boolean;
-}

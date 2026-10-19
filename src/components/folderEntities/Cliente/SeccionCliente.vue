@@ -626,7 +626,7 @@ function isPricingOption() {
                   v-model="$store.state.entities.cliente.nombrecompleto" @blur="handleNombre"></v-text-field>
               </v-col>
             </v-row>-->
-              <!-- @vue-expect-error Kept: showNombreFiscal was never defined, so this row never renders. -->
+              <!-- @vue-expect-error Kept: showNombreFiscal is undefined, so the row never shows. -->
               <v-row v-if="showNombreFiscal">
                 <v-col cols="12">
                   <v-text-field

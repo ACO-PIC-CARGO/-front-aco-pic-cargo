@@ -21,7 +21,6 @@ import { validateCost } from "@/utils/cotizacion";
 import type { ApiResponse } from "@/types/api";
 import type {
   ArchivoDrive,
-  DatoTarifaProveedor,
   EstadoCotizacion,
   Incoterm,
   OpcionCosto,
@@ -32,6 +31,7 @@ import type {
 import type {
   ContactoEntidad,
   ConvenioEntidad,
+  DatoTarifaProveedor,
   InformacionBancaria,
   Operador,
   RolProveedor,

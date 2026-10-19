@@ -92,11 +92,13 @@ export interface InformacionEntrega {
 }
 
 export interface DatoTarifaProveedor {
-  id: number;
-  code: string;
+  id?: number;
+  code?: string;
   contacto: string;
   email: string;
-  telefono: string;
+  telefono?: string;
+  proveedorprincipalflag?: boolean;
+  selected?: boolean;
 }
 
 interface EntidadComercial {
