@@ -69,7 +69,7 @@
                 </template>
                 <template v-slot:[`item.moneda`]="{ item }">
                   <v-autocomplete
-                    :items="$store.state.coins.itemsCoinsList"
+                    :items="coinsStore.itemsCoinsList"
                     item-title="acronym"
                     item-value="id"
                     placeholder="Monedas"
@@ -132,6 +132,8 @@
 
 <script>
 import { mapActions } from "vuex";
+import { mapStores } from "pinia";
+import { useCoinsStore } from "@/stores/coins";
 export default {
   name: "SeccionInformacionBancaria",
   data() {
@@ -159,6 +161,7 @@ export default {
     };
   },
   computed: {
+    ...mapStores(useCoinsStore),
     isFormReadonly() {
       return this.$store.state.entities.isReadonly;
     },

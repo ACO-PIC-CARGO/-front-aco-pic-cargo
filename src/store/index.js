@@ -33,7 +33,6 @@ import modality from "./modules/modality";
 import transport from "./modules/transport";
 import reportes from "./modules/reporte";
 import gastos from "./modules/gastos";
-import coins from "./modules/coins";
 import ingresos from "./modules/ingresos";
 import containers from "./modules/containers";
 import shipment from "./modules/shipment";
@@ -2906,7 +2905,6 @@ export default createStore({
     modality,
     transport,
     gastos,
-    coins,
     ingresos,
     containers,
     shipment,

@@ -296,7 +296,7 @@
               v-model="nombrebanco"
             ></v-text-field>
             <v-autocomplete
-              :items="$store.state.coins.itemsCoinsList"
+              :items="coinsStore.itemsCoinsList"
               item-title="name"
               item-value="id"
               label="Moneda"
@@ -353,6 +353,8 @@
 import axios from '@/api/http';
 import { mapState, mapActions } from "vuex";
 import miMixin from "../mixins/funciones";
+import { mapActions as mapPiniaActions, mapStores } from "pinia";
+import { useCoinsStore } from "@/stores/coins";
 export default {
   mixins: [miMixin],
   name: "UpdateEnterpriseComponent",
@@ -488,9 +490,9 @@ export default {
       "cargarImpuestoRenta",
       "listarCuentaEmpresa",
       "fetchDataBank",
-      "getCoinsListCargar",
       "registrarCuentaEmpresa",
     ]),
+    ...mapPiniaActions(useCoinsStore, ["getCoinsListCargar"]),
     _callState() {
       if (this.id_pais > 0) {
         this._getState(this.id_pais);
@@ -608,6 +610,7 @@ export default {
     },
   },
   computed: {
+    ...mapStores(useCoinsStore),
     ...mapState([
       "itemsDocumentsPais",
       "itemsPais",

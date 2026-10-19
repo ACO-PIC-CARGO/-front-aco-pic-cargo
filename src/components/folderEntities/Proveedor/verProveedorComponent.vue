@@ -78,6 +78,8 @@ import SeccionTelefonos from "./seccionTelefonos.vue";
 import SeccionConvenios from "./seccionConvenios.vue";
 import SeccionInformacionBancaria from "./seccionInformacionBancaria.vue";
 import SeccionEmailTarifa from "./SeccionEmailTarifaComponent.vue";
+import { mapActions as mapPiniaActions } from "pinia";
+import { useCoinsStore } from "@/stores/coins";
 export default {
   components: {
     SeccionProveedor,
@@ -102,7 +104,6 @@ export default {
       "_getRole",
       "getValidaRazonSocial",
       "cargarTipoTelefono",
-      "getCoinsListCargar",
       "getBanksListCargar",
       "guardarCliente",
       "getValidaDocumentCliente",
@@ -116,6 +117,7 @@ export default {
       "_getProveedor",
       "getVerProveedor",
     ]),
+    ...mapPiniaActions(useCoinsStore, ["getCoinsListCargar"]),
     /* CÓDIGO NUEVO */
     getIDTipoTelefono(criterio = "") {
       var vm = this;

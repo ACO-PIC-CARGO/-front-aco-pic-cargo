@@ -38,7 +38,7 @@
         v-if="!loading"
         class="elevation-1"
         :headers="headers"
-        :items="$store.state.coins.list"
+        :items="coinsStore.list"
         item-value="id"
         :search="search"
       >
@@ -173,7 +173,7 @@
         <v-list-item class="px-0">
           
             <v-list-item-title class="text-headline-small">
-              Ver: {{ $store.state.coins.record.name }}
+              Ver: {{ coinsStore.record.name }}
             </v-list-item-title>
           
         </v-list-item>
@@ -184,7 +184,7 @@
             <v-text-field
               label="Código"
               readonly
-              :model-value="$store.state.coins.record.code"
+              :model-value="coinsStore.record.code"
             >
             </v-text-field>
           </v-row>
@@ -192,7 +192,7 @@
             <v-text-field
               label="Símbolo"
               readonly
-              :model-value="$store.state.coins.record.symbol"
+              :model-value="coinsStore.record.symbol"
             >
             </v-text-field>
           </v-row>
@@ -200,7 +200,7 @@
             <v-text-field
               label="Acrónimo"
               readonly
-              :model-value="$store.state.coins.record.acronym"
+              :model-value="coinsStore.record.acronym"
             >
             </v-text-field>
           </v-row>
@@ -208,7 +208,7 @@
             <v-text-field
               label="Nombre"
               readonly
-              :model-value="$store.state.coins.record.name"
+              :model-value="coinsStore.record.name"
             >
             </v-text-field>
           </v-row>
@@ -216,7 +216,7 @@
             <v-text-field
               label="Descripción"
               readonly
-              :model-value="$store.state.coins.record.description"
+              :model-value="coinsStore.record.description"
             >
             </v-text-field>
           </v-row>
@@ -224,10 +224,10 @@
             <v-switch
               readonly
               :label="`Estado: ${
-                !!$store.state.coins.record.status ? 'Activo' : 'Inactivo'
+                !!coinsStore.record.status ? 'Activo' : 'Inactivo'
               }`"
               color="success"
-              v-model="$store.state.coins.record.status"
+              v-model="coinsStore.record.status"
               :value-comparator="(value, checked) => Boolean(value) === checked"
             ></v-switch>
           </v-row>
@@ -272,7 +272,7 @@
         <v-list-item class="px-0">
           
             <v-list-item-title class="text-headline-small">
-              Modificar: {{ $store.state.coins.record.name }}
+              Modificar: {{ coinsStore.record.name }}
             </v-list-item-title>
           
         </v-list-item>
@@ -456,8 +456,10 @@
 </template>
 
 <script>
-import { mapState, mapActions } from "vuex";
+import { mapState } from "vuex";
 import Swal from "sweetalert2";
+import { mapActions as mapPiniaActions, mapStores } from "pinia";
+import { useCoinsStore } from "@/stores/coins";
 
 export default {
   name: "ListCoinsComponent",
@@ -516,12 +518,7 @@ export default {
     this.$store.state.mainTitle = `Monedas`;
   },
   methods: {
-    ...mapActions([
-      "fetchDataCoins",
-      "insertCoins",
-      "readCoins",
-      "updateCoins",
-    ]),
+    ...mapPiniaActions(useCoinsStore, ["fetchDataCoins", "insertCoins", "readCoins", "updateCoins"]),
     updateStatus(newValue) {
       this.record.status = newValue ? 1 : 0;
     },
@@ -651,10 +648,11 @@ export default {
     },
   },
   computed: {
+    ...mapStores(useCoinsStore),
     ...mapState(["list"]),
   },
   watch: {
-    "$store.state.coins.record": {
+    "coinsStore.record": {
       handler(newRecord, oldRecord) {
         if (newRecord && Object.keys(newRecord).length > 0) {
           const { code, symbol, name, description, acronym, status } =
@@ -665,7 +663,7 @@ export default {
       },
       immediate: true,
     },
-    "$store.state.coins.loading": {
+    "coinsStore.loading": {
       handler(newList, oldList) {
         this.loading = newList == true ? false : true;
       },

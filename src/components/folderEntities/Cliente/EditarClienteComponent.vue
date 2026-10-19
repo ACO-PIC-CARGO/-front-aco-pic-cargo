@@ -93,6 +93,8 @@ import SeccionConvenios from "./seccionConvenios.vue";
 import SeccionInformacionBancaria from "./seccionInformacionBancaria.vue";
 import SeccionShippers from "./seccionShippers.vue";
 import SeccionInformacionEntrega from "./seccionInformacionEntrega.vue";
+import { mapActions as mapPiniaActions } from "pinia";
+import { useCoinsStore } from "@/stores/coins";
 export default {
   props: {
     house_id_consigner: {
@@ -125,7 +127,6 @@ export default {
       "_getRole",
       "getValidaRazonSocial",
       "cargarTipoTelefono",
-      "getCoinsListCargar",
       "getBanksListCargar",
       "guardarCliente",
       "getValidaDocumentCliente",
@@ -139,6 +140,7 @@ export default {
       "_getProveedor",
       "verCliente",
     ]),
+    ...mapPiniaActions(useCoinsStore, ["getCoinsListCargar"]),
   },
   created() {
     this.$store.state.entities.lstProveedores_x_nombre = [];

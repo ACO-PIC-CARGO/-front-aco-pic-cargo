@@ -1189,7 +1189,7 @@
                 <v-col cols="12">
                   <v-autocomplete
                     density="compact"
-                    :items="$store.state.coins.itemsCoinsList"
+                    :items="coinsStore.itemsCoinsList"
                     item-title="acronym"
                     item-value="id"
                     placeholder="Monedas"
@@ -1338,9 +1338,10 @@ import moment from "moment";
 import axios from "@/api/http";
 import Swal from "sweetalert2";
 import { mapActions } from "vuex";
-import { mapActions as mapPiniaActions } from "pinia";
+import { mapActions as mapPiniaActions, mapStores } from "pinia";
 import { useSecuritysStore } from "@/stores/securitys";
 import ArrastraYSolarComponent from "../comun/ArrastraYSolarComponent.vue";
+import { useCoinsStore } from "@/stores/coins";
 export default {
   emits: ["recalcularProfit", "statusBtn"],
   props: {
@@ -3036,13 +3037,13 @@ export default {
       "uploadAllPath",
       "guardarCuotasCgeTipoProveedor",
       "getBanksListCargar",
-      "getCoinsListCargar",
       "_getProveedor",
       "cargarMasterDetalleTipoTransaccion",
       "copiarCGEgresos",
       "_getMasterList",
       "moverCostos",
     ]),
+    ...mapPiniaActions(useCoinsStore, ["getCoinsListCargar"]),
     ...mapPiniaActions(useSecuritysStore, ["validarUsuarioAdmin"]),
     bloquearCopiarMontos(detalle) {
       return detalle.some((v) => v.pagado == 1 || v.statusadmin == 1);
@@ -3223,6 +3224,7 @@ export default {
     },
   },
   computed: {
+    ...mapStores(useCoinsStore),
     getNameModalNuevoEditar() {
       if (this.egresos && this.egresos.id) {
         return "EDITAR REGISTRO COSTO";

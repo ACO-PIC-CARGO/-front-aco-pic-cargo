@@ -4,4 +4,5 @@ export interface ApiResponse<T = unknown> {
   tipomensaje: string;
   data: T;
   token?: string;
+  status?: number | string;
 }
