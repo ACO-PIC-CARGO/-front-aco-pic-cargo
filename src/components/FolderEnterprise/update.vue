@@ -245,7 +245,7 @@
             <v-col cols="12">
               <v-data-table
                 :headers="headerCuentas"
-                :items="$store.state.enterprises.lstCuentas"
+                :items="enterprisesStore.lstCuentas"
               >
                 <template v-slot:[`item.esprincipalflag`]="{ item }">
                   <v-chip
@@ -356,6 +356,7 @@ import miMixin from "../mixins/funciones";
 import { mapActions as mapPiniaActions, mapStores } from "pinia";
 import { useCoinsStore } from "@/stores/coins";
 import { useMasterusuariosStore } from "@/stores/masterusuarios";
+import { useEnterprisesStore } from "@/stores/enterprises";
 export default {
   mixins: [miMixin],
   name: "UpdateEnterpriseComponent",
@@ -433,7 +434,7 @@ export default {
     this.$store.state.mainTitle = `ACTUALIZAR EMPRESA`;
   },
   watch: {
-    "$store.state.enterprises.record": {
+    "enterprisesStore.record": {
       handler(newRecord, oldRecord) {
         if (newRecord && Object.keys(newRecord).length > 0) {
           const fieldsToCopy = [
@@ -480,18 +481,15 @@ export default {
   },
   methods: {
     ...mapActions([
-      "updateEnterprise",
-      "readEnterprise",
       "_getDocumentsPais",
       "_getPais",
       "_getState",
       "_getCity",
       "_getTown",
       "_uploadFile",
-      "listarCuentaEmpresa",
       "fetchDataBank",
-      "registrarCuentaEmpresa",
     ]),
+    ...mapPiniaActions(useEnterprisesStore, ["updateEnterprise", "readEnterprise", "listarCuentaEmpresa", "registrarCuentaEmpresa"]),
     ...mapPiniaActions(useMasterusuariosStore, ["cargarImpuestoRenta"]),
     ...mapPiniaActions(useCoinsStore, ["getCoinsListCargar"]),
     _callState() {
@@ -611,7 +609,7 @@ export default {
     },
   },
   computed: {
-    ...mapStores(useMasterusuariosStore, useCoinsStore),
+    ...mapStores(useEnterprisesStore, useMasterusuariosStore, useCoinsStore),
     ...mapState([
       "itemsDocumentsPais",
       "itemsPais",
@@ -620,7 +618,7 @@ export default {
       "itemsTown",
     ]),
     bloquearEsPrincipal() {
-      let res = this.$store.state.enterprises.lstCuentas.some(
+      let res = this.enterprisesStore.lstCuentas.some(
         (v) => v.esprincipalflag
       );
       return res;

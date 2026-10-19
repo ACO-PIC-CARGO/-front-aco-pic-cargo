@@ -92,6 +92,7 @@ import { mapActions, mapState } from "vuex";
 import Swal from "sweetalert2";
 import { mapActions as mapPiniaActions } from "pinia";
 import { useMasterusuariosStore } from "@/stores/masterusuarios";
+import { useEnterprisesStore } from "@/stores/enterprises";
 export default {
   components: {
     DatosPrincipales,
@@ -150,10 +151,10 @@ export default {
       "getImpuestos",
       "getCargarMasterDetalleNotasCotizacionAduana",
       "cargarProveedores",
-      "obtenerImpuestoXEmpresa",
       "registrarQuote",
       "_getContainers",
     ]),
+    ...mapPiniaActions(useEnterprisesStore, ["obtenerImpuestoXEmpresa"]),
     ...mapPiniaActions(useMasterusuariosStore, ["cargarMasterDetallePercepcionAduana"]),
     recargar() {
       if (this.$store.state.aduana.listServices.length > 0) {

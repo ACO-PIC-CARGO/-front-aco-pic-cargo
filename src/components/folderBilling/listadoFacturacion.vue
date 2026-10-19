@@ -40,7 +40,8 @@
 
 <script>
 import axios from "@/api/http";
-import { mapActions } from "vuex";
+import { mapActions as mapPiniaActions, mapStores } from "pinia";
+import { useEnterprisesStore } from "@/stores/enterprises";
 export default {
   name: "lstFacturacionComponent",
   data() {
@@ -115,10 +116,13 @@ export default {
     await this.listadoFacturacion();
     await this.obtenerImpuestoXEmpresa();
     this.headers[8].title =
-      this.$store.state.enterprises.impuesto.nombre_impuesto;
+      this.enterprisesStore.impuesto.nombre_impuesto;
+  },
+  computed: {
+    ...mapStores(useEnterprisesStore),
   },
   methods: {
-    ...mapActions(["obtenerImpuestoXEmpresa"]),
+    ...mapPiniaActions(useEnterprisesStore, ["obtenerImpuestoXEmpresa"]),
     async listadoFacturacion() {
       let data = {
         id_branch: JSON.parse(sessionStorage.getItem("dataUser"))[0].id_branch,

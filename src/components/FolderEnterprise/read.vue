@@ -18,7 +18,7 @@
 
     <v-card class="py-10 px-10">
       <v-card-title class="d-flex align-center flex-wrap" v-if="!loading_as">
-        Ver: {{ $store.state.enterprises.record.business_name }}
+        Ver: {{ enterprisesStore.record.business_name }}
         <v-spacer></v-spacer>
 
         <v-card-text class="px-0">
@@ -28,7 +28,7 @@
                 label="Tipo de Documento"
                 readonly
                 density="compact"
-                :model-value="$store.state.enterprises.record.td_name"
+                :model-value="enterprisesStore.record.td_name"
               ></v-text-field>
             </v-col>
             <v-col cols="6">
@@ -36,7 +36,7 @@
                 label="N° de Documento"
                 readonly
                 density="compact"
-                :model-value="$store.state.enterprises.record.document"
+                :model-value="enterprisesStore.record.document"
               ></v-text-field>
             </v-col>
             <v-col cols="6">
@@ -44,7 +44,7 @@
                 label="Nombre Comercial"
                 readonly
                 density="compact"
-                :model-value="$store.state.enterprises.record.trade_name"
+                :model-value="enterprisesStore.record.trade_name"
               ></v-text-field>
             </v-col>
             <v-col cols="6">
@@ -52,7 +52,7 @@
                 label="Nombre Negocio"
                 readonly
                 density="compact"
-                :model-value="$store.state.enterprises.record.business_name"
+                :model-value="enterprisesStore.record.business_name"
               ></v-text-field>
             </v-col>
             <v-col cols="6">
@@ -60,7 +60,7 @@
                 label="Slogan"
                 readonly
                 density="compact"
-                :model-value="$store.state.enterprises.record.slogan"
+                :model-value="enterprisesStore.record.slogan"
               ></v-text-field>
             </v-col>
             <v-col cols="6">
@@ -68,7 +68,7 @@
                 label="IC"
                 readonly
                 density="compact"
-                :model-value="$store.state.enterprises.record.ic"
+                :model-value="enterprisesStore.record.ic"
               ></v-text-field>
             </v-col>
             <v-col cols="6">
@@ -76,7 +76,7 @@
                 label="Logo"
                 readonly
                 density="compact"
-                :model-value="$store.state.enterprises.record.name_file"
+                :model-value="enterprisesStore.record.name_file"
               ></v-text-field>
               <!-- <div>
                 <label for="image">Logo</label>
@@ -92,7 +92,7 @@
                 label="País"
                 readonly
                 density="compact"
-                :model-value="$store.state.enterprises.record.lp_name"
+                :model-value="enterprisesStore.record.lp_name"
               ></v-text-field>
             </v-col>
             <v-col cols="6">
@@ -100,7 +100,7 @@
                 label="Región"
                 readonly
                 density="compact"
-                :model-value="$store.state.enterprises.record.ls_name"
+                :model-value="enterprisesStore.record.ls_name"
               ></v-text-field>
             </v-col>
             <v-col cols="6">
@@ -108,7 +108,7 @@
                 label="Provincia"
                 readonly
                 density="compact"
-                :model-value="$store.state.enterprises.record.lc_name"
+                :model-value="enterprisesStore.record.lc_name"
               ></v-text-field>
             </v-col>
             <v-col cols="6">
@@ -116,7 +116,7 @@
                 label="Distrito"
                 readonly
                 density="compact"
-                :model-value="$store.state.enterprises.record.lt_name"
+                :model-value="enterprisesStore.record.lt_name"
               ></v-text-field>
             </v-col>
             <v-col cols="6">
@@ -124,7 +124,7 @@
                 label="Dirección"
                 readonly
                 density="compact"
-                :model-value="$store.state.enterprises.record.address"
+                :model-value="enterprisesStore.record.address"
               ></v-text-field>
             </v-col>
             <v-col cols="6">
@@ -133,7 +133,7 @@
                 readonly
                 density="compact"
                 :model-value="
-                  $store.state.enterprises.record.status == 1
+                  enterprisesStore.record.status == 1
                     ? 'Activo'
                     : 'Inactivo'
                 "
@@ -147,7 +147,7 @@
                 item-title="descripcion"
                 readonly
                 density="compact"
-                v-model="$store.state.enterprises.record.tipoimpuesto"
+                v-model="enterprisesStore.record.tipoimpuesto"
               >
                 <template v-slot:selection="data">
                   <span v-if="data.item">{{ data.item.codigo }}</span>
@@ -163,7 +163,7 @@
                 readonly
                 density="compact"
                 hide-details
-                v-model="$store.state.enterprises.record.impuesto"
+                v-model="enterprisesStore.record.impuesto"
               ></v-text-field>
             </v-col>
           </v-row>
@@ -179,9 +179,10 @@
 </template>
 
 <script>
-import { mapState, mapActions } from "vuex";
+import { mapState } from "vuex";
 import { mapActions as mapPiniaActions, mapStores } from "pinia";
 import { useMasterusuariosStore } from "@/stores/masterusuarios";
+import { useEnterprisesStore } from "@/stores/enterprises";
 export default {
   name: "ReadEnterpriseComponent",
   data() {
@@ -194,14 +195,14 @@ export default {
     await this.readEnterprise(this.$route.params.id);
   },
   methods: {
-    ...mapActions(["readEnterprise"]),
+    ...mapPiniaActions(useEnterprisesStore, ["readEnterprise"]),
     ...mapPiniaActions(useMasterusuariosStore, ["cargarImpuestoRenta"]),
     volver() {
       this.$router.go(-1);
     },
   },
   watch: {
-    "$store.state.enterprises.record": {
+    "enterprisesStore.record": {
       handler(newRecord, oldRecord) {
         if (newRecord && Object.keys(newRecord).length > 0) {
           this.loading_as = false;
@@ -211,7 +212,7 @@ export default {
     },
   },
   computed: {
-    ...mapStores(useMasterusuariosStore),
+    ...mapStores(useEnterprisesStore, useMasterusuariosStore),
     ...mapState(["record"]),
   },
 };

@@ -46,7 +46,7 @@
         v-if="!loading"
         class="elevation-1"
         :headers="headers"
-        :items="$store.state.enterprises.list"
+        :items="enterprisesStore.list"
         item-value="id"
         :search="search"
         density="compact"
@@ -205,9 +205,10 @@
 
 <script>
 import { mapState, mapActions } from "vuex";
-import { mapActions as mapPiniaActions } from "pinia";
+import { mapActions as mapPiniaActions, mapStores } from "pinia";
 import { useSecuritysStore } from "@/stores/securitys";
 import Swal from "sweetalert2";
+import { useEnterprisesStore } from "@/stores/enterprises";
 
 export default {
   name: "ListEnterpriseComponent",
@@ -270,7 +271,7 @@ export default {
     await this._callState();
   },
   watch: {
-    "$store.state.enterprises.loading": {
+    "enterprisesStore.loading": {
       handler(newList, oldList) {
         this.loading = newList == true ? false : true;
       },
@@ -279,17 +280,14 @@ export default {
   },
   methods: {
     ...mapActions([
-      "fetchDataEnterprise",
-      "readEnterprise",
-      "updateEnterprise",
       "_getDocumentsPais",
       "_getPais",
       "_getState",
       "_getCity",
       "_getTown",
       "switchEnterprise",
-      "eliminarBranch",
     ]),
+    ...mapPiniaActions(useEnterprisesStore, ["fetchDataEnterprise", "readEnterprise", "updateEnterprise", "eliminarBranch"]),
     ...mapPiniaActions(useSecuritysStore, ["validarUsuarioAdmin"]),
     updateStatus(newValue) {
       this.enterprise.status = newValue ? 1 : 0;
@@ -418,6 +416,7 @@ export default {
     },
   },
   computed: {
+    ...mapStores(useEnterprisesStore),
     ...mapState([
       "itemsDocumentsPais",
       "itemsPais",

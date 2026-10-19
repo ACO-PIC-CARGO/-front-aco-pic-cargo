@@ -89,6 +89,7 @@ import { mapActions } from "vuex";
 import mixins from "../../components/mixins/funciones.js";
 import { mapActions as mapPiniaActions } from "pinia";
 import { useMasterusuariosStore } from "@/stores/masterusuarios";
+import { useEnterprisesStore } from "@/stores/enterprises";
 export default {
   mixins: [mixins],
   name: "VerQuoteView",
@@ -162,10 +163,10 @@ export default {
       "cargarProveedores",
       "_getEntitiesCliente",
       "getPersonalPricing",
-      "obtenerImpuestoXEmpresa",
       "getAduanaUnificar",
       "GuardaCostosFinalesQuote",
     ]),
+    ...mapPiniaActions(useEnterprisesStore, ["obtenerImpuestoXEmpresa"]),
     ...mapPiniaActions(useMasterusuariosStore, ["cargarMasterDetallePercepcionAduana"]),
   },
   async mounted() {

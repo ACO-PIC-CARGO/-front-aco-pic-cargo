@@ -370,6 +370,8 @@ import totales from "./totales.vue";
 import { mapState, mapActions } from "vuex";
 import axios from '@/api/http';
 import moment from "moment";
+import { mapStores } from "pinia";
+import { useEnterprisesStore } from "@/stores/enterprises";
 export default {
   name: "ControlGastos",
   components: {
@@ -445,6 +447,7 @@ export default {
     };
   },
   computed: {
+    ...mapStores(useEnterprisesStore),
     ...mapState(["itemsDataControl"]),
   },
   beforeMount() {
@@ -722,7 +725,7 @@ export default {
         sentido = this.$store.state.report_id_sentido;
       }
       var data = {
-        nombre_impuesto: this.$store.state.enterprises.impuesto.nombre_impuesto,
+        nombre_impuesto: this.enterprisesStore.impuesto.nombre_impuesto,
         nro_control: this.$store.state.dataControl_Numero,
         profit: (
           (this.$store.state.totalTotalIngresos

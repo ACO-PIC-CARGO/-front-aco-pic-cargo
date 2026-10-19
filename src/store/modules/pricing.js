@@ -4,7 +4,7 @@ import miMixin from "../../components/mixins/funciones";
 import moment from "moment";
 import router from "@/router";
 import { useMasterusuariosStore } from "@/stores/masterusuarios";
-import enterprise from "./enterprise";
+import { useEnterprisesStore } from "@/stores/enterprises";
 import modules from "./../index";
 const state = {
   search: "",
@@ -3211,7 +3211,7 @@ const actions = {
           parseFloat(isAduana == true ? totalAduanas : 0) +
           parseFloat(isAlmacen == true ? totalAlmacenes : 0) +
           parseFloat(isGastosTercero == true ? totalGastosTercero : 0)) *
-          enterprise.state.impuesto.impuesto) /
+          useEnterprisesStore().impuesto.impuesto) /
         100;
     } else {
       totalImpuestosIGV =
@@ -3219,7 +3219,7 @@ const actions = {
           parseFloat(isLocal == true ? totalLocales : 0) +
           parseFloat(isAduana == true ? totalAduanas : 0) +
           parseFloat(isGastosTercero == true ? totalGastosTercero : 0)) *
-          enterprise.state.impuesto.impuesto) /
+          useEnterprisesStore().impuesto.impuesto) /
         100;
     }
 
@@ -3284,8 +3284,8 @@ const actions = {
       guardarFlag: guardarFlag,
       url_folderonedrive: state.datosPrincipales.url_folderonedrive,
       nombre_cotizacion: state.nombre_cotizacion,
-      nombre_impuesto: enterprise.state.impuesto.nombre_impuesto,
-      impuesto: enterprise.state.impuesto.impuesto / 100,
+      nombre_impuesto: useEnterprisesStore().impuesto.nombre_impuesto,
+      impuesto: useEnterprisesStore().impuesto.impuesto / 100,
       esunica: state.opcionCostos.filter((v) => v.selected).length == 1,
       url_logo: JSON.parse(sessionStorage.getItem("dataUser"))[0].path,
       TipoCostos: TipoCostos,
@@ -5366,7 +5366,7 @@ const actions = {
                   parseFloat(
                     isGastosTercero == true ? totalGastosTercero : 0,
                   )) *
-                  enterprise.state.impuesto.impuesto) /
+                  useEnterprisesStore().impuesto.impuesto) /
                 100;
             } else {
               totalImpuestosIGV =
@@ -5376,7 +5376,7 @@ const actions = {
                   parseFloat(
                     isGastosTercero == true ? totalGastosTercero : 0,
                   )) *
-                  enterprise.state.impuesto.impuesto) /
+                  useEnterprisesStore().impuesto.impuesto) /
                 100;
             }
 
@@ -5865,7 +5865,7 @@ const actions = {
               element.esgastostercerosflag == 1
             ) {
               igv = parseFloat(
-                (montoDetails * enterprise.state.impuesto.impuesto) / 100,
+                (montoDetails * useEnterprisesStore().impuesto.impuesto) / 100,
               );
             }
           } else if (!excluirIgv) {
@@ -5877,7 +5877,7 @@ const actions = {
               element.esgastostercerosflag == 1
             ) {
               igv = parseFloat(
-                (montoDetails * enterprise.state.impuesto.impuesto) / 100,
+                (montoDetails * useEnterprisesStore().impuesto.impuesto) / 100,
               );
             }
           }
@@ -6025,7 +6025,7 @@ const actions = {
               element.esgastostercerosflag == 1
             ) {
               igv = parseFloat(
-                (montoDetails * enterprise.state.impuesto.impuesto) / 100,
+                (montoDetails * useEnterprisesStore().impuesto.impuesto) / 100,
               );
             }
           } else if (!excluirIgv) {
@@ -6037,7 +6037,7 @@ const actions = {
               element.esgastostercerosflag == 1
             ) {
               igv = parseFloat(
-                (montoDetails * enterprise.state.impuesto.impuesto) / 100,
+                (montoDetails * useEnterprisesStore().impuesto.impuesto) / 100,
               );
             }
           }
@@ -6171,14 +6171,14 @@ const actions = {
         descripcion: `TOTAL`,
         valor: parseFloat(montoIngresos).toFixed(2),
         service: `Total sin ${
-          enterprise.state.impuesto.nombre_impuesto
+          useEnterprisesStore().impuesto.nombre_impuesto
         } ${miMixin.methods.currencyFormat(
           parseFloat(totalIngresos).toFixed(2),
         )}     |      ${
-          enterprise.state.impuesto.nombre_impuesto
+          useEnterprisesStore().impuesto.nombre_impuesto
         }: ${miMixin.methods.currencyFormat(
           parseFloat(
-            (totalImpuestosIGV * enterprise.state.impuesto.impuesto) / 100,
+            (totalImpuestosIGV * useEnterprisesStore().impuesto.impuesto) / 100,
           ).toFixed(2),
         )} `,
         igv: parseFloat(igvIngresos).toFixed(2),
@@ -6186,7 +6186,7 @@ const actions = {
           iso == 9589
             ? parseFloat(totalIngresos) +
               parseFloat(
-                (totalImpuestosIGV * enterprise.state.impuesto.impuesto) / 100,
+                (totalImpuestosIGV * useEnterprisesStore().impuesto.impuesto) / 100,
               )
             : parseFloat(totalIngresos),
       });
@@ -8259,7 +8259,7 @@ function GenerarIngresosInstrictivo(tipo, state) {
             parseFloat(isAduana == true ? totalAduanas : 0) +
             parseFloat(isGastosTercero == true ? totalGastosTercero : 0) +
             parseFloat(isAlmacen == true ? totalAlmacenes : 0)) *
-            enterprise.state.impuesto.impuesto) /
+            useEnterprisesStore().impuesto.impuesto) /
           100;
       } else {
         igv =
@@ -8267,17 +8267,17 @@ function GenerarIngresosInstrictivo(tipo, state) {
             parseFloat(isLocal == true ? totalLocales : 0) +
             parseFloat(isGastosTercero == true ? totalGastosTercero : 0) +
             parseFloat(isAduana == true ? totalAduanas : 0)) *
-            enterprise.state.impuesto.impuesto) /
+            useEnterprisesStore().impuesto.impuesto) /
           100;
       }
 
       DatosFinalesIngresos.push({
         descripcion: "TOTAL",
         service: `TOTAL SIN ${
-          enterprise.state.impuesto.nombre_impuesto
+          useEnterprisesStore().impuesto.nombre_impuesto
         }: ${miMixin.methods.currencyFormat(totalSinIGV)}`,
         igv: `${
-          enterprise.state.impuesto.nombre_impuesto
+          useEnterprisesStore().impuesto.nombre_impuesto
         } ${miMixin.methods.currencyFormat(parseFloat(igv))}`,
         total: miMixin.methods.currencyFormat(
           parseFloat(totalSinIGV) + parseFloat(igv),

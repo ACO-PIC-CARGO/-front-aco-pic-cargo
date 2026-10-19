@@ -229,6 +229,8 @@
 import { readSheet as readXlsxFile } from "read-excel-file/browser";
 import { mapActions } from "vuex";
 import Swal from "sweetalert2";
+import { mapStores } from "pinia";
+import { useEnterprisesStore } from "@/stores/enterprises";
 export default {
   emits: ["omitir", "regresar", "continuarClientes"],
   data() {
@@ -264,11 +266,14 @@ export default {
       subconjuntos: [],
     };
   },
+  computed: {
+    ...mapStores(useEnterprisesStore),
+  },
   methods: {
     ...mapActions(["actualizarDatoCMProveedor"]),
     omitir() {
-      this.$store.state.enterprises.datoProveedorFlag = false;
-      this.$store.state.enterprises.datoClienteFlag = true;
+      this.enterprisesStore.datoProveedorFlag = false;
+      this.enterprisesStore.datoClienteFlag = true;
     },
     scrollToSubirCostos() {
       window.scrollTo({ top: 0, behavior: "smooth" });

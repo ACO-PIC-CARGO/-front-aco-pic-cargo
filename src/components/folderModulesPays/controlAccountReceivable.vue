@@ -228,7 +228,7 @@
                     <th>Producto / Concepto</th>
                     <th style="background: #adcaf5">Monto</th>
                     <th style="background: #adcaf5">
-                      {{ $store.state.enterprises.impuesto.nombre_impuesto }}
+                      {{ enterprisesStore.impuesto.nombre_impuesto }}
                     </th>
                     <th style="background: #adcaf5">Total</th>
                     <th v-if="mostrarColumna()" style="background: #c7f7d7">
@@ -236,7 +236,7 @@
                     </th>
                     <th v-if="mostrarColumna()" style="background: #c7f7d7">
                       {{
-                        $store.state.enterprises.impuesto.nombre_impuesto
+                        enterprisesStore.impuesto.nombre_impuesto
                       }}(USD)
                     </th>
                     <th v-if="mostrarColumna()" style="background: #c7f7d7">
@@ -496,6 +496,8 @@ import axios from "@/api/http";
 import Swal from "sweetalert2";
 import { mapActions, mapState } from "vuex";
 import ArrastraYSolarComponent from "../comun/ArrastraYSolarComponent.vue";
+import { mapActions as mapPiniaActions, mapStores } from "pinia";
+import { useEnterprisesStore } from "@/stores/enterprises";
 
 export default {
   components: { ArrastraYSolarComponent },
@@ -571,8 +573,8 @@ export default {
       "getCargarTipoSubIngreso",
       "cargarProveedores",
       "cargarClientes",
-      "obtenerImpuestoXEmpresa",
     ]),
+    ...mapPiniaActions(useEnterprisesStore, ["obtenerImpuestoXEmpresa"]),
     validarMonto(v) {
       if (!v) return "Dato Requerido";
 
@@ -655,7 +657,7 @@ export default {
       if (prod.afecto == "true" || prod.afecto == 1) {
         igv =
           (parseFloat(prod.monto) *
-            this.$store.state.enterprises.impuesto.impuesto) /
+            this.enterprisesStore.impuesto.impuesto) /
           100;
 
         igvdolar = parseFloat(igv / this.tipocambio);
@@ -987,7 +989,7 @@ export default {
       if (this.producto.afecto == "true" || this.producto.afecto == 1) {
         igv =
           (parseFloat(this.producto.monto) *
-            this.$store.state.enterprises.impuesto.impuesto) /
+            this.enterprisesStore.impuesto.impuesto) /
           100;
 
         igvdolar = parseFloat(igv / this.tipocambio);
@@ -1010,7 +1012,7 @@ export default {
         total:
           this.producto.afecto == "true"
             ? (parseFloat(this.producto.monto) *
-                this.$store.state.enterprises.impuesto.impuesto) /
+                this.enterprisesStore.impuesto.impuesto) /
                 100 +
               parseFloat(this.producto.monto)
             : parseFloat(this.producto.monto),
@@ -1018,7 +1020,7 @@ export default {
           this.producto.afecto == "true"
             ? parseFloat(
                 (parseFloat(this.producto.monto / this.tipocambio) *
-                  this.$store.state.enterprises.impuesto.impuesto) /
+                  this.enterprisesStore.impuesto.impuesto) /
                   100 +
                   parseFloat(this.producto.monto / this.tipocambio),
               ).toFixed(2)
@@ -1143,6 +1145,7 @@ export default {
   },
 
   computed: {
+    ...mapStores(useEnterprisesStore),
     ...mapState(["InvoiceAdmin"]),
   },
 

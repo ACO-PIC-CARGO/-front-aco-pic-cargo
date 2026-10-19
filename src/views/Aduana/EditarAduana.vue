@@ -125,6 +125,7 @@ import NotasComponent from "../../components/folderAduana/NotasComponent.vue";
 import { mapActions, mapState } from "vuex";
 import { mapActions as mapPiniaActions } from "pinia";
 import { useMasterusuariosStore } from "@/stores/masterusuarios";
+import { useEnterprisesStore } from "@/stores/enterprises";
 
 export default {
   components: {
@@ -230,11 +231,11 @@ export default {
       "getImpuestos",
       "getCargarMasterDetalleNotasCotizacion",
       "cargarProveedores",
-      "obtenerImpuestoXEmpresa",
       "registrarQuote",
       "_getContainers",
       "getAdunaVer",
     ]),
+    ...mapPiniaActions(useEnterprisesStore, ["obtenerImpuestoXEmpresa"]),
     ...mapPiniaActions(useMasterusuariosStore, ["cargarMasterDetallePercepcionAduana"]),
     async recargar() {
       await this.recargarServicios();

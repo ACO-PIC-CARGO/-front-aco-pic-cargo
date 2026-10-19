@@ -14,7 +14,7 @@
         </v-col>
         <v-col cols="12" md="3">
           <p>
-            Total de {{ $store.state.enterprises.impuesto.nombre_impuesto }}:
+            Total de {{ enterprisesStore.impuesto.nombre_impuesto }}:
             {{ $store.state.dataTotalIGV ? $store.state.dataTotalIGV : 0 }} USD
           </p>
         </v-col>
@@ -40,8 +40,13 @@
 </template>
 
 <script>
+import { mapStores } from "pinia";
+import { useEnterprisesStore } from "@/stores/enterprises";
 export default {
   name: "totales",
+  computed: {
+    ...mapStores(useEnterprisesStore),
+  },
 };
 </script>
 

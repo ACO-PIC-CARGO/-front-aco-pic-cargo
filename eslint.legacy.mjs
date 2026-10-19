@@ -219,7 +219,6 @@ export const LEGACY = [
   "src/store/modules/containers.js",
   "src/store/modules/controlGasto.js",
   "src/store/modules/document.js",
-  "src/store/modules/enterprise.js",
   "src/store/modules/entitie.js",
   "src/store/modules/file.js",
   "src/store/modules/gastos.js",

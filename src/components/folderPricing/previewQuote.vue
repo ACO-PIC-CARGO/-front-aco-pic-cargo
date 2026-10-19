@@ -550,7 +550,7 @@
           <tbody>
             <tr>
               <td>
-                {{ $store.state.enterprises.impuesto.nombre_impuesto }} SOBRE
+                {{ enterprisesStore.impuesto.nombre_impuesto }} SOBRE
                 SERVICIOS LOGISTICO
               </td>
               <td class="align_right">
@@ -677,6 +677,8 @@
 
 <script>
 import moment from "moment";
+import { mapStores } from "pinia";
+import { useEnterprisesStore } from "@/stores/enterprises";
 export default {
   emits: ["cerrar"],
   props: ["data", "index"],
@@ -711,6 +713,7 @@ export default {
     window.removeEventListener("keydown", this.handleKeyPress);
   },
   computed: {
+    ...mapStores(useEnterprisesStore),
     isFCL() {
       let tipoCarga = this.$store.state.pricing.datosPrincipales.idtipocarga;
       let id = null;

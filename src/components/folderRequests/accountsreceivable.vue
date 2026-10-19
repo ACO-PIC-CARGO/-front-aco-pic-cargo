@@ -432,6 +432,7 @@ import Swal from "sweetalert2";
 import { mapActions as mapPiniaActions, mapStores } from "pinia";
 import { useIngresosStore } from "@/stores/ingresos";
 import { useSubingresoStore } from "@/stores/subingreso";
+import { useEnterprisesStore } from "@/stores/enterprises";
 export default {
   name: "accountsreceivable",
   data: () => ({
@@ -597,7 +598,7 @@ export default {
     await this.GetListSubIngreso();
   },
   computed: {
-    ...mapStores(useSubingresoStore, useIngresosStore),
+    ...mapStores(useEnterprisesStore, useSubingresoStore, useIngresosStore),
     ...mapState(["clientes"]),
 
     dateRange() {
@@ -608,8 +609,8 @@ export default {
     ...mapActions([
       "cargarClientes",
       "getModulesEntities",
-      "obtenerImpuestoXEmpresa",
     ]),
+    ...mapPiniaActions(useEnterprisesStore, ["obtenerImpuestoXEmpresa"]),
     ...mapPiniaActions(useSubingresoStore, ["GetListSubIngreso"]),
     ...mapPiniaActions(useIngresosStore, ["cargarIngreso"]),
     viewPDF() {
@@ -1006,7 +1007,7 @@ export default {
           }&fechahasta=${
             vm.filtroOp.fechaOp ? vm.filtroOp.fechaOp : ""
           }&nro_expediente=${this.nro_expediente}&nombre_impuesto=${
-            this.$store.state.enterprises.impuesto.nombre_impuesto
+            this.enterprisesStore.impuesto.nombre_impuesto
           }&moneda=${this.moneda}&id_ingreso=${
             this.ingreso ? this.ingreso : ""
           }&id_subingreso=${this.subingreso ? this.subingreso : ""}`,

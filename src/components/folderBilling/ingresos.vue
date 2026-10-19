@@ -225,7 +225,7 @@
                   class="text-left"
                   v-if="mostrarImpuesto"
                 >
-                  {{ $store.state.enterprises.impuesto.nombre_impuesto }} Pr
+                  {{ enterprisesStore.impuesto.nombre_impuesto }} Pr
                 </th>
                 <th style="background: #d6f4ff" class="text-left">Total Pr</th>
                 <th style="background: #ffd6d6" class="text-left">Monto Op</th>
@@ -234,7 +234,7 @@
                   class="text-left"
                   v-if="mostrarImpuesto"
                 >
-                  {{ $store.state.enterprises.impuesto.nombre_impuesto }} Op
+                  {{ enterprisesStore.impuesto.nombre_impuesto }} Op
                 </th>
                 <th style="background: #ffd6d6" class="text-left">Total Op</th>
                 <th
@@ -249,7 +249,7 @@
                   class="text-left"
                   v-if="mostrarMontoOperativos(house.ingresos)"
                 >
-                  {{ $store.state.enterprises.impuesto.nombre_impuesto }} Op
+                  {{ enterprisesStore.impuesto.nombre_impuesto }} Op
                   Cuenta Banco
                 </th>
                 <th
@@ -446,7 +446,7 @@
                     v-model="ingresos.statusCalcula"
                     @update:model-value="calcularE()"
                     density="compact"
-                    :label="`Calcula ${$store.state.enterprises.impuesto.nombre_impuesto}`"
+                    :label="`Calcula ${enterprisesStore.impuesto.nombre_impuesto}`"
                   ></v-switch>
                   <!-- <p v-else>NO HA CONFIGURADO EL IMPUESTOS A LA VENTAS. Ir al Módulo de Configuración</p> -->
                 </v-col>
@@ -503,7 +503,7 @@
                     readonly
                     v-model="ingresos.igvopcuentabanco"
                     type="number"
-                    :label="`${$store.state.enterprises.impuesto.nombre_impuesto}`"
+                    :label="`${enterprisesStore.impuesto.nombre_impuesto}`"
                     v-if="mostrarImpuesto"
                     :prefix="sufmoneda"
                   ></v-text-field>
@@ -539,7 +539,7 @@
                     readonly
                     v-model="ingresos.igv_pr"
                     type="number"
-                    :label="`${$store.state.enterprises.impuesto.nombre_impuesto}`"
+                    :label="`${enterprisesStore.impuesto.nombre_impuesto}`"
                     :prefix="sufmoneda"
                   ></v-text-field>
                 </v-col>
@@ -569,7 +569,7 @@
                     density="compact"
                     v-model="ingresos.igvopview"
                     type="number"
-                    :label="`${$store.state.enterprises.impuesto.nombre_impuesto} Operaciones (Solo lectura)`"
+                    :label="`${enterprisesStore.impuesto.nombre_impuesto} Operaciones (Solo lectura)`"
                     suffix="USD"
                     readonly
                   ></v-text-field>
@@ -1446,11 +1446,12 @@ import moment from "moment";
 import axios from "@/api/http";
 import Swal from "sweetalert2";
 import { mapActions } from "vuex";
-import { mapActions as mapPiniaActions } from "pinia";
+import { mapActions as mapPiniaActions, mapStores } from "pinia";
 import { useSecuritysStore } from "@/stores/securitys";
 import ArrastraYSolarComponent from "../comun/ArrastraYSolarComponent.vue";
 import ArrastraYSolarComponent2 from "../comun/ArrastraYSolarComponentFile.vue";
 import swal from "sweetalert2";
+import { useEnterprisesStore } from "@/stores/enterprises";
 export default {
   emits: ["recalcularProfit"],
   props: {
@@ -1688,11 +1689,11 @@ export default {
     this.id_branch = Number(this.$route.params.id_branch);
     setTimeout(() => {
       this.headersFacturas[2].title =
-        this.$store.state.enterprises.impuesto.nombre_impuesto;
+        this.enterprisesStore.impuesto.nombre_impuesto;
       this.headersFacturas[4].title =
-        this.$store.state.enterprises.impuesto.nombre_impuesto;
+        this.enterprisesStore.impuesto.nombre_impuesto;
       this.mostrarImpuesto =
-        this.$store.state.enterprises.impuesto.mostrarimpuesto;
+        this.enterprisesStore.impuesto.mostrarimpuesto;
       if (!this.mostrarImpuesto) {
         this.headersFacturas.splice(2, 1);
         this.headersFacturas.splice(4, 1);
@@ -2063,7 +2064,7 @@ export default {
       }
       let igv = 0;
       if (this.ingresos.statusCalcula) {
-        igv = this.$store.state.enterprises.impuesto.impuesto / 100;
+        igv = this.enterprisesStore.impuesto.impuesto / 100;
       }
 
       // ------------------------------------------------------ montos
@@ -2661,7 +2662,7 @@ export default {
       vm.datosFactura.nombreProforma = vm.nombreProforma;
       vm.obtenerDatosHouse = true;
       vm.datosFactura.impuesto =
-        vm.$store.state.enterprises.impuesto.nombre_impuesto;
+        vm.enterprisesStore.impuesto.nombre_impuesto;
       let data = vm.datosFactura;
       // console.log(vm.datosFactura);
       // return;
@@ -3068,7 +3069,9 @@ export default {
       return existeMonedaDiferenteADolar;
     },
   },
-  computed: {},
+  computed: {
+    ...mapStores(useEnterprisesStore),
+  },
   components: {
     ArrastraYSolarComponent,
     ArrastraYSolarComponent2,

@@ -24,7 +24,7 @@
                   density="compact"
                   prepend-inner-icon="mdi-domain"
                   :hide-details="!errortrade_name"
-                  v-model="$store.state.enterprises.data.trade_name"
+                  v-model="enterprisesStore.data.trade_name"
                   autocomplete="off"
                   :error-messages="errortrade_name"
                   @update:model-value="errortrade_name = ''"
@@ -42,7 +42,7 @@
                   density="compact"
                   prepend-inner-icon="mdi-account"
                   :hide-details="!errornames"
-                  v-model="$store.state.enterprises.data.names"
+                  v-model="enterprisesStore.data.names"
                   :error-messages="errornames"
                   @update:model-value="errornames = ''"
                   class="textUppercase"
@@ -58,7 +58,7 @@
                   density="compact"
                   prepend-inner-icon="mdi-account"
                   :hide-details="!errorsurname"
-                  v-model="$store.state.enterprises.data.surname"
+                  v-model="enterprisesStore.data.surname"
                   :error-messages="errorsurname"
                   @update:model-value="errorsurname = ''"
                   class="textUppercase"
@@ -73,7 +73,7 @@
                   density="compact"
                   prepend-inner-icon="mdi-account"
                   :hide-details="!errorsecond_surname"
-                  v-model="$store.state.enterprises.data.second_surname"
+                  v-model="enterprisesStore.data.second_surname"
                   :error-messages="errorsecond_surname"
                   @update:model-value="errorsecond_surname = ''"
                   class="textUppercase"
@@ -88,7 +88,7 @@
                   density="compact"
                   prepend-inner-icon="mdi-email"
                   :hide-details="!errorEmail"
-                  v-model="$store.state.enterprises.data.email"
+                  v-model="enterprisesStore.data.email"
                   @change="validarCorreoExiste()"
                   @update:model-value="validarCorreoExiste()"
                   @blur="validarCorreoExiste()"
@@ -105,7 +105,7 @@
                   persistent-placeholder
                   density="compact"
                   prepend-inner-icon="mdi-email-check-outline"
-                  v-model="$store.state.enterprises.data.emailconfirmacion"
+                  v-model="enterprisesStore.data.emailconfirmacion"
                   :error-messages="errorEmail"
                   id="EmailConfirmación"
                   placeholder="Confirme su correo."
@@ -114,7 +114,7 @@
               </v-col>
               <v-col>
                 <p
-                  v-if="$store.state.enterprises.data.email"
+                  v-if="enterprisesStore.data.email"
                   class="my-0 py-0"
                   style="color: red; font-weight: bold; padding: 0 5%"
                 >
@@ -125,7 +125,7 @@
                 <v-text-field
                   variant="outlined"
                   density="compact"
-                  v-model="$store.state.enterprises.data.clave"
+                  v-model="enterprisesStore.data.clave"
                   :error-messages="errorClave"
                   :type="typePassword ? 'password' : 'text'"
                   label="Contraseña"
@@ -155,13 +155,13 @@
                   persistent-placeholder
                   density="compact"
                   prepend-inner-icon="mdi-phone"
-                  v-model="$store.state.enterprises.data.phone"
+                  v-model="enterprisesStore.data.phone"
                   :error-messages="errorPhone"
                   :hide-details="!errorPhone"
                   @update:model-value="errorPhone = ''"
                 ></v-text-field>
                 <p
-                  v-if="$store.state.enterprises.data.phone"
+                  v-if="enterprisesStore.data.phone"
                   class="my-0 py-0"
                   style="color: red; font-weight: bold; padding: 0 5%"
                 >
@@ -209,7 +209,7 @@
                   density="compact"
                   hide-details
                   prepend-inner-icon="mdi-shield-key-outline"
-                  v-model="$store.state.enterprises.data.codigo"
+                  v-model="enterprisesStore.data.codigo"
                 ></v-text-field>
               </v-col>
               <v-col
@@ -316,8 +316,9 @@
 <script>
 import CboPais from "@/components/comun/CboPais.vue";
 import { mapActions } from "vuex";
-import { mapActions as mapPiniaActions } from "pinia";
+import { mapActions as mapPiniaActions, mapStores } from "pinia";
 import { useSecuritysStore } from "@/stores/securitys";
+import { useEnterprisesStore } from "@/stores/enterprises";
 export default {
   components: {
     CboPais,
@@ -372,6 +373,7 @@ export default {
     };
   },
   computed: {
+    ...mapStores(useEnterprisesStore),
     // Calcula los minutos restantes
     minutes() {
       return Math.floor(this.timeLeft / 60);
@@ -390,11 +392,8 @@ export default {
   methods: {
     ...mapActions([
       // "_getPais",
-      "RegistroNuevaEmpresa",
-      "enviarCorreoValidacion",
-      "validarCodigoVerificacion",
-      "validarCorreoRegistro",
     ]),
+    ...mapPiniaActions(useEnterprisesStore, ["RegistroNuevaEmpresa", "enviarCorreoValidacion", "validarCodigoVerificacion", "validarCorreoRegistro"]),
     ...mapPiniaActions(useSecuritysStore, ["_getMenuItem"]),
     abriChat() {
       let text = `https://api.whatsapp.com/send/?phone=${this.numero}&text=Hola, ACO. Me gustaría contactar con alguien&type=phone_number&app_absent=0`;
@@ -402,7 +401,7 @@ export default {
     },
     handlePaisSeleccionado(paisId) {
       
-      this.$store.state.enterprises.data.id_pais = paisId;
+      this.enterprisesStore.data.id_pais = paisId;
       this.errorPais = "";
     },
     async validarCorreoExiste() {
@@ -442,10 +441,10 @@ export default {
       }
       if (this.validarCorreo() && !res.estadoflag) {
         if (
-          this.$store.state.enterprises.data.email &&
-          this.$store.state.enterprises.data.emailconfirmacion
+          this.enterprisesStore.data.email &&
+          this.enterprisesStore.data.emailconfirmacion
         ) {
-          if (!this.$store.state.enterprises.data.id_pais) {
+          if (!this.enterprisesStore.data.id_pais) {
             this.errorPais = "Dato Requerido";
             return false;
           }
@@ -453,7 +452,7 @@ export default {
           this.timeLeft = 3 * 60;
           // this.startTimer();
           let val = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(
-            this.$store.state.enterprises.data.email
+            this.enterprisesStore.data.email
           );
           if (val) {
             this.loading = true;
@@ -473,7 +472,7 @@ export default {
         }
       } else {
         // this.errorEmail = !this.errorEmail ?"Los correos no coinciden.";
-        if (!this.$store.state.enterprises.data.id_pais) {
+        if (!this.enterprisesStore.data.id_pais) {
           this.errorPais = "Dato Requerido";
           return false;
         }
@@ -482,12 +481,12 @@ export default {
     validarCorreo() {
       this.errorEmail = "";
       if (
-        this.$store.state.enterprises.data.email &&
-        this.$store.state.enterprises.data.emailconfirmacion
+        this.enterprisesStore.data.email &&
+        this.enterprisesStore.data.emailconfirmacion
       ) {
         if (
-          this.$store.state.enterprises.data.email !=
-          this.$store.state.enterprises.data.emailconfirmacion
+          this.enterprisesStore.data.email !=
+          this.enterprisesStore.data.emailconfirmacion
         ) {
           this.errorEmail = "Los Correos no coinciden";
           return false;
@@ -505,7 +504,7 @@ export default {
       }
       if (
         (await this.$refs.frmRegistro.validate()).valid &&
-        this.$store.state.enterprises.data.id_pais &&
+        this.enterprisesStore.data.id_pais &&
         this.validarCorreo() &&
         !res.estadoflag
       ) {
@@ -526,7 +525,7 @@ export default {
           this.icon = "alert";
         }
       } else {
-        if (!this.$store.state.enterprises.data.id_pais) {
+        if (!this.enterprisesStore.data.id_pais) {
           this.errorPais = "Dato Requerido";
         }
       }
@@ -541,15 +540,15 @@ export default {
       this.errorClave = "";
       this.errorPais = "";
       this.errorPhone = "";
-      if (!this.$store.state.enterprises.data.trade_name) {
+      if (!this.enterprisesStore.data.trade_name) {
         this.errortrade_name = "Dato Requerido";
         val = false;
       }
-      if (!this.$store.state.enterprises.data.names) {
+      if (!this.enterprisesStore.data.names) {
         this.errornames = "Dato Requerido";
         val = false;
       }
-      if (!this.$store.state.enterprises.data.surname) {
+      if (!this.enterprisesStore.data.surname) {
         this.errorsurname = "Dato Requerido";
         val = false;
       }
@@ -557,34 +556,34 @@ export default {
         this.errorsecond_surname = "Dato Requerido";
         val = false;
       }*/
-      if (!this.$store.state.enterprises.data.email) {
+      if (!this.enterprisesStore.data.email) {
         this.errorEmail = "Dato Requerido";
         val = false;
       }
-      if (!this.$store.state.enterprises.data.clave) {
+      if (!this.enterprisesStore.data.clave) {
         this.errorClave = "Dato Requerido";
         val = false;
       }
 
-      if (this.$store.state.enterprises.data.clave) {
-        if (this.$store.state.enterprises.data.clave.length < 8) {
+      if (this.enterprisesStore.data.clave) {
+        if (this.enterprisesStore.data.clave.length < 8) {
           this.errorClave = "Debe tener al menos 8 caracteres";
           val = false;
-        } else if (!/[a-zA-Z]/.test(this.$store.state.enterprises.data.clave)) {
+        } else if (!/[a-zA-Z]/.test(this.enterprisesStore.data.clave)) {
           this.errorClave = "Debe contener al menos una letra";
           val = false;
-        } else if (!/[0-9]/.test(this.$store.state.enterprises.data.clave)) {
+        } else if (!/[0-9]/.test(this.enterprisesStore.data.clave)) {
           this.errorClave = "Debe contener al menos una número";
           val = false;
         }
       }
 
-      if (!this.$store.state.enterprises.data.id_pais) {
+      if (!this.enterprisesStore.data.id_pais) {
         this.errorPais = "Dato Requerido";
         val = false;
       }
 
-      if (!this.$store.state.enterprises.data.phone) {
+      if (!this.enterprisesStore.data.phone) {
         this.errorPhone = "Dato Requerido";
         val = false;
       }

@@ -196,7 +196,7 @@
                       <th>Fecha Registro</th>
                       <th>Monto</th>
                       <th>
-                        {{ $store.state.enterprises.impuesto.nombre_impuesto }}
+                        {{ enterprisesStore.impuesto.nombre_impuesto }}
                       </th>
                       <th>Total</th>
                     </tr>
@@ -514,6 +514,7 @@ import Swal from "sweetalert2";
 import { mapActions as mapPiniaActions, mapStores } from "pinia";
 import { useGastosStore } from "@/stores/gastos";
 import { useSubgastoStore } from "@/stores/subgasto";
+import { useEnterprisesStore } from "@/stores/enterprises";
 export default {
   name: "debstoPay",
   components: {
@@ -706,7 +707,7 @@ export default {
     this.offcanvas = false;
     this.$store.state.spiner = true;
     this.cabTotalAdministrativo[2].title =
-      this.$store.state.enterprises.impuesto.nombre_impuesto;
+      this.enterprisesStore.impuesto.nombre_impuesto;
     await Promise.all([
       this._getDebsToPay(),
       this._getDebsToPayAdmin(),
@@ -728,7 +729,7 @@ export default {
     cerrar() {},
   },
   computed: {
-    ...mapStores(useSubgastoStore, useGastosStore),
+    ...mapStores(useEnterprisesStore, useSubgastoStore, useGastosStore),
     ...mapState(["provedores", "refreshReport", "listProgramacion"]),
     dateRange() {
       return this.date.join(" ~ ");
@@ -739,8 +740,8 @@ export default {
       "cargarProveedores",
       "GetTotalCotizacion",
       "getModulesEntities",
-      "obtenerImpuestoXEmpresa",
     ]),
+    ...mapPiniaActions(useEnterprisesStore, ["obtenerImpuestoXEmpresa"]),
     ...mapPiniaActions(useSubgastoStore, ["GetListSubGasto"]),
     ...mapPiniaActions(useGastosStore, ["cargarGasto"]),
     nuevaFecha({ item = null, tipo = null }) {
@@ -1185,7 +1186,7 @@ export default {
           }&desde=&hasta=${this.fechaOp ? this.fechaOp : ""}&nro_expediente=${
             this.nro_expediente
           }&nombre_impuesto=${
-            this.$store.state.enterprises.impuesto.nombre_impuesto
+            this.enterprisesStore.impuesto.nombre_impuesto
           }&moneda=${this.moneda}&id_gasto=${
             this.gasto ? this.gasto : ""
           }&id_subgasto=${this.subgasto ? this.subgasto : ""}`,
@@ -1251,7 +1252,7 @@ export default {
               }&nro_expediente=${this.nro_expediente}&tipo_reporte=${
                 tipoReportePDF ? tipoReportePDF : ""
               }&nombre_impuesto=${
-                this.$store.state.enterprises.impuesto.nombre_impuesto
+                this.enterprisesStore.impuesto.nombre_impuesto
               }&id_gasto=${this.gasto ? this.gasto : ""}&id_subgasto=${
                 this.subgasto ? this.subgasto : ""
               }`,

@@ -117,6 +117,7 @@ import { mapActions, mapState } from "vuex";
 import { mapActions as mapPiniaActions } from "pinia";
 import { useTownStore } from "@/stores/town";
 import { useMasterusuariosStore } from "@/stores/masterusuarios";
+import { useEnterprisesStore } from "@/stores/enterprises";
 
 export default {
   components: {
@@ -249,7 +250,6 @@ export default {
   },
   methods: {
     ...mapActions([
-      "obtenerImpuestoXEmpresa",
       "getMarketingList",
       "getQuoteStatus",
       "obtenerProveedorPricing",
@@ -267,7 +267,6 @@ export default {
       "getCargarMasterDetalleNotasCotizacion",
       "cargarProveedores",
       "getImpuestos",
-      "obtenerImpuestoXEmpresa",
       "getPortBegin",
       "getPortEnd",
       "_getContainers",
@@ -277,6 +276,7 @@ export default {
       "obtenerFleteCalculadora",
       "getTransporte",
     ]),
+    ...mapPiniaActions(useEnterprisesStore, ["obtenerImpuestoXEmpresa"]),
     ...mapPiniaActions(useMasterusuariosStore, ["cargarMasterDetallePercepcionAduana"]),
     ...mapPiniaActions(useTownStore, ["cargarTownParaPricing"]),
     async recargar() {

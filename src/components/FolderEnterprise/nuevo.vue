@@ -19,7 +19,7 @@
               <v-col cols="4">
                 <v-autocomplete
                   label="Tipo de Documento (*)"
-                  v-model="$store.state.enterprises.model.id_document"
+                  v-model="enterprisesStore.model.id_document"
                   :items="itemsDocumentsPais"
                   item-title="description"
                   item-value="id"
@@ -31,7 +31,7 @@
                 <v-text-field
                   type="text"
                   label="N° de Documento (*)"
-                  v-model="$store.state.enterprises.model.document"
+                  v-model="enterprisesStore.model.document"
                   @blur="validateDocument"
                   :rules="[
                     (v) => !!v || 'Dato requerido',
@@ -49,7 +49,7 @@
               <v-col cols="4">
                 <v-text-field
                   label="Nombre Comercial (*)"
-                  v-model="$store.state.enterprises.model.trade_name"
+                  v-model="enterprisesStore.model.trade_name"
                   :rules="[
                     (v) => !!v || 'Dato requerido',
                     (v) =>
@@ -62,7 +62,7 @@
               <v-col cols="4">
                 <v-text-field
                   label="Nombre Negocio (*)"
-                  v-model="$store.state.enterprises.model.business_name"
+                  v-model="enterprisesStore.model.business_name"
                   :rules="[
                     (v) => !!v || 'Dato requerido',
                     (v) =>
@@ -75,7 +75,7 @@
               <v-col cols="4">
                 <v-text-field
                   label="Phone"
-                  v-model="$store.state.enterprises.model.phone"
+                  v-model="enterprisesStore.model.phone"
                   
                 >
                 </v-text-field>
@@ -83,7 +83,7 @@
               <v-col cols="4">
                 <v-text-field
                   label="Slogan"
-                  v-model="$store.state.enterprises.model.slogan"
+                  v-model="enterprisesStore.model.slogan"
                   :rules="[(v) => validateLength(v, 255)]"
                 >
                 </v-text-field>
@@ -105,7 +105,7 @@
               <v-col cols="4">
                 <v-text-field
                   label="IC"
-                  v-model="$store.state.enterprises.model.ic"
+                  v-model="enterprisesStore.model.ic"
                   :rules="[(v) => validateLength(v, 255)]"
                 >
                 </v-text-field>
@@ -118,7 +118,7 @@
                   :items="itemsPais"
                   item-value="id"
                   item-title="name"
-                  v-model="$store.state.enterprises.model.id_pais"
+                  v-model="enterprisesStore.model.id_pais"
                   @update:model-value="get_state()"
                   :rules="[(v) => !!v || 'Dato requerido']"
                 >
@@ -130,9 +130,9 @@
                   :items="itemsState"
                   item-value="id"
                   item-title="name"
-                  v-model="$store.state.enterprises.model.id_state"
+                  v-model="enterprisesStore.model.id_state"
                   @update:model-value="get_city()"
-                  :disabled="!$store.state.enterprises.model.id_pais"
+                  :disabled="!enterprisesStore.model.id_pais"
                   :rules="[(v) => !!v || 'Dato requerido']"
                 />
               </v-col>
@@ -142,27 +142,27 @@
                   :items="itemsCity"
                   item-value="id"
                   item-title="name"
-                  v-model="$store.state.enterprises.model.id_city"
+                  v-model="enterprisesStore.model.id_city"
                   @update:model-value="get_town()"
-                  :disabled="!$store.state.enterprises.model.id_state"
+                  :disabled="!enterprisesStore.model.id_state"
                   :rules="[(v) => !!v || 'Dato requerido']"
                 />
               </v-col>
               <v-col cols="3">
                 <v-autocomplete
                   label="Distrito (*)"
-                  v-model="$store.state.enterprises.model.id_town"
+                  v-model="enterprisesStore.model.id_town"
                   :items="itemsTown"
                   item-value="id"
                   item-title="name"
-                  :disabled="!$store.state.enterprises.model.id_city"
+                  :disabled="!enterprisesStore.model.id_city"
                   :rules="[(v) => !!v || 'Dato requerido']"
                 />
               </v-col>
               <v-col cols="4">
                 <v-text-field
                   label="Dirección (*)"
-                  v-model="$store.state.enterprises.model.address"
+                  v-model="enterprisesStore.model.address"
                   :rules="[
                     (v) => !!v || 'Dato requerido',
                     (v) =>
@@ -176,7 +176,7 @@
                 <v-switch
                   density="compact"
                   label="Activo/Inactivo"
-                  v-model="$store.state.enterprises.model.status"
+                  v-model="enterprisesStore.model.status"
                   :value-comparator="(value, checked) => Boolean(value) === checked"
                   hide-details
                   color="success"
@@ -414,6 +414,7 @@ import { mapState, mapActions } from "vuex";
 import Swal from "sweetalert2";
 import { mapActions as mapPiniaActions, mapStores } from "pinia";
 import { useUserStore } from "@/stores/user";
+import { useEnterprisesStore } from "@/stores/enterprises";
 
 export default {
   mixins: [miMixin],
@@ -437,7 +438,7 @@ export default {
     this.$store.state.spiner = true;
 
     this.$store.state.mainTitle = `EMPRESAS`;
-    this.$store.state.enterprises.model = {
+    this.enterprisesStore.model = {
       id_logo: "",
       document: "",
       trade_name: "",
@@ -487,7 +488,6 @@ export default {
   methods: {
     ...mapActions([
       "_getSex",
-      "insertEnterprise",
       "_getDocumentsPais",
       "_getPais",
       "_getState",
@@ -496,6 +496,7 @@ export default {
       "validateDocumentEnterprise",
       "_uploadFile",
     ]),
+    ...mapPiniaActions(useEnterprisesStore, ["insertEnterprise"]),
     ...mapPiniaActions(useUserStore, ["validateUserUsuario", "validateDocumentUsuario", "validateEmailUsuario"]),
     async _callState() {
       if (this.id_pais > 0) {
@@ -519,29 +520,29 @@ export default {
         }
         if ((await this.$refs.frmDatos.validate()).valid) {
           this.$store.state.spiner = true;
-          await this.insertEnterprise(this.$store.state.enterprises);
+          await this.insertEnterprise(this.enterprisesStore);
           this.$store.state.spiner = false;
         }
       }
     },
     async get_state() {
-      this.$store.state.enterprises.model.id_state = "";
-      this.$store.state.enterprises.model.id_city = "";
-      this.$store.state.enterprises.model.id_town = "";
-      await this._getState(this.$store.state.enterprises.model.id_pais);
+      this.enterprisesStore.model.id_state = "";
+      this.enterprisesStore.model.id_city = "";
+      this.enterprisesStore.model.id_town = "";
+      await this._getState(this.enterprisesStore.model.id_pais);
     },
     async get_city() {
-      this.$store.state.enterprises.model.id_city = "";
-      this.$store.state.enterprises.model.id_town = "";
-      await this._getCity(this.$store.state.enterprises.model.id_state);
+      this.enterprisesStore.model.id_city = "";
+      this.enterprisesStore.model.id_town = "";
+      await this._getCity(this.enterprisesStore.model.id_state);
     },
     async get_town() {
-      this.$store.state.enterprises.model.id_town = "";
-      await this._getTown(this.$store.state.enterprises.model.id_city);
+      this.enterprisesStore.model.id_town = "";
+      await this._getTown(this.enterprisesStore.model.id_city);
     },
     async update() {
       if ((await this.$refs.form.validate()).valid) {
-        await this.updateEnterprise(this.$store.state.enterprises);
+        await this.updateEnterprise(this.enterprisesStore);
       }
     },
     async validarUser() {
@@ -633,9 +634,9 @@ export default {
           `id_branch=${
             JSON.parse(sessionStorage.getItem("dataUser"))[0].id_branch
           }` +
-          `&id_document=${this.$store.state.enterprises.model.id_document}` +
+          `&id_document=${this.enterprisesStore.model.id_document}` +
           `&document=${encodeURIComponent(
-            this.$store.state.enterprises.model.document
+            this.enterprisesStore.model.document
           )}`,
         headers: {
           "Content-Type": "application/json",
@@ -648,7 +649,7 @@ export default {
           let data = response.data;
           if (!data.estadoflag) {
             this.errorDocument = data.mensaje;
-            this.$store.state.enterprises.model.document = "";
+            this.enterprisesStore.model.document = "";
           } else {
             this.errorDocument = "";
           }
@@ -676,21 +677,21 @@ export default {
       }
     },
     updateStatus(newValue) {
-      this.$store.state.enterprises.model.status = newValue ? 1 : 0;
+      this.enterprisesStore.model.status = newValue ? 1 : 0;
     },
   },
   watch: {
     "$store.state.files.payPath": {
       handler(newRecord, oldRecord) {
         if (newRecord) {
-          this.$store.state.enterprises.model.id_logo = newRecord;
+          this.enterprisesStore.model.id_logo = newRecord;
         }
       },
       immediate: true,
     },
   },
   computed: {
-    ...mapStores(useUserStore),
+    ...mapStores(useEnterprisesStore, useUserStore),
     ...mapState([
       "itemsDocumentsPais",
       "itemsPais",

@@ -168,6 +168,7 @@ import moment from "moment";
 import { mapActions as mapPiniaActions, mapStores } from "pinia";
 import { useQuoteStatusStore } from "@/stores/QuoteStatus";
 import { useMasterusuariosStore } from "@/stores/masterusuarios";
+import { useEnterprisesStore } from "@/stores/enterprises";
 export default {
   mixins: [mixins],
   components: {
@@ -251,7 +252,6 @@ export default {
       "getImpuestos",
       "getCargarMasterDetalleNotasCotizacion",
       "cargarProveedores",
-      "obtenerImpuestoXEmpresa",
       "registrarQuote",
       "_getContainers",
       "crearCarpetaOneDrive",
@@ -259,6 +259,7 @@ export default {
       "obtenerFleteCalculadora",
       "getTransporte",
     ]),
+    ...mapPiniaActions(useEnterprisesStore, ["obtenerImpuestoXEmpresa"]),
     ...mapPiniaActions(useMasterusuariosStore, ["cargarMasterDetallePercepcionAduana"]),
     recargar() {
       if (this.$store.state.pricing.listServices.length > 0) {

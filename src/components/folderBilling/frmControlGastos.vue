@@ -241,6 +241,8 @@ import { mapState, mapActions } from "vuex";
 import moment from "moment";
 import axios from "@/api/http";
 import Swal from "sweetalert2";
+import { mapActions as mapPiniaActions } from "pinia";
+import { useEnterprisesStore } from "@/stores/enterprises";
 export default {
   props: {
     editable: {
@@ -338,8 +340,8 @@ export default {
       "cargarCorrelativo",
       "_uploadFile",
       "guardarCuotasCgeTipoProveedor",
-      "obtenerImpuestoXEmpresa",
     ]),
+    ...mapPiniaActions(useEnterprisesStore, ["obtenerImpuestoXEmpresa"]),
     // ...mapAction([])
     // --------------------
     irAEditar() {

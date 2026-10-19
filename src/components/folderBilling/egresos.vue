@@ -161,7 +161,7 @@
                   class="text-left"
                   v-if="mostrarImpuesto"
                 >
-                  {{ $store.state.enterprises.impuesto.nombre_impuesto }} Pr
+                  {{ enterprisesStore.impuesto.nombre_impuesto }} Pr
                 </th>
                 <th style="background: #d6f4ff" class="text-left">Total Pr</th>
                 <th style="background: #ffd6d6" class="text-left">Monto Op</th>
@@ -170,7 +170,7 @@
                   class="text-left"
                   v-if="mostrarImpuesto"
                 >
-                  {{ $store.state.enterprises.impuesto.nombre_impuesto }} Op
+                  {{ enterprisesStore.impuesto.nombre_impuesto }} Op
                 </th>
                 <th style="background: #ffd6d6" class="text-left">Total Op</th>
                 <th
@@ -188,7 +188,7 @@
                     mostrarColumnaMonedaDiferenteDolar(egreso)
                   "
                 >
-                  {{ $store.state.enterprises.impuesto.nombre_impuesto }} Op
+                  {{ enterprisesStore.impuesto.nombre_impuesto }} Op
                   Cuenta Banco
                 </th>
                 <th
@@ -423,7 +423,7 @@
                     :disabled="!!egresos.pagado"
                     v-model="egresos.statusCalcula"
                     @update:model-value="calcularE()"
-                    :label="`Calcula ${$store.state.enterprises.impuesto.nombre_impuesto}`"
+                    :label="`Calcula ${enterprisesStore.impuesto.nombre_impuesto}`"
                   ></v-switch>
                   <p v-else>
                     NO HA CONFIGURADO EL IMPUESTOS A LA VENTAS. Ir al Módulo de
@@ -484,7 +484,7 @@
                     density="compact"
                     v-model="egresos.igvopcuentabanco"
                     type="number"
-                    :label="`${$store.state.enterprises.impuesto.nombre_impuesto}`"
+                    :label="`${enterprisesStore.impuesto.nombre_impuesto}`"
                     :prefix="sufmoneda"
                     :disabled="!id_coins || !!egresos.pagado"
                     readonly
@@ -520,7 +520,7 @@
                     density="compact"
                     v-model="egresos.igv_pr"
                     type="number"
-                    :label="`${$store.state.enterprises.impuesto.nombre_impuesto}`"
+                    :label="`${enterprisesStore.impuesto.nombre_impuesto}`"
                     readonly
                     :disabled="!!egresos.pagado"
                   ></v-text-field>
@@ -553,7 +553,7 @@
                     density="compact"
                     v-model="egresos.igvopview"
                     type="number"
-                    :label="`${$store.state.enterprises.impuesto.nombre_impuesto} Operaciones (Solo lectura)`"
+                    :label="`${enterprisesStore.impuesto.nombre_impuesto} Operaciones (Solo lectura)`"
                     suffix="USD"
                     readonly
                     :disabled="!!egresos.pagado"
@@ -1343,6 +1343,7 @@ import { useSecuritysStore } from "@/stores/securitys";
 import ArrastraYSolarComponent from "../comun/ArrastraYSolarComponent.vue";
 import { useCoinsStore } from "@/stores/coins";
 import { useMasterusuariosStore } from "@/stores/masterusuarios";
+import { useEnterprisesStore } from "@/stores/enterprises";
 export default {
   emits: ["recalcularProfit", "statusBtn"],
   props: {
@@ -1564,9 +1565,9 @@ export default {
     ]);
 
     this.headers[2].title =
-      this.$store.state.enterprises.impuesto.nombre_impuesto;
+      this.enterprisesStore.impuesto.nombre_impuesto;
     this.mostrarImpuesto =
-      this.$store.state.enterprises.impuesto.mostrarimpuesto;
+      this.enterprisesStore.impuesto.mostrarimpuesto;
   },
   methods: {
     mostrarColumnaMonedaDiferenteDolar(item) {
@@ -1742,7 +1743,7 @@ export default {
         // pricing
         this.egresos.igv_pr = parseFloat(
           (this.egresos.monto_pr *
-            this.$store.state.enterprises.impuesto.impuesto) /
+            this.enterprisesStore.impuesto.impuesto) /
             100,
         ).toFixed(2);
         this.egresos.total_pr =
@@ -1750,14 +1751,14 @@ export default {
         // op
         this.egresos.igvopcuentabanco = parseFloat(
           (this.egresos.montoopcuentabanco *
-            this.$store.state.enterprises.impuesto.impuesto) /
+            this.enterprisesStore.impuesto.impuesto) /
             100,
         ).toFixed(2);
         this.egresos.totalopcuentabanco = parseFloat(
           parseFloat(this.egresos.montoopcuentabanco) +
             parseFloat(
               (this.egresos.montoopcuentabanco *
-                this.$store.state.enterprises.impuesto.impuesto) /
+                this.enterprisesStore.impuesto.impuesto) /
                 100,
             ),
         ).toFixed(2);
@@ -3225,7 +3226,7 @@ export default {
     },
   },
   computed: {
-    ...mapStores(useMasterusuariosStore, useCoinsStore),
+    ...mapStores(useEnterprisesStore, useMasterusuariosStore, useCoinsStore),
     getNameModalNuevoEditar() {
       if (this.egresos && this.egresos.id) {
         return "EDITAR REGISTRO COSTO";
