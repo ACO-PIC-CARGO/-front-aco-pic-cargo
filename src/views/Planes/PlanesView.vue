@@ -1,3 +1,168 @@
+<script setup lang="ts">
+import { computed, onBeforeUnmount, ref } from "vue";
+import { useRoute, useRouter } from "vue-router";
+import { storeToRefs } from "pinia";
+import "@/styles/plans-theme.css";
+import ModuleSelectDialog from "@/components/SubscriptionPackages/ModuleSelectDialog.vue";
+import LegalLinks from "@/components/Legal/LegalLinks.vue";
+import PackageCard from "@/components/SubscriptionPackages/PackageCard.vue";
+import { preparePaddle, stopCheckoutEvents } from "@/plugins/paddle";
+import type { PaddleCheckoutEvent } from "@/plugins/paddle";
+import { useSubscriptionsStore } from "@/stores/subscriptions";
+import type {
+  Billing,
+  CardAction,
+  PlanCheckoutPayload,
+  PlanView,
+  SubscriptionPackage,
+} from "@/types/suscripciones";
+
+const BILLING_OPTIONS = [
+  { value: false, label: "Mensual" },
+  { value: true, label: "Anual" },
+];
+
+const CTA_LABELS: Record<CardAction, string> = {
+  buy: "Adquirir plan",
+  change: "Cambiar a este plan",
+  "change-module": "Cambiar módulo",
+  current: "Tu plan actual",
+  lower: "Plan inferior",
+  "annual-only": "Ya tienes el plan anual",
+  manage: "Ver Mi plan",
+};
+
+const hasSession = () => {
+  try {
+    return Boolean(sessionStorage.getItem("auth-token"));
+  } catch {
+    return false;
+  }
+};
+
+const route = useRoute();
+const router = useRouter();
+const subscriptionsStore = useSubscriptionsStore();
+const {
+  publicPackages,
+  planViews: plans,
+  moduleLine,
+  maxMonthsSaved: monthsSaved,
+  livePlan,
+} = storeToRefs(subscriptionsStore);
+const { purchaseAction, isUnavailableAction } = subscriptionsStore;
+
+const loadState = ref("loading");
+const errorMessage = ref("");
+const isAnnual = ref(false);
+const expandedPlanId = ref<number | null>(null);
+const selectedPlanName = ref("");
+const isPurchaseNoticeOpen = ref(false);
+const billingOptions = BILLING_OPTIONS;
+const busy = ref(false);
+const buyingId = ref<number | null>(null);
+const isModuleDialogOpen = ref(false);
+const modulePackage = ref<SubscriptionPackage | null>(null);
+
+const billing = computed<Billing>(() => (isAnnual.value ? "annual" : "monthly"));
+
+if (route.query._ptxn) preparePaddle();
+loadPlans();
+if (hasSession()) subscriptionsStore.loadCompanyPlan();
+
+onBeforeUnmount(() => {
+  stopCheckoutEvents();
+});
+
+function packageOf(plan: PlanView) {
+  return publicPackages.value.find((pkg) => pkg.id === plan.id);
+}
+function actionOf(plan: PlanView): CardAction {
+  return hasSession() ? purchaseAction(packageOf(plan)!, billing.value) : "buy";
+}
+function ctaLabel(plan: PlanView) {
+  if (buyingId.value === plan.id) {
+    return livePlan.value ? "Calculando el cambio" : "Abriendo el pago";
+  }
+  return CTA_LABELS[actionOf(plan)];
+}
+async function loadPlans() {
+  loadState.value = "loading";
+  const error = await subscriptionsStore.loadPublicPackages();
+  errorMessage.value = error || "";
+  loadState.value = error ? "error" : "ready";
+}
+function toggleDetails(plan: PlanView) {
+  expandedPlanId.value = expandedPlanId.value === plan.id ? null : plan.id;
+}
+function buyPlan(plan: PlanView) {
+  if (!hasSession()) {
+    subscriptionsStore.savePlanChoice({ packageId: plan.id as number, billing: billing.value });
+    selectedPlanName.value = plan.name;
+    isPurchaseNoticeOpen.value = true;
+    return;
+  }
+  subscriptionsStore.clearPlanChoice();
+  const action = actionOf(plan);
+  if (action === "manage") {
+    router.push({ name: "miPlan" });
+    return;
+  }
+  if (isUnavailableAction(action)) return;
+  const pkg = packageOf(plan)!;
+  if (pkg.module_selection_limit) {
+    modulePackage.value = pkg;
+    isModuleDialogOpen.value = true;
+    return;
+  }
+  submitChoice(pkg, []);
+}
+function onModulesChosen(moduleIds: number[]) {
+  submitChoice(modulePackage.value!, moduleIds);
+}
+function submitChoice(pkg: SubscriptionPackage, moduleIds: number[]) {
+  const payload: PlanCheckoutPayload = {
+    package_id: pkg.id,
+    billing: billing.value,
+    module_ids: moduleIds,
+  };
+  return livePlan.value ? changePlan(pkg, payload) : buy(pkg, payload);
+}
+async function buy(pkg: SubscriptionPackage, payload: PlanCheckoutPayload) {
+  busy.value = true;
+  buyingId.value = pkg.id;
+  const opened = await subscriptionsStore.openPlanCheckout({
+    payload,
+    onEvent: onCheckoutEvent,
+  });
+  if (!opened) resetBuying();
+}
+function onCheckoutEvent(event: PaddleCheckoutEvent) {
+  if (event.name === "checkout.completed") {
+    const transactionId = event.data && event.data.transaction_id;
+    router.push({
+      name: "miPlan",
+      query: transactionId ? { transaccion: transactionId } : {},
+    });
+  }
+  if (event.name === "checkout.closed") resetBuying();
+}
+async function changePlan(pkg: SubscriptionPackage, payload: PlanCheckoutPayload) {
+  busy.value = true;
+  buyingId.value = pkg.id;
+  const changed = await subscriptionsStore.confirmPlanChange({
+    packageName: pkg.name,
+    payload,
+  });
+  resetBuying();
+  if (changed) router.push({ name: "miPlan" });
+}
+function resetBuying() {
+  busy.value = false;
+  buyingId.value = null;
+}
+</script>
+
 <template>
   <v-main>
     <div class="planes plans-theme">
@@ -7,14 +172,24 @@
             class="planes__logo"
             src="/img/login/logo-aco.png"
             alt="ACO, Agencia de Carga Online"
-          />
+          >
           <h1 class="planes__title">
             Precios <span class="planes__accent">ACO</span>
           </h1>
-          <p class="planes__subtitle">Elige el plan ideal para tu agencia</p>
-          <p v-if="moduleLine" class="planes__modules">{{ moduleLine }}</p>
+          <p class="planes__subtitle">
+            Elige el plan ideal para tu agencia
+          </p>
+          <p
+            v-if="moduleLine"
+            class="planes__modules"
+          >
+            {{ moduleLine }}
+          </p>
 
-          <div v-if="plans.length" class="planes__billing">
+          <div
+            v-if="plans.length"
+            class="planes__billing"
+          >
             <v-btn-toggle
               v-model="isAnnual"
               mandatory
@@ -33,7 +208,10 @@
                 {{ option.label }}
               </v-btn>
             </v-btn-toggle>
-            <span v-if="monthsSaved" class="billing-badge">
+            <span
+              v-if="monthsSaved"
+              class="billing-badge"
+            >
               <v-icon>mdi-tag-outline</v-icon>
               Ahorra hasta {{ monthsSaved }}
               {{ monthsSaved === 1 ? "mes" : "meses" }}
@@ -47,19 +225,38 @@
           aria-busy="true"
           aria-label="Cargando planes"
         >
-          <div v-for="n in 3" :key="n" class="plan-skeleton"></div>
+          <div
+            v-for="n in 3"
+            :key="n"
+            class="plan-skeleton"
+          />
         </section>
 
-        <div v-else-if="loadState === 'error'" class="planes__state" role="alert">
-          <p class="planes__state-title">No pudimos cargar los planes.</p>
+        <div
+          v-else-if="loadState === 'error'"
+          class="planes__state"
+          role="alert"
+        >
+          <p class="planes__state-title">
+            No pudimos cargar los planes.
+          </p>
           <p>{{ errorMessage }}</p>
-          <v-btn variant="text" class="planes__retry" @click="loadPlans">
+          <v-btn
+            variant="text"
+            class="planes__retry"
+            @click="loadPlans"
+          >
             Reintentar
           </v-btn>
         </div>
 
-        <div v-else-if="!plans.length" class="planes__state">
-          <p class="planes__state-title">Pronto publicaremos nuestros planes.</p>
+        <div
+          v-else-if="!plans.length"
+          class="planes__state"
+        >
+          <p class="planes__state-title">
+            Pronto publicaremos nuestros planes.
+          </p>
           <p>Vuelve en unos días para conocerlos.</p>
         </div>
 
@@ -71,7 +268,7 @@
         >
           <PackageCard
             v-for="(plan, index) in plans"
-            :key="plan.id"
+            :key="plan.id!"
             :plan="plan"
             :annual="isAnnual"
             :expanded="expandedPlanId === plan.id"
@@ -84,13 +281,20 @@
               :disabled="busy || isUnavailableAction(actionOf(plan))"
               @click="buyPlan(plan)"
             >
-              <v-icon v-if="buyingId === plan.id" class="mdi-spin">
+              <v-icon
+                v-if="buyingId === plan.id"
+                class="mdi-spin"
+              >
                 mdi-loading
               </v-icon>
               {{ ctaLabel(plan) }}
-              <v-icon v-if="buyingId !== plan.id">mdi-arrow-right</v-icon>
+              <v-icon v-if="buyingId !== plan.id">
+                mdi-arrow-right
+              </v-icon>
             </v-btn>
-            <p class="plan__note">Pago seguro procesado por Paddle</p>
+            <p class="plan__note">
+              Pago seguro procesado por Paddle
+            </p>
           </PackageCard>
         </section>
 
@@ -109,8 +313,13 @@
           aria-modal="true"
           aria-labelledby="purchase-notice-title"
         >
-          <v-icon class="purchase-notice__icon">mdi-account-key-outline</v-icon>
-          <h2 id="purchase-notice-title" class="purchase-notice__title">
+          <v-icon class="purchase-notice__icon">
+            mdi-account-key-outline
+          </v-icon>
+          <h2
+            id="purchase-notice-title"
+            class="purchase-notice__title"
+          >
             Entra para comprar ACO {{ selectedPlanName }}
           </h2>
           <p class="purchase-notice__text">
@@ -119,7 +328,11 @@
             esperando.
           </p>
           <div class="purchase-notice__actions">
-            <v-btn variant="text" :to="{ name: 'Login' }" class="plan__cta">
+            <v-btn
+              variant="text"
+              :to="{ name: 'Login' }"
+              class="plan__cta"
+            >
               Iniciar sesión
             </v-btn>
             <router-link
@@ -148,182 +361,6 @@
     </div>
   </v-main>
 </template>
-
-<script>
-import "@/styles/plans-theme.css";
-import { mapActions, mapState } from "pinia";
-import { useSubscriptionsStore } from "@/stores/subscriptions";
-import ModuleSelectDialog from "@/components/SubscriptionPackages/ModuleSelectDialog.vue";
-import LegalLinks from "@/components/Legal/LegalLinks.vue";
-import PackageCard from "@/components/SubscriptionPackages/PackageCard.vue";
-import { preparePaddle, stopCheckoutEvents } from "@/plugins/paddle";
-
-const BILLING_OPTIONS = [
-  { value: false, label: "Mensual" },
-  { value: true, label: "Anual" },
-];
-
-const CTA_LABELS = {
-  buy: "Adquirir plan",
-  change: "Cambiar a este plan",
-  "change-module": "Cambiar módulo",
-  current: "Tu plan actual",
-  lower: "Plan inferior",
-  "annual-only": "Ya tienes el plan anual",
-  manage: "Ver Mi plan",
-};
-
-const hasSession = () => {
-  try {
-    return Boolean(sessionStorage.getItem("auth-token"));
-  } catch (error) {
-    return false;
-  }
-};
-
-export default {
-  name: "Planes",
-  components: { LegalLinks, PackageCard, ModuleSelectDialog },
-  data: () => ({
-    loadState: "loading",
-    errorMessage: "",
-    isAnnual: false,
-    expandedPlanId: null,
-    selectedPlanName: "",
-    isPurchaseNoticeOpen: false,
-    billingOptions: BILLING_OPTIONS,
-    busy: false,
-    buyingId: null,
-    isModuleDialogOpen: false,
-    modulePackage: null,
-  }),
-  computed: {
-    ...mapState(useSubscriptionsStore, {
-      publicPackages: "publicPackages",
-      plans: "planViews",
-      moduleLine: "moduleLine",
-      monthsSaved: "maxMonthsSaved",
-      livePlan: "livePlan",
-    }),
-    billing() {
-      return this.isAnnual ? "annual" : "monthly";
-    },
-  },
-  created() {
-    if (this.$route.query._ptxn) preparePaddle();
-    this.loadPlans();
-    if (hasSession()) this.loadCompanyPlan();
-  },
-  beforeUnmount() {
-    stopCheckoutEvents();
-  },
-  methods: {
-    ...mapActions(useSubscriptionsStore, {
-      purchaseAction: "purchaseAction",
-      isUnavailableAction: "isUnavailableAction",
-    }),
-    ...mapActions(useSubscriptionsStore, [
-      "loadPublicPackages",
-      "loadCompanyPlan",
-      "savePlanChoice",
-      "clearPlanChoice",
-      "openPlanCheckout",
-      "confirmPlanChange",
-    ]),
-    packageOf(plan) {
-      return this.publicPackages.find((pkg) => pkg.id === plan.id);
-    },
-    actionOf(plan) {
-      return hasSession()
-        ? this.purchaseAction(this.packageOf(plan), this.billing)
-        : "buy";
-    },
-    ctaLabel(plan) {
-      if (this.buyingId === plan.id) {
-        return this.livePlan ? "Calculando el cambio" : "Abriendo el pago";
-      }
-      return CTA_LABELS[this.actionOf(plan)];
-    },
-    async loadPlans() {
-      this.loadState = "loading";
-      const error = await this.loadPublicPackages();
-      this.errorMessage = error || "";
-      this.loadState = error ? "error" : "ready";
-    },
-    toggleDetails(plan) {
-      this.expandedPlanId = this.expandedPlanId === plan.id ? null : plan.id;
-    },
-    buyPlan(plan) {
-      if (!hasSession()) {
-        this.savePlanChoice({ packageId: plan.id, billing: this.billing });
-        this.selectedPlanName = plan.name;
-        this.isPurchaseNoticeOpen = true;
-        return;
-      }
-      this.clearPlanChoice();
-      const action = this.actionOf(plan);
-      if (action === "manage") {
-        this.$router.push({ name: "miPlan" });
-        return;
-      }
-      if (this.isUnavailableAction(action)) return;
-      const pkg = this.packageOf(plan);
-      if (pkg.module_selection_limit) {
-        this.modulePackage = pkg;
-        this.isModuleDialogOpen = true;
-        return;
-      }
-      this.submitChoice(pkg, []);
-    },
-    onModulesChosen(moduleIds) {
-      this.submitChoice(this.modulePackage, moduleIds);
-    },
-    submitChoice(pkg, moduleIds) {
-      const payload = {
-        package_id: pkg.id,
-        billing: this.billing,
-        module_ids: moduleIds,
-      };
-      return this.livePlan
-        ? this.changePlan(pkg, payload)
-        : this.buy(pkg, payload);
-    },
-    async buy(pkg, payload) {
-      this.busy = true;
-      this.buyingId = pkg.id;
-      const opened = await this.openPlanCheckout({
-        payload,
-        onEvent: this.onCheckoutEvent,
-      });
-      if (!opened) this.resetBuying();
-    },
-    onCheckoutEvent(event) {
-      if (event.name === "checkout.completed") {
-        const transactionId = event.data && event.data.transaction_id;
-        this.$router.push({
-          name: "miPlan",
-          query: transactionId ? { transaccion: transactionId } : {},
-        });
-      }
-      if (event.name === "checkout.closed") this.resetBuying();
-    },
-    async changePlan(pkg, payload) {
-      this.busy = true;
-      this.buyingId = pkg.id;
-      const changed = await this.confirmPlanChange({
-        packageName: pkg.name,
-        payload,
-      });
-      this.resetBuying();
-      if (changed) this.$router.push({ name: "miPlan" });
-    },
-    resetBuying() {
-      this.busy = false;
-      this.buyingId = null;
-    },
-  },
-};
-</script>
 
 <style scoped>
 .planes__header :where(h1, p),

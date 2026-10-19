@@ -1,8 +1,83 @@
+<script setup lang="ts">
+import { computed, onBeforeUnmount, onMounted, ref } from "vue";
+import { storeToRefs } from "pinia";
+import { useStore } from "vuex";
+import "@/styles/plans-theme.css";
+import { notifySuccess } from "@/utils/request";
+import { stopCheckoutEvents } from "@/plugins/paddle";
+import type { PaddleCheckoutEvent } from "@/plugins/paddle";
+import { useSubscriptionsStore } from "@/stores/subscriptions";
+import type { BillingRow } from "@/types/suscripciones";
+
+const EMPTY_MESSAGE =
+  "Todavía no tienes pagos. Cuando compres un plan, aquí verás tus facturas.";
+const HEADERS = [
+  { title: "Fecha", key: "date", sortable: false },
+  { title: "Concepto", key: "concept", sortable: false },
+  { title: "Monto", key: "amount", sortable: false },
+  { title: "Estado", key: "status", sortable: false },
+  { title: "Factura", key: "invoice", sortable: false },
+] as const;
+
+const rootStore = useStore();
+const subscriptionsStore = useSubscriptionsStore();
+const { billingRows: rows, paymentCard } = storeToRefs(subscriptionsStore);
+
+const loadState = ref("loading");
+const errorMessage = ref("");
+const downloadingId = ref<string | null>(null);
+const isUpdatingPaymentMethod = ref(false);
+const emptyMessage = EMPTY_MESSAGE;
+const headers = HEADERS;
+
+const canUpdatePaymentMethod = computed(
+  () => subscriptionsStore.billingHistory.can_update_payment_method,
+);
+
+onMounted(() => {
+  rootStore.state.mainTitle = "HISTORIAL DE FACTURACIÓN";
+  loadHistory();
+});
+
+onBeforeUnmount(() => {
+  stopCheckoutEvents();
+});
+
+async function loadHistory() {
+  loadState.value = "loading";
+  const error = await subscriptionsStore.loadBillingHistory();
+  errorMessage.value = error || "";
+  loadState.value = error ? "error" : "ready";
+}
+async function downloadInvoice(row: BillingRow) {
+  downloadingId.value = row.id;
+  const url = await subscriptionsStore.fetchInvoiceUrl(row.id);
+  downloadingId.value = null;
+  if (url) window.location.assign(url);
+}
+async function updatePaymentMethod() {
+  isUpdatingPaymentMethod.value = true;
+  const opened = await subscriptionsStore.startPaymentMethodUpdate(onCheckoutEvent);
+  if (!opened) isUpdatingPaymentMethod.value = false;
+}
+function onCheckoutEvent(event: PaddleCheckoutEvent) {
+  if (event.name === "checkout.completed") {
+    notifySuccess("Actualizamos tu método de pago.");
+    loadHistory();
+  }
+  if (event.name === "checkout.closed") {
+    isUpdatingPaymentMethod.value = false;
+  }
+}
+</script>
+
 <template>
   <div class="billing-history plans-theme plans-theme--app">
     <div class="billing-history__container">
       <header class="billing-history__header">
-        <h1 class="billing-history__title">Historial de facturación</h1>
+        <h1 class="billing-history__title">
+          Historial de facturación
+        </h1>
         <p class="billing-history__subtitle">
           Tus pagos de ACO, procesados por Paddle.
         </p>
@@ -13,7 +88,9 @@
         class="billing-history__state"
         aria-busy="true"
       >
-        <v-icon class="mdi-spin">mdi-loading</v-icon>
+        <v-icon class="mdi-spin">
+          mdi-loading
+        </v-icon>
         Cargando tus pagos…
       </p>
 
@@ -42,10 +119,16 @@
           aria-labelledby="payment-method-title"
         >
           <div>
-            <h2 id="payment-method-title" class="billing-history__section">
+            <h2
+              id="payment-method-title"
+              class="billing-history__section"
+            >
               Método de pago
             </h2>
-            <p v-if="paymentCard" class="payment-method__card">
+            <p
+              v-if="paymentCard"
+              class="payment-method__card"
+            >
               <v-icon>mdi-credit-card-outline</v-icon>
               {{ paymentCard }}
             </p>
@@ -68,13 +151,28 @@
           </v-btn>
         </section>
 
-        <div v-if="!rows.length" class="billing-history__state">
-          <v-icon class="billing-history__state-icon">mdi-receipt</v-icon>
-          <p class="billing-history__state-title">{{ emptyMessage }}</p>
+        <div
+          v-if="!rows.length"
+          class="billing-history__state"
+        >
+          <v-icon class="billing-history__state-icon">
+            mdi-receipt
+          </v-icon>
+          <p class="billing-history__state-title">
+            {{ emptyMessage }}
+          </p>
         </div>
 
-        <section v-else aria-labelledby="payments-title">
-          <h2 id="payments-title" class="billing-history__section">Pagos</h2>
+        <section
+          v-else
+          aria-labelledby="payments-title"
+        >
+          <h2
+            id="payments-title"
+            class="billing-history__section"
+          >
+            Pagos
+          </h2>
           <v-data-table
             :headers="headers"
             :items="rows"
@@ -110,7 +208,10 @@
                 </v-icon>
                 Descargar
               </v-btn>
-              <span v-else class="payments__muted">Sin factura</span>
+              <span
+                v-else
+                class="payments__muted"
+              >Sin factura</span>
             </template>
           </v-data-table>
         </section>
@@ -118,84 +219,6 @@
     </div>
   </div>
 </template>
-
-<script>
-import "@/styles/plans-theme.css";
-import { mapActions, mapState } from "pinia";
-import { useSubscriptionsStore } from "@/stores/subscriptions";
-import { notifySuccess } from "@/utils/request";
-import { stopCheckoutEvents } from "@/plugins/paddle";
-
-const EMPTY_MESSAGE =
-  "Todavía no tienes pagos. Cuando compres un plan, aquí verás tus facturas.";
-const HEADERS = [
-  { title: "Fecha", key: "date", sortable: false },
-  { title: "Concepto", key: "concept", sortable: false },
-  { title: "Monto", key: "amount", sortable: false },
-  { title: "Estado", key: "status", sortable: false },
-  { title: "Factura", key: "invoice", sortable: false },
-];
-
-export default {
-  name: "BillingHistory",
-  data: () => ({
-    loadState: "loading",
-    errorMessage: "",
-    downloadingId: null,
-    isUpdatingPaymentMethod: false,
-    emptyMessage: EMPTY_MESSAGE,
-    headers: HEADERS,
-  }),
-  computed: {
-    ...mapState(useSubscriptionsStore, {
-      canUpdatePaymentMethod: (store) =>
-        store.billingHistory.can_update_payment_method,
-      rows: "billingRows",
-      paymentCard: "paymentCard",
-    }),
-  },
-  mounted() {
-    this.$store.state.mainTitle = "HISTORIAL DE FACTURACIÓN";
-    this.loadHistory();
-  },
-  beforeUnmount() {
-    stopCheckoutEvents();
-  },
-  methods: {
-    ...mapActions(useSubscriptionsStore, [
-      "loadBillingHistory",
-      "fetchInvoiceUrl",
-      "startPaymentMethodUpdate",
-    ]),
-    async loadHistory() {
-      this.loadState = "loading";
-      const error = await this.loadBillingHistory();
-      this.errorMessage = error || "";
-      this.loadState = error ? "error" : "ready";
-    },
-    async downloadInvoice(row) {
-      this.downloadingId = row.id;
-      const url = await this.fetchInvoiceUrl(row.id);
-      this.downloadingId = null;
-      if (url) window.location.assign(url);
-    },
-    async updatePaymentMethod() {
-      this.isUpdatingPaymentMethod = true;
-      const opened = await this.startPaymentMethodUpdate(this.onCheckoutEvent);
-      if (!opened) this.isUpdatingPaymentMethod = false;
-    },
-    onCheckoutEvent(event) {
-      if (event.name === "checkout.completed") {
-        notifySuccess("Actualizamos tu método de pago.");
-        this.loadHistory();
-      }
-      if (event.name === "checkout.closed") {
-        this.isUpdatingPaymentMethod = false;
-      }
-    },
-  },
-};
-</script>
 
 <style scoped>
 .billing-history :where(h1, h2, p) {

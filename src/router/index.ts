@@ -17,7 +17,7 @@ const routes = [
   {
     path: "/planes",
     name: "Planes",
-    component: () => import("../views/Planes/Planes.vue"),
+    component: () => import("../views/Planes/PlanesView.vue"),
   },
   {
     path: "/terminos",

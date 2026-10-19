@@ -1,3 +1,98 @@
+<script setup lang="ts">
+import { computed, onMounted, ref } from "vue";
+import { storeToRefs } from "pinia";
+import Swal from "sweetalert2";
+import { useStore } from "vuex";
+import "@/styles/plans-theme.css";
+import PackageCard from "@/components/SubscriptionPackages/PackageCard.vue";
+import PackageForm from "@/components/SubscriptionPackages/PackageForm.vue";
+import PaddleSyncDialog from "@/components/SubscriptionPackages/PaddleSyncDialog.vue";
+import RegistrationTrialSetting from "@/components/SubscriptionPackages/RegistrationTrialSetting.vue";
+import { useSubscriptionsStore } from "@/stores/subscriptions";
+import type { SubscriptionPackage } from "@/types/suscripciones";
+
+const BILLING_OPTIONS = [
+  { value: false, label: "Mensual" },
+  { value: true, label: "Anual" },
+];
+
+const confirmDeactivation = (pkg: SubscriptionPackage) =>
+  Swal.fire({
+    icon: "question",
+    title: `¿Desactivar ACO ${pkg.name}?`,
+    text: "Dejará de mostrarse en la página de planes. Puedes activarlo de nuevo cuando quieras.",
+    showCancelButton: true,
+    confirmButtonText: "Sí, desactivar",
+    cancelButtonText: "Cancelar",
+    confirmButtonColor: "#c62828",
+    reverseButtons: true,
+  });
+
+const rootStore = useStore();
+const subscriptionsStore = useSubscriptionsStore();
+const { packages, activePackageCount } = storeToRefs(subscriptionsStore);
+const { toPlanView } = subscriptionsStore;
+
+const loadState = ref("loading");
+const errorMessage = ref("");
+const statusFilter = ref("active");
+const isAnnual = ref(false);
+const expandedId = ref<number | null>(null);
+const busyId = ref<number | null>(null);
+const isFormOpen = ref(false);
+const editingPackage = ref<SubscriptionPackage | null>(null);
+const isSyncOpen = ref(false);
+const billingOptions = BILLING_OPTIONS;
+
+const filterOptions = computed(() => {
+  const inactiveCount = packages.value.length - activePackageCount.value;
+  return [
+    { value: "active", label: `Activos (${activePackageCount.value})` },
+    { value: "inactive", label: `Inactivos (${inactiveCount})` },
+    { value: "all", label: `Todos (${packages.value.length})` },
+  ];
+});
+const visiblePackages = computed(() => subscriptionsStore.packagesWithStatus(statusFilter.value));
+const emptyFilterMessage = computed(() =>
+  statusFilter.value === "active"
+    ? "No hay paquetes activos. La página de planes se verá vacía."
+    : "No hay paquetes inactivos.",
+);
+
+onMounted(() => {
+  rootStore.state.mainTitle = "PAQUETES DE SUSCRIPCIÓN";
+  loadAll();
+  subscriptionsStore.loadPackageModules();
+});
+
+async function loadAll() {
+  if (!packages.value.length) loadState.value = "loading";
+  const error = await subscriptionsStore.loadPackages();
+  errorMessage.value = error || "";
+  loadState.value = error ? "error" : "ready";
+}
+function toggleDetails(pkg: SubscriptionPackage) {
+  expandedId.value = expandedId.value === pkg.id ? null : pkg.id;
+}
+function openCreate() {
+  editingPackage.value = null;
+  isFormOpen.value = true;
+}
+function openEdit(pkg: SubscriptionPackage) {
+  editingPackage.value = pkg;
+  isFormOpen.value = true;
+}
+async function toggleActive(pkg: SubscriptionPackage) {
+  if (pkg.is_active) {
+    const { isConfirmed } = await confirmDeactivation(pkg);
+    if (!isConfirmed) return;
+  }
+  busyId.value = pkg.id;
+  await subscriptionsStore.setPackageActive({ id: pkg.id, isActive: !pkg.is_active });
+  busyId.value = null;
+}
+</script>
+
 <template>
   <div class="subscription-admin plans-theme plans-theme--app">
     <div class="subscription-admin__container">
@@ -88,7 +183,11 @@
         aria-busy="true"
         aria-label="Cargando paquetes"
       >
-        <div v-for="n in 3" :key="n" class="card-skeleton"></div>
+        <div
+          v-for="n in 3"
+          :key="n"
+          class="card-skeleton"
+        />
       </section>
 
       <div
@@ -109,11 +208,16 @@
         </v-btn>
       </div>
 
-      <div v-else-if="!packages.length" class="subscription-admin__state">
+      <div
+        v-else-if="!packages.length"
+        class="subscription-admin__state"
+      >
         <v-icon class="subscription-admin__state-icon">
           mdi-package-variant
         </v-icon>
-        <p class="subscription-admin__state-title">Aún no hay paquetes.</p>
+        <p class="subscription-admin__state-title">
+          Aún no hay paquetes.
+        </p>
         <p>
           Crea el primero con sus módulos, precio y características. Aparecerá
           en la página de planes.
@@ -124,10 +228,16 @@
         v-else-if="!visiblePackages.length"
         class="subscription-admin__state"
       >
-        <p class="subscription-admin__state-title">{{ emptyFilterMessage }}</p>
+        <p class="subscription-admin__state-title">
+          {{ emptyFilterMessage }}
+        </p>
       </div>
 
-      <section v-else class="subscription-admin__grid" aria-label="Paquetes">
+      <section
+        v-else
+        class="subscription-admin__grid"
+        aria-label="Paquetes"
+      >
         <PackageCard
           v-for="(pkg, index) in visiblePackages"
           :key="pkg.id"
@@ -165,118 +275,14 @@
       </section>
     </div>
 
-    <PackageForm v-model="isFormOpen" :pkg="editingPackage" @saved="loadAll" />
+    <PackageForm
+      v-model="isFormOpen"
+      :pkg="editingPackage"
+      @saved="loadAll"
+    />
     <PaddleSyncDialog v-model="isSyncOpen" />
   </div>
 </template>
-
-<script>
-import Swal from "sweetalert2";
-import "@/styles/plans-theme.css";
-import { mapActions, mapState } from "pinia";
-import { useSubscriptionsStore } from "@/stores/subscriptions";
-import PackageCard from "@/components/SubscriptionPackages/PackageCard.vue";
-import PackageForm from "@/components/SubscriptionPackages/PackageForm.vue";
-import PaddleSyncDialog from "@/components/SubscriptionPackages/PaddleSyncDialog.vue";
-import RegistrationTrialSetting from "@/components/SubscriptionPackages/RegistrationTrialSetting.vue";
-
-const BILLING_OPTIONS = [
-  { value: false, label: "Mensual" },
-  { value: true, label: "Anual" },
-];
-
-const confirmDeactivation = (pkg) =>
-  Swal.fire({
-    icon: "question",
-    title: `¿Desactivar ACO ${pkg.name}?`,
-    text: "Dejará de mostrarse en la página de planes. Puedes activarlo de nuevo cuando quieras.",
-    showCancelButton: true,
-    confirmButtonText: "Sí, desactivar",
-    cancelButtonText: "Cancelar",
-    confirmButtonColor: "#c62828",
-    reverseButtons: true,
-  });
-
-export default {
-  name: "SubscriptionPackages",
-  components: {
-    PackageCard,
-    PackageForm,
-    PaddleSyncDialog,
-    RegistrationTrialSetting,
-  },
-  data: () => ({
-    loadState: "loading",
-    errorMessage: "",
-    statusFilter: "active",
-    isAnnual: false,
-    expandedId: null,
-    busyId: null,
-    isFormOpen: false,
-    editingPackage: null,
-    isSyncOpen: false,
-    billingOptions: BILLING_OPTIONS,
-  }),
-  computed: {
-    ...mapState(useSubscriptionsStore, ["packages", "activePackageCount"]),
-    filterOptions() {
-      const inactiveCount = this.packages.length - this.activePackageCount;
-      return [
-        { value: "active", label: `Activos (${this.activePackageCount})` },
-        { value: "inactive", label: `Inactivos (${inactiveCount})` },
-        { value: "all", label: `Todos (${this.packages.length})` },
-      ];
-    },
-    visiblePackages() {
-      return this.packagesWithStatus(this.statusFilter);
-    },
-    emptyFilterMessage() {
-      return this.statusFilter === "active"
-        ? "No hay paquetes activos. La página de planes se verá vacía."
-        : "No hay paquetes inactivos.";
-    },
-  },
-  mounted() {
-    this.$store.state.mainTitle = "PAQUETES DE SUSCRIPCIÓN";
-    this.loadAll();
-    this.loadPackageModules();
-  },
-  methods: {
-    ...mapActions(useSubscriptionsStore, ["packagesWithStatus", "toPlanView"]),
-    ...mapActions(useSubscriptionsStore, [
-      "loadPackages",
-      "loadPackageModules",
-      "setPackageActive",
-    ]),
-    async loadAll() {
-      if (!this.packages.length) this.loadState = "loading";
-      const error = await this.loadPackages();
-      this.errorMessage = error || "";
-      this.loadState = error ? "error" : "ready";
-    },
-    toggleDetails(pkg) {
-      this.expandedId = this.expandedId === pkg.id ? null : pkg.id;
-    },
-    openCreate() {
-      this.editingPackage = null;
-      this.isFormOpen = true;
-    },
-    openEdit(pkg) {
-      this.editingPackage = pkg;
-      this.isFormOpen = true;
-    },
-    async toggleActive(pkg) {
-      if (pkg.is_active) {
-        const { isConfirmed } = await confirmDeactivation(pkg);
-        if (!isConfirmed) return;
-      }
-      this.busyId = pkg.id;
-      await this.setPackageActive({ id: pkg.id, isActive: !pkg.is_active });
-      this.busyId = null;
-    },
-  },
-};
-</script>
 
 <style scoped>
 .subscription-admin__header :where(h1, p),
