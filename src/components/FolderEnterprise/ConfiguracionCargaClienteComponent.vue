@@ -1,3 +1,196 @@
+<script setup lang="ts">
+import { onMounted, ref } from "vue";
+import { readSheet as readXlsxFile } from "read-excel-file/browser";
+import type { SheetData } from "read-excel-file/browser";
+import { useStore } from "vuex";
+import Swal from "sweetalert2";
+import { useConfigEmpresaStore } from "@/stores/configEmpresa";
+import type { Modalidad } from "@/types/catalogos";
+import type { TipoCarga } from "@/types/cotizacion";
+
+const emit = defineEmits<{ omitir: []; regresar: []; continuarConfigurarTarifario: [] }>();
+
+const rootStore = useStore();
+const configEmpresaStore = useConfigEmpresaStore();
+
+const dialog = ref(false);
+const subirCliente = ref(false);
+const headers = [
+  { title: "Acción", key: "action" },
+  { title: "TAX ID / RUC /  VAT / RIF", key: "document" },
+  { title: "Razón social/Nombre Comercial", key: "nombre_completo" },
+  // { text: "Ap Paterno", value: "nombre_fiscal" },
+  { title: "Dirección", key: "direccion" },
+  { title: "Email", key: "emailaddress" },
+  { title: "Persona Contacto 1", key: "contacto_1" },
+  { title: "Teléfono Contacto 1", key: "contacto_telf_1" },
+  { title: "Persona Contacto 2", key: "contacto_2" },
+  { title: "Teléfono Contacto 2", key: "contacto_telf_2" },
+  { title: "Teléfono adicional 1", key: "telefono_1" },
+  { title: "Teléfono adicional 2", key: "telefono_2" },
+] as const;
+const files = ref<File | File[] | null>([]);
+const mostrarGuardar = ref(false);
+const index_nombre_completo = ref(0);
+const index_nombre_fiscal = ref(1);
+const index_document = ref(2);
+const index_direccion = ref(3);
+const index_emailaddress = ref(4);
+const index_contacto_1 = ref(5);
+const index_contacto_telf_1 = ref(6);
+const index_contacto_2 = ref(7);
+const index_contacto_telf_2 = ref(8);
+const index_telefono_1 = ref(9);
+const index_telefono_2 = ref(10);
+const ids_modality = ref<Array<number | string>>([]);
+const ids_shipment = ref<Array<number | string>>([]);
+const id_modality = ref<number | string>();
+const id_shipment = ref<number | string>();
+
+onMounted(() => {
+  ids_modality.value = rootStore.state.pricing.listModality.map((element: Modalidad) => {
+    return element.id;
+  });
+  ids_shipment.value = rootStore.state.pricing.listShipment.map((element: TipoCarga) => {
+    return element.id;
+  });
+  id_modality.value = ids_modality.value[0];
+  id_shipment.value = ids_shipment.value[0];
+});
+
+function scrollToSubirCostos() {
+  window.scrollTo({ top: 0, behavior: "smooth" });
+}
+async function continuar() {
+  scrollToSubirCostos();
+  rootStore.state.dialogProcessing = true;
+  if (configEmpresaStore.lstClientes.length > 0) {
+    for (const subconjunto of dividirEnSubconjuntos()) {
+      await configEmpresaStore.actualizarDatoCMCliente(subconjunto);
+    }
+    Swal.fire({
+      icon: "success",
+      text: "Registro Correcto",
+      showCancelButton: false,
+      confirmButtonText: "Ok",
+      allowEnterKey: false,
+      allowOutsideClick: false,
+      allowEscapeKey: false,
+    }).then((res) => {
+      if (res.isConfirmed) {
+        emit("continuarConfigurarTarifario");
+        configEmpresaStore.OmitirConfiguracionCost();
+      }
+    });
+  } else {
+    Swal.fire({
+      icon: "warning",
+      text: "NO HA CARGADO NINGUN ARCHIVO",
+      showCancelButton: false,
+      confirmButtonText: "Ok",
+      allowEnterKey: false,
+      allowOutsideClick: false,
+      allowEscapeKey: false,
+    }).then((res) => {
+      if (res.isConfirmed) {
+        emit("continuarConfigurarTarifario");
+        configEmpresaStore.OmitirConfiguracionCost();
+      }
+    });
+  }
+  rootStore.state.dialogProcessing = false;
+}
+function omitir() {
+  configEmpresaStore.OmitirConfiguracionCost();
+  emit("omitir");
+}
+function dividirEnSubconjuntos() {
+  const SUBCONJUNTO_TAMANO = 100;
+  const subconjuntos = [];
+  for (let i = 0; i < configEmpresaStore.lstClientes.length; i += SUBCONJUNTO_TAMANO) {
+    subconjuntos.push(configEmpresaStore.lstClientes.slice(i, i + SUBCONJUNTO_TAMANO));
+  }
+  return subconjuntos;
+}
+function openFileInput() {
+  const fileInput = document.getElementById("fileInput");
+  if (fileInput) {
+    files.value = [];
+    fileInput.click();
+  }
+  //   document.getElementById("fileInput").click();
+}
+function descargarFormato() {
+  window.open(`${import.meta.env.VITE_URL_MAIN}uploads/Formato Cliente.xlsx`, "_blank");
+}
+function handleFileChange() {
+  configEmpresaStore.lstClientes = [];
+  readXlsxFile(files.value as File).then((rows) => {
+    procesarDatosCliente(rows);
+  });
+  mostrarGuardar.value = true;
+  files.value = [];
+}
+function procesarDatosCliente(rows: SheetData) {
+  for (let index = 0; index < rows[0]!.length; index++) {
+    if (rows[0]![index] == "document") {
+      index_document.value = index;
+    }
+    if (rows[0]![index] == "nombre_completo") {
+      index_nombre_completo.value = index;
+    }
+    if (rows[0]![index] == "nombre_fiscal") {
+      index_nombre_fiscal.value = index;
+    }
+
+    if (rows[0]![index] == "direccion") {
+      index_direccion.value = index;
+    }
+    if (rows[0]![index] == "emailaddress") {
+      index_emailaddress.value = index;
+    }
+    if (rows[0]![index] == "contacto_1") {
+      index_contacto_1.value = index;
+    }
+    if (rows[0]![index] == "contacto_telf_1") {
+      index_contacto_telf_1.value = index;
+    }
+    if (rows[0]![index] == "contacto_2") {
+      index_contacto_2.value = index;
+    }
+    if (rows[0]![index] == "contacto_telf_2") {
+      index_contacto_telf_2.value = index;
+    }
+    if (rows[0]![index] == "telefono_1") {
+      index_telefono_1.value = index;
+    }
+    if (rows[0]![index] == "telefono_2") {
+      index_telefono_2.value = index;
+    }
+  }
+
+  for (let index = 1; index < rows.length; index++) {
+    configEmpresaStore.lstClientes.push({
+      document: rows[index]![index_document.value],
+      nombre_completo: rows[index]![index_nombre_completo.value],
+      nombre_fiscal: rows[index]![index_nombre_fiscal.value],
+      direccion: rows[index]![index_direccion.value],
+      emailaddress: rows[index]![index_emailaddress.value],
+      contacto_1: rows[index]![index_contacto_1.value],
+      contacto_telf_1: rows[index]![index_contacto_telf_1.value],
+      contacto_2: rows[index]![index_contacto_2.value],
+      contacto_telf_2: rows[index]![index_contacto_telf_2.value],
+      telefono_1: rows[index]![index_telefono_1.value],
+      telefono_2: rows[index]![index_telefono_2.value],
+    });
+  }
+  files.value = [];
+}
+function eliminar(index: number) {
+  configEmpresaStore.lstClientes.splice(index, 1);
+}
+</script>
+
 <template class="formulario">
   <v-row>
     <!-- <v-col cols="12">
@@ -6,19 +199,38 @@
       </center>
     </v-col> -->
 
-    <v-row v-if="!subirCliente" class="mx-1 my-1">
-      <v-col cols="12" md="6" offset-md="4">
+    <v-row
+      v-if="!subirCliente"
+      class="mx-1 my-1"
+    >
+      <v-col
+        cols="12"
+        md="6"
+        offset-md="4"
+      >
         <div style="text-align: center">
-          <v-icon style="color: #f57c00" size="x-large">mdi-account</v-icon>
+          <v-icon
+            style="color: #f57c00"
+            size="x-large"
+          >
+            mdi-account
+          </v-icon>
         </div>
-        <div class="" style="text-align: center">
-          <h2 style="color: #f57c00">CARGA MASIVA DE CLIENTES</h2>
+        <div
+          class=""
+          style="text-align: center"
+        >
+          <h2 style="color: #f57c00">
+            CARGA MASIVA DE CLIENTES
+          </h2>
         </div>
         <div class="">
           <table>
             <tr>
               <td style="text-align: left; vertical-align: top">
-                <v-icon style="color: #1976d2">mdi-check-circle</v-icon>
+                <v-icon style="color: #1976d2">
+                  mdi-check-circle
+                </v-icon>
               </td>
               <td style="text-align: justify; vertical-align: top">
                 Permite subir todos los clientes de una sola vez.
@@ -26,7 +238,9 @@
             </tr>
             <tr>
               <td style="text-align: left; vertical-align: top">
-                <v-icon style="color: #1976d2">mdi-check-circle</v-icon>
+                <v-icon style="color: #1976d2">
+                  mdi-check-circle
+                </v-icon>
               </td>
               <td style="text-align: justify; vertical-align: top">
                 Te entregamos una plantilla para hacerlo
@@ -34,7 +248,9 @@
             </tr>
             <tr>
               <td style="text-align: left; vertical-align: top">
-                <v-icon style="color: #1976d2">mdi-check-circle</v-icon>
+                <v-icon style="color: #1976d2">
+                  mdi-check-circle
+                </v-icon>
               </td>
               <td style="text-align: justify; vertical-align: top">
                 Ahorra tiempo y trabajo en próximas configuraciones.
@@ -42,7 +258,9 @@
             </tr>
             <tr>
               <td style="text-align: left; vertical-align: top">
-                <v-icon style="color: #388e3c">mdi-check-circle</v-icon>
+                <v-icon style="color: #388e3c">
+                  mdi-check-circle
+                </v-icon>
               </td>
               <td style="text-align: justify; vertical-align: top">
                 Ideal si ya tienes tu base de datos lista.
@@ -50,7 +268,9 @@
             </tr>
             <tr>
               <td style="text-align: left; vertical-align: top">
-                <v-icon style="color: #388e3c">mdi-check-circle</v-icon>
+                <v-icon style="color: #388e3c">
+                  mdi-check-circle
+                </v-icon>
               </td>
               <td style="text-align: justify; vertical-align: top">
                 Podrás cargar o modificar tus proveedores más adelante desde el
@@ -73,11 +293,11 @@
           </v-btn>
           <v-btn
             class="my-1 mx-1 buttonDosFilas"
-           color="#1A237E"
+            color="#1A237E"
             @click="omitir"
             size="x-small"
           >
-            CONTINUAR <br class="ocultarPc" />
+            CONTINUAR <br class="ocultarPc">
             LO HARÉ DESPUÉS
           </v-btn>
         </div>
@@ -133,20 +353,33 @@
         </div>
       </v-col> -->
     </v-row>
-    <v-col cols="12" v-else class="my-1">
+    <v-col
+      cols="12"
+      v-else
+      class="my-1"
+    >
       <v-row>
         <v-col cols="8">
-          <v-icon size="40" color="red">mdi-alert</v-icon> Encuentra los pasos a
+          <v-icon
+            size="40"
+            color="red"
+          >
+            mdi-alert
+          </v-icon> Encuentra los pasos a
           seguir en el tutorial adjunto
         </v-col>
         <v-col cols="4">
-          <v-btn color="#5E9AD6" size="small" @click="dialog = true">
+          <v-btn
+            color="#5E9AD6"
+            size="small"
+            @click="dialog = true"
+          >
             Ver Tutorial
           </v-btn>
         </v-col>
         <v-card>
           <v-card-title class="d-flex align-center flex-wrap">
-            LISTADO DE CLIENTES <v-spacer></v-spacer>
+            LISTADO DE CLIENTES <v-spacer />
             <v-btn
               color="#7d8288"
               @click="descargarFormato()"
@@ -177,8 +410,13 @@
             item-value="index"
             class="elevation-5"
           >
-            <template v-slot:[`item.action`]="{ item, index }">
-              <v-btn variant="text" icon color="red" @click="eliminar(index)">
+            <template #[`item.action`]="{ index }">
+              <v-btn
+                variant="text"
+                icon
+                color="red"
+                @click="eliminar(index)"
+              >
                 <v-icon>mdi-delete</v-icon>
               </v-btn>
             </template>
@@ -186,7 +424,12 @@
         </v-card>
       </v-row>
     </v-col>
-    <v-col cols="12" md="6" offset-md="4" style="text-align: center">
+    <v-col
+      cols="12"
+      md="6"
+      offset-md="4"
+      style="text-align: center"
+    >
       <!-- <v-btn
         class="mx-10 mt-1 mb-10"
         color="#7E7E7E"
@@ -219,9 +462,16 @@
       max-width="60%"
     >
       <v-card>
-        <v-card-title class="d-flex align-center flex-wrap" primary-title>
-          <v-spacer></v-spacer>
-          <v-btn variant="text" icon @click="dialog = !dialog">
+        <v-card-title
+          class="d-flex align-center flex-wrap"
+          primary-title
+        >
+          <v-spacer />
+          <v-btn
+            variant="text"
+            icon
+            @click="dialog = !dialog"
+          >
             <v-icon>mdi-close</v-icon>
           </v-btn>
         </v-card-title>
@@ -235,225 +485,12 @@
             allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
             referrerpolicy="strict-origin-when-cross-origin"
             allowfullscreen
-          ></iframe>
+          />
         </v-card-text>
       </v-card>
     </v-dialog>
   </v-row>
 </template>
-
-<script>
-import { readSheet as readXlsxFile } from "read-excel-file/browser";
-import Swal from "sweetalert2";
-import { mapActions as mapPiniaActions, mapStores } from "pinia";
-import { useEnterprisesStore } from "@/stores/enterprises";
-import { useConfigEmpresaStore } from "@/stores/configEmpresa";
-export default {
-  emits: ["omitir", "regresar", "continuarConfigurarTarifario"],
-  data() {
-    return {
-      dialog: false,
-      subirCliente: false,
-      headers: [
-        { title: "Acción", key: "action" },
-        { title: "TAX ID / RUC /  VAT / RIF", key: "document" },
-        { title: "Razón social/Nombre Comercial", key: "nombre_completo" },
-        // { text: "Ap Paterno", value: "nombre_fiscal" },
-        { title: "Dirección", key: "direccion" },
-        { title: "Email", key: "emailaddress" },
-        { title: "Persona Contacto 1", key: "contacto_1" },
-        { title: "Teléfono Contacto 1", key: "contacto_telf_1" },
-        { title: "Persona Contacto 2", key: "contacto_2" },
-        { title: "Teléfono Contacto 2", key: "contacto_telf_2" },
-        { title: "Teléfono adicional 1", key: "telefono_1" },
-        { title: "Teléfono adicional 2", key: "telefono_2" },
-      ],
-      files: [],
-      mostrarGuardar: false,
-      index_nombre_completo: 0,
-      index_nombre_fiscal: 1,
-      index_document: 2,
-      index_direccion: 3,
-      index_emailaddress: 4,
-      index_contacto_1: 5,
-      index_contacto_telf_1: 6,
-      index_contacto_2: 7,
-      index_contacto_telf_2: 8,
-      index_telefono_1: 9,
-      index_telefono_2: 10,
-      loading: false,
-    };
-  },
-  computed: {
-    ...mapStores(useConfigEmpresaStore, useEnterprisesStore),
-  },
-  methods: {
-    ...mapPiniaActions(useConfigEmpresaStore, ["actualizarDatoCMCliente", "OmitirConfiguracionCost"]),
-    omitir() {
-      this.enterprisesStore.datoClienteFlag = false;
-      this.enterprisesStore.step++;
-      this.enterprisesStore.inicioFlag = true;
-    },
-    scrollToSubirCostos() {
-      window.scrollTo({ top: 0, behavior: "smooth" });
-    },
-    async continuar() {
-      this.scrollToSubirCostos();
-      this.$store.state.dialogProcessing = true;
-      if (this.configEmpresaStore.lstClientes.length > 0) {
-        for (const subconjunto of this.dividirEnSubconjuntos()) {
-          await this.actualizarDatoCMCliente(subconjunto);
-        }
-        Swal.fire({
-          icon: "success",
-          text: "Registro Correcto",
-          showCancelButton: false,
-          confirmButtonText: "Ok",
-          allowEnterKey: false,
-          allowOutsideClick: false,
-          allowEscapeKey: false,
-        }).then((res) => {
-          if (res.isConfirmed) {
-            this.$emit("continuarConfigurarTarifario");
-            this.OmitirConfiguracionCost();
-          }
-        });
-      } else {
-        Swal.fire({
-          icon: "warning",
-          text: "NO HA CARGADO NINGUN ARCHIVO",
-          showCancelButton: false,
-          confirmButtonText: "Ok",
-          allowEnterKey: false,
-          allowOutsideClick: false,
-          allowEscapeKey: false,
-        }).then((res) => {
-          if (res.isConfirmed) {
-            this.$emit("continuarConfigurarTarifario");
-            this.OmitirConfiguracionCost();
-          }
-        });
-      }
-      this.$store.state.dialogProcessing = false;
-    },
-    omitir() {
-      this.OmitirConfiguracionCost();
-      this.$emit("omitir");
-    },
-    dividirEnSubconjuntos() {
-      const SUBCONJUNTO_TAMANO = 100;
-      const subconjuntos = [];
-      for (
-        let i = 0;
-        i < this.configEmpresaStore.lstClientes.length;
-        i += SUBCONJUNTO_TAMANO
-      ) {
-        subconjuntos.push(
-          this.configEmpresaStore.lstClientes.slice(
-            i,
-            i + SUBCONJUNTO_TAMANO
-          )
-        );
-      }
-      return subconjuntos;
-    },
-    openFileInput() {
-      let fileInput = document.getElementById("fileInput");
-      if (fileInput) {
-        this.files = [];
-        fileInput.click();
-      }
-      //   document.getElementById("fileInput").click();
-    },
-    descargarFormato() {
-      window.open(
-        `${import.meta.env.VITE_URL_MAIN}uploads/Formato Cliente.xlsx`,
-        "_blank"
-      );
-    },
-    handleFileChange() {
-      this.configEmpresaStore.lstClientes = [];
-      readXlsxFile(this.files).then((rows) => {
-        this.procesarDatosCliente(rows);
-      });
-      this.mostrarGuardar = true;
-      this.files = [];
-    },
-    procesarDatosCliente(rows) {
-      for (let index = 0; index < rows[0].length; index++) {
-        if (rows[0][index] == "document") {
-          this.index_document = index;
-        }
-        if (rows[0][index] == "nombre_completo") {
-          this.index_nombre_completo = index;
-        }
-        if (rows[0][index] == "nombre_fiscal") {
-          this.index_nombre_fiscal = index;
-        }
-
-        if (rows[0][index] == "direccion") {
-          this.index_direccion = index;
-        }
-        if (rows[0][index] == "emailaddress") {
-          this.index_emailaddress = index;
-        }
-        if (rows[0][index] == "contacto_1") {
-          this.index_contacto_1 = index;
-        }
-        if (rows[0][index] == "contacto_telf_1") {
-          this.index_contacto_telf_1 = index;
-        }
-        if (rows[0][index] == "contacto_2") {
-          this.index_contacto_2 = index;
-        }
-        if (rows[0][index] == "contacto_telf_2") {
-          this.index_contacto_telf_2 = index;
-        }
-        if (rows[0][index] == "telefono_1") {
-          this.index_telefono_1 = index;
-        }
-        if (rows[0][index] == "telefono_2") {
-          this.index_telefono_2 = index;
-        }
-      }
-
-      for (let index = 1; index < rows.length; index++) {
-        this.configEmpresaStore.lstClientes.push({
-          document: rows[index][this.index_document],
-          nombre_completo: rows[index][this.index_nombre_completo],
-          nombre_fiscal: rows[index][this.index_nombre_fiscal],
-          direccion: rows[index][this.index_direccion],
-          emailaddress: rows[index][this.index_emailaddress],
-          contacto_1: rows[index][this.index_contacto_1],
-          contacto_telf_1: rows[index][this.index_contacto_telf_1],
-          contacto_2: rows[index][this.index_contacto_2],
-          contacto_telf_2: rows[index][this.index_contacto_telf_2],
-          telefono_1: rows[index][this.index_telefono_1],
-          telefono_2: rows[index][this.index_telefono_2],
-        });
-      }
-      this.files = [];
-    },
-    eliminar(index) {
-      this.configEmpresaStore.lstClientes.splice(index, 1);
-    },
-  },
-  mounted() {
-    this.ids_modality = this.$store.state.pricing.listModality.map(
-      (element) => {
-        return element.id;
-      }
-    );
-    this.ids_shipment = this.$store.state.pricing.listShipment.map(
-      (element) => {
-        return element.id;
-      }
-    );
-    this.id_modality = this.ids_modality[0];
-    this.id_shipment = this.ids_shipment[0];
-  },
-};
-</script>
 
 <style scoped>
 .derecha {

@@ -1,3 +1,4 @@
+import type { Row } from "read-excel-file/browser";
 import type { UsuarioLogin } from "@/types/sesion";
 
 export interface EmpresaListado {
@@ -89,9 +90,11 @@ export interface FormEnterpriseUpdate extends Omit<FormEmpresa, "id_town"> {
   tipoimpuesto: number | string;
 }
 
+export type PaisSeleccionado = number | string | Array<number | string> | null;
+
 export interface DatosRegistroEmpresa {
   trade_name: string;
-  id_pais: number | string;
+  id_pais: PaisSeleccionado;
   names: string;
   surname: string;
   second_surname: string;
@@ -141,7 +144,7 @@ export interface DatoEmpresaConfig {
   document?: string;
   trade_name?: string;
   logo?: string;
-  id_pais?: number | string;
+  id_pais?: PaisSeleccionado;
   id_logo?: number | string;
   address?: string;
   tipoimpuesto?: number | string;
@@ -173,7 +176,7 @@ export interface DatoUsuarioConfig {
   email?: string;
 }
 
-export type CeldaCarga = string | number | boolean | Date | null | undefined;
+export type CeldaCarga = Row[number] | undefined;
 
 export interface ProveedorCarga {
   nombre_comercial: CeldaCarga;
