@@ -426,13 +426,13 @@ const routes = [
         path: "folterCargaMasiva/carga_calculadora",
         name: "cargaMasivaCalc",
         component: () =>
-          import("../../src/views/folterCargaMasiva/Calculadora.vue"),
+          import("../../src/views/folterCargaMasiva/CargaMasivaCalculadora.vue"),
       },
       {
         path: "folterCargaMasiva/carga_control_gastos",
         name: "cargaMasivaControlGasto",
         component: () =>
-          import("../../src/views/folterCargaMasiva/ControlGastos.vue"),
+          import("../../src/views/folterCargaMasiva/CargaMasivaControlGastos.vue"),
       },
       {
         path: "folterCalculadora/list_user_calc",

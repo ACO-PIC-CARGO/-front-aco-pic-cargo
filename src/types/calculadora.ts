@@ -1,3 +1,4 @@
+import type { ApiResponse } from "@/types/api";
 import type { CeldaCarga } from "@/types/empresas";
 import type { Numerico } from "@/types/cotizacion";
 
@@ -267,6 +268,8 @@ export interface ContenedorCalculadora {
 export interface PuertoCalculadora {
   puerto_descripcion?: string;
 }
+
+export type ValidacionCarga = ApiResponse & { permiso?: boolean };
 
 export interface FilaCargaFlete {
   Continente?: CeldaCarga;

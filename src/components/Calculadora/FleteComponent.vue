@@ -16,6 +16,7 @@ import type {
   MensajeCalculadora,
   OpcionRegistroFlete,
   PuertoCalculadora,
+  ValidacionCarga,
 } from "@/types/calculadora";
 
 const props = withDefaults(defineProps<{ type?: string; idModality?: number }>(), {
@@ -26,7 +27,6 @@ const props = withDefaults(defineProps<{ type?: string; idModality?: number }>()
 const calculadorasStore = useCalculadorasStore();
 const rootStore = useStore();
 
-type ValidacionCarga = ApiResponse & { permiso?: boolean };
 // The old form starts every single selection as an empty array.
 const sinSeleccion = () => [] as unknown as OpcionRegistroFlete;
 const formularioVacio = (): FormRegistroFlete => ({
