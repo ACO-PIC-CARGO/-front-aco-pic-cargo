@@ -25,13 +25,13 @@
       <!-- <div class="col-12 py-1">
         <v-switch
           label="Individual"
-          v-model="masterusuariosStore.filtros.individualflag"
+          v-model="$store.state.masterusuarios.filtros.individualflag"
         />
       </div>
       <div class="col-12 py-1">
         <v-switch
           label="Grupal"
-          v-model="masterusuariosStore.filtros.grupalflag"
+          v-model="$store.state.masterusuarios.filtros.grupalflag"
         />
       </div> -->
       <div class="col-12 py-1">
@@ -59,8 +59,8 @@
         <v-row>
           <!-- <div class="col-12 py-1">
           <v-text-field
-            v-model="masterusuariosStore.model.valorcodigo"
-            :readonly="masterusuariosStore.tipo != 'nuevo'"
+            v-model="$store.state.masterusuarios.model.valorcodigo"
+            :readonly="$store.state.masterusuarios.tipo != 'nuevo'"
             label="Código"
             :rules="[
               (v) => !!v || 'Dato Requerido',

@@ -324,7 +324,7 @@ const vNoSpaces = (el: HTMLElement) => {
               <v-text-field
                 label="Alias del Usuario (*)"
                 id="users"
-                v-model="userStore.model.users"
+                v-model="$store.state.user.model.users"
                 v-on:blur="validarUser()"
                 :error-messages="errUsers"
                 v-no-spaces
@@ -512,14 +512,14 @@ const vNoSpaces = (el: HTMLElement) => {
             </v-col>
             <!-- <v-col cols="4">
               <v-text-field
-                v-model="userStore.model.socialprincipal"
+                v-model="$store.state.user.model.socialprincipal"
                 label="URL Red Social Principal"
                 
               ></v-text-field>
             </v-col>
             <v-col cols="4">
               <v-text-field
-                v-model="userStore.model.socialsecundary"
+                v-model="$store.state.user.model.socialsecundary"
                 label="URL Red Social Alternativa"
                 
               ></v-text-field>
@@ -642,7 +642,7 @@ const vNoSpaces = (el: HTMLElement) => {
           <v-row>
             <v-col cols="4" class="my-auto">
               <v-autocomplete
-                :items="securitysStore.lstSucursal"
+                :items="$store.state.securitys.lstSucursal"
                 v-model="itemSucursal"
                 item-text="trade_name"
                 item-value="id"
@@ -665,7 +665,7 @@ const vNoSpaces = (el: HTMLElement) => {
           <v-col cols="12">
             <v-data-table
               :headers="headersSucursal"
-              :items="userStore.sucursales"
+              :items="$store.state.user.sucursales"
               item-value="id"
             >
               <template v-slot:[`item.action`]="{ index }">

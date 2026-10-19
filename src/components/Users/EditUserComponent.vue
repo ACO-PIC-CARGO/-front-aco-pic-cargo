@@ -283,7 +283,7 @@ async function guardarUsuario() {
               <v-text-field
                 label="Nombre Usuario (*)"
                 id="users"
-                v-model="userStore.model.users"
+                v-model="$store.state.user.model.users"
                 :error-messages="errUsers"
                 readonly
               ></v-text-field>

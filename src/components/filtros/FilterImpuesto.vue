@@ -63,7 +63,7 @@ async function Limpiar() {
   masterusuariosStore.drawer = !masterusuariosStore.drawer;
 }
 async function Aceptar() {
-  //   if (this.rootStore.state.masterusuarios.tipo == "nuevo") {
+  //   if (this.$store.state.masterusuarios.tipo == "nuevo") {
   //     if ((await this.$refs.frmDML.validate()).valid) {
   //       this.loading = true;
   //       await this.setCity();

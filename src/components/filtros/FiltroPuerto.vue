@@ -127,9 +127,9 @@ async function Aceptar() {
 
       <!-- <div class="col-12 py-1">
         <v-text-field
-          v-model="puertoStore.PortFilter.code"
+          v-model="$store.state.puerto.PortFilter.code"
           label="Código"
-          :clearable="puertoStore.tipo != 'ver'"
+          :clearable="$store.state.puerto.tipo != 'ver'"
         ></v-text-field>
       </div> -->
       <v-col
@@ -145,9 +145,9 @@ async function Aceptar() {
       </v-col>
       <!-- <div class="col-12 py-1">
         <v-text-field
-          v-model="puertoStore.PortFilter.description"
+          v-model="$store.state.puerto.PortFilter.description"
           label="Descripción"
-          :clearable="puertoStore.tipo != 'ver'"
+          :clearable="$store.state.puerto.tipo != 'ver'"
         ></v-text-field>
       </div> -->
       <v-col
@@ -214,8 +214,8 @@ async function Aceptar() {
 
         <!-- <div class="col-12 py-1">
           <v-text-field
-            v-model="puertoStore.PortModel.code"
-            :readonly="puertoStore.tipo != 'nuevo'"
+            v-model="$store.state.puerto.PortModel.code"
+            :readonly="$store.state.puerto.tipo != 'nuevo'"
             label="Código (*)"
             :rules="[
               (v) =>
@@ -243,10 +243,10 @@ async function Aceptar() {
         </v-col>
         <!-- <div class="col-12 py-1">
           <v-text-field
-            v-model="puertoStore.PortModel.description"
-            :readonly="puertoStore.tipo == 'ver'"
+            v-model="$store.state.puerto.PortModel.description"
+            :readonly="$store.state.puerto.tipo == 'ver'"
             label="Descripción"
-            :clearable="puertoStore.tipo != 'ver'"
+            :clearable="$store.state.puerto.tipo != 'ver'"
             :rules="[
               (v) =>
                 (!!v ? v.length < 50 : true) ||
@@ -257,12 +257,12 @@ async function Aceptar() {
         <!-- <div class="col-12 py-1">
           <span> Estado</span>
           <v-switch
-            :readonly="puertoStore.tipo == 'ver'"
+            :readonly="$store.state.puerto.tipo == 'ver'"
             :label="`Estado: ${
-              !!puertoStore.PortModel.status ? 'Activo' : 'Inactivo'
+              !!$store.state.puerto.PortModel.status ? 'Activo' : 'Inactivo'
             }`"
             color="success"
-            v-model="puertoStore.PortModel.status"
+            v-model="$store.state.puerto.PortModel.status"
           ></v-switch>
         </div> -->
       </v-form>

@@ -268,7 +268,7 @@ async function Aceptar() {
             <!--<div class="col-6 py-1">
               <v-text-field
                 clearable
-                v-model="QuoteStatusStore.StatusFilter.position_select"
+                v-model="$store.state.QuoteStatus.StatusFilter.position_select"
                 dense
                 type="number"
                 label="Posición Registro"
@@ -277,7 +277,7 @@ async function Aceptar() {
             <!-- <div class="col-6 py-1">
               <v-text-field
                 clearable
-                v-model="QuoteStatusStore.StatusFilter.position_report"
+                v-model="$store.state.QuoteStatus.StatusFilter.position_report"
                 dense
                 type="number"
                 label="Posición Reportes"
@@ -286,7 +286,7 @@ async function Aceptar() {
             <div class="col-6 py-1">
               <v-text-field
                 clearable
-                v-model="QuoteStatusStore.StatusFilter.position_calls"
+                v-model="$store.state.QuoteStatus.StatusFilter.position_calls"
                 dense
                 type="number"
                 label="Posición Llamadas"
@@ -295,7 +295,7 @@ async function Aceptar() {
             <div class="col-6 py-1">
               Uso Llamadas
               <v-radio-group
-                v-model="QuoteStatusStore.StatusFilter.status_calls"
+                v-model="$store.state.QuoteStatus.StatusFilter.status_calls"
                 row
                 dense
                 clearable
@@ -307,7 +307,7 @@ async function Aceptar() {
             <div class="col-6 py-1">
               Uso Todas Llamadas
               <v-radio-group
-                v-model="QuoteStatusStore.StatusFilter.status_calls_all"
+                v-model="$store.state.QuoteStatus.StatusFilter.status_calls_all"
                 row
                 dense
                 clearable
@@ -442,8 +442,8 @@ async function Aceptar() {
             </v-col>
             <!--<div class="col-6 py-1">
               <v-text-field
-                :readonly="QuoteStatusStore.tipo == 'ver'"
-                v-model="QuoteStatusStore.StatusModel.position_select"
+                :readonly="$store.state.QuoteStatus.tipo == 'ver'"
+                v-model="$store.state.QuoteStatus.StatusModel.position_select"
                 v-on:blur="validatePositionSelect"
                 :error-messages="errPositionSelect"
                 :rules="[(v) => !!v || 'Dato requerido']"
@@ -454,8 +454,8 @@ async function Aceptar() {
             </div>
             <div class="col-6 py-1">
               <v-text-field
-                :readonly="QuoteStatusStore.tipo == 'ver'"
-                v-model="QuoteStatusStore.StatusModel.position_report"
+                :readonly="$store.state.QuoteStatus.tipo == 'ver'"
+                v-model="$store.state.QuoteStatus.StatusModel.position_report"
                 v-on:blur="validatePositionReport"
                 :error-messages="errPositionReport"
                 :rules="[(v) => !!v || 'Dato requerido']"
@@ -467,10 +467,10 @@ async function Aceptar() {
             <!-- <div class="col-6 py-1">
               <v-text-field
                 v-if="
-                  QuoteStatusStore.StatusModel.status_calls_all == 1
+                  $store.state.QuoteStatus.StatusModel.status_calls_all == 1
                 "
-                :readonly="QuoteStatusStore.tipo == 'ver'"
-                v-model="QuoteStatusStore.StatusModel.position_calls"
+                :readonly="$store.state.QuoteStatus.tipo == 'ver'"
+                v-model="$store.state.QuoteStatus.StatusModel.position_calls"
                 v-on:blur="validatePositionCalls"
                 :error-messages="errPositionCalls"
                 :rules="[(v) => !!v || 'Dato requerido']"
@@ -482,10 +482,10 @@ async function Aceptar() {
             <!-- <div class="col-6 py-1">
               Uso Llamadas (*)
               <v-radio-group
-                v-model="QuoteStatusStore.StatusModel.status_calls"
+                v-model="$store.state.QuoteStatus.StatusModel.status_calls"
                 row
                 dense
-                :readonly="QuoteStatusStore.tipo == 'ver'"
+                :readonly="$store.state.QuoteStatus.tipo == 'ver'"
                 :rules="[(v) => use.includes(v) || 'Dato requerido']"
               >
                 <v-radio label="Si" color="green" :value="1"></v-radio>
@@ -495,10 +495,10 @@ async function Aceptar() {
             <div class="col-6 py-1">
               Uso Todas Llamadas (*)
               <v-radio-group
-                v-model="QuoteStatusStore.StatusModel.status_calls_all"
+                v-model="$store.state.QuoteStatus.StatusModel.status_calls_all"
                 row
                 dense
-                :readonly="QuoteStatusStore.tipo == 'ver'"
+                :readonly="$store.state.QuoteStatus.tipo == 'ver'"
                 :rules="[(v) => use.includes(v) || 'Dato requerido']"
               >
                 <v-radio label="Si" color="green" :value="1"></v-radio>

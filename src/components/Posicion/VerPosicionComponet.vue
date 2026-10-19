@@ -50,13 +50,13 @@ function asignar() {
     errUsuario.value = "El usuario ya se encuentra en la lista";
   }
 }
-// async function actualizarUsuariosPosicion() {
+// async actualizarUsuariosPosicion() {
 //   this.$store.state.spiner = true;
 //   await this.setPosition();
 //   await this.verPosition();
 //   await this.cargarUsuarioNoAsignadoPosicion();
 //   this.$store.state.spiner = false;
-// }
+// },
 </script>
 
 <template>

@@ -135,9 +135,9 @@ async function Aceptar() {
       </v-col>
       <!-- <div class="col-12 py-1">
         <v-text-field
-          v-model="subingresoStore.filtros.name"
+          v-model="$store.state.subingreso.filtros.name"
           label="Nombre"
-          :clearable="subingresoStore.tipo != 'ver'"
+          :clearable="$store.state.subingreso.tipo != 'ver'"
         ></v-text-field>
       </div> -->
       <v-col

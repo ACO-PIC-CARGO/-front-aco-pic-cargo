@@ -289,48 +289,48 @@
                 <v-autocomplete
                   label="Pais"
                   :items="$store.state.itemsPais"
-                  v-model="userStore.model.id_pais"
+                  v-model="$store.state.user.model.id_pais"
                   item-text="name"
                   item-value="id"
-                  @change="ObtenerEstados(userStore.model.id_pais)"
+                  @change="ObtenerEstados($store.state.user.model.id_pais)"
                   :item-disabled="(item) => item.status != 1"
                   :rules="[(v) => !!v || 'Dato Requerido']"
                 >
                 </v-autocomplete>
               </v-col>
-              <v-col cols="4" v-if="userStore.model.id_pais">
+              <v-col cols="4" v-if="$store.state.user.model.id_pais">
                 <v-autocomplete
                   label="Estado (Región)"
                   :items="$store.state.itemsState"
-                  v-model="userStore.model.id_state"
+                  v-model="$store.state.user.model.id_state"
                   item-text="name"
                   item-value="id"
                   :loading="loadingEstado"
-                  @change="ObtenerCity(userStore.model.id_state)"
+                  @change="ObtenerCity($store.state.user.model.id_state)"
                   :item-disabled="(item) => item.status != 1"
                   :rules="[(v) => !!v || 'Dato Requerido']"
                 >
                 </v-autocomplete>
               </v-col>
-              <v-col cols="4" v-if="userStore.model.id_state">
+              <v-col cols="4" v-if="$store.state.user.model.id_state">
                 <v-autocomplete
                   label="Ciudad"
                   :items="$store.state.itemsCity"
-                  v-model="userStore.model.id_city"
+                  v-model="$store.state.user.model.id_city"
                   item-text="name"
                   item-value="id"
                   :loading="loadingEstado"
-                  @change="ObtenerDistrito(userStore.model.id_city)"
+                  @change="ObtenerDistrito($store.state.user.model.id_city)"
                   :item-disabled="(item) => item.status != 1"
                   :rules="[(v) => !!v || 'Dato Requerido']"
                 >
                 </v-autocomplete>
               </v-col>
-              <v-col cols="4" v-if="userStore.model.id_city">
+              <v-col cols="4" v-if="$store.state.user.model.id_city">
                 <v-autocomplete
                   label="Distrito "
                   :items="$store.state.itemsTown"
-                  v-model="userStore.model.id_town"
+                  v-model="$store.state.user.model.id_town"
                   item-text="name"
                   item-value="id"
                   :loading="loadingDistrito"

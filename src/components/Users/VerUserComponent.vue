@@ -397,14 +397,14 @@ async function guardarUsuario() {
             </v-col>
             <!-- <v-col cols="4">
               <v-text-field
-                v-model="userStore.model.socialprincipal"
+                v-model="$store.state.user.model.socialprincipal"
                 readonly
                 label="URL Red Social Principal"
               ></v-text-field>
             </v-col>
             <v-col cols="4">
               <v-text-field
-                v-model="userStore.model.socialsecundary"
+                v-model="$store.state.user.model.socialsecundary"
                 readonly
                 label="URL Red Social Alternativa"
               ></v-text-field>
@@ -415,7 +415,7 @@ async function guardarUsuario() {
                 >mdi-information-slab-circle-outline</v-icon
               >
               <v-radio-group
-                v-model="userStore.model.departamento"
+                v-model="$store.state.user.model.departamento"
                 readonly
               >
                 <v-radio label="Operativo" :value="1"></v-radio>
@@ -447,7 +447,7 @@ async function guardarUsuario() {
           <v-row>
             <v-col cols="4" class="my-auto">
               <v-autocomplete
-                :items="positionStore.lstPosition"
+                :items="$store.state.position.lstPosition"
                 item-text="name"
                 item-value="id"
                 v-model="itemPositon"
@@ -530,7 +530,7 @@ async function guardarUsuario() {
           <v-row>
             <v-col cols="4" class="my-auto">
               <v-autocomplete
-                :items="securitysStore.lstSucursal"
+                :items="$store.state.securitys.lstSucursal"
                 v-model="itemSucursal"
                 item-text="trade_name"
                 item-value="id"

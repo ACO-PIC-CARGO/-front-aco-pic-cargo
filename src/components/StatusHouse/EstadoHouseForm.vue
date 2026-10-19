@@ -5,6 +5,12 @@ import { useStore } from "vuex";
 const rootStore = useStore();
 
 const dialog = ref(false);
+// props: {
+//   dialog: {
+//     type: Boolean,
+//     default: false,
+//   },
+// },
 
 onMounted(() => {
   rootStore.dispatch("getModality");
