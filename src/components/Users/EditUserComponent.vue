@@ -26,7 +26,7 @@
               <v-text-field
                 label="Nombre Usuario (*)"
                 id="users"
-                v-model="$store.state.user.model.users"
+                v-model="userStore.model.users"
                 :error-messages="errUsers"
                 readonly
               ></v-text-field>
@@ -39,35 +39,35 @@
                 item-title="description"
                 item-value="id"
                 label="Tipo de Documento (*)"
-                v-model="$store.state.user.model.id_document"
+                v-model="userStore.model.id_document"
                 :rules="[(v) => !!v || 'Dato Requerido']"
               ></v-autocomplete>
             </v-col>
             <v-col cols="4">
               <v-text-field
                 label="Documento (*)"
-                v-model="$store.state.user.model.document"
+                v-model="userStore.model.document"
               ></v-text-field>
             </v-col>
           </v-row>
           <v-row>
             <v-col cols="4">
               <v-text-field
-                v-model="$store.state.user.model.names"
+                v-model="userStore.model.names"
                 label="Nombres (*)"
                 readonly
               ></v-text-field>
             </v-col>
             <v-col cols="4">
               <v-text-field
-                v-model="$store.state.user.model.surname"
+                v-model="userStore.model.surname"
                 label="Apellido Paternos (*)"
                 readonly
               ></v-text-field>
             </v-col>
             <v-col cols="4">
               <v-text-field
-                v-model="$store.state.user.model.second_surname"
+                v-model="userStore.model.second_surname"
                 label="Apellido Maternos (*)"
                 readonly
               ></v-text-field>
@@ -75,14 +75,14 @@
             <v-col cols="4">
               <v-text-field
                 label="Teléfono (*)"
-                v-model="$store.state.user.model.phone"
+                v-model="userStore.model.phone"
                 :rules="[(v) => !!v || 'Dato Requerido']"
               ></v-text-field>
             </v-col>
             <v-col cols="4">
               <v-text-field
                 label="Correo (*)"
-                v-model="$store.state.user.model.email"
+                v-model="userStore.model.email"
                 disabled
               ></v-text-field>
             </v-col>
@@ -90,7 +90,7 @@
               <v-text-field
                 type="date"
                 label="Fecha Nacimiento"
-                v-model="$store.state.user.model.birthday"
+                v-model="userStore.model.birthday"
               ></v-text-field>
             </v-col>
           </v-row>
@@ -103,53 +103,53 @@
                 label="Sexo (*)"
                 :rules="[(v) => !!v || 'Dato Requerido']"
                 :item-props="(item) => ({ disabled: item.status != 1 })"
-                v-model="$store.state.user.model.id_sex"
+                v-model="userStore.model.id_sex"
               ></v-autocomplete>
             </v-col>
             <v-col cols="4">
               <v-autocomplete
                 label="Pais (*)"
                 :items="$store.state.itemsPais"
-                v-model="$store.state.user.model.id_pais"
+                v-model="userStore.model.id_pais"
                 item-title="name"
                 item-value="id"
-                @update:model-value="ObtenerEstados($store.state.user.model.id_pais)"
+                @update:model-value="ObtenerEstados(userStore.model.id_pais)"
                 :item-props="(item) => ({ disabled: item.status != 1 })"
                 :rules="[(v) => !!v || 'Dato Requerido']"
               >
               </v-autocomplete>
             </v-col>
-            <v-col cols="4" v-if="$store.state.user.model.id_pais">
+            <v-col cols="4" v-if="userStore.model.id_pais">
               <v-autocomplete
                 label="Estado (Región) (*)"
                 :items="$store.state.itemsState"
-                v-model="$store.state.user.model.id_state"
+                v-model="userStore.model.id_state"
                 item-title="name"
                 item-value="id"
                 :loading="loadingEstado"
-                @update:model-value="ObtenerCity($store.state.user.model.id_state)"
+                @update:model-value="ObtenerCity(userStore.model.id_state)"
                 :item-props="(item) => ({ disabled: item.status != 1 })"
               >
               </v-autocomplete>
             </v-col>
-            <v-col cols="4" v-if="$store.state.user.model.id_state">
+            <v-col cols="4" v-if="userStore.model.id_state">
               <v-autocomplete
                 label="Ciudad (*)"
                 :items="$store.state.itemsCity"
-                v-model="$store.state.user.model.id_city"
+                v-model="userStore.model.id_city"
                 item-title="name"
                 item-value="id"
                 :loading="loadingEstado"
-                @update:model-value="ObtenerDistrito($store.state.user.model.id_city)"
+                @update:model-value="ObtenerDistrito(userStore.model.id_city)"
                 :item-props="(item) => ({ disabled: item.status != 1 })"
               >
               </v-autocomplete>
             </v-col>
-            <v-col cols="4" v-if="$store.state.user.model.id_city">
+            <v-col cols="4" v-if="userStore.model.id_city">
               <v-autocomplete
                 label="Distritos (*)"
                 :items="$store.state.itemsTown"
-                v-model="$store.state.user.model.id_town"
+                v-model="userStore.model.id_town"
                 item-title="name"
                 item-value="id"
                 :loading="loadingDistrito"
@@ -159,7 +159,7 @@
             </v-col>
             <v-col cols="4">
               <v-text-field
-                v-model="$store.state.user.model.address"
+                v-model="userStore.model.address"
                 label="Dirección (*)"
               ></v-text-field>
             </v-col>
@@ -167,24 +167,24 @@
             <v-col cols="4">
               <v-checkbox
                 label="Cambiar clave"
-                v-model="$store.state.user.model.cambiarClave"
+                v-model="userStore.model.cambiarClave"
               ></v-checkbox>
             </v-col>
-            <v-col cols="4" v-if="$store.state.user.model.cambiarClave">
+            <v-col cols="4" v-if="userStore.model.cambiarClave">
               <v-text-field
                 :type="espassword ? 'password' : 'text '"
-                v-model="$store.state.user.model.clave"
+                v-model="userStore.model.clave"
                 :append-inner-icon="!espassword ? 'mdi-eye' : 'mdi-eye-off'"
                 @click:append-inner="espassword = !espassword"
                 :rules="[(v) => !!v || 'Dato Requerido']"
                 :error-messages="errorClave"
               ></v-text-field>
             </v-col>
-            <v-col cols="4" v-if="$store.state.user.model.cambiarClave">
+            <v-col cols="4" v-if="userStore.model.cambiarClave">
               <v-text-field
                 :type="espassword ? 'password' : 'text '"
                 :append-inner-icon="!espassword ? 'mdi-eye' : 'mdi-eye-off'"
-                v-model="$store.state.user.model.confirmclave"
+                v-model="userStore.model.confirmclave"
                 @click:append-inner="espassword = !espassword"
                 :rules="[(v) => !!v || 'Dato Requerido']"
                 :error-messages="errorClave"
@@ -196,9 +196,9 @@
               <v-switch
                 hide-details
                 :label="
-                  $store.state.user.model.status == 1 ? 'Activo' : 'Inactivo'
+                  userStore.model.status == 1 ? 'Activo' : 'Inactivo'
                 "
-                v-model="$store.state.user.model.status"
+                v-model="userStore.model.status"
                 :value-comparator="(value, checked) => Boolean(value) === checked"
               ></v-switch>
             </v-col>
@@ -233,7 +233,7 @@
           <v-col cols="12" v-if="mostrarposicionesflag">
             <v-data-table
               :headers="headersPosition"
-              :items="$store.state.user.positions.filter((v) => !!v.status)"
+              :items="userStore.positions.filter((v) => !!v.status)"
               item-value="id"
             >
               <template v-slot:[`item.action`]="{ index }">
@@ -250,7 +250,7 @@
 
               <v-radio-group
                 :rules="[(v) => !!v || 'Dato Requerido']"
-                v-model="$store.state.user.model.departamento"
+                v-model="userStore.model.departamento"
               >
                 <v-radio label="Pricing" :value="1"></v-radio>
                 <v-radio label="Operativo" :value="2"></v-radio>
@@ -300,7 +300,7 @@
           <v-col cols="12" v-if="mostrarsucursal">
             <v-data-table
               :headers="headersSucursal"
-              :items="$store.state.user.sucursales.filter((v) => !!v.status)"
+              :items="userStore.sucursales.filter((v) => !!v.status)"
               item-value="id"
             >
               <template v-slot:[`item.action`]="{ index }">
@@ -333,6 +333,7 @@ import { mapActions as mapPiniaActions, mapStores } from "pinia";
 import { useSecuritysStore } from "@/stores/securitys";
 import Swal from "sweetalert2";
 import { usePositionStore } from "@/stores/position";
+import { useUserStore } from "@/stores/user";
 export default {
   data() {
     return {
@@ -367,7 +368,7 @@ export default {
     };
   },
   async mounted() {
-    this.$store.state.user.model.id = this.$route.params.id;
+    this.userStore.model.id = this.$route.params.id;
     this.$store.state.spiner = true;
     await this.GetVerUsers();
     await this._getDocumentsPais();
@@ -375,14 +376,14 @@ export default {
     await this._getSex();
     await this.cargarPosition();
     await this.CargarBranch();
-    await this._getState(this.$store.state.user.model.id_pais);
-    await this._getCity(this.$store.state.user.model.id_state);
-    await this._getTown(this.$store.state.user.model.id_city);
+    await this._getState(this.userStore.model.id_pais);
+    await this._getCity(this.userStore.model.id_state);
+    await this._getTown(this.userStore.model.id_city);
     this.$store.state.spiner = false;
     this.mostrarflag = true;
   },
   computed: {
-    ...mapStores(usePositionStore, useSecuritysStore),
+    ...mapStores(useUserStore, usePositionStore, useSecuritysStore),
   },
   methods: {
     ...mapActions([
@@ -392,12 +393,8 @@ export default {
       "_getState",
       "_getCity",
       "_getTown",
-      "validateUserUsuario",
-      "validateDocumentUsuario",
-      "validateEmailUsuario",
-      "GetVerUsers",
-      "ActualizarUsers",
     ]),
+    ...mapPiniaActions(useUserStore, ["validateUserUsuario", "validateDocumentUsuario", "validateEmailUsuario", "GetVerUsers", "ActualizarUsers"]),
     ...mapPiniaActions(usePositionStore, ["cargarPosition"]),
     ...mapPiniaActions(useSecuritysStore, ["CargarBranch"]),
     // 10705871171
@@ -407,7 +404,7 @@ export default {
       let res = await this.validateUserUsuario();
       if (res.estadoflag == true) {
         this.errUsers = res.mensaje;
-        this.$store.state.user.model.users = "";
+        this.userStore.model.users = "";
       }
       this.$store.state.spiner = false;
     },
@@ -417,15 +414,15 @@ export default {
       let res = await this.validateEmailUsuario();
       if (res.estadoflag == true) {
         this.errEmail = res.mensaje;
-        this.$store.state.user.model.email = "";
+        this.userStore.model.email = "";
       }
       this.$store.state.spiner = false;
     },
     async validarDocument() {
       // this.errUsers = "";
       if (
-        !!this.$store.state.user.model.id_document &&
-        !!this.$store.state.user.model.document
+        !!this.userStore.model.id_document &&
+        !!this.userStore.model.document
       ) {
         this.$store.state.spiner = true;
         let res = await this.validateDocumentUsuario();
@@ -447,30 +444,30 @@ export default {
           }).then(async (respuesta) => {
             if (respuesta.isConfirmed) {
               this.$store.state.spiner = true;
-              this.$store.state.user.model.id_entitie = res.data[0].id_entitie;
-              this.$store.state.user.model.address = res.data[0].address;
-              this.$store.state.user.model.birthday = res.data[0].birthday;
-              this.$store.state.user.model.estadoflag = res.data[0].estadoflag;
-              this.$store.state.user.model.id_city = res.data[0].id_city;
-              this.$store.state.user.model.id_pais = res.data[0].id_pais;
-              this.$store.state.user.model.id_sex = res.data[0].id_sex;
-              this.$store.state.user.model.id_state = res.data[0].id_state;
-              this.$store.state.user.model.id_town = res.data[0].id_town;
-              this.$store.state.user.model.names = res.data[0].names;
-              this.$store.state.user.model.second_surname =
+              this.userStore.model.id_entitie = res.data[0].id_entitie;
+              this.userStore.model.address = res.data[0].address;
+              this.userStore.model.birthday = res.data[0].birthday;
+              this.userStore.model.estadoflag = res.data[0].estadoflag;
+              this.userStore.model.id_city = res.data[0].id_city;
+              this.userStore.model.id_pais = res.data[0].id_pais;
+              this.userStore.model.id_sex = res.data[0].id_sex;
+              this.userStore.model.id_state = res.data[0].id_state;
+              this.userStore.model.id_town = res.data[0].id_town;
+              this.userStore.model.names = res.data[0].names;
+              this.userStore.model.second_surname =
                 res.data[0].second_surname;
-              this.$store.state.user.model.socialprincipal =
+              this.userStore.model.socialprincipal =
                 res.data[0].socialprincipal;
-              this.$store.state.user.model.socialsecundary =
+              this.userStore.model.socialsecundary =
                 res.data[0].socialsecundary;
-              this.$store.state.user.model.surname = res.data[0].surname;
+              this.userStore.model.surname = res.data[0].surname;
               await this._getState(res.data[0].id_pais);
               await this._getCity(res.data[0].id_state);
               await this._getTown(res.data[0].id_city);
               this.$store.state.spiner = false;
             }
             if (respuesta.isDismissed) {
-              this.$store.state.user.model.document = "";
+              this.userStore.model.document = "";
             }
           });
         }
@@ -486,23 +483,23 @@ export default {
       this.errSucursal = "";
       if ((await this.$refs.frmSucursal.validate()).valid) {
         if (
-          this.$store.state.user.sucursales.some(
+          this.userStore.sucursales.some(
             (v) => v.id_branch == this.itemSucursal.id
           )
         ) {
           if (
-            this.$store.state.user.sucursales.some(
+            this.userStore.sucursales.some(
               (v) => v.id_branch == this.itemSucursal.id && !v.status
             )
           ) {
-            this.$store.state.user.sucursales.filter(
+            this.userStore.sucursales.filter(
               (v) => v.id_branch == this.itemSucursal.id && !v.status
             )[0].status = true;
           } else {
             this.errSucursal = "La sucursal ya se encuentra asignada.";
           }
         } else {
-          this.$store.state.user.sucursales.push(this.itemSucursal);
+          this.userStore.sucursales.push(this.itemSucursal);
         }
         this.mostrarsucursal = false;
         this.mostrarsucursal = true;
@@ -513,16 +510,16 @@ export default {
 
       if ((await this.$refs.frmPosicion.validate()).valid) {
         if (
-          this.$store.state.user.positions.some(
+          this.userStore.positions.some(
             (v) => v.id_position == this.itemPositon.id
           )
         ) {
           if (
-            this.$store.state.user.positions.some(
+            this.userStore.positions.some(
               (v) => v.id_position == this.itemPositon.id && !v.status
             )
           ) {
-            this.$store.state.user.positions.filter(
+            this.userStore.positions.filter(
               (v) => v.id_position == this.itemPositon.id
             )[0].status = true;
           } else {
@@ -531,7 +528,7 @@ export default {
         } else {
           this.itemPositon.id_position = this.itemPositon.id;
           this.itemPositon.status = this.itemPositon.estado;
-          this.$store.state.user.positions.push(this.itemPositon);
+          this.userStore.positions.push(this.itemPositon);
         }
       }
       this.mostrarposicionesflag = false;
@@ -556,12 +553,12 @@ export default {
     },
 
     eliminarPosition(index) {
-      this.$store.state.user.positions[index].status = false;
+      this.userStore.positions[index].status = false;
       this.mostrarposicionesflag = false;
       this.mostrarposicionesflag = true;
     },
     eliminarbranch(index) {
-      this.$store.state.user.lstSucursal[index].status = false;
+      this.userStore.lstSucursal[index].status = false;
       this.mostrarsucursal = false;
       this.mostrarsucursal = true;
     },
@@ -570,7 +567,7 @@ export default {
       console.log(this.$store.state.itemsDocumentsPais);
       if ((await this.$refs.frmDatos.validate()).valid) {
         if (
-          this.$store.state.user.positions.filter((v) => !!v.status).length == 0
+          this.userStore.positions.filter((v) => !!v.status).length == 0
         ) {
           this.errPosition =
             "Es necesario asignar al menos una Position, al usuario";
@@ -578,7 +575,7 @@ export default {
           return false;
         }
         if (
-          this.$store.state.user.sucursales.filter((v) => !!v.status).length ==
+          this.userStore.sucursales.filter((v) => !!v.status).length ==
           0
         ) {
           this.errSucursal =
@@ -588,8 +585,8 @@ export default {
         }
 
         if (
-          this.$store.state.user.model.clave !=
-          this.$store.state.user.model.confirmclave
+          this.userStore.model.clave !=
+          this.userStore.model.confirmclave
         ) {
           this.errorClave = "Las claves no coinciden";
           return false;

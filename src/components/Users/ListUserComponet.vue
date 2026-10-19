@@ -28,7 +28,7 @@
         <v-col cols="12">
           <v-data-table
             :headers="headers"
-            :items="$store.state.user.lstUsers"
+            :items="userStore.lstUsers"
             class="elevation-1"
             item-value="port_beginend_id"
             :loading="loading"
@@ -116,6 +116,8 @@
 <script>
 import { mapActions, mapGetters } from "vuex";
 import Swal from "sweetalert2";
+import { mapActions as mapPiniaActions, mapStores } from "pinia";
+import { useUserStore } from "@/stores/user";
 export default {
   data() {
     return {
@@ -139,22 +141,22 @@ export default {
     };
   },
   computed: {
+    ...mapStores(useUserStore),
     ...mapGetters("subscriptions", ["canAddUsers", "userLimitNotice"]),
   },
   methods: {
     ...mapActions("subscriptions", ["reloadPlanAccess", "promptPlanUpgrade"]),
     ...mapActions([
-      "GetListUsers",
       "_getPais",
-      "cambiarEstadoUsers",
       "_getState",
       "_getCity",
       "_getDocumentsPais",
     ]),
+    ...mapPiniaActions(useUserStore, ["GetListUsers", "cambiarEstadoUsers"]),
     async filtrar() {
       this.loadingFiltrar = !this.loadingFiltrar;
-      this.$store.state.user.tipo = "filter";
-      this.$store.state.user.drawer = !this.$store.state.user.drawer;
+      this.userStore.tipo = "filter";
+      this.userStore.drawer = !this.userStore.drawer;
       this.loadingFiltrar = !this.loadingFiltrar;
     },
     async ver(item) {
@@ -197,7 +199,7 @@ export default {
       }).then(async (res) => {
         if (res.isConfirmed) {
           item.status = 0;
-          this.$store.state.user.model = item;
+          this.userStore.model = item;
           this.loading = true;
           await this.cambiarEstadoUsers();
           await this.GetListUsers();

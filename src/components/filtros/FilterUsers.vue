@@ -6,7 +6,7 @@
       <v-btn variant="text"
         icon
         color="default"
-        @click="$store.state.user.drawer = !$store.state.user.drawer"
+        @click="userStore.drawer = !userStore.drawer"
       >
         <v-icon>mdi-close</v-icon>
       </v-btn>
@@ -17,7 +17,7 @@
           <v-autocomplete
             label="Tipo Documento"
             :items="$store.state.itemsDocumentsPais"
-            v-model="$store.state.user.filtros.id_document"
+            v-model="userStore.filtros.id_document"
             item-title="name"
             item-value="id"
             clearable
@@ -27,41 +27,41 @@
 
         <div class="col-12 py-1">
           <v-text-field
-            v-model="$store.state.user.filtros.document"
+            v-model="userStore.filtros.document"
             label="Nro Documento"
             clearable
           ></v-text-field>
         </div>
         <div class="col-12 py-1">
           <v-text-field
-            v-model="$store.state.user.filtros.users"
+            v-model="userStore.filtros.users"
             label="Nombre de usuario"
             clearable
           ></v-text-field>
         </div>
         <div class="col-12 py-1">
           <v-text-field
-            v-model="$store.state.user.filtros.nombrecompleto"
+            v-model="userStore.filtros.nombrecompleto"
             label="Nombre Completo"
             clearable
           ></v-text-field>
         </div>
         <div class="col-12 py-1">
           <v-text-field
-            v-model="$store.state.user.filtros.phone"
+            v-model="userStore.filtros.phone"
             label="Teléfono"
-            :clearable="$store.state.user.tipo != 'ver'"
+            :clearable="userStore.tipo != 'ver'"
           ></v-text-field>
         </div>
         <div class="col-12 py-1">
           <v-text-field
-            v-model="$store.state.user.filtros.email"
+            v-model="userStore.filtros.email"
             label="Email"
           ></v-text-field>
         </div>
         <div class="col-12 py-1">
           <span> Estado</span>
-          <v-radio-group v-model="$store.state.user.filtros.status" inline density="compact">
+          <v-radio-group v-model="userStore.filtros.status" inline density="compact">
             <v-radio label="Activo" color="green" value="1"></v-radio>
             <v-radio label="Inactivo" color="red" value="0"></v-radio>
             <v-radio label="Todos" color="blue" value="null"></v-radio>
@@ -75,7 +75,7 @@
       <v-btn
         class="mx-1"
         color="success"
-        v-if="$store.state.user.tipo == 'filter'"
+        v-if="userStore.tipo == 'filter'"
         @click="Filtrar()"
         :loading="loading"
         >Aceptar</v-btn
@@ -83,7 +83,7 @@
       <v-btn
         class="mx-1"
         color="default"
-        v-if="$store.state.user.tipo == 'filter'"
+        v-if="userStore.tipo == 'filter'"
         @click="Limpiar()"
         :loading="loading"
         >Limpiar</v-btn
@@ -91,7 +91,7 @@
       <v-btn
         class="mx-1"
         color="success"
-        v-if="$store.state.user.tipo != 'filter' && $store.state.user.tipo != 'ver'"
+        v-if="userStore.tipo != 'filter' && userStore.tipo != 'ver'"
         @click="Aceptar()"
         :loading="loading"
         >Aceptar</v-btn
@@ -99,7 +99,7 @@
       <v-btn
         class="mx-1"
         color="warning"
-        @click="$store.state.user.drawer = !$store.state.user.drawer"
+        @click="userStore.drawer = !userStore.drawer"
         :loading="loading"
         >Cerrar</v-btn
       >
@@ -108,8 +108,9 @@
 </template>
 <script>
 import { mapActions } from "vuex";
-import { mapActions as mapPiniaActions } from "pinia";
+import { mapActions as mapPiniaActions, mapStores } from "pinia";
 import { useTownStore } from "@/stores/town";
+import { useUserStore } from "@/stores/user";
 export default {
   data() {
     return {
@@ -121,11 +122,11 @@ export default {
   },
   methods: {
     ...mapActions([
-      "GetListUsers",
       "_getPais",
       "_getState",
       "_getCity",
     ]),
+    ...mapPiniaActions(useUserStore, ["GetListUsers"]),
     ...mapPiniaActions(useTownStore, ["setTown", "ActualizarTown"]),
     getName() {
       // if (this.$store.state.user.tipo == "filter") {
@@ -137,10 +138,10 @@ export default {
       this.loading = true;
       await this.GetListUsers();
       this.loading = false;
-      this.$store.state.user.drawer = !this.$store.state.user.drawer;
+      this.userStore.drawer = !this.userStore.drawer;
     },
     async Limpiar() {
-      this.$store.state.user.filtros = {
+      this.userStore.filtros = {
         users: "",
         nombrecompleto: "",
         id_document: "",
@@ -153,10 +154,10 @@ export default {
       await this.GetListUsers();
 
       this.loading = false;
-      this.$store.state.user.drawer = !this.$store.state.user.drawer;
+      this.userStore.drawer = !this.userStore.drawer;
     },
     async Aceptar() {
-      if (this.$store.state.user.tipo == "nuevo") {
+      if (this.userStore.tipo == "nuevo") {
         if ((await this.$refs.frmDML.validate()).valid) {
           this.loading = true;
           await this.setTown();
@@ -164,30 +165,31 @@ export default {
           this.loading = false;
         }
       }
-      if (this.$store.state.user.tipo == "editar") {
+      if (this.userStore.tipo == "editar") {
         this.loading = true;
         await this.ActualizarTown();
         await this.GetListUsers();
         this.loading = false;
       }
-      if (this.$store.state.user.tipo == "ver") {
-        this.$store.state.user.drawer = !this.$store.state.user.drawer;
+      if (this.userStore.tipo == "ver") {
+        this.userStore.drawer = !this.userStore.drawer;
       }
     },
   },
   computed: {
+    ...mapStores(useUserStore),
     drawer: {
       get() {
-        return this.$store.state.user.drawer;
+        return this.userStore.drawer;
       },
       set(val) {
-        return (this.$store.state.user.drawer = drawer);
+        return (this.userStore.drawer = drawer);
       },
     },
   },
   watch: {
     drawer() {
-      this.model = { ...this.$store.state.user.model };
+      this.model = { ...this.userStore.model };
       this.$refs.frmDML.resetValidation();
     },
   },

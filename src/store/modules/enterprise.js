@@ -1,7 +1,7 @@
 import axios from "@/api/http";
 import Swal from "sweetalert2";
 import router from "@/router";
-import user from "./user";
+import { useUserStore } from "@/stores/user";
 const state = {
   lstCuentas: [],
   list: [],
@@ -106,10 +106,10 @@ const actions = {
   },
   async insertEnterprise({ commit }) {
     let data = {
-      user: user.state.model,
+      user: useUserStore().model,
       enterprise: state.model,
     };
-    console.log(user.state.model);
+    console.log(useUserStore().model);
     console.log(state.model);
     var config = {
       method: "post",

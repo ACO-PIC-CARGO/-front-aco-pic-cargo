@@ -22,7 +22,6 @@ import enterprises from "./modules/enterprise";
 import masterusuarios from "./modules/masterusuario";
 import bank from "./modules/bank";
 import reportes from "./modules/reporte";
-import user from "./modules/user";
 import configEmpresa from "./modules/configEmpresa";
 import configAviso from "./modules/configAviso";
 import aduana from "./modules/aduana";
@@ -2863,7 +2862,6 @@ export default createStore({
     enterprises,
     masterusuarios,
     bank,
-    user,
     configEmpresa,
     configAviso,
     aduana,

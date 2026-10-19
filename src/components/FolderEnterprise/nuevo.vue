@@ -193,7 +193,7 @@
                 <v-text-field
                   label="Nombre Usuario (*)"
                   id="users"
-                  v-model="$store.state.user.model.users"
+                  v-model="userStore.model.users"
                   v-on:blur="validarUser()"
                   :error-messages="errUsers"
                   :rules="[(v) => !!v || 'Dato Requerido']"
@@ -207,7 +207,7 @@
                   item-title="description"
                   item-value="id"
                   label="Tipo de Documento (*)"
-                  v-model="$store.state.user.model.id_document"
+                  v-model="userStore.model.id_document"
                   @update:model-value="validarDocument()"
                   :rules="[(v) => !!v || 'Dato Requerido']"
                 ></v-autocomplete>
@@ -215,7 +215,7 @@
               <v-col cols="4">
                 <v-text-field
                   label="Documento (*)"
-                  v-model="$store.state.user.model.document"
+                  v-model="userStore.model.document"
                   :rules="[(v) => !!v || 'Dato Requerido']"
                   v-on:blur="validarDocument()"
                 ></v-text-field>
@@ -224,21 +224,21 @@
             <v-row>
               <v-col cols="4">
                 <v-text-field
-                  v-model="$store.state.user.model.names"
+                  v-model="userStore.model.names"
                   :rules="[(v) => !!v || 'Dato Requerido']"
                   label="Nombres (*)"
                 ></v-text-field>
               </v-col>
               <v-col cols="4">
                 <v-text-field
-                  v-model="$store.state.user.model.surname"
+                  v-model="userStore.model.surname"
                   :rules="[(v) => !!v || 'Dato Requerido']"
                   label="Apellido Paterno (*)"
                 ></v-text-field>
               </v-col>
               <v-col cols="4">
                 <v-text-field
-                  v-model="$store.state.user.model.second_surname"
+                  v-model="userStore.model.second_surname"
                   :rules="[(v) => !!v || 'Dato Requerido']"
                   label="Apellido Materno (*)"
                 ></v-text-field>
@@ -246,14 +246,14 @@
               <v-col cols="4">
                 <v-text-field
                   label="Teléfono (*)"
-                  v-model="$store.state.user.model.phone"
+                  v-model="userStore.model.phone"
                   :rules="[(v) => !!v || 'Dato Requerido']"
                 ></v-text-field>
               </v-col>
               <v-col cols="4">
                 <v-text-field
                   label="Correo (*)"
-                  v-model="$store.state.user.model.email"
+                  v-model="userStore.model.email"
                   :rules="[
                     (v) => !!v || 'Dato requerido',
                     (v) =>
@@ -268,7 +268,7 @@
                 <v-text-field
                   type="date"
                   label="Fecha Nacimiento (*)"
-                  v-model="$store.state.user.model.birthday"
+                  v-model="userStore.model.birthday"
                   :rules="[(v) => !!v || 'Dato Requerido']"
                 ></v-text-field>
               </v-col>
@@ -282,55 +282,55 @@
                   label="Sexo (*)"
                   :rules="[(v) => !!v || 'Dato Requerido']"
                   :item-props="(item) => ({ disabled: item.status != 1 })"
-                  v-model="$store.state.user.model.id_sex"
+                  v-model="userStore.model.id_sex"
                 ></v-autocomplete>
               </v-col>
               <!-- <v-col cols="4">
                 <v-autocomplete
                   label="Pais"
                   :items="$store.state.itemsPais"
-                  v-model="$store.state.user.model.id_pais"
+                  v-model="userStore.model.id_pais"
                   item-text="name"
                   item-value="id"
-                  @change="ObtenerEstados($store.state.user.model.id_pais)"
+                  @change="ObtenerEstados(userStore.model.id_pais)"
                   :item-disabled="(item) => item.status != 1"
                   :rules="[(v) => !!v || 'Dato Requerido']"
                 >
                 </v-autocomplete>
               </v-col>
-              <v-col cols="4" v-if="$store.state.user.model.id_pais">
+              <v-col cols="4" v-if="userStore.model.id_pais">
                 <v-autocomplete
                   label="Estado (Región)"
                   :items="$store.state.itemsState"
-                  v-model="$store.state.user.model.id_state"
+                  v-model="userStore.model.id_state"
                   item-text="name"
                   item-value="id"
                   :loading="loadingEstado"
-                  @change="ObtenerCity($store.state.user.model.id_state)"
+                  @change="ObtenerCity(userStore.model.id_state)"
                   :item-disabled="(item) => item.status != 1"
                   :rules="[(v) => !!v || 'Dato Requerido']"
                 >
                 </v-autocomplete>
               </v-col>
-              <v-col cols="4" v-if="$store.state.user.model.id_state">
+              <v-col cols="4" v-if="userStore.model.id_state">
                 <v-autocomplete
                   label="Ciudad"
                   :items="$store.state.itemsCity"
-                  v-model="$store.state.user.model.id_city"
+                  v-model="userStore.model.id_city"
                   item-text="name"
                   item-value="id"
                   :loading="loadingEstado"
-                  @change="ObtenerDistrito($store.state.user.model.id_city)"
+                  @change="ObtenerDistrito(userStore.model.id_city)"
                   :item-disabled="(item) => item.status != 1"
                   :rules="[(v) => !!v || 'Dato Requerido']"
                 >
                 </v-autocomplete>
               </v-col>
-              <v-col cols="4" v-if="$store.state.user.model.id_city">
+              <v-col cols="4" v-if="userStore.model.id_city">
                 <v-autocomplete
                   label="Distrito "
                   :items="$store.state.itemsTown"
-                  v-model="$store.state.user.model.id_town"
+                  v-model="userStore.model.id_town"
                   item-text="name"
                   item-value="id"
                   :loading="loadingDistrito"
@@ -341,20 +341,20 @@
               </v-col> -->
               <v-col cols="4">
                 <v-text-field
-                  v-model="$store.state.user.model.address"
+                  v-model="userStore.model.address"
                   label="Dirección (*)"
                   :rules="[(v) => !!v || 'Dato Requerido']"
                 ></v-text-field>
               </v-col>
               <v-col cols="4">
                 <v-text-field
-                  v-model="$store.state.user.model.socialprincipal"
+                  v-model="userStore.model.socialprincipal"
                   label="URL Red Social Principal"
                 ></v-text-field>
               </v-col>
               <v-col cols="4">
                 <v-text-field
-                  v-model="$store.state.user.model.socialsecundary"
+                  v-model="userStore.model.socialsecundary"
                   label="URL Red Social Alternativa"
                 ></v-text-field>
               </v-col>
@@ -365,7 +365,7 @@
                 >
                 <v-radio-group
                   :rules="[(v) => !!v || 'Dato Requerido']"
-                  v-model="$store.state.user.model.departamento"
+                  v-model="userStore.model.departamento"
                 >
                   <v-radio label="Operativo" value="1"></v-radio>
                   <v-radio label="Administrativo" value="2"></v-radio>
@@ -374,7 +374,7 @@
               <v-col cols="6">
                 <v-switch
                   label="Estado"
-                  v-model="$store.state.user.model.status"
+                  v-model="userStore.model.status"
                   :value-comparator="(value, checked) => Boolean(value) === checked"
                 ></v-switch>
               </v-col>
@@ -412,6 +412,8 @@ import axios from '@/api/http';
 import miMixin from "../mixins/funciones";
 import { mapState, mapActions } from "vuex";
 import Swal from "sweetalert2";
+import { mapActions as mapPiniaActions, mapStores } from "pinia";
+import { useUserStore } from "@/stores/user";
 
 export default {
   mixins: [miMixin],
@@ -450,7 +452,7 @@ export default {
       id_document: "",
       ic: "",
     };
-    this.$store.state.user.model = {
+    this.userStore.model = {
       id: "",
       id_entitie: "",
       id_pais: "",
@@ -493,10 +495,8 @@ export default {
       "_getTown",
       "validateDocumentEnterprise",
       "_uploadFile",
-      "validateUserUsuario",
-      "validateDocumentUsuario",
-      "validateEmailUsuario",
     ]),
+    ...mapPiniaActions(useUserStore, ["validateUserUsuario", "validateDocumentUsuario", "validateEmailUsuario"]),
     async _callState() {
       if (this.id_pais > 0) {
         await this._getState(this.id_pais);
@@ -550,7 +550,7 @@ export default {
       let res = await this.validateUserUsuario();
       if (res.estadoflag == true) {
         this.errUsers = res.mensaje;
-        this.$store.state.user.model.users = "";
+        this.userStore.model.users = "";
       }
       this.$store.state.spiner = false;
     },
@@ -560,15 +560,15 @@ export default {
       let res = await this.validateEmailUsuario();
       if (res.estadoflag == true) {
         this.errEmail = res.mensaje;
-        this.$store.state.user.model.email = "";
+        this.userStore.model.email = "";
       }
       this.$store.state.spiner = false;
     },
     async validarDocument() {
       // this.errUsers = "";
       if (
-        !!this.$store.state.user.model.id_document &&
-        !!this.$store.state.user.model.document
+        !!this.userStore.model.id_document &&
+        !!this.userStore.model.document
       ) {
         this.$store.state.spiner = true;
         let res = await this.validateDocumentUsuario();
@@ -590,30 +590,30 @@ export default {
           }).then(async (respuesta) => {
             if (respuesta.isConfirmed) {
               this.$store.state.spiner = true;
-              this.$store.state.user.model.id_entitie = res.data[0].id_entitie;
-              this.$store.state.user.model.address = res.data[0].address;
-              this.$store.state.user.model.birthday = res.data[0].birthday;
-              this.$store.state.user.model.estadoflag = res.data[0].estadoflag;
-              this.$store.state.user.model.id_city = res.data[0].id_city;
-              this.$store.state.user.model.id_pais = res.data[0].id_pais;
-              this.$store.state.user.model.id_sex = res.data[0].id_sex;
-              this.$store.state.user.model.id_state = res.data[0].id_state;
-              this.$store.state.user.model.id_town = res.data[0].id_town;
-              this.$store.state.user.model.names = res.data[0].names;
-              this.$store.state.user.model.second_surname =
+              this.userStore.model.id_entitie = res.data[0].id_entitie;
+              this.userStore.model.address = res.data[0].address;
+              this.userStore.model.birthday = res.data[0].birthday;
+              this.userStore.model.estadoflag = res.data[0].estadoflag;
+              this.userStore.model.id_city = res.data[0].id_city;
+              this.userStore.model.id_pais = res.data[0].id_pais;
+              this.userStore.model.id_sex = res.data[0].id_sex;
+              this.userStore.model.id_state = res.data[0].id_state;
+              this.userStore.model.id_town = res.data[0].id_town;
+              this.userStore.model.names = res.data[0].names;
+              this.userStore.model.second_surname =
                 res.data[0].second_surname;
-              this.$store.state.user.model.socialprincipal =
+              this.userStore.model.socialprincipal =
                 res.data[0].socialprincipal;
-              this.$store.state.user.model.socialsecundary =
+              this.userStore.model.socialsecundary =
                 res.data[0].socialsecundary;
-              this.$store.state.user.model.surname = res.data[0].surname;
+              this.userStore.model.surname = res.data[0].surname;
               await this._getState(res.data[0].id_pais);
               await this._getCity(res.data[0].id_state);
               await this._getTown(res.data[0].id_city);
               this.$store.state.spiner = false;
             }
             if (respuesta.isDismissed) {
-              this.$store.state.user.model.document = "";
+              this.userStore.model.document = "";
             }
           });
         }
@@ -690,6 +690,7 @@ export default {
     },
   },
   computed: {
+    ...mapStores(useUserStore),
     ...mapState([
       "itemsDocumentsPais",
       "itemsPais",
