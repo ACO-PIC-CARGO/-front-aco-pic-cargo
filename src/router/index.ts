@@ -1,48 +1,4 @@
 import { createRouter, createWebHistory } from "vue-router";
-import Login from "../views/Login.vue";
-import Main from "../views/dashboard/Main.vue";
-import Home from "../views/dashboard/Home.vue";
-import LisEntities from "../views/folderEntities/listEntities.vue";
-import controlEntities from "../views/folderEntities/controlEntities.vue";
-
-import ListMaster from "../views/folderMaster/listMaster.vue";
-import controlMaster from "../views/folderMaster/controlMaster.vue";
-
-import ListHouse from "../views/folderHouse/listHouse.vue";
-import controlHouse from "../views/folderHouse/controlHouse.vue";
-import ConfiguracionAvisoLlegada from "../views/folderHouse/ConfiguracionAvisoLlegada.vue";
-
-import reportControlFile from "../views/folderReports/reportsControlFile.vue";
-import reportControlFileDetails from "../views/folderReports/reportsControlFileDetails.vue";
-
-import billingControlGastos from "../views/folderBilling/billControlGastos.vue";
-import listControlGastos from "../views/folderBilling/listControlGastos.vue";
-
-import ControlRequest from "../views/requests/controlRequest.vue";
-import ControlPaymentFile from "../views/requests/controlPaymentFile.vue";
-import debstopay from "../views/requests/reportDebstoPay.vue";
-import accountsreceivable from "../views/requests/accountsreceivable.vue";
-import checkDebs from "../views/requests/checkDebs.vue";
-import cashFlow from "../views/requests/cashFlow.vue";
-import controlAccountPays from "../views/folderModulesPays/moduleAccountPays.vue";
-import moduleAccountReceivable from "../views/folderModulesPays/moduleAccountReceivable.vue";
-import addAccountPays from "../views/folderModulesPays/controlAccountPays.vue";
-import viewAccountPays from "../views/folderModulesPays/controlAccountPaysView.vue";
-import viewAccountPaysCxC from "../views/folderModulesPays/controlAccountPaysCxCView.vue";
-import EditviewAccountPays from "../views/folderModulesPays/controlAccountPaysEdit.vue";
-import EditviewAccountPaysCxC from "../views/folderModulesPays/controlAccountPaysCxCEdit.vue";
-import regularizarProformace from "../views/folderModulesPays/regularizarProformace.vue";
-import controlAccountReceivable from "../views/folderModulesPays/controlAccountReceivable.vue";
-import listadoPagosPorProveedor from "../views/FolderBanks/listadoPagosPorProveedor.vue";
-import registroPayForProveedor from "../views/FolderBanks/registroPagoProveedor.vue";
-import verPagosPorProveedor from "../views/FolderBanks/verPagosPorProveedor.vue";
-import editarPagosPorProveedor from "../views/FolderBanks/editarPagosPorProveedor.vue";
-import editarPagosPorCliente from "../views/FolderBanks/editarPagosPorCliente.vue";
-import listadoPagosPorCliente from "../views/FolderBanks/listadoPagosPorCliente.vue";
-import registroPayForCliente from "../views/FolderBanks/registroPagoCliente.vue";
-import verPagosPorCliente from "../views/FolderBanks/verPagosPorCliente.vue";
-import litProgrammedPayment from "../views/programmedPayment/listProgrammedPayment.vue";
-import listFacturacion from "../views/folderBilling/listFacturacionView.vue";
 import planAccessGuard from "./planAccessGuard";
 import resetSessionOnLogin from "./resetSessionOnLogin";
 
@@ -50,7 +6,7 @@ const routes = [
   {
     path: "/",
     name: "Login",
-    component: Login,
+    component: () => import("../views/Login.vue"),
   },
   {
     path: "/registro_empresa",
@@ -88,7 +44,7 @@ const routes = [
   {
     path: "/home",
     meta: { requiresAuth: true },
-    component: Main,
+    component: () => import("../views/dashboard/Main.vue"),
     children: [
       {
         path: "",
@@ -98,7 +54,7 @@ const routes = [
       {
         path: "main",
         name: "Main",
-        component: Home,
+        component: () => import("../views/dashboard/Home.vue"),
       },
       {
         path: "main/configuracion_inicial",
@@ -110,7 +66,7 @@ const routes = [
       {
         path: "folderEntities/list/:id_role",
         name: "listEntitie",
-        component: LisEntities,
+        component: () => import("../views/folderEntities/listEntities.vue"),
       },
       {
         path: "folderEntities/listado-proveedores",
@@ -168,62 +124,62 @@ const routes = [
       {
         path: "folderEntities/control/:id_role",
         name: "controlEntitie",
-        component: controlEntities,
+        component: () => import("../views/folderEntities/controlEntities.vue"),
       },
       {
         path: "folderEntities/control/edit/:id",
         name: "controlEntitieEdit",
-        component: controlEntities,
+        component: () => import("../views/folderEntities/controlEntities.vue"),
       },
       {
         path: "folderMaster/list",
         name: "listMaster",
-        component: ListMaster,
+        component: () => import("../views/folderMaster/listMaster.vue"),
       },
       {
         path: "folderMaster/control",
         name: "controlMaster",
-        component: controlMaster,
+        component: () => import("../views/folderMaster/controlMaster.vue"),
       },
       {
         path: "folderMaster/control/editar/:id",
         name: "controlMasterEditar",
-        component: controlMaster,
+        component: () => import("../views/folderMaster/controlMaster.vue"),
       },
       {
         path: "folderMaster/control/ver/:id",
         name: "controlMasterVer",
-        component: controlMaster,
+        component: () => import("../views/folderMaster/controlMaster.vue"),
       },
       {
         path: "folderMaster/control/:id",
         name: "controlMasterId",
-        component: controlMaster,
+        component: () => import("../views/folderMaster/controlMaster.vue"),
       },
       {
         path: "folderMaster/control/:id/:params",
         name: "controlMasterParams",
-        component: controlMaster,
+        component: () => import("../views/folderMaster/controlMaster.vue"),
       },
       {
         path: "folderHouse/list",
         name: "listHouse",
-        component: ListHouse,
+        component: () => import("../views/folderHouse/listHouse.vue"),
       },
       {
         path: "folderHouse/control",
         name: "controlHouse",
-        component: controlHouse,
+        component: () => import("../views/folderHouse/controlHouse.vue"),
       },
       {
         path: "folderHouse/confAvisoLlegada",
         name: "confAvisoLlegada",
-        component: ConfiguracionAvisoLlegada,
+        component: () => import("../views/folderHouse/ConfiguracionAvisoLlegada.vue"),
       },
       {
         path: "folderHouse/control/editar/:id/:activar?",
         name: "controlHouseEditar",
-        component: controlHouse,
+        component: () => import("../views/folderHouse/controlHouse.vue"),
       },
       {
         path: "folderHouse/control/ver/:id",
@@ -233,32 +189,32 @@ const routes = [
       {
         path: "folderHouse/control/:id",
         name: "controlHouseId",
-        component: controlHouse,
+        component: () => import("../views/folderHouse/controlHouse.vue"),
       },
       {
         path: "folderReports/list",
         name: "reportsControlFile",
-        component: reportControlFile,
+        component: () => import("../views/folderReports/reportsControlFile.vue"),
       },
       {
         path: "folderReports/listDetails",
         name: "reportsControlFileDetails",
-        component: reportControlFileDetails,
+        component: () => import("../views/folderReports/reportsControlFileDetails.vue"),
       },
       {
         path: "folderBilling/billControlGastos/:id_house",
         name: "billControlGastos",
-        component: billingControlGastos,
+        component: () => import("../views/folderBilling/billControlGastos.vue"),
       },
       {
         path: "folderBilling/billControlGastos/view/:id_house/:id_control/:id_orders/:code",
         name: "billControlGastosControl",
-        component: billingControlGastos,
+        component: () => import("../views/folderBilling/billControlGastos.vue"),
       },
       {
         path: "folderBilling/listControlGastos",
         name: "listControlGastos",
-        component: listControlGastos,
+        component: () => import("../views/folderBilling/listControlGastos.vue"),
       },
       // {
       //   path: "folderBilling/editControlGastos/view/:code_master/:id_branch",
@@ -278,63 +234,63 @@ const routes = [
       {
         path: "folderRequest/controlRequest",
         name: "controlRequest",
-        component: ControlRequest,
+        component: () => import("../views/requests/controlRequest.vue"),
       },
       {
         path: "folderRequest/debstopay",
         name: "debstopay",
-        component: debstopay,
+        component: () => import("../views/requests/reportDebstoPay.vue"),
       },
       {
         path: "folderRequest/controlPaymentFile",
         name: "controlPaymentFile",
-        component: ControlPaymentFile,
+        component: () => import("../views/requests/controlPaymentFile.vue"),
       },
       {
         path: "folderRequest/accountsReceivable",
         name: "accountsreceivable",
-        component: accountsreceivable,
+        component: () => import("../views/requests/accountsreceivable.vue"),
       },
       {
         path: "folderRequest/checkDebs",
         name: "checkDebs",
-        component: checkDebs,
+        component: () => import("../views/requests/checkDebs.vue"),
       },
       {
         path: "folderRequest/cashflow",
         name: "cashFlow",
-        component: cashFlow,
+        component: () => import("../views/requests/cashFlow.vue"),
       },
       {
         path: "folderModulesPays/controlAccountPays",
         name: "controlAccountPays",
-        component: controlAccountPays,
+        component: () => import("../views/folderModulesPays/moduleAccountPays.vue"),
       },
       {
         path: "folderModulesPays/addmodulesAccountPays",
         name: "addAccountPays",
-        component: addAccountPays,
+        component: () => import("../views/folderModulesPays/controlAccountPays.vue"),
       },
 
       {
         path: "folderModulesPays/moduleAccountReceivable",
         name: "moduleAccountReceivable",
-        component: moduleAccountReceivable,
+        component: () => import("../views/folderModulesPays/moduleAccountReceivable.vue"),
       },
       {
         path: "folderModulesPays/regularizarProformace",
         name: "controlRegulizarPro",
-        component: regularizarProformace,
+        component: () => import("../views/folderModulesPays/regularizarProformace.vue"),
       },
       {
         path: "folderModulesPays/viewAccountPays/:id",
         name: "viewAccountPays",
-        component: viewAccountPays,
+        component: () => import("../views/folderModulesPays/controlAccountPaysView.vue"),
       },
       {
         path: "folderModulesPays/EditAccountPays/:id",
         name: "EditAccountPays",
-        component: EditviewAccountPays,
+        component: () => import("../views/folderModulesPays/controlAccountPaysEdit.vue"),
       },
       {
         path: "folderModulesPays/lstProyeccion",
@@ -362,67 +318,67 @@ const routes = [
       {
         path: "viewAccountPaysCxC/controlAccountReceivable",
         name: "controlAccountReceivable",
-        component: controlAccountReceivable,
+        component: () => import("../views/folderModulesPays/controlAccountReceivable.vue"),
       },
       {
         path: "viewAccountPaysCxC/:id",
         name: "viewAccountPaysCxC",
-        component: viewAccountPaysCxC,
+        component: () => import("../views/folderModulesPays/controlAccountPaysCxCView.vue"),
       },
       {
         path: "EditviewAccountPaysCxC/:id",
         name: "EditAccountPaysCxC",
-        component: EditviewAccountPaysCxC,
+        component: () => import("../views/folderModulesPays/controlAccountPaysCxCEdit.vue"),
       },
       {
         path: "FolderBanks/listadoPagosPorProveedor",
         name: "listBankCxP",
-        component: listadoPagosPorProveedor,
+        component: () => import("../views/FolderBanks/listadoPagosPorProveedor.vue"),
       },
       {
         path: "FolderBanks/registroPayForProveedor",
         name: "registroPayForProveedor",
-        component: registroPayForProveedor,
+        component: () => import("../views/FolderBanks/registroPagoProveedor.vue"),
       },
       {
         path: "FolderBanks/verPagosPorProveedor/:id",
         name: "verPagosPorProveedor",
-        component: verPagosPorProveedor,
+        component: () => import("../views/FolderBanks/verPagosPorProveedor.vue"),
       },
       {
         path: "FolderBanks/editarPagosPorProveedor/:id",
         name: "editarPagosPorProveedor",
-        component: editarPagosPorProveedor,
+        component: () => import("../views/FolderBanks/editarPagosPorProveedor.vue"),
       },
       {
         path: "FolderBanks/editarPagosPorCliente/:id",
         name: "editarPagosPorCliente",
-        component: editarPagosPorCliente,
+        component: () => import("../views/FolderBanks/editarPagosPorCliente.vue"),
       },
       {
         path: "FolderBanks/listadoPagosPorCliente",
         name: "listBankCxC",
-        component: listadoPagosPorCliente,
+        component: () => import("../views/FolderBanks/listadoPagosPorCliente.vue"),
       },
       {
         path: "FolderBanks/registroPayForCliente",
         name: "registroPayForCliente",
-        component: registroPayForCliente,
+        component: () => import("../views/FolderBanks/registroPagoCliente.vue"),
       },
       {
         path: "FolderBanks/verPagosPorCliente/:id",
         name: "verPagosPorCliente",
-        component: verPagosPorCliente,
+        component: () => import("../views/FolderBanks/verPagosPorCliente.vue"),
       },
       {
         path: "folderReports/listProgrammedPayment",
         name: "listProgrammedPayment",
-        component: litProgrammedPayment,
+        component: () => import("../views/programmedPayment/listProgrammedPayment.vue"),
       },
       {
         path: "folderBilling/lstFacturacion",
         name: "lstFacturacion",
-        component: listFacturacion,
+        component: () => import("../views/folderBilling/listFacturacionView.vue"),
       },
       {
         path: "folderConsolidation",
@@ -818,8 +774,11 @@ const routes = [
         path: "folterCalculadora/cotizacion/:id",
         name: "UserCalculadoraVer",
         component: () => import("../views/Calculadora/UserCalculadoraVer.vue"),
+        // @ts-expect-error duplicate keys of the unreachable UserCalculadoraVer route are kept as is
         path: "folderPlantillas/servicios_tarifas",
+        // @ts-expect-error duplicate keys of the unreachable UserCalculadoraVer route are kept as is
         name: "ServiciosTarifasPlantillas",
+        // @ts-expect-error duplicate keys of the unreachable UserCalculadoraVer route are kept as is
         component: () =>
           import("../views/FolderPlantillas/ServiciosTarifas.vue"),
       },
@@ -907,7 +866,7 @@ const router = createRouter({
   routes,
   scrollBehavior(to, from, savedPosition) {
     if (to.hash) return { el: to.hash, behavior: "smooth" };
-    if (savedPosition || !to.meta.scrollToTop) return savedPosition;
+    if (savedPosition || !to.meta.scrollToTop) return savedPosition ?? undefined;
     return { left: 0, top: 0 };
   },
 });

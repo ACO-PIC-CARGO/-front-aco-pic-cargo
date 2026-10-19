@@ -1,14 +1,18 @@
+import type { NavigationGuardReturn, RouteLocationNormalized } from "vue-router";
 import store from "@/store";
 
 const readMenu = () => {
   try {
-    return JSON.parse(sessionStorage.getItem("menu")) || [];
-  } catch (error) {
+    return JSON.parse(sessionStorage.getItem("menu") ?? "null") || [];
+  } catch {
     return [];
   }
 };
 
-export default async function planAccessGuard(to, from) {
+export default async function planAccessGuard(
+  to: RouteLocationNormalized,
+  from: RouteLocationNormalized,
+): Promise<NavigationGuardReturn> {
   const menu = readMenu();
   const modules = store.getters["subscriptions/modulesForRoute"](menu, to.name);
   if (to.name === "miPlan" || !modules.length) return;
@@ -19,7 +23,7 @@ export default async function planAccessGuard(to, from) {
 
   store.dispatch(
     "subscriptions/promptPlanUpgrade",
-    store.getters["subscriptions/lockedModuleNotice"](module.name)
+    store.getters["subscriptions/lockedModuleNotice"](module.name),
   );
   return from.name ? false : { name: "miPlan" };
 }
