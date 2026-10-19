@@ -29,6 +29,7 @@ export const useStatushouseStore = defineStore("statushouse", () => {
     await axios<ApiResponse<EstadoHouse[]>>(config)
       .then((response) => {
         const data = response.data;
+        // sessionStorage.setItem("auth-token", data.token);
         const list = data.estadoflag ? data.data : [];
         setListStatusHouse(list);
         if (!data.estadoflag) showRejectedResponse(data);
@@ -79,6 +80,7 @@ export const useStatushouseStore = defineStore("statushouse", () => {
   }
 
   async function GuardarStatus(data: EstadoHouse[]): Promise<void> {
+    // data.id_branch = JSON.parse(sessionStorage.getItem("dataUser"))[0].id_branch;
     const config = {
       method: "put",
       url: import.meta.env.VITE_URL_MAIN + `guardar_orden_status`,
