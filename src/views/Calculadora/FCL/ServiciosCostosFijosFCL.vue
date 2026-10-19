@@ -36,7 +36,7 @@
           <CostosCalculadora type="FCL" :id-modality="id_modality" />
         </v-tabs-window-item>
         <v-tabs-window-item value="profit">
-          <ProfitCalculadora type="FCL" :id_modality="id_modality" />
+          <ProfitCalculadora type="FCL" :id-modality="id_modality" />
         </v-tabs-window-item>
         <v-tabs-window-item value="flete">
           <FleteComponent type="FCL" :id_modality="id_modality" />
@@ -45,7 +45,7 @@
           <FleteGrupal type="FCL" :id_modality="id_modality" />
         </v-tabs-window-item>
         <v-tabs-window-item value="Transporte">
-          <TransporteCalculadora type="FCL" :id_modality="id_modality" />
+          <TransporteCalculadora type="FCL" :id-modality="id_modality" />
         </v-tabs-window-item>
       </v-tabs-window>
     </v-container>

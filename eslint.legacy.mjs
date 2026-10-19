@@ -1,10 +1,6 @@
 export const LEGACY = [
   "src/api/axios-config.js",
-  "src/components/Calculadora/ConfiguracionOpcionCalculadoraComponent.vue",
   "src/components/Calculadora/FleteComponent.vue",
-  "src/components/Calculadora/FleteGrupal.vue",
-  "src/components/Calculadora/ProfitCalculadora.vue",
-  "src/components/Calculadora/TransporteCalculadora.vue",
   "src/components/Calculadora/listUserCalcComponent.vue",
   "src/components/Calculadora/previewQuote.vue",
   "src/components/HelloWorld.vue",
@@ -198,7 +194,6 @@ export const LEGACY = [
   "src/views/Aduana/NewQuote.vue",
   "src/views/Aduana/VerAduana.vue",
   "src/views/Calculadora/AEREO/ServiciosCostosFijosAereo.vue",
-  "src/views/Calculadora/ConfiguracionOpcionCalculadora.vue",
   "src/views/Calculadora/FCL/ServiciosCostosFijosFCL.vue",
   "src/views/Calculadora/LCL/ServiciosCostosFijosLCL.vue",
   "src/views/Calculadora/ListUserCalc.vue",

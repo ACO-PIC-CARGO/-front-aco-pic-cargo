@@ -1,3 +1,269 @@
+<script setup lang="ts">
+import { computed, onMounted, ref, useTemplateRef, watch } from "vue";
+import { useStore } from "vuex";
+import { readSheet as readXlsFile } from "read-excel-file/browser";
+import Swal from "sweetalert2";
+import { useCalculadorasStore } from "@/stores/calculadoras";
+import type { OpcionCalculadora, TransporteCalculadora } from "@/types/calculadora";
+
+const props = withDefaults(defineProps<{ type?: string; idModality?: number }>(), {
+  type: "type",
+  idModality: 1,
+});
+
+const calculadorasStore = useCalculadorasStore();
+const rootStore = useStore();
+
+const id_state = null;
+const dialogEditar = ref(false);
+const loading = ref(false);
+const headers = [
+  { key: "index", title: "#" },
+  { key: "peso_desde", title: "Peso Desde" },
+  { key: "peso_hasta", title: "Peso Hasta" },
+  { key: "provinciacbo", title: "Provincia Sistema" },
+  { key: "provincia", title: "Provincia Excel" },
+  { key: "distritocbo", title: "Distrito Sistema" },
+  { key: "distrito", title: "Distrito Excel" },
+  { key: "tarifamonlocal", title: "Tarifa Soles" },
+  { key: "tarifadolar", title: "Tarifa En Dolares" },
+];
+
+const headersListado = [
+  { key: "peso_desde", title: "Peso Desde" },
+  { key: "peso_hasta", title: "Peso Hasta" },
+  { key: "provincia", title: "Provincia" },
+  { key: "distrito", title: "Distrito" },
+  { key: "tarifamonlocal", title: "Tarifa Soles" },
+  { key: "tipocambio", title: "Tipo Cambio" },
+  { key: "tarifadolar", title: "Tarifa En Dolares" },
+  { key: "action" },
+];
+const procesando = false;
+const excel = ref<File | null>(null);
+const tipocambio = ref<number | string>(3.4);
+const tabTransporte = ref("datosactuales");
+const datosExcel = ref<TransporteCalculadora[]>([]);
+const transporte = ref<TransporteCalculadora>({});
+const subir = ref(false);
+const frmEditar = useTemplateRef("frmEditar");
+const frmDatos = useTemplateRef("frmDatos");
+
+const opcionCalculadora = computed({
+  get() {
+    return calculadorasStore.opcionCalculadora;
+  },
+  set(value) {
+    calculadorasStore.setOpcion(value); // o una mutation/action de Vuex
+  },
+});
+const obtenerValoresTransportePorOpcion = computed(() => {
+  return calculadorasStore.lstTransporte.filter(
+    (v) => v.opcion == opcionCalculadora.value,
+  );
+});
+const opciones = computed({
+  get() {
+    return calculadorasStore.opciones;
+  },
+  set(value: OpcionCalculadora[]) {
+    // @ts-expect-error Kept: the old setter passed the option list as the selected option
+    calculadorasStore.setOpcion(value); // o una mutation/action de Vuex
+  },
+});
+const procesarflag = computed(() => {
+  if (!excel.value) return false;
+  return true;
+});
+
+watch(opcionCalculadora, () => {
+  datosExcel.value = [];
+  excel.value = null;
+});
+watch(
+  () => transporte.value.tipocambio,
+  () => {
+    if ((transporte.value.tipocambio as number) > 0) {
+      transporte.value.tarifadolar = parseFloat(
+        String((transporte.value.tarifamonlocal as number) / (transporte.value.tipocambio as number)),
+      ).toFixed(2);
+    }
+  },
+);
+watch(
+  () => transporte.value.tarifamonlocal,
+  () => {
+    if ((transporte.value.tipocambio as number) > 0) {
+      transporte.value.tarifadolar = parseFloat(
+        String((transporte.value.tarifamonlocal as number) / (transporte.value.tipocambio as number)),
+      ).toFixed(2);
+    }
+  },
+);
+
+onMounted(async () => {
+  Promise.all([cargarDistritos(), calculadorasStore.getCiudad({})]);
+});
+
+function editar(item: TransporteCalculadora) {
+  transporte.value = { ...item };
+  dialogEditar.value = true;
+}
+
+function abrirModalNuevo() {
+  transporte.value = {
+    id: null,
+    peso_desde: null,
+    peso_hasta: null,
+    id_provincia: null,
+    id_distrito: null,
+    tarifadolar: null,
+    tarifamonlocal: null,
+    opcion: calculadorasStore.opcionCalculadora,
+    shimpent: props.type,
+    tipocambio: 1,
+    id_modality: props.idModality,
+  };
+  dialogEditar.value = true;
+  setTimeout(() => {
+    frmEditar.value!.resetValidation();
+  }, 100);
+}
+async function guardarRegistro() {
+  console.log("frmEditar", frmEditar.value);
+  if ((await frmEditar.value!.validate()).valid) {
+    await calculadorasStore.RegistroTransporte(transporte.value);
+    await calculadorasStore.getTransporte({
+      shimpent: props.type,
+      id_modality: props.idModality,
+    });
+    dialogEditar.value = false;
+  }
+}
+async function actualizarRegistro() {
+  // @ts-expect-error Kept: tests that validate exists instead of calling it
+  if (frmEditar.value!.validate) {
+    await calculadorasStore.ActualizarTransporte(transporte.value);
+    await calculadorasStore.getTransporte({
+      shimpent: props.type,
+      id_modality: props.idModality,
+    });
+    dialogEditar.value = false;
+  }
+}
+function borrar(item: TransporteCalculadora) {
+  Swal.fire({
+    icon: "question",
+    title: "Eliminar",
+    text: "Está seguro que desea eliminar el registro",
+    allowEnterKey: false,
+    allowEscapeKey: false,
+    allowOutsideClick: false,
+    confirmButtonText: "Si, Eliminar",
+    denyButtonText: "Cancelar",
+    showDenyButton: true,
+    showCloseButton: true,
+  }).then(async (res) => {
+    if (res.isConfirmed) {
+      await calculadorasStore.EliminarTransporte(item);
+      await calculadorasStore.getTransporte({
+        shimpent: props.type,
+        id_modality: props.idModality,
+      });
+    }
+  });
+}
+async function cargarDistritos() {
+  loading.value = true;
+  await calculadorasStore.getDistritos({
+    id_state: id_state,
+  });
+  loading.value = false;
+}
+async function procesarExcel() {
+  const file = document.getElementById("excel") as HTMLInputElement;
+  const datos: TransporteCalculadora[] = [];
+  datosExcel.value = [];
+
+  await readXlsFile(file.files![0]!).then((rows) => {
+    for (let index = 0; index < rows.length; index++) {
+      if (index > 1) {
+        datos.push({
+          peso_desde: rows[index]![0] as number,
+          peso_hasta: rows[index]![1] as number,
+          provincia: rows[index]![2] as string,
+          // puerto_destino: rows[index][3],
+          distrito: rows[index]![4] as string,
+          tarifadolar: parseFloat(String((rows[index]![5] as number) / (tipocambio.value as number))).toFixed(
+            2,
+          ),
+          tarifamonlocal: rows[index]![5] as number,
+          opcion: calculadorasStore.opcionCalculadora,
+        });
+      }
+    }
+  });
+  rootStore.state.spiner = true;
+  datosExcel.value = await calculadorasStore.validarTransporte({ datovalidar: datos });
+  rootStore.state.spiner = false;
+}
+
+async function registrarDatos() {
+  // 1. Primero validamos el formulario para evitar cálculos si hay errores
+  if (!(await frmDatos.value!.validate()).valid) {
+    Swal.fire({
+      icon: "error",
+      title: "Verificar",
+      text: "Faltan Datos por Rellenar. Verifique",
+    });
+    return; // Detenemos la ejecución aquí
+  }
+
+  rootStore.state.spiner = true;
+
+  try {
+    // 2. Definimos de qué tamaño serán los lotes (ej. 500 registros por petición)
+    const tamañoLote = 100; // Ajusta este número según la capacidad de tu backend
+    const peticionesPromesas = [];
+
+    // 3. Rompemos this.datosExcel en lotes más pequeños
+    for (let i = 0; i < datosExcel.value.length; i += tamañoLote) {
+      const lote = datosExcel.value.slice(i, i + tamañoLote);
+
+      const dataLote = {
+        shimpent: "LCL",
+        id_modality: props.idModality,
+        datos: lote, // Enviamos solo la porción del array
+      };
+
+      // 4. En lugar de hacer await aquí, empujamos la promesa al array
+      peticionesPromesas.push(calculadorasStore.setGuardarTransporte(dataLote));
+    }
+
+    // 5. Ejecutamos todas las peticiones en paralelo
+    await Promise.all(peticionesPromesas);
+
+    // 6. Una vez que TODAS las peticiones terminaron, actualizamos la tabla principal
+    await calculadorasStore.getTransporte({
+      shimpent: props.type,
+      id_modality: props.idModality, // Nota: agregué 'this.' que faltaba en tu código original
+    });
+
+    tabTransporte.value = "datosactuales";
+  } catch (error) {
+    console.error("Error procesando el lote de datos:", error);
+    Swal.fire({
+      icon: "error",
+      title: "Error de Servidor",
+      text: "Ocurrió un error al guardar los registros. Revisa la consola.",
+    });
+  } finally {
+    // 7. Apagamos el spinner sin importar si hubo éxito o error
+    rootStore.state.spiner = false;
+  }
+}
+</script>
+
 <template>
   <v-container>
     <v-col cols="12">
@@ -15,32 +281,60 @@
       </center>
     </v-col>
     <v-row class="mt-2">
-      <v-col cols="12" class="py-0">
-        <v-divider></v-divider>
+      <v-col
+        cols="12"
+        class="py-0"
+      >
+        <v-divider />
       </v-col>
       <v-col cols="12">
-        <v-tabs v-model="tabTransporte" align-tabs="center" slider-color="yellow">
-          <v-tab value="datosactuales">Datos Actuales</v-tab>
-          <v-tab value="cargamasiva">Carga Masiva</v-tab>
+        <v-tabs
+          v-model="tabTransporte"
+          align-tabs="center"
+          slider-color="yellow"
+        >
+          <v-tab value="datosactuales">
+            Datos Actuales
+          </v-tab>
+          <v-tab value="cargamasiva">
+            Carga Masiva
+          </v-tab>
         </v-tabs>
         <v-tabs-window v-model="tabTransporte">
           <v-tabs-window-item value="datosactuales">
             <v-row>
-              <v-col cols="12" class="d-flex justify-end">
-                <v-btn color="success" size="small" @click="abrirModalNuevo"
-                  >Nuevo Registro</v-btn
+              <v-col
+                cols="12"
+                class="d-flex justify-end"
+              >
+                <v-btn
+                  color="success"
+                  size="small"
+                  @click="abrirModalNuevo"
                 >
+                  Nuevo Registro
+                </v-btn>
               </v-col>
               <v-col cols="12">
                 <v-data-table
                   :headers="headersListado"
                   :items="obtenerValoresTransportePorOpcion"
                 >
-                  <template v-slot:[`item.action`]="{ item }">
-                    <v-btn variant="text" color="#E65100" icon @click="editar(item)">
+                  <template #[`item.action`]="{ item }">
+                    <v-btn
+                      variant="text"
+                      color="#E65100"
+                      icon
+                      @click="editar(item)"
+                    >
                       <v-icon>mdi-pencil</v-icon>
                     </v-btn>
-                    <v-btn variant="text" color="#D50000" icon @click="borrar(item)">
+                    <v-btn
+                      variant="text"
+                      color="#D50000"
+                      icon
+                      @click="borrar(item)"
+                    >
                       <v-icon>mdi-delete</v-icon>
                     </v-btn>
                   </template>
@@ -50,7 +344,11 @@
           </v-tabs-window-item>
           <v-tabs-window-item value="cargamasiva">
             <v-row class="my-2">
-              <v-col cols="12" md="2" style="text-align: right">
+              <v-col
+                cols="12"
+                md="2"
+                style="text-align: right"
+              >
                 <v-text-field
                   type="number"
                   label="Tipo Cambio"
@@ -58,9 +356,13 @@
                   density="compact"
                   variant="outlined"
                   v-model="tipocambio"
-                ></v-text-field>
+                />
               </v-col>
-              <v-col cols="12" md="4" style="text-align: right">
+              <v-col
+                cols="12"
+                md="4"
+                style="text-align: right"
+              >
                 <v-file-input
                   variant="outlined"
                   show-size
@@ -73,9 +375,13 @@
                   @click:clear="subir = false"
                   @update:model-value="subir = false"
                   @click="subir = false"
-                ></v-file-input>
+                />
               </v-col>
-              <v-col cols="12" md="6" style="text-align: right">
+              <v-col
+                cols="12"
+                md="6"
+                style="text-align: right"
+              >
                 <v-btn
                   color="warning"
                   @click="procesarExcel()"
@@ -92,8 +398,9 @@
                   size="small"
                   @click="registrarDatos"
                   :disabled="!datosExcel.length"
-                  >Guardar</v-btn
                 >
+                  Guardar
+                </v-btn>
               </v-col>
               <v-col cols="12">
                 <v-form ref="frmDatos">
@@ -108,10 +415,10 @@
                     "
                     density="compact"
                   >
-                    <template v-slot:[`item.index`]="{ item }">
+                    <template #[`item.index`]="{ item }">
                       {{ item.index }}
                     </template>
-                    <template v-slot:[`item.provinciacbo`]="{ item }">
+                    <template #[`item.provinciacbo`]="{ item }">
                       <v-autocomplete
                         :items="calculadorasStore.lstCiudades"
                         v-model="item.id_provincia"
@@ -121,7 +428,7 @@
                         :rules="[(v) => !!v || 'Datos requeridos']"
                       />
                     </template>
-                    <template v-slot:[`item.distritocbo`]="{ item }">
+                    <template #[`item.distritocbo`]="{ item }">
                       <v-autocomplete
                         :items="
                           calculadorasStore.lstDistritos.filter(
@@ -143,7 +450,11 @@
         </v-tabs-window>
       </v-col>
     </v-row>
-    <v-dialog v-model="dialogEditar" persistent max-width="30%">
+    <v-dialog
+      v-model="dialogEditar"
+      persistent
+      max-width="30%"
+    >
       <v-card>
         <v-card-title>
           {{ transporte.id ? "Editar Transporte" : "Nuevo Registro" }}
@@ -156,14 +467,14 @@
               type="number"
               step="0.01"
               :rules="[(v) => v === 0 || !!v || 'Dato Requerido']"
-            ></v-text-field>
+            />
             <v-text-field
               label="Peso Hasta"
               v-model="transporte.peso_hasta"
               type="number"
               step="0.01"
               :rules="[(v) => v === 0 || !!v || 'Dato Requerido']"
-            ></v-text-field>
+            />
 
             <v-autocomplete
               :items="calculadorasStore.lstCiudades"
@@ -173,7 +484,7 @@
               item-title="name"
               v-model="transporte.id_provincia"
               :rules="[(v) => !!v || 'Dato Requerido']"
-            ></v-autocomplete>
+            />
 
             <v-autocomplete
               :items="
@@ -188,7 +499,7 @@
               :loading="loading"
               v-model="transporte.id_distrito"
               :rules="[(v) => !!v || 'Dato Requerido']"
-            ></v-autocomplete>
+            />
 
             <v-text-field
               v-model="transporte.tarifamonlocal"
@@ -196,7 +507,7 @@
               type="number"
               step="0.001"
               :rules="[(v) => (!!v && v > 0) || 'Dato Requerido']"
-            ></v-text-field>
+            />
 
             <v-text-field
               v-model="transporte.tipocambio"
@@ -204,7 +515,7 @@
               type="number"
               step="0.001"
               :rules="[(v) => (!!v && v > 0) || 'Dato Requerido']"
-            ></v-text-field>
+            />
 
             <v-text-field
               v-model="transporte.tarifadolar"
@@ -212,11 +523,11 @@
               type="number"
               step="0.001"
               :rules="[(v) => (!!v && v > 0) || 'Dato Requerido']"
-            ></v-text-field>
+            />
           </v-form>
         </v-card-text>
         <v-card-actions>
-          <v-spacer></v-spacer>
+          <v-spacer />
           <v-btn
             color="success"
             v-if="!transporte.id"
@@ -233,282 +544,15 @@
           >
             Actualizar
           </v-btn>
-          <v-btn color="error" size="small" @click="dialogEditar = false"
-            >Cerrar</v-btn
+          <v-btn
+            color="error"
+            size="small"
+            @click="dialogEditar = false"
           >
+            Cerrar
+          </v-btn>
         </v-card-actions>
       </v-card>
     </v-dialog>
   </v-container>
 </template>
-
-<script>
-import { mapActions } from "vuex";
-import { readSheet as readXlsFile } from "read-excel-file/browser";
-import Swal from "sweetalert2";
-import { mapActions as mapPiniaActions, mapStores } from "pinia";
-import { useCalculadorasStore } from "@/stores/calculadoras";
-export default {
-  props: {
-    type: {
-      default: "type",
-      type: String,
-    },
-    id_modality: {
-      default: 1,
-      type: Number,
-    },
-  },
-  data() {
-    return {
-      id_state: null,
-      monto: 0,
-      dialogEditar: false,
-      loading: false,
-      items: [],
-      id_town: 0,
-      headers: [
-        { key: "index", title: "#" },
-        { key: "peso_desde", title: "Peso Desde" },
-        { key: "peso_hasta", title: "Peso Hasta" },
-        { key: "provinciacbo", title: "Provincia Sistema" },
-        { key: "provincia", title: "Provincia Excel" },
-        { key: "distritocbo", title: "Distrito Sistema" },
-        { key: "distrito", title: "Distrito Excel" },
-        { key: "tarifamonlocal", title: "Tarifa Soles" },
-        { key: "tarifadolar", title: "Tarifa En Dolares" },
-      ],
-
-      headersListado: [
-        { key: "peso_desde", title: "Peso Desde" },
-        { key: "peso_hasta", title: "Peso Hasta" },
-        { key: "provincia", title: "Provincia" },
-        { key: "distrito", title: "Distrito" },
-        { key: "tarifamonlocal", title: "Tarifa Soles" },
-        { key: "tipocambio", title: "Tipo Cambio" },
-        { key: "tarifadolar", title: "Tarifa En Dolares" },
-        { key: "action" },
-      ],
-      procesando: false,
-      excel: null,
-      tipocambio: 3.4,
-      tabTransporte: "datosactuales",
-      datosExcel: [],
-      transporte: {},
-    };
-  },
-  async mounted() {
-    Promise.all([this.cargarDistritos({}), this.getCiudad({})]);
-  },
-  methods: {
-    ...mapActions([
-      "getTransporteGuardar",
-    ]),
-    ...mapPiniaActions(useCalculadorasStore, ["getDistritos", "getProfitList", "validarTransporte", "getCiudad", "setGuardarTransporte", "EliminarTransporte", "getTransporte", "ActualizarTransporte", "RegistroTransporte"]),
-    editar(item) {
-      this.transporte = { ...item };
-      this.dialogEditar = true;
-    },
-
-    abrirModalNuevo() {
-      this.transporte = {
-        id: null,
-        peso_desde: null,
-        peso_hasta: null,
-        id_provincia: null,
-        id_distrito: null,
-        tarifadolar: null,
-        tarifamonlocal: null,
-        opcion: this.calculadorasStore.opcionCalculadora,
-        shimpent: this.type,
-        tipocambio: 1,
-        id_modality: this.id_modality,
-      };
-      this.dialogEditar = true;
-      setTimeout(() => {
-        this.$refs.frmEditar.resetValidation();
-      }, 100);
-    },
-    async guardarRegistro() {
-      console.log("frmEditar", this.$refs.frmEditar);
-      if ((await this.$refs.frmEditar.validate()).valid) {
-        await this.RegistroTransporte(this.transporte);
-        await this.getTransporte({
-          shimpent: this.type,
-          id_modality: this.id_modality,
-        });
-        this.dialogEditar = false;
-      }
-    },
-    async actualizarRegistro() {
-      if (this.$refs.frmEditar.validate) {
-        await this.ActualizarTransporte(this.transporte);
-        await this.getTransporte({
-          shimpent: this.type,
-          id_modality: this.id_modality,
-        });
-        this.dialogEditar = false;
-      }
-    },
-    borrar(item) {
-      Swal.fire({
-        icon: "question",
-        title: "Eliminar",
-        text: "Está seguro que desea eliminar el registro",
-        allowEnterKey: false,
-        allowEscapeKey: false,
-        allowOutsideClick: false,
-        confirmButtonText: "Si, Eliminar",
-        denyButtonText: "Cancelar",
-        showDenyButton: true,
-        showCloseButton: true,
-      }).then(async (res) => {
-        if (res.isConfirmed) {
-          await this.EliminarTransporte(item);
-          await this.getTransporte({
-            shimpent: this.type,
-            id_modality: this.id_modality,
-          });
-        }
-      });
-    },
-    async cargarDistritos() {
-      this.loading = true;
-      await this.getDistritos({
-        id_state: this.id_state,
-      });
-      this.loading = false;
-    },
-    async procesarExcel() {
-      const file = document.getElementById("excel");
-      let datos = [];
-      this.datosExcel = [];
-
-      await readXlsFile(file.files[0]).then((rows) => {
-        for (let index = 0; index < rows.length; index++) {
-          if (index > 1) {
-            datos.push({
-              peso_desde: rows[index][0],
-              peso_hasta: rows[index][1],
-              provincia: rows[index][2],
-              // puerto_destino: rows[index][3],
-              distrito: rows[index][4],
-              tarifadolar: parseFloat(rows[index][5] / this.tipocambio).toFixed(
-                2,
-              ),
-              tarifamonlocal: rows[index][5],
-              opcion: this.calculadorasStore.opcionCalculadora,
-            });
-          }
-        }
-      });
-      this.$store.state.spiner = true;
-      this.datosExcel = await this.validarTransporte({ datovalidar: datos });
-      this.$store.state.spiner = false;
-    },
-
-    async registrarDatos() {
-      // 1. Primero validamos el formulario para evitar cálculos si hay errores
-      if (!(await this.$refs.frmDatos.validate()).valid) {
-        Swal.fire({
-          icon: "error",
-          title: "Verificar",
-          text: "Faltan Datos por Rellenar. Verifique",
-        });
-        return; // Detenemos la ejecución aquí
-      }
-
-      this.$store.state.spiner = true;
-
-      try {
-        // 2. Definimos de qué tamaño serán los lotes (ej. 500 registros por petición)
-        const tamañoLote = 100; // Ajusta este número según la capacidad de tu backend
-        const peticionesPromesas = [];
-
-        // 3. Rompemos this.datosExcel en lotes más pequeños
-        for (let i = 0; i < this.datosExcel.length; i += tamañoLote) {
-          const lote = this.datosExcel.slice(i, i + tamañoLote);
-
-          const dataLote = {
-            shimpent: "LCL",
-            id_modality: this.id_modality,
-            datos: lote, // Enviamos solo la porción del array
-          };
-
-          // 4. En lugar de hacer await aquí, empujamos la promesa al array
-          peticionesPromesas.push(this.setGuardarTransporte(dataLote));
-        }
-
-        // 5. Ejecutamos todas las peticiones en paralelo
-        await Promise.all(peticionesPromesas);
-
-        // 6. Una vez que TODAS las peticiones terminaron, actualizamos la tabla principal
-        await this.getTransporte({
-          shimpent: this.type,
-          id_modality: this.id_modality, // Nota: agregué 'this.' que faltaba en tu código original
-        });
-
-        this.tabTransporte = "datosactuales";
-      } catch (error) {
-        console.error("Error procesando el lote de datos:", error);
-        Swal.fire({
-          icon: "error",
-          title: "Error de Servidor",
-          text: "Ocurrió un error al guardar los registros. Revisa la consola.",
-        });
-      } finally {
-        // 7. Apagamos el spinner sin importar si hubo éxito o error
-        this.$store.state.spiner = false;
-      }
-    },
-  },
-  computed: {
-    ...mapStores(useCalculadorasStore),
-    opcionCalculadora: {
-      get() {
-        return this.calculadorasStore.opcionCalculadora;
-      },
-      set(value) {
-        this.calculadorasStore.setOpcion(value); // o una mutation/action de Vuex
-      },
-    },
-    obtenerValoresTransportePorOpcion() {
-      return this.calculadorasStore.lstTransporte.filter(
-        (v) => v.opcion == this.opcionCalculadora,
-      );
-    },
-    opciones: {
-      get() {
-        return this.calculadorasStore.opciones;
-      },
-      set(value) {
-        this.calculadorasStore.setOpcion(value); // o una mutation/action de Vuex
-      },
-    },
-    procesarflag() {
-      if (!this.excel) return false;
-      return true;
-    },
-  },
-  watch: {
-    opcionCalculadora() {
-      this.datosExcel = [];
-      this.excel = null;
-    },
-    "transporte.tipocambio"() {
-      if (this.transporte.tipocambio > 0) {
-        this.transporte.tarifadolar = parseFloat(
-          this.transporte.tarifamonlocal / this.transporte.tipocambio,
-        ).toFixed(2);
-      }
-    },
-    "transporte.tarifamonlocal"() {
-      if (this.transporte.tipocambio > 0) {
-        this.transporte.tarifadolar = parseFloat(
-          this.transporte.tarifamonlocal / this.transporte.tipocambio,
-        ).toFixed(2);
-      }
-    },
-  },
-};
-</script>

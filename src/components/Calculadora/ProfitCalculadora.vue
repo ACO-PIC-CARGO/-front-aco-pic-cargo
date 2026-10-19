@@ -1,3 +1,196 @@
+<script setup lang="ts">
+import { computed, nextTick, ref, useTemplateRef } from "vue";
+import Swal from "sweetalert2";
+import { useCalculadorasStore } from "@/stores/calculadoras";
+import type { FormProfitCalculadora, OpcionCalculadora, ProfitCalculadoraFila } from "@/types/calculadora";
+import type { Numerico } from "@/types/cotizacion";
+
+const props = withDefaults(defineProps<{ type?: string; idModality?: number }>(), {
+  type: "type",
+  idModality: 1,
+});
+
+const calculadorasStore = useCalculadorasStore();
+
+const dialogNuevoProfit = ref(false);
+const headers = [
+  { key: "profit", title: "PROFIT" },
+  { key: "pesomin", title: "PESO MÍNIMO" },
+  { key: "pesomax", title: "PESO MÁXIMO" },
+  { key: "volumenmin", title: "VOLUMEN MÍNIMO" },
+  { key: "volumenmax", title: "VOLUMEN MÁXIMO" },
+  { key: "valormin", title: "VALOR DE CARGA MÍNIMO" },
+  { key: "valormax", title: "VALOR DE CARGA MÁXIMO" },
+  { key: "estado", title: "Estado" },
+  { key: "metromcad", title: "M³ Adicional" },
+  { key: "action", title: "" },
+];
+const id = ref<string | null | undefined>(null);
+const profit = ref<Numerico>(null);
+const pesomin = ref<Numerico>(0);
+const pesominflag = ref(true);
+const pesomax = ref<Numerico>(0);
+const pesomaxflag = ref(true);
+const volumenmin = ref<Numerico>(0);
+const volumenminflag = ref(true);
+const volumenmax = ref<Numerico>(0);
+const volumenmaxflag = ref(true);
+const valormin = ref<Numerico>(0);
+const valorminflag = ref(true);
+const valormax = ref<Numerico>(0);
+const valormaxflag = ref(true);
+const metromcad = ref<Numerico>(0);
+const metromcadflag = ref(true);
+const nuevoflag = ref(true);
+const editarflag = ref(false);
+// Undeclared in the old data(): plain, non-reactive fields.
+let peso: unknown;
+let volumen: unknown;
+let valor: unknown;
+let metromc: unknown;
+const frmNuevo = useTemplateRef("frmNuevo");
+
+const opcionCalculadora = computed({
+  get() {
+    return calculadorasStore.opcionCalculadora;
+  },
+  set(value) {
+    calculadorasStore.setOpcion(value); // o una mutation/action de Vuex
+  },
+});
+const obtenerValoresProfitPorOpcion = computed(() => {
+  return calculadorasStore.lstProfit.filter(
+    (v) => v.opcion == opcionCalculadora.value
+  );
+});
+const opciones = computed({
+  get() {
+    return calculadorasStore.opciones;
+  },
+  set(value: OpcionCalculadora[]) {
+    // @ts-expect-error Kept: the old setter passed the option list as the selected option
+    calculadorasStore.setOpcion(value); // o una mutation/action de Vuex
+  },
+});
+
+async function guardarProfit() {
+  if ((await frmNuevo.value!.validate()).valid) {
+    const data: FormProfitCalculadora = {
+      id_modality: props.idModality,
+      shimpent: props.type,
+      opcion: calculadorasStore.opcionCalculadora,
+      profit: profit.value,
+      pesomin: pesomin.value,
+      pesomax: pesomax.value,
+      volumenmin: volumenmin.value,
+      volumenmax: volumenmax.value,
+      valormin: valormin.value,
+      valormax: valormax.value,
+      metromcad: metromcad.value,
+    };
+    await calculadorasStore.postGuardarProfit(data);
+    dialogNuevoProfit.value = false;
+    await calculadorasStore.getProfitList(data);
+  }
+}
+function activarPesoMax() {
+  if (profit.value) {
+    // this.pesomin = 0.5;
+    pesominflag.value = false;
+    pesomaxflag.value = false;
+  } else {
+    frmNuevo.value!.reset();
+    pesominflag.value = true;
+    pesomaxflag.value = true;
+  }
+}
+function activarVolumenMax() {
+  if (pesomin.value && pesomax.value) {
+    volumenminflag.value = false;
+    volumenmaxflag.value = false;
+  }
+}
+function activarValorMercanciaMax() {
+  if (volumenmin.value && volumenmax.value) {
+    valorminflag.value = false;
+    valormaxflag.value = false;
+  }
+}
+function activarMetroCCAdiconal() {
+  metromcadflag.value = false;
+}
+function borrarProfit(item: ProfitCalculadoraFila) {
+  const data: FormProfitCalculadora = {
+    id_modality: props.idModality,
+    shimpent: props.type,
+    profit: profit.value,
+    peso: peso,
+    volumen: volumen,
+    valor: valor,
+    opcion: calculadorasStore.opcionCalculadora,
+    metromc: metromc,
+    metromcad: metromcad.value,
+  };
+  Swal.fire({
+    icon: "question",
+    title: "Anular Profit?",
+    text: "Desea anular el profit",
+    confirmButtonText: "Si, eliminar",
+    denyButtonText: "Cancelar",
+    showDenyButton: true,
+    allowOutsideClick: false,
+    allowEscapeKey: false,
+  }).then(async (res) => {
+    if (res.isConfirmed) {
+      await calculadorasStore.eliminarGuardarProfit(item);
+      await calculadorasStore.getProfitList(data);
+    }
+  });
+}
+async function actualizarProfit() {
+  if ((await frmNuevo.value!.validate()).valid) {
+    const data: FormProfitCalculadora = {
+      id: id.value,
+      id_modality: props.idModality,
+      shimpent: props.type,
+      profit: profit.value,
+      peso: peso,
+      volumen: volumen,
+      valor: valor,
+      opcion: calculadorasStore.opcionCalculadora,
+      metromc: metromc,
+      metromcad: metromcad.value,
+    };
+    await calculadorasStore.actualizarGuardarProfit(data);
+    dialogNuevoProfit.value = false;
+    await calculadorasStore.getProfitList(data);
+  }
+}
+function abrirModal() {
+  dialogNuevoProfit.value = true;
+  nuevoflag.value = true;
+  editarflag.value = false;
+  nextTick(() => {
+    frmNuevo.value!.reset();
+  });
+}
+function abrirModalEditar(profitRow: ProfitCalculadoraFila) {
+  dialogNuevoProfit.value = true;
+  nuevoflag.value = false;
+  editarflag.value = true;
+  nextTick(() => {
+    // this.$refs.frmNuevo.reset();
+    id.value = profitRow.id;
+    profit.value = profitRow.profit;
+    peso = profitRow.peso;
+    volumen = profitRow.volumen;
+    valor = profitRow.valor;
+    metromc = profitRow.metromc;
+    metromcad.value = profitRow.metromcad;
+  });
+}
+</script>
+
 <template>
   <v-container>
     <v-row>
@@ -16,15 +209,25 @@
         </center>
       </v-col>
       <v-col cols="12">
-        <v-btn color="success" size="small" @click="abrirModal">Nuevo</v-btn>
+        <v-btn
+          color="success"
+          size="small"
+          @click="abrirModal"
+        >
+          Nuevo
+        </v-btn>
       </v-col>
       <v-col cols="12">
-        <v-data-table :headers="headers" :items="obtenerValoresProfitPorOpcion">
-          <template v-slot:[`item.estado`]="{ item }">
+        <v-data-table
+          :headers="headers"
+          :items="obtenerValoresProfitPorOpcion"
+        >
+          <template #[`item.estado`]="{ item }">
             {{ item.estado ? "Activo" : "Anulado" }}
           </template>
-          <template v-slot:[`item.action`]="{ item }">
-            <v-btn variant="text"
+          <template #[`item.action`]="{ item }">
+            <v-btn
+              variant="text"
               color="warning"
               v-if="item.estado"
               icon
@@ -32,7 +235,8 @@
             >
               <v-icon>mdi-pencil</v-icon>
             </v-btn>
-            <v-btn variant="text"
+            <v-btn
+              variant="text"
               color="error"
               v-if="item.estado"
               icon
@@ -44,14 +248,26 @@
         </v-data-table>
       </v-col>
     </v-row>
-    <v-dialog v-model="dialogNuevoProfit" scrollable persistent max-width="30%">
+    <v-dialog
+      v-model="dialogNuevoProfit"
+      scrollable
+      persistent
+      max-width="30%"
+    >
       <v-card>
-        <v-card-title v-if="nuevoflag"> Nuevo Profit </v-card-title>
-        <v-card-title v-if="editarflag"> Actualizar Profit </v-card-title>
+        <v-card-title v-if="nuevoflag">
+          Nuevo Profit
+        </v-card-title>
+        <v-card-title v-if="editarflag">
+          Actualizar Profit
+        </v-card-title>
         <v-card-text>
           <v-form ref="frmNuevo">
             <v-row>
-              <v-col cols="12" class="py-0 my-0">
+              <v-col
+                cols="12"
+                class="py-0 my-0"
+              >
                 <v-text-field
                   variant="outlined"
                   density="compact"
@@ -63,7 +279,10 @@
                   @update:model-value="activarPesoMax"
                 />
               </v-col>
-              <v-col cols="6" class="py-0 my-0">
+              <v-col
+                cols="6"
+                class="py-0 my-0"
+              >
                 <v-text-field
                   variant="outlined"
                   density="compact"
@@ -74,8 +293,12 @@
                   :rules="[(v) => (!!v && v >= 0) || 'Dato Requerido']"
                   :disabled="pesominflag"
                   @update:model-value="activarVolumenMax"
-              /></v-col>
-              <v-col cols="6" class="py-0 my-0">
+                />
+              </v-col>
+              <v-col
+                cols="6"
+                class="py-0 my-0"
+              >
                 <v-text-field
                   variant="outlined"
                   density="compact"
@@ -86,8 +309,12 @@
                   :rules="[(v) => (!!v && v >= 0) || 'Dato Requerido']"
                   :disabled="pesomaxflag"
                   @update:model-value="activarVolumenMax"
-              /></v-col>
-              <v-col cols="6" class="py-0 my-0">
+                />
+              </v-col>
+              <v-col
+                cols="6"
+                class="py-0 my-0"
+              >
                 <v-text-field
                   variant="outlined"
                   density="compact"
@@ -98,8 +325,12 @@
                   :disabled="volumenminflag"
                   @update:model-value="activarValorMercanciaMax"
                   :rules="[(v) => (!!v && v >= 0) || 'Dato Requerido']"
-              /></v-col>
-              <v-col cols="6" class="py-0 my-0">
+                />
+              </v-col>
+              <v-col
+                cols="6"
+                class="py-0 my-0"
+              >
                 <v-text-field
                   variant="outlined"
                   density="compact"
@@ -110,8 +341,12 @@
                   :rules="[(v) => (!!v && v >= 0) || 'Dato Requerido']"
                   :disabled="volumenmaxflag"
                   @update:model-value="activarValorMercanciaMax"
-              /></v-col>
-              <v-col cols="6" class="py-0 my-0">
+                />
+              </v-col>
+              <v-col
+                cols="6"
+                class="py-0 my-0"
+              >
                 <v-text-field
                   variant="outlined"
                   density="compact"
@@ -123,7 +358,10 @@
                   :disabled="valorminflag"
                 />
               </v-col>
-              <v-col cols="6" class="py-0 my-0">
+              <v-col
+                cols="6"
+                class="py-0 my-0"
+              >
                 <v-text-field
                   variant="outlined"
                   density="compact"
@@ -136,7 +374,10 @@
                   @update:model-value="activarMetroCCAdiconal"
                 />
               </v-col>
-              <v-col cols="6" class="py-0 my-0">
+              <v-col
+                cols="6"
+                class="py-0 my-0"
+              >
                 <v-text-field
                   variant="outlined"
                   density="compact"
@@ -153,7 +394,7 @@
         </v-card-text>
 
         <v-card-actions>
-          <v-spacer></v-spacer>
+          <v-spacer />
           <v-btn
             v-if="nuevoflag"
             color="success"
@@ -185,201 +426,3 @@
     </v-dialog>
   </v-container>
 </template>
-
-<script>
-import Swal from "sweetalert2";
-import { mapActions as mapPiniaActions, mapStores } from "pinia";
-import { useCalculadorasStore } from "@/stores/calculadoras";
-export default {
-  props: {
-    type: {
-      default: "type",
-      type: String,
-    },
-    id_modality: {
-      default: 1,
-      type: Number,
-    },
-  },
-  data() {
-    return {
-      dialogNuevoProfit: false,
-      headers: [
-        { key: "profit", title: "PROFIT" },
-        { key: "pesomin", title: "PESO MÍNIMO" },
-        { key: "pesomax", title: "PESO MÁXIMO" },
-        { key: "volumenmin", title: "VOLUMEN MÍNIMO" },
-        { key: "volumenmax", title: "VOLUMEN MÁXIMO" },
-        { key: "valormin", title: "VALOR DE CARGA MÍNIMO" },
-        { key: "valormax", title: "VALOR DE CARGA MÁXIMO" },
-        { key: "estado", title: "Estado" },
-        { key: "metromcad", title: "M³ Adicional" },
-        { key: "action", title: "" },
-      ],
-      items: [],
-      id: null,
-      profit: null,
-      pesomin: 0,
-      pesominflag: true,
-      pesomax: 0,
-      pesomaxflag: true,
-      volumenmin: 0,
-      volumenminflag: true,
-      volumenmax: 0,
-      volumenmaxflag: true,
-      valormin: 0,
-      valorminflag: true,
-      valormax: 0,
-      valormaxflag: true,
-      metromcad: 0,
-      metromcadflag: true,
-      nuevoflag: true,
-      editarflag: false,
-    };
-  },
-  methods: {
-    ...mapPiniaActions(useCalculadorasStore, ["postGuardarProfit", "getProfitList", "actualizarGuardarProfit", "eliminarGuardarProfit"]),
-    async guardarProfit() {
-      if ((await this.$refs.frmNuevo.validate()).valid) {
-        let data = {
-          id_modality: this.id_modality,
-          shimpent: this.type,
-          opcion: this.calculadorasStore.opcionCalculadora,
-          profit: this.profit,
-          pesomin: this.pesomin,
-          pesomax: this.pesomax,
-          volumenmin: this.volumenmin,
-          volumenmax: this.volumenmax,
-          valormin: this.valormin,
-          valormax: this.valormax,
-          metromcad: this.metromcad,
-        };
-        await this.postGuardarProfit(data);
-        this.dialogNuevoProfit = false;
-        await this.getProfitList(data);
-      }
-    },
-    activarPesoMax() {
-      if (!!this.profit) {
-        // this.pesomin = 0.5;
-        this.pesominflag = false;
-        this.pesomaxflag = false;
-      } else {
-        this.$refs.frmNuevo.reset();
-        this.pesominflag = true;
-        this.pesomaxflag = true;
-      }
-    },
-    activarVolumenMax() {
-      if (this.pesomin && this.pesomax) {
-        this.volumenminflag = false;
-        this.volumenmaxflag = false;
-      }
-    },
-    activarValorMercanciaMax() {
-      if (this.volumenmin && this.volumenmax) {
-        this.valorminflag = false;
-        this.valormaxflag = false;
-      }
-    },
-    activarMetroCCAdiconal() {
-      this.metromcadflag = false;
-    },
-    borrarProfit(item) {
-      let data = {
-        id_modality: this.id_modality,
-        shimpent: this.type,
-        profit: this.profit,
-        peso: this.peso,
-        volumen: this.volumen,
-        valor: this.valor,
-        opcion: this.calculadorasStore.opcionCalculadora,
-        metromc: this.metromc,
-        metromcad: this.metromcad,
-      };
-      Swal.fire({
-        icon: "question",
-        title: "Anular Profit?",
-        text: "Desea anular el profit",
-        confirmButtonText: "Si, eliminar",
-        denyButtonText: "Cancelar",
-        showDenyButton: true,
-        allowOutsideClick: false,
-        allowEscapeKey: false,
-      }).then(async (res) => {
-        if (res.isConfirmed) {
-          await this.eliminarGuardarProfit(item);
-          await this.getProfitList(data);
-        }
-      });
-    },
-    async actualizarProfit() {
-      if ((await this.$refs.frmNuevo.validate()).valid) {
-        let data = {
-          id: this.id,
-          id_modality: this.id_modality,
-          shimpent: this.type,
-          profit: this.profit,
-          peso: this.peso,
-          volumen: this.volumen,
-          valor: this.valor,
-          opcion: this.calculadorasStore.opcionCalculadora,
-          metromc: this.metromc,
-          metromcad: this.metromcad,
-        };
-        await this.actualizarGuardarProfit(data);
-        this.dialogNuevoProfit = false;
-        await this.getProfitList(data);
-      }
-    },
-    abrirModal() {
-      this.dialogNuevoProfit = true;
-      this.nuevoflag = true;
-      this.editarflag = false;
-      this.$nextTick(() => {
-        this.$refs.frmNuevo.reset();
-      });
-    },
-    abrirModalEditar(profit) {
-      this.dialogNuevoProfit = true;
-      this.nuevoflag = false;
-      this.editarflag = true;
-      this.$nextTick(() => {
-        // this.$refs.frmNuevo.reset();
-        this.id = profit.id;
-        this.profit = profit.profit;
-        this.peso = profit.peso;
-        this.volumen = profit.volumen;
-        this.valor = profit.valor;
-        this.metromc = profit.metromc;
-        this.metromcad = profit.metromcad;
-      });
-    },
-  },
-  computed: {
-    ...mapStores(useCalculadorasStore),
-    opcionCalculadora: {
-      get() {
-        return this.calculadorasStore.opcionCalculadora;
-      },
-      set(value) {
-        this.calculadorasStore.setOpcion(value); // o una mutation/action de Vuex
-      },
-    },
-    obtenerValoresProfitPorOpcion() {
-      return this.calculadorasStore.lstProfit.filter(
-        (v) => v.opcion == this.opcionCalculadora
-      );
-    },
-    opciones: {
-      get() {
-        return this.calculadorasStore.opciones;
-      },
-      set(value) {
-        this.calculadorasStore.setOpcion(value); // o una mutation/action de Vuex
-      },
-    },
-  },
-};
-</script>
-

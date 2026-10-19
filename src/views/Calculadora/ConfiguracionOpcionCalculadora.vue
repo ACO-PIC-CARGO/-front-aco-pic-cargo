@@ -1,25 +1,19 @@
+<script setup lang="ts">
+import { onMounted } from "vue";
+import ConfiguracionOpcionCalculadoraComponent from "../../components/Calculadora/ConfiguracionOpcionCalculadoraComponent.vue";
+import { useCalculadorasStore } from "@/stores/calculadoras";
+
+const calculadorasStore = useCalculadorasStore();
+
+onMounted(async () => {
+  await calculadorasStore.opcionListado();
+});
+</script>
+
 <template>
   <v-card>
     <ConfiguracionOpcionCalculadoraComponent />
   </v-card>
 </template>
-
-<script>
-import ConfiguracionOpcionCalculadoraComponent from "../../components/Calculadora/ConfiguracionOpcionCalculadoraComponent.vue";
-import { mapActions as mapPiniaActions } from "pinia";
-import { useCalculadorasStore } from "@/stores/calculadoras";
-
-export default {
-  components: {
-    ConfiguracionOpcionCalculadoraComponent,
-  },
-  methods: {
-    ...mapPiniaActions(useCalculadorasStore, ["opcionListado"]),
-  },
-  async mounted() {
-    await this.opcionListado();
-  },
-};
-</script>
 
 <style></style>

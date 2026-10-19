@@ -88,7 +88,7 @@ export interface FormProfitCalculadora {
   id?: string | null;
   id_modality: number;
   shimpent: string;
-  opcion: number;
+  opcion: number | string;
   profit: Numerico;
   pesomin?: Numerico;
   pesomax?: Numerico;
@@ -115,7 +115,7 @@ export interface TransporteCalculadora {
   provincia?: string | null;
   id_distrito?: number | null;
   distrito?: string | null;
-  opcion?: number | null;
+  opcion?: number | string | null;
   tipocambio?: Numerico;
   shimpent?: string;
   id_modality?: number;
