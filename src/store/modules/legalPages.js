@@ -1,6 +1,6 @@
 import Swal from "sweetalert2";
 import moment from "moment";
-import { hasFailed, notifySuccess, request } from "@/store/request";
+import { hasFailed, notifySuccess, request } from "@/utils/request";
 
 const LEGAL_LIMITS = {
   title: 120,

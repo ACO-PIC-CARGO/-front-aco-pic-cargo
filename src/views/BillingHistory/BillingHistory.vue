@@ -122,7 +122,7 @@
 <script>
 import "@/styles/plans-theme.css";
 import { mapActions, mapGetters, mapState } from "vuex";
-import { notifySuccess } from "@/store/request";
+import { notifySuccess } from "@/utils/request";
 import { stopCheckoutEvents } from "@/plugins/paddle";
 
 const EMPTY_MESSAGE =

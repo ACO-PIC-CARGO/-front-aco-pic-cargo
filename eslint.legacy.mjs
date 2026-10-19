@@ -208,7 +208,6 @@ export const LEGACY = [
   "src/store/modules/typePhone.js",
   "src/store/modules/user.js",
   "src/store/modules/year.js",
-  "src/store/request.js",
   "src/views/About.vue",
   "src/views/Aduana/EditarAduana.vue",
   "src/views/Aduana/ListAduana.vue",
