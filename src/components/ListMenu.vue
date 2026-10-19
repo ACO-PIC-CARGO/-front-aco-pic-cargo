@@ -87,6 +87,13 @@ const pesoVolumetrico = computed(() => {
   return parseFloat(pv.toFixed(2));
 });
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+function _nextView(name: string, id_role: number | string, namemodule: string) {
+  rootStore.state.dataList = false;
+  rootStore.state.menuName = namemodule;
+
+  router.push({ name: name, params: { id_role } });
+}
 function cerrarSesion() {
   sessionStorage.removeItem("auth-token");
   sessionStorage.removeItem("dataUser");
@@ -100,6 +107,10 @@ function mostrarResumenPricing() {
   // let router = ["newQuote", "verQuote", "editQuote"];
 
   return rutasResumen.includes(ruta);
+}
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+function mostrarVolumen() {
+  return true;
 }
 function isLockedItem(item: ItemMenu) {
   return Boolean(

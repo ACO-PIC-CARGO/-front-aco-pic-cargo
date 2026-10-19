@@ -177,6 +177,24 @@ function calculateMonto() {
   });
   return monto;
 }
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+function calculateProyeccion() {
+  let monto = 0;
+  dataTable.value.forEach((element) => {
+    switch (element.categoria) {
+      case "INGRESO":
+        monto += num(element.proyeccion);
+        break;
+      case "GASTO":
+        monto -= num(element.proyeccion);
+        break;
+
+      default:
+        break;
+    }
+  });
+  return monto;
+}
 function calculateDiferencia() {
   let monto = 0;
   dataTable.value.forEach((element) => {

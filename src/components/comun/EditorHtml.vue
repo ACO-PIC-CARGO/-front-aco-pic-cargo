@@ -6,6 +6,8 @@ defineProps<{ html?: string }>();
 
 const rootStore = useStore();
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+const editorContent = ``;
 const editorInit = {
   height: 920,
   menubar: false,
@@ -19,6 +21,11 @@ const editorInit = {
     editor.on("init", () => {});
   },
 };
+
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+function guardarContenido() {
+  // Aquí puedes hacer lo que desees con el contenido del editor
+}
 </script>
 
 <template>

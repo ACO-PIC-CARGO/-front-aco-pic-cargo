@@ -26,7 +26,16 @@ import type {
   Servicio,
   TipoCarga,
 } from "@/types/cotizacion";
-import type { InformacionBancaria, Operador, RolProveedor, TipoTransaccion } from "@/types/entidades";
+import type {
+  ContactoEntidad,
+  ConvenioEntidad,
+  InformacionBancaria,
+  Operador,
+  RolProveedor,
+  TarifaEntidad,
+  TelefonoEntidad,
+  TipoTransaccion,
+} from "@/types/entidades";
 import type { SucursalSesion, UsuarioSesion } from "@/types/sesion";
 
 const route = useRoute();
@@ -771,16 +780,6 @@ async function copiarCotizacion() {
     // Swal.close();
   }
 }
-function isDateValid(date?: string) {
-  if (!date) {
-    return true; // Pasa la validación si el campo está vacío
-  }
-
-  const selectedDate = moment(date, "YYYY-MM-DD", true);
-  const today = moment();
-
-  return selectedDate.isAfter(today);
-}
 function validarRegistro() {
   let val = true;
 
@@ -1041,10 +1040,198 @@ async function validarAdminAuth() {
     adminAuthLoading.value = false;
   }
 }
+function isDateValid(date?: string) {
+  if (!date) {
+    return true; // Pasa la validación si el campo está vacío
+  }
+  const selectedDate = moment(date, "YYYY-MM-DD", true);
+  const today = moment();
+  return selectedDate.isAfter(today);
+}
+function isClienteInternacional() {
+  const val = rootStore.state.masterusuarios.lstTipoTransaccion.some(
+    (v: TipoTransaccion) => {
+      return (
+        v.codigo == "02" &&
+        v.id == rootStore.state.entities.cliente.id_tipotransaccion
+      );
+    },
+  );
+
+  return val;
+}
 async function registrarCliente() {
   rootStore.state.spiner = true;
   await rootStore.dispatch("guardarCliente", false);
   rootStore.state.spiner = false;
+}
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+async function modificarCliente() {
+  rootStore.state.entities.isStep1Valid = true;
+  rootStore.state.entities.isStep2Valid = true;
+  rootStore.state.entities.isStep3Valid = true;
+  rootStore.state.entities.isStep4Valid = true;
+  rootStore.state.entities.isStep5Valid = true;
+  rootStore.state.entities.isStep6Valid = true;
+
+  let okStep1 = true;
+  if (rootStore.state.entities.cliente) {
+    if (!rootStore.state.entities.cliente.id_tipopersona) {
+      okStep1 = false;
+    }
+
+    if (!rootStore.state.entities.cliente.nombrecompleto) {
+      okStep1 = false;
+    }
+
+    if (!rootStore.state.entities.cliente.id_tipotransaccion) {
+      okStep1 = false;
+    }
+
+    if (!rootStore.state.entities.cliente.id_pais) {
+      okStep1 = false;
+    }
+
+    if (
+      rootStore.state.entities.cliente.emailaddress &&
+      !/^(([^<>()[\]\\.,;:\s@']+(\.[^<>()\\[\]\\.,;:\s@']+)*)|('.+'))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/.test(
+        rootStore.state.entities.cliente.emailaddress,
+      )
+    ) {
+      okStep1 = false;
+    }
+  }
+
+  let okStep2_1 = true;
+  if (rootStore.state.entities.lstTelefonos.length > 0) {
+    rootStore.state.entities.lstTelefonos.map((v: TelefonoEntidad) => {
+      if (!v.id_tipotelefono) {
+        okStep2_1 = false;
+      }
+
+      if (!v.telefono) {
+        okStep2_1 = false;
+      }
+    });
+  }
+
+  let okStep2_2 = true;
+  if (rootStore.state.entities.lstContactos.length > 0) {
+    rootStore.state.entities.lstContactos.map((v: ContactoEntidad) => {
+      if (!v.nombre) {
+        okStep2_2 = false;
+      }
+
+      if (!v.id_tipotelefono) {
+        okStep2_2 = false;
+      }
+
+      if (!v.telefono) {
+        okStep2_2 = false;
+      }
+    });
+  }
+
+  let okStep3_1 = true;
+  if (rootStore.state.entities.lstConvenios.length > 0) {
+    rootStore.state.entities.lstConvenios.map((v: ConvenioEntidad) => {
+      if (!v.fecha) {
+        okStep3_1 = false;
+      }
+
+      if (v.dias_credito < 0) {
+        okStep3_1 = false;
+      }
+
+      if (
+        v.email_soporte &&
+        !/^(([^<>()[\]\\.,;:\s@']+(\.[^<>()\\[\]\\.,;:\s@']+)*)|('.+'))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/.test(
+          v.email_soporte,
+        )
+      ) {
+        okStep3_1 = false;
+      }
+    });
+  }
+
+  let okStep3_2 = true;
+  if (rootStore.state.entities.lstTarifas.length > 0) {
+    rootStore.state.entities.lstTarifas.map((v: TarifaEntidad) => {
+      if (!v.fecha) {
+        okStep3_2 = false;
+      }
+
+      if (!v.codigo) {
+        okStep3_2 = false;
+      }
+
+      if (
+        v.email_soporte &&
+        !/^(([^<>()[\]\\.,;:\s@']+(\.[^<>()\\[\]\\.,;:\s@']+)*)|('.+'))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/.test(
+          v.email_soporte,
+        )
+      ) {
+        okStep3_2 = false;
+      }
+
+      if (v.tarifa < 0) {
+        okStep3_2 = false;
+      }
+    });
+  }
+
+  let okStep4 = true;
+  if (rootStore.state.entities.lstInformacionBancaria.length > 0) {
+    rootStore.state.entities.lstInformacionBancaria.map((v: InformacionBancaria) => {
+      if (!v.nro_cuenta) {
+        okStep4 = false;
+      }
+
+      if (!v.cci) {
+        okStep4 = false;
+      }
+
+      if (!v.id_banco) {
+        okStep4 = false;
+      }
+
+      if (!v.id_coins) {
+        okStep4 = false;
+      }
+
+      if (isClienteInternacional()) {
+        if (!v.nro_swift) {
+          okStep4 = false;
+        }
+
+        if (!v.id_intermediario) {
+          okStep4 = false;
+        }
+
+        if (!v.nro_cuenta_intermediario) {
+          okStep4 = false;
+        }
+      }
+    });
+  }
+
+  if (!okStep1) {
+    rootStore.state.entities.isStep1Valid =
+      !rootStore.state.entities.isStep1Valid;
+  } else if (!okStep2_1 || !okStep2_2) {
+    rootStore.state.entities.isStep2Valid =
+      !rootStore.state.entities.isStep2Valid;
+  } else if (!okStep3_1 || !okStep3_2) {
+    rootStore.state.entities.isStep3Valid =
+      !rootStore.state.entities.isStep3Valid;
+  } else if (!okStep4) {
+    rootStore.state.entities.isStep4Valid =
+      !rootStore.state.entities.isStep4Valid;
+  } else {
+    rootStore.state.spiner = true;
+    await rootStore.dispatch("actualizarCliente");
+    rootStore.state.spiner = false;
+  }
 }
 function isProveedorInternacional() {
   const val = rootStore.state.masterusuarios.lstTipoTransaccion.some(
@@ -1055,6 +1242,39 @@ function isProveedorInternacional() {
       );
     },
   );
+
+  return val;
+}
+function isShipper() {
+  const val = rootStore.state.itemsDataRoleList.some((v: RolProveedor) => {
+    const item = (v.name.split("-")[1] || "").trim().toUpperCase();
+    return (
+      v.id == rootStore.state.entities.proveedor.id_tipoproveedor &&
+      item == "SHIPPER"
+    );
+  });
+
+  return val;
+}
+function isNaviera() {
+  const val = rootStore.state.itemsDataRoleList.some((v: RolProveedor) => {
+    const item = (v.name.split("-")[1] || "").trim().toUpperCase();
+    return (
+      v.id == rootStore.state.entities.proveedor.id_tipoproveedor &&
+      item == "NAVIERA"
+    );
+  });
+
+  return val;
+}
+function isAlmacen() {
+  const val = rootStore.state.itemsDataRoleList.some((v: RolProveedor) => {
+    const item = (v.name.split("-")[1] || "").trim().toUpperCase();
+    return (
+      v.id == rootStore.state.entities.proveedor.id_tipoproveedor &&
+      item == "ALMACEN"
+    );
+  });
 
   return val;
 }
@@ -1102,6 +1322,191 @@ async function registrarProveedor() {
   } else {
     rootStore.state.spiner = true;
     await rootStore.dispatch("guardarProveedor");
+    rootStore.state.spiner = false;
+  }
+}
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+async function modificarProveedor() {
+  rootStore.state.entities.isStep1Valid = true;
+  rootStore.state.entities.isStep2Valid = true;
+  rootStore.state.entities.isStep3Valid = true;
+  rootStore.state.entities.isStep4Valid = true;
+
+  let okStep1 = true;
+  if (rootStore.state.entities.proveedor) {
+    if (!rootStore.state.entities.proveedor.nombrecompleto) {
+      okStep1 = false;
+    }
+
+    if (!rootStore.state.entities.proveedor.id_tipoproveedor) {
+      okStep1 = false;
+    } else if (
+      isShipper() &&
+      !rootStore.state.entities.proveedor.producto
+    ) {
+      okStep1 = false;
+    }
+
+    if (!rootStore.state.entities.proveedor.id_tipotransaccion) {
+      okStep1 = false;
+    }
+
+    if (!rootStore.state.entities.proveedor.id_pais) {
+      okStep1 = false;
+    }
+
+    if (
+      rootStore.state.entities.proveedor.emailaddress &&
+      !/^(([^<>()[\]\\.,;:\s@']+(\.[^<>()\\[\]\\.,;:\s@']+)*)|('.+'))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/.test(
+        rootStore.state.entities.proveedor.emailaddress,
+      )
+    ) {
+      okStep1 = false;
+    }
+
+    if (
+      isNaviera() &&
+      rootStore.state.entities.proveedor.dias_sobreestadia < 0
+    ) {
+      okStep1 = false;
+    }
+
+    if (
+      isAlmacen() &&
+      rootStore.state.entities.proveedor.dias_almacenaje < 0
+    ) {
+      okStep1 = false;
+    }
+  }
+
+  let okStep2_1 = true;
+  if (rootStore.state.entities.lstTelefonos.length > 0) {
+    rootStore.state.entities.lstTelefonos.map((v: TelefonoEntidad) => {
+      if (!v.id_tipotelefono) {
+        okStep2_1 = false;
+      }
+
+      if (!v.telefono) {
+        okStep2_1 = false;
+      }
+    });
+  }
+
+  let okStep2_2 = true;
+  if (rootStore.state.entities.lstContactos.length > 0) {
+    rootStore.state.entities.lstContactos.map((v: ContactoEntidad) => {
+      if (!v.nombre) {
+        okStep2_2 = false;
+      }
+
+      if (!v.id_tipotelefono) {
+        okStep2_2 = false;
+      }
+
+      if (!v.telefono) {
+        okStep2_2 = false;
+      }
+    });
+  }
+
+  let okStep3_1 = true;
+  if (rootStore.state.entities.lstConvenios.length > 0) {
+    rootStore.state.entities.lstConvenios.map((v: ConvenioEntidad) => {
+      if (!v.fecha) {
+        okStep3_1 = false;
+      }
+
+      if (v.dias_credito < 0) {
+        okStep3_1 = false;
+      }
+
+      if (
+        v.email_soporte &&
+        !/^(([^<>()[\]\\.,;:\s@']+(\.[^<>()\\[\]\\.,;:\s@']+)*)|('.+'))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/.test(
+          v.email_soporte,
+        )
+      ) {
+        okStep3_1 = false;
+      }
+    });
+  }
+
+  let okStep3_2 = true;
+  if (rootStore.state.entities.lstTarifas.length > 0) {
+    rootStore.state.entities.lstTarifas.map((v: TarifaEntidad) => {
+      if (!v.fecha) {
+        okStep3_2 = false;
+      }
+
+      if (!v.codigo) {
+        okStep3_2 = false;
+      }
+
+      if (
+        v.email_soporte &&
+        !/^(([^<>()[\]\\.,;:\s@']+(\.[^<>()\\[\]\\.,;:\s@']+)*)|('.+'))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/.test(
+          v.email_soporte,
+        )
+      ) {
+        okStep3_2 = false;
+      }
+
+      if (v.tarifa < 0) {
+        okStep3_2 = false;
+      }
+    });
+  }
+
+  let okStep4 = true;
+  if (rootStore.state.entities.lstInformacionBancaria.length > 0) {
+    rootStore.state.entities.lstInformacionBancaria.map((v: InformacionBancaria) => {
+      if (!v.nro_cuenta) {
+        okStep4 = false;
+      }
+
+      if (!v.cci) {
+        okStep4 = false;
+      }
+
+      if (!v.id_banco) {
+        okStep4 = false;
+      }
+
+      if (!v.id_coins) {
+        okStep4 = false;
+      }
+
+      if (isProveedorInternacional()) {
+        if (!v.nro_swift) {
+          okStep4 = false;
+        }
+
+        if (!v.id_intermediario) {
+          okStep4 = false;
+        }
+
+        if (!v.nro_cuenta_intermediario) {
+          okStep4 = false;
+        }
+      }
+    });
+  }
+
+  if (!okStep1) {
+    rootStore.state.entities.isStep1Valid =
+      !rootStore.state.entities.isStep1Valid;
+  } else if (!okStep2_1 || !okStep2_2) {
+    rootStore.state.entities.isStep2Valid =
+      !rootStore.state.entities.isStep2Valid;
+  } else if (!okStep3_1 || !okStep3_2) {
+    rootStore.state.entities.isStep3Valid =
+      !rootStore.state.entities.isStep3Valid;
+  } else if (!okStep4) {
+    rootStore.state.entities.isStep4Valid =
+      !rootStore.state.entities.isStep4Valid;
+  } else {
+    rootStore.state.spiner = true;
+    await rootStore.dispatch("actualizarProveedor");
     rootStore.state.spiner = false;
   }
 }

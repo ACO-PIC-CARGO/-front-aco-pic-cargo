@@ -1,5 +1,14 @@
 <script setup lang="ts">
+import { computed } from "vue";
+import runnerUrl from "@/assets/runner.webp";
+
 defineProps<{ progress: number }>();
+
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+const runnerImage = computed(() => {
+  // Cambia la ruta de la imagen de acuerdo a tu estructura de carpetas
+  return runnerUrl;
+});
 </script>
 
 <template>

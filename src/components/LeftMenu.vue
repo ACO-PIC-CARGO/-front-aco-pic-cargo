@@ -1,9 +1,60 @@
 <script setup lang="ts">
-import { onMounted } from "vue";
+import { onMounted, ref } from "vue";
+import { useStore } from "vuex";
+import axios from "@/api/http";
+import type { ApiResponse } from "@/types/api";
+import type { ModuloEntidad } from "@/types/sesion";
+
+const rootStore = useStore();
+
+const itemsModule = ref<ModuloEntidad[]>([]);
 
 onMounted(() => {
   // this._getEntitiesModule();
 });
+
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+function _getEntitiesModule() {
+  const dataUser = JSON.parse(sessionStorage.getItem("dataUser") as string);
+  const data = JSON.stringify({
+    id_entitie: dataUser[0].id,
+  });
+
+  const config = {
+    method: "post",
+    url: import.meta.env.VITE_URL_MAIN + "getEntitieModules",
+    headers: {
+     
+      "Content-Type": "application/json",
+    },
+    data: data,
+  };
+
+  axios<ApiResponse<ModuloEntidad[]>>(config)
+    .then(function (response) {
+      itemsModule.value = response.data.data;
+      sessionStorage.setItem(
+        "idMenu",
+        JSON.parse(JSON.stringify(itemsModule.value))[0].id
+      );
+      sessionStorage.setItem(
+        "idMenuName",
+        JSON.parse(JSON.stringify(itemsModule.value))[0].name
+      );
+      rootStore.dispatch("_getGroupList");
+    })
+    .catch(function (error) {
+      console.error(error);
+    });
+}
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+function _setidMenu(idMenu: number | string, name: string) {
+  rootStore.state.dataList = false;
+  sessionStorage.setItem("idMenu", String(idMenu));
+  sessionStorage.setItem("idMenuName", name);
+
+  rootStore.dispatch("_getGroupList");
+}
 </script>
 
 <template>

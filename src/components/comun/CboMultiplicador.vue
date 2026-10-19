@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref } from "vue";
+import { ref, watch } from "vue";
 import { useStore } from "vuex";
 import type { ValidationRule } from "vuetify";
 
@@ -38,9 +38,23 @@ const emit = defineEmits<{ change: [id: unknown] }>();
 
 const rootStore = useStore();
 
+const valorAnterior = ref(model.value);
 const autocompleteKey = ref(0);
 
+watch(model, (newValue) => {
+  valorAnterior.value = newValue;
+});
+
 function onInputMultiplicador(id: string | number | Record<string, unknown> | null) {
+  const item = rootStore.state.pricing.listMultiplicador.find(
+    (item: { id: number | string }) => item.id == id,
+  );
+
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const code = item?.code || null;
+
+  valorAnterior.value = id;
+
   model.value = id;
   emit("change", id);
 }

@@ -23,3 +23,27 @@ export interface Operador {
   id: number;
   namelong?: string;
 }
+
+export interface TelefonoEntidad {
+  id_tipotelefono?: number | string;
+  telefono?: string;
+}
+
+export interface ContactoEntidad {
+  nombre?: string;
+  id_tipotelefono?: number | string;
+  telefono?: string;
+}
+
+export interface ConvenioEntidad {
+  fecha?: string;
+  dias_credito: number;
+  email_soporte?: string;
+}
+
+export interface TarifaEntidad {
+  fecha?: string;
+  codigo?: string;
+  email_soporte?: string;
+  tarifa: number;
+}

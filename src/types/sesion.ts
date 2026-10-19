@@ -27,3 +27,8 @@ export interface ItemMenu {
   icon?: string;
   children?: ItemMenu[];
 }
+
+export interface ModuloEntidad {
+  id: number | string;
+  name: string;
+}

@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import moment from "moment";
 import { useStore } from "vuex";
 import FormatFecha from "../comun/FormatFecha.vue";
 import type { FiltroBarra } from "@/types/filtros";
@@ -9,6 +10,13 @@ withDefaults(defineProps<{ filtro?: FiltroBarra; cuentas?: unknown[] }>(), {
 });
 
 const rootStore = useStore();
+
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+function formatearFecha(fecha: string) {
+  if (!fecha) return "";
+
+  return moment(fecha).format("YYYY-MMM-DD").toUpperCase();
+}
 </script>
 
 <template>

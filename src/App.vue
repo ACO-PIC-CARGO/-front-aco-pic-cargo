@@ -15,6 +15,10 @@ const NuevoCliente = defineAsyncComponent(
   () =>
     import("@/components/folderEntities/Cliente/NuevoClienteComponent.vue"),
 );
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+const listEntitie = defineAsyncComponent(
+  () => import("@/components/folderEntities/listEntities.vue"),
+);
 const EditarCliente = defineAsyncComponent(
   () =>
     import("@/components/folderEntities/Cliente/EditarClienteComponent.vue"),
@@ -32,6 +36,7 @@ socket.on("connect_error", (err) => {
 });
 
 const registration = ref<ServiceWorkerRegistration | null>(null);
+const listAgente = ref(false);
 const dialogWelcome = ref(false);
 const dialogVersion = ref(false);
 const dialogExito = ref(false);
@@ -126,6 +131,14 @@ function closeWelcome() {
   sessionStorage.setItem("welcome", "1");
   dialogWelcome.value = false;
 }
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+function _validaWelcome() {
+  if (sessionStorage.getItem("welcome")) {
+    dialogWelcome.value = false;
+  } else {
+    dialogWelcome.value = true;
+  }
+}
 async function _setDataContainers(
   id: number,
   name: string,
@@ -149,6 +162,14 @@ async function _setDataContainers(
     rootStore.state.master_nro_precinto = "";
     rootStore.state.master_cantidad = "";
   }
+}
+
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+function cleanData() {
+  rootStore.state.accountIdTypeAccount = "";
+  rootStore.state.accountIdBanks = "";
+  rootStore.state.accountIdCoins = "";
+  rootStore.state.accountNumer = "";
 }
 
 async function _getVersion() {
@@ -258,6 +279,18 @@ async function _setAccounts() {
     .catch(function (error) {
       console.error(error);
     });
+}
+
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+function _delContainers(index: number) {
+  rootStore.state.master_itemsContainers.splice(index, 1);
+}
+
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+function _nextListAgents() {
+  rootStore.dispatch("_getEntities", 1);
+
+  listAgente.value = !listAgente.value;
 }
 
 function _deletePhones(index: number) {

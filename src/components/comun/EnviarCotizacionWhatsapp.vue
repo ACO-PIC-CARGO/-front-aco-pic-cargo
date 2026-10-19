@@ -99,6 +99,10 @@ watch(
 function selectDateRange(value: moment.MomentInput[]) {
   dates.value = value.map((date) => moment(date).format("YYYY-MM-DD"));
 }
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+function GetArchivos(payload?: unknown) {
+  return rootStore.dispatch("GetArchivos", payload);
+}
 function abrirModal() {
   dialog.value = true;
 }
@@ -157,6 +161,27 @@ async function enviarWsp() {
   ]);
   loading.value = false;
   dialog.value = false;
+}
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+function formatearFecha(fecha: string) {
+  if (!fecha) return "";
+  const [year, month, day] = fecha.split("-");
+  const meses = [
+    "ENE",
+    "FEB",
+    "MAR",
+    "ABR",
+    "MAY",
+    "JUN",
+    "JUL",
+    "AGO",
+    "SEP",
+    "OCT",
+    "NOV",
+    "DIC",
+  ];
+  // Aseguramos que el mes sea un índice válido y formateamos
+  return `${day}/${meses[parseInt(month!) - 1]}/${year}`;
 }
 
 onMounted(() => {

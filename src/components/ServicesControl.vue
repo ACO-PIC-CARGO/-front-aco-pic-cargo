@@ -12,6 +12,11 @@ onMounted(() => {
   rootStore.dispatch("_getBegEndList");
 });
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+function cleanData() {
+  rootStore.state.services_name = "";
+  rootStore.state.services_price = "";
+}
 function _getHouseServices() {
   const data = {
     id: route.params.id,
