@@ -273,6 +273,7 @@ import { useSecuritysStore } from "@/stores/securitys";
 import Swal from "sweetalert2";
 import FormatFecha from "../comun/FormatFecha.vue";
 import BarraFiltro from "../BarraMostrarFiltro/BarraFiltro.vue";
+import { useIngresosStore } from "@/stores/ingresos";
 
 export default {
   components: {
@@ -385,8 +386,8 @@ export default {
       "getCargarTipoIngreso",
       "getCargarTipoSubIngreso",
       "_getCoinsList",
-      "ActualizarCXC",
     ]),
+    ...mapPiniaActions(useIngresosStore, ["ActualizarCXC"]),
     ...mapPiniaActions(useSecuritysStore, ["validarUsuarioAdmin"]),
     async ver(pago) {
       this.$router.push({

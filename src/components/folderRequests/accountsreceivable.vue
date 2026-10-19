@@ -362,7 +362,7 @@
                 clearable
                 v-model="ingreso"
                 label="Ingresos"
-                :items="$store.state.ingresos.list"
+                :items="ingresosStore.list"
                 item-title="descripcion"
                 item-value="id"
                 multiple
@@ -376,7 +376,7 @@
                 clearable
                 v-model="subingreso"
                 label="Sub Ingresos"
-                :items="$store.state.subingreso.lstSubIngreso"
+                :items="subingresoStore.lstSubIngreso"
                 item-title="description"
                 item-value="id"
                 multiple
@@ -429,6 +429,9 @@ import axios from '@/api/http';
 import moment from "moment";
 import { mapActions, mapState } from "vuex";
 import Swal from "sweetalert2";
+import { mapActions as mapPiniaActions, mapStores } from "pinia";
+import { useIngresosStore } from "@/stores/ingresos";
+import { useSubingresoStore } from "@/stores/subingreso";
 export default {
   name: "accountsreceivable",
   data: () => ({
@@ -594,6 +597,7 @@ export default {
     await this.GetListSubIngreso();
   },
   computed: {
+    ...mapStores(useSubingresoStore, useIngresosStore),
     ...mapState(["clientes"]),
 
     dateRange() {
@@ -605,9 +609,9 @@ export default {
       "cargarClientes",
       "getModulesEntities",
       "obtenerImpuestoXEmpresa",
-      "cargarIngreso",
-      "GetListSubIngreso",
     ]),
+    ...mapPiniaActions(useSubingresoStore, ["GetListSubIngreso"]),
+    ...mapPiniaActions(useIngresosStore, ["cargarIngreso"]),
     viewPDF() {
       this.dialogPdf = true;
     },

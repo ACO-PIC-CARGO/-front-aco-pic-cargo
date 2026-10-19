@@ -29,7 +29,6 @@ import bank from "./modules/bank";
 import modality from "./modules/modality";
 import transport from "./modules/transport";
 import reportes from "./modules/reporte";
-import ingresos from "./modules/ingresos";
 import shipment from "./modules/shipment";
 import multiplicador from "./modules/multiplicador";
 import airlines from "./modules/airlines";
@@ -41,7 +40,6 @@ import city from "./modules/city";
 import town from "./modules/town";
 import begend from "./modules/begend";
 import typepayment from "./modules/typepayment";
-import subingreso from "./modules/SubIngreso";
 import user from "./modules/user";
 import position from "./modules/position";
 import configEmpresa from "./modules/configEmpresa";
@@ -2893,7 +2891,6 @@ export default createStore({
     bank,
     modality,
     transport,
-    ingresos,
     shipment,
     multiplicador,
     airlines,
@@ -2905,7 +2902,6 @@ export default createStore({
     town,
     begend,
     typepayment,
-    subingreso,
     user,
     position,
     configEmpresa,

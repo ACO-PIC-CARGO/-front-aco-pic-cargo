@@ -279,6 +279,7 @@ import { mapActions as mapPiniaActions } from "pinia";
 import { useSecuritysStore } from "@/stores/securitys";
 import FormatFecha from "../comun/FormatFecha.vue";
 import BarraFiltro from "../BarraMostrarFiltro/BarraFiltro.vue";
+import { useIngresosStore } from "@/stores/ingresos";
 
 
 export default {
@@ -488,10 +489,10 @@ export default {
       "getCargarTipoIngreso",
       "getCargarTipoSubIngreso",
       "_getCoinsList",
-      "ActualizarCXC",
       "getRegistroIngresos",
       "eliminarRegistroIngresos",
     ]),
+    ...mapPiniaActions(useIngresosStore, ["ActualizarCXC"]),
     ...mapPiniaActions(useSecuritysStore, ["validarUsuarioAdmin"]),
     _uploadFile() {
       if (this.payfile) {

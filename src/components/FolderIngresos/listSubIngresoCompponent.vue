@@ -28,7 +28,7 @@
         <v-col cols="12">
           <v-data-table
             :headers="headers"
-            :items="$store.state.subingreso.lstSubIngreso"
+            :items="subingresoStore.lstSubIngreso"
             class="elevation-1"
             item-value="port_beginend_id"
             :loading="loading"
@@ -99,8 +99,10 @@
 </template>
 
 <script>
-import { mapActions } from "vuex";
 import Swal from "sweetalert2";
+import { mapActions as mapPiniaActions, mapStores } from "pinia";
+import { useIngresosStore } from "@/stores/ingresos";
+import { useSubingresoStore } from "@/stores/subingreso";
 export default {
   data() {
     return {
@@ -121,37 +123,37 @@ export default {
       ],
     };
   },
+  computed: {
+    ...mapStores(useSubingresoStore),
+  },
   methods: {
-    ...mapActions([
-      "GetListSubIngreso",
-      "ActualizarSubIngreso",
-      "cargarIngreso",
-    ]),
+    ...mapPiniaActions(useSubingresoStore, ["GetListSubIngreso", "ActualizarSubIngreso"]),
+    ...mapPiniaActions(useIngresosStore, ["cargarIngreso"]),
     async filtrar() {
-      this.$store.state.subingreso.tipo = "filter";
+      this.subingresoStore.tipo = "filter";
 
-      this.$store.state.subingreso.drawer =
-        !this.$store.state.subingreso.drawer;
+      this.subingresoStore.drawer =
+        !this.subingresoStore.drawer;
     },
     async ver(item) {
       let datos = { ...item };
-      this.$store.state.subingreso.tipo = "ver";
-      this.$store.state.subingreso.model = datos;
+      this.subingresoStore.tipo = "ver";
+      this.subingresoStore.model = datos;
 
-      this.$store.state.subingreso.drawer =
-        !this.$store.state.subingreso.drawer;
+      this.subingresoStore.drawer =
+        !this.subingresoStore.drawer;
     },
     async editar(item) {
       let datos = { ...item };
-      this.$store.state.subingreso.tipo = "editar";
-      this.$store.state.subingreso.model = datos;
+      this.subingresoStore.tipo = "editar";
+      this.subingresoStore.model = datos;
 
-      this.$store.state.subingreso.drawer =
-        !this.$store.state.subingreso.drawer;
+      this.subingresoStore.drawer =
+        !this.subingresoStore.drawer;
     },
     async nuevo() {
-      this.$store.state.subingreso.tipo = "nuevo";
-      this.$store.state.subingreso.model = {
+      this.subingresoStore.tipo = "nuevo";
+      this.subingresoStore.model = {
         id_ingreso: "",
         code: "",
         description: "",
@@ -162,8 +164,8 @@ export default {
         id_branch: JSON.parse(sessionStorage.getItem("dataUser"))[0].id_branch,
       };
 
-      this.$store.state.subingreso.drawer =
-        !this.$store.state.subingreso.drawer;
+      this.subingresoStore.drawer =
+        !this.subingresoStore.drawer;
     },
     async eliminar(item) {
       Swal.fire({
@@ -179,7 +181,7 @@ export default {
       }).then(async (res) => {
         if (res.isConfirmed) {
           item.status = 0;
-          this.$store.state.subingreso.model = item;
+          this.subingresoStore.model = item;
           this.loading = true;
           await this.ActualizarSubIngreso();
           await this.GetListSubIngreso();

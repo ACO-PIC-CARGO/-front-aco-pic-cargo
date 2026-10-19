@@ -390,6 +390,7 @@ import { mapActions as mapPiniaActions } from "pinia";
 import { useSecuritysStore } from "@/stores/securitys";
 import FormatFecha from "../comun/FormatFecha.vue";
 import BarraFiltro from "../BarraMostrarFiltro/BarraFiltro.vue";
+import { useIngresosStore } from "@/stores/ingresos";
 export default {
   components: {
     FormatFecha,
@@ -501,10 +502,10 @@ export default {
       "getCargarTipoSubGastos",
       "verVacturas",
       "_getBanksList",
-      "ActualizarCXP",
       "getRegistroEgresos",
       "eliminarRegistroEgresos",
     ]),
+    ...mapPiniaActions(useIngresosStore, ["ActualizarCXP"]),
     ...mapPiniaActions(useSecuritysStore, ["validarUsuarioAdmin"]),
     nuevo() {
       this.$store.state.files.payPath = null;

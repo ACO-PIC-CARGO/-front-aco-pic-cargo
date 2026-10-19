@@ -127,3 +127,39 @@ export interface FiltroItemServicio {
   id_branch: string;
   status: number | string;
 }
+
+export interface TipoIngreso {
+  id: number;
+  code: string;
+  description: string;
+  calculoflag: boolean;
+  status: boolean | number;
+  created_at?: string | null;
+  updated_at?: string | null;
+}
+
+export interface SubIngreso {
+  id: number | string;
+  id_ingreso: number | string | null;
+  description_ingreso?: string;
+  code: string | null;
+  description: string | null;
+  status: boolean | number | string;
+  id_branch?: number | string;
+  calculoflag: boolean;
+  mostrarflag: boolean;
+  color?: string;
+  created_at?: string;
+  updated_at?: string;
+}
+
+export interface FiltroSubIngreso {
+  id: string;
+  id_ingreso: number | string | null;
+  code: string | null;
+  description: string | null;
+  status: boolean | string;
+  id_branch: string;
+  calculoflag: boolean | string;
+  mostrarflag: boolean | string;
+}

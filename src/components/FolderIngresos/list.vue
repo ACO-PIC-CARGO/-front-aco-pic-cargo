@@ -38,7 +38,7 @@
         v-if="!loading"
         class="elevation-1"
         :headers="headers"
-        :items="$store.state.ingresos.list"
+        :items="ingresosStore.list"
         item-value="id"
         :search="search"
       >
@@ -164,7 +164,7 @@
         <v-list-item class="px-0">
           
             <v-list-item-title class="text-headline-small">
-              Ver: {{ $store.state.ingresos.record.description }}
+              Ver: {{ ingresosStore.record.description }}
             </v-list-item-title>
           
         </v-list-item>
@@ -175,7 +175,7 @@
             <v-text-field
               label="Código"
               readonly
-              :model-value="$store.state.ingresos.record.code"
+              :model-value="ingresosStore.record.code"
             >
             </v-text-field>
           </v-row>
@@ -183,7 +183,7 @@
             <v-text-field
               label="Descripción"
               readonly
-              :model-value="$store.state.ingresos.record.description"
+              :model-value="ingresosStore.record.description"
             >
             </v-text-field>
           </v-row>
@@ -191,7 +191,7 @@
             <v-checkbox
               label="Se calcula en Reportes"
               readonly
-              v-model="$store.state.ingresos.record.calculoflag"
+              v-model="ingresosStore.record.calculoflag"
               :value-comparator="(value, checked) => Boolean(value) === checked"
             ></v-checkbox>
           </v-row>
@@ -199,10 +199,10 @@
             <v-switch
               readonly
               :label="`Estado: ${
-                !!$store.state.ingresos.record.status ? 'Activo' : 'Inactivo'
+                !!ingresosStore.record.status ? 'Activo' : 'Inactivo'
               }`"
               color="success"
-              v-model="$store.state.ingresos.record.status"
+              v-model="ingresosStore.record.status"
               :value-comparator="(value, checked) => Boolean(value) === checked"
             ></v-switch>
           </v-row>
@@ -247,7 +247,7 @@
         <v-list-item class="px-0">
           
             <v-list-item-title class="text-headline-small">
-              Modificar: {{ $store.state.ingresos.record.description }}
+              Modificar: {{ ingresosStore.record.description }}
             </v-list-item-title>
           
         </v-list-item>
@@ -402,9 +402,11 @@
 </template>
 
 <script>
-import { mapState, mapActions } from "vuex";
+import { mapState } from "vuex";
 import Swal from "sweetalert2";
 import axios from '@/api/http';
+import { mapActions as mapPiniaActions, mapStores } from "pinia";
+import { useIngresosStore } from "@/stores/ingresos";
 
 export default {
   name: "ListIngresoComponent",
@@ -456,12 +458,7 @@ export default {
     this.$store.state.mainTitle = `Tipo de Ingreso`;
   },
   methods: {
-    ...mapActions([
-      "fetchDataIngreso",
-      "insertIngreso",
-      "readIngreso",
-      "updateIngreso",
-    ]),
+    ...mapPiniaActions(useIngresosStore, ["fetchDataIngreso", "insertIngreso", "readIngreso", "updateIngreso"]),
     async resetRecord(option) {
       if (option == "filter") {
         this.records = { ...this.originalRecords };
@@ -597,10 +594,11 @@ export default {
     },
   },
   computed: {
+    ...mapStores(useIngresosStore),
     ...mapState(["list"]),
   },
   watch: {
-    "$store.state.ingresos.record": {
+    "ingresosStore.record": {
       handler(newRecord, oldRecord) {
         if (newRecord && Object.keys(newRecord).length > 0) {
           const { code, calculoflag, description, status } = newRecord;
@@ -610,7 +608,7 @@ export default {
       },
       immediate: true,
     },
-    "$store.state.ingresos.loading": {
+    "ingresosStore.loading": {
       handler(newList, oldList) {
         this.loading = newList == true ? false : true;
       },

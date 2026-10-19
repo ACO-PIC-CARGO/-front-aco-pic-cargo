@@ -7,18 +7,18 @@
         icon
         color="default"
         @click="
-          $store.state.subingreso.drawer = !$store.state.subingreso.drawer
+          subingresoStore.drawer = !subingresoStore.drawer
         "
       >
         <v-icon>mdi-close</v-icon>
       </v-btn>
     </v-card-title>
-    <v-card-text v-if="$store.state.subingreso.tipo == 'filter'">
+    <v-card-text v-if="subingresoStore.tipo == 'filter'">
       <div class="col-12 py-1">
         <v-autocomplete
           label="Tipo de Ingreso"
-          :items="$store.state.ingresos.list"
-          v-model="$store.state.subingreso.filtros.id_ingreso"
+          :items="ingresosStore.list"
+          v-model="subingresoStore.filtros.id_ingreso"
           item-title="descripcion"
           item-value="id"
         >
@@ -26,29 +26,29 @@
       </div>
       <div class="col-12 py-1">
         <v-text-field
-          v-model="$store.state.subingreso.filtros.code"
+          v-model="subingresoStore.filtros.code"
           label="Código"
-          :clearable="$store.state.subingreso.tipo != 'ver'"
+          :clearable="subingresoStore.tipo != 'ver'"
         ></v-text-field>
       </div>
       <!-- <div class="col-12 py-1">
         <v-text-field
-          v-model="$store.state.subingreso.filtros.name"
+          v-model="subingresoStore.filtros.name"
           label="Nombre"
-          :clearable="$store.state.subingreso.tipo != 'ver'"
+          :clearable="subingresoStore.tipo != 'ver'"
         ></v-text-field>
       </div> -->
       <div class="col-12 py-1">
         <v-text-field
-          v-model="$store.state.subingreso.filtros.description"
+          v-model="subingresoStore.filtros.description"
           label="Descripción"
-          :clearable="$store.state.subingreso.tipo != 'ver'"
+          :clearable="subingresoStore.tipo != 'ver'"
         ></v-text-field>
       </div>
       <div class="col-12 py-1">
         <span> Se calcula en reportes</span>
         <v-radio-group
-          v-model="$store.state.subingreso.filtros.calculoflag"
+          v-model="subingresoStore.filtros.calculoflag"
           inline
           density="compact"
         >
@@ -60,7 +60,7 @@
       <div class="col-12 py-1">
         <span> Se muestra en reportes</span>
         <v-radio-group
-          v-model="$store.state.subingreso.filtros.mostrarflag"
+          v-model="subingresoStore.filtros.mostrarflag"
           inline
           density="compact"
         >
@@ -72,7 +72,7 @@
       <div class="col-12 py-1">
         <span> Estado</span>
         <v-radio-group
-          v-model="$store.state.subingreso.filtros.status"
+          v-model="subingresoStore.filtros.status"
           inline
           density="compact"
         >
@@ -87,20 +87,20 @@
         <div class="col-12 py-1">
           <v-autocomplete
             label="Tipo de Ingreso (*)"
-            :items="$store.state.ingresos.list"
-            v-model="$store.state.subingreso.model.id_ingreso"
+            :items="ingresosStore.list"
+            v-model="subingresoStore.model.id_ingreso"
             item-title="descripcion"
             item-value="id"
             :rules="[(v) => !!v || 'Dato Requerido']"
-            :readonly="$store.state.subingreso.tipo == 'ver'"
+            :readonly="subingresoStore.tipo == 'ver'"
             :item-props="(item) => ({ disabled: item.status != 1 })"
           >
           </v-autocomplete>
         </div>
         <div class="col-12 py-1">
           <v-text-field
-            v-model="$store.state.subingreso.model.code"
-            :readonly="$store.state.subingreso.tipo != 'nuevo'"
+            v-model="subingresoStore.model.code"
+            :readonly="subingresoStore.tipo != 'nuevo'"
             label="Código (*)"
             v-on:blur="validateCodigo()"
             :error-messages="err"
@@ -114,10 +114,10 @@
         </div>
         <div class="col-12 py-1">
           <v-text-field
-            v-model="$store.state.subingreso.model.description"
-            :readonly="$store.state.subingreso.tipo == 'ver'"
+            v-model="subingresoStore.model.description"
+            :readonly="subingresoStore.tipo == 'ver'"
             label="Descripción (*)"
-            :clearable="$store.state.subingreso.tipo != 'ver'"
+            :clearable="subingresoStore.tipo != 'ver'"
             :rules="[
               (v) => !!v || 'Dato Requerido',
               (v) =>
@@ -129,26 +129,26 @@
         <div class="col-12 py-1">
           <v-checkbox
             label="Se calcula en Reportes"
-            v-model="$store.state.subingreso.model.calculoflag"
+            v-model="subingresoStore.model.calculoflag"
             :value-comparator="(value, checked) => Boolean(value) === checked"
           ></v-checkbox>
         </div>
         <div class="col-12 py-1">
           <v-checkbox
             label="Se Muestra en Reportes"
-            v-model="$store.state.subingreso.model.mostrarflag"
+            v-model="subingresoStore.model.mostrarflag"
             :value-comparator="(value, checked) => Boolean(value) === checked"
           ></v-checkbox>
         </div>
         <div class="col-12 py-1">
           <span> Estado</span>
           <v-switch
-            :readonly="$store.state.subingreso.tipo == 'ver'"
+            :readonly="subingresoStore.tipo == 'ver'"
             :label="`Estado: ${
-              !!$store.state.subingreso.model.status ? 'Activo' : 'Inactivo'
+              !!subingresoStore.model.status ? 'Activo' : 'Inactivo'
             }`"
             color="success"
-            v-model="$store.state.subingreso.model.status"
+            v-model="subingresoStore.model.status"
             :value-comparator="(value, checked) => Boolean(value) === checked"
           ></v-switch>
         </div>
@@ -160,7 +160,7 @@
       <v-btn
         class="mx-1"
         color="success"
-        v-if="$store.state.subingreso.tipo == 'filter'"
+        v-if="subingresoStore.tipo == 'filter'"
         @click="Filtrar()"
         :loading="loading"
         >Aceptar</v-btn
@@ -168,7 +168,7 @@
       <v-btn
         class="mx-1"
         color="default"
-        v-if="$store.state.subingreso.tipo == 'filter'"
+        v-if="subingresoStore.tipo == 'filter'"
         @click="Limpiar()"
         :loading="loading"
         >Limpiar</v-btn
@@ -176,7 +176,7 @@
       <v-btn
         class="mx-1"
         color="success"
-        v-if="$store.state.subingreso.tipo != 'filter' && $store.state.subingreso.tipo != 'ver'"
+        v-if="subingresoStore.tipo != 'filter' && subingresoStore.tipo != 'ver'"
         @click="Aceptar()"
         :loading="loading"
         >Aceptar</v-btn
@@ -185,7 +185,7 @@
         class="mx-1"
         color="warning"
         @click="
-          $store.state.subingreso.drawer = !$store.state.subingreso.drawer
+          subingresoStore.drawer = !subingresoStore.drawer
         "
         :loading="loading"
         >Cerrar</v-btn
@@ -194,7 +194,9 @@
   </v-card>
 </template>
 <script>
-import { mapActions } from "vuex";
+import { mapActions as mapPiniaActions, mapStores } from "pinia";
+import { useIngresosStore } from "@/stores/ingresos";
+import { useSubingresoStore } from "@/stores/subingreso";
 export default {
   data() {
     return {
@@ -206,23 +208,18 @@ export default {
     };
   },
   methods: {
-    ...mapActions([
-      "GetListSubIngreso",
-      "getValidateCodeSubIngreso",
-      "setSubIngreso",
-      "ActualizarSubIngreso",
-    ]),
+    ...mapPiniaActions(useSubingresoStore, ["GetListSubIngreso", "getValidateCodeSubIngreso", "setSubIngreso", "ActualizarSubIngreso"]),
     getName() {
-      if (this.$store.state.subingreso.tipo == "ver") {
+      if (this.subingresoStore.tipo == "ver") {
         return `Tipo de Subingreso ${this.model.description} – Modo Vista`;
       }
-      if (this.$store.state.subingreso.tipo == "nuevo") {
+      if (this.subingresoStore.tipo == "nuevo") {
         return "Nuevo Tipo de Subingreso";
       }
-      if (this.$store.state.subingreso.tipo == "editar") {
+      if (this.subingresoStore.tipo == "editar") {
         return `Modificar Tipo de Subingreso: ${this.model.description}`;
       }
-      if (this.$store.state.subingreso.tipo == "filter") {
+      if (this.subingresoStore.tipo == "filter") {
         return "Filtrar Registros";
       }
     },
@@ -231,11 +228,11 @@ export default {
       this.loading = true;
       await this.GetListSubIngreso();
       this.loading = false;
-      this.$store.state.subingreso.drawer =
-        !this.$store.state.subingreso.drawer;
+      this.subingresoStore.drawer =
+        !this.subingresoStore.drawer;
     },
     async Limpiar() {
-      this.$store.state.subingreso.filtros = {
+      this.subingresoStore.filtros = {
         id: "",
         id_ingreso: "",
         code: "",
@@ -249,21 +246,21 @@ export default {
       await this.GetListSubIngreso();
 
       this.loading = false;
-      this.$store.state.subingreso.drawer =
-        !this.$store.state.subingreso.drawer;
+      this.subingresoStore.drawer =
+        !this.subingresoStore.drawer;
     },
     async validateCodigo() {
       this.err = "";
-      if (this.$store.state.subingreso.tipo == "nuevo") {
+      if (this.subingresoStore.tipo == "nuevo") {
         let val = await this.getValidateCodeSubIngreso();
         this.err = val.mensaje;
         if (val.estadoflag) {
-          this.$store.state.subingreso.model.code = "";
+          this.subingresoStore.model.code = "";
         }
       }
     },
     async Aceptar() {
-      if (this.$store.state.subingreso.tipo == "nuevo") {
+      if (this.subingresoStore.tipo == "nuevo") {
         if ((await this.$refs.frmDML.validate()).valid) {
           this.loading = true;
           await this.setSubIngreso();
@@ -271,7 +268,7 @@ export default {
           this.loading = false;
         }
       }
-      if (this.$store.state.subingreso.tipo == "editar") {
+      if (this.subingresoStore.tipo == "editar") {
         this.loading = true;
         if ((await this.$refs.frmDML.validate()).valid) {
           await this.ActualizarSubIngreso();
@@ -279,25 +276,26 @@ export default {
         }
         this.loading = false;
       }
-      if (this.$store.state.subingreso.tipo == "ver") {
-        this.$store.state.subingreso.drawer =
-          !this.$store.state.subingreso.drawer;
+      if (this.subingresoStore.tipo == "ver") {
+        this.subingresoStore.drawer =
+          !this.subingresoStore.drawer;
       }
     },
   },
   computed: {
+    ...mapStores(useSubingresoStore, useIngresosStore),
     drawer: {
       get() {
-        return this.$store.state.subingreso.drawer;
+        return this.subingresoStore.drawer;
       },
       set(val) {
-        return (this.$store.state.subingreso.drawer = drawer);
+        return (this.subingresoStore.drawer = drawer);
       },
     },
   },
   watch: {
     drawer() {
-      this.model = { ...this.$store.state.subingreso.model };
+      this.model = { ...this.subingresoStore.model };
       this.$refs.frmDML.resetValidation();
     },
   },
