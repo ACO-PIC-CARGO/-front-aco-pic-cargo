@@ -6,6 +6,7 @@ import type { TipoPago } from "@/types/catalogos";
 const typepaymentStore = useTypepaymentStore();
 
 const loading = ref(false);
+const errPosition = ref("");
 const model = ref<Partial<TipoPago>>({});
 const frmDML = useTemplateRef("frmDML");
 
@@ -72,6 +73,27 @@ async function Aceptar() {
   }
   if (typepaymentStore.tipo == "ver") {
     typepaymentStore.drawer = !typepaymentStore.drawer;
+  }
+}
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+async function validate() {
+  // getValidatePosition
+  errPosition.value = "";
+  if (typepaymentStore.tipo == "nuevo") {
+    // @ts-expect-error the store never had this validation, as in the old code
+    const val = await typepaymentStore.getValidatePositionTypePayment();
+    errPosition.value = val.mensaje;
+    if (val.estadoflag) {
+      typepaymentStore.model.position = "";
+    }
+  }
+  if (typepaymentStore.tipo == "editar") {
+    // @ts-expect-error the store never had this validation, as in the old code
+    const val = await typepaymentStore.getValidatePositionActualizarTypePayment();
+    errPosition.value = val.mensaje;
+    if (val.estadoflag) {
+      typepaymentStore.model.position = "";
+    }
   }
 }
 </script>
