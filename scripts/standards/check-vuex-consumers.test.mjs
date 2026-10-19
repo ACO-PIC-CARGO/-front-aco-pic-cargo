@@ -30,3 +30,24 @@ test("reports file, line and text of each hit", () => {
   const hits = findConsumers({ "a.js": `x\n  store.dispatch("getCoinsList")` }, coins);
   assert.deepEqual(hits, [{ file: "a.js", line: 2, text: `store.dispatch("getCoinsList")` }]);
 });
+
+test("ignores hits inside line comments and HTML comments", () => {
+  const files = {
+    "a.vue": [
+      `<template>`,
+      `  <!-- <b @click="$store.state.coins.drawer = true"/> -->`,
+      `  <!--`,
+      `    {{ $store.state.coins.list }}`,
+      `  -->`,
+      `  <i>{{ $store.state.coins.record }}</i>`,
+      `</template>`,
+      `<script>`,
+      `// store.dispatch("getCoinsList")`,
+      `/* store.dispatch("getCoinsList") */`,
+      ` * store.dispatch("getCoinsList")`,
+      `store.dispatch("getCoinsList")`,
+      `</script>`,
+    ].join("\n"),
+  };
+  assert.deepEqual(findConsumers(files, coins).map((h) => h.line), [6, 12]);
+});

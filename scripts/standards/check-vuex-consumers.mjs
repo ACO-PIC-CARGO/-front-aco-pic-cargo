@@ -34,6 +34,18 @@ function mapCallIndexes(text, { namespaced, actions, mutations }) {
   return indexes;
 }
 
+function commentLines(lines) {
+  const commented = new Set();
+  let inHtml = false;
+  lines.forEach((raw, i) => {
+    const line = raw.trim();
+    const opens = line.startsWith("<!--");
+    if (inHtml || opens || ["//", "/*", "*"].some((start) => line.startsWith(start))) commented.add(i + 1);
+    if (inHtml || opens) inHtml = line.lastIndexOf("<!--") > line.lastIndexOf("-->") || (inHtml && !line.includes("-->"));
+  });
+  return commented;
+}
+
 export function findConsumers(files, moduleInfo) {
   const patterns = patternsFor(moduleInfo);
   const hits = [];
@@ -42,7 +54,8 @@ export function findConsumers(files, moduleInfo) {
     const hitLines = new Set(mapCallIndexes(text, moduleInfo).map((index) => lineOf(text, index)));
     for (const pattern of patterns)
       for (const match of text.matchAll(pattern)) hitLines.add(lineOf(text, match.index));
-    for (const line of [...hitLines].sort((a, b) => a - b))
+    const commented = commentLines(lines);
+    for (const line of [...hitLines].filter((n) => !commented.has(n)).sort((a, b) => a - b))
       hits.push({ file, line, text: lines[line - 1].trim() });
   }
   return hits;
