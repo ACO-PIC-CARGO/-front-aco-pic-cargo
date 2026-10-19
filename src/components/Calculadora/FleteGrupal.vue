@@ -21,7 +21,7 @@
 
         <v-data-table
           :headers="headersResumen"
-          :items="$store.state.calculadoras.lstFleteGrupalResumen"
+          :items="calculadorasStore.lstFleteGrupalResumen"
           density="compact"
           :search="searchResumen"
         >
@@ -79,7 +79,7 @@
           <v-col cols="12">
             <v-data-table
               :headers="headers"
-              :items="$store.state.calculadoras.lstFleteGrupal"
+              :items="calculadorasStore.lstFleteGrupal"
               density="compact"
               :search="searchCosto"
             >
@@ -140,7 +140,7 @@
           <v-col cols="12">
             <v-data-table
               :headers="headers"
-              :items="$store.state.calculadoras.lstFleteGrupalVenta"
+              :items="calculadorasStore.lstFleteGrupalVenta"
               :search="searchVenta"
               density="compact"
             >
@@ -236,10 +236,12 @@
 </template>
 
 <script>
-import { mapActions, mapState } from "vuex";
+import { mapState } from "vuex";
 import Swal from "sweetalert2";
 
 import FormatFechaVue from "../comun/FormatFecha.vue";
+import { mapActions as mapPiniaActions, mapStores } from "pinia";
+import { useCalculadorasStore } from "@/stores/calculadoras";
 export default {
   props: ["type"],
   components: {
@@ -306,18 +308,11 @@ export default {
     };
   },
   computed: {
+    ...mapStores(useCalculadorasStore),
     // ...mapState(["getFleteGrupal"]),
   },
   methods: {
-    ...mapActions([
-      "getFleteGrupal",
-      "setFleteGrupal",
-      "updateFleteGrupal",
-      "getFleteGrupalVenta",
-      "setFleteGrupalVenta",
-      "updateFleteGrupalVenta",
-      "getFleteGrupalResumen",
-    ]),
+    ...mapPiniaActions(useCalculadorasStore, ["getFleteGrupal", "setFleteGrupal", "updateFleteGrupal", "getFleteGrupalVenta", "setFleteGrupalVenta", "updateFleteGrupalVenta", "getFleteGrupalResumen"]),
     eliminar(element) {
       Swal.fire({
         icon: "question",
@@ -392,11 +387,11 @@ export default {
       this.errorFechaVigencia = "";
       if ((await this.$refs.frmNuevo.validate()).valid && this.form.vigencia) {
         if (
-          (this.$store.state.calculadoras.lstFleteGrupal.some(
+          (this.calculadorasStore.lstFleteGrupal.some(
             (v) => Number(v.volumen) === Number(this.form.volumen),
           ) &&
             this.tab == "costo") ||
-          (this.$store.state.calculadoras.lstFleteGrupalVenta.some(
+          (this.calculadorasStore.lstFleteGrupalVenta.some(
             (v) => Number(v.volumen) === Number(this.form.volumen),
           ) &&
             this.tab == "venta")

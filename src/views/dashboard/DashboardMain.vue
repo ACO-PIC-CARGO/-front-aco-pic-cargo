@@ -14,6 +14,7 @@ import LoadingComponent from "../../components/comun/LoadingComponent.vue";
 import BtnIrAlListado from "../../components/comun/BtnIrAlListado.vue";
 import BotonesHeader from "../../components/comun/BotonesHeader.vue";
 import PlanStatusBadge from "../../components/SubscriptionPackages/PlanStatusBadge.vue";
+import { useCalculadorasStore } from "@/stores/calculadoras";
 import { useEntitiesStore } from "@/stores/entities";
 import { useMasterusuariosStore } from "@/stores/masterusuarios";
 import { useTownStore } from "@/stores/town";
@@ -45,6 +46,7 @@ const route = useRoute();
 const router = useRouter();
 const rootStore = useStore();
 const townStore = useTownStore();
+const calculadorasStore = useCalculadorasStore();
 const entitiesStore = useEntitiesStore();
 const masterusuariosStore = useMasterusuariosStore();
 
@@ -146,7 +148,7 @@ function abrirCarpeta(url?: string) {
 }
 async function guardarNuevaFecha() {
   if ((await formVigencia.value!.validate()).valid) {
-    await rootStore.dispatch("actualizarFechaVigencia", fechaVigencia.value);
+    await calculadorasStore.actualizarFechaVigencia(fechaVigencia.value);
     dialogCambiarFecha.value = false;
   }
 }

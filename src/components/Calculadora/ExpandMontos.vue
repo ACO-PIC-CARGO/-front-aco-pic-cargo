@@ -20,7 +20,7 @@
                 <td>
                   <v-autocomplete
                     density="compact"
-                    :items="$store.state.calculadoras.lstMultiplicador"
+                    :items="calculadorasStore.lstMultiplicador"
                     item-value="id"
                     item-title="name"
                     :rules="[(v) => !!v || 'Dato Requerido']"
@@ -96,8 +96,9 @@
 </template>
 
 <script>
-import { mapActions } from "vuex";
 import Swal from "sweetalert2";
+import { mapActions as mapPiniaActions, mapStores } from "pinia";
+import { useCalculadorasStore } from "@/stores/calculadoras";
 export default {
   props: {
     lstMontos: {
@@ -109,8 +110,11 @@ export default {
       default: {},
     },
   },
+  computed: {
+    ...mapStores(useCalculadorasStore),
+  },
   methods: {
-    ...mapActions(["ActualizarCosto", "EliminarCosto"]),
+    ...mapPiniaActions(useCalculadorasStore, ["ActualizarCosto", "EliminarCosto"]),
     actualizarCosto(costo) {
       this.ActualizarCosto(costo);
     },

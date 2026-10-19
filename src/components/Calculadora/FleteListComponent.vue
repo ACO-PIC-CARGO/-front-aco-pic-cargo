@@ -14,7 +14,7 @@
 
     <v-data-table
       :headers="headers"
-      :items="$store.state.calculadoras.lstFlete"
+      :items="calculadorasStore.lstFlete"
       :search="search"
       item-value="id"
     >
@@ -64,7 +64,8 @@
 
 <script>
 import FormatFecha from "@/components/comun/FormatFecha.vue";
-import { mapActions } from 'vuex';
+import { mapActions as mapPiniaActions, mapStores } from "pinia";
+import { useCalculadorasStore } from "@/stores/calculadoras";
 export default {
   emits: ["flete-actualizado"],
   components: {
@@ -91,8 +92,11 @@ export default {
       flete: {},
     };
   },
+  computed: {
+    ...mapStores(useCalculadorasStore),
+  },
   methods: {
-    ...mapActions(['actualizarFlete']),
+    ...mapPiniaActions(useCalculadorasStore, ['actualizarFlete']),
     editFlete(item) {
       this.flete = { ...item };
       this.dialog = true;

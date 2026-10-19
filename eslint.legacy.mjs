@@ -160,7 +160,6 @@ export const LEGACY = [
   "src/store/modules/banco.js",
   "src/store/modules/bank.js",
   "src/store/modules/branch.js",
-  "src/store/modules/calculadora.js",
   "src/store/modules/coins.js",
   "src/store/modules/comentariosPredefinidos.js",
   "src/store/modules/configAviso.js",

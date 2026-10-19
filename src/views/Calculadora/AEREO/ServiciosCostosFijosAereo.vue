@@ -31,6 +31,8 @@
 <script>
 import { defineAsyncComponent } from "vue";
 import { mapActions } from "vuex";
+import { mapActions as mapPiniaActions } from "pinia";
+import { useCalculadorasStore } from "@/stores/calculadoras";
 export default {
   components: {
     SectionCalculadora: defineAsyncComponent(() =>
@@ -56,12 +58,8 @@ export default {
     ...mapActions([
       "_getModality",
       "_getPais",
-      "GetTipoCosto",
-      "GetCalcServicio",
-      "GetCalcMultiplicador",
-      "GetCotCostos",
-      "getCostosList",
     ]),
+    ...mapPiniaActions(useCalculadorasStore, ["GetTipoCosto", "GetCalcServicio", "GetCalcMultiplicador", "GetCotCostos", "getCostosList"]),
   },
   async mounted() {
     let data = {

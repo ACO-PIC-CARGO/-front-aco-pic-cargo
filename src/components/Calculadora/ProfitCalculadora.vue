@@ -187,8 +187,9 @@
 </template>
 
 <script>
-import { mapActions } from "vuex";
 import Swal from "sweetalert2";
+import { mapActions as mapPiniaActions, mapStores } from "pinia";
+import { useCalculadorasStore } from "@/stores/calculadoras";
 export default {
   props: {
     type: {
@@ -237,18 +238,13 @@ export default {
     };
   },
   methods: {
-    ...mapActions([
-      "postGuardarProfit",
-      "getProfitList",
-      "actualizarGuardarProfit",
-      "eliminarGuardarProfit",
-    ]),
+    ...mapPiniaActions(useCalculadorasStore, ["postGuardarProfit", "getProfitList", "actualizarGuardarProfit", "eliminarGuardarProfit"]),
     async guardarProfit() {
       if ((await this.$refs.frmNuevo.validate()).valid) {
         let data = {
           id_modality: this.id_modality,
           shimpent: this.type,
-          opcion: this.$store.state.calculadoras.opcionCalculadora,
+          opcion: this.calculadorasStore.opcionCalculadora,
           profit: this.profit,
           pesomin: this.pesomin,
           pesomax: this.pesomax,
@@ -297,7 +293,7 @@ export default {
         peso: this.peso,
         volumen: this.volumen,
         valor: this.valor,
-        opcion: this.$store.state.calculadoras.opcionCalculadora,
+        opcion: this.calculadorasStore.opcionCalculadora,
         metromc: this.metromc,
         metromcad: this.metromcad,
       };
@@ -327,7 +323,7 @@ export default {
           peso: this.peso,
           volumen: this.volumen,
           valor: this.valor,
-          opcion: this.$store.state.calculadoras.opcionCalculadora,
+          opcion: this.calculadorasStore.opcionCalculadora,
           metromc: this.metromc,
           metromcad: this.metromcad,
         };
@@ -361,25 +357,26 @@ export default {
     },
   },
   computed: {
+    ...mapStores(useCalculadorasStore),
     opcionCalculadora: {
       get() {
-        return this.$store.state.calculadoras.opcionCalculadora;
+        return this.calculadorasStore.opcionCalculadora;
       },
       set(value) {
-        this.$store.commit("setOpcion", value); // o una mutation/action de Vuex
+        this.calculadorasStore.setOpcion(value); // o una mutation/action de Vuex
       },
     },
     obtenerValoresProfitPorOpcion() {
-      return this.$store.state.calculadoras.lstProfit.filter(
+      return this.calculadorasStore.lstProfit.filter(
         (v) => v.opcion == this.opcionCalculadora
       );
     },
     opciones: {
       get() {
-        return this.$store.state.calculadoras.opciones;
+        return this.calculadorasStore.opciones;
       },
       set(value) {
-        this.$store.commit("setOpcion", value); // o una mutation/action de Vuex
+        this.calculadorasStore.setOpcion(value); // o una mutation/action de Vuex
       },
     },
   },

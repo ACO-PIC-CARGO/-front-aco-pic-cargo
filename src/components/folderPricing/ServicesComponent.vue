@@ -143,6 +143,7 @@ import { mapState, mapActions, mapGetters } from "vuex";
 import Swal from "sweetalert2";
 import { mapActions as mapPiniaActions, mapStores } from "pinia";
 import { useTownStore } from "@/stores/town";
+import { useCalculadorasStore } from "@/stores/calculadoras";
 
 export default {
   emits: ["activarLlenadoCostos", "recargarCostos"],
@@ -180,7 +181,7 @@ export default {
     }
   },
   computed: {
-    ...mapStores(useTownStore),
+    ...mapStores(useCalculadorasStore, useTownStore),
     ...mapState({
       begEndList: (state) => state.pricing.begEndList,
       listServices: (state) => state.pricing.listServices,
@@ -289,7 +290,7 @@ export default {
         ? 2
         : 0;
       const peso = parseFloat(datosPrincipales.peso) || 0;
-      const tarifa = this.$store.state.calculadoras.lstTransporte.find(
+      const tarifa = this.calculadorasStore.lstTransporte.find(
         (transporte) =>
           String(transporte.id_distrito) === String(idTown) &&
           Number(transporte.opcion) === opcionTransporte &&

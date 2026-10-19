@@ -10,7 +10,7 @@
       <v-col cols="12">
         <v-data-table
           :headers="headers"
-          :items="$store.state.calculadoras.lstServicio"
+          :items="calculadorasStore.lstServicio"
         >
           <template v-slot:[`item.opcionflag`]="{ item }">
             {{ item.opcionflag ? "Si" : "No" }}
@@ -110,6 +110,8 @@
 
 <script>
 import { mapActions } from "vuex";
+import { mapActions as mapPiniaActions, mapStores } from "pinia";
+import { useCalculadorasStore } from "@/stores/calculadoras";
 
 export default {
   props: {
@@ -163,8 +165,12 @@ export default {
     this.id_pais = branch[0].id_pais;
   },
   // components() {},
+  computed: {
+    ...mapStores(useCalculadorasStore),
+  },
   methods: {
-    ...mapActions(["_getModality", "_getPais", "PostCalcServicio"]),
+    ...mapActions(["_getModality", "_getPais"]),
+    ...mapPiniaActions(useCalculadorasStore, ["PostCalcServicio"]),
     mostrarAdvertencia() {
       this.snackbar = true;
     },

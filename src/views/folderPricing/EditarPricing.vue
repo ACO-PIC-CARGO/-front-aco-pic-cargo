@@ -119,6 +119,7 @@ import { useTownStore } from "@/stores/town";
 import { useMasterusuariosStore } from "@/stores/masterusuarios";
 import { useEnterprisesStore } from "@/stores/enterprises";
 import { useProveedorStore } from "@/stores/proveedor";
+import { useCalculadorasStore } from "@/stores/calculadoras";
 
 export default {
   components: {
@@ -273,9 +274,8 @@ export default {
       "getServices",
       "obtenerCostosPricing",
       "getCargarMasterDetalleNotasCotizacion",
-      "obtenerFleteCalculadora",
-      "getTransporte",
     ]),
+    ...mapPiniaActions(useCalculadorasStore, ["obtenerFleteCalculadora", "getTransporte"]),
     ...mapPiniaActions(useProveedorStore, ["obtenerProveedorPricing"]),
     ...mapPiniaActions(useEnterprisesStore, ["obtenerImpuestoXEmpresa"]),
     ...mapPiniaActions(useMasterusuariosStore, ["cargarMasterDetallePercepcionAduana"]),

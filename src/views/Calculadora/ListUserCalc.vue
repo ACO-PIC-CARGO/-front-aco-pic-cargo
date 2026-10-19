@@ -6,7 +6,8 @@
 
 <script>
 import { defineAsyncComponent } from "vue";
-import { mapActions } from "vuex";
+import { mapActions as mapPiniaActions } from "pinia";
+import { useCalculadorasStore } from "@/stores/calculadoras";
 
 export default {
   data() {
@@ -24,7 +25,7 @@ export default {
     this.cargarEstatus();
   },
   methods: {
-    ...mapActions(["cargarEstatus"]),
+    ...mapPiniaActions(useCalculadorasStore, ["cargarEstatus"]),
   },
 };
 </script>

@@ -20,7 +20,7 @@
       <v-col cols="12" md="12">
         <v-data-table
           :headers="headers"
-          :items="$store.state.calculadoras.listUser"
+          :items="calculadorasStore.listUser"
           :search="search"
           item-value="id"
           id="tblListUser"
@@ -155,7 +155,7 @@
 
             <v-select
               v-model="dataCotizacion.id_status_quote"
-              :items="$store.state.calculadoras.estatusCotizacion"
+              :items="calculadorasStore.estatusCotizacion"
               item-title="name"
               item-value="id"
               label="Estado Cotización"
@@ -185,6 +185,8 @@ import moment from "moment";
 import funcion from "../mixins/funciones";
 import previewQuote from "./previewQuote.vue";
 import Swal from "sweetalert2";
+import { mapActions as mapPiniaActions, mapStores } from "pinia";
+import { useCalculadorasStore } from "@/stores/calculadoras";
 
 export default {
   components: {
@@ -263,28 +265,20 @@ export default {
   async mounted() {
     await this.getListUserCalc();
   },
+  computed: {
+    ...mapStores(useCalculadorasStore),
+  },
   methods: {
     ...mapActions([
-      "getListUserCalc",
-      "ExportarListUser",
-      "getCboStatus",
-      "SetCall",
-      "GetCotFCL",
-      "GetCotLCL",
-      "GetCotAereo",
-      "GetCotFCLResumen",
-      "GetCotLCLResumen",
-      "GetCotAereoResumen",
       "getModulesEntities",
-      "EnviarCotizacionCalculadoraAPrincing",
-      "actualizarEstadoCotizacionCalculadora",
     ]),
+    ...mapPiniaActions(useCalculadorasStore, ["getListUserCalc", "ExportarListUser", "getCboStatus", "SetCall", "GetCotFCL", "GetCotLCL", "GetCotAereo", "GetCotFCLResumen", "GetCotLCLResumen", "GetCotAereoResumen", "EnviarCotizacionCalculadoraAPrincing", "actualizarEstadoCotizacionCalculadora"]),
     abrirModalCambiarEstado(data) {
       this.dataCotizacion = { ...data };
       this.dialogEditarEstado = true;
     },
     rowTrainerClass(item) {
-      const index = this.$store.state.calculadoras.listUser.indexOf(item);
+      const index = this.calculadorasStore.listUser.indexOf(item);
       return index % 2 === 0 ? "fila-par" : "fila-impar";
     },
     async guardarEstadoCotizacion() {
@@ -516,7 +510,7 @@ export default {
 
     // -----------------------------------------------------------
     calculo(tipoCon) {
-      let resumen2 = this.$store.state.calculadoras.datosresumen;
+      let resumen2 = this.calculadorasStore.datosresumen;
 
       let impuestosBajosTotal = resumen2
         .filter(function (item) {
@@ -592,7 +586,7 @@ export default {
     },
     // ----------------------------------------------------------------------
     calculoPrincpipal(transportes, tipoCon) {
-      let response = this.$store.state.calculadoras.datos;
+      let response = this.calculadorasStore.datos;
       let flete = response
         .filter(function (item) {
           if (item.tipo == transportes) {

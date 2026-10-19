@@ -644,9 +644,10 @@
 import { mapActions, mapState } from "vuex";
 import Swal from "sweetalert2";
 import funcion from "@/components/mixins/funciones";
-import { mapStores } from "pinia";
+import { mapActions as mapPiniaActions, mapStores } from "pinia";
 import { useTownStore } from "@/stores/town";
 import { useMasterusuariosStore } from "@/stores/masterusuarios";
+import { useCalculadorasStore } from "@/stores/calculadoras";
 export default {
   name: "DatosCargaComponent",
   mixins: [funcion],
@@ -766,8 +767,8 @@ export default {
       "_getContainers",
       "getPortBegin",
       "getPortEnd",
-      "obtenerFleteCalculadora",
     ]),
+    ...mapPiniaActions(useCalculadorasStore, ["obtenerFleteCalculadora"]),
     cambiarGrupalIndividual() {
       const { esindividualflag, esgrupalflag } =
         this.$store.state.pricing.datosPrincipales;
@@ -984,27 +985,27 @@ export default {
       let datoFlete = { monto: 0, tienefleteflag: false, fechavigencia: null };
       if (item.code_cost == 4) {
         if (this.$store.state.pricing.datosPrincipales.esindividualflag) {
-          let val = !!this.$store.state.calculadoras.fletePricing.monto_flete;
+          let val = !!this.calculadorasStore.fletePricing.monto_flete;
           datoFlete.monto = val
-            ? this.$store.state.calculadoras.fletePricing.monto_flete
+            ? this.calculadorasStore.fletePricing.monto_flete
             : 0;
           datoFlete.tienefleteflag = val;
           datoFlete.fechavigencia = val
-            ? this.$store.state.calculadoras.fletePricing.vigencia
+            ? this.calculadorasStore.fletePricing.vigencia
             : null;
         }
         if (this.$store.state.pricing.datosPrincipales.esgrupalflag) {
           let val =
-            !!this.$store.state.calculadoras.fletePricing.monto_flete_grupal;
+            !!this.calculadorasStore.fletePricing.monto_flete_grupal;
           datoFlete.monto = val
             ? this.obtenerPrecioUnitarioGrupal(
                 item,
-                this.$store.state.calculadoras.fletePricing.monto_flete_grupal,
+                this.calculadorasStore.fletePricing.monto_flete_grupal,
               )
             : 0;
           datoFlete.tienefleteflag = val;
           datoFlete.fechavigencia = val
-            ? this.$store.state.calculadoras.fletePricing.vigencia_grupal ||
+            ? this.calculadorasStore.fletePricing.vigencia_grupal ||
               null
             : null;
         }
@@ -1016,24 +1017,24 @@ export default {
       if (item.code_cost == 7 && item.esventaflag == 1) {
         if (this.$store.state.pricing.datosPrincipales.esgrupalflag) {
           let val =
-            !!this.$store.state.calculadoras.fletePricing
+            !!this.calculadorasStore.fletePricing
               .monto_flete_grupal_venta;
           datoFlete.monto = val
             ? this.obtenerPrecioUnitarioGrupal(
                 item,
                 parseFloat(
-                  this.$store.state.calculadoras.fletePricing
+                  this.calculadorasStore.fletePricing
                     .monto_flete_grupal_venta || 0,
                 ) -
                   parseFloat(
-                    this.$store.state.calculadoras.fletePricing
+                    this.calculadorasStore.fletePricing
                       .monto_flete_grupal || 0,
                   ),
               )
             : 0;
           datoFlete.tienefleteflag = val;
           datoFlete.fechavigencia = val
-            ? this.$store.state.calculadoras.fletePricing
+            ? this.calculadorasStore.fletePricing
                 .vigencia_grupal_venta || null
             : null;
         }
@@ -1041,16 +1042,16 @@ export default {
       if (item.code_cost == 4 && item.esventaflag == 1) {
         if (this.$store.state.pricing.datosPrincipales.esgrupalflag) {
           let val =
-            !!this.$store.state.calculadoras.fletePricing.monto_flete_grupal;
+            !!this.calculadorasStore.fletePricing.monto_flete_grupal;
           datoFlete.monto = val
             ? this.obtenerPrecioUnitarioGrupal(
                 item,
-                this.$store.state.calculadoras.fletePricing.monto_flete_grupal,
+                this.calculadorasStore.fletePricing.monto_flete_grupal,
               )
             : 0;
           datoFlete.tienefleteflag = val;
           datoFlete.fechavigencia = val
-            ? this.$store.state.calculadoras.fletePricing.vigencia_grupal ||
+            ? this.calculadorasStore.fletePricing.vigencia_grupal ||
               null
             : null;
         }
@@ -1602,7 +1603,7 @@ export default {
         let pesoActual =
           parseFloat(this.$store.state.pricing.datosPrincipales.peso) || 0;
 
-        let transporte = this.$store.state.calculadoras.lstTransporte.find(
+        let transporte = this.calculadorasStore.lstTransporte.find(
           (v) =>
             v.id_distrito ==
               this.$store.state.pricing.datosPrincipales.id_town &&
@@ -1759,7 +1760,7 @@ export default {
     },
   },
   computed: {
-    ...mapStores(useMasterusuariosStore, useTownStore),
+    ...mapStores(useCalculadorasStore, useMasterusuariosStore, useTownStore),
     abrirModalContenedor: {
       get() {
         return this.$store.state.pricing.abrirModalContenedor;

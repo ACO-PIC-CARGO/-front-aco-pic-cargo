@@ -5,15 +5,16 @@
 </template>
 
 <script>
-import { mapActions } from "vuex";
 import ConfiguracionOpcionCalculadoraComponent from "../../components/Calculadora/ConfiguracionOpcionCalculadoraComponent.vue";
+import { mapActions as mapPiniaActions } from "pinia";
+import { useCalculadorasStore } from "@/stores/calculadoras";
 
 export default {
   components: {
     ConfiguracionOpcionCalculadoraComponent,
   },
   methods: {
-    ...mapActions(["opcionListado"]),
+    ...mapPiniaActions(useCalculadorasStore, ["opcionListado"]),
   },
   async mounted() {
     await this.opcionListado();

@@ -170,6 +170,7 @@ import { useQuoteStatusStore } from "@/stores/QuoteStatus";
 import { useMasterusuariosStore } from "@/stores/masterusuarios";
 import { useEnterprisesStore } from "@/stores/enterprises";
 import { useProveedorStore } from "@/stores/proveedor";
+import { useCalculadorasStore } from "@/stores/calculadoras";
 export default {
   mixins: [mixins],
   components: {
@@ -256,9 +257,8 @@ export default {
       "_getContainers",
       "crearCarpetaOneDrive",
       "actualizarURLEnElQuote",
-      "obtenerFleteCalculadora",
-      "getTransporte",
     ]),
+    ...mapPiniaActions(useCalculadorasStore, ["obtenerFleteCalculadora", "getTransporte"]),
     ...mapPiniaActions(useProveedorStore, ["obtenerProveedorPricing"]),
     ...mapPiniaActions(useEnterprisesStore, ["obtenerImpuestoXEmpresa"]),
     ...mapPiniaActions(useMasterusuariosStore, ["cargarMasterDetallePercepcionAduana"]),
@@ -405,7 +405,7 @@ export default {
       );
       let { id_town, peso } = this.$store.state.pricing.datosPrincipales;
 
-      let val = this.$store.state.calculadoras.lstTransporte.some(
+      let val = this.calculadorasStore.lstTransporte.some(
         (v) =>
           v.id_distrito == id_town &&
           Number(peso || 0) >= Number(v.peso_desde || 0) &&
@@ -413,7 +413,7 @@ export default {
       );
 
       if (existeTransporteDestino && !val) {
-        val = this.$store.state.calculadoras.lstTransporte.some(
+        val = this.calculadorasStore.lstTransporte.some(
           (v) => v.id_distrito == id_town,
         );
         if (!val) {
@@ -766,16 +766,16 @@ export default {
       let datoFlete = { monto: 0, tienefleteflag: false, fechavigencia: null };
       if (item.code_cost == 4) {
         const val =
-          !!this.$store.state.calculadoras.fletePricing.monto_flete_grupal;
+          !!this.calculadorasStore.fletePricing.monto_flete_grupal;
         datoFlete.monto = val
           ? this.obtenerPrecioUnitarioGrupal(
               item,
-              this.$store.state.calculadoras.fletePricing.monto_flete_grupal,
+              this.calculadorasStore.fletePricing.monto_flete_grupal,
             )
           : 0;
         datoFlete.tienefleteflag = val;
         datoFlete.fechavigencia = val
-          ? this.$store.state.calculadoras.fletePricing.vigencia_grupal || null
+          ? this.calculadorasStore.fletePricing.vigencia_grupal || null
           : null;
       }
       return datoFlete;
@@ -784,39 +784,39 @@ export default {
       let datoFlete = { monto: 0, tienefleteflag: false, fechavigencia: null };
       if (item.code_cost == 7) {
         const tieneFleteVenta =
-          !!this.$store.state.calculadoras.fletePricing
+          !!this.calculadorasStore.fletePricing
             .monto_flete_grupal_venta;
         datoFlete.monto = tieneFleteVenta
           ? this.obtenerPrecioUnitarioGrupal(
               item,
               parseFloat(
-                this.$store.state.calculadoras.fletePricing
+                this.calculadorasStore.fletePricing
                   .monto_flete_grupal_venta || 0,
               ) -
                 parseFloat(
-                  this.$store.state.calculadoras.fletePricing
+                  this.calculadorasStore.fletePricing
                     .monto_flete_grupal || 0,
                 ),
             )
           : 0;
         datoFlete.tienefleteflag = tieneFleteVenta;
         datoFlete.fechavigencia = tieneFleteVenta
-          ? this.$store.state.calculadoras.fletePricing.vigencia_grupal_venta ||
+          ? this.calculadorasStore.fletePricing.vigencia_grupal_venta ||
             null
           : null;
       }
       if (item.code_cost == 4) {
         const tieneFleteVenta =
-          !!this.$store.state.calculadoras.fletePricing.monto_flete_grupal;
+          !!this.calculadorasStore.fletePricing.monto_flete_grupal;
         datoFlete.monto = tieneFleteVenta
           ? this.obtenerPrecioUnitarioGrupal(
               item,
-              this.$store.state.calculadoras.fletePricing.monto_flete_grupal,
+              this.calculadorasStore.fletePricing.monto_flete_grupal,
             )
           : 0;
         datoFlete.tienefleteflag = tieneFleteVenta;
         datoFlete.fechavigencia = tieneFleteVenta
-          ? this.$store.state.calculadoras.fletePricing.vigencia_grupal || null
+          ? this.calculadorasStore.fletePricing.vigencia_grupal || null
           : null;
       }
       if (datoFlete.monto < 0) {
@@ -844,7 +844,7 @@ export default {
         let pesoActual =
           parseFloat(this.$store.state.pricing.datosPrincipales.peso) || 0;
 
-        let transporte = this.$store.state.calculadoras.lstTransporte.find(
+        let transporte = this.calculadorasStore.lstTransporte.find(
           (v) =>
             v.id_distrito ==
               this.$store.state.pricing.datosPrincipales.id_town &&
@@ -862,13 +862,13 @@ export default {
     obtenerFleteOpcionIndividual(item) {
       let datoFlete = { monto: 0, tienefleteflag: false, fechavigencia: null };
       if (item.code_cost == 4) {
-        const val = !!this.$store.state.calculadoras.fletePricing.monto_flete;
+        const val = !!this.calculadorasStore.fletePricing.monto_flete;
         datoFlete.monto = val
-          ? this.$store.state.calculadoras.fletePricing.monto_flete
+          ? this.calculadorasStore.fletePricing.monto_flete
           : 0;
         datoFlete.tienefleteflag = val;
         datoFlete.fechavigencia = val
-          ? this.$store.state.calculadoras.fletePricing.vigencia
+          ? this.calculadorasStore.fletePricing.vigencia
           : null;
       }
       return datoFlete;
@@ -879,7 +879,7 @@ export default {
         const opcion = 1;
         const pesoActual =
           parseFloat(this.$store.state.pricing.datosPrincipales.peso) || 0;
-        const transporte = this.$store.state.calculadoras.lstTransporte.find(
+        const transporte = this.calculadorasStore.lstTransporte.find(
           (v) =>
             v.id_distrito ==
               this.$store.state.pricing.datosPrincipales.id_town &&
@@ -1398,7 +1398,7 @@ export default {
     },
   },
   computed: {
-    ...mapStores(useMasterusuariosStore, useQuoteStatusStore),
+    ...mapStores(useCalculadorasStore, useMasterusuariosStore, useQuoteStatusStore),
     // ...mapState(["preServices", "preCostos"]),
   },
 };

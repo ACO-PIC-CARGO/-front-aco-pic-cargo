@@ -2,14 +2,15 @@
   <v-container>
     <v-data-table
       :headers="headers"
-      :items="$store.state.calculadoras.lstTipoCosto"
+      :items="calculadorasStore.lstTipoCosto"
     >
     </v-data-table>
   </v-container>
 </template>
 
 <script>
-import { mapActions } from "vuex";
+import { mapActions as mapPiniaActions, mapStores } from "pinia";
+import { useCalculadorasStore } from "@/stores/calculadoras";
 
 export default {
   props: {
@@ -31,8 +32,11 @@ export default {
     };
   },
   mounted() {},
+  computed: {
+    ...mapStores(useCalculadorasStore),
+  },
   methods: {
-    ...mapActions(["GetTipoCosto"]),
+    ...mapPiniaActions(useCalculadorasStore, ["GetTipoCosto"]),
   },
 };
 </script>

@@ -3,9 +3,11 @@ import { computed } from "vue";
 import { useRoute } from "vue-router";
 import Swal from "sweetalert2";
 import { useStore } from "vuex";
+import { useCalculadorasStore } from "@/stores/calculadoras";
 
 const route = useRoute();
 const rootStore = useStore();
+const calculadorasStore = useCalculadorasStore();
 
 const getNameUrl = computed(() => route.name);
 
@@ -56,7 +58,7 @@ async function enviarCotizacion({
   individualflag?: boolean;
   grupalflag?: boolean;
 }) {
-  await rootStore.dispatch("EnviarCotizacionCalculadoraAPrincing", {
+  await calculadorasStore.EnviarCotizacionCalculadoraAPrincing({
     id: id,
     individualflag: individualflag,
     grupalflag: grupalflag,

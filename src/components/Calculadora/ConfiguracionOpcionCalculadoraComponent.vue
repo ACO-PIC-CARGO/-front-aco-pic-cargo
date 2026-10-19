@@ -133,7 +133,8 @@
 </template>
 
 <script>
-import { mapActions } from "vuex";
+import { mapActions as mapPiniaActions, mapStores } from "pinia";
+import { useCalculadorasStore } from "@/stores/calculadoras";
 
 export default {
   data() {
@@ -166,9 +167,10 @@ export default {
     };
   },
   computed: {
+    ...mapStores(useCalculadorasStore),
     lstOpciones: {
       get() {
-        return this.$store.state.calculadoras.lstOpciones;
+        return this.calculadorasStore.lstOpciones;
       },
       set(value) {
         // Si necesitas actualizarlo, lo ideal es llamar a una mutación de Vuex:
@@ -177,7 +179,7 @@ export default {
     },
   },
   methods: {
-    ...mapActions(["opcionActualizar"]),
+    ...mapPiniaActions(useCalculadorasStore, ["opcionActualizar"]),
     async actualizarOpcion(item) {
       await this.opcionActualizar(item);
     },

@@ -2,7 +2,7 @@
   <v-container>
     <v-data-table
       :headers="headers"
-      :items="$store.state.calculadoras.config"
+      :items="calculadorasStore.config"
       item-value="id"
     >
       <template v-slot:[`item.texto`]="{ item, index }">
@@ -39,7 +39,8 @@
 </template>
 
 <script>
-import { mapActions } from "vuex";
+import { mapActions as mapPiniaActions, mapStores } from "pinia";
+import { useCalculadorasStore } from "@/stores/calculadoras";
 
 export default {
   data() {
@@ -59,8 +60,11 @@ export default {
   mounted() {
     this.getConfiguración({});
   },
+  computed: {
+    ...mapStores(useCalculadorasStore),
+  },
   methods: {
-    ...mapActions(["getConfiguración", "ActualizarConfig"]),
+    ...mapPiniaActions(useCalculadorasStore, ["getConfiguración", "ActualizarConfig"]),
     async guardarCambios(item, index) {
       await this.ActualizarConfig(item);
       item.editarflag = false;
@@ -70,7 +74,7 @@ export default {
       });
     },
     activarEditar(item, index) {
-      let val = this.$store.state.calculadoras.config.some(
+      let val = this.calculadorasStore.config.some(
         (v) => v.editarflag && v.id != item.id,
       );
       if (val) {

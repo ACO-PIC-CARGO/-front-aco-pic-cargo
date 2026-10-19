@@ -170,7 +170,7 @@
         <v-card-title primary-title> REGISTRO DE TARIFAS </v-card-title>
         <v-card-text>
           <v-autocomplete
-            :items="$store.state.calculadoras.listSucursal"
+            :items="calculadorasStore.listSucursal"
             item-value="paises_id"
             item-title="paises_nombre"
             label="Sucursal(s)"
@@ -520,6 +520,8 @@ import moment from "moment";
 import Swal from "sweetalert2";
 import axios from "@/api/http";
 import { mapActions } from "vuex";
+import { mapActions as mapPiniaActions, mapStores } from "pinia";
+import { useCalculadorasStore } from "@/stores/calculadoras";
 export default {
   props: {
     type: {
@@ -640,19 +642,17 @@ export default {
       },
     };
   },
+  computed: {
+    ...mapStores(useCalculadorasStore),
+  },
   methods: {
     ...mapActions([
       "_getPais",
-      "CargarPuertoPorTipoPorPais",
       "CargarMoneda",
-      "CargarnavieraCalc",
-      "CargarcontendedorCalc",
-      "CargarSucursal",
-      "GetCotValLCL",
-      "postGuardarCostos",
       "getPortBegin",
       "getPortEnd",
     ]),
+    ...mapPiniaActions(useCalculadorasStore, ["CargarPuertoPorTipoPorPais", "CargarnavieraCalc", "CargarcontendedorCalc", "CargarSucursal", "GetCotValLCL", "postGuardarCostos"]),
 
     // async guardarDatos() {
     //   let data = {};

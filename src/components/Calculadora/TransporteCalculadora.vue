@@ -103,7 +103,7 @@
                       datosExcel.filter(
                         (v) =>
                           v.opcion ==
-                          $store.state.calculadoras.opcionCalculadora,
+                          calculadorasStore.opcionCalculadora,
                       )
                     "
                     density="compact"
@@ -113,7 +113,7 @@
                     </template>
                     <template v-slot:[`item.provinciacbo`]="{ item }">
                       <v-autocomplete
-                        :items="$store.state.calculadoras.lstCiudades"
+                        :items="calculadorasStore.lstCiudades"
                         v-model="item.id_provincia"
                         item-value="id"
                         item-title="name"
@@ -124,7 +124,7 @@
                     <template v-slot:[`item.distritocbo`]="{ item }">
                       <v-autocomplete
                         :items="
-                          $store.state.calculadoras.lstDistritos.filter(
+                          calculadorasStore.lstDistritos.filter(
                             (d) => d.id_city == item.id_provincia,
                           )
                         "
@@ -166,7 +166,7 @@
             ></v-text-field>
 
             <v-autocomplete
-              :items="$store.state.calculadoras.lstCiudades"
+              :items="calculadorasStore.lstCiudades"
               label="Departamento"
               placeholder="Departamento"
               item-value="id"
@@ -177,7 +177,7 @@
 
             <v-autocomplete
               :items="
-                $store.state.calculadoras.lstDistritos.filter(
+                calculadorasStore.lstDistritos.filter(
                   (v) => v.id_city == transporte.id_provincia,
                 )
               "
@@ -246,6 +246,8 @@
 import { mapActions } from "vuex";
 import { readSheet as readXlsFile } from "read-excel-file/browser";
 import Swal from "sweetalert2";
+import { mapActions as mapPiniaActions, mapStores } from "pinia";
+import { useCalculadorasStore } from "@/stores/calculadoras";
 export default {
   props: {
     type: {
@@ -300,17 +302,9 @@ export default {
   },
   methods: {
     ...mapActions([
-      "getDistritos",
       "getTransporteGuardar",
-      "getProfitList",
-      "validarTransporte",
-      "getCiudad",
-      "setGuardarTransporte",
-      "EliminarTransporte",
-      "getTransporte",
-      "ActualizarTransporte",
-      "RegistroTransporte",
     ]),
+    ...mapPiniaActions(useCalculadorasStore, ["getDistritos", "getProfitList", "validarTransporte", "getCiudad", "setGuardarTransporte", "EliminarTransporte", "getTransporte", "ActualizarTransporte", "RegistroTransporte"]),
     editar(item) {
       this.transporte = { ...item };
       this.dialogEditar = true;
@@ -325,7 +319,7 @@ export default {
         id_distrito: null,
         tarifadolar: null,
         tarifamonlocal: null,
-        opcion: this.$store.state.calculadoras.opcionCalculadora,
+        opcion: this.calculadorasStore.opcionCalculadora,
         shimpent: this.type,
         tipocambio: 1,
         id_modality: this.id_modality,
@@ -403,7 +397,7 @@ export default {
                 2,
               ),
               tarifamonlocal: rows[index][5],
-              opcion: this.$store.state.calculadoras.opcionCalculadora,
+              opcion: this.calculadorasStore.opcionCalculadora,
             });
           }
         }
@@ -469,25 +463,26 @@ export default {
     },
   },
   computed: {
+    ...mapStores(useCalculadorasStore),
     opcionCalculadora: {
       get() {
-        return this.$store.state.calculadoras.opcionCalculadora;
+        return this.calculadorasStore.opcionCalculadora;
       },
       set(value) {
-        this.$store.commit("setOpcion", value); // o una mutation/action de Vuex
+        this.calculadorasStore.setOpcion(value); // o una mutation/action de Vuex
       },
     },
     obtenerValoresTransportePorOpcion() {
-      return this.$store.state.calculadoras.lstTransporte.filter(
+      return this.calculadorasStore.lstTransporte.filter(
         (v) => v.opcion == this.opcionCalculadora,
       );
     },
     opciones: {
       get() {
-        return this.$store.state.calculadoras.opciones;
+        return this.calculadorasStore.opciones;
       },
       set(value) {
-        this.$store.commit("setOpcion", value); // o una mutation/action de Vuex
+        this.calculadorasStore.setOpcion(value); // o una mutation/action de Vuex
       },
     },
     procesarflag() {

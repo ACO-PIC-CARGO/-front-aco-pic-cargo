@@ -30,7 +30,7 @@
           >
         </p>
         <ExpandMontos
-          v-for="(tipo, index) in $store.state.calculadoras.lstTipoCosto"
+          v-for="(tipo, index) in calculadorasStore.lstTipoCosto"
           :key="index"
           :tipo="tipo"
           :id="`TipoCostoCostos${index}`"
@@ -75,7 +75,7 @@
                   density="compact"
                   label="Servicio"
                   placeholder="Servicio"
-                  :items="$store.state.calculadoras.lstServicio"
+                  :items="calculadorasStore.lstServicio"
                   item-value="id"
                   item-title="descripcion"
                   :rules="[(v) => !!v || 'Dato Requerido']"
@@ -87,7 +87,7 @@
                   density="compact"
                   label="Sección"
                   placeholder="Sección"
-                  :items="$store.state.calculadoras.lstTipoCosto"
+                  :items="calculadorasStore.lstTipoCosto"
                   item-value="id"
                   item-title="nombre"
                   :rules="[(v) => !!v || 'Dato Requerido']"
@@ -108,7 +108,7 @@
                   density="compact"
                   label="Multiplcador"
                   placeholder="Multiplicador"
-                  :items="$store.state.calculadoras.lstMultiplicador"
+                  :items="calculadorasStore.lstMultiplicador"
                   item-value="id"
                   item-title="name"
                   :rules="[(v) => !!v || 'Dato Requerido']"
@@ -174,8 +174,10 @@
 </template>
 
 <script>
-import { mapActions, mapState } from "vuex";
+import { mapState } from "vuex";
 import ExpandMontos from "./ExpandMontos.vue";
+import { mapActions as mapPiniaActions, mapStores } from "pinia";
+import { useCalculadorasStore } from "@/stores/calculadoras";
 
 export default {
   components: {
@@ -207,27 +209,27 @@ export default {
     };
   },
   methods: {
-    ...mapActions(["PostCalcCosto"]),
+    ...mapPiniaActions(useCalculadorasStore, ["PostCalcCosto"]),
     abrirModalNuevoCosto({ tipo = 1 }) {
       this.dialogNuevoCosto = true;
       this.$refs.frmConcepto.reset();
       this.EsCostoFlag = true;
     },
     getCosto({ tipo = null }) {
-      let cost = [...this.$store.state.calculadoras.lstCostos];
+      let cost = [...this.calculadorasStore.lstCostos];
       return cost.filter(
         (v) =>
           v.id_tipocosto == tipo &&
-          v.opcion == this.$store.state.calculadoras.opcionCalculadora &&
+          v.opcion == this.calculadorasStore.opcionCalculadora &&
           v.escostoflag
       );
     },
     getVenta({ tipo = null }) {
-      let cost = [...this.$store.state.calculadoras.lstCostos];
+      let cost = [...this.calculadorasStore.lstCostos];
       return cost.filter(
         (v) =>
           v.id_tipocosto == tipo &&
-          v.opcion == this.$store.state.calculadoras.opcionCalculadora &&
+          v.opcion == this.calculadorasStore.opcionCalculadora &&
           v.esventaflag
       );
     },
@@ -241,7 +243,7 @@ export default {
           unitario: this.punitario,
           costominimo: this.pcostoMinimo,
           fechavalidez: this.fechavalidez,
-          opcion: this.$store.state.calculadoras.opcionCalculadora,
+          opcion: this.calculadorasStore.opcionCalculadora,
           EsCostoFlag: this.EsCostoFlag,
           EsVentaFlag: this.EsVentaFlag,
         };
@@ -253,20 +255,21 @@ export default {
     },
   },
   computed: {
+    ...mapStores(useCalculadorasStore),
     opcionCalculadora: {
       get() {
-        return this.$store.state.calculadoras.opcionCalculadora;
+        return this.calculadorasStore.opcionCalculadora;
       },
       set(value) {
-        this.$store.commit("setOpcion", value); // o una mutation/action de Vuex
+        this.calculadorasStore.setOpcion(value); // o una mutation/action de Vuex
       },
     },
     opciones: {
       get() {
-        return this.$store.state.calculadoras.opciones;
+        return this.calculadorasStore.opciones;
       },
       set(value) {
-        this.$store.commit("setOpcion", value); // o una mutation/action de Vuex
+        this.calculadorasStore.setOpcion(value); // o una mutation/action de Vuex
       },
     },
   },
