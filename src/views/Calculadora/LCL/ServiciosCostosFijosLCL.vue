@@ -30,10 +30,10 @@
           <SectionCalculadora type="LCL" :id_modality="id_modality" />
         </v-tab-item> -->
         <v-tabs-window-item value="serv">
-          <Servicios type="LCL" :id_modality="id_modality" />
+          <Servicios type="LCL" :id-modality="id_modality" />
         </v-tabs-window-item>
         <v-tabs-window-item value="cost">
-          <CostosCalculadora type="LCL" :id_modality="id_modality" />
+          <CostosCalculadora type="LCL" :id-modality="id_modality" />
         </v-tabs-window-item>
         <v-tabs-window-item value="profit">
           <ProfitCalculadora type="LCL" :id_modality="id_modality" />
@@ -73,7 +73,7 @@ export default {
     TransporteCalculadora: defineAsyncComponent(() =>
       import("../../../components/Calculadora/TransporteCalculadora.vue")),
     Configuracion: defineAsyncComponent(() =>
-      import("../../../components/Calculadora/Configuracion.vue")),
+      import("../../../components/Calculadora/ConfiguracionCalculadora.vue")),
     FleteGrupal: defineAsyncComponent(() =>
       import("../../../components/Calculadora/FleteGrupal.vue")),
   },

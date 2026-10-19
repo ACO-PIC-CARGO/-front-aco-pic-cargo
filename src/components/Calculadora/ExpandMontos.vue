@@ -1,3 +1,37 @@
+<script setup lang="ts">
+import Swal from "sweetalert2";
+import { useCalculadorasStore } from "@/stores/calculadoras";
+import type { CostoCalculadora, TipoCostoCalculadora } from "@/types/calculadora";
+
+withDefaults(defineProps<{ lstMontos?: CostoCalculadora[]; tipo?: Partial<TipoCostoCalculadora> }>(), {
+  lstMontos: () => [],
+  tipo: () => ({}),
+});
+
+const calculadorasStore = useCalculadorasStore();
+
+function actualizarCosto(costo: CostoCalculadora) {
+  calculadorasStore.ActualizarCosto(costo);
+}
+function elimimarCosto(costo: CostoCalculadora) {
+  Swal.fire({
+    icon: "error",
+    title: "Eliminar",
+    text: "Desea Eliminar Registro.",
+    showCancelButton: true,
+    cancelButtonText: "Cancelar",
+    confirmButtonText: "Si, Eliminar",
+    allowEnterKey: false,
+    allowOutsideClick: false,
+    allowEscapeKey: false,
+  }).then((res) => {
+    if (res.isConfirmed) {
+      calculadorasStore.EliminarCosto(costo);
+    }
+  });
+}
+</script>
+
 <template>
   <v-container>
     <v-expansion-panels variant="accordion">
@@ -12,11 +46,14 @@
                 <th>Monto</th>
                 <th>Monto Mínimo</th>
                 <th>Fecha Validez</th>
-                <th></th>
+                <th />
               </tr>
             </thead>
             <tbody>
-              <tr v-for="(Monto, index) in lstMontos" :key="index">
+              <tr
+                v-for="(Monto, index) in lstMontos"
+                :key="index"
+              >
                 <td>
                   <v-autocomplete
                     density="compact"
@@ -35,7 +72,7 @@
                     hide-details
                     v-model="Monto.concepto"
                     :disabled="Monto.bloqueadoflag"
-                  ></v-text-field>
+                  />
                 </td>
                 <td>
                   <v-text-field
@@ -44,7 +81,7 @@
                     type="number"
                     v-model="Monto.punitario"
                     :disabled="Monto.bloqueadoflag"
-                  ></v-text-field>
+                  />
                 </td>
                 <td>
                   <v-text-field
@@ -53,7 +90,7 @@
                     v-model="Monto.costominimo"
                     :disabled="Monto.bloqueadoflag"
                     type="number"
-                  ></v-text-field>
+                  />
                 </td>
                 <td>
                   <v-text-field
@@ -62,18 +99,21 @@
                     v-model="Monto.fechavalidez"
                     type="date"
                     :disabled="Monto.bloqueadoflag"
-                  ></v-text-field>
+                  />
                 </td>
                 <td>
-                  <v-btn variant="text"
+                  <v-btn
+                    variant="text"
                     v-if="Monto.bloqueadoflag"
                     icon
                     size="small"
                     color="info"
                     @click="Monto.bloqueadoflag = false"
-                    ><v-icon>mdi-pencil</v-icon></v-btn
                   >
-                  <v-btn variant="text"
+                    <v-icon>mdi-pencil</v-icon>
+                  </v-btn>
+                  <v-btn
+                    variant="text"
                     icon
                     size="small"
                     color="warning"
@@ -82,7 +122,13 @@
                   >
                     <v-icon>mdi-content-save</v-icon>
                   </v-btn>
-                  <v-btn variant="text" icon size="small" color="error" @click="elimimarCosto(Monto)">
+                  <v-btn
+                    variant="text"
+                    icon
+                    size="small"
+                    color="error"
+                    @click="elimimarCosto(Monto)"
+                  >
                     <v-icon>mdi-delete</v-icon>
                   </v-btn>
                 </td>
@@ -94,49 +140,5 @@
     </v-expansion-panels>
   </v-container>
 </template>
-
-<script>
-import Swal from "sweetalert2";
-import { mapActions as mapPiniaActions, mapStores } from "pinia";
-import { useCalculadorasStore } from "@/stores/calculadoras";
-export default {
-  props: {
-    lstMontos: {
-      type: Array,
-      default: () => [],
-    },
-    tipo: {
-      type: Object,
-      default: {},
-    },
-  },
-  computed: {
-    ...mapStores(useCalculadorasStore),
-  },
-  methods: {
-    ...mapPiniaActions(useCalculadorasStore, ["ActualizarCosto", "EliminarCosto"]),
-    actualizarCosto(costo) {
-      this.ActualizarCosto(costo);
-    },
-    elimimarCosto(costo) {
-      Swal.fire({
-        icon: "error",
-        title: "Eliminar",
-        text: "Desea Eliminar Registro.",
-        showCancelButton: true,
-        cancelButtonText: "Cancelar",
-        confirmButtonText: "Si, Eliminar",
-        allowEnterKey: false,
-        allowOutsideClick: false,
-        allowEscapeKey: false,
-      }).then((res) => {
-        if (res.isConfirmed) {
-          this.EliminarCosto(costo);
-        }
-      });
-    },
-  },
-};
-</script>
 
 <style scoped></style>

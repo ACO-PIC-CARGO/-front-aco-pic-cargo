@@ -13,13 +13,13 @@
           <FleteListComponent type="LCL" :id_modality="id_modality" />
         </v-tabs-window-item>
         <v-tabs-window-item value="section">
-          <SectionCalculadora type="LCL" :id_modality="id_modality" />
+          <SectionCalculadora type="LCL" :id-modality="id_modality" />
         </v-tabs-window-item>
         <v-tabs-window-item value="serv">
-          <Servicios type="LCL" :id_modality="id_modality" />
+          <Servicios type="LCL" :id-modality="id_modality" />
         </v-tabs-window-item>
         <v-tabs-window-item value="cost">
-          <CostosCalculadora type="LCL" :id_modality="id_modality" />
+          <CostosCalculadora type="LCL" :id-modality="id_modality" />
         </v-tabs-window-item>
         <v-tabs-window-item value="flete">
           <FleteComponent type="LCL" :id_modality="id_modality" />

@@ -77,7 +77,7 @@ export const useCalculadorasStore = defineStore("calculadoras", () => {
   const lstCiudades = ref<UbicacionCalculadora[]>([]);
   const lstTransporte = ref<TransporteCalculadora[]>([]);
   const lstOpciones = ref<OpcionCalculadora[]>([]);
-  const opcionCalculadora = ref(1);
+  const opcionCalculadora = ref<number | string>(1);
   const opciones = ref<OpcionCalculadora[]>([]);
   const config = ref<ConfiguracionCalculadora[]>([]);
   const estatusCotizacion = ref<EstadoCotizacion[]>([]);
@@ -86,7 +86,7 @@ export const useCalculadorasStore = defineStore("calculadoras", () => {
   const navieraCalc = ref<NavieraCalculadora[]>();
   const contendedorCalc = ref<ContenedorCalculadora[]>();
 
-  function setOpcion(opcion: number): void {
+  function setOpcion(opcion: number | string): void {
     console.log(opcion);
     opcionCalculadora.value = opcion;
   }

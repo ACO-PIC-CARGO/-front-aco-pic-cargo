@@ -42,7 +42,7 @@ export interface CostoCalculadora {
   unitario?: Numerico;
   costominimo?: Numerico;
   fechavalidez?: string | null;
-  opcion?: number;
+  opcion?: number | string;
   escostoflag?: boolean;
   esventaflag?: boolean;
   EsCostoFlag?: boolean;
