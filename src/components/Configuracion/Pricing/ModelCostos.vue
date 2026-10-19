@@ -1,39 +1,271 @@
+<script setup lang="ts">
+import { computed, ref, useTemplateRef } from "vue";
+import { storeToRefs } from "pinia";
+import { useStore } from "vuex";
+// @ts-expect-error lodash ships no type declarations
+import _ from "lodash";
+import Swal from "sweetalert2";
+import { useConfiguracionStore } from "@/stores/configuracion";
+import type { CostoPricing, FormNuevoCostoPricing } from "@/types/configuracion";
+import type { TipoCostoConfig } from "@/types/empresas";
+
+const props = withDefaults(
+  defineProps<{
+    idModality?: number | null;
+    idShipment?: number | null;
+    idIncoterms?: number | null;
+    modality?: string | null;
+    shipment?: string | null;
+    incoterms?: string | null;
+  }>(),
+  {
+    idModality: null,
+    idShipment: null,
+    idIncoterms: null,
+    modality: null,
+    shipment: null,
+    incoterms: null,
+  },
+);
+const emit = defineEmits<{ cerrarModal: []; cerrarModalGuardar: []; recargarCostos: [] }>();
+
+const rootStore = useStore();
+const configuracionStore = useConfiguracionStore();
+const { lstCostos, lstMultiplicador, lstServicios } = storeToRefs(configuracionStore);
+
+const dialog = ref(false);
+const loading = ref(false);
+const fromDataService = ref<FormNuevoCostoPricing>({ id_multiplicador: 0, minimo: 0 });
+const headers = [
+  { key: "servicio", title: "Servicio", width: "15%" },
+  { key: "proveedor", title: "Proveedor", width: "15%" },
+  { key: "multiplicador", title: "Multiplicador", width: "15%" },
+  { key: "costo", title: "Costo", width: "15%" },
+  { key: "precio", title: "Precio", width: "10%" },
+  {
+    key: "considerarvalorminimoflag",
+    title: "Considerar Valor Mínimo",
+    width: "10%",
+  },
+  { key: "minimo", title: "Valor Mínimo", width: "10%" },
+  { key: "status", title: "Activo / Inactivo", width: "5%" },
+  { key: "action", title: "", width: "10%" },
+];
+const frmNuevoCosto = useTemplateRef("frmNuevoCosto");
+
+function copiarCosto(item: CostoPricing) {
+  Swal.fire({
+    icon: "question",
+    title: "Copiar",
+    text: `Está seguro que desea copiar el concepto ${item.costo}`,
+    confirmButtonText: "Si, copiar",
+    showDenyButton: true,
+    denyButtonText: "No, Cancelar",
+  }).then((res) => {
+    if (res.isConfirmed) {
+      lstCostos.value.push({
+        ...item,
+        id: null,
+        id_costo: null,
+        id_modality: props.idModality,
+        id_shipment: props.idShipment,
+        id_incoterms: props.idIncoterms,
+      });
+    }
+  });
+}
+function mostrarMinimo(item: FormNuevoCostoPricing) {
+  const codigosEspeciales = [13, 14, 15];
+
+  const multiplicador = lstMultiplicador.value.find(
+    (v) => v.id === item.id_multiplicador,
+  );
+
+  if (
+    multiplicador &&
+    codigosEspeciales.includes(Number(multiplicador.code))
+  ) {
+    return true;
+  }
+
+  return false;
+}
+async function guardar() {
+  await configuracionStore.setGuardarCostos({
+    lstCostos: lstCostos.value,
+    id_incoterms: props.idIncoterms!,
+  });
+  emit("cerrarModalGuardar");
+}
+function obtenerCostosEnBaseTipoCosto(codigoTipoCosto: string | undefined) {
+  //   if (this.id_modality == 1) {
+  if (codigoTipoCosto == "LO")
+    return lstCostos.value.filter((v) => v.eslocalflag);
+  if (codigoTipoCosto == "AD")
+    return lstCostos.value.filter((v) => v.esaduanaflag);
+  if (codigoTipoCosto == "AL")
+    return lstCostos.value.filter((v) => v.esalmacenflag);
+  if (codigoTipoCosto == "FL")
+    return lstCostos.value.filter((v) => v.esfleteflag);
+  if (codigoTipoCosto == "GT")
+    return lstCostos.value.filter((v) => v.esgastostercerosflag);
+
+  return lstCostos.value;
+}
+function abrirModal(codigoTipoCosto: string | undefined) {
+  fromDataService.value.idOpcion = codigoTipoCosto;
+  dialog.value = true;
+}
+const recargarProveedores = _.debounce(async (e: string | null) => {
+  if (!e) return;
+
+  const IdProveedor = lstCostos.value.map((v) => v.id_proveedor);
+  await rootStore.dispatch("obtenerProveedorPricing", {
+    id: IdProveedor.join(","),
+    search: e,
+  });
+}, 100);
+function eliminarRegistro(item: CostoPricing) {
+  Swal.fire({
+    icon: "warning",
+    title: "¿Estás completamente seguro?",
+    html: `
+      <p style="margin-bottom: 10px;">Esta acción <b>eliminará permanentemente</b> este registro y no se podrá recuperar.</p>
+      <div style="background-color: #f8d7da; color: #721c24; padding: 10px; border-radius: 5px; font-size: 14px; border: 1px solid #f5c6cb;">
+        💡 <b>¿Prefieres no perder la información?</b><br>
+        Te recomendamos <b>cambiar el estado a inactivo</b> en lugar de eliminarlo.
+      </div>
+    `,
+    showCancelButton: true,
+    confirmButtonColor: "#d33",
+    cancelButtonColor: "#3085d6",
+    confirmButtonText: "Sí, eliminar para siempre",
+    cancelButtonText: "Cancelar",
+  }).then(async (result) => {
+    if (result.isConfirmed) {
+      await configuracionStore.EliminarCosto(item);
+      emit("recargarCostos");
+    }
+  });
+}
+function quitarRegistro(item: CostoPricing) {
+  const index = lstCostos.value.indexOf(item);
+
+  if (index !== -1) {
+    lstCostos.value.splice(index, 1);
+  }
+}
+async function guardarCosto() {
+  if (!(await frmNuevoCosto.value!.validate()).valid) return;
+  const nuevoCosto = { ...fromDataService.value };
+  nuevoCosto.esgastostercerosflag = 0;
+  nuevoCosto.esfleteflag = 0;
+  nuevoCosto.eslocalflag = 0;
+  nuevoCosto.esaduanaflag = 0;
+  nuevoCosto.esalmacenflag = 0;
+  nuevoCosto.status = 1;
+
+  switch (nuevoCosto.idOpcion) {
+    case "GT":
+      nuevoCosto.esgastostercerosflag = 1;
+      break;
+    case "FL":
+      nuevoCosto.esfleteflag = 1;
+      break;
+    case "LO":
+      nuevoCosto.eslocalflag = 1;
+      break;
+    case "AD":
+      nuevoCosto.esaduanaflag = 1;
+      break;
+    case "AL":
+      nuevoCosto.esalmacenflag = 1;
+      break;
+  }
+
+  lstCostos.value.push({
+    ...nuevoCosto,
+    id: null,
+    id_costo: null,
+    maximo: 0,
+    id_modality: props.idModality,
+    id_shipment: props.idShipment,
+    id_incoterms: props.idIncoterms,
+  });
+
+  fromDataService.value = {};
+  frmNuevoCosto.value!.resetValidation();
+  dialog.value = false;
+}
+
+const panelesConDatos = computed(() => {
+  const listaTipos = rootStore.state.pricing.listTipoCostos;
+  if (!listaTipos) return [];
+
+  const panelesFiltrados = listaTipos.filter((tipo: TipoCostoConfig) => {
+    const costosFiltrados = obtenerCostosEnBaseTipoCosto(tipo.codigo);
+    return costosFiltrados && costosFiltrados.length > 0;
+  });
+
+  return panelesFiltrados.sort((a: TipoCostoConfig, b: TipoCostoConfig) => {
+    const obtenerPeso = (item: TipoCostoConfig) => {
+      if (item.name && item.name.startsWith("ORIGEN")) {
+        return 1;
+      }
+      if (item.name && item.name.startsWith("DESTINO")) {
+        return 3;
+      }
+      return 2;
+    };
+
+    return obtenerPeso(a) - obtenerPeso(b);
+  }) as TipoCostoConfig[];
+});
+const panelesAbiertos = computed(() => {
+  return panelesConDatos.value.map((_, index) => index);
+});
+</script>
+
 <template>
   <v-card>
     <v-card-title class="d-flex align-center flex-wrap">
       <h4 class="mx-auto">
         ACTUALIZAR COSTOS -
-        {{ Modality }} | {{ Shipment }} |
+        {{ modality }} | {{ shipment }} |
         {{ incoterms }}
       </h4>
     </v-card-title>
-    <v-expansion-panels multiple class="px-5 py-2" :model-value="panelesAbiertos">
+    <v-expansion-panels
+      multiple
+      class="px-5 py-2"
+      :model-value="panelesAbiertos"
+    >
       <!-- Ahora iteramos sobre la propiedad computada filtrada -->
       <v-expansion-panel
-        v-for="(item, index) in panelesConDatos"
+        v-for="(panel, index) in panelesConDatos"
         :key="index"
       >
         <v-expansion-panel-title>
-          {{ item.name }}
+          {{ panel.name }}
           <v-btn
             color="success"
             size="small"
             style="max-width: 370px"
-            @click.stop="abrirModal(item.codigo)"
+            @click.stop="abrirModal(panel.codigo)"
             class="ml-auto"
           >
-            Añadir Costo {{ item.name }}</v-btn
-          >
+            Añadir Costo {{ panel.name }}
+          </v-btn>
         </v-expansion-panel-title>
         <v-expansion-panel-text>
           <v-data-table
             :headers="headers"
-            :items="obtenerCostosEnBaseTipoCosto(item.codigo)"
+            :items="obtenerCostosEnBaseTipoCosto(panel.codigo)"
             density="compact"
             hide-default-footer
             :items-per-page="-1"
           >
-            <template v-slot:[`item.servicio`]="{ item }">
+            <template #[`item.servicio`]="{ item }">
               <v-autocomplete
                 :items="lstServicios"
                 item-value="id"
@@ -42,9 +274,9 @@
                 variant="outlined"
                 density="compact"
                 hide-details
-              ></v-autocomplete>
+              />
             </template>
-            <template v-slot:[`item.multiplicador`]="{ item }">
+            <template #[`item.multiplicador`]="{ item }">
               <v-autocomplete
                 :items="lstMultiplicador"
                 item-value="id"
@@ -53,26 +285,26 @@
                 variant="outlined"
                 density="compact"
                 hide-details
-              ></v-autocomplete>
+              />
             </template>
-            <template v-slot:[`item.costo`]="{ item }">
+            <template #[`item.costo`]="{ item }">
               <v-text-field
                 density="compact"
                 v-model="item.costo"
                 variant="outlined"
                 hide-details
-              ></v-text-field>
+              />
             </template>
-            <template v-slot:[`item.minimo`]="{ item }">
+            <template #[`item.minimo`]="{ item }">
               <v-text-field
                 v-if="item.considerarvalorminimoflag"
                 density="compact"
                 v-model="item.minimo"
                 variant="outlined"
                 hide-details
-              ></v-text-field>
+              />
             </template>
-            <template v-slot:[`item.precio`]="{ item }">
+            <template #[`item.precio`]="{ item }">
               <v-text-field
                 density="compact"
                 v-model="item.precio"
@@ -80,35 +312,36 @@
                 step="0.01"
                 variant="outlined"
                 hide-details
-              ></v-text-field>
+              />
             </template>
-            <template v-slot:[`item.status`]="{ item }">
+            <template #[`item.status`]="{ item }">
               <v-switch
                 v-model="item.status"
                 :true-value="1"
                 :false-value="0"
-              ></v-switch>
+              />
             </template>
-            <template v-slot:[`item.proveedor`]="{ item }">
+            <template #[`item.proveedor`]="{ item }">
               <v-autocomplete
                 density="compact"
                 item-title="namelong"
                 item-value="id"
-                :items="$store.state.proveedor.lstProveedores"
+                :items="rootStore.state.proveedor.lstProveedores"
                 v-model="item.id_proveedor"
                 @update:search="recargarProveedores"
                 hide-details
                 variant="outlined"
-              ></v-autocomplete>
+              />
             </template>
-            <template v-slot:[`item.considerarvalorminimoflag`]="{ item }">
+            <template #[`item.considerarvalorminimoflag`]="{ item }">
               <v-switch
                 v-model="item.considerarvalorminimoflag"
                 :label="`${item.considerarvalorminimoflag ? 'Si' : 'No'}`"
-              ></v-switch>
+              />
             </template>
-            <template v-slot:[`item.action`]="{ item }">
-              <v-btn variant="text"
+            <template #[`item.action`]="{ item }">
+              <v-btn
+                variant="text"
                 color="success"
                 icon
                 @click="copiarCosto(item)"
@@ -117,7 +350,8 @@
                 <v-icon>mdi-content-copy</v-icon>
               </v-btn>
 
-              <v-btn variant="text"
+              <v-btn
+                variant="text"
                 color="red"
                 icon
                 @click="eliminarRegistro(item)"
@@ -126,7 +360,8 @@
                 <v-icon>mdi-delete</v-icon>
               </v-btn>
 
-              <v-btn variant="text"
+              <v-btn
+                variant="text"
                 color="red"
                 icon
                 @click="quitarRegistro(item)"
@@ -154,20 +389,34 @@
         class="ml-auto"
         @click="guardar()"
         color="success"
-        >Guardar</v-btn
       >
-      <v-btn :loading="loading" color="error" @click="$emit('cerrarModal')">
+        Guardar
+      </v-btn>
+      <v-btn
+        :loading="loading"
+        color="error"
+        @click="emit('cerrarModal')"
+      >
         Cancelar
       </v-btn>
     </v-card-actions>
     <!-- Diálogo para agregar nuevo costo -->
-    <v-dialog v-model="dialog" persistent max-width="30%">
+    <v-dialog
+      v-model="dialog"
+      persistent
+      max-width="30%"
+    >
       <v-form ref="frmNuevoCosto">
         <v-card>
-          <v-card-title primary-title> Nuevo Costo </v-card-title>
+          <v-card-title primary-title>
+            Nuevo Costo
+          </v-card-title>
           <v-card-text>
             <v-row>
-              <v-col cols="12" class="my-1 py-1">
+              <v-col
+                cols="12"
+                class="my-1 py-1"
+              >
                 <v-autocomplete
                   density="compact"
                   label="Servicio Asociado"
@@ -176,21 +425,27 @@
                   :items="lstServicios"
                   v-model="fromDataService.id_service"
                   :rules="[(v) => !!v || 'Dato requerido']"
-                ></v-autocomplete>
+                />
               </v-col>
-              <v-col cols="12" class="my-1 py-1">
+              <v-col
+                cols="12"
+                class="my-1 py-1"
+              >
                 <v-autocomplete
                   density="compact"
                   label="Proveedor"
                   item-title="namelong"
                   item-value="id"
-                  :items="$store.state.proveedor.lstProveedores"
+                  :items="rootStore.state.proveedor.lstProveedores"
                   v-model="fromDataService.id_proveedor"
                   @update:search="recargarProveedores"
                   :rules="[(v) => !!v || 'Dato requerido']"
-                ></v-autocomplete>
+                />
               </v-col>
-              <v-col cols="12" class="my-1 py-1">
+              <v-col
+                cols="12"
+                class="my-1 py-1"
+              >
                 <v-autocomplete
                   density="compact"
                   label="Multiplicador"
@@ -199,18 +454,23 @@
                   item-title="name"
                   v-model="fromDataService.id_multiplicador"
                   :rules="[(v) => !!v || 'Dato requerido']"
-                ></v-autocomplete>
+                />
               </v-col>
-              <v-col cols="12" class="my-1 py-1">
+              <v-col
+                cols="12"
+                class="my-1 py-1"
+              >
                 <v-text-field
                   density="compact"
                   label="Concepto"
                   :rules="[(v) => !!v || 'Dato requerido']"
                   v-model="fromDataService.costo"
-                >
-                </v-text-field>
+                />
               </v-col>
-              <v-col cols="12" class="my-1 py-1">
+              <v-col
+                cols="12"
+                class="my-1 py-1"
+              >
                 <v-text-field
                   density="compact"
                   label="Precio"
@@ -218,10 +478,12 @@
                   min="0"
                   :rules="[(v) => !!v || 'Dato requerido']"
                   v-model="fromDataService.precio"
-                >
-                </v-text-field>
+                />
               </v-col>
-              <v-col cols="12" class="my-1 py-1">
+              <v-col
+                cols="12"
+                class="my-1 py-1"
+              >
                 <v-text-field
                   density="compact"
                   label="Valor Mínimo"
@@ -230,274 +492,26 @@
                   v-if="mostrarMinimo(fromDataService)"
                   :rules="[(v) => !!v || 'Dato requerido']"
                   v-model="fromDataService.minimo"
-                >
-                </v-text-field>
+                />
               </v-col>
             </v-row>
           </v-card-text>
           <v-card-actions class="d-flex justify-end">
-            <v-btn color="success" @click="guardarCosto()">Aceptar</v-btn>
-            <v-btn color="red" @click="dialog = !dialog">cancelar</v-btn>
+            <v-btn
+              color="success"
+              @click="guardarCosto()"
+            >
+              Aceptar
+            </v-btn>
+            <v-btn
+              color="red"
+              @click="dialog = !dialog"
+            >
+              cancelar
+            </v-btn>
           </v-card-actions>
         </v-card>
       </v-form>
     </v-dialog>
   </v-card>
 </template>
-
-<script>
-import { mapActions } from "vuex";
-import _ from "lodash";
-import Swal from "sweetalert2";
-import { mapActions as mapPiniaActions, mapState as mapPiniaState } from "pinia";
-import { useConfiguracionStore } from "@/stores/configuracion";
-import { useIncotermStore } from "@/stores/incoterm";
-
-export default {
-  emits: ["cerrarModal", "cerrarModalGuardar", "recargarCostos"],
-  props: {
-    id_modality: {
-      type: Number,
-      default: null,
-    },
-    id_shipment: {
-      type: Number,
-      default: null,
-    },
-    id_incoterms: {
-      type: Number,
-      default: null,
-    },
-    Modality: {
-      type: String,
-      default: null,
-    },
-    Shipment: {
-      type: String,
-      default: null,
-    },
-    incoterms: {
-      type: String,
-      default: null,
-    },
-  },
-  data() {
-    return {
-      dialog: false,
-      loading: false,
-      fromDataService: { id_multiplicador: 0, minimo: 0 },
-      headers: [
-        { key: "servicio", title: "Servicio", width: "15%" },
-        { key: "proveedor", title: "Proveedor", width: "15%" },
-        { key: "multiplicador", title: "Multiplicador", width: "15%" },
-        { key: "costo", title: "Costo", width: "15%" },
-        { key: "precio", title: "Precio", width: "10%" },
-        {
-          key: "considerarvalorminimoflag",
-          title: "Considerar Valor Mínimo",
-          width: "10%",
-        },
-        { key: "minimo", title: "Valor Mínimo", width: "10%" },
-        { key: "status", title: "Activo / Inactivo", width: "5%" },
-        { key: "action", title: "", width: "10%" },
-      ],
-    };
-  },
-  methods: {
-    ...mapActions([
-      "getModality",
-      "getShipment",
-      "obtenerProveedorPricing",
-      "getTipoCostos",
-    ]),
-    ...mapPiniaActions(useIncotermStore, ["CargarIncotermsConfig"]),
-    ...mapPiniaActions(useConfiguracionStore, [
-      "getCargarCostos",
-      "getMultiplicadorConfigCosto",
-      "setGuardarCostos",
-      "EliminarCosto",
-    ]),
-    copiarCosto(item) {
-      Swal.fire({
-        icon: "question",
-        title: "Copiar",
-        text: `Está seguro que desea copiar el concepto ${item.costo}`,
-        confirmButtonText: "Si, copiar",
-        showDenyButton: true,
-        denyButtonText: "No, Cancelar",
-      }).then((res) => {
-        if (res.isConfirmed) {
-          this.lstCostos.push({
-            ...item,
-            id: null,
-            id_costo: null,
-            id_modality: this.id_modality,
-            id_shipment: this.id_shipment,
-            id_incoterms: this.id_incoterms,
-          });
-        }
-      });
-    },
-    mostrarMinimo(item) {
-      const codigosEspeciales = [13, 14, 15];
-
-      const multiplicador = this.lstMultiplicador.find(
-        (v) => v.id === item.id_multiplicador,
-      );
-
-      if (
-        multiplicador &&
-        codigosEspeciales.includes(Number(multiplicador.code))
-      ) {
-        return true;
-      }
-
-      return false;
-    },
-    async guardar() {
-      await this.setGuardarCostos({
-        lstCostos: this.lstCostos,
-        id_incoterms: this.id_incoterms,
-      });
-      this.$emit("cerrarModalGuardar");
-    },
-    obtenerCostosEnBaseTipoCosto(codigoTipoCosto) {
-      //   if (this.id_modality == 1) {
-      if (codigoTipoCosto == "LO")
-        return this.lstCostos.filter((v) => v.eslocalflag);
-      if (codigoTipoCosto == "AD")
-        return this.lstCostos.filter((v) => v.esaduanaflag);
-      if (codigoTipoCosto == "AL")
-        return this.lstCostos.filter((v) => v.esalmacenflag);
-      if (codigoTipoCosto == "FL")
-        return this.lstCostos.filter((v) => v.esfleteflag);
-      if (codigoTipoCosto == "GT")
-        return this.lstCostos.filter((v) => v.esgastostercerosflag);
-
-      return this.lstCostos;
-    },
-    abrirModal(codigoTipoCosto) {
-      this.fromDataService.idOpcion = codigoTipoCosto;
-      this.dialog = true;
-    },
-    recargarProveedores: _.debounce(async function (e) {
-      if (!e) return;
-
-      let IdProveedor = this.lstCostos.map((v) => v.id_proveedor);
-      await this.obtenerProveedorPricing({
-        id: IdProveedor.join(","),
-        search: e,
-      });
-    }, 100),
-    eliminarRegistro(item) {
-      Swal.fire({
-        icon: "warning",
-        title: "¿Estás completamente seguro?",
-        html: `
-      <p style="margin-bottom: 10px;">Esta acción <b>eliminará permanentemente</b> este registro y no se podrá recuperar.</p>
-      <div style="background-color: #f8d7da; color: #721c24; padding: 10px; border-radius: 5px; font-size: 14px; border: 1px solid #f5c6cb;">
-        💡 <b>¿Prefieres no perder la información?</b><br>
-        Te recomendamos <b>cambiar el estado a inactivo</b> en lugar de eliminarlo.
-      </div>
-    `,
-        showCancelButton: true,
-        confirmButtonColor: "#d33",
-        cancelButtonColor: "#3085d6",
-        confirmButtonText: "Sí, eliminar para siempre",
-        cancelButtonText: "Cancelar",
-      }).then(async (result) => {
-        if (result.isConfirmed) {
-          await this.EliminarCosto(item);
-          this.$emit("recargarCostos");
-        }
-      });
-    },
-    quitarRegistro(item) {
-      const index = this.lstCostos.indexOf(item);
-
-      if (index !== -1) {
-        this.lstCostos.splice(index, 1);
-      }
-    },
-    async guardarCosto() {
-      if (!(await this.$refs.frmNuevoCosto.validate()).valid) return;
-      const nuevoCosto = { ...this.fromDataService };
-      nuevoCosto.esgastostercerosflag = 0;
-      nuevoCosto.esfleteflag = 0;
-      nuevoCosto.eslocalflag = 0;
-      nuevoCosto.esaduanaflag = 0;
-      nuevoCosto.esalmacenflag = 0;
-      nuevoCosto.status = 1;
-      nuevoCosto.costo = nuevoCosto.costo;
-      nuevoCosto.precio = nuevoCosto.precio;
-      nuevoCosto.minimo = nuevoCosto.minimo;
-
-      switch (nuevoCosto.idOpcion) {
-        case "GT":
-          nuevoCosto.esgastostercerosflag = 1;
-          break;
-        case "FL":
-          nuevoCosto.esfleteflag = 1;
-          break;
-        case "LO":
-          nuevoCosto.eslocalflag = 1;
-          break;
-        case "AD":
-          nuevoCosto.esaduanaflag = 1;
-          break;
-        case "AL":
-          nuevoCosto.esalmacenflag = 1;
-          break;
-      }
-
-      this.lstCostos.push({
-        ...nuevoCosto,
-        id: null,
-        id_costo: null,
-        maximo: 0,
-        id_modality: this.id_modality,
-        id_shipment: this.id_shipment,
-        id_incoterms: this.id_incoterms,
-      });
-
-      this.fromDataService = {};
-      this.$refs.frmNuevoCosto.resetValidation();
-      this.dialog = false;
-    },
-  },
-  computed: {
-    ...mapPiniaState(useConfiguracionStore, [
-      "lstCostos",
-      "lstMultiplicador",
-      "lstServicios",
-    ]),
-
-    panelesConDatos() {
-      const listaTipos = this.$store.state.pricing.listTipoCostos;
-      if (!listaTipos) return [];
-
-      const panelesFiltrados = listaTipos.filter((tipo) => {
-        const costosFiltrados = this.obtenerCostosEnBaseTipoCosto(tipo.codigo);
-        return costosFiltrados && costosFiltrados.length > 0;
-      });
-
-      return panelesFiltrados.sort((a, b) => {
-        const obtenerPeso = (item) => {
-          if (item.name && item.name.startsWith("ORIGEN")) {
-            return 1;
-          }
-          if (item.name && item.name.startsWith("DESTINO")) {
-            return 3;
-          }
-          return 2;
-        };
-
-        return obtenerPeso(a) - obtenerPeso(b);
-      });
-    },
-    panelesAbiertos() {
-      return this.panelesConDatos.map((_, index) => index);
-    },
-  },
-};
-</script>

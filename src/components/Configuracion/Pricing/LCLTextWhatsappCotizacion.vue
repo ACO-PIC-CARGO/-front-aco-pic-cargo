@@ -1,3 +1,21 @@
+<script setup lang="ts">
+import { ref } from "vue";
+import { storeToRefs } from "pinia";
+import { useConfiguracionStore } from "@/stores/configuracion";
+
+const configuracionStore = useConfiguracionStore();
+const { lcl } = storeToRefs(configuracionStore);
+
+const loading = ref(false);
+
+async function guardar() {
+  // Lógica para guardar los textos
+  loading.value = true;
+  await configuracionStore.setTextoWhatsappLCL({ lcl: lcl.value });
+  loading.value = false;
+}
+</script>
+
 <template>
   <v-container>
     <v-row class="py-1">
@@ -6,7 +24,10 @@
           Texto para envío de PDF
         </p>
       </v-col>
-      <v-col cols="12" md="6">
+      <v-col
+        cols="12"
+        md="6"
+      >
         <vTextarea
           v-model="lcl.pdfindividual"
           label=""
@@ -19,7 +40,10 @@
           </template>
         </vTextarea>
       </v-col>
-      <v-col cols="12" md="6">
+      <v-col
+        cols="12"
+        md="6"
+      >
         <vTextarea
           v-model="lcl.pdfgrupal"
           label="Texto para envío de PDF - GRUPAL"
@@ -64,38 +88,21 @@
         </vTextarea>
       </v-col> -->
 
-      <v-col cols="12" class="d-flex justify-end">
-        <v-btn color="success" class="mt-4" :loading="loading" @click="guardar"
-          >Guardar</v-btn
+      <v-col
+        cols="12"
+        class="d-flex justify-end"
+      >
+        <v-btn
+          color="success"
+          class="mt-4"
+          :loading="loading"
+          @click="guardar"
         >
+          Guardar
+        </v-btn>
       </v-col>
     </v-row>
   </v-container>
 </template>
-
-<script>
-import { mapActions, mapState } from "pinia";
-import { useConfiguracionStore } from "@/stores/configuracion";
-export default {
-  data() {
-    return {
-      loading: false,
-    };
-  },
-  mounted() {},
-  methods: {
-    ...mapActions(useConfiguracionStore, ["setTextoWhatsappLCL"]),
-    async guardar() {
-      // Lógica para guardar los textos
-      this.loading = true;
-      await this.setTextoWhatsappLCL({ lcl: this.lcl });
-      this.loading = false;
-    },
-  },
-  computed: {
-    ...mapState(useConfiguracionStore, ["lcl"]),
-  },
-};
-</script>
 
 <style></style>

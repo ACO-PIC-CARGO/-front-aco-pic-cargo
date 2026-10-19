@@ -115,6 +115,7 @@ export interface TipoCarga {
   id?: number | string;
   code?: string;
   name?: string;
+  embarque?: string;
   description?: string | null;
   id_transport?: number | string | null;
   code_transport?: string;

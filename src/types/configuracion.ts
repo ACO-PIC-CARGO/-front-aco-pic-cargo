@@ -17,9 +17,9 @@ export interface CostoPricing {
   esalmacenflag?: number;
   esfleteflag?: number;
   esgastostercerosflag?: number;
-  id_modality?: number | string;
-  id_shipment?: number | string;
-  id_incoterms?: number | string;
+  id_modality?: number | string | null;
+  id_shipment?: number | string | null;
+  id_incoterms?: number | string | null;
 }
 
 export type FormNuevoCostoPricing = CostoPricing & { idOpcion?: string };
