@@ -95,3 +95,9 @@ export interface TipoCarga {
 export interface ArchivoDrive {
   name?: string;
 }
+
+export interface Incoterm {
+  id?: number | string;
+  name?: string;
+  description?: string;
+}

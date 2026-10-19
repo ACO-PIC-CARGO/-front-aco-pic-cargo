@@ -1,0 +1,29 @@
+export interface UsuarioSesion {
+  id_branch: number;
+  names: string;
+  nombrecompleto: string;
+  path?: string;
+  id_sex?: number;
+  position_code?: string[];
+  correoemail?: string;
+  user?: string;
+  usuario?: string;
+}
+
+export interface SucursalSesion {
+  trade_name: string;
+  logo?: string;
+  porcentaje_config: string;
+  esnuevoflag: boolean;
+  tienefleteactivo?: boolean;
+  dias_restantes: number;
+  vigencia?: string;
+}
+
+export interface ItemMenu {
+  id: number;
+  name: string;
+  route?: string;
+  icon?: string;
+  children?: ItemMenu[];
+}

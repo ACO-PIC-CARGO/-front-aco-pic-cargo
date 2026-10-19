@@ -1,78 +1,133 @@
+<script setup lang="ts">
+import { useStore } from "vuex";
+import FormatFecha from "../comun/FormatFecha.vue";
+import type { FiltroBarra } from "@/types/filtros";
+
+withDefaults(defineProps<{ filtro?: FiltroBarra; cuentas?: unknown[] }>(), {
+  filtro: () => ({}),
+  cuentas: () => [],
+});
+
+const rootStore = useStore();
+</script>
+
 <template>
-  <v-container class="clsFiltro" fluid>
+  <v-container
+    class="clsFiltro"
+    fluid
+  >
+    <!-- eslint-disable vue/no-mutating-props -->
     <v-row>
-      <v-col cols="12" class="py-0">
+      <v-col
+        cols="12"
+        class="py-0"
+      >
         <b>Filtro Por:</b>
       </v-col>
-      <v-col cols="12" md="2" class="py-1" v-if="filtro.fechapagodesde">
+      <v-col
+        cols="12"
+        md="2"
+        class="py-1"
+        v-if="filtro.fechapagodesde"
+      >
         <FormatFecha
           :dense="true"
           :outlined="true"
           label="Fecha Emisión Desde"
           id="filtroDesde"
           v-model="filtro.fechapagodesde"
-          :hideDetails="true"
+          :hide-details="true"
           :disabled="true"
         />
       </v-col>
-      <v-col cols="12" md="2" class="py-1" v-if="filtro.fechapagohasta">
+      <v-col
+        cols="12"
+        md="2"
+        class="py-1"
+        v-if="filtro.fechapagohasta"
+      >
         <FormatFecha
           :dense="true"
           :outlined="true"
           label="Fecha Emisión Hasta"
           id="filtroHasta"
           v-model="filtro.fechapagohasta"
-          :hideDetails="true"
+          :hide-details="true"
           :disabled="true"
         />
       </v-col>
-      <v-col cols="12" md="2" class="py-1" v-if="filtro.desde">
+      <v-col
+        cols="12"
+        md="2"
+        class="py-1"
+        v-if="filtro.desde"
+      >
         <FormatFecha
           :dense="true"
           :outlined="true"
           label="Fecha Desde"
           id="filtroDesde"
           v-model="filtro.desde"
-          :hideDetails="true"
+          :hide-details="true"
           :disabled="true"
         />
       </v-col>
-      <v-col cols="12" md="2" class="py-1" v-if="filtro.hasta">
+      <v-col
+        cols="12"
+        md="2"
+        class="py-1"
+        v-if="filtro.hasta"
+      >
         <FormatFecha
           :dense="true"
           :outlined="true"
           label="Fecha Hasta"
           id="filtroHasta"
           v-model="filtro.hasta"
-          :hideDetails="true"
+          :hide-details="true"
           :disabled="true"
         />
       </v-col>
-      <v-col cols="12" md="2" class="py-1" v-if="filtro.fechadesde">
+      <v-col
+        cols="12"
+        md="2"
+        class="py-1"
+        v-if="filtro.fechadesde"
+      >
         <FormatFecha
           :dense="true"
           :outlined="true"
           label="Fecha Desde"
           id="filtroDesde"
           v-model="filtro.fechadesde"
-          :hideDetails="true"
+          :hide-details="true"
           :disabled="true"
         />
       </v-col>
-      <v-col cols="12" md="2" class="py-1" v-if="filtro.fechahasta">
+      <v-col
+        cols="12"
+        md="2"
+        class="py-1"
+        v-if="filtro.fechahasta"
+      >
         <FormatFecha
           :dense="true"
           :outlined="true"
           label="Fecha Hasta"
           id="filtroHasta"
           v-model="filtro.fechahasta"
-          :hideDetails="true"
+          :hide-details="true"
           :disabled="true"
         />
       </v-col>
-      <v-col cols="12" md="2" class="py-1" v-if="filtro.id_proveedor">
+      <v-col
+        cols="12"
+        md="2"
+        class="py-1"
+        v-if="filtro.id_proveedor"
+      >
         <v-autocomplete
-          :items="$store.state.provedores"
+          :items="rootStore.state.provedores"
           v-model="filtro.id_proveedor"
           label="Proveedor"
           item-title="namelong"
@@ -84,9 +139,14 @@
         />
       </v-col>
 
-      <v-col cols="12" md="2" class="py-1" v-if="filtro.id_consigner">
+      <v-col
+        cols="12"
+        md="2"
+        class="py-1"
+        v-if="filtro.id_consigner"
+      >
         <v-autocomplete
-          :items="$store.state.clientes"
+          :items="rootStore.state.clientes"
           v-model="filtro.id_consigner"
           label="Consignatario"
           item-title="namelong"
@@ -95,13 +155,17 @@
           variant="outlined"
           density="compact"
           hide-details
-        >
-        </v-autocomplete>
+        />
       </v-col>
 
-      <v-col cols="12" md="2" class="py-1" v-if="filtro.id_cliente">
+      <v-col
+        cols="12"
+        md="2"
+        class="py-1"
+        v-if="filtro.id_cliente"
+      >
         <v-autocomplete
-          :items="$store.state.clientes"
+          :items="rootStore.state.clientes"
           v-model="filtro.id_cliente"
           label="Consignatario"
           item-title="namelong"
@@ -110,14 +174,18 @@
           variant="outlined"
           density="compact"
           hide-details
-        >
-        </v-autocomplete>
+        />
       </v-col>
 
-      <v-col cols="12" md="2" class="py-1" v-if="filtro.tipoingreso">
+      <v-col
+        cols="12"
+        md="2"
+        class="py-1"
+        v-if="filtro.tipoingreso"
+      >
         <v-autocomplete
           label="Tipo de Ingreso"
-          :items="$store.state.balances.tipoingreso"
+          :items="rootStore.state.balances.tipoingreso"
           v-model="filtro.tipoingreso"
           auto-select-first
           readonly
@@ -126,13 +194,18 @@
           hide-details
           item-title="description"
           item-value="id"
-        ></v-autocomplete>
+        />
       </v-col>
 
-      <v-col cols="12" md="2" class="py-1" v-if="filtro.tiposubingreso">
+      <v-col
+        cols="12"
+        md="2"
+        class="py-1"
+        v-if="filtro.tiposubingreso"
+      >
         <v-autocomplete
           label="Subtipo de Ingreso"
-          :items="$store.state.balances.tiposubingreso"
+          :items="rootStore.state.balances.tiposubingreso"
           v-model="filtro.tiposubingreso"
           auto-select-first
           readonly
@@ -141,10 +214,15 @@
           hide-details
           item-title="description"
           item-value="id"
-        ></v-autocomplete>
+        />
       </v-col>
 
-      <v-col cols="12" md="2" class="py-1" v-if="filtro.id_cuenta">
+      <v-col
+        cols="12"
+        md="2"
+        class="py-1"
+        v-if="filtro.id_cuenta"
+      >
         <v-select
           :items="cuentas"
           v-model="filtro.id_cuenta"
@@ -158,9 +236,14 @@
         />
       </v-col>
 
-      <v-col cols="12" md="2" class="py-1" v-if="filtro.id_banco">
+      <v-col
+        cols="12"
+        md="2"
+        class="py-1"
+        v-if="filtro.id_banco"
+      >
         <v-select
-          :items="$store.state.itemsDataBanksList"
+          :items="rootStore.state.itemsDataBanksList"
           v-model="filtro.id_banco"
           label="Banco Origen"
           item-title="acronym"
@@ -169,11 +252,15 @@
           variant="outlined"
           density="compact"
           hide-details
-        >
-        </v-select>
+        />
       </v-col>
 
-      <v-col cols="12" md="2" class="py-1" v-if="filtro.expediente">
+      <v-col
+        cols="12"
+        md="2"
+        class="py-1"
+        v-if="filtro.expediente"
+      >
         <v-text-field
           variant="outlined"
           readonly
@@ -184,7 +271,12 @@
         />
       </v-col>
 
-      <v-col cols="12" md="2" class="py-1" v-if="filtro.nro_operacion">
+      <v-col
+        cols="12"
+        md="2"
+        class="py-1"
+        v-if="filtro.nro_operacion"
+      >
         <v-text-field
           label="Nro Operacion"
           v-model="filtro.nro_operacion"
@@ -194,7 +286,12 @@
           hide-details
         />
       </v-col>
-      <v-col cols="12" md="2" class="py-1" v-if="filtro.nro_exp">
+      <v-col
+        cols="12"
+        md="2"
+        class="py-1"
+        v-if="filtro.nro_exp"
+      >
         <v-text-field
           label="Nro Expediente"
           v-model="filtro.nro_exp"
@@ -205,7 +302,12 @@
         />
       </v-col>
 
-      <v-col cols="12" md="2" class="py-1" v-if="filtro.factura">
+      <v-col
+        cols="12"
+        md="2"
+        class="py-1"
+        v-if="filtro.factura"
+      >
         <v-text-field
           label="Nro Expediente"
           v-model="filtro.factura"
@@ -216,7 +318,12 @@
         />
       </v-col>
 
-      <v-col cols="12" md="2" class="py-1" v-if="filtro.serie">
+      <v-col
+        cols="12"
+        md="2"
+        class="py-1"
+        v-if="filtro.serie"
+      >
         <v-text-field
           label="Nro Expediente"
           v-model="filtro.serie"
@@ -227,7 +334,12 @@
         />
       </v-col>
 
-      <v-col cols="12" md="2" class="py-1" v-if="filtro.monto">
+      <v-col
+        cols="12"
+        md="2"
+        class="py-1"
+        v-if="filtro.monto"
+      >
         <v-text-field
           variant="outlined"
           readonly
@@ -239,38 +351,9 @@
         />
       </v-col>
     </v-row>
+    <!-- eslint-enable vue/no-mutating-props -->
   </v-container>
 </template>
-
-<script>
-import moment from "moment";
-import FormatFecha from "../comun/FormatFecha.vue";
-
-export default {
-  props: {
-    filtro: {
-      type: Object,
-      default: {},
-    },
-    cuentas: {
-      type: Array,
-      default() {
-        return [];
-      },
-    },
-  },
-  components: {
-    FormatFecha,
-  },
-  methods: {
-    formatearFecha(fecha) {
-      if (!fecha) return "";
-
-      return moment(fecha).format("YYYY-MMM-DD").toUpperCase();
-    },
-  },
-};
-</script>
 
 <style>
 .clsFiltro {

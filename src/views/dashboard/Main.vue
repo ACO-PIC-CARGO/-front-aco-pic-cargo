@@ -516,8 +516,8 @@
 </template>
 
 <script>
-import leftMenu from "@/components/leftMenu.vue";
-import listMenu from "@/components/listMenu.vue";
+import leftMenu from "@/components/LeftMenu.vue";
+import listMenu from "@/components/ListMenu.vue";
 import CotizacionPilotoAutomatico from "@/components/folderPricing/CotizacionPilotoAutomatico.vue";
 import FormatFecha from "../../components/comun/FormatFecha.vue";
 import { Store, mapActions, mapState } from "vuex";

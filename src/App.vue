@@ -1102,7 +1102,7 @@ export default {
 
   components: {
     ControlServices: defineAsyncComponent(
-      () => import("@/components/servicesControl.vue"),
+      () => import("@/components/ServicesControl.vue"),
     ),
     listEntitie: defineAsyncComponent(
       () => import("@/components/folderEntities/listEntities.vue"),

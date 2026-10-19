@@ -11,7 +11,7 @@
   </div>
 </template>
 <script>
-import formWelcome from "@/components/formWelcome.vue";
+import formWelcome from "@/components/FormWelcome.vue";
 export default {
   name: "home",
   components: {
