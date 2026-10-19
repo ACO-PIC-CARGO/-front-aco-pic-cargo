@@ -1,3 +1,19 @@
+<script setup lang="ts">
+import { defineAsyncComponent, onMounted } from "vue";
+import { useStore } from "vuex";
+import { useAirlinesStore } from "@/stores/airlines";
+
+const ListAirlinesComponet = defineAsyncComponent(() => import("@/components/Maestros/Airlines/ListAirlinesComponet.vue"));
+const FilterAirlinesComponet = defineAsyncComponent(() => import("../../components/filtros/FiltroAirlines.vue"));
+
+const airlinesStore = useAirlinesStore();
+const rootStore = useStore();
+
+onMounted(() => {
+  rootStore.state.mainTitle = `LISTADO DE AEROLÍNEAS`;
+});
+</script>
+
 <template>
   <v-container fluid>
     <ListAirlinesComponet />
@@ -12,28 +28,5 @@
     </v-navigation-drawer>
   </v-container>
 </template>
-
-<script>
-import { defineAsyncComponent } from "vue";
-import { mapStores } from "pinia";
-import { useAirlinesStore } from "@/stores/airlines";
-export default {
-  components: {
-    ListAirlinesComponet: defineAsyncComponent(() =>
-      import("@/components/Maestros/Airlines/ListAirlinesComponet.vue")),
-    FilterAirlinesComponet: defineAsyncComponent(() =>
-      import("../../components/filtros/FiltroAirlines.vue")),
-  },
-  computed: {
-    ...mapStores(useAirlinesStore),
-  },
-  data() {
-    return {};
-  },
-  mounted() {
-    this.$store.state.mainTitle = `LISTADO DE AEROLÍNEAS`;
-  },
-};
-</script>
 
 <style></style>

@@ -1,9 +1,174 @@
+<script setup lang="ts">
+import { computed, ref, useTemplateRef, watch } from "vue";
+import { useStore } from "vuex";
+import { useQuoteStatusStore } from "@/stores/QuoteStatus";
+import type { EstadoCotizacion } from "@/types/cotizacion";
+
+const QuoteStatusStore = useQuoteStatusStore();
+const rootStore = useStore();
+
+const errPosition = ref("");
+const errPositionSelect = ref("");
+const errPositionReport = ref("");
+const errPositionCalls = ref("");
+const loading = ref(false);
+const StatusQuote = ref<EstadoCotizacion>({});
+const frmFilter = useTemplateRef("frmFilter");
+const frmDML = useTemplateRef("frmDML");
+
+const drawer = computed(() => QuoteStatusStore.drawer);
+
+watch(drawer, () => {
+  StatusQuote.value = { ...QuoteStatusStore.StatusModel };
+  frmDML.value!.resetValidation();
+  errPosition.value = "";
+  errPositionSelect.value = "";
+  errPositionReport.value = "";
+  errPositionCalls.value = "";
+});
+
+function getName() {
+  if (QuoteStatusStore.tipo == "ver") {
+    return `Estado : ${StatusQuote.value.name} – Modo Vista`;
+  }
+  if (QuoteStatusStore.tipo == "nuevo") {
+    return "Nueva Estado";
+  }
+  if (QuoteStatusStore.tipo == "editar") {
+    return `Modificar Estado: ${StatusQuote.value.name}`;
+  }
+  if (QuoteStatusStore.tipo == "filter") {
+    return "Filtrar Registros";
+  }
+}
+async function Filtrar() {
+  loading.value = true;
+  await QuoteStatusStore.GetListQuoteStatus();
+  loading.value = false;
+  QuoteStatusStore.drawer = !QuoteStatusStore.drawer;
+}
+async function Limpiar() {
+  frmFilter.value!.reset();
+  setTimeout(async () => {
+    QuoteStatusStore.StatusFilter.status = "1";
+    QuoteStatusStore.StatusFilter.status_calls = "";
+    QuoteStatusStore.StatusFilter.status_calls_all = "";
+    loading.value = true;
+    await QuoteStatusStore.GetListQuoteStatus();
+    loading.value = false;
+    QuoteStatusStore.drawer = !QuoteStatusStore.drawer;
+  }, 1);
+}
+async function validatePosition() {
+  errPosition.value = "";
+  if (QuoteStatusStore.tipo == "nuevo") {
+    const val = await QuoteStatusStore.getValidatePositionQuoteStatus();
+    errPosition.value = val!.mensaje;
+    if (val!.estadoflag) {
+      QuoteStatusStore.StatusModel.position = "";
+    }
+  }
+  if (QuoteStatusStore.tipo == "editar") {
+    const val = await QuoteStatusStore.getValidatePositionActualizarQuoteStatus();
+    errPosition.value = val!.mensaje;
+    if (val!.estadoflag) {
+      QuoteStatusStore.StatusModel.position = "";
+    }
+  }
+}
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+async function validatePositionSelect() {
+  errPositionSelect.value = "";
+  if (QuoteStatusStore.tipo == "nuevo") {
+    const val = await QuoteStatusStore.getValidatePositionSelectQuoteStatus();
+    errPositionSelect.value = val!.mensaje;
+    if (val!.estadoflag) {
+      QuoteStatusStore.StatusModel.position_select = "";
+    }
+  }
+  if (QuoteStatusStore.tipo == "editar") {
+    const val = await QuoteStatusStore.getValidatePositionSelectActualizarQuoteStatus();
+    errPositionSelect.value = val!.mensaje;
+    if (val!.estadoflag) {
+      QuoteStatusStore.StatusModel.position_select = "";
+    }
+  }
+}
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+async function validatePositionReport() {
+  errPositionReport.value = "";
+  if (QuoteStatusStore.tipo == "nuevo") {
+    const val = await QuoteStatusStore.getValidatePositionReportQuoteStatus();
+    errPositionReport.value = val!.mensaje;
+    if (val!.estadoflag) {
+      QuoteStatusStore.StatusModel.position_report = "";
+    }
+  }
+  if (QuoteStatusStore.tipo == "editar") {
+    const val = await QuoteStatusStore.getValidatePositionReportActualizarQuoteStatus();
+    errPositionReport.value = val!.mensaje;
+    if (val!.estadoflag) {
+      QuoteStatusStore.StatusModel.position_report = "";
+    }
+  }
+}
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+async function validatePositionCalls() {
+  errPositionCalls.value = "";
+  if (QuoteStatusStore.tipo == "nuevo") {
+    const val = await QuoteStatusStore.getValidatePositionCallsQuoteStatus();
+    errPositionCalls.value = val!.mensaje;
+    if (val!.estadoflag) {
+      QuoteStatusStore.StatusModel.status_calls = "";
+    }
+  }
+  if (QuoteStatusStore.tipo == "editar") {
+    const val = await QuoteStatusStore.getValidatePositionCallsActualizarQuoteStatus();
+    errPositionCalls.value = val!.mensaje;
+    if (val!.estadoflag) {
+      QuoteStatusStore.StatusModel.status_calls = "";
+    }
+  }
+}
+async function Aceptar() {
+  if (QuoteStatusStore.tipo == "nuevo") {
+    loading.value = true;
+    setTimeout(async () => {
+      if ((await frmDML.value!.validate()).valid) {
+        loading.value = true;
+        await QuoteStatusStore.setQuoteStatus();
+        await QuoteStatusStore.GetListQuoteStatus();
+        loading.value = false;
+      }
+    }, 500);
+    loading.value = false;
+  }
+  if (QuoteStatusStore.tipo == "editar") {
+    loading.value = true;
+    setTimeout(async () => {
+      if ((await frmDML.value!.validate()).valid) {
+        await QuoteStatusStore.actualizarQuoteStatus();
+        await QuoteStatusStore.GetListQuoteStatus();
+      }
+    }, 500);
+    loading.value = false;
+  }
+  if (QuoteStatusStore.tipo == "ver") {
+    QuoteStatusStore.drawer = !QuoteStatusStore.drawer;
+  }
+}
+</script>
+
 <template>
   <v-card>
-    <v-card-title class="d-flex align-center flex-wrap" primary-title>
+    <v-card-title
+      class="d-flex align-center flex-wrap"
+      primary-title
+    >
       {{ getName() }}
-      <v-spacer></v-spacer>
-      <v-btn variant="text"
+      <v-spacer />
+      <v-btn
+        variant="text"
         icon
         color="default"
         @click="
@@ -16,35 +181,47 @@
     <v-card-text v-if="QuoteStatusStore.tipo == 'filter'">
       <v-form ref="frmFilter">
         <div class="container">
-          <div class="row">
-            <div class="col-12 py-1">
+          <v-row>
+            <v-col
+              cols="12"
+              class="py-1"
+            >
               <v-text-field
                 clearable
                 v-model="QuoteStatusStore.StatusFilter.code"
                 density="compact"
                 label="Código"
                 variant="outlined"
-              ></v-text-field>
-            </div>
-            <div class="col-12 py-1">
+              />
+            </v-col>
+            <v-col
+              cols="12"
+              class="py-1"
+            >
               <v-text-field
                 clearable
                 v-model="QuoteStatusStore.StatusFilter.name"
                 density="compact"
                 label="Nombre"
                 variant="outlined"
-              ></v-text-field>
-            </div>
-            <div class="col-12 py-1">
+              />
+            </v-col>
+            <v-col
+              cols="12"
+              class="py-1"
+            >
               <v-text-field
                 clearable
                 v-model="QuoteStatusStore.StatusFilter.description"
                 density="compact"
                 label="Descripción"
                 variant="outlined"
-              ></v-text-field>
-            </div>
-            <div class="col-12 py-1">
+              />
+            </v-col>
+            <v-col
+              cols="12"
+              class="py-1"
+            >
               <v-text-field
                 clearable
                 v-model="QuoteStatusStore.StatusFilter.position"
@@ -52,11 +229,14 @@
                 density="compact"
                 label="Posición Cotizaciones"
                 variant="outlined"
-              ></v-text-field>
-            </div>
-            <div class="col-12 py-1">
+              />
+            </v-col>
+            <v-col
+              cols="12"
+              class="py-1"
+            >
               <v-autocomplete
-                :items="$store.state.masterusuarios.lstTemperatura"
+                :items="rootStore.state.masterusuarios.lstTemperatura"
                 v-model="
                   QuoteStatusStore.StatusFilter
                     .id_masterdetalletemperaturaventa
@@ -67,23 +247,24 @@
                 variant="outlined"
                 label="Temperatura de Lead"
               >
-                <template v-slot:item="{ item, props }">
+                <template #item="{ item, props }">
                   <v-list-item v-bind="props">
-                    <template v-slot:prepend>
+                    <template #prepend>
+                      <!-- @vue-expect-error the root state items are untyped until the Vuex store is typed -->
                       <span
                         class="d-inline-block"
                         :style="{
                           backgroundColor: item.codigo,
-                      width: '14px',
-                      height: '14px',
-                      borderRadius: '50%',
-                    }"
-                      ></span>
+                          width: '14px',
+                          height: '14px',
+                          borderRadius: '50%',
+                        }"
+                      />
                     </template>
                   </v-list-item>
                 </template>
               </v-autocomplete>
-            </div>
+            </v-col>
             <!--<div class="col-6 py-1">
               <v-text-field
                 clearable
@@ -136,27 +317,45 @@
               </v-radio-group>
             </div> -->
 
-            <div class="col-12 py-1">
+            <v-col
+              cols="12"
+              class="py-1"
+            >
               <span> Estado</span>
               <v-radio-group
                 v-model="QuoteStatusStore.StatusFilter.status"
                 inline
                 density="compact"
               >
-                <v-radio label="Activo" color="green" value="1"></v-radio>
-                <v-radio label="Inactivo" color="red" value="0"></v-radio>
-                <v-radio label="Todos" color="blue" value="null"></v-radio>
+                <v-radio
+                  label="Activo"
+                  color="green"
+                  value="1"
+                />
+                <v-radio
+                  label="Inactivo"
+                  color="red"
+                  value="0"
+                />
+                <v-radio
+                  label="Todos"
+                  color="blue"
+                  value="null"
+                />
               </v-radio-group>
-            </div>
-          </div>
+            </v-col>
+          </v-row>
         </div>
       </v-form>
     </v-card-text>
     <v-card-text v-else>
       <v-form ref="frmDML">
         <div class="container">
-          <div class="row">
-            <div class="col-12 py-0">
+          <v-row>
+            <v-col
+              cols="12"
+              class="py-0"
+            >
               <v-text-field
                 v-if="QuoteStatusStore.tipo != 'nuevo'"
                 :readonly="QuoteStatusStore.tipo == 'ver'"
@@ -164,9 +363,12 @@
                 density="compact"
                 label="Código"
                 variant="outlined"
-              ></v-text-field>
-            </div>
-            <div class="col-12 py-0">
+              />
+            </v-col>
+            <v-col
+              cols="12"
+              class="py-0"
+            >
               <v-text-field
                 :readonly="QuoteStatusStore.tipo == 'ver'"
                 v-model="QuoteStatusStore.StatusModel.name"
@@ -174,33 +376,42 @@
                 label="Nombre (*)"
                 :rules="[(v) => !!v || 'Dato requerido']"
                 variant="outlined"
-              ></v-text-field>
-            </div>
-            <div class="col-12 py-0">
+              />
+            </v-col>
+            <v-col
+              cols="12"
+              class="py-0"
+            >
               <v-text-field
                 :readonly="QuoteStatusStore.tipo == 'ver'"
                 v-model="QuoteStatusStore.StatusModel.description"
                 density="compact"
                 label="Descripción"
                 variant="outlined"
-              ></v-text-field>
-            </div>
-            <div class="col-12 py-0">
+              />
+            </v-col>
+            <v-col
+              cols="12"
+              class="py-0"
+            >
               <v-text-field
                 :readonly="QuoteStatusStore.tipo == 'ver'"
                 v-model="QuoteStatusStore.StatusModel.position"
-                v-on:blur="validatePosition"
+                @blur="validatePosition"
                 :error-messages="errPosition"
                 :rules="[(v) => !!v || 'Dato requerido']"
                 type="number"
                 density="compact"
                 label="Posición Cotizaciones"
                 variant="outlined"
-              ></v-text-field>
-            </div>
-            <div class="col-12 py-0">
+              />
+            </v-col>
+            <v-col
+              cols="12"
+              class="py-0"
+            >
               <v-autocomplete
-                :items="$store.state.masterusuarios.lstTemperatura"
+                :items="rootStore.state.masterusuarios.lstTemperatura"
                 v-model="
                   QuoteStatusStore.StatusModel
                     .id_masterdetalletemperaturaventa
@@ -211,23 +422,24 @@
                 variant="outlined"
                 label="Temperatura de Lead"
               >
-                <template v-slot:item="{ item, props }">
+                <template #item="{ item, props }">
                   <v-list-item v-bind="props">
-                    <template v-slot:prepend>
+                    <template #prepend>
+                      <!-- @vue-expect-error the root state items are untyped until the Vuex store is typed -->
                       <span
                         class="d-inline-block"
                         :style="{
                           backgroundColor: item.codigo,
-                      width: '14px',
-                      height: '14px',
-                      borderRadius: '50%',
-                    }"
-                      ></span>
+                          width: '14px',
+                          height: '14px',
+                          borderRadius: '50%',
+                        }"
+                      />
                     </template>
                   </v-list-item>
                 </template>
               </v-autocomplete>
-            </div>
+            </v-col>
             <!--<div class="col-6 py-1">
               <v-text-field
                 :readonly="QuoteStatusStore.tipo == 'ver'"
@@ -294,7 +506,10 @@
               </v-radio-group>
             </div> -->
 
-            <div class="col-12 py-1">
+            <v-col
+              cols="12"
+              class="py-1"
+            >
               <span> Estado</span>
 
               <v-switch
@@ -307,219 +522,52 @@
                 color="success"
                 v-model="QuoteStatusStore.StatusModel.status"
                 :value-comparator="(value, checked) => Boolean(value) === checked"
-              ></v-switch>
-            </div>
-          </div></div
-      ></v-form>
+              />
+            </v-col>
+          </v-row>
+        </div>
+      </v-form>
     </v-card-text>
     <v-card-actions>
-      <v-spacer></v-spacer>
+      <v-spacer />
       <v-btn
         class="mx-1"
         color="success"
         v-if="QuoteStatusStore.tipo == 'filter'"
         :loading="loading"
         @click="Filtrar()"
-        >Aceptar</v-btn
       >
+        Aceptar
+      </v-btn>
       <v-btn
         class="mx-1"
         color="default"
         v-if="QuoteStatusStore.tipo == 'filter'"
         :loading="loading"
         @click="Limpiar()"
-        >Limpiar</v-btn
       >
+        Limpiar
+      </v-btn>
       <v-btn
         class="mx-1"
         color="success"
         v-if="QuoteStatusStore.tipo != 'filter'"
         :loading="loading"
         @click="Aceptar()"
-        >Aceptar</v-btn
       >
+        Aceptar
+      </v-btn>
       <v-btn
         class="mx-1"
         color="warning"
         @click="
           QuoteStatusStore.drawer = !QuoteStatusStore.drawer
         "
-        >Cerrar</v-btn
       >
+        Cerrar
+      </v-btn>
     </v-card-actions>
   </v-card>
 </template>
-
-<script>
-import { mapActions as mapPiniaActions, mapStores } from "pinia";
-import { useQuoteStatusStore } from "@/stores/QuoteStatus";
-export default {
-  data() {
-    return {
-      errPosition: "",
-      errPositionSelect: "",
-      errPositionReport: "",
-      errPositionCalls: "",
-      loading: false,
-      StatusQuote: "",
-      use: [0, 1],
-    };
-  },
-  methods: {
-    ...mapPiniaActions(useQuoteStatusStore, ["GetListQuoteStatus", "getValidatePositionQuoteStatus", "getValidatePositionSelectQuoteStatus", "getValidatePositionReportQuoteStatus", "getValidatePositionCallsQuoteStatus", "getValidatePositionActualizarQuoteStatus", "getValidatePositionSelectActualizarQuoteStatus", "getValidatePositionReportActualizarQuoteStatus", "getValidatePositionCallsActualizarQuoteStatus", "setQuoteStatus", "actualizarQuoteStatus"]),
-    getName() {
-      if (this.QuoteStatusStore.tipo == "ver") {
-        return `Estado : ${this.StatusQuote.name} – Modo Vista`;
-      }
-      if (this.QuoteStatusStore.tipo == "nuevo") {
-        return "Nueva Estado";
-      }
-      if (this.QuoteStatusStore.tipo == "editar") {
-        return `Modificar Estado: ${this.StatusQuote.name}`;
-      }
-      if (this.QuoteStatusStore.tipo == "filter") {
-        return "Filtrar Registros";
-      }
-    },
-    async Filtrar() {
-      this.loading = true;
-      await this.GetListQuoteStatus();
-      this.loading = false;
-      this.QuoteStatusStore.drawer =
-        !this.QuoteStatusStore.drawer;
-    },
-    async Limpiar() {
-      this.$refs.frmFilter.reset();
-      setTimeout(async () => {
-        this.QuoteStatusStore.StatusFilter.status = "1";
-        this.QuoteStatusStore.StatusFilter.status_calls = "";
-        this.QuoteStatusStore.StatusFilter.status_calls_all = "";
-        this.loading = true;
-        await this.GetListQuoteStatus();
-        this.loading = false;
-        this.QuoteStatusStore.drawer =
-          !this.QuoteStatusStore.drawer;
-      }, 1);
-    },
-    async validatePosition() {
-      this.errPosition = "";
-      if (this.QuoteStatusStore.tipo == "nuevo") {
-        let val = await this.getValidatePositionQuoteStatus();
-        this.errPosition = val.mensaje;
-        if (val.estadoflag) {
-          this.QuoteStatusStore.StatusModel.position = "";
-        }
-      }
-      if (this.QuoteStatusStore.tipo == "editar") {
-        let val = await this.getValidatePositionActualizarQuoteStatus();
-        this.errPosition = val.mensaje;
-        if (val.estadoflag) {
-          this.QuoteStatusStore.StatusModel.position = "";
-        }
-      }
-    },
-    async validatePositionSelect() {
-      this.errPositionSelect = "";
-      if (this.QuoteStatusStore.tipo == "nuevo") {
-        let val = await this.getValidatePositionSelectQuoteStatus();
-        this.errPositionSelect = val.mensaje;
-        if (val.estadoflag) {
-          this.QuoteStatusStore.StatusModel.position_select = "";
-        }
-      }
-      if (this.QuoteStatusStore.tipo == "editar") {
-        let val = await this.getValidatePositionSelectActualizarQuoteStatus();
-        this.errPositionSelect = val.mensaje;
-        if (val.estadoflag) {
-          this.QuoteStatusStore.StatusModel.position_select = "";
-        }
-      }
-    },
-    async validatePositionReport() {
-      this.errPositionReport = "";
-      if (this.QuoteStatusStore.tipo == "nuevo") {
-        let val = await this.getValidatePositionReportQuoteStatus();
-        this.errPositionReport = val.mensaje;
-        if (val.estadoflag) {
-          this.QuoteStatusStore.StatusModel.position_report = "";
-        }
-      }
-      if (this.QuoteStatusStore.tipo == "editar") {
-        let val = await this.getValidatePositionReportActualizarQuoteStatus();
-        this.errPositionReport = val.mensaje;
-        if (val.estadoflag) {
-          this.QuoteStatusStore.StatusModel.position_report = "";
-        }
-      }
-    },
-    async validatePositionCalls() {
-      this.errPositionCalls = "";
-      if (this.QuoteStatusStore.tipo == "nuevo") {
-        let val = await this.getValidatePositionCallsQuoteStatus();
-        this.errPositionCalls = val.mensaje;
-        if (val.estadoflag) {
-          this.QuoteStatusStore.StatusModel.status_calls = "";
-        }
-      }
-      if (this.QuoteStatusStore.tipo == "editar") {
-        let val = await this.getValidatePositionCallsActualizarQuoteStatus();
-        this.errPositionCalls = val.mensaje;
-        if (val.estadoflag) {
-          this.QuoteStatusStore.StatusModel.status_calls = "";
-        }
-      }
-    },
-    async Aceptar() {
-      if (this.QuoteStatusStore.tipo == "nuevo") {
-        this.loading = true;
-        setTimeout(async () => {
-          if ((await this.$refs.frmDML.validate()).valid) {
-            this.loading = true;
-            await this.setQuoteStatus();
-            await this.GetListQuoteStatus();
-            this.loading = false;
-          }
-        }, 500);
-        this.loading = false;
-      }
-      if (this.QuoteStatusStore.tipo == "editar") {
-        this.loading = true;
-        setTimeout(async () => {
-          if ((await this.$refs.frmDML.validate()).valid) {
-            await this.actualizarQuoteStatus();
-            await this.GetListQuoteStatus();
-          }
-        }, 500);
-        this.loading = false;
-      }
-      if (this.QuoteStatusStore.tipo == "ver") {
-        this.QuoteStatusStore.drawer =
-          !this.QuoteStatusStore.drawer;
-      }
-    },
-  },
-  computed: {
-    ...mapStores(useQuoteStatusStore),
-    drawer: {
-      get() {
-        return this.QuoteStatusStore.drawer;
-      },
-      set(val) {
-        return (this.QuoteStatusStore.drawer = drawer);
-      },
-    },
-  },
-  watch: {
-    drawer() {
-      this.StatusQuote = { ...this.QuoteStatusStore.StatusModel };
-      this.$refs.frmDML.resetValidation();
-      this.errPosition = "";
-      this.errPositionSelect = "";
-      this.errPositionReport = "";
-      this.errPositionCalls = "";
-    },
-  },
-};
-</script>
 
 <style scoped></style>

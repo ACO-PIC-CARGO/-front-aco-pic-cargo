@@ -568,7 +568,7 @@ const routes = [
       {
         path: "quote_status/listado",
         name: "listQuoteStatus",
-        component: () => import("../views/StatusQuote/listQuoteStatus.vue"),
+        component: () => import("../views/StatusQuote/ListQuoteStatus.vue"),
       },
       {
         path: "puertos/listado",

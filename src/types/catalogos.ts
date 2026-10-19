@@ -529,6 +529,7 @@ export interface FiltroTipoPago {
 
 export interface FiltroEstadoCotizacion {
   id: string;
+  id_masterdetalletemperaturaventa?: number | string | null;
   name: string | null;
   code: string | null;
   position: number | string | null;

@@ -92,6 +92,7 @@ export interface EstadoCotizacion {
   status_calls?: number | string;
   status_calls_all?: number | string;
   status?: number | string | boolean;
+  id_masterdetalletemperaturaventa?: number | string | null;
   temperatura?: string;
   id_branch?: number | string;
   created_at?: string;
