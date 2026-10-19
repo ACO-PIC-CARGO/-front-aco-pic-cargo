@@ -116,6 +116,8 @@ export interface ItemServicio {
   description: string | null;
   id_branch?: number | string;
   status: number | string;
+  status_calls?: number;
+  status_calls_all?: number;
   created_at?: string;
   updated_at?: string;
 }

@@ -487,7 +487,7 @@ const routes = [
       {
         path: "groupservices/list",
         name: "listGroupServices",
-        component: () => import("../views/FolderGroupServices/list.vue"),
+        component: () => import("../views/FolderGroupServices/ListaServicios.vue"),
       },
       {
         path: "item_services/listado",
@@ -498,7 +498,7 @@ const routes = [
       {
         path: "incoterms/list",
         name: "incotermsServices",
-        component: () => import("../views/FolderIncoterm/list.vue"),
+        component: () => import("../views/FolderIncoterm/ListaIncoterms.vue"),
       },
       {
         path: "performance/list",

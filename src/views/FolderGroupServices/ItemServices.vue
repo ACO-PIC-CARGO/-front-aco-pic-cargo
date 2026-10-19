@@ -1,10 +1,26 @@
+<script setup lang="ts">
+import { defineAsyncComponent, onMounted } from "vue";
+import { useStore } from "vuex";
+import { useItemServicesStore } from "@/stores/itemServices";
+
+const ListItemServiceComponet = defineAsyncComponent(() => import("../../components/FolderGroupServices/ListItemServiceComponet.vue"));
+const FilterTown = defineAsyncComponent(() => import("../../components/filtros/FilterGrupoServices.vue"));
+
+const itemServicesStore = useItemServicesStore();
+const rootStore = useStore();
+
+onMounted(() => {
+  rootStore.state.mainTitle = `LISTADO DE DETALLES DE SERVICIO`;
+});
+</script>
+
 <template>
   <v-container fluid>
     <ListItemServiceComponet />
     <v-navigation-drawer
       v-model="itemServicesStore.drawer"
       location="right"
-      
+
       width="30%"
       temporary
     >
@@ -12,24 +28,5 @@
     </v-navigation-drawer>
   </v-container>
 </template>
-
-<script>
-import { defineAsyncComponent } from "vue";
-import { mapStores } from "pinia";
-import { useItemServicesStore } from "@/stores/itemServices";
-export default {
-  components: {
-    ListItemServiceComponet: defineAsyncComponent(() =>
-      import("../../components/FolderGroupServices/ListItemServiceComponet.vue")),
-    FilterTown: defineAsyncComponent(() => import("../../components/filtros/FilterGrupoServices.vue")),
-  },
-  computed: {
-    ...mapStores(useItemServicesStore),
-  },
-  mounted() {
-    this.$store.state.mainTitle = `LISTADO DE DETALLES DE SERVICIO`;
-  },
-};
-</script>
 
 <style></style>

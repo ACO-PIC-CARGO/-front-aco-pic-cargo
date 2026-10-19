@@ -78,7 +78,7 @@ export const useIncotermStore = defineStore("incoterm", () => {
       });
   }
 
-  async function readIncoterms(id: number): Promise<void> {
+  async function readIncoterms(id: Incoterm["id"]): Promise<void> {
     await axios<ApiResponse<Incoterm[]>>({
       method: "get",
       url: import.meta.env.VITE_URL_MAIN + `ver_incoterms?id=${id}`,

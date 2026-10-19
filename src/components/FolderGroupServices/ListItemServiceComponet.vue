@@ -1,6 +1,106 @@
+<script setup lang="ts">
+import { onMounted, ref } from "vue";
+import Swal from "sweetalert2";
+import { useGroupservicesStore } from "@/stores/groupservices";
+import { useItemServicesStore } from "@/stores/itemServices";
+import type { ItemServicio } from "@/types/catalogos";
+import { sessionBranchId } from "@/utils/sesion";
+
+const groupservicesStore = useGroupservicesStore();
+const itemServicesStore = useItemServicesStore();
+
+const search = ref("");
+const loading = ref(false);
+const loadingNuevo = ref(false);
+const loadingFiltrar = false;
+const headers = [
+  { title: "Servicio", key: "name_groupservices" },
+  { title: "Código", key: "code" },
+  { title: "Nombre", key: "name" },
+  { title: "Descripción", key: "description" },
+  { title: "Estado", key: "estado" },
+  { title: "Creación", key: "created_at" },
+
+  { title: "Última Actualización", key: "updated_at" },
+  { title: "Acciones", key: "action" },
+];
+
+async function filtrar() {
+  itemServicesStore.tipo = "filter";
+  itemServicesStore.drawer = !itemServicesStore.drawer;
+}
+async function ver(item: ItemServicio) {
+  loading.value = !loading.value;
+  const datos = { ...item };
+  itemServicesStore.tipo = "ver";
+  itemServicesStore.model = datos;
+
+  loading.value = !loading.value;
+  itemServicesStore.drawer = !itemServicesStore.drawer;
+}
+async function editar(item: ItemServicio) {
+  loading.value = !loading.value;
+  const datos = { ...item };
+  itemServicesStore.tipo = "editar";
+  itemServicesStore.model = datos;
+
+  loading.value = !loading.value;
+  itemServicesStore.drawer = !itemServicesStore.drawer;
+}
+async function nuevo() {
+  loadingNuevo.value = !loadingNuevo.value;
+  itemServicesStore.tipo = "nuevo";
+  itemServicesStore.model = {
+    id: "",
+    id_groupservices: "",
+    code: "",
+    name: "",
+    description: "",
+    status: "1",
+    id_branch: sessionBranchId(),
+  };
+
+  itemServicesStore.drawer = !itemServicesStore.drawer;
+  loadingNuevo.value = !loadingNuevo.value;
+}
+async function eliminar(item: ItemServicio) {
+  Swal.fire({
+    icon: "question",
+    title: "¿Estás seguro?",
+    text: `Si inactiva el registro, éste no aparecerá disponible en otros formularios ¿Está seguro de que desea inactivarlo?`,
+    allowOutsideClick: false,
+    confirmButtonText: "Si, inactivar",
+    cancelButtonColor: "orange",
+    confirmButtonColor: "red",
+    cancelButtonText: "Cancelar",
+    showCancelButton: true,
+  }).then(async (res) => {
+    if (res.isConfirmed) {
+      item.status = 0;
+      itemServicesStore.model = item;
+      loading.value = true;
+      await itemServicesStore.ActualizarItemServices();
+      await itemServicesStore.GetListItemServices();
+      loading.value = false;
+    }
+  });
+}
+
+onMounted(async () => {
+  loading.value = !loading.value;
+  await itemServicesStore.GetListItemServices();
+
+  loading.value = !loading.value;
+  await groupservicesStore.CargarGroupServices();
+});
+</script>
+
 <template>
   <div class="">
-    <v-card fluid class="px-5">
+    <v-card
+      fluid
+      class="px-5"
+    >
       <v-row>
         <v-col cols="4">
           <v-text-field
@@ -9,21 +109,37 @@
             v-model="search"
             clearable
             append-inner-icon="mdi-magnify"
-          ></v-text-field>
+          />
         </v-col>
-        <v-col cols="4" offset="4" class="text-right my-auto">
-          <v-btn size="small" color="success" :loading="loadingNuevo" @click="nuevo()"
-            >NUEVO</v-btn
+        <v-col
+          cols="4"
+          offset="4"
+          class="text-right my-auto"
+        >
+          <v-btn
+            size="small"
+            color="success"
+            :loading="loadingNuevo"
+            @click="nuevo()"
           >
+            NUEVO
+          </v-btn>
           <v-btn
             size="small"
             class="mx-1"
             :loading="loadingFiltrar"
             color="#2962FF"
             @click="filtrar()"
-            >FILTRAR</v-btn
           >
-          <v-btn size="small" class="mx-1" color="#004D40">EXPORTAR</v-btn>
+            FILTRAR
+          </v-btn>
+          <v-btn
+            size="small"
+            class="mx-1"
+            color="#004D40"
+          >
+            EXPORTAR
+          </v-btn>
         </v-col>
         <v-col cols="12">
           <v-data-table
@@ -34,24 +150,41 @@
             :loading="loading"
             :search="search"
           >
-            <template v-slot:[`item.estado`]="{ item }">
+            <template #[`item.estado`]="{ item }">
+              <!-- @vue-expect-error boolean == 1 kept from the old template -->
               {{ !!item.status == 1 ? "Activo" : "Inactivo" }}
             </template>
-            <template v-slot:[`item.statuscalls`]="{ item }">
-              <v-chip color="green" v-if="item.status_calls == 1"
-                >Si</v-chip
+            <template #[`item.statuscalls`]="{ item }">
+              <v-chip
+                color="green"
+                v-if="item.status_calls == 1"
               >
-              <v-chip color="red" v-else>No</v-chip>
-            </template>
-            <template v-slot:[`item.statuscalls_all`]="{ item }">
-              <v-chip color="green" v-if="item.status_calls_all == 1"
-                >Si</v-chip
+                Si
+              </v-chip>
+              <v-chip
+                color="red"
+                v-else
               >
-              <v-chip color="red" v-else>No</v-chip>
+                No
+              </v-chip>
             </template>
-            <template v-slot:[`item.action`]="{ item }">
+            <template #[`item.statuscalls_all`]="{ item }">
+              <v-chip
+                color="green"
+                v-if="item.status_calls_all == 1"
+              >
+                Si
+              </v-chip>
+              <v-chip
+                color="red"
+                v-else
+              >
+                No
+              </v-chip>
+            </template>
+            <template #[`item.action`]="{ item }">
               <v-tooltip location="bottom">
-                <template v-slot:activator="{ props }">
+                <template #activator="{ props }">
                   <v-icon
                     color="primary"
                    
@@ -64,7 +197,7 @@
                 <span>Ver</span>
               </v-tooltip>
               <v-tooltip location="bottom">
-                <template v-slot:activator="{ props }">
+                <template #activator="{ props }">
                   <v-icon
                     color="warning"
                    
@@ -76,8 +209,11 @@
                 </template>
                 <span>Editar</span>
               </v-tooltip>
-              <v-tooltip location="bottom" v-if="item.status == 1">
-                <template v-slot:activator="{ props }">
+              <v-tooltip
+                location="bottom"
+                v-if="item.status == 1"
+              >
+                <template #activator="{ props }">
                   <v-icon
                     color="error"
                    
@@ -96,111 +232,5 @@
     </v-card>
   </div>
 </template>
-
-<script>
-import Swal from "sweetalert2";
-import { mapActions as mapPiniaActions, mapStores } from "pinia";
-import { useGroupservicesStore } from "@/stores/groupservices";
-import { useItemServicesStore } from "@/stores/itemServices";
-export default {
-  data() {
-    return {
-      search: "",
-      loading: false,
-      loadingNuevo: false,
-      loadingFiltrar: false,
-      headers: [
-        { title: "Servicio", key: "name_groupservices" },
-        { title: "Código", key: "code" },
-        { title: "Nombre", key: "name" },
-        { title: "Descripción", key: "description" },
-                { title: "Estado", key: "estado" },{ title: "Creación", key: "created_at" },
-
-        { title: "Última Actualización", key: "updated_at" },
-        { title: "Acciones", key: "action" },
-      ],
-    };
-  },
-  computed: {
-    ...mapStores(useItemServicesStore),
-  },
-  methods: {
-    ...mapPiniaActions(useItemServicesStore, ["GetListItemServices", "ActualizarItemServices"]),
-    ...mapPiniaActions(useGroupservicesStore, ["CargarGroupServices"]),
-    async filtrar() {
-      this.itemServicesStore.tipo = "filter";
-      this.itemServicesStore.drawer =
-        !this.itemServicesStore.drawer;
-    },
-    async ver(item) {
-      this.loading = !this.loading;
-      let datos = { ...item };
-      this.itemServicesStore.tipo = "ver";
-      this.itemServicesStore.model = datos;
-
-      this.loading = !this.loading;
-      this.itemServicesStore.drawer =
-        !this.itemServicesStore.drawer;
-    },
-    async editar(item) {
-      this.loading = !this.loading;
-      let datos = { ...item };
-      this.itemServicesStore.tipo = "editar";
-      this.itemServicesStore.model = datos;
-
-      this.loading = !this.loading;
-      this.itemServicesStore.drawer =
-        !this.itemServicesStore.drawer;
-    },
-    async nuevo() {
-      this.loadingNuevo = !this.loadingNuevo;
-      this.itemServicesStore.tipo = "nuevo";
-      this.itemServicesStore.model = {
-        id: "",
-        id_groupservices: "",
-        code: "",
-        name: "",
-        description: "",
-        status: "1",
-        id_branch: JSON.parse(sessionStorage.getItem("dataUser"))[0].id_branch,
-      };
-
-      this.itemServicesStore.drawer =
-        !this.itemServicesStore.drawer;
-      this.loadingNuevo = !this.loadingNuevo;
-    },
-    async eliminar(item) {
-      Swal.fire({
-        icon: "question",
-        title: "¿Estás seguro?",
-        text: `Si inactiva el registro, éste no aparecerá disponible en otros formularios ¿Está seguro de que desea inactivarlo?`,
-        allowOutsideClick: false,
-        confirmButtonText: "Si, inactivar",
-        cancelButtonColor: "orange",
-        confirmButtonColor: "red",
-        cancelButtonText: "Cancelar",
-        cancelButtonColor: "orange",
-        showCancelButton: true,
-      }).then(async (res) => {
-        if (res.isConfirmed) {
-          item.status = 0;
-          this.itemServicesStore.model = item;
-          this.loading = true;
-          await this.ActualizarItemServices();
-          await this.GetListItemServices();
-          this.loading = false;
-        }
-      });
-    },
-  },
-  async mounted() {
-    this.loading = !this.loading;
-    await this.GetListItemServices();
-
-    this.loading = !this.loading;
-    await this.CargarGroupServices();
-  },
-};
-</script>
 
 <style></style>
