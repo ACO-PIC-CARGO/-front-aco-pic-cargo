@@ -18,8 +18,8 @@
             class="mx-1"
             color="#2962FF"
             @click="
-              ($store.state.states.drawer = !$store.state.states.drawer) &&
-                ($store.state.states.tipo = 'filter')
+              (statesStore.drawer = !statesStore.drawer) &&
+                (statesStore.tipo = 'filter')
             "
             >FILTRAR</v-btn
           >
@@ -28,7 +28,7 @@
         <v-col cols="12">
           <v-data-table
             :headers="headers"
-            :items="$store.state.states.lstState"
+            :items="statesStore.lstState"
             class="elevation-1"
             item-value="port_beginend_id"
             :loading="loading"
@@ -100,6 +100,8 @@
 <script>
 import { mapActions } from "vuex";
 import Swal from "sweetalert2";
+import { mapActions as mapPiniaActions, mapStores } from "pinia";
+import { useStatesStore } from "@/stores/states";
 export default {
   data() {
     return {
@@ -117,24 +119,28 @@ export default {
       ],
     };
   },
+  computed: {
+    ...mapStores(useStatesStore),
+  },
   methods: {
-    ...mapActions(["GetListState", "_getPais", "ActualizarState"]),
+    ...mapActions(["_getPais"]),
+    ...mapPiniaActions(useStatesStore, ["GetListState", "ActualizarState"]),
     ver(item) {
       let datos = { ...item };
-      this.$store.state.states.tipo = "ver";
+      this.statesStore.tipo = "ver";
 
-      this.$store.state.states.StateModel = datos;
-      this.$store.state.states.drawer = !this.$store.state.states.drawer;
+      this.statesStore.StateModel = datos;
+      this.statesStore.drawer = !this.statesStore.drawer;
     },
     editar(item) {
       let datos = { ...item };
-      this.$store.state.states.tipo = "editar";
-      this.$store.state.states.StateModel = datos;
-      this.$store.state.states.drawer = !this.$store.state.states.drawer;
+      this.statesStore.tipo = "editar";
+      this.statesStore.StateModel = datos;
+      this.statesStore.drawer = !this.statesStore.drawer;
     },
     nuevo() {
-      this.$store.state.states.tipo = "nuevo";
-      this.$store.state.states.StateModel = {
+      this.statesStore.tipo = "nuevo";
+      this.statesStore.StateModel = {
         id: "",
         id_pais: "",
         code: "",
@@ -143,7 +149,7 @@ export default {
         status: 1,
         id_branch: JSON.parse(sessionStorage.getItem("dataUser"))[0].id_branch,
       };
-      this.$store.state.states.drawer = !this.$store.state.states.drawer;
+      this.statesStore.drawer = !this.statesStore.drawer;
     },
     async eliminar(item) {
       Swal.fire({
@@ -159,8 +165,8 @@ export default {
       }).then(async (res) => {
         if (res.isConfirmed) {
           item.status = 0;
-          this.$store.state.states.StateModel = item;
-          this.$store.state.states.StateFilter = {
+          this.statesStore.StateModel = item;
+          this.statesStore.StateFilter = {
             id: "",
             id_pais: "",
             code: "",

@@ -114,6 +114,8 @@ import DatosCostosComponent from "../../components/folderPricing/DatosCostosComp
 import ComparativaComponent from "../../components/folderPricing/ComparativaComponent.vue";
 import NotasComponent from "../../components/folderPricing/NotasComponent.vue";
 import { mapActions, mapState } from "vuex";
+import { mapActions as mapPiniaActions } from "pinia";
+import { useTownStore } from "@/stores/town";
 
 export default {
   components: {
@@ -274,8 +276,8 @@ export default {
       "getCargarMasterDetalleNotasCotizacion",
       "obtenerFleteCalculadora",
       "getTransporte",
-      "cargarTownParaPricing",
     ]),
+    ...mapPiniaActions(useTownStore, ["cargarTownParaPricing"]),
     async recargar() {
       await this.recargarServicios();
       await this.getTipoCostos();

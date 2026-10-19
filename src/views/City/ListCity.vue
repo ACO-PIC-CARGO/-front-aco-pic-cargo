@@ -2,7 +2,7 @@
   <v-container fluid>
     <City />
     <v-navigation-drawer
-      v-model="$store.state.city.drawer"
+      v-model="cityStore.drawer"
       location="right"
       
       width="30%"
@@ -15,10 +15,15 @@
 
 <script>
 import { defineAsyncComponent } from "vue";
+import { mapStores } from "pinia";
+import { useCityStore } from "@/stores/city";
 export default {
   components: {
     City: defineAsyncComponent(() => import("../../components/City/ListCityComponet.vue")),
     FilterCity: defineAsyncComponent(() => import("../../components/filtros/FilterCity.vue")),
+  },
+  computed: {
+    ...mapStores(useCityStore),
   },
   mounted() {
     this.$store.state.mainTitle = `LISTADO DE CIUDADES`;

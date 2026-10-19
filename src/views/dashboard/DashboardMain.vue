@@ -14,6 +14,7 @@ import LoadingComponent from "../../components/comun/LoadingComponent.vue";
 import BtnIrAlListado from "../../components/comun/BtnIrAlListado.vue";
 import BotonesHeader from "../../components/comun/BotonesHeader.vue";
 import PlanStatusBadge from "../../components/SubscriptionPackages/PlanStatusBadge.vue";
+import { useTownStore } from "@/stores/town";
 import { validateCost } from "@/utils/cotizacion";
 import type { ApiResponse } from "@/types/api";
 import type {
@@ -41,6 +42,7 @@ import type { SucursalSesion, UsuarioSesion } from "@/types/sesion";
 const route = useRoute();
 const router = useRouter();
 const rootStore = useStore();
+const townStore = useTownStore();
 
 const socket = io(import.meta.env.VITE_URL_MAIN, {
   transports: ["polling"],
@@ -2176,7 +2178,7 @@ watch(idRole, async () => {
           <p>Selecciona el distrito para calcular la tarifa de transporte.</p>
           <v-autocomplete
             v-model="rootStore.state.pricing.datosPrincipales.id_town"
-            :items="rootStore.state.town.lstTown"
+            :items="townStore.lstTown"
             item-title="nombrecompleto"
             item-value="id"
             density="compact"

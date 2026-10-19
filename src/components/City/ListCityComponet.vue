@@ -21,7 +21,7 @@
         <v-col cols="12">
           <v-data-table
             :headers="headers"
-            :items="$store.state.city.lstCity"
+            :items="cityStore.lstCity"
             class="elevation-1"
             item-value="port_beginend_id"
             :loading="loading"
@@ -93,6 +93,8 @@
 <script>
 import { mapActions } from "vuex";
 import Swal from "sweetalert2";
+import { mapActions as mapPiniaActions, mapStores } from "pinia";
+import { useCityStore } from "@/stores/city";
 export default {
   data() {
     return {
@@ -112,37 +114,41 @@ export default {
       ],
     };
   },
+  computed: {
+    ...mapStores(useCityStore),
+  },
   methods: {
-    ...mapActions(["GetListCity", "_getPais", "ActualizarCity", "_getState"]),
+    ...mapActions(["_getPais", "_getState"]),
+    ...mapPiniaActions(useCityStore, ["GetListCity", "ActualizarCity"]),
     async filtrar() {
       this.loading = !this.loading;
-      this.$store.state.city.tipo = "filter";
-      // await this._getState(this.$store.state.city.filtros.id_pais);
+      this.cityStore.tipo = "filter";
+      // await this._getState(this.cityStore.filtros.id_pais);
       this.loading = !this.loading;
-      this.$store.state.city.drawer = !this.$store.state.city.drawer;
+      this.cityStore.drawer = !this.cityStore.drawer;
     },
     async ver(item) {
       this.loading = !this.loading;
       let datos = { ...item };
-      this.$store.state.city.tipo = "ver";
-      this.$store.state.city.model = datos;
+      this.cityStore.tipo = "ver";
+      this.cityStore.model = datos;
       await this._getState(datos.id_pais);
       this.loading = !this.loading;
-      this.$store.state.city.drawer = !this.$store.state.city.drawer;
+      this.cityStore.drawer = !this.cityStore.drawer;
     },
     async editar(item) {
       this.loading = !this.loading;
       let datos = { ...item };
-      this.$store.state.city.tipo = "editar";
-      this.$store.state.city.model = datos;
+      this.cityStore.tipo = "editar";
+      this.cityStore.model = datos;
       await this._getState(datos.id_pais);
       this.loading = !this.loading;
-      this.$store.state.city.drawer = !this.$store.state.city.drawer;
+      this.cityStore.drawer = !this.cityStore.drawer;
     },
     async nuevo() {
       this.loading = !this.loading;
-      this.$store.state.city.tipo = "nuevo";
-      this.$store.state.city.model = {
+      this.cityStore.tipo = "nuevo";
+      this.cityStore.model = {
         id: "",
         id_pais: "",
         id_state: "",
@@ -152,8 +158,8 @@ export default {
         status: 1,
         id_branch: JSON.parse(sessionStorage.getItem("dataUser"))[0].id_branch,
       };
-      // await this._getState(this.$store.state.city.model.id_state);
-      this.$store.state.city.drawer = !this.$store.state.city.drawer;
+      // await this._getState(this.cityStore.model.id_state);
+      this.cityStore.drawer = !this.cityStore.drawer;
       this.loading = !this.loading;
     },
     async eliminar(item) {
@@ -170,7 +176,7 @@ export default {
       }).then(async (res) => {
         if (res.isConfirmed) {
           item.status = 0;
-          this.$store.state.city.model = item;
+          this.cityStore.model = item;
           this.loading = true;
           await this.ActualizarCity();
           await this.GetListCity();

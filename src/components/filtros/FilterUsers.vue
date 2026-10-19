@@ -108,6 +108,8 @@
 </template>
 <script>
 import { mapActions } from "vuex";
+import { mapActions as mapPiniaActions } from "pinia";
+import { useTownStore } from "@/stores/town";
 export default {
   data() {
     return {
@@ -123,9 +125,8 @@ export default {
       "_getPais",
       "_getState",
       "_getCity",
-      "setTown",
-      "ActualizarTown",
     ]),
+    ...mapPiniaActions(useTownStore, ["setTown", "ActualizarTown"]),
     getName() {
       // if (this.$store.state.user.tipo == "filter") {
       return "Filtrar Registros";

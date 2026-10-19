@@ -26,9 +26,6 @@ import airlines from "./modules/airlines";
 import QuoteStatus from "./modules/QuoteStatus";
 import puerto from "./modules/puerto";
 import motonave from "./modules/motonave";
-import states from "./modules/state";
-import city from "./modules/city";
-import town from "./modules/town";
 import begend from "./modules/begend";
 import typepayment from "./modules/typepayment";
 import user from "./modules/user";
@@ -2879,9 +2876,6 @@ export default createStore({
     QuoteStatus,
     puerto,
     motonave,
-    states,
-    city,
-    town,
     begend,
     typepayment,
     user,

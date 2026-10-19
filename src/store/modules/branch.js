@@ -1,6 +1,7 @@
 import axios from '@/api/http';
 import Swal from "sweetalert2";
 import router from "@/router";
+import { useCityStore } from "@/stores/city";
 let state = {
   lstBranch: [],
 };
@@ -29,7 +30,7 @@ let actions = {
           if (data.estadoflag == true) {
             commit("SET_LST_BRANCH", data.data);
           } else {
-            commit("SET_LIST_CITY", []);
+            useCityStore().lstCity = [];
             Swal.fire({
               icon: data.status == "401" ? "error" : "info",
               text: data.mensaje,

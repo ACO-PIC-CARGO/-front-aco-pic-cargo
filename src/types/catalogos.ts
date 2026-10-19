@@ -355,3 +355,86 @@ export interface FiltroMultiplicador {
   id_shipment: number | string | null;
   status: number | string;
 }
+
+export interface Ciudad {
+  id: number | string;
+  id_pais: number | string;
+  id_state: number | string;
+  name_pais?: string;
+  name_state?: string;
+  code: string;
+  name: string;
+  description: string | null;
+  status: number | string | boolean;
+  status_calls?: number;
+  status_calls_all?: number;
+  id_branch?: number;
+  created_at?: string;
+  updated_at?: string;
+}
+
+export interface FiltroCiudad {
+  id: string;
+  id_pais: number | string | null;
+  id_state: number | string | null;
+  code: string | null;
+  name: string | null;
+  description: string | null;
+  status: string;
+}
+
+export interface EstadoRegion {
+  id: number | string;
+  id_pais: number | string;
+  name_pais?: string;
+  code: string;
+  name: string;
+  description: string | null;
+  status: number | string | boolean;
+  status_calls?: number;
+  status_calls_all?: number;
+  id_branch?: number;
+  created_at?: string;
+  updated_at?: string;
+}
+
+export interface FiltroEstadoRegion {
+  id: string;
+  id_pais: number | string | null;
+  code: string | null;
+  name: string | null;
+  description: string | null;
+  status: string;
+}
+
+export interface Distrito {
+  id: number | string;
+  id_pais: number | string;
+  id_state: number | string;
+  id_city: number | string;
+  id_town?: number | string;
+  name_pais?: string;
+  name_state?: string;
+  name_city?: string;
+  code: string;
+  name: string;
+  description: string | null;
+  status: number | string | boolean;
+  status_calls?: number;
+  status_calls_all?: number;
+  id_branch?: number;
+  created_at?: string;
+  updated_at?: string;
+}
+
+export interface FiltroDistrito {
+  id: string;
+  id_pais: number | string | null;
+  id_city: number | string | null;
+  id_state: number | string | null;
+  id_town: number | string | null;
+  code: string | null;
+  name: string | null;
+  description: string | null;
+  status: string;
+}

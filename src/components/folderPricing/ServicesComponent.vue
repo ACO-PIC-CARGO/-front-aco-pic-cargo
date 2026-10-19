@@ -66,7 +66,7 @@
               "
             >
               <v-autocomplete
-                :items="$store.state.town.lstTown"
+                :items="townStore.lstTown"
                 item-title="nombrecompleto"
                 item-value="id"
                 density="compact"
@@ -141,6 +141,8 @@
 <script>
 import { mapState, mapActions, mapGetters } from "vuex";
 import Swal from "sweetalert2";
+import { mapActions as mapPiniaActions, mapStores } from "pinia";
+import { useTownStore } from "@/stores/town";
 
 export default {
   emits: ["activarLlenadoCostos", "recargarCostos"],
@@ -178,6 +180,7 @@ export default {
     }
   },
   computed: {
+    ...mapStores(useTownStore),
     ...mapState({
       begEndList: (state) => state.pricing.begEndList,
       listServices: (state) => state.pricing.listServices,
@@ -221,8 +224,8 @@ export default {
       "getImpuestos",
       "getItemsServicesDetails",
       "getBegEndList",
-      "cargarTownParaPricing",
     ]),
+    ...mapPiniaActions(useTownStore, ["cargarTownParaPricing"]),
 
     normalizeText(str) {
       return String(str || "")

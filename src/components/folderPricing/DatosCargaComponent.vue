@@ -619,7 +619,7 @@
           <p>Selecciona el distrito para calcular la tarifa de transporte.</p>
           <v-autocomplete
             v-model="idTownSeleccionado"
-            :items="$store.state.town.lstTown"
+            :items="townStore.lstTown"
             item-title="nombrecompleto"
             item-value="id"
             density="compact"
@@ -644,6 +644,8 @@
 import { mapActions, mapState } from "vuex";
 import Swal from "sweetalert2";
 import funcion from "@/components/mixins/funciones";
+import { mapStores } from "pinia";
+import { useTownStore } from "@/stores/town";
 export default {
   name: "DatosCargaComponent",
   mixins: [funcion],
@@ -1756,6 +1758,7 @@ export default {
     },
   },
   computed: {
+    ...mapStores(useTownStore),
     abrirModalContenedor: {
       get() {
         return this.$store.state.pricing.abrirModalContenedor;
