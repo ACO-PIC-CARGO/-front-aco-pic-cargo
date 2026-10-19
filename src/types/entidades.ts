@@ -7,6 +7,12 @@ export interface RolProveedor {
 export interface TipoTransaccion {
   id: number;
   codigo?: string;
+  codigo01?: string;
+  codigo02?: string;
+  descripcion?: string;
+  estado?: boolean;
+  individualflag?: boolean;
+  grupalflag?: boolean;
 }
 
 export interface InformacionBancaria {

@@ -3,6 +3,7 @@ import { ref } from "vue";
 import Swal from "sweetalert2";
 import axios from "@/api/http";
 import type { ApiResponse } from "@/types/api";
+import type { TipoTransaccion } from "@/types/entidades";
 import type { FiltroMasterDetalle, FormMasterDetalle, MasterDetalle } from "@/types/seguridad";
 import { showRejectedResponse } from "@/utils/rejectedResponse";
 import { sessionBranchId } from "@/utils/sesion";
@@ -10,16 +11,16 @@ import { sessionBranchId } from "@/utils/sesion";
 export const useMasterusuariosStore = defineStore("masterusuarios", () => {
   const tipo = ref("filter");
   const drawer = ref(false);
-  const lstCanales = ref<MasterDetalle[]>([]);
-  const lstTipoProveedor = ref<MasterDetalle[]>([]);
-  const lstPercepcionAduana = ref<MasterDetalle[]>([]);
-  const lstTipoTransaccion = ref<MasterDetalle[]>([]);
-  const lstTipoTelefono = ref<MasterDetalle[]>([]);
+  const lstCanales = ref<TipoTransaccion[]>([]);
+  const lstTipoProveedor = ref<TipoTransaccion[]>([]);
+  const lstPercepcionAduana = ref<TipoTransaccion[]>([]);
+  const lstTipoTransaccion = ref<TipoTransaccion[]>([]);
+  const lstTipoTelefono = ref<(MasterDetalle | TipoTransaccion)[]>([]);
   const lstImpuesto = ref<MasterDetalle[]>([]);
   const lstNotasQuote = ref<MasterDetalle[]>([]);
-  const lstTipoPersona = ref<MasterDetalle[]>([]);
-  const lstImpRenta = ref<MasterDetalle[]>([]);
-  const lstTemperatura = ref<MasterDetalle[]>();
+  const lstTipoPersona = ref<TipoTransaccion[]>([]);
+  const lstImpRenta = ref<TipoTransaccion[]>([]);
+  const lstTemperatura = ref<TipoTransaccion[]>();
   const filtros = ref<FiltroMasterDetalle>({
     id: "",
     id_master: "",
@@ -188,7 +189,7 @@ export const useMasterusuariosStore = defineStore("masterusuarios", () => {
       headers: { "Content-Type": "application/json" },
     };
 
-    axios<ApiResponse<MasterDetalle[]>>(config).then((response) => {
+    axios<ApiResponse<TipoTransaccion[]>>(config).then((response) => {
       const data = response.data;
       sessionStorage.setItem("auth-token", data.token!);
       if (data.estadoflag == true) {
@@ -205,7 +206,7 @@ export const useMasterusuariosStore = defineStore("masterusuarios", () => {
       url: import.meta.env.VITE_URL_MAIN + `cargar_master_detalle_tipo_proveedor?id_branch=${sessionBranchId()}`,
       headers: { "Content-Type": "application/json" },
     };
-    axios<ApiResponse<MasterDetalle[]>>(config).then((response) => {
+    axios<ApiResponse<TipoTransaccion[]>>(config).then((response) => {
       const data = response.data;
       sessionStorage.setItem("auth-token", data.token!);
       if (data.estadoflag == true) {
@@ -226,7 +227,7 @@ export const useMasterusuariosStore = defineStore("masterusuarios", () => {
       url: import.meta.env.VITE_URL_MAIN + `cargar_master_detalle_percepcion_aduana?id_branch=${sessionBranchId()}`,
       headers: { "Content-Type": "application/json" },
     };
-    axios<ApiResponse<MasterDetalle[]>>(config).then((response) => {
+    axios<ApiResponse<TipoTransaccion[]>>(config).then((response) => {
       const data = response.data;
       sessionStorage.setItem("auth-token", data.token!);
       if (data.estadoflag == true) {
@@ -243,7 +244,7 @@ export const useMasterusuariosStore = defineStore("masterusuarios", () => {
       url: import.meta.env.VITE_URL_MAIN + `cargar_master_detalle_tipo_percepcion?id_branch=${sessionBranchId()}`,
       headers: { "Content-Type": "application/json" },
     };
-    axios<ApiResponse<MasterDetalle[]>>(config).then((response) => {
+    axios<ApiResponse<TipoTransaccion[]>>(config).then((response) => {
       const data = response.data;
       sessionStorage.setItem("auth-token", data.token!);
       if (data.estadoflag == true) {
@@ -260,7 +261,7 @@ export const useMasterusuariosStore = defineStore("masterusuarios", () => {
       url: import.meta.env.VITE_URL_MAIN + `cargar_master_detalle_tipo_telefono?id_branch=${sessionBranchId()}`,
       headers: { "Content-Type": "application/json" },
     };
-    axios<ApiResponse<MasterDetalle[]>>(config).then((response) => {
+    axios<ApiResponse<TipoTransaccion[]>>(config).then((response) => {
       const data = response.data;
       sessionStorage.setItem("auth-token", data.token!);
       if (data.estadoflag == true) {
@@ -327,7 +328,7 @@ export const useMasterusuariosStore = defineStore("masterusuarios", () => {
       url: import.meta.env.VITE_URL_MAIN + `cargar_master_detalle_tipo_persona?id_branch=${sessionBranchId()}`,
       headers: { "Content-Type": "application/json" },
     };
-    await axios<ApiResponse<MasterDetalle[]>>(config).then((response) => {
+    await axios<ApiResponse<TipoTransaccion[]>>(config).then((response) => {
       const data = response.data;
       sessionStorage.setItem("auth-token", data.token!);
       if (data.estadoflag == true) {
@@ -344,7 +345,7 @@ export const useMasterusuariosStore = defineStore("masterusuarios", () => {
       url: import.meta.env.VITE_URL_MAIN + `cargar_master_detalle_impuesto_renta?id_branch=${sessionBranchId()}`,
       headers: { "Content-Type": "application/json" },
     };
-    await axios<ApiResponse<MasterDetalle[]>>(config).then((response) => {
+    await axios<ApiResponse<TipoTransaccion[]>>(config).then((response) => {
       const data = response.data;
       sessionStorage.setItem("auth-token", data.token!);
       if (data.estadoflag == true) {
@@ -361,7 +362,7 @@ export const useMasterusuariosStore = defineStore("masterusuarios", () => {
       url: import.meta.env.VITE_URL_MAIN + `cargar_master_detalle_temperatura_leads`,
       headers: { "Content-Type": "application/json" },
     };
-    await axios<ApiResponse<MasterDetalle[]>>(config).then((response) => {
+    await axios<ApiResponse<TipoTransaccion[]>>(config).then((response) => {
       const data = response.data;
       sessionStorage.setItem("auth-token", data.token!);
       if (data.estadoflag == true) {

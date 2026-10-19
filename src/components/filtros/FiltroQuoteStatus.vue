@@ -250,7 +250,6 @@ async function Aceptar() {
                 <template #item="{ item, props }">
                   <v-list-item v-bind="props">
                     <template #prepend>
-                      <!-- @vue-expect-error the root state items are untyped until the Vuex store is typed -->
                       <span
                         class="d-inline-block"
                         :style="{
@@ -425,7 +424,6 @@ async function Aceptar() {
                 <template #item="{ item, props }">
                   <v-list-item v-bind="props">
                     <template #prepend>
-                      <!-- @vue-expect-error the root state items are untyped until the Vuex store is typed -->
                       <span
                         class="d-inline-block"
                         :style="{

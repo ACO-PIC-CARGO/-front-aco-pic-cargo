@@ -173,7 +173,6 @@ export interface MasterDetalle {
   codigo01?: string;
   codigo02?: string;
   description?: string;
-  descripcion?: string;
   status?: boolean | number;
   escomunflag?: boolean | string;
   individualflag?: boolean;

@@ -2,6 +2,7 @@
 import { computed, onMounted, ref, watch } from "vue";
 import Swal from "sweetalert2";
 import { useMasterusuariosStore } from "@/stores/masterusuarios";
+import type { TipoTransaccion } from "@/types/entidades";
 import type { MasterDetalle } from "@/types/seguridad";
 import { sessionBranchId } from "@/utils/sesion";
 
@@ -43,14 +44,14 @@ async function filtrar() {
   masterusuariosStore.tipo = "filter";
   masterusuariosStore.drawer = !masterusuariosStore.drawer;
 }
-async function ver(item: MasterDetalle) {
-  const datos = { ...item };
+async function ver(item: MasterDetalle | TipoTransaccion) {
+  const datos = { ...(item as MasterDetalle) };
   masterusuariosStore.tipo = "ver";
   masterusuariosStore.model = datos;
   masterusuariosStore.drawer = !masterusuariosStore.drawer;
 }
-async function editar(item: MasterDetalle) {
-  const datos = { ...item };
+async function editar(item: MasterDetalle | TipoTransaccion) {
+  const datos = { ...(item as MasterDetalle) };
   masterusuariosStore.tipo = "editar";
   masterusuariosStore.model = datos;
 
@@ -71,7 +72,8 @@ async function nuevo() {
   };
   masterusuariosStore.drawer = !masterusuariosStore.drawer;
 }
-async function eliminar(item: MasterDetalle) {
+async function eliminar(row: MasterDetalle | TipoTransaccion) {
+  const item = row as MasterDetalle;
   Swal.fire({
     icon: "question",
     title: "¿Estás seguro?",
@@ -193,6 +195,7 @@ onMounted(async () => {
                 </template>
                 <span>Editar</span>
               </v-tooltip>
+              <!-- @vue-expect-error item.status == 1 is kept from the old template -->
               <v-tooltip
                 location="bottom"
                 v-if="item.status == 1"
