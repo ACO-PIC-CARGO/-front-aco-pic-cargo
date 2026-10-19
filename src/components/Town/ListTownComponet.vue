@@ -30,8 +30,8 @@ const headers = [
 async function filtrar() {
   loadingFiltrar.value = !loadingFiltrar.value;
   townStore.tipo = "filter";
-  // await this._getState(this.townStore.filtros.id_pais);
-  // await this._getCity(this.townStore.filtros.id_state);
+  // await this._getState(this.$store.state.town.filtros.id_pais);
+  // await this._getCity(this.$store.state.town.filtros.id_state);
   loadingFiltrar.value = !loadingFiltrar.value;
   townStore.drawer = !townStore.drawer;
 }
@@ -68,8 +68,8 @@ async function nuevo() {
     status: 1,
     id_branch: sessionBranchId(),
   };
-  // await this._getState(this.townStore.model.id_state);
-  // await this._getCity(this.townStore.model.id_state);
+  // await this._getState(this.$store.state.town.model.id_state);
+  // await this._getCity(this.$store.state.town.model.id_state);
   townStore.drawer = !townStore.drawer;
   loadingNuevo.value = !loadingNuevo.value;
 }

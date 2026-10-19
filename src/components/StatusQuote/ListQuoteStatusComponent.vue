@@ -93,7 +93,7 @@ async function eliminar(item: EstadoCotizacion) {
 </script>
 
 <template>
-  <!-- <div class="">{{ QuoteStatusStore.statusQuoteList }}</div> -->
+  <!-- <div class="">{{ $store.state.QuoteStatus.statusQuoteList }}</div> -->
   <v-card
     fluid
     class="px-5"

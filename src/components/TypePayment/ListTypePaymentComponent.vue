@@ -76,7 +76,7 @@ async function eliminar(item: TipoPago) {
 </script>
 
 <template>
-  <!-- <div class="">{{ typepaymentStore.statusQuoteList }}</div> -->
+  <!-- <div class="">{{ $store.state.typepayment.statusQuoteList }}</div> -->
   <v-card
     fluid
     class="px-5"

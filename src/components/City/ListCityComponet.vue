@@ -27,7 +27,7 @@ const headers = [
 async function filtrar() {
   loading.value = !loading.value;
   cityStore.tipo = "filter";
-  // await this._getState(this.cityStore.filtros.id_pais);
+  // await this._getState(this.$store.state.city.filtros.id_pais);
   loading.value = !loading.value;
   cityStore.drawer = !cityStore.drawer;
 }
@@ -62,7 +62,7 @@ async function nuevo() {
     status: 1,
     id_branch: sessionBranchId(),
   };
-  // await this._getState(this.cityStore.model.id_state);
+  // await this._getState(this.$store.state.city.model.id_state);
   cityStore.drawer = !cityStore.drawer;
   loading.value = !loading.value;
 }
