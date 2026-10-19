@@ -222,14 +222,6 @@ export interface CostoConfig {
   code?: number | string;
 }
 
-export interface MultiplicadorConfig {
-  id: number;
-  value: number;
-  code: string;
-  text: string;
-  valor: number;
-}
-
 export interface TipoCostoConfig {
   name: string;
   codigo?: string;

@@ -3,6 +3,7 @@ import { ref } from "vue";
 import Swal from "sweetalert2";
 import axios from "@/api/http";
 import type { ApiResponse } from "@/types/api";
+import type { Multiplicador } from "@/types/cotizacion";
 import type {
   ClienteCarga,
   CorrelativosConfig,
@@ -11,18 +12,10 @@ import type {
   DatoUsuarioConfig,
   FiltroCostosConfig,
   GuardarCostosConfig,
-  MultiplicadorConfig,
   ProveedorCarga,
   TipoCostoConfig,
 } from "@/types/empresas";
 import { sessionBranchId } from "@/utils/sesion";
-
-interface MultiplicadorRow {
-  id: number;
-  code: string;
-  name: string;
-  valor?: number | null;
-}
 
 const hasSession = (): boolean => !!JSON.parse(sessionStorage.getItem("dataUser") as string);
 
@@ -66,7 +59,7 @@ export const useConfigEmpresaStore = defineStore("configEmpresa", () => {
   const lstProveedor = ref<ProveedorCarga[]>([]);
   const lstClientes = ref<ClienteCarga[]>([]);
   const lstCostos = ref<CostoConfig[]>([]);
-  const lstMultiplicador = ref<MultiplicadorConfig[]>([]);
+  const lstMultiplicador = ref<Multiplicador[]>([]);
   const listTipoCostos = ref<TipoCostoConfig[]>([]);
   const configEmpresa = ref<CorrelativosConfig>({
     correlativopricing: null,
@@ -187,7 +180,7 @@ export const useConfigEmpresaStore = defineStore("configEmpresa", () => {
   }
 
   async function getMultiplicadorConfig(filter: { id_shipment: number | string }): Promise<void> {
-    await axios<ApiResponse<MultiplicadorRow[]>>({
+    await axios<ApiResponse<Multiplicador[]>>({
       method: "get",
       url:
         import.meta.env.VITE_URL_MAIN +
@@ -195,13 +188,13 @@ export const useConfigEmpresaStore = defineStore("configEmpresa", () => {
       headers: { "Content-Type": "application/json" },
     })
       .then(function (response) {
-        const valores: MultiplicadorConfig[] = [];
+        const valores: Multiplicador[] = [];
         response.data.data.forEach((element) => {
           valores.push({
             id: element.id,
             value: element.id,
             code: element.code,
-            text: element.name,
+            text: element.name!,
             valor: element.valor ? element.valor : 0,
           });
         });

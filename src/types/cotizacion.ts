@@ -25,6 +25,7 @@ export interface DatosPrincipales {
 
 export interface Multiplicador {
   id?: number | string;
+  value?: number | string;
   code?: number | string | null;
   valor?: Numerico;
   id_container?: number | string | null;
