@@ -163,6 +163,8 @@
 import { mapActions, mapState } from "vuex";
 import ModelCostos from "./ModelCostos.vue";
 import _ from "lodash";
+import { mapActions as mapPiniaActions, mapStores } from "pinia";
+import { useIncotermStore } from "@/stores/incoterm";
 export default {
   components: { ModelCostos },
   data() {
@@ -207,10 +209,10 @@ export default {
     ...mapActions([
       "getModality",
       "getShipment",
-      "CargarIncotermsConfig",
       "obtenerProveedorPricing",
       "getTipoCostos",
     ]),
+    ...mapPiniaActions(useIncotermStore, ["CargarIncotermsConfig"]),
     ...mapActions("configuracion", [
       "getCargarCostos",
       "getMultiplicadorConfigCosto",
@@ -299,6 +301,7 @@ export default {
     },
   },
   computed: {
+    ...mapStores(useIncotermStore),
     ...mapState("configuracion", [
       "lstCostos",
       "lstMultiplicador",
@@ -316,7 +319,7 @@ export default {
         name = ["DDP", "FOB", "FCA", "CIF", "CFR"];
       }
 
-      return this.$store.state.incoterm.list.filter((v) => {
+      return this.incotermStore.list.filter((v) => {
         return name.includes(v.name);
       });
     },

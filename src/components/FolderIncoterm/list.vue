@@ -38,7 +38,7 @@
         v-if="!loading"
         class="elevation-1"
         :headers="headers"
-        :items="$store.state.incoterm.list"
+        :items="incotermStore.list"
         item-value="id"
         :search="search"
       >
@@ -143,7 +143,7 @@
         <v-list-item class="px-0">
           
             <v-list-item-title class="text-headline-small">
-              Ver: {{ $store.state.incoterm.record.name }}
+              Ver: {{ incotermStore.record.name }}
             </v-list-item-title>
           
         </v-list-item>
@@ -153,24 +153,24 @@
             <v-text-field
               label="Código"
               readonly
-              :model-value="$store.state.incoterm.record.name"
+              :model-value="incotermStore.record.name"
             ></v-text-field>
           </v-row>
           <v-row>
             <v-text-field
               label="Descripción"
               readonly
-              :model-value="$store.state.incoterm.record.description"
+              :model-value="incotermStore.record.description"
             ></v-text-field>
           </v-row>
           <v-row
             ><v-switch
               readonly
               :label="`Estado: ${
-                !!$store.state.incoterm.record.status ? 'Activo' : 'Inactivo'
+                !!incotermStore.record.status ? 'Activo' : 'Inactivo'
               }`"
               color="success"
-              v-model="$store.state.incoterm.record.status"
+              v-model="incotermStore.record.status"
               :value-comparator="(value, checked) => Boolean(value) === checked"
             ></v-switch>
           </v-row>
@@ -214,7 +214,7 @@
         <v-list-item class="px-0">
           
             <v-list-item-title class="text-headline-small">
-              Modificar: {{ $store.state.incoterm.record.name }}
+              Modificar: {{ incotermStore.record.name }}
             </v-list-item-title>
           
         </v-list-item>
@@ -351,9 +351,11 @@
 </template>
 
 <script>
-import { mapState, mapActions } from "vuex";
+import { mapState } from "vuex";
 import Swal from "sweetalert2";
 import axios from '@/api/http';
+import { mapActions as mapPiniaActions, mapStores } from "pinia";
+import { useIncotermStore } from "@/stores/incoterm";
 
 export default {
   name: "ListIncotermComponent",
@@ -401,12 +403,7 @@ export default {
     this.$store.state.mainTitle = `Incoterm`;
   },
   methods: {
-    ...mapActions([
-      "fetchDataIncoterms",
-      "insertIncoterms",
-      "readIncoterms",
-      "updateIncoterms",
-    ]),
+    ...mapPiniaActions(useIncotermStore, ["fetchDataIncoterms", "insertIncoterms", "readIncoterms", "updateIncoterms"]),
     updateStatus(newValue) {
       this.record.status = newValue ? 1 : 0;
     },
@@ -514,10 +511,11 @@ export default {
     },
   },
   computed: {
+    ...mapStores(useIncotermStore),
     ...mapState(["list"]),
   },
   watch: {
-    "$store.state.incoterm.record": {
+    "incotermStore.record": {
       handler(newRecord, oldRecord) {
         if (newRecord && Object.keys(newRecord).length > 0) {
           const { name, description, status } = newRecord;
@@ -527,7 +525,7 @@ export default {
       },
       immediate: true,
     },
-    "$store.state.incoterm.loading": {
+    "incotermStore.loading": {
       handler(newList, oldList) {
         this.loading = newList == true ? false : true;
       },

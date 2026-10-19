@@ -250,6 +250,8 @@ import { mapState } from "vuex";
 import { mapActions } from "vuex";
 import _ from "lodash";
 import Swal from "sweetalert2";
+import { mapActions as mapPiniaActions } from "pinia";
+import { useIncotermStore } from "@/stores/incoterm";
 
 export default {
   emits: ["cerrarModal", "cerrarModalGuardar", "recargarCostos"],
@@ -305,10 +307,10 @@ export default {
     ...mapActions([
       "getModality",
       "getShipment",
-      "CargarIncotermsConfig",
       "obtenerProveedorPricing",
       "getTipoCostos",
     ]),
+    ...mapPiniaActions(useIncotermStore, ["CargarIncotermsConfig"]),
     ...mapActions("configuracion", [
       "getCargarCostos",
       "getMultiplicadorConfigCosto",

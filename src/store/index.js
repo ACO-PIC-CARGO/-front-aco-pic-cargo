@@ -24,7 +24,6 @@ import marketing from "./modules/marketing";
 import type_phone from "./modules/typePhone";
 import year from "./modules/year";
 import sex from "./modules/sex";
-import incoterm from "./modules/incoterm";
 import performance from "./modules/performance";
 import bank from "./modules/bank";
 import modality from "./modules/modality";
@@ -2890,7 +2889,6 @@ export default createStore({
     type_phone,
     year,
     sex,
-    incoterm,
     performance,
     bank,
     modality,
