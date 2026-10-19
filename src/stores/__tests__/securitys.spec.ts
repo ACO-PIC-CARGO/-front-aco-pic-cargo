@@ -1,6 +1,7 @@
 import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
 import type { Mock } from "vitest";
 import { createPinia, setActivePinia } from "pinia";
+import { toRaw } from "vue";
 import { createStore } from "vuex";
 import Swal from "sweetalert2";
 import http from "@/api/http";
@@ -40,7 +41,7 @@ const sessionOf = (key: string) => sessionStorage.getItem(key);
 const localOf = (key: string) => localStorage.getItem(key);
 
 const loginRow = { id: 7, id_entitie: 3, id_secutiry: 2, names: "Ana" };
-const branch = { id: 5, trade_name: "PIC", iso_pais: "PE", esnuevoflag: false };
+const branch = { id: 5, trade_name: "PIC", iso_pais: "PE", esnuevoflag: false, porcentaje_config: "0", dias_restantes: 30 };
 const menu = [{ id: 1, name: "Inicio", route: "Main" }];
 const config = { id: 9, nombre: "cfg" };
 
@@ -238,13 +239,16 @@ describe("securitys store", () => {
     expect(await securitys.validarUsuarioAdmin({ clave: "x" })).toBeNull();
   });
 
-  test("a SET_RESPONSE committed for controlGastos also replaces the response singin returns", async () => {
+  test("singin writes into and returns the response a controlGastos SET_RESPONSE committed", async () => {
+    respond({ singin: { estadoflag: false, mensaje: "Clave incorrecta", data: [] } });
     const { securitys, vuex } = setup();
     const cargaMasiva = { estadoflag: true, filas: 3 };
-
     vuex.commit("SET_RESPONSE", cargaMasiva);
 
-    expect(securitys.response).toEqual(cargaMasiva);
-    expect(vuex.state.controlGastos.response).toEqual(cargaMasiva);
+    const res = await securitys.singin();
+
+    expect(toRaw(res)).toBe(cargaMasiva);
+    expect(cargaMasiva).toEqual({ estadoflag: false, filas: 3 });
+    expect(toRaw(vuex.state.controlGastos.response)).toBe(cargaMasiva);
   });
 });

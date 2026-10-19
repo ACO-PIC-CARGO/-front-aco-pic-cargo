@@ -11,7 +11,9 @@ export interface UsuarioSesion {
 }
 
 export interface SucursalSesion {
+  id: number;
   trade_name: string;
+  iso_pais: string;
   logo?: string;
   porcentaje_config: string;
   esnuevoflag: boolean;
@@ -39,11 +41,4 @@ export interface UsuarioLogin {
   id_secutiry: number;
   id_user?: number;
   id_branch?: number | string;
-}
-
-export interface SucursalUsuario {
-  id: number;
-  trade_name: string;
-  iso_pais: string;
-  esnuevoflag: boolean;
 }

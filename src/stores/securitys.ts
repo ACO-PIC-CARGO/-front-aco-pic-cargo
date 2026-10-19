@@ -6,7 +6,7 @@ import axios from "@/api/http";
 import router from "@/router";
 import store from "@/store";
 import type { ApiResponse } from "@/types/api";
-import type { ItemMenu, SucursalUsuario, UsuarioLogin } from "@/types/sesion";
+import type { ItemMenu, SucursalSesion, UsuarioLogin } from "@/types/sesion";
 
 const readDataUser = (): UsuarioLogin[] => JSON.parse(sessionStorage.getItem("dataUser") as string);
 
@@ -16,9 +16,9 @@ export const useSecuritysStore = defineStore("securitys", () => {
   const frmLogin = ref({ user: "", password: "", id_sucursal: "" as number | string });
   const MostrarLogin = ref(true);
   const MostrarSucursal = ref(false);
-  const lstSucursal = ref<SucursalUsuario[]>([]);
+  const lstSucursal = ref<SucursalSesion[]>([]);
 
-  async function ValidarToken() {
+  async function ValidarToken(): Promise<ApiResponse | null> {
     let val: ApiResponse | null = null;
 
     // let menu = JSON.parse(sessionStorage.getItem("menu"));
@@ -37,7 +37,7 @@ export const useSecuritysStore = defineStore("securitys", () => {
     return val;
   }
 
-  async function ObtenerDatosConfig() {
+  async function ObtenerDatosConfig(): Promise<ApiResponse<unknown[]> | null> {
     let val: ApiResponse<unknown[]> | null = null;
 
     // let menu = JSON.parse(sessionStorage.getItem("menu"));
@@ -55,7 +55,7 @@ export const useSecuritysStore = defineStore("securitys", () => {
     return val;
   }
 
-  async function singin() {
+  async function singin(): Promise<{ estadoflag: boolean }> {
     errorClave.value = "";
     await axios<ApiResponse<UsuarioLogin[]>>({
       method: "post",
@@ -120,7 +120,7 @@ export const useSecuritysStore = defineStore("securitys", () => {
   async function CargarBranch() {
     // response.data.data[0].id
     const id_usuario = readDataUser()[0]!.id_user;
-    await axios<ApiResponse<SucursalUsuario[]>>({
+    await axios<ApiResponse<SucursalSesion[]>>({
       method: "get",
       url: import.meta.env.VITE_URL_MAIN + "CargarBranch/" + id_usuario,
 
@@ -226,7 +226,7 @@ export const useSecuritysStore = defineStore("securitys", () => {
       });
   }
 
-  async function validarUsuarioAdmin(data: unknown) {
+  async function validarUsuarioAdmin(data: unknown): Promise<ApiResponse | null> {
     let respuesta: ApiResponse | null = null;
     await axios<ApiResponse>({
       method: "post",
