@@ -1,9 +1,122 @@
+<script setup lang="ts">
+import { computed, ref, useTemplateRef, watch } from "vue";
+import { useBegendStore } from "@/stores/begend";
+import type { FormBegend } from "@/types/catalogos";
+
+const begendStore = useBegendStore();
+
+const loading = ref(false);
+const model = ref<FormBegend>({});
+const errPosition = ref("");
+const frmDML = useTemplateRef("frmDML");
+
+const drawer = computed(() => begendStore.drawer);
+
+watch(drawer, () => {
+  model.value = { ...begendStore.model };
+  frmDML.value!.resetValidation();
+  errPosition.value = "";
+});
+
+function getName() {
+  if (begendStore.tipo == "ver") {
+    return `Categoria ${model.value.name} – Modo Vista`;
+  }
+  if (begendStore.tipo == "nuevo") {
+    return "Nueva Categoría";
+  }
+  if (begendStore.tipo == "editar") {
+    return `Modificar Categoría: ${model.value.name}`;
+  }
+  if (begendStore.tipo == "filter") {
+    return "Filtrar Registros";
+  }
+}
+
+async function Filtrar() {
+  loading.value = true;
+  await begendStore.GetListBegend();
+  loading.value = false;
+  begendStore.drawer = !begendStore.drawer;
+}
+async function Limpiar() {
+  begendStore.filtros = {
+    id: "",
+    id_pais: "",
+    code: "",
+    name: "",
+    description: "",
+    status: "1",
+    id_state: "",
+  };
+  loading.value = true;
+  await begendStore.GetListBegend();
+
+  loading.value = false;
+  begendStore.drawer = !begendStore.drawer;
+}
+async function Aceptar() {
+  if (begendStore.tipo == "nuevo") {
+    loading.value = true;
+    setTimeout(async () => {
+      if ((await frmDML.value!.validate()).valid) {
+        loading.value = true;
+        await begendStore.setBegend();
+        await begendStore.GetListBegend();
+        loading.value = false;
+      } else {
+        loading.value = false;
+      }
+    }, 1000);
+  }
+  if (begendStore.tipo == "editar") {
+    loading.value = true;
+    setTimeout(async () => {
+      if ((await frmDML.value!.validate()).valid && !errPosition.value) {
+        await begendStore.ActualizarBegend();
+        await begendStore.GetListBegend();
+        loading.value = false;
+      } else {
+        loading.value = false;
+      }
+    }, 1000);
+  }
+  if (begendStore.tipo == "ver") {
+    begendStore.drawer = !begendStore.drawer;
+  }
+}
+async function validate() {
+  // getValidatePosition
+  // this.loading = true;
+  errPosition.value = "";
+  if (begendStore.tipo == "nuevo") {
+    const val = await begendStore.getValidatePositionBegend();
+    errPosition.value = val!.mensaje;
+    if (val!.estadoflag) {
+      begendStore.model.position = "";
+    }
+  }
+  if (begendStore.tipo == "editar") {
+    const val = await begendStore.getValidatePositionActualizarBegend();
+    errPosition.value = val!.mensaje;
+    if (val!.estadoflag) {
+      begendStore.model.position = "";
+    }
+  }
+  // this.loading = false;
+}
+</script>
+
 <template>
   <v-card>
-    <v-card-title class="d-flex align-center flex-wrap" primary-title>
+    <v-card-title
+      class="d-flex align-center flex-wrap"
+      primary-title
+    >
       {{ getName() }}
-      <v-spacer></v-spacer>
-      <v-btn variant="text"
+      <v-spacer />
+      <v-btn
+        variant="text"
         icon
         color="default"
         @click="begendStore.drawer = !begendStore.drawer"
@@ -12,56 +125,98 @@
       </v-btn>
     </v-card-title>
     <v-card-text v-if="begendStore.tipo == 'filter'">
-      <div class="col-12 py-1">
+      <v-col
+        cols="12"
+        class="py-1"
+      >
+        <!-- @vue-expect-error the filter form keeps the edit form's tipo != 'ver' check -->
         <v-text-field
           v-model="begendStore.filtros.code"
           label="Código"
           :clearable="begendStore.tipo != 'ver'"
-        ></v-text-field>
-      </div>
-      <div class="col-12 py-1">
+        />
+      </v-col>
+      <v-col
+        cols="12"
+        class="py-1"
+      >
+        <!-- @vue-expect-error the filter form keeps the edit form's tipo != 'ver' check -->
         <v-text-field
           v-model="begendStore.filtros.name"
           label="Nombre"
           :clearable="begendStore.tipo != 'ver'"
-        ></v-text-field>
-      </div>
-      <div class="col-12 py-1">
+        />
+      </v-col>
+      <v-col
+        cols="12"
+        class="py-1"
+      >
+        <!-- @vue-expect-error the filter form keeps the edit form's tipo != 'ver' check -->
         <v-text-field
           v-model="begendStore.filtros.description"
           label="Descripción"
           :clearable="begendStore.tipo != 'ver'"
-        ></v-text-field>
-      </div>
-      <div class="col-12 py-1">
+        />
+      </v-col>
+      <v-col
+        cols="12"
+        class="py-1"
+      >
+        <!-- @vue-expect-error the filter form keeps the edit form's tipo != 'ver' check -->
         <v-text-field
           v-model="begendStore.filtros.position"
           label="Posición (Orden)"
           type="number"
           step="1"
           :clearable="begendStore.tipo != 'ver'"
-        ></v-text-field>
-      </div>
-      <div class="col-12 py-1">
+        />
+      </v-col>
+      <v-col
+        cols="12"
+        class="py-1"
+      >
+        <!-- @vue-expect-error the filter form keeps the edit form's tipo != 'ver' check -->
         <v-text-field
           v-model="begendStore.filtros.color"
           label="Color"
           :clearable="begendStore.tipo != 'ver'"
-        ></v-text-field>
-      </div>
+        />
+      </v-col>
 
-      <div class="col-12 py-1">
+      <v-col
+        cols="12"
+        class="py-1"
+      >
         <span> Estado</span>
-        <v-radio-group v-model="begendStore.filtros.status" inline density="compact">
-          <v-radio label="Activo" color="green" value="1"></v-radio>
-          <v-radio label="Inactivo" color="red" value="0"></v-radio>
-          <v-radio label="Todos" color="blue" value="null"></v-radio>
+        <v-radio-group
+          v-model="begendStore.filtros.status"
+          inline
+          density="compact"
+        >
+          <v-radio
+            label="Activo"
+            color="green"
+            value="1"
+          />
+          <v-radio
+            label="Inactivo"
+            color="red"
+            value="0"
+          />
+          <v-radio
+            label="Todos"
+            color="blue"
+            value="null"
+          />
         </v-radio-group>
-      </div>
+      </v-col>
     </v-card-text>
     <v-card-text v-else>
       <v-form ref="frmDML">
-        <div class="col-12 py-1">
+        <v-col
+          cols="12"
+          class="py-1"
+        >
           <v-text-field
             v-model="begendStore.model.code"
             :readonly="begendStore.tipo != 'nuevo'"
@@ -72,9 +227,12 @@
                 (v && v.length < 4) ||
                 'El código no puede exceder los 3 caracteres.',
             ]"
-          ></v-text-field>
-        </div>
-        <div class="col-12 py-1">
+          />
+        </v-col>
+        <v-col
+          cols="12"
+          class="py-1"
+        >
           <v-text-field
             v-model="begendStore.model.name"
             :readonly="begendStore.tipo == 'ver'"
@@ -85,9 +243,12 @@
                 (v && v.length < 50) ||
                 'El nombre no puede exceder los 50 caracteres.',
             ]"
-          ></v-text-field>
-        </div>
-        <div class="col-12 py-1">
+          />
+        </v-col>
+        <v-col
+          cols="12"
+          class="py-1"
+        >
           <v-text-field
             v-model="begendStore.model.description"
             :readonly="begendStore.tipo == 'ver'"
@@ -99,9 +260,12 @@
                 v.length < 50 ||
                 'La descripción no puede exceder los 50 caracteres.',
             ]"
-          ></v-text-field>
-        </div>
-        <div class="col-12 py-1">
+          />
+        </v-col>
+        <v-col
+          cols="12"
+          class="py-1"
+        >
           <v-text-field
             v-model="begendStore.model.position"
             type="number"
@@ -110,19 +274,25 @@
             label="Posición (Orden)  (*)"
             :clearable="begendStore.tipo != 'ver'"
             :rules="[(v) => !!v || 'Dato Requerido']"
-            v-on:blur="validate()"
+            @blur="validate()"
             :error-messages="errPosition"
-          ></v-text-field>
-        </div>
-        <div class="col-12 py-1">
+          />
+        </v-col>
+        <v-col
+          cols="12"
+          class="py-1"
+        >
           <v-text-field
             v-model="begendStore.model.color"
             :readonly="begendStore.tipo == 'ver'"
             label="Color"
             :clearable="begendStore.tipo != 'ver'"
-          ></v-text-field>
-        </div>
-        <div class="col-12 py-1">
+          />
+        </v-col>
+        <v-col
+          cols="12"
+          class="py-1"
+        >
           <span> Estado</span>
           <v-switch
             :readonly="begendStore.tipo == 'ver'"
@@ -132,179 +302,53 @@
             color="success"
             v-model="begendStore.model.status"
             :value-comparator="(value, checked) => Boolean(value) === checked"
-          ></v-switch>
-        </div>
+          />
+        </v-col>
       </v-form>
     </v-card-text>
 
     <v-card-actions>
-      <v-spacer></v-spacer>
+      <v-spacer />
       <v-btn
         class="mx-1"
         color="success"
         v-if="begendStore.tipo == 'filter'"
         @click="Filtrar()"
         :loading="loading"
-        >Aceptar</v-btn
       >
+        Aceptar
+      </v-btn>
       <v-btn
         class="mx-1"
         color="default"
         v-if="begendStore.tipo == 'filter'"
         @click="Limpiar()"
         :loading="loading"
-        >Limpiar</v-btn
       >
+        Limpiar
+      </v-btn>
       <v-btn
         class="mx-1"
         color="success"
         v-if="
           begendStore.tipo != 'filter' &&
-          begendStore.tipo != 'ver'
+            begendStore.tipo != 'ver'
         "
         @click="Aceptar()"
         :loading="loading"
-        >Aceptar</v-btn
       >
+        Aceptar
+      </v-btn>
       <v-btn
         class="mx-1"
         color="warning"
         @click="begendStore.drawer = !begendStore.drawer"
         :loading="loading"
-        >Cerrar</v-btn
       >
+        Cerrar
+      </v-btn>
     </v-card-actions>
   </v-card>
 </template>
-<script>
-import { mapActions } from "vuex";
-import { mapActions as mapPiniaActions, mapStores } from "pinia";
-import { useBegendStore } from "@/stores/begend";
-export default {
-  data() {
-    return {
-      loading: false,
-      loadingEstado: false,
-      loadingCity: false,
-      model: "",
-      errPosition: "",
-    };
-  },
-  methods: {
-    ...mapActions([
-      "_getPais",
-      "_getState",
-      "_getCity",
-    ]),
-    ...mapPiniaActions(useBegendStore, ["GetListBegend", "setBegend", "ActualizarBegend", "getValidatePositionBegend", "getValidatePositionActualizarBegend"]),
-    getName() {
-      if (this.begendStore.tipo == "ver") {
-        return `Categoria ${this.model.name} – Modo Vista`;
-      }
-      if (this.begendStore.tipo == "nuevo") {
-        return "Nueva Categoría";
-      }
-      if (this.begendStore.tipo == "editar") {
-        return `Modificar Categoría: ${this.model.name}`;
-      }
-      if (this.begendStore.tipo == "filter") {
-        return "Filtrar Registros";
-      }
-    },
-
-    async Filtrar() {
-      this.loading = true;
-      await this.GetListBegend();
-      this.loading = false;
-      this.begendStore.drawer = !this.begendStore.drawer;
-    },
-    async Limpiar() {
-      this.begendStore.filtros = {
-        id: "",
-        id_pais: "",
-        code: "",
-        name: "",
-        description: "",
-        status: "1",
-        id_state: "",
-      };
-      this.loading = true;
-      await this.GetListBegend();
-
-      this.loading = false;
-      this.begendStore.drawer = !this.begendStore.drawer;
-    },
-    async Aceptar() {
-      if (this.begendStore.tipo == "nuevo") {
-        this.loading = true;
-        setTimeout(async () => {
-          if ((await this.$refs.frmDML.validate()).valid) {
-            this.loading = true;
-            await this.setBegend();
-            await this.GetListBegend();
-            this.loading = false;
-          } else {
-            this.loading = false;
-          }
-        }, 1000);
-      }
-      if (this.begendStore.tipo == "editar") {
-        this.loading = true;
-        setTimeout(async () => {
-          if ((await this.$refs.frmDML.validate()).valid && !this.errPosition) {
-            await this.ActualizarBegend();
-            await this.GetListBegend();
-            this.loading = false;
-          } else {
-            this.loading = false;
-          }
-        }, 1000);
-      }
-      if (this.begendStore.tipo == "ver") {
-        this.begendStore.drawer = !this.begendStore.drawer;
-      }
-    },
-    async validate() {
-      // getValidatePosition
-      // this.loading = true;
-      this.errPosition = "";
-      if (this.begendStore.tipo == "nuevo") {
-        let val = await this.getValidatePositionBegend();
-        this.errPosition = val.mensaje;
-        if (val.estadoflag) {
-          this.begendStore.model.position = "";
-        }
-      }
-      if (this.begendStore.tipo == "editar") {
-        let val = await this.getValidatePositionActualizarBegend();
-        this.errPosition = val.mensaje;
-        if (val.estadoflag) {
-          this.begendStore.model.position = "";
-        }
-      }
-      // this.loading = false;
-    },
-  },
-
-  computed: {
-    ...mapStores(useBegendStore),
-    drawer: {
-      get() {
-        return this.begendStore.drawer;
-      },
-      set(val) {
-        return (this.begendStore.drawer = drawer);
-      },
-    },
-  },
-  watch: {
-    drawer() {
-      this.model = { ...this.begendStore.model };
-      this.$refs.frmDML.resetValidation();
-      this.errPosition = "";
-    },
-  },
-};
-</script>
 
 <style></style>

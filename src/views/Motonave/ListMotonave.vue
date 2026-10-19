@@ -1,3 +1,19 @@
+<script setup lang="ts">
+import { defineAsyncComponent, onMounted } from "vue";
+import { useStore } from "vuex";
+import { useMotonaveStore } from "@/stores/motonave";
+
+const MotonaveComponent = defineAsyncComponent(() => import("../../components/Motonave/ListMotonaveComponent.vue"));
+const FilterMotonave = defineAsyncComponent(() => import("../../components/filtros/FilterMotonave.vue"));
+
+const motonaveStore = useMotonaveStore();
+const rootStore = useStore();
+
+onMounted(() => {
+  rootStore.state.mainTitle = `LISTADO DE ESTADOS DE MOTO NAVES`;
+});
+</script>
+
 <template>
   <v-container fluid>
     <MotonaveComponent />
@@ -12,24 +28,5 @@
     </v-navigation-drawer>
   </v-container>
 </template>
-
-<script>
-import { defineAsyncComponent } from "vue";
-import { mapStores } from "pinia";
-import { useMotonaveStore } from "@/stores/motonave";
-export default {
-  components: {
-    MotonaveComponent: defineAsyncComponent(() =>
-      import("../../components/Motonave/ListMotonaveComponent.vue")),
-    FilterMotonave: defineAsyncComponent(() => import("../../components/filtros/FilterMotonave.vue")),
-  },
-  computed: {
-    ...mapStores(useMotonaveStore),
-  },
-  mounted() {
-    this.$store.state.mainTitle = `LISTADO DE ESTADOS DE MOTO NAVES`;
-  },
-};
-</script>
 
 <style></style>

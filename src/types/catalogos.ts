@@ -491,11 +491,13 @@ export interface Begend {
 
 export interface FiltroBegend {
   id: string;
-  position: number | string | null;
+  id_pais?: number | string | null;
+  id_state?: number | string | null;
+  position?: number | string | null;
   code: string | null;
   name: string | null;
   description: string | null;
-  color: string | null;
+  color?: string | null;
   status: string;
 }
 
@@ -506,9 +508,10 @@ export interface TipoPago {
   code: string;
   name: string;
   description: string | null;
+  position?: number | string;
   status: number | string | boolean;
-  status_calls?: number;
-  status_calls_all?: number;
+  status_calls?: number | string;
+  status_calls_all?: number | string;
   id_branch?: number;
   created_at?: string;
   updated_at?: string;
@@ -516,6 +519,8 @@ export interface TipoPago {
 
 export interface FiltroTipoPago {
   id: string;
+  id_pais?: number | string | null;
+  id_state?: number | string | null;
   code: string | null;
   name: string | null;
   description: string | null;
