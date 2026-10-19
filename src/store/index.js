@@ -22,7 +22,6 @@ import reportes from "./modules/reporte";
 import configAviso from "./modules/configAviso";
 import aduana from "./modules/aduana";
 import profitPricing from "./modules/profitPricing";
-import legalPages from "./modules/legalPages";
 import Swal from "sweetalert2";
 import moment from "moment";
 
@@ -2855,6 +2854,5 @@ export default createStore({
     configAviso,
     aduana,
     profitPricing,
-    legalPages,
   },
 });

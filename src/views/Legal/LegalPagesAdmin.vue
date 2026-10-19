@@ -197,7 +197,8 @@
 <script>
 import Swal from "sweetalert2";
 import "@/styles/plans-theme.css";
-import { mapActions, mapGetters, mapState } from "vuex";
+import { mapActions, mapState, mapStores } from "pinia";
+import { useLegalPagesStore } from "@/stores/legalPages";
 import LegalSectionEditor from "./LegalSectionEditor.vue";
 
 const PAGE_VIEWS = {
@@ -250,15 +251,8 @@ export default {
     saving: false,
   }),
   computed: {
-    ...mapState("legalPages", ["pages", "drafts"]),
-    ...mapGetters("legalPages", [
-      "limits",
-      "formatUpdatedAt",
-      "draftErrors",
-      "hasDraftErrors",
-      "dirtySlugs",
-      "placeholders",
-    ]),
+    ...mapStores(useLegalPagesStore),
+    ...mapState(useLegalPagesStore, ["pages", "drafts", "limits", "dirtySlugs"]),
     activePage() {
       return this.pages.find((page) => page.slug === this.activeSlug);
     },
@@ -270,10 +264,7 @@ export default {
         return this.draft.title;
       },
       set(title) {
-        this.$store.commit("legalPages/SET_DRAFT_TITLE", {
-          slug: this.activeSlug,
-          title,
-        });
+        this.legalPagesStore.drafts[this.activeSlug].title = title;
       },
     },
     errors() {
@@ -300,7 +291,14 @@ export default {
     window.removeEventListener("beforeunload", this.warnBeforeUnload);
   },
   methods: {
-    ...mapActions("legalPages", ["loadPages", "savePage"]),
+    ...mapActions(useLegalPagesStore, [
+      "loadPages",
+      "savePage",
+      "formatUpdatedAt",
+      "draftErrors",
+      "hasDraftErrors",
+      "placeholders",
+    ]),
     pageView(slug) {
       return PAGE_VIEWS[slug];
     },
@@ -319,20 +317,20 @@ export default {
       this.loadState = "ready";
     },
     updateSection(index, section) {
-      this.$store.commit("legalPages/SET_SECTION", {
-        slug: this.activeSlug,
+      this.legalPagesStore.drafts[this.activeSlug].sections.splice(
         index,
-        section,
-      });
+        1,
+        section
+      );
     },
     addSection() {
-      this.$store.commit("legalPages/ADD_SECTION", this.activeSlug);
+      this.legalPagesStore.addSection(this.activeSlug);
       const section = this.draft.sections[this.draft.sections.length - 1];
       this.$nextTick(() => focusById(`${section.key}-heading`));
     },
     onMoveSection(index, offset) {
       const { key } = this.draft.sections[index];
-      this.$store.commit("legalPages/MOVE_SECTION", {
+      this.legalPagesStore.moveSection({
         slug: this.activeSlug,
         index,
         offset,
@@ -357,16 +355,13 @@ export default {
         });
         if (!isConfirmed) return;
       }
-      this.$store.commit("legalPages/REMOVE_SECTION", {
-        slug: this.activeSlug,
-        index,
-      });
+      this.legalPagesStore.drafts[this.activeSlug].sections.splice(index, 1);
       const { sections } = this.draft;
       const neighbor = sections[Math.min(index, sections.length - 1)];
       this.$nextTick(() => focusById(`${neighbor.key}-heading`));
     },
     discardChanges() {
-      this.$store.commit("legalPages/RESET_DRAFT", this.activeSlug);
+      this.legalPagesStore.resetDraft(this.activeSlug);
       this.showErrors[this.activeSlug] = false;
     },
     focusFirstInvalid() {

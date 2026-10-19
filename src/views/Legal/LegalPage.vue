@@ -53,7 +53,8 @@
 
 <script>
 import "@/styles/plans-theme.css";
-import { mapActions, mapGetters, mapState } from "vuex";
+import { mapActions, mapState, mapStores } from "pinia";
+import { useLegalPagesStore } from "@/stores/legalPages";
 import LegalLinks from "@/components/Legal/LegalLinks.vue";
 
 export default {
@@ -64,8 +65,8 @@ export default {
   },
   data: () => ({ loadState: "loading" }),
   computed: {
-    ...mapState("legalPages", { content: "page" }),
-    ...mapGetters("legalPages", ["formatUpdatedAt"]),
+    ...mapStores(useLegalPagesStore),
+    ...mapState(useLegalPagesStore, { content: "page" }),
   },
   watch: {
     page: {
@@ -76,7 +77,7 @@ export default {
     },
   },
   methods: {
-    ...mapActions("legalPages", ["loadPage"]),
+    ...mapActions(useLegalPagesStore, ["loadPage", "formatUpdatedAt"]),
     async load() {
       const slug = this.page;
       this.loadState = "loading";
@@ -86,7 +87,7 @@ export default {
         this.loadState = "error";
         return;
       }
-      this.$store.commit("legalPages/SET_PAGE", response.data[0]);
+      this.legalPagesStore.page = response.data[0];
       this.loadState = "ready";
     },
   },

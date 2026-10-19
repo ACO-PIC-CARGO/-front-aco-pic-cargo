@@ -70,7 +70,8 @@
 </template>
 
 <script>
-import { mapGetters } from "vuex";
+import { mapActions, mapState } from "pinia";
+import { useLegalPagesStore } from "@/stores/legalPages";
 
 export default {
   name: "LegalSectionEditor",
@@ -82,7 +83,7 @@ export default {
     errors: { type: Object, default: () => ({ heading: "", text: "" }) },
   },
   computed: {
-    ...mapGetters("legalPages", ["limits", "textLength"]),
+    ...mapState(useLegalPagesStore, ["limits"]),
     number() {
       return this.index + 1;
     },
@@ -93,6 +94,7 @@ export default {
     },
   },
   methods: {
+    ...mapActions(useLegalPagesStore, ["textLength"]),
     update(field, text) {
       this.$emit("update:modelValue", { ...this.modelValue, [field]: text });
     },
