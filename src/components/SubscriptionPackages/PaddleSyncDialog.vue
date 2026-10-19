@@ -1,15 +1,83 @@
+<script setup lang="ts">
+import { computed, ref, watch } from "vue";
+import { storeToRefs } from "pinia";
+import { useDisplay } from "vuetify";
+import { useSubscriptionsStore } from "@/stores/subscriptions";
+import type { PaddleSyncItem, PlanStatusView } from "@/types/suscripciones";
+
+const modelValue = defineModel<boolean>({ default: false });
+
+const EMPTY_MESSAGE =
+  "Aún no hay paquetes para sincronizar. Crea el primero y vuelve a verificar.";
+
+const STATUSES: Record<"error" | "pending" | "synced", PlanStatusView> = {
+  error: { label: "Error", tone: "error" },
+  pending: { label: "Requiere cambios", tone: "pending" },
+  synced: { label: "Sincronizado", tone: "ok" },
+};
+
+const subscriptionsStore = useSubscriptionsStore();
+const { paddleSyncReport: report } = storeToRefs(subscriptionsStore);
+const { xs } = useDisplay();
+
+const loadState = ref("loading");
+const message = ref("");
+const applying = ref(false);
+
+const pendingCount = computed(() =>
+  report.value.reduce((total, item) => total + item.actions.length, 0),
+);
+
+watch(modelValue, (isOpen) => {
+  if (isOpen) load();
+});
+
+function statusOf(item: PaddleSyncItem) {
+  if (item.error) return STATUSES.error;
+  return item.actions.length ? STATUSES.pending : STATUSES.synced;
+}
+async function load() {
+  loadState.value = "loading";
+  const response = await subscriptionsStore.loadPaddleSync();
+  const isEmpty = !response.estadoflag && response.tipomensaje === "TMSGINF";
+  if (response.estadoflag || isEmpty) {
+    message.value = response.estadoflag ? response.mensaje : EMPTY_MESSAGE;
+    loadState.value = "ready";
+    return;
+  }
+  message.value = response.mensaje;
+  loadState.value = "error";
+}
+async function apply() {
+  applying.value = true;
+  const response = await subscriptionsStore.applyPaddleSync();
+  applying.value = false;
+  message.value = response.mensaje;
+  if (!response.data.length) loadState.value = "error";
+}
+function close() {
+  modelValue.value = false;
+}
+</script>
+
 <template>
   <v-dialog
     :model-value="modelValue"
     max-width="640"
     persistent
-    :fullscreen="$vuetify.display.xs"
+    :fullscreen="xs"
     content-class="plans-theme plans-theme--app package-dialog"
   >
-    <section class="paddle-sync" aria-labelledby="paddle-sync-title">
+    <section
+      class="paddle-sync"
+      aria-labelledby="paddle-sync-title"
+    >
       <header class="paddle-sync__header">
         <div>
-          <h2 id="paddle-sync-title" class="paddle-sync__title">
+          <h2
+            id="paddle-sync-title"
+            class="paddle-sync__title"
+          >
             Sincronización con Paddle
           </h2>
           <p class="paddle-sync__subtitle">
@@ -17,7 +85,8 @@
             algo.
           </p>
         </div>
-        <v-btn variant="text"
+        <v-btn
+          variant="text"
           icon
           class="icon-button"
           aria-label="Cerrar"
@@ -28,12 +97,18 @@
         </v-btn>
       </header>
 
+      <!-- @vue-expect-error Kept: aria-busy takes the "true" or "false" text. -->
       <div
         class="paddle-sync__body"
         :aria-busy="String(loadState === 'loading' || applying)"
       >
-        <p v-if="loadState === 'loading'" class="paddle-sync__state">
-          <v-icon class="mdi-spin">mdi-loading</v-icon>
+        <p
+          v-if="loadState === 'loading'"
+          class="paddle-sync__state"
+        >
+          <v-icon class="mdi-spin">
+            mdi-loading
+          </v-icon>
           Revisando tus paquetes en Paddle…
         </p>
 
@@ -53,8 +128,16 @@
         </div>
 
         <template v-else>
-          <p class="paddle-sync__summary" role="status">{{ message }}</p>
-          <ul v-if="report.length" class="paddle-sync__list">
+          <p
+            class="paddle-sync__summary"
+            role="status"
+          >
+            {{ message }}
+          </p>
+          <ul
+            v-if="report.length"
+            class="paddle-sync__list"
+          >
             <li
               v-for="item in report"
               :key="item.package_id"
@@ -63,9 +146,10 @@
               <div class="paddle-sync__item-head">
                 <span class="paddle-sync__name">
                   ACO {{ item.name }}
-                  <span v-if="!item.is_active" class="paddle-sync__muted"
-                    >· inactivo</span
-                  >
+                  <span
+                    v-if="!item.is_active"
+                    class="paddle-sync__muted"
+                  >· inactivo</span>
                 </span>
                 <span
                   class="paddle-sync__chip"
@@ -74,11 +158,20 @@
                   {{ statusOf(item).label }}
                 </span>
               </div>
-              <p v-if="item.error" class="paddle-sync__error">
+              <p
+                v-if="item.error"
+                class="paddle-sync__error"
+              >
                 {{ item.error }}
               </p>
-              <ul v-if="item.actions.length" class="paddle-sync__actions">
-                <li v-for="(action, index) in item.actions" :key="index">
+              <ul
+                v-if="item.actions.length"
+                class="paddle-sync__actions"
+              >
+                <li
+                  v-for="(action, index) in item.actions"
+                  :key="index"
+                >
                   {{ action.label }}
                 </li>
               </ul>
@@ -103,7 +196,12 @@
           :disabled="applying"
           @click="apply"
         >
-          <v-icon v-if="applying" class="mdi-spin">mdi-loading</v-icon>
+          <v-icon
+            v-if="applying"
+            class="mdi-spin"
+          >
+            mdi-loading
+          </v-icon>
           {{
             applying ? "Aplicando cambios" : `Aplicar cambios (${pendingCount})`
           }}
@@ -112,77 +210,6 @@
     </section>
   </v-dialog>
 </template>
-
-<script>
-import { mapActions, mapState } from "pinia";
-import { useSubscriptionsStore } from "@/stores/subscriptions";
-
-const EMPTY_MESSAGE =
-  "Aún no hay paquetes para sincronizar. Crea el primero y vuelve a verificar.";
-
-const STATUSES = {
-  error: { label: "Error", tone: "error" },
-  pending: { label: "Requiere cambios", tone: "pending" },
-  synced: { label: "Sincronizado", tone: "ok" },
-};
-
-export default {
-  name: "PaddleSyncDialog",
-  emits: ["update:modelValue"],
-  props: {
-    modelValue: { type: Boolean, default: false },
-  },
-  data: () => ({
-    loadState: "loading",
-    message: "",
-    applying: false,
-  }),
-  computed: {
-    ...mapState(useSubscriptionsStore, { report: "paddleSyncReport" }),
-    pendingCount() {
-      return this.report.reduce(
-        (total, item) => total + item.actions.length,
-        0
-      );
-    },
-  },
-  watch: {
-    modelValue(isOpen) {
-      if (isOpen) this.load();
-    },
-  },
-  methods: {
-    ...mapActions(useSubscriptionsStore, ["loadPaddleSync", "applyPaddleSync"]),
-    statusOf(item) {
-      if (item.error) return STATUSES.error;
-      return item.actions.length ? STATUSES.pending : STATUSES.synced;
-    },
-    async load() {
-      this.loadState = "loading";
-      const response = await this.loadPaddleSync();
-      const isEmpty =
-        !response.estadoflag && response.tipomensaje === "TMSGINF";
-      if (response.estadoflag || isEmpty) {
-        this.message = response.estadoflag ? response.mensaje : EMPTY_MESSAGE;
-        this.loadState = "ready";
-        return;
-      }
-      this.message = response.mensaje;
-      this.loadState = "error";
-    },
-    async apply() {
-      this.applying = true;
-      const response = await this.applyPaddleSync();
-      this.applying = false;
-      this.message = response.mensaje;
-      if (!response.data.length) this.loadState = "error";
-    },
-    close() {
-      this.$emit("update:modelValue", false);
-    },
-  },
-};
-</script>
 
 <style scoped>
 .paddle-sync {

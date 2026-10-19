@@ -1,3 +1,17 @@
+<script setup lang="ts">
+import { useId } from "vue";
+import type { PlanView } from "@/types/suscripciones";
+
+withDefaults(defineProps<{ plan: PlanView; annual?: boolean; expanded?: boolean; index?: number }>(), {
+  annual: true,
+  expanded: false,
+  index: 0,
+});
+defineEmits<{ "toggle-details": [] }>();
+
+const detailsId = `plan-details-${useId()}`;
+</script>
+
 <template>
   <article
     class="plan"
@@ -8,7 +22,10 @@
     }"
     :style="{ '--plan-index': index }"
   >
-    <span v-if="plan.featured" class="plan__ribbon">
+    <span
+      v-if="plan.featured"
+      class="plan__ribbon"
+    >
       <v-icon>mdi-crown</v-icon> Más elegido
     </span>
 
@@ -16,8 +33,12 @@
       <h2 class="plan__name">
         ACO <span class="plan__accent">{{ plan.name }}</span>
       </h2>
-      <span v-if="!plan.isActive" class="plan__status">Inactivo</span>
-      <v-btn variant="text"
+      <span
+        v-if="!plan.isActive"
+        class="plan__status"
+      >Inactivo</span>
+      <v-btn
+        variant="text"
         icon
         class="plan__chevron"
         :aria-label="`Ver detalles de ACO ${plan.name}`"
@@ -28,32 +49,58 @@
         <v-icon>mdi-chevron-down</v-icon>
       </v-btn>
     </div>
-    <p v-if="plan.tagline" class="plan__tagline">{{ plan.tagline }}</p>
+    <p
+      v-if="plan.tagline"
+      class="plan__tagline"
+    >
+      {{ plan.tagline }}
+    </p>
 
     <div class="plan__pricing">
-      <p class="plan__price" aria-live="polite">
-        <strong>{{ annual ? plan.annualPrice : plan.monthlyPrice }}</strong
-        ><span>{{ annual ? "/año" : "/mes" }}</span>
+      <p
+        class="plan__price"
+        aria-live="polite"
+      >
+        <strong>{{ annual ? plan.annualPrice : plan.monthlyPrice }}</strong><span>{{ annual ? "/año" : "/mes" }}</span>
       </p>
-      <span v-if="annual && plan.savings" class="plan__savings">
+      <span
+        v-if="annual && plan.savings"
+        class="plan__savings"
+      >
         Ahorras {{ plan.savings }} al año
       </span>
     </div>
-    <p v-if="plan.trial" class="plan__trial">
+    <p
+      v-if="plan.trial"
+      class="plan__trial"
+    >
       <v-icon>mdi-gift-outline</v-icon> {{ plan.trial }}
     </p>
 
-    <p class="plan__users"><v-icon>mdi-account</v-icon> {{ plan.users }}</p>
+    <p class="plan__users">
+      <v-icon>mdi-account</v-icon> {{ plan.users }}
+    </p>
 
     <ul class="plan__highlights">
-      <li v-for="item in plan.highlights" :key="item" class="feature">
-        <v-icon class="feature__icon">mdi-check-circle</v-icon>
+      <li
+        v-for="item in plan.highlights"
+        :key="item"
+        class="feature"
+      >
+        <v-icon class="feature__icon">
+          mdi-check-circle
+        </v-icon>
         <div>{{ item }}</div>
       </li>
     </ul>
 
-    <div :id="detailsId" class="plan__details">
-      <h3 class="plan__section-title">Incluye</h3>
+    <div
+      :id="detailsId"
+      class="plan__details"
+    >
+      <h3 class="plan__section-title">
+        Incluye
+      </h3>
       <ul class="feature-list">
         <li
           v-for="feature in plan.includes"
@@ -68,8 +115,14 @@
           </v-icon>
           <div>
             {{ feature.text }}
-            <ul v-if="feature.details" class="feature__details">
-              <li v-for="detail in feature.details" :key="detail">
+            <ul
+              v-if="feature.details"
+              class="feature__details"
+            >
+              <li
+                v-for="detail in feature.details"
+                :key="detail"
+              >
                 {{ detail }}
               </li>
             </ul>
@@ -78,14 +131,18 @@
       </ul>
 
       <template v-if="plan.excludes.length">
-        <h3 class="plan__section-title">No incluye</h3>
+        <h3 class="plan__section-title">
+          No incluye
+        </h3>
         <ul class="feature-list">
           <li
             v-for="item in plan.excludes"
             :key="item"
             class="feature feature--excluded"
           >
-            <v-icon class="feature__icon">mdi-close-circle</v-icon>
+            <v-icon class="feature__icon">
+              mdi-close-circle
+            </v-icon>
             <div>{{ item }}</div>
           </li>
         </ul>
@@ -107,24 +164,6 @@
     </footer>
   </article>
 </template>
-
-<script>
-export default {
-  name: "PackageCard",
-  props: {
-    plan: { type: Object, required: true },
-    annual: { type: Boolean, default: true },
-    expanded: { type: Boolean, default: false },
-    index: { type: Number, default: 0 },
-  },
-  emits: ["toggle-details"],
-  computed: {
-    detailsId() {
-      return `plan-details-${this.$.uid}`;
-    },
-  },
-};
-</script>
 
 <style scoped>
 .plan :where(h2, h3, p, ul) {

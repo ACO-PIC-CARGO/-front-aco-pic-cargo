@@ -1,3 +1,42 @@
+<script setup lang="ts">
+import { computed, onMounted, ref, useTemplateRef } from "vue";
+import { storeToRefs } from "pinia";
+import { useSubscriptionsStore } from "@/stores/subscriptions";
+
+const subscriptionsStore = useSubscriptionsStore();
+const { registrationTrialDays: days, registrationTrialDaysError } = storeToRefs(subscriptionsStore);
+
+const loadState = ref("loading");
+const errorMessage = ref("");
+const submitted = ref(false);
+const saving = ref(false);
+const input = useTemplateRef("input");
+
+const error = computed(() => (submitted.value && registrationTrialDaysError.value) || "");
+
+onMounted(() => {
+  load();
+});
+
+async function load() {
+  loadState.value = "loading";
+  const message = await subscriptionsStore.loadRegistrationTrialSetting();
+  errorMessage.value = message || "";
+  loadState.value = message ? "error" : "ready";
+}
+async function save() {
+  submitted.value = true;
+  if (error.value) {
+    input.value!.focus();
+    return;
+  }
+  saving.value = true;
+  const saved = await subscriptionsStore.saveRegistrationTrialSetting();
+  saving.value = false;
+  if (saved) submitted.value = false;
+}
+</script>
+
 <template>
   <div class="trial-setting">
     <p
@@ -5,7 +44,9 @@
       class="trial-setting__state"
       aria-busy="true"
     >
-      <v-icon class="mdi-spin">mdi-loading</v-icon>
+      <v-icon class="mdi-spin">
+        mdi-loading
+      </v-icon>
       Cargando los días de prueba…
     </p>
 
@@ -15,12 +56,19 @@
       role="alert"
     >
       <p>No pudimos cargar los días de prueba. {{ errorMessage }}</p>
-      <v-btn variant="text" class="plans-button plans-button--secondary" @click="load">
+      <v-btn
+        variant="text"
+        class="plans-button plans-button--secondary"
+        @click="load"
+      >
         Reintentar
       </v-btn>
     </div>
 
-    <v-form v-else @submit.prevent="save">
+    <v-form
+      v-else
+      @submit.prevent="save"
+    >
       <div class="trial-setting__days">
         <v-text-field
           id="registration-trial-days"
@@ -47,69 +95,18 @@
           class="plans-button plans-button--primary"
           :disabled="saving"
         >
-          <v-icon v-if="saving" class="mdi-spin">mdi-loading</v-icon>
+          <v-icon
+            v-if="saving"
+            class="mdi-spin"
+          >
+            mdi-loading
+          </v-icon>
           {{ saving ? "Guardando…" : "Guardar" }}
         </v-btn>
       </div>
     </v-form>
   </div>
 </template>
-
-<script>
-import { mapActions, mapState, mapStores } from "pinia";
-import { useSubscriptionsStore } from "@/stores/subscriptions";
-
-export default {
-  name: "RegistrationTrialSetting",
-  data: () => ({
-    loadState: "loading",
-    errorMessage: "",
-    submitted: false,
-    saving: false,
-  }),
-  computed: {
-    ...mapStores(useSubscriptionsStore),
-    ...mapState(useSubscriptionsStore, ["registrationTrialDaysError"]),
-    days: {
-      get() {
-        return this.subscriptionsStore.registrationTrialDays;
-      },
-      set(value) {
-        this.subscriptionsStore.registrationTrialDays = value;
-      },
-    },
-    error() {
-      return (this.submitted && this.registrationTrialDaysError) || "";
-    },
-  },
-  mounted() {
-    this.load();
-  },
-  methods: {
-    ...mapActions(useSubscriptionsStore, [
-      "loadRegistrationTrialSetting",
-      "saveRegistrationTrialSetting",
-    ]),
-    async load() {
-      this.loadState = "loading";
-      const error = await this.loadRegistrationTrialSetting();
-      this.errorMessage = error || "";
-      this.loadState = error ? "error" : "ready";
-    },
-    async save() {
-      this.submitted = true;
-      if (this.error) {
-        this.$refs.input.focus();
-        return;
-      }
-      this.saving = true;
-      const saved = await this.saveRegistrationTrialSetting();
-      this.saving = false;
-      if (saved) this.submitted = false;
-    },
-  },
-};
-</script>
 
 <style scoped>
 .trial-setting {

@@ -1,9 +1,47 @@
+<script setup lang="ts">
+import { computed, ref, watch } from "vue";
+import { useDisplay } from "vuetify";
+import type { SubscriptionPackage } from "@/types/suscripciones";
+
+const props = withDefaults(
+  defineProps<{ pkg?: SubscriptionPackage | null; confirmLabel?: string }>(),
+  { pkg: null, confirmLabel: "Continuar al pago" },
+);
+const modelValue = defineModel<boolean>({ default: false });
+const emit = defineEmits<{ confirm: [moduleIds: number[]] }>();
+
+const { xs } = useDisplay();
+
+const selectedIds = ref<number[]>([]);
+
+const limit = computed(() => (props.pkg ? props.pkg.module_selection_limit : 0));
+const limitLabel = computed(() => (limit.value === 1 ? "1 módulo" : `${limit.value} módulos`));
+const isComplete = computed(() => selectedIds.value.length === limit.value);
+const countLabel = computed(() => `Elegiste ${selectedIds.value.length} de ${limit.value}.`);
+
+watch(modelValue, (isOpen) => {
+  if (isOpen) selectedIds.value = [];
+});
+
+function isLocked(moduleId: number) {
+  return isComplete.value && !selectedIds.value.includes(moduleId);
+}
+function close() {
+  modelValue.value = false;
+}
+function confirm() {
+  if (!isComplete.value) return;
+  emit("confirm", [...selectedIds.value]);
+  close();
+}
+</script>
+
 <template>
   <v-dialog
     :model-value="modelValue"
     max-width="520"
     persistent
-    :fullscreen="$vuetify.display.xs"
+    :fullscreen="xs"
     content-class="plans-theme plans-theme--app package-dialog"
   >
     <v-form
@@ -14,7 +52,10 @@
     >
       <header class="module-select__header">
         <div>
-          <h2 id="module-select-title" class="module-select__title">
+          <h2
+            id="module-select-title"
+            class="module-select__title"
+          >
             Elige tus módulos
           </h2>
           <p class="module-select__subtitle">
@@ -22,13 +63,21 @@
             desde que se active tu plan.
           </p>
         </div>
-        <v-btn variant="text" icon class="icon-button" aria-label="Cerrar" @click="close">
+        <v-btn
+          variant="text"
+          icon
+          class="icon-button"
+          aria-label="Cerrar"
+          @click="close"
+        >
           <v-icon>mdi-close</v-icon>
         </v-btn>
       </header>
 
       <fieldset class="module-select__options">
-        <legend class="module-select__legend">Módulos</legend>
+        <legend class="module-select__legend">
+          Módulos
+        </legend>
         <v-checkbox
           v-for="module in pkg.modules"
           :key="module.id"
@@ -41,10 +90,19 @@
           density="compact"
         />
       </fieldset>
-      <p class="module-select__count" aria-live="polite">{{ countLabel }}</p>
+      <p
+        class="module-select__count"
+        aria-live="polite"
+      >
+        {{ countLabel }}
+      </p>
 
       <footer class="module-select__footer">
-        <v-btn variant="text" class="plans-button plans-button--ghost" @click="close">
+        <v-btn
+          variant="text"
+          class="plans-button plans-button--ghost"
+          @click="close"
+        >
           Cancelar
         </v-btn>
         <v-btn
@@ -59,53 +117,6 @@
     </v-form>
   </v-dialog>
 </template>
-
-<script>
-export default {
-  name: "ModuleSelectDialog",
-  emits: ["update:modelValue", "confirm"],
-  props: {
-    modelValue: { type: Boolean, default: false },
-    pkg: { type: Object, default: null },
-    confirmLabel: { type: String, default: "Continuar al pago" },
-  },
-  data: () => ({
-    selectedIds: [],
-  }),
-  computed: {
-    limit() {
-      return this.pkg ? this.pkg.module_selection_limit : 0;
-    },
-    limitLabel() {
-      return this.limit === 1 ? "1 módulo" : `${this.limit} módulos`;
-    },
-    isComplete() {
-      return this.selectedIds.length === this.limit;
-    },
-    countLabel() {
-      return `Elegiste ${this.selectedIds.length} de ${this.limit}.`;
-    },
-  },
-  watch: {
-    modelValue(isOpen) {
-      if (isOpen) this.selectedIds = [];
-    },
-  },
-  methods: {
-    isLocked(moduleId) {
-      return this.isComplete && !this.selectedIds.includes(moduleId);
-    },
-    close() {
-      this.$emit("update:modelValue", false);
-    },
-    confirm() {
-      if (!this.isComplete) return;
-      this.$emit("confirm", [...this.selectedIds]);
-      this.close();
-    },
-  },
-};
-</script>
 
 <style scoped>
 .module-select {

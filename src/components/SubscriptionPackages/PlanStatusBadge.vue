@@ -1,12 +1,48 @@
+<script setup lang="ts">
+import { computed, onMounted, ref } from "vue";
+import { useSubscriptionsStore } from "@/stores/subscriptions";
+
+const readBranchId = (): unknown => {
+  try {
+    return JSON.parse(sessionStorage.getItem("dataUser") as string)[0].id_branch;
+  } catch {
+    return null;
+  }
+};
+
+const subscriptionsStore = useSubscriptionsStore();
+
+const loaded = ref(false);
+const branchId = readBranchId();
+
+const notice = computed(() => (loaded.value ? subscriptionsStore.trialNotice({ branchId }) : null));
+
+onMounted(async () => {
+  loaded.value = await subscriptionsStore.loadPlanBadge();
+});
+
+function daysLabel(days: number | null) {
+  return days! > 1 ? `${days} días` : "Último día";
+}
+</script>
+
 <template>
-  <div v-if="notice" class="plan-status mx-2">
+  <div
+    v-if="notice"
+    class="plan-status mx-2"
+  >
     <v-chip
       v-if="notice.paidText"
       color="success"
       size="small"
       :to="{ name: 'miPlan' }"
     >
-      <v-icon start size="small">mdi-check-decagram</v-icon>
+      <v-icon
+        start
+        size="small"
+      >
+        mdi-check-decagram
+      </v-icon>
       {{ notice.paidText }}
     </v-chip>
     <template v-else-if="notice.ended || notice.days !== null">
@@ -21,9 +57,7 @@
         Tu prueba terminó
       </v-chip>
       <template v-else>
-        <span class="plan-status__label text-body-medium font-weight-medium"
-          >Días de prueba restantes</span
-        >
+        <span class="plan-status__label text-body-medium font-weight-medium">Días de prueba restantes</span>
         <v-chip
           color="green-lighten-4"
           variant="flat"
@@ -46,38 +80,6 @@
     </v-btn>
   </div>
 </template>
-
-<script>
-import { mapActions } from "pinia";
-import { useSubscriptionsStore } from "@/stores/subscriptions";
-
-const readBranchId = () => {
-  try {
-    return JSON.parse(sessionStorage.getItem("dataUser"))[0].id_branch;
-  } catch (error) {
-    return null;
-  }
-};
-
-export default {
-  name: "PlanStatusBadge",
-  data: () => ({ loaded: false, branchId: readBranchId() }),
-  computed: {
-    notice() {
-      return this.loaded ? this.trialNotice({ branchId: this.branchId }) : null;
-    },
-  },
-  async mounted() {
-    this.loaded = await this.loadPlanBadge();
-  },
-  methods: {
-    ...mapActions(useSubscriptionsStore, ["loadPlanBadge", "trialNotice"]),
-    daysLabel(days) {
-      return days > 1 ? `${days} días` : "Último día";
-    },
-  },
-};
-</script>
 
 <style scoped>
 .plan-status {

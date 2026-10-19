@@ -1,9 +1,220 @@
+<script setup lang="ts">
+import { computed, nextTick, ref, useTemplateRef, watch } from "vue";
+import { storeToRefs } from "pinia";
+import { useDisplay } from "vuetify";
+import PackageCard from "./PackageCard.vue";
+import { useSubscriptionsStore } from "@/stores/subscriptions";
+import type {
+  DraftFeature,
+  PackageDraft,
+  PackageDraftErrors,
+  PackageDraftField,
+  SubscriptionPackage,
+} from "@/types/suscripciones";
+
+const props = withDefaults(defineProps<{ pkg?: SubscriptionPackage | null }>(), { pkg: null });
+const modelValue = defineModel<boolean>({ default: false });
+const emit = defineEmits<{ saved: [] }>();
+
+const ACCESS_OPTIONS = [
+  { value: "all", label: "Todos incluidos" },
+  { value: "choose", label: "El cliente elige" },
+];
+
+const BILLING_OPTIONS = [
+  { value: false, label: "Mensual" },
+  { value: true, label: "Anual" },
+];
+
+const FIELD_ORDER: [PackageDraftField, string][] = [
+  ["name", "package-name"],
+  ["tagline", "package-tagline"],
+  ["monthlyPrice", "package-monthly-price"],
+  ["annualPrice", "package-annual-price"],
+  ["userLimit", "package-users"],
+  ["trialFrequency", "package-trial-length"],
+  ["moduleIds", "package-modules"],
+  ["selectionLimit", "package-selection"],
+  ["features", "new-feature"],
+];
+
+const subscriptionsStore = useSubscriptionsStore();
+const {
+  packageDraft: draft,
+  packageModules: modules,
+  packageDraftErrors: errors,
+  packageDraftPreview: previewPlan,
+  packageDraftSavings: savingsHint,
+  limits,
+  trialUnits,
+} = storeToRefs(subscriptionsStore);
+const { smAndDown } = useDisplay();
+
+const draftField = <Field extends PackageDraftField>(field: Field) =>
+  computed({
+    get: () => subscriptionsStore.packageDraft[field],
+    set: (value: PackageDraft[Field]) => {
+      subscriptionsStore.packageDraft[field] = value;
+    },
+  });
+
+const touched = ref<Partial<Record<PackageDraftField, boolean>>>({});
+const submitted = ref(false);
+const saving = ref(false);
+const serverMessage = ref("");
+const newFeatureText = ref("");
+const newFeatureModuleId = ref<number | null>(null);
+const previewAnnual = ref(true);
+const previewExpanded = ref(true);
+const accessOptions = ACCESS_OPTIONS;
+const billingOptions = BILLING_OPTIONS;
+const formRef = useTemplateRef("form");
+
+const name = draftField("name");
+const tagline = draftField("tagline");
+const monthlyPrice = draftField("monthlyPrice");
+const annualPrice = draftField("annualPrice");
+const userLimit = draftField("userLimit");
+const isFeatured = draftField("isFeatured");
+const trialEnabled = draftField("trialEnabled");
+const trialInterval = draftField("trialInterval");
+const trialFrequency = draftField("trialFrequency");
+const isEditing = computed(() => Boolean(props.pkg));
+const title = computed(() => (isEditing.value ? `Editar ACO ${props.pkg!.name}` : "Nuevo paquete"));
+const submitLabel = computed(() => {
+  if (saving.value) return "Guardando";
+  return isEditing.value ? "Guardar cambios" : "Crear paquete";
+});
+const hasErrors = computed(() => Object.keys(errors.value).length > 0);
+const visibleErrors = computed<PackageDraftErrors>(() => {
+  if (submitted.value) return errors.value;
+  return Object.fromEntries(
+    Object.entries(errors.value).filter(([field]) => touched.value[field as PackageDraftField]),
+  );
+});
+const selectedModules = computed(() => modules.value.filter((module) => isModuleSelected(module.id)));
+const featureTargets = computed(() => [
+  { value: null, label: "General" },
+  ...selectedModules.value.map((module) => ({
+    value: module.id,
+    label: `En ${module.name}`,
+  })),
+]);
+const accessMode = computed(() => (draft.value.selectionLimit === null ? "all" : "choose"));
+const accessHint = computed(() => {
+  const count = draft.value.moduleIds.length;
+  if (count < 2) return "Con un solo módulo, el cliente lo recibe incluido.";
+  if (accessMode.value === "all") return `El cliente recibe los ${count} módulos.`;
+  return "Así funciona START: el cliente escoge al contratar.";
+});
+
+watch(modelValue, (isOpen) => {
+  if (isOpen) reset();
+});
+
+function canHighlight(feature: DraftFeature) {
+  return subscriptionsStore.canHighlightFeature(feature);
+}
+function setDraft<Field extends PackageDraftField>(field: Field, value: PackageDraft[Field]) {
+  subscriptionsStore.packageDraft[field] = value;
+}
+function reset() {
+  subscriptionsStore.openPackageDraft(props.pkg);
+  touched.value = {};
+  submitted.value = false;
+  serverMessage.value = "";
+  newFeatureText.value = "";
+  newFeatureModuleId.value = null;
+  previewExpanded.value = true;
+  nextTick(startAtTop);
+}
+function startAtTop() {
+  const form: HTMLElement | null = formRef.value && formRef.value.$el;
+  if (!form) return;
+  form.closest(".v-dialog")!.scrollTop = 0;
+  form.querySelector<HTMLElement>("#package-name")!.focus();
+}
+function touch(field: PackageDraftField) {
+  touched.value = { ...touched.value, [field]: true };
+}
+function isModuleSelected(moduleId: number | null) {
+  return draft.value.moduleIds.includes(moduleId as number);
+}
+function moduleName(moduleId: number) {
+  const module = modules.value.find((item) => item.id === moduleId);
+  return module ? module.name : "Módulo";
+}
+function onToggleModule(moduleId: number) {
+  subscriptionsStore.toggleDraftModule(moduleId);
+  if (!isModuleSelected(newFeatureModuleId.value)) {
+    newFeatureModuleId.value = null;
+  }
+  touch("moduleIds");
+}
+function setAccessMode(mode: string) {
+  setDraft("selectionLimit", mode === "all" ? null : 1);
+}
+function changeSelection(delta: number) {
+  setDraft("selectionLimit", (draft.value.selectionLimit as number) + delta);
+}
+function changeUsers(delta: number) {
+  setDraft("userLimit", Math.max(1, (Number(draft.value.userLimit) || 1) + delta));
+}
+function updateFeature(feature: DraftFeature, changes: Partial<DraftFeature>) {
+  subscriptionsStore.updateDraftFeature({
+    key: feature.key,
+    changes,
+  });
+}
+function toggleIncluded(feature: DraftFeature) {
+  updateFeature(feature, { isIncluded: !feature.isIncluded });
+}
+function addFeature() {
+  const description = newFeatureText.value.trim();
+  if (!description) return;
+  subscriptionsStore.addDraftFeature({
+    description,
+    moduleId: newFeatureModuleId.value,
+  });
+  newFeatureText.value = "";
+}
+function removeFeature(feature: DraftFeature) {
+  subscriptionsStore.removeDraftFeature(feature.key);
+}
+function focusFirstError() {
+  const firstInvalid = FIELD_ORDER.find(([field]) => errors.value[field]);
+  if (!firstInvalid) return;
+  const element = (formRef.value!.$el as HTMLElement).querySelector<HTMLElement>(`#${firstInvalid[1]}`);
+  if (element) element.focus();
+}
+function close() {
+  modelValue.value = false;
+}
+async function save() {
+  submitted.value = true;
+  serverMessage.value = "";
+  if (hasErrors.value) {
+    nextTick(focusFirstError);
+    return;
+  }
+  saving.value = true;
+  const response = await subscriptionsStore.savePackageDraft();
+  saving.value = false;
+  if (!response.estadoflag) {
+    serverMessage.value = response.mensaje;
+    return;
+  }
+  emit("saved");
+  close();
+}
+</script>
+
 <template>
   <v-dialog
     :model-value="modelValue"
     max-width="1180"
     persistent
-    :fullscreen="$vuetify.display.smAndDown"
+    :fullscreen="smAndDown"
     content-class="plans-theme plans-theme--app package-dialog"
   >
     <v-form
@@ -14,14 +225,18 @@
     >
       <header class="package-form__header">
         <div>
-          <h2 id="package-form-title" class="package-form__title">
+          <h2
+            id="package-form-title"
+            class="package-form__title"
+          >
             {{ title }}
           </h2>
           <p class="package-form__subtitle">
             Revisa la vista previa antes de guardar.
           </p>
         </div>
-        <v-btn variant="text"
+        <v-btn
+          variant="text"
           icon
           class="icon-button"
           aria-label="Cerrar sin guardar"
@@ -33,8 +248,16 @@
 
       <div class="package-form__body">
         <div class="package-form__fields">
-          <section class="form-section" aria-labelledby="section-identity">
-            <h3 id="section-identity" class="form-section__title">Identidad</h3>
+          <section
+            class="form-section"
+            aria-labelledby="section-identity"
+          >
+            <h3
+              id="section-identity"
+              class="form-section__title"
+            >
+              Identidad
+            </h3>
             <v-text-field
               id="package-name"
               v-model="name"
@@ -69,15 +292,21 @@
             <v-switch
               v-model="isFeatured"
               class="package-switch"
-              label='Marcar como "Más elegido"'
+              label="Marcar como &quot;Más elegido&quot;"
               color="var(--planes-accent)"
               hide-details
               density="compact"
             />
           </section>
 
-          <section class="form-section" aria-labelledby="section-pricing">
-            <h3 id="section-pricing" class="form-section__title">
+          <section
+            class="form-section"
+            aria-labelledby="section-pricing"
+          >
+            <h3
+              id="section-pricing"
+              class="form-section__title"
+            >
               Precio y usuarios
             </h3>
             <div class="form-grid">
@@ -129,6 +358,7 @@
             </p>
 
             <div class="stepper">
+              <!-- @vue-expect-error Kept: userLimit is a number or the text the field typed. -->
               <v-btn
                 variant="text"
                 class="stepper__button"
@@ -164,8 +394,14 @@
             </div>
           </section>
 
-          <section class="form-section" aria-labelledby="section-trial">
-            <h3 id="section-trial" class="form-section__title">
+          <section
+            class="form-section"
+            aria-labelledby="section-trial"
+          >
+            <h3
+              id="section-trial"
+              class="form-section__title"
+            >
               Periodo de prueba
             </h3>
             <v-switch
@@ -176,7 +412,10 @@
               hide-details
               density="compact"
             />
-            <div v-if="trialEnabled" class="form-grid">
+            <div
+              v-if="trialEnabled"
+              class="form-grid"
+            >
               <v-text-field
                 id="package-trial-length"
                 v-model="trialFrequency"
@@ -206,8 +445,16 @@
             </div>
           </section>
 
-          <section class="form-section" aria-labelledby="section-modules">
-            <h3 id="section-modules" class="form-section__title">Módulos</h3>
+          <section
+            class="form-section"
+            aria-labelledby="section-modules"
+          >
+            <h3
+              id="section-modules"
+              class="form-section__title"
+            >
+              Módulos
+            </h3>
             <p class="form-section__help">
               Elige los módulos que ofrece este paquete.
             </p>
@@ -236,7 +483,10 @@
                 {{ module.name }}
               </v-btn>
             </div>
-            <p v-else class="form-message form-message--error">
+            <p
+              v-else
+              class="form-message form-message--error"
+            >
               No pudimos cargar los módulos. Cierra el formulario, actualiza la
               página e intenta de nuevo.
             </p>
@@ -269,13 +519,17 @@
                   {{ option.label }}
                 </v-btn>
               </v-btn-toggle>
-              <div v-if="accessMode === 'choose'" class="access__choose">
+              <div
+                v-if="accessMode === 'choose'"
+                class="access__choose"
+              >
                 <span id="selection-label">El cliente elige</span>
                 <div
                   class="stepper stepper--compact"
                   role="group"
                   aria-labelledby="selection-label"
                 >
+                  <!-- @vue-expect-error Kept: selectionLimit is set whenever this stepper shows. -->
                   <v-btn
                     variant="text"
                     class="stepper__button"
@@ -285,6 +539,7 @@
                   >
                     <v-icon>mdi-minus</v-icon>
                   </v-btn>
+                  <!-- @vue-expect-error Kept: aria-invalid takes the "true" or "false" text. -->
                   <output
                     id="package-selection"
                     class="stepper__output"
@@ -295,6 +550,7 @@
                   >
                     {{ draft.selectionLimit }}
                   </output>
+                  <!-- @vue-expect-error Kept: selectionLimit is set whenever this stepper shows. -->
                   <v-btn
                     variant="text"
                     class="stepper__button"
@@ -309,7 +565,9 @@
                 </div>
                 <span>de {{ draft.moduleIds.length }} módulos</span>
               </div>
-              <p class="form-message">{{ accessHint }}</p>
+              <p class="form-message">
+                {{ accessHint }}
+              </p>
               <p
                 v-if="visibleErrors.selectionLimit"
                 class="form-message form-message--error"
@@ -319,8 +577,14 @@
             </div>
           </section>
 
-          <section class="form-section" aria-labelledby="section-features">
-            <h3 id="section-features" class="form-section__title">
+          <section
+            class="form-section"
+            aria-labelledby="section-features"
+          >
+            <h3
+              id="section-features"
+              class="form-section__title"
+            >
               Características
             </h3>
             <p class="form-section__help">
@@ -369,14 +633,18 @@
               {{ visibleErrors.features }}
             </p>
 
-            <ul v-if="draft.features.length" class="feature-rows">
+            <ul
+              v-if="draft.features.length"
+              class="feature-rows"
+            >
               <li
                 v-for="feature in draft.features"
                 :key="feature.key"
                 class="feature-row"
                 :class="{ 'feature-row--excluded': !feature.isIncluded }"
               >
-                <v-btn variant="text"
+                <v-btn
+                  variant="text"
                   icon
                   class="icon-button icon-button--small"
                   :class="
@@ -411,10 +679,14 @@
                   density="compact"
                   @update:model-value="updateFeature(feature, { description: $event })"
                 />
-                <span v-if="feature.moduleId" class="feature-row__module">
+                <span
+                  v-if="feature.moduleId"
+                  class="feature-row__module"
+                >
                   {{ moduleName(feature.moduleId) }}
                 </span>
-                <v-btn variant="text"
+                <v-btn
+                  variant="text"
                   v-else
                   icon
                   class="icon-button icon-button--small"
@@ -441,7 +713,8 @@
                     }}
                   </v-icon>
                 </v-btn>
-                <v-btn variant="text"
+                <v-btn
+                  variant="text"
                   icon
                   class="icon-button icon-button--small"
                   aria-label="Quitar característica"
@@ -451,7 +724,10 @@
                 </v-btn>
               </li>
             </ul>
-            <p v-else class="feature-empty">
+            <p
+              v-else
+              class="feature-empty"
+            >
               Aún no hay características. Escribe una arriba y presiona Enter.
             </p>
             <p class="form-message">
@@ -496,16 +772,28 @@
       </div>
 
       <footer class="package-form__footer">
-        <p v-if="serverMessage" class="form-alert" role="alert">
+        <p
+          v-if="serverMessage"
+          class="form-alert"
+          role="alert"
+        >
           <v-icon>mdi-alert-circle-outline</v-icon>
           {{ serverMessage }}
         </p>
-        <p v-else-if="submitted && hasErrors" class="form-alert" role="alert">
+        <p
+          v-else-if="submitted && hasErrors"
+          class="form-alert"
+          role="alert"
+        >
           <v-icon>mdi-alert-circle-outline</v-icon>
           Revisa los campos marcados para poder guardar.
         </p>
         <div class="package-form__actions">
-          <v-btn variant="text" class="plans-button plans-button--ghost" @click="close">
+          <v-btn
+            variant="text"
+            class="plans-button plans-button--ghost"
+            @click="close"
+          >
             Cancelar
           </v-btn>
           <v-btn
@@ -514,7 +802,12 @@
             class="plans-button plans-button--primary"
             :disabled="saving"
           >
-            <v-icon v-if="saving" class="mdi-spin">mdi-loading</v-icon>
+            <v-icon
+              v-if="saving"
+              class="mdi-spin"
+            >
+              mdi-loading
+            </v-icon>
             {{ submitLabel }}
           </v-btn>
         </div>
@@ -522,235 +815,6 @@
     </v-form>
   </v-dialog>
 </template>
-
-<script>
-import { mapActions, mapState, mapStores } from "pinia";
-import { useSubscriptionsStore } from "@/stores/subscriptions";
-import PackageCard from "./PackageCard.vue";
-
-const ACCESS_OPTIONS = [
-  { value: "all", label: "Todos incluidos" },
-  { value: "choose", label: "El cliente elige" },
-];
-
-const BILLING_OPTIONS = [
-  { value: false, label: "Mensual" },
-  { value: true, label: "Anual" },
-];
-
-const FIELD_ORDER = [
-  ["name", "package-name"],
-  ["tagline", "package-tagline"],
-  ["monthlyPrice", "package-monthly-price"],
-  ["annualPrice", "package-annual-price"],
-  ["userLimit", "package-users"],
-  ["trialFrequency", "package-trial-length"],
-  ["moduleIds", "package-modules"],
-  ["selectionLimit", "package-selection"],
-  ["features", "new-feature"],
-];
-
-const draftField = (field) => ({
-  get() {
-    return this.subscriptionsStore.packageDraft[field];
-  },
-  set(value) {
-    this.subscriptionsStore.packageDraft[field] = value;
-  },
-});
-
-export default {
-  name: "PackageForm",
-  components: { PackageCard },
-  emits: ["update:modelValue", "saved"],
-  props: {
-    modelValue: { type: Boolean, default: false },
-    pkg: { type: Object, default: null },
-  },
-  data: () => ({
-    touched: {},
-    submitted: false,
-    saving: false,
-    serverMessage: "",
-    newFeatureText: "",
-    newFeatureModuleId: null,
-    previewAnnual: true,
-    previewExpanded: true,
-    accessOptions: ACCESS_OPTIONS,
-    billingOptions: BILLING_OPTIONS,
-  }),
-  computed: {
-    ...mapStores(useSubscriptionsStore),
-    ...mapState(useSubscriptionsStore, {
-      draft: "packageDraft",
-      modules: "packageModules",
-      errors: "packageDraftErrors",
-      previewPlan: "packageDraftPreview",
-      savingsHint: "packageDraftSavings",
-      limits: "limits",
-      trialUnits: "trialUnits",
-    }),
-    name: draftField("name"),
-    tagline: draftField("tagline"),
-    monthlyPrice: draftField("monthlyPrice"),
-    annualPrice: draftField("annualPrice"),
-    userLimit: draftField("userLimit"),
-    isFeatured: draftField("isFeatured"),
-    trialEnabled: draftField("trialEnabled"),
-    trialInterval: draftField("trialInterval"),
-    trialFrequency: draftField("trialFrequency"),
-    isEditing() {
-      return Boolean(this.pkg);
-    },
-    title() {
-      return this.isEditing ? `Editar ACO ${this.pkg.name}` : "Nuevo paquete";
-    },
-    submitLabel() {
-      if (this.saving) return "Guardando";
-      return this.isEditing ? "Guardar cambios" : "Crear paquete";
-    },
-    hasErrors() {
-      return Object.keys(this.errors).length > 0;
-    },
-    visibleErrors() {
-      if (this.submitted) return this.errors;
-      return Object.fromEntries(
-        Object.entries(this.errors).filter(([field]) => this.touched[field])
-      );
-    },
-    selectedModules() {
-      return this.modules.filter((module) => this.isModuleSelected(module.id));
-    },
-    featureTargets() {
-      return [
-        { value: null, label: "General" },
-        ...this.selectedModules.map((module) => ({
-          value: module.id,
-          label: `En ${module.name}`,
-        })),
-      ];
-    },
-    accessMode() {
-      return this.draft.selectionLimit === null ? "all" : "choose";
-    },
-    accessHint() {
-      const count = this.draft.moduleIds.length;
-      if (count < 2)
-        return "Con un solo módulo, el cliente lo recibe incluido.";
-      if (this.accessMode === "all")
-        return `El cliente recibe los ${count} módulos.`;
-      return "Así funciona START: el cliente escoge al contratar.";
-    },
-  },
-  watch: {
-    modelValue(isOpen) {
-      if (isOpen) this.reset();
-    },
-  },
-  methods: {
-    ...mapActions(useSubscriptionsStore, {
-      openPackageDraft: "openPackageDraft",
-      savePackageDraft: "savePackageDraft",
-      canHighlight: "canHighlightFeature",
-    }),
-    setDraft(field, value) {
-      this.subscriptionsStore.packageDraft[field] = value;
-    },
-    reset() {
-      this.openPackageDraft(this.pkg);
-      this.touched = {};
-      this.submitted = false;
-      this.serverMessage = "";
-      this.newFeatureText = "";
-      this.newFeatureModuleId = null;
-      this.previewExpanded = true;
-      this.$nextTick(this.startAtTop);
-    },
-    startAtTop() {
-      const form = this.$refs.form && this.$refs.form.$el;
-      if (!form) return;
-      form.closest(".v-dialog").scrollTop = 0;
-      form.querySelector("#package-name").focus();
-    },
-    touch(field) {
-      this.touched = { ...this.touched, [field]: true };
-    },
-    isModuleSelected(moduleId) {
-      return this.draft.moduleIds.includes(moduleId);
-    },
-    moduleName(moduleId) {
-      const module = this.modules.find((item) => item.id === moduleId);
-      return module ? module.name : "Módulo";
-    },
-    onToggleModule(moduleId) {
-      this.subscriptionsStore.toggleDraftModule(moduleId);
-      if (!this.isModuleSelected(this.newFeatureModuleId)) {
-        this.newFeatureModuleId = null;
-      }
-      this.touch("moduleIds");
-    },
-    setAccessMode(mode) {
-      this.setDraft("selectionLimit", mode === "all" ? null : 1);
-    },
-    changeSelection(delta) {
-      this.setDraft("selectionLimit", this.draft.selectionLimit + delta);
-    },
-    changeUsers(delta) {
-      this.setDraft(
-        "userLimit",
-        Math.max(1, (Number(this.draft.userLimit) || 1) + delta)
-      );
-    },
-    updateFeature(feature, changes) {
-      this.subscriptionsStore.updateDraftFeature({
-        key: feature.key,
-        changes,
-      });
-    },
-    toggleIncluded(feature) {
-      this.updateFeature(feature, { isIncluded: !feature.isIncluded });
-    },
-    addFeature() {
-      const description = this.newFeatureText.trim();
-      if (!description) return;
-      this.subscriptionsStore.addDraftFeature({
-        description,
-        moduleId: this.newFeatureModuleId,
-      });
-      this.newFeatureText = "";
-    },
-    removeFeature(feature) {
-      this.subscriptionsStore.removeDraftFeature(feature.key);
-    },
-    focusFirstError() {
-      const firstInvalid = FIELD_ORDER.find(([field]) => this.errors[field]);
-      if (!firstInvalid) return;
-      const element = this.$refs.form.$el.querySelector(`#${firstInvalid[1]}`);
-      if (element) element.focus();
-    },
-    close() {
-      this.$emit("update:modelValue", false);
-    },
-    async save() {
-      this.submitted = true;
-      this.serverMessage = "";
-      if (this.hasErrors) {
-        this.$nextTick(this.focusFirstError);
-        return;
-      }
-      this.saving = true;
-      const response = await this.savePackageDraft();
-      this.saving = false;
-      if (!response.estadoflag) {
-        this.serverMessage = response.mensaje;
-        return;
-      }
-      this.$emit("saved");
-      this.close();
-    },
-  },
-};
-</script>
 
 <style scoped>
 .package-form {
