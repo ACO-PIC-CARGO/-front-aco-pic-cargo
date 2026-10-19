@@ -1,6 +1,121 @@
+<script setup lang="ts">
+import { computed, onMounted, ref, watch } from "vue";
+import Swal from "sweetalert2";
+import { useMasterusuariosStore } from "@/stores/masterusuarios";
+import type { MasterDetalle } from "@/types/seguridad";
+import { sessionBranchId } from "@/utils/sesion";
+
+const masterusuariosStore = useMasterusuariosStore();
+
+const search = ref("");
+const mostrarflag = ref(true);
+const loading = ref(false);
+const headers = [
+  { title: "Código", key: "valorcodigo" },
+  { title: "Descripción", key: "description" },
+  { title: "Porcentaje", key: "codigo01" },
+  // { text: "Fórmula", value: "codigo02" },
+  { title: "Estado", key: "estado" },
+  { title: "Creación", key: "created_at" },
+
+  { title: "Última Actualización", key: "updated_at" },
+  { title: "Acciones", key: "action" },
+] as const;
+
+const drawer = computed(() => masterusuariosStore.drawer);
+
+watch(drawer, async () => {
+  const caseRecargar = ["nuevo", "editar", "filter"];
+  if (!drawer.value) {
+    if (caseRecargar.includes(masterusuariosStore.tipo)) {
+      // setTimeout(() => {
+
+      // }, 10);
+      mostrarflag.value = !mostrarflag.value;
+      setTimeout(() => {
+        mostrarflag.value = !mostrarflag.value;
+      }, 5);
+    }
+  }
+});
+
+async function filtrar() {
+  masterusuariosStore.tipo = "filter";
+  masterusuariosStore.drawer = !masterusuariosStore.drawer;
+}
+async function ver(item: MasterDetalle) {
+  const datos = { ...item };
+  masterusuariosStore.tipo = "ver";
+  masterusuariosStore.model = datos;
+  masterusuariosStore.drawer = !masterusuariosStore.drawer;
+}
+async function editar(item: MasterDetalle) {
+  const datos = { ...item };
+  masterusuariosStore.tipo = "editar";
+  masterusuariosStore.model = datos;
+
+  masterusuariosStore.drawer = !masterusuariosStore.drawer;
+}
+
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+async function nuevo() {
+  masterusuariosStore.tipo = "nuevo";
+  masterusuariosStore.model = {
+    id: "",
+    id_master: "",
+    valorcodigo: "",
+    codigo01: "",
+    codigo02: "",
+    description: "",
+    status: true,
+    escomunflag: "",
+    id_branch: sessionBranchId(),
+  };
+  masterusuariosStore.drawer = !masterusuariosStore.drawer;
+}
+async function eliminar(item: MasterDetalle) {
+  Swal.fire({
+    icon: "question",
+    title: "¿Estás seguro?",
+    text: `Si inactiva el registro, éste no aparecerá disponible en otros formularios ¿Está seguro de que desea inactivarlo?`,
+    allowOutsideClick: false,
+    confirmButtonText: "Si, inactivar",
+    confirmButtonColor: "red",
+    cancelButtonText: "Cancelar",
+    cancelButtonColor: "orange",
+    showCancelButton: true,
+  }).then(async (res) => {
+    if (res.isConfirmed) {
+      item.status = false;
+      masterusuariosStore.model = item;
+      loading.value = true;
+      await masterusuariosStore.ActualizarMasterDetalle();
+      await masterusuariosStore.GetListImpuestos();
+      loading.value = false;
+      mostrarflag.value = !mostrarflag.value;
+      setTimeout(() => {
+        mostrarflag.value = !mostrarflag.value;
+      }, 5);
+    }
+  });
+}
+
+onMounted(async () => {
+  loading.value = !loading.value;
+  await masterusuariosStore.GetListImpuestos();
+  loading.value = !loading.value;
+});
+</script>
+
 <template>
-  <div class="" v-if="mostrarflag">
-    <v-card fluid class="px-5">
+  <div
+    class=""
+    v-if="mostrarflag"
+  >
+    <v-card
+      fluid
+      class="px-5"
+    >
       <v-row>
         <v-col cols="4">
           <v-text-field
@@ -9,14 +124,29 @@
             v-model="search"
             clearable
             append-inner-icon="mdi-magnify"
-          ></v-text-field>
+          />
         </v-col>
-        <v-col cols="4" offset="4" class="text-right my-auto">
+        <v-col
+          cols="4"
+          offset="4"
+          class="text-right my-auto"
+        >
           <!-- <v-btn small color="success" @click="nuevo()">NUEVO</v-btn> -->
-          <v-btn size="small" class="mx-1" color="#2962FF" @click="filtrar()"
-            >FILTRAR</v-btn
+          <v-btn
+            size="small"
+            class="mx-1"
+            color="#2962FF"
+            @click="filtrar()"
           >
-          <v-btn size="small" class="mx-1" color="#004D40">EXPORTAR</v-btn>
+            FILTRAR
+          </v-btn>
+          <v-btn
+            size="small"
+            class="mx-1"
+            color="#004D40"
+          >
+            EXPORTAR
+          </v-btn>
         </v-col>
         <v-col cols="12">
           <v-data-table
@@ -27,13 +157,14 @@
             :loading="loading"
             :search="search"
           >
-            <template v-slot:[`item.estado`]="{ item }">
+            <template #[`item.estado`]="{ item }">
+              <!-- @vue-expect-error boolean == 1 kept from the old template -->
               {{ !!item.status == 1 ? "Activo" : "Inactivo" }}
             </template>
 
-            <template v-slot:[`item.action`]="{ item }">
+            <template #[`item.action`]="{ item }">
               <v-tooltip location="bottom">
-                <template v-slot:activator="{ props }">
+                <template #activator="{ props }">
                   <v-icon
                     color="primary"
                    
@@ -46,7 +177,7 @@
                 <span>Ver</span>
               </v-tooltip>
               <v-tooltip location="bottom">
-                <template v-slot:activator="{ props }">
+                <template #activator="{ props }">
                   <v-icon
                     color="warning"
                    
@@ -59,7 +190,7 @@
                 <span>Editar</span>
               </v-tooltip>
               <v-tooltip location="bottom">
-                <template v-slot:activator="{ props }">
+                <template #activator="{ props }">
                   <v-icon
                     color="error"
                    
@@ -79,127 +210,5 @@
     </v-card>
   </div>
 </template>
-
-<script>
-import Swal from "sweetalert2";
-import { mapActions as mapPiniaActions, mapStores } from "pinia";
-import { useMasterusuariosStore } from "@/stores/masterusuarios";
-export default {
-  data() {
-    return {
-      search: "",
-      mostrarflag: true,
-      loading: false,
-      headers: [
-        { title: "Código", key: "valorcodigo" },
-        { title: "Descripción", key: "description" },
-        { title: "Porcentaje", key: "codigo01" },
-        // { text: "Fórmula", value: "codigo02" },
-                { title: "Estado", key: "estado" },{ title: "Creación", key: "created_at" },
-
-        { title: "Última Actualización", key: "updated_at" },
-        { title: "Acciones", key: "action" },
-      ],
-    };
-  },
-  methods: {
-    ...mapPiniaActions(useMasterusuariosStore, ["GetListImpuestos", "ActualizarMasterDetalle"]),
-    async filtrar() {
-      this.masterusuariosStore.tipo = "filter";
-      this.masterusuariosStore.drawer =
-        !this.masterusuariosStore.drawer;
-    },
-    async ver(item) {
-      let datos = { ...item };
-      this.masterusuariosStore.tipo = "ver";
-      this.masterusuariosStore.model = datos;
-      this.masterusuariosStore.drawer =
-        !this.masterusuariosStore.drawer;
-    },
-    async editar(item) {
-      let datos = { ...item };
-      this.masterusuariosStore.tipo = "editar";
-      this.masterusuariosStore.model = datos;
-
-      this.masterusuariosStore.drawer =
-        !this.masterusuariosStore.drawer;
-    },
-    async nuevo() {
-      this.masterusuariosStore.tipo = "nuevo";
-      this.masterusuariosStore.model = {
-        id: "",
-        id_master: "",
-        valorcodigo: "",
-        codigo01: "",
-        codigo02: "",
-        description: "",
-        status: true,
-        escomunflag: "",
-        id_branch: JSON.parse(sessionStorage.getItem("dataUser"))[0].id_branch,
-      };
-      this.masterusuariosStore.drawer =
-        !this.masterusuariosStore.drawer;
-    },
-    async eliminar(item) {
-      Swal.fire({
-        icon: "question",
-        title: "¿Estás seguro?",
-        text: `Si inactiva el registro, éste no aparecerá disponible en otros formularios ¿Está seguro de que desea inactivarlo?`,
-        allowOutsideClick: false,
-        confirmButtonText: "Si, inactivar",
-        confirmButtonColor: "red",
-        cancelButtonText: "Cancelar",
-        cancelButtonColor: "orange",
-        showCancelButton: true,
-      }).then(async (res) => {
-        if (res.isConfirmed) {
-          item.status = false;
-          this.masterusuariosStore.model = item;
-          this.loading = true;
-          await this.ActualizarMasterDetalle();
-          await this.GetListImpuestos();
-          this.loading = false;
-          this.mostrarflag = !this.mostrarflag;
-          setTimeout(() => {
-            this.mostrarflag = !this.mostrarflag;
-          }, 5);
-        }
-      });
-    },
-  },
-  async mounted() {
-    this.loading = !this.loading;
-    await this.GetListImpuestos();
-    this.loading = !this.loading;
-  },
-  computed: {
-    ...mapStores(useMasterusuariosStore),
-    drawer: {
-      get() {
-        return this.masterusuariosStore.drawer;
-      },
-      set(val) {
-        return (this.masterusuariosStore.drawer = drawer);
-      },
-    },
-  },
-  watch: {
-    async drawer() {
-      let caseRecargar = ["nuevo", "editar", "filter"];
-      if (!this.drawer) {
-        if (caseRecargar.includes(this.masterusuariosStore.tipo)) {
-          // setTimeout(() => {
-
-          // }, 10);
-          this.mostrarflag = !this.mostrarflag;
-          setTimeout(() => {
-            this.mostrarflag = !this.mostrarflag;
-          }, 5);
-        }
-      }
-    },
-  },
-};
-</script>
 
 <style></style>
