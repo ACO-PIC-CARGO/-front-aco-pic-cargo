@@ -801,7 +801,7 @@ export const useCalculadorasStore = defineStore("calculadoras", () => {
     });
   }
 
-  async function actualizarEstadoCotizacionCalculadora(data: UsuarioCalculadora): Promise<void> {
+  async function actualizarEstadoCotizacionCalculadora(data: Partial<UsuarioCalculadora>): Promise<void> {
     await enviarConMensaje("put", "calc/actualizar/estado/cotizacion", data);
   }
 

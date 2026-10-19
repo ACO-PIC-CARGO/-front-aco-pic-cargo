@@ -1,3 +1,171 @@
+<script setup lang="ts">
+import { computed, onBeforeUnmount, onMounted, ref } from "vue";
+import moment from "moment";
+import type { CotizacionPreview, ElementoPreview } from "@/types/calculadora";
+import type { SucursalSesion } from "@/types/sesion";
+
+type SucursalPreview = SucursalSesion & { document?: string; address?: string; phone?: string };
+
+const props = withDefaults(defineProps<{ dialog?: boolean; data?: CotizacionPreview }>(), {
+  dialog: false,
+  data: () => ({}),
+});
+const emit = defineEmits<{ cerrar: [abierto: boolean] }>();
+
+const lstServices = ref<ElementoPreview[]>([]);
+const lstServicesOne = ref<ElementoPreview[]>([]);
+const lstServicesTwo = ref<ElementoPreview[]>([]);
+const lstServicesTree = ref<ElementoPreview[]>([]);
+const nameEmpresa = ref("");
+const incluye = ref<ElementoPreview[]>([]);
+const noincluye = ref<ElementoPreview[]>([]);
+const notasPrincipales = ref<ElementoPreview[]>([]);
+const datosEmpresa = ref<Partial<SucursalPreview>>({});
+// The old effective props never declared index, so it always reads undefined.
+const index = undefined as number | undefined;
+
+const branches = () => JSON.parse(sessionStorage.getItem("dataBranch") as string) as SucursalPreview[];
+
+onMounted(() => {
+  lstServices.value = [];
+  lstServicesOne.value = [];
+  lstServicesTwo.value = [];
+  lstServicesTree.value = [];
+  nameEmpresa.value = branches()[0]!.trade_name;
+  // this.generarData();
+  datosEmpresa.value = branches()[0]!;
+});
+
+onBeforeUnmount(() => {
+  window.removeEventListener("keydown", handleKeyPress);
+});
+const isFCL = computed(() => {
+  return false
+  // let tipoCarga = this.$store.state.pricing.datosPrincipales.idtipocarga;
+  // let id = null;
+  // if (typeof tipoCarga === "object" && tipoCarga !== null) {
+  //   id = tipoCarga.id;
+  // } else {
+  //   id = tipoCarga;
+  // }
+
+  // let code = this.$store.state.pricing.listShipment.filter(
+  //   (v) => v.id == id,
+  // )[0].code;
+
+  // let validate = code == "FCL" ? true : false;
+  // return validate;
+});
+
+function handleKeyPress(event: KeyboardEvent) {
+  if (event.ctrlKey && event.key === "p") {
+    event.preventDefault(); // Evita que se ejecute la acción predeterminada (imprimir)
+  }
+}
+function fechaHoy() {
+  return moment().format("YYYY-MM-DD");
+}
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+function formatDate(val: moment.MomentInput) {
+  if (!val) return "";
+  return moment(val).isValid()
+    ? moment(val).format("DD-MM-YYYY")
+    : String(val);
+}
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+function cerrar() {
+  emit("cerrar", false);
+}
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+function generarData() {
+  window.addEventListener("keydown", handleKeyPress);
+  const flete = props.data.flete;
+  const almacen = props.data.almacen;
+  const aduana = props.data.aduana;
+  const local = props.data.local;
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const contenedor = props.data.contenedor;
+
+  if (Array.isArray(flete)) {
+    flete.forEach((element) => {
+      lstServices.value.push({
+        name: element.name,
+        estado: element.estado,
+      });
+    });
+  }
+
+  if (Array.isArray(almacen)) {
+    almacen.forEach((element) => {
+      lstServices.value.push({
+        name: element.name,
+        estado: element.estado,
+      });
+    });
+  }
+
+  if (Array.isArray(aduana)) {
+    aduana.forEach((element) => {
+      lstServices.value.push({
+        name: element.name,
+        estado: element.estado,
+      });
+    });
+  }
+
+  if (Array.isArray(local)) {
+    local.forEach((element) => {
+      lstServices.value.push({
+        name: element.name,
+        estado: element.estado,
+      });
+    });
+  }
+
+  props.data.OpcionesSelecciondas![index! - 1]!.listServices.forEach(
+    (element) => {
+      if (element.status == 1) {
+        incluye.value.push({
+          name: element.service,
+        });
+      }
+      if (element.status != 1) {
+        noincluye.value.push({
+          name: element.service,
+        });
+      }
+    },
+  );
+
+  props.data.OpcionesSelecciondas![index! - 1]!.listNotasQuote
+    .filter((v) => v.estado == 1 && v.statusincluye == 1)
+    .forEach((element) => {
+      incluye.value.push({ name: element.descripcion });
+    });
+
+  props.data.OpcionesSelecciondas![index! - 1]!.listNotasQuote
+    .filter((v) => v.estado == 1 && v.statusnoincluye == 1)
+    .forEach((element) => {
+      noincluye.value.push({ name: element.descripcion });
+    });
+  props.data.OpcionesSelecciondas![index! - 1]!.listNotasQuote
+    .filter((v) => v.estado == 1 && v.statusprincipal == 1)
+    .forEach((element) => {
+      notasPrincipales.value.push({ name: element.descripcion });
+    });
+}
+// data() {
+//   this.lstServices = [];
+//   this.lstServicesOne = [];
+//   this.lstServicesTwo = [];
+//   this.lstServicesTree = [];
+//   this.incluye = [];
+//   this.noincluye = [];
+//   this.notasPrincipales = [];
+//   this.generarData();
+// },
+</script>
+
 <template>
   <v-dialog
     :model-value="dialog"
@@ -5,7 +173,10 @@
     max-width="80%"
     transition="dialog-transition"
   >
-    <v-card fluid class="pa-10 preview">
+    <v-card
+      fluid
+      class="pa-10 preview"
+    >
       <v-row>
         <v-col cols="6">
           <v-img
@@ -13,9 +184,12 @@
             alt="logo_empresa"
             class="img-fluid"
             :src="datosEmpresa.logo"
-          ></v-img>
+          />
         </v-col>
-        <v-col cols="6" class="align_right">
+        <v-col
+          cols="6"
+          class="align_right"
+        >
           <b>Fecha</b> {{ fechaHoy() }}
         </v-col>
         <v-col cols="6">
@@ -36,7 +210,10 @@
             </tbody>
           </table>
         </v-col>
-        <v-col cols="6" class="align_right">
+        <v-col
+          cols="6"
+          class="align_right"
+        >
           <table width="100%">
             <tbody>
               <tr>
@@ -60,41 +237,78 @@
           <v-table density="compact">
             <thead>
               <tr class="text-center">
-                <th colspan="2" class="bg_total">DATOS EMBARQUE</th>
+                <th
+                  colspan="2"
+                  class="bg_total"
+                >
+                  DATOS EMBARQUE
+                </th>
               </tr>
             </thead>
             <tbody>
               <tr>
-                <td width="40%"><b>PUERTO DE ORIGEN:</b></td>
-                <td width="60%">{{ data.port_origen }}</td>
+                <td width="40%">
+                  <b>PUERTO DE ORIGEN:</b>
+                </td>
+                <td width="60%">
+                  {{ data.port_origen }}
+                </td>
               </tr>
               <tr>
-                <td width="40%"><b>PUERTO DE DESTINO: </b></td>
-                <td width="60%">{{ data.port_destino }}</td>
+                <td width="40%">
+                  <b>PUERTO DE DESTINO: </b>
+                </td>
+                <td width="60%">
+                  {{ data.port_destino }}
+                </td>
               </tr>
               <tr>
-                <td width="40%"><b>MODALIDAD: </b></td>
-                <td width="60%"> Importación </td>
+                <td width="40%">
+                  <b>MODALIDAD: </b>
+                </td>
+                <td width="60%">
+                  Importación
+                </td>
               </tr>
               <tr>
-                <td width="40%"><b>TIPO EMBARQUE: </b></td>
-                <td width="60%">{{ data.tipo }}</td>
+                <td width="40%">
+                  <b>TIPO EMBARQUE: </b>
+                </td>
+                <td width="60%">
+                  {{ data.tipo }}
+                </td>
               </tr>
               <tr>
-                <td width="40%"><b>INCOTERMS: </b></td>
-                <td width="60%"> FOB </td>
+                <td width="40%">
+                  <b>INCOTERMS: </b>
+                </td>
+                <td width="60%">
+                  FOB
+                </td>
               </tr>
               <tr v-if="!isFCL">
-                <td width="40%"><b>N° BULTOS: </b></td>
-                <td width="60%">{{ data.numerobultos || 5 }}</td>
+                <td width="40%">
+                  <b>N° BULTOS: </b>
+                </td>
+                <td width="60%">
+                  {{ data.numerobultos || 5 }}
+                </td>
               </tr>
               <tr v-if="!isFCL">
-                <td width="40%"><b>PESO: </b></td>
-                <td width="60%">{{ data.peso }}</td>
+                <td width="40%">
+                  <b>PESO: </b>
+                </td>
+                <td width="60%">
+                  {{ data.peso }}
+                </td>
               </tr>
               <tr v-if="!isFCL">
-                <td width="40%"><b>VOLUMEN: </b></td>
-                <td width="60%">{{ data.volumen }}</td>
+                <td width="40%">
+                  <b>VOLUMEN: </b>
+                </td>
+                <td width="60%">
+                  {{ data.volumen }}
+                </td>
               </tr>
             </tbody>
           </v-table>
@@ -102,7 +316,7 @@
       </v-row>
       {{ data }} 
       
- <!--
+      <!--
         <v-col cols="12" class="text-center py-0">
           <hr />
         </v-col>
@@ -663,181 +877,6 @@
     </v-card>
   </v-dialog>
 </template>
-
-<script>
-import moment from "moment";
-export default {
-  props: ["data", "index"],
-  props: {
-    dialog: {
-      type: Boolean,
-      default: false,
-    },
-    data: {
-      type: Object,
-      default: {},
-    },
-  },
-  name: "PreviewQuote",
-  emits: ["cerrar"],
-  data() {
-    return {
-      lstServices: [],
-      lstServicesOne: [],
-      lstServicesTwo: [],
-      lstServicesTree: [],
-      datosFlete: [],
-      nameEmpresa: "",
-      incluye: [],
-      noincluye: [],
-      notasPrincipales: [],
-      datosEmpresa: {},
-    };
-  },
-  mounted() {
-    this.lstServices = [];
-    this.lstServicesOne = [];
-    this.lstServicesTwo = [];
-    this.lstServicesTree = [];
-    this.nameEmpresa = JSON.parse(
-      sessionStorage.getItem("dataBranch"),
-    )[0].trade_name;
-    // this.generarData();
-    this.datosEmpresa = JSON.parse(sessionStorage.getItem("dataBranch"))[0];
-  },
-
-  beforeUnmount() {
-    window.removeEventListener("keydown", this.handleKeyPress);
-  },
-  computed: {
-    isFCL() {
-      return false
-      // let tipoCarga = this.$store.state.pricing.datosPrincipales.idtipocarga;
-      // let id = null;
-      // if (typeof tipoCarga === "object" && tipoCarga !== null) {
-      //   id = tipoCarga.id;
-      // } else {
-      //   id = tipoCarga;
-      // }
-
-      // let code = this.$store.state.pricing.listShipment.filter(
-      //   (v) => v.id == id,
-      // )[0].code;
-
-      // let validate = code == "FCL" ? true : false;
-      // return validate;
-    },
-  },
-  methods: {
-    handleKeyPress(event) {
-      if (event.ctrlKey && event.key === "p") {
-        event.preventDefault(); // Evita que se ejecute la acción predeterminada (imprimir)
-      }
-    },
-    fechaHoy() {
-      return moment().format("YYYY-MM-DD");
-    },
-    formatDate(val) {
-      if (!val) return "";
-      return moment(val).isValid()
-        ? moment(val).format("DD-MM-YYYY")
-        : String(val);
-    },
-    cerrar() {
-      this.$emit("cerrar", false);
-    },
-    generarData() {
-      window.addEventListener("keydown", this.handleKeyPress);
-      let vm = this;
-      let flete = vm.data.flete;
-      let almacen = vm.data.almacen;
-      let aduana = vm.data.aduana;
-      let local = vm.data.local;
-      let contenedor = vm.data.contenedor;
-
-      if (Array.isArray(flete)) {
-        flete.forEach((element) => {
-          vm.lstServices.push({
-            name: element.name,
-            estado: element.estado,
-          });
-        });
-      }
-
-      if (Array.isArray(almacen)) {
-        almacen.forEach((element) => {
-          vm.lstServices.push({
-            name: element.name,
-            estado: element.estado,
-          });
-        });
-      }
-
-      if (Array.isArray(aduana)) {
-        aduana.forEach((element) => {
-          vm.lstServices.push({
-            name: element.name,
-            estado: element.estado,
-          });
-        });
-      }
-
-      if (Array.isArray(local)) {
-        local.forEach((element) => {
-          vm.lstServices.push({
-            name: element.name,
-            estado: element.estado,
-          });
-        });
-      }
-
-      vm.data.OpcionesSelecciondas[this.index - 1].listServices.forEach(
-        (element) => {
-          if (element.status == 1) {
-            vm.incluye.push({
-              name: element.service,
-            });
-          }
-          if (element.status != 1) {
-            vm.noincluye.push({
-              name: element.service,
-            });
-          }
-        },
-      );
-
-      vm.data.OpcionesSelecciondas[this.index - 1].listNotasQuote
-        .filter((v) => v.estado == 1 && v.statusincluye == 1)
-        .forEach((element) => {
-          vm.incluye.push({ name: element.descripcion });
-        });
-
-      vm.data.OpcionesSelecciondas[this.index - 1].listNotasQuote
-        .filter((v) => v.estado == 1 && v.statusnoincluye == 1)
-        .forEach((element) => {
-          vm.noincluye.push({ name: element.descripcion });
-        });
-      vm.data.OpcionesSelecciondas[this.index - 1].listNotasQuote
-        .filter((v) => v.estado == 1 && v.statusprincipal == 1)
-        .forEach((element) => {
-          vm.notasPrincipales.push({ name: element.descripcion });
-        });
-    },
-  },
-  watch: {
-    // data() {
-    //   this.lstServices = [];
-    //   this.lstServicesOne = [];
-    //   this.lstServicesTwo = [];
-    //   this.lstServicesTree = [];
-    //   this.incluye = [];
-    //   this.noincluye = [];
-    //   this.notasPrincipales = [];
-    //   this.generarData();
-    // },
-  },
-};
-</script>
 
 <style scoped>
 * {

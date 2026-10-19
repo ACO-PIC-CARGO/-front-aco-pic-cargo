@@ -356,3 +356,36 @@ export interface MensajeCalculadora {
   tipomensaje?: string;
   mensaje?: string;
 }
+
+export interface ServicioPreview {
+  status?: number;
+  service?: string;
+}
+
+export interface NotaPreview {
+  estado?: number;
+  statusincluye?: number;
+  statusnoincluye?: number;
+  statusprincipal?: number;
+  descripcion?: string;
+}
+
+export interface OpcionPreview {
+  listServices: ServicioPreview[];
+  listNotasQuote: NotaPreview[];
+}
+
+export interface ElementoPreview {
+  name?: string;
+  estado?: unknown;
+}
+
+export interface CotizacionPreview extends Partial<UsuarioCalculadora> {
+  numerobultos?: Numerico;
+  flete?: ElementoPreview[];
+  almacen?: ElementoPreview[];
+  aduana?: ElementoPreview[];
+  local?: ElementoPreview[];
+  contenedor?: ElementoPreview[];
+  OpcionesSelecciondas?: OpcionPreview[];
+}
