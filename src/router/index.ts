@@ -119,7 +119,7 @@ const routes = [
       {
         path: "folderEntities/list-personal-rol",
         name: "listPersonaRol",
-        component: () => import("../views/Security/RolPersona/listPersonaRol.vue"),
+        component: () => import("../views/Security/RolPersona/ListPersonaRol.vue"),
       },
       {
         path: "folderEntities/control/:id_role",
