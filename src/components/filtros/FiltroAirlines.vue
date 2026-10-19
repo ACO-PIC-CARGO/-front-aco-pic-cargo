@@ -6,17 +6,17 @@
       <v-btn variant="text"
         icon
         color="default"
-        @click="$store.state.airlines.drawer = !$store.state.airlines.drawer"
+        @click="airlinesStore.drawer = !airlinesStore.drawer"
       >
         <v-icon>mdi-close</v-icon>
       </v-btn>
     </v-card-title>
-    <v-card-text v-if="$store.state.airlines.tipo == 'filter'">
+    <v-card-text v-if="airlinesStore.tipo == 'filter'">
       <div class="col-12 py-1">
         <v-autocomplete
           label="Pais"
           :items="$store.state.itemsPais"
-          v-model="$store.state.airlines.AirlineFilter.id_pais"
+          v-model="airlinesStore.AirlineFilter.id_pais"
           item-title="name"
           item-value="id"
           clearable
@@ -25,21 +25,21 @@
       </div>
       <div class="col-12 py-1">
         <v-text-field
-          v-model="$store.state.airlines.AirlineFilter.code"
+          v-model="airlinesStore.AirlineFilter.code"
           label="Código"
           clearable
         ></v-text-field>
       </div>
       <div class="col-12 py-1">
         <v-text-field
-          v-model="$store.state.airlines.AirlineFilter.code_iata"
+          v-model="airlinesStore.AirlineFilter.code_iata"
           clearable
           label="Código IATA"
         ></v-text-field>
       </div>
       <div class="col-12 py-1">
         <v-text-field
-          v-model="$store.state.airlines.AirlineFilter.code_icao"
+          v-model="airlinesStore.AirlineFilter.code_icao"
           label="Código ICAO"
           clearable
         ></v-text-field>
@@ -47,13 +47,13 @@
 
       <div class="col-12 py-1">
         <v-text-field
-          v-model="$store.state.airlines.AirlineFilter.name"
+          v-model="airlinesStore.AirlineFilter.name"
           clearable
           label="Nombre"
         ></v-text-field>
       </div>
       <div class="col-12 py-1">
-        <v-radio-group v-model="$store.state.airlines.AirlineFilter.status" inline>
+        <v-radio-group v-model="airlinesStore.AirlineFilter.status" inline>
           <v-radio label="Activo" color="green" :value="true"></v-radio>
           <v-radio label="Inactivo" color="red" :value="false"></v-radio>
           <v-radio label="Todos" color="blue" value="null"></v-radio>
@@ -66,10 +66,10 @@
           <v-autocomplete
             label="Pais (*)"
             :items="$store.state.itemsPais"
-            v-model="$store.state.airlines.AirlineModel.id_pais"
+            v-model="airlinesStore.AirlineModel.id_pais"
             item-title="name"
             item-value="id"
-            :readonly="$store.state.airlines.tipo == 'ver'"
+            :readonly="airlinesStore.tipo == 'ver'"
             :item-props="(item) => ({ disabled: item.status != 1 })"
             clearable
             :rules="[(v) => !!v || 'Dato Requerido']"
@@ -78,17 +78,17 @@
         </div>
         <div class="col-12 py-1">
           <v-text-field
-            v-model="$store.state.airlines.AirlineModel.code"
+            v-model="airlinesStore.AirlineModel.code"
             label="Código (*)"
-            v-if="$store.state.airlines.tipo != 'nuevo'"
+            v-if="airlinesStore.tipo != 'nuevo'"
             readonly
           ></v-text-field>
         </div>
         <div class="col-12 py-1">
           <v-text-field
-            v-model="$store.state.airlines.AirlineModel.code_iata"
+            v-model="airlinesStore.AirlineModel.code_iata"
             label="Código IATA (*)"
-            :readonly="$store.state.airlines.tipo == 'ver'"
+            :readonly="airlinesStore.tipo == 'ver'"
             :rules="[
               (v) => !!v || 'Dato Requerido',
               (v) =>
@@ -102,9 +102,9 @@
         </div>
         <div class="col-12 py-1">
           <v-text-field
-            v-model="$store.state.airlines.AirlineModel.code_icao"
+            v-model="airlinesStore.AirlineModel.code_icao"
             label="Código ICAO (*)"
-            :readonly="$store.state.airlines.tipo == 'ver'"
+            :readonly="airlinesStore.tipo == 'ver'"
             :rules="[
               (v) => !!v || 'Dato Requerido',
               (v) =>
@@ -119,23 +119,23 @@
 
         <div class="col-12 py-1">
           <v-text-field
-            v-model="$store.state.airlines.AirlineModel.name"
+            v-model="airlinesStore.AirlineModel.name"
             label="Nombre"
-            :readonly="$store.state.airlines.tipo == 'ver'"
+            :readonly="airlinesStore.tipo == 'ver'"
             :rules="[(v) => !!v || 'Dato Requerido']"
           ></v-text-field>
         </div>
         <div class="col-12 py-1">
           <v-switch
             :label="`Estado: ${
-              !!$store.state.airlines.AirlineModel.status
+              !!airlinesStore.AirlineModel.status
                 ? 'Activo'
                 : 'Inactivo'
             }`"
             color="success"
-            v-model="$store.state.airlines.AirlineModel.status"
+            v-model="airlinesStore.AirlineModel.status"
             :value-comparator="(value, checked) => Boolean(value) === checked"
-            :readonly="$store.state.airlines.tipo == 'ver'"
+            :readonly="airlinesStore.tipo == 'ver'"
           ></v-switch>
         </div>
       </v-form>
@@ -145,7 +145,7 @@
       <v-btn
         class="mx-1"
         color="success"
-        v-if="$store.state.airlines.tipo == 'filter'"
+        v-if="airlinesStore.tipo == 'filter'"
         @click="Filtrar()"
         :loading="loading"
         >Aceptar</v-btn
@@ -153,7 +153,7 @@
       <v-btn
         class="mx-1"
         color="default"
-        v-if="$store.state.airlines.tipo == 'filter'"
+        v-if="airlinesStore.tipo == 'filter'"
         @click="Limpiar()"
         :loading="loading"
         >Limpiar</v-btn
@@ -162,8 +162,8 @@
         class="mx-1"
         color="success"
         v-if="
-          $store.state.airlines.tipo != 'filter' &&
-          $store.state.airlines.tipo != 'ver'
+          airlinesStore.tipo != 'filter' &&
+          airlinesStore.tipo != 'ver'
         "
         @click="Aceptar()"
         :loading="loading"
@@ -172,7 +172,7 @@
       <v-btn
         class="mx-1"
         color="warning"
-        @click="$store.state.airlines.drawer = !$store.state.airlines.drawer"
+        @click="airlinesStore.drawer = !airlinesStore.drawer"
         :loading="loading"
         >Cerrar</v-btn
       >
@@ -181,50 +181,43 @@
 </template>
 
 <script>
-import { mapActions } from "vuex";
+import { mapActions as mapPiniaActions, mapStores } from "pinia";
+import { useAirlinesStore } from "@/stores/airlines";
 export default {
   data() {
     return { errIATA: "", errICAO: "", loading: false, airline: "" };
   },
   methods: {
-    ...mapActions([
-      "GetListAirline",
-      "setAirline",
-      "ValidateCodigoIATANuevo",
-      "ValidateCodigoICAONuevo",
-      "ValidateCodigoIATAEditar",
-      "ValidateCodigoICAOEditar",
-      "actualizarAirline",
-    ]),
+    ...mapPiniaActions(useAirlinesStore, ["GetListAirline", "setAirline", "ValidateCodigoIATANuevo", "ValidateCodigoICAONuevo", "ValidateCodigoIATAEditar", "ValidateCodigoICAOEditar", "actualizarAirline"]),
     getName() {
-      if (this.$store.state.airlines.tipo == "ver") {
+      if (this.airlinesStore.tipo == "ver") {
         return `Aerolínea ${this.airline.name} – Modo Vista`;
       }
-      if (this.$store.state.airlines.tipo == "nuevo") {
+      if (this.airlinesStore.tipo == "nuevo") {
         return "Nueva Aerolínea";
       }
-      if (this.$store.state.airlines.tipo == "editar") {
+      if (this.airlinesStore.tipo == "editar") {
         return `Modificar Areolínea: ${this.airline.name}`;
       }
-      if (this.$store.state.airlines.tipo == "filter") {
+      if (this.airlinesStore.tipo == "filter") {
         return "Filtrar Registros";
       }
     },
     async ValitateIATA() {
       //this.loading = true;
       this.errIATA = "";
-      if (this.$store.state.airlines.tipo == "nuevo") {
+      if (this.airlinesStore.tipo == "nuevo") {
         let val = await this.ValidateCodigoIATANuevo();
         if (!val.estadoflag) {
           this.errIATA = val.mensaje;
-          this.$store.state.airlines.AirlineModel.code_iata = "";
+          this.airlinesStore.AirlineModel.code_iata = "";
         }
       }
-      if (this.$store.state.airlines.tipo == "editar") {
+      if (this.airlinesStore.tipo == "editar") {
         let val = await this.ValidateCodigoIATAEditar();
         if (!val.estadoflag) {
           this.errIATA = val.mensaje;
-          this.$store.state.airlines.AirlineModel.code_iata = "";
+          this.airlinesStore.AirlineModel.code_iata = "";
         }
       }
       //this.loading = false;
@@ -232,18 +225,18 @@ export default {
     async ValitateICAO() {
       //this.loading = true;
       this.errICAO = "";
-      if (this.$store.state.airlines.tipo == "nuevo") {
+      if (this.airlinesStore.tipo == "nuevo") {
         let val = await this.ValidateCodigoICAONuevo();
         if (!val.estadoflag) {
           this.errICAO = val.mensaje;
-          this.$store.state.airlines.AirlineModel.code_icao = "";
+          this.airlinesStore.AirlineModel.code_icao = "";
         }
       }
-      if (this.$store.state.airlines.tipo == "editar") {
+      if (this.airlinesStore.tipo == "editar") {
         let val = await this.ValidateCodigoICAOEditar();
         if (!val.estadoflag) {
           this.errICAO = val.mensaje;
-          this.$store.state.airlines.AirlineModel.code_icao = "";
+          this.airlinesStore.AirlineModel.code_icao = "";
         }
       }
       //this.loading = false;
@@ -251,7 +244,7 @@ export default {
 
     async Aceptar() {
       this.loading = true;
-      if (this.$store.state.airlines.tipo == "nuevo") {
+      if (this.airlinesStore.tipo == "nuevo") {
         setTimeout(async () => {
           if ((await this.$refs.frmDML.validate()).valid && !this.errIATA && !this.errICAO) {
             this.loading = true;
@@ -263,7 +256,7 @@ export default {
           }
         }, 1000);
       }
-      if (this.$store.state.airlines.tipo == "editar") {
+      if (this.airlinesStore.tipo == "editar") {
         setTimeout(async () => {
           if ((await this.$refs.frmDML.validate()).valid && !this.errIATA && !this.errICAO) {
             await this.actualizarAirline();
@@ -280,10 +273,10 @@ export default {
       this.loading = true;
       await this.GetListAirline();
       this.loading = false;
-      this.$store.state.airlines.drawer = !this.$store.state.airlines.drawer;
+      this.airlinesStore.drawer = !this.airlinesStore.drawer;
     },
     async Limpiar() {
-      this.$store.state.airlines.AirlineFilter = {
+      this.airlinesStore.AirlineFilter = {
         code_iata: "",
         name: "",
         code_icao: "",
@@ -297,22 +290,23 @@ export default {
       this.loading = true;
       await this.GetListAirline();
       this.loading = false;
-      this.$store.state.airlines.drawer = !this.$store.state.airlines.drawer;
+      this.airlinesStore.drawer = !this.airlinesStore.drawer;
     },
   },
   computed: {
+    ...mapStores(useAirlinesStore),
     drawer: {
       get() {
-        return this.$store.state.airlines.drawer;
+        return this.airlinesStore.drawer;
       },
       set(val) {
-        return (this.$store.state.airlines.drawer = drawer);
+        return (this.airlinesStore.drawer = drawer);
       },
     },
   },
   watch: {
     drawer() {
-      this.airline = { ...this.$store.state.airlines.AirlineModel };
+      this.airline = { ...this.airlinesStore.AirlineModel };
       this.errIATA = "";
       this.errICAO = "";
       this.$refs.frmDML.resetValidation();

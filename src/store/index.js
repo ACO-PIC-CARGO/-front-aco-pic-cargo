@@ -22,12 +22,9 @@ import enterprises from "./modules/enterprise";
 import masterusuarios from "./modules/masterusuario";
 import bank from "./modules/bank";
 import reportes from "./modules/reporte";
-import airlines from "./modules/airlines";
-import QuoteStatus from "./modules/QuoteStatus";
 import user from "./modules/user";
 import position from "./modules/position";
 import configEmpresa from "./modules/configEmpresa";
-import statushouse from "./modules/statushouse";
 import configAviso from "./modules/configAviso";
 import branch from "./modules/branch";
 import aduana from "./modules/aduana";
@@ -2868,12 +2865,9 @@ export default createStore({
     enterprises,
     masterusuarios,
     bank,
-    airlines,
-    QuoteStatus,
     user,
     position,
     configEmpresa,
-    statushouse,
     configAviso,
     branch,
     aduana,

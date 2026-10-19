@@ -521,3 +521,81 @@ export interface FiltroTipoPago {
   description: string | null;
   status: boolean | number | string;
 }
+
+export interface FiltroEstadoCotizacion {
+  id: string;
+  name: string | null;
+  code: string | null;
+  position: number | string | null;
+  position_select: number | string | null;
+  position_report: number | string | null;
+  position_calls: number | string | null;
+  status_calls: number | string | null;
+  status_calls_all: number | string | null;
+  description: string | null;
+  status: string;
+  id_branch: number | string;
+}
+
+export interface PosicionMaximaEstado {
+  position: number;
+  position_calls: number;
+  position_report: number;
+  position_select: number;
+}
+
+export interface ComentarioEstadoHouse {
+  id?: number | string;
+  descripcion: string;
+  orden?: number;
+}
+
+export interface EstadoHouse {
+  id: number | string;
+  name: string;
+  id_modalidad: number | string;
+  id_shipment: number | string;
+  modalidad?: string;
+  shipment?: string;
+  exwflag: boolean;
+  fobflag: boolean;
+  fcaflag: boolean;
+  cfrflag: boolean;
+  cifflag: boolean;
+  ddpflag: boolean;
+  comentarios: ComentarioEstadoHouse[];
+  orden: number | string;
+  verComentarios?: boolean;
+}
+
+export interface OrdenEstadoHouse {
+  orden: number | string;
+}
+
+export interface Aerolinea {
+  id?: number | string;
+  code?: string;
+  code_iata: string;
+  code_icao: string;
+  code_three: string;
+  name: string;
+  id_pais: number | string;
+  pais_name?: string;
+  status: number | string | boolean;
+  id_branch?: number | string;
+  created_at?: string;
+  updated_at?: string;
+}
+
+export interface FiltroAerolinea {
+  code_iata: string;
+  name: string;
+  code_icao: string;
+  code_three: string;
+  id_pais: number | string | null;
+  created_at: string;
+  updated_at: string;
+  code: string;
+  status: boolean | number | string;
+  id_branch?: number | string;
+}

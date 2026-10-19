@@ -460,7 +460,9 @@
 </template>
 
 <script>
-import { mapActions, mapState } from "vuex";
+import { mapActions } from "vuex";
+import { mapActions as mapPiniaActions, mapState } from "pinia";
+import { useStatushouseStore } from "@/stores/statushouse";
 import Swal from "sweetalert2";
 export default {
   data() {
@@ -516,7 +518,7 @@ export default {
     };
   },
   methods: {
-    ...mapActions("statushouse", [
+    ...mapPiniaActions(useStatushouseStore, [
       "getListStatusHouse",
       "getObtenerOrdenStatusHouse",
       "GuardarStatusHouse",
@@ -728,7 +730,7 @@ export default {
     },
   },
   computed: {
-    ...mapState("statushouse", ["listStatusHouse", "orden"]),
+    ...mapState(useStatushouseStore, ["listStatusHouse", "orden"]),
   },
   async mounted() {
     this.$store.state.spiner = true;

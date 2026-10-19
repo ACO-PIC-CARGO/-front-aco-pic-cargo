@@ -1,5 +1,5 @@
 <template>
-  <!-- <div class="">{{ $store.state.QuoteStatus.statusQuoteList }}</div> -->
+  <!-- <div class="">{{ QuoteStatusStore.statusQuoteList }}</div> -->
   <v-card fluid class="px-5">
     <v-row>
       <v-col cols="4">
@@ -18,9 +18,9 @@
           class="mx-1"
           color="#2962FF"
           @click="
-            ($store.state.QuoteStatus.drawer =
-              !$store.state.QuoteStatus.drawer) &&
-              ($store.state.QuoteStatus.tipo = 'filter')
+            (QuoteStatusStore.drawer =
+              !QuoteStatusStore.drawer) &&
+              (QuoteStatusStore.tipo = 'filter')
           "
           >FILTRAR</v-btn
         >
@@ -29,7 +29,7 @@
       <v-col cols="12">
         <v-data-table
           :headers="headers"
-          :items="$store.state.QuoteStatus.statusQuoteList"
+          :items="QuoteStatusStore.statusQuoteList"
           class="elevation-1"
           item-value="id"
           :loading="loading"
@@ -98,6 +98,8 @@
 <script>
 import { mapActions } from "vuex";
 import Swal from "sweetalert2";
+import { mapActions as mapPiniaActions, mapStores } from "pinia";
+import { useQuoteStatusStore } from "@/stores/QuoteStatus";
 export default {
   data() {
     return {
@@ -130,40 +132,44 @@ export default {
     this.loading = false;
     this.cargarTemperaturaLeds()
   },
+  computed: {
+    ...mapStores(useQuoteStatusStore),
+  },
   methods: {
-    ...mapActions(["GetListQuoteStatus", "actualizarQuoteStatus","cargarTemperaturaLeds"]),
+    ...mapActions(["cargarTemperaturaLeds"]),
+    ...mapPiniaActions(useQuoteStatusStore, ["GetListQuoteStatus", "actualizarQuoteStatus"]),
     ver(item) {
       let datos = { ...item };
-      this.$store.state.QuoteStatus.tipo = "ver";
-      this.$store.state.QuoteStatus.StatusModel = datos;
-      this.$store.state.QuoteStatus.drawer =
-        !this.$store.state.QuoteStatus.drawer;
+      this.QuoteStatusStore.tipo = "ver";
+      this.QuoteStatusStore.StatusModel = datos;
+      this.QuoteStatusStore.drawer =
+        !this.QuoteStatusStore.drawer;
     },
     editar(item) {
       let datos = { ...item };
-      this.$store.state.QuoteStatus.tipo = "editar";
-      this.$store.state.QuoteStatus.StatusModel = datos;
-      this.$store.state.QuoteStatus.drawer =
-        !this.$store.state.QuoteStatus.drawer;
+      this.QuoteStatusStore.tipo = "editar";
+      this.QuoteStatusStore.StatusModel = datos;
+      this.QuoteStatusStore.drawer =
+        !this.QuoteStatusStore.drawer;
     },
     nuevo() {
-      this.$store.state.QuoteStatus.tipo = "nuevo";
-      this.$store.state.QuoteStatus.StatusModel = {
+      this.QuoteStatusStore.tipo = "nuevo";
+      this.QuoteStatusStore.StatusModel = {
         id: "",
         name: "",
         code: "",
-        position: this.$store.state.QuoteStatus.max_position,
-        position_calls: this.$store.state.QuoteStatus.max_position_calls,
-        position_report: this.$store.state.QuoteStatus.max_position_report,
-        position_select: this.$store.state.QuoteStatus.max_position_select,
+        position: this.QuoteStatusStore.max_position,
+        position_calls: this.QuoteStatusStore.max_position_calls,
+        position_report: this.QuoteStatusStore.max_position_report,
+        position_select: this.QuoteStatusStore.max_position_select,
         status_calls: "",
         status_calls_all: "",
         description: "",
         status: 1,
         id_branch: JSON.parse(sessionStorage.getItem("dataUser"))[0].id_branch,
       };
-      this.$store.state.QuoteStatus.drawer =
-        !this.$store.state.QuoteStatus.drawer;
+      this.QuoteStatusStore.drawer =
+        !this.QuoteStatusStore.drawer;
     },
     async eliminar(item) {
       Swal.fire({
@@ -179,7 +185,7 @@ export default {
       }).then(async (res) => {
         if (res.isConfirmed) {
           item.status = 0;
-          this.$store.state.QuoteStatus.StatusModel = item;
+          this.QuoteStatusStore.StatusModel = item;
           this.loading = true;
           await this.actualizarQuoteStatus();
           await this.GetListQuoteStatus();

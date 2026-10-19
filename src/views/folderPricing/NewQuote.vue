@@ -165,6 +165,8 @@ import Swal from "sweetalert2";
 import { readSheet as readXlsFile } from "read-excel-file/browser";
 import mixins from "@/components/mixins/funciones.js";
 import moment from "moment";
+import { mapStores } from "pinia";
+import { useQuoteStatusStore } from "@/stores/QuoteStatus";
 export default {
   mixins: [mixins],
   components: {
@@ -1311,11 +1313,11 @@ export default {
     },
     async createPreliminarStatus() {
       try {
-        await this.$store.dispatch("MaxPositionQuoteStatus");
-        const max = this.$store.state.QuoteStatus;
+        await this.QuoteStatusStore.MaxPositionQuoteStatus();
+        const max = this.QuoteStatusStore;
         const id_branch = JSON.parse(sessionStorage.getItem("dataUser"))[0]
           .id_branch;
-        this.$store.state.QuoteStatus.StatusModel = {
+        this.QuoteStatusStore.StatusModel = {
           id: "",
           name: "PRELIMINAR",
           code: "",
@@ -1329,7 +1331,7 @@ export default {
           status: 1,
           id_branch,
         };
-        await this.$store.dispatch("setQuoteStatus");
+        await this.QuoteStatusStore.setQuoteStatus();
       } catch (e) {}
     },
     setDefaultStatusPreliminar() {
@@ -1393,6 +1395,7 @@ export default {
     },
   },
   computed: {
+    ...mapStores(useQuoteStatusStore),
     // ...mapState(["preServices", "preCostos"]),
   },
 };

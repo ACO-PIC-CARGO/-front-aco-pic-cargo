@@ -7,20 +7,20 @@
         icon
         color="default"
         @click="
-          $store.state.QuoteStatus.drawer = !$store.state.QuoteStatus.drawer
+          QuoteStatusStore.drawer = !QuoteStatusStore.drawer
         "
       >
         <v-icon>mdi-close</v-icon>
       </v-btn>
     </v-card-title>
-    <v-card-text v-if="$store.state.QuoteStatus.tipo == 'filter'">
+    <v-card-text v-if="QuoteStatusStore.tipo == 'filter'">
       <v-form ref="frmFilter">
         <div class="container">
           <div class="row">
             <div class="col-12 py-1">
               <v-text-field
                 clearable
-                v-model="$store.state.QuoteStatus.StatusFilter.code"
+                v-model="QuoteStatusStore.StatusFilter.code"
                 density="compact"
                 label="Código"
                 variant="outlined"
@@ -29,7 +29,7 @@
             <div class="col-12 py-1">
               <v-text-field
                 clearable
-                v-model="$store.state.QuoteStatus.StatusFilter.name"
+                v-model="QuoteStatusStore.StatusFilter.name"
                 density="compact"
                 label="Nombre"
                 variant="outlined"
@@ -38,7 +38,7 @@
             <div class="col-12 py-1">
               <v-text-field
                 clearable
-                v-model="$store.state.QuoteStatus.StatusFilter.description"
+                v-model="QuoteStatusStore.StatusFilter.description"
                 density="compact"
                 label="Descripción"
                 variant="outlined"
@@ -47,7 +47,7 @@
             <div class="col-12 py-1">
               <v-text-field
                 clearable
-                v-model="$store.state.QuoteStatus.StatusFilter.position"
+                v-model="QuoteStatusStore.StatusFilter.position"
                 type="number"
                 density="compact"
                 label="Posición Cotizaciones"
@@ -58,7 +58,7 @@
               <v-autocomplete
                 :items="$store.state.masterusuarios.lstTemperatura"
                 v-model="
-                  $store.state.QuoteStatus.StatusFilter
+                  QuoteStatusStore.StatusFilter
                     .id_masterdetalletemperaturaventa
                 "
                 item-value="id"
@@ -87,7 +87,7 @@
             <!--<div class="col-6 py-1">
               <v-text-field
                 clearable
-                v-model="$store.state.QuoteStatus.StatusFilter.position_select"
+                v-model="QuoteStatusStore.StatusFilter.position_select"
                 dense
                 type="number"
                 label="Posición Registro"
@@ -96,7 +96,7 @@
             <!-- <div class="col-6 py-1">
               <v-text-field
                 clearable
-                v-model="$store.state.QuoteStatus.StatusFilter.position_report"
+                v-model="QuoteStatusStore.StatusFilter.position_report"
                 dense
                 type="number"
                 label="Posición Reportes"
@@ -105,7 +105,7 @@
             <div class="col-6 py-1">
               <v-text-field
                 clearable
-                v-model="$store.state.QuoteStatus.StatusFilter.position_calls"
+                v-model="QuoteStatusStore.StatusFilter.position_calls"
                 dense
                 type="number"
                 label="Posición Llamadas"
@@ -114,7 +114,7 @@
             <div class="col-6 py-1">
               Uso Llamadas
               <v-radio-group
-                v-model="$store.state.QuoteStatus.StatusFilter.status_calls"
+                v-model="QuoteStatusStore.StatusFilter.status_calls"
                 row
                 dense
                 clearable
@@ -126,7 +126,7 @@
             <div class="col-6 py-1">
               Uso Todas Llamadas
               <v-radio-group
-                v-model="$store.state.QuoteStatus.StatusFilter.status_calls_all"
+                v-model="QuoteStatusStore.StatusFilter.status_calls_all"
                 row
                 dense
                 clearable
@@ -139,7 +139,7 @@
             <div class="col-12 py-1">
               <span> Estado</span>
               <v-radio-group
-                v-model="$store.state.QuoteStatus.StatusFilter.status"
+                v-model="QuoteStatusStore.StatusFilter.status"
                 inline
                 density="compact"
               >
@@ -158,9 +158,9 @@
           <div class="row">
             <div class="col-12 py-0">
               <v-text-field
-                v-if="$store.state.QuoteStatus.tipo != 'nuevo'"
-                :readonly="$store.state.QuoteStatus.tipo == 'ver'"
-                v-model="$store.state.QuoteStatus.StatusModel.code"
+                v-if="QuoteStatusStore.tipo != 'nuevo'"
+                :readonly="QuoteStatusStore.tipo == 'ver'"
+                v-model="QuoteStatusStore.StatusModel.code"
                 density="compact"
                 label="Código"
                 variant="outlined"
@@ -168,8 +168,8 @@
             </div>
             <div class="col-12 py-0">
               <v-text-field
-                :readonly="$store.state.QuoteStatus.tipo == 'ver'"
-                v-model="$store.state.QuoteStatus.StatusModel.name"
+                :readonly="QuoteStatusStore.tipo == 'ver'"
+                v-model="QuoteStatusStore.StatusModel.name"
                 density="compact"
                 label="Nombre (*)"
                 :rules="[(v) => !!v || 'Dato requerido']"
@@ -178,8 +178,8 @@
             </div>
             <div class="col-12 py-0">
               <v-text-field
-                :readonly="$store.state.QuoteStatus.tipo == 'ver'"
-                v-model="$store.state.QuoteStatus.StatusModel.description"
+                :readonly="QuoteStatusStore.tipo == 'ver'"
+                v-model="QuoteStatusStore.StatusModel.description"
                 density="compact"
                 label="Descripción"
                 variant="outlined"
@@ -187,8 +187,8 @@
             </div>
             <div class="col-12 py-0">
               <v-text-field
-                :readonly="$store.state.QuoteStatus.tipo == 'ver'"
-                v-model="$store.state.QuoteStatus.StatusModel.position"
+                :readonly="QuoteStatusStore.tipo == 'ver'"
+                v-model="QuoteStatusStore.StatusModel.position"
                 v-on:blur="validatePosition"
                 :error-messages="errPosition"
                 :rules="[(v) => !!v || 'Dato requerido']"
@@ -202,7 +202,7 @@
               <v-autocomplete
                 :items="$store.state.masterusuarios.lstTemperatura"
                 v-model="
-                  $store.state.QuoteStatus.StatusModel
+                  QuoteStatusStore.StatusModel
                     .id_masterdetalletemperaturaventa
                 "
                 item-value="id"
@@ -230,8 +230,8 @@
             </div>
             <!--<div class="col-6 py-1">
               <v-text-field
-                :readonly="$store.state.QuoteStatus.tipo == 'ver'"
-                v-model="$store.state.QuoteStatus.StatusModel.position_select"
+                :readonly="QuoteStatusStore.tipo == 'ver'"
+                v-model="QuoteStatusStore.StatusModel.position_select"
                 v-on:blur="validatePositionSelect"
                 :error-messages="errPositionSelect"
                 :rules="[(v) => !!v || 'Dato requerido']"
@@ -242,8 +242,8 @@
             </div>
             <div class="col-6 py-1">
               <v-text-field
-                :readonly="$store.state.QuoteStatus.tipo == 'ver'"
-                v-model="$store.state.QuoteStatus.StatusModel.position_report"
+                :readonly="QuoteStatusStore.tipo == 'ver'"
+                v-model="QuoteStatusStore.StatusModel.position_report"
                 v-on:blur="validatePositionReport"
                 :error-messages="errPositionReport"
                 :rules="[(v) => !!v || 'Dato requerido']"
@@ -255,10 +255,10 @@
             <!-- <div class="col-6 py-1">
               <v-text-field
                 v-if="
-                  $store.state.QuoteStatus.StatusModel.status_calls_all == 1
+                  QuoteStatusStore.StatusModel.status_calls_all == 1
                 "
-                :readonly="$store.state.QuoteStatus.tipo == 'ver'"
-                v-model="$store.state.QuoteStatus.StatusModel.position_calls"
+                :readonly="QuoteStatusStore.tipo == 'ver'"
+                v-model="QuoteStatusStore.StatusModel.position_calls"
                 v-on:blur="validatePositionCalls"
                 :error-messages="errPositionCalls"
                 :rules="[(v) => !!v || 'Dato requerido']"
@@ -270,10 +270,10 @@
             <!-- <div class="col-6 py-1">
               Uso Llamadas (*)
               <v-radio-group
-                v-model="$store.state.QuoteStatus.StatusModel.status_calls"
+                v-model="QuoteStatusStore.StatusModel.status_calls"
                 row
                 dense
-                :readonly="$store.state.QuoteStatus.tipo == 'ver'"
+                :readonly="QuoteStatusStore.tipo == 'ver'"
                 :rules="[(v) => use.includes(v) || 'Dato requerido']"
               >
                 <v-radio label="Si" color="green" :value="1"></v-radio>
@@ -283,10 +283,10 @@
             <div class="col-6 py-1">
               Uso Todas Llamadas (*)
               <v-radio-group
-                v-model="$store.state.QuoteStatus.StatusModel.status_calls_all"
+                v-model="QuoteStatusStore.StatusModel.status_calls_all"
                 row
                 dense
-                :readonly="$store.state.QuoteStatus.tipo == 'ver'"
+                :readonly="QuoteStatusStore.tipo == 'ver'"
                 :rules="[(v) => use.includes(v) || 'Dato requerido']"
               >
                 <v-radio label="Si" color="green" :value="1"></v-radio>
@@ -298,14 +298,14 @@
               <span> Estado</span>
 
               <v-switch
-                :readonly="$store.state.QuoteStatus.tipo == 'ver'"
+                :readonly="QuoteStatusStore.tipo == 'ver'"
                 :label="`Estado: ${
-                  !!$store.state.QuoteStatus.StatusModel.status
+                  !!QuoteStatusStore.StatusModel.status
                     ? 'Activo'
                     : 'Inactivo'
                 }`"
                 color="success"
-                v-model="$store.state.QuoteStatus.StatusModel.status"
+                v-model="QuoteStatusStore.StatusModel.status"
                 :value-comparator="(value, checked) => Boolean(value) === checked"
               ></v-switch>
             </div>
@@ -317,7 +317,7 @@
       <v-btn
         class="mx-1"
         color="success"
-        v-if="$store.state.QuoteStatus.tipo == 'filter'"
+        v-if="QuoteStatusStore.tipo == 'filter'"
         :loading="loading"
         @click="Filtrar()"
         >Aceptar</v-btn
@@ -325,7 +325,7 @@
       <v-btn
         class="mx-1"
         color="default"
-        v-if="$store.state.QuoteStatus.tipo == 'filter'"
+        v-if="QuoteStatusStore.tipo == 'filter'"
         :loading="loading"
         @click="Limpiar()"
         >Limpiar</v-btn
@@ -333,7 +333,7 @@
       <v-btn
         class="mx-1"
         color="success"
-        v-if="$store.state.QuoteStatus.tipo != 'filter'"
+        v-if="QuoteStatusStore.tipo != 'filter'"
         :loading="loading"
         @click="Aceptar()"
         >Aceptar</v-btn
@@ -342,7 +342,7 @@
         class="mx-1"
         color="warning"
         @click="
-          $store.state.QuoteStatus.drawer = !$store.state.QuoteStatus.drawer
+          QuoteStatusStore.drawer = !QuoteStatusStore.drawer
         "
         >Cerrar</v-btn
       >
@@ -351,7 +351,8 @@
 </template>
 
 <script>
-import { mapActions } from "vuex";
+import { mapActions as mapPiniaActions, mapStores } from "pinia";
+import { useQuoteStatusStore } from "@/stores/QuoteStatus";
 export default {
   data() {
     return {
@@ -365,30 +366,18 @@ export default {
     };
   },
   methods: {
-    ...mapActions([
-      "GetListQuoteStatus",
-      "getValidatePositionQuoteStatus",
-      "getValidatePositionSelectQuoteStatus",
-      "getValidatePositionReportQuoteStatus",
-      "getValidatePositionCallsQuoteStatus",
-      "getValidatePositionActualizarQuoteStatus",
-      "getValidatePositionSelectActualizarQuoteStatus",
-      "getValidatePositionReportActualizarQuoteStatus",
-      "getValidatePositionCallsActualizarQuoteStatus",
-      "setQuoteStatus",
-      "actualizarQuoteStatus",
-    ]),
+    ...mapPiniaActions(useQuoteStatusStore, ["GetListQuoteStatus", "getValidatePositionQuoteStatus", "getValidatePositionSelectQuoteStatus", "getValidatePositionReportQuoteStatus", "getValidatePositionCallsQuoteStatus", "getValidatePositionActualizarQuoteStatus", "getValidatePositionSelectActualizarQuoteStatus", "getValidatePositionReportActualizarQuoteStatus", "getValidatePositionCallsActualizarQuoteStatus", "setQuoteStatus", "actualizarQuoteStatus"]),
     getName() {
-      if (this.$store.state.QuoteStatus.tipo == "ver") {
+      if (this.QuoteStatusStore.tipo == "ver") {
         return `Estado : ${this.StatusQuote.name} – Modo Vista`;
       }
-      if (this.$store.state.QuoteStatus.tipo == "nuevo") {
+      if (this.QuoteStatusStore.tipo == "nuevo") {
         return "Nueva Estado";
       }
-      if (this.$store.state.QuoteStatus.tipo == "editar") {
+      if (this.QuoteStatusStore.tipo == "editar") {
         return `Modificar Estado: ${this.StatusQuote.name}`;
       }
-      if (this.$store.state.QuoteStatus.tipo == "filter") {
+      if (this.QuoteStatusStore.tipo == "filter") {
         return "Filtrar Registros";
       }
     },
@@ -396,92 +385,92 @@ export default {
       this.loading = true;
       await this.GetListQuoteStatus();
       this.loading = false;
-      this.$store.state.QuoteStatus.drawer =
-        !this.$store.state.QuoteStatus.drawer;
+      this.QuoteStatusStore.drawer =
+        !this.QuoteStatusStore.drawer;
     },
     async Limpiar() {
       this.$refs.frmFilter.reset();
       setTimeout(async () => {
-        this.$store.state.QuoteStatus.StatusFilter.status = "1";
-        this.$store.state.QuoteStatus.StatusFilter.status_calls = "";
-        this.$store.state.QuoteStatus.StatusFilter.status_calls_all = "";
+        this.QuoteStatusStore.StatusFilter.status = "1";
+        this.QuoteStatusStore.StatusFilter.status_calls = "";
+        this.QuoteStatusStore.StatusFilter.status_calls_all = "";
         this.loading = true;
         await this.GetListQuoteStatus();
         this.loading = false;
-        this.$store.state.QuoteStatus.drawer =
-          !this.$store.state.QuoteStatus.drawer;
+        this.QuoteStatusStore.drawer =
+          !this.QuoteStatusStore.drawer;
       }, 1);
     },
     async validatePosition() {
       this.errPosition = "";
-      if (this.$store.state.QuoteStatus.tipo == "nuevo") {
+      if (this.QuoteStatusStore.tipo == "nuevo") {
         let val = await this.getValidatePositionQuoteStatus();
         this.errPosition = val.mensaje;
         if (val.estadoflag) {
-          this.$store.state.QuoteStatus.StatusModel.position = "";
+          this.QuoteStatusStore.StatusModel.position = "";
         }
       }
-      if (this.$store.state.QuoteStatus.tipo == "editar") {
+      if (this.QuoteStatusStore.tipo == "editar") {
         let val = await this.getValidatePositionActualizarQuoteStatus();
         this.errPosition = val.mensaje;
         if (val.estadoflag) {
-          this.$store.state.QuoteStatus.StatusModel.position = "";
+          this.QuoteStatusStore.StatusModel.position = "";
         }
       }
     },
     async validatePositionSelect() {
       this.errPositionSelect = "";
-      if (this.$store.state.QuoteStatus.tipo == "nuevo") {
+      if (this.QuoteStatusStore.tipo == "nuevo") {
         let val = await this.getValidatePositionSelectQuoteStatus();
         this.errPositionSelect = val.mensaje;
         if (val.estadoflag) {
-          this.$store.state.QuoteStatus.StatusModel.position_select = "";
+          this.QuoteStatusStore.StatusModel.position_select = "";
         }
       }
-      if (this.$store.state.QuoteStatus.tipo == "editar") {
+      if (this.QuoteStatusStore.tipo == "editar") {
         let val = await this.getValidatePositionSelectActualizarQuoteStatus();
         this.errPositionSelect = val.mensaje;
         if (val.estadoflag) {
-          this.$store.state.QuoteStatus.StatusModel.position_select = "";
+          this.QuoteStatusStore.StatusModel.position_select = "";
         }
       }
     },
     async validatePositionReport() {
       this.errPositionReport = "";
-      if (this.$store.state.QuoteStatus.tipo == "nuevo") {
+      if (this.QuoteStatusStore.tipo == "nuevo") {
         let val = await this.getValidatePositionReportQuoteStatus();
         this.errPositionReport = val.mensaje;
         if (val.estadoflag) {
-          this.$store.state.QuoteStatus.StatusModel.position_report = "";
+          this.QuoteStatusStore.StatusModel.position_report = "";
         }
       }
-      if (this.$store.state.QuoteStatus.tipo == "editar") {
+      if (this.QuoteStatusStore.tipo == "editar") {
         let val = await this.getValidatePositionReportActualizarQuoteStatus();
         this.errPositionReport = val.mensaje;
         if (val.estadoflag) {
-          this.$store.state.QuoteStatus.StatusModel.position_report = "";
+          this.QuoteStatusStore.StatusModel.position_report = "";
         }
       }
     },
     async validatePositionCalls() {
       this.errPositionCalls = "";
-      if (this.$store.state.QuoteStatus.tipo == "nuevo") {
+      if (this.QuoteStatusStore.tipo == "nuevo") {
         let val = await this.getValidatePositionCallsQuoteStatus();
         this.errPositionCalls = val.mensaje;
         if (val.estadoflag) {
-          this.$store.state.QuoteStatus.StatusModel.status_calls = "";
+          this.QuoteStatusStore.StatusModel.status_calls = "";
         }
       }
-      if (this.$store.state.QuoteStatus.tipo == "editar") {
+      if (this.QuoteStatusStore.tipo == "editar") {
         let val = await this.getValidatePositionCallsActualizarQuoteStatus();
         this.errPositionCalls = val.mensaje;
         if (val.estadoflag) {
-          this.$store.state.QuoteStatus.StatusModel.status_calls = "";
+          this.QuoteStatusStore.StatusModel.status_calls = "";
         }
       }
     },
     async Aceptar() {
-      if (this.$store.state.QuoteStatus.tipo == "nuevo") {
+      if (this.QuoteStatusStore.tipo == "nuevo") {
         this.loading = true;
         setTimeout(async () => {
           if ((await this.$refs.frmDML.validate()).valid) {
@@ -493,7 +482,7 @@ export default {
         }, 500);
         this.loading = false;
       }
-      if (this.$store.state.QuoteStatus.tipo == "editar") {
+      if (this.QuoteStatusStore.tipo == "editar") {
         this.loading = true;
         setTimeout(async () => {
           if ((await this.$refs.frmDML.validate()).valid) {
@@ -503,25 +492,26 @@ export default {
         }, 500);
         this.loading = false;
       }
-      if (this.$store.state.QuoteStatus.tipo == "ver") {
-        this.$store.state.QuoteStatus.drawer =
-          !this.$store.state.QuoteStatus.drawer;
+      if (this.QuoteStatusStore.tipo == "ver") {
+        this.QuoteStatusStore.drawer =
+          !this.QuoteStatusStore.drawer;
       }
     },
   },
   computed: {
+    ...mapStores(useQuoteStatusStore),
     drawer: {
       get() {
-        return this.$store.state.QuoteStatus.drawer;
+        return this.QuoteStatusStore.drawer;
       },
       set(val) {
-        return (this.$store.state.QuoteStatus.drawer = drawer);
+        return (this.QuoteStatusStore.drawer = drawer);
       },
     },
   },
   watch: {
     drawer() {
-      this.StatusQuote = { ...this.$store.state.QuoteStatus.StatusModel };
+      this.StatusQuote = { ...this.QuoteStatusStore.StatusModel };
       this.$refs.frmDML.resetValidation();
       this.errPosition = "";
       this.errPositionSelect = "";

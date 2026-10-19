@@ -17,8 +17,8 @@
           class="mx-1"
           color="#2962FF"
           @click="
-            ($store.state.airlines.drawer = !$store.state.airlines.drawer) &&
-              ($store.state.airlines.tipo = 'filter')
+            (airlinesStore.drawer = !airlinesStore.drawer) &&
+              (airlinesStore.tipo = 'filter')
           "
           >FILTRAR</v-btn
         >
@@ -27,7 +27,7 @@
       <v-col cols="12">
         <v-data-table
           :headers="headers"
-          :items="$store.state.airlines.lstAirline"
+          :items="airlinesStore.lstAirline"
           class="elevation-1"
           item-value="id"
           :loading="loading"
@@ -83,6 +83,8 @@
 <script>
 import { mapActions } from "vuex";
 import Swal from "sweetalert2";
+import { mapActions as mapPiniaActions, mapStores } from "pinia";
+import { useAirlinesStore } from "@/stores/airlines";
 export default {
   data() {
     return {
@@ -108,23 +110,27 @@ export default {
     this.loading = false;
   },
 
+  computed: {
+    ...mapStores(useAirlinesStore),
+  },
   methods: {
-    ...mapActions(["GetListAirline", "_getPais", "actualizarAirline"]),
+    ...mapActions(["_getPais"]),
+    ...mapPiniaActions(useAirlinesStore, ["GetListAirline", "actualizarAirline"]),
     ver(item) {
       let datos = { ...item };
-      this.$store.state.airlines.tipo = "ver";
-      this.$store.state.airlines.AirlineModel = datos;
-      this.$store.state.airlines.drawer = !this.$store.state.airlines.drawer;
+      this.airlinesStore.tipo = "ver";
+      this.airlinesStore.AirlineModel = datos;
+      this.airlinesStore.drawer = !this.airlinesStore.drawer;
     },
     editar(item) {
       let datos = { ...item };
-      this.$store.state.airlines.tipo = "editar";
-      this.$store.state.airlines.AirlineModel = datos;
-      this.$store.state.airlines.drawer = !this.$store.state.airlines.drawer;
+      this.airlinesStore.tipo = "editar";
+      this.airlinesStore.AirlineModel = datos;
+      this.airlinesStore.drawer = !this.airlinesStore.drawer;
     },
     nuevo() {
-      this.$store.state.airlines.tipo = "nuevo";
-      this.$store.state.airlines.AirlineModel = {
+      this.airlinesStore.tipo = "nuevo";
+      this.airlinesStore.AirlineModel = {
         code_iata: "",
         name: "",
         code_icao: "",
@@ -136,10 +142,10 @@ export default {
         status: true,
         id_branch: JSON.parse(sessionStorage.getItem("dataUser"))[0].id_branch,
       };
-      this.$store.state.airlines.drawer = !this.$store.state.airlines.drawer;
+      this.airlinesStore.drawer = !this.airlinesStore.drawer;
     },
     filter() {
-      this.$store.state.airlines.tipo = "filter";
+      this.airlinesStore.tipo = "filter";
     },
     async eliminar(item) {
       Swal.fire({
@@ -155,7 +161,7 @@ export default {
       }).then(async (res) => {
         if (res.isConfirmed) {
           item.status = false;
-          this.$store.state.airlines.AirlineModel = item;
+          this.airlinesStore.AirlineModel = item;
           this.loading = true;
           await this.actualizarAirline();
           await this.GetListAirline();

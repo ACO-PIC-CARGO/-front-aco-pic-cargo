@@ -514,7 +514,9 @@
 
 <script>
 import { defineAsyncComponent } from "vue";
-import { mapActions, mapState } from "vuex";
+import { mapActions } from "vuex";
+import { mapActions as mapPiniaActions, mapState } from "pinia";
+import { useStatushouseStore } from "@/stores/statushouse";
 import axios from '@/api/http';
 import { v4 as uuidv4 } from "uuid";
 import moment from "moment";
@@ -553,7 +555,7 @@ export default {
     name: "",
   }),
   computed: {
-    ...mapState("statushouse", ["listStatusHouse", "orden"]),
+    ...mapState(useStatushouseStore, ["listStatusHouse", "orden"]),
     isBotonBitacoraDisabled: function () {
       return this.isFormActionsDisabled || this.disabledBotonBitacora;
     },
@@ -602,9 +604,8 @@ export default {
       "_getComentariosPredefinidos",
       "getModality",
       "getShipment",
-      "getObtenerOrdenStatusHouse",
     ]),
-    ...mapActions("statushouse", [
+    ...mapPiniaActions(useStatushouseStore, [
       "getListStatusHouse",
       "getObtenerOrdenStatusHouse",
       "GuardarStatusHouse",

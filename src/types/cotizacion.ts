@@ -84,6 +84,18 @@ export interface EstadoCotizacion {
   code?: number | string;
   name?: string;
   defaultstatus?: number | string | boolean;
+  description?: string | null;
+  position?: number | string;
+  position_select?: number | string;
+  position_report?: number | string;
+  position_calls?: number | string;
+  status_calls?: number | string;
+  status_calls_all?: number | string;
+  status?: number | string | boolean;
+  temperatura?: string;
+  id_branch?: number | string;
+  created_at?: string;
+  updated_at?: string;
 }
 
 export interface ItemBegEnd {
