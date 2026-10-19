@@ -112,6 +112,7 @@ import ConfiguraciónDatosEmpresaComponent from "../../components/FolderEnterpri
 import { mapActions } from "vuex";
 import { mapActions as mapPiniaActions } from "pinia";
 import { useSecuritysStore } from "@/stores/securitys";
+import { useConfigEmpresaStore } from "@/stores/configEmpresa";
 export default {
   components: {
     ConfiguraciónDatosEmpresaComponent,
@@ -150,9 +151,8 @@ export default {
       "_getDocumentsPais",
       "_getPais",
       "_getProveedor",
-      "finalizarConfiguracion",
-      "actualizarDatoEmpresa",
     ]),
+    ...mapPiniaActions(useConfigEmpresaStore, ["finalizarConfiguracion", "actualizarDatoEmpresa"]),
     ...mapPiniaActions(useSecuritysStore, ["ObtenerDatosConfig"]),
     async guardarDatosEmpresa() {
       this.$store.state.dialogProcessing = true;

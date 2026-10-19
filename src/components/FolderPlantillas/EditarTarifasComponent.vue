@@ -606,7 +606,7 @@
             ></v-text-field>
 
             <v-autocomplete
-              :items="$store.state.configEmpresa.listTipoCostos"
+              :items="configEmpresaStore.listTipoCostos"
               v-model="frmNuevoCosto.id_tipocosto"
               :rules="[(v) => !!v || 'Dato obligatorio']"
               item-value="name"
@@ -629,7 +629,7 @@
             ></v-text-field>
 
             <v-autocomplete item-title="text"
-              :items="$store.state.configEmpresa.lstMultiplicador"
+              :items="configEmpresaStore.lstMultiplicador"
               v-model="frmNuevoCosto.id_multiplicador"
               :rules="[(v) => !!v || 'Dato obligatorio']"
               item-value="id"
@@ -711,6 +711,8 @@
 import axios from '@/api/http';
 import Swal from "sweetalert2";
 import { mapActions } from "vuex";
+import { mapStores } from "pinia";
+import { useConfigEmpresaStore } from "@/stores/configEmpresa";
 
 export default {
   data() {
@@ -1123,6 +1125,7 @@ export default {
     },
   },
   computed: {
+    ...mapStores(useConfigEmpresaStore),
     modoPlantilla() {
       return this.modoEditor === 'plantilla';
     },

@@ -108,7 +108,7 @@
               <v-col cols="12">
                 <v-data-table
                   :headers="headers"
-                  :items="$store.state.configEmpresa.lstCostos"
+                  :items="configEmpresaStore.lstCostos"
                   class="elevation-1 table_costos"
                   item-value="id"
                   :loading="loadingTable"
@@ -164,7 +164,7 @@
                   </template>
                   <template v-slot:[`item.multiplicador`]="{ item }">
                     <v-autocomplete item-title="text"
-                      :items="$store.state.configEmpresa.lstMultiplicador"
+                      :items="configEmpresaStore.lstMultiplicador"
                       v-model="item.id_multiplicador"
                       density="compact"
                       hide-details
@@ -300,7 +300,7 @@
               v-model="frmNuevoCosto.servicio"
             />
             <v-autocomplete
-              :items="$store.state.configEmpresa.listTipoCostos"
+              :items="configEmpresaStore.listTipoCostos"
               v-model="frmNuevoCosto.id_tipocosto"
               :rules="[(v) => !!v || 'Dato obligatorio']"
               item-value="name"
@@ -322,7 +322,7 @@
             />
 
             <v-autocomplete item-title="text"
-              :items="$store.state.configEmpresa.lstMultiplicador"
+              :items="configEmpresaStore.lstMultiplicador"
               v-model="frmNuevoCosto.id_multiplicador"
               :rules="[(v) => !!v || 'Dato obligatorio']"
               item-value="id"
@@ -358,7 +358,7 @@
               <v-checkbox
                 class="mx-5"
                 v-if="
-                  this.$store.state.configEmpresa.lstCostos.some(
+                  this.configEmpresaStore.lstCostos.some(
                     (v) => v.exwflag
                   )
                 "
@@ -368,7 +368,7 @@
               <v-checkbox
                 class="mx-5"
                 v-if="
-                  this.$store.state.configEmpresa.lstCostos.some(
+                  this.configEmpresaStore.lstCostos.some(
                     (v) => v.fcaflag
                   )
                 "
@@ -378,7 +378,7 @@
               <v-checkbox
                 class="mx-5"
                 v-if="
-                  this.$store.state.configEmpresa.lstCostos.some(
+                  this.configEmpresaStore.lstCostos.some(
                     (v) => v.fobflag
                   )
                 "
@@ -388,7 +388,7 @@
               <v-checkbox
                 class="mx-5"
                 v-if="
-                  this.$store.state.configEmpresa.lstCostos.some(
+                  this.configEmpresaStore.lstCostos.some(
                     (v) => v.cfrflag
                   )
                 "
@@ -398,7 +398,7 @@
               <v-checkbox
                 class="mx-5"
                 v-if="
-                  this.$store.state.configEmpresa.lstCostos.some(
+                  this.configEmpresaStore.lstCostos.some(
                     (v) => v.cifflag
                   )
                 "
@@ -408,7 +408,7 @@
               <v-checkbox
                 class="mx-5"
                 v-if="
-                  this.$store.state.configEmpresa.lstCostos.some(
+                  this.configEmpresaStore.lstCostos.some(
                     (v) => v.ddpflag
                   )
                 "
@@ -443,7 +443,8 @@
 <script>
 import { defineAsyncComponent } from "vue";
 import Swal from "sweetalert2";
-import { mapActions } from "vuex";
+import { mapActions as mapPiniaActions, mapStores } from "pinia";
+import { useConfigEmpresaStore } from "@/stores/configEmpresa";
 
 export default {
   components: {
@@ -532,15 +533,11 @@ export default {
     this.loadingTable = false;
     await this.generarSecciones();
   },
+  computed: {
+    ...mapStores(useConfigEmpresaStore),
+  },
   methods: {
-    ...mapActions([
-      "obtenerConfigCostos",
-      "getMultiplicadorConfig",
-      "getTipoCostosConfig",
-      "guardarCostos",
-      "finalizarConfiguracion",
-      "OmitirConfiguracionCost",
-    ]),
+    ...mapPiniaActions(useConfigEmpresaStore, ["obtenerConfigCostos", "getMultiplicadorConfig", "getTipoCostosConfig", "guardarCostos", "finalizarConfiguracion", "OmitirConfiguracionCost"]),
     checkIfMobile() {
       this.isMobile = window.innerWidth <= 600; // 600px como referencia para dispositivos móviles
     },
@@ -554,7 +551,7 @@ export default {
     },
     async agregarNuevoCosto() {
       if ((await this.$refs.frmNuevosCostos.validate()).valid) {
-        this.$store.state.configEmpresa.lstCostos.push({
+        this.configEmpresaStore.lstCostos.push({
           exwflag: this.frmNuevoCosto.exwflag,
           fcaflag: this.frmNuevoCosto.fcaflag,
           fobflag: this.frmNuevoCosto.fobflag,
@@ -571,7 +568,7 @@ export default {
           code: 0,
         });
         this.dialog = false;
-        console.log(this.$store.state.configEmpresa.lstCostos);
+        console.log(this.configEmpresaStore.lstCostos);
       }
     },
     // omitir() {
@@ -675,7 +672,7 @@ export default {
       await this.guardarCostos({
         id_modality: this.id_modality,
         id_shipment: this.id_shipment,
-        lstCostos: this.$store.state.configEmpresa.lstCostos,
+        lstCostos: this.configEmpresaStore.lstCostos,
       });
       this.scrollToSubirCostos();
 
@@ -816,7 +813,7 @@ export default {
       await this.guardarCostos({
         id_modality: this.id_modality,
         id_shipment: this.id_shipment,
-        lstCostos: this.$store.state.configEmpresa.lstCostos,
+        lstCostos: this.configEmpresaStore.lstCostos,
       });
 
       if (this.indexShipment < this.ids_shipment.length - 1) {
@@ -884,22 +881,22 @@ export default {
     },
     generarHeader() {
       this.headers = [];
-      if (this.$store.state.configEmpresa.lstCostos.some((v) => v.exwflag)) {
+      if (this.configEmpresaStore.lstCostos.some((v) => v.exwflag)) {
         this.headers.push({ title: "EXW", key: "exwflag" });
       }
-      if (this.$store.state.configEmpresa.lstCostos.some((v) => v.fcaflag)) {
+      if (this.configEmpresaStore.lstCostos.some((v) => v.fcaflag)) {
         this.headers.push({ title: "FCA", key: "fcaflag" });
       }
-      if (this.$store.state.configEmpresa.lstCostos.some((v) => v.fobflag)) {
+      if (this.configEmpresaStore.lstCostos.some((v) => v.fobflag)) {
         this.headers.push({ title: "FOB", key: "fobflag" });
       }
-      if (this.$store.state.configEmpresa.lstCostos.some((v) => v.cfrflag)) {
+      if (this.configEmpresaStore.lstCostos.some((v) => v.cfrflag)) {
         this.headers.push({ title: "CFR", key: "cfrflag" });
       }
-      if (this.$store.state.configEmpresa.lstCostos.some((v) => v.cifflag)) {
+      if (this.configEmpresaStore.lstCostos.some((v) => v.cifflag)) {
         this.headers.push({ title: "CIF", key: "cifflag" });
       }
-      if (this.$store.state.configEmpresa.lstCostos.some((v) => v.ddpflag)) {
+      if (this.configEmpresaStore.lstCostos.some((v) => v.ddpflag)) {
         this.headers.push({ title: "DDP", key: "ddpflag" });
       }
       this.headers.push({ title: "TRAMO", key: "tramo" });
@@ -910,8 +907,8 @@ export default {
       this.headers.push({ title: "PROVEEDOR", key: "proveedor" });
     },
     generarSecciones() {
-      this.$store.state.configEmpresa.listTipoCostos = [];
-      let seccionesArr = this.$store.state.configEmpresa.lstCostos.map(
+      this.configEmpresaStore.listTipoCostos = [];
+      let seccionesArr = this.configEmpresaStore.lstCostos.map(
         (item) => {
           return item.seccion;
         }
@@ -930,7 +927,7 @@ export default {
         name: "DESTINO: GASTOS DE TERCEROS",
       });
 
-      this.$store.state.configEmpresa.listTipoCostos = lstSecciones;
+      this.configEmpresaStore.listTipoCostos = lstSecciones;
     },
     async finalizarConfig() {
       await this.finalizarConfiguracion();

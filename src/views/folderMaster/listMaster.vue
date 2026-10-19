@@ -36,11 +36,11 @@
 </template>
 <script>
 import { defineAsyncComponent } from "vue";
-import { mapActions } from "vuex";
 import { mapActions as mapPiniaActions } from "pinia";
 import { useSecuritysStore } from "@/stores/securitys";
 import listMasterCom from "@/components/folderMaster/listMaster.vue";
 import FiltroMaster from "@/components/filtros/FiltroMaster.vue";
+import { useConfigEmpresaStore } from "@/stores/configEmpresa";
 export default {
   name: "listEntities",
   components: {
@@ -59,7 +59,7 @@ export default {
     this.dialogConfig = !val.existemaster;
   },
   methods: {
-    ...mapActions(["GuardarConfiguracionEmpresa"]),
+    ...mapPiniaActions(useConfigEmpresaStore, ["GuardarConfiguracionEmpresa"]),
     ...mapPiniaActions(useSecuritysStore, ["ObtenerDatosConfig"]),
     async guardarConfig() {
       await this.GuardarConfiguracionEmpresa();

@@ -4,6 +4,7 @@ import miMixin from "../../components/mixins/funciones";
 import moment from "moment";
 import router from "@/router";
 import { useEnterprisesStore } from "@/stores/enterprises";
+import { useConfigEmpresaStore } from "@/stores/configEmpresa";
 import aduana from "./aduana";
 import modules from "./../index";
 const state = {
@@ -140,9 +141,13 @@ const mutations = {
   SET_TIPO_COSTOS(state, data) {
     state.listTipoCostos = data;
     state.namesection = data;
+    // While configEmpresa was a Vuex module this commit also ran its SET_TIPO_COSTOS.
+    useConfigEmpresaStore().listTipoCostos = data;
   },
   SET_MULTPLICADOR(state, data) {
     state.listMultiplicador = data;
+    // While configEmpresa was a Vuex module this commit also ran its SET_MULTPLICADOR.
+    useConfigEmpresaStore().lstMultiplicador = data;
   },
   SET_LIST_SERVICES(state, data) {
     state.listServices = data;

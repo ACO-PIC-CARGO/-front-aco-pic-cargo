@@ -134,3 +134,118 @@ export interface RegistroNuevaEmpresaRow {
   data_users: UsuarioLogin[] & { id_secutiry?: number };
   data_branch: unknown;
 }
+
+export interface DatoEmpresaConfig {
+  id?: number | string;
+  id_document?: number | string;
+  document?: string;
+  trade_name?: string;
+  logo?: string;
+  id_pais?: number | string;
+  id_logo?: number | string;
+  address?: string;
+  tipoimpuesto?: number | string;
+  impuesto?: number | string | null;
+  usarclientes?: boolean;
+  usaropadmin?: boolean;
+  img?: File | File[] | null;
+}
+
+export interface DatoUsuarioConfig {
+  usuario?: string;
+  birthday?: string;
+  departamento?: string;
+  description?: string;
+  document?: string;
+  ic?: string;
+  id?: number | string;
+  id_branch?: number | string;
+  id_document?: number | string;
+  id_pais?: number | string;
+  id_sex?: number | string;
+  id_user?: number | string;
+  names?: string;
+  nombrecompleto?: string;
+  path?: string;
+  second_surname?: string;
+  surname?: string;
+  phone?: string;
+  email?: string;
+}
+
+export type CeldaCarga = string | number | boolean | Date | null | undefined;
+
+export interface ProveedorCarga {
+  nombre_comercial: CeldaCarga;
+  nro_documento: CeldaCarga;
+  contacto_1: CeldaCarga;
+  contacto_telf_1: CeldaCarga;
+  contacto_2: CeldaCarga;
+  contacto_telf_2: CeldaCarga;
+  direccion: CeldaCarga;
+  telefono_1: CeldaCarga;
+  telefono_2: CeldaCarga;
+  email: CeldaCarga;
+}
+
+export interface ClienteCarga {
+  document: CeldaCarga;
+  nombre_completo: CeldaCarga;
+  nombre_fiscal: CeldaCarga;
+  direccion: CeldaCarga;
+  emailaddress: CeldaCarga;
+  contacto_1: CeldaCarga;
+  contacto_telf_1: CeldaCarga;
+  contacto_2: CeldaCarga;
+  contacto_telf_2: CeldaCarga;
+  telefono_1: CeldaCarga;
+  telefono_2: CeldaCarga;
+}
+
+export interface CostoConfig {
+  exwflag?: boolean;
+  fcaflag?: boolean;
+  fobflag?: boolean;
+  cfrflag?: boolean;
+  cifflag?: boolean;
+  ddpflag?: boolean;
+  tramo?: string;
+  servicio?: string;
+  concepto?: string;
+  id_multiplicador?: number | string;
+  monto?: number | string | null;
+  id_proveedor?: number | string;
+  seccion?: string;
+  code?: number | string;
+}
+
+export interface MultiplicadorConfig {
+  id: number;
+  value: number;
+  code: string;
+  text: string;
+  valor: number;
+}
+
+export interface TipoCostoConfig {
+  name: string;
+  codigo?: string;
+}
+
+export interface CorrelativosConfig {
+  correlativopricing: number | null;
+  correlativomaster: number | null;
+  correlativocge: number | null;
+}
+
+export interface FiltroCostosConfig {
+  id_modality: number | string;
+  shipment: string;
+}
+
+export interface GuardarCostosConfig {
+  id_modality: number | string;
+  id_shipment: number | string;
+  lstCostos: CostoConfig[];
+  id_branch?: number;
+}

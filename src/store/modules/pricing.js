@@ -5,6 +5,7 @@ import moment from "moment";
 import router from "@/router";
 import { useMasterusuariosStore } from "@/stores/masterusuarios";
 import { useEnterprisesStore } from "@/stores/enterprises";
+import { useConfigEmpresaStore } from "@/stores/configEmpresa";
 import modules from "./../index";
 const state = {
   search: "",
@@ -479,6 +480,8 @@ const mutations = {
   },
   SET_MULTPLICADOR(state, data) {
     state.listMultiplicador = data;
+    // While configEmpresa was a Vuex module this commit also ran its SET_MULTPLICADOR.
+    useConfigEmpresaStore().lstMultiplicador = data;
   },
   SET_ROLE(state, data) {
     state.listRoles = data;
@@ -498,6 +501,8 @@ const mutations = {
   SET_TIPO_COSTOS(state, data) {
     state.listTipoCostos = data;
     state.namesection = data;
+    // While configEmpresa was a Vuex module this commit also ran its SET_TIPO_COSTOS.
+    useConfigEmpresaStore().listTipoCostos = data;
   },
 };
 

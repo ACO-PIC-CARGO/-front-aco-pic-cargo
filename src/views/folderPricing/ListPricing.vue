@@ -97,6 +97,7 @@ import { mapActions } from "vuex";
 import { mapActions as mapPiniaActions } from "pinia";
 import { useSecuritysStore } from "@/stores/securitys";
 import { useMasterusuariosStore } from "@/stores/masterusuarios";
+import { useConfigEmpresaStore } from "@/stores/configEmpresa";
 
 export default {
   name: "ListPricingView",
@@ -140,7 +141,6 @@ export default {
     ...mapActions([
       "getQuoteCall",
       "getListEnviadoCliente",
-      "GuardarConfiguracionEmpresa",
       "getResumenPorEstado",
       "cargarClientes",
       "getMarketingList",
@@ -152,6 +152,7 @@ export default {
       "getListQuote",
       "getListRecibidoCotizacion",
     ]),
+    ...mapPiniaActions(useConfigEmpresaStore, ["GuardarConfiguracionEmpresa"]),
     ...mapPiniaActions(useMasterusuariosStore, ["cargarTemperaturaLeds"]),
     ...mapPiniaActions(useSecuritysStore, ["ObtenerDatosConfig"]),
     redirect() {

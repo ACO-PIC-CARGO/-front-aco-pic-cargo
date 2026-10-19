@@ -173,7 +173,7 @@
           </v-card-title>
           <v-data-table
             :headers="headers"
-            :items="$store.state.configEmpresa.lstClientes"
+            :items="configEmpresaStore.lstClientes"
             item-value="index"
             class="elevation-5"
           >
@@ -244,10 +244,10 @@
 
 <script>
 import { readSheet as readXlsxFile } from "read-excel-file/browser";
-import { mapActions } from "vuex";
 import Swal from "sweetalert2";
-import { mapStores } from "pinia";
+import { mapActions as mapPiniaActions, mapStores } from "pinia";
 import { useEnterprisesStore } from "@/stores/enterprises";
+import { useConfigEmpresaStore } from "@/stores/configEmpresa";
 export default {
   emits: ["omitir", "regresar", "continuarConfigurarTarifario"],
   data() {
@@ -285,10 +285,10 @@ export default {
     };
   },
   computed: {
-    ...mapStores(useEnterprisesStore),
+    ...mapStores(useConfigEmpresaStore, useEnterprisesStore),
   },
   methods: {
-    ...mapActions(["actualizarDatoCMCliente", "OmitirConfiguracionCost"]),
+    ...mapPiniaActions(useConfigEmpresaStore, ["actualizarDatoCMCliente", "OmitirConfiguracionCost"]),
     omitir() {
       this.enterprisesStore.datoClienteFlag = false;
       this.enterprisesStore.step++;
@@ -300,7 +300,7 @@ export default {
     async continuar() {
       this.scrollToSubirCostos();
       this.$store.state.dialogProcessing = true;
-      if (this.$store.state.configEmpresa.lstClientes.length > 0) {
+      if (this.configEmpresaStore.lstClientes.length > 0) {
         for (const subconjunto of this.dividirEnSubconjuntos()) {
           await this.actualizarDatoCMCliente(subconjunto);
         }
@@ -345,11 +345,11 @@ export default {
       const subconjuntos = [];
       for (
         let i = 0;
-        i < this.$store.state.configEmpresa.lstClientes.length;
+        i < this.configEmpresaStore.lstClientes.length;
         i += SUBCONJUNTO_TAMANO
       ) {
         subconjuntos.push(
-          this.$store.state.configEmpresa.lstClientes.slice(
+          this.configEmpresaStore.lstClientes.slice(
             i,
             i + SUBCONJUNTO_TAMANO
           )
@@ -372,7 +372,7 @@ export default {
       );
     },
     handleFileChange() {
-      this.$store.state.configEmpresa.lstClientes = [];
+      this.configEmpresaStore.lstClientes = [];
       readXlsxFile(this.files).then((rows) => {
         this.procesarDatosCliente(rows);
       });
@@ -418,7 +418,7 @@ export default {
       }
 
       for (let index = 1; index < rows.length; index++) {
-        this.$store.state.configEmpresa.lstClientes.push({
+        this.configEmpresaStore.lstClientes.push({
           document: rows[index][this.index_document],
           nombre_completo: rows[index][this.index_nombre_completo],
           nombre_fiscal: rows[index][this.index_nombre_fiscal],
@@ -435,7 +435,7 @@ export default {
       this.files = [];
     },
     eliminar(index) {
-      this.$store.state.configEmpresa.lstClientes.splice(index, 1);
+      this.configEmpresaStore.lstClientes.splice(index, 1);
     },
   },
   mounted() {

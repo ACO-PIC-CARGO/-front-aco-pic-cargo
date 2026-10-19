@@ -128,7 +128,7 @@
                           <template v-slot:[`item.multiplicador`]="{ item }">
                             <v-select item-title="text"
                               :items="
-                                $store.state.configEmpresa.lstMultiplicador
+                                configEmpresaStore.lstMultiplicador
                               "
                               v-model="item.id_multiplicador"
                               variant="outlined"
@@ -203,7 +203,7 @@
                           <template v-slot:[`item.multiplicador`]="{ item }">
                             <v-select item-title="text"
                               :items="
-                                $store.state.configEmpresa.lstMultiplicador
+                                configEmpresaStore.lstMultiplicador
                               "
                               v-model="item.id_multiplicador"
                               variant="outlined"
@@ -267,6 +267,8 @@
 
 <script>
 import { mapActions, mapState } from "vuex";
+import { mapActions as mapPiniaActions, mapStores } from "pinia";
+import { useConfigEmpresaStore } from "@/stores/configEmpresa";
 
 export default {
   data() {
@@ -313,6 +315,7 @@ export default {
     };
   },
   computed: {
+    ...mapStores(useConfigEmpresaStore),
     incoterms() {
       let Icoterms = [];
       [...this.$store.state.pricing.listIncoterms].forEach((element) => {
@@ -332,7 +335,7 @@ export default {
       return false;
     },
     panelesConDatos() {
-      const listaTipos = this.$store.state.configEmpresa.listTipoCostos;
+      const listaTipos = this.configEmpresaStore.listTipoCostos;
       if (!listaTipos) return [];
 
       // 1. Primero filtramos para quedarnos solo con los que sí tienen costos
@@ -365,10 +368,9 @@ export default {
       "setProfitPricingCostos",
     ]),
     ...mapActions([
-      "getTipoCostosConfig",
-      "getMultiplicadorConfig",
       "obtenerProveedorPricing",
     ]),
+    ...mapPiniaActions(useConfigEmpresaStore, ["getTipoCostosConfig", "getMultiplicadorConfig"]),
     obtenerCostosEnBaseTipoCosto(codigoTipoCosto) {
       console.log("tab", this.tab);
       let lstCostos = [];

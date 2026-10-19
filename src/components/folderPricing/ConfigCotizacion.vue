@@ -11,7 +11,7 @@
         variant="outlined"
         type="number"
         label="Correlativo de Cotización"
-        v-model="$store.state.configEmpresa.configEmpresa.correlativopricing"
+        v-model="configEmpresaStore.configEmpresa.correlativopricing"
         style="width: 50%"
       />
       <p>En caso no lo configure, se empezará desde 1</p>
@@ -20,9 +20,14 @@
 </template>
 
 <script>
+import { mapStores } from "pinia";
+import { useConfigEmpresaStore } from "@/stores/configEmpresa";
 export default {
+  computed: {
+    ...mapStores(useConfigEmpresaStore),
+  },
   mounted() {
-    this.$store.state.configEmpresa.configEmpresa.correlativopricing = 1;
+    this.configEmpresaStore.configEmpresa.correlativopricing = 1;
   },
 };
 </script>

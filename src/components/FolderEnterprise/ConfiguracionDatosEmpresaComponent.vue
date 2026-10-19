@@ -11,7 +11,7 @@
         label="Nombre de la empresa *"
         hide-details
         density="compact"
-        v-model="$store.state.configEmpresa.datoEmpresa.trade_name"
+        v-model="configEmpresaStore.datoEmpresa.trade_name"
         class="mayuscula"
       ></v-text-field>
     </v-col>
@@ -25,7 +25,7 @@
         hide-details
         prepend-icon=""
         density="compact"
-        v-model="$store.state.configEmpresa.datoEmpresa.img"
+        v-model="configEmpresaStore.datoEmpresa.img"
         @update:model-value="cargarLogo()"
         @click:append-inner.stop="abrirSelector"
       ></v-file-input>
@@ -33,12 +33,12 @@
     <v-col cols="12">
       <CboPais
         @paisSeleccionado="
-          $store.state.configEmpresa.datoEmpresa.id_pais = $event
+          configEmpresaStore.datoEmpresa.id_pais = $event
         "
         :outlined="true"
         :dense="true"
         :hideDetails="true"
-        :newId="$store.state.configEmpresa.datoEmpresa.id_pais"
+        :newId="configEmpresaStore.datoEmpresa.id_pais"
       />
     </v-col>
 
@@ -52,7 +52,7 @@
         density="compact"
         :error-messages="errorImp"
         :hide-details="!errorImp"
-        v-model="$store.state.configEmpresa.datoEmpresa.tipoimpuesto"
+        v-model="configEmpresaStore.datoEmpresa.tipoimpuesto"
         @update:model-value="errorImp = ''"
         placeholder="Indicanos el Nombre"
         persistent-placeholder
@@ -71,7 +71,7 @@
         variant="outlined"
         density="compact"
         hide-details
-        v-model="$store.state.configEmpresa.datoEmpresa.impuesto"
+        v-model="configEmpresaStore.datoEmpresa.impuesto"
       ></v-text-field>
     </v-col>
     <v-col cols="12">
@@ -92,7 +92,7 @@
     <v-col cols="12" class="py-0">
       Deseas que Aplique al Calculo de Impuestos de Aduana para tu clientes
       <v-radio-group
-        v-model="$store.state.configEmpresa.datoEmpresa.usarclientes"
+        v-model="configEmpresaStore.datoEmpresa.usarclientes"
         inline
       >
         <v-radio label="Si" :value="true" />
@@ -107,7 +107,7 @@
     <v-col cols="12" class="py-0">
       Deseas que aplique este para tus costos opertivos y administrativos
       <v-radio-group
-        v-model="$store.state.configEmpresa.datoEmpresa.usaropadmin"
+        v-model="configEmpresaStore.datoEmpresa.usaropadmin"
         inline
       >
         <v-radio label="Si" :value="true" />
@@ -125,7 +125,7 @@
         label="Dirección fiscal (Opcional)"
         hide-details
         density="compact"
-        v-model="$store.state.configEmpresa.datoEmpresa.address"
+        v-model="configEmpresaStore.datoEmpresa.address"
       ></v-text-field>
     </v-col>
     <v-col cols="12">
@@ -133,12 +133,12 @@
         <b>Administrador del Sistema</b>
       </p>
       <p>
-        <b>Nombre:</b> {{ $store.state.configEmpresa.dataUsuario.names }}
-        {{ $store.state.configEmpresa.dataUsuario.surname }}
-        {{ $store.state.configEmpresa.dataUsuario.second_surname }}
+        <b>Nombre:</b> {{ configEmpresaStore.dataUsuario.names }}
+        {{ configEmpresaStore.dataUsuario.surname }}
+        {{ configEmpresaStore.dataUsuario.second_surname }}
       </p>
-      <p><b>Teléfono:</b> {{ $store.state.configEmpresa.dataUsuario.phone }}</p>
-      <p><b>Email:</b> {{ $store.state.configEmpresa.dataUsuario.email }}</p>
+      <p><b>Teléfono:</b> {{ configEmpresaStore.dataUsuario.phone }}</p>
+      <p><b>Email:</b> {{ configEmpresaStore.dataUsuario.email }}</p>
     </v-col>
     <v-col cols="12" style="align-items: center; text-align: center">
       <v-btn class="mx-10" color="#7E7E7E" @click="$emit('omitir')">
@@ -156,6 +156,7 @@ import { mapActions } from "vuex";
 import CboPais from "@/components/comun/CboPais.vue";
 import { mapActions as mapPiniaActions, mapStores } from "pinia";
 import { useMasterusuariosStore } from "@/stores/masterusuarios";
+import { useConfigEmpresaStore } from "@/stores/configEmpresa";
 export default {
   components: {
     CboPais,
@@ -165,24 +166,24 @@ export default {
     return { datosEmpresa: { id_pais: null }, errorImp: "" };
   },
   watch: {
-    "$store.state.configEmpresa.datoEmpresa.impuesto"(newValue) {
+    "configEmpresaStore.datoEmpresa.impuesto"(newValue) {
       if (newValue === undefined || newValue === null) {
-        this.$store.state.configEmpresa.datoEmpresa.impuesto = 0;
+        this.configEmpresaStore.datoEmpresa.impuesto = 0;
       }
     },
   },
   computed: {
-    ...mapStores(useMasterusuariosStore),
+    ...mapStores(useConfigEmpresaStore, useMasterusuariosStore),
   },
   methods: {
     ...mapActions([
-      "actualizarDatoEmpresa",
       "_uploadFile",
     ]),
+    ...mapPiniaActions(useConfigEmpresaStore, ["actualizarDatoEmpresa"]),
     ...mapPiniaActions(useMasterusuariosStore, ["cargarImpuestoRenta"]),
     guardarEmpresa() {
       this.errorImp = "";
-      if (!this.$store.state.configEmpresa.datoEmpresa.tipoimpuesto) {
+      if (!this.configEmpresaStore.datoEmpresa.tipoimpuesto) {
         this.errorImp = "Dato Requerido";
         return false;
       }
@@ -192,18 +193,18 @@ export default {
       this.$refs.fileInput.$el.querySelector('input[type="file"]').click();
     },
     async cargarLogo() {
-      await this._uploadFile(this.$store.state.configEmpresa.datoEmpresa.img);
-      this.$store.state.configEmpresa.datoEmpresa.id_logo =
+      await this._uploadFile(this.configEmpresaStore.datoEmpresa.img);
+      this.configEmpresaStore.datoEmpresa.id_logo =
         this.$store.state.files.datosPath.insertid;
-      this.$store.state.configEmpresa.datoEmpresa.logo =
+      this.configEmpresaStore.datoEmpresa.logo =
         this.$store.state.files.datosPath.ruta;
       // console.log(this.$store.state.configEmpresa.datoEmpresa);
     },
     mostrarImpOtro() {
-      if (this.$store.state.configEmpresa.datoEmpresa.tipoimpuesto) {
+      if (this.configEmpresaStore.datoEmpresa.tipoimpuesto) {
         let cod = this.masterusuariosStore.lstImpRenta.filter(
           (v) =>
-            v.id == this.$store.state.configEmpresa.datoEmpresa.tipoimpuesto
+            v.id == this.configEmpresaStore.datoEmpresa.tipoimpuesto
         )[0].codigo01;
         return cod == "9";
       }
@@ -212,10 +213,10 @@ export default {
   },
   async mounted() {
     await this.cargarImpuestoRenta();
-    this.$store.state.configEmpresa.datoEmpresa = JSON.parse(
+    this.configEmpresaStore.datoEmpresa = JSON.parse(
       sessionStorage.getItem("dataBranch")
     )[0];
-    this.$store.state.configEmpresa.dataUsuario = JSON.parse(
+    this.configEmpresaStore.dataUsuario = JSON.parse(
       sessionStorage.getItem("dataUser")
     )[0];
   },

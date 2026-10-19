@@ -875,6 +875,7 @@ import mixins from "../../../components/mixins/funciones.js";
 import axios from "@/api/http";
 import FileSequenceInstructivo from "../../comun/fileSequenceInstructivo.vue";
 import Idempotency from "../../../components/mixins/utils.js";
+import { useConfigEmpresaStore } from "@/stores/configEmpresa";
 export default {
   mixins: [mixins, Idempotency],
   components: {
@@ -1040,8 +1041,8 @@ export default {
       "setNoteQuote",
       "getInstructivoId",
       "generaInstructivoparaguardata",
-      "GuardarConfiguracionEmpresa",
     ]),
+    ...mapPiniaActions(useConfigEmpresaStore, ["GuardarConfiguracionEmpresa"]),
     ...mapPiniaActions(useSecuritysStore, ["ObtenerDatosConfig"]),
     tienePagosAsociados() {
       if (this.id_exp) {

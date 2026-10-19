@@ -84,6 +84,7 @@ import { defineAsyncComponent } from "vue";
 import { mapActions } from "vuex";
 import { mapActions as mapPiniaActions } from "pinia";
 import { useSecuritysStore } from "@/stores/securitys";
+import { useConfigEmpresaStore } from "@/stores/configEmpresa";
 
 export default {
   name: "ListPricingView",
@@ -113,10 +114,10 @@ export default {
   },
   methods: {
     ...mapActions([
-      "GuardarConfiguracionEmpresa",
       "getResumenPorEstado",
       "getListQuoteAduana",
     ]),
+    ...mapPiniaActions(useConfigEmpresaStore, ["GuardarConfiguracionEmpresa"]),
     ...mapPiniaActions(useSecuritysStore, ["ObtenerDatosConfig"]),
     redirect() {
       this.$nextTick(() => {

@@ -20,7 +20,6 @@ import monedas from "./modules/moneda";
 import masters from "./modules/master";
 import bank from "./modules/bank";
 import reportes from "./modules/reporte";
-import configEmpresa from "./modules/configEmpresa";
 import configAviso from "./modules/configAviso";
 import aduana from "./modules/aduana";
 import proveedor from "./modules/proveedor";
@@ -2858,7 +2857,6 @@ export default createStore({
     monedas,
     masters,
     bank,
-    configEmpresa,
     configAviso,
     aduana,
     proveedor,
