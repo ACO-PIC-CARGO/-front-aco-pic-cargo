@@ -28,7 +28,7 @@
         <v-col cols="12">
           <v-data-table
             :headers="headers"
-            :items="$store.state.subgasto.lstSubGasto"
+            :items="subgastoStore.lstSubGasto"
             class="elevation-1"
             item-value="port_beginend_id"
             :loading="loading"
@@ -99,8 +99,10 @@
 </template>
 
 <script>
-import { mapActions } from "vuex";
 import Swal from "sweetalert2";
+import { mapActions as mapPiniaActions, mapStores } from "pinia";
+import { useGastosStore } from "@/stores/gastos";
+import { useSubgastoStore } from "@/stores/subgasto";
 export default {
   data() {
     return {
@@ -121,29 +123,33 @@ export default {
       ],
     };
   },
+  computed: {
+    ...mapStores(useSubgastoStore),
+  },
   methods: {
-    ...mapActions(["GetListSubGasto", "ActualizarSubGasto", "cargarGasto"]),
+    ...mapPiniaActions(useSubgastoStore, ["GetListSubGasto", "ActualizarSubGasto"]),
+    ...mapPiniaActions(useGastosStore, ["cargarGasto"]),
     async filtrar() {
-      this.$store.state.subgasto.tipo = "filter";
-      this.$store.state.subgasto.drawer = !this.$store.state.subgasto.drawer;
+      this.subgastoStore.tipo = "filter";
+      this.subgastoStore.drawer = !this.subgastoStore.drawer;
     },
     async ver(item) {
       let datos = { ...item };
-      this.$store.state.subgasto.tipo = "ver";
-      this.$store.state.subgasto.model = datos;
+      this.subgastoStore.tipo = "ver";
+      this.subgastoStore.model = datos;
 
-      this.$store.state.subgasto.drawer = !this.$store.state.subgasto.drawer;
+      this.subgastoStore.drawer = !this.subgastoStore.drawer;
     },
     async editar(item) {
       let datos = { ...item };
-      this.$store.state.subgasto.tipo = "editar";
-      this.$store.state.subgasto.model = datos;
+      this.subgastoStore.tipo = "editar";
+      this.subgastoStore.model = datos;
 
-      this.$store.state.subgasto.drawer = !this.$store.state.subgasto.drawer;
+      this.subgastoStore.drawer = !this.subgastoStore.drawer;
     },
     async nuevo() {
-      this.$store.state.subgasto.tipo = "nuevo";
-      this.$store.state.subgasto.model = {
+      this.subgastoStore.tipo = "nuevo";
+      this.subgastoStore.model = {
         id_gasto: "",
         code: "",
         description: "",
@@ -154,7 +160,7 @@ export default {
         id_branch: JSON.parse(sessionStorage.getItem("dataUser"))[0].id_branch,
       };
 
-      this.$store.state.subgasto.drawer = !this.$store.state.subgasto.drawer;
+      this.subgastoStore.drawer = !this.subgastoStore.drawer;
     },
     async eliminar(item) {
       Swal.fire({
@@ -170,7 +176,7 @@ export default {
       }).then(async (res) => {
         if (res.isConfirmed) {
           item.status = 0;
-          this.$store.state.subgasto.model = item;
+          this.subgastoStore.model = item;
           this.loading = true;
           await this.ActualizarSubGasto();
           await this.GetListSubGasto();

@@ -38,7 +38,7 @@
         v-if="!loading"
         class="elevation-1"
         :headers="headers"
-        :items="$store.state.gastos.list"
+        :items="gastosStore.list"
         item-value="id"
         :search="search"
       >
@@ -162,7 +162,7 @@
         <v-list-item class="px-0">
           
             <v-list-item-title class="text-headline-small">
-              Ver: {{ $store.state.gastos.record.description }}
+              Ver: {{ gastosStore.record.description }}
             </v-list-item-title>
           
         </v-list-item>
@@ -173,7 +173,7 @@
             <v-text-field
               label="Código"
               readonly
-              :model-value="$store.state.gastos.record.code"
+              :model-value="gastosStore.record.code"
             >
             </v-text-field>
           </v-row>
@@ -181,7 +181,7 @@
             <v-text-field
               label="Descripción"
               readonly
-              :model-value="$store.state.gastos.record.description"
+              :model-value="gastosStore.record.description"
             >
             </v-text-field>
           </v-row>
@@ -189,7 +189,7 @@
             <v-checkbox
               label="Se calcula en Reportes"
               readonly
-              v-model="$store.state.gastos.record.calculoflag"
+              v-model="gastosStore.record.calculoflag"
               :value-comparator="(value, checked) => Boolean(value) === checked"
             ></v-checkbox>
           </v-row>
@@ -197,10 +197,10 @@
             <v-switch
               readonly
               :label="`Estado: ${
-                !!$store.state.gastos.record.status ? 'Activo' : 'Inactivo'
+                !!gastosStore.record.status ? 'Activo' : 'Inactivo'
               }`"
               color="success"
-              v-model="$store.state.gastos.record.status"
+              v-model="gastosStore.record.status"
               :value-comparator="(value, checked) => Boolean(value) === checked"
             ></v-switch>
           </v-row>
@@ -245,7 +245,7 @@
         <v-list-item class="px-0">
           
             <v-list-item-title class="text-headline-small">
-              Modificar: {{ $store.state.gastos.record.description }}
+              Modificar: {{ gastosStore.record.description }}
             </v-list-item-title>
           
         </v-list-item>
@@ -400,9 +400,11 @@
 </template>
 
 <script>
-import { mapState, mapActions } from "vuex";
+import { mapState } from "vuex";
 import Swal from "sweetalert2";
 import axios from '@/api/http';
+import { mapActions as mapPiniaActions, mapStores } from "pinia";
+import { useGastosStore } from "@/stores/gastos";
 
 export default {
   name: "ListGastoComponent",
@@ -454,12 +456,7 @@ export default {
     this.$store.state.mainTitle = `Tipo de Gasto`;
   },
   methods: {
-    ...mapActions([
-      "fetchDataGasto",
-      "insertGasto",
-      "readGasto",
-      "updateGasto",
-    ]),
+    ...mapPiniaActions(useGastosStore, ["fetchDataGasto", "insertGasto", "readGasto", "updateGasto"]),
     updateStatus(newValue) {
       this.record.status = newValue ? 1 : 0;
     },
@@ -595,10 +592,11 @@ export default {
     },
   },
   computed: {
+    ...mapStores(useGastosStore),
     ...mapState(["list"]),
   },
   watch: {
-    "$store.state.gastos.record": {
+    "gastosStore.record": {
       handler(newRecord, oldRecord) {
         if (newRecord && Object.keys(newRecord).length > 0) {
           const { code, description, calculoflag, status } = newRecord;
@@ -608,7 +606,7 @@ export default {
       },
       immediate: true,
     },
-    "$store.state.gastos.loading": {
+    "gastosStore.loading": {
       handler(newList, oldList) {
         this.loading = newList == true ? false : true;
       },

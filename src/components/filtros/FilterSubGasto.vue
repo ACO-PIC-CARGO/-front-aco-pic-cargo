@@ -6,17 +6,17 @@
       <v-btn variant="text"
         icon
         color="default"
-        @click="$store.state.subgasto.drawer = !$store.state.subgasto.drawer"
+        @click="subgastoStore.drawer = !subgastoStore.drawer"
       >
         <v-icon>mdi-close</v-icon>
       </v-btn>
     </v-card-title>
-    <v-card-text v-if="$store.state.subgasto.tipo == 'filter'">
+    <v-card-text v-if="subgastoStore.tipo == 'filter'">
       <div class="col-12 py-1">
         <v-autocomplete
           label="Tipo de Gasto"
-          :items="$store.state.gastos.list"
-          v-model="$store.state.subgasto.filtros.id_gasto"
+          :items="gastosStore.list"
+          v-model="subgastoStore.filtros.id_gasto"
           item-title="description"
           item-value="id"
           clearable
@@ -25,23 +25,23 @@
       </div>
       <div class="col-12 py-1">
         <v-text-field
-          v-model="$store.state.subgasto.filtros.code"
+          v-model="subgastoStore.filtros.code"
           label="Código"
-          :clearable="$store.state.subgasto.tipo != 'ver'"
+          :clearable="subgastoStore.tipo != 'ver'"
         ></v-text-field>
       </div>
 
       <div class="col-12 py-1">
         <v-text-field
-          v-model="$store.state.subgasto.filtros.description"
+          v-model="subgastoStore.filtros.description"
           label="Descripción"
-          :clearable="$store.state.subgasto.tipo != 'ver'"
+          :clearable="subgastoStore.tipo != 'ver'"
         ></v-text-field>
       </div>
       <div class="col-12 py-1">
         <span> Se calcula en Reportes</span>
         <v-radio-group
-          v-model="$store.state.subgasto.filtros.calculoflag"
+          v-model="subgastoStore.filtros.calculoflag"
           inline
           density="compact"
         >
@@ -53,7 +53,7 @@
       <div class="col-12 py-1">
         <span> Se muestra en Reportes</span>
         <v-radio-group
-          v-model="$store.state.subgasto.filtros.mostrarflag"
+          v-model="subgastoStore.filtros.mostrarflag"
           inline
           density="compact"
         >
@@ -64,7 +64,7 @@
       </div>
       <div class="col-12 py-1">
         <span> Estado</span>
-        <v-radio-group v-model="$store.state.subgasto.filtros.status" inline density="compact">
+        <v-radio-group v-model="subgastoStore.filtros.status" inline density="compact">
           <v-radio label="Activo" color="green" :value="true"></v-radio>
           <v-radio label="Inactivo" color="red" :value="false"></v-radio>
           <v-radio label="Todos" color="blue" value="null"></v-radio>
@@ -76,20 +76,20 @@
         <div class="col-12 py-1">
           <v-autocomplete
             label="Tipo de Gasto (*)"
-            :items="$store.state.gastos.list"
-            v-model="$store.state.subgasto.model.id_gasto"
+            :items="gastosStore.list"
+            v-model="subgastoStore.model.id_gasto"
             item-title="description"
             item-value="id"
             :rules="[(v) => !!v || 'Dato Requerido']"
-            :readonly="$store.state.subgasto.tipo == 'ver'"
+            :readonly="subgastoStore.tipo == 'ver'"
             :item-props="(item) => ({ disabled: !item.status })"
           >
           </v-autocomplete>
         </div>
         <div class="col-12 py-1">
           <v-text-field
-            v-model="$store.state.subgasto.model.code"
-            :readonly="$store.state.subgasto.tipo != 'nuevo'"
+            v-model="subgastoStore.model.code"
+            :readonly="subgastoStore.tipo != 'nuevo'"
             label="Código (*)"
             v-on:blur="validateCodigo()"
             :error-messages="err"
@@ -103,10 +103,10 @@
         </div>
         <div class="col-12 py-1">
           <v-text-field
-            v-model="$store.state.subgasto.model.description"
-            :readonly="$store.state.subgasto.tipo == 'ver'"
+            v-model="subgastoStore.model.description"
+            :readonly="subgastoStore.tipo == 'ver'"
             label="Descripción (*)"
-            :clearable="$store.state.subgasto.tipo != 'ver'"
+            :clearable="subgastoStore.tipo != 'ver'"
             :rules="[
               (v) => !!v || 'Dato Requerido',
               (v) =>
@@ -118,26 +118,26 @@
         <div class="col-12 py-1">
           <v-checkbox
             label="Se calcula en Reportes"
-            v-model="$store.state.subgasto.model.calculoflag"
+            v-model="subgastoStore.model.calculoflag"
             :value-comparator="(value, checked) => Boolean(value) === checked"
           ></v-checkbox>
         </div>
         <div class="col-12 py-1">
           <v-checkbox
             label="Se Muestra en Reportes"
-            v-model="$store.state.subgasto.model.mostrarflag"
+            v-model="subgastoStore.model.mostrarflag"
             :value-comparator="(value, checked) => Boolean(value) === checked"
           ></v-checkbox>
         </div>
         <div class="col-12 py-1">
           <span> Estado</span>
           <v-switch
-            :readonly="$store.state.subgasto.tipo == 'ver'"
+            :readonly="subgastoStore.tipo == 'ver'"
             :label="`Estado: ${
-              !!$store.state.subgasto.model.status ? 'Activo' : 'Inactivo'
+              !!subgastoStore.model.status ? 'Activo' : 'Inactivo'
             }`"
             color="success"
-            v-model="$store.state.subgasto.model.status"
+            v-model="subgastoStore.model.status"
             :value-comparator="(value, checked) => Boolean(value) === checked"
           ></v-switch>
         </div>
@@ -149,7 +149,7 @@
       <v-btn
         class="mx-1"
         color="success"
-        v-if="$store.state.subgasto.tipo == 'filter'"
+        v-if="subgastoStore.tipo == 'filter'"
         @click="Filtrar()"
         :loading="loading"
         >Aceptar</v-btn
@@ -157,7 +157,7 @@
       <v-btn
         class="mx-1"
         color="default"
-        v-if="$store.state.subgasto.tipo == 'filter'"
+        v-if="subgastoStore.tipo == 'filter'"
         @click="Limpiar()"
         :loading="loading"
         >Limpiar</v-btn
@@ -165,7 +165,7 @@
       <v-btn
         class="mx-1"
         color="success"
-        v-if="$store.state.subgasto.tipo != 'filter'&& $store.state.subgasto.tipo != 'ver'"
+        v-if="subgastoStore.tipo != 'filter'&& subgastoStore.tipo != 'ver'"
         @click="Aceptar()"
         :loading="loading"
         >Aceptar</v-btn
@@ -173,7 +173,7 @@
       <v-btn
         class="mx-1"
         color="warning"
-        @click="$store.state.subgasto.drawer = !$store.state.subgasto.drawer"
+        @click="subgastoStore.drawer = !subgastoStore.drawer"
         :loading="loading"
         >Cerrar</v-btn
       >
@@ -181,7 +181,9 @@
   </v-card>
 </template>
 <script>
-import { mapActions } from "vuex";
+import { mapActions as mapPiniaActions, mapStores } from "pinia";
+import { useGastosStore } from "@/stores/gastos";
+import { useSubgastoStore } from "@/stores/subgasto";
 export default {
   data() {
     return {
@@ -193,23 +195,18 @@ export default {
     };
   },
   methods: {
-    ...mapActions([
-      "GetListSubGasto",
-      "getValidateCodeSubGasto",
-      "setSubGasto",
-      "ActualizarSubGasto",
-    ]),
+    ...mapPiniaActions(useSubgastoStore, ["GetListSubGasto", "getValidateCodeSubGasto", "setSubGasto", "ActualizarSubGasto"]),
     getName() {
-      if (this.$store.state.subgasto.tipo == "ver") {
+      if (this.subgastoStore.tipo == "ver") {
         return `Tipo de Subgasto ${this.model.description} – Modo Vista`;
       }
-      if (this.$store.state.subgasto.tipo == "nuevo") {
+      if (this.subgastoStore.tipo == "nuevo") {
         return "Nuevo Tipo de Subgasto";
       }
-      if (this.$store.state.subgasto.tipo == "editar") {
+      if (this.subgastoStore.tipo == "editar") {
         return `Modificar Tipo Subgasto: ${this.model.description}`;
       }
-      if (this.$store.state.subgasto.tipo == "filter") {
+      if (this.subgastoStore.tipo == "filter") {
         return "Filtrar Registros";
       }
     },
@@ -218,10 +215,10 @@ export default {
       this.loading = true;
       await this.GetListSubGasto();
       this.loading = false;
-      this.$store.state.subgasto.drawer = !this.$store.state.subgasto.drawer;
+      this.subgastoStore.drawer = !this.subgastoStore.drawer;
     },
     async Limpiar() {
-      this.$store.state.subgasto.filtros = {
+      this.subgastoStore.filtros = {
         id: "",
         id_gasto: "",
         code: "",
@@ -235,20 +232,20 @@ export default {
       await this.GetListSubGasto();
 
       this.loading = false;
-      this.$store.state.subgasto.drawer = !this.$store.state.subgasto.drawer;
+      this.subgastoStore.drawer = !this.subgastoStore.drawer;
     },
     async validateCodigo() {
       this.err = "";
-      if (this.$store.state.subgasto.tipo == "nuevo") {
+      if (this.subgastoStore.tipo == "nuevo") {
         let val = await this.getValidateCodeSubGasto();
         this.err = val.mensaje;
         if (val.estadoflag) {
-          this.$store.state.subgasto.model.code = "";
+          this.subgastoStore.model.code = "";
         }
       }
     },
     async Aceptar() {
-      if (this.$store.state.subgasto.tipo == "nuevo") {
+      if (this.subgastoStore.tipo == "nuevo") {
         if ((await this.$refs.frmDML.validate()).valid) {
           this.loading = true;
           await this.setSubGasto();
@@ -256,7 +253,7 @@ export default {
           this.loading = false;
         }
       }
-      if (this.$store.state.subgasto.tipo == "editar") {
+      if (this.subgastoStore.tipo == "editar") {
         this.loading = true;
         if ((await this.$refs.frmDML.validate()).valid) {
           await this.ActualizarSubGasto();
@@ -264,24 +261,25 @@ export default {
         }
         this.loading = false;
       }
-      if (this.$store.state.subgasto.tipo == "ver") {
-        this.$store.state.subgasto.drawer = !this.$store.state.subgasto.drawer;
+      if (this.subgastoStore.tipo == "ver") {
+        this.subgastoStore.drawer = !this.subgastoStore.drawer;
       }
     },
   },
   computed: {
+    ...mapStores(useSubgastoStore, useGastosStore),
     drawer: {
       get() {
-        return this.$store.state.subgasto.drawer;
+        return this.subgastoStore.drawer;
       },
       set(val) {
-        return (this.$store.state.subgasto.drawer = drawer);
+        return (this.subgastoStore.drawer = drawer);
       },
     },
   },
   watch: {
     drawer() {
-      this.model = { ...this.$store.state.subgasto.model };
+      this.model = { ...this.subgastoStore.model };
       this.$refs.frmDML.resetValidation();
     },
   },

@@ -447,7 +447,7 @@
                 clearable
                 v-model="gasto"
                 label="Gasto"
-                :items="$store.state.gastos.list"
+                :items="gastosStore.list"
                 item-title="description"
                 item-value="id"
                 multiple
@@ -461,7 +461,7 @@
                 clearable
                 v-model="subgasto"
                 label="Sub Gasto"
-                :items="$store.state.subgasto.lstSubGasto"
+                :items="subgastoStore.lstSubGasto"
                 item-title="description"
                 item-value="id"
                 multiple
@@ -511,6 +511,9 @@ import { mapState, mapActions } from "vuex";
 import exportFromJSON from "export-from-json";
 import moment from "moment";
 import Swal from "sweetalert2";
+import { mapActions as mapPiniaActions, mapStores } from "pinia";
+import { useGastosStore } from "@/stores/gastos";
+import { useSubgastoStore } from "@/stores/subgasto";
 export default {
   name: "debstoPay",
   components: {
@@ -725,6 +728,7 @@ export default {
     cerrar() {},
   },
   computed: {
+    ...mapStores(useSubgastoStore, useGastosStore),
     ...mapState(["provedores", "refreshReport", "listProgramacion"]),
     dateRange() {
       return this.date.join(" ~ ");
@@ -736,9 +740,9 @@ export default {
       "GetTotalCotizacion",
       "getModulesEntities",
       "obtenerImpuestoXEmpresa",
-      "cargarGasto",
-      "GetListSubGasto",
     ]),
+    ...mapPiniaActions(useSubgastoStore, ["GetListSubGasto"]),
+    ...mapPiniaActions(useGastosStore, ["cargarGasto"]),
     nuevaFecha({ item = null, tipo = null }) {
       this.$swal({
         icon: "question",

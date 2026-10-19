@@ -31,7 +31,6 @@ import bank from "./modules/bank";
 import modality from "./modules/modality";
 import transport from "./modules/transport";
 import reportes from "./modules/reporte";
-import gastos from "./modules/gastos";
 import ingresos from "./modules/ingresos";
 import shipment from "./modules/shipment";
 import multiplicador from "./modules/multiplicador";
@@ -45,7 +44,6 @@ import town from "./modules/town";
 import begend from "./modules/begend";
 import typepayment from "./modules/typepayment";
 import subingreso from "./modules/SubIngreso";
-import subgasto from "./modules/SubGasto";
 import itemServices from "./modules/itemServices";
 import user from "./modules/user";
 import position from "./modules/position";
@@ -2900,7 +2898,6 @@ export default createStore({
     bank,
     modality,
     transport,
-    gastos,
     ingresos,
     shipment,
     multiplicador,
@@ -2914,7 +2911,6 @@ export default createStore({
     begend,
     typepayment,
     subingreso,
-    subgasto,
     itemServices,
     user,
     position,
