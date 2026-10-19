@@ -4,14 +4,7 @@ import { storeToRefs } from "pinia";
 import { useStore } from "vuex";
 import { useConfiguracionStore } from "@/stores/configuracion";
 import type { TipoContenedor } from "@/types/catalogos";
-import type { TextoWhatsapp } from "@/types/configuracion";
-
-interface TextoWhatsappContenedor {
-  id_container: number;
-  name: string;
-  code?: string;
-  texto: TextoWhatsapp;
-}
+import type { TextoWhatsappFcl } from "@/types/configuracion";
 
 const rootStore = useStore();
 const configuracionStore = useConfiguracionStore();
@@ -20,7 +13,7 @@ const { fcl } = storeToRefs(configuracionStore);
 const loading = ref(false);
 
 const itemsContainers = computed<TipoContenedor[]>(() => rootStore.state.itemsContainers);
-const listadoTextoFCL = computed<TextoWhatsappContenedor[]>(() => {
+const listadoTextoFCL = computed<TextoWhatsappFcl[]>(() => {
   if (Object.keys(fcl.value).length > 0) {
     return itemsContainers.value.map((container) => ({
       id_container: container.id,

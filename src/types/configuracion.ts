@@ -1,4 +1,4 @@
-import type { Incoterm } from "./cotizacion";
+import type { Costo, Incoterm, Numerico } from "./cotizacion";
 
 export interface CostoPricing {
   id?: number | null;
@@ -63,6 +63,7 @@ export interface TextoWhatsapp {
 export interface TextoWhatsappFcl {
   id_container: number | string;
   name?: string;
+  code?: string;
   texto: TextoWhatsapp;
 }
 
@@ -102,14 +103,7 @@ export interface CostoBase {
   ddpflag?: boolean;
 }
 
-export interface TarifaCosto extends CostoBase {
-  status?: number;
-  esopcionflag?: number;
-  esfleteflag?: number;
-  esorigenflag?: number;
-  esdestinoflag?: number;
-  eslocalflag?: number;
-  esaduanaflag?: number;
-  esalmacenflag?: number;
-  esgastostercerosflag?: number;
+export interface TarifaCosto extends Costo, Omit<CostoBase, "id"> {
+  esopcionflag?: Numerico | boolean;
+  esdestinoflag?: Numerico | boolean;
 }

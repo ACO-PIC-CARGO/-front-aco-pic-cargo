@@ -103,7 +103,7 @@ async function abrirModal(id: number | string, incotermsName: string) {
 }
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
-const recargarProveedores = _.debounce(async (e: string | null) => {
+const recargarProveedores: (e: string | null) => void = _.debounce(async (e: string | null) => {
   if (!e) return; // No buscar si el input está vacío
 
   const IdProveedor = lstCostos.value.map((v) => v.id_proveedor);
@@ -264,9 +264,9 @@ watch(id_shipment, () => {
               : ''
           "
           :incoterms="incoterms"
-          :id-modality="id_modality as number"
-          :id-shipment="id_shipment as number"
-          :id-incoterms="id_incoterms as number"
+          :id-modality="id_modality"
+          :id-shipment="id_shipment"
+          :id-incoterms="id_incoterms"
           @cerrar-modal="dialog = false"
           @cerrar-modal-guardar="obtenerDatos(), (dialog = false)"
           @recargar-costos="cargarDatos()"

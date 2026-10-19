@@ -11,9 +11,9 @@ import type { TipoCostoConfig } from "@/types/empresas";
 
 const props = withDefaults(
   defineProps<{
-    idModality?: number | null;
-    idShipment?: number | null;
-    idIncoterms?: number | null;
+    idModality?: number | string | null;
+    idShipment?: number | string | null;
+    idIncoterms?: number | string | null;
     modality?: string | null;
     shipment?: string | null;
     incoterms?: string | null;
@@ -116,7 +116,7 @@ function abrirModal(codigoTipoCosto: string | undefined) {
   fromDataService.value.idOpcion = codigoTipoCosto;
   dialog.value = true;
 }
-const recargarProveedores = _.debounce(async (e: string | null) => {
+const recargarProveedores: (e: string | null) => void = _.debounce(async (e: string | null) => {
   if (!e) return;
 
   const IdProveedor = lstCostos.value.map((v) => v.id_proveedor);

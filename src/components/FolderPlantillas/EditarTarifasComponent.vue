@@ -8,7 +8,7 @@ import { useConfigEmpresaStore } from "@/stores/configEmpresa";
 import type { ApiResponse } from "@/types/api";
 import type { Modalidad } from "@/types/catalogos";
 import type { CostoBase, TarifaCosto } from "@/types/configuracion";
-import type { TipoCarga } from "@/types/cotizacion";
+import type { OpcionCosto, TipoCarga } from "@/types/cotizacion";
 
 const route = useRoute();
 const router = useRouter();
@@ -240,7 +240,7 @@ async function cargarTarifasCotizacion() {
     tarifasAlmacen.value = [];
     tarifasGastosTerceros.value = [];
 
-    opcionCostos.forEach((opcion: { listCostos?: TarifaCosto[] }) => {
+    opcionCostos.forEach((opcion: OpcionCosto) => {
       if (opcion.listCostos && Array.isArray(opcion.listCostos)) {
         const costos = opcion.listCostos.filter(costo => costo.esopcionflag == 1);
         tarifasCotizacion.value.push(...costos);
@@ -297,11 +297,11 @@ function abrirNuevoCosto() {
     confirmButtonText: 'Ok'
   });
 }
-function marcarComoModificado(item: CostoBase) {
+function marcarComoModificado(item: TarifaCosto) {
   console.log('Item modificado:', item);
   // Aquí se puede implementar el tracking de cambios
 }
-function eliminarTarifa(tarifa: CostoBase) {
+function eliminarTarifa(tarifa: TarifaCosto) {
   console.log('Eliminar tarifa:', tarifa);
   Swal.fire({
     icon: 'info',
