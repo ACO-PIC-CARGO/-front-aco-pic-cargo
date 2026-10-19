@@ -1,10 +1,43 @@
+<script setup lang="ts">
+import { onMounted, ref } from "vue";
+import type { ModuloMembresia } from "@/types/membresia";
+
+const props = defineProps<{ modules?: ModuloMembresia[] }>();
+
+const checkbox = ref(true);
+const items = [
+  { id: 1, label: "1 mes" },
+  { id: 2, label: "3 mes" },
+  { id: 3, label: "6 mes" },
+  { id: 4, label: "1 año" },
+];
+const idTiempo = ref(1);
+
+onMounted(() => {
+  props.modules!.map((item) => {
+    item.checkbox = true;
+  });
+});
+
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+function probar() {
+  console.log(props.modules);
+}
+</script>
+
 <template>
   <v-container fluid>
     <v-row>
-      <v-col cols="12" class="centrado">
+      <v-col
+        cols="12"
+        class="centrado"
+      >
         Estás a punto de adquirir ACO Full
       </v-col>
-      <v-col cols="12" class="centrado">
+      <v-col
+        cols="12"
+        class="centrado"
+      >
         Tendrás acceso completo a los siguientes módulos:
       </v-col>
       <v-col cols="12">
@@ -16,12 +49,20 @@
           :label="`${modulo.name}`"
           readonly
           density="compact"
-        ></v-checkbox>
+        />
       </v-col>
       <v-col cols="12">
         <v-row class="centrado">
-          <v-col cols="6" class="derecha">Total: $180.00 por</v-col>
-          <v-col cols="6" class="centrarElement">
+          <v-col
+            cols="6"
+            class="derecha"
+          >
+            Total: $180.00 por
+          </v-col>
+          <v-col
+            cols="6"
+            class="centrarElement"
+          >
             <v-select
               :items="items"
               v-model="idTiempo"
@@ -29,15 +70,21 @@
               item-value="id"
               variant="outlined"
               density="compact"
-            ></v-select>
+            />
           </v-col>
         </v-row>
       </v-col>
-      <v-col cols="12" class="centrado centro">
+      <v-col
+        cols="12"
+        class="centrado centro"
+      >
         A partir de la fecha de finalización del tiempo de prueba gratis (no
         perderás tus 15 días de prueba gratis).
       </v-col>
-      <v-col cols="12" class="centrado">
+      <v-col
+        cols="12"
+        class="centrado"
+      >
         Disfruta más tiempo de ACO y obtén un descuento exclusivo:
       </v-col>
       <v-col cols="12">
@@ -76,41 +123,26 @@
           </tbody>
         </v-table>
       </v-col>
-      <v-col cols="12" class="centrado">
-        <v-btn class="mx-5" color="red">Regresar</v-btn>
-        <v-btn class="mx-5" color="#527AC7">Continuar</v-btn>
+      <v-col
+        cols="12"
+        class="centrado"
+      >
+        <v-btn
+          class="mx-5"
+          color="red"
+        >
+          Regresar
+        </v-btn>
+        <v-btn
+          class="mx-5"
+          color="#527AC7"
+        >
+          Continuar
+        </v-btn>
       </v-col>
     </v-row>
   </v-container>
 </template>
-
-<script>
-export default {
-  props: ["modules"],
-  data() {
-    return {
-      checkbox: true,
-      items: [
-        { id: 1, label: "1 mes" },
-        { id: 2, label: "3 mes" },
-        { id: 3, label: "6 mes" },
-        { id: 4, label: "1 año" },
-      ],
-      idTiempo: 1,
-    };
-  },
-  mounted() {
-    this.modules.map((item) => {
-      item.checkbox = true;
-    });
-  },
-  methods: {
-    probar() {
-      console.log(this.modules);
-    },
-  },
-};
-</script>
 
 <style scope>
 .centrado {

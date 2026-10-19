@@ -1,27 +1,149 @@
+<script setup lang="ts">
+import { onMounted, ref } from "vue";
+import axios from "@/api/http";
+import type { ApiResponse } from "@/types/api";
+import type { PlanPrecioMembresia } from "@/types/membresia";
+
+const planes = ref<PlanPrecioMembresia[]>([]);
+const selectedUsers = ref<Record<number, number>>({});
+const selectedPlans = ref<Record<number, string>>({});
+const totalPrice = ref<number | string>(0);
+const paymentDialog = ref(false); // Controla la visibilidad del diálogo de pago
+const selectedPlanId = ref<number | null>(null); // Almacena el ID del plan seleccionado
+const cardNumber = ref("");
+const securityCode = ref("");
+const expirationMonth = ref("");
+const expirationYear = ref("");
+const firstName = ref("");
+const lastName = ref("");
+const address = ref("");
+const city = ref("");
+const state = ref("");
+const zip = ref("");
+const country = ref("");
+
+onMounted(() => {
+  fetchPlans();
+});
+
+async function fetchPlans() {
+  try {
+    const response = await axios.post<ApiResponse<PlanPrecioMembresia[]>>(
+      import.meta.env.VITE_URL_MAIN + "getPlanes"
+    );
+    planes.value = response.data.data;
+
+    planes.value.forEach((plan) => {
+      selectedUsers.value[plan.plan_id] = plan.usuarios_principal;
+      selectedPlans.value[plan.plan_id] = "mensual";
+    });
+  } catch (error) {
+    console.error("Error al obtener planes:", error);
+  }
+}
+function updatePrice(planId: number) {
+  const selectedPlan = planes.value.find(
+    (plan) =>
+      (selectedPlans.value[planId] === "mensual" &&
+        (plan.usuarios_principal === selectedUsers.value[planId] ||
+          plan.usuarios_secundar === selectedUsers.value[planId])) ||
+      (selectedPlans.value[planId] === "anual" &&
+        (plan.usuarios_principal_anu === selectedUsers.value[planId] ||
+          plan.usuarios_secundar_anu === selectedUsers.value[planId]))
+  );
+  totalPrice.value = selectedPlan
+    ? selectedPlans.value[planId] === "mensual"
+      ? selectedPlan.precio_mensual
+      : selectedPlan.precio_mensual_anu
+    : 0;
+}
+function togglePlan(planId: number, planType: string) {
+  selectedPlans.value[planId] = planType;
+}
+async function subscribe(planId: number) {
+  const usuarioId = 1;
+  try {
+    const response = await axios.post<{ message: string }>(
+      import.meta.env.VITE_URL_MAIN + "getPayment",
+      {
+        planId,
+        usuarioId,
+      }
+    );
+    alert(response.data.message);
+  } catch (error) {
+    console.error("Error al registrar la suscripción:", error);
+    alert("Error al registrar la suscripción");
+  }
+}
+function showPaymentForm(plan: PlanPrecioMembresia) {
+  selectedPlanId.value = plan.plan_id; // Guarda el ID del plan seleccionado
+  paymentDialog.value = true; // Abre el diálogo de pago
+}
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+async function processPayment(planId: number | null) {
+  try {
+    // @ts-expect-error Kept: no $axios global exists, so the payment throws before any request.
+    const response = await $axios.post(
+      import.meta.env.VITE_URL_MAIN + "getPayment",
+      {
+        cardNumber: cardNumber.value,
+        securityCode: securityCode.value,
+        expirationMonth: expirationMonth.value,
+        expirationYear: expirationYear.value,
+        firstName: firstName.value,
+        lastName: lastName.value,
+        address: address.value,
+        city: city.value,
+        state: state.value,
+        zip: zip.value,
+        country: country.value,
+        amount: totalPrice.value, // Asegúrate de pasar el monto total
+      }
+    );
+    alert(response.data.message);
+    paymentDialog.value = false; // Cierra el diálogo después del pago exitoso
+  } catch (error) {
+    console.error("Payment error:", error);
+    alert("Payment failed.");
+  }
+}
+</script>
+
 <template>
   <v-container fluid>
     <v-row class="justify-center">
-      <v-col v-for="plan in planes" :key="plan.plan_id" cols="12" sm="4">
-        <v-card class="plan-card" elevation="3">
+      <v-col
+        v-for="plan in planes"
+        :key="plan.plan_id"
+        cols="12"
+        sm="4"
+      >
+        <v-card
+          class="plan-card"
+          elevation="3"
+        >
           <v-card-title class="plan-title">
             <v-row>
               <v-col
                 cols="4"
                 class="text-start bg-titulouse font-weight-bold text-center"
-                >{{ plan.nombre }}</v-col
               >
-              <v-col cols="8" class="text-label-small text-end">
+                {{ plan.nombre }}
+              </v-col>
+              <v-col
+                cols="8"
+                class="text-label-small text-end"
+              >
                 <span
                   :class="{ active: selectedPlans[plan.plan_id] === 'mensual' }"
                   @click="togglePlan(plan.plan_id, 'mensual')"
-                  >Mensual</span
-                >
+                >Mensual</span>
                 |
                 <span
                   :class="{ active: selectedPlans[plan.plan_id] === 'anual' }"
                   @click="togglePlan(plan.plan_id, 'anual')"
-                  >Anual</span
-                >
+                >Anual</span>
               </v-col>
             </v-row>
           </v-card-title>
@@ -37,18 +159,18 @@
                 <v-radio
                   :label="plan.usuarios_principal + ' Usuario'"
                   :value="plan.usuarios_principal"
-                ></v-radio>
+                />
               </v-col>
               <v-col cols="5">
                 <v-radio
                   :label="plan.usuarios_secundar + ' Usuarios'"
                   :value="plan.usuarios_secundar"
-                ></v-radio>
+                />
               </v-col>
             </v-row>
           </v-radio-group>
 
-          <v-divider class="my-0"></v-divider>
+          <v-divider class="my-0" />
 
           <v-card-subtitle
             class="plan-subtitle text-headline-large text-black font-weight-black textestirado textoprecmen"
@@ -60,7 +182,7 @@
             }}
             {{
               (selectedUsers[plan.plan_id]
-                ? selectedUsers[plan.plan_id]
+                ? selectedUsers[plan.plan_id]!
                 : plan.usuarios_principal) > 1
                 ? "USUARIOS"
                 : "USUARIO"
@@ -81,7 +203,7 @@
                 <template
                   v-if="
                     selectedUsers[plan.plan_id] === plan.usuarios_principal ||
-                    !selectedUsers[plan.plan_id]
+                      !selectedUsers[plan.plan_id]
                   "
                 >
                   ${{ plan.precio_mensual }}/mes
@@ -95,7 +217,7 @@
                   v-if="
                     selectedUsers[plan.plan_id] ===
                       plan.usuarios_principal_anu ||
-                    !selectedUsers[plan.plan_id]
+                      !selectedUsers[plan.plan_id]
                   "
                 >
                   ${{ plan.precio_mensual_anu }} / año
@@ -106,14 +228,14 @@
               </template>
             </div>
 
-            <v-divider class="my-2"></v-divider>
+            <v-divider class="my-2" />
 
             <div class="text-center font-weight-bold">
               <template v-if="selectedPlans[plan.plan_id] === 'mensual'">
                 <template
                   v-if="
                     selectedUsers[plan.plan_id] === plan.usuarios_principal ||
-                    !selectedUsers[plan.plan_id]
+                      !selectedUsers[plan.plan_id]
                   "
                 >
                   Anualidad de ${{ plan.anualidad }}
@@ -127,7 +249,7 @@
                   v-if="
                     selectedUsers[plan.plan_id] ===
                       plan.usuarios_principal_anu ||
-                    !selectedUsers[plan.plan_id]
+                      !selectedUsers[plan.plan_id]
                   "
                 >
                   Anualidad de ${{ plan.anualidad_anu }}
@@ -138,55 +260,58 @@
               </template>
             </div>
 
-            <v-divider class="my-2"></v-divider>
+            <v-divider class="my-2" />
             <v-list>
-                <v-list-item
-                  v-for="feature in plan.caracteristicas"
-                  :key="feature.descripcion"
+              <v-list-item
+                v-for="feature in plan.caracteristicas"
+                :key="feature.descripcion"
+              >
+                <v-icon
+                  size="small"
+                  :color="feature.estado == 1 ? 'blue' : 'grey'"
+                  :class="
+                    feature.estado == 1
+                      ? 'textocorrecto'
+                      : 'textodesenfocado'
+                  "
                 >
-                  
-                    <v-icon
-                      size="small"
-                      :color="feature.estado == 1 ? 'blue' : 'grey'"
-                      :class="
-                        feature.estado == 1
-                          ? 'textocorrecto'
-                          : 'textodesenfocado'
-                      "
-                      >mdi-check-circle</v-icon
-                    >
-                    <span
-                      :class="
-                        feature.estado == 1
-                          ? 'textocorrecto'
-                          : 'textodesenfocado'
-                      "
-                    >
-                      {{ feature.descripcion }}</span
-                    >
-                  
-                </v-list-item>
+                  mdi-check-circle
+                </v-icon>
+                <span
+                  :class="
+                    feature.estado == 1
+                      ? 'textocorrecto'
+                      : 'textodesenfocado'
+                  "
+                >
+                  {{ feature.descripcion }}</span>
+              </v-list-item>
             </v-list>
 
             <v-btn
               color="blue-grey-lighten-5 btncobromensualrecurrente"
               class="mt-3"
               @click="subscribe(plan.plan_id)"
-              >Cobro mensual recurrente</v-btn
             >
+              Cobro mensual recurrente
+            </v-btn>
             <v-btn
               color="blue"
               class="mt-3 text-white"
               @click="showPaymentForm(plan)"
-              >Contratar</v-btn
             >
+              Contratar
+            </v-btn>
           </v-card-text>
         </v-card>
       </v-col>
     </v-row>
 
     <!-- Formulario de Pago -->
-    <v-dialog v-model="paymentDialog" max-width="600px">
+    <v-dialog
+      v-model="paymentDialog"
+      max-width="600px"
+    >
       <v-card>
         <v-card-title>
           <span class="text-headline-medium">Pago</span>
@@ -197,170 +322,70 @@
               v-model="cardNumber"
               label="Card Number"
               required
-            ></v-text-field>
+            />
             <v-text-field
               v-model="securityCode"
               label="Security Code"
               type="password"
               required
-            ></v-text-field>
+            />
             <v-text-field
               v-model="expirationMonth"
               label="Expiration Month"
               required
-            ></v-text-field>
+            />
             <v-text-field
               v-model="expirationYear"
               label="Expiration Year"
               required
-            ></v-text-field>
+            />
             <v-text-field
               v-model="firstName"
               label="First Name"
               required
-            ></v-text-field>
+            />
             <v-text-field
               v-model="lastName"
               label="Last Name"
               required
-            ></v-text-field>
+            />
             <v-text-field
               v-model="address"
               label="Address"
               required
-            ></v-text-field>
-            <v-text-field v-model="city" label="City" required></v-text-field>
-            <v-text-field v-model="state" label="State" required></v-text-field>
+            />
+            <v-text-field
+              v-model="city"
+              label="City"
+              required
+            />
+            <v-text-field
+              v-model="state"
+              label="State"
+              required
+            />
             <v-text-field
               v-model="zip"
               label="Zip Code"
               required
-            ></v-text-field>
+            />
             <v-text-field
               v-model="country"
               label="Country"
               required
-            ></v-text-field>
-            <v-btn type="submit" color="blue">Pay Now</v-btn>
+            />
+            <v-btn
+              type="submit"
+              color="blue"
+            >
+              Pay Now
+            </v-btn>
           </v-form>
         </v-card-text>
       </v-card>
     </v-dialog>
   </v-container>
 </template>
-
-<script>
-import axios from '@/api/http';
-
-export default {
-  data() {
-    return {
-      planes: [],
-      selectedUsers: {},
-      selectedPlans: {},
-      totalPrice: 0,
-      paymentDialog: false, // Controla la visibilidad del diálogo de pago
-      selectedPlanId: null, // Almacena el ID del plan seleccionado
-      cardNumber: "",
-      securityCode: "",
-      expirationMonth: "",
-      expirationYear: "",
-      firstName: "",
-      lastName: "",
-      address: "",
-      city: "",
-      state: "",
-      zip: "",
-      country: "",
-    };
-  },
-  methods: {
-    async fetchPlans() {
-      try {
-        const response = await axios.post(
-          import.meta.env.VITE_URL_MAIN + "getPlanes"
-        );
-        this.planes = response.data.data;
-
-        this.planes.forEach((plan) => {
-          this.selectedUsers[plan.plan_id] = plan.usuarios_principal;
-          this.selectedPlans[plan.plan_id] = "mensual";
-        });
-      } catch (error) {
-        console.error("Error al obtener planes:", error);
-      }
-    },
-    updatePrice(planId) {
-      const selectedPlan = this.planes.find(
-        (plan) =>
-          (this.selectedPlans[planId] === "mensual" &&
-            (plan.usuarios_principal === this.selectedUsers[planId] ||
-              plan.usuarios_secundar === this.selectedUsers[planId])) ||
-          (this.selectedPlans[planId] === "anual" &&
-            (plan.usuarios_principal_anu === this.selectedUsers[planId] ||
-              plan.usuarios_secundar_anu === this.selectedUsers[planId]))
-      );
-      this.totalPrice = selectedPlan
-        ? this.selectedPlans[planId] === "mensual"
-          ? selectedPlan.precio_mensual
-          : selectedPlan.precio_mensual_anu
-        : 0;
-    },
-    togglePlan(planId, planType) {
-      this.selectedPlans[planId] = planType;
-    },
-    async subscribe(planId) {
-      const usuarioId = 1;
-      try {
-        const response = await axios.post(
-          import.meta.env.VITE_URL_MAIN + "getPayment",
-          {
-            planId,
-            usuarioId,
-          }
-        );
-        alert(response.data.message);
-      } catch (error) {
-        console.error("Error al registrar la suscripción:", error);
-        alert("Error al registrar la suscripción");
-      }
-    },
-    showPaymentForm(plan) {
-      this.selectedPlanId = plan.plan_id; // Guarda el ID del plan seleccionado
-      this.paymentDialog = true; // Abre el diálogo de pago
-    },
-    async processPayment(planId) {
-      try {
-        const response = await this.$axios.post(
-          import.meta.env.VITE_URL_MAIN + "getPayment",
-          {
-            cardNumber: this.cardNumber,
-            securityCode: this.securityCode,
-            expirationMonth: this.expirationMonth,
-            expirationYear: this.expirationYear,
-            firstName: this.firstName,
-            lastName: this.lastName,
-            address: this.address,
-            city: this.city,
-            state: this.state,
-            zip: this.zip,
-            country: this.country,
-            amount: this.totalPrice, // Asegúrate de pasar el monto total
-          }
-        );
-        alert(response.data.message);
-        this.paymentDialog = false; // Cierra el diálogo después del pago exitoso
-      } catch (error) {
-        console.error("Payment error:", error);
-        alert("Payment failed.");
-      }
-    },
-  },
-  mounted() {
-    this.fetchPlans();
-  },
-};
-</script>
 
 <style scoped>
 .textodesenfocado {

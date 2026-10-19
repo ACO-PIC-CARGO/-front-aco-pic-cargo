@@ -1,8 +1,40 @@
+<script setup lang="ts">
+import { defineAsyncComponent, ref } from "vue";
+import type { ModuloMembresia } from "@/types/membresia";
+
+const AcoFull = defineAsyncComponent(() => import("../Membresia/AcoFull.vue"));
+
+const dialogPorModulo = ref(false);
+const dialogFull = ref(false);
+const dialogDosModulos = ref(false);
+const modules = ref<ModuloMembresia[]>([
+  { id: 1, name: "ACO Pricing" },
+  { id: 2, name: "ACO Operaciones" },
+  { id: 3, name: "ACO Finanzas" },
+]);
+
+function abrirPorModulo() {
+  dialogPorModulo.value = true;
+}
+function abrirFull() {
+  dialogFull.value = true;
+}
+function abrirDosModulos() {
+  dialogDosModulos.value = true;
+}
+</script>
+
 <template>
   <v-container fluid>
     <v-row class="mt-5 centrar-items">
-      <v-col cols="4" class="px-5">
-        <v-card class="cards" elevation="5">
+      <v-col
+        cols="4"
+        class="px-5"
+      >
+        <v-card
+          class="cards"
+          elevation="5"
+        >
           <div class="cuerpoMembresia">
             <p class="pt-5 centrado">
               <span class="title text-headline-small"> ACO Por Módulo</span>
@@ -19,33 +51,53 @@
             <div class="mt-15">
               <ul>
                 <li>
-                  <v-icon color="green">mdi-check-bold</v-icon> Acceso completo
+                  <v-icon color="green">
+                    mdi-check-bold
+                  </v-icon> Acceso completo
                   al módulo seleccionado
                 </li>
                 <li>
-                  <v-icon color="green">mdi-check-bold</v-icon> Reportes
+                  <v-icon color="green">
+                    mdi-check-bold
+                  </v-icon> Reportes
                   ilimitados del módulo seleccionado
                 </li>
                 <li>
-                  <v-icon color="green">mdi-check-bold</v-icon> Hasta 3 usuarios
+                  <v-icon color="green">
+                    mdi-check-bold
+                  </v-icon> Hasta 3 usuarios
                   activos
                 </li>
                 <li>
-                  <v-icon color="green">mdi-check-bold</v-icon> 3 hrs. de
+                  <v-icon color="green">
+                    mdi-check-bold
+                  </v-icon> 3 hrs. de
                   Soporte gratis/ mes
                 </li>
               </ul>
             </div>
           </div>
-          <div class="col-12 centrado">
-            <v-btn @click="abrirPorModulo()" color="#2749C1"
-              >Contratar</v-btn
+          <v-col
+            cols="12"
+            class="centrado"
+          >
+            <v-btn
+              @click="abrirPorModulo()"
+              color="#2749C1"
             >
-          </div>
+              Contratar
+            </v-btn>
+          </v-col>
         </v-card>
       </v-col>
-      <v-col cols="4" class="px-5">
-        <v-card class="cards" elevation="5">
+      <v-col
+        cols="4"
+        class="px-5"
+      >
+        <v-card
+          class="cards"
+          elevation="5"
+        >
           <div class="cuerpoMembresia">
             <section class="centrado">
               <span class="flotante">RECOMENDADO</span>
@@ -64,35 +116,67 @@
               <span class="decimales">¡Ahorra $324.00!</span>
             </p>
             <div class="mt-5">
-              <p class="mx-5">Acceso completo a</p>
+              <p class="mx-5">
+                Acceso completo a
+              </p>
               <ul>
-                <li><v-icon color="green">mdi-check-bold</v-icon> Pricing</li>
                 <li>
-                  <v-icon color="green">mdi-check-bold</v-icon> Operaciones
+                  <v-icon color="green">
+                    mdi-check-bold
+                  </v-icon> Pricing
                 </li>
-                <li><v-icon color="green">mdi-check-bold</v-icon> Finanzas</li>
                 <li>
-                  <v-icon color="green">mdi-check-bold</v-icon> Reportes
+                  <v-icon color="green">
+                    mdi-check-bold
+                  </v-icon> Operaciones
+                </li>
+                <li>
+                  <v-icon color="green">
+                    mdi-check-bold
+                  </v-icon> Finanzas
+                </li>
+                <li>
+                  <v-icon color="green">
+                    mdi-check-bold
+                  </v-icon> Reportes
                   ilimitados
                 </li>
                 <li>
-                  <v-icon color="green">mdi-check-bold</v-icon> Hasta 3 usuarios
+                  <v-icon color="green">
+                    mdi-check-bold
+                  </v-icon> Hasta 3 usuarios
                   activos
                 </li>
                 <li>
-                  <v-icon color="green">mdi-check-bold</v-icon>Soporte
+                  <v-icon color="green">
+                    mdi-check-bold
+                  </v-icon>Soporte
                   ilimitados
                 </li>
               </ul>
             </div>
           </div>
-          <div class="col-12 centrado">
-            <v-btn @click="abrirFull()" color="#2749C1">Contratar</v-btn>
-          </div>
+          <v-col
+            cols="12"
+            class="centrado"
+          >
+            <v-btn
+              @click="abrirFull()"
+              color="#2749C1"
+            >
+              Contratar
+            </v-btn>
+          </v-col>
         </v-card>
       </v-col>
-      <v-col cols="4" class="px-5">
-        <v-card class="cards" elevation="5">
+      <v-col
+        cols="4"
+        class="px-5"
+      >
+        <v-card
+          class="cards"
+          elevation="5"
+        >
           <div class="cuerpoMembresia">
             <p class="pt-5 centrado">
               <span class="title text-headline-small"> ACO Dos Módulos</span>
@@ -109,78 +193,75 @@
             <div class="mt-15">
               <ul>
                 <li>
-                  <v-icon color="green">mdi-check-bold</v-icon> Acceso completo
+                  <v-icon color="green">
+                    mdi-check-bold
+                  </v-icon> Acceso completo
                   a los módulos seleccionados
                 </li>
                 <li>
-                  <v-icon color="green">mdi-check-bold</v-icon> Reportes
+                  <v-icon color="green">
+                    mdi-check-bold
+                  </v-icon> Reportes
                   ilimitados de los módulos seleccionados
                 </li>
                 <li>
-                  <v-icon color="green">mdi-check-bold</v-icon> Hasta 3 usuarios
+                  <v-icon color="green">
+                    mdi-check-bold
+                  </v-icon> Hasta 3 usuarios
                   activos
                 </li>
                 <li>
-                  <v-icon color="green">mdi-check-bold</v-icon> 7 hrs. de
+                  <v-icon color="green">
+                    mdi-check-bold
+                  </v-icon> 7 hrs. de
                   Soporte gratis/ mes
                 </li>
               </ul>
             </div>
           </div>
-          <div class="col-12 centrado">
-            <v-btn @click="abrirDosModulos()" color="#2749C1"
-              >Contratar</v-btn
+          <v-col
+            cols="12"
+            class="centrado"
+          >
+            <v-btn
+              @click="abrirDosModulos()"
+              color="#2749C1"
             >
-          </div>
+              Contratar
+            </v-btn>
+          </v-col>
         </v-card>
       </v-col>
     </v-row>
     <!-- MODALES  -->
-    <v-dialog v-model="dialogPorModulo" scrollable persistent max-width="60%">
-      <v-card> </v-card>
+    <v-dialog
+      v-model="dialogPorModulo"
+      scrollable
+      persistent
+      max-width="60%"
+    >
+      <v-card />
     </v-dialog>
-    <v-dialog v-model="dialogFull" scrollable persistent max-width="50%">
+    <v-dialog
+      v-model="dialogFull"
+      scrollable
+      persistent
+      max-width="50%"
+    >
       <v-card>
         <AcoFull :modules="modules" />
       </v-card>
     </v-dialog>
-    <v-dialog v-model="dialogDosModulos" scrollable persistent max-width="80%">
+    <v-dialog
+      v-model="dialogDosModulos"
+      scrollable
+      persistent
+      max-width="80%"
+    >
       <v-card> dialogDosModulos </v-card>
     </v-dialog>
   </v-container>
 </template>
-
-<script>
-import { defineAsyncComponent } from "vue";
-export default {
-  components: {
-    AcoFull: defineAsyncComponent(() => import("../Membresia/AcoFull.vue")),
-  },
-  data() {
-    return {
-      dialogPorModulo: false,
-      dialogFull: false,
-      dialogDosModulos: false,
-      modules: [
-        { id: 1, name: "ACO Pricing" },
-        { id: 2, name: "ACO Operaciones" },
-        { id: 3, name: "ACO Finanzas" },
-      ],
-    };
-  },
-  methods: {
-    abrirPorModulo() {
-      this.dialogPorModulo = true;
-    },
-    abrirFull() {
-      this.dialogFull = true;
-    },
-    abrirDosModulos() {
-      this.dialogDosModulos = true;
-    },
-  },
-};
-</script>
 
 <style scope>
 .decimales {
