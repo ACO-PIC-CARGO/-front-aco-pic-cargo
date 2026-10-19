@@ -215,3 +215,53 @@ export interface MovimientosCliente {
   estadoflag?: boolean;
   mensaje?: string;
 }
+
+export interface EntidadRolListado {
+  id: number;
+  document?: string | null;
+  documentlong?: string;
+  namelong?: string;
+  location?: string;
+  address?: string;
+  notes?: string;
+}
+
+export interface EntidadControl {
+  id: number;
+  names?: string;
+  surname?: string;
+  second_surname?: string;
+  tradename?: string;
+  business_name?: string;
+  birthday?: string;
+  document?: string;
+  address?: string;
+  notes?: string;
+  id_pais?: number;
+  id_state?: number;
+  id_city?: number;
+  id_town?: number;
+  id_sex?: number;
+  id_document?: number;
+  id_role?: number;
+  diascredito?: number;
+  diasdeuda?: number;
+  id_tipo_proveedor?: number;
+}
+
+export interface OpcionCuentaBancaria {
+  id: number;
+  name: string;
+  acronym?: string;
+}
+
+export interface CuentaEntidadNueva {
+  id?: number;
+  accountIdTypeAccount: number | string;
+  nameaccount: string;
+  accountIdBanks: number | string;
+  namebanks: string;
+  accountIdCoins: number | string;
+  namecoins: string;
+  accountnumber: string;
+}

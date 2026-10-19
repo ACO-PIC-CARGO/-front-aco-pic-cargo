@@ -18,7 +18,7 @@ const NuevoCliente = defineAsyncComponent(
 );
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 const listEntitie = defineAsyncComponent(
-  () => import("@/components/folderEntities/listEntities.vue"),
+  () => import("@/components/folderEntities/ListEntities.vue"),
 );
 const EditarCliente = defineAsyncComponent(
   () =>

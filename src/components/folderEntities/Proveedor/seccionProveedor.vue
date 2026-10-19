@@ -391,7 +391,7 @@
 
 <script>
 import { mapActions } from "vuex";
-import CustomAutocomplete from "../customAutocomplete.vue";
+import CustomAutocomplete from "../CustomAutocomplete.vue";
 import { mapActions as mapPiniaActions, mapStores } from "pinia";
 import { useMasterusuariosStore } from "@/stores/masterusuarios";
 import { useEntitiesStore } from "@/stores/entities";

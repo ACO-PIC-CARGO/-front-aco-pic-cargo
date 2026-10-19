@@ -66,7 +66,7 @@ const routes = [
       {
         path: "folderEntities/list/:id_role",
         name: "listEntitie",
-        component: () => import("../views/folderEntities/listEntities.vue"),
+        component: () => import("../views/folderEntities/ListEntities.vue"),
       },
       {
         path: "folderEntities/listado-proveedores",
@@ -124,12 +124,12 @@ const routes = [
       {
         path: "folderEntities/control/:id_role",
         name: "controlEntitie",
-        component: () => import("../views/folderEntities/controlEntities.vue"),
+        component: () => import("../views/folderEntities/ControlEntities.vue"),
       },
       {
         path: "folderEntities/control/edit/:id",
         name: "controlEntitieEdit",
-        component: () => import("../views/folderEntities/controlEntities.vue"),
+        component: () => import("../views/folderEntities/ControlEntities.vue"),
       },
       {
         path: "folderMaster/list",
