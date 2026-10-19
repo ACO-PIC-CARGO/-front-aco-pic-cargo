@@ -42,6 +42,7 @@
                 item-title="name"
                 item-value="id_port"
                 v-model="$store.state.pricing.datosPrincipales.iddestino"
+                @update:model-value="buscarTownPorDestino"
                 @update:search="recargarPuertoDestino"
               >
               </v-autocomplete>
@@ -764,6 +765,7 @@ export default {
       "getPortBegin",
       "getPortEnd",
       "obtenerFleteCalculadora",
+      "cargarTownParaPricing",
     ]),
     cambiarGrupalIndividual() {
       const { esindividualflag, esgrupalflag } =
@@ -1075,7 +1077,7 @@ export default {
         factor = 1;
       }
       return factor > 0
-        ? Number((parseFloat(monto || 0) / factor).toFixed(3))
+        ? parseFloat(monto || 0) / factor
         : 0;
     },
     recargarPuertoOrigen(textoBuscar) {
@@ -1126,6 +1128,19 @@ export default {
         id: this.$store.state.pricing.datosPrincipales.iddestino,
         search: textoBuscar,
       });
+    },
+    async buscarTownPorDestino(idDestino) {
+      const puertoDestino = (
+        this.$store.state.pricing.listPortEnd || []
+      ).find((puerto) => String(puerto.id_port) === String(idDestino));
+
+      this.$store.state.pricing.datosPrincipales.id_town = null;
+      this.idTownSeleccionado = null;
+      this.$store.state.town.lstTown = [];
+
+      if (!puertoDestino) return;
+
+      await this.cargarTownParaPricing({ id_pais: puertoDestino.id_pais });
     },
     async anadirCarga() {
       if ((await this.$refs.frmDatosCarga.validate()).valid) {
@@ -1729,6 +1744,12 @@ export default {
           return;
         }
         this.idTownSeleccionado = null;
+        const lstTown = this.$store.state.town.lstTown;
+        if (!Array.isArray(lstTown) || lstTown.length === 0) {
+          this.$store.state.pricing.datosPrincipales.id_town = null;
+          this.finalizarSeleccionDistrito();
+          return;
+        }
         this.dialogSeleccionDistrito = true;
       });
     },
@@ -1749,6 +1770,9 @@ export default {
         });
       });
 
+      this.finalizarSeleccionDistrito();
+    },
+    finalizarSeleccionDistrito() {
       this.dialogSeleccionDistrito = false;
       this.$store.state.pricing.actualizarCostosFlag =
         !this.$store.state.pricing.actualizarCostosFlag;

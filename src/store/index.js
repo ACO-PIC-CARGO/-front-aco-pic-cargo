@@ -1,6 +1,7 @@
 import { createStore } from "vuex";
 import axios from "@/api/axios-config";
 import router from "@/router";
+import { setStoreInstance } from "@/components/mixins/funciones.js";
 const imgSave = "/img/svg/save.svg";
 const imgFolder = "/img/svg/folder.svg";
 const imgMailbox = "/img/svg/mailbox.svg";
@@ -73,7 +74,7 @@ const withoutDuplicatePorts = (ports) => {
   return ports.filter((port) => !seen.has(port.id_port) && seen.add(port.id_port));
 };
 
-export default createStore({
+const store = createStore({
   state: {
     salidaflag: false,
     llegadaflag: false,
@@ -2940,3 +2941,7 @@ export default createStore({
     legalPages,
   },
 });
+
+setStoreInstance(store);
+
+export default store;

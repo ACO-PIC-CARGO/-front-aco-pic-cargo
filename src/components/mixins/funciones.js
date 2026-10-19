@@ -1,4 +1,16 @@
-import store from "@/store/index";
+let storeInstance;
+
+export function setStoreInstance(store) {
+  storeInstance = store;
+}
+
+function getStoreInstance() {
+  if (!storeInstance) {
+    throw new Error("The Vuex store has not been initialized.");
+  }
+
+  return storeInstance;
+}
 
 function numeroSeguro(value) {
   if (value === null || value === undefined || value === "") return 0;
@@ -69,6 +81,7 @@ const miMixin = {
       containers = [],
       amount = 0,
     ) {
+      const store = getStoreInstance();
       const listMultiplicador = store.state.pricing.listMultiplicador;
       const volumen = store.state.pricing.datosPrincipales.volumen;
       let fac = 0;
@@ -487,6 +500,7 @@ const miMixin = {
       return imp;
     },
     calcularTotalFleteVentaPorOpcion({ listCostos = [] } = {}) {
+      const store = getStoreInstance();
       const pricing = store.state.pricing;
       const datosPrincipales = pricing.datosPrincipales || {};
       const costosFlete = (Array.isArray(listCostos) ? listCostos : []).filter(

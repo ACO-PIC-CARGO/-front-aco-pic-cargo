@@ -3514,6 +3514,63 @@ const actions = {
       })
       .catch((e) => console.log(e));
   },
+  async imprimiReporteListadoMarketing(
+    {},
+    { filtroSeleccionado = {}, filtroCabecera = {} },
+  ) {
+    let headers = {
+      "Content-Type": "application/json",
+    };
+    let data = {
+      filtro: { ...state.filtro },
+      filtroSeleccionado: filtroSeleccionado,
+      filtroCabecera: filtroCabecera,
+    };
+    let timerInterval;
+    Swal.fire({
+      icon: "info",
+      title: "Generando  PDF",
+      text: "El PDF se descargará automaticamente",
+      showConfirmButton: false,
+      allowOutsideClick: false,
+      timerProgressBar: true,
+      timer: null,
+      didOpen: () => {
+        Swal.showLoading();
+      },
+    }).then((res) => {
+      if (res.dismiss) {
+        clearInterval(timerInterval);
+      }
+    });
+
+    await axios
+      .post(import.meta.env.VUE_APP_URL_MAIN + "reporte_canales_origen", data, headers)
+      .then((response) => {
+        if (response.data.estadoflag) {
+          Swal.fire({
+            icon: "success",
+            title: "PDF Generado",
+            text: "El PDF se descargará automaticamente",
+            showConfirmButton: true,
+          });
+
+          window.open(
+            `${import.meta.env.VUE_APP_URL_MAIN}${response.data.path}`,
+            // "",
+            "_blank",
+          );
+        } else {
+          Swal.close();
+          Swal.fire({
+            icon: "warning",
+            text: "Ocurrió un error al generar el PDF, por favor comuníquese con el administrador del sistema",
+            showConfirmButton: true,
+          });
+        }
+      })
+      .catch((e) => console.log(e));
+  },
   async exportarExcelListadoQuote() {
     let headers = {
       "Access-Control-Allow-Origin": "*",

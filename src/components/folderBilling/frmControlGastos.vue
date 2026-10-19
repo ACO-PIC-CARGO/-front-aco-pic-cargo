@@ -130,6 +130,33 @@
                     }}
                     m<sup>3</sup>
                   </p>
+                  <p>
+                    F. ETD:
+                    {{
+                      ($store.state.controlGastos.listControlGastos[0] &&
+                        $store.state.controlGastos.listControlGastos[0]
+                          .master_fechaetd) ||
+                      ""
+                    }}
+                  </p>
+                  <p>
+                    F. ETA:
+                    {{
+                      ($store.state.controlGastos.listControlGastos[0] &&
+                        $store.state.controlGastos.listControlGastos[0]
+                          .master_fechaeta) ||
+                      ""
+                    }}
+                  </p>
+                  <p>
+                    F. Disp.:
+                    {{
+                      ($store.state.controlGastos.listControlGastos[0] &&
+                        $store.state.controlGastos.listControlGastos[0]
+                          .master_fechadisponibilidad) ||
+                      ""
+                    }}
+                  </p>
                 </div>
               </v-col>
             </v-row>
@@ -490,7 +517,7 @@ export default {
         data: {
           ...this.$route.params,
           guardarEnCarpeta: guardarEnCarpeta,
-          asociadoflag:false,
+          asociadoflag: false,
           folders_quote:
             this.$store.state.controlGastos.listControlGastos[0].folders_quote,
         },

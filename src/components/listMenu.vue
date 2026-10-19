@@ -392,6 +392,7 @@ export default {
     },
     cerrarSesion() {
       sessionStorage.removeItem("auth-token");
+      localStorage.removeItem("auth-token");
       sessionStorage.removeItem("dataUser");
       sessionStorage.removeItem("dataBranch");
       this.$store.state.securitys.MostrarLogin = true;

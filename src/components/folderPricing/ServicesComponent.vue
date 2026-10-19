@@ -62,7 +62,8 @@
               v-if="
                 service.code_service == 14 &&
                 service.status == 1 &&
-                isEmpresaPermitida
+                isEmpresaPermitida &&
+                $store.state.town.lstTown.length > 0
               "
             >
               <v-autocomplete
@@ -329,7 +330,8 @@ export default {
         }
         if (
           validarTown &&
-          !this.$store.state.pricing.datosPrincipales.id_town
+          !this.$store.state.pricing.datosPrincipales.id_town &&
+          this.$store.state.town.lstTown.length > 0
         ) {
           this.errorIdTown = "Datos Requeridos";
           val = false;

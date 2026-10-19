@@ -21,26 +21,26 @@
               mdi-unfold-more-horizontal
             </v-icon>
           </template>
-          <v-table density="compact">
+          <v-table density="compact" class="egreso-summary-table">
             <thead>
               <tr>
-                <th width="28%">Proveedor</th>
-                <th width="12%" style="background: #d6f4ff">Total Pricing</th>
-                <th width="12%" style="background: #ffd6d6">
+                <th width="20%">Proveedor</th>
+                <th width="9%" style="background: #d6f4ff">Total Pricing</th>
+                <th width="9%" style="background: #ffd6d6">
                   Total Operaciones
                 </th>
-                <th width="12%" style="background: #fff9c4">Deuda Actual</th>
-                <th v-if="editable" width="12%"></th>
-                <th v-if="editable" width="12%" class="text-left">
+                <th width="9%" style="background: #fff9c4">Deuda Actual</th>
+                <th v-if="editable" width="16%"></th>
+                <th v-if="editable" width="9%" class="text-left">
                   Facturas o Proformance
                 </th>
-                <th v-if="editable" width="12%" class="text-left">
+                <th v-if="editable" width="9%" class="text-left">
                   Generar PDF de pago
                 </th>
-                <th v-if="editable" width="12%" class="text-left">
+                <th v-if="editable" width="9%" class="text-left">
                   Solicitar a Administración
                 </th>
-                <th v-if="editable" width="12%" class="text-left">
+                <th v-if="editable" width="10%" class="text-left">
                   Más Acciones
                 </th>
                 <!-- <th width="10%">Acciones</th> -->
@@ -3663,5 +3663,16 @@ export default {
   align-items: center !important;
 
   gap: 0 !important;
+}
+
+.egreso-summary-table table {
+  width: 100%;
+  table-layout: fixed;
+}
+
+.egreso-summary-table th:first-child,
+.egreso-summary-table td:first-child {
+  white-space: normal;
+  overflow-wrap: anywhere;
 }
 </style>

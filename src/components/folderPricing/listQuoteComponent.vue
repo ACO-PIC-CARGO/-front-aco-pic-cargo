@@ -38,7 +38,9 @@
               <v-col cols="4">
                 <v-text-field
                   prepend-inner-icon="mdi-calendar-month"
-                  :model-value="formatearFecha($store.state.pricing.filtro.fechafin)"
+                  :model-value="
+                    formatearFecha($store.state.pricing.filtro.fechafin)
+                  "
                   density="compact"
                   readonly
                   hide-details
@@ -253,6 +255,16 @@
       <v-col cols="12" lg="8" xl="8">
         <div class="text-right">
           <v-btn
+            color="#0D47A1"
+            @click="reporteMarketing()"
+            class="mx-1 my-1"
+            :loading="loading2"
+            :disabled="loading2"
+            size="small"
+          >
+            <v-icon>mdi-bullhorn</v-icon> R. MARKETING
+          </v-btn>
+          <v-btn
             color="red"
             @click="reporteListado()"
             class="mx-1 my-1"
@@ -295,7 +307,12 @@
             Filtrar
           </v-btn>
 
-          <v-btn color="default" class="mx-1 my-1" size="small" @click="limpiar()">
+          <v-btn
+            color="default"
+            class="mx-1 my-1"
+            size="small"
+            @click="limpiar()"
+          >
             <v-icon class="mx-1">mdi-filter-remove</v-icon>
             Limpiar
           </v-btn>
@@ -352,11 +369,11 @@
               </v-tooltip> -->
               <v-tooltip location="top">
                 <template v-slot:activator="{ props }">
-                  <v-btn variant="text"
+                  <v-btn
+                    variant="text"
                     icon
                     size="x-small"
                     v-bind="props"
-                   
                     @click="ira('verQuote', item.id)"
                     aria-label="Ver cotización"
                   >
@@ -375,11 +392,11 @@
               <!--  -->
               <v-tooltip location="top">
                 <template v-slot:activator="{ props }">
-                  <v-btn variant="text"
+                  <v-btn
+                    variant="text"
                     size="x-small"
                     icon
                     v-bind="props"
-                   
                     @click="handleEditar(item)"
                     aria-label="Editar cotización"
                     v-if="item.statusmain != 0"
@@ -399,9 +416,9 @@
 
               <v-tooltip location="top">
                 <template v-slot:activator="{ props }">
-                  <v-btn variant="text"
+                  <v-btn
+                    variant="text"
                     icon
-                   
                     v-bind="props"
                     size="x-small"
                     @click="registrarLlamada(item)"
@@ -425,10 +442,10 @@
               <!--  -->
               <v-tooltip location="top">
                 <template v-slot:activator="{ props }">
-                  <v-btn variant="text"
+                  <v-btn
+                    variant="text"
                     icon
                     size="x-small"
-                   
                     v-bind="props"
                     @click="abrirCaperta(item)"
                   >
@@ -448,10 +465,10 @@
 
               <v-tooltip location="top">
                 <template v-slot:activator="{ props }">
-                  <v-btn variant="text"
+                  <v-btn
+                    variant="text"
                     icon
                     size="x-small"
-                   
                     v-bind="props"
                     @click="toggleRow(item)"
                     v-if="mostrarBoton(item)"
@@ -470,10 +487,10 @@
               </v-tooltip>
               <v-tooltip location="top">
                 <template v-slot:activator="{ props }">
-                  <v-btn variant="text"
+                  <v-btn
+                    variant="text"
                     icon
                     size="x-small"
-                   
                     v-bind="props"
                     @click="eliminar(item.id, item.codigo)"
                     v-if="mostrarBoton(item)"
@@ -498,7 +515,9 @@
           <td @click="toggleExpand(internalItem)">{{ item.status }}</td>
           <td @click="toggleExpand(internalItem)">{{ item.codigo }}</td>
           <td @click="toggleExpand(internalItem)">{{ item.pricing }}</td>
-          <td @click="toggleExpand(internalItem)">{{ item.ejecutivo_ventas }}</td>
+          <td @click="toggleExpand(internalItem)">
+            {{ item.ejecutivo_ventas }}
+          </td>
           <td @click="toggleExpand(internalItem)">{{ item.nombres }}</td>
           <td @click="toggleExpand(internalItem)">{{ item.telefono }}</td>
           <td @click="toggleExpand(internalItem)">{{ item.sentido }}</td>
@@ -506,7 +525,9 @@
           <td @click="toggleExpand(internalItem)">{{ item.incoterms }}</td>
           <td @click="toggleExpand(internalItem)">{{ item.origen }}</td>
           <td @click="toggleExpand(internalItem)">{{ item.destino }}</td>
-          <td @click="toggleExpand(internalItem)">{{ displayMarketing(item) }}</td>
+          <td @click="toggleExpand(internalItem)">
+            {{ displayMarketing(item) }}
+          </td>
           <td @click="toggleExpand(internalItem)">
             {{ item.fechaemisionpdf }}
 
@@ -527,29 +548,32 @@
 
       <template v-slot:expanded-row="{ columns, item }">
         <tr v-if="item">
-        <td :colspan="columns.length">
-          <v-table>
-            <thead class="headerDetails">
-              <tr>
-                <th v-if="(item.details || []).length > 0">Fecha</th>
-                <th v-if="(item.details || []).length > 0">Comentario</th>
-                <th>Usuario</th>
-              </tr>
-            </thead>
-            <tbody v-if="(item.details || []).length > 0">
-              <tr v-for="(i, index) in item.details || []" :key="i.id || index">
-                <td>{{ i.fecha }}</td>
-                <td>{{ i.notes }}</td>
-                <td>{{ i.namelong }}</td>
-              </tr>
-            </tbody>
-            <!-- <tbody v-else>
+          <td :colspan="columns.length">
+            <v-table>
+              <thead class="headerDetails">
+                <tr>
+                  <th v-if="(item.details || []).length > 0">Fecha</th>
+                  <th v-if="(item.details || []).length > 0">Comentario</th>
+                  <th>Usuario</th>
+                </tr>
+              </thead>
+              <tbody v-if="(item.details || []).length > 0">
+                <tr
+                  v-for="(i, index) in item.details || []"
+                  :key="i.id || index"
+                >
+                  <td>{{ i.fecha }}</td>
+                  <td>{{ i.notes }}</td>
+                  <td>{{ i.namelong }}</td>
+                </tr>
+              </tbody>
+              <!-- <tbody v-else>
               <tr>
                 <td>{{ item.fecha_enviocliente }}</td>
               </tr>
             </tbody> -->
-          </v-table>
-        </td>
+            </v-table>
+          </td>
         </tr>
       </template>
     </v-data-table>
@@ -687,7 +711,9 @@
         </v-card-text>
         <v-card-actions>
           <div class="flex-grow-1 text-right">
-            <v-btn variant="text" color="success" @click="guardarNota">Aceptar</v-btn>
+            <v-btn variant="text" color="success" @click="guardarNota"
+              >Aceptar</v-btn
+            >
             <v-btn
               variant="text"
               color="red"
@@ -710,7 +736,12 @@
         <v-card-title class="d-flex align-center flex-wrap" primary-title>
           SELECCIONE EL EXPEDIENTE A ASOCIAR:
           <v-spacer></v-spacer>
-          <v-btn variant="text" icon color="default" @click="aprobarflag = !aprobarflag">
+          <v-btn
+            variant="text"
+            icon
+            color="default"
+            @click="aprobarflag = !aprobarflag"
+          >
             <v-icon>mdi-close</v-icon>
           </v-btn>
         </v-card-title>
@@ -731,7 +762,11 @@
         </v-card-text>
         <v-card-actions>
           <v-spacer></v-spacer>
-          <v-btn class="mx-1 my-1" size="small" @click="aprobar()" color="success"
+          <v-btn
+            class="mx-1 my-1"
+            size="small"
+            @click="aprobar()"
+            color="success"
             >Generar</v-btn
           >
           <v-btn
@@ -1003,6 +1038,7 @@ export default {
       "aprobarCotizacion",
       "validarUsuarioAdmin",
       "actualizarURLEnElQuote",
+      "imprimiReporteListadoMarketing",
     ]),
     mostrarBoton(item) {
       if (item.statusmain == 0) {
@@ -1186,7 +1222,7 @@ export default {
         fechaFin.isAfter(fechaInicio.clone().add(1, "month"), "day")
       );
     },
-    async reporteListado() {
+    async reporteMarketing() {
       const f = this.$store.state.pricing.filtro;
       const rangoCreacionExcedido = this.rangoFechaSuperaUnMes(
         f.fechainicio,
@@ -1202,8 +1238,8 @@ export default {
           rangoCreacionExcedido && rangoEmisionExcedido
             ? "Los rangos de creación y emisión"
             : rangoCreacionExcedido
-              ? "El rango de creación"
-              : "El rango de emisión";
+            ? "El rango de creación"
+            : "El rango de emisión";
         await Swal.fire({
           icon: "warning",
           title: "No se puede generar el reporte",
@@ -1277,7 +1313,132 @@ export default {
           (v) => v.id_entitie == f.id_pricing,
         )?.name;
       }
-      if (f.id_entities && !(f.tipopdf === 2 || f.tipopdf == '2')) {
+      if (f.id_entities && !(f.tipopdf === 2 || f.tipopdf == "2")) {
+        filtroCabecera.Ejecutivo = store.listEjecutivo.find(
+          (v) => v.id_entitie == f.id_entities,
+        )?.name;
+      }
+      if (f.id_modality) {
+        filtroCabecera.Modalidad = store.listModality.find(
+          (v) => v.id == f.id_modality,
+        )?.name;
+      }
+      if (f.id_shipment) {
+        filtroCabecera.Shipment = store.listShipment.find(
+          (v) => v.id == f.id_shipment,
+        )?.embarque;
+      }
+      if (f.id_incoterm) {
+        filtroCabecera.Incoterms = store.listIncoterms.find(
+          (v) => v.id == f.id_incoterm,
+        )?.name;
+      }
+      if (f.id_cliente) {
+        filtroCabecera.Cliente = this.$store.state.clientes.find(
+          (v) => v.id == f.id_cliente,
+        )?.namelong;
+      }
+
+      await this.imprimiReporteListadoMarketing({
+        filtroSeleccionado: filtroSeleccionado,
+        filtroCabecera: filtroCabecera,
+      }).catch((e) => {
+        console.error(e);
+      });
+      this.loading2 = false;
+    },
+    async reporteListado() {
+      const f = this.$store.state.pricing.filtro;
+      const rangoCreacionExcedido = this.rangoFechaSuperaUnMes(
+        f.fechainicio,
+        f.fechafin,
+      );
+      const rangoEmisionExcedido = this.rangoFechaSuperaUnMes(
+        f.fechaemisiondesde,
+        f.fechaemisionhasta,
+      );
+
+      if (rangoCreacionExcedido || rangoEmisionExcedido) {
+        const rangoExcedido =
+          rangoCreacionExcedido && rangoEmisionExcedido
+            ? "Los rangos de creación y emisión"
+            : rangoCreacionExcedido
+            ? "El rango de creación"
+            : "El rango de emisión";
+        await Swal.fire({
+          icon: "warning",
+          title: "No se puede generar el reporte",
+          html: `<strong>${rangoExcedido} supera el máximo permitido.</strong><br>Selecciona un periodo de hasta <strong>1 mes</strong> para continuar.`,
+          confirmButtonText: "Revisar fechas",
+        });
+        return;
+      }
+
+      this.loading2 = true;
+      let filtroSeleccionado = {};
+      const store = this.$store.state.pricing;
+
+      if (f.fechainicio) filtroSeleccionado["Creación De:"] = f.fechainicio;
+      if (f.fechafin) filtroSeleccionado["Creación Hasta:"] = f.fechafin;
+      if (f.fechaemisiondesde)
+        filtroSeleccionado["Fecha de Envío De:"] = f.fechaemisiondesde;
+      if (f.fechaemisionhasta)
+        filtroSeleccionado["Fecha de Envío Hasta:"] = f.fechaemisionhasta;
+
+      if (f.id_marketing) {
+        filtroSeleccionado.Marketing = store.listMarketing.find(
+          (v) => v.id == f.id_marketing,
+        )?.name;
+      }
+      if (f.id_status) {
+        filtroSeleccionado["Estado Cotización"] = store.listQuoteStatus.find(
+          (v) => v.id == f.id_status,
+        )?.name;
+      }
+      if (f.id_pricing) {
+        filtroSeleccionado["Ejecutivo Pricing"] = store.listEjecutivo.find(
+          (v) => v.id_entitie == f.id_pricing,
+        )?.name;
+      }
+      if (f.id_entities && !(f.tipopdf === 2 || f.tipopdf == "2")) {
+        filtroSeleccionado["Ejecutivo Venta"] = store.listEjecutivo.find(
+          (v) => v.id_entitie == f.id_entities,
+        )?.name;
+      }
+      if (f.id_modality) {
+        filtroSeleccionado.Modalidad = store.listModality.find(
+          (v) => v.id == f.id_modality,
+        )?.name;
+      }
+      if (f.id_shipment) {
+        filtroSeleccionado["Tipo Carga"] = store.listShipment.find(
+          (v) => v.id == f.id_shipment,
+        )?.embarque;
+      }
+      if (f.id_incoterm) {
+        filtroSeleccionado.Incoterms = store.listIncoterms.find(
+          (v) => v.id == f.id_incoterm,
+        )?.name;
+      }
+
+      let filtroCabecera = {};
+
+      if (f.id_marketing) {
+        filtroCabecera.Marketing = store.listMarketing.find(
+          (v) => v.id == f.id_marketing,
+        )?.name;
+      }
+      if (f.id_status) {
+        filtroCabecera.QuoteStatus = store.listQuoteStatus.find(
+          (v) => v.id == f.id_status,
+        )?.name;
+      }
+      if (f.id_pricing) {
+        filtroCabecera.Pricing = store.listEjecutivo.find(
+          (v) => v.id_entitie == f.id_pricing,
+        )?.name;
+      }
+      if (f.id_entities && !(f.tipopdf === 2 || f.tipopdf == "2")) {
         filtroCabecera.Ejecutivo = store.listEjecutivo.find(
           (v) => v.id_entitie == f.id_entities,
         )?.name;

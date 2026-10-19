@@ -91,7 +91,11 @@ window.addEventListener("storage", (event) => {
     "version",
   ];
   if (keysToSync.includes(event.key)) {
-    sessionStorage.setItem(event.key, event.newValue);
+    if (event.newValue === null) {
+      sessionStorage.removeItem(event.key);
+    } else {
+      sessionStorage.setItem(event.key, event.newValue);
+    }
   }
 });
 

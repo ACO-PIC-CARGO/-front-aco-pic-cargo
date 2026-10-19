@@ -665,14 +665,7 @@ export default {
     ...mapState(["registroClienteFlag", ""]),
     listMarketingActivos() {
       let list = this.$store.state.pricing.listMarketing || [];
-      // Solo activos y ordenados por posición, igual que en FolderMarketing/list.vue
       return list
-        .filter((m) => m.status === 1 || m.status === true)
-        .sort((a, b) => {
-          const pa = a.position || 0;
-          const pb = b.position || 0;
-          return pa - pb;
-        });
     },
     incoterms() {
       return (this.$store.state.pricing.listIncoterms || [])

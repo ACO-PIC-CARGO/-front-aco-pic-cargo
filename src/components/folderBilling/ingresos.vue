@@ -1228,13 +1228,15 @@
         <v-card-text class="px-5">
           <v-table width="100%">
             <thead>
-              <th>#</th>
-              <th>Nro Factura</th>
-              <th>Doc. Ref.</th>
-              <th>Monto</th>
-              <th>IGV</th>
-              <th>Total</th>
-              <th></th>
+              <tr>
+                <th>#</th>
+                <th>Nro Factura</th>
+                <th>Doc. Ref.</th>
+                <th>Monto</th>
+                <th>IGV</th>
+                <th>Total</th>
+                <th></th>
+              </tr>
             </thead>
             <tbody>
               <tr v-for="(item, index) in lstFacturasEmitidas" :key="index">
