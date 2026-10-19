@@ -36,7 +36,7 @@
           v-if="!loading"
           class="elevation-1"
           :headers="headers"
-          :items="$store.state.comentariosPredefinidos.list"
+          :items="comentariosPredefinidosStore.list"
           item-value="id"
           :search="search"
           :loading="isDataTableLoading"
@@ -331,9 +331,11 @@
 </template>
   
 <script>
-  import { mapState, mapActions } from "vuex";
+  import { mapState } from "vuex";
   import Swal from "sweetalert2";
   import axios from '@/api/http';
+  import { mapActions as mapPiniaActions, mapStores } from "pinia";
+  import { useComentariosPredefinidosStore } from "@/stores/comentariosPredefinidos";
   
   export default {
     name: "ListComentariosPredefinidosComponent",
@@ -377,15 +379,11 @@
 
       this.$store.state.mainTitle = "LISTADO DE COMENTARIOS PREDEFINIDOS DE BITÁCORA";
     },
+    computed: {
+      ...mapStores(useComentariosPredefinidosStore),
+    },
     methods: {
-      ...mapActions([
-        "fetchListadoComentariosPredefinidos", 
-        "fetchMaxCodeListadoComentariosPredefinidos", 
-        "insertComentarioPredefinido", 
-        "deleteComentarioPredefinido", 
-        "updateComentarioPredefinido", 
-        "exportToExcelListadoComentarioPredefinidos"
-      ]),
+      ...mapPiniaActions(useComentariosPredefinidosStore, ["fetchListadoComentariosPredefinidos", "fetchMaxCodeListadoComentariosPredefinidos", "insertComentarioPredefinido", "deleteComentarioPredefinido", "updateComentarioPredefinido", "exportToExcelListadoComentarioPredefinidos"]),
       validateCodigo(v) {
         if (!v) {
           return "El código es requerido";
@@ -406,7 +404,7 @@
       },
       createCode() {
         let codigoMaximo = 0;
-        this.$store.state.comentariosPredefinidos.list.filter(v => {
+        this.comentariosPredefinidosStore.list.filter(v => {
           if (codigoMaximo < parseInt(v.code)) {
             codigoMaximo = parseInt(v.code);
           }
@@ -423,7 +421,7 @@
         await vm.fetchMaxCodeListadoComentariosPredefinidos();
         vm.isAutoGeneratingCode = false;
 
-        return (parseInt(vm.$store.state.comentariosPredefinidos.maxCode) + 1).toString().padStart(5, '0');
+        return (parseInt(vm.comentariosPredefinidosStore.maxCode) + 1).toString().padStart(5, '0');
       },
       async addComentarioPredefinido() {
         var vm = this;
@@ -543,7 +541,7 @@
       }
     },
     watch: {
-      "$store.state.comentariosPredefinidos.loading": {
+      "comentariosPredefinidosStore.loading": {
         handler(newValue, oldValue) {          
           this.isDataTableLoading = newValue;
         },

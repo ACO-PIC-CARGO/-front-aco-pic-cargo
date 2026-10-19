@@ -51,7 +51,6 @@ import subgasto from "./modules/SubGasto";
 import itemServices from "./modules/itemServices";
 import user from "./modules/user";
 import position from "./modules/position";
-import comentariosPredefinidos from "./modules/comentariosPredefinidos";
 import configEmpresa from "./modules/configEmpresa";
 import statushouse from "./modules/statushouse";
 import configAviso from "./modules/configAviso";
@@ -2923,7 +2922,6 @@ export default createStore({
     itemServices,
     user,
     position,
-    comentariosPredefinidos,
     configEmpresa,
     statushouse,
     configAviso,
