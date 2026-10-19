@@ -467,7 +467,7 @@ const routes = [
       {
         path: "type_phone/list",
         name: "listTypePhone",
-        component: () => import("../views/FolderTypePhone/list.vue"),
+        component: () => import("../views/FolderTypePhone/ListaTiposTelefono.vue"),
       },
       {
         path: "document/list",
