@@ -72,25 +72,25 @@ const routes = [
         path: "folderEntities/listado-proveedores",
         name: "listProveedor",
         component: () =>
-          import("../views/folderEntities/Proveedor/listProveedor.vue"),
+          import("../views/folderEntities/Proveedor/ListProveedor.vue"),
       },
       {
         path: "folderEntities/nuevo-proveedor",
         name: "nuevoProveedor",
         component: () =>
-          import("@/views/folderEntities/Proveedor/nuevoProveedor.vue"),
+          import("@/views/folderEntities/Proveedor/NuevoProveedor.vue"),
       },
       {
         path: "folderEntities/ver-proveedor/:id",
         name: "verProveedor",
         component: () =>
-          import("@/views/folderEntities/Proveedor/verProveedor.vue"),
+          import("@/views/folderEntities/Proveedor/VerProveedor.vue"),
       },
       {
         path: "folderEntities/editar-proveedor/:id",
         name: "editarProveedor",
         component: () =>
-          import("@/views/folderEntities/Proveedor/editarProveedor.vue"),
+          import("@/views/folderEntities/Proveedor/EditarProveedor.vue"),
       },
       {
         path: "folderEntities/listado-cliente",

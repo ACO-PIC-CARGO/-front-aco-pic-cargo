@@ -1,3 +1,17 @@
+<script setup lang="ts">
+import { defineAsyncComponent, onMounted } from "vue";
+import { useStore } from "vuex";
+
+const VerComponent = defineAsyncComponent(() =>
+  import("@/components/folderEntities/Proveedor/VerProveedorComponent.vue"));
+
+const rootStore = useStore();
+
+onMounted(() => {
+  rootStore.state.mainTitle = `VER PROVEEDOR`;
+});
+</script>
+
 <template>
   <v-row>
     <v-col cols="12">
@@ -7,24 +21,6 @@
     </v-col>
   </v-row>
 </template>
-
-<script>
-import { defineAsyncComponent } from "vue";
-export default {
-  data() {
-    return {
-      code: "",
-    };
-  },
-  components: {
-    VerComponent: defineAsyncComponent(() =>
-      import("@/components/folderEntities/Proveedor/verProveedorComponent.vue")),
-  },
-  mounted() {
-    this.$store.state.mainTitle = `VER PROVEEDOR`;
-  },
-};
-</script>
 
 <style scoped>
 .imagen-personalizada {
