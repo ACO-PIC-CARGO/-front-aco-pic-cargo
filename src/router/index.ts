@@ -462,7 +462,7 @@ const routes = [
       {
         path: "marketing/list",
         name: "listMarketing",
-        component: () => import("../views/FolderMarketing/list.vue"),
+        component: () => import("../views/FolderMarketing/ListaMarketing.vue"),
       },
       {
         path: "type_phone/list",
@@ -482,7 +482,7 @@ const routes = [
       {
         path: "sex/list",
         name: "listSex",
-        component: () => import("../views/FolderSex/list.vue"),
+        component: () => import("../views/FolderSex/ListaGeneros.vue"),
       },
       {
         path: "groupservices/list",
@@ -503,7 +503,7 @@ const routes = [
       {
         path: "performance/list",
         name: "performance",
-        component: () => import("../views/FolderPerformance/list.vue"),
+        component: () => import("../views/FolderPerformance/ListaPerformance.vue"),
       },
       {
         path: "bank/list",
@@ -513,7 +513,7 @@ const routes = [
       {
         path: "modality/list",
         name: "listModality",
-        component: () => import("../views/FolderModality/list.vue"),
+        component: () => import("../views/FolderModality/ListaModalidades.vue"),
       },
       {
         path: "transport/list",

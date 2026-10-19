@@ -225,7 +225,7 @@ export interface FiltroMarketing {
   status: number | string;
 }
 
-export type FormMarketing = Partial<Marketing> & { id_branch?: number };
+export type FormMarketing = Omit<Partial<Marketing>, "id"> & { id?: number | ""; id_branch?: number };
 
 export interface UltimaPosicionMarketing {
   maxposition?: number;
@@ -236,7 +236,7 @@ export interface Modalidad {
   code: string;
   name: string;
   description: string | null;
-  status: number;
+  status: number | boolean;
   created_at?: string;
   updated_at?: string;
 }
@@ -313,9 +313,9 @@ export interface TipoTelefono {
 }
 
 export interface FiltroTipoTelefono {
-  code: string | null;
-  name: string | null;
-  status: number | string;
+  code?: string | null;
+  name?: string | null;
+  status?: number | string;
 }
 
 export type FormTipoTelefono = Partial<TipoTelefono> & { id_branch?: number };
