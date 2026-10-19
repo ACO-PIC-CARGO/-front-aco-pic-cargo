@@ -36,7 +36,7 @@
       v-if="!loading"
       class="elevation-1"
       :headers="headers"
-      :items="$store.state.year.list ?? []"
+      :items="yearStore.list ?? []"
       item-value="id"
       :search="search"
     >
@@ -139,7 +139,7 @@
         <v-list-item class="px-0">
           
             <v-list-item-title class="text-headline-small">
-              Ver: {{ $store.state.year.record?.description }}
+              Ver: {{ yearStore.record?.description }}
             </v-list-item-title>
           
         </v-list-item>
@@ -151,17 +151,17 @@
             <v-text-field
               label="Código"
               readonly
-              :model-value="$store.state.year.record?.description"
+              :model-value="yearStore.record?.description"
             ></v-text-field>
           </v-row>
           <v-row>
             <v-switch
               readonly
               :label="`Estado: ${
-                !!$store.state.year.record?.status ? 'Activo' : 'Inactivo'
+                !!yearStore.record?.status ? 'Activo' : 'Inactivo'
               }`"
               color="success"
-              :model-value="$store.state.year.record?.status"
+              :model-value="yearStore.record?.status"
               :value-comparator="(value, checked) => Boolean(value) === checked"
             ></v-switch>
           </v-row>
@@ -204,7 +204,7 @@
         <v-list-item class="px-0">
           
             <v-list-item-title class="text-headline-small">
-              Modificar: {{ $store.state.year.record?.description }}
+              Modificar: {{ yearStore.record?.description }}
             </v-list-item-title>
           
         </v-list-item>
@@ -311,9 +311,11 @@
 </template>
 
 <script>
-import { mapState, mapActions } from "vuex";
+import { mapState } from "vuex";
 import Swal from "sweetalert2";
 import axios from '@/api/http';
+import { mapActions as mapPiniaActions, mapStores } from "pinia";
+import { useYearStore } from "@/stores/year";
 
 export default {
   name: "ListYearComponent",
@@ -359,7 +361,7 @@ export default {
     this.$store.state.mainTitle = `Año`;
   },
   methods: {
-    ...mapActions(["fetchDataYear", "insertYear", "readYear", "updateYear"]),
+    ...mapPiniaActions(useYearStore, ["fetchDataYear", "insertYear", "readYear", "updateYear"]),
     updateStatus(newValue) {
       this.record.status = newValue ? 1 : 0;
     },
@@ -475,10 +477,11 @@ export default {
     },
   },
   computed: {
+    ...mapStores(useYearStore),
     ...mapState(["list"]),
   },
   watch: {
-    "$store.state.year.record": {
+    "yearStore.record": {
       handler(newRecord, oldRecord) {
         if (newRecord && Object.keys(newRecord).length > 0) {
           this.record.description = newRecord.description;
@@ -488,7 +491,7 @@ export default {
       },
       immediate: true,
     },
-    "$store.state.year.loading": {
+    "yearStore.loading": {
       handler(newList, oldList) {
         this.loading = newList == true ? false : true;
       },
