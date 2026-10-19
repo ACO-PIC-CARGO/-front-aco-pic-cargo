@@ -21,7 +21,7 @@ export const useSubingresoStore = defineStore("subingreso", () => {
     calculoflag: "null",
     mostrarflag: "null",
   });
-  const model = ref<SubIngreso>({
+  const model = ref<Partial<SubIngreso>>({
     id: "",
     id_ingreso: "",
     code: "",

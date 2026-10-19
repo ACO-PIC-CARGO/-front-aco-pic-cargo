@@ -538,12 +538,12 @@ const routes = [
       {
         path: "ingreso/list",
         name: "listIngresos",
-        component: () => import("../views/FolderIngresos/list.vue"),
+        component: () => import("../views/FolderIngresos/ListaIngresos.vue"),
       },
       {
         path: "sub_ingreso/listado",
         name: "listSubIngresos",
-        component: () => import("../views/FolderIngresos/listSubIngreso.vue"),
+        component: () => import("../views/FolderIngresos/ListSubIngreso.vue"),
       },
       {
         path: "containers/list",
