@@ -420,7 +420,6 @@ export const LEGACY = [
   "src/views/balance/balanceGanancia.vue",
   "src/views/balance/flujoOperacionesMes.vue",
   "src/views/dashboard/Home.vue",
-  "src/views/dashboard/Main.vue",
   "src/views/folderBilling/billControlGastos.vue",
   "src/views/folderBilling/frmControlGastos.vue",
   "src/views/folderBilling/frmControlGastosVer.vue",

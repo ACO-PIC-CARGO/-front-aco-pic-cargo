@@ -44,7 +44,7 @@ const routes = [
   {
     path: "/home",
     meta: { requiresAuth: true },
-    component: () => import("../views/dashboard/Main.vue"),
+    component: () => import("../views/dashboard/DashboardMain.vue"),
     children: [
       {
         path: "",

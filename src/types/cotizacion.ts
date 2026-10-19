@@ -74,6 +74,7 @@ export interface Nota {
 export interface EstadoCotizacion {
   id?: number | string;
   code?: number | string;
+  name?: string;
 }
 
 export interface ItemBegEnd {
@@ -93,11 +94,33 @@ export interface TipoCarga {
 }
 
 export interface ArchivoDrive {
+  id?: string;
   name?: string;
+  folder?: unknown;
+  extension?: string;
+  webUrl?: string;
 }
 
 export interface Incoterm {
   id?: number | string;
   name?: string;
   description?: string;
+}
+
+export interface Puerto {
+  id_port?: number | string;
+  name?: string;
+}
+
+export interface OpcionCosto {
+  date_end?: string;
+  tiempo_transito?: Numerico;
+  listCostos: Costo[];
+}
+
+export interface DatoTarifaProveedor {
+  contacto?: string;
+  email?: string;
+  proveedorprincipalflag?: boolean;
+  selected?: boolean;
 }
