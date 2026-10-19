@@ -20,7 +20,6 @@ import monedas from "./modules/moneda";
 import masters from "./modules/master";
 import enterprises from "./modules/enterprise";
 import masterusuarios from "./modules/masterusuario";
-import marketing from "./modules/marketing";
 import type_phone from "./modules/typePhone";
 import year from "./modules/year";
 import sex from "./modules/sex";
@@ -2883,7 +2882,6 @@ export default createStore({
     masters,
     enterprises,
     masterusuarios,
-    marketing,
     type_phone,
     year,
     sex,

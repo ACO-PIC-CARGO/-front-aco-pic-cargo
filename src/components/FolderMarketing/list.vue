@@ -38,7 +38,7 @@
         v-if="!loading"
         class="elevation-1"
         :headers="headers"
-        :items="$store.state.marketing.list"
+        :items="marketingStore.list"
         item-value="id"
         :search="search"
       >
@@ -78,7 +78,7 @@
         <v-list-item class="px-0">
           
             <v-list-item-title class="text-headline-small">
-              Modificar: {{ $store.state.marketing.record.name }}
+              Modificar: {{ marketingStore.record.name }}
             </v-list-item-title>
           
         </v-list-item>
@@ -90,7 +90,7 @@
             <v-text-field
               label="Código"
               readonly
-              :model-value="$store.state.marketing.record.code"
+              :model-value="marketingStore.record.code"
             ></v-text-field>
           </v-row>
           <v-form ref="form">
@@ -181,7 +181,7 @@
         <v-list-item class="px-0">
           
             <v-list-item-title class="text-headline-small">
-              Ver: {{ $store.state.marketing.record.name }}
+              Ver: {{ marketingStore.record.name }}
             </v-list-item-title>
           
         </v-list-item>
@@ -193,38 +193,38 @@
             <v-text-field
               label="Código"
               readonly
-              :model-value="$store.state.marketing.record.code"
+              :model-value="marketingStore.record.code"
             ></v-text-field>
           </v-row>
           <v-row>
             <v-text-field
               label="Nombre"
               readonly
-              :model-value="$store.state.marketing.record.name"
+              :model-value="marketingStore.record.name"
             ></v-text-field>
           </v-row>
           <v-row>
             <v-text-field
               label="Descripción"
               readonly
-              :model-value="$store.state.marketing.record.description"
+              :model-value="marketingStore.record.description"
             ></v-text-field>
           </v-row>
           <v-row>
             <v-text-field
               label="Posición"
               readonly
-              :model-value="$store.state.marketing.record.position"
+              :model-value="marketingStore.record.position"
             ></v-text-field>
           </v-row>
           <v-row>
             <v-switch
               readonly
               :label="`Estado: ${
-                !!$store.state.marketing.record.status ? 'Activo' : 'Inactivo'
+                !!marketingStore.record.status ? 'Activo' : 'Inactivo'
               }`"
               color="success"
-              v-model="$store.state.marketing.record.status"
+              v-model="marketingStore.record.status"
               :value-comparator="(value, checked) => Boolean(value) === checked"
             ></v-switch>
           </v-row>
@@ -427,9 +427,11 @@
 </template>
 
 <script>
-import { mapState, mapActions } from "vuex";
+import { mapState } from "vuex";
 import Swal from "sweetalert2";
 import axios from "@/api/http";
+import { mapActions as mapPiniaActions, mapStores } from "pinia";
+import { useMarketingStore } from "@/stores/marketing";
 
 export default {
   name: "ListMarketingComponent",
@@ -485,15 +487,11 @@ export default {
     await this.fetchDataMarketing(this.marketing_list);
     this.$store.state.mainTitle = `Tipo de Marketing`;
   },
+  computed: {
+    ...mapStores(useMarketingStore),
+  },
   methods: {
-    ...mapActions([
-      "fetchDataMarketing",
-      "insertMarketing",
-      "lastPositionMarketing",
-      "readMarketing",
-      "updateMarketing",
-      "ExportMarketing",
-    ]),
+    ...mapPiniaActions(useMarketingStore, ["fetchDataMarketing", "insertMarketing", "lastPositionMarketing", "readMarketing", "updateMarketing", "ExportMarketing"]),
     async exportar() {
       await this.ExportMarketing(this.marketing_list);
     },
@@ -676,7 +674,7 @@ export default {
     },
   },
   watch: {
-    "$store.state.marketing.record": {
+    "marketingStore.record": {
       handler(newRecord, oldRecord) {
         if (newRecord && Object.keys(newRecord).length > 0) {
           const { id, name, description, position, status } = newRecord;
@@ -686,7 +684,7 @@ export default {
       },
       immediate: true,
     },
-    "$store.state.marketing.loading": {
+    "marketingStore.loading": {
       handler(newList, oldList) {
         this.loading = newList == true ? false : true;
       },
@@ -700,7 +698,7 @@ export default {
       },
       immediate: true,
     },
-    "$store.state.marketing.last_position": {
+    "marketingStore.last_position": {
       handler(newRecord, oldRecord) {
         if (newRecord && Object.keys(newRecord).length > 0) {
           if (newRecord.maxposition > 0) {

@@ -29,6 +29,14 @@ export interface Multiplicador {
   valor?: Numerico;
   id_container?: number | string | null;
   text?: string;
+  name?: string | null;
+  description?: string | null;
+  id_shipment?: number | string | null;
+  id_containers?: number | string | null;
+  type_carga?: string | null;
+  status?: number | boolean;
+  created_at?: string;
+  updated_at?: string;
 }
 
 export interface Costo {

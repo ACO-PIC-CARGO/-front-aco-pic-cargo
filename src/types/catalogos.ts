@@ -206,3 +206,164 @@ export interface FiltroIncoterms {
 }
 
 export type FormIncoterm = Incoterm & { id_branch?: number };
+
+export interface Marketing {
+  id: number;
+  code: string;
+  name: string;
+  description: string | null;
+  position: number | string;
+  status: number;
+  created_at?: string;
+  updated_at?: string;
+}
+
+export interface FiltroMarketing {
+  name: string | null;
+  description: string | null;
+  position: number | string | null;
+  status: number | string;
+}
+
+export type FormMarketing = Partial<Marketing> & { id_branch?: number };
+
+export interface UltimaPosicionMarketing {
+  maxposition?: number;
+}
+
+export interface Modalidad {
+  id: number;
+  code: string;
+  name: string;
+  description: string | null;
+  status: number;
+  created_at?: string;
+  updated_at?: string;
+}
+
+export interface FiltroModalidad {
+  code: string | null;
+  name: string | null;
+  description: string | null;
+  status: number | string;
+}
+
+export type FormModalidad = Partial<Modalidad> & { id_branch?: number };
+
+export interface Performance {
+  id: number;
+  code: string;
+  description: string;
+  status: number;
+  created_at?: string;
+  updated_at?: string;
+}
+
+export interface FiltroPerformance {
+  code: string | null;
+  description: string | null;
+  status: number | string;
+}
+
+export type FormPerformance = Partial<Performance> & { id_branch?: number };
+
+export interface Sexo {
+  id: number;
+  code: string;
+  name: string;
+  acronym: string;
+  description: string | null;
+  status: number;
+  created_at?: string;
+  updated_at?: string;
+}
+
+export interface FiltroSexo {
+  code: string | null;
+  name: string | null;
+  acronym: string | null;
+  description: string | null;
+  status: number | string;
+}
+
+export type FormSexo = Partial<Sexo> & { id_branch?: number };
+
+export interface Anio {
+  id: number;
+  description: string;
+  status: number;
+  created_at?: string;
+  updated_at?: string;
+}
+
+export interface FiltroAnio {
+  description: string | null;
+  status: number | string;
+}
+
+export type FormAnio = Partial<Anio> & { id_branch?: number };
+
+export interface TipoTelefono {
+  id: number;
+  code: string;
+  name: string;
+  status: number;
+  created_at?: string;
+  updated_at?: string;
+}
+
+export interface FiltroTipoTelefono {
+  code: string | null;
+  name: string | null;
+  status: number | string;
+}
+
+export type FormTipoTelefono = Partial<TipoTelefono> & { id_branch?: number };
+
+export interface Transporte {
+  id: number;
+  code: string;
+  name: string;
+  description: string | null;
+  status: number;
+  created_at?: string;
+  updated_at?: string;
+}
+
+export interface FiltroTransporte {
+  code: string | null;
+  name: string | null;
+  description: string | null;
+  status: number | string;
+}
+
+export type FormTransporte = Partial<Transporte> & { id_branch?: number };
+
+export interface TipoCarga {
+  id: number;
+  code: string;
+  name: string;
+  description: string | null;
+  id_transport: number | string | null;
+  type_transport?: string;
+  status: number;
+  created_at?: string;
+  updated_at?: string;
+}
+
+export interface FiltroTipoCarga {
+  id_transport: number | string | null;
+  name: string | null;
+  description: string | null;
+  status: number | string;
+}
+
+export type FormTipoCarga = Partial<TipoCarga> & { id_branch?: number };
+
+export interface FiltroMultiplicador {
+  code: string | null;
+  name: string | null;
+  description: string | null;
+  id_shipment: number | string | null;
+  status: number | string;
+}
