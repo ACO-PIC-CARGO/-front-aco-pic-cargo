@@ -379,12 +379,12 @@ async function cancelPlan() {
           {{ planDateLine }}
           <template v-if="paymentUpdateNeeded">
             Actualiza tu método de pago en
+            <!-- eslint-disable vue/multiline-html-element-content-newline -- a line break would add a space before the period -->
             <router-link
               :to="{ name: 'billingHistory' }"
               class="plan-summary__link"
-            >
-              Historial de facturación
-            </router-link>.
+            >Historial de facturación</router-link>.
+            <!-- eslint-enable vue/multiline-html-element-content-newline -->
           </template>
         </p>
         <p
