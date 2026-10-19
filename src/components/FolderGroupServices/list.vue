@@ -40,7 +40,7 @@
         v-if="!loading"
         class="elevation-1"
         :headers="headers"
-        :items="$store.state.groupservices.list"
+        :items="groupservicesStore.list"
         item-value="id"
         :search="search"
       >
@@ -148,7 +148,7 @@
         <v-list-item class="px-0">
           
             <v-list-item-title class="text-headline-small">
-              Ver: {{ $store.state.groupservices.record.name }}
+              Ver: {{ groupservicesStore.record.name }}
             </v-list-item-title>
           
         </v-list-item>
@@ -159,33 +159,33 @@
             <v-text-field
               label="Código"
               readonly
-              :model-value="$store.state.groupservices.record.code"
+              :model-value="groupservicesStore.record.code"
             ></v-text-field>
           </v-row>
           <v-row>
             <v-text-field
               label="Nombre"
               readonly
-              :model-value="$store.state.groupservices.record.name"
+              :model-value="groupservicesStore.record.name"
             ></v-text-field>
           </v-row>
           <v-row>
             <v-text-field
               label="Descripción"
               readonly
-              :model-value="$store.state.groupservices.record.description"
+              :model-value="groupservicesStore.record.description"
             ></v-text-field>
           </v-row>
           <v-row>
             <v-switch
               readonly
               :label="`Estado: ${
-                !!$store.state.groupservices.record.status
+                !!groupservicesStore.record.status
                   ? 'Activo'
                   : 'Inactivo'
               }`"
               color="success"
-              v-model="$store.state.groupservices.record.status"
+              v-model="groupservicesStore.record.status"
               :value-comparator="(value, checked) => Boolean(value) === checked"
             ></v-switch>
           </v-row>
@@ -229,7 +229,7 @@
           <v-list-item class="px-0">
             
               <v-list-item-title class="text-headline-small">
-                Modificar: {{ $store.state.groupservices.record.name }}
+                Modificar: {{ groupservicesStore.record.name }}
               </v-list-item-title>
             
           </v-list-item>
@@ -380,8 +380,10 @@
 </template>
 
 <script>
-import { mapState, mapActions } from "vuex";
+import { mapState } from "vuex";
 import Swal from "sweetalert2";
+import { mapActions as mapPiniaActions, mapStores } from "pinia";
+import { useGroupservicesStore } from "@/stores/groupservices";
 
 export default {
   name: "ListGroupservicesComponent",
@@ -433,12 +435,7 @@ export default {
     this.$store.state.mainTitle = `Servicio`;
   },
   methods: {
-    ...mapActions([
-      "fetchDataGroupServices",
-      "insertGroupServices",
-      "readGroupServices",
-      "updateGroupServices",
-    ]),
+    ...mapPiniaActions(useGroupservicesStore, ["fetchDataGroupServices", "insertGroupServices", "readGroupServices", "updateGroupServices"]),
     updateStatus(newValue) {
       this.record.status = newValue ? 1 : 0;
     },
@@ -546,10 +543,11 @@ export default {
     },
   },
   computed: {
+    ...mapStores(useGroupservicesStore),
     ...mapState(["list"]),
   },
   watch: {
-    "$store.state.groupservices.record": {
+    "groupservicesStore.record": {
       handler(newRecord, oldRecord) {
         if (newRecord && Object.keys(newRecord).length > 0) {
           const { code, name, description, status } = newRecord;
@@ -559,7 +557,7 @@ export default {
       },
       immediate: true,
     },
-    "$store.state.groupservices.loading": {
+    "groupservicesStore.loading": {
       handler(newList, oldList) {
         this.loading = newList == true ? false : true;
       },

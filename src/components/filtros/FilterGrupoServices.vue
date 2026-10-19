@@ -7,50 +7,50 @@
         icon
         color="default"
         @click="
-          $store.state.itemServices.drawer = !$store.state.itemServices.drawer
+          itemServicesStore.drawer = !itemServicesStore.drawer
         "
       >
         <v-icon>mdi-close</v-icon>
       </v-btn>
     </v-card-title>
-    <v-card-text v-if="$store.state.itemServices.tipo == 'filter'">
+    <v-card-text v-if="itemServicesStore.tipo == 'filter'">
       <div class="col-12 py-1">
         <v-autocomplete
           label="Servicio"
-          :items="$store.state.groupservices.list"
-          v-model="$store.state.itemServices.filtros.id_groupservices"
+          :items="groupservicesStore.list"
+          v-model="itemServicesStore.filtros.id_groupservices"
           item-title="name"
           item-value="id"
-          :clearable="$store.state.itemServices.tipo != 'ver'"
+          :clearable="itemServicesStore.tipo != 'ver'"
         >
         </v-autocomplete>
       </div>
 
       <div class="col-12 py-1">
         <v-text-field
-          v-model="$store.state.itemServices.filtros.code"
+          v-model="itemServicesStore.filtros.code"
           label="Código"
-          :clearable="$store.state.itemServices.tipo != 'ver'"
+          :clearable="itemServicesStore.tipo != 'ver'"
         ></v-text-field>
       </div>
       <div class="col-12 py-1">
         <v-text-field
-          v-model="$store.state.itemServices.filtros.name"
+          v-model="itemServicesStore.filtros.name"
           label="Nombre"
-          :clearable="$store.state.itemServices.tipo != 'ver'"
+          :clearable="itemServicesStore.tipo != 'ver'"
         ></v-text-field>
       </div>
       <div class="col-12 py-1">
         <v-text-field
-          v-model="$store.state.itemServices.filtros.description"
+          v-model="itemServicesStore.filtros.description"
           label="Descripción"
-          :clearable="$store.state.itemServices.tipo != 'ver'"
+          :clearable="itemServicesStore.tipo != 'ver'"
         ></v-text-field>
       </div>
       <div class="col-12 py-1">
         <span> Estado</span>
         <v-radio-group
-          v-model="$store.state.itemServices.filtros.status"
+          v-model="itemServicesStore.filtros.status"
           inline
           density="compact"
         >
@@ -65,9 +65,9 @@
         <div class="col-12 py-1">
           <v-autocomplete
             label="Servicios (*)"
-            :items="$store.state.groupservices.list"
-            v-model="$store.state.itemServices.model.id_groupservices"
-            :readonly="$store.state.itemServices.tipo == 'ver'"
+            :items="groupservicesStore.list"
+            v-model="itemServicesStore.model.id_groupservices"
+            :readonly="itemServicesStore.tipo == 'ver'"
             item-title="name"
             item-value="id"
             :rules="[(v) => !!v || 'Dato requerido']"
@@ -78,8 +78,8 @@
 
         <div class="col-12 py-1">
           <v-text-field
-            v-model="$store.state.itemServices.model.code"
-            :readonly="$store.state.itemServices.tipo == 'ver'"
+            v-model="itemServicesStore.model.code"
+            :readonly="itemServicesStore.tipo == 'ver'"
             label="Código (*)"
             :rules="[
               (v) => !!v || 'Dato requerido',
@@ -92,8 +92,8 @@
         </div>
         <div class="col-12 py-1">
           <v-text-field
-            v-model="$store.state.itemServices.model.name"
-            :readonly="$store.state.itemServices.tipo == 'ver'"
+            v-model="itemServicesStore.model.name"
+            :readonly="itemServicesStore.tipo == 'ver'"
             label="Nombre (*)"
             :rules="[
               (v) => !!v || 'Dato Requerido',
@@ -105,10 +105,10 @@
         </div>
         <div class="col-12 py-1">
           <v-text-field
-            v-model="$store.state.itemServices.model.description"
-            :readonly="$store.state.itemServices.tipo == 'ver'"
+            v-model="itemServicesStore.model.description"
+            :readonly="itemServicesStore.tipo == 'ver'"
             label="Descripción"
-            :clearable="$store.state.itemServices.tipo != 'ver'"
+            :clearable="itemServicesStore.tipo != 'ver'"
             :rules="[
               (v) =>
                 !v ||
@@ -120,12 +120,12 @@
         <div class="col-12 py-1">
           <span> Estado</span>
           <v-switch
-            :readonly="$store.state.itemServices.tipo == 'ver'"
+            :readonly="itemServicesStore.tipo == 'ver'"
             :label="`Estado: ${
-              !!$store.state.itemServices.model.status ? 'Activo' : 'Inactivo'
+              !!itemServicesStore.model.status ? 'Activo' : 'Inactivo'
             }`"
             color="success"
-            v-model="$store.state.itemServices.model.status"
+            v-model="itemServicesStore.model.status"
             :value-comparator="(value, checked) => Boolean(value) === checked"
           ></v-switch>
         </div>
@@ -137,7 +137,7 @@
       <v-btn
         class="mx-1"
         color="success"
-        v-if="$store.state.itemServices.tipo == 'filter'"
+        v-if="itemServicesStore.tipo == 'filter'"
         @click="Filtrar()"
         :loading="loading"
         >Aceptar</v-btn
@@ -145,7 +145,7 @@
       <v-btn
         class="mx-1"
         color="default"
-        v-if="$store.state.itemServices.tipo == 'filter'"
+        v-if="itemServicesStore.tipo == 'filter'"
         @click="Limpiar()"
         :loading="loading"
         >Limpiar</v-btn
@@ -153,7 +153,7 @@
       <v-btn
         class="mx-1"
         color="success"
-        v-if="$store.state.itemServices.tipo != 'filter' && $store.state.itemServices.tipo != 'ver'"
+        v-if="itemServicesStore.tipo != 'filter' && itemServicesStore.tipo != 'ver'"
         @click="Aceptar()"
         :loading="loading"
         >Aceptar</v-btn
@@ -162,7 +162,7 @@
         class="mx-1"
         color="warning"
         @click="
-          $store.state.itemServices.drawer = !$store.state.itemServices.drawer
+          itemServicesStore.drawer = !itemServicesStore.drawer
         "
         :loading="loading"
         >Cerrar</v-btn
@@ -171,7 +171,9 @@
   </v-card>
 </template>
 <script>
-import { mapActions } from "vuex";
+import { mapActions as mapPiniaActions, mapStores } from "pinia";
+import { useGroupservicesStore } from "@/stores/groupservices";
+import { useItemServicesStore } from "@/stores/itemServices";
 export default {
   data() {
     return {
@@ -182,22 +184,18 @@ export default {
     };
   },
   methods: {
-    ...mapActions([
-      "GetListItemServices",
-      "setItemServices",
-      "ActualizarItemServices",
-    ]),
+    ...mapPiniaActions(useItemServicesStore, ["GetListItemServices", "setItemServices", "ActualizarItemServices"]),
     getName() {
-      if (this.$store.state.itemServices.tipo == "ver") {
+      if (this.itemServicesStore.tipo == "ver") {
         return `Detalle de Servicio ${this.model.name} – Modo Vista`;
       }
-      if (this.$store.state.itemServices.tipo == "nuevo") {
+      if (this.itemServicesStore.tipo == "nuevo") {
         return "Nuevo Detalle de Servicio";
       }
-      if (this.$store.state.itemServices.tipo == "editar") {
+      if (this.itemServicesStore.tipo == "editar") {
         return `Modificar Detalle de Servicio: ${this.model.name}`;
       }
-      if (this.$store.state.itemServices.tipo == "filter") {
+      if (this.itemServicesStore.tipo == "filter") {
         return "Filtrar Registros";
       }
     },
@@ -206,11 +204,11 @@ export default {
       this.loading = true;
       await this.GetListItemServices();
       this.loading = false;
-      this.$store.state.itemServices.drawer =
-        !this.$store.state.itemServices.drawer;
+      this.itemServicesStore.drawer =
+        !this.itemServicesStore.drawer;
     },
     async Limpiar() {
-      this.$store.state.itemServices.filtros = {
+      this.itemServicesStore.filtros = {
         id: "",
         id_groupservices: "",
         code: "",
@@ -223,11 +221,11 @@ export default {
       await this.GetListItemServices();
 
       this.loading = false;
-      this.$store.state.itemServices.drawer =
-        !this.$store.state.itemServices.drawer;
+      this.itemServicesStore.drawer =
+        !this.itemServicesStore.drawer;
     },
     async Aceptar() {
-      if (this.$store.state.itemServices.tipo == "nuevo") {
+      if (this.itemServicesStore.tipo == "nuevo") {
         if ((await this.$refs.frmDML.validate()).valid) {
           this.loading = true;
           await this.setItemServices();
@@ -235,7 +233,7 @@ export default {
           this.loading = false;
         }
       }
-      if (this.$store.state.itemServices.tipo == "editar") {
+      if (this.itemServicesStore.tipo == "editar") {
         this.loading = true;
         if ((await this.$refs.frmDML.validate()).valid) {
           await this.ActualizarItemServices();
@@ -243,25 +241,26 @@ export default {
         }
         this.loading = false;
       }
-      if (this.$store.state.itemServices.tipo == "ver") {
-        this.$store.state.itemServices.drawer =
-          !this.$store.state.itemServices.drawer;
+      if (this.itemServicesStore.tipo == "ver") {
+        this.itemServicesStore.drawer =
+          !this.itemServicesStore.drawer;
       }
     },
   },
   computed: {
+    ...mapStores(useItemServicesStore, useGroupservicesStore),
     drawer: {
       get() {
-        return this.$store.state.itemServices.drawer;
+        return this.itemServicesStore.drawer;
       },
       set(val) {
-        return (this.$store.state.itemServices.drawer = drawer);
+        return (this.itemServicesStore.drawer = drawer);
       },
     },
   },
   watch: {
     drawer() {
-      this.model = { ...this.$store.state.itemServices.model };
+      this.model = { ...this.itemServicesStore.model };
      
       setTimeout(() => {
         this.$refs.frmDML.resetValidation();

@@ -24,7 +24,6 @@ import marketing from "./modules/marketing";
 import type_phone from "./modules/typePhone";
 import year from "./modules/year";
 import sex from "./modules/sex";
-import groupservices from "./modules/groupservices";
 import incoterm from "./modules/incoterm";
 import performance from "./modules/performance";
 import bank from "./modules/bank";
@@ -44,7 +43,6 @@ import town from "./modules/town";
 import begend from "./modules/begend";
 import typepayment from "./modules/typepayment";
 import subingreso from "./modules/SubIngreso";
-import itemServices from "./modules/itemServices";
 import user from "./modules/user";
 import position from "./modules/position";
 import configEmpresa from "./modules/configEmpresa";
@@ -2892,7 +2890,6 @@ export default createStore({
     type_phone,
     year,
     sex,
-    groupservices,
     incoterm,
     performance,
     bank,
@@ -2911,7 +2908,6 @@ export default createStore({
     begend,
     typepayment,
     subingreso,
-    itemServices,
     user,
     position,
     configEmpresa,

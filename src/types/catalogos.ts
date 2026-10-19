@@ -94,3 +94,36 @@ export interface FiltroSubGasto {
   calculoflag: boolean | string;
   mostrarflag: boolean | string;
 }
+
+export interface GrupoServicio {
+  id: number;
+  code: string;
+  name: string;
+  description: string | null;
+  status: number;
+  created_at?: string;
+  updated_at?: string;
+}
+
+export interface ItemServicio {
+  id: number | string;
+  id_groupservices: number | string | null;
+  name_groupservices?: string;
+  code: string | null;
+  name: string | null;
+  description: string | null;
+  id_branch?: number | string;
+  status: number | string;
+  created_at?: string;
+  updated_at?: string;
+}
+
+export interface FiltroItemServicio {
+  id: string;
+  id_groupservices: number | string | null;
+  code: string | null;
+  name: string | null;
+  description: string | null;
+  id_branch: string;
+  status: number | string;
+}

@@ -28,7 +28,7 @@
         <v-col cols="12">
           <v-data-table
             :headers="headers"
-            :items="$store.state.itemServices.lstItemServices"
+            :items="itemServicesStore.lstItemServices"
             class="elevation-1"
             item-value="port_beginend_id"
             :loading="loading"
@@ -98,8 +98,10 @@
 </template>
 
 <script>
-import { mapActions } from "vuex";
 import Swal from "sweetalert2";
+import { mapActions as mapPiniaActions, mapStores } from "pinia";
+import { useGroupservicesStore } from "@/stores/groupservices";
+import { useItemServicesStore } from "@/stores/itemServices";
 export default {
   data() {
     return {
@@ -119,41 +121,41 @@ export default {
       ],
     };
   },
+  computed: {
+    ...mapStores(useItemServicesStore),
+  },
   methods: {
-    ...mapActions([
-      "GetListItemServices",
-      "CargarGroupServices",
-      "ActualizarItemServices",
-    ]),
+    ...mapPiniaActions(useItemServicesStore, ["GetListItemServices", "ActualizarItemServices"]),
+    ...mapPiniaActions(useGroupservicesStore, ["CargarGroupServices"]),
     async filtrar() {
-      this.$store.state.itemServices.tipo = "filter";
-      this.$store.state.itemServices.drawer =
-        !this.$store.state.itemServices.drawer;
+      this.itemServicesStore.tipo = "filter";
+      this.itemServicesStore.drawer =
+        !this.itemServicesStore.drawer;
     },
     async ver(item) {
       this.loading = !this.loading;
       let datos = { ...item };
-      this.$store.state.itemServices.tipo = "ver";
-      this.$store.state.itemServices.model = datos;
+      this.itemServicesStore.tipo = "ver";
+      this.itemServicesStore.model = datos;
 
       this.loading = !this.loading;
-      this.$store.state.itemServices.drawer =
-        !this.$store.state.itemServices.drawer;
+      this.itemServicesStore.drawer =
+        !this.itemServicesStore.drawer;
     },
     async editar(item) {
       this.loading = !this.loading;
       let datos = { ...item };
-      this.$store.state.itemServices.tipo = "editar";
-      this.$store.state.itemServices.model = datos;
+      this.itemServicesStore.tipo = "editar";
+      this.itemServicesStore.model = datos;
 
       this.loading = !this.loading;
-      this.$store.state.itemServices.drawer =
-        !this.$store.state.itemServices.drawer;
+      this.itemServicesStore.drawer =
+        !this.itemServicesStore.drawer;
     },
     async nuevo() {
       this.loadingNuevo = !this.loadingNuevo;
-      this.$store.state.itemServices.tipo = "nuevo";
-      this.$store.state.itemServices.model = {
+      this.itemServicesStore.tipo = "nuevo";
+      this.itemServicesStore.model = {
         id: "",
         id_groupservices: "",
         code: "",
@@ -163,8 +165,8 @@ export default {
         id_branch: JSON.parse(sessionStorage.getItem("dataUser"))[0].id_branch,
       };
 
-      this.$store.state.itemServices.drawer =
-        !this.$store.state.itemServices.drawer;
+      this.itemServicesStore.drawer =
+        !this.itemServicesStore.drawer;
       this.loadingNuevo = !this.loadingNuevo;
     },
     async eliminar(item) {
@@ -182,7 +184,7 @@ export default {
       }).then(async (res) => {
         if (res.isConfirmed) {
           item.status = 0;
-          this.$store.state.itemServices.model = item;
+          this.itemServicesStore.model = item;
           this.loading = true;
           await this.ActualizarItemServices();
           await this.GetListItemServices();
