@@ -16,6 +16,7 @@ export interface TipoTransaccion {
 }
 
 export interface InformacionBancaria {
+  beneficiario?: string;
   nro_cuenta?: string;
   cci?: string;
   id_banco?: number | string;
@@ -99,6 +100,7 @@ export interface DatoTarifaProveedor {
   telefono?: string;
   proveedorprincipalflag?: boolean;
   selected?: boolean;
+  estado?: boolean;
 }
 
 interface EntidadComercial {

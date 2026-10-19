@@ -75,10 +75,10 @@
 <script>
 import { mapActions, mapState } from "vuex";
 import Swal from "sweetalert2";
-import SeccionProveedor from "./seccionProveedor.vue";
-import SeccionTelefonos from "./seccionTelefonos.vue";
-import SeccionConvenios from "./seccionConvenios.vue";
-import SeccionInformacionBancaria from "./seccionInformacionBancaria.vue";
+import SeccionProveedor from "./SeccionProveedor.vue";
+import SeccionTelefonos from "./SeccionTelefonos.vue";
+import SeccionConvenios from "./SeccionConvenios.vue";
+import SeccionInformacionBancaria from "./SeccionInformacionBancaria.vue";
 import SeccionEmailTarifa from "./SeccionEmailTarifaComponent.vue";
 import { mapActions as mapPiniaActions, mapStores } from "pinia";
 import { useCoinsStore } from "@/stores/coins";

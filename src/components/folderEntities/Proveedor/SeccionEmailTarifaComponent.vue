@@ -1,3 +1,123 @@
+<script setup lang="ts">
+import { nextTick, onMounted } from "vue";
+import { useRoute } from "vue-router";
+import axios from "@/api/http";
+import Swal from "sweetalert2";
+import { useEntitiesStore } from "@/stores/entities";
+import type { ApiResponse } from "@/types/api";
+
+withDefaults(
+  defineProps<{
+    editable?: boolean;
+    guardarFlag?: boolean;
+  }>(),
+  { editable: true, guardarFlag: true },
+);
+
+const route = useRoute();
+const entitiesStore = useEntitiesStore();
+
+const headers = [
+  { title: "#", key: "index" },
+
+  {
+    title: "Contacto",
+    align: "start",
+    sortable: false,
+    key: "contacto",
+  },
+  { title: "Email", key: "email" },
+  { title: "Telefono", key: "telefono" },
+  { title: "Activo/ Inactivo", key: "action" },
+] as const;
+
+async function cargarDatos() {
+  if (!route.params.id) {
+    return;
+  }
+  await entitiesStore.cargarDatosTatifasEntite({ id: route.params.id });
+  entitiesStore.itemsImportacion =
+    entitiesStore.lstDatosTarifas.filter(
+      (item) => item.code === "I",
+    );
+  entitiesStore.itemsExportacion =
+    entitiesStore.lstDatosTarifas.filter(
+      (item) => item.code === "E",
+    );
+}
+function agregarContactoExportacion() {
+  entitiesStore.itemsExportacion.push({
+    id: 0,
+    code: "E",
+    contacto: "",
+    email: "",
+    telefono: "",
+  });
+  nextTick(() => {
+    const index = entitiesStore.itemsExportacion.length - 1;
+    const contactoInput = document.getElementById(`contactoexport${index}`);
+    if (contactoInput) {
+      contactoInput.focus();
+    }
+  });
+}
+function agregarContacto() {
+  entitiesStore.itemsImportacion.push({
+    id: 0,
+    code: "I",
+    contacto: "",
+    email: "",
+    telefono: "",
+  });
+  nextTick(() => {
+    const index = entitiesStore.itemsImportacion.length - 1;
+    const contactoInput = document.getElementById(`contactoimport${index}`);
+    if (contactoInput) {
+      contactoInput.focus();
+    }
+  });
+}
+async function guardarContactos() {
+  Swal.showLoading();
+  const datos = [
+    ...entitiesStore.itemsImportacion,
+    ...entitiesStore.itemsExportacion,
+  ];
+
+  const config = {
+    method: "post",
+    url: import.meta.env.VITE_URL_MAIN + "entitie/guardar_datos_tarifas",
+    headers: {
+
+      "Content-Type": "application/json",
+    },
+    data: {
+      id: route.params.id,
+      datos: datos,
+      proveedorprincipalflag:
+        entitiesStore.proveedor.proveedorprincipalflag,
+    },
+  };
+
+  await axios<ApiResponse>(config).then((res) => {
+    const data = res.data;
+    if (data.estadoflag) {
+      Swal.fire({
+        icon: "success",
+        text: data.mensaje,
+      });
+    }
+  });
+  Swal.close();
+  cargarDatos();
+  console.log("Contactos guardados:", datos);
+}
+
+onMounted(async () => {
+  cargarDatos();
+});
+</script>
+
 <template>
   <v-container>
     <v-row>
@@ -21,12 +141,16 @@
             v-model="entitiesStore.proveedor.proveedorprincipalflag"
             label="Es principal"
             hide-details
-          >
-          </v-checkbox>
+          />
 
-          <v-tooltip location="bottom" class="my-auto">
-            <template v-slot:activator="{ props }">
-              <v-icon v-bind="props"> mdi-information </v-icon>
+          <v-tooltip
+            location="bottom"
+            class="my-auto"
+          >
+            <template #activator="{ props }">
+              <v-icon v-bind="props">
+                mdi-information
+              </v-icon>
             </template>
             <span>
               Al marcar esta opción, este registro se mostrará
@@ -36,28 +160,42 @@
           </v-tooltip>
         </v-row>
       </v-col>
-      <v-col cols="12" class="py-1" style="text-transform: uppercase">
+      <v-col
+        cols="12"
+        class="py-1"
+        style="text-transform: uppercase"
+      >
         <center>
           <h5>Contactos de Importación</h5>
         </center>
       </v-col>
 
-      <v-col cols="12" class="py-1">
-        <v-btn color="info" size="x-small" @click="agregarContacto">
-          Añadir Nuevo Contacto</v-btn
+      <v-col
+        cols="12"
+        class="py-1"
+      >
+        <v-btn
+          color="info"
+          size="x-small"
+          @click="agregarContacto"
         >
+          Añadir Nuevo Contacto
+        </v-btn>
       </v-col>
 
-      <v-col cols="12" class="py-1">
+      <v-col
+        cols="12"
+        class="py-1"
+      >
         <v-data-table
           :headers="headers"
           :items="entitiesStore.itemsImportacion"
           class="elevation-1"
         >
-          <template v-slot:[`item.index`]="{ item, index }">
+          <template #[`item.index`]="{ index }">
             {{ index + 1 }}
           </template>
-          <template v-slot:[`item.contacto`]="{ item, index }">
+          <template #[`item.contacto`]="{ item, index }">
             <v-text-field
               hide-details
               v-model="item.contacto"
@@ -65,59 +203,72 @@
               variant="outlined"
               :disabled="!editable"
               :id="`contactoimport${index}`"
-            ></v-text-field>
+            />
           </template>
-          <template v-slot:[`item.email`]="{ item }">
+          <template #[`item.email`]="{ item }">
             <v-text-field
               hide-details
               v-model="item.email"
               density="compact"
               :disabled="!editable"
               variant="outlined"
-            ></v-text-field>
+            />
           </template>
-          <template v-slot:[`item.telefono`]="{ item }">
+          <template #[`item.telefono`]="{ item }">
             <v-text-field
               hide-details
               v-model="item.telefono"
               density="compact"
               variant="outlined"
               :disabled="!editable"
-            ></v-text-field>
+            />
           </template>
-          <template v-slot:[`item.action`]="{ item }">
+          <template #[`item.action`]="{ item }">
             <v-switch
               color="#00C853"
               :disabled="!editable"
               v-model="item.estado"
-            ></v-switch>
+            />
           </template>
         </v-data-table>
       </v-col>
     </v-row>
     <v-row>
-      <v-col cols="12" style="text-transform: uppercase">
+      <v-col
+        cols="12"
+        style="text-transform: uppercase"
+      >
         <center>
           <h5>Contactos de Exportación</h5>
         </center>
       </v-col>
 
-      <v-col cols="12" class="py-1">
-        <v-btn color="info" size="x-small" @click="agregarContactoExportacion">
+      <v-col
+        cols="12"
+        class="py-1"
+      >
+        <v-btn
+          color="info"
+          size="x-small"
+          @click="agregarContactoExportacion"
+        >
           Añadir Nuevo Contacto
         </v-btn>
       </v-col>
 
-      <v-col cols="12" class="py-1">
+      <v-col
+        cols="12"
+        class="py-1"
+      >
         <v-data-table
           :headers="headers"
           :items="entitiesStore.itemsExportacion"
           class="elevation-1"
         >
-          <template v-slot:[`item.index`]="{ item, index }">
+          <template #[`item.index`]="{ index }">
             {{ index + 1 }}
           </template>
-          <template v-slot:[`item.contacto`]="{ item, index }">
+          <template #[`item.contacto`]="{ item, index }">
             <v-text-field
               hide-details
               v-model="item.contacto"
@@ -125,166 +276,37 @@
               variant="outlined"
               :disabled="!editable"
               :id="`contactoexport${index}`"
-            ></v-text-field>
+            />
           </template>
-          <template v-slot:[`item.email`]="{ item }">
+          <template #[`item.email`]="{ item }">
             <v-text-field
               hide-details
               v-model="item.email"
               density="compact"
               :disabled="!editable"
               variant="outlined"
-            ></v-text-field>
+            />
           </template>
-          <template v-slot:[`item.telefono`]="{ item }">
+          <template #[`item.telefono`]="{ item }">
             <v-text-field
               hide-details
               v-model="item.telefono"
               density="compact"
               :disabled="!editable"
               variant="outlined"
-            ></v-text-field>
+            />
           </template>
-          <template v-slot:[`item.action`]="{ item }">
+          <template #[`item.action`]="{ item }">
             <v-switch
               color="#00C853"
               :disabled="!editable"
               v-model="item.estado"
-            ></v-switch>
+            />
           </template>
         </v-data-table>
       </v-col>
     </v-row>
   </v-container>
 </template>
-
-<script>
-import axios from '@/api/http';
-import Swal from "sweetalert2";
-import { mapActions as mapPiniaActions, mapStores } from "pinia";
-import { useEntitiesStore } from "@/stores/entities";
-
-export default {
-  name: "SeccionEmailTarifa",
-  props: {
-    editable: {
-      type: Boolean,
-      default: true,
-    },
-    guardarFlag: {
-      type: Boolean,
-      default: true,
-    },
-  },
-  data() {
-    return {
-      headers: [
-        { title: "#", key: "index" },
-
-        {
-          title: "Contacto",
-          align: "start",
-          sortable: false,
-          key: "contacto",
-        },
-        { title: "Email", key: "email" },
-        { title: "Telefono", key: "telefono" },
-        { title: "Activo/ Inactivo", key: "action" },
-      ],
-      principalflag: false,
-    };
-  },
-  async mounted() {
-    this.cargarDatos();
-  },
-  computed: {
-    ...mapStores(useEntitiesStore),
-  },
-  methods: {
-    ...mapPiniaActions(useEntitiesStore, ["cargarDatosTatifasEntite"]),
-    async cargarDatos() {
-      if (!this.$route.params.id) {
-        return;
-      }
-      await this.cargarDatosTatifasEntite({ id: this.$route.params.id });
-      this.entitiesStore.itemsImportacion =
-        this.entitiesStore.lstDatosTarifas.filter(
-          (item) => item.code === "I",
-        );
-      this.entitiesStore.itemsExportacion =
-        this.entitiesStore.lstDatosTarifas.filter(
-          (item) => item.code === "E",
-        );
-    },
-    agregarContactoExportacion() {
-      this.entitiesStore.itemsExportacion.push({
-        id: 0,
-        code: "E",
-        contacto: "",
-        email: "",
-        telefono: "",
-      });
-      this.$nextTick(() => {
-        const index = this.entitiesStore.itemsExportacion.length - 1;
-        const contactoInput = document.getElementById(`contactoexport${index}`);
-        if (contactoInput) {
-          contactoInput.focus();
-        }
-      });
-    },
-    agregarContacto() {
-      this.entitiesStore.itemsImportacion.push({
-        id: 0,
-        code: "I",
-        contacto: "",
-        email: "",
-        telefono: "",
-      });
-      this.$nextTick(() => {
-        const index = this.entitiesStore.itemsImportacion.length - 1;
-        const contactoInput = document.getElementById(`contactoimport${index}`);
-        if (contactoInput) {
-          contactoInput.focus();
-        }
-      });
-    },
-    async guardarContactos() {
-      Swal.showLoading();
-      let datos = [
-        ...this.entitiesStore.itemsImportacion,
-        ...this.entitiesStore.itemsExportacion,
-      ];
-
-      var config = {
-        method: "post",
-        url: import.meta.env.VITE_URL_MAIN + "entitie/guardar_datos_tarifas",
-        headers: {
-         
-          "Content-Type": "application/json",
-        },
-        data: {
-          id: this.$route.params.id,
-          datos: datos,
-          proveedorprincipalflag:
-            this.entitiesStore.proveedor.proveedorprincipalflag,
-        },
-      };
-
-      await axios(config).then((res) => {
-        let data = res.data;
-        if (data.estadoflag) {
-          Swal.fire({
-            icon: "success",
-            text: data.mensaje,
-          });
-        }
-      });
-      Swal.close();
-      this.cargarDatos();
-      console.log("Contactos guardados:", datos);
-    },
-  },
-};
-</script>
 
 <style></style>
