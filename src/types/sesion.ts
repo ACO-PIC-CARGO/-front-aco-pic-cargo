@@ -38,7 +38,7 @@ export interface UsuarioLogin {
   id_entitie: number;
   id_secutiry: number;
   id_user?: number;
-  id_branch?: number;
+  id_branch?: number | string;
 }
 
 export interface SucursalUsuario {

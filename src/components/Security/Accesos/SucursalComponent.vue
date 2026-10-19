@@ -1,14 +1,84 @@
+<script setup lang="ts">
+import { onMounted, ref, useTemplateRef } from "vue";
+import { useRouter } from "vue-router";
+import { useStore } from "vuex";
+import { useSecuritysStore } from "@/stores/securitys";
+import type { UsuarioLogin } from "@/types/sesion";
+
+const router = useRouter();
+const rootStore = useStore();
+const securitysStore = useSecuritysStore();
+
+const usuario = "";
+const clave = "";
+const loading = ref(false);
+const Login = useTemplateRef("Login");
+
+onMounted(() => {
+  if (usuario) {
+    (Login.value as unknown as HTMLElement).querySelector(".usuario-label")!.classList.add("active");
+  }
+  if (clave) {
+    (Login.value as unknown as HTMLElement).querySelector(".clave-label")!.classList.add("active");
+  }
+});
+
+async function guardarSucursal() {
+  if ((await Login.value!.validate()).valid) {
+    loading.value = true;
+    // --------------------------------------------
+    const dataBranch = securitysStore.lstSucursal.filter(
+      (v) => v.id == securitysStore.frmLogin.id_sucursal
+    );
+    sessionStorage.setItem("dataBranch", JSON.stringify(dataBranch));
+    localStorage.setItem("dataBranch", JSON.stringify(dataBranch));
+    // --------------------------------------------
+    const datos: UsuarioLogin[] = JSON.parse(sessionStorage.getItem("dataUser") as string);
+    datos[0]!.id_branch = securitysStore.frmLogin.id_sucursal;
+
+    sessionStorage.setItem("dataUser", JSON.stringify(datos));
+    localStorage.setItem("dataUser", JSON.stringify(datos));
+    sessionStorage.setItem("iso_pais", dataBranch[0]!.iso_pais);
+    localStorage.setItem("iso_pais", dataBranch[0]!.iso_pais);
+    sessionStorage.setItem("dataBranch", JSON.stringify(dataBranch));
+    localStorage.setItem("dataBranch", JSON.stringify(dataBranch));
+    //-------------------------------------
+    await securitysStore._getMenuItem();
+    rootStore.state.lstMenu = JSON.parse(sessionStorage.getItem("menu") as string);
+    // await this.ListProgrammedPayment();
+    await securitysStore.ObtenerDatosConfig();
+    setTimeout(() => {
+      router.push({ name: "Main" });
+      loading.value = false;
+    }, 1000 * 2);
+  }
+}
+function cancelar() {
+  securitysStore.MostrarLogin =
+    !securitysStore.MostrarLogin;
+  securitysStore.MostrarSucursal =
+    !securitysStore.MostrarSucursal;
+}
+</script>
+
 <template>
   <div class="formulario">
-    <v-form ref="Login" autocomplete="off">
+    <v-form
+      ref="Login"
+      autocomplete="off"
+    >
       <div class="title text-headline-small">
-        <h1 class="_title__logo my-3">ACO</h1>
-        <h3 class="text-white my-5">Selección de Sucursal</h3>
+        <h1 class="_title__logo my-3">
+          ACO
+        </h1>
+        <h3 class="text-white my-5">
+          Selección de Sucursal
+        </h3>
       </div>
       <!-- <p class="white--text">
           Sistema para Agencia de Carga y Operadores Logísticos
         </p> -->
-      <v-divider color="white"></v-divider>
+      <v-divider color="white" />
       <div class="input_contenedor">
         <v-select
           :items="securitysStore.lstSucursal"
@@ -19,7 +89,7 @@
           placeholder="Sucursal"
           label="Sucursal"
           :rules="[(v) => !!v || 'Dato Requerido']"
-        ></v-select>
+        />
         <!-- <span class="red--text"> {{ errorUsuario }}</span> -->
       </div>
 
@@ -28,87 +98,21 @@
           :loading="loading"
           class="buttonSuccess"
           @click="guardarSucursal()"
-          >Acceder</v-btn
         >
+          Acceder
+        </v-btn>
 
-        <v-btn :loading="loading" class="buttonCancel" @click="cancelar()">
+        <v-btn
+          :loading="loading"
+          class="buttonCancel"
+          @click="cancelar()"
+        >
           Cancelar
         </v-btn>
       </div>
     </v-form>
   </div>
 </template>
-
-<script>
-import { mapActions } from "vuex";
-import { mapActions as mapPiniaActions, mapStores } from "pinia";
-import { useSecuritysStore } from "@/stores/securitys";
-export default {
-  data() {
-    return {
-      verClave: false,
-      usuario: "",
-      clave: "",
-      listSucursalXUsuario: [],
-      loading: false,
-      id_sucursal: "",
-    };
-  },
-  mounted() {
-    if (this.usuario) {
-      this.$refs.Login.querySelector(".usuario-label").classList.add("active");
-    }
-    if (this.clave) {
-      this.$refs.Login.querySelector(".clave-label").classList.add("active");
-    }
-  },
-  computed: {
-    ...mapStores(useSecuritysStore),
-  },
-  methods: {
-    ...mapActions([
-      "ListProgrammedPayment",
-    ]),
-    ...mapPiniaActions(useSecuritysStore, ["_getMenuItem", "ObtenerDatosConfig"]),
-    async guardarSucursal() {
-      if ((await this.$refs.Login.validate()).valid) {
-        this.loading = true;
-        // --------------------------------------------
-        let dataBranch = this.securitysStore.lstSucursal.filter(
-          (v) => v.id == this.securitysStore.frmLogin.id_sucursal
-        );
-        sessionStorage.setItem("dataBranch", JSON.stringify(dataBranch));
-        localStorage.setItem("dataBranch", JSON.stringify(dataBranch));
-        // --------------------------------------------
-        let datos = JSON.parse(sessionStorage.getItem("dataUser"));
-        datos[0].id_branch = this.securitysStore.frmLogin.id_sucursal;
-
-        sessionStorage.setItem("dataUser", JSON.stringify(datos));
-        localStorage.setItem("dataUser", JSON.stringify(datos));
-        sessionStorage.setItem("iso_pais", dataBranch[0].iso_pais);
-        localStorage.setItem("iso_pais", dataBranch[0].iso_pais);
-        sessionStorage.setItem("dataBranch", JSON.stringify(dataBranch));
-        localStorage.setItem("dataBranch", JSON.stringify(dataBranch));
-        //-------------------------------------
-        await this._getMenuItem();
-        this.$store.state.lstMenu = JSON.parse(sessionStorage.getItem("menu"));
-        // await this.ListProgrammedPayment();
-        await this.ObtenerDatosConfig();
-        setTimeout(() => {
-          this.$router.push({ name: "Main" }, () => {});
-          this.loading = false;
-        }, 1000 * 2);
-      }
-    },
-    cancelar() {
-      this.securitysStore.MostrarLogin =
-        !this.securitysStore.MostrarLogin;
-      this.securitysStore.MostrarSucursal =
-        !this.securitysStore.MostrarSucursal;
-    },
-  },
-};
-</script>
 
 <style scoped>
 .formulario {

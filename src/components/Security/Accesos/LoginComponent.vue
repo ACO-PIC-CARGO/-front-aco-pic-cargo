@@ -1,16 +1,48 @@
+<script setup lang="ts">
+import { ref } from "vue";
+import { useRouter } from "vue-router";
+import { useSecuritysStore } from "@/stores/securitys";
+
+const router = useRouter();
+const securitysStore = useSecuritysStore();
+
+const verClave = ref(false);
+const loading = ref(false);
+
+async function acceder() {
+  loading.value = true;
+  await securitysStore.singin();
+  loading.value = false;
+}
+function registroEmpresa() {
+  router.push({
+    name: "RegistroEmpresa",
+  });
+}
+</script>
+
 <template>
   <div class="formulario">
-    <v-form ref="Login" autocomplete="off">
+    <v-form
+      ref="Login"
+      autocomplete="off"
+    >
       <div class="title text-headline-small">
-        <h1 class="_title__logo my-3">ACO</h1>
-        <h3 class="text-white my-5">Bienvenido</h3>
+        <h1 class="_title__logo my-3">
+          ACO
+        </h1>
+        <h3 class="text-white my-5">
+          Bienvenido
+        </h3>
       </div>
       <!-- <p class="white--text">
         Sistema para Agencia de Carga y Operadores Logísticos
       </p> -->
-      <v-divider color="white"></v-divider>
+      <v-divider color="white" />
       <div class="input_contenedor">
-        <v-icon class="icon">mdi-account-circle</v-icon>
+        <v-icon class="icon">
+          mdi-account-circle
+        </v-icon>
         <!--  -->
 
         <input
@@ -18,17 +50,25 @@
           type="text"
           required
           autocomplete="off"
-        />
+        >
         <label for="">Usuario</label>
         <!-- <span class="red--text"> {{ errorUsuario }}</span> -->
       </div>
       <div class="input_contenedor">
-        <v-icon class="icon" @click="verClave = !verClave" v-if="!verClave"
-          >mdi-eye-off</v-icon
+        <v-icon
+          class="icon"
+          @click="verClave = !verClave"
+          v-if="!verClave"
         >
-        <v-icon class="icon" @click="verClave = !verClave" v-if="verClave"
-          >mdi-eye-outline</v-icon
+          mdi-eye-off
+        </v-icon>
+        <v-icon
+          class="icon"
+          @click="verClave = !verClave"
+          v-if="verClave"
         >
+          mdi-eye-outline
+        </v-icon>
 
         <!-- -->
         <input
@@ -37,7 +77,7 @@
           required
           autocomplete="off"
           class="active"
-        />
+        >
         <label for="">Clave</label>
         <span class="text-red"> {{ securitysStore.errorClave }}</span>
       </div>
@@ -45,48 +85,26 @@
         <a href="">¿Olvidé Contraseña?</a>
       </div>
       <div class="">
-        <v-btn :loading="loading" class="buttonSuccess" @click="acceder()"
-          >Acceder</v-btn
+        <v-btn
+          :loading="loading"
+          class="buttonSuccess"
+          @click="acceder()"
         >
+          Acceder
+        </v-btn>
       </div>
       <div class="">
         <v-btn
           :loading="loading"
           class="buttonRegistro"
           @click="registroEmpresa()"
-          >REGISTRAR</v-btn
         >
+          REGISTRAR
+        </v-btn>
       </div>
     </v-form>
   </div>
 </template>
-
-<script>
-import { mapActions as mapPiniaActions, mapStores } from "pinia";
-import { useSecuritysStore } from "@/stores/securitys";
-export default {
-  data() {
-    return { verClave: false, errorClave: "", loading: false };
-  },
-  async mounted() {},
-  computed: {
-    ...mapStores(useSecuritysStore),
-  },
-  methods: {
-    ...mapPiniaActions(useSecuritysStore, ["singin"]),
-    async acceder() {
-      this.loading = true;
-      await this.singin();
-      this.loading = false;
-    },
-    registroEmpresa() {
-      this.$router.push({
-        name: "RegistroEmpresa",
-      });
-    },
-  },
-};
-</script>
 
 <style scoped>
 .formulario {
