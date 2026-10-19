@@ -1,9 +1,11 @@
 <script setup lang="ts">
 import { onMounted, ref } from "vue";
 import { useStore } from "vuex";
+import { useEntitiesStore } from "@/stores/entities";
 import type { PersonaRol } from "@/types/seguridad";
 
 const rootStore = useStore();
+const entitiesStore = useEntitiesStore();
 
 const search = ref("");
 const dialog = ref(false);
@@ -18,26 +20,26 @@ const rol = ref("");
 
 function filterPorRol() {
   if (rol.value == "proveedor") {
-    items.value = (rootStore.state.entities.lstPersona as PersonaRol[]).filter((v) => v.proveedorflag == true);
+    items.value = entitiesStore.lstPersona.filter((v) => v.proveedorflag == true);
   }
   if (rol.value == "cliente") {
-    items.value = (rootStore.state.entities.lstPersona as PersonaRol[]).filter((v) => v.clienteflag == true);
+    items.value = entitiesStore.lstPersona.filter((v) => v.clienteflag == true);
   }
   if (rol.value == "personal") {
-    items.value = (rootStore.state.entities.lstPersona as PersonaRol[]).filter((v) => v.personalflag == true);
+    items.value = entitiesStore.lstPersona.filter((v) => v.personalflag == true);
   }
   dialog.value = false;
 }
 async function Guardar() {
   rootStore.state.spiner = true;
-  await rootStore.dispatch("guardarRolProveedor");
-  await rootStore.dispatch("ListarPersonaTipoPersona");
+  await entitiesStore.guardarRolProveedor();
+  await entitiesStore.ListarPersonaTipoPersona();
   rootStore.state.spiner = false;
 }
 
 onMounted(async () => {
   rootStore.state.spiner = true;
-  await rootStore.dispatch("ListarPersonaTipoPersona");
+  await entitiesStore.ListarPersonaTipoPersona();
   rootStore.state.spiner = false;
   // this.dialog = true;
 });
@@ -103,21 +105,18 @@ onMounted(async () => {
     <v-col cols="12">
       <v-data-table
         :headers="headers"
-        :items="rootStore.state.entities.lstPersona"
+        :items="entitiesStore.lstPersona"
         class="elevation-1"
         item-value="id"
         :search="search"
       >
         <template #[`item.proveedor`]="{ item }">
-          <!-- @vue-expect-error the root state items are untyped until the Vuex store is typed -->
           <v-checkbox v-model="item.proveedorflag" />
         </template>
         <template #[`item.cliente`]="{ item }">
-          <!-- @vue-expect-error the root state items are untyped until the Vuex store is typed -->
           <v-checkbox v-model="item.clienteflag" />
         </template>
         <template #[`item.personal`]="{ item }">
-          <!-- @vue-expect-error the root state items are untyped until the Vuex store is typed -->
           <v-checkbox v-model="item.personalflag" />
         </template>
       </v-data-table>

@@ -34,9 +34,9 @@
               <v-row>
                 <v-col cols="12">
                   <CustomAutocomplete
-                    :items="$store.state.entities.lstProveedores_x_nombre"
+                    :items="entitiesStore.lstProveedores_x_nombre"
                     label="Nombre Comercial o Razón Social"
-                    :value="$store.state.entities.proveedor.nombrecompleto"
+                    :value="entitiesStore.proveedor.nombrecompleto"
                     v-on:search="handleNombre"
                     v-on:id="handleEditarProveedor"
                     :loading="isNombreLoading"
@@ -55,7 +55,7 @@
                     item-value="id"
                     label="Tipo de Proveedor"
                     :rules="[(v) => !!v || 'Dato Requerido']"
-                    v-model="$store.state.entities.proveedor.id_tipoproveedor"
+                    v-model="entitiesStore.proveedor.id_tipoproveedor"
                   ></v-autocomplete>
                 </v-col>
                 <v-col cols="12" md="6">
@@ -67,7 +67,7 @@
                     item-value="id"
                     label="Nacional / Extranjero"
                     :rules="[(v) => !!v || 'Dato Requerido']"
-                    v-model="$store.state.entities.proveedor.id_tipotransaccion"
+                    v-model="entitiesStore.proveedor.id_tipotransaccion"
                   ></v-autocomplete>
                 </v-col>
               </v-row>
@@ -83,7 +83,7 @@
                     item-title="description"
                     item-value="id"
                     label="Tipo de Documento Fiscal"
-                    v-model="$store.state.entities.proveedor.id_tipodocumento"
+                    v-model="entitiesStore.proveedor.id_tipodocumento"
                   ></v-autocomplete>
                 </v-col>
                 <v-col cols="12" md="6">
@@ -94,9 +94,9 @@
                   :disabled="isNroDocumentoDisabled"
                 ></v-text-field>-->
                   <CustomAutocomplete
-                    :items="$store.state.entities.lstProveedores_x_documento"
+                    :items="entitiesStore.lstProveedores_x_documento"
                     label="Nro De Documento"
-                    :value="$store.state.entities.proveedor.nro_documento"
+                    :value="entitiesStore.proveedor.nro_documento"
                     v-on:search="handleDocumento"
                     v-on:id="handleEditarProveedor"
                     :loading="isDocumentoLoading"
@@ -117,8 +117,8 @@
                     :items="$store.state.itemsPais"
                     label="País"
                     :rules="[(v) => !!v || 'Dato Requerido']"
-                    v-model="$store.state.entities.proveedor.id_pais"
-                    @update:model-value="_getState($store.state.entities.proveedor.id_pais)"
+                    v-model="entitiesStore.proveedor.id_pais"
+                    @update:model-value="_getState(entitiesStore.proveedor.id_pais)"
                   ></v-autocomplete>
                 </v-col>
                 <v-col cols="12" md="6">
@@ -129,7 +129,7 @@
                     item-title="name"
                     item-value="id"
                     label="Región / Estado"
-                    v-model="$store.state.entities.proveedor.id_ciudad"
+                    v-model="entitiesStore.proveedor.id_ciudad"
                   ></v-autocomplete>
                 </v-col>
               </v-row>
@@ -139,7 +139,7 @@
                     density="compact"
                     variant="outlined"
                     label="Dirección"
-                    v-model="$store.state.entities.proveedor.direccion"
+                    v-model="entitiesStore.proveedor.direccion"
                   ></v-text-field>
                 </v-col>
                 <v-col cols="12" md="6">
@@ -147,7 +147,7 @@
                     density="compact"
                     variant="outlined"
                     label="Correo Electrónico"
-                    v-model="$store.state.entities.proveedor.emailaddress"
+                    v-model="entitiesStore.proveedor.emailaddress"
                     :rules="[(v) => validarCorreoElectronico(v)]"
                     :error-messages="correoErrors"
                   ></v-text-field>
@@ -178,7 +178,7 @@
                     type="number"
                     suffix="días"
                     v-model="
-                      $store.state.entities.proveedor.convenioActual
+                      entitiesStore.proveedor.convenioActual
                         .dias_credito
                     "
                     label="Días de Crédito para el Pago"
@@ -194,7 +194,7 @@
                     variant="outlined"
                     type="date"
                     v-model="
-                      $store.state.entities.proveedor.convenioActual.fecha
+                      entitiesStore.proveedor.convenioActual.fecha
                     "
                     label="Fecha Convenio"
                     @change="validarConvenioActual"
@@ -205,7 +205,7 @@
                     density="compact"
                     variant="outlined"
                     v-model="
-                      $store.state.entities.proveedor.convenioActual
+                      entitiesStore.proveedor.convenioActual
                         .email_soporte
                     "
                     label="Email Soporte"
@@ -233,7 +233,7 @@
                     item-value="id"
                     label="Tipo de Teléfono"
                     v-model="
-                      $store.state.entities.proveedor.telefonoActual
+                      entitiesStore.proveedor.telefonoActual
                         .id_tipotelefono
                     "
                     @update:model-value="validarTelefonoActual"
@@ -245,7 +245,7 @@
                     variant="outlined"
                     label="Teléfono"
                     v-model="
-                      $store.state.entities.proveedor.telefonoActual.telefono
+                      entitiesStore.proveedor.telefonoActual.telefono
                     "
                     @change="validarTelefonoActual"
                   ></v-text-field>
@@ -263,7 +263,7 @@
                     variant="outlined"
                     label="Nombre"
                     v-model="
-                      $store.state.entities.proveedor.contactoActual.nombre
+                      entitiesStore.proveedor.contactoActual.nombre
                     "
                     @change="validarContactoActual"
                   ></v-text-field>
@@ -277,7 +277,7 @@
                     item-value="id"
                     label="Tipo de Teléfono"
                     v-model="
-                      $store.state.entities.proveedor.contactoActual
+                      entitiesStore.proveedor.contactoActual
                         .id_tipotelefono
                     "
                     @update:model-value="validarContactoActual"
@@ -289,7 +289,7 @@
                     variant="outlined"
                     label="Teléfono"
                     v-model="
-                      $store.state.entities.proveedor.contactoActual.telefono
+                      entitiesStore.proveedor.contactoActual.telefono
                     "
                     @change="validarContactoActual"
                   ></v-text-field>
@@ -309,7 +309,7 @@
                     label="Producto que vende"
                     :rules="[(v) => validarProducto(v)]"
                     :error-messages="productoErrors"
-                    v-model="$store.state.entities.proveedor.producto"
+                    v-model="entitiesStore.proveedor.producto"
                   ></v-textarea>
                 </v-col>
               </v-row>
@@ -328,7 +328,7 @@
                     :rules="[
                       (v) => v >= 0 || 'Debe ser un número entero positivo',
                     ]"
-                    v-model="$store.state.entities.proveedor.dias_sobreestadia"
+                    v-model="entitiesStore.proveedor.dias_sobreestadia"
                   ></v-text-field>
                 </v-col>
               </v-row>
@@ -344,7 +344,7 @@
                     :rules="[
                       (v) => v >= 0 || 'Debe ser un número entero positivo',
                     ]"
-                    v-model="$store.state.entities.proveedor.dias_almacenaje"
+                    v-model="entitiesStore.proveedor.dias_almacenaje"
                   ></v-text-field>
                 </v-col>
               </v-row>
@@ -360,7 +360,7 @@
                     variant="outlined"
                     rows="3"
                     label="Comentarios / Notas Importantes"
-                    v-model="$store.state.entities.proveedor.notas"
+                    v-model="entitiesStore.proveedor.notas"
                   ></v-textarea>
                 </v-col>
               </v-row>
@@ -392,8 +392,9 @@
 <script>
 import { mapActions } from "vuex";
 import CustomAutocomplete from "../customAutocomplete.vue";
-import { mapStores } from "pinia";
+import { mapActions as mapPiniaActions, mapStores } from "pinia";
 import { useMasterusuariosStore } from "@/stores/masterusuarios";
+import { useEntitiesStore } from "@/stores/entities";
 export default {
   name: "SeccionProveedor",
   components: {
@@ -422,23 +423,23 @@ export default {
     };
   },
   computed: {
-    ...mapStores(useMasterusuariosStore),
+    ...mapStores(useEntitiesStore, useMasterusuariosStore),
     isNroDocumentoDisabled() {
-      return !this.$store.state.entities.proveedor.id_tipodocumento;
+      return !this.entitiesStore.proveedor.id_tipodocumento;
     },
     isProductoDisabled() {
       return !this.isShipper();
     },
     isFormReadonly() {
-      return this.$store.state.entities.isReadonly;
+      return this.entitiesStore.isReadonly;
     },
     showFormActions() {
-      return !this.$store.state.entities.isReadonly;
+      return !this.entitiesStore.isReadonly;
     },
     showNavigationButtons() {
       return !(
-        this.$store.state.entities.isEdit ||
-        this.$store.state.entities.isReadonly
+        this.entitiesStore.isEdit ||
+        this.entitiesStore.isReadonly
       );
     },
     showDiasSobreestadia() {
@@ -452,16 +453,14 @@ export default {
     ...mapActions([
       "_getState",
       "cargarClientes",
-      "validarNombreProveedor",
-      "validarDocumentoProveedor",
       "_uploadFile",
-      "actualizarProveedor",
     ]),
+    ...mapPiniaActions(useEntitiesStore, ["validarNombreProveedor", "validarDocumentoProveedor", "actualizarProveedor"]),
     isShipper() {
       let val = this.$store.state.itemsDataRoleList.some((v) => {
         const item = (v.name.split("-")[1] || "").trim().toUpperCase();
         return (
-          v.id == this.$store.state.entities.proveedor.id_tipoproveedor &&
+          v.id == this.entitiesStore.proveedor.id_tipoproveedor &&
           item == "SHIPPER"
         );
       });
@@ -472,7 +471,7 @@ export default {
       let val = this.$store.state.itemsDataRoleList.some((v) => {
         const item = (v.name.split("-")[1] || "").trim().toUpperCase();
         return (
-          v.id == this.$store.state.entities.proveedor.id_tipoproveedor &&
+          v.id == this.entitiesStore.proveedor.id_tipoproveedor &&
           item == "NAVIERA"
         );
       });
@@ -483,7 +482,7 @@ export default {
       let val = this.$store.state.itemsDataRoleList.some((v) => {
         const item = (v.name.split("-")[1] || "").trim().toUpperCase();
         return (
-          v.id == this.$store.state.entities.proveedor.id_tipoproveedor &&
+          v.id == this.entitiesStore.proveedor.id_tipoproveedor &&
           item == "ALMACEN"
         );
       });
@@ -493,9 +492,9 @@ export default {
     async handleNombre(val) {
       var vm = this;
 
-      vm.$store.state.entities.lstProveedores_x_nombre = [];
-      vm.$store.state.entities.proveedor.nombrecompleto = val;
-      if (vm.$store.state.entities.proveedor.nombrecompleto) {
+      vm.entitiesStore.lstProveedores_x_nombre = [];
+      vm.entitiesStore.proveedor.nombrecompleto = val;
+      if (vm.entitiesStore.proveedor.nombrecompleto) {
         vm.isNombreLoading = true;
         await this.validarNombreProveedor();
         vm.isNombreLoading = false;
@@ -504,9 +503,9 @@ export default {
     async handleDocumento(val) {
       var vm = this;
 
-      vm.$store.state.entities.lstProveedores_x_documento = [];
-      vm.$store.state.entities.proveedor.nro_documento = val;
-      if (vm.$store.state.entities.proveedor.nro_documento) {
+      vm.entitiesStore.lstProveedores_x_documento = [];
+      vm.entitiesStore.proveedor.nro_documento = val;
+      if (vm.entitiesStore.proveedor.nro_documento) {
         vm.isDocumentoLoading = true;
         await this.validarDocumentoProveedor();
         vm.isDocumentoLoading = false;
@@ -560,7 +559,7 @@ export default {
     },
     validarConvenioActual() {
       var vm = this;
-      const { convenioActual } = vm.$store.state.entities.proveedor;
+      const { convenioActual } = vm.entitiesStore.proveedor;
       if (convenioActual.dias_credito > 0) {
         if (!convenioActual.fecha) {
           vm.$swal({
@@ -569,43 +568,43 @@ export default {
           });
         } else {
           if (
-            vm.$store.state.entities.lstConvenios.indexOf(convenioActual) === -1
+            vm.entitiesStore.lstConvenios.indexOf(convenioActual) === -1
           ) {
-            vm.$store.state.entities.lstConvenios.push(convenioActual);
+            vm.entitiesStore.lstConvenios.push(convenioActual);
           }
         }
       }
     },
     validarTelefonoActual() {
       var vm = this;
-      const { telefonoActual } = vm.$store.state.entities.proveedor;
+      const { telefonoActual } = vm.entitiesStore.proveedor;
       if (telefonoActual.id_tipotelefono && telefonoActual.telefono) {
-        const index = vm.$store.state.entities.lstTelefonos.findIndex(
+        const index = vm.entitiesStore.lstTelefonos.findIndex(
           (v) =>
             v.id_tipotelefono == telefonoActual.id_tipotelefono &&
             v.telefono == telefonoActual.telefono,
         );
         if (index === -1) {
-          vm.$store.state.entities.lstTelefonos.push(telefonoActual);
+          vm.entitiesStore.lstTelefonos.push(telefonoActual);
         }
       }
     },
     validarContactoActual() {
       var vm = this;
-      const { contactoActual } = vm.$store.state.entities.proveedor;
+      const { contactoActual } = vm.entitiesStore.proveedor;
       if (
         contactoActual.nombre &&
         contactoActual.id_tipotelefono &&
         contactoActual.telefono
       ) {
-        const index = vm.$store.state.entities.lstContactos.findIndex(
+        const index = vm.entitiesStore.lstContactos.findIndex(
           (v) =>
             v.nombre == contactoActual.nombre &&
             v.id_tipotelefono == contactoActual.id_tipotelefono &&
             v.telefono == contactoActual.telefono,
         );
         if (index === -1) {
-          vm.$store.state.entities.lstContactos.push(contactoActual);
+          vm.entitiesStore.lstContactos.push(contactoActual);
         }
       }
     },
@@ -623,9 +622,9 @@ export default {
             text: "Archivo cargado",
           });
 
-          vm.$store.state.entities.lstConvenios.map((item) => {
+          vm.entitiesStore.lstConvenios.map((item) => {
             if (
-              item.id == vm.$store.state.entities.proveedor.convenioActual.id
+              item.id == vm.entitiesStore.proveedor.convenioActual.id
             ) {
               item["id_path"] = vm.$store.state.files.payPath;
             }
@@ -647,7 +646,7 @@ export default {
         vm.validarTelefonoActual();
         vm.validarContactoActual();
 
-        vm.$store.state.entities.stepper = 2;
+        vm.entitiesStore.stepper = 2;
       }
     },
     isProveedorInternacional() {
@@ -655,7 +654,7 @@ export default {
         (v) => {
           return (
             v.codigo == "02" &&
-            v.id == this.$store.state.entities.proveedor.id_tipotransaccion
+            v.id == this.entitiesStore.proveedor.id_tipotransaccion
           );
         },
       );
@@ -666,8 +665,8 @@ export default {
 
       // Si está en modo solo lectura, pasar a modo edición y no guardar todavía
       if (vm.isFormReadonly) {
-        vm.$store.state.entities.isReadonly = false;
-        vm.$store.state.entities.isEdit = true;
+        vm.entitiesStore.isReadonly = false;
+        vm.entitiesStore.isEdit = true;
         vm.$swal({
           icon: "info",
           text: "Ahora puede modificar los datos del proveedor",
@@ -675,29 +674,29 @@ export default {
         return;
       }
 
-      vm.$store.state.entities.isStep1Valid = true;
-      vm.$store.state.entities.isStep2Valid = true;
-      vm.$store.state.entities.isStep3Valid = true;
-      vm.$store.state.entities.isStep4Valid = true;
+      vm.entitiesStore.isStep1Valid = true;
+      vm.entitiesStore.isStep2Valid = true;
+      vm.entitiesStore.isStep3Valid = true;
+      vm.entitiesStore.isStep4Valid = true;
 
       let okStep1 = true;
-      if (vm.$store.state.entities.proveedor) {
-        if (!vm.$store.state.entities.proveedor.nombrecompleto) {
+      if (vm.entitiesStore.proveedor) {
+        if (!vm.entitiesStore.proveedor.nombrecompleto) {
           okStep1 = false;
         }
-        if (!vm.$store.state.entities.proveedor.id_tipoproveedor) {
+        if (!vm.entitiesStore.proveedor.id_tipoproveedor) {
           okStep1 = false;
         }
-        if (!vm.$store.state.entities.proveedor.id_tipotransaccion) {
+        if (!vm.entitiesStore.proveedor.id_tipotransaccion) {
           okStep1 = false;
         }
-        if (!vm.$store.state.entities.proveedor.id_pais) {
+        if (!vm.entitiesStore.proveedor.id_pais) {
           okStep1 = false;
         }
         if (
-          vm.$store.state.entities.proveedor.emailaddress &&
+          vm.entitiesStore.proveedor.emailaddress &&
           !/^(([^<>()[\]\\.,;:\s@']+(\.[^<>()\\[\]\\.,;:\s@']+)*)|('.+'))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/.test(
-            vm.$store.state.entities.proveedor.emailaddress,
+            vm.entitiesStore.proveedor.emailaddress,
           )
         ) {
           okStep1 = false;
@@ -705,8 +704,8 @@ export default {
       }
 
       let okStep2_1 = true;
-      if (vm.$store.state.entities.lstTelefonos.length > 0) {
-        vm.$store.state.entities.lstTelefonos.map((v) => {
+      if (vm.entitiesStore.lstTelefonos.length > 0) {
+        vm.entitiesStore.lstTelefonos.map((v) => {
           if (!v.id_tipotelefono) {
             okStep2_1 = false;
           }
@@ -717,8 +716,8 @@ export default {
       }
 
       let okStep2_2 = true;
-      if (vm.$store.state.entities.lstContactos.length > 0) {
-        vm.$store.state.entities.lstContactos.map((v) => {
+      if (vm.entitiesStore.lstContactos.length > 0) {
+        vm.entitiesStore.lstContactos.map((v) => {
           if (!v.nombre) {
             okStep2_2 = false;
           }
@@ -732,8 +731,8 @@ export default {
       }
 
       let okStep3_1 = true;
-      if (vm.$store.state.entities.lstConvenios.length > 0) {
-        vm.$store.state.entities.lstConvenios.map((v) => {
+      if (vm.entitiesStore.lstConvenios.length > 0) {
+        vm.entitiesStore.lstConvenios.map((v) => {
           if (!v.fecha) {
             okStep3_1 = false;
           }
@@ -752,8 +751,8 @@ export default {
       }
 
       let okStep3_2 = true;
-      if (vm.$store.state.entities.lstTarifas.length > 0) {
-        vm.$store.state.entities.lstTarifas.map((v) => {
+      if (vm.entitiesStore.lstTarifas.length > 0) {
+        vm.entitiesStore.lstTarifas.map((v) => {
           if (!v.fecha) {
             okStep3_2 = false;
           }
@@ -775,8 +774,8 @@ export default {
       }
 
       let okStep4 = true;
-      if (vm.$store.state.entities.lstInformacionBancaria.length > 0) {
-        vm.$store.state.entities.lstInformacionBancaria.map((v) => {
+      if (vm.entitiesStore.lstInformacionBancaria.length > 0) {
+        vm.entitiesStore.lstInformacionBancaria.map((v) => {
           if (!v.nro_cuenta) {
             okStep4 = false;
           }
@@ -804,25 +803,25 @@ export default {
       }
 
       if (!okStep1) {
-        vm.$store.state.entities.isStep1Valid =
-          !vm.$store.state.entities.isStep1Valid;
+        vm.entitiesStore.isStep1Valid =
+          !vm.entitiesStore.isStep1Valid;
       } else if (!okStep2_1 || !okStep2_2) {
-        vm.$store.state.entities.isStep2Valid =
-          !vm.$store.state.entities.isStep2Valid;
+        vm.entitiesStore.isStep2Valid =
+          !vm.entitiesStore.isStep2Valid;
       } else if (!okStep3_1 || !okStep3_2) {
-        vm.$store.state.entities.isStep3Valid =
-          !vm.$store.state.entities.isStep3Valid;
+        vm.entitiesStore.isStep3Valid =
+          !vm.entitiesStore.isStep3Valid;
       } else if (!okStep4) {
-        vm.$store.state.entities.isStep4Valid =
-          !vm.$store.state.entities.isStep4Valid;
+        vm.entitiesStore.isStep4Valid =
+          !vm.entitiesStore.isStep4Valid;
       } else {
         vm.$store.state.spiner = true;
         await vm.actualizarProveedor();
         vm.$store.state.spiner = false;
 
         // Volver a modo solo lectura después de guardar correctamente
-        vm.$store.state.entities.isReadonly = true;
-        vm.$store.state.entities.isEdit = false;
+        vm.entitiesStore.isReadonly = true;
+        vm.entitiesStore.isEdit = false;
       }
     },
   },
@@ -831,7 +830,7 @@ export default {
     console.log("isPricing", this.isPricing);
   },
   watch: {
-    "$store.state.entities.isStep1Valid": {
+    "entitiesStore.isStep1Valid": {
       async handler(newValue) {
         if (!newValue) {
           await this.$refs.formProv_datosProveedor.validate();

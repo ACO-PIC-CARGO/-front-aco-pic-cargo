@@ -374,6 +374,7 @@ import axios from '@/api/http';
 import { mapState, mapActions } from "vuex";
 import { mapActions as mapPiniaActions, mapStores } from "pinia";
 import { useMasterusuariosStore } from "@/stores/masterusuarios";
+import { useEntitiesStore } from "@/stores/entities";
 export default {
   name: "controlEntitiesCom",
   // props: {
@@ -417,7 +418,7 @@ export default {
     };
   },
   computed: {
-    ...mapStores(useMasterusuariosStore),
+    ...mapStores(useEntitiesStore, useMasterusuariosStore),
     ...mapState([
       "itemsDocumentsPais",
       "itemsPais",
@@ -843,7 +844,7 @@ export default {
             if (vm.$store.state.modalEntitie == false) {
               vm.$store.state.registroClienteFlag =
                 !vm.$store.state.registroClienteFlag;
-              vm.$store.state.entities.id = id_entitie;
+              vm.entitiesStore.id = id_entitie;
               vm.$store.state.modalEntitie = false;
             } else {
               vm.$router.back();

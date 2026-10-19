@@ -35,7 +35,7 @@
               <v-form ref="formShippers" :readonly="isFormReadonly">
                 <v-data-table
                   :headers="headersShippers"
-                  :items="$store.state.entities.lstShippers"
+                  :items="entitiesStore.lstShippers"
                   class="elevation-5"
                   item-value="index"
                   disable-sort
@@ -58,7 +58,7 @@
         </div>
       </v-card-text>
       <v-card-actions v-if="showNavigationButtons">
-        <v-btn color="primary" @click="$store.state.entities.stepper--"
+        <v-btn color="primary" @click="entitiesStore.stepper--"
           >Regresar</v-btn
         >
         <v-btn color="primary" class="ml-auto" @click="validarFormulario"
@@ -106,6 +106,8 @@
 
 <script>
 import { mapActions } from "vuex";
+import { mapActions as mapPiniaActions, mapStores } from "pinia";
+import { useEntitiesStore } from "@/stores/entities";
 export default {
   name: "SeccionShippers",
   data() {
@@ -132,21 +134,23 @@ export default {
     };
   },
   computed: {
+    ...mapStores(useEntitiesStore),
     isFormReadonly() {
-      return this.$store.state.entities.isReadonly;
+      return this.entitiesStore.isReadonly;
     },
     showFormActions() {
-      return !this.$store.state.entities.isReadonly;
+      return !this.entitiesStore.isReadonly;
     },
     showNavigationButtons() {
       return !(
-        this.$store.state.entities.isEdit ||
-        this.$store.state.entities.isReadonly
+        this.entitiesStore.isEdit ||
+        this.entitiesStore.isReadonly
       );
     },
   },
   methods: {
-    ...mapActions(["_getProveedorRolShipper", "actualizarCliente"]),
+    ...mapActions(["_getProveedorRolShipper"]),
+    ...mapPiniaActions(useEntitiesStore, ["actualizarCliente"]),
     async mostrarDialogShippers() {
       var vm = this;
 
@@ -157,18 +161,18 @@ export default {
       vm.loading = false;
     },
     eliminarShipper(index) {
-      this.$store.state.entities.lstShippers.splice(index, 1);
+      this.entitiesStore.lstShippers.splice(index, 1);
     },
     aceptar() {
       var vm = this;
       if (vm.lstSelectedShippers.length) {
         vm.lstSelectedShippers.map((item) => {
           if (
-            !vm.$store.state.entities.lstShippers.filter(
+            !vm.entitiesStore.lstShippers.filter(
               (v) => v.id_shipper == item.id,
             ).length
           ) {
-            vm.$store.state.entities.lstShippers.push({
+            vm.entitiesStore.lstShippers.push({
               id_shipper: item.id,
               correlativo: item.correlativo,
               nombrecompleto: item.namelong,
@@ -189,21 +193,21 @@ export default {
     async validarFormulario() {
       var vm = this;
       let ok = true;
-      if (vm.$store.state.entities.lstShippers.length > 0) {
+      if (vm.entitiesStore.lstShippers.length > 0) {
         if (!(await vm.$refs.formShippers.validate()).valid) {
           ok = false;
         }
       }
 
       if (ok) {
-        vm.$store.state.entities.stepper = 6;
+        vm.entitiesStore.stepper = 6;
       }
     },
     async modificarCliente() {
       var vm = this;
       if (vm.isFormReadonly) {
-        vm.$store.state.entities.isReadonly = false;
-        vm.$store.state.entities.isEdit = true;
+        vm.entitiesStore.isReadonly = false;
+        vm.entitiesStore.isEdit = true;
         vm.$swal({
           icon: "info",
           text: "Ahora puede modificar los campos",
@@ -218,8 +222,8 @@ export default {
         !vm.$store.state.recargarClienteFlag;
       vm.$store.state.modalEntitie = false;
 
-      vm.$store.state.entities.isReadonly = true;
-      vm.$store.state.entities.isEdit = false;
+      vm.entitiesStore.isReadonly = true;
+      vm.entitiesStore.isEdit = false;
     },
   },
 };

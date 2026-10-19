@@ -13,7 +13,6 @@ import bancos from "./modules/banco";
 import programaciones from "./modules/programacion";
 import balances from "./modules/balanace";
 import proyecciones from "./modules/proyeccion";
-import entities from "./modules/entitie";
 import houses from "./modules/house";
 import files from "./modules/file";
 import monedas from "./modules/moneda";
@@ -2842,7 +2841,6 @@ export default createStore({
 
   modules: {
     reportes,
-    entities,
     pricing,
     calculadoras,
     controlGastos,

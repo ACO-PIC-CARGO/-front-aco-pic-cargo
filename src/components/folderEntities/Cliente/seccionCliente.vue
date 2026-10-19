@@ -31,7 +31,7 @@
                     item-value="id"
                     label="Persona Natural / Empresa"
                     :rules="[(v) => !!v || 'Dato Requerido']"
-                    v-model="$store.state.entities.cliente.id_tipopersona"
+                    v-model="entitiesStore.cliente.id_tipopersona"
                     @update:model-value="toggleNombre"
                   ></v-autocomplete>
                 </v-col>
@@ -44,7 +44,7 @@
                     item-value="id"
                     label="Nacional / Extranjero"
                     :rules="[(v) => !!v || 'Dato Requerido']"
-                    v-model="$store.state.entities.cliente.id_tipotransaccion"
+                    v-model="entitiesStore.cliente.id_tipotransaccion"
                   ></v-autocomplete>
                 </v-col>
               </v-row>
@@ -66,7 +66,7 @@
                     density="compact"
                     label="Nombre Fiscal"
                     :rules="[(v) => !!v || 'Dato Requerido']"
-                    v-model="$store.state.entities.cliente.nombrecompleto"
+                    v-model="entitiesStore.cliente.nombrecompleto"
                     @blur="handleNombre"
                   ></v-text-field>
                 </v-col>
@@ -74,11 +74,11 @@
               <v-row>
                 <v-col cols="12">
                   <CustomAutocomplete
-                    :items="$store.state.entities.lstProveedores_x_nombre"
+                    :items="entitiesStore.lstProveedores_x_nombre"
                     :label="
                       showNombreCompleto ? 'Nombre Completo' : 'Nombre Fiscal'
                     "
-                    :value="$store.state.entities.cliente.nombrecompleto"
+                    :value="entitiesStore.cliente.nombrecompleto"
                     v-on:search="handleNombre"
                     v-on:id="handleEditarCliente"
                     :loading="isNombreLoading"
@@ -99,7 +99,7 @@
                     item-title="description"
                     item-value="id"
                     label="Tipo de Documento Fiscal"
-                    v-model="$store.state.entities.cliente.id_tipodocumento"
+                    v-model="entitiesStore.cliente.id_tipodocumento"
                   ></v-autocomplete>
                 </v-col>
                 <v-col cols="12" md="6">
@@ -110,9 +110,9 @@
                   :disabled="isNroDocumentoDisabled"
                 ></v-text-field>-->
                   <CustomAutocomplete
-                    :items="$store.state.entities.lstProveedores_x_documento"
+                    :items="entitiesStore.lstProveedores_x_documento"
                     label="Nro De Documento"
-                    :value="$store.state.entities.cliente.nro_documento"
+                    :value="entitiesStore.cliente.nro_documento"
                     v-on:search="handleDocumento"
                     v-on:id="handleEditarCliente"
                     :loading="isDocumentoLoading"
@@ -133,8 +133,8 @@
                     :items="$store.state.itemsPais"
                     label="País"
                     :rules="[(v) => !!v || 'Dato Requerido']"
-                    v-model="$store.state.entities.cliente.id_pais"
-                    @update:model-value="_getState($store.state.entities.cliente.id_pais)"
+                    v-model="entitiesStore.cliente.id_pais"
+                    @update:model-value="_getState(entitiesStore.cliente.id_pais)"
                   ></v-autocomplete>
                 </v-col>
                 <v-col cols="12" md="6">
@@ -145,7 +145,7 @@
                     item-title="name"
                     item-value="id"
                     label="Región / Estado"
-                    v-model="$store.state.entities.cliente.id_ciudad"
+                    v-model="entitiesStore.cliente.id_ciudad"
                   ></v-autocomplete>
                 </v-col>
               </v-row>
@@ -155,7 +155,7 @@
                     density="compact"
                     variant="outlined"
                     label="Dirección"
-                    v-model="$store.state.entities.cliente.direccion"
+                    v-model="entitiesStore.cliente.direccion"
                   ></v-text-field>
                 </v-col>
                 <v-col cols="12" md="6">
@@ -163,7 +163,7 @@
                     density="compact"
                     variant="outlined"
                     label="Correo Electrónico"
-                    v-model="$store.state.entities.cliente.emailaddress"
+                    v-model="entitiesStore.cliente.emailaddress"
                     :rules="[(v) => validarCorreoElectronico(v)]"
                     :error-messages="correoErrors"
                   ></v-text-field>
@@ -193,7 +193,7 @@
                     type="number"
                     suffix="días"
                     v-model="
-                      $store.state.entities.cliente.convenioActual.dias_credito
+                      entitiesStore.cliente.convenioActual.dias_credito
                     "
                     label="Días de Crédito para el Pago"
                     :rules="[
@@ -209,7 +209,7 @@
                     density="compact"
                     variant="outlined"
                     type="date"
-                    v-model="$store.state.entities.cliente.convenioActual.fecha"
+                    v-model="entitiesStore.cliente.convenioActual.fecha"
                     label="Fecha Convenio"
                     @change="validarConvenioActual"
                   ></v-text-field>
@@ -219,7 +219,7 @@
                     density="compact"
                     variant="outlined"
                     v-model="
-                      $store.state.entities.cliente.convenioActual.email_soporte
+                      entitiesStore.cliente.convenioActual.email_soporte
                     "
                     label="Email Soporte"
                     :rules="[(v) => validarCorreoElectronico(v)]"
@@ -242,12 +242,12 @@
                     item-value="id"
                     label="Tipo de Teléfono"
                     v-model="
-                      $store.state.entities.cliente.telefonoActual
+                      entitiesStore.cliente.telefonoActual
                         .id_tipotelefono
                     "
                     @update:model-value="validarTelefonoActual"
                     :error-messages="
-                      !$store.state.entities.cliente.telefonoActual
+                      !entitiesStore.cliente.telefonoActual
                         .id_tipotelefono
                         ? 'Dato Requerido'
                         : ''
@@ -260,11 +260,11 @@
                     variant="outlined"
                     label="Teléfono"
                     v-model="
-                      $store.state.entities.cliente.telefonoActual.telefono
+                      entitiesStore.cliente.telefonoActual.telefono
                     "
                     @change="validarTelefonoActual"
                     :error-messages="
-                      !$store.state.entities.cliente.telefonoActual.telefono
+                      !entitiesStore.cliente.telefonoActual.telefono
                         ? 'Dato Requerido'
                         : ''
                     "
@@ -290,7 +290,7 @@
                     variant="outlined"
                     label="Nombre"
                     v-model="
-                      $store.state.entities.cliente.contactoActual.nombre
+                      entitiesStore.cliente.contactoActual.nombre
                     "
                     :rules="[(v) => !!v || 'Dato Requerido']"
                     @change="validarContactoActual"
@@ -305,7 +305,7 @@
                     item-value="id"
                     label="Tipo de Teléfono"
                     v-model="
-                      $store.state.entities.cliente.contactoActual
+                      entitiesStore.cliente.contactoActual
                         .id_tipotelefono
                     "
                     :rules="[(v) => !!v || 'Dato Requerido']"
@@ -319,7 +319,7 @@
                     variant="outlined"
                     label="Teléfono"
                     v-model="
-                      $store.state.entities.cliente.contactoActual.telefono
+                      entitiesStore.cliente.contactoActual.telefono
                     "
                     :rules="[(v) => !!v || 'Dato Requerido']"
                     @change="validarContactoActual"
@@ -345,7 +345,7 @@
                     variant="outlined"
                     rows="3"
                     label="Comentarios / Notas Importantes"
-                    v-model="$store.state.entities.cliente.notas"
+                    v-model="entitiesStore.cliente.notas"
                   ></v-textarea>
                 </v-col>
               </v-row>
@@ -377,8 +377,9 @@
 <script>
 import { mapActions } from "vuex";
 import CustomAutocomplete from "../customAutocomplete.vue";
-import { mapStores } from "pinia";
+import { mapActions as mapPiniaActions, mapStores } from "pinia";
 import { useMasterusuariosStore } from "@/stores/masterusuarios";
+import { useEntitiesStore } from "@/stores/entities";
 export default {
   name: "SeccionCliente",
   components: {
@@ -404,26 +405,26 @@ export default {
     };
   },
   computed: {
-    ...mapStores(useMasterusuariosStore),
+    ...mapStores(useEntitiesStore, useMasterusuariosStore),
     isNroDocumentoDisabled() {
-      return !this.$store.state.entities.cliente.id_tipodocumento;
+      return !this.entitiesStore.cliente.id_tipodocumento;
     },
     isFormReadonly() {
-      return this.$store.state.entities.isReadonly;
+      return this.entitiesStore.isReadonly;
     },
     showFormActions() {
-      return !this.$store.state.entities.isReadonly;
+      return !this.entitiesStore.isReadonly;
     },
     showNavigationButtons() {
       return !(
-        this.$store.state.entities.isEdit ||
-        this.$store.state.entities.isReadonly
+        this.entitiesStore.isEdit ||
+        this.entitiesStore.isReadonly
       );
     },
     filteredDocumentsPais() {
       const all = this.$store.state.itemsDocumentsPais || [];
       const tipoPersona = this.masterusuariosStore.lstTipoPersona.find(
-        (v) => v.id == this.$store.state.entities.cliente.id_tipopersona,
+        (v) => v.id == this.entitiesStore.cliente.id_tipopersona,
       );
 
       if (!tipoPersona) return all;
@@ -515,17 +516,15 @@ export default {
     ...mapActions([
       "_getState",
       "cargarClientes",
-      "validarNombreCliente",
-      "validarDocumentoCliente",
       "_uploadFile",
-      "actualizarCliente",
     ]),
+    ...mapPiniaActions(useEntitiesStore, ["validarNombreCliente", "validarDocumentoCliente", "actualizarCliente"]),
     setDocumentoFiscalByDefault(criterio = "") {
       var vm = this;
 
       const tipoDocumento = vm.getIDTipoDocumento(criterio);
       if (tipoDocumento) {
-        vm.$store.state.entities.cliente.id_tipodocumento = tipoDocumento;
+        vm.entitiesStore.cliente.id_tipodocumento = tipoDocumento;
       }
     },
     getIDTipoDocumento(criterio = "") {
@@ -546,7 +545,7 @@ export default {
 
       const tipoPersonaData =
         vm.masterusuariosStore.lstTipoPersona.find(
-          (v) => v.id == vm.$store.state.entities.cliente.id_tipopersona,
+          (v) => v.id == vm.entitiesStore.cliente.id_tipopersona,
         );
       if (tipoPersonaData) {
         if (tipoPersonaData.descripcion == "Persona Natural") {
@@ -561,9 +560,9 @@ export default {
     async handleNombre(val) {
       var vm = this;
 
-      vm.$store.state.entities.lstProveedores_x_nombre = [];
-      vm.$store.state.entities.cliente.nombrecompleto = val;
-      if (vm.$store.state.entities.cliente.nombrecompleto) {
+      vm.entitiesStore.lstProveedores_x_nombre = [];
+      vm.entitiesStore.cliente.nombrecompleto = val;
+      if (vm.entitiesStore.cliente.nombrecompleto) {
         vm.isNombreLoading = true;
         // await this.validarNombreCliente();
         vm.isNombreLoading = false;
@@ -572,9 +571,9 @@ export default {
     async handleDocumento(val) {
       var vm = this;
 
-      vm.$store.state.entities.lstProveedores_x_documento = [];
-      vm.$store.state.entities.cliente.nro_documento = val;
-      if (vm.$store.state.entities.cliente.nro_documento) {
+      vm.entitiesStore.lstProveedores_x_documento = [];
+      vm.entitiesStore.cliente.nro_documento = val;
+      if (vm.entitiesStore.cliente.nro_documento) {
         vm.isDocumentoLoading = true;
         await this.validarDocumentoCliente();
         vm.isDocumentoLoading = false;
@@ -613,7 +612,7 @@ export default {
           }).then((result) => {
             if (result.isConfirmed) {
               let item =
-                this.$store.state.entities.lstProveedores_x_nombre.filter(
+                this.entitiesStore.lstProveedores_x_nombre.filter(
                   (v) => v.id == val,
                 )[0];
               this.$store.state.pricing.datosPrincipales.id_entitie = item.id;
@@ -644,7 +643,7 @@ export default {
     },
     validarConvenioActual() {
       var vm = this;
-      const { convenioActual } = vm.$store.state.entities.cliente;
+      const { convenioActual } = vm.entitiesStore.cliente;
       if (convenioActual.dias_credito > 0) {
         if (!convenioActual.fecha) {
           vm.$swal({
@@ -653,43 +652,43 @@ export default {
           });
         } else {
           if (
-            vm.$store.state.entities.lstConvenios.indexOf(convenioActual) === -1
+            vm.entitiesStore.lstConvenios.indexOf(convenioActual) === -1
           ) {
-            vm.$store.state.entities.lstConvenios.push(convenioActual);
+            vm.entitiesStore.lstConvenios.push(convenioActual);
           }
         }
       }
     },
     validarTelefonoActual() {
       var vm = this;
-      const { telefonoActual } = vm.$store.state.entities.cliente;
+      const { telefonoActual } = vm.entitiesStore.cliente;
       if (telefonoActual.id_tipotelefono && telefonoActual.telefono) {
-        const index = vm.$store.state.entities.lstTelefonos.findIndex(
+        const index = vm.entitiesStore.lstTelefonos.findIndex(
           (v) =>
             v.id_tipotelefono == telefonoActual.id_tipotelefono &&
             v.telefono == telefonoActual.telefono,
         );
         if (index === -1) {
-          vm.$store.state.entities.lstTelefonos.push(telefonoActual);
+          vm.entitiesStore.lstTelefonos.push(telefonoActual);
         }
       }
     },
     validarContactoActual() {
       var vm = this;
-      const { contactoActual } = vm.$store.state.entities.cliente;
+      const { contactoActual } = vm.entitiesStore.cliente;
       if (
         contactoActual.nombre &&
         contactoActual.id_tipotelefono &&
         contactoActual.telefono
       ) {
-        const index = vm.$store.state.entities.lstContactos.findIndex(
+        const index = vm.entitiesStore.lstContactos.findIndex(
           (v) =>
             v.nombre == contactoActual.nombre &&
             v.id_tipotelefono == contactoActual.id_tipotelefono &&
             v.telefono == contactoActual.telefono,
         );
         if (index === -1) {
-          vm.$store.state.entities.lstContactos.push(contactoActual);
+          vm.entitiesStore.lstContactos.push(contactoActual);
         }
       }
     },
@@ -707,8 +706,8 @@ export default {
             text: "Archivo cargado",
           });
 
-          vm.$store.state.entities.lstConvenios.map((item) => {
-            if (item.id == vm.$store.state.entities.cliente.convenioActual.id) {
+          vm.entitiesStore.lstConvenios.map((item) => {
+            if (item.id == vm.entitiesStore.cliente.convenioActual.id) {
               item["id_path"] = vm.$store.state.files.payPath;
             }
 
@@ -729,7 +728,7 @@ export default {
         vm.validarTelefonoActual();
         vm.validarContactoActual();
 
-        vm.$store.state.entities.stepper = 2;
+        vm.entitiesStore.stepper = 2;
       }
     },
     isClienteInternacional() {
@@ -737,7 +736,7 @@ export default {
         (v) => {
           return (
             v.codigo == "02" &&
-            v.id == this.$store.state.entities.cliente.id_tipotransaccion
+            v.id == this.entitiesStore.cliente.id_tipotransaccion
           );
         },
       );
@@ -748,8 +747,8 @@ export default {
 
       // Si está en modo solo lectura, pasar a modo edición y no guardar todavía
       if (vm.isFormReadonly) {
-        vm.$store.state.entities.isReadonly = false;
-        vm.$store.state.entities.isEdit = true;
+        vm.entitiesStore.isReadonly = false;
+        vm.entitiesStore.isEdit = true;
         vm.$swal({
           icon: "info",
           text: "Ahora puede modificar los datos del cliente",
@@ -757,31 +756,31 @@ export default {
         return;
       }
 
-      vm.$store.state.entities.isStep1Valid = true;
-      vm.$store.state.entities.isStep2Valid = true;
-      vm.$store.state.entities.isStep3Valid = true;
-      vm.$store.state.entities.isStep4Valid = true;
-      vm.$store.state.entities.isStep5Valid = true;
-      vm.$store.state.entities.isStep6Valid = true;
+      vm.entitiesStore.isStep1Valid = true;
+      vm.entitiesStore.isStep2Valid = true;
+      vm.entitiesStore.isStep3Valid = true;
+      vm.entitiesStore.isStep4Valid = true;
+      vm.entitiesStore.isStep5Valid = true;
+      vm.entitiesStore.isStep6Valid = true;
 
       let okStep1 = true;
-      if (vm.$store.state.entities.cliente) {
-        if (!vm.$store.state.entities.cliente.id_tipopersona) {
+      if (vm.entitiesStore.cliente) {
+        if (!vm.entitiesStore.cliente.id_tipopersona) {
           okStep1 = false;
         }
-        if (!vm.$store.state.entities.cliente.nombrecompleto) {
+        if (!vm.entitiesStore.cliente.nombrecompleto) {
           okStep1 = false;
         }
-        if (!vm.$store.state.entities.cliente.id_tipotransaccion) {
+        if (!vm.entitiesStore.cliente.id_tipotransaccion) {
           okStep1 = false;
         }
-        if (!vm.$store.state.entities.cliente.id_pais) {
+        if (!vm.entitiesStore.cliente.id_pais) {
           okStep1 = false;
         }
         if (
-          vm.$store.state.entities.cliente.emailaddress &&
+          vm.entitiesStore.cliente.emailaddress &&
           !/^(([^<>()\[\]\\.,;:\s@']+(\.[^<>()\\\[\\]\\.,;:\s@']+)*)|('.+'))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/.test(
-            vm.$store.state.entities.cliente.emailaddress,
+            vm.entitiesStore.cliente.emailaddress,
           )
         ) {
           okStep1 = false;
@@ -789,8 +788,8 @@ export default {
       }
 
       let okStep2_1 = true;
-      if (vm.$store.state.entities.lstTelefonos.length > 0) {
-        vm.$store.state.entities.lstTelefonos.map((v) => {
+      if (vm.entitiesStore.lstTelefonos.length > 0) {
+        vm.entitiesStore.lstTelefonos.map((v) => {
           if (!v.id_tipotelefono) {
             okStep2_1 = false;
           }
@@ -801,8 +800,8 @@ export default {
       }
 
       let okStep2_2 = true;
-      if (vm.$store.state.entities.lstContactos.length > 0) {
-        vm.$store.state.entities.lstContactos.map((v) => {
+      if (vm.entitiesStore.lstContactos.length > 0) {
+        vm.entitiesStore.lstContactos.map((v) => {
           if (!v.nombre) {
             okStep2_2 = false;
           }
@@ -816,8 +815,8 @@ export default {
       }
 
       let okStep3_1 = true;
-      if (vm.$store.state.entities.lstConvenios.length > 0) {
-        vm.$store.state.entities.lstConvenios.map((v) => {
+      if (vm.entitiesStore.lstConvenios.length > 0) {
+        vm.entitiesStore.lstConvenios.map((v) => {
           if (!v.fecha) {
             okStep3_1 = false;
           }
@@ -836,8 +835,8 @@ export default {
       }
 
       let okStep3_2 = true;
-      if (vm.$store.state.entities.lstTarifas.length > 0) {
-        vm.$store.state.entities.lstTarifas.map((v) => {
+      if (vm.entitiesStore.lstTarifas.length > 0) {
+        vm.entitiesStore.lstTarifas.map((v) => {
           if (!v.fecha) {
             okStep3_2 = false;
           }
@@ -859,8 +858,8 @@ export default {
       }
 
       let okStep4 = true;
-      if (vm.$store.state.entities.lstInformacionBancaria.length > 0) {
-        vm.$store.state.entities.lstInformacionBancaria.map((v) => {
+      if (vm.entitiesStore.lstInformacionBancaria.length > 0) {
+        vm.entitiesStore.lstInformacionBancaria.map((v) => {
           if (!v.nro_cuenta) {
             okStep4 = false;
           }
@@ -888,17 +887,17 @@ export default {
       }
 
       if (!okStep1) {
-        vm.$store.state.entities.isStep1Valid =
-          !vm.$store.state.entities.isStep1Valid;
+        vm.entitiesStore.isStep1Valid =
+          !vm.entitiesStore.isStep1Valid;
       } else if (!okStep2_1 || !okStep2_2) {
-        vm.$store.state.entities.isStep2Valid =
-          !vm.$store.state.entities.isStep2Valid;
+        vm.entitiesStore.isStep2Valid =
+          !vm.entitiesStore.isStep2Valid;
       } else if (!okStep3_1 || !okStep3_2) {
-        vm.$store.state.entities.isStep3Valid =
-          !vm.$store.state.entities.isStep3Valid;
+        vm.entitiesStore.isStep3Valid =
+          !vm.entitiesStore.isStep3Valid;
       } else if (!okStep4) {
-        vm.$store.state.entities.isStep4Valid =
-          !vm.$store.state.entities.isStep4Valid;
+        vm.entitiesStore.isStep4Valid =
+          !vm.entitiesStore.isStep4Valid;
       } else {
         vm.$store.state.spiner = true;
         await vm.actualizarCliente();
@@ -908,13 +907,13 @@ export default {
         vm.$store.state.modalEntitie = false;
 
         // Volver a modo solo lectura después de guardar correctamente
-        vm.$store.state.entities.isReadonly = true;
-        vm.$store.state.entities.isEdit = false;
+        vm.entitiesStore.isReadonly = true;
+        vm.entitiesStore.isEdit = false;
       }
     },
     getPrefix() {
       let pais = this.$store.state.itemsPais.find(
-        (v) => v.id == this.$store.state.entities.cliente.id_pais,
+        (v) => v.id == this.entitiesStore.cliente.id_pais,
       );
       if (pais) {
         return   pais.phoneprefix ;
@@ -923,7 +922,7 @@ export default {
     },
     obtenerFlag() {
       let pais = this.$store.state.itemsPais.find(
-        (v) => v.id == this.$store.state.entities.cliente.id_pais,
+        (v) => v.id == this.entitiesStore.cliente.id_pais,
       );
       let flag = "";
       if (pais) {
@@ -936,7 +935,7 @@ export default {
     await this.cargarClientes();
   },
   watch: {
-    "$store.state.entities.isStep1Valid": {
+    "entitiesStore.isStep1Valid": {
       async handler(newValue) {
         if (!newValue) {
           await this.$refs.formDatosCliente.validate();

@@ -35,7 +35,7 @@
             <v-form ref="formTelefonos" :readonly="isFormReadonly">
               <v-data-table
                 :headers="headersTelefonos"
-                :items="$store.state.entities.lstTelefonos"
+                :items="entitiesStore.lstTelefonos"
                 item-value="index"
                 class="elevation-5"
                 disable-sort
@@ -103,7 +103,7 @@
             <v-form ref="formContactos" :readonly="isFormReadonly">
               <v-data-table
                 :headers="headersContactos"
-                :items="$store.state.entities.lstContactos"
+                :items="entitiesStore.lstContactos"
                 item-value="index"
                 class="elevation-5"
               >
@@ -175,7 +175,7 @@
                   <v-data-table
                     :headers="headersEmails"
                     :items="
-                      $store.state.entities.lstEmails.filter(
+                      entitiesStore.lstEmails.filter(
                         (v) => !!v && v.estado,
                       )
                     "
@@ -220,7 +220,7 @@
       </div>
     </v-card-text>
     <v-card-actions v-if="showNavigationButtons">
-      <v-btn color="primary" @click="$store.state.entities.stepper--"
+      <v-btn color="primary" @click="entitiesStore.stepper--"
         >Regresar</v-btn
       >
       <v-btn color="primary" class="ml-auto" @click="validarFormulario"
@@ -231,10 +231,10 @@
 </template>
 
 <script>
-import { mapActions } from "vuex";
 import Swal from "sweetalert2";
-import { mapStores } from "pinia";
+import { mapActions as mapPiniaActions, mapStores } from "pinia";
 import { useMasterusuariosStore } from "@/stores/masterusuarios";
+import { useEntitiesStore } from "@/stores/entities";
 export default {
   name: "SeccionTelefonos",
   data() {
@@ -259,31 +259,31 @@ export default {
     };
   },
   computed: {
-    ...mapStores(useMasterusuariosStore),
+    ...mapStores(useEntitiesStore, useMasterusuariosStore),
     isFormReadonly() {
-      return this.$store.state.entities.isReadonly;
+      return this.entitiesStore.isReadonly;
     },
     showFormActions() {
-      return !this.$store.state.entities.isReadonly;
+      return !this.entitiesStore.isReadonly;
     },
     showNavigationButtons() {
       return !(
-        this.$store.state.entities.isEdit ||
-        this.$store.state.entities.isReadonly
+        this.entitiesStore.isEdit ||
+        this.entitiesStore.isReadonly
       );
     },
   },
   methods: {
-    ...mapActions(["actualizarCliente"]),
+    ...mapPiniaActions(useEntitiesStore, ["actualizarCliente"]),
     agregarTelefono() {
-      this.$store.state.entities.lstTelefonos.push({
+      this.entitiesStore.lstTelefonos.push({
         id_tipotelefono: "",
         telefono: "",
       });
     },
     getPrefix() {
       let pais = this.$store.state.itemsPais.find(
-        (v) => v.id == this.$store.state.entities.cliente.id_pais,
+        (v) => v.id == this.entitiesStore.cliente.id_pais,
       );
       if (pais) {
         return pais.phoneprefix;
@@ -292,7 +292,7 @@ export default {
     },
     obtenerFlag() {
       let pais = this.$store.state.itemsPais.find(
-        (v) => v.id == this.$store.state.entities.cliente.id_pais,
+        (v) => v.id == this.entitiesStore.cliente.id_pais,
       );
       let flag = "";
       if (pais) {
@@ -301,24 +301,24 @@ export default {
       return flag;
     },
     eliminarTelefono(index) {
-      this.$store.state.entities.lstTelefonos.splice(index, 1);
+      this.entitiesStore.lstTelefonos.splice(index, 1);
     },
     agregarContacto() {
-      this.$store.state.entities.lstContactos.push({
+      this.entitiesStore.lstContactos.push({
         nombre: "",
         id_tipotelefono: "",
         telefono: "",
       });
     },
     eliminarContacto(index) {
-      this.$store.state.entities.lstContactos.splice(index, 1);
+      this.entitiesStore.lstContactos.splice(index, 1);
     },
     async validarFormulario() {
       var vm = this;
       let ok = true;
       if (
-        vm.$store.state.entities.lstTelefonos.length === 0 ||
-        vm.$store.state.entities.lstContactos.length === 0
+        vm.entitiesStore.lstTelefonos.length === 0 ||
+        vm.entitiesStore.lstContactos.length === 0
       ) {
         Swal.fire({
           icon: "error",
@@ -336,11 +336,11 @@ export default {
       }
 
       if (ok) {
-        vm.$store.state.entities.stepper = 3;
+        vm.entitiesStore.stepper = 3;
       }
     },
     agregarEmail() {
-      this.$store.state.entities.lstEmails.push({
+      this.entitiesStore.lstEmails.push({
         id: null,
         description: "",
         email: "",
@@ -355,8 +355,8 @@ export default {
 
       // Si está en modo solo lectura, pasar a modo edición y no guardar todavía
       if (vm.isFormReadonly) {
-        vm.$store.state.entities.isReadonly = false;
-        vm.$store.state.entities.isEdit = true;
+        vm.entitiesStore.isReadonly = false;
+        vm.entitiesStore.isEdit = true;
         vm.$swal({
           icon: "info",
           text: "Ahora puede modificar los campos",
@@ -364,14 +364,14 @@ export default {
         return;
       }
 
-      vm.$store.state.entities.isStep1Valid = true;
-      vm.$store.state.entities.isStep2Valid = true;
-      vm.$store.state.entities.isStep3Valid = true;
-      vm.$store.state.entities.isStep4Valid = true;
+      vm.entitiesStore.isStep1Valid = true;
+      vm.entitiesStore.isStep2Valid = true;
+      vm.entitiesStore.isStep3Valid = true;
+      vm.entitiesStore.isStep4Valid = true;
 
       let okStep2_1 = true;
-      if (vm.$store.state.entities.lstTelefonos.length > 0) {
-        vm.$store.state.entities.lstTelefonos.map((v) => {
+      if (vm.entitiesStore.lstTelefonos.length > 0) {
+        vm.entitiesStore.lstTelefonos.map((v) => {
           if (!v.id_tipotelefono || !v.telefono) {
             okStep2_1 = false;
           }
@@ -379,8 +379,8 @@ export default {
       }
 
       let okStep2_2 = true;
-      if (vm.$store.state.entities.lstContactos.length > 0) {
-        vm.$store.state.entities.lstContactos.map((v) => {
+      if (vm.entitiesStore.lstContactos.length > 0) {
+        vm.entitiesStore.lstContactos.map((v) => {
           if (!v.nombre || !v.id_tipotelefono || !v.telefono) {
             okStep2_2 = false;
           }
@@ -388,7 +388,7 @@ export default {
       }
 
       if (!okStep2_1 || !okStep2_2) {
-        vm.$store.state.entities.isStep2Valid = false;
+        vm.entitiesStore.isStep2Valid = false;
         this.$swal({
           icon: "warning",
           text: "Por favor complete todos los campos requeridos en Teléfonos y Contactos",
@@ -402,13 +402,13 @@ export default {
         vm.$store.state.modalEntitie = false;
 
         // Volver a modo solo lectura después de guardar correctamente
-        vm.$store.state.entities.isReadonly = true;
-        vm.$store.state.entities.isEdit = false;
+        vm.entitiesStore.isReadonly = true;
+        vm.entitiesStore.isEdit = false;
       }
     },
   },
   watch: {
-    "$store.state.entities.isStep2Valid": {
+    "entitiesStore.isStep2Valid": {
       async handler(newValue) {
         if (!newValue) {
           await this.$refs.formTelefonos.validate();
@@ -417,18 +417,18 @@ export default {
       },
       immediate: true,
     },
-    "$store.state.entities.lstTelefonos": {
+    "entitiesStore.lstTelefonos": {
       handler(newValue) {
         if (newValue[0]) {
-          this.$store.state.entities.cliente.telefonoActual = newValue[0];
+          this.entitiesStore.cliente.telefonoActual = newValue[0];
         }
       },
       deep: true,
     },
-    "$store.state.entities.lstContactos": {
+    "entitiesStore.lstContactos": {
       handler(newValue) {
         if (newValue[0]) {
-          this.$store.state.entities.cliente.contactoActual = newValue[0];
+          this.entitiesStore.cliente.contactoActual = newValue[0];
         }
       },
       deep: true,

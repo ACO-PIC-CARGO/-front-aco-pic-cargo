@@ -1,6 +1,6 @@
 <template>
   <div>
-    <v-stepper v-model="$store.state.entities.stepper" non-linear>
+    <v-stepper v-model="entitiesStore.stepper" non-linear>
       <v-stepper-header>
         <v-stepper-item
           editable
@@ -89,9 +89,10 @@ import SeccionConvenios from "./seccionConvenios.vue";
 import SeccionInformacionBancaria from "./seccionInformacionBancaria.vue";
 import SeccionShippers from "./seccionShippers.vue";
 import SeccionInformacionEntrega from "./seccionInformacionEntrega.vue";
-import { mapActions as mapPiniaActions } from "pinia";
+import { mapActions as mapPiniaActions, mapStores } from "pinia";
 import { useCoinsStore } from "@/stores/coins";
 import { useMasterusuariosStore } from "@/stores/masterusuarios";
+import { useEntitiesStore } from "@/stores/entities";
 export default {
   components: {
     SeccionCliente,
@@ -108,16 +109,14 @@ export default {
       defaultTipoTransaccion: 56,
     };
   },
-  computed: {},
+  computed: {
+    ...mapStores(useEntitiesStore),
+  },
   methods: {
     ...mapActions([
-      "getListProveedor",
       "_getDocumentsPais",
       "_getRole",
-      "getValidaRazonSocial",
       "getBanksListCargar",
-      "guardarCliente",
-      "getValidaDocumentCliente",
       "_getSex",
       "_getPais",
       "_getState",
@@ -125,14 +124,14 @@ export default {
       "_getTown",
       "_getProveedorRolShipper",
       "_getProveedor",
-      "verCliente",
     ]),
+    ...mapPiniaActions(useEntitiesStore, ["getListProveedor", "getValidaRazonSocial", "guardarCliente", "getValidaDocumentCliente", "verCliente"]),
     ...mapPiniaActions(useMasterusuariosStore, ["cargarMasterDetalleTipoProveedor", "cargarMasterDetalleTipoTransaccion", "cargarTipoTelefono", "cargarTipoPersona"]),
     ...mapPiniaActions(useCoinsStore, ["getCoinsListCargar"]),
   },
   created() {
-    this.$store.state.entities.lstProveedores_x_nombre = [];
-    this.$store.state.entities.lstProveedores_x_documento = [];
+    this.entitiesStore.lstProveedores_x_nombre = [];
+    this.entitiesStore.lstProveedores_x_documento = [];
   },
   async mounted() {
     this.$store.state.spiner = true;
@@ -149,20 +148,20 @@ export default {
     await this.cargarTipoPersona();
     await this._getProveedorRolShipper();
     await this.verCliente();
-    await this._getState(this.$store.state.entities.cliente.id_pais);
+    await this._getState(this.entitiesStore.cliente.id_pais);
     await this._getCity(
-      this.$store.state.entities.informacionEntrega.id_departamento
+      this.entitiesStore.informacionEntrega.id_departamento
     );
     await this._getTown(
-      this.$store.state.entities.informacionEntrega.id_provincia
+      this.entitiesStore.informacionEntrega.id_provincia
     );
     this.$store.state.spiner = false;
 
-    this.$store.state.entities.stepper = 1;
-    this.$store.state.entities.isEdit = false;
-    this.$store.state.entities.isReadonly = true;
+    this.entitiesStore.stepper = 1;
+    this.entitiesStore.isEdit = false;
+    this.entitiesStore.isReadonly = true;
 
-    this.$store.state.mainTitle = `VER CLIENTE: CLI - ${this.$store.state.entities.cliente.correlativo}`;
+    this.$store.state.mainTitle = `VER CLIENTE: CLI - ${this.entitiesStore.cliente.correlativo}`;
   },
   afterMount() {},
 };

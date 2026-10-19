@@ -5,6 +5,7 @@ import { useRoute } from "vue-router";
 import { useDisplay } from "vuetify";
 import { useStore } from "vuex";
 import axios from "@/api/http";
+import { useEntitiesStore } from "@/stores/entities";
 import type { ApiResponse } from "@/types/api";
 import type { VersionSistema } from "@/types/version";
 
@@ -26,6 +27,7 @@ const EditarCliente = defineAsyncComponent(
 
 const route = useRoute();
 const rootStore = useStore();
+const entitiesStore = useEntitiesStore();
 const { smAndDown } = useDisplay();
 
 const socket = io(import.meta.env.VITE_URL_MAIN, {
@@ -116,12 +118,12 @@ async function actualizar() {
 }
 async function registrarCliente() {
   rootStore.state.spiner = true;
-  await rootStore.dispatch("guardarCliente");
+  await entitiesStore.guardarCliente();
   rootStore.state.spiner = false;
 }
 async function modificarCliente() {
   rootStore.state.spiner = true;
-  await rootStore.dispatch("actualizarCliente");
+  await entitiesStore.actualizarCliente();
   rootStore.state.modalEntitie = false;
   rootStore.state.recargarClienteFlag =
     !rootStore.state.recargarClienteFlag;
@@ -302,22 +304,23 @@ function _deleteContacts(i: number | string) {
 }
 
 function mostrarBtnGuardar() {
-  if (!rootStore.state.entities.cliente.id_tipopersona) {
+  if (!entitiesStore.cliente.id_tipopersona) {
     return false;
   }
-  if (!rootStore.state.entities.cliente.nombrecompleto) {
+  if (!entitiesStore.cliente.nombrecompleto) {
     return false;
   }
-  if (!rootStore.state.entities.cliente.id_tipotransaccion) {
+  if (!entitiesStore.cliente.id_tipotransaccion) {
     return false;
   }
-  if (!rootStore.state.entities.cliente.id_pais) {
+  if (!entitiesStore.cliente.id_pais) {
     return false;
   }
-  if (!rootStore.state.entities.cliente.telefonoActual.telefono) {
+  if (!entitiesStore.cliente.telefonoActual.telefono) {
     return false;
   }
-  if (rootStore.state.entities.house_id_consigner) {
+  // @ts-expect-error Kept: the entities module never had house_id_consigner, so this read is always undefined.
+  if (entitiesStore.house_id_consigner) {
     return false;
   }
   return true;

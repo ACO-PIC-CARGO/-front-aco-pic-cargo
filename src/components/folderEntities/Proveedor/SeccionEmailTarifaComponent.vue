@@ -18,7 +18,7 @@
       <v-col cols="12">
         <v-row>
           <v-checkbox
-            v-model="$store.state.entities.proveedor.proveedorprincipalflag"
+            v-model="entitiesStore.proveedor.proveedorprincipalflag"
             label="Es principal"
             hide-details
           >
@@ -51,7 +51,7 @@
       <v-col cols="12" class="py-1">
         <v-data-table
           :headers="headers"
-          :items="$store.state.entities.itemsImportacion"
+          :items="entitiesStore.itemsImportacion"
           class="elevation-1"
         >
           <template v-slot:[`item.index`]="{ item, index }">
@@ -111,7 +111,7 @@
       <v-col cols="12" class="py-1">
         <v-data-table
           :headers="headers"
-          :items="$store.state.entities.itemsExportacion"
+          :items="entitiesStore.itemsExportacion"
           class="elevation-1"
         >
           <template v-slot:[`item.index`]="{ item, index }">
@@ -161,7 +161,8 @@
 <script>
 import axios from '@/api/http';
 import Swal from "sweetalert2";
-import { mapActions } from "vuex";
+import { mapActions as mapPiniaActions, mapStores } from "pinia";
+import { useEntitiesStore } from "@/stores/entities";
 
 export default {
   name: "SeccionEmailTarifa",
@@ -196,24 +197,27 @@ export default {
   async mounted() {
     this.cargarDatos();
   },
+  computed: {
+    ...mapStores(useEntitiesStore),
+  },
   methods: {
-    ...mapActions(["cargarDatosTatifasEntite"]),
+    ...mapPiniaActions(useEntitiesStore, ["cargarDatosTatifasEntite"]),
     async cargarDatos() {
       if (!this.$route.params.id) {
         return;
       }
       await this.cargarDatosTatifasEntite({ id: this.$route.params.id });
-      this.$store.state.entities.itemsImportacion =
-        this.$store.state.entities.lstDatosTarifas.filter(
+      this.entitiesStore.itemsImportacion =
+        this.entitiesStore.lstDatosTarifas.filter(
           (item) => item.code === "I",
         );
-      this.$store.state.entities.itemsExportacion =
-        this.$store.state.entities.lstDatosTarifas.filter(
+      this.entitiesStore.itemsExportacion =
+        this.entitiesStore.lstDatosTarifas.filter(
           (item) => item.code === "E",
         );
     },
     agregarContactoExportacion() {
-      this.$store.state.entities.itemsExportacion.push({
+      this.entitiesStore.itemsExportacion.push({
         id: 0,
         code: "E",
         contacto: "",
@@ -221,7 +225,7 @@ export default {
         telefono: "",
       });
       this.$nextTick(() => {
-        const index = this.$store.state.entities.itemsExportacion.length - 1;
+        const index = this.entitiesStore.itemsExportacion.length - 1;
         const contactoInput = document.getElementById(`contactoexport${index}`);
         if (contactoInput) {
           contactoInput.focus();
@@ -229,7 +233,7 @@ export default {
       });
     },
     agregarContacto() {
-      this.$store.state.entities.itemsImportacion.push({
+      this.entitiesStore.itemsImportacion.push({
         id: 0,
         code: "I",
         contacto: "",
@@ -237,7 +241,7 @@ export default {
         telefono: "",
       });
       this.$nextTick(() => {
-        const index = this.$store.state.entities.itemsImportacion.length - 1;
+        const index = this.entitiesStore.itemsImportacion.length - 1;
         const contactoInput = document.getElementById(`contactoimport${index}`);
         if (contactoInput) {
           contactoInput.focus();
@@ -247,8 +251,8 @@ export default {
     async guardarContactos() {
       Swal.showLoading();
       let datos = [
-        ...this.$store.state.entities.itemsImportacion,
-        ...this.$store.state.entities.itemsExportacion,
+        ...this.entitiesStore.itemsImportacion,
+        ...this.entitiesStore.itemsExportacion,
       ];
 
       var config = {
@@ -262,7 +266,7 @@ export default {
           id: this.$route.params.id,
           datos: datos,
           proveedorprincipalflag:
-            this.$store.state.entities.proveedor.proveedorprincipalflag,
+            this.entitiesStore.proveedor.proveedorprincipalflag,
         },
       };
 

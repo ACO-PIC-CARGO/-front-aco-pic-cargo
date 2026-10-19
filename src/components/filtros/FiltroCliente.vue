@@ -14,14 +14,14 @@
             ]"
             prefix="CLI-"
             clearable
-            v-model="$store.state.entities.filtro.correlativo"
+            v-model="entitiesStore.filtro.correlativo"
           ></v-text-field>
 
           <v-text-field
             label="Nombre Completo"
             placeholder="Nombre Completo"
             clearable
-            v-model="$store.state.entities.filtro.nombrecompleto"
+            v-model="entitiesStore.filtro.nombrecompleto"
           ></v-text-field>
 
           <v-select
@@ -30,14 +30,14 @@
             item-value="id"
             label="Tipo de Documento Fiscal"
             clearable
-            v-model="$store.state.entities.filtro.id_document"
+            v-model="entitiesStore.filtro.id_document"
           ></v-select>
 
           <v-text-field
             label="Nro. Documento"
             placeholder="Nro. Documento"
             clearable
-            v-model="$store.state.entities.filtro.nro_documento"
+            v-model="entitiesStore.filtro.nro_documento"
           ></v-text-field>
 
           <v-autocomplete
@@ -46,8 +46,8 @@
             :items="$store.state.itemsPais"
             label="País"
             clearable
-            v-model="$store.state.entities.filtro.id_pais"
-            @update:model-value="_getState($store.state.entities.filtro.id_pais)"
+            v-model="entitiesStore.filtro.id_pais"
+            @update:model-value="_getState(entitiesStore.filtro.id_pais)"
           ></v-autocomplete>
 
           <v-autocomplete
@@ -56,10 +56,10 @@
             item-value="id"
             label="Departamento"
             clearable
-            v-model="$store.state.entities.filtro.id_state"
+            v-model="entitiesStore.filtro.id_state"
           ></v-autocomplete>
 
-          <v-radio-group v-model="$store.state.entities.filtro.status" inline>
+          <v-radio-group v-model="entitiesStore.filtro.status" inline>
             <v-radio color="green" label="Activo" value="1"></v-radio>
             <v-radio color="error" label="Inactivo" value="0"></v-radio>
             <v-radio color="default" label="Todos" value=""></v-radio>
@@ -77,8 +77,8 @@
         class="mx-1"
         color="error"
         @click="
-          $store.state.entities.filtrarProveedor =
-            !$store.state.entities.filtrarProveedor
+          entitiesStore.filtrarProveedor =
+            !entitiesStore.filtrarProveedor
         "
       >
         Cerrar
@@ -93,27 +93,33 @@
 <script>
 import { mapActions } from "vuex";
 import miMixin from "../mixins/funciones";
+import { mapActions as mapPiniaActions, mapStores } from "pinia";
+import { useEntitiesStore } from "@/stores/entities";
 export default {
   mixins: [miMixin],
   data() {
     return {};
   },
+  computed: {
+    ...mapStores(useEntitiesStore),
+  },
   methods: {
-    ...mapActions(["_getState", "getListClientes"]),
+    ...mapActions(["_getState"]),
+    ...mapPiniaActions(useEntitiesStore, ["getListClientes"]),
     async filtrar() {
       this.$store.state.spiner = true;
       await this.getListClientes();
-      this.$store.state.entities.filtrarProveedor =
-        !this.$store.state.entities.filtrarProveedor;
+      this.entitiesStore.filtrarProveedor =
+        !this.entitiesStore.filtrarProveedor;
       this.$store.state.spiner = false;
     },
     async limpiar() {
       this.$store.state.spiner = true;
       this.$refs.frmFiltro.reset();
-      this.$store.state.entities.filtro.status = "1";
+      this.entitiesStore.filtro.status = "1";
       await this.getListClientes();
-      this.$store.state.entities.filtrarProveedor =
-        !this.$store.state.entities.filtrarProveedor;
+      this.entitiesStore.filtrarProveedor =
+        !this.entitiesStore.filtrarProveedor;
       this.$store.state.spiner = false;
     },
   },

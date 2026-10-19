@@ -1641,7 +1641,8 @@ import TableDinamica from "@/components/comun/TableDinamica.vue";
 import FlujoPrePostComponet from "@/components/comun/TablaDinamicaFlujoPrePostMes.vue";
 import moment from "moment";
 import { mapActions, mapState } from "vuex";
-import entities from "../../store/modules/entitie";
+import { mapActions as mapPiniaActions } from "pinia";
+import { useEntitiesStore } from "@/stores/entities";
 export default {
   components: {
     ProgressBar,
@@ -1770,8 +1771,8 @@ export default {
       "getComparativo",
       "getProyeccionAprobada",
       "getFlujoPrePostMes",
-      "CargarPersona",
     ]),
+    ...mapPiniaActions(useEntitiesStore, ["CargarPersona"]),
 
     toggleExpand(tipo) {
       switch (tipo) {

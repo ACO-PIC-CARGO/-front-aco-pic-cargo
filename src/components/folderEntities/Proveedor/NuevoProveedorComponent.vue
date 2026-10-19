@@ -18,10 +18,10 @@
         </v-col>
       </v-row>
     </v-overlay>
-    <v-stepper v-model="$store.state.entities.stepper" non-linear>
+    <v-stepper v-model="entitiesStore.stepper" non-linear>
       <v-stepper-header>
         <v-stepper-item
-          :complete="$store.state.entities.stepper > 1"
+          :complete="entitiesStore.stepper > 1"
           editable
           :value="1"
           title="Datos del Proveedor"
@@ -30,8 +30,8 @@
         <v-divider></v-divider>
 
         <v-stepper-item
-          :complete="$store.state.entities.stepper > 2"
-          :editable="$store.state.entities.stepper > 2"
+          :complete="entitiesStore.stepper > 2"
+          :editable="entitiesStore.stepper > 2"
           :value="2"
           title="Teléfonos y Contactos"
         ></v-stepper-item>
@@ -39,8 +39,8 @@
         <v-divider></v-divider>
 
         <v-stepper-item
-          :complete="$store.state.entities.stepper > 3"
-          :editable="$store.state.entities.stepper > 3"
+          :complete="entitiesStore.stepper > 3"
+          :editable="entitiesStore.stepper > 3"
           :value="3"
           title="Convenios y Tarifas"
         ></v-stepper-item>
@@ -48,16 +48,16 @@
         <v-divider></v-divider>
 
         <v-stepper-item
-          :complete="$store.state.entities.stepper > 4"
-          :editable="$store.state.entities.stepper > 4"
+          :complete="entitiesStore.stepper > 4"
+          :editable="entitiesStore.stepper > 4"
           :value="4"
           title="Información Bancaria"
         ></v-stepper-item>
 
         <v-divider></v-divider>
         <v-stepper-item
-          :complete="$store.state.entities.stepper > 5"
-          :editable="$store.state.entities.stepper > 5"
+          :complete="entitiesStore.stepper > 5"
+          :editable="entitiesStore.stepper > 5"
           :value="5"
           title="Correo para Pedir Tarifa"
         ></v-stepper-item>
@@ -108,6 +108,7 @@ import SeccionEmailTarifa from "./SeccionEmailTarifaComponent.vue";
 import { mapActions as mapPiniaActions, mapStores } from "pinia";
 import { useCoinsStore } from "@/stores/coins";
 import { useMasterusuariosStore } from "@/stores/masterusuarios";
+import { useEntitiesStore } from "@/stores/entities";
 export default {
   components: {
     SeccionProveedor,
@@ -131,17 +132,13 @@ export default {
     };
   },
   computed: {
-    ...mapStores(useMasterusuariosStore),
+    ...mapStores(useEntitiesStore, useMasterusuariosStore),
   },
   methods: {
     ...mapActions([
-      "getListProveedor",
       "_getDocumentsPais",
       "_getRole",
-      "getValidaRazonSocial",
       "getBanksListCargar",
-      "guardarCliente",
-      "getValidaDocumentCliente",
       "_getSex",
       "_getPais",
       "_getState",
@@ -150,6 +147,7 @@ export default {
       "_getProveedorRolShipper",
       "_getProveedor",
     ]),
+    ...mapPiniaActions(useEntitiesStore, ["getListProveedor", "getValidaRazonSocial", "guardarCliente", "getValidaDocumentCliente"]),
     ...mapPiniaActions(useMasterusuariosStore, ["cargarMasterDetalleTipoProveedor", "cargarMasterDetalleTipoTransaccion", "cargarTipoTelefono", "cargarTipoPersona"]),
     ...mapPiniaActions(useCoinsStore, ["getCoinsListCargar"]),
     /* CÓDIGO NUEVO */
@@ -199,8 +197,8 @@ export default {
     },
   },
   created() {
-    this.$store.state.entities.lstProveedores_x_nombre = [];
-    this.$store.state.entities.lstProveedores_x_documento = [];
+    this.entitiesStore.lstProveedores_x_nombre = [];
+    this.entitiesStore.lstProveedores_x_documento = [];
   },
   async mounted() {
     // console.log("isPricing", this.isPricing);
@@ -220,64 +218,64 @@ export default {
       this._getProveedorRolShipper(),
     ]);
 
-    this.$store.state.entities.stepper = 1;
-    this.$store.state.entities.isEdit = false;
-    this.$store.state.entities.isReadonly = false;
-    this.$store.state.entities.showBtnSaveFlag = false;
+    this.entitiesStore.stepper = 1;
+    this.entitiesStore.isEdit = false;
+    this.entitiesStore.isReadonly = false;
+    this.entitiesStore.showBtnSaveFlag = false;
 
-    this.$store.state.entities.proveedor.nombrecompleto = "";
-    this.$store.state.entities.proveedor.id_tipoproveedor = "";
-    this.$store.state.entities.proveedor.id_tipotransaccion = "56";
-    this.$store.state.entities.proveedor.nro_documento = "";
-    this.$store.state.entities.proveedor.id_pais = null;
-    this.$store.state.entities.proveedor.id_ciudad = 0;
-    this.$store.state.entities.proveedor.direccion = "";
-    this.$store.state.entities.proveedor.emailaddress = "";
-    this.$store.state.entities.proveedor.producto = "";
-    this.$store.state.entities.proveedor.dias_sobreestadia = 0;
-    this.$store.state.entities.proveedor.dias_almacenaje = 0;
-    this.$store.state.entities.proveedor.notas = "";
-    this.$store.state.entities.proveedor.convenioActual = {
+    this.entitiesStore.proveedor.nombrecompleto = "";
+    this.entitiesStore.proveedor.id_tipoproveedor = "";
+    this.entitiesStore.proveedor.id_tipotransaccion = "56";
+    this.entitiesStore.proveedor.nro_documento = "";
+    this.entitiesStore.proveedor.id_pais = null;
+    this.entitiesStore.proveedor.id_ciudad = 0;
+    this.entitiesStore.proveedor.direccion = "";
+    this.entitiesStore.proveedor.emailaddress = "";
+    this.entitiesStore.proveedor.producto = "";
+    this.entitiesStore.proveedor.dias_sobreestadia = 0;
+    this.entitiesStore.proveedor.dias_almacenaje = 0;
+    this.entitiesStore.proveedor.notas = "";
+    this.entitiesStore.proveedor.convenioActual = {
       dias_credito: 0,
       fecha: "",
       email_soporte: "",
       id_path: "",
     };
-    this.$store.state.entities.proveedor.telefonoActual = {
+    this.entitiesStore.proveedor.telefonoActual = {
       id_tipotelefono: "",
       telefono: "",
     };
-    this.$store.state.entities.proveedor.contactoActual = {
+    this.entitiesStore.proveedor.contactoActual = {
       nombre: "",
       id_tipotelefono: "",
       telefono: "",
     };
 
-    this.$store.state.entities.lstTelefonos = [];
-    this.$store.state.entities.lstContactos = [];
-    this.$store.state.entities.lstConvenios = [];
-    this.$store.state.entities.lstTarifas = [];
-    this.$store.state.entities.lstInformacionBancaria = [];
-    this.$store.state.entities.lstShippers = [];
-    this.$store.state.entities.informacionEntrega = { status: true };
+    this.entitiesStore.lstTelefonos = [];
+    this.entitiesStore.lstContactos = [];
+    this.entitiesStore.lstConvenios = [];
+    this.entitiesStore.lstTarifas = [];
+    this.entitiesStore.lstInformacionBancaria = [];
+    this.entitiesStore.lstShippers = [];
+    this.entitiesStore.informacionEntrega = { status: true };
 
     const tipoDocumento = this.getIDTipoDocumento("RUC");
-    this.$store.state.entities.proveedor.id_tipodocumento = tipoDocumento;
+    this.entitiesStore.proveedor.id_tipodocumento = tipoDocumento;
 
     const tipoTelefono = this.getIDTipoTelefono("WHATSAPP");
-    this.$store.state.entities.proveedor.telefonoActual.id_tipotelefono =
+    this.entitiesStore.proveedor.telefonoActual.id_tipotelefono =
       tipoTelefono;
-    this.$store.state.entities.proveedor.contactoActual.id_tipotelefono =
+    this.entitiesStore.proveedor.contactoActual.id_tipotelefono =
       tipoTelefono;
     this.$store.state.spiner = false;
   },
   watch: {
-    "$store.state.entities.stepper": {
+    "entitiesStore.stepper": {
       handler(newStep, oldStep) {
         if (this.$route.name == "nuevoProveedor" && newStep === 5) {
-          this.$store.state.entities.showBtnSaveFlag = true;
+          this.entitiesStore.showBtnSaveFlag = true;
         } else {
-          this.$store.state.entities.showBtnSaveFlag = false;
+          this.entitiesStore.showBtnSaveFlag = false;
         }
       },
       immediate: true,

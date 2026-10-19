@@ -2008,6 +2008,8 @@ import { mapActions } from "vuex";
 import NuevoProveedorComponentVue from "@/components/folderEntities/Proveedor/NuevoProveedorComponent.vue";
 import mixins from "@/components/mixins/funciones.js";
 import CboMultiplicador from "@/components/comun/CboMultiplicador.vue";
+import { mapActions as mapPiniaActions, mapStores } from "pinia";
+import { useEntitiesStore } from "@/stores/entities";
 export default {
   mixins: [mixins],
   props: [
@@ -2089,10 +2091,10 @@ export default {
   },
   methods: {
     ...mapActions([
-      "guardarProveedor",
       "cargarProveedores",
       "obtenerProveedorPricing",
     ]),
+    ...mapPiniaActions(useEntitiesStore, ["guardarProveedor"]),
     async nuevoProveedor() {
       let res = await this.guardarProveedor();
       if (!!res.estadoflag) {
@@ -2139,16 +2141,16 @@ export default {
       this.dialogNuevoProveedor = true;
     },
     mostrarBtnRegistroProveedor() {
-      if (!this.$store.state.entities.proveedor.nombrecompleto) {
+      if (!this.entitiesStore.proveedor.nombrecompleto) {
         return false;
       }
-      if (!this.$store.state.entities.proveedor.id_tipoproveedor) {
+      if (!this.entitiesStore.proveedor.id_tipoproveedor) {
         return false;
       }
-      if (!this.$store.state.entities.proveedor.id_tipotransaccion) {
+      if (!this.entitiesStore.proveedor.id_tipotransaccion) {
         return false;
       }
-      if (!this.$store.state.entities.proveedor.id_pais) {
+      if (!this.entitiesStore.proveedor.id_pais) {
         return false;
       }
       return true;
@@ -2869,6 +2871,7 @@ export default {
     },
   },
   computed: {
+    ...mapStores(useEntitiesStore),
     cancelarLlenadoNuevaOpcion: {
       get() {
         return this.$store.state.pricing.cancelarLlenadoNuevaOpcion;

@@ -286,6 +286,8 @@
 <script>
 import { mapActions, mapState } from "vuex";
 import Swal from "sweetalert2";
+import { mapStores } from "pinia";
+import { useEntitiesStore } from "@/stores/entities";
 export default {
   emits: ["activarDatosCarga"],
   props: {
@@ -657,6 +659,7 @@ export default {
     },
   },
   computed: {
+    ...mapStores(useEntitiesStore),
     ...mapState(["registroClienteFlag", ""]),
     listMarketingActivos() {
       let list = this.$store.state.pricing.listMarketing || [];
@@ -693,9 +696,9 @@ export default {
       this.$store.state.spiner = true;
       await this._getEntitiesCliente();
       this.$store.state.spiner = false;
-      if (!!this.$store.state.entities.id) {
+      if (!!this.entitiesStore.id) {
         let cliente = this.$store.state.itemsEntities.filter(
-          (v) => v.id == this.$store.state.entities.id,
+          (v) => v.id == this.entitiesStore.id,
         )[0];
         this.$store.state.pricing.datosPrincipales.id_entitie = cliente.id;
         this.$store.state.pricing.datosPrincipales.nombre =

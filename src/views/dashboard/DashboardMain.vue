@@ -14,6 +14,7 @@ import LoadingComponent from "../../components/comun/LoadingComponent.vue";
 import BtnIrAlListado from "../../components/comun/BtnIrAlListado.vue";
 import BotonesHeader from "../../components/comun/BotonesHeader.vue";
 import PlanStatusBadge from "../../components/SubscriptionPackages/PlanStatusBadge.vue";
+import { useEntitiesStore } from "@/stores/entities";
 import { useMasterusuariosStore } from "@/stores/masterusuarios";
 import { useTownStore } from "@/stores/town";
 import { validateCost } from "@/utils/cotizacion";
@@ -44,6 +45,7 @@ const route = useRoute();
 const router = useRouter();
 const rootStore = useStore();
 const townStore = useTownStore();
+const entitiesStore = useEntitiesStore();
 const masterusuariosStore = useMasterusuariosStore();
 
 const socket = io(import.meta.env.VITE_URL_MAIN, {
@@ -1057,7 +1059,7 @@ function isClienteInternacional() {
     (v: TipoTransaccion) => {
       return (
         v.codigo == "02" &&
-        v.id == rootStore.state.entities.cliente.id_tipotransaccion
+        v.id == entitiesStore.cliente.id_tipotransaccion
       );
     },
   );
@@ -1066,40 +1068,40 @@ function isClienteInternacional() {
 }
 async function registrarCliente() {
   rootStore.state.spiner = true;
-  await rootStore.dispatch("guardarCliente", false);
+  await entitiesStore.guardarCliente();
   rootStore.state.spiner = false;
 }
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 async function modificarCliente() {
-  rootStore.state.entities.isStep1Valid = true;
-  rootStore.state.entities.isStep2Valid = true;
-  rootStore.state.entities.isStep3Valid = true;
-  rootStore.state.entities.isStep4Valid = true;
-  rootStore.state.entities.isStep5Valid = true;
-  rootStore.state.entities.isStep6Valid = true;
+  entitiesStore.isStep1Valid = true;
+  entitiesStore.isStep2Valid = true;
+  entitiesStore.isStep3Valid = true;
+  entitiesStore.isStep4Valid = true;
+  entitiesStore.isStep5Valid = true;
+  entitiesStore.isStep6Valid = true;
 
   let okStep1 = true;
-  if (rootStore.state.entities.cliente) {
-    if (!rootStore.state.entities.cliente.id_tipopersona) {
+  if (entitiesStore.cliente) {
+    if (!entitiesStore.cliente.id_tipopersona) {
       okStep1 = false;
     }
 
-    if (!rootStore.state.entities.cliente.nombrecompleto) {
+    if (!entitiesStore.cliente.nombrecompleto) {
       okStep1 = false;
     }
 
-    if (!rootStore.state.entities.cliente.id_tipotransaccion) {
+    if (!entitiesStore.cliente.id_tipotransaccion) {
       okStep1 = false;
     }
 
-    if (!rootStore.state.entities.cliente.id_pais) {
+    if (!entitiesStore.cliente.id_pais) {
       okStep1 = false;
     }
 
     if (
-      rootStore.state.entities.cliente.emailaddress &&
+      entitiesStore.cliente.emailaddress &&
       !/^(([^<>()[\]\\.,;:\s@']+(\.[^<>()\\[\]\\.,;:\s@']+)*)|('.+'))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/.test(
-        rootStore.state.entities.cliente.emailaddress,
+        entitiesStore.cliente.emailaddress,
       )
     ) {
       okStep1 = false;
@@ -1107,8 +1109,8 @@ async function modificarCliente() {
   }
 
   let okStep2_1 = true;
-  if (rootStore.state.entities.lstTelefonos.length > 0) {
-    rootStore.state.entities.lstTelefonos.map((v: TelefonoEntidad) => {
+  if (entitiesStore.lstTelefonos.length > 0) {
+    entitiesStore.lstTelefonos.map((v: TelefonoEntidad) => {
       if (!v.id_tipotelefono) {
         okStep2_1 = false;
       }
@@ -1120,8 +1122,8 @@ async function modificarCliente() {
   }
 
   let okStep2_2 = true;
-  if (rootStore.state.entities.lstContactos.length > 0) {
-    rootStore.state.entities.lstContactos.map((v: ContactoEntidad) => {
+  if (entitiesStore.lstContactos.length > 0) {
+    entitiesStore.lstContactos.map((v: ContactoEntidad) => {
       if (!v.nombre) {
         okStep2_2 = false;
       }
@@ -1137,8 +1139,8 @@ async function modificarCliente() {
   }
 
   let okStep3_1 = true;
-  if (rootStore.state.entities.lstConvenios.length > 0) {
-    rootStore.state.entities.lstConvenios.map((v: ConvenioEntidad) => {
+  if (entitiesStore.lstConvenios.length > 0) {
+    entitiesStore.lstConvenios.map((v: ConvenioEntidad) => {
       if (!v.fecha) {
         okStep3_1 = false;
       }
@@ -1159,8 +1161,8 @@ async function modificarCliente() {
   }
 
   let okStep3_2 = true;
-  if (rootStore.state.entities.lstTarifas.length > 0) {
-    rootStore.state.entities.lstTarifas.map((v: TarifaEntidad) => {
+  if (entitiesStore.lstTarifas.length > 0) {
+    entitiesStore.lstTarifas.map((v: TarifaEntidad) => {
       if (!v.fecha) {
         okStep3_2 = false;
       }
@@ -1185,8 +1187,8 @@ async function modificarCliente() {
   }
 
   let okStep4 = true;
-  if (rootStore.state.entities.lstInformacionBancaria.length > 0) {
-    rootStore.state.entities.lstInformacionBancaria.map((v: InformacionBancaria) => {
+  if (entitiesStore.lstInformacionBancaria.length > 0) {
+    entitiesStore.lstInformacionBancaria.map((v: InformacionBancaria) => {
       if (!v.nro_cuenta) {
         okStep4 = false;
       }
@@ -1220,20 +1222,20 @@ async function modificarCliente() {
   }
 
   if (!okStep1) {
-    rootStore.state.entities.isStep1Valid =
-      !rootStore.state.entities.isStep1Valid;
+    entitiesStore.isStep1Valid =
+      !entitiesStore.isStep1Valid;
   } else if (!okStep2_1 || !okStep2_2) {
-    rootStore.state.entities.isStep2Valid =
-      !rootStore.state.entities.isStep2Valid;
+    entitiesStore.isStep2Valid =
+      !entitiesStore.isStep2Valid;
   } else if (!okStep3_1 || !okStep3_2) {
-    rootStore.state.entities.isStep3Valid =
-      !rootStore.state.entities.isStep3Valid;
+    entitiesStore.isStep3Valid =
+      !entitiesStore.isStep3Valid;
   } else if (!okStep4) {
-    rootStore.state.entities.isStep4Valid =
-      !rootStore.state.entities.isStep4Valid;
+    entitiesStore.isStep4Valid =
+      !entitiesStore.isStep4Valid;
   } else {
     rootStore.state.spiner = true;
-    await rootStore.dispatch("actualizarCliente");
+    await entitiesStore.actualizarCliente();
     rootStore.state.spiner = false;
   }
 }
@@ -1242,7 +1244,7 @@ function isProveedorInternacional() {
     (v: TipoTransaccion) => {
       return (
         v.codigo == "02" &&
-        v.id == rootStore.state.entities.proveedor.id_tipotransaccion
+        v.id == entitiesStore.proveedor.id_tipotransaccion
       );
     },
   );
@@ -1253,7 +1255,7 @@ function isShipper() {
   const val = rootStore.state.itemsDataRoleList.some((v: RolProveedor) => {
     const item = (v.name.split("-")[1] || "").trim().toUpperCase();
     return (
-      v.id == rootStore.state.entities.proveedor.id_tipoproveedor &&
+      v.id == entitiesStore.proveedor.id_tipoproveedor &&
       item == "SHIPPER"
     );
   });
@@ -1264,7 +1266,7 @@ function isNaviera() {
   const val = rootStore.state.itemsDataRoleList.some((v: RolProveedor) => {
     const item = (v.name.split("-")[1] || "").trim().toUpperCase();
     return (
-      v.id == rootStore.state.entities.proveedor.id_tipoproveedor &&
+      v.id == entitiesStore.proveedor.id_tipoproveedor &&
       item == "NAVIERA"
     );
   });
@@ -1275,7 +1277,7 @@ function isAlmacen() {
   const val = rootStore.state.itemsDataRoleList.some((v: RolProveedor) => {
     const item = (v.name.split("-")[1] || "").trim().toUpperCase();
     return (
-      v.id == rootStore.state.entities.proveedor.id_tipoproveedor &&
+      v.id == entitiesStore.proveedor.id_tipoproveedor &&
       item == "ALMACEN"
     );
   });
@@ -1283,11 +1285,11 @@ function isAlmacen() {
   return val;
 }
 async function registrarProveedor() {
-  rootStore.state.entities.isStep4Valid = true;
+  entitiesStore.isStep4Valid = true;
 
   let okStep4 = true;
-  if (rootStore.state.entities.lstInformacionBancaria.length > 0) {
-    rootStore.state.entities.lstInformacionBancaria.map((v: InformacionBancaria) => {
+  if (entitiesStore.lstInformacionBancaria.length > 0) {
+    entitiesStore.lstInformacionBancaria.map((v: InformacionBancaria) => {
       if (!v.nro_cuenta) {
         okStep4 = false;
       }
@@ -1321,48 +1323,48 @@ async function registrarProveedor() {
   }
 
   if (!okStep4) {
-    rootStore.state.entities.isStep4Valid =
-      !rootStore.state.entities.isStep4Valid;
+    entitiesStore.isStep4Valid =
+      !entitiesStore.isStep4Valid;
   } else {
     rootStore.state.spiner = true;
-    await rootStore.dispatch("guardarProveedor");
+    await entitiesStore.guardarProveedor();
     rootStore.state.spiner = false;
   }
 }
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 async function modificarProveedor() {
-  rootStore.state.entities.isStep1Valid = true;
-  rootStore.state.entities.isStep2Valid = true;
-  rootStore.state.entities.isStep3Valid = true;
-  rootStore.state.entities.isStep4Valid = true;
+  entitiesStore.isStep1Valid = true;
+  entitiesStore.isStep2Valid = true;
+  entitiesStore.isStep3Valid = true;
+  entitiesStore.isStep4Valid = true;
 
   let okStep1 = true;
-  if (rootStore.state.entities.proveedor) {
-    if (!rootStore.state.entities.proveedor.nombrecompleto) {
+  if (entitiesStore.proveedor) {
+    if (!entitiesStore.proveedor.nombrecompleto) {
       okStep1 = false;
     }
 
-    if (!rootStore.state.entities.proveedor.id_tipoproveedor) {
+    if (!entitiesStore.proveedor.id_tipoproveedor) {
       okStep1 = false;
     } else if (
       isShipper() &&
-      !rootStore.state.entities.proveedor.producto
+      !entitiesStore.proveedor.producto
     ) {
       okStep1 = false;
     }
 
-    if (!rootStore.state.entities.proveedor.id_tipotransaccion) {
+    if (!entitiesStore.proveedor.id_tipotransaccion) {
       okStep1 = false;
     }
 
-    if (!rootStore.state.entities.proveedor.id_pais) {
+    if (!entitiesStore.proveedor.id_pais) {
       okStep1 = false;
     }
 
     if (
-      rootStore.state.entities.proveedor.emailaddress &&
+      entitiesStore.proveedor.emailaddress &&
       !/^(([^<>()[\]\\.,;:\s@']+(\.[^<>()\\[\]\\.,;:\s@']+)*)|('.+'))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/.test(
-        rootStore.state.entities.proveedor.emailaddress,
+        entitiesStore.proveedor.emailaddress,
       )
     ) {
       okStep1 = false;
@@ -1370,22 +1372,22 @@ async function modificarProveedor() {
 
     if (
       isNaviera() &&
-      rootStore.state.entities.proveedor.dias_sobreestadia < 0
+      entitiesStore.proveedor.dias_sobreestadia < 0
     ) {
       okStep1 = false;
     }
 
     if (
       isAlmacen() &&
-      rootStore.state.entities.proveedor.dias_almacenaje < 0
+      entitiesStore.proveedor.dias_almacenaje < 0
     ) {
       okStep1 = false;
     }
   }
 
   let okStep2_1 = true;
-  if (rootStore.state.entities.lstTelefonos.length > 0) {
-    rootStore.state.entities.lstTelefonos.map((v: TelefonoEntidad) => {
+  if (entitiesStore.lstTelefonos.length > 0) {
+    entitiesStore.lstTelefonos.map((v: TelefonoEntidad) => {
       if (!v.id_tipotelefono) {
         okStep2_1 = false;
       }
@@ -1397,8 +1399,8 @@ async function modificarProveedor() {
   }
 
   let okStep2_2 = true;
-  if (rootStore.state.entities.lstContactos.length > 0) {
-    rootStore.state.entities.lstContactos.map((v: ContactoEntidad) => {
+  if (entitiesStore.lstContactos.length > 0) {
+    entitiesStore.lstContactos.map((v: ContactoEntidad) => {
       if (!v.nombre) {
         okStep2_2 = false;
       }
@@ -1414,8 +1416,8 @@ async function modificarProveedor() {
   }
 
   let okStep3_1 = true;
-  if (rootStore.state.entities.lstConvenios.length > 0) {
-    rootStore.state.entities.lstConvenios.map((v: ConvenioEntidad) => {
+  if (entitiesStore.lstConvenios.length > 0) {
+    entitiesStore.lstConvenios.map((v: ConvenioEntidad) => {
       if (!v.fecha) {
         okStep3_1 = false;
       }
@@ -1436,8 +1438,8 @@ async function modificarProveedor() {
   }
 
   let okStep3_2 = true;
-  if (rootStore.state.entities.lstTarifas.length > 0) {
-    rootStore.state.entities.lstTarifas.map((v: TarifaEntidad) => {
+  if (entitiesStore.lstTarifas.length > 0) {
+    entitiesStore.lstTarifas.map((v: TarifaEntidad) => {
       if (!v.fecha) {
         okStep3_2 = false;
       }
@@ -1462,8 +1464,8 @@ async function modificarProveedor() {
   }
 
   let okStep4 = true;
-  if (rootStore.state.entities.lstInformacionBancaria.length > 0) {
-    rootStore.state.entities.lstInformacionBancaria.map((v: InformacionBancaria) => {
+  if (entitiesStore.lstInformacionBancaria.length > 0) {
+    entitiesStore.lstInformacionBancaria.map((v: InformacionBancaria) => {
       if (!v.nro_cuenta) {
         okStep4 = false;
       }
@@ -1497,20 +1499,20 @@ async function modificarProveedor() {
   }
 
   if (!okStep1) {
-    rootStore.state.entities.isStep1Valid =
-      !rootStore.state.entities.isStep1Valid;
+    entitiesStore.isStep1Valid =
+      !entitiesStore.isStep1Valid;
   } else if (!okStep2_1 || !okStep2_2) {
-    rootStore.state.entities.isStep2Valid =
-      !rootStore.state.entities.isStep2Valid;
+    entitiesStore.isStep2Valid =
+      !entitiesStore.isStep2Valid;
   } else if (!okStep3_1 || !okStep3_2) {
-    rootStore.state.entities.isStep3Valid =
-      !rootStore.state.entities.isStep3Valid;
+    entitiesStore.isStep3Valid =
+      !entitiesStore.isStep3Valid;
   } else if (!okStep4) {
-    rootStore.state.entities.isStep4Valid =
-      !rootStore.state.entities.isStep4Valid;
+    entitiesStore.isStep4Valid =
+      !entitiesStore.isStep4Valid;
   } else {
     rootStore.state.spiner = true;
-    await rootStore.dispatch("actualizarProveedor");
+    await entitiesStore.actualizarProveedor();
     rootStore.state.spiner = false;
   }
 }
@@ -1779,7 +1781,7 @@ watch(idRole, async () => {
         variant="elevated"
         v-if="
           getNameUrl() == 'nuevoClientes' &&
-            rootStore.state.entities.showBtnSaveFlag
+            entitiesStore.showBtnSaveFlag
         "
         color="success"
         class="ml-auto"
@@ -1793,12 +1795,12 @@ watch(idRole, async () => {
         variant="elevated"
         v-if="
           getNameUrl() == 'nuevoProveedor' &&
-            rootStore.state.entities.showBtnSaveFlag
+            entitiesStore.showBtnSaveFlag
         "
         color="success"
         class="ml-auto"
         @click="registrarProveedor"
-        :disabled="rootStore.state.entities.disabledBtnSave"
+        :disabled="entitiesStore.disabledBtnSave"
       >
         Guardar Proveedor
       </v-btn>

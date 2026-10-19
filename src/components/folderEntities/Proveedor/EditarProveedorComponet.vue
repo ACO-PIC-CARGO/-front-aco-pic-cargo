@@ -1,12 +1,12 @@
 <template>
   <v-container fluid>
-    <v-stepper v-model="$store.state.entities.stepper" non-linear>
+    <v-stepper v-model="entitiesStore.stepper" non-linear>
       <v-stepper-header>
         <v-stepper-item
           editable
           :value="1"
           title="Datos del Proveedor"
-          :rules="[() => $store.state.entities.isStep1Valid]"
+          :rules="[() => entitiesStore.isStep1Valid]"
         ></v-stepper-item>
 
         <v-divider></v-divider>
@@ -15,7 +15,7 @@
           editable
           :value="2"
           title="Teléfonos y Contactos"
-          :rules="[() => $store.state.entities.isStep2Valid]"
+          :rules="[() => entitiesStore.isStep2Valid]"
         ></v-stepper-item>
 
         <v-divider></v-divider>
@@ -24,7 +24,7 @@
           editable
           :value="3"
           title="Convenios y Tarifas"
-          :rules="[() => $store.state.entities.isStep3Valid]"
+          :rules="[() => entitiesStore.isStep3Valid]"
         ></v-stepper-item>
 
         <v-divider></v-divider>
@@ -33,7 +33,7 @@
           editable
           :value="4"
           title="Información Bancaria"
-          :rules="[() => $store.state.entities.isStep4Valid]"
+          :rules="[() => entitiesStore.isStep4Valid]"
         ></v-stepper-item>
 
         <v-divider></v-divider>
@@ -83,6 +83,7 @@ import SeccionEmailTarifa from "./SeccionEmailTarifaComponent.vue";
 import { mapActions as mapPiniaActions, mapStores } from "pinia";
 import { useCoinsStore } from "@/stores/coins";
 import { useMasterusuariosStore } from "@/stores/masterusuarios";
+import { useEntitiesStore } from "@/stores/entities";
 export default {
   
   components: {
@@ -100,17 +101,13 @@ export default {
     };
   },
   computed: {
-    ...mapStores(useMasterusuariosStore),
+    ...mapStores(useEntitiesStore, useMasterusuariosStore),
   },
   methods: {
     ...mapActions([
-      "getListProveedor",
       "_getDocumentsPais",
       "_getRole",
-      "getValidaRazonSocial",
       "getBanksListCargar",
-      "guardarCliente",
-      "getValidaDocumentCliente",
       "_getSex",
       "_getPais",
       "_getState",
@@ -118,8 +115,8 @@ export default {
       "_getTown",
       "_getProveedorRolShipper",
       "_getProveedor",
-      "getVerProveedor",
     ]),
+    ...mapPiniaActions(useEntitiesStore, ["getListProveedor", "getValidaRazonSocial", "guardarCliente", "getValidaDocumentCliente", "getVerProveedor"]),
     ...mapPiniaActions(useMasterusuariosStore, ["cargarMasterDetalleTipoProveedor", "cargarMasterDetalleTipoTransaccion", "cargarTipoTelefono", "cargarTipoPersona"]),
     ...mapPiniaActions(useCoinsStore, ["getCoinsListCargar"]),
     /* CÓDIGO NUEVO */
@@ -166,8 +163,8 @@ export default {
     },
   },
   created() {
-    this.$store.state.entities.lstProveedores_x_nombre = [];
-    this.$store.state.entities.lstProveedores_x_documento = [];
+    this.entitiesStore.lstProveedores_x_nombre = [];
+    this.entitiesStore.lstProveedores_x_documento = [];
   },
   async mounted() {
     this.$store.state.spiner = true;
@@ -186,15 +183,15 @@ export default {
       this._getProveedorRolShipper(),
       this.getVerProveedor(),
     ]);
-    this._getState(this.$store.state.entities.proveedor.id_pais);
+    this._getState(this.entitiesStore.proveedor.id_pais);
     this.$store.state.spiner = false;
 
-    this.$store.state.entities.stepper = 1;
-    this.$store.state.entities.isEdit = true;
-    this.$store.state.entities.isReadonly = false;
-    this.$store.state.entities.showBtnSaveFlag = true;
+    this.entitiesStore.stepper = 1;
+    this.entitiesStore.isEdit = true;
+    this.entitiesStore.isReadonly = false;
+    this.entitiesStore.showBtnSaveFlag = true;
 
-    this.$store.state.mainTitle = `MODIFICAR PROVEEDOR: PROV - ${this.$store.state.entities.proveedor.correlativo}`;
+    this.$store.state.mainTitle = `MODIFICAR PROVEEDOR: PROV - ${this.entitiesStore.proveedor.correlativo}`;
   },
 };
 </script>

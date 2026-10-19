@@ -41,7 +41,7 @@
                     ? headersInformacionBancaria2
                     : headersInformacionBancaria1
                 "
-                :items="$store.state.entities.lstInformacionBancaria"
+                :items="entitiesStore.lstInformacionBancaria"
                 class="elevation-5"
                 item-value="index"
               >
@@ -129,7 +129,7 @@
       </div>
     </v-card-text>
     <v-card-actions v-if="showNavigationButtons">
-      <v-btn color="primary" @click="$store.state.entities.stepper--"
+      <v-btn color="primary" @click="entitiesStore.stepper--"
         >Regresar</v-btn
       >
       <v-btn color="primary" class="ml-auto" @click="validarFormulario">
@@ -140,10 +140,10 @@
 </template>
 
 <script>
-import { mapActions } from "vuex";
-import { mapStores } from "pinia";
+import { mapActions as mapPiniaActions, mapStores } from "pinia";
 import { useCoinsStore } from "@/stores/coins";
 import { useMasterusuariosStore } from "@/stores/masterusuarios";
+import { useEntitiesStore } from "@/stores/entities";
 export default {
   name: "SeccionInformacionBancaria",
   data() {
@@ -172,37 +172,37 @@ export default {
     };
   },
   computed: {
-    ...mapStores(useMasterusuariosStore, useCoinsStore),
+    ...mapStores(useEntitiesStore, useMasterusuariosStore, useCoinsStore),
     isFormReadonly() {
-      return this.$store.state.entities.isReadonly;
+      return this.entitiesStore.isReadonly;
     },
     showFormActions() {
-      return !this.$store.state.entities.isReadonly;
+      return !this.entitiesStore.isReadonly;
     },
     showNavigationButtons() {
       return !(
-        this.$store.state.entities.isEdit ||
-        this.$store.state.entities.isReadonly
+        this.entitiesStore.isEdit ||
+        this.entitiesStore.isReadonly
       );
     },
   },
   methods: {
-    ...mapActions(["actualizarProveedor"]),
+    ...mapPiniaActions(useEntitiesStore, ["actualizarProveedor"]),
     validarFormulario() {
       var vm = this;
-      vm.$store.state.entities.stepper = 5;
+      vm.entitiesStore.stepper = 5;
     },
     isInternacional() {
       let val = this.masterusuariosStore.lstTipoTransaccion.some(
         (v) =>
           v.codigo == "02" &&
-          v.id == this.$store.state.entities.proveedor.id_tipotransaccion,
+          v.id == this.entitiesStore.proveedor.id_tipotransaccion,
       );
 
       return val;
     },
     agregarCuentaBancaria() {
-      this.$store.state.entities.lstInformacionBancaria.push({
+      this.entitiesStore.lstInformacionBancaria.push({
         nro_cuenta: "",
         cci: "",
         id_banco: "",
@@ -213,13 +213,13 @@ export default {
       });
     },
     eliminarInformacionBancaria(index) {
-      this.$store.state.entities.lstInformacionBancaria.splice(index, 1);
+      this.entitiesStore.lstInformacionBancaria.splice(index, 1);
     },
     async modificarProveedor() {
       var vm = this;
       if (vm.isFormReadonly) {
-        vm.$store.state.entities.isReadonly = false;
-        vm.$store.state.entities.isEdit = true;
+        vm.entitiesStore.isReadonly = false;
+        vm.entitiesStore.isEdit = true;
         vm.$swal({
           icon: "info",
           text: "Ahora puede modificar los campos",
@@ -231,12 +231,12 @@ export default {
       await vm.actualizarProveedor();
       vm.$store.state.spiner = false;
 
-      vm.$store.state.entities.isReadonly = true;
-      vm.$store.state.entities.isEdit = false;
+      vm.entitiesStore.isReadonly = true;
+      vm.entitiesStore.isEdit = false;
     },
   },
   watch: {
-    "$store.state.entities.isStep4Valid": {
+    "entitiesStore.isStep4Valid": {
       async handler(newValue) {
         if (!newValue) {
           await this.$refs.formProv_informacionBancaria.validate();

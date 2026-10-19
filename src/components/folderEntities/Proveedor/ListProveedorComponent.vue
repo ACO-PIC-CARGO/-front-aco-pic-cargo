@@ -17,8 +17,8 @@
           class="mx-1"
           color="secondary"
           @click="
-            $store.state.entities.filtrarProveedor =
-              !$store.state.entities.filtrarProveedor
+            entitiesStore.filtrarProveedor =
+              !entitiesStore.filtrarProveedor
           "
         >
           FILTRAR
@@ -43,7 +43,7 @@
       <v-col cols="12">
         <v-data-table
           :headers="headers"
-          :items="$store.state.entities.lstProveedor"
+          :items="entitiesStore.lstProveedor"
           item-value="id"
           :search="search"
         >
@@ -117,7 +117,7 @@
             <v-col cols="12">
               <v-data-table
                 :headers="headersTel"
-                :items="$store.state.entities.lstTelefono"
+                :items="entitiesStore.lstTelefono"
                 item-value="id"
                 class="elevation-5"
               >
@@ -155,7 +155,7 @@
             <v-col cols="12">
               <v-data-table
                 :headers="headersContact"
-                :items="$store.state.entities.lstContactos"
+                :items="entitiesStore.lstContactos"
                 item-value="index"
                 class="elevation-5"
               >
@@ -217,6 +217,7 @@ import { mapActions } from "vuex";
 import Swal from "sweetalert2";
 import { mapActions as mapPiniaActions, mapStores } from "pinia";
 import { useMasterusuariosStore } from "@/stores/masterusuarios";
+import { useEntitiesStore } from "@/stores/entities";
 export default {
   data() {
     return {
@@ -250,20 +251,17 @@ export default {
     };
   },
   computed: {
-    ...mapStores(useMasterusuariosStore),
+    ...mapStores(useEntitiesStore, useMasterusuariosStore),
   },
   methods: {
     ...mapActions([
-      "getListProveedor",
       "_getDocumentsPais",
       "_getPais",
       "_getState",
       "_getRole",
       "cambioURL",
-      "eliminarPersona",
-      "telConctactoProveedor",
-      "exportListProveedor",
     ]),
+    ...mapPiniaActions(useEntitiesStore, ["getListProveedor", "eliminarPersona", "telConctactoProveedor", "exportListProveedor"]),
     ...mapPiniaActions(useMasterusuariosStore, ["cargarMasterDetalleTipoProveedor", "cargarTipoTelefono"]),
     cambiarRuta({ nameRuta = "", idProveedor = "" }) {
       this.$router.push({
@@ -305,7 +303,7 @@ export default {
     },
   },
   async mounted() {
-    this.$store.state.entities.lstProveedor = [];
+    this.entitiesStore.lstProveedor = [];
     this.$store.state.spiner = true;
     await this.getListProveedor();
     await Promise.all([

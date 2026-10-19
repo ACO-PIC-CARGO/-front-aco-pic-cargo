@@ -2,6 +2,7 @@
 import { onMounted, ref } from "vue";
 import moment from "moment";
 import { useStore } from "vuex";
+import { useEntitiesStore } from "@/stores/entities";
 import type { FlujoPrePostMovimiento } from "@/types/balances";
 
 interface FlujoCosto {
@@ -30,6 +31,7 @@ interface FlujoCategoria {
 const props = defineProps<{ year?: number | string; month?: string | string[] }>();
 
 const rootStore = useStore();
+const entitiesStore = useEntitiesStore();
 
 const filtrar = ref(false);
 const dataTable = ref<FlujoCategoria[]>([]);
@@ -235,7 +237,7 @@ onMounted(() => {
             >
               <v-autocomplete
                 label="Proveedor"
-                :items="rootStore.state.entities.persona"
+                :items="entitiesStore.persona"
                 v-model="filtro.id_persona"
                 auto-select-first
                 clearable

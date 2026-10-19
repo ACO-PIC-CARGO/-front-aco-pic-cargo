@@ -4,7 +4,7 @@
       <ListClienteComponentVue />
     </v-card>
     <v-navigation-drawer
-      v-model="$store.state.entities.filtrarProveedor"
+      v-model="entitiesStore.filtrarProveedor"
       location="right"
       
       width="20%"
@@ -19,11 +19,16 @@
 
 <script>
 import { defineAsyncComponent } from "vue";
+import { mapStores } from "pinia";
+import { useEntitiesStore } from "@/stores/entities";
 export default {
   components: {
     ListClienteComponentVue: defineAsyncComponent(() =>
       import("@/components/folderEntities/Cliente/ListClienteComponent.vue")),
     FiltroCliente: defineAsyncComponent(() => import("@/components/filtros/FiltroCliente.vue")),
+  },
+  computed: {
+    ...mapStores(useEntitiesStore),
   },
   mounted() {
     this.$store.state.mainTitle = `LISTADO DE CLIENTES`;

@@ -1,6 +1,6 @@
 <template>
   <div>
-    <v-stepper v-model="$store.state.entities.stepper" non-linear>
+    <v-stepper v-model="entitiesStore.stepper" non-linear>
       <v-stepper-header>
         <v-stepper-item
           editable
@@ -81,6 +81,7 @@ import SeccionEmailTarifa from "./SeccionEmailTarifaComponent.vue";
 import { mapActions as mapPiniaActions, mapStores } from "pinia";
 import { useCoinsStore } from "@/stores/coins";
 import { useMasterusuariosStore } from "@/stores/masterusuarios";
+import { useEntitiesStore } from "@/stores/entities";
 export default {
   components: {
     SeccionProveedor,
@@ -97,17 +98,13 @@ export default {
     };
   },
   computed: {
-    ...mapStores(useMasterusuariosStore),
+    ...mapStores(useEntitiesStore, useMasterusuariosStore),
   },
   methods: {
     ...mapActions([
-      "getListProveedor",
       "_getDocumentsPais",
       "_getRole",
-      "getValidaRazonSocial",
       "getBanksListCargar",
-      "guardarCliente",
-      "getValidaDocumentCliente",
       "_getSex",
       "_getPais",
       "_getState",
@@ -115,8 +112,8 @@ export default {
       "_getTown",
       "_getProveedorRolShipper",
       "_getProveedor",
-      "getVerProveedor",
     ]),
+    ...mapPiniaActions(useEntitiesStore, ["getListProveedor", "getValidaRazonSocial", "guardarCliente", "getValidaDocumentCliente", "getVerProveedor"]),
     ...mapPiniaActions(useMasterusuariosStore, ["cargarMasterDetalleTipoProveedor", "cargarMasterDetalleTipoTransaccion", "cargarTipoTelefono", "cargarTipoPersona"]),
     ...mapPiniaActions(useCoinsStore, ["getCoinsListCargar"]),
     /* CÓDIGO NUEVO */
@@ -163,8 +160,8 @@ export default {
     },
   },
   created() {
-    this.$store.state.entities.lstProveedores_x_nombre = [];
-    this.$store.state.entities.lstProveedores_x_documento = [];
+    this.entitiesStore.lstProveedores_x_nombre = [];
+    this.entitiesStore.lstProveedores_x_documento = [];
   },
   async mounted() {
     this.$store.state.spiner = true;
@@ -184,14 +181,14 @@ export default {
       this.getVerProveedor(),
     ]);
 
-    await this._getState(this.$store.state.entities.proveedor.id_pais);
+    await this._getState(this.entitiesStore.proveedor.id_pais);
     this.$store.state.spiner = false;
 
-    this.$store.state.entities.stepper = 1;
-    this.$store.state.entities.isEdit = false;
-    this.$store.state.entities.isReadonly = true;
+    this.entitiesStore.stepper = 1;
+    this.entitiesStore.isEdit = false;
+    this.entitiesStore.isReadonly = true;
 
-    this.$store.state.mainTitle = `VER PROVEEDOR: PROV - ${this.$store.state.entities.proveedor.correlativo}`;
+    this.$store.state.mainTitle = `VER PROVEEDOR: PROV - ${this.entitiesStore.proveedor.correlativo}`;
   },
 };
 </script>

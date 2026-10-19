@@ -35,7 +35,7 @@
             <v-form ref="formProv_convenios" :readonly="isFormReadonly">
               <v-data-table
                 :headers="headersConvenios"
-                :items="$store.state.entities.lstConvenios"
+                :items="entitiesStore.lstConvenios"
                 class="elevation-5"
                 item-value="index"
               >
@@ -113,7 +113,7 @@
             <v-form ref="formProv_tarifas" :readonly="isFormReadonly">
               <v-data-table
                 :headers="headersTarifas"
-                :items="$store.state.entities.lstTarifas"
+                :items="entitiesStore.lstTarifas"
                 class="elevation-5"
                 item-value="index"
               >
@@ -169,7 +169,7 @@
       </div>
     </v-card-text>
     <v-card-actions v-if="showNavigationButtons">
-      <v-btn color="primary" @click="$store.state.entities.stepper--"
+      <v-btn color="primary" @click="entitiesStore.stepper--"
         >Regresar</v-btn
       >
       <v-btn color="primary" class="ml-auto" @click="validarFormulario"
@@ -182,6 +182,8 @@
 <script>
 import { mapActions } from "vuex";
 import moment from "moment";
+import { mapActions as mapPiniaActions, mapStores } from "pinia";
+import { useEntitiesStore } from "@/stores/entities";
 export default {
   name: "SeccionConvenios",
   data() {
@@ -204,21 +206,23 @@ export default {
     };
   },
   computed: {
+    ...mapStores(useEntitiesStore),
     isFormReadonly() {
-      return this.$store.state.entities.isReadonly;
+      return this.entitiesStore.isReadonly;
     },
     showFormActions() {
-      return !this.$store.state.entities.isReadonly;
+      return !this.entitiesStore.isReadonly;
     },
     showNavigationButtons() {
       return !(
-        this.$store.state.entities.isEdit ||
-        this.$store.state.entities.isReadonly
+        this.entitiesStore.isEdit ||
+        this.entitiesStore.isReadonly
       );
     },
   },
   methods: {
-    ...mapActions(["_uploadFile", "actualizarProveedor"]),
+    ...mapActions(["_uploadFile"]),
+    ...mapPiniaActions(useEntitiesStore, ["actualizarProveedor"]),
    
     validarCorreoElectronico(v) {
       if (
@@ -233,20 +237,20 @@ export default {
       return true;
     },
     agregarConvenio() {
-      this.$store.state.entities.lstConvenios.push({
+      this.entitiesStore.lstConvenios.push({
         fecha: moment().format("YYYY-MM-DD"),
         dias_credito: 0,
         email_soporte: "",
       });
     },
     eliminarConvenio(index) {
-      this.$store.state.entities.lstConvenios.splice(index, 1);
+      this.entitiesStore.lstConvenios.splice(index, 1);
     },
     generarCodigoTarifa() {
       var vm = this;
 
       let codigoMaximo = 0;
-      vm.$store.state.entities.lstTarifas.filter((v) => {
+      vm.entitiesStore.lstTarifas.filter((v) => {
         let codigoParseado = v.codigo.includes("T")
           ? parseInt(v.codigo.slice(1))
           : parseInt(v.codigo);
@@ -261,7 +265,7 @@ export default {
       return "T".concat(codigo);
     },
     agregarTarifa() {
-      this.$store.state.entities.lstTarifas.push({
+      this.entitiesStore.lstTarifas.push({
         fecha: moment().format("YYYY-MM-DD"),
         codigo: this.generarCodigoTarifa(),
         email_soporte: "",
@@ -269,7 +273,7 @@ export default {
       });
     },
     eliminarTarifa(index) {
-      this.$store.state.entities.lstTarifas.splice(index, 1);
+      this.entitiesStore.lstTarifas.splice(index, 1);
     },
     async subirArchivoConvenio(item = {}) {
       var vm = this;
@@ -285,7 +289,7 @@ export default {
             text: "Archivo cargado",
           });
 
-          vm.$store.state.entities.lstConvenios.map((itemConvenio) => {
+          vm.entitiesStore.lstConvenios.map((itemConvenio) => {
             if (itemConvenio.id == item.id) {
               itemConvenio["id_path"] = vm.$store.state.files.payPath;
             }
@@ -314,7 +318,7 @@ export default {
             text: "Archivo cargado",
           });
 
-          vm.$store.state.entities.lstTarifas.map((itemTarifa) => {
+          vm.entitiesStore.lstTarifas.map((itemTarifa) => {
             if (itemTarifa.id == item.id) {
               itemTarifa["id_path"] = vm.$store.state.files.payPath;
             }
@@ -333,21 +337,21 @@ export default {
       var vm = this;
 
       let ok1 = true;
-      if (vm.$store.state.entities.lstConvenios.length > 0) {
+      if (vm.entitiesStore.lstConvenios.length > 0) {
         if (!(await vm.$refs.formProv_convenios.validate()).valid) {
           ok1 = false;
         }
       }
 
       let ok2 = true;
-      if (vm.$store.state.entities.lstTarifas.length > 0) {
+      if (vm.entitiesStore.lstTarifas.length > 0) {
         if (!(await vm.$refs.formProv_tarifas.validate()).valid) {
           ok2 = false;
         }
       }
 
       if (ok1 && ok2) {
-        vm.$store.state.entities.stepper = 4;
+        vm.entitiesStore.stepper = 4;
       }
     },
     async modificarProveedor() {
@@ -355,8 +359,8 @@ export default {
 
       // Si está en modo solo lectura, pasar a modo edición y no guardar todavía
       if (vm.isFormReadonly) {
-        vm.$store.state.entities.isReadonly = false;
-        vm.$store.state.entities.isEdit = true;
+        vm.entitiesStore.isReadonly = false;
+        vm.entitiesStore.isEdit = true;
         vm.$swal({
           icon: "info",
           text: "Ahora puede modificar los campos",
@@ -364,14 +368,14 @@ export default {
         return;
       }
 
-      vm.$store.state.entities.isStep1Valid = true;
-      vm.$store.state.entities.isStep2Valid = true;
-      vm.$store.state.entities.isStep3Valid = true;
-      vm.$store.state.entities.isStep4Valid = true;
+      vm.entitiesStore.isStep1Valid = true;
+      vm.entitiesStore.isStep2Valid = true;
+      vm.entitiesStore.isStep3Valid = true;
+      vm.entitiesStore.isStep4Valid = true;
 
       let okStep3_1 = true;
-      if (vm.$store.state.entities.lstConvenios.length > 0) {
-        vm.$store.state.entities.lstConvenios.map((v) => {
+      if (vm.entitiesStore.lstConvenios.length > 0) {
+        vm.entitiesStore.lstConvenios.map((v) => {
           if (!v.fecha || v.dias_credito < 0) {
             okStep3_1 = false;
           }
@@ -379,8 +383,8 @@ export default {
       }
 
       let okStep3_2 = true;
-      if (vm.$store.state.entities.lstTarifas.length > 0) {
-        vm.$store.state.entities.lstTarifas.map((v) => {
+      if (vm.entitiesStore.lstTarifas.length > 0) {
+        vm.entitiesStore.lstTarifas.map((v) => {
           if (!v.fecha || !v.codigo || v.tarifa < 0) {
             okStep3_2 = false;
           }
@@ -388,7 +392,7 @@ export default {
       }
 
       if (!okStep3_1 || !okStep3_2) {
-        vm.$store.state.entities.isStep3Valid = false;
+        vm.entitiesStore.isStep3Valid = false;
         this.$swal({
           icon: "warning",
           text: "Por favor complete todos los campos requeridos en Convenios y Tarifas",
@@ -399,13 +403,13 @@ export default {
         vm.$store.state.spiner = false;
 
         // Volver a modo solo lectura después de guardar correctamente
-        vm.$store.state.entities.isReadonly = true;
-        vm.$store.state.entities.isEdit = false;
+        vm.entitiesStore.isReadonly = true;
+        vm.entitiesStore.isEdit = false;
       }
     },
   },
   watch: {
-    "$store.state.entities.isStep3Valid": {
+    "entitiesStore.isStep3Valid": {
       async handler(newValue) {
         if (!newValue) {
           await this.$refs.formProv_convenios.validate();
@@ -414,10 +418,10 @@ export default {
       },
       immediate: true,
     },
-    "$store.state.entities.lstConvenios": {
+    "entitiesStore.lstConvenios": {
       handler(newValue) {
         if (newValue[0]) {
-          this.$store.state.entities.proveedor.convenioActual = newValue[0];
+          this.entitiesStore.proveedor.convenioActual = newValue[0];
         }
       },
       deep: true,

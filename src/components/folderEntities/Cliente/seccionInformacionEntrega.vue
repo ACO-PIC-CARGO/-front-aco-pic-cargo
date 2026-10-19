@@ -22,7 +22,7 @@
               <v-text-field
                 density="compact"
                 label="Destinatario"
-                v-model="$store.state.entities.informacionEntrega.destinatario"
+                v-model="entitiesStore.informacionEntrega.destinatario"
               ></v-text-field>
             </v-col>
             <v-col cols="12" md="6">
@@ -30,7 +30,7 @@
                 density="compact"
                 label="DNI O RUC"
                 v-model="
-                  $store.state.entities.informacionEntrega.dni_destinatario
+                  entitiesStore.informacionEntrega.dni_destinatario
                 "
               ></v-text-field>
             </v-col>
@@ -40,14 +40,14 @@
               <v-text-field
                 density="compact"
                 label="Persona que recoge"
-                v-model="$store.state.entities.informacionEntrega.receptor"
+                v-model="entitiesStore.informacionEntrega.receptor"
               ></v-text-field>
             </v-col>
             <v-col cols="12" md="6">
               <v-text-field
                 density="compact"
                 label="DNI"
-                v-model="$store.state.entities.informacionEntrega.dni_receptor"
+                v-model="entitiesStore.informacionEntrega.dni_receptor"
               ></v-text-field>
             </v-col>
           </v-row>
@@ -60,11 +60,11 @@
                 item-value="id"
                 label="Departamento"
                 v-model="
-                  $store.state.entities.informacionEntrega.id_departamento
+                  entitiesStore.informacionEntrega.id_departamento
                 "
                 @update:model-value="
                   _getCity(
-                    $store.state.entities.informacionEntrega.id_departamento,
+                    entitiesStore.informacionEntrega.id_departamento,
                   )
                 "
               ></v-autocomplete>
@@ -78,10 +78,10 @@
                 item-title="name"
                 item-value="id"
                 label="Provincia"
-                v-model="$store.state.entities.informacionEntrega.id_provincia"
+                v-model="entitiesStore.informacionEntrega.id_provincia"
                 @update:model-value="
                   _getTown(
-                    $store.state.entities.informacionEntrega.id_provincia,
+                    entitiesStore.informacionEntrega.id_provincia,
                   )
                 "
               ></v-autocomplete>
@@ -95,7 +95,7 @@
                 item-title="name"
                 item-value="id"
                 label="Distrito"
-                v-model="$store.state.entities.informacionEntrega.id_distrito"
+                v-model="entitiesStore.informacionEntrega.id_distrito"
               ></v-autocomplete>
             </v-col>
           </v-row>
@@ -104,7 +104,7 @@
               <v-text-field
                 density="compact"
                 label="Agencia"
-                v-model="$store.state.entities.informacionEntrega.agencia"
+                v-model="entitiesStore.informacionEntrega.agencia"
               ></v-text-field>
             </v-col>
             <v-col cols="12" md="6">
@@ -112,7 +112,7 @@
                 density="compact"
                 label="Celular"
                 v-model="
-                  $store.state.entities.informacionEntrega.celular_agencia
+                  entitiesStore.informacionEntrega.celular_agencia
                 "
                 :rules="[(v) => validarTelefono(v)]"
                 :prefix="getPrefix()"
@@ -132,7 +132,7 @@
               <v-text-field
                 density="compact"
                 label="Cliente"
-                v-model="$store.state.entities.cliente.nombrecompleto"
+                v-model="entitiesStore.cliente.nombrecompleto"
                 readonly
               ></v-text-field>
             </v-col>
@@ -154,7 +154,7 @@
       </div>
     </v-card-text>
     <v-card-actions v-if="showNavigationButtons">
-      <v-btn color="primary" @click="$store.state.entities.stepper--"
+      <v-btn color="primary" @click="entitiesStore.stepper--"
         >Regresar</v-btn
       >
     </v-card-actions>
@@ -163,27 +163,31 @@
 
 <script>
 import { mapActions } from "vuex";
+import { mapActions as mapPiniaActions, mapStores } from "pinia";
+import { useEntitiesStore } from "@/stores/entities";
 export default {
   name: "SeccionInformacionEntrega",
   data() {
     return {};
   },
   computed: {
+    ...mapStores(useEntitiesStore),
     isFormReadonly() {
-      return this.$store.state.entities.isReadonly;
+      return this.entitiesStore.isReadonly;
     },
     showFormActions() {
-      return !this.$store.state.entities.isReadonly;
+      return !this.entitiesStore.isReadonly;
     },
     showNavigationButtons() {
       return !(
-        this.$store.state.entities.isEdit ||
-        this.$store.state.entities.isReadonly
+        this.entitiesStore.isEdit ||
+        this.entitiesStore.isReadonly
       );
     },
   },
   methods: {
-    ...mapActions(["_getCity", "_getTown", "actualizarCliente"]),
+    ...mapActions(["_getCity", "_getTown"]),
+    ...mapPiniaActions(useEntitiesStore, ["actualizarCliente"]),
     validarTelefono(v) {
       if (v && !/^\+?\d+$/.test(v)) {
         return "Debe ingresar un teléfono válido";
@@ -193,7 +197,7 @@ export default {
     },
     getPrefix() {
       let pais = this.$store.state.itemsPais.find(
-        (v) => v.id == this.$store.state.entities.cliente.id_pais,
+        (v) => v.id == this.entitiesStore.cliente.id_pais,
       );
       if (pais) {
         return pais.phoneprefix;
@@ -202,7 +206,7 @@ export default {
     },
     obtenerFlag() {
       let pais = this.$store.state.itemsPais.find(
-        (v) => v.id == this.$store.state.entities.cliente.id_pais,
+        (v) => v.id == this.entitiesStore.cliente.id_pais,
       );
       let flag = "";
       if (pais) {
@@ -213,8 +217,8 @@ export default {
     async modificarCliente() {
       var vm = this;
       if (vm.isFormReadonly) {
-        vm.$store.state.entities.isReadonly = false;
-        vm.$store.state.entities.isEdit = true;
+        vm.entitiesStore.isReadonly = false;
+        vm.entitiesStore.isEdit = true;
         vm.$swal({
           icon: "info",
           text: "Ahora puede modificar los campos",
@@ -229,8 +233,8 @@ export default {
         !vm.$store.state.recargarClienteFlag;
       vm.$store.state.modalEntitie = false;
 
-      vm.$store.state.entities.isReadonly = true;
-      vm.$store.state.entities.isEdit = false;
+      vm.entitiesStore.isReadonly = true;
+      vm.entitiesStore.isEdit = false;
     },
   },
 };

@@ -150,6 +150,8 @@
 <script>
 import { mapActions, mapState } from "vuex";
 import axios from "@/api/http";
+import { mapStores } from "pinia";
+import { useEntitiesStore } from "@/stores/entities";
 
 export default {
   props: {
@@ -179,7 +181,7 @@ export default {
         { title: "Nombres (s)", key: "namelong" },
         { title: "Teléfono", key: "phone" },
       ],
-      registro: this.$store.state.entities.registroFlag,
+      registro: useEntitiesStore().registroFlag,
     };
   },
   name: "DatosPrincipalesComponent",
@@ -236,6 +238,7 @@ export default {
     },
   },
   computed: {
+    ...mapStores(useEntitiesStore),
     ...mapState(["registroClienteFlag"]),
     estadoCotizacionItems() {
       const list = this.$store.state.pricing.listQuoteStatus || [];
@@ -263,9 +266,9 @@ export default {
       this.$store.state.spiner = true;
       await this._getEntities();
       this.$store.state.spiner = false;
-      if (!!this.$store.state.entities.id) {
+      if (!!this.entitiesStore.id) {
         let cliente = this.$store.state.itemsEntities.filter(
-          (v) => v.id == this.$store.state.entities.id,
+          (v) => v.id == this.entitiesStore.id,
         )[0];
 
         this.$store.state.pricing.datosPrincipales.id_entitie = cliente.id;
