@@ -4,8 +4,8 @@ import Swal from "sweetalert2";
 import axios from "@/api/http";
 import store from "@/store";
 import type { ApiResponse } from "@/types/api";
-import type { FiltroMultiplicador, TipoCarga } from "@/types/catalogos";
-import type { Multiplicador } from "@/types/cotizacion";
+import type { FiltroMultiplicador } from "@/types/catalogos";
+import type { Multiplicador, TipoCarga } from "@/types/cotizacion";
 import { showRejectedResponse } from "@/utils/rejectedResponse";
 import { sessionBranchId } from "@/utils/sesion";
 

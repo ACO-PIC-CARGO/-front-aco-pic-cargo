@@ -100,6 +100,14 @@ export interface ContenedorEnvio {
 export interface TipoCarga {
   id?: number | string;
   code?: string;
+  name?: string;
+  description?: string | null;
+  id_transport?: number | string | null;
+  code_transport?: string;
+  type_transport?: string;
+  status?: number;
+  created_at?: string;
+  updated_at?: string;
 }
 
 export interface ArchivoDrive {

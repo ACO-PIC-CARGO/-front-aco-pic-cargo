@@ -5,7 +5,8 @@ import axios from "@/api/http";
 import store from "@/store";
 import { useMultiplicadorStore } from "@/stores/multiplicador";
 import type { ApiResponse } from "@/types/api";
-import type { FiltroTipoCarga, FormTipoCarga, TipoCarga, Transporte } from "@/types/catalogos";
+import type { FiltroTipoCarga, FormTipoCarga, Transporte } from "@/types/catalogos";
+import type { TipoCarga } from "@/types/cotizacion";
 import { showRejectedResponse } from "@/utils/rejectedResponse";
 import { sessionBranchId } from "@/utils/sesion";
 

@@ -3,7 +3,8 @@ import { onMounted, ref, useTemplateRef, watch } from "vue";
 import Swal from "sweetalert2";
 import { useStore } from "vuex";
 import { useShipmentStore } from "@/stores/shipment";
-import type { FiltroTipoCarga, FormTipoCarga, TipoCarga } from "@/types/catalogos";
+import type { FiltroTipoCarga, FormTipoCarga } from "@/types/catalogos";
+import type { TipoCarga } from "@/types/cotizacion";
 import { sessionBranchId } from "@/utils/sesion";
 
 const shipmentStore = useShipmentStore();
@@ -40,7 +41,7 @@ const showFilterDrawerNew = ref(false);
 const showFilterDrawerRead = ref(false);
 const showFilterDrawerUpdate = ref(false);
 const showFilterDrawer = ref(false);
-const id = ref<number | "">("");
+const id = ref<TipoCarga["id"] | "">("");
 const formNew = useTemplateRef("formNew");
 const form = useTemplateRef("form");
 
@@ -111,13 +112,13 @@ async function switch_status(item: TipoCarga) {
     }
   });
 }
-async function open_read(itemId: number) {
+async function open_read(itemId: TipoCarga["id"]) {
   loading_as.value = true;
   resetRecord();
   showFilterDrawerRead.value = !showFilterDrawerRead.value;
   await shipmentStore.readShipment(itemId);
 }
-async function open_update(itemId: number) {
+async function open_update(itemId: TipoCarga["id"]) {
   loading_as.value = true;
   resetForms();
   showFilterDrawerUpdate.value = !showFilterDrawerUpdate.value;
