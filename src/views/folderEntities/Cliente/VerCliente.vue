@@ -1,3 +1,17 @@
+<script setup lang="ts">
+import { defineAsyncComponent, onMounted } from "vue";
+import { useStore } from "vuex";
+
+const VerCliente = defineAsyncComponent(() =>
+  import("@/components/folderEntities/Cliente/VerClienteComponent.vue"));
+
+const rootStore = useStore();
+
+onMounted(() => {
+  rootStore.state.mainTitle = `VER CLIENTE`;
+});
+</script>
+
 <template>
   <v-row>
     <v-col cols="12">
@@ -7,19 +21,6 @@
     </v-col>
   </v-row>
 </template>
-
-<script>
-import { defineAsyncComponent } from "vue";
-export default {
-  components: {
-    VerCliente: defineAsyncComponent(() =>
-      import("@/components/folderEntities/Cliente/VerClienteComponent.vue")),
-  },
-  mounted() {
-    this.$store.state.mainTitle = `VER CLIENTE`;
-  },
-};
-</script>
 
 <style scoped>
 .imagen-personalizada {

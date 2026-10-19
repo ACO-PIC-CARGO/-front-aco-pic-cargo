@@ -96,25 +96,25 @@ const routes = [
         path: "folderEntities/listado-cliente",
         name: "listClientes",
         component: () =>
-          import("../views/folderEntities/Cliente/listCliente.vue"),
+          import("../views/folderEntities/Cliente/ListCliente.vue"),
       },
       {
         path: "folderEntities/nuevo-cliente",
         name: "nuevoClientes",
         component: () =>
-          import("../views/folderEntities/Cliente/nuevoCliente.vue"),
+          import("../views/folderEntities/Cliente/NuevoCliente.vue"),
       },
       {
         path: "folderEntities/ver-cliente/:id",
         name: "verCliente",
         component: () =>
-          import("../views/folderEntities/Cliente/verCliente.vue"),
+          import("../views/folderEntities/Cliente/VerCliente.vue"),
       },
       {
         path: "folderEntities/editar-cliente/:id",
         name: "editarCliente",
         component: () =>
-          import("../views/folderEntities/Cliente/editarCliente.vue"),
+          import("../views/folderEntities/Cliente/EditarCliente.vue"),
       },
       {
         path: "folderEntities/list-personal-rol",
