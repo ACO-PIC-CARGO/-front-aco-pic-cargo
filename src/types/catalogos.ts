@@ -430,9 +430,9 @@ export interface Distrito {
 export interface FiltroDistrito {
   id: string;
   id_pais: number | string | null;
-  id_city: number | string | null;
+  id_city?: number | string | null;
   id_state: number | string | null;
-  id_town: number | string | null;
+  id_town?: number | string | null;
   code: string | null;
   name: string | null;
   description: string | null;

@@ -1,6 +1,96 @@
+<script setup lang="ts">
+import { onMounted, ref } from "vue";
+import Swal from "sweetalert2";
+import { useStore } from "vuex";
+import { usePuertoStore } from "@/stores/puerto";
+import { useTransportStore } from "@/stores/transport";
+import type { Puerto } from "@/types/cotizacion";
+import { sessionBranchId } from "@/utils/sesion";
+
+const puertoStore = usePuertoStore();
+const transportStore = useTransportStore();
+const rootStore = useStore();
+
+const search = ref("");
+const loading = ref(false);
+const headers = [
+  { title: "Tipo Transporte", key: "tipo_transporte_name" },
+  { title: "País", key: "pais_description" },
+  { title: "Origen/Destino", key: "begend_name" },
+  // { text: "Código", value: "code" },
+  { title: "Nombre", key: "name" },
+  // { text: "Descripción", value: "description" },
+  { title: "Estado", key: "estado" },
+  { title: "Creación", key: "created_at" },
+
+  { title: "Última Actualización", key: "updated_at" },
+  { title: "Acciones", key: "action" },
+] as const;
+
+function ver(item: Puerto) {
+  const datos = { ...item };
+  puertoStore.tipo = "ver";
+  puertoStore.PortModel = datos;
+  puertoStore.drawer = !puertoStore.drawer;
+}
+function editar(item: Puerto) {
+  const datos = { ...item };
+  puertoStore.tipo = "editar";
+  puertoStore.PortModel = datos;
+  puertoStore.drawer = !puertoStore.drawer;
+}
+function nuevo() {
+  puertoStore.tipo = "nuevo";
+  puertoStore.PortModel = {
+    id: "",
+    id_pais: "",
+    code: "",
+    name: "",
+    description: "",
+    id_transporte: "",
+    status: 1,
+    id_branch: sessionBranchId(),
+  };
+  puertoStore.drawer = !puertoStore.drawer;
+}
+async function eliminar(item: Puerto) {
+  Swal.fire({
+    icon: "question",
+    title: "¿Estás seguro?",
+    text: `Si inactiva el registro, éste no aparecerá disponible en otros formularios ¿Está seguro de que desea inactivarlo?`,
+    allowOutsideClick: false,
+    confirmButtonText: "Si, inactivar",
+    confirmButtonColor: "red",
+    cancelButtonText: "Cancelar",
+    cancelButtonColor: "orange",
+    showCancelButton: true,
+  }).then(async (res) => {
+    if (res.isConfirmed) {
+      item.status = 0;
+      puertoStore.PortModel = item;
+      loading.value = true;
+      await puertoStore.ActualizarPuerto();
+      await puertoStore.GetListPort();
+      loading.value = false;
+    }
+  });
+}
+
+onMounted(async () => {
+  loading.value = !loading.value;
+  await puertoStore.GetListPort();
+  loading.value = !loading.value;
+  await rootStore.dispatch("_getPais");
+  await transportStore.cargarTransport();
+});
+</script>
+
 <template>
   <div class="">
-    <v-card fluid class="px-5">
+    <v-card
+      fluid
+      class="px-5"
+    >
       <v-row>
         <v-col cols="4">
           <v-text-field
@@ -9,10 +99,20 @@
             v-model="search"
             clearable
             append-inner-icon="mdi-magnify"
-          ></v-text-field>
+          />
         </v-col>
-        <v-col cols="4" offset="4" class="text-right my-auto">
-          <v-btn size="small" color="success" @click="nuevo()">NUEVO</v-btn>
+        <v-col
+          cols="4"
+          offset="4"
+          class="text-right my-auto"
+        >
+          <v-btn
+            size="small"
+            color="success"
+            @click="nuevo()"
+          >
+            NUEVO
+          </v-btn>
           <v-btn
             size="small"
             class="mx-1"
@@ -21,9 +121,16 @@
               (puertoStore.drawer = !puertoStore.drawer) &&
                 (puertoStore.tipo = 'filter')
             "
-            >FILTRAR</v-btn
           >
-          <v-btn size="small" class="mx-1" color="#004D40">EXPORTAR</v-btn>
+            FILTRAR
+          </v-btn>
+          <v-btn
+            size="small"
+            class="mx-1"
+            color="#004D40"
+          >
+            EXPORTAR
+          </v-btn>
         </v-col>
         <v-col cols="12">
           <v-data-table
@@ -34,24 +141,41 @@
             :loading="loading"
             :search="search"
           >
-            <template v-slot:[`item.estado`]="{ item }">
+            <template #[`item.estado`]="{ item }">
+              <!-- @vue-expect-error boolean == 1 kept from the old template -->
               {{ !!item.status == 1 ? "Activo" : "Inactivo" }}
             </template>
-            <template v-slot:[`item.statuscalls`]="{ item }">
-              <v-chip color="green" v-if="item.status_calls == 1"
-                >Si</v-chip
+            <template #[`item.statuscalls`]="{ item }">
+              <v-chip
+                color="green"
+                v-if="item.status_calls == 1"
               >
-              <v-chip color="red" v-else>No</v-chip>
-            </template>
-            <template v-slot:[`item.statuscalls_all`]="{ item }">
-              <v-chip color="green" v-if="item.status_calls_all == 1"
-                >Si</v-chip
+                Si
+              </v-chip>
+              <v-chip
+                color="red"
+                v-else
               >
-              <v-chip color="red" v-else>No</v-chip>
+                No
+              </v-chip>
             </template>
-            <template v-slot:[`item.action`]="{ item }">
+            <template #[`item.statuscalls_all`]="{ item }">
+              <v-chip
+                color="green"
+                v-if="item.status_calls_all == 1"
+              >
+                Si
+              </v-chip>
+              <v-chip
+                color="red"
+                v-else
+              >
+                No
+              </v-chip>
+            </template>
+            <template #[`item.action`]="{ item }">
               <v-tooltip location="bottom">
-                <template v-slot:activator="{ props }">
+                <template #activator="{ props }">
                   <v-icon
                     color="primary"
                    
@@ -64,7 +188,7 @@
                 <span>Ver</span>
               </v-tooltip>
               <v-tooltip location="bottom">
-                <template v-slot:activator="{ props }">
+                <template #activator="{ props }">
                   <v-icon
                     color="warning"
                    
@@ -76,8 +200,11 @@
                 </template>
                 <span>Editar</span>
               </v-tooltip>
-              <v-tooltip location="bottom" v-if="item.status == 1">
-                <template v-slot:activator="{ props }">
+              <v-tooltip
+                location="bottom"
+                v-if="item.status == 1"
+              >
+                <template #activator="{ props }">
                   <v-icon
                     color="error"
                    
@@ -96,99 +223,5 @@
     </v-card>
   </div>
 </template>
-
-<script>
-import { mapActions } from "vuex";
-import Swal from "sweetalert2";
-import { mapActions as mapPiniaActions, mapStores } from "pinia";
-import { useTransportStore } from "@/stores/transport";
-import { usePuertoStore } from "@/stores/puerto";
-export default {
-  data() {
-    return {
-      search: "",
-      loading: false,
-      headers: [
-        { title: "Tipo Transporte", key: "tipo_transporte_name" },
-        { title: "País", key: "pais_description" },
-        { title: "Origen/Destino", key: "begend_name" },
-        // { text: "Código", value: "code" },
-        { title: "Nombre", key: "name" },
-        // { text: "Descripción", value: "description" },
-        { title: "Estado", key: "estado" },
-        { title: "Creación", key: "created_at" },
-
-        { title: "Última Actualización", key: "updated_at" },
-        { title: "Acciones", key: "action" },
-      ],
-    };
-  },
-  computed: {
-    ...mapStores(usePuertoStore),
-  },
-  methods: {
-    ...mapActions([
-      "_getPais",
-    ]),
-    ...mapPiniaActions(usePuertoStore, ["GetListPort", "ActualizarPuerto"]),
-    ...mapPiniaActions(useTransportStore, ["cargarTransport"]),
-    ver(item) {
-      let datos = { ...item };
-      this.puertoStore.tipo = "ver";
-      this.puertoStore.PortModel = datos;
-      this.puertoStore.drawer = !this.puertoStore.drawer;
-    },
-    editar(item) {
-      let datos = { ...item };
-      this.puertoStore.tipo = "editar";
-      this.puertoStore.PortModel = datos;
-      this.puertoStore.drawer = !this.puertoStore.drawer;
-    },
-    nuevo() {
-      this.puertoStore.tipo = "nuevo";
-      this.puertoStore.PortModel = {
-        id: "",
-        id_pais: "",
-        code: "",
-        name: "",
-        description: "",
-        id_transporte: "",
-        status: 1,
-        id_branch: JSON.parse(sessionStorage.getItem("dataUser"))[0].id_branch,
-      };
-      this.puertoStore.drawer = !this.puertoStore.drawer;
-    },
-    async eliminar(item) {
-      Swal.fire({
-        icon: "question",
-        title: "¿Estás seguro?",
-        text: `Si inactiva el registro, éste no aparecerá disponible en otros formularios ¿Está seguro de que desea inactivarlo?`,
-        allowOutsideClick: false,
-        confirmButtonText: "Si, inactivar",
-        confirmButtonColor: "red",
-        cancelButtonText: "Cancelar",
-        cancelButtonColor: "orange",
-        showCancelButton: true,
-      }).then(async (res) => {
-        if (res.isConfirmed) {
-          item.status = 0;
-          this.puertoStore.PortModel = item;
-          this.loading = true;
-          await this.ActualizarPuerto();
-          await this.GetListPort();
-          this.loading = false;
-        }
-      });
-    },
-  },
-  async mounted() {
-    this.loading = !this.loading;
-    await this.GetListPort();
-    this.loading = !this.loading;
-    await this._getPais();
-    await this.cargarTransport();
-  },
-};
-</script>
 
 <style></style>

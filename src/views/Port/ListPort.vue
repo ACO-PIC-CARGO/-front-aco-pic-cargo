@@ -1,3 +1,19 @@
+<script setup lang="ts">
+import { defineAsyncComponent, onMounted } from "vue";
+import { useStore } from "vuex";
+import { usePuertoStore } from "@/stores/puerto";
+
+const PuertoComponent = defineAsyncComponent(() => import("../../components/Port/ListPortComponent.vue"));
+const FilterPort = defineAsyncComponent(() => import("../../components/filtros/FiltroPuerto.vue"));
+
+const puertoStore = usePuertoStore();
+const rootStore = useStore();
+
+onMounted(() => {
+  rootStore.state.mainTitle = `LISTADO DE PUERTOS Y AEROLÍNEAS`;
+});
+</script>
+
 <template>
   <v-container fluid>
     <PuertoComponent />
@@ -12,24 +28,5 @@
     </v-navigation-drawer>
   </v-container>
 </template>
-
-<script>
-import { defineAsyncComponent } from "vue";
-import { mapStores } from "pinia";
-import { usePuertoStore } from "@/stores/puerto";
-export default {
-  components: {
-    PuertoComponent: defineAsyncComponent(() =>
-      import("../../components/Port/ListPortComponent.vue")),
-    FilterPort: defineAsyncComponent(() => import("../../components/filtros/FiltroPuerto.vue")),
-  },
-  computed: {
-    ...mapStores(usePuertoStore),
-  },
-  mounted() {
-    this.$store.state.mainTitle = `LISTADO DE PUERTOS Y AEROLÍNEAS`;
-  },
-};
-</script>
 
 <style></style>

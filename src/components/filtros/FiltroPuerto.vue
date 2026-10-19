@@ -1,9 +1,93 @@
+<script setup lang="ts">
+import { computed, ref, useTemplateRef, watch } from "vue";
+import { useStore } from "vuex";
+import { usePuertoStore } from "@/stores/puerto";
+import { useTransportStore } from "@/stores/transport";
+import type { Puerto } from "@/types/cotizacion";
+
+const puertoStore = usePuertoStore();
+const transportStore = useTransportStore();
+const rootStore = useStore();
+
+const loading = ref(false);
+const PortModel = ref<Puerto>({});
+const frmDML = useTemplateRef("frmDML");
+
+const drawer = computed(() => puertoStore.drawer);
+
+watch(drawer, () => {
+  PortModel.value = { ...puertoStore.PortModel };
+  frmDML.value!.resetValidation();
+});
+
+function getName() {
+  if (puertoStore.tipo == "ver") {
+    return `Puerto ${PortModel.value.name} – Modo Vista`;
+  }
+  if (puertoStore.tipo == "nuevo") {
+    return "Nuevo Puerto";
+  }
+  if (puertoStore.tipo == "editar") {
+    return `Modificar Puerto: ${PortModel.value.name}`;
+  }
+  if (puertoStore.tipo == "filter") {
+    return "Filtrar Registros";
+  }
+}
+async function Filtrar() {
+  loading.value = true;
+  await puertoStore.GetListPort();
+  loading.value = false;
+  puertoStore.drawer = !puertoStore.drawer;
+}
+async function Limpiar() {
+  puertoStore.PortFilter = {
+    id: "",
+    id_pais: "",
+    code: "",
+    name: "",
+    description: "",
+    id_transporte: "",
+    status: "1",
+  };
+  loading.value = true;
+  await puertoStore.GetListPort();
+  loading.value = false;
+  puertoStore.drawer = !puertoStore.drawer;
+}
+async function Aceptar() {
+  if (puertoStore.tipo == "nuevo") {
+    if ((await frmDML.value!.validate()).valid) {
+      loading.value = true;
+      await puertoStore.setPuerto();
+      await puertoStore.GetListPort();
+      loading.value = false;
+    }
+  }
+  if (puertoStore.tipo == "editar") {
+    loading.value = true;
+    if ((await frmDML.value!.validate()).valid) {
+      await puertoStore.ActualizarPuerto();
+      await puertoStore.GetListPort();
+    }
+    loading.value = false;
+  }
+  if (puertoStore.tipo == "ver") {
+    puertoStore.drawer = !puertoStore.drawer;
+  }
+}
+</script>
+
 <template>
   <v-card>
-    <v-card-title class="d-flex align-center flex-wrap" primary-title>
+    <v-card-title
+      class="d-flex align-center flex-wrap"
+      primary-title
+    >
       {{ getName() }}
-      <v-spacer></v-spacer>
-      <v-btn variant="text"
+      <v-spacer />
+      <v-btn
+        variant="text"
         icon
         color="default"
         @click="puertoStore.drawer = !puertoStore.drawer"
@@ -12,7 +96,11 @@
       </v-btn>
     </v-card-title>
     <v-card-text v-if="puertoStore.tipo == 'filter'">
-      <div class="col-12 py-1">
+      <v-col
+        cols="12"
+        class="py-1"
+      >
+        <!-- @vue-expect-error the filter form keeps the edit form's tipo != 'ver' check -->
         <v-autocomplete
           label="Tipo Transporte"
           :items="transportStore.list"
@@ -20,20 +108,22 @@
           item-title="name"
           item-value="id"
           :clearable="puertoStore.tipo != 'ver'"
-        >
-        </v-autocomplete>
-      </div>
-      <div class="col-12 py-1">
+        />
+      </v-col>
+      <v-col
+        cols="12"
+        class="py-1"
+      >
+        <!-- @vue-expect-error the filter form keeps the edit form's tipo != 'ver' check -->
         <v-autocomplete
           label="Pais"
-          :items="$store.state.itemsPais"
+          :items="rootStore.state.itemsPais"
           v-model="puertoStore.PortFilter.id_pais"
           item-title="name"
           item-value="id"
           :clearable="puertoStore.tipo != 'ver'"
-        >
-        </v-autocomplete>
-      </div>
+        />
+      </v-col>
 
       <!-- <div class="col-12 py-1">
         <v-text-field
@@ -42,13 +132,17 @@
           :clearable="puertoStore.tipo != 'ver'"
         ></v-text-field>
       </div> -->
-      <div class="col-12 py-1">
+      <v-col
+        cols="12"
+        class="py-1"
+      >
+        <!-- @vue-expect-error the filter form keeps the edit form's tipo != 'ver' check -->
         <v-text-field
           v-model="puertoStore.PortFilter.name"
           label="Nombre"
           :clearable="puertoStore.tipo != 'ver'"
-        ></v-text-field>
-      </div>
+        />
+      </v-col>
       <!-- <div class="col-12 py-1">
         <v-text-field
           v-model="puertoStore.PortFilter.description"
@@ -56,22 +150,40 @@
           :clearable="puertoStore.tipo != 'ver'"
         ></v-text-field>
       </div> -->
-      <div class="col-12 py-1">
+      <v-col
+        cols="12"
+        class="py-1"
+      >
         <span> Estado</span>
         <v-radio-group
           v-model="puertoStore.PortFilter.status"
           inline
           density="compact"
         >
-          <v-radio label="Activo" color="green" value="1"></v-radio>
-          <v-radio label="Inactivo" color="red" value="0"></v-radio>
-          <v-radio label="Todos" color="blue" value="null"></v-radio>
+          <v-radio
+            label="Activo"
+            color="green"
+            value="1"
+          />
+          <v-radio
+            label="Inactivo"
+            color="red"
+            value="0"
+          />
+          <v-radio
+            label="Todos"
+            color="blue"
+            value="null"
+          />
         </v-radio-group>
-      </div>
+      </v-col>
     </v-card-text>
     <v-card-text v-else>
       <v-form ref="frmDML">
-        <div class="col-12 py-1">
+        <v-col
+          cols="12"
+          class="py-1"
+        >
           <v-autocomplete
             label="Tipo Transporte (*)"
             :items="transportStore.list"
@@ -81,22 +193,24 @@
             item-value="id"
             :rules="[(v) => !!v || 'Dato Requerido']"
             :item-props="(item) => ({ disabled: item.status != 1 })"
-          >
-          </v-autocomplete>
-        </div>
-        <div class="col-12 py-1">
+          />
+        </v-col>
+        <v-col
+          cols="12"
+          class="py-1"
+        >
+          <!-- @vue-expect-error the root state items are untyped until the Vuex store is typed -->
           <v-autocomplete
             label="Pais (*)"
-            :items="$store.state.itemsPais"
+            :items="rootStore.state.itemsPais"
             v-model="puertoStore.PortModel.id_pais"
             :readonly="puertoStore.tipo == 'ver'"
             item-title="name"
             item-value="id"
             :rules="[(v) => !!v || 'Dato Requerido']"
             :item-props="(item) => ({ disabled: item.status != 1 })"
-          >
-          </v-autocomplete>
-        </div>
+          />
+        </v-col>
 
         <!-- <div class="col-12 py-1">
           <v-text-field
@@ -111,7 +225,10 @@
             ]"
           ></v-text-field>
         </div> -->
-        <div class="col-12 py-1">
+        <v-col
+          cols="12"
+          class="py-1"
+        >
           <v-text-field
             v-model="puertoStore.PortModel.name"
             :readonly="puertoStore.tipo == 'ver'"
@@ -122,8 +239,8 @@
                 (!!v && v.length < 50) ||
                 'El nombre no puede exceder los 50 caracteres.',
             ]"
-          ></v-text-field>
-        </div>
+          />
+        </v-col>
         <!-- <div class="col-12 py-1">
           <v-text-field
             v-model="puertoStore.PortModel.description"
@@ -152,134 +269,47 @@
     </v-card-text>
 
     <v-card-actions>
-      <v-spacer></v-spacer>
+      <v-spacer />
       <v-btn
         class="mx-1"
         color="success"
         v-if="puertoStore.tipo == 'filter'"
         @click="Filtrar()"
         :loading="loading"
-        >Aceptar</v-btn
       >
+        Aceptar
+      </v-btn>
       <v-btn
         class="mx-1"
         color="default"
         v-if="puertoStore.tipo == 'filter'"
         @click="Limpiar()"
         :loading="loading"
-        >Limpiar</v-btn
       >
+        Limpiar
+      </v-btn>
       <v-btn
         class="mx-1"
         color="success"
         v-if="
           puertoStore.tipo != 'filter' &&
-          puertoStore.tipo != 'ver'
+            puertoStore.tipo != 'ver'
         "
         @click="Aceptar()"
         :loading="loading"
-        >Aceptar</v-btn
       >
+        Aceptar
+      </v-btn>
       <v-btn
         class="mx-1"
         color="warning"
         @click="puertoStore.drawer = !puertoStore.drawer"
         :loading="loading"
-        >Cerrar</v-btn
       >
+        Cerrar
+      </v-btn>
     </v-card-actions>
   </v-card>
 </template>
-<script>
-import { mapActions } from "vuex";
-import { mapActions as mapPiniaActions, mapStores } from "pinia";
-import { useTransportStore } from "@/stores/transport";
-import { usePuertoStore } from "@/stores/puerto";
-export default {
-  data() {
-    return { errIATA: "", errICAO: "", loading: false, puerto: "" };
-  },
-  methods: {
-    ...mapActions([
-      "_getPais",
-    ]),
-    ...mapPiniaActions(usePuertoStore, ["GetListPort", "setPuerto", "ActualizarPuerto"]),
-    ...mapPiniaActions(useTransportStore, ["cargarTransport"]),
-    getName() {
-      if (this.puertoStore.tipo == "ver") {
-        return `Puerto ${this.PortModel.name} – Modo Vista`;
-      }
-      if (this.puertoStore.tipo == "nuevo") {
-        return "Nuevo Puerto";
-      }
-      if (this.puertoStore.tipo == "editar") {
-        return `Modificar Puerto: ${this.PortModel.name}`;
-      }
-      if (this.puertoStore.tipo == "filter") {
-        return "Filtrar Registros";
-      }
-    },
-    async Filtrar() {
-      this.loading = true;
-      await this.GetListPort();
-      this.loading = false;
-      this.puertoStore.drawer = !this.puertoStore.drawer;
-    },
-    async Limpiar() {
-      this.puertoStore.PortFilter = {
-        id: "",
-        id_pais: "",
-        code: "",
-        name: "",
-        description: "",
-        id_transporte: "",
-        status: "1",
-      };
-      this.loading = true;
-      await this.GetListPort();
-      this.loading = false;
-      this.puertoStore.drawer = !this.puertoStore.drawer;
-    },
-    async Aceptar() {
-      if (this.puertoStore.tipo == "nuevo") {
-        if ((await this.$refs.frmDML.validate()).valid) {
-          this.loading = true;
-          await this.setPuerto();
-          await this.GetListPort();
-          this.loading = false;
-        }
-      }
-      if (this.puertoStore.tipo == "editar") {
-        this.loading = true;
-        if ((await this.$refs.frmDML.validate()).valid) {
-          await this.ActualizarPuerto();
-          await this.GetListPort();
-        }
-        this.loading = false;
-      }
-      if (this.puertoStore.tipo == "ver") {
-        this.puertoStore.drawer = !this.puertoStore.drawer;
-      }
-    },
-  },
-  computed: {
-    ...mapStores(usePuertoStore, useTransportStore),
-    drawer: {
-      get() {
-        return this.puertoStore.drawer;
-      },
-      set(val) {
-        return (this.puertoStore.drawer = drawer);
-      },
-    },
-  },
-  watch: {
-    drawer() {
-      this.PortModel = { ...this.puertoStore.PortModel };
-      this.$refs.frmDML.resetValidation();
-    },
-  },
-};
-</script>
 
 <style></style>

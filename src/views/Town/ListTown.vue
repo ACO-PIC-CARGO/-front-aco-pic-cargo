@@ -1,3 +1,19 @@
+<script setup lang="ts">
+import { defineAsyncComponent, onMounted } from "vue";
+import { useStore } from "vuex";
+import { useTownStore } from "@/stores/town";
+
+const Town = defineAsyncComponent(() => import("../../components/Town/ListTownComponet.vue"));
+const FilterTown = defineAsyncComponent(() => import("../../components/filtros/FilterTown.vue"));
+
+const townStore = useTownStore();
+const rootStore = useStore();
+
+onMounted(() => {
+  rootStore.state.mainTitle = `LISTADO DE DISTRITOS`;
+});
+</script>
+
 <template>
   <v-container fluid>
     <Town />
@@ -12,23 +28,5 @@
     </v-navigation-drawer>
   </v-container>
 </template>
-
-<script>
-import { defineAsyncComponent } from "vue";
-import { mapStores } from "pinia";
-import { useTownStore } from "@/stores/town";
-export default {
-  components: {
-    Town: defineAsyncComponent(() => import("../../components/Town/ListTownComponet.vue")),
-    FilterTown: defineAsyncComponent(() => import("../../components/filtros/FilterTown.vue")),
-  },
-  computed: {
-    ...mapStores(useTownStore),
-  },
-  mounted() {
-    this.$store.state.mainTitle = `LISTADO DE DISTRITOS`;
-  },
-};
-</script>
 
 <style></style>
