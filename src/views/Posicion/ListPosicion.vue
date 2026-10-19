@@ -1,3 +1,19 @@
+<script setup lang="ts">
+import { defineAsyncComponent, onMounted } from "vue";
+import { useStore } from "vuex";
+import { usePositionStore } from "@/stores/position";
+
+const Posicion = defineAsyncComponent(() => import("../../components/Posicion/ListPosicionComponet.vue"));
+const FilterPosicion = defineAsyncComponent(() => import("../../components/filtros/FilterPosicion.vue"));
+
+const positionStore = usePositionStore();
+const rootStore = useStore();
+
+onMounted(() => {
+  rootStore.state.mainTitle = `LISTADO DE ROLES DE USUARIOS DEL SISTEMA`;
+});
+</script>
+
 <template>
   <v-container fluid>
     <Posicion />
@@ -12,24 +28,5 @@
     </v-navigation-drawer>
   </v-container>
 </template>
-
-<script>
-import { defineAsyncComponent } from "vue";
-import { mapStores } from "pinia";
-import { usePositionStore } from "@/stores/position";
-export default {
-  components: {
-    Posicion: defineAsyncComponent(() =>
-      import("../../components/Posicion/ListPosicionComponet.vue")),
-    FilterPosicion: defineAsyncComponent(() => import("../../components/filtros/FilterPosicion.vue")),
-  },
-  computed: {
-    ...mapStores(usePositionStore),
-  },
-  mounted() {
-    this.$store.state.mainTitle = `LISTADO DE ROLES DE USUARIOS DEL SISTEMA`;
-  },
-};
-</script>
 
 <style></style>

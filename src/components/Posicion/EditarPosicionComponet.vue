@@ -1,3 +1,68 @@
+<script setup lang="ts">
+import { onMounted, ref } from "vue";
+import { useRoute } from "vue-router";
+import { useStore } from "vuex";
+import { usePositionStore } from "@/stores/position";
+import type { UsuarioNoAsignado } from "@/types/seguridad";
+
+const route = useRoute();
+const rootStore = useStore();
+const positionStore = usePositionStore();
+
+const tab = ref("datos");
+const user = ref<UsuarioNoAsignado | "">("");
+const errUsuario = ref("");
+const guardarFlag = ref(false);
+const headersRoles = [
+  { title: "#", key: "index" },
+  { title: "Nombre", key: "name" },
+  { title: "Si/ No", key: "uso" },
+] as const;
+const headersUsuarios = [
+  { title: "#", key: "index" },
+  { title: "Documento", key: "document" },
+  { title: "Nombre", key: "nombrecompleto" },
+  { title: "Usuario", key: "users" },
+  { title: "Teléfono", key: "phone" },
+  { title: "Departamento", key: "departamentos" },
+  { title: "Estado", key: "estado" },
+  { title: "Creación", key: "created_at" },
+  { title: "Última Actualización", key: "updated_at" },
+  // { text: "Nombre", value: "Nombre completo" },
+] as const;
+
+onMounted(async () => {
+  positionStore.model.id = route.params.id as string;
+  rootStore.state.spiner = true;
+  await positionStore.verPosition();
+  await positionStore.cargarUsuarioNoAsignadoPosicion();
+  rootStore.state.spiner = false;
+});
+
+function asignar() {
+  errUsuario.value = "";
+  if (!user.value) {
+    errUsuario.value = "Es necesario seleccionar un usuario.";
+    return false;
+  }
+  if (positionStore.model.user_position!.some((v) => v.users == (user.value as UsuarioNoAsignado).users)) {
+    errUsuario.value = "El usuario ya se encuentra en la lista";
+    return false;
+  }
+  positionStore.model.user_position!.push(user.value);
+  guardarFlag.value = true;
+}
+async function actualizarUsuariosPosicion() {
+  errUsuario.value = "";
+  rootStore.state.spiner = true;
+  await positionStore.setPosition();
+  await positionStore.verPosition();
+  await positionStore.cargarUsuarioNoAsignadoPosicion();
+  user.value = "";
+  rootStore.state.spiner = false;
+}
+</script>
+
 <template>
   <v-card class="cardDatos">
     <v-tabs
@@ -7,14 +72,32 @@
       grow
       stacked
     >
-      <v-tab base-color="rgba(255, 255, 255, 0.6)" value="datos"> Datos Principales </v-tab>
+      <v-tab
+        base-color="rgba(255, 255, 255, 0.6)"
+        value="datos"
+      >
+        Datos Principales
+      </v-tab>
 
-      <v-tab base-color="rgba(255, 255, 255, 0.6)" value="permisos"> Permisos y Restricciones </v-tab>
+      <v-tab
+        base-color="rgba(255, 255, 255, 0.6)"
+        value="permisos"
+      >
+        Permisos y Restricciones
+      </v-tab>
 
-      <v-tab base-color="rgba(255, 255, 255, 0.6)" value="usuarios"> Usuarios </v-tab>
+      <v-tab
+        base-color="rgba(255, 255, 255, 0.6)"
+        value="usuarios"
+      >
+        Usuarios
+      </v-tab>
     </v-tabs>
     <v-tabs-window v-model="tab">
-      <v-tabs-window-item value="datos" class="px-5 items">
+      <v-tabs-window-item
+        value="datos"
+        class="px-5 items"
+      >
         <v-form ref="frmDatos">
           <v-row>
             <v-col cols="12">
@@ -22,21 +105,21 @@
                 v-model="positionStore.model.code"
                 label="Código"
                 readonly
-              ></v-text-field>
+              />
             </v-col>
             <v-col cols="12">
               <v-text-field
                 v-model="positionStore.model.name"
                 label="Nombre"
                 readonly
-              ></v-text-field>
+              />
             </v-col>
             <v-col cols="12">
               <v-text-field
                 v-model="positionStore.model.description"
                 label="Descripción"
                 readonly
-              ></v-text-field>
+              />
             </v-col>
 
             <v-col cols="12">
@@ -44,12 +127,15 @@
                 readonly
                 label="Estado"
                 v-model="positionStore.model.estado"
-              ></v-switch>
+              />
             </v-col>
           </v-row>
         </v-form>
       </v-tabs-window-item>
-      <v-tabs-window-item value="permisos" class="px-5 items">
+      <v-tabs-window-item
+        value="permisos"
+        class="px-5 items"
+      >
         <v-row class="pa-5">
           <v-col cols="6">
             <p>Módulos</p>
@@ -58,7 +144,7 @@
               :items="positionStore.model.modules_position"
               item-value="id"
             >
-              <template v-slot:[`item.index`]="{ index }">
+              <template #[`item.index`]="{ index }">
                 {{ index + 1 }}
               </template>
             </v-data-table>
@@ -71,7 +157,7 @@
               :items="positionStore.model.button_position"
               item-value="id"
             >
-              <template v-slot:[`item.index`]="{ index }">
+              <template #[`item.index`]="{ index }">
                 {{ index + 1 }}
               </template>
             </v-data-table>
@@ -79,11 +165,15 @@
         </v-row>
       </v-tabs-window-item>
 
-      <v-tabs-window-item value="usuarios" class="px-5 items">
+      <v-tabs-window-item
+        value="usuarios"
+        class="px-5 items"
+      >
         <v-row>
           <v-col cols="12">
             <v-row>
               <v-col cols="4">
+                <!-- @vue-expect-error the empty string start value is kept from the old data() -->
                 <v-autocomplete
                   :items="positionStore.lstUsuarioNoAsignado"
                   item-value="id"
@@ -95,17 +185,25 @@
                 />
               </v-col>
 
-              <v-col cols="8" class="my-auto">
-                <v-btn class="mx-1" color="info" @click="asignar"
-                  >Agregar</v-btn
+              <v-col
+                cols="8"
+                class="my-auto"
+              >
+                <v-btn
+                  class="mx-1"
+                  color="info"
+                  @click="asignar"
                 >
+                  Agregar
+                </v-btn>
                 <v-btn
                   class="mx-1"
                   color="success"
                   :disabled="!guardarFlag"
                   @click="actualizarUsuariosPosicion()"
-                  >Guardar Cambios</v-btn
                 >
+                  Guardar Cambios
+                </v-btn>
               </v-col>
             </v-row>
           </v-col>
@@ -116,14 +214,16 @@
               class="elevation-1"
               item-value="id"
             >
-              <template v-slot:[`item.index`]="{ index }">
+              <template #[`item.index`]="{ index }">
                 {{ index + 1 }}
               </template>
-              <template v-slot:[`item.estado`]="{ item }">
-                <v-switch v-model="item.estado" @update:model-value="guardarFlag = true">
-                </v-switch>
+              <template #[`item.estado`]="{ item }">
+                <v-switch
+                  v-model="item.estado"
+                  @update:model-value="guardarFlag = true"
+                />
               </template>
-              <template v-slot:[`item.departamentos`]="{ item }">
+              <template #[`item.departamentos`]="{ item }">
                 {{ item.departamento == "1" ? "Pricing" : "Operativo" }}
               </template>
             </v-data-table>
@@ -133,82 +233,6 @@
     </v-tabs-window>
   </v-card>
 </template>
-
-<script>
-import { mapActions as mapPiniaActions, mapStores } from "pinia";
-import { usePositionStore } from "@/stores/position";
-export default {
-  data() {
-    return {
-      tab: "datos",
-      user: "",
-      errUsuario: "",
-      guardarFlag: false,
-      headersRoles: [
-        { title: "#", key: "index" },
-        { title: "Nombre", key: "name" },
-        { title: "Si/ No", key: "uso" },
-      ],
-      headersRoles: [
-        { title: "#", key: "index" },
-        { title: "Nombre", key: "name" },
-        { title: "Si/ No", key: "uso" },
-      ],
-      headersUsuarios: [
-        { title: "#", key: "index" },
-        { title: "Documento", key: "document" },
-        { title: "Nombre", key: "nombrecompleto" },
-        { title: "Usuario", key: "users" },
-        { title: "Teléfono", key: "phone" },
-        { title: "Departamento", key: "departamentos" },
-        { title: "Estado", key: "estado" },
-        { title: "Creación", key: "created_at" },
-        { title: "Última Actualización", key: "updated_at" },
-        // { text: "Nombre", value: "Nombre completo" },
-      ],
-    };
-  },
-  async mounted() {
-    this.positionStore.model.id = this.$route.params.id;
-    this.$store.state.spiner = true;
-    await this.verPosition();
-    await this.cargarUsuarioNoAsignadoPosicion();
-    this.$store.state.spiner = false;
-  },
-  computed: {
-    ...mapStores(usePositionStore),
-  },
-  methods: {
-    ...mapPiniaActions(usePositionStore, ["verPosition", "cargarUsuarioNoAsignadoPosicion", "setPosition"]),
-    asignar() {
-      this.errUsuario = "";
-      if (!this.user) {
-        this.errUsuario = "Es necesario seleccionar un usuario.";
-        return false;
-      }
-      if (
-        this.positionStore.model.user_position.some(
-          (v) => v.users == this.user.users
-        )
-      ) {
-        this.errUsuario = "El usuario ya se encuentra en la lista";
-        return false;
-      }
-      this.positionStore.model.user_position.push(this.user);
-      this.guardarFlag = true;
-    },
-    async actualizarUsuariosPosicion() {
-      this.errUsuario = "";
-      this.$store.state.spiner = true;
-      await this.setPosition();
-      await this.verPosition();
-      await this.cargarUsuarioNoAsignadoPosicion();
-      this.user = "";
-      this.$store.state.spiner = false;
-    },
-  },
-};
-</script>
 
 <style scoped>
 .cardDatos {

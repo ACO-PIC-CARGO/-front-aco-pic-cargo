@@ -1,6 +1,116 @@
+<script setup lang="ts">
+import { onMounted, ref } from "vue";
+import { useRouter } from "vue-router";
+import { useStore } from "vuex";
+import Swal from "sweetalert2";
+import { usePositionStore } from "@/stores/position";
+import type { PosicionListado } from "@/types/seguridad";
+import { sessionBranchId } from "@/utils/sesion";
+
+const router = useRouter();
+const rootStore = useStore();
+const positionStore = usePositionStore();
+
+const search = ref("");
+const loading = ref(false);
+const loadingNuevo = ref(false);
+const loadingFiltrar = ref(false);
+const headers = [
+  { title: "Código", key: "code" },
+  { title: "Nombre", key: "name" },
+  // { text: "Descripción", value: "description" },
+  { title: "Estado", key: "estado" },
+  { title: "Creación", key: "created_at" },
+
+  { title: "Última Actualización", key: "updated_at" },
+  { title: "Acciones", key: "action" },
+] as const;
+
+
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+async function filtrar() {
+  loadingFiltrar.value = !loadingFiltrar.value;
+
+  loadingFiltrar.value = !loadingFiltrar.value;
+  positionStore.drawer = !positionStore.drawer;
+}
+async function ver(item: PosicionListado) {
+  router.push({
+    name: "verPosicion",
+    params: {
+      id: item.id,
+    },
+  });
+}
+
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+async function editar(item: PosicionListado) {
+  router.push({
+    name: "editarPosicion",
+    params: {
+      id: item.id,
+    },
+  });
+}
+
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+async function nuevo() {
+  loadingNuevo.value = !loadingNuevo.value;
+  positionStore.tipo = "nuevo";
+  positionStore.model = {
+    id: "",
+    id_pais: "",
+    id_state: "",
+    code: "",
+    name: "",
+    description: "",
+    status: 1,
+    id_branch: sessionBranchId(),
+  };
+  await rootStore.dispatch("_getState", positionStore.model.id_state);
+  await rootStore.dispatch("_getCity", positionStore.model.id_state);
+  positionStore.drawer = !positionStore.drawer;
+  loadingNuevo.value = !loadingNuevo.value;
+}
+
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+async function eliminar(item: PosicionListado) {
+  Swal.fire({
+    icon: "question",
+    title: "¿Estás seguro?",
+    text: `Si inactiva el registro, éste no aparecerá disponible en otros formularios ¿Está seguro de que desea inactivarlo?`,
+    allowOutsideClick: false,
+    confirmButtonText: "Si, inactivar",
+    confirmButtonColor: "red",
+    cancelButtonText: "Cancelar",
+    cancelButtonColor: "orange",
+    showCancelButton: true,
+  }).then(async (res) => {
+    if (res.isConfirmed) {
+      item.status = 0;
+      positionStore.model = item;
+      loading.value = true;
+      await positionStore.ActualizarEstadoPosition();
+      await positionStore.GetListPosition();
+      loading.value = false;
+    }
+  });
+}
+
+onMounted(async () => {
+  loading.value = !loading.value;
+  await positionStore.GetListPosition();
+  loading.value = !loading.value;
+  await rootStore.dispatch("_getPais");
+});
+</script>
+
 <template>
   <div class="">
-    <v-card fluid class="px-5">
+    <v-card
+      fluid
+      class="px-5"
+    >
       <v-row>
         <v-col cols="4">
           <v-text-field
@@ -9,9 +119,13 @@
             v-model="search"
             clearable
             append-inner-icon="mdi-magnify"
-          ></v-text-field>
+          />
         </v-col>
-        <v-col cols="4" offset="4" class="text-right my-auto">
+        <v-col
+          cols="4"
+          offset="4"
+          class="text-right my-auto"
+        >
           <!-- <v-btn small color="success" :loading="loadingNuevo" @click="nuevo()"
             >NUEVO</v-btn
           > -->
@@ -35,27 +149,43 @@
             :loading="loading"
             :search="search"
           >
-            <template v-slot:[`item.status`]="{ item }">
+            <template #[`item.status`]="{ item }">
               {{ !!item.estado ? "Activo" : "Inactivo" }}
             </template>
-            <template v-slot:[`item.statuscalls`]="{ item }">
-              <v-chip color="green" v-if="item.status_calls == 1"
-                >Si</v-chip
+            <template #[`item.statuscalls`]="{ item }">
+              <v-chip
+                color="green"
+                v-if="item.status_calls == 1"
               >
-              <v-chip color="red" v-else>No</v-chip>
-            </template>
-            <template v-slot:[`item.statuscalls_all`]="{ item }">
-              <v-chip color="green" v-if="item.status_calls_all == 1"
-                >Si</v-chip
+                Si
+              </v-chip>
+              <v-chip
+                color="red"
+                v-else
               >
-              <v-chip color="red" v-else>No</v-chip>
+                No
+              </v-chip>
             </template>
-            <template v-slot:[`item.estado`]="{ item }">
+            <template #[`item.statuscalls_all`]="{ item }">
+              <v-chip
+                color="green"
+                v-if="item.status_calls_all == 1"
+              >
+                Si
+              </v-chip>
+              <v-chip
+                color="red"
+                v-else
+              >
+                No
+              </v-chip>
+            </template>
+            <template #[`item.estado`]="{ item }">
               {{ !!item.estado ? "Activo" : "Inactivo" }}
             </template>
-            <template v-slot:[`item.action`]="{ item }">
+            <template #[`item.action`]="{ item }">
               <v-tooltip location="bottom">
-                <template v-slot:activator="{ props }">
+                <template #activator="{ props }">
                   <v-icon
                     color="primary"
                    
@@ -102,111 +232,5 @@
     </v-card>
   </div>
 </template>
-
-<script>
-import { mapActions } from "vuex";
-import Swal from "sweetalert2";
-import { mapActions as mapPiniaActions, mapStores } from "pinia";
-import { usePositionStore } from "@/stores/position";
-export default {
-  data() {
-    return {
-      search: "",
-      loading: false,
-      loadingNuevo: false,
-      loadingFiltrar: false,
-      headers: [
-        { title: "Código", key: "code" },
-        { title: "Nombre", key: "name" },
-        // { text: "Descripción", value: "description" },
-        { title: "Estado", key: "estado" },
-        { title: "Creación", key: "created_at" },
-
-        { title: "Última Actualización", key: "updated_at" },
-        { title: "Acciones", key: "action" },
-      ],
-    };
-  },
-  computed: {
-    ...mapStores(usePositionStore),
-  },
-  methods: {
-    ...mapActions([
-      "_getPais",
-      "_getState",
-      "_getCity",
-    ]),
-    ...mapPiniaActions(usePositionStore, ["GetListPosition", "ActualizarEstadoPosition"]),
-    async filtrar() {
-      this.loadingFiltrar = !this.loadingFiltrar;
-
-      this.loadingFiltrar = !this.loadingFiltrar;
-      this.positionStore.drawer = !this.positionStore.drawer;
-    },
-    async ver(item) {
-      this.$router.push({
-        name: "verPosicion",
-        params: {
-          id: item.id,
-        },
-      });
-    },
-    async editar(item) {
-      this.$router.push({
-        name: "editarPosicion",
-        params: {
-          id: item.id,
-        },
-      });
-    },
-    async nuevo() {
-      this.loadingNuevo = !this.loadingNuevo;
-      this.positionStore.tipo = "nuevo";
-      this.positionStore.model = {
-        id: "",
-        id_pais: "",
-        id_state: "",
-        code: "",
-        name: "",
-        description: "",
-        status: 1,
-        id_branch: JSON.parse(sessionStorage.getItem("dataUser"))[0].id_branch,
-      };
-      await this._getState(this.positionStore.model.id_state);
-      await this._getCity(this.positionStore.model.id_state);
-      this.positionStore.drawer = !this.positionStore.drawer;
-      this.loadingNuevo = !this.loadingNuevo;
-    },
-    async eliminar(item) {
-      Swal.fire({
-        icon: "question",
-        title: "¿Estás seguro?",
-        text: `Si inactiva el registro, éste no aparecerá disponible en otros formularios ¿Está seguro de que desea inactivarlo?`,
-        allowOutsideClick: false,
-        confirmButtonText: "Si, inactivar",
-        confirmButtonColor: "red",
-        cancelButtonText: "Cancelar",
-        cancelButtonColor: "orange",
-        showCancelButton: true,
-      }).then(async (res) => {
-        if (res.isConfirmed) {
-          item.status = 0;
-          this.positionStore.model = item;
-          this.loading = true;
-          await this.ActualizarEstadoPosition();
-          await this.GetListPosition();
-          this.loading = false;
-        }
-      });
-    },
-  },
-  async mounted() {
-    this.loading = !this.loading;
-    await this.GetListPosition();
-    this.loading = !this.loading;
-    await this._getPais();
-  },
-};
-</script>
 
 <style></style>
