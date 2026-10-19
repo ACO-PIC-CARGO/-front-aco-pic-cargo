@@ -22,7 +22,6 @@ import enterprises from "./modules/enterprise";
 import masterusuarios from "./modules/masterusuario";
 import marketing from "./modules/marketing";
 import type_phone from "./modules/typePhone";
-import document from "./modules/document";
 import year from "./modules/year";
 import sex from "./modules/sex";
 import groupservices from "./modules/groupservices";
@@ -2893,7 +2892,6 @@ export default createStore({
     masterusuarios,
     marketing,
     type_phone,
-    document,
     year,
     sex,
     groupservices,

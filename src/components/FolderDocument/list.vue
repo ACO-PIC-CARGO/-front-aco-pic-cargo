@@ -38,7 +38,7 @@
         v-if="!loading"
         class="elevation-1"
         :headers="headers"
-        :items="$store.state.document.list"
+        :items="documentStore.list"
         item-value="id"
         :search="search"
       >
@@ -145,7 +145,7 @@
         <v-list-item class="px-0">
           
             <v-list-item-title class="text-headline-small">
-              Ver: {{ $store.state.document.record.name }}
+              Ver: {{ documentStore.record.name }}
             </v-list-item-title>
           
         </v-list-item>
@@ -156,31 +156,31 @@
             <v-text-field
               label="Código"
               readonly
-              :model-value="$store.state.document.record.code"
+              :model-value="documentStore.record.code"
             ></v-text-field>
           </v-row>
           <v-row>
             <v-text-field
               label="Nombre (Descripción Corta)"
               readonly
-              :model-value="$store.state.document.record.name"
+              :model-value="documentStore.record.name"
             ></v-text-field>
           </v-row>
           <v-row>
             <v-text-field
               label="Descripción Larga"
               readonly
-              :model-value="$store.state.document.record.description"
+              :model-value="documentStore.record.description"
             ></v-text-field>
           </v-row>
           <v-row>
             <v-switch
               readonly
               :label="`Estado: ${
-                !!$store.state.document.record.status ? 'Activo' : 'Inactivo'
+                !!documentStore.record.status ? 'Activo' : 'Inactivo'
               }`"
               color="success"
-              v-model="$store.state.document.record.status"
+              v-model="documentStore.record.status"
               :value-comparator="(value, checked) => Boolean(value) === checked"
             ></v-switch>
           </v-row>
@@ -224,7 +224,7 @@
         <v-list-item class="px-0">
           
             <v-list-item-title class="text-headline-small">
-              Modificar: {{ $store.state.document.record.name }}
+              Modificar: {{ documentStore.record.name }}
             </v-list-item-title>
           
         </v-list-item>
@@ -372,8 +372,10 @@
 </template>
 
 <script>
-import { mapState, mapActions } from "vuex";
+import { mapState } from "vuex";
 import Swal from "sweetalert2";
+import { mapActions as mapPiniaActions, mapStores } from "pinia";
+import { useDocumentStore } from "@/stores/document";
 
 export default {
   name: "ListDocumentsComponent",
@@ -424,12 +426,7 @@ export default {
     this.$store.state.mainTitle = `Tipo de Documentos`;
   },
   methods: {
-    ...mapActions([
-      "fetchDataDocument",
-      "insertDocument",
-      "readDocument",
-      "updateDocument",
-    ]),
+    ...mapPiniaActions(useDocumentStore, ["fetchDataDocument", "insertDocument", "readDocument", "updateDocument"]),
     async clear(option) {
       if (option == "filter") {
         this.documents = { ...this.originalDocuments };
@@ -536,10 +533,11 @@ export default {
     },
   },
   computed: {
+    ...mapStores(useDocumentStore),
     ...mapState(["list"]),
   },
   watch: {
-    "$store.state.document.record": {
+    "documentStore.record": {
       handler(newRecord, oldRecord) {
         if (newRecord && Object.keys(newRecord).length > 0) {
           const { code, name, description, status } = newRecord;
@@ -549,7 +547,7 @@ export default {
       },
       immediate: true,
     },
-    "$store.state.document.loading": {
+    "documentStore.loading": {
       handler(newList, oldList) {
         this.loading = newList == true ? false : true;
       },
