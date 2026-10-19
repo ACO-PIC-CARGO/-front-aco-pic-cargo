@@ -9,8 +9,8 @@ import { showRejectedResponse } from "@/utils/rejectedResponse";
 import { sessionBranchId } from "@/utils/sesion";
 
 export interface FiltroIncoterms {
-  name: string;
-  description: string;
+  name: string | null;
+  description: string | null;
   status: number | string;
 }
 
@@ -34,8 +34,8 @@ export const useIncotermStore = defineStore("incoterm", () => {
         import.meta.env.VITE_URL_MAIN +
         `listar_incoterms?` +
         `id_branch=${sessionBranchId()}` +
-        `&name=${encodeURIComponent(data.name)}` +
-        `&description=${encodeURIComponent(data.description)}` +
+        `&name=${encodeURIComponent(String(data.name))}` +
+        `&description=${encodeURIComponent(String(data.description))}` +
         `&status=${data.status}`,
       headers: { "Content-Type": "application/json" },
     })

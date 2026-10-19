@@ -533,7 +533,7 @@ const routes = [
       {
         path: "coins/list",
         name: "listCoins",
-        component: () => import("../views/FolderCoins/list.vue"),
+        component: () => import("../views/FolderCoins/ListaMonedas.vue"),
       },
       {
         path: "ingreso/list",
@@ -548,7 +548,7 @@ const routes = [
       {
         path: "containers/list",
         name: "listContainers",
-        component: () => import("../views/FolderContainers/list.vue"),
+        component: () => import("../views/FolderContainers/ListaContenedores.vue"),
       },
       {
         path: "shipment/listado",
@@ -666,7 +666,7 @@ const routes = [
         path: "comentarios_predefinidos/listado",
         name: "listComentariosPredefinidos",
         component: () =>
-          import("../views/FolderComentariosPredefinidos/list.vue"),
+          import("../views/FolderComentariosPredefinidos/ListaComentariosPredefinidos.vue"),
       },
       {
         path: "suscripcion",

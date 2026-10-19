@@ -41,8 +41,8 @@ export const useGastosStore = defineStore("gastos", () => {
         import.meta.env.VITE_URL_MAIN +
         `listar_gasto?` +
         `id_branch=${sessionBranchId()}` +
-        `&code=${encodeURIComponent(data.code)}` +
-        `&description=${encodeURIComponent(data.description)}` +
+        `&code=${encodeURIComponent(String(data.code))}` +
+        `&description=${encodeURIComponent(String(data.description))}` +
         `&calculoflag=${data.calculoflag}` +
         `&status=${data.status}`,
       headers: { "Content-Type": "application/json" },

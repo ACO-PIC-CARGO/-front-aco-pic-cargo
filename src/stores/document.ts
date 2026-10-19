@@ -20,9 +20,9 @@ export const useDocumentStore = defineStore("document", () => {
       url:
         import.meta.env.VITE_URL_MAIN +
         `listar_documents?` +
-        `code=${encodeURIComponent(data.code)}` +
-        `&name=${encodeURIComponent(data.name)}` +
-        `&description=${encodeURIComponent(data.description)}` +
+        `code=${encodeURIComponent(String(data.code))}` +
+        `&name=${encodeURIComponent(String(data.name))}` +
+        `&description=${encodeURIComponent(String(data.description))}` +
         `&status=${data.status}` +
         `&id_branch=${sessionBranchId()}`,
       headers: { "Content-Type": "application/json" },

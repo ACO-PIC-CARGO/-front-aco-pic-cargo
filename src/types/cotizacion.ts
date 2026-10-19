@@ -75,6 +75,7 @@ export interface EstadoCotizacion {
   id?: number | string;
   code?: number | string;
   name?: string;
+  defaultstatus?: number | string | boolean;
 }
 
 export interface ItemBegEnd {

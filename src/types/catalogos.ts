@@ -6,6 +6,7 @@ export interface Moneda {
   name: string;
   description: string | null;
   status: number;
+  calculoflag?: boolean;
   created_at?: string;
   updated_at?: string;
 }
@@ -31,6 +32,7 @@ export interface TipoContenedor {
   maximumweight: number | null;
   maximunvolumen: number | null;
   status: number;
+  calculoflag?: boolean;
   created_at?: string;
   updated_at?: string;
 }
@@ -46,9 +48,9 @@ export interface TipoDocumento {
 }
 
 export interface FiltroCatalogo {
-  code: string;
-  name: string;
-  description: string;
+  code: string | null;
+  name: string | null;
+  description: string | null;
   status: number | string | boolean;
 }
 
@@ -63,8 +65,8 @@ export interface TipoGasto {
 }
 
 export interface FiltroGastoIngreso {
-  code: string;
-  description: string;
+  code: string | null;
+  description: string | null;
   calculoflag: boolean | string;
   status: boolean | string;
 }

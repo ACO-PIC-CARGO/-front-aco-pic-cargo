@@ -8,11 +8,11 @@ import { showRejectedResponse } from "@/utils/rejectedResponse";
 import { sessionBranchId } from "@/utils/sesion";
 
 export interface FiltroMonedas {
-  code: string;
-  symbol: string;
-  acronym: string;
-  name: string;
-  description: string;
+  code: string | null;
+  symbol: string | null;
+  acronym: string | null;
+  name: string | null;
+  description: string | null;
   status: number | string;
 }
 
@@ -31,11 +31,11 @@ export const useCoinsStore = defineStore("coins", () => {
         import.meta.env.VITE_URL_MAIN +
         `listar_coins?` +
         `id_branch=${sessionBranchId()}` +
-        `&code=${encodeURIComponent(data.code)}` +
-        `&symbol=${encodeURIComponent(data.symbol)}` +
-        `&acronym=${encodeURIComponent(data.acronym)}` +
-        `&name=${encodeURIComponent(data.name)}` +
-        `&description=${encodeURIComponent(data.description)}` +
+        `&code=${encodeURIComponent(String(data.code))}` +
+        `&symbol=${encodeURIComponent(String(data.symbol))}` +
+        `&acronym=${encodeURIComponent(String(data.acronym))}` +
+        `&name=${encodeURIComponent(String(data.name))}` +
+        `&description=${encodeURIComponent(String(data.description))}` +
         `&status=${data.status}`,
       headers: { "Content-Type": "application/json" },
     })
