@@ -265,3 +265,11 @@ export interface CuentaEntidadNueva {
   namecoins: string;
   accountnumber: string;
 }
+
+export interface ProveedorShipper {
+  id: number;
+  correlativo?: number | string;
+  namelong?: string;
+  telefono?: string;
+  producto?: string;
+}

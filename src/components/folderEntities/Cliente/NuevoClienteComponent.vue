@@ -107,12 +107,12 @@
 import { mapActions, mapState } from "vuex";
 import moment from "moment";
 import Swal from "sweetalert2";
-import SeccionCliente from "./seccionCliente.vue";
-import SeccionTelefonos from "./seccionTelefonos.vue";
-import SeccionConvenios from "./seccionConvenios.vue";
-import SeccionInformacionBancaria from "./seccionInformacionBancaria.vue";
-import SeccionShippers from "./seccionShippers.vue";
-import SeccionInformacionEntrega from "./seccionInformacionEntrega.vue";
+import SeccionCliente from "./SeccionCliente.vue";
+import SeccionTelefonos from "./SeccionTelefonos.vue";
+import SeccionConvenios from "./SeccionConvenios.vue";
+import SeccionInformacionBancaria from "./SeccionInformacionBancaria.vue";
+import SeccionShippers from "./SeccionShippers.vue";
+import SeccionInformacionEntrega from "./SeccionInformacionEntrega.vue";
 import { mapActions as mapPiniaActions, mapStores } from "pinia";
 import { useCoinsStore } from "@/stores/coins";
 import { useMasterusuariosStore } from "@/stores/masterusuarios";

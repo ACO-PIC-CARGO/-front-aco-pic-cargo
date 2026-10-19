@@ -605,3 +605,16 @@ export interface FiltroAerolinea {
   status: boolean | number | string;
   id_branch?: number | string;
 }
+
+export interface Pais {
+  id: number;
+  name: string;
+  phoneprefix?: string;
+  codigo_iso?: string | null;
+}
+
+export interface DocumentoPais {
+  id: number;
+  name: string;
+  description: string;
+}
