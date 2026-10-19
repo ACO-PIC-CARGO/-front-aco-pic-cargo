@@ -67,7 +67,7 @@ export interface FormEmpresa {
   document: string;
   trade_name: string;
   business_name: string;
-  phone: string;
+  phone?: string;
   slogan?: string;
   address: string;
   status: number | string;

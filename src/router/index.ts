@@ -442,22 +442,22 @@ const routes = [
       {
         path: "enterprise/listado",
         name: "listEnterprise",
-        component: () => import("../views/FolderEnterprise/listado.vue"),
+        component: () => import("../views/FolderEnterprise/ListadoEmpresas.vue"),
       },
       {
         path: "enterprise/nuevo",
         name: "newEnterprise",
-        component: () => import("../views/FolderEnterprise/nuevo.vue"),
+        component: () => import("../views/FolderEnterprise/NuevaEmpresa.vue"),
       },
       {
         path: "enterprise/read/:id",
         name: "readEnterprise",
-        component: () => import("../views/FolderEnterprise/read.vue"),
+        component: () => import("../views/FolderEnterprise/VerEmpresa.vue"),
       },
       {
         path: "enterprise/update/:id",
         name: "updateEnterprise",
-        component: () => import("../views/FolderEnterprise/update.vue"),
+        component: () => import("../views/FolderEnterprise/ActualizarEmpresa.vue"),
       },
       {
         path: "marketing/list",

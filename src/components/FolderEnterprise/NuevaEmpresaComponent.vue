@@ -1,3 +1,271 @@
+<script setup lang="ts">
+import { onMounted, ref, useTemplateRef, watch } from "vue";
+import { useRouter } from "vue-router";
+import { useStore } from "vuex";
+import Swal from "sweetalert2";
+import axios from "@/api/http";
+import { useEnterprisesStore } from "@/stores/enterprises";
+import { useUserStore } from "@/stores/user";
+import type { ApiResponse } from "@/types/api";
+import { validateLength } from "@/utils/cotizacion";
+import { sessionBranchId } from "@/utils/sesion";
+
+const router = useRouter();
+const rootStore = useStore();
+const enterprisesStore = useEnterprisesStore();
+const userStore = useUserStore();
+
+const snackbar = ref(false);
+const tab = ref("datos");
+const errfile = ref("");
+const loadingFile = ref(false);
+const msgfile = ref("");
+const payfile = ref<File | null>(null);
+const errorDocument = ref<string | null>(null);
+const errUsers = ref("");
+const errEmail = ref("");
+const id_pais = ref<number>();
+const frmEmpresa = useTemplateRef("frmEmpresa");
+const frmDatos = useTemplateRef("frmDatos");
+// Not bound to the template, as in the old code.
+const frmDML = ref<{ resetValidation: () => void }>();
+const form = ref<{ validate: () => Promise<{ valid: boolean }> }>();
+
+watch(
+  () => rootStore.state.files.payPath,
+  (newRecord) => {
+    if (newRecord) {
+      enterprisesStore.model.id_logo = newRecord;
+    }
+  },
+  { immediate: true },
+);
+
+onMounted(async () => {
+  rootStore.state.spiner = true;
+
+  rootStore.state.mainTitle = `EMPRESAS`;
+  enterprisesStore.model = {
+    id_logo: "",
+    document: "",
+    trade_name: "",
+    business_name: "",
+    slogan: "",
+    address: "",
+    status: "1",
+    id_pais: "",
+    id_state: "",
+    id_city: "",
+    id_town: "",
+    id_document: "",
+    ic: "",
+  };
+  userStore.model = {
+    id: "",
+    id_entitie: "",
+    id_pais: "",
+    id_city: "",
+    id_state: "",
+    id_town: "",
+    users: "",
+    id_document: "",
+    document: "",
+    id_sex: "",
+    status: "1",
+    departamento: "1",
+    names: "",
+    surname: "",
+    second_surname: "",
+    socialprincipal: "",
+    socialsecundary: "",
+    phone: "",
+    address: "",
+    birthday: "",
+    email: "",
+  };
+
+  await rootStore.dispatch("_getDocumentsPais");
+  await rootStore.dispatch("_getPais");
+  await rootStore.dispatch("_getSex");
+  await _callState();
+  rootStore.state.spiner = false;
+  frmDML.value!.resetValidation();
+  frmDatos.value!.resetValidation();
+});
+
+async function _callState() {
+  // Kept: id_pais has never been declared here, so the branch below has always been skipped.
+  if (id_pais.value! > 0) {
+    await rootStore.dispatch("_getState", id_pais.value);
+  }
+}
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+function volver() {
+  router.go(-1);
+}
+async function insert() {
+  if (tab.value == "datos") {
+    if ((await frmEmpresa.value!.validate()).valid) {
+      tab.value = "admin";
+      return true;
+    }
+  }
+  if (tab.value == "admin") {
+    if (!(await frmEmpresa.value!.validate()).valid) {
+      tab.value = "datos";
+      return false;
+    }
+    if ((await frmDatos.value!.validate()).valid) {
+      rootStore.state.spiner = true;
+      await enterprisesStore.insertEnterprise();
+      rootStore.state.spiner = false;
+    }
+  }
+}
+async function get_state() {
+  enterprisesStore.model.id_state = "";
+  enterprisesStore.model.id_city = "";
+  enterprisesStore.model.id_town = "";
+  await rootStore.dispatch("_getState", enterprisesStore.model.id_pais);
+}
+async function get_city() {
+  enterprisesStore.model.id_city = "";
+  enterprisesStore.model.id_town = "";
+  await rootStore.dispatch("_getCity", enterprisesStore.model.id_state);
+}
+async function get_town() {
+  enterprisesStore.model.id_town = "";
+  await rootStore.dispatch("_getTown", enterprisesStore.model.id_city);
+}
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+async function update() {
+  if ((await form.value!.validate()).valid) {
+    await enterprisesStore.updateEnterprise(enterprisesStore.$state);
+  }
+}
+async function validarUser() {
+  errUsers.value = "";
+  rootStore.state.spiner = true;
+  const res = (await userStore.validateUserUsuario())!;
+  if (res.estadoflag == true) {
+    errUsers.value = res.mensaje;
+    userStore.model.users = "";
+  }
+  rootStore.state.spiner = false;
+}
+async function validarEmail() {
+  errEmail.value = "";
+  rootStore.state.spiner = true;
+  const res = (await userStore.validateEmailUsuario())!;
+  if (res.estadoflag == true) {
+    errEmail.value = res.mensaje;
+    userStore.model.email = "";
+  }
+  rootStore.state.spiner = false;
+}
+async function validarDocument() {
+  // this.errUsers = "";
+  if (!!userStore.model.id_document && !!userStore.model.document) {
+    rootStore.state.spiner = true;
+    const res = (await userStore.validateDocumentUsuario())!;
+    rootStore.state.spiner = false;
+
+    if (res.estadoflag == true) {
+      Swal.fire({
+        icon: "question",
+        title: "Pregunta",
+        text: res.mensaje,
+        allowEnterKey: false,
+        allowOutsideClick: false,
+        confirmButtonText: "Si",
+        cancelButtonText: "No",
+        showCancelButton: true,
+        cancelButtonColor: "red",
+        confirmButtonColor: "green",
+      }).then(async (respuesta) => {
+        if (respuesta.isConfirmed) {
+          rootStore.state.spiner = true;
+          userStore.model.id_entitie = res.data[0]!.id_entitie;
+          userStore.model.address = res.data[0]!.address;
+          userStore.model.birthday = res.data[0]!.birthday;
+          userStore.model.estadoflag = res.data[0]!.estadoflag;
+          userStore.model.id_city = res.data[0]!.id_city;
+          userStore.model.id_pais = res.data[0]!.id_pais;
+          userStore.model.id_sex = res.data[0]!.id_sex;
+          userStore.model.id_state = res.data[0]!.id_state;
+          userStore.model.id_town = res.data[0]!.id_town;
+          userStore.model.names = res.data[0]!.names;
+          userStore.model.second_surname = res.data[0]!.second_surname;
+          userStore.model.socialprincipal = res.data[0]!.socialprincipal;
+          userStore.model.socialsecundary = res.data[0]!.socialsecundary;
+          userStore.model.surname = res.data[0]!.surname;
+          await rootStore.dispatch("_getState", res.data[0]!.id_pais);
+          await rootStore.dispatch("_getCity", res.data[0]!.id_state);
+          await rootStore.dispatch("_getTown", res.data[0]!.id_city);
+          rootStore.state.spiner = false;
+        }
+        if (respuesta.isDismissed) {
+          userStore.model.document = "";
+        }
+      });
+    }
+    rootStore.state.spiner = false;
+  }
+  // if (res.estadoflag == true) {
+  //   this.errUsers = res.mensaje;
+  //   this.$store.state.user.model.users = "";
+  // }
+}
+async function validateDocument() {
+  await axios<ApiResponse>({
+    method: "get",
+    url:
+      import.meta.env.VITE_URL_MAIN +
+      `validar__nuevo_documento_enterprise?` +
+      `id_branch=${sessionBranchId()}` +
+      `&id_document=${enterprisesStore.model.id_document}` +
+      `&document=${encodeURIComponent(enterprisesStore.model.document)}`,
+    headers: {
+      "Content-Type": "application/json",
+    },
+  })
+    .then((response) => {
+      const data = response.data;
+      if (!data.estadoflag) {
+        errorDocument.value = data.mensaje;
+        enterprisesStore.model.document = "";
+      } else {
+        errorDocument.value = "";
+      }
+    })
+    .catch((error) => {
+      console.log("Error al obtener los datos:", error);
+    });
+}
+async function uploadFile() {
+  msgfile.value = "";
+  errfile.value = "";
+  if (payfile.value) {
+    loadingFile.value = true;
+    if (payfile.value.size > 2097152) {
+      loadingFile.value = false;
+      errfile.value = "El archivo es demasiado grande. El tamaño máximo es 2 MB.";
+    } else {
+      await rootStore.dispatch("_uploadFile", payfile.value);
+      loadingFile.value = false;
+      if (rootStore.state.files.payPath) {
+        msgfile.value = "Archivo cargado";
+      } else {
+        errfile.value = "Comuniquese con el admistrador";
+      }
+    }
+  }
+}
+function updateStatus(newValue: string | number | null) {
+  enterprisesStore.model.status = newValue ? 1 : 0;
+}
+</script>
+
 <template>
   <v-container fluid>
     <v-card class="py-10 px-10">
@@ -8,24 +276,36 @@
         grow
         stacked
       >
-        <v-tab base-color="rgba(255, 255, 255, 0.6)" value="datos"> Datos de la Empresa</v-tab>
+        <v-tab
+          base-color="rgba(255, 255, 255, 0.6)"
+          value="datos"
+        >
+          Datos de la Empresa
+        </v-tab>
 
-        <v-tab base-color="rgba(255, 255, 255, 0.6)" value="admin"> Administrador Principal SISTEMA </v-tab>
+        <v-tab
+          base-color="rgba(255, 255, 255, 0.6)"
+          value="admin"
+        >
+          Administrador Principal SISTEMA
+        </v-tab>
       </v-tabs>
       <v-tabs-window v-model="tab">
-        <v-tabs-window-item value="datos" class="px-5 items">
+        <v-tabs-window-item
+          value="datos"
+          class="px-5 items"
+        >
           <v-form ref="frmEmpresa">
             <v-row>
               <v-col cols="4">
                 <v-autocomplete
                   label="Tipo de Documento (*)"
                   v-model="enterprisesStore.model.id_document"
-                  :items="itemsDocumentsPais"
+                  :items="rootStore.state.itemsDocumentsPais"
                   item-title="description"
                   item-value="id"
                   :rules="[(v) => !!v || 'Dato requerido']"
-                >
-                </v-autocomplete>
+                />
               </v-col>
               <v-col cols="4">
                 <v-text-field
@@ -40,8 +320,7 @@
                       'Hasta 100 caracteres permitidos',
                   ]"
                   :error-messages="errorDocument"
-                >
-                </v-text-field>
+                />
               </v-col>
             </v-row>
 
@@ -56,8 +335,7 @@
                       (v && v.length <= 255) ||
                       'Hasta 255 caracteres permitidos',
                   ]"
-                >
-                </v-text-field>
+                />
               </v-col>
               <v-col cols="4">
                 <v-text-field
@@ -69,24 +347,20 @@
                       (v && v.length <= 255) ||
                       'Hasta 255 caracteres permitidos',
                   ]"
-                >
-                </v-text-field>
+                />
               </v-col>
               <v-col cols="4">
                 <v-text-field
                   label="Phone"
                   v-model="enterprisesStore.model.phone"
-                  
-                >
-                </v-text-field>
+                />
               </v-col>
               <v-col cols="4">
                 <v-text-field
                   label="Slogan"
                   v-model="enterprisesStore.model.slogan"
                   :rules="[(v) => validateLength(v, 255)]"
-                >
-                </v-text-field>
+                />
               </v-col>
               <v-col cols="4">
                 <v-file-input
@@ -99,35 +373,32 @@
                   show-size
                   prepend-icon="mdi-camera"
                   @update:model-value="uploadFile()"
-                >
-                </v-file-input>
+                />
               </v-col>
               <v-col cols="4">
                 <v-text-field
                   label="IC"
                   v-model="enterprisesStore.model.ic"
                   :rules="[(v) => validateLength(v, 255)]"
-                >
-                </v-text-field>
+                />
               </v-col>
             </v-row>
             <v-row>
               <v-col cols="3">
                 <v-autocomplete
                   label="País (*)"
-                  :items="itemsPais"
+                  :items="rootStore.state.itemsPais"
                   item-value="id"
                   item-title="name"
                   v-model="enterprisesStore.model.id_pais"
                   @update:model-value="get_state()"
                   :rules="[(v) => !!v || 'Dato requerido']"
-                >
-                </v-autocomplete>
+                />
               </v-col>
               <v-col cols="3">
                 <v-autocomplete
                   label="Región (*)"
-                  :items="itemsState"
+                  :items="rootStore.state.itemsState"
                   item-value="id"
                   item-title="name"
                   v-model="enterprisesStore.model.id_state"
@@ -139,7 +410,7 @@
               <v-col cols="3">
                 <v-autocomplete
                   label="Provincia (*)"
-                  :items="itemsCity"
+                  :items="rootStore.state.itemsCity"
                   item-value="id"
                   item-title="name"
                   v-model="enterprisesStore.model.id_city"
@@ -152,7 +423,7 @@
                 <v-autocomplete
                   label="Distrito (*)"
                   v-model="enterprisesStore.model.id_town"
-                  :items="itemsTown"
+                  :items="rootStore.state.itemsTown"
                   item-value="id"
                   item-title="name"
                   :disabled="!enterprisesStore.model.id_city"
@@ -169,8 +440,7 @@
                       (v && v.length <= 255) ||
                       'Hasta 255 caracteres permitidos',
                   ]"
-                >
-                </v-text-field>
+                />
               </v-col>
               <v-col cols="4">
                 <v-switch
@@ -181,12 +451,15 @@
                   hide-details
                   color="success"
                   @update:model-value="updateStatus"
-                ></v-switch>
+                />
               </v-col>
             </v-row>
           </v-form>
         </v-tabs-window-item>
-        <v-tabs-window-item value="admin" class="px-5 items">
+        <v-tabs-window-item
+          value="admin"
+          class="px-5 items"
+        >
           <v-form ref="frmDatos">
             <v-row>
               <v-col cols="4">
@@ -194,31 +467,31 @@
                   label="Nombre Usuario (*)"
                   id="users"
                   v-model="userStore.model.users"
-                  v-on:blur="validarUser()"
+                  @blur="validarUser()"
                   :error-messages="errUsers"
                   :rules="[(v) => !!v || 'Dato Requerido']"
-                ></v-text-field>
+                />
               </v-col>
             </v-row>
             <v-row class="align-sm-center">
               <v-col cols="4">
                 <v-autocomplete
-                  :items="$store.state.itemsDocumentsPais"
+                  :items="rootStore.state.itemsDocumentsPais"
                   item-title="description"
                   item-value="id"
                   label="Tipo de Documento (*)"
                   v-model="userStore.model.id_document"
                   @update:model-value="validarDocument()"
                   :rules="[(v) => !!v || 'Dato Requerido']"
-                ></v-autocomplete>
+                />
               </v-col>
               <v-col cols="4">
                 <v-text-field
                   label="Documento (*)"
                   v-model="userStore.model.document"
                   :rules="[(v) => !!v || 'Dato Requerido']"
-                  v-on:blur="validarDocument()"
-                ></v-text-field>
+                  @blur="validarDocument()"
+                />
               </v-col>
             </v-row>
             <v-row>
@@ -227,28 +500,28 @@
                   v-model="userStore.model.names"
                   :rules="[(v) => !!v || 'Dato Requerido']"
                   label="Nombres (*)"
-                ></v-text-field>
+                />
               </v-col>
               <v-col cols="4">
                 <v-text-field
                   v-model="userStore.model.surname"
                   :rules="[(v) => !!v || 'Dato Requerido']"
                   label="Apellido Paterno (*)"
-                ></v-text-field>
+                />
               </v-col>
               <v-col cols="4">
                 <v-text-field
                   v-model="userStore.model.second_surname"
                   :rules="[(v) => !!v || 'Dato Requerido']"
                   label="Apellido Materno (*)"
-                ></v-text-field>
+                />
               </v-col>
               <v-col cols="4">
                 <v-text-field
                   label="Teléfono (*)"
                   v-model="userStore.model.phone"
                   :rules="[(v) => !!v || 'Dato Requerido']"
-                ></v-text-field>
+                />
               </v-col>
               <v-col cols="4">
                 <v-text-field
@@ -262,7 +535,7 @@
                   ]"
                   @blur="validarEmail()"
                   :error-messages="errEmail"
-                ></v-text-field>
+                />
               </v-col>
               <v-col cols="4">
                 <v-text-field
@@ -270,20 +543,21 @@
                   label="Fecha Nacimiento (*)"
                   v-model="userStore.model.birthday"
                   :rules="[(v) => !!v || 'Dato Requerido']"
-                ></v-text-field>
+                />
               </v-col>
             </v-row>
             <v-row>
               <v-col cols="4">
+                <!-- @vue-expect-error the root state items are untyped until the Vuex store is typed -->
                 <v-autocomplete
-                  :items="$store.state.itemsSex"
+                  :items="rootStore.state.itemsSex"
                   item-title="name"
                   item-value="id"
                   label="Sexo (*)"
                   :rules="[(v) => !!v || 'Dato Requerido']"
                   :item-props="(item) => ({ disabled: item.status != 1 })"
                   v-model="userStore.model.id_sex"
-                ></v-autocomplete>
+                />
               </v-col>
               <!-- <v-col cols="4">
                 <v-autocomplete
@@ -344,31 +618,41 @@
                   v-model="userStore.model.address"
                   label="Dirección (*)"
                   :rules="[(v) => !!v || 'Dato Requerido']"
-                ></v-text-field>
+                />
               </v-col>
               <v-col cols="4">
                 <v-text-field
                   v-model="userStore.model.socialprincipal"
                   label="URL Red Social Principal"
-                ></v-text-field>
+                />
               </v-col>
               <v-col cols="4">
                 <v-text-field
                   v-model="userStore.model.socialsecundary"
                   label="URL Red Social Alternativa"
-                ></v-text-field>
+                />
               </v-col>
               <v-col cols="6">
                 Departamento
-                <v-icon size="small" @click="snackbar = true" class="iconDepartamento"
-                  >mdi-information-slab-circle-outline</v-icon
+                <v-icon
+                  size="small"
+                  @click="snackbar = true"
+                  class="iconDepartamento"
                 >
+                  mdi-information-slab-circle-outline
+                </v-icon>
                 <v-radio-group
                   :rules="[(v) => !!v || 'Dato Requerido']"
                   v-model="userStore.model.departamento"
                 >
-                  <v-radio label="Operativo" value="1"></v-radio>
-                  <v-radio label="Administrativo" value="2"></v-radio>
+                  <v-radio
+                    label="Operativo"
+                    value="1"
+                  />
+                  <v-radio
+                    label="Administrativo"
+                    value="2"
+                  />
                 </v-radio-group>
               </v-col>
               <v-col cols="6">
@@ -376,15 +660,22 @@
                   label="Estado"
                   v-model="userStore.model.status"
                   :value-comparator="(value, checked) => Boolean(value) === checked"
-                ></v-switch>
+                />
               </v-col>
             </v-row>
           </v-form>
         </v-tabs-window-item>
       </v-tabs-window>
-      <v-btn block color="success" @click="insert()" class="mt-10">{{
-        tab == "datos" ? "Siguiente" : "Guardar"
-      }}</v-btn>
+      <v-btn
+        block
+        color="success"
+        @click="insert()"
+        class="mt-10"
+      >
+        {{
+          tab == "datos" ? "Siguiente" : "Guardar"
+        }}
+      </v-btn>
       <!-- <v-card-actions class="justify-end mt-3">
         <v-btn small class="mx-1" color="success" @click="insert()" rounded>
           Guardar</v-btn
@@ -394,311 +685,24 @@
         >
       </v-card-actions> -->
     </v-card>
-    <v-snackbar v-model="snackbar" variant="outlined" vertical color="info">
+    <v-snackbar
+      v-model="snackbar"
+      variant="outlined"
+      vertical
+      color="info"
+    >
       El departamento, define como se comportará el usuario para el llendo de
       montos (Pricing u Operaciones) , en el CONTROL DE GASTOS
 
-      <template v-slot:actions>
-        <v-btn variant="text" color="red" @click="snackbar = false">
+      <template #actions>
+        <v-btn
+          variant="text"
+          color="red"
+          @click="snackbar = false"
+        >
           Close
         </v-btn>
       </template>
     </v-snackbar>
   </v-container>
 </template>
-
-<script>
-import axios from '@/api/http';
-import miMixin from "../mixins/funciones";
-import { mapState, mapActions } from "vuex";
-import Swal from "sweetalert2";
-import { mapActions as mapPiniaActions, mapStores } from "pinia";
-import { useUserStore } from "@/stores/user";
-import { useEnterprisesStore } from "@/stores/enterprises";
-
-export default {
-  mixins: [miMixin],
-  name: "ListEnterpriseComponent",
-  data() {
-    return {
-      snackbar: false,
-      tab: "datos",
-      errfile: "",
-      loadingFile: false,
-      loading: false,
-      msgfile: "",
-      payfile: null,
-      errorDocument: null,
-      errPosition: "",
-      errUsers: "",
-      errEmail: "",
-    };
-  },
-  async mounted() {
-    this.$store.state.spiner = true;
-
-    this.$store.state.mainTitle = `EMPRESAS`;
-    this.enterprisesStore.model = {
-      id_logo: "",
-      document: "",
-      trade_name: "",
-      business_name: "",
-      slogan: "",
-      address: "",
-      status: "1",
-      id_pais: "",
-      id_state: "",
-      id_city: "",
-      id_town: "",
-      id_document: "",
-      ic: "",
-    };
-    this.userStore.model = {
-      id: "",
-      id_entitie: "",
-      id_pais: "",
-      id_city: "",
-      id_state: "",
-      id_town: "",
-      users: "",
-      id_document: "",
-      document: "",
-      id_sex: "",
-      status: "1",
-      departamento: "1",
-      names: "",
-      surname: "",
-      second_surname: "",
-      socialprincipal: "",
-      socialsecundary: "",
-      phone: "",
-      address: "",
-      birthday: "",
-      email: "",
-    };
-
-    await this._getDocumentsPais();
-    await this._getPais();
-    await this._getSex();
-    await this._callState();
-    this.$store.state.spiner = false;
-    this.$refs.frmDML.resetValidation();
-    this.$refs.frmDatos.resetValidation();
-  },
-  methods: {
-    ...mapActions([
-      "_getSex",
-      "_getDocumentsPais",
-      "_getPais",
-      "_getState",
-      "_getCity",
-      "_getTown",
-      "validateDocumentEnterprise",
-      "_uploadFile",
-    ]),
-    ...mapPiniaActions(useEnterprisesStore, ["insertEnterprise"]),
-    ...mapPiniaActions(useUserStore, ["validateUserUsuario", "validateDocumentUsuario", "validateEmailUsuario"]),
-    async _callState() {
-      if (this.id_pais > 0) {
-        await this._getState(this.id_pais);
-      }
-    },
-    volver() {
-      this.$router.go(-1);
-    },
-    async insert() {
-      if (this.tab == "datos") {
-        if ((await this.$refs.frmEmpresa.validate()).valid) {
-          this.tab = "admin";
-          return true;
-        }
-      }
-      if (this.tab == "admin") {
-        if (!(await this.$refs.frmEmpresa.validate()).valid) {
-          this.tab = "datos";
-          return false;
-        }
-        if ((await this.$refs.frmDatos.validate()).valid) {
-          this.$store.state.spiner = true;
-          await this.insertEnterprise(this.enterprisesStore);
-          this.$store.state.spiner = false;
-        }
-      }
-    },
-    async get_state() {
-      this.enterprisesStore.model.id_state = "";
-      this.enterprisesStore.model.id_city = "";
-      this.enterprisesStore.model.id_town = "";
-      await this._getState(this.enterprisesStore.model.id_pais);
-    },
-    async get_city() {
-      this.enterprisesStore.model.id_city = "";
-      this.enterprisesStore.model.id_town = "";
-      await this._getCity(this.enterprisesStore.model.id_state);
-    },
-    async get_town() {
-      this.enterprisesStore.model.id_town = "";
-      await this._getTown(this.enterprisesStore.model.id_city);
-    },
-    async update() {
-      if ((await this.$refs.form.validate()).valid) {
-        await this.updateEnterprise(this.enterprisesStore);
-      }
-    },
-    async validarUser() {
-      this.errUsers = "";
-      this.$store.state.spiner = true;
-      let res = await this.validateUserUsuario();
-      if (res.estadoflag == true) {
-        this.errUsers = res.mensaje;
-        this.userStore.model.users = "";
-      }
-      this.$store.state.spiner = false;
-    },
-    async validarEmail() {
-      this.errEmail = "";
-      this.$store.state.spiner = true;
-      let res = await this.validateEmailUsuario();
-      if (res.estadoflag == true) {
-        this.errEmail = res.mensaje;
-        this.userStore.model.email = "";
-      }
-      this.$store.state.spiner = false;
-    },
-    async validarDocument() {
-      // this.errUsers = "";
-      if (
-        !!this.userStore.model.id_document &&
-        !!this.userStore.model.document
-      ) {
-        this.$store.state.spiner = true;
-        let res = await this.validateDocumentUsuario();
-        this.$store.state.spiner = false;
-
-        if (res.estadoflag == true) {
-          Swal.fire({
-            icon: "question",
-            title: "Pregunta",
-            text: res.mensaje,
-            allowEnterKey: false,
-            allowOutsideClick: false,
-            allowEnterKey: false,
-            confirmButtonText: "Si",
-            cancelButtonText: "No",
-            showCancelButton: true,
-            cancelButtonColor: "red",
-            confirmButtonColor: "green",
-          }).then(async (respuesta) => {
-            if (respuesta.isConfirmed) {
-              this.$store.state.spiner = true;
-              this.userStore.model.id_entitie = res.data[0].id_entitie;
-              this.userStore.model.address = res.data[0].address;
-              this.userStore.model.birthday = res.data[0].birthday;
-              this.userStore.model.estadoflag = res.data[0].estadoflag;
-              this.userStore.model.id_city = res.data[0].id_city;
-              this.userStore.model.id_pais = res.data[0].id_pais;
-              this.userStore.model.id_sex = res.data[0].id_sex;
-              this.userStore.model.id_state = res.data[0].id_state;
-              this.userStore.model.id_town = res.data[0].id_town;
-              this.userStore.model.names = res.data[0].names;
-              this.userStore.model.second_surname =
-                res.data[0].second_surname;
-              this.userStore.model.socialprincipal =
-                res.data[0].socialprincipal;
-              this.userStore.model.socialsecundary =
-                res.data[0].socialsecundary;
-              this.userStore.model.surname = res.data[0].surname;
-              await this._getState(res.data[0].id_pais);
-              await this._getCity(res.data[0].id_state);
-              await this._getTown(res.data[0].id_city);
-              this.$store.state.spiner = false;
-            }
-            if (respuesta.isDismissed) {
-              this.userStore.model.document = "";
-            }
-          });
-        }
-        this.$store.state.spiner = false;
-      }
-      // if (res.estadoflag == true) {
-      //   this.errUsers = res.mensaje;
-      //   this.$store.state.user.model.users = "";
-      // }
-    },
-    async validateDocument() {
-      var config = {
-        method: "get",
-        url:
-          import.meta.env.VITE_URL_MAIN +
-          `validar__nuevo_documento_enterprise?` +
-          `id_branch=${
-            JSON.parse(sessionStorage.getItem("dataUser"))[0].id_branch
-          }` +
-          `&id_document=${this.enterprisesStore.model.id_document}` +
-          `&document=${encodeURIComponent(
-            this.enterprisesStore.model.document
-          )}`,
-        headers: {
-          "Content-Type": "application/json",
-         
-        },
-      };
-
-      await axios(config)
-        .then((response) => {
-          let data = response.data;
-          if (!data.estadoflag) {
-            this.errorDocument = data.mensaje;
-            this.enterprisesStore.model.document = "";
-          } else {
-            this.errorDocument = "";
-          }
-        })
-        .catch((error) => {
-          console.log("Error al obtener los datos:", error);
-        });
-    },
-    async uploadFile() {
-      this.msgfile = "";
-      this.errfile = "";
-      if (this.payfile) {
-        this.loadingFile = true;
-        if (this.payfile.size > 2097152) {
-          this.loadingFile = false;
-          this.errfile =
-            "El archivo es demasiado grande. El tamaño máximo es 2 MB.";
-        } else {
-          await this._uploadFile(this.payfile);
-          this.loadingFile = false;
-          this.$store.state.files.payPath
-            ? (this.msgfile = "Archivo cargado")
-            : (this.errfile = "Comuniquese con el admistrador");
-        }
-      }
-    },
-    updateStatus(newValue) {
-      this.enterprisesStore.model.status = newValue ? 1 : 0;
-    },
-  },
-  watch: {
-    "$store.state.files.payPath": {
-      handler(newRecord, oldRecord) {
-        if (newRecord) {
-          this.enterprisesStore.model.id_logo = newRecord;
-        }
-      },
-      immediate: true,
-    },
-  },
-  computed: {
-    ...mapStores(useEnterprisesStore, useUserStore),
-    ...mapState([
-      "itemsDocumentsPais",
-      "itemsPais",
-      "itemsState",
-      "itemsCity",
-      "itemsTown",
-    ]),
-  },
-};
-</script>
