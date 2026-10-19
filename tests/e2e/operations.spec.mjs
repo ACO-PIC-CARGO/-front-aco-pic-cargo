@@ -84,6 +84,7 @@ test("adds an income line to an expense control", async ({ page }) => {
   const masterRow = page.getByRole("row").filter({ has: page.getByRole("button", { name: "Ver master" }) }).first();
   const masterCode = masterCodeIn(await masterRow.innerText());
   await masterRow.getByRole("button", { name: "Ver master" }).click();
+  await page.waitForURL(/\/control\/ver\/\d+$/);
   const masterId = page.url().match(/\/control\/ver\/(\d+)$/)[1];
 
   await page.goto(`/home/folderBilling/editControlGastos/view/${masterId}/1`);
