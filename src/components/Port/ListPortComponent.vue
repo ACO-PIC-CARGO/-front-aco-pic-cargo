@@ -18,8 +18,8 @@
             class="mx-1"
             color="#2962FF"
             @click="
-              ($store.state.puerto.drawer = !$store.state.puerto.drawer) &&
-                ($store.state.puerto.tipo = 'filter')
+              (puertoStore.drawer = !puertoStore.drawer) &&
+                (puertoStore.tipo = 'filter')
             "
             >FILTRAR</v-btn
           >
@@ -28,7 +28,7 @@
         <v-col cols="12">
           <v-data-table
             :headers="headers"
-            :items="$store.state.puerto.lstPort"
+            :items="puertoStore.lstPort"
             class="elevation-1"
             item-value="port_beginend_id"
             :loading="loading"
@@ -100,8 +100,9 @@
 <script>
 import { mapActions } from "vuex";
 import Swal from "sweetalert2";
-import { mapActions as mapPiniaActions } from "pinia";
+import { mapActions as mapPiniaActions, mapStores } from "pinia";
 import { useTransportStore } from "@/stores/transport";
+import { usePuertoStore } from "@/stores/puerto";
 export default {
   data() {
     return {
@@ -122,28 +123,30 @@ export default {
       ],
     };
   },
+  computed: {
+    ...mapStores(usePuertoStore),
+  },
   methods: {
     ...mapActions([
-      "GetListPort",
       "_getPais",
-      "ActualizarPuerto",
     ]),
+    ...mapPiniaActions(usePuertoStore, ["GetListPort", "ActualizarPuerto"]),
     ...mapPiniaActions(useTransportStore, ["cargarTransport"]),
     ver(item) {
       let datos = { ...item };
-      this.$store.state.puerto.tipo = "ver";
-      this.$store.state.puerto.PortModel = datos;
-      this.$store.state.puerto.drawer = !this.$store.state.puerto.drawer;
+      this.puertoStore.tipo = "ver";
+      this.puertoStore.PortModel = datos;
+      this.puertoStore.drawer = !this.puertoStore.drawer;
     },
     editar(item) {
       let datos = { ...item };
-      this.$store.state.puerto.tipo = "editar";
-      this.$store.state.puerto.PortModel = datos;
-      this.$store.state.puerto.drawer = !this.$store.state.puerto.drawer;
+      this.puertoStore.tipo = "editar";
+      this.puertoStore.PortModel = datos;
+      this.puertoStore.drawer = !this.puertoStore.drawer;
     },
     nuevo() {
-      this.$store.state.puerto.tipo = "nuevo";
-      this.$store.state.puerto.PortModel = {
+      this.puertoStore.tipo = "nuevo";
+      this.puertoStore.PortModel = {
         id: "",
         id_pais: "",
         code: "",
@@ -153,7 +156,7 @@ export default {
         status: 1,
         id_branch: JSON.parse(sessionStorage.getItem("dataUser"))[0].id_branch,
       };
-      this.$store.state.puerto.drawer = !this.$store.state.puerto.drawer;
+      this.puertoStore.drawer = !this.puertoStore.drawer;
     },
     async eliminar(item) {
       Swal.fire({
@@ -169,7 +172,7 @@ export default {
       }).then(async (res) => {
         if (res.isConfirmed) {
           item.status = 0;
-          this.$store.state.puerto.PortModel = item;
+          this.puertoStore.PortModel = item;
           this.loading = true;
           await this.ActualizarPuerto();
           await this.GetListPort();

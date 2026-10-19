@@ -6,53 +6,53 @@
       <v-btn variant="text"
         icon
         color="default"
-        @click="$store.state.begend.drawer = !$store.state.begend.drawer"
+        @click="begendStore.drawer = !begendStore.drawer"
       >
         <v-icon>mdi-close</v-icon>
       </v-btn>
     </v-card-title>
-    <v-card-text v-if="$store.state.begend.tipo == 'filter'">
+    <v-card-text v-if="begendStore.tipo == 'filter'">
       <div class="col-12 py-1">
         <v-text-field
-          v-model="$store.state.begend.filtros.code"
+          v-model="begendStore.filtros.code"
           label="Código"
-          :clearable="$store.state.begend.tipo != 'ver'"
+          :clearable="begendStore.tipo != 'ver'"
         ></v-text-field>
       </div>
       <div class="col-12 py-1">
         <v-text-field
-          v-model="$store.state.begend.filtros.name"
+          v-model="begendStore.filtros.name"
           label="Nombre"
-          :clearable="$store.state.begend.tipo != 'ver'"
+          :clearable="begendStore.tipo != 'ver'"
         ></v-text-field>
       </div>
       <div class="col-12 py-1">
         <v-text-field
-          v-model="$store.state.begend.filtros.description"
+          v-model="begendStore.filtros.description"
           label="Descripción"
-          :clearable="$store.state.begend.tipo != 'ver'"
+          :clearable="begendStore.tipo != 'ver'"
         ></v-text-field>
       </div>
       <div class="col-12 py-1">
         <v-text-field
-          v-model="$store.state.begend.filtros.position"
+          v-model="begendStore.filtros.position"
           label="Posición (Orden)"
           type="number"
           step="1"
-          :clearable="$store.state.begend.tipo != 'ver'"
+          :clearable="begendStore.tipo != 'ver'"
         ></v-text-field>
       </div>
       <div class="col-12 py-1">
         <v-text-field
-          v-model="$store.state.begend.filtros.color"
+          v-model="begendStore.filtros.color"
           label="Color"
-          :clearable="$store.state.begend.tipo != 'ver'"
+          :clearable="begendStore.tipo != 'ver'"
         ></v-text-field>
       </div>
 
       <div class="col-12 py-1">
         <span> Estado</span>
-        <v-radio-group v-model="$store.state.begend.filtros.status" inline density="compact">
+        <v-radio-group v-model="begendStore.filtros.status" inline density="compact">
           <v-radio label="Activo" color="green" value="1"></v-radio>
           <v-radio label="Inactivo" color="red" value="0"></v-radio>
           <v-radio label="Todos" color="blue" value="null"></v-radio>
@@ -63,8 +63,8 @@
       <v-form ref="frmDML">
         <div class="col-12 py-1">
           <v-text-field
-            v-model="$store.state.begend.model.code"
-            :readonly="$store.state.begend.tipo != 'nuevo'"
+            v-model="begendStore.model.code"
+            :readonly="begendStore.tipo != 'nuevo'"
             label="Código (*)"
             :rules="[
               (v) => !!v || 'Dato Requerido',
@@ -76,8 +76,8 @@
         </div>
         <div class="col-12 py-1">
           <v-text-field
-            v-model="$store.state.begend.model.name"
-            :readonly="$store.state.begend.tipo == 'ver'"
+            v-model="begendStore.model.name"
+            :readonly="begendStore.tipo == 'ver'"
             label="Nombre (*)"
             :rules="[
               (v) => !!v || 'Dato Requerido',
@@ -89,10 +89,10 @@
         </div>
         <div class="col-12 py-1">
           <v-text-field
-            v-model="$store.state.begend.model.description"
-            :readonly="$store.state.begend.tipo == 'ver'"
+            v-model="begendStore.model.description"
+            :readonly="begendStore.tipo == 'ver'"
             label="Descripción"
-            :clearable="$store.state.begend.tipo != 'ver'"
+            :clearable="begendStore.tipo != 'ver'"
             :rules="[
               (v) =>
                 !v ||
@@ -103,12 +103,12 @@
         </div>
         <div class="col-12 py-1">
           <v-text-field
-            v-model="$store.state.begend.model.position"
+            v-model="begendStore.model.position"
             type="number"
             step="1"
-            :readonly="$store.state.begend.tipo == 'ver'"
+            :readonly="begendStore.tipo == 'ver'"
             label="Posición (Orden)  (*)"
-            :clearable="$store.state.begend.tipo != 'ver'"
+            :clearable="begendStore.tipo != 'ver'"
             :rules="[(v) => !!v || 'Dato Requerido']"
             v-on:blur="validate()"
             :error-messages="errPosition"
@@ -116,21 +116,21 @@
         </div>
         <div class="col-12 py-1">
           <v-text-field
-            v-model="$store.state.begend.model.color"
-            :readonly="$store.state.begend.tipo == 'ver'"
+            v-model="begendStore.model.color"
+            :readonly="begendStore.tipo == 'ver'"
             label="Color"
-            :clearable="$store.state.begend.tipo != 'ver'"
+            :clearable="begendStore.tipo != 'ver'"
           ></v-text-field>
         </div>
         <div class="col-12 py-1">
           <span> Estado</span>
           <v-switch
-            :readonly="$store.state.begend.tipo == 'ver'"
+            :readonly="begendStore.tipo == 'ver'"
             :label="`Estado: ${
-              !!$store.state.begend.model.status ? 'Activo' : 'Inactivo'
+              !!begendStore.model.status ? 'Activo' : 'Inactivo'
             }`"
             color="success"
-            v-model="$store.state.begend.model.status"
+            v-model="begendStore.model.status"
             :value-comparator="(value, checked) => Boolean(value) === checked"
           ></v-switch>
         </div>
@@ -142,7 +142,7 @@
       <v-btn
         class="mx-1"
         color="success"
-        v-if="$store.state.begend.tipo == 'filter'"
+        v-if="begendStore.tipo == 'filter'"
         @click="Filtrar()"
         :loading="loading"
         >Aceptar</v-btn
@@ -150,7 +150,7 @@
       <v-btn
         class="mx-1"
         color="default"
-        v-if="$store.state.begend.tipo == 'filter'"
+        v-if="begendStore.tipo == 'filter'"
         @click="Limpiar()"
         :loading="loading"
         >Limpiar</v-btn
@@ -159,8 +159,8 @@
         class="mx-1"
         color="success"
         v-if="
-          $store.state.begend.tipo != 'filter' &&
-          $store.state.begend.tipo != 'ver'
+          begendStore.tipo != 'filter' &&
+          begendStore.tipo != 'ver'
         "
         @click="Aceptar()"
         :loading="loading"
@@ -169,7 +169,7 @@
       <v-btn
         class="mx-1"
         color="warning"
-        @click="$store.state.begend.drawer = !$store.state.begend.drawer"
+        @click="begendStore.drawer = !begendStore.drawer"
         :loading="loading"
         >Cerrar</v-btn
       >
@@ -178,6 +178,8 @@
 </template>
 <script>
 import { mapActions } from "vuex";
+import { mapActions as mapPiniaActions, mapStores } from "pinia";
+import { useBegendStore } from "@/stores/begend";
 export default {
   data() {
     return {
@@ -190,26 +192,22 @@ export default {
   },
   methods: {
     ...mapActions([
-      "GetListBegend",
       "_getPais",
       "_getState",
       "_getCity",
-      "setBegend",
-      "ActualizarBegend",
-      "getValidatePositionBegend",
-      "getValidatePositionActualizarBegend",
     ]),
+    ...mapPiniaActions(useBegendStore, ["GetListBegend", "setBegend", "ActualizarBegend", "getValidatePositionBegend", "getValidatePositionActualizarBegend"]),
     getName() {
-      if (this.$store.state.begend.tipo == "ver") {
+      if (this.begendStore.tipo == "ver") {
         return `Categoria ${this.model.name} – Modo Vista`;
       }
-      if (this.$store.state.begend.tipo == "nuevo") {
+      if (this.begendStore.tipo == "nuevo") {
         return "Nueva Categoría";
       }
-      if (this.$store.state.begend.tipo == "editar") {
+      if (this.begendStore.tipo == "editar") {
         return `Modificar Categoría: ${this.model.name}`;
       }
-      if (this.$store.state.begend.tipo == "filter") {
+      if (this.begendStore.tipo == "filter") {
         return "Filtrar Registros";
       }
     },
@@ -218,10 +216,10 @@ export default {
       this.loading = true;
       await this.GetListBegend();
       this.loading = false;
-      this.$store.state.begend.drawer = !this.$store.state.begend.drawer;
+      this.begendStore.drawer = !this.begendStore.drawer;
     },
     async Limpiar() {
-      this.$store.state.begend.filtros = {
+      this.begendStore.filtros = {
         id: "",
         id_pais: "",
         code: "",
@@ -234,10 +232,10 @@ export default {
       await this.GetListBegend();
 
       this.loading = false;
-      this.$store.state.begend.drawer = !this.$store.state.begend.drawer;
+      this.begendStore.drawer = !this.begendStore.drawer;
     },
     async Aceptar() {
-      if (this.$store.state.begend.tipo == "nuevo") {
+      if (this.begendStore.tipo == "nuevo") {
         this.loading = true;
         setTimeout(async () => {
           if ((await this.$refs.frmDML.validate()).valid) {
@@ -250,7 +248,7 @@ export default {
           }
         }, 1000);
       }
-      if (this.$store.state.begend.tipo == "editar") {
+      if (this.begendStore.tipo == "editar") {
         this.loading = true;
         setTimeout(async () => {
           if ((await this.$refs.frmDML.validate()).valid && !this.errPosition) {
@@ -262,26 +260,26 @@ export default {
           }
         }, 1000);
       }
-      if (this.$store.state.begend.tipo == "ver") {
-        this.$store.state.begend.drawer = !this.$store.state.begend.drawer;
+      if (this.begendStore.tipo == "ver") {
+        this.begendStore.drawer = !this.begendStore.drawer;
       }
     },
     async validate() {
       // getValidatePosition
       // this.loading = true;
       this.errPosition = "";
-      if (this.$store.state.begend.tipo == "nuevo") {
+      if (this.begendStore.tipo == "nuevo") {
         let val = await this.getValidatePositionBegend();
         this.errPosition = val.mensaje;
         if (val.estadoflag) {
-          this.$store.state.begend.model.position = "";
+          this.begendStore.model.position = "";
         }
       }
-      if (this.$store.state.begend.tipo == "editar") {
+      if (this.begendStore.tipo == "editar") {
         let val = await this.getValidatePositionActualizarBegend();
         this.errPosition = val.mensaje;
         if (val.estadoflag) {
-          this.$store.state.begend.model.position = "";
+          this.begendStore.model.position = "";
         }
       }
       // this.loading = false;
@@ -289,18 +287,19 @@ export default {
   },
 
   computed: {
+    ...mapStores(useBegendStore),
     drawer: {
       get() {
-        return this.$store.state.begend.drawer;
+        return this.begendStore.drawer;
       },
       set(val) {
-        return (this.$store.state.begend.drawer = drawer);
+        return (this.begendStore.drawer = drawer);
       },
     },
   },
   watch: {
     drawer() {
-      this.model = { ...this.$store.state.begend.model };
+      this.model = { ...this.begendStore.model };
       this.$refs.frmDML.resetValidation();
       this.errPosition = "";
     },

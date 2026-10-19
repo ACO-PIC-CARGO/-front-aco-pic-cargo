@@ -2,7 +2,7 @@
   <v-container fluid>
     <Begend />
     <v-navigation-drawer
-      v-model="$store.state.begend.drawer"
+      v-model="begendStore.drawer"
       location="right"
       
       width="30%"
@@ -15,10 +15,15 @@
 
 <script>
 import { defineAsyncComponent } from "vue";
+import { mapStores } from "pinia";
+import { useBegendStore } from "@/stores/begend";
 export default {
   components: {
     Begend: defineAsyncComponent(() => import("../../components/Begend/ListBegendComponent.vue")),
     FilterBegend: defineAsyncComponent(() => import("../../components/filtros/FilterBegend.vue")),
+  },
+  computed: {
+    ...mapStores(useBegendStore),
   },
   mounted() {
     this.$store.state.mainTitle = `LISTADO DE SERVICIOS`;

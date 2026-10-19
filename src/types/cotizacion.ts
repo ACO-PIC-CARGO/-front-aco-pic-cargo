@@ -129,7 +129,21 @@ export interface Incoterm {
 
 export interface Puerto {
   id_port?: number | string;
+  id?: number | string;
+  code?: string;
   name?: string;
+  description?: string | null;
+  id_pais?: number | string;
+  id_transporte?: number | string;
+  tipo_transporte_name?: string;
+  pais_description?: string;
+  begend_name?: string;
+  status?: number | string | boolean;
+  status_calls?: number;
+  status_calls_all?: number;
+  id_branch?: number;
+  created_at?: string;
+  updated_at?: string;
 }
 
 export interface OpcionCosto {

@@ -7,39 +7,39 @@
         icon
         color="default"
         @click="
-          $store.state.typepayment.drawer = !$store.state.typepayment.drawer
+          typepaymentStore.drawer = !typepaymentStore.drawer
         "
       >
         <v-icon>mdi-close</v-icon>
       </v-btn>
     </v-card-title>
-    <v-card-text v-if="$store.state.typepayment.tipo == 'filter'">
+    <v-card-text v-if="typepaymentStore.tipo == 'filter'">
       <div class="col-12 py-1">
         <v-text-field
-          v-model="$store.state.typepayment.filtros.code"
+          v-model="typepaymentStore.filtros.code"
           label="Código"
-          :clearable="$store.state.typepayment.tipo != 'ver'"
+          :clearable="typepaymentStore.tipo != 'ver'"
         ></v-text-field>
       </div>
       <div class="col-12 py-1">
         <v-text-field
-          v-model="$store.state.typepayment.filtros.name"
+          v-model="typepaymentStore.filtros.name"
           label="Nombre"
-          :clearable="$store.state.typepayment.tipo != 'ver'"
+          :clearable="typepaymentStore.tipo != 'ver'"
         ></v-text-field>
       </div>
       <div class="col-12 py-1">
         <v-text-field
-          v-model="$store.state.typepayment.filtros.description"
+          v-model="typepaymentStore.filtros.description"
           label="Descripción"
-          :clearable="$store.state.typepayment.tipo != 'ver'"
+          :clearable="typepaymentStore.tipo != 'ver'"
         ></v-text-field>
       </div>
 
       <div class="col-12 py-1">
         <span> Estado</span>
         <v-radio-group
-          v-model="$store.state.typepayment.filtros.status"
+          v-model="typepaymentStore.filtros.status"
           inline
           density="compact"
         >
@@ -53,16 +53,16 @@
       <v-form ref="frmDML">
         <div class="col-12 py-1">
           <v-text-field
-            v-model="$store.state.typepayment.model.code"
+            v-model="typepaymentStore.model.code"
             readonly
-            v-if="$store.state.typepayment.tipo != 'nuevo'"
+            v-if="typepaymentStore.tipo != 'nuevo'"
             label="Código"
           ></v-text-field>
         </div>
         <div class="col-12 py-1">
           <v-text-field
-            v-model="$store.state.typepayment.model.name"
-            :readonly="$store.state.typepayment.tipo == 'ver'"
+            v-model="typepaymentStore.model.name"
+            :readonly="typepaymentStore.tipo == 'ver'"
             label="Nombre (*)"
             :rules="[
               (v) =>
@@ -74,10 +74,10 @@
         </div>
         <div class="col-12 py-1">
           <v-text-field
-            v-model="$store.state.typepayment.model.description"
-            :readonly="$store.state.typepayment.tipo == 'ver'"
+            v-model="typepaymentStore.model.description"
+            :readonly="typepaymentStore.tipo == 'ver'"
             label="Descripción"
-            :clearable="$store.state.typepayment.tipo != 'ver'"
+            :clearable="typepaymentStore.tipo != 'ver'"
             :rules="[
               (v) =>
                 (!!v ? v.length < 50 : true) ||
@@ -89,12 +89,12 @@
         <div class="col-12 py-1">
           <span> Estado</span>
           <v-switch
-            :readonly="$store.state.typepayment.tipo == 'ver'"
+            :readonly="typepaymentStore.tipo == 'ver'"
             :label="`Estado: ${
-              !!$store.state.typepayment.model.status ? 'Activo' : 'Inactivo'
+              !!typepaymentStore.model.status ? 'Activo' : 'Inactivo'
             }`"
             color="success"
-            v-model="$store.state.typepayment.model.status"
+            v-model="typepaymentStore.model.status"
             :value-comparator="(value, checked) => Boolean(value) === checked"
           ></v-switch>
         </div>
@@ -106,7 +106,7 @@
       <v-btn
         class="mx-1"
         color="success"
-        v-if="$store.state.typepayment.tipo == 'filter'"
+        v-if="typepaymentStore.tipo == 'filter'"
         @click="Filtrar()"
         :loading="loading"
         >Aceptar</v-btn
@@ -114,7 +114,7 @@
       <v-btn
         class="mx-1"
         color="default"
-        v-if="$store.state.typepayment.tipo == 'filter'"
+        v-if="typepaymentStore.tipo == 'filter'"
         @click="Limpiar()"
         :loading="loading"
         >Limpiar</v-btn
@@ -122,7 +122,7 @@
       <v-btn
         class="mx-1"
         color="success"
-        v-if="$store.state.typepayment.tipo != 'filter' && $store.state.typepayment.tipo != 'ver'"
+        v-if="typepaymentStore.tipo != 'filter' && typepaymentStore.tipo != 'ver'"
         @click="Aceptar()"
         :loading="loading"
         >Aceptar</v-btn
@@ -131,7 +131,7 @@
         class="mx-1"
         color="warning"
         @click="
-          $store.state.typepayment.drawer = !$store.state.typepayment.drawer
+          typepaymentStore.drawer = !typepaymentStore.drawer
         "
         :loading="loading"
         >Cerrar</v-btn
@@ -140,7 +140,8 @@
   </v-card>
 </template>
 <script>
-import { mapActions } from "vuex";
+import { mapActions as mapPiniaActions, mapStores } from "pinia";
+import { useTypepaymentStore } from "@/stores/typepayment";
 export default {
   data() {
     return {
@@ -152,22 +153,18 @@ export default {
     };
   },
   methods: {
-    ...mapActions([
-      "GetListTypePayment",
-      "setTypePayment",
-      "ActualizarTypePayment",
-    ]),
+    ...mapPiniaActions(useTypepaymentStore, ["GetListTypePayment", "setTypePayment", "ActualizarTypePayment"]),
     getName() {
-      if (this.$store.state.typepayment.tipo == "ver") {
+      if (this.typepaymentStore.tipo == "ver") {
         return `Tipos de Pago ${this.model.name} – Modo Vista`;
       }
-      if (this.$store.state.typepayment.tipo == "nuevo") {
+      if (this.typepaymentStore.tipo == "nuevo") {
         return "Nuevo Tipos de Pago";
       }
-      if (this.$store.state.typepayment.tipo == "editar") {
+      if (this.typepaymentStore.tipo == "editar") {
         return `Modificar Tipo de Pago: ${this.model.name}`;
       }
-      if (this.$store.state.typepayment.tipo == "filter") {
+      if (this.typepaymentStore.tipo == "filter") {
         return "Filtrar Registros";
       }
     },
@@ -176,11 +173,11 @@ export default {
       this.loading = true;
       await this.GetListTypePayment();
       this.loading = false;
-      this.$store.state.typepayment.drawer =
-        !this.$store.state.typepayment.drawer;
+      this.typepaymentStore.drawer =
+        !this.typepaymentStore.drawer;
     },
     async Limpiar() {
-      this.$store.state.typepayment.filtros = {
+      this.typepaymentStore.filtros = {
         id: "",
         id_pais: "",
         code: "",
@@ -193,11 +190,11 @@ export default {
       await this.GetListTypePayment();
 
       this.loading = false;
-      this.$store.state.typepayment.drawer =
-        !this.$store.state.typepayment.drawer;
+      this.typepaymentStore.drawer =
+        !this.typepaymentStore.drawer;
     },
     async Aceptar() {
-      if (this.$store.state.typepayment.tipo == "nuevo") {
+      if (this.typepaymentStore.tipo == "nuevo") {
         if ((await this.$refs.frmDML.validate()).valid) {
           this.loading = true;
           await this.setTypePayment();
@@ -205,7 +202,7 @@ export default {
           this.loading = false;
         }
       }
-      if (this.$store.state.typepayment.tipo == "editar") {
+      if (this.typepaymentStore.tipo == "editar") {
         this.loading = true;
         if ((await this.$refs.frmDML.validate()).valid) {
           await this.ActualizarTypePayment();
@@ -213,43 +210,44 @@ export default {
         }
         this.loading = false;
       }
-      if (this.$store.state.typepayment.tipo == "ver") {
-        this.$store.state.typepayment.drawer =
-          !this.$store.state.typepayment.drawer;
+      if (this.typepaymentStore.tipo == "ver") {
+        this.typepaymentStore.drawer =
+          !this.typepaymentStore.drawer;
       }
     },
     async validate() {
       // getValidatePosition
       this.errPosition = "";
-      if (this.$store.state.typepayment.tipo == "nuevo") {
+      if (this.typepaymentStore.tipo == "nuevo") {
         let val = await this.getValidatePositionTypePayment();
         this.errPosition = val.mensaje;
         if (val.estadoflag) {
-          this.$store.state.typepayment.model.position = "";
+          this.typepaymentStore.model.position = "";
         }
       }
-      if (this.$store.state.typepayment.tipo == "editar") {
+      if (this.typepaymentStore.tipo == "editar") {
         let val = await this.getValidatePositionActualizarTypePayment();
         this.errPosition = val.mensaje;
         if (val.estadoflag) {
-          this.$store.state.typepayment.model.position = "";
+          this.typepaymentStore.model.position = "";
         }
       }
     },
   },
   computed: {
+    ...mapStores(useTypepaymentStore),
     drawer: {
       get() {
-        return this.$store.state.typepayment.drawer;
+        return this.typepaymentStore.drawer;
       },
       set(val) {
-        return (this.$store.state.typepayment.drawer = drawer);
+        return (this.typepaymentStore.drawer = drawer);
       },
     },
   },
   watch: {
     drawer() {
-      this.model = { ...this.$store.state.typepayment.model };
+      this.model = { ...this.typepaymentStore.model };
       this.$refs.frmDML.resetValidation();
     },
   },

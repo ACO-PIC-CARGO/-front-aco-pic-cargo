@@ -438,3 +438,86 @@ export interface FiltroDistrito {
   description: string | null;
   status: string;
 }
+
+export interface FiltroPuerto {
+  id: string;
+  id_pais: number | string | null;
+  code: string | null;
+  name: string | null;
+  description: string | null;
+  id_transporte: number | string | null;
+  status: string;
+}
+
+export interface Motonave {
+  id: number | string;
+  id_pais?: number | string;
+  code?: string;
+  name: string;
+  description: string | null;
+  id_transporte?: number | string;
+  status: number | string | boolean;
+  status_calls?: number;
+  status_calls_all?: number;
+  id_branch?: number;
+  created_at?: string;
+  updated_at?: string;
+}
+
+export interface FiltroMotonave {
+  id: string;
+  id_pais: number | string | null;
+  code: string | null;
+  name: string | null;
+  description: string | null;
+  id_transporte: number | string | null;
+  status: string;
+}
+
+export interface Begend {
+  id: number | string;
+  position: number | string;
+  code: string;
+  name: string;
+  description: string | null;
+  color: string | null;
+  status: number | string | boolean;
+  status_calls?: number;
+  status_calls_all?: number;
+  id_branch?: number;
+  created_at?: string;
+  updated_at?: string;
+}
+
+export interface FiltroBegend {
+  id: string;
+  position: number | string | null;
+  code: string | null;
+  name: string | null;
+  description: string | null;
+  color: string | null;
+  status: string;
+}
+
+export type FormBegend = Partial<Begend> & { ccode?: string };
+
+export interface TipoPago {
+  id: number | string;
+  code: string;
+  name: string;
+  description: string | null;
+  status: number | string | boolean;
+  status_calls?: number;
+  status_calls_all?: number;
+  id_branch?: number;
+  created_at?: string;
+  updated_at?: string;
+}
+
+export interface FiltroTipoPago {
+  id: string;
+  code: string | null;
+  name: string | null;
+  description: string | null;
+  status: boolean | number | string;
+}

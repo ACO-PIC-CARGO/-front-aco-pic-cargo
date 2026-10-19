@@ -28,7 +28,7 @@
         <v-col cols="12">
           <v-data-table
             :headers="headers"
-            :items="$store.state.begend.lstBegend"
+            :items="begendStore.lstBegend"
             class="elevation-1"
             item-value="port_beginend_id"
             :loading="loading"
@@ -103,8 +103,9 @@
 </template>
 
 <script>
-import { mapActions } from "vuex";
 import Swal from "sweetalert2";
+import { mapActions as mapPiniaActions, mapStores } from "pinia";
+import { useBegendStore } from "@/stores/begend";
 export default {
   data() {
     return {
@@ -126,30 +127,33 @@ export default {
       ],
     };
   },
+  computed: {
+    ...mapStores(useBegendStore),
+  },
   methods: {
-    ...mapActions(["GetListBegend", "ActualizarBegend"]),
+    ...mapPiniaActions(useBegendStore, ["GetListBegend", "ActualizarBegend"]),
     async filtrar() {
-      this.$store.state.begend.tipo = "filter";
+      this.begendStore.tipo = "filter";
 
-      this.$store.state.begend.drawer = !this.$store.state.begend.drawer;
+      this.begendStore.drawer = !this.begendStore.drawer;
     },
     async ver(item) {
       let datos = { ...item };
-      this.$store.state.begend.tipo = "ver";
-      this.$store.state.begend.model = datos;
+      this.begendStore.tipo = "ver";
+      this.begendStore.model = datos;
 
-      this.$store.state.begend.drawer = !this.$store.state.begend.drawer;
+      this.begendStore.drawer = !this.begendStore.drawer;
     },
     async editar(item) {
       let datos = { ...item };
-      this.$store.state.begend.tipo = "editar";
-      this.$store.state.begend.model = datos;
+      this.begendStore.tipo = "editar";
+      this.begendStore.model = datos;
 
-      this.$store.state.begend.drawer = !this.$store.state.begend.drawer;
+      this.begendStore.drawer = !this.begendStore.drawer;
     },
     async nuevo() {
-      this.$store.state.begend.tipo = "nuevo";
-      this.$store.state.begend.model = {
+      this.begendStore.tipo = "nuevo";
+      this.begendStore.model = {
         id: "",
         position: "",
         ccode: "",
@@ -160,7 +164,7 @@ export default {
         id_branch: JSON.parse(sessionStorage.getItem("dataUser"))[0].id_branch,
       };
 
-      this.$store.state.begend.drawer = !this.$store.state.begend.drawer;
+      this.begendStore.drawer = !this.begendStore.drawer;
     },
     async eliminar(item) {
       Swal.fire({
@@ -175,7 +179,7 @@ export default {
         showCancelButton: true,
       }).then(async (res) => {
         if (res.isConfirmed) {
-          this.$store.state.begend.filtros = {
+          this.begendStore.filtros = {
             id: "",
             position: "",
             code: "",
@@ -186,7 +190,7 @@ export default {
           };
 
           item.status = 0;
-          this.$store.state.begend.model = item;
+          this.begendStore.model = item;
           this.loading = true;
           await this.ActualizarBegend();
           await this.GetListBegend();

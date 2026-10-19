@@ -18,8 +18,8 @@
             class="mx-1"
             color="#2962FF"
             @click="
-              ($store.state.motonave.drawer = !$store.state.motonave.drawer) &&
-                ($store.state.motonave.tipo = 'filter')
+              (motonaveStore.drawer = !motonaveStore.drawer) &&
+                (motonaveStore.tipo = 'filter')
             "
             >FILTRAR</v-btn
           >
@@ -28,7 +28,7 @@
         <v-col cols="12">
           <v-data-table
             :headers="headers"
-            :items="$store.state.motonave.lstMotonave"
+            :items="motonaveStore.lstMotonave"
             class="elevation-1"
             item-value="port_beginend_id"
             :loading="loading"
@@ -98,8 +98,9 @@
 </template>
 
 <script>
-import { mapActions } from "vuex";
 import Swal from "sweetalert2";
+import { mapActions as mapPiniaActions, mapStores } from "pinia";
+import { useMotonaveStore } from "@/stores/motonave";
 export default {
   data() {
     return {
@@ -115,23 +116,26 @@ export default {
       ],
     };
   },
+  computed: {
+    ...mapStores(useMotonaveStore),
+  },
   methods: {
-    ...mapActions(["GetListMotonave", "ActualizarMotonave"]),
+    ...mapPiniaActions(useMotonaveStore, ["GetListMotonave", "ActualizarMotonave"]),
     ver(item) {
       let datos = { ...item };
-      this.$store.state.motonave.tipo = "ver";
-      this.$store.state.motonave.MotonaveModel = datos;
-      this.$store.state.motonave.drawer = !this.$store.state.motonave.drawer;
+      this.motonaveStore.tipo = "ver";
+      this.motonaveStore.MotonaveModel = datos;
+      this.motonaveStore.drawer = !this.motonaveStore.drawer;
     },
     editar(item) {
       let datos = { ...item };
-      this.$store.state.motonave.tipo = "editar";
-      this.$store.state.motonave.MotonaveModel = datos;
-      this.$store.state.motonave.drawer = !this.$store.state.motonave.drawer;
+      this.motonaveStore.tipo = "editar";
+      this.motonaveStore.MotonaveModel = datos;
+      this.motonaveStore.drawer = !this.motonaveStore.drawer;
     },
     nuevo() {
-      this.$store.state.motonave.tipo = "nuevo";
-      this.$store.state.motonave.MotonaveModel = {
+      this.motonaveStore.tipo = "nuevo";
+      this.motonaveStore.MotonaveModel = {
         id: "",
         id_pais: "",
         code: "",
@@ -141,7 +145,7 @@ export default {
         status: 1,
         id_branch: JSON.parse(sessionStorage.getItem("dataUser"))[0].id_branch,
       };
-      this.$store.state.motonave.drawer = !this.$store.state.motonave.drawer;
+      this.motonaveStore.drawer = !this.motonaveStore.drawer;
     },
     async eliminar(item) {
       Swal.fire({
@@ -157,7 +161,7 @@ export default {
       }).then(async (res) => {
         if (res.isConfirmed) {
           item.status = 0;
-          this.$store.state.motonave.MotonaveModel = item;
+          this.motonaveStore.MotonaveModel = item;
           this.loading = true;
           await this.ActualizarMotonave();
           await this.GetListMotonave();

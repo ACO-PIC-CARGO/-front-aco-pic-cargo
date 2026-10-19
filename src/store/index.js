@@ -24,10 +24,6 @@ import bank from "./modules/bank";
 import reportes from "./modules/reporte";
 import airlines from "./modules/airlines";
 import QuoteStatus from "./modules/QuoteStatus";
-import puerto from "./modules/puerto";
-import motonave from "./modules/motonave";
-import begend from "./modules/begend";
-import typepayment from "./modules/typepayment";
 import user from "./modules/user";
 import position from "./modules/position";
 import configEmpresa from "./modules/configEmpresa";
@@ -2874,10 +2870,6 @@ export default createStore({
     bank,
     airlines,
     QuoteStatus,
-    puerto,
-    motonave,
-    begend,
-    typepayment,
     user,
     position,
     configEmpresa,

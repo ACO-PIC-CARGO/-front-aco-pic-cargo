@@ -1650,6 +1650,8 @@ import Swal from "sweetalert2";
 import axios from "@/api/http";
 import { mapActions } from "vuex";
 import ArrastraYSolarComponent from "./ArrastraYSolarComponentFile.vue";
+import { mapActions as mapPiniaActions } from "pinia";
+import { usePuertoStore } from "@/stores/puerto";
 export default {
   components: {
     ArrastraYSolarComponent,
@@ -1834,8 +1836,8 @@ export default {
       "uploadFileFromUrlToOneDrive",
       "guardarDatosInstructivo",
       "quotePreviewInstructivoManual",
-      "verPuerto",
     ]),
+    ...mapPiniaActions(usePuertoStore, ["verPuerto"]),
     pasarASeguro() {
       this.e6 = 23;
     },

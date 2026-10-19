@@ -6,30 +6,30 @@
       <v-btn variant="text"
         icon
         color="default"
-        @click="$store.state.motonave.drawer = !$store.state.motonave.drawer"
+        @click="motonaveStore.drawer = !motonaveStore.drawer"
       >
         <v-icon>mdi-close</v-icon>
       </v-btn>
     </v-card-title>
-    <v-card-text v-if="$store.state.motonave.tipo == 'filter'">
+    <v-card-text v-if="motonaveStore.tipo == 'filter'">
       <div class="col-12 py-1">
         <v-text-field
-          v-model="$store.state.motonave.MotonaveFilter.name"
+          v-model="motonaveStore.MotonaveFilter.name"
           label="Nombre"
-          :clearable="$store.state.motonave.tipo != 'ver'"
+          :clearable="motonaveStore.tipo != 'ver'"
         ></v-text-field>
       </div>
       <div class="col-12 py-1">
         <v-text-field
-          v-model="$store.state.motonave.MotonaveFilter.description"
+          v-model="motonaveStore.MotonaveFilter.description"
           label="Descripción"
-          :clearable="$store.state.motonave.tipo != 'ver'"
+          :clearable="motonaveStore.tipo != 'ver'"
         ></v-text-field>
       </div>
       <div class="col-12 py-1">
         <span> Estado</span>
         <v-radio-group
-          v-model="$store.state.motonave.MotonaveFilter.status"
+          v-model="motonaveStore.MotonaveFilter.status"
           inline
           density="compact"
         >
@@ -43,8 +43,8 @@
       <v-form ref="frmDML">
         <div class="col-12 py-1">
           <v-text-field
-            v-model="$store.state.motonave.MotonaveModel.name"
-            :readonly="$store.state.motonave.tipo == 'ver'"
+            v-model="motonaveStore.MotonaveModel.name"
+            :readonly="motonaveStore.tipo == 'ver'"
             label="Nombre (*)"
             :rules="[
               (v) =>
@@ -56,10 +56,10 @@
         </div>
         <div class="col-12 py-1">
           <v-text-field
-            v-model="$store.state.motonave.MotonaveModel.description"
-            :readonly="$store.state.motonave.tipo == 'ver'"
+            v-model="motonaveStore.MotonaveModel.description"
+            :readonly="motonaveStore.tipo == 'ver'"
             label="Descripción"
-            :clearable="$store.state.motonave.tipo != 'ver'"
+            :clearable="motonaveStore.tipo != 'ver'"
             :rules="[
               (v) =>
                 !v ||
@@ -71,14 +71,14 @@
         <div class="col-12 py-1">
           <span> Estado</span>
           <v-switch
-            :readonly="$store.state.motonave.tipo == 'ver'"
+            :readonly="motonaveStore.tipo == 'ver'"
             :label="`Estado: ${
-              !!$store.state.motonave.MotonaveModel.status
+              !!motonaveStore.MotonaveModel.status
                 ? 'Activo'
                 : 'Inactivo'
             }`"
             color="success"
-            v-model="$store.state.motonave.MotonaveModel.status"
+            v-model="motonaveStore.MotonaveModel.status"
             :value-comparator="(value, checked) => Boolean(value) === checked"
           ></v-switch>
         </div>
@@ -90,7 +90,7 @@
       <v-btn
         class="mx-1"
         color="success"
-        v-if="$store.state.motonave.tipo == 'filter'"
+        v-if="motonaveStore.tipo == 'filter'"
         @click="Filtrar()"
         :loading="loading"
         >Aceptar</v-btn
@@ -98,7 +98,7 @@
       <v-btn
         class="mx-1"
         color="default"
-        v-if="$store.state.motonave.tipo == 'filter'"
+        v-if="motonaveStore.tipo == 'filter'"
         @click="Limpiar()"
         :loading="loading"
         >Limpiar</v-btn
@@ -106,7 +106,7 @@
       <v-btn
         class="mx-1"
         color="success"
-        v-if="$store.state.motonave.tipo != 'filter' && $store.state.motonave.tipo != 'ver'"
+        v-if="motonaveStore.tipo != 'filter' && motonaveStore.tipo != 'ver'"
         @click="Aceptar()"
         :loading="loading"
         >Aceptar</v-btn
@@ -114,7 +114,7 @@
       <v-btn
         class="mx-1"
         color="warning"
-        @click="$store.state.motonave.drawer = !$store.state.motonave.drawer"
+        @click="motonaveStore.drawer = !motonaveStore.drawer"
         :loading="loading"
         >Cerrar</v-btn
       >
@@ -122,24 +122,25 @@
   </v-card>
 </template>
 <script>
-import { mapActions } from "vuex";
+import { mapActions as mapPiniaActions, mapStores } from "pinia";
+import { useMotonaveStore } from "@/stores/motonave";
 export default {
   data() {
     return { errIATA: "", errICAO: "", loading: false, motonave: "" };
   },
   methods: {
-    ...mapActions(["GetListMotonave", "setMotonave", "ActualizarMotonave"]),
+    ...mapPiniaActions(useMotonaveStore, ["GetListMotonave", "setMotonave", "ActualizarMotonave"]),
     getName() {
-      if (this.$store.state.motonave.tipo == "ver") {
+      if (this.motonaveStore.tipo == "ver") {
         return `Motonave ${this.MotonaveModel.name} – Modo Vista`;
       }
-      if (this.$store.state.motonave.tipo == "nuevo") {
+      if (this.motonaveStore.tipo == "nuevo") {
         return "Nuevo Motonave";
       }
-      if (this.$store.state.motonave.tipo == "editar") {
+      if (this.motonaveStore.tipo == "editar") {
         return `Modificar Motonave: ${this.MotonaveModel.name}`;
       }
-      if (this.$store.state.motonave.tipo == "filter") {
+      if (this.motonaveStore.tipo == "filter") {
         return "Filtrar Regitros";
       }
     },
@@ -147,10 +148,10 @@ export default {
       this.loading = true;
       await this.GetListMotonave();
       this.loading = false;
-      this.$store.state.motonave.drawer = !this.$store.state.motonave.drawer;
+      this.motonaveStore.drawer = !this.motonaveStore.drawer;
     },
     async Limpiar() {
-      this.$store.state.motonave.MotonaveFilter = {
+      this.motonaveStore.MotonaveFilter = {
         id: "",
         id_pais: "",
         code: "",
@@ -162,10 +163,10 @@ export default {
       this.loading = true;
       await this.GetListMotonave();
       this.loading = false;
-      this.$store.state.motonave.drawer = !this.$store.state.motonave.drawer;
+      this.motonaveStore.drawer = !this.motonaveStore.drawer;
     },
     async Aceptar() {
-      if (this.$store.state.motonave.tipo == "nuevo") {
+      if (this.motonaveStore.tipo == "nuevo") {
         if ((await this.$refs.frmDML.validate()).valid) {
           this.loading = true;
           await this.setMotonave();
@@ -173,7 +174,7 @@ export default {
           this.loading = false;
         }
       }
-      if (this.$store.state.motonave.tipo == "editar") {
+      if (this.motonaveStore.tipo == "editar") {
         this.loading = true;
         if ((await this.$refs.frmDML.validate()).valid) {
           await this.ActualizarMotonave();
@@ -181,24 +182,25 @@ export default {
         }
         this.loading = false;
       }
-      if (this.$store.state.motonave.tipo == "ver") {
-        this.$store.state.motonave.drawer = !this.$store.state.motonave.drawer;
+      if (this.motonaveStore.tipo == "ver") {
+        this.motonaveStore.drawer = !this.motonaveStore.drawer;
       }
     },
   },
   computed: {
+    ...mapStores(useMotonaveStore),
     drawer: {
       get() {
-        return this.$store.state.motonave.drawer;
+        return this.motonaveStore.drawer;
       },
       set(val) {
-        return (this.$store.state.motonave.drawer = drawer);
+        return (this.motonaveStore.drawer = drawer);
       },
     },
   },
   watch: {
     drawer() {
-      this.MotonaveModel = { ...this.$store.state.motonave.MotonaveModel };
+      this.MotonaveModel = { ...this.motonaveStore.MotonaveModel };
     },
   },
 };

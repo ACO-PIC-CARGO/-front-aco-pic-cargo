@@ -1,5 +1,5 @@
 <template>
-  <!-- <div class="">{{ $store.state.typepayment.statusQuoteList }}</div> -->
+  <!-- <div class="">{{ typepaymentStore.statusQuoteList }}</div> -->
   <v-card fluid class="px-5">
     <v-row>
       <v-col cols="4">
@@ -18,9 +18,9 @@
           class="mx-1"
           color="#2962FF"
           @click="
-            ($store.state.typepayment.drawer =
-              !$store.state.typepayment.drawer) &&
-              ($store.state.typepayment.tipo = 'filter')
+            (typepaymentStore.drawer =
+              !typepaymentStore.drawer) &&
+              (typepaymentStore.tipo = 'filter')
           "
           >FILTRAR</v-btn
         >
@@ -29,7 +29,7 @@
       <v-col cols="12">
         <v-data-table
           :headers="headers"
-          :items="$store.state.typepayment.lstTypePayment"
+          :items="typepaymentStore.lstTypePayment"
           class="elevation-1"
           item-value="id"
           :loading="loading"
@@ -96,8 +96,9 @@
 </template>
 
 <script>
-import { mapActions } from "vuex";
 import Swal from "sweetalert2";
+import { mapActions as mapPiniaActions, mapStores } from "pinia";
+import { useTypepaymentStore } from "@/stores/typepayment";
 export default {
   data() {
     return {
@@ -119,40 +120,43 @@ export default {
     await this.GetListTypePayment();
     this.loading = false;
   },
+  computed: {
+    ...mapStores(useTypepaymentStore),
+  },
   methods: {
-    ...mapActions(["GetListTypePayment", "ActualizarTypePayment"]),
+    ...mapPiniaActions(useTypepaymentStore, ["GetListTypePayment", "ActualizarTypePayment"]),
     ver(item) {
       let datos = { ...item };
-      this.$store.state.typepayment.tipo = "ver";
-      this.$store.state.typepayment.model = datos;
-      this.$store.state.typepayment.drawer =
-        !this.$store.state.typepayment.drawer;
+      this.typepaymentStore.tipo = "ver";
+      this.typepaymentStore.model = datos;
+      this.typepaymentStore.drawer =
+        !this.typepaymentStore.drawer;
     },
     editar(item) {
       let datos = { ...item };
-      this.$store.state.typepayment.tipo = "editar";
-      this.$store.state.typepayment.model = datos;
-      this.$store.state.typepayment.drawer =
-        !this.$store.state.typepayment.drawer;
+      this.typepaymentStore.tipo = "editar";
+      this.typepaymentStore.model = datos;
+      this.typepaymentStore.drawer =
+        !this.typepaymentStore.drawer;
     },
     nuevo() {
-      this.$store.state.typepayment.tipo = "nuevo";
-      this.$store.state.typepayment.model = {
+      this.typepaymentStore.tipo = "nuevo";
+      this.typepaymentStore.model = {
         id: "",
         name: "",
         code: "",
-        position: this.$store.state.typepayment.max_position,
-        position_calls: this.$store.state.typepayment.max_position_calls,
-        position_report: this.$store.state.typepayment.max_position_report,
-        position_select: this.$store.state.typepayment.max_position_select,
+        position: this.typepaymentStore.max_position,
+        position_calls: this.typepaymentStore.max_position_calls,
+        position_report: this.typepaymentStore.max_position_report,
+        position_select: this.typepaymentStore.max_position_select,
         status_calls: "",
         status_calls_all: "",
         description: "",
         status: 1,
         id_branch: JSON.parse(sessionStorage.getItem("dataUser"))[0].id_branch,
       };
-      this.$store.state.typepayment.drawer =
-        !this.$store.state.typepayment.drawer;
+      this.typepaymentStore.drawer =
+        !this.typepaymentStore.drawer;
     },
     async eliminar(item) {
       Swal.fire({
@@ -168,7 +172,7 @@ export default {
       }).then(async (res) => {
         if (res.isConfirmed) {
           item.status = false;
-          this.$store.state.typepayment.model = item;
+          this.typepaymentStore.model = item;
           this.loading = true;
           await this.ActualizarTypePayment();
           await this.GetListTypePayment();

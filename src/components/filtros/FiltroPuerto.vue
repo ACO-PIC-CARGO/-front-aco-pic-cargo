@@ -6,20 +6,20 @@
       <v-btn variant="text"
         icon
         color="default"
-        @click="$store.state.puerto.drawer = !$store.state.puerto.drawer"
+        @click="puertoStore.drawer = !puertoStore.drawer"
       >
         <v-icon>mdi-close</v-icon>
       </v-btn>
     </v-card-title>
-    <v-card-text v-if="$store.state.puerto.tipo == 'filter'">
+    <v-card-text v-if="puertoStore.tipo == 'filter'">
       <div class="col-12 py-1">
         <v-autocomplete
           label="Tipo Transporte"
           :items="transportStore.list"
-          v-model="$store.state.puerto.PortFilter.id_transporte"
+          v-model="puertoStore.PortFilter.id_transporte"
           item-title="name"
           item-value="id"
-          :clearable="$store.state.puerto.tipo != 'ver'"
+          :clearable="puertoStore.tipo != 'ver'"
         >
         </v-autocomplete>
       </div>
@@ -27,39 +27,39 @@
         <v-autocomplete
           label="Pais"
           :items="$store.state.itemsPais"
-          v-model="$store.state.puerto.PortFilter.id_pais"
+          v-model="puertoStore.PortFilter.id_pais"
           item-title="name"
           item-value="id"
-          :clearable="$store.state.puerto.tipo != 'ver'"
+          :clearable="puertoStore.tipo != 'ver'"
         >
         </v-autocomplete>
       </div>
 
       <!-- <div class="col-12 py-1">
         <v-text-field
-          v-model="$store.state.puerto.PortFilter.code"
+          v-model="puertoStore.PortFilter.code"
           label="Código"
-          :clearable="$store.state.puerto.tipo != 'ver'"
+          :clearable="puertoStore.tipo != 'ver'"
         ></v-text-field>
       </div> -->
       <div class="col-12 py-1">
         <v-text-field
-          v-model="$store.state.puerto.PortFilter.name"
+          v-model="puertoStore.PortFilter.name"
           label="Nombre"
-          :clearable="$store.state.puerto.tipo != 'ver'"
+          :clearable="puertoStore.tipo != 'ver'"
         ></v-text-field>
       </div>
       <!-- <div class="col-12 py-1">
         <v-text-field
-          v-model="$store.state.puerto.PortFilter.description"
+          v-model="puertoStore.PortFilter.description"
           label="Descripción"
-          :clearable="$store.state.puerto.tipo != 'ver'"
+          :clearable="puertoStore.tipo != 'ver'"
         ></v-text-field>
       </div> -->
       <div class="col-12 py-1">
         <span> Estado</span>
         <v-radio-group
-          v-model="$store.state.puerto.PortFilter.status"
+          v-model="puertoStore.PortFilter.status"
           inline
           density="compact"
         >
@@ -75,8 +75,8 @@
           <v-autocomplete
             label="Tipo Transporte (*)"
             :items="transportStore.list"
-            v-model="$store.state.puerto.PortModel.id_transporte"
-            :readonly="$store.state.puerto.tipo != 'nuevo'"
+            v-model="puertoStore.PortModel.id_transporte"
+            :readonly="puertoStore.tipo != 'nuevo'"
             item-title="name"
             item-value="id"
             :rules="[(v) => !!v || 'Dato Requerido']"
@@ -88,8 +88,8 @@
           <v-autocomplete
             label="Pais (*)"
             :items="$store.state.itemsPais"
-            v-model="$store.state.puerto.PortModel.id_pais"
-            :readonly="$store.state.puerto.tipo == 'ver'"
+            v-model="puertoStore.PortModel.id_pais"
+            :readonly="puertoStore.tipo == 'ver'"
             item-title="name"
             item-value="id"
             :rules="[(v) => !!v || 'Dato Requerido']"
@@ -100,8 +100,8 @@
 
         <!-- <div class="col-12 py-1">
           <v-text-field
-            v-model="$store.state.puerto.PortModel.code"
-            :readonly="$store.state.puerto.tipo != 'nuevo'"
+            v-model="puertoStore.PortModel.code"
+            :readonly="puertoStore.tipo != 'nuevo'"
             label="Código (*)"
             :rules="[
               (v) =>
@@ -113,8 +113,8 @@
         </div> -->
         <div class="col-12 py-1">
           <v-text-field
-            v-model="$store.state.puerto.PortModel.name"
-            :readonly="$store.state.puerto.tipo == 'ver'"
+            v-model="puertoStore.PortModel.name"
+            :readonly="puertoStore.tipo == 'ver'"
             label="Nombre (*)"
             :rules="[
               (v) => !!v || 'Dato Requerido',
@@ -126,10 +126,10 @@
         </div>
         <!-- <div class="col-12 py-1">
           <v-text-field
-            v-model="$store.state.puerto.PortModel.description"
-            :readonly="$store.state.puerto.tipo == 'ver'"
+            v-model="puertoStore.PortModel.description"
+            :readonly="puertoStore.tipo == 'ver'"
             label="Descripción"
-            :clearable="$store.state.puerto.tipo != 'ver'"
+            :clearable="puertoStore.tipo != 'ver'"
             :rules="[
               (v) =>
                 (!!v ? v.length < 50 : true) ||
@@ -140,12 +140,12 @@
         <!-- <div class="col-12 py-1">
           <span> Estado</span>
           <v-switch
-            :readonly="$store.state.puerto.tipo == 'ver'"
+            :readonly="puertoStore.tipo == 'ver'"
             :label="`Estado: ${
-              !!$store.state.puerto.PortModel.status ? 'Activo' : 'Inactivo'
+              !!puertoStore.PortModel.status ? 'Activo' : 'Inactivo'
             }`"
             color="success"
-            v-model="$store.state.puerto.PortModel.status"
+            v-model="puertoStore.PortModel.status"
           ></v-switch>
         </div> -->
       </v-form>
@@ -156,7 +156,7 @@
       <v-btn
         class="mx-1"
         color="success"
-        v-if="$store.state.puerto.tipo == 'filter'"
+        v-if="puertoStore.tipo == 'filter'"
         @click="Filtrar()"
         :loading="loading"
         >Aceptar</v-btn
@@ -164,7 +164,7 @@
       <v-btn
         class="mx-1"
         color="default"
-        v-if="$store.state.puerto.tipo == 'filter'"
+        v-if="puertoStore.tipo == 'filter'"
         @click="Limpiar()"
         :loading="loading"
         >Limpiar</v-btn
@@ -173,8 +173,8 @@
         class="mx-1"
         color="success"
         v-if="
-          $store.state.puerto.tipo != 'filter' &&
-          $store.state.puerto.tipo != 'ver'
+          puertoStore.tipo != 'filter' &&
+          puertoStore.tipo != 'ver'
         "
         @click="Aceptar()"
         :loading="loading"
@@ -183,7 +183,7 @@
       <v-btn
         class="mx-1"
         color="warning"
-        @click="$store.state.puerto.drawer = !$store.state.puerto.drawer"
+        @click="puertoStore.drawer = !puertoStore.drawer"
         :loading="loading"
         >Cerrar</v-btn
       >
@@ -194,29 +194,28 @@
 import { mapActions } from "vuex";
 import { mapActions as mapPiniaActions, mapStores } from "pinia";
 import { useTransportStore } from "@/stores/transport";
+import { usePuertoStore } from "@/stores/puerto";
 export default {
   data() {
     return { errIATA: "", errICAO: "", loading: false, puerto: "" };
   },
   methods: {
     ...mapActions([
-      "GetListPort",
       "_getPais",
-      "setPuerto",
-      "ActualizarPuerto",
     ]),
+    ...mapPiniaActions(usePuertoStore, ["GetListPort", "setPuerto", "ActualizarPuerto"]),
     ...mapPiniaActions(useTransportStore, ["cargarTransport"]),
     getName() {
-      if (this.$store.state.puerto.tipo == "ver") {
+      if (this.puertoStore.tipo == "ver") {
         return `Puerto ${this.PortModel.name} – Modo Vista`;
       }
-      if (this.$store.state.puerto.tipo == "nuevo") {
+      if (this.puertoStore.tipo == "nuevo") {
         return "Nuevo Puerto";
       }
-      if (this.$store.state.puerto.tipo == "editar") {
+      if (this.puertoStore.tipo == "editar") {
         return `Modificar Puerto: ${this.PortModel.name}`;
       }
-      if (this.$store.state.puerto.tipo == "filter") {
+      if (this.puertoStore.tipo == "filter") {
         return "Filtrar Registros";
       }
     },
@@ -224,10 +223,10 @@ export default {
       this.loading = true;
       await this.GetListPort();
       this.loading = false;
-      this.$store.state.puerto.drawer = !this.$store.state.puerto.drawer;
+      this.puertoStore.drawer = !this.puertoStore.drawer;
     },
     async Limpiar() {
-      this.$store.state.puerto.PortFilter = {
+      this.puertoStore.PortFilter = {
         id: "",
         id_pais: "",
         code: "",
@@ -239,10 +238,10 @@ export default {
       this.loading = true;
       await this.GetListPort();
       this.loading = false;
-      this.$store.state.puerto.drawer = !this.$store.state.puerto.drawer;
+      this.puertoStore.drawer = !this.puertoStore.drawer;
     },
     async Aceptar() {
-      if (this.$store.state.puerto.tipo == "nuevo") {
+      if (this.puertoStore.tipo == "nuevo") {
         if ((await this.$refs.frmDML.validate()).valid) {
           this.loading = true;
           await this.setPuerto();
@@ -250,7 +249,7 @@ export default {
           this.loading = false;
         }
       }
-      if (this.$store.state.puerto.tipo == "editar") {
+      if (this.puertoStore.tipo == "editar") {
         this.loading = true;
         if ((await this.$refs.frmDML.validate()).valid) {
           await this.ActualizarPuerto();
@@ -258,25 +257,25 @@ export default {
         }
         this.loading = false;
       }
-      if (this.$store.state.puerto.tipo == "ver") {
-        this.$store.state.puerto.drawer = !this.$store.state.puerto.drawer;
+      if (this.puertoStore.tipo == "ver") {
+        this.puertoStore.drawer = !this.puertoStore.drawer;
       }
     },
   },
   computed: {
-    ...mapStores(useTransportStore),
+    ...mapStores(usePuertoStore, useTransportStore),
     drawer: {
       get() {
-        return this.$store.state.puerto.drawer;
+        return this.puertoStore.drawer;
       },
       set(val) {
-        return (this.$store.state.puerto.drawer = drawer);
+        return (this.puertoStore.drawer = drawer);
       },
     },
   },
   watch: {
     drawer() {
-      this.PortModel = { ...this.$store.state.puerto.PortModel };
+      this.PortModel = { ...this.puertoStore.PortModel };
       this.$refs.frmDML.resetValidation();
     },
   },
