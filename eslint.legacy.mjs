@@ -1,5 +1,4 @@
 export const LEGACY = [
-  "src/App.vue",
   "src/api/axios-config.js",
   "src/components/Begend/ListBegendComponent.vue",
   "src/components/Calculadora/Configuracion.vue",
