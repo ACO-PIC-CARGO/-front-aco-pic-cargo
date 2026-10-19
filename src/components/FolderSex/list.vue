@@ -37,7 +37,7 @@
       v-if="!loading"
       class="elevation-1"
       :headers="headers"
-      :items="$store.state.sex.list"
+      :items="sexStore.list"
       item-value="id"
       :search="search"
     >
@@ -146,7 +146,7 @@
         <v-list-item class="px-0">
           
             <v-list-item-title class="text-headline-small">
-              Ver: {{ $store.state.sex.record.name }}
+              Ver: {{ sexStore.record.name }}
             </v-list-item-title>
           
         </v-list-item>
@@ -157,38 +157,38 @@
             <v-text-field
               label="Código"
               readonly
-              :model-value="$store.state.sex.record.code"
+              :model-value="sexStore.record.code"
             ></v-text-field>
           </v-row>
           <v-row>
             <v-text-field
               label="Nombre"
               readonly
-              :model-value="$store.state.sex.record.name"
+              :model-value="sexStore.record.name"
             ></v-text-field>
           </v-row>
           <v-row>
             <v-text-field
               label="Acrónimo"
               readonly
-              :model-value="$store.state.sex.record.acronym"
+              :model-value="sexStore.record.acronym"
             ></v-text-field>
           </v-row>
           <v-row>
             <v-text-field
               label="Descripción"
               readonly
-              :model-value="$store.state.sex.record.description"
+              :model-value="sexStore.record.description"
             ></v-text-field>
           </v-row>
           <v-row>
             <v-switch
               readonly
               :label="`Estado: ${
-                !!$store.state.sex.record.status ? 'Activo' : 'Inactivo'
+                !!sexStore.record.status ? 'Activo' : 'Inactivo'
               }`"
               color="success"
-              v-model="$store.state.sex.record.status"
+              v-model="sexStore.record.status"
               :value-comparator="(value, checked) => Boolean(value) === checked"
             ></v-switch>
           </v-row>
@@ -232,7 +232,7 @@
         <v-list-item class="px-0">
           
             <v-list-item-title class="text-headline-small">
-              Modificar: {{ $store.state.sex.record.name }}
+              Modificar: {{ sexStore.record.name }}
             </v-list-item-title>
           
         </v-list-item>
@@ -404,9 +404,11 @@
 </template>
 
 <script>
-import { mapState, mapActions } from "vuex";
+import { mapState } from "vuex";
 import Swal from "sweetalert2";
 import axios from '@/api/http';
+import { mapActions as mapPiniaActions, mapStores } from "pinia";
+import { useSexStore } from "@/stores/sex";
 
 export default {
   name: "ListSexComponent",
@@ -462,7 +464,7 @@ export default {
     this.$store.state.mainTitle = `Género`;
   },
   methods: {
-    ...mapActions(["fetchDataSex", "insertSex", "readSex", "updateSex"]),
+    ...mapPiniaActions(useSexStore, ["fetchDataSex", "insertSex", "readSex", "updateSex"]),
     updateStatus(newValue) {
       this.record.status = newValue ? 1 : 0;
     },
@@ -650,10 +652,11 @@ export default {
     },
   },
   computed: {
+    ...mapStores(useSexStore),
     ...mapState(["list"]),
   },
   watch: {
-    "$store.state.sex.record": {
+    "sexStore.record": {
       handler(newRecord, oldRecord) {
         if (newRecord && Object.keys(newRecord).length > 0) {
           this.record.code = newRecord.code;
@@ -666,7 +669,7 @@ export default {
       },
       immediate: true,
     },
-    "$store.state.sex.loading": {
+    "sexStore.loading": {
       handler(newList, oldList) {
         this.loading = newList == true ? false : true;
       },

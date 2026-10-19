@@ -22,7 +22,6 @@ import enterprises from "./modules/enterprise";
 import masterusuarios from "./modules/masterusuario";
 import type_phone from "./modules/typePhone";
 import year from "./modules/year";
-import sex from "./modules/sex";
 import bank from "./modules/bank";
 import transport from "./modules/transport";
 import reportes from "./modules/reporte";
@@ -2882,7 +2881,6 @@ export default createStore({
     masterusuarios,
     type_phone,
     year,
-    sex,
     bank,
     transport,
     shipment,
