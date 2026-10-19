@@ -1,7 +1,46 @@
+<script setup lang="ts">
+import { computed } from "vue";
+import { storeToRefs } from "pinia";
+import { useLegalPagesStore } from "@/stores/legalPages";
+import type { LegalSectionDraft, LegalSectionErrors } from "@/types/legal";
+
+const props = withDefaults(
+  defineProps<{
+    modelValue: LegalSectionDraft;
+    index: number;
+    count: number;
+    errors?: LegalSectionErrors;
+  }>(),
+  { errors: () => ({ heading: "", text: "" }) },
+);
+const emit = defineEmits<{
+  "update:modelValue": [section: LegalSectionDraft];
+  move: [offset: number];
+  remove: [];
+}>();
+
+const legalPagesStore = useLegalPagesStore();
+const { limits } = storeToRefs(legalPagesStore);
+
+const number = computed(() => props.index + 1);
+const hint = computed(
+  () =>
+    `${legalPagesStore.textLength(props.modelValue.text)} de ${
+      limits.value.text
+    } caracteres. Separa los párrafos con una línea en blanco.`,
+);
+
+function update(field: "heading" | "text", text: string) {
+  emit("update:modelValue", { ...props.modelValue, [field]: text });
+}
+</script>
+
 <template>
   <li class="legal-section">
     <div class="legal-section__head">
-      <h2 class="legal-section__title">Sección {{ number }}</h2>
+      <h2 class="legal-section__title">
+        Sección {{ number }}
+      </h2>
       <div class="legal-section__actions">
         <v-btn
           :id="`${modelValue.key}-up`"
@@ -68,39 +107,6 @@
     />
   </li>
 </template>
-
-<script>
-import { mapActions, mapState } from "pinia";
-import { useLegalPagesStore } from "@/stores/legalPages";
-
-export default {
-  name: "LegalSectionEditor",
-  emits: ["update:modelValue", "move", "remove"],
-  props: {
-    modelValue: { type: Object, required: true },
-    index: { type: Number, required: true },
-    count: { type: Number, required: true },
-    errors: { type: Object, default: () => ({ heading: "", text: "" }) },
-  },
-  computed: {
-    ...mapState(useLegalPagesStore, ["limits"]),
-    number() {
-      return this.index + 1;
-    },
-    hint() {
-      return `${this.textLength(this.modelValue.text)} de ${
-        this.limits.text
-      } caracteres. Separa los párrafos con una línea en blanco.`;
-    },
-  },
-  methods: {
-    ...mapActions(useLegalPagesStore, ["textLength"]),
-    update(field, text) {
-      this.$emit("update:modelValue", { ...this.modelValue, [field]: text });
-    },
-  },
-};
-</script>
 
 <style scoped>
 .legal-section {

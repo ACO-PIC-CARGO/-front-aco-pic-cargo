@@ -1,31 +1,26 @@
+<script setup lang="ts">
+import "@/styles/plans-theme.css";
+
+withDefaults(defineProps<{ floating?: boolean }>(), { floating: false });
+</script>
+
 <template>
   <nav
     class="legal-links plans-theme"
     :class="{ 'legal-links--floating': floating }"
     aria-label="Información legal"
   >
-    <router-link :to="{ name: 'LegalTerms' }"
-      >Términos y condiciones</router-link
-    >
-    <router-link :to="{ name: 'LegalPrivacy' }"
-      >Política de privacidad</router-link
-    >
-    <router-link :to="{ name: 'LegalRefunds' }"
-      >Política de reembolsos</router-link
-    >
+    <router-link :to="{ name: 'LegalTerms' }">
+      Términos y condiciones
+    </router-link>
+    <router-link :to="{ name: 'LegalPrivacy' }">
+      Política de privacidad
+    </router-link>
+    <router-link :to="{ name: 'LegalRefunds' }">
+      Política de reembolsos
+    </router-link>
   </nav>
 </template>
-
-<script>
-import "@/styles/plans-theme.css";
-
-export default {
-  name: "LegalLinks",
-  props: {
-    floating: { type: Boolean, default: false },
-  },
-};
-</script>
 
 <style scoped>
 .legal-links {

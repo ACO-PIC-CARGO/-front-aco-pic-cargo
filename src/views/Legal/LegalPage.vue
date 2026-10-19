@@ -1,3 +1,40 @@
+<script setup lang="ts">
+import { ref, watch } from "vue";
+import { storeToRefs } from "pinia";
+import "@/styles/plans-theme.css";
+import LegalLinks from "@/components/Legal/LegalLinks.vue";
+import { useLegalPagesStore } from "@/stores/legalPages";
+
+const props = defineProps<{ page: string }>();
+
+const legalPagesStore = useLegalPagesStore();
+const { page: content } = storeToRefs(legalPagesStore);
+const { formatUpdatedAt } = legalPagesStore;
+
+const loadState = ref("loading");
+
+watch(
+  () => props.page,
+  () => {
+    load();
+  },
+  { immediate: true },
+);
+
+async function load() {
+  const slug = props.page;
+  loadState.value = "loading";
+  const response = await legalPagesStore.loadPage(slug);
+  if (slug !== props.page) return;
+  if (!response.estadoflag) {
+    loadState.value = "error";
+    return;
+  }
+  legalPagesStore.page = response.data[0]!;
+  loadState.value = "ready";
+}
+</script>
+
 <template>
   <div class="legal plans-theme">
     <main class="legal__container">
@@ -6,34 +43,54 @@
           class="legal__logo"
           src="/img/login/logo-aco.png"
           alt="ACO, Agencia de Carga Online"
-        />
+        >
         <template v-if="loadState === 'ready'">
-          <h1 class="legal__title">{{ content.title }}</h1>
+          <h1 class="legal__title">
+            {{ content!.title }}
+          </h1>
           <p class="legal__updated">
-            Última actualización: {{ formatUpdatedAt(content.updated_at) }}
+            Última actualización: {{ formatUpdatedAt(content!.updated_at) }}
           </p>
         </template>
       </header>
 
-      <p v-if="loadState === 'loading'" class="legal__state" aria-busy="true">
-        <v-icon class="mdi-spin">mdi-loading</v-icon> Cargando…
+      <p
+        v-if="loadState === 'loading'"
+        class="legal__state"
+        aria-busy="true"
+      >
+        <v-icon class="mdi-spin">
+          mdi-loading
+        </v-icon> Cargando…
       </p>
 
-      <div v-else-if="loadState === 'error'" class="legal__state" role="alert">
-        <p class="legal__state-title">No pudimos cargar esta página.</p>
+      <div
+        v-else-if="loadState === 'error'"
+        class="legal__state"
+        role="alert"
+      >
+        <p class="legal__state-title">
+          No pudimos cargar esta página.
+        </p>
         <p>Revisa tu conexión e intenta de nuevo.</p>
-        <v-btn variant="text" class="plans-button plans-button--secondary" @click="load">
+        <v-btn
+          variant="text"
+          class="plans-button plans-button--secondary"
+          @click="load"
+        >
           Reintentar
         </v-btn>
       </div>
 
       <template v-else>
         <section
-          v-for="(section, index) in content.sections"
+          v-for="(section, index) in content!.sections"
           :key="index"
           class="legal__section"
         >
-          <h2 class="legal__heading">{{ section.heading }}</h2>
+          <h2 class="legal__heading">
+            {{ section.heading }}
+          </h2>
           <p
             v-for="(paragraph, position) in section.paragraphs"
             :key="position"
@@ -43,56 +100,16 @@
         </section>
       </template>
 
-      <router-link :to="{ name: 'Planes' }" class="legal__back">
+      <router-link
+        :to="{ name: 'Planes' }"
+        class="legal__back"
+      >
         Ver planes
       </router-link>
       <LegalLinks class="legal__links" />
     </main>
   </div>
 </template>
-
-<script>
-import "@/styles/plans-theme.css";
-import { mapActions, mapState, mapStores } from "pinia";
-import { useLegalPagesStore } from "@/stores/legalPages";
-import LegalLinks from "@/components/Legal/LegalLinks.vue";
-
-export default {
-  name: "LegalPage",
-  components: { LegalLinks },
-  props: {
-    page: { type: String, required: true },
-  },
-  data: () => ({ loadState: "loading" }),
-  computed: {
-    ...mapStores(useLegalPagesStore),
-    ...mapState(useLegalPagesStore, { content: "page" }),
-  },
-  watch: {
-    page: {
-      handler() {
-        this.load();
-      },
-      immediate: true,
-    },
-  },
-  methods: {
-    ...mapActions(useLegalPagesStore, ["loadPage", "formatUpdatedAt"]),
-    async load() {
-      const slug = this.page;
-      this.loadState = "loading";
-      const response = await this.loadPage(slug);
-      if (slug !== this.page) return;
-      if (!response.estadoflag) {
-        this.loadState = "error";
-        return;
-      }
-      this.legalPagesStore.page = response.data[0];
-      this.loadState = "ready";
-    },
-  },
-};
-</script>
 
 <style scoped>
 .legal {

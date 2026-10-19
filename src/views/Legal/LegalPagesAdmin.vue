@@ -1,8 +1,191 @@
+<script setup lang="ts">
+import { computed, nextTick, onBeforeUnmount, onMounted, ref, useTemplateRef } from "vue";
+import { onBeforeRouteLeave } from "vue-router";
+import { storeToRefs } from "pinia";
+import Swal from "sweetalert2";
+import { useStore } from "vuex";
+import "@/styles/plans-theme.css";
+import LegalSectionEditor from "./LegalSectionEditor.vue";
+import { useLegalPagesStore } from "@/stores/legalPages";
+import type { LegalDraftErrors, LegalSectionDraft } from "@/types/legal";
+
+interface PageView {
+  label: string;
+  shortLabel: string;
+  route: string;
+}
+
+const PAGE_VIEWS: Record<string, PageView> = {
+  terminos: {
+    label: "Términos y condiciones",
+    shortLabel: "Términos",
+    route: "LegalTerms",
+  },
+  privacidad: {
+    label: "Política de privacidad",
+    shortLabel: "Privacidad",
+    route: "LegalPrivacy",
+  },
+  reembolsos: {
+    label: "Política de reembolsos",
+    shortLabel: "Reembolsos",
+    route: "LegalRefunds",
+  },
+};
+
+const NO_ERRORS: LegalDraftErrors = { size: "", title: "", sections: "", items: [] };
+
+const focusById = (id: string) => {
+  const element = document.getElementById(id);
+  if (element) element.focus();
+};
+
+const rootStore = useStore();
+const legalPagesStore = useLegalPagesStore();
+const { pages, drafts, limits, dirtySlugs } = storeToRefs(legalPagesStore);
+const { formatUpdatedAt, draftErrors, hasDraftErrors, placeholders } = legalPagesStore;
+
+const showErrors = ref<Record<string, boolean>>({});
+const activeSlug = ref("");
+const loadState = ref("loading");
+const errorMessage = ref("");
+const saving = ref(false);
+const panel = useTemplateRef("panel");
+const pageError = useTemplateRef("pageError");
+
+const activePage = computed(() => pages.value.find((page) => page.slug === activeSlug.value)!);
+const draft = computed(() => drafts.value[activeSlug.value]!);
+const draftTitle = computed({
+  get: () => draft.value.title,
+  set: (title: string) => {
+    legalPagesStore.drafts[activeSlug.value]!.title = title;
+  },
+});
+const errors = computed(() =>
+  showErrors.value[activeSlug.value] ? draftErrors(activeSlug.value) : NO_ERRORS,
+);
+const isAtSectionLimit = computed(() => draft.value.sections.length >= limits.value.sections);
+const isActiveDirty = computed(() => dirtySlugs.value.includes(activeSlug.value));
+const activePlaceholders = computed(() => placeholders(activeSlug.value));
+
+onBeforeRouteLeave(async () => {
+  if (saving.value) return false;
+  if (!dirtySlugs.value.length) return;
+  const { isConfirmed } = await Swal.fire({
+    icon: "warning",
+    title: "Tienes cambios sin guardar",
+    text: "Si sales ahora, se perderán.",
+    showCancelButton: true,
+    confirmButtonText: "Salir sin guardar",
+    cancelButtonText: "Seguir editando",
+    reverseButtons: true,
+  });
+  return isConfirmed;
+});
+
+onMounted(() => {
+  rootStore.state.mainTitle = "PÁGINAS LEGALES";
+  window.addEventListener("beforeunload", warnBeforeUnload);
+  load();
+});
+
+onBeforeUnmount(() => {
+  window.removeEventListener("beforeunload", warnBeforeUnload);
+});
+
+function pageView(slug: string) {
+  return PAGE_VIEWS[slug]!;
+}
+async function load() {
+  loadState.value = "loading";
+  const error = await legalPagesStore.loadPages();
+  if (error) {
+    errorMessage.value = error;
+    loadState.value = "error";
+    return;
+  }
+  showErrors.value = {};
+  if (!activeSlug.value && pages.value.length) {
+    activeSlug.value = pages.value[0]!.slug;
+  }
+  loadState.value = "ready";
+}
+function updateSection(index: number, section: LegalSectionDraft) {
+  legalPagesStore.drafts[activeSlug.value]!.sections.splice(index, 1, section);
+}
+function addSection() {
+  legalPagesStore.addSection(activeSlug.value);
+  const section = draft.value.sections[draft.value.sections.length - 1]!;
+  nextTick(() => focusById(`${section.key}-heading`));
+}
+function onMoveSection(index: number, offset: number) {
+  const { key } = draft.value.sections[index]!;
+  legalPagesStore.moveSection({
+    slug: activeSlug.value,
+    index,
+    offset,
+  });
+  const [preferred, other] = offset < 0 ? ["up", "down"] : ["down", "up"];
+  nextTick(() => {
+    const button = document.getElementById(`${key}-${preferred}`) as HTMLButtonElement;
+    focusById(button.disabled ? `${key}-${other}` : button.id);
+  });
+}
+async function removeSection(index: number) {
+  const { heading, text } = draft.value.sections[index]!;
+  if (heading.trim() || text.trim()) {
+    const { isConfirmed } = await Swal.fire({
+      icon: "warning",
+      title: "¿Eliminar esta sección?",
+      text: "Si cambias de idea, usa Descartar cambios antes de guardar.",
+      showCancelButton: true,
+      confirmButtonText: "Eliminar",
+      cancelButtonText: "Cancelar",
+      reverseButtons: true,
+    });
+    if (!isConfirmed) return;
+  }
+  legalPagesStore.drafts[activeSlug.value]!.sections.splice(index, 1);
+  const { sections } = draft.value;
+  const neighbor = sections[Math.min(index, sections.length - 1)]!;
+  nextTick(() => focusById(`${neighbor.key}-heading`));
+}
+function discardChanges() {
+  legalPagesStore.resetDraft(activeSlug.value);
+  showErrors.value[activeSlug.value] = false;
+}
+function focusFirstInvalid() {
+  const field =
+    (panel.value!.$el as HTMLElement).querySelector<HTMLElement>('[aria-invalid="true"]') ||
+    pageError.value;
+  if (field) field.focus();
+}
+async function save() {
+  const slug = activeSlug.value;
+  showErrors.value[slug] = true;
+  if (hasDraftErrors(slug)) {
+    nextTick(focusFirstInvalid);
+    return;
+  }
+  saving.value = true;
+  const saved = await legalPagesStore.savePage(slug);
+  saving.value = false;
+  if (saved) showErrors.value[slug] = false;
+}
+function warnBeforeUnload(event: BeforeUnloadEvent) {
+  if (!dirtySlugs.value.length) return;
+  event.preventDefault();
+  event.returnValue = "";
+}
+</script>
+
 <template>
   <div class="legal-admin plans-theme plans-theme--app">
     <div class="legal-admin__container">
       <header class="legal-admin__header">
-        <h1 class="legal-admin__title">Páginas legales</h1>
+        <h1 class="legal-admin__title">
+          Páginas legales
+        </h1>
         <p class="legal-admin__subtitle">
           Edita los textos de Términos, Privacidad y Reembolsos. Tus clientes
           ven los cambios en cuanto los guardas.
@@ -14,7 +197,9 @@
         class="legal-admin__state"
         aria-busy="true"
       >
-        <v-icon class="mdi-spin">mdi-loading</v-icon>
+        <v-icon class="mdi-spin">
+          mdi-loading
+        </v-icon>
         Cargando las páginas…
       </p>
 
@@ -27,12 +212,19 @@
           No pudimos cargar las páginas legales.
         </p>
         <p>{{ errorMessage }}</p>
-        <v-btn variant="text" class="plans-button plans-button--secondary" @click="load">
+        <v-btn
+          variant="text"
+          class="plans-button plans-button--secondary"
+          @click="load"
+        >
           Reintentar
         </v-btn>
       </div>
 
-      <div v-else-if="!pages.length" class="legal-admin__state">
+      <div
+        v-else-if="!pages.length"
+        class="legal-admin__state"
+      >
         <p class="legal-admin__state-title">
           Todavía no hay páginas legales para editar. Avísale a soporte.
         </p>
@@ -60,7 +252,10 @@
               {{ pageView(page.slug).shortLabel }}
             </span>
             <template v-if="dirtySlugs.includes(page.slug)">
-              <span class="legal-admin__dot" aria-hidden="true"></span>
+              <span
+                class="legal-admin__dot"
+                aria-hidden="true"
+              />
               <span class="d-sr-only">(cambios sin guardar)</span>
             </template>
           </v-tab>
@@ -97,12 +292,14 @@
             <v-icon>mdi-alert-circle-outline</v-icon>
             <span>
               Reemplaza estos datos entre corchetes por los reales:
-              <strong>{{ activePlaceholders.join(", ") }}</strong
-              >.
+              <strong>{{ activePlaceholders.join(", ") }}</strong>.
             </span>
           </p>
 
-          <fieldset class="legal-admin__fields" :disabled="saving">
+          <fieldset
+            class="legal-admin__fields"
+            :disabled="saving"
+          >
             <v-text-field
               id="legal-page-title"
               v-model="draftTitle"
@@ -161,7 +358,10 @@
           </fieldset>
 
           <div class="legal-admin__bar">
-            <p class="legal-admin__status" role="status">
+            <p
+              class="legal-admin__status"
+              role="status"
+            >
               {{
                 isActiveDirty
                   ? "Tienes cambios sin guardar."
@@ -183,7 +383,12 @@
                 class="plans-button plans-button--primary"
                 :disabled="!isActiveDirty || saving"
               >
-                <v-icon v-if="saving" class="mdi-spin">mdi-loading</v-icon>
+                <v-icon
+                  v-if="saving"
+                  class="mdi-spin"
+                >
+                  mdi-loading
+                </v-icon>
                 {{ saving ? "Guardando…" : "Guardar cambios" }}
               </v-btn>
             </div>
@@ -193,203 +398,6 @@
     </div>
   </div>
 </template>
-
-<script>
-import Swal from "sweetalert2";
-import "@/styles/plans-theme.css";
-import { mapActions, mapState, mapStores } from "pinia";
-import { useLegalPagesStore } from "@/stores/legalPages";
-import LegalSectionEditor from "./LegalSectionEditor.vue";
-
-const PAGE_VIEWS = {
-  terminos: {
-    label: "Términos y condiciones",
-    shortLabel: "Términos",
-    route: "LegalTerms",
-  },
-  privacidad: {
-    label: "Política de privacidad",
-    shortLabel: "Privacidad",
-    route: "LegalPrivacy",
-  },
-  reembolsos: {
-    label: "Política de reembolsos",
-    shortLabel: "Reembolsos",
-    route: "LegalRefunds",
-  },
-};
-
-const NO_ERRORS = { size: "", title: "", sections: "", items: [] };
-
-const focusById = (id) => {
-  const element = document.getElementById(id);
-  if (element) element.focus();
-};
-
-export default {
-  name: "LegalPagesAdmin",
-  components: { LegalSectionEditor },
-  async beforeRouteLeave() {
-    if (this.saving) return false;
-    if (!this.dirtySlugs.length) return;
-    const { isConfirmed } = await Swal.fire({
-      icon: "warning",
-      title: "Tienes cambios sin guardar",
-      text: "Si sales ahora, se perderán.",
-      showCancelButton: true,
-      confirmButtonText: "Salir sin guardar",
-      cancelButtonText: "Seguir editando",
-      reverseButtons: true,
-    });
-    return isConfirmed;
-  },
-  data: () => ({
-    showErrors: {},
-    activeSlug: "",
-    loadState: "loading",
-    errorMessage: "",
-    saving: false,
-  }),
-  computed: {
-    ...mapStores(useLegalPagesStore),
-    ...mapState(useLegalPagesStore, ["pages", "drafts", "limits", "dirtySlugs"]),
-    activePage() {
-      return this.pages.find((page) => page.slug === this.activeSlug);
-    },
-    draft() {
-      return this.drafts[this.activeSlug];
-    },
-    draftTitle: {
-      get() {
-        return this.draft.title;
-      },
-      set(title) {
-        this.legalPagesStore.drafts[this.activeSlug].title = title;
-      },
-    },
-    errors() {
-      return this.showErrors[this.activeSlug]
-        ? this.draftErrors(this.activeSlug)
-        : NO_ERRORS;
-    },
-    isAtSectionLimit() {
-      return this.draft.sections.length >= this.limits.sections;
-    },
-    isActiveDirty() {
-      return this.dirtySlugs.includes(this.activeSlug);
-    },
-    activePlaceholders() {
-      return this.placeholders(this.activeSlug);
-    },
-  },
-  mounted() {
-    this.$store.state.mainTitle = "PÁGINAS LEGALES";
-    window.addEventListener("beforeunload", this.warnBeforeUnload);
-    this.load();
-  },
-  beforeUnmount() {
-    window.removeEventListener("beforeunload", this.warnBeforeUnload);
-  },
-  methods: {
-    ...mapActions(useLegalPagesStore, [
-      "loadPages",
-      "savePage",
-      "formatUpdatedAt",
-      "draftErrors",
-      "hasDraftErrors",
-      "placeholders",
-    ]),
-    pageView(slug) {
-      return PAGE_VIEWS[slug];
-    },
-    async load() {
-      this.loadState = "loading";
-      const error = await this.loadPages();
-      if (error) {
-        this.errorMessage = error;
-        this.loadState = "error";
-        return;
-      }
-      this.showErrors = {};
-      if (!this.activeSlug && this.pages.length) {
-        this.activeSlug = this.pages[0].slug;
-      }
-      this.loadState = "ready";
-    },
-    updateSection(index, section) {
-      this.legalPagesStore.drafts[this.activeSlug].sections.splice(
-        index,
-        1,
-        section
-      );
-    },
-    addSection() {
-      this.legalPagesStore.addSection(this.activeSlug);
-      const section = this.draft.sections[this.draft.sections.length - 1];
-      this.$nextTick(() => focusById(`${section.key}-heading`));
-    },
-    onMoveSection(index, offset) {
-      const { key } = this.draft.sections[index];
-      this.legalPagesStore.moveSection({
-        slug: this.activeSlug,
-        index,
-        offset,
-      });
-      const [preferred, other] = offset < 0 ? ["up", "down"] : ["down", "up"];
-      this.$nextTick(() => {
-        const button = document.getElementById(`${key}-${preferred}`);
-        focusById(button.disabled ? `${key}-${other}` : button.id);
-      });
-    },
-    async removeSection(index) {
-      const { heading, text } = this.draft.sections[index];
-      if (heading.trim() || text.trim()) {
-        const { isConfirmed } = await Swal.fire({
-          icon: "warning",
-          title: "¿Eliminar esta sección?",
-          text: "Si cambias de idea, usa Descartar cambios antes de guardar.",
-          showCancelButton: true,
-          confirmButtonText: "Eliminar",
-          cancelButtonText: "Cancelar",
-          reverseButtons: true,
-        });
-        if (!isConfirmed) return;
-      }
-      this.legalPagesStore.drafts[this.activeSlug].sections.splice(index, 1);
-      const { sections } = this.draft;
-      const neighbor = sections[Math.min(index, sections.length - 1)];
-      this.$nextTick(() => focusById(`${neighbor.key}-heading`));
-    },
-    discardChanges() {
-      this.legalPagesStore.resetDraft(this.activeSlug);
-      this.showErrors[this.activeSlug] = false;
-    },
-    focusFirstInvalid() {
-      const field =
-        this.$refs.panel.$el.querySelector('[aria-invalid="true"]') ||
-        this.$refs.pageError;
-      if (field) field.focus();
-    },
-    async save() {
-      const slug = this.activeSlug;
-      this.showErrors[slug] = true;
-      if (this.hasDraftErrors(slug)) {
-        this.$nextTick(this.focusFirstInvalid);
-        return;
-      }
-      this.saving = true;
-      const saved = await this.savePage(slug);
-      this.saving = false;
-      if (saved) this.showErrors[slug] = false;
-    },
-    warnBeforeUnload(event) {
-      if (!this.dirtySlugs.length) return;
-      event.preventDefault();
-      event.returnValue = "";
-    },
-  },
-};
-</script>
 
 <style scoped>
 .legal-admin :where(h1, p, ol) {
