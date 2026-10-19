@@ -83,3 +83,33 @@ export interface GuardarTextoWhatsappFcl {
   id?: number | null;
   id_branch?: number;
 }
+
+export interface CostoBase {
+  id?: number;
+  code?: number;
+  tramo?: string;
+  seccion?: string;
+  servicio?: string;
+  concepto?: string;
+  multiplicador?: string;
+  monto?: number | string;
+  proveedor?: string;
+  exwflag?: boolean;
+  fcaflag?: boolean;
+  fobflag?: boolean;
+  cfrflag?: boolean;
+  cifflag?: boolean;
+  ddpflag?: boolean;
+}
+
+export interface TarifaCosto extends CostoBase {
+  status?: number;
+  esopcionflag?: number;
+  esfleteflag?: number;
+  esorigenflag?: number;
+  esdestinoflag?: number;
+  eslocalflag?: number;
+  esaduanaflag?: number;
+  esalmacenflag?: number;
+  esgastostercerosflag?: number;
+}
