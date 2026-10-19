@@ -4,6 +4,7 @@ import { useRouter } from "vue-router";
 import CboPais from "@/components/comun/CboPais.vue";
 import { useEnterprisesStore } from "@/stores/enterprises";
 import { useSecuritysStore } from "@/stores/securitys";
+import type { ApiResponse } from "@/types/api";
 import type { PaisSeleccionado } from "@/types/empresas";
 
 const router = useRouter();
@@ -168,7 +169,7 @@ async function crearNuevaEmpresa() {
     validarCorreo() &&
     !res!.estadoflag
   ) {
-    const res = await enterprisesStore.validarCodigoVerificacion(true);
+    const res = (await enterprisesStore.validarCodigoVerificacion(true)) as ApiResponse;
     if (res.estadoflag) {
       dialogRegistrandoEmpresa.value = true;
 
@@ -180,7 +181,7 @@ async function crearNuevaEmpresa() {
     } else {
       snackbarEmail.value = true;
       colorSnakBar.value = "orange-darken-2";
-      snackbarText.value = res.mensaje!;
+      snackbarText.value = res.mensaje;
       icon.value = "alert";
     }
   } else {

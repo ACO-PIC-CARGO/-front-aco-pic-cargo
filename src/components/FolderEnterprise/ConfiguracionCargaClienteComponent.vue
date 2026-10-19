@@ -5,6 +5,7 @@ import type { SheetData } from "read-excel-file/browser";
 import { useStore } from "vuex";
 import Swal from "sweetalert2";
 import { useConfigEmpresaStore } from "@/stores/configEmpresa";
+import { useEnterprisesStore } from "@/stores/enterprises";
 import type { Modalidad } from "@/types/catalogos";
 import type { TipoCarga } from "@/types/cotizacion";
 
@@ -12,6 +13,7 @@ const emit = defineEmits<{ omitir: []; regresar: []; continuarConfigurarTarifari
 
 const rootStore = useStore();
 const configEmpresaStore = useConfigEmpresaStore();
+const enterprisesStore = useEnterprisesStore();
 
 const dialog = ref(false);
 const subirCliente = ref(false);
@@ -58,6 +60,13 @@ onMounted(() => {
   id_shipment.value = ids_shipment.value[0];
 });
 
+// Shadowed by the later omitir, so it never ran.
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+function omitirSombreado() {
+  enterprisesStore.datoClienteFlag = false;
+  enterprisesStore.step++;
+  enterprisesStore.inicioFlag = true;
+}
 function scrollToSubirCostos() {
   window.scrollTo({ top: 0, behavior: "smooth" });
 }

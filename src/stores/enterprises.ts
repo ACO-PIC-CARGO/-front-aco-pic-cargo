@@ -217,7 +217,7 @@ export const useEnterprisesStore = defineStore("enterprises", () => {
       .then((response) => {
         sessionStorage.setItem("security", String(response.data.data[0]!.data_users.id_secutiry));
 
-        const dataUser = response.data.data[0]!.data_users;
+        const dataUser = response.data.data[0]!.data_users; // es un array
         const dataBranch = response.data.data[0]!.data_branch;
         dataUser[0]!.id_user = dataUser[0]!.id;
         dataUser[0]!.id = dataUser[0]!.id_entitie;
@@ -247,8 +247,8 @@ export const useEnterprisesStore = defineStore("enterprises", () => {
     });
   }
 
-  async function validarCodigoVerificacion(eliminar = false): Promise<Partial<ApiResponse>> {
-    let res = [] as Partial<ApiResponse>;
+  async function validarCodigoVerificacion(eliminar = false): Promise<ApiResponse | never[]> {
+    let res: ApiResponse | never[] = [];
     await axios<ApiResponse>({
       method: "get",
       url:

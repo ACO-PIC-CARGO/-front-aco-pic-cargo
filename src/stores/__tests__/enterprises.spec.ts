@@ -4,6 +4,7 @@ import Swal from "sweetalert2";
 import router from "@/router";
 import { useEnterprisesStore } from "@/stores/enterprises";
 import { useUserStore } from "@/stores/user";
+import type { ApiResponse } from "@/types/api";
 import { JSON_HEADERS, URL_MAIN, accepted, flushPromises, httpMock, rejected, respond } from "./catalogHttp";
 
 vi.mock("@/api/http", () => ({ default: vi.fn() }));
@@ -290,8 +291,8 @@ describe("enterprises store", () => {
       "validar_token_registro?email=ana@acme.pe&codigo=1234&eliminartoken=false",
       "validar_correo_registro?email=ana@acme.pe",
     ]);
-    expect(token.estadoflag).toBe(true);
-    expect(tokenKept.estadoflag).toBe(true);
+    expect((token as ApiResponse).estadoflag).toBe(true);
+    expect((tokenKept as ApiResponse).estadoflag).toBe(true);
     expect(email!.estadoflag).toBe(true);
   });
 
