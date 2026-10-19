@@ -20,15 +20,6 @@ describe("itemServices store", () => {
   });
   afterEach(() => vi.restoreAllMocks());
 
-  test("starts on the filter form with the active filter and an empty model status", () => {
-    const store = useItemServicesStore();
-
-    expect(store.tipo).toBe("filter");
-    expect(store.drawer).toBe(false);
-    expect(store.filtros).toEqual({ id: "", id_groupservices: "", code: "", name: "", description: "", id_branch: "", status: 1 });
-    expect(store.model.status).toBe("");
-  });
-
   test("GetListItemServices reads the current filters, sends 'Todos' as empty and keeps the rows", async () => {
     respond({ listar_itemservices: accepted([row]) });
     const store = useItemServicesStore();

@@ -1,3 +1,5 @@
+import type { Incoterm } from "@/types/cotizacion";
+
 export interface Moneda {
   id: number;
   code: string;
@@ -11,6 +13,17 @@ export interface Moneda {
   updated_at?: string;
 }
 
+export interface FiltroMonedas {
+  code: string | null;
+  symbol: string | null;
+  acronym: string | null;
+  name: string | null;
+  description: string | null;
+  status: number | string;
+}
+
+export type FormMoneda = Partial<Moneda> & { id_branch?: number };
+
 export interface ComentarioPredefinido {
   id: number | string;
   code: string;
@@ -20,6 +33,14 @@ export interface ComentarioPredefinido {
   created_at?: string;
   updated_at?: string;
 }
+
+export interface FiltroComentariosPredefinidos {
+  code?: string | null;
+  comentario?: string | null;
+  status?: number | string;
+}
+
+export type FormComentarioPredefinido = Partial<ComentarioPredefinido>;
 
 export interface TipoContenedor {
   id: number;
@@ -37,6 +58,8 @@ export interface TipoContenedor {
   updated_at?: string;
 }
 
+export type FormContenedor = Partial<TipoContenedor> & { id_branch?: number };
+
 export interface TipoDocumento {
   id: number;
   code: string;
@@ -46,6 +69,8 @@ export interface TipoDocumento {
   created_at?: string;
   updated_at?: string;
 }
+
+export type FormDocumento = Partial<TipoDocumento> & { id_branch?: number };
 
 export interface FiltroCatalogo {
   code: string | null;
@@ -70,6 +95,8 @@ export interface FiltroGastoIngreso {
   calculoflag: boolean | string;
   status: boolean | string;
 }
+
+export type FormGasto = Omit<Partial<TipoGasto>, "calculoflag"> & { id_branch?: number; calculoflag?: boolean | string };
 
 export interface SubGasto {
   id: number | string;
@@ -107,6 +134,8 @@ export interface GrupoServicio {
   updated_at?: string;
 }
 
+export type FormServicio = Partial<GrupoServicio> & { id_branch?: number };
+
 export interface ItemServicio {
   id: number | string;
   id_groupservices: number | string | null;
@@ -142,6 +171,8 @@ export interface TipoIngreso {
   updated_at?: string | null;
 }
 
+export type FormIngreso = Omit<Partial<TipoIngreso>, "calculoflag"> & { id_branch?: number; calculoflag?: boolean | string };
+
 export interface SubIngreso {
   id: number | string;
   id_ingreso: number | string | null;
@@ -167,3 +198,11 @@ export interface FiltroSubIngreso {
   calculoflag: boolean | string;
   mostrarflag: boolean | string;
 }
+
+export interface FiltroIncoterms {
+  name: string | null;
+  description: string | null;
+  status: number | string;
+}
+
+export type FormIncoterm = Incoterm & { id_branch?: number };

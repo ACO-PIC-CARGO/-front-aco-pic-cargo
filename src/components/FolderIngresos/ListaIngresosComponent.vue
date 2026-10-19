@@ -4,9 +4,8 @@ import Swal from "sweetalert2";
 import { useStore } from "vuex";
 import axios from "@/api/http";
 import { useIngresosStore } from "@/stores/ingresos";
-import type { FormIngreso } from "@/stores/ingresos";
 import type { ApiResponse } from "@/types/api";
-import type { FiltroGastoIngreso, TipoIngreso } from "@/types/catalogos";
+import type { FiltroGastoIngreso, FormIngreso, TipoIngreso } from "@/types/catalogos";
 import { sessionBranchId } from "@/utils/sesion";
 
 const ingresosStore = useIngresosStore();

@@ -3,7 +3,7 @@ import { ref } from "vue";
 import Swal from "sweetalert2";
 import axios from "@/api/http";
 import type { ApiResponse } from "@/types/api";
-import type { FiltroCatalogo, TipoContenedor } from "@/types/catalogos";
+import type { FiltroCatalogo, FormContenedor, TipoContenedor } from "@/types/catalogos";
 import { showRejectedResponse } from "@/utils/rejectedResponse";
 import { sessionBranchId } from "@/utils/sesion";
 
@@ -42,7 +42,7 @@ export const useContainersStore = defineStore("containers", () => {
       });
   }
 
-  async function insertContainers(data: Partial<TipoContenedor> & { id_branch?: number }): Promise<void> {
+  async function insertContainers(data: FormContenedor): Promise<void> {
     await axios<ApiResponse>({
       method: "post",
       url: import.meta.env.VITE_URL_MAIN + "insertar_containers",
@@ -89,7 +89,7 @@ export const useContainersStore = defineStore("containers", () => {
       });
   }
 
-  async function updateContainers(data: Partial<TipoContenedor>): Promise<void> {
+  async function updateContainers(data: FormContenedor): Promise<void> {
     await axios<ApiResponse>({
       method: "put",
       url: import.meta.env.VITE_URL_MAIN + "actualizar_containers",

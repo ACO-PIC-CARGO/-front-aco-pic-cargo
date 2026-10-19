@@ -4,15 +4,10 @@ import Swal from "sweetalert2";
 import axios from "@/api/http";
 import store from "@/store";
 import type { ApiResponse } from "@/types/api";
+import type { FiltroIncoterms, FormIncoterm } from "@/types/catalogos";
 import type { Incoterm } from "@/types/cotizacion";
 import { showRejectedResponse } from "@/utils/rejectedResponse";
 import { sessionBranchId } from "@/utils/sesion";
-
-export interface FiltroIncoterms {
-  name: string | null;
-  description: string | null;
-  status: number | string;
-}
 
 export const useIncotermStore = defineStore("incoterm", () => {
   const list = ref<Incoterm[]>([]);
@@ -54,7 +49,7 @@ export const useIncotermStore = defineStore("incoterm", () => {
       });
   }
 
-  async function insertIncoterms(data: Incoterm & { id_branch?: number }): Promise<void> {
+  async function insertIncoterms(data: FormIncoterm): Promise<void> {
     await axios<ApiResponse>({
       method: "post",
       url: import.meta.env.VITE_URL_MAIN + "insertar_incoterms",
@@ -101,7 +96,7 @@ export const useIncotermStore = defineStore("incoterm", () => {
       });
   }
 
-  async function updateIncoterms(data: Incoterm & { id_branch?: number }): Promise<void> {
+  async function updateIncoterms(data: FormIncoterm): Promise<void> {
     await axios<ApiResponse>({
       method: "put",
       url: import.meta.env.VITE_URL_MAIN + "actualizar_incoterms",

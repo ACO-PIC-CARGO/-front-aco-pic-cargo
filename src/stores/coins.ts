@@ -3,18 +3,9 @@ import { ref } from "vue";
 import Swal from "sweetalert2";
 import axios from "@/api/http";
 import type { ApiResponse } from "@/types/api";
-import type { Moneda } from "@/types/catalogos";
+import type { FiltroMonedas, FormMoneda, Moneda } from "@/types/catalogos";
 import { showRejectedResponse } from "@/utils/rejectedResponse";
 import { sessionBranchId } from "@/utils/sesion";
-
-export interface FiltroMonedas {
-  code: string | null;
-  symbol: string | null;
-  acronym: string | null;
-  name: string | null;
-  description: string | null;
-  status: number | string;
-}
 
 export const useCoinsStore = defineStore("coins", () => {
   const list = ref<Moneda[]>([]);
@@ -54,7 +45,7 @@ export const useCoinsStore = defineStore("coins", () => {
       });
   }
 
-  async function insertCoins(data: Partial<Moneda> & { id_branch?: number }): Promise<void> {
+  async function insertCoins(data: FormMoneda): Promise<void> {
     await axios<ApiResponse>({
       method: "post",
       url: import.meta.env.VITE_URL_MAIN + "insertar_coins",
@@ -101,7 +92,7 @@ export const useCoinsStore = defineStore("coins", () => {
       });
   }
 
-  async function updateCoins(data: Partial<Moneda>): Promise<void> {
+  async function updateCoins(data: FormMoneda): Promise<void> {
     await axios<ApiResponse>({
       method: "put",
       url: import.meta.env.VITE_URL_MAIN + "actualizar_coins",

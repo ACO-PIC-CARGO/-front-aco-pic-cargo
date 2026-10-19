@@ -3,8 +3,7 @@ import { onMounted, ref, useTemplateRef, watch } from "vue";
 import Swal from "sweetalert2";
 import { useStore } from "vuex";
 import { useComentariosPredefinidosStore } from "@/stores/comentariosPredefinidos";
-import type { FiltroComentariosPredefinidos } from "@/stores/comentariosPredefinidos";
-import type { ComentarioPredefinido } from "@/types/catalogos";
+import type { ComentarioPredefinido, FiltroComentariosPredefinidos, FormComentarioPredefinido } from "@/types/catalogos";
 import { sessionBranchId } from "@/utils/sesion";
 
 const comentariosPredefinidosStore = useComentariosPredefinidosStore();
@@ -20,7 +19,7 @@ const headers = [
 ] as const;
 const loading = false;
 const search = ref("");
-const record = ref<Partial<ComentarioPredefinido>>({
+const record = ref<FormComentarioPredefinido>({
   id_branch: sessionBranchId(),
   code: "",
   comentario: "",

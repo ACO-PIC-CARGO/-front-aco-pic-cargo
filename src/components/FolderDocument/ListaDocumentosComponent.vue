@@ -3,10 +3,8 @@ import { onMounted, ref, useTemplateRef, watch } from "vue";
 import Swal from "sweetalert2";
 import { useStore } from "vuex";
 import { useDocumentStore } from "@/stores/document";
-import type { FiltroCatalogo, TipoDocumento } from "@/types/catalogos";
+import type { FiltroCatalogo, FormDocumento, TipoDocumento } from "@/types/catalogos";
 import { sessionBranchId } from "@/utils/sesion";
-
-type FormDocumento = Partial<TipoDocumento> & { id_branch?: number };
 
 const documentStore = useDocumentStore();
 const rootStore = useStore();

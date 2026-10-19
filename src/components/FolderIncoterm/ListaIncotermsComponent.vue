@@ -3,11 +3,9 @@ import { onMounted, ref, useTemplateRef, watch } from "vue";
 import Swal from "sweetalert2";
 import { useStore } from "vuex";
 import { useIncotermStore } from "@/stores/incoterm";
-import type { FiltroIncoterms } from "@/stores/incoterm";
+import type { FiltroIncoterms, FormIncoterm } from "@/types/catalogos";
 import type { Incoterm } from "@/types/cotizacion";
 import { sessionBranchId } from "@/utils/sesion";
-
-type FormIncoterm = Incoterm & { id_branch?: number };
 
 const incotermStore = useIncotermStore();
 const rootStore = useStore();

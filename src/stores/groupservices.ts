@@ -3,7 +3,7 @@ import { ref } from "vue";
 import Swal from "sweetalert2";
 import axios from "@/api/http";
 import type { ApiResponse } from "@/types/api";
-import type { FiltroCatalogo, GrupoServicio } from "@/types/catalogos";
+import type { FiltroCatalogo, FormServicio, GrupoServicio } from "@/types/catalogos";
 import { showRejectedResponse } from "@/utils/rejectedResponse";
 import { sessionBranchId } from "@/utils/sesion";
 
@@ -68,7 +68,7 @@ export const useGroupservicesStore = defineStore("groupservices", () => {
       });
   }
 
-  async function insertGroupServices(data: Partial<GrupoServicio> & { id_branch?: number }): Promise<void> {
+  async function insertGroupServices(data: FormServicio): Promise<void> {
     await axios<ApiResponse>({
       method: "post",
       url: import.meta.env.VITE_URL_MAIN + "insertar_groupservices",
@@ -116,7 +116,7 @@ export const useGroupservicesStore = defineStore("groupservices", () => {
       });
   }
 
-  async function updateGroupServices(data: Partial<GrupoServicio> & { id_branch?: number }): Promise<void> {
+  async function updateGroupServices(data: FormServicio): Promise<void> {
     await axios<ApiResponse>({
       method: "put",
       url: import.meta.env.VITE_URL_MAIN + "actualizar_groupservices",

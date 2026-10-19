@@ -3,11 +3,8 @@ import { onMounted, ref, useTemplateRef, watch } from "vue";
 import Swal from "sweetalert2";
 import { useStore } from "vuex";
 import { useCoinsStore } from "@/stores/coins";
-import type { FiltroMonedas } from "@/stores/coins";
-import type { Moneda } from "@/types/catalogos";
+import type { FiltroMonedas, FormMoneda, Moneda } from "@/types/catalogos";
 import { sessionBranchId } from "@/utils/sesion";
-
-type FormMoneda = Partial<Moneda> & { id_branch?: number };
 
 const coinsStore = useCoinsStore();
 const rootStore = useStore();

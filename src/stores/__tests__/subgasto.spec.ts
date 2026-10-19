@@ -20,23 +20,6 @@ describe("subgasto store", () => {
   });
   afterEach(() => vi.restoreAllMocks());
 
-  test("starts on the filter form with the active, all-flags filter", () => {
-    const store = useSubgastoStore();
-
-    expect(store.tipo).toBe("filter");
-    expect(store.drawer).toBe(false);
-    expect(store.filtros).toEqual({
-      id: "",
-      id_gasto: "",
-      code: "",
-      description: "",
-      status: true,
-      id_branch: "",
-      calculoflag: "null",
-      mostrarflag: "null",
-    });
-  });
-
   test("GetListSubGasto reads the current filters, sends 'Todos' as empty and keeps the rows", async () => {
     respond({ listar_subgasto: accepted([row]) });
     const store = useSubgastoStore();

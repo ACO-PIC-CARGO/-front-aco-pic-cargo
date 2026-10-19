@@ -3,7 +3,7 @@ import { ref } from "vue";
 import Swal from "sweetalert2";
 import axios from "@/api/http";
 import type { ApiResponse } from "@/types/api";
-import type { FiltroCatalogo, TipoDocumento } from "@/types/catalogos";
+import type { FiltroCatalogo, FormDocumento, TipoDocumento } from "@/types/catalogos";
 import { showRejectedResponse } from "@/utils/rejectedResponse";
 import { sessionBranchId } from "@/utils/sesion";
 
@@ -42,7 +42,7 @@ export const useDocumentStore = defineStore("document", () => {
       });
   }
 
-  async function insertDocument(data: Partial<TipoDocumento> & { id_branch?: number }): Promise<void> {
+  async function insertDocument(data: FormDocumento): Promise<void> {
     await axios<ApiResponse>({
       method: "post",
       url: import.meta.env.VITE_URL_MAIN + "insertar_documents",
@@ -89,7 +89,7 @@ export const useDocumentStore = defineStore("document", () => {
       });
   }
 
-  async function updateDocument(data: Partial<TipoDocumento>): Promise<void> {
+  async function updateDocument(data: FormDocumento): Promise<void> {
     await axios<ApiResponse>({
       method: "put",
       url: import.meta.env.VITE_URL_MAIN + "actualizar_documents",

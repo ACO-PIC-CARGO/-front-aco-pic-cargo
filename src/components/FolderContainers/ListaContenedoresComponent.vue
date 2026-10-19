@@ -3,10 +3,8 @@ import { onMounted, ref, useTemplateRef, watch } from "vue";
 import Swal from "sweetalert2";
 import { useStore } from "vuex";
 import { useContainersStore } from "@/stores/containers";
-import type { FiltroCatalogo, TipoContenedor } from "@/types/catalogos";
+import type { FiltroCatalogo, FormContenedor, TipoContenedor } from "@/types/catalogos";
 import { sessionBranchId } from "@/utils/sesion";
-
-type FormContenedor = Partial<TipoContenedor> & { id_branch?: number };
 
 const containersStore = useContainersStore();
 const rootStore = useStore();

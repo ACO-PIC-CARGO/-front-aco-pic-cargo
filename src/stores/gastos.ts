@@ -3,11 +3,9 @@ import { ref } from "vue";
 import Swal from "sweetalert2";
 import axios from "@/api/http";
 import type { ApiResponse } from "@/types/api";
-import type { FiltroGastoIngreso, TipoGasto } from "@/types/catalogos";
+import type { FiltroGastoIngreso, FormGasto, TipoGasto } from "@/types/catalogos";
 import { showRejectedResponse } from "@/utils/rejectedResponse";
 import { sessionBranchId } from "@/utils/sesion";
-
-export type FormGasto = Omit<Partial<TipoGasto>, "calculoflag"> & { id_branch?: number; calculoflag?: boolean | string };
 
 export const useGastosStore = defineStore("gastos", () => {
   const list = ref<TipoGasto[]>([]);

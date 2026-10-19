@@ -4,15 +4,9 @@ import Swal from "sweetalert2";
 import moment from "moment";
 import axios from "@/api/http";
 import type { ApiResponse } from "@/types/api";
-import type { ComentarioPredefinido } from "@/types/catalogos";
+import type { ComentarioPredefinido, FiltroComentariosPredefinidos, FormComentarioPredefinido } from "@/types/catalogos";
 import { showRejectedResponse } from "@/utils/rejectedResponse";
 import { sessionBranchId } from "@/utils/sesion";
-
-export interface FiltroComentariosPredefinidos {
-  code?: string | null;
-  comentario?: string | null;
-  status?: number | string;
-}
 
 export const useComentariosPredefinidosStore = defineStore("comentariosPredefinidos", () => {
   const list = ref<ComentarioPredefinido[]>([]);
@@ -73,7 +67,7 @@ export const useComentariosPredefinidosStore = defineStore("comentariosPredefini
       });
   }
 
-  async function insertComentarioPredefinido(data: Partial<ComentarioPredefinido>): Promise<void> {
+  async function insertComentarioPredefinido(data: FormComentarioPredefinido): Promise<void> {
     await axios<ApiResponse>({
       method: "post",
       url: import.meta.env.VITE_URL_MAIN + "insertarComentarioPredefinido",
@@ -96,7 +90,7 @@ export const useComentariosPredefinidosStore = defineStore("comentariosPredefini
       });
   }
 
-  async function updateComentarioPredefinido(data: Partial<ComentarioPredefinido>): Promise<void> {
+  async function updateComentarioPredefinido(data: FormComentarioPredefinido): Promise<void> {
     await axios<ApiResponse>({
       method: "put",
       url: import.meta.env.VITE_URL_MAIN + "actualizarComentarioPredefinido",
@@ -119,7 +113,7 @@ export const useComentariosPredefinidosStore = defineStore("comentariosPredefini
       });
   }
 
-  async function deleteComentarioPredefinido(data: Partial<ComentarioPredefinido>): Promise<void> {
+  async function deleteComentarioPredefinido(data: FormComentarioPredefinido): Promise<void> {
     await axios<ApiResponse>({
       method: "post",
       url: import.meta.env.VITE_URL_MAIN + "eliminarComentarioPredefinido",

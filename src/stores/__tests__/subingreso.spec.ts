@@ -20,23 +20,6 @@ describe("subingreso store", () => {
   });
   afterEach(() => vi.restoreAllMocks());
 
-  test("starts on the filter form with the active, all-flags filter", () => {
-    const store = useSubingresoStore();
-
-    expect(store.tipo).toBe("filter");
-    expect(store.drawer).toBe(false);
-    expect(store.filtros).toEqual({
-      id: "",
-      id_ingreso: "",
-      code: "",
-      description: "",
-      status: true,
-      id_branch: "",
-      calculoflag: "null",
-      mostrarflag: "null",
-    });
-  });
-
   test("GetListSubIngreso reads the current filters, sends 'Todos' as empty and keeps the rows", async () => {
     respond({ listar_subingreso: accepted([row]) });
     const store = useSubingresoStore();

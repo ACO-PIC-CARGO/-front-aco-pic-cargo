@@ -3,10 +3,8 @@ import { onMounted, ref, useTemplateRef, watch } from "vue";
 import Swal from "sweetalert2";
 import { useStore } from "vuex";
 import { useGroupservicesStore } from "@/stores/groupservices";
-import type { FiltroCatalogo, GrupoServicio } from "@/types/catalogos";
+import type { FiltroCatalogo, FormServicio, GrupoServicio } from "@/types/catalogos";
 import { sessionBranchId } from "@/utils/sesion";
-
-type FormServicio = Partial<GrupoServicio> & { id_branch?: number };
 
 const groupservicesStore = useGroupservicesStore();
 const rootStore = useStore();
