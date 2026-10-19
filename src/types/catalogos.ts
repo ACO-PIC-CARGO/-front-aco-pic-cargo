@@ -19,3 +19,35 @@ export interface ComentarioPredefinido {
   created_at?: string;
   updated_at?: string;
 }
+
+export interface TipoContenedor {
+  id: number;
+  code: string;
+  name: string;
+  description: string | null;
+  long: number | null;
+  width: number | null;
+  height: number | null;
+  maximumweight: number | null;
+  maximunvolumen: number | null;
+  status: number;
+  created_at?: string;
+  updated_at?: string;
+}
+
+export interface TipoDocumento {
+  id: number;
+  code: string;
+  name: string;
+  description: string;
+  status: number;
+  created_at?: string;
+  updated_at?: string;
+}
+
+export interface FiltroCatalogo {
+  code: string;
+  name: string;
+  description: string;
+  status: number | string | boolean;
+}

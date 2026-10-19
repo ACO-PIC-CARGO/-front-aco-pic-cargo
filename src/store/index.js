@@ -34,7 +34,6 @@ import transport from "./modules/transport";
 import reportes from "./modules/reporte";
 import gastos from "./modules/gastos";
 import ingresos from "./modules/ingresos";
-import containers from "./modules/containers";
 import shipment from "./modules/shipment";
 import multiplicador from "./modules/multiplicador";
 import airlines from "./modules/airlines";
@@ -2905,7 +2904,6 @@ export default createStore({
     transport,
     gastos,
     ingresos,
-    containers,
     shipment,
     multiplicador,
     airlines,

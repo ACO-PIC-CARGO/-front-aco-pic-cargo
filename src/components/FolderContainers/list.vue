@@ -36,7 +36,7 @@
       v-if="!loading"
       class="elevation-1"
       :headers="headers"
-      :items="$store.state.containers.list"
+      :items="containersStore.list"
       item-value="id"
       :search="search"
     >
@@ -196,7 +196,7 @@
         <v-list-item class="px-0">
           
             <v-list-item-title class="text-headline-small">
-              Ver: {{ $store.state.containers.record.name }}
+              Ver: {{ containersStore.record.name }}
             </v-list-item-title>
           
         </v-list-item>
@@ -207,7 +207,7 @@
             <v-text-field
               label="Código"
               readonly
-              :model-value="$store.state.containers.record.code"
+              :model-value="containersStore.record.code"
             >
             </v-text-field>
           </v-row>
@@ -215,7 +215,7 @@
             <v-text-field
               label="Nombre"
               readonly
-              :model-value="$store.state.containers.record.name"
+              :model-value="containersStore.record.name"
             >
             </v-text-field>
           </v-row>
@@ -223,7 +223,7 @@
             <v-text-field
               label="Descripción"
               readonly
-              :model-value="$store.state.containers.record.description"
+              :model-value="containersStore.record.description"
             >
             </v-text-field>
           </v-row>
@@ -231,7 +231,7 @@
             <v-text-field
               label="Largo"
               readonly
-              :model-value="$store.state.containers.record.long"
+              :model-value="containersStore.record.long"
             >
             </v-text-field>
           </v-row>
@@ -239,7 +239,7 @@
             <v-text-field
               label="Ancho"
               readonly
-              :model-value="$store.state.containers.record.width"
+              :model-value="containersStore.record.width"
             >
             </v-text-field>
           </v-row>
@@ -247,7 +247,7 @@
             <v-text-field
               label="Altura"
               readonly
-              :model-value="$store.state.containers.record.height"
+              :model-value="containersStore.record.height"
             >
             </v-text-field>
           </v-row>
@@ -255,7 +255,7 @@
             <v-text-field
               label="Peso Máximo"
               readonly
-              :model-value="$store.state.containers.record.maximumweight"
+              :model-value="containersStore.record.maximumweight"
             >
             </v-text-field>
           </v-row>
@@ -263,7 +263,7 @@
             <v-text-field
               label="Volumen Máximo"
               readonly
-              :model-value="$store.state.containers.record.maximunvolumen"
+              :model-value="containersStore.record.maximunvolumen"
             >
             </v-text-field>
           </v-row>
@@ -271,10 +271,10 @@
             <v-switch
               readonly
               :label="`Estado: ${
-                !!$store.state.containers.record.status ? 'Activo' : 'Inactivo'
+                !!containersStore.record.status ? 'Activo' : 'Inactivo'
               }`"
               color="success"
-              v-model="$store.state.containers.record.status"
+              v-model="containersStore.record.status"
               :value-comparator="(value, checked) => Boolean(value) === checked"
             ></v-switch>
           </v-row>
@@ -319,7 +319,7 @@
         <v-list-item class="px-0">
           
             <v-list-item-title class="text-headline-small">
-              Modificar: {{ $store.state.containers.record.name }}
+              Modificar: {{ containersStore.record.name }}
             </v-list-item-title>
           
         </v-list-item>
@@ -331,7 +331,7 @@
             <v-text-field
               type="text"
               label="Código"
-              v-model="$store.state.containers.record.code"
+              v-model="containersStore.record.code"
               readonly
             >
             </v-text-field>
@@ -525,8 +525,10 @@
 </template>
 
 <script>
-import { mapState, mapActions } from "vuex";
+import { mapState } from "vuex";
 import Swal from "sweetalert2";
+import { mapActions as mapPiniaActions, mapStores } from "pinia";
+import { useContainersStore } from "@/stores/containers";
 
 export default {
   name: "ListContainerComponent",
@@ -586,12 +588,7 @@ export default {
     this.$store.state.mainTitle = `Tipo de Contenedor`;
   },
   methods: {
-    ...mapActions([
-      "fetchDataContainers",
-      "insertContainers",
-      "readContainers",
-      "updateContainers",
-    ]),
+    ...mapPiniaActions(useContainersStore, ["fetchDataContainers", "insertContainers", "readContainers", "updateContainers"]),
     updateStatus(newValue) {
       this.record.status = newValue ? 1 : 0;
     },
@@ -712,10 +709,11 @@ export default {
     },
   },
   computed: {
+    ...mapStores(useContainersStore),
     ...mapState(["list"]),
   },
   watch: {
-    "$store.state.containers.record": {
+    "containersStore.record": {
       handler(newRecord, oldRecord) {
         if (newRecord && Object.keys(newRecord).length > 0) {
           const {
@@ -743,7 +741,7 @@ export default {
       },
       immediate: true,
     },
-    "$store.state.containers.loading": {
+    "containersStore.loading": {
       handler(newList, oldList) {
         this.loading = newList == true ? false : true;
       },
