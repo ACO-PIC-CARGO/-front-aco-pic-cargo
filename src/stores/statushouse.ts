@@ -3,7 +3,7 @@ import { ref } from "vue";
 import Swal from "sweetalert2";
 import axios from "@/api/http";
 import type { ApiResponse } from "@/types/api";
-import type { EstadoHouse, OrdenEstadoHouse } from "@/types/catalogos";
+import type { ComentarioEstadoHouse, EstadoHouse, OrdenEstadoHouse } from "@/types/catalogos";
 import { showRejectedResponse } from "@/utils/rejectedResponse";
 import { sessionBranchId } from "@/utils/sesion";
 
@@ -120,7 +120,7 @@ export const useStatushouseStore = defineStore("statushouse", () => {
       });
   }
 
-  async function EliminarComentario(data: Record<string, unknown>): Promise<void> {
+  async function EliminarComentario(data: ComentarioEstadoHouse): Promise<void> {
     const config = {
       method: "put",
       url: import.meta.env.VITE_URL_MAIN + `eliminar_comentario`,

@@ -145,7 +145,7 @@ describe("statushouse store", () => {
 
     await store.GuardarStatus(rows);
     await store.EliminarStatus({ id: 1 });
-    await store.EliminarComentario({ id: 5 });
+    await store.EliminarComentario({ id: 5, descripcion: "Nota" });
     await flushPromises();
 
     const sent = httpMock.mock.calls.map(([config]) => [config.method, config.url.slice(URL_MAIN.length), config.data]);
@@ -154,7 +154,7 @@ describe("statushouse store", () => {
       ["get", "listar_status_house", undefined],
       ["put", "eliminar_status", { id: 1 }],
       ["get", "listar_status_house", undefined],
-      ["put", "eliminar_comentario", { id: 5 }],
+      ["put", "eliminar_comentario", { id: 5, descripcion: "Nota" }],
       ["get", "listar_status_house", undefined],
     ]);
     expect(Swal.fire).toHaveBeenCalledTimes(3);

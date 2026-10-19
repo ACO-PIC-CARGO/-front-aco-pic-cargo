@@ -1,14 +1,291 @@
+<script setup lang="ts">
+import { nextTick, onMounted, ref, useTemplateRef } from "vue";
+import { storeToRefs } from "pinia";
+import Swal from "sweetalert2";
+import { useStore } from "vuex";
+import { useStatushouseStore } from "@/stores/statushouse";
+import type { ComentarioEstadoHouse, EstadoHouse } from "@/types/catalogos";
+
+const statushouseStore = useStatushouseStore();
+const { listStatusHouse, orden } = storeToRefs(statushouseStore);
+const rootStore = useStore();
+
+const filtrar = ref(false);
+const loadingTable = ref(false);
+const lstStatus = ref<EstadoHouse[]>([]);
+const dialogOrden = ref(false);
+const dialog = ref(false);
+const search = ref("");
+const name = ref("");
+const id = ref<number | string>("");
+const exw = ref(false);
+const fob = ref(false);
+const fca = ref(false);
+const cfr = ref(false);
+const cif = ref(false);
+const ddp = ref(false);
+const headerEstado = [
+  { title: "Nombre", key: "name", sortable: false },
+  { key: "exw", title: "EXW", sortable: false },
+  { key: "fob", title: "fob", sortable: false },
+  { key: "fca", title: "FCA", sortable: false },
+  { key: "cfr", title: "CFR", sortable: false },
+  { key: "cif", title: "CIF", sortable: false },
+  { key: "ddp", title: "DDP", sortable: false },
+  { title: "Orden", key: "orden", sortable: false },
+] as const;
+const headers = [
+  { key: "modalidad", title: "Modalidad", sort: false },
+  { key: "shipment", title: "Tipo de Embarque", sort: false },
+  { key: "name", title: "Status", sort: false },
+  { key: "comentarios", title: "Comentarios", sort: false },
+  { key: "exw", title: "EXW", sort: false },
+  { key: "fob", title: "FOB", sortable: false },
+  { key: "fca", title: "FCA", sort: false },
+  { key: "cfr", title: "CFR", sort: false },
+  { key: "cif", title: "CIF", sort: false },
+  { key: "ddp", title: "DDP", sort: false },
+  { key: "orden", title: "Orden", sort: false },
+  { key: "action", title: "", sort: false },
+] as const;
+const items = ref<ComentarioEstadoHouse[]>([]);
+const id_modality = ref<number | string>("");
+const id_shipment = ref<number | string>("");
+const nroorden = ref<number | string | undefined>("");
+const errorInconterms = ref("");
+const frmStatus = useTemplateRef("frmStatus");
+const frmOrdenEstatus = useTemplateRef("frmOrdenEstatus");
+
+function eliminarComentario(comentario: ComentarioEstadoHouse) {
+  Swal.fire({
+    title: "¿Estás seguro?",
+    text: "¡No podrás revertir esto!",
+    icon: "warning",
+    showCancelButton: true,
+    confirmButtonColor: "#3085d6",
+    cancelButtonColor: "#d33",
+    confirmButtonText: "Sí, eliminarlo!",
+  }).then(async (result) => {
+    if (result.isConfirmed) {
+      rootStore.state.spiner = true;
+      await statushouseStore.EliminarComentario(comentario);
+      rootStore.state.spiner = false;
+      dialog.value = false;
+    }
+  });
+}
+function eliminar(estado: EstadoHouse) {
+  Swal.fire({
+    title: "¿Estás seguro?",
+    text: "¡No podrás revertir esto!",
+    icon: "warning",
+    showCancelButton: true,
+    confirmButtonColor: "#3085d6",
+    cancelButtonColor: "#d33",
+    confirmButtonText: "Sí, eliminarlo!",
+  }).then(async (result) => {
+    if (result.isConfirmed) {
+      rootStore.state.spiner = true;
+      await statushouseStore.EliminarStatus(estado);
+      rootStore.state.spiner = false;
+    }
+  });
+}
+function nuevoStatus() {
+  dialog.value = true;
+  id.value = "";
+  items.value = [];
+  nextTick(() => {
+    frmStatus.value!.reset();
+  });
+}
+async function filtrarListado() {
+  const data = {
+    id_modalidad: id_modality.value,
+    id_shipment: id_shipment.value,
+
+    // exwflag: this.exw,
+    // fcaflag: this.fca,
+    // fobflag: this.fob,
+    // cfrflag: this.cfr,
+    // cifflag: this.cif,
+    // ddpflag: this.ddp,
+  };
+  await statushouseStore.getListStatusHouse(data);
+  filtrar.value = false;
+}
+function moveUp(index: number) {
+  const item = items.value[index]!;
+  items.value.splice(index, 1);
+  items.value.splice(index - 1, 0, item);
+}
+function moveDown(index: number) {
+  const item = items.value[index]!;
+  items.value.splice(index, 1);
+  items.value.splice(index + 1, 0, item);
+}
+function abrirModalOrden() {
+  lstStatus.value = [];
+  dialogOrden.value = true;
+  nextTick(() => {
+    frmOrdenEstatus.value!.reset();
+  });
+}
+async function buscarEstatusPorModalidadYEmbarque() {
+  if ((await frmOrdenEstatus.value!.validate()).valid) {
+    lstStatus.value = [];
+    lstStatus.value = [
+      ...listStatusHouse.value.filter((v) => v.id_modalidad == id_modality.value && v.id_shipment == id_shipment.value),
+    ];
+  }
+}
+function cambiarOrdenEstado(index: number) {
+  const elementoModificado = lstStatus.value[index]!;
+  const nuevoOrden = parseFloat(String(elementoModificado.orden));
+
+  if (isNaN(nuevoOrden) || nuevoOrden <= 0) {
+    console.warn("El orden debe ser un número positivo.");
+    return;
+  }
+
+  // Mostrar un indicador visual de "calculando" (opcional)
+  loadingTable.value = true;
+
+  // Agregar un pequeño retraso
+  setTimeout(() => {
+    const lstSinElemento = lstStatus.value.filter((_, i) => i !== index);
+
+    let ordenActual = 1;
+    const lstReordenada = lstSinElemento.map((element) => {
+      if (ordenActual === nuevoOrden) ordenActual++;
+      return { ...element, orden: ordenActual++ };
+    });
+
+    lstReordenada.splice(nuevoOrden - 1, 0, {
+      ...elementoModificado,
+      orden: nuevoOrden,
+    });
+
+    lstStatus.value = [];
+    nextTick(() => {
+      lstStatus.value = lstReordenada;
+
+      // Ocultar el indicador de "calculando" (opcional)
+      loadingTable.value = false;
+
+      // Enfocar el campo
+      nextTick(() => {
+        const input = document.querySelector<HTMLInputElement>(`[data-index="${nuevoOrden - 1}"] input`);
+        if (input) {
+          input.focus();
+          input.select();
+        }
+      });
+    });
+  }, 500); // Retraso de 500 ms
+}
+async function obtenerOrden() {
+  if (id_modality.value && id_shipment.value) {
+    await statushouseStore.getObtenerOrdenStatusHouse({
+      id_modalidad: id_modality.value,
+      id_shipment: id_shipment.value,
+    });
+    const ordenActual = { ...orden.value };
+    nroorden.value = ordenActual.orden;
+  }
+}
+function anadirComentario() {
+  items.value.push({ descripcion: "" });
+}
+async function guardarStatus() {
+  errorInconterms.value = "";
+  if ((await frmStatus.value!.validate()).valid) {
+    if (!exw.value && !fca.value && !cfr.value && !cif.value && !ddp.value) {
+      errorInconterms.value = "Es necesario seleccionar al menos un Incoterms";
+      return false;
+    }
+    items.value.map((item, index) => {
+      item.orden = index + 1;
+    });
+    const data = {
+      id: id.value,
+      id_modality: id_modality.value,
+      id_shipment: id_shipment.value,
+      name: name.value,
+      nroorden: nroorden.value,
+      exw: exw.value,
+      fob: fob.value,
+      fca: fca.value,
+      cfr: cfr.value,
+      cif: cif.value,
+      ddp: ddp.value,
+      lstComentatios: items.value,
+    };
+    await statushouseStore.GuardarStatusHouse(data);
+    dialog.value = false;
+  }
+}
+function editar(item: EstadoHouse) {
+  dialog.value = true;
+  id.value = item.id;
+  id_modality.value = item.id_modalidad;
+  id_shipment.value = item.id_shipment;
+  name.value = item.name;
+  exw.value = item.exwflag;
+  fob.value = item.fobflag;
+  fca.value = item.fcaflag;
+  cfr.value = item.cfrflag;
+  cif.value = item.cifflag;
+  ddp.value = item.ddpflag;
+  items.value = item.comentarios;
+  nroorden.value = item.orden;
+}
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+function mostrarComentario(item: EstadoHouse) {
+   
+  item.verComentarios = item.verComentarios;
+}
+async function guardarOrden() {
+  await statushouseStore.GuardarStatus(lstStatus.value);
+  dialogOrden.value = false;
+}
+
+onMounted(async () => {
+  rootStore.state.spiner = true;
+  await statushouseStore.getListStatusHouse();
+  rootStore.state.spiner = false;
+  await rootStore.dispatch("getModality");
+  await rootStore.dispatch("getShipment");
+});
+</script>
+
 <template>
   <v-card>
     <v-container fluid>
       <v-row>
         <v-col cols="12">
-          <v-card-title class="d-flex align-center flex-wrap" primary-title>
-            <v-text-field label="Buscar..." v-model="search"></v-text-field>
-            <v-spacer></v-spacer>
-            <v-btn color="success" size="small" class="mx-2" @click="nuevoStatus()">
+          <v-card-title
+            class="d-flex align-center flex-wrap"
+            primary-title
+          >
+            <v-text-field
+              label="Buscar..."
+              v-model="search"
+            />
+            <v-spacer />
+            <v-btn
+              color="success"
+              size="small"
+              class="mx-2"
+              @click="nuevoStatus()"
+            >
               CREAR ESTATUS
-              <v-icon class="ml-1" size="small">mdi-plus</v-icon>
+              <v-icon
+                class="ml-1"
+                size="small"
+              >
+                mdi-plus
+              </v-icon>
             </v-btn>
             <v-btn
               color="purple"
@@ -17,48 +294,72 @@
               @click="abrirModalOrden()"
             >
               Cambiar Orden
-              <v-icon class="ml-1" size="small">mdi-swap-vertical</v-icon>
+              <v-icon
+                class="ml-1"
+                size="small"
+              >
+                mdi-swap-vertical
+              </v-icon>
             </v-btn>
-            <v-btn color="info" size="small" class="mx-2" @click="filtrar = !filtrar">
-              Filtrar <v-icon class="ml-1" size="small">mdi-filter-outline</v-icon>
+            <v-btn
+              color="info"
+              size="small"
+              class="mx-2"
+              @click="filtrar = !filtrar"
+            >
+              Filtrar <v-icon
+                class="ml-1"
+                size="small"
+              >
+                mdi-filter-outline
+              </v-icon>
             </v-btn>
             <v-btn
               color="default"
               size="small"
               class="mx-2"
-              @click="getListStatusHouse()"
+              @click="statushouseStore.getListStatusHouse()"
             >
-              Limpiar <v-icon class="ml-1" size="small">mdi-clean</v-icon>
+              Limpiar <v-icon
+                class="ml-1"
+                size="small"
+              >
+                mdi-clean
+              </v-icon>
             </v-btn>
           </v-card-title>
         </v-col>
         <v-col cols="12">
+          <!-- @vue-expect-error the root state items are untyped until the Vuex store is typed -->
           <v-data-table
             :headers="headers"
             :items="listStatusHouse"
             item-value="id"
             :search="search"
           >
-            <template v-slot:[`item.exw`]="{ item }">
+            <template #[`item.exw`]="{ item }">
               {{ item.exwflag ? "Si" : "No" }}
             </template>
-            <template v-slot:[`item.fca`]="{ item }">
+            <template #[`item.fca`]="{ item }">
               {{ item.fcaflag ? "Si" : "No" }}
             </template>
-            <template v-slot:[`item.cfr`]="{ item }">
+            <template #[`item.cfr`]="{ item }">
               {{ item.cfrflag ? "Si" : "No" }}
             </template>
-            <template v-slot:[`item.cif`]="{ item }">
+            <template #[`item.cif`]="{ item }">
               {{ item.cifflag ? "Si" : "No" }}
             </template>
-            <template v-slot:[`item.fob`]="{ item }">
+            <template #[`item.fob`]="{ item }">
               {{ item.fobflag ? "Si" : "No" }}
             </template>
-            <template v-slot:[`item.ddp`]="{ item }">
+            <template #[`item.ddp`]="{ item }">
               {{ item.ddpflag ? "Si" : "No" }}
             </template>
-            <template v-slot:[`item.comentarios`]="{ item }">
-              <div class="" v-if="item.comentarios.length > 0">
+            <template #[`item.comentarios`]="{ item }">
+              <div
+                class=""
+                v-if="item.comentarios.length > 0"
+              >
                 <v-btn
                   color="success"
                   v-if="!item.verComentarios"
@@ -75,7 +376,10 @@
                 >
                   Ocultar Comentarios
                 </v-btn>
-                <ol type="I" v-if="item.verComentarios">
+                <ol
+                  type="I"
+                  v-if="item.verComentarios"
+                >
                   <li
                     class="justify"
                     v-for="(comentario, index) in item.comentarios"
@@ -86,13 +390,24 @@
                 </ol>
               </div>
             </template>
-            <template v-slot:[`item.action`]="{ item }">
+            <template #[`item.action`]="{ item }">
               <!-- <v-btn color="info" x-small @click="edi"> <v-icon dense>mdi-plus</v-icon> Comentario</v-btn> -->
-              <v-btn size="x-small" color="warning" @click="editar(item)">
+              <v-btn
+                size="x-small"
+                color="warning"
+                @click="editar(item)"
+              >
                 AÑADIR COMENTARIOS
               </v-btn>
-              <v-btn class="mx-1" size="x-small" color="error" @click="eliminar(item)">
-                <v-icon size="28">mdi-delete</v-icon>
+              <v-btn
+                class="mx-1"
+                size="x-small"
+                color="error"
+                @click="eliminar(item)"
+              >
+                <v-icon size="28">
+                  mdi-delete
+                </v-icon>
               </v-btn>
               <!-- <v-btn color="error" icon @click="edi" > <v-icon dense>mdi-delete</v-icon></v-btn> -->
             </template>
@@ -108,39 +423,49 @@
       transition="dialog-transition"
     >
       <v-card>
-        <v-card-title primary-title v-if="!id"> Agregar Status </v-card-title>
-        <v-card-title primary-title v-else> Editar Status </v-card-title>
+        <v-card-title
+          primary-title
+          v-if="!id"
+        >
+          Agregar Status
+        </v-card-title>
+        <v-card-title
+          primary-title
+          v-else
+        >
+          Editar Status
+        </v-card-title>
         <v-card-text>
           <v-form ref="frmStatus">
             <v-row>
               <v-col cols="6">
                 <v-autocomplete
-                  :items="$store.state.pricing.listModality"
+                  :items="rootStore.state.pricing.listModality"
                   label="Sentido*"
                   item-title="name"
                   item-value="id"
                   v-model="id_modality"
                   @update:model-value="obtenerOrden()"
                   :rules="[(v) => !!v || 'Dato Requerido']"
-                ></v-autocomplete>
+                />
               </v-col>
               <v-col cols="6">
                 <v-autocomplete
-                  :items="$store.state.pricing.listShipment"
+                  :items="rootStore.state.pricing.listShipment"
                   label="Tipo de Embarque*"
                   item-title="embarque"
                   item-value="id"
                   v-model="id_shipment"
                   @update:model-value="obtenerOrden"
                   :rules="[(v) => !!v || 'Dato Requerido']"
-                ></v-autocomplete>
+                />
               </v-col>
               <v-col cols="6">
                 <v-text-field
                   label="Estatus"
                   v-model="name"
                   :rules="[(v) => !!v || 'Dato Requerido']"
-                ></v-text-field>
+                />
               </v-col>
               <v-col cols="6">
                 <v-text-field
@@ -153,14 +478,17 @@
                     (v) => v > 0 || 'No puede ser 0 o menor',
                   ]"
                   min="1"
-                ></v-text-field>
+                />
               </v-col>
             </v-row>
             <v-row>
               <v-col cols="12">
                 <h4>Incoterms</h4>
               </v-col>
-              <v-col cols="12" v-if="errorInconterms">
+              <v-col
+                cols="12"
+                v-if="errorInconterms"
+              >
                 <span class="text-red">
                   {{ errorInconterms }}
                 </span>
@@ -173,46 +501,50 @@
                 class="mx-2"
                 v-model="exw"
                 :value="true"
-              ></v-checkbox>
+              />
               <v-checkbox
                 row
                 label="FOB"
                 class="mx-2"
                 v-model="fob"
                 :value="true"
-              ></v-checkbox>
+              />
               <v-checkbox
                 row
                 label="FCA"
                 class="mx-2"
                 v-model="fca"
                 :value="true"
-              ></v-checkbox>
+              />
               <v-checkbox
                 row
                 label="CFR"
                 class="mx-2"
                 v-model="cfr"
                 :value="true"
-              ></v-checkbox>
+              />
               <v-checkbox
                 row
                 label="CIF"
                 class="mx-2"
                 v-model="cif"
                 :value="true"
-              ></v-checkbox>
+              />
               <v-checkbox
                 row
                 label="DDP"
                 class="mx-2"
                 v-model="ddp"
                 :value="true"
-              ></v-checkbox>
+              />
             </v-row>
             <v-row>
               <v-col cols="12">
-                <v-btn color="success" size="small" @click="anadirComentario()">
+                <v-btn
+                  color="success"
+                  size="small"
+                  @click="anadirComentario()"
+                >
                   Añadir Comentario
                 </v-btn>
               </v-col>
@@ -226,7 +558,10 @@
                     </tr>
                   </thead>
                   <tbody>
-                    <tr v-for="(item, index) in items" :key="index">
+                    <tr
+                      v-for="(item, index) in items"
+                      :key="index"
+                    >
                       <td>{{ index + 1 }}</td>
                       <td>
                         <v-textarea
@@ -236,10 +571,11 @@
                           hide-details
                           variant="solo"
                           rows="1"
-                        ></v-textarea>
+                        />
                       </td>
                       <td>
-                        <v-btn variant="text"
+                        <v-btn
+                          variant="text"
                           color="error"
                           icon
                           @click="moveUp(index)"
@@ -247,7 +583,8 @@
                         >
                           <v-icon>mdi-arrow-up-drop-circle-outline</v-icon>
                         </v-btn>
-                        <v-btn variant="text"
+                        <v-btn
+                          variant="text"
                           color="success"
                           icon
                           @click="moveDown(index)"
@@ -255,12 +592,14 @@
                         >
                           <v-icon>mdi-arrow-down-drop-circle-outline</v-icon>
                         </v-btn>
-                        <v-btn variant="text"
+                        <v-btn
+                          variant="text"
                           icon
                           color="error"
                           @click="eliminarComentario(item)"
-                          ><v-icon>mdi-delete</v-icon></v-btn
                         >
+                          <v-icon>mdi-delete</v-icon>
+                        </v-btn>
                       </td>
                     </tr>
                   </tbody>
@@ -270,58 +609,86 @@
           </v-form>
         </v-card-text>
         <v-card-actions v-if="!id">
-          <v-spacer></v-spacer>
-          <v-btn size="small" class="mx-1" color="success" @click="guardarStatus()">
+          <v-spacer />
+          <v-btn
+            size="small"
+            class="mx-1"
+            color="success"
+            @click="guardarStatus()"
+          >
             Guardar
           </v-btn>
-          <v-btn size="small" class="mx-1" color="error" @click="dialog = false">
+          <v-btn
+            size="small"
+            class="mx-1"
+            color="error"
+            @click="dialog = false"
+          >
             Cancelar
           </v-btn>
         </v-card-actions>
         <v-card-actions v-else>
-          <v-spacer></v-spacer>
-          <v-btn size="small" class="mx-1" color="success" @click="guardarStatus()">
+          <v-spacer />
+          <v-btn
+            size="small"
+            class="mx-1"
+            color="success"
+            @click="guardarStatus()"
+          >
             Actualizar
           </v-btn>
-          <v-btn size="small" class="mx-1" color="error" @click="dialog = false">
+          <v-btn
+            size="small"
+            class="mx-1"
+            color="error"
+            @click="dialog = false"
+          >
             Cancelar
           </v-btn>
         </v-card-actions>
       </v-card>
     </v-dialog>
-    <v-dialog v-model="dialogOrden" scrollable persistent width="80%">
+    <v-dialog
+      v-model="dialogOrden"
+      scrollable
+      persistent
+      width="80%"
+    >
       <v-card>
-        <v-card-title primary-title> Ordenar Estatus: </v-card-title>
+        <v-card-title primary-title>
+          Ordenar Estatus:
+        </v-card-title>
         <v-card-text>
           <v-form ref="frmOrdenEstatus">
             <v-row>
               <v-col cols="4">
                 <v-autocomplete
-                  :items="$store.state.pricing.listModality"
+                  :items="rootStore.state.pricing.listModality"
                   label="Sentido*"
                   item-title="name"
                   item-value="id"
                   v-model="id_modality"
                   :rules="[(v) => !!v || 'Dato Requerido']"
-                ></v-autocomplete>
+                />
               </v-col>
               <v-col cols="4">
                 <v-autocomplete
-                  :items="$store.state.pricing.listShipment"
+                  :items="rootStore.state.pricing.listShipment"
                   label="Tipo de Embarque*"
                   item-title="embarque"
                   item-value="id"
                   v-model="id_shipment"
                   :rules="[(v) => !!v || 'Dato Requerido']"
-                ></v-autocomplete>
+                />
               </v-col>
               <v-col cols="4">
                 <v-btn
                   size="small"
                   color="info"
                   @click="buscarEstatusPorModalidadYEmbarque()"
-                  >Buscar</v-btn
                 >
+                  Buscar
+                </v-btn>
               </v-col>
             </v-row>
           </v-form>
@@ -334,25 +701,25 @@
                 item-value="index"
                 :loading="loadingTable"
               >
-                <template v-slot:[`item.exw`]="{ item }">
+                <template #[`item.exw`]="{ item }">
                   {{ item.exwflag ? "Si" : "No" }}
                 </template>
-                <template v-slot:[`item.fob`]="{ item }">
+                <template #[`item.fob`]="{ item }">
                   {{ item.fobflag ? "Si" : "No" }}
                 </template>
-                <template v-slot:[`item.fca`]="{ item }">
+                <template #[`item.fca`]="{ item }">
                   {{ item.fcaflag ? "Si" : "No" }}
                 </template>
-                <template v-slot:[`item.cfr`]="{ item }">
+                <template #[`item.cfr`]="{ item }">
                   {{ item.cfrflag ? "Si" : "No" }}
                 </template>
-                <template v-slot:[`item.cif`]="{ item }">
+                <template #[`item.cif`]="{ item }">
                   {{ item.cifflag ? "Si" : "No" }}
                 </template>
-                <template v-slot:[`item.ddp`]="{ item }">
+                <template #[`item.ddp`]="{ item }">
                   {{ item.ddpflag ? "Si" : "No" }}
                 </template>
-                <template v-slot:[`item.orden`]="{ item, index }">
+                <template #[`item.orden`]="{ item, index }">
                   <v-text-field
                     density="compact"
                     hide-details
@@ -360,18 +727,28 @@
                     type="number"
                     :min="0"
                     @update:model-value="cambiarOrdenEstado(index)"
-                  ></v-text-field>
+                  />
                 </template>
               </v-data-table>
             </v-col>
           </v-row>
         </v-card-text>
         <v-card-actions>
-          <v-spacer></v-spacer>
-          <v-btn color="success" class="mx-1" @click="guardarOrden()" size="small">
+          <v-spacer />
+          <v-btn
+            color="success"
+            class="mx-1"
+            @click="guardarOrden()"
+            size="small"
+          >
             Guardar
           </v-btn>
-          <v-btn color="error" class="mx-1" @click="dialogOrden = false" size="small">
+          <v-btn
+            color="error"
+            class="mx-1"
+            @click="dialogOrden = false"
+            size="small"
+          >
             Cerrar
           </v-btn>
         </v-card-actions>
@@ -385,27 +762,29 @@
       temporary
       class="px-5 py-5"
     >
-      <template v-slot:prepend> FILTRAR </template>
+      <template #prepend>
+        FILTRAR
+      </template>
 
-      <v-divider></v-divider>
+      <v-divider />
 
       <v-autocomplete
-        :items="$store.state.pricing.listModality"
+        :items="rootStore.state.pricing.listModality"
         label="Sentido*"
         item-title="name"
         item-value="id"
         v-model="id_modality"
         :rules="[(v) => !!v || 'Dato Requerido']"
-      ></v-autocomplete>
+      />
 
       <v-autocomplete
-        :items="$store.state.pricing.listShipment"
+        :items="rootStore.state.pricing.listShipment"
         label="Tipo de Embarque*"
         item-title="embarque"
         item-value="id"
         v-model="id_shipment"
         :rules="[(v) => !!v || 'Dato Requerido']"
-      ></v-autocomplete>
+      />
       <!-- <v-row>
         <v-checkbox
           row
@@ -450,297 +829,25 @@
           :value="true"
         ></v-checkbox>
       </v-row> -->
-      <v-divider class="mb-5"></v-divider>
-      <v-btn color="success" class="mx-1" size="small" @click="filtrarListado()"
-        >Filtrar</v-btn
+      <v-divider class="mb-5" />
+      <v-btn
+        color="success"
+        class="mx-1"
+        size="small"
+        @click="filtrarListado()"
       >
-      <v-btn color="error" class="mx-1" size="small">Cancelar</v-btn>
+        Filtrar
+      </v-btn>
+      <v-btn
+        color="error"
+        class="mx-1"
+        size="small"
+      >
+        Cancelar
+      </v-btn>
     </v-navigation-drawer>
   </v-card>
 </template>
-
-<script>
-import { mapActions } from "vuex";
-import { mapActions as mapPiniaActions, mapState } from "pinia";
-import { useStatushouseStore } from "@/stores/statushouse";
-import Swal from "sweetalert2";
-export default {
-  data() {
-    return {
-      filtrar: false,
-      loadingTable: false,
-      lstStatus: [],
-      dialogOrden: false,
-      dialog: false,
-      search: "",
-      name: "",
-      id: "",
-      exw: false,
-      fob: false,
-      fca: false,
-      cfr: false,
-      cif: false,
-      ddp: false,
-      headerComentario: [
-        { text: "Orden", value: "index" },
-        { text: "Nombre", value: "name" },
-        { text: "Mover", value: "" },
-      ],
-      headerEstado: [
-        { title: "Nombre", key: "name", sortable: false },
-        { key: "exw", title: "EXW", sortable: false },
-        { key: "fob", title: "fob", sortable: false },
-        { key: "fca", title: "FCA", sortable: false },
-        { key: "cfr", title: "CFR", sortable: false },
-        { key: "cif", title: "CIF", sortable: false },
-        { key: "ddp", title: "DDP", sortable: false },
-        { title: "Orden", key: "orden", sortable: false },
-      ],
-      headers: [
-        { key: "modalidad", title: "Modalidad", sort: false },
-        { key: "shipment", title: "Tipo de Embarque", sort: false },
-        { key: "name", title: "Status", sort: false },
-        { key: "comentarios", title: "Comentarios", sort: false },
-        { key: "exw", title: "EXW", sort: false },
-        { key: "fob", title: "FOB", sortable: false },
-        { key: "fca", title: "FCA", sort: false },
-        { key: "cfr", title: "CFR", sort: false },
-        { key: "cif", title: "CIF", sort: false },
-        { key: "ddp", title: "DDP", sort: false },
-        { key: "orden", title: "Orden", sort: false },
-        { key: "action", title: "", sort: false },
-      ],
-      items: [],
-      id_modality: "",
-      id_shipment: "",
-      nroorden: "",
-      errorInconterms: "",
-    };
-  },
-  methods: {
-    ...mapPiniaActions(useStatushouseStore, [
-      "getListStatusHouse",
-      "getObtenerOrdenStatusHouse",
-      "GuardarStatusHouse",
-      "GuardarStatus",
-      "EliminarStatus",
-      "EliminarComentario",
-    ]),
-    ...mapActions(["getModality", "getShipment"]),
-    eliminarComentario(comentario) {
-      
-      Swal.fire({
-        title: "¿Estás seguro?",
-        text: "¡No podrás revertir esto!",
-        icon: "warning",
-        showCancelButton: true,
-        confirmButtonColor: "#3085d6",
-        cancelButtonColor: "#d33",
-        confirmButtonText: "Sí, eliminarlo!",
-      }).then(async (result) => {
-        if (result.isConfirmed) {
-          this.$store.state.spiner = true;
-          await this.EliminarComentario(comentario);
-          this.$store.state.spiner = false;
-          this.dialog = false;
-        }
-      });
-    },
-    eliminar(estado) {
-      Swal.fire({
-        title: "¿Estás seguro?",
-        text: "¡No podrás revertir esto!",
-        icon: "warning",
-        showCancelButton: true,
-        confirmButtonColor: "#3085d6",
-        cancelButtonColor: "#d33",
-        confirmButtonText: "Sí, eliminarlo!",
-      }).then(async (result) => {
-        if (result.isConfirmed) {
-          this.$store.state.spiner = true;
-          await this.EliminarStatus(estado);
-          this.$store.state.spiner = false;
-        }
-      });
-    },
-    nuevoStatus() {
-      this.dialog = true;
-      this.id = "";
-      this.items = [];
-      this.$nextTick(() => {
-        this.$refs.frmStatus.reset();
-      });
-    },
-    async filtrarListado() {
-      let data = {
-        id_modalidad: this.id_modality,
-        id_shipment: this.id_shipment,
-
-        // exwflag: this.exw,
-        // fcaflag: this.fca,
-        // fobflag: this.fob,
-        // cfrflag: this.cfr,
-        // cifflag: this.cif,
-        // ddpflag: this.ddp,
-      };
-      await this.getListStatusHouse(data);
-      this.filtrar = false;
-    },
-    moveUp(index) {
-      const item = this.items[index];
-      this.items.splice(index, 1);
-      this.items.splice(index - 1, 0, item);
-    },
-    moveDown(index) {
-      const item = this.items[index];
-      this.items.splice(index, 1);
-      this.items.splice(index + 1, 0, item);
-    },
-    abrirModalOrden() {
-      this.lstStatus = [];
-      this.dialogOrden = true;
-      this.$nextTick(() => {
-        this.$refs.frmOrdenEstatus.reset();
-      });
-    },
-    async buscarEstatusPorModalidadYEmbarque() {
-      if ((await this.$refs.frmOrdenEstatus.validate()).valid) {
-        this.lstStatus = [];
-        this.lstStatus = [
-          ...this.listStatusHouse.filter(
-            (v) =>
-              v.id_modalidad == this.id_modality &&
-              v.id_shipment == this.id_shipment
-          ),
-        ];
-      }
-    },
-    cambiarOrdenEstado(index) {
-      const elementoModificado = this.lstStatus[index];
-      const nuevoOrden = parseFloat(elementoModificado.orden);
-
-      if (isNaN(nuevoOrden) || nuevoOrden <= 0) {
-        console.warn("El orden debe ser un número positivo.");
-        return;
-      }
-
-      // Mostrar un indicador visual de "calculando" (opcional)
-      this.loadingTable = true;
-
-      // Agregar un pequeño retraso
-      setTimeout(() => {
-        const lstSinElemento = this.lstStatus.filter((_, i) => i !== index);
-
-        let ordenActual = 1;
-        const lstReordenada = lstSinElemento.map((element) => {
-          if (ordenActual === nuevoOrden) ordenActual++;
-          return { ...element, orden: ordenActual++ };
-        });
-
-        lstReordenada.splice(nuevoOrden - 1, 0, {
-          ...elementoModificado,
-          orden: nuevoOrden,
-        });
-
-        this.lstStatus = [];
-        this.$nextTick(() => {
-          this.lstStatus = lstReordenada;
-
-          // Ocultar el indicador de "calculando" (opcional)
-          this.loadingTable = false;
-
-          // Enfocar el campo
-          this.$nextTick(() => {
-            const input = document.querySelector(
-              `[data-index="${nuevoOrden - 1}"] input`
-            );
-            if (input) {
-              input.focus();
-              input.select();
-            }
-          });
-        });
-      }, 500); // Retraso de 500 ms
-    },
-    async obtenerOrden() {
-      if (this.id_modality && this.id_shipment) {
-        await this.getObtenerOrdenStatusHouse({
-          id_modalidad: this.id_modality,
-          id_shipment: this.id_shipment,
-        });
-        let orden = { ...this.orden };
-        this.nroorden = orden.orden;
-      }
-    },
-    anadirComentario() {
-      this.items.push({ descripcion: "" });
-    },
-    async guardarStatus() {
-      this.errorInconterms = "";
-      if ((await this.$refs.frmStatus.validate()).valid) {
-        if (!this.exw && !this.fca && !this.cfr && !this.cif && !this.ddp) {
-          this.errorInconterms =
-            "Es necesario seleccionar al menos un Incoterms";
-          return false;
-        }
-        this.items.map((item, index) => {
-          item.orden = index + 1;
-        });
-        let data = {
-          id: this.id,
-          id_modality: this.id_modality,
-          id_shipment: this.id_shipment,
-          name: this.name,
-          nroorden: this.nroorden,
-          exw: this.exw,
-          fob: this.fob,
-          fca: this.fca,
-          cfr: this.cfr,
-          cif: this.cif,
-          ddp: this.ddp,
-          lstComentatios: this.items,
-        };
-        await this.GuardarStatusHouse(data);
-        this.dialog = false;
-      }
-    },
-    editar(item) {
-      this.dialog = true;
-      this.id = item.id;
-      this.id_modality = item.id_modalidad;
-      this.id_shipment = item.id_shipment;
-      this.name = item.name;
-      this.exw = item.exwflag;
-      this.fob = item.fobflag;
-      this.fca = item.fcaflag;
-      this.cfr = item.cfrflag;
-      this.cif = item.cifflag;
-      this.ddp = item.ddpflag;
-      this.lst = item.itemsflag;
-      this.items = item.comentarios;
-      this.nroorden = item.orden;
-    },
-    mostrarComentario(item) {
-      item.verComentarios = item.verComentarios;
-      this.$forceUpdate();
-    },
-    async guardarOrden() {
-      await this.GuardarStatus(this.lstStatus);
-      this.dialogOrden = false;
-    },
-  },
-  computed: {
-    ...mapState(useStatushouseStore, ["listStatusHouse", "orden"]),
-  },
-  async mounted() {
-    this.$store.state.spiner = true;
-    await this.getListStatusHouse();
-    this.$store.state.spiner = false;
-    await this.getModality();
-    await this.getShipment();
-  },
-};
-</script>
 
 <style scoped>
 .justify {

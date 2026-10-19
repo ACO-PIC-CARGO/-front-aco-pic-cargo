@@ -1,3 +1,23 @@
+<script setup lang="ts">
+import { onMounted, ref, watch } from "vue";
+import { useStore } from "vuex";
+
+const rootStore = useStore();
+
+const dialog = ref(false);
+
+onMounted(() => {
+  rootStore.dispatch("getModality");
+  rootStore.dispatch("getShipment");
+});
+
+watch(dialog, () => {
+  if (dialog.value) {
+    console.log("sss");
+  }
+});
+</script>
+
 <template>
   <v-container>
     sss
@@ -10,9 +30,17 @@
     >
       <v-card class="px-5">
         <v-row>
-          <v-col class="pb-0" cols="12"> Nuevo Estado House </v-col>
-          <v-col class="py-0" cols="4">
-            <v-text-field label="Descripción"></v-text-field>
+          <v-col
+            class="pb-0"
+            cols="12"
+          >
+            Nuevo Estado House
+          </v-col>
+          <v-col
+            class="py-0"
+            cols="4"
+          >
+            <v-text-field label="Descripción" />
           </v-col>
         </v-row>
         <v-row>
@@ -20,51 +48,19 @@
             <h4>Modalidad</h4>
             <v-row no-gutters>
               <v-checkbox
-                v-for="(modalidad, index) in $store.state.pricing.listModality"
+                v-for="(modalidad, index) in rootStore.state.pricing.listModality"
                 v-model="modalidad.selected"
                 :key="index"
                 :label="`${modalidad.name}`"
                 row
-              ></v-checkbox>
+              />
             </v-row>
           </v-col>
-          <v-col cols="6"></v-col>
+          <v-col cols="6" />
         </v-row>
       </v-card>
     </v-dialog>
   </v-container>
 </template>
-
-<script>
-import { mapActions } from "vuex";
-
-export default {
-  data() {
-    return {
-      dialog: false,
-    };
-  },
-  // props: {
-  //   dialog: {
-  //     type: Boolean,
-  //     default: false,
-  //   },
-  // },
-  methods: {
-    ...mapActions(["getModality", "getShipment"]),
-  },
-  mounted() {
-    this.getModality();
-    this.getShipment();
-  },
-  watch: {
-    dialog() {
-      if (this.dialog) {
-        console.log("sss");
-      }
-    },
-  },
-};
-</script>
 
 <style></style>
