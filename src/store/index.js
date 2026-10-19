@@ -21,10 +21,7 @@ import masters from "./modules/master";
 import enterprises from "./modules/enterprise";
 import masterusuarios from "./modules/masterusuario";
 import bank from "./modules/bank";
-import transport from "./modules/transport";
 import reportes from "./modules/reporte";
-import shipment from "./modules/shipment";
-import multiplicador from "./modules/multiplicador";
 import airlines from "./modules/airlines";
 import QuoteStatus from "./modules/QuoteStatus";
 import puerto from "./modules/puerto";
@@ -2878,9 +2875,6 @@ export default createStore({
     enterprises,
     masterusuarios,
     bank,
-    transport,
-    shipment,
-    multiplicador,
     airlines,
     QuoteStatus,
     puerto,

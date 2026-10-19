@@ -37,7 +37,7 @@
       v-if="!loading"
       class="elevation-1"
       :headers="headers"
-      :items="$store.state.shipment.list"
+      :items="shipmentStore.list"
       item-value="id"
       :search="search"
     >
@@ -113,7 +113,7 @@
                 label="Tipo de Transporte (*)"
                 clearable
                 v-model="record.id_transport"
-                :items="$store.state.shipment.transports"
+                :items="shipmentStore.transports"
                 :item-title="(item) => item.code + ' - ' + item.name"
                 item-value="id"
                 :rules="[(v) => !!v || 'Dato requerido']"
@@ -157,7 +157,7 @@
       <v-list-item>
         
           <v-list-item-title class="text-headline-small">
-            Ver: {{ $store.state.shipment.record.name }}
+            Ver: {{ shipmentStore.record.name }}
           </v-list-item-title>
         
       </v-list-item>
@@ -168,38 +168,38 @@
             <v-text-field
               label="Código"
               readonly
-              :model-value="$store.state.shipment.record.code"
+              :model-value="shipmentStore.record.code"
             ></v-text-field>
           </v-row>
           <v-row>
             <v-text-field
               label="Nombre"
               readonly
-              :model-value="$store.state.shipment.record.name"
+              :model-value="shipmentStore.record.name"
             ></v-text-field>
           </v-row>
           <v-row>
             <v-text-field
               label="Descripción"
               readonly
-              :model-value="$store.state.shipment.record.description"
+              :model-value="shipmentStore.record.description"
             ></v-text-field>
           </v-row>
           <v-row>
             <v-text-field
               label="Tipo de Transporte"
               readonly
-              :model-value="`${$store.state.shipment.record.code_transport} - ${$store.state.shipment.record.type_transport}`"
+              :model-value="`${shipmentStore.record.code_transport} - ${shipmentStore.record.type_transport}`"
             ></v-text-field>
           </v-row>
           <v-row>
             <v-switch
               readonly
               :label="`Estado: ${
-                !!$store.state.shipment.record.status ? 'Activo' : 'Inactivo'
+                !!shipmentStore.record.status ? 'Activo' : 'Inactivo'
               }`"
               color="success"
-              v-model="$store.state.shipment.record.status"
+              v-model="shipmentStore.record.status"
               :value-comparator="(value, checked) => Boolean(value) === checked"
             ></v-switch>
           </v-row>
@@ -243,7 +243,7 @@
         <v-list-item class="px-0">
           
             <v-list-item-title class="text-headline-small">
-              Modificar: {{ $store.state.shipment.record.name }}
+              Modificar: {{ shipmentStore.record.name }}
             </v-list-item-title>
           
         </v-list-item>
@@ -285,7 +285,7 @@
               <v-autocomplete
                 label="Tipo de Transporte (*)"
                 v-model="record.id_transport"
-                :items="$store.state.shipment.transports"
+                :items="shipmentStore.transports"
                 :item-title="(item) => item.code + ' - ' + item.name"
                 item-value="id"
                 :rules="[(v) => !!v || 'Dato requerido']"
@@ -360,7 +360,7 @@
               label="Tipo de Transporte"
               clearable
               v-model="records.id_transport"
-              :items="$store.state.shipment.transports"
+              :items="shipmentStore.transports"
               :item-title="(item) => item.code + ' - ' + item.name"
               item-value="id"
             >
@@ -409,8 +409,10 @@
 </template>
 
 <script>
-import { mapState, mapActions } from "vuex";
+import { mapState } from "vuex";
 import Swal from "sweetalert2";
+import { mapActions as mapPiniaActions, mapStores } from "pinia";
+import { useShipmentStore } from "@/stores/shipment";
 
 export default {
   name: "ListShipmentComponent",
@@ -463,13 +465,7 @@ export default {
     this.$store.state.mainTitle = `Tipos de Carga`;
   },
   methods: {
-    ...mapActions([
-      "fetchDataCargarTransport",
-      "fetchDataShipment",
-      "insertShipment",
-      "readShipment",
-      "updateShipment",
-    ]),
+    ...mapPiniaActions(useShipmentStore, ["fetchDataCargarTransport", "fetchDataShipment", "insertShipment", "readShipment", "updateShipment"]),
     updateStatus(newValue) {
       this.record.status = newValue ? 1 : 0;
     },
@@ -570,10 +566,11 @@ export default {
     },
   },
   computed: {
+    ...mapStores(useShipmentStore),
     ...mapState(["list"]),
   },
   watch: {
-    "$store.state.shipment.record": {
+    "shipmentStore.record": {
       handler(newRecord, oldRecord) {
         if (newRecord && Object.keys(newRecord).length > 0) {
           const { code, name, description, id_transport, status } = newRecord;
@@ -583,7 +580,7 @@ export default {
       },
       immediate: true,
     },
-    "$store.state.shipment.loading": {
+    "shipmentStore.loading": {
       handler(newList, oldList) {
         this.loading = newList == true ? false : true;
       },

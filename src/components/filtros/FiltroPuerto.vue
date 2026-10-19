@@ -15,7 +15,7 @@
       <div class="col-12 py-1">
         <v-autocomplete
           label="Tipo Transporte"
-          :items="$store.state.transport.list"
+          :items="transportStore.list"
           v-model="$store.state.puerto.PortFilter.id_transporte"
           item-title="name"
           item-value="id"
@@ -74,7 +74,7 @@
         <div class="col-12 py-1">
           <v-autocomplete
             label="Tipo Transporte (*)"
-            :items="$store.state.transport.list"
+            :items="transportStore.list"
             v-model="$store.state.puerto.PortModel.id_transporte"
             :readonly="$store.state.puerto.tipo != 'nuevo'"
             item-title="name"
@@ -192,6 +192,8 @@
 </template>
 <script>
 import { mapActions } from "vuex";
+import { mapActions as mapPiniaActions, mapStores } from "pinia";
+import { useTransportStore } from "@/stores/transport";
 export default {
   data() {
     return { errIATA: "", errICAO: "", loading: false, puerto: "" };
@@ -200,10 +202,10 @@ export default {
     ...mapActions([
       "GetListPort",
       "_getPais",
-      "cargarTransport",
       "setPuerto",
       "ActualizarPuerto",
     ]),
+    ...mapPiniaActions(useTransportStore, ["cargarTransport"]),
     getName() {
       if (this.$store.state.puerto.tipo == "ver") {
         return `Puerto ${this.PortModel.name} – Modo Vista`;
@@ -262,6 +264,7 @@ export default {
     },
   },
   computed: {
+    ...mapStores(useTransportStore),
     drawer: {
       get() {
         return this.$store.state.puerto.drawer;

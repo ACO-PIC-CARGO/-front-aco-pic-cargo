@@ -38,7 +38,7 @@
         v-if="!loading"
         class="elevation-1"
         :headers="headers"
-        :items="$store.state.transport.list"
+        :items="transportStore.list"
         item-value="id"
         :search="search"
       >
@@ -159,7 +159,7 @@
         <v-list-item class="px-0">
           
             <v-list-item-title class="text-headline-small">
-              Ver: {{ $store.state.transport.record.name }}
+              Ver: {{ transportStore.record.name }}
             </v-list-item-title>
           
         </v-list-item>
@@ -170,31 +170,31 @@
             <v-text-field
               label="Código"
               readonly
-              :model-value="$store.state.transport.record.code"
+              :model-value="transportStore.record.code"
             ></v-text-field>
           </v-row>
           <v-row>
             <v-text-field
               label="Nombre"
               readonly
-              :model-value="$store.state.transport.record.name"
+              :model-value="transportStore.record.name"
             ></v-text-field>
           </v-row>
           <v-row>
             <v-text-field
               label="Descripción"
               readonly
-              :model-value="$store.state.transport.record.description"
+              :model-value="transportStore.record.description"
             ></v-text-field>
           </v-row>
           <v-row>
             <v-switch
               readonly
               :label="`Estado: ${
-                !!$store.state.transport.record.status ? 'Activo' : 'Inactivo'
+                !!transportStore.record.status ? 'Activo' : 'Inactivo'
               }`"
               color="success"
-              v-model="$store.state.transport.record.status"
+              v-model="transportStore.record.status"
               :value-comparator="(value, checked) => Boolean(value) === checked"
             ></v-switch>
           </v-row>
@@ -239,7 +239,7 @@
         <v-list-item class="px-0">
           
             <v-list-item-title class="text-headline-small">
-              Modificar: {{ $store.state.transport.record.name }}
+              Modificar: {{ transportStore.record.name }}
             </v-list-item-title>
           
         </v-list-item>
@@ -395,8 +395,10 @@
 </template>
 
 <script>
-import { mapState, mapActions } from "vuex";
+import { mapState } from "vuex";
 import Swal from "sweetalert2";
+import { mapActions as mapPiniaActions, mapStores } from "pinia";
+import { useTransportStore } from "@/stores/transport";
 
 export default {
   name: "ListTransportComponent",
@@ -448,12 +450,7 @@ export default {
     this.$store.state.mainTitle = `Tipo de Transporte`;
   },
   methods: {
-    ...mapActions([
-      "fetchDataTransport",
-      "insertTransport",
-      "readTransport",
-      "updateTransport",
-    ]),
+    ...mapPiniaActions(useTransportStore, ["fetchDataTransport", "insertTransport", "readTransport", "updateTransport"]),
     updateStatus(newValue) {
       this.record.status = newValue ? 1 : 0;
     },
@@ -566,10 +563,11 @@ export default {
     },
   },
   computed: {
+    ...mapStores(useTransportStore),
     ...mapState(["list"]),
   },
   watch: {
-    "$store.state.transport.record": {
+    "transportStore.record": {
       handler(newRecord, oldRecord) {
         if (newRecord && Object.keys(newRecord).length > 0) {
           const { code, name, description, status } = newRecord;
@@ -579,7 +577,7 @@ export default {
       },
       immediate: true,
     },
-    "$store.state.transport.loading": {
+    "transportStore.loading": {
       handler(newList, oldList) {
         this.loading = newList == true ? false : true;
       },

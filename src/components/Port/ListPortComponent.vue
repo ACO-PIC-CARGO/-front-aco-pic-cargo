@@ -100,6 +100,8 @@
 <script>
 import { mapActions } from "vuex";
 import Swal from "sweetalert2";
+import { mapActions as mapPiniaActions } from "pinia";
+import { useTransportStore } from "@/stores/transport";
 export default {
   data() {
     return {
@@ -124,9 +126,9 @@ export default {
     ...mapActions([
       "GetListPort",
       "_getPais",
-      "cargarTransport",
       "ActualizarPuerto",
     ]),
+    ...mapPiniaActions(useTransportStore, ["cargarTransport"]),
     ver(item) {
       let datos = { ...item };
       this.$store.state.puerto.tipo = "ver";

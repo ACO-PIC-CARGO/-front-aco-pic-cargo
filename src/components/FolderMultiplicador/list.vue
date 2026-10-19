@@ -40,7 +40,7 @@
         v-if="!loading"
         class="elevation-1"
         :headers="headers"
-        :items="$store.state.multiplicador.list"
+        :items="multiplicadorStore.list"
         item-value="id"
         :search="search"
       >
@@ -79,7 +79,7 @@
       <v-list-item>
         
           <v-list-item-title class="text-headline-small">
-            Ver: {{ $store.state.multiplicador.record.name }}
+            Ver: {{ multiplicadorStore.record.name }}
           </v-list-item-title>
         
       </v-list-item>
@@ -90,47 +90,47 @@
             <v-text-field
               label="Código"
               readonly
-              :model-value="$store.state.multiplicador.record.code"
+              :model-value="multiplicadorStore.record.code"
             ></v-text-field>
           </v-row>
           <v-row>
             <v-text-field
               label="Nombre"
               readonly
-              :model-value="$store.state.multiplicador.record.name"
+              :model-value="multiplicadorStore.record.name"
             ></v-text-field>
           </v-row>
           <v-row>
             <v-text-field
               label="Descripción"
               readonly
-              :model-value="$store.state.multiplicador.record.description"
+              :model-value="multiplicadorStore.record.description"
             ></v-text-field>
           </v-row>
           <v-row>
             <v-text-field
               label="Tipo de Carga"
               readonly
-              :model-value="$store.state.multiplicador.record.type_carga"
+              :model-value="multiplicadorStore.record.type_carga"
             ></v-text-field>
           </v-row>
           <v-row>
             <v-text-field
               label="Valor"
               readonly
-              :model-value="$store.state.multiplicador.record.valor"
+              :model-value="multiplicadorStore.record.valor"
             ></v-text-field>
           </v-row>
           <v-row>
             <v-switch
               readonly
               :label="`Estado: ${
-                !!$store.state.multiplicador.record.status
+                !!multiplicadorStore.record.status
                   ? 'Activo'
                   : 'Inactivo'
               }`"
               color="success"
-              v-model="$store.state.multiplicador.record.status"
+              v-model="multiplicadorStore.record.status"
               :value-comparator="(value, checked) => Boolean(value) === checked"
             ></v-switch>
           </v-row>
@@ -175,11 +175,11 @@
           
             <v-list-item-title class="text-headline-small">
               {{
-                $store.state.multiplicador.record.id
+                multiplicadorStore.record.id
                   ? "Modificar"
                   : "Nuevo Registro"
               }}
-              {{ $store.state.multiplicador.record.name }}
+              {{ multiplicadorStore.record.name }}
             </v-list-item-title>
           
         </v-list-item>
@@ -190,19 +190,19 @@
           <v-row>
             <v-autocomplete
               label="Tipo de Carga (*)"
-              v-model="$store.state.multiplicador.record.type_carga"
-              :items="$store.state.multiplicador.shipments"
+              v-model="multiplicadorStore.record.type_carga"
+              :items="multiplicadorStore.shipments"
               item-title="name"
               item-value="name"
               :rules="[(v) => !!v || 'Dato requerido']"
             >
             </v-autocomplete>
           </v-row>
-          <v-row v-if="$store.state.multiplicador.record.type_carga == 'FCL'">
+          <v-row v-if="multiplicadorStore.record.type_carga == 'FCL'">
             <v-autocomplete
               label="Contenedor Asociado"
               clearable
-              v-model="$store.state.multiplicador.record.id_containers"
+              v-model="multiplicadorStore.record.id_containers"
               :items="$store.state.itemsContainers"
               item-title="name"
               item-value="id"
@@ -214,10 +214,10 @@
               <v-text-field
                 type="text"
                 label="Nombre (*)"
-                v-model="$store.state.multiplicador.record.name"
+                v-model="multiplicadorStore.record.name"
                 :rules="[(v) => validateFieldTextInForm(v, 50, false, 'max')]"
                 clearable
-                v-if="!$store.state.multiplicador.record.id_containers"
+                v-if="!multiplicadorStore.record.id_containers"
               >
               </v-text-field>
             </v-row>
@@ -236,7 +236,7 @@
               <v-text-field
                 type="number"
                 label="Valor (*)"
-                v-model="$store.state.multiplicador.record.valor"
+                v-model="multiplicadorStore.record.valor"
                 :rules="[(v) => validateNumber(v)]"
                 clearable
               >
@@ -246,9 +246,9 @@
           <v-row>
             <v-switch
               :label="`Estado: ${
-                $store.state.multiplicador.record.status ? 'Activo' : 'Inactivo'
+                multiplicadorStore.record.status ? 'Activo' : 'Inactivo'
               }`"
-              v-model="$store.state.multiplicador.record.status"
+              v-model="multiplicadorStore.record.status"
               :value-comparator="(value, checked) => Boolean(value) === checked"
               color="success"
               @update:model-value="updateStatus"
@@ -259,7 +259,7 @@
         <v-card-actions class="justify-end mt-3">
           <v-btn
             class="mx-1"
-            v-if="!$store.state.multiplicador.record.id"
+            v-if="!multiplicadorStore.record.id"
             color="success"
             @click="btnNuevo"
           >
@@ -267,7 +267,7 @@
           </v-btn>
           <v-btn
             class="mx-1"
-            v-if="$store.state.multiplicador.record.id"
+            v-if="multiplicadorStore.record.id"
             color="success"
             @click="btnUpdate"
           >
@@ -345,7 +345,7 @@
               label="Tipo de Carga"
               clearable
               v-model="records.id_shipment"
-              :items="$store.state.multiplicador.shipments"
+              :items="multiplicadorStore.shipments"
               item-title="name"
               item-value="id"
             >
@@ -382,6 +382,8 @@
 <script>
 import { mapState, mapActions } from "vuex";
 import Swal from "sweetalert2";
+import { mapActions as mapPiniaActions, mapStores } from "pinia";
+import { useMultiplicadorStore } from "@/stores/multiplicador";
 
 export default {
   name: "ListMultiplicadorComponent",
@@ -440,13 +442,9 @@ export default {
   },
   methods: {
     ...mapActions([
-      "fetchDataCargarShipment",
-      "fetchDataMultiplicador",
-      "readMultiplicador",
-      "updateMultiplicador",
-      "nuevoMultiplicador",
       "_getContainers",
     ]),
+    ...mapPiniaActions(useMultiplicadorStore, ["fetchDataCargarShipment", "fetchDataMultiplicador", "readMultiplicador", "updateMultiplicador", "nuevoMultiplicador"]),
     updateStatus(newValue) {
       this.record.status = newValue ? 1 : 0;
     },
@@ -483,7 +481,7 @@ export default {
     async open_new() {
       this.showFilterDrawerUpdate = !this.showFilterDrawerUpdate;
       this.loading_as = false;
-      this.$store.state.multiplicador.record = {};
+      this.multiplicadorStore.record = {};
       setTimeout(() => {
         this.$refs.form.reset();
       }, 100);
@@ -491,21 +489,21 @@ export default {
     async open_read(item) {
       this.showFilterDrawerRead = !this.showFilterDrawerRead;
       this.loading_as = false;
-      this.$store.state.multiplicador.record = { ...item };
+      this.multiplicadorStore.record = { ...item };
     },
     async open_update(item) {
       this.showFilterDrawerUpdate = !this.showFilterDrawerUpdate;
       this.loading_as = false;
-      this.$store.state.multiplicador.record = { ...item };
+      this.multiplicadorStore.record = { ...item };
       this.id = item.id;
     },
     async btnNuevo() {
-      let containers = this.$store.state.multiplicador.list.map((v) => {
+      let containers = this.multiplicadorStore.list.map((v) => {
         if (v.id_containers) {
           return v.id_containers;
         }
       });
-      if (containers.includes(this.$store.state.multiplicador.id_containers)) {
+      if (containers.includes(this.multiplicadorStore.id_containers)) {
         Swal.fire({
           icon: "error",
           title: "Contenedor",
@@ -515,13 +513,13 @@ export default {
       }
       if ((await this.$refs.form.validate()).valid) {
         this.resetRecord("filter");
-        await this.nuevoMultiplicador(this.$store.state.multiplicador.record);
+        await this.nuevoMultiplicador(this.multiplicadorStore.record);
       }
     },
     async btnUpdate() {
       if ((await this.$refs.form.validate()).valid) {
         this.resetRecord("filter");
-        await this.updateMultiplicador(this.$store.state.multiplicador.record);
+        await this.updateMultiplicador(this.multiplicadorStore.record);
       }
     },
     open_filter() {
@@ -566,10 +564,11 @@ export default {
     },
   },
   computed: {
+    ...mapStores(useMultiplicadorStore),
     ...mapState(["list"]),
   },
   watch: {
-    "$store.state.multiplicador.record": {
+    "multiplicadorStore.record": {
       handler(newRecord, oldRecord) {
         if (newRecord && Object.keys(newRecord).length > 0) {
           const { id, name, description, id_shipment, valor, status } =
@@ -580,19 +579,19 @@ export default {
       },
       immediate: true,
     },
-    "$store.state.multiplicador.record.id_containers": {
+    "multiplicadorStore.record.id_containers": {
       handler(newRecord, oldRecord) {
         if (newRecord) {
           let container = this.$store.state.itemsContainers.find(
             (v) => v.id == newRecord,
           );
-          this.$store.state.multiplicador.record.name = container.name;
+          this.multiplicadorStore.record.name = container.name;
         } else {
-          this.$store.state.multiplicador.record.name = "";
+          this.multiplicadorStore.record.name = "";
         }
       },
     },
-    "$store.state.multiplicador.loading": {
+    "multiplicadorStore.loading": {
       handler(newList, oldList) {
         this.loading = newList == true ? false : true;
       },
