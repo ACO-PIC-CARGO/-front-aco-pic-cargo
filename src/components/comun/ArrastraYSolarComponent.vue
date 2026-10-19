@@ -9,13 +9,13 @@ const props = withDefaults(
     // Reglas de validación para v-form
     rules?: ValidationRule[];
     // URL previa del archivo (si la tienes desde BD)
-    initialUrl?: string | null;
+    initialUrl?: string;
     // ID previo del archivo (si la tienes desde BD)
     initialId?: string | number | null;
     // Si se pasa true, deshabilita eliminar y subir (Ideal para tipo == 'ver')
     readOnly?: boolean;
   }>(),
-  { rules: () => [], initialUrl: null, initialId: null, readOnly: false },
+  { rules: () => [], initialUrl: undefined, initialId: null, readOnly: false },
 );
 const emit = defineEmits<{
   idArchivoCargado: [payload: { id: unknown; archivo: unknown }];
@@ -28,7 +28,7 @@ const isDragging = ref(false);
 const file = ref<File | null>(null);
 const errorState = ref(false);
 // Manejo local cuando se pasa prop previa
-const existingUrl = ref<string | null>(null);
+const existingUrl = ref<string | null | undefined>(null);
 const existingId = ref<string | number | null>(null);
 const fileInput = useTemplateRef("fileInput");
 
