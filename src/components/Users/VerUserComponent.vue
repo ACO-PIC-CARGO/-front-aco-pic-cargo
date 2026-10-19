@@ -1,3 +1,211 @@
+<script setup lang="ts">
+import { onMounted, ref, useTemplateRef } from "vue";
+import { useRoute } from "vue-router";
+import { useStore } from "vuex";
+import Swal from "sweetalert2";
+import { usePositionStore } from "@/stores/position";
+import { useSecuritysStore } from "@/stores/securitys";
+import { useUserStore } from "@/stores/user";
+import type { PosicionListado } from "@/types/seguridad";
+import type { SucursalSesion } from "@/types/sesion";
+
+const route = useRoute();
+const rootStore = useStore();
+const userStore = useUserStore();
+const positionStore = usePositionStore();
+const securitysStore = useSecuritysStore();
+
+const tab = ref("datos");
+const headersPosition = [
+  { title: "Código", key: "code" },
+  { title: "Posición", key: "name" },
+  // { text: "Acción", value: "action" },
+] as const;
+
+const headersSucursal = [
+  { title: "Documento", key: "document" },
+  { title: "Nombre", key: "trade_name" },
+  // { text: "Acción", value: "action" },
+] as const;
+
+const itemPositon = ref<PosicionListado | "">("");
+const errPosition = ref("");
+const errUsers = ref("");
+const errEmail = ref("");
+const itemSucursal = ref<SucursalSesion | "">("");
+const errSucursal = ref("");
+const loadingEstado = ref(false);
+const loadingCity = ref(false);
+const loadingDistrito = ref(false);
+const snackbar = ref(false);
+const frmDatos = useTemplateRef("frmDatos");
+// Not bound to the template, as in the old code.
+const frmPosicion = ref<{ validate: () => Promise<{ valid: boolean }> } | null>(null);
+const frmSucursal = ref<{ validate: () => Promise<{ valid: boolean }> } | null>(null);
+
+onMounted(async () => {
+  userStore.model.id = route.params.id as string;
+  await userStore.GetVerUsers();
+  rootStore.state.spiner = true;
+  await rootStore.dispatch("_getDocumentsPais");
+  await rootStore.dispatch("_getPais");
+  await rootStore.dispatch("_getSex");
+  await positionStore.cargarPosition();
+  await securitysStore.CargarBranch();
+  await rootStore.dispatch("_getState", userStore.model.id_pais);
+  await rootStore.dispatch("_getCity", userStore.model.id_state);
+  await rootStore.dispatch("_getTown", userStore.model.id_city);
+  rootStore.state.spiner = false;
+});
+
+// 10705871171
+
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+async function validarUser() {
+  errUsers.value = "";
+  rootStore.state.spiner = true;
+  const res = (await userStore.validateUserUsuario())!;
+  if (res.estadoflag == true) {
+    errUsers.value = res.mensaje;
+    userStore.model.users = "";
+  }
+  rootStore.state.spiner = false;
+}
+
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+async function validarEmail() {
+  errEmail.value = "";
+  rootStore.state.spiner = true;
+  const res = (await userStore.validateEmailUsuario())!;
+  if (res.estadoflag == true) {
+    errEmail.value = res.mensaje;
+    userStore.model.email = "";
+  }
+  rootStore.state.spiner = false;
+}
+
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+async function validarDocument() {
+  // this.errUsers = "";
+  if (!!userStore.model.id_document && !!userStore.model.document) {
+    rootStore.state.spiner = true;
+    const res = (await userStore.validateDocumentUsuario())!;
+    rootStore.state.spiner = false;
+
+    if (res.estadoflag == true) {
+      Swal.fire({
+        icon: "question",
+        title: "Pregunta",
+        text: res.mensaje,
+        allowEnterKey: false,
+        allowOutsideClick: false,
+        confirmButtonText: "Si",
+        cancelButtonText: "No",
+        showCancelButton: true,
+        cancelButtonColor: "red",
+        confirmButtonColor: "green",
+      }).then(async (respuesta) => {
+        if (respuesta.isConfirmed) {
+          rootStore.state.spiner = true;
+          userStore.model.id_entitie = res.data[0]!.id_entitie;
+          userStore.model.address = res.data[0]!.address;
+          userStore.model.birthday = res.data[0]!.birthday;
+          userStore.model.estadoflag = res.data[0]!.estadoflag;
+          userStore.model.id_city = res.data[0]!.id_city;
+          userStore.model.id_pais = res.data[0]!.id_pais;
+          userStore.model.id_sex = res.data[0]!.id_sex;
+          userStore.model.id_state = res.data[0]!.id_state;
+          userStore.model.id_town = res.data[0]!.id_town;
+          userStore.model.names = res.data[0]!.names;
+          userStore.model.second_surname = res.data[0]!.second_surname;
+          userStore.model.socialprincipal = res.data[0]!.socialprincipal;
+          userStore.model.socialsecundary = res.data[0]!.socialsecundary;
+          userStore.model.surname = res.data[0]!.surname;
+          await rootStore.dispatch("_getState", res.data[0]!.id_pais);
+          await rootStore.dispatch("_getCity", res.data[0]!.id_state);
+          await rootStore.dispatch("_getTown", res.data[0]!.id_city);
+          rootStore.state.spiner = false;
+        }
+        if (respuesta.isDismissed) {
+          userStore.model.document = "";
+        }
+      });
+    }
+    rootStore.state.spiner = false;
+  }
+  // if (res.estadoflag == true) {
+  //   this.errUsers = res.mensaje;
+  //   this.$store.state.user.model.users = "";
+  // }
+}
+
+
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+async function agregarSucursal() {
+  errSucursal.value = "";
+  if ((await frmSucursal.value!.validate()).valid) {
+    if (userStore.sucursales.some((v) => v.id == (itemSucursal.value as SucursalSesion).id)) {
+      errSucursal.value = "La sucursal ya se encuentra asignada.";
+    } else {
+      userStore.sucursales.push(itemSucursal.value as SucursalSesion);
+    }
+  }
+}
+
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+async function agregarPosicion() {
+  errPosition.value = "";
+  if ((await frmPosicion.value!.validate()).valid) {
+    if (userStore.positions.some((v) => v.id == (itemPositon.value as PosicionListado).id)) {
+      errPosition.value = "La posición ya se encuentra asignada.";
+    } else {
+      userStore.positions.push(itemPositon.value as PosicionListado);
+    }
+  }
+}
+
+
+async function ObtenerEstados(id_pais: number | string | undefined) {
+  loadingEstado.value = true;
+  await rootStore.dispatch("_getState", id_pais);
+
+  loadingEstado.value = false;
+}
+
+async function ObtenerCity(id_state: number | string | undefined) {
+  loadingCity.value = true;
+  await rootStore.dispatch("_getCity", id_state);
+  loadingCity.value = false;
+}
+
+async function ObtenerDistrito(id_city: number | string | undefined) {
+  loadingDistrito.value = true;
+  await rootStore.dispatch("_getTown", id_city);
+  loadingDistrito.value = false;
+}
+
+
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+async function guardarUsuario() {
+  console.log(rootStore.state.itemsDocumentsPais);
+  if ((await frmDatos.value!.validate()).valid) {
+    if (userStore.positions.filter((v) => !!v.status).length == 0) {
+      errPosition.value = "Es necesario asignar al menos una Position, al usuario";
+      tab.value = "posicion";
+      return false;
+    }
+    if (userStore.sucursales.filter((v) => !!v.status).length == 0) {
+      errSucursal.value = "Es necesario asignar al menos una Sucursal, al usuario";
+      tab.value = "sucursal";
+      return false;
+    }
+    // await this.setUsers();
+  } else {
+    tab.value = "datos";
+  }
+}
+</script>
+
 <template>
   <v-card class="cardDatos pa-4">
     <v-tabs
@@ -7,14 +215,27 @@
       grow
       stacked
     >
-      <v-tab base-color="rgba(255, 255, 255, 0.6)" value="datos"> Datos del Usuario </v-tab>
+      <v-tab
+        base-color="rgba(255, 255, 255, 0.6)"
+        value="datos"
+      >
+        Datos del Usuario
+      </v-tab>
 
-      <v-tab base-color="rgba(255, 255, 255, 0.6)" value="posicion"> Módulos a Usar </v-tab>
+      <v-tab
+        base-color="rgba(255, 255, 255, 0.6)"
+        value="posicion"
+      >
+        Módulos a Usar
+      </v-tab>
 
       <!-- <v-tab base-color="rgba(255, 255, 255, 0.6)" value="sucursal"> Sucursal </v-tab> -->
     </v-tabs>
     <v-tabs-window v-model="tab">
-      <v-tabs-window-item value="datos" class="px-5 items">
+      <v-tabs-window-item
+        value="datos"
+        class="px-5 items"
+      >
         <v-form ref="frmDatos">
           <v-row>
             <v-col cols="4">
@@ -24,26 +245,26 @@
                 v-model="userStore.model.users"
                 :error-messages="errUsers"
                 readonly
-              ></v-text-field>
+              />
             </v-col>
           </v-row>
           <v-row class="align-sm-center">
             <v-col cols="4">
               <v-autocomplete
-                :items="$store.state.itemsDocumentsPais"
+                :items="rootStore.state.itemsDocumentsPais"
                 item-title="description"
                 item-value="id"
                 label="Tipo de Documento"
                 v-model="userStore.model.id_document"
                 readonly
-              ></v-autocomplete>
+              />
             </v-col>
             <v-col cols="4">
               <v-text-field
                 label="Documento"
                 v-model="userStore.model.document"
                 readonly
-              ></v-text-field>
+              />
             </v-col>
           </v-row>
           <v-row>
@@ -52,35 +273,35 @@
                 v-model="userStore.model.names"
                 label="Nombres"
                 readonly
-              ></v-text-field>
+              />
             </v-col>
             <v-col cols="4">
               <v-text-field
                 v-model="userStore.model.surname"
                 label="Apellido Paterno"
                 readonly
-              ></v-text-field>
+              />
             </v-col>
             <v-col cols="4">
               <v-text-field
                 v-model="userStore.model.second_surname"
                 label="Apellido Materno"
                 readonly
-              ></v-text-field>
+              />
             </v-col>
             <v-col cols="4">
               <v-text-field
                 label="Teléfono"
                 v-model="userStore.model.phone"
                 readonly
-              ></v-text-field>
+              />
             </v-col>
             <v-col cols="4">
               <v-text-field
                 label="Correo"
                 v-model="userStore.model.email"
                 readonly
-              ></v-text-field>
+              />
             </v-col>
             <v-col cols="4">
               <v-text-field
@@ -88,38 +309,43 @@
                 label="Fecha Nacimiento"
                 v-model="userStore.model.birthday"
                 readonly
-              ></v-text-field>
+              />
             </v-col>
           </v-row>
           <v-row>
             <v-col cols="4">
+              <!-- @vue-expect-error the root state items are untyped until the Vuex store is typed -->
               <v-autocomplete
-                :items="$store.state.itemsSex"
+                :items="rootStore.state.itemsSex"
                 item-title="name"
                 item-value="id"
                 label="Sexo *"
                 :item-props="(item) => ({ disabled: item.status != 1 })"
                 v-model="userStore.model.id_sex"
                 readonly
-              ></v-autocomplete>
+              />
             </v-col>
             <v-col cols="4">
+              <!-- @vue-expect-error the root state items are untyped until the Vuex store is typed -->
               <v-autocomplete
                 label="Pais"
-                :items="$store.state.itemsPais"
+                :items="rootStore.state.itemsPais"
                 v-model="userStore.model.id_pais"
                 item-title="name"
                 item-value="id"
                 @update:model-value="ObtenerEstados(userStore.model.id_pais)"
                 readonly
                 :item-props="(item) => ({ disabled: item.status != 1 })"
-              >
-              </v-autocomplete>
+              />
             </v-col>
-            <v-col cols="4" v-if="userStore.model.id_pais">
+            <v-col
+              cols="4"
+              v-if="userStore.model.id_pais"
+            >
+              <!-- @vue-expect-error the root state items are untyped until the Vuex store is typed -->
               <v-autocomplete
                 label="Estado (Región)"
-                :items="$store.state.itemsState"
+                :items="rootStore.state.itemsState"
                 v-model="userStore.model.id_state"
                 item-title="name"
                 item-value="id"
@@ -127,13 +353,16 @@
                 @update:model-value="ObtenerCity(userStore.model.id_state)"
                 readonly
                 :item-props="(item) => ({ disabled: item.status != 1 })"
-              >
-              </v-autocomplete>
+              />
             </v-col>
-            <v-col cols="4" v-if="userStore.model.id_state">
+            <v-col
+              cols="4"
+              v-if="userStore.model.id_state"
+            >
+              <!-- @vue-expect-error the root state items are untyped until the Vuex store is typed -->
               <v-autocomplete
                 label="Ciudad"
-                :items="$store.state.itemsCity"
+                :items="rootStore.state.itemsCity"
                 v-model="userStore.model.id_city"
                 item-title="name"
                 item-value="id"
@@ -141,28 +370,30 @@
                 @update:model-value="ObtenerDistrito(userStore.model.id_city)"
                 readonly
                 :item-props="(item) => ({ disabled: item.status != 1 })"
-              >
-              </v-autocomplete>
+              />
             </v-col>
-            <v-col cols="4" v-if="userStore.model.id_city">
+            <v-col
+              cols="4"
+              v-if="userStore.model.id_city"
+            >
+              <!-- @vue-expect-error the root state items are untyped until the Vuex store is typed -->
               <v-autocomplete
                 label="Distrito "
-                :items="$store.state.itemsTown"
+                :items="rootStore.state.itemsTown"
                 v-model="userStore.model.id_town"
                 item-title="name"
                 item-value="id"
                 :loading="loadingDistrito"
                 :item-props="(item) => ({ disabled: item.status != 1 })"
                 readonly
-              >
-              </v-autocomplete>
+              />
             </v-col>
             <v-col cols="4">
               <v-text-field
                 v-model="userStore.model.address"
                 label="Dirección"
                 readonly
-              ></v-text-field>
+              />
             </v-col>
             <!-- <v-col cols="4">
               <v-text-field
@@ -191,7 +422,10 @@
                 <v-radio label="Administrativo" :value="2"></v-radio>
               </v-radio-group>
             </v-col> -->
-            <v-col cols="12" class="d-flex align-center">
+            <v-col
+              cols="12"
+              class="d-flex align-center"
+            >
               <span class="mr-4">Activo/ Inactivo</span>
               <v-switch
                 hide-details
@@ -200,12 +434,15 @@
                 "
                 v-model="userStore.model.status"
                 :value-comparator="(value, checked) => Boolean(value) === checked"
-              ></v-switch>
+              />
             </v-col>
           </v-row>
         </v-form>
       </v-tabs-window-item>
-      <v-tabs-window-item value="posicion" class="px-5 items">
+      <v-tabs-window-item
+        value="posicion"
+        class="px-5 items"
+      >
         <!-- <v-form ref="frmPosicion">
           <v-row>
             <v-col cols="4" class="my-auto">
@@ -236,8 +473,13 @@
               :items="userStore.positions.filter((v) => !!v.status)"
               item-value="id"
             >
-              <template v-slot:[`item.action`]="{ item }">
-                <v-btn variant="text" icon color="red" @click="item.status = !item.status">
+              <template #[`item.action`]="{ item }">
+                <v-btn
+                  variant="text"
+                  icon
+                  color="red"
+                  @click="item.status = !item.status"
+                >
                   <v-icon>mdi-delete</v-icon>
                 </v-btn>
               </template>
@@ -245,18 +487,28 @@
           </v-col>
           <v-col cols="12">
             <v-col cols="12">
-              <p class="py-2">Departamento</p>
+              <p class="py-2">
+                Departamento
+              </p>
 
               <v-radio-group
                 :rules="[(v) => !!v || 'Dato Requerido']"
                 v-model="userStore.model.departamento"
               >
-                <v-radio label="Pricing" :value="1"></v-radio>
-                <v-radio label="Operativo" :value="2"></v-radio>
+                <v-radio
+                  label="Pricing"
+                  :value="1"
+                />
+                <v-radio
+                  label="Operativo"
+                  :value="2"
+                />
               </v-radio-group>
             </v-col>
             <v-col cols="12">
-              <p class="justify">** Nota Importante **</p>
+              <p class="justify">
+                ** Nota Importante **
+              </p>
             </v-col>
             <v-col cols="12">
               <p class="justify">
@@ -270,7 +522,10 @@
           </v-col>
         </v-row>
       </v-tabs-window-item>
-      <v-tabs-window-item value="sucursal" class="px-5 py-5 items">
+      <v-tabs-window-item
+        value="sucursal"
+        class="px-5 py-5 items"
+      >
         <!-- <v-form ref="frmSucursal">
           <v-row>
             <v-col cols="4" class="my-auto">
@@ -302,8 +557,13 @@
               :items="userStore.sucursales.filter((v) => !!v.status)"
               item-value="id"
             >
-              <template v-slot:[`item.action`]="{ item }">
-                <v-btn variant="text" icon color="red" @click="item.status = !item.status">
+              <template #[`item.action`]="{ item }">
+                <v-btn
+                  variant="text"
+                  icon
+                  color="red"
+                  @click="item.status = !item.status"
+                >
                   <v-icon>mdi-delete</v-icon>
                 </v-btn>
               </template>
@@ -313,239 +573,27 @@
       </v-tabs-window-item>
     </v-tabs-window>
 
-    <v-snackbar v-model="snackbar" variant="outlined" vertical color="info">
+    <v-snackbar
+      v-model="snackbar"
+      variant="outlined"
+      vertical
+      color="info"
+    >
       El departamento, define como se comportará el usuario para el llendo de
       montos (Pricing u Operaciones) , en el CONTROL DE GASTOS
 
-      <template v-slot:actions>
-        <v-btn variant="text" color="red" @click="snackbar = false">
+      <template #actions>
+        <v-btn
+          variant="text"
+          color="red"
+          @click="snackbar = false"
+        >
           Close
         </v-btn>
       </template>
     </v-snackbar>
   </v-card>
 </template>
-
-<script>
-import { mapActions } from "vuex";
-import { mapActions as mapPiniaActions, mapStores } from "pinia";
-import { useSecuritysStore } from "@/stores/securitys";
-import Swal from "sweetalert2";
-import { usePositionStore } from "@/stores/position";
-import { useUserStore } from "@/stores/user";
-export default {
-  data() {
-    return {
-      tab: "datos",
-      headersPosition: [
-        { title: "Código", key: "code" },
-        { title: "Posición", key: "name" },
-        // { text: "Acción", value: "action" },
-      ],
-
-      headersSucursal: [
-        { title: "Documento", key: "document" },
-        { title: "Nombre", key: "trade_name" },
-        // { text: "Acción", value: "action" },
-      ],
-
-      itemPositon: "",
-      errPosition: "",
-      errUsers: "",
-      errEmail: "",
-      itemSucursal: "",
-      errSucursal: "",
-      loadingEstado: false,
-      loadingCity: false,
-      loadingDistrito: false,
-      snackbar: false,
-    };
-  },
-  async mounted() {
-    this.userStore.model.id = this.$route.params.id;
-    await this.GetVerUsers();
-    this.$store.state.spiner = true;
-    await this._getDocumentsPais();
-    await this._getPais();
-    await this._getSex();
-    await this.cargarPosition();
-    await this.CargarBranch();
-    await this._getState(this.userStore.model.id_pais);
-    await this._getCity(this.userStore.model.id_state);
-    await this._getTown(this.userStore.model.id_city);
-    this.$store.state.spiner = false;
-  },
-  computed: {
-    ...mapStores(useUserStore, usePositionStore, useSecuritysStore),
-  },
-  methods: {
-    ...mapActions([
-      "_getDocumentsPais",
-      "_getPais",
-      "_getSex",
-      "_getState",
-      "_getCity",
-      "_getTown",
-    ]),
-    ...mapPiniaActions(useUserStore, ["validateUserUsuario", "validateDocumentUsuario", "validateEmailUsuario", "GetVerUsers"]),
-    ...mapPiniaActions(usePositionStore, ["cargarPosition"]),
-    ...mapPiniaActions(useSecuritysStore, ["CargarBranch"]),
-    // 10705871171
-    async validarUser() {
-      this.errUsers = "";
-      this.$store.state.spiner = true;
-      let res = await this.validateUserUsuario();
-      if (res.estadoflag == true) {
-        this.errUsers = res.mensaje;
-        this.userStore.model.users = "";
-      }
-      this.$store.state.spiner = false;
-    },
-    async validarEmail() {
-      this.errEmail = "";
-      this.$store.state.spiner = true;
-      let res = await this.validateEmailUsuario();
-      if (res.estadoflag == true) {
-        this.errEmail = res.mensaje;
-        this.userStore.model.email = "";
-      }
-      this.$store.state.spiner = false;
-    },
-    async validarDocument() {
-      // this.errUsers = "";
-      if (
-        !!this.userStore.model.id_document &&
-        !!this.userStore.model.document
-      ) {
-        this.$store.state.spiner = true;
-        let res = await this.validateDocumentUsuario();
-        this.$store.state.spiner = false;
-
-        if (res.estadoflag == true) {
-          Swal.fire({
-            icon: "question",
-            title: "Pregunta",
-            text: res.mensaje,
-            allowEnterKey: false,
-            allowOutsideClick: false,
-            allowEnterKey: false,
-            confirmButtonText: "Si",
-            cancelButtonText: "No",
-            showCancelButton: true,
-            cancelButtonColor: "red",
-            confirmButtonColor: "green",
-          }).then(async (respuesta) => {
-            if (respuesta.isConfirmed) {
-              this.$store.state.spiner = true;
-              this.userStore.model.id_entitie = res.data[0].id_entitie;
-              this.userStore.model.address = res.data[0].address;
-              this.userStore.model.birthday = res.data[0].birthday;
-              this.userStore.model.estadoflag = res.data[0].estadoflag;
-              this.userStore.model.id_city = res.data[0].id_city;
-              this.userStore.model.id_pais = res.data[0].id_pais;
-              this.userStore.model.id_sex = res.data[0].id_sex;
-              this.userStore.model.id_state = res.data[0].id_state;
-              this.userStore.model.id_town = res.data[0].id_town;
-              this.userStore.model.names = res.data[0].names;
-              this.userStore.model.second_surname =
-                res.data[0].second_surname;
-              this.userStore.model.socialprincipal =
-                res.data[0].socialprincipal;
-              this.userStore.model.socialsecundary =
-                res.data[0].socialsecundary;
-              this.userStore.model.surname = res.data[0].surname;
-              await this._getState(res.data[0].id_pais);
-              await this._getCity(res.data[0].id_state);
-              await this._getTown(res.data[0].id_city);
-              this.$store.state.spiner = false;
-            }
-            if (respuesta.isDismissed) {
-              this.userStore.model.document = "";
-            }
-          });
-        }
-        this.$store.state.spiner = false;
-      }
-      // if (res.estadoflag == true) {
-      //   this.errUsers = res.mensaje;
-      //   this.$store.state.user.model.users = "";
-      // }
-    },
-
-    async agregarSucursal() {
-      this.errSucursal = "";
-      if ((await this.$refs.frmSucursal.validate()).valid) {
-        if (
-          this.userStore.sucursales.some(
-            (v) => v.id == this.itemSucursal.id
-          )
-        ) {
-          this.errSucursal = "La sucursal ya se encuentra asignada.";
-        } else {
-          this.userStore.sucursales.push(this.itemSucursal);
-        }
-      }
-    },
-    async agregarPosicion() {
-      this.errPosition = "";
-      if ((await this.$refs.frmPosicion.validate()).valid) {
-        if (
-          this.userStore.positions.some(
-            (v) => v.id == this.itemPositon.id
-          )
-        ) {
-          this.errPosition = "La posición ya se encuentra asignada.";
-        } else {
-          this.userStore.positions.push(this.itemPositon);
-        }
-      }
-    },
-
-    async ObtenerEstados(id_pais) {
-      this.loadingEstado = true;
-      await this._getState(id_pais);
-
-      this.loadingEstado = false;
-    },
-    async ObtenerCity(id_state) {
-      this.loadingCity = true;
-      await this._getCity(id_state);
-      this.loadingCity = false;
-    },
-    async ObtenerDistrito(id_city) {
-      this.loadingDistrito = true;
-      await this._getTown(id_city);
-      this.loadingDistrito = false;
-    },
-
-    async guardarUsuario() {
-      console.log(this.$store.state.itemsDocumentsPais);
-      if ((await this.$refs.frmDatos.validate()).valid) {
-        if (
-          this.userStore.positions.filter((v) => !!v.status).length == 0
-        ) {
-          this.errPosition =
-            "Es necesario asignar al menos una Position, al usuario";
-          this.tab = "posicion";
-          return false;
-        }
-        if (
-          this.userStore.sucursales.filter((v) => !!v.status).length ==
-          0
-        ) {
-          this.errSucursal =
-            "Es necesario asignar al menos una Sucursal, al usuario";
-          this.tab = "sucursal";
-          return false;
-        }
-        // await this.setUsers();
-      } else {
-        this.tab = "datos";
-      }
-    },
-  },
-};
-</script>
 
 <style scoped>
 .cardDatos {

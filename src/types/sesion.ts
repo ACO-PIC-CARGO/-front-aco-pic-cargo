@@ -18,6 +18,7 @@ export interface SucursalSesion {
   porcentaje_config: string;
   esnuevoflag: boolean;
   tienefleteactivo?: boolean;
+  status?: number | boolean;
   dias_restantes: number;
   vigencia?: string;
 }

@@ -1,3 +1,274 @@
+<script setup lang="ts">
+import { onMounted, ref, useTemplateRef } from "vue";
+import { useStore } from "vuex";
+import Swal from "sweetalert2";
+import { usePositionStore } from "@/stores/position";
+import { useSecuritysStore } from "@/stores/securitys";
+import { useUserStore } from "@/stores/user";
+import type { PosicionListado } from "@/types/seguridad";
+import type { SucursalSesion } from "@/types/sesion";
+
+const rootStore = useStore();
+const userStore = useUserStore();
+const positionStore = usePositionStore();
+const securitysStore = useSecuritysStore();
+
+const verClave = ref(false);
+const confirverClave = ref(false);
+const mostrarflag = ref(false);
+const tab = ref("datos");
+const headersPosition = [
+  { title: "Código", key: "code" },
+  { title: "Módulo", key: "name" },
+  { title: "Acción", key: "action" },
+] as const;
+
+const itemPositon = ref<PosicionListado | "">("");
+const errPosition = ref("");
+const errUsers = ref("");
+const errEmail = ref("");
+const itemSucursal = ref<SucursalSesion | "">("");
+const errSucursal = ref("");
+const loadingEstado = ref(false);
+const loadingCity = ref(false);
+const loadingDistrito = ref(false);
+const snackbar = ref(false);
+const frmDatos = useTemplateRef("frmDatos");
+const frmPosicion = useTemplateRef("frmPosicion");
+// Not bound to the template, as in the old code.
+const frmSucursal = ref<{ validate: () => Promise<{ valid: boolean }> } | null>(null);
+
+onMounted(async () => {
+  rootStore.state.spiner = true;
+  await Promise.all([
+    rootStore.dispatch("_getDocumentsPais"),
+    rootStore.dispatch("_getPais"),
+    rootStore.dispatch("_getSex"),
+    positionStore.cargarPosition(),
+    securitysStore.CargarBranch(),
+  ]);
+  mostrarflag.value = true;
+  userStore.model = {
+    id: "",
+    id_entitie: "",
+    id_pais: "",
+    id_city: "",
+    id_state: "",
+    id_town: "",
+    users: "",
+    id_document: "",
+    document: "",
+    id_sex: "",
+    status: "1",
+    departamento: "1",
+    names: "",
+    surname: "",
+    second_surname: "",
+    socialprincipal: "",
+    socialsecundary: "",
+    phone: "",
+    address: "",
+    birthday: "",
+    email: "",
+  };
+  userStore.sucursales = [];
+  userStore.positions = [];
+  rootStore.state.spiner = false;
+  frmDatos.value!.resetValidation();
+});
+
+// 10705871171
+
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+async function validarUser() {
+  errUsers.value = "";
+  rootStore.state.spiner = true;
+  const res = (await userStore.validateUserUsuario())!;
+  if (res.estadoflag == true) {
+    errUsers.value = res.mensaje;
+    userStore.model.users = "";
+  }
+  rootStore.state.spiner = false;
+}
+async function validarEmail() {
+  errEmail.value = "";
+  rootStore.state.spiner = true;
+  const res = (await userStore.validateEmailUsuario())!;
+  if (res.estadoflag == true) {
+    errEmail.value = res.mensaje;
+    userStore.model.email = "";
+  }
+  rootStore.state.spiner = false;
+}
+async function validarDocument() {
+  // this.errUsers = "";
+  if (!!userStore.model.id_document && !!userStore.model.document) {
+    rootStore.state.spiner = true;
+    const res = (await userStore.validateDocumentUsuario())!;
+    rootStore.state.spiner = false;
+
+    if (res.estadoflag == true) {
+      Swal.fire({
+        icon: "question",
+        title: "Pregunta",
+        text: res.mensaje,
+        allowEnterKey: false,
+        allowOutsideClick: false,
+        confirmButtonText: "Si",
+        cancelButtonText: "No",
+        showCancelButton: true,
+        cancelButtonColor: "red",
+        confirmButtonColor: "green",
+      }).then(async (respuesta) => {
+        if (respuesta.isConfirmed) {
+          rootStore.state.spiner = true;
+          userStore.model.id_entitie = res.data[0]!.id_entitie;
+          userStore.model.address = res.data[0]!.address;
+          userStore.model.birthday = res.data[0]!.birthday;
+          userStore.model.estadoflag = res.data[0]!.estadoflag;
+          userStore.model.id_city = res.data[0]!.id_city;
+          userStore.model.id_pais = res.data[0]!.id_pais;
+          userStore.model.id_sex = res.data[0]!.id_sex;
+          userStore.model.id_state = res.data[0]!.id_state;
+          userStore.model.id_town = res.data[0]!.id_town;
+          userStore.model.names = res.data[0]!.names;
+          userStore.model.second_surname = res.data[0]!.second_surname;
+          userStore.model.socialprincipal = res.data[0]!.socialprincipal;
+          userStore.model.socialsecundary = res.data[0]!.socialsecundary;
+          userStore.model.surname = res.data[0]!.surname;
+          await rootStore.dispatch("_getState", res.data[0]!.id_pais);
+          await rootStore.dispatch("_getCity", res.data[0]!.id_state);
+          await rootStore.dispatch("_getTown", res.data[0]!.id_city);
+          rootStore.state.spiner = false;
+        }
+        if (respuesta.isDismissed) {
+          userStore.model.document = "";
+        }
+      });
+    }
+    rootStore.state.spiner = false;
+  }
+  // if (res.estadoflag == true) {
+  //   this.errUsers = res.mensaje;
+  //   this.$store.state.user.model.users = "";
+  // }
+}
+
+
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+async function agregarSucursal() {
+  errSucursal.value = "";
+  if ((await frmSucursal.value!.validate()).valid) {
+    if (userStore.sucursales.some((v) => v.id == (itemSucursal.value as SucursalSesion).id)) {
+      errSucursal.value = "La sucursal ya se encuentra asignada.";
+    } else {
+      userStore.sucursales.push(itemSucursal.value as SucursalSesion);
+    }
+  }
+}
+async function agregarPosicion() {
+  errPosition.value = "";
+  if ((await frmPosicion.value!.validate()).valid) {
+    if (userStore.positions.some((v) => v.id == (itemPositon.value as PosicionListado).id)) {
+      errPosition.value = "La posición ya se encuentra asignada.";
+    } else {
+      userStore.positions.push(itemPositon.value as PosicionListado);
+    }
+  }
+}
+
+async function ObtenerEstados(id_pais: number | string | undefined) {
+  loadingEstado.value = true;
+  await rootStore.dispatch("_getState", id_pais);
+
+  loadingEstado.value = false;
+}
+async function ObtenerCity(id_state: number | string | undefined) {
+  loadingCity.value = true;
+  await rootStore.dispatch("_getCity", id_state);
+  loadingCity.value = false;
+}
+async function ObtenerDistrito(id_city: number | string | undefined) {
+  loadingDistrito.value = true;
+  await rootStore.dispatch("_getTown", id_city);
+  loadingDistrito.value = false;
+}
+
+function eliminarPosicion(index: number) {
+  userStore.positions.splice(index, 1);
+}
+
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+function eliminarSucursal(index: number) {
+  userStore.sucursales.splice(index, 1);
+}
+async function continuar(): Promise<boolean | undefined> {
+  if (userStore.model.clave && userStore.model.confirmclave && userStore.model.clave != userStore.model.confirmclave) {
+    Swal.fire({
+      icon: "error",
+      title: "Error",
+      text: "Las claves no coinciden",
+    });
+    return false;
+  }
+  if ((await frmDatos.value!.validate()).valid) {
+    if (userStore.positions.length == 0) {
+      errPosition.value = "Es necesario asignar al menos una Position, al usuario";
+      tab.value = "posicion";
+      return false;
+    }
+    if (userStore.sucursales.length == 0) {
+      errSucursal.value = "Es necesario asignar al menos una Sucursal, al usuario";
+      tab.value = "sucursal";
+      return false;
+    }
+    if (tab.value == "datos") {
+      tab.value = "posicion";
+      return true;
+    }
+    if (tab.value == "posicion") {
+      tab.value = "sucursal";
+      return true;
+    }
+  } else {
+    tab.value = "datos";
+  }
+}
+async function guardarUsuario() {
+  if ((await frmDatos.value!.validate()).valid) {
+    if (userStore.positions.length == 0) {
+      errPosition.value = "Es necesario asignar al menos una Position, al usuario";
+      tab.value = "posicion";
+      return false;
+    }
+    // if (this.$store.state.user.sucursales.length == 0) {
+    //   this.errSucursal =
+    //     "Es necesario asignar al menos una Sucursal, al usuario";
+    //   this.tab = "sucursal";
+    //   return false;
+    // }
+    rootStore.state.spiner = true;
+    await userStore.setUsers();
+    rootStore.state.spiner = false;
+  } else {
+    tab.value = "datos";
+  }
+}
+
+
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+const vNoSpaces = (el: HTMLElement) => {
+  el.addEventListener("input", (event) => {
+    const target = event.target as HTMLInputElement;
+    const value = target.value;
+    const hasSpaces = /\s/.test(value);
+    if (hasSpaces) {
+      target.value = value.slice(0, -1); // Elimina el último carácter (el espacio)
+    }
+  });
+};
+</script>
+
 <template>
   <v-card class="cardDatos pa-4">
     <v-tabs
@@ -7,9 +278,19 @@
       grow
       stacked
     >
-      <v-tab base-color="rgba(255, 255, 255, 0.6)" value="datos"> Datos del Usuario </v-tab>
+      <v-tab
+        base-color="rgba(255, 255, 255, 0.6)"
+        value="datos"
+      >
+        Datos del Usuario
+      </v-tab>
 
-      <v-tab base-color="rgba(255, 255, 255, 0.6)" value="posicion"> Módulos a Usar </v-tab>
+      <v-tab
+        base-color="rgba(255, 255, 255, 0.6)"
+        value="posicion"
+      >
+        Módulos a Usar
+      </v-tab>
 
       <!-- <v-tab base-color="rgba(255, 255, 255, 0.6)" value="sucursal"> Sucursal </v-tab> -->
     </v-tabs>
@@ -22,12 +303,21 @@
       >
         Guardar
       </v-btn>
-      <v-btn v-else @click="continuar()" color="success" variant="outlined" size="small">
+      <v-btn
+        v-else
+        @click="continuar()"
+        color="success"
+        variant="outlined"
+        size="small"
+      >
         Siguiente
       </v-btn>
     </v-card-actions>
     <v-tabs-window v-model="tab">
-      <v-tabs-window-item value="datos" class="px-5 items">
+      <v-tabs-window-item
+        value="datos"
+        class="px-5 items"
+      >
         <v-form ref="frmDatos">
           <!-- <v-row>
             <v-col cols="4">
@@ -50,22 +340,22 @@
           <v-row class="align-sm-center">
             <v-col cols="4">
               <v-autocomplete
-                :items="$store.state.itemsDocumentsPais"
+                :items="rootStore.state.itemsDocumentsPais"
                 item-title="description"
                 item-value="id"
                 label="Tipo de Documento (*)"
                 v-model="userStore.model.id_document"
                 @update:model-value="validarDocument()"
                 :rules="[(v) => !!v || 'Dato Requerido']"
-              ></v-autocomplete>
+              />
             </v-col>
             <v-col cols="4">
               <v-text-field
                 label="Documento (*)"
                 v-model="userStore.model.document"
                 :rules="[(v) => !!v || 'Dato Requerido']"
-                v-on:blur="validarDocument()"
-              ></v-text-field>
+                @blur="validarDocument()"
+              />
             </v-col>
           </v-row>
           <v-row>
@@ -74,21 +364,21 @@
                 v-model="userStore.model.names"
                 :rules="[(v) => !!v || 'Dato Requerido']"
                 label="Nombres (*)"
-              ></v-text-field>
+              />
             </v-col>
             <v-col cols="4">
               <v-text-field
                 v-model="userStore.model.surname"
                 :rules="[(v) => !!v || 'Dato Requerido']"
                 label="Apellido Paterno (*)"
-              ></v-text-field>
+              />
             </v-col>
             <v-col cols="4">
               <v-text-field
                 v-model="userStore.model.second_surname"
                 :rules="[(v) => !!v || 'Dato Requerido']"
                 label="Apellido Materno (*)"
-              ></v-text-field>
+              />
             </v-col>
             <v-col cols="4">
               <v-text-field
@@ -98,7 +388,7 @@
                   (v) => !!v || 'Dato Requerido',
                   (v) => /^[0-9]+$/.test(v) || 'Ingrese solo números',
                 ]"
-              ></v-text-field>
+              />
             </v-col>
             <v-col cols="4">
               <v-text-field
@@ -112,14 +402,14 @@
                 ]"
                 @blur="validarEmail()"
                 :error-messages="errEmail"
-              ></v-text-field>
+              />
             </v-col>
             <v-col cols="4">
               <v-text-field
                 type="date"
                 label="Fecha Nacimiento"
                 v-model="userStore.model.birthday"
-              ></v-text-field>
+              />
             </v-col>
             <v-col cols="4">
               <v-text-field
@@ -128,7 +418,7 @@
                 v-model="userStore.model.clave"
                 :append-inner-icon="!verClave ? 'mdi-eye' : 'mdi-eye-off'"
                 @click:append-inner="verClave = !verClave"
-              ></v-text-field>
+              />
             </v-col>
             <v-col cols="4">
               <v-text-field
@@ -137,78 +427,88 @@
                 v-model="userStore.model.confirmclave"
                 :append-inner-icon="!confirverClave ? 'mdi-eye' : 'mdi-eye-off'"
                 @click:append-inner="confirverClave = !confirverClave"
-              ></v-text-field>
+              />
             </v-col>
           </v-row>
           <v-row>
             <v-col cols="4">
+              <!-- @vue-expect-error the root state items are untyped until the Vuex store is typed -->
               <v-autocomplete
-                :items="$store.state.itemsSex"
+                :items="rootStore.state.itemsSex"
                 item-title="name"
                 item-value="id"
                 label="Sexo (*)"
                 :rules="[(v) => !!v || 'Dato Requerido']"
                 :item-props="(item) => ({ disabled: item.status != 1 })"
                 v-model="userStore.model.id_sex"
-              ></v-autocomplete>
+              />
             </v-col>
             <v-col cols="4">
+              <!-- @vue-expect-error the root state items are untyped until the Vuex store is typed -->
               <v-autocomplete
                 label="Pais (*)"
-                :items="$store.state.itemsPais"
+                :items="rootStore.state.itemsPais"
                 v-model="userStore.model.id_pais"
                 item-title="name"
                 item-value="id"
                 @update:model-value="ObtenerEstados(userStore.model.id_pais)"
                 :item-props="(item) => ({ disabled: item.status != 1 })"
                 :rules="[(v) => !!v || 'Dato Requerido']"
-              >
-              </v-autocomplete>
+              />
             </v-col>
-            <v-col cols="4" v-if="userStore.model.id_pais">
+            <v-col
+              cols="4"
+              v-if="userStore.model.id_pais"
+            >
+              <!-- @vue-expect-error the root state items are untyped until the Vuex store is typed -->
               <v-autocomplete
                 label="Estado (Región)"
-                :items="$store.state.itemsState"
+                :items="rootStore.state.itemsState"
                 v-model="userStore.model.id_state"
                 item-title="name"
                 item-value="id"
                 :loading="loadingEstado"
                 @update:model-value="ObtenerCity(userStore.model.id_state)"
                 :item-props="(item) => ({ disabled: item.status != 1 })"
-              >
-              </v-autocomplete>
+              />
             </v-col>
-            <v-col cols="4" v-if="userStore.model.id_state">
+            <v-col
+              cols="4"
+              v-if="userStore.model.id_state"
+            >
+              <!-- @vue-expect-error the root state items are untyped until the Vuex store is typed -->
               <v-autocomplete
                 label="Ciudad"
-                :items="$store.state.itemsCity"
+                :items="rootStore.state.itemsCity"
                 v-model="userStore.model.id_city"
                 item-title="name"
                 item-value="id"
                 :loading="loadingEstado"
                 @update:model-value="ObtenerDistrito(userStore.model.id_city)"
                 :item-props="(item) => ({ disabled: item.status != 1 })"
-              >
-              </v-autocomplete>
+              />
             </v-col>
-            <v-col cols="4" v-if="userStore.model.id_city">
+            <v-col
+              cols="4"
+              v-if="userStore.model.id_city"
+            >
+              <!-- @vue-expect-error the root state items are untyped until the Vuex store is typed -->
               <v-autocomplete
                 label="Distrito"
-                :items="$store.state.itemsTown"
+                :items="rootStore.state.itemsTown"
                 v-model="userStore.model.id_town"
                 item-title="name"
                 item-value="id"
                 :loading="loadingDistrito"
                 :item-props="(item) => ({ disabled: item.status != 1 })"
-              >
-              </v-autocomplete>
+              />
             </v-col>
             <v-col cols="4">
               <v-text-field
                 v-model="userStore.model.address"
                 label="Dirección (*)"
                 :rules="[(v) => !!v || 'Dato Requerido']"
-              ></v-text-field>
+              />
             </v-col>
             <!-- <v-col cols="4">
               <v-text-field
@@ -225,7 +525,10 @@
               ></v-text-field>
             </v-col> -->
 
-            <v-col cols="12" class="d-flex align-center">
+            <v-col
+              cols="12"
+              class="d-flex align-center"
+            >
               <span class="mr-4">Activo/ Inactivo</span>
               <v-switch
                 hide-details
@@ -234,15 +537,22 @@
                 "
                 v-model="userStore.model.status"
                 :value-comparator="(value, checked) => Boolean(value) === checked"
-              ></v-switch>
+              />
             </v-col>
           </v-row>
         </v-form>
       </v-tabs-window-item>
-      <v-tabs-window-item value="posicion" class="px-5 items">
+      <v-tabs-window-item
+        value="posicion"
+        class="px-5 items"
+      >
         <v-form ref="frmPosicion">
           <v-row>
-            <v-col cols="4" class="my-auto">
+            <v-col
+              cols="4"
+              class="my-auto"
+            >
+              <!-- @vue-expect-error the empty string start value is kept from the old data() -->
               <v-autocomplete
                 :items="positionStore.lstPosition"
                 item-title="name"
@@ -257,10 +567,17 @@
               />
             </v-col>
 
-            <v-col cols="4" class="my-auto">
-              <v-btn @click="agregarPosicion()" size="small" color="success"
-                >Agregar</v-btn
+            <v-col
+              cols="4"
+              class="my-auto"
+            >
+              <v-btn
+                @click="agregarPosicion()"
+                size="small"
+                color="success"
               >
+                Agregar
+              </v-btn>
             </v-col>
           </v-row>
         </v-form>
@@ -271,8 +588,13 @@
               :items="userStore.positions"
               item-value="id"
             >
-              <template v-slot:[`item.action`]="{ index }">
-                <v-btn variant="text" icon color="red" @click="eliminarPosicion(index)">
+              <template #[`item.action`]="{ index }">
+                <v-btn
+                  variant="text"
+                  icon
+                  color="red"
+                  @click="eliminarPosicion(index)"
+                >
                   <v-icon>mdi-delete</v-icon>
                 </v-btn>
               </template>
@@ -280,18 +602,28 @@
           </v-col>
           <v-col cols="12">
             <v-col cols="12">
-              <p class="py-2">Departamento</p>
+              <p class="py-2">
+                Departamento
+              </p>
 
               <v-radio-group
                 :rules="[(v) => !!v || 'Dato Requerido']"
                 v-model="userStore.model.departamento"
               >
-                <v-radio label="Pricing" value="1"></v-radio>
-                <v-radio label="Operativo" value="2"></v-radio>
+                <v-radio
+                  label="Pricing"
+                  value="1"
+                />
+                <v-radio
+                  label="Operativo"
+                  value="2"
+                />
               </v-radio-group>
             </v-col>
             <v-col cols="12">
-              <p class="justify">** Nota Importante **</p>
+              <p class="justify">
+                ** Nota Importante **
+              </p>
             </v-col>
             <v-col cols="12">
               <p class="justify">
@@ -347,319 +679,27 @@
       </v-tabs-window-item> -->
     </v-tabs-window>
 
-    <v-snackbar v-model="snackbar" variant="outlined" vertical color="info">
+    <v-snackbar
+      v-model="snackbar"
+      variant="outlined"
+      vertical
+      color="info"
+    >
       El departamento, define como se comportará el usuario para el llendo de
       montos (Pricing u Operaciones) , en el CONTROL DE GASTOS
 
-      <template v-slot:actions>
-        <v-btn variant="text" color="red" @click="snackbar = false">
+      <template #actions>
+        <v-btn
+          variant="text"
+          color="red"
+          @click="snackbar = false"
+        >
           Close
         </v-btn>
       </template>
     </v-snackbar>
   </v-card>
 </template>
-
-<script>
-import { mapActions } from "vuex";
-import { mapActions as mapPiniaActions, mapStores } from "pinia";
-import { useSecuritysStore } from "@/stores/securitys";
-import Swal from "sweetalert2";
-import { usePositionStore } from "@/stores/position";
-import { useUserStore } from "@/stores/user";
-export default {
-  data() {
-    return {
-      verClave: false,
-      confirverClave: false,
-      mostrarflag: false,
-      tab: "datos",
-      headersPosition: [
-        { title: "Código", key: "code" },
-        { title: "Módulo", key: "name" },
-        { title: "Acción", key: "action" },
-      ],
-
-      headersSucursal: [
-        { title: "Documento", key: "document" },
-        { title: "Nombre", key: "trade_name" },
-        { title: "Acción", key: "action" },
-      ],
-
-      itemPositon: "",
-      errPosition: "",
-      errUsers: "",
-      errEmail: "",
-      itemSucursal: "",
-      errSucursal: "",
-      loadingEstado: false,
-      loadingCity: false,
-      loadingDistrito: false,
-      snackbar: false,
-    };
-  },
-  async mounted() {
-    this.$store.state.spiner = true;
-    await Promise.all([
-      this._getDocumentsPais(),
-      this._getPais(),
-      this._getSex(),
-      this.cargarPosition(),
-      this.CargarBranch(),
-    ]);
-    this.mostrarflag = true;
-    this.userStore.model = {
-      id: "",
-      id_entitie: "",
-      id_pais: "",
-      id_city: "",
-      id_state: "",
-      id_town: "",
-      users: "",
-      id_document: "",
-      document: "",
-      id_sex: "",
-      status: "1",
-      departamento: "1",
-      names: "",
-      surname: "",
-      second_surname: "",
-      socialprincipal: "",
-      socialsecundary: "",
-      phone: "",
-      address: "",
-      birthday: "",
-      email: "",
-    };
-    this.userStore.sucursales = [];
-    this.userStore.positions = [];
-    this.$store.state.spiner = false;
-    this.$refs.frmDatos.resetValidation();
-  },
-  computed: {
-    ...mapStores(useUserStore, usePositionStore, useSecuritysStore),
-  },
-  methods: {
-    ...mapActions([
-      "_getDocumentsPais",
-      "_getPais",
-      "_getSex",
-      "_getState",
-      "_getCity",
-      "_getTown",
-    ]),
-    ...mapPiniaActions(useUserStore, ["validateUserUsuario", "validateDocumentUsuario", "validateEmailUsuario", "setUsers"]),
-    ...mapPiniaActions(usePositionStore, ["cargarPosition"]),
-    ...mapPiniaActions(useSecuritysStore, ["CargarBranch"]),
-
-    // 10705871171
-    async validarUser() {
-      this.errUsers = "";
-      this.$store.state.spiner = true;
-      let res = await this.validateUserUsuario();
-      if (res.estadoflag == true) {
-        this.errUsers = res.mensaje;
-        this.userStore.model.users = "";
-      }
-      this.$store.state.spiner = false;
-    },
-    async validarEmail() {
-      this.errEmail = "";
-      this.$store.state.spiner = true;
-      let res = await this.validateEmailUsuario();
-      if (res.estadoflag == true) {
-        this.errEmail = res.mensaje;
-        this.userStore.model.email = "";
-      }
-      this.$store.state.spiner = false;
-    },
-    async validarDocument() {
-      // this.errUsers = "";
-      if (
-        !!this.userStore.model.id_document &&
-        !!this.userStore.model.document
-      ) {
-        this.$store.state.spiner = true;
-        let res = await this.validateDocumentUsuario();
-        this.$store.state.spiner = false;
-
-        if (res.estadoflag == true) {
-          Swal.fire({
-            icon: "question",
-            title: "Pregunta",
-            text: res.mensaje,
-            allowEnterKey: false,
-            allowOutsideClick: false,
-            allowEnterKey: false,
-            confirmButtonText: "Si",
-            cancelButtonText: "No",
-            showCancelButton: true,
-            cancelButtonColor: "red",
-            confirmButtonColor: "green",
-          }).then(async (respuesta) => {
-            if (respuesta.isConfirmed) {
-              this.$store.state.spiner = true;
-              this.userStore.model.id_entitie = res.data[0].id_entitie;
-              this.userStore.model.address = res.data[0].address;
-              this.userStore.model.birthday = res.data[0].birthday;
-              this.userStore.model.estadoflag = res.data[0].estadoflag;
-              this.userStore.model.id_city = res.data[0].id_city;
-              this.userStore.model.id_pais = res.data[0].id_pais;
-              this.userStore.model.id_sex = res.data[0].id_sex;
-              this.userStore.model.id_state = res.data[0].id_state;
-              this.userStore.model.id_town = res.data[0].id_town;
-              this.userStore.model.names = res.data[0].names;
-              this.userStore.model.second_surname =
-                res.data[0].second_surname;
-              this.userStore.model.socialprincipal =
-                res.data[0].socialprincipal;
-              this.userStore.model.socialsecundary =
-                res.data[0].socialsecundary;
-              this.userStore.model.surname = res.data[0].surname;
-              await this._getState(res.data[0].id_pais);
-              await this._getCity(res.data[0].id_state);
-              await this._getTown(res.data[0].id_city);
-              this.$store.state.spiner = false;
-            }
-            if (respuesta.isDismissed) {
-              this.userStore.model.document = "";
-            }
-          });
-        }
-        this.$store.state.spiner = false;
-      }
-      // if (res.estadoflag == true) {
-      //   this.errUsers = res.mensaje;
-      //   this.$store.state.user.model.users = "";
-      // }
-    },
-
-    async agregarSucursal() {
-      this.errSucursal = "";
-      if ((await this.$refs.frmSucursal.validate()).valid) {
-        if (
-          this.userStore.sucursales.some(
-            (v) => v.id == this.itemSucursal.id,
-          )
-        ) {
-          this.errSucursal = "La sucursal ya se encuentra asignada.";
-        } else {
-          this.userStore.sucursales.push(this.itemSucursal);
-        }
-      }
-    },
-    async agregarPosicion() {
-      this.errPosition = "";
-      if ((await this.$refs.frmPosicion.validate()).valid) {
-        if (
-          this.userStore.positions.some(
-            (v) => v.id == this.itemPositon.id,
-          )
-        ) {
-          this.errPosition = "La posición ya se encuentra asignada.";
-        } else {
-          this.userStore.positions.push(this.itemPositon);
-        }
-      }
-    },
-
-    async ObtenerEstados(id_pais) {
-      this.loadingEstado = true;
-      await this._getState(id_pais);
-
-      this.loadingEstado = false;
-    },
-    async ObtenerCity(id_state) {
-      this.loadingCity = true;
-      await this._getCity(id_state);
-      this.loadingCity = false;
-    },
-    async ObtenerDistrito(id_city) {
-      this.loadingDistrito = true;
-      await this._getTown(id_city);
-      this.loadingDistrito = false;
-    },
-
-    eliminarPosicion(index) {
-      this.userStore.positions.splice(index, 1);
-    },
-    eliminarSucursal(index) {
-      this.userStore.sucursales.splice(index, 1);
-    },
-    async continuar() {
-      if (
-        this.userStore.model.clave &&
-        this.userStore.model.confirmclave &&
-        this.userStore.model.clave !=
-          this.userStore.model.confirmclave
-      ) {
-        Swal.fire({
-          icon: "error",
-          title: "Error",
-          text: "Las claves no coinciden",
-        });
-        return false;
-      }
-      if ((await this.$refs.frmDatos.validate()).valid) {
-        if (this.userStore.positions.length == 0) {
-          this.errPosition =
-            "Es necesario asignar al menos una Position, al usuario";
-          this.tab = "posicion";
-          return false;
-        }
-        if (this.userStore.sucursales.length == 0) {
-          this.errSucursal =
-            "Es necesario asignar al menos una Sucursal, al usuario";
-          this.tab = "sucursal";
-          return false;
-        }
-        if (this.tab == "datos") {
-          this.tab = "posicion";
-          return true;
-        }
-        if (this.tab == "posicion") {
-          this.tab = "sucursal";
-          return true;
-        }
-      } else {
-        this.tab = "datos";
-      }
-    },
-    async guardarUsuario() {
-      if ((await this.$refs.frmDatos.validate()).valid) {
-        if (this.userStore.positions.length == 0) {
-          this.errPosition =
-            "Es necesario asignar al menos una Position, al usuario";
-          this.tab = "posicion";
-          return false;
-        }
-        // if (this.$store.state.user.sucursales.length == 0) {
-        //   this.errSucursal =
-        //     "Es necesario asignar al menos una Sucursal, al usuario";
-        //   this.tab = "sucursal";
-        //   return false;
-        // }
-        this.$store.state.spiner = true;
-        await this.setUsers();
-        this.$store.state.spiner = false;
-      } else {
-        this.tab = "datos";
-      }
-    },
-  },
-  directives: {
-    noSpaces(el) {
-      el.addEventListener("input", (event) => {
-        const value = event.target.value;
-        const hasSpaces = /\s/.test(value);
-        if (hasSpaces) {
-          event.target.value = value.slice(0, -1); // Elimina el último carácter (el espacio)
-        }
-      });
-    },
-  },
-};
-</script>
 
 <style scoped>
 .cardDatos {

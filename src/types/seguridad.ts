@@ -104,6 +104,7 @@ export interface UsuarioExistente {
 
 export interface PosicionListado {
   id: number;
+  id_position?: number;
   code: string;
   name: string;
   description?: string;
