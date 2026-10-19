@@ -29,7 +29,7 @@
         <v-col cols="12">
           <v-data-table
             :headers="headers"
-            :items="$store.state.position.lstPosition"
+            :items="positionStore.lstPosition"
             class="elevation-1"
             item-value="port_beginend_id"
             :loading="loading"
@@ -106,6 +106,8 @@
 <script>
 import { mapActions } from "vuex";
 import Swal from "sweetalert2";
+import { mapActions as mapPiniaActions, mapStores } from "pinia";
+import { usePositionStore } from "@/stores/position";
 export default {
   data() {
     return {
@@ -125,19 +127,21 @@ export default {
       ],
     };
   },
+  computed: {
+    ...mapStores(usePositionStore),
+  },
   methods: {
     ...mapActions([
-      "GetListPosition",
       "_getPais",
-      "ActualizarEstadoPosition",
       "_getState",
       "_getCity",
     ]),
+    ...mapPiniaActions(usePositionStore, ["GetListPosition", "ActualizarEstadoPosition"]),
     async filtrar() {
       this.loadingFiltrar = !this.loadingFiltrar;
 
       this.loadingFiltrar = !this.loadingFiltrar;
-      this.$store.state.position.drawer = !this.$store.state.position.drawer;
+      this.positionStore.drawer = !this.positionStore.drawer;
     },
     async ver(item) {
       this.$router.push({
@@ -157,8 +161,8 @@ export default {
     },
     async nuevo() {
       this.loadingNuevo = !this.loadingNuevo;
-      this.$store.state.position.tipo = "nuevo";
-      this.$store.state.position.model = {
+      this.positionStore.tipo = "nuevo";
+      this.positionStore.model = {
         id: "",
         id_pais: "",
         id_state: "",
@@ -168,9 +172,9 @@ export default {
         status: 1,
         id_branch: JSON.parse(sessionStorage.getItem("dataUser"))[0].id_branch,
       };
-      await this._getState(this.$store.state.position.model.id_state);
-      await this._getCity(this.$store.state.position.model.id_state);
-      this.$store.state.position.drawer = !this.$store.state.position.drawer;
+      await this._getState(this.positionStore.model.id_state);
+      await this._getCity(this.positionStore.model.id_state);
+      this.positionStore.drawer = !this.positionStore.drawer;
       this.loadingNuevo = !this.loadingNuevo;
     },
     async eliminar(item) {
@@ -187,7 +191,7 @@ export default {
       }).then(async (res) => {
         if (res.isConfirmed) {
           item.status = 0;
-          this.$store.state.position.model = item;
+          this.positionStore.model = item;
           this.loading = true;
           await this.ActualizarEstadoPosition();
           await this.GetListPosition();

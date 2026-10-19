@@ -244,7 +244,7 @@
           <v-row>
             <v-col cols="4" class="my-auto">
               <v-autocomplete
-                :items="$store.state.position.lstPosition"
+                :items="positionStore.lstPosition"
                 item-title="name"
                 item-value="id"
                 v-model="itemPositon"
@@ -365,6 +365,7 @@ import { mapActions } from "vuex";
 import { mapActions as mapPiniaActions, mapStores } from "pinia";
 import { useSecuritysStore } from "@/stores/securitys";
 import Swal from "sweetalert2";
+import { usePositionStore } from "@/stores/position";
 export default {
   data() {
     return {
@@ -435,14 +436,13 @@ export default {
     this.$refs.frmDatos.resetValidation();
   },
   computed: {
-    ...mapStores(useSecuritysStore),
+    ...mapStores(usePositionStore, useSecuritysStore),
   },
   methods: {
     ...mapActions([
       "_getDocumentsPais",
       "_getPais",
       "_getSex",
-      "cargarPosition",
       "_getState",
       "_getCity",
       "_getTown",
@@ -451,6 +451,7 @@ export default {
       "validateEmailUsuario",
       "setUsers",
     ]),
+    ...mapPiniaActions(usePositionStore, ["cargarPosition"]),
     ...mapPiniaActions(useSecuritysStore, ["CargarBranch"]),
 
     // 10705871171

@@ -19,21 +19,21 @@
           <v-row>
             <v-col cols="12">
               <v-text-field
-                v-model="$store.state.position.model.code"
+                v-model="positionStore.model.code"
                 label="Código"
                 readonly
               ></v-text-field>
             </v-col>
             <v-col cols="12">
               <v-text-field
-                v-model="$store.state.position.model.name"
+                v-model="positionStore.model.name"
                 label="Nombre"
                 readonly
               ></v-text-field>
             </v-col>
             <v-col cols="12">
               <v-text-field
-                v-model="$store.state.position.model.description"
+                v-model="positionStore.model.description"
                 label="Descripción"
                 readonly
               ></v-text-field>
@@ -43,7 +43,7 @@
               <v-switch
                 readonly
                 label="Estado"
-                v-model="$store.state.position.model.estado"
+                v-model="positionStore.model.estado"
               ></v-switch>
             </v-col>
           </v-row>
@@ -55,7 +55,7 @@
             <p>Módulos</p>
             <v-data-table
               :headers="headersRoles"
-              :items="$store.state.position.model.modules_position"
+              :items="positionStore.model.modules_position"
               item-value="id"
             >
               <template v-slot:[`item.index`]="{ index }">
@@ -68,7 +68,7 @@
             <p>Permisos</p>
             <v-data-table
               :headers="headersRoles"
-              :items="$store.state.position.model.button_position"
+              :items="positionStore.model.button_position"
               item-value="id"
             >
               <template v-slot:[`item.index`]="{ index }">
@@ -85,7 +85,7 @@
             <v-row>
               <v-col cols="4">
                 <v-autocomplete
-                  :items="$store.state.position.lstUsuarioNoAsignado"
+                  :items="positionStore.lstUsuarioNoAsignado"
                   item-value="id"
                   item-title="users"
                   label="Usuarios del sistema no asignados"
@@ -112,7 +112,7 @@
           <v-col cols="12">
             <v-data-table
               :headers="headersUsuarios"
-              :items="$store.state.position.model.user_position"
+              :items="positionStore.model.user_position"
               class="elevation-1"
               item-value="id"
             >
@@ -135,7 +135,8 @@
 </template>
 
 <script>
-import { mapActions } from "vuex";
+import { mapActions as mapPiniaActions, mapStores } from "pinia";
+import { usePositionStore } from "@/stores/position";
 export default {
   data() {
     return {
@@ -168,18 +169,17 @@ export default {
     };
   },
   async mounted() {
-    this.$store.state.position.model.id = this.$route.params.id;
+    this.positionStore.model.id = this.$route.params.id;
     this.$store.state.spiner = true;
     await this.verPosition();
     await this.cargarUsuarioNoAsignadoPosicion();
     this.$store.state.spiner = false;
   },
+  computed: {
+    ...mapStores(usePositionStore),
+  },
   methods: {
-    ...mapActions([
-      "verPosition",
-      "cargarUsuarioNoAsignadoPosicion",
-      "setPosition",
-    ]),
+    ...mapPiniaActions(usePositionStore, ["verPosition", "cargarUsuarioNoAsignadoPosicion", "setPosition"]),
     asignar() {
       this.errUsuario = "";
       if (!this.user) {
@@ -187,14 +187,14 @@ export default {
         return false;
       }
       if (
-        this.$store.state.position.model.user_position.some(
+        this.positionStore.model.user_position.some(
           (v) => v.users == this.user.users
         )
       ) {
         this.errUsuario = "El usuario ya se encuentra en la lista";
         return false;
       }
-      this.$store.state.position.model.user_position.push(this.user);
+      this.positionStore.model.user_position.push(this.user);
       this.guardarFlag = true;
     },
     async actualizarUsuariosPosicion() {
