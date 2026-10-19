@@ -9,7 +9,7 @@
         <v-col cols="12">
           <v-data-table
             :headers="header"
-            :items="$store.state.branch.lstBranch"
+            :items="branchStore.lstBranch"
             class="elevation-1"
             item-value="id"
             :search="search"
@@ -44,8 +44,9 @@
 </template>
 
 <script>
-import { mapActions } from "vuex";
 import Swal from "sweetalert2";
+import { mapActions as mapPiniaActions, mapStores } from "pinia";
+import { useBranchStore } from "@/stores/branch";
 export default {
   data() {
     return {
@@ -67,8 +68,11 @@ export default {
   mounted() {
     this.ListadoSucursal();
   },
+  computed: {
+    ...mapStores(useBranchStore),
+  },
   methods: {
-    ...mapActions(["ListadoSucursal", "inactivarSucursal"]),
+    ...mapPiniaActions(useBranchStore, ["ListadoSucursal", "inactivarSucursal"]),
     inactivar(id) {
       Swal.fire({
         icon: "warning",

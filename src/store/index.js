@@ -26,7 +26,6 @@ import user from "./modules/user";
 import position from "./modules/position";
 import configEmpresa from "./modules/configEmpresa";
 import configAviso from "./modules/configAviso";
-import branch from "./modules/branch";
 import aduana from "./modules/aduana";
 import proveedor from "./modules/proveedor";
 import configuracion from "./modules/configuracion";
@@ -2869,7 +2868,6 @@ export default createStore({
     position,
     configEmpresa,
     configAviso,
-    branch,
     aduana,
     proveedor,
     configuracion,
