@@ -1,3 +1,19 @@
+<script setup lang="ts">
+import { defineAsyncComponent, onMounted } from "vue";
+import { useStore } from "vuex";
+import { useUserStore } from "@/stores/user";
+
+const Users = defineAsyncComponent(() => import("@/components/Users/ListUserComponet.vue"));
+const FilterUsers = defineAsyncComponent(() => import("@/components/filtros/FilterUsers.vue"));
+
+const userStore = useUserStore();
+const rootStore = useStore();
+
+onMounted(() => {
+  rootStore.state.mainTitle = `LISTADO DE USUARIOS`;
+});
+</script>
+
 <template>
   <v-container fluid>
     <Users />
@@ -12,23 +28,5 @@
     </v-navigation-drawer>
   </v-container>
 </template>
-
-<script>
-import { defineAsyncComponent } from "vue";
-import { mapStores } from "pinia";
-import { useUserStore } from "@/stores/user";
-export default {
-  components: {
-    Users: defineAsyncComponent(() => import("@/components/Users/ListUserComponet.vue")),
-    FilterUsers: defineAsyncComponent(() => import("@/components/filtros/FilterUsers.vue")),
-  },
-  computed: {
-    ...mapStores(useUserStore),
-  },
-  mounted() {
-    this.$store.state.mainTitle = `LISTADO DE USUARIOS`;
-  },
-};
-</script>
 
 <style></style>

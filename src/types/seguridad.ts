@@ -12,13 +12,16 @@ export interface SucursalListado {
 
 export interface UsuarioPosicion {
   id: number;
+  id_position?: number;
   code?: string;
   name: string;
+  estado?: boolean;
   status?: number | boolean;
 }
 
 export interface UsuarioSucursal {
   id: number;
+  id_branch?: number;
   document?: string;
   trade_name: string;
   status?: number | boolean;
@@ -105,6 +108,7 @@ export interface PosicionListado {
   name: string;
   description?: string;
   estado: boolean;
+  status?: number | boolean;
   created_at?: string;
   updated_at?: string;
   status_calls?: number | boolean;
@@ -206,4 +210,12 @@ export interface FiltroMasterDetalle {
   individualflag?: boolean;
   grupalflag?: boolean;
   orden?: number | null;
+}
+
+export interface PersonaRol {
+  id: number;
+  nombrecompleto: string;
+  proveedorflag: boolean;
+  clienteflag: boolean;
+  personalflag: boolean;
 }
