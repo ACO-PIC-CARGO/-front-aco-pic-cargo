@@ -161,7 +161,6 @@ export const LEGACY = [
   "src/components/proyeccion/proyeccionCxP.vue",
   "src/components/proyeccion/verProyeccion.vue",
   "src/plugins/axios.js",
-  "src/plugins/paddle.js",
   "src/store/index.js",
   "src/store/modules/SubGasto.js",
   "src/store/modules/SubIngreso.js",
