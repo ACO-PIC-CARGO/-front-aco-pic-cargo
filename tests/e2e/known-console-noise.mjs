@@ -235,8 +235,8 @@ export const KNOWN_CONSOLE_NOISE = [
     routes: ["nuevoClientes", "verCliente", "editarCliente"],
   },
   {
-    pattern: /^\[Vue warn\]: Invalid prop: type check failed for prop "newId"\. Expected Number with value 0, got String with value ""\./,
-    reason: "pre-existing on Vue 2 (same binding at 5b31ae9): ConfiguracionDatosEmpresaComponent passes datoEmpresa.id_pais \"\" to CboPais's Number prop newId; the baseline smoke never opened step 1",
+    pattern: /^\[Vue warn\]: Invalid prop: type check failed for prop "newId"\. Expected (?:Number with value 0|Number \| Null), got String with value ""\./,
+    reason: "pre-existing on Vue 2 (same binding at 5b31ae9): ConfiguracionDatosEmpresaComponent passes datoEmpresa.id_pais \"\" to CboPais's Number prop newId; the baseline smoke never opened step 1; the CboPais conversion changed the message text from \"Expected Number with value 0\" to \"Expected Number | Null\"",
     routes: ["ConfiguracionInicial"],
   },
 ];
