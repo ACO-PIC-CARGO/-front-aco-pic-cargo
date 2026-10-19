@@ -31,7 +31,7 @@ export interface Operador {
 }
 
 export interface TelefonoEntidad {
-  id_tipotelefono?: number | string;
+  id_tipotelefono?: number | string | null;
   telefono?: string;
   errorTipoTelf?: string;
   errorTelefono?: string;
@@ -39,7 +39,7 @@ export interface TelefonoEntidad {
 
 export interface ContactoEntidad {
   nombre?: string;
-  id_tipotelefono?: number | string;
+  id_tipotelefono?: number | string | null;
   telefono?: string;
   errornombre?: string;
   errorTipoTelf?: string;

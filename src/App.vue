@@ -544,7 +544,7 @@ function mostrarBtnGuardar() {
             v-if="rootStore.state.house_id_consigner"
             @btn-guardar="guardarClienteFlag = $event"
             :is-pricing="isPricing"
-            :house_id_consigner="rootStore.state.house_id_consigner"
+            :house-id-consigner="rootStore.state.house_id_consigner"
           />
           <NuevoCliente
             @btn-guardar="guardarClienteFlag = $event"
