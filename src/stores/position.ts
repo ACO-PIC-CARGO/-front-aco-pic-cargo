@@ -36,6 +36,7 @@ export const usePositionStore = defineStore("position", () => {
   });
 
   function setModel(rows: FormPosicion[]): void {
+    // console.log(data[0]);
     model.value = rows[0]!;
   }
 
@@ -158,6 +159,7 @@ export const usePositionStore = defineStore("position", () => {
           sessionStorage.setItem("auth-token", data.token!);
 
           if (data.estadoflag == true) {
+            // console.log(data[0]);
             lstUsuarioNoAsignado.value = data.data;
           } else {
             lstUsuarioNoAsignado.value = [];

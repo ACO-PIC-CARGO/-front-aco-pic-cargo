@@ -7,7 +7,7 @@ import type { ComentarioEstadoHouse, EstadoHouse, OrdenEstadoHouse } from "@/typ
 import { showRejectedResponse } from "@/utils/rejectedResponse";
 import { sessionBranchId } from "@/utils/sesion";
 
-export const useStatushouseStore = defineStore("statushouse", () => {
+export const useStatushouseStore = defineStore("statushouse", () => { // Asegúrate de incluir esto
   const listStatusHouse = ref<EstadoHouse[]>([]);
   const orden = ref<Partial<OrdenEstadoHouse> | undefined>({});
 
