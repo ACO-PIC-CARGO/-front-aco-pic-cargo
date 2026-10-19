@@ -35,13 +35,12 @@ import type {
 } from "@/types/calculadora";
 import type { EstadoCotizacion, Multiplicador } from "@/types/cotizacion";
 import type { SucursalSesion, UsuarioSesion } from "@/types/sesion";
+import { sessionBranchId } from "@/utils/sesion";
 // import funciones from "./../../mixins/funciones";
 
-type SucursalCalc = SucursalSesion & { id_pais: number };
-type UsuarioCalc = UsuarioSesion & { users: string };
 const JSON_HEADERS = { "Content-Type": "application/json" };
-const sessionBranches = () => JSON.parse(sessionStorage.getItem("dataBranch") as string) as SucursalCalc[];
-const sessionUsers = () => JSON.parse(sessionStorage.getItem("dataUser") as string) as UsuarioCalc[];
+const sessionBranches = () => JSON.parse(sessionStorage.getItem("dataBranch") as string) as SucursalSesion[];
+const sessionUsers = () => JSON.parse(sessionStorage.getItem("dataUser") as string) as UsuarioSesion[];
 const sessionPaisId = () => sessionBranches()[0]!.id_pais;
 const sessionIsoPais = (): unknown => JSON.parse(sessionStorage.getItem("iso_pais") as string);
 const confirmacionSimple = (title: string | undefined) => ({
@@ -362,7 +361,7 @@ export const useCalculadorasStore = defineStore("calculadoras", () => {
   async function postGuardarCostos(data: Record<string, unknown>): Promise<void> {
     const dataUser = sessionUsers();
     data.user = dataUser[0]!.users;
-    data.id_branch = sessionUsers()[0]!.id_branch;
+    data.id_branch = sessionBranchId();
     const response = await axios<ApiResponse>({
       method: "post",
       url: import.meta.env.VITE_URL_MAIN + "calc/costos_calc",
@@ -378,7 +377,7 @@ export const useCalculadorasStore = defineStore("calculadoras", () => {
     }
   }
 
-  async function obtenerListadoPorPais<T>(path: string, data: FiltroCalculadora): Promise<T[] | undefined> {
+  async function obtenerListadoPorPais<T>(path: string, data: FiltroCalculadora): Promise<ApiResponse<T[]>> {
     const branch = sessionBranches();
     const id_pais = branch[0]!.id_pais;
     data.id_pais = id_pais;
@@ -389,34 +388,43 @@ export const useCalculadorasStore = defineStore("calculadoras", () => {
       params: data,
     });
 
-    return response.data.estadoflag ? response.data.data : undefined;
+    return response.data;
   }
 
   async function getCostosList(data: FiltroCalculadora): Promise<void> {
-    const rows = await obtenerListadoPorPais<FleteCalculadora>("calc/costos_list", data);
-    if (rows) lstFlete.value = rows;
+    const res = await obtenerListadoPorPais<FleteCalculadora>("calc/costos_list", data);
+    if (res.estadoflag) lstFlete.value = res.data;
   }
 
   async function getProfitList(data: FiltroCalculadora): Promise<void> {
-    const rows = await obtenerListadoPorPais<ProfitCalculadoraFila>("calc/profit_list", data);
-    if (rows) lstProfit.value = rows;
+    const res = await obtenerListadoPorPais<ProfitCalculadoraFila>("calc/profit_list", data);
+    if (res.estadoflag) lstProfit.value = res.data;
   }
 
-  async function guardarProfit(method: "post" | "put", path: string, data: FormProfitCalculadora): Promise<ProfitCalculadoraFila[]> {
+  async function enviarProfit(
+    method: "post" | "put",
+    path: string,
+    data: Pick<FormProfitCalculadora, "user" | "id_pais">,
+  ): Promise<ApiResponse<ProfitCalculadoraFila[]>> {
     const branch = sessionBranches();
     const id_pais = branch[0]!.id_pais;
     const dataUser = sessionUsers();
     data.user = dataUser[0]!.users;
     data.id_pais = id_pais;
-    let res: ProfitCalculadoraFila[] = [];
     const response = await axios<ApiResponse<ProfitCalculadoraFila[]>>({
       method,
       url: import.meta.env.VITE_URL_MAIN + path,
       headers: JSON_HEADERS,
       data: data,
     });
-    if (response.data.estadoflag) {
-      res = response.data.data;
+    return response.data;
+  }
+
+  async function postGuardarProfit(data: FormProfitCalculadora): Promise<ProfitCalculadoraFila[]> {
+    let res: ProfitCalculadoraFila[] = [];
+    const response = await enviarProfit("post", "calc/profit", data);
+    if (response.estadoflag) {
+      res = response.data;
       Swal.fire(confirmacionSimple("Registro Correcto")).then((res) => {
         if (res.isConfirmed) {
           // window.location.reload();
@@ -426,16 +434,34 @@ export const useCalculadorasStore = defineStore("calculadoras", () => {
     return res;
   }
 
-  async function postGuardarProfit(data: FormProfitCalculadora): Promise<ProfitCalculadoraFila[]> {
-    return guardarProfit("post", "calc/profit", data);
-  }
-
   async function actualizarGuardarProfit(data: FormProfitCalculadora): Promise<ProfitCalculadoraFila[]> {
-    return guardarProfit("put", "calc/profit/actualizar", data);
+    let res: ProfitCalculadoraFila[] = [];
+    const response = await enviarProfit("put", "calc/profit/actualizar", data);
+    if (response.estadoflag) {
+      res = response.data;
+      Swal.fire(confirmacionSimple("Registro Correcto")).then((res) => {
+        if (res.isConfirmed) {
+          // window.location.reload();
+        }
+      });
+    }
+    return res;
   }
 
-  async function eliminarGuardarProfit(data: FormProfitCalculadora | ProfitCalculadoraFila): Promise<ProfitCalculadoraFila[]> {
-    return guardarProfit("put", "calc/profit/anular", data as FormProfitCalculadora);
+  async function eliminarGuardarProfit(
+    data: ProfitCalculadoraFila & Pick<FormProfitCalculadora, "user" | "id_pais">,
+  ): Promise<ProfitCalculadoraFila[]> {
+    let res: ProfitCalculadoraFila[] = [];
+    const response = await enviarProfit("put", "calc/profit/anular", data);
+    if (response.estadoflag) {
+      res = response.data;
+      Swal.fire(confirmacionSimple("Registro Correcto")).then((res) => {
+        if (res.isConfirmed) {
+          // window.location.reload();
+        }
+      });
+    }
+    return res;
   }
 
   async function ActualizarCosto(data: CostoCalculadora): Promise<void> {
@@ -478,8 +504,8 @@ export const useCalculadorasStore = defineStore("calculadoras", () => {
   }
 
   async function getTransporte(data: FiltroCalculadora): Promise<void> {
-    const rows = await obtenerListadoPorPais<TransporteCalculadora>("calc/transporte", data);
-    if (rows) lstTransporte.value = rows;
+    const res = await obtenerListadoPorPais<TransporteCalculadora>("calc/transporte", data);
+    if (res.estadoflag) lstTransporte.value = res.data;
   }
 
   async function getOpciones(): Promise<void> {
@@ -497,18 +523,18 @@ export const useCalculadorasStore = defineStore("calculadoras", () => {
   }
 
   async function getDepartamentos(data: FiltroCalculadora): Promise<void> {
-    const rows = await obtenerListadoPorPais<UbicacionCalculadora>("calc/departamentos", data);
-    if (rows) lstDepartamentos.value = rows;
+    const res = await obtenerListadoPorPais<UbicacionCalculadora>("calc/departamentos", data);
+    if (res.estadoflag) lstDepartamentos.value = res.data;
   }
 
   async function getDistritos(data: FiltroCalculadora): Promise<void> {
-    const rows = await obtenerListadoPorPais<UbicacionCalculadora>("calc/distritos", data);
-    if (rows) lstDistritos.value = rows;
+    const res = await obtenerListadoPorPais<UbicacionCalculadora>("calc/distritos", data);
+    if (res.estadoflag) lstDistritos.value = res.data;
   }
 
   async function getCiudad(data: FiltroCalculadora): Promise<void> {
-    const rows = await obtenerListadoPorPais<UbicacionCalculadora>("calc/ciudades", data);
-    if (rows) lstCiudades.value = rows;
+    const res = await obtenerListadoPorPais<UbicacionCalculadora>("calc/ciudades", data);
+    if (res.estadoflag) lstCiudades.value = res.data;
   }
 
   // async getTransporteGuardar({ dispatch }, data) {
@@ -582,13 +608,13 @@ export const useCalculadorasStore = defineStore("calculadoras", () => {
   }
 
   async function getFleteGrupal(data: FiltroCalculadora): Promise<void> {
-    const rows = await obtenerListadoPorPais<FleteGrupal>("calc/flete/grupal", data);
-    if (rows) lstFleteGrupal.value = rows;
+    const res = await obtenerListadoPorPais<FleteGrupal>("calc/flete/grupal", data);
+    if (res.estadoflag) lstFleteGrupal.value = res.data;
   }
 
   async function getFleteGrupalResumen(data: FiltroCalculadora): Promise<void> {
-    const rows = await obtenerListadoPorPais<FleteGrupalResumen>("calc/flete/grupal/resumen", data);
-    if (rows) lstFleteGrupalResumen.value = rows;
+    const res = await obtenerListadoPorPais<FleteGrupalResumen>("calc/flete/grupal/resumen", data);
+    if (res.estadoflag) lstFleteGrupalResumen.value = res.data;
   }
 
   async function enviarConMensaje(method: "post" | "put", path: string, data: unknown): Promise<void> {
@@ -621,7 +647,7 @@ export const useCalculadorasStore = defineStore("calculadoras", () => {
   }
 
   async function obtenerFleteCalculadora(datos: FiltroFleteCalculadora): Promise<void> {
-    datos.id_branch = sessionUsers()[0]!.id_branch;
+    datos.id_branch = sessionBranchId();
     await axios<ApiResponse<FletePricingCalculadora[]>>({
       method: "get",
       url: import.meta.env.VITE_URL_MAIN + "calc/flete/obtener_flete",
@@ -635,8 +661,8 @@ export const useCalculadorasStore = defineStore("calculadoras", () => {
   }
 
   async function getFleteGrupalVenta(data: FiltroCalculadora): Promise<void> {
-    const rows = await obtenerListadoPorPais<FleteGrupal>("calc/flete/grupal_venta", data);
-    if (rows) lstFleteGrupalVenta.value = rows;
+    const res = await obtenerListadoPorPais<FleteGrupal>("calc/flete/grupal_venta", data);
+    if (res.estadoflag) lstFleteGrupalVenta.value = res.data;
   }
 
   async function setFleteGrupalVenta(data: FleteGrupal): Promise<void> {

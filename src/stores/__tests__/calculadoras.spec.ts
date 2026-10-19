@@ -332,6 +332,17 @@ describe("calculadoras store", () => {
 
       expect(c[key]).toEqual([{ id: "1" }]);
     });
+
+    test("writes whatever list an accepted answer carries, even null", async () => {
+      respond({ [path]: accepted([{ id: "1" }]) });
+      const c = calc();
+      await c[action]!({});
+      respond({ [path]: accepted(null) });
+
+      await c[action]!({});
+
+      expect(c[key]).toBeNull();
+    });
   });
 
   test("getFleteGrupalResumen throws before any request when it gets no filter", async () => {

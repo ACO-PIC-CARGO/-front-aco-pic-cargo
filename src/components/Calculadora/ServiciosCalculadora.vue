@@ -12,8 +12,7 @@ const componentProps = withDefaults(defineProps<{ type?: string; idModality?: nu
 const calculadorasStore = useCalculadorasStore();
 const rootStore = useStore();
 
-type SucursalPais = SucursalSesion & { id_pais: number };
-const branchPais = () => (JSON.parse(sessionStorage.getItem("dataBranch") as string) as SucursalPais[])[0]!.id_pais;
+const branchPais = () => (JSON.parse(sessionStorage.getItem("dataBranch") as string) as SucursalSesion[])[0]!.id_pais!;
 
 const dialogNuevo = ref(false);
 const snackbar = ref(false);

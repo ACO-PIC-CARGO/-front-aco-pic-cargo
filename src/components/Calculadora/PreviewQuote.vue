@@ -4,8 +4,6 @@ import moment from "moment";
 import type { CotizacionPreview, ElementoPreview } from "@/types/calculadora";
 import type { SucursalSesion } from "@/types/sesion";
 
-type SucursalPreview = SucursalSesion & { document?: string; address?: string; phone?: string };
-
 const props = withDefaults(defineProps<{ dialog?: boolean; data?: CotizacionPreview }>(), {
   dialog: false,
   data: () => ({}),
@@ -20,11 +18,11 @@ const nameEmpresa = ref("");
 const incluye = ref<ElementoPreview[]>([]);
 const noincluye = ref<ElementoPreview[]>([]);
 const notasPrincipales = ref<ElementoPreview[]>([]);
-const datosEmpresa = ref<Partial<SucursalPreview>>({});
+const datosEmpresa = ref<Partial<SucursalSesion>>({});
 // The old effective props never declared index, so it always reads undefined.
 const index = undefined as number | undefined;
 
-const branches = () => JSON.parse(sessionStorage.getItem("dataBranch") as string) as SucursalPreview[];
+const branches = () => JSON.parse(sessionStorage.getItem("dataBranch") as string) as SucursalSesion[];
 
 onMounted(() => {
   lstServices.value = [];

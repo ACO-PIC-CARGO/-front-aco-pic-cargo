@@ -8,6 +8,7 @@ export interface UsuarioSesion {
   correoemail?: string;
   user?: string;
   usuario?: string;
+  users?: string;
 }
 
 export interface SucursalSesion {
@@ -21,6 +22,10 @@ export interface SucursalSesion {
   status?: number | boolean;
   dias_restantes: number;
   vigencia?: string;
+  id_pais?: number;
+  document?: string;
+  address?: string;
+  phone?: string;
 }
 
 export interface ItemMenu {
