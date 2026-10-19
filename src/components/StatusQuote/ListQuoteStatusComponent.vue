@@ -1,13 +1,13 @@
 <script setup lang="ts">
 import { onMounted, ref } from "vue";
 import Swal from "sweetalert2";
-import { useStore } from "vuex";
+import { useMasterusuariosStore } from "@/stores/masterusuarios";
 import { useQuoteStatusStore } from "@/stores/QuoteStatus";
 import type { EstadoCotizacion } from "@/types/cotizacion";
 import { sessionBranchId } from "@/utils/sesion";
 
 const QuoteStatusStore = useQuoteStatusStore();
-const rootStore = useStore();
+const masterusuariosStore = useMasterusuariosStore();
 
 const search = ref("");
 const loading = ref(false);
@@ -35,7 +35,7 @@ onMounted(async () => {
   loading.value = true;
   await QuoteStatusStore.GetListQuoteStatus();
   loading.value = false;
-  rootStore.dispatch("cargarTemperaturaLeds");
+  masterusuariosStore.cargarTemperaturaLeds();
 });
 
 function ver(item: EstadoCotizacion) {

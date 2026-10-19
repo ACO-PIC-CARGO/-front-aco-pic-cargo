@@ -3,7 +3,6 @@ import Swal from "sweetalert2";
 import miMixin from "../../components/mixins/funciones";
 import moment from "moment";
 import router from "@/router";
-import masterusuario from "./masterusuario";
 import enterprise from "./enterprise";
 import aduana from "./aduana";
 import modules from "./../index";

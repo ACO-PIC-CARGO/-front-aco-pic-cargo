@@ -26,7 +26,7 @@
                   <v-autocomplete
                     density="compact"
                     variant="outlined"
-                    :items="$store.state.masterusuarios.lstTipoPersona"
+                    :items="masterusuariosStore.lstTipoPersona"
                     item-title="descripcion"
                     item-value="id"
                     label="Persona Natural / Empresa"
@@ -39,7 +39,7 @@
                   <v-autocomplete
                     density="compact"
                     variant="outlined"
-                    :items="$store.state.masterusuarios.lstTipoTransaccion"
+                    :items="masterusuariosStore.lstTipoTransaccion"
                     item-title="descripcion"
                     item-value="id"
                     label="Nacional / Extranjero"
@@ -237,7 +237,7 @@
                   <v-autocomplete
                     density="compact"
                     variant="outlined"
-                    :items="$store.state.masterusuarios.lstTipoTelefono"
+                    :items="masterusuariosStore.lstTipoTelefono"
                     item-title="descripcion"
                     item-value="id"
                     label="Tipo de Teléfono"
@@ -300,7 +300,7 @@
                   <v-autocomplete
                     density="compact"
                     variant="outlined"
-                    :items="$store.state.masterusuarios.lstTipoTelefono"
+                    :items="masterusuariosStore.lstTipoTelefono"
                     item-title="descripcion"
                     item-value="id"
                     label="Tipo de Teléfono"
@@ -377,6 +377,8 @@
 <script>
 import { mapActions } from "vuex";
 import CustomAutocomplete from "../customAutocomplete.vue";
+import { mapStores } from "pinia";
+import { useMasterusuariosStore } from "@/stores/masterusuarios";
 export default {
   name: "SeccionCliente",
   components: {
@@ -402,6 +404,7 @@ export default {
     };
   },
   computed: {
+    ...mapStores(useMasterusuariosStore),
     isNroDocumentoDisabled() {
       return !this.$store.state.entities.cliente.id_tipodocumento;
     },
@@ -419,7 +422,7 @@ export default {
     },
     filteredDocumentsPais() {
       const all = this.$store.state.itemsDocumentsPais || [];
-      const tipoPersona = this.$store.state.masterusuarios.lstTipoPersona.find(
+      const tipoPersona = this.masterusuariosStore.lstTipoPersona.find(
         (v) => v.id == this.$store.state.entities.cliente.id_tipopersona,
       );
 
@@ -542,7 +545,7 @@ export default {
       var vm = this;
 
       const tipoPersonaData =
-        vm.$store.state.masterusuarios.lstTipoPersona.find(
+        vm.masterusuariosStore.lstTipoPersona.find(
           (v) => v.id == vm.$store.state.entities.cliente.id_tipopersona,
         );
       if (tipoPersonaData) {
@@ -730,7 +733,7 @@ export default {
       }
     },
     isClienteInternacional() {
-      let val = this.$store.state.masterusuarios.lstTipoTransaccion.some(
+      let val = this.masterusuariosStore.lstTipoTransaccion.some(
         (v) => {
           return (
             v.codigo == "02" &&

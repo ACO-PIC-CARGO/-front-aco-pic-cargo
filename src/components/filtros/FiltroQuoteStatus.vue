@@ -1,11 +1,11 @@
 <script setup lang="ts">
 import { computed, ref, useTemplateRef, watch } from "vue";
-import { useStore } from "vuex";
+import { useMasterusuariosStore } from "@/stores/masterusuarios";
 import { useQuoteStatusStore } from "@/stores/QuoteStatus";
 import type { EstadoCotizacion } from "@/types/cotizacion";
 
 const QuoteStatusStore = useQuoteStatusStore();
-const rootStore = useStore();
+const masterusuariosStore = useMasterusuariosStore();
 
 const errPosition = ref("");
 const errPositionSelect = ref("");
@@ -236,7 +236,7 @@ async function Aceptar() {
               class="py-1"
             >
               <v-autocomplete
-                :items="rootStore.state.masterusuarios.lstTemperatura"
+                :items="masterusuariosStore.lstTemperatura"
                 v-model="
                   QuoteStatusStore.StatusFilter
                     .id_masterdetalletemperaturaventa
@@ -411,7 +411,7 @@ async function Aceptar() {
               class="py-0"
             >
               <v-autocomplete
-                :items="rootStore.state.masterusuarios.lstTemperatura"
+                :items="masterusuariosStore.lstTemperatura"
                 v-model="
                   QuoteStatusStore.StatusModel
                     .id_masterdetalletemperaturaventa

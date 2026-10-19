@@ -42,7 +42,7 @@
                 density="compact"
                 :rules="[(v) => !!v || 'Dato requerido']"
                 class="my-1"
-                :items="$store.state.masterusuarios.lstPercepcionAduana"
+                :items="masterusuariosStore.lstPercepcionAduana"
                 item-title="descripcion"
                 item-value="id"
                 v-model="
@@ -160,6 +160,8 @@
 <script>
 import { mapActions } from "vuex";
 import Swal from "sweetalert2";
+import { mapStores } from "pinia";
+import { useMasterusuariosStore } from "@/stores/masterusuarios";
 export default {
   name: "DatosCargaComponent",
   data() {
@@ -323,6 +325,7 @@ export default {
     },
   },
   computed: {
+    ...mapStores(useMasterusuariosStore),
     pesoVolumetrico() {
       const datos = this.$store.state.aduana.datosPrincipales || {};
       const volumen = parseFloat(datos.volumen || 0); // m³

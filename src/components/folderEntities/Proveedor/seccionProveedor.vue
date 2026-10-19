@@ -62,7 +62,7 @@
                   <v-autocomplete
                     density="compact"
                     variant="outlined"
-                    :items="$store.state.masterusuarios.lstTipoTransaccion"
+                    :items="masterusuariosStore.lstTipoTransaccion"
                     item-title="descripcion"
                     item-value="id"
                     label="Nacional / Extranjero"
@@ -228,7 +228,7 @@
                   <v-autocomplete
                     density="compact"
                     variant="outlined"
-                    :items="$store.state.masterusuarios.lstTipoTelefono"
+                    :items="masterusuariosStore.lstTipoTelefono"
                     item-title="descripcion"
                     item-value="id"
                     label="Tipo de Teléfono"
@@ -272,7 +272,7 @@
                   <v-autocomplete
                     density="compact"
                     variant="outlined"
-                    :items="$store.state.masterusuarios.lstTipoTelefono"
+                    :items="masterusuariosStore.lstTipoTelefono"
                     item-title="descripcion"
                     item-value="id"
                     label="Tipo de Teléfono"
@@ -392,6 +392,8 @@
 <script>
 import { mapActions } from "vuex";
 import CustomAutocomplete from "../customAutocomplete.vue";
+import { mapStores } from "pinia";
+import { useMasterusuariosStore } from "@/stores/masterusuarios";
 export default {
   name: "SeccionProveedor",
   components: {
@@ -420,6 +422,7 @@ export default {
     };
   },
   computed: {
+    ...mapStores(useMasterusuariosStore),
     isNroDocumentoDisabled() {
       return !this.$store.state.entities.proveedor.id_tipodocumento;
     },
@@ -648,7 +651,7 @@ export default {
       }
     },
     isProveedorInternacional() {
-      let val = this.$store.state.masterusuarios.lstTipoTransaccion.some(
+      let val = this.masterusuariosStore.lstTipoTransaccion.some(
         (v) => {
           return (
             v.codigo == "02" &&

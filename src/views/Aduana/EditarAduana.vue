@@ -123,6 +123,8 @@ import DatosCostosComponent from "../../components/folderAduana/DatosCostosCompo
 import ComparativaComponent from "../../components/folderAduana/ComparativaComponent.vue";
 import NotasComponent from "../../components/folderAduana/NotasComponent.vue";
 import { mapActions, mapState } from "vuex";
+import { mapActions as mapPiniaActions } from "pinia";
+import { useMasterusuariosStore } from "@/stores/masterusuarios";
 
 export default {
   components: {
@@ -230,10 +232,10 @@ export default {
       "cargarProveedores",
       "obtenerImpuestoXEmpresa",
       "registrarQuote",
-      "cargarMasterDetallePercepcionAduana",
       "_getContainers",
       "getAdunaVer",
     ]),
+    ...mapPiniaActions(useMasterusuariosStore, ["cargarMasterDetallePercepcionAduana"]),
     async recargar() {
       await this.recargarServicios();
       await this.getTipoCostosAduana();

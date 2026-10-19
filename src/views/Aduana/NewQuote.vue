@@ -90,6 +90,8 @@ import ComparativaComponent from "../../components/folderAduana/ComparativaCompo
 import NotasComponent from "../../components/folderAduana/NotasComponent.vue";
 import { mapActions, mapState } from "vuex";
 import Swal from "sweetalert2";
+import { mapActions as mapPiniaActions } from "pinia";
+import { useMasterusuariosStore } from "@/stores/masterusuarios";
 export default {
   components: {
     DatosPrincipales,
@@ -150,9 +152,9 @@ export default {
       "cargarProveedores",
       "obtenerImpuestoXEmpresa",
       "registrarQuote",
-      "cargarMasterDetallePercepcionAduana",
       "_getContainers",
     ]),
+    ...mapPiniaActions(useMasterusuariosStore, ["cargarMasterDetallePercepcionAduana"]),
     recargar() {
       if (this.$store.state.aduana.listServices.length > 0) {
         this.recargarServicios();

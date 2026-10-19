@@ -113,8 +113,9 @@ import SeccionConvenios from "./seccionConvenios.vue";
 import SeccionInformacionBancaria from "./seccionInformacionBancaria.vue";
 import SeccionShippers from "./seccionShippers.vue";
 import SeccionInformacionEntrega from "./seccionInformacionEntrega.vue";
-import { mapActions as mapPiniaActions } from "pinia";
+import { mapActions as mapPiniaActions, mapStores } from "pinia";
 import { useCoinsStore } from "@/stores/coins";
+import { useMasterusuariosStore } from "@/stores/masterusuarios";
 export default {
   components: {
     SeccionCliente,
@@ -138,15 +139,15 @@ export default {
     },
   },
   emits: ["btnGuardar"],
+  computed: {
+    ...mapStores(useMasterusuariosStore),
+  },
   methods: {
     ...mapActions([
       "getListProveedor",
       "_getDocumentsPais",
-      "cargarMasterDetalleTipoProveedor",
-      "cargarMasterDetalleTipoTransaccion",
       "_getRole",
       "getValidaRazonSocial",
-      "cargarTipoTelefono",
       "getBanksListCargar",
       "guardarCliente",
       "getValidaDocumentCliente",
@@ -155,10 +156,10 @@ export default {
       "_getState",
       "_getCity",
       "_getTown",
-      "cargarTipoPersona",
       "_getProveedorRolShipper",
       "_getProveedor",
     ]),
+    ...mapPiniaActions(useMasterusuariosStore, ["cargarMasterDetalleTipoProveedor", "cargarMasterDetalleTipoTransaccion", "cargarTipoTelefono", "cargarTipoPersona"]),
     ...mapPiniaActions(useCoinsStore, ["getCoinsListCargar"]),
     /* CÓDIGO NUEVO */
     getIDTipoTelefono(criterio = "") {
@@ -166,7 +167,7 @@ export default {
       var id = null;
 
       const tipoTelefonoData =
-        vm.$store.state.masterusuarios.lstTipoTelefono.find(
+        vm.masterusuariosStore.lstTipoTelefono.find(
           (v) => v.descripcion.toUpperCase() == criterio.toUpperCase()
         );
       if (tipoTelefonoData) {
@@ -180,7 +181,7 @@ export default {
       var id = null;
 
       const tipoPersonaData =
-        vm.$store.state.masterusuarios.lstTipoPersona.find(
+        vm.masterusuariosStore.lstTipoPersona.find(
           (v) => v.descripcion.toUpperCase() == criterio.toUpperCase()
         );
       if (tipoPersonaData) {

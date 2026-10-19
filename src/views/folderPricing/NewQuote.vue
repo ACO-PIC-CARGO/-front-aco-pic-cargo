@@ -165,8 +165,9 @@ import Swal from "sweetalert2";
 import { readSheet as readXlsFile } from "read-excel-file/browser";
 import mixins from "@/components/mixins/funciones.js";
 import moment from "moment";
-import { mapStores } from "pinia";
+import { mapActions as mapPiniaActions, mapStores } from "pinia";
 import { useQuoteStatusStore } from "@/stores/QuoteStatus";
+import { useMasterusuariosStore } from "@/stores/masterusuarios";
 export default {
   mixins: [mixins],
   components: {
@@ -252,13 +253,13 @@ export default {
       "cargarProveedores",
       "obtenerImpuestoXEmpresa",
       "registrarQuote",
-      "cargarMasterDetallePercepcionAduana",
       "_getContainers",
       "crearCarpetaOneDrive",
       "actualizarURLEnElQuote",
       "obtenerFleteCalculadora",
       "getTransporte",
     ]),
+    ...mapPiniaActions(useMasterusuariosStore, ["cargarMasterDetallePercepcionAduana"]),
     recargar() {
       if (this.$store.state.pricing.listServices.length > 0) {
         this.recargarServicios();
@@ -492,7 +493,7 @@ export default {
       const idContainersSet = new Set(containers.map((v) => v.id));
       const COSTOS_ESPECIALES = [69, 114, 105, 39];
       const tipoImportacion =
-        this.$store.state.masterusuarios.lstPercepcionAduana.find(
+        this.masterusuariosStore.lstPercepcionAduana.find(
           (v) => v.id == id_percepcionaduana,
         );
       const codigoImportacion = tipoImportacion?.codigo;
@@ -640,7 +641,7 @@ export default {
       const idContainersSet = new Set(containers.map((v) => v.id));
       const COSTOS_ESPECIALES = [69, 114, 105, 39];
       const tipoImportacion =
-        this.$store.state.masterusuarios.lstPercepcionAduana.find(
+        this.masterusuariosStore.lstPercepcionAduana.find(
           (v) => v.id == id_percepcionaduana,
         );
       const codigoImportacion = tipoImportacion?.codigo;
@@ -1020,7 +1021,7 @@ export default {
 
         let montoprofit = 0;
         const tipoImportacion =
-          this.$store.state.masterusuarios.lstPercepcionAduana.find(
+          this.masterusuariosStore.lstPercepcionAduana.find(
             (v) =>
               String(v.id) ===
               String(
@@ -1395,7 +1396,7 @@ export default {
     },
   },
   computed: {
-    ...mapStores(useQuoteStatusStore),
+    ...mapStores(useMasterusuariosStore, useQuoteStatusStore),
     // ...mapState(["preServices", "preCostos"]),
   },
 };

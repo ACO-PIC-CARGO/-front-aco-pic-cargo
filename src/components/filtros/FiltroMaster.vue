@@ -8,7 +8,7 @@
     <v-card-text>
       <v-form ref="frmFiltro">
         <v-autocomplete
-          :items="$store.state.masterusuarios.lstCanales"
+          :items="masterusuariosStore.lstCanales"
           item-title="descripcion"
           item-value="id"
           label="Canal"
@@ -150,6 +150,8 @@ import { mapActions } from "vuex";
 import miMixin from "../mixins/funciones";
 import FormatFecha from "../comun/FormatFecha.vue";
 import moment from "moment";
+import { mapStores } from "pinia";
+import { useMasterusuariosStore } from "@/stores/masterusuarios";
 export default {
   components: {
     FormatFecha,
@@ -159,6 +161,9 @@ export default {
     return {};
   },
   mounted() {},
+  computed: {
+    ...mapStores(useMasterusuariosStore),
+  },
   methods: {
     ...mapActions([
       "_getPortBegin",

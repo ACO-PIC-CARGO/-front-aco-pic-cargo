@@ -134,6 +134,7 @@
 import { mapActions } from "vuex";
 import { mapStores } from "pinia";
 import { useCoinsStore } from "@/stores/coins";
+import { useMasterusuariosStore } from "@/stores/masterusuarios";
 export default {
   name: "SeccionInformacionBancaria",
   data() {
@@ -161,7 +162,7 @@ export default {
     };
   },
   computed: {
-    ...mapStores(useCoinsStore),
+    ...mapStores(useMasterusuariosStore, useCoinsStore),
     isFormReadonly() {
       return this.$store.state.entities.isReadonly;
     },
@@ -178,7 +179,7 @@ export default {
   methods: {
     ...mapActions(["actualizarCliente"]),
     isInternacional() {
-      let val = this.$store.state.masterusuarios.lstTipoTransaccion.some(
+      let val = this.masterusuariosStore.lstTipoTransaccion.some(
         (v) =>
           v.codigo == "02" &&
           v.id == this.$store.state.entities.cliente.id_tipotransaccion,

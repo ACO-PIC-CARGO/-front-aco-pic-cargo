@@ -100,6 +100,8 @@ import { mapState, mapActions } from "vuex";
 import modalListHouse from "@/components/modal/modalListFile.vue";
 import GuardarUrlMaster from "../comun/GuardarUrlMaster.vue";
 import Swal from "sweetalert2";
+import { mapActions as mapPiniaActions } from "pinia";
+import { useMasterusuariosStore } from "@/stores/masterusuarios";
 export default {
   name: "listMasterCom",
   components: {
@@ -159,11 +161,11 @@ export default {
       "_getControlList",
       "getModulesEntities",
       "getQuoteNoAsignadoHouse",
-      "cargarMasterDetalleCanal",
       "_getModality",
       "_getProveedor",
       "_getShipment",
     ]),
+    ...mapPiniaActions(useMasterusuariosStore, ["cargarMasterDetalleCanal"]),
     async cerrarDialog() {
       this.dialogUrl = false;
       this.$store.state.spiner = true;

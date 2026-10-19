@@ -21,7 +21,7 @@
         <v-col cols="12">
           <v-data-table
             :headers="headersPorEmpresa"
-            :items="$store.state.masterusuarios.lstNotasQuote"
+            :items="masterusuariosStore.lstNotasQuote"
             class="elevation-1"
             item-value="port_beginend_id"
             :loading="loading"
@@ -91,8 +91,9 @@
 </template>
 
 <script>
-import { mapActions } from "vuex";
 import Swal from "sweetalert2";
+import { mapActions as mapPiniaActions, mapStores } from "pinia";
+import { useMasterusuariosStore } from "@/stores/masterusuarios";
 export default {
   data() {
     return {
@@ -137,37 +138,37 @@ export default {
     };
   },
   methods: {
-    ...mapActions(["GetListNotasCotizacion", "ActualizarMasterDetalle"]),
+    ...mapPiniaActions(useMasterusuariosStore, ["GetListNotasCotizacion", "ActualizarMasterDetalle"]),
     async filtrar() {
-      this.$store.state.masterusuarios.tipo = "filter";
-      this.$store.state.masterusuarios.drawer =
-        !this.$store.state.masterusuarios.drawer;
+      this.masterusuariosStore.tipo = "filter";
+      this.masterusuariosStore.drawer =
+        !this.masterusuariosStore.drawer;
     },
     async ver(item) {
       let datos = { ...item };
-      this.$store.state.masterusuarios.tipo = "ver";
-      this.$store.state.masterusuarios.model = datos;
-      this.$store.state.masterusuarios.drawer =
-        !this.$store.state.masterusuarios.drawer;
+      this.masterusuariosStore.tipo = "ver";
+      this.masterusuariosStore.model = datos;
+      this.masterusuariosStore.drawer =
+        !this.masterusuariosStore.drawer;
     },
     async editar(item) {
       let datos = { ...item };
-      this.$store.state.masterusuarios.tipo = "editar";
-      this.$store.state.masterusuarios.model = datos;
+      this.masterusuariosStore.tipo = "editar";
+      this.masterusuariosStore.model = datos;
 
-      this.$store.state.masterusuarios.drawer =
-        !this.$store.state.masterusuarios.drawer;
+      this.masterusuariosStore.drawer =
+        !this.masterusuariosStore.drawer;
     },
     async nuevo() {
-      this.$store.state.masterusuarios.tipo = "nuevo";
-      const lista = this.$store.state.masterusuarios.lstNotasQuote;
+      this.masterusuariosStore.tipo = "nuevo";
+      const lista = this.masterusuariosStore.lstNotasQuote;
       const maxOrden =
         lista.length > 0
           ? Math.max(...lista.map((item) => Number(item.orden) || 0))
           : 0;
       const nuevoOrden = maxOrden + 1;
 
-      this.$store.state.masterusuarios.model = {
+      this.masterusuariosStore.model = {
         id: "",
         id_master: "",
         valorcodigo: "",
@@ -181,8 +182,8 @@ export default {
         orden: nuevoOrden,
         id_branch: JSON.parse(sessionStorage.getItem("dataUser"))[0].id_branch,
       };
-      this.$store.state.masterusuarios.drawer =
-        !this.$store.state.masterusuarios.drawer;
+      this.masterusuariosStore.drawer =
+        !this.masterusuariosStore.drawer;
     },
     async eliminar(item) {
       Swal.fire({
@@ -198,7 +199,7 @@ export default {
       }).then(async (res) => {
         if (res.isConfirmed) {
           item.status = false;
-          this.$store.state.masterusuarios.model = item;
+          this.masterusuariosStore.model = item;
           this.loading = true;
           await this.ActualizarMasterDetalle();
           await this.GetListNotasCotizacion();
@@ -217,12 +218,13 @@ export default {
     this.loading = !this.loading;
   },
   computed: {
+    ...mapStores(useMasterusuariosStore),
     drawer: {
       get() {
-        return this.$store.state.masterusuarios.drawer;
+        return this.masterusuariosStore.drawer;
       },
       set(val) {
-        return (this.$store.state.masterusuarios.drawer = drawer);
+        return (this.masterusuariosStore.drawer = drawer);
       },
     },
 
@@ -240,7 +242,7 @@ export default {
     async drawer() {
       let caseRecargar = ["nuevo", "editar", "filter"];
       if (!this.drawer) {
-        if (caseRecargar.includes(this.$store.state.masterusuarios.tipo)) {
+        if (caseRecargar.includes(this.masterusuariosStore.tipo)) {
           // setTimeout(() => {
 
           // }, 10);

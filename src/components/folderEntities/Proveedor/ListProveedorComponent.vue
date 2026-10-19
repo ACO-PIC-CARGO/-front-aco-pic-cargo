@@ -123,7 +123,7 @@
               >
                 <template v-slot:[`item.tipotelefono`]="{ item }">
                   <v-autocomplete
-                    :items="$store.state.masterusuarios.lstTipoTelefono"
+                    :items="masterusuariosStore.lstTipoTelefono"
                     item-title="descripcion"
                     item-value="id"
                     label="Tipo de Teléfono"
@@ -169,7 +169,7 @@
 
                 <template v-slot:[`item.tipotelefono`]="{ item }">
                   <v-autocomplete
-                    :items="$store.state.masterusuarios.lstTipoTelefono"
+                    :items="masterusuariosStore.lstTipoTelefono"
                     item-title="descripcion"
                     item-value="id"
                     label="Tipo de Teléfono"
@@ -215,6 +215,8 @@
 <script>
 import { mapActions } from "vuex";
 import Swal from "sweetalert2";
+import { mapActions as mapPiniaActions, mapStores } from "pinia";
+import { useMasterusuariosStore } from "@/stores/masterusuarios";
 export default {
   data() {
     return {
@@ -247,20 +249,22 @@ export default {
       ],
     };
   },
+  computed: {
+    ...mapStores(useMasterusuariosStore),
+  },
   methods: {
     ...mapActions([
       "getListProveedor",
       "_getDocumentsPais",
-      "cargarMasterDetalleTipoProveedor",
       "_getPais",
       "_getState",
       "_getRole",
       "cambioURL",
       "eliminarPersona",
       "telConctactoProveedor",
-      "cargarTipoTelefono",
       "exportListProveedor",
     ]),
+    ...mapPiniaActions(useMasterusuariosStore, ["cargarMasterDetalleTipoProveedor", "cargarTipoTelefono"]),
     cambiarRuta({ nameRuta = "", idProveedor = "" }) {
       this.$router.push({
         name: nameRuta,

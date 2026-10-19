@@ -27,7 +27,7 @@
               </v-col>
               <v-col cols="12" md="6">
                 <v-autocomplete
-                  :items="$store.state.masterusuarios.lstTipoProveedor"
+                  :items="masterusuariosStore.lstTipoProveedor"
                   item-title="descripcion"
                   item-value="id"
                   label="Tipo de Proveedor"
@@ -372,6 +372,8 @@
 <script>
 import axios from '@/api/http';
 import { mapState, mapActions } from "vuex";
+import { mapActions as mapPiniaActions, mapStores } from "pinia";
+import { useMasterusuariosStore } from "@/stores/masterusuarios";
 export default {
   name: "controlEntitiesCom",
   // props: {
@@ -415,6 +417,7 @@ export default {
     };
   },
   computed: {
+    ...mapStores(useMasterusuariosStore),
     ...mapState([
       "itemsDocumentsPais",
       "itemsPais",
@@ -462,8 +465,8 @@ export default {
       "_getNavieras",
       "_getRole",
       "ListarPhones",
-      "cargarMasterDetalleTipoProveedor",
     ]),
+    ...mapPiniaActions(useMasterusuariosStore, ["cargarMasterDetalleTipoProveedor"]),
 
     _validatyDocuments() {
       if (

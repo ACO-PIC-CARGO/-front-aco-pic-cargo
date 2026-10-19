@@ -111,7 +111,7 @@
             </v-col>
             <v-col cols="12" md="6" class="py-1">
               <v-autocomplete
-                :items="$store.state.masterusuarios.lstTemperatura"
+                :items="masterusuariosStore.lstTemperatura"
                 v-model="
                   $store.state.pricing.filtro.id_masterdetalletemperaturaventa
                 "
@@ -236,6 +236,8 @@
 import { mapActions, mapState } from "vuex";
 import FormatFecha from "../comun/FormatFecha.vue";
 import moment from "moment";
+import { mapStores } from "pinia";
+import { useMasterusuariosStore } from "@/stores/masterusuarios";
 export default {
   components: {
     FormatFecha,
@@ -246,6 +248,9 @@ export default {
     };
   },
   ...mapState(["clientes"]),
+  computed: {
+    ...mapStores(useMasterusuariosStore),
+  },
   methods: {
     ...mapActions([
       "getMarketingList",

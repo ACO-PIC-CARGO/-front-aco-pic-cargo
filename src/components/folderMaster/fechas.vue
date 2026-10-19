@@ -49,7 +49,7 @@
       </v-col>
       <v-col cols="12" md="6">
         <v-select
-          :items="$store.state.masterusuarios.lstCanales"
+          :items="masterusuariosStore.lstCanales"
           item-title="descripcion"
           item-value="id"
           v-model="$store.state.id_canal"
@@ -118,9 +118,12 @@
 
 <script>
 import { mapState } from "vuex";
+import { mapStores } from "pinia";
+import { useMasterusuariosStore } from "@/stores/masterusuarios";
 export default {
   name: "fechas",
   computed: {
+    ...mapStores(useMasterusuariosStore),
     ...mapState(["itemsModality", "itemsShipment"]),
   },
   methods: {

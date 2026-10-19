@@ -1342,6 +1342,7 @@ import { mapActions as mapPiniaActions, mapStores } from "pinia";
 import { useSecuritysStore } from "@/stores/securitys";
 import ArrastraYSolarComponent from "../comun/ArrastraYSolarComponent.vue";
 import { useCoinsStore } from "@/stores/coins";
+import { useMasterusuariosStore } from "@/stores/masterusuarios";
 export default {
   emits: ["recalcularProfit", "statusBtn"],
   props: {
@@ -2884,7 +2885,7 @@ export default {
       }
     },
     isProveedorInternacional() {
-      let val = this.$store.state.masterusuarios.lstTipoTransaccion.some(
+      let val = this.masterusuariosStore.lstTipoTransaccion.some(
         (v) => v.codigo == "02" && v.id == this.id_tipotransaccion,
       );
       return val;
@@ -3038,11 +3039,11 @@ export default {
       "guardarCuotasCgeTipoProveedor",
       "getBanksListCargar",
       "_getProveedor",
-      "cargarMasterDetalleTipoTransaccion",
       "copiarCGEgresos",
       "_getMasterList",
       "moverCostos",
     ]),
+    ...mapPiniaActions(useMasterusuariosStore, ["cargarMasterDetalleTipoTransaccion"]),
     ...mapPiniaActions(useCoinsStore, ["getCoinsListCargar"]),
     ...mapPiniaActions(useSecuritysStore, ["validarUsuarioAdmin"]),
     bloquearCopiarMontos(detalle) {
@@ -3224,7 +3225,7 @@ export default {
     },
   },
   computed: {
-    ...mapStores(useCoinsStore),
+    ...mapStores(useMasterusuariosStore, useCoinsStore),
     getNameModalNuevoEditar() {
       if (this.egresos && this.egresos.id) {
         return "EDITAR REGISTRO COSTO";

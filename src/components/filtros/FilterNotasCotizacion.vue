@@ -7,44 +7,44 @@
         icon
         color="default"
         @click="
-          $store.state.masterusuarios.drawer =
-            !$store.state.masterusuarios.drawer
+          masterusuariosStore.drawer =
+            !masterusuariosStore.drawer
         "
       >
         <v-icon>mdi-close</v-icon>
       </v-btn>
     </v-card-title>
-    <v-card-text v-if="$store.state.masterusuarios.tipo == 'filter'">
+    <v-card-text v-if="masterusuariosStore.tipo == 'filter'">
       <div class="col-12 py-1">
         <v-text-field
-          v-model="$store.state.masterusuarios.filtros.valorcodigo"
+          v-model="masterusuariosStore.filtros.valorcodigo"
           label="Código"
-          :clearable="$store.state.masterusuarios.tipo != 'ver'"
+          :clearable="masterusuariosStore.tipo != 'ver'"
         ></v-text-field>
       </div>
       <!-- <div class="col-12 py-1">
         <v-switch
           label="Individual"
-          v-model="$store.state.masterusuarios.filtros.individualflag"
+          v-model="masterusuariosStore.filtros.individualflag"
         />
       </div>
       <div class="col-12 py-1">
         <v-switch
           label="Grupal"
-          v-model="$store.state.masterusuarios.filtros.grupalflag"
+          v-model="masterusuariosStore.filtros.grupalflag"
         />
       </div> -->
       <div class="col-12 py-1">
         <v-text-field
-          v-model="$store.state.masterusuarios.filtros.description"
+          v-model="masterusuariosStore.filtros.description"
           label="Nombre"
-          :clearable="$store.state.masterusuarios.tipo != 'ver'"
+          :clearable="masterusuariosStore.tipo != 'ver'"
         ></v-text-field>
       </div>
       <div class="col-12 py-1">
         <span> Estado</span>
         <v-radio-group
-          v-model="$store.state.masterusuarios.filtros.status"
+          v-model="masterusuariosStore.filtros.status"
           inline
           density="compact"
         >
@@ -59,8 +59,8 @@
         <v-row>
           <!-- <div class="col-12 py-1">
           <v-text-field
-            v-model="$store.state.masterusuarios.model.valorcodigo"
-            :readonly="$store.state.masterusuarios.tipo != 'nuevo'"
+            v-model="masterusuariosStore.model.valorcodigo"
+            :readonly="masterusuariosStore.tipo != 'nuevo'"
             label="Código"
             :rules="[
               (v) => !!v || 'Dato Requerido',
@@ -72,10 +72,10 @@
 
           <div class="col-12 py-1">
             <v-textarea
-              v-model="$store.state.masterusuarios.model.description"
-              :readonly="$store.state.masterusuarios.tipo == 'ver'"
+              v-model="masterusuariosStore.model.description"
+              :readonly="masterusuariosStore.tipo == 'ver'"
               label="Nombre (*)"
-              :clearable="$store.state.masterusuarios.tipo != 'ver'"
+              :clearable="masterusuariosStore.tipo != 'ver'"
               :rules="[
                 (v) => !!v || 'Dato Requerido',
                 (v) =>
@@ -95,9 +95,9 @@
               id="id"
               variant="outlined"
               density="compact"
-              v-model="$store.state.masterusuarios.model.orden"
-              :readonly="$store.state.masterusuarios.tipo == 'ver'"
-              :clearable="$store.state.masterusuarios.tipo != 'ver'"
+              v-model="masterusuariosStore.model.orden"
+              :readonly="masterusuariosStore.tipo == 'ver'"
+              :clearable="masterusuariosStore.tipo != 'ver'"
               type="number"
               style="max-width: 240px;"
             ></v-text-field>
@@ -106,26 +106,26 @@
           <div class="col-6 py-1">
             <v-switch
               label="Individual"
-              v-model="$store.state.masterusuarios.model.individualflag"
+              v-model="masterusuariosStore.model.individualflag"
             />
           </div>
           <div class="col-6 py-1">
             <v-switch
               label="Grupal"
-              v-model="$store.state.masterusuarios.model.grupalflag"
+              v-model="masterusuariosStore.model.grupalflag"
             />
           </div>
           <div class="col-12 py-1">
             <span> Estado</span>
             <v-switch
-              :readonly="$store.state.masterusuarios.tipo == 'ver'"
+              :readonly="masterusuariosStore.tipo == 'ver'"
               :label="`Estado: ${
-                !!$store.state.masterusuarios.model.status
+                !!masterusuariosStore.model.status
                   ? 'Activo'
                   : 'Inactivo'
               }`"
               color="success"
-              v-model="$store.state.masterusuarios.model.status"
+              v-model="masterusuariosStore.model.status"
             ></v-switch>
           </div>
         </v-row>
@@ -137,7 +137,7 @@
       <v-btn
         class="mx-1"
         color="success"
-        v-if="$store.state.masterusuarios.tipo == 'filter'"
+        v-if="masterusuariosStore.tipo == 'filter'"
         @click="Filtrar()"
         :loading="loading"
         >Aceptar</v-btn
@@ -145,7 +145,7 @@
       <v-btn
         class="mx-1"
         color="default"
-        v-if="$store.state.masterusuarios.tipo == 'filter'"
+        v-if="masterusuariosStore.tipo == 'filter'"
         @click="Limpiar()"
         :loading="loading"
         >Limpiar</v-btn
@@ -154,8 +154,8 @@
         class="mx-1"
         color="success"
         v-if="
-          $store.state.masterusuarios.tipo != 'filter' &&
-          $store.state.masterusuarios.tipo != 'ver'
+          masterusuariosStore.tipo != 'filter' &&
+          masterusuariosStore.tipo != 'ver'
         "
         @click="Aceptar()"
         :loading="loading"
@@ -165,8 +165,8 @@
         class="mx-1"
         color="warning"
         @click="
-          $store.state.masterusuarios.drawer =
-            !$store.state.masterusuarios.drawer
+          masterusuariosStore.drawer =
+            !masterusuariosStore.drawer
         "
         :loading="loading"
         >Cerrar</v-btn
@@ -175,7 +175,8 @@
   </v-card>
 </template>
 <script>
-import { mapActions } from "vuex";
+import { mapActions as mapPiniaActions, mapStores } from "pinia";
+import { useMasterusuariosStore } from "@/stores/masterusuarios";
 export default {
   data() {
     return {
@@ -185,11 +186,7 @@ export default {
     };
   },
   methods: {
-    ...mapActions([
-      "GetListNotasCotizacion",
-      "ActualizarMasterDetalle",
-      "RegistrarMasterDetalleNotasCotizacion",
-    ]),
+    ...mapPiniaActions(useMasterusuariosStore, ["GetListNotasCotizacion", "ActualizarMasterDetalle", "RegistrarMasterDetalleNotasCotizacion"]),
     mostrarIndividualGrupalPorEmpresa() {
       let valEmpresaPic = [1, 2];
       let empresa = JSON.parse(localStorage.getItem("dataBranch"))[0];
@@ -199,16 +196,16 @@ export default {
       return false;
     },
     getName() {
-      if (this.$store.state.masterusuarios.tipo == "ver") {
+      if (this.masterusuariosStore.tipo == "ver") {
         return `Nota  – Modo Vista`;
       }
-      if (this.$store.state.masterusuarios.tipo == "nuevo") {
+      if (this.masterusuariosStore.tipo == "nuevo") {
         return "Nueva Nota Cotización";
       }
-      if (this.$store.state.masterusuarios.tipo == "editar") {
+      if (this.masterusuariosStore.tipo == "editar") {
         return `Modificar Nota`;
       }
-      if (this.$store.state.masterusuarios.tipo == "filter") {
+      if (this.masterusuariosStore.tipo == "filter") {
         return "Filtrar Registros";
       }
     },
@@ -217,11 +214,11 @@ export default {
       this.loading = true;
       await this.GetListNotasCotizacion();
       this.loading = false;
-      this.$store.state.masterusuarios.drawer =
-        !this.$store.state.masterusuarios.drawer;
+      this.masterusuariosStore.drawer =
+        !this.masterusuariosStore.drawer;
     },
     async Limpiar() {
-      this.$store.state.masterusuarios.filtros = {
+      this.masterusuariosStore.filtros = {
         id: "",
         id_master: "",
         valorcodigo: "",
@@ -235,11 +232,11 @@ export default {
       await this.GetListNotasCotizacion();
 
       this.loading = false;
-      this.$store.state.masterusuarios.drawer =
-        !this.$store.state.masterusuarios.drawer;
+      this.masterusuariosStore.drawer =
+        !this.masterusuariosStore.drawer;
     },
     async Aceptar() {
-      if (this.$store.state.masterusuarios.tipo == "nuevo") {
+      if (this.masterusuariosStore.tipo == "nuevo") {
         if ((await this.$refs.frmDML.validate()).valid) {
           this.loading = true;
           await this.RegistrarMasterDetalleNotasCotizacion();
@@ -247,7 +244,7 @@ export default {
           this.loading = false;
         }
       }
-      if (this.$store.state.masterusuarios.tipo == "editar") {
+      if (this.masterusuariosStore.tipo == "editar") {
         this.loading = true;
         if ((await this.$refs.frmDML.validate()).valid) {
           await this.ActualizarMasterDetalle();
@@ -255,25 +252,26 @@ export default {
         }
         this.loading = false;
       }
-      if (this.$store.state.masterusuarios.tipo == "ver") {
-        this.$store.state.masterusuarios.drawer =
-          !this.$store.state.masterusuarios.drawer;
+      if (this.masterusuariosStore.tipo == "ver") {
+        this.masterusuariosStore.drawer =
+          !this.masterusuariosStore.drawer;
       }
     },
   },
   computed: {
+    ...mapStores(useMasterusuariosStore),
     drawer: {
       get() {
-        return this.$store.state.masterusuarios.drawer;
+        return this.masterusuariosStore.drawer;
       },
       set(val) {
-        return (this.$store.state.masterusuarios.drawer = drawer);
+        return (this.masterusuariosStore.drawer = drawer);
       },
     },
   },
   watch: {
     drawer() {
-      this.model = { ...this.$store.state.masterusuarios.model };
+      this.model = { ...this.masterusuariosStore.model };
     },
   },
 };

@@ -42,7 +42,7 @@
               >
                 <template v-slot:[`item.id_tipotelefono`]="{ item }">
                   <v-autocomplete
-                    :items="$store.state.masterusuarios.lstTipoTelefono"
+                    :items="masterusuariosStore.lstTipoTelefono"
                     item-title="descripcion"
                     item-value="id"
                     v-model="item.id_tipotelefono"
@@ -116,7 +116,7 @@
                 </template>
                 <template v-slot:[`item.id_tipotelefono`]="{ item }">
                   <v-autocomplete
-                    :items="$store.state.masterusuarios.lstTipoTelefono"
+                    :items="masterusuariosStore.lstTipoTelefono"
                     item-title="descripcion"
                     item-value="id"
                     v-model="item.id_tipotelefono"
@@ -233,6 +233,8 @@
 <script>
 import { mapActions } from "vuex";
 import Swal from "sweetalert2";
+import { mapStores } from "pinia";
+import { useMasterusuariosStore } from "@/stores/masterusuarios";
 export default {
   name: "SeccionTelefonos",
   data() {
@@ -257,6 +259,7 @@ export default {
     };
   },
   computed: {
+    ...mapStores(useMasterusuariosStore),
     isFormReadonly() {
       return this.$store.state.entities.isReadonly;
     },

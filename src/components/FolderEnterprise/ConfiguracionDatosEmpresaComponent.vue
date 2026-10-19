@@ -45,7 +45,7 @@
     <v-col cols="12" lg="8" xl="4">
       <v-autocomplete
         label="Impuestos a las Ventas en tu País"
-        :items="$store.state.masterusuarios.lstImpRenta"
+        :items="masterusuariosStore.lstImpRenta"
         item-value="id"
         item-title="descripcion"
         variant="outlined"
@@ -154,6 +154,8 @@
 <script>
 import { mapActions } from "vuex";
 import CboPais from "@/components/comun/CboPais.vue";
+import { mapActions as mapPiniaActions, mapStores } from "pinia";
+import { useMasterusuariosStore } from "@/stores/masterusuarios";
 export default {
   components: {
     CboPais,
@@ -169,12 +171,15 @@ export default {
       }
     },
   },
+  computed: {
+    ...mapStores(useMasterusuariosStore),
+  },
   methods: {
     ...mapActions([
       "actualizarDatoEmpresa",
       "_uploadFile",
-      "cargarImpuestoRenta",
     ]),
+    ...mapPiniaActions(useMasterusuariosStore, ["cargarImpuestoRenta"]),
     guardarEmpresa() {
       this.errorImp = "";
       if (!this.$store.state.configEmpresa.datoEmpresa.tipoimpuesto) {
@@ -196,7 +201,7 @@ export default {
     },
     mostrarImpOtro() {
       if (this.$store.state.configEmpresa.datoEmpresa.tipoimpuesto) {
-        let cod = this.$store.state.masterusuarios.lstImpRenta.filter(
+        let cod = this.masterusuariosStore.lstImpRenta.filter(
           (v) =>
             v.id == this.$store.state.configEmpresa.datoEmpresa.tipoimpuesto
         )[0].codigo01;

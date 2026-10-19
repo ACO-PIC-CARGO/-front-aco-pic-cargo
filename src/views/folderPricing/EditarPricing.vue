@@ -116,6 +116,7 @@ import NotasComponent from "../../components/folderPricing/NotasComponent.vue";
 import { mapActions, mapState } from "vuex";
 import { mapActions as mapPiniaActions } from "pinia";
 import { useTownStore } from "@/stores/town";
+import { useMasterusuariosStore } from "@/stores/masterusuarios";
 
 export default {
   components: {
@@ -270,13 +271,13 @@ export default {
       "getPortBegin",
       "getPortEnd",
       "_getContainers",
-      "cargarMasterDetallePercepcionAduana",
       "getServices",
       "obtenerCostosPricing",
       "getCargarMasterDetalleNotasCotizacion",
       "obtenerFleteCalculadora",
       "getTransporte",
     ]),
+    ...mapPiniaActions(useMasterusuariosStore, ["cargarMasterDetallePercepcionAduana"]),
     ...mapPiniaActions(useTownStore, ["cargarTownParaPricing"]),
     async recargar() {
       await this.recargarServicios();

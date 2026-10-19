@@ -14,6 +14,7 @@ import LoadingComponent from "../../components/comun/LoadingComponent.vue";
 import BtnIrAlListado from "../../components/comun/BtnIrAlListado.vue";
 import BotonesHeader from "../../components/comun/BotonesHeader.vue";
 import PlanStatusBadge from "../../components/SubscriptionPackages/PlanStatusBadge.vue";
+import { useMasterusuariosStore } from "@/stores/masterusuarios";
 import { useTownStore } from "@/stores/town";
 import { validateCost } from "@/utils/cotizacion";
 import type { ApiResponse } from "@/types/api";
@@ -43,6 +44,7 @@ const route = useRoute();
 const router = useRouter();
 const rootStore = useStore();
 const townStore = useTownStore();
+const masterusuariosStore = useMasterusuariosStore();
 
 const socket = io(import.meta.env.VITE_URL_MAIN, {
   transports: ["polling"],
@@ -1051,7 +1053,7 @@ function isDateValid(date?: string) {
   return selectedDate.isAfter(today);
 }
 function isClienteInternacional() {
-  const val = rootStore.state.masterusuarios.lstTipoTransaccion.some(
+  const val = masterusuariosStore.lstTipoTransaccion.some(
     (v: TipoTransaccion) => {
       return (
         v.codigo == "02" &&
@@ -1236,7 +1238,7 @@ async function modificarCliente() {
   }
 }
 function isProveedorInternacional() {
-  const val = rootStore.state.masterusuarios.lstTipoTransaccion.some(
+  const val = masterusuariosStore.lstTipoTransaccion.some(
     (v: TipoTransaccion) => {
       return (
         v.codigo == "02" &&

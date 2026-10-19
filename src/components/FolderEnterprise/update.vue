@@ -207,7 +207,7 @@
                     <v-col cols="6">
                       <v-autocomplete
                         label="Impuestos a las Ventas en tu País"
-                        :items="$store.state.masterusuarios.lstImpRenta"
+                        :items="masterusuariosStore.lstImpRenta"
                         item-value="id"
                         item-title="descripcion"
                         density="compact"
@@ -355,6 +355,7 @@ import { mapState, mapActions } from "vuex";
 import miMixin from "../mixins/funciones";
 import { mapActions as mapPiniaActions, mapStores } from "pinia";
 import { useCoinsStore } from "@/stores/coins";
+import { useMasterusuariosStore } from "@/stores/masterusuarios";
 export default {
   mixins: [miMixin],
   name: "UpdateEnterpriseComponent",
@@ -487,11 +488,11 @@ export default {
       "_getCity",
       "_getTown",
       "_uploadFile",
-      "cargarImpuestoRenta",
       "listarCuentaEmpresa",
       "fetchDataBank",
       "registrarCuentaEmpresa",
     ]),
+    ...mapPiniaActions(useMasterusuariosStore, ["cargarImpuestoRenta"]),
     ...mapPiniaActions(useCoinsStore, ["getCoinsListCargar"]),
     _callState() {
       if (this.id_pais > 0) {
@@ -610,7 +611,7 @@ export default {
     },
   },
   computed: {
-    ...mapStores(useCoinsStore),
+    ...mapStores(useMasterusuariosStore, useCoinsStore),
     ...mapState([
       "itemsDocumentsPais",
       "itemsPais",

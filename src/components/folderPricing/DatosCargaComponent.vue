@@ -79,7 +79,7 @@
                 density="compact"
                 :rules="[(v) => !!v || 'Dato requerido']"
                 class="my-1"
-                :items="$store.state.masterusuarios.lstPercepcionAduana"
+                :items="masterusuariosStore.lstPercepcionAduana"
                 item-title="descripcion"
                 item-value="id"
                 v-model="
@@ -563,7 +563,7 @@
 
           <v-autocomplete
             v-model="id_percepcionaduana"
-            :items="$store.state.masterusuarios.lstPercepcionAduana"
+            :items="masterusuariosStore.lstPercepcionAduana"
             item-title="descripcion"
             item-value="id"
             label="Tipo de importación"
@@ -646,6 +646,7 @@ import Swal from "sweetalert2";
 import funcion from "@/components/mixins/funciones";
 import { mapStores } from "pinia";
 import { useTownStore } from "@/stores/town";
+import { useMasterusuariosStore } from "@/stores/masterusuarios";
 export default {
   name: "DatosCargaComponent",
   mixins: [funcion],
@@ -775,7 +776,7 @@ export default {
         if (esgrupalflag === true) {
           this.$store.state.pricing.datosPrincipales.esindividualflag = false;
           let percepcionAduana =
-            this.$store.state.masterusuarios.lstPercepcionAduana.find(
+            this.masterusuariosStore.lstPercepcionAduana.find(
               (v) => v.codigo == "02",
             );
           this.$store.state.pricing.datosPrincipales.id_percepcionaduana =
@@ -837,7 +838,7 @@ export default {
       );
 
       let tipoImportacion =
-        this.$store.state.masterusuarios.lstPercepcionAduana.find(
+        this.masterusuariosStore.lstPercepcionAduana.find(
           (v) =>
             v.id ==
             this.$store.state.pricing.datosPrincipales.id_percepcionaduana,
@@ -1453,7 +1454,7 @@ export default {
 
       if (this.$store.state.pricing.datosPrincipales.id_percepcionaduana) {
         porcentaje =
-          this.$store.state.masterusuarios.lstPercepcionAduana.filter(
+          this.masterusuariosStore.lstPercepcionAduana.filter(
             (v) =>
               v.id ==
               this.$store.state.pricing.datosPrincipales.id_percepcionaduana,
@@ -1504,7 +1505,7 @@ export default {
       let fleteVenta = this.obtenerFleteOpcionVenta(costo);
       let transporte = this.obtenerTransporte(costo);
       let tipoImportacion =
-        this.$store.state.masterusuarios.lstPercepcionAduana.find(
+        this.masterusuariosStore.lstPercepcionAduana.find(
           (v) =>
             v.id ==
             this.$store.state.pricing.datosPrincipales.id_percepcionaduana,
@@ -1758,7 +1759,7 @@ export default {
     },
   },
   computed: {
-    ...mapStores(useTownStore),
+    ...mapStores(useMasterusuariosStore, useTownStore),
     abrirModalContenedor: {
       get() {
         return this.$store.state.pricing.abrirModalContenedor;
@@ -1892,7 +1893,7 @@ export default {
           this.confirmarCambio("grupal", valor);
         } else {
           let percepcionAduana =
-            this.$store.state.masterusuarios.lstPercepcionAduana.find(
+            this.masterusuariosStore.lstPercepcionAduana.find(
               (v) => v.codigo == "02",
             );
           this.$store.state.pricing.datosPrincipales.id_percepcionaduana =

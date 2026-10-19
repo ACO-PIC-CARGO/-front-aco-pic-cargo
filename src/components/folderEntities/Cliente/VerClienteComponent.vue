@@ -91,6 +91,7 @@ import SeccionShippers from "./seccionShippers.vue";
 import SeccionInformacionEntrega from "./seccionInformacionEntrega.vue";
 import { mapActions as mapPiniaActions } from "pinia";
 import { useCoinsStore } from "@/stores/coins";
+import { useMasterusuariosStore } from "@/stores/masterusuarios";
 export default {
   components: {
     SeccionCliente,
@@ -112,11 +113,8 @@ export default {
     ...mapActions([
       "getListProveedor",
       "_getDocumentsPais",
-      "cargarMasterDetalleTipoProveedor",
-      "cargarMasterDetalleTipoTransaccion",
       "_getRole",
       "getValidaRazonSocial",
-      "cargarTipoTelefono",
       "getBanksListCargar",
       "guardarCliente",
       "getValidaDocumentCliente",
@@ -125,11 +123,11 @@ export default {
       "_getState",
       "_getCity",
       "_getTown",
-      "cargarTipoPersona",
       "_getProveedorRolShipper",
       "_getProveedor",
       "verCliente",
     ]),
+    ...mapPiniaActions(useMasterusuariosStore, ["cargarMasterDetalleTipoProveedor", "cargarMasterDetalleTipoTransaccion", "cargarTipoTelefono", "cargarTipoPersona"]),
     ...mapPiniaActions(useCoinsStore, ["getCoinsListCargar"]),
   },
   created() {

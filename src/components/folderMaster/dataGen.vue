@@ -193,6 +193,8 @@
 <script>
 import { mapState, mapActions } from "vuex";
 import axios from "@/api/http";
+import { mapActions as mapPiniaActions } from "pinia";
+import { useMasterusuariosStore } from "@/stores/masterusuarios";
 export default {
   name: "dataGen",
   data() {
@@ -268,12 +270,12 @@ export default {
       "_getServicesList",
       "_getOperador",
       "_getHouseList",
-      "cargarMasterDetalleCanal",
       "cargarClientes",
       "_getProveedorRolAgente",
       "_getProveedorRolColoader",
       "_getProveedorRolNaviera",
     ]),
+    ...mapPiniaActions(useMasterusuariosStore, ["cargarMasterDetalleCanal"]),
 
     async _activePort(id_transport) {
       this.id_transport = id_transport;

@@ -3,7 +3,7 @@ import Swal from "sweetalert2";
 import miMixin from "../../components/mixins/funciones";
 import moment from "moment";
 import router from "@/router";
-import masterusuario from "./masterusuario";
+import { useMasterusuariosStore } from "@/stores/masterusuarios";
 import enterprise from "./enterprise";
 import modules from "./../index";
 const state = {
@@ -6229,8 +6229,8 @@ const actions = {
       (v) => v.nro_propuesta == dataQuote.nro_propuesta,
     )[0].opcion;
     let tipoimportacionaduana = state.datosPrincipales.id_percepcionaduana
-      ? masterusuario.state.lstPercepcionAduana.length > 0
-        ? masterusuario.state.lstPercepcionAduana.filter(
+      ? useMasterusuariosStore().lstPercepcionAduana.length > 0
+        ? useMasterusuariosStore().lstPercepcionAduana.filter(
             (v) => v.id == state.datosPrincipales.id_percepcionaduana,
           )[0].descripcion
         : ""

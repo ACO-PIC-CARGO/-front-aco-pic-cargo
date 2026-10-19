@@ -2,7 +2,7 @@
   <v-container fluid>
     <Impuestos />
     <v-navigation-drawer
-      v-model="$store.state.masterusuarios.drawer"
+      v-model="masterusuariosStore.drawer"
       location="right"
       
       width="30%"
@@ -15,11 +15,16 @@
 
 <script>
 import { defineAsyncComponent } from "vue";
+import { mapStores } from "pinia";
+import { useMasterusuariosStore } from "@/stores/masterusuarios";
 export default {
   components: {
     Impuestos: defineAsyncComponent(() =>
       import("@/components/MasterUsuario/ListImpuestoComponent.vue")),
     FilterImpuesto: defineAsyncComponent(() => import("../../components/filtros/FilterImpuesto.vue")),
+  },
+  computed: {
+    ...mapStores(useMasterusuariosStore),
   },
   mounted() {
     this.$store.state.mainTitle = `LISTADO DE IMPUESTOS`;

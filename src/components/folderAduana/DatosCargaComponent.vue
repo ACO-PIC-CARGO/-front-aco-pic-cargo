@@ -47,7 +47,7 @@
                 density="compact"
                 :rules="[(v) => !!v || 'Dato requerido']"
                 class="my-1"
-                :items="$store.state.masterusuarios.lstPercepcionAduana"
+                :items="masterusuariosStore.lstPercepcionAduana"
                 item-title="descripcion"
                 item-value="id"
                 v-model="
@@ -465,6 +465,8 @@
 import { mapActions, mapState } from "vuex";
 import Swal from "sweetalert2";
 import funcion from "@/components/mixins/funciones";
+import { mapStores } from "pinia";
+import { useMasterusuariosStore } from "@/stores/masterusuarios";
 export default {
   name: "DatosCargaComponent",
   mixins: [funcion],
@@ -776,9 +778,9 @@ export default {
         : [];
       if (this.$store.state.aduana.datosPrincipales.id_percepcionaduana) {
         const percepciones = Array.isArray(
-          this.$store.state.masterusuarios.lstPercepcionAduana
+          this.masterusuariosStore.lstPercepcionAduana
         )
-          ? this.$store.state.masterusuarios.lstPercepcionAduana
+          ? this.masterusuariosStore.lstPercepcionAduana
           : [];
         const percepcion = percepciones.find(
           (v) =>
@@ -820,6 +822,7 @@ export default {
     },
   },
   computed: {
+    ...mapStores(useMasterusuariosStore),
     getPuertoOrigen() {
       let puertos = [];
 

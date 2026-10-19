@@ -666,6 +666,7 @@ import moment from "moment";
 import Swal from "sweetalert2";
 import GuardarUrlMaster from "../comun/GuardarUrlMaster.vue";
 import FormatFecha from "../comun/FormatFecha.vue";
+import { useMasterusuariosStore } from "@/stores/masterusuarios";
 export default {
   components: { GuardarUrlMaster, FormatFecha },
   name: "listMasterCom",
@@ -734,13 +735,13 @@ export default {
       "getQuoteNoAsignadoHouse",
       "_getPortBegin",
       "_getPortEnd",
-      "cargarMasterDetalleCanal",
       "_getModality",
       "_getShipment",
       "_getProveedor",
       "actualizarURLEnElMaster",
       "controlGastosReactivar",
     ]),
+    ...mapPiniaActions(useMasterusuariosStore, ["cargarMasterDetalleCanal"]),
     ...mapPiniaActions(useSecuritysStore, ["validarUsuarioAdmin"]),
     async cerrarDialog() {
       this.dialogUrl = false;

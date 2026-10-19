@@ -142,7 +142,7 @@
             <v-col cols="6">
               <v-autocomplete
                 label="Impuestos a las Ventas en tu País"
-                :items="$store.state.masterusuarios.lstImpRenta"
+                :items="masterusuariosStore.lstImpRenta"
                 item-value="id"
                 item-title="descripcion"
                 readonly
@@ -180,6 +180,8 @@
 
 <script>
 import { mapState, mapActions } from "vuex";
+import { mapActions as mapPiniaActions, mapStores } from "pinia";
+import { useMasterusuariosStore } from "@/stores/masterusuarios";
 export default {
   name: "ReadEnterpriseComponent",
   data() {
@@ -192,7 +194,8 @@ export default {
     await this.readEnterprise(this.$route.params.id);
   },
   methods: {
-    ...mapActions(["readEnterprise", "cargarImpuestoRenta"]),
+    ...mapActions(["readEnterprise"]),
+    ...mapPiniaActions(useMasterusuariosStore, ["cargarImpuestoRenta"]),
     volver() {
       this.$router.go(-1);
     },
@@ -208,6 +211,7 @@ export default {
     },
   },
   computed: {
+    ...mapStores(useMasterusuariosStore),
     ...mapState(["record"]),
   },
 };

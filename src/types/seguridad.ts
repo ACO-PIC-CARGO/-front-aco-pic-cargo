@@ -164,7 +164,7 @@ export interface UsuarioNoAsignado {
 export interface MasterDetalle {
   id: number;
   id_master?: number | string;
-  valorcodigo?: string;
+  valorcodigo: string;
   codigo01?: string;
   codigo02?: string;
   description?: string;
@@ -183,7 +183,7 @@ export interface FormMasterDetalle {
   id_master?: number | string;
   id_branch?: number | string;
   id_state?: number | string;
-  valorcodigo?: string;
+  valorcodigo: string;
   codigo01?: string;
   codigo02?: string;
   description?: string;

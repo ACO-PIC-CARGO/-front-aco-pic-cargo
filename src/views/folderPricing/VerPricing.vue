@@ -87,6 +87,8 @@
 import { defineAsyncComponent } from "vue";
 import { mapActions } from "vuex";
 import mixins from "../../components/mixins/funciones.js";
+import { mapActions as mapPiniaActions } from "pinia";
+import { useMasterusuariosStore } from "@/stores/masterusuarios";
 export default {
   mixins: [mixins],
   name: "VerQuoteView",
@@ -156,7 +158,6 @@ export default {
       "getInstructivoId",
       "generaInstructivo",
       "getBegEndList",
-      "cargarMasterDetallePercepcionAduana",
       "getTipoCostos",
       "cargarProveedores",
       "_getEntitiesCliente",
@@ -165,6 +166,7 @@ export default {
       "getAduanaUnificar",
       "GuardaCostosFinalesQuote",
     ]),
+    ...mapPiniaActions(useMasterusuariosStore, ["cargarMasterDetallePercepcionAduana"]),
   },
   async mounted() {
     // this.$store.commit("SET_RESET");

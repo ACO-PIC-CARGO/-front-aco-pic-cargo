@@ -1,8 +1,10 @@
 <script setup lang="ts">
 import { computed, ref, useTemplateRef, watch } from "vue";
 import { useStore } from "vuex";
+import { useMasterusuariosStore } from "@/stores/masterusuarios";
 
 const rootStore = useStore();
+const masterusuariosStore = useMasterusuariosStore();
 
 const loading = ref(false);
 const loadingEstado = ref(false);
@@ -10,23 +12,23 @@ const model = ref<{ valorcodigo?: string; description?: string }>({});
 const noPorcentaje = ["04", "01", "02", "10", "11", "12"];
 const frmDML = useTemplateRef("frmDML");
 
-const drawer = computed(() => rootStore.state.masterusuarios.drawer);
+const drawer = computed(() => masterusuariosStore.drawer);
 
 watch(drawer, () => {
-  model.value = { ...rootStore.state.masterusuarios.model };
+  model.value = { ...masterusuariosStore.model };
 });
 
 function getName() {
-  if (rootStore.state.masterusuarios.tipo == "ver") {
+  if (masterusuariosStore.tipo == "ver") {
     return `Impuesto: ${model.value.valorcodigo}-${model.value.description} – Modo Vista`;
   }
-  if (rootStore.state.masterusuarios.tipo == "nuevo") {
+  if (masterusuariosStore.tipo == "nuevo") {
     return "Nuevo impuesto";
   }
-  if (rootStore.state.masterusuarios.tipo == "editar") {
+  if (masterusuariosStore.tipo == "editar") {
     return `Modificar Impuesto: ${model.value.valorcodigo}-${model.value.description}`;
   }
-  if (rootStore.state.masterusuarios.tipo == "filter") {
+  if (masterusuariosStore.tipo == "filter") {
     return "Filtrar Listado impuestos";
   }
 }
@@ -34,17 +36,17 @@ function getName() {
 async function ObtenerEstados(id_state: number | string) {
   loadingEstado.value = true;
   await rootStore.dispatch("_getState", id_state);
-  rootStore.state.masterusuarios.model.id_state = "";
+  masterusuariosStore.model.id_state = "";
   loadingEstado.value = false;
 }
 async function Filtrar() {
   loading.value = true;
-  await rootStore.dispatch("GetListImpuestos");
+  await masterusuariosStore.GetListImpuestos();
   loading.value = false;
-  rootStore.state.masterusuarios.drawer = !rootStore.state.masterusuarios.drawer;
+  masterusuariosStore.drawer = !masterusuariosStore.drawer;
 }
 async function Limpiar() {
-  rootStore.state.masterusuarios.filtros = {
+  masterusuariosStore.filtros = {
     id: "",
     id_master: "",
     valorcodigo: "",
@@ -55,10 +57,10 @@ async function Limpiar() {
     escomunflag: false,
   };
   loading.value = true;
-  await rootStore.dispatch("GetListImpuestos");
+  await masterusuariosStore.GetListImpuestos();
 
   loading.value = false;
-  rootStore.state.masterusuarios.drawer = !rootStore.state.masterusuarios.drawer;
+  masterusuariosStore.drawer = !masterusuariosStore.drawer;
 }
 async function Aceptar() {
   //   if (this.rootStore.state.masterusuarios.tipo == "nuevo") {
@@ -69,16 +71,16 @@ async function Aceptar() {
   //       this.loading = false;
   //     }
   //   }
-  if (rootStore.state.masterusuarios.tipo == "editar") {
+  if (masterusuariosStore.tipo == "editar") {
     loading.value = true;
     if ((await frmDML.value!.validate()).valid) {
-      await rootStore.dispatch("ActualizarMasterDetalle");
-      await rootStore.dispatch("GetListImpuestos");
+      await masterusuariosStore.ActualizarMasterDetalle();
+      await masterusuariosStore.GetListImpuestos();
     }
     loading.value = false;
   }
-  if (rootStore.state.masterusuarios.tipo == "ver") {
-    rootStore.state.masterusuarios.drawer = !rootStore.state.masterusuarios.drawer;
+  if (masterusuariosStore.tipo == "ver") {
+    masterusuariosStore.drawer = !masterusuariosStore.drawer;
   }
 }
 </script>
@@ -96,32 +98,34 @@ async function Aceptar() {
         icon
         color="default"
         @click="
-          rootStore.state.masterusuarios.drawer =
-            !rootStore.state.masterusuarios.drawer
+          masterusuariosStore.drawer =
+            !masterusuariosStore.drawer
         "
       >
         <v-icon>mdi-close</v-icon>
       </v-btn>
     </v-card-title>
-    <v-card-text v-if="rootStore.state.masterusuarios.tipo == 'filter'">
+    <v-card-text v-if="masterusuariosStore.tipo == 'filter'">
       <v-col
         cols="12"
         class="py-1"
       >
+        <!-- @vue-expect-error the filter form keeps the edit form's tipo != 'ver' check -->
         <v-text-field
-          v-model="rootStore.state.masterusuarios.filtros.valorcodigo"
+          v-model="masterusuariosStore.filtros.valorcodigo"
           label="Código"
-          :clearable="rootStore.state.masterusuarios.tipo != 'ver'"
+          :clearable="masterusuariosStore.tipo != 'ver'"
         />
       </v-col>
       <v-col
         cols="12"
         class="py-1"
       >
+        <!-- @vue-expect-error the filter form keeps the edit form's tipo != 'ver' check -->
         <v-text-field
-          v-model="rootStore.state.masterusuarios.filtros.description"
+          v-model="masterusuariosStore.filtros.description"
           label="Descripción"
-          :clearable="rootStore.state.masterusuarios.tipo != 'ver'"
+          :clearable="masterusuariosStore.tipo != 'ver'"
         />
       </v-col>
       <v-col
@@ -130,7 +134,7 @@ async function Aceptar() {
       >
         <span> Estado</span>
         <v-radio-group
-          v-model="rootStore.state.masterusuarios.filtros.status"
+          v-model="masterusuariosStore.filtros.status"
           inline
           density="compact"
         >
@@ -159,10 +163,10 @@ async function Aceptar() {
           class="py-1"
         >
           <v-text-field
-            v-model="rootStore.state.masterusuarios.model.valorcodigo"
-            :readonly="rootStore.state.masterusuarios.tipo != 'nuevo'"
+            v-model="masterusuariosStore.model.valorcodigo"
+            :readonly="masterusuariosStore.tipo != 'nuevo'"
             label="Código"
-            v-if="rootStore.state.masterusuarios.tipo != 'nuevo'"
+            v-if="masterusuariosStore.tipo != 'nuevo'"
           />
         </v-col>
 
@@ -171,10 +175,10 @@ async function Aceptar() {
           class="py-1"
         >
           <v-text-field
-            v-model="rootStore.state.masterusuarios.model.description"
-            :readonly="rootStore.state.masterusuarios.tipo == 'ver'"
+            v-model="masterusuariosStore.model.description"
+            :readonly="masterusuariosStore.tipo == 'ver'"
             label="Descripción (*)"
-            :clearable="rootStore.state.masterusuarios.tipo != 'ver'"
+            :clearable="masterusuariosStore.tipo != 'ver'"
             :rules="[
               (v) => !!v || 'Dato Requerido',
               (v) =>
@@ -188,15 +192,15 @@ async function Aceptar() {
           class="py-1"
           v-if="
             !noPorcentaje.includes(
-              rootStore.state.masterusuarios.model.valorcodigo
+              masterusuariosStore.model.valorcodigo
             )
           "
         >
           <v-text-field
-            v-model="rootStore.state.masterusuarios.model.codigo01"
-            :readonly="rootStore.state.masterusuarios.tipo == 'ver'"
+            v-model="masterusuariosStore.model.codigo01"
+            :readonly="masterusuariosStore.tipo == 'ver'"
             label="Porcentaje (*)"
-            :clearable="rootStore.state.masterusuarios.tipo != 'ver'"
+            :clearable="masterusuariosStore.tipo != 'ver'"
             :rules="[
               (v) => !!v || 'Dato Requerido',
               (v) =>
@@ -214,12 +218,12 @@ async function Aceptar() {
         >
           <span> Estado</span>
           <v-switch
-            :readonly="rootStore.state.masterusuarios.tipo == 'ver'"
+            :readonly="masterusuariosStore.tipo == 'ver'"
             :label="`Estado: ${
-              !!rootStore.state.masterusuarios.model.status ? 'Activo' : 'Inactivo'
+              !!masterusuariosStore.model.status ? 'Activo' : 'Inactivo'
             }`"
             color="success"
-            v-model="rootStore.state.masterusuarios.model.status"
+            v-model="masterusuariosStore.model.status"
           />
         </v-col>
       </v-form>
@@ -230,7 +234,7 @@ async function Aceptar() {
       <v-btn
         class="mx-1"
         color="success"
-        v-if="rootStore.state.masterusuarios.tipo == 'filter'"
+        v-if="masterusuariosStore.tipo == 'filter'"
         @click="Filtrar()"
         :loading="loading"
       >
@@ -239,7 +243,7 @@ async function Aceptar() {
       <v-btn
         class="mx-1"
         color="default"
-        v-if="rootStore.state.masterusuarios.tipo == 'filter'"
+        v-if="masterusuariosStore.tipo == 'filter'"
         @click="Limpiar()"
         :loading="loading"
       >
@@ -248,7 +252,7 @@ async function Aceptar() {
       <v-btn
         class="mx-1"
         color="success"
-        v-if="rootStore.state.masterusuarios.tipo != 'filter' && rootStore.state.masterusuarios.tipo != 'ver'"
+        v-if="masterusuariosStore.tipo != 'filter' && masterusuariosStore.tipo != 'ver'"
         @click="Aceptar()"
         :loading="loading"
       >
@@ -258,8 +262,8 @@ async function Aceptar() {
         class="mx-1"
         color="warning"
         @click="
-          rootStore.state.masterusuarios.drawer =
-            !rootStore.state.masterusuarios.drawer
+          masterusuariosStore.drawer =
+            !masterusuariosStore.drawer
         "
         :loading="loading"
       >

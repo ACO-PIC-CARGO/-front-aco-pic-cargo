@@ -50,7 +50,7 @@
         ></v-autocomplete>
 
         <v-autocomplete
-          :items="$store.state.masterusuarios.lstCanales"
+          :items="masterusuariosStore.lstCanales"
           item-title="descripcion"
           item-value="id"
           label="Canal"
@@ -136,10 +136,15 @@
 <script>
 import { mapActions } from "vuex";
 import miMixin from "../mixins/funciones";
+import { mapStores } from "pinia";
+import { useMasterusuariosStore } from "@/stores/masterusuarios";
 export default {
   mixins: [miMixin],
   data() {
     return {};
+  },
+  computed: {
+    ...mapStores(useMasterusuariosStore),
   },
   methods: {
     ...mapActions(["_getPortBegin", "_getPortEnd", "_getControlList"]),
