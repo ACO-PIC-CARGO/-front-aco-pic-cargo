@@ -1,47 +1,37 @@
-import axios from '@/api/http';
+import { defineStore } from "pinia";
+import { ref } from "vue";
 import Swal from "sweetalert2";
+import axios from "@/api/http";
 import router from "@/router";
+import type { ApiResponse } from "@/types/api";
+import type { FiltroTipoTelefono, FormTipoTelefono, TipoTelefono } from "@/types/catalogos";
+import { sessionBranchId } from "@/utils/sesion";
 
-const state = {
-  list: [],
-  response: [],
-  record: {},
-};
+export const useTypePhoneStore = defineStore("type_phone", () => {
+  const list = ref<TipoTelefono[]>([]);
+  const response = ref<unknown[]>([]);
+  const record = ref<Partial<TipoTelefono>>({});
 
-const mutations = {
-  SET_LIST_TYPE_PHONE(state, data) {
-    state.list = data;
-  },
-  SET_TYPE_PHONE(state, data) {
-    state.record = data;
-  },
-};
-const actions = {
-  async fetchDataTypePhone({ commit }, data) {
-    var config = {
+  async function fetchDataTypePhone(data: FiltroTipoTelefono): Promise<void> {
+    await axios<ApiResponse<TipoTelefono[]>>({
       method: "get",
       url:
         import.meta.env.VITE_URL_MAIN +
         `getListTypePhone?` +
-        `id_branch=${
-          JSON.parse(sessionStorage.getItem("dataUser"))[0].id_branch
-        }` +
-        `&code=${encodeURIComponent(data.code)}` +
-        `&name=${encodeURIComponent(data.name)}` +
+        `id_branch=${sessionBranchId()}` +
+        `&code=${encodeURIComponent(String(data.code))}` +
+        `&name=${encodeURIComponent(String(data.name))}` +
         `&status=${data.status}`,
-      headers: {
-        "Content-Type": "application/json",
-       
-      },
-    };
-    await axios(config)
+      headers: { "Content-Type": "application/json" },
+    })
       .then((response) => {
-        let data = response.data;
-        sessionStorage.setItem("auth-token", data.token);
+        const data = response.data;
+        sessionStorage.setItem("auth-token", data.token!);
         if (data.estadoflag) {
-          commit("SET_LIST_TYPE_PHONE", response.data);
+          // The whole response body, not its rows, has always been stored here.
+          list.value = response.data as unknown as TipoTelefono[];
         } else {
-          commit("SET_LIST_TYPE_PHONE", []);
+          list.value = [];
           Swal.fire({
             icon: "error",
             text: data.mensaje,
@@ -61,23 +51,20 @@ const actions = {
       .catch((e) => {
         console.error("Error al obtener los datos:", e);
       });
-  },
-  async insertTypePhone({ commit }, data) {
-    var config = {
+  }
+
+  async function insertTypePhone(data: FormTipoTelefono): Promise<void> {
+    await axios<ApiResponse>({
       method: "post",
       url: import.meta.env.VITE_URL_MAIN + "insertTypePhone",
-      headers: {
-        "Content-Type": "application/json",
-      },
+      headers: { "Content-Type": "application/json" },
       data: data,
-    };
-
-    await axios(config)
+    })
       .then((response) => {
-        let data = response.data;
-        sessionStorage.setItem("auth-token", data.token);
+        const data = response.data;
+        sessionStorage.setItem("auth-token", data.token!);
         Swal.fire({
-          icon: !!data.estadoflag ? "success" : "error",
+          icon: data.estadoflag ? "success" : "error",
           text: data.mensaje,
           showCancelButton: false,
           confirmButtonText: "Ok",
@@ -90,25 +77,22 @@ const actions = {
       .catch((e) => {
         console.error("Error al obtener los datos:", e);
       });
-  },
-  async readTypePhone({ commit }, id) {
-    var config = {
+  }
+
+  async function readTypePhone(id: TipoTelefono["id"]): Promise<void> {
+    await axios<ApiResponse>({
       method: "get",
       url: import.meta.env.VITE_URL_MAIN + `readTypePhone?id=${id}`,
-      headers: {
-        "Content-Type": "application/json",
-      },
-    };
-
-    await axios(config)
+      headers: { "Content-Type": "application/json" },
+    })
       .then((response) => {
-        let data = response.data;
-        sessionStorage.setItem("auth-token", data.token);
+        const data = response.data;
+        sessionStorage.setItem("auth-token", data.token!);
         if (data.estadoflag) {
-          commit("SET_TYPE_PHONE", data);
+          record.value = data as Partial<TipoTelefono>;
         } else {
           Swal.fire({
-            icon: !!data.estadoflag ? "success" : "error",
+            icon: data.estadoflag ? "success" : "error",
             text: data.mensaje,
           });
         }
@@ -116,23 +100,20 @@ const actions = {
       .catch((e) => {
         console.error("Error al obtener los datos:", e);
       });
-  },
-  async inactiveTypePhone(_, data) {
-    var config = {
+  }
+
+  async function inactiveTypePhone(data: Pick<TipoTelefono, "id">): Promise<void> {
+    await axios<ApiResponse>({
       method: "put",
       url: import.meta.env.VITE_URL_MAIN + "deleteTypePhone",
-      headers: {
-        "Content-Type": "application/json",
-      },
+      headers: { "Content-Type": "application/json" },
       data: data,
-    };
-
-    await axios(config)
+    })
       .then((response) => {
-        let data = response.data;
-        sessionStorage.setItem("auth-token", data.token);
+        const data = response.data;
+        sessionStorage.setItem("auth-token", data.token!);
         Swal.fire({
-          icon: !!data.estadoflag ? "success" : "error",
+          icon: data.estadoflag ? "success" : "error",
           text: data.mensaje,
           showCancelButton: false,
           confirmButtonText: "Ok",
@@ -145,27 +126,22 @@ const actions = {
       .catch((e) => {
         console.error("Error al obtener los datos:", e);
       });
-  },
-  async updateTypePhone(_, data) {
-    
+  }
 
-    var config = {
+  async function updateTypePhone(data: FormTipoTelefono): Promise<void> {
+    await axios<ApiResponse>({
       method: "put",
       url: import.meta.env.VITE_URL_MAIN + "updateTypePhone",
-      headers: {
-        "Content-Type": "application/json",
-      },
+      headers: { "Content-Type": "application/json" },
       data: data,
-    };
-
-    await axios(config)
+    })
       .then((response) => {
-        let data = response.data;
-        sessionStorage.setItem("auth-token", data.token);
-       
+        const data = response.data;
+        sessionStorage.setItem("auth-token", data.token!);
+
         if (data.estadoflag) {
           Swal.fire({
-            icon: !!data.estadoflag ? "success" : "error",
+            icon: data.estadoflag ? "success" : "error",
             text: data.mensaje,
             showCancelButton: false,
             confirmButtonText: "Ok",
@@ -179,12 +155,7 @@ const actions = {
       .catch((e) => {
         console.error("Error al obtener los datos:", e);
       });
-  },
-};
+  }
 
-export default {
-  namespace: true,
-  state,
-  mutations,
-  actions,
-};
+  return { list, response, record, fetchDataTypePhone, insertTypePhone, readTypePhone, inactiveTypePhone, updateTypePhone };
+});

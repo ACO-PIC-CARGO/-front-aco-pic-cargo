@@ -48,7 +48,7 @@
         v-if="!loading"
         class="elevation-1"
         :headers="headers"
-        :items="$store.state.type_phone.list"
+        :items="type_phoneStore.list"
         item-value="id"
         :search="search"
       >
@@ -139,34 +139,34 @@
       <v-card class="">
         <v-container v-if="!loading_as">
           <v-card-title class="d-flex align-center flex-wrap">
-            Tipo de Teléfono {{ $store.state.type_phone.record.code }}
-            {{ $store.state.type_phone.record.name }}
+            Tipo de Teléfono {{ type_phoneStore.record.code }}
+            {{ type_phoneStore.record.name }}
             <v-spacer></v-spacer>
             <v-card-text>
               <v-row>
                 <v-text-field
                   label="Código"
                   readonly
-                  :model-value="$store.state.type_phone.record.code"
+                  :model-value="type_phoneStore.record.code"
                 ></v-text-field>
               </v-row>
               <v-row>
                 <v-text-field
                   label="Nombre"
                   readonly
-                  :model-value="$store.state.type_phone.record.name"
+                  :model-value="type_phoneStore.record.name"
                 ></v-text-field>
               </v-row>
               <v-row>
                 <v-switch
                   readonly
                   :label="`Estado: ${
-                    !!$store.state.type_phone.record.status
+                    !!type_phoneStore.record.status
                       ? 'Activo'
                       : 'Inactivo'
                   }`"
                   color="success"
-                  v-model="$store.state.type_phone.record.status"
+                  v-model="type_phoneStore.record.status"
                   :value-comparator="(value, checked) => Boolean(value) === checked"
                 ></v-switch>
               </v-row>
@@ -210,7 +210,7 @@
       <v-card class="">
         <v-container v-if="!loading_as">
           <v-card-title class="d-flex align-center flex-wrap">
-            Editar Tipo de Teléfono {{ $store.state.type_phone.record.name }}
+            Editar Tipo de Teléfono {{ type_phoneStore.record.name }}
             <v-spacer></v-spacer>
 
             <v-card-text>
@@ -324,9 +324,11 @@
 </template>
 
 <script>
-import { mapState, mapActions } from "vuex";
+import { mapState } from "vuex";
 import Swal from "sweetalert2";
 import axios from '@/api/http';
+import { mapActions as mapPiniaActions, mapStores } from "pinia";
+import { useTypePhoneStore } from "@/stores/type_phone";
 
 export default {
   name: "ListTypePhoneComponent",
@@ -373,13 +375,7 @@ export default {
     this.$store.state.mainTitle = `Tipo de Teléfono`;
   },
   methods: {
-    ...mapActions([
-      "fetchDataTypePhone",
-      "inactiveTypePhone",
-      "insertTypePhone",
-      "readTypePhone",
-      "updateTypePhone",
-    ]),
+    ...mapPiniaActions(useTypePhoneStore, ["fetchDataTypePhone", "inactiveTypePhone", "insertTypePhone", "readTypePhone", "updateTypePhone"]),
     volver() {
       this.$router.go(-1);
       this.resetType();
@@ -457,10 +453,11 @@ export default {
     },
   },
   computed: {
+    ...mapStores(useTypePhoneStore),
     ...mapState(["list"]),
   },
   watch: {
-    "$store.state.type_phone.record": {
+    "type_phoneStore.record": {
       handler(newRecord, oldRecord) {
         if (newRecord && Object.keys(newRecord).length > 0) {
           console.log(newRecord);
@@ -472,7 +469,7 @@ export default {
       },
       immediate: true,
     },
-    "$store.state.type_phone.list": {
+    "type_phoneStore.list": {
       handler(newList, oldList) {
         if (newList && newList.length > 0) {
           this.loading = false;

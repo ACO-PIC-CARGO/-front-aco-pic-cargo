@@ -20,7 +20,6 @@ import monedas from "./modules/moneda";
 import masters from "./modules/master";
 import enterprises from "./modules/enterprise";
 import masterusuarios from "./modules/masterusuario";
-import type_phone from "./modules/typePhone";
 import bank from "./modules/bank";
 import transport from "./modules/transport";
 import reportes from "./modules/reporte";
@@ -2878,7 +2877,6 @@ export default createStore({
     masters,
     enterprises,
     masterusuarios,
-    type_phone,
     bank,
     transport,
     shipment,
