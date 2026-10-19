@@ -1446,6 +1446,8 @@ import moment from "moment";
 import axios from "@/api/http";
 import Swal from "sweetalert2";
 import { mapActions } from "vuex";
+import { mapActions as mapPiniaActions } from "pinia";
+import { useSecuritysStore } from "@/stores/securitys";
 import ArrastraYSolarComponent from "../comun/ArrastraYSolarComponent.vue";
 import ArrastraYSolarComponent2 from "../comun/ArrastraYSolarComponentFile.vue";
 import swal from "sweetalert2";
@@ -1709,7 +1711,6 @@ export default {
       "registrar_factura",
       "actualizarIngresos",
       "eliminarIngreso",
-      "validarUsuarioAdmin",
       "copiarCGingresos",
       "getCargarHouse",
       "_getMasterList",
@@ -1717,6 +1718,7 @@ export default {
       "getFacturasFiscales",
       "getListControlGastosHouses",
     ]),
+    ...mapPiniaActions(useSecuritysStore, ["validarUsuarioAdmin"]),
     abrirModalRegistroDocumentoHouse(datosinstructivomanual, id_quote) {
       this.datosinstructivomanual = datosinstructivomanual;
       this.listaDocumentos = datosinstructivomanual.listaDocumentos

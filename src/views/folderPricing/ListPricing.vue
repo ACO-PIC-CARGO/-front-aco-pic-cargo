@@ -94,6 +94,8 @@
 <script>
 import { defineAsyncComponent } from "vue";
 import { mapActions } from "vuex";
+import { mapActions as mapPiniaActions } from "pinia";
+import { useSecuritysStore } from "@/stores/securitys";
 
 export default {
   name: "ListPricingView",
@@ -138,7 +140,6 @@ export default {
       "getQuoteCall",
       "getListEnviadoCliente",
       "GuardarConfiguracionEmpresa",
-      "ObtenerDatosConfig",
       "getResumenPorEstado",
       "cargarClientes",
       "getMarketingList",
@@ -150,6 +151,7 @@ export default {
       "getListQuote",
       "getListRecibidoCotizacion","cargarTemperaturaLeds"
     ]),
+    ...mapPiniaActions(useSecuritysStore, ["ObtenerDatosConfig"]),
     redirect() {
       this.$nextTick(() => {
         this.$router.push({

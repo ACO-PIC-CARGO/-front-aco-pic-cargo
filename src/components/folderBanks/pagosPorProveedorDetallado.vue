@@ -166,6 +166,8 @@
 <script>
 import moment from "moment";
 import { mapActions } from "vuex";
+import { mapActions as mapPiniaActions } from "pinia";
+import { useSecuritysStore } from "@/stores/securitys";
 import FormatFecha from "../comun/FormatFecha.vue";
 import axios from "@/api/http";
 import Swal from "sweetalert2";
@@ -223,7 +225,8 @@ export default {
     await this.getListBanksDetailsCargar();
   },
   methods: {
-    ...mapActions(["getListarBancosgastosDetalles", "validarUsuarioAdmin"]),
+    ...mapActions(["getListarBancosgastosDetalles"]),
+    ...mapPiniaActions(useSecuritysStore, ["validarUsuarioAdmin"]),
     async ver(pago) {
       this.$router.push({
         name: "verPagosPorProveedor",

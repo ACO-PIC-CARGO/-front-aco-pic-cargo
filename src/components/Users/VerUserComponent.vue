@@ -275,7 +275,7 @@
           <v-row>
             <v-col cols="4" class="my-auto">
               <v-autocomplete
-                :items="$store.state.securitys.lstSucursal"
+                :items="securitysStore.lstSucursal"
                 v-model="itemSucursal"
                 item-text="trade_name"
                 item-value="id"
@@ -328,6 +328,8 @@
 
 <script>
 import { mapActions } from "vuex";
+import { mapActions as mapPiniaActions, mapStores } from "pinia";
+import { useSecuritysStore } from "@/stores/securitys";
 import Swal from "sweetalert2";
 export default {
   data() {
@@ -371,13 +373,15 @@ export default {
     await this._getTown(this.$store.state.user.model.id_city);
     this.$store.state.spiner = false;
   },
+  computed: {
+    ...mapStores(useSecuritysStore),
+  },
   methods: {
     ...mapActions([
       "_getDocumentsPais",
       "_getPais",
       "_getSex",
       "cargarPosition",
-      "CargarBranch",
       "_getState",
       "_getCity",
       "_getTown",
@@ -386,6 +390,7 @@ export default {
       "validateEmailUsuario",
       "GetVerUsers",
     ]),
+    ...mapPiniaActions(useSecuritysStore, ["CargarBranch"]),
     // 10705871171
     async validarUser() {
       this.errUsers = "";

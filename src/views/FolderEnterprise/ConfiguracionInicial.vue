@@ -110,6 +110,8 @@ import ConfiguracionCargaProveedorComponent from "../../components/FolderEnterpr
 import ConfiguracionCostosComponent from "../../components/FolderEnterprise/ConfiguracionCostosComponent.vue";
 import ConfiguraciónDatosEmpresaComponent from "../../components/FolderEnterprise/ConfiguracionDatosEmpresaComponent.vue";
 import { mapActions } from "vuex";
+import { mapActions as mapPiniaActions } from "pinia";
+import { useSecuritysStore } from "@/stores/securitys";
 export default {
   components: {
     ConfiguraciónDatosEmpresaComponent,
@@ -150,8 +152,8 @@ export default {
       "_getProveedor",
       "finalizarConfiguracion",
       "actualizarDatoEmpresa",
-      "ObtenerDatosConfig",
     ]),
+    ...mapPiniaActions(useSecuritysStore, ["ObtenerDatosConfig"]),
     async guardarDatosEmpresa() {
       this.$store.state.dialogProcessing = true;
       await this.actualizarDatoEmpresa();

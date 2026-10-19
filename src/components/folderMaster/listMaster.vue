@@ -659,6 +659,8 @@
 </template>
 <script>
 import { mapState, mapActions } from "vuex";
+import { mapActions as mapPiniaActions } from "pinia";
+import { useSecuritysStore } from "@/stores/securitys";
 import axios from "@/api/http";
 import moment from "moment";
 import Swal from "sweetalert2";
@@ -738,8 +740,8 @@ export default {
       "_getProveedor",
       "actualizarURLEnElMaster",
       "controlGastosReactivar",
-      "validarUsuarioAdmin",
     ]),
+    ...mapPiniaActions(useSecuritysStore, ["validarUsuarioAdmin"]),
     async cerrarDialog() {
       this.dialogUrl = false;
       this.$store.state.spiner = true;

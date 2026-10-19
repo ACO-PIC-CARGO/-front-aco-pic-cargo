@@ -226,6 +226,8 @@ import Swal from "sweetalert2";
 import moment from "moment";
 import FormatFecha from "../comun/FormatFecha.vue";
 import { mapActions } from "vuex";
+import { mapActions as mapPiniaActions } from "pinia";
+import { useSecuritysStore } from "@/stores/securitys";
 import BarraFiltro from "../BarraMostrarFiltro/BarraFiltro.vue";
 export default {
   name: "AccountPaysCom",
@@ -326,8 +328,8 @@ export default {
       "getListFlujoOperacionMes",
       "cargarClientes",
       "cargarProveedores",
-      "validarUsuarioAdmin",
     ]),
+    ...mapPiniaActions(useSecuritysStore, ["validarUsuarioAdmin"]),
     filterOnlyCapsText(value, search) {
       let text = search ? search.toLocaleUpperCase() : null;
       return (

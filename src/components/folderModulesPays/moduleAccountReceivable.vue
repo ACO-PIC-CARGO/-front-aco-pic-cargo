@@ -231,6 +231,8 @@ import axios from "@/api/http";
 import moment from "moment";
 import FormatFecha from "../comun/FormatFecha.vue";
 import { mapActions } from "vuex";
+import { mapActions as mapPiniaActions } from "pinia";
+import { useSecuritysStore } from "@/stores/securitys";
 import Swal from "sweetalert2";
 import BarraFiltro from "../BarraMostrarFiltro/BarraFiltro.vue";
 export default {
@@ -352,7 +354,8 @@ export default {
   },
 
   methods: {
-    ...mapActions(["cargarClientes", "validarUsuarioAdmin"]),
+    ...mapActions(["cargarClientes"]),
+    ...mapPiniaActions(useSecuritysStore, ["validarUsuarioAdmin"]),
     limpiar() {
       this.filtroflag = false;
       this.id_ingreso = null;

@@ -425,6 +425,8 @@
 <script>
 import moment from "moment";
 import { mapActions } from "vuex";
+import { mapActions as mapPiniaActions } from "pinia";
+import { useSecuritysStore } from "@/stores/securitys";
 import Swal from "sweetalert2";
 export default {
   name: "ListQuoteComponent",
@@ -585,8 +587,8 @@ export default {
       "getQuoteStatus",
       "cargarMaster",
       "aprobarCotizacion",
-      "validarUsuarioAdmin",
     ]),
+    ...mapPiniaActions(useSecuritysStore, ["validarUsuarioAdmin"]),
     async iraAprobado(id) {
       let val = false;
       let msg = "";

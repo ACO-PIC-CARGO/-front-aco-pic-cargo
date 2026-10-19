@@ -461,6 +461,8 @@
 import { defineAsyncComponent } from "vue";
 import Swal from "sweetalert2";
 import { mapActions } from "vuex";
+import { mapActions as mapPiniaActions } from "pinia";
+import { useSecuritysStore } from "@/stores/securitys";
 
 export default {
   components: {
@@ -557,8 +559,8 @@ export default {
       "guardarCostos",
       "finalizarConfiguracion",
       "OmitirConfiguracionCost",
-      "_getMenuItem",
     ]),
+    ...mapPiniaActions(useSecuritysStore, ["_getMenuItem"]),
     async finalizarSinLogin() {
       Swal.fire({
         title: "Procesando...",

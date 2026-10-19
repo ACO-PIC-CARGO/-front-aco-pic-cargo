@@ -14,7 +14,7 @@
         <!--  -->
 
         <input
-          v-model="$store.state.securitys.frmLogin.user"
+          v-model="securitysStore.frmLogin.user"
           type="text"
           required
           autocomplete="off"
@@ -32,14 +32,14 @@
 
         <!-- -->
         <input
-          v-model="$store.state.securitys.frmLogin.password"
+          v-model="securitysStore.frmLogin.password"
           :type="verClave == false ? 'password' : 'text'"
           required
           autocomplete="off"
           class="active"
         />
         <label for="">Clave</label>
-        <span class="text-red"> {{ $store.state.securitys.errorClave }}</span>
+        <span class="text-red"> {{ securitysStore.errorClave }}</span>
       </div>
       <div class="RecuperarContrasenia">
         <a href="">¿Olvidé Contraseña?</a>
@@ -62,14 +62,18 @@
 </template>
 
 <script>
-import { mapActions } from "vuex";
+import { mapActions as mapPiniaActions, mapStores } from "pinia";
+import { useSecuritysStore } from "@/stores/securitys";
 export default {
   data() {
     return { verClave: false, errorClave: "", loading: false };
   },
   async mounted() {},
+  computed: {
+    ...mapStores(useSecuritysStore),
+  },
   methods: {
-    ...mapActions(["singin"]),
+    ...mapPiniaActions(useSecuritysStore, ["singin"]),
     async acceder() {
       this.loading = true;
       await this.singin();

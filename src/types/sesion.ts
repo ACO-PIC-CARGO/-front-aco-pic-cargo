@@ -32,3 +32,18 @@ export interface ModuloEntidad {
   id: number | string;
   name: string;
 }
+
+export interface UsuarioLogin {
+  id: number;
+  id_entitie: number;
+  id_secutiry: number;
+  id_user?: number;
+  id_branch?: number;
+}
+
+export interface SucursalUsuario {
+  id: number;
+  trade_name: string;
+  iso_pais: string;
+  esnuevoflag: boolean;
+}

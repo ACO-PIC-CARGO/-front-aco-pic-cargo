@@ -275,6 +275,8 @@ import axios from "@/api/http";
 import swal from "sweetalert2";
 import moment from "moment";
 import { mapActions } from "vuex";
+import { mapActions as mapPiniaActions } from "pinia";
+import { useSecuritysStore } from "@/stores/securitys";
 import FormatFecha from "../comun/FormatFecha.vue";
 import BarraFiltro from "../BarraMostrarFiltro/BarraFiltro.vue";
 
@@ -485,12 +487,12 @@ export default {
       "_getBanksList",
       "getCargarTipoIngreso",
       "getCargarTipoSubIngreso",
-      "validarUsuarioAdmin",
       "_getCoinsList",
       "ActualizarCXC",
       "getRegistroIngresos",
       "eliminarRegistroIngresos",
     ]),
+    ...mapPiniaActions(useSecuritysStore, ["validarUsuarioAdmin"]),
     _uploadFile() {
       if (this.payfile) {
         var data = new FormData();

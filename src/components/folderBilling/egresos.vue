@@ -1338,6 +1338,8 @@ import moment from "moment";
 import axios from "@/api/http";
 import Swal from "sweetalert2";
 import { mapActions } from "vuex";
+import { mapActions as mapPiniaActions } from "pinia";
+import { useSecuritysStore } from "@/stores/securitys";
 import ArrastraYSolarComponent from "../comun/ArrastraYSolarComponent.vue";
 export default {
   emits: ["recalcularProfit", "statusBtn"],
@@ -3016,7 +3018,6 @@ export default {
       }
     },
     ...mapActions([
-      "validarUsuarioAdmin",
       "getListControlGastosMaster",
       "setEgresos",
       "setInvoice",
@@ -3042,6 +3043,7 @@ export default {
       "_getMasterList",
       "moverCostos",
     ]),
+    ...mapPiniaActions(useSecuritysStore, ["validarUsuarioAdmin"]),
     bloquearCopiarMontos(detalle) {
       return detalle.some((v) => v.pagado == 1 || v.statusadmin == 1);
       // return true;

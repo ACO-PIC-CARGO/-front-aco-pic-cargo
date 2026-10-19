@@ -22,7 +22,7 @@
                       <v-text-field
                         variant="outlined"
                         prepend-inner-icon="mdi-account"
-                        v-model="$store.state.securitys.frmLogin.user"
+                        v-model="securitysStore.frmLogin.user"
                         type="text"
                         placeholder="Usuario o Email"
                         density="compact"
@@ -37,7 +37,7 @@
                         autocomplete="current-password"
                         variant="outlined"
                         density="compact"
-                        v-model="$store.state.securitys.frmLogin.password"
+                        v-model="securitysStore.frmLogin.password"
                         :type="verClave == false ? 'password' : 'text'"
                         placeholder="Contraseña"
                         prepend-inner-icon="mdi-lock"
@@ -49,7 +49,7 @@
                     </div>
                   </v-form>
                   <span class="text-red">
-                    {{ $store.state.securitys.errorClave }}</span
+                    {{ securitysStore.errorClave }}</span
                   >
                   <p class="rigth my-2">
                     <a class="text-primary" @click="ReEstablecerContrasenia()"><v-icon size="small" class="mr-1 text-medium-emphasis">mdi-lock-reset</v-icon> Olvidé Contraseña</a>
@@ -75,12 +75,12 @@
                   <p>Bienvenido a ACO</p>
                   <h1>SUCURSAL</h1>
                   <v-select
-                    :items="$store.state.securitys.lstSucursal"
+                    :items="securitysStore.lstSucursal"
                     item-title="trade_name"
                     item-value="id"
                     density="compact"
                     placeholder="Sucursal"
-                    v-model="$store.state.securitys.frmLogin.id_sucursal"
+                    v-model="securitysStore.frmLogin.id_sucursal"
                     label="Sucursal"
                     variant="outlined"
                     :rules="[(v) => !!v || 'Dato Requerido']"
@@ -113,7 +113,8 @@
 </template>
 
 <script>
-import { mapActions } from "vuex";
+import { mapActions as mapPiniaActions, mapStores } from "pinia";
+import { useSecuritysStore } from "@/stores/securitys";
 import LegalLinks from "@/components/Legal/LegalLinks.vue";
 export default {
   components: { LegalLinks },
@@ -135,15 +136,11 @@ export default {
     //   this.$router.push({ name: "Main" }, () => {});
     // }
   },
+  computed: {
+    ...mapStores(useSecuritysStore),
+  },
   methods: {
-    ...mapActions([
-      "singin",
-      
-      "_getMenuItem",
-      "ReEstablecerContrasenia",
-
-      "ObtenerDatosConfig",
-    ]),
+    ...mapPiniaActions(useSecuritysStore, ["singin", "_getMenuItem", "ReEstablecerContrasenia", "ObtenerDatosConfig"]),
     async acceder() {
       this.loading = true;
       let res = await this.singin();
@@ -157,20 +154,20 @@ export default {
     },
     async iraHome() {
       this.errorSucursal = "";
-      if (!this.$store.state.securitys.frmLogin.id_sucursal) {
+      if (!this.securitysStore.frmLogin.id_sucursal) {
         this.errorSucursal = "Dato Requerido";
         return;
       }
       this.loading = true;
       // --------------------------------------------
-      let dataBranch = this.$store.state.securitys.lstSucursal.filter(
-        (v) => v.id == this.$store.state.securitys.frmLogin.id_sucursal
+      let dataBranch = this.securitysStore.lstSucursal.filter(
+        (v) => v.id == this.securitysStore.frmLogin.id_sucursal
       );
       sessionStorage.setItem("dataBranch", JSON.stringify(dataBranch));
       localStorage.setItem("dataBranch", JSON.stringify(dataBranch));
       // --------------------------------------------
       let datos = JSON.parse(sessionStorage.getItem("dataUser"));
-      datos[0].id_branch = this.$store.state.securitys.frmLogin.id_sucursal;
+      datos[0].id_branch = this.securitysStore.frmLogin.id_sucursal;
 
       sessionStorage.setItem("dataUser", JSON.stringify(datos));
       sessionStorage.setItem("iso_pais", dataBranch[0].iso_pais);

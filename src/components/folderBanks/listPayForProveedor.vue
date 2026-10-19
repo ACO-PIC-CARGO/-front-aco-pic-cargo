@@ -386,6 +386,8 @@ import axios from "@/api/http";
 import swal from "sweetalert2";
 import moment from "moment";
 import { mapActions } from "vuex";
+import { mapActions as mapPiniaActions } from "pinia";
+import { useSecuritysStore } from "@/stores/securitys";
 import FormatFecha from "../comun/FormatFecha.vue";
 import BarraFiltro from "../BarraMostrarFiltro/BarraFiltro.vue";
 export default {
@@ -497,13 +499,13 @@ export default {
       "cargarProveedores",
       "getCargarTipoGastos",
       "getCargarTipoSubGastos",
-      "validarUsuarioAdmin",
       "verVacturas",
       "_getBanksList",
       "ActualizarCXP",
       "getRegistroEgresos",
       "eliminarRegistroEgresos",
     ]),
+    ...mapPiniaActions(useSecuritysStore, ["validarUsuarioAdmin"]),
     nuevo() {
       this.$store.state.files.payPath = null;
       this.$router.push({ name: "registroPayForProveedor" });

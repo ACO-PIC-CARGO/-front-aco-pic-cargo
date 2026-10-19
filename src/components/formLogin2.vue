@@ -69,7 +69,8 @@
 </template>
 <script>
 import axios from '@/api/http';
-import { mapActions } from "vuex";
+import { mapActions as mapPiniaActions } from "pinia";
+import { useSecuritysStore } from "@/stores/securitys";
 
 export default {
   name: "formLogin",
@@ -90,7 +91,7 @@ export default {
   },
 
   methods: {
-    ...mapActions(["_getMenuItem"]),
+    ...mapPiniaActions(useSecuritysStore, ["_getMenuItem"]),
     __getLogin() {
       var vm = this;
       vm.loading = true;

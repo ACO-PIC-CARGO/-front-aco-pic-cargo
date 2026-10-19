@@ -2,7 +2,6 @@ import axios from "@/api/http";
 import Swal from "sweetalert2";
 import router from "@/router";
 import user from "./user";
-import security from "./security";
 const state = {
   lstCuentas: [],
   list: [],

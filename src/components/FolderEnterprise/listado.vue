@@ -205,6 +205,8 @@
 
 <script>
 import { mapState, mapActions } from "vuex";
+import { mapActions as mapPiniaActions } from "pinia";
+import { useSecuritysStore } from "@/stores/securitys";
 import Swal from "sweetalert2";
 
 export default {
@@ -287,8 +289,8 @@ export default {
       "_getTown",
       "switchEnterprise",
       "eliminarBranch",
-      "validarUsuarioAdmin",
     ]),
+    ...mapPiniaActions(useSecuritysStore, ["validarUsuarioAdmin"]),
     updateStatus(newValue) {
       this.enterprise.status = newValue ? 1 : 0;
     },

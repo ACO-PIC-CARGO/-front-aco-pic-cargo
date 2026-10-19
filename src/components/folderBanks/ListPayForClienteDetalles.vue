@@ -268,6 +268,8 @@ import axios from "@/api/http";
 import swal from "sweetalert2";
 import moment from "moment";
 import { mapActions } from "vuex";
+import { mapActions as mapPiniaActions } from "pinia";
+import { useSecuritysStore } from "@/stores/securitys";
 import Swal from "sweetalert2";
 import FormatFecha from "../comun/FormatFecha.vue";
 import BarraFiltro from "../BarraMostrarFiltro/BarraFiltro.vue";
@@ -382,10 +384,10 @@ export default {
       "_getBanksList",
       "getCargarTipoIngreso",
       "getCargarTipoSubIngreso",
-      "validarUsuarioAdmin",
       "_getCoinsList",
       "ActualizarCXC",
     ]),
+    ...mapPiniaActions(useSecuritysStore, ["validarUsuarioAdmin"]),
     async ver(pago) {
       this.$router.push({
         name: "verPagosPorCliente",

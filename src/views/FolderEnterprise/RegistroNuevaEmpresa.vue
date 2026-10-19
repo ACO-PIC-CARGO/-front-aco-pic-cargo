@@ -316,6 +316,8 @@
 <script>
 import CboPais from "@/components/comun/CboPais.vue";
 import { mapActions } from "vuex";
+import { mapActions as mapPiniaActions } from "pinia";
+import { useSecuritysStore } from "@/stores/securitys";
 export default {
   components: {
     CboPais,
@@ -391,9 +393,9 @@ export default {
       "RegistroNuevaEmpresa",
       "enviarCorreoValidacion",
       "validarCodigoVerificacion",
-      "_getMenuItem",
       "validarCorreoRegistro",
     ]),
+    ...mapPiniaActions(useSecuritysStore, ["_getMenuItem"]),
     abriChat() {
       let text = `https://api.whatsapp.com/send/?phone=${this.numero}&text=Hola, ACO. Me gustaría contactar con alguien&type=phone_number&app_absent=0`;
       window.open(text);

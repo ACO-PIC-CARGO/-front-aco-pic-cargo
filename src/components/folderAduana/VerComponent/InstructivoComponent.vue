@@ -599,6 +599,8 @@
 <script>
 import { defineAsyncComponent } from "vue";
 import { mapActions } from "vuex";
+import { mapActions as mapPiniaActions } from "pinia";
+import { useSecuritysStore } from "@/stores/securitys";
 import Swal from "sweetalert2";
 import moment from "moment";
 import mixins from "../../../components/mixins/funciones.js";
@@ -672,8 +674,8 @@ export default {
       "getInstructivoId",
       "generaInstructivoparaguardataAduana",
       "GuardarConfiguracionEmpresa",
-      "ObtenerDatosConfig",
     ]),
+    ...mapPiniaActions(useSecuritysStore, ["ObtenerDatosConfig"]),
     async guardarConfig() {
       await this.GuardarConfiguracionEmpresa();
       await this.ObtenerDatosConfig();

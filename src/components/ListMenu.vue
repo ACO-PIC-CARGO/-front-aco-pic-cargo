@@ -2,12 +2,14 @@
 import { computed, onMounted, ref, watch } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import { useStore } from "vuex";
+import { useSecuritysStore } from "@/stores/securitys";
 import type { Incoterm } from "@/types/cotizacion";
 import type { ItemMenu, SucursalSesion, UsuarioSesion } from "@/types/sesion";
 
 const route = useRoute();
 const router = useRouter();
 const rootStore = useStore();
+const securitysStore = useSecuritysStore();
 
 const rutasResumen = [
   "newQuote",
@@ -98,8 +100,8 @@ function cerrarSesion() {
   sessionStorage.removeItem("auth-token");
   sessionStorage.removeItem("dataUser");
   sessionStorage.removeItem("dataBranch");
-  rootStore.state.securitys.MostrarLogin = true;
-  rootStore.state.securitys.MostrarSucursal = false;
+  securitysStore.MostrarLogin = true;
+  securitysStore.MostrarSucursal = false;
   router.push({ name: "Login" });
 }
 function mostrarResumenPricing() {

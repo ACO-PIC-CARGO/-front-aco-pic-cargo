@@ -498,6 +498,8 @@
 <script>
 import { defineAsyncComponent, mergeProps } from "vue";
 import { mapActions, mapState } from "vuex";
+import { mapActions as mapPiniaActions } from "pinia";
+import { useSecuritysStore } from "@/stores/securitys";
 import Swal from "sweetalert2";
 export default {
   components: {
@@ -642,10 +644,10 @@ export default {
       "cargarClientes",
       "_getBanksList",
       "updateRegistroIgresos",
-      "validarUsuarioAdmin",
       "eliminarRegistroIngresos",
       "imprimirComprobanteIngreso",
     ]),
+    ...mapPiniaActions(useSecuritysStore, ["validarUsuarioAdmin"]),
     confirmarEliminar() {
       Swal.fire({
         icon: "warning",

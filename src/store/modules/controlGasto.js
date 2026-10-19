@@ -2,6 +2,7 @@ import axios from "@/api/http";
 import Swal from "sweetalert2";
 import moment from "moment";
 import router from "@/router";
+import { useSecuritysStore } from "@/stores/securitys";
 const state = {
   listControlGastos: [],
   master_houses: [],
@@ -20,6 +21,8 @@ const mutations = {
   },
   SET_RESPONSE(state, data) {
     state.response = data;
+    // While securitys was a Vuex module this commit also ran its SET_RESPONSE.
+    useSecuritysStore().response = data;
   },
   SET_NOMBRECAMBIANIA(state, data) {
     state.nombreCampania = data;

@@ -779,6 +779,8 @@
 <script>
 import moment from "moment";
 import { mapActions } from "vuex";
+import { mapActions as mapPiniaActions } from "pinia";
+import { useSecuritysStore } from "@/stores/securitys";
 import Swal from "sweetalert2";
 import axios from "@/api/http";
 import GuardarUrlPricing from "../comun/GuardarUrlPricing.vue";
@@ -995,9 +997,9 @@ export default {
       "getQuoteStatus",
       "cargarMaster",
       "aprobarCotizacion",
-      "validarUsuarioAdmin",
       "actualizarURLEnElQuote",
     ]),
+    ...mapPiniaActions(useSecuritysStore, ["validarUsuarioAdmin"]),
     mostrarBoton(item) {
       if (item.statusmain == 0) {
         return false;

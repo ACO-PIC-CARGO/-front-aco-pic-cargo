@@ -867,6 +867,8 @@
 <script>
 import { defineAsyncComponent } from "vue";
 import { mapActions } from "vuex";
+import { mapActions as mapPiniaActions } from "pinia";
+import { useSecuritysStore } from "@/stores/securitys";
 import Swal from "sweetalert2";
 import moment from "moment";
 import mixins from "../../../components/mixins/funciones.js";
@@ -1039,8 +1041,8 @@ export default {
       "getInstructivoId",
       "generaInstructivoparaguardata",
       "GuardarConfiguracionEmpresa",
-      "ObtenerDatosConfig",
     ]),
+    ...mapPiniaActions(useSecuritysStore, ["ObtenerDatosConfig"]),
     tienePagosAsociados() {
       if (this.id_exp) {
         let val = this.$store.state.itemsMasterList.find(

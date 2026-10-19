@@ -11,8 +11,8 @@
       <v-divider color="white"></v-divider>
       <div class="input_contenedor">
         <v-select
-          :items="$store.state.securitys.lstSucursal"
-          v-model="$store.state.securitys.frmLogin.id_sucursal"
+          :items="securitysStore.lstSucursal"
+          v-model="securitysStore.frmLogin.id_sucursal"
           item-title="trade_name"
           item-value="id"
           density="compact"
@@ -41,6 +41,8 @@
 
 <script>
 import { mapActions } from "vuex";
+import { mapActions as mapPiniaActions, mapStores } from "pinia";
+import { useSecuritysStore } from "@/stores/securitys";
 export default {
   data() {
     return {
@@ -60,24 +62,26 @@ export default {
       this.$refs.Login.querySelector(".clave-label").classList.add("active");
     }
   },
+  computed: {
+    ...mapStores(useSecuritysStore),
+  },
   methods: {
     ...mapActions([
       "ListProgrammedPayment",
-      "_getMenuItem",
-      "ObtenerDatosConfig",
     ]),
+    ...mapPiniaActions(useSecuritysStore, ["_getMenuItem", "ObtenerDatosConfig"]),
     async guardarSucursal() {
       if ((await this.$refs.Login.validate()).valid) {
         this.loading = true;
         // --------------------------------------------
-        let dataBranch = this.$store.state.securitys.lstSucursal.filter(
-          (v) => v.id == this.$store.state.securitys.frmLogin.id_sucursal
+        let dataBranch = this.securitysStore.lstSucursal.filter(
+          (v) => v.id == this.securitysStore.frmLogin.id_sucursal
         );
         sessionStorage.setItem("dataBranch", JSON.stringify(dataBranch));
         localStorage.setItem("dataBranch", JSON.stringify(dataBranch));
         // --------------------------------------------
         let datos = JSON.parse(sessionStorage.getItem("dataUser"));
-        datos[0].id_branch = this.$store.state.securitys.frmLogin.id_sucursal;
+        datos[0].id_branch = this.securitysStore.frmLogin.id_sucursal;
 
         sessionStorage.setItem("dataUser", JSON.stringify(datos));
         localStorage.setItem("dataUser", JSON.stringify(datos));
@@ -97,10 +101,10 @@ export default {
       }
     },
     cancelar() {
-      this.$store.state.securitys.MostrarLogin =
-        !this.$store.state.securitys.MostrarLogin;
-      this.$store.state.securitys.MostrarSucursal =
-        !this.$store.state.securitys.MostrarSucursal;
+      this.securitysStore.MostrarLogin =
+        !this.securitysStore.MostrarLogin;
+      this.securitysStore.MostrarSucursal =
+        !this.securitysStore.MostrarSucursal;
     },
   },
 };
