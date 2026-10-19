@@ -78,7 +78,9 @@
 </template>
 
 <script>
-import { mapActions, mapState } from "vuex";
+import { mapState } from "vuex";
+import { mapActions as mapPiniaActions, mapState as mapPiniaState } from "pinia";
+import { useConfiguracionStore } from "@/stores/configuracion";
 
 export default {
   data() {
@@ -89,7 +91,7 @@ export default {
   },
   mounted() {},
   methods: {
-    ...mapActions("configuracion", ["setTextoWhatsappFCL"]),
+    ...mapPiniaActions(useConfiguracionStore, ["setTextoWhatsappFCL"]),
     async guardar() {
       this.loading = true;
       await this.setTextoWhatsappFCL({
@@ -100,7 +102,7 @@ export default {
   },
   computed: {
     ...mapState(["itemsContainers"]),
-    ...mapState("configuracion", ["fcl"]),
+    ...mapPiniaState(useConfiguracionStore, ["fcl"]),
     listadoTextoFCL() {
       if (Object.keys(this.fcl).length > 0) {
         return this.itemsContainers.map((container) => ({

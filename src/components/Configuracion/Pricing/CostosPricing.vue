@@ -160,10 +160,11 @@
 </template>
 
 <script>
-import { mapActions, mapState } from "vuex";
+import { mapActions } from "vuex";
 import ModelCostos from "./ModelCostos.vue";
 import _ from "lodash";
-import { mapActions as mapPiniaActions, mapStores } from "pinia";
+import { mapActions as mapPiniaActions, mapState as mapPiniaState, mapStores } from "pinia";
+import { useConfiguracionStore } from "@/stores/configuracion";
 import { useIncotermStore } from "@/stores/incoterm";
 export default {
   components: { ModelCostos },
@@ -213,7 +214,7 @@ export default {
       "getTipoCostos",
     ]),
     ...mapPiniaActions(useIncotermStore, ["CargarIncotermsConfig"]),
-    ...mapActions("configuracion", [
+    ...mapPiniaActions(useConfiguracionStore, [
       "getCargarCostos",
       "getMultiplicadorConfigCosto",
       "setGuardarCostos",
@@ -221,7 +222,7 @@ export default {
       "ObtenerIncotermsConfigCostos",
     ]),
     async cargarDatos() {
-      this.$store.state.configuracion.lstCostos = [];
+      this.configuracionStore.lstCostos = [];
       this.$store.state.pricing.datosPrincipales.idsentido = this.id_modality;
       this.$store.state.pricing.datosPrincipales.idtipocarga = this.id_shipment;
       let data = {
@@ -278,7 +279,7 @@ export default {
     }, 100),
     limpiar() {
       this.$refs.frmBuscar.reset();
-      this.$store.state.configuracion.lstCostos = [];
+      this.configuracionStore.lstCostos = [];
       this.editarflag = false;
     },
     async guardar() {
@@ -301,8 +302,8 @@ export default {
     },
   },
   computed: {
-    ...mapStores(useIncotermStore),
-    ...mapState("configuracion", [
+    ...mapStores(useIncotermStore, useConfiguracionStore),
+    ...mapPiniaState(useConfiguracionStore, [
       "lstCostos",
       "lstMultiplicador",
       "lstIncoterms",
@@ -326,10 +327,10 @@ export default {
   },
   watch: {
     id_modality() {
-      this.$store.state.configuracion.lstIncoterms = [];
+      this.configuracionStore.lstIncoterms = [];
     },
     id_shipment() {
-      this.$store.state.configuracion.lstIncoterms = [];
+      this.configuracionStore.lstIncoterms = [];
     },
   },
 };

@@ -246,11 +246,11 @@
 </template>
 
 <script>
-import { mapState } from "vuex";
 import { mapActions } from "vuex";
 import _ from "lodash";
 import Swal from "sweetalert2";
-import { mapActions as mapPiniaActions } from "pinia";
+import { mapActions as mapPiniaActions, mapState as mapPiniaState } from "pinia";
+import { useConfiguracionStore } from "@/stores/configuracion";
 import { useIncotermStore } from "@/stores/incoterm";
 
 export default {
@@ -311,7 +311,7 @@ export default {
       "getTipoCostos",
     ]),
     ...mapPiniaActions(useIncotermStore, ["CargarIncotermsConfig"]),
-    ...mapActions("configuracion", [
+    ...mapPiniaActions(useConfiguracionStore, [
       "getCargarCostos",
       "getMultiplicadorConfigCosto",
       "setGuardarCostos",
@@ -466,7 +466,7 @@ export default {
     },
   },
   computed: {
-    ...mapState("configuracion", [
+    ...mapPiniaState(useConfiguracionStore, [
       "lstCostos",
       "lstMultiplicador",
       "lstServicios",

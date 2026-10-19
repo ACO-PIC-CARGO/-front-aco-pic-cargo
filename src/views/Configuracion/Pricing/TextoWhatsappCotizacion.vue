@@ -23,6 +23,8 @@
 <script>
 import { defineAsyncComponent } from "vue";
 import { mapActions } from "vuex";
+import { mapActions as mapPiniaActions } from "pinia";
+import { useConfiguracionStore } from "@/stores/configuracion";
 
 export default {
   components: {
@@ -41,7 +43,7 @@ export default {
     };
   },
   methods: {
-    ...mapActions("configuracion", ["getTextWhatsapp"]),
+    ...mapPiniaActions(useConfiguracionStore, ["getTextWhatsapp"]),
     ...mapActions(["_getContainers"]),
   },
   async mounted() {

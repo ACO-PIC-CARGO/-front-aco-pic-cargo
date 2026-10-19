@@ -74,7 +74,8 @@
 </template>
 
 <script>
-import { mapActions, mapState } from "vuex";
+import { mapActions, mapState } from "pinia";
+import { useConfiguracionStore } from "@/stores/configuracion";
 export default {
   data() {
     return {
@@ -83,7 +84,7 @@ export default {
   },
   mounted() {},
   methods: {
-    ...mapActions("configuracion", ["setTextoWhatsappLCL"]),
+    ...mapActions(useConfiguracionStore, ["setTextoWhatsappLCL"]),
     async guardar() {
       // Lógica para guardar los textos
       this.loading = true;
@@ -92,7 +93,7 @@ export default {
     },
   },
   computed: {
-    ...mapState("configuracion", ["lcl"]),
+    ...mapState(useConfiguracionStore, ["lcl"]),
   },
 };
 </script>
