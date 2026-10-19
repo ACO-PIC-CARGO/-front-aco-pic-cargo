@@ -477,7 +477,7 @@ const routes = [
       {
         path: "year/list",
         name: "listYear",
-        component: () => import("../views/FolderYear/list.vue"),
+        component: () => import("../views/FolderYear/ListaAnios.vue"),
       },
       {
         path: "sex/list",
@@ -518,7 +518,7 @@ const routes = [
       {
         path: "transport/list",
         name: "listTransport",
-        component: () => import("../views/FolderTransport/list.vue"),
+        component: () => import("../views/FolderTransport/ListaTransportes.vue"),
       },
       {
         path: "gastos/list",
@@ -553,12 +553,12 @@ const routes = [
       {
         path: "shipment/listado",
         name: "listShipment",
-        component: () => import("../views/FolderTipoCarga/list.vue"),
+        component: () => import("../views/FolderTipoCarga/ListaTiposCarga.vue"),
       },
       {
         path: "multiplicador/listado",
         name: "listMultiplicador",
-        component: () => import("../views/FolderMultiplicador/list.vue"),
+        component: () => import("../views/FolderMultiplicador/ListaMultiplicadores.vue"),
       },
       {
         path: "airlines/listado",

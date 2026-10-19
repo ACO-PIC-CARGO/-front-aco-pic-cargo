@@ -345,6 +345,7 @@ export interface TipoCarga {
   name: string;
   description: string | null;
   id_transport: number | string | null;
+  code_transport?: string;
   type_transport?: string;
   status: number;
   created_at?: string;
