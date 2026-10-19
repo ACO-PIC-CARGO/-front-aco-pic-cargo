@@ -7,6 +7,8 @@ import type { FiltroGastoIngreso, TipoGasto } from "@/types/catalogos";
 import { showRejectedResponse } from "@/utils/rejectedResponse";
 import { sessionBranchId } from "@/utils/sesion";
 
+export type FormGasto = Omit<Partial<TipoGasto>, "calculoflag"> & { id_branch?: number; calculoflag?: boolean | string };
+
 export const useGastosStore = defineStore("gastos", () => {
   const list = ref<TipoGasto[]>([]);
   const response = ref<unknown[]>([]);
@@ -62,7 +64,7 @@ export const useGastosStore = defineStore("gastos", () => {
       });
   }
 
-  async function insertGasto(data: Partial<TipoGasto> & { id_branch?: number }): Promise<void> {
+  async function insertGasto(data: FormGasto): Promise<void> {
     await axios<ApiResponse>({
       method: "post",
       url: import.meta.env.VITE_URL_MAIN + "insertar_gasto",
@@ -109,7 +111,7 @@ export const useGastosStore = defineStore("gastos", () => {
       });
   }
 
-  async function updateGasto(data: Partial<TipoGasto>): Promise<void> {
+  async function updateGasto(data: FormGasto): Promise<void> {
     await axios<ApiResponse>({
       method: "put",
       url: import.meta.env.VITE_URL_MAIN + "actualizar_gasto",

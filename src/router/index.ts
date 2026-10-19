@@ -472,7 +472,7 @@ const routes = [
       {
         path: "document/list",
         name: "listDocument",
-        component: () => import("../views/FolderDocument/list.vue"),
+        component: () => import("../views/FolderDocument/ListaDocumentos.vue"),
       },
       {
         path: "year/list",
@@ -523,12 +523,12 @@ const routes = [
       {
         path: "gastos/list",
         name: "listGastos",
-        component: () => import("../views/FolderGasto/list.vue"),
+        component: () => import("../views/FolderGasto/ListaGastos.vue"),
       },
       {
         path: "sub_gasto/list",
         name: "listSubGasto",
-        component: () => import("../views/FolderGasto/listSubGasto.vue"),
+        component: () => import("../views/FolderGasto/ListSubGasto.vue"),
       },
       {
         path: "coins/list",

@@ -21,7 +21,7 @@ export const useSubgastoStore = defineStore("subgasto", () => {
     calculoflag: "null",
     mostrarflag: "null",
   });
-  const model = ref<SubGasto>({
+  const model = ref<Partial<SubGasto>>({
     id: "",
     id_gasto: "",
     code: "",
