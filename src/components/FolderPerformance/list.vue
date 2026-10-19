@@ -38,7 +38,7 @@
         v-if="!loading"
         class="elevation-1"
         :headers="headers"
-        :items="$store.state.performance.list"
+        :items="performanceStore.list"
         item-value="id"
         :search="search"
       >
@@ -139,7 +139,7 @@
         <v-list-item class="px-0">
           
             <v-list-item-title class="text-headline-small">
-              Ver: {{ $store.state.performance.record.description }}
+              Ver: {{ performanceStore.record.description }}
             </v-list-item-title>
           
         </v-list-item>
@@ -150,24 +150,24 @@
             <v-text-field
               label="Código"
               readonly
-              :model-value="$store.state.performance.record.code"
+              :model-value="performanceStore.record.code"
             ></v-text-field>
           </v-row>
           <v-row>
             <v-text-field
               label="Descripción"
               readonly
-              :model-value="$store.state.performance.record.description"
+              :model-value="performanceStore.record.description"
             ></v-text-field>
           </v-row>
           <v-row>
             <v-switch
               readonly
               :label="`Estado: ${
-                !!$store.state.performance.record.status ? 'Activo' : 'Inactivo'
+                !!performanceStore.record.status ? 'Activo' : 'Inactivo'
               }`"
               color="success"
-              v-model="$store.state.performance.record.status"
+              v-model="performanceStore.record.status"
               :value-comparator="(value, checked) => Boolean(value) === checked"
             ></v-switch>
           </v-row>
@@ -211,7 +211,7 @@
         <v-list-item class="px-0">
           
             <v-list-item-title class="text-headline-small">
-              Modificar: {{ $store.state.performance.record.description }}
+              Modificar: {{ performanceStore.record.description }}
             </v-list-item-title>
           
         </v-list-item>
@@ -348,8 +348,10 @@
 </template>
 
 <script>
-import { mapState, mapActions } from "vuex";
+import { mapState } from "vuex";
 import Swal from "sweetalert2";
+import { mapActions as mapPiniaActions, mapStores } from "pinia";
+import { usePerformanceStore } from "@/stores/performance";
 
 export default {
   name: "ListPerformanceComponent",
@@ -398,12 +400,7 @@ export default {
     this.$store.state.mainTitle = `Tipos de Documentos Comerciales`;
   },
   methods: {
-    ...mapActions([
-      "fetchDataPerformance",
-      "insertPerformance",
-      "readPerformance",
-      "updatePerformance",
-    ]),
+    ...mapPiniaActions(usePerformanceStore, ["fetchDataPerformance", "insertPerformance", "readPerformance", "updatePerformance"]),
     updateStatus(newValue) {
       this.record.status = newValue ? 1 : 0;
     },
@@ -500,10 +497,11 @@ export default {
     },
   },
   computed: {
+    ...mapStores(usePerformanceStore),
     ...mapState(["list"]),
   },
   watch: {
-    "$store.state.performance.record": {
+    "performanceStore.record": {
       handler(newRecord, oldRecord) {
         if (newRecord && Object.keys(newRecord).length > 0) {
           const { code, description, status } = newRecord;
@@ -513,7 +511,7 @@ export default {
       },
       immediate: true,
     },
-    "$store.state.performance.loading": {
+    "performanceStore.loading": {
       handler(newList, oldList) {
         this.loading = newList == true ? false : true;
       },
