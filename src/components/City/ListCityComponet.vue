@@ -1,6 +1,108 @@
+<script setup lang="ts">
+import { onMounted, ref } from "vue";
+import Swal from "sweetalert2";
+import { useStore } from "vuex";
+import { useCityStore } from "@/stores/city";
+import type { Ciudad } from "@/types/catalogos";
+import { sessionBranchId } from "@/utils/sesion";
+
+const cityStore = useCityStore();
+const rootStore = useStore();
+
+const search = ref("");
+const loading = ref(false);
+const headers = [
+  { title: "Páis", key: "name_pais" },
+  { title: "Estado (Región)", key: "name_state" },
+  { title: "Código", key: "code" },
+  { title: "Nombre", key: "name" },
+  { title: "Descripción", key: "description" },
+  { title: "Estado", key: "estado" },
+  { title: "Creación", key: "created_at" },
+
+  { title: "Última Actualización", key: "updated_at" },
+  { title: "Acciones", key: "action" },
+] as const;
+
+async function filtrar() {
+  loading.value = !loading.value;
+  cityStore.tipo = "filter";
+  // await this._getState(this.cityStore.filtros.id_pais);
+  loading.value = !loading.value;
+  cityStore.drawer = !cityStore.drawer;
+}
+async function ver(item: Ciudad) {
+  loading.value = !loading.value;
+  const datos = { ...item };
+  cityStore.tipo = "ver";
+  cityStore.model = datos;
+  await rootStore.dispatch("_getState", datos.id_pais);
+  loading.value = !loading.value;
+  cityStore.drawer = !cityStore.drawer;
+}
+async function editar(item: Ciudad) {
+  loading.value = !loading.value;
+  const datos = { ...item };
+  cityStore.tipo = "editar";
+  cityStore.model = datos;
+  await rootStore.dispatch("_getState", datos.id_pais);
+  loading.value = !loading.value;
+  cityStore.drawer = !cityStore.drawer;
+}
+async function nuevo() {
+  loading.value = !loading.value;
+  cityStore.tipo = "nuevo";
+  cityStore.model = {
+    id: "",
+    id_pais: "",
+    id_state: "",
+    code: "",
+    name: "",
+    description: "",
+    status: 1,
+    id_branch: sessionBranchId(),
+  };
+  // await this._getState(this.cityStore.model.id_state);
+  cityStore.drawer = !cityStore.drawer;
+  loading.value = !loading.value;
+}
+async function eliminar(item: Ciudad) {
+  Swal.fire({
+    icon: "question",
+    title: "¿Estás seguro?",
+    text: `Si inactiva el registro, éste no aparecerá disponible en otros formularios ¿Está seguro de que desea inactivarlo?`,
+    allowOutsideClick: false,
+    confirmButtonText: "Si, inactivar",
+    confirmButtonColor: "red",
+    cancelButtonText: "Cancelar",
+    cancelButtonColor: "orange",
+    showCancelButton: true,
+  }).then(async (res) => {
+    if (res.isConfirmed) {
+      item.status = 0;
+      cityStore.model = item;
+      loading.value = true;
+      await cityStore.ActualizarCity();
+      await cityStore.GetListCity();
+      loading.value = false;
+    }
+  });
+}
+
+onMounted(async () => {
+  loading.value = !loading.value;
+  await cityStore.GetListCity();
+  loading.value = !loading.value;
+  await rootStore.dispatch("_getPais");
+});
+</script>
+
 <template>
   <div class="">
-    <v-card fluid class="px-5">
+    <v-card
+      fluid
+      class="px-5"
+    >
       <v-row>
         <v-col cols="4">
           <v-text-field
@@ -9,14 +111,35 @@
             v-model="search"
             clearable
             append-inner-icon="mdi-magnify"
-          ></v-text-field>
+          />
         </v-col>
-        <v-col cols="4" offset="4" class="text-right my-auto">
-          <v-btn size="small" color="success" @click="nuevo()">NUEVO</v-btn>
-          <v-btn size="small" class="mx-1" color="#2962FF" @click="filtrar()"
-            >FILTRAR</v-btn
+        <v-col
+          cols="4"
+          offset="4"
+          class="text-right my-auto"
+        >
+          <v-btn
+            size="small"
+            color="success"
+            @click="nuevo()"
           >
-          <v-btn size="small" class="mx-1" color="#004D40">EXPORTAR</v-btn>
+            NUEVO
+          </v-btn>
+          <v-btn
+            size="small"
+            class="mx-1"
+            color="#2962FF"
+            @click="filtrar()"
+          >
+            FILTRAR
+          </v-btn>
+          <v-btn
+            size="small"
+            class="mx-1"
+            color="#004D40"
+          >
+            EXPORTAR
+          </v-btn>
         </v-col>
         <v-col cols="12">
           <v-data-table
@@ -27,24 +150,41 @@
             :loading="loading"
             :search="search"
           >
-            <template v-slot:[`item.estado`]="{ item }">
+            <template #[`item.estado`]="{ item }">
+              <!-- @vue-expect-error boolean == 1 kept from the old template -->
               {{ !!item.status == 1 ? "Activo" : "Inactivo" }}
             </template>
-            <template v-slot:[`item.statuscalls`]="{ item }">
-              <v-chip color="green" v-if="item.status_calls == 1"
-                >Si</v-chip
+            <template #[`item.statuscalls`]="{ item }">
+              <v-chip
+                color="green"
+                v-if="item.status_calls == 1"
               >
-              <v-chip color="red" v-else>No</v-chip>
-            </template>
-            <template v-slot:[`item.statuscalls_all`]="{ item }">
-              <v-chip color="green" v-if="item.status_calls_all == 1"
-                >Si</v-chip
+                Si
+              </v-chip>
+              <v-chip
+                color="red"
+                v-else
               >
-              <v-chip color="red" v-else>No</v-chip>
+                No
+              </v-chip>
             </template>
-            <template v-slot:[`item.action`]="{ item }">
+            <template #[`item.statuscalls_all`]="{ item }">
+              <v-chip
+                color="green"
+                v-if="item.status_calls_all == 1"
+              >
+                Si
+              </v-chip>
+              <v-chip
+                color="red"
+                v-else
+              >
+                No
+              </v-chip>
+            </template>
+            <template #[`item.action`]="{ item }">
               <v-tooltip location="bottom">
-                <template v-slot:activator="{ props }">
+                <template #activator="{ props }">
                   <v-icon
                     color="primary"
                    
@@ -57,7 +197,7 @@
                 <span>Ver</span>
               </v-tooltip>
               <v-tooltip location="bottom">
-                <template v-slot:activator="{ props }">
+                <template #activator="{ props }">
                   <v-icon
                     color="warning"
                    
@@ -69,8 +209,11 @@
                 </template>
                 <span>Editar</span>
               </v-tooltip>
-              <v-tooltip location="bottom" v-if="item.status == 1">
-                <template v-slot:activator="{ props }">
+              <v-tooltip
+                location="bottom"
+                v-if="item.status == 1"
+              >
+                <template #activator="{ props }">
                   <v-icon
                     color="error"
                    
@@ -89,109 +232,5 @@
     </v-card>
   </div>
 </template>
-
-<script>
-import { mapActions } from "vuex";
-import Swal from "sweetalert2";
-import { mapActions as mapPiniaActions, mapStores } from "pinia";
-import { useCityStore } from "@/stores/city";
-export default {
-  data() {
-    return {
-      search: "",
-      loading: false,
-      headers: [
-        { title: "Páis", key: "name_pais" },
-        { title: "Estado (Región)", key: "name_state" },
-        { title: "Código", key: "code" },
-        { title: "Nombre", key: "name" },
-        { title: "Descripción", key: "description" },
-        { title: "Estado", key: "estado" },
-        { title: "Creación", key: "created_at" },
-
-        { title: "Última Actualización", key: "updated_at" },
-        { title: "Acciones", key: "action" },
-      ],
-    };
-  },
-  computed: {
-    ...mapStores(useCityStore),
-  },
-  methods: {
-    ...mapActions(["_getPais", "_getState"]),
-    ...mapPiniaActions(useCityStore, ["GetListCity", "ActualizarCity"]),
-    async filtrar() {
-      this.loading = !this.loading;
-      this.cityStore.tipo = "filter";
-      // await this._getState(this.cityStore.filtros.id_pais);
-      this.loading = !this.loading;
-      this.cityStore.drawer = !this.cityStore.drawer;
-    },
-    async ver(item) {
-      this.loading = !this.loading;
-      let datos = { ...item };
-      this.cityStore.tipo = "ver";
-      this.cityStore.model = datos;
-      await this._getState(datos.id_pais);
-      this.loading = !this.loading;
-      this.cityStore.drawer = !this.cityStore.drawer;
-    },
-    async editar(item) {
-      this.loading = !this.loading;
-      let datos = { ...item };
-      this.cityStore.tipo = "editar";
-      this.cityStore.model = datos;
-      await this._getState(datos.id_pais);
-      this.loading = !this.loading;
-      this.cityStore.drawer = !this.cityStore.drawer;
-    },
-    async nuevo() {
-      this.loading = !this.loading;
-      this.cityStore.tipo = "nuevo";
-      this.cityStore.model = {
-        id: "",
-        id_pais: "",
-        id_state: "",
-        code: "",
-        name: "",
-        description: "",
-        status: 1,
-        id_branch: JSON.parse(sessionStorage.getItem("dataUser"))[0].id_branch,
-      };
-      // await this._getState(this.cityStore.model.id_state);
-      this.cityStore.drawer = !this.cityStore.drawer;
-      this.loading = !this.loading;
-    },
-    async eliminar(item) {
-      Swal.fire({
-        icon: "question",
-        title: "¿Estás seguro?",
-        text: `Si inactiva el registro, éste no aparecerá disponible en otros formularios ¿Está seguro de que desea inactivarlo?`,
-        allowOutsideClick: false,
-        confirmButtonText: "Si, inactivar",
-        confirmButtonColor: "red",
-        cancelButtonText: "Cancelar",
-        cancelButtonColor: "orange",
-        showCancelButton: true,
-      }).then(async (res) => {
-        if (res.isConfirmed) {
-          item.status = 0;
-          this.cityStore.model = item;
-          this.loading = true;
-          await this.ActualizarCity();
-          await this.GetListCity();
-          this.loading = false;
-        }
-      });
-    },
-  },
-  async mounted() {
-    this.loading = !this.loading;
-    await this.GetListCity();
-    this.loading = !this.loading;
-    await this._getPais();
-  },
-};
-</script>
 
 <style></style>

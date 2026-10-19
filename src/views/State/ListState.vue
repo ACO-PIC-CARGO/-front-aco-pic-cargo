@@ -1,3 +1,19 @@
+<script setup lang="ts">
+import { defineAsyncComponent, onMounted } from "vue";
+import { useStore } from "vuex";
+import { useStatesStore } from "@/stores/states";
+
+const StateComponent = defineAsyncComponent(() => import("../../components/State/ListStateComponent.vue"));
+const FilterState = defineAsyncComponent(() => import("../../components/filtros/FilterState.vue"));
+
+const statesStore = useStatesStore();
+const rootStore = useStore();
+
+onMounted(() => {
+  rootStore.state.mainTitle = `LISTADO DE ESTADOS`;
+});
+</script>
+
 <template>
   <v-container fluid>
     <StateComponent />
@@ -12,24 +28,5 @@
     </v-navigation-drawer>
   </v-container>
 </template>
-
-<script>
-import { defineAsyncComponent } from "vue";
-import { mapStores } from "pinia";
-import { useStatesStore } from "@/stores/states";
-export default {
-  components: {
-    StateComponent: defineAsyncComponent(() =>
-      import("../../components/State/ListStateComponent.vue")),
-    FilterState: defineAsyncComponent(() => import("../../components/filtros/FilterState.vue")),
-  },
-  computed: {
-    ...mapStores(useStatesStore),
-  },
-  mounted() {
-    this.$store.state.mainTitle = `LISTADO DE ESTADOS`;
-  },
-};
-</script>
 
 <style></style>
