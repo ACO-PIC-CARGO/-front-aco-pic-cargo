@@ -25,7 +25,6 @@ import year from "./modules/year";
 import sex from "./modules/sex";
 import performance from "./modules/performance";
 import bank from "./modules/bank";
-import modality from "./modules/modality";
 import transport from "./modules/transport";
 import reportes from "./modules/reporte";
 import shipment from "./modules/shipment";
@@ -2887,7 +2886,6 @@ export default createStore({
     sex,
     performance,
     bank,
-    modality,
     transport,
     shipment,
     multiplicador,

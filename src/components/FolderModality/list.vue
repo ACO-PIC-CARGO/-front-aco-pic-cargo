@@ -40,7 +40,7 @@
         v-if="!loading"
         class="elevation-1"
         :headers="headers"
-        :items="$store.state.modality.list"
+        :items="modalityStore.list"
         item-value="id"
         :search="search"
       >
@@ -157,7 +157,7 @@
         <v-list-item class="px-0">
           
             <v-list-item-title class="text-headline-small">
-              Ver: {{ $store.state.modality.record.name }}
+              Ver: {{ modalityStore.record.name }}
             </v-list-item-title>
           
         </v-list-item>
@@ -168,31 +168,31 @@
             <v-text-field
               label="Código"
               readonly
-              :model-value="$store.state.modality.record.code"
+              :model-value="modalityStore.record.code"
             ></v-text-field>
           </v-row>
           <v-row>
             <v-text-field
               label="Nombre"
               readonly
-              :model-value="$store.state.modality.record.name"
+              :model-value="modalityStore.record.name"
             ></v-text-field>
           </v-row>
           <v-row>
             <v-text-field
               label="Descripción"
               readonly
-              :model-value="$store.state.modality.record.description"
+              :model-value="modalityStore.record.description"
             ></v-text-field>
           </v-row>
           <v-row>
             <v-switch
               readonly
               :label="`Estado: ${
-                !!$store.state.modality.record.status ? 'Activo' : 'Inactivo'
+                !!modalityStore.record.status ? 'Activo' : 'Inactivo'
               }`"
               color="success"
-              v-model="$store.state.modality.record.status"
+              v-model="modalityStore.record.status"
               :value-comparator="(value, checked) => Boolean(value) === checked"
             ></v-switch>
           </v-row>
@@ -237,7 +237,7 @@
         <v-list-item class="px-0">
           
             <v-list-item-title class="text-headline-small">
-              Modificar: {{ $store.state.modality.record.name }}
+              Modificar: {{ modalityStore.record.name }}
             </v-list-item-title>
           
         </v-list-item>
@@ -394,8 +394,10 @@
 </template>
 
 <script>
-import { mapState, mapActions } from "vuex";
+import { mapState } from "vuex";
 import Swal from "sweetalert2";
+import { mapActions as mapPiniaActions, mapStores } from "pinia";
+import { useModalityStore } from "@/stores/modality";
 
 export default {
   name: "ListModalityComponent",
@@ -446,12 +448,7 @@ export default {
     this.$store.state.mainTitle = `Modalidad`;
   },
   methods: {
-    ...mapActions([
-      "fetchDataModality",
-      "insertModality",
-      "readModality",
-      "updateModality",
-    ]),
+    ...mapPiniaActions(useModalityStore, ["fetchDataModality", "insertModality", "readModality", "updateModality"]),
     updateStatus(newValue) {
       this.record.status = newValue ? 1 : 0;
     },
@@ -584,10 +581,11 @@ export default {
     },
   },
   computed: {
+    ...mapStores(useModalityStore),
     ...mapState(["list"]),
   },
   watch: {
-    "$store.state.modality.record": {
+    "modalityStore.record": {
       handler(newRecord, oldRecord) {
         if (newRecord && Object.keys(newRecord).length > 0) {
           const { code, name, description, status } = newRecord;
@@ -597,7 +595,7 @@ export default {
       },
       immediate: true,
     },
-    "$store.state.modality.loading": {
+    "modalityStore.loading": {
       handler(newList, oldList) {
         this.loading = newList == true ? false : true;
       },
