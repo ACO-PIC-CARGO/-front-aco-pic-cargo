@@ -1,5 +1,5 @@
 import type { NavigationGuardReturn, RouteLocationNormalized } from "vue-router";
-import store from "@/store";
+import { useSubscriptionsStore } from "@/stores/subscriptions";
 
 const readMenu = () => {
   try {
@@ -13,17 +13,15 @@ export default async function planAccessGuard(
   to: RouteLocationNormalized,
   from: RouteLocationNormalized,
 ): Promise<NavigationGuardReturn> {
+  const subscriptionsStore = useSubscriptionsStore();
   const menu = readMenu();
-  const modules = store.getters["subscriptions/modulesForRoute"](menu, to.name);
+  const modules = subscriptionsStore.modulesForRoute(menu, to.name);
   if (to.name === "miPlan" || !modules.length) return;
 
-  await store.dispatch("subscriptions/loadPlanAccess");
-  const module = store.getters["subscriptions/lockedModuleForRoute"](menu, to.name);
+  await subscriptionsStore.loadPlanAccess();
+  const module = subscriptionsStore.lockedModuleForRoute(menu, to.name);
   if (!module) return;
 
-  store.dispatch(
-    "subscriptions/promptPlanUpgrade",
-    store.getters["subscriptions/lockedModuleNotice"](module.name),
-  );
+  subscriptionsStore.promptPlanUpgrade(subscriptionsStore.lockedModuleNotice(module.name));
   return from.name ? false : { name: "miPlan" };
 }

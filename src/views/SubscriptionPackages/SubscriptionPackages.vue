@@ -173,7 +173,8 @@
 <script>
 import Swal from "sweetalert2";
 import "@/styles/plans-theme.css";
-import { mapActions, mapGetters, mapState } from "vuex";
+import { mapActions, mapState } from "pinia";
+import { useSubscriptionsStore } from "@/stores/subscriptions";
 import PackageCard from "@/components/SubscriptionPackages/PackageCard.vue";
 import PackageForm from "@/components/SubscriptionPackages/PackageForm.vue";
 import PaddleSyncDialog from "@/components/SubscriptionPackages/PaddleSyncDialog.vue";
@@ -217,12 +218,7 @@ export default {
     billingOptions: BILLING_OPTIONS,
   }),
   computed: {
-    ...mapState("subscriptions", ["packages"]),
-    ...mapGetters("subscriptions", [
-      "activePackageCount",
-      "packagesWithStatus",
-      "toPlanView",
-    ]),
+    ...mapState(useSubscriptionsStore, ["packages", "activePackageCount"]),
     filterOptions() {
       const inactiveCount = this.packages.length - this.activePackageCount;
       return [
@@ -246,7 +242,8 @@ export default {
     this.loadPackageModules();
   },
   methods: {
-    ...mapActions("subscriptions", [
+    ...mapActions(useSubscriptionsStore, ["packagesWithStatus", "toPlanView"]),
+    ...mapActions(useSubscriptionsStore, [
       "loadPackages",
       "loadPackageModules",
       "setPackageActive",

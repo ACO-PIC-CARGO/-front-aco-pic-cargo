@@ -114,7 +114,8 @@
 </template>
 
 <script>
-import { mapActions, mapState } from "vuex";
+import { mapActions, mapState } from "pinia";
+import { useSubscriptionsStore } from "@/stores/subscriptions";
 
 const EMPTY_MESSAGE =
   "Aún no hay paquetes para sincronizar. Crea el primero y vuelve a verificar.";
@@ -137,7 +138,7 @@ export default {
     applying: false,
   }),
   computed: {
-    ...mapState("subscriptions", { report: "paddleSyncReport" }),
+    ...mapState(useSubscriptionsStore, { report: "paddleSyncReport" }),
     pendingCount() {
       return this.report.reduce(
         (total, item) => total + item.actions.length,
@@ -151,7 +152,7 @@ export default {
     },
   },
   methods: {
-    ...mapActions("subscriptions", ["loadPaddleSync", "applyPaddleSync"]),
+    ...mapActions(useSubscriptionsStore, ["loadPaddleSync", "applyPaddleSync"]),
     statusOf(item) {
       if (item.error) return STATUSES.error;
       return item.actions.length ? STATUSES.pending : STATUSES.synced;

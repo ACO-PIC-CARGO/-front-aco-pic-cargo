@@ -121,7 +121,8 @@
 
 <script>
 import "@/styles/plans-theme.css";
-import { mapActions, mapGetters, mapState } from "vuex";
+import { mapActions, mapState } from "pinia";
+import { useSubscriptionsStore } from "@/stores/subscriptions";
 import { notifySuccess } from "@/utils/request";
 import { stopCheckoutEvents } from "@/plugins/paddle";
 
@@ -146,11 +147,9 @@ export default {
     headers: HEADERS,
   }),
   computed: {
-    ...mapState("subscriptions", {
-      canUpdatePaymentMethod: (state) =>
-        state.billingHistory.can_update_payment_method,
-    }),
-    ...mapGetters("subscriptions", {
+    ...mapState(useSubscriptionsStore, {
+      canUpdatePaymentMethod: (store) =>
+        store.billingHistory.can_update_payment_method,
       rows: "billingRows",
       paymentCard: "paymentCard",
     }),
@@ -163,7 +162,7 @@ export default {
     stopCheckoutEvents();
   },
   methods: {
-    ...mapActions("subscriptions", [
+    ...mapActions(useSubscriptionsStore, [
       "loadBillingHistory",
       "fetchInvoiceUrl",
       "startPaymentMethodUpdate",

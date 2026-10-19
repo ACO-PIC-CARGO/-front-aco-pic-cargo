@@ -524,7 +524,8 @@
 </template>
 
 <script>
-import { mapActions, mapGetters, mapState } from "vuex";
+import { mapActions, mapState, mapStores } from "pinia";
+import { useSubscriptionsStore } from "@/stores/subscriptions";
 import PackageCard from "./PackageCard.vue";
 
 const ACCESS_OPTIONS = [
@@ -551,10 +552,10 @@ const FIELD_ORDER = [
 
 const draftField = (field) => ({
   get() {
-    return this.$store.state.subscriptions.packageDraft[field];
+    return this.subscriptionsStore.packageDraft[field];
   },
   set(value) {
-    this.$store.commit("subscriptions/SET_DRAFT_FIELD", { field, value });
+    this.subscriptionsStore.packageDraft[field] = value;
   },
 });
 
@@ -579,15 +580,13 @@ export default {
     billingOptions: BILLING_OPTIONS,
   }),
   computed: {
-    ...mapState("subscriptions", {
+    ...mapStores(useSubscriptionsStore),
+    ...mapState(useSubscriptionsStore, {
       draft: "packageDraft",
       modules: "packageModules",
-    }),
-    ...mapGetters("subscriptions", {
       errors: "packageDraftErrors",
       previewPlan: "packageDraftPreview",
       savingsHint: "packageDraftSavings",
-      canHighlight: "canHighlightFeature",
       limits: "limits",
       trialUnits: "trialUnits",
     }),
@@ -649,9 +648,13 @@ export default {
     },
   },
   methods: {
-    ...mapActions("subscriptions", ["openPackageDraft", "savePackageDraft"]),
+    ...mapActions(useSubscriptionsStore, {
+      openPackageDraft: "openPackageDraft",
+      savePackageDraft: "savePackageDraft",
+      canHighlight: "canHighlightFeature",
+    }),
     setDraft(field, value) {
-      this.$store.commit("subscriptions/SET_DRAFT_FIELD", { field, value });
+      this.subscriptionsStore.packageDraft[field] = value;
     },
     reset() {
       this.openPackageDraft(this.pkg);
@@ -680,7 +683,7 @@ export default {
       return module ? module.name : "Módulo";
     },
     onToggleModule(moduleId) {
-      this.$store.commit("subscriptions/TOGGLE_DRAFT_MODULE", moduleId);
+      this.subscriptionsStore.toggleDraftModule(moduleId);
       if (!this.isModuleSelected(this.newFeatureModuleId)) {
         this.newFeatureModuleId = null;
       }
@@ -699,7 +702,7 @@ export default {
       );
     },
     updateFeature(feature, changes) {
-      this.$store.commit("subscriptions/UPDATE_DRAFT_FEATURE", {
+      this.subscriptionsStore.updateDraftFeature({
         key: feature.key,
         changes,
       });
@@ -710,14 +713,14 @@ export default {
     addFeature() {
       const description = this.newFeatureText.trim();
       if (!description) return;
-      this.$store.commit("subscriptions/ADD_DRAFT_FEATURE", {
+      this.subscriptionsStore.addDraftFeature({
         description,
         moduleId: this.newFeatureModuleId,
       });
       this.newFeatureText = "";
     },
     removeFeature(feature) {
-      this.$store.commit("subscriptions/REMOVE_DRAFT_FEATURE", feature.key);
+      this.subscriptionsStore.removeDraftFeature(feature.key);
     },
     focusFirstError() {
       const firstInvalid = FIELD_ORDER.find(([field]) => this.errors[field]);

@@ -1,34 +1,78 @@
+import { defineStore } from "pinia";
+import { computed, ref } from "vue";
+import type { RouteRecordNameGeneric } from "vue-router";
 import Swal from "sweetalert2";
+import type { SweetAlertIcon, SweetAlertResult } from "sweetalert2";
 import moment from "moment";
 import { hasFailed, notifySuccess, request } from "@/utils/request";
 import router from "@/router";
 import { openPaddleCheckout } from "@/plugins/paddle";
+import type { PaddleCheckoutListener } from "@/plugins/paddle";
+import type { ApiResponse } from "@/types/api";
+import type { ItemMenu } from "@/types/sesion";
+import type {
+  Billing,
+  BillingEntry,
+  BillingHistory,
+  BillingRow,
+  CardAction,
+  CheckoutTransaction,
+  CompanyPlan,
+  DraftFeature,
+  InvoiceLink,
+  PackageDraft,
+  PackageDraftErrors,
+  PackageDraftField,
+  PackageFeature,
+  PackageLimits,
+  PackageModule,
+  PackagePayload,
+  PaddleSyncItem,
+  PaymentCard,
+  PlanAccess,
+  PlanChangePreview,
+  PlanCheckoutPayload,
+  PlanChoice,
+  PlanChoiceQuery,
+  PlanDetails,
+  PlanInclude,
+  PlanNotice,
+  PlanSource,
+  PlanStatusView,
+  PlanView,
+  RegistrationTrial,
+  RegistrationTrialSetting,
+  SavingsHint,
+  SubscriptionPackage,
+  TrialNotice,
+  TrialUnit,
+} from "@/types/suscripciones";
 
-const ICON_BY_MESSAGE_TYPE = { TMSGINF: "info", TMSGADV: "warning" };
+const ICON_BY_MESSAGE_TYPE: Record<string, SweetAlertIcon> = { TMSGINF: "info", TMSGADV: "warning" };
 const PENDING_PLAN_KEY = "pendingPlan";
 
-const errorOf = (response) => (hasFailed(response) ? response.mensaje : null);
+const errorOf = (response: ApiResponse): string | null => (hasFailed(response) ? response.mensaje : null);
 
-const firstRow = (response) =>
+const firstRow = <Row>(response: ApiResponse<Row[]>): Row | null =>
   (response.estadoflag && response.data[0]) || null;
-const firstValue = (response, key) => {
+const firstValue = <Row, Key extends keyof Row>(response: ApiResponse<Row[]>, key: Key): Row[Key] | null => {
   const row = firstRow(response);
   return row ? row[key] : null;
 };
 
-const notifyError = (message) => Swal.fire({ icon: "error", text: message });
-const notifyProblem = (response) =>
+const notifyError = (message: string): Promise<SweetAlertResult> => Swal.fire({ icon: "error", text: message });
+const notifyProblem = (response: ApiResponse): Promise<SweetAlertResult> =>
   Swal.fire({
     icon: ICON_BY_MESSAGE_TYPE[response.tipomensaje] || "error",
     text: response.mensaje,
   });
 
-const countLabel = (count, singular, plural) =>
+const countLabel = (count: number, singular: string, plural: string) =>
   `${count} ${count === 1 ? singular : plural}`;
 
-const roundToCents = (amount) => Math.round(amount * 100) / 100;
+const roundToCents = (amount: number) => Math.round(amount * 100) / 100;
 
-const formatPrice = (value) => {
+const formatPrice = (value: number | string): string => {
   const amount = Number(value);
   const fractionDigits = Number.isInteger(amount) ? 0 : 2;
   const formatted = amount.toLocaleString("en-US", {
@@ -38,54 +82,54 @@ const formatPrice = (value) => {
   return `US$${formatted}`;
 };
 
-const formatDate = (value) =>
+const formatDate = (value: string | null | undefined): string =>
   value ? moment.utc(value).locale("es").format("D [de] MMMM [de] YYYY") : "";
 
-const annualSavings = (pkg) =>
+const annualSavings = (pkg: PlanSource) =>
   Math.max(
     0,
     roundToCents(Number(pkg.monthly_price) * 12 - Number(pkg.annual_price))
   );
 
-const monthsSaved = (pkg) => {
+const monthsSaved = (pkg: PlanSource) => {
   const monthlyPrice = Number(pkg.monthly_price);
   return monthlyPrice > 0 ? Math.round(annualSavings(pkg) / monthlyPrice) : 0;
 };
 
-const maxMonthsSaved = (packages) => Math.max(0, ...packages.map(monthsSaved));
+const maxMonthsSavedOf = (packages: SubscriptionPackage[]) => Math.max(0, ...packages.map(monthsSaved));
 
-const moduleNames = (packages) => [
+const moduleNames = (packages: SubscriptionPackage[]) => [
   ...new Set(
     packages.flatMap((pkg) => pkg.modules.map((module) => module.name))
   ),
 ];
 
-const userLabel = (count) => countLabel(count, "usuario", "usuarios");
+const userLabel = (count: number) => countLabel(count, "usuario", "usuarios");
 
-const TRIAL_UNIT_LABELS = { day: ["día", "días"], month: ["mes", "meses"] };
+const TRIAL_UNIT_LABELS: Record<string, [string, string]> = { day: ["día", "días"], month: ["mes", "meses"] };
 
-const trialLabel = (pkg) => {
-  const units = TRIAL_UNIT_LABELS[pkg.trial_interval];
+const trialLabel = (pkg: PlanSource) => {
+  const units = TRIAL_UNIT_LABELS[pkg.trial_interval as string];
   if (!pkg.trial_enabled || !units || !pkg.trial_frequency) return null;
   return `${countLabel(Number(pkg.trial_frequency), ...units)} gratis`;
 };
 
-const moduleAccessLabel = (pkg) =>
+const moduleAccessLabel = (pkg: PlanSource) =>
   pkg.module_selection_limit
     ? `${countLabel(pkg.module_selection_limit, "módulo", "módulos")} a elegir`
     : countLabel(pkg.modules.length, "módulo incluido", "módulos incluidos");
 
-const isGeneral = (feature) => !feature.module_id;
+const isGeneral = (feature: PackageFeature) => !feature.module_id;
 
-const moduleDetails = (pkg, moduleId) =>
+const moduleDetails = (pkg: PlanSource, moduleId: number) =>
   pkg.features
     .filter((feature) => feature.module_id === moduleId)
     .map((feature) => feature.description);
 
-const withDetails = (entry, details) =>
+const withDetails = (entry: PlanInclude, details: string[]): PlanInclude =>
   details.length ? { ...entry, details } : entry;
 
-const moduleIncludes = (pkg) => {
+const moduleIncludes = (pkg: PlanSource): PlanInclude[] => {
   if (pkg.module_selection_limit) {
     const names = pkg.modules.map((module) => module.name);
     return [
@@ -108,7 +152,7 @@ const moduleIncludes = (pkg) => {
   ];
 };
 
-const toPlanView = (pkg) => {
+const toPlanView = (pkg: PlanSource): PlanView => {
   const generalFeatures = pkg.features.filter(isGeneral);
   const savings = annualSavings(pkg);
 
@@ -146,14 +190,14 @@ const NAME_MAX_LENGTH = 60;
 const TAGLINE_MAX_LENGTH = 120;
 const FEATURE_MAX_LENGTH = 160;
 
-const TRIAL_UNITS = [
+const TRIAL_UNITS: TrialUnit[] = [
   { value: "day", label: "Días", max: 365 },
   { value: "month", label: "Meses", max: 12 },
 ];
 
 let lastFeatureKey = 0;
 
-const newFeature = (description = "", moduleId = null) => {
+const newFeature = (description = "", moduleId: number | null = null): DraftFeature => {
   lastFeatureKey += 1;
   return {
     key: lastFeatureKey,
@@ -164,7 +208,7 @@ const newFeature = (description = "", moduleId = null) => {
   };
 };
 
-const emptyDraft = () => ({
+const emptyDraft = (): PackageDraft => ({
   id: null,
   name: "",
   tagline: "",
@@ -180,7 +224,7 @@ const emptyDraft = () => ({
   features: [],
 });
 
-const draftFromPackage = (pkg) => ({
+const draftFromPackage = (pkg: SubscriptionPackage): PackageDraft => ({
   id: pkg.id,
   name: pkg.name,
   tagline: pkg.tagline || "",
@@ -200,26 +244,26 @@ const draftFromPackage = (pkg) => ({
   })),
 });
 
-const canBeHighlighted = (feature) => !feature.moduleId && feature.isIncluded;
+const canBeHighlighted = (feature: DraftFeature) => !feature.moduleId && feature.isIncluded;
 
-const isShownHighlighted = (feature) =>
+const isShownHighlighted = (feature: DraftFeature) =>
   canBeHighlighted(feature) && feature.isHighlighted;
 
-const highlightedCount = (features) =>
+const highlightedCount = (features: DraftFeature[]) =>
   features.filter(isShownHighlighted).length;
 
-const isBlank = (text) => !String(text || "").trim();
+const isBlank = (text: string | number | null | undefined) => !String(text || "").trim();
 
-const isValidPrice = (value) => !isBlank(value) && Number(value) >= 0;
+const isValidPrice = (value: string) => !isBlank(value) && Number(value) >= 0;
 
-const nameError = (name) => {
+const nameError = (name: string) => {
   if (isBlank(name)) return "Escribe el nombre del paquete.";
   if (name.trim().length > NAME_MAX_LENGTH)
     return `Usa un nombre de hasta ${NAME_MAX_LENGTH} caracteres.`;
   return null;
 };
 
-const featuresError = (features) => {
+const featuresError = (features: DraftFeature[]) => {
   if (features.some((feature) => isBlank(feature.description))) {
     return "Escribe el texto de cada característica o quítala.";
   }
@@ -236,7 +280,7 @@ const featuresError = (features) => {
   return null;
 };
 
-const modulesErrors = (draft) => {
+const modulesErrors = (draft: PackageDraft): PackageDraftErrors => {
   if (!draft.moduleIds.length)
     return { moduleIds: "Elige al menos un módulo para el paquete." };
   if (
@@ -251,7 +295,7 @@ const modulesErrors = (draft) => {
   return {};
 };
 
-const trialLengthError = (draft) => {
+const trialLengthError = (draft: PackageDraft) => {
   const unit = TRIAL_UNITS.find((item) => item.value === draft.trialInterval);
   if (!unit || isBlank(draft.trialFrequency))
     return "Elige la duración del periodo de prueba.";
@@ -263,18 +307,18 @@ const trialLengthError = (draft) => {
   return null;
 };
 
-const trialError = (draft) =>
+const trialError = (draft: PackageDraft) =>
   draft.trialEnabled ? trialLengthError(draft) : null;
 
-const registrationTrialDaysError = (value) => {
+const registrationTrialDaysErrorOf = (value: number | string) => {
   const days = Number(value);
   return isBlank(value) || !Number.isInteger(days) || days < 1 || days > 365
     ? "Escribe entre 1 y 365 días."
     : null;
 };
 
-const validateDraft = (draft) => {
-  const errors = {
+const validateDraft = (draft: PackageDraft): PackageDraftErrors => {
+  const errors: Partial<Record<PackageDraftField, string | null>> = {
     name: nameError(draft.name),
     tagline:
       draft.tagline.trim().length > TAGLINE_MAX_LENGTH
@@ -297,17 +341,17 @@ const validateDraft = (draft) => {
 
   return Object.fromEntries(
     Object.entries(errors).filter(([, message]) => message)
-  );
+  ) as PackageDraftErrors;
 };
 
-const toFeaturePayload = (feature) => ({
+const toFeaturePayload = (feature: DraftFeature): PackageFeature => ({
   description: feature.description.trim(),
   module_id: feature.moduleId,
   is_included: feature.moduleId ? true : feature.isIncluded,
   is_highlighted: isShownHighlighted(feature),
 });
 
-const toPayload = (draft) => ({
+const toPayload = (draft: PackageDraft): PackagePayload => ({
   name: draft.name.trim(),
   tagline: draft.tagline.trim() || null,
   monthly_price: Number(draft.monthlyPrice),
@@ -324,7 +368,7 @@ const toPayload = (draft) => ({
   features: draft.features.map(toFeaturePayload),
 });
 
-const draftToPackage = (draft, modules) => {
+const draftToPackage = (draft: PackageDraft, modules: PackageModule[]): PlanSource => {
   const payload = toPayload(draft);
   return {
     ...payload,
@@ -338,12 +382,12 @@ const draftToPackage = (draft, modules) => {
   };
 };
 
-const clampSelectionLimit = (selectionLimit, moduleCount) => {
+const clampSelectionLimit = (selectionLimit: number | null, moduleCount: number) => {
   if (selectionLimit === null || moduleCount < 2) return null;
   return Math.min(selectionLimit, moduleCount - 1);
 };
 
-const removeModule = (draft, moduleId) => {
+const removeModule = (draft: PackageDraft, moduleId: number): PackageDraft => {
   const moduleIds = draft.moduleIds.filter((id) => id !== moduleId);
   return {
     ...draft,
@@ -355,12 +399,12 @@ const removeModule = (draft, moduleId) => {
   };
 };
 
-const toggleModule = (draft, moduleId) =>
+const toggleModule = (draft: PackageDraft, moduleId: number): PackageDraft =>
   draft.moduleIds.includes(moduleId)
     ? removeModule(draft, moduleId)
     : { ...draft, moduleIds: [...draft.moduleIds, moduleId] };
 
-const savingsHint = (draft) => {
+const savingsHint = (draft: PackageDraft): SavingsHint | null => {
   const monthly = Number(draft.monthlyPrice);
   const annual = Number(draft.annualPrice);
   if (!draft.monthlyPrice || !draft.annualPrice || monthly <= 0) return null;
@@ -382,7 +426,7 @@ const savingsHint = (draft) => {
   };
 };
 
-const PLAN_STATUS_VIEW = {
+const PLAN_STATUS_VIEW: Record<string, PlanStatusView> = {
   active: { label: "Activo", tone: "ok" },
   trialing: { label: "En prueba", tone: "ok" },
   past_due: { label: "Pago pendiente", tone: "warning" },
@@ -390,19 +434,19 @@ const PLAN_STATUS_VIEW = {
   canceled: { label: "Cancelado", tone: "muted" },
 };
 
-const BILLING_BY_QUERY = { mensual: "monthly", anual: "annual" };
+const BILLING_BY_QUERY: Record<string, Billing> = { mensual: "monthly", anual: "annual" };
 
-const isLivePlan = (plan) => Boolean(plan) && plan.status !== "canceled";
+const isLivePlan = (plan: CompanyPlan | null): plan is CompanyPlan => Boolean(plan) && plan!.status !== "canceled";
 
-const statusView = (plan) => {
-  if (!plan) return PLAN_STATUS_VIEW.canceled;
+const statusView = (plan: CompanyPlan | null): PlanStatusView => {
+  if (!plan) return PLAN_STATUS_VIEW.canceled!;
   if (plan.scheduled_change_action === "cancel" && plan.status !== "canceled") {
     return { label: "Cancelación programada", tone: "warning" };
   }
   return PLAN_STATUS_VIEW[plan.status] || { label: plan.status, tone: "muted" };
 };
 
-const planDateLine = (plan) => {
+const planDateLineOf = (plan: CompanyPlan) => {
   if (plan.status === "canceled")
     return `Cancelado el ${formatDate(plan.canceled_at)}.`;
   if (plan.scheduled_change_action === "cancel") {
@@ -421,35 +465,35 @@ const planDateLine = (plan) => {
   return `Próxima renovación: ${formatDate(plan.next_billed_at)}.`;
 };
 
-const readStoredChoice = () => {
+const readStoredChoice = (): PlanChoice | null => {
   try {
-    const stored = JSON.parse(localStorage.getItem(PENDING_PLAN_KEY));
+    const stored = JSON.parse(localStorage.getItem(PENDING_PLAN_KEY) as string);
     return stored && stored.packageId ? stored : null;
-  } catch (error) {
+  } catch {
     return null;
   }
 };
 
-const readPendingChoice = (query) => {
+const readPendingChoice = (query: PlanChoiceQuery): PlanChoice | null => {
   if (query.paquete) {
     return {
       packageId: Number(query.paquete),
-      billing: BILLING_BY_QUERY[query.ciclo] || "monthly",
+      billing: BILLING_BY_QUERY[query.ciclo as string] || "monthly",
     };
   }
   return readStoredChoice();
 };
 
 const CHANGEABLE_STATUSES = ["active", "trialing"];
-const PERIOD_BY_BILLING = { monthly: "al mes", annual: "al año" };
+const PERIOD_BY_BILLING: Record<Billing, string> = { monthly: "al mes", annual: "al año" };
 
-const canChangePlan = (plan) =>
-  Boolean(plan) && CHANGEABLE_STATUSES.includes(plan.status);
+const canChangePlanOf = (plan: CompanyPlan | null) =>
+  Boolean(plan) && CHANGEABLE_STATUSES.includes(plan!.status);
 
-const UNAVAILABLE_ACTIONS = ["current", "lower", "annual-only"];
-const UPGRADE_ACTIONS = ["change", "change-module"];
+const UNAVAILABLE_ACTIONS: CardAction[] = ["current", "lower", "annual-only"];
+const UPGRADE_ACTIONS: CardAction[] = ["change", "change-module"];
 
-const isCheaper = (pkg, plan, currentPackage) => {
+const isCheaper = (pkg: SubscriptionPackage, plan: CompanyPlan, currentPackage: SubscriptionPackage | undefined) => {
   const currentPrice = currentPackage
     ? currentPackage.monthly_price
     : plan.package_monthly_price;
@@ -458,7 +502,12 @@ const isCheaper = (pkg, plan, currentPackage) => {
   );
 };
 
-const cardAction = (pkg, plan, billing, currentPackage) => {
+const cardActionOf = (
+  pkg: SubscriptionPackage,
+  plan: CompanyPlan | null,
+  billing: Billing,
+  currentPackage: SubscriptionPackage | undefined,
+): CardAction => {
   if (!plan) return "change";
   if (isCheaper(pkg, plan, currentPackage)) return "lower";
   if (pkg.id !== plan.package_id) return "change";
@@ -467,27 +516,32 @@ const cardAction = (pkg, plan, billing, currentPackage) => {
   return pkg.module_selection_limit ? "change-module" : "current";
 };
 
-const isUnavailableAction = (action) => UNAVAILABLE_ACTIONS.includes(action);
+const isUnavailableAction = (action: CardAction): boolean => UNAVAILABLE_ACTIONS.includes(action);
 
-const currentPackageOf = (plan, packages) =>
+const currentPackageOf = (plan: CompanyPlan | null, packages: SubscriptionPackage[]) =>
   plan ? packages.find((pkg) => pkg.id === plan.package_id) : undefined;
 
-const hasUpgrade = (plan, packages) => {
+const hasUpgradeOf = (plan: CompanyPlan | null, packages: SubscriptionPackage[]) => {
   const currentPackage = currentPackageOf(plan, packages);
   return packages.some((pkg) =>
-    ["monthly", "annual"].some((billing) =>
-      UPGRADE_ACTIONS.includes(cardAction(pkg, plan, billing, currentPackage))
+    (["monthly", "annual"] as const).some((billing) =>
+      UPGRADE_ACTIONS.includes(cardActionOf(pkg, plan, billing, currentPackage))
     )
   );
 };
 
-const purchaseAction = (pkg, plan, billing, currentPackage) => {
+const purchaseActionOf = (
+  pkg: SubscriptionPackage,
+  plan: CompanyPlan | null,
+  billing: Billing,
+  currentPackage: SubscriptionPackage | undefined,
+): CardAction => {
   if (!isLivePlan(plan)) return "buy";
-  if (!canChangePlan(plan)) return "manage";
-  return cardAction(pkg, plan, billing, currentPackage);
+  if (!canChangePlanOf(plan)) return "manage";
+  return cardActionOf(pkg, plan, billing, currentPackage);
 };
 
-const changeSummary = (preview) => {
+const changeSummary = (preview: PlanChangePreview): string => {
   const recurring = `${formatPrice(preview.recurring_amount)} ${
     PERIOD_BY_BILLING[preview.billing]
   } desde el ${formatDate(preview.next_billed_at)}`;
@@ -507,25 +561,34 @@ const changeSummary = (preview) => {
 
 const DAY_MS = 24 * 60 * 60 * 1000;
 
-const daysUntil = (value, now) =>
-  Math.max(0, Math.ceil((Date.parse(value) - now) / DAY_MS) || 0);
+const daysUntil = (value: string | null | undefined, now: number) =>
+  Math.max(0, Math.ceil((Date.parse(value as string) - now) / DAY_MS) || 0);
 
-const NO_NOTICE = { days: null, ended: false, canBuy: false, paidText: null };
+const NO_NOTICE: TrialNotice = { days: null, ended: false, canBuy: false, paidText: null };
 const ACO_BRANCH_ID = 1;
 
-const registrationTrialNotice = (registrationTrial, canBuy, now) => {
+const registrationTrialNotice = (
+  registrationTrial: RegistrationTrial | null,
+  canBuy: boolean,
+  now: number,
+): TrialNotice | null => {
   const notice = { ...NO_NOTICE, canBuy };
   if (!registrationTrial) return canBuy ? notice : null;
   const days = daysUntil(registrationTrial.ends_at, now);
   return days > 0 ? { ...notice, days } : { ...notice, ended: true };
 };
 
-const trialNotice = ({
+const trialNoticeOf = ({
   plan,
   registrationTrial,
   branchId,
   now = Date.now(),
-}) => {
+}: {
+  plan: CompanyPlan | null;
+  registrationTrial: RegistrationTrial | null;
+  branchId: unknown;
+  now?: number;
+}): TrialNotice | null => {
   if (!isLivePlan(plan)) {
     const canBuy = Number(branchId) !== ACO_BRANCH_ID;
     return registrationTrialNotice(registrationTrial, canBuy, now);
@@ -541,15 +604,15 @@ const trialNotice = ({
   return null;
 };
 
-const paymentUpdateNeeded = (plan) =>
+const paymentUpdateNeededOf = (plan: CompanyPlan) =>
   plan.status === "past_due" && plan.scheduled_change_action !== "cancel";
 
-const featureDescriptions = (features, moduleId) =>
+const featureDescriptions = (features: PackageFeature[], moduleId: number | null) =>
   features
     .filter((feature) => feature.module_id === moduleId)
     .map((feature) => feature.description);
 
-const planDetails = (plan) => {
+const planDetailsOf = (plan: CompanyPlan | null): PlanDetails => {
   const features = (plan && plan.features) || [];
   return {
     users:
@@ -565,42 +628,49 @@ const planDetails = (plan) => {
   };
 };
 
-const routesOf = (node) =>
+const routesOf = (node: ItemMenu): PropertyKey[] =>
   (node.children || [])
     .flatMap((child) => [child.route, ...routesOf(child)])
-    .filter(Boolean);
+    .filter(Boolean) as PropertyKey[];
 
-const modulesForRoute = (menuTree, routeName) =>
+const modulesForRoute = (
+  menuTree: ItemMenu[] | null | undefined,
+  routeName: RouteRecordNameGeneric | null | undefined,
+): PackageModule[] =>
   routeName
     ? (menuTree || [])
         .filter((node) => routesOf(node).includes(routeName))
         .map((node) => ({ id: node.id, name: node.name }))
     : [];
 
-const isModuleLocked = (access, moduleId) =>
+const isModuleLocked = (access: PlanAccess | null, moduleId: number) =>
   Boolean(access && access.has_plan) &&
-  (access.locked_module_ids || []).includes(moduleId);
+  (access!.locked_module_ids || []).includes(moduleId);
 
-const lockedModuleForRoute = (menuTree, routeName, access) => {
+const lockedModuleForRouteOf = (
+  menuTree: ItemMenu[] | null | undefined,
+  routeName: RouteRecordNameGeneric | null | undefined,
+  access: PlanAccess | null,
+): PackageModule | null => {
   const modules = modulesForRoute(menuTree, routeName);
   return modules.length &&
     modules.every((module) => isModuleLocked(access, module.id))
-    ? modules[0]
+    ? modules[0]!
     : null;
 };
 
-const canAddUsers = (access) =>
+const canAddUsersOf = (access: PlanAccess | null) =>
   !access || !access.has_plan || Boolean(access.can_add_users);
 
-const STOPPED_PLAN_TEXT = {
+const STOPPED_PLAN_TEXT: Record<string, (plan: string | null, next: string) => string> = {
   canceled: (plan, next) =>
     `Tu plan ACO ${plan} está cancelado. Elige un plan para ${next}.`,
   paused: (plan) =>
     `Tu plan ACO ${plan} está pausado. Revisa Mi plan para reactivarlo.`,
 };
 
-const lockedModuleNotice = (access, moduleName) => {
-  const stopped = STOPPED_PLAN_TEXT[access.plan_status];
+const lockedModuleNoticeOf = (access: PlanAccess, moduleName: string): PlanNotice => {
+  const stopped = STOPPED_PLAN_TEXT[access.plan_status as string];
   if (stopped) {
     return {
       title: `${moduleName} no está disponible`,
@@ -613,8 +683,8 @@ const lockedModuleNotice = (access, moduleName) => {
   };
 };
 
-const userLimitNotice = (access) => {
-  const stopped = STOPPED_PLAN_TEXT[access.plan_status];
+const userLimitNoticeOf = (access: PlanAccess): PlanNotice => {
+  const stopped = STOPPED_PLAN_TEXT[access.plan_status as string];
   if (stopped) {
     return {
       title: "No puedes agregar usuarios",
@@ -624,29 +694,29 @@ const userLimitNotice = (access) => {
   return {
     title: "Llegaste al límite de usuarios",
     text: `Tu plan ACO ${access.package_name} permite ${userLabel(
-      access.user_limit
+      access.user_limit as number
     )} y tu empresa ya tiene ${
       access.user_count
     }. Mejora tu plan para agregar más.`,
   };
 };
 
-const CONCEPT_BY_ORIGIN = {
+const CONCEPT_BY_ORIGIN: Record<string, string> = {
   subscription_recurring: "Renovación",
   subscription_update: "Cambio a",
 };
-const BILLING_LABELS = { monthly: "Mensual", annual: "Anual" };
-const PAID = { label: "Pagado", tone: "ok" };
-const BILLING_STATUS_VIEW = {
+const BILLING_LABELS: Record<Billing, string> = { monthly: "Mensual", annual: "Anual" };
+const PAID: PlanStatusView = { label: "Pagado", tone: "ok" };
+const BILLING_STATUS_VIEW: Record<string, PlanStatusView> = {
   completed: PAID,
   paid: PAID,
   billed: { label: "Facturado", tone: "info" },
   past_due: { label: "Pago pendiente", tone: "warning" },
   canceled: { label: "Cancelado", tone: "muted" },
 };
-const REFUNDED = { label: "Reembolsado", tone: "muted" };
-const PARTLY_REFUNDED = { label: "Reembolso parcial", tone: "info" };
-const CARD_BRANDS = {
+const REFUNDED: PlanStatusView = { label: "Reembolsado", tone: "muted" };
+const PARTLY_REFUNDED: PlanStatusView = { label: "Reembolso parcial", tone: "info" };
+const CARD_BRANDS: Record<string, string> = {
   visa: "Visa",
   mastercard: "Mastercard",
   american_express: "American Express",
@@ -656,20 +726,20 @@ const CARD_BRANDS = {
   maestro: "Maestro",
   union_pay: "UnionPay",
 };
-const NO_HISTORY = {
+const NO_HISTORY: BillingHistory = {
   transactions: [],
   payment_method: null,
   can_update_payment_method: false,
 };
 
-const conceptOf = (entry) => {
+const conceptOf = (entry: BillingEntry) => {
   const name = `${CONCEPT_BY_ORIGIN[entry.origin] || "Compra"} ${
     entry.product_name
   }`;
   return entry.billing ? `${name} · ${BILLING_LABELS[entry.billing]}` : name;
 };
 
-const amountOf = (entry) => {
+const amountOf = (entry: BillingEntry) => {
   const amount = Number(entry.total) / 100;
   if (entry.currency_code === "USD") return formatPrice(amount);
   return new Intl.NumberFormat("es", {
@@ -678,7 +748,7 @@ const amountOf = (entry) => {
   }).format(amount);
 };
 
-const statusOf = (entry) => {
+const statusOf = (entry: BillingEntry) => {
   const total = Number(entry.total);
   const adjusted = Number(entry.adjusted_total);
   const status = BILLING_STATUS_VIEW[entry.status];
@@ -686,9 +756,9 @@ const statusOf = (entry) => {
   return adjusted > 0 ? PARTLY_REFUNDED : REFUNDED;
 };
 
-const billingRows = (entries) =>
+const billingRowsOf = (entries: BillingEntry[]): BillingRow[] =>
   entries.map((entry) => {
-    const status = statusOf(entry);
+    const status = statusOf(entry)!;
     return {
       id: entry.id,
       date: formatDate(entry.billed_at),
@@ -700,187 +770,151 @@ const billingRows = (entries) =>
     };
   });
 
-const cardLabel = (paymentMethod) => {
+const cardLabel = (paymentMethod: PaymentCard | null) => {
   if (!paymentMethod) return null;
   const brand = CARD_BRANDS[paymentMethod.brand] || "Tarjeta";
   const month = String(paymentMethod.expiry_month).padStart(2, "0");
   return `${brand} terminada en ${paymentMethod.last4} · vence ${month}/${paymentMethod.expiry_year}`;
 };
 
-let pendingAccess = null;
+export const useSubscriptionsStore = defineStore("subscriptions", () => {
+  let pendingAccess: Promise<PlanAccess | null> | null = null;
 
-const initialState = () => ({
-  packages: [],
-  publicPackages: [],
-  packageModules: [],
-  packageDraft: emptyDraft(),
-  paddleSyncReport: [],
-  registrationTrialDays: "",
-  plan: null,
-  registrationTrial: null,
-  access: null,
-  billingHistory: { ...NO_HISTORY, transactions: [] },
-});
+  const packages = ref<SubscriptionPackage[]>([]);
+  const publicPackages = ref<SubscriptionPackage[]>([]);
+  const packageModules = ref<PackageModule[]>([]);
+  const packageDraft = ref<PackageDraft>(emptyDraft());
+  const paddleSyncReport = ref<PaddleSyncItem[]>([]);
+  const registrationTrialDays = ref<number | string>("");
+  const plan = ref<CompanyPlan | null>(null);
+  const registrationTrial = ref<RegistrationTrial | null>(null);
+  const access = ref<PlanAccess | null>(null);
+  const billingHistory = ref<BillingHistory>({ ...NO_HISTORY, transactions: [] });
 
-const getters = {
-  formatPrice: () => formatPrice,
-  formatDate: () => formatDate,
-  toPlanView: () => toPlanView,
-  limits: () => ({
+  const limits = computed<PackageLimits>(() => ({
     name: NAME_MAX_LENGTH,
     tagline: TAGLINE_MAX_LENGTH,
     feature: FEATURE_MAX_LENGTH,
     highlights: MAX_HIGHLIGHTS,
-  }),
-  trialUnits: () => TRIAL_UNITS,
-  planViews: (state) => state.publicPackages.map(toPlanView),
-  moduleLine: (state) => moduleNames(state.publicPackages).join(" · "),
-  maxMonthsSaved: (state) => maxMonthsSaved(state.publicPackages),
-  activePackageCount: (state) =>
-    state.packages.filter((pkg) => pkg.is_active).length,
-  packagesWithStatus: (state) => (status) =>
-    status === "all"
-      ? state.packages
-      : state.packages.filter((pkg) => pkg.is_active === (status === "active")),
-  packageDraftErrors: (state) => validateDraft(state.packageDraft),
-  packageDraftPayload: (state) => toPayload(state.packageDraft),
-  packageDraftPreview: (state) =>
+  }));
+  const trialUnits = computed(() => TRIAL_UNITS);
+  const planViews = computed(() => publicPackages.value.map(toPlanView));
+  const moduleLine = computed(() => moduleNames(publicPackages.value).join(" · "));
+  const maxMonthsSaved = computed(() => maxMonthsSavedOf(publicPackages.value));
+  const activePackageCount = computed(
+    () => packages.value.filter((pkg) => pkg.is_active).length,
+  );
+  const packageDraftErrors = computed(() => validateDraft(packageDraft.value));
+  const packageDraftPayload = computed(() => toPayload(packageDraft.value));
+  const packageDraftPreview = computed(() =>
     toPlanView({
-      ...draftToPackage(state.packageDraft, state.packageModules),
-      name: state.packageDraft.name.trim() || "NUEVO",
+      ...draftToPackage(packageDraft.value, packageModules.value),
+      name: packageDraft.value.name.trim() || "NUEVO",
     }),
-  packageDraftSavings: (state) => savingsHint(state.packageDraft),
-  canHighlightFeature: (state) => (feature) =>
-    canBeHighlighted(feature) &&
-    (feature.isHighlighted ||
-      highlightedCount(state.packageDraft.features) < MAX_HIGHLIGHTS),
-  registrationTrialDaysError: (state) =>
-    registrationTrialDaysError(state.registrationTrialDays),
-  hasLivePlan: (state) => isLivePlan(state.plan),
-  livePlan: (state) => (isLivePlan(state.plan) ? state.plan : null),
-  planStatus: (state) => statusView(state.plan),
-  planDateLine: (state) => (state.plan ? planDateLine(state.plan) : ""),
-  canChangePlan: (state) => canChangePlan(state.plan),
-  currentPackage: (state) => currentPackageOf(state.plan, state.publicPackages),
-  hasUpgrade: (state) => hasUpgrade(state.plan, state.publicPackages),
-  planDetails: (state) => planDetails(state.plan),
-  paymentUpdateNeeded: (state) =>
-    Boolean(state.plan) && paymentUpdateNeeded(state.plan),
-  cardAction: (state, getters) => (pkg, billing) =>
-    cardAction(pkg, state.plan, billing, getters.currentPackage),
-  purchaseAction: (state, getters) => (pkg, billing) =>
-    purchaseAction(pkg, state.plan, billing, getters.currentPackage),
-  isUnavailableAction: () => isUnavailableAction,
-  changeSummary: () => changeSummary,
-  trialNotice:
-    (state) =>
-    ({ branchId, now }) =>
-      trialNotice({
-        plan: state.plan,
-        registrationTrial: state.registrationTrial,
-        branchId,
-        now,
-      }),
-  modulesForRoute: () => modulesForRoute,
-  lockedModuleForRoute: (state) => (menuTree, routeName) =>
-    lockedModuleForRoute(menuTree, routeName, state.access),
-  lockedModuleNotice: (state) => (moduleName) =>
-    lockedModuleNotice(state.access, moduleName),
-  canAddUsers: (state) => canAddUsers(state.access),
-  userLimitNotice: (state) => userLimitNotice(state.access),
-  billingRows: (state) => billingRows(state.billingHistory.transactions),
-  paymentCard: (state) => cardLabel(state.billingHistory.payment_method),
-};
+  );
+  const packageDraftSavings = computed(() => savingsHint(packageDraft.value));
+  const registrationTrialDaysError = computed(() =>
+    registrationTrialDaysErrorOf(registrationTrialDays.value),
+  );
+  const hasLivePlan = computed(() => isLivePlan(plan.value));
+  const livePlan = computed(() => (isLivePlan(plan.value) ? plan.value : null));
+  const planStatus = computed(() => statusView(plan.value));
+  const planDateLine = computed(() => (plan.value ? planDateLineOf(plan.value) : ""));
+  const canChangePlan = computed(() => canChangePlanOf(plan.value));
+  const currentPackage = computed(() => currentPackageOf(plan.value, publicPackages.value));
+  const hasUpgrade = computed(() => hasUpgradeOf(plan.value, publicPackages.value));
+  const planDetails = computed(() => planDetailsOf(plan.value));
+  const paymentUpdateNeeded = computed(
+    () => Boolean(plan.value) && paymentUpdateNeededOf(plan.value!),
+  );
+  const canAddUsers = computed(() => canAddUsersOf(access.value));
+  const userLimitNotice = computed(() => userLimitNoticeOf(access.value!));
+  const billingRows = computed(() => billingRowsOf(billingHistory.value.transactions));
+  const paymentCard = computed(() => cardLabel(billingHistory.value.payment_method));
 
-const mutations = {
-  RESET_STATE(state) {
-    Object.assign(state, initialState());
-  },
-  SET_PACKAGES(state, packages) {
-    state.packages = packages;
-  },
-  SET_PACKAGE_ACTIVE(state, { id, isActive }) {
-    const pkg = state.packages.find((item) => item.id === id);
-    if (pkg) pkg.is_active = isActive;
-  },
-  SET_PUBLIC_PACKAGES(state, packages) {
-    state.publicPackages = packages;
-  },
-  SET_PACKAGE_MODULES(state, modules) {
-    state.packageModules = modules;
-  },
-  SET_PACKAGE_DRAFT(state, draft) {
-    state.packageDraft = draft;
-  },
-  SET_DRAFT_FIELD(state, { field, value }) {
-    state.packageDraft[field] = value;
-  },
-  TOGGLE_DRAFT_MODULE(state, moduleId) {
-    state.packageDraft = toggleModule(state.packageDraft, moduleId);
-  },
-  ADD_DRAFT_FEATURE(state, { description, moduleId }) {
-    state.packageDraft.features.push(newFeature(description, moduleId));
-  },
-  UPDATE_DRAFT_FEATURE(state, { key, changes }) {
-    const feature = state.packageDraft.features.find(
-      (item) => item.key === key
-    );
-    if (feature) Object.assign(feature, changes);
-  },
-  REMOVE_DRAFT_FEATURE(state, key) {
-    state.packageDraft.features = state.packageDraft.features.filter(
-      (item) => item.key !== key
-    );
-  },
-  SET_PADDLE_SYNC_REPORT(state, report) {
-    state.paddleSyncReport = report;
-  },
-  SET_REGISTRATION_TRIAL_DAYS(state, days) {
-    state.registrationTrialDays = days;
-  },
-  SET_PLAN(state, plan) {
-    state.plan = plan;
-  },
-  SET_REGISTRATION_TRIAL(state, registrationTrial) {
-    state.registrationTrial = registrationTrial;
-  },
-  SET_ACCESS(state, access) {
-    state.access = access;
-  },
-  SET_BILLING_HISTORY(state, history) {
-    state.billingHistory = history;
-  },
-};
+  function packagesWithStatus(status: string): SubscriptionPackage[] {
+    return status === "all"
+      ? packages.value
+      : packages.value.filter((pkg) => pkg.is_active === (status === "active"));
+  }
 
-const actions = {
-  resetSession({ commit }) {
+  function canHighlightFeature(feature: DraftFeature): boolean {
+    return (
+      canBeHighlighted(feature) &&
+      (feature.isHighlighted ||
+        highlightedCount(packageDraft.value.features) < MAX_HIGHLIGHTS)
+    );
+  }
+
+  function cardAction(pkg: SubscriptionPackage, billing: Billing): CardAction {
+    return cardActionOf(pkg, plan.value, billing, currentPackage.value);
+  }
+
+  function purchaseAction(pkg: SubscriptionPackage, billing: Billing): CardAction {
+    return purchaseActionOf(pkg, plan.value, billing, currentPackage.value);
+  }
+
+  function trialNotice({ branchId, now }: { branchId: unknown; now?: number }): TrialNotice | null {
+    return trialNoticeOf({
+      plan: plan.value,
+      registrationTrial: registrationTrial.value,
+      branchId,
+      now,
+    });
+  }
+
+  function lockedModuleForRoute(
+    menuTree: ItemMenu[] | null | undefined,
+    routeName: RouteRecordNameGeneric | null | undefined,
+  ): PackageModule | null {
+    return lockedModuleForRouteOf(menuTree, routeName, access.value);
+  }
+
+  function lockedModuleNotice(moduleName: string): PlanNotice {
+    return lockedModuleNoticeOf(access.value!, moduleName);
+  }
+
+  function resetSession(): void {
     pendingAccess = null;
-    commit("RESET_STATE");
-  },
-  async loadPackages({ commit }) {
-    const response = await request({
+    packages.value = [];
+    publicPackages.value = [];
+    packageModules.value = [];
+    packageDraft.value = emptyDraft();
+    paddleSyncReport.value = [];
+    registrationTrialDays.value = "";
+    plan.value = null;
+    registrationTrial.value = null;
+    access.value = null;
+    billingHistory.value = { ...NO_HISTORY, transactions: [] };
+  }
+
+  async function loadPackages(): Promise<string | null> {
+    const response = await request<SubscriptionPackage>({
       method: "get",
       url: "subscription_packages",
     });
-    if (!hasFailed(response)) commit("SET_PACKAGES", response.data);
+    if (!hasFailed(response)) packages.value = response.data;
     return errorOf(response);
-  },
-  async loadPublicPackages({ commit }) {
-    const response = await request({
+  }
+
+  async function loadPublicPackages(): Promise<string | null> {
+    const response = await request<SubscriptionPackage>({
       method: "get",
       url: "public/subscription_packages",
     });
-    if (!hasFailed(response)) commit("SET_PUBLIC_PACKAGES", response.data);
+    if (!hasFailed(response)) publicPackages.value = response.data;
     return errorOf(response);
-  },
-  async loadPackageModules({ commit }) {
-    const response = await request({
+  }
+
+  async function loadPackageModules(): Promise<void> {
+    const response = await request<PackageModule>({
       method: "get",
       url: "subscription_package_modules",
     });
-    commit("SET_PACKAGE_MODULES", response.estadoflag ? response.data : []);
-  },
-  async setPackageActive({ commit }, { id, isActive }) {
+    packageModules.value = response.estadoflag ? response.data : [];
+  }
+
+  async function setPackageActive({ id, isActive }: { id: number; isActive: boolean }): Promise<boolean> {
     const response = await request({
       method: "patch",
       url: `subscription_packages/${id}/status`,
@@ -890,102 +924,135 @@ const actions = {
       notifyError(response.mensaje);
       return false;
     }
-    commit("SET_PACKAGE_ACTIVE", { id, isActive });
+    const pkg = packages.value.find((item) => item.id === id);
+    if (pkg) pkg.is_active = isActive;
     notifySuccess(response.mensaje);
     return true;
-  },
-  openPackageDraft({ commit }, pkg) {
-    commit("SET_PACKAGE_DRAFT", pkg ? draftFromPackage(pkg) : emptyDraft());
-  },
-  async savePackageDraft({ state, getters }) {
-    const { id } = state.packageDraft;
+  }
+
+  function openPackageDraft(pkg: SubscriptionPackage | null): void {
+    packageDraft.value = pkg ? draftFromPackage(pkg) : emptyDraft();
+  }
+
+  function toggleDraftModule(moduleId: number): void {
+    packageDraft.value = toggleModule(packageDraft.value, moduleId);
+  }
+
+  function addDraftFeature({ description, moduleId }: { description: string; moduleId: number | null }): void {
+    packageDraft.value.features.push(newFeature(description, moduleId));
+  }
+
+  function updateDraftFeature({ key, changes }: { key: number; changes: Partial<DraftFeature> }): void {
+    const feature = packageDraft.value.features.find(
+      (item) => item.key === key
+    );
+    if (feature) Object.assign(feature, changes);
+  }
+
+  function removeDraftFeature(key: number): void {
+    packageDraft.value.features = packageDraft.value.features.filter(
+      (item) => item.key !== key
+    );
+  }
+
+  async function savePackageDraft(): Promise<ApiResponse<unknown[]>> {
+    const { id } = packageDraft.value;
     const response = await request({
       method: id ? "put" : "post",
       url: id ? `subscription_packages/${id}` : "subscription_packages",
-      data: getters.packageDraftPayload,
+      data: packageDraftPayload.value,
     });
     if (response.estadoflag) notifySuccess(response.mensaje);
     return response;
-  },
-  async loadPaddleSync({ commit }) {
-    const response = await request({
+  }
+
+  async function loadPaddleSync(): Promise<ApiResponse<PaddleSyncItem[]>> {
+    const response = await request<PaddleSyncItem>({
       method: "get",
       url: "subscription_packages/paddle_sync",
     });
-    if (!hasFailed(response)) commit("SET_PADDLE_SYNC_REPORT", response.data);
+    if (!hasFailed(response)) paddleSyncReport.value = response.data;
     return response;
-  },
-  async applyPaddleSync({ commit }) {
-    const response = await request({
+  }
+
+  async function applyPaddleSync(): Promise<ApiResponse<PaddleSyncItem[]>> {
+    const response = await request<PaddleSyncItem>({
       method: "post",
       url: "subscription_packages/paddle_sync",
     });
-    if (response.data.length) commit("SET_PADDLE_SYNC_REPORT", response.data);
+    if (response.data.length) paddleSyncReport.value = response.data;
     if (response.estadoflag && response.data.length)
       notifySuccess(response.mensaje);
     return response;
-  },
-  async loadRegistrationTrialSetting({ commit }) {
-    const response = await request({
+  }
+
+  async function loadRegistrationTrialSetting(): Promise<string | null> {
+    const response = await request<RegistrationTrialSetting>({
       method: "get",
       url: "registration_trial_setting",
     });
     if (!response.estadoflag) return response.mensaje;
-    commit("SET_REGISTRATION_TRIAL_DAYS", response.data[0].trial_days);
+    registrationTrialDays.value = response.data[0]!.trial_days;
     return null;
-  },
-  async saveRegistrationTrialSetting({ state, commit }) {
-    const response = await request({
+  }
+
+  async function saveRegistrationTrialSetting(): Promise<boolean> {
+    const response = await request<RegistrationTrialSetting>({
       method: "put",
       url: "registration_trial_setting",
-      data: { trial_days: Number(state.registrationTrialDays) },
+      data: { trial_days: Number(registrationTrialDays.value) },
     });
     if (!response.estadoflag) {
       notifyProblem(response);
       return false;
     }
-    commit("SET_REGISTRATION_TRIAL_DAYS", response.data[0].trial_days);
+    registrationTrialDays.value = response.data[0]!.trial_days;
     notifySuccess(response.mensaje);
     return true;
-  },
-  async loadCompanyPlan({ commit }) {
-    const response = await request({
+  }
+
+  async function loadCompanyPlan(): Promise<string | null> {
+    const response = await request<CompanyPlan>({
       method: "get",
       url: "branch_subscription",
     });
-    if (!hasFailed(response)) commit("SET_PLAN", firstRow(response));
+    if (!hasFailed(response)) plan.value = firstRow(response);
     return errorOf(response);
-  },
-  async loadPlanBadge({ commit }) {
+  }
+
+  async function loadPlanBadge(): Promise<boolean> {
     const [planResponse, trialResponse] = await Promise.all([
-      request({ method: "get", url: "branch_subscription" }),
-      request({ method: "get", url: "branch_subscription/registration_trial" }),
+      request<CompanyPlan>({ method: "get", url: "branch_subscription" }),
+      request<RegistrationTrial>({ method: "get", url: "branch_subscription/registration_trial" }),
     ]);
-    if (!hasFailed(planResponse)) commit("SET_PLAN", firstRow(planResponse));
-    commit("SET_REGISTRATION_TRIAL", firstRow(trialResponse));
+    if (!hasFailed(planResponse)) plan.value = firstRow(planResponse);
+    registrationTrial.value = firstRow(trialResponse);
     return !hasFailed(planResponse);
-  },
-  loadPlanAccess({ commit }) {
+  }
+
+  function loadPlanAccess(): Promise<PlanAccess | null> {
     if (pendingAccess) return pendingAccess;
-    const current = request({
+    const current: Promise<PlanAccess | null> = request<PlanAccess>({
       method: "get",
       url: "branch_subscription/access",
     }).then((response) => {
-      const access = firstRow(response);
+      const row = firstRow(response);
       if (pendingAccess === current) {
-        commit("SET_ACCESS", access);
-        if (!access) pendingAccess = null;
+        access.value = row;
+        if (!row) pendingAccess = null;
       }
-      return access;
+      return row;
     });
     pendingAccess = current;
     return current;
-  },
-  reloadPlanAccess({ dispatch }) {
+  }
+
+  function reloadPlanAccess(): Promise<PlanAccess | null> {
     pendingAccess = null;
-    return dispatch("loadPlanAccess");
-  },
-  async promptPlanUpgrade(_, notice) {
+    return loadPlanAccess();
+  }
+
+  async function promptPlanUpgrade(notice: PlanNotice): Promise<void> {
     if (Swal.isVisible()) return;
     const { isConfirmed } = await Swal.fire({
       icon: "info",
@@ -997,26 +1064,36 @@ const actions = {
       reverseButtons: true,
     });
     if (isConfirmed) router.push({ name: "miPlan" }).catch(() => {});
-  },
-  savePlanChoice(_, choice) {
+  }
+
+  function savePlanChoice(choice: PlanChoice): void {
     try {
       localStorage.setItem(PENDING_PLAN_KEY, JSON.stringify(choice));
-    } catch (error) {
+    } catch {
       return;
     }
-  },
-  clearPlanChoice() {
+  }
+
+  function clearPlanChoice(): void {
     try {
       localStorage.removeItem(PENDING_PLAN_KEY);
-    } catch (error) {
+    } catch {
       return;
     }
-  },
-  readPlanChoice(_, query) {
+  }
+
+  function readPlanChoice(query: PlanChoiceQuery): PlanChoice | null {
     return readPendingChoice(query);
-  },
-  async openPlanCheckout(_, { payload, onEvent }) {
-    const response = await request({
+  }
+
+  async function openPlanCheckout({
+    payload,
+    onEvent,
+  }: {
+    payload: PlanCheckoutPayload;
+    onEvent: PaddleCheckoutListener;
+  }): Promise<boolean> {
+    const response = await request<CheckoutTransaction>({
       method: "post",
       url: "branch_subscription/checkout",
       data: payload,
@@ -1027,9 +1104,16 @@ const actions = {
       : response.mensaje;
     if (error) notifyError(error);
     return !error;
-  },
-  async confirmPlanChange({ commit }, { packageName, payload }) {
-    const preview = await request({
+  }
+
+  async function confirmPlanChange({
+    packageName,
+    payload,
+  }: {
+    packageName: string;
+    payload: PlanCheckoutPayload;
+  }): Promise<boolean> {
+    const preview = await request<PlanChangePreview>({
       method: "post",
       url: "branch_subscription/change/preview",
       data: payload,
@@ -1041,14 +1125,14 @@ const actions = {
     const { isConfirmed } = await Swal.fire({
       icon: "question",
       title: `¿Cambiar a ACO ${packageName}?`,
-      text: changeSummary(preview.data[0]),
+      text: changeSummary(preview.data[0]!),
       showCancelButton: true,
       confirmButtonText: "Sí, cambiar plan",
       cancelButtonText: "Volver",
       reverseButtons: true,
     });
     if (!isConfirmed) return false;
-    const response = await request({
+    const response = await request<CompanyPlan>({
       method: "post",
       url: "branch_subscription/change",
       data: payload,
@@ -1057,12 +1141,13 @@ const actions = {
       notifyError(response.mensaje);
       return false;
     }
-    commit("SET_PLAN", response.data[0]);
+    plan.value = response.data[0]!;
     notifySuccess(response.mensaje);
     return true;
-  },
-  async keepCompanyPlan({ commit }) {
-    const response = await request({
+  }
+
+  async function keepCompanyPlan(): Promise<void> {
+    const response = await request<CompanyPlan>({
       method: "post",
       url: "branch_subscription/resume",
     });
@@ -1070,10 +1155,11 @@ const actions = {
       notifyError(response.mensaje);
       return;
     }
-    commit("SET_PLAN", response.data[0]);
+    plan.value = response.data[0]!;
     notifySuccess(response.mensaje);
-  },
-  async cancelCompanyPlan() {
+  }
+
+  async function cancelCompanyPlan(): Promise<boolean> {
     const response = await request({
       method: "post",
       url: "branch_subscription/cancel",
@@ -1084,32 +1170,35 @@ const actions = {
     }
     notifySuccess(response.mensaje);
     return true;
-  },
-  async confirmCompanyPlan({ commit }, transactionId) {
+  }
+
+  async function confirmCompanyPlan(transactionId: string | null | undefined): Promise<boolean> {
     const response = transactionId
-      ? await request({
+      ? await request<CompanyPlan>({
           method: "post",
           url: "branch_subscription/confirm",
           data: { transaction_id: transactionId },
         })
-      : await request({ method: "get", url: "branch_subscription" });
-    const plan = firstRow(response);
-    if (!isLivePlan(plan)) return false;
-    commit("SET_PLAN", plan);
-    notifySuccess(`Tu plan ACO ${plan.package_name} ya está activo.`);
+      : await request<CompanyPlan>({ method: "get", url: "branch_subscription" });
+    const row = firstRow(response);
+    if (!isLivePlan(row)) return false;
+    plan.value = row;
+    notifySuccess(`Tu plan ACO ${row.package_name} ya está activo.`);
     return true;
-  },
-  async loadBillingHistory({ commit }) {
-    const response = await request({
+  }
+
+  async function loadBillingHistory(): Promise<string | null> {
+    const response = await request<BillingHistory>({
       method: "get",
       url: "branch_subscription/billing_history",
     });
     if (!hasFailed(response))
-      commit("SET_BILLING_HISTORY", firstRow(response) || NO_HISTORY);
+      billingHistory.value = firstRow(response) || NO_HISTORY;
     return errorOf(response);
-  },
-  async fetchInvoiceUrl(_, transactionId) {
-    const response = await request({
+  }
+
+  async function fetchInvoiceUrl(transactionId: string): Promise<string | null> {
+    const response = await request<InvoiceLink>({
       method: "get",
       url: `branch_subscription/billing_history/${encodeURIComponent(
         transactionId
@@ -1118,9 +1207,10 @@ const actions = {
     const url = firstValue(response, "url");
     if (!url) notifyProblem(response);
     return url || null;
-  },
-  async startPaymentMethodUpdate(_, onEvent) {
-    const response = await request({
+  }
+
+  async function startPaymentMethodUpdate(onEvent: PaddleCheckoutListener): Promise<boolean> {
+    const response = await request<CheckoutTransaction>({
       method: "post",
       url: "branch_subscription/payment_method",
     });
@@ -1132,13 +1222,86 @@ const actions = {
     const error = await openPaddleCheckout(transactionId, onEvent);
     if (error) notifyError(error);
     return !error;
-  },
-};
+  }
 
-export default {
-  namespaced: true,
-  state: initialState(),
-  getters,
-  mutations,
-  actions,
-};
+  return {
+    packages,
+    publicPackages,
+    packageModules,
+    packageDraft,
+    paddleSyncReport,
+    registrationTrialDays,
+    plan,
+    registrationTrial,
+    access,
+    billingHistory,
+    formatPrice,
+    formatDate,
+    toPlanView,
+    limits,
+    trialUnits,
+    planViews,
+    moduleLine,
+    maxMonthsSaved,
+    activePackageCount,
+    packagesWithStatus,
+    packageDraftErrors,
+    packageDraftPayload,
+    packageDraftPreview,
+    packageDraftSavings,
+    canHighlightFeature,
+    registrationTrialDaysError,
+    hasLivePlan,
+    livePlan,
+    planStatus,
+    planDateLine,
+    canChangePlan,
+    currentPackage,
+    hasUpgrade,
+    planDetails,
+    paymentUpdateNeeded,
+    cardAction,
+    purchaseAction,
+    isUnavailableAction,
+    changeSummary,
+    trialNotice,
+    modulesForRoute,
+    lockedModuleForRoute,
+    lockedModuleNotice,
+    canAddUsers,
+    userLimitNotice,
+    billingRows,
+    paymentCard,
+    resetSession,
+    loadPackages,
+    loadPublicPackages,
+    loadPackageModules,
+    setPackageActive,
+    openPackageDraft,
+    toggleDraftModule,
+    addDraftFeature,
+    updateDraftFeature,
+    removeDraftFeature,
+    savePackageDraft,
+    loadPaddleSync,
+    applyPaddleSync,
+    loadRegistrationTrialSetting,
+    saveRegistrationTrialSetting,
+    loadCompanyPlan,
+    loadPlanBadge,
+    loadPlanAccess,
+    reloadPlanAccess,
+    promptPlanUpgrade,
+    savePlanChoice,
+    clearPlanChoice,
+    readPlanChoice,
+    openPlanCheckout,
+    confirmPlanChange,
+    keepCompanyPlan,
+    cancelCompanyPlan,
+    confirmCompanyPlan,
+    loadBillingHistory,
+    fetchInvoiceUrl,
+    startPaymentMethodUpdate,
+  };
+});

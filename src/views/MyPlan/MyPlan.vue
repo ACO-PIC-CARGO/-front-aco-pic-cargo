@@ -234,7 +234,8 @@
 <script>
 import Swal from "sweetalert2";
 import "@/styles/plans-theme.css";
-import { mapActions, mapGetters, mapState } from "vuex";
+import { mapActions, mapState } from "pinia";
+import { useSubscriptionsStore } from "@/stores/subscriptions";
 import PackageCard from "@/components/SubscriptionPackages/PackageCard.vue";
 import ModuleSelectDialog from "@/components/SubscriptionPackages/ModuleSelectDialog.vue";
 import { stopCheckoutEvents } from "@/plugins/paddle";
@@ -284,8 +285,9 @@ export default {
     billingOptions: BILLING_OPTIONS,
   }),
   computed: {
-    ...mapState("subscriptions", { plan: "plan", packages: "publicPackages" }),
-    ...mapGetters("subscriptions", {
+    ...mapState(useSubscriptionsStore, {
+      plan: "plan",
+      packages: "publicPackages",
       hasLivePlan: "hasLivePlan",
       status: "planStatus",
       planDateLine: "planDateLine",
@@ -293,11 +295,6 @@ export default {
       canUpgrade: "hasUpgrade",
       details: "planDetails",
       paymentUpdateNeeded: "paymentUpdateNeeded",
-      cardActionFor: "cardAction",
-      purchaseAction: "purchaseAction",
-      isUnavailableAction: "isUnavailableAction",
-      toPlanView: "toPlanView",
-      formatDate: "formatDate",
     }),
     billing() {
       return this.isAnnual ? "annual" : "monthly";
@@ -325,7 +322,14 @@ export default {
     stopCheckoutEvents();
   },
   methods: {
-    ...mapActions("subscriptions", [
+    ...mapActions(useSubscriptionsStore, {
+      cardActionFor: "cardAction",
+      purchaseAction: "purchaseAction",
+      isUnavailableAction: "isUnavailableAction",
+      toPlanView: "toPlanView",
+      formatDate: "formatDate",
+    }),
+    ...mapActions(useSubscriptionsStore, [
       "loadCompanyPlan",
       "loadPublicPackages",
       "readPlanChoice",

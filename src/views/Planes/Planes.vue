@@ -151,7 +151,8 @@
 
 <script>
 import "@/styles/plans-theme.css";
-import { mapActions, mapGetters, mapState } from "vuex";
+import { mapActions, mapState } from "pinia";
+import { useSubscriptionsStore } from "@/stores/subscriptions";
 import ModuleSelectDialog from "@/components/SubscriptionPackages/ModuleSelectDialog.vue";
 import LegalLinks from "@/components/Legal/LegalLinks.vue";
 import PackageCard from "@/components/SubscriptionPackages/PackageCard.vue";
@@ -197,14 +198,12 @@ export default {
     modulePackage: null,
   }),
   computed: {
-    ...mapState("subscriptions", ["publicPackages"]),
-    ...mapGetters("subscriptions", {
+    ...mapState(useSubscriptionsStore, {
+      publicPackages: "publicPackages",
       plans: "planViews",
       moduleLine: "moduleLine",
       monthsSaved: "maxMonthsSaved",
       livePlan: "livePlan",
-      purchaseAction: "purchaseAction",
-      isUnavailableAction: "isUnavailableAction",
     }),
     billing() {
       return this.isAnnual ? "annual" : "monthly";
@@ -219,7 +218,11 @@ export default {
     stopCheckoutEvents();
   },
   methods: {
-    ...mapActions("subscriptions", [
+    ...mapActions(useSubscriptionsStore, {
+      purchaseAction: "purchaseAction",
+      isUnavailableAction: "isUnavailableAction",
+    }),
+    ...mapActions(useSubscriptionsStore, [
       "loadPublicPackages",
       "loadCompanyPlan",
       "savePlanChoice",

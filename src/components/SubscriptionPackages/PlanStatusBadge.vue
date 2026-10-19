@@ -48,7 +48,8 @@
 </template>
 
 <script>
-import { mapActions, mapGetters } from "vuex";
+import { mapActions } from "pinia";
+import { useSubscriptionsStore } from "@/stores/subscriptions";
 
 const readBranchId = () => {
   try {
@@ -62,7 +63,6 @@ export default {
   name: "PlanStatusBadge",
   data: () => ({ loaded: false, branchId: readBranchId() }),
   computed: {
-    ...mapGetters("subscriptions", ["trialNotice"]),
     notice() {
       return this.loaded ? this.trialNotice({ branchId: this.branchId }) : null;
     },
@@ -71,7 +71,7 @@ export default {
     this.loaded = await this.loadPlanBadge();
   },
   methods: {
-    ...mapActions("subscriptions", ["loadPlanBadge"]),
+    ...mapActions(useSubscriptionsStore, ["loadPlanBadge", "trialNotice"]),
     daysLabel(days) {
       return days > 1 ? `${days} días` : "Último día";
     },

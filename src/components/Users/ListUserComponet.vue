@@ -3,12 +3,14 @@ import { computed, onMounted, ref } from "vue";
 import { useRouter } from "vue-router";
 import { useStore } from "vuex";
 import Swal from "sweetalert2";
+import { useSubscriptionsStore } from "@/stores/subscriptions";
 import { useUserStore } from "@/stores/user";
 import type { UsuarioListado } from "@/types/seguridad";
 
 const router = useRouter();
 const rootStore = useStore();
 const userStore = useUserStore();
+const subscriptionsStore = useSubscriptionsStore();
 
 const search = ref("");
 const loading = ref(false);
@@ -28,8 +30,8 @@ const headers = [
   { title: "Acciones", key: "action" },
 ] as const;
 
-const canAddUsers = computed(() => rootStore.getters["subscriptions/canAddUsers"]);
-const userLimitNotice = computed(() => rootStore.getters["subscriptions/userLimitNotice"]);
+const canAddUsers = computed(() => subscriptionsStore.canAddUsers);
+const userLimitNotice = computed(() => subscriptionsStore.userLimitNotice);
 
 async function filtrar() {
   loadingFiltrar.value = !loadingFiltrar.value;
@@ -55,10 +57,10 @@ async function editar(item: UsuarioListado) {
 }
 async function nuevo() {
   loadingNuevo.value = true;
-  await rootStore.dispatch("subscriptions/reloadPlanAccess");
+  await subscriptionsStore.reloadPlanAccess();
   loadingNuevo.value = false;
   if (!canAddUsers.value) {
-    rootStore.dispatch("subscriptions/promptPlanUpgrade", userLimitNotice.value);
+    subscriptionsStore.promptPlanUpgrade(userLimitNotice.value);
     return;
   }
   router.push({ name: "registroUser" });

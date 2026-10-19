@@ -56,7 +56,8 @@
 </template>
 
 <script>
-import { mapActions, mapGetters } from "vuex";
+import { mapActions, mapState, mapStores } from "pinia";
+import { useSubscriptionsStore } from "@/stores/subscriptions";
 
 export default {
   name: "RegistrationTrialSetting",
@@ -67,13 +68,14 @@ export default {
     saving: false,
   }),
   computed: {
-    ...mapGetters("subscriptions", ["registrationTrialDaysError"]),
+    ...mapStores(useSubscriptionsStore),
+    ...mapState(useSubscriptionsStore, ["registrationTrialDaysError"]),
     days: {
       get() {
-        return this.$store.state.subscriptions.registrationTrialDays;
+        return this.subscriptionsStore.registrationTrialDays;
       },
       set(value) {
-        this.$store.commit("subscriptions/SET_REGISTRATION_TRIAL_DAYS", value);
+        this.subscriptionsStore.registrationTrialDays = value;
       },
     },
     error() {
@@ -84,7 +86,7 @@ export default {
     this.load();
   },
   methods: {
-    ...mapActions("subscriptions", [
+    ...mapActions(useSubscriptionsStore, [
       "loadRegistrationTrialSetting",
       "saveRegistrationTrialSetting",
     ]),

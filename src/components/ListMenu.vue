@@ -3,6 +3,7 @@ import { computed, onMounted, ref, watch } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import { useStore } from "vuex";
 import { useSecuritysStore } from "@/stores/securitys";
+import { useSubscriptionsStore } from "@/stores/subscriptions";
 import type { Incoterm } from "@/types/cotizacion";
 import type { ItemMenu, SucursalSesion, UsuarioSesion } from "@/types/sesion";
 
@@ -10,6 +11,7 @@ const route = useRoute();
 const router = useRouter();
 const rootStore = useStore();
 const securitysStore = useSecuritysStore();
+const subscriptionsStore = useSubscriptionsStore();
 
 const rutasResumen = [
   "newQuote",
@@ -29,7 +31,7 @@ const tree = ref<unknown[]>([]);
 const person: UsuarioSesion = JSON.parse(sessionStorage.getItem("dataUser") as string)[0];
 
 onMounted(() => {
-  rootStore.dispatch("subscriptions/reloadPlanAccess");
+  subscriptionsStore.reloadPlanAccess();
   setTimeout(() => {
     rootStore.state.lstMenu = JSON.parse(sessionStorage.getItem("menu") as string);
   }, 10);
@@ -116,7 +118,7 @@ function mostrarVolumen() {
 }
 function isLockedItem(item: ItemMenu) {
   return Boolean(
-    rootStore.getters["subscriptions/lockedModuleForRoute"](rootStore.state.lstMenu, item.route),
+    subscriptionsStore.lockedModuleForRoute(rootStore.state.lstMenu, item.route),
   );
 }
 function getRouteForItem(item: ItemMenu): { name?: string } {
