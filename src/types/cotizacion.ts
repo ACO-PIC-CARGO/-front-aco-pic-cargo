@@ -166,3 +166,31 @@ export interface OpcionCosto {
   tiempo_transito?: Numerico;
   listCostos: Costo[];
 }
+
+export interface ProfitPricingCosto {
+  id?: number | null;
+  concepto?: string;
+  id_multiplicador?: number | string | null;
+  id_proveedor?: number | string | null;
+  id_itemservice?: number;
+  esorigenflag?: boolean;
+  eslocalflag?: boolean;
+  esaduanaflag?: boolean;
+  esalmacenflag?: boolean;
+  esfleteflag?: boolean;
+  esgastostercerosflag?: boolean;
+  profitprimeraimportacion?: Numerico;
+  profitsegundaimportacion?: Numerico;
+  estado?: boolean | null;
+}
+
+export interface ListadoProfitPricing {
+  profitindividual: ProfitPricingCosto[];
+  profitgrupal: ProfitPricingCosto[];
+}
+
+export interface ConceptoProfitPricing {
+  id?: number | null;
+  concepto?: string | null;
+  price?: number | string | null;
+}

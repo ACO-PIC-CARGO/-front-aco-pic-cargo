@@ -20,7 +20,6 @@ import bank from "./modules/bank";
 import reportes from "./modules/reporte";
 import configAviso from "./modules/configAviso";
 import aduana from "./modules/aduana";
-import profitPricing from "./modules/profitPricing";
 import Swal from "sweetalert2";
 import moment from "moment";
 
@@ -2851,6 +2850,5 @@ export default createStore({
     bank,
     configAviso,
     aduana,
-    profitPricing,
   },
 });

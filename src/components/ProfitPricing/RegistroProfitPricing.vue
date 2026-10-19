@@ -12,7 +12,7 @@
             :items="$store.state.pricing.listModality"
             item-title="name"
             item-value="id"
-            v-model="$store.state.profitPricing.id_modality"
+            v-model="profitPricingStore.id_modality"
           ></v-autocomplete>
         </v-col>
 
@@ -26,7 +26,7 @@
             :items="$store.state.pricing.listShipment"
             item-title="embarque"
             item-value="id"
-            v-model="$store.state.profitPricing.id_shipment"
+            v-model="profitPricingStore.id_shipment"
           ></v-autocomplete>
         </v-col>
 
@@ -59,25 +59,25 @@
         <v-card-title>
           <center>
             {{
-              $store.state.profitPricing.id_modality
+              profitPricingStore.id_modality
                 ? $store.state.pricing.listModality.find(
-                    (v) => v.id == $store.state.profitPricing.id_modality,
+                    (v) => v.id == profitPricingStore.id_modality,
                   ).name
                 : ""
             }}
             |
             {{
-              $store.state.profitPricing.id_shipment
+              profitPricingStore.id_shipment
                 ? $store.state.pricing.listShipment.find(
-                    (v) => v.id == $store.state.profitPricing.id_shipment,
+                    (v) => v.id == profitPricingStore.id_shipment,
                   ).embarque
                 : ""
             }}
             |
             {{
-              $store.state.profitPricing.id_incoterms
+              profitPricingStore.id_incoterms
                 ? incoterms.find(
-                    (v) => v.id == $store.state.profitPricing.id_incoterms,
+                    (v) => v.id == profitPricingStore.id_incoterms,
                   ).name
                 : ""
             }}
@@ -266,9 +266,10 @@
 </template>
 
 <script>
-import { mapActions, mapState } from "vuex";
+import { mapState } from "vuex";
 import { mapActions as mapPiniaActions, mapStores } from "pinia";
 import { useConfigEmpresaStore } from "@/stores/configEmpresa";
+import { useProfitPricingStore } from "@/stores/profitPricing";
 import { useProveedorStore } from "@/stores/proveedor";
 
 export default {
@@ -316,7 +317,7 @@ export default {
     };
   },
   computed: {
-    ...mapStores(useProveedorStore, useConfigEmpresaStore),
+    ...mapStores(useProveedorStore, useConfigEmpresaStore, useProfitPricingStore),
     incoterms() {
       let Icoterms = [];
       [...this.$store.state.pricing.listIncoterms].forEach((element) => {
@@ -328,10 +329,10 @@ export default {
     },
     mostrarBotonActualizar() {
       if (this.tab == 0) {
-        return this.$store.state.profitPricing.lstProfigIndividual.length > 0;
+        return this.profitPricingStore.lstProfigIndividual.length > 0;
       }
       if (this.tab == 1) {
-        return this.$store.state.profitPricing.lstProfigGrupal.length > 0;
+        return this.profitPricingStore.lstProfigGrupal.length > 0;
       }
       return false;
     },
@@ -363,7 +364,7 @@ export default {
     },
   },
   methods: {
-    ...mapActions("profitPricing", [
+    ...mapPiniaActions(useProfitPricingStore, [
       "getProfitPricing",
       "getProfitPricingCostos",
       "setProfitPricingCostos",
@@ -374,10 +375,10 @@ export default {
       console.log("tab", this.tab);
       let lstCostos = [];
       if (this.tab == 0) {
-        lstCostos = this.$store.state.profitPricing.lstProfigIndividual;
+        lstCostos = this.profitPricingStore.lstProfigIndividual;
       }
       if (this.tab == 1) {
-        lstCostos = this.$store.state.profitPricing.lstProfigGrupal;
+        lstCostos = this.profitPricingStore.lstProfigGrupal;
       }
       //   if (this.id_modality == 1) {
       if (codigoTipoCosto == "LO")
@@ -394,7 +395,7 @@ export default {
       return lstCostos;
     },
     async abrirModalActualizacionConceptos(id_incoterms) {
-      this.$store.state.profitPricing.id_incoterms = id_incoterms;
+      this.profitPricingStore.id_incoterms = id_incoterms;
       this.$store.state.spiner = true;
       await this.cargarDatos().catch((e) => {
         console.error(e);
@@ -408,15 +409,15 @@ export default {
         await Promise.all([
           this.getProfitPricing(),
           this.getTipoCostosConfig({
-            id_modality: this.$store.state.profitPricing.id_modality,
-            id_shipment: this.$store.state.profitPricing.id_shipment,
+            id_modality: this.profitPricingStore.id_modality,
+            id_shipment: this.profitPricingStore.id_shipment,
           }),
           this.getMultiplicadorConfig({
-            id_shipment: this.$store.state.profitPricing.id_shipment,
+            id_shipment: this.profitPricingStore.id_shipment,
           }),
         ]);
         let id = [
-          ...this.$store.state.profitPricing.lstProfigIndividual.map((v) => {
+          ...this.profitPricingStore.lstProfigIndividual.map((v) => {
             return v.id_proveedor;
           }),
         ];
@@ -429,20 +430,20 @@ export default {
     async anadirConcepto() {
       if ((await this.$refs.frmAsignarCosto.validate()).valid) {
         if (this.tab == 0) {
-          this.$store.state.profitPricing.lstProfigIndividual.unshift({
+          this.profitPricingStore.lstProfigIndividual.unshift({
             ...this.formData,
             concepto:
-              this.$store.state.profitPricing.lstCostosAsignarProfit.find(
+              this.profitPricingStore.lstCostosAsignarProfit.find(
                 (v) => this.formData.id,
               ).concepto,
             estado: true,
           });
         }
         if (this.tab == 1) {
-          this.$store.state.profitPricing.lstProfigGrupal.unshift({
+          this.profitPricingStore.lstProfigGrupal.unshift({
             ...this.formData,
             concepto:
-              this.$store.state.profitPricing.lstCostosAsignarProfit.find(
+              this.profitPricingStore.lstCostosAsignarProfit.find(
                 (v) => this.formData.id,
               ).concepto,
             estado: true,
@@ -463,21 +464,21 @@ export default {
     tab() {
       console.log(this.tab);
     },
-    "$store.state.profitPricing.id_modality"() {
+    "profitPricingStore.id_modality"() {
       this.mostrarIncoterms = false;
       if (
-        this.$store.state.profitPricing.id_shipment &&
-        this.$store.state.profitPricing.id_modality
+        this.profitPricingStore.id_shipment &&
+        this.profitPricingStore.id_modality
       ) {
         this.$store.state.spiner = true;
         setTimeout(() => {}, 500);
       }
     },
-    "$store.state.profitPricing.id_shipment"() {
+    "profitPricingStore.id_shipment"() {
       this.mostrarIncoterms = false;
       if (
-        this.$store.state.profitPricing.id_shipment &&
-        this.$store.state.profitPricing.id_modality
+        this.profitPricingStore.id_shipment &&
+        this.profitPricingStore.id_modality
       ) {
         this.$store.state.spiner = true;
         setTimeout(() => {
