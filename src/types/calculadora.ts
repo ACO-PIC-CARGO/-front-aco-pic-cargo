@@ -1,3 +1,4 @@
+import type { CeldaCarga } from "@/types/empresas";
 import type { Numerico } from "@/types/cotizacion";
 
 export interface FiltroCalculadora {
@@ -267,18 +268,78 @@ export interface PuertoCalculadora {
   puerto_descripcion?: string;
 }
 
-export interface FleteLclValidado {
-  pais_origen?: string;
-  puerto_origen?: string | null;
+export interface FilaCargaFlete {
+  Continente?: CeldaCarga;
+  pais_origen?: CeldaCarga;
+  puerto_origen?: CeldaCarga;
   id_pais_origen?: number | string | null;
-  pais_destino?: string;
-  puerto_destino?: string | null;
+  pais_destino?: CeldaCarga;
+  puerto_destino?: CeldaCarga;
   id_pais_destino?: number | string | null;
-  flete_0_5?: Numerico;
-  flete_5_10?: Numerico;
-  flete_10_15?: Numerico;
-  moneda?: string;
-  vigencia?: string;
+  flete_0_5?: CeldaCarga;
+  flete_5_10?: CeldaCarga;
+  flete_10_15?: CeldaCarga;
+  contenedor_20_C?: CeldaCarga;
+  contenedor_40_st?: CeldaCarga;
+  contenedor_40_hc?: CeldaCarga;
+  contenedor_40_nor?: CeldaCarga;
+  volumen_minimo?: CeldaCarga;
+  volumen_desde?: CeldaCarga;
+  volumen_hasta?: CeldaCarga;
+  costo_minimo?: CeldaCarga;
+  costo?: CeldaCarga;
+  moneda?: CeldaCarga;
+  servicio?: CeldaCarga;
+  frecuencia?: CeldaCarga;
+  cortes?: CeldaCarga;
+  carrier_tt?: CeldaCarga;
+  agente?: CeldaCarga;
+  tt_aprox?: CeldaCarga;
+  recargos?: CeldaCarga;
+  Tipo_contenedor?: CeldaCarga;
+  Naviera?: CeldaCarga;
+  vigencia?: CeldaCarga;
+  vigencia_desde?: CeldaCarga;
+  vigencia_hasta?: CeldaCarga;
+}
+
+export interface OpcionRegistroFlete {
+  pais_id?: number | string;
+  pais_descripcion?: string;
+  puerto_descripcion?: string;
+  moneda_descripcion?: string;
+  moneda_symbol?: string;
+  contenedores_nombre?: string;
+  navieras_nombre?: string;
+}
+
+export interface FormRegistroFlete {
+  paisOrigen: OpcionRegistroFlete;
+  puertoOrigen: OpcionRegistroFlete[];
+  paisDestino: OpcionRegistroFlete;
+  puertoDestino: OpcionRegistroFlete[];
+  volumen_minimo: Numerico;
+  volumen_desde?: Numerico;
+  volumen_hasta: Numerico;
+  volumen_max: Numerico;
+  costo_minimo: Numerico;
+  costo: Numerico;
+  tt_aprox: Numerico;
+  moneda: OpcionRegistroFlete;
+  symbol: string;
+  recargos: string;
+  servicio: string;
+  frecuencia: string;
+  recargps: string;
+  agente: string;
+  desde: string | null;
+  hasta: string | null;
+  contenedor: OpcionRegistroFlete;
+  naviera: OpcionRegistroFlete;
+  cortes: string;
+  carrier_tt: Numerico;
+  vigencia_desde?: string;
+  vigencia_hasta?: string;
 }
 
 export interface EnvioCotizacionCalculadora {

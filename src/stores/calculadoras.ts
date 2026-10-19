@@ -17,7 +17,7 @@ import type {
   FleteCalculadora,
   FleteGrupal,
   FleteGrupalResumen,
-  FleteLclValidado,
+  FilaCargaFlete,
   FletePricingCalculadora,
   FormProfitCalculadora,
   LoteTransporteCalculadora,
@@ -343,9 +343,9 @@ export const useCalculadorasStore = defineStore("calculadoras", () => {
     lstCostos.value = data;
   }
 
-  async function GetCotValLCL(data: unknown[]): Promise<FleteLclValidado[]> {
-    let res: FleteLclValidado[] = [];
-    const response = await axios<ApiResponse<FleteLclValidado[]>>({
+  async function GetCotValLCL(data: unknown[]): Promise<FilaCargaFlete[]> {
+    let res: FilaCargaFlete[] = [];
+    const response = await axios<ApiResponse<FilaCargaFlete[]>>({
       method: "post",
       url: import.meta.env.VITE_URL_MAIN + "calc/val_data_lcl",
       headers: JSON_HEADERS,
