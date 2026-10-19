@@ -1,3 +1,5 @@
+import { existsSync } from "node:fs";
+
 const SRC = new URL("../../../src/", import.meta.url);
 const HAS_EXTENSION = /\.(m?js|json|cjs)$/;
 const STORE_INDEX = /^(@\/store(\/index)?|(\.\/)?\.\.\/index)$/;
@@ -7,7 +9,8 @@ export async function resolve(specifier, context, next) {
     return { url: `stub:${specifier}`, shortCircuit: true };
   if (specifier.startsWith("@/")) {
     const url = new URL(specifier.slice(2), SRC).href;
-    return next(HAS_EXTENSION.test(url) ? url : `${url}.js`, context);
+    if (HAS_EXTENSION.test(url)) return next(url, context);
+    return next(existsSync(new URL(`${url}.ts`)) ? `${url}.ts` : `${url}.js`, context);
   }
   if (/^\.\.?\//.test(specifier) && !HAS_EXTENSION.test(specifier)) {
     try {
