@@ -4,7 +4,8 @@ import { useRoute } from "vue-router";
 import { useStore } from "vuex";
 import axios from "@/api/http";
 import moment from "moment";
-import Swal from "sweetalert2";
+import SweetAlert from "sweetalert2";
+import type { SweetAlertResult } from "sweetalert2";
 import { v4 as uuidv4 } from "uuid";
 import type { ComentarioEstadoHouse } from "@/types/catalogos";
 import type { RegistroBitacoraHouse } from "@/types/operaciones";
@@ -109,13 +110,14 @@ async function _deleteBitacora(id: number) {
       }
 
       if (response.data.status == "401") {
+        // @ts-expect-error Swal is not defined in this scope
         Swal.fire({
           icon: "error",
           text: response.data.mensaje,
           allowOutsideClick: false,
           allowEscapeKey: false,
           allowEnterKey: false,
-        }).then((resSwal) => {
+        }).then((resSwal: SweetAlertResult) => {
           if (resSwal.isConfirmed && response.data.status == "401") {
             // @ts-expect-error router is not defined in this scope
             router.push({ name: "Login" });
@@ -155,13 +157,14 @@ async function _changeStatusBitacora({ id, status }: { id: number; status: numbe
       }
 
       if (response.data.status == "401") {
+        // @ts-expect-error Swal is not defined in this scope
         Swal.fire({
           icon: "error",
           text: response.data.mensaje,
           allowOutsideClick: false,
           allowEscapeKey: false,
           allowEnterKey: false,
-        }).then((resSwal) => {
+        }).then((resSwal: SweetAlertResult) => {
           if (resSwal.isConfirmed && response.data.status == "401") {
             // @ts-expect-error router is not defined in this scope
             router.push({ name: "Login" });
@@ -201,13 +204,14 @@ async function _changeStatusVisibleBitacora({ id, visible_cliente }: RegistroBit
       }
 
       if (response.data.status == "401") {
+        // @ts-expect-error Swal is not defined in this scope
         Swal.fire({
           icon: "error",
           text: response.data.mensaje,
           allowOutsideClick: false,
           allowEscapeKey: false,
           allowEnterKey: false,
-        }).then((resSwal) => {
+        }).then((resSwal: SweetAlertResult) => {
           if (resSwal.isConfirmed && response.data.status == "401") {
             // @ts-expect-error router is not defined in this scope
             router.push({ name: "Login" });
@@ -253,7 +257,7 @@ function _handleFlagComentarioManual() {
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 async function _setBitacora() {
   if (!rootStore.state.bitacora_id_bitacora) {
-    Swal.fire("", "¡La bitacora es requerida!", "error");
+    SweetAlert.fire("", "¡La bitacora es requerida!", "error");
   } else {
     let ok = true;
     if (rootStore.state.itemsBitacora.length) {
@@ -274,7 +278,7 @@ async function _setBitacora() {
     }
 
     if (!ok) {
-      Swal.fire(
+      SweetAlert.fire(
         "",
         "¡Debe registrar las bitácoras en el orden que aparecen en la lista!",
         "error"
@@ -283,7 +287,7 @@ async function _setBitacora() {
       rootStore.state.bitacora_comentario_flag &&
       !rootStore.state.bitacora_comentario
     ) {
-      Swal.fire("", "¡El comentario es requerido!", "error");
+      SweetAlert.fire("", "¡El comentario es requerido!", "error");
     } else {
       loadingBotonBitacora.value = !loadingBotonBitacora.value;
 
@@ -321,13 +325,14 @@ async function _setBitacora() {
           }
 
           if (response.data.status == "401") {
+            // @ts-expect-error Swal is not defined in this scope
             Swal.fire({
               icon: "error",
               text: response.data.mensaje,
               allowOutsideClick: false,
               allowEscapeKey: false,
               allowEnterKey: false,
-            }).then((resSwal) => {
+            }).then((resSwal: SweetAlertResult) => {
               if (resSwal.isConfirmed && response.data.status == "401") {
                 // @ts-expect-error router is not defined in this scope
                 router.push({ name: "Login" });
@@ -384,13 +389,14 @@ async function _setTrackingToken(token: string) {
           "https://aco.agentedecargaonline.com/tracking/" +
           response.data.data[0].token;
       } else {
+        // @ts-expect-error Swal is not defined in this scope
         Swal.fire({
           icon: response.data.status == "401" ? "error" : "info",
           text: response.data.mensaje,
           allowOutsideClick: false,
           allowEscapeKey: false,
           allowEnterKey: false,
-        }).then((resSwal) => {
+        }).then((resSwal: SweetAlertResult) => {
           if (resSwal.isConfirmed && response.data.status == "401") {
             // @ts-expect-error router is not defined in this scope
             router.push({ name: "Login" });
