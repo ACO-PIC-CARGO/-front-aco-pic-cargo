@@ -1,8 +1,6 @@
 export const LEGACY = [
   "src/api/axios-config.js",
   "src/components/balances/ganancia.vue",
-  "src/components/folderBilling/egresos.vue",
-  "src/components/folderBilling/ingresos.vue",
   "src/components/mixins/funciones.js",
   "src/components/mixins/utils.js",
   "src/store/index.js",
