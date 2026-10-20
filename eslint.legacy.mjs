@@ -35,12 +35,6 @@ export const LEGACY = [
   "src/components/folderModulesPays/moduleAccountPays.vue",
   "src/components/folderModulesPays/moduleAccountReceivable.vue",
   "src/components/folderModulesPays/regularizarProformace.vue",
-  "src/components/folderRequests/accountsreceivable.vue",
-  "src/components/folderRequests/cashFlow.vue",
-  "src/components/folderRequests/checkDebs.vue",
-  "src/components/folderRequests/controlPaymentFile.vue",
-  "src/components/folderRequests/debstoPay.vue",
-  "src/components/folderRequests/listRequestPayment.vue",
   "src/components/mixins/funciones.js",
   "src/components/mixins/utils.js",
   "src/components/modal/ModalListFile.vue",
@@ -120,12 +114,6 @@ export const LEGACY = [
   "src/views/folderReports/reportsControlFile.vue",
   "src/views/folderReports/reportsControlFileDetails.vue",
   "src/views/programmedPayment/listProgrammedPayment.vue",
-  "src/views/requests/accountsreceivable.vue",
-  "src/views/requests/cashFlow.vue",
-  "src/views/requests/checkDebs.vue",
-  "src/views/requests/controlPaymentFile.vue",
-  "src/views/requests/controlRequest.vue",
-  "src/views/requests/reportDebstoPay.vue",
 ];
 
 export const LEGACY_OFF = {

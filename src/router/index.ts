@@ -234,32 +234,32 @@ const routes = [
       {
         path: "folderRequest/controlRequest",
         name: "controlRequest",
-        component: () => import("../views/requests/controlRequest.vue"),
+        component: () => import("../views/requests/ControlRequestView.vue"),
       },
       {
         path: "folderRequest/debstopay",
         name: "debstopay",
-        component: () => import("../views/requests/reportDebstoPay.vue"),
+        component: () => import("../views/requests/ReportDebstoPayView.vue"),
       },
       {
         path: "folderRequest/controlPaymentFile",
         name: "controlPaymentFile",
-        component: () => import("../views/requests/controlPaymentFile.vue"),
+        component: () => import("../views/requests/ControlPaymentFileView.vue"),
       },
       {
         path: "folderRequest/accountsReceivable",
         name: "accountsreceivable",
-        component: () => import("../views/requests/accountsreceivable.vue"),
+        component: () => import("../views/requests/AccountsReceivableView.vue"),
       },
       {
         path: "folderRequest/checkDebs",
         name: "checkDebs",
-        component: () => import("../views/requests/checkDebs.vue"),
+        component: () => import("../views/requests/CheckDebsView.vue"),
       },
       {
         path: "folderRequest/cashflow",
         name: "cashFlow",
-        component: () => import("../views/requests/cashFlow.vue"),
+        component: () => import("../views/requests/CashFlowView.vue"),
       },
       {
         path: "folderModulesPays/controlAccountPays",
