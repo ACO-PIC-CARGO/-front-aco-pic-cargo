@@ -41,7 +41,6 @@ export const LEGACY = [
   "src/components/folderHouse/bitacoraVer.vue",
   "src/components/folderHouse/controlHouse.vue",
   "src/components/folderHouse/dataEmbarVer.vue",
-  "src/components/folderHouse/dataGen.vue",
   "src/components/folderHouse/dataGenVer.vue",
   "src/components/folderHouse/houselist.vue",
   "src/components/folderHouse/listHouse.vue",
