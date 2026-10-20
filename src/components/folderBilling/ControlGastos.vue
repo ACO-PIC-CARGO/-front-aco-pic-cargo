@@ -4,7 +4,7 @@ import { useRoute } from "vue-router";
 import { useStore } from "vuex";
 import dataHouse from "./DataHouse.vue";
 import ingresos from "./ingresos.vue";
-import egresos from "./egresos.vue";
+import egresos from "./EgresosControlGastos.vue";
 import services from "./ServicesBilling.vue";
 import totalesProveedor from "./TotalesProveedor.vue";
 import totales from "./TotalesBilling.vue";
