@@ -43,7 +43,7 @@ const metromcad = ref<Numerico>(0);
 const metromcadflag = ref(true);
 const nuevoflag = ref(true);
 const editarflag = ref(false);
-// Never declared as data: plain, non-reactive fields.
+// Plain, non-reactive fields.
 let peso: unknown;
 let volumen: unknown;
 let valor: unknown;

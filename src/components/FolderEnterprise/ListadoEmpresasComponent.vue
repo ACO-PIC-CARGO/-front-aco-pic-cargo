@@ -81,7 +81,7 @@ function readEnterprise(id: number) {
   router.push({ name: "readEnterprise", params: { id: id } });
 }
 async function _callState() {
-  // id_pais is not declared here, so the branch below is always skipped.
+  // id_pais is never assigned, so the branch below is always skipped.
   if (id_pais.value! > 0) {
     await appStore._getState(id_pais.value);
   }

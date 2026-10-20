@@ -84,7 +84,7 @@ const datos = ref<Record<string, unknown>>({
   naviera: [],
 });
 const dataCotizacion = ref<Partial<UsuarioCalculadora>>({});
-// Never declared as data: plain, non-reactive fields.
+// Plain, non-reactive fields.
 let user: UsuarioCalculadora | undefined;
 let call: LlamadaCalculadora | undefined;
 // eslint-disable-next-line @typescript-eslint/no-unused-vars

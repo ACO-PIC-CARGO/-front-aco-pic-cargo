@@ -148,7 +148,7 @@ onMounted(async () => {
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 function _callState() {
-  // id_pais is not declared here, so the branch below is always skipped.
+  // id_pais is never assigned, so the branch below is always skipped.
   if (id_pais.value! > 0) {
     appStore._getState(id_pais.value);
   }
