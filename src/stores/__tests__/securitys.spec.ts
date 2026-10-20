@@ -2,12 +2,11 @@ import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
 import type { Mock } from "vitest";
 import { createPinia, setActivePinia } from "pinia";
 import { toRaw } from "vue";
-import { createStore } from "vuex";
 import Swal from "sweetalert2";
 import http from "@/api/http";
 import router from "@/router";
 import store from "@/store";
-import controlGastos from "@/store/modules/controlGasto";
+import { useControlGastosStore } from "@/stores/controlGastos";
 import { useSecuritysStore } from "@/stores/securitys";
 
 vi.mock("@/api/http", () => ({ default: vi.fn() }));
@@ -46,7 +45,7 @@ const menu = [{ id: 1, name: "Inicio", route: "Main" }];
 const config = { id: 9, nombre: "cfg" };
 
 function setup() {
-  return { securitys: useSecuritysStore(), vuex: createStore({ modules: { controlGastos } }) };
+  return { securitys: useSecuritysStore(), controlGastos: useControlGastosStore() };
 }
 
 describe("securitys store", () => {
@@ -239,16 +238,19 @@ describe("securitys store", () => {
     expect(await securitys.validarUsuarioAdmin({ clave: "x" })).toBeNull();
   });
 
-  test("singin writes into and returns the response a controlGastos SET_RESPONSE committed", async () => {
-    respond({ singin: { estadoflag: false, mensaje: "Clave incorrecta", data: [] } });
-    const { securitys, vuex } = setup();
+  test("singin writes into and returns the response a controlGastos bulk load stored", async () => {
     const cargaMasiva = { estadoflag: true, filas: 3 };
-    vuex.commit("SET_RESPONSE", cargaMasiva);
+    respond({
+      singin: { estadoflag: false, mensaje: "Clave incorrecta", data: [] },
+      carga_masiva_controldegasto: { estadoflag: true, token: "t", data: cargaMasiva },
+    });
+    const { securitys, controlGastos } = setup();
+    await controlGastos.CargaMasivaControlDeGastos({});
 
     const res = await securitys.singin();
 
     expect(toRaw(res)).toBe(cargaMasiva);
     expect(cargaMasiva).toEqual({ estadoflag: false, filas: 3 });
-    expect(toRaw(vuex.state.controlGastos.response)).toBe(cargaMasiva);
+    expect(toRaw(controlGastos.response)).toBe(cargaMasiva);
   });
 });
