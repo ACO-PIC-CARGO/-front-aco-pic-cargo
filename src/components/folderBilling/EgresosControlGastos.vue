@@ -265,7 +265,7 @@ let id_tipotransaccion: number | string | undefined;
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 let itemsInvoice: unknown;
 let sPaymentId: number | undefined;
-// the template calls openPaymentFile, which the original component never defined
+// openPaymentFile is not defined in this component, so the template call throws
 const openPaymentFile = undefined as unknown as (path?: string) => void;
 const masterEgresos = computed(() => componentProps.master_egresos as unknown as EgresoProveedor[]);
 const ingreso_pr = undefined as unknown as number;
@@ -1300,7 +1300,6 @@ async function imprimirControl() {
     ),
   };
 }
- 
 function sendAdmin(id: number) {
   Swal.fire({
     title: "¿Desea realizar esta solicitud a Administración?",
@@ -3147,7 +3146,7 @@ onMounted(async () => {
             class="elevation-0"
           >
             <template #[`item.data-table-select`]="{ item, props }">
-              <!-- @vue-expect-error the original compares a boolean with 1 -->
+              <!-- @vue-expect-error the checkbox condition compares a boolean with 1 -->
               <v-checkbox-btn
                 v-bind="props"
                 :readonly="item.pagado == 1"

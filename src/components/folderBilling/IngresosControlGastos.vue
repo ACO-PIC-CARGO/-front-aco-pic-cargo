@@ -1778,7 +1778,7 @@ onMounted(async () => {
                     v-if="bloquearCopiarMontos(houseIngreso.ingresos)"
                   >
                     <template #activator="{ props }">
-                      <!-- @vue-expect-error the original passes the income rows where the house is expected -->
+                      <!-- @vue-expect-error the click passes the income rows where a house is expected -->
                       <v-btn
                        
                         v-bind="props"
@@ -2822,7 +2822,7 @@ onMounted(async () => {
                   <ArrastraYSolarComponent @id-archivo-cargado="recibirId" />
                 </v-col>
                 <v-col cols="3">
-                  <!-- @vue-expect-error the original calls _uploadFile without a file and compares payfile with an array literal -->
+                  <!-- @vue-expect-error _uploadFile is called without a file and payfile is compared with an array literal -->
                   <v-btn
                     :disabled="boolFile || payfile == []"
                     color="blue-grey"
