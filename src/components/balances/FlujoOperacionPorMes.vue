@@ -657,7 +657,7 @@ onMounted(async () => {
       </v-col>
     </v-row>
     <!-- <td
-                v-for="i in balancesStore.lstFlujoOperacionesMes[0]
+                v-for="i in $store.state.balances.lstFlujoOperacionesMes[0]
                   .cantidad_semanas"
                 :key="i"
               >
