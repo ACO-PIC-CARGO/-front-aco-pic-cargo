@@ -333,7 +333,7 @@ const routes = [
       {
         path: "FolderBanks/listadoPagosPorProveedor",
         name: "listBankCxP",
-        component: () => import("../views/FolderBanks/listadoPagosPorProveedor.vue"),
+        component: () => import("../views/FolderBanks/ListadoPagosPorProveedorView.vue"),
       },
       {
         path: "FolderBanks/registroPayForProveedor",
