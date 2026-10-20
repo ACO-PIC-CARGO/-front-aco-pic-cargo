@@ -1,9 +1,8 @@
 import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
-import type { Mock } from "vitest";
 import { createPinia, setActivePinia } from "pinia";
 import { toRaw } from "vue";
 import Swal from "sweetalert2";
-import store from "@/store";
+import { useAduanaStore } from "@/stores/aduana";
 import { useIncotermStore } from "@/stores/incoterm";
 import { usePricingStore } from "@/stores/pricing";
 import { JSON_HEADERS, URL_MAIN, accepted, flushPromises, httpMock, rejected, respond } from "./catalogHttp";
@@ -15,8 +14,7 @@ vi.mock("@/store", () => ({ default: { commit: vi.fn() } }));
 
 const fob = { id: 3, name: "FOB", description: "FREE ON BOARD", status: 1 };
 const defaultList = URL_MAIN + "listar_incoterms?id_branch=7&name=&description=&status=1";
-const commitMock = store.commit as unknown as Mock<(type: string, payload: unknown) => void>;
-const sharedCommits = () => commitMock.mock.calls.filter(([type]) => type === "SET_LIST_INCOTERMS");
+const aduanaCopy = () => toRaw(useAduanaStore().listIncoterms);
 
 describe("incoterm store", () => {
   beforeEach(() => {
@@ -47,8 +45,7 @@ describe("incoterm store", () => {
     expect(loadingDuringRequest).toBe(false);
     expect(incoterm.list).toEqual([fob]);
     expect(incoterm.loading).toBe(true);
-    expect(sharedCommits()).toHaveLength(1);
-    expect(sharedCommits()[0]![1]).toBe(toRaw(incoterm.list));
+    expect(aduanaCopy()).toBe(toRaw(incoterm.list));
     expect(toRaw(usePricingStore().listIncoterms)).toBe(toRaw(incoterm.list));
     expect(sessionStorage.getItem("auth-token")).toBe("tok");
   });
@@ -61,7 +58,7 @@ describe("incoterm store", () => {
     await incoterm.fetchDataIncoterms({ name: "", description: "", status: 1 });
 
     expect(incoterm.list).toEqual([]);
-    expect(sharedCommits()[0]![1]).toEqual([]);
+    expect(aduanaCopy()).toEqual([]);
     expect(vi.mocked(Swal.fire).mock.calls[0]![0]).toMatchObject({ icon: "info", text: "No se encontraron registros" });
   });
 
@@ -78,21 +75,21 @@ describe("incoterm store", () => {
       params: { id_branch: 7 },
     });
     expect(incoterm.list).toEqual([fob]);
-    expect(sharedCommits()[0]![1]).toBe(toRaw(incoterm.list));
+    expect(aduanaCopy()).toBe(toRaw(incoterm.list));
     expect(toRaw(usePricingStore().listIncoterms)).toBe(toRaw(incoterm.list));
     expect(incoterm.loading).toBe(false);
 
     respond({ ver_incoterms_config: rejected() });
     await incoterm.CargarIncotermsConfig();
     expect(incoterm.list).toEqual([]);
-    expect(sharedCommits()[1]![1]).toEqual([]);
+    expect(aduanaCopy()).toEqual([]);
 
     vi.spyOn(console, "error").mockImplementation(() => {});
     incoterm.list = [fob];
     respond({ ver_incoterms_config: new Error("network") });
     await incoterm.CargarIncotermsConfig();
     expect(incoterm.list).toEqual([fob]);
-    expect(sharedCommits()).toHaveLength(2);
+    expect(aduanaCopy()).toEqual([]);
     expect(Swal.fire).not.toHaveBeenCalled();
   });
 

@@ -4,10 +4,12 @@ import { useRoute, useRouter } from "vue-router";
 import { useStore } from "vuex";
 import Swal from "sweetalert2";
 import { usePricingStore } from "@/stores/pricing";
+import { useAduanaStore } from "@/stores/aduana";
 
 const route = useRoute();
 const router = useRouter();
 const rootStore = useStore();
+const aduanaStore = useAduanaStore();
 const pricingStore = usePricingStore();
 
 const id_quote = ref("");
@@ -36,12 +38,12 @@ async function unificar() {
     id_quote: route.params.id,
     id_aduana: id_quote.value,
   };
-  await rootStore.dispatch("unificarQuoteAduana", data);
-  if (rootStore.state.aduana.nro_quote) {
+  await aduanaStore.unificarQuoteAduana(data);
+  if (aduanaStore.nro_quote) {
     Swal.fire({
       icon: "success",
       title: "Aviso",
-      text: rootStore.state.aduana.mensaje,
+      text: aduanaStore.mensaje,
       confirmButtonText: "Ir a la cotización",
       showConfirmButton: true,
     }).then(async (result) => {
@@ -49,7 +51,7 @@ async function unificar() {
         await router.push({
           name: "verQuote",
           params: {
-            id: rootStore.state.aduana.IdQuote,
+            id: aduanaStore.IdQuote,
           },
         });
         nextTick(() => {
@@ -75,7 +77,7 @@ async function unificar() {
         class="py-2"
       >
         Unificar Cotización asociada a:
-        {{ rootStore.state.aduana.datosPrincipales.nombre }}
+        {{ aduanaStore.datosPrincipales.nombre }}
       </v-col>
       <v-col
         cols="12"
@@ -87,7 +89,7 @@ async function unificar() {
           density="compact"
           variant="outlined"
           label="Cotización"
-          :items="rootStore.state.aduana.listQuotes"
+          :items="aduanaStore.listQuotes"
           v-model="id_quote"
           item-title="quote"
           item-value="id"

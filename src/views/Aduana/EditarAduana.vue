@@ -123,10 +123,11 @@ import DatosCostosComponent from "../../components/folderAduana/DatosCostosCompo
 import ComparativaComponent from "../../components/folderAduana/ComparativaComponent.vue";
 import NotasComponent from "../../components/folderAduana/NotasComponent.vue";
 import { mapActions, mapState } from "vuex";
-import { mapActions as mapPiniaActions } from "pinia";
+import { mapActions as mapPiniaActions, mapStores } from "pinia";
 import { useMasterusuariosStore } from "@/stores/masterusuarios";
 import { useEnterprisesStore } from "@/stores/enterprises";
 import { usePricingStore } from "@/stores/pricing";
+import { useAduanaStore } from "@/stores/aduana";
 
 export default {
   components: {
@@ -158,13 +159,13 @@ export default {
       await this.getShipmentAduana(),
     ]);
 
-    this.$store.state.mainTitle = `EDITAR  COTIZACIÓN - ${this.$store.state.aduana.nro_quote}`;
+    this.$store.state.mainTitle = `EDITAR  COTIZACIÓN - ${this.aduanaStore.nro_quote}`;
     this.$store.state.spiner = false;
     this.mostrar = true;
-    let idTipoCarga = this.$store.state.aduana.listShipment.filter(
-      (v) => v.id == this.$store.state.aduana.datosPrincipales.idtipocarga
+    let idTipoCarga = this.aduanaStore.listShipment.filter(
+      (v) => v.id == this.aduanaStore.datosPrincipales.idtipocarga
     )[0].id_transport;
-    let opciones = [...this.$store.state.aduana.opcionCostos];
+    let opciones = [...this.aduanaStore.opcionCostos];
     let IdProveedor = [];
     opciones.forEach((opcion) => {
       opcion.listCostos.forEach((costo) => {
@@ -176,11 +177,11 @@ export default {
     Promise.all([
       this.getPortBeginAduana({
         id_transport: idTipoCarga,
-        id: this.$store.state.aduana.datosPrincipales.idorigen,
+        id: this.aduanaStore.datosPrincipales.idorigen,
       }),
       this.getPortEndAduana({
         id_transport: idTipoCarga,
-        id: this.$store.state.aduana.datosPrincipales.idorigen,
+        id: this.aduanaStore.datosPrincipales.idorigen,
       }),
       this.getMarketingList(),
       this.getQuoteStatus(),
@@ -192,7 +193,7 @@ export default {
       this.getTipoCostosAduana(),
     ]);
     this.mostrarStepS = true;
-    this.$store.state.aduana.llenadoCostos = false;
+    this.aduanaStore.llenadoCostos = false;
     await Promise.all([
       this._getContainers(),
       this.getBegEndList(),
@@ -201,33 +202,24 @@ export default {
       this.obtenerImpuestoXEmpresa(),
       this.getPortBeginAduana({
         id_transport: idTipoCarga,
-        id: this.$store.state.aduana.datosPrincipales.idorigen,
+        id: this.aduanaStore.datosPrincipales.idorigen,
       }),
       this.getPortEndAduana({
         id_transport: idTipoCarga,
-        id: this.$store.state.aduana.datosPrincipales.idorigen,
+        id: this.aduanaStore.datosPrincipales.idorigen,
       }),
 
       // this.cargarProveedores(),
     ]);
-    this.$store.state.aduana.llenadoCostos = false;
+    this.aduanaStore.llenadoCostos = false;
     this.mostrarStepS = true;
   },
   methods: {
     ...mapActions([
-      "getModalityAduana",
-      "getShipmentAduana",
-      "getIncotermsAduana",
-      "getPortBeginAduana",
-      "getPortEndAduana",
-      "getServicesAduana",
-      "getTipoCostosAduana",
-      "obtenerCostosAduana",
-      "getMultiplicadorAduana",
       "cargarProveedores",
       "_getContainers",
-      "getAdunaVer",
     ]),
+    ...mapPiniaActions(useAduanaStore, ["getModalityAduana", "getShipmentAduana", "getIncotermsAduana", "getPortBeginAduana", "getPortEndAduana", "getServicesAduana", "getTipoCostosAduana", "obtenerCostosAduana", "getMultiplicadorAduana", "getAdunaVer"]),
     ...mapPiniaActions(usePricingStore, ["resetQuoteNew", "getMarketingList", "getQuoteStatus", "getCargarEjecutivo", "getBegEndList", "getImpuestos", "getCargarMasterDetalleNotasCotizacion", "registrarQuote"]),
     ...mapPiniaActions(useEnterprisesStore, ["obtenerImpuestoXEmpresa"]),
     ...mapPiniaActions(useMasterusuariosStore, ["cargarMasterDetallePercepcionAduana"]),
@@ -246,21 +238,21 @@ export default {
     },
     async activarServicios() {
       this.ServicesComponentFlag = true;
-      let services = [...this.$store.state.aduana.preServices];
+      let services = [...this.aduanaStore.preServices];
       let serv = services.filter(
         (v) =>
           v.id_incoterms ==
-            this.$store.state.aduana.datosPrincipales.idincoterms &&
+            this.aduanaStore.datosPrincipales.idincoterms &&
           v.id_modality ==
-            this.$store.state.aduana.datosPrincipales.idsentido &&
+            this.aduanaStore.datosPrincipales.idsentido &&
           v.id_shipment ==
-            this.$store.state.aduana.datosPrincipales.idtipocarga.id
+            this.aduanaStore.datosPrincipales.idtipocarga.id
       );
-      this.$store.state.aduana.listServices = serv;
+      this.aduanaStore.listServices = serv;
       await this.getTipoCostosAduana();
     },
     recargarServicios() {
-      let services = [...this.$store.state.aduana.preServices];
+      let services = [...this.aduanaStore.preServices];
 
       if (services.length == 0) {
         return;
@@ -268,35 +260,35 @@ export default {
       let serv = services.filter(
         (v) =>
           v.id_incoterms ==
-            this.$store.state.aduana.datosPrincipales.idincoterms &&
+            this.aduanaStore.datosPrincipales.idincoterms &&
           v.id_modality ==
-            this.$store.state.aduana.datosPrincipales.idsentido &&
+            this.aduanaStore.datosPrincipales.idsentido &&
           v.id_shipment ==
-            (typeof this.$store.state.aduana.datosPrincipales.idtipocarga ===
+            (typeof this.aduanaStore.datosPrincipales.idtipocarga ===
             "object"
-              ? this.$store.state.aduana.datosPrincipales.idtipocarga.id
-              : this.$store.state.aduana.datosPrincipales.idtipocarga)
+              ? this.aduanaStore.datosPrincipales.idtipocarga.id
+              : this.aduanaStore.datosPrincipales.idtipocarga)
       );
 
       let IdServices = serv.map((v) => v.id);
-      this.$store.state.aduana.listServices
+      this.aduanaStore.listServices
         .filter((v) => !!v.id)
         .forEach((servicios) => {
           if (!IdServices.includes(servicios.id)) {
-            let index = this.$store.state.aduana.listServices.findIndex(
+            let index = this.aduanaStore.listServices.findIndex(
               (v) => v.code_service == servicios.code_service
             );
-            this.$store.state.aduana.listServices.splice(index, 1);
+            this.aduanaStore.listServices.splice(index, 1);
           }
         });
 
-      IdServices = this.$store.state.aduana.listServices.map(
+      IdServices = this.aduanaStore.listServices.map(
         (v) => v.code_service
       );
 
       serv.forEach((servicios) => {
         if (!IdServices.includes(servicios.code_service)) {
-          this.$store.state.aduana.listServices.push(servicios);
+          this.aduanaStore.listServices.push(servicios);
         }
       });
     },
@@ -306,27 +298,27 @@ export default {
       await this.getImpuestos();
 
       let codeServicesActivos = new Set(
-        this.$store.state.aduana.listServices
+        this.aduanaStore.listServices
           .filter((v) => v.status === true || v.status === 1)
           .map((v) => v.code_service)
       );
 
-      let costos = [...this.$store.state.aduana.preCostos];
+      let costos = [...this.aduanaStore.preCostos];
 
       let c = costos.filter(
         (v) =>
           v.id_incoterms ==
-            this.$store.state.aduana.datosPrincipales.idincoterms &&
+            this.aduanaStore.datosPrincipales.idincoterms &&
           v.id_modality ==
-            this.$store.state.aduana.datosPrincipales.idsentido &&
+            this.aduanaStore.datosPrincipales.idsentido &&
           v.id_shipment ==
-            this.$store.state.aduana.datosPrincipales.idtipocarga.id &&
+            this.aduanaStore.datosPrincipales.idtipocarga.id &&
           codeServicesActivos.has(Number(v.code_service))
       );
 
       let idContainer = [];
-      if (this.$store.state.aduana.datosPrincipales.containers.length > 0) {
-        idContainer = this.$store.state.aduana.datosPrincipales.containers.map(
+      if (this.aduanaStore.datosPrincipales.containers.length > 0) {
+        idContainer = this.aduanaStore.datosPrincipales.containers.map(
           (v) => v.id
         );
       }
@@ -374,11 +366,11 @@ export default {
         }
       });
 
-      this.$store.state.aduana.opcionCostos[0].listCostos = cDuplicado;
-      this.$store.state.aduana.opcionCostos[0].listImpuestos =
-        this.$store.state.aduana.listImpuestos;
-      this.$store.state.aduana.opcionCostos[0].listNotasQuote =
-        this.$store.state.aduana.listNotasQuote;
+      this.aduanaStore.opcionCostos[0].listCostos = cDuplicado;
+      this.aduanaStore.opcionCostos[0].listImpuestos =
+        this.aduanaStore.listImpuestos;
+      this.aduanaStore.opcionCostos[0].listNotasQuote =
+        this.aduanaStore.listNotasQuote;
 
       this.step = 2;
       this.editableStep2 = true;
@@ -387,24 +379,24 @@ export default {
     anadirNuevaOpcion(nro_propuesta) {
       // this.$store.state.spiner = true;
       let codeServicesActivos = new Set(
-        this.$store.state.aduana.listServices
+        this.aduanaStore.listServices
           .filter((v) => v.status === true || v.status === 1)
           .map((v) => v.code_service)
       );
-      let costos = [...this.$store.state.aduana.preCostos];
+      let costos = [...this.aduanaStore.preCostos];
       let c = costos.filter(
         (v) =>
           v.id_incoterms ==
-            this.$store.state.aduana.datosPrincipales.idincoterms &&
+            this.aduanaStore.datosPrincipales.idincoterms &&
           v.id_modality ==
-            this.$store.state.aduana.datosPrincipales.idsentido &&
+            this.aduanaStore.datosPrincipales.idsentido &&
           v.id_shipment ==
-            this.$store.state.aduana.datosPrincipales.idtipocarga.id &&
+            this.aduanaStore.datosPrincipales.idtipocarga.id &&
           codeServicesActivos.has(Number(v.code_service))
       );
       let idContainer = [];
-      if (this.$store.state.aduana.datosPrincipales.containers.length > 0) {
-        idContainer = this.$store.state.aduana.datosPrincipales.containers.map(
+      if (this.aduanaStore.datosPrincipales.containers.length > 0) {
+        idContainer = this.aduanaStore.datosPrincipales.containers.map(
           (v) => v.id
         );
       }
@@ -455,10 +447,10 @@ export default {
         date_end: "",
         tiempo_transito: 0,
         listCostos: cDuplicado,
-        listImpuestos: this.$store.state.aduana.listImpuestos,
-        listNotasQuote: this.$store.state.aduana.listNotasQuote,
+        listImpuestos: this.aduanaStore.listImpuestos,
+        listNotasQuote: this.aduanaStore.listNotasQuote,
       };
-      this.$store.state.aduana.opcionCostos.push(newPropuesta);
+      this.aduanaStore.opcionCostos.push(newPropuesta);
       // this.$store.state.spiner = false;
     },
     async recargarCostos(event = true) {
@@ -467,29 +459,29 @@ export default {
       await this.getMultiplicadorAduana();
 
       let codeServicesActivos = new Set(
-        this.$store.state.aduana.listServices
+        this.aduanaStore.listServices
           .filter((v) => v.status === true || v.status === 1)
           .map((v) => v.code_service)
       );
 
-      let id_shipment = this.$store.state.aduana.datosPrincipales.idtipocarga;
+      let id_shipment = this.aduanaStore.datosPrincipales.idtipocarga;
       if (typeof id_shipment === "object") {
         id_shipment = id_shipment.id;
       }
 
-      let c = this.$store.state.aduana.preCostos.filter(
+      let c = this.aduanaStore.preCostos.filter(
         (v) =>
           v.id_incoterms ===
-            this.$store.state.aduana.datosPrincipales.idincoterms &&
+            this.aduanaStore.datosPrincipales.idincoterms &&
           v.id_modality ===
-            this.$store.state.aduana.datosPrincipales.idsentido &&
+            this.aduanaStore.datosPrincipales.idsentido &&
           v.id_shipment === id_shipment &&
           codeServicesActivos.has(Number(v.code_service))
       );
 
       let idContainer = [];
-      if (this.$store.state.aduana.datosPrincipales.containers.length > 0) {
-        idContainer = this.$store.state.aduana.datosPrincipales.containers.map(
+      if (this.aduanaStore.datosPrincipales.containers.length > 0) {
+        idContainer = this.aduanaStore.datosPrincipales.containers.map(
           (v) => v.id_containers
         );
       }
@@ -538,7 +530,7 @@ export default {
       });
       let newOpciones = [];
 
-      this.$store.state.aduana.opcionCostos.forEach((opcion) => {
+      this.aduanaStore.opcionCostos.forEach((opcion) => {
         let listCostosActual = opcion.listCostos || [];
 
         let costosValidos = listCostosActual.filter(
@@ -572,18 +564,18 @@ export default {
         newOpciones.push(Propuesta);
       });
 
-      this.$store.state.aduana.opcionCostos = newOpciones;
+      this.aduanaStore.opcionCostos = newOpciones;
 
-      this.$store.state.aduana.llenadoCostos = false;
+      this.aduanaStore.llenadoCostos = false;
       this.$forceUpdate();
       this.indexCostos++;
       this.$store.state.spiner = false;
-      let isFCL = this.$store.state.aduana.listShipment.some(
+      let isFCL = this.aduanaStore.listShipment.some(
         (v) =>
           v.id ==
-            (this.$store.state.aduana.datosPrincipales.idtipocarga.id
-              ? this.$store.state.aduana.datosPrincipales.idtipocarga.id
-              : this.$store.state.aduana.datosPrincipales.idtipocarga) &&
+            (this.aduanaStore.datosPrincipales.idtipocarga.id
+              ? this.aduanaStore.datosPrincipales.idtipocarga.id
+              : this.aduanaStore.datosPrincipales.idtipocarga) &&
           v.code == "FCL"
       );
       Swal.fire({
@@ -593,8 +585,8 @@ export default {
         allowEnterKey: false,
         allowOutsideClick: false,
       }).then((res) => {
-        this.$store.state.aduana.actualizarComparativa =
-          !this.$store.state.aduana.actualizarComparativa;
+        this.aduanaStore.actualizarComparativa =
+          !this.aduanaStore.actualizarComparativa;
         if (res.isConfirmed) {
           if (isFCL && event) {
             this.abrirModalContenedorRecargar =
@@ -613,11 +605,12 @@ export default {
     },
   },
   computed: {
+    ...mapStores(useAduanaStore),
     ...mapState(["itemsShipment"]),
   },
   watch: {
     step() {
-      this.$store.state.aduana.step = this.step;
+      this.aduanaStore.step = this.step;
     },
   },
 };

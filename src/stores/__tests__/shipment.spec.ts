@@ -1,10 +1,9 @@
 import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
-import type { Mock } from "vitest";
 import { createPinia, setActivePinia } from "pinia";
 import { toRaw } from "vue";
 import Swal from "sweetalert2";
 import router from "@/router";
-import store from "@/store";
+import { useAduanaStore } from "@/stores/aduana";
 import { useMultiplicadorStore } from "@/stores/multiplicador";
 import { usePricingStore } from "@/stores/pricing";
 import { useShipmentStore } from "@/stores/shipment";
@@ -18,8 +17,7 @@ vi.mock("@/store", () => ({ default: { commit: vi.fn() } }));
 const fcl = { id: 3, code: "FCL", name: "FCL", description: "", id_transport: 1, status: 1 };
 const filters = { id_transport: 2, name: "F C", description: "a/b", status: 1 };
 const defaultFilters = "listar_shipment?id_branch=7&id_transport=&name=&description=&status=1";
-const commitMock = store.commit as unknown as Mock<(type: string, payload: unknown) => void>;
-const sharedCommits = () => commitMock.mock.calls.filter(([type]) => type === "SET_LIST_SHIPMENT");
+const aduanaCopy = () => toRaw(useAduanaStore().listShipment);
 
 describe("shipment store", () => {
   beforeEach(() => {
@@ -56,8 +54,7 @@ describe("shipment store", () => {
     expect(sessionStorage.getItem("auth-token")).toBe("tok");
     expect(Swal.fire).not.toHaveBeenCalled();
     expect(toRaw(useMultiplicadorStore().shipments)).toBe(toRaw(shipment.list));
-    expect(sharedCommits()).toHaveLength(1);
-    expect(sharedCommits()[0]![1]).toBe(toRaw(shipment.list));
+    expect(aduanaCopy()).toBe(toRaw(shipment.list));
     expect(toRaw(usePricingStore().listShipment)).toBe(toRaw(shipment.list));
   });
 
@@ -71,7 +68,7 @@ describe("shipment store", () => {
     expect(shipment.list).toEqual([]);
     expect(shipment.loading).toBe(true);
     expect(useMultiplicadorStore().shipments).toEqual([]);
-    expect(sharedCommits()[0]![1]).toEqual([]);
+    expect(aduanaCopy()).toEqual([]);
     expect(Swal.fire).toHaveBeenCalledWith({
       icon: "info",
       text: "No se encontraron registros",
@@ -100,13 +97,14 @@ describe("shipment store", () => {
     const shipment = useShipmentStore();
     shipment.list = [fcl];
     useMultiplicadorStore().shipments = [fcl];
+    useAduanaStore().listShipment = [fcl];
 
     await shipment.fetchDataShipment(filters);
 
     expect(shipment.list).toEqual([fcl]);
     expect(useMultiplicadorStore().shipments).toEqual([fcl]);
     expect(shipment.loading).toBe(false);
-    expect(sharedCommits()).toHaveLength(0);
+    expect(aduanaCopy()).toEqual([fcl]);
     expect(log).toHaveBeenCalledWith("Error al obtener los datos:", expect.any(Error));
   });
 

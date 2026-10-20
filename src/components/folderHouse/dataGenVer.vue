@@ -32,7 +32,7 @@
       <v-col cols="12" md="4">
         <v-autocomplete
           label="Quote aduana"
-          :items="$store.state.aduana.listQuotes2"
+          :items="aduanaStore.listQuotes2"
           item-title="quote"
           item-value="id"
           v-model="$store.state.house_cotizacionaduana"
@@ -267,6 +267,7 @@ import { mapState, mapActions } from "vuex";
 import axios from "@/api/http";
 import { mapActions as mapPiniaActions, mapStores } from "pinia";
 import { usePricingStore } from "@/stores/pricing";
+import { useAduanaStore } from "@/stores/aduana";
 export default {
   name: "dataGen",
   data() {
@@ -278,7 +279,7 @@ export default {
     };
   },
   computed: {
-    ...mapStores(usePricingStore),
+    ...mapStores(useAduanaStore, usePricingStore),
     ...mapState([
       "itemsModality",
       "itemsShipment",

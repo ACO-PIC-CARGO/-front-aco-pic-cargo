@@ -429,6 +429,7 @@ import { mapActions as mapPiniaActions, mapStores } from "pinia";
 import { useSecuritysStore } from "@/stores/securitys";
 import Swal from "sweetalert2";
 import { usePricingStore } from "@/stores/pricing";
+import { useAduanaStore } from "@/stores/aduana";
 export default {
   name: "ListQuoteComponent",
   data() {
@@ -578,11 +579,9 @@ export default {
   },
   methods: {
     ...mapActions([
-      "getListQuoteAduana",
-      "actualizarAduanaRecibidoEnviado",
-      "guardarNotaAduana",
       "cargarMaster",
     ]),
+    ...mapPiniaActions(useAduanaStore, ["getListQuoteAduana", "actualizarAduanaRecibidoEnviado", "guardarNotaAduana"]),
     ...mapPiniaActions(usePricingStore, ["imprimiReporteListado", "exportarExcelListadoQuote", "imprimirMercadeo", "getListRecibidoCotizacion", "getListEnviadoCliente", "getModulesEntities", "eliminarRegistro", "getQuoteStatus", "aprobarCotizacion"]),
     ...mapPiniaActions(useSecuritysStore, ["validarUsuarioAdmin"]),
     async iraAprobado(id) {

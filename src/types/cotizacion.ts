@@ -334,6 +334,7 @@ export interface CotizacionListado {
   id_master_enviadocliente?: number | string;
   fecha_enviocliente?: string;
   details?: DetalleLlamada[];
+  quote?: string;
 }
 
 export interface LlamadaCotizacion {
@@ -572,6 +573,17 @@ export interface CotizacionDetalle extends Omit<DatosPrincipales, "opcioncostos"
   tiporeporte: string;
 }
 
+export type CotizacionAduanaDetalle = Omit<CotizacionDetalle, "cliente" | "id_master" | "nro_exp">;
+
+export interface FiltroLlamadasAduana {
+  id_estado?: number | string | null;
+  id_sentido?: number | string | null;
+  id_carga?: number | string | null;
+  id_incoterms?: number | string | null;
+  desde?: string | null;
+  hasta?: string | null;
+}
+
 export interface TextoWhatsappCotizacion {
   texto_pdf?: string;
   texto_link?: string;
@@ -762,6 +774,7 @@ export interface CotizacionCopiada {
 export interface MasterAprobado {
   id_master?: number;
   code_master?: string;
+  nro_master?: string;
 }
 
 export interface RolModulo {

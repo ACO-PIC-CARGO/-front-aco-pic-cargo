@@ -3,6 +3,7 @@ import { computed, nextTick, onBeforeUnmount, ref, useTemplateRef, watch } from 
 import { useStore } from "vuex";
 import Swal from "sweetalert2";
 import { useCotizacionCalculos } from "@/composables/useCotizacionCalculos";
+import { useAduanaStore } from "@/stores/aduana";
 import { useTownStore } from "@/stores/town";
 import { useMasterusuariosStore } from "@/stores/masterusuarios";
 import { useCalculadorasStore } from "@/stores/calculadoras";
@@ -35,6 +36,7 @@ const emit = defineEmits<{
 }>();
 
 const rootStore = useStore();
+const aduanaStore = useAduanaStore();
 const pricingStore = usePricingStore();
 const calculadorasStore = useCalculadorasStore();
 const masterusuariosStore = useMasterusuariosStore();
@@ -958,7 +960,7 @@ function cambiarImpuesto() {
     newImpuesto.filter((v) => v.codigo == "09")[0]!.codigo01 = porcentaje;
 
     pricingStore.listImpuestos = newImpuesto;
-    rootStore.commit("ACTUALIZAR_IMPUEST", newImpuesto);
+    aduanaStore.listImpuestos = newImpuesto;
   }
 
   pricingStore.opcionCostos.forEach((element) => {

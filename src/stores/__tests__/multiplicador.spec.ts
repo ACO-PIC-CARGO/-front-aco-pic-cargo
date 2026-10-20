@@ -1,10 +1,9 @@
 import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
-import type { Mock } from "vitest";
 import { createPinia, setActivePinia } from "pinia";
 import { toRaw } from "vue";
 import Swal from "sweetalert2";
 import router from "@/router";
-import store from "@/store";
+import { useAduanaStore } from "@/stores/aduana";
 import { useMultiplicadorStore } from "@/stores/multiplicador";
 import { usePricingStore } from "@/stores/pricing";
 import { JSON_HEADERS, URL_MAIN, accepted, flushPromises, httpMock, rejected, respond } from "./catalogHttp";
@@ -17,8 +16,7 @@ vi.mock("@/store", () => ({ default: { commit: vi.fn() } }));
 const lcl = { id: 3, name: "LCL", description: "", id_shipment: 2, valor: "0.5", status: 1 };
 const filters = { code: "L C", name: "L & más", description: "a/b", id_shipment: 2, status: 1 };
 const defaultFilters = "listar_multiplicador?id_branch=7&code=&name=&description=&id_shipment=&status=1";
-const commitMock = store.commit as unknown as Mock<(type: string, payload: unknown) => void>;
-const sharedCommits = () => commitMock.mock.calls.filter(([type]) => type === "SET_LIST_SHIPMENT");
+const aduanaCopy = () => toRaw(useAduanaStore().listShipment);
 
 describe("multiplicador store", () => {
   beforeEach(() => {
@@ -46,15 +44,14 @@ describe("multiplicador store", () => {
       headers: JSON_HEADERS,
     });
     expect(multiplicador.shipments).toEqual([fcl]);
-    expect(sharedCommits()).toHaveLength(1);
-    expect(sharedCommits()[0]![1]).toBe(toRaw(multiplicador.shipments));
+    expect(aduanaCopy()).toBe(toRaw(multiplicador.shipments));
     expect(toRaw(usePricingStore().listShipment)).toBe(toRaw(multiplicador.shipments));
     expect(sessionStorage.getItem("auth-token")).toBe("tok");
 
     respond({ cargar_shipment: rejected() });
     await multiplicador.fetchDataCargarShipment();
     expect(multiplicador.shipments).toEqual([fcl]);
-    expect(sharedCommits()).toHaveLength(1);
+    expect(aduanaCopy()).toBe(toRaw(multiplicador.shipments));
     expect(Swal.fire).not.toHaveBeenCalled();
   });
 

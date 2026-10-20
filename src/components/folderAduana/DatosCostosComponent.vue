@@ -1,10 +1,10 @@
 <template>
   <v-container fluid>
-    <v-card class="px-5" v-if="$store.state.aduana.llenadoCostos">
+    <v-card class="px-5" v-if="aduanaStore.llenadoCostos">
       <h1>
         OPCIÓN COSTOS
         {{
-          $store.state.aduana.opcionCostos[$store.state.aduana.index]
+          aduanaStore.opcionCostos[aduanaStore.index]
             .nro_propuesta
         }}
       </h1>
@@ -14,13 +14,13 @@
             <v-text-field
               type="date"
               :name="`Fecha Validez de la Opción ${
-                $store.state.aduana.index + 1
+                aduanaStore.index + 1
               }`"
               :label="`Fecha Validez de la Opción ${
-                $store.state.aduana.index + 1
+                aduanaStore.index + 1
               }`"
               v-model="
-                $store.state.aduana.opcionCostos[$store.state.aduana.index]
+                aduanaStore.opcionCostos[aduanaStore.index]
                   .date_end
               "
               :rules="[
@@ -33,13 +33,13 @@
             <v-text-field
               type="number"
               :name="`Tiempo en tránsito de la Opción ${
-                $store.state.aduana.index + 1
+                aduanaStore.index + 1
               }`"
               :label="`Tiempo en tránsito de la Opción ${
-                $store.state.aduana.index + 1
+                aduanaStore.index + 1
               }`"
               v-model="
-                $store.state.aduana.opcionCostos[$store.state.aduana.index]
+                aduanaStore.opcionCostos[aduanaStore.index]
                   .tiempo_transito
               "
               :rules="[
@@ -57,7 +57,7 @@
               v-if="btnIngresarCostos"
             >
               INGRESAR COSTOS OPCIÓN
-              {{ $store.state.aduana.index + 1 }}
+              {{ aduanaStore.index + 1 }}
             </v-btn>
 
             <v-btn
@@ -65,7 +65,7 @@
               class="mx-1"
               size="x-large"
               @click="cancelarLlenadoCostos()"
-              v-if="$store.state.aduana.index > 0 && btnIngresarCostos"
+              v-if="aduanaStore.index > 0 && btnIngresarCostos"
             >
               CANCELAR
             </v-btn>
@@ -77,11 +77,11 @@
           <v-col cols="12">
             <CostosComponent
               :valores="
-                $store.state.aduana.opcionCostos[
-                  $store.state.aduana.index
+                aduanaStore.opcionCostos[
+                  aduanaStore.index
                 ].listCostos.filter((v) => v.esopcionflag == 1)
               "
-              :amount="$store.state.aduana.datosPrincipales.amount"
+              :amount="aduanaStore.datosPrincipales.amount"
               index=""
             />
           </v-col>
@@ -89,9 +89,9 @@
             <v-spacer></v-spacer>
             <v-btn
               color="#3363A2"
-              v-if="$store.state.aduana.mostrarGuardarCostos"
+              v-if="aduanaStore.mostrarGuardarCostos"
               @click="agregarNuevoCostoIrAVentas()"
-              >GUARDAR COSTOS OPCIÓN {{ $store.state.aduana.index + 1 }}</v-btn
+              >GUARDAR COSTOS OPCIÓN {{ aduanaStore.index + 1 }}</v-btn
             >
           </v-col>
         </v-row>
@@ -101,20 +101,20 @@
     <v-card class="px-5" v-else-if="opcionesSeleccionadas.length > 0">
       <h1>
         OPCIÓN COSTOS
-        {{ opcionesSeleccionadas[$store.state.aduana.page - 1].nro_propuesta }}
+        {{ opcionesSeleccionadas[aduanaStore.page - 1].nro_propuesta }}
       </h1>
       <v-row>
         <v-col cols="4">
           <v-text-field
             type="date"
             :name="`Fecha Validez de la Opción ${
-              opcionesSeleccionadas[$store.state.aduana.page - 1].nro_propuesta
+              opcionesSeleccionadas[aduanaStore.page - 1].nro_propuesta
             }`"
             :label="`Fecha Validez de la Opción ${
-              opcionesSeleccionadas[$store.state.aduana.page - 1].nro_propuesta
+              opcionesSeleccionadas[aduanaStore.page - 1].nro_propuesta
             }`"
             v-model="
-              opcionesSeleccionadas[$store.state.aduana.page - 1].date_end
+              opcionesSeleccionadas[aduanaStore.page - 1].date_end
             "
             :rules="[
               (v) => !!v || 'Dato Requerido',
@@ -126,13 +126,13 @@
           <v-text-field
             type="number"
             :name="`Tiempo en tránsito de la Opción ${
-              opcionesSeleccionadas[$store.state.aduana.page - 1].nro_propuesta
+              opcionesSeleccionadas[aduanaStore.page - 1].nro_propuesta
             }`"
             :label="`Tiempo en tránsito de la Opción ${
-              opcionesSeleccionadas[$store.state.aduana.page - 1].nro_propuesta
+              opcionesSeleccionadas[aduanaStore.page - 1].nro_propuesta
             }`"
             v-model="
-              opcionesSeleccionadas[$store.state.aduana.page - 1]
+              opcionesSeleccionadas[aduanaStore.page - 1]
                 .tiempo_transito
             "
             :rules="[
@@ -144,7 +144,7 @@
         <v-col cols="12" class="derecha">
           <div class="text-center">
             <v-pagination
-              v-model="$store.state.aduana.page"
+              v-model="aduanaStore.page"
               :length="opcionesSeleccionadas.length"
               rounded
             ></v-pagination>
@@ -156,24 +156,24 @@
               <CostosComponent
                 :valores="
                   opcionesSeleccionadas[
-                    $store.state.aduana.page - 1
+                    aduanaStore.page - 1
                   ].listCostos.filter((v) => v.esopcionflag == 1)
                 "
                 :actualizarCostosFlag="
-                  $store.state.aduana.actualizarCostosFlag
+                  aduanaStore.actualizarCostosFlag
                 "
-                :amount="$store.state.aduana.datosPrincipales.amount"
-                :index="$store.state.aduana.page"
+                :amount="aduanaStore.datosPrincipales.amount"
+                :index="aduanaStore.page"
               />
             </v-col>
             <v-col cols="12" lg="6" xl="6">
               <VentasComponent
                 :valores="
                   opcionesSeleccionadas[
-                    $store.state.aduana.page - 1
+                    aduanaStore.page - 1
                   ].listCostos.filter((v) => v.esventaflag == 1)
                 "
-                :amount="$store.state.aduana.datosPrincipales.amount"
+                :amount="aduanaStore.datosPrincipales.amount"
               />
             </v-col>
             <v-col
@@ -200,12 +200,12 @@
             class="col-12"
             v-if="mostrarImpuestos && mostrarImpuestosEditar"
             :index="
-              $store.state.aduana.opcionCostos[$store.state.aduana.index]
+              aduanaStore.opcionCostos[aduanaStore.index]
                 .nro_propuesta
             "
-            :amount="$store.state.aduana.datosPrincipales.amount"
+            :amount="aduanaStore.datosPrincipales.amount"
             :impuestos="
-              opcionesSeleccionadas[$store.state.aduana.page - 1].listImpuestos
+              opcionesSeleccionadas[aduanaStore.page - 1].listImpuestos
             "
           />
         </v-col>
@@ -216,7 +216,7 @@
                 @click="irAComparativa()"
                 color="default"
                 v-if="
-                  $store.state.aduana.opcionCostos.length > 1 && mostrarBtn
+                  aduanaStore.opcionCostos.length > 1 && mostrarBtn
                 "
                 >Regresar a la comparativa</v-btn
               >
@@ -237,6 +237,8 @@
 import { defineAsyncComponent } from "vue";
 import moment from "moment";
 import Swal from "sweetalert2";
+import { mapStores } from "pinia";
+import { useAduanaStore } from "@/stores/aduana";
 
 export default {
   emits: ["continuarComparativa", "anadirNuevaOpcion", "irANotas"],
@@ -271,13 +273,13 @@ export default {
     };
   },
   mounted() {
-    if (!this.llenadoCostos) this.$store.state.aduana.page = 1;
+    if (!this.llenadoCostos) this.aduanaStore.page = 1;
   },
   methods: {
     irAComparativa() {
-      this.$store.state.aduana.tab = 3;
-      this.$store.state.aduana.actualizarComparativa =
-        !this.$store.state.aduana.actualizarComparativa;
+      this.aduanaStore.tab = 3;
+      this.aduanaStore.actualizarComparativa =
+        !this.aduanaStore.actualizarComparativa;
     },
     async pasarLlenadoCostos() {
       if ((await this.$refs.frmDatosOpcion.validate()).valid) {
@@ -286,17 +288,17 @@ export default {
       }
     },
     cancelarLlenadoCostos() {
-      this.$store.state.aduana.opcionCostos.splice(-1, 1);
-      this.$store.state.aduana.index = this.$store.state.aduana.index - 1;
+      this.aduanaStore.opcionCostos.splice(-1, 1);
+      this.aduanaStore.index = this.aduanaStore.index - 1;
       this.btnIngresarCostos = false;
       this.mostrarCostos = true;
       setTimeout(() => {
-        this.$store.state.aduana.cancelarLlenadoNuevaOpcion =
-          !this.$store.state.aduana.cancelarLlenadoNuevaOpcion;
+        this.aduanaStore.cancelarLlenadoNuevaOpcion =
+          !this.aduanaStore.cancelarLlenadoNuevaOpcion;
       }, 100);
     },
     agregarNuevoCostoIrAVentas() {
-      if (this.$store.state.aduana.index == 0) {
+      if (this.aduanaStore.index == 0) {
         Swal.fire({
           icon: "question",
           width: 1000,
@@ -308,7 +310,7 @@ export default {
           confirmButtonColor: "green",
           denyButtonColor: "#3363A2",
           confirmButtonText: `<h1>Agregar Costos - Opcion ${
-            this.$store.state.aduana.index + 2
+            this.aduanaStore.index + 2
           }</h1> `,
           denyButtonText: "<h1>Ir a la venta del cliente final</h1>",
           showDenyButton: true,
@@ -316,21 +318,21 @@ export default {
           showCloseButton: true,
         }).then((action) => {
           if (action.isConfirmed) {
-            let nro_propuesta = this.$store.state.aduana.index + 2;
+            let nro_propuesta = this.aduanaStore.index + 2;
             this.$emit("anadirNuevaOpcion", nro_propuesta);
-            this.$store.state.aduana.index =
-              parseInt(this.$store.state.aduana.index) + 1;
+            this.aduanaStore.index =
+              parseInt(this.aduanaStore.index) + 1;
             this.mostrarCostos = false;
             this.btnIngresarCostos = true;
             this.$refs.frmDatosOpcion.resetValidation();
           }
           if (action.isDenied) {
-            this.$store.state.aduana.opcionCostos[0].selected = 1;
-            this.$store.state.aduana.llenadoCostos = false;
+            this.aduanaStore.opcionCostos[0].selected = 1;
+            this.aduanaStore.llenadoCostos = false;
           }
         });
       }
-      if (this.$store.state.aduana.index > 0) {
+      if (this.aduanaStore.index > 0) {
         Swal.fire({
           icon: "question",
           width: 1000,
@@ -342,7 +344,7 @@ export default {
           confirmButtonColor: "green",
           denyButtonColor: "#3363A2",
           confirmButtonText: `<h1>Agregar Costos - Opcion ${
-            this.$store.state.aduana.index + 2
+            this.aduanaStore.index + 2
           } </h1>`,
           denyButtonText: "<h1>Ir a la comparativa</h1>",
           showDenyButton: true,
@@ -350,25 +352,25 @@ export default {
           showCloseButton: true,
         }).then((action) => {
           if (action.isConfirmed) {
-            let nro_propuesta = this.$store.state.aduana.index + 2;
-            let costos = this.$store.state.aduana.listCostos.map((objeto) => ({
+            let nro_propuesta = this.aduanaStore.index + 2;
+            let costos = this.aduanaStore.listCostos.map((objeto) => ({
               ...objeto,
               nro_propuesta,
             }));
-            let listImpuestos = this.$store.state.aduana.listImpuestos.map(
+            let listImpuestos = this.aduanaStore.listImpuestos.map(
               (objeto) => ({
                 ...objeto,
                 nro_propuesta,
               })
             );
-            let listNotasQuote = this.$store.state.aduana.listNotasQuote.map(
+            let listNotasQuote = this.aduanaStore.listNotasQuote.map(
               (objeto) => ({
                 ...objeto,
                 nro_propuesta,
               })
             );
-            this.$store.state.aduana.opcionCostos.push({
-              nro_propuesta: this.$store.state.aduana.index + 2,
+            this.aduanaStore.opcionCostos.push({
+              nro_propuesta: this.aduanaStore.index + 2,
               date_end: "",
               tiempo_transito: 0,
               listCostos: costos,
@@ -377,16 +379,16 @@ export default {
               listNotasQuote: listNotasQuote,
               selected: false,
             });
-            this.$store.state.aduana.index =
-              parseInt(this.$store.state.aduana.index) + 1;
+            this.aduanaStore.index =
+              parseInt(this.aduanaStore.index) + 1;
             this.mostrarCostos = false;
             this.btnIngresarCostos = true;
             this.$refs.frmDatosOpcion.resetValidation();
           }
           if (action.isDenied) {
             
-            this.$store.state.aduana.actualizarComparativa =
-              !this.$store.state.aduana.actualizarComparativa;
+            this.aduanaStore.actualizarComparativa =
+              !this.aduanaStore.actualizarComparativa;
             this.$emit("continuarComparativa");
           }
         });
@@ -395,8 +397,8 @@ export default {
 
     async activarCosto() {
       if ((await this.$refs.frmFecha.validate()).valid) {
-        this.$store.state.aduana.costoflag = true;
-        let cost = this.$store.state.aduana.listCostos.filter(
+        this.aduanaStore.costoflag = true;
+        let cost = this.aduanaStore.listCostos.filter(
           (v) => v.esopcionflag == 1
         );
         cost.forEach((element) => {
@@ -413,7 +415,7 @@ export default {
       this.mostrarContinuarVentas = false;
 
       if (
-        this.$store.state.aduana.listServices.some(
+        this.aduanaStore.listServices.some(
           (v) => v.code_service == "15" || v.code_service == 15
         )
       ) {
@@ -429,14 +431,14 @@ export default {
       this.mostrarBtnContinuarNotas = true;
     },
     irANotas() {
-      this.$store.state.aduana.actualizarNotas =
-        !this.$store.state.aduana.actualizarNotas;
-      this.$store.state.aduana.bloquearBtnImprimir = false;
-      this.$store.state.aduana.page = 1;
+      this.aduanaStore.actualizarNotas =
+        !this.aduanaStore.actualizarNotas;
+      this.aduanaStore.bloquearBtnImprimir = false;
+      this.aduanaStore.page = 1;
       this.$emit("irANotas");
     },
     activarVenta() {
-      this.$store.state.aduana.ventaflag = true;
+      this.aduanaStore.ventaflag = true;
       this.scrollToComponent("ventas-component");
     },
     isDateValid(date) {
@@ -450,10 +452,10 @@ export default {
       return selectedDate.isAfter(today);
     },
     validateCost({ costo }) {
-      let service = this.$store.state.aduana.listServices.filter(
+      let service = this.aduanaStore.listServices.filter(
         (v) => v.status == 1
       );
-      let multiplocadores = this.$store.state.aduana.listMultiplicador.filter(
+      let multiplocadores = this.aduanaStore.listMultiplicador.filter(
         (v) => {
           return this.comienzaNoConCaracter(v.text, "%");
         }
@@ -486,37 +488,38 @@ export default {
     },
   },
   computed: {
+    ...mapStores(useAduanaStore),
     opcionesSeleccionadas() {
-      return this.$store.state.aduana.opcionCostos.filter((v) => !!v.selected);
+      return this.aduanaStore.opcionCostos.filter((v) => !!v.selected);
     },
     llenadoCostos: {
       get() {
-        return this.$store.state.aduana.llenadoCostos;
+        return this.aduanaStore.llenadoCostos;
       },
       set(val) {
-        return (this.$store.state.aduana.llenadoCostos = llenadoCostos);
+        return (this.aduanaStore.llenadoCostos = llenadoCostos);
       },
     },
     recargarCostoSeleccionados: {
       get() {
-        return this.$store.state.aduana.recargarCostoSeleccionados;
+        return this.aduanaStore.recargarCostoSeleccionados;
       },
       set(val) {
-        return (this.$store.state.aduana.recargarCostoSeleccionados =
+        return (this.aduanaStore.recargarCostoSeleccionados =
           recargarCostoSeleccionados);
       },
     },
     reset: {
       get() {
-        return this.$store.state.aduana.reset;
+        return this.aduanaStore.reset;
       },
       set(val) {
-        return (this.$store.state.aduana.reset = reset);
+        return (this.aduanaStore.reset = reset);
       },
     },
     mostrarImpuestos() {
     
-      let imp = this.$store.state.aduana.listServices.some(
+      let imp = this.aduanaStore.listServices.some(
         (v) =>
           (v.code_service == 15 || v.code_service == "15") && v.status == true
       );
@@ -525,7 +528,7 @@ export default {
     },
     mostrarBotonIrANotas() {
       return (
-        this.opcionesSeleccionadas.length == this.$store.state.aduana.page &&
+        this.opcionesSeleccionadas.length == this.aduanaStore.page &&
         this.opcionesSeleccionadas.length > 0 &&
         this.mostrarBtnContinuarNotas
       );
@@ -534,22 +537,22 @@ export default {
   watch: {
     llenadoCostos() {
       if (!this.llenadoCostos) {
-        this.$store.state.aduana.page = 1;
+        this.aduanaStore.page = 1;
       }
     },
     recargarCostoSeleccionados() {
-      this.$store.state.aduana.page = 1;
+      this.aduanaStore.page = 1;
     },
     reset() {
-      this.$store.state.aduana.llenadoCostos = true;
+      this.aduanaStore.llenadoCostos = true;
       this.mostrarCostos = false;
       this.mostrarVentasFlag = false;
       this.btnIngresarCostos = true;
-      this.$store.state.aduana.page = 1;
+      this.aduanaStore.page = 1;
       this.mostrarContinuarVentas = true;
       this.mostrarBtnContinuarNotas = false;
 
-      this.$store.state.aduana.index = 0;
+      this.aduanaStore.index = 0;
       this.mostrarContinuarVentas = true;
       // this.mostrarSeccionImpuestos = f;
       // this.opcionesSeleccionadas = [];

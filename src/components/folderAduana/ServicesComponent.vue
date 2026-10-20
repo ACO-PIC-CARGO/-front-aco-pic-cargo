@@ -5,7 +5,7 @@
         <v-card-title primary-title> Nuevo Servicio </v-card-title>
         <v-card-text>
           <v-select
-            :items="$store.state.aduana.begEndList"
+            :items="aduanaStore.begEndList"
             v-model="servicio.id_begend"
             item-title="name"
             item-value="id"
@@ -40,7 +40,7 @@
           <h4 class="mb-2">ORIGEN</h4>
           <v-checkbox
             density="compact"
-            v-for="service in $store.state.aduana.listServices.filter(
+            v-for="service in aduanaStore.listServices.filter(
               (v) => v.codebegend == 'OR'
             )"
             :key="service.id"
@@ -57,7 +57,7 @@
           <h4 class="mb-2">FLETE</h4>
           <v-checkbox
             density="compact"
-            v-for="service in $store.state.aduana.listServices.filter(
+            v-for="service in aduanaStore.listServices.filter(
               (v) => v.codebegend == 'FL'
             )"
             :key="service.id"
@@ -74,7 +74,7 @@
           <h4 class="mb-2">DESTINO</h4>
           <v-checkbox
             density="compact"
-            v-for="service in $store.state.aduana.listServices.filter(
+            v-for="service in aduanaStore.listServices.filter(
               (v) => v.codebegend == 'DE'
             )"
             :key="service.id"
@@ -91,7 +91,7 @@
           <h4 class="mb-2">OPCIONAL</h4>
           <v-checkbox
             density="compact"
-            v-for="service in $store.state.aduana.listServices.filter(
+            v-for="service in aduanaStore.listServices.filter(
               (v) => v.codebegend == 'OP'
             )"
             :key="service.id"
@@ -105,8 +105,8 @@
           </v-checkbox>
           <v-text-field
             prefix="$"
-            :error-messages="$store.state.aduana.errorValorMercancia"
-            v-model="$store.state.aduana.datosPrincipales.amount"
+            :error-messages="aduanaStore.errorValorMercancia"
+            v-model="aduanaStore.datosPrincipales.amount"
             label="Valor de la mercancia"
             type="number"
             step="0.10"
@@ -125,7 +125,7 @@
           >
           </v-text-field>
           <v-text-field
-            v-model="$store.state.aduana.datosPrincipales.descripcioncarga"
+            v-model="aduanaStore.datosPrincipales.descripcioncarga"
             label="Descripción de carga"
             placeholder="Descripción de carga"
             autocomplete="off"
@@ -153,8 +153,9 @@
 
 <script>
 import Swal from "sweetalert2";
-import { mapActions as mapPiniaActions } from "pinia";
+import { mapActions as mapPiniaActions, mapStores } from "pinia";
 import { usePricingStore } from "@/stores/pricing";
+import { useAduanaStore } from "@/stores/aduana";
 export default {
   emits: ["activarLlenadoCostos", "recargarCostos"],
   props: {
@@ -175,14 +176,17 @@ export default {
       },
     };
   },
+  computed: {
+    ...mapStores(useAduanaStore),
+  },
   methods: {
     ...mapPiniaActions(usePricingStore, ["getItemsServices", "getImpuestos", "getItemsServicesDetails", "getBegEndList"]),
     guardarServicio() {
-      let codebegend = this.$store.state.aduana.begEndList.filter(
+      let codebegend = this.aduanaStore.begEndList.filter(
         (v) => v.id == this.servicio.id_begend
       )[0].code;
       this.servicio.codebegend = codebegend;
-      this.$store.state.aduana.listServices.push(this.servicio);
+      this.aduanaStore.listServices.push(this.servicio);
       this.dialog = false;
       this.servicio = {
         codebegend: "OP",
@@ -192,24 +196,24 @@ export default {
       };
     },
     recargarCostos() {
-      this.$store.state.aduana.errorValorMercancia = "";
-      this.$store.state.aduana.actualizarCostosFlag =
-        !this.$store.state.aduana.actualizarCostosFlag;
+      this.aduanaStore.errorValorMercancia = "";
+      this.aduanaStore.actualizarCostosFlag =
+        !this.aduanaStore.actualizarCostosFlag;
     },
     esImportacion() {
-      return this.$store.state.aduana.listModality.some(
+      return this.aduanaStore.listModality.some(
         (v) =>
-          v.id == this.$store.state.aduana.datosPrincipales.idsentido &&
+          v.id == this.aduanaStore.datosPrincipales.idsentido &&
           v.code == "I"
       );
     },
 
     continuarLlenadoCostos() {
       if (
-        !this.$store.state.aduana.datosPrincipales.amount ||
-        this.$store.state.aduana.datosPrincipales.amount <= 0
+        !this.aduanaStore.datosPrincipales.amount ||
+        this.aduanaStore.datosPrincipales.amount <= 0
       ) {
-        this.$store.state.aduana.errorValorMercancia =
+        this.aduanaStore.errorValorMercancia =
           "Datos Requeridos y mayor que 0";
         return false;
       }

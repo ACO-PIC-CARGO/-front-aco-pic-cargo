@@ -5,6 +5,7 @@ import { useStore } from "vuex";
 import { useMasterusuariosStore } from "@/stores/masterusuarios";
 import { useEnterprisesStore } from "@/stores/enterprises";
 import { usePricingStore } from "@/stores/pricing";
+import { useAduanaStore } from "@/stores/aduana";
 
 const DatosPrincipales = defineAsyncComponent(
   () =>
@@ -51,6 +52,7 @@ const UnificarCotizacion = defineAsyncComponent(
 
 const route = useRoute();
 const rootStore = useStore();
+const aduanaStore = useAduanaStore();
 const pricingStore = usePricingStore();
 const enterprisesStore = useEnterprisesStore();
 const masterusuariosStore = useMasterusuariosStore();
@@ -93,7 +95,7 @@ onMounted(async () => {
     pricingStore.getTipoCostos(),
     masterusuariosStore.cargarMasterDetallePercepcionAduana(),
     enterprisesStore.obtenerImpuestoXEmpresa(),
-    rootStore.dispatch("getAduanaUnificar", route.params.id),
+    aduanaStore.getAduanaUnificar(route.params.id as string),
     pricingStore.getInstructivoId({ id: route.params.id as string }),
   ];
 
@@ -137,7 +139,7 @@ onMounted(async () => {
       }, 100);
     });
   }
-  rootStore.dispatch("getAduanaUnificar", route.params.id);
+  aduanaStore.getAduanaUnificar(route.params.id as string);
   setTimeout(async () => {
     const aprobadas = pricingStore.opcionCostos.filter((v) => v.selected);
     if (aprobadas.length && !pricingStore.aprobadoflag) {

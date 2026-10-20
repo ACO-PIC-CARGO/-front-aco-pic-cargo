@@ -41,6 +41,8 @@
 
 <script>
 import mixins from "../../../mixins/funciones.js";
+import { mapStores } from "pinia";
+import { useAduanaStore } from "@/stores/aduana";
 export default {
   mixins: [mixins],
   props: ["amount", "impuestos", "index"],
@@ -56,42 +58,45 @@ export default {
       noPorcentaje: ["04", "01", "02", "10", "11", "12"],
     };
   },
+  computed: {
+    ...mapStores(useAduanaStore),
+  },
   methods: {
     calcularImpuestos({ item = null }) {
       let monto = 0;
       if (item.codigo === "01") {
         monto = parseFloat(
-          this.$store.state.aduana.datosPrincipales.amount
+          this.aduanaStore.datosPrincipales.amount
         ).toFixed(2);
       }
       if (item.codigo === "02") {
-        monto = parseFloat(this.$store.state.aduana.totalFlete).toFixed(2);
+        monto = parseFloat(this.aduanaStore.totalFlete).toFixed(2);
       }
       if (item.codigo === "03") {
         monto = parseFloat(
-          ((parseFloat(this.$store.state.aduana.totalFlete) +
-            parseFloat(this.$store.state.aduana.datosPrincipales.amount)) *
+          ((parseFloat(this.aduanaStore.totalFlete) +
+            parseFloat(this.aduanaStore.datosPrincipales.amount)) *
             item.codigo01) /
             100
         ).toFixed(2);
       }
       if (item.codigo === "04") {
-        let fob = parseFloat(this.$store.state.aduana.datosPrincipales.amount);
-        let flet = parseFloat(this.$store.state.aduana.totalFlete);
+        let fob = parseFloat(this.aduanaStore.datosPrincipales.amount);
+        let flet = parseFloat(this.aduanaStore.totalFlete);
         let seguro = parseFloat(
-          ((parseFloat(this.$store.state.aduana.totalFlete) +
-            parseFloat(this.$store.state.aduana.datosPrincipales.amount)) *
+          ((parseFloat(this.aduanaStore.totalFlete) +
+            parseFloat(this.aduanaStore.datosPrincipales.amount)) *
             this.obtenerPorcentaje({ code: "03" })) /
             100
         );
         monto = parseFloat(fob) + parseFloat(flet) + parseFloat(seguro);
       }
       if (item.codigo === "05") {
-        let fob = parseFloat(this.$store.state.aduana.datosPrincipales.amount);
-        let flet = parseFloat(this.$store.state.aduana.totalFlete);
+        let fob = parseFloat(this.aduanaStore.datosPrincipales.amount);
+        let flet = parseFloat(this.aduanaStore.totalFlete);
         let seguro = parseFloat(
-          ((parseFloat(this.$store.state.aduana.totalFlete) +
-            parseFloat(this.$store.state.aduana.datosPrincipales.amount)) *
+          ((parseFloat(this.aduanaStore.totalFlete) +
+            parseFloat(this.aduanaStore.datosPrincipales.amount)) *
             this.obtenerPorcentaje({ code: "03" })) /
             100
         );
@@ -99,12 +104,12 @@ export default {
         monto = (cif * item.codigo01) / 100;
       }
       if (item.codigo === "06") {
-        let fob = parseFloat(this.$store.state.aduana.datosPrincipales.amount);
-        let flet = parseFloat(this.$store.state.aduana.totalFlete);
+        let fob = parseFloat(this.aduanaStore.datosPrincipales.amount);
+        let flet = parseFloat(this.aduanaStore.totalFlete);
 
         let seguro = parseFloat(
-          ((parseFloat(this.$store.state.aduana.totalFlete) +
-            parseFloat(this.$store.state.aduana.datosPrincipales.amount)) *
+          ((parseFloat(this.aduanaStore.totalFlete) +
+            parseFloat(this.aduanaStore.datosPrincipales.amount)) *
             this.obtenerPorcentaje({ code: "03" })) /
             100
         );
@@ -113,12 +118,12 @@ export default {
         monto = ((cif + adv) * item.codigo01) / 100;
       }
       if (item.codigo === "07") {
-        let fob = parseFloat(this.$store.state.aduana.datosPrincipales.amount);
-        let flet = parseFloat(this.$store.state.aduana.totalFlete);
+        let fob = parseFloat(this.aduanaStore.datosPrincipales.amount);
+        let flet = parseFloat(this.aduanaStore.totalFlete);
 
         let seguro = parseFloat(
-          ((parseFloat(this.$store.state.aduana.totalFlete) +
-            parseFloat(this.$store.state.aduana.datosPrincipales.amount)) *
+          ((parseFloat(this.aduanaStore.totalFlete) +
+            parseFloat(this.aduanaStore.datosPrincipales.amount)) *
             this.obtenerPorcentaje({ code: "03" })) /
             100
         );
@@ -128,12 +133,12 @@ export default {
         monto = ((cif + adv + isc) * item.codigo01) / 100;
       }
       if (item.codigo === "08") {
-        let fob = parseFloat(this.$store.state.aduana.datosPrincipales.amount);
-        let flet = parseFloat(this.$store.state.aduana.totalFlete);
+        let fob = parseFloat(this.aduanaStore.datosPrincipales.amount);
+        let flet = parseFloat(this.aduanaStore.totalFlete);
 
         let seguro = parseFloat(
-          ((parseFloat(this.$store.state.aduana.totalFlete) +
-            parseFloat(this.$store.state.aduana.datosPrincipales.amount)) *
+          ((parseFloat(this.aduanaStore.totalFlete) +
+            parseFloat(this.aduanaStore.datosPrincipales.amount)) *
             this.obtenerPorcentaje({ code: "03" })) /
             100
         );
@@ -143,12 +148,12 @@ export default {
         monto = ((cif + adv + isc) * item.codigo01) / 100;
       }
       if (item.codigo === "09") {
-        let fob = parseFloat(this.$store.state.aduana.datosPrincipales.amount);
-        let flet = parseFloat(this.$store.state.aduana.totalFlete);
+        let fob = parseFloat(this.aduanaStore.datosPrincipales.amount);
+        let flet = parseFloat(this.aduanaStore.totalFlete);
 
         let seguro = parseFloat(
-          ((parseFloat(this.$store.state.aduana.totalFlete) +
-            parseFloat(this.$store.state.aduana.datosPrincipales.amount)) *
+          ((parseFloat(this.aduanaStore.totalFlete) +
+            parseFloat(this.aduanaStore.datosPrincipales.amount)) *
             this.obtenerPorcentaje({ code: "03" })) /
             100
         );

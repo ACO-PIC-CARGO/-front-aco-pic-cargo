@@ -385,6 +385,7 @@ import axios from "@/api/http";
 import Swal from "sweetalert2";
 import { mapActions as mapPiniaActions } from "pinia";
 import { usePricingStore } from "@/stores/pricing";
+import { useAduanaStore } from "@/stores/aduana";
 
 export default {
   name: "controlMasterCom",
@@ -602,11 +603,11 @@ export default {
       "_getShipment",
       "getListBanksDetailsCargarPorSucursal",
       "fetchDataBank",
-      "cargarListadoQuoteAduana",
       "verHouse",
       "guardarCarpetaHouse",
       "deleteHouse",
     ]),
+    ...mapPiniaActions(useAduanaStore, ["cargarListadoQuoteAduana"]),
     ...mapPiniaActions(usePricingStore, ["getCargarEjecutivo"]),
     getTipoDocumento() {
       return this.isAereo() ? "GUÍA AÉREA" : "BL";

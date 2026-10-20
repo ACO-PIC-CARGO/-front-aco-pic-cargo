@@ -2,7 +2,7 @@ import { defineStore } from "pinia";
 import { ref } from "vue";
 import Swal from "sweetalert2";
 import axios from "@/api/http";
-import store from "@/store";
+import { useAduanaStore } from "@/stores/aduana";
 import { usePricingStore } from "@/stores/pricing";
 import type { ApiResponse } from "@/types/api";
 import type { FiltroIncoterms, FormIncoterm } from "@/types/catalogos";
@@ -20,7 +20,7 @@ export const useIncotermStore = defineStore("incoterm", () => {
     list.value = data;
     // While incoterm was a Vuex module this commit also ran pricing's and aduana's SET_LIST_INCOTERMS.
     usePricingStore().listIncoterms = data;
-    store.commit("SET_LIST_INCOTERMS", data);
+    useAduanaStore().listIncoterms = data;
   }
 
   async function fetchDataIncoterms(data: FiltroIncoterms): Promise<void> {

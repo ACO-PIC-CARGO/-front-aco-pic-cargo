@@ -35,7 +35,7 @@
       <v-col cols="12" md="4">
         <v-autocomplete
           label="Aduana Asociado al House"
-          :items="$store.state.aduana.listQuotes2"
+          :items="aduanaStore.listQuotes2"
           item-title="quote"
           item-value="id"
           v-model:search="searchHouseCotizacionAduana"
@@ -348,6 +348,7 @@ import axios from '@/api/http';
 import Swal from "sweetalert2";
 import { mapActions as mapPiniaActions, mapStores } from "pinia";
 import { usePricingStore } from "@/stores/pricing";
+import { useAduanaStore } from "@/stores/aduana";
 export default {
   name: "dataGen",
   data() {
@@ -426,7 +427,7 @@ export default {
     this.$forceUpdate();
   },
   computed: {
-    ...mapStores(usePricingStore),
+    ...mapStores(useAduanaStore, usePricingStore),
     ...mapState([
       "itemsModality",
       "itemsShipment",
@@ -486,12 +487,11 @@ export default {
       "_getHouseContainers",
       "_getBegEndList",
       "_getBitacoraLineal",
-      "ListarMontosFinalesAduanaMONGODB",
-      "aprobarCotizacionAduana",
       "setHouseEdit",
       "guardarCarpetaHouse",
       "verHouse",
     ]),
+    ...mapPiniaActions(useAduanaStore, ["ListarMontosFinalesAduanaMONGODB", "aprobarCotizacionAduana"]),
     ...mapPiniaActions(usePricingStore, ["getQuoteDataNoAsignadaHouse", "getQuoteNoAsignadoHouse", "ListarMontosFinalesQuoteMONGODB", "aprobarCotizacion"]),
     isDisabled(item) {
       return !item.porasignar; // Deshabilita si el estado no es "activo"
@@ -768,7 +768,7 @@ export default {
       this.dialogCostos = true;
     },
     async asignarDatosAduana() {
-      this.dataAprobar = this.$store.state.aduana.listQuotes2.filter(
+      this.dataAprobar = this.aduanaStore.listQuotes2.filter(
         (v) => v.id == this.$store.state.house_cotizacionaduana,
       )[0];
       console.log(this.dataAprobar);

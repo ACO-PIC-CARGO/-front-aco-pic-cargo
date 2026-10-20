@@ -2,15 +2,15 @@
   <v-container fluid>
     <div class="">
       <span class="text-headline-small">
-        Costos {{ currencyFormat($store.state.aduana.totalCosto) }}</span
+        Costos {{ currencyFormat(aduanaStore.totalCosto) }}</span
       >
     </div>
     <v-expansion-panels class="condensed my-1" v-if="isFlete() && isImport()">
       <v-expansion-panel>
         <v-expansion-panel-title>
           {{
-            $store.state.aduana.listTipoCostos.length > 0
-              ? $store.state.aduana.listTipoCostos.filter(
+            aduanaStore.listTipoCostos.length > 0
+              ? aduanaStore.listTipoCostos.filter(
                   (v) => v.codigo == "FL"
                 )[0].name
               : ""
@@ -61,7 +61,7 @@
                   <v-select item-title="text"
                     readonly
                     class="widthTD"
-                    :items="$store.state.aduana.listMultiplicador"
+                    :items="aduanaStore.listMultiplicador"
                     v-model="valor.id_multiplicador"
                     placeholder="Multiplicador"
                     hide-details
@@ -103,7 +103,7 @@
                     readonly
                     class="derecha tdMontos"
                     v-if="
-                      $store.state.aduana.listMultiplicador.some(
+                      aduanaStore.listMultiplicador.some(
                         (v) =>
                           v.id == valor.id_multiplicador &&
                           (v.code == 13 || v.code == 14)
@@ -127,7 +127,7 @@
                     suffix="%"
                     class="derecha tdMontos"
                     v-if="
-                      $store.state.aduana.listMultiplicador.some(
+                      aduanaStore.listMultiplicador.some(
                         (v) => v.id == valor.id_multiplicador && v.code == 5
                       ) &&
                       !isITBM(valor.code_cost) &&
@@ -180,26 +180,26 @@
                 >
                   {{
                     currencyFormat(
-                      ($store.state.aduana.listMultiplicador.filter(
+                      (aduanaStore.listMultiplicador.filter(
                         (v) => v.id == valor.id_multiplicador
                       ).length > 0
-                        ? $store.state.aduana.listMultiplicador.filter(
+                        ? aduanaStore.listMultiplicador.filter(
                             (v) => v.id == valor.id_multiplicador
                           )[0].valor
                         : 0) *
                         valor.costounitario *
                         calcularFac(
-                          $store.state.aduana.listMultiplicador.filter(
+                          aduanaStore.listMultiplicador.filter(
                             (v) => v.id == valor.id_multiplicador
                           ).length > 0
-                            ? $store.state.aduana.listMultiplicador.filter(
+                            ? aduanaStore.listMultiplicador.filter(
                                 (v) => v.id == valor.id_multiplicador
                               )[0].code
                             : "N",
-                          $store.state.aduana.datosPrincipales.volumen,
-                          $store.state.aduana.datosPrincipales.peso,
-                          $store.state.aduana.datosPrincipales.containers,
-                          $store.state.aduana.datosPrincipales.amount
+                          aduanaStore.datosPrincipales.volumen,
+                          aduanaStore.datosPrincipales.peso,
+                          aduanaStore.datosPrincipales.containers,
+                          aduanaStore.datosPrincipales.amount
                         )
                     )
                   }}
@@ -216,21 +216,21 @@
                   {{
                     currencyFormat(
                       calcularValor(
-                        $store.state.aduana.datosPrincipales.amount,
-                        $store.state.aduana.totalFlete,
-                        $store.state.aduana.listMultiplicador.filter(
+                        aduanaStore.datosPrincipales.amount,
+                        aduanaStore.totalFlete,
+                        aduanaStore.listMultiplicador.filter(
                           (v) => v.id == valor.id_multiplicador
                         ).length > 0
-                          ? $store.state.aduana.listMultiplicador.filter(
+                          ? aduanaStore.listMultiplicador.filter(
                               (v) => v.id == valor.id_multiplicador
                             )[0].code
                           : "",
-                        $store.state.aduana.listMultiplicador.some(
+                        aduanaStore.listMultiplicador.some(
                           (v) =>
                             v.id == valor.id_multiplicador &&
                             (v.code == 14 || v.code == 13 || v.code == 5)
                         )
-                          ? $store.state.aduana.listMultiplicador.some(
+                          ? aduanaStore.listMultiplicador.some(
                               (v) =>
                                 v.id == valor.id_multiplicador &&
                                 (v.code == 14 || v.code == 13)
@@ -262,8 +262,8 @@
       <v-expansion-panel>
         <v-expansion-panel-title>
           {{
-            $store.state.aduana.listTipoCostos.length > 0
-              ? $store.state.aduana.listTipoCostos.filter(
+            aduanaStore.listTipoCostos.length > 0
+              ? aduanaStore.listTipoCostos.filter(
                   (v) => v.codigo == "OR"
                 )[0].name
               : ""
@@ -313,7 +313,7 @@
                   <v-select item-title="text"
                     readonly
                     class="widthTD"
-                    :items="$store.state.aduana.listMultiplicador"
+                    :items="aduanaStore.listMultiplicador"
                     v-model="valor.id_multiplicador"
                     placeholder="Multiplicador"
                     hide-details
@@ -355,7 +355,7 @@
                     readonly
                     class="derecha tdMontos"
                     v-if="
-                      $store.state.aduana.listMultiplicador.some(
+                      aduanaStore.listMultiplicador.some(
                         (v) =>
                           v.id == valor.id_multiplicador &&
                           (v.code == 13 || v.code == 14)
@@ -379,7 +379,7 @@
                     suffix="%"
                     class="derecha tdMontos"
                     v-if="
-                      $store.state.aduana.listMultiplicador.some(
+                      aduanaStore.listMultiplicador.some(
                         (v) => v.id == valor.id_multiplicador && v.code == 5
                       ) &&
                       !isITBM(valor.code_cost) &&
@@ -432,26 +432,26 @@
                 >
                   {{
                     currencyFormat(
-                      ($store.state.aduana.listMultiplicador.filter(
+                      (aduanaStore.listMultiplicador.filter(
                         (v) => v.id == valor.id_multiplicador
                       ).length > 0
-                        ? $store.state.aduana.listMultiplicador.filter(
+                        ? aduanaStore.listMultiplicador.filter(
                             (v) => v.id == valor.id_multiplicador
                           )[0].valor
                         : 0) *
                         valor.costounitario *
                         calcularFac(
-                          $store.state.aduana.listMultiplicador.filter(
+                          aduanaStore.listMultiplicador.filter(
                             (v) => v.id == valor.id_multiplicador
                           ).length > 0
-                            ? $store.state.aduana.listMultiplicador.filter(
+                            ? aduanaStore.listMultiplicador.filter(
                                 (v) => v.id == valor.id_multiplicador
                               )[0].code
                             : "N",
-                          $store.state.aduana.datosPrincipales.volumen,
-                          $store.state.aduana.datosPrincipales.peso,
-                          $store.state.aduana.datosPrincipales.containers,
-                          $store.state.aduana.datosPrincipales.amount
+                          aduanaStore.datosPrincipales.volumen,
+                          aduanaStore.datosPrincipales.peso,
+                          aduanaStore.datosPrincipales.containers,
+                          aduanaStore.datosPrincipales.amount
                         )
                     )
                   }}
@@ -468,21 +468,21 @@
                   {{
                     currencyFormat(
                       calcularValor(
-                        $store.state.aduana.datosPrincipales.amount,
-                        $store.state.aduana.totalFlete,
-                        $store.state.aduana.listMultiplicador.filter(
+                        aduanaStore.datosPrincipales.amount,
+                        aduanaStore.totalFlete,
+                        aduanaStore.listMultiplicador.filter(
                           (v) => v.id == valor.id_multiplicador
                         ).length > 0
-                          ? $store.state.aduana.listMultiplicador.filter(
+                          ? aduanaStore.listMultiplicador.filter(
                               (v) => v.id == valor.id_multiplicador
                             )[0].code
                           : "",
-                        $store.state.aduana.listMultiplicador.some(
+                        aduanaStore.listMultiplicador.some(
                           (v) =>
                             v.id == valor.id_multiplicador &&
                             (v.code == 14 || v.code == 13 || v.code == 5)
                         )
-                          ? $store.state.aduana.listMultiplicador.some(
+                          ? aduanaStore.listMultiplicador.some(
                               (v) =>
                                 v.id == valor.id_multiplicador &&
                                 (v.code == 14 || v.code == 13)
@@ -515,8 +515,8 @@
       <v-expansion-panel>
         <v-expansion-panel-title>
           {{
-            $store.state.aduana.listTipoCostos.length > 0
-              ? $store.state.aduana.listTipoCostos.filter(
+            aduanaStore.listTipoCostos.length > 0
+              ? aduanaStore.listTipoCostos.filter(
                   (v) => v.codigo == "LO"
                 )[0].name
               : ""
@@ -566,7 +566,7 @@
                   <v-select item-title="text"
                     readonly
                     class="widthTD"
-                    :items="$store.state.aduana.listMultiplicador"
+                    :items="aduanaStore.listMultiplicador"
                     v-model="valor.id_multiplicador"
                     placeholder="Multiplicador"
                     hide-details
@@ -608,7 +608,7 @@
                     readonly
                     class="derecha tdMontos"
                     v-if="
-                      $store.state.aduana.listMultiplicador.some(
+                      aduanaStore.listMultiplicador.some(
                         (v) =>
                           v.id == valor.id_multiplicador &&
                           (v.code == 13 || v.code == 14)
@@ -632,7 +632,7 @@
                     suffix="%"
                     class="derecha tdMontos"
                     v-if="
-                      $store.state.aduana.listMultiplicador.some(
+                      aduanaStore.listMultiplicador.some(
                         (v) => v.id == valor.id_multiplicador && v.code == 5
                       ) &&
                       !isITBM(valor.code_cost) &&
@@ -685,26 +685,26 @@
                 >
                   {{
                     currencyFormat(
-                      ($store.state.aduana.listMultiplicador.filter(
+                      (aduanaStore.listMultiplicador.filter(
                         (v) => v.id == valor.id_multiplicador
                       ).length > 0
-                        ? $store.state.aduana.listMultiplicador.filter(
+                        ? aduanaStore.listMultiplicador.filter(
                             (v) => v.id == valor.id_multiplicador
                           )[0].valor
                         : 0) *
                         valor.costounitario *
                         calcularFac(
-                          $store.state.aduana.listMultiplicador.filter(
+                          aduanaStore.listMultiplicador.filter(
                             (v) => v.id == valor.id_multiplicador
                           ).length > 0
-                            ? $store.state.aduana.listMultiplicador.filter(
+                            ? aduanaStore.listMultiplicador.filter(
                                 (v) => v.id == valor.id_multiplicador
                               )[0].code
                             : "N",
-                          $store.state.aduana.datosPrincipales.volumen,
-                          $store.state.aduana.datosPrincipales.peso,
-                          $store.state.aduana.datosPrincipales.containers,
-                          $store.state.aduana.datosPrincipales.amount
+                          aduanaStore.datosPrincipales.volumen,
+                          aduanaStore.datosPrincipales.peso,
+                          aduanaStore.datosPrincipales.containers,
+                          aduanaStore.datosPrincipales.amount
                         )
                     )
                   }}
@@ -721,21 +721,21 @@
                   {{
                     currencyFormat(
                       calcularValor(
-                        $store.state.aduana.datosPrincipales.amount,
-                        $store.state.aduana.totalFlete,
-                        $store.state.aduana.listMultiplicador.filter(
+                        aduanaStore.datosPrincipales.amount,
+                        aduanaStore.totalFlete,
+                        aduanaStore.listMultiplicador.filter(
                           (v) => v.id == valor.id_multiplicador
                         ).length > 0
-                          ? $store.state.aduana.listMultiplicador.filter(
+                          ? aduanaStore.listMultiplicador.filter(
                               (v) => v.id == valor.id_multiplicador
                             )[0].code
                           : "",
-                        $store.state.aduana.listMultiplicador.some(
+                        aduanaStore.listMultiplicador.some(
                           (v) =>
                             v.id == valor.id_multiplicador &&
                             (v.code == 14 || v.code == 13 || v.code == 5)
                         )
-                          ? $store.state.aduana.listMultiplicador.some(
+                          ? aduanaStore.listMultiplicador.some(
                               (v) =>
                                 v.id == valor.id_multiplicador &&
                                 (v.code == 14 || v.code == 13)
@@ -768,8 +768,8 @@
       <v-expansion-panel>
         <v-expansion-panel-title>
           {{
-            $store.state.aduana.listTipoCostos.length > 0
-              ? $store.state.aduana.listTipoCostos.filter(
+            aduanaStore.listTipoCostos.length > 0
+              ? aduanaStore.listTipoCostos.filter(
                   (v) => v.codigo == "AD"
                 )[0].name
               : ""
@@ -819,7 +819,7 @@
                   <v-select item-title="text"
                     readonly
                     class="widthTD"
-                    :items="$store.state.aduana.listMultiplicador"
+                    :items="aduanaStore.listMultiplicador"
                     v-model="valor.id_multiplicador"
                     placeholder="Multiplicador"
                     hide-details
@@ -861,7 +861,7 @@
                     readonly
                     class="derecha tdMontos"
                     v-if="
-                      $store.state.aduana.listMultiplicador.some(
+                      aduanaStore.listMultiplicador.some(
                         (v) =>
                           v.id == valor.id_multiplicador &&
                           (v.code == 13 || v.code == 14)
@@ -885,7 +885,7 @@
                     suffix="%"
                     class="derecha tdMontos"
                     v-if="
-                      $store.state.aduana.listMultiplicador.some(
+                      aduanaStore.listMultiplicador.some(
                         (v) => v.id == valor.id_multiplicador && v.code == 5
                       ) &&
                       !isITBM(valor.code_cost) &&
@@ -938,26 +938,26 @@
                 >
                   {{
                     currencyFormat(
-                      ($store.state.aduana.listMultiplicador.filter(
+                      (aduanaStore.listMultiplicador.filter(
                         (v) => v.id == valor.id_multiplicador
                       ).length > 0
-                        ? $store.state.aduana.listMultiplicador.filter(
+                        ? aduanaStore.listMultiplicador.filter(
                             (v) => v.id == valor.id_multiplicador
                           )[0].valor
                         : 0) *
                         valor.costounitario *
                         calcularFac(
-                          $store.state.aduana.listMultiplicador.filter(
+                          aduanaStore.listMultiplicador.filter(
                             (v) => v.id == valor.id_multiplicador
                           ).length > 0
-                            ? $store.state.aduana.listMultiplicador.filter(
+                            ? aduanaStore.listMultiplicador.filter(
                                 (v) => v.id == valor.id_multiplicador
                               )[0].code
                             : "N",
-                          $store.state.aduana.datosPrincipales.volumen,
-                          $store.state.aduana.datosPrincipales.peso,
-                          $store.state.aduana.datosPrincipales.containers,
-                          $store.state.aduana.datosPrincipales.amount
+                          aduanaStore.datosPrincipales.volumen,
+                          aduanaStore.datosPrincipales.peso,
+                          aduanaStore.datosPrincipales.containers,
+                          aduanaStore.datosPrincipales.amount
                         )
                     )
                   }}
@@ -974,21 +974,21 @@
                   {{
                     currencyFormat(
                       calcularValor(
-                        $store.state.aduana.datosPrincipales.amount,
-                        $store.state.aduana.totalFlete,
-                        $store.state.aduana.listMultiplicador.filter(
+                        aduanaStore.datosPrincipales.amount,
+                        aduanaStore.totalFlete,
+                        aduanaStore.listMultiplicador.filter(
                           (v) => v.id == valor.id_multiplicador
                         ).length > 0
-                          ? $store.state.aduana.listMultiplicador.filter(
+                          ? aduanaStore.listMultiplicador.filter(
                               (v) => v.id == valor.id_multiplicador
                             )[0].code
                           : "",
-                        $store.state.aduana.listMultiplicador.some(
+                        aduanaStore.listMultiplicador.some(
                           (v) =>
                             v.id == valor.id_multiplicador &&
                             (v.code == 14 || v.code == 13 || v.code == 5)
                         )
-                          ? $store.state.aduana.listMultiplicador.some(
+                          ? aduanaStore.listMultiplicador.some(
                               (v) =>
                                 v.id == valor.id_multiplicador &&
                                 (v.code == 14 || v.code == 13)
@@ -1020,8 +1020,8 @@
       <v-expansion-panel>
         <v-expansion-panel-title>
           {{
-            $store.state.aduana.listTipoCostos.length > 0
-              ? $store.state.aduana.listTipoCostos.filter(
+            aduanaStore.listTipoCostos.length > 0
+              ? aduanaStore.listTipoCostos.filter(
                   (v) => v.codigo == "FL"
                 )[0].name
               : ""
@@ -1072,7 +1072,7 @@
                   <v-select item-title="text"
                     readonly
                     class="widthTD"
-                    :items="$store.state.aduana.listMultiplicador"
+                    :items="aduanaStore.listMultiplicador"
                     v-model="valor.id_multiplicador"
                     placeholder="Multiplicador"
                     hide-details
@@ -1114,7 +1114,7 @@
                     readonly
                     class="derecha tdMontos"
                     v-if="
-                      $store.state.aduana.listMultiplicador.some(
+                      aduanaStore.listMultiplicador.some(
                         (v) =>
                           v.id == valor.id_multiplicador &&
                           (v.code == 13 || v.code == 14)
@@ -1138,7 +1138,7 @@
                     suffix="%"
                     class="derecha tdMontos"
                     v-if="
-                      $store.state.aduana.listMultiplicador.some(
+                      aduanaStore.listMultiplicador.some(
                         (v) => v.id == valor.id_multiplicador && v.code == 5
                       ) &&
                       !isITBM(valor.code_cost) &&
@@ -1192,26 +1192,26 @@
                 >
                   {{
                     currencyFormat(
-                      ($store.state.aduana.listMultiplicador.filter(
+                      (aduanaStore.listMultiplicador.filter(
                         (v) => v.id == valor.id_multiplicador
                       ).length > 0
-                        ? $store.state.aduana.listMultiplicador.filter(
+                        ? aduanaStore.listMultiplicador.filter(
                             (v) => v.id == valor.id_multiplicador
                           )[0].valor
                         : 0) *
                         valor.costounitario *
                         calcularFac(
-                          $store.state.aduana.listMultiplicador.filter(
+                          aduanaStore.listMultiplicador.filter(
                             (v) => v.id == valor.id_multiplicador
                           ).length > 0
-                            ? $store.state.aduana.listMultiplicador.filter(
+                            ? aduanaStore.listMultiplicador.filter(
                                 (v) => v.id == valor.id_multiplicador
                               )[0].code
                             : "N",
-                          $store.state.aduana.datosPrincipales.volumen,
-                          $store.state.aduana.datosPrincipales.peso,
-                          $store.state.aduana.datosPrincipales.containers,
-                          $store.state.aduana.datosPrincipales.amount
+                          aduanaStore.datosPrincipales.volumen,
+                          aduanaStore.datosPrincipales.peso,
+                          aduanaStore.datosPrincipales.containers,
+                          aduanaStore.datosPrincipales.amount
                         )
                     )
                   }}
@@ -1228,21 +1228,21 @@
                   {{
                     currencyFormat(
                       calcularValor(
-                        $store.state.aduana.datosPrincipales.amount,
-                        $store.state.aduana.totalFlete,
-                        $store.state.aduana.listMultiplicador.filter(
+                        aduanaStore.datosPrincipales.amount,
+                        aduanaStore.totalFlete,
+                        aduanaStore.listMultiplicador.filter(
                           (v) => v.id == valor.id_multiplicador
                         ).length > 0
-                          ? $store.state.aduana.listMultiplicador.filter(
+                          ? aduanaStore.listMultiplicador.filter(
                               (v) => v.id == valor.id_multiplicador
                             )[0].code
                           : "",
-                        $store.state.aduana.listMultiplicador.some(
+                        aduanaStore.listMultiplicador.some(
                           (v) =>
                             v.id == valor.id_multiplicador &&
                             (v.code == 14 || v.code == 13 || v.code == 5)
                         )
-                          ? $store.state.aduana.listMultiplicador.some(
+                          ? aduanaStore.listMultiplicador.some(
                               (v) =>
                                 v.id == valor.id_multiplicador &&
                                 (v.code == 14 || v.code == 13)
@@ -1275,8 +1275,8 @@
       <v-expansion-panel>
         <v-expansion-panel-title>
           {{
-            $store.state.aduana.listTipoCostos.length > 0
-              ? $store.state.aduana.listTipoCostos.filter(
+            aduanaStore.listTipoCostos.length > 0
+              ? aduanaStore.listTipoCostos.filter(
                   (v) => v.codigo == "AL"
                 )[0].name
               : ""
@@ -1326,7 +1326,7 @@
                   <v-select item-title="text"
                     readonly
                     class="widthTD"
-                    :items="$store.state.aduana.listMultiplicador"
+                    :items="aduanaStore.listMultiplicador"
                     v-model="valor.id_multiplicador"
                     placeholder="Multiplicador"
                     hide-details
@@ -1368,7 +1368,7 @@
                     readonly
                     class="derecha tdMontos"
                     v-if="
-                      $store.state.aduana.listMultiplicador.some(
+                      aduanaStore.listMultiplicador.some(
                         (v) =>
                           v.id == valor.id_multiplicador &&
                           (v.code == 13 || v.code == 14)
@@ -1392,7 +1392,7 @@
                     suffix="%"
                     class="derecha tdMontos"
                     v-if="
-                      $store.state.aduana.listMultiplicador.some(
+                      aduanaStore.listMultiplicador.some(
                         (v) => v.id == valor.id_multiplicador && v.code == 5
                       ) &&
                       !isITBM(valor.code_cost) &&
@@ -1445,26 +1445,26 @@
                 >
                   {{
                     currencyFormat(
-                      ($store.state.aduana.listMultiplicador.filter(
+                      (aduanaStore.listMultiplicador.filter(
                         (v) => v.id == valor.id_multiplicador
                       ).length > 0
-                        ? $store.state.aduana.listMultiplicador.filter(
+                        ? aduanaStore.listMultiplicador.filter(
                             (v) => v.id == valor.id_multiplicador
                           )[0].valor
                         : 0) *
                         valor.costounitario *
                         calcularFac(
-                          $store.state.aduana.listMultiplicador.filter(
+                          aduanaStore.listMultiplicador.filter(
                             (v) => v.id == valor.id_multiplicador
                           ).length > 0
-                            ? $store.state.aduana.listMultiplicador.filter(
+                            ? aduanaStore.listMultiplicador.filter(
                                 (v) => v.id == valor.id_multiplicador
                               )[0].code
                             : "N",
-                          $store.state.aduana.datosPrincipales.volumen,
-                          $store.state.aduana.datosPrincipales.peso,
-                          $store.state.aduana.datosPrincipales.containers,
-                          $store.state.aduana.datosPrincipales.amount
+                          aduanaStore.datosPrincipales.volumen,
+                          aduanaStore.datosPrincipales.peso,
+                          aduanaStore.datosPrincipales.containers,
+                          aduanaStore.datosPrincipales.amount
                         )
                     )
                   }}
@@ -1481,21 +1481,21 @@
                   {{
                     currencyFormat(
                       calcularValor(
-                        $store.state.aduana.datosPrincipales.amount,
-                        $store.state.aduana.totalFlete,
-                        $store.state.aduana.listMultiplicador.filter(
+                        aduanaStore.datosPrincipales.amount,
+                        aduanaStore.totalFlete,
+                        aduanaStore.listMultiplicador.filter(
                           (v) => v.id == valor.id_multiplicador
                         ).length > 0
-                          ? $store.state.aduana.listMultiplicador.filter(
+                          ? aduanaStore.listMultiplicador.filter(
                               (v) => v.id == valor.id_multiplicador
                             )[0].code
                           : "",
-                        $store.state.aduana.listMultiplicador.some(
+                        aduanaStore.listMultiplicador.some(
                           (v) =>
                             v.id == valor.id_multiplicador &&
                             (v.code == 14 || v.code == 13 || v.code == 5)
                         )
-                          ? $store.state.aduana.listMultiplicador.some(
+                          ? aduanaStore.listMultiplicador.some(
                               (v) =>
                                 v.id == valor.id_multiplicador &&
                                 (v.code == 14 || v.code == 13)
@@ -1528,8 +1528,8 @@
       <v-expansion-panel>
         <v-expansion-panel-title>
           {{
-            $store.state.aduana.listTipoCostos.length > 0
-              ? $store.state.aduana.listTipoCostos.filter(
+            aduanaStore.listTipoCostos.length > 0
+              ? aduanaStore.listTipoCostos.filter(
                   (v) => v.codigo == "GT"
                 )[0].name
               : ""
@@ -1579,7 +1579,7 @@
                   <v-select item-title="text"
                     readonly
                     class="widthTD"
-                    :items="$store.state.aduana.listMultiplicador"
+                    :items="aduanaStore.listMultiplicador"
                     v-model="valor.id_multiplicador"
                     placeholder="Multiplicador"
                     hide-details
@@ -1621,7 +1621,7 @@
                     readonly
                     class="derecha tdMontos"
                     v-if="
-                      $store.state.aduana.listMultiplicador.some(
+                      aduanaStore.listMultiplicador.some(
                         (v) =>
                           v.id == valor.id_multiplicador &&
                           (v.code == 13 || v.code == 14)
@@ -1645,7 +1645,7 @@
                     suffix="%"
                     class="derecha tdMontos"
                     v-if="
-                      $store.state.aduana.listMultiplicador.some(
+                      aduanaStore.listMultiplicador.some(
                         (v) => v.id == valor.id_multiplicador && v.code == 5
                       ) &&
                       !isITBM(valor.code_cost) &&
@@ -1698,26 +1698,26 @@
                 >
                   {{
                     currencyFormat(
-                      ($store.state.aduana.listMultiplicador.filter(
+                      (aduanaStore.listMultiplicador.filter(
                         (v) => v.id == valor.id_multiplicador
                       ).length > 0
-                        ? $store.state.aduana.listMultiplicador.filter(
+                        ? aduanaStore.listMultiplicador.filter(
                             (v) => v.id == valor.id_multiplicador
                           )[0].valor
                         : 0) *
                         valor.costounitario *
                         calcularFac(
-                          $store.state.aduana.listMultiplicador.filter(
+                          aduanaStore.listMultiplicador.filter(
                             (v) => v.id == valor.id_multiplicador
                           ).length > 0
-                            ? $store.state.aduana.listMultiplicador.filter(
+                            ? aduanaStore.listMultiplicador.filter(
                                 (v) => v.id == valor.id_multiplicador
                               )[0].code
                             : "N",
-                          $store.state.aduana.datosPrincipales.volumen,
-                          $store.state.aduana.datosPrincipales.peso,
-                          $store.state.aduana.datosPrincipales.containers,
-                          $store.state.aduana.datosPrincipales.amount
+                          aduanaStore.datosPrincipales.volumen,
+                          aduanaStore.datosPrincipales.peso,
+                          aduanaStore.datosPrincipales.containers,
+                          aduanaStore.datosPrincipales.amount
                         )
                     )
                   }}
@@ -1734,21 +1734,21 @@
                   {{
                     currencyFormat(
                       calcularValor(
-                        $store.state.aduana.datosPrincipales.amount,
-                        $store.state.aduana.totalFlete,
-                        $store.state.aduana.listMultiplicador.filter(
+                        aduanaStore.datosPrincipales.amount,
+                        aduanaStore.totalFlete,
+                        aduanaStore.listMultiplicador.filter(
                           (v) => v.id == valor.id_multiplicador
                         ).length > 0
-                          ? $store.state.aduana.listMultiplicador.filter(
+                          ? aduanaStore.listMultiplicador.filter(
                               (v) => v.id == valor.id_multiplicador
                             )[0].code
                           : "",
-                        $store.state.aduana.listMultiplicador.some(
+                        aduanaStore.listMultiplicador.some(
                           (v) =>
                             v.id == valor.id_multiplicador &&
                             (v.code == 14 || v.code == 13 || v.code == 5)
                         )
-                          ? $store.state.aduana.listMultiplicador.some(
+                          ? aduanaStore.listMultiplicador.some(
                               (v) =>
                                 v.id == valor.id_multiplicador &&
                                 (v.code == 14 || v.code == 13)
@@ -1781,6 +1781,8 @@
 
 <script>
 import mixins from "../../../mixins/funciones.js";
+import { mapStores } from "pinia";
+import { useAduanaStore } from "@/stores/aduana";
 export default {
   mixins: [mixins],
   props: ["valores", "actualizarCostosFlag"],
@@ -1822,8 +1824,8 @@ export default {
   methods: {
     eliminarCostos({ costo = null }) {
       costo.status = 0;
-      this.$store.state.aduana.listCostos =
-        this.$store.state.aduana.listCostos.filter((v) => v.status == 1);
+      this.aduanaStore.listCostos =
+        this.aduanaStore.listCostos.filter((v) => v.status == 1);
     },
     async calcTotales() {
       setTimeout(async () => {
@@ -1852,44 +1854,44 @@ export default {
           .forEach((element) => {
             if (this.isNotPorcentaje(element, element.id_multiplicador)) {
               this.resumenOpcion.flete +=
-                (this.$store.state.aduana.listMultiplicador.filter(
+                (this.aduanaStore.listMultiplicador.filter(
                   (v) => v.id == element.id_multiplicador
                 ).length > 0
-                  ? this.$store.state.aduana.listMultiplicador.filter(
+                  ? this.aduanaStore.listMultiplicador.filter(
                       (v) => v.id == element.id_multiplicador
                     )[0].valor
                   : 0) *
                 element.costounitario *
                 this.calcularFac(
-                  this.$store.state.aduana.listMultiplicador.filter(
+                  this.aduanaStore.listMultiplicador.filter(
                     (v) => v.id == element.id_multiplicador
                   ).length > 0
-                    ? this.$store.state.aduana.listMultiplicador.filter(
+                    ? this.aduanaStore.listMultiplicador.filter(
                         (v) => v.id == element.id_multiplicador
                       )[0].code
                     : "N",
-                  this.$store.state.aduana.datosPrincipales.volumen,
-                  this.$store.state.aduana.datosPrincipales.peso,
-                  this.$store.state.aduana.datosPrincipales.containers,
-                  this.$store.state.aduana.datosPrincipales.amount
+                  this.aduanaStore.datosPrincipales.volumen,
+                  this.aduanaStore.datosPrincipales.peso,
+                  this.aduanaStore.datosPrincipales.containers,
+                  this.aduanaStore.datosPrincipales.amount
                 );
             } else {
               this.resumenOpcion.flete += this.calcularValor(
-                this.$store.state.aduana.datosPrincipales.amount,
-                this.$store.state.aduana.totalFlete,
-                this.$store.state.aduana.listMultiplicador.filter(
+                this.aduanaStore.datosPrincipales.amount,
+                this.aduanaStore.totalFlete,
+                this.aduanaStore.listMultiplicador.filter(
                   (v) => v.id == element.id_multiplicador
                 ).length > 0
-                  ? this.$store.state.aduana.listMultiplicador.filter(
+                  ? this.aduanaStore.listMultiplicador.filter(
                       (v) => v.id == element.id_multiplicador
                     )[0].code
                   : "",
-                this.$store.state.aduana.listMultiplicador.some(
+                this.aduanaStore.listMultiplicador.some(
                   (v) =>
                     v.id == element.id_multiplicador &&
                     (v.code == 14 || v.code == 13 || v.code == 5)
                 )
-                  ? this.$store.state.aduana.listMultiplicador.some(
+                  ? this.aduanaStore.listMultiplicador.some(
                       (v) =>
                         v.id == element.id_multiplicador &&
                         (v.code == 14 || v.code == 13)
@@ -1919,44 +1921,44 @@ export default {
             if (element.esorigenflag == 1) {
               if (this.isNotPorcentaje(element, element.id_multiplicador)) {
                 this.resumenOpcion.origen +=
-                  (this.$store.state.aduana.listMultiplicador.filter(
+                  (this.aduanaStore.listMultiplicador.filter(
                     (v) => v.id == element.id_multiplicador
                   ).length > 0
-                    ? this.$store.state.aduana.listMultiplicador.filter(
+                    ? this.aduanaStore.listMultiplicador.filter(
                         (v) => v.id == element.id_multiplicador
                       )[0].valor
                     : 0) *
                   element.costounitario *
                   this.calcularFac(
-                    this.$store.state.aduana.listMultiplicador.filter(
+                    this.aduanaStore.listMultiplicador.filter(
                       (v) => v.id == element.id_multiplicador
                     ).length > 0
-                      ? this.$store.state.aduana.listMultiplicador.filter(
+                      ? this.aduanaStore.listMultiplicador.filter(
                           (v) => v.id == element.id_multiplicador
                         )[0].code
                       : "N",
-                    this.$store.state.aduana.datosPrincipales.volumen,
-                    this.$store.state.aduana.datosPrincipales.peso,
-                    this.$store.state.aduana.datosPrincipales.containers,
-                    this.$store.state.aduana.datosPrincipales.amount
+                    this.aduanaStore.datosPrincipales.volumen,
+                    this.aduanaStore.datosPrincipales.peso,
+                    this.aduanaStore.datosPrincipales.containers,
+                    this.aduanaStore.datosPrincipales.amount
                   );
               } else {
                 this.resumenOpcion.origen += this.calcularValor(
-                  this.$store.state.aduana.datosPrincipales.amount,
-                  this.$store.state.aduana.totalFlete,
-                  this.$store.state.aduana.listMultiplicador.filter(
+                  this.aduanaStore.datosPrincipales.amount,
+                  this.aduanaStore.totalFlete,
+                  this.aduanaStore.listMultiplicador.filter(
                     (v) => v.id == element.id_multiplicador
                   ).length > 0
-                    ? this.$store.state.aduana.listMultiplicador.filter(
+                    ? this.aduanaStore.listMultiplicador.filter(
                         (v) => v.id == element.id_multiplicador
                       )[0].code
                     : "",
-                  this.$store.state.aduana.listMultiplicador.some(
+                  this.aduanaStore.listMultiplicador.some(
                     (v) =>
                       v.id == element.id_multiplicador &&
                       (v.code == 14 || v.code == 13 || v.code == 5)
                   )
-                    ? this.$store.state.aduana.listMultiplicador.some(
+                    ? this.aduanaStore.listMultiplicador.some(
                         (v) =>
                           v.id == element.id_multiplicador &&
                           (v.code == 14 || v.code == 13)
@@ -1972,44 +1974,44 @@ export default {
             if (element.eslocalflag == 1) {
               if (this.isNotPorcentaje(element, element.id_multiplicador)) {
                 this.resumenOpcion.gasto +=
-                  (this.$store.state.aduana.listMultiplicador.filter(
+                  (this.aduanaStore.listMultiplicador.filter(
                     (v) => v.id == element.id_multiplicador
                   ).length > 0
-                    ? this.$store.state.aduana.listMultiplicador.filter(
+                    ? this.aduanaStore.listMultiplicador.filter(
                         (v) => v.id == element.id_multiplicador
                       )[0].valor
                     : 0) *
                   element.costounitario *
                   this.calcularFac(
-                    this.$store.state.aduana.listMultiplicador.filter(
+                    this.aduanaStore.listMultiplicador.filter(
                       (v) => v.id == element.id_multiplicador
                     ).length > 0
-                      ? this.$store.state.aduana.listMultiplicador.filter(
+                      ? this.aduanaStore.listMultiplicador.filter(
                           (v) => v.id == element.id_multiplicador
                         )[0].code
                       : "N",
-                    this.$store.state.aduana.datosPrincipales.volumen,
-                    this.$store.state.aduana.datosPrincipales.peso,
-                    this.$store.state.aduana.datosPrincipales.containers,
-                    this.$store.state.aduana.datosPrincipales.amount
+                    this.aduanaStore.datosPrincipales.volumen,
+                    this.aduanaStore.datosPrincipales.peso,
+                    this.aduanaStore.datosPrincipales.containers,
+                    this.aduanaStore.datosPrincipales.amount
                   );
               } else {
                 this.resumenOpcion.gasto += this.calcularValor(
-                  this.$store.state.aduana.datosPrincipales.amount,
-                  this.$store.state.aduana.totalFlete,
-                  this.$store.state.aduana.listMultiplicador.filter(
+                  this.aduanaStore.datosPrincipales.amount,
+                  this.aduanaStore.totalFlete,
+                  this.aduanaStore.listMultiplicador.filter(
                     (v) => v.id == element.id_multiplicador
                   ).length > 0
-                    ? this.$store.state.aduana.listMultiplicador.filter(
+                    ? this.aduanaStore.listMultiplicador.filter(
                         (v) => v.id == element.id_multiplicador
                       )[0].code
                     : "",
-                  this.$store.state.aduana.listMultiplicador.some(
+                  this.aduanaStore.listMultiplicador.some(
                     (v) =>
                       v.id == element.id_multiplicador &&
                       (v.code == 14 || v.code == 13 || v.code == 5)
                   )
-                    ? this.$store.state.aduana.listMultiplicador.some(
+                    ? this.aduanaStore.listMultiplicador.some(
                         (v) =>
                           v.id == element.id_multiplicador &&
                           (v.code == 14 || v.code == 13)
@@ -2026,44 +2028,44 @@ export default {
             if (element.esaduanaflag == 1) {
               if (this.isNotPorcentaje(element, element.id_multiplicador)) {
                 this.resumenOpcion.aduana +=
-                  (this.$store.state.aduana.listMultiplicador.filter(
+                  (this.aduanaStore.listMultiplicador.filter(
                     (v) => v.id == element.id_multiplicador
                   ).length > 0
-                    ? this.$store.state.aduana.listMultiplicador.filter(
+                    ? this.aduanaStore.listMultiplicador.filter(
                         (v) => v.id == element.id_multiplicador
                       )[0].valor
                     : 0) *
                   element.costounitario *
                   this.calcularFac(
-                    this.$store.state.aduana.listMultiplicador.filter(
+                    this.aduanaStore.listMultiplicador.filter(
                       (v) => v.id == element.id_multiplicador
                     ).length > 0
-                      ? this.$store.state.aduana.listMultiplicador.filter(
+                      ? this.aduanaStore.listMultiplicador.filter(
                           (v) => v.id == element.id_multiplicador
                         )[0].code
                       : "N",
-                    this.$store.state.aduana.datosPrincipales.volumen,
-                    this.$store.state.aduana.datosPrincipales.peso,
-                    this.$store.state.aduana.datosPrincipales.containers,
-                    this.$store.state.aduana.datosPrincipales.amount
+                    this.aduanaStore.datosPrincipales.volumen,
+                    this.aduanaStore.datosPrincipales.peso,
+                    this.aduanaStore.datosPrincipales.containers,
+                    this.aduanaStore.datosPrincipales.amount
                   );
               } else {
                 this.resumenOpcion.aduana += this.calcularValor(
-                  this.$store.state.aduana.datosPrincipales.amount,
-                  this.$store.state.aduana.totalFlete,
-                  this.$store.state.aduana.listMultiplicador.filter(
+                  this.aduanaStore.datosPrincipales.amount,
+                  this.aduanaStore.totalFlete,
+                  this.aduanaStore.listMultiplicador.filter(
                     (v) => v.id == element.id_multiplicador
                   ).length > 0
-                    ? this.$store.state.aduana.listMultiplicador.filter(
+                    ? this.aduanaStore.listMultiplicador.filter(
                         (v) => v.id == element.id_multiplicador
                       )[0].code
                     : "",
-                  this.$store.state.aduana.listMultiplicador.some(
+                  this.aduanaStore.listMultiplicador.some(
                     (v) =>
                       v.id == element.id_multiplicador &&
                       (v.code == 14 || v.code == 13 || v.code == 5)
                   )
-                    ? this.$store.state.aduana.listMultiplicador.some(
+                    ? this.aduanaStore.listMultiplicador.some(
                         (v) =>
                           v.id == element.id_multiplicador &&
                           (v.code == 14 || v.code == 13)
@@ -2080,44 +2082,44 @@ export default {
             if (element.esalmacenflag == 1) {
               if (this.isNotPorcentaje(element, element.id_multiplicador)) {
                 this.resumenOpcion.almacen +=
-                  (this.$store.state.aduana.listMultiplicador.filter(
+                  (this.aduanaStore.listMultiplicador.filter(
                     (v) => v.id == element.id_multiplicador
                   ).length > 0
-                    ? this.$store.state.aduana.listMultiplicador.filter(
+                    ? this.aduanaStore.listMultiplicador.filter(
                         (v) => v.id == element.id_multiplicador
                       )[0].valor
                     : 0) *
                   element.costounitario *
                   this.calcularFac(
-                    this.$store.state.aduana.listMultiplicador.filter(
+                    this.aduanaStore.listMultiplicador.filter(
                       (v) => v.id == element.id_multiplicador
                     ).length > 0
-                      ? this.$store.state.aduana.listMultiplicador.filter(
+                      ? this.aduanaStore.listMultiplicador.filter(
                           (v) => v.id == element.id_multiplicador
                         )[0].code
                       : "N",
-                    this.$store.state.aduana.datosPrincipales.volumen,
-                    this.$store.state.aduana.datosPrincipales.peso,
-                    this.$store.state.aduana.datosPrincipales.containers,
-                    this.$store.state.aduana.datosPrincipales.amount
+                    this.aduanaStore.datosPrincipales.volumen,
+                    this.aduanaStore.datosPrincipales.peso,
+                    this.aduanaStore.datosPrincipales.containers,
+                    this.aduanaStore.datosPrincipales.amount
                   );
               } else {
                 this.resumenOpcion.almacen += this.calcularValor(
-                  this.$store.state.aduana.datosPrincipales.amount,
-                  this.$store.state.aduana.totalFlete,
-                  this.$store.state.aduana.listMultiplicador.filter(
+                  this.aduanaStore.datosPrincipales.amount,
+                  this.aduanaStore.totalFlete,
+                  this.aduanaStore.listMultiplicador.filter(
                     (v) => v.id == element.id_multiplicador
                   ).length > 0
-                    ? this.$store.state.aduana.listMultiplicador.filter(
+                    ? this.aduanaStore.listMultiplicador.filter(
                         (v) => v.id == element.id_multiplicador
                       )[0].code
                     : "",
-                  this.$store.state.aduana.listMultiplicador.some(
+                  this.aduanaStore.listMultiplicador.some(
                     (v) =>
                       v.id == element.id_multiplicador &&
                       (v.code == 14 || v.code == 13 || v.code == 5)
                   )
-                    ? this.$store.state.aduana.listMultiplicador.some(
+                    ? this.aduanaStore.listMultiplicador.some(
                         (v) =>
                           v.id == element.id_multiplicador &&
                           (v.code == 14 || v.code == 13)
@@ -2134,44 +2136,44 @@ export default {
             if (element.esgastostercerosflag == 1) {
               if (this.isNotPorcentaje(element, element.id_multiplicador)) {
                 this.resumenOpcion.gastostercero +=
-                  (this.$store.state.aduana.listMultiplicador.filter(
+                  (this.aduanaStore.listMultiplicador.filter(
                     (v) => v.id == element.id_multiplicador
                   ).length > 0
-                    ? this.$store.state.aduana.listMultiplicador.filter(
+                    ? this.aduanaStore.listMultiplicador.filter(
                         (v) => v.id == element.id_multiplicador
                       )[0].valor
                     : 0) *
                   element.costounitario *
                   this.calcularFac(
-                    this.$store.state.aduana.listMultiplicador.filter(
+                    this.aduanaStore.listMultiplicador.filter(
                       (v) => v.id == element.id_multiplicador
                     ).length > 0
-                      ? this.$store.state.aduana.listMultiplicador.filter(
+                      ? this.aduanaStore.listMultiplicador.filter(
                           (v) => v.id == element.id_multiplicador
                         )[0].code
                       : "N",
-                    this.$store.state.aduana.datosPrincipales.volumen,
-                    this.$store.state.aduana.datosPrincipales.peso,
-                    this.$store.state.aduana.datosPrincipales.containers,
-                    this.$store.state.aduana.datosPrincipales.amount
+                    this.aduanaStore.datosPrincipales.volumen,
+                    this.aduanaStore.datosPrincipales.peso,
+                    this.aduanaStore.datosPrincipales.containers,
+                    this.aduanaStore.datosPrincipales.amount
                   );
               } else {
                 this.resumenOpcion.gastostercero += this.calcularValor(
-                  this.$store.state.aduana.datosPrincipales.amount,
-                  this.$store.state.aduana.totalFlete,
-                  this.$store.state.aduana.listMultiplicador.filter(
+                  this.aduanaStore.datosPrincipales.amount,
+                  this.aduanaStore.totalFlete,
+                  this.aduanaStore.listMultiplicador.filter(
                     (v) => v.id == element.id_multiplicador
                   ).length > 0
-                    ? this.$store.state.aduana.listMultiplicador.filter(
+                    ? this.aduanaStore.listMultiplicador.filter(
                         (v) => v.id == element.id_multiplicador
                       )[0].code
                     : "",
-                  this.$store.state.aduana.listMultiplicador.some(
+                  this.aduanaStore.listMultiplicador.some(
                     (v) =>
                       v.id == element.id_multiplicador &&
                       (v.code == 14 || v.code == 13 || v.code == 5)
                   )
-                    ? this.$store.state.aduana.listMultiplicador.some(
+                    ? this.aduanaStore.listMultiplicador.some(
                         (v) =>
                           v.id == element.id_multiplicador &&
                           (v.code == 14 || v.code == 13)
@@ -2195,7 +2197,7 @@ export default {
         this.resumenOpcion.almacen +
         this.resumenOpcion.gastostercero;
 
-      this.$store.state.aduana.totalCosto = this.totalOption;
+      this.aduanaStore.totalCosto = this.totalOption;
       // this.setTotalOpcion(valores);
     },
     cerrarModalNuevoCosto() {
@@ -2219,7 +2221,7 @@ export default {
         if (this.fromDataService.idOpcion == "FL") {
           this.fromDataService.esfleteflag = 1;
         }
-        this.$store.state.aduana.listCostos.push(this.fromDataService);
+        this.aduanaStore.listCostos.push(this.fromDataService);
         this.dialog = !this.dialog;
         this.calcTotales();
         // this.$refs.frmNuevoCosto.reset();
@@ -2229,7 +2231,7 @@ export default {
     isNotPorcentaje(element, id_multiplicador) {
       let code = [5, 13, 14];
 
-      let mul = this.$store.state.aduana.listMultiplicador.some(
+      let mul = this.aduanaStore.listMultiplicador.some(
         (v) => v.id == id_multiplicador && code.includes(v.code)
       );
 
@@ -2287,12 +2289,12 @@ export default {
     montoConfeccion(item) {
       let monto = 0;
       if (item.code_cost == 33) {
-        let amount = this.$store.state.aduana.datosPrincipales.amount;
+        let amount = this.aduanaStore.datosPrincipales.amount;
         let cif =
           parseFloat(amount) +
-          parseFloat(this.$store.state.aduana.totalFlete) +
+          parseFloat(this.aduanaStore.totalFlete) +
           (parseFloat(amount) +
-            parseFloat(this.$store.state.aduana.totalFlete)) *
+            parseFloat(this.aduanaStore.totalFlete)) *
             0.01;
 
         if (cif < 5000) {
@@ -2319,26 +2321,26 @@ export default {
         let val = this.valores.filter((v) => code.includes(v.code_cost));
         val.forEach((element) => {
           monto += parseFloat(
-            (this.$store.state.aduana.listMultiplicador.some(
+            (this.aduanaStore.listMultiplicador.some(
               (v) => v.id == element.id_multiplicador
             )
-              ? this.$store.state.aduana.listMultiplicador.filter(
+              ? this.aduanaStore.listMultiplicador.filter(
                   (v) => v.id == element.id_multiplicador
                 )[0].valor
               : 0) *
               element.costounitario *
               this.calcularFac(
-                this.$store.state.aduana.listMultiplicador.some(
+                this.aduanaStore.listMultiplicador.some(
                   (v) => v.id == element.id_multiplicador
                 )
-                  ? this.$store.state.aduana.listMultiplicador.filter(
+                  ? this.aduanaStore.listMultiplicador.filter(
                       (v) => v.id == element.id_multiplicador
                     )[0].code
                   : "N",
-                this.$store.state.aduana.datosPrincipales.volumen,
-                this.$store.state.aduana.datosPrincipales.peso,
-                this.$store.state.aduana.datosPrincipales.containers,
-                this.$store.state.aduana.datosPrincipales.amount
+                this.aduanaStore.datosPrincipales.volumen,
+                this.aduanaStore.datosPrincipales.peso,
+                this.aduanaStore.datosPrincipales.containers,
+                this.aduanaStore.datosPrincipales.amount
               )
           );
         });
@@ -2381,9 +2383,9 @@ export default {
       };
     },
     isImport() {
-      return this.$store.state.aduana.listModality.some(
+      return this.aduanaStore.listModality.some(
         (v) =>
-          v.id == this.$store.state.aduana.datosPrincipales.idsentido &&
+          v.id == this.aduanaStore.datosPrincipales.idsentido &&
           v.code == "I"
       );
     },
@@ -2401,7 +2403,9 @@ export default {
       this.calcTotales();
     },
   },
-  computed: {},
+  computed: {
+    ...mapStores(useAduanaStore),
+  },
 };
 </script>
 

@@ -1,9 +1,11 @@
 import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
 import { createPinia, setActivePinia } from "pinia";
+import { toRaw } from "vue";
 import Swal from "sweetalert2";
 import http from "@/api/http";
 import router from "@/router";
 import store from "@/store";
+import { useAduanaStore } from "@/stores/aduana";
 import { useConfigEmpresaStore } from "@/stores/configEmpresa";
 import { useEnterprisesStore } from "@/stores/enterprises";
 import { useMasterusuariosStore } from "@/stores/masterusuarios";
@@ -169,7 +171,7 @@ describe("pricing store", () => {
         { id: 9, code: "Q1", index: 0, rowId: "9_0" },
         { code: "Q2", index: 1, rowId: "quote_1" },
       ]);
-      expect(store.commit).toHaveBeenCalledWith("SET_LIST_QUOTES", [
+      expect(useAduanaStore().listQuotes).toEqual([
         { id: 9, code: "Q1", index: 0, rowId: "9_0" },
         { code: "Q2", index: 1, rowId: "quote_1" },
       ]);
@@ -202,7 +204,7 @@ describe("pricing store", () => {
         data: { id_branch: 1 },
       });
       expect(pricing.listQuotes).toEqual([]);
-      expect(store.commit).toHaveBeenCalledWith("SET_LIST_QUOTES", []);
+      expect(useAduanaStore().listQuotes).toEqual([]);
     });
 
     test("ListarMontosFinalesQuoteMONGODB copies the file number into code and stores the token", async () => {
@@ -242,27 +244,39 @@ describe("pricing store", () => {
 
     test("getModulesEntities, getCargarEjecutivo, getPersonalPricing and cargarTrabajadores fill the executives for pricing and aduana", async () => {
       const ejecutivos = [{ id_entitie: 4, name: "ANA" }];
-      respond({ getModulesEntities: accepted(ejecutivos), cargar_ejecutivo: accepted(ejecutivos), get_personal_pricing: accepted(ejecutivos), cargar_trabajadores: accepted(ejecutivos) });
+      respond({
+        getModulesEntities: accepted([...ejecutivos]),
+        cargar_ejecutivo: accepted([...ejecutivos]),
+        get_personal_pricing: accepted([...ejecutivos]),
+        cargar_trabajadores: accepted(ejecutivos),
+      });
       const pricing = usePricingStore();
+      const aduana = useAduanaStore();
+      const sharedAfter = async (load: () => Promise<void>) => {
+        await load();
+        return toRaw(aduana.listEjecutivo) === toRaw(pricing.listEjecutivo);
+      };
 
-      await pricing.getModulesEntities();
-      await pricing.getCargarEjecutivo();
-      await pricing.getPersonalPricing();
-      await pricing.cargarTrabajadores({ id_branch: 1, rol: "V" });
+      const shared = [
+        await sharedAfter(() => pricing.getModulesEntities()),
+        await sharedAfter(() => pricing.getCargarEjecutivo()),
+        await sharedAfter(() => pricing.getPersonalPricing()),
+        await sharedAfter(() => pricing.cargarTrabajadores({ id_branch: 1, rol: "V" })),
+      ];
 
       expect(sentConfig("getModulesEntities")!.data).toEqual({ id_branch: 1, id_module: 6 });
       expect(sentConfig("cargar_ejecutivo")!.params).toEqual({ id_branch: 1, id_module: 6 });
       expect(sentConfig("get_personal_pricing")!.url).toBe(URL_MAIN + "get_personal_pricing?id_branch=1");
       expect(sentConfig("cargar_trabajadores")!.params).toEqual({ id_branch: 1, rol: "V" });
       expect(pricing.listEjecutivo).toEqual(ejecutivos);
-      expect(vi.mocked(store.commit).mock.calls.filter(([name]: unknown[]) => name === "SET_LIST_EJECUTIVO")).toHaveLength(4);
+      expect(shared).toEqual([true, true, true, true]);
     });
 
     test.each([
-      ["getModality", "getModality", "listModality", "SET_LIST_MODALITY"],
-      ["getShipment", "getShipment", "listShipment", "SET_LIST_SHIPMENT"],
-      ["getIncoterms", "getIncoterms", "listIncoterms", "SET_LIST_INCOTERMS"],
-    ] as const)("%s posts the branch and fills the list for pricing and aduana", async (action, path, list, mutation) => {
+      ["getModality", "getModality", "listModality"],
+      ["getShipment", "getShipment", "listShipment"],
+      ["getIncoterms", "getIncoterms", "listIncoterms"],
+    ] as const)("%s posts the branch and fills the list for pricing and aduana", async (action, path, list) => {
       respond({ [path]: accepted([{ id: 1, name: "X" }]) });
       const pricing = usePricingStore();
 
@@ -270,7 +284,7 @@ describe("pricing store", () => {
 
       expect(sentConfig(path)).toEqual({ method: "post", url: URL_MAIN + path, headers: JSON_HEADERS, data: { id_branch: 1 } });
       expect(pricing[list]).toEqual([{ id: 1, name: "X" }]);
-      expect(store.commit).toHaveBeenCalledWith(mutation, [{ id: 1, name: "X" }]);
+      expect(toRaw(useAduanaStore()[list])).toBe(toRaw(pricing[list]));
     });
 
     test("getPortBegin and getPortEnd send the default search and fill both lists", async () => {
@@ -284,8 +298,8 @@ describe("pricing store", () => {
       expect(sentConfig("getPortEnd")!.data).toEqual({ id_branch: 1, id_transport: 1, id: 2, search: null, limit: 20 });
       expect(pricing.listPortBegin).toEqual([{ id_port: 1 }]);
       expect(pricing.listPortEnd).toEqual([{ id_port: 2 }]);
-      expect(store.commit).toHaveBeenCalledWith("SET_LIST_PORT_BEGIN", [{ id_port: 1 }]);
-      expect(store.commit).toHaveBeenCalledWith("SET_LIST_PORT_END", [{ id_port: 2 }]);
+      expect(toRaw(useAduanaStore().listPortBegin)).toBe(toRaw(pricing.listPortBegin));
+      expect(toRaw(useAduanaStore().listPortEnd)).toBe(toRaw(pricing.listPortEnd));
     });
 
     test("getTipoCostos sends the shipment id of a selected shipment row and fills pricing, configEmpresa and aduana", async () => {
@@ -299,7 +313,8 @@ describe("pricing store", () => {
       expect(pricing.listTipoCostos).toEqual([{ codigo: "FL", name: "FLETE" }]);
       expect(pricing.namesection).toEqual([{ codigo: "FL", name: "FLETE" }]);
       expect(useConfigEmpresaStore().listTipoCostos).toEqual([{ codigo: "FL", name: "FLETE" }]);
-      expect(store.commit).toHaveBeenCalledWith("SET_TIPO_COSTOS", [{ codigo: "FL", name: "FLETE" }]);
+      expect(toRaw(useAduanaStore().listTipoCostos)).toBe(toRaw(pricing.listTipoCostos));
+      expect(toRaw(useAduanaStore().namesection)).toBe(toRaw(pricing.listTipoCostos));
     });
 
     test("getTipoCostos empties the cost types and shows the message on a rejection", async () => {
@@ -328,7 +343,7 @@ describe("pricing store", () => {
       ];
       expect(pricing.listMultiplicador).toEqual(expected);
       expect(useConfigEmpresaStore().lstMultiplicador).toEqual(expected);
-      expect(store.commit).toHaveBeenCalledWith("SET_MULTPLICADOR", expected);
+      expect(toRaw(useAduanaStore().listMultiplicador)).toBe(toRaw(pricing.listMultiplicador));
     });
 
     test("getModuleRole posts a JSON string and maps the roles", async () => {
@@ -345,26 +360,29 @@ describe("pricing store", () => {
       respond({ getItemsServices: accepted([{ id_groupservices: 4, status: 1 }]) });
       const pricing = usePricingStore();
       pricing.datosPrincipales = { idincoterms: 9, idsentido: 1, idtipocarga: { id: 3 } };
+      const aduana = useAduanaStore();
+      const aduanaItems = vi.spyOn(aduana, "getItemsServices");
 
       await pricing.getItemsServices();
 
       expect(sentConfig("getItemsServices")!.data).toEqual({ id_branch: 1, id_incoterms: 9, id_modality: 1, id_shipment: 3 });
       expect(pricing.listServices).toEqual([{ id_groupservices: 4, status: 1 }]);
       expect(pricing.copylistServices).toEqual([{ id_groupservices: 4, status: 1 }]);
-      expect(store.commit).toHaveBeenCalledWith("SET_LIST_SERVICES", [{ id_groupservices: 4, status: 1 }]);
-      expect(vi.mocked(store.dispatch).mock.calls.map(([name]: unknown[]) => name)).toEqual(["getItemsServices"]);
-      expect(httpMock.mock.invocationCallOrder[0]).toBeLessThan(vi.mocked(store.dispatch).mock.invocationCallOrder[0]!);
+      for (const list of [aduana.listServices, aduana.copylistServices, pricing.copylistServices]) expect(toRaw(list)).toBe(toRaw(pricing.listServices));
+      expect(aduanaItems).toHaveBeenCalledTimes(1);
+      expect(httpMock.mock.invocationCallOrder[0]).toBeLessThan(aduanaItems.mock.invocationCallOrder[0]!);
     });
 
     test("getItemsServices still runs aduana's action and rejects when the quote has no shipment", async () => {
-      respond({});
+      respond({ getItemsServices: accepted([]) });
       const pricing = usePricingStore();
       pricing.datosPrincipales = { idincoterms: 9, idsentido: 1 };
+      const aduanaItems = vi.spyOn(useAduanaStore(), "getItemsServices");
 
       await expect(pricing.getItemsServices()).rejects.toThrow(TypeError);
 
-      expect(httpMock).not.toHaveBeenCalled();
-      expect(vi.mocked(store.dispatch).mock.calls.map(([name]: unknown[]) => name)).toEqual(["getItemsServices"]);
+      expect(aduanaItems).toHaveBeenCalledTimes(1);
+      expect(httpMock.mock.calls.map(([config]) => config.data)).toEqual([{ id_branch: 1, id_incoterms: "", id_modality: "", id_shipment: "" }]);
     });
 
     test("getItemsServicesDetails sends the active services and builds one option row and one sale row per cost", async () => {
@@ -461,7 +479,7 @@ describe("pricing store", () => {
           },
         ]
       `);
-      expect(store.commit).toHaveBeenCalledWith("SET_LIST_COSTES", pricing.listCostos);
+      expect(toRaw(useAduanaStore().listCostos)).toBe(toRaw(pricing.listCostos));
     });
 
     test("getItemsServicesDetails warns when the combination has no costs and empties the list", async () => {
@@ -1904,7 +1922,7 @@ describe("pricing store", () => {
 
       expect(sentConfig("getInstructivoId/77")!.data).toEqual({ id_branch: 1 });
       expect(pricing.listInstructivo).toEqual([{ expediente: "E" }]);
-      expect(store.commit).toHaveBeenCalledWith("setInstructivo", [{ expediente: "E" }]);
+      expect(toRaw(useAduanaStore().listInstructivo)).toBe(toRaw(pricing.listInstructivo));
       expect(pricing.datosEmpresa).toEqual([{ business_name: "PIC" }]);
     });
 
@@ -1924,8 +1942,8 @@ describe("pricing store", () => {
       await flushPromises();
 
       expect([pricing.preServices, pricing.preCostos, pricing.listImpuestos, pricing.listNotasQuote]).toEqual([[{ id: 1 }], [{ id: 2 }], [{ id: 3 }], []]);
-      for (const name of ["PRE_SERVICES", "PRE_COSTOS", "SET_CARGAR_IMPUESTOS", "SET_CARGAR_NOTAS_COTIZACION"])
-        expect(store.commit).toHaveBeenCalledWith(name, expect.anything());
+      const aduana = useAduanaStore();
+      for (const key of ["preServices", "preCostos", "listImpuestos", "listNotasQuote"] as const) expect(toRaw(aduana[key])).toBe(toRaw(pricing[key]));
       expect(Swal.fire).toHaveBeenCalledWith({ icon: "error", text: "Sin notas" });
     });
 

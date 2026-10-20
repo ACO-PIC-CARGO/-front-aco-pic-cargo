@@ -3,14 +3,14 @@
     <v-row>
       <v-col cols="12" class="py-2">
         Unificar Cotización asociada a:
-        {{ $store.state.aduana.datosPrincipales.nombre }}
+        {{ aduanaStore.datosPrincipales.nombre }}
       </v-col>
       <v-col cols="2" class="py-0">
         <v-select
           density="compact"
           variant="outlined"
           label="Cotización"
-          :items="$store.state.aduana.listQuotes"
+          :items="aduanaStore.listQuotes"
           v-model="id_quote"
           item-title="quote"
           item-value="id"
@@ -36,8 +36,9 @@
 </template>
 
 <script>
-import { mapActions } from "vuex";
 import Swal from "sweetalert2";
+import { mapActions as mapPiniaActions, mapStores } from "pinia";
+import { useAduanaStore } from "@/stores/aduana";
 export default {
   data() {
     return {
@@ -45,18 +46,18 @@ export default {
     };
   },
   methods: {
-    ...mapActions(["unificarQuoteAduana"]),
+    ...mapPiniaActions(useAduanaStore, ["unificarQuoteAduana"]),
     async unificar() {
       let data = {
         id_quote: this.id_quote,
         id_aduana: this.$route.params.id,
       };
       await this.unificarQuoteAduana(data);
-      if (this.$store.state.aduana.nro_quote) {
+      if (this.aduanaStore.nro_quote) {
         Swal.fire({
           icon: "success",
           title: "Aviso",
-          text: this.$store.state.aduana.mensaje,
+          text: this.aduanaStore.mensaje,
           confirmButtonText: "Ir a la cotización",
           showConfirmButton: true,
         }).then((result) => {
@@ -64,7 +65,7 @@ export default {
             this.$router.push({
               name: "verQuote",
               params: {
-                id: this.$store.state.aduana.IdQuote,
+                id: this.aduanaStore.IdQuote,
               },
             });
           }
@@ -80,9 +81,10 @@ export default {
     },
   },
   computed: {
+    ...mapStores(useAduanaStore),
     unificarflag() {
       if (
-        this.$store.state.aduana.opcionCostos.filter((v) => v.selected)
+        this.aduanaStore.opcionCostos.filter((v) => v.selected)
           .length == 1
       ) {
         return false;

@@ -42,10 +42,12 @@ import type {
   TipoTransaccion,
 } from "@/types/entidades";
 import type { SucursalSesion, UsuarioSesion } from "@/types/sesion";
+import { useAduanaStore } from "@/stores/aduana";
 
 const route = useRoute();
 const router = useRouter();
 const rootStore = useStore();
+const aduanaStore = useAduanaStore();
 const pricingStore = usePricingStore();
 const townStore = useTownStore();
 const calculadorasStore = useCalculadorasStore();
@@ -361,7 +363,7 @@ async function editarCotizacion() {
 async function editarCotizacionAduana() {
   // let val = await this.validarCosto();
   let val = true;
-  val = !rootStore.state.aduana.opcionCostos.some(
+  val = !aduanaStore.opcionCostos.some(
     (v: OpcionCosto) =>
       !v.date_end || !v.tiempo_transito || !isDateValid(v.date_end),
   );
@@ -369,14 +371,14 @@ async function editarCotizacionAduana() {
   // // -----------------------------------------------------
   if (val) {
     rootStore.state.spiner = false;
-    await rootStore.dispatch("actualizarQuoteAduana");
+    await aduanaStore.actualizarQuoteAduana();
 
     router.push({
       name: "VerAduana",
       params: {
-        id: rootStore.state.aduana.id,
-        step: rootStore.state.aduana.step
-          ? rootStore.state.aduana.step
+        id: aduanaStore.id,
+        step: aduanaStore.step
+          ? aduanaStore.step
           : 1,
       },
     });
@@ -387,7 +389,7 @@ async function editarCotizacionAduana() {
       icon: "error",
       text: "Existe una o más Fechas de validez y/o tiempos en tránsito, INCOMPLETOS. Verifique.",
     });
-    rootStore.state.aduana.tab = 2;
+    aduanaStore.tab = 2;
   }
 }
 async function abrirCorreo() {
@@ -878,15 +880,15 @@ function obtenerTipoAlert() {
   }
   if (Url.includes(getNameUrl())) {
     if (
-      rootStore.state.aduana.totalCosto -
-        rootStore.state.aduana.totalVenta <
+      aduanaStore.totalCosto -
+        aduanaStore.totalVenta <
       0
     ) {
       type = "success";
     }
     if (
-      rootStore.state.aduana.totalCosto -
-        rootStore.state.aduana.totalVenta >
+      aduanaStore.totalCosto -
+        aduanaStore.totalVenta >
       0
     ) {
       type = "error";
@@ -1815,11 +1817,11 @@ watch(idRole, async () => {
       >
         {{
           currencyFormat(
-            (rootStore.state.aduana.totalVenta
-              ? rootStore.state.aduana.totalVenta
+            (aduanaStore.totalVenta
+              ? aduanaStore.totalVenta
               : 0) -
-              (rootStore.state.aduana.totalCosto
-                ? rootStore.state.aduana.totalCosto
+              (aduanaStore.totalCosto
+                ? aduanaStore.totalCosto
                 : 0),
           )
         }}
@@ -1842,7 +1844,7 @@ watch(idRole, async () => {
         color="#009688"
         v-if="
           getNameUrl() == 'VerAduana' &&
-            rootStore.state.aduana.mostrarBtnActualizarFlag
+            aduanaStore.mostrarBtnActualizarFlag
         "
         @click="ira('EditarAduana', route.params.id)"
       >

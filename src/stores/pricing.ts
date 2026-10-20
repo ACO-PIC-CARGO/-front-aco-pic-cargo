@@ -6,6 +6,7 @@ import axios from "@/api/http";
 import { useCotizacionCalculos } from "@/composables/useCotizacionCalculos";
 import router from "@/router";
 import store from "@/store";
+import { useAduanaStore } from "@/stores/aduana";
 import { useConfigEmpresaStore } from "@/stores/configEmpresa";
 import { useEnterprisesStore } from "@/stores/enterprises";
 import { useMasterusuariosStore } from "@/stores/masterusuarios";
@@ -479,76 +480,79 @@ export const usePricingStore = defineStore("pricing", () => {
     listMarketing.value = sorted;
   }
 
-  // While pricing was a Vuex module, committing each of these names also ran aduana's mutation of the same name.
   function setListQuotes(data: CotizacionListado[]): void {
     SET_LIST_QUOTES(data);
-    store.commit("SET_LIST_QUOTES", data);
+    useAduanaStore().listQuotes = data;
   }
   function setPreCostos(data: Costo[]): void {
     preCostos.value = data;
-    store.commit("PRE_COSTOS", data);
+    useAduanaStore().preCostos = data;
   }
   function setPreServices(data: ServicioPredeterminado[]): void {
     preServices.value = data;
-    store.commit("PRE_SERVICES", data);
+    useAduanaStore().preServices = data;
   }
   function setCargarImpuestos(data: Impuesto[]): void {
     listImpuestos.value = data;
-    store.commit("SET_CARGAR_IMPUESTOS", data);
+    useAduanaStore().listImpuestos = data;
   }
   function setCargarNotasCotizacion(data: Nota[]): void {
     listNotasQuote.value = data;
-    store.commit("SET_CARGAR_NOTAS_COTIZACION", data);
+    useAduanaStore().listNotasQuote = data;
   }
   function setListCostes(data: Costo[]): void {
     listCostos.value = data;
-    store.commit("SET_LIST_COSTES", data);
+    useAduanaStore().listCostos = data;
   }
   function setListEjecutivo(data: EjecutivoCotizacion[]): void {
     listEjecutivo.value = data;
-    store.commit("SET_LIST_EJECUTIVO", data);
+    useAduanaStore().listEjecutivo = data;
   }
   function setListIncoterms(data: Incoterm[]): void {
     listIncoterms.value = data;
-    store.commit("SET_LIST_INCOTERMS", data);
+    useAduanaStore().listIncoterms = data;
   }
   function setListModality(data: Modalidad[]): void {
     listModality.value = data;
-    store.commit("SET_LIST_MODALITY", data);
+    useAduanaStore().listModality = data;
   }
   function setListPortBegin(data: Puerto[]): void {
     listPortBegin.value = data;
-    store.commit("SET_LIST_PORT_BEGIN", data);
+    useAduanaStore().listPortBegin = data;
   }
   function setListPortEnd(data: Puerto[]): void {
     listPortEnd.value = data;
-    store.commit("SET_LIST_PORT_END", data);
+    useAduanaStore().listPortEnd = data;
   }
   function setListServices(data: Servicio[]): void {
     listServices.value = data;
     copylistServices.value = data;
-    store.commit("SET_LIST_SERVICES", data);
+    const aduana = useAduanaStore();
+    aduana.listServices = data;
+    aduana.copylistServices = data;
   }
   function setListShipment(data: TipoCarga[]): void {
     listShipment.value = data;
-    store.commit("SET_LIST_SHIPMENT", data);
+    useAduanaStore().listShipment = data;
   }
   function setMultiplicador(data: Multiplicador[]): void {
     listMultiplicador.value = data;
     // While configEmpresa was a Vuex module this commit also ran its SET_MULTPLICADOR.
     useConfigEmpresaStore().lstMultiplicador = data;
-    store.commit("SET_MULTPLICADOR", data);
+    useAduanaStore().listMultiplicador = data;
   }
   function setTipoCostos(data: TipoCostoConfig[]): void {
     listTipoCostos.value = data;
     namesection.value = data;
     // While configEmpresa was a Vuex module this commit also ran its SET_TIPO_COSTOS.
     useConfigEmpresaStore().listTipoCostos = data;
-    store.commit("SET_TIPO_COSTOS", data);
+    const aduana = useAduanaStore();
+    aduana.listTipoCostos = data;
+    aduana.namesection = data;
   }
   function setInstructivo(data: InstructivoCotizacion[]): void {
     listInstructivo.value = data;
-    store.commit("setInstructivo", data);
+    useAduanaStore().listInstructivo = data;
   }
 
   function resetQuoteNew(): void {
@@ -1111,8 +1115,7 @@ export const usePricingStore = defineStore("pricing", () => {
           console.error(error);
         });
     })();
-    // While pricing was a Vuex module this dispatch also ran aduana's getItemsServices in parallel.
-    const aduanaRequest: Promise<unknown> = store.dispatch("getItemsServices");
+    const aduanaRequest = useAduanaStore().getItemsServices();
     await Promise.all([ownRequest, aduanaRequest]);
   }
   async function obtenerCostosPricing(): Promise<void> {

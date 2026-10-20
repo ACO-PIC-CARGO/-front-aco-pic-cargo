@@ -7,8 +7,8 @@
           <v-data-table
             :headers="headers"
             :items="
-              $store.state.aduana.opcionCostos[
-                $store.state.aduana.page - 1
+              aduanaStore.opcionCostos[
+                aduanaStore.page - 1
               ].listNotasQuote.filter(
                 (v) => v.estado == 1 && !v.statusincluye && !v.statusnoincluye
               )
@@ -110,7 +110,7 @@
     <v-col cols="12" class="derecha">
       <div class="text-center">
         <v-pagination
-          v-model="$store.state.aduana.page"
+          v-model="aduanaStore.page"
           :length="opcionesSeleccionadas.length"
           rounded
         ></v-pagination>
@@ -140,7 +140,7 @@
             </thead>
             <tbody>
               <tr
-                v-for="(tipocosto, index) in $store.state.aduana.namesection"
+                v-for="(tipocosto, index) in aduanaStore.namesection"
                 :key="index"
               >
                 <td>{{ tipocosto.codigo }}</td>
@@ -178,7 +178,7 @@
         <v-card-text>
           <v-form ref="frmReporte">
             <v-radio-group
-              v-model="$store.state.aduana.tiporeporte"
+              v-model="aduanaStore.tiporeporte"
               :rules="[(v) => !!v || 'Dato requerido']"
               disabled
             >
@@ -216,10 +216,10 @@
 </template>
 
 <script>
-import { mapActions } from "vuex";
 import Swal from "sweetalert2";
-import { mapActions as mapPiniaActions } from "pinia";
+import { mapActions as mapPiniaActions, mapStores } from "pinia";
 import { usePricingStore } from "@/stores/pricing";
+import { useAduanaStore } from "@/stores/aduana";
 export default {
   data() {
     return {
@@ -236,20 +236,17 @@ export default {
   },
   mounted() {
     if (
-      (this.opcionesSeleccionadas = this.$store.state.aduana.opcionCostos.some(
+      (this.opcionesSeleccionadas = this.aduanaStore.opcionCostos.some(
         (v) => !!v.selected
       ))
     ) {
-      this.opcionesSeleccionadas = this.$store.state.aduana.opcionCostos.filter(
+      this.opcionesSeleccionadas = this.aduanaStore.opcionCostos.filter(
         (v) => !!v.selected
       );
     }
   },
   methods: {
-    ...mapActions([
-      "generarReporteAduana",
-      "obtenerDatosEmpresaAduana",
-    ]),
+    ...mapPiniaActions(useAduanaStore, ["generarReporteAduana", "obtenerDatosEmpresaAduana"]),
     ...mapPiniaActions(usePricingStore, ["registrarQuote"]),
     formatDate(val) {
       if (!val) return "";
@@ -297,7 +294,7 @@ export default {
       await this.obtenerDatosEmpresaAduana();
       for (
         let index = 0;
-        index < this.$store.state.aduana.opcionCostos.length;
+        index < this.aduanaStore.opcionCostos.length;
         index++
       ) {
         Swal.fire({
@@ -312,11 +309,11 @@ export default {
             Swal.showLoading();
           },
         });
-        if (this.$store.state.aduana.opcionCostos[index].selected == true) {
+        if (this.aduanaStore.opcionCostos[index].selected == true) {
           await this.generarReporteAduana({
-            tipo: this.$store.state.aduana.tiporeporte,
+            tipo: this.aduanaStore.tiporeporte,
             nro_propuesta:
-              this.$store.state.aduana.opcionCostos[index].nro_propuesta,
+              this.aduanaStore.opcionCostos[index].nro_propuesta,
           }).catch((e) => {
             console.error(e);
           });
@@ -327,13 +324,14 @@ export default {
     },
   },
   computed: {
+    ...mapStores(useAduanaStore),
     lstSeIncluye() {
-      let val = this.$store.state.aduana.listServices.filter(
+      let val = this.aduanaStore.listServices.filter(
         (v) => v.status == 1
       );
 
       let opcion = this.opcionesSeleccionadas[
-        this.$store.state.aduana.page - 1
+        this.aduanaStore.page - 1
       ].listNotasQuote.filter((v) => v.estado == 1 && v.statusincluye == 1);
       opcion = opcion.map((v) => ({
         ...v,
@@ -342,9 +340,9 @@ export default {
       }));
       let final = [...val, ...opcion];
 
-      const opt = this.opcionesSeleccionadas[this.$store.state.aduana.page - 1] || {};
-      const fechaVigencia = opt.date_end || this.$store.state.aduana.datosPrincipales.fecha_fin;
-      const ttransito = opt.tiempo_transito || this.$store.state.aduana.datosPrincipales.tiempo_transito;
+      const opt = this.opcionesSeleccionadas[this.aduanaStore.page - 1] || {};
+      const fechaVigencia = opt.date_end || this.aduanaStore.datosPrincipales.fecha_fin;
+      const ttransito = opt.tiempo_transito || this.aduanaStore.datosPrincipales.tiempo_transito;
       if (fechaVigencia) {
         const texto = `Fecha de vigencia: ${this.formatDate(fechaVigencia)}`;
         final.push({ service: texto, namegroupservice: texto });
@@ -358,12 +356,12 @@ export default {
       return final;
     },
     lstNoIncluye() {
-      let val = this.$store.state.aduana.listServices.filter(
+      let val = this.aduanaStore.listServices.filter(
         (v) => v.status == 0
       );
 
       let opcion = this.opcionesSeleccionadas[
-        this.$store.state.aduana.page - 1
+        this.aduanaStore.page - 1
       ].listNotasQuote.filter((v) => v.estado == 1 && v.statusnoincluye == 1);
       opcion = opcion.map((v) => ({
         ...v,

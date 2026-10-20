@@ -1,7 +1,7 @@
 <template>
   <v-container fluid class="pa-0" v-if="verFlag">
     <v-card elevation="5">
-      <v-stepper v-model="$store.state.aduana.e1" non-linear>
+      <v-stepper v-model="aduanaStore.e1" non-linear>
         <v-stepper-header>
           <v-stepper-item
             complete
@@ -115,10 +115,11 @@
 import { defineAsyncComponent } from "vue";
 import { mapActions } from "vuex";
 import mixins from "../../components/mixins/funciones.js";
-import { mapActions as mapPiniaActions } from "pinia";
+import { mapActions as mapPiniaActions, mapStores } from "pinia";
 import { useMasterusuariosStore } from "@/stores/masterusuarios";
 import { useEnterprisesStore } from "@/stores/enterprises";
 import { usePricingStore } from "@/stores/pricing";
+import { useAduanaStore } from "@/stores/aduana";
 export default {
   mixins: [mixins],
   name: "VerQuoteView",
@@ -164,26 +165,17 @@ export default {
       verFlag: true,
     };
   },
+  computed: {
+    ...mapStores(useAduanaStore),
+  },
   methods: {
     ...mapActions([
-      "getModalityAduana",
-      "getShipmentAduana",
-      "getIncotermsAduana",
       "_getEntities",
       "_getRole",
-      "getAdunaVer",
-      "getPortBeginAduana",
-      "getPortEndAduana",
-      "getMultiplicadorAduana",
-      "getInstructivoIdAduana",
-      "generaInstructivoAduana",
-      "getTipoCostosAduana",
       "cargarProveedores",
       "_getEntitiesCliente",
-      "getPersonalPricingAduana",
-      "getCotizacionUnificar",
-      "GuardaCostosFinalesAduana",
     ]),
+    ...mapPiniaActions(useAduanaStore, ["getModalityAduana", "getShipmentAduana", "getIncotermsAduana", "getAdunaVer", "getPortBeginAduana", "getPortEndAduana", "getMultiplicadorAduana", "getInstructivoIdAduana", "generaInstructivoAduana", "getTipoCostosAduana", "getPersonalPricingAduana", "getCotizacionUnificar", "GuardaCostosFinalesAduana"]),
     ...mapPiniaActions(usePricingStore, ["getItemsServicesDetails", "getMarketingList", "getQuoteStatus", "getModulesEntities", "getModuleRole", "getCargarMasterDetalleNotasCotizacion", "getImpuestos", "getBegEndList"]),
     ...mapPiniaActions(useEnterprisesStore, ["obtenerImpuestoXEmpresa"]),
     ...mapPiniaActions(useMasterusuariosStore, ["cargarMasterDetallePercepcionAduana"]),
@@ -195,22 +187,22 @@ export default {
       this.getAdunaVer({ id: this.$route.params.id }),
       this.getShipmentAduana(),
     ]);
-    this.$store.state.mainTitle = `VER  COTIZACIÓN - ${this.$store.state.aduana.nro_quote}`;
+    this.$store.state.mainTitle = `VER  COTIZACIÓN - ${this.aduanaStore.nro_quote}`;
     this.$store.state.spiner = false;
     this.verFlag = true;
 
-    let idTipoCarga = this.$store.state.aduana.listShipment.filter(
-      (v) => v.id == this.$store.state.aduana.datosPrincipales.idtipocarga
+    let idTipoCarga = this.aduanaStore.listShipment.filter(
+      (v) => v.id == this.aduanaStore.datosPrincipales.idtipocarga
     )[0].id_transport;
 
     await Promise.all([
       this.getPortBeginAduana({
         id_transport: idTipoCarga,
-        id: this.$store.state.aduana.datosPrincipales.idorigen,
+        id: this.aduanaStore.datosPrincipales.idorigen,
       }),
       this.getPortEndAduana({
         id_transport: idTipoCarga,
-        id: this.$store.state.aduana.datosPrincipales.iddestino,
+        id: this.aduanaStore.datosPrincipales.iddestino,
       }),
       this.getMarketingList(),
       this.getQuoteStatus(),
@@ -230,29 +222,29 @@ export default {
     ]);
     this.mostrarStepS = true;
 
-    this.$store.state.aduana.actualizarCostosFlag =
-      !this.$store.state.aduana.actualizarCostosFlag;
+    this.aduanaStore.actualizarCostosFlag =
+      !this.aduanaStore.actualizarCostosFlag;
 
-    this.$store.state.aduana.actualizarComparativa =
-      !this.$store.state.aduana.actualizarComparativa;
+    this.aduanaStore.actualizarComparativa =
+      !this.aduanaStore.actualizarComparativa;
     setTimeout(() => {
       this.generaInstructivoAduana();
     }, 1000);
-    this.$store.state.aduana.actualizarCostosFlag = false;
+    this.aduanaStore.actualizarCostosFlag = false;
     this.$store.state.drawer = false;
 
     if (this.$route.params.step) {
-      this.$store.state.aduana.e1 = this.$route.params.step
+      this.aduanaStore.e1 = this.$route.params.step
         ? Number(this.$route.params.step)
         : 1;
     }
 
     setTimeout(async () => {
-      let aprobadas = this.$store.state.aduana.opcionCostos.filter(
+      let aprobadas = this.aduanaStore.opcionCostos.filter(
         (v) => v.selected
       );
 
-      if (aprobadas.length && !this.$store.state.aduana.aprobadoflag) {
+      if (aprobadas.length && !this.aduanaStore.aprobadoflag) {
         await this.GuardaCostosFinalesAduana();
       }
     }, 300);

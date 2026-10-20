@@ -42,7 +42,7 @@
       <v-col cols="12" class="derecha">
         <div class="text-center">
           <v-pagination
-            v-model="$store.state.aduana.page"
+            v-model="aduanaStore.page"
             :length="opcionesSeleccionadas.length"
             rounded
           ></v-pagination>
@@ -59,7 +59,7 @@
                 :headers="headers"
                 :items="
                   opcionesSeleccionadas[
-                    $store.state.aduana.page - 1
+                    aduanaStore.page - 1
                   ].listNotasQuote.filter(
                     (v) =>
                       v.estado == 1 && !v.statusincluye && !v.statusnoincluye
@@ -216,7 +216,7 @@
             </thead>
             <tbody>
               <tr
-                v-for="(tipocosto, index) in $store.state.aduana.namesection"
+                v-for="(tipocosto, index) in aduanaStore.namesection"
                 :key="index"
               >
                 <td>{{ tipocosto.codigo }}</td>
@@ -366,7 +366,7 @@
             class="mx-1"
             style="color: white !important"
             size="small"
-            :disabled="$store.state.aduana.bloquearBtnImprimir"
+            :disabled="aduanaStore.bloquearBtnImprimir"
             @click="abrirModalTipoReporte()"
           >
             Imprimir Cotizacion
@@ -379,10 +379,10 @@
 
 <script>
 import { defineAsyncComponent } from "vue";
-import { mapActions } from "vuex";
 import Swal from "sweetalert2";
-import { mapActions as mapPiniaActions } from "pinia";
+import { mapActions as mapPiniaActions, mapStores } from "pinia";
 import { usePricingStore } from "@/stores/pricing";
+import { useAduanaStore } from "@/stores/aduana";
 export default {
   components: {
     previewCotizacion: defineAsyncComponent(() =>
@@ -415,13 +415,7 @@ export default {
     this.dialogPreview = false;
   },
   methods: {
-    ...mapActions([
-      "registrarAduana",
-      "obtenerDatosEmpresaAduana",
-      "generarReporteAduana",
-      "predataAduana",
-      "actualizarQuoteAduana",
-    ]),
+    ...mapPiniaActions(useAduanaStore, ["registrarAduana", "obtenerDatosEmpresaAduana", "generarReporteAduana", "predataAduana", "actualizarQuoteAduana"]),
     ...mapPiniaActions(usePricingStore, ["getQuote", "crearCarpetaOneDrive", "actualizarURLEnElQuote"]),
     formatDate(val) {
       if (!val) return "";
@@ -437,7 +431,7 @@ export default {
       }
     },
     llenarNotasSeleccionadas() {
-      this.opcionesSeleccionadas = this.$store.state.aduana.opcionCostos.filter(
+      this.opcionesSeleccionadas = this.aduanaStore.opcionCostos.filter(
         (v) => !!v.selected
       );
     },
@@ -477,7 +471,7 @@ export default {
     async anidarNota() {
       if ((await this.$refs.frmNota.validate()).valid) {
         this.opcionesSeleccionadas[
-          this.$store.state.aduana.page - 1
+          this.aduanaStore.page - 1
         ].listNotasQuote.push({
           descripcion: this.descripcion,
           estado: 1,
@@ -493,7 +487,7 @@ export default {
     },
 
     async generar() {
-      this.$store.state.aduana.tiporeporte = this.tiporeporte;
+      this.aduanaStore.tiporeporte = this.tiporeporte;
       this.loading = true;
       if (!this.$route.params.id) {
         if ((await this.$refs.frmReporte.validate()).valid) {
@@ -501,7 +495,7 @@ export default {
           await this.registrarAduana({ fullflag: true }).catch((e) => {
            console.error(e);
           });
-          if (this.$store.state.aduana.nro_quote) {
+          if (this.aduanaStore.nro_quote) {
             this.$store.state.spiner = false;
             let vm = this;
             await this.obtenerDatosEmpresaAduana().catch((e) => {
@@ -510,16 +504,16 @@ export default {
 
             for (
               let index = 0;
-              index < this.$store.state.aduana.opcionCostos.length;
+              index < this.aduanaStore.opcionCostos.length;
               index++
             ) {
               if (
-                this.$store.state.aduana.opcionCostos[index].selected == true
+                this.aduanaStore.opcionCostos[index].selected == true
               ) {
                 await this.generarReporteAduana({
                   tipo: this.tiporeporte,
                   nro_propuesta:
-                    this.$store.state.aduana.opcionCostos[index].nro_propuesta,
+                    this.aduanaStore.opcionCostos[index].nro_propuesta,
                 }).catch((e) => {
                  console.error(e);
                 });
@@ -546,11 +540,11 @@ export default {
             //     console.log("actualizarURLEnElQuote", err);
             //   });
             // }
-            console.log(this.$store.state.aduana.id);
+            console.log(this.aduanaStore.id);
             this.$router.push({
               name: "VerAduana",
               params: {
-                id: this.$store.state.aduana.id,
+                id: this.aduanaStore.id,
               },
             });
           }
@@ -565,7 +559,7 @@ export default {
 
           for (
             let index = 0;
-            index < this.$store.state.aduana.opcionCostos.length;
+            index < this.aduanaStore.opcionCostos.length;
             index++
           ) {
             Swal.fire({
@@ -580,11 +574,11 @@ export default {
                 Swal.showLoading();
               },
             });
-            if (this.$store.state.aduana.opcionCostos[index].selected == true) {
+            if (this.aduanaStore.opcionCostos[index].selected == true) {
               await this.generarReporteAduana({
-                tipo: this.$store.state.aduana.tiporeporte,
+                tipo: this.aduanaStore.tiporeporte,
                 nro_propuesta:
-                  this.$store.state.aduana.opcionCostos[index].nro_propuesta,
+                  this.aduanaStore.opcionCostos[index].nro_propuesta,
               }).catch((e) => {
                 console.error(e);
               });
@@ -594,7 +588,7 @@ export default {
           this.$router.push({
             name: "VerAduana",
             params: {
-              id: this.$store.state.aduana.id,
+              id: this.aduanaStore.id,
             },
           });
           this.$store.state.spiner = false;
@@ -608,7 +602,7 @@ export default {
       this.tiporeporte = "";
       this.previewFlag = true;
       this.dialogCambioNombreSecciones = false;
-      this.$store.state.aduana.bloquearBtnImprimir = false;
+      this.aduanaStore.bloquearBtnImprimir = false;
     },
     async generarPreview() {
       if ((await this.$refs.frmReporte.validate()).valid) {
@@ -624,19 +618,20 @@ export default {
     },
   },
   computed: {
+    ...mapStores(useAduanaStore),
     opcionesSeleccionadas() {
-      return this.$store.state.aduana.opcionCostos.filter((v) => !!v.selected);
+      return this.aduanaStore.opcionCostos.filter((v) => !!v.selected);
     },
     actualizarNotas: {
       get() {
-        return this.$store.state.aduana.actualizarNotas;
+        return this.aduanaStore.actualizarNotas;
       },
       set(val) {
-        return (this.$store.state.aduana.actualizarNotas = actualizarNotas);
+        return (this.aduanaStore.actualizarNotas = actualizarNotas);
       },
     },
     page() {
-      return this.$store.state.aduana.page - 1;
+      return this.aduanaStore.page - 1;
     },
     items() {
       console.log(this.opcionesSeleccionadas[this.page]);
@@ -645,20 +640,20 @@ export default {
       );
     },
     lstSeIncluye() {
-      let val = this.$store.state.aduana.listServices.filter(
+      let val = this.aduanaStore.listServices.filter(
         (v) => v.status == 1
       );
 
       let opcion = this.opcionesSeleccionadas[
-        this.$store.state.aduana.page - 1
+        this.aduanaStore.page - 1
       ].listNotasQuote.filter((v) => v.estado == 1 && v.statusincluye == 1);
       opcion = opcion.map((v) => ({ ...v, service: v.descripcion }));
 
       let final = [...val, ...opcion];
 
-      const opt = this.opcionesSeleccionadas[this.$store.state.aduana.page - 1] || {};
-      const fechaVigencia = opt.date_end || this.$store.state.aduana.datosPrincipales.fecha_fin;
-      const ttransito = opt.tiempo_transito || this.$store.state.aduana.datosPrincipales.tiempo_transito;
+      const opt = this.opcionesSeleccionadas[this.aduanaStore.page - 1] || {};
+      const fechaVigencia = opt.date_end || this.aduanaStore.datosPrincipales.fecha_fin;
+      const ttransito = opt.tiempo_transito || this.aduanaStore.datosPrincipales.tiempo_transito;
       if (fechaVigencia) {
         final.push({ service: `Fecha de vigencia: ${this.formatDate(fechaVigencia)}` });
       }
@@ -670,12 +665,12 @@ export default {
       return final;
     },
     lstNoIncluye() {
-      let val = this.$store.state.aduana.listServices.filter(
+      let val = this.aduanaStore.listServices.filter(
         (v) => v.status == 0
       );
 
       let opcion = this.opcionesSeleccionadas[
-        this.$store.state.aduana.page - 1
+        this.aduanaStore.page - 1
       ].listNotasQuote.filter((v) => v.estado == 1 && v.statusnoincluye == 1);
       opcion = opcion.map((v) => ({ ...v, service: v.descripcion }));
 

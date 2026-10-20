@@ -16,7 +16,7 @@
                   :items="pricingStore.listMarketing"
                   item-title="name"
                   item-value="id"
-                  v-model="$store.state.aduana.datosPrincipales.id_marketing"
+                  v-model="aduanaStore.datosPrincipales.id_marketing"
                 ></v-autocomplete>
                 <v-autocomplete
                   label="Estado de la cotización"
@@ -27,7 +27,7 @@
                   :items="pricingStore.listQuoteStatus"
                   item-title="name"
                   item-value="id"
-                  v-model="$store.state.aduana.datosPrincipales.id_status"
+                  v-model="aduanaStore.datosPrincipales.id_status"
                   :item-props="(item) => ({ disabled: item.status != 1 })"
                 ></v-autocomplete>
               </v-col>
@@ -41,7 +41,7 @@
                   :items="pricingStore.listEjecutivo"
                   item-title="nombrecompleto"
                   item-value="id"
-                  v-model="$store.state.aduana.datosPrincipales.id_vendedor"
+                  v-model="aduanaStore.datosPrincipales.id_vendedor"
                 ></v-autocomplete>
               </v-col>
 
@@ -55,7 +55,7 @@
                   :items="pricingStore.listEjecutivo"
                   item-title="nombrecompleto"
                   item-value="id"
-                  v-model="$store.state.aduana.datosPrincipales.id_pricing"
+                  v-model="aduanaStore.datosPrincipales.id_pricing"
                 ></v-autocomplete
               ></v-col>
 
@@ -65,7 +65,7 @@
                   variant="outlined"
                   placeholder="Nombre del cliente"
                   :append-inner-icon="'mdi-account-search'"
-                  v-model="$store.state.aduana.datosPrincipales.nombre"
+                  v-model="aduanaStore.datosPrincipales.nombre"
                   @click:append-inner.stop="abrirModalCliente()"
                   @click="abrirModalCliente()"
                   :rules="[(v) => !!v || 'El nombre es requerido']"
@@ -85,7 +85,7 @@
                   placeholder="Teléfono..."
                   density="compact"
                   readonly
-                  v-model="$store.state.aduana.datosPrincipales.telefono"
+                  v-model="aduanaStore.datosPrincipales.telefono"
                 ></v-text-field
               ></v-col>
 
@@ -96,10 +96,10 @@
                   density="compact"
                   :rules="[(v) => !!v || 'Dato requerido']"
                   class="my-0"
-                  :items="$store.state.aduana.listModality"
+                  :items="aduanaStore.listModality"
                   item-title="name"
                   item-value="id"
-                  v-model="$store.state.aduana.datosPrincipales.idsentido"
+                  v-model="aduanaStore.datosPrincipales.idsentido"
                   @update:model-value="recargarServiciosCostos()"
                   :disabled="!EditableFlag"
                 ></v-autocomplete
@@ -112,10 +112,10 @@
                   density="compact"
                   :rules="[(v) => !!v || 'Dato requerido']"
                   class="my-0"
-                  :items="$store.state.aduana.listShipment"
+                  :items="aduanaStore.listShipment"
                   item-title="embarque"
                   item-value="id"
-                  v-model="$store.state.aduana.datosPrincipales.idtipocarga"
+                  v-model="aduanaStore.datosPrincipales.idtipocarga"
                   @update:model-value="recargarServiciosCostos()"
                   return-object
                   :disabled="!EditableFlag"
@@ -131,7 +131,7 @@
                   :items="incoterms"
                   item-title="text"
                   item-value="id"
-                  v-model="$store.state.aduana.datosPrincipales.idincoterms"
+                  v-model="aduanaStore.datosPrincipales.idincoterms"
                   @update:model-value="recargarServiciosCostos()"
                 >
                   <template v-slot:selection="data" >
@@ -145,7 +145,7 @@
                   name="name"
                   label="Nombre del proveedor"
                   id="id"
-                  v-model="$store.state.aduana.datosPrincipales.proveedor"
+                  v-model="aduanaStore.datosPrincipales.proveedor"
                   density="compact"
                   variant="outlined"
                   v-if="mostrarProveedorFlag"
@@ -157,7 +157,7 @@
                   name="Teléfono"
                   label="Teléfono del proveedor"
                   v-model="
-                    $store.state.aduana.datosPrincipales.telefonoproveedor
+                    aduanaStore.datosPrincipales.telefonoproveedor
                   "
                   density="compact"
                   variant="outlined"
@@ -178,7 +178,7 @@
                 <v-text-field
                   label="Dirección del proveedor"
                   v-model="
-                    $store.state.aduana.datosPrincipales.direccionproveedor
+                    aduanaStore.datosPrincipales.direccionproveedor
                   "
                   density="compact"
                   variant="outlined"
@@ -249,6 +249,7 @@ import Swal from "sweetalert2";
 import { mapActions as mapPiniaActions, mapStores } from "pinia";
 import { useEntitiesStore } from "@/stores/entities";
 import { usePricingStore } from "@/stores/pricing";
+import { useAduanaStore } from "@/stores/aduana";
 export default {
   emits: ["activarDatosCarga", "recargarServiciosCostos"],
   props: {
@@ -300,9 +301,9 @@ export default {
           text: "El cliente seleccionado no tiene un número de teléfono registrado. Por favor, seleccione otro cliente o puede actualizar luego en el fichero de cliente.",
         });
       }
-      this.$store.state.aduana.datosPrincipales.id_entitie = item.id;
-      this.$store.state.aduana.datosPrincipales.nombre = item.nombrecompleto;
-      this.$store.state.aduana.datosPrincipales.telefono = item.phone;
+      this.aduanaStore.datosPrincipales.id_entitie = item.id;
+      this.aduanaStore.datosPrincipales.nombre = item.nombrecompleto;
+      this.aduanaStore.datosPrincipales.telefono = item.phone;
       this.buscarClienteDialog = false;
     },
     async continuarDatosCarga() {
@@ -313,9 +314,9 @@ export default {
     },
     recargarServiciosCostos() {
       if (
-        !this.$store.state.aduana.datosPrincipales.idsentido ||
-        !this.$store.state.aduana.datosPrincipales.idincoterms ||
-        Object.keys(this.$store.state.aduana.datosPrincipales.idtipocarga) === 0
+        !this.aduanaStore.datosPrincipales.idsentido ||
+        !this.aduanaStore.datosPrincipales.idincoterms ||
+        Object.keys(this.aduanaStore.datosPrincipales.idtipocarga) === 0
       ) {
         return;
       }
@@ -323,11 +324,11 @@ export default {
     },
   },
   computed: {
-    ...mapStores(usePricingStore, useEntitiesStore),
+    ...mapStores(useAduanaStore, usePricingStore, useEntitiesStore),
     ...mapState(["registroClienteFlag", ""]),
     incoterms() {
       let Icoterms = [];
-      [...this.$store.state.aduana.listIncoterms].forEach((element) => {
+      [...this.aduanaStore.listIncoterms].forEach((element) => {
         element.text = element.name + " - " + element.description;
         Icoterms.push(element);
       });
@@ -335,9 +336,9 @@ export default {
       return Icoterms;
     },
     mostrarProveedorFlag() {
-      let exw = this.$store.state.aduana.listIncoterms.filter(
+      let exw = this.aduanaStore.listIncoterms.filter(
         (v) =>
-          v.id == this.$store.state.aduana.datosPrincipales.idincoterms &&
+          v.id == this.aduanaStore.datosPrincipales.idincoterms &&
           v.name == "EXW",
       );
 
@@ -353,10 +354,10 @@ export default {
         let cliente = this.$store.state.itemsEntities.filter(
           (v) => v.id == this.entitiesStore.id,
         )[0];
-        this.$store.state.aduana.datosPrincipales.id_entitie = cliente.id;
-        this.$store.state.aduana.datosPrincipales.nombre =
+        this.aduanaStore.datosPrincipales.id_entitie = cliente.id;
+        this.aduanaStore.datosPrincipales.nombre =
           cliente.nombrecompleto;
-        this.$store.state.aduana.datosPrincipales.telefono = cliente.phone;
+        this.aduanaStore.datosPrincipales.telefono = cliente.phone;
       }
       this.buscarClienteDialog = false;
     },

@@ -16,7 +16,7 @@
                 :items="getPuertoOrigen()"
                 item-title="name"
                 item-value="id_port"
-                v-model="$store.state.aduana.datosPrincipales.idorigen"
+                v-model="aduanaStore.datosPrincipales.idorigen"
                 readonly
               ></v-autocomplete>
             </v-col>
@@ -29,7 +29,7 @@
                 :items="getPuertoDestino()"
                 item-title="name"
                 item-value="id_port"
-                v-model="$store.state.aduana.datosPrincipales.iddestino"
+                v-model="aduanaStore.datosPrincipales.iddestino"
                 readonly
               >
               </v-autocomplete>
@@ -46,7 +46,7 @@
                 item-title="descripcion"
                 item-value="id"
                 v-model="
-                  $store.state.aduana.datosPrincipales.id_percepcionaduana
+                  aduanaStore.datosPrincipales.id_percepcionaduana
                 "
               >
               </v-autocomplete>
@@ -69,10 +69,10 @@
               <tbody>
                 <tr>
                   <td>
-                    {{ $store.state.aduana.datosPrincipales.numerobultos }}
+                    {{ aduanaStore.datosPrincipales.numerobultos }}
                   </td>
-                  <td>{{ $store.state.aduana.datosPrincipales.peso }}</td>
-                  <td>{{ $store.state.aduana.datosPrincipales.volumen }}</td>
+                  <td>{{ aduanaStore.datosPrincipales.peso }}</td>
+                  <td>{{ aduanaStore.datosPrincipales.volumen }}</td>
                   <td>
                     {{ pesoVolumetrico !== null ? pesoVolumetrico + ' kg' : '' }}
                   </td>
@@ -93,7 +93,7 @@
           <v-col cols="12">
             <v-data-table
               :headers="headers"
-              :items="$store.state.aduana.datosPrincipales.containers"
+              :items="aduanaStore.datosPrincipales.containers"
               class="elevation-1"
             >
               <template v-slot:[`item.action`]="item">
@@ -163,6 +163,7 @@ import Swal from "sweetalert2";
 import { mapActions as mapPiniaActions, mapStores } from "pinia";
 import { useMasterusuariosStore } from "@/stores/masterusuarios";
 import { usePricingStore } from "@/stores/pricing";
+import { useAduanaStore } from "@/stores/aduana";
 export default {
   name: "DatosCargaComponent",
   data() {
@@ -193,10 +194,10 @@ export default {
     añadirCarga() {
       this.err = "";
       if (this.numerobultos > 0 && this.volumen > 0 && this.peso > 0) {
-        this.$store.state.aduana.datosPrincipales.numerobultos =
+        this.aduanaStore.datosPrincipales.numerobultos =
           this.numerobultos;
-        this.$store.state.aduana.datosPrincipales.volumen = this.volumen;
-        this.$store.state.aduana.datosPrincipales.peso = this.peso;
+        this.aduanaStore.datosPrincipales.volumen = this.volumen;
+        this.aduanaStore.datosPrincipales.peso = this.peso;
       } else {
         this.err = "Datos requerido y mayor que cero";
       }
@@ -205,11 +206,11 @@ export default {
       this.err = "";
       if ((await this.$refs.frmContainer.validate()).valid) {
         if (
-          this.$store.state.aduana.datosPrincipales.containers.filter(
+          this.aduanaStore.datosPrincipales.containers.filter(
             (v) => v.id == this.containers.container.id
           ).length == 0
         ) {
-          this.$store.state.aduana.datosPrincipales.containers.push({
+          this.aduanaStore.datosPrincipales.containers.push({
             id: this.containers.container.id,
             description: this.containers.container.name,
             cantidad: this.containers.cantidad,
@@ -225,16 +226,16 @@ export default {
       }
     },
     eliminarContainer({ index = null }) {
-      this.$store.state.aduana.datosPrincipales.containers.splice(index, 1);
+      this.aduanaStore.datosPrincipales.containers.splice(index, 1);
     },
     async aceptar() {
       let validate = true;
       if ((await this.$refs.frmPuerto.validate()).valid) {
         if (
-          this.$store.state.aduana.datosPrincipales.idtipocarga.code == "FCL"
+          this.aduanaStore.datosPrincipales.idtipocarga.code == "FCL"
         ) {
           if (
-            this.$store.state.aduana.datosPrincipales.containers.length == 0
+            this.aduanaStore.datosPrincipales.containers.length == 0
           ) {
             Swal.fire({
               icon: "error",
@@ -245,7 +246,7 @@ export default {
           }
         }
         if (
-          this.$store.state.aduana.datosPrincipales.idtipocarga.code != "FCL"
+          this.aduanaStore.datosPrincipales.idtipocarga.code != "FCL"
         ) {
           if (!this.numerobultos && !this.volumen && !this.peso) {
             Swal.fire({
@@ -261,7 +262,7 @@ export default {
           await this.getItemsServices();
           await this.getMultiplicador();
           this.$store.state.spiner = false;
-          this.$store.state.aduana.step3 = true;
+          this.aduanaStore.step3 = true;
         }
         //
       }
@@ -269,38 +270,38 @@ export default {
     },
     getPuertoOrigen() {
       let puertos = [];
-      if (this.$store.state.aduana.datosPrincipales.iddestino) {
-        var id_port = this.$store.state.aduana.listPortEnd.filter(
+      if (this.aduanaStore.datosPrincipales.iddestino) {
+        var id_port = this.aduanaStore.listPortEnd.filter(
           (v) =>
-            v.id_port == this.$store.state.aduana.datosPrincipales.iddestino
+            v.id_port == this.aduanaStore.datosPrincipales.iddestino
         )[0];
 
-        puertos = this.$store.state.aduana.listPortBegin.filter(
+        puertos = this.aduanaStore.listPortBegin.filter(
           (v) => v.id_port != id_port
         );
       } else {
-        puertos = this.$store.state.aduana.listPortBegin;
+        puertos = this.aduanaStore.listPortBegin;
       }
       return puertos;
     },
     getPuertoDestino() {
       let puertos = [];
-      if (this.$store.state.aduana.datosPrincipales.idorigen) {
-        var id_port = this.$store.state.aduana.listPortBegin.filter(
+      if (this.aduanaStore.datosPrincipales.idorigen) {
+        var id_port = this.aduanaStore.listPortBegin.filter(
           (v) =>
-            v.id_port == this.$store.state.aduana.datosPrincipales.idorigen
+            v.id_port == this.aduanaStore.datosPrincipales.idorigen
         )[0].id_port;
-        puertos = this.$store.state.aduana.listPortEnd.filter(
+        puertos = this.aduanaStore.listPortEnd.filter(
           (v) => v.id_port != id_port
         );
       } else {
-        puertos = this.$store.state.aduana.listPortEnd;
+        puertos = this.aduanaStore.listPortEnd;
       }
       return puertos;
     },
     isFCL() {
-      let id = this.$store.state.aduana.datosPrincipales.idtipocarga;
-      let code = this.$store.state.aduana.listShipment.filter(
+      let id = this.aduanaStore.datosPrincipales.idtipocarga;
+      let code = this.aduanaStore.listShipment.filter(
         (v) => v.id == id
       )[0].code;
 
@@ -308,8 +309,8 @@ export default {
       return validate;
     },
     isAereo() {
-      let id = this.$store.state.aduana.datosPrincipales.idtipocarga;
-      let code = this.$store.state.aduana.listShipment.filter(
+      let id = this.aduanaStore.datosPrincipales.idtipocarga;
+      let code = this.aduanaStore.listShipment.filter(
         (v) => v.id == id
       )[0].code;
       return code == "Aéreo";
@@ -318,26 +319,26 @@ export default {
       let esPeru = JSON.parse(sessionStorage.getItem("iso_pais")) == 9589;
       return (
         esPeru &&
-        this.$store.state.aduana.listModality.some(
+        this.aduanaStore.listModality.some(
           (v) =>
-            v.id == this.$store.state.aduana.datosPrincipales.idsentido &&
+            v.id == this.aduanaStore.datosPrincipales.idsentido &&
             v.code == "I"
         )
       );
     },
   },
   computed: {
-    ...mapStores(useMasterusuariosStore),
+    ...mapStores(useAduanaStore, useMasterusuariosStore),
     pesoVolumetrico() {
-      const datos = this.$store.state.aduana.datosPrincipales || {};
+      const datos = this.aduanaStore.datosPrincipales || {};
       const volumen = parseFloat(datos.volumen || 0); // m³
       if (!volumen) return null;
 
       // Determinar tipo de embarque para elegir el factor volumétrico
       let factorVolumetrico = 166.66; // Aéreo
       try {
-        const idTipo = this.$store.state.aduana.datosPrincipales.idtipocarga;
-        const shipment = this.$store.state.aduana.listShipment.find(
+        const idTipo = this.aduanaStore.datosPrincipales.idtipocarga;
+        const shipment = this.aduanaStore.listShipment.find(
           (v) => v.id == (idTipo && typeof idTipo === 'object' ? idTipo.id : idTipo)
         );
         const code = shipment ? shipment.code : "";
@@ -351,7 +352,7 @@ export default {
       return parseFloat(pv.toFixed(2));
     },
     pesoCargable() {
-      const datos = this.$store.state.aduana.datosPrincipales || {};
+      const datos = this.aduanaStore.datosPrincipales || {};
       const pesoReal = parseFloat(datos.peso || 0); // kg
       const volumen = parseFloat(datos.volumen || 0); // m³
 
@@ -361,8 +362,8 @@ export default {
       // Determinar tipo de embarque para elegir el factor volumétrico
       let factorVolumetrico = 166.66; // Aéreo (LxAxH cm / 6000)
       try {
-        const idTipo = this.$store.state.aduana.datosPrincipales.idtipocarga;
-        const shipment = this.$store.state.aduana.listShipment.find(
+        const idTipo = this.aduanaStore.datosPrincipales.idtipocarga;
+        const shipment = this.aduanaStore.listShipment.find(
           (v) => v.id == idTipo
         );
         const code = shipment ? shipment.code : "";

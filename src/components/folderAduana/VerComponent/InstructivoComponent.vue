@@ -5,7 +5,7 @@
         <v-pagination
           v-model="page"
           :length="
-            $store.state.aduana.opcionCostos.filter((v) => !!v.selected)
+            aduanaStore.opcionCostos.filter((v) => !!v.selected)
               .length
           "
           rounded
@@ -107,7 +107,7 @@
                 :value="opcion.nro_propuesta"
                 v-for="(
                   opcion, index
-                ) in $store.state.aduana.opcionCostos.filter((v) => v.selected)"
+                ) in aduanaStore.opcionCostos.filter((v) => v.selected)"
                 :key="index"
                 :label="`Opción ${opcion.nro_propuesta} - ${getProveedor(
                   opcion
@@ -146,34 +146,34 @@
       <center>
         <h3>
           INSTRUCTIVO COMPRA
-          {{ $store.state.aduana.listInstructivo[0].expediente }} - N°{{
-            $store.state.aduana.listIngresosInstructivo[page - 1].nro_propuesta
+          {{ aduanaStore.listInstructivo[0].expediente }} - N°{{
+            aduanaStore.listIngresosInstructivo[page - 1].nro_propuesta
           }}
         </h3>
 
         <h3 class="mb-1 ml-1">
           {{
             pricingStore.listQuoteStatus.filter(
-                  (v) => v.id == $store.state.aduana.datosPrincipales.id_status
+                  (v) => v.id == aduanaStore.datosPrincipales.id_status
                 )[0].name
           }}
           | Exp. Master:
           {{
-            $store.state.aduana.listInstructivo[0].code_master
-              ? $store.state.aduana.listInstructivo[0].code_master
+            aduanaStore.listInstructivo[0].code_master
+              ? aduanaStore.listInstructivo[0].code_master
               : "--"
           }}
           | Exp. House:
           {{
-            $store.state.aduana.listInstructivo[0].code_house
-              ? $store.state.aduana.listInstructivo[0].code_house
+            aduanaStore.listInstructivo[0].code_house
+              ? aduanaStore.listInstructivo[0].code_house
               : "--"
           }}
         </h3>
         <h4 class="mb-1 ml-1">
-          {{ $store.state.aduana.listInstructivo[0].sentido }} -
-          {{ $store.state.aduana.listInstructivo[0].carga }} -
-          {{ $store.state.aduana.listInstructivo[0].incoterms }}
+          {{ aduanaStore.listInstructivo[0].sentido }} -
+          {{ aduanaStore.listInstructivo[0].carga }} -
+          {{ aduanaStore.listInstructivo[0].incoterms }}
         </h4>
       </center>
     </div>
@@ -185,21 +185,21 @@
             <v-text-field
               class="my-1"
               readonly
-              v-model="$store.state.aduana.datosPrincipales.nombre"
+              v-model="aduanaStore.datosPrincipales.nombre"
               label="NOMBRE:"
               density="compact"
             ></v-text-field>
             <v-text-field
               class="my-1"
               readonly
-              v-model="$store.state.aduana.listInstructivo[0].direccion"
+              v-model="aduanaStore.listInstructivo[0].direccion"
               label="DIRECCIÓN:"
               density="compact"
             ></v-text-field>
             <v-text-field
               class="my-1"
               readonly
-              v-model="$store.state.aduana.datosPrincipales.telefono"
+              v-model="aduanaStore.datosPrincipales.telefono"
               label="CONTACTO:"
               density="compact"
             ></v-text-field>
@@ -207,7 +207,7 @@
             <v-text-field
               class="my-1"
               readonly
-              v-model="$store.state.aduana.vendedor"
+              v-model="aduanaStore.vendedor"
               label="VENDEDOR:"
               density="compact"
             ></v-text-field>
@@ -219,7 +219,7 @@
             <v-table density="compact">
               <tbody>
                 <tr
-                  v-for="(servicio, i) in $store.state.aduana
+                  v-for="(servicio, i) in aduanaStore
                     .listServiciosInstructivo"
                   :key="i"
                 >
@@ -237,7 +237,7 @@
               class="my-1"
               density="compact"
               label="NOMBRE DEL PROVEEDOR:"
-              v-model="$store.state.aduana.listInstructivo[0].proveedor"
+              v-model="aduanaStore.listInstructivo[0].proveedor"
               required
             >
             </v-text-field>
@@ -245,16 +245,16 @@
               class="my-1"
               density="compact"
               readonly
-              v-model="$store.state.aduana.listInstructivo[0].direccionorigen"
+              v-model="aduanaStore.listInstructivo[0].direccionorigen"
               label="DIRECCION ORIGEN:"
-              v-if="$store.state.aduana.listInstructivo[0].icotems == 'SXWORK'"
+              v-if="aduanaStore.listInstructivo[0].icotems == 'SXWORK'"
             >
             </v-text-field>
             <v-text-field
               class="my-1"
               density="compact"
               readonly
-              v-model="$store.state.aduana.listInstructivo[0].origen"
+              v-model="aduanaStore.listInstructivo[0].origen"
               label="POL:"
             >
             </v-text-field>
@@ -262,14 +262,14 @@
               class="my-1"
               density="compact"
               readonly
-              v-model="$store.state.aduana.listInstructivo[0].destino"
+              v-model="aduanaStore.listInstructivo[0].destino"
               label="POD:"
             >
             </v-text-field>
             <v-text-field
               class="my-1"
               density="compact"
-              v-model="$store.state.aduana.listInstructivo[0].fiscal"
+              v-model="aduanaStore.listInstructivo[0].fiscal"
               required
               label="NOMBRE FISCAL"
             >
@@ -278,7 +278,7 @@
               class="my-1"
               density="compact"
               readonly
-              v-model="$store.state.aduana.listInstructivo[0].ruc"
+              v-model="aduanaStore.listInstructivo[0].ruc"
               label="RUC:"
             >
             </v-text-field>
@@ -295,7 +295,7 @@
             <v-table density="compact" border>
               <tbody>
                 <tr
-                  v-for="(nota, i) in $store.state.aduana.listInstructivo[0]
+                  v-for="(nota, i) in aduanaStore.listInstructivo[0]
                     .notas"
                   :key="i"
                 >
@@ -324,7 +324,7 @@
                 </thead>
                 <tbody>
                   <tr
-                    v-for="(venta, index) in $store.state.aduana
+                    v-for="(venta, index) in aduanaStore
                       .listIngresosInstructivo[page - 1].opcion"
                     :key="index"
                     :class="[
@@ -372,7 +372,7 @@
                 </thead>
                 <tbody>
                   <tr
-                    v-for="(costo, index) in $store.state.aduana
+                    v-for="(costo, index) in aduanaStore
                       .listCostosInstructivo[page - 1].opcion"
                     :key="index"
                     :class="[
@@ -405,7 +405,7 @@
 
           <v-col
             cols="12"
-            v-if="$store.state.aduana.listImpuestosInstructivo.length > 0"
+            v-if="aduanaStore.listImpuestosInstructivo.length > 0"
           >
             <v-card class="pa-1" elevation="5">
               <h4 class="mb-1 ml-1">IMPUESTOS</h4>
@@ -421,7 +421,7 @@
                 </thead>
                 <tbody>
                   <tr
-                    v-for="(costo, index) in $store.state.aduana
+                    v-for="(costo, index) in aduanaStore
                       .listImpuestosInstructivo[page - 1].opcion"
                     :key="index"
                     :class="[
@@ -607,6 +607,7 @@ import mixins from "../../../components/mixins/funciones.js";
 import axios from '@/api/http';
 import { useConfigEmpresaStore } from "@/stores/configEmpresa";
 import { usePricingStore } from "@/stores/pricing";
+import { useAduanaStore } from "@/stores/aduana";
 export default {
   mixins: [mixins],
   components: {
@@ -668,14 +669,13 @@ export default {
     });
   },
   computed: {
-    ...mapStores(usePricingStore),
+    ...mapStores(useAduanaStore, usePricingStore),
   },
   methods: {
     ...mapActions([
-      "aprobarCotizacionAduana",
       "cargarMaster",
-      "generaInstructivoparaguardataAduana",
     ]),
+    ...mapPiniaActions(useAduanaStore, ["aprobarCotizacionAduana", "generaInstructivoparaguardataAduana"]),
     ...mapPiniaActions(usePricingStore, ["imprimirInstructivoQuote", "setNoteQuote", "getInstructivoId"]),
     ...mapPiniaActions(useConfigEmpresaStore, ["GuardarConfiguracionEmpresa"]),
     ...mapPiniaActions(useSecuritysStore, ["ObtenerDatosConfig"]),
@@ -693,7 +693,7 @@ export default {
       )[0];
       if (
         !(
-          this.$store.state.aduana.datosPrincipales.idsentido ==
+          this.aduanaStore.datosPrincipales.idsentido ==
           master.id_modality
         )
       ) {
@@ -702,7 +702,7 @@ export default {
       }
       if (
         !(
-          this.$store.state.aduana.datosPrincipales.idtipocarga ==
+          this.aduanaStore.datosPrincipales.idtipocarga ==
           master.id_shipment
         )
       ) {
@@ -711,7 +711,7 @@ export default {
       }
       if (
         !(
-          this.$store.state.aduana.datosPrincipales.idincoterms ==
+          this.aduanaStore.datosPrincipales.idincoterms ==
           master.id_incoterms
         )
       ) {
@@ -721,7 +721,7 @@ export default {
 
       if (
         !(
-          this.$store.state.aduana.datosPrincipales.idorigen ==
+          this.aduanaStore.datosPrincipales.idorigen ==
           master.id_port_begin
         )
       ) {
@@ -730,7 +730,7 @@ export default {
       }
       if (
         !(
-          this.$store.state.aduana.datosPrincipales.iddestino ==
+          this.aduanaStore.datosPrincipales.iddestino ==
           master.id_port_end
         )
       ) {
@@ -743,13 +743,13 @@ export default {
       for (
         let index = 0;
         index <
-        this.$store.state.aduana.opcionCostos.filter((v) => !!v.selected)
+        this.aduanaStore.opcionCostos.filter((v) => !!v.selected)
           .length;
         index++
       ) {
         (function (index) {
           this.imprimirInstructivoQuote(
-            this.$store.state.aduana.opcionCostos[index].nro_propuesta
+            this.aduanaStore.opcionCostos[index].nro_propuesta
           );
         }).call(this, index); // Pasamos 'index' como argumento y establecemos el contexto a 'this'
       }
@@ -774,17 +774,17 @@ export default {
       if (this.dialogConfig) {
         return false;
       }
-      await this.cargarMaster(this.$store.state.aduana.datosPrincipales);
+      await this.cargarMaster(this.aduanaStore.datosPrincipales);
 
       this.seleccionQuoteAprobar = true;
     },
     mostrarBtnAprobar() {
-      return !this.$store.state.aduana.aprobadoflag;
+      return !this.aduanaStore.aprobadoflag;
     },
     async abrirModalAprobar() {
       await this.generaInstructivoparaguardataAduana();
       if ((await this.$refs.frmAprobar.validate()).valid) {
-        let fecha_validez = this.$store.state.aduana.opcionCostos.filter(
+        let fecha_validez = this.aduanaStore.opcionCostos.filter(
           (v) => v.nro_propuesta == this.nro_propuesta
         )[0].date_end;
         let esValida = moment(fecha_validez).isSameOrAfter(moment(), "day");
@@ -879,30 +879,30 @@ export default {
                   this.fecha_validez = res.value;
                   console.log(
                     "b",
-                    this.$store.state.aduana.listIngresosInstructivoAprobar
+                    this.aduanaStore.listIngresosInstructivoAprobar
                   );
                   let sum =
-                    this.$store.state.aduana.listIngresosInstructivoAprobar.filter(
+                    this.aduanaStore.listIngresosInstructivoAprobar.filter(
                       (v) => v.nro_propuesta == this.nro_propuesta
                     );
                   let igv =
-                    this.$store.state.aduana.listIngresosInstructivoAprobar
+                    this.aduanaStore.listIngresosInstructivoAprobar
                       .filter((v) => v.nro_propuesta == this.nro_propuesta)[0]
                       .dataIngresos.filter(
                         (v) => v.descripcion === "TOTAL"
                       )[0].igv;
                   let valor =
-                    this.$store.state.aduana.listIngresosInstructivoAprobar
+                    this.aduanaStore.listIngresosInstructivoAprobar
                       .filter((v) => v.nro_propuesta == this.nro_propuesta)[0]
                       .dataIngresos.filter(
                         (v) => v.descripcion === "TOTAL"
                       )[0].valor;
                   let listCostosInstructivo =
-                    this.$store.state.aduana.listIngresosInstructivoAprobar.filter(
+                    this.aduanaStore.listIngresosInstructivoAprobar.filter(
                       (v) => v.nro_propuesta == this.nro_propuesta
                     )[0].dataCostos;
                   let listVentasInstructivo =
-                    this.$store.state.aduana.listIngresosInstructivoAprobar.filter(
+                    this.aduanaStore.listIngresosInstructivoAprobar.filter(
                       (v) => v.nro_propuesta == this.nro_propuesta
                     )[0].dataVentas;
                   if (res.isConfirmed) {
@@ -1001,30 +1001,30 @@ export default {
                 this.fecha_validez = res.value;
                 console.log(
                   "a",
-                  this.$store.state.aduana.listIngresosInstructivoAprobar
+                  this.aduanaStore.listIngresosInstructivoAprobar
                 );
                 let sum =
-                  this.$store.state.aduana.listIngresosInstructivoAprobar.filter(
+                  this.aduanaStore.listIngresosInstructivoAprobar.filter(
                     (v) => v.nro_propuesta == this.nro_propuesta
                   );
                 let igv =
-                  this.$store.state.aduana.listIngresosInstructivoAprobar
+                  this.aduanaStore.listIngresosInstructivoAprobar
                     .filter((v) => v.nro_propuesta == this.nro_propuesta)[0]
                     .dataIngresos.filter(
                       (v) => v.descripcion === "TOTAL"
                     )[0].igv;
                 let valor =
-                  this.$store.state.aduana.listIngresosInstructivoAprobar
+                  this.aduanaStore.listIngresosInstructivoAprobar
                     .filter((v) => v.nro_propuesta == this.nro_propuesta)[0]
                     .dataIngresos.filter(
                       (v) => v.descripcion === "TOTAL"
                     )[0].valor;
                 let listCostosInstructivo =
-                  this.$store.state.aduana.listIngresosInstructivoAprobar.filter(
+                  this.aduanaStore.listIngresosInstructivoAprobar.filter(
                     (v) => v.nro_propuesta == this.nro_propuesta
                   )[0].dataCostos;
                 let listVentasInstructivo =
-                  this.$store.state.aduana.listIngresosInstructivoAprobar.filter(
+                  this.aduanaStore.listIngresosInstructivoAprobar.filter(
                     (v) => v.nro_propuesta == this.nro_propuesta
                   )[0].dataVentas;
                 if (res.isConfirmed) {
@@ -1151,21 +1151,21 @@ export default {
     async aprobar() {
       await this.generaInstructivoparaguardataAduana();
 
-      let sum = this.$store.state.aduana.listIngresosInstructivoAprobar.filter(
+      let sum = this.aduanaStore.listIngresosInstructivoAprobar.filter(
         (v) => v.nro_propuesta == this.nro_propuesta
       );
-      let igv = this.$store.state.aduana.listIngresosInstructivoAprobar
+      let igv = this.aduanaStore.listIngresosInstructivoAprobar
         .filter((v) => v.nro_propuesta == this.nro_propuesta)[0]
         .dataIngresos.filter((v) => v.descripcion === "TOTAL")[0].igv;
-      let valor = this.$store.state.aduana.listIngresosInstructivoAprobar
+      let valor = this.aduanaStore.listIngresosInstructivoAprobar
         .filter((v) => v.nro_propuesta == this.nro_propuesta)[0]
         .dataIngresos.filter((v) => v.descripcion === "TOTAL")[0].valor;
       let listCostosInstructivo =
-        this.$store.state.aduana.listIngresosInstructivoAprobar.filter(
+        this.aduanaStore.listIngresosInstructivoAprobar.filter(
           (v) => v.nro_propuesta == this.nro_propuesta
         )[0].dataCostos;
       let listVentasInstructivo =
-        this.$store.state.aduana.listIngresosInstructivoAprobar.filter(
+        this.aduanaStore.listIngresosInstructivoAprobar.filter(
           (v) => v.nro_propuesta == this.nro_propuesta
         )[0].dataVentas;
       if ((await this.$refs.masterForm.validate()).valid) {

@@ -2,7 +2,7 @@ import { defineStore } from "pinia";
 import { ref } from "vue";
 import Swal from "sweetalert2";
 import axios from "@/api/http";
-import store from "@/store";
+import { useAduanaStore } from "@/stores/aduana";
 import { usePricingStore } from "@/stores/pricing";
 import type { ApiResponse } from "@/types/api";
 import type { FiltroModalidad, FormModalidad, Modalidad } from "@/types/catalogos";
@@ -19,7 +19,7 @@ export const useModalityStore = defineStore("modality", () => {
     list.value = data;
     // While modality was a Vuex module this commit also ran pricing's and aduana's SET_LIST_MODALITY.
     usePricingStore().listModality = data;
-    store.commit("SET_LIST_MODALITY", data);
+    useAduanaStore().listModality = data;
   }
 
   async function fetchDataModality(data: FiltroModalidad): Promise<void> {

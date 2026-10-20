@@ -18,7 +18,6 @@ import masters from "./modules/master";
 import bank from "./modules/bank";
 import reportes from "./modules/reporte";
 import configAviso from "./modules/configAviso";
-import aduana from "./modules/aduana";
 import Swal from "sweetalert2";
 import moment from "moment";
 
@@ -2847,6 +2846,5 @@ export default createStore({
     masters,
     bank,
     configAviso,
-    aduana,
   },
 });

@@ -81,11 +81,11 @@
 
 <script>
 import { defineAsyncComponent } from "vue";
-import { mapActions } from "vuex";
 import { mapActions as mapPiniaActions, mapStores } from "pinia";
 import { useSecuritysStore } from "@/stores/securitys";
 import { useConfigEmpresaStore } from "@/stores/configEmpresa";
 import { usePricingStore } from "@/stores/pricing";
+import { useAduanaStore } from "@/stores/aduana";
 
 export default {
   name: "ListPricingView",
@@ -117,9 +117,7 @@ export default {
     ...mapStores(usePricingStore),
   },
   methods: {
-    ...mapActions([
-      "getListQuoteAduana",
-    ]),
+    ...mapPiniaActions(useAduanaStore, ["getListQuoteAduana"]),
     ...mapPiniaActions(usePricingStore, ["getResumenPorEstado"]),
     ...mapPiniaActions(useConfigEmpresaStore, ["GuardarConfiguracionEmpresa"]),
     ...mapPiniaActions(useSecuritysStore, ["ObtenerDatosConfig"]),

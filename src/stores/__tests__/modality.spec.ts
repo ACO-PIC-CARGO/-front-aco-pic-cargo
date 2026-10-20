@@ -1,10 +1,9 @@
 import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
-import type { Mock } from "vitest";
 import { createPinia, setActivePinia } from "pinia";
 import { toRaw } from "vue";
 import Swal from "sweetalert2";
 import router from "@/router";
-import store from "@/store";
+import { useAduanaStore } from "@/stores/aduana";
 import { useModalityStore } from "@/stores/modality";
 import { usePricingStore } from "@/stores/pricing";
 import { JSON_HEADERS, URL_MAIN, accepted, flushPromises, httpMock, rejected, respond } from "./catalogHttp";
@@ -17,8 +16,7 @@ vi.mock("@/store", () => ({ default: { commit: vi.fn() } }));
 const row = { id: 3, code: "EXP", name: "Exportación", description: "", status: 1 };
 const filters = { code: "E X", name: "Ex & más", description: "a/b", status: 1 };
 const defaultFilters = "listar_modality?id_branch=7&code=&name=&description=&status=1";
-const commitMock = store.commit as unknown as Mock<(type: string, payload: unknown) => void>;
-const sharedCommits = () => commitMock.mock.calls.filter(([type]) => type === "SET_LIST_MODALITY");
+const aduanaCopy = () => toRaw(useAduanaStore().listModality);
 
 describe("modality store", () => {
   beforeEach(() => {
@@ -54,8 +52,7 @@ describe("modality store", () => {
     expect(modality.loading).toBe(true);
     expect(sessionStorage.getItem("auth-token")).toBe("tok");
     expect(Swal.fire).not.toHaveBeenCalled();
-    expect(sharedCommits()).toHaveLength(1);
-    expect(sharedCommits()[0]![1]).toBe(toRaw(modality.list));
+    expect(aduanaCopy()).toBe(toRaw(modality.list));
     expect(toRaw(usePricingStore().listModality)).toBe(toRaw(modality.list));
   });
 
@@ -75,7 +72,7 @@ describe("modality store", () => {
       allowEscapeKey: false,
       allowEnterKey: false,
     });
-    expect(sharedCommits()[0]![1]).toEqual([]);
+    expect(aduanaCopy()).toEqual([]);
     await flushPromises();
     expect(router.push).not.toHaveBeenCalled();
   });
@@ -97,13 +94,14 @@ describe("modality store", () => {
     const log = vi.spyOn(console, "log").mockImplementation(() => {});
     const modality = useModalityStore();
     modality.list = [row];
+    useAduanaStore().listModality = [row];
 
     await modality.fetchDataModality(filters);
 
     expect(modality.list).toEqual([row]);
     expect(modality.loading).toBe(false);
     expect(log).toHaveBeenCalledWith("Error al obtener los datos:", expect.any(Error));
-    expect(sharedCommits()).toHaveLength(0);
+    expect(aduanaCopy()).toEqual([row]);
   });
 
   test("insertModality posts the record and reloads the unfiltered list once the user closes the message", async () => {

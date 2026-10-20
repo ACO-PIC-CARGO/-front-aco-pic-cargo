@@ -2,7 +2,7 @@ import { defineStore } from "pinia";
 import { ref } from "vue";
 import Swal from "sweetalert2";
 import axios from "@/api/http";
-import store from "@/store";
+import { useAduanaStore } from "@/stores/aduana";
 import { usePricingStore } from "@/stores/pricing";
 import type { ApiResponse } from "@/types/api";
 import type { FiltroMultiplicador } from "@/types/catalogos";
@@ -30,7 +30,7 @@ export const useMultiplicadorStore = defineStore("multiplicador", () => {
           shipments.value = data.data;
           // While multiplicador was a Vuex module this commit also ran pricing's and aduana's SET_LIST_SHIPMENT.
           usePricingStore().listShipment = data.data;
-          store.commit("SET_LIST_SHIPMENT", data.data);
+          useAduanaStore().listShipment = data.data;
         }
       })
       .catch((error) => {

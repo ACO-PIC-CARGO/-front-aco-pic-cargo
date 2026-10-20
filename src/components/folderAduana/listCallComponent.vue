@@ -160,10 +160,10 @@
 </template>
 
 <script>
-import { mapActions } from "vuex";
 import moment from "moment";
 import { mapActions as mapPiniaActions, mapStores } from "pinia";
 import { usePricingStore } from "@/stores/pricing";
+import { useAduanaStore } from "@/stores/aduana";
 export default {
   data() {
     return {
@@ -250,9 +250,7 @@ export default {
     ...mapStores(usePricingStore),
   },
   methods: {
-    ...mapActions([
-      "getQuoteCallAduana",
-    ]),
+    ...mapPiniaActions(useAduanaStore, ["getQuoteCallAduana"]),
     ...mapPiniaActions(usePricingStore, ["imprimiReporteListadoCalls", "guardarNotaQuote"]),
     async imprimierCalls() {
       this.$store.state.spiner = true;
