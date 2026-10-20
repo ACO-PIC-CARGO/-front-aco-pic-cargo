@@ -1,9 +1,124 @@
+<script setup lang="ts">
+import { computed, onMounted, ref, useTemplateRef, watch } from "vue";
+import { useStore } from "vuex";
+import { useEntitiesStore } from "@/stores/entities";
+import { usePricingStore } from "@/stores/pricing";
+
+withDefaults(
+  defineProps<{
+    mostrarmarketing?: boolean;
+    mostrarmarestado?: boolean;
+    mostrarmarejecutivo?: boolean;
+    mostrarmarpricing?: boolean;
+  }>(),
+  {
+    mostrarmarketing: true,
+    mostrarmarestado: true,
+    mostrarmarejecutivo: true,
+    mostrarmarpricing: true,
+  },
+);
+
+const rootStore = useStore();
+const pricingStore = usePricingStore();
+const entitiesStore = useEntitiesStore();
+
+const buscarClienteDialog = ref(false);
+const form = useTemplateRef("form");
+
+const registroClienteFlag = computed(() => rootStore.state.registroClienteFlag);
+const estadoCotizacionItems = computed(() => {
+  const list = pricingStore.listQuoteStatus || [];
+  const idStatus = pricingStore.datosPrincipales.id_status;
+  const nameStatus = pricingStore.datosPrincipales.nameStatusQuote;
+
+  const exists = list.some((v) => v.id == idStatus);
+  if (exists || !idStatus || !nameStatus) {
+    return list;
+  }
+
+  return [
+    ...list,
+    {
+      id: idStatus,
+      name: nameStatus,
+    },
+  ];
+});
+
+watch(registroClienteFlag, async () => {
+  rootStore.state.spiner = true;
+  await rootStore.dispatch("_getEntities");
+  rootStore.state.spiner = false;
+  if (entitiesStore.id) {
+    const cliente = rootStore.state.itemsEntities.filter(
+      (v: { id: number }) => v.id == entitiesStore.id,
+    )[0];
+
+    pricingStore.datosPrincipales.id_entitie = cliente.id;
+    pricingStore.datosPrincipales.nombre = cliente.namelong;
+    pricingStore.datosPrincipales.telefono = cliente.phone;
+  }
+  buscarClienteDialog.value = false;
+});
+
+//  itemsEntities
+onMounted(() => {
+  rootStore.dispatch("_getProveedor");
+});
+
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+async function changeShipment() {
+  if (pricingStore.datosPrincipales.idtipocarga) {
+    rootStore.state.spiner = true;
+    // @ts-expect-error Kept: the store action destructures its argument, so the call without one throws
+    await pricingStore.getPortBegin();
+    // @ts-expect-error Kept: the store action destructures its argument, so the call without one throws
+    await pricingStore.getPortEnd();
+    rootStore.state.spiner = false;
+  }
+}
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+async function aceptar() {
+  if ((await form.value!.validate()).valid) {
+    pricingStore.step2 = true;
+  }
+}
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+function guardarCliente(e: unknown, { item }: { item: { id: number; namelong: string; phone: string } }) {
+  pricingStore.datosPrincipales.id_entitie = item.id;
+  pricingStore.datosPrincipales.nombre = item.namelong;
+  pricingStore.datosPrincipales.telefono = item.phone;
+  buscarClienteDialog.value = false;
+}
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+function registrarNuevoCliente() {
+  rootStore.state.modalEntitie = true;
+}
+function mostrarProveedorFlag() {
+  const exw = pricingStore.listIncoterms.filter(
+    (v) =>
+      v.id == pricingStore.datosPrincipales.idincoterms && v.name == "EXW",
+  );
+
+  return exw.length > 0 ? true : false;
+}
+</script>
+
 <template>
-  <v-container fluid class="pa-0">
+  <v-container
+    fluid
+    class="pa-0"
+  >
     <v-card elevation="0">
-      <v-card-title primary-title> Datos Principales</v-card-title>
+      <v-card-title primary-title>
+        Datos Principales
+      </v-card-title>
       <v-card-text>
-        <v-form class="px-2" ref="form">
+        <v-form
+          class="px-2"
+          ref="form"
+        >
           <v-autocomplete
             label="Tipo de Marketing"
             variant="outlined"
@@ -15,7 +130,7 @@
             v-model="pricingStore.datosPrincipales.id_marketing"
             readonly
             v-if="mostrarmarketing"
-          ></v-autocomplete>
+          />
           <v-autocomplete
             label="Estado de la cotización"
             variant="outlined"
@@ -27,7 +142,7 @@
             v-model="pricingStore.datosPrincipales.id_status"
             readonly
             v-if="mostrarmarestado"
-          ></v-autocomplete>
+          />
           <v-autocomplete
             label="Ejecutivo"
             variant="outlined"
@@ -39,7 +154,7 @@
             v-model="pricingStore.datosPrincipales.id_vendedor"
             readonly
             v-if="mostrarmarejecutivo"
-          ></v-autocomplete>
+          />
 
           <v-autocomplete
             label="Pricing"
@@ -52,7 +167,7 @@
             v-model="pricingStore.datosPrincipales.id_pricing"
             readonly
             v-if="mostrarmarpricing"
-          ></v-autocomplete>
+          />
           <v-text-field
             label="Nombres"
             variant="outlined"
@@ -64,7 +179,7 @@
             name="nombre"
             v-model="pricingStore.datosPrincipales.nombre"
             readonly
-          ></v-text-field>
+          />
           <v-text-field
             label="Teléfono"
             variant="outlined"
@@ -72,7 +187,7 @@
             density="compact"
             readonly
             v-model="pricingStore.datosPrincipales.telefono"
-          ></v-text-field>
+          />
 
           <v-autocomplete
             label="Sentido"
@@ -84,7 +199,7 @@
             item-value="id"
             v-model="pricingStore.datosPrincipales.idsentido"
             readonly
-          ></v-autocomplete>
+          />
           <v-autocomplete
             label="Tipo de Embarque"
             variant="outlined"
@@ -95,7 +210,7 @@
             item-value="id"
             v-model="pricingStore.datosPrincipales.idtipocarga"
             readonly
-          ></v-autocomplete>
+          />
           <v-autocomplete
             label="Incoterms"
             variant="outlined"
@@ -107,7 +222,7 @@
             v-model="pricingStore.datosPrincipales.idincoterms"
             readonly
           >
-            <template v-slot:selection="data" >
+            <template #selection="data">
               {{ data.item.name }} - {{ data.item.description }}
             </template>
           </v-autocomplete>
@@ -121,7 +236,7 @@
             variant="outlined"
             readonly
             v-if="mostrarProveedorFlag()"
-          ></v-text-field>
+          />
 
           <v-text-field
             name="Teléfono"
@@ -131,7 +246,7 @@
             variant="outlined"
             readonly
             v-if="mostrarProveedorFlag()"
-          ></v-text-field>
+          />
 
           <v-text-field
             label="Dirección del proveedor"
@@ -140,137 +255,11 @@
             variant="outlined"
             readonly
             v-if="mostrarProveedorFlag()"
-          ></v-text-field>
+          />
         </v-form>
       </v-card-text>
     </v-card>
   </v-container>
 </template>
-
-<script>
-import { mapActions, mapState } from "vuex";
-import axios from "@/api/http";
-import { mapActions as mapPiniaActions, mapStores } from "pinia";
-import { useEntitiesStore } from "@/stores/entities";
-import { usePricingStore } from "@/stores/pricing";
-
-export default {
-  props: {
-    mostrarmarketing: {
-      type: Boolean,
-      default: true,
-    },
-    mostrarmarestado: {
-      type: Boolean,
-      default: true,
-    },
-    mostrarmarejecutivo: {
-      type: Boolean,
-      default: true,
-    },
-    mostrarmarpricing: {
-      type: Boolean,
-      default: true,
-    },
-  },
-  data() {
-    return {
-      buscarClienteDialog: false,
-      search: "",
-      headers: [
-        { title: "Documento", key: "document" },
-        { title: "Nombres (s)", key: "namelong" },
-        { title: "Teléfono", key: "phone" },
-      ],
-      registro: useEntitiesStore().registroFlag,
-    };
-  },
-  name: "DatosPrincipalesComponent",
-  //  itemsEntities
-  mounted() {
-    this._getProveedor();
-  },
-  methods: {
-    ...mapActions([
-      "_getRole",
-      "_getEntities",
-      "_getProveedor",
-    ]),
-    ...mapPiniaActions(usePricingStore, ["getMarketingList", "getQuoteStatus", "getModulesEntities", "getModality", "getShipment", "getIncoterms", "getPortBegin", "getPortEnd", "getModuleRole", "getCargarMasterDetalleNotasCotizacion"]),
-    async changeShipment() {
-      if (this.pricingStore.datosPrincipales.idtipocarga) {
-        this.$store.state.spiner = true;
-        await this.getPortBegin();
-        await this.getPortEnd();
-        this.$store.state.spiner = false;
-      }
-    },
-    async aceptar() {
-      if ((await this.$refs.form.validate()).valid) {
-        this.pricingStore.step2 = true;
-      }
-    },
-    guardarCliente(e, { item }) {
-      this.pricingStore.datosPrincipales.id_entitie = item.id;
-      this.pricingStore.datosPrincipales.nombre = item.namelong;
-      this.pricingStore.datosPrincipales.telefono = item.phone;
-      this.buscarClienteDialog = false;
-    },
-    registrarNuevoCliente() {
-      this.$store.state.modalEntitie = true;
-    },
-    mostrarProveedorFlag() {
-      let exw = this.pricingStore.listIncoterms.filter(
-        (v) =>
-          v.id == this.pricingStore.datosPrincipales.idincoterms &&
-          v.name == "EXW",
-      );
-
-      return exw.length > 0 ? true : false;
-    },
-  },
-  computed: {
-    ...mapStores(usePricingStore, useEntitiesStore),
-    ...mapState(["registroClienteFlag"]),
-    estadoCotizacionItems() {
-      const list = this.pricingStore.listQuoteStatus || [];
-      const idStatus = this.pricingStore.datosPrincipales.id_status;
-      const nameStatus =
-        this.pricingStore.datosPrincipales.nameStatusQuote;
-
-      const exists = list.some((v) => v.id == idStatus);
-      if (exists || !idStatus || !nameStatus) {
-        return list;
-      }
-
-      return [
-        ...list,
-        {
-          id: idStatus,
-          name: nameStatus,
-        },
-      ];
-    },
-  },
-
-  watch: {
-    async registroClienteFlag() {
-      this.$store.state.spiner = true;
-      await this._getEntities();
-      this.$store.state.spiner = false;
-      if (!!this.entitiesStore.id) {
-        let cliente = this.$store.state.itemsEntities.filter(
-          (v) => v.id == this.entitiesStore.id,
-        )[0];
-
-        this.pricingStore.datosPrincipales.id_entitie = cliente.id;
-        this.pricingStore.datosPrincipales.nombre = cliente.namelong;
-        this.pricingStore.datosPrincipales.telefono = cliente.phone;
-      }
-      this.buscarClienteDialog = false;
-    },
-  },
-};
-</script>
 
 <style></style>
