@@ -353,7 +353,7 @@ const routes = [
       {
         path: "FolderBanks/editarPagosPorCliente/:id",
         name: "editarPagosPorCliente",
-        component: () => import("../views/FolderBanks/editarPagosPorCliente.vue"),
+        component: () => import("../views/FolderBanks/EditarPagosPorClienteView.vue"),
       },
       {
         path: "FolderBanks/listadoPagosPorCliente",
@@ -368,7 +368,7 @@ const routes = [
       {
         path: "FolderBanks/verPagosPorCliente/:id",
         name: "verPagosPorCliente",
-        component: () => import("../views/FolderBanks/verPagosPorCliente.vue"),
+        component: () => import("../views/FolderBanks/VerPagosPorClienteView.vue"),
       },
       {
         path: "folderReports/listProgrammedPayment",
