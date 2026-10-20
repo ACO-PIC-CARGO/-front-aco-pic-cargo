@@ -395,7 +395,7 @@ const routes = [
       {
         path: "folderReports/balanceGanancia",
         name: "lstEstadoGanancias",
-        component: () => import("../views/balance/balanceGanancia.vue"),
+        component: () => import("../views/balance/BalanceGananciaView.vue"),
       },
       {
         path: "folderRequest/listFlujoMensual",
