@@ -9,7 +9,7 @@ import { usePricingStore } from "@/stores/pricing";
 const route = useRoute();
 const appStore = useAppStore();
 const pricingStore = usePricingStore();
-const spinnerView = appStore as typeof appStore & { spinner?: boolean };
+const undeclaredAppState = appStore as typeof appStore & { spinner?: boolean };
 
 const componentKey = ref(0);
 
@@ -18,16 +18,16 @@ const modoEditar = computed(() => {
 });
 
 onMounted(async () => {
-  if (spinnerView.spinner !== undefined) {
-    spinnerView.spinner = true;
+  if (undeclaredAppState.spinner !== undefined) {
+    undeclaredAppState.spinner = true;
   }
   await Promise.all([
     pricingStore.getModality(),
     pricingStore.getShipment(),
     appStore._getProveedor(),
   ]);
-  if (spinnerView.spinner !== undefined) {
-    spinnerView.spinner = false;
+  if (undeclaredAppState.spinner !== undefined) {
+    undeclaredAppState.spinner = false;
   }
 });
 watch(() => route.query, () => {

@@ -11,7 +11,7 @@ import { usePricingStore } from "@/stores/pricing";
 import { useSecuritysStore } from "@/stores/securitys";
 
 const appStore = useAppStore();
-const appStoreWithSpinner = appStore as typeof appStore & { spinner?: boolean };
+const undeclaredAppState = appStore as typeof appStore & { spinner?: boolean };
 
 const pricingStore = usePricingStore();
 const configEmpresaStore = useConfigEmpresaStore();
@@ -26,13 +26,13 @@ const dialog = ref(true);
 
 onMounted(async () => {
   appStore.drawer = false;
-  appStoreWithSpinner.spinner = true;
+  undeclaredAppState.spinner = true;
   await pricingStore.getModality();
   await pricingStore.getShipment();
   await pricingStore.getIncoterms();
   await appStore._getDocumentsPais();
   await appStore._getProveedor();
-  appStoreWithSpinner.spinner = false;
+  undeclaredAppState.spinner = false;
   await securitysStore.ObtenerDatosConfig();
 });
 
