@@ -529,7 +529,7 @@ async function generarHTML() {
       <b>NÚMERO DE CONTRATO DE ALIBABA:</b> ${
     datosManuales.value.numeroContratoAlibaba || ""
   }
-        `;
+    `;
   }
   let datosPagoInternacional = "";
   if (mostrarPagarProveedorInternacional.value) {
@@ -553,7 +553,7 @@ async function generarHTML() {
   }<br>
       <b>Porcentaje de Pago:</b> ${datosManuales.value.porcentajePago || ""}<br>
       <b>País Receptor:</b> ${datosManuales.value.paisReceptor || ""}
-              `;
+    `;
   }
 
   const valorDatosBancarios = mostrarPagarProveedorAlibaba.value
@@ -572,8 +572,8 @@ async function generarHTML() {
      "ASESOR/ PRICING",
      `${asesor.value?.name || ""} / ${asesorPricing.value?.name || ""}`,
    )}
-    ${_tr("N° QUOTE", pricing.nro_quote)}
-    ${_tr("TIPO DE EMBARQUE", Shipment.value.code)}
+        ${_tr("N° QUOTE", pricing.nro_quote)}
+        ${_tr("TIPO DE EMBARQUE", Shipment.value.code)}
         ${_tr("SERVICIO", datosManuales.value.servicio)}
         ${_tr(
       "COLOADER/AGENTE",
@@ -789,7 +789,7 @@ async function GenerartSegundoCorreo() {
             <strong>TIPO DE MERCANCIA:</strong> ${
           datosPrincipales.descripcioncarga || ""
         }
-                `;
+          `;
 
   const proveedorDetalles = `
             NOMBRE: ${proveedor.value.namelong || ""}<br>
@@ -799,7 +799,7 @@ async function GenerartSegundoCorreo() {
           `;
 
   const clienteDetalles = `
-          ${pricing.dataCliente.nombrecompleto || ""}<br />
+              ${pricing.dataCliente.nombrecompleto || ""}<br />
               RUC: ${pricing.dataCliente.document || ""}<br />
               DIRECCION: ${pricing.dataCliente.address || ""} <br />
               EMAIL: ${
@@ -807,14 +807,14 @@ async function GenerartSegundoCorreo() {
               ? `<a href="mailto:${pricing.emailaddress}">${pricing.emailaddress}</a>`
               : ""
           }
-        `;
+            `;
 
   const htmlBody = `
             <p>Hola Colega Por aquí tenemos una nueva carga, por indicarnos tu numero de routing order y que Customer seguirá el tema</p>
             <table style="border-collapse: collapse; width: 100%; max-width: 800px; border: 1px solid #000; font-family: Arial, sans-serif;">
               <tbody>
                 ${_tr("PUERTO DE SALIDA", puertoOrigen.value!.name || "")}
-            ${_tr("TIPO DE EMBARQUE", Shipment.value.code || "")}
+                ${_tr("TIPO DE EMBARQUE", Shipment.value.code || "")}
                 ${_tr(
               "DATOS DE LA CARGA<br/><small style='font-weight:normal;'>Si es EXWORK enviar dirección de recolecta</small>",
               cargaDetalles,
