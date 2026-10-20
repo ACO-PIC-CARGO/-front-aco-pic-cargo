@@ -266,6 +266,8 @@
 <script>
 import { mapActions } from "vuex";
 import Swal from "sweetalert2";
+import { mapActions as mapPiniaActions, mapStores } from "pinia";
+import { useProyeccionesStore } from "@/stores/proyecciones";
 export default {
   data() {
     return {
@@ -335,6 +337,9 @@ export default {
       loading: false,
     };
   },
+  computed: {
+    ...mapStores(useProyeccionesStore),
+  },
   methods: {
     ...mapActions([
       "_getCoinsList",
@@ -343,13 +348,9 @@ export default {
       "getCargarTipoSubGastos",
       "_getChargeMonth",
       "_getChargeYear",
-      "verProyeccion",
-      "updateProyeccion",
-      "validateProyeccionAprobacion",
-      "aprobarProyeccion",
-      "copiarProyeccion",
       "cargarProveedores",
     ]),
+    ...mapPiniaActions(useProyeccionesStore, ["verProyeccion", "updateProyeccion", "validateProyeccionAprobacion", "aprobarProyeccion", "copiarProyeccion"]),
     agregarFila(item) {
       let data = {
         id_gasto: "",
@@ -456,11 +457,11 @@ export default {
       this.$router.go(-1);
     },
     setData() {
-      this.id_month = this.$store.state.proyecciones.proyeccion.id_month;
-      this.id_year = this.$store.state.proyecciones.proyeccion.id_year;
-      this.tipocambio = this.$store.state.proyecciones.proyeccion.tipocambio;
-      this.items = this.$store.state.proyecciones.proyeccion.details;
-      this.aprobado = this.$store.state.proyecciones.proyeccion.aprobadoflag;
+      this.id_month = this.proyeccionesStore.proyeccion.id_month;
+      this.id_year = this.proyeccionesStore.proyeccion.id_year;
+      this.tipocambio = this.proyeccionesStore.proyeccion.tipocambio;
+      this.items = this.proyeccionesStore.proyeccion.details;
+      this.aprobado = this.proyeccionesStore.proyeccion.aprobadoflag;
       this.calcularTotalTipoCambio();
     },
     seleccionEditar() {
