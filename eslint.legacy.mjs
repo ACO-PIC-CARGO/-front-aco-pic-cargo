@@ -221,7 +221,6 @@ export const LEGACY = [
   "src/views/folderModulesPays/moduleAccountPays.vue",
   "src/views/folderModulesPays/moduleAccountReceivable.vue",
   "src/views/folderModulesPays/regularizarProformace.vue",
-  "src/views/folderPricing/NewQuote.vue",
   "src/views/folderPricing/VerPricing.vue",
   "src/views/folderProyeccion/editarProyeccion.vue",
   "src/views/folderProyeccion/listProyeccionCXP.vue",

@@ -1,6 +1,1204 @@
+<script setup lang="ts">
+import { nextTick, onMounted, ref } from "vue";
+import { useRouter } from "vue-router";
+import { useStore } from "vuex";
+import Swal from "sweetalert2";
+import { readSheet as readXlsFile } from "read-excel-file/browser";
+import type { Row } from "read-excel-file/browser";
+import moment from "moment";
+import DatosPrincipales from "../../components/folderPricing/DatosPrincipales.vue";
+import DatosCargaComponent from "../../components/folderPricing/DatosCargaComponent.vue";
+import ServicesComponent from "../../components/folderPricing/ServicesComponent.vue";
+import DatosCostosComponent from "../../components/folderPricing/DatosCostosComponent.vue";
+import ComparativaComponent from "../../components/folderPricing/ComparativaComponent.vue";
+import NotasComponent from "../../components/folderPricing/NotasComponent.vue";
+import { useCotizacionCalculos } from "@/composables/useCotizacionCalculos";
+import { useQuoteStatusStore } from "@/stores/QuoteStatus";
+import { useMasterusuariosStore } from "@/stores/masterusuarios";
+import { useEnterprisesStore } from "@/stores/enterprises";
+import { useProveedorStore } from "@/stores/proveedor";
+import { useCalculadorasStore } from "@/stores/calculadoras";
+import { usePricingStore } from "@/stores/pricing";
+import { sessionBranchId, sessionUser } from "@/utils/sesion";
+import type {
+  Costo,
+  FleteOpcionCosto,
+  Numerico,
+  Servicio,
+  TipoCarga,
+} from "@/types/cotizacion";
+
+const router = useRouter();
+const rootStore = useStore();
+const pricingStore = usePricingStore();
+const calculadorasStore = useCalculadorasStore();
+const masterusuariosStore = useMasterusuariosStore();
+const quoteStatusStore = useQuoteStatusStore();
+const proveedorStore = useProveedorStore();
+const enterprisesStore = useEnterprisesStore();
+const { calcularFac } = useCotizacionCalculos();
+
+const step = ref(1);
+const editableStep3 = ref(false);
+const DatosCargaComponentFlag = ref(false);
+const ServicesComponentFlag = ref(false);
+const editableStep2 = ref(false);
+const editableStep4 = ref(false);
+const indexCostos = ref(0);
+const dialogDistrito = ref(false);
+const dialogPesoVolumen = ref(false);
+const excelInput = ref<HTMLInputElement>();
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+let mostrarCostos: boolean | undefined;
+
+onMounted(async () => {
+  pricingStore.step = 1;
+  pricingStore.SET_RESET();
+  rootStore.state.mainTitle = "Nueva Cotización";
+  await Promise.all([
+    // await this.resetQuoteNew(),
+    pricingStore.getMarketingList(),
+    pricingStore.getQuoteStatus(),
+    ensurePreliminarStatus(),
+    pricingStore.getModality(),
+    pricingStore.getShipment(),
+    pricingStore.getIncoterms(),
+    pricingStore.getCargarEjecutivo(),
+  ]);
+
+  await setDefaultStatusPreliminar();
+  const opciones = [...pricingStore.opcionCostos];
+  const IdProveedor: (number | string | null | undefined)[] = [];
+  opciones.forEach((opcion) => {
+    opcion.listCostos.forEach((costo) => {
+      if (!IdProveedor.some((v) => v == costo.id_proveedor))
+        IdProveedor.push(costo.id_proveedor);
+    });
+  });
+  await Promise.all([
+    pricingStore.getBegEndList(),
+    pricingStore.getServices(),
+    pricingStore.obtenerCostosPricing(),
+    pricingStore.getImpuestos(),
+    pricingStore.getCargarMasterDetalleNotasCotizacion(),
+    enterprisesStore.obtenerImpuestoXEmpresa(),
+    masterusuariosStore.cargarMasterDetallePercepcionAduana(),
+    rootStore.dispatch("_getContainers"),
+  ]);
+  await proveedorStore.obtenerProveedorPricing({
+    id: IdProveedor.join(","),
+    search: null,
+  });
+});
+
+function recargar() {
+  if (pricingStore.listServices.length > 0) {
+    recargarServicios();
+    pricingStore.getTipoCostos();
+  }
+  if (editableStep2.value) {
+    recargarCostos();
+    // this.$store.state.pricing.index = 0;
+  }
+}
+function continuarComparativa() {
+  step.value = 3;
+  pricingStore.step = 3;
+}
+async function activarDatosCarga() {
+  rootStore.state.spiner = true;
+  await Promise.all([
+    pricingStore.getPortBegin({
+      id_transport: ((pricingStore.datosPrincipales.idtipocarga as TipoCarga)
+        .id_transport
+        ? (pricingStore.datosPrincipales.idtipocarga as TipoCarga).id_transport
+        : pricingStore.datosPrincipales.idtipocarga) as number | string,
+    }),
+    pricingStore.getPortEnd({
+      id_transport: ((pricingStore.datosPrincipales.idtipocarga as TipoCarga)
+        .id_transport
+        ? (pricingStore.datosPrincipales.idtipocarga as TipoCarga).id_transport
+        : pricingStore.datosPrincipales.idtipocarga) as number | string,
+    }),
+  ]);
+  DatosCargaComponentFlag.value = true;
+  nextTick(() => {
+    // setTimeout(() => {
+    const element = document.getElementById("DatosCargaComponent");
+    if (element) {
+      element.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+    // }, 100);
+  });
+  rootStore.state.spiner = false;
+}
+async function activarServicios() {
+  ServicesComponentFlag.value = true;
+  const idTipoCarga =
+    typeof pricingStore.datosPrincipales.idtipocarga === "object"
+      ? pricingStore.datosPrincipales.idtipocarga.id
+      : pricingStore.datosPrincipales.idtipocarga;
+
+  const services = [...pricingStore.preServices];
+  let serv: Servicio[] = services.filter(
+    (v) =>
+      v.id_incoterms == pricingStore.datosPrincipales.idincoterms &&
+      v.id_modality == pricingStore.datosPrincipales.idsentido &&
+      v.id_shipment ==
+        (pricingStore.datosPrincipales.idtipocarga as TipoCarga).id,
+  );
+  Promise.all([
+    pricingStore.getTipoCostos(),
+
+    calculadorasStore.getTransporte({
+      shimpent: pricingStore.listShipment.find((v) => v.id == idTipoCarga)!
+        .code,
+      id_modality: pricingStore.datosPrincipales.idsentido as number,
+      id_pais: sessionUser().id_pais,
+      id_branch: sessionBranchId(),
+    }),
+  ]);
+  const { esgrupalflag } = pricingStore.datosPrincipales;
+
+  if (esgrupalflag) {
+    serv = serv.map((v) => {
+      if (v.code_service == 14) {
+        return {
+          ...v,
+          status: 0,
+        };
+      }
+
+      return v;
+    });
+  }
+  pricingStore.listServices = serv;
+  nextTick(() => {
+    // setTimeout(() => {
+    const element = document.getElementById("ServicesComponent");
+    if (element) {
+      element.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+    // }, 100);
+  });
+
+  rootStore.state.spiner = false;
+}
+function recargarServicios() {
+  const services = [...pricingStore.preServices];
+  if (services.length == 0) {
+    return;
+  }
+  const serv = services.filter(
+    (v) =>
+      v.id_incoterms == pricingStore.datosPrincipales.idincoterms &&
+      v.id_modality == pricingStore.datosPrincipales.idsentido &&
+      v.id_shipment ==
+        (pricingStore.datosPrincipales.idtipocarga as TipoCarga).id,
+  );
+  // eliminando los servicios que ya no van
+  let IdServices: (number | string | undefined)[] = serv.map((v) => v.id);
+  pricingStore.listServices
+    .filter((v) => !!v.id)
+    .forEach((servicios) => {
+      if (!IdServices.includes(servicios.id)) {
+        const index = pricingStore.listServices.findIndex(
+          (v) => v.code_service == servicios.code_service,
+        );
+        pricingStore.listServices.splice(index, 1);
+      }
+    });
+  // agregando los servicios que faltan
+  IdServices = pricingStore.listServices.map((v) => v.code_service);
+
+  serv.forEach((servicios) => {
+    if (!IdServices.includes(servicios.code_service)) {
+      pricingStore.listServices.push(servicios);
+    }
+  });
+}
+async function activarLlenadoCostos() {
+  const existeTransporteDestino = pricingStore.listServices.some(
+    (v) => v.code_service == 14 && v.status == 1,
+  );
+  const { id_town, peso } = pricingStore.datosPrincipales;
+
+  let val = calculadorasStore.lstTransporte.some(
+    (v) =>
+      v.id_distrito == id_town &&
+      Number(peso || 0) >= Number(v.peso_desde || 0) &&
+      Number(peso || 0) <= Number(v.peso_hasta || 0),
+  );
+
+  if (existeTransporteDestino && !val) {
+    val = calculadorasStore.lstTransporte.some(
+      (v) => v.id_distrito == id_town,
+    );
+    if (!val) {
+      dialogDistrito.value = true;
+
+      return;
+    } else {
+      dialogPesoVolumen.value = true;
+
+      return;
+    }
+  }
+  continuarLlenadoCostos();
+}
+async function continuarLlenadoCostos() {
+  dialogPesoVolumen.value = false;
+  dialogDistrito.value = false;
+  const idTipoCarga =
+    typeof pricingStore.datosPrincipales.idtipocarga === "object"
+      ? pricingStore.datosPrincipales.idtipocarga.id
+      : pricingStore.datosPrincipales.idtipocarga;
+
+  const { esindividualflag, esgrupalflag } = pricingStore.datosPrincipales;
+  rootStore.state.spiner = true;
+  await Promise.all([
+    pricingStore.getMultiplicador(),
+
+    calculadorasStore.obtenerFleteCalculadora({
+      shipment: pricingStore.listShipment.find((v) => v.id == idTipoCarga)!
+        .code,
+      puerto_origen: pricingStore.listPortBegin.find(
+        (v) => v.id_port == pricingStore.datosPrincipales.idorigen,
+      )!.puerto!,
+      puerto_destino: pricingStore.listPortEnd.find(
+        (v) => v.id_port == pricingStore.datosPrincipales.iddestino,
+      )!.puerto!,
+      volumen: pricingStore.datosPrincipales.volumen,
+      peso: pricingStore.datosPrincipales.peso,
+    }),
+  ]);
+  rootStore.state.spiner = false;
+  if (esgrupalflag) {
+    await activarLlenadoCostosGrupal();
+  } else if (esindividualflag) {
+    await activarLlenadoCostosIndividual();
+  }
+}
+async function activarLlenadoCostosGrupal(
+  indiceOpcion = 0,
+  mostrarConfirmacion = true,
+) {
+  rootStore.state.spiner = true;
+
+  const {
+    datosPrincipales,
+    listServices,
+    preCostos,
+    listImpuestos,
+    listNotasQuote,
+    opcionCostos,
+  } = pricingStore;
+  const {
+    idincoterms,
+    idsentido,
+    idtipocarga,
+    containers,
+    id_percepcionaduana,
+  } = datosPrincipales;
+  const codeServicesActivos = new Set(
+    listServices
+      .filter((v) => v.status === true || v.status === 1)
+      .map((v) => v.code_service),
+  );
+  const idContainersSet = new Set(containers!.map((v) => v.id));
+  const COSTOS_ESPECIALES = [69, 114, 105, 39];
+  const tipoImportacion = masterusuariosStore.lstPercepcionAduana.find(
+    (v) => v.id == id_percepcionaduana,
+  );
+  const codigoImportacion = tipoImportacion?.codigo;
+  const cFiltrado = preCostos.filter(
+    (v) =>
+      v.id_incoterms == idincoterms &&
+      v.id_modality == idsentido &&
+      v.id_shipment == (idtipocarga as TipoCarga).id &&
+      codeServicesActivos.has(v.code_service) &&
+      (!v.escontenedorflag ||
+        idContainersSet.has(v.id_container as number | string)),
+  );
+  const cDuplicado = cFiltrado.flatMap((item) => {
+    const flete = obtenerFleteOpcionGrupal(item);
+    const fleteVenta = obtenerFleteOpcionVentaGrupal(item);
+    const transporte = obtenerTransporteGrupal(item);
+    const costoBaseUnitario = 0;
+    const baseItem = {
+      ...item,
+      status: true,
+      nro_propuesta: 1,
+    };
+    const cif = 0;
+    const seguro = 0;
+
+    if (COSTOS_ESPECIALES.includes(item.code_cost as number)) {
+      return [
+        {
+          ...baseItem,
+          esopcionflag: 1,
+          esventaflag: 0,
+          cif,
+          seguro,
+          costounitario:
+            costoBaseUnitario +
+            parseFloat((flete.monto || 0) as string) +
+            parseFloat((fleteVenta.monto || 0) as string),
+          tienefleteflag: false,
+          fechavigencia: null,
+        },
+      ];
+    }
+    let montoprofit: Numerico = 0;
+    if ((item.profit_ganancia_pricing?.length as number) > 0) {
+      const profitObj = item.profit_ganancia_pricing!.find(
+        (v) => v.esgrupalflag,
+      );
+      if (profitObj) {
+        if (codigoImportacion === "01")
+          montoprofit = profitObj.profitprimeraimportacion;
+        else if (codigoImportacion === "02")
+          montoprofit = profitObj.profitsegundaimportacion;
+      }
+    }
+    return [
+      {
+        ...baseItem,
+        esopcionflag: 1,
+        esventaflag: 0,
+        cif,
+        seguro,
+        costounitario:
+          costoBaseUnitario + parseFloat((flete.monto || 0) as string),
+        tienefleteflag: flete.tienefleteflag,
+        fechavigencia: flete.fechavigencia,
+      },
+      {
+        ...baseItem,
+        esopcionflag: 0,
+        esventaflag: 1,
+        cif,
+        seguro,
+        costounitario:
+          item.code_cost == 13
+            ? parseFloat(String(transporte))
+            : parseFloat(String(costoBaseUnitario)) +
+              parseFloat((montoprofit || 0) as string) +
+              parseFloat((fleteVenta.monto || 0) as string),
+        tieneprofitflag: parseFloat(montoprofit as string) > 0,
+        tienefleteflag: fleteVenta.tienefleteflag,
+        fechavigencia: fleteVenta.fechavigencia,
+      },
+    ];
+  });
+  const nro_propuesta = opcionCostos[indiceOpcion]!.nro_propuesta;
+  opcionCostos[indiceOpcion]!.listCostos = cDuplicado.map((costo) => ({
+    ...costo,
+    nro_propuesta,
+  }));
+  opcionCostos[indiceOpcion]!.listImpuestos = listImpuestos.map(
+    (impuesto) => ({ ...impuesto, nro_propuesta }),
+  );
+  opcionCostos[indiceOpcion]!.listNotasQuote = listNotasQuote
+    .filter((v) => v.grupalflag)
+    .map((nota) => ({ ...nota, nro_propuesta }));
+  rootStore.state.spiner = false;
+  if (mostrarConfirmacion) {
+    Swal.fire({
+      icon: "question",
+      title: "Cotizar",
+      text: "¿Desea pasar a Cotizar?",
+      confirmButtonText: "Pasar a Cotizar",
+      denyButtonText: "Guardar Borrador",
+      allowEnterKey: false,
+      allowOutsideClick: false,
+      confirmButtonColor: "green",
+      showDenyButton: true,
+      allowEscapeKey: false,
+      showCloseButton: true,
+    }).then(async (result) => {
+      if (result.isConfirmed) {
+        step.value = 2;
+        pricingStore.step = 2;
+        editableStep2.value = true;
+      } else if (result.isDenied) {
+        await guardar();
+      }
+    });
+  }
+}
+async function activarLlenadoCostosIndividual(
+  indiceOpcion = 0,
+  mostrarConfirmacion = true,
+) {
+  rootStore.state.spiner = true;
+
+  const {
+    datosPrincipales,
+    listServices,
+    preCostos,
+    listImpuestos,
+    listNotasQuote,
+    opcionCostos,
+  } = pricingStore;
+  const {
+    idincoterms,
+    idsentido,
+    idtipocarga,
+    containers,
+    id_percepcionaduana,
+  } = datosPrincipales;
+  const codeServicesActivos = new Set(
+    listServices
+      .filter((v) => v.status === true || v.status === 1)
+      .map((v) => v.code_service),
+  );
+  const idContainersSet = new Set(containers!.map((v) => v.id));
+  const COSTOS_ESPECIALES = [69, 114, 105, 39];
+  const tipoImportacion = masterusuariosStore.lstPercepcionAduana.find(
+    (v) => v.id == id_percepcionaduana,
+  );
+  const codigoImportacion = tipoImportacion?.codigo;
+  const cFiltrado = preCostos.filter(
+    (v) =>
+      v.id_incoterms == idincoterms &&
+      v.id_modality == idsentido &&
+      v.id_shipment == (idtipocarga as TipoCarga).id &&
+      codeServicesActivos.has(v.code_service) &&
+      (!v.escontenedorflag ||
+        idContainersSet.has(v.id_container as number | string)),
+  );
+  const cDuplicado = cFiltrado.flatMap((item) => {
+    const flete = obtenerFleteOpcionIndividual(item);
+    const transporte = obtenerTransporteIndividual(item);
+    const costoBaseUnitario = parseFloat((item.costounitario || 0) as string);
+    const baseItem = {
+      ...item,
+      status: true,
+      nro_propuesta: 1,
+    };
+    const cif = parseFloat(String(0.35));
+    const seguro = parseFloat(String(0.45));
+
+    if (COSTOS_ESPECIALES.includes(item.code_cost as number)) {
+      return [
+        {
+          ...baseItem,
+          esopcionflag: 1,
+          esventaflag: 0,
+          cif,
+          seguro,
+          costounitario:
+            costoBaseUnitario + parseFloat((flete.monto || 0) as string),
+          tienefleteflag: false,
+          fechavigencia: null,
+        },
+      ];
+    }
+
+    let montoprofit: Numerico = 0;
+    if ((item.profit_ganancia_pricing?.length as number) > 0) {
+      const profitObj = item.profit_ganancia_pricing!.find(
+        (v) => v.esindividualflag,
+      );
+      if (profitObj) {
+        if (codigoImportacion === "01")
+          montoprofit = profitObj.profitprimeraimportacion;
+        else if (codigoImportacion === "02")
+          montoprofit = profitObj.profitsegundaimportacion;
+      }
+    }
+
+    return [
+      {
+        ...baseItem,
+        esopcionflag: 1,
+        esventaflag: 0,
+        cif,
+        seguro,
+        costounitario:
+          (item.code_cost == 13 ? transporte : costoBaseUnitario) +
+          parseFloat((flete.monto || 0) as string),
+        tienefleteflag: flete.tienefleteflag,
+        fechavigencia: flete.fechavigencia,
+      },
+      {
+        ...baseItem,
+        esopcionflag: 0,
+        esventaflag: 1,
+        cif,
+        seguro,
+        costounitario:
+          item.code_cost == 13
+            ? parseFloat(String(transporte))
+            : costoBaseUnitario +
+              parseFloat((montoprofit || 0) as string) +
+              parseFloat((flete.monto || 0) as string),
+        tieneprofitflag: parseFloat(montoprofit as string) > 0,
+        tienefleteflag: flete.tienefleteflag,
+        fechavigencia: flete.fechavigencia,
+      },
+    ];
+  });
+  const nro_propuesta = opcionCostos[indiceOpcion]!.nro_propuesta;
+  opcionCostos[indiceOpcion]!.listCostos = cDuplicado.map((costo) => ({
+    ...costo,
+    nro_propuesta,
+  }));
+  opcionCostos[indiceOpcion]!.listImpuestos = listImpuestos.map(
+    (impuesto) => ({ ...impuesto, nro_propuesta }),
+  );
+  opcionCostos[indiceOpcion]!.listNotasQuote = listNotasQuote
+    .filter((v) => v.individualflag)
+    .map((nota) => ({ ...nota, nro_propuesta }));
+  rootStore.state.spiner = false;
+  if (mostrarConfirmacion) {
+    Swal.fire({
+      icon: "question",
+      title: "Cotizar",
+      text: "¿Desea pasar a Cotizar?",
+      confirmButtonText: "Pasar a Cotizar",
+      denyButtonText: "Guardar Borrador",
+      allowEnterKey: false,
+      allowOutsideClick: false,
+      confirmButtonColor: "green",
+      showDenyButton: true,
+      allowEscapeKey: false,
+      showCloseButton: true,
+    }).then(async (result) => {
+      if (result.isConfirmed) {
+        step.value = 2;
+        pricingStore.step = 2;
+        editableStep2.value = true;
+      } else if (result.isDenied) {
+        await guardar();
+      }
+    });
+  }
+}
+function obtenerFleteOpcionGrupal(item: Costo) {
+  const datoFlete: FleteOpcionCosto = { monto: 0, tienefleteflag: false, fechavigencia: null };
+  if (item.code_cost == 4) {
+    const val = !!calculadorasStore.fletePricing.monto_flete_grupal;
+    datoFlete.monto = val
+      ? obtenerPrecioUnitarioGrupal(
+          item,
+          calculadorasStore.fletePricing.monto_flete_grupal,
+        )
+      : 0;
+    datoFlete.tienefleteflag = val;
+    datoFlete.fechavigencia = val
+      ? calculadorasStore.fletePricing.vigencia_grupal || null
+      : null;
+  }
+  return datoFlete;
+}
+function obtenerFleteOpcionVentaGrupal(item: Costo) {
+  const datoFlete: FleteOpcionCosto = { monto: 0, tienefleteflag: false, fechavigencia: null };
+  if (item.code_cost == 7) {
+    const tieneFleteVenta =
+      !!calculadorasStore.fletePricing.monto_flete_grupal_venta;
+    datoFlete.monto = tieneFleteVenta
+      ? obtenerPrecioUnitarioGrupal(
+          item,
+          parseFloat(
+            (calculadorasStore.fletePricing.monto_flete_grupal_venta || 0) as string,
+          ) -
+            parseFloat(
+              (calculadorasStore.fletePricing.monto_flete_grupal || 0) as string,
+            ),
+        )
+      : 0;
+    datoFlete.tienefleteflag = tieneFleteVenta;
+    datoFlete.fechavigencia = tieneFleteVenta
+      ? calculadorasStore.fletePricing.vigencia_grupal_venta || null
+      : null;
+  }
+  if (item.code_cost == 4) {
+    const tieneFleteVenta =
+      !!calculadorasStore.fletePricing.monto_flete_grupal;
+    datoFlete.monto = tieneFleteVenta
+      ? obtenerPrecioUnitarioGrupal(
+          item,
+          calculadorasStore.fletePricing.monto_flete_grupal,
+        )
+      : 0;
+    datoFlete.tienefleteflag = tieneFleteVenta;
+    datoFlete.fechavigencia = tieneFleteVenta
+      ? calculadorasStore.fletePricing.vigencia_grupal || null
+      : null;
+  }
+  if ((datoFlete.monto as number) < 0) {
+    datoFlete.monto = 0;
+  }
+  return datoFlete;
+}
+function obtenerPrecioUnitarioGrupal(item: Costo, monto: Numerico) {
+  let factor = parseFloat(formatearCostoTotal(item) as string) || 0;
+  if (
+    item.code_cost == 4 &&
+    (pricingStore.datosPrincipales.volumen as number) < 1 &&
+    factor < 1
+  ) {
+    factor = 1;
+  }
+  return factor > 0
+    ? Number((parseFloat((monto || 0) as string) / factor).toFixed(3))
+    : 0;
+}
+function obtenerTransporteGrupal(item: Costo) {
+  let monto = 0;
+  if (item.code_cost == 13) {
+    const opcion = 2;
+    const pesoActual =
+      parseFloat(pricingStore.datosPrincipales.peso as string) || 0;
+
+    const transporte = calculadorasStore.lstTransporte.find(
+      (v) =>
+        v.id_distrito == pricingStore.datosPrincipales.id_town &&
+        v.opcion == opcion &&
+        pesoActual >= parseFloat(v.peso_desde as string) &&
+        pesoActual <= parseFloat(v.peso_hasta as string),
+    );
+
+    if (transporte) {
+      monto = parseFloat(transporte.tarifadolar as string);
+    }
+  }
+  return monto;
+}
+function obtenerFleteOpcionIndividual(item: Costo) {
+  const datoFlete: FleteOpcionCosto = { monto: 0, tienefleteflag: false, fechavigencia: null };
+  if (item.code_cost == 4) {
+    const val = !!calculadorasStore.fletePricing.monto_flete;
+    datoFlete.monto = val ? calculadorasStore.fletePricing.monto_flete : 0;
+    datoFlete.tienefleteflag = val;
+    datoFlete.fechavigencia = val
+      ? calculadorasStore.fletePricing.vigencia
+      : null;
+  }
+  return datoFlete;
+}
+function obtenerTransporteIndividual(item: Costo) {
+  let monto = 0;
+  if (item.code_cost == 13) {
+    const opcion = 1;
+    const pesoActual =
+      parseFloat(pricingStore.datosPrincipales.peso as string) || 0;
+    const transporte = calculadorasStore.lstTransporte.find(
+      (v) =>
+        v.id_distrito == pricingStore.datosPrincipales.id_town &&
+        v.opcion == opcion &&
+        pesoActual >= parseFloat(v.peso_desde as string) &&
+        pesoActual <= parseFloat(v.peso_hasta as string),
+    );
+    if (transporte) {
+      monto = parseFloat(transporte.tarifadolar as string);
+    }
+  }
+  return monto;
+}
+async function guardar() {
+  rootStore.state.spiner = true;
+
+  pricingStore.opcionCostos[0]!.selected = true;
+  await pricingStore.registrarQuote({ fullflag: false }).catch(() => {});
+  if (pricingStore.nro_quote) {
+    rootStore.state.spiner = false;
+
+    Swal.fire({
+      icon: "success",
+      title: "Aviso",
+      text: pricingStore.mensaje,
+      confirmButtonText: "Ir al listado",
+      showConfirmButton: true,
+    }).then((result) => {
+      if (result.isConfirmed) {
+        router.push({
+          name: "lstQuote",
+        });
+      }
+      if (result.isDismissed) {
+        router.push({
+          name: "lstQuote",
+        });
+      }
+    });
+    const id_branch = sessionBranchId();
+    const branchCreacion = [1, 2];
+    if (branchCreacion.includes(id_branch)) {
+      const urlGenerada = await pricingStore.crearCarpetaOneDrive({
+        nro_quote: pricingStore.nro_quote,
+        nombre: pricingStore.datosPrincipales.nombre,
+      });
+
+      if (urlGenerada) {
+        await pricingStore.actualizarURLEnElQuote({
+          id: pricingStore.id,
+          url: urlGenerada,
+        });
+      } else {
+        console.error(
+          "No se obtuvo URL de OneDrive, se saltó la actualización.",
+        );
+      }
+    }
+  }
+}
+async function anadirNuevaOpcion(nro_propuesta: number) {
+  const pricing = pricingStore;
+  pricing.opcionCostos.push({
+    nro_propuesta,
+    date_end: moment().add(7, "days").format("YYYY-MM-DD"),
+    tiempo_transito: 35,
+    listCostos: [],
+    listImpuestos: [],
+    listNotasQuote: [],
+    selected: false,
+  });
+
+  const indiceOpcion = pricing.opcionCostos.length - 1;
+  if (pricing.datosPrincipales.esgrupalflag) {
+    await activarLlenadoCostosGrupal(indiceOpcion, false);
+  } else if (pricing.datosPrincipales.esindividualflag) {
+    await activarLlenadoCostosIndividual(indiceOpcion, false);
+  }
+}
+async function recargarCostos() {
+  Promise.all([pricingStore.getTipoCostos(), pricingStore.getMultiplicador()]);
+  const codeServicesActivos = new Set(
+    (pricingStore.listServices || [])
+      .filter((v) => v.status === true || v.status === 1)
+      .map((v) => v.code_service),
+  );
+
+  const c = (pricingStore.preCostos || []).filter(
+    (v) =>
+      v.id_incoterms === pricingStore.datosPrincipales.idincoterms &&
+      v.id_modality === pricingStore.datosPrincipales.idsentido &&
+      v.id_shipment ===
+        (pricingStore.datosPrincipales.idtipocarga as TipoCarga).id &&
+      codeServicesActivos.has(v.code_service),
+  );
+
+  let idContainer: (number | string | undefined)[] = [];
+  if ((pricingStore.datosPrincipales.containers || []).length > 0) {
+    idContainer = pricingStore.datosPrincipales.containers!.map((v) => v.id);
+  }
+
+  const cFiltrado = c.filter((v) => {
+    if (v.escontenedorflag) {
+      return idContainer.includes(v.id_container as number | string);
+    }
+    return true;
+  });
+
+  const codeCost = [69, 114, 105, 39];
+
+  const cDuplicado = cFiltrado.flatMap((item) => {
+    if (codeCost.includes(item.code_cost as number)) {
+      return [
+        {
+          ...item,
+          esopcionflag: 1,
+          esventaflag: 0,
+          status: true,
+          cif: pricingStore.datosPrincipales.esgrupalflag
+            ? 0
+            : parseFloat(String(0.35)),
+          seguro: pricingStore.datosPrincipales.esgrupalflag
+            ? 0
+            : parseFloat(String(0.45)),
+          costounitario: pricingStore.datosPrincipales.esgrupalflag
+            ? 0
+            : item.costounitario,
+          nro_propuesta: 1,
+        },
+      ];
+    }
+
+    let montoprofit: Numerico = 0;
+    const tipoImportacion = masterusuariosStore.lstPercepcionAduana.find(
+      (v) =>
+        String(v.id) ===
+        String(pricingStore.datosPrincipales.id_percepcionaduana),
+    );
+    const profitList = item.profit_ganancia_pricing || [];
+
+    if (pricingStore.datosPrincipales.esindividualflag) {
+      const profitObj = profitList.find((v) => v.esindividualflag);
+      if (tipoImportacion?.codigo == "01") {
+        montoprofit = profitObj?.profitprimeraimportacion || 0;
+      }
+      if (tipoImportacion?.codigo == "02") {
+        montoprofit = profitObj?.profitsegundaimportacion || 0;
+      }
+    }
+
+    if (pricingStore.datosPrincipales.esgrupalflag) {
+      const profitObj = profitList.find((v) => v.esgrupalflag);
+      if (tipoImportacion?.codigo == "01") {
+        montoprofit = profitObj?.profitprimeraimportacion || 0;
+      }
+      if (tipoImportacion?.codigo == "02") {
+        montoprofit = profitObj?.profitsegundaimportacion || 0;
+      }
+    }
+
+    return [
+      {
+        ...item,
+        nro_propuesta: 1,
+        esopcionflag: 1,
+        esventaflag: 0,
+        status: true,
+        cif: pricingStore.datosPrincipales.esgrupalflag
+          ? 0
+          : parseFloat(String(0.35)),
+        seguro: pricingStore.datosPrincipales.esgrupalflag
+          ? 0
+          : parseFloat(String(0.45)),
+        costounitario: pricingStore.datosPrincipales.esgrupalflag
+          ? 0
+          : item.costounitario,
+      },
+      {
+        ...item,
+        nro_propuesta: 1,
+        esopcionflag: 0,
+        esventaflag: 1,
+        status: true,
+        cif: parseFloat(String(0.35)),
+        seguro: parseFloat(String(0.45)),
+        costounitario:
+          parseFloat(
+            (pricingStore.datosPrincipales.esgrupalflag
+              ? 0
+              : item.costounitario) as string,
+          ) + parseFloat(montoprofit as string),
+        tieneprofitflag: parseFloat(montoprofit as string) > 0,
+      },
+    ];
+  });
+
+  pricingStore.opcionCostos = (pricingStore.opcionCostos || []).slice(0, 1);
+  pricingStore.index = 0;
+  pricingStore.opcionCostos[0]!.listCostos = cDuplicado;
+  pricingStore.opcionCostos[0]!.listImpuestos = pricingStore.listImpuestos;
+  pricingStore.opcionCostos[0]!.listNotasQuote = pricingStore.listNotasQuote;
+
+  pricingStore.llenadoCostos = true;
+  indexCostos.value++;
+}
+function irVentaCliente() {
+  step.value = 2;
+  pricingStore.step = 2;
+  editableStep3.value = true;
+}
+function irANotas() {
+  step.value = 4;
+  pricingStore.step = 4;
+  editableStep4.value = true;
+  pricingStore.btnRegistrar = true;
+}
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+function triggerExcel() {
+  if (excelInput.value) excelInput.value.click();
+}
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+async function onExcelSelected(e: { target: { files: FileList | null; value: string | null } }) {
+  const file = e.target.files && e.target.files[0];
+  if (!file) return;
+  rootStore.state.spiner = true;
+  try {
+    const rows = await readXlsFile(file);
+    const { actualizados } = cargarDesdeExcelDatosPrincipales(rows);
+    Swal.fire({
+      icon: "success",
+      title: "Excel cargado",
+      text: `Se actualizaron ${actualizados} campos de la cotización.`,
+    });
+    await ensurePreliminarStatus();
+    await pricingStore.getQuoteStatus();
+    await setDefaultStatusPreliminar();
+    await emitirPreliminarAuto();
+  } catch {
+    Swal.fire({
+      icon: "error",
+      title: "Error",
+      text: "No se pudo leer el archivo Excel.",
+    });
+  } finally {
+    rootStore.state.spiner = false;
+    e.target.value = null;
+  }
+}
+function cargarDesdeExcelDatosPrincipales(rows: Row[]) {
+  if (!Array.isArray(rows) || rows.length < 2) return { actualizados: 0 };
+  const norm = (v: unknown) => (v == null ? "" : String(v).trim().toLowerCase());
+  const headers = rows[0]!.map((h) => norm(h));
+  const findIdx = (...names: string[]) => {
+    const targets = names.map((n) => norm(n));
+    for (let i = 0; i < headers.length; i++) {
+      const h = headers[i]!;
+      if (targets.some((t) => h === t || h.includes(t))) return i;
+    }
+    return -1;
+  };
+  const row =
+    rows.slice(1).find((r) => (r || []).some((v) => norm(v) !== "")) ||
+    rows[1]!;
+  let cambios = 0;
+  const sp = pricingStore;
+
+  const idxMarketing = findIdx("marketing", "tipo de marketing");
+  const idxStatus = findIdx(
+    "status",
+    "estado",
+    "estado de la cotizacion",
+    "estado de la cotización",
+  );
+  const idxEjecutivo = findIdx("ejecutivo", "vendedor");
+  const idxPricing = findIdx("pricing", "analista pricing");
+  const idxCliente = findIdx(
+    "cliente",
+    "nombre cliente",
+    "razon social",
+    "razón social",
+  );
+  const idxTelefono = findIdx("telefono", "teléfono");
+  const idxSentido = findIdx("sentido", "modality", "modalidad");
+  const idxShipment = findIdx("tipo de embarque", "embarque", "shipment");
+  const idxIncoterms = findIdx("incoterms", "incoterm");
+  const idxProveedor = findIdx("proveedor", "nombre proveedor");
+  const idxTelProveedor = findIdx(
+    "telefono proveedor",
+    "teléfono proveedor",
+  );
+  const idxDirProveedor = findIdx(
+    "direccion proveedor",
+    "dirección proveedor",
+  );
+
+  if (idxMarketing > -1) {
+    const val = norm(row[idxMarketing]);
+    const it = (sp.listMarketing || []).find(
+      (x) => x && norm(x.name) === val,
+    );
+    if (it) {
+      sp.datosPrincipales.id_marketing = it.id;
+      cambios++;
+    }
+  }
+  if (idxStatus > -1) {
+    const val = norm(row[idxStatus]);
+    const it = (sp.listQuoteStatus || []).find(
+      (x) => x && norm(x.name) === val,
+    );
+    if (it) {
+      sp.datosPrincipales.id_status = it.id;
+      cambios++;
+    }
+  }
+  if (idxEjecutivo > -1) {
+    const val = norm(row[idxEjecutivo]);
+    const it = (sp.listEjecutivo || []).find(
+      (x) => x && norm(x.nombrecompleto) === val,
+    );
+    if (it) {
+      sp.datosPrincipales.id_vendedor = it.id;
+      cambios++;
+    }
+  }
+  if (idxPricing > -1) {
+    const val = norm(row[idxPricing]);
+    const it = (sp.listEjecutivo || []).find(
+      (x) => x && norm(x.nombrecompleto) === val,
+    );
+    if (it) {
+      sp.datosPrincipales.id_pricing = it.id;
+      cambios++;
+    }
+  }
+  if (idxCliente > -1) {
+    const val = row[idxCliente];
+    if (norm(val) !== "") {
+      sp.datosPrincipales.nombre = String(val);
+      cambios++;
+    }
+  }
+  if (idxTelefono > -1) {
+    const val = row[idxTelefono];
+    if (norm(val) !== "") {
+      sp.datosPrincipales.telefono = String(val);
+      cambios++;
+    }
+  }
+  if (idxSentido > -1) {
+    const val = norm(row[idxSentido]);
+    const it = (sp.listModality || []).find(
+      (x) =>
+        norm(x.name) === val ||
+        norm(x.name).includes(val) ||
+        val.includes(norm(x.name)),
+    );
+    if (it) {
+      sp.datosPrincipales.idsentido = it.id;
+      cambios++;
+    }
+  }
+  if (idxShipment > -1) {
+    const val = norm(row[idxShipment]);
+    const it = (sp.listShipment || []).find(
+      (x) =>
+        norm(x.embarque) === val ||
+        norm(x.embarque).includes(val) ||
+        val.includes(norm(x.embarque)),
+    );
+    if (it) {
+      sp.datosPrincipales.idtipocarga = it;
+      cambios++;
+    }
+  }
+  if (idxIncoterms > -1) {
+    const val = norm(row[idxIncoterms]);
+    const it = (sp.listIncoterms || []).find(
+      (x) => x && (norm(x.name) === val || norm(x.text || "") === val),
+    );
+    if (it) {
+      sp.datosPrincipales.idincoterms = it.id;
+      cambios++;
+    }
+  }
+  if (idxProveedor > -1) {
+    const val = row[idxProveedor];
+    if (norm(val) !== "") {
+      sp.datosPrincipales.proveedor = String(val);
+      cambios++;
+    }
+  }
+  if (idxTelProveedor > -1) {
+    const val = row[idxTelProveedor];
+    if (norm(val) !== "") {
+      sp.datosPrincipales.telefonoproveedor = String(val);
+      cambios++;
+    }
+  }
+  if (idxDirProveedor > -1) {
+    const val = row[idxDirProveedor];
+    if (norm(val) !== "") {
+      sp.datosPrincipales.direccionproveedor = String(val);
+      cambios++;
+    }
+  }
+  return { actualizados: cambios };
+}
+async function ensurePreliminarStatus() {
+  const estados = pricingStore.listQuoteStatus || [];
+  const existe = estados.some(
+    (e) =>
+      typeof e.name === "string" &&
+      e.name.toLowerCase().includes("preliminar"),
+  );
+  if (existe) return;
+  // await this.createPreliminarStatus();
+}
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+async function createPreliminarStatus() {
+  try {
+    await quoteStatusStore.MaxPositionQuoteStatus();
+    const max = quoteStatusStore;
+    const id_branch = sessionBranchId();
+    quoteStatusStore.StatusModel = {
+      id: "",
+      name: "PRELIMINAR",
+      code: "",
+      position: (max.max_position || 0) + 1,
+      position_select: (max.max_position_select || 0) + 1,
+      position_report: (max.max_position_report || 0) + 1,
+      position_calls: (max.max_position_calls || 0) + 1,
+      status_calls: 0,
+      status_calls_all: 0,
+      description: "Cotización preliminar",
+      status: 1,
+      id_branch,
+    };
+    await quoteStatusStore.setQuoteStatus();
+  } catch {}
+}
+function setDefaultStatusPreliminar() {
+  const estados = pricingStore.listQuoteStatus || [];
+  if (!Array.isArray(estados) || estados.length === 0) return;
+  const prelim = estados.find(
+    (e) =>
+      typeof e.name === "string" &&
+      e.name.toLowerCase().includes("preliminar") &&
+      e.status == 1,
+  );
+  if (prelim) {
+    pricingStore.datosPrincipales.id_status = prelim.id;
+    return;
+  }
+  const activo = estados.find((e) => e.status == 1) || estados[0];
+  if (activo) {
+    pricingStore.datosPrincipales.id_status = activo.id;
+  }
+}
+async function emitirPreliminarAuto() {
+  pricingStore.opcionCostos[0]!.selected = true;
+  try {
+    await pricingStore.registrarQuote({ fullflag: false });
+    Swal.fire({
+      icon: "success",
+      title: "Preliminar emitida",
+      text: "La cotización preliminar fue registrada automáticamente.",
+    });
+  } catch {}
+}
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+function recargarGrupalFlag() {
+  mostrarCostos = false;
+  setTimeout(async () => {
+    mostrarCostos = true;
+  }, 200);
+}
+function formatearCostoTotal(valor: Costo) {
+  // 1. Desestructuración de los estados del Vuex para escribir menos y más limpio
+  const { listMultiplicador, datosPrincipales } = pricingStore;
+  const multiplicadores = listMultiplicador || [];
+
+  // 2. Buscamos el multiplicador correspondiente UNA SOLA VEZ
+  const multEncontrado = multiplicadores.find(
+    (v) => v.id === valor.id_multiplicador,
+  );
+
+  // 3. Extraemos las variables con valores por defecto si no existe el multiplicador
+  const valorMultiplicador = multEncontrado ? multEncontrado.valor : 0; // eslint-disable-line @typescript-eslint/no-unused-vars
+  const codigoMultiplicador = multEncontrado ? multEncontrado.code : "N";
+
+  // 4. Ejecutamos la función calcularFac pasándole los datos de pricing
+  const factorCalculado = calcularFac(
+    codigoMultiplicador,
+    datosPrincipales.volumen,
+    datosPrincipales.peso,
+    datosPrincipales.containers,
+    datosPrincipales.amount,
+  );
+  return factorCalculado;
+}
+// ...mapState(["preServices", "preCostos"]),
+</script>
+
 <template>
-  <v-container fluid class="pt-0 px-0">
-    <v-stepper v-model="step" class="pt-0">
+  <v-container
+    fluid
+    class="pt-0 px-0"
+  >
+    <v-stepper
+      v-model="step"
+      class="pt-0"
+    >
       <v-stepper-header>
         <v-stepper-item
           :complete="step > 1"
@@ -9,7 +1207,7 @@
           editable
         />
 
-        <v-divider></v-divider>
+        <v-divider />
 
         <v-stepper-item
           :complete="step > 2"
@@ -18,41 +1216,66 @@
           :editable="editableStep2"
         />
 
-        <v-divider></v-divider>
+        <v-divider />
 
-        <v-stepper-item :value="3" title="Comparativa" :editable="editableStep3" />
-        <v-divider></v-divider>
-        <v-stepper-item :value="4" title="Notas de Costos" />
+        <v-stepper-item
+          :value="3"
+          title="Comparativa"
+          :editable="editableStep3"
+        />
+        <v-divider />
+        <v-stepper-item
+          :value="4"
+          title="Notas de Costos"
+        />
       </v-stepper-header>
 
       <v-stepper-window>
-        <v-stepper-window-item :value="1" eager>
+        <v-stepper-window-item
+          :value="1"
+          eager
+        >
           <v-row class="my-1">
             <!-- <v-col cols="12" md="6" class="pt-0"> -->
-            <v-col cols="12" md="6" class="pt-0">
+            <v-col
+              cols="12"
+              md="6"
+              class="pt-0"
+            >
               <v-row>
-                <v-col cols="12" class="my-0 py-0">
+                <v-col
+                  cols="12"
+                  class="my-0 py-0"
+                >
                   <DatosPrincipales
-                    @recargarServiciosCostos="recargar"
-                    @activarDatosCarga="activarDatosCarga"
-                    :recargarFlag="DatosCargaComponentFlag"
+                    @recargar-servicios-costos="recargar"
+                    @activar-datos-carga="activarDatosCarga"
+                    :recargar-flag="DatosCargaComponentFlag"
                   />
                 </v-col>
               </v-row>
             </v-col>
-            <v-col cols="12" md="6" class="my-0 py-0" id="DatosCargaComponent">
+            <v-col
+              cols="12"
+              md="6"
+              class="my-0 py-0"
+              id="DatosCargaComponent"
+            >
               <DatosCargaComponent
                 v-if="DatosCargaComponentFlag"
-                @activarServicios="activarServicios()"
-                @recargarCostos="recargarCostos"
+                @activar-servicios="activarServicios()"
+                @recargar-costos="recargarCostos"
                 :services-component-flag="ServicesComponentFlag"
               />
             </v-col>
-            <v-col cols="12" id="ServicesComponent">
+            <v-col
+              cols="12"
+              id="ServicesComponent"
+            >
               <ServicesComponent
                 v-if="ServicesComponentFlag"
-                @activarLlenadoCostos="activarLlenadoCostos()"
-                @recargarCostos="recargarCostos()"
+                @activar-llenado-costos="activarLlenadoCostos()"
+                @recargar-costos="recargarCostos()"
               />
             </v-col>
           </v-row>
@@ -62,28 +1285,44 @@
           <v-btn text> Cancel </v-btn> -->
         </v-stepper-window-item>
 
-        <v-stepper-window-item :value="2" eager>
+        <v-stepper-window-item
+          :value="2"
+          eager
+        >
           <DatosCostosComponent
             :key="indexCostos"
-            @anadirNuevaOpcion="anadirNuevaOpcion"
-            @continuarComparativa="continuarComparativa"
-            @irANotas="irANotas"
-            :mostrarImpuestosEditar="true"
+            @anadir-nueva-opcion="anadirNuevaOpcion"
+            @continuar-comparativa="continuarComparativa"
+            @ir-a-notas="irANotas"
+            :mostrar-impuestos-editar="true"
           />
         </v-stepper-window-item>
 
-        <v-stepper-window-item :value="3" eager>
-          <ComparativaComponent @irVentaCliente="irVentaCliente" />
+        <v-stepper-window-item
+          :value="3"
+          eager
+        >
+          <ComparativaComponent @ir-venta-cliente="irVentaCliente" />
         </v-stepper-window-item>
-        <v-stepper-window-item :value="4" eager>
+        <v-stepper-window-item
+          :value="4"
+          eager
+        >
           <NotasComponent :editable="editableStep4" />
         </v-stepper-window-item>
       </v-stepper-window>
     </v-stepper>
 
     <!-- DIÁLOGO: NO EXISTE TARIFA DE TRANSPORTE -->
-    <v-dialog v-model="dialogPesoVolumen" max-width="30%" persistent>
-      <v-card class="alert-card text-center" elevation="0">
+    <v-dialog
+      v-model="dialogPesoVolumen"
+      max-width="30%"
+      persistent
+    >
+      <v-card
+        class="alert-card text-center"
+        elevation="0"
+      >
         <div class="alert-illustration">
           <v-img
             src="/img/jpg/transporte.jpg"
@@ -93,9 +1332,13 @@
         </div>
 
         <div class="alert-heading">
-          <div class="alert-title">NO EXISTE TARIFA DE</div>
+          <div class="alert-title">
+            NO EXISTE TARIFA DE
+          </div>
 
-          <div class="alert-banner">TRANSPORTE</div>
+          <div class="alert-banner">
+            TRANSPORTE
+          </div>
         </div>
 
         <div class="alert-description">
@@ -119,16 +1362,31 @@
     </v-dialog>
 
     <!-- DIÁLOGO: DISTRITO SIN TARIFA -->
-    <v-dialog v-model="dialogDistrito" max-width="30%" persistent>
-      <v-card class="alert-card text-center" elevation="0">
+    <v-dialog
+      v-model="dialogDistrito"
+      max-width="30%"
+      persistent
+    >
+      <v-card
+        class="alert-card text-center"
+        elevation="0"
+      >
         <div class="alert-illustration">
-          <v-img src="/img/jpg/map.jpg" max-width="250" height="225" />
+          <v-img
+            src="/img/jpg/map.jpg"
+            max-width="250"
+            height="225"
+          />
         </div>
 
         <div class="alert-heading">
-          <div class="alert-title alert-title-single">DISTRITO</div>
+          <div class="alert-title alert-title-single">
+            DISTRITO
+          </div>
 
-          <div class="alert-banner">SIN TARIFA</div>
+          <div class="alert-banner">
+            SIN TARIFA
+          </div>
         </div>
 
         <div class="alert-description">
@@ -152,1240 +1410,6 @@
     </v-dialog>
   </v-container>
 </template>
-
-<script>
-import DatosPrincipales from "../../components/folderPricing/DatosPrincipales.vue";
-import DatosCargaComponent from "../../components/folderPricing/DatosCargaComponent.vue";
-import ServicesComponent from "../../components/folderPricing/ServicesComponent.vue";
-import DatosCostosComponent from "../../components/folderPricing/DatosCostosComponent.vue";
-import ComparativaComponent from "../../components/folderPricing/ComparativaComponent.vue";
-import NotasComponent from "../../components/folderPricing/NotasComponent.vue";
-import { mapActions, mapState } from "vuex";
-import Swal from "sweetalert2";
-import { readSheet as readXlsFile } from "read-excel-file/browser";
-import mixins from "@/components/mixins/funciones.js";
-import moment from "moment";
-import { mapActions as mapPiniaActions, mapStores } from "pinia";
-import { useQuoteStatusStore } from "@/stores/QuoteStatus";
-import { useMasterusuariosStore } from "@/stores/masterusuarios";
-import { useEnterprisesStore } from "@/stores/enterprises";
-import { useProveedorStore } from "@/stores/proveedor";
-import { useCalculadorasStore } from "@/stores/calculadoras";
-import { usePricingStore } from "@/stores/pricing";
-export default {
-  mixins: [mixins],
-  components: {
-    DatosPrincipales,
-    DatosCargaComponent,
-    ServicesComponent,
-    DatosCostosComponent,
-    ComparativaComponent,
-    NotasComponent,
-  },
-  data() {
-    return {
-      step: 1,
-      editableStep3: false,
-      DatosCargaComponentFlag: false,
-      ServicesComponentFlag: false,
-      editableStep2: false,
-      editableStep4: false,
-      recargarSegmentos: false,
-      indexCostos: 0,
-      dialogDistrito: false,
-      dialogPesoVolumen: false,
-    };
-  },
-  async mounted() {
-    this.pricingStore.step = 1;
-    this.pricingStore.SET_RESET();
-    this.$store.state.mainTitle = "Nueva Cotización";
-    await Promise.all([
-      // await this.resetQuoteNew(),
-      this.getMarketingList(),
-      this.getQuoteStatus(),
-      this.ensurePreliminarStatus(),
-      this.getModality(),
-      this.getShipment(),
-      this.getIncoterms(),
-      this.getCargarEjecutivo(),
-    ]);
-
-    await this.setDefaultStatusPreliminar();
-    let opciones = [...this.pricingStore.opcionCostos];
-    let IdProveedor = [];
-    opciones.forEach((opcion) => {
-      opcion.listCostos.forEach((costo) => {
-        if (!IdProveedor.some((v) => v == costo.id_proveedor))
-          IdProveedor.push(costo.id_proveedor);
-      });
-    });
-    await Promise.all([
-      this.getBegEndList(),
-      this.getServices(),
-      this.obtenerCostosPricing(),
-      this.getImpuestos(),
-      this.getCargarMasterDetalleNotasCotizacion(),
-      this.obtenerImpuestoXEmpresa(),
-      this.cargarMasterDetallePercepcionAduana(),
-      this._getContainers(),
-    ]);
-    await this.obtenerProveedorPricing({
-      id: IdProveedor.join(","),
-      search: null,
-    });
-  },
-  methods: {
-    ...mapActions([
-      "cargarProveedores",
-      "_getContainers",
-    ]),
-    ...mapPiniaActions(usePricingStore, ["resetQuoteNew", "getMarketingList", "getQuoteStatus", "getModality", "getShipment", "getIncoterms", "getCargarEjecutivo", "getPortBegin", "getPortEnd", "getServices", "getBegEndList", "getTipoCostos", "obtenerCostosPricing", "getMultiplicador", "getImpuestos", "getCargarMasterDetalleNotasCotizacion", "registrarQuote", "crearCarpetaOneDrive", "actualizarURLEnElQuote"]),
-    ...mapPiniaActions(useCalculadorasStore, ["obtenerFleteCalculadora", "getTransporte"]),
-    ...mapPiniaActions(useProveedorStore, ["obtenerProveedorPricing"]),
-    ...mapPiniaActions(useEnterprisesStore, ["obtenerImpuestoXEmpresa"]),
-    ...mapPiniaActions(useMasterusuariosStore, ["cargarMasterDetallePercepcionAduana"]),
-    recargar() {
-      if (this.pricingStore.listServices.length > 0) {
-        this.recargarServicios();
-        this.getTipoCostos();
-      }
-      if (this.editableStep2) {
-        this.recargarCostos();
-        // this.$store.state.pricing.index = 0;
-      }
-    },
-    continuarComparativa() {
-      this.step = 3;
-      this.pricingStore.step = 3;
-    },
-    async activarDatosCarga() {
-      this.$store.state.spiner = true;
-      await Promise.all([
-        this.getPortBegin({
-          id_transport: this.pricingStore.datosPrincipales.idtipocarga
-            .id_transport
-            ? this.pricingStore.datosPrincipales.idtipocarga
-                .id_transport
-            : this.pricingStore.datosPrincipales.idtipocarga,
-        }),
-        this.getPortEnd({
-          id_transport: this.pricingStore.datosPrincipales.idtipocarga
-            .id_transport
-            ? this.pricingStore.datosPrincipales.idtipocarga
-                .id_transport
-            : this.pricingStore.datosPrincipales.idtipocarga,
-        }),
-      ]);
-      this.DatosCargaComponentFlag = true;
-      this.$nextTick(() => {
-        // setTimeout(() => {
-        const element = document.getElementById("DatosCargaComponent");
-        if (element) {
-          element.scrollIntoView({ behavior: "smooth", block: "start" });
-        }
-        // }, 100);
-      });
-      this.$store.state.spiner = false;
-    },
-    async activarServicios() {
-      this.ServicesComponentFlag = true;
-      let idTipoCarga =
-        typeof this.pricingStore.datosPrincipales.idtipocarga ===
-        "object"
-          ? this.pricingStore.datosPrincipales.idtipocarga.id
-          : this.pricingStore.datosPrincipales.idtipocarga;
-
-      let services = [...this.pricingStore.preServices];
-      let serv = services.filter(
-        (v) =>
-          v.id_incoterms ==
-            this.pricingStore.datosPrincipales.idincoterms &&
-          v.id_modality ==
-            this.pricingStore.datosPrincipales.idsentido &&
-          v.id_shipment ==
-            this.pricingStore.datosPrincipales.idtipocarga.id,
-      );
-      Promise.all([
-        this.getTipoCostos(),
-
-        this.getTransporte({
-          shimpent: this.pricingStore.listShipment.find(
-            (v) => v.id == idTipoCarga,
-          ).code,
-          id_modality: this.pricingStore.datosPrincipales.idsentido,
-          id_pais: JSON.parse(sessionStorage.getItem("dataUser"))[0].id_pais,
-          id_branch: JSON.parse(sessionStorage.getItem("dataUser"))[0]
-            .id_branch,
-        }),
-      ]);
-      const { esgrupalflag } = this.pricingStore.datosPrincipales;
-
-      if (esgrupalflag) {
-        serv = serv.map((v) => {
-          if (v.code_service == 14) {
-            return {
-              ...v,
-              status: 0,
-            };
-          }
-
-          return v;
-        });
-      }
-      this.pricingStore.listServices = serv;
-      this.$nextTick(() => {
-        // setTimeout(() => {
-        const element = document.getElementById("ServicesComponent");
-        if (element) {
-          element.scrollIntoView({ behavior: "smooth", block: "start" });
-        }
-        // }, 100);
-      });
-
-      this.$store.state.spiner = false;
-    },
-    recargarServicios() {
-      let services = [...this.pricingStore.preServices];
-      if (services.length == 0) {
-        return;
-      }
-      let serv = services.filter(
-        (v) =>
-          v.id_incoterms ==
-            this.pricingStore.datosPrincipales.idincoterms &&
-          v.id_modality ==
-            this.pricingStore.datosPrincipales.idsentido &&
-          v.id_shipment ==
-            this.pricingStore.datosPrincipales.idtipocarga.id,
-      );
-      // eliminando los servicios que ya no van
-      let IdServices = serv.map((v) => v.id);
-      this.pricingStore.listServices
-        .filter((v) => !!v.id)
-        .forEach((servicios) => {
-          if (!IdServices.includes(servicios.id)) {
-            let index = this.pricingStore.listServices.findIndex(
-              (v) => v.code_service == servicios.code_service,
-            );
-            this.pricingStore.listServices.splice(index, 1);
-          }
-        });
-      // agregando los servicios que faltan
-      IdServices = this.pricingStore.listServices.map(
-        (v) => v.code_service,
-      );
-
-      serv.forEach((servicios) => {
-        if (!IdServices.includes(servicios.code_service)) {
-          this.pricingStore.listServices.push(servicios);
-        }
-      });
-    },
-    async activarLlenadoCostos() {
-      let existeTransporteDestino = this.pricingStore.listServices.some(
-        (v) => v.code_service == 14 && v.status == 1,
-      );
-      let { id_town, peso } = this.pricingStore.datosPrincipales;
-
-      let val = this.calculadorasStore.lstTransporte.some(
-        (v) =>
-          v.id_distrito == id_town &&
-          Number(peso || 0) >= Number(v.peso_desde || 0) &&
-          Number(peso || 0) <= Number(v.peso_hasta || 0),
-      );
-
-      if (existeTransporteDestino && !val) {
-        val = this.calculadorasStore.lstTransporte.some(
-          (v) => v.id_distrito == id_town,
-        );
-        if (!val) {
-          this.dialogDistrito = true;
-
-          return;
-        } else {
-          this.dialogPesoVolumen = true;
-
-          return;
-        }
-      }
-      this.continuarLlenadoCostos();
-    },
-    async continuarLlenadoCostos() {
-      this.dialogPesoVolumen = false;
-      this.dialogDistrito = false;
-      let idTipoCarga =
-        typeof this.pricingStore.datosPrincipales.idtipocarga ===
-        "object"
-          ? this.pricingStore.datosPrincipales.idtipocarga.id
-          : this.pricingStore.datosPrincipales.idtipocarga;
-
-      const { esindividualflag, esgrupalflag } =
-        this.pricingStore.datosPrincipales;
-      this.$store.state.spiner = true;
-      await Promise.all([
-        this.getMultiplicador(),
-
-        this.obtenerFleteCalculadora({
-          shipment: this.pricingStore.listShipment.find(
-            (v) => v.id == idTipoCarga,
-          ).code,
-          puerto_origen: this.pricingStore.listPortBegin.find(
-            (v) =>
-              v.id_port == this.pricingStore.datosPrincipales.idorigen,
-          ).puerto,
-          puerto_destino: this.pricingStore.listPortEnd.find(
-            (v) =>
-              v.id_port == this.pricingStore.datosPrincipales.iddestino,
-          ).puerto,
-          volumen: this.pricingStore.datosPrincipales.volumen,
-          peso: this.pricingStore.datosPrincipales.peso,
-        }),
-      ]);
-      this.$store.state.spiner = false;
-      if (esgrupalflag) {
-        await this.activarLlenadoCostosGrupal();
-      } else if (esindividualflag) {
-        await this.activarLlenadoCostosIndividual();
-      }
-    },
-    async activarLlenadoCostosGrupal(
-      indiceOpcion = 0,
-      mostrarConfirmacion = true,
-    ) {
-      this.$store.state.spiner = true;
-
-      const {
-        datosPrincipales,
-        listServices,
-        preCostos,
-        listImpuestos,
-        listNotasQuote,
-        opcionCostos,
-      } = this.pricingStore;
-      const {
-        idincoterms,
-        idsentido,
-        idtipocarga,
-        containers,
-        id_percepcionaduana,
-      } = datosPrincipales;
-      const codeServicesActivos = new Set(
-        listServices
-          .filter((v) => v.status === true || v.status === 1)
-          .map((v) => v.code_service),
-      );
-      const idContainersSet = new Set(containers.map((v) => v.id));
-      const COSTOS_ESPECIALES = [69, 114, 105, 39];
-      const tipoImportacion =
-        this.masterusuariosStore.lstPercepcionAduana.find(
-          (v) => v.id == id_percepcionaduana,
-        );
-      const codigoImportacion = tipoImportacion?.codigo;
-      const cFiltrado = preCostos.filter(
-        (v) =>
-          v.id_incoterms == idincoterms &&
-          v.id_modality == idsentido &&
-          v.id_shipment == idtipocarga.id &&
-          codeServicesActivos.has(v.code_service) &&
-          (!v.escontenedorflag || idContainersSet.has(v.id_container)),
-      );
-      const cDuplicado = cFiltrado.flatMap((item) => {
-        const flete = this.obtenerFleteOpcionGrupal(item);
-        const fleteVenta = this.obtenerFleteOpcionVentaGrupal(item);
-        const transporte = this.obtenerTransporteGrupal(item);
-        const costoBaseUnitario = 0;
-        const baseItem = {
-          ...item,
-          status: true,
-          nro_propuesta: 1,
-        };
-        const cif = 0;
-        const seguro = 0;
-
-        if (COSTOS_ESPECIALES.includes(item.code_cost)) {
-          return [
-            {
-              ...baseItem,
-              esopcionflag: 1,
-              esventaflag: 0,
-              cif,
-              seguro,
-              costounitario:
-                costoBaseUnitario +
-                parseFloat(flete.monto || 0) +
-                parseFloat(fleteVenta.monto || 0),
-              tienefleteflag: false,
-              fechavigencia: null,
-            },
-          ];
-        }
-        let montoprofit = 0;
-        if (item.profit_ganancia_pricing?.length > 0) {
-          const profitObj = item.profit_ganancia_pricing.find(
-            (v) => v.esgrupalflag,
-          );
-          if (profitObj) {
-            if (codigoImportacion === "01")
-              montoprofit = profitObj.profitprimeraimportacion;
-            else if (codigoImportacion === "02")
-              montoprofit = profitObj.profitsegundaimportacion;
-          }
-        }
-        return [
-          {
-            ...baseItem,
-            esopcionflag: 1,
-            esventaflag: 0,
-            cif,
-            seguro,
-            costounitario: costoBaseUnitario + parseFloat(flete.monto || 0),
-            tienefleteflag: flete.tienefleteflag,
-            fechavigencia: flete.fechavigencia,
-          },
-          {
-            ...baseItem,
-            esopcionflag: 0,
-            esventaflag: 1,
-            cif,
-            seguro,
-            costounitario:
-              item.code_cost == 13
-                ? parseFloat(transporte)
-                : parseFloat(costoBaseUnitario) +
-                  parseFloat(montoprofit || 0) +
-                  parseFloat(fleteVenta.monto || 0),
-            tieneprofitflag: parseFloat(montoprofit) > 0,
-            tienefleteflag: fleteVenta.tienefleteflag,
-            fechavigencia: fleteVenta.fechavigencia,
-          },
-        ];
-      });
-      const nro_propuesta = opcionCostos[indiceOpcion].nro_propuesta;
-      opcionCostos[indiceOpcion].listCostos = cDuplicado.map((costo) => ({
-        ...costo,
-        nro_propuesta,
-      }));
-      opcionCostos[indiceOpcion].listImpuestos = listImpuestos.map(
-        (impuesto) => ({ ...impuesto, nro_propuesta }),
-      );
-      opcionCostos[indiceOpcion].listNotasQuote = listNotasQuote
-        .filter((v) => v.grupalflag)
-        .map((nota) => ({ ...nota, nro_propuesta }));
-      this.$store.state.spiner = false;
-      if (mostrarConfirmacion) {
-        Swal.fire({
-          icon: "question",
-          title: "Cotizar",
-          text: "¿Desea pasar a Cotizar?",
-          confirmButtonText: "Pasar a Cotizar",
-          denyButtonText: "Guardar Borrador",
-          allowEnterKey: false,
-          allowOutsideClick: false,
-          confirmButtonColor: "green",
-          showDenyButton: true,
-          allowEscapeKey: false,
-          showCloseButton: true,
-        }).then(async (result) => {
-          if (result.isConfirmed) {
-            this.step = 2;
-            this.pricingStore.step = 2;
-            this.editableStep2 = true;
-          } else if (result.isDenied) {
-            await this.guardar();
-          }
-        });
-      }
-    },
-    async activarLlenadoCostosIndividual(
-      indiceOpcion = 0,
-      mostrarConfirmacion = true,
-    ) {
-      this.$store.state.spiner = true;
-
-      const {
-        datosPrincipales,
-        listServices,
-        preCostos,
-        listImpuestos,
-        listNotasQuote,
-        opcionCostos,
-      } = this.pricingStore;
-      const {
-        idincoterms,
-        idsentido,
-        idtipocarga,
-        containers,
-        id_percepcionaduana,
-      } = datosPrincipales;
-      const codeServicesActivos = new Set(
-        listServices
-          .filter((v) => v.status === true || v.status === 1)
-          .map((v) => v.code_service),
-      );
-      const idContainersSet = new Set(containers.map((v) => v.id));
-      const COSTOS_ESPECIALES = [69, 114, 105, 39];
-      const tipoImportacion =
-        this.masterusuariosStore.lstPercepcionAduana.find(
-          (v) => v.id == id_percepcionaduana,
-        );
-      const codigoImportacion = tipoImportacion?.codigo;
-      const cFiltrado = preCostos.filter(
-        (v) =>
-          v.id_incoterms == idincoterms &&
-          v.id_modality == idsentido &&
-          v.id_shipment == idtipocarga.id &&
-          codeServicesActivos.has(v.code_service) &&
-          (!v.escontenedorflag || idContainersSet.has(v.id_container)),
-      );
-      const cDuplicado = cFiltrado.flatMap((item) => {
-        const flete = this.obtenerFleteOpcionIndividual(item);
-        const transporte = this.obtenerTransporteIndividual(item);
-        const costoBaseUnitario = parseFloat(item.costounitario || 0);
-        const baseItem = {
-          ...item,
-          status: true,
-          nro_propuesta: 1,
-        };
-        const cif = parseFloat(0.35);
-        const seguro = parseFloat(0.45);
-
-        if (COSTOS_ESPECIALES.includes(item.code_cost)) {
-          return [
-            {
-              ...baseItem,
-              esopcionflag: 1,
-              esventaflag: 0,
-              cif,
-              seguro,
-              costounitario: costoBaseUnitario + parseFloat(flete.monto || 0),
-              tienefleteflag: false,
-              fechavigencia: null,
-            },
-          ];
-        }
-
-        let montoprofit = 0;
-        if (item.profit_ganancia_pricing?.length > 0) {
-          const profitObj = item.profit_ganancia_pricing.find(
-            (v) => v.esindividualflag,
-          );
-          if (profitObj) {
-            if (codigoImportacion === "01")
-              montoprofit = profitObj.profitprimeraimportacion;
-            else if (codigoImportacion === "02")
-              montoprofit = profitObj.profitsegundaimportacion;
-          }
-        }
-
-        return [
-          {
-            ...baseItem,
-            esopcionflag: 1,
-            esventaflag: 0,
-            cif,
-            seguro,
-            costounitario:
-              (item.code_cost == 13 ? transporte : costoBaseUnitario) +
-              parseFloat(flete.monto || 0),
-            tienefleteflag: flete.tienefleteflag,
-            fechavigencia: flete.fechavigencia,
-          },
-          {
-            ...baseItem,
-            esopcionflag: 0,
-            esventaflag: 1,
-            cif,
-            seguro,
-            costounitario:
-              item.code_cost == 13
-                ? parseFloat(transporte)
-                : costoBaseUnitario +
-                  parseFloat(montoprofit || 0) +
-                  parseFloat(flete.monto || 0),
-            tieneprofitflag: parseFloat(montoprofit) > 0,
-            tienefleteflag: flete.tienefleteflag,
-            fechavigencia: flete.fechavigencia,
-          },
-        ];
-      });
-      const nro_propuesta = opcionCostos[indiceOpcion].nro_propuesta;
-      opcionCostos[indiceOpcion].listCostos = cDuplicado.map((costo) => ({
-        ...costo,
-        nro_propuesta,
-      }));
-      opcionCostos[indiceOpcion].listImpuestos = listImpuestos.map(
-        (impuesto) => ({ ...impuesto, nro_propuesta }),
-      );
-      opcionCostos[indiceOpcion].listNotasQuote = listNotasQuote
-        .filter((v) => v.individualflag)
-        .map((nota) => ({ ...nota, nro_propuesta }));
-      this.$store.state.spiner = false;
-      if (mostrarConfirmacion) {
-        Swal.fire({
-          icon: "question",
-          title: "Cotizar",
-          text: "¿Desea pasar a Cotizar?",
-          confirmButtonText: "Pasar a Cotizar",
-          denyButtonText: "Guardar Borrador",
-          allowEnterKey: false,
-          allowOutsideClick: false,
-          confirmButtonColor: "green",
-          showDenyButton: true,
-          allowEscapeKey: false,
-          showCloseButton: true,
-        }).then(async (result) => {
-          if (result.isConfirmed) {
-            this.step = 2;
-            this.pricingStore.step = 2;
-            this.editableStep2 = true;
-          } else if (result.isDenied) {
-            await this.guardar();
-          }
-        });
-      }
-    },
-    obtenerFleteOpcionGrupal(item) {
-      let datoFlete = { monto: 0, tienefleteflag: false, fechavigencia: null };
-      if (item.code_cost == 4) {
-        const val =
-          !!this.calculadorasStore.fletePricing.monto_flete_grupal;
-        datoFlete.monto = val
-          ? this.obtenerPrecioUnitarioGrupal(
-              item,
-              this.calculadorasStore.fletePricing.monto_flete_grupal,
-            )
-          : 0;
-        datoFlete.tienefleteflag = val;
-        datoFlete.fechavigencia = val
-          ? this.calculadorasStore.fletePricing.vigencia_grupal || null
-          : null;
-      }
-      return datoFlete;
-    },
-    obtenerFleteOpcionVentaGrupal(item) {
-      let datoFlete = { monto: 0, tienefleteflag: false, fechavigencia: null };
-      if (item.code_cost == 7) {
-        const tieneFleteVenta =
-          !!this.calculadorasStore.fletePricing
-            .monto_flete_grupal_venta;
-        datoFlete.monto = tieneFleteVenta
-          ? this.obtenerPrecioUnitarioGrupal(
-              item,
-              parseFloat(
-                this.calculadorasStore.fletePricing
-                  .monto_flete_grupal_venta || 0,
-              ) -
-                parseFloat(
-                  this.calculadorasStore.fletePricing
-                    .monto_flete_grupal || 0,
-                ),
-            )
-          : 0;
-        datoFlete.tienefleteflag = tieneFleteVenta;
-        datoFlete.fechavigencia = tieneFleteVenta
-          ? this.calculadorasStore.fletePricing.vigencia_grupal_venta ||
-            null
-          : null;
-      }
-      if (item.code_cost == 4) {
-        const tieneFleteVenta =
-          !!this.calculadorasStore.fletePricing.monto_flete_grupal;
-        datoFlete.monto = tieneFleteVenta
-          ? this.obtenerPrecioUnitarioGrupal(
-              item,
-              this.calculadorasStore.fletePricing.monto_flete_grupal,
-            )
-          : 0;
-        datoFlete.tienefleteflag = tieneFleteVenta;
-        datoFlete.fechavigencia = tieneFleteVenta
-          ? this.calculadorasStore.fletePricing.vigencia_grupal || null
-          : null;
-      }
-      if (datoFlete.monto < 0) {
-        datoFlete.monto = 0;
-      }
-      return datoFlete;
-    },
-    obtenerPrecioUnitarioGrupal(item, monto) {
-      let factor = parseFloat(this.formatearCostoTotal(item)) || 0;
-      if (
-        item.code_cost == 4 &&
-        this.pricingStore.datosPrincipales.volumen < 1 &&
-        factor < 1
-      ) {
-        factor = 1;
-      }
-      return factor > 0
-        ? Number((parseFloat(monto || 0) / factor).toFixed(3))
-        : 0;
-    },
-    obtenerTransporteGrupal(item) {
-      let monto = 0;
-      if (item.code_cost == 13) {
-        const opcion = 2;
-        let pesoActual =
-          parseFloat(this.pricingStore.datosPrincipales.peso) || 0;
-
-        let transporte = this.calculadorasStore.lstTransporte.find(
-          (v) =>
-            v.id_distrito ==
-              this.pricingStore.datosPrincipales.id_town &&
-            v.opcion == opcion &&
-            pesoActual >= parseFloat(v.peso_desde) &&
-            pesoActual <= parseFloat(v.peso_hasta),
-        );
-
-        if (transporte) {
-          monto = parseFloat(transporte.tarifadolar);
-        }
-      }
-      return monto;
-    },
-    obtenerFleteOpcionIndividual(item) {
-      let datoFlete = { monto: 0, tienefleteflag: false, fechavigencia: null };
-      if (item.code_cost == 4) {
-        const val = !!this.calculadorasStore.fletePricing.monto_flete;
-        datoFlete.monto = val
-          ? this.calculadorasStore.fletePricing.monto_flete
-          : 0;
-        datoFlete.tienefleteflag = val;
-        datoFlete.fechavigencia = val
-          ? this.calculadorasStore.fletePricing.vigencia
-          : null;
-      }
-      return datoFlete;
-    },
-    obtenerTransporteIndividual(item) {
-      let monto = 0;
-      if (item.code_cost == 13) {
-        const opcion = 1;
-        const pesoActual =
-          parseFloat(this.pricingStore.datosPrincipales.peso) || 0;
-        const transporte = this.calculadorasStore.lstTransporte.find(
-          (v) =>
-            v.id_distrito ==
-              this.pricingStore.datosPrincipales.id_town &&
-            v.opcion == opcion &&
-            pesoActual >= parseFloat(v.peso_desde) &&
-            pesoActual <= parseFloat(v.peso_hasta),
-        );
-        if (transporte) {
-          monto = parseFloat(transporte.tarifadolar);
-        }
-      }
-      return monto;
-    },
-    async guardar() {
-      this.$store.state.spiner = true;
-
-      this.pricingStore.opcionCostos[0].selected = true;
-      await this.registrarQuote({ fullflag: false }).catch((err) => {});
-      if (this.pricingStore.nro_quote) {
-        this.$store.state.spiner = false;
-        let vm = this;
-
-        Swal.fire({
-          icon: "success",
-          title: "Aviso",
-          text: vm.pricingStore.mensaje,
-          confirmButtonText: "Ir al listado",
-          showConfirmButton: true,
-        }).then((result) => {
-          if (result.isConfirmed) {
-            vm.$router.push({
-              name: "lstQuote",
-            });
-          }
-          if (result.isDismissed) {
-            vm.$router.push({
-              name: "lstQuote",
-            });
-          }
-        });
-        let id_branch = JSON.parse(sessionStorage.getItem("dataUser"))[0]
-          .id_branch;
-        let branchCreacion = [1, 2];
-        if (branchCreacion.includes(id_branch)) {
-          const urlGenerada = await this.crearCarpetaOneDrive({
-            nro_quote: this.pricingStore.nro_quote,
-            nombre: this.pricingStore.datosPrincipales.nombre,
-          });
-
-          if (urlGenerada) {
-            await this.actualizarURLEnElQuote({
-              id: this.pricingStore.id,
-              url: urlGenerada,
-            });
-          } else {
-            console.error(
-              "No se obtuvo URL de OneDrive, se saltó la actualización.",
-            );
-          }
-        }
-      }
-    },
-    async anadirNuevaOpcion(nro_propuesta) {
-      const pricing = this.pricingStore;
-      pricing.opcionCostos.push({
-        nro_propuesta,
-        date_end: moment().add(7, "days").format("YYYY-MM-DD"),
-        tiempo_transito: 35,
-        listCostos: [],
-        listImpuestos: [],
-        listNotasQuote: [],
-        selected: false,
-      });
-
-      const indiceOpcion = pricing.opcionCostos.length - 1;
-      if (pricing.datosPrincipales.esgrupalflag) {
-        await this.activarLlenadoCostosGrupal(indiceOpcion, false);
-      } else if (pricing.datosPrincipales.esindividualflag) {
-        await this.activarLlenadoCostosIndividual(indiceOpcion, false);
-      }
-    },
-    async recargarCostos() {
-      Promise.all([this.getTipoCostos(), this.getMultiplicador()]);
-      const codeServicesActivos = new Set(
-        (this.pricingStore.listServices || [])
-          .filter((v) => v.status === true || v.status === 1)
-          .map((v) => v.code_service),
-      );
-
-      const c = (this.pricingStore.preCostos || []).filter(
-        (v) =>
-          v.id_incoterms ===
-            this.pricingStore.datosPrincipales.idincoterms &&
-          v.id_modality ===
-            this.pricingStore.datosPrincipales.idsentido &&
-          v.id_shipment ===
-            this.pricingStore.datosPrincipales.idtipocarga.id &&
-          codeServicesActivos.has(v.code_service),
-      );
-
-      let idContainer = [];
-      if (
-        (this.pricingStore.datosPrincipales.containers || []).length > 0
-      ) {
-        idContainer = this.pricingStore.datosPrincipales.containers.map(
-          (v) => v.id,
-        );
-      }
-
-      const cFiltrado = c.filter((v) => {
-        if (v.escontenedorflag) {
-          return idContainer.includes(v.id_container);
-        }
-        return true;
-      });
-
-      const codeCost = [69, 114, 105, 39];
-
-      const cDuplicado = cFiltrado.flatMap((item) => {
-        if (codeCost.includes(item.code_cost)) {
-          return [
-            {
-              ...item,
-              esopcionflag: 1,
-              esventaflag: 0,
-              status: true,
-              cif: this.pricingStore.datosPrincipales.esgrupalflag
-                ? 0
-                : parseFloat(0.35),
-              seguro: this.pricingStore.datosPrincipales.esgrupalflag
-                ? 0
-                : parseFloat(0.45),
-              costounitario: this.pricingStore.datosPrincipales
-                .esgrupalflag
-                ? 0
-                : item.costounitario,
-              nro_propuesta: 1,
-            },
-          ];
-        }
-
-        let montoprofit = 0;
-        const tipoImportacion =
-          this.masterusuariosStore.lstPercepcionAduana.find(
-            (v) =>
-              String(v.id) ===
-              String(
-                this.pricingStore.datosPrincipales.id_percepcionaduana,
-              ),
-          );
-        const profitList = item.profit_ganancia_pricing || [];
-
-        if (this.pricingStore.datosPrincipales.esindividualflag) {
-          const profitObj = profitList.find((v) => v.esindividualflag);
-          if (tipoImportacion?.codigo == "01") {
-            montoprofit = profitObj?.profitprimeraimportacion || 0;
-          }
-          if (tipoImportacion?.codigo == "02") {
-            montoprofit = profitObj?.profitsegundaimportacion || 0;
-          }
-        }
-
-        if (this.pricingStore.datosPrincipales.esgrupalflag) {
-          const profitObj = profitList.find((v) => v.esgrupalflag);
-          if (tipoImportacion?.codigo == "01") {
-            montoprofit = profitObj?.profitprimeraimportacion || 0;
-          }
-          if (tipoImportacion?.codigo == "02") {
-            montoprofit = profitObj?.profitsegundaimportacion || 0;
-          }
-        }
-
-        return [
-          {
-            ...item,
-            nro_propuesta: 1,
-            esopcionflag: 1,
-            esventaflag: 0,
-            status: true,
-            cif: this.pricingStore.datosPrincipales.esgrupalflag
-              ? 0
-              : parseFloat(0.35),
-            seguro: this.pricingStore.datosPrincipales.esgrupalflag
-              ? 0
-              : parseFloat(0.45),
-            costounitario: this.pricingStore.datosPrincipales
-              .esgrupalflag
-              ? 0
-              : item.costounitario,
-          },
-          {
-            ...item,
-            nro_propuesta: 1,
-            esopcionflag: 0,
-            esventaflag: 1,
-            status: true,
-            cif: parseFloat(0.35),
-            seguro: parseFloat(0.45),
-            costounitario:
-              parseFloat(
-                this.pricingStore.datosPrincipales.esgrupalflag
-                  ? 0
-                  : item.costounitario,
-              ) + parseFloat(montoprofit),
-            tieneprofitflag: parseFloat(montoprofit) > 0,
-          },
-        ];
-      });
-
-      this.pricingStore.opcionCostos = (
-        this.pricingStore.opcionCostos || []
-      ).slice(0, 1);
-      this.pricingStore.index = 0;
-      this.pricingStore.opcionCostos[0].listCostos = cDuplicado;
-      this.pricingStore.opcionCostos[0].listImpuestos =
-        this.pricingStore.listImpuestos;
-      this.pricingStore.opcionCostos[0].listNotasQuote =
-        this.pricingStore.listNotasQuote;
-
-      this.pricingStore.llenadoCostos = true;
-      this.$forceUpdate();
-      this.indexCostos++;
-    },
-    irVentaCliente() {
-      this.step = 2;
-      this.pricingStore.step = 2;
-      this.editableStep3 = true;
-    },
-    irANotas() {
-      this.step = 4;
-      this.pricingStore.step = 4;
-      this.editableStep4 = true;
-      this.pricingStore.btnRegistrar = true;
-    },
-    triggerExcel() {
-      if (this.$refs.excelInput) this.$refs.excelInput.click();
-    },
-    async onExcelSelected(e) {
-      const file = e.target.files && e.target.files[0];
-      if (!file) return;
-      this.$store.state.spiner = true;
-      try {
-        const rows = await readXlsFile(file);
-        const { actualizados } = this.cargarDesdeExcelDatosPrincipales(rows);
-        Swal.fire({
-          icon: "success",
-          title: "Excel cargado",
-          text: `Se actualizaron ${actualizados} campos de la cotización.`,
-        });
-        await this.ensurePreliminarStatus();
-        await this.getQuoteStatus();
-        await this.setDefaultStatusPreliminar();
-        await this.emitirPreliminarAuto();
-      } catch (err) {
-        Swal.fire({
-          icon: "error",
-          title: "Error",
-          text: "No se pudo leer el archivo Excel.",
-        });
-      } finally {
-        this.$store.state.spiner = false;
-        e.target.value = null;
-      }
-    },
-    cargarDesdeExcelDatosPrincipales(rows) {
-      if (!Array.isArray(rows) || rows.length < 2) return { actualizados: 0 };
-      const norm = (v) => (v == null ? "" : String(v).trim().toLowerCase());
-      const headers = rows[0].map((h) => norm(h));
-      const findIdx = (...names) => {
-        const targets = names.map((n) => norm(n));
-        for (let i = 0; i < headers.length; i++) {
-          const h = headers[i];
-          if (targets.some((t) => h === t || h.includes(t))) return i;
-        }
-        return -1;
-      };
-      const row =
-        rows.slice(1).find((r) => (r || []).some((v) => norm(v) !== "")) ||
-        rows[1];
-      let cambios = 0;
-      const sp = this.pricingStore;
-
-      const idxMarketing = findIdx("marketing", "tipo de marketing");
-      const idxStatus = findIdx(
-        "status",
-        "estado",
-        "estado de la cotizacion",
-        "estado de la cotización",
-      );
-      const idxEjecutivo = findIdx("ejecutivo", "vendedor");
-      const idxPricing = findIdx("pricing", "analista pricing");
-      const idxCliente = findIdx(
-        "cliente",
-        "nombre cliente",
-        "razon social",
-        "razón social",
-      );
-      const idxTelefono = findIdx("telefono", "teléfono");
-      const idxSentido = findIdx("sentido", "modality", "modalidad");
-      const idxShipment = findIdx("tipo de embarque", "embarque", "shipment");
-      const idxIncoterms = findIdx("incoterms", "incoterm");
-      const idxProveedor = findIdx("proveedor", "nombre proveedor");
-      const idxTelProveedor = findIdx(
-        "telefono proveedor",
-        "teléfono proveedor",
-      );
-      const idxDirProveedor = findIdx(
-        "direccion proveedor",
-        "dirección proveedor",
-      );
-
-      if (idxMarketing > -1) {
-        const val = norm(row[idxMarketing]);
-        const it = (sp.listMarketing || []).find(
-          (x) => x && norm(x.name) === val,
-        );
-        if (it) {
-          sp.datosPrincipales.id_marketing = it.id;
-          cambios++;
-        }
-      }
-      if (idxStatus > -1) {
-        const val = norm(row[idxStatus]);
-        const it = (sp.listQuoteStatus || []).find(
-          (x) => x && norm(x.name) === val,
-        );
-        if (it) {
-          sp.datosPrincipales.id_status = it.id;
-          cambios++;
-        }
-      }
-      if (idxEjecutivo > -1) {
-        const val = norm(row[idxEjecutivo]);
-        const it = (sp.listEjecutivo || []).find(
-          (x) => x && norm(x.nombrecompleto) === val,
-        );
-        if (it) {
-          sp.datosPrincipales.id_vendedor = it.id;
-          cambios++;
-        }
-      }
-      if (idxPricing > -1) {
-        const val = norm(row[idxPricing]);
-        const it = (sp.listEjecutivo || []).find(
-          (x) => x && norm(x.nombrecompleto) === val,
-        );
-        if (it) {
-          sp.datosPrincipales.id_pricing = it.id;
-          cambios++;
-        }
-      }
-      if (idxCliente > -1) {
-        const val = row[idxCliente];
-        if (norm(val) !== "") {
-          sp.datosPrincipales.nombre = String(val);
-          cambios++;
-        }
-      }
-      if (idxTelefono > -1) {
-        const val = row[idxTelefono];
-        if (norm(val) !== "") {
-          sp.datosPrincipales.telefono = String(val);
-          cambios++;
-        }
-      }
-      if (idxSentido > -1) {
-        const val = norm(row[idxSentido]);
-        const it = (sp.listModality || []).find(
-          (x) =>
-            norm(x.name) === val ||
-            norm(x.name).includes(val) ||
-            val.includes(norm(x.name)),
-        );
-        if (it) {
-          sp.datosPrincipales.idsentido = it.id;
-          cambios++;
-        }
-      }
-      if (idxShipment > -1) {
-        const val = norm(row[idxShipment]);
-        const it = (sp.listShipment || []).find(
-          (x) =>
-            norm(x.embarque) === val ||
-            norm(x.embarque).includes(val) ||
-            val.includes(norm(x.embarque)),
-        );
-        if (it) {
-          sp.datosPrincipales.idtipocarga = it;
-          cambios++;
-        }
-      }
-      if (idxIncoterms > -1) {
-        const val = norm(row[idxIncoterms]);
-        const it = (sp.listIncoterms || []).find(
-          (x) => x && (norm(x.name) === val || norm(x.text || "") === val),
-        );
-        if (it) {
-          sp.datosPrincipales.idincoterms = it.id;
-          cambios++;
-        }
-      }
-      if (idxProveedor > -1) {
-        const val = row[idxProveedor];
-        if (norm(val) !== "") {
-          sp.datosPrincipales.proveedor = String(val);
-          cambios++;
-        }
-      }
-      if (idxTelProveedor > -1) {
-        const val = row[idxTelProveedor];
-        if (norm(val) !== "") {
-          sp.datosPrincipales.telefonoproveedor = String(val);
-          cambios++;
-        }
-      }
-      if (idxDirProveedor > -1) {
-        const val = row[idxDirProveedor];
-        if (norm(val) !== "") {
-          sp.datosPrincipales.direccionproveedor = String(val);
-          cambios++;
-        }
-      }
-      return { actualizados: cambios };
-    },
-    async ensurePreliminarStatus() {
-      const estados = this.pricingStore.listQuoteStatus || [];
-      const existe = estados.some(
-        (e) =>
-          typeof e.name === "string" &&
-          e.name.toLowerCase().includes("preliminar"),
-      );
-      if (existe) return;
-      // await this.createPreliminarStatus();
-    },
-    async createPreliminarStatus() {
-      try {
-        await this.QuoteStatusStore.MaxPositionQuoteStatus();
-        const max = this.QuoteStatusStore;
-        const id_branch = JSON.parse(sessionStorage.getItem("dataUser"))[0]
-          .id_branch;
-        this.QuoteStatusStore.StatusModel = {
-          id: "",
-          name: "PRELIMINAR",
-          code: "",
-          position: (max.max_position || 0) + 1,
-          position_select: (max.max_position_select || 0) + 1,
-          position_report: (max.max_position_report || 0) + 1,
-          position_calls: (max.max_position_calls || 0) + 1,
-          status_calls: 0,
-          status_calls_all: 0,
-          description: "Cotización preliminar",
-          status: 1,
-          id_branch,
-        };
-        await this.QuoteStatusStore.setQuoteStatus();
-      } catch (e) {}
-    },
-    setDefaultStatusPreliminar() {
-      const estados = this.pricingStore.listQuoteStatus || [];
-      if (!Array.isArray(estados) || estados.length === 0) return;
-      const prelim = estados.find(
-        (e) =>
-          typeof e.name === "string" &&
-          e.name.toLowerCase().includes("preliminar") &&
-          e.status == 1,
-      );
-      if (prelim) {
-        this.pricingStore.datosPrincipales.id_status = prelim.id;
-        return;
-      }
-      const activo = estados.find((e) => e.status == 1) || estados[0];
-      if (activo) {
-        this.pricingStore.datosPrincipales.id_status = activo.id;
-      }
-    },
-    async emitirPreliminarAuto() {
-      this.pricingStore.opcionCostos[0].selected = true;
-      try {
-        await this.registrarQuote({ fullflag: false });
-        Swal.fire({
-          icon: "success",
-          title: "Preliminar emitida",
-          text: "La cotización preliminar fue registrada automáticamente.",
-        });
-      } catch (err) {}
-    },
-    recargarGrupalFlag() {
-      this.mostrarCostos = false;
-      setTimeout(async () => {
-        this.mostrarCostos = true;
-      }, 200);
-    },
-    formatearCostoTotal(valor) {
-      // 1. Desestructuración de los estados del Vuex para escribir menos y más limpio
-      const { listMultiplicador, datosPrincipales } = this.pricingStore;
-      const multiplicadores = listMultiplicador || [];
-
-      // 2. Buscamos el multiplicador correspondiente UNA SOLA VEZ
-      const multEncontrado = multiplicadores.find(
-        (v) => v.id === valor.id_multiplicador,
-      );
-
-      // 3. Extraemos las variables con valores por defecto si no existe el multiplicador
-      const valorMultiplicador = multEncontrado ? multEncontrado.valor : 0;
-      const codigoMultiplicador = multEncontrado ? multEncontrado.code : "N";
-
-      // 4. Ejecutamos la función calcularFac pasándole los datos de pricing
-      const factorCalculado = this.calcularFac(
-        codigoMultiplicador,
-        datosPrincipales.volumen,
-        datosPrincipales.peso,
-        datosPrincipales.containers,
-        datosPrincipales.amount,
-      );
-      return factorCalculado;
-    },
-  },
-  computed: {
-    ...mapStores(usePricingStore, useCalculadorasStore, useMasterusuariosStore, useQuoteStatusStore),
-    // ...mapState(["preServices", "preCostos"]),
-  },
-};
-</script>
 
 <style scoped>
 .align-right {
