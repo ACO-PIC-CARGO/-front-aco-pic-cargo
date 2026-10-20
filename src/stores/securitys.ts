@@ -243,6 +243,8 @@ export const useSecuritysStore = defineStore("securitys", () => {
     return respuesta;
   }
 
+  const dataMenu = ref(false);
+
   return {
     response,
     errorClave,
@@ -257,5 +259,6 @@ export const useSecuritysStore = defineStore("securitys", () => {
     ReEstablecerContrasenia,
     _getMenuItem,
     validarUsuarioAdmin,
+    dataMenu,
   };
 });

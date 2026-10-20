@@ -6,6 +6,7 @@ import axios from "@/api/http";
 import router from "@/router";
 import store from "@/store";
 import type { ApiResponse } from "@/types/api";
+import type { CampoRaiz } from "@/types/app";
 import type {
   Cliente,
   ClienteDetalle,
@@ -1155,6 +1156,9 @@ export const useEntitiesStore = defineStore("entities", () => {
     return res;
   }
 
+  const id_entitie_selected = ref<CampoRaiz>("");
+  const data_id_role = ref<CampoRaiz>("");
+
   return {
     dataEntitiePost,
     persona,
@@ -1217,5 +1221,7 @@ export const useEntitiesStore = defineStore("entities", () => {
     validarDocumentoCliente,
     cargarDatosTatifasEntite,
     validarClienteTieneMovimientos,
+    id_entitie_selected,
+    data_id_role,
   };
 });

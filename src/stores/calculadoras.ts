@@ -830,6 +830,8 @@ export const useCalculadorasStore = defineStore("calculadoras", () => {
     await enviarConMensaje("put", "calc/actualizar/estado/cotizacion", data);
   }
 
+  const overlay = ref<boolean>();
+
   return {
     listTotalCotizacion,
     listUser,
@@ -916,5 +918,6 @@ export const useCalculadorasStore = defineStore("calculadoras", () => {
     actualizarFlete,
     cargarEstatus,
     actualizarEstadoCotizacionCalculadora,
+    overlay,
   };
 });

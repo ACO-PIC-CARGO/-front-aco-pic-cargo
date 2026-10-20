@@ -1,12 +1,23 @@
 import { defineStore } from "pinia";
-import { ref } from "vue";
+import { computed, ref } from "vue";
 import Swal from "sweetalert2";
 import axios from "@/api/http";
 import router from "@/router";
 import store from "@/store";
+import { useAppStore } from "@/stores/app";
 import type { ApiResponse } from "@/types/api";
+import type { CampoRaiz, FilaRaiz, FiltroExpedientesRaiz, SeleccionRaiz } from "@/types/app";
+import type { ComentarioEstadoHouse } from "@/types/catalogos";
 import type { HouseListado } from "@/types/cotizacion";
-import type { FacturaFiscal, FiltroHouseConsulta, HouseDetalle, HouseFacturable } from "@/types/operaciones";
+import type {
+  BitacoraLinealHouse,
+  FacturaFiscal,
+  FiltroHouseConsulta,
+  HouseDetalle,
+  HouseFacturable,
+  RegistroBitacoraHouse,
+} from "@/types/operaciones";
+import { localDateAtAppLoad } from "@/utils/appLoad";
 import { sessionBranchId } from "@/utils/sesion";
 
 export const useHousesStore = defineStore("houses", () => {
@@ -235,6 +246,195 @@ export const useHousesStore = defineStore("houses", () => {
       });
   }
 
+  const copy_house = ref<FilaRaiz | null>(null);
+  const modalServices_manualMode = ref(false);
+  const itemsColoaders = ref<FilaRaiz[]>([]);
+  const itemsBitacoraLineal = ref<BitacoraLinealHouse[]>([]);
+  const itemsBitacora = ref<RegistroBitacoraHouse[]>([]);
+  const itemsHouseContainers = ref<FilaRaiz[]>([]);
+  const itemsComentariosPredefinidos = ref<ComentarioEstadoHouse[]>([]);
+  const house_id_trasnport = ref<SeleccionRaiz | CampoRaiz>("");
+  const house_sentido = ref<CampoRaiz>("");
+  const house_incoterms = ref<CampoRaiz>("");
+  const house_origen = ref<CampoRaiz>("");
+  const telexconfirmado = ref(false);
+  const fechaconfirmaciontelex = ref<CampoRaiz>("");
+  const house_destino = ref<CampoRaiz>("");
+  const house_id_containers = ref<SeleccionRaiz | CampoRaiz>("");
+  const house_cantidad = ref<CampoRaiz>("");
+  const house_id = ref<CampoRaiz>("");
+  const house_id_agente = ref<CampoRaiz>("");
+  const house_id_consigner_real = ref<CampoRaiz>("");
+  const house_id_notify = ref<CampoRaiz>("");
+  const house_id_airlines = ref<CampoRaiz>("");
+  const house_id_coloader = ref<CampoRaiz>("");
+  const house_id_naviera = ref<CampoRaiz>("");
+  const house_id_motonave = ref<CampoRaiz>("");
+  const house_viaje = ref<CampoRaiz>("");
+  const house_bultos = ref<CampoRaiz>("");
+  const house_peso = ref<CampoRaiz>("");
+  const house_volumen = ref<CampoRaiz>("");
+  const house_id_condicion = ref<CampoRaiz>("");
+  const house_id_coins = ref<CampoRaiz>("");
+  const house_blmaster = ref<CampoRaiz>("");
+  const url_onedrive = ref<CampoRaiz>("");
+  const house_master = ref<CampoRaiz>("");
+  const house_master_expediente = ref<CampoRaiz>("");
+  const house_nro_declaracion_aduana = ref<CampoRaiz>("");
+  const house_canal_aduana = ref<CampoRaiz>("");
+  const house_filtrarData = ref(false);
+  const house_filtro = ref<FiltroExpedientesRaiz>({
+    fecha_etd_desde: null,
+    fecha_eta_desde: null,
+    fecha_etd_hasta: null,
+    fecha_eta_hasta: null,
+  });
+  const dataHouse_transporte = ref<CampoRaiz>("");
+  const bitacora_id_bitacora = ref<CampoRaiz>("");
+  const bitacora_comentario_predefinido = ref<SeleccionRaiz | CampoRaiz>("");
+  const bitacora_comentario = ref<CampoRaiz>("");
+  const bitacora_comentario_flag = ref(false);
+  const bitacora_fecha = ref<CampoRaiz>(localDateAtAppLoad);
+  const bitacora_visible_cliente = ref(true);
+  const house_enlace_tracking = ref<CampoRaiz>("");
+  const house_monto = ref<CampoRaiz>();
+  const house_cotizacion = ref<CampoRaiz>();
+  const house_id_vendedor = ref<CampoRaiz>();
+  const house_id_pricing = ref<CampoRaiz>();
+  const house_nro_containers = ref<CampoRaiz>();
+  const house_nro_precinto = ref<CampoRaiz>();
+  const id_master = ref<CampoRaiz>();
+  const house_cotizacionaduana = ref<CampoRaiz>();
+
+  const itemsColoadersGetter = computed(() => itemsColoaders.value);
+  const itemsBitacoraLinealGetter = computed(() => itemsBitacoraLineal.value);
+  const itemsBitacoraGetter = computed(() => itemsBitacora.value);
+  const itemsHouseContainersGetter = computed(() => itemsHouseContainers.value);
+  const itemsComentariosPredefinidosGetter = computed(() => itemsComentariosPredefinidos.value);
+
+  function _setColoaders(dataColoaders: FilaRaiz[]): void {
+    itemsColoaders.value = dataColoaders;
+  }
+
+  function _setBitacoraLineal(data: BitacoraLinealHouse[]): void {
+    itemsBitacoraLineal.value = data;
+  }
+
+  function _setItemsBitacora(data: RegistroBitacoraHouse[]): void {
+    itemsBitacora.value = data;
+  }
+
+  function _setItemsHouseContainers(data: FilaRaiz[]): void {
+    itemsHouseContainers.value = data;
+  }
+
+  function _setItemsComentariosPredefinidos(data: ComentarioEstadoHouse[]): void {
+    itemsComentariosPredefinidos.value = data;
+  }
+
+  async function _getColoaders(): Promise<void> {
+    const data = JSON.stringify({
+      id_role: 17,
+      id_branch: sessionBranchId(),
+    });
+    const config = {
+      method: "post",
+      url: import.meta.env.VITE_URL_MAIN + "getEntitiesList",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      data: data,
+    };
+    await axios<ApiResponse<FilaRaiz[]>>(config)
+      .then(function (response) {
+        _setColoaders(response.data.data);
+      })
+      .catch(function (error) {
+        console.error(error);
+      });
+  }
+
+  async function _getBitacoraLineal(data: FilaRaiz): Promise<void> {
+    const config = {
+      method: "get",
+      url: import.meta.env.VITE_URL_MAIN + "getBitacoraLineal",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      params: data,
+    };
+    await axios<ApiResponse<BitacoraLinealHouse[]>>(config)
+      .then(function (response) {
+        _setBitacoraLineal(response.data.data);
+      })
+      .catch(function (error) {
+        console.error(error);
+      });
+  }
+
+  async function _getHouseBitacora(): Promise<void> {
+    const appStore = useAppStore();
+    const data = {
+      id: appStore.house_Id_get,
+      id_branch: sessionBranchId(),
+    };
+    const config = {
+      method: "post",
+      url: import.meta.env.VITE_URL_MAIN + "getHouseBitacora",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      data: data,
+    };
+    await axios<ApiResponse<RegistroBitacoraHouse[]>>(config)
+      .then(function (response) {
+        _setItemsBitacora(response.data.estadoflag ? response.data.data : []);
+      })
+      .catch(function (error) {
+        console.error(error);
+      });
+  }
+
+  async function _getHouseContainers(data: FilaRaiz): Promise<void> {
+    const config = {
+      method: "get",
+      url: import.meta.env.VITE_URL_MAIN + "getHouseContainers",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      params: data,
+    };
+    await axios<ApiResponse<FilaRaiz[]>>(config)
+      .then(function (response) {
+        _setItemsHouseContainers(response.data.data);
+      })
+      .catch(function (error) {
+        console.error(error);
+      });
+  }
+
+  async function _getComentariosPredefinidos(): Promise<void> {
+    const config = {
+      method: "get",
+      url: import.meta.env.VITE_URL_MAIN + `getComentariosPredefinidos?id_branch=${sessionBranchId()}`,
+      headers: {
+        "Content-Type": "application/json",
+      },
+    };
+    await axios<ApiResponse<ComentarioEstadoHouse[]>>(config)
+      .then(function (response) {
+        sessionStorage.setItem("auth-token", response.data.token!);
+        if (response.data.estadoflag) {
+          _setItemsComentariosPredefinidos(response.data.data);
+        } else {
+          _setItemsComentariosPredefinidos([]);
+        }
+      })
+      .catch(function (error) {
+        console.error(error);
+      });
+  }
+
   return {
     listHouse,
     house,
@@ -247,5 +447,74 @@ export const useHousesStore = defineStore("houses", () => {
     insertComentarioHouse,
     deleteHouse,
     getFacturasFiscales,
+    copy_house,
+    modalServices_manualMode,
+    itemsColoaders,
+    itemsBitacoraLineal,
+    itemsBitacora,
+    itemsHouseContainers,
+    itemsComentariosPredefinidos,
+    house_id_trasnport,
+    house_sentido,
+    house_incoterms,
+    house_origen,
+    telexconfirmado,
+    fechaconfirmaciontelex,
+    house_destino,
+    house_id_containers,
+    house_cantidad,
+    house_id,
+    house_id_agente,
+    house_id_consigner_real,
+    house_id_notify,
+    house_id_airlines,
+    house_id_coloader,
+    house_id_naviera,
+    house_id_motonave,
+    house_viaje,
+    house_bultos,
+    house_peso,
+    house_volumen,
+    house_id_condicion,
+    house_id_coins,
+    house_blmaster,
+    url_onedrive,
+    house_master,
+    house_master_expediente,
+    house_nro_declaracion_aduana,
+    house_canal_aduana,
+    house_filtrarData,
+    house_filtro,
+    dataHouse_transporte,
+    bitacora_id_bitacora,
+    bitacora_comentario_predefinido,
+    bitacora_comentario,
+    bitacora_comentario_flag,
+    bitacora_fecha,
+    bitacora_visible_cliente,
+    house_enlace_tracking,
+    house_monto,
+    house_cotizacion,
+    house_id_vendedor,
+    house_id_pricing,
+    house_nro_containers,
+    house_nro_precinto,
+    id_master,
+    house_cotizacionaduana,
+    itemsColoadersGetter,
+    itemsBitacoraLinealGetter,
+    itemsBitacoraGetter,
+    itemsHouseContainersGetter,
+    itemsComentariosPredefinidosGetter,
+    _setColoaders,
+    _setBitacoraLineal,
+    _setItemsBitacora,
+    _setItemsHouseContainers,
+    _setItemsComentariosPredefinidos,
+    _getColoaders,
+    _getBitacoraLineal,
+    _getHouseBitacora,
+    _getHouseContainers,
+    _getComentariosPredefinidos,
   };
 });
