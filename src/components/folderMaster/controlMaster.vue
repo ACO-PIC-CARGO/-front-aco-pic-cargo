@@ -100,10 +100,10 @@
   </v-form>
 </template>
 <script>
-import dataGen from "./dataGen.vue";
-import houselist from "./houselist.vue";
-import dataEmbar from "./dataEmbar.vue";
-import dataFechas from "./fechas.vue";
+import dataGen from "./DataGenMaster.vue";
+import houselist from "./HouseListMaster.vue";
+import dataEmbar from "./DataEmbarMaster.vue";
+import dataFechas from "./FechasMaster.vue";
 import { mapActions, mapState } from "vuex";
 import Swal from "sweetalert2";
 import axios from "@/api/http";
