@@ -176,3 +176,22 @@ export interface CuentaBancariaPic {
   cci: string;
   symbol: string;
 }
+
+export interface PasoBitacoraTracking {
+  id: number;
+  fecha: string;
+  namebitacora: string;
+  comentario: string;
+  visible_cliente: boolean | number;
+}
+
+export interface TrackingCarga {
+  total_pasos_bitacora: number;
+  pasos_bitacora: PasoBitacoraTracking[];
+  nameshipment?: string;
+  namelongshipment?: string;
+  flagpais_portbegin?: string;
+  flagpais_portend?: string;
+  namelong_portbegin?: string;
+  namelong_portend?: string;
+}

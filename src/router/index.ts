@@ -840,7 +840,7 @@ const routes = [
   {
     path: "/tracking/:token",
     name: "tracking",
-    component: () => import("../views/folderHouse/tracking.vue"),
+    component: () => import("../views/folderHouse/TrackingHouse.vue"),
   },
   {
     path: "/reestablecer_clave/:token",
