@@ -98,7 +98,7 @@ function inactive(row: TipoTelefono) {
     if (result.isConfirmed) {
       typePhoneStore.inactiveTypePhone({ id: row.id });
     } else {
-      // Kept: item is an empty string, so this write has always thrown.
+      // item is an empty string, so this write always throws.
       const target = selectedItem.value as unknown as { status: number };
       target.status = target.status === 1 ? 0 : 1;
     }

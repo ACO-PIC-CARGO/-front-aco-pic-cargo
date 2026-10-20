@@ -83,7 +83,7 @@ async function resetRecord(option?: string) {
   if (option == "filter") records.value = { ...originalRecords.value };
   else record.value = { ...originalRecord.value };
   await filter();
-  // @ts-expect-error Kept: showFilterDrawer is a boolean, so this call has always thrown.
+  // @ts-expect-error showFilterDrawer is a boolean, so this call always throws.
   showFilterDrawer.value();
 }
 async function reset_records() {

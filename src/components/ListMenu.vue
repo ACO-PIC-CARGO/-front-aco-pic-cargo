@@ -316,7 +316,7 @@ watch(actualizarCostosFlag, () => {
                 readonly
               />
 
-              <!-- @vue-expect-error Kept: idtipocarga holds the shipment id or, from this return-object select, the shipment row. -->
+              <!-- @vue-expect-error idtipocarga holds the shipment id or, from this return-object select, the shipment row. -->
               <v-select
                 label="Tipo de Embarque"
                 density="compact"

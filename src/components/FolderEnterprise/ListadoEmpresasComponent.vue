@@ -81,7 +81,7 @@ function readEnterprise(id: number) {
   router.push({ name: "readEnterprise", params: { id: id } });
 }
 async function _callState() {
-  // Kept: id_pais has never been declared here, so the branch below has always been skipped.
+  // id_pais is not declared here, so the branch below is always skipped.
   if (id_pais.value! > 0) {
     await appStore._getState(id_pais.value);
   }
@@ -166,7 +166,7 @@ async function switch_status(item: EmpresaListado) {
   });
 
   if (!val) {
-    // @ts-expect-error Kept: swal has never been defined here, so this call has always thrown a ReferenceError.
+    // @ts-expect-error swal is not defined here, so this call always throws a ReferenceError.
     await swal.fire({
       icon: "error",
       text: msg,

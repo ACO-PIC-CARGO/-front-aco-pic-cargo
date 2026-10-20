@@ -88,7 +88,7 @@ function __getLogin() {
         sessionStorage.setItem("dataUser", JSON.stringify(dataUSer.value));
         sessionStorage.setItem("dataBranch", JSON.stringify(dataBranch.value));
         CargarBranch(row.id);
-        // @ts-expect-error Kept: _getMenuItem takes no parameters, the id argument is ignored.
+        // @ts-expect-error _getMenuItem takes no parameters, the id argument is ignored.
         _getMenuItem(row.id);
       } else {
         Swal.fire({

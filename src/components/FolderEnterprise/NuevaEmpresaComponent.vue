@@ -29,7 +29,7 @@ const errEmail = ref("");
 const id_pais = ref<number>();
 const frmEmpresa = useTemplateRef("frmEmpresa");
 const frmDatos = useTemplateRef("frmDatos");
-// Not bound to the template, as in the old code.
+// Not bound to the template.
 const frmDML = ref<{ resetValidation: () => void }>();
 const form = ref<{ validate: () => Promise<{ valid: boolean }> }>();
 
@@ -96,7 +96,7 @@ onMounted(async () => {
 });
 
 async function _callState() {
-  // Kept: id_pais has never been declared here, so the branch below has always been skipped.
+  // id_pais is not declared here, so the branch below is always skipped.
   if (id_pais.value! > 0) {
     await appStore._getState(id_pais.value);
   }

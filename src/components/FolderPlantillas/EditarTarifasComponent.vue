@@ -1345,7 +1345,7 @@ function limpiarTarifas() {
           >
             Cancelar
           </v-btn>
-          <!-- @vue-expect-error Kept: agregarNuevoCosto is not defined, so Agregar never does anything. -->
+          <!-- @vue-expect-error agregarNuevoCosto is not defined, so Agregar never does anything. -->
           <v-btn
             color="green"
             @click="agregarNuevoCosto"

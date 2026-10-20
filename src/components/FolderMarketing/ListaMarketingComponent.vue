@@ -254,7 +254,7 @@ function validatePosition(v: number | string | null | undefined) {
 }
 async function clear(option?: string) {
   if (option == "filter") {
-    // Kept: restores the form copy into the filter, as the Options version did.
+    // Restores the form copy into the filter.
     marketing_list.value = { ...originalMarkting.value } as unknown as FiltroMarketing;
   } else {
     marketing.value = { ...originalMarktingList.value } as unknown as FormMarketing;

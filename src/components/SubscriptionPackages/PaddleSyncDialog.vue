@@ -97,7 +97,7 @@ function close() {
         </v-btn>
       </header>
 
-      <!-- @vue-expect-error Kept: aria-busy takes the "true" or "false" text. -->
+      <!-- @vue-expect-error aria-busy takes the "true" or "false" text. -->
       <div
         class="paddle-sync__body"
         :aria-busy="String(loadState === 'loading' || applying)"

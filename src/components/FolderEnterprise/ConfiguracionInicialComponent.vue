@@ -74,7 +74,7 @@ const frmNuevoCosto = ref<{
 const indexShipment = ref(0); // Índice para rastrear la posición actual del shipment
 const indexModality = ref(0); // Índice para rastrear la posición actual de la modalidad
 const frmNuevosCostos = useTemplateRef("frmNuevosCostos");
-// Not bound to the template, as in the old code.
+// Not bound to the template.
 const frmRegistro = ref<{ $el: { scrollTop: number } }>();
 
 onMounted(async () => {
@@ -489,7 +489,7 @@ async function finalizarConfig() {
     sessionStorage.removeItem("dataBranch");
   }
   await router.push({ name: "Login" });
-  // @ts-expect-error Kept: the non-standard forced-reload flag was part of the old call.
+  // @ts-expect-error reload() takes no forced-reload flag.
   window.location.reload(true);
 }
 function reponerCero(valor: CostoConfig) {

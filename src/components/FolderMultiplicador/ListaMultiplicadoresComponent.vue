@@ -145,7 +145,7 @@ async function btnNuevo() {
       return v.id_containers;
     }
   });
-  // Kept: the store has no id_containers, so this checks whether any row lacks one.
+  // The store has no id_containers, so this checks whether any row lacks one.
   if (containers.includes(undefined)) {
     Swal.fire({
       icon: "error",

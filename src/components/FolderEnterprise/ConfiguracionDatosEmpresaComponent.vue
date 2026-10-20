@@ -92,7 +92,7 @@ function mostrarImpOtro() {
       />
     </v-col>
     <v-col cols="12">
-      <!-- @vue-expect-error Kept: id_pais starts as an empty string, which the Number prop newId never accepted -->
+      <!-- @vue-expect-error id_pais starts as an empty string, which the Number prop newId never accepted -->
       <CboPais
         @pais-seleccionado="
           configEmpresaStore.datoEmpresa.id_pais = $event

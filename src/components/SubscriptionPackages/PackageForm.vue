@@ -358,7 +358,7 @@ async function save() {
             </p>
 
             <div class="stepper">
-              <!-- @vue-expect-error Kept: userLimit is a number or the text the field typed. -->
+              <!-- @vue-expect-error userLimit is a number or the text the field typed. -->
               <v-btn
                 variant="text"
                 class="stepper__button"
@@ -529,7 +529,7 @@ async function save() {
                   role="group"
                   aria-labelledby="selection-label"
                 >
-                  <!-- @vue-expect-error Kept: selectionLimit is set whenever this stepper shows. -->
+                  <!-- @vue-expect-error selectionLimit is set whenever this stepper shows. -->
                   <v-btn
                     variant="text"
                     class="stepper__button"
@@ -539,7 +539,7 @@ async function save() {
                   >
                     <v-icon>mdi-minus</v-icon>
                   </v-btn>
-                  <!-- @vue-expect-error Kept: aria-invalid takes the "true" or "false" text. -->
+                  <!-- @vue-expect-error aria-invalid takes the "true" or "false" text. -->
                   <output
                     id="package-selection"
                     class="stepper__output"
@@ -550,7 +550,7 @@ async function save() {
                   >
                     {{ draft.selectionLimit }}
                   </output>
-                  <!-- @vue-expect-error Kept: selectionLimit is set whenever this stepper shows. -->
+                  <!-- @vue-expect-error selectionLimit is set whenever this stepper shows. -->
                   <v-btn
                     variant="text"
                     class="stepper__button"

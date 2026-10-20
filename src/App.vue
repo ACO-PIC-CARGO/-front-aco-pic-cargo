@@ -319,7 +319,7 @@ function mostrarBtnGuardar() {
   if (!entitiesStore.cliente.telefonoActual.telefono) {
     return false;
   }
-  // @ts-expect-error Kept: the entities module never had house_id_consigner, so this read is always undefined.
+  // @ts-expect-error the entities store has no house_id_consigner, so this read is always undefined.
   if (entitiesStore.house_id_consigner) {
     return false;
   }
