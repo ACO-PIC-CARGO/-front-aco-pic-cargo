@@ -6,6 +6,20 @@ import router from "@/router";
 import masterusuario from "./masterusuario";
 import enterprise from "./enterprise";
 import modules from "./../index";
+
+async function getSessionBranchId() {
+  const userData = JSON.parse(sessionStorage.getItem("dataUser") || "null");
+  const idBranch = userData?.[0]?.id_branch;
+  if (idBranch === null || idBranch === undefined || idBranch === "") {
+    if (router.currentRoute.value.name !== "Login") {
+      await router.replace({ name: "Login" });
+    }
+    return null;
+  }
+
+  return idBranch;
+}
+
 const state = {
   search: "",
   totalregistro: 1,
@@ -809,15 +823,15 @@ const actions = {
       });
   },
   async getMarketingList({ commit }) {
+   
+
     var config = {
       method: "post",
       url: import.meta.env.VUE_APP_URL_MAIN + "getMarketingList",
       headers: {
         "Content-Type": "application/json",
       },
-      data: {
-        id_branch: JSON.parse(sessionStorage.getItem("dataUser"))[0].id_branch,
-      },
+     
     };
     await axios(config)
       .then(function (response) {
@@ -833,9 +847,6 @@ const actions = {
       url: import.meta.env.VUE_APP_URL_MAIN + "getQuoteStatus",
       headers: {
         "Content-Type": "application/json",
-      },
-      data: {
-        id_branch: JSON.parse(sessionStorage.getItem("dataUser"))[0].id_branch,
       },
     };
     await axios(config)
@@ -854,7 +865,7 @@ const actions = {
         "Content-Type": "application/json",
       },
       data: {
-        id_branch: JSON.parse(sessionStorage.getItem("dataUser"))[0].id_branch,
+       
         id_module: 6,
       },
     };

@@ -73,12 +73,15 @@
           </template>
           <template v-slot:[`item.action`]="{ item }">
             <v-btn
-              color="warning"
+              color="#1A237E"
               class="ma-1 btnCalc"
               block
               @click="abrirModalCambiarEstado(item)"
             >
-              Cambiar Estado
+              <v-icon size="small" readonly hide-details outlined class="mr-1"
+                >mdi-phone-plus</v-icon
+              >
+              Registro Llamada
             </v-btn>
             <v-btn
               color="#B71C1C"
@@ -209,6 +212,7 @@ export default {
       fecha: moment().format("YYYY-MM-DD"),
       comentario: "",
       headers: [
+        { title: "", key: "action", sortable: false },
         // { title: "", key: "accion" },
         { title: "Fecha Registro", key: "created_at" },
         { title: "Estado Cotización", key: "estado_cotizacion" },
@@ -223,7 +227,6 @@ export default {
         { title: "Correo", key: "email" },
         { title: "Teléfono", key: "telefono" },
         // { title: "Estado", key: "estadocotizacion" },
-        { title: "", key: "action", sortable: false },
       ],
 
       datos: {
