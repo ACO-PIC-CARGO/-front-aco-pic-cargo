@@ -1,10 +1,200 @@
+<script setup lang="ts">
+import { computed, ref, watch } from "vue";
+import { usePricingStore } from "@/stores/pricing";
+import { currencyFormat } from "@/utils/cotizacion";
+import type { Impuesto, Numerico } from "@/types/cotizacion";
+
+const props = defineProps<{
+  amount?: Numerico;
+  impuestos: Impuesto[];
+  index?: number | string;
+}>();
+
+const pricingStore = usePricingStore();
+
+const mostrar = ref(true);
+const headers = [
+  { title: "#", key: "index" },
+  { title: "Código", key: "codigo" },
+  { title: "Descripción", key: "descripcion" },
+  { title: "Porcentaje", key: "porcentaje" },
+  { title: "Monto", key: "monto" },
+];
+const noPorcentaje = ["04", "01", "02", "10", "11", "12"];
+const abierto = ref(0);
+
+
+const actualizarCostosFlag = computed(() => {
+  return pricingStore.actualizarCostosFlag;
+});
+
+function calcularImpuestos({ item = null as unknown as Impuesto }: { item?: Impuesto }) {
+  let monto: number | string = 0;
+  if (item.codigo === "01") {
+    monto = parseFloat(
+      String(pricingStore.datosPrincipales.amount)
+    ).toFixed(2);
+  }
+  if (item.codigo === "02") {
+    monto = parseFloat(String(pricingStore.totalFlete)).toFixed(2);
+  }
+  if (item.codigo === "03") {
+    monto = parseFloat(
+      String(((parseFloat(String(pricingStore.totalFlete)) +
+        parseFloat(String(pricingStore.datosPrincipales.amount))) *
+        (item.codigo01 as number)) /
+        100)
+    ).toFixed(2);
+  }
+  if (item.codigo === "04") {
+    const fob = parseFloat(String(pricingStore.datosPrincipales.amount));
+    const flet = parseFloat(String(pricingStore.totalFlete));
+    const seguro = parseFloat(
+      String(((parseFloat(String(pricingStore.totalFlete)) +
+        parseFloat(String(pricingStore.datosPrincipales.amount))) *
+        (obtenerPorcentaje({ code: "03" }) as number)) /
+        100)
+    );
+    monto = parseFloat(String(fob)) + parseFloat(String(flet)) + parseFloat(String(seguro));
+  }
+  if (item.codigo === "05") {
+    const fob = parseFloat(String(pricingStore.datosPrincipales.amount));
+    const flet = parseFloat(String(pricingStore.totalFlete));
+    const seguro = parseFloat(
+      String(((parseFloat(String(pricingStore.totalFlete)) +
+        parseFloat(String(pricingStore.datosPrincipales.amount))) *
+        (obtenerPorcentaje({ code: "03" }) as number)) /
+        100)
+    );
+    const cif = parseFloat(String(fob)) + parseFloat(String(flet)) + parseFloat(String(seguro));
+    monto = (cif * (item.codigo01 as number)) / 100;
+  }
+  if (item.codigo === "06") {
+    const fob = parseFloat(String(pricingStore.datosPrincipales.amount));
+    const flet = parseFloat(String(pricingStore.totalFlete));
+
+    const seguro = parseFloat(
+      String(((parseFloat(String(pricingStore.totalFlete)) +
+        parseFloat(String(pricingStore.datosPrincipales.amount))) *
+        (obtenerPorcentaje({ code: "03" }) as number)) /
+        100)
+    );
+    const cif = parseFloat(String(fob)) + parseFloat(String(flet)) + parseFloat(String(seguro));
+    const adv = (cif * (obtenerPorcentaje({ code: "05" }) as number)) / 100;
+    monto = ((cif + adv) * (item.codigo01 as number)) / 100;
+  }
+  if (item.codigo === "07") {
+    const fob = parseFloat(String(pricingStore.datosPrincipales.amount));
+    const flet = parseFloat(String(pricingStore.totalFlete));
+
+    const seguro = parseFloat(
+      String(((parseFloat(String(pricingStore.totalFlete)) +
+        parseFloat(String(pricingStore.datosPrincipales.amount))) *
+        (obtenerPorcentaje({ code: "03" }) as number)) /
+        100)
+    );
+    const cif = parseFloat(String(fob)) + parseFloat(String(flet)) + parseFloat(String(seguro));
+    const adv = (cif * (obtenerPorcentaje({ code: "05" }) as number)) / 100;
+    const isc = ((cif + adv) * (obtenerPorcentaje({ code: "06" }) as number)) / 100;
+    monto = ((cif + adv + isc) * (item.codigo01 as number)) / 100;
+  }
+  if (item.codigo === "08") {
+    const fob = parseFloat(String(pricingStore.datosPrincipales.amount));
+    const flet = parseFloat(String(pricingStore.totalFlete));
+
+    const seguro = parseFloat(
+      String(((parseFloat(String(pricingStore.totalFlete)) +
+        parseFloat(String(pricingStore.datosPrincipales.amount))) *
+        (obtenerPorcentaje({ code: "03" }) as number)) /
+        100)
+    );
+    const cif = parseFloat(String(fob)) + parseFloat(String(flet)) + parseFloat(String(seguro));
+    const adv = (cif * (obtenerPorcentaje({ code: "05" }) as number)) / 100;
+    const isc = ((cif + adv) * (obtenerPorcentaje({ code: "06" }) as number)) / 100;
+    monto = ((cif + adv + isc) * (item.codigo01 as number)) / 100;
+  }
+  if (item.codigo === "09") {
+    const fob = parseFloat(String(pricingStore.datosPrincipales.amount));
+    const flet = parseFloat(String(pricingStore.totalFlete));
+
+    const seguro = parseFloat(
+      String(((parseFloat(String(pricingStore.totalFlete)) +
+        parseFloat(String(pricingStore.datosPrincipales.amount))) *
+        (obtenerPorcentaje({ code: "03" }) as number)) /
+        100)
+    );
+    const cif = parseFloat(String(fob)) + parseFloat(String(flet)) + parseFloat(String(seguro));
+    const adv = (cif * (obtenerPorcentaje({ code: "05" }) as number)) / 100;
+    const isc = ((cif + adv) * (obtenerPorcentaje({ code: "06" }) as number)) / 100;
+    const ipm =
+      ((cif + adv + isc) * (obtenerPorcentaje({ code: "07" }) as number)) / 100;
+    const igv =
+      ((cif + adv + isc) * (obtenerPorcentaje({ code: "08" }) as number)) / 100;
+
+    monto = ((cif + adv + isc + igv + ipm) * (item.codigo01 as number)) / 100;
+  }
+  if (item.codigo === "10") {
+    monto = 100;
+  }
+  if (item.codigo === "11") {
+    monto = 7;
+  }
+  if (item.codigo === "12") {
+    monto = 3;
+  }
+  return parseFloat(String(monto)).toFixed(2);
+}
+function calcularTotalImpuesto() {
+  let total = 0;
+  const siCalcula = ["05", "06", "07", "08", "09", "10", "11", "12"];
+  props.impuestos
+    .filter((v) => siCalcula.includes(v.codigo as string))
+    .forEach((element) => {
+      total += parseFloat(calcularImpuestos({ item: element }));
+    });
+  return currencyFormat(total);
+}
+function obtenerPorcentaje({ code = "" }: { code?: string | number }) {
+  const porcentaje =
+    props.impuestos.filter((v) => v.codigo == code).length > 0
+      ? props.impuestos.filter((v) => v.codigo == code)[0]!.codigo01
+      : 0;
+  return porcentaje;
+}
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+function disabledImp({ code = "" }: { code?: string | number }) {
+  return false;
+}
+
+watch(() => props.impuestos, () => {
+  // @ts-expect-error Kept: called without its destructured argument, so it throws
+  calcularImpuestos();
+  abierto.value = 0;
+});
+watch(actualizarCostosFlag, () => {
+  setTimeout(() => {
+    mostrar.value = !mostrar.value;
+    mostrar.value = !mostrar.value;
+    abierto.value = 0;
+  }, 120);
+});
+watch(() => props.amount, () => {
+  // @ts-expect-error Kept: called without its destructured argument, so it throws
+  calcularImpuestos();
+  abierto.value = 0;
+});
+</script>
+
 <template>
   <v-container v-if="mostrar">
-    <v-expansion-panels class="condensed my-1" v-model="abierto">
+    <v-expansion-panels
+      class="condensed my-1"
+      v-model="abierto"
+    >
       <v-expansion-panel>
         <v-expansion-panel-title color="#90CAF9">
           <p>
-            Impuestos Opción - {{ impuestos[0].nro_propuesta }} :
+            Impuestos Opción - {{ impuestos[0]!.nro_propuesta }} :
             <b>{{ calcularTotalImpuesto() }}</b>
           </p>
         </v-expansion-panel-title>
@@ -15,21 +205,21 @@
             item-value="id"
             density="compact"
           >
-            <template v-slot:[`item.index`]="{ item, index }">
-              {{ index + 1 }}
+            <template #[`item.index`]="{ index: indiceFila }">
+              {{ indiceFila + 1 }}
             </template>
-            <template v-slot:[`item.porcentaje`]="{ item }">
+            <template #[`item.porcentaje`]="{ item }">
               <v-text-field
                 v-model="item.codigo01"
                 density="compact"
-                v-if="!noPorcentaje.includes(item.codigo)"
+                v-if="!noPorcentaje.includes(item.codigo as string)"
                 type="number"
                 step="0.01"
                 prefix="%"
                 :disabled="disabledImp({ code: item.codigo })"
-              ></v-text-field>
+              />
             </template>
-            <template v-slot:[`item.monto`]="{ item }">
+            <template #[`item.monto`]="{ item }">
               {{ calcularImpuestos({ item: item }) }}
             </template>
           </v-data-table>
@@ -38,190 +228,5 @@
     </v-expansion-panels>
   </v-container>
 </template>
-
-<script>
-import mixins from "@/components/mixins/funciones";
-import { mapStores } from "pinia";
-import { usePricingStore } from "@/stores/pricing";
-export default {
-  props: ["amount", "impuestos", "index"],
-  mixins: [mixins],
-  data() {
-    return {
-      mostrar: true,
-      headers: [
-        { title: "#", key: "index" },
-        { title: "Código", key: "codigo" },
-        { title: "Descripción", key: "descripcion" },
-        { title: "Porcentaje", key: "porcentaje" },
-        { title: "Monto", key: "monto" },
-      ],
-      noPorcentaje: ["04", "01", "02", "10", "11", "12"],
-      abierto: 0,
-    };
-  },
-  methods: {
-    calcularImpuestos({ item = null }) {
-      let monto = 0;
-      if (item.codigo === "01") {
-        monto = parseFloat(
-          this.pricingStore.datosPrincipales.amount
-        ).toFixed(2);
-      }
-      if (item.codigo === "02") {
-        monto = parseFloat(this.pricingStore.totalFlete).toFixed(2);
-      }
-      if (item.codigo === "03") {
-        monto = parseFloat(
-          ((parseFloat(this.pricingStore.totalFlete) +
-            parseFloat(this.pricingStore.datosPrincipales.amount)) *
-            item.codigo01) /
-            100
-        ).toFixed(2);
-      }
-      if (item.codigo === "04") {
-        let fob = parseFloat(this.pricingStore.datosPrincipales.amount);
-        let flet = parseFloat(this.pricingStore.totalFlete);
-        let seguro = parseFloat(
-          ((parseFloat(this.pricingStore.totalFlete) +
-            parseFloat(this.pricingStore.datosPrincipales.amount)) *
-            this.obtenerPorcentaje({ code: "03" })) /
-            100
-        );
-        monto = parseFloat(fob) + parseFloat(flet) + parseFloat(seguro);
-      }
-      if (item.codigo === "05") {
-        let fob = parseFloat(this.pricingStore.datosPrincipales.amount);
-        let flet = parseFloat(this.pricingStore.totalFlete);
-        let seguro = parseFloat(
-          ((parseFloat(this.pricingStore.totalFlete) +
-            parseFloat(this.pricingStore.datosPrincipales.amount)) *
-            this.obtenerPorcentaje({ code: "03" })) /
-            100
-        );
-        let cif = parseFloat(fob) + parseFloat(flet) + parseFloat(seguro);
-        monto = (cif * item.codigo01) / 100;
-      }
-      if (item.codigo === "06") {
-        let fob = parseFloat(this.pricingStore.datosPrincipales.amount);
-        let flet = parseFloat(this.pricingStore.totalFlete);
-
-        let seguro = parseFloat(
-          ((parseFloat(this.pricingStore.totalFlete) +
-            parseFloat(this.pricingStore.datosPrincipales.amount)) *
-            this.obtenerPorcentaje({ code: "03" })) /
-            100
-        );
-        let cif = parseFloat(fob) + parseFloat(flet) + parseFloat(seguro);
-        let adv = (cif * this.obtenerPorcentaje({ code: "05" })) / 100;
-        monto = ((cif + adv) * item.codigo01) / 100;
-      }
-      if (item.codigo === "07") {
-        let fob = parseFloat(this.pricingStore.datosPrincipales.amount);
-        let flet = parseFloat(this.pricingStore.totalFlete);
-
-        let seguro = parseFloat(
-          ((parseFloat(this.pricingStore.totalFlete) +
-            parseFloat(this.pricingStore.datosPrincipales.amount)) *
-            this.obtenerPorcentaje({ code: "03" })) /
-            100
-        );
-        let cif = parseFloat(fob) + parseFloat(flet) + parseFloat(seguro);
-        let adv = (cif * this.obtenerPorcentaje({ code: "05" })) / 100;
-        let isc = ((cif + adv) * this.obtenerPorcentaje({ code: "06" })) / 100;
-        monto = ((cif + adv + isc) * item.codigo01) / 100;
-      }
-      if (item.codigo === "08") {
-        let fob = parseFloat(this.pricingStore.datosPrincipales.amount);
-        let flet = parseFloat(this.pricingStore.totalFlete);
-
-        let seguro = parseFloat(
-          ((parseFloat(this.pricingStore.totalFlete) +
-            parseFloat(this.pricingStore.datosPrincipales.amount)) *
-            this.obtenerPorcentaje({ code: "03" })) /
-            100
-        );
-        let cif = parseFloat(fob) + parseFloat(flet) + parseFloat(seguro);
-        let adv = (cif * this.obtenerPorcentaje({ code: "05" })) / 100;
-        let isc = ((cif + adv) * this.obtenerPorcentaje({ code: "06" })) / 100;
-        monto = ((cif + adv + isc) * item.codigo01) / 100;
-      }
-      if (item.codigo === "09") {
-        let fob = parseFloat(this.pricingStore.datosPrincipales.amount);
-        let flet = parseFloat(this.pricingStore.totalFlete);
-
-        let seguro = parseFloat(
-          ((parseFloat(this.pricingStore.totalFlete) +
-            parseFloat(this.pricingStore.datosPrincipales.amount)) *
-            this.obtenerPorcentaje({ code: "03" })) /
-            100
-        );
-        let cif = parseFloat(fob) + parseFloat(flet) + parseFloat(seguro);
-        let adv = (cif * this.obtenerPorcentaje({ code: "05" })) / 100;
-        let isc = ((cif + adv) * this.obtenerPorcentaje({ code: "06" })) / 100;
-        let ipm =
-          ((cif + adv + isc) * this.obtenerPorcentaje({ code: "07" })) / 100;
-        let igv =
-          ((cif + adv + isc) * this.obtenerPorcentaje({ code: "08" })) / 100;
-
-        monto = ((cif + adv + isc + igv + ipm) * item.codigo01) / 100;
-      }
-      if (item.codigo === "10") {
-        monto = 100;
-      }
-      if (item.codigo === "11") {
-        monto = 7;
-      }
-      if (item.codigo === "12") {
-        monto = 3;
-      }
-      return parseFloat(monto).toFixed(2);
-    },
-    calcularTotalImpuesto() {
-      let total = 0;
-      let siCalcula = ["05", "06", "07", "08", "09", "10", "11", "12"];
-      this.impuestos
-        .filter((v) => siCalcula.includes(v.codigo))
-        .forEach((element) => {
-          total += parseFloat(this.calcularImpuestos({ item: element }));
-        });
-      return this.currencyFormat(total);
-    },
-    obtenerPorcentaje({ code = "" }) {
-      let porcentaje =
-        this.impuestos.filter((v) => v.codigo == code).length > 0
-          ? this.impuestos.filter((v) => v.codigo == code)[0].codigo01
-          : 0;
-      return porcentaje;
-    },
-    disabledImp({ code = "" }) {
-      return false;
-    },
-  },
-  computed: {
-    ...mapStores(usePricingStore),
-    actualizarCostosFlag() {
-      return this.pricingStore.actualizarCostosFlag;
-    },
-  },
-  watch: {
-    impuestos() {
-      this.calcularImpuestos();
-      this.abierto = 0;
-    },
-    actualizarCostosFlag() {
-      setTimeout(() => {
-        this.mostrar = !this.mostrar;
-        this.mostrar = !this.mostrar;
-        this.abierto = 0;
-      }, 120);
-    },
-    amount() {
-      this.calcularImpuestos();
-      this.abierto = 0;
-    },
-  },
-};
-</script>
 
 <style></style>
