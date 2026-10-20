@@ -1,18 +1,935 @@
+<script setup lang="ts">
+import { computed, defineAsyncComponent, nextTick, onMounted, ref, useTemplateRef } from "vue";
+import { useRoute, useRouter } from "vue-router";
+import { useStore } from "vuex";
+import Swal from "sweetalert2";
+import moment from "moment";
+import axios from "@/api/http";
+import FileSequenceInstructivo from "../../comun/FileSequenceInstructivo.vue";
+import { generateIdempotencyKey } from "@/utils/idempotencia";
+import { useConfigEmpresaStore } from "@/stores/configEmpresa";
+import { usePricingStore } from "@/stores/pricing";
+import { useSecuritysStore } from "@/stores/securitys";
+import type { ArchivoDrive, ExpedienteMaster, HouseAsociadoMaster, OpcionCosto } from "@/types/cotizacion";
+import type { ProveedorPricing } from "@/types/entidades";
+
+const ConfigCotizacion = defineAsyncComponent(() =>
+  import("@/components/folderPricing/ConfigExpediente.vue"));
+
+const route = useRoute();
+const router = useRouter();
+const rootStore = useStore();
+const pricingStore = usePricingStore();
+const configEmpresaStore = useConfigEmpresaStore();
+const securitysStore = useSecuritysStore();
+
+const notaForm = useTemplateRef("nota");
+const frmSeleccionQuote = useTemplateRef("frmSeleccionQuote");
+const frmAsociarExpediente = useTemplateRef("frmAsociarExpediente");
+
+const dialogCorrelativos = ref(false);
+const correlativos = ref<{ code: string }[]>([]);
+const IdempotencyKey = ref("");
+const verPrevisualizacion = ref(true);
+const verDatosPreview = ref(true);
+const proveedorInstructivo = ref<unknown>({});
+const dialogSequenceInstructivo = ref(false);
+const dialogFiles = ref(false);
+const nuevoexpediente = ref<string | boolean>("");
+const aprobarflag = ref(false);
+const id_exp = ref<number | string>("");
+const fecha_validez = ref<string | undefined>("");
+const descripcionNota = ref("");
+const dialog = ref(false);
+const seleccionQuoteAprobar = ref(false);
+const page = ref(1);
+const nro_propuesta = ref<number | string>("");
+const mostrarAdvertencia = ref(false);
+const textValidacionCotizacionMaster = ref<string[]>([]);
+const dialogConfig = ref(false);
+const dialogCostos = ref(false);
+const textValidacionPago = ref("");
+const activarBtnContinuar = ref(true);
+const loading = ref(false);
+const lstHouse = ref<HouseAsociadoMaster[]>([]);
+const dialogHouse = ref(false);
+const id_house = ref<number | string>("");
+const optionCostos = [
+  { id: "0", text: "No hacer ninguna acción" },
+  { id: "1", text: "Reemplazar los costos, ya existente de proveedores" },
+  {
+    id: "2",
+    text: "Sumar los nuevos costos, a los costos ya existentes de proveedores",
+  },
+];
+const optionHouse = [
+  // { id: "0", text: "Crear un nuevo house" },
+  {
+    id: "1",
+    text: "Reemplazar los nuevos montos, ya existente del house",
+  },
+  {
+    id: "2",
+    text: "Sumar los nuevos montos, a los costos ya existentes del house",
+  },
+];
+const id_opcion = ref<number | string>("0");
+const id_opcion_house = ref<number | string>("0");
+const headersFiles = [
+  { title: "Archivo", key: "name" },
+  { title: "", key: "action" },
+];
+const url_folderonedrive = ref<string | undefined>("");
+let stepAprobado: number | undefined;
+
+const activarBotonAsociarMaster = computed(() => {
+  if (id_opcion.value == 1) {
+    const exp = rootStore.state.itemsMasterList.find(
+      (v: ExpedienteMaster) => v.id == id_exp.value,
+    );
+    const clienteVarios = "CLIENTE VARIOS";
+
+    if (exp && exp.Expediente) {
+      const esMultiple = exp.Expediente.includes(clienteVarios);
+
+      if (esMultiple) {
+        return false;
+      }
+    }
+  }
+  return true;
+});
+const mostrarMensajeClienteVariosExp = computed(() => {
+  if (id_opcion.value == 1) {
+    const exp = rootStore.state.itemsMasterList.find(
+      (v: ExpedienteMaster) => v.id == id_exp.value,
+    );
+    const clienteVarios = "CLIENTE VARIOS";
+    if (exp && exp.code_master) {
+      const esMultiple = exp.code_master.includes(clienteVarios);
+
+      if (esMultiple) {
+        return true;
+      }
+    }
+  }
+  return false;
+});
+const ingresosInstructivoActual = computed(() => {
+  const lista = pricingStore.listIngresosInstructivo;
+  const index = page.value - 1;
+  if (!lista || !lista.length || index < 0 || index >= lista.length) {
+    return [];
+  }
+  const item = lista[index];
+  return item && item.opcion ? item.opcion : [];
+});
+const costosInstructivoActual = computed(() => {
+  const lista = pricingStore.listCostosInstructivo;
+  const index = page.value - 1;
+  if (!lista || !lista.length || index < 0 || index >= lista.length) {
+    return [];
+  }
+  const item = lista[index];
+  return item && item.opcion ? item.opcion : [];
+});
+const impuestosInstructivoActual = computed(() => {
+  const lista = pricingStore.listImpuestosInstructivo;
+  const index = page.value - 1;
+  if (!lista || !lista.length || index < 0 || index >= lista.length) {
+    return [];
+  }
+  const item = lista[index];
+  return item && item.opcion ? item.opcion : [];
+});
+const nroPropuestaActual = computed(() => {
+  const lista = pricingStore.listIngresosInstructivo;
+  const index = page.value - 1;
+  if (!lista || !lista.length || index < 0 || index >= lista.length) {
+    return "";
+  }
+  const item = lista[index];
+  return item && item.nro_propuesta ? item.nro_propuesta : "";
+});
+const correlativoPrincipal = computed(() => {
+  return (correlativos.value.length ? correlativos.value[0]! : "") as unknown as { code?: string };
+});
+const correlativosSecundarios = computed(() => {
+  return correlativos.value.slice(1);
+});
+
+onMounted(async () => {
+  IdempotencyKey.value = generateIdempotencyKey();
+  stepAprobado = route.params.step
+    ? parseInt(route.params.step as string)
+    : 1;
+  nextTick(async () => {
+    setTimeout(async () => {
+      await pricingStore.generaInstructivoparaguardata();
+      if (pricingStore.aprobadoflag && stepAprobado == 5) {
+        dialogSequenceInstructivo.value = true;
+      }
+    }, 4000);
+  });
+});
+
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+function tienePagosAsociados() {
+  if (id_exp.value) {
+    const val = rootStore.state.itemsMasterList.find(
+      (v: ExpedienteMaster) => v.id == id_exp.value,
+    );
+    if (val.tienepagos) {
+      return true;
+    }
+  }
+  return false;
+}
+function abrirCarpeta(url?: string | null) {
+  if (!url) {
+    Swal.fire({
+      icon: "warning",
+      title: "Error",
+      text: "No existe carpeta asociada.",
+    });
+    return;
+  }
+
+  window.open(url, "_blank");
+}
+function irAControlDeGastos() {
+  console.log();
+  Swal.fire({
+    icon: "question",
+    title: "Ir a Control de Gastos",
+    text: "¿Desea Ir al control de Gastos Asociado a esta Cotización?",
+    allowEnterKey: false,
+    allowEscapeKey: false,
+    allowOutsideClick: false,
+    confirmButtonText: "Si, ir al control de Gastos",
+    denyButtonText: "Cancelar",
+    showCloseButton: true,
+  }).then((res) => {
+    if (res.isConfirmed) {
+      router.push({
+        name: "editControlGasto",
+        params: {
+          id: pricingStore.id_master,
+          id_branch: JSON.parse(sessionStorage.getItem("dataUser") as string)[0]
+            .id_branch,
+        },
+      });
+    }
+  });
+}
+function cerrarDialogoSequenceInstructivo() {
+  Swal.fire({
+    icon: "warning",
+    title: "Advertencia",
+    text: "Si cierra esta pestaña no se guardará ningún cambio. Está seguro de cerrar esta pestaña.",
+    allowEnterKey: false,
+    allowEscapeKey: false,
+    allowOutsideClick: false,
+    confirmButtonText: "Si, cerrar.",
+    cancelButtonText: "Cancelar",
+    cancelButtonColor: "red",
+    showCancelButton: true,
+  }).then((res) => {
+    if (res.isConfirmed) {
+      dialogSequenceInstructivo.value = false;
+    }
+  });
+  // dialogSequenceInstructivo
+}
+function getIconFile(item: ArchivoDrive) {
+  if (item.folder) return "mdi-folder";
+
+  const extension = item.extension ? item.extension.toLowerCase() : "";
+
+  switch (extension) {
+    case "pdf":
+      return "mdi-file-pdf-box";
+    case "xls":
+    case "xlsx":
+      return "mdi-file-excel";
+    case "doc":
+    case "docx":
+      return "mdi-file-word";
+    case "png":
+    case "jpg":
+    case "jpeg":
+      return "mdi-file-image";
+    case "zip":
+    case "rar":
+      return "mdi-zip-box";
+    default:
+      return "mdi-file";
+  }
+}
+
+function getColorIcon(item: ArchivoDrive) {
+  if (item.folder) return "amber";
+  const extension = item.extension ? item.extension.toLowerCase() : "";
+
+  const colors: Record<string, string> = {
+    pdf: "red",
+    xlsx: "green",
+    xls: "green",
+    docx: "blue",
+    doc: "blue",
+    png: "purple",
+    jpg: "purple",
+  };
+
+  return colors[extension] || "grey";
+}
+async function guardarConfig() {
+  await configEmpresaStore.GuardarConfiguracionEmpresa();
+  await securitysStore.ObtenerDatosConfig();
+  dialogConfig.value = false;
+  abrirSeleccionDeQuoteAAprobar();
+}
+function verificarMaster() {
+  mostrarAdvertencia.value = false;
+  textValidacionCotizacionMaster.value = [];
+  const master = rootStore.state.itemsMasterList.find(
+    (v: ExpedienteMaster) => v.id == id_exp.value,
+  );
+  url_folderonedrive.value = master.url_folderonedrive;
+  if (
+    !(
+      pricingStore.datosPrincipales.idsentido ==
+      master.id_modality
+    )
+  ) {
+    mostrarAdvertencia.value = true;
+    textValidacionCotizacionMaster.value.push("Modalidad");
+  }
+  if (
+    !(
+      pricingStore.datosPrincipales.idtipocarga ==
+      master.id_shipment
+    )
+  ) {
+    mostrarAdvertencia.value = true;
+    textValidacionCotizacionMaster.value.push("Tipó de Cargar");
+  }
+  if (
+    !(
+      pricingStore.datosPrincipales.idincoterms ==
+      master.id_incoterms
+    )
+  ) {
+    mostrarAdvertencia.value = true;
+    textValidacionCotizacionMaster.value.push("Incoterms");
+  }
+
+  if (
+    !(
+      pricingStore.datosPrincipales.idorigen ==
+      master.id_port_begin
+    )
+  ) {
+    mostrarAdvertencia.value = true;
+    textValidacionCotizacionMaster.value.push("Puerto de origien");
+  }
+  if (
+    !(
+      pricingStore.datosPrincipales.iddestino ==
+      master.id_port_end
+    )
+  ) {
+    mostrarAdvertencia.value = true;
+    textValidacionCotizacionMaster.value.push("Puerto de Destino");
+  }
+}
+async function imprimir() {
+  for (
+    let index = 0;
+    index <
+    pricingStore.opcionCostos.filter((v) => !!v.selected)
+      .length;
+    index++
+  ) {
+    ((index: number) => {
+      pricingStore.imprimirInstructivoQuote({
+        nro_propuesta:
+          pricingStore.opcionCostos[index]!.nro_propuesta,
+        url_folderonedrive:
+          pricingStore.datosPrincipales.url_folderonedrive,
+      } as { nro_propuesta?: number });
+    })(index); // Pasamos 'index' como argumento y establecemos el contexto a 'this'
+  }
+}
+async function guardarNota() {
+  if ((await notaForm.value!.validate()).valid) {
+    rootStore.state.spiner = true;
+    const data = {
+      name: descripcionNota.value,
+      id_quote: route.params.id,
+    };
+    await pricingStore.setNoteQuote(data);
+    notaForm.value!.reset();
+    await pricingStore.getInstructivoId({ id: route.params.id as string });
+    dialog.value = false;
+    rootStore.state.spiner = false;
+  }
+}
+async function abrirSeleccionDeQuoteAAprobar() {
+  if (!pricingStore.datosPrincipales.id_proveedor) {
+    Swal.fire({
+      icon: "warning",
+      title: "Proveedor",
+      text: "Para Aprobar la cotización necesita un proveedor",
+    });
+    return;
+  }
+  const opcionCostos = pricingStore.opcionCostos.filter(
+    (v) => !!v.selected,
+  );
+  if (opcionCostos.length != 1) {
+    Swal.fire({
+      icon: "warning",
+      title: "Costos",
+      text: "Es necesario seleccionar opción para cotizar",
+    });
+    return;
+  }
+  const costosFlete = opcionCostos[0]!.listCostos.filter(
+    (v) => v.esfleteflag == 1 && v.status == 1 && v.esopcionflag == 1,
+  );
+
+  const proveedoresUnicos = [
+    ...new Set(costosFlete.map((v) => v.id_proveedor)),
+  ];
+  if (proveedoresUnicos.length > 1) {
+    Swal.fire({
+      icon: "warning",
+      title: "Costos",
+      text: "Para aprobar, en la sección Flete y gastos de origen, debe tener un solo proveedor",
+    });
+    return;
+  }
+  proveedorInstructivo.value = rootStore.state.provedores.find(
+    (v: ProveedorPricing) => v.id == proveedoresUnicos[0],
+  );
+
+  const val = JSON.parse(sessionStorage.getItem("ConfigEmpresa") as string);
+  dialogConfig.value = !val.existemaster;
+  if (dialogConfig.value) {
+    return false;
+  }
+
+  await rootStore.dispatch("cargarMaster", pricingStore.datosPrincipales);
+
+  seleccionQuoteAprobar.value = true;
+}
+function mostrarBtnAprobar() {
+  return !pricingStore.aprobadoflag;
+}
+function abrirModalListadoArchivos() {
+  dialogFiles.value = true;
+}
+function abrirSeleccionCorreo() {
+  Swal.fire({
+    icon: "question",
+    title: "¿Empezar Instructivo?",
+    showConfirmButton: true,
+    confirmButtonText: "Empezar",
+    cancelButtonText: "Cancelar",
+    allowEnterKey: false,
+    allowEscapeKey: false,
+    allowOutsideClick: false,
+  }).then((confirmacion) => {
+    if (confirmacion.isConfirmed) {
+      dialogFiles.value = false;
+      dialogSequenceInstructivo.value = true;
+    }
+  });
+}
+async function abrirModalAprobar() {
+  dialogFiles.value = false;
+  dialogSequenceInstructivo.value = false;
+  await pricingStore.generaInstructivoparaguardata();
+  await nextTick();
+  const formulario = frmSeleccionQuote.value;
+  if (!formulario) {
+    return false;
+  }
+  if ((await formulario.validate()).valid) {
+    const fechaValidezOpcion = pricingStore.opcionCostos.filter(
+      (v) => v.nro_propuesta == nro_propuesta.value,
+    )[0]!.date_end;
+    let esValida = moment(fechaValidezOpcion).isSameOrAfter(moment(), "day");
+    if (!esValida) {
+      return Swal.fire({
+        icon: "warning",
+        title: "Advertencia",
+        text: "No se puede aprobar ya que la validez ya expiró.",
+      }).then(() => false);
+    }
+    esValida = moment(fechaValidezOpcion, "YYYY-MM-DD").isSameOrAfter(
+      moment().add(15, "days").startOf("day"),
+    );
+    const hoy = moment();
+    const newFechaValize = moment(fechaValidezOpcion);
+    const cantFecha = newFechaValize.diff(hoy, "days");
+
+    if (!esValida) {
+      return Swal.fire({
+        icon: "question",
+        title: "Advertencia",
+        text: `Quedan ${
+          cantFecha + 1
+        } días de validez. ¿Desea continuar.? `,
+        allowEnterKey: false,
+        allowOutsideClick: false,
+        allowEscapeKey: false,
+        showCancelButton: true,
+        confirmButtonText: "Enviar a Operaciones.",
+        cancelButtonText: "No aprobar.",
+      }).then((res) => {
+        if (res.isDismissed) {
+          return false;
+        }
+
+        nuevoexpediente.value = true;
+        id_exp.value = "";
+        Swal.fire({
+          icon: "question",
+          iconColor: "red",
+          width: 1000,
+          html:
+            rootStore.state.itemsMasterList.length > 0
+              ? "<h1>¿Desea crear un nuevo expediente o seleccionar uno registrado?</h1>"
+              : "<h1>¿Desea crear un nuevo expediente?</h1>",
+          showConfirmButton: true,
+          confirmButtonText: "CREAR NUEVO EXPEDIENTE",
+          showDenyButton: rootStore.state.itemsMasterList.length > 0,
+          denyButtonText: "SELECCIONAR EXPEDIENTE YA CREADO",
+          showCloseButton: true,
+          showCancelButton: false,
+          allowOutsideClick: false,
+        }).then(async (res) => {
+          if (res.isConfirmed) {
+            Swal.fire({
+              icon: "warning",
+              width: 1000,
+              title: "Fecha de Disponibilidad - Master",
+              html: `<input type="date" id="swal-input1" class="swal2-input">
+              <p>Si es Importación seria el ETA </p>
+              <p>SI  es Exportación Colocar el ETD </p>
+              <p style="color:red">Esto te Ayudara a Controlar tus Operaciones  </p>
+
+
+              `,
+              allowOutsideClick: false,
+              confirmButtonText: "ACEPTAR",
+              showCancelButton: true,
+              cancelButtonText: "CANCELAR",
+              preConfirm: () => {
+                const dateInput =
+                  (document.getElementById("swal-input1") as HTMLInputElement).value;
+                if (!dateInput) {
+                  Swal.showValidationMessage(
+                    "La fecha de validez es requerida",
+                  );
+                } else {
+                  const selectedDate = moment(dateInput, "YYYY-MM-DD"); // Parsea la fecha ingresada
+                  const currentDate = moment(); // Obtiene la fecha actual
+
+                  if (selectedDate.isSameOrBefore(currentDate)) {
+                    Swal.showValidationMessage(
+                      "La fecha debe ser mayor que la fecha actual",
+                    );
+                  } else {
+                    return dateInput;
+                  }
+                }
+              },
+            }).then(async (res) => {
+              fecha_validez.value = res.value;
+              console.log(
+                "b",
+                pricingStore.listIngresosInstructivoAprobar,
+              );
+              // eslint-disable-next-line @typescript-eslint/no-unused-vars
+              const sum =
+                pricingStore.listIngresosInstructivoAprobar.filter(
+                  (v) => v.nro_propuesta == nro_propuesta.value,
+                );
+              const igv =
+                pricingStore.listIngresosInstructivoAprobar
+                  .filter((v) => v.nro_propuesta == nro_propuesta.value)[0]!
+                  .dataIngresos.filter(
+                    (v) => v.descripcion === "TOTAL",
+                  )[0]!.igv;
+              const valor =
+                pricingStore.listIngresosInstructivoAprobar
+                  .filter((v) => v.nro_propuesta == nro_propuesta.value)[0]!
+                  .dataIngresos.filter(
+                    (v) => v.descripcion === "TOTAL",
+                  )[0]!.valor;
+              const listCostosInstructivo =
+                pricingStore.listIngresosInstructivoAprobar.filter(
+                  (v) => v.nro_propuesta == nro_propuesta.value,
+                )[0]!.dataCostos;
+              const listVentasInstructivo =
+                pricingStore.listIngresosInstructivoAprobar.filter(
+                  (v) => v.nro_propuesta == nro_propuesta.value,
+                )[0]!.dataVentas;
+              if (res.isConfirmed) {
+                Swal.fire({
+                  icon: "info",
+                  title: "Aprobando Cotizacion",
+                  timerProgressBar: true,
+                  allowOutsideClick: false,
+                  timer: null as unknown as number,
+                  didOpen: () => {
+                    Swal.showLoading();
+                  },
+                });
+                await pricingStore.aprobarCotizacion({
+                  IdempotencyKey: IdempotencyKey.value,
+                  id_quote: route.params.id,
+                  nuevoexpediente: true,
+                  id_exp: id_exp.value,
+                  fecha_validez: fecha_validez.value,
+                  totalIngreso: valor,
+                  igvIngreso: igv,
+                  valorIngreso: valor,
+                  listCostosInstructivo: listCostosInstructivo,
+                  listVentasInstructivo: listVentasInstructivo,
+                  id_house: id_house.value,
+                  id_opcion: id_opcion.value,
+                  url_folderonedrive: url_folderonedrive.value,
+                });
+                rootStore.state.spiner = true;
+
+                rootStore.state.spiner = false;
+              }
+            });
+          }
+          if (res.isDenied) {
+            nuevoexpediente.value = false;
+            aprobarflag.value = true;
+          }
+        });
+      });
+    } else {
+      nuevoexpediente.value = true;
+      id_exp.value = "";
+      Swal.fire({
+        icon: "question",
+        iconColor: "red",
+        width: 1000,
+        html:
+          rootStore.state.itemsMasterList.length > 0
+            ? "<h1>¿Desea crear un nuevo expediente o seleccionar uno registrado?</h1>"
+            : "<h1>¿Desea crear un nuevo expediente?</h1>",
+        showConfirmButton: true,
+        confirmButtonText: "CREAR NUEVO EXPEDIENTE",
+        showDenyButton: rootStore.state.itemsMasterList.length > 0,
+        denyButtonText: "SELECCIONAR EXPEDIENTE YA CREADO",
+        showCloseButton: true,
+        showCancelButton: false,
+        allowOutsideClick: false,
+      }).then(async (res) => {
+        if (res.isConfirmed) {
+          Swal.fire({
+            icon: "warning",
+            width: 1000,
+            title: "Fecha de Disponibilidad - Master",
+            html: `<input type="date" id="swal-input1" class="swal2-input">
+              <p>Si es Importación seria el ETA </p>
+              <p>SI  es Exportación Colocar el ETD </p>
+              <p style="color:red">Esto te Ayudara a Controlar tus Operaciones  </p>
+
+
+              `,
+            allowOutsideClick: false,
+            confirmButtonText: "ACEPTAR",
+            showCancelButton: true,
+            cancelButtonText: "CANCELAR",
+            preConfirm: () => {
+              const dateInput =
+                (document.getElementById("swal-input1") as HTMLInputElement).value;
+              if (!dateInput) {
+                Swal.showValidationMessage(
+                  "La fecha de validez es requerida",
+                );
+              } else {
+                const selectedDate = moment(dateInput, "YYYY-MM-DD"); // Parsea la fecha ingresada
+                const currentDate = moment(); // Obtiene la fecha actual
+
+                if (selectedDate.isSameOrBefore(currentDate)) {
+                  Swal.showValidationMessage(
+                    "La fecha debe ser mayor que la fecha actual",
+                  );
+                } else {
+                  return dateInput;
+                }
+              }
+            },
+          }).then(async (res) => {
+            fecha_validez.value = res.value;
+            console.log(
+              "a",
+              pricingStore.listIngresosInstructivoAprobar,
+            );
+            // eslint-disable-next-line @typescript-eslint/no-unused-vars
+            const sum =
+              pricingStore.listIngresosInstructivoAprobar.filter(
+                (v) => v.nro_propuesta == nro_propuesta.value,
+              );
+            const igv =
+              pricingStore.listIngresosInstructivoAprobar
+                .filter((v) => v.nro_propuesta == nro_propuesta.value)[0]!
+                .dataIngresos.filter(
+                  (v) => v.descripcion === "TOTAL",
+                )[0]!.igv;
+            const valor =
+              pricingStore.listIngresosInstructivoAprobar
+                .filter((v) => v.nro_propuesta == nro_propuesta.value)[0]!
+                .dataIngresos.filter(
+                  (v) => v.descripcion === "TOTAL",
+                )[0]!.valor;
+            const listCostosInstructivo =
+              pricingStore.listIngresosInstructivoAprobar.filter(
+                (v) => v.nro_propuesta == nro_propuesta.value,
+              )[0]!.dataCostos;
+            const listVentasInstructivo =
+              pricingStore.listIngresosInstructivoAprobar.filter(
+                (v) => v.nro_propuesta == nro_propuesta.value,
+              )[0]!.dataVentas;
+            if (res.isConfirmed) {
+              Swal.fire({
+                icon: "info",
+                title: "Aprobando Cotizacion",
+                timerProgressBar: true,
+                allowOutsideClick: false,
+                timer: null as unknown as number,
+                didOpen: () => {
+                  Swal.showLoading();
+                },
+              });
+              await pricingStore.aprobarCotizacion({
+                IdempotencyKey: IdempotencyKey.value,
+                id_quote: route.params.id,
+                nuevoexpediente: true,
+                id_exp: id_exp.value,
+                fecha_validez: fecha_validez.value,
+                totalIngreso: valor,
+                igvIngreso: igv,
+                valorIngreso: valor,
+                listCostosInstructivo: listCostosInstructivo,
+                listVentasInstructivo: listVentasInstructivo,
+                id_house: id_house.value,
+                id_opcion: id_opcion.value,
+                url_folderonedrive: url_folderonedrive.value,
+              });
+              rootStore.state.spiner = true;
+
+              rootStore.state.spiner = false;
+            }
+          });
+        }
+        if (res.isDenied) {
+          nuevoexpediente.value = false;
+          aprobarflag.value = true;
+        }
+      });
+    }
+  }
+}
+function regresarSeleccionoMaster() {
+  dialogCostos.value = !dialogCostos.value;
+  aprobarflag.value = true;
+}
+async function validarExistePagosMaster() {
+  activarBtnContinuar.value = true;
+  textValidacionPago.value = "";
+  if (id_opcion.value == "1") {
+    const config = {
+      method: "get",
+      url: import.meta.env.VITE_URL_MAIN + "validar_existe_pago_master",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      params: {
+        id: id_exp.value,
+      },
+    };
+    const res = await axios(config).then((res) => {
+      return res.data;
+    });
+    activarBtnContinuar.value = res.estadoflag;
+    textValidacionPago.value = res.mensaje;
+    loading.value = false;
+    return;
+  }
+  activarBtnContinuar.value = false;
+}
+async function validarExistePagosHouse() {
+  activarBtnContinuar.value = true;
+  textValidacionPago.value = "";
+
+  const config = {
+    method: "get",
+    url: import.meta.env.VITE_URL_MAIN + "validar_existe_pago_house",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    params: {
+      id: id_house.value,
+    },
+  };
+  const res = await axios(config).then((res) => {
+    return res.data;
+  });
+  activarBtnContinuar.value = res.estadoflag;
+  textValidacionPago.value = res.mensaje;
+  return;
+}
+async function buscarHouseAsociadosAMaster() {
+  lstHouse.value = [];
+  const config = {
+    method: "get",
+    url: import.meta.env.VITE_URL_MAIN + "cargar_house_asociado_master",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    params: {
+      id_master: id_exp.value,
+    },
+  };
+  loading.value = true;
+  const res = await axios(config).then((res) => {
+    return res.data;
+  });
+  loading.value = false;
+
+  if (!!res.estadoflag) {
+    lstHouse.value = res.data;
+  }
+  lstHouse.value.unshift({
+    id: 0,
+    code_house: "CREAR UN NUEVO HOUSE",
+  });
+  activarBtnContinuar.value = true;
+  textValidacionPago.value = "";
+  aprobarflag.value = false;
+  dialogHouse.value = true;
+}
+function continuarAprobar() {
+  id_opcion.value = "";
+  aprobarflag.value = false;
+  dialogCostos.value = true;
+}
+async function aprobar() {
+  if (id_opcion_house.value == 1) {
+    const house = lstHouse.value.find((v) => v.id == id_house.value)!;
+
+    correlativos.value = house.correlativos
+      ? house.correlativos.split(",").map((item) => ({
+          code: item.trim(),
+        }))
+      : [];
+    dialogCorrelativos.value = true;
+  } else {
+    continuarAprobarHouses();
+  }
+}
+async function continuarAprobarHouses() {
+  dialogCorrelativos.value = false;
+  await pricingStore.generaInstructivoparaguardata();
+
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const sum = pricingStore.listIngresosInstructivoAprobar.filter(
+    (v) => v.nro_propuesta == nro_propuesta.value,
+  );
+  const igv = pricingStore.listIngresosInstructivoAprobar
+    .filter((v) => v.nro_propuesta == nro_propuesta.value)[0]!
+    .dataIngresos.filter((v) => v.descripcion === "TOTAL")[0]!.igv;
+  const valor = pricingStore.listIngresosInstructivoAprobar
+    .filter((v) => v.nro_propuesta == nro_propuesta.value)[0]!
+    .dataIngresos.filter((v) => v.descripcion === "TOTAL")[0]!.valor;
+  const listCostosInstructivo =
+    pricingStore.listIngresosInstructivoAprobar.filter(
+      (v) => v.nro_propuesta == nro_propuesta.value,
+    )[0]!.dataCostos;
+  const listVentasInstructivo =
+    pricingStore.listIngresosInstructivoAprobar.filter(
+      (v) => v.nro_propuesta == nro_propuesta.value,
+    )[0]!.dataVentas;
+  const formulario = frmAsociarExpediente.value;
+  if (formulario && !(await formulario.validate()).valid) {
+    return;
+  }
+  if (formulario || id_exp.value || nuevoexpediente.value) {
+    Swal.fire({
+      icon: "info",
+      title: "Aprobando Cotizacion",
+      timerProgressBar: true,
+      allowOutsideClick: false,
+      timer: null as unknown as number,
+      didOpen: () => {
+        Swal.showLoading();
+      },
+    });
+    await pricingStore.aprobarCotizacion({
+      IdempotencyKey: IdempotencyKey.value,
+      id_quote: route.params.id,
+      nuevoexpediente: false,
+      id_exp: id_exp.value,
+      fecha_validez: fecha_validez.value,
+      totalIngreso: valor,
+      igvIngreso: igv,
+      valorIngreso: valor,
+      listCostosInstructivo: listCostosInstructivo,
+      listVentasInstructivo: listVentasInstructivo,
+      id_house: id_house.value,
+      id_opcion: id_opcion.value,
+      id_opcion_house: id_opcion_house.value,
+      url_folderonedrive: url_folderonedrive.value,
+    });
+    rootStore.state.spiner = true;
+    aprobarflag.value = false;
+    rootStore.state.spiner = false;
+  }
+}
+
+function noDataText() {
+  return `No se encontraron Masters con la misma Modalidad, Tipo de Carga, Incoterms y/o Puerto Origen/ Destino asociados a la cotización.`;
+}
+function getProveedor(element: OpcionCosto) {
+  const id_proveedor = element.listCostos.some(
+    (v) => v.code_cost == 4 && v.esopcionflag == 1,
+  )
+    ? element.listCostos.filter(
+        (v) => v.code_cost == 4 && v.esopcionflag == 1,
+      )[0]!.id_proveedor
+    : "";
+  const nameProveedor = id_proveedor
+    ? rootStore.state.provedores.find((v: ProveedorPricing) => v.id == id_proveedor)
+    : "";
+  return nameProveedor ? nameProveedor.namelong : " Sin Proveedor";
+}
+</script>
+
 <template>
   <v-container v-if="(pricingStore.listInstructivo || []).length">
     <v-col cols="12">
-      
-        <div class="text-center">
-          <v-pagination
-            v-model="page"
-            :length="
-              (pricingStore.opcionCostos || []).filter((v) => !!v.selected)
-                .length
-            "
-            rounded
-          ></v-pagination>
-        </div>
-      
+      <div class="text-center">
+        <v-pagination
+          v-model="page"
+          :length="
+            (pricingStore.opcionCostos || []).filter((v) => !!v.selected)
+              .length
+          "
+          rounded
+        />
+      </div>
     </v-col>
     <v-dialog
       v-model="aprobarflag"
@@ -24,10 +941,18 @@
       class="classDialog"
     >
       <v-card>
-        <v-card-title class="d-flex align-center flex-wrap" primary-title>
+        <v-card-title
+          class="d-flex align-center flex-wrap"
+          primary-title
+        >
           SELECCIONE EL EXPEDIENTE A ASOCIAR:
-          <v-spacer></v-spacer>
-          <v-btn variant="text" icon color="default" @click="aprobarflag = !aprobarflag">
+          <v-spacer />
+          <v-btn
+            variant="text"
+            icon
+            color="default"
+            @click="aprobarflag = !aprobarflag"
+          >
             <v-icon>mdi-close</v-icon>
           </v-btn>
         </v-card-title>
@@ -35,7 +960,7 @@
           <v-form ref="frmAsociarExpediente">
             <v-row>
               <v-autocomplete
-                :items="$store.state.itemsMasterList"
+                :items="rootStore.state.itemsMasterList"
                 v-model="id_exp"
                 label="Expediente"
                 item-title="code_master"
@@ -44,8 +969,7 @@
                 :no-data-text="noDataText()"
                 @update:model-value="verificarMaster()"
                 class="mx-5 my-5"
-              >
-              </v-autocomplete>
+              />
             </v-row>
           </v-form>
 
@@ -63,7 +987,7 @@
           </v-alert>
         </v-card-text>
         <v-card-actions>
-          <v-spacer></v-spacer>
+          <v-spacer />
           <v-btn
             class="mx-1"
             size="small"
@@ -116,13 +1040,12 @@
                 :label="`Opción ${opcion.nro_propuesta} - ${getProveedor(
                   opcion,
                 )}`"
-              >
-              </v-radio>
+              />
             </v-radio-group>
           </v-form>
         </v-card-text>
         <v-card-actions>
-          <v-spacer></v-spacer>
+          <v-spacer />
           <v-btn
             class="mx-1"
             @click="abrirModalListadoArchivos()"
@@ -134,12 +1057,16 @@
             class="mx-1"
             color="error"
             @click="seleccionQuoteAprobar = !seleccionQuoteAprobar"
-            >Cancelar</v-btn
           >
+            Cancelar
+          </v-btn>
         </v-card-actions>
       </v-card>
     </v-dialog>
-    <div class="col-12 mb-0 pa-0">
+    <v-col
+      cols="12"
+      class="mb-0 pa-0"
+    >
       <v-btn
         class="mx-1"
         color="#FF4500"
@@ -147,7 +1074,9 @@
         size="small"
         @click="imprimir()"
       >
-        <v-icon color="white">mdi-printer-outline</v-icon>
+        <v-icon color="white">
+          mdi-printer-outline
+        </v-icon>
       </v-btn>
 
       <v-btn
@@ -173,7 +1102,7 @@
       <center>
         <h3>
           INSTRUCTIVO COMPRA
-          {{ pricingStore.listInstructivo[0].expediente }} - N°{{
+          {{ pricingStore.listInstructivo[0]!.expediente }} - N°{{
             nroPropuestaActual
           }}
         </h3>
@@ -186,59 +1115,71 @@
           }}
           |
           <v-btn
-            v-if="pricingStore.listInstructivo[0].code_master"
+            v-if="pricingStore.listInstructivo[0]!.code_master"
             color="info"
             style="color: black"
             @click="irAControlDeGastos"
           >
             Exp. Master:
             {{
-              pricingStore.listInstructivo[0].code_master
-                ? pricingStore.listInstructivo[0].code_master
+              pricingStore.listInstructivo[0]!.code_master
+                ? pricingStore.listInstructivo[0]!.code_master
                 : "--"
             }}
             | Exp. House:
             {{
-              pricingStore.listInstructivo[0].code_house
-                ? pricingStore.listInstructivo[0].code_house
+              pricingStore.listInstructivo[0]!.code_house
+                ? pricingStore.listInstructivo[0]!.code_house
                 : "--"
             }}
-            <v-icon class="mx-5">mdi-cash-fast</v-icon>
+            <v-icon class="mx-5">
+              mdi-cash-fast
+            </v-icon>
           </v-btn>
         </h3>
         <h4 class="mb-1 ml-1">
-          {{ pricingStore.listInstructivo[0].sentido }} -
-          {{ pricingStore.listInstructivo[0].carga }} -
-          {{ pricingStore.listInstructivo[0].incoterms }}
+          {{ pricingStore.listInstructivo[0]!.sentido }} -
+          {{ pricingStore.listInstructivo[0]!.carga }} -
+          {{ pricingStore.listInstructivo[0]!.incoterms }}
         </h4>
       </center>
-    </div>
+    </v-col>
     <v-row>
-      <v-col cols="12" md="4" lg="4" xl="4">
+      <v-col
+        cols="12"
+        md="4"
+        lg="4"
+        xl="4"
+      >
         <v-col cols="12">
-          <v-card class="pa-1" elevation="5">
-            <h4 class="mb-5 ml-1">DATOS DEL CLIENTE</h4>
+          <v-card
+            class="pa-1"
+            elevation="5"
+          >
+            <h4 class="mb-5 ml-1">
+              DATOS DEL CLIENTE
+            </h4>
             <v-text-field
               class="my-1"
               readonly
               v-model="pricingStore.datosPrincipales.nombre"
               label="NOMBRE:"
               density="compact"
-            ></v-text-field>
+            />
             <v-text-field
               class="my-1"
               readonly
-              v-model="pricingStore.listInstructivo[0].direccion"
+              v-model="pricingStore.listInstructivo[0]!.direccion"
               label="DIRECCIÓN:"
               density="compact"
-            ></v-text-field>
+            />
             <v-text-field
               class="my-1"
               readonly
               v-model="pricingStore.datosPrincipales.telefono"
               label="CONTACTO:"
               density="compact"
-            ></v-text-field>
+            />
 
             <v-text-field
               class="my-1"
@@ -246,12 +1187,17 @@
               v-model="pricingStore.vendedor"
               label="VENDEDOR:"
               density="compact"
-            ></v-text-field>
+            />
           </v-card>
         </v-col>
         <v-col cols="12">
-          <v-card class="pa-1" elevation="5">
-            <h4 class="mb-1 ml-1">SERVICIOS A REALIZAR</h4>
+          <v-card
+            class="pa-1"
+            elevation="5"
+          >
+            <h4 class="mb-1 ml-1">
+              SERVICIOS A REALIZAR
+            </h4>
             <v-table density="compact">
               <tbody>
                 <tr
@@ -267,72 +1213,82 @@
           </v-card>
         </v-col>
         <v-col cols="12">
-          <v-card class="pa-1" elevation="5">
-            <h4 class="mb-5 ml-1">DATOS DE MOVIMIENTO DE MERCANCIA</h4>
+          <v-card
+            class="pa-1"
+            elevation="5"
+          >
+            <h4 class="mb-5 ml-1">
+              DATOS DE MOVIMIENTO DE MERCANCIA
+            </h4>
             <v-text-field
               class="my-1"
               density="compact"
               label="NOMBRE DEL PROVEEDOR:"
-              v-model="pricingStore.listInstructivo[0].proveedor"
+              v-model="pricingStore.listInstructivo[0]!.proveedor"
               required
-            >
-            </v-text-field>
+            />
             <v-text-field
               class="my-1"
               density="compact"
               readonly
-              v-model="pricingStore.listInstructivo[0].direccionorigen"
+              v-model="pricingStore.listInstructivo[0]!.direccionorigen"
               label="DIRECCION ORIGEN:"
-              v-if="pricingStore.listInstructivo[0].icotems == 'SXWORK'"
-            >
-            </v-text-field>
+              v-if="pricingStore.listInstructivo[0]!.icotems == 'SXWORK'"
+            />
             <v-text-field
               class="my-1"
               density="compact"
               readonly
-              v-model="pricingStore.listInstructivo[0].origen"
+              v-model="pricingStore.listInstructivo[0]!.origen"
               label="POL:"
-            >
-            </v-text-field>
+            />
             <v-text-field
               class="my-1"
               density="compact"
               readonly
-              v-model="pricingStore.listInstructivo[0].destino"
+              v-model="pricingStore.listInstructivo[0]!.destino"
               label="POD:"
-            >
-            </v-text-field>
+            />
             <v-text-field
               class="my-1"
               density="compact"
-              v-model="pricingStore.listInstructivo[0].fiscal"
+              v-model="pricingStore.listInstructivo[0]!.fiscal"
               required
               label="NOMBRE FISCAL"
-            >
-            </v-text-field>
+            />
             <v-text-field
               class="my-1"
               density="compact"
               readonly
-              v-model="pricingStore.listInstructivo[0].ruc"
+              v-model="pricingStore.listInstructivo[0]!.ruc"
               label="RUC:"
-            >
-            </v-text-field>
+            />
           </v-card>
         </v-col>
         <v-col cols="12">
-          <v-card class="pa-1" elevation="5">
+          <v-card
+            class="pa-1"
+            elevation="5"
+          >
             <h4 class="mb-5 ml-1">
               NOTAS ESPECIALES:
-              <v-btn variant="text" color="success" @click="dialog = !dialog" icon>
+              <v-btn
+                variant="text"
+                color="success"
+                @click="dialog = !dialog"
+                icon
+              >
                 <v-icon>mdi-plus</v-icon>
               </v-btn>
             </h4>
-            <v-table density="compact" border>
+            <v-table
+              density="compact"
+              border
+            >
               <tbody>
                 <tr
-                  v-for="(nota, i) in pricingStore.listInstructivo[0]
-                    .notas"
+                  v-for="(nota, i) in pricingStore.listInstructivo[0]!
+                    .notas as { description?: string }[]"
                   :key="i"
                 >
                   <td>{{ nota.description }}</td>
@@ -341,21 +1297,35 @@
             </v-table>
           </v-card>
         </v-col>
-        <div class="col-12"></div>
+        <v-col cols="12" />
       </v-col>
 
-      <v-col cols="12" md="8" lg="8" xl="8">
+      <v-col
+        cols="12"
+        md="8"
+        lg="8"
+        xl="8"
+      >
         <v-row>
           <v-col cols="12">
-            <v-card class="pa-1" elevation="5">
-              <h4 class="mb-1 ml-1">INGRESOS</h4>
+            <v-card
+              class="pa-1"
+              elevation="5"
+            >
+              <h4 class="mb-1 ml-1">
+                INGRESOS
+              </h4>
               <v-table density="compact">
                 <thead>
                   <tr>
-                    <th class="header align-right"></th>
-                    <th class="header align-left">DESCRIPCIÓN</th>
-                    <th class="header align-right"></th>
-                    <th class="header align-right">TOTAL</th>
+                    <th class="header align-right" />
+                    <th class="header align-left">
+                      DESCRIPCIÓN
+                    </th>
+                    <th class="header align-right" />
+                    <th class="header align-right">
+                      TOTAL
+                    </th>
                   </tr>
                 </thead>
                 <tbody>
@@ -366,13 +1336,13 @@
                       venta.descripcion === 'TOTAL'
                         ? 'totalClass'
                         : venta.descripcion === 'SubTotal'
-                        ? 'subTotalClass'
-                        : '',
+                          ? 'subTotalClass'
+                          : '',
                       venta.service === 'TOTAL'
                         ? 'totalClass'
                         : venta.service === 'SubTotal'
-                        ? 'subTotalClass'
-                        : '',
+                          ? 'subTotalClass'
+                          : '',
                     ]"
                   >
                     <td>
@@ -394,15 +1364,24 @@
           </v-col>
 
           <v-col cols="12">
-            <v-card class="pa-1" elevation="5">
-              <h4 class="mb-1 ml-1">COSTOS:</h4>
+            <v-card
+              class="pa-1"
+              elevation="5"
+            >
+              <h4 class="mb-1 ml-1">
+                COSTOS:
+              </h4>
 
               <v-table density="compact">
                 <thead>
                   <tr>
-                    <th class="header"></th>
-                    <th class="header align-left">DESCRIPCIÓN</th>
-                    <th class="header align-right">TOTAL</th>
+                    <th class="header" />
+                    <th class="header align-left">
+                      DESCRIPCIÓN
+                    </th>
+                    <th class="header align-right">
+                      TOTAL
+                    </th>
                   </tr>
                 </thead>
                 <tbody>
@@ -413,13 +1392,13 @@
                       costo.proveedor === 'TOTAL'
                         ? 'totalClass'
                         : costo.proveedor === 'SubTotal'
-                        ? 'subTotalClass'
-                        : '',
+                          ? 'subTotalClass'
+                          : '',
                       costo.service === 'TOTAL'
                         ? 'totalClass'
                         : costo.service === 'SubTotal'
-                        ? 'subTotalClass'
-                        : '',
+                          ? 'subTotalClass'
+                          : '',
                     ]"
                   >
                     <td>
@@ -441,16 +1420,27 @@
             cols="12"
             v-if="(pricingStore.listImpuestosInstructivo || []).length > 0"
           >
-            <v-card class="pa-1" elevation="5">
-              <h4 class="mb-1 ml-1">IMPUESTOS</h4>
+            <v-card
+              class="pa-1"
+              elevation="5"
+            >
+              <h4 class="mb-1 ml-1">
+                IMPUESTOS
+              </h4>
 
               <v-table density="compact">
                 <thead>
                   <tr>
-                    <th class="header align-left">DESCRIPCIÓN</th>
+                    <th class="header align-left">
+                      DESCRIPCIÓN
+                    </th>
 
-                    <th class="header align-left">PORCENTAJE</th>
-                    <th class="header align-right">TOTAL</th>
+                    <th class="header align-left">
+                      PORCENTAJE
+                    </th>
+                    <th class="header align-right">
+                      TOTAL
+                    </th>
                   </tr>
                 </thead>
                 <tbody>
@@ -461,8 +1451,8 @@
                       costo.name === 'TOTAL'
                         ? 'totalClass'
                         : costo.name === 'SubTotal'
-                        ? 'subTotalClass'
-                        : '',
+                          ? 'subTotalClass'
+                          : '',
                     ]"
                   >
                     <td>
@@ -483,19 +1473,31 @@
         </v-row>
       </v-col>
     </v-row>
-    <v-dialog v-model="dialog" max-width="600px" transition="dialog-transition">
+    <v-dialog
+      v-model="dialog"
+      max-width="600px"
+      transition="dialog-transition"
+    >
       <v-card>
-        <v-card-title primary-title> NUEVA NOTA: </v-card-title>
+        <v-card-title primary-title>
+          NUEVA NOTA:
+        </v-card-title>
         <v-card-text>
           <v-form ref="nota">
             <v-text-field
               label="DESCRIPCIÓN"
               v-model="descripcionNota"
-            ></v-text-field>
+            />
           </v-form>
         </v-card-text>
         <v-card-actions>
-          <v-btn color="success" variant="text" @click="guardarNota">Añadir</v-btn>
+          <v-btn
+            color="success"
+            variant="text"
+            @click="guardarNota"
+          >
+            Añadir
+          </v-btn>
         </v-card-actions>
       </v-card>
     </v-dialog>
@@ -508,8 +1510,12 @@
       <v-card>
         <ConfigCotizacion />
         <v-card-actions>
-          <v-spacer></v-spacer>
-          <v-btn class="mx-1" color="success" @click="guardarConfig()">
+          <v-spacer />
+          <v-btn
+            class="mx-1"
+            color="success"
+            @click="guardarConfig()"
+          >
             Guardar
           </v-btn>
           <!-- <v-btn class="mx-1" color="error">Cancelar</v-btn> -->
@@ -525,10 +1531,18 @@
       class="classDialog"
     >
       <v-card cass="px-5 ">
-        <v-card-title class="d-flex align-center flex-wrap" primary-title>
+        <v-card-title
+          class="d-flex align-center flex-wrap"
+          primary-title
+        >
           CREAR NUEVO HOUSE O ASOCIAR A UNO
-          <v-spacer></v-spacer>
-          <v-btn variant="text" icon color="default" @click="dialogHouse = !dialogHouse">
+          <v-spacer />
+          <v-btn
+            variant="text"
+            icon
+            color="default"
+            @click="dialogHouse = !dialogHouse"
+          >
             <v-icon>mdi-close</v-icon>
           </v-btn>
         </v-card-title>
@@ -539,9 +1553,9 @@
             item-title="code_house"
             item-value="id"
             @update:model-value="validarExistePagosHouse"
-          >
-          </v-autocomplete>
-          <v-autocomplete item-title="text"
+          />
+          <v-autocomplete
+            item-title="text"
             v-if="id_house != 0 && !textValidacionPago"
             :items="optionHouse"
             v-model="id_opcion_house"
@@ -554,7 +1568,7 @@
         </v-card-text>
 
         <v-card-actions>
-          <v-spacer></v-spacer>
+          <v-spacer />
           <v-btn
             class="mx-1"
             size="small"
@@ -584,15 +1598,24 @@
       class="classDialog"
     >
       <v-card cass="px-5">
-        <v-card-title class="d-flex align-center flex-wrap" primary-title>
+        <v-card-title
+          class="d-flex align-center flex-wrap"
+          primary-title
+        >
           OPCIÓN SOBRE LOS COSTOS
-          <v-spacer></v-spacer>
-          <v-btn variant="text" icon color="default" @click="dialogCostos = !dialogCostos">
+          <v-spacer />
+          <v-btn
+            variant="text"
+            icon
+            color="default"
+            @click="dialogCostos = !dialogCostos"
+          >
             <v-icon>mdi-close</v-icon>
           </v-btn>
         </v-card-title>
         <v-card-text>
-          <v-autocomplete item-title="text"
+          <v-autocomplete
+            item-title="text"
             :items="optionCostos"
             v-model="id_opcion"
             item-value="id"
@@ -622,7 +1645,7 @@
         </v-alert>
         
         <v-card-actions>
-          <v-spacer></v-spacer>
+          <v-spacer />
           <!-- <v-btn class="mx-1" small color="success" @click="aprobar"> -->
           <v-btn
             class="mx-1"
@@ -652,7 +1675,10 @@
         </v-card-actions>
       </v-card>
     </v-dialog>
-    <v-dialog v-model="dialogFiles" max-width="40%">
+    <v-dialog
+      v-model="dialogFiles"
+      max-width="40%"
+    >
       <v-card>
         <v-card-title> Archivos a Copiar </v-card-title>
         <v-card-text>
@@ -664,8 +1690,9 @@
             item-value="id"
             return-object
           >
-            <template v-slot:[`item.action`]="{ item }">
-              <v-btn variant="text"
+            <template #[`item.action`]="{ item }">
+              <v-btn
+                variant="text"
                 icon
                 size="small"
                 :color="getColorIcon(item)"
@@ -678,13 +1705,21 @@
           </v-data-table>
         </v-card-text>
         <v-card-actions>
-          <v-spacer></v-spacer>
-          <v-btn size="small" color="success" @click="abrirSeleccionCorreo"
-            >Continuar</v-btn
+          <v-spacer />
+          <v-btn
+            size="small"
+            color="success"
+            @click="abrirSeleccionCorreo"
           >
-          <v-btn size="small" color="error" @click="dialogFiles = false"
-            >Cancelar</v-btn
+            Continuar
+          </v-btn>
+          <v-btn
+            size="small"
+            color="error"
+            @click="dialogFiles = false"
           >
+            Cancelar
+          </v-btn>
         </v-card-actions>
       </v-card>
     </v-dialog>
@@ -695,11 +1730,18 @@
       scrollable
       v-if="dialogSequenceInstructivo"
     >
-      <v-card tile shadow="none">
+      <v-card
+        tile
+        shadow="none"
+      >
         <v-card-title class="pa-0">
-          <v-toolbar flat theme="dark" color="primary">
+          <v-toolbar
+            flat
+            theme="dark"
+            color="primary"
+          >
             <v-toolbar-title>Datos Manuales Instructivo</v-toolbar-title>
-            <v-spacer></v-spacer>
+            <v-spacer />
             <v-btn
               variant="elevated"
               class="mx-1"
@@ -710,7 +1752,12 @@
                 )
               "
             >
-              <v-icon class="mx-1" size="small">mdi-folder</v-icon>
+              <v-icon
+                class="mx-1"
+                size="small"
+              >
+                mdi-folder
+              </v-icon>
               ABRIR
             </v-btn>
             <v-btn
@@ -721,10 +1768,20 @@
               color="#01579B"
               @click="verDatosPreview = !verDatosPreview"
             >
-              <v-icon class="mx-1" size="small" v-if="verDatosPreview"
-                >mdi-eye-off</v-icon
+              <v-icon
+                class="mx-1"
+                size="small"
+                v-if="verDatosPreview"
               >
-              <v-icon class="mx-1" size="small" v-else>mdi-lead-pencil</v-icon>
+                mdi-eye-off
+              </v-icon>
+              <v-icon
+                class="mx-1"
+                size="small"
+                v-else
+              >
+                mdi-lead-pencil
+              </v-icon>
               {{ verDatosPreview ? "Ocultar Datos" : "Editar Datos" }}
             </v-btn>
             <v-btn
@@ -735,32 +1792,49 @@
               color="#01579B"
               @click="verPrevisualizacion = !verPrevisualizacion"
             >
-              <v-icon class="mx-1" size="small" v-if="verPrevisualizacion"
-                >mdi-eye-off</v-icon
+              <v-icon
+                class="mx-1"
+                size="small"
+                v-if="verPrevisualizacion"
               >
-              <v-icon class="mx-1" size="small" v-else>mdi-eye</v-icon>
+                mdi-eye-off
+              </v-icon>
+              <v-icon
+                class="mx-1"
+                size="small"
+                v-else
+              >
+                mdi-eye
+              </v-icon>
               {{
                 verPrevisualizacion
                   ? "Ocultar Previsualización"
                   : "Ver Previsualización"
               }}
             </v-btn>
-            <v-btn variant="text" icon @click="cerrarDialogoSequenceInstructivo">
+            <v-btn
+              variant="text"
+              icon
+              @click="cerrarDialogoSequenceInstructivo"
+            >
               <v-icon>mdi-close</v-icon>
             </v-btn>
           </v-toolbar>
         </v-card-title>
 
         <v-card-text class="pa-0">
-          <v-container fluid class="pa-0">
+          <v-container
+            fluid
+            class="pa-0"
+          >
             <v-row no-gutters>
               <v-col cols="12">
-                <fileSequenceInstructivo
+                <FileSequenceInstructivo
                   @continuar="abrirModalAprobar"
                   :aprobadoflag="pricingStore.aprobadoflag"
-                  :verPrevisualizacion="verPrevisualizacion"
-                  :verDatosPreview="verDatosPreview"
-                  @cerrarDialogo="cerrarDialogoSequenceInstructivo"
+                  :ver-previsualizacion="verPrevisualizacion"
+                  :ver-datos-preview="verDatosPreview"
+                  @cerrar-dialogo="cerrarDialogoSequenceInstructivo"
                 />
               </v-col>
             </v-row>
@@ -768,11 +1842,22 @@
         </v-card-text>
       </v-card>
     </v-dialog>
-    <v-dialog v-model="dialogCorrelativos" max-width="900px" persistent>
+    <v-dialog
+      v-model="dialogCorrelativos"
+      max-width="900px"
+      persistent
+    >
       <v-card class="correlativos-dialog">
         <!-- BOTÓN CERRAR -->
-        <v-btn variant="text" icon class="close-dialog" @click="dialogCorrelativos = false">
-          <v-icon size="38">mdi-close</v-icon>
+        <v-btn
+          variant="text"
+          icon
+          class="close-dialog"
+          @click="dialogCorrelativos = false"
+        >
+          <v-icon size="38">
+            mdi-close
+          </v-icon>
         </v-btn>
 
         <v-card-text class="pa-0">
@@ -780,7 +1865,12 @@
             <!-- COLUMNA DEL ICONO -->
             <div class="warning-section">
               <div class="warning-circle">
-                <v-icon color="#ff9800" size="100"> mdi-alert </v-icon>
+                <v-icon
+                  color="#ff9800"
+                  size="100"
+                >
+                  mdi-alert
+                </v-icon>
               </div>
             </div>
 
@@ -811,14 +1901,18 @@
           <!-- INFORMACIÓN -->
           <div class="info-container">
             <div class="info-icon">
-              <v-icon color="white" size="32"> mdi-information </v-icon>
+              <v-icon
+                color="white"
+                size="32"
+              >
+                mdi-information
+              </v-icon>
             </div>
 
             <div class="info-text">
               <div>
                 Solo se sustituirán todos los costos del
-                <strong>correlativo {{ correlativoPrincipal.code }}</strong
-                >.
+                <strong>correlativo {{ correlativoPrincipal.code }}</strong>.
               </div>
 
               <div class="info-secondary">
@@ -838,7 +1932,9 @@
           </div>
 
           <!-- PREGUNTA -->
-          <div class="question-text">¿Deseas continuar?</div>
+          <div class="question-text">
+            ¿Deseas continuar?
+          </div>
         </v-card-text>
 
         <!-- FOOTER -->
@@ -863,928 +1959,6 @@
     </v-dialog>
   </v-container>
 </template>
-
-<script>
-import { defineAsyncComponent } from "vue";
-import { mapActions } from "vuex";
-import { mapActions as mapPiniaActions, mapStores } from "pinia";
-import { useSecuritysStore } from "@/stores/securitys";
-import Swal from "sweetalert2";
-import moment from "moment";
-import mixins from "../../../components/mixins/funciones.js";
-import axios from "@/api/http";
-import FileSequenceInstructivo from "../../comun/fileSequenceInstructivo.vue";
-import Idempotency from "../../../components/mixins/utils.js";
-import { useConfigEmpresaStore } from "@/stores/configEmpresa";
-import { usePricingStore } from "@/stores/pricing";
-export default {
-  mixins: [mixins, Idempotency],
-  components: {
-    ConfigCotizacion: defineAsyncComponent(() =>
-      import("@/components/folderPricing/ConfigExpediente.vue")),
-    FileSequenceInstructivo,
-  },
-  data() {
-    return {
-      dialogCorrelativos: false,
-      correlativos: [],
-      IdempotencyKey: "",
-      verPrevisualizacion: true,
-      verDatosPreview: true,
-      proveedorInstructivo: {},
-      dialogSequenceInstructivo: false,
-      dialogFiles: false,
-      nuevoexpediente: "",
-      aprobarflag: false,
-      id_exp: "",
-      fecha_validez: "",
-      descripcionNota: "",
-      dialog: false,
-      seleccionQuoteAprobar: false,
-      opcionesSeleccionadas: [],
-      page: 1,
-      nro_propuesta: "",
-      mostrarAdvertencia: false,
-      textValidacionCotizacionMaster: [],
-      dialogConfig: false,
-      dialogCostos: false,
-      textValidacionPago: "",
-      activarBtnContinuar: true,
-      loading: false,
-      lstHouse: [],
-      dialogHouse: false,
-      id_house: "",
-      optionCostos: [
-        { id: "0", text: "No hacer ninguna acción" },
-        { id: "1", text: "Reemplazar los costos, ya existente de proveedores" },
-        {
-          id: "2",
-          text: "Sumar los nuevos costos, a los costos ya existentes de proveedores",
-        },
-      ],
-      optionHouse: [
-        // { id: "0", text: "Crear un nuevo house" },
-        {
-          id: "1",
-          text: "Reemplazar los nuevos montos, ya existente del house",
-        },
-        {
-          id: "2",
-          text: "Sumar los nuevos montos, a los costos ya existentes del house",
-        },
-      ],
-      id_opcion: "0",
-      id_opcion_house: "0",
-      headersFiles: [
-        { title: "Archivo", key: "name" },
-        { title: "", key: "action" },
-      ],
-      url_folderonedrive: "",
-    };
-  },
-  computed: {
-    ...mapStores(usePricingStore),
-    activarBotonAsociarMaster() {
-      if (this.id_opcion == 1) {
-        let exp = this.$store.state.itemsMasterList.find(
-          (v) => v.id == this.id_exp,
-        );
-        let clienteVarios = "CLIENTE VARIOS";
-
-        if (exp && exp.Expediente) {
-          let esMultiple = exp.Expediente.includes(clienteVarios);
-
-          if (esMultiple) {
-            return false;
-          }
-        }
-      }
-      return true;
-    },
-    mostrarMensajeClienteVariosExp() {
-      if (this.id_opcion == 1) {
-        let exp = this.$store.state.itemsMasterList.find(
-          (v) => v.id == this.id_exp,
-        );
-        let clienteVarios = "CLIENTE VARIOS";
-        if (exp && exp.code_master) {
-          let esMultiple = exp.code_master.includes(clienteVarios);
-
-          if (esMultiple) {
-            return true;
-          }
-        }
-      }
-      return false;
-    },
-    ingresosInstructivoActual() {
-      const lista = this.pricingStore.listIngresosInstructivo;
-      const index = this.page - 1;
-      if (!lista || !lista.length || index < 0 || index >= lista.length) {
-        return [];
-      }
-      const item = lista[index];
-      return item && item.opcion ? item.opcion : [];
-    },
-    costosInstructivoActual() {
-      const lista = this.pricingStore.listCostosInstructivo;
-      const index = this.page - 1;
-      if (!lista || !lista.length || index < 0 || index >= lista.length) {
-        return [];
-      }
-      const item = lista[index];
-      return item && item.opcion ? item.opcion : [];
-    },
-    impuestosInstructivoActual() {
-      const lista = this.pricingStore.listImpuestosInstructivo;
-      const index = this.page - 1;
-      if (!lista || !lista.length || index < 0 || index >= lista.length) {
-        return [];
-      }
-      const item = lista[index];
-      return item && item.opcion ? item.opcion : [];
-    },
-    nroPropuestaActual() {
-      const lista = this.pricingStore.listIngresosInstructivo;
-      const index = this.page - 1;
-      if (!lista || !lista.length || index < 0 || index >= lista.length) {
-        return "";
-      }
-      const item = lista[index];
-      return item && item.nro_propuesta ? item.nro_propuesta : "";
-    },
-    correlativoPrincipal() {
-      return this.correlativos.length ? this.correlativos[0] : "";
-    },
-    correlativosSecundarios() {
-      return this.correlativos.slice(1);
-    },
-  },
-
-  async mounted() {
-    this.IdempotencyKey = this.generateIdempotencyKey();
-    this.stepAprobado = this.$route.params.step
-      ? parseInt(this.$route.params.step)
-      : 1;
-    this.$nextTick(async () => {
-      setTimeout(async () => {
-        await this.generaInstructivoparaguardata();
-        if (this.pricingStore.aprobadoflag && this.stepAprobado == 5) {
-          this.dialogSequenceInstructivo = true;
-        }
-      }, 4000);
-    });
-  },
-  methods: {
-    ...mapActions([
-      "cargarMaster",
-    ]),
-    ...mapPiniaActions(usePricingStore, ["imprimirInstructivoQuote", "aprobarCotizacion", "setNoteQuote", "getInstructivoId", "generaInstructivoparaguardata"]),
-    ...mapPiniaActions(useConfigEmpresaStore, ["GuardarConfiguracionEmpresa"]),
-    ...mapPiniaActions(useSecuritysStore, ["ObtenerDatosConfig"]),
-    tienePagosAsociados() {
-      if (this.id_exp) {
-        let val = this.$store.state.itemsMasterList.find(
-          (v) => v.id == this.id_exp,
-        );
-        if (val.tienepagos) {
-          return true;
-        }
-      }
-      return false;
-    },
-    abrirCarpeta(url) {
-      if (!url) {
-        Swal.fire({
-          icon: "warning",
-          title: "Error",
-          text: "No existe carpeta asociada.",
-        });
-        return;
-      }
-
-      window.open(url, "_blank");
-    },
-    irAControlDeGastos() {
-      console.log();
-      Swal.fire({
-        icon: "question",
-        title: "Ir a Control de Gastos",
-        text: "¿Desea Ir al control de Gastos Asociado a esta Cotización?",
-        allowEnterKey: false,
-        allowEscapeKey: false,
-        allowOutsideClick: false,
-        confirmButtonText: "Si, ir al control de Gastos",
-        denyButtonText: "Cancelar",
-        showCloseButton: true,
-      }).then((res) => {
-        if (res.isConfirmed) {
-          this.$router.push({
-            name: "editControlGasto",
-            params: {
-              id: this.pricingStore.id_master,
-              id_branch: JSON.parse(sessionStorage.getItem("dataUser"))[0]
-                .id_branch,
-            },
-          });
-        }
-      });
-    },
-    cerrarDialogoSequenceInstructivo() {
-      Swal.fire({
-        icon: "warning",
-        title: "Advertencia",
-        text: "Si cierra esta pestaña no se guardará ningún cambio. Está seguro de cerrar esta pestaña.",
-        allowEnterKey: false,
-        allowEscapeKey: false,
-        allowOutsideClick: false,
-        confirmButtonText: "Si, cerrar.",
-        cancelButtonText: "Cancelar",
-        cancelButtonColor: "red",
-        showCancelButton: true,
-      }).then((res) => {
-        if (res.isConfirmed) {
-          this.dialogSequenceInstructivo = false;
-        }
-      });
-      // dialogSequenceInstructivo
-    },
-    getIconFile(item) {
-      if (item.folder) return "mdi-folder";
-
-      const extension = item.extension ? item.extension.toLowerCase() : "";
-
-      switch (extension) {
-        case "pdf":
-          return "mdi-file-pdf-box";
-        case "xls":
-        case "xlsx":
-          return "mdi-file-excel";
-        case "doc":
-        case "docx":
-          return "mdi-file-word";
-        case "png":
-        case "jpg":
-        case "jpeg":
-          return "mdi-file-image";
-        case "zip":
-        case "rar":
-          return "mdi-zip-box";
-        default:
-          return "mdi-file";
-      }
-    },
-
-    getColorIcon(item) {
-      if (item.folder) return "amber";
-      const extension = item.extension ? item.extension.toLowerCase() : "";
-
-      const colors = {
-        pdf: "red",
-        xlsx: "green",
-        xls: "green",
-        docx: "blue",
-        doc: "blue",
-        png: "purple",
-        jpg: "purple",
-      };
-
-      return colors[extension] || "grey";
-    },
-    async guardarConfig() {
-      await this.GuardarConfiguracionEmpresa();
-      await this.ObtenerDatosConfig();
-      this.dialogConfig = false;
-      this.abrirSeleccionDeQuoteAAprobar();
-    },
-    verificarMaster() {
-      this.mostrarAdvertencia = false;
-      this.textValidacionCotizacionMaster = [];
-      let master = this.$store.state.itemsMasterList.find(
-        (v) => v.id == this.id_exp,
-      );
-      this.url_folderonedrive = master.url_folderonedrive;
-      if (
-        !(
-          this.pricingStore.datosPrincipales.idsentido ==
-          master.id_modality
-        )
-      ) {
-        this.mostrarAdvertencia = true;
-        this.textValidacionCotizacionMaster.push("Modalidad");
-      }
-      if (
-        !(
-          this.pricingStore.datosPrincipales.idtipocarga ==
-          master.id_shipment
-        )
-      ) {
-        this.mostrarAdvertencia = true;
-        this.textValidacionCotizacionMaster.push("Tipó de Cargar");
-      }
-      if (
-        !(
-          this.pricingStore.datosPrincipales.idincoterms ==
-          master.id_incoterms
-        )
-      ) {
-        this.mostrarAdvertencia = true;
-        this.textValidacionCotizacionMaster.push("Incoterms");
-      }
-
-      if (
-        !(
-          this.pricingStore.datosPrincipales.idorigen ==
-          master.id_port_begin
-        )
-      ) {
-        this.mostrarAdvertencia = true;
-        this.textValidacionCotizacionMaster.push("Puerto de origien");
-      }
-      if (
-        !(
-          this.pricingStore.datosPrincipales.iddestino ==
-          master.id_port_end
-        )
-      ) {
-        this.mostrarAdvertencia = true;
-        this.textValidacionCotizacionMaster.push("Puerto de Destino");
-      }
-    },
-    async imprimir() {
-      for (
-        let index = 0;
-        index <
-        this.pricingStore.opcionCostos.filter((v) => !!v.selected)
-          .length;
-        index++
-      ) {
-        (function (index) {
-          this.imprimirInstructivoQuote({
-            nro_propuesta:
-              this.pricingStore.opcionCostos[index].nro_propuesta,
-            url_folderonedrive:
-              this.pricingStore.datosPrincipales.url_folderonedrive,
-          });
-        }).call(this, index); // Pasamos 'index' como argumento y establecemos el contexto a 'this'
-      }
-    },
-    async guardarNota() {
-      if ((await this.$refs.nota.validate()).valid) {
-        this.$store.state.spiner = true;
-        let data = {
-          name: this.descripcionNota,
-          id_quote: this.$route.params.id,
-        };
-        await this.setNoteQuote(data);
-        this.$refs.nota.reset();
-        await this.getInstructivoId({ id: this.$route.params.id });
-        this.dialog = false;
-        this.$store.state.spiner = false;
-      }
-    },
-    async abrirSeleccionDeQuoteAAprobar() {
-      if (!this.pricingStore.datosPrincipales.id_proveedor) {
-        Swal.fire({
-          icon: "warning",
-          title: "Proveedor",
-          text: "Para Aprobar la cotización necesita un proveedor",
-        });
-        return;
-      }
-      let opcionCostos = this.pricingStore.opcionCostos.filter(
-        (v) => !!v.selected,
-      );
-      if (opcionCostos.length != 1) {
-        Swal.fire({
-          icon: "warning",
-          title: "Costos",
-          text: "Es necesario seleccionar opción para cotizar",
-        });
-        return;
-      }
-      let costosFlete = opcionCostos[0].listCostos.filter(
-        (v) => v.esfleteflag == 1 && v.status == 1 && v.esopcionflag == 1,
-      );
-
-      let proveedoresUnicos = [
-        ...new Set(costosFlete.map((v) => v.id_proveedor)),
-      ];
-      if (proveedoresUnicos.length > 1) {
-        Swal.fire({
-          icon: "warning",
-          title: "Costos",
-          text: "Para aprobar, en la sección Flete y gastos de origen, debe tener un solo proveedor",
-        });
-        return;
-      }
-      this.proveedorInstructivo = this.$store.state.provedores.find(
-        (v) => v.id == proveedoresUnicos[0],
-      );
-
-      let val = JSON.parse(sessionStorage.getItem("ConfigEmpresa"));
-      this.dialogConfig = !val.existemaster;
-      if (this.dialogConfig) {
-        return false;
-      }
-
-      await this.cargarMaster(this.pricingStore.datosPrincipales);
-
-      this.seleccionQuoteAprobar = true;
-    },
-    mostrarBtnAprobar() {
-      return !this.pricingStore.aprobadoflag;
-    },
-    abrirModalListadoArchivos() {
-      this.dialogFiles = true;
-    },
-    abrirSeleccionCorreo() {
-      Swal.fire({
-        icon: "question",
-        title: "¿Empezar Instructivo?",
-        showConfirmButton: true,
-        confirmButtonText: "Empezar",
-        cancelButtonText: "Cancelar",
-        allowEnterKey: false,
-        allowEscapeKey: false,
-        allowOutsideClick: false,
-      }).then((confirmacion) => {
-        if (confirmacion.isConfirmed) {
-          this.dialogFiles = false;
-          this.dialogSequenceInstructivo = true;
-        }
-      });
-    },
-    async abrirModalAprobar() {
-      this.dialogFiles = false;
-      this.dialogSequenceInstructivo = false;
-      await this.generaInstructivoparaguardata();
-      await this.$nextTick();
-      const formulario = this.$refs.frmSeleccionQuote;
-      if (!formulario) {
-        return false;
-      }
-      if ((await formulario.validate()).valid) {
-        let fecha_validez = this.pricingStore.opcionCostos.filter(
-          (v) => v.nro_propuesta == this.nro_propuesta,
-        )[0].date_end;
-        let esValida = moment(fecha_validez).isSameOrAfter(moment(), "day");
-        if (!esValida) {
-          return Swal.fire({
-            icon: "warning",
-            title: "Advertencia",
-            text: "No se puede aprobar ya que la validez ya expiró.",
-          }).then(() => false);
-        }
-        esValida = moment(fecha_validez, "YYYY-MM-DD").isSameOrAfter(
-          moment().add(15, "days").startOf("day"),
-        );
-        let hoy = moment();
-        let newFechaValize = moment(fecha_validez);
-        let cantFecha = newFechaValize.diff(hoy, "days");
-
-        if (!esValida) {
-          return Swal.fire({
-            icon: "question",
-            title: "Advertencia",
-            text: `Quedan ${
-              cantFecha + 1
-            } días de validez. ¿Desea continuar.? `,
-            allowEnterKey: false,
-            allowOutsideClick: false,
-            allowEscapeKey: false,
-            showCancelButton: true,
-            confirmButtonText: "Enviar a Operaciones.",
-            cancelButtonText: "No aprobar.",
-          }).then((res) => {
-            if (res.isDismissed) {
-              return false;
-            }
-
-            this.nuevoexpediente = true;
-            this.id_exp = "";
-            let vm = this;
-            Swal.fire({
-              icon: "question",
-              iconColor: "red",
-              width: 1000,
-              html:
-                this.$store.state.itemsMasterList.length > 0
-                  ? "<h1>¿Desea crear un nuevo expediente o seleccionar uno registrado?</h1>"
-                  : "<h1>¿Desea crear un nuevo expediente?</h1>",
-              showConfirmButton: true,
-              confirmButtonText: "CREAR NUEVO EXPEDIENTE",
-              showDenyButton: this.$store.state.itemsMasterList.length > 0,
-              denyButtonText: "SELECCIONAR EXPEDIENTE YA CREADO",
-              showCloseButton: true,
-              showCancelButton: false,
-              allowOutsideClick: false,
-            }).then(async (res) => {
-              if (res.isConfirmed) {
-                Swal.fire({
-                  icon: "warning",
-                  width: 1000,
-                  title: "Fecha de Disponibilidad - Master",
-                  html: `<input type="date" id="swal-input1" class="swal2-input">
-              <p>Si es Importación seria el ETA </p>
-              <p>SI  es Exportación Colocar el ETD </p>
-              <p style="color:red">Esto te Ayudara a Controlar tus Operaciones  </p>
-
-
-              `,
-                  allowOutsideClick: false,
-                  confirmButtonText: "ACEPTAR",
-                  showCancelButton: true,
-                  cancelButtonText: "CANCELAR",
-                  preConfirm: () => {
-                    const dateInput =
-                      document.getElementById("swal-input1").value;
-                    if (!dateInput) {
-                      Swal.showValidationMessage(
-                        "La fecha de validez es requerida",
-                      );
-                    } else {
-                      const selectedDate = moment(dateInput, "YYYY-MM-DD"); // Parsea la fecha ingresada
-                      const currentDate = moment(); // Obtiene la fecha actual
-
-                      if (selectedDate.isSameOrBefore(currentDate)) {
-                        Swal.showValidationMessage(
-                          "La fecha debe ser mayor que la fecha actual",
-                        );
-                      } else {
-                        return dateInput;
-                      }
-                    }
-                  },
-                }).then(async (res) => {
-                  this.fecha_validez = res.value;
-                  console.log(
-                    "b",
-                    this.pricingStore.listIngresosInstructivoAprobar,
-                  );
-                  let sum =
-                    this.pricingStore.listIngresosInstructivoAprobar.filter(
-                      (v) => v.nro_propuesta == this.nro_propuesta,
-                    );
-                  let igv =
-                    this.pricingStore.listIngresosInstructivoAprobar
-                      .filter((v) => v.nro_propuesta == this.nro_propuesta)[0]
-                      .dataIngresos.filter(
-                        (v) => v.descripcion === "TOTAL",
-                      )[0].igv;
-                  let valor =
-                    this.pricingStore.listIngresosInstructivoAprobar
-                      .filter((v) => v.nro_propuesta == this.nro_propuesta)[0]
-                      .dataIngresos.filter(
-                        (v) => v.descripcion === "TOTAL",
-                      )[0].valor;
-                  let listCostosInstructivo =
-                    this.pricingStore.listIngresosInstructivoAprobar.filter(
-                      (v) => v.nro_propuesta == this.nro_propuesta,
-                    )[0].dataCostos;
-                  let listVentasInstructivo =
-                    this.pricingStore.listIngresosInstructivoAprobar.filter(
-                      (v) => v.nro_propuesta == this.nro_propuesta,
-                    )[0].dataVentas;
-                  if (res.isConfirmed) {
-                    Swal.fire({
-                      icon: "info",
-                      title: "Aprobando Cotizacion",
-                      timerProgressBar: true,
-                      allowOutsideClick: false,
-                      timer: null,
-                      didOpen: () => {
-                        Swal.showLoading();
-                      },
-                    });
-                    await vm.aprobarCotizacion({
-                      IdempotencyKey: vm.IdempotencyKey,
-                      id_quote: vm.$route.params.id,
-                      nuevoexpediente: true,
-                      id_exp: vm.id_exp,
-                      fecha_validez: vm.fecha_validez,
-                      totalIngreso: valor,
-                      igvIngreso: igv,
-                      valorIngreso: valor,
-                      listCostosInstructivo: listCostosInstructivo,
-                      listVentasInstructivo: listVentasInstructivo,
-                      id_house: this.id_house,
-                      id_opcion: this.id_opcion,
-                      url_folderonedrive: this.url_folderonedrive,
-                    });
-                    this.$store.state.spiner = true;
-
-                    this.$store.state.spiner = false;
-                  }
-                });
-              }
-              if (res.isDenied) {
-                this.nuevoexpediente = false;
-                this.aprobarflag = true;
-              }
-            });
-          });
-        } else {
-          this.nuevoexpediente = true;
-          this.id_exp = "";
-          let vm = this;
-          Swal.fire({
-            icon: "question",
-            iconColor: "red",
-            width: 1000,
-            html:
-              this.$store.state.itemsMasterList.length > 0
-                ? "<h1>¿Desea crear un nuevo expediente o seleccionar uno registrado?</h1>"
-                : "<h1>¿Desea crear un nuevo expediente?</h1>",
-            showConfirmButton: true,
-            confirmButtonText: "CREAR NUEVO EXPEDIENTE",
-            showDenyButton: this.$store.state.itemsMasterList.length > 0,
-            denyButtonText: "SELECCIONAR EXPEDIENTE YA CREADO",
-            showCloseButton: true,
-            showCancelButton: false,
-            allowOutsideClick: false,
-          }).then(async (res) => {
-            if (res.isConfirmed) {
-              Swal.fire({
-                icon: "warning",
-                width: 1000,
-                title: "Fecha de Disponibilidad - Master",
-                html: `<input type="date" id="swal-input1" class="swal2-input">
-              <p>Si es Importación seria el ETA </p>
-              <p>SI  es Exportación Colocar el ETD </p>
-              <p style="color:red">Esto te Ayudara a Controlar tus Operaciones  </p>
-
-
-              `,
-                allowOutsideClick: false,
-                confirmButtonText: "ACEPTAR",
-                showCancelButton: true,
-                cancelButtonText: "CANCELAR",
-                preConfirm: () => {
-                  const dateInput =
-                    document.getElementById("swal-input1").value;
-                  if (!dateInput) {
-                    Swal.showValidationMessage(
-                      "La fecha de validez es requerida",
-                    );
-                  } else {
-                    const selectedDate = moment(dateInput, "YYYY-MM-DD"); // Parsea la fecha ingresada
-                    const currentDate = moment(); // Obtiene la fecha actual
-
-                    if (selectedDate.isSameOrBefore(currentDate)) {
-                      Swal.showValidationMessage(
-                        "La fecha debe ser mayor que la fecha actual",
-                      );
-                    } else {
-                      return dateInput;
-                    }
-                  }
-                },
-              }).then(async (res) => {
-                this.fecha_validez = res.value;
-                console.log(
-                  "a",
-                  this.pricingStore.listIngresosInstructivoAprobar,
-                );
-                let sum =
-                  this.pricingStore.listIngresosInstructivoAprobar.filter(
-                    (v) => v.nro_propuesta == this.nro_propuesta,
-                  );
-                let igv =
-                  this.pricingStore.listIngresosInstructivoAprobar
-                    .filter((v) => v.nro_propuesta == this.nro_propuesta)[0]
-                    .dataIngresos.filter(
-                      (v) => v.descripcion === "TOTAL",
-                    )[0].igv;
-                let valor =
-                  this.pricingStore.listIngresosInstructivoAprobar
-                    .filter((v) => v.nro_propuesta == this.nro_propuesta)[0]
-                    .dataIngresos.filter(
-                      (v) => v.descripcion === "TOTAL",
-                    )[0].valor;
-                let listCostosInstructivo =
-                  this.pricingStore.listIngresosInstructivoAprobar.filter(
-                    (v) => v.nro_propuesta == this.nro_propuesta,
-                  )[0].dataCostos;
-                let listVentasInstructivo =
-                  this.pricingStore.listIngresosInstructivoAprobar.filter(
-                    (v) => v.nro_propuesta == this.nro_propuesta,
-                  )[0].dataVentas;
-                if (res.isConfirmed) {
-                  Swal.fire({
-                    icon: "info",
-                    title: "Aprobando Cotizacion",
-                    timerProgressBar: true,
-                    allowOutsideClick: false,
-                    timer: null,
-                    didOpen: () => {
-                      Swal.showLoading();
-                    },
-                  });
-                  await vm.aprobarCotizacion({
-                    IdempotencyKey: vm.IdempotencyKey,
-                    id_quote: vm.$route.params.id,
-                    nuevoexpediente: true,
-                    id_exp: vm.id_exp,
-                    fecha_validez: vm.fecha_validez,
-                    totalIngreso: valor,
-                    igvIngreso: igv,
-                    valorIngreso: valor,
-                    listCostosInstructivo: listCostosInstructivo,
-                    listVentasInstructivo: listVentasInstructivo,
-                    id_house: this.id_house,
-                    id_opcion: this.id_opcion,
-                    url_folderonedrive: this.url_folderonedrive,
-                  });
-                  this.$store.state.spiner = true;
-
-                  this.$store.state.spiner = false;
-                }
-              });
-            }
-            if (res.isDenied) {
-              this.nuevoexpediente = false;
-              this.aprobarflag = true;
-            }
-          });
-        }
-      }
-    },
-    regresarSeleccionoMaster() {
-      this.dialogCostos = !this.dialogCostos;
-      this.aprobarflag = true;
-    },
-    async validarExistePagosMaster() {
-      this.activarBtnContinuar = true;
-      this.textValidacionPago = "";
-      if (this.id_opcion == "1") {
-        var config = {
-          method: "get",
-          url: import.meta.env.VITE_URL_MAIN + "validar_existe_pago_master",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          params: {
-            id: this.id_exp,
-          },
-        };
-        let res = await axios(config).then((res) => {
-          return res.data;
-        });
-        this.activarBtnContinuar = res.estadoflag;
-        this.textValidacionPago = res.mensaje;
-        this.loading = false;
-        return;
-      }
-      this.activarBtnContinuar = false;
-    },
-    async validarExistePagosHouse() {
-      this.activarBtnContinuar = true;
-      this.textValidacionPago = "";
-
-      var config = {
-        method: "get",
-        url: import.meta.env.VITE_URL_MAIN + "validar_existe_pago_house",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        params: {
-          id: this.id_house,
-        },
-      };
-      let res = await axios(config).then((res) => {
-        return res.data;
-      });
-      this.activarBtnContinuar = res.estadoflag;
-      this.textValidacionPago = res.mensaje;
-      return;
-    },
-    async buscarHouseAsociadosAMaster() {
-      this.lstHouse = [];
-      var config = {
-        method: "get",
-        url: import.meta.env.VITE_URL_MAIN + "cargar_house_asociado_master",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        params: {
-          id_master: this.id_exp,
-        },
-      };
-      this.loading = true;
-      let res = await axios(config).then((res) => {
-        return res.data;
-      });
-      this.loading = false;
-
-      if (!!res.estadoflag) {
-        this.lstHouse = res.data;
-      }
-      this.lstHouse.unshift({
-        id: 0,
-        code_house: "CREAR UN NUEVO HOUSE",
-      });
-      this.activarBtnContinuar = true;
-      this.textValidacionPago = "";
-      this.aprobarflag = false;
-      this.dialogHouse = true;
-    },
-    continuarAprobar() {
-      this.id_opcion = "";
-      this.aprobarflag = false;
-      this.dialogCostos = true;
-    },
-    async aprobar() {
-      if (this.id_opcion_house == 1) {
-        let house = this.lstHouse.find((v) => v.id == this.id_house);
-
-        this.correlativos = house.correlativos
-          ? house.correlativos.split(",").map((item) => ({
-              code: item.trim(),
-            }))
-          : [];
-        this.dialogCorrelativos = true;
-      } else {
-        this.continuarAprobarHouses();
-      }
-    },
-    async continuarAprobarHouses() {
-      this.dialogCorrelativos = false;
-      await this.generaInstructivoparaguardata();
-
-      let sum = this.pricingStore.listIngresosInstructivoAprobar.filter(
-        (v) => v.nro_propuesta == this.nro_propuesta,
-      );
-      let igv = this.pricingStore.listIngresosInstructivoAprobar
-        .filter((v) => v.nro_propuesta == this.nro_propuesta)[0]
-        .dataIngresos.filter((v) => v.descripcion === "TOTAL")[0].igv;
-      let valor = this.pricingStore.listIngresosInstructivoAprobar
-        .filter((v) => v.nro_propuesta == this.nro_propuesta)[0]
-        .dataIngresos.filter((v) => v.descripcion === "TOTAL")[0].valor;
-      let listCostosInstructivo =
-        this.pricingStore.listIngresosInstructivoAprobar.filter(
-          (v) => v.nro_propuesta == this.nro_propuesta,
-        )[0].dataCostos;
-      let listVentasInstructivo =
-        this.pricingStore.listIngresosInstructivoAprobar.filter(
-          (v) => v.nro_propuesta == this.nro_propuesta,
-        )[0].dataVentas;
-      const formulario = this.$refs.frmAsociarExpediente;
-      if (formulario && !(await formulario.validate()).valid) {
-        return;
-      }
-      if (formulario || this.id_exp || this.nuevoexpediente) {
-        Swal.fire({
-          icon: "info",
-          title: "Aprobando Cotizacion",
-          timerProgressBar: true,
-          allowOutsideClick: false,
-          timer: null,
-          didOpen: () => {
-            Swal.showLoading();
-          },
-        });
-        await this.aprobarCotizacion({
-          IdempotencyKey: this.IdempotencyKey,
-          id_quote: this.$route.params.id,
-          nuevoexpediente: false,
-          id_exp: this.id_exp,
-          fecha_validez: this.fecha_validez,
-          totalIngreso: valor,
-          igvIngreso: igv,
-          valorIngreso: valor,
-          listCostosInstructivo: listCostosInstructivo,
-          listVentasInstructivo: listVentasInstructivo,
-          id_house: this.id_house,
-          id_opcion: this.id_opcion,
-          id_opcion_house: this.id_opcion_house,
-          url_folderonedrive: this.url_folderonedrive,
-        });
-        this.$store.state.spiner = true;
-        this.aprobarflag = false;
-        this.$store.state.spiner = false;
-      }
-    },
-
-    noDataText() {
-      return `No se encontraron Masters con la misma Modalidad, Tipo de Carga, Incoterms y/o Puerto Origen/ Destino asociados a la cotización.`;
-    },
-    getProveedor(element) {
-      let id_proveedor = element.listCostos.some(
-        (v) => v.code_cost == 4 && v.esopcionflag == 1,
-      )
-        ? element.listCostos.filter(
-            (v) => v.code_cost == 4 && v.esopcionflag == 1,
-          )[0].id_proveedor
-        : "";
-      let nameProveedor = id_proveedor
-        ? this.$store.state.provedores.find((v) => v.id == id_proveedor)
-        : "";
-      return nameProveedor ? nameProveedor.namelong : " Sin Proveedor";
-    },
-  },
-};
-</script>
 
 <style scoped>
 .header {

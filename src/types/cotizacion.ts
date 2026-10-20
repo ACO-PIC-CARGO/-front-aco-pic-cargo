@@ -70,6 +70,7 @@ export interface DatosPrincipales {
   iddistrito?: number | string | null;
   idprovincia?: number | string | null;
   datosInstructivoManual?: unknown;
+  datosinstructivomanual?: DatosManualesInstructivo & { listaDocumentos?: DocumentoInstructivo[]; table_allpath_list?: unknown[] };
   esindividualflag?: boolean;
   esgrupalflag?: boolean;
   url_folderonedrive?: string | null;
@@ -442,6 +443,7 @@ export interface ClienteCotizacion {
   surname?: string;
   phone?: string | null;
   document?: string | null;
+  address?: string | null;
 }
 
 export interface InstructivoCotizacion {
@@ -458,6 +460,27 @@ export interface InstructivoCotizacion {
   destino?: string;
   fiscal?: string | null;
   ruc?: string | null;
+  direccionorigen?: string | null;
+  icotems?: string;
+}
+
+export interface ExpedienteMaster {
+  id: number | string;
+  code_master?: string;
+  Expediente?: string;
+  tienepagos?: boolean | number;
+  url_folderonedrive?: string;
+  id_modality?: number | string;
+  id_shipment?: number | string;
+  id_incoterms?: number | string;
+  id_port_begin?: number | string;
+  id_port_end?: number | string;
+}
+
+export interface HouseAsociadoMaster {
+  id: number;
+  code_house: string;
+  correlativos?: string | null;
 }
 
 export interface LineaInstructivo {
@@ -552,6 +575,54 @@ export interface CotizacionDetalle extends Omit<DatosPrincipales, "opcioncostos"
 export interface TextoWhatsappCotizacion {
   texto_pdf?: string;
   texto_link?: string;
+}
+
+export interface DocumentoInstructivo {
+  key: string;
+  label: string;
+  flag: boolean;
+  file: unknown;
+  editable: boolean;
+}
+
+export interface FichaInstructivo extends ClienteCotizacion {
+  name?: string;
+  namelong?: string;
+  contacto?: string;
+  contacto_phone?: string;
+  emailaddress?: string;
+  nombre_clean?: string;
+}
+
+export interface DatosManualesInstructivo {
+  [campo: string]: unknown;
+  servicio: string;
+  email: string;
+  monto: number | string;
+  listDiaFecha: string;
+  grupoWhatsapp: string;
+  pagarProveedor: boolean | string;
+  metodoPagarProveedor: number | string;
+  condicionesLink: string;
+  dondePagar: string;
+  clientePago: string;
+  linkDePago: string;
+  linkDePagoAlibaba: string;
+  condiciones: string;
+  nroFactura: string;
+  seguro: string;
+  observacion1: string;
+  observacion2: string;
+  id_path: number[];
+  montoRecibido: number | string;
+  bancoBenbeficiario: string;
+  direccionBancoBeneficiario: string;
+  nombreBeneficiario: string;
+  direccionBeneficiario: string;
+  numeroCuentaBeneficiario: unknown;
+  paisReceptor: unknown;
+  porcentajePago: number | string;
+  numeroContratoAlibaba: unknown;
 }
 
 export interface DatosInstructivoManual {
