@@ -160,12 +160,12 @@ function openInvoice(id: number, nameproveedor: string, type: number) {
   }
 }
 async function _getInvoice() {
-  var data = {
+  const data = {
     id_house: route.params.id_house,
     id_proveedor: proveedorId.value,
     id_branch: sessionBranchId(),
   };
-  var config = {
+  const config = {
     method: "get",
     url:
       import.meta.env.VITE_URL_MAIN +
@@ -194,7 +194,7 @@ async function _setInvoice() {
     title: "Guardando...",
     text: "Por favor espere",
   });
-  var data = {
+  const data = {
     id_house: route.params.id_house,
     id_proveedor: proveedorId.value,
     id_path: payPath.value,
@@ -203,7 +203,7 @@ async function _setInvoice() {
     date: date.value,
     status: 1,
   };
-  var config = {
+  const config = {
     method: "post",
     url: import.meta.env.VITE_URL_MAIN + "setInvoice",
 
@@ -232,7 +232,7 @@ async function _setInvoice() {
     });
 }
 async function _delInvoice(id: number) {
-  var config = {
+  const config = {
     method: "post",
     url: import.meta.env.VITE_URL_MAIN + "delInvoice/" + id,
 
@@ -253,11 +253,11 @@ async function _delInvoice(id: number) {
     });
 }
 function _uploadFile() {
-  var data = new FormData();
+  const data = new FormData();
   data.append("name", "Prueba");
   data.append("file", payfile.value as Blob);
 
-  var config = {
+  const config = {
     method: "post",
     url: import.meta.env.VITE_URL_MAIN + "uploadAllPath",
     headers: {
@@ -294,10 +294,10 @@ function viewPdf(pdf: string) {
   window.open(import.meta.env.VITE_URL_MAIN + pdf, "_blank");
 }
 async function _getAccountsNumber() {
-  let data = {
+  const data = {
     id_branch: sessionBranchId(),
   };
-  var config = {
+  const config = {
     method: "post",
     url:
       import.meta.env.VITE_URL_MAIN + "getAccountsNumber/" + proveedorId.value,
@@ -327,7 +327,7 @@ function sendAdmin(id: number) {
   }).then((result) => {
     /* Read more about isConfirmed, isDenied below */
     if (result.isConfirmed) {
-      var data = {
+      const data = {
         fecha_sol: new Date(
           Date.now() - new Date().getTimezoneOffset() * 60000
         )
@@ -335,7 +335,7 @@ function sendAdmin(id: number) {
           .substr(0, 10),
         status: 2,
       };
-      var config = {
+      const config = {
         method: "post",
         url: import.meta.env.VITE_URL_MAIN + "putSPaymentPro/" + id,
         headers: {
@@ -346,7 +346,7 @@ function sendAdmin(id: number) {
       };
 
       axios(config)
-        .then(function (response) {
+        .then(function () {
           Swal.fire({
             icon: "success",
             title: "Excelente",
@@ -369,7 +369,7 @@ function sendAdmin(id: number) {
   TotalLocal.value = pagar;
 }
 async function _getSPaymentPro(id: number) {
-  var config = {
+  const config = {
     method: "post",
     url:
       import.meta.env.VITE_URL_MAIN +
@@ -405,6 +405,7 @@ function solicitar(nameproveedor: string, pagar: number | string, id: number, ty
     });
   } else {
     proveedorId.value = id;
+    // eslint-disable-next-line @typescript-eslint/no-unused-expressions
     (selected.value = []),
       (selectedAccount.value = []),
       Swal.fire({
@@ -440,10 +441,11 @@ async function _generateSolicitud() {
     title: "Generando PDF...",
     text: "Por favor espere",
   });
-  var sentido;
+  let sentido;
   if (rootStore.state.report_id_sentido == "") {
     sentido = "";
   } else {
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     sentido = rootStore.state.report_id_sentido;
   }
 
@@ -462,14 +464,14 @@ async function _generateSolicitud() {
     concepto = rootStore.state.itemsDataConceptos;
   }
 
-  var datas = {
+  const datas = {
     id_house: route.params.id_house,
     id_proveedor: proveedorId.value,
     conceptos: concepto,
     monto: pago,
     status: 1,
   };
-  var config = {
+  const config = {
     method: "post",
     url: import.meta.env.VITE_URL_MAIN + "setSPaymentPro",
     headers: {
@@ -481,7 +483,7 @@ async function _generateSolicitud() {
 
   axios(config)
     .then(function (response) {
-      var data = {
+      const data = {
         nameProveedor: nameproveedorLocal.value,
         nameConsignatario: rootStore.state.dataHouse_consigners,
         totalPagar: TotalLocal.value,
@@ -499,7 +501,7 @@ async function _generateSolicitud() {
         number: response.data.data[0].number,
         url_logo: sessionUser().path,
       };
-      var config = {
+      const config = {
         method: "post",
         url: import.meta.env.VITE_URL_MAIN + "pdfSolicitud",
         headers: {
@@ -574,11 +576,12 @@ function currentDate() {
   } del ${current.getFullYear()}`;
   return date;
 }
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 function _deleteServices(id: number) {
-  var data = {
+  const data = {
     id: id,
   };
-  var config = {
+  const config = {
     method: "post",
     url: import.meta.env.VITE_URL_MAIN + "deleteServices",
     headers: {
@@ -601,11 +604,11 @@ function _validaData() {
   rootStore.state.spiner = true;
   if (route.params.id_house) {
     rootStore.state.house_Id_get = route.params.id_house;
-    var data = {
+    const data = {
       id: route.params.id_house,
       id_branch: sessionBranchId(),
     };
-    var config = {
+    const config = {
       method: "post",
       url: import.meta.env.VITE_URL_MAIN + "getHouseServices",
       headers: {
@@ -625,7 +628,7 @@ function _validaData() {
   rootStore.state.spiner = false;
 }
 async function _getConceptosSimple() {
-  var config = {
+  const config = {
     method: "post",
     url:
       import.meta.env.VITE_URL_MAIN +
@@ -647,7 +650,7 @@ async function _getConceptosSimple() {
     });
 }
 async function _getConceptos() {
-  var config = {
+  const config = {
     method: "post",
     url:
       import.meta.env.VITE_URL_MAIN +
@@ -687,64 +690,106 @@ onMounted(() => {
   <div>
     <h3>Total por Proveedores</h3>
 
-    <v-dialog width="780" v-model="dialogSolicitud">
+    <v-dialog
+      width="780"
+      v-model="dialogSolicitud"
+    >
       <v-stepper v-model="e1">
         <v-stepper-header>
-          <v-stepper-item :complete="e1 > 1" :value="1" title="Códigos" />
+          <v-stepper-item
+            :complete="e1 > 1"
+            :value="1"
+            title="Códigos"
+          />
 
-          <v-divider></v-divider>
+          <v-divider />
 
           <v-stepper-item
             :complete="e1 > 2"
             :value="2"
             title="Cuentas Bancarias"
           />
-          <v-divider></v-divider>
+          <v-divider />
 
-          <v-stepper-item :complete="e1 > 3" :value="3" title="Observaciones" />
+          <v-stepper-item
+            :complete="e1 > 3"
+            :value="3"
+            title="Observaciones"
+          />
         </v-stepper-header>
 
         <v-stepper-window>
           <v-stepper-window-item :value="1">
-            <v-card class="mb-12" elevation="0" height="200px">
+            <v-card
+              class="mb-12"
+              elevation="0"
+              height="200px"
+            >
               <v-card-text>
                 <v-row density="compact">
-                  <v-col md="6" cols="12">
+                  <v-col
+                    md="6"
+                    cols="12"
+                  >
                     <v-checkbox
                       v-model="checkPago"
                       label="Aplica código de pago"
-                    ></v-checkbox>
+                    />
                     <v-text-field
                       v-if="checkPago"
                       v-model="codigo_pago"
                       label="CODIGO DE PAGO"
-                      >CODIGO DE PAGO</v-text-field
                     >
+                      CODIGO DE PAGO
+                    </v-text-field>
                   </v-col>
-                  <v-col md="6" cols="12">
+                  <v-col
+                    md="6"
+                    cols="12"
+                  >
                     <v-checkbox
                       v-model="checkMaster"
                       label="Aplica Número de Expediente"
-                    ></v-checkbox>
+                    />
                     <v-text-field
                       v-if="checkMaster"
                       v-model="codigo_master"
                       label="CODIGO DE MASTER BL"
-                      >CODIGO DE MASTER BL</v-text-field
                     >
+                      CODIGO DE MASTER BL
+                    </v-text-field>
                   </v-col>
                 </v-row>
-              </v-card-text></v-card
+              </v-card-text>
+            </v-card>
+
+            <v-btn
+              color="primary"
+              @click="e1 = 2"
             >
+              Continuar
+            </v-btn>
 
-            <v-btn color="primary" @click="e1 = 2"> Continuar </v-btn>
-
-            <v-btn variant="text" @click="e1 = 1"> Volver </v-btn>
-            <v-btn variant="text" @click="dialogSolicitud = false"> Cerrar </v-btn>
+            <v-btn
+              variant="text"
+              @click="e1 = 1"
+            >
+              Volver
+            </v-btn>
+            <v-btn
+              variant="text"
+              @click="dialogSolicitud = false"
+            >
+              Cerrar
+            </v-btn>
           </v-stepper-window-item>
 
           <v-stepper-window-item :value="2">
-            <v-card class="mb-12" elevation="0" height="200px">
+            <v-card
+              class="mb-12"
+              elevation="0"
+              height="200px"
+            >
               <v-card-text>
                 <b>Cuentas</b>
                 <v-data-table
@@ -758,59 +803,104 @@ onMounted(() => {
                   show-select
                   class="elevation-0"
                   density="compact"
-                >
-                </v-data-table>
-                <h2 class="mt-5">Ya seleccionó el codigo de pago</h2>
-              </v-card-text></v-card
+                />
+                <h2 class="mt-5">
+                  Ya seleccionó el codigo de pago
+                </h2>
+              </v-card-text>
+            </v-card>
+
+            <v-btn
+              color="primary"
+              @click="e1 = 3"
             >
+              Continuar
+            </v-btn>
 
-            <v-btn color="primary" @click="e1 = 3"> Continuar </v-btn>
-
-            <v-btn variant="text" @click="e1 = 1"> Volver</v-btn>
-            <v-btn variant="text" @click="dialogSolicitud = false"> Cerrar </v-btn>
+            <v-btn
+              variant="text"
+              @click="e1 = 1"
+            >
+              Volver
+            </v-btn>
+            <v-btn
+              variant="text"
+              @click="dialogSolicitud = false"
+            >
+              Cerrar
+            </v-btn>
           </v-stepper-window-item>
 
           <v-stepper-window-item :value="3">
-            <v-card class="mb-12" elevation="0" height="200px">
+            <v-card
+              class="mb-12"
+              elevation="0"
+              height="200px"
+            >
               <v-card-text>
                 <v-textarea
                   v-model="comentarios"
                   rows="3"
                   label="Observación Adicionales"
-                >
-                </v-textarea>
+                />
                 <v-btn
                   block
                   @click="_generateSolicitud()"
                   class="mt-2"
                   color="primary"
-                  >GENERAR SOLICITUD</v-btn
                 >
-              </v-card-text></v-card
-            >
+                  GENERAR SOLICITUD
+                </v-btn>
+              </v-card-text>
+            </v-card>
 
-            <v-btn variant="text" @click="e1 = 2"> Volver </v-btn>
-            <v-btn variant="text" @click="dialogSolicitud = false"> Cerrar </v-btn>
+            <v-btn
+              variant="text"
+              @click="e1 = 2"
+            >
+              Volver
+            </v-btn>
+            <v-btn
+              variant="text"
+              @click="dialogSolicitud = false"
+            >
+              Cerrar
+            </v-btn>
           </v-stepper-window-item>
         </v-stepper-window>
       </v-stepper>
     </v-dialog>
 
-    <v-dialog width="680" v-model="dialogSolicitudDivision">
+    <v-dialog
+      width="680"
+      v-model="dialogSolicitudDivision"
+    >
       <v-card>
         <v-card-title> Solicitar pago por concepto</v-card-title>
 
         <v-card-text>
           <v-row density="compact">
-            <v-col md="6" cols="12">
-              <v-text-field v-model="codigo_pago" label="CODIGO DE PAGO"
-                >CODIGO DE PAGO</v-text-field
+            <v-col
+              md="6"
+              cols="12"
+            >
+              <v-text-field
+                v-model="codigo_pago"
+                label="CODIGO DE PAGO"
               >
+                CODIGO DE PAGO
+              </v-text-field>
             </v-col>
-            <v-col md="6" cols="12">
-              <v-text-field v-model="codigo_master" label="CODIGO DE MASTER BL"
-                >CODIGO DE MASTER BL</v-text-field
+            <v-col
+              md="6"
+              cols="12"
+            >
+              <v-text-field
+                v-model="codigo_master"
+                label="CODIGO DE MASTER BL"
               >
+                CODIGO DE MASTER BL
+              </v-text-field>
             </v-col>
           </v-row>
 
@@ -818,8 +908,7 @@ onMounted(() => {
             v-model="comentarios"
             rows="3"
             label="Observación Adicionales"
-          >
-          </v-textarea>
+          />
 
           <h2>Seleccione los conceptos</h2>
 
@@ -837,14 +926,14 @@ onMounted(() => {
             show-select
             class="elevation-0"
           >
-            <template v-slot:[`item.data-table-select`]="{ item, props }">
+            <template #[`item.data-table-select`]="{ item, props }">
               <v-checkbox-btn
                 v-bind="props"
                 :readonly="item.pagado == 1"
                 v-if="(!item.pagado as unknown) == 1"
-              ></v-checkbox-btn>
+              />
             </template>
-            <template v-slot:[`item.status`]="{ item }">
+            <template #[`item.status`]="{ item }">
               <v-chip
                 v-if="item.pagado == 1"
                 class="ma-2 text-white"
@@ -861,8 +950,9 @@ onMounted(() => {
                 color="grey"
                 v-if="item.pagado == 1"
                 @click="openPaymentFile(item.path as string)"
-                >mdi-eye</v-icon
               >
+                mdi-eye
+              </v-icon>
             </template>
           </v-data-table>
 
@@ -877,26 +967,32 @@ onMounted(() => {
             show-select
             density="compact"
             class="elevation-0"
-          >
-          </v-data-table>
+          />
 
           <v-btn
             block
             @click="_generateSolicitud()"
             class="mt-2"
             color="primary"
-            >GENERAR SOLICITUD</v-btn
           >
+            GENERAR SOLICITUD
+          </v-btn>
         </v-card-text>
       </v-card>
     </v-dialog>
 
-    <v-dialog width="70%" v-model="dialogPayment">
+    <v-dialog
+      width="70%"
+      v-model="dialogPayment"
+    >
       <v-card class="mx-auto">
-        <v-toolbar color="cyan" class="text-white">
+        <v-toolbar
+          color="cyan"
+          class="text-white"
+        >
           <v-toolbar-title>SOLICITUDES GENERADAS</v-toolbar-title>
 
-          <v-spacer></v-spacer>
+          <v-spacer />
         </v-toolbar>
         <v-card-title>
           <v-text-field
@@ -905,11 +1001,17 @@ onMounted(() => {
             label="Buscar solicitud"
             single-line
             hide-details
-          ></v-text-field>
+          />
         </v-card-title>
-        <v-container v-if="!dataList" style="height: 400px">
+        <v-container
+          v-if="!dataList"
+          style="height: 400px"
+        >
           <v-row class="fill-height align-content-center justify-center">
-            <v-col class="text-body-large text-center" cols="12">
+            <v-col
+              class="text-body-large text-center"
+              cols="12"
+            >
               Cargando informacíon
             </v-col>
             <v-col cols="6">
@@ -918,7 +1020,7 @@ onMounted(() => {
                 indeterminate
                 rounded
                 height="6"
-              ></v-progress-linear>
+              />
             </v-col>
           </v-row>
         </v-container>
@@ -928,7 +1030,7 @@ onMounted(() => {
           :items="itemsSPayment"
           :search="search"
         >
-          <template v-slot:[`item.status`]="{ item }">
+          <template #[`item.status`]="{ item }">
             <v-chip
               v-if="item.status == 2"
               class="ma-2 text-white"
@@ -946,10 +1048,15 @@ onMounted(() => {
               {{ item.status == 3 ? "Pagado" : "" }}
             </v-chip>
           </template>
-          <template v-slot:[`item.accion`]="{ item }">
-            <v-icon class="mr-2" @click="viewPdf(item.path)"> mdi-eye </v-icon>
+          <template #[`item.accion`]="{ item }">
+            <v-icon
+              class="mr-2"
+              @click="viewPdf(item.path)"
+            >
+              mdi-eye
+            </v-icon>
           </template>
-          <template v-slot:[`item.accions`]="{ item }">
+          <template #[`item.accions`]="{ item }">
             <v-icon
               v-if="item.status != 3"
               class="mr-2"
@@ -962,14 +1069,21 @@ onMounted(() => {
       </v-card>
     </v-dialog>
 
-    <v-dialog max-width="800" v-model="dialogListInvoince">
+    <v-dialog
+      max-width="800"
+      v-model="dialogListInvoince"
+    >
       <v-card>
         <v-card-title class="d-flex align-center flex-wrap">
           Facturas y Performance de {{ nameproveedorSeleccionado }}
-          <v-spacer></v-spacer>
-          <v-btn variant="outlined" @click="dialogInvoice = true" color="primary"
-            >Cargar Nueva</v-btn
+          <v-spacer />
+          <v-btn
+            variant="outlined"
+            @click="dialogInvoice = true"
+            color="primary"
           >
+            Cargar Nueva
+          </v-btn>
         </v-card-title>
         <v-card-text>
           <v-data-table
@@ -979,54 +1093,64 @@ onMounted(() => {
             item-value="id"
             class="elevation-0"
           >
-            <template v-slot:[`item.originalname`]="{ item }">
-              <v-icon v-if="item.type == 'pdf'" color="red" class="mr-2"
-                >mdi-file-pdf-box</v-icon
+            <template #[`item.originalname`]="{ item }">
+              <v-icon
+                v-if="item.type == 'pdf'"
+                color="red"
+                class="mr-2"
               >
+                mdi-file-pdf-box
+              </v-icon>
               <v-icon
                 v-if="
                   item.type == 'png' ||
-                  item.type == 'jpg' ||
-                  item.type == 'jpeg'
+                    item.type == 'jpg' ||
+                    item.type == 'jpeg'
                 "
                 color="blue-grey-darken-1"
                 class="mr-2"
-                >mdi-file-image</v-icon
               >
+                mdi-file-image
+              </v-icon>
               {{
                 item.type_pago == 1
                   ? "FACTURA"
                   : String("") || item.type_pago == 2
-                  ? "PERFORMANCE"
-                  : "OTRO"
+                    ? "PERFORMANCE"
+                    : "OTRO"
               }}
               -
               {{ item.number }}
             </template>
-            <template v-slot:[`item.path`]="{ item }">
+            <template #[`item.path`]="{ item }">
               <v-icon
                 class="btn_add mr-2"
                 size="large"
                 color="grey"
                 @click="openDoc(item.path)"
-                >mdi-eye</v-icon
               >
+                mdi-eye
+              </v-icon>
             </template>
-            <template v-slot:[`item.action`]="{ item }">
+            <template #[`item.action`]="{ item }">
               <v-icon
                 class="btn_add mr-2"
                 size="large"
                 color="red"
                 @click="_delInvoice(item.id)"
-                >mdi-delete</v-icon
               >
+                mdi-delete
+              </v-icon>
             </template>
           </v-data-table>
         </v-card-text>
       </v-card>
     </v-dialog>
 
-    <v-dialog width="800" v-model="dialogInvoice">
+    <v-dialog
+      width="800"
+      v-model="dialogInvoice"
+    >
       <v-card>
         <v-card-title>
           <h3>Subir factura o proforma para {{ nameproveedorSeleccionado }}</h3>
@@ -1034,35 +1158,53 @@ onMounted(() => {
         <v-card-text>
           <v-container>
             <v-row density="compact">
-              <v-col cols="12" md="12">
-                <v-radio-group v-model="radio" inline>
-                  <v-radio label="Factura" value="1"></v-radio>
-                  <v-radio label="Performance" value="2"></v-radio>
-                  <v-radio label="Otro" value="3"></v-radio>
+              <v-col
+                cols="12"
+                md="12"
+              >
+                <v-radio-group
+                  v-model="radio"
+                  inline
+                >
+                  <v-radio
+                    label="Factura"
+                    value="1"
+                  />
+                  <v-radio
+                    label="Performance"
+                    value="2"
+                  />
+                  <v-radio
+                    label="Otro"
+                    value="3"
+                  />
                 </v-radio-group>
               </v-col>
-              <v-col cols="12" md="6">
+              <v-col
+                cols="12"
+                md="6"
+              >
                 <v-menu
                   v-model="menu"
                   :close-on-content-click="false"
                   transition="scale-transition"
                   min-width="auto"
                 >
-                  <template v-slot:activator="{ props }">
+                  <template #activator="{ props }">
                     <v-text-field
                       v-model="date"
                       :label="`Fecha de ${
                         radio == 1
                           ? 'Factura'
                           : String('') || radio == 2
-                          ? 'Performance'
-                          : 'Otro'
+                            ? 'Performance'
+                            : 'Otro'
                       }`"
                       prepend-icon="mdi-calendar"
                       readonly
                      
                       v-bind="props"
-                    ></v-text-field>
+                    />
                   </template>
                   <v-locale-provider locale="es">
                     <v-date-picker
@@ -1071,11 +1213,19 @@ onMounted(() => {
                       hide-header
                     >
                       <template #actions>
-                        <v-spacer></v-spacer>
-                        <v-btn variant="text" color="primary" @click="menu = false">
+                        <v-spacer />
+                        <v-btn
+                          variant="text"
+                          color="primary"
+                          @click="menu = false"
+                        >
                           Cancel
                         </v-btn>
-                        <v-btn variant="text" color="primary" @click="dateOnOpen = date; menu = false">
+                        <v-btn
+                          variant="text"
+                          color="primary"
+                          @click="dateOnOpen = date; menu = false"
+                        >
                           OK
                         </v-btn>
                       </template>
@@ -1083,20 +1233,26 @@ onMounted(() => {
                   </v-locale-provider>
                 </v-menu>
               </v-col>
-              <v-col cols="12" md="6">
+              <v-col
+                cols="12"
+                md="6"
+              >
                 <v-text-field
                   v-model="nro_invoice"
                   :label="`Nro de ${
                     radio == 1
                       ? 'Factura'
                       : String('') || radio == 2
-                      ? 'Performance'
-                      : 'Otro'
+                        ? 'Performance'
+                        : 'Otro'
                   }`"
-                ></v-text-field>
+                />
               </v-col>
 
-              <v-col cols="12" md="7">
+              <v-col
+                cols="12"
+                md="7"
+              >
                 <v-file-input
                   v-if="!boolFile"
                   v-model="payfile"
@@ -1105,11 +1261,10 @@ onMounted(() => {
                     radio == 1
                       ? 'Factura'
                       : String('') || radio == 2
-                      ? 'Performance'
-                      : 'Otro'
+                        ? 'Performance'
+                        : 'Otro'
                   }`"
-                >
-                </v-file-input>
+                />
 
                 <v-chip
                   block
@@ -1119,13 +1274,16 @@ onMounted(() => {
                   color="success"
                   variant="outlined"
                 >
-                  <v-icon start> mdi-check </v-icon>
+                  <v-icon start>
+                    mdi-check
+                  </v-icon>
                   Archivo cargado éxitosamente
                 </v-chip>
               </v-col>
               <v-col cols="5">
                 <!-- @vue-expect-error comparing an array by reference is always false -->
-                <v-btn :disabled="boolFile || payfile == []"
+                <v-btn
+                  :disabled="boolFile || payfile == []"
                   color="blue-grey"
                   block
                   class="ma-2 text-white"
@@ -1137,42 +1295,68 @@ onMounted(() => {
                     radio == 1
                       ? "Factura"
                       : String("") || radio == 2
-                      ? "Performance"
-                      : "Otro"
+                        ? "Performance"
+                        : "Otro"
                   }}
-                  <v-icon end> mdi-cloud-upload </v-icon>
+                  <v-icon end>
+                    mdi-cloud-upload
+                  </v-icon>
                 </v-btn>
               </v-col>
             </v-row>
           </v-container>
         </v-card-text>
         <v-card-actions>
-          <v-spacer></v-spacer>
-          <v-btn color="primary" @click="_setInvoice()" :disabled="!boolFile">
+          <v-spacer />
+          <v-btn
+            color="primary"
+            @click="_setInvoice()"
+            :disabled="!boolFile"
+          >
             GUARDAR
             {{
               radio == 1 ? "Factura" : String("") || radio == 2 ? "Performance" : "Otro"
-            }}</v-btn
-          >
+            }}
+          </v-btn>
 
-          <v-btn variant="outlined" color="red" @click="dialogInvoice = !dialogInvoice">
+          <v-btn
+            variant="outlined"
+            color="red"
+            @click="dialogInvoice = !dialogInvoice"
+          >
             Cerrar
           </v-btn>
         </v-card-actions>
       </v-card>
     </v-dialog>
 
-    <v-table density="compact" max-height="440" fixed-header>
-      <template v-slot:default>
+    <v-table
+      density="compact"
+      max-height="440"
+      fixed-header
+    >
+      <template #default>
         <thead>
           <tr>
-            <th class="text-left">Proveedor</th>
-            <th class="text-left">Total Pricing</th>
-            <th class="text-left">Total Operaciones</th>
-            <th class="text-left">Facturas o Proformance</th>
+            <th class="text-left">
+              Proveedor
+            </th>
+            <th class="text-left">
+              Total Pricing
+            </th>
+            <th class="text-left">
+              Total Operaciones
+            </th>
+            <th class="text-left">
+              Facturas o Proformance
+            </th>
 
-            <th class="text-left">Generar PDF de pago</th>
-            <th class="text-left">Solicitar a Administración</th>
+            <th class="text-left">
+              Generar PDF de pago
+            </th>
+            <th class="text-left">
+              Solicitar a Administración
+            </th>
           </tr>
         </thead>
         <tbody>
@@ -1186,7 +1370,7 @@ onMounted(() => {
             <td>{{ item.total_op }}</td>
             <td>
               <v-tooltip location="bottom">
-                <template v-slot:activator="{ props }">
+                <template #activator="{ props }">
                   <v-btn
                    
                     v-bind="props"
@@ -1200,10 +1384,11 @@ onMounted(() => {
                     elevation="0"
                     size="small"
                     color="white"
-                    ><v-icon :color="item.docs > 0 ? 'blue' : 'grey'"
-                      >mdi-file-compare</v-icon
-                    ></v-btn
                   >
+                    <v-icon :color="item.docs > 0 ? 'blue' : 'grey'">
+                      mdi-file-compare
+                    </v-icon>
+                  </v-btn>
                 </template>
                 <span>{{ item.docs }}</span>
               </v-tooltip>
@@ -1221,12 +1406,15 @@ onMounted(() => {
                 elevation="0"
                 size="small"
                 color="white"
-                ><v-icon color="blue">mdi-send</v-icon></v-btn
               >
+                <v-icon color="blue">
+                  mdi-send
+                </v-icon>
+              </v-btn>
             </td>
             <td>
               <v-tooltip location="bottom">
-                <template v-slot:activator="{ props }">
+                <template #activator="{ props }">
                   <v-btn
                    
                     v-bind="props"
@@ -1234,10 +1422,11 @@ onMounted(() => {
                     elevation="0"
                     size="small"
                     color="white"
-                    ><v-icon :color="item.solicitudes > 0 ? 'blue' : 'grey'"
-                      >mdi-email-arrow-right</v-icon
-                    ></v-btn
                   >
+                    <v-icon :color="item.solicitudes > 0 ? 'blue' : 'grey'">
+                      mdi-email-arrow-right
+                    </v-icon>
+                  </v-btn>
                 </template>
                 <span>{{ item.solicitudes }}</span>
               </v-tooltip>

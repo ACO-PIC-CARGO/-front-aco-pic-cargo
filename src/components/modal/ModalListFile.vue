@@ -18,14 +18,20 @@ defineEmits<{ "update:dialog": [value: boolean] }>();
         </v-card-title>
 
         <v-card-text>
-          <listHouse statusList="2" />
+          <listHouse status-list="2" />
         </v-card-text>
 
-        <v-divider></v-divider>
+        <v-divider />
 
         <v-card-actions>
-          <v-spacer></v-spacer>
-          <v-btn color="primary" variant="text" @click="$emit('update:dialog', false)"> Cerrar </v-btn>
+          <v-spacer />
+          <v-btn
+            color="primary"
+            variant="text"
+            @click="$emit('update:dialog', false)"
+          >
+            Cerrar
+          </v-btn>
         </v-card-actions>
       </v-card>
     </v-dialog>

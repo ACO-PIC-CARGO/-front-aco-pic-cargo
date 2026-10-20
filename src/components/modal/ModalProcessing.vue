@@ -7,7 +7,10 @@
       class="svg-proceesing"
     >
       <g id="Group 1">
-        <g id="undraw_data_processing_yrrv 1" clip-path="url(#clip0_1_61)">
+        <g
+          id="undraw_data_processing_yrrv 1"
+          clip-path="url(#clip0_1_61)"
+        >
           <path
             id="Vector"
             d="M39.5359 124.357C47.0638 124.357 53.1664 118.255 53.1664 110.727C53.1664 103.199 47.0638 97.096 39.5359 97.096C32.0079 97.096 25.9053 103.199 25.9053 110.727C25.9053 118.255 32.0079 124.357 39.5359 124.357Z"
@@ -199,7 +202,11 @@
       </g>
       <defs>
         <clipPath id="clip0_1_61">
-          <rect width="855.418" height="610.775" fill="white" />
+          <rect
+            width="855.418"
+            height="610.775"
+            fill="white"
+          />
         </clipPath>
       </defs>
     </svg>

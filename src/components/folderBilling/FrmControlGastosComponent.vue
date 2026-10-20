@@ -9,7 +9,7 @@ import { useBancosStore } from "@/stores/bancos";
 import { useControlGastosStore } from "@/stores/controlGastos";
 import { sessionBranchId } from "@/utils/sesion";
 
-const props = withDefaults(defineProps<{ editable?: boolean }>(), { editable: true });
+withDefaults(defineProps<{ editable?: boolean }>(), { editable: true });
 
 const Ingresos = defineAsyncComponent(() => import("./ingresos.vue"));
 const Egresos = defineAsyncComponent(() => import("./egresos.vue"));
@@ -42,15 +42,20 @@ const id_cuenta_pic = ref("");
 const tipocambio = ref(1);
 const comentario = ref("");
 // sufmoneda: "",
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 let date: string;
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 let payfile: unknown;
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 let boolFile: boolean;
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 let codigo_master: unknown;
 
 // ...mapAction([])
 // --------------------
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 function irAEditar(_ignored?: boolean) {
-  let id_branch =
+  const id_branch =
     controlGastosStore.listControlGastos[0]!.id_branch;
   if (
     !(
@@ -87,16 +92,19 @@ async function recargarDatos() {
   rootStore.dispatch("_getCoinsList");
 }
  
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 function calcularMontoDolar() {
   monto.value = parseFloat(
     String(((monto_abonado.value ? monto_abonado.value : 0) as number) / tipocambio.value),
   ).toFixed(2);
 }
  
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 function openDoc(path: string) {
   window.open(path, "_blank");
 }
  
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 function cleandData() {
   date = new Date(Date.now() - new Date().getTimezoneOffset() * 60000)
     .toISOString()
@@ -114,6 +122,7 @@ function cleandData() {
   number.value = "";
 }
  
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 function currentDate() {
   const monthNames = [
     "Enero",
@@ -138,8 +147,8 @@ function currentDate() {
 function calcularProfit() {
   nextTick(() => {
     setTimeout(() => {
-      let house = controlGastosStore.master_houses || [];
-      let egr = controlGastosStore.master_egresos || [];
+      const house = controlGastosStore.master_houses || [];
+      const egr = controlGastosStore.master_egresos || [];
       ingreso_pr.value = house
         .map((element) => {
           return element.total_total_pr_ingresos as number;
@@ -188,7 +197,7 @@ async function imprimirControlDetallado(guardarEnCarpeta: boolean) {
       timer: 2000,
     });
   }
-  var config = {
+  const config = {
     method: "post",
     url: import.meta.env.VITE_URL_MAIN + "getPdfInstructivoDetallado",
     headers: {
@@ -252,6 +261,7 @@ onMounted(async () => {
     rootStore.dispatch("_getCoinsList"),
     bancosStore.getListBanksDetailsCargar(),
   ]);
+  // eslint-disable-next-line @typescript-eslint/no-unused-expressions
   await rootStore.dispatch("_getProveedor"), calcularProfit();
   codigo_master =
     controlGastosStore.listControlGastos[0]!.master_nromaster;
@@ -260,13 +270,28 @@ onMounted(async () => {
 </script>
 
 <template>
-  <v-container fluid class="py-0 mx-0">
+  <v-container
+    fluid
+    class="py-0 mx-0"
+  >
     <v-row>
-      <v-col cols="12" md="8" xl="8" lg="8">
-        <v-card class="cardHouse" v-if="controlGastosStore">
+      <v-col
+        cols="12"
+        md="8"
+        xl="8"
+        lg="8"
+      >
+        <v-card
+          class="cardHouse"
+          v-if="controlGastosStore"
+        >
           <v-card-text>
             <v-row>
-              <v-col cols="12" xl="3" lg="3">
+              <v-col
+                cols="12"
+                xl="3"
+                lg="3"
+              >
                 <div class="divExped">
                   <!-- <h3>N° CONTROL: {{ $store.state.dataControl_Numero }}</h3> -->
                   <h3 class="mt-4">
@@ -275,7 +300,7 @@ onMounted(async () => {
                       (controlGastosStore.listControlGastos[0] &&
                         controlGastosStore.listControlGastos[0]
                           .master_codemaster) ||
-                      ""
+                        ""
                     }}
                   </h3>
                   <h3 class="mt-1">
@@ -283,7 +308,11 @@ onMounted(async () => {
                   </h3>
                 </div>
               </v-col>
-              <v-col cols="12" xl="3" lg="3">
+              <v-col
+                cols="12"
+                xl="3"
+                lg="3"
+              >
                 <h3>Datos Generales</h3>
 
                 <div>
@@ -293,7 +322,7 @@ onMounted(async () => {
                       (controlGastosStore.listControlGastos[0] &&
                         controlGastosStore.listControlGastos[0]
                           .master_modality) ||
-                      ""
+                        ""
                     }}
                   </p>
                   <p>
@@ -302,7 +331,7 @@ onMounted(async () => {
                       (controlGastosStore.listControlGastos[0] &&
                         controlGastosStore.listControlGastos[0]
                           .master_shipment) ||
-                      ""
+                        ""
                     }}
                   </p>
                   <p>
@@ -311,7 +340,7 @@ onMounted(async () => {
                       (controlGastosStore.listControlGastos[0] &&
                         controlGastosStore.listControlGastos[0]
                           .master_port_begin) ||
-                      ""
+                        ""
                     }}
                   </p>
                   <p>
@@ -320,12 +349,16 @@ onMounted(async () => {
                       (controlGastosStore.listControlGastos[0] &&
                         controlGastosStore.listControlGastos[0]
                           .master_port_end) ||
-                      ""
+                        ""
                     }}
                   </p>
                 </div>
               </v-col>
-              <v-col cols="12" xl="3" lg="3">
+              <v-col
+                cols="12"
+                xl="3"
+                lg="3"
+              >
                 <h3>Datos del Embarque</h3>
 
                 <div>
@@ -335,7 +368,7 @@ onMounted(async () => {
                       (controlGastosStore.listControlGastos[0] &&
                         controlGastosStore.listControlGastos[0]
                           .master_operador) ||
-                      ""
+                        ""
                     }}
                   </p>
                   <p>
@@ -344,7 +377,7 @@ onMounted(async () => {
                       (controlGastosStore.listControlGastos[0] &&
                         controlGastosStore.listControlGastos[0]
                           .master_consigner) ||
-                      ""
+                        ""
                     }}
                   </p>
                   <p>
@@ -353,12 +386,16 @@ onMounted(async () => {
                       (controlGastosStore.listControlGastos[0] &&
                         controlGastosStore.listControlGastos[0]
                           .master_notify) ||
-                      ""
+                        ""
                     }}
                   </p>
                 </div>
               </v-col>
-              <v-col cols="12" xl="3" lg="3">
+              <v-col
+                cols="12"
+                xl="3"
+                lg="3"
+              >
                 <h3>Datos de la carga</h3>
 
                 <div>
@@ -368,7 +405,7 @@ onMounted(async () => {
                       (controlGastosStore.listControlGastos[0] &&
                         controlGastosStore.listControlGastos[0]
                           .master_bultos) ||
-                      ""
+                        ""
                     }}
                   </p>
                   <p>
@@ -377,7 +414,7 @@ onMounted(async () => {
                       (controlGastosStore.listControlGastos[0] &&
                         controlGastosStore.listControlGastos[0]
                           .master_peso) ||
-                      ""
+                        ""
                     }}
                     Kg
                   </p>
@@ -387,7 +424,7 @@ onMounted(async () => {
                       (controlGastosStore.listControlGastos[0] &&
                         controlGastosStore.listControlGastos[0]
                           .master_volumen) ||
-                      ""
+                        ""
                     }}
                     m<sup>3</sup>
                   </p>
@@ -397,7 +434,12 @@ onMounted(async () => {
           </v-card-text>
         </v-card>
       </v-col>
-      <v-col cols="12" lg="4" xl="4" md="4">
+      <v-col
+        cols="12"
+        lg="4"
+        xl="4"
+        md="4"
+      >
         <v-alert
           class="my-1 text-center"
           border="start"
@@ -408,7 +450,9 @@ onMounted(async () => {
           density="compact"
         >
           <template #prepend>
-            <v-icon color="deep-purple-accent-4">mdi-currency-usd</v-icon>
+            <v-icon color="deep-purple-accent-4">
+              mdi-currency-usd
+            </v-icon>
           </template>
           <h2>
             PROFIT PR:
@@ -425,7 +469,9 @@ onMounted(async () => {
           v-if="!editable"
           @click="irAEditar(false)"
         >
-          <v-icon class="mx-1">mdi-pencil</v-icon> EDITAR
+          <v-icon class="mx-1">
+            mdi-pencil
+          </v-icon> EDITAR
         </v-btn>
         <v-btn
           color="red"
@@ -434,7 +480,9 @@ onMounted(async () => {
           size="small"
           @click="imprimirControlDetallado(false)"
         >
-          <v-icon class="mx-1">mdi-printer-outline</v-icon> CONTROL DETALLADO
+          <v-icon class="mx-1">
+            mdi-printer-outline
+          </v-icon> CONTROL DETALLADO
         </v-btn>
         <v-btn
           color="teal-darken-4"
@@ -443,7 +491,9 @@ onMounted(async () => {
           size="small"
           @click="imprimirControlDetallado(true)"
         >
-          <v-icon class="mx-1">mdi-content-save-all-outline</v-icon> CONTROL
+          <v-icon class="mx-1">
+            mdi-content-save-all-outline
+          </v-icon> CONTROL
           DETALLADO
         </v-btn>
         <v-btn
@@ -454,7 +504,7 @@ onMounted(async () => {
           v-if="
             Object.keys(controlGastosStore.listControlGastos).length >
               0 &&
-            controlGastosStore.listControlGastos[0]!.url_folderonedrive
+              controlGastosStore.listControlGastos[0]!.url_folderonedrive
           "
           @click="
             to_direct({
@@ -463,17 +513,19 @@ onMounted(async () => {
             })
           "
         >
-          <v-icon class="mx-2">mdi-folder</v-icon> ABRIR CARPETA
+          <v-icon class="mx-2">
+            mdi-folder
+          </v-icon> ABRIR CARPETA
         </v-btn>
       </v-col>
       <v-col cols="12">
         <Ingresos
-          @recargarDatos="recargarDatos()"
-          :prFlag="prFlag"
-          :opFlag="opFlag"
+          @recargar-datos="recargarDatos()"
+          :pr-flag="prFlag"
+          :op-flag="opFlag"
           :ingreso_pr="ingreso_pr"
           :ingreso_op="ingreso_op"
-          v-on:recalcularProfit="calcularProfit()"
+          @recalcular-profit="calcularProfit()"
           :editable="editable"
           :master_houses="controlGastosStore.master_houses"
         />
@@ -481,14 +533,14 @@ onMounted(async () => {
       <!-- EGRESOS -->
       <v-col cols="12">
         <Egresos
-          :statusBtn="statusBtn"
-          :prFlag="prFlag"
-          :opFlag="opFlag"
+          :status-btn="statusBtn"
+          :pr-flag="prFlag"
+          :op-flag="opFlag"
           :egreso_pr="egreso_pr"
           :egreso_op="egreso_op"
-          v-on:recalcularProfit="calcularProfit()"
-          @statusBtn="statusBtn = $event"
-          @recargarDatos="recargarDatos()"
+          @recalcular-profit="calcularProfit()"
+          @status-btn="statusBtn = $event"
+          @recargar-datos="recargarDatos()"
           :editable="editable"
           :master_egresos="controlGastosStore.master_egresos"
         />

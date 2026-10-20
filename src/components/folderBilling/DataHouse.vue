@@ -39,6 +39,7 @@ function _getData() {
         rootStore.state.dataHouse_modality =
           response.data.data[0]!.id_transport;
          
+        // eslint-disable-next-line @typescript-eslint/no-unused-expressions
         response.data.data[0]!.namemodality;
         rootStore.state.dataHouse_code_house =
           response.data.data[0]!.code_house;
@@ -80,7 +81,9 @@ function _getData() {
             <h3 class="mt-4">
               Master: {{ rootStore.state.dataHouse_code_master }}
             </h3>
-            <h3 class="mt-1">House: {{ rootStore.state.dataHouse_code_house }}</h3>
+            <h3 class="mt-1">
+              House: {{ rootStore.state.dataHouse_code_house }}
+            </h3>
           </div>
         </v-col>
         <v-col cols="3">

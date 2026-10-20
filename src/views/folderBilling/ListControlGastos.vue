@@ -13,7 +13,7 @@ onMounted(() => {
 
 <template>
   <div>
-    <listControlGastosCom></listControlGastosCom>
+    <listControlGastosCom />
 
     <v-navigation-drawer
       v-model="rootStore.state.cg_filtrarData"

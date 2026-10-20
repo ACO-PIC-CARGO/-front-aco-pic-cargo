@@ -123,9 +123,10 @@ function verControlGasto(master: MasterListadoControlGasto) {
           class="mb-2 ml-5"
           rounded
           @click="rootStore.state.cg_filtrarData = true"
-          >Filtar</v-btn
         >
-        <v-spacer></v-spacer>
+          Filtar
+        </v-btn>
+        <v-spacer />
 
         <v-text-field
           v-model="search"
@@ -133,11 +134,17 @@ function verControlGasto(master: MasterListadoControlGasto) {
           label="Buscar"
           single-line
           hide-details
-        ></v-text-field>
+        />
       </v-card-title>
-      <v-container v-if="!rootStore.state.dataGastos" style="height: 400px">
+      <v-container
+        v-if="!rootStore.state.dataGastos"
+        style="height: 400px"
+      >
         <v-row class="fill-height align-content-center justify-center">
-          <v-col class="text-body-large text-center" cols="12">
+          <v-col
+            class="text-body-large text-center"
+            cols="12"
+          >
             Cargando informacíon
           </v-col>
           <v-col cols="6">
@@ -146,7 +153,7 @@ function verControlGasto(master: MasterListadoControlGasto) {
               indeterminate
               rounded
               height="6"
-            ></v-progress-linear>
+            />
           </v-col>
         </v-row>
       </v-container>
@@ -156,7 +163,7 @@ function verControlGasto(master: MasterListadoControlGasto) {
         :items="itemsDataControlList"
         :search="search"
       >
-        <template v-slot:[`item.actions`]="{ item }">
+        <template #[`item.actions`]="{ item }">
           <v-icon
             size="large"
             color="blue"
@@ -186,9 +193,13 @@ function verControlGasto(master: MasterListadoControlGasto) {
       <v-container>
         <v-row>
           <v-col>
-            <v-btn v-if="statusReport" color="primary" elevation="0"
-              >GENERAR REPORTE</v-btn
+            <v-btn
+              v-if="statusReport"
+              color="primary"
+              elevation="0"
             >
+              GENERAR REPORTE
+            </v-btn>
           </v-col>
         </v-row>
       </v-container>
@@ -196,8 +207,8 @@ function verControlGasto(master: MasterListadoControlGasto) {
 
     <modalListHouse v-model:dialog="statusDialog" />
     <GuardarUrlMaster
-      :dialogUrl="dialogUrl"
-      :masterEditar="masterEditar"
+      :dialog-url="dialogUrl"
+      :master-editar="masterEditar"
       @cerrar="cerrarDialog"
     />
   </div>

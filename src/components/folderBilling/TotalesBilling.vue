@@ -14,21 +14,32 @@ const enterprisesStore = useEnterprisesStore();
           <h3>Totales</h3>
         </v-col>
 
-        <v-col cols="12" md="3">
+        <v-col
+          cols="12"
+          md="3"
+        >
           <p>Total de Ingresos: {{ rootStore.state.totalIngresos }} USD</p>
         </v-col>
-        <v-col cols="12" md="3">
+        <v-col
+          cols="12"
+          md="3"
+        >
           <p>Total de Costos: {{ rootStore.state.totalEgresos }} USD</p>
         </v-col>
-        <v-col cols="12" md="3">
+        <v-col
+          cols="12"
+          md="3"
+        >
           <p>
             Total de {{ enterprisesStore.impuesto.nombre_impuesto }}:
             {{ rootStore.state.dataTotalIGV ? rootStore.state.dataTotalIGV : 0 }} USD
           </p>
         </v-col>
-        <v-col cols="12" md="3">
-          <b
-            >Total PROFIT:
+        <v-col
+          cols="12"
+          md="3"
+        >
+          <b>Total PROFIT:
             {{
               (
                 (rootStore.state.totalIngresos
@@ -39,8 +50,7 @@ const enterprisesStore = useEnterprisesStore();
                   : 0)
               ).toFixed(2)
             }}
-            USD</b
-          >
+            USD</b>
         </v-col>
       </v-row>
     </v-container>

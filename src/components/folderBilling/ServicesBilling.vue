@@ -14,6 +14,7 @@ onMounted(() => {
 });
 
  
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 function _deleteServices(id: number) {
   const data = {
     id: id,
@@ -67,11 +68,15 @@ function _validaData() {
 <template>
   <div>
     <v-table density="compact">
-      <template v-slot:default>
+      <template #default>
         <thead>
           <tr>
-            <th class="text-left">Servicio</th>
-            <th class="text-left">Status</th>
+            <th class="text-left">
+              Servicio
+            </th>
+            <th class="text-left">
+              Status
+            </th>
           </tr>
         </thead>
         <tbody>

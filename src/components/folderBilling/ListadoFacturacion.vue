@@ -106,6 +106,7 @@ function verFactura(url: string) {
   window.open(url);
 }
  
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 function filterOnlyCapsText(value: unknown, search: string | null) {
   const text = search ? search.toLocaleUpperCase() : null;
   return (
@@ -154,34 +155,51 @@ async function eliminar(data: FacturaListado) {
       :items="lstFac"
       item-value="id"
       :search="search"
-      ><template v-slot:top>
+    >
+      <template #top>
         <v-text-field
           v-model="search"
           label="Buscar...."
           class="mx-4"
-        ></v-text-field>
+        />
       </template>
-      <template v-slot:[`item.existe_fiscal`]="{ item }">
-        <v-chip v-if="item.existe_fiscal" class="ma-2 text-white" color="green" variant="flat">
+      <template #[`item.existe_fiscal`]="{ item }">
+        <v-chip
+          v-if="item.existe_fiscal"
+          class="ma-2 text-white"
+          color="green"
+          variant="flat"
+        >
           Si
         </v-chip>
 
-        <v-chip v-else class="ma-2 text-white" color="red" variant="flat">
+        <v-chip
+          v-else
+          class="ma-2 text-white"
+          color="red"
+          variant="flat"
+        >
           No
         </v-chip>
       </template>
-      <template v-slot:[`item.url`]="{ item }">
-        <v-btn variant="text" color="red" @click="verFactura(item.url)" icon>
-          <v-icon>mdi-file-pdf-box</v-icon></v-btn
+      <template #[`item.url`]="{ item }">
+        <v-btn
+          variant="text"
+          color="red"
+          @click="verFactura(item.url)"
+          icon
         >
-        <v-btn variant="text"
+          <v-icon>mdi-file-pdf-box</v-icon>
+        </v-btn>
+        <v-btn
+          variant="text"
           color="red"
           @click="eliminar(item)"
           icon
           v-if="item.estatus == 1"
         >
-          <v-icon>mdi-cancel</v-icon></v-btn
-        >
+          <v-icon>mdi-cancel</v-icon>
+        </v-btn>
       </template>
     </v-data-table>
   </div>

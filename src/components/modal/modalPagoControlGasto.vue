@@ -182,7 +182,7 @@ async function listarPagosXControlGasto() {
   id_cuenta.value = "" as unknown as CuentaBancariaPago;
   comentarios.value = null;
   if (!!proveedor.value) {
-    var config = {
+    const config = {
       method: "get",
       url:
         import.meta.env.VITE_URL_MAIN +
@@ -195,10 +195,10 @@ async function listarPagosXControlGasto() {
     };
     await axios<ApiResponse<PagoPendienteProveedor[]>>(config)
       .then(function (response) {
-        let res = response.data;
+        const res = response.data;
 
         if (typeof res.data != "undefined") {
-          let data = response.data.data;
+          const data = response.data.data;
           data.forEach((element) => {
             element.tipocambio = element.tipocambio
               ? element.tipocambio
@@ -232,9 +232,10 @@ async function listarPagosXControlGasto() {
     payfile.value = [];
   }
 }
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 function calcularMontoPagar() {
   if (lstPagos.value.length > 0) {
-    let monto = lstPagos.value
+    const monto = lstPagos.value
       .filter((v) => v.pagar == true)
       .map((item) => item.monto)
       .reduce((a, b) => parseFloat(String(a)) + parseFloat(b as string), parseFloat(String(0)));
@@ -259,7 +260,7 @@ function guardarMontoParciales() {
   dialog.value = false;
 }
 async function getListBanksDetailsCargar() {
-  var config = {
+  const config = {
     method: "get",
     url: import.meta.env.VITE_URL_MAIN + "getListBanksDetailsCargar",
     params: {
@@ -272,7 +273,7 @@ async function getListBanksDetailsCargar() {
   };
   await axios<ApiResponse<CuentaBancariaPago[]>>(config)
     .then(function (response) {
-      let data = response.data.data;
+      const data = response.data.data;
 
       cuentas.value = data;
     })
@@ -286,15 +287,16 @@ function continuar() {
   tab.value = "ref2";
   // }
 }
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 function _uploadFile() {
   msgfile.value = "";
   errfile.value = "";
   if (payfile.value) {
-    var data = new FormData();
+    const data = new FormData();
     data.append("name", "Prueba");
     data.append("file", payfile.value as Blob);
 
-    var config = {
+    const config = {
       method: "post",
       url: import.meta.env.VITE_URL_MAIN + "uploadAllPath",
       headers: {
@@ -345,26 +347,26 @@ async function registrarPago() {
 }
 async function pagar() {
   loadingPago.value = true;
-  let isaprobacion = selected.value.map((element) => {
+  const isaprobacion = selected.value.map((element) => {
     return element.isaprobacion;
   });
-  let iscontrolgasto = selected.value.map((element) => {
+  const iscontrolgasto = selected.value.map((element) => {
     return element.iscontrolgasto;
   });
-  let isprogramado = selected.value.map((element) => {
+  const isprogramado = selected.value.map((element) => {
     return element.isprogramado;
   });
-  let id = selected.value.map((element) => {
+  const id = selected.value.map((element) => {
     return element.id;
   });
-  let monto = selected.value.map((element) => {
+  const monto = selected.value.map((element) => {
     return element.monto_mon_ex;
   });
 
-  let tipo = selected.value.map((element) => {
+  const tipo = selected.value.map((element) => {
     return element.tipo;
   });
-  let id_concepto: number[] = [];
+  const id_concepto: number[] = [];
   selected.value
     .filter((v) => v.iscontrolgasto == true)
     .forEach((element) => {
@@ -375,7 +377,7 @@ async function pagar() {
       });
     });
 
-  let data = {
+  const data = {
     isaprobacion: isaprobacion,
     iscontrolgasto: iscontrolgasto,
     isprogramado: isprogramado,
@@ -399,7 +401,7 @@ async function pagar() {
     }),
   };
 
-  var config = {
+  const config = {
     method: "post",
     url: import.meta.env.VITE_URL_MAIN + "registro_pago_detalles",
     headers: {
@@ -427,6 +429,7 @@ async function pagar() {
   loadingPago.value = false;
   emit("cerrarModal", true);
 }
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 async function limpiarFormulario() {
   proveedor.value = null;
   lstPagos.value = [];
@@ -453,6 +456,7 @@ function generarPagoParcial(item: PagoPendienteProveedor) {
   detalles.value = item.details;
   dialog.value = true;
 }
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 function obtenerMontoPagar() {
   totalMonto.value = 0;
   let monto = 0;
@@ -533,9 +537,8 @@ onMounted(async () => {
           style="font-size: 20pt"
           clearable
           @update:model-value="listarPagosXControlGasto()"
-        >
-        </v-autocomplete>
-        <v-spacer></v-spacer>
+        />
+        <v-spacer />
       </v-row>
     </v-card-title>
 
@@ -548,27 +551,46 @@ onMounted(async () => {
             v-model="montoMonExt"
             readonly
             :prefix="acronym"
-          ></v-text-field>
+          />
         </v-col>
       </v-row>
-      <v-tabs color="#A43542" slider-color="primary" fixed-tabs v-model="tab">
-        <v-tab value="ref1">STEP 1</v-tab>
-        <v-tab value="ref2" v-if="selected.length > 0">STEP 2</v-tab>
+      <v-tabs
+        color="#A43542"
+        slider-color="primary"
+        fixed-tabs
+        v-model="tab"
+      >
+        <v-tab value="ref1">
+          STEP 1
+        </v-tab>
+        <v-tab
+          value="ref2"
+          v-if="selected.length > 0"
+        >
+          STEP 2
+        </v-tab>
       </v-tabs>
       <v-tabs-window v-model="tab">
-        <v-tabs-window-item value="ref1" class="mt-5">
+        <v-tabs-window-item
+          value="ref1"
+          class="mt-5"
+        >
           <v-card-text>
             <v-row>
               <v-col cols="3">
-                <v-text-field label="Buscar..." v-model="search"></v-text-field>
+                <v-text-field
+                  label="Buscar..."
+                  v-model="search"
+                />
               </v-col>
               <v-col cols="3">
                 <v-btn
                   v-if="selected.length > 0"
                   color="green-darken-4"
                   @click="continuar()"
-                  >Continuar</v-btn
                 >
+                  Continuar
+                </v-btn>
               </v-col>
             </v-row>
 
@@ -582,25 +604,25 @@ onMounted(async () => {
               show-select
               v-model="selected"
             >
-              <template v-slot:[`item.item_moneda`]="{ item }">
+              <template #[`item.item_moneda`]="{ item }">
                 <v-autocomplete
                   :items="rootStore.state.itemsCoinsList"
                   v-model="id_coins"
                   item-title="acronym"
                   item-value="id"
                   label="Moneda"
-                  v-on:blur="calcularTotales()"
+                  @blur="calcularTotales()"
                   :disabled="
                     selected.filter((v) => v.id == item.id).length == 0
                   "
                   v-if="item.tipo == 'A'"
-                ></v-autocomplete>
+                />
                 <p v-else>
                   {{ acronym }}
                 </p>
               </template>
               <!--  -->
-              <template v-slot:[`item.tipo_cambio`]="{ item }">
+              <template #[`item.tipo_cambio`]="{ item }">
                 <v-text-field
                   v-model="item.tipocambio"
                   type="number"
@@ -608,12 +630,13 @@ onMounted(async () => {
                   :disabled="
                     selected.filter((v) => v.id == item.id).length == 0
                   "
-                  v-on:blur="calcularTotales()"
-                ></v-text-field>
+                  @blur="calcularTotales()"
+                />
               </template>
               <!--  -->
-              <template v-slot:[`item.parcial`]="{ item }">
-                <v-btn variant="text"
+              <template #[`item.parcial`]="{ item }">
+                <v-btn
+                  variant="text"
                   v-if="item.tipo == 'CG'"
                   size="small"
                   icon
@@ -635,10 +658,10 @@ onMounted(async () => {
                   :prefix="acronym"
                   type="number"
                   v-model="item.monto_mon_ex"
-                  v-on:update:model-value="calcularTotales()"
-                  v-on:blur="calcularTotales()"
+                  @update:model-value="calcularTotales()"
+                  @blur="calcularTotales()"
                   :error-messages="item.errorEx"
-                ></v-text-field>
+                />
               </template>
             </v-data-table>
           </v-card-text>
@@ -650,21 +673,30 @@ onMounted(async () => {
                 <v-text-field
                   v-model="nro_operacion"
                   label="N° de Operación"
-                  v-on:blur="ValidaNroOp()"
+                  @blur="ValidaNroOp()"
                   :error-messages="msgNroOperacion"
                   id="nro_operacion"
-                ></v-text-field>
+                />
               </v-col>
-              <v-col cols="3" md="3">
+              <v-col
+                cols="3"
+                md="3"
+              >
                 <v-text-field
                   type="date"
                   v-model="date"
                   label="Fecha "
-                ></v-text-field>
+                />
               </v-col>
-              <v-col md="6" cols="6"> </v-col>
+              <v-col
+                md="6"
+                cols="6"
+              />
 
-              <v-col md="4" cols="4">
+              <v-col
+                md="4"
+                cols="4"
+              >
                 <v-autocomplete
                   :items="cuentas"
                   item-title="label"
@@ -672,50 +704,68 @@ onMounted(async () => {
                   label="CUENTA BANCARIA"
                   v-model="id_cuenta"
                   return-object
-                ></v-autocomplete>
+                />
               </v-col>
-              <v-col md="4" cols="4">
+              <v-col
+                md="4"
+                cols="4"
+              >
                 <v-text-field
                   readonly
                   v-model="id_cuenta.banco"
                   label="Banco:"
-                ></v-text-field>
+                />
               </v-col>
-              <v-col md="4" cols="4">
+              <v-col
+                md="4"
+                cols="4"
+              >
                 <v-text-field
                   readonly
                   v-model="id_cuenta.moneda"
                   label="Moneda:"
-                ></v-text-field>
+                />
               </v-col>
-              <v-col md="4" cols="4"
-                ><v-text-field
+              <v-col
+                md="4"
+                cols="4"
+              >
+                <v-text-field
                   readonly
                   v-model="id_cuenta.cuenta"
                   label="N° Cuenta:"
-                ></v-text-field
-              ></v-col>
-              <v-col md="4" cols="4"
-                ><v-text-field
+                />
+              </v-col>
+              <v-col
+                md="4"
+                cols="4"
+              >
+                <v-text-field
                   readonly
                   v-model="id_cuenta.cci"
                   label="CCI:"
-                ></v-text-field
-              ></v-col>
-              <v-col md="4" cols="4"
-                ><v-text-field
+                />
+              </v-col>
+              <v-col
+                md="4"
+                cols="4"
+              >
+                <v-text-field
                   v-model="comentarios"
                   label="Comentarios"
                   placeholder="Comentarios......"
-                ></v-text-field
-              ></v-col>
-              <v-col md="12" cols="12">
-                <ArrastraYSolarComponent @idArchivoCargado="recibirId" />
+                />
+              </v-col>
+              <v-col
+                md="12"
+                cols="12"
+              >
+                <ArrastraYSolarComponent @id-archivo-cargado="recibirId" />
               </v-col>
             </v-row>
           </v-card-text>
           <v-card-actions>
-            <v-spacer></v-spacer>
+            <v-spacer />
             <v-btn
               color="success"
               @click="registrarPago()"
@@ -724,7 +774,12 @@ onMounted(async () => {
             >
               PROCESAR PAGO
             </v-btn>
-            <v-btn color="red" @click="$emit('cancelar')">Cancelar</v-btn>
+            <v-btn
+              color="red"
+              @click="$emit('cancelar')"
+            >
+              Cancelar
+            </v-btn>
           </v-card-actions>
         </v-tabs-window-item>
       </v-tabs-window>
@@ -737,7 +792,9 @@ onMounted(async () => {
       transition="dialog-transition"
     >
       <v-card>
-        <v-card-title primary-title> Realizar Pago Parcial </v-card-title>
+        <v-card-title primary-title>
+          Realizar Pago Parcial
+        </v-card-title>
         <v-card-text>
           <v-data-table
             show-select
@@ -747,15 +804,23 @@ onMounted(async () => {
             class="elevation-1"
             item-value="id"
             return-object
-          >
-          </v-data-table>
+          />
         </v-card-text>
         <v-card-actions>
-          <v-spacer></v-spacer>
-          <v-btn variant="text" color="green" @click="guardarMontoParciales()"
-            >Aceptar</v-btn
+          <v-spacer />
+          <v-btn
+            variant="text"
+            color="green"
+            @click="guardarMontoParciales()"
           >
-          <v-btn color="red" @click="dialog = !dialog">Cancelar</v-btn>
+            Aceptar
+          </v-btn>
+          <v-btn
+            color="red"
+            @click="dialog = !dialog"
+          >
+            Cancelar
+          </v-btn>
         </v-card-actions>
       </v-card>
     </v-dialog>

@@ -12,6 +12,6 @@ onMounted(() => {
 
 <template>
   <div>
-    <listControlGastosCom></listControlGastosCom>
+    <listControlGastosCom />
   </div>
 </template>

@@ -92,7 +92,7 @@ function _openDebs() {
   dialogDebs.value = true;
 }
 async function cargarBranch() {
-  var config = {
+  const config = {
     method: "get",
     url:
       import.meta.env.VITE_URL_MAIN +
@@ -116,7 +116,7 @@ function abrirModalFacturar() {
 async function obtenerDatos() {
   obtenerDatosHouse.value = true;
   datosFactura.value = [] as unknown as DatosFactura;
-  var config = {
+  const config = {
     method: "get",
     url: `${import.meta.env.VITE_URL_MAIN}data_factura/${route.params.id_house}/${id_branch.value}`,
 
@@ -134,8 +134,8 @@ async function obtenerDatos() {
 }
 async function generarDocumento() {
   obtenerDatosHouse.value = true;
-  let data = datosFactura.value;
-  var config = {
+  const data = datosFactura.value;
+  const config = {
     method: "post",
     url: `${import.meta.env.VITE_URL_MAIN}factura`,
     headers: {
@@ -144,7 +144,7 @@ async function generarDocumento() {
     },
     data: data,
   };
-  let res = await axios<RespuestaFactura>(config).then(function (response) {
+  const res = await axios<RespuestaFactura>(config).then(function (response) {
     return response;
   });
 
@@ -156,7 +156,7 @@ async function generarDocumento() {
   obtenerDatosHouse.value = false;
 }
 async function registrarFactura(data: RespuestaFactura) {
-  let dataFactura = {
+  const dataFactura = {
     id_house: route.params.id_house,
     nro_factura: data.nro_factura,
     url_documento: import.meta.env.VITE_URL_MAIN + data.path,
@@ -164,7 +164,7 @@ async function registrarFactura(data: RespuestaFactura) {
     total_igv: datosFactura.value.total_igv,
     total: datosFactura.value.total,
   };
-  var config = {
+  const config = {
     method: "post",
     url: import.meta.env.VITE_URL_MAIN + "registrar_factura",
     headers: {
@@ -188,7 +188,7 @@ function cleandData() {
   boolFile.value = false;
 }
 async function _delDebsClient(id: number) {
-  var config = {
+  const config = {
     method: "post",
     url: import.meta.env.VITE_URL_MAIN + "delDebsClient/" + id,
 
@@ -211,7 +211,7 @@ async function _setDebsClient() {
     title: "Cargando pago...",
     text: "Por favor espere",
   });
-  var data = {
+  const data = {
     id_house: route.params.id_house,
     date: date.value,
     number: number.value,
@@ -222,7 +222,7 @@ async function _setDebsClient() {
     id_path: payPath.value,
     status: 1,
   };
-  var config = {
+  const config = {
     method: "post",
     url: import.meta.env.VITE_URL_MAIN + "setDebsClient",
 
@@ -252,10 +252,10 @@ async function _setDebsClient() {
     });
 }
 async function _getDebsClient() {
-  let data = {
+  const data = {
     id_branch: sessionBranchId(),
   };
-  var config = {
+  const config = {
     method: "post",
     url:
       import.meta.env.VITE_URL_MAIN +
@@ -277,11 +277,11 @@ async function _getDebsClient() {
     });
 }
 function _uploadFile() {
-  var data = new FormData();
+  const data = new FormData();
   data.append("name", "Prueba");
   data.append("file", payfile.value as Blob);
 
-  var config = {
+  const config = {
     method: "post",
     url: import.meta.env.VITE_URL_MAIN + "uploadAllPath",
     headers: {
@@ -306,13 +306,14 @@ async function _generatePDF() {
     title: "Generando PDF...",
     text: "Por favor espere",
   });
-  var sentido;
+  let sentido;
   if (rootStore.state.report_id_sentido == "") {
     sentido = "";
   } else {
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     sentido = rootStore.state.report_id_sentido;
   }
-  var data = {
+  const data = {
     nombre_impuesto: enterprisesStore.impuesto.nombre_impuesto,
     nro_control: rootStore.state.dataControl_Numero,
     profit: (
@@ -391,7 +392,7 @@ async function _generatePDF() {
     ).toFixed(2),
   };
 
-  var config = {
+  const config = {
     method: "post",
     url: import.meta.env.VITE_URL_MAIN + "getPdfInstructivo",
     headers: {
@@ -446,7 +447,10 @@ onMounted(() => {
   <div>
     <v-container fluid>
       <v-row>
-        <v-col cols="9" md="8">
+        <v-col
+          cols="9"
+          md="8"
+        >
           <v-card class="cardHouse">
             <v-card-text>
               <dataHouse />
@@ -460,8 +464,9 @@ onMounted(() => {
             @click="_setControl"
             :disabled="rootStore.state.dataControl_Numero != ''"
             color="primary"
-            >GENERAR CONTROL</v-btn
           >
+            GENERAR CONTROL
+          </v-btn>
           <v-btn
             v-if="route.params.id_control"
             block
@@ -469,8 +474,8 @@ onMounted(() => {
             :disabled="rootStore.state.dataControl_Numero != ''"
             color="primary"
           >
-            GENERAR NUEVA VERSION DE CONTROL</v-btn
-          >
+            GENERAR NUEVA VERSION DE CONTROL
+          </v-btn>
 
           <v-btn
             :disabled="!route.params.id_control"
@@ -478,8 +483,9 @@ onMounted(() => {
             block
             color="orange"
             class="mt-2"
-            >IMPRIMIR CONTROL</v-btn
           >
+            IMPRIMIR CONTROL
+          </v-btn>
 
           <v-btn
             :disabled="rootStore.state.dataControl_Numero == ''"
@@ -487,8 +493,9 @@ onMounted(() => {
             color="primary"
             class="mt-2"
             @click="_openDebs()"
-            >CARGAR ABONOS DEL CLIENTE</v-btn
           >
+            CARGAR ABONOS DEL CLIENTE
+          </v-btn>
           <v-btn
             :disabled="rootStore.state.dataControl_Numero == ''"
             block
@@ -499,9 +506,18 @@ onMounted(() => {
             EMITIR FACTURA A CLIENTE
           </v-btn>
         </v-col>
-        <v-col cols="12" md="8">
-          <v-expansion-panels v-model="panel" multiple>
-            <v-expansion-panel v-for="(item, i) in items" :key="i">
+        <v-col
+          cols="12"
+          md="8"
+        >
+          <v-expansion-panels
+            v-model="panel"
+            multiple
+          >
+            <v-expansion-panel
+              v-for="(item, i) in items"
+              :key="i"
+            >
               <v-expansion-panel-title>
                 <b>Ingresos </b>
               </v-expansion-panel-title>
@@ -511,8 +527,15 @@ onMounted(() => {
             </v-expansion-panel>
           </v-expansion-panels>
 
-          <v-expansion-panels class="mt-5" v-model="panels" multiple>
-            <v-expansion-panel v-for="(item, i) in items" :key="i">
+          <v-expansion-panels
+            class="mt-5"
+            v-model="panels"
+            multiple
+          >
+            <v-expansion-panel
+              v-for="(item, i) in items"
+              :key="i"
+            >
               <v-expansion-panel-title>
                 <b>Costos </b>
               </v-expansion-panel-title>
@@ -532,7 +555,10 @@ onMounted(() => {
           </v-card>
         </v-col>
 
-        <v-col cols="12" md="4">
+        <v-col
+          cols="12"
+          md="4"
+        >
           <v-expansion-panels>
             <v-expansion-panel>
               <v-expansion-panel-title>
@@ -553,27 +579,38 @@ onMounted(() => {
             </v-card-text>
           </v-card>
         </v-col>
-        <v-col cols="12"> </v-col>
+        <v-col cols="12" />
 
-        <v-dialog max-width="900" v-model="dialogDebs">
+        <v-dialog
+          max-width="900"
+          v-model="dialogDebs"
+        >
           <v-card>
             <v-card-title class="d-flex align-center flex-wrap">
               Abonos del cliente
-              <v-spacer></v-spacer>
-              <v-btn variant="outlined" color="primary" @click="_newDebs()"
-                >CARGAR NUEVO ABONO</v-btn
+              <v-spacer />
+              <v-btn
+                variant="outlined"
+                color="primary"
+                @click="_newDebs()"
               >
+                CARGAR NUEVO ABONO
+              </v-btn>
             </v-card-title>
             <v-card-text>
-              <v-data-table :headers="headersdebs" :items="itemsDebsClient">
-                <template v-slot:[`item.accion`]="{ item }">
+              <v-data-table
+                :headers="headersdebs"
+                :items="itemsDebsClient"
+              >
+                <template #[`item.accion`]="{ item }">
                   <v-icon
                     class="btn_add mr-2"
                     size="large"
                     color="grey"
                     @click="openDoc(item.path)"
-                    >mdi-eye</v-icon
                   >
+                    mdi-eye
+                  </v-icon>
 
                   <v-icon
                     class="btn_add mr-2"
@@ -581,10 +618,11 @@ onMounted(() => {
                     color="red"
                     v-if="item.status == 1"
                     @click="_delDebsClient(item.id)"
-                    >mdi-delete</v-icon
                   >
+                    mdi-delete
+                  </v-icon>
                 </template>
-                <template v-slot:[`item.status`]="{ item }">
+                <template #[`item.status`]="{ item }">
                   <v-chip
                     block
                     v-if="item.status == 2"
@@ -593,7 +631,9 @@ onMounted(() => {
                     color="success"
                     variant="outlined"
                   >
-                    <v-icon start> mdi-check </v-icon>
+                    <v-icon start>
+                      mdi-check
+                    </v-icon>
                     Confirmado
                   </v-chip>
                   <v-chip
@@ -604,7 +644,9 @@ onMounted(() => {
                     color="orange"
                     variant="outlined"
                   >
-                    <v-icon start> mdi-warning </v-icon>
+                    <v-icon start>
+                      mdi-warning
+                    </v-icon>
                     Por Confirmar
                   </v-chip>
                 </template>
@@ -613,23 +655,29 @@ onMounted(() => {
           </v-card>
         </v-dialog>
 
-        <v-dialog max-width="800" v-model="dialogNewDebs">
+        <v-dialog
+          max-width="800"
+          v-model="dialogNewDebs"
+        >
           <v-card>
             <v-card-title class="d-flex align-center flex-wrap">
               Cargar un nuevo abono
-              <v-spacer></v-spacer>
+              <v-spacer />
             </v-card-title>
             <v-card-text>
               <v-container>
                 <v-row density="compact">
-                  <v-col cols="12" md="6">
+                  <v-col
+                    cols="12"
+                    md="6"
+                  >
                     <v-menu
                       v-model="menu"
                       :close-on-content-click="false"
                       transition="scale-transition"
                       min-width="auto"
                     >
-                      <template v-slot:activator="{ props }">
+                      <template #activator="{ props }">
                         <v-text-field
                           v-model="date"
                           label="Fecha de Operación"
@@ -637,7 +685,7 @@ onMounted(() => {
                           readonly
                          
                           v-bind="props"
-                        ></v-text-field>
+                        />
                       </template>
                       <v-locale-provider locale="es">
                         <v-date-picker
@@ -646,7 +694,7 @@ onMounted(() => {
                           hide-header
                         >
                           <template #actions>
-                            <v-spacer></v-spacer>
+                            <v-spacer />
                             <v-btn
                               variant="text"
                               color="primary"
@@ -666,53 +714,70 @@ onMounted(() => {
                       </v-locale-provider>
                     </v-menu>
                   </v-col>
-                  <v-col cols="12" md="6">
+                  <v-col
+                    cols="12"
+                    md="6"
+                  >
                     <v-text-field
                       v-model="number"
                       label="No. Operación"
-                    ></v-text-field>
+                    />
                   </v-col>
 
-                  <v-col cols="12" md="4">
+                  <v-col
+                    cols="12"
+                    md="4"
+                  >
                     <v-autocomplete
                       :items="rootStore.state.itemsDataBanksList"
                       v-model="id_banks"
                       item-title="acronym"
                       item-value="id"
                       label="Banco"
-                    ></v-autocomplete>
+                    />
                   </v-col>
-                  <v-col cols="12" md="4">
+                  <v-col
+                    cols="12"
+                    md="4"
+                  >
                     <v-autocomplete
                       :items="rootStore.state.itemsCoinsList"
                       v-model="id_coins"
                       item-title="acronym"
                       item-value="id"
                       label="Moneda"
-                    ></v-autocomplete>
+                    />
                   </v-col>
-                  <v-col cols="12" md="4">
+                  <v-col
+                    cols="12"
+                    md="4"
+                  >
                     <v-text-field
                       v-model="monto"
                       type="number"
                       label="Monto"
-                    ></v-text-field>
+                    />
                   </v-col>
-                  <v-col cols="12" md="12">
+                  <v-col
+                    cols="12"
+                    md="12"
+                  >
                     <v-textarea
                       rows="2"
                       v-model="comentario"
                       label="Comentario"
-                    ></v-textarea>
+                    />
                   </v-col>
-                  <v-col cols="12" md="9">
+                  <v-col
+                    cols="12"
+                    md="9"
+                  >
                     <v-file-input
                       v-if="!boolFile"
                       v-model="payfile"
                       show-size
                       label="Adjuntar Pago"
-                    >
-                    </v-file-input>
+                    />
 
                     <v-chip
                       block
@@ -722,13 +787,16 @@ onMounted(() => {
                       color="success"
                       variant="outlined"
                     >
-                      <v-icon start> mdi-check </v-icon>
+                      <v-icon start>
+                        mdi-check
+                      </v-icon>
                       Archivo cargado éxitosamente
                     </v-chip>
                   </v-col>
                   <v-col cols="3">
                     <!-- @vue-expect-error comparing an array by reference is always false -->
-                    <v-btn :disabled="boolFile || payfile == []"
+                    <v-btn
+                      :disabled="boolFile || payfile == []"
                       color="blue-grey"
                       block
                       class="ma-2 text-white"
@@ -736,7 +804,9 @@ onMounted(() => {
                       @click="_uploadFile()"
                     >
                       Subir
-                      <v-icon end> mdi-cloud-upload </v-icon>
+                      <v-icon end>
+                        mdi-cloud-upload
+                      </v-icon>
                     </v-btn>
                   </v-col>
                 </v-row>
@@ -747,15 +817,17 @@ onMounted(() => {
                 color="primary"
                 @click="_setDebsClient()"
                 :disabled="!boolFile"
-                >GUARDAR ABONO</v-btn
               >
-              <v-spacer></v-spacer>
+                GUARDAR ABONO
+              </v-btn>
+              <v-spacer />
               <v-btn
                 variant="outlined"
                 color="red"
                 @click="dialogNewDebs = !dialogNewDebs"
-                >Cerrar</v-btn
               >
+                Cerrar
+              </v-btn>
             </v-card-actions>
           </v-card>
         </v-dialog>
@@ -770,7 +842,9 @@ onMounted(() => {
       transition="dialog-transition"
     >
       <v-card>
-        <v-card-title primary-title> GENERAR FACTURA </v-card-title>
+        <v-card-title primary-title>
+          GENERAR FACTURA
+        </v-card-title>
         <v-card-text>
           <v-row>
             <v-col>
@@ -782,8 +856,7 @@ onMounted(() => {
                 placeholder="Seleccione una sucursal"
                 v-model="id_branch"
                 @update:model-value="obtenerDatos()"
-              >
-              </v-autocomplete>
+              />
             </v-col>
           </v-row>
         </v-card-text>
@@ -796,9 +869,12 @@ onMounted(() => {
           >
             Generar Facturar
           </v-btn>
-          <v-btn color="warning" @click="dialogFacturar = !dialogFacturar"
-            >Cancelar</v-btn
+          <v-btn
+            color="warning"
+            @click="dialogFacturar = !dialogFacturar"
           >
+            Cancelar
+          </v-btn>
         </v-card-actions>
       </v-card>
     </v-dialog>
