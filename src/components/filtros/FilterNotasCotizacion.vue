@@ -113,7 +113,7 @@ async function Aceptar() {
         cols="12"
         class="py-1"
       >
-        <!-- @vue-expect-error the filter form keeps the edit form's tipo != 'ver' check -->
+        <!-- @vue-expect-error tipo is typed as "filter", which never equals 'ver' -->
         <v-text-field
           v-model="masterusuariosStore.filtros.valorcodigo"
           label="Código"
@@ -136,7 +136,7 @@ async function Aceptar() {
         cols="12"
         class="py-1"
       >
-        <!-- @vue-expect-error the filter form keeps the edit form's tipo != 'ver' check -->
+        <!-- @vue-expect-error tipo is typed as "filter", which never equals 'ver' -->
         <v-text-field
           v-model="masterusuariosStore.filtros.description"
           label="Nombre"

@@ -230,7 +230,7 @@ async function Limpiar() {
           cols="12"
           class="py-1"
         >
-          <!-- @vue-expect-error the root state items are untyped until the Vuex store is typed -->
+          <!-- @vue-expect-error the Pais type does not declare status -->
           <v-autocomplete
             label="Pais (*)"
             :items="appStore.itemsPais"

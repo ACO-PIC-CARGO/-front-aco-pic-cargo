@@ -547,7 +547,6 @@ onMounted(async () => {
   await appStore.cargarClientes();
 });
 
-// Stray component option that Vue never called; kept as dead code.
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 function isPricingOption() {
   console.log("isPricing", props.isPricing);
@@ -630,7 +629,7 @@ function isPricingOption() {
                   v-model="$store.state.entities.cliente.nombrecompleto" @blur="handleNombre"></v-text-field>
               </v-col>
             </v-row>-->
-              <!-- @vue-expect-error Kept: showNombreFiscal is undefined, so the row never shows. -->
+              <!-- @vue-expect-error showNombreFiscal is undefined, so the row never shows. -->
               <v-row v-if="showNombreFiscal">
                 <v-col cols="12">
                   <v-text-field

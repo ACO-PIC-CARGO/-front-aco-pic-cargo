@@ -54,7 +54,7 @@ async function Aceptar() {
   if (positionStore.tipo == "nuevo") {
     if ((await frmDML.value!.validate()).valid) {
       loading.value = true;
-      // @ts-expect-error Kept: setTown was never mapped in this filter, so this call has always thrown.
+      // @ts-expect-error setTown is not mapped in this filter, so this call always throws.
       await setTown();
       await positionStore.GetListPosition();
       loading.value = false;
@@ -63,7 +63,7 @@ async function Aceptar() {
   if (positionStore.tipo == "editar") {
     loading.value = true;
     if ((await frmDML.value!.validate()).valid) {
-      // @ts-expect-error Kept: ActualizarTown was never mapped in this filter, so this call has always thrown.
+      // @ts-expect-error ActualizarTown is not mapped in this filter, so this call always throws.
       await ActualizarTown();
       await positionStore.GetListPosition();
     }
@@ -97,7 +97,7 @@ async function Aceptar() {
         cols="12"
         class="py-1"
       >
-        <!-- @vue-expect-error the filter form keeps the edit form's tipo != 'ver' check -->
+        <!-- @vue-expect-error tipo is typed as "filter", which never equals 'ver' -->
         <v-text-field
           v-model="positionStore.filtros.code"
           label="Código"
@@ -108,7 +108,7 @@ async function Aceptar() {
         cols="12"
         class="py-1"
       >
-        <!-- @vue-expect-error the filter form keeps the edit form's tipo != 'ver' check -->
+        <!-- @vue-expect-error tipo is typed as "filter", which never equals 'ver' -->
         <v-text-field
           v-model="positionStore.filtros.name"
           label="Nombre"
@@ -119,7 +119,7 @@ async function Aceptar() {
         cols="12"
         class="py-1"
       >
-        <!-- @vue-expect-error the filter form keeps the edit form's tipo != 'ver' check -->
+        <!-- @vue-expect-error tipo is typed as "filter", which never equals 'ver' -->
         <v-text-field
           v-model="positionStore.filtros.description"
           label="Descripción"

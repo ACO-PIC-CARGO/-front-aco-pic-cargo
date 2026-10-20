@@ -70,11 +70,6 @@ export interface CuentaListado {
   detalle: DetalleCuentaListado[];
 }
 
-export interface CredencialesAdministrador {
-  usuario: string;
-  clave: string;
-}
-
 export interface ProformaPorRegularizar {
   id: number;
   id_house: number;

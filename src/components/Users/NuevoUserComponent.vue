@@ -35,7 +35,7 @@ const loadingDistrito = ref(false);
 const snackbar = ref(false);
 const frmDatos = useTemplateRef("frmDatos");
 const frmPosicion = useTemplateRef("frmPosicion");
-// Not bound to the template, as in the old code.
+// Not bound to the template.
 const frmSucursal = ref<{ validate: () => Promise<{ valid: boolean }> } | null>(null);
 
 onMounted(async () => {
@@ -443,7 +443,7 @@ const vNoSpaces = (el: HTMLElement) => {
               />
             </v-col>
             <v-col cols="4">
-              <!-- @vue-expect-error the root state items are untyped until the Vuex store is typed -->
+              <!-- @vue-expect-error the Pais type does not declare status -->
               <v-autocomplete
                 label="Pais (*)"
                 :items="appStore.itemsPais"
@@ -548,7 +548,7 @@ const vNoSpaces = (el: HTMLElement) => {
               cols="4"
               class="my-auto"
             >
-              <!-- @vue-expect-error the empty string start value is kept from the old data() -->
+              <!-- @vue-expect-error the value starts as an empty string -->
               <v-autocomplete
                 :items="positionStore.lstPosition"
                 item-title="name"

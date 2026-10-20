@@ -32,7 +32,7 @@ function _deleteContainers(id: number) {
   axios(config)
     .then(function (response) {
       if (response.data.status == 200) {
-        housesStore._getHouseContainers(undefined as never);
+        housesStore._getHouseContainers();
       }
     })
     .catch(function (error) {
@@ -66,7 +66,7 @@ function _setHouseContainers(
     .then(function (response) {
       if (response.data.status == 200) {
         //vm.$store.state.modalServices = false;
-        housesStore._getHouseContainers(undefined as never);
+        housesStore._getHouseContainers();
         cleanData();
       }
     })
@@ -122,7 +122,7 @@ async function _validaData() {
     //   .catch(function (error) {
     //     console.error(error);
     //   });
-    await housesStore._getHouseContainers(undefined as never);
+    await housesStore._getHouseContainers();
   }
 }
 // eslint-disable-next-line @typescript-eslint/no-unused-vars

@@ -30,7 +30,7 @@ export const useHousesStore = defineStore("houses", () => {
       .get<ApiResponse<HouseDetalle[] | undefined>>(import.meta.env.VITE_URL_MAIN + `house_ver`, {
         params: filtros,
 
-        // @ts-expect-error Kept: the header goes in as a request option, as before.
+        // @ts-expect-error the header goes in as a request option.
         "Content-Type": "application/json",
       })
       .then(function (response) {
@@ -45,7 +45,7 @@ export const useHousesStore = defineStore("houses", () => {
   async function setConfirmarTelex(data: Record<string, unknown>): Promise<void> {
     await axios
       .put<ApiResponse>(import.meta.env.VITE_URL_MAIN + `houses_confirmar_telex`, data, {
-        // @ts-expect-error Kept: the header goes in as a request option, as before.
+        // @ts-expect-error the header goes in as a request option.
         "Content-Type": "application/json",
       })
       .then(function (response) {
@@ -85,7 +85,7 @@ export const useHousesStore = defineStore("houses", () => {
       .get<ApiResponse<HouseListado[] | undefined>>(import.meta.env.VITE_URL_MAIN + `listado_houses`, {
         params: filtros,
 
-        // @ts-expect-error Kept: the header goes in as a request option, as before.
+        // @ts-expect-error the header goes in as a request option.
         "Content-Type": "application/json",
       })
       .then(function (response) {
@@ -393,7 +393,7 @@ export const useHousesStore = defineStore("houses", () => {
       });
   }
 
-  async function _getHouseContainers(data: FilaRaiz): Promise<void> {
+  async function _getHouseContainers(data?: FilaRaiz): Promise<void> {
     const config = {
       method: "get",
       url: import.meta.env.VITE_URL_MAIN + "getHouseContainers",

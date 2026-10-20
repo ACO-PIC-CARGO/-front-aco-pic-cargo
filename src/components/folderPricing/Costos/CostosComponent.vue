@@ -28,7 +28,7 @@ const { calcularFac } = useCotizacionCalculos();
 
 const costo = ref<Costo>({});
 const dialogNuevoProveedor = ref(false);
-let totalOption: number | undefined;
+const totalOption = ref(0);
 const valueFleteImport = ref(0);
 const valueOrigen = ref(0);
 const valueLocal = ref(0);
@@ -621,7 +621,7 @@ function obtenerCostoElemento(element: Costo) {
 // 2. MÉTODOS PRINCIPALES SIMPLIFICADOS
 // ==========================================
 function calcularTotalesFlete() {
-  totalOption = 0;
+  totalOption.value = 0;
   resumenOpcion.value = {
     flete: 0,
     origen: 0,
@@ -677,8 +677,8 @@ function calcularTotalesNoFlete() {
     });
 }
 function calcTotal() {
-  totalOption = 0;
-  totalOption =
+  totalOption.value = 0;
+  totalOption.value =
     (Number(resumenOpcion.value.flete) || 0) +
     (Number(resumenOpcion.value.gasto) || 0) +
     (Number(resumenOpcion.value.aduana) || 0) +
@@ -686,7 +686,7 @@ function calcTotal() {
     (Number(resumenOpcion.value.almacen) || 0) +
     (Number(resumenOpcion.value.gastostercero) || 0);
 
-  pricingStore.totalCosto = totalOption;
+  pricingStore.totalCosto = totalOption.value;
 }
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 function cerrarModalNuevoCosto() {

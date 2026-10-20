@@ -34,7 +34,7 @@ withDefaults(
   },
 );
 const model = defineModel<string | number | Record<string, unknown> | null>({ default: null });
-const emit = defineEmits<{ change: [id: unknown] }>();
+const emit = defineEmits<{ change: [id: string | number | Record<string, unknown> | null] }>();
 
 const pricingStore = usePricingStore();
 

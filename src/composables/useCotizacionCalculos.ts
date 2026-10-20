@@ -162,7 +162,7 @@ export function useCotizacionCalculos() {
       datosPrincipales.amount,
       totalDeFlete,
       code,
-      code == 14 ? (costo.cif as Numerico) : (costo.seguro as Numerico),
+      code == 14 ? costo.cif : costo.seguro,
       costo.minimo ? Number(costo.minimo) : 118,
     );
     return 0;

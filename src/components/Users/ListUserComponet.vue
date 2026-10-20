@@ -152,7 +152,7 @@ onMounted(async () => {
             :search="search"
           >
             <template #[`item.status`]="{ item }">
-              <!-- @vue-expect-error boolean == 1 kept from the old template -->
+              <!-- @vue-expect-error compares a boolean with 1 -->
               {{ !!item.status == 1 ? "Activo" : "Inactivo" }}
             </template>
             <template #[`item.statuscalls`]="{ item }">

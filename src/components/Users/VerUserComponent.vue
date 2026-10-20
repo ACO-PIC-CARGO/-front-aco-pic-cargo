@@ -39,7 +39,7 @@ const loadingCity = ref(false);
 const loadingDistrito = ref(false);
 const snackbar = ref(false);
 const frmDatos = useTemplateRef("frmDatos");
-// Not bound to the template, as in the old code.
+// Not bound to the template.
 const frmPosicion = ref<{ validate: () => Promise<{ valid: boolean }> } | null>(null);
 const frmSucursal = ref<{ validate: () => Promise<{ valid: boolean }> } | null>(null);
 
@@ -325,7 +325,7 @@ async function guardarUsuario() {
               />
             </v-col>
             <v-col cols="4">
-              <!-- @vue-expect-error the root state items are untyped until the Vuex store is typed -->
+              <!-- @vue-expect-error the Pais type does not declare status -->
               <v-autocomplete
                 label="Pais"
                 :items="appStore.itemsPais"

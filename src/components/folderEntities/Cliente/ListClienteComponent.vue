@@ -48,7 +48,7 @@ const headersContact = [
 function cambiarRuta({ nameRuta = "", idProveedor = "" }) {
   router.push({
     name: nameRuta,
-    // @ts-expect-error Kept: the "paramas" typo has never passed the id to the route.
+    // @ts-expect-error the "paramas" typo never passes the id to the route.
     paramas: {
       id: idProveedor,
     },
@@ -350,7 +350,7 @@ onMounted(async () => {
                   />
                 </template>
                 <template #[`item.action`]="{ index }">
-                  <!-- @vue-expect-error Kept: eliminarTelefono was never defined here; the table has no action column, so this button never renders. -->
+                  <!-- @vue-expect-error eliminarTelefono is not defined here; the table has no action column, so this button never renders. -->
                   <v-btn
                     variant="text"
                     icon
@@ -394,7 +394,7 @@ onMounted(async () => {
                   />
                 </template>
                 <template #[`item.nro_telefono`]="{ item }">
-                  <!-- @vue-expect-error Kept: validarFormularioTelefonoContacto was never defined here, so leaving this field has always thrown. -->
+                  <!-- @vue-expect-error validarFormularioTelefonoContacto is not defined here, so leaving this field always throws. -->
                   <v-text-field
                     v-model="item.telefono"
                     prefix="+"
@@ -404,7 +404,7 @@ onMounted(async () => {
                 </template>
 
                 <template #[`item.action`]="{ index }">
-                  <!-- @vue-expect-error Kept: eliminarContacto was never defined here; the table has no action column, so this button never renders. -->
+                  <!-- @vue-expect-error eliminarContacto is not defined here; the table has no action column, so this button never renders. -->
                   <v-btn
                     variant="text"
                     icon

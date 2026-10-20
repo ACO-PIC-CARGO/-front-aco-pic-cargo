@@ -4,7 +4,7 @@ import Swal from "sweetalert2";
 import moment from "moment";
 import FormatFecha from "../comun/FormatFecha.vue";
 import { usePricingStore } from "@/stores/pricing";
-import type { ArchivoDrive, ContenedorEnvio, TipoCarga } from "@/types/cotizacion";
+import type { ArchivoDrive, ContenedorCantidad, TipoCarga } from "@/types/cotizacion";
 
 const pricingStore = usePricingStore();
 
@@ -189,7 +189,7 @@ onMounted(() => {
   const contenedor: Array<{ name?: string; valor?: number | string; code?: string }> = [];
 
   (pricingStore.datosPrincipales.containers || []).forEach(
-    (element: ContenedorEnvio) => {
+    (element: ContenedorCantidad) => {
       contenedor.push({
         name: element.description,
         valor: element.cantidad,

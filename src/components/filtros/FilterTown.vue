@@ -115,7 +115,7 @@ async function Aceptar() {
         cols="12"
         class="py-1"
       >
-        <!-- @vue-expect-error the filter form keeps the edit form's tipo != 'ver' check -->
+        <!-- @vue-expect-error tipo is typed as "filter", which never equals 'ver' -->
         <v-autocomplete
           label="Pais"
           :items="appStore.itemsPais"
@@ -130,7 +130,7 @@ async function Aceptar() {
         cols="12"
         class="py-1"
       >
-        <!-- @vue-expect-error the filter form keeps the edit form's tipo != 'ver' check -->
+        <!-- @vue-expect-error tipo is typed as "filter", which never equals 'ver' -->
         <v-autocomplete
           label="Estado (Región)"
           :items="appStore.itemsState"
@@ -146,7 +146,7 @@ async function Aceptar() {
         cols="12"
         class="py-1"
       >
-        <!-- @vue-expect-error the filter form keeps the edit form's tipo != 'ver' check -->
+        <!-- @vue-expect-error tipo is typed as "filter", which never equals 'ver' -->
         <v-autocomplete
           label="Ciudad"
           :items="appStore.itemsCity"
@@ -162,7 +162,7 @@ async function Aceptar() {
         cols="12"
         class="py-1"
       >
-        <!-- @vue-expect-error the filter form keeps the edit form's tipo != 'ver' check -->
+        <!-- @vue-expect-error tipo is typed as "filter", which never equals 'ver' -->
         <v-text-field
           v-model="townStore.filtros.code"
           label="Código"
@@ -173,7 +173,7 @@ async function Aceptar() {
         cols="12"
         class="py-1"
       >
-        <!-- @vue-expect-error the filter form keeps the edit form's tipo != 'ver' check -->
+        <!-- @vue-expect-error tipo is typed as "filter", which never equals 'ver' -->
         <v-text-field
           v-model="townStore.filtros.name"
           label="Nombre"
@@ -184,7 +184,7 @@ async function Aceptar() {
         cols="12"
         class="py-1"
       >
-        <!-- @vue-expect-error the filter form keeps the edit form's tipo != 'ver' check -->
+        <!-- @vue-expect-error tipo is typed as "filter", which never equals 'ver' -->
         <v-text-field
           v-model="townStore.filtros.description"
           label="Descripción"
@@ -225,7 +225,7 @@ async function Aceptar() {
           cols="12"
           class="py-1"
         >
-          <!-- @vue-expect-error the root state items are untyped until the Vuex store is typed -->
+          <!-- @vue-expect-error the Pais type does not declare status -->
           <v-autocomplete
             label="Pais (*)"
             :items="appStore.itemsPais"

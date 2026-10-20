@@ -936,7 +936,7 @@ function _setAccounts() {
                   <td>{{ item.namecoins }}</td>
                   <td>{{ item.accountnumber }}</td>
                   <td>
-                    <!-- @vue-expect-error Kept: _delAccount was never defined in this component, so this click has always thrown. -->
+                    <!-- @vue-expect-error _delAccount is not defined in this component, so this click always throws. -->
                     <v-btn
                       @click="_delAccount(item.id)"
                       color="white"

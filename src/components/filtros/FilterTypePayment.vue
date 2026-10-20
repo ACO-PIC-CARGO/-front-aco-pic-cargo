@@ -80,7 +80,7 @@ async function validate() {
   // getValidatePosition
   errPosition.value = "";
   if (typepaymentStore.tipo == "nuevo") {
-    // @ts-expect-error the store never had this validation, as in the old code
+    // @ts-expect-error the store has no such validation
     const val = await typepaymentStore.getValidatePositionTypePayment();
     errPosition.value = val.mensaje;
     if (val.estadoflag) {
@@ -88,7 +88,7 @@ async function validate() {
     }
   }
   if (typepaymentStore.tipo == "editar") {
-    // @ts-expect-error the store never had this validation, as in the old code
+    // @ts-expect-error the store has no such validation
     const val = await typepaymentStore.getValidatePositionActualizarTypePayment();
     errPosition.value = val.mensaje;
     if (val.estadoflag) {
@@ -122,7 +122,7 @@ async function validate() {
         cols="12"
         class="py-1"
       >
-        <!-- @vue-expect-error the filter form keeps the edit form's tipo != 'ver' check -->
+        <!-- @vue-expect-error tipo is typed as "filter", which never equals 'ver' -->
         <v-text-field
           v-model="typepaymentStore.filtros.code"
           label="Código"
@@ -133,7 +133,7 @@ async function validate() {
         cols="12"
         class="py-1"
       >
-        <!-- @vue-expect-error the filter form keeps the edit form's tipo != 'ver' check -->
+        <!-- @vue-expect-error tipo is typed as "filter", which never equals 'ver' -->
         <v-text-field
           v-model="typepaymentStore.filtros.name"
           label="Nombre"
@@ -144,7 +144,7 @@ async function validate() {
         cols="12"
         class="py-1"
       >
-        <!-- @vue-expect-error the filter form keeps the edit form's tipo != 'ver' check -->
+        <!-- @vue-expect-error tipo is typed as "filter", which never equals 'ver' -->
         <v-text-field
           v-model="typepaymentStore.filtros.description"
           label="Descripción"

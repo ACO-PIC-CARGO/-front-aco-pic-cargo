@@ -173,7 +173,7 @@ async function actualizarUsuariosPosicion() {
           <v-col cols="12">
             <v-row>
               <v-col cols="4">
-                <!-- @vue-expect-error the empty string start value is kept from the old data() -->
+                <!-- @vue-expect-error the value starts as an empty string -->
                 <v-autocomplete
                   :items="positionStore.lstUsuarioNoAsignado"
                   item-value="id"

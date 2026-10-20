@@ -24,7 +24,7 @@ import type {
 const calculadorasStore = useCalculadorasStore();
 const appStore = useAppStore();
 const monedasStore = useMonedasStore();
-const staleRootView = appStore as unknown as {
+const undeclaredAppState = appStore as typeof appStore & {
   calculadora: { contendedorCalc: unknown[]; navieraCalc: unknown[] };
   moneda: { moneda: unknown[] };
 };
@@ -1407,7 +1407,7 @@ watch(excel, () => {
               v-if="tipo == 'fcl'"
             >
               <v-autocomplete
-                :items="staleRootView.calculadora.contendedorCalc"
+                :items="undeclaredAppState.calculadora.contendedorCalc"
                 v-model="datosFormulario.contenedor"
                 item-title="contenedores_nombre"
                 label="Tipo de Contenedor"
@@ -1467,7 +1467,7 @@ watch(excel, () => {
             <!-- MONEDA -->
             <v-col cols="4">
               <v-autocomplete
-                :items="staleRootView.moneda.moneda"
+                :items="undeclaredAppState.moneda.moneda"
                 v-model="datosFormulario.moneda"
                 item-title="moneda_descripcion"
                 label="Moneda"
@@ -1577,7 +1577,7 @@ watch(excel, () => {
               v-if="tipo == 'fcl'"
             >
               <v-autocomplete
-                :items="staleRootView.calculadora.navieraCalc"
+                :items="undeclaredAppState.calculadora.navieraCalc"
                 v-model="datosFormulario.naviera"
                 item-title="navieras_nombre"
                 label="Naviera"

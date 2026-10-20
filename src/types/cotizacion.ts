@@ -200,12 +200,6 @@ export interface ItemBegEnd {
   categoria_role?: string;
 }
 
-export interface ContenedorEnvio {
-  description?: string;
-  cantidad?: number | string;
-  code?: string;
-}
-
 export interface TipoCarga {
   id?: number | string;
   code?: string;

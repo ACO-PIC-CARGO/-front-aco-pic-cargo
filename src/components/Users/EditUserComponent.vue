@@ -204,7 +204,7 @@ function eliminarPosition(index: number) {
   mostrarposicionesflag.value = true;
 }
 function eliminarbranch(index: number) {
-  // @ts-expect-error Kept: the user store has never had lstSucursal, so this call has always thrown.
+  // @ts-expect-error the user store has no lstSucursal, so this call always throws.
   userStore.lstSucursal[index].status = false;
   mostrarsucursal.value = false;
   mostrarsucursal.value = true;
@@ -364,7 +364,7 @@ async function guardarUsuario() {
               />
             </v-col>
             <v-col cols="4">
-              <!-- @vue-expect-error the root state items are untyped until the Vuex store is typed -->
+              <!-- @vue-expect-error the Pais type does not declare status -->
               <v-autocomplete
                 label="Pais (*)"
                 :items="appStore.itemsPais"
@@ -487,7 +487,7 @@ async function guardarUsuario() {
               cols="4"
               class="my-auto"
             >
-              <!-- @vue-expect-error the empty string start value is kept from the old data() -->
+              <!-- @vue-expect-error the value starts as an empty string -->
               <v-autocomplete
                 :items="positionStore.lstPosition"
                 item-title="name"
@@ -585,7 +585,7 @@ async function guardarUsuario() {
               cols="4"
               class="my-auto"
             >
-              <!-- @vue-expect-error the empty string start value is kept from the old data() -->
+              <!-- @vue-expect-error the value starts as an empty string -->
               <v-autocomplete
                 :items="securitysStore.lstSucursal"
                 v-model="itemSucursal"

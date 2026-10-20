@@ -27,7 +27,7 @@ const props = withDefaults(defineProps<{ type?: string; idModality?: number }>()
 
 const calculadorasStore = useCalculadorasStore();
 const appStore = useAppStore();
-const staleRootState = appStore as typeof appStore & {
+const undeclaredAppState = appStore as typeof appStore & {
   calculadora: { contendedorCalc: unknown[]; navieraCalc: unknown[] };
   moneda: { moneda: unknown[] };
 };
@@ -1679,7 +1679,7 @@ watch(excel, () => {
               v-if="type == 'FCL'"
             >
               <v-autocomplete
-                :items="staleRootState.calculadora.contendedorCalc"
+                :items="undeclaredAppState.calculadora.contendedorCalc"
                 v-model="datosFormulario.contenedor"
                 item-title="contenedores_nombre"
                 label="Tipo de Contenedor"
@@ -1739,7 +1739,7 @@ watch(excel, () => {
             <!-- MONEDA -->
             <v-col cols="4">
               <v-autocomplete
-                :items="staleRootState.moneda.moneda"
+                :items="undeclaredAppState.moneda.moneda"
                 v-model="datosFormulario.moneda"
                 item-title="moneda_descripcion"
                 label="Moneda"
@@ -1849,7 +1849,7 @@ watch(excel, () => {
               v-if="type == 'FCL'"
             >
               <v-autocomplete
-                :items="staleRootState.calculadora.navieraCalc"
+                :items="undeclaredAppState.calculadora.navieraCalc"
                 v-model="datosFormulario.naviera"
                 item-title="navieras_nombre"
                 label="Naviera"
