@@ -745,10 +745,11 @@ function isNotPorcentaje(element: Costo, id_multiplicador: Costo["id_multiplicad
 
   return !mul;
 }
+// Not defined anywhere, so calling it throws.
+const limpiar = undefined as unknown as () => void;
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 function abrirModal() {
   dialog = !dialog;
-  // @ts-expect-error limpiar is not defined in this component, so this throws
   limpiar();
 }
 </script>
