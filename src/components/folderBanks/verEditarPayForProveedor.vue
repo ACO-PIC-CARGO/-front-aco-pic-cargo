@@ -208,7 +208,7 @@
               <v-row class="mt-1">
                 <v-col cols="12" md="6" class="py-1">
                   <v-autocomplete
-                    :items="$store.state.bancos.cuentas"
+                    :items="bancosStore.cuentas"
                     item-title="label"
                     item-value="id"
                     label="Cuenta de Salida de Banco"
@@ -486,10 +486,11 @@
 <script>
 import { defineAsyncComponent, mergeProps } from "vue";
 import { mapActions, mapState } from "vuex";
-import { mapActions as mapPiniaActions } from "pinia";
+import { mapActions as mapPiniaActions, mapStores } from "pinia";
 import { useSecuritysStore } from "@/stores/securitys";
 import Swal from "sweetalert2";
 import { useFilesStore } from "@/stores/files";
+import { useBancosStore } from "@/stores/bancos";
 export default {
   components: {
     //  opciones: () => import("@/components/comun/opcionesRegistro.vue"),
@@ -577,7 +578,7 @@ export default {
     this.$store.state.spiner = false;
     this.proveedor = data.id_proveedor;
     this.id_cuenta =
-      this.$store.state.bancos.cuentas.find(
+      this.bancosStore.cuentas.find(
         (c) => c.id === data.id_cuentabancaria,
       ) || {};
     this.fechaoperacion = data.fechaoperacion;
@@ -599,16 +600,15 @@ export default {
     mergeProps,
     ...mapActions([
       "_getListaPagosXProveedorCxP",
-      "getValidaNroOp",
       "cargarProveedores",
       "_getCoinsList",
-      "getListBanksDetailsCargar",
       "getDeudaAProveedorPorSucursal",
       "updateRegistroEgresos",
       "verRegistroEgresos",
       "eliminarRegistroEgresos",
       "imprimirComprobanteEgreso",
     ]),
+    ...mapPiniaActions(useBancosStore, ["getValidaNroOp", "getListBanksDetailsCargar"]),
     ...mapPiniaActions(useFilesStore, ["_uploadFile"]),
     ...mapPiniaActions(useSecuritysStore, ["validarUsuarioAdmin"]),
 
@@ -923,6 +923,7 @@ export default {
     },
   },
   computed: {
+    ...mapStores(useBancosStore),
     ...mapState([
       "itemsProveedorList",
       "listPagosXProveedorCxP",

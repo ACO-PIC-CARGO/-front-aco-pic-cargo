@@ -775,7 +775,7 @@
                 <v-col cols="12" md="3">
                   <v-select
                     :items="
-                      ($store.state.bancos.cuentas || []).filter(
+                      (bancosStore.cuentas || []).filter(
                         (v) => v.symbol == sufmoneda,
                       )
                     "
@@ -880,7 +880,7 @@
                 <v-col cols="12" md="3">
                   <v-select
                     :items="
-                      ($store.state.bancos.cuentas || []).filter(
+                      (bancosStore.cuentas || []).filter(
                         (v) => v.symbol == sufmoneda,
                       )
                     "
@@ -1455,6 +1455,7 @@ import { useEnterprisesStore } from "@/stores/enterprises";
 import { usePricingStore } from "@/stores/pricing";
 import { useHousesStore } from "@/stores/houses";
 import { useFilesStore } from "@/stores/files";
+import { useBancosStore } from "@/stores/bancos";
 export default {
   emits: ["recalcularProfit"],
   props: {
@@ -3072,7 +3073,7 @@ export default {
     },
   },
   computed: {
-    ...mapStores(useFilesStore, useHousesStore, useEnterprisesStore),
+    ...mapStores(useBancosStore, useFilesStore, useHousesStore, useEnterprisesStore),
   },
   components: {
     ArrastraYSolarComponent,

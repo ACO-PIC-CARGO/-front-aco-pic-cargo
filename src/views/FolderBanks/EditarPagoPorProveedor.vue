@@ -207,6 +207,7 @@ import Swal from "sweetalert2";
 import { mapActions, mapState } from "vuex";
 import { mapActions as mapPiniaActions, mapStores } from "pinia";
 import { useFilesStore } from "@/stores/files";
+import { useBancosStore } from "@/stores/bancos";
 export default {
   props: ["tipo"],
   data() {
@@ -303,13 +304,13 @@ export default {
   methods: {
     ...mapActions([
       "_getListaPagosXProveedorCxP",
-      "getValidaNroOp",
       "cargarProveedores",
       "_getCoinsList",
       "verPagoRealizado",
       "anularPagoRealizado",
       "actualizarPagoRealizado",
     ]),
+    ...mapPiniaActions(useBancosStore, ["getValidaNroOp"]),
     ...mapPiniaActions(useFilesStore, ["_uploadFile"]),
     async getListBanksDetailsCargar() {
       let vm = this;

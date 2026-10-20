@@ -244,6 +244,7 @@ import Swal from "sweetalert2";
 import { mapActions as mapPiniaActions } from "pinia";
 import { useEnterprisesStore } from "@/stores/enterprises";
 import { useFilesStore } from "@/stores/files";
+import { useBancosStore } from "@/stores/bancos";
 export default {
   props: {
     editable: {
@@ -337,10 +338,10 @@ export default {
       "_getBanksList",
       "_getCoinsList",
       "_getProveedor",
-      "getListBanksDetailsCargar",
       "cargarCorrelativo",
       "guardarCuotasCgeTipoProveedor",
     ]),
+    ...mapPiniaActions(useBancosStore, ["getListBanksDetailsCargar"]),
     ...mapPiniaActions(useFilesStore, ["_uploadFile"]),
     ...mapPiniaActions(useEnterprisesStore, ["obtenerImpuestoXEmpresa"]),
     // ...mapAction([])

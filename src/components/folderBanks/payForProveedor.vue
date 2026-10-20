@@ -212,6 +212,7 @@ import { mapActions, mapState } from "vuex";
 import ArrastraYSolarComponent from "../comun/ArrastraYSolarComponent.vue";
 import { mapActions as mapPiniaActions, mapStores } from "pinia";
 import { useFilesStore } from "@/stores/files";
+import { useBancosStore } from "@/stores/bancos";
 export default {
   components: {
     ArrastraYSolarComponent,
@@ -309,10 +310,10 @@ export default {
   methods: {
     ...mapActions([
       "_getListaPagosXProveedorCxP",
-      "getValidaNroOp",
       "cargarProveedores",
       "_getCoinsList",
     ]),
+    ...mapPiniaActions(useBancosStore, ["getValidaNroOp"]),
     ...mapPiniaActions(useFilesStore, ["_uploadFile"]),
     obtenerListado() {
       this.tab = 0;
@@ -618,8 +619,8 @@ export default {
       this.$store.state.spiner = true;
       let res = await this.getValidaNroOp(this.nro_operacion);
 
-      if (!!this.$store.state.bancos.validacionBanco.estadoflag) {
-        this.msgNroOperacion = this.$store.state.bancos.validacionBanco.mensaje;
+      if (!!this.bancosStore.validacionBanco.estadoflag) {
+        this.msgNroOperacion = this.bancosStore.validacionBanco.mensaje;
         document.getElementById("nro_operacion").focus();
       }
 
@@ -652,7 +653,7 @@ export default {
     },
   },
   computed: {
-    ...mapStores(useFilesStore),
+    ...mapStores(useBancosStore, useFilesStore),
     ...mapState(["itemsProveedorList", "listPagosXProveedorCxP", "provedores"]),
     symbol() {
       let symbol = "";

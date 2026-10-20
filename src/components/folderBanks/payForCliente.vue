@@ -229,8 +229,9 @@ import axios from '@/api/http';
 import Swal from "sweetalert2";
 import { mapActions, mapState } from "vuex";
 import ArrastraYSolarComponent from "../comun/ArrastraYSolarComponent.vue";
-import { mapStores } from "pinia";
+import { mapActions as mapPiniaActions, mapStores } from "pinia";
 import { useFilesStore } from "@/stores/files";
+import { useBancosStore } from "@/stores/bancos";
 export default {
   components: {
     ArrastraYSolarComponent,
@@ -315,12 +316,12 @@ export default {
   methods: {
     ...mapActions([
       "_getListaPagosXProveedorCxC",
-      "getListBanksDetailsCargar",
       "_getCoinsList",
       "cargarClientes",
       "_getBanksList",
       "validateNroOperacion",
     ]),
+    ...mapPiniaActions(useBancosStore, ["getListBanksDetailsCargar"]),
     validarAprobacion(obj) {
       if (obj.value) {
       }

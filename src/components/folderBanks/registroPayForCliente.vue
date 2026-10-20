@@ -103,7 +103,7 @@
               <v-row class="mt-2">
                 <v-col cols="12" md="6" class="py-1">
                   <v-autocomplete
-                    :items="$store.state.bancos.cuentas"
+                    :items="bancosStore.cuentas"
                     item-title="label"
                     item-value="id"
                     label="Cuenta y Banco Ingreso de Banco"
@@ -345,7 +345,7 @@
                   </v-col>
                   <v-col cols="12" md="6" class="py-1">
                     <v-autocomplete
-                      :items="$store.state.bancos.cuentas"
+                      :items="bancosStore.cuentas"
                       item-title="label"
                       item-value="id"
                       label="Cuenta y Banco Ingreso de Banco"
@@ -669,8 +669,9 @@
 import { defineAsyncComponent } from "vue";
 import { mapActions, mapState } from "vuex";
 import Swal from "sweetalert2";
-import { mapActions as mapPiniaActions } from "pinia";
+import { mapActions as mapPiniaActions, mapStores } from "pinia";
 import { useFilesStore } from "@/stores/files";
+import { useBancosStore } from "@/stores/bancos";
 export default {
   components: {
     //  opciones: () => import("@/components/comun/opcionesRegistro.vue"),
@@ -772,16 +773,15 @@ export default {
   methods: {
     ...mapActions([
       "_getListaPagosXProveedorCxP",
-      "getValidaNroOp",
       "cargarClientes",
       "_getCoinsList",
-      "getListBanksDetailsCargar",
       "getDeudaDeClientePorSucursal",
       "cargarClientes",
       "_getBanksList",
       "setRegistroIgresos",
       "validarIngresoNroOperacion",
     ]),
+    ...mapPiniaActions(useBancosStore, ["getValidaNroOp", "getListBanksDetailsCargar"]),
     ...mapPiniaActions(useFilesStore, ["_uploadFile"]),
     abrirFactura(item) {
       let id = item.admin_invoice_id;
@@ -1156,6 +1156,7 @@ export default {
     },
   },
   computed: {
+    ...mapStores(useBancosStore),
     ...mapState([
       "itemsProveedorList",
       "listPagosXProveedorCxP",

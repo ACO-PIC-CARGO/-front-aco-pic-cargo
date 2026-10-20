@@ -246,8 +246,9 @@ import moment from "moment";
 import { mapActions, mapState } from "vuex";
 import Swal from "sweetalert2";
 import ArrastraYSolarComponent from "../comun/ArrastraYSolarComponent.vue";
-import { mapStores } from "pinia";
+import { mapActions as mapPiniaActions, mapStores } from "pinia";
 import { useFilesStore } from "@/stores/files";
+import { useBancosStore } from "@/stores/bancos";
 export default {
   emits: ["cancelar", "cerrarModal"],
   props: { limpar: Boolean },
@@ -343,8 +344,8 @@ export default {
       "cargarProveedores",
       "_getCoinsList",
       // "_uploadFile",
-      "getValidaNroOp",
     ]),
+    ...mapPiniaActions(useBancosStore, ["getValidaNroOp"]),
 
     calcularTotales() {
       let mondolar = 0;
@@ -731,8 +732,8 @@ export default {
       this.msgNroOperacion = "";
       this.$store.state.spiner = true;
       await this.getValidaNroOp(this.nro_operacion);
-      if (!!this.$store.state.bancos.validacionBanco.estadoflag) {
-        this.msgNroOperacion = this.$store.state.bancos.validacionBanco.mensaje;
+      if (!!this.bancosStore.validacionBanco.estadoflag) {
+        this.msgNroOperacion = this.bancosStore.validacionBanco.mensaje;
         document.getElementById("nro_operacion").focus();
       } else {
         this.msgNroOperacion = "";
@@ -764,7 +765,7 @@ export default {
     },
   },
   computed: {
-    ...mapStores(useFilesStore),
+    ...mapStores(useBancosStore, useFilesStore),
     ...mapState(["provedores", "limpiar"]),
   },
   watch: {

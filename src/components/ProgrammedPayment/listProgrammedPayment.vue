@@ -297,6 +297,7 @@ import { mapActions, mapState } from "vuex";
 import Swal from "sweetalert2";
 import { mapActions as mapPiniaActions, mapStores } from "pinia";
 import { useFilesStore } from "@/stores/files";
+import { useBancosStore } from "@/stores/bancos";
 export default {
   name: "listProgrammedPaymentComponent",
   emits: ["cerrar"],
@@ -477,16 +478,16 @@ export default {
       "ListProgrammedPayment",
       "eliminarProgramacion",
       "eliminarProgramacionDetalle",
-      "getValidaNroOp",
       "cargarProveedores",
     ]),
+    ...mapPiniaActions(useBancosStore, ["getValidaNroOp"]),
     ...mapPiniaActions(useFilesStore, ["_uploadFile"]),
     async ValidaNroOp() {
       this.msgNroOperacion = "";
       this.$store.state.spiner = true;
       await this.getValidaNroOp(this.nro_operacion);
-      if (!!this.$store.state.bancos.validacionBanco.estadoflag) {
-        this.msgNroOperacion = this.$store.state.bancos.validacionBanco.mensaje;
+      if (!!this.bancosStore.validacionBanco.estadoflag) {
+        this.msgNroOperacion = this.bancosStore.validacionBanco.mensaje;
         document.getElementById("nro_operacion").focus();
       } else {
         this.msgNroOperacion = "";
@@ -964,7 +965,7 @@ export default {
     },
   },
   computed: {
-    ...mapStores(useFilesStore),
+    ...mapStores(useBancosStore, useFilesStore),
     ...mapState(["itemsProveedorList", "listPagosXProveedorCxP", "actualizar"]),
   },
   watch: {

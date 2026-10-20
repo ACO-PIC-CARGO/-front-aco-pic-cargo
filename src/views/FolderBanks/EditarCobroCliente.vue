@@ -184,6 +184,8 @@
 import axios from "@/api/http";
 import Swal from "sweetalert2";
 import { mapActions, mapState } from "vuex";
+import { mapActions as mapPiniaActions } from "pinia";
+import { useBancosStore } from "@/stores/bancos";
 export default {
   props: ["tipo"],
   data() {
@@ -266,7 +268,6 @@ export default {
   methods: {
     ...mapActions([
       "_getListaPagosXProveedorCxC",
-      "getListBanksDetailsCargar",
       "_getCoinsList",
       "cargarClientes",
       "_getBanksList",
@@ -274,6 +275,7 @@ export default {
       "anularCobroRealizado",
       "actualizarPagoRealizado",
     ]),
+    ...mapPiniaActions(useBancosStore, ["getListBanksDetailsCargar"]),
     async obtenerListado() {
       this.$store.state.listPagosXProveedorCxP.listPagosXProveedorCxP = [];
       this.date = "";

@@ -214,7 +214,7 @@
                 </v-col>
                 <v-col cols="12" md="6" class="py-1">
                   <v-autocomplete
-                    :items="$store.state.bancos.cuentas"
+                    :items="bancosStore.cuentas"
                     item-title="label"
                     item-value="id"
                     label="Cuenta de Ingreso de Banco"
@@ -498,10 +498,11 @@
 <script>
 import { defineAsyncComponent, mergeProps } from "vue";
 import { mapActions, mapState } from "vuex";
-import { mapActions as mapPiniaActions } from "pinia";
+import { mapActions as mapPiniaActions, mapStores } from "pinia";
 import { useSecuritysStore } from "@/stores/securitys";
 import Swal from "sweetalert2";
 import { useFilesStore } from "@/stores/files";
+import { useBancosStore } from "@/stores/bancos";
 export default {
   components: {
     //  opciones: () => import("@/components/comun/opcionesRegistro.vue"),
@@ -610,7 +611,7 @@ export default {
     this.cliente = data.cliente;
     this.urlfile = data.filename;
     this.id_cuenta =
-      this.$store.state.bancos.cuentas.find((c) => c.id === data.id_banco) ||
+      this.bancosStore.cuentas.find((c) => c.id === data.id_banco) ||
       {};
     this.id_banco_origen = data.id_banco_origen;
     this.nro_operacion = data.nro_operacion;
@@ -636,10 +637,8 @@ export default {
     ...mapActions([
       "verRegistroIngresos",
       "_getListaPagosXProveedorCxP",
-      "getValidaNroOp",
       "cargarClientes",
       "_getCoinsList",
-      "getListBanksDetailsCargar",
       "getDeudaDeClientePorSucursal",
       "cargarClientes",
       "_getBanksList",
@@ -647,6 +646,7 @@ export default {
       "eliminarRegistroIngresos",
       "imprimirComprobanteIngreso",
     ]),
+    ...mapPiniaActions(useBancosStore, ["getValidaNroOp", "getListBanksDetailsCargar"]),
     ...mapPiniaActions(useFilesStore, ["_uploadFile"]),
     ...mapPiniaActions(useSecuritysStore, ["validarUsuarioAdmin"]),
     confirmarEliminar() {
@@ -959,6 +959,7 @@ export default {
     },
   },
   computed: {
+    ...mapStores(useBancosStore),
     ...mapState([
       "itemsProveedorList",
       "listPagosXProveedorCxP",

@@ -105,7 +105,7 @@
               <v-row class="mt-2">
                 <v-col cols="12" md="6" class="py-1">
                   <v-autocomplete
-                    :items="$store.state.bancos.cuentas"
+                    :items="bancosStore.cuentas"
                     item-title="label"
                     item-value="id"
                     label="Cuenta de Salida de Banco"
@@ -320,7 +320,7 @@
               <v-row class="mt-1">
                 <v-col cols="12" md="6" class="py-1">
                   <v-autocomplete
-                    :items="$store.state.bancos.cuentas"
+                    :items="bancosStore.cuentas"
                     item-title="label"
                     item-value="id"
                     label="Cuenta de Salida de Banco"
@@ -620,8 +620,9 @@
 import { defineAsyncComponent } from "vue";
 import { mapActions, mapState } from "vuex";
 import Swal from "sweetalert2";
-import { mapActions as mapPiniaActions } from "pinia";
+import { mapActions as mapPiniaActions, mapStores } from "pinia";
 import { useFilesStore } from "@/stores/files";
+import { useBancosStore } from "@/stores/bancos";
 export default {
   components: {
     //  opciones: () => import("@/components/comun/opcionesRegistro.vue"),
@@ -706,14 +707,13 @@ export default {
   methods: {
     ...mapActions([
       "_getListaPagosXProveedorCxP",
-      "getValidaNroOp",
       "cargarProveedores",
       "_getCoinsList",
-      "getListBanksDetailsCargar",
       "getDeudaAProveedorPorSucursal",
       "setRegistroEgresos",
       "validarEgresoNroOperacion",
     ]),
+    ...mapPiniaActions(useBancosStore, ["getValidaNroOp", "getListBanksDetailsCargar"]),
     ...mapPiniaActions(useFilesStore, ["_uploadFile"]),
     cancelarllenadoDeMonto() {
       this.dialogLlenarMontoDepositadoBanco = false;
@@ -1102,6 +1102,7 @@ export default {
     },
   },
   computed: {
+    ...mapStores(useBancosStore),
     ...mapState([
       "itemsProveedorList",
       "listPagosXProveedorCxP",

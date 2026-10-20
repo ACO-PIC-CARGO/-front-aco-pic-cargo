@@ -1,12 +1,12 @@
 import { createStore } from "vuex";
 import axios from "@/api/http";
 import router from "@/router";
+import { useBancosStore } from "@/stores/bancos";
 const imgSave = "/img/svg/save.svg";
 const imgFolder = "/img/svg/folder.svg";
 const imgMailbox = "/img/svg/mailbox.svg";
 const imgList = "/img/svg/lista.svg";
 import controlGastos from "./modules/controlGasto";
-import bancos from "./modules/banco";
 import programaciones from "./modules/programacion";
 import balances from "./modules/balanace";
 import proyecciones from "./modules/proyeccion";
@@ -824,6 +824,7 @@ export default createStore({
     },
     SET_CUENTAS(state, data) {
       state.cuentas_pic = data;
+      useBancosStore().cuentas = data;
     },
     _setItemsProveedorRolAgente(state, data) {
       state.itemsProveedorRolAgente = data;
@@ -2829,7 +2830,6 @@ export default createStore({
   modules: {
     reportes,
     controlGastos,
-    bancos,
     programaciones,
     balances,
     proyecciones,
