@@ -531,7 +531,7 @@ async function procesarLCL(rows: Row[]) {
   // };
   // var config = {
   //   method: "post",
-  //   url: import.meta.env.VITE_URL_MAIN + `validar_registros_lcl`,
+  //   url: import.meta.env.VUE_APP_URL_MAIN + `validar_registros_lcl`,
   //   headers: headers,
   //   data: data,
   // };

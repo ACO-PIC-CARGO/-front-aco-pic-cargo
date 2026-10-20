@@ -4,6 +4,7 @@ import Swal from "sweetalert2";
 import type { ArchivoInicial } from "@/types/archivos";
 import { useFilesStore } from "@/stores/files";
 
+// 1. Agregamos los props para recibir la data del padre
 const props = withDefaults(defineProps<{ id?: string; archivoInicial?: ArchivoInicial | null }>(), {
   id: undefined,
   archivoInicial: null,
