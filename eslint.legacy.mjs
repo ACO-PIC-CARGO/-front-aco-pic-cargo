@@ -14,7 +14,6 @@ export const LEGACY = [
   "src/components/filtros/FiltroHouse.vue",
   "src/components/filtros/FiltroMaster.vue",
   "src/components/folderAduana/Costos/CostosComponent.vue",
-  "src/components/folderAduana/Costos/VentasComponent.vue",
   "src/components/folderAduana/VerComponent/ComparativaComponent.vue",
   "src/components/folderAduana/VerComponent/Costos/CostosComponent.vue",
   "src/components/folderAduana/VerComponent/Costos/ImpuestosComponent.vue",
