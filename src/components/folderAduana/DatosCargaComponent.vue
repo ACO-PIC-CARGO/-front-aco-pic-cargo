@@ -1,11 +1,451 @@
+<script setup lang="ts">
+import { computed, nextTick, ref, useTemplateRef, watch } from "vue";
+import { useStore } from "vuex";
+import Swal from "sweetalert2";
+import { useMasterusuariosStore } from "@/stores/masterusuarios";
+import { useAduanaStore } from "@/stores/aduana";
+import { usePricingStore } from "@/stores/pricing";
+import { sessionIsoPais } from "@/utils/sesion";
+import type { TipoContenedor } from "@/types/catalogos";
+import type {
+  FilaMedidaCarga,
+  FormMedidasCarga,
+  Puerto,
+  TipoCarga,
+  TotalMedidaCarga,
+} from "@/types/cotizacion";
+
+const props = withDefaults(
+  defineProps<{ mostrarBtn?: boolean; abrirModalContenedorRecargar?: boolean }>(),
+  { mostrarBtn: true, abrirModalContenedorRecargar: false },
+);
+const emit = defineEmits<{
+  recargarCostos: [abrirModal?: boolean];
+  activarServicios: [];
+}>();
+
+const rootStore = useStore();
+const aduanaStore = useAduanaStore();
+const masterusuariosStore = useMasterusuariosStore();
+const pricingStore = usePricingStore();
+
+const mostrarContinuarFlag = ref(true);
+const headers = [
+  { title: "", key: "action" },
+  { title: "#", key: "number" },
+  { title: "Tipo Contendor", key: "description" },
+  { title: "Cantidad", key: "cantidad" },
+];
+const dialogConteiner = ref(false);
+const numerobultos = ref("");
+const volumen = ref("");
+const peso = ref("");
+const err = ref("");
+const containers = ref({
+  container: "" as unknown as TipoContenedor,
+  cantidad: "",
+});
+const calculadoraFlag = ref(false);
+const unidadesLongitud = [
+  { text: "Centimetros", value: 1, factor: 0.01 },
+  { text: "Metros", value: 2, factor: 1 },
+  { text: "Pulgadas", value: 3, factor: 0.0254 },
+  { text: "Pie", value: 4, factor: 0.3048 },
+  { text: "Milímetros", value: 5, factor: 0.001 },
+];
+const unidadesPeso = [
+  { text: "Kilo", value: 1, factor: 1 },
+  { text: "Libra", value: 2, factor: 0.4535 },
+  { text: "Tonelada", value: 3, factor: 1000 },
+];
+const fromMedidas = ref<FormMedidasCarga>({
+  idLongitud: null,
+  idpeso: null,
+  bultos: null,
+  largo: null,
+  ancho: null,
+  alto: null,
+  peso: null,
+});
+const tblMedida = ref<FilaMedidaCarga[]>([]);
+const tblTotal = ref<TotalMedidaCarga>({
+  descripcion: null,
+  uni: null,
+  peso: null,
+  volumen: null,
+});
+const frmPuerto = useTemplateRef("frmPuerto");
+const frmDatosCarga = useTemplateRef("frmDatosCarga");
+const frmContainer = useTemplateRef("frmContainer");
+const calcularPesoFrom = useTemplateRef("calcularPesoFrom");
+
+// The old component declared this computed twice and only the later block ran, so it never existed.
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+const abrirModalContenedorSombreado = computed(() => aduanaStore.abrirModalContenedor);
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+const getPuertoOrigen = computed(() => {
+  let puertos: Puerto[] = [];
+
+  if (aduanaStore.datosPrincipales.iddestino) {
+    const id_port = aduanaStore.listPortEnd.filter(
+      (v) =>
+        v.id_port == aduanaStore.datosPrincipales.iddestino
+    )[0]!.id_port;
+    puertos = aduanaStore.listPortBegin.filter(
+      (v) => v.id_port != id_port
+    );
+  } else {
+    return aduanaStore.listPortBegin;
+  }
+  return puertos;
+});
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+const getPuertoDestino = computed(() => {
+  let puertos: Puerto[] = [];
+  if (aduanaStore.datosPrincipales.idorigen) {
+    const id_port = aduanaStore.listPortBegin.filter(
+      (v) =>
+        v.id_port == aduanaStore.datosPrincipales.idorigen
+    )[0]!.id_port;
+    puertos = aduanaStore.listPortEnd.filter(
+      (v) => v.id_port != id_port
+    );
+  } else {
+    puertos = aduanaStore.listPortEnd;
+  }
+  return puertos;
+});
+
+const isFcl = computed(() => {
+  if (
+    typeof aduanaStore.datosPrincipales.idtipocarga ===
+    "object"
+  ) {
+    return (
+      aduanaStore.datosPrincipales.idtipocarga.code === "FCL"
+    );
+  }
+  if (
+    typeof aduanaStore.datosPrincipales.idtipocarga !==
+    "object"
+  ) {
+    return aduanaStore.listShipment.some(
+      (v) =>
+        v.id == aduanaStore.datosPrincipales.idtipocarga &&
+        v.code == "FCL"
+    );
+  }
+  return false;
+});
+
+watch(
+  () => props.abrirModalContenedorRecargar,
+  () => {
+    if (aduanaStore.datosPrincipales.containers!.length == 0) {
+      dialogConteiner.value = true;
+    }
+  },
+);
+// The old watcher observed the missing computed, so it never fired.
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+async function abrirModalContenedorSombreadoWatcher() {
+  const isFCL = aduanaStore.listShipment.some(
+    (v) =>
+      v.id ==
+        ((aduanaStore.datosPrincipales.idtipocarga as TipoCarga).id
+          ? (aduanaStore.datosPrincipales.idtipocarga as TipoCarga).id
+          : aduanaStore.datosPrincipales.idtipocarga) &&
+      v.code == "FCL"
+  );
+  if (
+    isFCL &&
+    aduanaStore.datosPrincipales.containers!.length == 0
+  ) {
+    dialogConteiner.value = true;
+  }
+  if (
+    !isFCL &&
+    (aduanaStore.datosPrincipales.numerobultos == 0 ||
+      aduanaStore.datosPrincipales.peso == 0 ||
+      aduanaStore.datosPrincipales.volumen == 0)
+  ) {
+    Swal.fire({
+      icon: "info",
+      title: "Importante",
+      text: "Es necesario llenar los datos, el Nro Bultos, Volumen, Peso.",
+    });
+  }
+}
+
+async function recargarPuertoOrigen(textoBuscar: string) {
+  const idtipocarga =
+    typeof aduanaStore.datosPrincipales.idtipocarga ===
+    "object"
+      ? aduanaStore.datosPrincipales.idtipocarga.id
+      : aduanaStore.datosPrincipales.idtipocarga;
+
+  const id_transport = aduanaStore.listShipment.filter(
+    (v) => v.id == idtipocarga
+  );
+
+  await aduanaStore.getPortBeginAduana({
+    id_transport: id_transport[0]!.id_transport!,
+    id: aduanaStore.datosPrincipales.idorigen,
+    search: textoBuscar,
+  });
+}
+async function recargarPuertoDestino(textoBuscar: string) {
+  const idtipocarga =
+    typeof aduanaStore.datosPrincipales.idtipocarga ===
+    "object"
+      ? aduanaStore.datosPrincipales.idtipocarga.id
+      : aduanaStore.datosPrincipales.idtipocarga;
+  const id_transport = aduanaStore.listShipment.filter(
+    (v) => v.id == idtipocarga
+  );
+  await aduanaStore.getPortEndAduana({
+    id_transport: id_transport[0]!.id_transport!,
+    id: aduanaStore.datosPrincipales.iddestino,
+    search: textoBuscar,
+  });
+}
+async function anadirCarga() {
+  if ((await frmDatosCarga.value!.validate()).valid) {
+    aduanaStore.datosPrincipales.numerobultos =
+      numerobultos.value;
+    aduanaStore.datosPrincipales.volumen = volumen.value;
+    aduanaStore.datosPrincipales.peso = peso.value;
+    frmDatosCarga.value!.reset();
+    aduanaStore.actualizarCostosFlag =
+      !aduanaStore.actualizarCostosFlag;
+  }
+}
+async function guardarContainer() {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const cantCostos = aduanaStore.listCostos.length;
+  err.value = "";
+  if ((await frmContainer.value!.validate()).valid) {
+    if (
+      aduanaStore.datosPrincipales.containers!.filter(
+        (v) => v.id == containers.value.container.id
+      ).length == 0
+    ) {
+      aduanaStore.datosPrincipales.containers!.push({
+        id_containers: containers.value.container.id,
+        id: containers.value.container.id,
+        description: containers.value.container.name,
+        cantidad: containers.value.cantidad as unknown as number,
+        code: containers.value.container.code,
+      });
+      dialogConteiner.value = false;
+      containers.value = {
+        container: "" as unknown as TipoContenedor,
+        cantidad: "",
+      };
+      emit("recargarCostos", false);
+    } else {
+      err.value = "Contenedor ya se encuentra en la lista";
+    }
+  }
+}
+async function eliminarContainer({ index = null }: { index?: number | null }) {
+  aduanaStore.datosPrincipales.containers!.splice(index!, 1);
+  emit("recargarCostos");
+}
+async function aceptar() {
+  let validate = true;
+  if ((await frmPuerto.value!.validate()).valid) {
+    if (
+      (aduanaStore.datosPrincipales.idtipocarga as TipoCarga).code == "FCL"
+    ) {
+      if (
+        aduanaStore.datosPrincipales.containers!.length == 0
+      ) {
+        Swal.fire({
+          icon: "error",
+          title: "Aviso",
+          text: "Se necesita al menos un contenedor",
+        });
+        validate = false;
+      }
+    }
+    if (
+      (aduanaStore.datosPrincipales.idtipocarga as TipoCarga).code != "FCL"
+    ) {
+      if (
+        !aduanaStore.datosPrincipales.numerobultos &&
+        !aduanaStore.datosPrincipales.volumen &&
+        !aduanaStore.datosPrincipales.peso
+      ) {
+        Swal.fire({
+          icon: "error",
+          title: "Aviso",
+          text: "Se necesita los datos de la carga",
+        });
+        validate = false;
+      }
+    }
+    if (validate) {
+      emit("activarServicios");
+      mostrarContinuarFlag.value = false;
+    }
+    //
+  }
+  // this.$store.commit("SET_STEP_3", true);
+}
+
+//
+async function calcular() {
+  if ((await calcularPesoFrom.value!.validate()).valid) {
+    // bultos
+
+    // factores
+    const factLongitud = unidadesLongitud.filter(
+      (v) => v.value == fromMedidas.value.idLongitud
+    )[0]!.factor;
+
+    const facPeso = unidadesPeso.filter(
+      (v) => v.value == fromMedidas.value.idpeso
+    )[0]!.factor;
+
+    // volumen
+
+    const volumen =
+      (fromMedidas.value.largo as number) *
+      (fromMedidas.value.ancho as number) *
+      (fromMedidas.value.alto as number) *
+      Math.pow(factLongitud, 3);
+    // peso
+    const peso =
+      facPeso *
+      (fromMedidas.value.peso as number) *
+      (fromMedidas.value.bultos as number);
+    tblMedida.value.push({
+      uni: fromMedidas.value.bultos,
+      peso: parseFloat(String(peso)).toFixed(2),
+      volumen: parseFloat(
+        String((fromMedidas.value.bultos as number) * volumen)
+      ).toFixed(2),
+    } as FilaMedidaCarga);
+
+    nextTick(() => {
+      calcularPesoFrom.value!.reset();
+      total();
+    });
+  }
+}
+
+function total() {
+  tblTotal.value = null as unknown as TotalMedidaCarga;
+  let uni = 0;
+  let peso = 0;
+  let volumen = 0;
+  tblMedida.value.forEach((element) => {
+    uni += parseFloat(element.uni as string);
+    peso += parseFloat(element.peso as string);
+    volumen += parseFloat(element.volumen as string);
+  });
+  tblTotal.value = {
+    descripcion: "Total:",
+    uni: uni,
+    peso: peso,
+    volumen: volumen,
+  };
+}
+
+function borrarFila(i: number) {
+  tblMedida.value.splice(i, 1);
+  total();
+}
+
+function guardarDatosCalculadora() {
+  aduanaStore.datosPrincipales.numerobultos =
+    tblTotal.value.uni;
+  aduanaStore.datosPrincipales.volumen = tblTotal.value.volumen;
+  aduanaStore.datosPrincipales.peso = tblTotal.value.peso;
+  calculadoraFlag.value = false;
+  aduanaStore.actualizarCostosFlag =
+    !aduanaStore.actualizarCostosFlag;
+}
+function mostrarComboPercepcionAduana() {
+  const esPeru = sessionIsoPais() == 9589;
+  return (
+    esPeru &&
+    aduanaStore.listModality.some(
+      (v) =>
+        v.id == aduanaStore.datosPrincipales.idsentido &&
+        v.code == "I"
+    )
+  );
+}
+
+function cambiarImpuesto() {
+  let porcentaje = "10";
+  const impuestos = Array.isArray(aduanaStore.listImpuestos)
+    ? aduanaStore.listImpuestos
+    : [];
+  if (aduanaStore.datosPrincipales.id_percepcionaduana) {
+    const percepciones = Array.isArray(
+      masterusuariosStore.lstPercepcionAduana
+    )
+      ? masterusuariosStore.lstPercepcionAduana
+      : [];
+    const percepcion = percepciones.find(
+      (v) =>
+        v.id ==
+        aduanaStore.datosPrincipales.id_percepcionaduana
+    );
+    if (percepcion) porcentaje = percepcion.codigo01!;
+  }
+  const newImpuesto = impuestos.map((impuesto) =>
+    impuesto.codigo == "09"
+      ? { ...impuesto, codigo01: porcentaje }
+      : impuesto
+  );
+  pricingStore.listImpuestos = newImpuesto;
+  aduanaStore.listImpuestos = newImpuesto;
+  aduanaStore.opcionCostos.forEach((element) => {
+    const impuestosOpcion = Array.isArray(element.listImpuestos)
+      ? element.listImpuestos
+      : [];
+    element.listImpuestos = impuestosOpcion.map((impuesto) =>
+      impuesto.codigo == "09"
+        ? { ...impuesto, codigo01: porcentaje }
+        : impuesto
+    );
+  });
+}
+function recalcularCalculadora() {
+  let uni = 0;
+  let peso = 0;
+  let volumen = 0;
+  tblMedida.value.forEach((element) => {
+    uni += parseFloat(element.uni as string);
+    peso += parseFloat(element.peso as string);
+    volumen += parseFloat(element.volumen as string);
+  });
+  tblTotal.value.uni = parseFloat(String(uni)).toFixed(2);
+  tblTotal.value.peso = parseFloat(String(peso)).toFixed(2);
+  tblTotal.value.volumen = parseFloat(String(volumen)).toFixed(2);
+}
+</script>
+
 <template>
-  <v-container fluid class="pa-0">
+  <v-container
+    fluid
+    class="pa-0"
+  >
     <v-card elevation="0">
       <v-card-title> Datos de la Carga </v-card-title>
       <v-card-text>
         <v-form ref="frmPuerto">
           <v-row>
-            <v-col cols="12" lg="6" xl="6" class="py-1">
+            <v-col
+              cols="12"
+              lg="6"
+              xl="6"
+              class="py-1"
+            >
               <v-autocomplete
                 label="Puerto Origen"
                 variant="outlined"
@@ -17,9 +457,14 @@
                 item-value="id_port"
                 v-model="aduanaStore.datosPrincipales.idorigen"
                 @update:search="recargarPuertoOrigen"
-              ></v-autocomplete>
+              />
             </v-col>
-            <v-col cols="12" lg="6" xl="6" class="py-1">
+            <v-col
+              cols="12"
+              lg="6"
+              xl="6"
+              class="py-1"
+            >
               <v-autocomplete
                 label="Puerto Destino"
                 variant="outlined"
@@ -31,8 +476,7 @@
                 item-value="id_port"
                 v-model="aduanaStore.datosPrincipales.iddestino"
                 @update:search="recargarPuertoDestino"
-              >
-              </v-autocomplete>
+              />
             </v-col>
             <v-col
               cols="12"
@@ -54,22 +498,29 @@
                   aduanaStore.datosPrincipales.id_percepcionaduana
                 "
                 @update:model-value="cambiarImpuesto()"
-              >
-              </v-autocomplete>
+              />
             </v-col>
           </v-row>
         </v-form>
 
         <v-row>
           <v-col class="center">
-            <v-icon color="red">mdi-arrow-down-left-bold</v-icon>
+            <v-icon color="red">
+              mdi-arrow-down-left-bold
+            </v-icon>
             <b>LLENAR ESTOS CAMPOS</b>
-            <v-icon color="red">mdi-arrow-down-right-bold</v-icon>
+            <v-icon color="red">
+              mdi-arrow-down-right-bold
+            </v-icon>
           </v-col>
         </v-row>
         <v-form ref="frmDatosCarga">
           <v-row v-if="!isFcl">
-            <v-col cols="12" lg="4" xl="4">
+            <v-col
+              cols="12"
+              lg="4"
+              xl="4"
+            >
               <v-text-field
                 label="Número Bultos"
                 v-model="numerobultos"
@@ -85,11 +536,14 @@
                     /^-?\d+$/.test(v) || 'Debe ser un número entero válido',
                   (v) => v > 0 || 'El valor tiene que ser un númro positivo',
                 ]"
-              >
-              </v-text-field>
+              />
             </v-col>
 
-            <v-col cols="12" lg="4" xl="4">
+            <v-col
+              cols="12"
+              lg="4"
+              xl="4"
+            >
               <v-text-field
                 label="Volumen"
                 v-model="volumen"
@@ -101,10 +555,13 @@
                   (v) => !!v || 'Dato Requerido',
                   (v) => v > 0 || 'El valor tiene que ser un númro positivo',
                 ]"
-              >
-              </v-text-field>
+              />
             </v-col>
-            <v-col cols="12" lg="4" xl="4">
+            <v-col
+              cols="12"
+              lg="4"
+              xl="4"
+            >
               <v-text-field
                 label="Peso"
                 v-model="peso"
@@ -116,12 +573,19 @@
                   (v) => !!v || 'Dato Requerido',
                   (v) => v > 0 || 'El valor tiene que ser un númro positivo',
                 ]"
-                v-on:keyup.enter="anadirCarga()"
-              >
-              </v-text-field>
+                @keyup.enter="anadirCarga()"
+              />
             </v-col>
-            <v-col cols="12" align="center">
-              <v-btn class="mx-1" size="small" color="info" @click="anadirCarga()">
+            <v-col
+              cols="12"
+              align="center"
+            >
+              <v-btn
+                class="mx-1"
+                size="small"
+                color="info"
+                @click="anadirCarga()"
+              >
                 AGREGAR
               </v-btn>
               <v-btn
@@ -134,7 +598,10 @@
               </v-btn>
             </v-col>
             <v-col cols="12">
-              <v-table density="compact" class="elevation-1 my-2">
+              <v-table
+                density="compact"
+                class="elevation-1 my-2"
+              >
                 <thead class="bg-teal-lighten-2 text-white">
                   <tr>
                     <th>Cant. Bultos</th>
@@ -156,7 +623,10 @@
           </v-row>
 
           <v-row v-else>
-            <v-col cols="12" align="right">
+            <v-col
+              cols="12"
+              align="right"
+            >
               <v-btn
                 color="success"
                 @click="dialogConteiner = !dialogConteiner"
@@ -167,11 +637,12 @@
             <v-col cols="12">
               <v-data-table
                 :headers="headers"
-                :items="aduanaStore.datosPrincipales.containers"
+                :items="aduanaStore.datosPrincipales.containers!"
                 class="elevation-1"
               >
-                <template v-slot:[`item.action`]="item">
-                  <v-btn variant="text"
+                <template #[`item.action`]="item">
+                  <v-btn
+                    variant="text"
                     icon
                     color="red"
                     @click="eliminarContainer({ index: item.index })"
@@ -179,7 +650,7 @@
                     <v-icon>mdi-delete</v-icon>
                   </v-btn>
                 </template>
-                <template v-slot:[`item.number`]="item">
+                <template #[`item.number`]="item">
                   {{ item.index + 1 }}
                 </template>
               </v-data-table>
@@ -187,9 +658,16 @@
           </v-row>
         </v-form>
       </v-card-text>
-      <v-card-actions class="mt-auto" v-if="mostrarContinuarFlag && mostrarBtn">
-        <v-spacer></v-spacer>
-        <v-btn color="#3F51B5" size="small" @click="aceptar()">
+      <v-card-actions
+        class="mt-auto"
+        v-if="mostrarContinuarFlag && mostrarBtn"
+      >
+        <v-spacer />
+        <v-btn
+          color="#3F51B5"
+          size="small"
+          @click="aceptar()"
+        >
           Continuar Servicios
         </v-btn>
       </v-card-actions>
@@ -208,7 +686,7 @@
           <!-- {{ $store.state.itemsContainers }} -->
           <v-form ref="frmContainer">
             <v-select
-              :items="$store.state.itemsContainers"
+              :items="rootStore.state.itemsContainers"
               v-model="containers.container"
               label="Container"
               item-title="name"
@@ -216,27 +694,38 @@
               :rules="[(v) => !!v || 'Dato Requerido']"
               :error-messages="err"
               return-object
-            ></v-select>
+            />
             <v-text-field
               name="Cantidad"
               label="Cantidad"
               v-model="containers.cantidad"
               type="number"
               :rules="[(v) => !!v || 'Dato Requerido']"
-            ></v-text-field>
+            />
           </v-form>
         </v-card-text>
         <v-card-actions>
-          <v-spacer></v-spacer>
-          <v-btn color="success" @click="guardarContainer()">Aceptar</v-btn>
-          <v-btn color="red" @click="dialogConteiner = !dialogConteiner">
+          <v-spacer />
+          <v-btn
+            color="success"
+            @click="guardarContainer()"
+          >
+            Aceptar
+          </v-btn>
+          <v-btn
+            color="red"
+            @click="dialogConteiner = !dialogConteiner"
+          >
             Cancelar
           </v-btn>
         </v-card-actions>
       </v-card>
     </v-dialog>
     <!-- USAR CALCULADORA -->
-    <v-dialog v-model="calculadoraFlag" max-width="40%">
+    <v-dialog
+      v-model="calculadoraFlag"
+      max-width="40%"
+    >
       <v-card>
         <v-card-title class="custom-card-title justify-center">
           <h3>CALCULADORA VOLUMÉTRICA</h3>
@@ -245,9 +734,10 @@
         <v-card-text>
           <v-container>
             <v-form ref="calcularPesoFrom">
-              <div class="row">
-                <div class="col-4">
-                  <v-autocomplete item-title="text"
+              <v-row>
+                <v-col cols="4">
+                  <v-autocomplete
+                    item-title="text"
                     density="compact"
                     :items="unidadesLongitud"
                     label="Longitud"
@@ -257,21 +747,20 @@
                         v > 0.0 || 'El valor tiene que ser un númro positivo',
                     ]"
                     v-model="fromMedidas.idLongitud"
-                  >
-                  </v-autocomplete>
-                </div>
+                  />
+                </v-col>
 
-                <div class="col-4">
-                  <v-autocomplete item-title="text"
+                <v-col cols="4">
+                  <v-autocomplete
+                    item-title="text"
                     density="compact"
                     :items="unidadesPeso"
                     label="Peso"
                     :rules="[(v) => !!v || 'Dato Requerido.']"
                     v-model="fromMedidas.idpeso"
-                  >
-                  </v-autocomplete>
-                </div>
-                <div class="col-4">
+                  />
+                </v-col>
+                <v-col cols="4">
                   <v-text-field
                     type="number"
                     min="1"
@@ -286,12 +775,15 @@
                       (v) => v > 0 || 'El dato debe ser positivo',
                     ]"
                     v-model="fromMedidas.bultos"
-                  ></v-text-field>
-                </div>
-                <div class="col-12 t-blue justify-center">
+                  />
+                </v-col>
+                <v-col
+                  cols="12"
+                  class="t-blue justify-center"
+                >
                   <b>MEDIDAS POR CADA BULTO</b>
-                </div>
-                <div class="col-3">
+                </v-col>
+                <v-col cols="3">
                   <v-text-field
                     type="text"
                     label="Largo"
@@ -304,9 +796,9 @@
                     ]"
                     v-model="fromMedidas.largo"
                     inputmode="numeric"
-                  ></v-text-field>
-                </div>
-                <div class="col-3">
+                  />
+                </v-col>
+                <v-col cols="3">
                   <v-text-field
                     type="text"
                     label="Ancho"
@@ -319,9 +811,9 @@
                     ]"
                     v-model="fromMedidas.ancho"
                     inputmode="numeric"
-                  ></v-text-field>
-                </div>
-                <div class="col-3">
+                  />
+                </v-col>
+                <v-col cols="3">
                   <v-text-field
                     type="text"
                     label="Alto"
@@ -334,10 +826,10 @@
                     ]"
                     v-model="fromMedidas.alto"
                     inputmode="numeric"
-                  ></v-text-field>
-                </div>
+                  />
+                </v-col>
 
-                <div class="col-3">
+                <v-col cols="3">
                   <v-text-field
                     type="number"
                     min="0"
@@ -351,8 +843,8 @@
                         v > 0.0 || 'El valor tiene que ser un númro positivo',
                     ]"
                     v-model="fromMedidas.peso"
-                  ></v-text-field>
-                </div>
+                  />
+                </v-col>
                 <div class="flex-grow-1 text-right">
                   <v-btn
                     size="small"
@@ -363,9 +855,9 @@
                     <b>Calcular</b>
                   </v-btn>
                 </div>
-              </div>
+              </v-row>
             </v-form>
-            <div class="col-12">
+            <v-col cols="12">
               <span class="mt-2 ma-1 pa-1">
                 Nota: Los valores de Peso y Volumen serán convertidos
                 automáticamente al sistema MKS (Metros, Kilogramos, segundos)
@@ -382,11 +874,14 @@
                     <td>Uni(s)</td>
                     <td>Peso (Kg.)</td>
                     <td>Volumen (m <sup>3</sup>)</td>
-                    <td></td>
+                    <td />
                   </tr>
                 </thead>
                 <tbody>
-                  <tr v-for="(medida, i) in tblMedida" :key="i">
+                  <tr
+                    v-for="(medida, i) in tblMedida"
+                    :key="i"
+                  >
                     <td>{{ i + 1 }}</td>
                     <td>
                       <v-text-field
@@ -396,7 +891,7 @@
                         density="compact"
                         hide-details
                         @update:model-value="recalcularCalculadora"
-                      ></v-text-field>
+                      />
                     </td>
                     <td>
                       <v-text-field
@@ -406,7 +901,7 @@
                         density="compact"
                         hide-details
                         @update:model-value="recalcularCalculadora"
-                      ></v-text-field>
+                      />
                     </td>
                     <td>
                       <v-text-field
@@ -416,13 +911,20 @@
                         density="compact"
                         hide-details
                         @update:model-value="recalcularCalculadora"
-                      ></v-text-field>
+                      />
                     </td>
                     <td>
-                      <v-btn variant="text" class="ma-0 pa-0" icon>
-                        <v-icon color="orange-darken-4" @click="borrarFila(i)"
-                          >mdi-delete-circle</v-icon
+                      <v-btn
+                        variant="text"
+                        class="ma-0 pa-0"
+                        icon
+                      >
+                        <v-icon
+                          color="orange-darken-4"
+                          @click="borrarFila(i)"
                         >
+                          mdi-delete-circle
+                        </v-icon>
                       </v-btn>
                     </td>
                   </tr>
@@ -434,11 +936,11 @@
                   </tr>
                 </tbody>
               </v-table>
-            </div>
+            </v-col>
           </v-container>
         </v-card-text>
         <v-card-actions>
-          <v-spacer></v-spacer>
+          <v-spacer />
           <v-btn
             color="success"
             size="small"
@@ -460,429 +962,6 @@
     </v-dialog>
   </v-container>
 </template>
-
-<script>
-import { mapActions, mapState } from "vuex";
-import Swal from "sweetalert2";
-import funcion from "@/components/mixins/funciones";
-import { mapActions as mapPiniaActions, mapStores } from "pinia";
-import { useMasterusuariosStore } from "@/stores/masterusuarios";
-import { useAduanaStore } from "@/stores/aduana";
-import { usePricingStore } from "@/stores/pricing";
-export default {
-  name: "DatosCargaComponent",
-  mixins: [funcion],
-  emits: ["recargarCostos", "activarServicios"],
-  props: {
-    mostrarBtn: {
-      type: Boolean,
-      default: true,
-    },
-    abrirModalContenedorRecargar: {
-      type: Boolean,
-      default: false,
-    },
-  },
-  data() {
-    return {
-      mostrarContinuarFlag: true,
-      headers: [
-        { title: "", key: "action" },
-        { title: "#", key: "number" },
-        { title: "Tipo Contendor", key: "description" },
-        { title: "Cantidad", key: "cantidad" },
-      ],
-      dialogConteiner: false,
-      numerobultos: "",
-      volumen: "",
-      peso: "",
-      err: "",
-      containers: {
-        container: "",
-        cantidad: "",
-      },
-      calculadoraFlag: false,
-      unidadesLongitud: [
-        { text: "Centimetros", value: 1, factor: 0.01 },
-        { text: "Metros", value: 2, factor: 1 },
-        { text: "Pulgadas", value: 3, factor: 0.0254 },
-        { text: "Pie", value: 4, factor: 0.3048 },
-        { text: "Milímetros", value: 5, factor: 0.001 },
-      ],
-      unidadesPeso: [
-        { text: "Kilo", value: 1, factor: 1 },
-        { text: "Libra", value: 2, factor: 0.4535 },
-        { text: "Tonelada", value: 3, factor: 1000 },
-      ],
-      fromMedidas: {
-        idLongitud: null,
-        idpeso: null,
-        bultos: null,
-        largo: null,
-        ancho: null,
-        alto: null,
-        peso: null,
-      },
-      tblMedida: [],
-      tblTotal: {
-        descripcion: null,
-        uni: null,
-        peso: null,
-        volumen: null,
-      },
-    };
-  },
-  async mounted() {},
-  computed: {
-    abrirModalContenedor: {
-      get() {
-        return this.aduanaStore.abrirModalContenedor;
-      },
-    },
-  },
-  watch: {
-    abrirModalContenedorRecargar() {
-      if (this.aduanaStore.datosPrincipales.containers.length == 0) {
-        this.dialogConteiner = true;
-      }
-    },
-    async abrirModalContenedor() {
-      let isFCL = this.aduanaStore.listShipment.some(
-        (v) =>
-          v.id ==
-            (this.aduanaStore.datosPrincipales.idtipocarga.id
-              ? this.aduanaStore.datosPrincipales.idtipocarga.id
-              : this.aduanaStore.datosPrincipales.idtipocarga) &&
-          v.code == "FCL"
-      );
-      if (
-        isFCL &&
-        this.aduanaStore.datosPrincipales.containers.length == 0
-      ) {
-        this.dialogConteiner = true;
-      }
-      if (
-        !isFCL &&
-        (this.aduanaStore.datosPrincipales.numerobultos == 0 ||
-          this.aduanaStore.datosPrincipales.peso == 0 ||
-          this.aduanaStore.datosPrincipales.volumen == 0)
-      ) {
-        Swal.fire({
-          icon: "info",
-          title: "Importante",
-          text: "Es necesario llenar los datos, el Nro Bultos, Volumen, Peso.",
-        });
-      }
-    },
-  },
-  methods: {
-    ...mapActions(["_getContainers"]),
-    ...mapPiniaActions(useAduanaStore, ["getPortBeginAduana", "getPortEndAduana"]),
-    async recargarPuertoOrigen(textoBuscar) {
-      let idtipocarga =
-        typeof this.aduanaStore.datosPrincipales.idtipocarga ===
-        "object"
-          ? this.aduanaStore.datosPrincipales.idtipocarga.id
-          : this.aduanaStore.datosPrincipales.idtipocarga;
-
-      let id_transport = this.aduanaStore.listShipment.filter(
-        (v) => v.id == idtipocarga
-      );
-
-      await this.getPortBeginAduana({
-        id_transport: id_transport[0].id_transport,
-        id: this.aduanaStore.datosPrincipales.idorigen,
-        search: textoBuscar,
-      });
-    },
-    async recargarPuertoDestino(textoBuscar) {
-      let idtipocarga =
-        typeof this.aduanaStore.datosPrincipales.idtipocarga ===
-        "object"
-          ? this.aduanaStore.datosPrincipales.idtipocarga.id
-          : this.aduanaStore.datosPrincipales.idtipocarga;
-      let id_transport = this.aduanaStore.listShipment.filter(
-        (v) => v.id == idtipocarga
-      );
-      await this.getPortEndAduana({
-        id_transport: id_transport[0].id_transport,
-        id: this.aduanaStore.datosPrincipales.iddestino,
-        search: textoBuscar,
-      });
-    },
-    async anadirCarga() {
-      if ((await this.$refs.frmDatosCarga.validate()).valid) {
-        this.aduanaStore.datosPrincipales.numerobultos =
-          this.numerobultos;
-        this.aduanaStore.datosPrincipales.volumen = this.volumen;
-        this.aduanaStore.datosPrincipales.peso = this.peso;
-        this.$refs.frmDatosCarga.reset();
-        this.aduanaStore.actualizarCostosFlag =
-          !this.aduanaStore.actualizarCostosFlag;
-      }
-    },
-    async guardarContainer() {
-      let cantCostos = this.aduanaStore.listCostos.length;
-      this.err = "";
-      if ((await this.$refs.frmContainer.validate()).valid) {
-        if (
-          this.aduanaStore.datosPrincipales.containers.filter(
-            (v) => v.id == this.containers.container.id
-          ).length == 0
-        ) {
-          this.aduanaStore.datosPrincipales.containers.push({
-            id_containers: this.containers.container.id,
-            id: this.containers.container.id,
-            description: this.containers.container.name,
-            cantidad: this.containers.cantidad,
-            code: this.containers.container.code,
-          });
-          this.dialogConteiner = false;
-          this.containers = {
-            container: "",
-            cantidad: "",
-          };
-          this.$emit("recargarCostos", false);
-        } else {
-          this.err = "Contenedor ya se encuentra en la lista";
-        }
-      }
-    },
-    async eliminarContainer({ index = null }) {
-      this.aduanaStore.datosPrincipales.containers.splice(index, 1);
-      this.$emit("recargarCostos");
-    },
-    async aceptar() {
-      let validate = true;
-      if ((await this.$refs.frmPuerto.validate()).valid) {
-        if (
-          this.aduanaStore.datosPrincipales.idtipocarga.code == "FCL"
-        ) {
-          if (
-            this.aduanaStore.datosPrincipales.containers.length == 0
-          ) {
-            Swal.fire({
-              icon: "error",
-              title: "Aviso",
-              text: "Se necesita al menos un contenedor",
-            });
-            validate = false;
-          }
-        }
-        if (
-          this.aduanaStore.datosPrincipales.idtipocarga.code != "FCL"
-        ) {
-          if (
-            !this.aduanaStore.datosPrincipales.numerobultos &&
-            !this.aduanaStore.datosPrincipales.volumen &&
-            !this.aduanaStore.datosPrincipales.peso
-          ) {
-            Swal.fire({
-              icon: "error",
-              title: "Aviso",
-              text: "Se necesita los datos de la carga",
-            });
-            validate = false;
-          }
-        }
-        if (!!validate) {
-          this.$emit("activarServicios");
-          this.mostrarContinuarFlag = false;
-        }
-        //
-      }
-      // this.$store.commit("SET_STEP_3", true);
-    },
-
-    //
-    async calcular() {
-      if ((await this.$refs.calcularPesoFrom.validate()).valid) {
-        // bultos
-
-        // factores
-        let factLongitud = this.unidadesLongitud.filter(
-          (v) => v.value == this.fromMedidas.idLongitud
-        )[0].factor;
-
-        let facPeso = this.unidadesPeso.filter(
-          (v) => v.value == this.fromMedidas.idpeso
-        )[0].factor;
-
-        // volumen
-
-        let volumen =
-          this.fromMedidas.largo *
-          this.fromMedidas.ancho *
-          this.fromMedidas.alto *
-          Math.pow(factLongitud, 3);
-        // peso
-        let peso = facPeso * this.fromMedidas.peso * this.fromMedidas.bultos;
-        this.tblMedida.push({
-          uni: this.fromMedidas.bultos,
-          peso: parseFloat(peso).toFixed(2),
-          volumen: parseFloat(this.fromMedidas.bultos * volumen).toFixed(2),
-        });
-
-        this.$nextTick(() => {
-          this.$refs.calcularPesoFrom.reset();
-          this.total();
-        });
-      }
-    },
-
-    total() {
-      this.tblTotal = null;
-      let uni = 0;
-      let peso = 0;
-      let volumen = 0;
-      this.tblMedida.forEach((element) => {
-        uni += parseFloat(element.uni);
-        peso += parseFloat(element.peso);
-        volumen += parseFloat(element.volumen);
-      });
-      this.tblTotal = {
-        descripcion: "Total:",
-        uni: uni,
-        peso: peso,
-        volumen: volumen,
-      };
-    },
-
-    borrarFila(i) {
-      this.tblMedida.splice(i, 1);
-      this.total();
-    },
-
-    guardarDatosCalculadora() {
-      this.aduanaStore.datosPrincipales.numerobultos =
-        this.tblTotal.uni;
-      this.aduanaStore.datosPrincipales.volumen = this.tblTotal.volumen;
-      this.aduanaStore.datosPrincipales.peso = this.tblTotal.peso;
-      this.calculadoraFlag = false;
-      this.aduanaStore.actualizarCostosFlag =
-        !this.aduanaStore.actualizarCostosFlag;
-    },
-    mostrarComboPercepcionAduana() {
-      let esPeru = JSON.parse(sessionStorage.getItem("iso_pais")) == 9589;
-      return (
-        esPeru &&
-        this.aduanaStore.listModality.some(
-          (v) =>
-            v.id == this.aduanaStore.datosPrincipales.idsentido &&
-            v.code == "I"
-        )
-      );
-    },
-
-    cambiarImpuesto() {
-      let porcentaje = "10";
-      const impuestos = Array.isArray(this.aduanaStore.listImpuestos)
-        ? this.aduanaStore.listImpuestos
-        : [];
-      if (this.aduanaStore.datosPrincipales.id_percepcionaduana) {
-        const percepciones = Array.isArray(
-          this.masterusuariosStore.lstPercepcionAduana
-        )
-          ? this.masterusuariosStore.lstPercepcionAduana
-          : [];
-        const percepcion = percepciones.find(
-          (v) =>
-            v.id ==
-            this.aduanaStore.datosPrincipales.id_percepcionaduana
-        );
-        if (percepcion) porcentaje = percepcion.codigo01;
-      }
-      const newImpuesto = impuestos.map((impuesto) =>
-        impuesto.codigo == "09"
-          ? { ...impuesto, codigo01: porcentaje }
-          : impuesto
-      );
-      this.pricingStore.listImpuestos = newImpuesto;
-      this.aduanaStore.listImpuestos = newImpuesto;
-      this.aduanaStore.opcionCostos.forEach((element) => {
-        const impuestosOpcion = Array.isArray(element.listImpuestos)
-          ? element.listImpuestos
-          : [];
-        element.listImpuestos = impuestosOpcion.map((impuesto) =>
-          impuesto.codigo == "09"
-            ? { ...impuesto, codigo01: porcentaje }
-            : impuesto
-        );
-      });
-      this.$forceUpdate();
-    },
-    recalcularCalculadora() {
-      let uni = 0;
-      let peso = 0;
-      let volumen = 0;
-      this.tblMedida.forEach((element) => {
-        uni += parseFloat(element.uni);
-        peso += parseFloat(element.peso);
-        volumen += parseFloat(element.volumen);
-      });
-      this.tblTotal.uni = parseFloat(uni).toFixed(2);
-      this.tblTotal.peso = parseFloat(peso).toFixed(2);
-      this.tblTotal.volumen = parseFloat(volumen).toFixed(2);
-    },
-  },
-  computed: {
-    ...mapStores(useAduanaStore, useMasterusuariosStore, usePricingStore),
-    getPuertoOrigen() {
-      let puertos = [];
-
-      if (this.aduanaStore.datosPrincipales.iddestino) {
-        var id_port = this.aduanaStore.listPortEnd.filter(
-          (v) =>
-            v.id_port == this.aduanaStore.datosPrincipales.iddestino
-        )[0].id_port;
-        puertos = this.aduanaStore.listPortBegin.filter(
-          (v) => v.id_port != id_port
-        );
-      } else {
-        return this.aduanaStore.listPortBegin;
-      }
-      return puertos;
-    },
-    getPuertoDestino() {
-      let puertos = [];
-      if (!!this.aduanaStore.datosPrincipales.idorigen) {
-        var id_port = this.aduanaStore.listPortBegin.filter(
-          (v) =>
-            v.id_port == this.aduanaStore.datosPrincipales.idorigen
-        )[0].id_port;
-        puertos = this.aduanaStore.listPortEnd.filter(
-          (v) => v.id_port != id_port
-        );
-      } else {
-        puertos = this.aduanaStore.listPortEnd;
-      }
-      return puertos;
-    },
-
-    isFcl() {
-      if (
-        typeof this.aduanaStore.datosPrincipales.idtipocarga ===
-        "object"
-      ) {
-        return (
-          this.aduanaStore.datosPrincipales.idtipocarga.code === "FCL"
-        );
-      }
-      if (
-        typeof this.aduanaStore.datosPrincipales.idtipocarga !==
-        "object"
-      ) {
-        return this.aduanaStore.listShipment.some(
-          (v) =>
-            v.id == this.aduanaStore.datosPrincipales.idtipocarga &&
-            v.code == "FCL"
-        );
-      }
-      return false;
-    },
-  },
-};
-</script>
 
 <style>
 .center {

@@ -1,12 +1,142 @@
+<script setup lang="ts">
+import { computed, onMounted, ref, useTemplateRef, watch } from "vue";
+import { useStore } from "vuex";
+import Swal from "sweetalert2";
+import { useEntitiesStore } from "@/stores/entities";
+import { usePricingStore } from "@/stores/pricing";
+import { useAduanaStore } from "@/stores/aduana";
+import type { Incoterm } from "@/types/cotizacion";
+import type { ClienteListado } from "@/types/entidades";
+
+withDefaults(
+  defineProps<{ mostrarBtn?: boolean; editableFlag?: boolean }>(),
+  { mostrarBtn: true, editableFlag: true },
+);
+const emit = defineEmits<{
+  activarDatosCarga: [activar: boolean];
+  recargarServiciosCostos: [recargar: boolean];
+}>();
+
+const rootStore = useStore();
+const aduanaStore = useAduanaStore();
+const pricingStore = usePricingStore();
+const entitiesStore = useEntitiesStore();
+
+const search = ref("");
+const buscarClienteDialog = ref(false);
+const mostrarContinuarFlag = ref(true);
+const headers = [
+  { title: "Documento", key: "document" },
+  { title: "Nombres (s)", key: "nombrecompleto" },
+  { title: "Teléfono", key: "phone" },
+  { value: "action" },
+];
+const frmDatosPrincipales = useTemplateRef("frmDatosPrincipales");
+
+const incoterms = computed(() => {
+  const Icoterms: Incoterm[] = [];
+  [...aduanaStore.listIncoterms].forEach((element) => {
+    element.text = element.name + " - " + element.description;
+    Icoterms.push(element);
+  });
+
+  return Icoterms;
+});
+const mostrarProveedorFlag = computed(() => {
+  const exw = aduanaStore.listIncoterms.filter(
+    (v) =>
+      v.id == aduanaStore.datosPrincipales.idincoterms &&
+      v.name == "EXW",
+  );
+
+  return exw.length > 0 ? true : false;
+});
+
+watch(
+  () => rootStore.state.registroClienteFlag,
+  async () => {
+    rootStore.state.spiner = true;
+    await rootStore.dispatch("_getEntitiesCliente");
+    rootStore.state.spiner = false;
+    if (entitiesStore.id) {
+      const cliente = rootStore.state.itemsEntities.filter(
+        (v: ClienteListado) => v.id == entitiesStore.id,
+      )[0];
+      aduanaStore.datosPrincipales.id_entitie = cliente.id;
+      aduanaStore.datosPrincipales.nombre =
+        cliente.nombrecompleto;
+      aduanaStore.datosPrincipales.telefono = cliente.phone;
+    }
+    buscarClienteDialog.value = false;
+  },
+);
+
+onMounted(async () => {
+  frmDatosPrincipales.value!.resetValidation();
+  // this.mostrar = true;
+});
+
+function registrarNuevoCliente() {
+  rootStore.state.modalEntitie = true;
+}
+function abrirModalCliente() {
+  buscarClienteDialog.value = true;
+  rootStore.state.itemsEntities = [];
+  rootStore.dispatch("_getEntitiesCliente");
+}
+function guardarCliente(e: unknown, { item }: { item: ClienteListado }) {
+  if (!item.phone) {
+    Swal.fire({
+      icon: "warning",
+      title: "¡Advertencia!",
+      text: "El cliente seleccionado no tiene un número de teléfono registrado. Por favor, seleccione otro cliente o puede actualizar luego en el fichero de cliente.",
+    });
+  }
+  aduanaStore.datosPrincipales.id_entitie = item.id;
+  aduanaStore.datosPrincipales.nombre = item.nombrecompleto;
+  aduanaStore.datosPrincipales.telefono = item.phone;
+  buscarClienteDialog.value = false;
+}
+async function continuarDatosCarga() {
+  if ((await frmDatosPrincipales.value!.validate()).valid) {
+    emit("activarDatosCarga", true);
+    mostrarContinuarFlag.value = false;
+  }
+}
+function recargarServiciosCostos() {
+  if (
+    !aduanaStore.datosPrincipales.idsentido ||
+    !aduanaStore.datosPrincipales.idincoterms ||
+    // @ts-expect-error Kept: an array never equals 0, so this operand is always false.
+    Object.keys(aduanaStore.datosPrincipales.idtipocarga) === 0
+  ) {
+    return;
+  }
+  emit("recargarServiciosCostos", true);
+}
+</script>
+
 <template>
-  <v-container fluid class="pa-0">
-    <v-card elevation="0" ref="frmPuerto">
+  <v-container
+    fluid
+    class="pa-0"
+  >
+    <v-card
+      elevation="0"
+      ref="frmPuerto"
+    >
       <v-card-title> Datos Principales </v-card-title>
       <v-card-text>
-        <v-form class="" ref="frmDatosPrincipales">
+        <v-form
+          class=""
+          ref="frmDatosPrincipales"
+        >
           <v-container>
             <v-row>
-              <v-col cols="12" class="my-0 py-0">
+              <v-col
+                cols="12"
+                class="my-0 py-0"
+              >
                 <v-autocomplete
                   label="Tipo de Marketing"
                   variant="outlined"
@@ -17,7 +147,7 @@
                   item-title="name"
                   item-value="id"
                   v-model="aduanaStore.datosPrincipales.id_marketing"
-                ></v-autocomplete>
+                />
                 <v-autocomplete
                   label="Estado de la cotización"
                   variant="outlined"
@@ -29,9 +159,12 @@
                   item-value="id"
                   v-model="aduanaStore.datosPrincipales.id_status"
                   :item-props="(item) => ({ disabled: item.status != 1 })"
-                ></v-autocomplete>
+                />
               </v-col>
-              <v-col cols="12" class="my-0 py-0">
+              <v-col
+                cols="12"
+                class="my-0 py-0"
+              >
                 <v-autocomplete
                   label="Ejecutivo"
                   variant="outlined"
@@ -42,10 +175,13 @@
                   item-title="nombrecompleto"
                   item-value="id"
                   v-model="aduanaStore.datosPrincipales.id_vendedor"
-                ></v-autocomplete>
+                />
               </v-col>
 
-              <v-col cols="12" class="my-0 py-0">
+              <v-col
+                cols="12"
+                class="my-0 py-0"
+              >
                 <v-autocomplete
                   label="Pricing"
                   variant="outlined"
@@ -56,10 +192,13 @@
                   item-title="nombrecompleto"
                   item-value="id"
                   v-model="aduanaStore.datosPrincipales.id_pricing"
-                ></v-autocomplete
-              ></v-col>
+                />
+              </v-col>
 
-              <v-col cols="12" class="my-0 py-0">
+              <v-col
+                cols="12"
+                class="my-0 py-0"
+              >
                 <v-text-field
                   label="Nombre del cliente"
                   variant="outlined"
@@ -75,10 +214,13 @@
                   id="nombre"
                   name="nombre"
                   readonly
-                ></v-text-field
-              ></v-col>
+                />
+              </v-col>
 
-              <v-col cols="12" class="my-0 py-0">
+              <v-col
+                cols="12"
+                class="my-0 py-0"
+              >
                 <v-text-field
                   label="Teléfono"
                   variant="outlined"
@@ -86,10 +228,13 @@
                   density="compact"
                   readonly
                   v-model="aduanaStore.datosPrincipales.telefono"
-                ></v-text-field
-              ></v-col>
+                />
+              </v-col>
 
-              <v-col cols="12" class="my-0 py-0">
+              <v-col
+                cols="12"
+                class="my-0 py-0"
+              >
                 <v-autocomplete
                   label="Sentido"
                   variant="outlined"
@@ -101,11 +246,15 @@
                   item-value="id"
                   v-model="aduanaStore.datosPrincipales.idsentido"
                   @update:model-value="recargarServiciosCostos()"
-                  :disabled="!EditableFlag"
-                ></v-autocomplete
-              ></v-col>
+                  :disabled="!editableFlag"
+                />
+              </v-col>
 
-              <v-col cols="12" class="my-0 py-0">
+              <v-col
+                cols="12"
+                class="my-0 py-0"
+              >
+                <!-- @vue-expect-error return-object writes the row into the id-or-row field -->
                 <v-autocomplete
                   label="Tipo de Embarque"
                   variant="outlined"
@@ -118,10 +267,13 @@
                   v-model="aduanaStore.datosPrincipales.idtipocarga"
                   @update:model-value="recargarServiciosCostos()"
                   return-object
-                  :disabled="!EditableFlag"
-                ></v-autocomplete
-              ></v-col>
-              <v-col cols="12" class="my-0 py-0">
+                  :disabled="!editableFlag"
+                />
+              </v-col>
+              <v-col
+                cols="12"
+                class="my-0 py-0"
+              >
                 <v-autocomplete
                   label="Incoterms"
                   variant="outlined"
@@ -134,13 +286,16 @@
                   v-model="aduanaStore.datosPrincipales.idincoterms"
                   @update:model-value="recargarServiciosCostos()"
                 >
-                  <template v-slot:selection="data" >
+                  <template #selection="data">
                     {{ data.item.name }} - {{ data.item.description }}
                   </template>
-                </v-autocomplete></v-col
-              >
+                </v-autocomplete>
+              </v-col>
 
-              <v-col cols="12" class="my-0 py-0">
+              <v-col
+                cols="12"
+                class="my-0 py-0"
+              >
                 <v-text-field
                   name="name"
                   label="Nombre del proveedor"
@@ -149,10 +304,13 @@
                   density="compact"
                   variant="outlined"
                   v-if="mostrarProveedorFlag"
-                ></v-text-field
-              ></v-col>
+                />
+              </v-col>
 
-              <v-col cols="12" class="my-0 py-0">
+              <v-col
+                cols="12"
+                class="my-0 py-0"
+              >
                 <v-text-field
                   name="Teléfono"
                   label="Teléfono del proveedor"
@@ -171,10 +329,13 @@
                     },
                   ]"
                   v-if="mostrarProveedorFlag"
-                ></v-text-field
-              ></v-col>
+                />
+              </v-col>
 
-              <v-col cols="12" class="my-0 py-0">
+              <v-col
+                cols="12"
+                class="my-0 py-0"
+              >
                 <v-text-field
                   label="Dirección del proveedor"
                   v-model="
@@ -183,16 +344,20 @@
                   density="compact"
                   variant="outlined"
                   v-if="mostrarProveedorFlag"
-                ></v-text-field>
+                />
               </v-col>
               <v-col
                 cols="12"
                 class="my-0 py-0 align-right"
                 v-if="mostrarContinuarFlag && mostrarBtn"
               >
-                <v-btn color="#3F51B5" @click="continuarDatosCarga()" size="small"
-                  >Continuar Datos Carga</v-btn
+                <v-btn
+                  color="#3F51B5"
+                  @click="continuarDatosCarga()"
+                  size="small"
                 >
+                  Continuar Datos Carga
+                </v-btn>
               </v-col>
             </v-row>
           </v-container>
@@ -200,11 +365,18 @@
       </v-card-text>
     </v-card>
     <!-- dIALOG -->
-    <v-dialog v-model="buscarClienteDialog" max-width="80%">
+    <v-dialog
+      v-model="buscarClienteDialog"
+      max-width="80%"
+    >
       <v-card>
-        <v-card-title class="d-flex align-center flex-wrap"
-          >Buscar Cliente<v-spacer></v-spacer>
-          <v-btn color="success" @click="registrarNuevoCliente" size="small">
+        <v-card-title class="d-flex align-center flex-wrap">
+          Buscar Cliente<v-spacer />
+          <v-btn
+            color="success"
+            @click="registrarNuevoCliente"
+            size="small"
+          >
             Nuevo Cliente
           </v-btn>
         </v-card-title>
@@ -212,25 +384,30 @@
           <v-container>
             <v-row>
               <v-col cols="12">
-                <v-text-field label="Buscar..." v-model="search"></v-text-field>
+                <v-text-field
+                  label="Buscar..."
+                  v-model="search"
+                />
               </v-col>
               <v-col cols="12">
                 <v-data-table
                   :headers="headers"
-                  :items="$store.state.itemsEntities"
+                  :items="rootStore.state.itemsEntities"
                   :search="search"
                   @dblclick:row="guardarCliente"
                   item-value="index"
-                  :loading="$store.state.itemsEntities.length == 0"
+                  :loading="rootStore.state.itemsEntities.length == 0"
                   loading-text="Buscando Clientes..."
                 >
-                  <template v-slot:[`item.action`]="{ item }">
+                  <template #[`item.action`]="{ item }">
                     <v-btn
                       size="small"
                       color="success"
-                      @click="guardarCliente(null, { item })"
+                      @click="guardarCliente(null, { item: item as ClienteListado })"
                     >
-                      Seleccionar <v-icon class="mx-2">mdi-account-plus</v-icon>
+                      Seleccionar <v-icon class="mx-2">
+                        mdi-account-plus
+                      </v-icon>
                     </v-btn>
                   </template>
                 </v-data-table>
@@ -242,128 +419,6 @@
     </v-dialog>
   </v-container>
 </template>
-
-<script>
-import { mapActions, mapState } from "vuex";
-import Swal from "sweetalert2";
-import { mapActions as mapPiniaActions, mapStores } from "pinia";
-import { useEntitiesStore } from "@/stores/entities";
-import { usePricingStore } from "@/stores/pricing";
-import { useAduanaStore } from "@/stores/aduana";
-export default {
-  emits: ["activarDatosCarga", "recargarServiciosCostos"],
-  props: {
-    mostrarBtn: {
-      type: Boolean,
-      default: true,
-    },
-    EditableFlag: {
-      type: Boolean,
-      default: true,
-    },
-  },
-  data() {
-    return {
-      search: "",
-      buscarClienteDialog: false,
-      mostrarContinuarFlag: true,
-      headers: [
-        { title: "Documento", key: "document" },
-        { title: "Nombres (s)", key: "nombrecompleto" },
-        { title: "Teléfono", key: "phone" },
-        { value: "action" },
-      ],
-      mostrar: false,
-    };
-  },
-  async mounted() {
-    this.$refs.frmDatosPrincipales.resetValidation();
-    // this.mostrar = true;
-  },
-  methods: {
-    ...mapActions([
-      "_getEntitiesCliente",
-    ]),
-    ...mapPiniaActions(usePricingStore, ["getMarketingList", "getQuoteStatus", "getShipment", "getIncoterms", "getCargarEjecutivo"]),
-    registrarNuevoCliente() {
-      this.$store.state.modalEntitie = true;
-    },
-    abrirModalCliente() {
-      this.buscarClienteDialog = true;
-      this.$store.state.itemsEntities = [];
-      this._getEntitiesCliente();
-    },
-    guardarCliente(e, { item }) {
-      if (!item.phone) {
-        Swal.fire({
-          icon: "warning",
-          title: "¡Advertencia!",
-          text: "El cliente seleccionado no tiene un número de teléfono registrado. Por favor, seleccione otro cliente o puede actualizar luego en el fichero de cliente.",
-        });
-      }
-      this.aduanaStore.datosPrincipales.id_entitie = item.id;
-      this.aduanaStore.datosPrincipales.nombre = item.nombrecompleto;
-      this.aduanaStore.datosPrincipales.telefono = item.phone;
-      this.buscarClienteDialog = false;
-    },
-    async continuarDatosCarga() {
-      if ((await this.$refs.frmDatosPrincipales.validate()).valid) {
-        this.$emit("activarDatosCarga", true);
-        this.mostrarContinuarFlag = false;
-      }
-    },
-    recargarServiciosCostos() {
-      if (
-        !this.aduanaStore.datosPrincipales.idsentido ||
-        !this.aduanaStore.datosPrincipales.idincoterms ||
-        Object.keys(this.aduanaStore.datosPrincipales.idtipocarga) === 0
-      ) {
-        return;
-      }
-      this.$emit("recargarServiciosCostos", true);
-    },
-  },
-  computed: {
-    ...mapStores(useAduanaStore, usePricingStore, useEntitiesStore),
-    ...mapState(["registroClienteFlag", ""]),
-    incoterms() {
-      let Icoterms = [];
-      [...this.aduanaStore.listIncoterms].forEach((element) => {
-        element.text = element.name + " - " + element.description;
-        Icoterms.push(element);
-      });
-
-      return Icoterms;
-    },
-    mostrarProveedorFlag() {
-      let exw = this.aduanaStore.listIncoterms.filter(
-        (v) =>
-          v.id == this.aduanaStore.datosPrincipales.idincoterms &&
-          v.name == "EXW",
-      );
-
-      return exw.length > 0 ? true : false;
-    },
-  },
-  watch: {
-    async registroClienteFlag() {
-      this.$store.state.spiner = true;
-      await this._getEntitiesCliente();
-      this.$store.state.spiner = false;
-      if (!!this.entitiesStore.id) {
-        let cliente = this.$store.state.itemsEntities.filter(
-          (v) => v.id == this.entitiesStore.id,
-        )[0];
-        this.aduanaStore.datosPrincipales.id_entitie = cliente.id;
-        this.aduanaStore.datosPrincipales.nombre =
-          cliente.nombrecompleto;
-        this.aduanaStore.datosPrincipales.telefono = cliente.phone;
-      }
-      this.buscarClienteDialog = false;
-    },
-  },
-};
-</script>
 
 <style scoped>
 .align-right {

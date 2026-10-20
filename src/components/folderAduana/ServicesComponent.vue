@@ -1,8 +1,81 @@
+<script setup lang="ts">
+import { ref } from "vue";
+import { useAduanaStore } from "@/stores/aduana";
+
+withDefaults(defineProps<{ mostrarBtn?: boolean }>(), { mostrarBtn: true });
+const emit = defineEmits<{
+  activarLlenadoCostos: [];
+  recargarCostos: [];
+}>();
+
+const aduanaStore = useAduanaStore();
+
+const dialog = ref(false);
+const mostrarContinuarFlag = ref(true);
+const servicio = ref({
+  codebegend: "OP",
+  id_begend: "0",
+  service: "",
+  status: true,
+});
+
+function guardarServicio() {
+  const codebegend = aduanaStore.begEndList!.filter(
+    (v) => v.id == servicio.value.id_begend
+  )[0]!.code;
+  servicio.value.codebegend = codebegend;
+  aduanaStore.listServices.push(servicio.value);
+  dialog.value = false;
+  servicio.value = {
+    codebegend: "OP",
+    id_begend: "0",
+    service: "",
+    status: true,
+  };
+}
+function recargarCostos() {
+  aduanaStore.errorValorMercancia = "";
+  aduanaStore.actualizarCostosFlag =
+    !aduanaStore.actualizarCostosFlag;
+}
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+function esImportacion() {
+  return aduanaStore.listModality.some(
+    (v) =>
+      v.id == aduanaStore.datosPrincipales.idsentido &&
+      v.code == "I"
+  );
+}
+
+function continuarLlenadoCostos() {
+  if (
+    !aduanaStore.datosPrincipales.amount ||
+    (aduanaStore.datosPrincipales.amount as number) <= 0
+  ) {
+    aduanaStore.errorValorMercancia =
+      "Datos Requeridos y mayor que 0";
+    return false;
+  }
+  emit("activarLlenadoCostos");
+  mostrarContinuarFlag.value = false;
+}
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+function showConfirmationDialog(service: unknown) {
+  emit("recargarCostos");
+}
+</script>
+
 <template>
   <v-card elevation="0">
-    <v-dialog v-model="dialog" v-if="dialog" max-width="30%">
+    <v-dialog
+      v-model="dialog"
+      v-if="dialog"
+      max-width="30%"
+    >
       <v-card>
-        <v-card-title primary-title> Nuevo Servicio </v-card-title>
+        <v-card-title primary-title>
+          Nuevo Servicio
+        </v-card-title>
         <v-card-text>
           <v-select
             :items="aduanaStore.begEndList"
@@ -10,23 +83,38 @@
             item-title="name"
             item-value="id"
             label="Categoria..."
-          ></v-select>
+          />
           <v-text-field
             label="Descripción"
             v-model="servicio.service"
-          ></v-text-field>
+          />
         </v-card-text>
         <v-card-actions>
-          <v-spacer></v-spacer>
-          <v-btn color="success" @click="guardarServicio()">Guardar</v-btn>
-          <v-btn color="red" @click="dialog = !dialog">Cancelar</v-btn>
+          <v-spacer />
+          <v-btn
+            color="success"
+            @click="guardarServicio()"
+          >
+            Guardar
+          </v-btn>
+          <v-btn
+            color="red"
+            @click="dialog = !dialog"
+          >
+            Cancelar
+          </v-btn>
         </v-card-actions>
       </v-card>
     </v-dialog>
     <!--  -->
     <v-card-title primary-title>
       SERVICIOS A REALIZAR:
-      <v-btn variant="text" icon color="primary" @click="dialog = !dialog">
+      <v-btn
+        variant="text"
+        icon
+        color="primary"
+        @click="dialog = !dialog"
+      >
         <v-icon>mdi-plus</v-icon>
       </v-btn>
     </v-card-title>
@@ -37,7 +125,9 @@
     <v-card-text>
       <v-row>
         <v-col cols="3">
-          <h4 class="mb-2">ORIGEN</h4>
+          <h4 class="mb-2">
+            ORIGEN
+          </h4>
           <v-checkbox
             density="compact"
             v-for="service in aduanaStore.listServices.filter(
@@ -48,13 +138,15 @@
             :value-comparator="(value, checked) => Boolean(value) === checked"
             @update:model-value="showConfirmationDialog(service)"
           >
-            <template v-slot:label>
+            <template #label>
               {{ service.service }}
             </template>
           </v-checkbox>
         </v-col>
         <v-col cols="3">
-          <h4 class="mb-2">FLETE</h4>
+          <h4 class="mb-2">
+            FLETE
+          </h4>
           <v-checkbox
             density="compact"
             v-for="service in aduanaStore.listServices.filter(
@@ -65,13 +157,15 @@
             :value-comparator="(value, checked) => Boolean(value) === checked"
             @update:model-value="showConfirmationDialog(service)"
           >
-            <template v-slot:label>
+            <template #label>
               {{ service.service }}
             </template>
-          </v-checkbox></v-col
-        >
+          </v-checkbox>
+        </v-col>
         <v-col cols="3">
-          <h4 class="mb-2">DESTINO</h4>
+          <h4 class="mb-2">
+            DESTINO
+          </h4>
           <v-checkbox
             density="compact"
             v-for="service in aduanaStore.listServices.filter(
@@ -82,13 +176,15 @@
             :value-comparator="(value, checked) => Boolean(value) === checked"
             @update:model-value="showConfirmationDialog(service)"
           >
-            <template v-slot:label>
+            <template #label>
               {{ service.service }}
             </template>
-          </v-checkbox></v-col
-        >
+          </v-checkbox>
+        </v-col>
         <v-col cols="3">
-          <h4 class="mb-2">OPCIONAL</h4>
+          <h4 class="mb-2">
+            OPCIONAL
+          </h4>
           <v-checkbox
             density="compact"
             v-for="service in aduanaStore.listServices.filter(
@@ -99,7 +195,7 @@
             :value-comparator="(value, checked) => Boolean(value) === checked"
             @update:model-value="showConfirmationDialog(service)"
           >
-            <template v-slot:label>
+            <template #label>
               {{ service.service }}
             </template>
           </v-checkbox>
@@ -122,16 +218,14 @@
             ]"
             @update:model-value="recargarCostos()"
             @blur="recargarCostos()"
-          >
-          </v-text-field>
+          />
           <v-text-field
             v-model="aduanaStore.datosPrincipales.descripcioncarga"
             label="Descripción de carga"
             placeholder="Descripción de carga"
             autocomplete="off"
             density="compact"
-          >
-          </v-text-field>
+          />
         </v-col>
         <v-col
           cols="12"
@@ -143,88 +237,13 @@
             color="#3F51B5"
             @click="continuarLlenadoCostos()"
             size="small"
-            >Continuar Llenado Costos</v-btn
           >
+            Continuar Llenado Costos
+          </v-btn>
         </v-col>
       </v-row>
     </v-card-text>
   </v-card>
 </template>
-
-<script>
-import Swal from "sweetalert2";
-import { mapActions as mapPiniaActions, mapStores } from "pinia";
-import { usePricingStore } from "@/stores/pricing";
-import { useAduanaStore } from "@/stores/aduana";
-export default {
-  emits: ["activarLlenadoCostos", "recargarCostos"],
-  props: {
-    mostrarBtn: {
-      type: Boolean,
-      default: true,
-    },
-  },
-  data() {
-    return {
-      dialog: false,
-      mostrarContinuarFlag: true,
-      servicio: {
-        codebegend: "OP",
-        id_begend: "0",
-        service: "",
-        status: true,
-      },
-    };
-  },
-  computed: {
-    ...mapStores(useAduanaStore),
-  },
-  methods: {
-    ...mapPiniaActions(usePricingStore, ["getItemsServices", "getImpuestos", "getItemsServicesDetails", "getBegEndList"]),
-    guardarServicio() {
-      let codebegend = this.aduanaStore.begEndList.filter(
-        (v) => v.id == this.servicio.id_begend
-      )[0].code;
-      this.servicio.codebegend = codebegend;
-      this.aduanaStore.listServices.push(this.servicio);
-      this.dialog = false;
-      this.servicio = {
-        codebegend: "OP",
-        id_begend: "0",
-        service: "",
-        status: true,
-      };
-    },
-    recargarCostos() {
-      this.aduanaStore.errorValorMercancia = "";
-      this.aduanaStore.actualizarCostosFlag =
-        !this.aduanaStore.actualizarCostosFlag;
-    },
-    esImportacion() {
-      return this.aduanaStore.listModality.some(
-        (v) =>
-          v.id == this.aduanaStore.datosPrincipales.idsentido &&
-          v.code == "I"
-      );
-    },
-
-    continuarLlenadoCostos() {
-      if (
-        !this.aduanaStore.datosPrincipales.amount ||
-        this.aduanaStore.datosPrincipales.amount <= 0
-      ) {
-        this.aduanaStore.errorValorMercancia =
-          "Datos Requeridos y mayor que 0";
-        return false;
-      }
-      this.$emit("activarLlenadoCostos");
-      this.mostrarContinuarFlag = false;
-    },
-    showConfirmationDialog(service) {
-      this.$emit("recargarCostos");
-    },
-  },
-};
-</script>
 
 <style></style>
