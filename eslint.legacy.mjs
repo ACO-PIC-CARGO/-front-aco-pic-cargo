@@ -37,7 +37,6 @@ export const LEGACY = [
   "src/components/folderBilling/totalesProveedor.vue",
   "src/components/folderConsolidacion/lstConsolidacion.vue",
   "src/components/folderConsolidacion/newConsolidacion.vue",
-  "src/components/folderHouse/bitacora.vue",
   "src/components/folderHouse/bitacoraVer.vue",
   "src/components/folderHouse/controlHouse.vue",
   "src/components/folderHouse/dataEmbarVer.vue",
