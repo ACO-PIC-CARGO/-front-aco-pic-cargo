@@ -729,3 +729,20 @@ export interface FormNuevoCosto {
   id_multiplicador: number;
   id_proveedor: number;
 }
+
+export interface EncabezadoComparativa {
+  text: string;
+  value: string;
+  cellClass?: string;
+}
+
+export interface OpcionComparativa extends OpcionCosto {
+  proveedor: string;
+  flete: string;
+  origen: string;
+  local: string;
+  aduana: string;
+  almacen: string;
+  gastostercero: string;
+  total: string;
+}
