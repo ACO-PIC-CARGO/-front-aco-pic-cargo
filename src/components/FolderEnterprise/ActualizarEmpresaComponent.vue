@@ -11,10 +11,12 @@ import type { FormEnterpriseUpdate } from "@/types/empresas";
 import { validateLength } from "@/utils/cotizacion";
 import { sessionBranchId } from "@/utils/sesion";
 import { useFilesStore } from "@/stores/files";
+import { useBankStore } from "@/stores/bank";
 
 const route = useRoute();
 const router = useRouter();
 const rootStore = useStore();
+const bankStore = useBankStore();
 const filesStore = useFilesStore();
 const coinsStore = useCoinsStore();
 const enterprisesStore = useEnterprisesStore();
@@ -128,7 +130,7 @@ onMounted(async () => {
     rootStore.dispatch("_getDocumentsPais"),
     rootStore.dispatch("_getPais"),
     enterprisesStore.listarCuentaEmpresa(),
-    rootStore.dispatch("fetchDataBank", {
+    bankStore.fetchDataBank({
       code: "",
       name: "",
       acronym: "",
@@ -137,7 +139,7 @@ onMounted(async () => {
     }),
     coinsStore.getCoinsListCargar(),
   ]);
-  rootStore.state.bank.list.unshift({
+  bankStore.list.unshift({
     id: 0,
     name: "Crear Nuevo Banco",
   });
@@ -250,7 +252,7 @@ async function guardarCuenta() {
       nombrebanco: nombrebanco.value,
     });
     dialogNuevaCuenta.value = false;
-    await rootStore.dispatch("fetchDataBank", {
+    await bankStore.fetchDataBank({
       code: "",
       name: "",
       acronym: "",
@@ -626,7 +628,7 @@ async function guardarCuenta() {
         <v-card-text>
           <v-form ref="frmNuevaCuenta">
             <v-autocomplete
-              :items="rootStore.state.bank.list"
+              :items="bankStore.list"
               item-title="name"
               item-value="id"
               label="Banco"

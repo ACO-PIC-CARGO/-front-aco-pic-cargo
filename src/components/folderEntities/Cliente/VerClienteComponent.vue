@@ -10,8 +10,10 @@ import SeccionInformacionEntrega from "./SeccionInformacionEntrega.vue";
 import { useCoinsStore } from "@/stores/coins";
 import { useEntitiesStore } from "@/stores/entities";
 import { useMasterusuariosStore } from "@/stores/masterusuarios";
+import { useBankStore } from "@/stores/bank";
 
 const rootStore = useStore();
+const bankStore = useBankStore();
 const entitiesStore = useEntitiesStore();
 const masterusuariosStore = useMasterusuariosStore();
 const coinsStore = useCoinsStore();
@@ -29,7 +31,7 @@ onMounted(async () => {
   await masterusuariosStore.cargarTipoTelefono();
   await rootStore.dispatch("_getRole");
   await coinsStore.getCoinsListCargar();
-  await rootStore.dispatch("getBanksListCargar");
+  await bankStore.getBanksListCargar();
   await rootStore.dispatch("_getSex");
   await masterusuariosStore.cargarTipoPersona();
   await rootStore.dispatch("_getProveedorRolShipper");

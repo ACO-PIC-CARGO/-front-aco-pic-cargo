@@ -1,63 +1,51 @@
+import { defineStore } from "pinia";
+import { ref } from "vue";
 import Swal from "sweetalert2";
 import router from "@/router";
 import axios from "@/api/http";
-const state = {
-  list: [],
-  response: [],
-  record: {},
-  loading: false,
-  deudaAProveedor: [],
-  deudaACliente: [],
-  id: null,
-};
+import type { ApiResponse } from "@/types/api";
+import type {
+  BancoFila,
+  BancoRegistro,
+  DeudaPendiente,
+  DeudaSeleccionable,
+  FiltroBancos,
+} from "@/types/finanzas";
+import { sessionBranchId, sessionSucursal } from "@/utils/sesion";
 
-const mutations = {
-  SET_LOADING(state, data) {
-    state.loading = data;
-  },
-  SET_LIST_BANK(state, data) {
-    state.list = data;
-  },
-  SET_BANK(state, data) {
-    state.record = data;
-  },
-  SET_LIST_BANK_CARGAR(state, data) {
-    state.list = data;
-  },
-  SET_DEUDA_A_PROVEEDOR(state, data) {
-    state.deudaAProveedor = data;
-  },
-  SET_DEUDA_A_CLIENTE(state, data) {
-    state.deudaACliente = data;
-  },
-};
-const actions = {
-  async fetchDataBank({ commit, dispatch }, data) {
-    commit("SET_LOADING", false);
-    var config = {
+export const useBankStore = defineStore("bank", () => {
+  const list = ref<BancoFila[]>([]);
+  const response = ref<unknown[]>([]);
+  const record = ref<BancoRegistro>({});
+  const loading = ref(false);
+  const deudaAProveedor = ref<DeudaSeleccionable[]>([]);
+  const deudaACliente = ref<DeudaSeleccionable[]>([]);
+  const id = ref<number | null>(null);
+
+  async function fetchDataBank(data: FiltroBancos): Promise<void> {
+    loading.value = false;
+    const config = {
       method: "get",
       url:
         import.meta.env.VITE_URL_MAIN +
         `listar_bank?` +
-        `id_branch=${
-          JSON.parse(sessionStorage.getItem("dataUser"))[0].id_branch
-        }` +
-        `&code=${encodeURIComponent(data.code)}` +
-        `&name=${encodeURIComponent(data.name)}` +
-        `&acronym=${encodeURIComponent(data.acronym)}` +
-        `&description=${encodeURIComponent(data.description)}` +
+        `id_branch=${sessionBranchId()}` +
+        `&code=${encodeURIComponent(String(data.code))}` +
+        `&name=${encodeURIComponent(String(data.name))}` +
+        `&acronym=${encodeURIComponent(String(data.acronym))}` +
+        `&description=${encodeURIComponent(String(data.description))}` +
         `&status=${data.status}`,
       headers: {
         "Content-Type": "application/json",
       },
     };
-    await axios(config)
+    await axios<ApiResponse<BancoFila[]>>(config)
       .then((response) => {
-        let data = response.data;
-        sessionStorage.setItem("auth-token", data.token);
-        let list = data.estadoflag ? data.data : [];
-        commit("SET_LIST_BANK", list);
-        commit("SET_LOADING", true);
+        const data = response.data;
+        sessionStorage.setItem("auth-token", data.token!);
+        const lista = data.estadoflag ? data.data : [];
+        list.value = lista;
+        loading.value = true;
         if (!data.estadoflag) {
           if (data.status == "401") {
             Swal.fire({
@@ -80,9 +68,9 @@ const actions = {
       .catch((error) => {
         console.log("Error al obtener los datos:", error);
       });
-  },
-  async insertBank({ commit, dispatch }, data) {
-    var config = {
+  }
+  async function insertBank(data: Record<string, unknown>): Promise<void> {
+    const config = {
       method: "post",
       url: import.meta.env.VITE_URL_MAIN + "insertar_bank",
       headers: {
@@ -91,32 +79,32 @@ const actions = {
       data: data,
     };
 
-    await axios(config)
+    await axios<ApiResponse>(config)
       .then((response) => {
-        let data = response.data;
-        sessionStorage.setItem("auth-token", data.token);
+        const data = response.data;
+        sessionStorage.setItem("auth-token", data.token!);
         Swal.fire({
-          icon: !!data.estadoflag ? "success" : "error",
+          icon: data.estadoflag ? "success" : "error",
           text: data.mensaje,
           showCancelButton: false,
           confirmButtonText: "Ok",
-        }).then((result) => {
-          let data = {
+        }).then(() => {
+          const data = {
             name: "",
             code: "",
             acronym: "",
             description: "",
             status: 1,
           };
-          dispatch("fetchDataBank", data);
+          fetchDataBank(data);
         });
       })
       .catch((error) => {
         console.log("Error al obtener los datos:", error);
       });
-  },
-  async readBank({ commit }, id) {
-    var config = {
+  }
+  async function readBank(id: number | string): Promise<void> {
+    const config = {
       method: "get",
       url: import.meta.env.VITE_URL_MAIN + `ver_bank?id=${id}`,
       headers: {
@@ -124,12 +112,12 @@ const actions = {
       },
     };
 
-    await axios(config)
+    await axios<ApiResponse<BancoRegistro[]>>(config)
       .then((response) => {
-        let data = response.data;
-        sessionStorage.setItem("auth-token", data.token);
+        const data = response.data;
+        sessionStorage.setItem("auth-token", data.token!);
         if (data.estadoflag) {
-          commit("SET_BANK", data.data[0]);
+          record.value = data.data[0]!;
         } else {
           Swal.fire({
             icon: data.status == "401" ? "error" : "info",
@@ -150,9 +138,9 @@ const actions = {
       .catch((error) => {
         console.log("Error al obtener los datos:", error);
       });
-  },
-  async updateBank({ dispatch }, data) {
-    var config = {
+  }
+  async function updateBank(data: Record<string, unknown>): Promise<void> {
+    const config = {
       method: "put",
       url: import.meta.env.VITE_URL_MAIN + "actualizar_bank",
       headers: {
@@ -161,17 +149,17 @@ const actions = {
       data: data,
     };
 
-    await axios(config)
+    await axios<ApiResponse>(config)
       .then((response) => {
-        let data = response.data;
-        sessionStorage.setItem("auth-token", data.token);
+        const data = response.data;
+        sessionStorage.setItem("auth-token", data.token!);
         Swal.fire({
-          icon: !!data.estadoflag ? "success" : "error",
+          icon: data.estadoflag ? "success" : "error",
           text: data.mensaje,
           showCancelButton: false,
           confirmButtonText: "Ok",
-        }).then((result) => {
-          let data = {
+        }).then(() => {
+          const data = {
             name: "",
             code: "",
             acronym: "",
@@ -179,40 +167,40 @@ const actions = {
             position: "",
             status: 1,
           };
-          dispatch("fetchDataBank", data);
+          fetchDataBank(data);
         });
       })
       .catch((error) => {
         console.log("Error al obtener los datos:", error);
       });
-  },
+  }
 
-  async getBanksListCargar({ commit }) {
-    var config = {
+  async function getBanksListCargar(): Promise<void> {
+    const config = {
       method: "post",
       url: import.meta.env.VITE_URL_MAIN + "getBanksList/",
       headers: {
         "Content-Type": "application/json",
       },
       data: {
-        id_branch: JSON.parse(sessionStorage.getItem("dataUser"))[0].id_branch,
+        id_branch: sessionBranchId(),
       },
     };
-    await axios(config)
+    await axios<ApiResponse<BancoFila[]>>(config)
       .then(function (response) {
-        let data = response.data;
-        if (!!data.estadoflag) {
-          commit("SET_LIST_BANK_CARGAR", response.data.data);
+        const data = response.data;
+        if (data.estadoflag) {
+          list.value = response.data.data;
         } else {
-          commit("SET_LIST_BANK_CARGAR", []);
+          list.value = [];
         }
       })
       .catch(function (error) {
         console.error(error);
       });
-  },
-  async guardarCuentaDetalle({ dispatch }, data) {
-    var config = {
+  }
+  async function guardarCuentaDetalle(data: Record<string, unknown>): Promise<void> {
+    const config = {
       method: "post",
       url: import.meta.env.VITE_URL_MAIN + "insertar_cuenta",
       headers: {
@@ -220,32 +208,32 @@ const actions = {
       },
       data: data,
     };
-    await axios(config)
+    await axios<ApiResponse>(config)
       .then((response) => {
-        let data = response.data;
-        sessionStorage.setItem("auth-token", data.token);
+        const data = response.data;
+        sessionStorage.setItem("auth-token", data.token!);
         Swal.fire({
-          icon: !!data.estadoflag ? "success" : "error",
+          icon: data.estadoflag ? "success" : "error",
           text: data.mensaje,
           showCancelButton: false,
           confirmButtonText: "Ok",
-        }).then((result) => {
-          let data = {
+        }).then(() => {
+          const data = {
             name: "",
             code: "",
             acronym: "",
             description: "",
             status: 1,
           };
-          dispatch("fetchDataBank", data);
+          fetchDataBank(data);
         });
       })
       .catch((error) => {
         console.log("Error al obtener los datos:", error);
       });
-  },
-  async eliminarCuentaDetalle({ dispatch }, data) {
-    var config = {
+  }
+  async function eliminarCuentaDetalle(data: Record<string, unknown>): Promise<void> {
+    const config = {
       method: "put",
       url: import.meta.env.VITE_URL_MAIN + "eliminar_cuenta",
       headers: {
@@ -253,47 +241,43 @@ const actions = {
       },
       data: data,
     };
-    await axios(config)
+    await axios<ApiResponse>(config)
       .then((response) => {
-        let data = response.data;
-        sessionStorage.setItem("auth-token", data.token);
+        const data = response.data;
+        sessionStorage.setItem("auth-token", data.token!);
         Swal.fire({
-          icon: !!data.estadoflag ? "success" : "error",
+          icon: data.estadoflag ? "success" : "error",
           text: data.mensaje,
           showCancelButton: false,
           confirmButtonText: "Ok",
-        }).then((result) => {
-          let data = {
+        }).then(() => {
+          const data = {
             name: "",
             code: "",
             acronym: "",
             description: "",
             status: 1,
           };
-          dispatch("fetchDataBank", data);
+          fetchDataBank(data);
         });
       })
       .catch((error) => {
         console.log("Error al obtener los datos:", error);
       });
-  },
-  async verPagoRealizado({ commit }, nro_operacion) {
-    var config = {
+  }
+  async function verPagoRealizado(nro_operacion: number | string): Promise<void> {
+    const config = {
       method: "get",
-      url:
-        import.meta.env.VITE_URL_MAIN +
-        `ver_pago?nro_operacion=${nro_operacion}&id_branch=${
-          JSON.parse(sessionStorage.getItem("dataUser"))[0].id_branch
-        }`,
+      url: import.meta.env.VITE_URL_MAIN + `ver_pago?nro_operacion=${nro_operacion}&id_branch=${sessionBranchId()}`,
       headers: {
         "Content-Type": "application/json",
       },
     };
-    await axios(config)
+    await axios<ApiResponse<BancoRegistro[]>>(config)
       .then(function (response) {
-        let data = response.data;
+        const data = response.data;
         if (data.estadoflag) {
-          commit("SET_BANK", data.data[0]);
+          record.value = data.data[0]!;
         } else {
           Swal.fire({
             icon: "warning",
@@ -303,16 +287,16 @@ const actions = {
               router.go(-1);
             }
           });
-          commit("SET_BANK", {});
+          record.value = {};
         }
       })
       .catch(function (error) {
         console.error(error);
       });
-  },
-  async anularPagoRealizado({ commit }, id) {
-    let res = null;
-    var config = {
+  }
+  async function anularPagoRealizado(id: number | string): Promise<ApiResponse | null> {
+    let res: ApiResponse | null = null;
+    const config = {
       method: "put",
       url: import.meta.env.VITE_URL_MAIN + `anular_pago`,
       headers: {
@@ -322,7 +306,7 @@ const actions = {
         id: id,
       },
     };
-    await axios(config)
+    await axios<ApiResponse>(config)
       .then(function (response) {
         res = response.data;
       })
@@ -330,10 +314,11 @@ const actions = {
         console.error(error);
       });
     return res;
-  },
-  async actualizarPagoRealizado({ commit }, data) {
-    let res = null;
-    var config = {
+  }
+  async function actualizarPagoRealizadoSombreado(data: unknown): Promise<ApiResponse | null> {
+    // Shadowed by the later actualizarPagoRealizado, so the old module never ran this body.
+    let res: ApiResponse | null = null;
+    const config = {
       method: "put",
       url: import.meta.env.VITE_URL_MAIN + `actualizar_pago`,
       headers: {
@@ -341,7 +326,7 @@ const actions = {
       },
       data: { lstPago: data },
     };
-    await axios(config)
+    await axios<ApiResponse>(config)
       .then(function (response) {
         res = response.data;
       })
@@ -349,24 +334,20 @@ const actions = {
         console.error(error);
       });
     return res;
-  },
-  async verCobroRealizado({ commit }, nro_operacion) {
-    var config = {
+  }
+  async function verCobroRealizado(nro_operacion: number | string): Promise<void> {
+    const config = {
       method: "get",
-      url:
-        import.meta.env.VITE_URL_MAIN +
-        `ver_cobro?nro_operacion=${nro_operacion}&id_branch=${
-          JSON.parse(sessionStorage.getItem("dataUser"))[0].id_branch
-        }`,
+      url: import.meta.env.VITE_URL_MAIN + `ver_cobro?nro_operacion=${nro_operacion}&id_branch=${sessionBranchId()}`,
       headers: {
         "Content-Type": "application/json",
       },
     };
-    await axios(config)
+    await axios<ApiResponse<BancoRegistro[]>>(config)
       .then(function (response) {
-        let data = response.data;
+        const data = response.data;
         if (data.estadoflag) {
-          commit("SET_BANK", data.data[0]);
+          record.value = data.data[0]!;
         } else {
           Swal.fire({
             icon: "warning",
@@ -376,16 +357,16 @@ const actions = {
               router.go(-1);
             }
           });
-          commit("SET_BANK", {});
+          record.value = {};
         }
       })
       .catch(function (error) {
         console.error(error);
       });
-  },
-  async anularCobroRealizado({ commit }, data) {
-    let res = null;
-    var config = {
+  }
+  async function anularCobroRealizado(data: Record<string, unknown>): Promise<ApiResponse | null> {
+    let res: ApiResponse | null = null;
+    const config = {
       method: "put",
       url: import.meta.env.VITE_URL_MAIN + `anular_cobro`,
       headers: {
@@ -393,7 +374,7 @@ const actions = {
       },
       data: data,
     };
-    await axios(config)
+    await axios<ApiResponse>(config)
       .then(function (response) {
         res = response.data;
       })
@@ -401,10 +382,10 @@ const actions = {
         console.error(error);
       });
     return res;
-  },
-  async actualizarPagoRealizado({ commit }, data) {
-    let res = null;
-    var config = {
+  }
+  async function actualizarPagoRealizado(data: unknown): Promise<ApiResponse | null> {
+    let res: ApiResponse | null = null;
+    const config = {
       method: "put",
       url: import.meta.env.VITE_URL_MAIN + `actualizar_cobro`,
       headers: {
@@ -412,7 +393,7 @@ const actions = {
       },
       data: { lstPago: data },
     };
-    await axios(config)
+    await axios<ApiResponse>(config)
       .then(function (response) {
         res = response.data;
       })
@@ -420,10 +401,10 @@ const actions = {
         console.error(error);
       });
     return res;
-  },
-  async validateNroOperacion({}, data) {
-    let res = null;
-    var config = {
+  }
+  async function validateNroOperacion(data: Record<string, unknown>): Promise<ApiResponse | null> {
+    let res: ApiResponse | null = null;
+    const config = {
       method: "get",
       url: import.meta.env.VITE_URL_MAIN + `validate_nro_operacion_cobro`,
       headers: {
@@ -431,7 +412,7 @@ const actions = {
       },
       params: data,
     };
-    await axios(config)
+    await axios<ApiResponse>(config)
       .then(function (response) {
         res = response.data;
       })
@@ -439,10 +420,10 @@ const actions = {
         console.error(error);
       });
     return res;
-  },
-  async verVacturas({}, data) {
-    let res = null;
-    var config = {
+  }
+  async function verVacturas(data: Record<string, unknown>): Promise<ApiResponse | null> {
+    let res: ApiResponse | null = null;
+    const config = {
       method: "get",
       url: import.meta.env.VITE_URL_MAIN + `ver_facturas`,
       headers: {
@@ -450,7 +431,7 @@ const actions = {
       },
       params: data,
     };
-    await axios(config)
+    await axios<ApiResponse>(config)
       .then(function (response) {
         res = response.data;
       })
@@ -458,11 +439,11 @@ const actions = {
         console.error(error);
       });
     return res;
-  },
+  }
 
-  async getDeudaAProveedorPorSucursal({ commit }, id_proveedor) {
-    let res = null;
-    var config = {
+  async function getDeudaAProveedorPorSucursal(id_proveedor: number | string): Promise<ApiResponse<DeudaPendiente[]> | null> {
+    let res: ApiResponse<DeudaPendiente[]> | null = null;
+    const config = {
       method: "get",
       url: import.meta.env.VITE_URL_MAIN + `deuda_a_proveedor_por_sucursal`,
       headers: {
@@ -470,33 +451,31 @@ const actions = {
       },
       params: {
         id_proveedor: id_proveedor,
-        id_branch: JSON.parse(sessionStorage.getItem("dataUser"))[0].id_branch,
+        id_branch: sessionBranchId(),
       },
     };
-    await axios(config)
+    await axios<ApiResponse<DeudaPendiente[]>>(config)
       .then(function (response) {
         res = response.data;
         if (res.estadoflag) {
-          commit(
-            "SET_DEUDA_A_PROVEEDOR",
-            res.data.map((item, index) => {
-              return {
-                ...item,
-                id: index + 1,
-                nuevoflag: false,
-                parcialflag: false,
-                montoparcial: 0,
-                saldo: 0,
-                tipocambio: parseFloat(
-                  (item.saldo_pendiente_local
-                    ? item.saldo_pendiente_local
-                    : 1) / (item.saldo_pendiente ? item.saldo_pendiente : 1),
-                ).toFixed(4),
-              };
-            }),
-          );
+          deudaAProveedor.value = res.data.map((item, index) => {
+            return {
+              ...item,
+              id: index + 1,
+              nuevoflag: false,
+              parcialflag: false,
+              montoparcial: 0,
+              saldo: 0,
+              tipocambio: parseFloat(
+                String(
+                  (item.saldo_pendiente_local ? item.saldo_pendiente_local : 1) /
+                    (item.saldo_pendiente ? item.saldo_pendiente : 1),
+                ),
+              ).toFixed(4),
+            };
+          });
         } else {
-          commit("SET_DEUDA_A_PROVEEDOR", []);
+          deudaAProveedor.value = [];
           Swal.fire({
             icon: "warning",
             text: res.mensaje,
@@ -507,11 +486,11 @@ const actions = {
         console.error(error);
       });
     return res;
-  },
+  }
 
-  async getDeudaDeClientePorSucursal({ commit }, id_cliente) {
-    let res = null;
-    var config = {
+  async function getDeudaDeClientePorSucursal(id_cliente: number | string): Promise<ApiResponse<DeudaPendiente[]> | null> {
+    let res: ApiResponse<DeudaPendiente[]> | null = null;
+    const config = {
       method: "get",
       url: import.meta.env.VITE_URL_MAIN + `deuda_de_cliente_por_sucursal`,
       headers: {
@@ -519,28 +498,25 @@ const actions = {
       },
       params: {
         id_cliente: id_cliente,
-        id_branch: JSON.parse(sessionStorage.getItem("dataUser"))[0].id_branch,
+        id_branch: sessionBranchId(),
       },
     };
-    await axios(config)
+    await axios<ApiResponse<DeudaPendiente[]>>(config)
       .then(function (response) {
         res = response.data;
         if (res.estadoflag) {
-          commit(
-            "SET_DEUDA_A_CLIENTE",
-            res.data.map((item, index) => {
-              return {
-                ...item,
-                id: index + 1,
-                nuevoflag: false,
-                parcialflag: false,
-                montoparcial: 0,
-                saldo: 0,
-              };
-            }),
-          );
+          deudaACliente.value = res.data.map((item, index) => {
+            return {
+              ...item,
+              id: index + 1,
+              nuevoflag: false,
+              parcialflag: false,
+              montoparcial: 0,
+              saldo: 0,
+            };
+          });
         } else {
-          commit("SET_DEUDA_A_CLIENTE", []);
+          deudaACliente.value = [];
           Swal.fire({
             icon: "warning",
             text: res.mensaje,
@@ -551,9 +527,9 @@ const actions = {
         console.error(error);
       });
     return res;
-  },
-  async setRegistroEgresos({ commit, dispatch }, data) {
-    var config = {
+  }
+  async function setRegistroEgresos(data: Record<string, unknown>): Promise<void> {
+    const config = {
       method: "post",
       url: import.meta.env.VITE_URL_MAIN + "registro_egresos",
       headers: {
@@ -561,12 +537,12 @@ const actions = {
       },
       data: {
         ...data,
-        id_branch: JSON.parse(sessionStorage.getItem("dataUser"))[0].id_branch,
+        id_branch: sessionBranchId(),
       },
     };
-    await axios(config)
+    await axios<ApiResponse<{ v_id: number }[]>>(config)
       .then(function (response) {
-        let data = response.data;
+        const data = response.data;
         Swal.fire({
           icon: "success",
           text: data.mensaje,
@@ -575,13 +551,14 @@ const actions = {
           showCancelButton: true,
         }).then(async (res) => {
           if (res.isConfirmed) {
-            await dispatch("imprimirComprobanteEgreso", {
-              id: data.data[0].v_id,
+            await imprimirComprobanteEgreso({
+              id: data.data[0]!.v_id,
             });
             router.push({
               name: "listBankCxP",
             });
           }
+          // @ts-expect-error Kept: SweetAlertResult has no cancelButtonText, so this branch never runs.
           if (res.cancelButtonText) {
             router.push({
               name: "listBankCxP",
@@ -592,10 +569,10 @@ const actions = {
       .catch(function (error) {
         console.error(error);
       });
-  },
+  }
 
-  async updateRegistroEgresos({ commit }, data) {
-    var config = {
+  async function updateRegistroEgresos(data: Record<string, unknown>): Promise<void> {
+    const config = {
       method: "put",
       url: import.meta.env.VITE_URL_MAIN + "actualizar_egresos",
       headers: {
@@ -603,20 +580,20 @@ const actions = {
       },
       data: {
         ...data,
-        id_branch: JSON.parse(sessionStorage.getItem("dataUser"))[0].id_branch,
+        id_branch: sessionBranchId(),
       },
     };
-    await axios(config)
+    await axios<ApiResponse>(config)
       .then(function (response) {
-        let data = response.data;
+        const data = response.data;
         console.log("Respuesta del servidor al registrar egreso:", data);
       })
       .catch(function (error) {
         console.error(error);
       });
-  },
-  async updateRegistroIgresos({ commit }, data) {
-    var config = {
+  }
+  async function updateRegistroIgresos(data: Record<string, unknown>): Promise<void> {
+    const config = {
       method: "put",
       url: import.meta.env.VITE_URL_MAIN + "actualizar_ingresos",
       headers: {
@@ -624,21 +601,21 @@ const actions = {
       },
       data: {
         ...data,
-        id_branch: JSON.parse(sessionStorage.getItem("dataUser"))[0].id_branch,
+        id_branch: sessionBranchId(),
       },
     };
-    await axios(config)
+    await axios<ApiResponse>(config)
       .then(function (response) {
-        let data = response.data;
+        const data = response.data;
         console.log("Respuesta del servidor al registrar ingreso:", data);
       })
       .catch(function (error) {
         console.error(error);
       });
-  },
+  }
 
-  async setRegistroIgresos({ commit, dispatch }, data) {
-    var config = {
+  async function setRegistroIgresos(data: Record<string, unknown>): Promise<void> {
+    const config = {
       method: "post",
       url: import.meta.env.VITE_URL_MAIN + "registro_ingresos",
       headers: {
@@ -646,12 +623,12 @@ const actions = {
       },
       data: {
         ...data,
-        id_branch: JSON.parse(sessionStorage.getItem("dataUser"))[0].id_branch,
+        id_branch: sessionBranchId(),
       },
     };
-    await axios(config)
+    await axios<ApiResponse<{ v_id_pago: number }[]>>(config)
       .then(function (response) {
-        let data = response.data;
+        const data = response.data;
         if (data.estadoflag) {
           Swal.fire({
             icon: "success",
@@ -661,13 +638,14 @@ const actions = {
             showCancelButton: true,
           }).then(async (res) => {
             if (res.isConfirmed) {
-              await dispatch("imprimirComprobanteIngreso", {
-                id: data.data[0].v_id_pago,
+              await imprimirComprobanteIngreso({
+                id: data.data[0]!.v_id_pago,
               });
               router.push({
                 name: "listBankCxC",
               });
             }
+            // @ts-expect-error Kept: SweetAlertResult has no cancelButtonText, so this branch never runs.
             if (res.cancelButtonText) {
               router.push({
                 name: "listBankCxC",
@@ -685,9 +663,9 @@ const actions = {
       .catch(function (error) {
         console.error(error);
       });
-  },
-  async getRegistroEgresos({ commit }, data) {
-    var config = {
+  }
+  async function getRegistroEgresos(data: Record<string, unknown>): Promise<void> {
+    const config = {
       method: "get",
       url: import.meta.env.VITE_URL_MAIN + "listado_egresos",
       headers: {
@@ -695,20 +673,20 @@ const actions = {
       },
       params: {
         ...data,
-        id_branch: JSON.parse(sessionStorage.getItem("dataUser"))[0].id_branch,
+        id_branch: sessionBranchId(),
       },
     };
-    await axios(config)
+    await axios<ApiResponse<BancoFila[]>>(config)
       .then(function (response) {
-        let data = response.data;
-        commit("SET_LIST_BANK_CARGAR", data.estadoflag ? data.data : []);
+        const data = response.data;
+        list.value = data.estadoflag ? data.data : [];
       })
       .catch(function (error) {
         console.error(error);
       });
-  },
-  async getRegistroIngresos({ commit }, data) {
-    var config = {
+  }
+  async function getRegistroIngresos(data: Record<string, unknown>): Promise<void> {
+    const config = {
       method: "get",
       url: import.meta.env.VITE_URL_MAIN + "listado_ingresos",
       headers: {
@@ -716,21 +694,21 @@ const actions = {
       },
       params: {
         ...data,
-        id_branch: JSON.parse(sessionStorage.getItem("dataUser"))[0].id_branch,
+        id_branch: sessionBranchId(),
       },
     };
-    await axios(config)
+    await axios<ApiResponse<BancoFila[]>>(config)
       .then(function (response) {
-        let data = response.data;
-        commit("SET_LIST_BANK_CARGAR", data.estadoflag ? data.data : []);
+        const data = response.data;
+        list.value = data.estadoflag ? data.data : [];
       })
       .catch(function (error) {
         console.error(error);
       });
-  },
-  async verRegistroIngresos({ commit }, data) {
-    let res = {};
-    var config = {
+  }
+  async function verRegistroIngresos(data: Record<string, unknown>): Promise<BancoRegistro> {
+    let res: BancoRegistro = {};
+    const config = {
       method: "get",
       url: import.meta.env.VITE_URL_MAIN + "ver_registro_ingresos",
       headers: {
@@ -738,24 +716,24 @@ const actions = {
       },
       params: {
         ...data,
-        id_branch: JSON.parse(sessionStorage.getItem("dataUser"))[0].id_branch,
+        id_branch: sessionBranchId(),
       },
     };
-    await axios(config)
+    await axios<ApiResponse<BancoRegistro[]>>(config)
       .then(function (response) {
-        let data = response.data;
+        const data = response.data;
         if (data.estadoflag) {
-          res = data.data[0];
+          res = data.data[0]!;
         }
       })
       .catch(function (error) {
         console.error(error);
       });
     return res;
-  },
-  async eliminarRegistroIngresos({ commit }, data) {
-    let res = {};
-    var config = {
+  }
+  async function eliminarRegistroIngresos(data: Record<string, unknown>): Promise<BancoRegistro> {
+    const res: BancoRegistro = {};
+    const config = {
       method: "delete",
       url: import.meta.env.VITE_URL_MAIN + "eliminar_registro_ingresos",
       headers: {
@@ -763,9 +741,9 @@ const actions = {
       },
       data: data,
     };
-    await axios(config)
+    await axios<ApiResponse>(config)
       .then(function (response) {
-        let data = response.data;
+        const data = response.data;
         if (data.estadoflag) {
           Swal.fire({
             icon: "success",
@@ -777,11 +755,11 @@ const actions = {
         console.error(error);
       });
     return res;
-  },
+  }
 
-  async eliminarRegistroEgresos({ commit }, data) {
-    let res = {};
-    var config = {
+  async function eliminarRegistroEgresos(data: Record<string, unknown>): Promise<BancoRegistro> {
+    const res: BancoRegistro = {};
+    const config = {
       method: "delete",
       url: import.meta.env.VITE_URL_MAIN + "eliminar_registro_egresos",
       headers: {
@@ -789,9 +767,9 @@ const actions = {
       },
       data: data,
     };
-    await axios(config)
+    await axios<ApiResponse>(config)
       .then(function (response) {
-        let data = response.data;
+        const data = response.data;
         if (data.estadoflag) {
           Swal.fire({
             icon: "success",
@@ -803,10 +781,10 @@ const actions = {
         console.error(error);
       });
     return res;
-  },
-  async verRegistroEgresos({ commit }, data) {
-    let res = {};
-    var config = {
+  }
+  async function verRegistroEgresos(data: Record<string, unknown>): Promise<BancoRegistro> {
+    let res: BancoRegistro = {};
+    const config = {
       method: "get",
       url: import.meta.env.VITE_URL_MAIN + "ver_registro_egresos",
       headers: {
@@ -814,24 +792,24 @@ const actions = {
       },
       params: {
         ...data,
-        id_branch: JSON.parse(sessionStorage.getItem("dataUser"))[0].id_branch,
+        id_branch: sessionBranchId(),
       },
     };
-    await axios(config)
+    await axios<ApiResponse<BancoRegistro[]>>(config)
       .then(function (response) {
-        let data = response.data;
+        const data = response.data;
         if (data.estadoflag) {
-          res = data.data[0];
+          res = data.data[0]!;
         }
       })
       .catch(function (error) {
         console.error(error);
       });
     return res;
-  },
-  async validarIngresoNroOperacion({ commit }, data) {
-    let res = {};
-    var config = {
+  }
+  async function validarIngresoNroOperacion(data: Record<string, unknown>): Promise<unknown> {
+    let res: unknown = {};
+    const config = {
       method: "get",
       url: import.meta.env.VITE_URL_MAIN + "validar_nrooperacion_ingreso",
       headers: {
@@ -839,22 +817,22 @@ const actions = {
       },
       params: {
         ...data,
-        id_branch: JSON.parse(sessionStorage.getItem("dataUser"))[0].id_branch,
+        id_branch: sessionBranchId(),
       },
     };
-    await axios(config)
+    await axios<ApiResponse>(config)
       .then(function (response) {
-        let data = response.data;
+        const data = response.data;
         res = data.data;
       })
       .catch(function (error) {
         console.error(error);
       });
     return res;
-  },
-  async validarEgresoNroOperacion({ commit }, data) {
-    let res = {};
-    var config = {
+  }
+  async function validarEgresoNroOperacion(data: Record<string, unknown>): Promise<unknown> {
+    let res: unknown = {};
+    const config = {
       method: "get",
       url: import.meta.env.VITE_URL_MAIN + "validar_nrooperacion_egreso",
       headers: {
@@ -862,22 +840,21 @@ const actions = {
       },
       params: {
         ...data,
-        id_branch: JSON.parse(sessionStorage.getItem("dataUser"))[0].id_branch,
+        id_branch: sessionBranchId(),
       },
     };
-    await axios(config)
+    await axios<ApiResponse>(config)
       .then(function (response) {
-        let data = response.data;
+        const data = response.data;
         res = data.data;
       })
       .catch(function (error) {
         console.error(error);
       });
     return res;
-  },
-  async imprimirComprobanteIngreso({ commit }, data) {
-    let res = {};
-    var config = {
+  }
+  async function imprimirComprobanteIngreso(data: Record<string, unknown>): Promise<void> {
+    const config = {
       method: "get",
       url: import.meta.env.VITE_URL_MAIN + "imprimir_registro_ingresos",
       headers: {
@@ -885,8 +862,8 @@ const actions = {
       },
       params: {
         ...data,
-        id_branch: JSON.parse(sessionStorage.getItem("dataUser"))[0].id_branch,
-        logo: JSON.parse(sessionStorage.getItem("dataBranch"))[0].logo,
+        id_branch: sessionBranchId(),
+        logo: sessionSucursal().logo,
       },
     };
     Swal.fire({
@@ -901,19 +878,18 @@ const actions = {
       },
     });
 
-    await axios(config)
+    await axios<{ path: string }>(config)
       .then(function (response) {
-        let data = response.data;
+        const data = response.data;
         window.open(import.meta.env.VITE_URL_MAIN + data.path, "_blank");
         Swal.close();
       })
       .catch(function (error) {
         console.error(error);
       });
-  },
-  async imprimirComprobanteEgreso({ commit }, data) {
-    let res = {};
-    var config = {
+  }
+  async function imprimirComprobanteEgreso(data: Record<string, unknown>): Promise<void> {
+    const config = {
       method: "get",
       url: import.meta.env.VITE_URL_MAIN + "imprimir_registro_egreso",
       headers: {
@@ -921,8 +897,8 @@ const actions = {
       },
       params: {
         ...data,
-        id_branch: JSON.parse(sessionStorage.getItem("dataUser"))[0].id_branch,
-        logo: JSON.parse(sessionStorage.getItem("dataBranch"))[0].logo,
+        id_branch: sessionBranchId(),
+        logo: sessionSucursal().logo,
       },
     };
     Swal.fire({
@@ -937,21 +913,55 @@ const actions = {
       },
     });
 
-    await axios(config)
+    await axios<{ path: string }>(config)
       .then(function (response) {
-        let data = response.data;
+        const data = response.data;
         window.open(import.meta.env.VITE_URL_MAIN + data.path, "_blank");
         Swal.close();
       })
       .catch(function (error) {
         console.error(error);
       });
-  },
-};
+  }
 
-export default {
-  namespace: true,
-  state,
-  mutations,
-  actions,
-};
+  return {
+    list,
+    response,
+    record,
+    loading,
+    deudaAProveedor,
+    deudaACliente,
+    id,
+    fetchDataBank,
+    insertBank,
+    readBank,
+    updateBank,
+    getBanksListCargar,
+    guardarCuentaDetalle,
+    eliminarCuentaDetalle,
+    verPagoRealizado,
+    anularPagoRealizado,
+    actualizarPagoRealizadoSombreado,
+    verCobroRealizado,
+    anularCobroRealizado,
+    actualizarPagoRealizado,
+    validateNroOperacion,
+    verVacturas,
+    getDeudaAProveedorPorSucursal,
+    getDeudaDeClientePorSucursal,
+    setRegistroEgresos,
+    updateRegistroEgresos,
+    updateRegistroIgresos,
+    setRegistroIgresos,
+    getRegistroEgresos,
+    getRegistroIngresos,
+    verRegistroIngresos,
+    eliminarRegistroIngresos,
+    eliminarRegistroEgresos,
+    verRegistroEgresos,
+    validarIngresoNroOperacion,
+    validarEgresoNroOperacion,
+    imprimirComprobanteIngreso,
+    imprimirComprobanteEgreso,
+  };
+});

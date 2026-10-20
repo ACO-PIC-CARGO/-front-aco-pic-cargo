@@ -10,10 +10,12 @@ import SeccionInformacionEntrega from "./SeccionInformacionEntrega.vue";
 import { useCoinsStore } from "@/stores/coins";
 import { useEntitiesStore } from "@/stores/entities";
 import { useMasterusuariosStore } from "@/stores/masterusuarios";
+import { useBankStore } from "@/stores/bank";
 
 const props = withDefaults(defineProps<{ houseIdConsigner?: number | null }>(), { houseIdConsigner: null });
 
 const rootStore = useStore();
+const bankStore = useBankStore();
 const entitiesStore = useEntitiesStore();
 const masterusuariosStore = useMasterusuariosStore();
 const coinsStore = useCoinsStore();
@@ -32,7 +34,7 @@ onMounted(async () => {
     masterusuariosStore.cargarTipoTelefono(),
     rootStore.dispatch("_getRole"),
     coinsStore.getCoinsListCargar(),
-    rootStore.dispatch("getBanksListCargar"),
+    bankStore.getBanksListCargar(),
     rootStore.dispatch("_getSex"),
     masterusuariosStore.cargarTipoPersona(),
     rootStore.dispatch("_getProveedorRolShipper"),

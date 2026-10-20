@@ -41,7 +41,7 @@
     <v-data-table
       :search="search"
       :headers="headersCabecera"
-      :items="$store.state.bank.list"
+      :items="bankStore.list"
       v-model:expanded="expanded"
       show-expand
       expand-on-click
@@ -281,6 +281,7 @@ import FormatFecha from "../comun/FormatFecha.vue";
 import BarraFiltro from "../BarraMostrarFiltro/BarraFiltro.vue";
 import { useIngresosStore } from "@/stores/ingresos";
 import { useBalancesStore } from "@/stores/balances";
+import { useBankStore } from "@/stores/bank";
 
 
 export default {
@@ -488,9 +489,8 @@ export default {
       "cargarClientes",
       "_getBanksList",
       "_getCoinsList",
-      "getRegistroIngresos",
-      "eliminarRegistroIngresos",
     ]),
+    ...mapPiniaActions(useBankStore, ["getRegistroIngresos", "eliminarRegistroIngresos"]),
     ...mapPiniaActions(useBalancesStore, ["getCargarTipoIngreso", "getCargarTipoSubIngreso"]),
     ...mapPiniaActions(useIngresosStore, ["ActualizarCXC"]),
     ...mapPiniaActions(useSecuritysStore, ["validarUsuarioAdmin"]),
@@ -832,7 +832,7 @@ export default {
     },
   },
   computed: {
-    ...mapStores(useBalancesStore),
+    ...mapStores(useBankStore, useBalancesStore),
     detalles() {
       if (Object.keys(this.Ingreso).length === 0) {
         return [];

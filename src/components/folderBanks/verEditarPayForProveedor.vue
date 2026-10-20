@@ -491,6 +491,7 @@ import { useSecuritysStore } from "@/stores/securitys";
 import Swal from "sweetalert2";
 import { useFilesStore } from "@/stores/files";
 import { useBancosStore } from "@/stores/bancos";
+import { useBankStore } from "@/stores/bank";
 export default {
   components: {
     //  opciones: () => import("@/components/comun/opcionesRegistro.vue"),
@@ -588,7 +589,7 @@ export default {
     this.monto = data.totaldolar;
     this.monto_local = data.totalmonedalocal;
     this.urlfile = data.urlfile;
-    this.$store.state.bank.deudaAProveedor = data.detalles;
+    this.bankStore.deudaAProveedor = data.detalles;
     this.selected = data.detalles;
     this.id_path = data.id_soporte;
     this.conceptogastobancario =
@@ -602,12 +603,8 @@ export default {
       "_getListaPagosXProveedorCxP",
       "cargarProveedores",
       "_getCoinsList",
-      "getDeudaAProveedorPorSucursal",
-      "updateRegistroEgresos",
-      "verRegistroEgresos",
-      "eliminarRegistroEgresos",
-      "imprimirComprobanteEgreso",
     ]),
+    ...mapPiniaActions(useBankStore, ["getDeudaAProveedorPorSucursal", "updateRegistroEgresos", "verRegistroEgresos", "eliminarRegistroEgresos", "imprimirComprobanteEgreso"]),
     ...mapPiniaActions(useBancosStore, ["getValidaNroOp", "getListBanksDetailsCargar"]),
     ...mapPiniaActions(useFilesStore, ["_uploadFile"]),
     ...mapPiniaActions(useSecuritysStore, ["validarUsuarioAdmin"]),
@@ -740,7 +737,7 @@ export default {
       if (this.proveedor) {
         this.getDeudaAProveedorPorSucursal(this.proveedor);
       } else {
-        this.$store.state.bank.deudaAProveedor = [];
+        this.bankStore.deudaAProveedor = [];
       }
     },
     anadirFila() {
@@ -755,7 +752,7 @@ export default {
         saldo_pendiente: 0,
         nuevoflag: true,
       };
-      this.$store.state.bank.deudaAProveedor.unshift(nuevaFila);
+      this.bankStore.deudaAProveedor.unshift(nuevaFila);
       this.$nextTick(() => {
         const index = 0;
         const input = document.getElementById(`txtConcepto${index}`);
@@ -923,7 +920,7 @@ export default {
     },
   },
   computed: {
-    ...mapStores(useBancosStore),
+    ...mapStores(useBankStore, useBancosStore),
     ...mapState([
       "itemsProveedorList",
       "listPagosXProveedorCxP",
@@ -955,7 +952,7 @@ export default {
       return this.tipocambiosVer || 5;
     },
     itemsOrdenados() {
-      const items = [...this.$store.state.bank.deudaAProveedor];
+      const items = [...this.bankStore.deudaAProveedor];
       return items.sort((a, b) => {
         const aSeleccionado = this.selected.some((sel) => sel.id === a.id);
         const bSeleccionado = this.selected.some((sel) => sel.id === b.id);

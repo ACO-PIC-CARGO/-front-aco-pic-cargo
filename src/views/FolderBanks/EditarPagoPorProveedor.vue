@@ -7,7 +7,7 @@
           item-title="namelong"
           item-value="id"
           label="Proveedor"
-          v-model="$store.state.bank.record.id_proveedor"
+          v-model="bankStore.record.id_proveedor"
           readonly
           @update:model-value="obtenerListado()"
         >
@@ -50,7 +50,7 @@
             <v-col md="12" cols="12">
               <v-data-table
                 :headers="headers"
-                :items="$store.state.bank.record.detalle"
+                :items="bankStore.record.detalle"
                 v-model="selected"
                 item-value="id"
                 return-object
@@ -105,7 +105,7 @@
             <v-row class="mt-5">
               <v-col md="3" cols="3">
                 <v-text-field
-                  v-model="$store.state.bank.record.nro_operacion"
+                  v-model="bankStore.record.nro_operacion"
                   label="N° de Operación"
                   v-on:blur="ValidaNroOp()"
                   :error-messages="msgNroOperacion"
@@ -116,7 +116,7 @@
               <v-col cols="3" md="3">
                 <v-text-field
                   type="date"
-                  v-model="$store.state.bank.record.fecha_pago"
+                  v-model="bankStore.record.fecha_pago"
                   label="Fecha de Pago"
                   :rules="[(v) => !!v || 'Datos Requerido']"
                 ></v-text-field>
@@ -124,10 +124,10 @@
               <v-col md="6" cols="6">
                 <v-btn
                   variant="text"
-                  @click="abrirSoporte($store.state.bank.record.ruta)"
+                  @click="abrirSoporte(bankStore.record.ruta)"
                 >
                   <v-icon color="red">mdi-file-pdf-box</v-icon>
-                  {{ $store.state.bank.record.nombre_archivo }}
+                  {{ bankStore.record.nombre_archivo }}
                 </v-btn>
                 <v-file-input
                   label="Cargar Archivo"
@@ -148,7 +148,7 @@
                   item-title="label"
                   item-value="id"
                   label="Cuenta de Salida de Banco"
-                  v-model="$store.state.bank.record.id_banco"
+                  v-model="bankStore.record.id_banco"
                 ></v-autocomplete>
               </v-col>
               <v-col md="4" cols="4" v-if="tipo == 'nuevo'">
@@ -181,7 +181,7 @@
               ></v-col>
               <v-col md="4" cols="4">
                 <v-text-field
-                  v-model="$store.state.bank.record.comentarios"
+                  v-model="bankStore.record.comentarios"
                   label="Comentarios"
                   placeholder="Comentarios......"
                 ></v-text-field
@@ -208,6 +208,7 @@ import { mapActions, mapState } from "vuex";
 import { mapActions as mapPiniaActions, mapStores } from "pinia";
 import { useFilesStore } from "@/stores/files";
 import { useBancosStore } from "@/stores/bancos";
+import { useBankStore } from "@/stores/bank";
 export default {
   props: ["tipo"],
   data() {
@@ -306,10 +307,8 @@ export default {
       "_getListaPagosXProveedorCxP",
       "cargarProveedores",
       "_getCoinsList",
-      "verPagoRealizado",
-      "anularPagoRealizado",
-      "actualizarPagoRealizado",
     ]),
+    ...mapPiniaActions(useBankStore, ["verPagoRealizado", "anularPagoRealizado", "actualizarPagoRealizado"]),
     ...mapPiniaActions(useBancosStore, ["getValidaNroOp"]),
     ...mapPiniaActions(useFilesStore, ["_uploadFile"]),
     async getListBanksDetailsCargar() {
@@ -343,7 +342,7 @@ export default {
     },
     calcularTotal() {
       let total = 0;
-      this.$store.state.bank.record.detalle.forEach((element) => {
+      this.bankStore.record.detalle.forEach((element) => {
         total += parseFloat(element.monto_mon_ex);
       });
       this.montoMonExt = parseFloat(total).toFixed(2);
@@ -380,18 +379,18 @@ export default {
     },
     async actualizarPago() {
       let data = [];
-      this.$store.state.bank.record.detalle.forEach((element) => {
+      this.bankStore.record.detalle.forEach((element) => {
         let pago = {
           id: element.id,
           id_path: this.filesStore.payPath,
-          id_cuenta: this.$store.state.bank.record.id_banco,
-          fecha: this.$store.state.bank.record.fecha_pago,
+          id_cuenta: this.bankStore.record.id_banco,
+          fecha: this.bankStore.record.fecha_pago,
           monto: element.monto_dolar,
-          nro_operacion: this.$store.state.bank.record.nro_operacion,
+          nro_operacion: this.bankStore.record.nro_operacion,
           monto_mon_ex: element.monto_mon_ex,
           tipocambio: element.tipocambio,
           id_coins: element.tipocambio,
-          comentarios: this.$store.state.bank.record.comentarios,
+          comentarios: this.bankStore.record.comentarios,
         };
         data.push(pago);
       });
@@ -412,7 +411,7 @@ export default {
     },
   },
   computed: {
-    ...mapStores(useFilesStore),
+    ...mapStores(useBankStore, useFilesStore),
     ...mapState(["itemsProveedorList", "listPagosXProveedorCxP", "provedores"]),
   },
   watch: {

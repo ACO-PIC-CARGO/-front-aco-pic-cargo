@@ -168,3 +168,40 @@ export interface FiltroFlujoOperacionMes {
   id_cliente?: Numerico;
   nro_expediente?: Numerico;
 }
+
+export interface BancoFila {
+  id?: number;
+  code?: string;
+  name?: string;
+  banks_details?: unknown[];
+  [campo: string]: unknown;
+}
+
+export interface BancoRegistro {
+  id?: number;
+  [campo: string]: unknown;
+}
+
+export interface DeudaPendiente {
+  saldo_pendiente_local?: number;
+  saldo_pendiente?: number;
+  [campo: string]: unknown;
+}
+
+export interface DeudaSeleccionable extends DeudaPendiente {
+  id: number;
+  nuevoflag: boolean;
+  parcialflag: boolean;
+  montoparcial: number;
+  saldo: number;
+  tipocambio?: string;
+}
+
+export interface FiltroBancos {
+  code: string | null;
+  name: string | null;
+  acronym: string | null;
+  description: string | null;
+  status: number | string;
+  [campo: string]: unknown;
+}

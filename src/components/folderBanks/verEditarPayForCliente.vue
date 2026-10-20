@@ -401,7 +401,7 @@
                 <v-col cols="12">
                   <v-data-table
                     :headers="headersPagosGastosBancario"
-                    :items="$store.state.bank.deudaAProveedor"
+                    :items="bankStore.deudaAProveedor"
                     v-model="selected"
                     item-value="id"
                     return-object
@@ -503,6 +503,7 @@ import { useSecuritysStore } from "@/stores/securitys";
 import Swal from "sweetalert2";
 import { useFilesStore } from "@/stores/files";
 import { useBancosStore } from "@/stores/bancos";
+import { useBankStore } from "@/stores/bank";
 export default {
   components: {
     //  opciones: () => import("@/components/comun/opcionesRegistro.vue"),
@@ -621,7 +622,7 @@ export default {
     this.payPath = data.payPath;
     this.filename = data.filename;
     this.originalname = data.originalname;
-    this.$store.state.bank.deudaAProveedor = data.detalle;
+    this.bankStore.deudaAProveedor = data.detalle;
     this.selected = data.detalle;
     this.monto = data.totaldolar;
     console.log('totalmonedalocal',data.totalmonedalocal)
@@ -635,17 +636,13 @@ export default {
   methods: {
     mergeProps,
     ...mapActions([
-      "verRegistroIngresos",
       "_getListaPagosXProveedorCxP",
       "cargarClientes",
       "_getCoinsList",
-      "getDeudaDeClientePorSucursal",
       "cargarClientes",
       "_getBanksList",
-      "updateRegistroIgresos",
-      "eliminarRegistroIngresos",
-      "imprimirComprobanteIngreso",
     ]),
+    ...mapPiniaActions(useBankStore, ["verRegistroIngresos", "getDeudaDeClientePorSucursal", "updateRegistroIgresos", "eliminarRegistroIngresos", "imprimirComprobanteIngreso"]),
     ...mapPiniaActions(useBancosStore, ["getValidaNroOp", "getListBanksDetailsCargar"]),
     ...mapPiniaActions(useFilesStore, ["_uploadFile"]),
     ...mapPiniaActions(useSecuritysStore, ["validarUsuarioAdmin"]),
@@ -778,7 +775,7 @@ export default {
       if (this.cliente) {
         this.getDeudaDeClientePorSucursal(this.cliente);
       } else {
-        this.$store.state.bank.deudaAProveedor = [];
+        this.bankStore.deudaAProveedor = [];
       }
     },
 
@@ -959,7 +956,7 @@ export default {
     },
   },
   computed: {
-    ...mapStores(useBancosStore),
+    ...mapStores(useBankStore, useBancosStore),
     ...mapState([
       "itemsProveedorList",
       "listPagosXProveedorCxP",
@@ -992,7 +989,7 @@ export default {
     },
 
     itemsOrdenados() {
-      const items = [...this.$store.state.bank.deudaAProveedor];
+      const items = [...this.bankStore.deudaAProveedor];
       return items.sort((a, b) => {
         const aSeleccionado = this.selected.some((sel) => sel.id === a.id);
         const bSeleccionado = this.selected.some((sel) => sel.id === b.id);

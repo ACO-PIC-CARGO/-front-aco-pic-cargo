@@ -232,6 +232,7 @@ import ArrastraYSolarComponent from "../comun/ArrastraYSolarComponent.vue";
 import { mapActions as mapPiniaActions, mapStores } from "pinia";
 import { useFilesStore } from "@/stores/files";
 import { useBancosStore } from "@/stores/bancos";
+import { useBankStore } from "@/stores/bank";
 export default {
   components: {
     ArrastraYSolarComponent,
@@ -319,8 +320,8 @@ export default {
       "_getCoinsList",
       "cargarClientes",
       "_getBanksList",
-      "validateNroOperacion",
     ]),
+    ...mapPiniaActions(useBankStore, ["validateNroOperacion"]),
     ...mapPiniaActions(useBancosStore, ["getListBanksDetailsCargar"]),
     validarAprobacion(obj) {
       if (obj.value) {

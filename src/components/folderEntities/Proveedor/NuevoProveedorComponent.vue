@@ -12,12 +12,14 @@ import { useEntitiesStore } from "@/stores/entities";
 import { useMasterusuariosStore } from "@/stores/masterusuarios";
 import type { DocumentoPais } from "@/types/catalogos";
 import type { TipoTransaccion } from "@/types/entidades";
+import { useBankStore } from "@/stores/bank";
 
 withDefaults(defineProps<{ isPricing?: boolean }>(), { isPricing: false });
 const emit = defineEmits<{ GuardarProveedorExiste: [val: number] }>();
 
 const route = useRoute();
 const rootStore = useStore();
+const bankStore = useBankStore();
 const entitiesStore = useEntitiesStore();
 const masterusuariosStore = useMasterusuariosStore();
 const coinsStore = useCoinsStore();
@@ -93,7 +95,7 @@ onMounted(async () => {
     masterusuariosStore.cargarTipoTelefono(),
     rootStore.dispatch("_getRole"),
     coinsStore.getCoinsListCargar(),
-    rootStore.dispatch("getBanksListCargar"),
+    bankStore.getBanksListCargar(),
     rootStore.dispatch("_getSex"),
     masterusuariosStore.cargarTipoPersona(),
     rootStore.dispatch("_getProveedorRolShipper"),

@@ -1175,7 +1175,7 @@
                 <v-col cols="12">
                   <v-autocomplete
                     density="compact"
-                    :items="$store.state.bank.list"
+                    :items="bankStore.list"
                     item-title="name"
                     item-value="id"
                     placeholder="Bancos"
@@ -1214,7 +1214,7 @@
                 <v-col cols="12">
                   <v-autocomplete
                     density="compact"
-                    :items="$store.state.bank.list"
+                    :items="bankStore.list"
                     item-title="name"
                     item-value="id"
                     placeholder="Bancos"
@@ -1347,6 +1347,7 @@ import { useEnterprisesStore } from "@/stores/enterprises";
 import { useFilesStore } from "@/stores/files";
 import { useMastersStore } from "@/stores/masters";
 import { useControlGastosStore } from "@/stores/controlGastos";
+import { useBankStore } from "@/stores/bank";
 export default {
   emits: ["recalcularProfit", "statusBtn"],
   props: {
@@ -3037,10 +3038,10 @@ export default {
       "list_invoice_path",
       "setSPaymentPro",
       "uploadAllPath",
-      "getBanksListCargar",
       "_getProveedor",
       "_getMasterList",
     ]),
+    ...mapPiniaActions(useBankStore, ["getBanksListCargar"]),
     ...mapPiniaActions(useControlGastosStore, ["getListControlGastosMaster", "getListControlGastos", "guardarCuotasCgeTipoProveedor", "copiarCGEgresos"]),
     ...mapPiniaActions(useMastersStore, ["moverCostos"]),
     ...mapPiniaActions(useFilesStore, ["_uploadFile"]),
@@ -3226,7 +3227,7 @@ export default {
     },
   },
   computed: {
-    ...mapStores(useControlGastosStore, useFilesStore, useEnterprisesStore, useMasterusuariosStore, useCoinsStore),
+    ...mapStores(useBankStore, useControlGastosStore, useFilesStore, useEnterprisesStore, useMasterusuariosStore, useCoinsStore),
     getNameModalNuevoEditar() {
       if (this.egresos && this.egresos.id) {
         return "EDITAR REGISTRO COSTO";

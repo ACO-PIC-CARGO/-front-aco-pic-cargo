@@ -672,6 +672,7 @@ import Swal from "sweetalert2";
 import { mapActions as mapPiniaActions, mapStores } from "pinia";
 import { useFilesStore } from "@/stores/files";
 import { useBancosStore } from "@/stores/bancos";
+import { useBankStore } from "@/stores/bank";
 export default {
   components: {
     //  opciones: () => import("@/components/comun/opcionesRegistro.vue"),
@@ -761,7 +762,7 @@ export default {
     };
   },
   async mounted() {
-    this.$store.state.bank.deudaACliente = [];
+    this.bankStore.deudaACliente = [];
     this.$store.state.mainTitle = "BANCOS - NUEVO INGRESO";
     await Promise.all([
       this.cargarClientes(),
@@ -775,12 +776,10 @@ export default {
       "_getListaPagosXProveedorCxP",
       "cargarClientes",
       "_getCoinsList",
-      "getDeudaDeClientePorSucursal",
       "cargarClientes",
       "_getBanksList",
-      "setRegistroIgresos",
-      "validarIngresoNroOperacion",
     ]),
+    ...mapPiniaActions(useBankStore, ["getDeudaDeClientePorSucursal", "setRegistroIgresos", "validarIngresoNroOperacion"]),
     ...mapPiniaActions(useBancosStore, ["getValidaNroOp", "getListBanksDetailsCargar"]),
     ...mapPiniaActions(useFilesStore, ["_uploadFile"]),
     abrirFactura(item) {
@@ -908,7 +907,7 @@ export default {
           this.$store.state.spiner = false;
         }
       } else {
-        this.$store.state.bank.deudaACliente = [];
+        this.bankStore.deudaACliente = [];
       }
     },
 
@@ -1156,7 +1155,7 @@ export default {
     },
   },
   computed: {
-    ...mapStores(useBancosStore),
+    ...mapStores(useBankStore, useBancosStore),
     ...mapState([
       "itemsProveedorList",
       "listPagosXProveedorCxP",
@@ -1221,7 +1220,7 @@ export default {
       return Number(tc.toFixed(4));
     },
     itemsOrdenados() {
-      const items = [...this.$store.state.bank.deudaACliente];
+      const items = [...this.bankStore.deudaACliente];
       return items.sort((a, b) => {
         const aSeleccionado = this.selected.some((sel) => sel.id === a.id);
         const bSeleccionado = this.selected.some((sel) => sel.id === b.id);

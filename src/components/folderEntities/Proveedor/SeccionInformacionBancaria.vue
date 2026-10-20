@@ -5,8 +5,10 @@ import Swal from "sweetalert2";
 import { useCoinsStore } from "@/stores/coins";
 import { useEntitiesStore } from "@/stores/entities";
 import { useMasterusuariosStore } from "@/stores/masterusuarios";
+import { useBankStore } from "@/stores/bank";
 
 const rootStore = useStore();
+const bankStore = useBankStore();
 const entitiesStore = useEntitiesStore();
 const masterusuariosStore = useMasterusuariosStore();
 const coinsStore = useCoinsStore();
@@ -179,7 +181,7 @@ async function modificarProveedor() {
                 </template>
                 <template #[`item.banco`]="{ item }">
                   <v-autocomplete
-                    :items="rootStore.state.bank.list"
+                    :items="bankStore.list"
                     item-title="name"
                     item-value="id"
                     placeholder="Bancos"
@@ -206,7 +208,7 @@ async function modificarProveedor() {
                 </template>
                 <template #[`item.intermediario`]="{ item }">
                   <v-autocomplete
-                    :items="rootStore.state.bank.list"
+                    :items="bankStore.list"
                     item-title="name"
                     item-value="id"
                     placeholder="Bancos"

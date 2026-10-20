@@ -14,10 +14,12 @@ import { usePricingStore } from "@/stores/pricing";
 import { useHousesStore } from "@/stores/houses";
 import type { CuentaBancariaPic, ItemNotificacion, ServicioHouse } from "@/types/operaciones";
 import { sessionBranchId, sessionSucursal, sessionUser } from "@/utils/sesion";
+import { useBankStore } from "@/stores/bank";
 
 //houselist,
 
 const rootStore = useStore();
+const bankStore = useBankStore();
 const route = useRoute();
 const appRouter = useRouter();
 const housesStore = useHousesStore();
@@ -546,7 +548,7 @@ function getTipoEmbarqueHouse() {
     : "";
 }
 async function validarMenuNotificaciones() {
-  if (rootStore.state.bank.list.length == 0) {
+  if (bankStore.list.length == 0) {
     Swal.fire({
       icon: "warning",
       title: "Cuentas Bancarias",
@@ -555,7 +557,7 @@ async function validarMenuNotificaciones() {
     return false;
   } else {
     if (
-      !rootStore.state.bank.list.some((v: { banks_details: unknown[] }) => v.banks_details.length > 0)
+      !bankStore.list.some((v) => v.banks_details!.length > 0)
     ) {
       Swal.fire({
         icon: "warning",
@@ -799,7 +801,7 @@ onMounted(async () => {
     ""
   } [${actionLabel}]`;
   rootStore.state.spiner = false;
-  await rootStore.dispatch("fetchDataBank", {
+  await bankStore.fetchDataBank({
     code: "",
     name: "",
     acronym: "",

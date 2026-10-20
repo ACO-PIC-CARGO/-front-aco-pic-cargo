@@ -623,6 +623,7 @@ import Swal from "sweetalert2";
 import { mapActions as mapPiniaActions, mapStores } from "pinia";
 import { useFilesStore } from "@/stores/files";
 import { useBancosStore } from "@/stores/bancos";
+import { useBankStore } from "@/stores/bank";
 export default {
   components: {
     //  opciones: () => import("@/components/comun/opcionesRegistro.vue"),
@@ -696,7 +697,7 @@ export default {
     };
   },
   async mounted() {
-    this.$store.state.bank.deudaAProveedor = [];
+    this.bankStore.deudaAProveedor = [];
     this.$store.state.mainTitle = "BANCOS - NUEVA SALIDA";
     await Promise.all([
       this.cargarProveedores(),
@@ -709,10 +710,8 @@ export default {
       "_getListaPagosXProveedorCxP",
       "cargarProveedores",
       "_getCoinsList",
-      "getDeudaAProveedorPorSucursal",
-      "setRegistroEgresos",
-      "validarEgresoNroOperacion",
     ]),
+    ...mapPiniaActions(useBankStore, ["getDeudaAProveedorPorSucursal", "setRegistroEgresos", "validarEgresoNroOperacion"]),
     ...mapPiniaActions(useBancosStore, ["getValidaNroOp", "getListBanksDetailsCargar"]),
     ...mapPiniaActions(useFilesStore, ["_uploadFile"]),
     cancelarllenadoDeMonto() {
@@ -834,7 +833,7 @@ export default {
           this.$store.state.spiner = false;
         }
       } else {
-        this.$store.state.bank.deudaAProveedor = [];
+        this.bankStore.deudaAProveedor = [];
       }
     },
     anadirFila() {
@@ -849,7 +848,7 @@ export default {
         saldo_pendiente: 0,
         nuevoflag: true,
       };
-      this.$store.state.bank.deudaAProveedor.unshift(nuevaFila);
+      this.bankStore.deudaAProveedor.unshift(nuevaFila);
       this.$nextTick(() => {
         const index = 0;
         const input = document.getElementById(`txtConcepto${index}`);
@@ -1102,7 +1101,7 @@ export default {
     },
   },
   computed: {
-    ...mapStores(useBancosStore),
+    ...mapStores(useBankStore, useBancosStore),
     ...mapState([
       "itemsProveedorList",
       "listPagosXProveedorCxP",
@@ -1153,7 +1152,7 @@ export default {
       return parseFloat(monto).toFixed(2);
     },
     itemsOrdenados() {
-      const items = [...this.$store.state.bank.deudaAProveedor];
+      const items = [...this.bankStore.deudaAProveedor];
       return items.sort((a, b) => {
         const aSeleccionado = this.selected.some((sel) => sel.id === a.id);
         const bSeleccionado = this.selected.some((sel) => sel.id === b.id);

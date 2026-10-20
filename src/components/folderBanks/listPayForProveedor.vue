@@ -49,7 +49,7 @@
     <v-data-table
       :search="search"
       :headers="headersCabecera"
-      :items="$store.state.bank.list"
+      :items="bankStore.list"
       v-model:expanded="expanded"
       show-expand
       expand-on-click
@@ -393,6 +393,7 @@ import BarraFiltro from "../BarraMostrarFiltro/BarraFiltro.vue";
 import { useIngresosStore } from "@/stores/ingresos";
 import { useFilesStore } from "@/stores/files";
 import { useBalancesStore } from "@/stores/balances";
+import { useBankStore } from "@/stores/bank";
 export default {
   components: {
     FormatFecha,
@@ -490,7 +491,7 @@ export default {
       vm.cargarProveedores(),
       vm._getBanksList(),
     ]).then((res) => {
-      // vm.cuentas = vm.$store.state.bank.list.map((item) => ({
+      // vm.cuentas = vm.bankStore.list.map((item) => ({
       //   id: item.id,
       //   label: item.cuenta,
       // }));
@@ -500,11 +501,9 @@ export default {
   methods: {
     ...mapActions([
       "cargarProveedores",
-      "verVacturas",
       "_getBanksList",
-      "getRegistroEgresos",
-      "eliminarRegistroEgresos",
     ]),
+    ...mapPiniaActions(useBankStore, ["verVacturas", "getRegistroEgresos", "eliminarRegistroEgresos"]),
     ...mapPiniaActions(useBalancesStore, ["getCargarTipoGastos", "getCargarTipoSubGastos"]),
     ...mapPiniaActions(useIngresosStore, ["ActualizarCXP"]),
     ...mapPiniaActions(useSecuritysStore, ["validarUsuarioAdmin"]),
@@ -935,7 +934,7 @@ export default {
     },
   },
   computed: {
-    ...mapStores(useBalancesStore, useFilesStore),
+    ...mapStores(useBankStore, useBalancesStore, useFilesStore),
     detalles() {
       if (Object.keys(this.Ingreso).length === 0) {
         return [];

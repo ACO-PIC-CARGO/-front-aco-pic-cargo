@@ -6,7 +6,6 @@ const imgSave = "/img/svg/save.svg";
 const imgFolder = "/img/svg/folder.svg";
 const imgMailbox = "/img/svg/mailbox.svg";
 const imgList = "/img/svg/lista.svg";
-import bank from "./modules/bank";
 import Swal from "sweetalert2";
 import moment from "moment";
 
@@ -2820,9 +2819,5 @@ export default createStore({
           console.error(error);
         });
     },
-  },
-
-  modules: {
-    bank,
   },
 });

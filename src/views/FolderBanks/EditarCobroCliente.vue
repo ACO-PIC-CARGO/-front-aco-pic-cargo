@@ -17,7 +17,7 @@
               item-title="namelong"
               item-value="id"
               label="Cliente"
-              v-model="$store.state.bank.record.id_cliente"
+              v-model="bankStore.record.id_cliente"
               readonly
               @update:model-value="obtenerListado()"
             >
@@ -27,7 +27,7 @@
           <v-col md="12" cols="12">
             <v-data-table
               :headers="headers"
-              :items="$store.state.bank.record.details"
+              :items="bankStore.record.details"
             >
               <template v-slot:[`item.moneda`]="{ item }">
                 <v-autocomplete
@@ -93,21 +93,21 @@
         <v-row class="mt-5">
           <v-col md="4" cols="4"
             ><v-text-field
-              v-model="$store.state.bank.record.nro_operacion"
+              v-model="bankStore.record.nro_operacion"
               label="Nro Operacion"
             ></v-text-field
           ></v-col>
           <v-col cols="4" md="4">
             <v-text-field
               type="date"
-              v-model="$store.state.bank.record.fecha_pago"
+              v-model="bankStore.record.fecha_pago"
               label="Fecha "
             ></v-text-field>
           </v-col>
           <v-col md="4" cols="4">
-            <v-btn variant="text" @click="abrirSoporte($store.state.bank.record.ruta)">
+            <v-btn variant="text" @click="abrirSoporte(bankStore.record.ruta)">
               <v-icon color="red">mdi-file-pdf-box</v-icon>
-              {{ $store.state.bank.record.nombre_archivo }}
+              {{ bankStore.record.nombre_archivo }}
             </v-btn>
             <div>
               <v-file-input
@@ -128,7 +128,7 @@
               item-title="label"
               item-value="id"
               label="Cuenta Destino (PIC)"
-              v-model="$store.state.bank.record.id_cuentadestino"
+              v-model="bankStore.record.id_cuentadestino"
               return-object
             ></v-autocomplete>
           </v-col>
@@ -156,7 +156,7 @@
           <v-col md="4" cols="4">
             <v-select
               :items="$store.state.itemsDataBanksList"
-              v-model="$store.state.bank.record.id_banco_origin"
+              v-model="bankStore.record.id_banco_origin"
               label="Banco Origen"
               item-title="acronym"
               item-value="id"
@@ -184,8 +184,9 @@
 import axios from "@/api/http";
 import Swal from "sweetalert2";
 import { mapActions, mapState } from "vuex";
-import { mapActions as mapPiniaActions } from "pinia";
+import { mapActions as mapPiniaActions, mapStores } from "pinia";
 import { useBancosStore } from "@/stores/bancos";
+import { useBankStore } from "@/stores/bank";
 export default {
   props: ["tipo"],
   data() {
@@ -271,10 +272,8 @@ export default {
       "_getCoinsList",
       "cargarClientes",
       "_getBanksList",
-      "verCobroRealizado",
-      "anularCobroRealizado",
-      "actualizarPagoRealizado",
     ]),
+    ...mapPiniaActions(useBankStore, ["verCobroRealizado", "anularCobroRealizado", "actualizarPagoRealizado"]),
     ...mapPiniaActions(useBancosStore, ["getListBanksDetailsCargar"]),
     async obtenerListado() {
       this.$store.state.listPagosXProveedorCxP.listPagosXProveedorCxP = [];
@@ -292,7 +291,7 @@ export default {
     },
     async actualizarCobro() {
       let res = await this.actualizarPagoRealizado(
-        this.$store.state.bank.record.details,
+        this.bankStore.record.details,
       );
 
       Swal.fire({
@@ -306,7 +305,7 @@ export default {
     },
     getMontoTotal() {
       let monto = 0;
-      this.$store.state.bank.record.details.forEach((element) => {
+      this.bankStore.record.details.forEach((element) => {
         monto += parseFloat(element.monto_destino);
       });
       return parseFloat(monto).toFixed(2);
@@ -543,6 +542,7 @@ export default {
     },
   },
   computed: {
+    ...mapStores(useBankStore),
     ...mapState(["itemsProveedorList", "listPagosXProveedorCxP", "clientes"]),
   },
   watch: {

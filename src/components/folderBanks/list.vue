@@ -37,7 +37,7 @@
         v-if="!loading"
         class="elevation-1"
         :headers="headers"
-        :items="$store.state.bank.list"
+        :items="bankStore.list"
         item-value="id"
         :search="search"
       >
@@ -163,7 +163,7 @@
         <v-list-item class="px-0">
           
             <v-list-item-title class="text-headline-small">
-              Ver: {{ $store.state.bank.record.name }}
+              Ver: {{ bankStore.record.name }}
             </v-list-item-title>
           
         </v-list-item>
@@ -174,38 +174,38 @@
             <v-text-field
               label="Código"
               readonly
-              :model-value="$store.state.bank.record.code"
+              :model-value="bankStore.record.code"
             ></v-text-field>
           </v-row>
           <v-row>
             <v-text-field
               label="Nombre"
               readonly
-              :model-value="$store.state.bank.record.name"
+              :model-value="bankStore.record.name"
             ></v-text-field>
           </v-row>
           <v-row>
             <v-text-field
               label="Acrónimo"
               readonly
-              :model-value="$store.state.bank.record.acronym"
+              :model-value="bankStore.record.acronym"
             ></v-text-field>
           </v-row>
           <v-row>
             <v-text-field
               label="Descripción"
               readonly
-              :model-value="$store.state.bank.record.description"
+              :model-value="bankStore.record.description"
             ></v-text-field>
           </v-row>
           <v-row>
             <v-switch
               readonly
               :label="`Estado: ${
-                !!$store.state.bank.record.status ? 'Activo' : 'Inactivo'
+                !!bankStore.record.status ? 'Activo' : 'Inactivo'
               }`"
               color="success"
-              v-model="$store.state.bank.record.status"
+              v-model="bankStore.record.status"
               :value-comparator="(value, checked) => Boolean(value) === checked"
             ></v-switch>
           </v-row>
@@ -248,7 +248,7 @@
         <v-list-item class="px-0">
           
             <v-list-item-title class="text-headline-small">
-              Modificar: {{ $store.state.bank.record.name }}
+              Modificar: {{ bankStore.record.name }}
             </v-list-item-title>
           
         </v-list-item>
@@ -523,6 +523,8 @@
 <script>
 import { mapState, mapActions } from "vuex";
 import Swal from "sweetalert2";
+import { mapActions as mapPiniaActions, mapStores } from "pinia";
+import { useBankStore } from "@/stores/bank";
 
 export default {
   name: "ListBankComponent",
@@ -591,14 +593,9 @@ export default {
   },
   methods: {
     ...mapActions([
-      "fetchDataBank",
-      "insertBank",
-      "readBank",
-      "updateBank",
       "_getCoinsList",
-      "guardarCuentaDetalle",
-      "eliminarCuentaDetalle",
     ]),
+    ...mapPiniaActions(useBankStore, ["fetchDataBank", "insertBank", "readBank", "updateBank", "guardarCuentaDetalle", "eliminarCuentaDetalle"]),
     updateStatus(newValue) {
       this.record.status = newValue ? 1 : 0;
     },
@@ -628,7 +625,7 @@ export default {
       let val = false;
       let namePrincipal = "";
       if (this.cuenta.esprincipalflag) {
-        this.$store.state.bank.list.forEach((element) => {
+        this.bankStore.list.forEach((element) => {
           element.banks_details.forEach((element2) => {
             if (element2.esprincipalflag && element2.id != this.cuenta.id) {
               val = true;
@@ -792,10 +789,11 @@ export default {
     },
   },
   computed: {
+    ...mapStores(useBankStore),
     ...mapState(["list"]),
   },
   watch: {
-    "$store.state.bank.record": {
+    "bankStore.record": {
       handler(newRecord, oldRecord) {
         if (newRecord && Object.keys(newRecord).length > 0) {
           const { code, acronym, name, description, status } = newRecord;
@@ -805,7 +803,7 @@ export default {
       },
       immediate: true,
     },
-    "$store.state.bank.loading": {
+    "bankStore.loading": {
       handler(newList, oldList) {
         this.loading = newList == true ? false : true;
       },
