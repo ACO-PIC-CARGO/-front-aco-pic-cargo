@@ -134,7 +134,7 @@ const routes = [
       {
         path: "folderMaster/list",
         name: "listMaster",
-        component: () => import("../views/folderMaster/listMaster.vue"),
+        component: () => import("../views/folderMaster/ListMaster.vue"),
       },
       {
         path: "folderMaster/control",
