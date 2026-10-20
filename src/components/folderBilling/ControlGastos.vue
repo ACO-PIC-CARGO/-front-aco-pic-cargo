@@ -1,3 +1,447 @@
+<script setup lang="ts">
+import { onBeforeMount, onMounted, ref, watch } from "vue";
+import { useRoute } from "vue-router";
+import { useStore } from "vuex";
+import dataHouse from "./DataHouse.vue";
+import ingresos from "./ingresos.vue";
+import egresos from "./egresos.vue";
+import services from "./ServicesBilling.vue";
+import totalesProveedor from "./TotalesProveedor.vue";
+import totales from "./TotalesBilling.vue";
+import axios from '@/api/http';
+import moment from "moment";
+import Swal from "sweetalert2";
+import { useEnterprisesStore } from "@/stores/enterprises";
+import type { ApiResponse } from "@/types/api";
+import type { AbonoCliente, DatosFactura, RespuestaFactura, SucursalFactura } from "@/types/billing";
+import { sessionBranchId } from "@/utils/sesion";
+
+const rootStore = useStore();
+const route = useRoute();
+const enterprisesStore = useEnterprisesStore();
+
+const panel = ref([0]);
+const panels = ref([0]);
+const items = 1;
+const dialogDebs = ref(false);
+const dialogNewDebs = ref(false);
+const dialogFacturar = ref(false);
+const obtenerDatosHouse = ref(false);
+const payPath = ref("");
+const payfile = ref("" as unknown as File | File[]);
+const boolFile = ref<boolean | string>("");
+const itemsDebsClient = ref<AbonoCliente[]>([]);
+const branch = ref<SucursalFactura[]>([]);
+const id_branch = ref<number | string>("");
+const number = ref("");
+const id_banks = ref("");
+const id_coins = ref("");
+const monto = ref("");
+const comentario = ref("");
+const datosFactura = ref<DatosFactura>([] as unknown as DatosFactura);
+const date = ref<string | null>(new Date(Date.now() - new Date().getTimezoneOffset() * 60000)
+  .toISOString()
+  .substr(0, 10));
+const menu = ref(false);
+const dateOnOpen = ref<string | null>(null);
+const headersdebs = [
+  {
+    title: "Documento",
+    align: "start",
+    sortable: false,
+    key: "name",
+  },
+  {
+    title: "Fecha",
+    key: "date",
+  },
+  {
+    title: "Monto",
+    key: "monto_letra",
+  },
+  {
+    title: "Comentario de Admin.",
+    key: "comentario_admin",
+  },
+  {
+    title: "Status",
+    key: "status",
+  },
+  {
+    title: "Ver",
+    key: "accion",
+  },
+] as const;
+
+function _setControl(...args: unknown[]) {
+  return rootStore.dispatch("_setControl", ...args);
+}
+function setDate(value: moment.MomentInput) {
+  date.value = moment(value).format("YYYY-MM-DD");
+}
+function openDoc(path: string) {
+  window.open(path, "_blank");
+}
+function all() {
+  panel.value = [...Array(items).keys()].map((k, i) => i);
+}
+function _newDebs() {
+  dialogNewDebs.value = true;
+}
+function _openDebs() {
+  dialogDebs.value = true;
+}
+async function cargarBranch() {
+  var config = {
+    method: "get",
+    url:
+      import.meta.env.VITE_URL_MAIN +
+      "CargarBranch/" +
+      (JSON.parse(sessionStorage.getItem("dataUser") as string) as { id_user: number }[])[0]!.id_user,
+
+    headers: {
+     
+      "Content-Type": "application/json",
+    },
+  };
+  await axios<RespuestaFactura & { data: SucursalFactura[] }>(config).then(function (response) {
+    if (response.data.statusBol == true) {
+      branch.value = response.data.data;
+    }
+  });
+}
+function abrirModalFacturar() {
+  dialogFacturar.value = true;
+}
+async function obtenerDatos() {
+  obtenerDatosHouse.value = true;
+  datosFactura.value = [] as unknown as DatosFactura;
+  var config = {
+    method: "get",
+    url: `${import.meta.env.VITE_URL_MAIN}data_factura/${route.params.id_house}/${id_branch.value}`,
+
+    headers: {
+     
+      "Content-Type": "application/json",
+    },
+  };
+  await axios<RespuestaFactura & { data: DatosFactura[] }>(config).then(function (response) {
+    if (response.data.statusBol == true) {
+      datosFactura.value = response.data.data[0]!;
+    }
+  });
+  obtenerDatosHouse.value = false;
+}
+async function generarDocumento() {
+  obtenerDatosHouse.value = true;
+  let data = datosFactura.value;
+  var config = {
+    method: "post",
+    url: `${import.meta.env.VITE_URL_MAIN}factura`,
+    headers: {
+     
+      "Content-Type": "application/json",
+    },
+    data: data,
+  };
+  let res = await axios<RespuestaFactura>(config).then(function (response) {
+    return response;
+  });
+
+  if (res.data.statusBol == true) {
+    registrarFactura(res.data);
+    dialogFacturar.value = false;
+    id_branch.value = "";
+  }
+  obtenerDatosHouse.value = false;
+}
+async function registrarFactura(data: RespuestaFactura) {
+  let dataFactura = {
+    id_house: route.params.id_house,
+    nro_factura: data.nro_factura,
+    url_documento: import.meta.env.VITE_URL_MAIN + data.path,
+    total_monto: datosFactura.value.total_monto,
+    total_igv: datosFactura.value.total_igv,
+    total: datosFactura.value.total,
+  };
+  var config = {
+    method: "post",
+    url: import.meta.env.VITE_URL_MAIN + "registrar_factura",
+    headers: {
+     
+      "Content-Type": "application/json",
+    },
+    data: dataFactura,
+  };
+  await axios(config);
+  window.open(import.meta.env.VITE_URL_MAIN + data.path, "_blank");
+}
+function cleandData() {
+  date.value = new Date(Date.now() - new Date().getTimezoneOffset() * 60000)
+    .toISOString()
+    .substr(0, 10);
+  number.value = "";
+  monto.value = "";
+  comentario.value = "";
+  payfile.value = [];
+  payPath.value = "";
+  boolFile.value = false;
+}
+async function _delDebsClient(id: number) {
+  var config = {
+    method: "post",
+    url: import.meta.env.VITE_URL_MAIN + "delDebsClient/" + id,
+
+    headers: {
+     
+      "Content-Type": "application/json",
+    },
+  };
+  await axios(config)
+    .then(function () {
+      _getDebsClient();
+    })
+    .catch(function (error) {
+      console.error(error);
+    });
+}
+async function _setDebsClient() {
+  Swal.fire({
+    icon: "info",
+    title: "Cargando pago...",
+    text: "Por favor espere",
+  });
+  var data = {
+    id_house: route.params.id_house,
+    date: date.value,
+    number: number.value,
+    id_banks: id_banks.value,
+    id_coins: id_coins.value,
+    monto: monto.value,
+    comentario_usuario: comentario.value,
+    id_path: payPath.value,
+    status: 1,
+  };
+  var config = {
+    method: "post",
+    url: import.meta.env.VITE_URL_MAIN + "setDebsClient",
+
+    headers: {
+     
+      "Content-Type": "application/json",
+    },
+    data: data,
+  };
+  await axios(config)
+    .then(function () {
+      //vm._getRequestPayment();
+      //vm.itemsSPayment = response.data.data;
+      Swal.fire({
+        icon: "success",
+        title: "Pago Cargado",
+        text: "El pago ha sido cargado correctamente",
+      });
+
+      _getDebsClient();
+
+      cleandData();
+      dialogNewDebs.value = false;
+    })
+    .catch(function (error) {
+      console.error(error);
+    });
+}
+async function _getDebsClient() {
+  let data = {
+    id_branch: sessionBranchId(),
+  };
+  var config = {
+    method: "post",
+    url:
+      import.meta.env.VITE_URL_MAIN +
+      "getDebsClient/" +
+      route.params.id_house,
+
+    headers: {
+     
+      "Content-Type": "application/json",
+    },
+    data: data,
+  };
+  await axios<RespuestaFactura & { data: AbonoCliente[] }>(config)
+    .then(function (response) {
+      itemsDebsClient.value = response.data.data;
+    })
+    .catch(function (error) {
+      console.error(error);
+    });
+}
+function _uploadFile() {
+  var data = new FormData();
+  data.append("name", "Prueba");
+  data.append("file", payfile.value as Blob);
+
+  var config = {
+    method: "post",
+    url: import.meta.env.VITE_URL_MAIN + "uploadAllPath",
+    headers: {
+     
+      "Content-Type": "application/json",
+    },
+    data: data,
+  };
+
+  axios<ApiResponse<{ insertid: number }[]>>(config)
+    .then(function (response) {
+      boolFile.value = true;
+      payPath.value = JSON.stringify(response.data.data[0]!.insertid);
+    })
+    .catch(function (error) {
+      console.error(error);
+    });
+}
+async function _generatePDF() {
+  Swal.fire({
+    icon: "info",
+    title: "Generando PDF...",
+    text: "Por favor espere",
+  });
+  var sentido;
+  if (rootStore.state.report_id_sentido == "") {
+    sentido = "";
+  } else {
+    sentido = rootStore.state.report_id_sentido;
+  }
+  var data = {
+    nombre_impuesto: enterprisesStore.impuesto.nombre_impuesto,
+    nro_control: rootStore.state.dataControl_Numero,
+    profit: (
+      (rootStore.state.totalTotalIngresos
+        ? rootStore.state.totalTotalIngresos
+        : 0) -
+      (rootStore.state.totalTotalEgresos
+        ? rootStore.state.totalTotalEgresos
+        : 0)
+    ).toFixed(2),
+    code_master: rootStore.state.dataHouse_code_master,
+    code_house: rootStore.state.dataHouse_code_house,
+    sentido: rootStore.state.dataHouse_modality,
+    tipo_embarque: rootStore.state.dataHouse_shipment,
+    puerto_origen: rootStore.state.dataHouse_port_begin,
+    puerto_destino: rootStore.state.dataHouse_port_end,
+    agente: rootStore.state.dataHouse_agente,
+    consignatario: rootStore.state.dataHouse_consigners,
+    notify: rootStore.state.dataHouse_notify,
+    bultos: rootStore.state.dataHouse_bultos,
+    peso: rootStore.state.dataHouse_peso,
+    volumen: rootStore.state.dataHouse_volumen,
+    itemsIngreso: rootStore.state.itemsDataIngresosList,
+    itemsEgreso: rootStore.state.itemsDataEgresosList,
+    itemsTotalesProveedores: rootStore.state.itemsDataTotalesProveedor,
+    ruc: rootStore.state.dataHouse_ruc,
+    totalIngreso: rootStore.state.totalIngresos,
+    totalIngresoOp: rootStore.state.totalIngresosOp,
+    totalEgreso: rootStore.state.totalEgresos,
+    totalEgresoOp: rootStore.state.totalEgresosOp,
+    exp: rootStore.state.dataHouse_exp,
+    totalIgv: rootStore.state.dataHouse_exp,
+    totalIgvEgresos: rootStore.state.totalIgvEgresos,
+    totalIgvEgresosOp: rootStore.state.totalIgvEgresosOp,
+    totalTotalEgresos: rootStore.state.totalTotalEgresos,
+    totalTotalEgresosOp: rootStore.state.totalTotalEgresosOp,
+    totalIgvIngresos: rootStore.state.totalIgvIngresos,
+    totalIgvIngresosOp: rootStore.state.totalIgvIngresosOp,
+    totalTotalIngresos: rootStore.state.totalTotalIngresos,
+    totalTotalIngresosOp: rootStore.state.totalTotalIngresosOp,
+    gananciapr: (
+      (rootStore.state.totalTotalIngresos
+        ? rootStore.state.totalTotalIngresos
+        : 0) -
+      (rootStore.state.totalTotalEgresos
+        ? rootStore.state.totalTotalEgresos
+        : 0)
+    ).toFixed(2),
+    igvpr: Math.abs(
+      (
+        rootStore.state.totalIgvIngresos -
+        rootStore.state.totalIgvEgresos
+      ).toFixed(2) as unknown as number
+    ),
+    subtotalpr: (
+      rootStore.state.totalTotalIngresos -
+      rootStore.state.totalTotalEgresos
+    ).toFixed(2),
+    gananciaop: (
+      (rootStore.state.totalTotalIngresosOp
+        ? rootStore.state.totalTotalIngresosOp
+        : 0) -
+      (rootStore.state.totalTotalEgresosOp
+        ? rootStore.state.totalTotalEgresosOp
+        : 0)
+    ).toFixed(2),
+    igvop: Math.abs(
+      (
+        rootStore.state.totalIgvIngresosOp -
+        rootStore.state.totalIgvEgresosOp
+      ).toFixed(2) as unknown as number
+    ),
+    subtotalop: (
+      rootStore.state.totalTotalIngresosOp -
+      rootStore.state.totalTotalEgresosOp
+    ).toFixed(2),
+  };
+
+  var config = {
+    method: "post",
+    url: import.meta.env.VITE_URL_MAIN + "getPdfInstructivo",
+    headers: {
+     
+      "Content-Type": "application/json",
+    },
+    data: data,
+  };
+  await axios(config)
+    .then(function () {
+      Swal.fire({
+        icon: "success",
+        title: "PDF Generado",
+        text: "El PDF se descargará automaticamente",
+      });
+
+      window.open(
+        import.meta.env.VITE_URL_MAIN + "INSTRUCTIVO.pdf",
+        "_blank"
+      );
+    })
+    .catch(function (error) {
+      console.error(error);
+    });
+}
+
+watch(menu, (open) => {
+  if (open) dateOnOpen.value = date.value;
+  else date.value = dateOnOpen.value;
+});
+
+onBeforeMount(() => {
+  _getDebsClient();
+});
+onMounted(() => {
+  rootStore.state.dataControl_id_house = route.params.id_house;
+  all();
+  rootStore.dispatch("_getBanksList");
+  rootStore.dispatch("_getCoinsList");
+  cargarBranch();
+  if (route.params.id_control) {
+    rootStore.state.drawer = false;
+    rootStore.state.dataControl_id_user = (JSON.parse(
+      sessionStorage.getItem("dataUser") as string
+    ) as { id: number }[])[0]!.id;
+  }
+  rootStore.state.drawer = false;
+});
+</script>
+
 <template>
   <div>
     <v-container fluid>
@@ -11,25 +455,25 @@
         </v-col>
         <v-col>
           <v-btn
-            v-if="!this.$route.params.id_control"
+            v-if="!route.params.id_control"
             block
             @click="_setControl"
-            :disabled="$store.state.dataControl_Numero != ''"
+            :disabled="rootStore.state.dataControl_Numero != ''"
             color="primary"
             >GENERAR CONTROL</v-btn
           >
           <v-btn
-            v-if="this.$route.params.id_control"
+            v-if="route.params.id_control"
             block
             @click="_setControl"
-            :disabled="$store.state.dataControl_Numero != ''"
+            :disabled="rootStore.state.dataControl_Numero != ''"
             color="primary"
           >
             GENERAR NUEVA VERSION DE CONTROL</v-btn
           >
 
           <v-btn
-            :disabled="!this.$route.params.id_control"
+            :disabled="!route.params.id_control"
             @click="_generatePDF()"
             block
             color="orange"
@@ -38,7 +482,7 @@
           >
 
           <v-btn
-            :disabled="$store.state.dataControl_Numero == ''"
+            :disabled="rootStore.state.dataControl_Numero == ''"
             block
             color="primary"
             class="mt-2"
@@ -46,7 +490,7 @@
             >CARGAR ABONOS DEL CLIENTE</v-btn
           >
           <v-btn
-            :disabled="$store.state.dataControl_Numero == ''"
+            :disabled="rootStore.state.dataControl_Numero == ''"
             block
             color="pink"
             class="mt-2"
@@ -80,7 +524,7 @@
 
           <v-card
             class="mt-5"
-            :disabled="$store.state.dataControl_Numero == ''"
+            :disabled="rootStore.state.dataControl_Numero == ''"
           >
             <v-card-text>
               <totales />
@@ -102,7 +546,7 @@
 
           <v-card
             class="mt-5"
-            :disabled="$store.state.dataControl_Numero == ''"
+            :disabled="rootStore.state.dataControl_Numero == ''"
           >
             <v-card-text>
               <totalesProveedor />
@@ -231,7 +675,7 @@
 
                   <v-col cols="12" md="4">
                     <v-autocomplete
-                      :items="$store.state.itemsDataBanksList"
+                      :items="rootStore.state.itemsDataBanksList"
                       v-model="id_banks"
                       item-title="acronym"
                       item-value="id"
@@ -240,7 +684,7 @@
                   </v-col>
                   <v-col cols="12" md="4">
                     <v-autocomplete
-                      :items="$store.state.itemsCoinsList"
+                      :items="rootStore.state.itemsCoinsList"
                       v-model="id_coins"
                       item-title="acronym"
                       item-value="id"
@@ -283,8 +727,8 @@
                     </v-chip>
                   </v-col>
                   <v-col cols="3">
-                    <v-btn
-                      :disabled="boolFile || payfile == []"
+                    <!-- @vue-expect-error comparing an array by reference is always false -->
+                    <v-btn :disabled="boolFile || payfile == []"
                       color="blue-grey"
                       block
                       class="ma-2 text-white"
@@ -360,495 +804,6 @@
     </v-dialog>
   </div>
 </template>
-<script>
-import dataHouse from "./DataHouse.vue";
-import ingresos from "./ingresos.vue";
-import egresos from "./egresos.vue";
-import services from "./ServicesBilling.vue";
-import totalesProveedor from "./TotalesProveedor.vue";
-import totales from "./TotalesBilling.vue";
-import { mapState, mapActions } from "vuex";
-import axios from '@/api/http';
-import moment from "moment";
-import { mapStores } from "pinia";
-import { useEnterprisesStore } from "@/stores/enterprises";
-export default {
-  name: "ControlGastos",
-  components: {
-    dataHouse,
-    ingresos,
-    egresos,
-    totales,
-    services,
-    totalesProveedor,
-  },
-  data() {
-    return {
-      panel: [0],
-      panels: [0],
-      items: 1,
-      dataGastos: true,
-      dialogDebs: false,
-      dialogNewDebs: false,
-      dialogFacturar: false,
-      obtenerDatosHouse: false,
-      pathfile: "",
-      payPath: "",
-      payfile: "",
-      boolFile: "",
-      pathfileAll: "",
-
-      itemsDebsClient: [],
-      branch: [],
-      id_branch: "",
-      number: "",
-      id_banks: "",
-      id_coins: "",
-      monto: "",
-      comentario: "",
-      datosFactura: [],
-
-      date: new Date(Date.now() - new Date().getTimezoneOffset() * 60000)
-        .toISOString()
-        .substr(0, 10),
-      menu: false,
-      dateOnOpen: null,
-      modal: false,
-      menu2: false,
-
-      headersdebs: [
-        {
-          title: "Documento",
-          align: "start",
-          sortable: false,
-          key: "name",
-        },
-        {
-          title: "Fecha",
-          key: "date",
-        },
-        {
-          title: "Monto",
-          key: "monto_letra",
-        },
-        {
-          title: "Comentario de Admin.",
-          key: "comentario_admin",
-        },
-        {
-          title: "Status",
-          key: "status",
-        },
-        {
-          title: "Ver",
-          key: "accion",
-        },
-      ],
-    };
-  },
-  computed: {
-    ...mapStores(useEnterprisesStore),
-    ...mapState(["itemsDataControl"]),
-  },
-  beforeMount() {
-    this._getDebsClient();
-  },
-
-  watch: {
-    menu(open) {
-      if (open) this.dateOnOpen = this.date;
-      else this.date = this.dateOnOpen;
-    },
-  },
-  methods: {
-    ...mapActions([
-      "_setControl",
-      "_getIngresos",
-      "_getEgresos",
-      "_getBanksList",
-      "_getCoinsList",
-    ]),
-    setDate(value) {
-      this.date = moment(value).format("YYYY-MM-DD");
-    },
-    openDoc(path) {
-      window.open(path, "_blank");
-    },
-
-    all() {
-      this.panel = [...Array(this.items).keys()].map((k, i) => i);
-    },
-
-    _newDebs() {
-      this.dialogNewDebs = true;
-    },
-
-    _openDebs() {
-      this.dialogDebs = true;
-    },
-    async cargarBranch() {
-      let vm = this;
-      var config = {
-        method: "get",
-        url:
-          import.meta.env.VITE_URL_MAIN +
-          "CargarBranch/" +
-          JSON.parse(sessionStorage.getItem("dataUser"))[0].id_user,
-
-        headers: {
-         
-          "Content-Type": "application/json",
-        },
-      };
-      await axios(config).then(function (response) {
-        if (response.data.statusBol == true) {
-          vm.branch = response.data.data;
-        }
-      });
-    },
-
-    abrirModalFacturar() {
-      let vm = this;
-      vm.dialogFacturar = true;
-    },
-
-    async obtenerDatos() {
-      let vm = this;
-      vm.obtenerDatosHouse = true;
-      vm.datosFactura = [];
-      var config = {
-        method: "get",
-        url: `${import.meta.env.VITE_URL_MAIN}data_factura/${vm.$route.params.id_house}/${vm.id_branch}`,
-
-        headers: {
-         
-          "Content-Type": "application/json",
-        },
-      };
-      await axios(config).then(function (response) {
-        if (response.data.statusBol == true) {
-          vm.datosFactura = response.data.data[0];
-        }
-      });
-      vm.obtenerDatosHouse = false;
-    },
-    async generarDocumento() {
-      let vm = this;
-      vm.obtenerDatosHouse = true;
-      let data = vm.datosFactura;
-      var config = {
-        method: "post",
-        url: `${import.meta.env.VITE_URL_MAIN}factura`,
-        headers: {
-         
-          "Content-Type": "application/json",
-        },
-        data: data,
-      };
-      let res = await axios(config).then(function (response) {
-        return response;
-      });
-
-      if (res.data.statusBol == true) {
-        vm.registrarFactura(res.data);
-        vm.dialogFacturar = false;
-        vm.id_branch = "";
-      }
-      vm.obtenerDatosHouse = false;
-    },
-    async registrarFactura(data) {
-      let vm = this;
-      let dataFactura = {
-        id_house: vm.$route.params.id_house,
-        nro_factura: data.nro_factura,
-        url_documento: import.meta.env.VITE_URL_MAIN + data.path,
-        total_monto: vm.datosFactura.total_monto,
-        total_igv: vm.datosFactura.total_igv,
-        total: vm.datosFactura.total,
-      };
-      var config = {
-        method: "post",
-        url: import.meta.env.VITE_URL_MAIN + "registrar_factura",
-        headers: {
-         
-          "Content-Type": "application/json",
-        },
-        data: dataFactura,
-      };
-      await axios(config);
-      window.open(import.meta.env.VITE_URL_MAIN + data.path, "_blank");
-    },
-    cleandData() {
-      this.date = new Date(Date.now() - new Date().getTimezoneOffset() * 60000)
-        .toISOString()
-        .substr(0, 10);
-      this.number = "";
-      this.monto = "";
-      this.comentario = "";
-      this.payfile = [];
-      this.payPath = "";
-      this.boolFile = false;
-    },
-
-    async _delDebsClient(id) {
-      var vm = this;
-
-      var config = {
-        method: "post",
-        url: import.meta.env.VITE_URL_MAIN + "delDebsClient/" + id,
-
-        headers: {
-         
-          "Content-Type": "application/json",
-        },
-      };
-      await axios(config)
-        .then(function (response) {
-          vm._getDebsClient();
-        })
-        .catch(function (error) {
-          console.error(error);
-        });
-    },
-
-    async _setDebsClient() {
-      var vm = this;
-      vm.$swal({
-        icon: "info",
-        title: "Cargando pago...",
-        text: "Por favor espere",
-      });
-      var data = {
-        id_house: vm.$route.params.id_house,
-        date: vm.date,
-        number: vm.number,
-        id_banks: vm.id_banks,
-        id_coins: vm.id_coins,
-        monto: vm.monto,
-        comentario_usuario: vm.comentario,
-        id_path: vm.payPath,
-        status: 1,
-      };
-      var config = {
-        method: "post",
-        url: import.meta.env.VITE_URL_MAIN + "setDebsClient",
-
-        headers: {
-         
-          "Content-Type": "application/json",
-        },
-        data: data,
-      };
-      await axios(config)
-        .then(function (response) {
-          //vm._getRequestPayment();
-          //vm.itemsSPayment = response.data.data;
-          vm.$swal({
-            icon: "success",
-            title: "Pago Cargado",
-            text: "El pago ha sido cargado correctamente",
-          });
-
-          vm._getDebsClient();
-
-          vm.cleandData();
-          vm.dialogNewDebs = false;
-        })
-        .catch(function (error) {
-          console.error(error);
-        });
-    },
-
-    async _getDebsClient() {
-      var vm = this;
-      let data = {
-        id_branch: JSON.parse(sessionStorage.getItem("dataUser"))[0].id_branch,
-      };
-      var config = {
-        method: "post",
-        url:
-          import.meta.env.VITE_URL_MAIN +
-          "getDebsClient/" +
-          vm.$route.params.id_house,
-
-        headers: {
-         
-          "Content-Type": "application/json",
-        },
-        data: data,
-      };
-      await axios(config)
-        .then(function (response) {
-          vm.itemsDebsClient = response.data.data;
-        })
-        .catch(function (error) {
-          console.error(error);
-        });
-    },
-
-    _uploadFile() {
-      var data = new FormData();
-      var vm = this;
-      data.append("name", "Prueba");
-      data.append("file", vm.payfile);
-
-      var config = {
-        method: "post",
-        url: import.meta.env.VITE_URL_MAIN + "uploadAllPath",
-        headers: {
-         
-          "Content-Type": "application/json",
-        },
-        data: data,
-      };
-
-      axios(config)
-        .then(function (response) {
-          vm.boolFile = true;
-          vm.payPath = JSON.stringify(response.data.data[0].insertid);
-        })
-        .catch(function (error) {
-          console.error(error);
-        });
-    },
-
-    async _generatePDF() {
-      this.$swal({
-        icon: "info",
-        title: "Generando PDF...",
-        text: "Por favor espere",
-      });
-      var sentido;
-      if (this.$store.state.report_id_sentido == "") {
-        sentido = "";
-      } else {
-        sentido = this.$store.state.report_id_sentido;
-      }
-      var data = {
-        nombre_impuesto: this.enterprisesStore.impuesto.nombre_impuesto,
-        nro_control: this.$store.state.dataControl_Numero,
-        profit: (
-          (this.$store.state.totalTotalIngresos
-            ? this.$store.state.totalTotalIngresos
-            : 0) -
-          (this.$store.state.totalTotalEgresos
-            ? this.$store.state.totalTotalEgresos
-            : 0)
-        ).toFixed(2),
-        code_master: this.$store.state.dataHouse_code_master,
-        code_house: this.$store.state.dataHouse_code_house,
-        sentido: this.$store.state.dataHouse_modality,
-        tipo_embarque: this.$store.state.dataHouse_shipment,
-        puerto_origen: this.$store.state.dataHouse_port_begin,
-        puerto_destino: this.$store.state.dataHouse_port_end,
-        agente: this.$store.state.dataHouse_agente,
-        consignatario: this.$store.state.dataHouse_consigners,
-        notify: this.$store.state.dataHouse_notify,
-        bultos: this.$store.state.dataHouse_bultos,
-        peso: this.$store.state.dataHouse_peso,
-        volumen: this.$store.state.dataHouse_volumen,
-        itemsIngreso: this.$store.state.itemsDataIngresosList,
-        itemsEgreso: this.$store.state.itemsDataEgresosList,
-        itemsTotalesProveedores: this.$store.state.itemsDataTotalesProveedor,
-        ruc: this.$store.state.dataHouse_ruc,
-        totalIngreso: this.$store.state.totalIngresos,
-        totalIngresoOp: this.$store.state.totalIngresosOp,
-        totalEgreso: this.$store.state.totalEgresos,
-        totalEgresoOp: this.$store.state.totalEgresosOp,
-        exp: this.$store.state.dataHouse_exp,
-        totalIgv: this.$store.state.dataHouse_exp,
-        exp: this.$store.state.dataHouse_exp,
-        totalIgvEgresos: this.$store.state.totalIgvEgresos,
-        totalIgvEgresosOp: this.$store.state.totalIgvEgresosOp,
-        totalTotalEgresos: this.$store.state.totalTotalEgresos,
-        totalTotalEgresosOp: this.$store.state.totalTotalEgresosOp,
-        totalIgvIngresos: this.$store.state.totalIgvIngresos,
-        totalIgvIngresosOp: this.$store.state.totalIgvIngresosOp,
-        totalTotalIngresos: this.$store.state.totalTotalIngresos,
-        totalTotalIngresosOp: this.$store.state.totalTotalIngresosOp,
-        gananciapr: (
-          (this.$store.state.totalTotalIngresos
-            ? this.$store.state.totalTotalIngresos
-            : 0) -
-          (this.$store.state.totalTotalEgresos
-            ? this.$store.state.totalTotalEgresos
-            : 0)
-        ).toFixed(2),
-        igvpr: Math.abs(
-          (
-            this.$store.state.totalIgvIngresos -
-            this.$store.state.totalIgvEgresos
-          ).toFixed(2)
-        ),
-        subtotalpr: (
-          this.$store.state.totalTotalIngresos -
-          this.$store.state.totalTotalEgresos
-        ).toFixed(2),
-        gananciaop: (
-          (this.$store.state.totalTotalIngresosOp
-            ? this.$store.state.totalTotalIngresosOp
-            : 0) -
-          (this.$store.state.totalTotalEgresosOp
-            ? this.$store.state.totalTotalEgresosOp
-            : 0)
-        ).toFixed(2),
-        igvop: Math.abs(
-          (
-            this.$store.state.totalIgvIngresosOp -
-            this.$store.state.totalIgvEgresosOp
-          ).toFixed(2)
-        ),
-        subtotalop: (
-          this.$store.state.totalTotalIngresosOp -
-          this.$store.state.totalTotalEgresosOp
-        ).toFixed(2),
-      };
-
-      var config = {
-        method: "post",
-        url: import.meta.env.VITE_URL_MAIN + "getPdfInstructivo",
-        headers: {
-         
-          "Content-Type": "application/json",
-        },
-        data: data,
-      };
-      var vm = this;
-      await axios(config)
-        .then(function (response) {
-          vm.$swal({
-            icon: "success",
-            title: "PDF Generado",
-            text: "El PDF se descargará automaticamente",
-          });
-
-          window.open(
-            import.meta.env.VITE_URL_MAIN + "INSTRUCTIVO.pdf",
-            "_blank"
-          );
-        })
-        .catch(function (error) {
-          console.error(error);
-        });
-    },
-  },
-  mounted() {
-    let vm = this;
-    this.$store.state.dataControl_id_house = this.$route.params.id_house;
-    this.all();
-    this._getBanksList();
-    this._getCoinsList();
-    this.cargarBranch();
-    if (this.$route.params.id_control) {
-      this.$store.state.drawer = false;
-      this.$store.state.dataControl_id_user = JSON.parse(
-        sessionStorage.getItem("dataUser")
-      )[0].id;
-    }
-    vm.$store.state.drawer = false;
-  },
-};
-</script>
 
 <style lang="scss" scoped>
 .cardHouse {

@@ -1,3 +1,263 @@
+<script setup lang="ts">
+import { defineAsyncComponent, nextTick, onMounted, ref } from "vue";
+import { useRoute, useRouter } from "vue-router";
+import { useStore } from "vuex";
+import axios from "@/api/http";
+import Swal from "sweetalert2";
+import { useEnterprisesStore } from "@/stores/enterprises";
+import { useBancosStore } from "@/stores/bancos";
+import { useControlGastosStore } from "@/stores/controlGastos";
+import { sessionBranchId } from "@/utils/sesion";
+
+const props = withDefaults(defineProps<{ editable?: boolean }>(), { editable: true });
+
+const Ingresos = defineAsyncComponent(() => import("./ingresos.vue"));
+const Egresos = defineAsyncComponent(() => import("./egresos.vue"));
+
+const rootStore = useStore();
+const route = useRoute();
+const router = useRouter();
+const controlGastosStore = useControlGastosStore();
+const bancosStore = useBancosStore();
+const enterprisesStore = useEnterprisesStore();
+
+const id_coins = ref<number | string | null>(null);
+const ingreso_pr = ref(0);
+const egreso_pr = ref(0);
+const ingreso_op = ref(0);
+const egreso_op = ref(0);
+// dialogDebs: false,
+const prFlag = ref(false);
+const opFlag = ref(false);
+// dialogNewDebs: false,
+const statusBtn = ref(1);
+const payPath = ref("");
+// date: new Date(Date.now() - new Date().getTimezoneOffset() * 60000)
+//   .toISOString()
+//   .substr(0, 10),
+const number = ref("");
+const monto = ref<number | string>(0.0);
+const monto_abonado = ref<number | string>("");
+const id_cuenta_pic = ref("");
+const tipocambio = ref(1);
+const comentario = ref("");
+// sufmoneda: "",
+let date: string;
+let payfile: unknown;
+let boolFile: boolean;
+let codigo_master: unknown;
+
+// ...mapAction([])
+// --------------------
+function irAEditar(_ignored?: boolean) {
+  let id_branch =
+    controlGastosStore.listControlGastos[0]!.id_branch;
+  if (
+    !(
+      sessionBranchId() ==
+      id_branch
+    )
+  ) {
+    Swal.fire({
+      icon: "error",
+      text: "El expediente pertenece a otra sucursal, por favor logueese con la otra sucursal.",
+    });
+    return;
+  }
+  router.push({
+    name: "editControlGasto",
+    params: {
+      id: route.params.id,
+      id_branch: id_branch,
+    },
+  });
+}
+function to_direct({ url }: { url: string }) {
+  window.open(url, "_blank");
+}
+// --------------------
+async function recargarDatos() {
+  rootStore.state.spiner = true;
+  await Promise.all([
+    controlGastosStore.getListControlGastos(route.params.id as string),
+    controlGastosStore.getListControlGastosHouses(route.params.id as string),
+    controlGastosStore.getListControlGastosMaster(route.params.id as string),
+  ]);
+  rootStore.state.spiner = false;
+  rootStore.dispatch("_getCoinsList");
+}
+ 
+function calcularMontoDolar() {
+  monto.value = parseFloat(
+    String(((monto_abonado.value ? monto_abonado.value : 0) as number) / tipocambio.value),
+  ).toFixed(2);
+}
+ 
+function openDoc(path: string) {
+  window.open(path, "_blank");
+}
+ 
+function cleandData() {
+  date = new Date(Date.now() - new Date().getTimezoneOffset() * 60000)
+    .toISOString()
+    .substr(0, 10);
+  number.value = "";
+  monto.value = 0;
+  comentario.value = "";
+  payfile = [];
+  payPath.value = "";
+  boolFile = false;
+  id_cuenta_pic.value = "";
+  tipocambio.value = 1;
+  id_coins.value = "";
+  monto_abonado.value = "";
+  number.value = "";
+}
+ 
+function currentDate() {
+  const monthNames = [
+    "Enero",
+    "Febrero",
+    "Marzo",
+    "Abril",
+    "Mayo",
+    "Junio",
+    "Julio",
+    "Agosto",
+    "Septiembre",
+    "Octubre",
+    "Noviembre",
+    "Diciembre",
+  ];
+  const current = new Date();
+  const date = `${current.getDate()} de ${
+    monthNames[current.getMonth()]
+  } del ${current.getFullYear()}`;
+  return date;
+}
+function calcularProfit() {
+  nextTick(() => {
+    setTimeout(() => {
+      let house = controlGastosStore.master_houses || [];
+      let egr = controlGastosStore.master_egresos || [];
+      ingreso_pr.value = house
+        .map((element) => {
+          return element.total_total_pr_ingresos as number;
+        })
+        .reduce((a, b) => {
+          return a + b;
+        }, 0);
+      ingreso_op.value = house
+        .map((element) => {
+          return element.total_total_op_ingresos as number;
+        })
+        .reduce((a, b) => {
+          return a + b;
+        }, 0);
+
+      egreso_pr.value = egr
+        .map((element) => {
+          return element.total_total_pr as number;
+        })
+        .reduce((a, b) => {
+          return a + b;
+        }, 0);
+      egreso_op.value = egr
+        .map((element) => {
+          return element.total_total_op as number;
+        })
+        .reduce((a, b) => {
+          return a + b;
+        }, 0);
+    }, 1000);
+  });
+}
+async function imprimirControlDetallado(guardarEnCarpeta: boolean) {
+  // vm._calcularTotales();
+  if (!guardarEnCarpeta) {
+    Swal.fire({
+      icon: "info",
+      title: "Generando PDF...",
+      text: "Por favor espere",
+    });
+  } else {
+    Swal.fire({
+      icon: "warning",
+      title: "Moviendo",
+      text: "Se avisará cuando se haya guardado",
+      timer: 2000,
+    });
+  }
+  var config = {
+    method: "post",
+    url: import.meta.env.VITE_URL_MAIN + "getPdfInstructivoDetallado",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    data: {
+      ...route.params,
+      guardarEnCarpeta: guardarEnCarpeta,
+      asociadoflag:false,
+      folders_quote:
+        controlGastosStore.listControlGastos[0]!.folders_quote,
+    },
+  };
+  await axios<{ path: string }>(config)
+    .then(function (response) {
+      Swal.fire({
+        icon: "success",
+        title: guardarEnCarpeta ? "PDF Guardado" : "PDF Generado",
+        text: guardarEnCarpeta
+          ? "Se guardó en la carpeta el pdf."
+          : "El PDF se descargará automaticamente",
+      });
+      if (!guardarEnCarpeta) {
+        window.open(
+          import.meta.env.VITE_URL_MAIN + response.data.path,
+          "_blank",
+        );
+      }
+    })
+    .catch(function (error) {
+      console.error(error);
+    });
+}
+
+function departamentoSesion() {
+  return (JSON.parse(sessionStorage.getItem("dataUser") as string) as { departamento: number }[])[0]!.departamento;
+}
+
+onMounted(async () => {
+  rootStore.state.spiner = true;
+  prFlag.value =
+    departamentoSesion() == 1
+      ? true
+      : false;
+  opFlag.value =
+    departamentoSesion() == 2
+      ? true
+      : false;
+  controlGastosStore.getListControlGastos(route.params.id as string);
+  await Promise.all([
+    controlGastosStore.getListControlGastosHouses(route.params.id as string),
+    controlGastosStore.getListControlGastosMaster(route.params.id as string),
+  ]);
+  rootStore.state.spiner = false;
+  await Promise.all([
+    enterprisesStore.obtenerImpuestoXEmpresa(route.params.id_branch as string),
+    controlGastosStore.cargarCorrelativo(),
+    rootStore.dispatch("cargarBranch"),
+    rootStore.dispatch("_getBanksList"),
+    rootStore.dispatch("_getCoinsList"),
+    bancosStore.getListBanksDetailsCargar(),
+  ]);
+  await rootStore.dispatch("_getProveedor"), calcularProfit();
+  codigo_master =
+    controlGastosStore.listControlGastos[0]!.master_nromaster;
+  rootStore.state.spiner = false;
+});
+</script>
+
 <template>
   <v-container fluid class="py-0 mx-0">
     <v-row>
@@ -151,8 +411,8 @@
           </template>
           <h2>
             PROFIT PR:
-            {{ parseFloat(ingreso_pr - egreso_pr).toFixed(2) }} USD / OP:
-            {{ parseFloat(ingreso_op - egreso_op).toFixed(2) }} USD
+            {{ parseFloat(String(ingreso_pr - egreso_pr)).toFixed(2) }} USD / OP:
+            {{ parseFloat(String(ingreso_op - egreso_op)).toFixed(2) }} USD
           </h2>
         </v-alert>
 
@@ -193,12 +453,12 @@
           v-if="
             Object.keys(controlGastosStore.listControlGastos).length >
               0 &&
-            controlGastosStore.listControlGastos[0].url_folderonedrive
+            controlGastosStore.listControlGastos[0]!.url_folderonedrive
           "
           @click="
             to_direct({
-              url: controlGastosStore.listControlGastos[0]
-                .url_folderonedrive,
+              url: controlGastosStore.listControlGastos[0]!
+                .url_folderonedrive as string,
             })
           "
         >
@@ -235,323 +495,6 @@
     </v-row>
   </v-container>
 </template>
-<script>
-import { defineAsyncComponent } from "vue";
-import { mapState, mapActions } from "vuex";
-import moment from "moment";
-import axios from "@/api/http";
-import Swal from "sweetalert2";
-import { mapActions as mapPiniaActions, mapStores } from "pinia";
-import { useEnterprisesStore } from "@/stores/enterprises";
-import { useFilesStore } from "@/stores/files";
-import { useBancosStore } from "@/stores/bancos";
-import { useControlGastosStore } from "@/stores/controlGastos";
-export default {
-  props: {
-    editable: {
-      type: Boolean,
-      default: true,
-    },
-  },
-  components: {
-    Ingresos: defineAsyncComponent(() => import("./ingresos.vue")),
-    Egresos: defineAsyncComponent(() => import("./egresos.vue")),
-  },
-  data: () => {
-    return {
-      dataProveedor: null,
-
-      loadingFile: false,
-      errfile: "",
-      msgfile: "",
-      id: "",
-      id_coins: null,
-
-      ingreso_pr: 0,
-      egreso_pr: 0,
-      ingreso_op: 0,
-      egreso_op: 0,
-      loading: false,
-      dialog: false,
-      dialogListInvoince: false,
-      dialogInvoice: false,
-      // dialogDebs: false,
-      dialogFacturar: false,
-      dialogIngreso: false,
-      dialogEngreso: false,
-      dialogDebsEdit: false,
-      prFlag: false,
-      opFlag: false,
-      // dialogNewDebs: false,
-      datosFactura: false,
-
-      id_branch: null,
-      proveedorId: null,
-
-      conceptos: [],
-      statusBtn: 1,
-      id_correlativo: 1,
-
-      pathfile: "",
-      payPath: "",
-
-      pathfileAll: "",
-      // date: new Date(Date.now() - new Date().getTimezoneOffset() * 60000)
-      //   .toISOString()
-      //   .substr(0, 10),
-      menu: false,
-      number: "",
-      id_banks: "",
-
-      monto: 0.0,
-      monto_abonado: "",
-      id_cuenta_pic: "",
-      cuentas: [],
-      tipocambio: 1,
-      comentario: "",
-      itemsListInvoice: [],
-
-      id_house: null,
-
-      sPaymentId: "",
-      dataList: [],
-
-      search: null,
-
-      egreso_pr: 0,
-      egreso_op: 0,
-      selected: [],
-      // sufmoneda: "",
-      id_correlativo: null,
-      id_master: null,
-      egreso: null,
-      msgFile: "",
-      errFile: "",
-    };
-  },
-  computed: {
-    ...mapStores(useControlGastosStore),
-  },
-  methods: {
-    ...mapActions([
-      "cargarBranch",
-      "_getBanksList",
-      "_getCoinsList",
-      "_getProveedor",
-    ]),
-    ...mapPiniaActions(useControlGastosStore, ["getListControlGastos", "getListControlGastosHouses", "getListControlGastosMaster", "setControl", "cargarCorrelativo", "guardarCuotasCgeTipoProveedor"]),
-    ...mapPiniaActions(useBancosStore, ["getListBanksDetailsCargar"]),
-    ...mapPiniaActions(useFilesStore, ["_uploadFile"]),
-    ...mapPiniaActions(useEnterprisesStore, ["obtenerImpuestoXEmpresa"]),
-    // ...mapAction([])
-    // --------------------
-    irAEditar() {
-      let id_branch =
-        this.controlGastosStore.listControlGastos[0].id_branch;
-      if (
-        !(
-          JSON.parse(sessionStorage.getItem("dataUser"))[0].id_branch ==
-          id_branch
-        )
-      ) {
-        Swal.fire({
-          icon: "error",
-          text: "El expediente pertenece a otra sucursal, por favor logueese con la otra sucursal.",
-        });
-        return;
-      }
-      this.$router.push({
-        name: "editControlGasto",
-        params: {
-          id: this.$route.params.id,
-          id_branch: id_branch,
-        },
-      });
-    },
-    to_direct({ url }) {
-      window.open(url, "_blank");
-    },
-    // --------------------
-    async recargarDatos() {
-      this.$store.state.spiner = true;
-      await Promise.all([
-        this.getListControlGastos(this.$route.params.id),
-        this.getListControlGastosHouses(this.$route.params.id),
-        this.getListControlGastosMaster(this.$route.params.id),
-      ]);
-      this.$store.state.spiner = false;
-      this._getCoinsList();
-    },
-    calcularMontoDolar() {
-      this.monto = parseFloat(
-        (this.monto_abonado ? this.monto_abonado : 0) / this.tipocambio,
-      ).toFixed(2);
-    },
-
-    openDoc(path) {
-      window.open(path, "_blank");
-    },
-    cleandData() {
-      this.date = new Date(Date.now() - new Date().getTimezoneOffset() * 60000)
-        .toISOString()
-        .substr(0, 10);
-      this.number = "";
-      this.monto = 0;
-      this.comentario = "";
-      this.payfile = [];
-      this.payPath = "";
-      this.boolFile = false;
-      this.id_cuenta_pic = "";
-      this.tipocambio = 1;
-      this.id_coins = "";
-      this.monto_abonado = "";
-      this.number = "";
-    },
-    currentDate() {
-      const monthNames = [
-        "Enero",
-        "Febrero",
-        "Marzo",
-        "Abril",
-        "Mayo",
-        "Junio",
-        "Julio",
-        "Agosto",
-        "Septiembre",
-        "Octubre",
-        "Noviembre",
-        "Diciembre",
-      ];
-      const current = new Date();
-      const date = `${current.getDate()} de ${
-        monthNames[current.getMonth()]
-      } del ${current.getFullYear()}`;
-      return date;
-    },
-
-    calcularProfit() {
-      this.$nextTick(() => {
-        setTimeout(() => {
-          let house = this.controlGastosStore.master_houses || [];
-          let egr = this.controlGastosStore.master_egresos || [];
-          this.ingreso_pr = house
-            .map((element) => {
-              return element.total_total_pr_ingresos;
-            })
-            .reduce((a, b) => {
-              return a + b;
-            }, 0);
-          this.ingreso_op = house
-            .map((element) => {
-              return element.total_total_op_ingresos;
-            })
-            .reduce((a, b) => {
-              return a + b;
-            }, 0);
-
-          this.egreso_pr = egr
-            .map((element) => {
-              return element.total_total_pr;
-            })
-            .reduce((a, b) => {
-              return a + b;
-            }, 0);
-          this.egreso_op = egr
-            .map((element) => {
-              return element.total_total_op;
-            })
-            .reduce((a, b) => {
-              return a + b;
-            }, 0);
-        }, 1000);
-        this.$forceUpdate();
-      });
-    },
-    async imprimirControlDetallado(guardarEnCarpeta) {
-      var vm = this;
-      // vm._calcularTotales();
-      if (!guardarEnCarpeta) {
-        vm.$swal({
-          icon: "info",
-          title: "Generando PDF...",
-          text: "Por favor espere",
-        });
-      } else {
-        vm.$swal({
-          icon: "warning",
-          title: "Moviendo",
-          text: "Se avisará cuando se haya guardado",
-          timer: 2000,
-        });
-      }
-      var config = {
-        method: "post",
-        url: import.meta.env.VITE_URL_MAIN + "getPdfInstructivoDetallado",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        data: {
-          ...this.$route.params,
-          guardarEnCarpeta: guardarEnCarpeta,
-          asociadoflag:false,
-          folders_quote:
-            this.controlGastosStore.listControlGastos[0].folders_quote,
-        },
-      };
-      await axios(config)
-        .then(function (response) {
-          vm.$swal({
-            icon: "success",
-            title: guardarEnCarpeta ? "PDF Guardado" : "PDF Generado",
-            text: guardarEnCarpeta
-              ? "Se guardó en la carpeta el pdf."
-              : "El PDF se descargará automaticamente",
-          });
-          if (!guardarEnCarpeta) {
-            window.open(
-              import.meta.env.VITE_URL_MAIN + response.data.path,
-              "_blank",
-            );
-          }
-        })
-        .catch(function (error) {
-          console.error(error);
-        });
-    },
-  },
-
-  // ----------------------------------------------------------
-  async mounted() {
-    this.$store.state.spiner = true;
-    this.prFlag =
-      JSON.parse(sessionStorage.getItem("dataUser"))[0].departamento == 1
-        ? true
-        : false;
-    this.opFlag =
-      JSON.parse(sessionStorage.getItem("dataUser"))[0].departamento == 2
-        ? true
-        : false;
-    this.getListControlGastos(this.$route.params.id);
-    await Promise.all([
-      this.getListControlGastosHouses(this.$route.params.id),
-      this.getListControlGastosMaster(this.$route.params.id),
-    ]);
-    this.$store.state.spiner = false;
-    await Promise.all([
-      this.obtenerImpuestoXEmpresa(this.$route.params.id_branch),
-      this.cargarCorrelativo(),
-      this.cargarBranch(),
-      this._getBanksList(),
-      this._getCoinsList(),
-      this.getListBanksDetailsCargar(),
-    ]);
-    await this._getProveedor(), this.calcularProfit();
-    this.codigo_master =
-      this.controlGastosStore.listControlGastos[0].master_nromaster;
-    this.$store.state.spiner = false;
-  },
-};
-</script>
 
 <style lang="scss" scoped>
 .divExped {
