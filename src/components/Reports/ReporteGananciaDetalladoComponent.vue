@@ -1,38 +1,351 @@
+<script setup lang="ts">
+import { computed, onMounted, ref, watch } from "vue";
+import { useRoute, useRouter } from "vue-router";
+import { useStore } from "vuex";
+import { useReportesStore } from "@/stores/reportes";
+import type {
+  DetalleExpedienteMes,
+  TotalesMasterGeneralAgrupadoReporte,
+} from "@/types/reportes";
+
+const rootStore = useStore();
+const route = useRoute();
+const appRouter = useRouter();
+const reportesStore = useReportesStore();
+
+const year = ref(2026);
+const page = ref(1);
+const itemsPerPage = ref(10);
+const anios = [2024, 2025, 2026];
+
+const elementPorPage = [
+  { value: 10, label: "10" },
+  { value: 20, label: "20" },
+  { value: 25, label: "25" },
+  { value: 50, label: "50" },
+  { value: 100, label: "100" },
+  { value: -1, label: "Todos" },
+];
+const menuMeses = ref(false);
+
+const mesesSeleccionados = ref([
+  "01",
+  "02",
+  "03",
+  "04",
+  "05",
+  "06",
+  "07",
+  "08",
+  "09",
+  "10",
+  "11",
+  "12",
+]);
+
+const mesesTemporales = ref([
+  "01",
+  "02",
+  "03",
+  "04",
+  "05",
+  "06",
+  "07",
+  "08",
+  "09",
+  "10",
+  "11",
+  "12",
+]);
+
+const pagina = ref(1);
+
+const meses = [
+  {
+    value: "01",
+    text: "Enero",
+  },
+  {
+    value: "02",
+    text: "Febrero",
+  },
+  {
+    value: "03",
+    text: "Marzo",
+  },
+  {
+    value: "04",
+    text: "Abril",
+  },
+  {
+    value: "05",
+    text: "Mayo",
+  },
+  {
+    value: "06",
+    text: "Junio",
+  },
+  {
+    value: "07",
+    text: "Julio",
+  },
+  {
+    value: "08",
+    text: "Agosto",
+  },
+  {
+    value: "09",
+    text: "Septiembre",
+  },
+  {
+    value: "10",
+    text: "Octubre",
+  },
+  {
+    value: "11",
+    text: "Noviembre",
+  },
+  {
+    value: "12",
+    text: "Diciembre",
+  },
+];
+
+const headers = [
+  { key: "mes", title: "MES" },
+  { key: "exp_codemaster", title: "EXP" },
+  { key: "cliente", title: "CLIENTE" },
+  { key: "tipo_embarque", title: "TIPO EMBARQUE", align: "center" },
+  { key: "total_pr", title: "GANANCIA PRICING (USD)", align: "center" },
+  {
+    key: "total_op",
+    title: "GANANCIA OPERACIONES (USD)",
+    align: "center",
+  },
+] as const;
+
+const todosLosMeses = computed(() => {
+  return mesesTemporales.value.length === meses.length;
+});
+
+const mesesTexto = computed(() => {
+  if (mesesSeleccionados.value.length === 0) {
+    return "Ninguno";
+  }
+
+  if (mesesSeleccionados.value.length === 12) {
+    return "Todos los meses";
+  }
+
+  return meses
+    .filter((m) => mesesSeleccionados.value.includes(m.value))
+    .map((m) => m.text)
+    .join(", ");
+});
+const totalMasterAgrupado = computed(
+  () =>
+    (reportesStore.totalMasterAgrupado || {
+      total_clientes: 0,
+      total_expedientes: 0,
+      total_op: 0,
+      total_pr: 0,
+    }) as unknown as TotalesMasterGeneralAgrupadoReporte,
+);
+
+const totalMasterPorMes = computed(
+  () => (reportesStore.totalMasterPorMes || []) as unknown as DetalleExpedienteMes[],
+);
+const totalPaginas = computed(() => {
+  if (itemsPerPage.value < 0) {
+    return 1;
+  }
+  return Math.ceil(totalMasterPorMes.value.length / itemsPerPage.value);
+});
+
+onMounted(() => {
+  const { code_mes, year: queryYear } = route.query;
+  console.log("query", route.query);
+  if (code_mes && queryYear) {
+    mesesSeleccionados.value = [code_mes as string];
+    mesesTemporales.value = [code_mes as string];
+    year.value = Number(queryYear);
+    console.log("year", queryYear);
+    recargarFiltro();
+    return;
+  }
+  recargarFiltro();
+});
+
+watch(itemsPerPage, () => {
+  page.value = 1;
+});
+
+async function recargarFiltro(): Promise<void> {
+  rootStore.state.spiner = true;
+  page.value = 1;
+  await Promise.all([
+    reportesStore.getTotalesMasterGeneralAgrupado({
+      year: year.value,
+      mes: mesesSeleccionados.value.join(","),
+    }),
+    reportesStore.getTotalesMasterGeneralPorMes({
+      year: year.value,
+      mes: mesesSeleccionados.value.join(","),
+    }),
+  ]);
+  rootStore.state.spiner = false;
+}
+function toggleMes(value: string): void {
+  const index = mesesTemporales.value.indexOf(value);
+
+  if (index === -1) {
+    mesesTemporales.value.push(value);
+  } else {
+    mesesTemporales.value.splice(index, 1);
+  }
+}
+
+function toggleTodos(): void {
+  if (mesesTemporales.value.length === 12) {
+    mesesTemporales.value = [];
+  } else {
+    mesesTemporales.value = meses.map((mes) => mes.value);
+  }
+}
+
+function cancelarMeses(): void {
+  mesesTemporales.value = [...mesesSeleccionados.value];
+
+  menuMeses.value = false;
+}
+
+function aplicarMeses(): void {
+  mesesSeleccionados.value = [...mesesTemporales.value];
+
+  menuMeses.value = false;
+}
+
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+function aplicarFiltros(): void {
+  recargarFiltro();
+}
+
+function compararAnos(): void {
+  console.log("Comparar años anteriores");
+}
+
+function imprimirPDF(): void {
+  reportesStore.imprimirReporteGananciaDetallado({
+    year: year.value,
+    mes: mesesSeleccionados.value.join(","),
+  });
+}
+
+function volverReporte(): void {
+  appRouter.push({
+    name: "ReporteGanancia",
+  });
+}
+
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+function paginaAnterior(): void {
+  if (pagina.value > 1) {
+    pagina.value--;
+  }
+}
+
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+function paginaSiguiente(): void {
+  pagina.value++;
+}
+
+function formatMoney(value: unknown): string {
+  return Number(value).toLocaleString("en-US", {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  });
+}
+
+function shipmentClass(tipo: string): string {
+  switch (tipo) {
+    case "LCL":
+      return "shipment-lcl";
+
+    case "FCL":
+      return "shipment-fcl";
+
+    case "AÉREO":
+      return "shipment-grupal";
+
+    default:
+      return "";
+  }
+}
+</script>
+
 <template>
   <v-container fluid>
     <!-- CONTENEDOR PRINCIPAL -->
-    <v-card class="main-card" flat>
+    <v-card
+      class="main-card"
+      flat
+    >
       <!-- HEADER -->
 
       <div class="header-section">
-        <v-btn variant="text" size="small" class="back-btn" @click="volverReporte">
-          <v-icon size="small" start>mdi-arrow-left</v-icon>
+        <v-btn
+          variant="text"
+          size="small"
+          class="back-btn"
+          @click="volverReporte"
+        >
+          <v-icon
+            size="small"
+            start
+          >
+            mdi-arrow-left
+          </v-icon>
           Volver al reporte general
         </v-btn>
-        <h1 class="page-title">DETALLE DE EXPEDIENTES</h1>
+        <h1 class="page-title">
+          DETALLE DE EXPEDIENTES
+        </h1>
 
         <!-- MENSAJE INFORMATIVO -->
         <div class="info-message">
-          <v-icon size="small">mdi-information</v-icon>
+          <v-icon size="small">
+            mdi-information
+          </v-icon>
 
           <span>
             Los datos mostrados corresponden al año
             <strong>{{ year }}</strong>
             y a los meses seleccionados:
-            <strong>{{ mesesTexto }}</strong
-            >.
+            <strong>{{ mesesTexto }}</strong>.
           </span>
         </div>
       </div>
 
       <!-- FILTROS -->
-      <v-card class="filters-card" flat border>
-        <v-row no-gutters class="filters-row align-center">
+      <v-card
+        class="filters-card"
+        flat
+        border
+      >
+        <v-row
+          no-gutters
+          class="filters-row align-center"
+        >
           <!-- AÑO -->
-          <v-col cols="12" sm="2" class="filter-col">
+          <v-col
+            cols="12"
+            sm="2"
+            class="filter-col"
+          >
             <label>Año</label>
 
-            <v-select item-title="text"
+            <v-select
+              item-title="text"
               v-model="year"
               :items="anios"
               density="compact"
@@ -45,14 +358,19 @@
           </v-col>
 
           <!-- MESES -->
-          <v-col cols="12" sm="3" md="2" class="filter-col">
+          <v-col
+            cols="12"
+            sm="3"
+            md="2"
+            class="filter-col"
+          >
             <label>Meses</label>
 
             <v-menu
               v-model="menuMeses"
               :close-on-content-click="false"
             >
-              <template v-slot:activator="{ props }">
+              <template #activator="{ props }">
                 <v-btn
                  
                   v-bind="props"
@@ -64,14 +382,22 @@
                     Seleccionar meses ({{ mesesSeleccionados.length }})
                   </span>
 
-                  <v-icon size="small" end> mdi-chevron-down </v-icon>
+                  <v-icon
+                    size="small"
+                    end
+                  >
+                    mdi-chevron-down
+                  </v-icon>
                 </v-btn>
               </template>
 
               <v-card class="">
                 <v-list density="compact">
                   <!-- TODOS -->
-                  <v-list-item density="compact" @click="toggleTodos">
+                  <v-list-item
+                    density="compact"
+                    @click="toggleTodos"
+                  >
                     <v-list-item-action>
                       <v-checkbox
                         :model-value="todosLosMeses"
@@ -81,8 +407,7 @@
                     </v-list-item-action>
 
                     
-                      <v-list-item-title> Todos los meses </v-list-item-title>
-                    
+                    <v-list-item-title> Todos los meses </v-list-item-title>
                   </v-list-item>
 
                   <v-divider />
@@ -103,19 +428,29 @@
                     </v-list-item-action>
 
                     
-                      <v-list-item-title>
-                        {{ mes.text }}
-                      </v-list-item-title>
-                    
+                    <v-list-item-title>
+                      {{ mes.text }}
+                    </v-list-item-title>
                   </v-list-item>
                 </v-list>
 
                 <v-divider />
 
                 <div class="menu-actions">
-                  <v-btn variant="text" size="small" @click="cancelarMeses"> Cancelar </v-btn>
+                  <v-btn
+                    variant="text"
+                    size="small"
+                    @click="cancelarMeses"
+                  >
+                    Cancelar
+                  </v-btn>
 
-                  <v-btn color="primary" size="small" variant="flat" @click="aplicarMeses">
+                  <v-btn
+                    color="primary"
+                    size="small"
+                    variant="flat"
+                    @click="aplicarMeses"
+                  >
                     Aplicar
                   </v-btn>
                 </div>
@@ -130,8 +465,17 @@
             md="2"
             class="filter-col compare-col"
           >
-            <v-btn variant="outlined" class="compare-btn" @click="compararAnos">
-              <v-icon size="small" start> mdi-calendar-sync </v-icon>
+            <v-btn
+              variant="outlined"
+              class="compare-btn"
+              @click="compararAnos"
+            >
+              <v-icon
+                size="small"
+                start
+              >
+                mdi-calendar-sync
+              </v-icon>
 
               Comparar con años anteriores
             </v-btn>
@@ -140,16 +484,36 @@
           <v-spacer />
 
           <!-- IMPRIMIR -->
-          <v-col cols="6" sm="2" md="2" class="action-col mt-4 mx-10">
-            <v-btn variant="outlined" block class="print-btn" @click="imprimirPDF">
-              <v-icon size="small" start> mdi-printer </v-icon>
+          <v-col
+            cols="6"
+            sm="2"
+            md="2"
+            class="action-col mt-4 mx-10"
+          >
+            <v-btn
+              variant="outlined"
+              block
+              class="print-btn"
+              @click="imprimirPDF"
+            >
+              <v-icon
+                size="small"
+                start
+              >
+                mdi-printer
+              </v-icon>
 
               Imprimir PDF
             </v-btn>
           </v-col>
 
           <!-- FILTROS -->
-          <v-col cols="6" sm="2" md="2" class="action-col mt-4 mx-10">
+          <v-col
+            cols="6"
+            sm="2"
+            md="2"
+            class="action-col mt-4 mx-10"
+          >
             <v-btn
               color="primary"
               block
@@ -157,7 +521,12 @@
               class="apply-filter-btn"
               @click="recargarFiltro()"
             >
-              <v-icon size="small" start> mdi-filter </v-icon>
+              <v-icon
+                size="small"
+                start
+              >
+                mdi-filter
+              </v-icon>
 
               Aplicar filtros
             </v-btn>
@@ -166,12 +535,23 @@
       </v-card>
 
       <!-- KPIs -->
-      <v-row class="kpi-row" no-gutters>
+      <v-row
+        class="kpi-row"
+        no-gutters
+      >
         <!-- EXPEDIENTES -->
-        <v-col cols="12" sm="6" md="3">
+        <v-col
+          cols="12"
+          sm="6"
+          md="3"
+        >
           <div class="kpi-card">
             <div>
-              <v-icon color="blue" class="mr-5" size="50px">
+              <v-icon
+                color="blue"
+                class="mr-5"
+                size="50px"
+              >
                 mdi-folder-open
               </v-icon>
             </div>
@@ -179,7 +559,7 @@
             <div class="kpi-content">
               <div class="kpi-label">
                 TOTAL
-                <br />
+                <br>
                 EXPEDIENTES
               </div>
 
@@ -191,10 +571,18 @@
         </v-col>
 
         <!-- CLIENTES -->
-        <v-col cols="12" sm="6" md="3">
+        <v-col
+          cols="12"
+          sm="6"
+          md="3"
+        >
           <div class="kpi-card">
             <div>
-              <v-icon color="orange" class="mr-5" size="50px">
+              <v-icon
+                color="orange"
+                class="mr-5"
+                size="50px"
+              >
                 mdi-account-group
               </v-icon>
             </div>
@@ -202,7 +590,7 @@
             <div class="kpi-content">
               <div class="kpi-label">
                 TOTAL
-                <br />
+                <br>
                 CLIENTES
               </div>
 
@@ -214,14 +602,26 @@
         </v-col>
 
         <!-- GANANCIA PRICING -->
-        <v-col cols="12" sm="6" md="3">
+        <v-col
+          cols="12"
+          sm="6"
+          md="3"
+        >
           <div class="kpi-card">
             <div>
-              <v-icon color="purple" class="mr-5" size="50px"> mdi-tag </v-icon>
+              <v-icon
+                color="purple"
+                class="mr-5"
+                size="50px"
+              >
+                mdi-tag
+              </v-icon>
             </div>
 
             <div class="kpi-content">
-              <div class="kpi-label">GANANCIA S/ PRICING</div>
+              <div class="kpi-label">
+                GANANCIA S/ PRICING
+              </div>
 
               <div class="kpi-value purple-text">
                 USD {{ formatMoney(totalMasterAgrupado.total_pr) }}
@@ -231,14 +631,26 @@
         </v-col>
 
         <!-- GANANCIA OPERACIONES -->
-        <v-col cols="12" sm="6" md="3">
+        <v-col
+          cols="12"
+          sm="6"
+          md="3"
+        >
           <div class="kpi-card">
             <div>
-              <v-icon color="green" class="mr-5" size="50px"> mdi-cog </v-icon>
+              <v-icon
+                color="green"
+                class="mr-5"
+                size="50px"
+              >
+                mdi-cog
+              </v-icon>
             </div>
 
             <div class="kpi-content">
-              <div class="kpi-label">GANANCIA S/ OPERACIONES</div>
+              <div class="kpi-label">
+                GANANCIA S/ OPERACIONES
+              </div>
 
               <div class="kpi-value green-text">
                 USD {{ formatMoney(totalMasterAgrupado.total_op) }}
@@ -257,18 +669,21 @@
         :page="page"
         :items-per-page="itemsPerPage"
       >
-        <template v-slot:[`item.mes`]="{ item }">
-          <span class="month-badge" :class="'month-' + item.mesnumero">
+        <template #[`item.mes`]="{ item }">
+          <span
+            class="month-badge"
+            :class="'month-' + item.mesnumero"
+          >
             {{ item.mes }}
           </span>
         </template>
-        <template v-slot:[`item.exp_codemaster`]="{ item }">
+        <template #[`item.exp_codemaster`]="{ item }">
           <span class="expediente">
             {{ item.exp_codemaster }}
           </span>
         </template>
 
-        <template v-slot:[`item.tipo_embarque`]="{ item }">
+        <template #[`item.tipo_embarque`]="{ item }">
           <span
             class="shipment-badge"
             :class="shipmentClass(item.tipo_embarque)"
@@ -277,13 +692,13 @@
           </span>
         </template>
 
-        <template v-slot:[`item.total_pr`]="{ item }">
+        <template #[`item.total_pr`]="{ item }">
           <span class="money">
             {{ formatMoney(item.total_pr) }}
           </span>
         </template>
 
-        <template v-slot:[`item.total_op`]="{ item }">
+        <template #[`item.total_op`]="{ item }">
           <span class="money">
             {{ formatMoney(item.total_op) }}
           </span>
@@ -312,7 +727,7 @@
             hide-details
             density="compact"
             style="max-width: 150px"
-          ></v-select>
+          />
           <v-pagination
             v-model="page"
             :total-visible="10"
@@ -342,7 +757,9 @@
         </div>
 
         <div>
-          <div class="note-title">Nota:</div>
+          <div class="note-title">
+            Nota:
+          </div>
 
           <div class="note-text">
             Los datos mostrados corresponden al periodo y filtros seleccionados.
@@ -352,290 +769,6 @@
     </v-card>
   </v-container>
 </template>
-
-<script>
-import { mapActions as mapPiniaActions, mapStores } from "pinia";
-import { useReportesStore } from "@/stores/reportes";
-export default {
-  name: "DetalleExpedientes",
-
-  data() {
-    return {
-      year: 2026,
-      page: 1,
-      itemsPerPage: 10,
-      anios: [2024, 2025, 2026],
-
-      elementPorPage: [
-        { value: 10, label: "10" },
-        { value: 20, label: "20" },
-        { value: 25, label: "25" },
-        { value: 50, label: "50" },
-        { value: 100, label: "100" },
-        { value: -1, label: "Todos" },
-      ],
-      menuMeses: false,
-
-      mesesSeleccionados: [
-        "01",
-        "02",
-        "03",
-        "04",
-        "05",
-        "06",
-        "07",
-        "08",
-        "09",
-        "10",
-        "11",
-        "12",
-      ],
-
-      mesesTemporales: [
-        "01",
-        "02",
-        "03",
-        "04",
-        "05",
-        "06",
-        "07",
-        "08",
-        "09",
-        "10",
-        "11",
-        "12",
-      ],
-
-      pagina: 1,
-
-      meses: [
-        {
-          value: "01",
-          text: "Enero",
-        },
-        {
-          value: "02",
-          text: "Febrero",
-        },
-        {
-          value: "03",
-          text: "Marzo",
-        },
-        {
-          value: "04",
-          text: "Abril",
-        },
-        {
-          value: "05",
-          text: "Mayo",
-        },
-        {
-          value: "06",
-          text: "Junio",
-        },
-        {
-          value: "07",
-          text: "Julio",
-        },
-        {
-          value: "08",
-          text: "Agosto",
-        },
-        {
-          value: "09",
-          text: "Septiembre",
-        },
-        {
-          value: "10",
-          text: "Octubre",
-        },
-        {
-          value: "11",
-          text: "Noviembre",
-        },
-        {
-          value: "12",
-          text: "Diciembre",
-        },
-      ],
-
-      headers: [
-        { key: "mes", title: "MES" },
-        { key: "exp_codemaster", title: "EXP" },
-        { key: "cliente", title: "CLIENTE" },
-        { key: "tipo_embarque", title: "TIPO EMBARQUE", align: "center" },
-        { key: "total_pr", title: "GANANCIA PRICING (USD)", align: "center" },
-        {
-          key: "total_op",
-          title: "GANANCIA OPERACIONES (USD)",
-          align: "center",
-        },
-      ],
-    };
-  },
-
-  computed: {
-    ...mapStores(useReportesStore),
-    todosLosMeses() {
-      return this.mesesTemporales.length === this.meses.length;
-    },
-
-    mesesTexto() {
-      if (this.mesesSeleccionados.length === 0) {
-        return "Ninguno";
-      }
-
-      if (this.mesesSeleccionados.length === 12) {
-        return "Todos los meses";
-      }
-
-      return this.meses
-        .filter((m) => this.mesesSeleccionados.includes(m.value))
-        .map((m) => m.text)
-        .join(", ");
-    },
-    totalMasterAgrupado() {
-      return (
-        this.reportesStore.totalMasterAgrupado || {
-          total_clientes: 0,
-          total_expedientes: 0,
-          total_op: 0,
-          total_pr: 0,
-        }
-      );
-    },
-
-    totalMasterPorMes() {
-      return this.reportesStore.totalMasterPorMes || [];
-    },
-    totalPaginas() {
-      if (this.itemsPerPage < 0) {
-        return 1;
-      }
-      return Math.ceil(this.totalMasterPorMes.length / this.itemsPerPage);
-    },
-  },
-  mounted() {
-    const { code_mes, year } = this.$route.query;
-    console.log("query", this.$route.query);
-    if (code_mes && year) {
-      this.mesesSeleccionados = [code_mes];
-      this.mesesTemporales = [code_mes];
-      this.year = Number(year);
-      console.log("year", year);
-      this.recargarFiltro();
-      return;
-    }
-    this.recargarFiltro();
-  },
-  methods: {
-    ...mapPiniaActions(useReportesStore, ["getTotalesMasterGeneralAgrupado", "getTotalesMasterGeneralPorMes", "imprimirReporteGananciaDetallado"]),
-    async recargarFiltro() {
-      this.$store.state.spiner = true;
-      this.page = 1;
-      await Promise.all([
-        this.getTotalesMasterGeneralAgrupado({
-          year: this.year,
-          mes: this.mesesSeleccionados.join(","),
-        }),
-        this.getTotalesMasterGeneralPorMes({
-          year: this.year,
-          mes: this.mesesSeleccionados.join(","),
-        }),
-      ]);
-      this.$store.state.spiner = false;
-    },
-    toggleMes(value) {
-      const index = this.mesesTemporales.indexOf(value);
-
-      if (index === -1) {
-        this.mesesTemporales.push(value);
-      } else {
-        this.mesesTemporales.splice(index, 1);
-      }
-    },
-
-    toggleTodos() {
-      if (this.mesesTemporales.length === 12) {
-        this.mesesTemporales = [];
-      } else {
-        this.mesesTemporales = this.meses.map((mes) => mes.value);
-      }
-    },
-
-    cancelarMeses() {
-      this.mesesTemporales = [...this.mesesSeleccionados];
-
-      this.menuMeses = false;
-    },
-
-    aplicarMeses() {
-      this.mesesSeleccionados = [...this.mesesTemporales];
-
-      this.menuMeses = false;
-    },
-
-    aplicarFiltros() {
-      this.recargarFiltro();
-    },
-
-    compararAnos() {
-      console.log("Comparar años anteriores");
-    },
-
-    imprimirPDF() {
-      this.imprimirReporteGananciaDetallado({
-        year: this.year,
-        mes: this.mesesSeleccionados.join(","),
-      });
-    },
-
-    volverReporte() {
-      this.$router.push({
-        name: "ReporteGanancia",
-      });
-    },
-
-    paginaAnterior() {
-      if (this.pagina > 1) {
-        this.pagina--;
-      }
-    },
-
-    paginaSiguiente() {
-      this.pagina++;
-    },
-
-    formatMoney(value) {
-      return Number(value).toLocaleString("en-US", {
-        minimumFractionDigits: 2,
-        maximumFractionDigits: 2,
-      });
-    },
-
-    shipmentClass(tipo) {
-      switch (tipo) {
-        case "LCL":
-          return "shipment-lcl";
-
-        case "FCL":
-          return "shipment-fcl";
-
-        case "AÉREO":
-          return "shipment-grupal";
-
-        default:
-          return "";
-      }
-    },
-  },
-  watch: {
-    itemsPerPage() {
-      this.page = 1;
-    },
-  },
-};
-</script>
 
 <style scoped>
 /* =========================================================

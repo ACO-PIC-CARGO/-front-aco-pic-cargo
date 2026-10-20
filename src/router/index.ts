@@ -194,12 +194,12 @@ const routes = [
       {
         path: "folderReports/list",
         name: "reportsControlFile",
-        component: () => import("../views/folderReports/reportsControlFile.vue"),
+        component: () => import("../views/folderReports/ReportsControlFileView.vue"),
       },
       {
         path: "folderReports/listDetails",
         name: "reportsControlFileDetails",
-        component: () => import("../views/folderReports/reportsControlFileDetails.vue"),
+        component: () => import("../views/folderReports/ReportsControlFileDetailsView.vue"),
       },
       {
         path: "folderBilling/billControlGastos/:id_house",

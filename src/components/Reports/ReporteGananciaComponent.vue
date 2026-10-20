@@ -1,14 +1,165 @@
+<script setup lang="ts">
+import { computed, onMounted, ref } from "vue";
+import { useRouter } from "vue-router";
+import { useStore } from "vuex";
+import { useReportesStore } from "@/stores/reportes";
+import type { TotalesMasterAgrupadoReporte, TotalMasterMesReporte } from "@/types/reportes";
+
+const rootStore = useStore();
+const appRouter = useRouter();
+const reportesStore = useReportesStore();
+
+const anioSeleccionado = ref(new Date().getFullYear());
+const fechaGeneracion = new Date().toLocaleDateString("es-ES", {
+  day: "2-digit",
+  month: "long",
+  year: "numeric",
+});
+const listaAnios = Array.from({ length: 10 }, (_, i) => new Date().getFullYear() - i);
+
+onMounted(() => {
+  cargarReporte();
+});
+
+// =========================================================
+// DATOS DEL STORE
+// =========================================================
+
+const totalMasterAgrupado = computed(
+  () =>
+    (reportesStore.totalMasterAgrupado || {
+      total_pr: 0,
+      total_op: 0,
+      total_individuales: 0,
+      total_grupales: 0,
+      total_house_individuales: 0,
+      total_house_grupales: 0,
+    }) as unknown as TotalesMasterAgrupadoReporte,
+);
+
+const totalMasterPorMes = computed(
+  () => (reportesStore.totalMasterPorMes || []) as unknown as TotalMasterMesReporte[],
+);
+
+// =========================================================
+// INGRESOS
+// =========================================================
+
+const totalIngresosPricing = computed(() => {
+  return totalMasterPorMes.value.reduce((total, item) => {
+    return total + Number(item.total_pr || 0);
+  }, 0);
+});
+
+const totalIngresosOperaciones = computed(() => {
+  return totalMasterPorMes.value.reduce((total, item) => {
+    return total + Number(item.total_op || 0);
+  }, 0);
+});
+
+// =========================================================
+// EXPEDIENTES
+// =========================================================
+
+const totalExpedientesIndividuales = computed(() => {
+  return totalMasterPorMes.value.reduce((total, item) => {
+    return total + Number(item.total_individuales || 0);
+  }, 0);
+});
+
+const totalExpedientesGrupales = computed(() => {
+  return totalMasterPorMes.value.reduce((total, item) => {
+    return total + Number(item.total_grupales || 0);
+  }, 0);
+});
+
+const totalExpedientes = computed(() => {
+  return totalExpedientesIndividuales.value + totalExpedientesGrupales.value;
+});
+
+// =========================================================
+// CLIENTES
+// =========================================================
+
+const totalClientesIndividuales = computed(() => {
+  return totalMasterPorMes.value.reduce((total, item) => {
+    return total + Number(item.total_house_individuales || 0);
+  }, 0);
+});
+
+const totalClientesGrupales = computed(() => {
+  return totalMasterPorMes.value.reduce((total, item) => {
+    return total + Number(item.total_house_grupales || 0);
+  }, 0);
+});
+
+const totalClientes = computed(() => {
+  return totalClientesIndividuales.value + totalClientesGrupales.value;
+});
+
+function abrirReporteGananciaDetallado(item: TotalMasterMesReporte): void {
+  appRouter.push({
+    name: "ReporteGananciaDetallado",
+    query: { code_mes: item.mes, year: anioSeleccionado.value },
+  });
+}
+function formatMoney(value: unknown): string {
+  return (
+    "USD " +
+    Number(value || 0).toLocaleString("en-US", {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    })
+  );
+}
+
+function cambiarAnio(): void {
+  cargarReporte();
+}
+
+async function cargarReporte(): Promise<void> {
+  rootStore.state.spiner = true;
+  await Promise.all([
+    reportesStore.getTotalesMasterAgrupado({
+      year: anioSeleccionado.value,
+    }),
+
+    reportesStore.getTotalesMasterPorMes({
+      year: anioSeleccionado.value,
+    }),
+  ]);
+  rootStore.state.spiner = false;
+}
+async function imprimir(): Promise<void> {
+  reportesStore.printTotalesMasterPorMes({
+    year: anioSeleccionado.value,
+  });
+}
+</script>
+
 <template>
   <div class="reporte-ganancia px-5 py-4">
-    <div class="titulo-reporte">REPORTE DE GANANCIA</div>
+    <div class="titulo-reporte">
+      REPORTE DE GANANCIA
+    </div>
 
     <div class="filtro-anio">
-      <v-btn variant="outlined" class="print-btn mx-2" @click="imprimir">
-        <v-icon size="small" start> mdi-printer </v-icon>
+      <v-btn
+        variant="outlined"
+        class="print-btn mx-2"
+        @click="imprimir"
+      >
+        <v-icon
+          size="small"
+          start
+        >
+          mdi-printer
+        </v-icon>
         Imprimir PDF
       </v-btn>
 
-      <v-select item-title="text"
+      <v-select
+        item-title="text"
         v-model="anioSeleccionado"
         :items="listaAnios"
         label="Año"
@@ -21,9 +172,12 @@
       />
     </div>
 
-    <v-card border class="info-card">
+    <v-card
+      border
+      class="info-card"
+    >
       <div class="info-icon">
-        <i class="fas fa-info"></i>
+        <i class="fas fa-info" />
       </div>
 
       <div class="info-content">
@@ -53,11 +207,11 @@
       <!-- INGRESOS PRICING -->
       <div class="resumen-item">
         <div class="resumen-icon pricing-icon">
-          <i class="fas fa-tag"></i>
+          <i class="fas fa-tag" />
         </div>
 
         <div class="resumen-label">
-          INGRESOS SEGÚN<br />
+          INGRESOS SEGÚN<br>
           PRICING
         </div>
 
@@ -69,11 +223,11 @@
       <!-- INGRESOS OPERACIONES -->
       <div class="resumen-item">
         <div class="resumen-icon operaciones-icon">
-          <i class="fas fa-cog"></i>
+          <i class="fas fa-cog" />
         </div>
 
         <div class="resumen-label">
-          INGRESOS SEGÚN<br />
+          INGRESOS SEGÚN<br>
           OPERACIONES
         </div>
 
@@ -85,13 +239,15 @@
       <!-- EXPEDIENTES -->
       <div class="resumen-expedientes">
         <div class="grupo-titulo">
-          <i class="far fa-folder-open"></i>
+          <i class="far fa-folder-open" />
           <span>CANTIDAD DE EXPEDIENTES</span>
         </div>
 
         <div class="grupo-columnas">
           <div class="grupo-columna">
-            <div class="columna-label">INDIVIDUALES</div>
+            <div class="columna-label">
+              INDIVIDUALES
+            </div>
 
             <div class="columna-value azul">
               {{ totalMasterAgrupado.total_individuales }}
@@ -99,7 +255,9 @@
           </div>
 
           <div class="grupo-columna">
-            <div class="columna-label">GRUPALES</div>
+            <div class="columna-label">
+              GRUPALES
+            </div>
 
             <div class="columna-value azul">
               {{ totalMasterAgrupado.total_grupales }}
@@ -116,13 +274,15 @@
       <!-- CLIENTES -->
       <div class="resumen-clientes">
         <div class="grupo-titulo">
-          <i class="fas fa-user-friends"></i>
+          <i class="fas fa-user-friends" />
           <span>CANTIDAD DE CLIENTES</span>
         </div>
 
         <div class="grupo-columnas">
           <div class="grupo-columna">
-            <div class="columna-label">INDIVIDUALES</div>
+            <div class="columna-label">
+              INDIVIDUALES
+            </div>
 
             <div class="columna-value naranja">
               {{ totalMasterAgrupado.total_house_individuales }}
@@ -132,7 +292,7 @@
           <div class="grupo-columna">
             <div class="columna-label">
               GRUPALES
-              <br />
+              <br>
               (10 a 15 c/u)
             </div>
 
@@ -142,7 +302,9 @@
           </div>
 
           <div class="grupo-columna total-columna">
-            <div class="columna-label">TOTAL</div>
+            <div class="columna-label">
+              TOTAL
+            </div>
 
             <div class="columna-value naranja">
               {{ totalClientes }}
@@ -154,8 +316,8 @@
       <!-- TOTAL CLIENTES -->
       <div class="total-clientes-card">
         <div class="total-clientes-label">
-          TOTAL CLIENTES<br />
-          MANEJADOS<br />
+          TOTAL CLIENTES<br>
+          MANEJADOS<br>
           EN EL MES
         </div>
 
@@ -173,43 +335,76 @@
         <!-- ===================== CABECERA ===================== -->
         <thead>
           <tr class="header-principal">
-            <th rowspan="2" class="header-azul">MES</th>
+            <th
+              rowspan="2"
+              class="header-azul"
+            >
+              MES
+            </th>
 
-            <th rowspan="2" class="header-azul">
-              INGRESOS<br />
+            <th
+              rowspan="2"
+              class="header-azul"
+            >
+              INGRESOS<br>
               SEGÚN PRICING
             </th>
 
-            <th rowspan="2" class="header-azul">
-              INGRESOS<br />
+            <th
+              rowspan="2"
+              class="header-azul"
+            >
+              INGRESOS<br>
               SEGÚN OPERACIONES
             </th>
 
-            <th colspan="2" class="header-azul">CANTIDAD DE EXPEDIENTES</th>
+            <th
+              colspan="2"
+              class="header-azul"
+            >
+              CANTIDAD DE EXPEDIENTES
+            </th>
 
-            <th rowspan="2" class="header-azul">
-              TOTAL<br />
+            <th
+              rowspan="2"
+              class="header-azul"
+            >
+              TOTAL<br>
               EXPEDIENTES
             </th>
 
-            <th colspan="2" class="header-azul">CANTIDAD DE CLIENTES</th>
+            <th
+              colspan="2"
+              class="header-azul"
+            >
+              CANTIDAD DE CLIENTES
+            </th>
 
-            <th rowspan="2" class="header-naranja">
-              TOTAL CLIENTES<br />
-              MANEJADOS<br />
+            <th
+              rowspan="2"
+              class="header-naranja"
+            >
+              TOTAL CLIENTES<br>
+              MANEJADOS<br>
               EN EL MES
             </th>
           </tr>
 
           <tr class="header-secundario">
-            <th class="header-azul">INDIVIDUALES</th>
+            <th class="header-azul">
+              INDIVIDUALES
+            </th>
 
-            <th class="header-azul">GRUPALES</th>
-
-            <th class="header-naranja">INDIVIDUALES</th>
+            <th class="header-azul">
+              GRUPALES
+            </th>
 
             <th class="header-naranja">
-              GRUPALES<br />
+              INDIVIDUALES
+            </th>
+
+            <th class="header-naranja">
+              GRUPALES<br>
               (10 a 15 c/u)
             </th>
           </tr>
@@ -217,14 +412,17 @@
 
         <!-- ===================== CUERPO ===================== -->
         <tbody>
-          <tr v-for="mes in totalMasterPorMes" :key="mes.mes">
+          <tr
+            v-for="mes in totalMasterPorMes"
+            :key="mes.mes"
+          >
             <!-- MES -->
             <td class="mes-cell">
               <span
                 @click="abrirReporteGananciaDetallado(mes)"
                 style="cursor: pointer"
               >
-                <i class="far fa-calendar-alt"></i>
+                <i class="far fa-calendar-alt" />
                 {{ mes.nombre_mes }}
               </span>
             </td>
@@ -252,8 +450,8 @@
             <!-- TOTAL EXPEDIENTES -->
             <td class="total-expedientes">
               {{
-                parseFloat(mes.total_individuales) +
-                parseFloat(mes.total_grupales)
+                parseFloat(String(mes.total_individuales)) +
+                  parseFloat(String(mes.total_grupales))
               }}
             </td>
 
@@ -270,15 +468,18 @@
             <!-- TOTAL CLIENTES -->
             <td class="total-clientes-cell">
               {{
-                parseFloat(mes.total_house_individuales) +
-                parseFloat(mes.total_house_grupales)
+                parseFloat(String(mes.total_house_individuales)) +
+                  parseFloat(String(mes.total_house_grupales))
               }}
             </td>
           </tr>
 
           <!-- ===================== TOTALES ===================== -->
           <tr class="fila-totales">
-            <td class="total-label" style="color: #472147 !important">
+            <td
+              class="total-label"
+              style="color: #472147 !important"
+            >
               TOTALES DEL AÑO
             </td>
 
@@ -324,7 +525,7 @@
     <div class="footer-reporte">
       <div class="footer-nota">
         <div class="footer-info-icon">
-          <i class="fas fa-info"></i>
+          <i class="fas fa-info" />
         </div>
 
         <strong>Nota:</strong>
@@ -332,7 +533,7 @@
       </div>
 
       <div class="fecha-generacion">
-        <i class="far fa-calendar-alt"></i>
+        <i class="far fa-calendar-alt" />
 
         Reporte generado el:
         {{ fechaGeneracion }}
@@ -340,154 +541,6 @@
     </div>
   </div>
 </template>
-
-<script>
-import { mapActions as mapPiniaActions, mapStores } from "pinia";
-import { useReportesStore } from "@/stores/reportes";
-
-export default {
-  name: "ReporteGanancia",
-
-  data() {
-    return {
-      anioSeleccionado: new Date().getFullYear(),
-      fechaGeneracion: new Date().toLocaleDateString("es-ES", {
-        day: "2-digit",
-        month: "long",
-        year: "numeric",
-      }),
-      listaAnios: Array.from(
-        { length: 10 },
-        (_, i) => new Date().getFullYear() - i,
-      ),
-    };
-  },
-  mounted() {
-    this.cargarReporte();
-  },
-  computed: {
-    ...mapStores(useReportesStore),
-    // =========================================================
-    // DATOS DEL STORE
-    // =========================================================
-
-    totalMasterAgrupado() {
-      return (
-        this.reportesStore.totalMasterAgrupado || {
-          total_pr: 0,
-          total_op: 0,
-          total_individuales: 0,
-          total_grupales: 0,
-          total_house_individuales: 0,
-          total_house_grupales: 0,
-        }
-      );
-    },
-
-    totalMasterPorMes() {
-      return this.reportesStore.totalMasterPorMes || [];
-    },
-
-    // =========================================================
-    // INGRESOS
-    // =========================================================
-
-    totalIngresosPricing() {
-      return this.totalMasterPorMes.reduce((total, item) => {
-        return total + Number(item.total_pr || 0);
-      }, 0);
-    },
-
-    totalIngresosOperaciones() {
-      return this.totalMasterPorMes.reduce((total, item) => {
-        return total + Number(item.total_op || 0);
-      }, 0);
-    },
-
-    // =========================================================
-    // EXPEDIENTES
-    // =========================================================
-
-    totalExpedientesIndividuales() {
-      return this.totalMasterPorMes.reduce((total, item) => {
-        return total + Number(item.total_individuales || 0);
-      }, 0);
-    },
-
-    totalExpedientesGrupales() {
-      return this.totalMasterPorMes.reduce((total, item) => {
-        return total + Number(item.total_grupales || 0);
-      }, 0);
-    },
-
-    totalExpedientes() {
-      return this.totalExpedientesIndividuales + this.totalExpedientesGrupales;
-    },
-
-    // =========================================================
-    // CLIENTES
-    // =========================================================
-
-    totalClientesIndividuales() {
-      return this.totalMasterPorMes.reduce((total, item) => {
-        return total + Number(item.total_house_individuales || 0);
-      }, 0);
-    },
-
-    totalClientesGrupales() {
-      return this.totalMasterPorMes.reduce((total, item) => {
-        return total + Number(item.total_house_grupales || 0);
-      }, 0);
-    },
-
-    totalClientes() {
-      return this.totalClientesIndividuales + this.totalClientesGrupales;
-    },
-  },
-
-  methods: {
-    ...mapPiniaActions(useReportesStore, ["getTotalesMasterAgrupado", "getTotalesMasterPorMes", "printTotalesMasterPorMes"]),
-    abrirReporteGananciaDetallado(item) {
-      this.$router.push({
-        name: "ReporteGananciaDetallado",
-        query: { code_mes: item.mes, year: this.anioSeleccionado },
-      });
-    },
-    formatMoney(value) {
-      return (
-        "USD " +
-        Number(value || 0).toLocaleString("en-US", {
-          minimumFractionDigits: 2,
-          maximumFractionDigits: 2,
-        })
-      );
-    },
-
-    cambiarAnio() {
-      this.cargarReporte();
-    },
-
-    async cargarReporte() {
-      this.$store.state.spiner = true;
-      await Promise.all([
-        this.getTotalesMasterAgrupado({
-          year: this.anioSeleccionado,
-        }),
-
-        this.getTotalesMasterPorMes({
-          year: this.anioSeleccionado,
-        }),
-      ]);
-      this.$store.state.spiner = false;
-    },
-    async imprimir() {
-      this.printTotalesMasterPorMes({
-        year: this.anioSeleccionado,
-      });
-    },
-  },
-};
-</script>
 
 <style scoped>
 /* ============================================================
