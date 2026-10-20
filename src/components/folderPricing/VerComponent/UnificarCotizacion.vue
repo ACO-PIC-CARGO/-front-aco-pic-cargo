@@ -1,32 +1,123 @@
+<script setup lang="ts">
+import { computed, nextTick, ref } from "vue";
+import { useRoute, useRouter } from "vue-router";
+import { useStore } from "vuex";
+import Swal from "sweetalert2";
+import { usePricingStore } from "@/stores/pricing";
+
+const route = useRoute();
+const router = useRouter();
+const rootStore = useStore();
+const pricingStore = usePricingStore();
+
+const id_quote = ref("");
+
+const unificarflag = computed(() => {
+  const codeServide = [10, 13, 6, 14];
+  if (
+    pricingStore.listServices.some(
+      (v) =>
+        codeServide.includes(v.codegroupservices as number) &&
+        (v.status == 1 || v.status == true),
+    )
+  ) {
+    return true;
+  }
+
+  if (pricingStore.opcionCostos.filter((v) => v.selected).length == 1) {
+    return false;
+  }
+
+  return true;
+});
+
+async function unificar() {
+  const data = {
+    id_quote: route.params.id,
+    id_aduana: id_quote.value,
+  };
+  await rootStore.dispatch("unificarQuoteAduana", data);
+  if (rootStore.state.aduana.nro_quote) {
+    Swal.fire({
+      icon: "success",
+      title: "Aviso",
+      text: rootStore.state.aduana.mensaje,
+      confirmButtonText: "Ir a la cotización",
+      showConfirmButton: true,
+    }).then(async (result) => {
+      if (result.isConfirmed) {
+        await router.push({
+          name: "verQuote",
+          params: {
+            id: rootStore.state.aduana.IdQuote,
+          },
+        });
+        nextTick(() => {
+          window.location.reload();
+        });
+      }
+      if (result.isDismissed) {
+        router.push({
+          name: "lstQuote",
+        });
+      }
+    });
+    rootStore.state.spiner = false;
+  }
+}
+</script>
+
 <template>
   <v-container fluid>
     <v-row>
-      <v-col cols="12" class="py-2">
+      <v-col
+        cols="12"
+        class="py-2"
+      >
         Unificar Cotización asociada a:
-        {{ $store.state.aduana.datosPrincipales.nombre }}
+        {{ rootStore.state.aduana.datosPrincipales.nombre }}
       </v-col>
-      <v-col cols="12" lg="2" xl="2" class="py-0">
+      <v-col
+        cols="12"
+        lg="2"
+        xl="2"
+        class="py-0"
+      >
         <v-select
           density="compact"
           variant="outlined"
           label="Cotización"
-          :items="$store.state.aduana.listQuotes"
+          :items="rootStore.state.aduana.listQuotes"
           v-model="id_quote"
           item-title="quote"
           item-value="id"
           clearable
           hide-details
-        ></v-select>
+        />
       </v-col>
     </v-row>
     <v-row>
-      <v-col cols="12" class="py-2">
-        <v-btn color="success" @click="unificar()" :disabled="unificarflag"
-          >Unificar</v-btn
+      <v-col
+        cols="12"
+        class="py-2"
+      >
+        <v-btn
+          color="success"
+          @click="unificar()"
+          :disabled="unificarflag"
         >
+          Unificar
+        </v-btn>
       </v-col>
-      <v-col v-if="unificarflag" cols="6">
-        <v-alert density="compact" variant="outlined" type="error">
+      <v-col
+        v-if="unificarflag"
+        cols="6"
+      >
+        <v-alert
+          density="compact"
+          variant="outlined"
+          type="error"
+        >
           Recuerde que solo se puede unificar, cotizaciones que solo tengan una
           opción activa. O tengas los servicios Aduanas desactivados
         </v-alert>
@@ -34,81 +125,5 @@
     </v-row>
   </v-container>
 </template>
-
-<script>
-import { mapActions } from "vuex";
-import Swal from "sweetalert2";
-import { mapStores } from "pinia";
-import { usePricingStore } from "@/stores/pricing";
-export default {
-  data() {
-    return {
-      id_quote: "",
-    };
-  },
-  methods: {
-    ...mapActions(["unificarQuoteAduana"]),
-    async unificar() {
-      let data = {
-        id_quote: this.$route.params.id,
-        id_aduana: this.id_quote,
-      };
-      await this.unificarQuoteAduana(data);
-      if (this.$store.state.aduana.nro_quote) {
-        Swal.fire({
-          icon: "success",
-          title: "Aviso",
-          text: this.$store.state.aduana.mensaje,
-          confirmButtonText: "Ir a la cotización",
-          showConfirmButton: true,
-        }).then(async (result) => {
-          if (result.isConfirmed) {
-            await this.$router.push({
-              name: "verQuote",
-              params: {
-                id: this.$store.state.aduana.IdQuote,
-              },
-            });
-            this.$nextTick(() => {
-              window.location.reload();
-            });
-          }
-          if (result.isDismissed) {
-            this.$router.push({
-              name: "lstQuote",
-            });
-          }
-        });
-        this.$store.state.spiner = false;
-        let vm = this;
-      }
-    },
-  },
-  computed: {
-    ...mapStores(usePricingStore),
-    unificarflag() {
-      let codeServide = [10, 13, 6, 14];
-      if (
-        this.pricingStore.listServices.some(
-          (v) =>
-            codeServide.includes(v.codegroupservices) &&
-            (v.status == 1 || v.status == true)
-        )
-      ) {
-        return true;
-      }
-
-      if (
-        this.pricingStore.opcionCostos.filter((v) => v.selected)
-          .length == 1
-      ) {
-        return false;
-      }
-
-      return true;
-    },
-  },
-};
-</script>
 
 <style></style>
