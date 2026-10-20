@@ -154,7 +154,6 @@ async function validarDocument() {
   // }
 }
 
-
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 async function agregarSucursal() {
   errSucursal.value = "";
@@ -254,7 +253,6 @@ async function guardarUsuario() {
     tab.value = "datos";
   }
 }
-
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 const vNoSpaces = (el: HTMLElement) => {

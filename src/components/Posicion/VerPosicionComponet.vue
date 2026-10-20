@@ -39,7 +39,6 @@ onMounted(async () => {
   appStore.spiner = false;
 });
 
-
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 function asignar() {
   errUsuario.value = "";

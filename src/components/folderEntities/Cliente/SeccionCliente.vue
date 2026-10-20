@@ -388,7 +388,6 @@ async function modificarCliente() {
     }
     if (
       entitiesStore.cliente.emailaddress &&
-       
       !/^(([^<>()\[\]\\.,;:\s@']+(\.[^<>()\\\[\\]\\.,;:\s@']+)*)|('.+'))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/.test(
         entitiesStore.cliente.emailaddress,
       )
@@ -435,7 +434,6 @@ async function modificarCliente() {
       }
       if (
         v.email_soporte &&
-         
         !/^(([^<>()\[\]\\.,;:\s@']+(\.[^<>()\\\[\\]\\.,;:\s@']+)*)|('.+'))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/.test(
           v.email_soporte,
         )
@@ -456,7 +454,6 @@ async function modificarCliente() {
       }
       if (
         v.email_soporte &&
-         
         !/^(([^<>()\[\]\\.,;:\s@']+(\.[^<>()\\\[\\]\\.,;:\s@']+)*)|('.+'))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/.test(
           v.email_soporte,
         )

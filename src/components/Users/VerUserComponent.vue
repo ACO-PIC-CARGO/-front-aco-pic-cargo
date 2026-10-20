@@ -139,7 +139,6 @@ async function validarDocument() {
   // }
 }
 
-
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 async function agregarSucursal() {
   errSucursal.value = "";
@@ -164,7 +163,6 @@ async function agregarPosicion() {
   }
 }
 
-
 async function ObtenerEstados(id_pais: number | string | undefined) {
   loadingEstado.value = true;
   await appStore._getState(id_pais);
@@ -183,7 +181,6 @@ async function ObtenerDistrito(id_city: number | string | undefined) {
   await appStore._getTown(id_city);
   loadingDistrito.value = false;
 }
-
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 async function guardarUsuario() {

@@ -26,7 +26,6 @@ const headers = [
   { title: "Acciones", key: "action" },
 ] as const;
 
-
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 async function filtrar() {
   loadingFiltrar.value = !loadingFiltrar.value;
