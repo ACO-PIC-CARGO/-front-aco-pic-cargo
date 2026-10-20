@@ -6,7 +6,7 @@ import { defineAsyncComponent } from "vue";
 export default {
   components: {
     formularioControlGastos: defineAsyncComponent(() =>
-      import("@/components/folderBilling/frmControlGastos.vue")),
+      import("@/components/folderBilling/FrmControlGastosComponent.vue")),
   },
 };
 </script>

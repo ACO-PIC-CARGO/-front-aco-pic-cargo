@@ -10,7 +10,7 @@ import type { CostoConfig, TipoCostoConfig } from "@/types/empresas";
 import type { TipoCarga } from "@/types/cotizacion";
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
-const Proceesing = defineAsyncComponent(() => import("../modal/modalProcessing.vue"));
+const Proceesing = defineAsyncComponent(() => import("../modal/ModalProcessing.vue"));
 
 const emit = defineEmits<{ regresar: [] }>();
 

@@ -97,7 +97,7 @@
 </template>
 <script>
 import { mapState, mapActions } from "vuex";
-import modalListHouse from "@/components/modal/modalListFile.vue";
+import modalListHouse from "@/components/modal/ModalListFile.vue";
 import GuardarUrlMaster from "../comun/GuardarUrlMaster.vue";
 import Swal from "sweetalert2";
 import { mapActions as mapPiniaActions } from "pinia";

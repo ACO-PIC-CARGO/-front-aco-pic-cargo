@@ -4,7 +4,7 @@
   </div>
 </template>
 <script>
-import listControlGastosCom from "@/components/folderBilling/listadoFacturacion.vue";
+import listControlGastosCom from "@/components/folderBilling/ListadoFacturacion.vue";
 export default {
   name: "listEntities",
   components: {

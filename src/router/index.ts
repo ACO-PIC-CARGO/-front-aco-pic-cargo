@@ -204,17 +204,17 @@ const routes = [
       {
         path: "folderBilling/billControlGastos/:id_house",
         name: "billControlGastos",
-        component: () => import("../views/folderBilling/billControlGastos.vue"),
+        component: () => import("../views/folderBilling/BillControlGastos.vue"),
       },
       {
         path: "folderBilling/billControlGastos/view/:id_house/:id_control/:id_orders/:code",
         name: "billControlGastosControl",
-        component: () => import("../views/folderBilling/billControlGastos.vue"),
+        component: () => import("../views/folderBilling/BillControlGastos.vue"),
       },
       {
         path: "folderBilling/listControlGastos",
         name: "listControlGastos",
-        component: () => import("../views/folderBilling/listControlGastos.vue"),
+        component: () => import("../views/folderBilling/ListControlGastos.vue"),
       },
       // {
       //   path: "folderBilling/editControlGastos/view/:code_master/:id_branch",
@@ -224,12 +224,12 @@ const routes = [
       {
         path: "folderBilling/editControlGastos/view/:id/:id_branch",
         name: "editControlGasto",
-        component: () => import("../views/folderBilling/frmControlGastos.vue"),
+        component: () => import("../views/folderBilling/FrmControlGastos.vue"),
       },
       {
         path: "folderBilling/verControlGastos/view/:id/:id_branch",
         name: "verControlGasto",
-        component: () => import("../views/folderBilling/frmControlGastosVer.vue"),
+        component: () => import("../views/folderBilling/FrmControlGastosVer.vue"),
       },
       {
         path: "folderRequest/controlRequest",
@@ -378,7 +378,7 @@ const routes = [
       {
         path: "folderBilling/lstFacturacion",
         name: "lstFacturacion",
-        component: () => import("../views/folderBilling/listFacturacionView.vue"),
+        component: () => import("../views/folderBilling/ListFacturacionView.vue"),
       },
       {
         path: "folderConsolidation",

@@ -16,7 +16,7 @@
   </div>
 </template>
 <script>
-import listControlGastosCom from "@/components/folderBilling/listControlGastos.vue";
+import listControlGastosCom from "@/components/folderBilling/ListControlGastosComponent.vue";
 import FiltroControlGastos from "@/components/filtros/FiltroControlGastos.vue";
 
 export default {

@@ -4,7 +4,7 @@
   </div>
 </template>
 <script>
-import controlGastos from "@/components/folderBilling/controlGastos.vue";
+import controlGastos from "@/components/folderBilling/ControlGastos.vue";
 export default {
   name: "controlEntities",
   components: {

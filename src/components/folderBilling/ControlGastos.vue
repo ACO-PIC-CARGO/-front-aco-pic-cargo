@@ -361,12 +361,12 @@
   </div>
 </template>
 <script>
-import dataHouse from "./dataHouse.vue";
+import dataHouse from "./DataHouse.vue";
 import ingresos from "./ingresos.vue";
 import egresos from "./egresos.vue";
-import services from "./services.vue";
-import totalesProveedor from "./totalesProveedor.vue";
-import totales from "./totales.vue";
+import services from "./ServicesBilling.vue";
+import totalesProveedor from "./TotalesProveedor.vue";
+import totales from "./TotalesBilling.vue";
 import { mapState, mapActions } from "vuex";
 import axios from '@/api/http';
 import moment from "moment";
