@@ -1,0 +1,1395 @@
+<script setup lang="ts">
+import { computed, defineAsyncComponent, onMounted, ref, useTemplateRef, watch } from "vue";
+import { useStore } from "vuex";
+import Swal from "sweetalert2";
+import { useBancosStore } from "@/stores/bancos";
+import { useBankStore } from "@/stores/bank";
+import { useFilesStore } from "@/stores/files";
+import type {
+  CuentaIngreso,
+  ErroresRegistroIngreso,
+  FacturaPorCobrar,
+  OperacionSimilar,
+} from "@/types/banks";
+
+const rootStore = useStore();
+const bankStore = useBankStore();
+const bancosStore = useBancosStore();
+const filesStore = useFilesStore();
+const clientes = computed(() => rootStore.state.clientes);
+const validacionDatosPrincipales = useTemplateRef("validacionDatosPrincipales");
+//  opciones: () => import("@/components/comun/opcionesRegistro.vue"),
+const FormatFecha = defineAsyncComponent(() => import("../comun/FormatFecha.vue"));
+const ArrastraYSolarComponent = defineAsyncComponent(() =>
+  import("../comun/ArrastraYSolarComponent.vue"));
+
+const dialogLlenarMontoDepositadoBanco = ref(false);
+const esDuplicado = ref(false);
+const timer = ref<ReturnType<typeof setTimeout> | null>(null);
+const operacionesSimilares = ref<OperacionSimilar[]>({} as OperacionSimilar[]);
+const comentarios = ref("");
+const comentariosadmin = ref("");
+const conceptogastobancario = ref("");
+const montogastobancario = ref<number | string>(0);
+const monto_local = ref<number | string | null>(0);
+const mostrarDetalle = ref(false);
+const pasos = ref(0);
+const monto = ref<number | string>(0);
+const loading = ref(false);
+const nro_operacion = ref("");
+const cliente = ref<number | null>(null);
+const symbol = ref("USD");
+const id_cuenta = ref<CuentaIngreso>({} as CuentaIngreso);
+const id_banco_origen = ref<number | null>(null);
+const fecha_operacion = ref<string | null>(null);
+const id_path = ref<number | null>(null);
+const selected = ref<FacturaPorCobrar[]>([]);
+const invoicesOnPage = ref<FacturaPorCobrar[]>([]);
+const headers = [
+  { title: "Abono Completo o Parcial", key: "parcialflag" },
+  { title: "Moneda Y Monto", key: "montopagar" },
+
+  { title: "Expediente", key: "referencia" },
+  { title: "Tipo", key: "tipo" },
+  { title: "Ver Factura.", key: "action" },
+  { title: "Fecha Factura", key: "fecha" },
+  {
+    title: "Moneda y Monto Facturado",
+    key: "monto_original_total",
+  },
+  {
+    title: "Monto Equivalente en Dólares",
+    key: "totaldolar",
+  },
+  { title: "Saldo Actual", key: "total_mon_local" },
+  { title: "Saldo Final", key: "saldo" },
+  { title: "Factura", key: "documentos" },
+  { title: "Monto Total Abonado", key: "totalabonado" },
+];
+const headersPagosGastosBancario = [
+  { title: "Abono Completo o Parcial", key: "parcialflag" },
+  { title: "Moneda Y Monto", key: "montopagar" },
+  // { text: "Fecha Facturación", value: "fecha" },
+  { title: "Expediente", key: "referencia" },
+  { title: "Tipo", key: "tipo", align: "center" as const },
+  { title: "Fecha Factura", key: "fecha" },
+  {
+    title: "Moneda y Monto Facturado",
+    key: "monto_original_total",
+  },
+  { title: "Saldo Actual", key: "total_mon_local" },
+  {
+    title: "Monto Equivalente en Dólares",
+    key: "totaldolar",
+  },
+  { title: "Saldo Final", key: "saldo" },
+  // { text: "Factura", value: "documentos" },
+  { title: "Monto Total Abonado", key: "totalabonado" },
+];
+const errorMesage = ref<ErroresRegistroIngreso>({
+  cliente: "",
+  id_cuenta: "",
+  fecha_operacion: "",
+  nro_operacion: "",
+});
+const editable = ref(false);
+const editableGastoBancario = ref(false);
+const searchTableDetalle = ref("");
+const cboParcial = [
+  { text: "Abono Completo", value: false },
+  { text: "Abono Parcial", value: true },
+];
+
+const mostrarTipoCambio = computed(() => {
+  if (selected.value.length == 0) return false;
+
+  if (symbol.value != "USD") {
+    return true;
+  }
+
+  if (selected.value.some((v) => v.symbol != "USD")) {
+    return true;
+  }
+
+  return false;
+  // return this.selected.some((v) => v.symbol != "USD");
+});
+const totalGeneralAbonado = computed(() => {
+  // const total = this.selected.reduce((acc, item) => {
+  //   let monto = parseFloat(item.montoparcial) || 0;
+
+  //   return acc + monto;
+  // }, 0);
+  // return total.toFixed(2);
+  return monto.value || "0.00";
+});
+const totalGeneralAbonadoMonLocal = computed(() => {
+  let monto = selected.value.reduce((acc: number, item) => {
+    const monto = parseFloat(String(item.montoparcial)) || 0;
+
+    return acc + monto;
+  }, 0);
+  monto = monto + parseFloat(String(montogastobancario.value || 0));
+  return parseFloat(String(monto)).toFixed(2);
+});
+const totalGeneralAbonadoMonLocalSeleccionado = computed(() => {
+  let monto = selected.value.reduce((acc: number, item) => {
+    const monto = parseFloat(String(item.montoparcial)) || 0;
+
+    return acc + monto;
+  }, 0);
+  monto = monto;
+  return parseFloat(String(monto)).toFixed(2);
+});
+const tipocambio = computed(() => {
+  if (symbol.value === "USD") {
+    return 1;
+  }
+
+  if (!monto.value || !monto_local.value) {
+    return 1;
+  }
+
+  const tc =
+    (parseFloat(String(monto_local.value || 1)) +
+      parseFloat(String(montogastobancario.value || 0))) /
+    ((monto.value || 1) as number);
+
+  return Number(tc.toFixed(4));
+});
+const itemsOrdenados = computed(() => {
+  const items = [...bankStore.deudaACliente] as unknown as FacturaPorCobrar[];
+  return items.sort((a, b) => {
+    const aSeleccionado = selected.value.some((sel) => sel.id === a.id);
+    const bSeleccionado = selected.value.some((sel) => sel.id === b.id);
+
+    if (aSeleccionado && !bSeleccionado) return -1;
+    if (!aSeleccionado && bSeleccionado) return 1;
+    return 0;
+  });
+});
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+const montoFinal = computed(() => {
+  let gastoBancario = 0;
+  gastoBancario = Number(montogastobancario.value || 0);
+  const total = Number(totalGeneralAbonado.value || 0) + gastoBancario;
+  return total.toFixed(2);
+});
+
+function abrirFactura(item: FacturaPorCobrar) {
+  const id = item.admin_invoice_id;
+  window.open(`/home/viewAccountPaysCxC/${id}`, "_blank");
+}
+function cancelarllenadoDeMonto() {
+  dialogLlenarMontoDepositadoBanco.value = false;
+  monto_local.value = null;
+  id_cuenta.value = {} as CuentaIngreso;
+
+  // Si usas validación de formulario (v-form), es recomendable resetearla aquí:
+  // this.$refs.tuFormulario?.resetValidation();
+}
+function confirmarDeposito() {
+  if (monto_local.value) {
+    dialogLlenarMontoDepositadoBanco.value = false;
+    mostrarDetalle.value = true;
+  }
+}
+function checkDeshabilitado(item: FacturaPorCobrar) {
+  // Si editaflag es false, devuelve true para deshabilitar el checkbox
+  return item.editaflag === false;
+}
+async function onItemSelected({ item, value }: { item: FacturaPorCobrar; value: boolean }) {
+  // Si está intentando seleccionar
+  if (value) {
+    // Validar que la factura y la cuenta tengan la misma moneda
+    if (item.symbol !== symbol.value) {
+      const result = await Swal.fire({
+        icon: "warning",
+        title: "Moneda diferente",
+        html: `
+              La factura seleccionada está en <b>${item.symbol}</b>
+              y la cuenta está en <b>${symbol.value}</b>
+              <br><br>
+              ¿Desea Continuar?
+            `,
+        showCancelButton: true,
+        confirmButtonText: "Sí, continuar",
+        cancelButtonText: "Cancelar",
+        confirmButtonColor: "#3085d6",
+        cancelButtonColor: "#d33",
+        reverseButtons: true,
+      });
+
+      // Si cancela, quitar la factura de selected
+      if (!result.isConfirmed) {
+        selected.value = selected.value.filter((i) => i.id !== item.id);
+
+        calcularTotal();
+        return;
+      }
+    }
+
+    // Si confirma o las monedas son iguales
+    item.parcialflag = false;
+    item.montoparcial = item.total_mon_local;
+  } else {
+    // Si deselecciona normalmente
+    item.montoparcial = 0;
+    item.parcialflag = false;
+  }
+
+  calcularTotal();
+}
+function onSelectAll({ items, value }: { items: FacturaPorCobrar[]; value: boolean }) {
+  items.forEach((item) => {
+    if (value) {
+      item.parcialflag = false;
+      item.montoparcial = item.total_mon_local;
+    } else {
+      item.montoparcial = 0;
+      item.parcialflag = false;
+    }
+  });
+  calcularTotal();
+}
+function verificarMontoCompleto(item: FacturaPorCobrar) {
+  // Si el combo cambia a "Abono Completo" (value: false)
+  if (!item.parcialflag) {
+    item.montoparcial = item.total_mon_local;
+  }
+  calcularTotal();
+}
+function recibirId(file: { id?: unknown }) {
+  if (Object.keys(file).length > 0) {
+    id_path.value = file.id as number;
+  } else {
+    id_path.value = null;
+  }
+}
+async function obtenerListado() {
+  errorMesage.value.cliente = "";
+
+  selected.value = [];
+  monto.value = 0;
+  monto_local.value = 0;
+  montogastobancario.value = 0;
+  conceptogastobancario.value = "";
+
+  pasos.value = 0;
+  editable.value = false;
+  editableGastoBancario.value = false;
+
+  searchTableDetalle.value = "";
+
+  id_cuenta.value = {} as CuentaIngreso;
+
+  id_banco_origen.value = null;
+  fecha_operacion.value = null;
+  nro_operacion.value = "";
+
+  id_path.value = null;
+
+  esDuplicado.value = false;
+  operacionesSimilares.value = [];
+  mostrarDetalle.value = false;
+  if (cliente.value) {
+    rootStore.state.spiner = true;
+
+    try {
+      await bankStore.getDeudaDeClientePorSucursal(cliente.value);
+    } finally {
+      rootStore.state.spiner = false;
+    }
+  } else {
+    bankStore.deudaACliente = [];
+  }
+}
+async function continuarDetalles() {
+  if (!(await validacionDatosPrincipales.value!.validate()).valid) {
+    console.log("ssss");
+    return;
+  }
+  errorMesage.value = {
+    cliente: "",
+    id_cuenta: "",
+    fecha_operacion: "",
+    nro_operacion: "",
+    monto_local: "",
+  };
+
+  if (
+    id_banco_origen.value &&
+    cliente.value &&
+    Object.keys(id_cuenta.value).length > 0 &&
+    fecha_operacion.value &&
+    nro_operacion.value &&
+    id_path.value &&
+    !esDuplicado.value
+  ) {
+    const hoy = new Date();
+    const fechaOp = new Date(fecha_operacion.value);
+    const unMesEnMs = 30 * 24 * 60 * 60 * 1000;
+    const diferencia = Math.abs(fechaOp.getTime() - hoy.getTime());
+    if (diferencia < unMesEnMs) {
+      pasos.value = 2;
+      editableGastoBancario.value = true;
+    } else {
+      Swal.fire({
+        icon: "warning",
+        title: "Fecha inusual",
+        html: `La fecha seleccionada <b> (${fecha_operacion.value})</b> tiene más de un mes de diferencia con la actual. ¿Es correcta?`,
+        showCancelButton: true,
+        confirmButtonText: "Sí, continuar",
+        cancelButtonText: "No, revisar",
+      }).then((result) => {
+        if (result.isConfirmed) {
+          pasos.value = 2;
+          editableGastoBancario.value = true;
+        }
+      });
+    }
+  } else {
+    errorMesage.value.cliente = cliente.value ? "" : "Proveedor es requerido";
+
+    errorMesage.value.id_banco_origen = id_banco_origen.value
+      ? ""
+      : "Proveedor es requerido";
+    errorMesage.value.id_cuenta =
+      Object.keys(id_cuenta.value).length > 0 ? "" : "Cuenta es requerida";
+    errorMesage.value.fecha_operacion = fecha_operacion.value
+      ? ""
+      : "Fecha de Operación es requerida";
+
+    // CORRECCIÓN AQUÍ: Cambiado de false a un String de error
+    errorMesage.value.nro_operacion = nro_operacion.value
+      ? ""
+      : "Número de Operación es requerido";
+    if (!id_path.value) {
+      Swal.fire({
+        icon: "error",
+        title: "Archivo de Soporte Requerido",
+        text: "Por favor, suba el archivo de soporte para continuar.",
+      });
+    }
+    if (esDuplicado.value) {
+      errorMesage.value.nro_operacion = "El número de operación ya existe";
+    }
+  }
+}
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+async function subirArchivo() {
+  if (id_path.value) {
+    const res = await filesStore._uploadFile(id_path.value as unknown as File);
+    // @ts-expect-error _uploadFile resolves to undefined
+    if (res.success) {
+      Swal.fire({
+        icon: "success",
+        title: "Archivo Subido",
+        text: "El archivo se ha subido correctamente.",
+      });
+    } else {
+      Swal.fire({
+        icon: "error",
+        title: "Error al Subir Archivo",
+        text: "Hubo un problema al subir el archivo. Por favor, inténtelo nuevamente.",
+      });
+    }
+  }
+}
+function calcularTotal() {
+  const totalUSD = selected.value.reduce((acc: number, item) => {
+    if (symbol.value === "USD") {
+      return acc + parseFloat(String(item.montoparcial || 0));
+    } else {
+      const porcentagePago =
+        ((item.montoparcial || 0 * 100) as number) / (item.monto_original_total as number);
+      return acc + parseFloat(String((item.totaldolar as number) * porcentagePago));
+    }
+  }, 0);
+
+  monto.value = totalUSD.toFixed(2);
+}
+function continuarGastoBancario() {
+  if (!cliente.value || selected.value.length == 0) {
+    let text = "";
+    text = !cliente.value ? "Cliente Requerido. <br>" : "";
+    // text += !this.monto_local ? "Monto Local Requerido. <br>" : "";
+    text +=
+      selected.value.length == 0 ? "Seleccione Facturas a Pagar. <br>" : "";
+    Swal.fire({
+      icon: "error",
+      title: `Aviso Importante`,
+      html: text,
+    });
+    return;
+  }
+  pasos.value = 1;
+  editable.value = true;
+}
+async function finalizarOperacion() {
+  if (
+    Number(totalGeneralAbonadoMonLocal.value) !== Number(monto_local.value)
+  ) {
+    Swal.fire({
+      icon: "warning",
+      title: "Discrepancia en los Montos",
+      html: `
+            <p style="color: #6c757d; font-size: 14px; margin-bottom: 16px;">
+                El registro no puede completarse porque los valores monetarios no coinciden.
+            </p>
+            <div style="display: flex; gap: 12px; justify-content: center; text-align: left;">
+                <div style="flex: 1; background: #f8f9fa; border: 1px solid #e9ecef; border-radius: 8px; padding: 12px;">
+                    <span style="display: block; font-size: 11px; color: #adb5bd; text-transform: uppercase; font-weight: bold;">Registrado en Banco</span>
+                    <span style="font-size: 15px; font-weight: bold; color: #495057;">${
+                  symbol.value
+                } ${Number(monto_local.value).toFixed(2)}</span>
+                </div>
+                <div style="flex: 1; background: #fff5f5; border: 1px solid #ffe3e3; border-radius: 8px; padding: 12px;">
+                    <span style="display: block; font-size: 11px; color: #e03131; text-transform: uppercase; font-weight: bold;">Total a Pagar</span>
+                    <span style="font-size: 15px; font-weight: bold; color: #c92a2a;">${
+                  symbol.value
+                } ${Number(totalGeneralAbonadoMonLocal.value).toFixed(
+        2,
+      )}</span>
+                </div>
+            </div>
+        `,
+      confirmButtonText: "Revisar y Corregir",
+      confirmButtonColor: "#3085d6",
+      buttonsStyling: true,
+    });
+    return;
+  }
+  const data = {
+    symbol: symbol.value,
+    id_branch: "",
+    id_cliente: cliente.value,
+    id_banco_origen: id_banco_origen.value,
+    id_cuentabancaria: id_cuenta.value.id,
+    id_moneda: id_cuenta.value.id_coins,
+    fecha_operacion: fecha_operacion.value,
+    nro_operacion: nro_operacion.value,
+    totaldolar: monto.value,
+    tipocambio: tipocambio.value,
+    comentarios: comentarios.value,
+    totalmonedalocal: monto_local.value,
+    comentariosadmin: comentariosadmin.value,
+    conceptogastobancario: conceptogastobancario.value,
+    montogastobancario: montogastobancario.value,
+    detalle: selected.value,
+    id_soporte: id_path.value,
+  };
+  loading.value = true;
+  await bankStore.setRegistroIgresos(data);
+  loading.value = false;
+  // Swal.fire({
+  //   icon: "success",
+  //   title: "Operación Finalizada",
+  //   text: "El pago se ha registrado correctamente.",
+  //   allowOutsideClick: false,
+  //   allowEscapeKey: false,
+  //   allowEnterKey: false,
+  // }).then((result) => {
+  //   if (result.isConfirmed) {
+  //     this.$router.push({
+  //       name: "listBankCxC",
+  //     });
+  //   }
+  // });
+}
+function fn_totalAbonado(item: FacturaPorCobrar) {
+  if (!selected.value.includes(item)) {
+    return 0;
+  }
+  let monto = 0;
+  if (item.parcialflag) {
+    monto = parseFloat(String(item.montoparcial)) || 0;
+  } else {
+    monto = parseFloat(String(item.total_mon_local)) || 0;
+  }
+  if (item.symbol == "USD") {
+    return `${item.symbol} ${monto.toFixed(2)}`;
+  } else {
+    return `${symbol.value} ${monto.toFixed(2)}`;
+  }
+}
+function buscarOperacionAlEscribir() {
+  clearTimeout(timer.value as ReturnType<typeof setTimeout>);
+  if (nro_operacion.value.length < 3) {
+    operacionesSimilares.value = [];
+    esDuplicado.value = false;
+    return;
+  }
+  timer.value = setTimeout(async () => {
+    const res = (await bankStore.validarIngresoNroOperacion({
+      numerooperacion: nro_operacion.value,
+    })) as OperacionSimilar[];
+
+    operacionesSimilares.value = res;
+
+    if (!res[0]!.estadoflag) {
+      operacionesSimilares.value = [];
+      return;
+    }
+    // CAMBIO CLAVE: Evaluamos toda la lista. Si CUALQUIERA es duplicado exacto, bloqueamos.
+    esDuplicado.value = operacionesSimilares.value.some(
+      (op) => op.es_duplicado_exacto === true,
+    );
+
+    // Opcional: Si es duplicado, inyectamos el error directamente en el v-text-field
+    if (esDuplicado.value) {
+      errorMesage.value.nro_operacion = "El número de operación ya existe";
+    }
+
+    console.log(
+      "Operaciones similares encontradas:",
+      operacionesSimilares.value,
+    );
+  }, 300);
+}
+
+watch(id_cuenta, (newVal, oldVal) => {
+  if (newVal && newVal.id && (!oldVal || newVal.id !== oldVal.id)) {
+    if (oldVal && oldVal.id && selected.value.length > 0) {
+      selected.value = [];
+
+      monto.value = 0;
+      calcularTotal();
+    }
+    const id_coins = newVal.id_coins;
+    const coins = rootStore.state.itemsCoinsList.find(
+      (coin: { id: number }) => coin.id === id_coins,
+    );
+    symbol.value = coins ? coins.symbol : "USD";
+
+    dialogLlenarMontoDepositadoBanco.value = true;
+  }
+});
+watch(fecha_operacion, (newVal) => {
+  if (newVal) {
+    errorMesage.value.fecha_operacion = "";
+  } else {
+    errorMesage.value.fecha_operacion = "Fecha de Operación es requerida";
+  }
+});
+watch(selected, () => {
+  calcularTotal();
+}, {
+  deep: true, // Esto detecta cambios en las propiedades internas de los items
+});
+
+onMounted(async () => {
+  bankStore.deudaACliente = [];
+  rootStore.state.mainTitle = "BANCOS - NUEVO INGRESO";
+  await Promise.all([
+    rootStore.dispatch("cargarClientes"),
+    rootStore.dispatch("_getCoinsList"),
+    bancosStore.getListBanksDetailsCargar(),
+    rootStore.dispatch("_getBanksList"),
+  ]);
+});
+</script>
+
+<template>
+  <v-card>
+    <v-container fluid>
+      <v-row>
+        <v-col
+          cols="12"
+          md="4"
+          class="pb-0"
+        >
+          <v-autocomplete
+            label="Cliente"
+            variant="outlined"
+            density="compact"
+            :items="clientes"
+            item-title="namelong"
+            item-value="id"
+            placeholder="Clientes"
+            v-model="cliente"
+            clearable
+            @update:model-value="obtenerListado()"
+            hide-details
+            :error-messages="errorMesage.cliente"
+          />
+        </v-col>
+        <v-col
+          cols="12"
+          md="2"
+          class="pb-0"
+          v-if="Object.keys(id_cuenta).length > 0"
+        >
+          <v-text-field
+            label="Monto Depositado En Banco:"
+            variant="outlined"
+            density="compact"
+            v-model="monto_local"
+            type="number"
+            :prefix="symbol"
+            :error-messages="errorMesage.monto_local"
+            @update:model-value="
+              monto_local
+                ? (errorMesage.monto_local = '')
+                : (errorMesage.monto_local =
+                  'Monto de Depósito en banco es requerido')
+            "
+          />
+        </v-col>
+        <v-col
+          cols="12"
+          md="2"
+          class="pb-0"
+          v-if="mostrarTipoCambio"
+        >
+          <v-text-field
+            variant="outlined"
+            density="compact"
+            disabled
+            v-model="totalGeneralAbonadoMonLocal"
+            type="number"
+            :prefix="symbol"
+            :label="`Total Factura Seleccionada (${symbol})`"
+          />
+        </v-col>
+
+        <v-col
+          cols="12"
+          md="2"
+          class="pb-0"
+          v-if="Object.keys(id_cuenta).length > 0"
+        >
+          <v-text-field
+            variant="outlined"
+            density="compact"
+            disabled
+            v-model="monto"
+            type="number"
+            prefix="USD"
+            label="Total Factura Seleccionada"
+          />
+        </v-col>
+        <!--  -->
+        <v-col
+          cols="12"
+          md="2"
+          class="pb-0"
+          v-if="mostrarTipoCambio"
+        >
+          <v-text-field
+            label="Tipo Cambio"
+            variant="outlined"
+            density="compact"
+            v-model="tipocambio"
+            type="number"
+            prefix="USD"
+            hide-details
+            disabled
+          />
+        </v-col>
+
+        <v-col
+          cols="12"
+          v-if="cliente"
+          class="pt-0"
+        >
+          <v-tabs
+            v-model="pasos"
+            align-tabs="center"
+            color="#000000"
+            bg-color="#C8E6C9"
+          >
+            <v-tab key="detallesPago">
+              Facturas
+            </v-tab>
+            <v-tab
+              key="datosPrincipales"
+              :disabled="!editable"
+            >
+              Detalles Bancarios
+            </v-tab>
+            <v-tab
+              key="gastoBancario"
+              :disabled="!editableGastoBancario"
+            >
+              Resumen y Comisión Bancario
+            </v-tab>
+          </v-tabs>
+          <v-tabs-window v-model="pasos">
+            <v-tabs-window-item key="detallesPago">
+              <v-row class="mt-2">
+                <v-col
+                  cols="12"
+                  md="6"
+                  class="py-1"
+                >
+                  <v-autocomplete
+                    :items="bancosStore.cuentas"
+                    item-title="label"
+                    item-value="id"
+                    label="Cuenta y Banco Ingreso de Banco"
+                    v-model="id_cuenta"
+                    return-object
+                    variant="outlined"
+                    density="compact"
+                    :rules="[
+                      (v) =>
+                        (v && Object.keys(v).length > 0 && !!v.id) ||
+                        'Dato Requerido',
+                    ]"
+                  />
+                </v-col>
+                <v-col
+                  cols="12"
+                  md="6"
+                  class="py-1"
+                >
+                  <v-text-field
+                    label="Buscar"
+                    v-model="searchTableDetalle"
+                    style="max-width: 400px"
+                    variant="outlined"
+                    :disabled="itemsOrdenados.length == 0"
+                    density="compact"
+                    v-if="
+                      id_cuenta &&
+                        Object.keys(id_cuenta).length > 0 &&
+                        !!id_cuenta.id
+                    "
+                  />
+                </v-col>
+              </v-row>
+              <v-row class="mt-1">
+                <v-col
+                  cols="12"
+                  class="pt-0"
+                  v-if="mostrarDetalle"
+                >
+                  <div class="d-flex justify-center">
+                    <v-alert
+                      class="mt-0"
+                      border="top"
+                      type="info"
+                      elevation="2"
+                      density="compact"
+                      width="450px"
+                      color="purple"
+                    >
+                      <b>SELECCIONE UNA(S) FACTURA PARA CONTINUAR</b>
+                    </v-alert>
+                  </div>
+                  <!-- @vue-expect-error the current-items handler parameter has no type -->
+                  <v-data-table
+                    :headers="headers"
+                    :items="itemsOrdenados"
+                    v-model="selected"
+                    show-select
+                    item-value="id"
+                    return-object
+                    :search="searchTableDetalle"
+                    :item-disabled="checkDeshabilitado"
+                    @update:current-items="
+                      (items) => (invoicesOnPage = items.map((i) => i.raw))
+                    "
+                  >
+                    <template
+                      #[`header.data-table-select`]="{
+                        allSelected,
+                        someSelected,
+                        selectAll,
+                      }"
+                    >
+                      <v-checkbox-btn
+                        :model-value="allSelected"
+                        :indeterminate="someSelected && !allSelected"
+                        @update:model-value="
+                          (value) => {
+                            selectAll(value);
+                            onSelectAll({ items: invoicesOnPage, value });
+                          }
+                        "
+                      />
+                    </template>
+                    <template
+                      #[`item.data-table-select`]="{
+                        item,
+                        internalItem,
+                        isSelected,
+                        toggleSelect,
+                      }"
+                    >
+                      <v-checkbox-btn
+                        :model-value="isSelected(internalItem)"
+                        :aria-label="`Seleccionar factura ${item.referencia}`"
+                        @update:model-value="
+                          (value) => {
+                            toggleSelect(internalItem);
+                            onItemSelected({ item, value });
+                          }
+                        "
+                      />
+                    </template>
+                    <template #body.append>
+                      <tr
+                        class="bg-grey-lighten-4 font-weight-bold"
+                        v-if="symbol !== 'USD'"
+                      >
+                        <td
+                          :colspan="headers.length"
+                          class="text-right"
+                        >
+                          Total General Seleccionado {{ symbol }}:
+                        </td>
+                        <td class="text-left">
+                          {{ symbol }}
+                          {{ totalGeneralAbonadoMonLocalSeleccionado }}
+                        </td>
+                      </tr>
+                      <tr class="bg-grey-lighten-4 font-weight-bold">
+                        <td
+                          :colspan="headers.length"
+                          class="text-right"
+                        >
+                          Total General Seleccionado (USD):
+                        </td>
+                        <td class="text-left">
+                          USD {{ totalGeneralAbonado }}
+                        </td>
+                      </tr>
+                    </template>
+                    <template #[`item.action`]="{ item }">
+                      <v-btn
+                        variant="text"
+                        icon
+                        color="primary"
+                        v-if="item.tipo == 'A'"
+                        @click="abrirFactura(item)"
+                      >
+                        <v-icon>mdi-eye</v-icon>
+                      </v-btn>
+                    </template>
+                    <template #[`item.parcialflag`]="{ item }">
+                      <v-select
+                        item-title="text"
+                        :items="cboParcial"
+                        v-model="item.parcialflag"
+                        density="compact"
+                        variant="outlined"
+                        :disabled="!selected.includes(item)"
+                        hide-details
+                        @update:model-value="verificarMontoCompleto(item)"
+                        style="max-width: 200px"
+                      />
+                    </template>
+                    <template #[`item.montopagar`]="{ item }">
+                      <!-- @vue-expect-error parseFloat gets a string or number, kept from the old template -->
+                      <v-text-field
+                        hide-details
+                        density="compact"
+                        variant="outlined"
+                        v-model="item.montoparcial"
+                        :disabled="
+                          !selected.includes(item) || !item.parcialflag
+                        "
+                        :prefix="item.symbol"
+                        @update:model-value="calcularTotal"
+                        :rules="[
+                          (v) =>
+                            !v ||
+                            parseFloat(v) <= parseFloat(item.total_mon_local) ||
+                            'El monto no puede ser mayor al saldo',
+                        ]"
+                      />
+                    </template>
+                    <template #[`item.concepto`]="{ item, index }">
+                      <v-text-field
+                        v-model="item.concepto"
+                        :id="`txtConcepto${index}`"
+                        variant="outlined"
+                        density="compact"
+                        hide-details
+                        style="max-width: 150px"
+                        placeholder="Nuevo Concepto"
+                        v-if="item.nuevoflag"
+                      />
+                    </template>
+                    <template #[`item.totaldolar`]="{ item }">
+                      USD {{ item.totaldolar }}
+                    </template>
+                    <template #[`item.totalabonado`]="{ item }">
+                      {{ fn_totalAbonado(item) }}
+                    </template>
+                    <template #[`item.monto_original_total`]="{ item }">
+                      {{ item.symbol }} {{ item.monto_original_total }}
+                    </template>
+                    <template #[`item.total_mon_local`]="{ item }">
+                      {{ item.symbol }} {{ item.total_mon_local }}
+                    </template>
+                    <template #[`item.saldo`]="{ item }">
+                      <span
+                        v-if="
+                          selected.some(
+                            (s) => s.registro_id === item.registro_id,
+                          )
+                        "
+                      >
+                        <!-- @vue-expect-error subtracts string or number operands, kept from the old template -->
+                        {{ item.symbol }}
+                        {{
+                          parseFloat(
+                            item.total_mon_local -
+                              (item.montoparcial
+                                ? item.montoparcial
+                                : item.total_mon_local),
+                          ).toFixed(2)
+                        }}
+                      </span>
+                      <span v-else> ----- </span>
+                    </template>
+                  </v-data-table>
+                </v-col>
+                <v-col
+                  cols="12"
+                  class="pt-1"
+                  style="align-items: end; align-content: end; text-align: end"
+                >
+                  <v-btn
+                    class="mx-1"
+                    color="success"
+                    @click="continuarGastoBancario()"
+                    :disabled="
+                      !(
+                        id_cuenta &&
+                        Object.keys(id_cuenta).length > 0 &&
+                        !!id_cuenta.id
+                      )
+                    "
+                  >
+                    Continuar
+                  </v-btn>
+                </v-col>
+              </v-row>
+            </v-tabs-window-item>
+            <v-tabs-window-item key="datosPrincipales">
+              <v-form ref="validacionDatosPrincipales">
+                <v-row class="mt-1">
+                  <v-col
+                    cols="12"
+                    md="6"
+                    class="py-1"
+                  >
+                    <v-autocomplete
+                      :items="rootStore.state.itemsDataBanksList"
+                      v-model="id_banco_origen"
+                      label="Banco Origen"
+                      item-title="acronym"
+                      item-value="id"
+                      variant="outlined"
+                      density="compact"
+                      :rules="[(v) => !!v || 'Dato Requerido']"
+                    />
+                  </v-col>
+                  <v-col
+                    cols="12"
+                    md="6"
+                    class="py-1"
+                  >
+                    <v-autocomplete
+                      :items="bancosStore.cuentas"
+                      item-title="label"
+                      item-value="id"
+                      label="Cuenta y Banco Ingreso de Banco"
+                      v-model="id_cuenta"
+                      return-object
+                      variant="outlined"
+                      density="compact"
+                      readonly
+                      :rules="[
+                        (v) =>
+                          (v && Object.keys(v).length > 0 && !!v.id) ||
+                          'Dato Requerido',
+                      ]"
+                    />
+                  </v-col>
+                  <v-col
+                    cols="12"
+                    md="6"
+                    class="py-1"
+                  >
+                    <v-text-field
+                      readonly
+                      v-model="id_cuenta.banco"
+                      label="Banco:"
+                      variant="outlined"
+                      density="compact"
+                    />
+                  </v-col>
+
+                  <v-col
+                    cols="12"
+                    md="6"
+                    class="py-1"
+                  >
+                    <v-text-field
+                      readonly
+                      v-model="id_cuenta.cuenta"
+                      label="N° Cuenta:"
+                      variant="outlined"
+                      density="compact"
+                    />
+                  </v-col>
+                  <v-col
+                    cols="12"
+                    md="6"
+                    class="py-1"
+                  >
+                    <v-text-field
+                      readonly
+                      v-model="id_cuenta.cci"
+                      label="CCI:"
+                      variant="outlined"
+                      density="compact"
+                    />
+                  </v-col>
+                  <v-col
+                    cols="12"
+                    md="6"
+                    class="py-1"
+                  >
+                    <FormatFecha
+                      outlined
+                      dense
+                      label="Fecha Operación"
+                      v-model="fecha_operacion"
+                      :rules="[(v) => !!fecha_operacion || 'Dato Requerido']"
+                    />
+                  </v-col>
+                  <v-col
+                    cols="12"
+                    md="6"
+                    class="py-1"
+                  >
+                    <v-text-field
+                      readonly
+                      v-model="id_cuenta.moneda"
+                      label="Moneda:"
+                      variant="outlined"
+                      density="compact"
+                    />
+                  </v-col>
+                  <v-col
+                    cols="12"
+                    md="6"
+                    class="py-1"
+                  >
+                    <v-text-field
+                      label="Número de Operación"
+                      variant="outlined"
+                      density="compact"
+                      v-model="nro_operacion"
+                      :rules="[(v) => !!v || 'Dato Requerido']"
+                      @update:model-value="
+                        nro_operacion !== ''
+                          ? ((errorMesage.nro_operacion = null),
+                             buscarOperacionAlEscribir())
+                          : ((errorMesage.nro_operacion =
+                               'Número de Operación es requerido'),
+                             (operacionesSimilares = []),
+                             (esDuplicado = false))
+                      "
+                    />
+
+                    <div
+                      v-if="
+                        operacionesSimilares.length > 0 &&
+                          operacionesSimilares[0]!.id !== null
+                      "
+                    >
+                      <p
+                        v-if="esDuplicado"
+                        class="text-red text-body-small font-weight-bold pl-2"
+                      >
+                        ⚠️ Ya existe un registro con este número exacto.
+                      </p>
+
+                      <div
+                        v-else
+                        class="pl-2"
+                      >
+                        <div class="d-flex flex-wrap gap-1 mt-1">
+                          <v-chip
+                            v-for="(item, index) in operacionesSimilares"
+                            :key="index"
+                            size="small"
+                            class="mr-1 mb-1"
+                          >
+                            {{ item.numerooperacion }}
+                          </v-chip>
+                        </div>
+                      </div>
+                    </div>
+                  </v-col>
+
+                  <v-col
+                    cols="12"
+                    md="6"
+                    class="py-1"
+                  >
+                    <v-textarea
+                      label="Comentarios Usuario"
+                      rows="1"
+                      variant="outlined"
+                      density="compact"
+                      auto-grow
+                      v-model="comentarios"
+                    />
+                  </v-col>
+                  <v-col
+                    cols="12"
+                    md="6"
+                    class="py-1"
+                  >
+                    <v-textarea
+                      label="Comentarios Administrativos"
+                      rows="1"
+                      variant="outlined"
+                      density="compact"
+                      auto-grow
+                      v-model="comentariosadmin"
+                    />
+                  </v-col>
+                  <v-col
+                    cols="12"
+                    class="py-1"
+                  >
+                    <p class="my-1">
+                      Soporte de Pago:
+                    </p>
+                    <ArrastraYSolarComponent
+                      @id-archivo-cargado="recibirId"
+                      :rules="[
+                        (v) => !!v || 'Debe adjuntar un soporte de pago',
+                      ]"
+                    />
+                  </v-col>
+                  <v-col
+                    cols="12"
+                    class="pt-1 pb-5"
+                  >
+                    <v-spacer />
+                    <v-btn
+                      color="primary"
+                      @click="continuarDetalles()"
+                    >
+                      Continuar Comisión Bancaría
+                    </v-btn>
+                    <v-btn
+                      class="mx-1"
+                      color="error"
+                      @click="pasos = 0"
+                    >
+                      Cancel
+                    </v-btn>
+                  </v-col>
+                </v-row>
+              </v-form>
+            </v-tabs-window-item>
+
+            <v-tabs-window-item key="gastoBancario">
+              <v-row class="mt-1">
+                <v-col cols="12">
+                  <v-data-table
+                    :headers="headersPagosGastosBancario"
+                    :items="selected"
+                    v-model="selected"
+                    item-value="id"
+                    return-object
+                  >
+                    <template #body.append>
+                      <tr
+                        class="bg-grey-lighten-4 font-weight-bold"
+                        v-if="symbol !== 'USD'"
+                      >
+                        <td
+                          :colspan="headersPagosGastosBancario.length - 1"
+                          class="text-right"
+                        >
+                          Total General Seleccionado {{ symbol }}:
+                        </td>
+                        <td class="text-left">
+                          {{ symbol }}
+                          {{ totalGeneralAbonadoMonLocalSeleccionado }}
+                        </td>
+                      </tr>
+                      <tr class="bg-grey-lighten-4 font-weight-bold">
+                        <td
+                          :colspan="headersPagosGastosBancario.length - 1"
+                          class="text-right"
+                        >
+                          Total General Seleccionado (USD):
+                        </td>
+                        <td class="text-left">
+                          USD {{ totalGeneralAbonado }}
+                        </td>
+                      </tr>
+                    </template>
+                    <template #[`item.parcialflag`]="{ item }">
+                      {{
+                        item.parcialflag ? "Abono Parcial" : "Abono Completo"
+                      }}
+                    </template>
+                    <template #[`item.montopagar`]="{ item }">
+                      {{ item.montoparcial }}
+                    </template>
+                    <template #[`item.totalabonado`]="{ item }">
+                      {{ fn_totalAbonado(item) }}
+                    </template>
+                    <template #[`item.saldo`]="{ item }">
+                      <!-- @vue-expect-error subtracts string or number operands, kept from the old template -->
+                      {{ item.symbol }}
+                      {{
+                        parseFloat(
+                          item.total_mon_local -
+                            (item.montoparcial
+                              ? item.montoparcial
+                              : item.total_mon_local),
+                        ).toFixed(2)
+                      }}
+                    </template>
+                  </v-data-table>
+                </v-col>
+
+                <v-col
+                  cols="2"
+                  offset="7"
+                >
+                  <v-text-field
+                    variant="outlined"
+                    density="compact"
+                    label="Comisión Bancaria"
+                    id="id"
+                    v-model="conceptogastobancario"
+                  />
+                </v-col>
+                <v-col cols="3">
+                  <v-text-field
+                    variant="outlined"
+                    density="compact"
+                    label="Monto Gasto Bancario"
+                    id="id"
+                    type="number"
+                    :prefix="symbol"
+                    v-model="montogastobancario"
+                  />
+                </v-col>
+                <v-col
+                  cols="3"
+                  offset="9"
+                >
+                  <v-text-field
+                    variant="outlined"
+                    density="compact"
+                    label="Monto Total a Pagar"
+                    id="id"
+                    type="number"
+                    :prefix="symbol"
+                    v-model="totalGeneralAbonadoMonLocal"
+                  />
+                </v-col>
+                <v-col cols="12">
+                  <v-btn
+                    class="mx-1"
+                    color="success"
+                    :loading="loading"
+                    @click="finalizarOperacion()"
+                  >
+                    Finalizar Operación
+                  </v-btn>
+                </v-col>
+              </v-row>
+            </v-tabs-window-item>
+          </v-tabs-window>
+        </v-col>
+      </v-row>
+    </v-container>
+
+    <v-dialog
+      v-model="dialogLlenarMontoDepositadoBanco"
+      persistent
+      max-width="35%"
+    >
+      <v-card class="pa-2">
+        <v-card-title class="text-headline-medium pb-2">
+          <v-icon
+            start
+            color="primary"
+          >
+            mdi-hand-coin
+          </v-icon> Confirmar Depósito
+        </v-card-title>
+
+        <v-card-text class="pt-2">
+          <!-- Banner de advertencia idéntico a la imagen -->
+          <v-alert
+            border="start"
+            border-color="warning"
+            elevation="0"
+            class="bg-amber-lighten-5 mb-4 rounded-lg"
+          >
+            <template #prepend>
+              <v-icon
+                size="36"
+                color="amber-darken-2"
+                class="mr-3"
+              >
+                mdi-alert
+              </v-icon>
+            </template>
+            <div>
+              <div
+                class="text-body-medium font-weight-bold text-amber-darken-4 text-uppercase"
+              >
+                OBLIGATORIO PARA CONTINUAR
+              </div>
+              <div class="text-body-small font-weight-bold text-grey-darken-3">
+                Ingresa el monto recibido en el banco, según tu estado de
+                cuenta.
+              </div>
+            </div>
+          </v-alert>
+
+          <v-text-field
+            variant="outlined"
+            label="Monto recibido en el banco"
+            ref="txtMontoLocal"
+            v-model="monto_local"
+            type="number"
+            :prefix="symbol"
+            :error-messages="errorMesage.monto_local"
+            :rules="[(v) => !!v || 'Este campo es obligatorio']"
+            hide-details="auto"
+          />
+        </v-card-text>
+
+        <v-card-actions class="pa-4 pt-0">
+          <v-spacer />
+          <v-btn
+            color="error"
+            @click="cancelarllenadoDeMonto()"
+            variant="text"
+          >
+            Cancelar
+          </v-btn>
+          <v-btn
+            color="primary"
+            @click="confirmarDeposito"
+          >
+            CONTINUAR
+          </v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
+  </v-card>
+</template>
+
+<style></style>
