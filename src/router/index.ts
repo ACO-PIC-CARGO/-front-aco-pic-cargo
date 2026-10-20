@@ -296,23 +296,23 @@ const routes = [
         path: "folderModulesPays/lstProyeccion",
         name: "lstProyeccionCXP",
         component: () =>
-          import("../views/folderProyeccion/listProyeccionCXP.vue"),
+          import("../views/folderProyeccion/ListProyeccionCXPView.vue"),
       },
       {
         path: "folderModulesPays/nuevaProyeccion",
         name: "nuevaProyeccionCXP",
         component: () =>
-          import("../views/folderProyeccion/nuevaProyeccionCXP.vue"),
+          import("../views/folderProyeccion/NuevaProyeccionCXPView.vue"),
       },
       {
         path: "folderModulesPays/verProyeccion/:id",
         name: "verProyeccion",
-        component: () => import("../views/folderProyeccion/verProyeccion.vue"),
+        component: () => import("../views/folderProyeccion/VerProyeccionView.vue"),
       },
       {
         path: "folderModulesPays/editarProyeccion/:id",
         name: "editarProyeccion",
-        component: () => import("../views/folderProyeccion/editarProyeccion.vue"),
+        component: () => import("../views/folderProyeccion/EditarProyeccionView.vue"),
       },
 
       {

@@ -24,10 +24,6 @@ export const LEGACY = [
   "src/components/folderModulesPays/regularizarProformace.vue",
   "src/components/mixins/funciones.js",
   "src/components/mixins/utils.js",
-  "src/components/proyeccion/editarProyeccion.vue",
-  "src/components/proyeccion/nuevaProyeccionCXP.vue",
-  "src/components/proyeccion/proyeccionCxP.vue",
-  "src/components/proyeccion/verProyeccion.vue",
   "src/store/index.js",
   "src/store/modules/SubGasto.js",
   "src/store/modules/SubIngreso.js",
@@ -84,10 +80,6 @@ export const LEGACY = [
   "src/views/folderModulesPays/moduleAccountPays.vue",
   "src/views/folderModulesPays/moduleAccountReceivable.vue",
   "src/views/folderModulesPays/regularizarProformace.vue",
-  "src/views/folderProyeccion/editarProyeccion.vue",
-  "src/views/folderProyeccion/listProyeccionCXP.vue",
-  "src/views/folderProyeccion/nuevaProyeccionCXP.vue",
-  "src/views/folderProyeccion/verProyeccion.vue",
   "src/views/programmedPayment/listProgrammedPayment.vue",
 ];
 
