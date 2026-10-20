@@ -1,6 +1,7 @@
 export interface UsuarioSesion {
   id?: number;
   id_branch: number;
+  id_pais?: number;
   names: string;
   nombrecompleto: string;
   path?: string;
