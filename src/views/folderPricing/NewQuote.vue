@@ -104,6 +104,7 @@ function recargar() {
 function continuarComparativa() {
   step.value = 3;
   pricingStore.step = 3;
+  editableStep3.value = true;
 }
 async function activarDatosCarga() {
   appStore.spiner = true;
@@ -422,6 +423,8 @@ async function activarLlenadoCostosGrupal(
         step.value = 2;
         pricingStore.step = 2;
         editableStep2.value = true;
+        pricingStore.btnRegistrar = true;
+        pricingStore.bloquearBtnImprimir = false;
       } else if (result.isDenied) {
         await guardar();
       }
@@ -571,6 +574,8 @@ async function activarLlenadoCostosIndividual(
         step.value = 2;
         pricingStore.step = 2;
         editableStep2.value = true;
+        pricingStore.btnRegistrar = true;
+        pricingStore.bloquearBtnImprimir = false;
       } else if (result.isDenied) {
         await guardar();
       }
@@ -644,7 +649,7 @@ function obtenerPrecioUnitarioGrupal(item: Costo, monto: Numerico) {
     factor = 1;
   }
   return factor > 0
-    ? Number((parseFloat((monto || 0) as string) / factor).toFixed(3))
+    ? parseFloat((monto || 0) as string) / factor
     : 0;
 }
 function obtenerTransporteGrupal(item: Costo) {
@@ -748,6 +753,9 @@ async function guardar() {
 }
 async function anadirNuevaOpcion(nro_propuesta: number) {
   const pricing = pricingStore;
+  if (pricing.opcionCostos[0]) {
+    pricing.opcionCostos[0].selected = true;
+  }
   pricing.opcionCostos.push({
     nro_propuesta,
     date_end: moment().add(7, "days").format("YYYY-MM-DD"),
@@ -894,13 +902,11 @@ async function recargarCostos() {
 function irVentaCliente() {
   step.value = 2;
   pricingStore.step = 2;
-  editableStep3.value = true;
 }
 function irANotas() {
   step.value = 4;
   pricingStore.step = 4;
   editableStep4.value = true;
-  pricingStore.btnRegistrar = true;
 }
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 function triggerExcel() {

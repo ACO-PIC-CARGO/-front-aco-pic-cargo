@@ -52,14 +52,7 @@ const frmDatosPrincipales = useTemplateRef("frmDatosPrincipales");
 
 const listMarketingActivos = computed(() => {
   const list = pricingStore.listMarketing || [];
-  // Solo activos y ordenados por posición, igual que en FolderMarketing/list.vue
-  return list
-    .filter((m) => m.status === 1 || (m.status as number | boolean) === true)
-    .sort((a, b) => {
-      const pa = a.position || 0;
-      const pb = b.position || 0;
-      return (pa as number) - (pb as number);
-    });
+  return list;
 });
 const incoterms = computed(() =>
   (pricingStore.listIncoterms || [])

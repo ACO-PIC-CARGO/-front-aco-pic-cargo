@@ -579,7 +579,7 @@ function obtenerPrecioUnitarioGrupal(item: Costo, monto: Numerico) {
     factor = 1;
   }
   return (factor as number) > 0
-    ? Number((parseFloat((monto || 0) as string) / (factor as number)).toFixed(3))
+    ? parseFloat((monto || 0) as string) / (factor as number)
     : 0;
 }
 function recargarPuertoOrigen(textoBuscar: string) {
@@ -628,6 +628,19 @@ async function buscarPuertoDestino(textoBuscar: string) {
     id: pricingStore.datosPrincipales.iddestino,
     search: textoBuscar,
   });
+}
+async function buscarTownPorDestino(idDestino: number | string | undefined) {
+  const puertoDestino = (
+    pricingStore.listPortEnd || []
+  ).find((puerto) => String(puerto.id_port) === String(idDestino));
+
+  pricingStore.datosPrincipales.id_town = null;
+  idTownSeleccionado.value = null;
+  townStore.lstTown = [];
+
+  if (!puertoDestino) return;
+
+  await townStore.cargarTownParaPricing({ id_pais: puertoDestino.id_pais! });
 }
 async function anadirCarga() {
   if ((await frmDatosCarga.value!.validate()).valid) {
@@ -1210,6 +1223,12 @@ function cerrarDialogCambiarPercepcionAduana() {
       return;
     }
     idTownSeleccionado.value = null;
+    const lstTown = townStore.lstTown;
+    if (!Array.isArray(lstTown) || lstTown.length === 0) {
+      pricingStore.datosPrincipales.id_town = null;
+      finalizarSeleccionDistrito();
+      return;
+    }
     dialogSeleccionDistrito.value = true;
   });
 }
@@ -1230,6 +1249,9 @@ function confirmarSeleccionDistrito() {
     });
   });
 
+  finalizarSeleccionDistrito();
+}
+function finalizarSeleccionDistrito() {
   dialogSeleccionDistrito.value = false;
   pricingStore.actualizarCostosFlag = !pricingStore.actualizarCostosFlag;
 }
@@ -1292,6 +1314,7 @@ function confirmarSeleccionDistrito() {
                 item-title="name"
                 item-value="id_port"
                 v-model="pricingStore.datosPrincipales.iddestino"
+                @update:model-value="buscarTownPorDestino"
                 @update:search="recargarPuertoDestino"
               />
             </v-col>

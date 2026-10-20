@@ -46,12 +46,16 @@ http.interceptors.request.use((config: InternalAxiosRequestConfig) => {
 http.interceptors.response.use(
   (response: AxiosResponse) => {
     const token = response?.data?.token;
-    if (token) sessionStorage.setItem("auth-token", token);
+    if (token) {
+      sessionStorage.setItem("auth-token", token);
+      localStorage.setItem("auth-token", token);
+    }
     return response;
   },
   (error: AxiosError) => {
     if (error?.response?.status === 401) {
-      sessionStorage.clear(); // Limpieza más segura
+      sessionStorage.clear();
+      localStorage.removeItem("auth-token");
       if (router.currentRoute.value.name !== "Login") {
         router.replace({ name: "Login" });
       }

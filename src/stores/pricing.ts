@@ -78,6 +78,20 @@ import {
 import { quoteFilterDatesAtAppLoad } from "@/utils/appLoad";
 import { sessionBranchId, sessionIsoPais, sessionSucursal, sessionUser, sessionUserIdOrEmpty } from "@/utils/sesion";
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+async function getSessionBranchId(): Promise<number | string | null> {
+  const userData = JSON.parse(sessionStorage.getItem("dataUser") || "null") as { id_branch?: number | string | null }[] | null;
+  const idBranch = userData?.[0]?.id_branch;
+  if (idBranch === null || idBranch === undefined || idBranch === "") {
+    if (router.currentRoute.value.name !== "Login") {
+      await router.replace({ name: "Login" });
+    }
+    return null;
+  }
+
+  return idBranch;
+}
+
 export const usePricingStore = defineStore("pricing", () => {
   const {
     calcularFac,
@@ -868,9 +882,6 @@ export const usePricingStore = defineStore("pricing", () => {
       headers: {
         "Content-Type": "application/json",
       },
-      data: {
-        id_branch: sessionBranchId(),
-      },
     };
     await axios<ApiResponse<Marketing[]>>(config)
       .then(function (response) {
@@ -886,9 +897,6 @@ export const usePricingStore = defineStore("pricing", () => {
       url: import.meta.env.VITE_URL_MAIN + "getQuoteStatus",
       headers: {
         "Content-Type": "application/json",
-      },
-      data: {
-        id_branch: sessionBranchId(),
       },
     };
     await axios<ApiResponse<EstadoCotizacion[]>>(config)
@@ -907,7 +915,6 @@ export const usePricingStore = defineStore("pricing", () => {
         "Content-Type": "application/json",
       },
       data: {
-        id_branch: sessionBranchId(),
         id_module: 6,
       },
     };
@@ -3086,6 +3093,64 @@ export const usePricingStore = defineStore("pricing", () => {
     await axios
       // @ts-expect-error the headers object goes in as the request config.
       .post<RespuestaArchivo>(import.meta.env.VITE_URL_MAIN + "export_list_quote", data, headers)
+      .then((response) => {
+        if (response.data.estadoflag) {
+          Swal.fire({
+            icon: "success",
+            title: "PDF Generado",
+            text: "El PDF se descargará automaticamente",
+            showConfirmButton: true,
+          });
+
+          window.open(
+            `${import.meta.env.VITE_URL_MAIN}${response.data.path}`,
+            // "",
+            "_blank"
+          );
+        } else {
+          Swal.close();
+          Swal.fire({
+            icon: "warning",
+            text: "Ocurrió un error al generar el PDF, por favor comuníquese con el administrador del sistema",
+            showConfirmButton: true,
+          });
+        }
+      })
+      .catch((e) => console.log(e));
+  }
+  async function imprimiReporteListadoMarketing({
+    filtroSeleccionado = {},
+    filtroCabecera = {},
+  }: FiltrosReporte): Promise<void> {
+    const headers = {
+      "Content-Type": "application/json",
+    };
+    const data = {
+      filtro: { ...filtro.value },
+      filtroSeleccionado: filtroSeleccionado,
+      filtroCabecera: filtroCabecera,
+    };
+    let timerInterval;
+    Swal.fire({
+      icon: "info",
+      title: "Generando  PDF",
+      text: "El PDF se descargará automaticamente",
+      showConfirmButton: false,
+      allowOutsideClick: false,
+      timerProgressBar: true,
+      timer: null as unknown as number,
+      didOpen: () => {
+        Swal.showLoading();
+      },
+    }).then((res) => {
+      if (res.dismiss) {
+        clearInterval(timerInterval);
+      }
+    });
+
+    await axios
+      // @ts-expect-error the headers object goes in as the request config.
+      .post<RespuestaArchivo>(import.meta.env.VITE_URL_MAIN + "reporte_canales_origen", data, headers)
       .then((response) => {
         if (response.data.estadoflag) {
           Swal.fire({
@@ -7147,6 +7212,7 @@ export const usePricingStore = defineStore("pricing", () => {
     obtenerDatosEmpresa,
     generarReporte,
     imprimiReporteListado,
+    imprimiReporteListadoMarketing,
     exportarExcelListadoQuote,
     imprimirMercadeo,
     imprimiReporteListadoCalls,

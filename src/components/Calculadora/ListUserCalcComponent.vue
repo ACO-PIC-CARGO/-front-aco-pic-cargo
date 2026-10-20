@@ -35,6 +35,7 @@ const loading = ref(false);
 const title = ref("");
 const fecha = ref(moment().format("YYYY-MM-DD"));
 const headers = [
+  { title: "", key: "action", sortable: false },
   // { title: "", key: "accion" },
   { title: "Fecha Registro", key: "created_at" },
   { title: "Estado Cotización", key: "estado_cotizacion" },
@@ -49,7 +50,6 @@ const headers = [
   { title: "Correo", key: "email" },
   { title: "Teléfono", key: "telefono" },
   // { title: "Estado", key: "estadocotizacion" },
-  { title: "", key: "action", sortable: false },
 ];
 
 const datos = ref<Record<string, unknown>>({
@@ -1030,12 +1030,21 @@ function conver_conten(valor: ConceptoCotizacionCalculadora[]) {
           </template>
           <template #[`item.action`]="{ item }">
             <v-btn
-              color="warning"
+              color="#1A237E"
               class="ma-1 btnCalc"
               block
               @click="abrirModalCambiarEstado(item)"
             >
-              Cambiar Estado
+              <v-icon
+                size="small"
+                readonly
+                hide-details
+                outlined
+                class="mr-1"
+              >
+                mdi-phone-plus
+              </v-icon>
+              Registro Llamada
             </v-btn>
             <v-btn
               color="#B71C1C"
@@ -1058,7 +1067,7 @@ function conver_conten(valor: ConceptoCotizacionCalculadora[]) {
             >
               <v-icon class="mx-1">
                 mdi-eye
-              </v-icon> Ver Preview
+              </v-icon> Ver Costos
             </v-btn>
             <v-btn
               block

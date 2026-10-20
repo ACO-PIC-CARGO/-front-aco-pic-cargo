@@ -24,7 +24,10 @@ http.interceptors.response.use(
   (response: AxiosResponse) => {
     try {
       const token = response?.data?.token;
-      if (token) sessionStorage.setItem("auth-token", token);
+      if (token) {
+        sessionStorage.setItem("auth-token", token);
+        localStorage.setItem("auth-token", token);
+      }
     } catch {}
     return response;
   },
@@ -33,6 +36,7 @@ http.interceptors.response.use(
     if (status === 401) {
       try {
         sessionStorage.removeItem("auth-token");
+        localStorage.removeItem("auth-token");
         sessionStorage.removeItem("security");
       } catch {}
       if (router.currentRoute.value.name !== "Login") {
@@ -44,4 +48,3 @@ http.interceptors.response.use(
 );
 
 export default http;
-

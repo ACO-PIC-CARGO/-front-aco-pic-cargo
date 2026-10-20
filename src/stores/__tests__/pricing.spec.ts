@@ -244,8 +244,18 @@ describe("pricing store", () => {
 
       await pricing.getMarketingList();
 
-      expect(sentConfig("getMarketingList")!.data).toEqual({ id_branch: 1 });
+      expect(sentConfig("getMarketingList")).not.toHaveProperty("data");
       expect(pricing.listMarketing.map((v) => v.id)).toEqual([2, 3, 1]);
+    });
+
+    test("getQuoteStatus sends no body and keeps the statuses", async () => {
+      respond({ getQuoteStatus: accepted([{ id: 1, name: "PRELIMINAR" }]) });
+      const pricing = usePricingStore();
+
+      await pricing.getQuoteStatus();
+
+      expect(sentConfig("getQuoteStatus")).not.toHaveProperty("data");
+      expect(pricing.listQuoteStatus).toEqual([{ id: 1, name: "PRELIMINAR" }]);
     });
 
     test("getModulesEntities, getCargarEjecutivo, getPersonalPricing and cargarTrabajadores fill the executives for pricing and aduana", async () => {
@@ -270,7 +280,7 @@ describe("pricing store", () => {
         await sharedAfter(() => pricing.cargarTrabajadores({ id_branch: 1, rol: "V" })),
       ];
 
-      expect(sentConfig("getModulesEntities")!.data).toEqual({ id_branch: 1, id_module: 6 });
+      expect(sentConfig("getModulesEntities")!.data).toEqual({ id_module: 6 });
       expect(sentConfig("cargar_ejecutivo")!.params).toEqual({ id_branch: 1, id_module: 6 });
       expect(sentConfig("get_personal_pricing")!.url).toBe(URL_MAIN + "get_personal_pricing?id_branch=1");
       expect(sentConfig("cargar_trabajadores")!.params).toEqual({ id_branch: 1, rol: "V" });
@@ -1635,6 +1645,29 @@ describe("pricing store", () => {
 
       expect(postedBody("export_list_quote")).toEqual({ filtro: { fechainicio: "2026-01-01", fechafin: "2026-10-31", tipopdf: 2 }, filtroSeleccionado: { a: 1 }, filtroCabecera: { b: 2 } });
       expect(window.open).toHaveBeenCalledWith(URL_MAIN + "files/x.pdf", "_blank");
+    });
+
+    test("imprimiReporteListadoMarketing posts the filters to the channels report and opens the PDF", async () => {
+      const pricing = usePricingStore();
+      pricing.filtro = { fechainicio: "2026-01-01", fechafin: "2026-10-31", tipopdf: 2 };
+
+      await pricing.imprimiReporteListadoMarketing({ filtroSeleccionado: { a: 1 }, filtroCabecera: { b: 2 } });
+
+      expect(postedBody("reporte_canales_origen")).toEqual({ filtro: { fechainicio: "2026-01-01", fechafin: "2026-10-31", tipopdf: 2 }, filtroSeleccionado: { a: 1 }, filtroCabecera: { b: 2 } });
+      expect(postMock.mock.calls[0]![2]).toEqual({ "Content-Type": "application/json" });
+      expect(window.open).toHaveBeenCalledWith(URL_MAIN + "files/x.pdf", "_blank");
+    });
+
+    test("imprimiReporteListadoMarketing warns and opens nothing when the PDF fails", async () => {
+      postMock.mockResolvedValue({ data: { estadoflag: false } });
+      const pricing = usePricingStore();
+
+      await pricing.imprimiReporteListadoMarketing({});
+
+      expect(postedBody("reporte_canales_origen")).toEqual({ filtro: pricing.filtro, filtroSeleccionado: {}, filtroCabecera: {} });
+      expect(Swal.close).toHaveBeenCalled();
+      expect(vi.mocked(Swal.fire).mock.calls[vi.mocked(Swal.fire).mock.calls.length - 1]![0]).toMatchObject({ icon: "warning" });
+      expect(window.open).not.toHaveBeenCalled();
     });
 
     test("imprimiReporteListadoCalls posts the calls filters and warns when the PDF fails", async () => {

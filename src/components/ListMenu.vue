@@ -102,6 +102,7 @@ function _nextView(name: string, id_role: number | string, namemodule: string) {
 }
 function cerrarSesion() {
   sessionStorage.removeItem("auth-token");
+  localStorage.removeItem("auth-token");
   sessionStorage.removeItem("dataUser");
   sessionStorage.removeItem("dataBranch");
   securitysStore.MostrarLogin = true;

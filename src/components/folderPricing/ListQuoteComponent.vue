@@ -391,6 +391,131 @@ function rangoFechaSuperaUnMes(inicio: string | null | undefined, fin: string | 
     fechaFin.isAfter(fechaInicio.clone().add(1, "month"), "day")
   );
 }
+async function reporteMarketing() {
+  const f = pricingStore.filtro;
+  const rangoCreacionExcedido = rangoFechaSuperaUnMes(
+    f.fechainicio,
+    f.fechafin,
+  );
+  const rangoEmisionExcedido = rangoFechaSuperaUnMes(
+    f.fechaemisiondesde,
+    f.fechaemisionhasta,
+  );
+
+  if (rangoCreacionExcedido || rangoEmisionExcedido) {
+    const rangoExcedido =
+      rangoCreacionExcedido && rangoEmisionExcedido
+        ? "Los rangos de creación y emisión"
+        : rangoCreacionExcedido
+          ? "El rango de creación"
+          : "El rango de emisión";
+    await Swal.fire({
+      icon: "warning",
+      title: "No se puede generar el reporte",
+      html: `<strong>${rangoExcedido} supera el máximo permitido.</strong><br>Selecciona un periodo de hasta <strong>1 mes</strong> para continuar.`,
+      confirmButtonText: "Revisar fechas",
+    });
+    return;
+  }
+
+  loading2.value = true;
+  const filtroSeleccionado: Record<string, string | undefined> = {};
+  const store = pricingStore;
+
+  if (f.fechainicio) filtroSeleccionado["Creación De:"] = f.fechainicio;
+  if (f.fechafin) filtroSeleccionado["Creación Hasta:"] = f.fechafin;
+  if (f.fechaemisiondesde)
+    filtroSeleccionado["Fecha de Envío De:"] = f.fechaemisiondesde;
+  if (f.fechaemisionhasta)
+    filtroSeleccionado["Fecha de Envío Hasta:"] = f.fechaemisionhasta;
+
+  if (f.id_marketing) {
+    filtroSeleccionado.Marketing = store.listMarketing.find(
+      (v) => v.id == f.id_marketing,
+    )?.name;
+  }
+  if (f.id_status) {
+    filtroSeleccionado["Estado Cotización"] = store.listQuoteStatus.find(
+      (v) => v.id == f.id_status,
+    )?.name;
+  }
+  if (f.id_pricing) {
+    filtroSeleccionado["Ejecutivo Pricing"] = store.listEjecutivo.find(
+      (v) => v.id_entitie == f.id_pricing,
+    )?.name;
+  }
+  if (f.id_entities && !(f.tipopdf === 2 || (f.tipopdf as unknown) == "2")) {
+    filtroSeleccionado["Ejecutivo Venta"] = store.listEjecutivo.find(
+      (v) => v.id_entitie == f.id_entities,
+    )?.name;
+  }
+  if (f.id_modality) {
+    filtroSeleccionado.Modalidad = store.listModality.find(
+      (v) => v.id == f.id_modality,
+    )?.name;
+  }
+  if (f.id_shipment) {
+    filtroSeleccionado["Tipo Carga"] = store.listShipment.find(
+      (v) => v.id == f.id_shipment,
+    )?.embarque;
+  }
+  if (f.id_incoterm) {
+    filtroSeleccionado.Incoterms = store.listIncoterms.find(
+      (v) => v.id == f.id_incoterm,
+    )?.name;
+  }
+
+  const filtroCabecera: Record<string, string | undefined> = {};
+
+  if (f.id_marketing) {
+    filtroCabecera.Marketing = store.listMarketing.find(
+      (v) => v.id == f.id_marketing,
+    )?.name;
+  }
+  if (f.id_status) {
+    filtroCabecera.QuoteStatus = store.listQuoteStatus.find(
+      (v) => v.id == f.id_status,
+    )?.name;
+  }
+  if (f.id_pricing) {
+    filtroCabecera.Pricing = store.listEjecutivo.find(
+      (v) => v.id_entitie == f.id_pricing,
+    )?.name;
+  }
+  if (f.id_entities && !(f.tipopdf === 2 || (f.tipopdf as unknown) == "2")) {
+    filtroCabecera.Ejecutivo = store.listEjecutivo.find(
+      (v) => v.id_entitie == f.id_entities,
+    )?.name;
+  }
+  if (f.id_modality) {
+    filtroCabecera.Modalidad = store.listModality.find(
+      (v) => v.id == f.id_modality,
+    )?.name;
+  }
+  if (f.id_shipment) {
+    filtroCabecera.Shipment = store.listShipment.find(
+      (v) => v.id == f.id_shipment,
+    )?.embarque;
+  }
+  if (f.id_incoterm) {
+    filtroCabecera.Incoterms = store.listIncoterms.find(
+      (v) => v.id == f.id_incoterm,
+    )?.name;
+  }
+  if (f.id_cliente) {
+    filtroCabecera.Cliente = appStore.clientes.find(
+      (v: { id: number | string; namelong: string }) => v.id == f.id_cliente,
+    )?.namelong;
+  }
+
+  await pricingStore.imprimiReporteListadoMarketing({
+    filtroSeleccionado: filtroSeleccionado,
+    filtroCabecera: filtroCabecera,
+  }).catch((e) => {
+    console.error(e);
+  });
+  loading2.value = false;
+}
 async function reporteListado() {
   const f = pricingStore.filtro;
   const rangoCreacionExcedido = rangoFechaSuperaUnMes(
@@ -1119,6 +1244,16 @@ onMounted(async () => {
         xl="8"
       >
         <div class="text-right">
+          <v-btn
+            color="#0D47A1"
+            @click="reporteMarketing()"
+            class="mx-1 my-1"
+            :loading="loading2"
+            :disabled="loading2"
+            size="small"
+          >
+            <v-icon>mdi-bullhorn</v-icon> R. MARKETING
+          </v-btn>
           <v-btn
             color="red"
             @click="reporteListado()"

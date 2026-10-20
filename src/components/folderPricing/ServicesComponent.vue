@@ -186,7 +186,11 @@ function continuarLlenadoCostos() {
       pricingStore.errorValorMercancia = "Datos Requeridos y mayor que 0";
       val = false;
     }
-    if (validarTown && !pricingStore.datosPrincipales.id_town) {
+    if (
+      validarTown &&
+      !pricingStore.datosPrincipales.id_town &&
+      townStore.lstTown.length > 0
+    ) {
       errorIdTown.value = "Datos Requeridos";
       val = false;
     }
@@ -371,7 +375,8 @@ async function buscarYCARGAR(idDestino: number | string | undefined) {
               v-if="
                 service.code_service == 14 &&
                   service.status == 1 &&
-                  isEmpresaPermitida
+                  isEmpresaPermitida &&
+                  townStore.lstTown.length > 0
               "
             >
               <v-autocomplete

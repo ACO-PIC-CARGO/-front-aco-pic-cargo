@@ -238,7 +238,7 @@ function registroEmpresa() {
 <style scoped>
 .containerLogin {
   /* min-height: 100vh; */
-  background-image: url("../../public/img/login/Composición Logística.png");
+  background-image: url("/img/login/Composición Logística.png");
   height: 100vh;
   background-size: cover;
   background-position: center;

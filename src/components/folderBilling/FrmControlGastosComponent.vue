@@ -205,7 +205,7 @@ async function imprimirControlDetallado(guardarEnCarpeta: boolean) {
     data: {
       ...route.params,
       guardarEnCarpeta: guardarEnCarpeta,
-      asociadoflag:false,
+      asociadoflag: false,
       folders_quote:
         controlGastosStore.listControlGastos[0]!.folders_quote,
     },
@@ -426,6 +426,33 @@ onMounted(async () => {
                         ""
                     }}
                     m<sup>3</sup>
+                  </p>
+                  <p>
+                    F. ETD:
+                    {{
+                      (controlGastosStore.listControlGastos[0] &&
+                        controlGastosStore.listControlGastos[0]
+                          .master_fechaetd) ||
+                        ""
+                    }}
+                  </p>
+                  <p>
+                    F. ETA:
+                    {{
+                      (controlGastosStore.listControlGastos[0] &&
+                        controlGastosStore.listControlGastos[0]
+                          .master_fechaeta) ||
+                        ""
+                    }}
+                  </p>
+                  <p>
+                    F. Disp.:
+                    {{
+                      (controlGastosStore.listControlGastos[0] &&
+                        controlGastosStore.listControlGastos[0]
+                          .master_fechadisponibilidad) ||
+                        ""
+                    }}
                   </p>
                 </div>
               </v-col>

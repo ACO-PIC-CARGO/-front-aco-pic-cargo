@@ -22,12 +22,14 @@ describe("http client", () => {
   beforeEach(() => {
     sentConfig = undefined;
     sessionStorage.clear();
+    localStorage.clear();
     vi.mocked(router.replace).mockClear();
     http.defaults.adapter = respondWith(200);
   });
 
   afterEach(() => {
     sessionStorage.clear();
+    localStorage.clear();
   });
 
   it("sends branch, user and token headers from sessionStorage", async () => {
@@ -67,6 +69,7 @@ describe("http client", () => {
     await http.get("/login");
 
     expect(sessionStorage.getItem("auth-token")).toBe("fresh");
+    expect(localStorage.getItem("auth-token")).toBe("fresh");
   });
 
   it("clears the session and redirects to Login on 401", async () => {
@@ -77,6 +80,17 @@ describe("http client", () => {
 
     expect(sessionStorage.getItem("auth-token")).toBeNull();
     expect(router.replace).toHaveBeenCalledWith({ name: "Login" });
+  });
+
+  it("removes only the token from localStorage on 401", async () => {
+    localStorage.setItem("auth-token", "stale");
+    localStorage.setItem("dataUser", "kept");
+    http.defaults.adapter = respondWith(401);
+
+    await expect(http.get("/secure")).rejects.toBeInstanceOf(AxiosError);
+
+    expect(localStorage.getItem("auth-token")).toBeNull();
+    expect(localStorage.getItem("dataUser")).toBe("kept");
   });
 
   it("does not redirect again when already on Login", async () => {
