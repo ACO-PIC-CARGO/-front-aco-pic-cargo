@@ -1472,7 +1472,6 @@ export default {
         newImpuesto.filter((v) => v.codigo == "09")[0].codigo01 = porcentaje;
 
         this.pricingStore.listImpuestos = newImpuesto;
-        // While pricing was a Vuex module this commit also set its listImpuestos; it still runs aduana's.
         this.$store.commit("ACTUALIZAR_IMPUEST", newImpuesto);
       }
 
