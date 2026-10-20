@@ -43,5 +43,3 @@ async function guardarContenido() {
     </v-card>
   </v-container>
 </template>
-
-

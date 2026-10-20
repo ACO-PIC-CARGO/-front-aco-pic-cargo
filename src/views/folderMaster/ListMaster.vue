@@ -39,7 +39,6 @@ async function guardarConfig() {
     <v-navigation-drawer
       v-model="mastersStore.master_filtrarData"
       location="right"
-      
       width="30%"
       temporary
       v-if="mastersStore.master_filtrarData"

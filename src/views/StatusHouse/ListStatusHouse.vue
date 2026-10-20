@@ -244,7 +244,6 @@ function editar(item: EstadoHouse) {
 }
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 function mostrarComentario(item: EstadoHouse) {
-   
   item.verComentarios = item.verComentarios;
 }
 async function guardarOrden() {

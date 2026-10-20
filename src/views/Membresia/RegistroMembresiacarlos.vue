@@ -7,214 +7,214 @@ const CardPlan = defineAsyncComponent(() => import("../../components/comun/CardP
 const cntUser = ref(1000);
 const autoScrollInterval = ref<ReturnType<typeof setInterval> | null>(null);
 const planes: PlanMembresia[] = [
-    {
-      name: "Granola Cereal",
-      precioMes: 145.63,
-      maximoContactos: 1097,
-      description: "Neque porro quisquam est",
-      selected: false,
-      caracteristicas: [
-        {
-          name: "Applewood Smoked Bacon",
-          estado: false,
-        },
-        {
-          name: "Outdoor Portable Fire Pit",
-          estado: false,
-        },
-        {
-          name: "Hair Dryer",
-          estado: true,
-        },
-        {
-          name: "Organic Coconut Flour",
-          estado: false,
-        },
-        {
-          name: "Electric Wine Opener",
-          estado: false,
-        },
-        {
-          name: "Surimi Crab Sticks",
-          estado: true,
-        },
-        {
-          name: "Compressed Towel Tablets",
-          estado: false,
-        },
-        {
-          name: "Wall Art Stickers",
-          estado: true,
-        },
-        {
-          name: "Lemon Dill Chicken Skewers",
-          estado: false,
-        },
-        {
-          name: "Memory Foam Pillow",
-          estado: false,
-        },
-        {
-          name: "Gardening Fairy Figurines",
-          estado: true,
-        },
-        {
-          name: "Cookbook",
-          estado: true,
-        },
-        {
-          name: "Electric Griddle with Removable Plates",
-          estado: false,
-        },
-        {
-          name: "Canned Sardines",
-          estado: false,
-        },
-        {
-          name: "Travel Size Toiletry Bottles",
-          estado: true,
-        },
-      ],
-    },
-    {
-      name: "Thermostatic Shower Valve Kit",
-      precioMes: 105.72,
-      maximoContactos: 1126,
-      selected: true,
-      description: "Neque porro quisquam est ",
-      caracteristicas: [
-        {
-          name: "Watercolor Brush Pens",
-          estado: false,
-        },
-        {
-          name: "Spicy Kimchi",
-          estado: false,
-        },
-        {
-          name: "Carrot and Celery Sticks",
-          estado: false,
-        },
-        {
-          name: "Fashionable Scarves Set",
-          estado: false,
-        },
-        {
-          name: "Peanut Butter Banana Smoothie Mix",
-          estado: true,
-        },
-        {
-          name: "Linen Trousers",
-          estado: true,
-        },
-        {
-          name: "Scented Candles",
-          estado: false,
-        },
-        {
-          name: "Mini Indoor Herb Garden Kit",
-          estado: true,
-        },
-        {
-          name: "Cinnamon Apple Sauce",
-          estado: false,
-        },
-        {
-          name: "Salsa",
-          estado: true,
-        },
-        {
-          name: "Fruit & Nut Trail Mix",
-          estado: true,
-        },
-        {
-          name: "Portable Air Pump",
-          estado: false,
-        },
-        {
-          name: "Hot Salsa",
-          estado: true,
-        },
-        {
-          name: "Chino Shorts",
-          estado: true,
-        },
-        {
-          name: "Compact Dishwasher",
-          estado: false,
-        },
-      ],
-    },
-    {
-      name: "Sesame Garlic Stir-Fry Sauce",
-      precioMes: 122.47,
-      maximoContactos: 1079,
-      selected: false,
-      description: "Neque porro quisquam est qui dolorem",
-      caracteristicas: [
-        {
-          name: "Nut Mix",
-          estado: true,
-        },
-        {
-          name: "Wireless Music Receiver",
-          estado: true,
-        },
-        {
-          name: "Gingerbread House Kit",
-          estado: false,
-        },
-        {
-          name: "Hummus",
-          estado: true,
-        },
-        {
-          name: "Backpacking Tent",
-          estado: false,
-        },
-        {
-          name: "Sun Protection Clothing",
-          estado: false,
-        },
-        {
-          name: "Sour Cream",
-          estado: true,
-        },
-        {
-          name: "Gaming Headset",
-          estado: false,
-        },
-        {
-          name: "Cinnamon Raisin Bread",
-          estado: true,
-        },
-        {
-          name: "Customizable Name Puzzle",
-          estado: false,
-        },
-        {
-          name: "Dog Waste Bag Dispenser",
-          estado: false,
-        },
-        {
-          name: "Organic Coconut Yogurt",
-          estado: true,
-        },
-        {
-          name: "Spicy Thai Noodles",
-          estado: false,
-        },
-        {
-          name: "Leek and Potato Soup",
-          estado: false,
-        },
-        {
-          name: "Vegetable Spiralizer",
-          estado: true,
-        },
-      ],
-    },
-  ];
+  {
+    name: "Granola Cereal",
+    precioMes: 145.63,
+    maximoContactos: 1097,
+    description: "Neque porro quisquam est",
+    selected: false,
+    caracteristicas: [
+      {
+        name: "Applewood Smoked Bacon",
+        estado: false,
+      },
+      {
+        name: "Outdoor Portable Fire Pit",
+        estado: false,
+      },
+      {
+        name: "Hair Dryer",
+        estado: true,
+      },
+      {
+        name: "Organic Coconut Flour",
+        estado: false,
+      },
+      {
+        name: "Electric Wine Opener",
+        estado: false,
+      },
+      {
+        name: "Surimi Crab Sticks",
+        estado: true,
+      },
+      {
+        name: "Compressed Towel Tablets",
+        estado: false,
+      },
+      {
+        name: "Wall Art Stickers",
+        estado: true,
+      },
+      {
+        name: "Lemon Dill Chicken Skewers",
+        estado: false,
+      },
+      {
+        name: "Memory Foam Pillow",
+        estado: false,
+      },
+      {
+        name: "Gardening Fairy Figurines",
+        estado: true,
+      },
+      {
+        name: "Cookbook",
+        estado: true,
+      },
+      {
+        name: "Electric Griddle with Removable Plates",
+        estado: false,
+      },
+      {
+        name: "Canned Sardines",
+        estado: false,
+      },
+      {
+        name: "Travel Size Toiletry Bottles",
+        estado: true,
+      },
+    ],
+  },
+  {
+    name: "Thermostatic Shower Valve Kit",
+    precioMes: 105.72,
+    maximoContactos: 1126,
+    selected: true,
+    description: "Neque porro quisquam est ",
+    caracteristicas: [
+      {
+        name: "Watercolor Brush Pens",
+        estado: false,
+      },
+      {
+        name: "Spicy Kimchi",
+        estado: false,
+      },
+      {
+        name: "Carrot and Celery Sticks",
+        estado: false,
+      },
+      {
+        name: "Fashionable Scarves Set",
+        estado: false,
+      },
+      {
+        name: "Peanut Butter Banana Smoothie Mix",
+        estado: true,
+      },
+      {
+        name: "Linen Trousers",
+        estado: true,
+      },
+      {
+        name: "Scented Candles",
+        estado: false,
+      },
+      {
+        name: "Mini Indoor Herb Garden Kit",
+        estado: true,
+      },
+      {
+        name: "Cinnamon Apple Sauce",
+        estado: false,
+      },
+      {
+        name: "Salsa",
+        estado: true,
+      },
+      {
+        name: "Fruit & Nut Trail Mix",
+        estado: true,
+      },
+      {
+        name: "Portable Air Pump",
+        estado: false,
+      },
+      {
+        name: "Hot Salsa",
+        estado: true,
+      },
+      {
+        name: "Chino Shorts",
+        estado: true,
+      },
+      {
+        name: "Compact Dishwasher",
+        estado: false,
+      },
+    ],
+  },
+  {
+    name: "Sesame Garlic Stir-Fry Sauce",
+    precioMes: 122.47,
+    maximoContactos: 1079,
+    selected: false,
+    description: "Neque porro quisquam est qui dolorem",
+    caracteristicas: [
+      {
+        name: "Nut Mix",
+        estado: true,
+      },
+      {
+        name: "Wireless Music Receiver",
+        estado: true,
+      },
+      {
+        name: "Gingerbread House Kit",
+        estado: false,
+      },
+      {
+        name: "Hummus",
+        estado: true,
+      },
+      {
+        name: "Backpacking Tent",
+        estado: false,
+      },
+      {
+        name: "Sun Protection Clothing",
+        estado: false,
+      },
+      {
+        name: "Sour Cream",
+        estado: true,
+      },
+      {
+        name: "Gaming Headset",
+        estado: false,
+      },
+      {
+        name: "Cinnamon Raisin Bread",
+        estado: true,
+      },
+      {
+        name: "Customizable Name Puzzle",
+        estado: false,
+      },
+      {
+        name: "Dog Waste Bag Dispenser",
+        estado: false,
+      },
+      {
+        name: "Organic Coconut Yogurt",
+        estado: true,
+      },
+      {
+        name: "Spicy Thai Noodles",
+        estado: false,
+      },
+      {
+        name: "Leek and Potato Soup",
+        estado: false,
+      },
+      {
+        name: "Vegetable Spiralizer",
+        estado: true,
+      },
+    ],
+  },
+];
 // The template has no ref="carrusel", so the auto scroll throws on undefined.
 const carrusel = ref<HTMLElement>();
 
