@@ -348,7 +348,7 @@ onMounted(async () => {
         <v-text-field v-model="$store.state.master_cantidad" label="Cant.">
           <v-icon
             class="btn__add"
-            @click="
+            @click.native="
               _setDataContainers(
                 $store.state.master_id_containers.id,
                 $store.state.master_id_containers.id,

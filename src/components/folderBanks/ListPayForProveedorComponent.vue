@@ -714,7 +714,7 @@ onMounted(async () => {
                   <td>{{ i.montomonedalocal }}</td>
 
                   <!--  <td>
-                   <v-btn small color="warning" @click="verFactura(i)">
+                   <v-btn small color="warning" @click.native="verFactura(i)">
                       VER FACTURAS
                     </v-btn> 
                   </td>-->
@@ -762,7 +762,7 @@ onMounted(async () => {
           x-small
           icon
           color="warning"
-          @click="verPagosEgresos(item.id, true)"
+          @click.native="verPagosEgresos(item.id, true)"
           v-if="item.esinvoiceadmin == false"
         >
           <v-icon>mdi-pencil</v-icon>
