@@ -800,6 +800,19 @@ describe("pricing store", () => {
       expect(data.contenedores).toEqual([{ id: 7, id_contenedor: 5, cantidad: 2, status: true }]);
     });
 
+    test("registrarQuote computes the cost subtotals only for multiplier rows that carry a length", async () => {
+      httpMock.mockResolvedValue({ data: { insertId: 503, nro_quote: "15002-P", msg: "ok" } });
+      const pricing = cotizacion();
+      pricing.listMultiplicador = MULTIPLICADORES.map((m) => ({ ...m, length: 1 }));
+      pricing.datosPrincipales = { ...clone(DATOS), metroscc: 2.5, kg: 1200 };
+      pricing.totalFlete = 125;
+
+      await pricing.registrarQuote({ fullflag: false });
+
+      const [option] = (sentConfig("setQuote")!.data as { opcionCostos: { listCostos: Costo[] }[] }).opcionCostos;
+      expect(option!.listCostos.map((c) => [c.concepto, c.id_multiplicador, c.subtotal])).toMatchSnapshot();
+    });
+
     test("registrarQuotePorCambioIncoterms posts the services and options it receives with the quote header", async () => {
       httpMock.mockResolvedValue({ data: { insertId: 503, nro_quote: "15002-P", msg: "ok" } });
       const pricing = cotizacion();
@@ -1528,6 +1541,45 @@ describe("pricing store", () => {
       expect(window.open).not.toHaveBeenCalled();
     });
 
+    test.each([
+      [false, "El PDF se descargará automaticamente", 1],
+      [true, "Se ha guardado los archivos correctamente.", 0],
+    ])("generarReporte with guardarFlag %s says %j and opens the PDF %i times", async (guardarFlag, text, opened) => {
+      const pricing = cotizacion();
+
+      await pricing.generarReporte({ tipo: "TOTAL", guardarFlag });
+
+      expect((postedBody("quote_preview_totales") as Record<string, unknown>).guardarFlag).toBe(guardarFlag);
+      expect(Swal.fire).toHaveBeenCalledWith({ icon: "success", title: "PDF Generado", text, showConfirmButton: true });
+      expect(window.open).toHaveBeenCalledTimes(opened);
+    });
+
+    test("generarReporte reports a WhatsApp message the backend could not send", async () => {
+      postMock.mockResolvedValue({ data: { estadoflag: false, error: "whatsapp down" } });
+      const pricing = cotizacion();
+
+      await pricing.generarReporte({ tipo: "TOTAL", enviarWspCliente: true, textWhatsapp: "hola" });
+
+      expect(Swal.fire).toHaveBeenCalledWith({
+        icon: "error",
+        title: "Ocurrió un error. Comuníquese con el administrador del sistema",
+        showConfirmButton: true,
+      });
+      expect(console.error).toHaveBeenCalledWith("whatsapp down");
+      expect(window.open).not.toHaveBeenCalled();
+    });
+
+    test.each(["AGRUPADO", "TOTAL"])("predata resolves the %s preview of every selected option", async (tipo) => {
+      vi.useFakeTimers();
+      const pricing = cotizacion();
+      pricing.opcionCostos = [opcion(), opcion({ nro_propuesta: 2, selected: false })];
+
+      const pending = pricing.predata({ tipo });
+      await vi.advanceTimersByTimeAsync(1100);
+
+      expect(await pending).toMatchSnapshot();
+    });
+
     test("predata resolves the preview of every selected option", async () => {
       vi.useFakeTimers();
       const pricing = cotizacion();
@@ -1633,6 +1685,22 @@ describe("pricing store", () => {
       }).toMatchSnapshot();
     });
 
+    test.each(["AGRUPADO", "TOTAL"])("generaInstructivo builds the %s income, cost and tax lines", async (tipo) => {
+      const pricing = instructivo();
+      pricing.tiporeporte = tipo;
+
+      pricing.generaInstructivo();
+      await flushPromises();
+
+      expect({
+        ingresos: pricing.listIngresosInstructivo,
+        costos: pricing.listCostosInstructivo,
+        impuestos: pricing.listImpuestosInstructivo,
+        totalIngresos: pricing.totalIngresos,
+        totalCostos: pricing.totalCostos,
+      }).toMatchSnapshot();
+    });
+
     test("generaInstructivoparaguardata builds the income and cost lines grouped by type and provider", async () => {
       const pricing = instructivo();
 
@@ -1658,6 +1726,49 @@ describe("pricing store", () => {
       await pricing.GuardaCostosFinalesQuote();
 
       expect(postedBody("insert_monto_finales_quote")).toMatchSnapshot();
+    });
+
+    test("GuardaCostosFinalesQuote does nothing without the instructivo data", async () => {
+      const pricing = cotizacion();
+
+      await pricing.GuardaCostosFinalesQuote();
+
+      expect(postMock).not.toHaveBeenCalled();
+      expect(Swal.fire).not.toHaveBeenCalled();
+    });
+
+    test("GuardaCostosFinalesQuote warns and posts nothing when no option gives income or cost lines", async () => {
+      const pricing = instructivo();
+      pricing.opcionCostos = [opcion({ selected: false })];
+
+      await pricing.GuardaCostosFinalesQuote();
+
+      expect(postMock).not.toHaveBeenCalled();
+      expect(Swal.fire).toHaveBeenCalledWith({
+        icon: "error",
+        title: "Ocurrió un error",
+        text: "No se pudieron calcular los ingresos y costos del instructivo. Verifique que existan opciones seleccionadas y costos configurados.",
+        showConfirmButton: true,
+      });
+    });
+
+    test.each([
+      [false, 1],
+      [true, 0],
+    ])("quotePreviewInstructivoManual with guardarFlag %s opens the PDF %i times", async (guardarFlag, opened) => {
+      respond({ quote_preview_instructivo_manual: { path: "files/manual.pdf" } });
+      const pricing = usePricingStore();
+
+      await pricing.quotePreviewInstructivoManual({ id: 77, guardarFlag });
+
+      expect(sentConfig("quote_preview_instructivo_manual")).toEqual({
+        method: "put",
+        url: URL_MAIN + "quote_preview_instructivo_manual",
+        data: { id: 77, guardarFlag },
+        headers: JSON_HEADERS,
+      });
+      expect(window.open).toHaveBeenCalledTimes(opened);
+      if (opened) expect(window.open).toHaveBeenCalledWith(URL_MAIN + "files/manual.pdf", "_blank");
     });
 
     test("imprimirInstructivoQuote posts the instructivo of the chosen option with the totals and the profit", async () => {
@@ -1701,6 +1812,51 @@ describe("pricing store", () => {
 
       expect(store.dispatch).toHaveBeenCalledWith("moveFileToOneDrive", { destinationFolderUrl: "https://drive/m", nroMaster: "M-901 - ZEVALLOS", id: 901, fileIds: ["f3"] });
       expect(router.push).not.toHaveBeenCalled();
+    });
+
+    test("aprobarCotizacion shows an error icon when the backend refuses the approval", async () => {
+      respond({ aprobar_cotizacion: { estadoflag: false, mensaje: "Ya fue aprobada", data: [{ id_master: 902, code_master: "M-902" }] } });
+      vi.mocked(Swal.fire).mockResolvedValue({ isConfirmed: false } as never);
+      const pricing = usePricingStore();
+      pricing.datosPrincipales = { nombre: "ZEVALLOS" };
+
+      await pricing.aprobarCotizacion({ IdempotencyKey: "key-3", nuevoexpediente: true });
+      await flushPromises();
+
+      expect(vi.mocked(Swal.fire).mock.calls[0]![0]).toMatchObject({ icon: "error", title: "Aviso", text: "Ya fue aprobada" });
+    });
+
+    describe("when the user picks the emails", () => {
+      const params = router.currentRoute.value.params as Record<string, unknown>;
+      afterEach(() => delete params.id);
+
+      test("aprobarCotizacion goes back to the quote on its last step", async () => {
+        vi.useFakeTimers();
+        params.id = "12895";
+        respond({ aprobar_cotizacion: accepted([{ id_master: 903, code_master: "M-903" }]) });
+        vi.mocked(Swal.fire).mockResolvedValue({ isDenied: true } as never);
+        const pricing = usePricingStore();
+        pricing.datosPrincipales = { nombre: "ZEVALLOS" };
+
+        await pricing.aprobarCotizacion({ IdempotencyKey: "key-4", nuevoexpediente: true });
+        await flushPromises();
+
+        expect(router.push).toHaveBeenCalledWith({ name: "verQuote", params: { id: "12895", step: 5 } });
+      });
+
+      test("aprobarCotizacion only warns when the route has no quote id", async () => {
+        const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
+        respond({ aprobar_cotizacion: accepted([{ id_master: 904, code_master: "M-904" }]) });
+        vi.mocked(Swal.fire).mockResolvedValue({ isDenied: true } as never);
+        const pricing = usePricingStore();
+        pricing.datosPrincipales = { nombre: "ZEVALLOS" };
+
+        await pricing.aprobarCotizacion({ IdempotencyKey: "key-5", nuevoexpediente: true });
+        await flushPromises();
+
+        expect(warn).toHaveBeenCalledWith("No se encontró el ID en la ruta actual");
+        expect(router.push).not.toHaveBeenCalled();
+      });
     });
   });
 
@@ -1759,6 +1915,43 @@ describe("pricing store", () => {
       for (const name of ["PRE_SERVICES", "PRE_COSTOS", "SET_CARGAR_IMPUESTOS", "SET_CARGAR_NOTAS_COTIZACION"])
         expect(store.commit).toHaveBeenCalledWith(name, expect.anything());
       expect(Swal.fire).toHaveBeenCalledWith({ icon: "error", text: "Sin notas" });
+    });
+
+    test.each([
+      [true, "info"],
+      [false, "error"],
+    ])("setNoteQuote posts the note and shows an %s answer with the %s icon", async (estadoflag, icon) => {
+      respond({ quote_note_insert: { estadoflag, mensaje: "Nota registrada" } });
+      const pricing = usePricingStore();
+
+      await pricing.setNoteQuote({ id_quote: 77, nota: "LLAMAR" });
+
+      expect(sentConfig("quote_note_insert")).toEqual({
+        method: "post",
+        url: URL_MAIN + "quote_note_insert",
+        headers: JSON_HEADERS,
+        data: { id_quote: 77, nota: "LLAMAR" },
+      });
+      expect(Swal.fire).toHaveBeenCalledWith({ icon, title: "Aviso", text: "Nota registrada" });
+    });
+
+    test.each([
+      [true, "info"],
+      [false, "error"],
+    ])("actualizarQuoteRecibidoEnviado puts the flags and shows an %s answer with the %s icon", async (estadoflag, icon) => {
+      respond({ update_quote_recibido_enviado: { estadoflag, mensaje: "Actualizado" } });
+      const pricing = usePricingStore();
+
+      await pricing.actualizarQuoteRecibidoEnviado({ id: 77, recibidoflag: true });
+      await flushPromises();
+
+      expect(sentConfig("update_quote_recibido_enviado")).toEqual({
+        method: "put",
+        url: URL_MAIN + "update_quote_recibido_enviado",
+        headers: JSON_HEADERS,
+        data: { id: 77, recibidoflag: true },
+      });
+      expect(Swal.fire).toHaveBeenCalledWith({ icon, text: "Actualizado" });
     });
   });
 });

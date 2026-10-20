@@ -194,6 +194,350 @@ exports[`pricing store > instructivo > GuardaCostosFinalesQuote posts the final 
 }
 `;
 
+exports[`pricing store > instructivo > generaInstructivo builds the AGRUPADO income, cost and tax lines 1`] = `
+{
+  "costos": [
+    {
+      "nro_propuesta": 1,
+      "opcion": [
+        {
+          "igv": "",
+          "proveedor": "NAVIERA UNO",
+          "service": "",
+          "total": "",
+        },
+        {
+          "proveedor": "",
+          "service": "FLETE INTERNACIONAL",
+          "total": "US$100.00",
+        },
+        {
+          "igv": "",
+          "proveedor": "",
+          "service": "SubTotal",
+          "total": "US$100.00",
+        },
+        {
+          "igv": "",
+          "proveedor": "AGENTE DOS",
+          "service": "",
+          "total": "",
+        },
+        {
+          "proveedor": "",
+          "service": "VISTOS BUENOS",
+          "total": "US$30.00",
+        },
+        {
+          "proveedor": "",
+          "service": "COMISION AGENCIA",
+          "total": "US$0.00",
+        },
+        {
+          "igv": "",
+          "proveedor": "",
+          "service": "SubTotal",
+          "total": "US$30.00",
+        },
+        {
+          "igv": "",
+          "proveedor": "TOTAL",
+          "service": "",
+          "total": "US$130.00",
+        },
+      ],
+      "totalCostos": 130,
+    },
+  ],
+  "impuestos": [
+    {
+      "nro_propuesta": 1,
+      "opcion": [
+        {
+          "name": "AD VALOREM",
+          "percentage": "6 %",
+          "type": "05",
+          "valor": "US$312.11",
+        },
+        {
+          "name": "IPM",
+          "percentage": "2 %",
+          "type": "07",
+          "valor": "US$110.28",
+        },
+        {
+          "name": "IGV",
+          "percentage": "16 %",
+          "type": "08",
+          "valor": "US$882.24",
+        },
+        {
+          "name": "TOTAL",
+          "percentage": "",
+          "type": "",
+          "valor": "US$1,304.63",
+        },
+      ],
+    },
+  ],
+  "ingresos": [
+    {
+      "nro_propuesta": 1,
+      "opcion": [
+        {
+          "descripcion": "CONCEPTOS DE INGRESOS",
+          "igv": "",
+          "service": "",
+          "total": "",
+        },
+        {
+          "descripcion": "",
+          "igv": "",
+          "service": "FLETE INTERNACIONAL",
+          "total": "",
+        },
+        {
+          "descripcion": "",
+          "igv": "",
+          "service": "GASTOS EN ORIGEN",
+          "total": "",
+        },
+        {
+          "descripcion": "",
+          "service": "VISTOS BUENOS",
+          "total": "",
+        },
+        {
+          "descripcion": "",
+          "service": "COMISION AGENCIA",
+          "total": "",
+        },
+        {
+          "descripcion": "",
+          "service": "ALMACEN",
+          "total": "",
+        },
+        {
+          "descripcion": "",
+          "service": "SEGURO DE CARGA",
+          "total": "",
+        },
+        {
+          "descripcion": "TOTAL",
+          "igv": "IGV US$67.32",
+          "service": "TOTAL SIN IGV: US$619.50",
+          "total": "US$686.82",
+        },
+      ],
+      "totalIngresos": 619.5,
+    },
+  ],
+  "totalCostos": 130,
+  "totalIngresos": 0,
+}
+`;
+
+exports[`pricing store > instructivo > generaInstructivo builds the TOTAL income, cost and tax lines 1`] = `
+{
+  "costos": [
+    {
+      "nro_propuesta": 1,
+      "opcion": [
+        {
+          "igv": "",
+          "proveedor": "NAVIERA UNO",
+          "service": "",
+          "total": "",
+        },
+        {
+          "proveedor": "",
+          "service": "FLETE INTERNACIONAL",
+          "total": "US$100.00",
+        },
+        {
+          "igv": "",
+          "proveedor": "",
+          "service": "SubTotal",
+          "total": "US$100.00",
+        },
+        {
+          "igv": "",
+          "proveedor": "AGENTE DOS",
+          "service": "",
+          "total": "",
+        },
+        {
+          "proveedor": "",
+          "service": "VISTOS BUENOS",
+          "total": "US$30.00",
+        },
+        {
+          "proveedor": "",
+          "service": "COMISION AGENCIA",
+          "total": "US$0.00",
+        },
+        {
+          "igv": "",
+          "proveedor": "",
+          "service": "SubTotal",
+          "total": "US$30.00",
+        },
+        {
+          "igv": "",
+          "proveedor": "TOTAL",
+          "service": "",
+          "total": "US$130.00",
+        },
+      ],
+      "totalCostos": 130,
+    },
+  ],
+  "impuestos": [
+    {
+      "nro_propuesta": 1,
+      "opcion": [
+        {
+          "name": "AD VALOREM",
+          "percentage": "6 %",
+          "type": "05",
+          "valor": "US$312.11",
+        },
+        {
+          "name": "IPM",
+          "percentage": "2 %",
+          "type": "07",
+          "valor": "US$110.28",
+        },
+        {
+          "name": "IGV",
+          "percentage": "16 %",
+          "type": "08",
+          "valor": "US$882.24",
+        },
+        {
+          "name": "TOTAL",
+          "percentage": "",
+          "type": "",
+          "valor": "US$1,304.63",
+        },
+      ],
+    },
+  ],
+  "ingresos": [
+    {
+      "nro_propuesta": 1,
+      "opcion": [
+        {
+          "descripcion": "FLETE",
+          "igv": "",
+          "service": "",
+          "total": "",
+        },
+        {
+          "descripcion": "",
+          "igv": "",
+          "service": "FLETE INTERNACIONAL",
+          "total": "",
+        },
+        {
+          "descripcion": "",
+          "igv": "",
+          "service": "SubTotal",
+          "total": "US$125.00",
+        },
+        {
+          "descripcion": "ORIGEN",
+          "igv": "",
+          "service": "",
+          "total": "",
+        },
+        {
+          "descripcion": "",
+          "igv": "",
+          "service": "GASTOS EN ORIGEN",
+          "total": "",
+        },
+        {
+          "descripcion": "",
+          "igv": "",
+          "service": "SubTotal",
+          "total": "US$120.50",
+        },
+        {
+          "descripcion": "LOCALES",
+          "service": "",
+          "total": "",
+        },
+        {
+          "descripcion": "",
+          "service": "VISTOS BUENOS",
+          "total": "",
+        },
+        {
+          "descripcion": "",
+          "service": "SubTotal",
+          "total": "US$100.00",
+        },
+        {
+          "descripcion": "ADUANA",
+          "service": "",
+          "total": "",
+        },
+        {
+          "descripcion": "",
+          "service": "COMISION AGENCIA",
+          "total": "",
+        },
+        {
+          "descripcion": "",
+          "service": "SubTotal",
+          "total": "US$118.00",
+        },
+        {
+          "descripcion": "ALMACEN",
+          "service": "",
+          "total": "",
+        },
+        {
+          "descripcion": "",
+          "service": "ALMACEN",
+          "total": "",
+        },
+        {
+          "descripcion": "",
+          "service": "SubTotal",
+          "total": "US$96.00",
+        },
+        {
+          "descripcion": "GASTOS DE TERCEROS",
+          "service": "",
+          "total": "",
+        },
+        {
+          "descripcion": "",
+          "service": "SEGURO DE CARGA",
+          "total": "",
+        },
+        {
+          "descripcion": "",
+          "service": "SubTotal",
+          "total": "US$96.00",
+        },
+        {
+          "descripcion": "TOTAL",
+          "igv": "IGV US$67.32",
+          "service": "TOTAL SIN IGV: US$619.50",
+          "total": "US$686.82",
+        },
+      ],
+      "totalIngresos": 619.5,
+    },
+  ],
+  "totalCostos": 130,
+  "totalIngresos": 0,
+}
+`;
+
 exports[`pricing store > instructivo > generaInstructivo lists the services, the seller and the income, cost and tax lines of the selected options 1`] = `
 {
   "costos": [
@@ -709,6 +1053,56 @@ exports[`pricing store > instructivo > imprimirInstructivoQuote posts the instru
   "vendedor": "",
   "volumen": 2.5,
 }
+`;
+
+exports[`pricing store > quote > registrarQuote computes the cost subtotals only for multiplier rows that carry a length 1`] = `
+[
+  [
+    "FLETE INTERNACIONAL",
+    3,
+    125,
+  ],
+  [
+    "GASTOS EN ORIGEN",
+    1,
+    120.5,
+  ],
+  [
+    "VISTOS BUENOS",
+    2,
+    87.5,
+  ],
+  [
+    "COMISION AGENCIA",
+    13,
+    0,
+  ],
+  [
+    "ALMACEN",
+    4,
+    96,
+  ],
+  [
+    "SEGURO DE CARGA",
+    5,
+    0,
+  ],
+  [
+    "FLETE INTERNACIONAL",
+    3,
+    100,
+  ],
+  [
+    "VISTOS BUENOS",
+    1,
+    30,
+  ],
+  [
+    "COMISION AGENCIA",
+    1,
+    0,
+  ],
+]
 `;
 
 exports[`pricing store > reports > generarReporte posts the AGRUPADO totals of the chosen option 1`] = `
@@ -1350,6 +1744,537 @@ exports[`pricing store > reports > generarReporte posts the TOTAL totals of the 
   "totalServicios": "US$619.50",
   "url_folderonedrive": "https://drive/x",
   "url_logo": "logo.png",
+  "volumen": 2.5,
+}
+`;
+
+exports[`pricing store > reports > predata resolves the AGRUPADO preview of every selected option 1`] = `
+{
+  "OpcionesSelecciondas": [
+    {
+      "conceptos": [
+        {
+          "name": "FLETE INTERNACIONAL",
+        },
+        {
+          "name": "GASTOS EN ORIGEN",
+        },
+        {
+          "name": "VISTOS BUENOS",
+        },
+        {
+          "name": "COMISION AGENCIA",
+        },
+        {
+          "name": "ALMACEN",
+        },
+        {
+          "name": "SEGURO DE CARGA",
+        },
+      ],
+      "date_end": "2026-12-31",
+      "datosAduanas": [
+        {
+          "name": "COMISION AGENCIA",
+          "valor": "",
+        },
+      ],
+      "datosAlmacenes": [
+        {
+          "name": "ALMACEN",
+          "valor": "",
+        },
+      ],
+      "datosFlete": [
+        {
+          "name": "FLETE INTERNACIONAL",
+          "valor": "",
+        },
+      ],
+      "datosGastosTerceros": [
+        {
+          "name": "SEGURO DE CARGA",
+          "valor": "",
+        },
+      ],
+      "datosLocales": [
+        {
+          "name": "VISTOS BUENOS",
+          "valor": "",
+        },
+      ],
+      "datosOrigen": [
+        {
+          "name": "GASTOS EN ORIGEN",
+          "valor": "",
+        },
+      ],
+      "importante": [
+        {
+          "name": "SALIDAS SEMANALES",
+        },
+        {
+          "name": "NO INCLUYE SEGURO",
+        },
+      ],
+      "impuesto": [
+        {
+          "name": "AD VALOREM",
+          "percentage": 6,
+          "type": "05",
+          "valor": "312.11",
+        },
+        {
+          "name": "IPM",
+          "percentage": 2,
+          "type": "07",
+          "valor": "110.28",
+        },
+        {
+          "name": "IGV",
+          "percentage": 16,
+          "type": "08",
+          "valor": "882.24",
+        },
+      ],
+      "listNotasQuote": [
+        {
+          "descripcion": "SALIDAS SEMANALES",
+          "estado": 1,
+          "id": 1,
+          "statusincluye": 1,
+          "statusnoincluye": 0,
+        },
+        {
+          "descripcion": "NO INCLUYE SEGURO",
+          "estado": 1,
+          "id": 2,
+          "statusincluye": 0,
+          "statusnoincluye": 1,
+        },
+        {
+          "descripcion": "NOTA INACTIVA",
+          "estado": 0,
+          "id": 3,
+          "statusincluye": 1,
+          "statusnoincluye": 0,
+        },
+      ],
+      "listServices": [
+        {
+          "code_service": 1,
+          "codebegend": "OR",
+          "id": 1,
+          "id_begend": 1,
+          "id_groupservices": 4,
+          "service": "FLETE",
+          "status": 1,
+        },
+        {
+          "code_service": 3,
+          "codebegend": "FL",
+          "id": 2,
+          "id_begend": 2,
+          "id_groupservices": 7,
+          "service": "LOCALES",
+          "status": true,
+        },
+        {
+          "code_service": 7,
+          "codebegend": "DE",
+          "id": 3,
+          "id_begend": 3,
+          "id_groupservices": 7,
+          "service": "ADUANA",
+          "status": 0,
+        },
+        {
+          "code_service": 9,
+          "codebegend": "OP",
+          "id": 4,
+          "id_begend": 4,
+          "id_groupservices": 9,
+          "service": "ALMACEN",
+          "status": 1,
+        },
+        {
+          "code_service": 15,
+          "codebegend": "DE",
+          "id": 5,
+          "id_begend": 3,
+          "id_groupservices": 15,
+          "service": "IMPUESTOS",
+          "status": 1,
+        },
+      ],
+      "nro_propuesta": 1,
+      "tiempo_transito": 30,
+      "total": "US$1,991.45",
+      "totalAduanas": "US$118.00",
+      "totalAlmacenes": "US$96.00",
+      "totalFlete": "US$125.00",
+      "totalGastosTercero": "US$60.00",
+      "totalImpuesto": "US$1,304.63",
+      "totalImpuestosIGV": "US$67.32",
+      "totalLocales": "US$100.00",
+      "totalOrigen": "US$120.50",
+      "totalServicios": "US$619.50",
+    },
+  ],
+  "TipoCostos": [
+    {
+      "codigo": "FL",
+      "name": "FLETE",
+    },
+    {
+      "codigo": "OR",
+      "name": "ORIGEN",
+    },
+    {
+      "codigo": "LO",
+      "name": "LOCALES",
+    },
+    {
+      "codigo": "AD",
+      "name": "ADUANA",
+    },
+    {
+      "codigo": "AL",
+      "name": "ALMACEN",
+    },
+    {
+      "codigo": "GT",
+      "name": "GASTOS DE TERCEROS",
+    },
+  ],
+  "address": "AV 1",
+  "aduana": [
+    {
+      "estado": "NO",
+      "name": "ADUANA",
+    },
+    {
+      "estado": "SI",
+      "name": "IMPUESTOS",
+    },
+  ],
+  "almacen": [
+    {
+      "estado": "SI",
+      "name": "ALMACEN",
+    },
+  ],
+  "business_name": "PIC LOGISTICA",
+  "cliente": "ZEVALLOS ALFONSO",
+  "code": "########",
+  "conceptos": [],
+  "contenedor": [],
+  "destino": "SHANGHAI",
+  "document": "2060",
+  "embarque": "LCL",
+  "fechafin": undefined,
+  "flete": [
+    {
+      "estado": "SI",
+      "name": "FLETE",
+    },
+  ],
+  "icoterm": "FOB",
+  "id_branch": 1,
+  "importante": [],
+  "incluye": [
+    {
+      "name": "FLETE",
+    },
+    {
+      "name": "LOCALES",
+    },
+    {
+      "name": "ALMACEN",
+    },
+    {
+      "name": "IMPUESTOS",
+    },
+  ],
+  "isImport": true,
+  "iso": 9589,
+  "iso_pais": 9589,
+  "local": [
+    {
+      "estado": "SI",
+      "name": "LOCALES",
+    },
+  ],
+  "noincluye": [
+    {
+      "name": "ADUANA",
+    },
+  ],
+  "numerobultos": 3,
+  "origen": "CALLAO",
+  "pais": "PERU",
+  "peso": 1200,
+  "phone": "999",
+  "sentido": "IMPORTACION",
+  "slogancliente": "",
+  "tiempoTransito": undefined,
+  "tipo": "AGRUPADO",
+  "volumen": 2.5,
+}
+`;
+
+exports[`pricing store > reports > predata resolves the TOTAL preview of every selected option 1`] = `
+{
+  "OpcionesSelecciondas": [
+    {
+      "conceptos": [],
+      "date_end": "2026-12-31",
+      "datosAduanas": [
+        {
+          "name": "COMISION AGENCIA",
+          "valor": "",
+        },
+      ],
+      "datosAlmacenes": [
+        {
+          "name": "ALMACEN",
+          "valor": "",
+        },
+      ],
+      "datosFlete": [
+        {
+          "name": "FLETE INTERNACIONAL",
+          "valor": "",
+        },
+      ],
+      "datosGastosTerceros": [
+        {
+          "name": "SEGURO DE CARGA",
+          "valor": "",
+        },
+      ],
+      "datosLocales": [
+        {
+          "name": "VISTOS BUENOS",
+          "valor": "",
+        },
+      ],
+      "datosOrigen": [
+        {
+          "name": "GASTOS EN ORIGEN",
+          "valor": "",
+        },
+      ],
+      "importante": [
+        {
+          "name": "SALIDAS SEMANALES",
+        },
+        {
+          "name": "NO INCLUYE SEGURO",
+        },
+      ],
+      "impuesto": [
+        {
+          "name": "AD VALOREM",
+          "percentage": 6,
+          "type": "05",
+          "valor": "312.11",
+        },
+        {
+          "name": "IPM",
+          "percentage": 2,
+          "type": "07",
+          "valor": "110.28",
+        },
+        {
+          "name": "IGV",
+          "percentage": 16,
+          "type": "08",
+          "valor": "882.24",
+        },
+      ],
+      "listNotasQuote": [
+        {
+          "descripcion": "SALIDAS SEMANALES",
+          "estado": 1,
+          "id": 1,
+          "statusincluye": 1,
+          "statusnoincluye": 0,
+        },
+        {
+          "descripcion": "NO INCLUYE SEGURO",
+          "estado": 1,
+          "id": 2,
+          "statusincluye": 0,
+          "statusnoincluye": 1,
+        },
+        {
+          "descripcion": "NOTA INACTIVA",
+          "estado": 0,
+          "id": 3,
+          "statusincluye": 1,
+          "statusnoincluye": 0,
+        },
+      ],
+      "listServices": [
+        {
+          "code_service": 1,
+          "codebegend": "OR",
+          "id": 1,
+          "id_begend": 1,
+          "id_groupservices": 4,
+          "service": "FLETE",
+          "status": 1,
+        },
+        {
+          "code_service": 3,
+          "codebegend": "FL",
+          "id": 2,
+          "id_begend": 2,
+          "id_groupservices": 7,
+          "service": "LOCALES",
+          "status": true,
+        },
+        {
+          "code_service": 7,
+          "codebegend": "DE",
+          "id": 3,
+          "id_begend": 3,
+          "id_groupservices": 7,
+          "service": "ADUANA",
+          "status": 0,
+        },
+        {
+          "code_service": 9,
+          "codebegend": "OP",
+          "id": 4,
+          "id_begend": 4,
+          "id_groupservices": 9,
+          "service": "ALMACEN",
+          "status": 1,
+        },
+        {
+          "code_service": 15,
+          "codebegend": "DE",
+          "id": 5,
+          "id_begend": 3,
+          "id_groupservices": 15,
+          "service": "IMPUESTOS",
+          "status": 1,
+        },
+      ],
+      "nro_propuesta": 1,
+      "tiempo_transito": 30,
+      "total": "US$1,991.45",
+      "totalAduanas": "US$118.00",
+      "totalAlmacenes": "US$96.00",
+      "totalFlete": "US$125.00",
+      "totalGastosTercero": "US$60.00",
+      "totalImpuesto": "US$1,304.63",
+      "totalImpuestosIGV": "US$67.32",
+      "totalLocales": "US$100.00",
+      "totalOrigen": "US$120.50",
+      "totalServicios": "US$619.50",
+    },
+  ],
+  "TipoCostos": [
+    {
+      "codigo": "FL",
+      "name": "FLETE",
+    },
+    {
+      "codigo": "OR",
+      "name": "ORIGEN",
+    },
+    {
+      "codigo": "LO",
+      "name": "LOCALES",
+    },
+    {
+      "codigo": "AD",
+      "name": "ADUANA",
+    },
+    {
+      "codigo": "AL",
+      "name": "ALMACEN",
+    },
+    {
+      "codigo": "GT",
+      "name": "GASTOS DE TERCEROS",
+    },
+  ],
+  "address": "AV 1",
+  "aduana": [
+    {
+      "estado": "NO",
+      "name": "ADUANA",
+    },
+    {
+      "estado": "SI",
+      "name": "IMPUESTOS",
+    },
+  ],
+  "almacen": [
+    {
+      "estado": "SI",
+      "name": "ALMACEN",
+    },
+  ],
+  "business_name": "PIC LOGISTICA",
+  "cliente": "ZEVALLOS ALFONSO",
+  "code": "########",
+  "conceptos": [],
+  "contenedor": [],
+  "destino": "SHANGHAI",
+  "document": "2060",
+  "embarque": "LCL",
+  "fechafin": undefined,
+  "flete": [
+    {
+      "estado": "SI",
+      "name": "FLETE",
+    },
+  ],
+  "icoterm": "FOB",
+  "id_branch": 1,
+  "importante": [],
+  "incluye": [
+    {
+      "name": "FLETE",
+    },
+    {
+      "name": "LOCALES",
+    },
+    {
+      "name": "ALMACEN",
+    },
+    {
+      "name": "IMPUESTOS",
+    },
+  ],
+  "isImport": true,
+  "iso": 9589,
+  "iso_pais": 9589,
+  "local": [
+    {
+      "estado": "SI",
+      "name": "LOCALES",
+    },
+  ],
+  "noincluye": [
+    {
+      "name": "ADUANA",
+    },
+  ],
+  "numerobultos": 3,
+  "origen": "CALLAO",
+  "pais": "PERU",
+  "peso": 1200,
+  "phone": "999",
+  "sentido": "IMPORTACION",
+  "slogancliente": "",
+  "tiempoTransito": undefined,
+  "tipo": "TOTAL",
   "volumen": 2.5,
 }
 `;
