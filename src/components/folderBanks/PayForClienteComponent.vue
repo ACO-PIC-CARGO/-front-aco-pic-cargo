@@ -25,7 +25,7 @@ let msgfile: string | undefined;
 let errfile: string | undefined;
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 let loadingFile: boolean | undefined;
-// _uploadFile is not defined here, so calling it throws.
+// Not defined anywhere, so calling it throws.
 const _uploadFile = undefined as unknown as (file?: File[]) => Promise<void>;
 
 const errorNroOperacion = ref("");

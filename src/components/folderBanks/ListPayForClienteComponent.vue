@@ -30,7 +30,7 @@ const securitysStore = useSecuritysStore();
 const formInvoice = ref<{ validate: () => Promise<{ valid: boolean }> }>();
 const registrosIngreso = computed(() => bankStore.list as unknown as RegistroIngreso[]);
 let tiposubingresoFilter: TipoBalance[] | undefined;
-// getListBanksDetailsCxC is not defined here, so calling it throws.
+// Not defined anywhere, so calling it throws.
 const getListBanksDetailsCxC = undefined as unknown as () => Promise<void>;
 
 const EditarIngresoFlag = ref(false);

@@ -549,7 +549,7 @@ onMounted(async () => {
           </template>
           <template #[`item.action`]="{ item }">
             <div class="d-flex align-center">
-              <!-- @vue-expect-error icon is a boolean attribute left from the old template -->
+              <!-- @vue-expect-error icon is a boolean attribute -->
               <v-icon
                 class="btn_add mr-2"
                 icon
@@ -559,7 +559,7 @@ onMounted(async () => {
               >
                 mdi-delete
               </v-icon>
-              <!-- @vue-expect-error icon is a boolean attribute left from the old template -->
+              <!-- @vue-expect-error icon is a boolean attribute -->
               <v-icon
                 class="btn_add mr-2"
                 icon
@@ -569,7 +569,7 @@ onMounted(async () => {
               >
                 mdi-pencil
               </v-icon>
-              <!-- @vue-expect-error icon is a boolean attribute left from the old template -->
+              <!-- @vue-expect-error icon is a boolean attribute -->
               <v-icon
                 class="btn_add mr-2"
                 icon
@@ -579,7 +579,7 @@ onMounted(async () => {
               >
                 mdi-pencil
               </v-icon>
-              <!-- @vue-expect-error icon is a boolean attribute left from the old template -->
+              <!-- @vue-expect-error icon is a boolean attribute -->
               <v-icon
                 class="btn_add mr-2"
                 icon

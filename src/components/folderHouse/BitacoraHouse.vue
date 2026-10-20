@@ -521,7 +521,7 @@ onMounted(async () => {
             label="Estatus del embarque"
           >
             <template #item="{ item, props }">
-              <!-- @vue-expect-error item is unknown because the items come from untyped root state -->
+              <!-- @vue-expect-error BitacoraLinealHouse does not declare name -->
               <v-list-item
                 v-bind="props"
                 role="option"

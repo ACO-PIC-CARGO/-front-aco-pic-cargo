@@ -882,7 +882,7 @@ onMounted(async () => {
                       />
                     </template>
                     <template #[`item.montopagar`]="{ item }">
-                      <!-- @vue-expect-error parseFloat gets a string or number, kept from the old template -->
+                      <!-- @vue-expect-error parseFloat gets a string or number -->
                       <v-text-field
                         hide-details
                         density="compact"
@@ -933,7 +933,7 @@ onMounted(async () => {
                           )
                         "
                       >
-                        <!-- @vue-expect-error subtracts string or number operands, kept from the old template -->
+                        <!-- @vue-expect-error subtracts string or number operands -->
                         {{ item.symbol }}
                         {{
                           parseFloat(
@@ -1245,7 +1245,7 @@ onMounted(async () => {
                       {{ fn_totalAbonado(item) }}
                     </template>
                     <template #[`item.saldo`]="{ item }">
-                      <!-- @vue-expect-error subtracts string or number operands, kept from the old template -->
+                      <!-- @vue-expect-error subtracts string or number operands -->
                       {{ item.symbol }}
                       {{
                         parseFloat(

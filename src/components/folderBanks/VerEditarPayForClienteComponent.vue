@@ -706,7 +706,7 @@ onMounted(async () => {
                       />
                     </template>
                     <template #[`item.montopagar`]="{ item }">
-                      <!-- @vue-expect-error parseFloat gets a string or number, kept from the old template -->
+                      <!-- @vue-expect-error parseFloat gets a string or number -->
                       <v-text-field
                         hide-details
                         density="compact"
