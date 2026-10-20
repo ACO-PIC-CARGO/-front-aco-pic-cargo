@@ -113,6 +113,18 @@ describe("airlines store", () => {
     expect(Swal.fire).not.toHaveBeenCalled();
   });
 
+  test.each([
+    ["ValidateCodigoIATANuevo", "validate_iata_airlines_nuevo"],
+    ["ValidateCodigoICAONuevo", "validate_icao_airlines_nuevo"],
+    ["ValidateCodigoIATAEditar", "validate_iata_airlines_editar"],
+    ["ValidateCodigoICAOEditar", "validate_icao_airlines_editar"],
+  ] as const)("%s rejects with a ReferenceError when the request fails", async (validator, endpoint) => {
+    respond({ [endpoint]: new Error("network") });
+    const store = useAirlinesStore();
+
+    await expect(store[validator]()).rejects.toBeInstanceOf(ReferenceError);
+  });
+
   test("setAirline and actualizarAirline stamp the session branch on the model, send it and show the answer", async () => {
     respond({ insert_airlines: accepted([]), actualizar_airlines: rejected("Duplicado") });
     const store = useAirlinesStore();
