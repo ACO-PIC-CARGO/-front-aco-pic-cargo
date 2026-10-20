@@ -7,7 +7,6 @@ const imgFolder = "/img/svg/folder.svg";
 const imgMailbox = "/img/svg/mailbox.svg";
 const imgList = "/img/svg/lista.svg";
 import controlGastos from "./modules/controlGasto";
-import programaciones from "./modules/programacion";
 import balances from "./modules/balanace";
 import proyecciones from "./modules/proyeccion";
 import bank from "./modules/bank";
@@ -2830,7 +2829,6 @@ export default createStore({
   modules: {
     reportes,
     controlGastos,
-    programaciones,
     balances,
     proyecciones,
     bank,

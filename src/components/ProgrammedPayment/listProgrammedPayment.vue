@@ -2,7 +2,7 @@
   <div class="">
     <v-data-table
       :headers="headers"
-      :items="$store.state.programaciones.listado"
+      :items="programacionesStore.listado"
       v-model:expanded="expanded"
       item-value="id"
       show-expand
@@ -128,7 +128,7 @@
               </v-row>
               <v-data-table
                 :headers="headersProgXProveedor"
-                :items="$store.state.programaciones.listProgramacionxProveedor"
+                :items="programacionesStore.listProgramacionxProveedor"
                 class="elevation-1"
                 show-select
                 item-value="id"
@@ -298,6 +298,7 @@ import Swal from "sweetalert2";
 import { mapActions as mapPiniaActions, mapStores } from "pinia";
 import { useFilesStore } from "@/stores/files";
 import { useBancosStore } from "@/stores/bancos";
+import { useProgramacionesStore } from "@/stores/programaciones";
 export default {
   name: "listProgrammedPaymentComponent",
   emits: ["cerrar"],
@@ -472,14 +473,10 @@ export default {
   methods: {
     ...mapActions([
       "_getListaPagosXProveedorCxP",
-      "getListProgramacion",
       "_getCoinsList",
-      "setPagoProgramado",
-      "ListProgrammedPayment",
-      "eliminarProgramacion",
-      "eliminarProgramacionDetalle",
       "cargarProveedores",
     ]),
+    ...mapPiniaActions(useProgramacionesStore, ["getListProgramacion", "setPagoProgramado", "ListProgrammedPayment", "eliminarProgramacion", "eliminarProgramacionDetalle"]),
     ...mapPiniaActions(useBancosStore, ["getValidaNroOp"]),
     ...mapPiniaActions(useFilesStore, ["_uploadFile"]),
     async ValidaNroOp() {
@@ -965,7 +962,7 @@ export default {
     },
   },
   computed: {
-    ...mapStores(useBancosStore, useFilesStore),
+    ...mapStores(useProgramacionesStore, useBancosStore, useFilesStore),
     ...mapState(["itemsProveedorList", "listPagosXProveedorCxP", "actualizar"]),
   },
   watch: {

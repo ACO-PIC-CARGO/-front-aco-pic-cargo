@@ -365,7 +365,7 @@
             <v-col cols="3" v-if="!nuevaFechaFlag">
               <v-autocomplete
                 :items="
-                  $store.state.programaciones.listProgramacion.filter(
+                  programacionesStore.listProgramacion.filter(
                     (v) => v.programend_id != 0,
                   )
                 "
@@ -516,6 +516,7 @@ import { useGastosStore } from "@/stores/gastos";
 import { useSubgastoStore } from "@/stores/subgasto";
 import { useEnterprisesStore } from "@/stores/enterprises";
 import { usePricingStore } from "@/stores/pricing";
+import { useProgramacionesStore } from "@/stores/programaciones";
 export default {
   name: "debstoPay",
   components: {
@@ -721,7 +722,7 @@ export default {
 
     this.$store.state.spiner = false;
     this.programend_id = (
-      this.$store.state.programaciones.listProgramacion.filter(
+      this.programacionesStore.listProgramacion.filter(
         (v) => v.programend_select == true,
       )[0] || {}
     ).programend_id;
@@ -730,7 +731,7 @@ export default {
     cerrar() {},
   },
   computed: {
-    ...mapStores(usePricingStore, useEnterprisesStore, useSubgastoStore, useGastosStore),
+    ...mapStores(useProgramacionesStore, usePricingStore, useEnterprisesStore, useSubgastoStore, useGastosStore),
     ...mapState(["provedores", "refreshReport", "listProgramacion"]),
     dateRange() {
       return this.date.join(" ~ ");
@@ -739,8 +740,8 @@ export default {
   methods: {
     ...mapActions([
       "cargarProveedores",
-      "GetTotalCotizacion",
     ]),
+    ...mapPiniaActions(useProgramacionesStore, ["GetTotalCotizacion"]),
     ...mapPiniaActions(usePricingStore, ["getModulesEntities"]),
     ...mapPiniaActions(useEnterprisesStore, ["obtenerImpuestoXEmpresa"]),
     ...mapPiniaActions(useSubgastoStore, ["GetListSubGasto"]),
