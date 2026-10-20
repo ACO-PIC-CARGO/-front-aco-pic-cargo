@@ -1,3 +1,4 @@
+import type { AxiosError, AxiosResponse, InternalAxiosRequestConfig } from "axios";
 import axios from '@/api/http';
 import router from "@/router";
 
@@ -9,31 +10,31 @@ const http = axios.create({
 });
 
 http.interceptors.request.use(
-  (config) => {
+  (config: InternalAxiosRequestConfig) => {
     const token = sessionStorage.getItem("auth-token");
     if (token) {
       config.headers["auth-token"] = token;
     }
     return config;
   },
-  (error) => Promise.reject(error)
+  (error: unknown) => Promise.reject(error)
 );
 
 http.interceptors.response.use(
-  (response) => {
+  (response: AxiosResponse) => {
     try {
       const token = response?.data?.token;
       if (token) sessionStorage.setItem("auth-token", token);
-    } catch (_) {}
+    } catch {}
     return response;
   },
-  (error) => {
+  (error: AxiosError) => {
     const status = error?.response?.status;
     if (status === 401) {
       try {
         sessionStorage.removeItem("auth-token");
         sessionStorage.removeItem("security");
-      } catch (_) {}
+      } catch {}
       if (router.currentRoute.value.name !== "Login") {
         router.replace({ name: "Login" });
       }

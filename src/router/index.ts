@@ -54,7 +54,7 @@ const routes = [
       {
         path: "main",
         name: "Main",
-        component: () => import("../views/dashboard/Home.vue"),
+        component: () => import("../views/dashboard/DashboardHome.vue"),
       },
       {
         path: "main/configuracion_inicial",

@@ -1,43 +1,67 @@
 <template>
   <v-container class="pa-0 ma-a container">
     <v-row>
-      <v-col cols="6" class="card-left"></v-col>
-      <v-col cols="6" class="card-rigth">
-        <img src="img/png/logo.png" alt="" srcset="" class="imgLogo" />
+      <v-col
+        cols="6"
+        class="card-left"
+      />
+      <v-col
+        cols="6"
+        class="card-rigth"
+      >
+        <img
+          src="img/png/logo.png"
+          alt=""
+          srcset=""
+          class="imgLogo"
+        >
         <div class="centrado">
-          <p class="saludo">Bienvenido...</p>
+          <p class="saludo">
+            Bienvenido...
+          </p>
         </div>
         <div class="formulario">
           <div class="">
-            <div class="descripcion">Usuario</div>
+            <div class="descripcion">
+              Usuario
+            </div>
             <div class="">
               <input
                 class="frmInput"
                 type="text"
                 placeholder="Ingrese su usuario"
                 autocomplete="off"
-              />
+              >
             </div>
           </div>
           <div class="">
-            <div class="descripcion">Contraseña</div>
+            <div class="descripcion">
+              Contraseña
+            </div>
             <div class="">
               <input
                 class="frmInput"
                 type="password"
                 placeholder="Ingrese su contraseña"
-              />
+              >
             </div>
           </div>
           <div class="">
             <div class="contenedorLink">
-              <a href="#" class="link">¿Has olvidado tu contraseña?</a>
+              <a
+                href="#"
+                class="link"
+              >¿Has olvidado tu contraseña?</a>
             </div>
             <div class="">
-              <button class="btn btn-acceder">Iniciar Sesion</button>
+              <button class="btn btn-acceder">
+                Iniciar Sesion
+              </button>
             </div>
             <div class="">
-              <button class="btn btn-registro">Registrar</button>
+              <button class="btn btn-registro">
+                Registrar
+              </button>
             </div>
           </div>
         </div>
@@ -45,10 +69,6 @@
     </v-row>
   </v-container>
 </template>
-
-<script>
-export default {};
-</script>
 
 <style scope>
 * {
