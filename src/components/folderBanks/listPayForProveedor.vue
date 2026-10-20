@@ -491,7 +491,7 @@ export default {
       vm.cargarProveedores(),
       vm._getBanksList(),
     ]).then((res) => {
-      // vm.cuentas = vm.bankStore.list.map((item) => ({
+      // vm.cuentas = vm.$store.state.bank.list.map((item) => ({
       //   id: item.id,
       //   label: item.cuenta,
       // }));
