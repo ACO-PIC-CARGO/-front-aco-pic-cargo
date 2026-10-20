@@ -1,8 +1,825 @@
+<script setup lang="ts">
+import { v4 as uuidv4 } from "uuid";
+import { computed, onMounted, ref } from "vue";
+import { useRoute, useRouter } from "vue-router";
+import { useStore } from "vuex";
+import dataGen from "@/components/folderHouse/DataGenVer.vue";
+//import houselist from "./houselist.vue";
+import dataEmbar from "@/components/folderHouse/DataEmbarVer.vue";
+import Bitacora from "@/components/folderHouse/BitacoraHouseVer.vue";
+import services from "@/components/folderHouse/ServicesHouseVer.vue";
+import Swal from "sweetalert2";
+import axios from "@/api/http";
+import { usePricingStore } from "@/stores/pricing";
+import { useHousesStore } from "@/stores/houses";
+import type { CuentaBancariaPic, ItemNotificacion, ServicioHouse } from "@/types/operaciones";
+import { sessionBranchId, sessionSucursal, sessionUser } from "@/utils/sesion";
+
+//houselist,
+
+const rootStore = useStore();
+const route = useRoute();
+const appRouter = useRouter();
+const housesStore = useHousesStore();
+const pricingStore = usePricingStore();
+const itemsShipment = computed(() => rootStore.state.itemsShipment);
+
+const selected = ref<CuentaBancariaPic[]>([]);
+const errorCuentas = ref("");
+const headers = [
+  { key: "label", title: "Nombre" },
+  { key: "cuenta", title: "Cuenta" },
+  { key: "cci", title: "CCI" },
+  { key: "symbol", title: "Moneda" },
+];
+const notificacion = ref<ItemNotificacion>(null as unknown as ItemNotificacion);
+const abrirModalCuentasNotificacion = ref(false);
+const statusData = ref(false);
+const formControlHouseReadonly = ref(false);
+const itemsNotificacionesImport: ItemNotificacion[] = [
+  { title: "Aviso de Salida", value: 1 },
+  { title: "Actualización de Salida", value: 2 },
+  { title: "Pre-Aviso de Llegada", value: 3 },
+  { title: "Aviso de Llegada", value: 4 },
+  { title: "Actualización de Llegada", value: 5 },
+];
+const itemsNotificacionesExport: ItemNotificacion[] = [
+  { title: "Aviso de Salida", value: 1 },
+  { title: "Actualización de Salida", value: 2 },
+  { title: "Aviso de Llegada", value: 3 },
+];
+const displayMenuNotificaciones = ref(false);
+const loadingBotonNotificaciones = ref(false);
+const loadingBotonGuardarHouse = ref(false);
+const loadingBotonEliminarHouse = ref(false);
+const fab = ref(false);
+const loadingBotonTracking = ref(false);
+const openMenuNotificaciones = ref(false);
+const dialogFormato = ref(false);
+const formatoflag = ref(true);
+
+async function irAVerMaster() {
+  await appRouter.push({
+    name: "controlHouseEditar",
+    // @ts-expect-error id is not a property of a route location
+    id: route.params.id,
+  });
+  window.location.reload();
+}
+function abrirModalFormato() {
+  dialogFormato.value = true;
+}
+async function exportarFormatoAWB() {
+  try {
+    const response = await axios({
+      method: "get",
+      url: `${import.meta.env.VITE_URL_MAIN}generar_formato_awb`,
+      params: {
+        id_house: route.params.id,
+        formatoflag: formatoflag.value,
+      },
+      headers: {},
+      responseType: "blob",
+    });
+
+    const blob = new Blob([response.data], {
+      type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+    });
+
+    const link = document.createElement("a");
+    link.href = window.URL.createObjectURL(blob);
+    const timestamp = new Date()
+      .toISOString()
+      .replace(/[:.]/g, "-")
+      .slice(0, -5);
+    const filename = `formato_awb_${timestamp}.xlsx`;
+    link.download = filename;
+    link.click();
+
+    window.URL.revokeObjectURL(link.href);
+  } catch (err) {
+    console.error("Error exportando archivo:", err);
+    Swal.fire({
+      icon: "error",
+      title: "Error",
+      text: "No se pudo generar el formato",
+    });
+  }
+  dialogFormato.value = false;
+}
+async function exportarFormatoHBL() {
+  try {
+    const response = await axios({
+      method: "get",
+      url: `${import.meta.env.VITE_URL_MAIN}generar_formato_bl`,
+      params: {
+        id_house: route.params.id,
+        formatoflag: formatoflag.value,
+      },
+      headers: {},
+      responseType: "blob",
+    });
+
+    const blob = new Blob([response.data], {
+      type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+    });
+
+    const link = document.createElement("a");
+    link.href = window.URL.createObjectURL(blob);
+    const timestamp = new Date()
+      .toISOString()
+      .replace(/[:.]/g, "-")
+      .slice(0, -5);
+    const filename = `formato_bl_${timestamp}.xlsx`;
+    link.download = filename;
+    link.click();
+
+    window.URL.revokeObjectURL(link.href);
+  } catch (err) {
+    console.error("Error exportando archivo:", err);
+    Swal.fire({
+      icon: "error",
+      title: "Error",
+      text: "No se pudo generar el formato",
+    });
+  }
+  dialogFormato.value = false;
+}
+async function _generateTrackingToken() {
+  const token = uuidv4();
+
+  loadingBotonTracking.value = true;
+  await _setTrackingToken(token);
+  loadingBotonTracking.value = false;
+}
+async function _setTrackingToken(token: string) {
+  const data = {
+    id_house: route.params.id,
+    token: token,
+    fecha: new Date(Date.now() - new Date().getTimezoneOffset() * 60000)
+      .toISOString()
+      .substr(0, 10),
+  };
+
+  const config = {
+    method: "put",
+    url: import.meta.env.VITE_URL_MAIN + `setTrackingToken`,
+    headers: {
+      "Content-Type": "application/json",
+    },
+    data: data,
+  };
+
+  await axios(config)
+    .then(function (response) {
+      sessionStorage.setItem("auth-token", response.data.token);
+
+      if (response.data.estadoflag) {
+        rootStore.state.house_enlace_tracking =
+          "https://aco.agentedecargaonline.com/tracking/" +
+          response.data.data[0].token;
+
+        Swal.fire({
+          icon: "success",
+          title: "Éxito",
+          text: "Enlace de tracking generado correctamente",
+        });
+      } else {
+        Swal.fire({
+          icon: response.data.status == "401" ? "error" : "info",
+          text: response.data.mensaje,
+          allowOutsideClick: false,
+          allowEscapeKey: false,
+          allowEnterKey: false,
+        });
+      }
+    })
+    .catch(function (error) {
+      console.error(error);
+      Swal.fire({
+        icon: "error",
+        title: "Error",
+        text: "No se pudo generar el enlace de tracking",
+      });
+    });
+}
+async function _copyEnlaceTracking(texto: string) {
+  await navigator.clipboard.writeText(texto);
+  Swal.fire({
+    icon: "success",
+    title: "Copiado",
+    text: "Enlace copiado al portapapeles",
+    timer: 1500,
+    showConfirmButton: false,
+  });
+}
+function openNotificaciones() {
+  validarMenuNotificaciones();
+}
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+function _setMasterContainer(id_master: number, id_containers: number, quantity: number) {
+  //vm._getnroMaster();
+  const data = JSON.stringify({
+    id_master: id_master,
+    id_containers: id_containers,
+    quantity: quantity,
+    status: 1,
+  });
+
+  const config = {
+    method: "post",
+    url: import.meta.env.VITE_URL_MAIN + "setMasterContainers",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    data: data,
+  };
+
+  axios(config)
+    .then(function () {})
+    .catch(function (error) {
+      console.error(error);
+      Swal.fire({
+        icon: "error",
+        title: "Lo sentimos",
+        text: error as string,
+      });
+    });
+}
+async function _setHouseEdit() {
+  loadingBotonGuardarHouse.value = !loadingBotonGuardarHouse.value;
+
+  //vm._getnroMaster();
+  const data = JSON.stringify({
+    id_modality: rootStore.state.house_sentido
+      ? rootStore.state.house_sentido
+      : "",
+    id_shipment: rootStore.state.house_id_trasnport
+      ? rootStore.state.house_id_trasnport
+      : "",
+    id_consigner_real: rootStore.state.house_id_consigner_real
+      ? rootStore.state.house_id_consigner_real
+      : "",
+    id_port_begin: rootStore.state.house_origen
+      ? rootStore.state.house_origen
+      : "",
+    id_port_end: rootStore.state.house_destino
+      ? rootStore.state.house_destino
+      : "",
+    id_proveedor: rootStore.state.house_id_agente
+      ? rootStore.state.house_id_agente
+      : "",
+    id_consigner: rootStore.state.house_id_consigner
+      ? rootStore.state.house_id_consigner
+      : "",
+    id_notify: rootStore.state.house_id_notify
+      ? rootStore.state.house_id_notify
+      : "",
+    id_aerolinea: rootStore.state.house_id_airlines
+      ? rootStore.state.house_id_airlines
+      : "",
+    id_coloader: rootStore.state.house_id_coloader
+      ? rootStore.state.house_id_coloader
+      : "",
+    id_naviera: rootStore.state.house_id_naviera
+      ? rootStore.state.house_id_naviera
+      : "",
+    id_incoterms: rootStore.state.house_incoterms
+      ? rootStore.state.house_incoterms
+      : "",
+    nro_hbl: rootStore.state.house_blmaster
+      ? rootStore.state.house_blmaster
+      : "",
+    id_motonave: rootStore.state.house_id_motonave
+      ? rootStore.state.house_id_motonave
+      : "",
+    nro_viaje: rootStore.state.house_viaje
+      ? rootStore.state.house_viaje
+      : "",
+    bultos: rootStore.state.house_bultos
+      ? rootStore.state.house_bultos
+      : "",
+    peso: rootStore.state.house_peso ? rootStore.state.house_peso : "",
+    volumen: rootStore.state.house_volumen
+      ? rootStore.state.house_volumen
+      : "",
+    id_conditions: rootStore.state.house_id_condicion
+      ? rootStore.state.house_id_condicion
+      : "",
+    id_moneda: rootStore.state.house_id_coins
+      ? rootStore.state.house_id_coins
+      : "",
+    monto: rootStore.state.house_monto ? rootStore.state.house_monto : "",
+    id_branch: sessionBranchId(),
+    id_cot: rootStore.state.house_cotizacion
+      ? rootStore.state.house_cotizacion
+      : "",
+    lstservices: rootStore.state.itemsHouseServices || [],
+    id: rootStore.state.house_id,
+  });
+
+  const config = {
+    method: "put",
+    url: import.meta.env.VITE_URL_MAIN + "setHouseEdit",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    data: data,
+  };
+
+  await axios(config)
+    .then(async function (response) {
+      sessionStorage.setItem("auth-token", response.data.token);
+
+      if (response.data.status == "401") {
+        Swal.fire({
+          icon: "error",
+          text: response.data.mensaje,
+          allowOutsideClick: false,
+          allowEscapeKey: false,
+          allowEnterKey: false,
+        }).then((resSwal) => {
+          if (resSwal.isConfirmed && response.data.status == "401") {
+            // @ts-expect-error router is not defined in this scope
+            router.push({ name: "Login" });
+            setTimeout(() => {
+              window.location.reload();
+            }, 10);
+          }
+        });
+      }
+
+      statusData.value = true;
+      await rootStore.dispatch("_getHouseList");
+      await _getHouseById();
+      await _getHouseServices();
+
+      Swal.fire({
+        icon: "success",
+        title: "Excelente",
+        text: "House actualizado éxitosamente",
+      }).then(() => {
+        if (housesStore.house.cantidad_houses_x_master! > 1) {
+          Swal.fire({
+            icon: "question",
+            html: "<b>¿Desea actualizar los costos en el Control de Gastos ahora?</b>",
+            showConfirmButton: true,
+            confirmButtonText: "Sí",
+            confirmButtonColor: "#4CAF50",
+            showDenyButton: true,
+            denyButtonText: "No, en otro momento",
+            allowOutsideClick: false,
+          }).then(({ isConfirmed }) => {
+            if (isConfirmed) {
+              // vm.$router.push("/home/folderBilling/editControlGastos/view/" + vm.$store.state.houses.house.id_master);
+              appRouter.push({
+                name: "editControlGasto",
+                params: {
+                  code_master: housesStore.house.code_master,
+                  id_branch: sessionBranchId(),
+                },
+              });
+            }
+          });
+        }
+      });
+
+      loadingBotonGuardarHouse.value = !loadingBotonGuardarHouse.value;
+      // vm.$router.go(-1);
+    })
+    .catch(function (error) {
+      console.error(error);
+      Swal.fire({
+        icon: "error",
+        title: "Lo sentimos",
+        text: error as string,
+      });
+    });
+}
+function eliminarHouse() {
+  if (housesStore.house.cantidad_houses_x_master! > 1) {
+    Swal.fire({
+      icon: "question",
+      title: "ADVERTENCIA",
+      text: "¿Está seguro que desea eliminar el house?",
+      showDenyButton: true,
+      confirmButtonText: "Si",
+      denyButtonText: "No",
+    }).then(async (result) => {
+      if (result.isConfirmed) {
+        loadingBotonEliminarHouse.value = !loadingBotonEliminarHouse.value;
+
+        const config = {
+          method: "put",
+          url:
+            import.meta.env.VITE_URL_MAIN +
+            "setHouseDelete/" +
+            route.params.id,
+          headers: {
+            "Content-Type": "application/json",
+          },
+        };
+
+        await axios(config).then(function (response) {
+          sessionStorage.setItem("auth-token", response.data.token);
+
+          if (response.data.status == "401") {
+            Swal.fire({
+              icon: "error",
+              text: response.data.mensaje,
+              allowOutsideClick: false,
+              allowEscapeKey: false,
+              allowEnterKey: false,
+            }).then((resSwal) => {
+              if (resSwal.isConfirmed && response.data.status == "401") {
+                // @ts-expect-error router is not defined in this scope
+                router.push({ name: "Login" });
+                setTimeout(() => {
+                  window.location.reload();
+                }, 10);
+              }
+            });
+          }
+
+          if (response.data.statusBol) {
+            Swal.fire({
+              icon: "success",
+              title: "REGISTRO ELIMINADO.",
+            });
+
+            loadingBotonEliminarHouse.value = !loadingBotonEliminarHouse.value;
+            appRouter.go(-1);
+          }
+        });
+      }
+    });
+  } else {
+    Swal.fire({
+      icon: "info",
+      text: "Un expediente máster debe tener al menos un house asignado",
+    });
+  }
+}
+function isImportacion() {
+  let val = false;
+  const name = housesStore.house.modality;
+  if (name == "Importación") {
+    val = true;
+  }
+
+  return val;
+}
+function isExportacion() {
+  let val = false;
+  const name = housesStore.house.modality;
+  if (name == "Exportación") {
+    val = true;
+  }
+
+  return val;
+}
+function isAereo() {
+  let val = false;
+  const id = rootStore.state.house_id_trasnport;
+
+  const code =
+    itemsShipment.value.filter((v: { id: number; code: string }) => v.id == id).length > 0
+      ? itemsShipment.value.filter((v: { id: number; code: string }) => v.id == id)[0].code
+      : "";
+
+  if (code == "Aéreo") {
+    val = true;
+  }
+
+  return val;
+}
+function isLCL() {
+  let val = false;
+  const id = rootStore.state.house_id_trasnport;
+
+  const code =
+    itemsShipment.value.filter((v: { id: number; code: string }) => v.id == id).length > 0
+      ? itemsShipment.value.filter((v: { id: number; code: string }) => v.id == id)[0].code
+      : "";
+
+  if (code == "LCL") {
+    val = true;
+  }
+
+  return val;
+}
+function isFCL() {
+  let val = false;
+  const id = rootStore.state.house_id_trasnport;
+
+  const code =
+    itemsShipment.value.filter((v: { id: number; code: string }) => v.id == id).length > 0
+      ? itemsShipment.value.filter((v: { id: number; code: string }) => v.id == id)[0].code
+      : "";
+
+  if (code == "FCL") {
+    val = true;
+  }
+  return val;
+}
+function getItemsNotificaciones() {
+  return isImportacion()
+    ? itemsNotificacionesImport
+    : isExportacion()
+    ? itemsNotificacionesExport
+    : [];
+}
+function getSentidoHouse() {
+  return isImportacion()
+    ? "Import"
+    : isExportacion()
+    ? "Export"
+    : "";
+}
+function getTipoEmbarqueHouse() {
+  return isAereo()
+    ? "Aéreo"
+    : isLCL()
+    ? "LCL"
+    : isFCL()
+    ? "FCL"
+    : "";
+}
+async function validarMenuNotificaciones() {
+  if (rootStore.state.bank.list.length == 0) {
+    Swal.fire({
+      icon: "warning",
+      title: "Cuentas Bancarias",
+      text: "Para poder enviar la notificación. Es necesario al menos una cuenta bancaría",
+    });
+    return false;
+  } else {
+    if (
+      !rootStore.state.bank.list.some((v: { banks_details: unknown[] }) => v.banks_details.length > 0)
+    ) {
+      Swal.fire({
+        icon: "warning",
+        title: "Cuentas Bancarias",
+        text: "Para poder enviar la notificación. Es necesario al menos una cuenta bancaría.",
+      });
+      return false;
+    }
+  }
+  displayMenuNotificaciones.value = false;
+
+  const errores = [];
+  if (!housesStore.house.id_modality) {
+    errores.push("Sentido");
+  }
+  if (!housesStore.house.id_shipment) {
+    errores.push("Tipo de Embarque");
+  }
+  if (!housesStore.house.id_port_begin) {
+    errores.push("Puerto de Origen");
+  }
+  if (!housesStore.house.id_port_end) {
+    errores.push("Puerto de Destino");
+  }
+  if (!housesStore.house.id_proveedor) {
+    errores.push("Proveedor");
+  }
+  if (!housesStore.house.id_consigner) {
+    errores.push("Cliente");
+  }
+  if (!housesStore.house.emailaddress_clientefinal) {
+    errores.push("El cliente debe tener asignado un correo electrónico");
+  }
+  if (!housesStore.house.id_operador) {
+    errores.push("Operador");
+  }
+  if (!housesStore.house.fecha_etd) {
+    errores.push("Fecha ETD");
+  }
+  if (!housesStore.house.fecha_eta) {
+    errores.push("Fecha ETA");
+  }
+  if (
+    !itemsShipment.value.filter(
+      (v: { id: number; code: string }) =>
+        v.id == housesStore.house.id_shipment && v.code == "FCL",
+    ).length
+  ) {
+    if (!housesStore.house.bultos) {
+      errores.push("Nº de bultos");
+    }
+    if (!housesStore.house.peso) {
+      errores.push("Peso");
+    }
+    if (!housesStore.house.volumen) {
+      errores.push("Volumen");
+    }
+  }
+  if (!housesStore.house.monto) {
+    errores.push("Monto");
+  }
+
+  if (!errores.length) {
+    displayMenuNotificaciones.value = true;
+  } else {
+    Swal.fire({
+      icon: "error",
+      html: `
+            <b>¡El Expediente House requiere los siguientes datos para mostrar el menú de notificaciones!</b>
+            <br><br>
+            ${errores.map((error) => `<p>${error}</p>`).join("")}
+          `,
+    });
+  }
+}
+async function _getHouseById() {
+  const data = {
+    id: route.params.id,
+    id_branch: sessionBranchId(),
+  };
+
+  const config = {
+    method: "post",
+    url: import.meta.env.VITE_URL_MAIN + "getHouseListId/",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    data: data,
+  };
+
+  await axios(config)
+    .then(function (response) {
+      sessionStorage.setItem("auth-token", response.data.token);
+
+      housesStore.house =
+        response.data.data && response.data.data[0];
+    })
+    .catch(function (error) {
+      console.error(error);
+    });
+}
+async function _getHouseServices() {
+  if (route.params.id) {
+    const data = {
+      id: route.params.id,
+      id_branch: sessionBranchId(),
+    };
+
+    const config = {
+      method: "post",
+      url: import.meta.env.VITE_URL_MAIN + "getHouseServices",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      data: data,
+    };
+
+    await axios(config)
+      .then(function (response) {
+        sessionStorage.setItem("auth-token", response.data.token);
+
+        if (response.data.estadoflag) {
+          const lstServices: ServicioHouse[] = [];
+          let itemImpuestos = null as ServicioHouse | null;
+          response.data.data.map((item: ServicioHouse) => {
+            if (item.nameservice!.toUpperCase() == "IMPUESTOS") {
+              itemImpuestos = item;
+            } else {
+              lstServices.push(item);
+            }
+          });
+
+          if (itemImpuestos !== null) {
+            lstServices.push(itemImpuestos);
+          }
+
+          rootStore.state.itemsHouseServices = lstServices;
+        } else {
+          rootStore.state.itemsHouseServices = [];
+        }
+      })
+      .catch(function (error) {
+        console.error(error);
+      });
+  }
+}
+function sendNotificacion(notificacionSeleccionada: ItemNotificacion) {
+  selected.value = [];
+  notificacion.value = notificacionSeleccionada;
+  abrirModalCuentasNotificacion.value = true;
+}
+async function enviarNotificacion(notificacion: ItemNotificacion) {
+  errorCuentas.value = "";
+  if (selected.value.length == 0) {
+    errorCuentas.value = "Es necesario al menos una cuenta";
+    return false;
+  }
+
+  loadingBotonNotificaciones.value = !loadingBotonNotificaciones.value;
+
+  await _getHouseById();
+  const data = {
+    id: rootStore.state.house_id,
+    notificacion: notificacion,
+    house: housesStore.house,
+    user: sessionUser(),
+    sentido: getSentidoHouse(),
+    tipoEmbarque: getTipoEmbarqueHouse(),
+    cuentasBancarias: selected.value,
+    razonSocial:
+      sessionSucursal().trade_name || "",
+  };
+
+  const config = {
+    method: "post",
+    url: import.meta.env.VITE_URL_MAIN + "sendNotificacionHouse",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    data: data,
+  };
+
+  await axios(config)
+    .then(function (response) {
+      sessionStorage.setItem("auth-token", response.data.token);
+
+      if (response.data.status == "401") {
+        Swal.fire({
+          icon: "error",
+          text: response.data.mensaje,
+          allowOutsideClick: false,
+          allowEscapeKey: false,
+          allowEnterKey: false,
+        }).then((resSwal) => {
+          if (resSwal.isConfirmed && response.data.status == "401") {
+            // @ts-expect-error router is not defined in this scope
+            router.push({ name: "Login" });
+            setTimeout(() => {
+              window.location.reload();
+            }, 10);
+          }
+        });
+      } else {
+        abrirModalCuentasNotificacion.value = false;
+        Swal.fire({
+          icon: "success",
+          title: "Excelente",
+          text: "Notificación enviada éxitosamente",
+        });
+      }
+    })
+    .catch(function (error) {
+      console.error(error);
+      Swal.fire({
+        icon: "error",
+        title: "Lo sentimos",
+        text: error as string,
+      });
+    })
+    .finally(function () {
+      loadingBotonNotificaciones.value = !loadingBotonNotificaciones.value;
+    });
+}
+
+onMounted(async () => {
+  rootStore.state.spiner = true;
+  await housesStore.verHouse(route.params);
+  await pricingStore.getCargarEjecutivo();
+  if (route.name == "controlHouseVer") {
+    formControlHouseReadonly.value = true;
+  }
+  const actionLabel =
+    route.name == "controlHouseEditar" ? "EDITAR" : "VER";
+  rootStore.state.mainTitle = `N° BL House ${
+    (housesStore.house &&
+      housesStore.house.nro_hbl) ||
+    ""
+  } - ${
+    (housesStore.house &&
+      housesStore.house.consigner) ||
+    ""
+  } [${actionLabel}]`;
+  rootStore.state.spiner = false;
+  await rootStore.dispatch("fetchDataBank", {
+    code: "",
+    name: "",
+    acronym: "",
+    description: "",
+    status: 1,
+  });
+});
+</script>
+
 <template>
-  <v-form ref="formControlHouse" :readonly="formControlHouseReadonly">
+  <v-form
+    ref="formControlHouse"
+    :readonly="formControlHouseReadonly"
+  >
     <v-container fluid>
       <v-row>
-        <v-col cols="12" md="4">
+        <v-col
+          cols="12"
+          md="4"
+        >
           <v-card>
             <v-card-text>
               <dataGen />
@@ -10,23 +827,30 @@
           </v-card>
           <v-card class="mt-5">
             <v-card-text>
-              <dataEmbar :isFormActionsDisabled="formControlHouseReadonly" />
+              <dataEmbar :is-form-actions-disabled="formControlHouseReadonly" />
             </v-card-text>
           </v-card>
 
           <v-row class="mt-2">
             <template v-if="$route.name != 'controlHouseVer'">
-              <v-col cols="4" md="4">
+              <v-col
+                cols="4"
+                md="4"
+              >
                 <v-btn
                   color="success"
                   @click="_setHouseEdit()"
                   block
                   size="small"
                   :loading="loadingBotonGuardarHouse"
-                  >GUARDAR CAMBIOS
+                >
+                  GUARDAR CAMBIOS
                 </v-btn>
               </v-col>
-              <v-col cols="4" md="4">
+              <v-col
+                cols="4"
+                md="4"
+              >
                 <v-btn
                   color="red"
                   @click="eliminarHouse()"
@@ -41,10 +865,13 @@
             <template
               v-if="
                 $route.name == 'controlHouseEditar' ||
-                $route.name == 'controlHouseVer'
+                  $route.name == 'controlHouseVer'
               "
             >
-              <v-col cols="4" md="4">
+              <v-col
+                cols="4"
+                md="4"
+              >
                 <!-- <v-btn color="orange" @click="atras()" block dark small>
                   REGRESAR
                 </v-btn> -->
@@ -56,12 +883,15 @@
           </v-row>
         </v-col>
 
-        <v-col cols="12" md="4">
+        <v-col
+          cols="12"
+          md="4"
+        >
           <v-card>
             <v-card-text>
               <services
-                :isFormActionsDisabled="formControlHouseReadonly"
-                :itemsNotificaciones="getItemsNotificaciones()"
+                :is-form-actions-disabled="formControlHouseReadonly"
+                :items-notificaciones="getItemsNotificaciones()"
                 @send-notificacion="sendNotificacion"
                 @ir-editar="irAVerMaster"
               />
@@ -69,10 +899,13 @@
           </v-card>
         </v-col>
 
-        <v-col cols="12" md="4">
+        <v-col
+          cols="12"
+          md="4"
+        >
           <v-card>
             <v-card-text>
-              <Bitacora :isFormActionsDisabled="formControlHouseReadonly" />
+              <Bitacora :is-form-actions-disabled="formControlHouseReadonly" />
             </v-card-text>
           </v-card>
         </v-col>
@@ -84,49 +917,84 @@
           transition="slide-y-reverse-transition"
           content-class="acciones-dial"
         >
-          <template v-slot:activator="{ props }">
-            <v-btn v-bind="props" color="info" icon>
-              <v-icon v-if="fab"> mdi-close </v-icon>
-              <v-icon v-else> mdi-tools </v-icon>
+          <template #activator="{ props }">
+            <v-btn
+              v-bind="props"
+              color="info"
+              icon
+            >
+              <v-icon v-if="fab">
+                mdi-close
+              </v-icon>
+              <v-icon v-else>
+                mdi-tools
+              </v-icon>
             </v-btn>
           </template>
 
-          <v-btn key="eliminar"
+          <v-btn
+            key="eliminar"
             color="red"
             :loading="loadingBotonEliminarHouse"
             @click="eliminarHouse()"
           >
-            <v-icon start>mdi-delete</v-icon>
+            <v-icon start>
+              mdi-delete
+            </v-icon>
             Eliminar
           </v-btn>
-          <v-btn key="tracking"
+          <v-btn
+            key="tracking"
             color="orange-darken-2"
             :loading="loadingBotonTracking"
             @click="_generateTrackingToken"
           >
-            <v-icon start>mdi-link-variant</v-icon>
+            <v-icon start>
+              mdi-link-variant
+            </v-icon>
             Tracking
           </v-btn>
-          <v-btn key="imprimir"
+          <v-btn
+            key="imprimir"
             :style="{ backgroundColor: 'rgb(92, 116, 137)', color: 'white' }"
             @click="abrirModalFormato()"
           >
-            <v-icon start style="color: white">mdi-printer</v-icon>
+            <v-icon
+              start
+              style="color: white"
+            >
+              mdi-printer
+            </v-icon>
             Imprimir
           </v-btn>
 
-          <v-btn key="notificaciones" color="deep-purple" @click="openNotificaciones">
-            <v-icon start style="transform: rotate(-45deg)">mdi-send</v-icon>
+          <v-btn
+            key="notificaciones"
+            color="deep-purple"
+            @click="openNotificaciones"
+          >
+            <v-icon
+              start
+              style="transform: rotate(-45deg)"
+            >
+              mdi-send
+            </v-icon>
             Notificaciones
           </v-btn>
-          <v-btn key="editar" color="light-green-lighten-1" @click="irAVerMaster()">
-            <v-icon start>mdi-pencil</v-icon>
+          <v-btn
+            key="editar"
+            color="light-green-lighten-1"
+            @click="irAVerMaster()"
+          >
+            <v-icon start>
+              mdi-pencil
+            </v-icon>
             Editar
           </v-btn>
         </v-speed-dial>
       </div>
       <div
-        v-if="$store.state.house_enlace_tracking"
+        v-if="rootStore.state.house_enlace_tracking"
         style="
           position: fixed;
           right: 88px;
@@ -137,21 +1005,24 @@
         "
       >
         <v-text-field
-          v-model="$store.state.house_enlace_tracking"
+          v-model="rootStore.state.house_enlace_tracking"
           label="Enlace de Tracking"
           readonly
           variant="outlined"
           density="compact"
           hide-details
         >
-          <template v-slot:append-inner>
-            <v-btn variant="text"
+          <template #append-inner>
+            <v-btn
+              variant="text"
               icon
               size="small"
               color="primary"
-              @click="_copyEnlaceTracking($store.state.house_enlace_tracking)"
+              @click="_copyEnlaceTracking(rootStore.state.house_enlace_tracking)"
             >
-              <v-icon size="small">mdi-content-copy</v-icon>
+              <v-icon size="small">
+                mdi-content-copy
+              </v-icon>
             </v-btn>
           </template>
         </v-text-field>
@@ -162,10 +1033,13 @@
         location="top"
         content-class="elevation-0"
       >
-        <template v-slot:activator="{ props }">
-          <span v-bind="props"></span>
+        <template #activator="{ props }">
+          <span v-bind="props" />
         </template>
-        <v-list color="transparent" v-show="displayMenuNotificaciones">
+        <v-list
+          color="transparent"
+          v-show="displayMenuNotificaciones"
+        >
           <v-list-item
             v-for="(item, index) in getItemsNotificaciones()"
             :key="index"
@@ -186,33 +1060,59 @@
         </v-list>
       </v-menu>
       <!-- Modal para seleccionar formato de impresión -->
-      <v-dialog v-model="dialogFormato" max-width="400px">
+      <v-dialog
+        v-model="dialogFormato"
+        max-width="400px"
+      >
         <v-card>
-          <v-card-title primary-title class="bg-light-blue-darken-2 text-white">
+          <v-card-title
+            primary-title
+            class="bg-light-blue-darken-2 text-white"
+          >
             Imprimir Formato {{ isAereo() ? "GUÍA AÉREA" : "BL" }}
           </v-card-title>
           <v-card-text class="pt-4">
-            <p class="text-body-large mb-2">¿Imprimir con fondo?</p>
+            <p class="text-body-large mb-2">
+              ¿Imprimir con fondo?
+            </p>
             <v-radio-group v-model="formatoflag">
-              <v-radio label="Sí" :value="true"></v-radio>
-              <v-radio label="No" :value="false"></v-radio>
+              <v-radio
+                label="Sí"
+                :value="true"
+              />
+              <v-radio
+                label="No"
+                :value="false"
+              />
             </v-radio-group>
           </v-card-text>
           <v-card-actions>
-            <v-spacer></v-spacer>
+            <v-spacer />
             <v-btn
               color="success"
               v-if="isAereo()"
               @click="exportarFormatoAWB()"
             >
-              <v-icon start>mdi-printer</v-icon>
+              <v-icon start>
+                mdi-printer
+              </v-icon>
               Imprimir Guía Aérea
             </v-btn>
-            <v-btn color="success" v-else @click="exportarFormatoHBL()">
-              <v-icon start>mdi-printer</v-icon>
+            <v-btn
+              color="success"
+              v-else
+              @click="exportarFormatoHBL()"
+            >
+              <v-icon start>
+                mdi-printer
+              </v-icon>
               Imprimir BL
             </v-btn>
-            <v-btn color="grey" variant="text" @click="dialogFormato = false">
+            <v-btn
+              color="grey"
+              variant="text"
+              @click="dialogFormato = false"
+            >
               Cancelar
             </v-btn>
           </v-card-actions>
@@ -230,885 +1130,51 @@
           <p class="title_button_bottom">Linea de correos</p>
         </router-link>
       </v-footer> -->
-    <v-dialog v-model="abrirModalCuentasNotificacion" persistent width="70%">
+    <v-dialog
+      v-model="abrirModalCuentasNotificacion"
+      persistent
+      width="70%"
+    >
       <v-card>
         <v-card-title primary-title>
           Seleccione las cuentas a utilizar
         </v-card-title>
         <v-card-text>
-          <p class="text-red">{{ errorCuentas }}</p>
+          <p class="text-red">
+            {{ errorCuentas }}
+          </p>
           <v-data-table
             v-model="selected"
             :headers="headers"
-            :items="$store.state.cuentas_pic"
+            :items="rootStore.state.cuentas_pic"
             item-value="id"
             return-object
             show-select
             class="elevation-1"
-          >
-          </v-data-table>
+          />
         </v-card-text>
         <v-card-actions>
-          <v-spacer></v-spacer>
+          <v-spacer />
           <v-btn
             color="success"
             :loading="loadingBotonNotificaciones"
             @click="enviarNotificacion(notificacion)"
-            >Enviar Notificación</v-btn
           >
+            Enviar Notificación
+          </v-btn>
           <v-btn
             color="danger"
             @click="
               abrirModalCuentasNotificacion = !abrirModalCuentasNotificacion
             "
-            >Cancelar</v-btn
           >
+            Cancelar
+          </v-btn>
         </v-card-actions>
       </v-card>
     </v-dialog>
   </v-form>
 </template>
-<script>
-import { v4 as uuidv4 } from "uuid";
-import dataGen from "@/components/folderHouse/dataGenVer.vue";
-//import houselist from "./houselist.vue";
-import dataEmbar from "@/components/folderHouse/dataEmbarVer.vue";
-import Bitacora from "@/components/folderHouse/bitacoraVer.vue";
-import services from "@/components/folderHouse/servicesVer.vue";
-import { mapActions, mapState } from "vuex";
-import Swal from "sweetalert2";
-import axios from "@/api/http";
-import { mapActions as mapPiniaActions, mapStores } from "pinia";
-import { usePricingStore } from "@/stores/pricing";
-import { useHousesStore } from "@/stores/houses";
-export default {
-  name: "controlMasterCom",
-  components: {
-    dataGen,
-    //houselist,
-    dataEmbar,
-    Bitacora,
-    services,
-  },
-  data: () => ({
-    selected: [],
-    errorCuentas: "",
-    headers: [
-      { key: "label", title: "Nombre" },
-      { key: "cuenta", title: "Cuenta" },
-      { key: "cci", title: "CCI" },
-      { key: "symbol", title: "Moneda" },
-    ],
-    notificacion: null,
-    abrirModalCuentasNotificacion: false,
-    statusData: false,
-    formControlHouseReadonly: false,
-    itemsNotificacionesImport: [
-      { title: "Aviso de Salida", value: 1 },
-      { title: "Actualización de Salida", value: 2 },
-      { title: "Pre-Aviso de Llegada", value: 3 },
-      { title: "Aviso de Llegada", value: 4 },
-      { title: "Actualización de Llegada", value: 5 },
-    ],
-    itemsNotificacionesExport: [
-      { title: "Aviso de Salida", value: 1 },
-      { title: "Actualización de Salida", value: 2 },
-      { title: "Aviso de Llegada", value: 3 },
-    ],
-    houseData: {},
-    displayMenuNotificaciones: false,
-    loadingBotonNotificaciones: false,
-    loadingBotonGuardarHouse: false,
-    loadingBotonEliminarHouse: false,
-    fab: false,
-    loadingBotonTracking: false,
-    openMenuNotificaciones: false,
-    dialogFormato: false,
-    formatoflag: true,
-  }),
-  async mounted() {
-    this.$store.state.spiner = true;
-    await this.verHouse(this.$route.params);
-    await this.getCargarEjecutivo();
-    if (this.$route.name == "controlHouseVer") {
-      this.formControlHouseReadonly = true;
-    }
-    const actionLabel =
-      this.$route.name == "controlHouseEditar" ? "EDITAR" : "VER";
-    this.$store.state.mainTitle = `N° BL House ${
-      (this.housesStore.house &&
-        this.housesStore.house.nro_hbl) ||
-      ""
-    } - ${
-      (this.housesStore.house &&
-        this.housesStore.house.consigner) ||
-      ""
-    } [${actionLabel}]`;
-    this.$store.state.spiner = false;
-    await this.fetchDataBank({
-      code: "",
-      name: "",
-      acronym: "",
-      description: "",
-      status: 1,
-    });
-  },
-  computed: {
-    ...mapStores(useHousesStore),
-    ...mapState(["itemsModality", "itemsShipment"]),
-  },
-  methods: {
-    ...mapActions([
-      "_getnroMaster",
-      "_getnroHouse",
-      "_getHouseList",
-      "atras",
-      "_getModality",
-      "_getShipment",
-      "getListBanksDetailsCargarPorSucursal",
-      "fetchDataBank",
-    ]),
-    ...mapPiniaActions(useHousesStore, ["verHouse"]),
-    ...mapPiniaActions(usePricingStore, ["getQuoteNoAsignadoHouse", "getCargarEjecutivo"]),
-    async irAVerMaster() {
-      await this.$router.push({
-        name: "controlHouseEditar",
-        id: this.$route.params.id,
-      });
-      window.location.reload();
-    },
-    abrirModalFormato() {
-      this.dialogFormato = true;
-    },
-    async exportarFormatoAWB() {
-      try {
-        const response = await axios({
-          method: "get",
-          url: `${import.meta.env.VITE_URL_MAIN}generar_formato_awb`,
-          params: {
-            id_house: this.$route.params.id,
-            formatoflag: this.formatoflag,
-          },
-          headers: {},
-          responseType: "blob",
-        });
-
-        const blob = new Blob([response.data], {
-          type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-        });
-
-        const link = document.createElement("a");
-        link.href = window.URL.createObjectURL(blob);
-        const timestamp = new Date()
-          .toISOString()
-          .replace(/[:.]/g, "-")
-          .slice(0, -5);
-        const filename = `formato_awb_${timestamp}.xlsx`;
-        link.download = filename;
-        link.click();
-
-        window.URL.revokeObjectURL(link.href);
-      } catch (err) {
-        console.error("Error exportando archivo:", err);
-        this.$swal({
-          icon: "error",
-          title: "Error",
-          text: "No se pudo generar el formato",
-        });
-      }
-      this.dialogFormato = false;
-    },
-    async exportarFormatoHBL() {
-      try {
-        const response = await axios({
-          method: "get",
-          url: `${import.meta.env.VITE_URL_MAIN}generar_formato_bl`,
-          params: {
-            id_house: this.$route.params.id,
-            formatoflag: this.formatoflag,
-          },
-          headers: {},
-          responseType: "blob",
-        });
-
-        const blob = new Blob([response.data], {
-          type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-        });
-
-        const link = document.createElement("a");
-        link.href = window.URL.createObjectURL(blob);
-        const timestamp = new Date()
-          .toISOString()
-          .replace(/[:.]/g, "-")
-          .slice(0, -5);
-        const filename = `formato_bl_${timestamp}.xlsx`;
-        link.download = filename;
-        link.click();
-
-        window.URL.revokeObjectURL(link.href);
-      } catch (err) {
-        console.error("Error exportando archivo:", err);
-        this.$swal({
-          icon: "error",
-          title: "Error",
-          text: "No se pudo generar el formato",
-        });
-      }
-      this.dialogFormato = false;
-    },
-    async _generateTrackingToken() {
-      const token = uuidv4();
-
-      this.loadingBotonTracking = true;
-      await this._setTrackingToken(token);
-      this.loadingBotonTracking = false;
-    },
-    async _setTrackingToken(token) {
-      var vm = this;
-
-      var data = {
-        id_house: vm.$route.params.id,
-        token: token,
-        fecha: new Date(Date.now() - new Date().getTimezoneOffset() * 60000)
-          .toISOString()
-          .substr(0, 10),
-      };
-
-      var config = {
-        method: "put",
-        url: import.meta.env.VITE_URL_MAIN + `setTrackingToken`,
-        headers: {
-          "Content-Type": "application/json",
-        },
-        data: data,
-      };
-
-      await axios(config)
-        .then(function (response) {
-          sessionStorage.setItem("auth-token", response.data.token);
-
-          if (response.data.estadoflag) {
-            vm.$store.state.house_enlace_tracking =
-              "https://aco.agentedecargaonline.com/tracking/" +
-              response.data.data[0].token;
-
-            vm.$swal({
-              icon: "success",
-              title: "Éxito",
-              text: "Enlace de tracking generado correctamente",
-            });
-          } else {
-            Swal.fire({
-              icon: response.data.status == "401" ? "error" : "info",
-              text: response.data.mensaje,
-              allowOutsideClick: false,
-              allowEscapeKey: false,
-              allowEnterKey: false,
-            });
-          }
-        })
-        .catch(function (error) {
-          console.error(error);
-          vm.$swal({
-            icon: "error",
-            title: "Error",
-            text: "No se pudo generar el enlace de tracking",
-          });
-        });
-    },
-    async _copyEnlaceTracking(texto) {
-      await navigator.clipboard.writeText(texto);
-      this.$swal({
-        icon: "success",
-        title: "Copiado",
-        text: "Enlace copiado al portapapeles",
-        timer: 1500,
-        showConfirmButton: false,
-      });
-    },
-    openNotificaciones() {
-      this.validarMenuNotificaciones();
-    },
-    _setMasterContainer(id_master, id_containers, quantity) {
-      var vm = this;
-      //vm._getnroMaster();
-      var data = JSON.stringify({
-        id_master: id_master,
-        id_containers: id_containers,
-        quantity: quantity,
-        status: 1,
-      });
-
-      var config = {
-        method: "post",
-        url: import.meta.env.VITE_URL_MAIN + "setMasterContainers",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        data: data,
-      };
-
-      axios(config)
-        .then(function (response) {})
-        .catch(function (error) {
-          console.error(error);
-          vm.$swal({
-            icon: "error",
-            title: "Lo sentimos",
-            text: error,
-          });
-        });
-    },
-    async _setHouseEdit() {
-      var vm = this;
-
-      vm.loadingBotonGuardarHouse = !vm.loadingBotonGuardarHouse;
-
-      //vm._getnroMaster();
-      var data = JSON.stringify({
-        id_modality: this.$store.state.house_sentido
-          ? this.$store.state.house_sentido
-          : "",
-        id_shipment: this.$store.state.house_id_trasnport
-          ? this.$store.state.house_id_trasnport
-          : "",
-        id_consigner_real: vm.$store.state.house_id_consigner_real
-          ? vm.$store.state.house_id_consigner_real
-          : "",
-        id_port_begin: this.$store.state.house_origen
-          ? this.$store.state.house_origen
-          : "",
-        id_port_end: this.$store.state.house_destino
-          ? this.$store.state.house_destino
-          : "",
-        id_proveedor: vm.$store.state.house_id_agente
-          ? vm.$store.state.house_id_agente
-          : "",
-        id_consigner: vm.$store.state.house_id_consigner
-          ? vm.$store.state.house_id_consigner
-          : "",
-        id_notify: vm.$store.state.house_id_notify
-          ? vm.$store.state.house_id_notify
-          : "",
-        id_aerolinea: vm.$store.state.house_id_airlines
-          ? vm.$store.state.house_id_airlines
-          : "",
-        id_coloader: vm.$store.state.house_id_coloader
-          ? vm.$store.state.house_id_coloader
-          : "",
-        id_naviera: vm.$store.state.house_id_naviera
-          ? vm.$store.state.house_id_naviera
-          : "",
-        id_incoterms: vm.$store.state.house_incoterms
-          ? vm.$store.state.house_incoterms
-          : "",
-        nro_hbl: vm.$store.state.house_blmaster
-          ? vm.$store.state.house_blmaster
-          : "",
-        id_motonave: vm.$store.state.house_id_motonave
-          ? vm.$store.state.house_id_motonave
-          : "",
-        nro_viaje: vm.$store.state.house_viaje
-          ? vm.$store.state.house_viaje
-          : "",
-        bultos: vm.$store.state.house_bultos
-          ? vm.$store.state.house_bultos
-          : "",
-        peso: vm.$store.state.house_peso ? vm.$store.state.house_peso : "",
-        volumen: vm.$store.state.house_volumen
-          ? vm.$store.state.house_volumen
-          : "",
-        id_conditions: vm.$store.state.house_id_condicion
-          ? vm.$store.state.house_id_condicion
-          : "",
-        id_moneda: vm.$store.state.house_id_coins
-          ? vm.$store.state.house_id_coins
-          : "",
-        monto: vm.$store.state.house_monto ? vm.$store.state.house_monto : "",
-        id_branch: JSON.parse(sessionStorage.getItem("dataUser"))[0].id_branch,
-        id_cot: vm.$store.state.house_cotizacion
-          ? vm.$store.state.house_cotizacion
-          : "",
-        lstservices: this.$store.state.itemsHouseServices || [],
-        id: vm.$store.state.house_id,
-      });
-
-      var config = {
-        method: "put",
-        url: import.meta.env.VITE_URL_MAIN + "setHouseEdit",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        data: data,
-      };
-
-      await axios(config)
-        .then(async function (response) {
-          sessionStorage.setItem("auth-token", response.data.token);
-
-          if (response.data.status == "401") {
-            Swal.fire({
-              icon: "error",
-              text: response.data.mensaje,
-              allowOutsideClick: false,
-              allowEscapeKey: false,
-              allowEnterKey: false,
-            }).then((resSwal) => {
-              if (resSwal.isConfirmed && response.data.status == "401") {
-                router.push({ name: "Login" });
-                setTimeout(() => {
-                  window.location.reload();
-                }, 10);
-              }
-            });
-          }
-
-          vm.statusData = true;
-          await vm._getHouseList();
-          await vm._getHouseById();
-          await vm._getHouseServices();
-
-          vm.$swal({
-            icon: "success",
-            title: "Excelente",
-            text: "House actualizado éxitosamente",
-          }).then((result) => {
-            if (vm.housesStore.house.cantidad_houses_x_master > 1) {
-              vm.$swal({
-                icon: "question",
-                html: "<b>¿Desea actualizar los costos en el Control de Gastos ahora?</b>",
-                showConfirmButton: true,
-                confirmButtonText: "Sí",
-                confirmButtonColor: "#4CAF50",
-                showDenyButton: true,
-                denyButtonText: "No, en otro momento",
-                allowOutsideClick: false,
-              }).then(({ isConfirmed }) => {
-                if (isConfirmed) {
-                  // vm.$router.push("/home/folderBilling/editControlGastos/view/" + vm.$store.state.houses.house.id_master);
-                  vm.$router.push({
-                    name: "editControlGasto",
-                    params: {
-                      code_master: vm.housesStore.house.code_master,
-                      id_branch: JSON.parse(
-                        sessionStorage.getItem("dataUser"),
-                      )[0].id_branch,
-                    },
-                  });
-                }
-              });
-            }
-          });
-
-          vm.loadingBotonGuardarHouse = !vm.loadingBotonGuardarHouse;
-          // vm.$router.go(-1);
-        })
-        .catch(function (error) {
-          console.error(error);
-          vm.$swal({
-            icon: "error",
-            title: "Lo sentimos",
-            text: error,
-          });
-        });
-    },
-    eliminarHouse() {
-      let vm = this;
-
-      if (vm.housesStore.house.cantidad_houses_x_master > 1) {
-        Swal.fire({
-          icon: "question",
-          title: "ADVERTENCIA",
-          text: "¿Está seguro que desea eliminar el house?",
-          showDenyButton: true,
-          confirmButtonText: "Si",
-          denyButtonText: "No",
-        }).then(async (result) => {
-          if (result.isConfirmed) {
-            vm.loadingBotonEliminarHouse = !vm.loadingBotonEliminarHouse;
-
-            var config = {
-              method: "put",
-              url:
-                import.meta.env.VITE_URL_MAIN +
-                "setHouseDelete/" +
-                vm.$route.params.id,
-              headers: {
-                "Content-Type": "application/json",
-              },
-            };
-
-            await axios(config).then(function (response) {
-              sessionStorage.setItem("auth-token", response.data.token);
-
-              if (response.data.status == "401") {
-                Swal.fire({
-                  icon: "error",
-                  text: response.data.mensaje,
-                  allowOutsideClick: false,
-                  allowEscapeKey: false,
-                  allowEnterKey: false,
-                }).then((resSwal) => {
-                  if (resSwal.isConfirmed && response.data.status == "401") {
-                    router.push({ name: "Login" });
-                    setTimeout(() => {
-                      window.location.reload();
-                    }, 10);
-                  }
-                });
-              }
-
-              if (response.data.statusBol) {
-                Swal.fire({
-                  icon: "success",
-                  title: "REGISTRO ELIMINADO.",
-                });
-
-                vm.loadingBotonEliminarHouse = !vm.loadingBotonEliminarHouse;
-                vm.$router.go(-1);
-              }
-            });
-          }
-        });
-      } else {
-        Swal.fire({
-          icon: "info",
-          text: "Un expediente máster debe tener al menos un house asignado",
-        });
-      }
-    },
-    isImportacion() {
-      let val = false;
-      let name = this.housesStore.house.modality;
-      if (name == "Importación") {
-        val = true;
-      }
-
-      return val;
-    },
-    isExportacion() {
-      let val = false;
-      let name = this.housesStore.house.modality;
-      if (name == "Exportación") {
-        val = true;
-      }
-
-      return val;
-    },
-    isAereo() {
-      let val = false;
-      let id = this.$store.state.house_id_trasnport;
-
-      let code =
-        this.itemsShipment.filter((v) => v.id == id).length > 0
-          ? this.itemsShipment.filter((v) => v.id == id)[0].code
-          : "";
-
-      if (code == "Aéreo") {
-        val = true;
-      }
-
-      return val;
-    },
-    isLCL() {
-      let val = false;
-      let id = this.$store.state.house_id_trasnport;
-
-      let code =
-        this.itemsShipment.filter((v) => v.id == id).length > 0
-          ? this.itemsShipment.filter((v) => v.id == id)[0].code
-          : "";
-
-      if (code == "LCL") {
-        val = true;
-      }
-
-      return val;
-    },
-    isFCL() {
-      let val = false;
-      let id = this.$store.state.house_id_trasnport;
-
-      let code =
-        this.itemsShipment.filter((v) => v.id == id).length > 0
-          ? this.itemsShipment.filter((v) => v.id == id)[0].code
-          : "";
-
-      if (code == "FCL") {
-        val = true;
-      }
-      return val;
-    },
-    getItemsNotificaciones() {
-      return this.isImportacion()
-        ? this.itemsNotificacionesImport
-        : this.isExportacion()
-        ? this.itemsNotificacionesExport
-        : [];
-    },
-    getSentidoHouse() {
-      return this.isImportacion()
-        ? "Import"
-        : this.isExportacion()
-        ? "Export"
-        : "";
-    },
-    getTipoEmbarqueHouse() {
-      return this.isAereo()
-        ? "Aéreo"
-        : this.isLCL()
-        ? "LCL"
-        : this.isFCL()
-        ? "FCL"
-        : "";
-    },
-    async validarMenuNotificaciones() {
-      var vm = this;
-
-      if (this.$store.state.bank.list.length == 0) {
-        Swal.fire({
-          icon: "warning",
-          title: "Cuentas Bancarias",
-          text: "Para poder enviar la notificación. Es necesario al menos una cuenta bancaría",
-        });
-        return false;
-      } else {
-        if (
-          !this.$store.state.bank.list.some((v) => v.banks_details.length > 0)
-        ) {
-          Swal.fire({
-            icon: "warning",
-            title: "Cuentas Bancarias",
-            text: "Para poder enviar la notificación. Es necesario al menos una cuenta bancaría.",
-          });
-          return false;
-        }
-      }
-      vm.displayMenuNotificaciones = false;
-
-      var errores = [];
-      if (!vm.housesStore.house.id_modality) {
-        errores.push("Sentido");
-      }
-      if (!vm.housesStore.house.id_shipment) {
-        errores.push("Tipo de Embarque");
-      }
-      if (!vm.housesStore.house.id_port_begin) {
-        errores.push("Puerto de Origen");
-      }
-      if (!vm.housesStore.house.id_port_end) {
-        errores.push("Puerto de Destino");
-      }
-      if (!vm.housesStore.house.id_proveedor) {
-        errores.push("Proveedor");
-      }
-      if (!vm.housesStore.house.id_consigner) {
-        errores.push("Cliente");
-      }
-      if (!vm.housesStore.house.emailaddress_clientefinal) {
-        errores.push("El cliente debe tener asignado un correo electrónico");
-      }
-      if (!vm.housesStore.house.id_operador) {
-        errores.push("Operador");
-      }
-      if (!vm.housesStore.house.fecha_etd) {
-        errores.push("Fecha ETD");
-      }
-      if (!vm.housesStore.house.fecha_eta) {
-        errores.push("Fecha ETA");
-      }
-      if (
-        !vm.itemsShipment.filter(
-          (v) =>
-            v.id == vm.housesStore.house.id_shipment && v.code == "FCL",
-        ).length
-      ) {
-        if (!vm.housesStore.house.bultos) {
-          errores.push("Nº de bultos");
-        }
-        if (!vm.housesStore.house.peso) {
-          errores.push("Peso");
-        }
-        if (!vm.housesStore.house.volumen) {
-          errores.push("Volumen");
-        }
-      }
-      if (!vm.housesStore.house.monto) {
-        errores.push("Monto");
-      }
-
-      if (!errores.length) {
-        vm.displayMenuNotificaciones = true;
-      } else {
-        vm.$swal({
-          icon: "error",
-          html: `
-            <b>¡El Expediente House requiere los siguientes datos para mostrar el menú de notificaciones!</b>
-            <br><br>
-            ${errores.map((error) => `<p>${error}</p>`).join("")}
-          `,
-        });
-      }
-    },
-    async _getHouseById() {
-      var vm = this;
-
-      var data = {
-        id: vm.$route.params.id,
-        id_branch: JSON.parse(sessionStorage.getItem("dataUser"))[0].id_branch,
-      };
-
-      var config = {
-        method: "post",
-        url: import.meta.env.VITE_URL_MAIN + "getHouseListId/",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        data: data,
-      };
-
-      await axios(config)
-        .then(function (response) {
-          sessionStorage.setItem("auth-token", response.data.token);
-
-          vm.housesStore.house =
-            response.data.data && response.data.data[0];
-        })
-        .catch(function (error) {
-          console.error(error);
-        });
-    },
-    async _getHouseServices() {
-      var vm = this;
-
-      if (vm.$route.params.id) {
-        var data = {
-          id: vm.$route.params.id,
-          id_branch: JSON.parse(sessionStorage.getItem("dataUser"))[0]
-            .id_branch,
-        };
-
-        var config = {
-          method: "post",
-          url: import.meta.env.VITE_URL_MAIN + "getHouseServices",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          data: data,
-        };
-
-        await axios(config)
-          .then(function (response) {
-            sessionStorage.setItem("auth-token", response.data.token);
-
-            if (response.data.estadoflag) {
-              let lstServices = [];
-              let itemImpuestos = null;
-              response.data.data.map((item, i) => {
-                if (item.nameservice.toUpperCase() == "IMPUESTOS") {
-                  itemImpuestos = item;
-                } else {
-                  lstServices.push(item);
-                }
-              });
-
-              if (itemImpuestos !== null) {
-                lstServices.push(itemImpuestos);
-              }
-
-              vm.$store.state.itemsHouseServices = lstServices;
-            } else {
-              vm.$store.state.itemsHouseServices = [];
-            }
-          })
-          .catch(function (error) {
-            console.error(error);
-          });
-      }
-    },
-
-    sendNotificacion(notificacion) {
-      this.selected = [];
-      this.notificacion = notificacion;
-      this.abrirModalCuentasNotificacion = true;
-    },
-
-    async enviarNotificacion(notificacion) {
-      this.errorCuentas = "";
-      if (this.selected.length == 0) {
-        this.errorCuentas = "Es necesario al menos una cuenta";
-        return false;
-      }
-
-      var vm = this;
-
-      vm.loadingBotonNotificaciones = !vm.loadingBotonNotificaciones;
-
-      await vm._getHouseById();
-      var data = {
-        id: vm.$store.state.house_id,
-        notificacion: notificacion,
-        house: vm.housesStore.house,
-        user: JSON.parse(sessionStorage.getItem("dataUser"))[0],
-        sentido: vm.getSentidoHouse(),
-        tipoEmbarque: vm.getTipoEmbarqueHouse(),
-        cuentasBancarias: vm.selected,
-        razonSocial:
-          JSON.parse(sessionStorage.getItem("dataBranch"))[0].trade_name || "",
-      };
-
-      var config = {
-        method: "post",
-        url: import.meta.env.VITE_URL_MAIN + "sendNotificacionHouse",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        data: data,
-      };
-
-      await axios(config)
-        .then(function (response) {
-          sessionStorage.setItem("auth-token", response.data.token);
-
-          if (response.data.status == "401") {
-            Swal.fire({
-              icon: "error",
-              text: response.data.mensaje,
-              allowOutsideClick: false,
-              allowEscapeKey: false,
-              allowEnterKey: false,
-            }).then((resSwal) => {
-              if (resSwal.isConfirmed && response.data.status == "401") {
-                router.push({ name: "Login" });
-                setTimeout(() => {
-                  window.location.reload();
-                }, 10);
-              }
-            });
-          } else {
-            vm.abrirModalCuentasNotificacion = false;
-            vm.$swal({
-              icon: "success",
-              title: "Excelente",
-              text: "Notificación enviada éxitosamente",
-            });
-          }
-        })
-        .catch(function (error) {
-          console.error(error);
-          vm.$swal({
-            icon: "error",
-            title: "Lo sentimos",
-            text: error,
-          });
-        })
-        .finally(function () {
-          vm.loadingBotonNotificaciones = !vm.loadingBotonNotificaciones;
-        });
-    },
-  },
-};
-</script>
 
 <style lang="scss" scoped>
 ._content__bitacora {

@@ -555,6 +555,8 @@ export interface ComentarioEstadoHouse {
   id?: number | string;
   descripcion: string;
   orden?: number;
+  comentario?: string;
+  comentariousuado?: boolean;
 }
 
 export interface EstadoHouse {

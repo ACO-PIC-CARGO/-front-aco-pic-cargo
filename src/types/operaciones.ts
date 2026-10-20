@@ -54,6 +54,21 @@ export interface HouseDetalle {
   monto?: number | string;
   cantidad_houses_x_master?: number;
   list_comentarios?: ComentarioHouse[];
+  shipment?: string;
+  incoterms?: string;
+  port_begin?: string;
+  port_end?: string;
+  aerolinea?: string;
+  naviera?: string;
+  coloader?: string;
+  peso_cargable?: number | string;
+  quote?: string;
+  proveedor?: string;
+  consigner_real?: string;
+  notify?: string;
+  motonave?: string;
+  conditions?: string;
+  moneda?: string;
 }
 
 export interface FiltroHouseConsulta {
@@ -132,6 +147,7 @@ export interface ServicioHouse {
 
 export interface ServicioPorIncoterm {
   id_begend: number;
+  updated_at?: string | null;
   namebegend: string;
   position_begend: number;
   namegroupservice: string;

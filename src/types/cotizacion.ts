@@ -545,8 +545,25 @@ export interface FiltroCotizaciones {
   estado?: string | boolean | null;
 }
 
+export interface ServicioCotizadoHouse {
+  codebegend: string;
+  nameservice: string;
+  [campo: string]: unknown;
+}
+
 export interface CotizacionHouse {
   id?: number;
+  id_modality?: number | string;
+  id_shipment?: number | string;
+  id_port_begin?: number | string;
+  id_port_end?: number | string;
+  id_cliente?: number | string;
+  id_incoterms?: number | string;
+  nro_bultos?: number | string;
+  peso?: number | string;
+  volumen?: number | string;
+  monto?: number | string;
+  lstservices?: ServicioCotizadoHouse[];
   [campo: string]: unknown;
 }
 
