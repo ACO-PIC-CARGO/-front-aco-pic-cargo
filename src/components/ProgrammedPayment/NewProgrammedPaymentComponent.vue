@@ -114,8 +114,8 @@ onMounted(async () => {
       REGISTRO DE NUEVA PROGRAMACIÓN
     </v-card-title>
     <v-card-text>
-      <div
-        class="col-12"
+      <v-col
+        cols="12"
         v-if="listado.length > 0"
       >
         <v-card-title primary-title>
@@ -137,14 +137,14 @@ onMounted(async () => {
           :items-per-page="5"
           @update:model-value="validarSeleccionado()"
         />
-      </div>
-      <div class="col-4">
+      </v-col>
+      <v-col cols="4">
         <v-text-field
           label="Fecha de programación"
           v-model="fecha"
           type="date"
         />
-      </div>
+      </v-col>
     </v-card-text>
     <v-card-actions>
       <v-btn

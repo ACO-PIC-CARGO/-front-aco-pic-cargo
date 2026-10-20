@@ -1,7 +1,6 @@
 import pluginVue from "eslint-plugin-vue";
 import vuetify from "eslint-plugin-vuetify";
-import { configureVueProject, defineConfigWithVueTs, vueTsConfigs } from "@vue/eslint-config-typescript";
-import { LEGACY, LEGACY_OFF } from "./eslint.legacy.mjs";
+import { defineConfigWithVueTs, vueTsConfigs } from "@vue/eslint-config-typescript";
 
 const VUE3_RULES = [
   "no-deprecated-data-object-declaration",
@@ -103,8 +102,6 @@ const OWN_TYPOGRAPHY_CLASS_FILES = [
   "src/components/Security/Accesos/SucursalComponent.vue",
 ];
 
-configureVueProject({ scriptLangs: ["ts", "js"] });
-
 export default defineConfigWithVueTs(
   { ignores: ["dist/**", "node_modules/**", "src/**/* copy.vue"] },
   ...pluginVue.configs["flat/recommended"],
@@ -146,5 +143,4 @@ export default defineConfigWithVueTs(
     files: OWN_TYPOGRAPHY_CLASS_FILES,
     rules: { "vue/no-restricted-syntax": ["error", ...TEMPLATE_GUARDS, MD2_TYPOGRAPHY_GUARD] },
   },
-  { files: LEGACY, rules: LEGACY_OFF },
 );

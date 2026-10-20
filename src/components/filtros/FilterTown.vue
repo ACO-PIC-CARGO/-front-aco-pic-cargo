@@ -238,8 +238,9 @@ async function Aceptar() {
             :item-props="(item) => ({ disabled: item.status != 1 })"
           />
         </v-col>
-        <div
-          class="col-12 py-1"
+        <v-col
+          cols="12"
+          class="py-1"
           v-if="!!townStore.model.id_pais"
         >
           <v-autocomplete
@@ -254,9 +255,10 @@ async function Aceptar() {
             @update:model-value="ObtenerCity(townStore.model.id_state)"
             :item-props="(item) => ({ disabled: item.status != 1 })"
           />
-        </div>
-        <div
-          class="col-12 py-1"
+        </v-col>
+        <v-col
+          cols="12"
+          class="py-1"
           v-if="!!townStore.model.id_state"
         >
           <v-autocomplete
@@ -270,7 +272,7 @@ async function Aceptar() {
             :loading="loadingCity"
             :item-props="(item) => ({ disabled: item.status != 1 })"
           />
-        </div>
+        </v-col>
 
         <v-col
           cols="12"

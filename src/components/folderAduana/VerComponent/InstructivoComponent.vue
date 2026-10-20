@@ -763,7 +763,10 @@ function getProveedor(element: OpcionCosto) {
       </v-card>
     </v-dialog>
 
-    <div class="col-12 mb-0 pa-0">
+    <v-col
+      cols="12"
+      class="mb-0 pa-0"
+    >
       <v-btn
         class="mx-1"
         color="#004D40"
@@ -807,7 +810,7 @@ function getProveedor(element: OpcionCosto) {
           {{ aduanaStore.listInstructivo[0]!.incoterms }}
         </h4>
       </center>
-    </div>
+    </v-col>
     <v-row>
       <v-col
         cols="12"
@@ -961,7 +964,7 @@ function getProveedor(element: OpcionCosto) {
             </v-table>
           </v-card>
         </v-col>
-        <div class="col-12" />
+        <v-col cols="12" />
       </v-col>
 
       <v-col
