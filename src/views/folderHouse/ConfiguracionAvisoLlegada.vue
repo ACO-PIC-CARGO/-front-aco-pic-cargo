@@ -16,7 +16,8 @@
 
 <script>
 import Editor from "@/components/comun/EditorHtml.vue";
-import { mapActions } from "vuex";
+import { mapActions as mapPiniaActions, mapStores } from "pinia";
+import { useConfigAvisoStore } from "@/stores/configAviso";
 
 export default {
   components: {
@@ -26,15 +27,18 @@ export default {
 
     this.obtenerConfigAviso();
   },
+  computed: {
+    ...mapStores(useConfigAvisoStore),
+  },
   methods: {
-    ...mapActions(["obtenerConfigAviso", "actualizarConfigAviso"]),
+    ...mapPiniaActions(useConfigAvisoStore, ["obtenerConfigAviso", "actualizarConfigAviso"]),
     reset() {
-      this.$store.state.configAviso.configAviso.aviso_llegada =
-        this.$store.state.configAviso.configAviso.aviso_llegada_original;
+      this.configAvisoStore.configAviso.aviso_llegada =
+        this.configAvisoStore.configAviso.aviso_llegada_original;
     },
     async guardarContenido() {
       
-      await this.actualizarConfigAviso(this.$store.state.configAviso.configAviso)
+      await this.actualizarConfigAviso(this.configAvisoStore.configAviso)
     },
   },
 };

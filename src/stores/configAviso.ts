@@ -1,54 +1,49 @@
-import axios from '@/api/http';
+import { defineStore } from "pinia";
+import { ref } from "vue";
 import Swal from "sweetalert2";
-import router from "@/router";
+import axios from "@/api/http";
+import type { ApiResponse } from "@/types/api";
+import type { ConfigAviso } from "@/types/operaciones";
+import { sessionBranchId } from "@/utils/sesion";
 
-let state = {
-  configAviso: {},
-};
-let mutations = {
-  SET_CONFIG_AVISO(state, data) {
-    state.configAviso = data;
-  },
-};
+export const useConfigAvisoStore = defineStore("configAviso", () => {
+  const configAviso = ref<ConfigAviso>({});
 
-let actions = {
-  async obtenerConfigAviso({ commit }) {
-    var config = {
+  async function obtenerConfigAviso(): Promise<void> {
+    const config = {
       method: "get",
       url: import.meta.env.VITE_URL_MAIN + "get_ver_configaviso",
       params: {
-        id_branch: JSON.parse(sessionStorage.getItem("dataUser"))[0].id_branch,
+        id_branch: sessionBranchId(),
       },
       headers: {
-       
         "Content-Type": "application/json",
       },
     };
-    await axios(config)
+    await axios<ApiResponse<ConfigAviso[]>>(config)
       .then(function (response) {
-        let data = response.data;
+        const data = response.data;
         if (data.estadoflag) {
           console.log(data.data[0]);
-          commit("SET_CONFIG_AVISO", data.data[0]);
+          configAviso.value = data.data[0]!;
         }
       })
       .catch(function (error) {
         console.error(error);
       });
-  },
-  async actualizarConfigAviso({ commit }, data) {
-    var config = {
+  }
+  async function actualizarConfigAviso(data: ConfigAviso): Promise<void> {
+    const config = {
       method: "PUT",
       url: import.meta.env.VITE_URL_MAIN + "actualizarConfigAviso",
       data,
       headers: {
-       
         "Content-Type": "application/json",
       },
     };
-    await axios(config)
+    await axios<ApiResponse>(config)
       .then(function (response) {
-        let data = response.data;
+        const data = response.data;
         if (data.estadoflag) {
           Swal.fire({
             icon: "success",
@@ -60,12 +55,7 @@ let actions = {
       .catch(function (error) {
         console.error(error);
       });
-  },
-};
+  }
 
-export default {
-  namespace: true,
-  state,
-  mutations,
-  actions,
-};
+  return { configAviso, obtenerConfigAviso, actualizarConfigAviso };
+});

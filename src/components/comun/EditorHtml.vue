@@ -1,10 +1,10 @@
 <script setup lang="ts">
 import Editor from "@tinymce/tinymce-vue";
-import { useStore } from "vuex";
+import { useConfigAvisoStore } from "@/stores/configAviso";
 
 defineProps<{ html?: string }>();
 
-const rootStore = useStore();
+const configAvisoStore = useConfigAvisoStore();
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 const editorContent = ``;
@@ -55,7 +55,7 @@ function guardarContenido() {
       >
         <!-- Editor TinyMCE -->
         <editor
-          v-model="rootStore.state.configAviso.configAviso.aviso_llegada"
+          v-model="configAvisoStore.configAviso.aviso_llegada"
           :init="editorInit"
           api-key="ekgy1sit0k1ooxgcad7shciwqa3oc3ykfrd9mp5hso1ch8r7"
         />
@@ -65,7 +65,7 @@ function guardarContenido() {
         class="classPreview"
       >
         <!-- eslint-disable-next-line vue/no-v-html -->
-        <div v-html="rootStore.state.configAviso.configAviso.aviso_llegada" />
+        <div v-html="configAvisoStore.configAviso.aviso_llegada" />
       </v-col>
     </v-row>
   </v-container>

@@ -6,7 +6,6 @@ const imgFolder = "/img/svg/folder.svg";
 const imgMailbox = "/img/svg/mailbox.svg";
 const imgList = "/img/svg/lista.svg";
 import controlGastos from "./modules/controlGasto";
-import consolidacion from "./modules/consolidacion";
 import bancos from "./modules/banco";
 import programaciones from "./modules/programacion";
 import balances from "./modules/balanace";
@@ -17,7 +16,6 @@ import monedas from "./modules/moneda";
 import masters from "./modules/master";
 import bank from "./modules/bank";
 import reportes from "./modules/reporte";
-import configAviso from "./modules/configAviso";
 import Swal from "sweetalert2";
 import moment from "moment";
 
@@ -2835,7 +2833,6 @@ export default createStore({
   modules: {
     reportes,
     controlGastos,
-    consolidacion,
     bancos,
     programaciones,
     files,
@@ -2845,6 +2842,5 @@ export default createStore({
     monedas,
     masters,
     bank,
-    configAviso,
   },
 });

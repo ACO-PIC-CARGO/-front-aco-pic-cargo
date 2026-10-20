@@ -14,7 +14,7 @@
     <v-row v-if="step == 2">
       <v-data-table
         :headers="headersStep2"
-        :items="$store.state.consolidacion.lstConsolidacion"
+        :items="consolidacionStore.lstConsolidacion"
         density="compact"
       >
       </v-data-table>
@@ -26,7 +26,8 @@
 <script>
 import { readSheet as readXlsFile } from "read-excel-file/browser";
 import moment from "moment";
-import { mapActions } from "vuex";
+import { mapActions as mapPiniaActions, mapStores } from "pinia";
+import { useConsolidacionStore } from "@/stores/consolidacion";
 export default {
   data() {
     return {
@@ -49,8 +50,11 @@ export default {
       consolidacion: [],
     };
   },
+  computed: {
+    ...mapStores(useConsolidacionStore),
+  },
   methods: {
-    ...mapActions(["generarConsolidacion"]),
+    ...mapPiniaActions(useConsolidacionStore, ["generarConsolidacion"]),
     obtenerDatosExcel() {
       const file = document.getElementById("excel");
       try {
