@@ -264,33 +264,33 @@ const routes = [
       {
         path: "folderModulesPays/controlAccountPays",
         name: "controlAccountPays",
-        component: () => import("../views/folderModulesPays/moduleAccountPays.vue"),
+        component: () => import("../views/folderModulesPays/ModuleAccountPaysView.vue"),
       },
       {
         path: "folderModulesPays/addmodulesAccountPays",
         name: "addAccountPays",
-        component: () => import("../views/folderModulesPays/controlAccountPays.vue"),
+        component: () => import("../views/folderModulesPays/AddAccountPaysView.vue"),
       },
 
       {
         path: "folderModulesPays/moduleAccountReceivable",
         name: "moduleAccountReceivable",
-        component: () => import("../views/folderModulesPays/moduleAccountReceivable.vue"),
+        component: () => import("../views/folderModulesPays/ModuleAccountReceivableView.vue"),
       },
       {
         path: "folderModulesPays/regularizarProformace",
         name: "controlRegulizarPro",
-        component: () => import("../views/folderModulesPays/regularizarProformace.vue"),
+        component: () => import("../views/folderModulesPays/RegularizarProformaceView.vue"),
       },
       {
         path: "folderModulesPays/viewAccountPays/:id",
         name: "viewAccountPays",
-        component: () => import("../views/folderModulesPays/controlAccountPaysView.vue"),
+        component: () => import("../views/folderModulesPays/ControlAccountPaysViewView.vue"),
       },
       {
         path: "folderModulesPays/EditAccountPays/:id",
         name: "EditAccountPays",
-        component: () => import("../views/folderModulesPays/controlAccountPaysEdit.vue"),
+        component: () => import("../views/folderModulesPays/ControlAccountPaysEditView.vue"),
       },
       {
         path: "folderModulesPays/lstProyeccion",
@@ -318,17 +318,17 @@ const routes = [
       {
         path: "viewAccountPaysCxC/controlAccountReceivable",
         name: "controlAccountReceivable",
-        component: () => import("../views/folderModulesPays/controlAccountReceivable.vue"),
+        component: () => import("../views/folderModulesPays/ControlAccountReceivableView.vue"),
       },
       {
         path: "viewAccountPaysCxC/:id",
         name: "viewAccountPaysCxC",
-        component: () => import("../views/folderModulesPays/controlAccountPaysCxCView.vue"),
+        component: () => import("../views/folderModulesPays/ControlAccountPaysCxCViewView.vue"),
       },
       {
         path: "EditviewAccountPaysCxC/:id",
         name: "EditAccountPaysCxC",
-        component: () => import("../views/folderModulesPays/controlAccountPaysCxCEdit.vue"),
+        component: () => import("../views/folderModulesPays/ControlAccountPaysCxCEditView.vue"),
       },
       {
         path: "FolderBanks/listadoPagosPorProveedor",
