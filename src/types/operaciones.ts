@@ -78,10 +78,12 @@ export interface FiltroHouseConsulta {
 }
 
 export interface FacturaFiscal {
+  id?: number;
   estadoflag?: boolean;
   originalname?: string;
   type?: string;
   tipo_pago?: number;
+  nro_factura?: string;
   path?: string;
 }
 
