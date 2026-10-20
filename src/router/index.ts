@@ -508,7 +508,7 @@ const routes = [
       {
         path: "bank/list",
         name: "bankList",
-        component: () => import("../views/FolderBanks/list.vue"),
+        component: () => import("../views/FolderBanks/ListaBancos.vue"),
       },
       {
         path: "modality/list",
