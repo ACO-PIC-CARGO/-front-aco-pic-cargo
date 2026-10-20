@@ -206,10 +206,6 @@
   </v-card>
 </template>
 
-<script>
-export default {};
-</script>
-
 <style scoped>
 .centrado {
   align-content: center !important;

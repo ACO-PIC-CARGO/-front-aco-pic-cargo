@@ -1,3 +1,10 @@
+<script setup lang="ts">
+import listHouse from "@/components/folderHouse/ListHouseComponent.vue";
+
+defineProps<{ dialog?: boolean }>();
+defineEmits<{ "update:dialog": [value: boolean] }>();
+</script>
+
 <template>
   <div>
     <v-dialog
@@ -24,20 +31,3 @@
     </v-dialog>
   </div>
 </template>
-
-<script>
-import listHouse from "@/components/folderHouse/ListHouseComponent.vue";
-export default {
-  name: "modalListFile",
-  emits: ["update:dialog"],
-  props: {
-    dialog: {
-      type: Boolean,
-      default: false,
-    },
-  },
-  components: {
-    listHouse,
-  },
-};
-</script>
