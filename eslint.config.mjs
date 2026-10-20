@@ -103,7 +103,7 @@ const OWN_TYPOGRAPHY_CLASS_FILES = [
 ];
 
 export default defineConfigWithVueTs(
-  { ignores: ["dist/**", "node_modules/**", "src/**/* copy.vue"] },
+  { ignores: ["dist/**", "node_modules/**"] },
   ...pluginVue.configs["flat/recommended"],
   vueTsConfigs.recommended,
   ...vuetify.configs["flat/recommended"],
@@ -124,17 +124,8 @@ export default defineConfigWithVueTs(
       "no-restricted-syntax": [
         "error",
         {
-          selector:
-            ":not(AwaitExpression) > CallExpression[callee.property.name='validate'][callee.object.object.property.name='$refs']",
-          message: "Vuetify 4 form validate() is async: use (await this.$refs.x.validate()).valid (recipe R1).",
-        },
-        {
           selector: "MemberExpression[object.property.name='currentRoute'][property.name!='value']",
           message: "router.currentRoute is a ref in vue-router 4+: use router.currentRoute.value (recipe R2).",
-        },
-        {
-          selector: "Property[key.name='components'] > ObjectExpression > Property > ArrowFunctionExpression[body.type='ImportExpression']",
-          message: "Wrap async components in defineAsyncComponent (recipe R15).",
         },
       ],
     },

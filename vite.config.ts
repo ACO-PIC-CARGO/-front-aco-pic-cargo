@@ -26,7 +26,7 @@ export default defineConfig({
         skipWaiting: true,
         clientsClaim: true,
         cleanupOutdatedCaches: true,
-        // The entry chunk exceeds Workbox's 2 MiB default because the router imports every view eagerly.
+        // Raises the Workbox precache file size limit from its 2 MiB default to 3 MiB.
         maximumFileSizeToCacheInBytes: 3 * 1024 * 1024,
       },
     }),
