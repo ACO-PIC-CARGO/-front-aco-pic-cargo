@@ -343,12 +343,12 @@ const routes = [
       {
         path: "FolderBanks/verPagosPorProveedor/:id",
         name: "verPagosPorProveedor",
-        component: () => import("../views/FolderBanks/verPagosPorProveedor.vue"),
+        component: () => import("../views/FolderBanks/VerPagosPorProveedorView.vue"),
       },
       {
         path: "FolderBanks/editarPagosPorProveedor/:id",
         name: "editarPagosPorProveedor",
-        component: () => import("../views/FolderBanks/editarPagosPorProveedor.vue"),
+        component: () => import("../views/FolderBanks/EditarPagosPorProveedorView.vue"),
       },
       {
         path: "FolderBanks/editarPagosPorCliente/:id",

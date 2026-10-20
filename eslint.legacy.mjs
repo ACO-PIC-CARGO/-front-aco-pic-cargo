@@ -4,7 +4,6 @@ export const LEGACY = [
   "src/components/ProgrammedPayment/newProgrammedPayment.vue",
   "src/components/balances/ganancia.vue",
   "src/components/folderBanks/list.vue",
-  "src/components/folderBanks/verEditarPayForProveedor.vue",
   "src/components/folderBilling/egresos.vue",
   "src/components/folderBilling/ingresos.vue",
   "src/components/mixins/funciones.js",
@@ -44,9 +43,7 @@ export const LEGACY = [
   "src/store/modules/typePhone.js",
   "src/store/modules/user.js",
   "src/store/modules/year.js",
-  "src/views/FolderBanks/editarPagosPorProveedor.vue",
   "src/views/FolderBanks/list.vue",
-  "src/views/FolderBanks/verPagosPorProveedor.vue",
   "src/views/programmedPayment/listProgrammedPayment.vue",
 ];
 
