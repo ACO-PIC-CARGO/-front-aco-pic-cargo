@@ -76,8 +76,13 @@ export const useAirlinesStore = defineStore("airlines", () => {
         `,
       headers: { "Content-Type": "application/json" },
     };
-    const res = await axios<ApiResponse>(config);
-    return res.data;
+    try {
+      const res = await axios<ApiResponse>(config);
+      return res.data;
+    } catch {
+      // @ts-expect-error res is out of scope here, so a failed request throws a ReferenceError.
+      throw res;
+    }
   }
 
   async function ValidateCodigoICAONuevo(): Promise<ApiResponse> {
@@ -87,8 +92,13 @@ export const useAirlinesStore = defineStore("airlines", () => {
         import.meta.env.VITE_URL_MAIN + `validate_icao_airlines_nuevo?id_branch=${sessionBranchId()}&code_icao=${AirlineModel.value.code_icao}`,
       headers: { "Content-Type": "application/json" },
     };
-    const res = await axios<ApiResponse>(config);
-    return res.data;
+    try {
+      const res = await axios<ApiResponse>(config);
+      return res.data;
+    } catch {
+      // @ts-expect-error res is out of scope here, so a failed request throws a ReferenceError.
+      throw res;
+    }
   }
 
   async function setAirline(): Promise<void> {
@@ -122,8 +132,13 @@ export const useAirlinesStore = defineStore("airlines", () => {
         `,
       headers: { "Content-Type": "application/json" },
     };
-    const res = await axios<ApiResponse>(config);
-    return res.data;
+    try {
+      const res = await axios<ApiResponse>(config);
+      return res.data;
+    } catch {
+      // @ts-expect-error res is out of scope here, so a failed request throws a ReferenceError.
+      throw res;
+    }
   }
 
   async function ValidateCodigoICAOEditar(): Promise<ApiResponse> {
@@ -134,8 +149,13 @@ export const useAirlinesStore = defineStore("airlines", () => {
         `validate_icao_airlines_editar?id=${AirlineModel.value.id}&id_branch=${AirlineModel.value.id_branch}&code_icao=${AirlineModel.value.code_icao}`,
       headers: { "Content-Type": "application/json" },
     };
-    const res = await axios<ApiResponse>(config);
-    return res.data;
+    try {
+      const res = await axios<ApiResponse>(config);
+      return res.data;
+    } catch {
+      // @ts-expect-error res is out of scope here, so a failed request throws a ReferenceError.
+      throw res;
+    }
   }
 
   async function actualizarAirline(): Promise<void> {
