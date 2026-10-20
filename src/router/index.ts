@@ -169,7 +169,7 @@ const routes = [
       {
         path: "folderHouse/control",
         name: "controlHouse",
-        component: () => import("../views/folderHouse/controlHouse.vue"),
+        component: () => import("../views/folderHouse/ControlHouse.vue"),
       },
       {
         path: "folderHouse/confAvisoLlegada",
@@ -179,7 +179,7 @@ const routes = [
       {
         path: "folderHouse/control/editar/:id/:activar?",
         name: "controlHouseEditar",
-        component: () => import("../views/folderHouse/controlHouse.vue"),
+        component: () => import("../views/folderHouse/ControlHouse.vue"),
       },
       {
         path: "folderHouse/control/ver/:id",
@@ -189,7 +189,7 @@ const routes = [
       {
         path: "folderHouse/control/:id",
         name: "controlHouseId",
-        component: () => import("../views/folderHouse/controlHouse.vue"),
+        component: () => import("../views/folderHouse/ControlHouse.vue"),
       },
       {
         path: "folderReports/list",
