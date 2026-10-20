@@ -278,8 +278,9 @@ import services from "@/components/folderHouse/servicesVer.vue";
 import { mapActions, mapState } from "vuex";
 import Swal from "sweetalert2";
 import axios from "@/api/http";
-import { mapActions as mapPiniaActions } from "pinia";
+import { mapActions as mapPiniaActions, mapStores } from "pinia";
 import { usePricingStore } from "@/stores/pricing";
+import { useHousesStore } from "@/stores/houses";
 export default {
   name: "controlMasterCom",
   components: {
@@ -335,12 +336,12 @@ export default {
     const actionLabel =
       this.$route.name == "controlHouseEditar" ? "EDITAR" : "VER";
     this.$store.state.mainTitle = `N° BL House ${
-      (this.$store.state.houses.house &&
-        this.$store.state.houses.house.nro_hbl) ||
+      (this.housesStore.house &&
+        this.housesStore.house.nro_hbl) ||
       ""
     } - ${
-      (this.$store.state.houses.house &&
-        this.$store.state.houses.house.consigner) ||
+      (this.housesStore.house &&
+        this.housesStore.house.consigner) ||
       ""
     } [${actionLabel}]`;
     this.$store.state.spiner = false;
@@ -353,6 +354,7 @@ export default {
     });
   },
   computed: {
+    ...mapStores(useHousesStore),
     ...mapState(["itemsModality", "itemsShipment"]),
   },
   methods: {
@@ -364,9 +366,9 @@ export default {
       "_getModality",
       "_getShipment",
       "getListBanksDetailsCargarPorSucursal",
-      "verHouse",
       "fetchDataBank",
     ]),
+    ...mapPiniaActions(useHousesStore, ["verHouse"]),
     ...mapPiniaActions(usePricingStore, ["getQuoteNoAsignadoHouse", "getCargarEjecutivo"]),
     async irAVerMaster() {
       await this.$router.push({
@@ -671,7 +673,7 @@ export default {
             title: "Excelente",
             text: "House actualizado éxitosamente",
           }).then((result) => {
-            if (vm.$store.state.houses.house.cantidad_houses_x_master > 1) {
+            if (vm.housesStore.house.cantidad_houses_x_master > 1) {
               vm.$swal({
                 icon: "question",
                 html: "<b>¿Desea actualizar los costos en el Control de Gastos ahora?</b>",
@@ -687,7 +689,7 @@ export default {
                   vm.$router.push({
                     name: "editControlGasto",
                     params: {
-                      code_master: vm.$store.state.houses.house.code_master,
+                      code_master: vm.housesStore.house.code_master,
                       id_branch: JSON.parse(
                         sessionStorage.getItem("dataUser"),
                       )[0].id_branch,
@@ -713,7 +715,7 @@ export default {
     eliminarHouse() {
       let vm = this;
 
-      if (vm.$store.state.houses.house.cantidad_houses_x_master > 1) {
+      if (vm.housesStore.house.cantidad_houses_x_master > 1) {
         Swal.fire({
           icon: "question",
           title: "ADVERTENCIA",
@@ -777,7 +779,7 @@ export default {
     },
     isImportacion() {
       let val = false;
-      let name = this.$store.state.houses.house.modality;
+      let name = this.housesStore.house.modality;
       if (name == "Importación") {
         val = true;
       }
@@ -786,7 +788,7 @@ export default {
     },
     isExportacion() {
       let val = false;
-      let name = this.$store.state.houses.house.modality;
+      let name = this.housesStore.house.modality;
       if (name == "Exportación") {
         val = true;
       }
@@ -885,53 +887,53 @@ export default {
       vm.displayMenuNotificaciones = false;
 
       var errores = [];
-      if (!vm.$store.state.houses.house.id_modality) {
+      if (!vm.housesStore.house.id_modality) {
         errores.push("Sentido");
       }
-      if (!vm.$store.state.houses.house.id_shipment) {
+      if (!vm.housesStore.house.id_shipment) {
         errores.push("Tipo de Embarque");
       }
-      if (!vm.$store.state.houses.house.id_port_begin) {
+      if (!vm.housesStore.house.id_port_begin) {
         errores.push("Puerto de Origen");
       }
-      if (!vm.$store.state.houses.house.id_port_end) {
+      if (!vm.housesStore.house.id_port_end) {
         errores.push("Puerto de Destino");
       }
-      if (!vm.$store.state.houses.house.id_proveedor) {
+      if (!vm.housesStore.house.id_proveedor) {
         errores.push("Proveedor");
       }
-      if (!vm.$store.state.houses.house.id_consigner) {
+      if (!vm.housesStore.house.id_consigner) {
         errores.push("Cliente");
       }
-      if (!vm.$store.state.houses.house.emailaddress_clientefinal) {
+      if (!vm.housesStore.house.emailaddress_clientefinal) {
         errores.push("El cliente debe tener asignado un correo electrónico");
       }
-      if (!vm.$store.state.houses.house.id_operador) {
+      if (!vm.housesStore.house.id_operador) {
         errores.push("Operador");
       }
-      if (!vm.$store.state.houses.house.fecha_etd) {
+      if (!vm.housesStore.house.fecha_etd) {
         errores.push("Fecha ETD");
       }
-      if (!vm.$store.state.houses.house.fecha_eta) {
+      if (!vm.housesStore.house.fecha_eta) {
         errores.push("Fecha ETA");
       }
       if (
         !vm.itemsShipment.filter(
           (v) =>
-            v.id == vm.$store.state.houses.house.id_shipment && v.code == "FCL",
+            v.id == vm.housesStore.house.id_shipment && v.code == "FCL",
         ).length
       ) {
-        if (!vm.$store.state.houses.house.bultos) {
+        if (!vm.housesStore.house.bultos) {
           errores.push("Nº de bultos");
         }
-        if (!vm.$store.state.houses.house.peso) {
+        if (!vm.housesStore.house.peso) {
           errores.push("Peso");
         }
-        if (!vm.$store.state.houses.house.volumen) {
+        if (!vm.housesStore.house.volumen) {
           errores.push("Volumen");
         }
       }
-      if (!vm.$store.state.houses.house.monto) {
+      if (!vm.housesStore.house.monto) {
         errores.push("Monto");
       }
 
@@ -969,7 +971,7 @@ export default {
         .then(function (response) {
           sessionStorage.setItem("auth-token", response.data.token);
 
-          vm.$store.state.houses.house =
+          vm.housesStore.house =
             response.data.data && response.data.data[0];
         })
         .catch(function (error) {
@@ -1046,7 +1048,7 @@ export default {
       var data = {
         id: vm.$store.state.house_id,
         notificacion: notificacion,
-        house: vm.$store.state.houses.house,
+        house: vm.housesStore.house,
         user: JSON.parse(sessionStorage.getItem("dataUser"))[0],
         sentido: vm.getSentidoHouse(),
         tipoEmbarque: vm.getTipoEmbarqueHouse(),

@@ -243,6 +243,7 @@ import axios from "@/api/http";
 import Swal from "sweetalert2";
 import { mapActions as mapPiniaActions } from "pinia";
 import { useEnterprisesStore } from "@/stores/enterprises";
+import { useFilesStore } from "@/stores/files";
 export default {
   props: {
     editable: {
@@ -338,9 +339,9 @@ export default {
       "_getProveedor",
       "getListBanksDetailsCargar",
       "cargarCorrelativo",
-      "_uploadFile",
       "guardarCuotasCgeTipoProveedor",
     ]),
+    ...mapPiniaActions(useFilesStore, ["_uploadFile"]),
     ...mapPiniaActions(useEnterprisesStore, ["obtenerImpuestoXEmpresa"]),
     // ...mapAction([])
     // --------------------

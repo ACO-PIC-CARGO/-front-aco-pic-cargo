@@ -1082,7 +1082,7 @@
         <v-card-text>
           <v-data-table
             :headers="headersFacturasFiscales"
-            :items="$store.state.houses.lstFacturasFiscales"
+            :items="housesStore.lstFacturasFiscales"
             density="compact"
             item-value="id"
             class="elevation-0"
@@ -1191,7 +1191,7 @@
           <v-btn
             color="primary"
             @click="registrarProformaFiscal()"
-            :disabled="!$store.state.files.payPath"
+            :disabled="!filesStore.payPath"
           >
             GUARDAR
             {{
@@ -1453,6 +1453,8 @@ import ArrastraYSolarComponent2 from "../comun/ArrastraYSolarComponentFile.vue";
 import swal from "sweetalert2";
 import { useEnterprisesStore } from "@/stores/enterprises";
 import { usePricingStore } from "@/stores/pricing";
+import { useHousesStore } from "@/stores/houses";
+import { useFilesStore } from "@/stores/files";
 export default {
   emits: ["recalcularProfit"],
   props: {
@@ -1705,7 +1707,6 @@ export default {
     ...mapActions([
       "setControl",
       "guardarIngresos",
-      "_uploadFile",
       "getListControlGastos",
       "delDebsClient",
       "data_factura",
@@ -1714,11 +1715,11 @@ export default {
       "actualizarIngresos",
       "eliminarIngreso",
       "copiarCGingresos",
-      "getCargarHouse",
       "_getMasterList",
-      "getFacturasFiscales",
       "getListControlGastosHouses",
     ]),
+    ...mapPiniaActions(useFilesStore, ["_uploadFile"]),
+    ...mapPiniaActions(useHousesStore, ["getCargarHouse", "getFacturasFiscales"]),
     ...mapPiniaActions(usePricingStore, ["guardarDatosInstructivo"]),
     ...mapPiniaActions(useSecuritysStore, ["validarUsuarioAdmin"]),
     abrirModalRegistroDocumentoHouse(datosinstructivomanual, id_quote) {
@@ -1991,7 +1992,7 @@ export default {
       this.id_coins = "";
       this.monto_abonado = "";
       this.comentario = "";
-      this.$store.state.files.payPath = null;
+      this.filesStore.payPath = null;
       this.dialogNewDebs = true;
     },
     abrirExpandIngreso(index) {
@@ -2118,7 +2119,7 @@ export default {
           id_banks: vm.id_banks,
           monto: vm.monto,
           comentario_usuario: vm.comentario,
-          id_path: vm.$store.state.files.payPath,
+          id_path: vm.filesStore.payPath,
           id_cuenta_pic: vm.id_cuenta_pic,
           tipocambio: vm.tipocambio,
           id_moneda_destino: vm.id_coins,
@@ -2167,7 +2168,7 @@ export default {
         this.loadingFile = true;
         await this._uploadFile(this.payfile);
         this.loadingFile = false;
-        this.$store.state.files.payPath
+        this.filesStore.payPath
           ? (this.msgfile = "Archivo cargado")
           : (this.errfile = "Comuniquese con el admistrador");
       } else {
@@ -2562,7 +2563,7 @@ export default {
           id_banks: vm.id_banks,
           monto: vm.monto,
           comentario_usuario: vm.comentario,
-          id_path: vm.$store.state.files.payPath,
+          id_path: vm.filesStore.payPath,
           id_cuenta_pic: vm.id_cuenta_pic,
           tipocambio: vm.tipocambio,
           id_moneda_destino: vm.id_coins,
@@ -2752,7 +2753,7 @@ export default {
         tipo_pago: "1",
         nro_factura: "",
         fecha: moment().format("YYYY-MM-DD"),
-        archivo: vm.$store.state.files.payPath,
+        archivo: vm.filesStore.payPath,
         status: 1,
         id_house: vm.house.id_house,
       };
@@ -3071,7 +3072,7 @@ export default {
     },
   },
   computed: {
-    ...mapStores(useEnterprisesStore),
+    ...mapStores(useFilesStore, useHousesStore, useEnterprisesStore),
   },
   components: {
     ArrastraYSolarComponent,

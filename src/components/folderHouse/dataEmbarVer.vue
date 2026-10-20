@@ -7,21 +7,21 @@
         <!--  v-if="$store.state.house_id_trasnport.id != 3" -->
         <v-text-field
           label="Proveedor"
-          v-model="$store.state.houses.house.proveedor"
+          v-model="housesStore.house.proveedor"
           readonly
         />
       </v-col>
       <v-col cols="12" md="6">
         <v-text-field
           label="Consigne HBL"
-          v-model="$store.state.houses.house.consigner_real"
+          v-model="housesStore.house.consigner_real"
           readonly
         />
       </v-col>
       <v-col cols="12" md="6">
         <v-text-field
           label="Notify HBL"
-          v-model="$store.state.houses.house.notify"
+          v-model="housesStore.house.notify"
           readonly
         />
       </v-col>
@@ -32,7 +32,7 @@
           item-title="nombrecompleto"
           item-value="id"
           label="Vendedor"
-          v-model="$store.state.houses.house.id_vendedor"
+          v-model="housesStore.house.id_vendedor"
           
           >
         </v-autocomplete>
@@ -43,7 +43,7 @@
           item-title="nombrecompleto"
           item-value="id"
           label="Pricing"
-          v-model="$store.state.houses.house.id_pricing"
+          v-model="housesStore.house.id_pricing"
           
           >
         </v-autocomplete>
@@ -52,14 +52,14 @@
       <!-- Fila 3: Motonave + Viaje (sin N° BL House en vista) -->
       <v-col cols="12" md="6">
         <v-text-field
-          v-model="$store.state.houses.house.motonave"
+          v-model="housesStore.house.motonave"
           label="Motonave"
           readonly
         ></v-text-field>
       </v-col>
       <v-col cols="12" md="6">
         <v-text-field
-          v-model="$store.state.houses.house.nro_viaje"
+          v-model="housesStore.house.nro_viaje"
           label="Viaje"
           readonly
         ></v-text-field>
@@ -68,7 +68,7 @@
       <v-col cols="12" md="4" lg="4" xl="4">
         <v-text-field
           label="Condición"
-          v-model="$store.state.houses.house.conditions"
+          v-model="housesStore.house.conditions"
           readonly
         ></v-text-field>
       </v-col>
@@ -76,14 +76,14 @@
         <v-text-field
           label="Monto"
           suffix="USD"
-          v-model="$store.state.houses.house.monto"
+          v-model="housesStore.house.monto"
           readonly
         />
       </v-col>
       <v-col cols="12" md="4" lg="4" xl="4">
         <v-text-field
           label="Moneda"
-          v-model="$store.state.houses.house.moneda"
+          v-model="housesStore.house.moneda"
           readonly
         />
       </v-col>
@@ -201,6 +201,7 @@ import { mapState, mapActions } from "vuex";
 import axios from "@/api/http";
 import { mapActions as mapPiniaActions, mapStores } from "pinia";
 import { usePricingStore } from "@/stores/pricing";
+import { useHousesStore } from "@/stores/houses";
 export default {
   name: "dataEmbar",
   props: {
@@ -225,7 +226,7 @@ export default {
     // this.$store.state.spiner = false;
   },
   computed: {
-    ...mapStores(usePricingStore),
+    ...mapStores(useHousesStore, usePricingStore),
     ...mapState([
       "itemsCoinsList",
       "itemsAgents",

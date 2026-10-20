@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import { onMounted, ref, useTemplateRef, watch } from "vue";
 import Swal from "sweetalert2";
-import { useStore } from "vuex";
 import type { ArchivoInicial } from "@/types/archivos";
+import { useFilesStore } from "@/stores/files";
 
 const props = withDefaults(defineProps<{ id?: string; archivoInicial?: ArchivoInicial | null }>(), {
   id: undefined,
@@ -13,7 +13,7 @@ const emit = defineEmits<{
   "archivo-eliminado": [];
 }>();
 
-const rootStore = useStore();
+const filesStore = useFilesStore();
 
 const loading = ref(false);
 const isDragging = ref(false);
@@ -65,20 +65,20 @@ async function uploadFile() {
   if (file.value) {
     loading.value = true;
     try {
-      await rootStore.dispatch("_uploadFile", file.value);
+      await filesStore._uploadFile(file.value);
       Swal.fire({
         icon: "success",
         title: "Archivo Cargado Correctamente",
       });
 
-      rutaDescarga.value = rootStore.state.files.datosPath
-        ? rootStore.state.files.datosPath.ruta
+      rutaDescarga.value = filesStore.datosPath
+        ? filesStore.datosPath.ruta
         : "";
       archivoSubidoExitosamente.value = true;
 
       emit("archivo-cargado", {
-        id: rootStore.state.files.payPath,
-        archivo: rootStore.state.files.datosPath,
+        id: filesStore.payPath,
+        archivo: filesStore.datosPath,
       });
     } catch (error) {
       console.error("Error al subir:", error);
@@ -95,8 +95,8 @@ function eliminarFile() {
   archivoSubidoExitosamente.value = false;
   rutaDescarga.value = "";
 
-  rootStore.state.files.payPath = null;
-  rootStore.state.files.datosPath = null;
+  filesStore.payPath = null;
+  filesStore.datosPath = null;
 }
 
 // 2. Agregamos un watch por si la data tarda un poco en llegar desde la BD
@@ -116,8 +116,8 @@ watch(
 );
 
 onMounted(() => {
-  rootStore.state.files.payPath = null;
-  rootStore.state.files.datosPath = null;
+  filesStore.payPath = null;
+  filesStore.datosPath = null;
 });
 </script>
 

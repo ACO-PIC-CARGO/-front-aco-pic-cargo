@@ -205,6 +205,8 @@
 import axios from '@/api/http';
 import Swal from "sweetalert2";
 import { mapActions, mapState } from "vuex";
+import { mapActions as mapPiniaActions, mapStores } from "pinia";
+import { useFilesStore } from "@/stores/files";
 export default {
   props: ["tipo"],
   data() {
@@ -301,7 +303,6 @@ export default {
   methods: {
     ...mapActions([
       "_getListaPagosXProveedorCxP",
-      "_uploadFile",
       "getValidaNroOp",
       "cargarProveedores",
       "_getCoinsList",
@@ -309,6 +310,7 @@ export default {
       "anularPagoRealizado",
       "actualizarPagoRealizado",
     ]),
+    ...mapPiniaActions(useFilesStore, ["_uploadFile"]),
     async getListBanksDetailsCargar() {
       let vm = this;
       var config = {
@@ -353,7 +355,7 @@ export default {
         this.loadingFile = true;
         await this._uploadFile(this.payfile);
         this.loadingFile = false;
-        this.$store.state.files.payPath
+        this.filesStore.payPath
           ? (this.msgfile = "Archivo cargado")
           : (this.errfile = "Comuniquese con el admistrador");
       } else {
@@ -380,7 +382,7 @@ export default {
       this.$store.state.bank.record.detalle.forEach((element) => {
         let pago = {
           id: element.id,
-          id_path: this.$store.state.files.payPath,
+          id_path: this.filesStore.payPath,
           id_cuenta: this.$store.state.bank.record.id_banco,
           fecha: this.$store.state.bank.record.fecha_pago,
           monto: element.monto_dolar,
@@ -409,6 +411,7 @@ export default {
     },
   },
   computed: {
+    ...mapStores(useFilesStore),
     ...mapState(["itemsProveedorList", "listPagosXProveedorCxP", "provedores"]),
   },
   watch: {

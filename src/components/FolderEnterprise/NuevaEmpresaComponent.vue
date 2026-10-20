@@ -9,9 +9,11 @@ import { useUserStore } from "@/stores/user";
 import type { ApiResponse } from "@/types/api";
 import { validateLength } from "@/utils/cotizacion";
 import { sessionBranchId } from "@/utils/sesion";
+import { useFilesStore } from "@/stores/files";
 
 const router = useRouter();
 const rootStore = useStore();
+const filesStore = useFilesStore();
 const enterprisesStore = useEnterprisesStore();
 const userStore = useUserStore();
 
@@ -32,7 +34,7 @@ const frmDML = ref<{ resetValidation: () => void }>();
 const form = ref<{ validate: () => Promise<{ valid: boolean }> }>();
 
 watch(
-  () => rootStore.state.files.payPath,
+  () => filesStore.payPath,
   (newRecord) => {
     if (newRecord) {
       enterprisesStore.model.id_logo = newRecord;
@@ -251,9 +253,9 @@ async function uploadFile() {
       loadingFile.value = false;
       errfile.value = "El archivo es demasiado grande. El tamaño máximo es 2 MB.";
     } else {
-      await rootStore.dispatch("_uploadFile", payfile.value);
+      await filesStore._uploadFile(payfile.value);
       loadingFile.value = false;
-      if (rootStore.state.files.payPath) {
+      if (filesStore.payPath) {
         msgfile.value = "Archivo cargado";
       } else {
         errfile.value = "Comuniquese con el admistrador";

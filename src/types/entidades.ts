@@ -52,7 +52,7 @@ export interface ConvenioEntidad {
   fecha?: string;
   dias_credito: number;
   email_soporte?: string;
-  id_path?: string;
+  id_path?: string | number | null;
 }
 
 export interface TarifaEntidad {
@@ -61,7 +61,7 @@ export interface TarifaEntidad {
   codigo?: string;
   email_soporte?: string;
   tarifa: number;
-  id_path?: string;
+  id_path?: string | number | null;
 }
 
 export interface EmailEntidad {

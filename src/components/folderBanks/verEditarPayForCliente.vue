@@ -501,6 +501,7 @@ import { mapActions, mapState } from "vuex";
 import { mapActions as mapPiniaActions } from "pinia";
 import { useSecuritysStore } from "@/stores/securitys";
 import Swal from "sweetalert2";
+import { useFilesStore } from "@/stores/files";
 export default {
   components: {
     //  opciones: () => import("@/components/comun/opcionesRegistro.vue"),
@@ -635,7 +636,6 @@ export default {
     ...mapActions([
       "verRegistroIngresos",
       "_getListaPagosXProveedorCxP",
-      "_uploadFile",
       "getValidaNroOp",
       "cargarClientes",
       "_getCoinsList",
@@ -647,6 +647,7 @@ export default {
       "eliminarRegistroIngresos",
       "imprimirComprobanteIngreso",
     ]),
+    ...mapPiniaActions(useFilesStore, ["_uploadFile"]),
     ...mapPiniaActions(useSecuritysStore, ["validarUsuarioAdmin"]),
     confirmarEliminar() {
       Swal.fire({

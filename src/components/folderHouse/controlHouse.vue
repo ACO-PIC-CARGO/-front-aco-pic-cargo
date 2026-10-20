@@ -383,9 +383,10 @@ import { mapActions, mapState } from "vuex";
 
 import axios from "@/api/http";
 import Swal from "sweetalert2";
-import { mapActions as mapPiniaActions } from "pinia";
+import { mapActions as mapPiniaActions, mapStores } from "pinia";
 import { usePricingStore } from "@/stores/pricing";
 import { useAduanaStore } from "@/stores/aduana";
+import { useHousesStore } from "@/stores/houses";
 
 export default {
   name: "controlMasterCom",
@@ -401,7 +402,7 @@ export default {
       console.log("modalEntitie", this.$store.state.modalEntitie);
       console.log("val", val);
     },
-    "$store.state.houses.house": function (val) {
+    "housesStore.house": function (val) {
       if (val && (val.nro_hbl || val.consigner)) {
         const actionLabel =
           this.$route.name == "controlHouseVer" ? "VER" : "EDITAR";
@@ -490,7 +491,7 @@ export default {
       } catch (e) {}
 
       const houseView =
-        (this.$store.state.houses && this.$store.state.houses.house) || null;
+        (this.housesStore && this.housesStore.house) || null;
       if (houseView && (houseView.nro_hbl || houseView.consigner)) {
         const actionLabel =
           this.$route.name == "controlHouseVer" ? "VER" : "EDITAR";
@@ -537,7 +538,7 @@ export default {
       } catch (e) {}
 
       const houseView =
-        (this.$store.state.houses && this.$store.state.houses.house) || null;
+        (this.housesStore && this.housesStore.house) || null;
       if (houseView && (houseView.nro_hbl || houseView.consigner)) {
         const actionLabel =
           this.$route.name == "controlHouseVer" ? "VER" : "EDITAR";
@@ -585,6 +586,7 @@ export default {
     ]);
   },
   computed: {
+    ...mapStores(useHousesStore),
     ...mapState(["itemsModality", "itemsShipment", "modalEntitie"]),
     isBotonTrackingDisabled() {
       return this.$store.state.house_enlace_tracking !== "" &&
@@ -603,10 +605,8 @@ export default {
       "_getShipment",
       "getListBanksDetailsCargarPorSucursal",
       "fetchDataBank",
-      "verHouse",
-      "guardarCarpetaHouse",
-      "deleteHouse",
     ]),
+    ...mapPiniaActions(useHousesStore, ["verHouse", "guardarCarpetaHouse", "deleteHouse"]),
     ...mapPiniaActions(useAduanaStore, ["cargarListadoQuoteAduana"]),
     ...mapPiniaActions(usePricingStore, ["getCargarEjecutivo"]),
     getTipoDocumento() {

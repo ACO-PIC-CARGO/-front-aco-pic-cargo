@@ -20,7 +20,7 @@
         <v-row density="compact">
           <v-col cols="12" md="6" v-if="radio == 2">
             <v-autocomplete
-              :items="$store.state.houses.listHouse"
+              :items="housesStore.listHouse"
               item-title="description"
               item-value="id"
               label="Expediente"
@@ -498,6 +498,7 @@ import { mapActions, mapState } from "vuex";
 import ArrastraYSolarComponent from "../comun/ArrastraYSolarComponent.vue";
 import { mapActions as mapPiniaActions, mapStores } from "pinia";
 import { useEnterprisesStore } from "@/stores/enterprises";
+import { useHousesStore } from "@/stores/houses";
 
 export default {
   components: { ArrastraYSolarComponent },
@@ -568,12 +569,12 @@ export default {
       "_getChargeYear",
       "_getInvoiceAdminCxC",
       "getArbolIngresos",
-      "getCargarHouse",
       "getCargarTipoIngreso",
       "getCargarTipoSubIngreso",
       "cargarProveedores",
       "cargarClientes",
     ]),
+    ...mapPiniaActions(useHousesStore, ["getCargarHouse"]),
     ...mapPiniaActions(useEnterprisesStore, ["obtenerImpuestoXEmpresa"]),
     validarMonto(v) {
       if (!v) return "Dato Requerido";
@@ -1145,7 +1146,7 @@ export default {
   },
 
   computed: {
-    ...mapStores(useEnterprisesStore),
+    ...mapStores(useHousesStore, useEnterprisesStore),
     ...mapState(["InvoiceAdmin"]),
   },
 

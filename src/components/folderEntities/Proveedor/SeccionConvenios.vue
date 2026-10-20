@@ -5,8 +5,10 @@ import Swal from "sweetalert2";
 import moment from "moment";
 import { useEntitiesStore } from "@/stores/entities";
 import type { ConvenioEntidad, TarifaEntidad } from "@/types/entidades";
+import { useFilesStore } from "@/stores/files";
 
 const rootStore = useStore();
+const filesStore = useFilesStore();
 const entitiesStore = useEntitiesStore();
 
 const headersConvenios = [
@@ -112,10 +114,10 @@ function eliminarTarifa(index: number) {
 async function subirArchivoConvenio(item: Partial<ConvenioEntidad> = {}) {
   if (fileinput.value) {
     isFileLoading.value = true;
-    await rootStore.dispatch("_uploadFile", fileinput.value);
+    await filesStore._uploadFile(fileinput.value as File);
     isFileLoading.value = false;
 
-    if (rootStore.state.files.payPath) {
+    if (filesStore.payPath) {
       Swal.fire({
         icon: "success",
         text: "Archivo cargado",
@@ -123,7 +125,7 @@ async function subirArchivoConvenio(item: Partial<ConvenioEntidad> = {}) {
 
       entitiesStore.lstConvenios.map((itemConvenio) => {
         if (itemConvenio.id == item.id) {
-          itemConvenio["id_path"] = rootStore.state.files.payPath;
+          itemConvenio["id_path"] = filesStore.payPath;
         }
 
         return itemConvenio;
@@ -139,10 +141,10 @@ async function subirArchivoConvenio(item: Partial<ConvenioEntidad> = {}) {
 async function subirArchivoTarifa(item: Partial<TarifaEntidad> = {}) {
   if (fileinput.value) {
     isFileLoading.value = true;
-    await rootStore.dispatch("_uploadFile", fileinput.value);
+    await filesStore._uploadFile(fileinput.value as File);
     isFileLoading.value = false;
 
-    if (rootStore.state.files.payPath) {
+    if (filesStore.payPath) {
       Swal.fire({
         icon: "success",
         text: "Archivo cargado",
@@ -150,7 +152,7 @@ async function subirArchivoTarifa(item: Partial<TarifaEntidad> = {}) {
 
       entitiesStore.lstTarifas.map((itemTarifa) => {
         if (itemTarifa.id == item.id) {
-          itemTarifa["id_path"] = rootStore.state.files.payPath;
+          itemTarifa["id_path"] = filesStore.payPath;
         }
 
         return itemTarifa;

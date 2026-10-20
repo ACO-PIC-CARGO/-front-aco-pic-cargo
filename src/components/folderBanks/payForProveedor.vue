@@ -210,6 +210,8 @@ import axios from '@/api/http';
 import Swal from "sweetalert2";
 import { mapActions, mapState } from "vuex";
 import ArrastraYSolarComponent from "../comun/ArrastraYSolarComponent.vue";
+import { mapActions as mapPiniaActions, mapStores } from "pinia";
+import { useFilesStore } from "@/stores/files";
 export default {
   components: {
     ArrastraYSolarComponent,
@@ -291,8 +293,8 @@ export default {
   async mounted() {
     console.log("ssss");
     let vm = this;
-    vm.$store.state.files.payPath = null;
-    vm.$store.state.files.datosPath = null;
+    vm.filesStore.payPath = null;
+    vm.filesStore.datosPath = null;
     vm.tab = 1;
     await this.cargarProveedores();
     await this.obtenerListado();
@@ -307,11 +309,11 @@ export default {
   methods: {
     ...mapActions([
       "_getListaPagosXProveedorCxP",
-      "_uploadFile",
       "getValidaNroOp",
       "cargarProveedores",
       "_getCoinsList",
     ]),
+    ...mapPiniaActions(useFilesStore, ["_uploadFile"]),
     obtenerListado() {
       this.tab = 0;
       this.$store.state.listPagosXProveedorCxP = [];
@@ -391,7 +393,7 @@ export default {
         this.loadingFile = true;
         await this._uploadFile(this.payfile);
         this.loadingFile = false;
-        this.$store.state.files.payPath
+        this.filesStore.payPath
           ? (this.msgfile = "Archivo cargado")
           : (this.errfile = "Comuniquese con el admistrador");
       } else {
@@ -435,8 +437,8 @@ export default {
     },
     async _putPayForProveedor() {
       if (
-        this.$store.state.files.payPath == 0 ||
-        !this.$store.state.files.payPath
+        this.filesStore.payPath == 0 ||
+        !this.filesStore.payPath
       ) {
         Swal.fire({
           icon: "warning",
@@ -471,7 +473,7 @@ export default {
           nro_operacion: vm.nro_operacion,
           comentarios: vm.comentarios,
           id_proveedor: vm.id_proveedor.id,
-          id_path: vm.$store.state.files.payPath,
+          id_path: vm.filesStore.payPath,
           id_proveedor: vm.id_proveedor.id,
           id_cuenta: vm.id_cuenta.id,
         };
@@ -489,7 +491,7 @@ export default {
           .then(function (response) {
             if (response.data.statusBol == true) {
               
-              vm.$store.state.files.payPath = null;
+              vm.filesStore.payPath = null;
               vm.$swal({
                 icon: "success",
                 title: "Aviso",
@@ -650,6 +652,7 @@ export default {
     },
   },
   computed: {
+    ...mapStores(useFilesStore),
     ...mapState(["itemsProveedorList", "listPagosXProveedorCxP", "provedores"]),
     symbol() {
       let symbol = "";

@@ -229,6 +229,8 @@ import axios from '@/api/http';
 import Swal from "sweetalert2";
 import { mapActions, mapState } from "vuex";
 import ArrastraYSolarComponent from "../comun/ArrastraYSolarComponent.vue";
+import { mapStores } from "pinia";
+import { useFilesStore } from "@/stores/files";
 export default {
   components: {
     ArrastraYSolarComponent,
@@ -415,7 +417,7 @@ export default {
         this.loadingFile = true;
         await this._uploadFile(this.payfile);
         this.loadingFile = false;
-        this.$store.state.files.payPath
+        this.filesStore.payPath
           ? (this.msgfile = "Archivo cargado")
           : (this.errfile = "Comuniquese con el admistrador");
       } else {
@@ -459,8 +461,8 @@ export default {
     },
     async _putPayForProveedor() {
       if (
-        this.$store.state.files.payPath == 0 ||
-        !this.$store.state.files.payPath
+        this.filesStore.payPath == 0 ||
+        !this.filesStore.payPath
       ) {
         Swal.fire({
           icon: "warning",
@@ -490,7 +492,7 @@ export default {
           vm.loading = true;
           var data = {
             id_proveedor: vm.id_proveedor.id,
-            id_path: vm.$store.state.files.payPath,
+            id_path: vm.filesStore.payPath,
             details: vm.selected,
             id_cuenta: vm.id_cuenta.id,
             fecha: vm.date,
@@ -517,7 +519,7 @@ export default {
                   text: response.data.data[0].mensaje,
                 }).then((result) => {
                   if (result.isConfirmed) {
-                    vm.$store.state.files.payPath = null;
+                    vm.filesStore.payPath = null;
                   }
                 });
                 vm.limpiarDatos();
@@ -603,6 +605,7 @@ export default {
     },
   },
   computed: {
+    ...mapStores(useFilesStore),
     ...mapState(["itemsProveedorList", "listPagosXProveedorCxP", "clientes"]),
     symbol() {
       let symbol = "";

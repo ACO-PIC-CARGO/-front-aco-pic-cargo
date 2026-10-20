@@ -29,7 +29,7 @@
 
       <v-data-table
         :headers="headers"
-        :items="$store.state.houses.listHouse"
+        :items="housesStore.listHouse"
         :search="search"
         expand-on-click
         v-model:expanded="expanded"
@@ -232,6 +232,8 @@ import { mapState, mapActions } from "vuex";
 import moment from "moment";
 import { mapActions as mapPiniaActions, mapStores } from "pinia";
 import { usePricingStore } from "@/stores/pricing";
+import { useHousesStore } from "@/stores/houses";
+import { useMastersStore } from "@/stores/masters";
 
 export default {
   name: "listMasterCom",
@@ -287,7 +289,7 @@ export default {
     ]);
   },
   computed: {
-    ...mapStores(usePricingStore),
+    ...mapStores(useHousesStore, usePricingStore),
     ...mapState(["itemsHouseListAll", "totalItemsHouseListAll"]),
   },
   methods: {
@@ -298,10 +300,9 @@ export default {
       "_getModality",
       "_getShipment",
       "cargarClientes",
-      "insertComentarioHouse",
-      "listarHouse",
-      "actualizarURLEnElMaster",
     ]),
+    ...mapPiniaActions(useMastersStore, ["actualizarURLEnElMaster"]),
+    ...mapPiniaActions(useHousesStore, ["insertComentarioHouse", "listarHouse"]),
     ...mapPiniaActions(usePricingStore, ["getModulesEntities"]),
     abrirCaperta(item) {
       console.log("item:", item);

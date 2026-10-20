@@ -246,6 +246,8 @@ import moment from "moment";
 import { mapActions, mapState } from "vuex";
 import Swal from "sweetalert2";
 import ArrastraYSolarComponent from "../comun/ArrastraYSolarComponent.vue";
+import { mapStores } from "pinia";
+import { useFilesStore } from "@/stores/files";
 export default {
   emits: ["cancelar", "cerrarModal"],
   props: { limpar: Boolean },
@@ -574,8 +576,8 @@ export default {
     },
     async registrarPago() {
       if (
-        this.$store.state.files.payPath == 0 ||
-        !this.$store.state.files.payPath
+        this.filesStore.payPath == 0 ||
+        !this.filesStore.payPath
       ) {
         Swal.fire({
           icon: "warning",
@@ -638,7 +640,7 @@ export default {
         id: id,
         monto: monto,
         id_concepto: id_concepto,
-        id_path: vm.$store.state.files.payPath,
+        id_path: vm.filesStore.payPath,
         id_cuenta: vm.id_cuenta.id,
         fecha: vm.date,
         nro_operacion: vm.nro_operacion,
@@ -666,7 +668,7 @@ export default {
       };
       await axios(config)
         .then(function (response) {
-          vm.$store.state.files.payPath = null;
+          vm.filesStore.payPath = null;
           if (response.data.statusBol) {
             vm.$swal({
               icon: "success",
@@ -762,6 +764,7 @@ export default {
     },
   },
   computed: {
+    ...mapStores(useFilesStore),
     ...mapState(["provedores", "limpiar"]),
   },
   watch: {

@@ -5,7 +5,7 @@
       <v-col cols="12" md="4">
         <v-text-field
           readonly
-          v-model="$store.state.houses.house.code_master"
+          v-model="housesStore.house.code_master"
           label="N° de Expedientes Master"
         >
         </v-text-field>
@@ -46,7 +46,7 @@
       <v-col cols="12" md="4">
         <v-text-field
           label="Sentido"
-          v-model="$store.state.houses.house.modality"
+          v-model="housesStore.house.modality"
           readonly
         ></v-text-field>
       </v-col>
@@ -54,7 +54,7 @@
       <v-col cols="12" md="4">
         <v-text-field
           readonly
-          v-model="$store.state.houses.house.shipment"
+          v-model="housesStore.house.shipment"
           label="Tipo de Embarque"
           return-object
         ></v-text-field>
@@ -63,7 +63,7 @@
         <v-text-field
           label="Incoterms"
           readonly
-          v-model="$store.state.houses.house.incoterms"
+          v-model="housesStore.house.incoterms"
         ></v-text-field>
       </v-col>
     </v-row>
@@ -73,7 +73,7 @@
         <v-text-field
           label="Origen"
           readonly
-          v-model="$store.state.houses.house.port_begin"
+          v-model="housesStore.house.port_begin"
           @update:search="recargarPuertoOrigen"
         ></v-text-field>
       </v-col>
@@ -81,28 +81,28 @@
         <v-text-field
           label="Destino"
           readonly
-          v-model="$store.state.houses.house.port_end"
+          v-model="housesStore.house.port_end"
           @update:search="recargarPuertoDestino"
         ></v-text-field>
       </v-col>
       <v-col cols="12" md="4" v-if="esAereo">
         <v-text-field
           label="Aerolínea"
-          :model-value="$store.state.houses.house.aerolinea"
+          :model-value="housesStore.house.aerolinea"
           readonly
         ></v-text-field>
       </v-col>
       <v-col cols="12" md="4" v-else-if="esFCL">
         <v-text-field
           label="Naviera"
-          :model-value="$store.state.houses.house.naviera"
+          :model-value="housesStore.house.naviera"
           readonly
         ></v-text-field>
       </v-col>
       <v-col cols="12" md="4" v-else-if="esLCL">
         <v-text-field
           label="Coloader"
-          :model-value="$store.state.houses.house.coloader"
+          :model-value="housesStore.house.coloader"
           readonly
         ></v-text-field>
       </v-col>
@@ -113,7 +113,7 @@
         <v-col cols="12" md="4">
           <v-text-field
             label="Bultos"
-            :model-value="$store.state.houses.house.bultos"
+            :model-value="housesStore.house.bultos"
             readonly
           ></v-text-field>
         </v-col>
@@ -121,7 +121,7 @@
           <v-text-field
             label="Peso"
             suffix="kg"
-            :model-value="$store.state.houses.house.peso"
+            :model-value="housesStore.house.peso"
             readonly
           ></v-text-field>
         </v-col>
@@ -129,7 +129,7 @@
           <v-text-field
             label="Volumen"
             suffix="m3"
-            :model-value="$store.state.houses.house.volumen"
+            :model-value="housesStore.house.volumen"
             readonly
           ></v-text-field>
         </v-col>
@@ -138,7 +138,7 @@
         <v-col cols="12" md="4">
           <v-text-field
             label="Bultos"
-            :model-value="$store.state.houses.house.bultos"
+            :model-value="housesStore.house.bultos"
             readonly
           ></v-text-field>
         </v-col>
@@ -146,7 +146,7 @@
           <v-text-field
             label="Peso"
             suffix="kg"
-            :model-value="$store.state.houses.house.peso"
+            :model-value="housesStore.house.peso"
             readonly
           ></v-text-field>
         </v-col>
@@ -154,7 +154,7 @@
           <v-text-field
             label="Peso Cargable"
             suffix="kg"
-            :model-value="$store.state.houses.house.peso_cargable"
+            :model-value="housesStore.house.peso_cargable"
             readonly
           ></v-text-field>
         </v-col>
@@ -190,7 +190,7 @@
           <v-text-field
             label="Peso"
             suffix="kg"
-            :model-value="$store.state.houses.house.peso"
+            :model-value="housesStore.house.peso"
             readonly
           ></v-text-field>
         </v-col>
@@ -198,7 +198,7 @@
           <v-text-field
             label="Volumen"
             suffix="m3"
-            :model-value="$store.state.houses.house.volumen"
+            :model-value="housesStore.house.volumen"
             readonly
           ></v-text-field>
         </v-col>
@@ -268,6 +268,7 @@ import axios from "@/api/http";
 import { mapActions as mapPiniaActions, mapStores } from "pinia";
 import { usePricingStore } from "@/stores/pricing";
 import { useAduanaStore } from "@/stores/aduana";
+import { useHousesStore } from "@/stores/houses";
 export default {
   name: "dataGen",
   data() {
@@ -279,7 +280,7 @@ export default {
     };
   },
   computed: {
-    ...mapStores(useAduanaStore, usePricingStore),
+    ...mapStores(useHousesStore, useAduanaStore, usePricingStore),
     ...mapState([
       "itemsModality",
       "itemsShipment",
@@ -293,8 +294,8 @@ export default {
     ]),
     esAereo() {
       const s =
-        (this.$store.state.houses.house &&
-          this.$store.state.houses.house.shipment) ||
+        (this.housesStore.house &&
+          this.housesStore.house.shipment) ||
         "";
       return (
         String(s).toLowerCase().includes("aéreo") ||
@@ -303,15 +304,15 @@ export default {
     },
     esFCL() {
       const s =
-        (this.$store.state.houses.house &&
-          this.$store.state.houses.house.shipment) ||
+        (this.housesStore.house &&
+          this.housesStore.house.shipment) ||
         "";
       return String(s).toUpperCase() === "FCL";
     },
     esLCL() {
       const s =
-        (this.$store.state.houses.house &&
-          this.$store.state.houses.house.shipment) ||
+        (this.housesStore.house &&
+          this.housesStore.house.shipment) ||
         "";
       return String(s).toUpperCase() === "LCL";
     },
@@ -325,17 +326,17 @@ export default {
     quoteCodeDisplay() {
       const quoteId =
         this.$store.state.house_cotizacion ||
-        this.$store.state.houses.house.id_cot;
+        this.housesStore.house.id_cot;
 
       if (!quoteId) return "";
 
-      return this.$store.state.houses.house.quote;
+      return this.housesStore.house.quote;
     },
     pesoVolumetrico() {
       if (!this.esAereo) return null;
       const m3 = parseFloat(
-        (this.$store.state.houses.house &&
-          this.$store.state.houses.house.volumen) ||
+        (this.housesStore.house &&
+          this.housesStore.house.volumen) ||
           0,
       );
       if (!m3) return null;
@@ -694,7 +695,7 @@ export default {
     verCotizacion() {
       const quoteId =
         this.$store.state.house_cotizacion ||
-        this.$store.state.houses.house.id_cot;
+        this.housesStore.house.id_cot;
       if (quoteId) {
         this.$router.push(`/home/folderPricing/verQuote/${quoteId}`);
       }

@@ -11,6 +11,7 @@ import { usePricingStore } from "@/stores/pricing";
 import type { ArchivoInicial } from "@/types/archivos";
 import type { Modalidad } from "@/types/catalogos";
 import type { ProveedorPricing } from "@/types/entidades";
+import { useFilesStore } from "@/stores/files";
 import type {
   DatosManualesInstructivo,
   DocumentoInstructivo,
@@ -35,6 +36,7 @@ const emit = defineEmits<{ cerrarDialogo: []; continuar: [] }>();
 
 const route = useRoute();
 const rootStore = useStore();
+const filesStore = useFilesStore();
 const pricingStore = usePricingStore() as ReturnType<typeof usePricingStore> & {
   emailaddress?: string;
   itemsProveedorList?: FichaInstructivo[];
@@ -382,7 +384,7 @@ async function _uploadFile(file: File) {
       url: res.ruta,
     });
 
-    await rootStore.dispatch("uploadFileFromUrlToOneDrive", {
+    await filesStore.uploadFileFromUrlToOneDrive({
       fileUrl: res.ruta,
       destinationFolderUrl:
         pricingStore.datosPrincipales.url_folderonedrive,

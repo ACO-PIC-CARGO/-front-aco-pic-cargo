@@ -620,6 +620,8 @@
 import { defineAsyncComponent } from "vue";
 import { mapActions, mapState } from "vuex";
 import Swal from "sweetalert2";
+import { mapActions as mapPiniaActions } from "pinia";
+import { useFilesStore } from "@/stores/files";
 export default {
   components: {
     //  opciones: () => import("@/components/comun/opcionesRegistro.vue"),
@@ -704,7 +706,6 @@ export default {
   methods: {
     ...mapActions([
       "_getListaPagosXProveedorCxP",
-      "_uploadFile",
       "getValidaNroOp",
       "cargarProveedores",
       "_getCoinsList",
@@ -713,6 +714,7 @@ export default {
       "setRegistroEgresos",
       "validarEgresoNroOperacion",
     ]),
+    ...mapPiniaActions(useFilesStore, ["_uploadFile"]),
     cancelarllenadoDeMonto() {
       this.dialogLlenarMontoDepositadoBanco = false;
       this.monto_local = null;

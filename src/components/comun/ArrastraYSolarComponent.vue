@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import { computed, onMounted, ref, useTemplateRef, watch } from "vue";
 import Swal from "sweetalert2";
-import { useStore } from "vuex";
 import type { ValidationRule } from "vuetify";
+import { useFilesStore } from "@/stores/files";
 
 const props = withDefaults(
   defineProps<{
@@ -21,7 +21,7 @@ const emit = defineEmits<{
   idArchivoCargado: [payload: { id: unknown; archivo: unknown }];
 }>();
 
-const rootStore = useStore();
+const filesStore = useFilesStore();
 
 const loading = ref(false);
 const isDragging = ref(false);
@@ -34,16 +34,16 @@ const fileInput = useTemplateRef("fileInput");
 
 // Evalúa si hay archivo (ya sea subido nuevo o enviado por Props)
 const tieneArchivo = computed(
-  () => !!rootStore.state.files.payPath || !!existingUrl.value || !!existingId.value,
+  () => !!filesStore.payPath || !!existingUrl.value || !!existingId.value,
 );
 // Retorna el ID actual para que v-input valide si existe
 const archivoValido = computed(
-  () => rootStore.state.files.payPath || existingId.value || existingUrl.value || null,
+  () => filesStore.payPath || existingId.value || existingUrl.value || null,
 );
 // URL para ver el archivo en el botón
 const urlVisor = computed(() => {
-  if (rootStore.state.files.datosPath?.ruta) {
-    return rootStore.state.files.datosPath.ruta;
+  if (filesStore.datosPath?.ruta) {
+    return filesStore.datosPath.ruta;
   }
   return existingUrl.value || null;
 });
@@ -78,8 +78,8 @@ watch(
 
 onMounted(() => {
   // Reseteamos el store al montar para no arrastrar basura de otras vistas
-  rootStore.state.files.payPath = null;
-  rootStore.state.files.datosPath = null;
+  filesStore.payPath = null;
+  filesStore.datosPath = null;
 });
 
 async function handleDrop(event: DragEvent) {
@@ -119,7 +119,7 @@ async function uploadFile() {
   loading.value = true;
 
   try {
-    await rootStore.dispatch("_uploadFile", file.value);
+    await filesStore._uploadFile(file.value);
 
     existingUrl.value = null;
     existingId.value = null;
@@ -134,8 +134,8 @@ async function uploadFile() {
     });
 
     emit("idArchivoCargado", {
-      id: rootStore.state.files.payPath,
-      archivo: rootStore.state.files.datosPath,
+      id: filesStore.payPath,
+      archivo: filesStore.datosPath,
     });
   } catch {
     Swal.fire({
@@ -150,8 +150,8 @@ async function uploadFile() {
 }
 
 function eliminarFile() {
-  rootStore.state.files.payPath = null;
-  rootStore.state.files.datosPath = null;
+  filesStore.payPath = null;
+  filesStore.datosPath = null;
   existingUrl.value = null;
   existingId.value = null;
   file.value = null;

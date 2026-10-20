@@ -9,6 +9,8 @@ import store from "@/store";
 import { useAduanaStore } from "@/stores/aduana";
 import { useConfigEmpresaStore } from "@/stores/configEmpresa";
 import { useEnterprisesStore } from "@/stores/enterprises";
+import { useFilesStore } from "@/stores/files";
+import { useHousesStore } from "@/stores/houses";
 import { useMasterusuariosStore } from "@/stores/masterusuarios";
 import type { ApiResponse } from "@/types/api";
 import type { Begend, Marketing, Modalidad } from "@/types/catalogos";
@@ -4673,7 +4675,7 @@ export const usePricingStore = defineStore("pricing", () => {
       const id_branchs = ["1", "2", 1, 2];
       if (dataParaAprobar.nuevoexpediente == true && id_branchs.includes(id_branch)) {
         Promise.all([
-          store.dispatch("guardarCarpetaHouse", {
+          useHousesStore().guardarCarpetaHouse({
             nroMaster: name,
             id: data.data[0]!.id_master,
             idSelectedFile: selectedFile.value.map((v) => v.id),
@@ -4690,7 +4692,7 @@ export const usePricingStore = defineStore("pricing", () => {
 
       if (dataParaAprobar.nuevoexpediente == false && id_branchs.includes(id_branch)) {
         Promise.all([
-          store.dispatch("moveFileToOneDrive", {
+          useFilesStore().moveFileToOneDrive({
             destinationFolderUrl: dataParaAprobar.url_folderonedrive,
             nroMaster: name,
             id: data.data[0]!.id_master,

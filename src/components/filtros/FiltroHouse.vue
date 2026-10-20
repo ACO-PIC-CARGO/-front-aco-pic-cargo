@@ -141,6 +141,8 @@ import { mapActions } from "vuex";
 import miMixin from "../mixins/funciones";
 import FormatFecha from "../comun/FormatFecha.vue";
 import moment from "moment";
+import { mapActions as mapPiniaActions } from "pinia";
+import { useHousesStore } from "@/stores/houses";
 export default {
   components: {
     FormatFecha,
@@ -156,8 +158,8 @@ export default {
       "_getPortEnd",
       "_getHouseListAll",
       "_getTotalHouseListAll",
-      "listarHouse",
     ]),
+    ...mapPiniaActions(useHousesStore, ["listarHouse"]),
     async filtrar() {
       this.$store.state.spiner = true;
 

@@ -245,6 +245,8 @@ import axios from "@/api/http";
 import moment from "moment";
 import FormatFecha from "../comun/FormatFecha.vue";
 import Swal from "sweetalert2";
+import { mapActions as mapPiniaActions } from "pinia";
+import { useHousesStore } from "@/stores/houses";
 export default {
   components: {
     FormatFecha,
@@ -298,8 +300,8 @@ export default {
       "getQuoteDataNoAsignadaHouseByIncoterms",
       "_getPortBegin",
       "_getPortEnd",
-      "setConfirmarTelex",
     ]),
+    ...mapPiniaActions(useHousesStore, ["setConfirmarTelex"]),
     abrirModalConfirmaTelex() {
       this.dialogConfirmarTelex = true;
     },

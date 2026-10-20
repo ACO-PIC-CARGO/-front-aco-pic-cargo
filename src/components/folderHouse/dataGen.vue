@@ -349,6 +349,7 @@ import Swal from "sweetalert2";
 import { mapActions as mapPiniaActions, mapStores } from "pinia";
 import { usePricingStore } from "@/stores/pricing";
 import { useAduanaStore } from "@/stores/aduana";
+import { useHousesStore } from "@/stores/houses";
 export default {
   name: "dataGen",
   data() {
@@ -427,7 +428,7 @@ export default {
     this.$forceUpdate();
   },
   computed: {
-    ...mapStores(useAduanaStore, usePricingStore),
+    ...mapStores(useHousesStore, useAduanaStore, usePricingStore),
     ...mapState([
       "itemsModality",
       "itemsShipment",
@@ -488,9 +489,8 @@ export default {
       "_getBegEndList",
       "_getBitacoraLineal",
       "setHouseEdit",
-      "guardarCarpetaHouse",
-      "verHouse",
     ]),
+    ...mapPiniaActions(useHousesStore, ["guardarCarpetaHouse", "verHouse"]),
     ...mapPiniaActions(useAduanaStore, ["ListarMontosFinalesAduanaMONGODB", "aprobarCotizacionAduana"]),
     ...mapPiniaActions(usePricingStore, ["getQuoteDataNoAsignadaHouse", "getQuoteNoAsignadoHouse", "ListarMontosFinalesQuoteMONGODB", "aprobarCotizacion"]),
     isDisabled(item) {
@@ -821,7 +821,7 @@ export default {
     async _validaData() {
       if (this.$route.params.id) {
         await this.verHouse(this.$route.params);
-        let house = this.$store.state.houses.house;
+        let house = this.housesStore.house;
 
         this.$store.state.copy_house = house;
         this.$store.state.id_master = house.id_master;

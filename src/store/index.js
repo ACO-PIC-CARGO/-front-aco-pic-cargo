@@ -10,10 +10,7 @@ import bancos from "./modules/banco";
 import programaciones from "./modules/programacion";
 import balances from "./modules/balanace";
 import proyecciones from "./modules/proyeccion";
-import houses from "./modules/house";
-import files from "./modules/file";
 import monedas from "./modules/moneda";
-import masters from "./modules/master";
 import bank from "./modules/bank";
 import reportes from "./modules/reporte";
 import Swal from "sweetalert2";
@@ -2835,12 +2832,9 @@ export default createStore({
     controlGastos,
     bancos,
     programaciones,
-    files,
     balances,
-    houses,
     proyecciones,
     monedas,
-    masters,
     bank,
   },
 });

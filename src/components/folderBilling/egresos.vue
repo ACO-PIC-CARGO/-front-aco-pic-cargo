@@ -729,7 +729,7 @@
           <v-btn
             color="primary"
             @click="_setInvoice()"
-            :disabled="!$store.state.files.payPath || !monto_factura"
+            :disabled="!filesStore.payPath || !monto_factura"
           >
             GUARDAR
             {{
@@ -1344,6 +1344,8 @@ import ArrastraYSolarComponent from "../comun/ArrastraYSolarComponent.vue";
 import { useCoinsStore } from "@/stores/coins";
 import { useMasterusuariosStore } from "@/stores/masterusuarios";
 import { useEnterprisesStore } from "@/stores/enterprises";
+import { useFilesStore } from "@/stores/files";
+import { useMastersStore } from "@/stores/masters";
 export default {
   emits: ["recalcularProfit", "statusBtn"],
   props: {
@@ -2061,7 +2063,7 @@ export default {
           (v) => v.id_house,
         )[0].id_house,
         id_proveedor: vm.egreso.id_proveedor,
-        id_path: vm.$store.state.files.payPath,
+        id_path: vm.filesStore.payPath,
         type_pago: vm.radio,
         number: vm.nro_invoice,
         date: vm.date,
@@ -2819,7 +2821,7 @@ export default {
         this.loadingFile = true;
         await this._uploadFile(this.payfile);
         this.loadingFile = false;
-        this.$store.state.files.payPath
+        this.filesStore.payPath
           ? (this.msgfile = "Archivo cargado")
           : (this.errfile = "Comuniquese con el admistrador");
       } else {
@@ -3033,7 +3035,6 @@ export default {
       "putSPaymentPro",
       "eliminar_spaymentpro",
       "pdfSolicitud",
-      "_uploadFile",
       "list_invoice_path",
       "setSPaymentPro",
       "uploadAllPath",
@@ -3042,8 +3043,9 @@ export default {
       "_getProveedor",
       "copiarCGEgresos",
       "_getMasterList",
-      "moverCostos",
     ]),
+    ...mapPiniaActions(useMastersStore, ["moverCostos"]),
+    ...mapPiniaActions(useFilesStore, ["_uploadFile"]),
     ...mapPiniaActions(useMasterusuariosStore, ["cargarMasterDetalleTipoTransaccion"]),
     ...mapPiniaActions(useCoinsStore, ["getCoinsListCargar"]),
     ...mapPiniaActions(useSecuritysStore, ["validarUsuarioAdmin"]),
@@ -3226,7 +3228,7 @@ export default {
     },
   },
   computed: {
-    ...mapStores(useEnterprisesStore, useMasterusuariosStore, useCoinsStore),
+    ...mapStores(useFilesStore, useEnterprisesStore, useMasterusuariosStore, useCoinsStore),
     getNameModalNuevoEditar() {
       if (this.egresos && this.egresos.id) {
         return "EDITAR REGISTRO COSTO";

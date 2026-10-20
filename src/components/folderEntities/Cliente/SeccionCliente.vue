@@ -9,11 +9,13 @@ import { useMasterusuariosStore } from "@/stores/masterusuarios";
 import { usePricingStore } from "@/stores/pricing";
 import type { DocumentoPais, Pais } from "@/types/catalogos";
 import type { TipoTransaccion } from "@/types/entidades";
+import { useFilesStore } from "@/stores/files";
 
 const props = withDefaults(defineProps<{ isPricing?: boolean }>(), { isPricing: false });
 
 const router = useRouter();
 const rootStore = useStore();
+const filesStore = useFilesStore();
 const pricingStore = usePricingStore();
 const entitiesStore = useEntitiesStore();
 const masterusuariosStore = useMasterusuariosStore();
@@ -307,10 +309,10 @@ function validarContactoActual() {
 async function subirArchivoConvenio() {
   if (fileinput.value) {
     isFileLoading.value = true;
-    await rootStore.dispatch("_uploadFile", fileinput.value);
+    await filesStore._uploadFile(fileinput.value as File);
     isFileLoading.value = false;
 
-    if (rootStore.state.files.payPath) {
+    if (filesStore.payPath) {
       Swal.fire({
         icon: "success",
         text: "Archivo cargado",
@@ -318,7 +320,7 @@ async function subirArchivoConvenio() {
 
       entitiesStore.lstConvenios.map((item) => {
         if (item.id == entitiesStore.cliente.convenioActual.id) {
-          item["id_path"] = rootStore.state.files.payPath;
+          item["id_path"] = filesStore.payPath;
         }
 
         return item;

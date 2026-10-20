@@ -668,6 +668,7 @@ import GuardarUrlMaster from "../comun/GuardarUrlMaster.vue";
 import FormatFecha from "../comun/FormatFecha.vue";
 import { useMasterusuariosStore } from "@/stores/masterusuarios";
 import { usePricingStore } from "@/stores/pricing";
+import { useMastersStore } from "@/stores/masters";
 export default {
   components: { GuardarUrlMaster, FormatFecha },
   name: "listMasterCom",
@@ -732,15 +733,13 @@ export default {
   methods: {
     ...mapActions([
       "_getMasterList",
-      "insertComentarioMaster",
       "_getPortBegin",
       "_getPortEnd",
       "_getModality",
       "_getShipment",
       "_getProveedor",
-      "actualizarURLEnElMaster",
-      "controlGastosReactivar",
     ]),
+    ...mapPiniaActions(useMastersStore, ["insertComentarioMaster", "actualizarURLEnElMaster", "controlGastosReactivar"]),
     ...mapPiniaActions(usePricingStore, ["getModulesEntities", "getQuoteNoAsignadoHouse"]),
     ...mapPiniaActions(useMasterusuariosStore, ["cargarMasterDetalleCanal"]),
     ...mapPiniaActions(useSecuritysStore, ["validarUsuarioAdmin"]),

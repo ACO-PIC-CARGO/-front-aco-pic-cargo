@@ -10,10 +10,12 @@ import type { ApiResponse } from "@/types/api";
 import type { FormEnterpriseUpdate } from "@/types/empresas";
 import { validateLength } from "@/utils/cotizacion";
 import { sessionBranchId } from "@/utils/sesion";
+import { useFilesStore } from "@/stores/files";
 
 const route = useRoute();
 const router = useRouter();
 const rootStore = useStore();
+const filesStore = useFilesStore();
 const coinsStore = useCoinsStore();
 const enterprisesStore = useEnterprisesStore();
 const masterusuariosStore = useMasterusuariosStore();
@@ -110,7 +112,7 @@ watch(
   { immediate: true },
 );
 watch(
-  () => rootStore.state.files.payPath,
+  () => filesStore.payPath,
   (newRecord) => {
     if (newRecord) {
       enterprise.value.id_logo = newRecord;
@@ -223,14 +225,14 @@ async function uploadFile() {
       loadingFile.value = false;
       errfile.value = "El archivo es demasiado grande. El tamaño máximo es 2 MB.";
     } else {
-      await rootStore.dispatch("_uploadFile", payfile.value);
+      await filesStore._uploadFile(payfile.value);
       loadingFile.value = false;
-      if (rootStore.state.files.payPath) {
+      if (filesStore.payPath) {
         msgfile.value = "Archivo cargado";
       } else {
         errfile.value = "Comuniquese con el admistrador";
       }
-      if (rootStore.state.files.payPath) {
+      if (filesStore.payPath) {
         enterprise.value.name_file = "";
       }
     }

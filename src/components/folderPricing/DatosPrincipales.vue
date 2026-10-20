@@ -14,6 +14,7 @@ import type {
   Servicio,
 } from "@/types/cotizacion";
 import type { ClienteListado } from "@/types/entidades";
+import { useFilesStore } from "@/stores/files";
 
 withDefaults(
   defineProps<{ mostrarBtn?: boolean; editableFlag?: boolean; recargarFlag?: boolean }>(),
@@ -24,6 +25,7 @@ const emit = defineEmits<{ activarDatosCarga: [activar: boolean] }>();
 const route = useRoute();
 const router = useRouter();
 const rootStore = useStore();
+const filesStore = useFilesStore();
 const pricingStore = usePricingStore();
 const entitiesStore = useEntitiesStore();
 
@@ -111,8 +113,7 @@ onMounted(async () => {
 });
 
 async function copiarArchivos() {
-  await rootStore
-    .dispatch("moveFileToOneDrive", {
+  await filesStore.moveFileToOneDrive({
       fileIds: pricingStore.selectedFile.map((file) => file.id),
       destinationFolderUrl: urlGenerada.value,
     })

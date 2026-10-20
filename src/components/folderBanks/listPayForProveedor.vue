@@ -386,11 +386,12 @@ import axios from "@/api/http";
 import swal from "sweetalert2";
 import moment from "moment";
 import { mapActions } from "vuex";
-import { mapActions as mapPiniaActions } from "pinia";
+import { mapActions as mapPiniaActions, mapStores } from "pinia";
 import { useSecuritysStore } from "@/stores/securitys";
 import FormatFecha from "../comun/FormatFecha.vue";
 import BarraFiltro from "../BarraMostrarFiltro/BarraFiltro.vue";
 import { useIngresosStore } from "@/stores/ingresos";
+import { useFilesStore } from "@/stores/files";
 export default {
   components: {
     FormatFecha,
@@ -508,7 +509,7 @@ export default {
     ...mapPiniaActions(useIngresosStore, ["ActualizarCXP"]),
     ...mapPiniaActions(useSecuritysStore, ["validarUsuarioAdmin"]),
     nuevo() {
-      this.$store.state.files.payPath = null;
+      this.filesStore.payPath = null;
       this.$router.push({ name: "registroPayForProveedor" });
     },
     async ver(pago) {
@@ -934,6 +935,7 @@ export default {
     },
   },
   computed: {
+    ...mapStores(useFilesStore),
     detalles() {
       if (Object.keys(this.Ingreso).length === 0) {
         return [];

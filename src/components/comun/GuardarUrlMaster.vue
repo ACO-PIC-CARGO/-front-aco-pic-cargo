@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, watch } from "vue";
-import { useStore } from "vuex";
 import type { RegistroConUrlCarpeta } from "@/types/archivos";
+import { useMastersStore } from "@/stores/masters";
 
 const props = withDefaults(
   defineProps<{ dialogUrl?: boolean; masterEditar?: RegistroConUrlCarpeta }>(),
@@ -9,7 +9,7 @@ const props = withDefaults(
 );
 const emit = defineEmits<{ cerrar: [] }>();
 
-const rootStore = useStore();
+const mastersStore = useMastersStore();
 
 const url_folderonedrive = ref("");
 const err = ref("");
@@ -23,7 +23,7 @@ async function actualizarUrl() {
     err.value = "Dato requerido";
     return;
   }
-  await rootStore.dispatch("actualizarURLEnElMaster", {
+  await mastersStore.actualizarURLEnElMaster({
     id: props.masterEditar.id,
     url: url_folderonedrive.value,
   });

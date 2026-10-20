@@ -1,14 +1,14 @@
 <script setup lang="ts">
 import { onMounted, useTemplateRef, ref, watch } from "vue";
-import { useStore } from "vuex";
 import CboPais from "@/components/comun/CboPais.vue";
 import { useConfigEmpresaStore } from "@/stores/configEmpresa";
 import { useMasterusuariosStore } from "@/stores/masterusuarios";
 import type { DatoEmpresaConfig, DatoUsuarioConfig } from "@/types/empresas";
+import { useFilesStore } from "@/stores/files";
 
 const emit = defineEmits<{ omitir: []; GuardarDatosEmpresa: [] }>();
 
-const rootStore = useStore();
+const filesStore = useFilesStore();
 const configEmpresaStore = useConfigEmpresaStore();
 const masterusuariosStore = useMasterusuariosStore();
 
@@ -42,9 +42,9 @@ function abrirSelector() {
   (fileInput.value!.$el as HTMLElement).querySelector<HTMLInputElement>('input[type="file"]')!.click();
 }
 async function cargarLogo() {
-  await rootStore.dispatch("_uploadFile", configEmpresaStore.datoEmpresa.img);
-  configEmpresaStore.datoEmpresa.id_logo = rootStore.state.files.datosPath.insertid;
-  configEmpresaStore.datoEmpresa.logo = rootStore.state.files.datosPath.ruta;
+  await filesStore._uploadFile(configEmpresaStore.datoEmpresa.img as File);
+  configEmpresaStore.datoEmpresa.id_logo = filesStore.datosPath!.insertid;
+  configEmpresaStore.datoEmpresa.logo = filesStore.datosPath!.ruta;
   // console.log(this.$store.state.configEmpresa.datoEmpresa);
 }
 function mostrarImpOtro() {

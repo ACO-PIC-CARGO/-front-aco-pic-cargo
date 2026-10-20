@@ -76,15 +76,18 @@
 </template>
 
 <script>
+import { mapStores } from "pinia";
+import { useHousesStore } from "@/stores/houses";
 export default {
   name: "houselist",
   computed: {
+    ...mapStores(useHousesStore),
     houseComments() {
       const houseId = this.$route.params.id;
       if (!houseId) return [];
       
-      if (this.$store.state.houses && this.$store.state.houses.house && this.$store.state.houses.house.list_comentarios) {
-        return this.$store.state.houses.house.list_comentarios;
+      if (this.housesStore && this.housesStore.house && this.housesStore.house.list_comentarios) {
+        return this.housesStore.house.list_comentarios;
       }
       
       if (this.$store.state.itemsHouseList) {

@@ -202,6 +202,8 @@
 import { mapActions } from "vuex";
 import Swal from "sweetalert2";
 import axios from "@/api/http";
+import { mapActions as mapPiniaActions } from "pinia";
+import { useHousesStore } from "@/stores/houses";
 export default {
   name: "houselist",
   emits: ["recargarDatos"],
@@ -313,7 +315,8 @@ export default {
     },
   },
   methods: {
-    ...mapActions(["deleteHouse", "_getMasterList"]),
+    ...mapActions(["_getMasterList"]),
+    ...mapPiniaActions(useHousesStore, ["deleteHouse"]),
     async abrirModalCambiarExpediente(house = {}) {
       this.house = house;
 

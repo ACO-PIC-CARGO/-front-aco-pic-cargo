@@ -295,6 +295,8 @@ import moment from "moment";
 import { mapActions, mapState } from "vuex";
 
 import Swal from "sweetalert2";
+import { mapActions as mapPiniaActions, mapStores } from "pinia";
+import { useFilesStore } from "@/stores/files";
 export default {
   name: "listProgrammedPaymentComponent",
   emits: ["cerrar"],
@@ -471,7 +473,6 @@ export default {
       "_getListaPagosXProveedorCxP",
       "getListProgramacion",
       "_getCoinsList",
-      "_uploadFile",
       "setPagoProgramado",
       "ListProgrammedPayment",
       "eliminarProgramacion",
@@ -479,6 +480,7 @@ export default {
       "getValidaNroOp",
       "cargarProveedores",
     ]),
+    ...mapPiniaActions(useFilesStore, ["_uploadFile"]),
     async ValidaNroOp() {
       this.msgNroOperacion = "";
       this.$store.state.spiner = true;
@@ -551,7 +553,7 @@ export default {
       this.nro_operacion = null;
       this.id_cuenta = "";
       this.nameproveedor = item.proveedor;
-      this.$store.state.files.payPath = "";
+      this.filesStore.payPath = "";
       await this.getListProgramacion({
         id_proveedor: item.id_proveedor,
         id: id,
@@ -630,7 +632,7 @@ export default {
         this.loadingFile = true;
         await this._uploadFile(this.payfile);
         this.loadingFile = false;
-        this.$store.state.files.payPath
+        this.filesStore.payPath
           ? (this.msgfile = "Archivo cargado")
           : (this.errfile = "Comuniquese con el admistrador");
       } else {
@@ -647,7 +649,7 @@ export default {
           fecha: this.date,
           nro_operacion: this.nro_operacion,
           id_cuentas: this.id_cuenta.id,
-          id_path: this.$store.state.files.payPath,
+          id_path: this.filesStore.payPath,
           id_proveedor: this.id_proveedor,
         };
         await this.setPagoProgramado(data);
@@ -951,7 +953,7 @@ export default {
           this.nro_operacion = null;
           this.id_cuenta = "";
           this.nameproveedor = item.proveedor;
-          this.$store.state.files.payPath = "";
+          this.filesStore.payPath = "";
           await this.getListProgramacion({
             id_proveedor: this.id_proveedor,
             id: this.id,
@@ -962,6 +964,7 @@ export default {
     },
   },
   computed: {
+    ...mapStores(useFilesStore),
     ...mapState(["itemsProveedorList", "listPagosXProveedorCxP", "actualizar"]),
   },
   watch: {

@@ -43,10 +43,14 @@ import type {
 } from "@/types/entidades";
 import type { SucursalSesion, UsuarioSesion } from "@/types/sesion";
 import { useAduanaStore } from "@/stores/aduana";
+import { useHousesStore } from "@/stores/houses";
+import { useFilesStore } from "@/stores/files";
 
 const route = useRoute();
 const router = useRouter();
 const rootStore = useStore();
+const filesStore = useFilesStore();
+const housesStore = useHousesStore();
 const aduanaStore = useAduanaStore();
 const pricingStore = usePricingStore();
 const townStore = useTownStore();
@@ -126,8 +130,8 @@ const operadorNombre = computed(() => {
   }
 
   const operadorId =
-    rootStore.state.houses && rootStore.state.houses.house
-      ? rootStore.state.houses.house.id_operador
+    housesStore && housesStore.house
+      ? housesStore.house.id_operador
       : null;
 
   if (!operadorId || !itemsOperadorList.value) {
@@ -753,7 +757,7 @@ async function copiarCotizacion() {
             id: pricingStore.id,
             url: urlGenerada,
           }),
-          rootStore.dispatch("moveFileToOneDrive", {
+          filesStore.moveFileToOneDrive({
             fileIds: pricingStore.selectedFile.map(
               (file: ArchivoDrive) => file.id,
             ),

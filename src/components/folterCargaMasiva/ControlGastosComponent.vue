@@ -7,8 +7,10 @@ import type { Row } from "read-excel-file/browser";
 import Swal from "sweetalert2";
 import type { FilaPedidoGastos, ResultadoCargaMasivaGastos } from "@/types/cargaMasiva";
 import { sessionBranchId } from "@/utils/sesion";
+import { useMastersStore } from "@/stores/masters";
 
 const rootStore = useStore();
+const mastersStore = useMastersStore();
 const router = useRouter();
 
 const fileInput = useTemplateRef("fileInput");
@@ -377,12 +379,12 @@ async function generarControlesGastos() {
       const id_branch = sessionBranchId();
       const branchCreacion = [1, 2];
       if (branchCreacion.includes(id_branch)) {
-        const url = await rootStore.dispatch("createCarpetaOneDrive", {
+        const url = await mastersStore.createCarpetaOneDrive({
           name: response[0]!.nro_master,
         });
         console.log("url1", url);
         if (url) {
-          await rootStore.dispatch("actualizarMaster", {
+          await mastersStore.actualizarMaster({
             id: response[0]!.id_master,
             url: url,
           });

@@ -358,6 +358,8 @@ import axios from '@/api/http';
 import moment from "moment";
 import Swal from "sweetalert2";
 import { mapActions, mapState } from "vuex";
+import { mapStores } from "pinia";
+import { useFilesStore } from "@/stores/files";
 export default {
   props: ["filtrarFlag"],
   name: "RequestPayment",
@@ -685,7 +687,7 @@ export default {
     },
     abrirPagoProveedor(id) {
       // this.idProveedor = id;
-      this.$store.state.files.payPath = null;
+      this.filesStore.payPath = null;
       this.dialogPagoControlGasto = true;
       this.$store.state.limpiar = !this.$store.state.limpiar;
     },
@@ -737,6 +739,7 @@ export default {
     },
   },
   computed: {
+    ...mapStores(useFilesStore),
     ...mapState(["actualizar"]),
   },
   watch: {
