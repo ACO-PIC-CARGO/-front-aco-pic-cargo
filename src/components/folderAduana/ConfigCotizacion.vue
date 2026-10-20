@@ -1,8 +1,25 @@
+<script setup lang="ts">
+import { onMounted } from "vue";
+import { useConfigEmpresaStore } from "@/stores/configEmpresa";
+
+const configEmpresaStore = useConfigEmpresaStore();
+
+onMounted(() => {
+  configEmpresaStore.configEmpresa.correlativopricing = 1;
+});
+</script>
+
 <template>
-  <v-card class="mx-3" elevation="0">
-    <v-card-title primary-title class="text-uppercase">
-      Configuración Correlativo Cotización</v-card-title
+  <v-card
+    class="mx-3"
+    elevation="0"
+  >
+    <v-card-title
+      primary-title
+      class="text-uppercase"
     >
+      Configuración Correlativo Cotización
+    </v-card-title>
     <v-list-subheader class="text-uppercase">
       Configurar desde que número se empezará su correlativo de Cotización
     </v-list-subheader>
@@ -18,18 +35,5 @@
     </v-card-text>
   </v-card>
 </template>
-
-<script>
-import { mapStores } from "pinia";
-import { useConfigEmpresaStore } from "@/stores/configEmpresa";
-export default {
-  computed: {
-    ...mapStores(useConfigEmpresaStore),
-  },
-  mounted() {
-    this.configEmpresaStore.configEmpresa.correlativopricing = 1;
-  },
-};
-</script>
 
 <style></style>

@@ -1,3 +1,70 @@
+<script setup lang="ts">
+import { defineAsyncComponent, nextTick, onMounted, ref } from "vue";
+import { useRouter } from "vue-router";
+import { useStore } from "vuex";
+import { useSecuritysStore } from "@/stores/securitys";
+import { useConfigEmpresaStore } from "@/stores/configEmpresa";
+import { usePricingStore } from "@/stores/pricing";
+import type { ResumenEstadoCotizacion } from "@/types/cotizacion";
+
+const ListQuote = defineAsyncComponent(() =>
+  import("@/components/folderAduana/ListAduanaComponent.vue"));
+const ListCall = defineAsyncComponent(() => import("@/components/folderAduana/ListCallComponent.vue"));
+// FiltroQuote: () => import("@/components/filtros/FiltroQuote.vue"),
+// FiltroCalls: () => import("@/components/filtros/FiltroCalls.vue"),
+const ConfigCotizacion = defineAsyncComponent(() =>
+  import("@/components/folderPricing/ConfigCotizacion.vue"));
+
+// ListCall: () => import("../folderPricing/comun/listCall.vue"),
+
+const router = useRouter();
+const rootStore = useStore();
+const pricingStore = usePricingStore();
+const configEmpresaStore = useConfigEmpresaStore();
+const securitysStore = useSecuritysStore();
+
+const tabs = ref("quotes");
+const dialog = ref(false);
+
+function redirect() {
+  nextTick(() => {
+    router.push({
+      name: "newCotizacionAduana",
+    });
+  });
+}
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+async function filtrarCotizaciones(item: ResumenEstadoCotizacion) {
+  rootStore.state.spiner = true;
+  pricingStore.filtro = {
+    id_marketing: "",
+    id_status: item.id,
+    id_entities: "",
+    id_modality: "",
+    id_shipment: "",
+    id_incoterm: "",
+    fechainicio: "",
+    fechafin: "",
+    estado: "activo",
+  };
+  // await this.getListQuoteAduana();
+  rootStore.state.spiner = false;
+}
+async function guardarConfig() {
+  await configEmpresaStore.GuardarConfiguracionEmpresa();
+  await securitysStore.ObtenerDatosConfig();
+  dialog.value = false;
+}
+
+onMounted(() => {
+  rootStore.state.drawer = false;
+  pricingStore.e1 = 1;
+  const val = JSON.parse(sessionStorage.getItem("ConfigEmpresa") as string) as { existecot?: boolean };
+  dialog.value = !val.existecot;
+  pricingStore.getResumenPorEstado();
+});
+</script>
+
 <template>
   <v-container fluid>
     <v-card>
@@ -15,16 +82,29 @@
           Total: {{ item.cantidad }}
         </v-chip> -->
 
-        <v-spacer></v-spacer>
-        <v-btn color="success" @click="redirect()" size="small" class="ml-auto">
+        <v-spacer />
+        <v-btn
+          color="success"
+          @click="redirect()"
+          size="small"
+          class="ml-auto"
+        >
           NUEVA COTIZACIÓN
         </v-btn>
       </v-card-title>
       <v-row>
         <v-col cols="12">
-          <v-tabs color="deep-purple-accent-4" align-tabs="end" v-model="tabs">
-            <v-tab value="quotes">Cotizaciones</v-tab>
-            <v-tab value="calls">Llamadas</v-tab>
+          <v-tabs
+            color="deep-purple-accent-4"
+            align-tabs="end"
+            v-model="tabs"
+          >
+            <v-tab value="quotes">
+              Cotizaciones
+            </v-tab>
+            <v-tab value="calls">
+              Llamadas
+            </v-tab>
           </v-tabs>
           <v-tabs-window v-model="tabs">
             <v-tabs-window-item value="quotes">
@@ -68,8 +148,12 @@
       <v-card>
         <ConfigCotizacion />
         <v-card-actions>
-          <v-spacer></v-spacer>
-          <v-btn class="mx-1" color="success" @click="guardarConfig()">
+          <v-spacer />
+          <v-btn
+            class="mx-1"
+            color="success"
+            @click="guardarConfig()"
+          >
             Guardar
           </v-btn>
           <!-- <v-btn class="mx-1" color="error">Cancelar</v-btn> -->
@@ -78,79 +162,5 @@
     </v-dialog>
   </v-container>
 </template>
-
-<script>
-import { defineAsyncComponent } from "vue";
-import { mapActions as mapPiniaActions, mapStores } from "pinia";
-import { useSecuritysStore } from "@/stores/securitys";
-import { useConfigEmpresaStore } from "@/stores/configEmpresa";
-import { usePricingStore } from "@/stores/pricing";
-import { useAduanaStore } from "@/stores/aduana";
-
-export default {
-  name: "ListPricingView",
-  components: {
-    ListQuote: defineAsyncComponent(() =>
-      import("@/components/folderAduana/listAduanaComponent.vue")),
-    ListCall: defineAsyncComponent(() => import("@/components/folderAduana/listCallComponent.vue")),
-    // FiltroQuote: () => import("@/components/filtros/FiltroQuote.vue"),
-    // FiltroCalls: () => import("@/components/filtros/FiltroCalls.vue"),
-    ConfigCotizacion: defineAsyncComponent(() =>
-      import("@/components/folderPricing/ConfigCotizacion.vue")),
-
-    // ListCall: () => import("../folderPricing/comun/listCall.vue"),
-  },
-  data() {
-    return {
-      tabs: "quotes",
-      dialog: false,
-    };
-  },
-  mounted() {
-    this.$store.state.drawer = false;
-    this.pricingStore.e1 = 1;
-    let val = JSON.parse(sessionStorage.getItem("ConfigEmpresa"));
-    this.dialog = !val.existecot;
-    this.getResumenPorEstado();
-  },
-  computed: {
-    ...mapStores(usePricingStore),
-  },
-  methods: {
-    ...mapPiniaActions(useAduanaStore, ["getListQuoteAduana"]),
-    ...mapPiniaActions(usePricingStore, ["getResumenPorEstado"]),
-    ...mapPiniaActions(useConfigEmpresaStore, ["GuardarConfiguracionEmpresa"]),
-    ...mapPiniaActions(useSecuritysStore, ["ObtenerDatosConfig"]),
-    redirect() {
-      this.$nextTick(() => {
-        this.$router.push({
-          name: "newCotizacionAduana",
-        });
-      });
-    },
-    async filtrarCotizaciones(item) {
-      this.$store.state.spiner = true;
-      this.pricingStore.filtro = {
-        id_marketing: "",
-        id_status: item.id,
-        id_entities: "",
-        id_modality: "",
-        id_shipment: "",
-        id_incoterm: "",
-        fechainicio: "",
-        fechafin: "",
-        estado: "activo",
-      };
-      // await this.getListQuoteAduana();
-      this.$store.state.spiner = false;
-    },
-    async guardarConfig() {
-      await this.GuardarConfiguracionEmpresa();
-      await this.ObtenerDatosConfig();
-      this.dialog = false;
-    },
-  },
-};
-</script>
 
 <style></style>

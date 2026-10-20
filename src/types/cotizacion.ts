@@ -330,6 +330,9 @@ export interface CotizacionListado {
   idmarketing?: number | string;
   idMarketing?: number | string;
   fechaemisionpdf?: string;
+  url_folderonedrive?: string;
+  recibidocotizacion?: string;
+  enviadocliente?: string;
   id_master_recibidocotizacion?: number | string;
   id_master_enviadocliente?: number | string;
   fecha_enviocliente?: string;
@@ -356,6 +359,7 @@ export interface LlamadaCotizacion {
   destino?: string;
   marketing?: string;
   fechaemisionpdf?: string;
+  fecha_solicitud?: string;
 }
 
 export interface HouseListado {
