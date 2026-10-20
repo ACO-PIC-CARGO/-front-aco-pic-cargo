@@ -53,9 +53,9 @@ export function useCotizacionCalculos() {
         return configMult && configMult.valor
           ? parseFloat(String(configMult.valor))
           : 1;
-      case 2:
+      case 2: // M3
         return metroscc;
-      case 3:
+      case 3: // TO/M3
         return Number(kg) / 1000 > Number(metroscc)
           ? Number(kg) / 1000
           : metroscc;
@@ -232,6 +232,7 @@ export function useCotizacionCalculos() {
           });
         }
       });
+    // console.log("cost", cost);
     return cost;
   }
 

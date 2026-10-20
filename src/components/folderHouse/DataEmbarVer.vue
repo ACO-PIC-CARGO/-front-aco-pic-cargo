@@ -84,7 +84,7 @@ async function _validaData() {
     // };
     // var config = {
     //   method: "post",
-    //   url: import.meta.env.VITE_URL_MAIN + "getHouseListId/",
+    //   url: import.meta.env.VUE_APP_URL_MAIN + "getHouseListId/",
     //   headers: {
     //
     //     "Content-Type": "application/json",

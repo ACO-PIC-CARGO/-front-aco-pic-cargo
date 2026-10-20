@@ -65,6 +65,7 @@ export function calcularValor(
   porcentaje: Numerico = 0,
   minimo = 118,
 ): number {
+  // SETEANDO DATOS
   const cif =
     parseFloat(String(precio)) + parseFloat(String(flete ? flete : 0));
   const seguro = 0.015 * cif;
@@ -74,6 +75,7 @@ export function calcularValor(
     return monto >= piso ? monto : piso;
   };
 
+  // CALCULAR LOS COSTOS
   switch (multiplicador) {
     case 5:
       return porcentajeDe(cif, 60);

@@ -42,6 +42,7 @@ http.interceptors.request.use((config: InternalAxiosRequestConfig) => {
   return config;
 });
 
+// Interceptor de respuesta (igual al que tenías)
 http.interceptors.response.use(
   (response: AxiosResponse) => {
     const token = response?.data?.token;
@@ -50,7 +51,7 @@ http.interceptors.response.use(
   },
   (error: AxiosError) => {
     if (error?.response?.status === 401) {
-      sessionStorage.clear();
+      sessionStorage.clear(); // Limpieza más segura
       if (router.currentRoute.value.name !== "Login") {
         router.replace({ name: "Login" });
       }

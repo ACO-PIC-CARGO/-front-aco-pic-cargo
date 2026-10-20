@@ -170,7 +170,7 @@ export const useSecuritysStore = defineStore("securitys", () => {
   //   // sessionStorage.setItem("dataBranch", JSON.stringify(dataBranch));
   //   var config = {
   //     method: "get",
-  //     url: import.meta.env.VITE_URL_MAIN + "ListProgrammedPayment",
+  //     url: import.meta.env.VUE_APP_URL_MAIN + "ListProgrammedPayment",
 
   //     headers: {
   //      
