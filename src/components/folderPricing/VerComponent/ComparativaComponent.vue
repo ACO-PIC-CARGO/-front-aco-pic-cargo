@@ -66,6 +66,8 @@
 <script>
 import mixins from "../../mixins/funciones";
 import Swal from "sweetalert2";
+import { mapStores } from "pinia";
+import { usePricingStore } from "@/stores/pricing";
 export default {
   mixins: [mixins],
   data() {
@@ -100,7 +102,7 @@ export default {
       Swal.fire({
         width: 1000,
         icon: "question",
-        html: `<h1>¿Desea regresar a la OPCIÓN - COSTOS ${this.$store.state.pricing.opcionCostos.length}?<h1>`,
+        html: `<h1>¿Desea regresar a la OPCIÓN - COSTOS ${this.pricingStore.opcionCostos.length}?<h1>`,
         confirmButtonColor: "green",
         showCancelButton: true,
         cancelButtonColor: "red",
@@ -112,15 +114,15 @@ export default {
         allowOutsideClick: false,
       }).then((action) => {
         if (action.isConfirmed) {
-          this.$store.state.pricing.tab = 2;
+          this.pricingStore.tab = 2;
         }
       });
     },
     bloquearSeleccionada(opcion) {
-      if (this.$store.state.pricing.opcionCostos.length == 1) return true;
+      if (this.pricingStore.opcionCostos.length == 1) return true;
       if (
         opcion.selected &&
-        this.$store.state.pricing.opcionCostos.filter((v) => v.selected)
+        this.pricingStore.opcionCostos.filter((v) => v.selected)
           .length == 1
       )
         return true;
@@ -215,13 +217,13 @@ export default {
       this.headers.push({ text: "SELECCIONE", value: "selected" });
     },
     nombreTipoCosto(codigo, nombrePredeterminado) {
-      const tipoCosto = (this.$store.state.pricing.listTipoCostos || []).find(
+      const tipoCosto = (this.pricingStore.listTipoCostos || []).find(
         (tipo) => tipo && tipo.codigo == codigo,
       );
       return tipoCosto?.name || nombrePredeterminado;
     },
     continuar() {
-      this.$store.state.pricing.tab = 2;
+      this.pricingStore.tab = 2;
       // if (this.$store.state.pricing.opcionCostos.some((v) => v.selected)) {
       //   Swal.fire({
       //     icon: "question",
@@ -248,7 +250,7 @@ export default {
     async calcularTotalesOpciones() {
       this.opcionesSeleccionadas = [];
       this.loadingTable = true;
-      this.$store.state.pricing.opcionCostos.forEach((element) => {
+      this.pricingStore.opcionCostos.forEach((element) => {
         let id_proveedor = element.listCostos.some(
           (v) => v.esopcionflag == 1 && v.code_cost == 4
         )
@@ -333,44 +335,44 @@ export default {
           .forEach((element) => {
             if (this.isNotPorcentaje(element, element.id_multiplicador)) {
               this.resumenOpcion.flete +=
-                (this.$store.state.pricing.listMultiplicador.filter(
+                (this.pricingStore.listMultiplicador.filter(
                   (v) => v.id == element.id_multiplicador
                 ).length > 0
-                  ? this.$store.state.pricing.listMultiplicador.filter(
+                  ? this.pricingStore.listMultiplicador.filter(
                       (v) => v.id == element.id_multiplicador
                     )[0].valor
                   : 0) *
                 element.costounitario *
                 this.calcularFac(
-                  this.$store.state.pricing.listMultiplicador.filter(
+                  this.pricingStore.listMultiplicador.filter(
                     (v) => v.id == element.id_multiplicador
                   ).length > 0
-                    ? this.$store.state.pricing.listMultiplicador.filter(
+                    ? this.pricingStore.listMultiplicador.filter(
                         (v) => v.id == element.id_multiplicador
                       )[0].code
                     : "N",
-                  this.$store.state.pricing.datosPrincipales.volumen,
-                  this.$store.state.pricing.datosPrincipales.peso,
-                  this.$store.state.pricing.datosPrincipales.containers,
-                  this.$store.state.pricing.datosPrincipales.amount
+                  this.pricingStore.datosPrincipales.volumen,
+                  this.pricingStore.datosPrincipales.peso,
+                  this.pricingStore.datosPrincipales.containers,
+                  this.pricingStore.datosPrincipales.amount
                 );
             } else {
               this.resumenOpcion.flete += this.calcularValor(
-                this.$store.state.pricing.datosPrincipales.amount,
-                this.$store.state.pricing.totalFlete,
-                this.$store.state.pricing.listMultiplicador.filter(
+                this.pricingStore.datosPrincipales.amount,
+                this.pricingStore.totalFlete,
+                this.pricingStore.listMultiplicador.filter(
                   (v) => v.id == element.id_multiplicador
                 ).length > 0
-                  ? this.$store.state.pricing.listMultiplicador.filter(
+                  ? this.pricingStore.listMultiplicador.filter(
                       (v) => v.id == element.id_multiplicador
                     )[0].code
                   : "",
-                this.$store.state.pricing.listMultiplicador.some(
+                this.pricingStore.listMultiplicador.some(
                   (v) =>
                     v.id == element.id_multiplicador &&
                     (v.code == 14 || v.code == 13 || v.code == 5)
                 )
-                  ? this.$store.state.pricing.listMultiplicador.some(
+                  ? this.pricingStore.listMultiplicador.some(
                       (v) =>
                         v.id == element.id_multiplicador &&
                         (v.code == 14 || v.code == 13)
@@ -400,44 +402,44 @@ export default {
             if (element.esorigenflag == 1) {
               if (this.isNotPorcentaje(element, element.id_multiplicador)) {
                 this.resumenOpcion.origen +=
-                  (this.$store.state.pricing.listMultiplicador.filter(
+                  (this.pricingStore.listMultiplicador.filter(
                     (v) => v.id == element.id_multiplicador
                   ).length > 0
-                    ? this.$store.state.pricing.listMultiplicador.filter(
+                    ? this.pricingStore.listMultiplicador.filter(
                         (v) => v.id == element.id_multiplicador
                       )[0].valor
                     : 0) *
                   element.costounitario *
                   this.calcularFac(
-                    this.$store.state.pricing.listMultiplicador.filter(
+                    this.pricingStore.listMultiplicador.filter(
                       (v) => v.id == element.id_multiplicador
                     ).length > 0
-                      ? this.$store.state.pricing.listMultiplicador.filter(
+                      ? this.pricingStore.listMultiplicador.filter(
                           (v) => v.id == element.id_multiplicador
                         )[0].code
                       : "N",
-                    this.$store.state.pricing.datosPrincipales.volumen,
-                    this.$store.state.pricing.datosPrincipales.peso,
-                    this.$store.state.pricing.datosPrincipales.containers,
-                    this.$store.state.pricing.datosPrincipales.amount
+                    this.pricingStore.datosPrincipales.volumen,
+                    this.pricingStore.datosPrincipales.peso,
+                    this.pricingStore.datosPrincipales.containers,
+                    this.pricingStore.datosPrincipales.amount
                   );
               } else {
                 this.resumenOpcion.origen += this.calcularValor(
-                  this.$store.state.pricing.datosPrincipales.amount,
-                  this.$store.state.pricing.totalFlete,
-                  this.$store.state.pricing.listMultiplicador.filter(
+                  this.pricingStore.datosPrincipales.amount,
+                  this.pricingStore.totalFlete,
+                  this.pricingStore.listMultiplicador.filter(
                     (v) => v.id == element.id_multiplicador
                   ).length > 0
-                    ? this.$store.state.pricing.listMultiplicador.filter(
+                    ? this.pricingStore.listMultiplicador.filter(
                         (v) => v.id == element.id_multiplicador
                       )[0].code
                     : "",
-                  this.$store.state.pricing.listMultiplicador.some(
+                  this.pricingStore.listMultiplicador.some(
                     (v) =>
                       v.id == element.id_multiplicador &&
                       (v.code == 14 || v.code == 13 || v.code == 5)
                   )
-                    ? this.$store.state.pricing.listMultiplicador.some(
+                    ? this.pricingStore.listMultiplicador.some(
                         (v) =>
                           v.id == element.id_multiplicador &&
                           (v.code == 14 || v.code == 13)
@@ -453,44 +455,44 @@ export default {
             if (element.eslocalflag) {
               if (this.isNotPorcentaje(element, element.id_multiplicador)) {
                 this.resumenOpcion.gasto +=
-                  (this.$store.state.pricing.listMultiplicador.filter(
+                  (this.pricingStore.listMultiplicador.filter(
                     (v) => v.id == element.id_multiplicador
                   ).length > 0
-                    ? this.$store.state.pricing.listMultiplicador.filter(
+                    ? this.pricingStore.listMultiplicador.filter(
                         (v) => v.id == element.id_multiplicador
                       )[0].valor
                     : 0) *
                   element.costounitario *
                   this.calcularFac(
-                    this.$store.state.pricing.listMultiplicador.filter(
+                    this.pricingStore.listMultiplicador.filter(
                       (v) => v.id == element.id_multiplicador
                     ).length > 0
-                      ? this.$store.state.pricing.listMultiplicador.filter(
+                      ? this.pricingStore.listMultiplicador.filter(
                           (v) => v.id == element.id_multiplicador
                         )[0].code
                       : "N",
-                    this.$store.state.pricing.datosPrincipales.volumen,
-                    this.$store.state.pricing.datosPrincipales.peso,
-                    this.$store.state.pricing.datosPrincipales.containers,
-                    this.$store.state.pricing.datosPrincipales.amount
+                    this.pricingStore.datosPrincipales.volumen,
+                    this.pricingStore.datosPrincipales.peso,
+                    this.pricingStore.datosPrincipales.containers,
+                    this.pricingStore.datosPrincipales.amount
                   );
               } else {
                 this.resumenOpcion.gasto += this.calcularValor(
-                  this.$store.state.pricing.datosPrincipales.amount,
-                  this.$store.state.pricing.totalFlete,
-                  this.$store.state.pricing.listMultiplicador.filter(
+                  this.pricingStore.datosPrincipales.amount,
+                  this.pricingStore.totalFlete,
+                  this.pricingStore.listMultiplicador.filter(
                     (v) => v.id == element.id_multiplicador
                   ).length > 0
-                    ? this.$store.state.pricing.listMultiplicador.filter(
+                    ? this.pricingStore.listMultiplicador.filter(
                         (v) => v.id == element.id_multiplicador
                       )[0].code
                     : "",
-                  this.$store.state.pricing.listMultiplicador.some(
+                  this.pricingStore.listMultiplicador.some(
                     (v) =>
                       v.id == element.id_multiplicador &&
                       (v.code == 14 || v.code == 13 || v.code == 5)
                   )
-                    ? this.$store.state.pricing.listMultiplicador.some(
+                    ? this.pricingStore.listMultiplicador.some(
                         (v) =>
                           v.id == element.id_multiplicador &&
                           (v.code == 14 || v.code == 13)
@@ -507,44 +509,44 @@ export default {
             if (element.esaduanaflag == 1) {
               if (this.isNotPorcentaje(element, element.id_multiplicador)) {
                 this.resumenOpcion.aduana +=
-                  (this.$store.state.pricing.listMultiplicador.filter(
+                  (this.pricingStore.listMultiplicador.filter(
                     (v) => v.id == element.id_multiplicador
                   ).length > 0
-                    ? this.$store.state.pricing.listMultiplicador.filter(
+                    ? this.pricingStore.listMultiplicador.filter(
                         (v) => v.id == element.id_multiplicador
                       )[0].valor
                     : 0) *
                   element.costounitario *
                   this.calcularFac(
-                    this.$store.state.pricing.listMultiplicador.filter(
+                    this.pricingStore.listMultiplicador.filter(
                       (v) => v.id == element.id_multiplicador
                     ).length > 0
-                      ? this.$store.state.pricing.listMultiplicador.filter(
+                      ? this.pricingStore.listMultiplicador.filter(
                           (v) => v.id == element.id_multiplicador
                         )[0].code
                       : "N",
-                    this.$store.state.pricing.datosPrincipales.volumen,
-                    this.$store.state.pricing.datosPrincipales.peso,
-                    this.$store.state.pricing.datosPrincipales.containers,
-                    this.$store.state.pricing.datosPrincipales.amount
+                    this.pricingStore.datosPrincipales.volumen,
+                    this.pricingStore.datosPrincipales.peso,
+                    this.pricingStore.datosPrincipales.containers,
+                    this.pricingStore.datosPrincipales.amount
                   );
               } else {
                 this.resumenOpcion.aduana += this.calcularValor(
-                  this.$store.state.pricing.datosPrincipales.amount,
-                  this.$store.state.pricing.totalFlete,
-                  this.$store.state.pricing.listMultiplicador.filter(
+                  this.pricingStore.datosPrincipales.amount,
+                  this.pricingStore.totalFlete,
+                  this.pricingStore.listMultiplicador.filter(
                     (v) => v.id == element.id_multiplicador
                   ).length > 0
-                    ? this.$store.state.pricing.listMultiplicador.filter(
+                    ? this.pricingStore.listMultiplicador.filter(
                         (v) => v.id == element.id_multiplicador
                       )[0].code
                     : "",
-                  this.$store.state.pricing.listMultiplicador.some(
+                  this.pricingStore.listMultiplicador.some(
                     (v) =>
                       v.id == element.id_multiplicador &&
                       (v.code == 14 || v.code == 13 || v.code == 5)
                   )
-                    ? this.$store.state.pricing.listMultiplicador.some(
+                    ? this.pricingStore.listMultiplicador.some(
                         (v) =>
                           v.id == element.id_multiplicador &&
                           (v.code == 14 || v.code == 13)
@@ -561,44 +563,44 @@ export default {
             if (element.esalmacenflag) {
               if (this.isNotPorcentaje(element, element.id_multiplicador)) {
                 this.resumenOpcion.almacen +=
-                  (this.$store.state.pricing.listMultiplicador.filter(
+                  (this.pricingStore.listMultiplicador.filter(
                     (v) => v.id == element.id_multiplicador
                   ).length > 0
-                    ? this.$store.state.pricing.listMultiplicador.filter(
+                    ? this.pricingStore.listMultiplicador.filter(
                         (v) => v.id == element.id_multiplicador
                       )[0].valor
                     : 0) *
                   element.costounitario *
                   this.calcularFac(
-                    this.$store.state.pricing.listMultiplicador.filter(
+                    this.pricingStore.listMultiplicador.filter(
                       (v) => v.id == element.id_multiplicador
                     ).length > 0
-                      ? this.$store.state.pricing.listMultiplicador.filter(
+                      ? this.pricingStore.listMultiplicador.filter(
                           (v) => v.id == element.id_multiplicador
                         )[0].code
                       : "N",
-                    this.$store.state.pricing.datosPrincipales.volumen,
-                    this.$store.state.pricing.datosPrincipales.peso,
-                    this.$store.state.pricing.datosPrincipales.containers,
-                    this.$store.state.pricing.datosPrincipales.amount
+                    this.pricingStore.datosPrincipales.volumen,
+                    this.pricingStore.datosPrincipales.peso,
+                    this.pricingStore.datosPrincipales.containers,
+                    this.pricingStore.datosPrincipales.amount
                   );
               } else {
                 this.resumenOpcion.almacen += this.calcularValor(
-                  this.$store.state.pricing.datosPrincipales.amount,
-                  this.$store.state.pricing.totalFlete,
-                  this.$store.state.pricing.listMultiplicador.filter(
+                  this.pricingStore.datosPrincipales.amount,
+                  this.pricingStore.totalFlete,
+                  this.pricingStore.listMultiplicador.filter(
                     (v) => v.id == element.id_multiplicador
                   ).length > 0
-                    ? this.$store.state.pricing.listMultiplicador.filter(
+                    ? this.pricingStore.listMultiplicador.filter(
                         (v) => v.id == element.id_multiplicador
                       )[0].code
                     : "",
-                  this.$store.state.pricing.listMultiplicador.some(
+                  this.pricingStore.listMultiplicador.some(
                     (v) =>
                       v.id == element.id_multiplicador &&
                       (v.code == 14 || v.code == 13 || v.code == 5)
                   )
-                    ? this.$store.state.pricing.listMultiplicador.some(
+                    ? this.pricingStore.listMultiplicador.some(
                         (v) =>
                           v.id == element.id_multiplicador &&
                           (v.code == 14 || v.code == 13)
@@ -615,44 +617,44 @@ export default {
             if (element.esgastostercerosflag) {
               if (this.isNotPorcentaje(element, element.id_multiplicador)) {
                 this.resumenOpcion.gastostercero +=
-                  (this.$store.state.pricing.listMultiplicador.filter(
+                  (this.pricingStore.listMultiplicador.filter(
                     (v) => v.id == element.id_multiplicador
                   ).length > 0
-                    ? this.$store.state.pricing.listMultiplicador.filter(
+                    ? this.pricingStore.listMultiplicador.filter(
                         (v) => v.id == element.id_multiplicador
                       )[0].valor
                     : 0) *
                   element.costounitario *
                   this.calcularFac(
-                    this.$store.state.pricing.listMultiplicador.filter(
+                    this.pricingStore.listMultiplicador.filter(
                       (v) => v.id == element.id_multiplicador
                     ).length > 0
-                      ? this.$store.state.pricing.listMultiplicador.filter(
+                      ? this.pricingStore.listMultiplicador.filter(
                           (v) => v.id == element.id_multiplicador
                         )[0].code
                       : "N",
-                    this.$store.state.pricing.datosPrincipales.volumen,
-                    this.$store.state.pricing.datosPrincipales.peso,
-                    this.$store.state.pricing.datosPrincipales.containers,
-                    this.$store.state.pricing.datosPrincipales.amount
+                    this.pricingStore.datosPrincipales.volumen,
+                    this.pricingStore.datosPrincipales.peso,
+                    this.pricingStore.datosPrincipales.containers,
+                    this.pricingStore.datosPrincipales.amount
                   );
               } else {
                 this.resumenOpcion.gastostercero += this.calcularValor(
-                  this.$store.state.pricing.datosPrincipales.amount,
-                  this.$store.state.pricing.totalFlete,
-                  this.$store.state.pricing.listMultiplicador.filter(
+                  this.pricingStore.datosPrincipales.amount,
+                  this.pricingStore.totalFlete,
+                  this.pricingStore.listMultiplicador.filter(
                     (v) => v.id == element.id_multiplicador
                   ).length > 0
-                    ? this.$store.state.pricing.listMultiplicador.filter(
+                    ? this.pricingStore.listMultiplicador.filter(
                         (v) => v.id == element.id_multiplicador
                       )[0].code
                     : "",
-                  this.$store.state.pricing.listMultiplicador.some(
+                  this.pricingStore.listMultiplicador.some(
                     (v) =>
                       v.id == element.id_multiplicador &&
                       (v.code == 14 || v.code == 13 || v.code == 5)
                   )
-                    ? this.$store.state.pricing.listMultiplicador.some(
+                    ? this.pricingStore.listMultiplicador.some(
                         (v) =>
                           v.id == element.id_multiplicador &&
                           (v.code == 14 || v.code == 13)
@@ -701,12 +703,12 @@ export default {
     montoConfeccion(item) {
       let monto = 0;
       if (item.code_cost == 33) {
-        let amount = this.$store.state.pricing.datosPrincipales.amount;
+        let amount = this.pricingStore.datosPrincipales.amount;
         let cif =
           parseFloat(amount) +
-          parseFloat(this.$store.state.pricing.totalFlete) +
+          parseFloat(this.pricingStore.totalFlete) +
           (parseFloat(amount) +
-            parseFloat(this.$store.state.pricing.totalFlete)) *
+            parseFloat(this.pricingStore.totalFlete)) *
             0.01;
 
         if (cif < 5000) {
@@ -733,26 +735,26 @@ export default {
         let val = data.filter((v) => code.includes(v.code_cost));
         val.forEach((element) => {
           monto += parseFloat(
-            (this.$store.state.pricing.listMultiplicador.some(
+            (this.pricingStore.listMultiplicador.some(
               (v) => v.id == element.id_multiplicador
             )
-              ? this.$store.state.pricing.listMultiplicador.filter(
+              ? this.pricingStore.listMultiplicador.filter(
                   (v) => v.id == element.id_multiplicador
                 )[0].valor
               : 0) *
               element.costounitario *
               this.calcularFac(
-                this.$store.state.pricing.listMultiplicador.some(
+                this.pricingStore.listMultiplicador.some(
                   (v) => v.id == element.id_multiplicador
                 )
-                  ? this.$store.state.pricing.listMultiplicador.filter(
+                  ? this.pricingStore.listMultiplicador.filter(
                       (v) => v.id == element.id_multiplicador
                     )[0].code
                   : "N",
-                this.$store.state.pricing.datosPrincipales.volumen,
-                this.$store.state.pricing.datosPrincipales.peso,
-                this.$store.state.pricing.datosPrincipales.containers,
-                this.$store.state.pricing.datosPrincipales.amount
+                this.pricingStore.datosPrincipales.volumen,
+                this.pricingStore.datosPrincipales.peso,
+                this.pricingStore.datosPrincipales.containers,
+                this.pricingStore.datosPrincipales.amount
               )
           );
         });
@@ -778,7 +780,7 @@ export default {
     isNotPorcentaje(element, id_multiplicador) {
       let code = [5, 13, 14];
 
-      let mul = this.$store.state.pricing.listMultiplicador.some(
+      let mul = this.pricingStore.listMultiplicador.some(
         (v) => v.id == id_multiplicador && code.includes(v.code)
       );
 
@@ -799,12 +801,13 @@ export default {
     },
   },
   computed: {
+    ...mapStores(usePricingStore),
     actualizarComparativa: {
       get() {
-        return this.$store.state.pricing.actualizarComparativa;
+        return this.pricingStore.actualizarComparativa;
       },
       set(val) {
-        return (this.$store.state.pricing.actualizarComparativa =
+        return (this.pricingStore.actualizarComparativa =
           actualizarComparativa);
       },
     },

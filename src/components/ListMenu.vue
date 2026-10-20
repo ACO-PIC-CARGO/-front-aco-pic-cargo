@@ -2,6 +2,7 @@
 import { computed, onMounted, ref, watch } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import { useStore } from "vuex";
+import { usePricingStore } from "@/stores/pricing";
 import { useSecuritysStore } from "@/stores/securitys";
 import { useSubscriptionsStore } from "@/stores/subscriptions";
 import type { Incoterm } from "@/types/cotizacion";
@@ -10,6 +11,7 @@ import type { ItemMenu, SucursalSesion, UsuarioSesion } from "@/types/sesion";
 const route = useRoute();
 const router = useRouter();
 const rootStore = useStore();
+const pricingStore = usePricingStore();
 const securitysStore = useSecuritysStore();
 const subscriptionsStore = useSubscriptionsStore();
 
@@ -38,10 +40,10 @@ onMounted(() => {
 });
 
 const lstMenu = computed<ItemMenu[]>(() => rootStore.state.lstMenu);
-const listIncoterms = computed<Incoterm[]>(() => rootStore.state.pricing.listIncoterms);
-const actualizarCostosFlag = computed(() => rootStore.state.pricing.actualizarCostosFlag);
+const listIncoterms = computed<Incoterm[]>(() => pricingStore.listIncoterms);
+const actualizarCostosFlag = computed(() => pricingStore.actualizarCostosFlag);
 const isAereoPricing = computed(() => {
-  const pricing = rootStore.state.pricing;
+  const pricing = pricingStore;
   if (!pricing || !pricing.listShipment || !pricing.datosPrincipales) {
     return false;
   }
@@ -51,16 +53,16 @@ const isAereoPricing = computed(() => {
   if (!id) return false;
 
   const items = pricing.listShipment || [];
-  const it = items.find((v: { id: number }) => v.id == id);
+  const it = items.find((v) => v.id == id);
   return it && it.code === "Aéreo";
 });
 const pesoCargable = computed(() => {
-  const pricing = rootStore.state.pricing;
+  const pricing = pricingStore;
   if (!pricing || !pricing.datosPrincipales) return null;
 
   const datos = pricing.datosPrincipales;
-  const pesoReal = parseFloat(datos.peso || 0); // kg
-  const volumen = parseFloat(datos.volumen || 0); // m³
+  const pesoReal = parseFloat(String(datos.peso || 0)); // kg
+  const volumen = parseFloat(String(datos.volumen || 0)); // m³
 
   // Solo aplica para embarques aéreos
   if (!isAereoPricing.value) return null;
@@ -76,14 +78,14 @@ const pesoCargable = computed(() => {
   return parseFloat(chargeable.toFixed(2));
 });
 const pesoVolumetrico = computed(() => {
-  const pricing = rootStore.state.pricing;
+  const pricing = pricingStore;
   if (!pricing || !pricing.datosPrincipales) return null;
 
   // Solo aplica para embarques aéreos
   if (!isAereoPricing.value) return null;
 
   const datos = pricing.datosPrincipales;
-  const volumen = parseFloat(datos.volumen || 0); // m³
+  const volumen = parseFloat(String(datos.volumen || 0)); // m³
   if (!volumen) return null;
 
   const pv = volumen > 0 ? volumen * 166.66 : 0;
@@ -307,21 +309,22 @@ watch(actualizarCostosFlag, () => {
                 label="Sentido"
                 density="compact"
                 class="my-5 px-5 text-resumen"
-                :items="rootStore.state.pricing.listModality"
+                :items="pricingStore.listModality"
                 item-title="name"
                 item-value="id"
-                v-model="rootStore.state.pricing.datosPrincipales.idsentido"
+                v-model="pricingStore.datosPrincipales.idsentido"
                 readonly
               />
 
+              <!-- @vue-expect-error Kept: idtipocarga holds the shipment id or, from this return-object select, the shipment row. -->
               <v-select
                 label="Tipo de Embarque"
                 density="compact"
                 class="my-1 px-5 text-resumen"
-                :items="rootStore.state.pricing.listShipment"
+                :items="pricingStore.listShipment"
                 item-title="embarque"
                 item-value="id"
-                v-model="rootStore.state.pricing.datosPrincipales.idtipocarga"
+                v-model="pricingStore.datosPrincipales.idtipocarga"
                 readonly
                 return-object
               />
@@ -333,7 +336,7 @@ watch(actualizarCostosFlag, () => {
                 :items="listIncoterms"
                 item-title="name"
                 item-value="id"
-                v-model="rootStore.state.pricing.datosPrincipales.idincoterms"
+                v-model="pricingStore.datosPrincipales.idincoterms"
                 readonly
               >
                 <template #selection="data">
@@ -346,10 +349,10 @@ watch(actualizarCostosFlag, () => {
                 class="my-1 px-5 text-resumen"
                 density="compact"
                 :rules="[(v) => !!v || 'Dato requerido']"
-                :items="rootStore.state.pricing.listPortBegin"
+                :items="pricingStore.listPortBegin"
                 item-title="name"
                 item-value="id_port"
-                v-model="rootStore.state.pricing.datosPrincipales.idorigen"
+                v-model="pricingStore.datosPrincipales.idorigen"
               />
 
               <v-autocomplete
@@ -357,16 +360,16 @@ watch(actualizarCostosFlag, () => {
                 class="my-1 px-5 text-resumen"
                 density="compact"
                 :rules="[(v) => !!v || 'Dato requerido']"
-                :items="rootStore.state.pricing.listPortEnd"
+                :items="pricingStore.listPortEnd"
                 item-title="name"
                 item-value="id_port"
-                v-model="rootStore.state.pricing.datosPrincipales.iddestino"
+                v-model="pricingStore.datosPrincipales.iddestino"
               />
 
               <v-text-field
                 class="my-1 px-5 text-resumen"
                 prefix="$"
-                v-model="rootStore.state.pricing.datosPrincipales.amount"
+                v-model="pricingStore.datosPrincipales.amount"
                 label="Valor de la mercancia"
                 type="number"
                 placeholder="Valor de la mercancia..."
@@ -375,24 +378,24 @@ watch(actualizarCostosFlag, () => {
               />
               <p
                 class="my-1 px-5 text-resumen"
-                v-if="rootStore.state.pricing.datosPrincipales.numerobultos"
+                v-if="pricingStore.datosPrincipales.numerobultos"
               >
                 <b>Nro Bultos :</b>
-                {{ rootStore.state.pricing.datosPrincipales.numerobultos }} uni.
+                {{ pricingStore.datosPrincipales.numerobultos }} uni.
               </p>
               <p
                 class="my-1 px-5 text-resumen"
-                v-if="rootStore.state.pricing.datosPrincipales.peso"
+                v-if="pricingStore.datosPrincipales.peso"
               >
                 <b>Peso :</b>
-                {{ rootStore.state.pricing.datosPrincipales.peso }} kg
+                {{ pricingStore.datosPrincipales.peso }} kg
               </p>
               <p
                 class="my-1 px-5 text-resumen"
-                v-if="rootStore.state.pricing.datosPrincipales.volumen"
+                v-if="pricingStore.datosPrincipales.volumen"
               >
                 <b>Volumen :</b>
-                {{ rootStore.state.pricing.datosPrincipales.volumen }} m
+                {{ pricingStore.datosPrincipales.volumen }} m
                 <sup>3</sup>
               </p>
               <p
@@ -409,22 +412,22 @@ watch(actualizarCostosFlag, () => {
               </p>
               <p
                 class="my-1 px-5 text-resumen"
-                v-if="rootStore.state.pricing.datosPrincipales.descripcioncarga"
+                v-if="pricingStore.datosPrincipales.descripcioncarga"
               >
                 <b>Desc. Carga :</b>
-                {{ rootStore.state.pricing.datosPrincipales.descripcioncarga }}
+                {{ pricingStore.datosPrincipales.descripcioncarga }}
               </p>
               <p
                 class="my-1 px-5 text-resumen"
                 v-if="
-                  rootStore.state.pricing.datosPrincipales.containers && rootStore.state.pricing.datosPrincipales.containers.length > 0
+                  pricingStore.datosPrincipales.containers && pricingStore.datosPrincipales.containers.length > 0
                 "
               >
                 <b>Contenedores:</b>
               </p>
               <p
                 class="my-1 px-5 text-resumen"
-                v-for="(container, index) in rootStore.state.pricing
+                v-for="(container, index) in pricingStore
                   .datosPrincipales.containers"
                 :key="index"
               >

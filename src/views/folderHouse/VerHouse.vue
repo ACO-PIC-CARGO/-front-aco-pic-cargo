@@ -278,6 +278,8 @@ import services from "@/components/folderHouse/servicesVer.vue";
 import { mapActions, mapState } from "vuex";
 import Swal from "sweetalert2";
 import axios from "@/api/http";
+import { mapActions as mapPiniaActions } from "pinia";
+import { usePricingStore } from "@/stores/pricing";
 export default {
   name: "controlMasterCom",
   components: {
@@ -364,9 +366,8 @@ export default {
       "getListBanksDetailsCargarPorSucursal",
       "verHouse",
       "fetchDataBank",
-      "getQuoteNoAsignadoHouse",
-      "getCargarEjecutivo",
     ]),
+    ...mapPiniaActions(usePricingStore, ["getQuoteNoAsignadoHouse", "getCargarEjecutivo"]),
     async irAVerMaster() {
       await this.$router.push({
         name: "controlHouseEditar",

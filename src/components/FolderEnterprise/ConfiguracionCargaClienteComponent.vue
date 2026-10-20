@@ -6,12 +6,15 @@ import { useStore } from "vuex";
 import Swal from "sweetalert2";
 import { useConfigEmpresaStore } from "@/stores/configEmpresa";
 import { useEnterprisesStore } from "@/stores/enterprises";
+import { usePricingStore } from "@/stores/pricing";
 import type { Modalidad } from "@/types/catalogos";
 import type { TipoCarga } from "@/types/cotizacion";
 
 const emit = defineEmits<{ omitir: []; regresar: []; continuarConfigurarTarifario: [] }>();
 
 const rootStore = useStore();
+
+const pricingStore = usePricingStore();
 const configEmpresaStore = useConfigEmpresaStore();
 const enterprisesStore = useEnterprisesStore();
 
@@ -50,11 +53,11 @@ const id_modality = ref<number | string>();
 const id_shipment = ref<number | string>();
 
 onMounted(() => {
-  ids_modality.value = rootStore.state.pricing.listModality.map((element: Modalidad) => {
+  ids_modality.value = pricingStore.listModality.map((element: Modalidad) => {
     return element.id;
   });
-  ids_shipment.value = rootStore.state.pricing.listShipment.map((element: TipoCarga) => {
-    return element.id;
+  ids_shipment.value = pricingStore.listShipment.map((element: TipoCarga) => {
+    return element.id!;
   });
   id_modality.value = ids_modality.value[0];
   id_shipment.value = ids_shipment.value[0];

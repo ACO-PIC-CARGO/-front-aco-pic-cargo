@@ -265,6 +265,8 @@
 <script>
 import { mapState, mapActions } from "vuex";
 import axios from "@/api/http";
+import { mapActions as mapPiniaActions, mapStores } from "pinia";
+import { usePricingStore } from "@/stores/pricing";
 export default {
   name: "dataGen",
   data() {
@@ -276,6 +278,7 @@ export default {
     };
   },
   computed: {
+    ...mapStores(usePricingStore),
     ...mapState([
       "itemsModality",
       "itemsShipment",
@@ -313,8 +316,8 @@ export default {
     },
     quotesFiltered() {
       // Filtrar y asegurar que cada item tenga las propiedades correctas
-      console.log("listQuotes", this.$store.state.pricing.listQuotes);
-      return (this.$store.state.pricing.listQuotes || []).filter((item) => {
+      console.log("listQuotes", this.pricingStore.listQuotes);
+      return (this.pricingStore.listQuotes || []).filter((item) => {
         return item && typeof item === "object" && item.code && item.id;
       });
     },
@@ -385,7 +388,6 @@ export default {
       "_getBitacoraList",
       "_getBitacoraLineal",
       "_getnroMaster",
-      "getQuoteDataNoAsignadaHouse",
       "_getnroMaster",
       "_getAgents",
       "_getConsigners",
@@ -400,9 +402,9 @@ export default {
       "_getHouseContainers",
       "_getProveedor",
       "_getHouseContainers",
-      "getQuoteNoAsignadoHouse",
       "_getBegEndList",
     ]),
+    ...mapPiniaActions(usePricingStore, ["getQuoteDataNoAsignadaHouse", "getQuoteNoAsignadoHouse"]),
     async asignarDatos() {
       if (this.$store.state.house_cotizacion) {
         let id_shipment = 0;
@@ -413,46 +415,46 @@ export default {
         });
 
         if (
-          Object.keys(this.$store.state.pricing.dataQuote).length &&
-          this.$store.state.pricing.dataQuote.id_modality ==
+          Object.keys(this.pricingStore.dataQuote).length &&
+          this.pricingStore.dataQuote.id_modality ==
             this.$store.state.copy_house.id_modality &&
-          this.$store.state.pricing.dataQuote.id_shipment ==
+          this.pricingStore.dataQuote.id_shipment ==
             this.$store.state.copy_house.id_shipment &&
-          this.$store.state.pricing.dataQuote.id_port_begin ==
+          this.pricingStore.dataQuote.id_port_begin ==
             this.$store.state.copy_house.id_port_begin &&
-          this.$store.state.pricing.dataQuote.id_port_end ==
+          this.pricingStore.dataQuote.id_port_end ==
             this.$store.state.copy_house.id_port_end
         ) {
           this.$store.state.house_sentido =
-            this.$store.state.pricing.dataQuote.id_modality;
+            this.pricingStore.dataQuote.id_modality;
           this.$store.state.house_id_trasnport =
-            this.$store.state.pricing.dataQuote.id_shipment;
+            this.pricingStore.dataQuote.id_shipment;
           this.$store.state.house_id_consigner =
-            this.$store.state.pricing.dataQuote.id_cliente;
+            this.pricingStore.dataQuote.id_cliente;
           this.$store.state.house_incoterms =
-            this.$store.state.pricing.dataQuote.id_incoterms;
+            this.pricingStore.dataQuote.id_incoterms;
 
           if (typeof this.$store.state.house_id_trasnport === "object") {
             id_shipment = this.$store.state.house_id_trasnport.id_transport;
           } else if (typeof this.$store.state.house_id_trasnport === "number") {
             id_shipment = this.$store.state.itemsShipment.filter(
-              (v) => v.id == this.$store.state.pricing.dataQuote.id_shipment,
+              (v) => v.id == this.pricingStore.dataQuote.id_shipment,
             )[0].id_transport;
           }
 
           this.$store.state.house_bultos =
-            this.$store.state.pricing.dataQuote.nro_bultos;
+            this.pricingStore.dataQuote.nro_bultos;
           this.$store.state.house_peso =
-            this.$store.state.pricing.dataQuote.peso;
+            this.pricingStore.dataQuote.peso;
           this.$store.state.house_volumen =
-            this.$store.state.pricing.dataQuote.volumen;
+            this.pricingStore.dataQuote.volumen;
           this.$store.state.house_monto =
-            this.$store.state.pricing.dataQuote.monto;
+            this.pricingStore.dataQuote.monto;
           await this._activePort(id_shipment);
           this.$store.state.house_origen =
-            this.$store.state.pricing.dataQuote.id_port_begin;
+            this.pricingStore.dataQuote.id_port_begin;
           this.$store.state.house_destino =
-            this.$store.state.pricing.dataQuote.id_port_end;
+            this.pricingStore.dataQuote.id_port_end;
 
           // Ubicación/Tramo (categoría del servicio: Origen, Flete, Destino, Opcional)
           let lstSortedServices = [];
@@ -461,7 +463,7 @@ export default {
           let lstServicesDestino = [];
           let lstServicesOpcional = [];
 
-          this.$store.state.pricing.dataQuote.lstservices.filter((item, i) => {
+          this.pricingStore.dataQuote.lstservices.filter((item, i) => {
             const categoriaServicio = item.codebegend.toUpperCase();
             switch (categoriaServicio) {
               case "OR":

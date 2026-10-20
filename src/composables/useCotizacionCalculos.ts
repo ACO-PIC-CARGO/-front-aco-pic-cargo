@@ -1,10 +1,11 @@
-import store from "@/store/index";
+import { usePricingStore } from "@/stores/pricing";
 import type {
   ContenedorCantidad,
   Costo,
   DatosPrincipales,
   Multiplicador,
   Numerico,
+  Servicio,
 } from "@/types/cotizacion";
 import { calcularValor, numeroSeguro } from "@/utils/cotizacion";
 
@@ -13,6 +14,7 @@ type MultiplicadorBuscado = Multiplicador & { length?: number };
 
 interface OpcionesFormatearCostos {
   costos?: Costo[];
+  services?: Servicio[];
   multiplicadores?: Multiplicador[];
   datosPrincipales?: DatosPrincipales;
   totalDeFlete?: Numerico;
@@ -27,7 +29,7 @@ export function useCotizacionCalculos() {
     amount: Numerico = 0,
   ): Numerico {
     const listMultiplicador: Multiplicador[] =
-      store.state.pricing.listMultiplicador;
+      usePricingStore().listMultiplicador;
 
     const configMult = listMultiplicador.find((item) =>
       item.code == code,
@@ -80,7 +82,7 @@ export function useCotizacionCalculos() {
   function calcularTotalFleteVentaPorOpcion({
     listCostos = [],
   }: { listCostos?: (Costo | null)[] } = {}): number {
-    const pricing = store.state.pricing;
+    const pricing = usePricingStore();
     const datosPrincipales: DatosPrincipales = pricing.datosPrincipales || {};
     const costosFlete = (Array.isArray(listCostos) ? listCostos : []).filter(
       (costo) =>

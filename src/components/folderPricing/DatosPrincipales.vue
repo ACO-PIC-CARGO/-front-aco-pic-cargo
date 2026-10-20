@@ -16,7 +16,7 @@
                   :items="listMarketingActivos"
                   item-title="name"
                   item-value="id"
-                  v-model="$store.state.pricing.datosPrincipales.id_marketing"
+                  v-model="pricingStore.datosPrincipales.id_marketing"
                 ></v-autocomplete>
                 <v-autocomplete
                   label="Estado de la cotización"
@@ -24,10 +24,10 @@
                   density="compact"
                   :rules="[(v) => !!v || 'Dato requerido']"
                   class="my-0"
-                  :items="$store.state.pricing.listQuoteStatus"
+                  :items="pricingStore.listQuoteStatus"
                   item-title="name"
                   item-value="id"
-                  v-model="$store.state.pricing.datosPrincipales.id_status"
+                  v-model="pricingStore.datosPrincipales.id_status"
                   :item-props="(item) => ({ disabled: item.status != 1 })"
                 ></v-autocomplete>
               </v-col>
@@ -38,10 +38,10 @@
                   density="compact"
                   :rules="[(v) => !!v || 'Dato requerido']"
                   class="my-0"
-                  :items="$store.state.pricing.listEjecutivo"
+                  :items="pricingStore.listEjecutivo"
                   item-title="nombrecompleto"
                   item-value="id"
-                  v-model="$store.state.pricing.datosPrincipales.id_vendedor"
+                  v-model="pricingStore.datosPrincipales.id_vendedor"
                 ></v-autocomplete>
               </v-col>
 
@@ -52,10 +52,10 @@
                   density="compact"
                   :rules="[(v) => !!v || 'Dato requerido']"
                   class="my-0"
-                  :items="$store.state.pricing.listEjecutivo"
+                  :items="pricingStore.listEjecutivo"
                   item-title="nombrecompleto"
                   item-value="id"
-                  v-model="$store.state.pricing.datosPrincipales.id_pricing"
+                  v-model="pricingStore.datosPrincipales.id_pricing"
                 ></v-autocomplete
               ></v-col>
 
@@ -65,7 +65,7 @@
                   variant="outlined"
                   placeholder="Nombre del cliente"
                   :append-inner-icon="'mdi-account-search'"
-                  v-model="$store.state.pricing.datosPrincipales.nombre"
+                  v-model="pricingStore.datosPrincipales.nombre"
                   @click:append-inner.stop="abrirModalCliente()"
                   @click="abrirModalCliente()"
                   :rules="[(v) => !!v || 'El nombre es requerido']"
@@ -85,7 +85,7 @@
                   placeholder="Teléfono..."
                   density="compact"
                   readonly
-                  v-model="$store.state.pricing.datosPrincipales.telefono"
+                  v-model="pricingStore.datosPrincipales.telefono"
                 ></v-text-field
               ></v-col>
 
@@ -96,10 +96,10 @@
                   density="compact"
                   :rules="[(v) => !!v || 'Dato requerido']"
                   class="my-0"
-                  :items="$store.state.pricing.listModality"
+                  :items="pricingStore.listModality"
                   item-title="name"
                   item-value="id"
-                  v-model="$store.state.pricing.datosPrincipales.idsentido"
+                  v-model="pricingStore.datosPrincipales.idsentido"
                   @update:model-value="recargarServiciosCostos()"
                   :disabled="!EditableFlag"
                 ></v-autocomplete
@@ -112,10 +112,10 @@
                   density="compact"
                   :rules="[(v) => !!v || 'Dato requerido']"
                   class="my-0"
-                  :items="$store.state.pricing.listShipment"
+                  :items="pricingStore.listShipment"
                   item-title="embarque"
                   item-value="id"
-                  v-model="$store.state.pricing.datosPrincipales.idtipocarga"
+                  v-model="pricingStore.datosPrincipales.idtipocarga"
                   @update:model-value="recargarServiciosCostos()"
                   return-object
                   :disabled="!EditableFlag"
@@ -131,7 +131,7 @@
                   :items="incoterms"
                   item-title="text"
                   item-value="id"
-                  v-model="$store.state.pricing.datosPrincipales.idincoterms"
+                  v-model="pricingStore.datosPrincipales.idincoterms"
                   @update:model-value="recargarServiciosCostos"
                 >
                   <template v-slot:selection="data" >
@@ -145,7 +145,7 @@
                   name="name"
                   label="Nombre del proveedor"
                   id="id"
-                  v-model="$store.state.pricing.datosPrincipales.proveedor"
+                  v-model="pricingStore.datosPrincipales.proveedor"
                   density="compact"
                   variant="outlined"
                   v-if="mostrarProveedorFlag"
@@ -157,7 +157,7 @@
                   name="Teléfono"
                   label="Teléfono del proveedor"
                   v-model="
-                    $store.state.pricing.datosPrincipales.telefonoproveedor
+                    pricingStore.datosPrincipales.telefonoproveedor
                   "
                   density="compact"
                   variant="outlined"
@@ -178,7 +178,7 @@
                 <v-text-field
                   label="Dirección del proveedor"
                   v-model="
-                    $store.state.pricing.datosPrincipales.direccionproveedor
+                    pricingStore.datosPrincipales.direccionproveedor
                   "
                   density="compact"
                   variant="outlined"
@@ -250,9 +250,9 @@
         <v-card-text>
           <v-data-table
             :headers="headersFiles"
-            :items="$store.state.pricing.listadoFilesDrive"
+            :items="pricingStore.listadoFilesDrive"
             show-select
-            v-model="$store.state.pricing.selectedFile"
+            v-model="pricingStore.selectedFile"
             item-value="id"
             return-object
           >
@@ -286,8 +286,9 @@
 <script>
 import { mapActions, mapState } from "vuex";
 import Swal from "sweetalert2";
-import { mapStores } from "pinia";
+import { mapActions as mapPiniaActions, mapStores } from "pinia";
 import { useEntitiesStore } from "@/stores/entities";
+import { usePricingStore } from "@/stores/pricing";
 export default {
   emits: ["activarDatosCarga"],
   props: {
@@ -333,10 +334,10 @@ export default {
     this.$refs.frmDatosPrincipales.resetValidation();
     this._getProveedor();
     setTimeout(async () => {
-      this.servicesActuales = this.$store.state.pricing.listServices;
+      this.servicesActuales = this.pricingStore.listServices;
       if (this.$route.name === "editQuote") {
         this.idincoterms =
-          this.$store.state.pricing.datosPrincipales.idincoterms;
+          this.pricingStore.datosPrincipales.idincoterms;
       }
       // await this.GetArchivos();
     }, 500);
@@ -345,23 +346,14 @@ export default {
   },
   methods: {
     ...mapActions([
-      "getMarketingList",
-      "getQuoteStatus",
-      "getModality",
-      "getShipment",
-      "getIncoterms",
       "_getEntitiesCliente",
-      "getCargarEjecutivo",
       "_getProveedor",
-      "registrarQuotePorCambioIncoterms",
-      "crearCarpetaOneDrive",
-      "actualizarURLEnElQuote",
-      "GetArchivos",
       "moveFileToOneDrive",
     ]),
+    ...mapPiniaActions(usePricingStore, ["getMarketingList", "getQuoteStatus", "getModality", "getShipment", "getIncoterms", "getCargarEjecutivo", "registrarQuotePorCambioIncoterms", "crearCarpetaOneDrive", "actualizarURLEnElQuote", "GetArchivos"]),
     async copiarArchivos() {
       await this.moveFileToOneDrive({
-        fileIds: this.$store.state.pricing.selectedFile.map((file) => file.id),
+        fileIds: this.pricingStore.selectedFile.map((file) => file.id),
         destinationFolderUrl: this.urlGenerada,
       }).catch((e) => {
         console.error(e);
@@ -369,7 +361,7 @@ export default {
       this.$router.push({
         name: "editQuote",
         params: {
-          id: this.$store.state.pricing.id,
+          id: this.pricingStore.id,
         },
       });
       setTimeout(() => {
@@ -392,9 +384,9 @@ export default {
           text: "El cliente seleccionado no tiene un número de teléfono registrado. Por favor, seleccione otro cliente o puede actualizar luego en el fichero de cliente.",
         });
       }
-      this.$store.state.pricing.datosPrincipales.id_entitie = item.id;
-      this.$store.state.pricing.datosPrincipales.nombre = item.nombrecompleto;
-      this.$store.state.pricing.datosPrincipales.telefono = item.phone;
+      this.pricingStore.datosPrincipales.id_entitie = item.id;
+      this.pricingStore.datosPrincipales.nombre = item.nombrecompleto;
+      this.pricingStore.datosPrincipales.telefono = item.phone;
       this.buscarClienteDialog = false;
     },
     async continuarDatosCarga() {
@@ -461,7 +453,7 @@ export default {
           if (res.isConfirmed) {
             this.recargarServiciosCostosContinuar(id_incoterms);
           } else {
-            this.$store.state.pricing.datosPrincipales.idincoterms =
+            this.pricingStore.datosPrincipales.idincoterms =
               this.idincoterms;
             Swal.close();
           }
@@ -481,11 +473,11 @@ export default {
           this.$store.state.spiner = true;
           await this.registrarQuotePorCambioIncoterms(data);
           this.$store.state.spiner = false;
-          if (this.$store.state.pricing.nro_quote) {
+          if (this.pricingStore.nro_quote) {
             Swal.fire({
               icon: "success",
               title: "Aviso",
-              text: this.$store.state.pricing.mensaje,
+              text: this.pricingStore.mensaje,
               confirmButtonText: "Copiar Archivos",
               showConfirmButton: true,
               allowEnterKey: true,
@@ -499,8 +491,8 @@ export default {
             let branchCreacion = [1, 2];
             if (branchCreacion.includes(id_branch)) {
               const urlGenerada = await this.crearCarpetaOneDrive({
-                nro_quote: this.$store.state.pricing.nro_quote,
-                nombre: this.$store.state.pricing.datosPrincipales.nombre,
+                nro_quote: this.pricingStore.nro_quote,
+                nombre: this.pricingStore.datosPrincipales.nombre,
               }).catch((e) => {
                console.error(e);
               });
@@ -510,7 +502,7 @@ export default {
                 console.log(this.urlGenerada);
                 await Promise.all([
                   this.actualizarURLEnElQuote({
-                    id: this.$store.state.pricing.id,
+                    id: this.pricingStore.id,
                     url: urlGenerada,
                   }),
                 ]);
@@ -528,13 +520,13 @@ export default {
       // }
     },
     recargarServicioEditar(id_incoterms) {
-      let servicesPorIncoterm = this.$store.state.pricing.preServices.filter(
+      let servicesPorIncoterm = this.pricingStore.preServices.filter(
         (v) =>
           v.id_incoterms == id_incoterms &&
           v.id_modality ==
-            this.$store.state.pricing.datosPrincipales.idsentido &&
+            this.pricingStore.datosPrincipales.idsentido &&
           v.id_shipment ==
-            this.$store.state.pricing.datosPrincipales.idtipocarga,
+            this.pricingStore.datosPrincipales.idtipocarga,
       );
 
       let servicesActual = this.servicesActuales;
@@ -560,15 +552,15 @@ export default {
     },
 
     recargarCostosEditar(id_incoterms) {
-      let preCostos = this.$store.state.pricing.preCostos.filter(
+      let preCostos = this.pricingStore.preCostos.filter(
         (v) =>
           v.id_incoterms == id_incoterms &&
           v.id_modality ==
-            this.$store.state.pricing.datosPrincipales.idsentido &&
+            this.pricingStore.datosPrincipales.idsentido &&
           v.id_shipment ==
-            this.$store.state.pricing.datosPrincipales.idtipocarga,
+            this.pricingStore.datosPrincipales.idtipocarga,
       );
-      let opcionCostos = [...this.$store.state.pricing.opcionCostos];
+      let opcionCostos = [...this.pricingStore.opcionCostos];
       let newOpcionCosto = [];
       opcionCostos.forEach((opcion) => {
         let newCosto = [];
@@ -653,16 +645,16 @@ export default {
       this.opcionNuevos = newOpcionCosto;
     },
     recargarNuevo(id_incoterms) {
-      let servicesPorIncoterm = this.$store.state.pricing.preServices.filter(
+      let servicesPorIncoterm = this.pricingStore.preServices.filter(
         (v) => v.id_incoterms == id_incoterms,
       );
     },
   },
   computed: {
-    ...mapStores(useEntitiesStore),
+    ...mapStores(usePricingStore, useEntitiesStore),
     ...mapState(["registroClienteFlag", ""]),
     listMarketingActivos() {
-      let list = this.$store.state.pricing.listMarketing || [];
+      let list = this.pricingStore.listMarketing || [];
       // Solo activos y ordenados por posición, igual que en FolderMarketing/list.vue
       return list
         .filter((m) => m.status === 1 || m.status === true)
@@ -673,7 +665,7 @@ export default {
         });
     },
     incoterms() {
-      return (this.$store.state.pricing.listIncoterms || [])
+      return (this.pricingStore.listIncoterms || [])
         .filter((element) => element && typeof element === "object")
         .map((element) => ({
           ...element,
@@ -681,10 +673,10 @@ export default {
         }));
     },
     mostrarProveedorFlag() {
-      let exw = (this.$store.state.pricing.listIncoterms || []).filter(
+      let exw = (this.pricingStore.listIncoterms || []).filter(
         (v) =>
           v &&
-          v.id == this.$store.state.pricing.datosPrincipales.idincoterms &&
+          v.id == this.pricingStore.datosPrincipales.idincoterms &&
           v.name == "EXW",
       );
 
@@ -700,10 +692,10 @@ export default {
         let cliente = this.$store.state.itemsEntities.filter(
           (v) => v.id == this.entitiesStore.id,
         )[0];
-        this.$store.state.pricing.datosPrincipales.id_entitie = cliente.id;
-        this.$store.state.pricing.datosPrincipales.nombre =
+        this.pricingStore.datosPrincipales.id_entitie = cliente.id;
+        this.pricingStore.datosPrincipales.nombre =
           cliente.nombrecompleto;
-        this.$store.state.pricing.datosPrincipales.telefono = cliente.phone;
+        this.pricingStore.datosPrincipales.telefono = cliente.phone;
       }
       this.buscarClienteDialog = false;
     },

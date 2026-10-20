@@ -7,9 +7,12 @@ import ConfiguracionCargaProveedorComponent from "../../components/FolderEnterpr
 import ConfiguracionCostosComponent from "../../components/FolderEnterprise/ConfiguracionCostosComponent.vue";
 import ConfiguraciónDatosEmpresaComponent from "../../components/FolderEnterprise/ConfiguracionDatosEmpresaComponent.vue";
 import { useConfigEmpresaStore } from "@/stores/configEmpresa";
+import { usePricingStore } from "@/stores/pricing";
 import { useSecuritysStore } from "@/stores/securitys";
 
 const rootStore = useStore();
+
+const pricingStore = usePricingStore();
 const configEmpresaStore = useConfigEmpresaStore();
 const securitysStore = useSecuritysStore();
 
@@ -23,9 +26,9 @@ const dialog = ref(true);
 onMounted(async () => {
   rootStore.state.drawer = false;
   rootStore.state.spinner = true;
-  await rootStore.dispatch("getModality");
-  await rootStore.dispatch("getShipment");
-  await rootStore.dispatch("getIncoterms");
+  await pricingStore.getModality();
+  await pricingStore.getShipment();
+  await pricingStore.getIncoterms();
   await rootStore.dispatch("_getDocumentsPais");
   await rootStore.dispatch("_getProveedor");
   rootStore.state.spinner = false;

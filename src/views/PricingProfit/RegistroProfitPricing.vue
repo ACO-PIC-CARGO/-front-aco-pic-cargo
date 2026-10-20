@@ -5,15 +5,16 @@
 </template>
 
 <script>
-import { mapActions } from "vuex";
 import RegistroProfitPricing from "../../components/ProfitPricing/RegistroProfitPricing.vue";
+import { mapActions as mapPiniaActions } from "pinia";
+import { usePricingStore } from "@/stores/pricing";
 
 export default {
   components: {
     RegistroProfitPricing,
   },
   methods: {
-    ...mapActions(["getModality", "getShipment", "getIncoterms"]),
+    ...mapPiniaActions(usePricingStore, ["getModality", "getShipment", "getIncoterms"]),
   },
   mounted() {
     Promise.all([this.getModality(), this.getShipment(), this.getIncoterms()]);

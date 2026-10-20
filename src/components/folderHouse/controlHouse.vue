@@ -383,6 +383,8 @@ import { mapActions, mapState } from "vuex";
 
 import axios from "@/api/http";
 import Swal from "sweetalert2";
+import { mapActions as mapPiniaActions } from "pinia";
+import { usePricingStore } from "@/stores/pricing";
 
 export default {
   name: "controlMasterCom",
@@ -604,8 +606,8 @@ export default {
       "verHouse",
       "guardarCarpetaHouse",
       "deleteHouse",
-      "getCargarEjecutivo",
     ]),
+    ...mapPiniaActions(usePricingStore, ["getCargarEjecutivo"]),
     getTipoDocumento() {
       return this.isAereo() ? "GUÍA AÉREA" : "BL";
     },

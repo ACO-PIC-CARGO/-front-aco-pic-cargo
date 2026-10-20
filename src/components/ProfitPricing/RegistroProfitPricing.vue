@@ -9,7 +9,7 @@
             density="compact"
             :rules="[(v) => !!v || 'Dato requerido']"
             class="my-0"
-            :items="$store.state.pricing.listModality"
+            :items="pricingStore.listModality"
             item-title="name"
             item-value="id"
             v-model="profitPricingStore.id_modality"
@@ -23,7 +23,7 @@
             density="compact"
             :rules="[(v) => !!v || 'Dato requerido']"
             class="my-0"
-            :items="$store.state.pricing.listShipment"
+            :items="pricingStore.listShipment"
             item-title="embarque"
             item-value="id"
             v-model="profitPricingStore.id_shipment"
@@ -60,7 +60,7 @@
           <center>
             {{
               profitPricingStore.id_modality
-                ? $store.state.pricing.listModality.find(
+                ? pricingStore.listModality.find(
                     (v) => v.id == profitPricingStore.id_modality,
                   ).name
                 : ""
@@ -68,7 +68,7 @@
             |
             {{
               profitPricingStore.id_shipment
-                ? $store.state.pricing.listShipment.find(
+                ? pricingStore.listShipment.find(
                     (v) => v.id == profitPricingStore.id_shipment,
                   ).embarque
                 : ""
@@ -271,6 +271,7 @@ import { mapActions as mapPiniaActions, mapStores } from "pinia";
 import { useConfigEmpresaStore } from "@/stores/configEmpresa";
 import { useProfitPricingStore } from "@/stores/profitPricing";
 import { useProveedorStore } from "@/stores/proveedor";
+import { usePricingStore } from "@/stores/pricing";
 
 export default {
   data() {
@@ -317,10 +318,10 @@ export default {
     };
   },
   computed: {
-    ...mapStores(useProveedorStore, useConfigEmpresaStore, useProfitPricingStore),
+    ...mapStores(usePricingStore, useProveedorStore, useConfigEmpresaStore, useProfitPricingStore),
     incoterms() {
       let Icoterms = [];
-      [...this.$store.state.pricing.listIncoterms].forEach((element) => {
+      [...this.pricingStore.listIncoterms].forEach((element) => {
         element.text = element.name + " - " + element.description;
         Icoterms.push(element);
       });

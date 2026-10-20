@@ -126,6 +126,7 @@ import { mapActions, mapState } from "vuex";
 import { mapActions as mapPiniaActions } from "pinia";
 import { useMasterusuariosStore } from "@/stores/masterusuarios";
 import { useEnterprisesStore } from "@/stores/enterprises";
+import { usePricingStore } from "@/stores/pricing";
 
 export default {
   components: {
@@ -214,27 +215,20 @@ export default {
   },
   methods: {
     ...mapActions([
-      "resetQuoteNew",
-      "getMarketingList",
-      "getQuoteStatus",
       "getModalityAduana",
       "getShipmentAduana",
       "getIncotermsAduana",
-      "getCargarEjecutivo",
       "getPortBeginAduana",
       "getPortEndAduana",
       "getServicesAduana",
-      "getBegEndList",
       "getTipoCostosAduana",
       "obtenerCostosAduana",
       "getMultiplicadorAduana",
-      "getImpuestos",
-      "getCargarMasterDetalleNotasCotizacion",
       "cargarProveedores",
-      "registrarQuote",
       "_getContainers",
       "getAdunaVer",
     ]),
+    ...mapPiniaActions(usePricingStore, ["resetQuoteNew", "getMarketingList", "getQuoteStatus", "getCargarEjecutivo", "getBegEndList", "getImpuestos", "getCargarMasterDetalleNotasCotizacion", "registrarQuote"]),
     ...mapPiniaActions(useEnterprisesStore, ["obtenerImpuestoXEmpresa"]),
     ...mapPiniaActions(useMasterusuariosStore, ["cargarMasterDetallePercepcionAduana"]),
     async recargar() {

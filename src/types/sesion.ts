@@ -1,4 +1,5 @@
 export interface UsuarioSesion {
+  id?: number;
   id_branch: number;
   names: string;
   nombrecompleto: string;

@@ -17,6 +17,7 @@ import PlanStatusBadge from "../../components/SubscriptionPackages/PlanStatusBad
 import { useCalculadorasStore } from "@/stores/calculadoras";
 import { useEntitiesStore } from "@/stores/entities";
 import { useMasterusuariosStore } from "@/stores/masterusuarios";
+import { usePricingStore } from "@/stores/pricing";
 import { useTownStore } from "@/stores/town";
 import { validateCost } from "@/utils/cotizacion";
 import type { ApiResponse } from "@/types/api";
@@ -45,6 +46,7 @@ import type { SucursalSesion, UsuarioSesion } from "@/types/sesion";
 const route = useRoute();
 const router = useRouter();
 const rootStore = useStore();
+const pricingStore = usePricingStore();
 const townStore = useTownStore();
 const calculadorasStore = useCalculadorasStore();
 const entitiesStore = useEntitiesStore();
@@ -106,7 +108,7 @@ onBeforeMount(() => {
 });
 
 const itemsOperadorList = computed<Operador[]>(() => rootStore.state.itemsOperadorList);
-const listadoFilesDrive = computed<ArchivoDrive[]>(() => rootStore.state.pricing.listadoFilesDrive);
+const listadoFilesDrive = computed<ArchivoDrive[]>(() => pricingStore.listadoFilesDrive);
 const operadorNombre = computed(() => {
   const isHousePage =
     route.name &&
@@ -276,7 +278,7 @@ async function guardarCotizacion() {
   const validacion = validarRegistro();
   if (!!validacion) {
     rootStore.state.spiner = true;
-    await rootStore.dispatch("registrarQuote", { fullflag: true }).catch((err: unknown) => {
+    await pricingStore.registrarQuote({ fullflag: true }).catch((err: unknown) => {
       console.error("registrarQuote", err);
     });
 
@@ -284,13 +286,13 @@ async function guardarCotizacion() {
     Swal.fire({
       icon: "info",
       title: "Aviso",
-      text: rootStore.state.pricing.mensaje,
+      text: pricingStore.mensaje,
       confirmButtonText: "Ir a ver",
     }).then((result) => {
       if (result.isConfirmed) {
         router.push({
           name: "verQuote",
-          params: { id: rootStore.state.pricing.id },
+          params: { id: pricingStore.id },
         });
       }
     });
@@ -298,14 +300,14 @@ async function guardarCotizacion() {
       .id_branch;
     const branchCreacion = [1, 2];
     if (branchCreacion.includes(id_branch)) {
-      const urlGenerada = await rootStore.dispatch("crearCarpetaOneDrive", {
-        nro_quote: rootStore.state.pricing.nro_quote,
-        nombre: rootStore.state.pricing.datosPrincipales.nombre,
+      const urlGenerada = await pricingStore.crearCarpetaOneDrive({
+        nro_quote: pricingStore.nro_quote,
+        nombre: pricingStore.datosPrincipales.nombre,
       });
 
       if (urlGenerada) {
-        await rootStore.dispatch("actualizarURLEnElQuote", {
-          id: rootStore.state.pricing.id,
+        await pricingStore.actualizarURLEnElQuote({
+          id: pricingStore.id,
           url: urlGenerada,
         }).catch((e: unknown) => {
           console.error(e);
@@ -321,7 +323,7 @@ async function guardarCotizacion() {
 async function editarCotizacion() {
   // let val = await this.validarCosto();
   let val = true;
-  val = !rootStore.state.pricing.opcionCostos.some(
+  val = !pricingStore.opcionCostos.some(
     (v: OpcionCosto) =>
       !v.date_end || !v.tiempo_transito || !isDateValid(v.date_end),
   );
@@ -329,14 +331,14 @@ async function editarCotizacion() {
   // // -----------------------------------------------------
   if (val) {
     rootStore.state.spiner = false;
-    await rootStore.dispatch("updateQuote");
+    await pricingStore.updateQuote();
 
     const destino = {
       name: "verQuote",
       params: {
-        id: rootStore.state.pricing.id,
-        step: rootStore.state.pricing.step
-          ? rootStore.state.pricing.step
+        id: pricingStore.id,
+        step: pricingStore.step
+          ? pricingStore.step
           : 1,
       },
     };
@@ -353,7 +355,7 @@ async function editarCotizacion() {
       icon: "error",
       text: "Existe una o más Fechas de validez y/o tiempos en tránsito, INCOMPLETOS. Verifique.",
     });
-    rootStore.state.pricing.tab = 2;
+    pricingStore.tab = 2;
   }
 }
 async function editarCotizacionAduana() {
@@ -395,9 +397,9 @@ async function abrirCorreo() {
   idRole.value = [];
   dialogProveedor.value = true;
   await rootStore.dispatch("_getRole");
-  const code = rootStore.state.pricing.listShipment.find(
-    (v: TipoCarga) => v.id == rootStore.state.pricing.datosPrincipales.idtipocarga,
-  ).code;
+  const code = pricingStore.listShipment.find(
+    (v: TipoCarga) => v.id == pricingStore.datosPrincipales.idtipocarga,
+  )!.code;
   switch (code) {
     case "LCL":
       idRole.value = rootStore.state.itemsDataRoleList
@@ -454,32 +456,32 @@ async function abrirCorreo() {
 async function abrirCorreoSend() {
   const valIncoterms = ["EXW", "FCA", "FOB"];
   const selected = lstDatosTarifa.value.filter((v) => v.selected);
-  const nameCliente = rootStore.state.pricing.dataCliente.nombrecompleto;
+  const nameCliente = pricingStore.dataCliente.nombrecompleto;
   const to = selected
     .map((v) => v.email)
     .filter((e) => e)
     .join(";");
 
-  const incoterms = rootStore.state.pricing.listIncoterms.find(
-    (v: Incoterm) => v.id == rootStore.state.pricing.datosPrincipales.idincoterms,
-  );
+  const incoterms = pricingStore.listIncoterms.find(
+    (v: Incoterm) => v.id == pricingStore.datosPrincipales.idincoterms,
+  )!;
   let subject = ``;
 
   const miEmail = sessionStorage.getItem("dataUser")
     ? JSON.parse(sessionStorage.getItem("dataUser") as string)[0].correoemail
     : "";
 
-  const origen = rootStore.state.pricing.listPortBegin.find(
-    (v: Puerto) => v.id_port == rootStore.state.pricing.datosPrincipales.idorigen,
+  const origen = pricingStore.listPortBegin.find(
+    (v: Puerto) => v.id_port == pricingStore.datosPrincipales.idorigen,
   );
 
-  const destino = rootStore.state.pricing.listPortEnd.find(
+  const destino = pricingStore.listPortEnd.find(
     (v: Puerto) =>
-      v.id_port == rootStore.state.pricing.datosPrincipales.iddestino,
+      v.id_port == pricingStore.datosPrincipales.iddestino,
   );
   let tablaHtml = "";
 
-  if (!valIncoterms.includes(incoterms.name)) {
+  if (!valIncoterms.includes(incoterms.name!)) {
     Swal.fire({
       title: "ADVERTENCIA",
       icon: "error",
@@ -488,12 +490,12 @@ async function abrirCorreoSend() {
     return;
   }
   if (incoterms.name == "EXW") {
-    subject = `QUOTE${rootStore.state.pricing.nro_quote} ${
+    subject = `QUOTE${pricingStore.nro_quote} ${
       incoterms ? incoterms.name : ""
     } ${origen ? origen.name : ""} - ${destino ? destino.name : ""}  ${
-      rootStore.state.pricing.datosPrincipales.peso || ""
+      pricingStore.datosPrincipales.peso || ""
     }KGS / ${
-      rootStore.state.pricing.datosPrincipales.volumen || ""
+      pricingStore.datosPrincipales.volumen || ""
     }M3 | CLIENTE: ${nameCliente}`;
     /* CREAR EL BOBY */
     tablaHtml = `
@@ -510,7 +512,7 @@ async function abrirCorreoSend() {
             <tr>
               <td> DIRECCIÓN:</td>
               <td> ${
-                rootStore.state.pricing.datosPrincipales.direccionproveedor ||
+                pricingStore.datosPrincipales.direccionproveedor ||
                 ""
               }</td>
               </tr>
@@ -525,18 +527,18 @@ async function abrirCorreoSend() {
             <tr>
               <td style="padding: 8px; border: 1px solid #333;"> PESO(Kgs)</td>
               <td style="padding: 8px; border: 1px solid #333;"> ${
-                rootStore.state.pricing.datosPrincipales.peso || ""
+                pricingStore.datosPrincipales.peso || ""
               }</td>
             </tr>
             <tr>
               <td style="padding: 8px; border: 1px solid #333;">M3</td><td style="padding: 8px; border: 1px solid #333;">
-                ${rootStore.state.pricing.datosPrincipales.volumen || ""}</td>
+                ${pricingStore.datosPrincipales.volumen || ""}</td>
             </tr>
             <tr>
               <td> DESCRIPCIÓN DE LA MERCANCÍA:</td>
               <td>
                 ${
-                  rootStore.state.pricing.datosPrincipales.descripcioncarga ||
+                  pricingStore.datosPrincipales.descripcioncarga ||
                   ""
                 }
               </td>
@@ -547,12 +549,12 @@ async function abrirCorreoSend() {
       `;
   }
   if (incoterms.name == "FCA" || incoterms.name == "FOB") {
-    subject = `QUOTE${rootStore.state.pricing.nro_quote} ${
+    subject = `QUOTE${pricingStore.nro_quote} ${
       incoterms ? incoterms.name : ""
     } ${origen ? origen.name : ""} - ${destino ? destino.name : ""}  ${
-      rootStore.state.pricing.datosPrincipales.peso || ""
+      pricingStore.datosPrincipales.peso || ""
     }KGS / ${
-      rootStore.state.pricing.datosPrincipales.volumen || ""
+      pricingStore.datosPrincipales.volumen || ""
     }M3 | CLIENTE: ${nameCliente}`;
     /* CREAR EL BOBY */
     tablaHtml = `
@@ -581,18 +583,18 @@ async function abrirCorreoSend() {
             <tr>
               <td style="padding: 8px; border: 1px solid #333;"> PESO</td>
               <td style="padding: 8px; border: 1px solid #333;"> ${
-                rootStore.state.pricing.datosPrincipales.peso || ""
+                pricingStore.datosPrincipales.peso || ""
               }
               </td>
             </tr>
             <tr><td style="padding: 8px; border: 1px solid #333;">M3</td><td style="padding: 8px; border: 1px solid #333;"> ${
-              rootStore.state.pricing.datosPrincipales.volumen || ""
+              pricingStore.datosPrincipales.volumen || ""
             }</td>
             </tr>
             <tr>
               <td> DESCRIPCIÓN DE LA MERCANCÍA:</td>
               <td> ${
-                rootStore.state.pricing.datosPrincipales.descripcioncarga ||
+                pricingStore.datosPrincipales.descripcioncarga ||
                 ""
               }</td>
             <tr>
@@ -657,10 +659,10 @@ function abrirModalCopiarCotizacion() {
   });
 }
 function validarExistTransporte() {
-  const { servicios, id_town } = rootStore.state.pricing.datosPrincipales;
+  const { servicios, id_town } = pricingStore.datosPrincipales;
 
   if (
-    servicios.some((v: Servicio) => v.code_service == "14" && v.status == 1) &&
+    servicios!.some((v: Servicio) => v.code_service == "14" && v.status == 1) &&
     !id_town
   ) {
     dialogSeleccionDistrito.value = true;
@@ -725,7 +727,7 @@ async function copiarCotizacion() {
       },
     });
 
-    await rootStore.dispatch("copiarQuote", {
+    await pricingStore.copiarQuote({
       fullflag: true,
       id: route.params.id,
     }).catch((err: unknown) => {
@@ -738,19 +740,19 @@ async function copiarCotizacion() {
 
     if (branchCreacion.includes(id_branch)) {
       // Aquí recibimos el return de la función anterior
-      const urlGenerada = await rootStore.dispatch("crearCarpetaOneDrive", {
-        nro_quote: rootStore.state.pricing.nro_quote,
-        nombre: rootStore.state.pricing.datosPrincipales.nombre,
+      const urlGenerada = await pricingStore.crearCarpetaOneDrive({
+        nro_quote: pricingStore.nro_quote,
+        nombre: pricingStore.datosPrincipales.nombre,
       });
 
       if (urlGenerada) {
         await Promise.all([
-          rootStore.dispatch("actualizarURLEnElQuote", {
-            id: rootStore.state.pricing.id,
+          pricingStore.actualizarURLEnElQuote({
+            id: pricingStore.id,
             url: urlGenerada,
           }),
           rootStore.dispatch("moveFileToOneDrive", {
-            fileIds: rootStore.state.pricing.selectedFile.map(
+            fileIds: pricingStore.selectedFile.map(
               (file: ArchivoDrive) => file.id,
             ),
             destinationFolderUrl: urlGenerada,
@@ -767,13 +769,13 @@ async function copiarCotizacion() {
     Swal.fire({
       icon: "info",
       title: "Aviso",
-      text: rootStore.state.pricing.mensaje,
+      text: pricingStore.mensaje,
       confirmButtonText: "Ir a ver",
     }).then(async (result) => {
       if (result.isConfirmed) {
         await router.push({
           name: "verQuote",
-          params: { id: rootStore.state.pricing.id },
+          params: { id: pricingStore.id },
         });
         nextTick(() => {
           location.reload();
@@ -792,7 +794,7 @@ function validarRegistro() {
   let val = true;
 
   if (
-    rootStore.state.pricing.opcionCostos.some((v: OpcionCosto) => v.date_end == "")
+    pricingStore.opcionCostos.some((v: OpcionCosto) => v.date_end == "")
   ) {
     Swal.fire({
       icon: "warning",
@@ -802,7 +804,7 @@ function validarRegistro() {
     val = false;
   } else {
     if (
-      !rootStore.state.pricing.opcionCostos.some((v: OpcionCosto) =>
+      !pricingStore.opcionCostos.some((v: OpcionCosto) =>
         isDateValid(v.date_end),
       )
     ) {
@@ -815,7 +817,7 @@ function validarRegistro() {
     }
   }
   if (
-    !rootStore.state.pricing.opcionCostos.some((v: OpcionCosto) => v.tiempo_transito)
+    !pricingStore.opcionCostos.some((v: OpcionCosto) => v.tiempo_transito)
   ) {
     Swal.fire({
       icon: "warning",
@@ -829,11 +831,11 @@ function validarRegistro() {
   }
 
   let validacioncosto = null as { estado: boolean; mensaje: string } | null;
-  rootStore.state.pricing.opcionCostos.forEach((element: OpcionCosto) => {
+  pricingStore.opcionCostos.forEach((element: OpcionCosto) => {
     const validateCostos = validateCost({
       costo: element.listCostos.filter((v) => v.esopcionflag == 1),
-      multiplicador: rootStore.state.pricing.listMultiplicador,
-      services: rootStore.state.pricing.listServices,
+      multiplicador: pricingStore.listMultiplicador,
+      services: pricingStore.listServices,
     });
     if (validateCostos.estado) {
       validacioncosto = validateCostos;
@@ -860,15 +862,15 @@ function obtenerTipoAlert() {
   const Url = ["newQuote", "editQuote", "verQuote"];
   if (Url.includes(getNameUrl())) {
     if (
-      rootStore.state.pricing.totalCosto -
-        rootStore.state.pricing.totalVenta <
+      pricingStore.totalCosto -
+        pricingStore.totalVenta <
       0
     ) {
       type = "success";
     }
     if (
-      rootStore.state.pricing.totalCosto -
-        rootStore.state.pricing.totalVenta >
+      pricingStore.totalCosto -
+        pricingStore.totalVenta >
       0
     ) {
       type = "error";
@@ -940,7 +942,7 @@ function esUsuarioAdmin() {
   return false;
 }
 function esCotizacionAprobada() {
-  const pricing = rootStore.state.pricing;
+  const pricing = pricingStore;
 
   // Verificar aprobadoflag (boolean)
   if (pricing.aprobadoflag === true) {
@@ -1534,7 +1536,7 @@ watch(idRole, async () => {
       "Content-Type": "application/json",
     },
     params: {
-      id_modality: rootStore.state.pricing.datosPrincipales.idsentido,
+      id_modality: pricingStore.datosPrincipales.idsentido,
       id_roles: idRole.value.join(","),
       id_branch: JSON.parse(sessionStorage.getItem("dataUser") as string)[0]
         .id_branch,
@@ -1640,21 +1642,21 @@ watch(idRole, async () => {
         Profit / Ganancia
         {{
           currencyFormat(
-            rootStore.state.pricing.totalVenta - rootStore.state.pricing.totalCosto,
+            pricingStore.totalVenta - pricingStore.totalCosto,
           )
         }}
       </label>
 
       <v-spacer
-        v-if="getNameUrl() == 'newQuote' && !!rootStore.state.pricing.btnRegistrar"
+        v-if="getNameUrl() == 'newQuote' && !!pricingStore.btnRegistrar"
       />
 
       <v-btn
         variant="elevated"
         color="#009688"
-        v-if="getNameUrl() == 'newQuote' && !!rootStore.state.pricing.btnRegistrar"
+        v-if="getNameUrl() == 'newQuote' && !!pricingStore.btnRegistrar"
         @click="guardarCotizacion()"
-        :disabled="rootStore.state.pricing.bloquearBtnImprimir"
+        :disabled="pricingStore.bloquearBtnImprimir"
       >
         GUARDAR
       </v-btn>
@@ -1666,7 +1668,7 @@ watch(idRole, async () => {
         Profit / Ganancia
         {{
           currencyFormat(
-            rootStore.state.pricing.totalVenta - rootStore.state.pricing.totalCosto,
+            pricingStore.totalVenta - pricingStore.totalCosto,
           )
         }}
       </label>
@@ -1693,7 +1695,7 @@ watch(idRole, async () => {
         Profit / Ganancia
         {{
           currencyFormat(
-            rootStore.state.pricing.totalVenta - rootStore.state.pricing.totalCosto,
+            pricingStore.totalVenta - pricingStore.totalCosto,
           )
         }}
       </label>
@@ -1750,7 +1752,7 @@ watch(idRole, async () => {
         class="mx-1"
         color="#FFD600"
         @click="
-          abrirCarpeta(rootStore.state.pricing.datosPrincipales.url_folderonedrive)
+          abrirCarpeta(pricingStore.datosPrincipales.url_folderonedrive!)
         "
       >
         <v-icon
@@ -2063,7 +2065,7 @@ watch(idRole, async () => {
             :headers="headersFiles"
             :items="listadoFilesDrive"
             show-select
-            v-model="rootStore.state.pricing.selectedFile"
+            v-model="pricingStore.selectedFile"
             item-value="id"
             return-object
           >
@@ -2183,7 +2185,7 @@ watch(idRole, async () => {
         <v-card-text>
           <p>Selecciona el distrito para calcular la tarifa de transporte.</p>
           <v-autocomplete
-            v-model="rootStore.state.pricing.datosPrincipales.id_town"
+            v-model="pricingStore.datosPrincipales.id_town"
             :items="townStore.lstTown"
             item-title="nombrecompleto"
             item-value="id"
@@ -2195,7 +2197,7 @@ watch(idRole, async () => {
           <v-spacer />
           <v-btn
             color="primary"
-            :disabled="!rootStore.state.pricing.datosPrincipales.id_town"
+            :disabled="!pricingStore.datosPrincipales.id_town"
             @click="confirmarSeleccionDistrito"
           >
             Aceptar

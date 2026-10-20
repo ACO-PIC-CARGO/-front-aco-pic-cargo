@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, watch } from "vue";
-import { useStore } from "vuex";
 import type { ValidationRule } from "vuetify";
+import { usePricingStore } from "@/stores/pricing";
 
 withDefaults(
   defineProps<{
@@ -36,7 +36,7 @@ withDefaults(
 const model = defineModel<string | number | Record<string, unknown> | null>({ default: null });
 const emit = defineEmits<{ change: [id: unknown] }>();
 
-const rootStore = useStore();
+const pricingStore = usePricingStore();
 
 const valorAnterior = ref(model.value);
 const autocompleteKey = ref(0);
@@ -46,8 +46,8 @@ watch(model, (newValue) => {
 });
 
 function onInputMultiplicador(id: string | number | Record<string, unknown> | null) {
-  const item = rootStore.state.pricing.listMultiplicador.find(
-    (item: { id: number | string }) => item.id == id,
+  const item = pricingStore.listMultiplicador.find(
+    (item) => item.id == id,
   );
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -64,7 +64,7 @@ function onInputMultiplicador(id: string | number | Record<string, unknown> | nu
   <v-autocomplete
     :key="autocompleteKey"
     :model-value="model"
-    :items="rootStore.state.pricing.listMultiplicador"
+    :items="pricingStore.listMultiplicador"
     :item-title="itemText"
     :item-value="itemValue"
     :label="label"

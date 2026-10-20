@@ -5,6 +5,7 @@ import { toRaw } from "vue";
 import Swal from "sweetalert2";
 import store from "@/store";
 import { useIncotermStore } from "@/stores/incoterm";
+import { usePricingStore } from "@/stores/pricing";
 import { JSON_HEADERS, URL_MAIN, accepted, flushPromises, httpMock, rejected, respond } from "./catalogHttp";
 
 vi.mock("@/api/http", () => ({ default: vi.fn() }));
@@ -48,6 +49,7 @@ describe("incoterm store", () => {
     expect(incoterm.loading).toBe(true);
     expect(sharedCommits()).toHaveLength(1);
     expect(sharedCommits()[0]![1]).toBe(toRaw(incoterm.list));
+    expect(toRaw(usePricingStore().listIncoterms)).toBe(toRaw(incoterm.list));
     expect(sessionStorage.getItem("auth-token")).toBe("tok");
   });
 
@@ -77,6 +79,7 @@ describe("incoterm store", () => {
     });
     expect(incoterm.list).toEqual([fob]);
     expect(sharedCommits()[0]![1]).toBe(toRaw(incoterm.list));
+    expect(toRaw(usePricingStore().listIncoterms)).toBe(toRaw(incoterm.list));
     expect(incoterm.loading).toBe(false);
 
     respond({ ver_incoterms_config: rejected() });

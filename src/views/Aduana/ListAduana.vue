@@ -38,7 +38,7 @@
       </v-row>
     </v-card>
     <v-navigation-drawer
-      v-model="$store.state.pricing.filtrarQuoteFlag"
+      v-model="pricingStore.filtrarQuoteFlag"
       location="right"
       
       width="20%"
@@ -49,7 +49,7 @@
       </v-card> -->
     </v-navigation-drawer>
     <v-navigation-drawer
-      v-model="$store.state.pricing.filtrarCallsFlag"
+      v-model="pricingStore.filtrarCallsFlag"
       location="right"
       
       width="20%"
@@ -82,9 +82,10 @@
 <script>
 import { defineAsyncComponent } from "vue";
 import { mapActions } from "vuex";
-import { mapActions as mapPiniaActions } from "pinia";
+import { mapActions as mapPiniaActions, mapStores } from "pinia";
 import { useSecuritysStore } from "@/stores/securitys";
 import { useConfigEmpresaStore } from "@/stores/configEmpresa";
+import { usePricingStore } from "@/stores/pricing";
 
 export default {
   name: "ListPricingView",
@@ -107,16 +108,19 @@ export default {
   },
   mounted() {
     this.$store.state.drawer = false;
-    this.$store.state.pricing.e1 = 1;
+    this.pricingStore.e1 = 1;
     let val = JSON.parse(sessionStorage.getItem("ConfigEmpresa"));
     this.dialog = !val.existecot;
     this.getResumenPorEstado();
   },
+  computed: {
+    ...mapStores(usePricingStore),
+  },
   methods: {
     ...mapActions([
-      "getResumenPorEstado",
       "getListQuoteAduana",
     ]),
+    ...mapPiniaActions(usePricingStore, ["getResumenPorEstado"]),
     ...mapPiniaActions(useConfigEmpresaStore, ["GuardarConfiguracionEmpresa"]),
     ...mapPiniaActions(useSecuritysStore, ["ObtenerDatosConfig"]),
     redirect() {
@@ -128,7 +132,7 @@ export default {
     },
     async filtrarCotizaciones(item) {
       this.$store.state.spiner = true;
-      this.$store.state.pricing.filtro = {
+      this.pricingStore.filtro = {
         id_marketing: "",
         id_status: item.id,
         id_entities: "",

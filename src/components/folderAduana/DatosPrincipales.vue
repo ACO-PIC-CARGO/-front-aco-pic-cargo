@@ -13,7 +13,7 @@
                   density="compact"
                   :rules="[(v) => !!v || 'Dato requerido']"
                   class="my-1"
-                  :items="$store.state.pricing.listMarketing"
+                  :items="pricingStore.listMarketing"
                   item-title="name"
                   item-value="id"
                   v-model="$store.state.aduana.datosPrincipales.id_marketing"
@@ -24,7 +24,7 @@
                   density="compact"
                   :rules="[(v) => !!v || 'Dato requerido']"
                   class="my-0"
-                  :items="$store.state.pricing.listQuoteStatus"
+                  :items="pricingStore.listQuoteStatus"
                   item-title="name"
                   item-value="id"
                   v-model="$store.state.aduana.datosPrincipales.id_status"
@@ -38,7 +38,7 @@
                   density="compact"
                   :rules="[(v) => !!v || 'Dato requerido']"
                   class="my-0"
-                  :items="$store.state.pricing.listEjecutivo"
+                  :items="pricingStore.listEjecutivo"
                   item-title="nombrecompleto"
                   item-value="id"
                   v-model="$store.state.aduana.datosPrincipales.id_vendedor"
@@ -52,7 +52,7 @@
                   density="compact"
                   :rules="[(v) => !!v || 'Dato requerido']"
                   class="my-0"
-                  :items="$store.state.pricing.listEjecutivo"
+                  :items="pricingStore.listEjecutivo"
                   item-title="nombrecompleto"
                   item-value="id"
                   v-model="$store.state.aduana.datosPrincipales.id_pricing"
@@ -246,8 +246,9 @@
 <script>
 import { mapActions, mapState } from "vuex";
 import Swal from "sweetalert2";
-import { mapStores } from "pinia";
+import { mapActions as mapPiniaActions, mapStores } from "pinia";
 import { useEntitiesStore } from "@/stores/entities";
+import { usePricingStore } from "@/stores/pricing";
 export default {
   emits: ["activarDatosCarga", "recargarServiciosCostos"],
   props: {
@@ -280,13 +281,9 @@ export default {
   },
   methods: {
     ...mapActions([
-      "getMarketingList",
-      "getQuoteStatus",
-      "getShipment",
-      "getIncoterms",
       "_getEntitiesCliente",
-      "getCargarEjecutivo",
     ]),
+    ...mapPiniaActions(usePricingStore, ["getMarketingList", "getQuoteStatus", "getShipment", "getIncoterms", "getCargarEjecutivo"]),
     registrarNuevoCliente() {
       this.$store.state.modalEntitie = true;
     },
@@ -326,7 +323,7 @@ export default {
     },
   },
   computed: {
-    ...mapStores(useEntitiesStore),
+    ...mapStores(usePricingStore, useEntitiesStore),
     ...mapState(["registroClienteFlag", ""]),
     incoterms() {
       let Icoterms = [];

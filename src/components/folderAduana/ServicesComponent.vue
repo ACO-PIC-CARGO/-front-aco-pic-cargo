@@ -153,7 +153,8 @@
 
 <script>
 import Swal from "sweetalert2";
-import { mapActions } from "vuex";
+import { mapActions as mapPiniaActions } from "pinia";
+import { usePricingStore } from "@/stores/pricing";
 export default {
   emits: ["activarLlenadoCostos", "recargarCostos"],
   props: {
@@ -175,12 +176,7 @@ export default {
     };
   },
   methods: {
-    ...mapActions([
-      "getItemsServices",
-      "getImpuestos",
-      "getItemsServicesDetails",
-      "getBegEndList",
-    ]),
+    ...mapPiniaActions(usePricingStore, ["getItemsServices", "getImpuestos", "getItemsServicesDetails", "getBegEndList"]),
     guardarServicio() {
       let codebegend = this.$store.state.aduana.begEndList.filter(
         (v) => v.id == this.servicio.id_begend

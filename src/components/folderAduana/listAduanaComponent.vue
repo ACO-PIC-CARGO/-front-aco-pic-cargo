@@ -45,8 +45,8 @@
           <v-btn
             color="info"
             @click="
-              $store.state.pricing.filtrarQuoteFlag =
-                !$store.state.pricing.filtrarQuoteFlag
+              pricingStore.filtrarQuoteFlag =
+                !pricingStore.filtrarQuoteFlag
             "
             class="mx-1"
             size="small"
@@ -59,7 +59,7 @@
     <v-data-table
       :search="search"
       :headers="cabCotizaciones"
-      :items="$store.state.pricing.listQuotes"
+      :items="pricingStore.listQuotes"
       :expand-strategy="singleExpand ? 'single' : 'multiple'"
       v-model:expanded="expanded"
       item-value="index"
@@ -274,7 +274,7 @@
             <v-select
               auto-select-first
               :items="
-                $store.state.pricing.listQuoteStatus.filter((v) => v.id != 1)
+                pricingStore.listQuoteStatus.filter((v) => v.id != 1)
               "
               label="ESTADO DE LA COTIZACIÓN"
               v-model="id_status"
@@ -283,7 +283,7 @@
               item-value="id"
             ></v-select>
             <v-select
-              :items="$store.state.pricing.listRecibidoCotizacion"
+              :items="pricingStore.listRecibidoCotizacion"
               item-value="id"
               item-title="descripcion"
               v-model="id_master_recibidocotizacion"
@@ -291,7 +291,7 @@
               :rules="[(v) => !!v || 'Dato Requerido']"
             ></v-select>
             <v-select
-              :items="$store.state.pricing.listEnviadoCliente"
+              :items="pricingStore.listEnviadoCliente"
               item-value="id"
               item-title="descripcion"
               v-model="id_master_enviadocliente"
@@ -304,7 +304,7 @@
               label="FECHA DE ENVÍO AL CLIENTE"
               :rules="[(v) => !!v || 'Dato Requerido']"
               v-if="
-                $store.state.pricing.listEnviadoCliente.filter(
+                pricingStore.listEnviadoCliente.filter(
                   (v) => v.id == id_master_enviadocliente && v.codigo == 'SE'
                 ).length > 0
               "
@@ -350,7 +350,7 @@
             >
             </v-text-field>
             <v-autocomplete
-              :items="$store.state.pricing.listEjecutivo"
+              :items="pricingStore.listEjecutivo"
               label="Ejecutivo."
               density="compact"
               clearable
@@ -425,9 +425,10 @@
 <script>
 import moment from "moment";
 import { mapActions } from "vuex";
-import { mapActions as mapPiniaActions } from "pinia";
+import { mapActions as mapPiniaActions, mapStores } from "pinia";
 import { useSecuritysStore } from "@/stores/securitys";
 import Swal from "sweetalert2";
+import { usePricingStore } from "@/stores/pricing";
 export default {
   name: "ListQuoteComponent",
   data() {
@@ -572,22 +573,17 @@ export default {
       id_exp: "",
     };
   },
+  computed: {
+    ...mapStores(usePricingStore),
+  },
   methods: {
     ...mapActions([
       "getListQuoteAduana",
-      "imprimiReporteListado",
-      "exportarExcelListadoQuote",
-      "imprimirMercadeo",
       "actualizarAduanaRecibidoEnviado",
-      "getListRecibidoCotizacion",
-      "getListEnviadoCliente",
-      "getModulesEntities",
       "guardarNotaAduana",
-      "eliminarRegistro",
-      "getQuoteStatus",
       "cargarMaster",
-      "aprobarCotizacion",
     ]),
+    ...mapPiniaActions(usePricingStore, ["imprimiReporteListado", "exportarExcelListadoQuote", "imprimirMercadeo", "getListRecibidoCotizacion", "getListEnviadoCliente", "getModulesEntities", "eliminarRegistro", "getQuoteStatus", "aprobarCotizacion"]),
     ...mapPiniaActions(useSecuritysStore, ["validarUsuarioAdmin"]),
     async iraAprobado(id) {
       let val = false;
@@ -722,7 +718,7 @@ export default {
           ? JSON.parse(sessionStorage.getItem("dataUser"))[0].id
           : "",
       };
-      this.$store.state.pricing.id = id;
+      this.pricingStore.id = id;
       this.dialogRegistroNotaLlamada = true;
     },
     async guardarNota() {
@@ -731,7 +727,7 @@ export default {
         this.$store.state.spiner = true;
 
         let data = {
-          id_quote: this.$store.state.pricing.id,
+          id_quote: this.pricingStore.id,
           id_operador: this.fromData.identities,
           comentario: this.fromData.descripcion,
           fecha: this.fromData.date,
@@ -888,7 +884,7 @@ export default {
     },
   },
   async mounted() {
-    this.$store.state.pricing.filtro = {
+    this.pricingStore.filtro = {
       id_marketing: "",
       id_status: "",
       id_entities: "",

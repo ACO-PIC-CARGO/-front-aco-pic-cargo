@@ -24,7 +24,7 @@
             >
             </v-text-field>
             <v-autocomplete
-              :items="$store.state.pricing.listEjecutivo"
+              :items="pricingStore.listEjecutivo"
               label="Ejecutivo."
               density="compact"
               clearable
@@ -64,8 +64,8 @@
           <v-btn
             color="info"
             @click="
-              $store.state.pricing.filtrarCallsFlag =
-                !$store.state.pricing.filtrarCallsFlag
+              pricingStore.filtrarCallsFlag =
+                !pricingStore.filtrarCallsFlag
             "
             class="mx-1"
             size="small"
@@ -79,7 +79,7 @@
       <v-data-table
         density="compact"
         :headers="headers"
-        :items="$store.state.pricing.listCall"
+        :items="pricingStore.listCall"
         :items-per-page="5"
         class="elevation-1 contenido"
         :search="search"
@@ -162,6 +162,8 @@
 <script>
 import { mapActions } from "vuex";
 import moment from "moment";
+import { mapActions as mapPiniaActions, mapStores } from "pinia";
+import { usePricingStore } from "@/stores/pricing";
 export default {
   data() {
     return {
@@ -244,12 +246,14 @@ export default {
     await this.getQuoteCallAduana(this.filtro);
     this.$store.state.spiner = false;
   },
+  computed: {
+    ...mapStores(usePricingStore),
+  },
   methods: {
     ...mapActions([
       "getQuoteCallAduana",
-      "imprimiReporteListadoCalls",
-      "guardarNotaQuote",
     ]),
+    ...mapPiniaActions(usePricingStore, ["imprimiReporteListadoCalls", "guardarNotaQuote"]),
     async imprimierCalls() {
       this.$store.state.spiner = true;
       this.loading4 = true;
@@ -266,7 +270,7 @@ export default {
           : "",
       };
       console.log(id);
-      this.$store.state.pricing.id = id;
+      this.pricingStore.id = id;
       this.dialogRegistroNotaLlamada = true;
     },
     async guardarNota() {
@@ -275,7 +279,7 @@ export default {
         this.$store.state.spiner = true;
 
         let data = {
-          id_quote: this.$store.state.pricing.id,
+          id_quote: this.pricingStore.id,
           id_operador: this.fromData.identities,
           comentario: this.fromData.descripcion,
           fecha: this.fromData.date,

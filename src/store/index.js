@@ -5,7 +5,6 @@ const imgSave = "/img/svg/save.svg";
 const imgFolder = "/img/svg/folder.svg";
 const imgMailbox = "/img/svg/mailbox.svg";
 const imgList = "/img/svg/lista.svg";
-import pricing from "./modules/pricing";
 import controlGastos from "./modules/controlGasto";
 import consolidacion from "./modules/consolidacion";
 import bancos from "./modules/banco";
@@ -2836,7 +2835,6 @@ export default createStore({
 
   modules: {
     reportes,
-    pricing,
     controlGastos,
     consolidacion,
     bancos,

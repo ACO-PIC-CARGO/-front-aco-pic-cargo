@@ -1,12 +1,12 @@
 <template>
-  <v-container v-if="($store.state.pricing.listInstructivo || []).length">
+  <v-container v-if="(pricingStore.listInstructivo || []).length">
     <v-col cols="12">
       
         <div class="text-center">
           <v-pagination
             v-model="page"
             :length="
-              ($store.state.pricing.opcionCostos || []).filter((v) => !!v.selected)
+              (pricingStore.opcionCostos || []).filter((v) => !!v.selected)
                 .length
             "
             rounded
@@ -109,7 +109,7 @@
                 :value="opcion.nro_propuesta"
                 v-for="(
                   opcion, index
-                ) in $store.state.pricing.opcionCostos.filter(
+                ) in pricingStore.opcionCostos.filter(
                   (v) => v.selected,
                 )"
                 :key="index"
@@ -173,43 +173,43 @@
       <center>
         <h3>
           INSTRUCTIVO COMPRA
-          {{ $store.state.pricing.listInstructivo[0].expediente }} - N°{{
+          {{ pricingStore.listInstructivo[0].expediente }} - N°{{
             nroPropuestaActual
           }}
         </h3>
 
         <h3 class="mb-1 ml-1">
           {{
-            $store.state.pricing.aprobadoflag == true
+            pricingStore.aprobadoflag == true
               ? "APROBADO"
               : "POR APROBAR"
           }}
           |
           <v-btn
-            v-if="$store.state.pricing.listInstructivo[0].code_master"
+            v-if="pricingStore.listInstructivo[0].code_master"
             color="info"
             style="color: black"
             @click="irAControlDeGastos"
           >
             Exp. Master:
             {{
-              $store.state.pricing.listInstructivo[0].code_master
-                ? $store.state.pricing.listInstructivo[0].code_master
+              pricingStore.listInstructivo[0].code_master
+                ? pricingStore.listInstructivo[0].code_master
                 : "--"
             }}
             | Exp. House:
             {{
-              $store.state.pricing.listInstructivo[0].code_house
-                ? $store.state.pricing.listInstructivo[0].code_house
+              pricingStore.listInstructivo[0].code_house
+                ? pricingStore.listInstructivo[0].code_house
                 : "--"
             }}
             <v-icon class="mx-5">mdi-cash-fast</v-icon>
           </v-btn>
         </h3>
         <h4 class="mb-1 ml-1">
-          {{ $store.state.pricing.listInstructivo[0].sentido }} -
-          {{ $store.state.pricing.listInstructivo[0].carga }} -
-          {{ $store.state.pricing.listInstructivo[0].incoterms }}
+          {{ pricingStore.listInstructivo[0].sentido }} -
+          {{ pricingStore.listInstructivo[0].carga }} -
+          {{ pricingStore.listInstructivo[0].incoterms }}
         </h4>
       </center>
     </div>
@@ -221,21 +221,21 @@
             <v-text-field
               class="my-1"
               readonly
-              v-model="$store.state.pricing.datosPrincipales.nombre"
+              v-model="pricingStore.datosPrincipales.nombre"
               label="NOMBRE:"
               density="compact"
             ></v-text-field>
             <v-text-field
               class="my-1"
               readonly
-              v-model="$store.state.pricing.listInstructivo[0].direccion"
+              v-model="pricingStore.listInstructivo[0].direccion"
               label="DIRECCIÓN:"
               density="compact"
             ></v-text-field>
             <v-text-field
               class="my-1"
               readonly
-              v-model="$store.state.pricing.datosPrincipales.telefono"
+              v-model="pricingStore.datosPrincipales.telefono"
               label="CONTACTO:"
               density="compact"
             ></v-text-field>
@@ -243,7 +243,7 @@
             <v-text-field
               class="my-1"
               readonly
-              v-model="$store.state.pricing.vendedor"
+              v-model="pricingStore.vendedor"
               label="VENDEDOR:"
               density="compact"
             ></v-text-field>
@@ -255,7 +255,7 @@
             <v-table density="compact">
               <tbody>
                 <tr
-                  v-for="(servicio, i) in $store.state.pricing
+                  v-for="(servicio, i) in pricingStore
                     .listServiciosInstructivo"
                   :key="i"
                 >
@@ -273,7 +273,7 @@
               class="my-1"
               density="compact"
               label="NOMBRE DEL PROVEEDOR:"
-              v-model="$store.state.pricing.listInstructivo[0].proveedor"
+              v-model="pricingStore.listInstructivo[0].proveedor"
               required
             >
             </v-text-field>
@@ -281,16 +281,16 @@
               class="my-1"
               density="compact"
               readonly
-              v-model="$store.state.pricing.listInstructivo[0].direccionorigen"
+              v-model="pricingStore.listInstructivo[0].direccionorigen"
               label="DIRECCION ORIGEN:"
-              v-if="$store.state.pricing.listInstructivo[0].icotems == 'SXWORK'"
+              v-if="pricingStore.listInstructivo[0].icotems == 'SXWORK'"
             >
             </v-text-field>
             <v-text-field
               class="my-1"
               density="compact"
               readonly
-              v-model="$store.state.pricing.listInstructivo[0].origen"
+              v-model="pricingStore.listInstructivo[0].origen"
               label="POL:"
             >
             </v-text-field>
@@ -298,14 +298,14 @@
               class="my-1"
               density="compact"
               readonly
-              v-model="$store.state.pricing.listInstructivo[0].destino"
+              v-model="pricingStore.listInstructivo[0].destino"
               label="POD:"
             >
             </v-text-field>
             <v-text-field
               class="my-1"
               density="compact"
-              v-model="$store.state.pricing.listInstructivo[0].fiscal"
+              v-model="pricingStore.listInstructivo[0].fiscal"
               required
               label="NOMBRE FISCAL"
             >
@@ -314,7 +314,7 @@
               class="my-1"
               density="compact"
               readonly
-              v-model="$store.state.pricing.listInstructivo[0].ruc"
+              v-model="pricingStore.listInstructivo[0].ruc"
               label="RUC:"
             >
             </v-text-field>
@@ -331,7 +331,7 @@
             <v-table density="compact" border>
               <tbody>
                 <tr
-                  v-for="(nota, i) in $store.state.pricing.listInstructivo[0]
+                  v-for="(nota, i) in pricingStore.listInstructivo[0]
                     .notas"
                   :key="i"
                 >
@@ -439,7 +439,7 @@
 
           <v-col
             cols="12"
-            v-if="($store.state.pricing.listImpuestosInstructivo || []).length > 0"
+            v-if="(pricingStore.listImpuestosInstructivo || []).length > 0"
           >
             <v-card class="pa-1" elevation="5">
               <h4 class="mb-1 ml-1">IMPUESTOS</h4>
@@ -658,9 +658,9 @@
         <v-card-text>
           <v-data-table
             :headers="headersFiles"
-            :items="$store.state.pricing.listadoFilesDrive"
+            :items="pricingStore.listadoFilesDrive"
             show-select
-            v-model="$store.state.pricing.selectedFile"
+            v-model="pricingStore.selectedFile"
             item-value="id"
             return-object
           >
@@ -706,7 +706,7 @@
               color="#FFD600"
               @click="
                 abrirCarpeta(
-                  $store.state.pricing.datosPrincipales.url_folderonedrive,
+                  pricingStore.datosPrincipales.url_folderonedrive,
                 )
               "
             >
@@ -757,7 +757,7 @@
               <v-col cols="12">
                 <fileSequenceInstructivo
                   @continuar="abrirModalAprobar"
-                  :aprobadoflag="$store.state.pricing.aprobadoflag"
+                  :aprobadoflag="pricingStore.aprobadoflag"
                   :verPrevisualizacion="verPrevisualizacion"
                   :verDatosPreview="verDatosPreview"
                   @cerrarDialogo="cerrarDialogoSequenceInstructivo"
@@ -867,7 +867,7 @@
 <script>
 import { defineAsyncComponent } from "vue";
 import { mapActions } from "vuex";
-import { mapActions as mapPiniaActions } from "pinia";
+import { mapActions as mapPiniaActions, mapStores } from "pinia";
 import { useSecuritysStore } from "@/stores/securitys";
 import Swal from "sweetalert2";
 import moment from "moment";
@@ -876,6 +876,7 @@ import axios from "@/api/http";
 import FileSequenceInstructivo from "../../comun/fileSequenceInstructivo.vue";
 import Idempotency from "../../../components/mixins/utils.js";
 import { useConfigEmpresaStore } from "@/stores/configEmpresa";
+import { usePricingStore } from "@/stores/pricing";
 export default {
   mixins: [mixins, Idempotency],
   components: {
@@ -942,6 +943,7 @@ export default {
     };
   },
   computed: {
+    ...mapStores(usePricingStore),
     activarBotonAsociarMaster() {
       if (this.id_opcion == 1) {
         let exp = this.$store.state.itemsMasterList.find(
@@ -976,7 +978,7 @@ export default {
       return false;
     },
     ingresosInstructivoActual() {
-      const lista = this.$store.state.pricing.listIngresosInstructivo;
+      const lista = this.pricingStore.listIngresosInstructivo;
       const index = this.page - 1;
       if (!lista || !lista.length || index < 0 || index >= lista.length) {
         return [];
@@ -985,7 +987,7 @@ export default {
       return item && item.opcion ? item.opcion : [];
     },
     costosInstructivoActual() {
-      const lista = this.$store.state.pricing.listCostosInstructivo;
+      const lista = this.pricingStore.listCostosInstructivo;
       const index = this.page - 1;
       if (!lista || !lista.length || index < 0 || index >= lista.length) {
         return [];
@@ -994,7 +996,7 @@ export default {
       return item && item.opcion ? item.opcion : [];
     },
     impuestosInstructivoActual() {
-      const lista = this.$store.state.pricing.listImpuestosInstructivo;
+      const lista = this.pricingStore.listImpuestosInstructivo;
       const index = this.page - 1;
       if (!lista || !lista.length || index < 0 || index >= lista.length) {
         return [];
@@ -1003,7 +1005,7 @@ export default {
       return item && item.opcion ? item.opcion : [];
     },
     nroPropuestaActual() {
-      const lista = this.$store.state.pricing.listIngresosInstructivo;
+      const lista = this.pricingStore.listIngresosInstructivo;
       const index = this.page - 1;
       if (!lista || !lista.length || index < 0 || index >= lista.length) {
         return "";
@@ -1027,7 +1029,7 @@ export default {
     this.$nextTick(async () => {
       setTimeout(async () => {
         await this.generaInstructivoparaguardata();
-        if (this.$store.state.pricing.aprobadoflag && this.stepAprobado == 5) {
+        if (this.pricingStore.aprobadoflag && this.stepAprobado == 5) {
           this.dialogSequenceInstructivo = true;
         }
       }, 4000);
@@ -1035,13 +1037,9 @@ export default {
   },
   methods: {
     ...mapActions([
-      "imprimirInstructivoQuote",
-      "aprobarCotizacion",
       "cargarMaster",
-      "setNoteQuote",
-      "getInstructivoId",
-      "generaInstructivoparaguardata",
     ]),
+    ...mapPiniaActions(usePricingStore, ["imprimirInstructivoQuote", "aprobarCotizacion", "setNoteQuote", "getInstructivoId", "generaInstructivoparaguardata"]),
     ...mapPiniaActions(useConfigEmpresaStore, ["GuardarConfiguracionEmpresa"]),
     ...mapPiniaActions(useSecuritysStore, ["ObtenerDatosConfig"]),
     tienePagosAsociados() {
@@ -1084,7 +1082,7 @@ export default {
           this.$router.push({
             name: "editControlGasto",
             params: {
-              id: this.$store.state.pricing.id_master,
+              id: this.pricingStore.id_master,
               id_branch: JSON.parse(sessionStorage.getItem("dataUser"))[0]
                 .id_branch,
             },
@@ -1168,7 +1166,7 @@ export default {
       this.url_folderonedrive = master.url_folderonedrive;
       if (
         !(
-          this.$store.state.pricing.datosPrincipales.idsentido ==
+          this.pricingStore.datosPrincipales.idsentido ==
           master.id_modality
         )
       ) {
@@ -1177,7 +1175,7 @@ export default {
       }
       if (
         !(
-          this.$store.state.pricing.datosPrincipales.idtipocarga ==
+          this.pricingStore.datosPrincipales.idtipocarga ==
           master.id_shipment
         )
       ) {
@@ -1186,7 +1184,7 @@ export default {
       }
       if (
         !(
-          this.$store.state.pricing.datosPrincipales.idincoterms ==
+          this.pricingStore.datosPrincipales.idincoterms ==
           master.id_incoterms
         )
       ) {
@@ -1196,7 +1194,7 @@ export default {
 
       if (
         !(
-          this.$store.state.pricing.datosPrincipales.idorigen ==
+          this.pricingStore.datosPrincipales.idorigen ==
           master.id_port_begin
         )
       ) {
@@ -1205,7 +1203,7 @@ export default {
       }
       if (
         !(
-          this.$store.state.pricing.datosPrincipales.iddestino ==
+          this.pricingStore.datosPrincipales.iddestino ==
           master.id_port_end
         )
       ) {
@@ -1217,16 +1215,16 @@ export default {
       for (
         let index = 0;
         index <
-        this.$store.state.pricing.opcionCostos.filter((v) => !!v.selected)
+        this.pricingStore.opcionCostos.filter((v) => !!v.selected)
           .length;
         index++
       ) {
         (function (index) {
           this.imprimirInstructivoQuote({
             nro_propuesta:
-              this.$store.state.pricing.opcionCostos[index].nro_propuesta,
+              this.pricingStore.opcionCostos[index].nro_propuesta,
             url_folderonedrive:
-              this.$store.state.pricing.datosPrincipales.url_folderonedrive,
+              this.pricingStore.datosPrincipales.url_folderonedrive,
           });
         }).call(this, index); // Pasamos 'index' como argumento y establecemos el contexto a 'this'
       }
@@ -1246,7 +1244,7 @@ export default {
       }
     },
     async abrirSeleccionDeQuoteAAprobar() {
-      if (!this.$store.state.pricing.datosPrincipales.id_proveedor) {
+      if (!this.pricingStore.datosPrincipales.id_proveedor) {
         Swal.fire({
           icon: "warning",
           title: "Proveedor",
@@ -1254,7 +1252,7 @@ export default {
         });
         return;
       }
-      let opcionCostos = this.$store.state.pricing.opcionCostos.filter(
+      let opcionCostos = this.pricingStore.opcionCostos.filter(
         (v) => !!v.selected,
       );
       if (opcionCostos.length != 1) {
@@ -1290,12 +1288,12 @@ export default {
         return false;
       }
 
-      await this.cargarMaster(this.$store.state.pricing.datosPrincipales);
+      await this.cargarMaster(this.pricingStore.datosPrincipales);
 
       this.seleccionQuoteAprobar = true;
     },
     mostrarBtnAprobar() {
-      return !this.$store.state.pricing.aprobadoflag;
+      return !this.pricingStore.aprobadoflag;
     },
     abrirModalListadoArchivos() {
       this.dialogFiles = true;
@@ -1327,7 +1325,7 @@ export default {
         return false;
       }
       if ((await formulario.validate()).valid) {
-        let fecha_validez = this.$store.state.pricing.opcionCostos.filter(
+        let fecha_validez = this.pricingStore.opcionCostos.filter(
           (v) => v.nro_propuesta == this.nro_propuesta,
         )[0].date_end;
         let esValida = moment(fecha_validez).isSameOrAfter(moment(), "day");
@@ -1422,30 +1420,30 @@ export default {
                   this.fecha_validez = res.value;
                   console.log(
                     "b",
-                    this.$store.state.pricing.listIngresosInstructivoAprobar,
+                    this.pricingStore.listIngresosInstructivoAprobar,
                   );
                   let sum =
-                    this.$store.state.pricing.listIngresosInstructivoAprobar.filter(
+                    this.pricingStore.listIngresosInstructivoAprobar.filter(
                       (v) => v.nro_propuesta == this.nro_propuesta,
                     );
                   let igv =
-                    this.$store.state.pricing.listIngresosInstructivoAprobar
+                    this.pricingStore.listIngresosInstructivoAprobar
                       .filter((v) => v.nro_propuesta == this.nro_propuesta)[0]
                       .dataIngresos.filter(
                         (v) => v.descripcion === "TOTAL",
                       )[0].igv;
                   let valor =
-                    this.$store.state.pricing.listIngresosInstructivoAprobar
+                    this.pricingStore.listIngresosInstructivoAprobar
                       .filter((v) => v.nro_propuesta == this.nro_propuesta)[0]
                       .dataIngresos.filter(
                         (v) => v.descripcion === "TOTAL",
                       )[0].valor;
                   let listCostosInstructivo =
-                    this.$store.state.pricing.listIngresosInstructivoAprobar.filter(
+                    this.pricingStore.listIngresosInstructivoAprobar.filter(
                       (v) => v.nro_propuesta == this.nro_propuesta,
                     )[0].dataCostos;
                   let listVentasInstructivo =
-                    this.$store.state.pricing.listIngresosInstructivoAprobar.filter(
+                    this.pricingStore.listIngresosInstructivoAprobar.filter(
                       (v) => v.nro_propuesta == this.nro_propuesta,
                     )[0].dataVentas;
                   if (res.isConfirmed) {
@@ -1546,30 +1544,30 @@ export default {
                 this.fecha_validez = res.value;
                 console.log(
                   "a",
-                  this.$store.state.pricing.listIngresosInstructivoAprobar,
+                  this.pricingStore.listIngresosInstructivoAprobar,
                 );
                 let sum =
-                  this.$store.state.pricing.listIngresosInstructivoAprobar.filter(
+                  this.pricingStore.listIngresosInstructivoAprobar.filter(
                     (v) => v.nro_propuesta == this.nro_propuesta,
                   );
                 let igv =
-                  this.$store.state.pricing.listIngresosInstructivoAprobar
+                  this.pricingStore.listIngresosInstructivoAprobar
                     .filter((v) => v.nro_propuesta == this.nro_propuesta)[0]
                     .dataIngresos.filter(
                       (v) => v.descripcion === "TOTAL",
                     )[0].igv;
                 let valor =
-                  this.$store.state.pricing.listIngresosInstructivoAprobar
+                  this.pricingStore.listIngresosInstructivoAprobar
                     .filter((v) => v.nro_propuesta == this.nro_propuesta)[0]
                     .dataIngresos.filter(
                       (v) => v.descripcion === "TOTAL",
                     )[0].valor;
                 let listCostosInstructivo =
-                  this.$store.state.pricing.listIngresosInstructivoAprobar.filter(
+                  this.pricingStore.listIngresosInstructivoAprobar.filter(
                     (v) => v.nro_propuesta == this.nro_propuesta,
                   )[0].dataCostos;
                 let listVentasInstructivo =
-                  this.$store.state.pricing.listIngresosInstructivoAprobar.filter(
+                  this.pricingStore.listIngresosInstructivoAprobar.filter(
                     (v) => v.nro_propuesta == this.nro_propuesta,
                   )[0].dataVentas;
                 if (res.isConfirmed) {
@@ -1714,21 +1712,21 @@ export default {
       this.dialogCorrelativos = false;
       await this.generaInstructivoparaguardata();
 
-      let sum = this.$store.state.pricing.listIngresosInstructivoAprobar.filter(
+      let sum = this.pricingStore.listIngresosInstructivoAprobar.filter(
         (v) => v.nro_propuesta == this.nro_propuesta,
       );
-      let igv = this.$store.state.pricing.listIngresosInstructivoAprobar
+      let igv = this.pricingStore.listIngresosInstructivoAprobar
         .filter((v) => v.nro_propuesta == this.nro_propuesta)[0]
         .dataIngresos.filter((v) => v.descripcion === "TOTAL")[0].igv;
-      let valor = this.$store.state.pricing.listIngresosInstructivoAprobar
+      let valor = this.pricingStore.listIngresosInstructivoAprobar
         .filter((v) => v.nro_propuesta == this.nro_propuesta)[0]
         .dataIngresos.filter((v) => v.descripcion === "TOTAL")[0].valor;
       let listCostosInstructivo =
-        this.$store.state.pricing.listIngresosInstructivoAprobar.filter(
+        this.pricingStore.listIngresosInstructivoAprobar.filter(
           (v) => v.nro_propuesta == this.nro_propuesta,
         )[0].dataCostos;
       let listVentasInstructivo =
-        this.$store.state.pricing.listIngresosInstructivoAprobar.filter(
+        this.pricingStore.listIngresosInstructivoAprobar.filter(
           (v) => v.nro_propuesta == this.nro_propuesta,
         )[0].dataVentas;
       const formulario = this.$refs.frmAsociarExpediente;

@@ -37,8 +37,8 @@
               <td style="font-size: 1.2rem; font-weight: bold">
                 COTIZACIÓN
                 {{
-                  $store.state.pricing.nro_quote
-                    ? $store.state.pricing.nro_quote
+                  pricingStore.nro_quote
+                    ? pricingStore.nro_quote
                     : "#####"
                 }}
               </td>
@@ -679,6 +679,7 @@
 import moment from "moment";
 import { mapStores } from "pinia";
 import { useEnterprisesStore } from "@/stores/enterprises";
+import { usePricingStore } from "@/stores/pricing";
 export default {
   emits: ["cerrar"],
   props: ["data", "index"],
@@ -713,9 +714,9 @@ export default {
     window.removeEventListener("keydown", this.handleKeyPress);
   },
   computed: {
-    ...mapStores(useEnterprisesStore),
+    ...mapStores(usePricingStore, useEnterprisesStore),
     isFCL() {
-      let tipoCarga = this.$store.state.pricing.datosPrincipales.idtipocarga;
+      let tipoCarga = this.pricingStore.datosPrincipales.idtipocarga;
       let id = null;
       if (typeof tipoCarga === 'object' && tipoCarga !== null) {
         id = tipoCarga.id;
@@ -723,7 +724,7 @@ export default {
         id = tipoCarga;
       }
 
-      const shipment = (this.$store.state.pricing.listShipment || []).find(
+      const shipment = (this.pricingStore.listShipment || []).find(
         (item) => item && item.id == id,
       );
       return shipment?.code === "FCL";

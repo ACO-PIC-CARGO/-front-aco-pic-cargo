@@ -17,7 +17,7 @@
                 item-title="namelong"
                 item-value="id"
                 readonly
-                v-model="$store.state.pricing.datosPrincipales.id_proveedor"
+                v-model="pricingStore.datosPrincipales.id_proveedor"
                 v-if="mostrarproveedor"
               ></v-autocomplete>
             </v-col>
@@ -27,10 +27,10 @@
                 variant="outlined"
                 density="compact"
                 class="my-1"
-                :items="$store.state.pricing.listPortBegin"
+                :items="pricingStore.listPortBegin"
                 item-title="name"
                 item-value="id_port"
-                v-model="$store.state.pricing.datosPrincipales.idorigen"
+                v-model="pricingStore.datosPrincipales.idorigen"
                 readonly
               ></v-autocomplete>
             </v-col>
@@ -40,10 +40,10 @@
                 variant="outlined"
                 density="compact"
                 class="my-1"
-                :items="$store.state.pricing.listPortEnd"
+                :items="pricingStore.listPortEnd"
                 item-title="name"
                 item-value="id_port"
-                v-model="$store.state.pricing.datosPrincipales.iddestino"
+                v-model="pricingStore.datosPrincipales.iddestino"
                 readonly
               >
               </v-autocomplete>
@@ -55,7 +55,7 @@
                   <v-checkbox
                     label="Individual"
                     v-model="
-                      $store.state.pricing.datosPrincipales.esindividualflag
+                      pricingStore.datosPrincipales.esindividualflag
                     "
                     :value="true"
                     density="compact"
@@ -65,7 +65,7 @@
                 <v-col cols="12" md="6">
                   <v-checkbox
                     label="Grupal"
-                    v-model="$store.state.pricing.datosPrincipales.esgrupalflag"
+                    v-model="pricingStore.datosPrincipales.esgrupalflag"
                     :value="true"
                     density="compact"
                     disabled
@@ -92,7 +92,7 @@
                 item-title="descripcion"
                 item-value="id"
                 v-model="
-                  $store.state.pricing.datosPrincipales.id_percepcionaduana
+                  pricingStore.datosPrincipales.id_percepcionaduana
                 "
               />
             </v-col>
@@ -114,10 +114,10 @@
               <tbody>
                 <tr>
                   <td>
-                    {{ $store.state.pricing.datosPrincipales.numerobultos }}
+                    {{ pricingStore.datosPrincipales.numerobultos }}
                   </td>
-                  <td>{{ $store.state.pricing.datosPrincipales.peso }}</td>
-                  <td>{{ $store.state.pricing.datosPrincipales.volumen }}</td>
+                  <td>{{ pricingStore.datosPrincipales.peso }}</td>
+                  <td>{{ pricingStore.datosPrincipales.volumen }}</td>
                   <td v-if="!ocultarLCL">
                     {{
                       pesoVolumetrico !== null ? pesoVolumetrico + " kg" : ""
@@ -140,7 +140,7 @@
           <v-col cols="12">
             <v-data-table
               :headers="headers"
-              :items="$store.state.pricing.datosPrincipales.containers"
+              :items="pricingStore.datosPrincipales.containers"
               class="elevation-1"
             >
               <template v-slot:[`item.action`]="item">
@@ -207,8 +207,9 @@
 <script>
 import { mapActions } from "vuex";
 import Swal from "sweetalert2";
-import { mapStores } from "pinia";
+import { mapActions as mapPiniaActions, mapStores } from "pinia";
 import { useMasterusuariosStore } from "@/stores/masterusuarios";
+import { usePricingStore } from "@/stores/pricing";
 export default {
   props: {
     mostrarproveedor: {
@@ -240,26 +241,27 @@ export default {
     await this._getContainers();
   },
   methods: {
-    ...mapActions(["_getContainers", "getItemsServices", "getMultiplicador"]),
+    ...mapActions(["_getContainers"]),
+    ...mapPiniaActions(usePricingStore, ["getItemsServices", "getMultiplicador"]),
     esFobFlag() {
       let valBranch = [1, 2, "1", "2"];
       let branch = JSON.parse(sessionStorage.getItem("dataBranch"))[0];
 
       if (!valBranch.includes(branch.id)) return false;
 
-      return this.$store.state.pricing.listIncoterms.some(
+      return this.pricingStore.listIncoterms.some(
         (v) =>
-          v.id == this.$store.state.pricing.datosPrincipales.idincoterms &&
+          v.id == this.pricingStore.datosPrincipales.idincoterms &&
           v.name == "FOB",
       );
     },
     añadirCarga() {
       this.err = "";
       if (this.numerobultos > 0 && this.volumen > 0 && this.peso > 0) {
-        this.$store.state.pricing.datosPrincipales.numerobultos =
+        this.pricingStore.datosPrincipales.numerobultos =
           this.numerobultos;
-        this.$store.state.pricing.datosPrincipales.volumen = this.volumen;
-        this.$store.state.pricing.datosPrincipales.peso = this.peso;
+        this.pricingStore.datosPrincipales.volumen = this.volumen;
+        this.pricingStore.datosPrincipales.peso = this.peso;
       } else {
         this.err = "Datos requerido y mayor que cero";
       }
@@ -268,11 +270,11 @@ export default {
       this.err = "";
       if ((await this.$refs.frmContainer.validate()).valid) {
         if (
-          this.$store.state.pricing.datosPrincipales.containers.filter(
+          this.pricingStore.datosPrincipales.containers.filter(
             (v) => v.id == this.containers.container.id,
           ).length == 0
         ) {
-          this.$store.state.pricing.datosPrincipales.containers.push({
+          this.pricingStore.datosPrincipales.containers.push({
             id: this.containers.container.id,
             description: this.containers.container.name,
             cantidad: this.containers.cantidad,
@@ -288,14 +290,14 @@ export default {
       }
     },
     eliminarContainer({ index = null }) {
-      this.$store.state.pricing.datosPrincipales.containers.splice(index, 1);
+      this.pricingStore.datosPrincipales.containers.splice(index, 1);
     },
     async aceptar() {
       let validate = true;
       if ((await this.$refs.frmPuerto.validate()).valid) {
         if (this.isFCL()) {
           if (
-            this.$store.state.pricing.datosPrincipales.containers.length == 0
+            this.pricingStore.datosPrincipales.containers.length == 0
           ) {
             Swal.fire({
               icon: "error",
@@ -320,7 +322,7 @@ export default {
           await this.getItemsServices();
           await this.getMultiplicador();
           this.$store.state.spiner = false;
-          this.$store.state.pricing.step3 = true;
+          this.pricingStore.step3 = true;
         }
         //
       }
@@ -328,60 +330,60 @@ export default {
     },
     getPuertoOrigen() {
       let puertos = [];
-      if (this.$store.state.pricing.datosPrincipales.iddestino) {
-        var id_port = this.$store.state.pricing.listPortEnd.filter(
+      if (this.pricingStore.datosPrincipales.iddestino) {
+        var id_port = this.pricingStore.listPortEnd.filter(
           (v) =>
-            v.id_port == this.$store.state.pricing.datosPrincipales.iddestino,
+            v.id_port == this.pricingStore.datosPrincipales.iddestino,
         )[0];
 
-        puertos = this.$store.state.pricing.listPortBegin.filter(
+        puertos = this.pricingStore.listPortBegin.filter(
           (v) => v.id_port != id_port,
         );
       } else {
-        puertos = this.$store.state.pricing.listPortBegin;
+        puertos = this.pricingStore.listPortBegin;
       }
       return puertos;
     },
     getPuertoDestino() {
       let puertos = [];
-      if (this.$store.state.pricing.datosPrincipales.idorigen) {
-        var id_port = this.$store.state.pricing.listPortBegin.filter(
+      if (this.pricingStore.datosPrincipales.idorigen) {
+        var id_port = this.pricingStore.listPortBegin.filter(
           (v) =>
-            v.id_port == this.$store.state.pricing.datosPrincipales.idorigen,
+            v.id_port == this.pricingStore.datosPrincipales.idorigen,
         )[0].id_port;
-        puertos = this.$store.state.pricing.listPortEnd.filter(
+        puertos = this.pricingStore.listPortEnd.filter(
           (v) => v.id_port != id_port,
         );
       } else {
-        puertos = this.$store.state.pricing.listPortEnd;
+        puertos = this.pricingStore.listPortEnd;
       }
       return puertos;
     },
     isFCL() {
-      const tipoCarga = this.$store.state.pricing.datosPrincipales.idtipocarga;
+      const tipoCarga = this.pricingStore.datosPrincipales.idtipocarga;
       const id = tipoCarga && typeof tipoCarga === "object"
         ? tipoCarga.id
         : tipoCarga;
-      const shipment = (this.$store.state.pricing.listShipment || []).find(
+      const shipment = (this.pricingStore.listShipment || []).find(
         (item) => item && item.id == id,
       );
       return shipment?.code === "FCL";
     },
     isAereo() {
       let inVal = ["Aéreo", "LCL"];
-      const tipo = this.$store.state.pricing.datosPrincipales.idtipocarga;
+      const tipo = this.pricingStore.datosPrincipales.idtipocarga;
       const id = tipo && typeof tipo === "object" ? tipo.id : tipo;
       if (!id) return false;
-      const items = this.$store.state.pricing.listShipment || [];
+      const items = this.pricingStore.listShipment || [];
       const it = items.find((v) => v.id == id);
       return it && inVal.includes(it.code);
     },
     ocultarLCL() {
       let inVal = ["LCL"];
-      const tipo = this.$store.state.pricing.datosPrincipales.idtipocarga;
+      const tipo = this.pricingStore.datosPrincipales.idtipocarga;
       const id = tipo && typeof tipo === "object" ? tipo.id : tipo;
       if (!id) return false;
-      const items = this.$store.state.pricing.listShipment || [];
+      const items = this.pricingStore.listShipment || [];
       const it = items.find((v) => v.id == id);
       return it && inVal.includes(it.code);
     },
@@ -389,21 +391,21 @@ export default {
       let esPeru = JSON.parse(sessionStorage.getItem("iso_pais")) == 9589;
       return (
         esPeru &&
-        this.$store.state.pricing.listModality.some(
+        this.pricingStore.listModality.some(
           (v) =>
-            v.id == this.$store.state.pricing.datosPrincipales.idsentido &&
+            v.id == this.pricingStore.datosPrincipales.idsentido &&
             v.code == "I",
         )
       );
     },
   },
   computed: {
-    ...mapStores(useMasterusuariosStore),
+    ...mapStores(usePricingStore, useMasterusuariosStore),
     pesoVolumetrico() {
       // Solo aplica para embarques aéreos
       if (!this.isAereo()) return null;
 
-      const datos = this.$store.state.pricing.datosPrincipales || {};
+      const datos = this.pricingStore.datosPrincipales || {};
       const volumen = parseFloat(datos.volumen || 0); // m³
       if (!volumen) return null;
 
@@ -415,7 +417,7 @@ export default {
       // Solo aplica para embarques aéreos
       if (!this.isAereo()) return null;
 
-      const datos = this.$store.state.pricing.datosPrincipales || {};
+      const datos = this.pricingStore.datosPrincipales || {};
       const pesoReal = parseFloat(datos.peso || 0); // kg
       const volumen = parseFloat(datos.volumen || 0); // m³
 

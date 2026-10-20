@@ -28,7 +28,7 @@
 
       <v-col cols="12">
         <v-autocomplete
-          :items="$store.state.pricing.listEjecutivo"
+          :items="pricingStore.listEjecutivo"
           item-title="nombrecompleto"
           item-value="id"
           label="Vendedor"
@@ -39,7 +39,7 @@
       </v-col>
       <v-col cols="12">
         <v-autocomplete
-          :items="$store.state.pricing.listEjecutivo"
+          :items="pricingStore.listEjecutivo"
           item-title="nombrecompleto"
           item-value="id"
           label="Pricing"
@@ -199,6 +199,8 @@
 <script>
 import { mapState, mapActions } from "vuex";
 import axios from "@/api/http";
+import { mapActions as mapPiniaActions, mapStores } from "pinia";
+import { usePricingStore } from "@/stores/pricing";
 export default {
   name: "dataEmbar",
   props: {
@@ -223,6 +225,7 @@ export default {
     // this.$store.state.spiner = false;
   },
   computed: {
+    ...mapStores(usePricingStore),
     ...mapState([
       "itemsCoinsList",
       "itemsAgents",
@@ -255,8 +258,8 @@ export default {
       "_getProveedor",
       "cargarClientes",
       "_getProveedorRolShipper",
-      "getListQuote",
     ]),
+    ...mapPiniaActions(usePricingStore, ["getListQuote"]),
 
     cleanData() {
       this.$store.state.house_cantidad = "";

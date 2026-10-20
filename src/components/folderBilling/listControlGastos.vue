@@ -102,6 +102,7 @@ import GuardarUrlMaster from "../comun/GuardarUrlMaster.vue";
 import Swal from "sweetalert2";
 import { mapActions as mapPiniaActions } from "pinia";
 import { useMasterusuariosStore } from "@/stores/masterusuarios";
+import { usePricingStore } from "@/stores/pricing";
 export default {
   name: "listMasterCom",
   components: {
@@ -159,12 +160,11 @@ export default {
   methods: {
     ...mapActions([
       "_getControlList",
-      "getModulesEntities",
-      "getQuoteNoAsignadoHouse",
       "_getModality",
       "_getProveedor",
       "_getShipment",
     ]),
+    ...mapPiniaActions(usePricingStore, ["getModulesEntities", "getQuoteNoAsignadoHouse"]),
     ...mapPiniaActions(useMasterusuariosStore, ["cargarMasterDetalleCanal"]),
     async cerrarDialog() {
       this.dialogUrl = false;

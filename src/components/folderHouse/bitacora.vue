@@ -243,7 +243,7 @@
             <v-row>
               <v-col cols="6">
                 <v-autocomplete
-                  :items="$store.state.pricing.listModality"
+                  :items="pricingStore.listModality"
                   label="Sentido*"
                   item-title="name"
                   item-value="id"
@@ -254,7 +254,7 @@
               </v-col>
               <v-col cols="6">
                 <v-autocomplete
-                  :items="$store.state.pricing.listShipment"
+                  :items="pricingStore.listShipment"
                   label="Tipo de Embarque*"
                   item-title="embarque"
                   item-value="id"
@@ -515,12 +515,13 @@
 <script>
 import { defineAsyncComponent } from "vue";
 import { mapActions } from "vuex";
-import { mapActions as mapPiniaActions, mapState } from "pinia";
+import { mapActions as mapPiniaActions, mapState, mapStores } from "pinia";
 import { useStatushouseStore } from "@/stores/statushouse";
 import axios from '@/api/http';
 import { v4 as uuidv4 } from "uuid";
 import moment from "moment";
 import Swal from "sweetalert2";
+import { usePricingStore } from "@/stores/pricing";
 export default {
   name: "bitacora",
   props: {
@@ -555,6 +556,7 @@ export default {
     name: "",
   }),
   computed: {
+    ...mapStores(usePricingStore),
     ...mapState(useStatushouseStore, ["listStatusHouse", "orden"]),
     isBotonBitacoraDisabled: function () {
       return this.isFormActionsDisabled || this.disabledBotonBitacora;
@@ -602,9 +604,8 @@ export default {
       "_getBitacoraLineal",
       "_getHouseBitacora",
       "_getComentariosPredefinidos",
-      "getModality",
-      "getShipment",
     ]),
+    ...mapPiniaActions(usePricingStore, ["getModality", "getShipment"]),
     ...mapPiniaActions(useStatushouseStore, [
       "getListStatusHouse",
       "getObtenerOrdenStatusHouse",

@@ -6,6 +6,7 @@ import Swal from "sweetalert2";
 import router from "@/router";
 import store from "@/store";
 import { useModalityStore } from "@/stores/modality";
+import { usePricingStore } from "@/stores/pricing";
 import { JSON_HEADERS, URL_MAIN, accepted, flushPromises, httpMock, rejected, respond } from "./catalogHttp";
 
 vi.mock("@/api/http", () => ({ default: vi.fn() }));
@@ -55,6 +56,7 @@ describe("modality store", () => {
     expect(Swal.fire).not.toHaveBeenCalled();
     expect(sharedCommits()).toHaveLength(1);
     expect(sharedCommits()[0]![1]).toBe(toRaw(modality.list));
+    expect(toRaw(usePricingStore().listModality)).toBe(toRaw(modality.list));
   });
 
   test("fetchDataModality empties the list and tells the user when the backend rejects", async () => {

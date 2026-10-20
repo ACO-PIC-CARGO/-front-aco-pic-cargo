@@ -170,7 +170,6 @@ export const LEGACY = [
   "src/store/modules/multiplicador.js",
   "src/store/modules/performance.js",
   "src/store/modules/position.js",
-  "src/store/modules/pricing.js",
   "src/store/modules/programacion.js",
   "src/store/modules/proyeccion.js",
   "src/store/modules/reporte.js",

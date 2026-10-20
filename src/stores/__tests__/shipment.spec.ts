@@ -6,6 +6,7 @@ import Swal from "sweetalert2";
 import router from "@/router";
 import store from "@/store";
 import { useMultiplicadorStore } from "@/stores/multiplicador";
+import { usePricingStore } from "@/stores/pricing";
 import { useShipmentStore } from "@/stores/shipment";
 import { JSON_HEADERS, URL_MAIN, accepted, flushPromises, httpMock, rejected, respond } from "./catalogHttp";
 
@@ -57,6 +58,7 @@ describe("shipment store", () => {
     expect(toRaw(useMultiplicadorStore().shipments)).toBe(toRaw(shipment.list));
     expect(sharedCommits()).toHaveLength(1);
     expect(sharedCommits()[0]![1]).toBe(toRaw(shipment.list));
+    expect(toRaw(usePricingStore().listShipment)).toBe(toRaw(shipment.list));
   });
 
   test("fetchDataShipment empties every copy of the list and tells the user when the backend rejects", async () => {

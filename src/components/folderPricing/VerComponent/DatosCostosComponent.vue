@@ -1,18 +1,18 @@
 <template>
   <v-card
-    v-if="costoFlag && opcionesSeleccionadas[$store.state.pricing.page - 1]"
+    v-if="costoFlag && opcionesSeleccionadas[pricingStore.page - 1]"
   >
     <h1>
       OPCIÓN COSTOS
-      {{ opcionesSeleccionadas[$store.state.pricing.page - 1].nro_propuesta }}
+      {{ opcionesSeleccionadas[pricingStore.page - 1].nro_propuesta }}
     </h1>
     <v-form ref="frmDatosOpcion">
       <v-row>
         <v-col cols="12" lg="3" xl="3">
           <v-text-field
             type="date"
-            v-model="$store.state.pricing.datosPrincipales.fecha_inicio"
-            :error-messages="$store.state.pricing.fecha_inicio"
+            v-model="pricingStore.datosPrincipales.fecha_inicio"
+            :error-messages="pricingStore.fecha_inicio"
             readonly
             label="Fecha de Registro de Cotización"
           ></v-text-field>
@@ -24,10 +24,10 @@
             :name="`Fecha Validez de la Opción ${page}`"
             :label="`Fecha Validez de la Opción ${page}`"
             v-model="
-              $store.state.pricing.opcionCostos[$store.state.pricing.page - 1]
+              pricingStore.opcionCostos[pricingStore.page - 1]
                 .date_end
             "
-            :error-messages="$store.state.pricing.errfecha_fin"
+            :error-messages="pricingStore.errfecha_fin"
             :rules="[
               (v) => !!v || 'Dato Requerido',
               (v) => isDateValid(v) || 'La fecha debe ser mayor que hoy.',
@@ -41,10 +41,10 @@
             :name="`Tiempo en tránsito de la Opción ${page}`"
             :label="`Tiempo en tránsito de la Opción ${page}`"
             v-model="
-              $store.state.pricing.opcionCostos[$store.state.pricing.page - 1]
+              pricingStore.opcionCostos[pricingStore.page - 1]
                 .tiempo_transito
             "
-            :error-messages="$store.state.pricing.errtiempo_transito"
+            :error-messages="pricingStore.errtiempo_transito"
             :rules="[
               (v) => !!v || 'Dato Requerido',
               (v) => v > 0 || 'El valor tiene que ser positivo.',
@@ -59,11 +59,11 @@
         <CostosComponent
           :valores="
             opcionesSeleccionadas[
-              $store.state.pricing.page - 1
+              pricingStore.page - 1
             ].listCostos.filter((v) => v.esopcionflag == 1)
           "
-          :actualizarCostosFlag="$store.state.pricing.actualizarCostosFlag"
-          :amount="$store.state.pricing.datosPrincipales.amount"
+          :actualizarCostosFlag="pricingStore.actualizarCostosFlag"
+          :amount="pricingStore.datosPrincipales.amount"
           :index="page"
         />
       </v-col>
@@ -71,25 +71,25 @@
         <VentasComponent
           :valores="
             opcionesSeleccionadas[
-              $store.state.pricing.page - 1
+              pricingStore.page - 1
             ].listCostos.filter((v) => v.esventaflag == 1)
           "
-          :actualizarCostosFlag="$store.state.pricing.actualizarCostosFlag"
-          :amount="$store.state.pricing.datosPrincipales.amount"
+          :actualizarCostosFlag="pricingStore.actualizarCostosFlag"
+          :amount="pricingStore.datosPrincipales.amount"
         />
       </v-col>
       <v-col cols="12" md="6" v-if="getExisteImpuesto">
         <center><h3>Impuestos de Aduana</h3></center>
         <ImpuestosComponent
           v-if="mostrarImpuestos()"
-          :amount="$store.state.pricing.datosPrincipales.amount"
+          :amount="pricingStore.datosPrincipales.amount"
           :list-costos="
-            opcionesSeleccionadas[$store.state.pricing.page - 1].listCostos
+            opcionesSeleccionadas[pricingStore.page - 1].listCostos
           "
-          :index="$store.state.pricing.page"
+          :index="pricingStore.page"
           :impuestos="
-            $store.state.pricing.opcionCostos.filter((v) => v.selected)[
-              $store.state.pricing.page - 1
+            pricingStore.opcionCostos.filter((v) => v.selected)[
+              pricingStore.page - 1
             ].listImpuestos
           "
         />
@@ -99,9 +99,9 @@
         
           <div class="text-center">
             <v-pagination
-              v-model="$store.state.pricing.page"
+              v-model="pricingStore.page"
               :length="
-                $store.state.pricing.opcionCostos.filter((v) => v.selected)
+                pricingStore.opcionCostos.filter((v) => v.selected)
                   .length
               "
               rounded
@@ -116,6 +116,8 @@
 <script>
 import { defineAsyncComponent } from "vue";
 import moment from "moment";
+import { mapStores } from "pinia";
+import { usePricingStore } from "@/stores/pricing";
 // import Swal from "sweetalert2";
 export default {
   data() {
@@ -126,7 +128,7 @@ export default {
     };
   },
   mounted() {
-    this.opcionesSeleccionadas = this.$store.state.pricing.opcionCostos.filter(
+    this.opcionesSeleccionadas = this.pricingStore.opcionCostos.filter(
       (v) => !!v.selected,
     );
   },
@@ -137,7 +139,7 @@ export default {
   },
   methods: {
     mostrarImpuestos() {
-      let imp = this.$store.state.pricing.listServices.some(
+      let imp = this.pricingStore.listServices.some(
         (v) => v.codegroupservices == 15 && v.status == true,
       );
 
@@ -145,26 +147,26 @@ export default {
     },
     async agregarNuevaOpcion() {
       if ((await this.$refs.frmDatosOpcion.validate()).valid) {
-        let nro_propuesta = this.$store.state.pricing.index + 1;
-        let costos = this.$store.state.pricing.listCostos.map((objeto) => ({
+        let nro_propuesta = this.pricingStore.index + 1;
+        let costos = this.pricingStore.listCostos.map((objeto) => ({
           ...objeto,
           nro_propuesta,
         }));
-        let listImpuestos = this.$store.state.pricing.listImpuestos.map(
+        let listImpuestos = this.pricingStore.listImpuestos.map(
           (objeto) => ({
             ...objeto,
             nro_propuesta,
           }),
         );
-        let listNotasQuote = this.$store.state.pricing.listNotasQuote.map(
+        let listNotasQuote = this.pricingStore.listNotasQuote.map(
           (objeto) => ({
             ...objeto,
             nro_propuesta,
           }),
         );
-        this.$store.state.pricing.opcionCostos.push({
+        this.pricingStore.opcionCostos.push({
           id: null,
-          nro_propuesta: this.$store.state.pricing.index + 1,
+          nro_propuesta: this.pricingStore.index + 1,
           date_end: moment().add(7, "days").format("YYYY-MM-DD"),
           tiempo_transito: 35,
           listCostos: costos,
@@ -172,14 +174,14 @@ export default {
           listNotasQuote: listNotasQuote,
           selected: true,
         });
-        this.$store.state.pricing.index =
-          parseInt(this.$store.state.pricing.index) + 1;
+        this.pricingStore.index =
+          parseInt(this.pricingStore.index) + 1;
         this.mostrarCostos = false;
         this.btnIngresarCostos = true;
-        this.$store.state.pricing.actualizarNotas =
-          !this.$store.state.pricing.actualizarNotas;
-        this.$store.state.pricing.actualizarComparativa =
-          !this.$store.state.pricing.actualizarComparativa;
+        this.pricingStore.actualizarNotas =
+          !this.pricingStore.actualizarNotas;
+        this.pricingStore.actualizarComparativa =
+          !this.pricingStore.actualizarComparativa;
         this.page = this.page + 1;
       }
     },
@@ -200,11 +202,12 @@ export default {
     // },
   },
   computed: {
+    ...mapStores(usePricingStore),
     actualizarCostos() {
-      return this.$store.state.pricing.costoflag;
+      return this.pricingStore.costoflag;
     },
     getExisteImpuesto() {
-      return this.$store.state.pricing.listServices.some(
+      return this.pricingStore.listServices.some(
         (v) => v.codegroupservices == "15" || v.codegroupservices == 15,
       );
     },

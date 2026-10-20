@@ -10,7 +10,7 @@
             variant="outlined"
             density="compact"
             class="my-1"
-            :items="$store.state.pricing.listMarketing"
+            :items="pricingStore.listMarketing"
             item-title="name"
             item-value="id"
             v-model="$store.state.aduana.datosPrincipales.id_marketing"
@@ -21,7 +21,7 @@
             variant="outlined"
             density="compact"
             class="my-1"
-            :items="$store.state.pricing.listQuoteStatus"
+            :items="pricingStore.listQuoteStatus"
             item-title="name"
             item-value="id"
             v-model="$store.state.aduana.datosPrincipales.id_status"
@@ -32,7 +32,7 @@
             variant="outlined"
             density="compact"
             class="my-1"
-            :items="$store.state.pricing.listEjecutivo"
+            :items="pricingStore.listEjecutivo"
             item-title="name"
             item-value="id_entitie"
             v-model="$store.state.aduana.datosPrincipales.id_vendedor"
@@ -44,7 +44,7 @@
             variant="outlined"
             density="compact"
             class="my-1"
-            :items="$store.state.pricing.listEjecutivo"
+            :items="pricingStore.listEjecutivo"
             item-title="name"
             item-value="id_entitie"
             v-model="$store.state.aduana.datosPrincipales.id_pricing"
@@ -147,8 +147,9 @@
 
 <script>
 import { mapActions, mapState } from "vuex";
-import { mapStores } from "pinia";
+import { mapActions as mapPiniaActions, mapStores } from "pinia";
 import { useEntitiesStore } from "@/stores/entities";
+import { usePricingStore } from "@/stores/pricing";
 
 export default {
   data() {
@@ -168,19 +169,10 @@ export default {
   mounted() {},
   methods: {
     ...mapActions([
-      "getMarketingList",
-      "getQuoteStatus",
-      "getModulesEntities",
-      "getModality",
-      "getShipment",
-      "getIncoterms",
-      "getPortBegin",
-      "getPortEnd",
-      "getModuleRole",
       "_getRole",
-      "getCargarMasterDetalleNotasCotizacion",
       "_getEntities",
     ]),
+    ...mapPiniaActions(usePricingStore, ["getMarketingList", "getQuoteStatus", "getModulesEntities", "getModality", "getShipment", "getIncoterms", "getPortBegin", "getPortEnd", "getModuleRole", "getCargarMasterDetalleNotasCotizacion"]),
     async changeShipment() {
       if (this.$store.state.aduana.datosPrincipales.idtipocarga) {
         this.$store.state.spiner = true;
@@ -214,7 +206,7 @@ export default {
     },
   },
   computed: {
-    ...mapStores(useEntitiesStore),
+    ...mapStores(usePricingStore, useEntitiesStore),
     ...mapState(["registroClienteFlag"]),
   },
 

@@ -93,6 +93,7 @@ import Swal from "sweetalert2";
 import { mapActions as mapPiniaActions } from "pinia";
 import { useMasterusuariosStore } from "@/stores/masterusuarios";
 import { useEnterprisesStore } from "@/stores/enterprises";
+import { usePricingStore } from "@/stores/pricing";
 export default {
   components: {
     DatosPrincipales,
@@ -134,26 +135,20 @@ export default {
   },
   methods: {
     ...mapActions([
-      "resetQuoteNew",
-      "getMarketingList",
-      "getQuoteStatus",
       "getModalityAduana",
       "getShipmentAduana",
       "getIncotermsAduana",
-      "getCargarEjecutivo",
       "getPortBeginAduana",
       "getPortEndAduana",
       "getServicesAduana",
-      "getBegEndList",
       "getTipoCostosAduana",
       "obtenerCostosAduana",
       "getMultiplicadorAduana",
-      "getImpuestos",
       "getCargarMasterDetalleNotasCotizacionAduana",
       "cargarProveedores",
-      "registrarQuote",
       "_getContainers",
     ]),
+    ...mapPiniaActions(usePricingStore, ["resetQuoteNew", "getMarketingList", "getQuoteStatus", "getCargarEjecutivo", "getBegEndList", "getImpuestos", "registrarQuote"]),
     ...mapPiniaActions(useEnterprisesStore, ["obtenerImpuestoXEmpresa"]),
     ...mapPiniaActions(useMasterusuariosStore, ["cargarMasterDetallePercepcionAduana"]),
     recargar() {

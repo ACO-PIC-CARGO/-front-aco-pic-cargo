@@ -5,14 +5,16 @@ import { useStore } from "vuex";
 import Swal from "sweetalert2";
 import axios from "@/api/http";
 import { useConfigEmpresaStore } from "@/stores/configEmpresa";
+import { usePricingStore } from "@/stores/pricing";
 import type { ApiResponse } from "@/types/api";
 import type { Modalidad } from "@/types/catalogos";
 import type { CostoBase, TarifaCosto } from "@/types/configuracion";
-import type { OpcionCosto, TipoCarga } from "@/types/cotizacion";
+import type { CotizacionDetalle, OpcionCosto, TipoCarga } from "@/types/cotizacion";
 
 const route = useRoute();
 const router = useRouter();
 const rootStore = useStore();
+const pricingStore = usePricingStore();
 const configEmpresaStore = useConfigEmpresaStore();
 
 const cotizacionId = ref<string | null>(null);
@@ -218,10 +220,10 @@ async function cargarTarifasCotizacion() {
   loadingTable.value = true;
   try {
     // Llamar directamente al endpoint getQuoteId
-    await rootStore.dispatch("getQuote", { id: cotizacionId.value });
+    await pricingStore.getQuote({ id: cotizacionId.value });
 
     // Obtener datos básicos de la cotización
-    const quoteData = rootStore.state.pricing.copy_quote || {};
+    const quoteData: Partial<CotizacionDetalle> = pricingStore.copy_quote || {};
     cotizacionData.value = {
       quote: quoteData.quote || 'N/A',
       nombre: quoteData.nombre || 'N/A',
@@ -230,7 +232,7 @@ async function cargarTarifasCotizacion() {
     };
 
     // Extraer tarifas básicas (solo costos, no ventas) y organizarlas por categorías
-    const opcionCostos = rootStore.state.pricing.opcionCostos || [];
+    const opcionCostos = pricingStore.opcionCostos || [];
     tarifasCotizacion.value = [];
     tarifasFlete.value = [];
     tarifasOrigen.value = [];
@@ -452,8 +454,8 @@ async function cargarDatosParaPlantilla() {
   // Cargar modalidades y tipos de envío disponibles
   try {
     // Estos datos deberían venir del store o endpoints
-    modalidadesDisponibles.value = rootStore.state.pricing.listModality || [];
-    tiposEnvioDisponibles.value = rootStore.state.pricing.listShipment || [];
+    modalidadesDisponibles.value = pricingStore.listModality || [];
+    tiposEnvioDisponibles.value = pricingStore.listShipment || [];
   } catch (error) {
     console.error('Error cargando datos para plantilla:', error);
   }

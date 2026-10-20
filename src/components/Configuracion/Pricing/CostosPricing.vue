@@ -7,11 +7,14 @@ import _ from "lodash";
 import ModelCostos from "./ModelCostos.vue";
 import { useConfiguracionStore } from "@/stores/configuracion";
 import { useIncotermStore } from "@/stores/incoterm";
+import { usePricingStore } from "@/stores/pricing";
 import { useProveedorStore } from "@/stores/proveedor";
 import type { Modalidad } from "@/types/catalogos";
 import type { TipoCarga } from "@/types/cotizacion";
 
 const rootStore = useStore();
+
+const pricingStore = usePricingStore();
 const incotermStore = useIncotermStore();
 const proveedorStore = useProveedorStore();
 const configuracionStore = useConfiguracionStore();
@@ -50,16 +53,16 @@ const frmBuscar = useTemplateRef("frmBuscar");
 
 onMounted(async () => {
   await Promise.all([
-    rootStore.dispatch("getModality"),
-    rootStore.dispatch("getShipment"),
+    pricingStore.getModality(),
+    pricingStore.getShipment(),
     incotermStore.CargarIncotermsConfig(),
   ]);
 });
 
 async function cargarDatos() {
   configuracionStore.lstCostos = [];
-  rootStore.state.pricing.datosPrincipales.idsentido = id_modality.value;
-  rootStore.state.pricing.datosPrincipales.idtipocarga = id_shipment.value;
+  pricingStore.datosPrincipales.idsentido = id_modality.value;
+  pricingStore.datosPrincipales.idtipocarga = id_shipment.value;
   const data = {
     id_modality: id_modality.value,
     id_shipment: id_shipment.value,
@@ -68,7 +71,7 @@ async function cargarDatos() {
   await Promise.all([
     configuracionStore.getCargarCostos(data),
     configuracionStore.getMultiplicadorConfigCosto(id_shipment.value),
-    rootStore.dispatch("getTipoCostos"),
+    pricingStore.getTipoCostos(),
     configuracionStore.obtenerServicioPricingConfig({
       id_modality: id_modality.value,
       id_shipment: id_shipment.value,
@@ -91,10 +94,10 @@ async function abrirModal(id: number | string, incotermsName: string) {
   }
   loading.value = true;
   id_incoterms.value = id;
-  modality.value = rootStore.state.pricing.listModality.find(
+  modality.value = pricingStore.listModality.find(
     (v: Modalidad) => v.id == id_modality.value,
   );
-  shipment.value = rootStore.state.pricing.listShipment.find(
+  shipment.value = pricingStore.listShipment.find(
     (v: TipoCarga) => v.id == id_shipment.value,
   );
   incoterms.value = incotermsName;
@@ -181,7 +184,7 @@ watch(id_shipment, () => {
                 md="2"
               >
                 <v-autocomplete
-                  :items="rootStore.state.pricing.listModality"
+                  :items="pricingStore.listModality"
                   label="Modalidad"
                   variant="outlined"
                   density="compact"
@@ -196,7 +199,7 @@ watch(id_shipment, () => {
                 md="2"
               >
                 <v-autocomplete
-                  :items="rootStore.state.pricing.listShipment"
+                  :items="pricingStore.listShipment"
                   label="Tipo Mercancía"
                   variant="outlined"
                   density="compact"
@@ -253,16 +256,16 @@ watch(id_shipment, () => {
           v-if="dialog"
           :modality="
             id_modality
-              ? rootStore.state.pricing.listModality.find(
+              ? pricingStore.listModality.find(
                 (v: Modalidad) => v.id == id_modality,
-              ).name
+              )!.name
               : ''
           "
           :shipment="
             id_shipment
-              ? rootStore.state.pricing.listShipment.find(
+              ? pricingStore.listShipment.find(
                 (v: TipoCarga) => v.id == id_shipment,
-              ).embarque
+              )!.embarque
               : ''
           "
           :incoterms="incoterms"

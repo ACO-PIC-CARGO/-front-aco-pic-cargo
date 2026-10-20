@@ -9,7 +9,7 @@
       <v-card>
         <v-card-title class="d-flex align-center flex-wrap" primary-title>
           Registro de nueva nota - Opción
-          {{ opcionesSeleccionadas[$store.state.pricing.page - 1].nro_propuesta
+          {{ opcionesSeleccionadas[pricingStore.page - 1].nro_propuesta
           }}<v-spacer></v-spacer>
           <v-btn variant="text" icon color="default" @click="dialog = false">
             <v-icon>mdi-close</v-icon>
@@ -34,7 +34,7 @@
     <v-row>
       <v-col cols="12">
         Añadir nueva Nota: Opción
-        {{ opcionesSeleccionadas[$store.state.pricing.page - 1].nro_propuesta }}
+        {{ opcionesSeleccionadas[pricingStore.page - 1].nro_propuesta }}
         <v-btn variant="text" icon color="primary" @click="dialog = !dialog">
           <v-icon>mdi-plus</v-icon>
         </v-btn>
@@ -43,7 +43,7 @@
         
           <div class="text-center">
             <v-pagination
-              v-model="$store.state.pricing.page"
+              v-model="pricingStore.page"
               :length="opcionesSeleccionadas.length"
               rounded
             ></v-pagination>
@@ -61,7 +61,7 @@
                 :headers="headers"
                 :items="
                   opcionesSeleccionadas[
-                    $store.state.pricing.page - 1
+                    pricingStore.page - 1
                   ].listNotasQuote.filter(
                     (v) =>
                       v.estado == 1 && !v.statusincluye && !v.statusnoincluye,
@@ -227,7 +227,7 @@
             </thead>
             <tbody>
               <tr
-                v-for="(tipocosto, index) in $store.state.pricing.namesection"
+                v-for="(tipocosto, index) in pricingStore.namesection"
                 :key="index"
               >
                 <td>{{ tipocosto.codigo }}</td>
@@ -340,7 +340,7 @@
               <div v-if="cambiarStatus">
                 <v-select
                   v-model="selectedStatusId"
-                  :items="$store.state.pricing.listQuoteStatus"
+                  :items="pricingStore.listQuoteStatus"
                   item-title="name"
                   item-value="id"
                   label="Nuevo estatus de la cotización"
@@ -396,19 +396,19 @@
           
           <v-textarea
             label="Nombre Archivo Generar"
-            v-model="$store.state.pricing.nombre_cotizacion"
+            v-model="pricingStore.nombre_cotizacion"
             auto-grow
             rows="1"
           />
 
           <v-btn
-            v-if="$store.state.pricing.datosPrincipales.url_folderonedrive"
+            v-if="pricingStore.datosPrincipales.url_folderonedrive"
             color="#FFD600"
             class="mx-1"
             size="small"
             @click="
               to_link({
-                url: $store.state.pricing.datosPrincipales.url_folderonedrive,
+                url: pricingStore.datosPrincipales.url_folderonedrive,
               })
             "
           >
@@ -427,7 +427,7 @@
             color="#A43542"
             class="mx-1"
             size="small"
-            :disabled="$store.state.pricing.bloquearBtnImprimir"
+            :disabled="pricingStore.bloquearBtnImprimir"
             @click="abrirModalTipoReporte(false)"
           >
             Imprimir Cotizacion
@@ -440,9 +440,9 @@
 
 <script>
 import { defineAsyncComponent } from "vue";
-import { mapActions } from "vuex";
 import Swal from "sweetalert2";
-import { getNombreCotizacion } from "../../../store/modules/pricing";
+import { mapActions as mapPiniaActions, mapStores } from "pinia";
+import { getNombreCotizacion, usePricingStore } from "@/stores/pricing";
 export default {
   components: {
     previewCotizacion: defineAsyncComponent(() =>
@@ -479,17 +479,7 @@ export default {
     this.dialog = false;
   },
   methods: {
-    ...mapActions([
-      "registrarQuote",
-      "getQuote",
-      "obtenerDatosEmpresa",
-      "generarReporte",
-      "crearCarpetaOneDrive",
-      "actualizarURLEnElQuote",
-      "predata",
-      "updateQuote",
-      "setEmisionPdf",
-    ]),
+    ...mapPiniaActions(usePricingStore, ["registrarQuote", "getQuote", "obtenerDatosEmpresa", "generarReporte", "crearCarpetaOneDrive", "actualizarURLEnElQuote", "predata", "updateQuote", "setEmisionPdf"]),
     formatDate(val) {
       if (!val) return "";
       try {
@@ -508,7 +498,7 @@ export default {
     },
     llenarNotasSeleccionadas() {
       this.opcionesSeleccionadas =
-        this.$store.state.pricing.opcionCostos.filter((v) => !!v.selected);
+        this.pricingStore.opcionCostos.filter((v) => !!v.selected);
     },
     abrirModalTipoReporte() {
       this.tiporeporte = "";
@@ -546,7 +536,7 @@ export default {
     async anidarNota() {
       if ((await this.$refs.frmNota.validate()).valid) {
         this.opcionesSeleccionadas[
-          this.$store.state.pricing.page - 1
+          this.pricingStore.page - 1
         ].listNotasQuote.push({
           descripcion: this.descripcion,
           estado: 1,
@@ -562,7 +552,7 @@ export default {
     },
 
     async generar() {
-      this.$store.state.pricing.tiporeporte = this.tiporeporte;
+      this.pricingStore.tiporeporte = this.tiporeporte;
       this.loading = true;
 
       if ((await this.$refs.frmReporte.validate()).valid) {
@@ -577,24 +567,24 @@ export default {
         if (name == "editQuote") {
           await this.updateQuote();
         }
-        if (this.$store.state.pricing.nro_quote) {
+        if (this.pricingStore.nro_quote) {
           this.$store.state.spiner = false;
           await this.obtenerDatosEmpresa().catch((e) => console.log(e));
 
           // 2. Generación de reportes
           for (
             let index = 0;
-            index < this.$store.state.pricing.opcionCostos.length;
+            index < this.pricingStore.opcionCostos.length;
             index++
           ) {
             if (
-              this.$store.state.pricing.opcionCostos[index].selected == true
+              this.pricingStore.opcionCostos[index].selected == true
             ) {
               await Promise.all([
                 this.generarReporte({
                   tipo: this.tiporeporte,
                   nro_propuesta:
-                    this.$store.state.pricing.opcionCostos[index].nro_propuesta,
+                    this.pricingStore.opcionCostos[index].nro_propuesta,
                   guardarFlag: this.guardarFlag,
                 }).catch((e) => console.log(e)),
                 this.setEmisionPdf(),
@@ -622,15 +612,15 @@ export default {
 
             // Aquí recibimos el return de la función anterior
             const urlGenerada = await this.crearCarpetaOneDrive({
-              nro_quote: this.$store.state.pricing.nro_quote,
-              nombre: this.$store.state.pricing.datosPrincipales.nombre,
+              nro_quote: this.pricingStore.nro_quote,
+              nombre: this.pricingStore.datosPrincipales.nombre,
             });
 
             console.log("URL capturada en generar():", urlGenerada);
 
             if (urlGenerada) {
               await this.actualizarURLEnElQuote({
-                id: this.$store.state.pricing.id,
+                id: this.pricingStore.id,
                 url: urlGenerada,
               });
               console.log("Base de datos actualizada con URL de OneDrive");
@@ -644,7 +634,7 @@ export default {
           // 4. Redirección final
           const destino = {
             name: "verQuote",
-            params: { id: this.$store.state.pricing.id },
+            params: { id: this.pricingStore.id },
           };
           if (
             this.$router.resolve(destino).fullPath !==
@@ -663,9 +653,9 @@ export default {
       this.tiporeporte = "";
       this.previewFlag = true;
       this.dialogCambioNombreSecciones = false;
-      this.$store.state.pricing.bloquearBtnImprimir = false;
+      this.pricingStore.bloquearBtnImprimir = false;
       // valor por defecto: primer estado disponible
-      const list = this.$store.state.pricing.listQuoteStatus || [];
+      const list = this.pricingStore.listQuoteStatus || [];
       const estatusDefault = list.find(
         (estatus) =>
           estatus.defaultstatus === 1 ||
@@ -687,7 +677,7 @@ export default {
         this.$store.state.spiner = true;
         this.previewFlag = false;
         if (this.cambiarStatus && this.selectedStatusId) {
-          this.$store.state.pricing.datosPrincipales.id_status =
+          this.pricingStore.datosPrincipales.id_status =
             this.selectedStatusId;
         }
         await this.obtenerDatosEmpresa();
@@ -696,29 +686,30 @@ export default {
         });
         this.$store.state.spiner = false;
         this.dialogPreview = true;
-        getNombreCotizacion(this.$store.state.pricing);
+        getNombreCotizacion(this.pricingStore);
       }
     },
   },
   computed: {
+    ...mapStores(usePricingStore),
     opcionesSeleccionadas() {
-      return this.$store.state.pricing.opcionCostos.filter((v) => !!v.selected);
+      return this.pricingStore.opcionCostos.filter((v) => !!v.selected);
     },
     actualizarNotas: {
       get() {
-        return this.$store.state.pricing.actualizarNotas;
+        return this.pricingStore.actualizarNotas;
       },
       set(val) {
-        return (this.$store.state.pricing.actualizarNotas = actualizarNotas);
+        return (this.pricingStore.actualizarNotas = actualizarNotas);
       },
     },
     lstSeIncluye() {
-      let val = this.$store.state.pricing.listServices.filter(
+      let val = this.pricingStore.listServices.filter(
         (v) => v.status == 1,
       );
 
       let opcion = this.opcionesSeleccionadas[
-        this.$store.state.pricing.page - 1
+        this.pricingStore.page - 1
       ].listNotasQuote.filter((v) => v.estado == 1 && v.statusincluye == 1);
       opcion = opcion.map((v) => ({ ...v, service: v.descripcion }));
 
@@ -726,12 +717,12 @@ export default {
 
       // Agregar al final: Fecha de Vigencia y Tiempo de Tránsito (si existen)
       const opt =
-        this.opcionesSeleccionadas[this.$store.state.pricing.page - 1] || {};
+        this.opcionesSeleccionadas[this.pricingStore.page - 1] || {};
       const fechaVigencia =
-        opt.date_end || this.$store.state.pricing.datosPrincipales.fecha_fin;
+        opt.date_end || this.pricingStore.datosPrincipales.fecha_fin;
       const ttransito =
         opt.tiempo_transito ||
-        this.$store.state.pricing.datosPrincipales.tiempo_transito;
+        this.pricingStore.datosPrincipales.tiempo_transito;
       if (fechaVigencia) {
         final.push({
           service: `Fecha de vigencia: ${this.formatDate(fechaVigencia)}`,
@@ -745,12 +736,12 @@ export default {
       return final;
     },
     lstNoIncluye() {
-      let val = this.$store.state.pricing.listServices.filter(
+      let val = this.pricingStore.listServices.filter(
         (v) => v.status == 0,
       );
 
       let opcion = this.opcionesSeleccionadas[
-        this.$store.state.pricing.page - 1
+        this.pricingStore.page - 1
       ].listNotasQuote.filter((v) => v.estado == 1 && v.statusnoincluye == 1);
       opcion = opcion.map((v) => ({ ...v, service: v.descripcion }));
 

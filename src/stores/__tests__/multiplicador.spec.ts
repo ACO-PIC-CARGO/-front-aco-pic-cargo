@@ -6,6 +6,7 @@ import Swal from "sweetalert2";
 import router from "@/router";
 import store from "@/store";
 import { useMultiplicadorStore } from "@/stores/multiplicador";
+import { usePricingStore } from "@/stores/pricing";
 import { JSON_HEADERS, URL_MAIN, accepted, flushPromises, httpMock, rejected, respond } from "./catalogHttp";
 
 vi.mock("@/api/http", () => ({ default: vi.fn() }));
@@ -47,6 +48,7 @@ describe("multiplicador store", () => {
     expect(multiplicador.shipments).toEqual([fcl]);
     expect(sharedCommits()).toHaveLength(1);
     expect(sharedCommits()[0]![1]).toBe(toRaw(multiplicador.shipments));
+    expect(toRaw(usePricingStore().listShipment)).toBe(toRaw(multiplicador.shipments));
     expect(sessionStorage.getItem("auth-token")).toBe("tok");
 
     respond({ cargar_shipment: rejected() });

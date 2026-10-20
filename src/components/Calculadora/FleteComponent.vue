@@ -9,6 +9,7 @@ import moment from "moment";
 import Swal from "sweetalert2";
 import axios from "@/api/http";
 import { useCalculadorasStore } from "@/stores/calculadoras";
+import { usePricingStore } from "@/stores/pricing";
 import type { ApiResponse } from "@/types/api";
 import type {
   FilaCargaFlete,
@@ -26,6 +27,7 @@ const props = withDefaults(defineProps<{ type?: string; idModality?: number }>()
 
 const calculadorasStore = useCalculadorasStore();
 const rootStore = useStore();
+const pricingStore = usePricingStore();
 
 // The old form starts every single selection as an empty array.
 const sinSeleccion = () => [] as unknown as OpcionRegistroFlete;
@@ -270,11 +272,11 @@ async function guardarDatos() {
     });
     console.log("puerto_origen", puerto_origen);
     console.log("puerto_destino", puerto_destino);
-    const listBeginPorts = rootStore.state.pricing.listPortBegin.map(
-      (p: { puerto: unknown }) => p.puerto,
+    const listBeginPorts = pricingStore.listPortBegin.map(
+      (p): unknown => p.puerto,
     );
-    const listEndPorts = rootStore.state.pricing.listPortEnd.map(
-      (p: { puerto: unknown }) => p.puerto,
+    const listEndPorts = pricingStore.listPortEnd.map(
+      (p): unknown => p.puerto,
     );
     console.log("listBeginPorts", listBeginPorts);
     console.log("listEndPorts", listEndPorts);
@@ -1306,11 +1308,11 @@ onMounted(async () => {
   rootStore.state.spiner = true;
   Promise.all([
     rootStore.dispatch("_getPais"),
-    rootStore.dispatch("getPortBegin", {
+    pricingStore.getPortBegin({
       id_transport: maritimo.includes(props.type) ? 1 : 2,
       limit: -1,
     }),
-    rootStore.dispatch("getPortEnd", {
+    pricingStore.getPortEnd({
       id_transport: maritimo.includes(props.type) ? 1 : 2,
       limit: -1,
     }),
@@ -1439,8 +1441,8 @@ watch(excel, () => {
           <template #[`item.puerto_origen_sistema`]="{ item }">
             <v-autocomplete
               :items="
-                rootStore.state.pricing.listPortBegin.filter(
-                  (v: { id_pais: unknown }) => v.id_pais == item.id_pais_origen,
+                pricingStore.listPortBegin.filter(
+                  (v) => v.id_pais == item.id_pais_origen,
                 )
               "
               v-model="item.puerto_origen"
@@ -1458,8 +1460,8 @@ watch(excel, () => {
           <template #[`item.puerto_destino_sistema`]="{ item }">
             <v-autocomplete
               :items="
-                rootStore.state.pricing.listPortEnd.filter(
-                  (v: { id_pais: unknown }) => v.id_pais == item.id_pais_destino,
+                pricingStore.listPortEnd.filter(
+                  (v) => v.id_pais == item.id_pais_destino,
                 )
               "
               v-model="item.puerto_destino"

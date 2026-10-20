@@ -6,6 +6,7 @@ import Swal from "sweetalert2";
 import CustomAutocomplete from "../CustomAutocomplete.vue";
 import { useEntitiesStore } from "@/stores/entities";
 import { useMasterusuariosStore } from "@/stores/masterusuarios";
+import { usePricingStore } from "@/stores/pricing";
 import type { DocumentoPais, Pais } from "@/types/catalogos";
 import type { TipoTransaccion } from "@/types/entidades";
 
@@ -13,6 +14,7 @@ const props = withDefaults(defineProps<{ isPricing?: boolean }>(), { isPricing: 
 
 const router = useRouter();
 const rootStore = useStore();
+const pricingStore = usePricingStore();
 const entitiesStore = useEntitiesStore();
 const masterusuariosStore = useMasterusuariosStore();
 
@@ -228,10 +230,10 @@ async function handleEditarCliente(val: number) {
             entitiesStore.lstProveedores_x_nombre.filter(
               (v) => v.id == val,
             )[0]!;
-          rootStore.state.pricing.datosPrincipales.id_entitie = item.id;
-          rootStore.state.pricing.datosPrincipales.nombre =
+          pricingStore.datosPrincipales.id_entitie = item.id;
+          pricingStore.datosPrincipales.nombre =
             item.nombrecompleto;
-          rootStore.state.pricing.datosPrincipales.telefono =
+          pricingStore.datosPrincipales.telefono =
             item.telefono;
           rootStore.state.modalEntitie = false;
           rootStore.state.registroClienteFlag =

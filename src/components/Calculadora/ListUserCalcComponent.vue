@@ -6,6 +6,7 @@ import moment from "moment";
 import PreviewQuote from "./PreviewQuote.vue";
 import Swal from "sweetalert2";
 import { useCalculadorasStore } from "@/stores/calculadoras";
+import { usePricingStore } from "@/stores/pricing";
 import type { ConceptoCotizacionCalculadora, UsuarioCalculadora } from "@/types/calculadora";
 
 interface LlamadaCalculadora {
@@ -20,6 +21,7 @@ interface LlamadaCalculadora {
 
 const calculadorasStore = useCalculadorasStore();
 const rootStore = useStore();
+const pricingStore = usePricingStore();
 const router = useRouter();
 
 const dialog = false;
@@ -338,7 +340,7 @@ async function obtenerAEREO(token: string, item: UsuarioCalculadora) {
 
   await calculadorasStore.GetCotAereo(token);
   await calculadorasStore.GetCotAereoResumen(token);
-  await rootStore.dispatch("getModulesEntities");
+  await pricingStore.getModulesEntities();
   await calculoPrincpipal("FLETE AÉREO", tipoCon);
   await calculo(tipoCon);
   dialogCotizacion.value = true;

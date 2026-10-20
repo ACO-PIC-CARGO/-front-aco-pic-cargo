@@ -47,6 +47,8 @@
 
 <script>
 import mixins from "@/components/mixins/funciones";
+import { mapStores } from "pinia";
+import { usePricingStore } from "@/stores/pricing";
 export default {
   props: ["amount", "impuestos", "index", "listCostos"],
   mixins: [mixins],
@@ -68,7 +70,7 @@ export default {
   methods: {
     calcularImpuestos({ item = null } = {}) {
       if (!item) return "0.00";
-      const pricing = this.$store.state.pricing;
+      const pricing = this.pricingStore;
       return mixins.methods.calcularImpuestos.call(this, {
         impuestos: this.impuestos || [],
         item,
@@ -114,8 +116,9 @@ export default {
     },
   },
   computed: {
+    ...mapStores(usePricingStore),
     actualizarCostosFlag() {
-      return this.$store.state.pricing.actualizarCostosFlag;
+      return this.pricingStore.actualizarCostosFlag;
     },
   },
   watch: {

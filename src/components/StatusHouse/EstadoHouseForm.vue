@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import { onMounted, ref, watch } from "vue";
-import { useStore } from "vuex";
+import { usePricingStore } from "@/stores/pricing";
 
-const rootStore = useStore();
+const pricingStore = usePricingStore();
 
 const dialog = ref(false);
 // props: {
@@ -13,8 +13,8 @@ const dialog = ref(false);
 // },
 
 onMounted(() => {
-  rootStore.dispatch("getModality");
-  rootStore.dispatch("getShipment");
+  pricingStore.getModality();
+  pricingStore.getShipment();
 });
 
 watch(dialog, () => {
@@ -54,7 +54,7 @@ watch(dialog, () => {
             <h4>Modalidad</h4>
             <v-row no-gutters>
               <v-checkbox
-                v-for="(modalidad, index) in rootStore.state.pricing.listModality"
+                v-for="(modalidad, index) in pricingStore.listModality"
                 v-model="modalidad.selected"
                 :key="index"
                 :label="`${modalidad.name}`"

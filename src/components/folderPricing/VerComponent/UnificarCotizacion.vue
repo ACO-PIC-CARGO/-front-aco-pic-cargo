@@ -38,6 +38,8 @@
 <script>
 import { mapActions } from "vuex";
 import Swal from "sweetalert2";
+import { mapStores } from "pinia";
+import { usePricingStore } from "@/stores/pricing";
 export default {
   data() {
     return {
@@ -83,10 +85,11 @@ export default {
     },
   },
   computed: {
+    ...mapStores(usePricingStore),
     unificarflag() {
       let codeServide = [10, 13, 6, 14];
       if (
-        this.$store.state.pricing.listServices.some(
+        this.pricingStore.listServices.some(
           (v) =>
             codeServide.includes(v.codegroupservices) &&
             (v.status == 1 || v.status == true)
@@ -96,7 +99,7 @@ export default {
       }
 
       if (
-        this.$store.state.pricing.opcionCostos.filter((v) => v.selected)
+        this.pricingStore.opcionCostos.filter((v) => v.selected)
           .length == 1
       ) {
         return false;

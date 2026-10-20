@@ -14,7 +14,7 @@
                 :items="$store.state.itemsProveedorList"
                 item-title="namelong"
                 item-value="id"
-                v-model="$store.state.pricing.datosPrincipales.id_proveedor"
+                v-model="pricingStore.datosPrincipales.id_proveedor"
               ></v-autocomplete>
             </v-col>
             <v-col cols="12" lg="6" xl="6" class="py-1">
@@ -24,10 +24,10 @@
                 density="compact"
                 :rules="[(v) => !!v || 'Dato requerido']"
                 class="my-1"
-                :items="$store.state.pricing.listPortBegin"
+                :items="pricingStore.listPortBegin"
                 item-title="name"
                 item-value="id_port"
-                v-model="$store.state.pricing.datosPrincipales.idorigen"
+                v-model="pricingStore.datosPrincipales.idorigen"
                 @update:search="recargarPuertoOrigen"
               ></v-autocomplete>
             </v-col>
@@ -38,10 +38,10 @@
                 density="compact"
                 :rules="[(v) => !!v || 'Dato requerido']"
                 class="my-1"
-                :items="$store.state.pricing.listPortEnd"
+                :items="pricingStore.listPortEnd"
                 item-title="name"
                 item-value="id_port"
-                v-model="$store.state.pricing.datosPrincipales.iddestino"
+                v-model="pricingStore.datosPrincipales.iddestino"
                 @update:search="recargarPuertoDestino"
               >
               </v-autocomplete>
@@ -83,7 +83,7 @@
                 item-title="descripcion"
                 item-value="id"
                 v-model="
-                  $store.state.pricing.datosPrincipales.id_percepcionaduana
+                  pricingStore.datosPrincipales.id_percepcionaduana
                 "
                 @update:model-value="cambiarImpuesto()"
               >
@@ -181,10 +181,10 @@
                 <tbody>
                   <tr>
                     <td>
-                      {{ $store.state.pricing.datosPrincipales.numerobultos }}
+                      {{ pricingStore.datosPrincipales.numerobultos }}
                     </td>
-                    <td>{{ $store.state.pricing.datosPrincipales.peso }}</td>
-                    <td>{{ $store.state.pricing.datosPrincipales.volumen }}</td>
+                    <td>{{ pricingStore.datosPrincipales.peso }}</td>
+                    <td>{{ pricingStore.datosPrincipales.volumen }}</td>
                     <td v-if="!ocultarLCL">
                       {{
                         pesoVolumetrico !== null ? pesoVolumetrico + " kg" : ""
@@ -648,6 +648,7 @@ import { mapActions as mapPiniaActions, mapStores } from "pinia";
 import { useTownStore } from "@/stores/town";
 import { useMasterusuariosStore } from "@/stores/masterusuarios";
 import { useCalculadorasStore } from "@/stores/calculadoras";
+import { usePricingStore } from "@/stores/pricing";
 export default {
   name: "DatosCargaComponent",
   mixins: [funcion],
@@ -737,12 +738,12 @@ export default {
       }
     },
     async abrirModalContenedor() {
-      let isFCL = this.$store.state.pricing.listShipment.some(
+      let isFCL = this.pricingStore.listShipment.some(
         (v) =>
           v.id ==
-            (this.$store.state.pricing.datosPrincipales.idtipocarga.id
-              ? this.$store.state.pricing.datosPrincipales.idtipocarga.id
-              : this.$store.state.pricing.datosPrincipales.idtipocarga) &&
+            (this.pricingStore.datosPrincipales.idtipocarga.id
+              ? this.pricingStore.datosPrincipales.idtipocarga.id
+              : this.pricingStore.datosPrincipales.idtipocarga) &&
           v.code == "FCL",
       );
       if (isFCL && this.containersList.length == 0) {
@@ -750,9 +751,9 @@ export default {
       }
       if (
         !isFCL &&
-        (this.$store.state.pricing.datosPrincipales.numerobultos == 0 ||
-          this.$store.state.pricing.datosPrincipales.peso == 0 ||
-          this.$store.state.pricing.datosPrincipales.volumen == 0)
+        (this.pricingStore.datosPrincipales.numerobultos == 0 ||
+          this.pricingStore.datosPrincipales.peso == 0 ||
+          this.pricingStore.datosPrincipales.volumen == 0)
       ) {
         Swal.fire({
           icon: "info",
@@ -765,22 +766,21 @@ export default {
   methods: {
     ...mapActions([
       "_getContainers",
-      "getPortBegin",
-      "getPortEnd",
     ]),
+    ...mapPiniaActions(usePricingStore, ["getPortBegin", "getPortEnd"]),
     ...mapPiniaActions(useCalculadorasStore, ["obtenerFleteCalculadora"]),
     cambiarGrupalIndividual() {
       const { esindividualflag, esgrupalflag } =
-        this.$store.state.pricing.datosPrincipales;
+        this.pricingStore.datosPrincipales;
 
       if (esgrupalflag) {
         if (esgrupalflag === true) {
-          this.$store.state.pricing.datosPrincipales.esindividualflag = false;
+          this.pricingStore.datosPrincipales.esindividualflag = false;
           let percepcionAduana =
             this.masterusuariosStore.lstPercepcionAduana.find(
               (v) => v.codigo == "02",
             );
-          this.$store.state.pricing.datosPrincipales.id_percepcionaduana =
+          this.pricingStore.datosPrincipales.id_percepcionaduana =
             percepcionAduana.id;
           setTimeout(() => {
             Promise.all([
@@ -796,7 +796,7 @@ export default {
           }, 500);
         }
       } else if (esindividualflag) {
-        this.$store.state.pricing.datosPrincipales.esgrupalflag = false;
+        this.pricingStore.datosPrincipales.esgrupalflag = false;
         setTimeout(() => {
           Promise.all([
             this.cambiarMontosACero({
@@ -816,24 +816,24 @@ export default {
       const flags = { esgrupalflag, esindividualflag };
 
       let codeServicesActivos = new Set(
-        this.$store.state.pricing.listServices
+        this.pricingStore.listServices
           .filter((v) => v.status === true || v.status === 1)
           .map((v) => Number(v.code_service)),
       );
 
-      let costos = [...this.$store.state.pricing.preCostos];
+      let costos = [...this.pricingStore.preCostos];
       let idTipoCarga =
-        typeof this.$store.state.pricing.datosPrincipales.idtipocarga ===
+        typeof this.pricingStore.datosPrincipales.idtipocarga ===
         "object"
-          ? this.$store.state.pricing.datosPrincipales.idtipocarga.id
-          : this.$store.state.pricing.datosPrincipales.idtipocarga;
+          ? this.pricingStore.datosPrincipales.idtipocarga.id
+          : this.pricingStore.datosPrincipales.idtipocarga;
 
       let preCostosFiltrados = costos.filter(
         (v) =>
           v.id_incoterms ==
-            this.$store.state.pricing.datosPrincipales.idincoterms &&
+            this.pricingStore.datosPrincipales.idincoterms &&
           v.id_modality ==
-            this.$store.state.pricing.datosPrincipales.idsentido &&
+            this.pricingStore.datosPrincipales.idsentido &&
           v.id_shipment == idTipoCarga &&
           codeServicesActivos.has(Number(v.code_service)),
       );
@@ -842,19 +842,19 @@ export default {
         this.masterusuariosStore.lstPercepcionAduana.find(
           (v) =>
             v.id ==
-            this.$store.state.pricing.datosPrincipales.id_percepcionaduana,
+            this.pricingStore.datosPrincipales.id_percepcionaduana,
         );
       let codigoImportacion = tipoImportacion?.codigo;
 
       const COSTOS_ESPECIALES = [69, 114, 105, 39];
 
-      this.$store.state.pricing.opcionCostos.forEach((opcion) => {
+      this.pricingStore.opcionCostos.forEach((opcion) => {
         opcion.listCostos.forEach((element) => {
           const esCostoTransporte = Number(element.code_cost) === 13;
 
           if (
             esCostoTransporte &&
-            !this.$store.state.pricing.datosPrincipales.id_town
+            !this.pricingStore.datosPrincipales.id_town
           ) {
             element.costounitario = 0;
             element.tienefleteflag = false;
@@ -958,11 +958,11 @@ export default {
       esgrupalflag = false,
       esindividualflag = false,
     } = {}) {
-      const newNotas = this.$store.state.pricing.listNotasQuote.filter((v) =>
+      const newNotas = this.pricingStore.listNotasQuote.filter((v) =>
         esindividualflag ? v.individualflag : esgrupalflag && v.grupalflag,
       );
 
-      this.$store.state.pricing.opcionCostos.forEach((element) => {
+      this.pricingStore.opcionCostos.forEach((element) => {
         element.listNotasQuote = [
           ...element.listNotasQuote.filter((v) => v.estado == 0),
           ...newNotas.map((v) => ({ ...v, id: null, estado: 1 })),
@@ -984,7 +984,7 @@ export default {
     obtenerFleteOpcion(item) {
       let datoFlete = { monto: 0, tienefleteflag: false, fechavigencia: null };
       if (item.code_cost == 4) {
-        if (this.$store.state.pricing.datosPrincipales.esindividualflag) {
+        if (this.pricingStore.datosPrincipales.esindividualflag) {
           let val = !!this.calculadorasStore.fletePricing.monto_flete;
           datoFlete.monto = val
             ? this.calculadorasStore.fletePricing.monto_flete
@@ -994,7 +994,7 @@ export default {
             ? this.calculadorasStore.fletePricing.vigencia
             : null;
         }
-        if (this.$store.state.pricing.datosPrincipales.esgrupalflag) {
+        if (this.pricingStore.datosPrincipales.esgrupalflag) {
           let val =
             !!this.calculadorasStore.fletePricing.monto_flete_grupal;
           datoFlete.monto = val
@@ -1015,7 +1015,7 @@ export default {
     obtenerFleteOpcionVenta(item) {
       let datoFlete = { monto: 0, tienefleteflag: false, fechavigencia: null };
       if (item.code_cost == 7 && item.esventaflag == 1) {
-        if (this.$store.state.pricing.datosPrincipales.esgrupalflag) {
+        if (this.pricingStore.datosPrincipales.esgrupalflag) {
           let val =
             !!this.calculadorasStore.fletePricing
               .monto_flete_grupal_venta;
@@ -1040,7 +1040,7 @@ export default {
         }
       }
       if (item.code_cost == 4 && item.esventaflag == 1) {
-        if (this.$store.state.pricing.datosPrincipales.esgrupalflag) {
+        if (this.pricingStore.datosPrincipales.esgrupalflag) {
           let val =
             !!this.calculadorasStore.fletePricing.monto_flete_grupal;
           datoFlete.monto = val
@@ -1062,7 +1062,7 @@ export default {
       return datoFlete;
     },
     obtenerPrecioUnitarioGrupal(item, monto) {
-      const { listMultiplicador, datosPrincipales } = this.$store.state.pricing;
+      const { listMultiplicador, datosPrincipales } = this.pricingStore;
       const multiplicador = (listMultiplicador || []).find(
         (v) => v.id == item.id_multiplicador,
       );
@@ -1092,18 +1092,18 @@ export default {
     },
     async buscarPuertoOrigen(textoBuscar) {
       let idtipocarga =
-        typeof this.$store.state.pricing.datosPrincipales.idtipocarga ===
+        typeof this.pricingStore.datosPrincipales.idtipocarga ===
         "object"
-          ? this.$store.state.pricing.datosPrincipales.idtipocarga.id
-          : this.$store.state.pricing.datosPrincipales.idtipocarga;
+          ? this.pricingStore.datosPrincipales.idtipocarga.id
+          : this.pricingStore.datosPrincipales.idtipocarga;
 
-      let id_transport = this.$store.state.pricing.listShipment.filter(
+      let id_transport = this.pricingStore.listShipment.filter(
         (v) => v.id == idtipocarga,
       );
 
       await this.getPortBegin({
         id_transport: id_transport[0].id_transport,
-        id: this.$store.state.pricing.datosPrincipales.idorigen,
+        id: this.pricingStore.datosPrincipales.idorigen,
         search: textoBuscar,
       });
     },
@@ -1118,37 +1118,37 @@ export default {
     },
     async buscarPuertoDestino(textoBuscar) {
       let idtipocarga =
-        typeof this.$store.state.pricing.datosPrincipales.idtipocarga ===
+        typeof this.pricingStore.datosPrincipales.idtipocarga ===
         "object"
-          ? this.$store.state.pricing.datosPrincipales.idtipocarga.id
-          : this.$store.state.pricing.datosPrincipales.idtipocarga;
-      let id_transport = this.$store.state.pricing.listShipment.filter(
+          ? this.pricingStore.datosPrincipales.idtipocarga.id
+          : this.pricingStore.datosPrincipales.idtipocarga;
+      let id_transport = this.pricingStore.listShipment.filter(
         (v) => v.id == idtipocarga,
       );
       await this.getPortEnd({
         id_transport: id_transport[0].id_transport,
-        id: this.$store.state.pricing.datosPrincipales.iddestino,
+        id: this.pricingStore.datosPrincipales.iddestino,
         search: textoBuscar,
       });
     },
     async anadirCarga() {
       if ((await this.$refs.frmDatosCarga.validate()).valid) {
-        this.$store.state.pricing.datosPrincipales.numerobultos =
+        this.pricingStore.datosPrincipales.numerobultos =
           this.numerobultos;
-        this.$store.state.pricing.datosPrincipales.volumen = this.volumen;
-        this.$store.state.pricing.datosPrincipales.peso = this.peso;
-        const datos = this.$store.state.pricing.datosPrincipales;
+        this.pricingStore.datosPrincipales.volumen = this.volumen;
+        this.pricingStore.datosPrincipales.peso = this.peso;
+        const datos = this.pricingStore.datosPrincipales;
         const idTipoCarga =
           typeof datos.idtipocarga === "object"
             ? datos.idtipocarga.id
             : datos.idtipocarga;
-        const shipment = this.$store.state.pricing.listShipment.find(
+        const shipment = this.pricingStore.listShipment.find(
           (v) => v.id == idTipoCarga,
         );
-        const puertoOrigen = this.$store.state.pricing.listPortBegin.find(
+        const puertoOrigen = this.pricingStore.listPortBegin.find(
           (v) => v.id_port == datos.idorigen,
         );
-        const puertoDestino = this.$store.state.pricing.listPortEnd.find(
+        const puertoDestino = this.pricingStore.listPortEnd.find(
           (v) => v.id_port == datos.iddestino,
         );
         this.$store.state.spiner = true;
@@ -1165,12 +1165,12 @@ export default {
         const { esgrupalflag, esindividualflag } = datos;
         this.cambiarMontosACero({ esgrupalflag, esindividualflag });
         this.$refs.frmDatosCarga.reset();
-        this.$store.state.pricing.actualizarCostosFlag =
-          !this.$store.state.pricing.actualizarCostosFlag;
+        this.pricingStore.actualizarCostosFlag =
+          !this.pricingStore.actualizarCostosFlag;
       }
     },
     cambiarServicioTransporteActivo() {
-      const servicio = this.$store.state.pricing.listServices.find(
+      const servicio = this.pricingStore.listServices.find(
         (s) => Number(s.code_service) === 14,
       );
 
@@ -1179,7 +1179,7 @@ export default {
       }
 
       const { datosPrincipales, preCostos, opcionCostos } =
-        this.$store.state.pricing;
+        this.pricingStore;
       const idTipoCarga =
         typeof datosPrincipales.idtipocarga === "object"
           ? datosPrincipales.idtipocarga.id
@@ -1255,23 +1255,23 @@ export default {
       this.$forceUpdate();
     },
     desactivarTransporteParaGrupal() {
-      const servicioTransporte = this.$store.state.pricing.listServices.find(
+      const servicioTransporte = this.pricingStore.listServices.find(
         (servicio) => Number(servicio.code_service) === 14,
       );
       if (servicioTransporte) {
         servicioTransporte.status = false;
       }
-      this.$store.state.pricing.datosPrincipales.id_town = null;
+      this.pricingStore.datosPrincipales.id_town = null;
     },
     async guardarContainer() {
-      let cantCostos = this.$store.state.pricing.listCostos.length;
+      let cantCostos = this.pricingStore.listCostos.length;
 
       this.err = "";
       if ((await this.$refs.frmContainer.validate()).valid) {
         if (
-          !Array.isArray(this.$store.state.pricing.datosPrincipales.containers)
+          !Array.isArray(this.pricingStore.datosPrincipales.containers)
         ) {
-          this.$store.state.pricing.datosPrincipales.containers = [];
+          this.pricingStore.datosPrincipales.containers = [];
         }
         if (
           this.containersList.filter(
@@ -1304,8 +1304,8 @@ export default {
       let validate = true;
 
       if (
-        !this.$store.state.pricing.datosPrincipales.esgrupalflag &&
-        !this.$store.state.pricing.datosPrincipales.esindividualflag
+        !this.pricingStore.datosPrincipales.esgrupalflag &&
+        !this.pricingStore.datosPrincipales.esindividualflag
       ) {
         Swal.fire({
           icon: "warning",
@@ -1315,11 +1315,11 @@ export default {
         return;
       }
 
-      if (this.$store.state.pricing.datosPrincipales.esgrupalflag) {
+      if (this.pricingStore.datosPrincipales.esgrupalflag) {
         if (
-          !this.$store.state.pricing.listPortBegin.some(
+          !this.pricingStore.listPortBegin.some(
             (v) =>
-              v.id == this.$store.state.pricing.datosPrincipales.idorigen &&
+              v.id == this.pricingStore.datosPrincipales.idorigen &&
               v.puerto == "NINGBO",
           )
         ) {
@@ -1344,9 +1344,9 @@ export default {
         }
         if (!this.isFcl) {
           if (
-            !this.$store.state.pricing.datosPrincipales.numerobultos &&
-            !this.$store.state.pricing.datosPrincipales.volumen &&
-            !this.$store.state.pricing.datosPrincipales.peso
+            !this.pricingStore.datosPrincipales.numerobultos &&
+            !this.pricingStore.datosPrincipales.volumen &&
+            !this.pricingStore.datosPrincipales.peso
           ) {
             Swal.fire({
               icon: "error",
@@ -1424,22 +1424,22 @@ export default {
     },
 
     guardarDatosCalculadora() {
-      this.$store.state.pricing.datosPrincipales.numerobultos =
+      this.pricingStore.datosPrincipales.numerobultos =
         this.tblTotal.uni;
-      this.$store.state.pricing.datosPrincipales.volumen =
+      this.pricingStore.datosPrincipales.volumen =
         this.tblTotal.volumen;
-      this.$store.state.pricing.datosPrincipales.peso = this.tblTotal.peso;
+      this.pricingStore.datosPrincipales.peso = this.tblTotal.peso;
       this.calculadoraFlag = false;
-      this.$store.state.pricing.actualizarCostosFlag =
-        !this.$store.state.pricing.actualizarCostosFlag;
+      this.pricingStore.actualizarCostosFlag =
+        !this.pricingStore.actualizarCostosFlag;
     },
     mostrarComboPercepcionAduana() {
       let esPeru = JSON.parse(sessionStorage.getItem("iso_pais")) == 9589;
       return (
         esPeru &&
-        this.$store.state.pricing.listModality.some(
+        this.pricingStore.listModality.some(
           (v) =>
-            v.id == this.$store.state.pricing.datosPrincipales.idsentido &&
+            v.id == this.pricingStore.datosPrincipales.idsentido &&
             v.code == "I",
         )
       );
@@ -1447,34 +1447,36 @@ export default {
 
     cambiarImpuesto() {
       let porcentaje = "10";
-      if (this.$store.state.pricing.listImpuestos.length > 0) {
-        this.$store.state.pricing.listImpuestos.filter(
+      if (this.pricingStore.listImpuestos.length > 0) {
+        this.pricingStore.listImpuestos.filter(
           (v) => v.codigo == "09",
         )[0].codigo01 = "10";
       }
 
-      if (this.$store.state.pricing.datosPrincipales.id_percepcionaduana) {
+      if (this.pricingStore.datosPrincipales.id_percepcionaduana) {
         porcentaje =
           this.masterusuariosStore.lstPercepcionAduana.filter(
             (v) =>
               v.id ==
-              this.$store.state.pricing.datosPrincipales.id_percepcionaduana,
+              this.pricingStore.datosPrincipales.id_percepcionaduana,
           )[0].codigo01;
 
-        if (this.$store.state.pricing.listImpuestos.length > 0) {
-          this.$store.state.pricing.listImpuestos.filter(
+        if (this.pricingStore.listImpuestos.length > 0) {
+          this.pricingStore.listImpuestos.filter(
             (v) => v.codigo == "09",
           )[0].codigo01 = "10";
         }
       }
-      let newImpuesto = [...this.$store.state.pricing.listImpuestos];
+      let newImpuesto = [...this.pricingStore.listImpuestos];
       if (newImpuesto.length > 0) {
         newImpuesto.filter((v) => v.codigo == "09")[0].codigo01 = porcentaje;
 
+        this.pricingStore.listImpuestos = newImpuesto;
+        // While pricing was a Vuex module this commit also set its listImpuestos; it still runs aduana's.
         this.$store.commit("ACTUALIZAR_IMPUEST", newImpuesto);
       }
 
-      this.$store.state.pricing.opcionCostos.forEach((element) => {
+      this.pricingStore.opcionCostos.forEach((element) => {
         if (element.listImpuestos.length > 0) {
           element.listImpuestos.filter((v) => v.codigo == "09")[0].codigo01 =
             porcentaje;
@@ -1498,9 +1500,9 @@ export default {
     calcularCostoUnitario(costo, costoAsociado) {
       let costounitario = costo.costounitario;
       let esindividualflag =
-        this.$store.state.pricing.datosPrincipales.esindividualflag;
+        this.pricingStore.datosPrincipales.esindividualflag;
       let esgrupalflag =
-        this.$store.state.pricing.datosPrincipales.esgrupalflag;
+        this.pricingStore.datosPrincipales.esgrupalflag;
       let montoprofit = 0;
       let flete = this.obtenerFleteOpcion(costo);
       let fleteVenta = this.obtenerFleteOpcionVenta(costo);
@@ -1509,7 +1511,7 @@ export default {
         this.masterusuariosStore.lstPercepcionAduana.find(
           (v) =>
             v.id ==
-            this.$store.state.pricing.datosPrincipales.id_percepcionaduana,
+            this.pricingStore.datosPrincipales.id_percepcionaduana,
         );
       // OBTENIENDO LOS PROFIT
       if (
@@ -1595,18 +1597,18 @@ export default {
     obtenerTransporte(item) {
       let monto = 0;
       if (item.code_cost == 13) {
-        let opcion = this.$store.state.pricing.datosPrincipales.esindividualflag
+        let opcion = this.pricingStore.datosPrincipales.esindividualflag
           ? 1
-          : this.$store.state.pricing.datosPrincipales.esgrupalflag
+          : this.pricingStore.datosPrincipales.esgrupalflag
           ? 2
           : 0;
         let pesoActual =
-          parseFloat(this.$store.state.pricing.datosPrincipales.peso) || 0;
+          parseFloat(this.pricingStore.datosPrincipales.peso) || 0;
 
         let transporte = this.calculadorasStore.lstTransporte.find(
           (v) =>
             v.id_distrito ==
-              this.$store.state.pricing.datosPrincipales.id_town &&
+              this.pricingStore.datosPrincipales.id_town &&
             v.opcion == opcion &&
             pesoActual >= parseFloat(v.peso_desde) &&
             pesoActual <= parseFloat(v.peso_hasta),
@@ -1623,9 +1625,9 @@ export default {
 
       if (!nuevoValor) {
         if (tipo === "grupal")
-          this.$store.state.pricing.datosPrincipales.esgrupalflag = false;
+          this.pricingStore.datosPrincipales.esgrupalflag = false;
         if (tipo === "individual")
-          this.$store.state.pricing.datosPrincipales.esindividualflag = false;
+          this.pricingStore.datosPrincipales.esindividualflag = false;
         return;
       }
 
@@ -1654,17 +1656,17 @@ export default {
         });
 
         if (result.isConfirmed) {
-          this.$store.state.pricing.datosPrincipales.esgrupalflag = true;
-          this.$store.state.pricing.datosPrincipales.esindividualflag = false;
+          this.pricingStore.datosPrincipales.esgrupalflag = true;
+          this.pricingStore.datosPrincipales.esindividualflag = false;
           this.desactivarTransporteParaGrupal();
           setTimeout(() => {
             this.cambiarGrupalIndividual();
           }, 100);
         } else {
-          this.$store.state.pricing.datosPrincipales.esgrupalflag = true;
+          this.pricingStore.datosPrincipales.esgrupalflag = true;
           this.$nextTick(() => {
-            this.$store.state.pricing.datosPrincipales.esgrupalflag = false;
-            this.$store.state.pricing.datosPrincipales.esindividualflag = true;
+            this.pricingStore.datosPrincipales.esgrupalflag = false;
+            this.pricingStore.datosPrincipales.esindividualflag = true;
           });
         }
       }
@@ -1695,26 +1697,26 @@ export default {
         });
 
         if (result.isConfirmed) {
-          this.$store.state.pricing.datosPrincipales.esindividualflag = true;
-          this.$store.state.pricing.datosPrincipales.esgrupalflag = false;
+          this.pricingStore.datosPrincipales.esindividualflag = true;
+          this.pricingStore.datosPrincipales.esgrupalflag = false;
           this.cambiarServicioTransporteActivo();
           setTimeout(() => {
             this.cambiarGrupalIndividual();
             this.id_percepcionaduana =
-              this.$store.state.pricing.datosPrincipales.id_percepcionaduana;
+              this.pricingStore.datosPrincipales.id_percepcionaduana;
             this.dialogCambiarPercepcionAduana = true;
           }, 200);
         } else {
-          this.$store.state.pricing.datosPrincipales.esindividualflag = true;
+          this.pricingStore.datosPrincipales.esindividualflag = true;
           this.$nextTick(() => {
-            this.$store.state.pricing.datosPrincipales.esindividualflag = false;
-            this.$store.state.pricing.datosPrincipales.esgrupalflag = true;
+            this.pricingStore.datosPrincipales.esindividualflag = false;
+            this.pricingStore.datosPrincipales.esgrupalflag = true;
           });
         }
       }
     },
     cambiarPercepcionAduana() {
-      this.$store.state.pricing.datosPrincipales.id_percepcionaduana =
+      this.pricingStore.datosPrincipales.id_percepcionaduana =
         this.id_percepcionaduana;
       this.cambiarImpuesto();
       this.cerrarDialogCambiarPercepcionAduana();
@@ -1724,7 +1726,7 @@ export default {
       this.$nextTick(() => {
         this.errorIdTown = "";
         const servicioTransporteActivo =
-          this.$store.state.pricing.listServices.some(
+          this.pricingStore.listServices.some(
             (servicio) =>
               Number(servicio.code_service) === 14 &&
               (servicio.status === true || Number(servicio.status) === 1),
@@ -1743,9 +1745,9 @@ export default {
         return;
       }
 
-      this.$store.state.pricing.datosPrincipales.id_town = idTown;
+      this.pricingStore.datosPrincipales.id_town = idTown;
 
-      this.$store.state.pricing.opcionCostos.forEach((opcion) => {
+      this.pricingStore.opcionCostos.forEach((opcion) => {
         (opcion.listCostos || []).forEach((costo) => {
           if (Number(costo.code_cost) === 13) {
             costo.costounitario = this.obtenerTransporte(costo);
@@ -1754,85 +1756,85 @@ export default {
       });
 
       this.dialogSeleccionDistrito = false;
-      this.$store.state.pricing.actualizarCostosFlag =
-        !this.$store.state.pricing.actualizarCostosFlag;
+      this.pricingStore.actualizarCostosFlag =
+        !this.pricingStore.actualizarCostosFlag;
       this.$forceUpdate();
     },
   },
   computed: {
-    ...mapStores(useCalculadorasStore, useMasterusuariosStore, useTownStore),
+    ...mapStores(usePricingStore, useCalculadorasStore, useMasterusuariosStore, useTownStore),
     abrirModalContenedor: {
       get() {
-        return this.$store.state.pricing.abrirModalContenedor;
+        return this.pricingStore.abrirModalContenedor;
       },
     },
     containersList() {
-      const containers = this.$store.state.pricing.datosPrincipales.containers;
+      const containers = this.pricingStore.datosPrincipales.containers;
       return Array.isArray(containers) ? containers : [];
     },
     getPuertoOrigen() {
       let puertos = [];
 
-      if (this.$store.state.pricing.datosPrincipales.iddestino) {
-        var id_port = this.$store.state.pricing.listPortEnd.filter(
+      if (this.pricingStore.datosPrincipales.iddestino) {
+        var id_port = this.pricingStore.listPortEnd.filter(
           (v) =>
-            v.id_port == this.$store.state.pricing.datosPrincipales.iddestino,
+            v.id_port == this.pricingStore.datosPrincipales.iddestino,
         )[0].id_port;
-        puertos = this.$store.state.pricing.listPortBegin.filter(
+        puertos = this.pricingStore.listPortBegin.filter(
           (v) => v.id_port != id_port,
         );
       } else {
-        return this.$store.state.pricing.listPortBegin;
+        return this.pricingStore.listPortBegin;
       }
       return puertos;
     },
     getPuertoDestino() {
       let puertos = [];
-      if (!!this.$store.state.pricing.datosPrincipales.idorigen) {
-        var id_port = this.$store.state.pricing.listPortBegin.filter(
+      if (!!this.pricingStore.datosPrincipales.idorigen) {
+        var id_port = this.pricingStore.listPortBegin.filter(
           (v) =>
-            v.id_port == this.$store.state.pricing.datosPrincipales.idorigen,
+            v.id_port == this.pricingStore.datosPrincipales.idorigen,
         )[0].id_port;
-        puertos = this.$store.state.pricing.listPortEnd.filter(
+        puertos = this.pricingStore.listPortEnd.filter(
           (v) => v.id_port != id_port,
         );
       } else {
-        puertos = this.$store.state.pricing.listPortEnd;
+        puertos = this.pricingStore.listPortEnd;
       }
       return puertos;
     },
 
     isFcl() {
-      const tipoCarga = this.$store.state.pricing.datosPrincipales.idtipocarga;
+      const tipoCarga = this.pricingStore.datosPrincipales.idtipocarga;
       if (tipoCarga && typeof tipoCarga === "object") {
         return tipoCarga.code === "FCL";
       }
-      return (this.$store.state.pricing.listShipment || []).some(
+      return (this.pricingStore.listShipment || []).some(
         (item) => item && item.id == tipoCarga && item.code == "FCL",
       );
     },
     isAereo() {
       let inVal = ["Aéreo", "LCL"];
-      const tipo = this.$store.state.pricing.datosPrincipales.idtipocarga;
+      const tipo = this.pricingStore.datosPrincipales.idtipocarga;
       const id = tipo && typeof tipo === "object" ? tipo.id : tipo;
       if (!id) return false;
-      const items = this.$store.state.pricing.listShipment || [];
+      const items = this.pricingStore.listShipment || [];
       const it = items.find((v) => v.id == id);
       return it && inVal.includes(it.code);
     },
     ocultarLCL() {
       let inVal = ["LCL"];
-      const tipo = this.$store.state.pricing.datosPrincipales.idtipocarga;
+      const tipo = this.pricingStore.datosPrincipales.idtipocarga;
       const id = tipo && typeof tipo === "object" ? tipo.id : tipo;
       if (!id) return false;
-      const items = this.$store.state.pricing.listShipment || [];
+      const items = this.pricingStore.listShipment || [];
       const it = items.find((v) => v.id == id);
       return it && inVal.includes(it.code);
     },
     pesoVolumetrico() {
       if (!this.isAereo) return null;
 
-      const datos = this.$store.state.pricing.datosPrincipales || {};
+      const datos = this.pricingStore.datosPrincipales || {};
       const volumen = parseFloat(datos.volumen || 0); // m³
       if (!volumen) return null;
 
@@ -1843,7 +1845,7 @@ export default {
     pesoCargable() {
       if (!this.isAereo) return null;
 
-      const datos = this.$store.state.pricing.datosPrincipales || {};
+      const datos = this.pricingStore.datosPrincipales || {};
       const pesoReal = parseFloat(datos.peso || 0); // kg
       const volumen = parseFloat(datos.volumen || 0); // m³
 
@@ -1857,16 +1859,16 @@ export default {
     },
     proxyIndividual: {
       get() {
-        return this.$store.state.pricing.datosPrincipales.esindividualflag;
+        return this.pricingStore.datosPrincipales.esindividualflag;
       },
       set(valor) {
-        if (this.$store.state.pricing.datosPrincipales.id) {
+        if (this.pricingStore.datosPrincipales.id) {
           this.confirmarCambio("individual", valor);
         } else {
           const cambioDesdeGrupal =
-            this.$store.state.pricing.datosPrincipales.esgrupalflag;
-          this.$store.state.pricing.datosPrincipales.esindividualflag = true;
-          this.$store.state.pricing.datosPrincipales.esgrupalflag = false;
+            this.pricingStore.datosPrincipales.esgrupalflag;
+          this.pricingStore.datosPrincipales.esindividualflag = true;
+          this.pricingStore.datosPrincipales.esgrupalflag = false;
           if (cambioDesdeGrupal) {
             this.cambiarServicioTransporteActivo();
           }
@@ -1878,7 +1880,7 @@ export default {
             this.cambiarImpuesto();
             if (cambioDesdeGrupal) {
               this.id_percepcionaduana =
-                this.$store.state.pricing.datosPrincipales.id_percepcionaduana;
+                this.pricingStore.datosPrincipales.id_percepcionaduana;
               this.dialogCambiarPercepcionAduana = true;
             }
           }, 100);
@@ -1887,20 +1889,20 @@ export default {
     },
     proxyGrupal: {
       get() {
-        return this.$store.state.pricing.datosPrincipales.esgrupalflag;
+        return this.pricingStore.datosPrincipales.esgrupalflag;
       },
       set(valor) {
-        if (this.$store.state.pricing.datosPrincipales.id) {
+        if (this.pricingStore.datosPrincipales.id) {
           this.confirmarCambio("grupal", valor);
         } else {
           let percepcionAduana =
             this.masterusuariosStore.lstPercepcionAduana.find(
               (v) => v.codigo == "02",
             );
-          this.$store.state.pricing.datosPrincipales.id_percepcionaduana =
+          this.pricingStore.datosPrincipales.id_percepcionaduana =
             percepcionAduana.id;
-          this.$store.state.pricing.datosPrincipales.esgrupalflag = true;
-          this.$store.state.pricing.datosPrincipales.esindividualflag = false;
+          this.pricingStore.datosPrincipales.esgrupalflag = true;
+          this.pricingStore.datosPrincipales.esindividualflag = false;
           this.desactivarTransporteParaGrupal();
           this.cambiarNotasIndividualGrupal({
             esgrupalflag: true,

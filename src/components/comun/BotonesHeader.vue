@@ -2,17 +2,17 @@
 import { computed } from "vue";
 import { useRoute } from "vue-router";
 import Swal from "sweetalert2";
-import { useStore } from "vuex";
 import { useCalculadorasStore } from "@/stores/calculadoras";
+import { usePricingStore } from "@/stores/pricing";
 
 const route = useRoute();
-const rootStore = useStore();
+const pricingStore = usePricingStore();
 const calculadorasStore = useCalculadorasStore();
 
 const getNameUrl = computed(() => route.name);
 
 function enviarCotizacionAPricing() {
-  const item = rootStore.state.pricing.datosPrincipales;
+  const item = pricingStore.datosPrincipales;
   if (item.estadocotizacion == 1) {
     Swal.fire({
       icon: "warning",

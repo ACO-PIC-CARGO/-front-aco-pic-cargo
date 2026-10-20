@@ -4,7 +4,7 @@
       <v-row>
         <v-col cols="12" lg="4" xl="4" class="my-1 py-2">
           <span class="text-headline-small">
-            Costos {{ currencyFormat($store.state.pricing.totalCosto) }}
+            Costos {{ currencyFormat(pricingStore.totalCosto) }}
             <v-btn variant="text" icon color="primary" @click="abrirModal">
               <v-icon>mdi-plus</v-icon>
             </v-btn>
@@ -20,8 +20,8 @@
             <v-expansion-panel>
               <v-expansion-panel-title>
                 {{
-                  $store.state.pricing.listTipoCostos.length > 0
-                    ? $store.state.pricing.listTipoCostos.filter(
+                  pricingStore.listTipoCostos.length > 0
+                    ? pricingStore.listTipoCostos.filter(
                         (v) => v.codigo == "FL",
                       )[0].name
                     : ""
@@ -160,7 +160,7 @@
                           <v-text-field
                             class="derecha tdMontos"
                             v-if="
-                              $store.state.pricing.listMultiplicador.some(
+                              pricingStore.listMultiplicador.some(
                                 (v) =>
                                   v.id == valor.id_multiplicador &&
                                   (v.code == 13 ||
@@ -185,7 +185,7 @@
                             suffix="%"
                             class="derecha tdMontos"
                             v-if="
-                              $store.state.pricing.listMultiplicador.some(
+                              pricingStore.listMultiplicador.some(
                                 (v) =>
                                   v.id == valor.id_multiplicador && v.code == 5,
                               ) &&
@@ -299,8 +299,8 @@
             <v-expansion-panel>
               <v-expansion-panel-title>
                 {{
-                  $store.state.pricing.listTipoCostos.length > 0
-                    ? $store.state.pricing.listTipoCostos.filter(
+                  pricingStore.listTipoCostos.length > 0
+                    ? pricingStore.listTipoCostos.filter(
                         (v) => v.codigo == "OR",
                       )[0].name
                     : ""
@@ -436,7 +436,7 @@
                         <v-text-field
                           class="derecha tdMontos"
                           v-if="
-                            $store.state.pricing.listMultiplicador.some(
+                            pricingStore.listMultiplicador.some(
                               (v) =>
                                 v.id == valor.id_multiplicador &&
                                 (v.code == 13 || v.code == 14 || v.code == 15),
@@ -459,7 +459,7 @@
                           suffix="%"
                           class="derecha tdMontos"
                           v-if="
-                            $store.state.pricing.listMultiplicador.some(
+                            pricingStore.listMultiplicador.some(
                               (v) =>
                                 v.id == valor.id_multiplicador && v.code == 5,
                             ) &&
@@ -564,8 +564,8 @@
             <v-expansion-panel>
               <v-expansion-panel-title>
                 {{
-                  $store.state.pricing.listTipoCostos.length > 0
-                    ? $store.state.pricing.listTipoCostos.filter(
+                  pricingStore.listTipoCostos.length > 0
+                    ? pricingStore.listTipoCostos.filter(
                         (v) => v.codigo == "LO",
                       )[0].name
                     : ""
@@ -700,7 +700,7 @@
                         <v-text-field
                           class="derecha tdMontos"
                           v-if="
-                            $store.state.pricing.listMultiplicador.some(
+                            pricingStore.listMultiplicador.some(
                               (v) =>
                                 v.id == valor.id_multiplicador &&
                                 (v.code == 13 || v.code == 14 || v.code == 15),
@@ -723,7 +723,7 @@
                           suffix="%"
                           class="derecha tdMontos"
                           v-if="
-                            $store.state.pricing.listMultiplicador.some(
+                            pricingStore.listMultiplicador.some(
                               (v) =>
                                 v.id == valor.id_multiplicador && v.code == 5,
                             ) &&
@@ -827,8 +827,8 @@
             <v-expansion-panel>
               <v-expansion-panel-title>
                 {{
-                  $store.state.pricing.listTipoCostos.length > 0
-                    ? $store.state.pricing.listTipoCostos.filter(
+                  pricingStore.listTipoCostos.length > 0
+                    ? pricingStore.listTipoCostos.filter(
                         (v) => v.codigo == "AD",
                       )[0].name
                     : ""
@@ -964,7 +964,7 @@
                         <v-text-field
                           class="derecha tdMontos"
                           v-if="
-                            $store.state.pricing.listMultiplicador.some(
+                            pricingStore.listMultiplicador.some(
                               (v) =>
                                 v.id == valor.id_multiplicador &&
                                 (v.code == 13 || v.code == 14 || v.code == 15),
@@ -987,7 +987,7 @@
                           suffix="%"
                           class="derecha tdMontos"
                           v-if="
-                            $store.state.pricing.listMultiplicador.some(
+                            pricingStore.listMultiplicador.some(
                               (v) =>
                                 v.id == valor.id_multiplicador && v.code == 5,
                             ) &&
@@ -1091,8 +1091,8 @@
             <v-expansion-panel>
               <v-expansion-panel-title>
                 {{
-                  $store.state.pricing.listTipoCostos.length > 0
-                    ? $store.state.pricing.listTipoCostos.filter(
+                  pricingStore.listTipoCostos.length > 0
+                    ? pricingStore.listTipoCostos.filter(
                         (v) => v.codigo == "FL",
                       )[0].name
                     : ""
@@ -1229,7 +1229,7 @@
                         <v-text-field
                           class="derecha tdMontos"
                           v-if="
-                            $store.state.pricing.listMultiplicador.some(
+                            pricingStore.listMultiplicador.some(
                               (v) =>
                                 v.id == valor.id_multiplicador &&
                                 (v.code == 13 || v.code == 14 || v.code == 15),
@@ -1252,7 +1252,7 @@
                           suffix="%"
                           class="derecha tdMontos"
                           v-if="
-                            $store.state.pricing.listMultiplicador.some(
+                            pricingStore.listMultiplicador.some(
                               (v) =>
                                 v.id == valor.id_multiplicador && v.code == 5,
                             ) &&
@@ -1356,8 +1356,8 @@
             <v-expansion-panel>
               <v-expansion-panel-title>
                 {{
-                  $store.state.pricing.listTipoCostos.length > 0
-                    ? $store.state.pricing.listTipoCostos.filter(
+                  pricingStore.listTipoCostos.length > 0
+                    ? pricingStore.listTipoCostos.filter(
                         (v) => v.codigo == "AL",
                       )[0].name
                     : ""
@@ -1492,7 +1492,7 @@
                         <v-text-field
                           class="derecha tdMontos"
                           v-if="
-                            $store.state.pricing.listMultiplicador.some(
+                            pricingStore.listMultiplicador.some(
                               (v) =>
                                 v.id == valor.id_multiplicador &&
                                 (v.code == 13 || v.code == 14 || v.code == 15),
@@ -1515,10 +1515,10 @@
                           suffix="%"
                           class="derecha tdMontos"
                           v-if="
-                            ($store.state.pricing.listMultiplicador.filter(
+                            (pricingStore.listMultiplicador.filter(
                               (v) => v.id == valor.id_multiplicador,
                             )[0].code == 14 ||
-                              $store.state.pricing.listMultiplicador.filter(
+                              pricingStore.listMultiplicador.filter(
                                 (v) => v.id == valor.id_multiplicador,
                               )[0].code == 5) &&
                             !isITBM(valor.code_cost) &&
@@ -1621,8 +1621,8 @@
             <v-expansion-panel>
               <v-expansion-panel-title>
                 {{
-                  $store.state.pricing.listTipoCostos.length > 0
-                    ? $store.state.pricing.listTipoCostos.filter(
+                  pricingStore.listTipoCostos.length > 0
+                    ? pricingStore.listTipoCostos.filter(
                         (v) => v.codigo == "GT",
                       )[0].name
                     : ""
@@ -1757,7 +1757,7 @@
                         <v-text-field
                           class="derecha tdMontos"
                           v-if="
-                            $store.state.pricing.listMultiplicador.some(
+                            pricingStore.listMultiplicador.some(
                               (v) =>
                                 v.id == valor.id_multiplicador &&
                                 (v.code == 13 || v.code == 14 || v.code == 15),
@@ -1780,10 +1780,10 @@
                           suffix="%"
                           class="derecha tdMontos"
                           v-if="
-                            ($store.state.pricing.listMultiplicador.filter(
+                            (pricingStore.listMultiplicador.filter(
                               (v) => v.id == valor.id_multiplicador,
                             )[0].code == 14 ||
-                              $store.state.pricing.listMultiplicador.filter(
+                              pricingStore.listMultiplicador.filter(
                                 (v) => v.id == valor.id_multiplicador,
                               )[0].code == 5) &&
                             !isITBM(valor.code_cost) &&
@@ -2011,6 +2011,7 @@ import CboMultiplicador from "@/components/comun/CboMultiplicador.vue";
 import { mapActions as mapPiniaActions, mapStores } from "pinia";
 import { useEntitiesStore } from "@/stores/entities";
 import { useProveedorStore } from "@/stores/proveedor";
+import { usePricingStore } from "@/stores/pricing";
 export default {
   mixins: [mixins],
   props: [
@@ -2084,7 +2085,7 @@ export default {
   },
   async mounted() {
     this.calcTotales();
-    this.$store.state.pricing.mostrarGuardarCostos = false;
+    this.pricingStore.mostrarGuardarCostos = false;
     await this.habilidarPrimeraAccion();
     if (!!this.index) {
       this.habilidarCuandoYaHayOpciones();
@@ -2103,7 +2104,7 @@ export default {
         this.costo.id_proveedor = res.data[0].id_entitie;
         this.dialogNuevoProveedor = false;
       }
-      let opciones = [...this.$store.state.pricing.opcionCostos];
+      let opciones = [...this.pricingStore.opcionCostos];
       let IdProveedor = [];
       opciones.forEach((opcion) => {
         opcion.listCostos.forEach((costo) => {
@@ -2117,7 +2118,7 @@ export default {
       });
     },
     async recargarProveedores(e) {
-      let opciones = [...this.$store.state.pricing.opcionCostos];
+      let opciones = [...this.pricingStore.opcionCostos];
       let IdProveedor = [];
       opciones.forEach((opcion) => {
         opcion.listCostos.forEach((costo) => {
@@ -2280,7 +2281,7 @@ export default {
       }
 
       // Si no se cumplió ninguna condición anterior, se habilita el botón de guardar
-      this.$store.state.pricing.mostrarGuardarCostos = true;
+      this.pricingStore.mostrarGuardarCostos = true;
     },
     avanzarFlujoFormulario() {
       // Lista única con el orden estricto de prioridad de tus pantallas
@@ -2305,7 +2306,7 @@ export default {
       }
 
       // Si ya se recorrieron o mostraron todas las secciones activas, liberamos el botón final
-      this.$store.state.pricing.mostrarGuardarCostos = true;
+      this.pricingStore.mostrarGuardarCostos = true;
       return false;
     },
 
@@ -2389,10 +2390,10 @@ export default {
     },
 
     validateCost({ costo }) {
-      let service = this.$store.state.pricing.listServices.filter(
+      let service = this.pricingStore.listServices.filter(
         (v) => v.status == 1,
       );
-      let multiplocadores = this.$store.state.pricing.listMultiplicador.filter(
+      let multiplocadores = this.pricingStore.listMultiplicador.filter(
         (v) => {
           return this.comienzaNoConCaracter(v.text, "%");
         },
@@ -2411,8 +2412,8 @@ export default {
     },
     eliminarCostos({ costo = null }) {
       costo.status = 0;
-      this.$store.state.pricing.listCostos =
-        this.$store.state.pricing.listCostos.filter((v) => v.status == 1);
+      this.pricingStore.listCostos =
+        this.pricingStore.listCostos.filter((v) => v.status == 1);
       setTimeout(() => {
         this.calcTotales();
       }, 10);
@@ -2428,7 +2429,7 @@ export default {
     },
     obtenerCostoElemento(element) {
       const { listMultiplicador, datosPrincipales, totalFlete } =
-        this.$store.state.pricing;
+        this.pricingStore;
       const multiplicadores = listMultiplicador || [];
 
       // Buscamos el multiplicador una sola vez por elemento
@@ -2450,7 +2451,7 @@ export default {
         );
         if (
           element.code_cost == 4 &&
-          this.$store.state.pricing.datosPrincipales.volumen < 1
+          this.pricingStore.datosPrincipales.volumen < 1
         ) {
           if (factorCalculado < 1) {
             factorCalculado = 1;
@@ -2554,7 +2555,7 @@ export default {
         (Number(this.resumenOpcion.almacen) || 0) +
         (Number(this.resumenOpcion.gastostercero) || 0);
 
-      this.$store.state.pricing.totalCosto = this.totalOption;
+      this.pricingStore.totalCosto = this.totalOption;
     },
     cerrarModalNuevoCosto() {
       // this.$refs.frmNuevoCosto.reset();
@@ -2582,7 +2583,7 @@ export default {
           break;
       }
 
-      this.$store.state.pricing.opcionCostos
+      this.pricingStore.opcionCostos
         .filter((v) => v.nro_propuesta == this.valores[0].nro_propuesta)[0]
         .listCostos.push(this.fromDataService);
 
@@ -2593,7 +2594,7 @@ export default {
     isNotPorcentaje(element, id_multiplicador) {
       let code = [5, 13, 14, 15];
 
-      let mul = this.$store.state.pricing.listMultiplicador.some(
+      let mul = this.pricingStore.listMultiplicador.some(
         (v) => v.id == id_multiplicador && code.includes(v.code),
       );
 
@@ -2610,12 +2611,12 @@ export default {
     montoConfeccion(item) {
       let monto = 0;
       if (item.code_cost == 33) {
-        let amount = this.$store.state.pricing.datosPrincipales.amount;
+        let amount = this.pricingStore.datosPrincipales.amount;
         let cif =
           parseFloat(amount) +
-          parseFloat(this.$store.state.pricing.totalFlete) +
+          parseFloat(this.pricingStore.totalFlete) +
           (parseFloat(amount) +
-            parseFloat(this.$store.state.pricing.totalFlete)) *
+            parseFloat(this.pricingStore.totalFlete)) *
             0.01;
 
         if (cif < 5000) {
@@ -2639,7 +2640,7 @@ export default {
 
       if (item.code_cost === 38) {
         const { listMultiplicador, datosPrincipales } =
-          this.$store.state.pricing;
+          this.pricingStore;
         const valoresFiltrados = this.valores.filter((v) =>
           codigosFiltrar.includes(v.code_cost),
         );
@@ -2713,7 +2714,7 @@ export default {
       return code == 69 ? true : false;
     },
     formatearValorCalculado(valor) {
-      const pricingState = this.$store.state.pricing;
+      const pricingState = this.pricingStore;
       const multiplicadores = pricingState.listMultiplicador || [];
 
       const multiplicadorEncontrado = multiplicadores.find(
@@ -2746,7 +2747,7 @@ export default {
     },
     formatearCostoTotal(valor) {
       // 1. Desestructuración de los estados del Vuex para escribir menos y más limpio
-      const { listMultiplicador, datosPrincipales } = this.$store.state.pricing;
+      const { listMultiplicador, datosPrincipales } = this.pricingStore;
       const multiplicadores = listMultiplicador || [];
 
       // 2. Buscamos el multiplicador correspondiente UNA SOLA VEZ
@@ -2768,7 +2769,7 @@ export default {
       );
       if (
         valor.code_cost == 4 &&
-        this.$store.state.pricing.datosPrincipales.volumen < 1
+        this.pricingStore.datosPrincipales.volumen < 1
       ) {
         if (factorCalculado < 1) {
           factorCalculado = 1;
@@ -2861,7 +2862,7 @@ export default {
       this.mostrarBtnAduanaFlag = false;
       this.mostrarBtnFleteExportFlag = false;
       this.mostrarBtnAlmacenFlag = false;
-      this.$store.state.pricing.mostrarGuardarCostos = true;
+      this.pricingStore.mostrarGuardarCostos = true;
     },
     totalFlete() {
       this.calcTotales();
@@ -2872,22 +2873,22 @@ export default {
     },
   },
   computed: {
-    ...mapStores(useProveedorStore, useEntitiesStore),
+    ...mapStores(usePricingStore, useProveedorStore, useEntitiesStore),
     cancelarLlenadoNuevaOpcion: {
       get() {
-        return this.$store.state.pricing.cancelarLlenadoNuevaOpcion;
+        return this.pricingStore.cancelarLlenadoNuevaOpcion;
       },
       set(val) {
-        return (this.$store.state.pricing.cancelarLlenadoNuevaOpcion =
+        return (this.pricingStore.cancelarLlenadoNuevaOpcion =
           cancelarLlenadoNuevaOpcion);
       },
     },
     totalFlete: {
       get() {
-        return this.$store.state.pricing.totalFlete;
+        return this.pricingStore.totalFlete;
       },
       set(val) {
-        return (this.$store.state.pricing.totalFlete = totalFlete);
+        return (this.pricingStore.totalFlete = totalFlete);
       },
     },
     mostrarFleteImport() {
@@ -2955,15 +2956,15 @@ export default {
     },
 
     isImport() {
-      return this.$store.state.pricing.listModality.some(
+      return this.pricingStore.listModality.some(
         (v) =>
-          v.id == this.$store.state.pricing.datosPrincipales.idsentido &&
+          v.id == this.pricingStore.datosPrincipales.idsentido &&
           v.code == "I",
       );
     },
     tipoOpcion() {
       let tipoOpcion = [];
-      this.$store.state.pricing.listTipoCostos.forEach((element) => {
+      this.pricingStore.listTipoCostos.forEach((element) => {
         switch (element.codigo) {
           case "GT":
             if (this.mostrarGastosTerceros) {

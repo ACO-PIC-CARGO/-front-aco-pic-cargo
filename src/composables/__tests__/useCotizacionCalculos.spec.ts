@@ -1,18 +1,17 @@
 import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
-import store from "@/store/index";
+import { createPinia, setActivePinia } from "pinia";
 import { useCotizacionCalculos } from "@/composables/useCotizacionCalculos";
+import { usePricingStore } from "@/stores/pricing";
+import type { DatosPrincipales, Multiplicador } from "@/types/cotizacion";
 
 vi.mock("@/router", () => ({ default: {} }));
 vi.mock("@/api/http", () => ({ default: {} }));
 
-const pricing = store.state.pricing;
-const originalMultiplicadores = pricing.listMultiplicador;
-const originalDatosPrincipales = pricing.datosPrincipales;
-
 const setPricing = (
-  listMultiplicador: unknown[],
-  datosPrincipales: Record<string, unknown> = {},
+  listMultiplicador: Multiplicador[],
+  datosPrincipales: DatosPrincipales = {},
 ) => {
+  const pricing = usePricingStore();
   pricing.listMultiplicador = listMultiplicador;
   pricing.datosPrincipales = datosPrincipales;
 };
@@ -20,9 +19,9 @@ const setPricing = (
 const { calcularFac, calcularTotalFleteVentaPorOpcion } =
   useCotizacionCalculos();
 
+beforeEach(() => setActivePinia(createPinia()));
+
 afterEach(() => {
-  pricing.listMultiplicador = originalMultiplicadores;
-  pricing.datosPrincipales = originalDatosPrincipales;
   vi.restoreAllMocks();
 });
 

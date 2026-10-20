@@ -3,12 +3,14 @@ import { nextTick, onMounted, ref, useTemplateRef } from "vue";
 import { storeToRefs } from "pinia";
 import Swal from "sweetalert2";
 import { useStore } from "vuex";
+import { usePricingStore } from "@/stores/pricing";
 import { useStatushouseStore } from "@/stores/statushouse";
 import type { ComentarioEstadoHouse, EstadoHouse } from "@/types/catalogos";
 
 const statushouseStore = useStatushouseStore();
 const { listStatusHouse, orden } = storeToRefs(statushouseStore);
 const rootStore = useStore();
+const pricingStore = usePricingStore();
 
 const filtrar = ref(false);
 const loadingTable = ref(false);
@@ -254,8 +256,8 @@ onMounted(async () => {
   rootStore.state.spiner = true;
   await statushouseStore.getListStatusHouse();
   rootStore.state.spiner = false;
-  await rootStore.dispatch("getModality");
-  await rootStore.dispatch("getShipment");
+  await pricingStore.getModality();
+  await pricingStore.getShipment();
 });
 </script>
 
@@ -440,7 +442,7 @@ onMounted(async () => {
             <v-row>
               <v-col cols="6">
                 <v-autocomplete
-                  :items="rootStore.state.pricing.listModality"
+                  :items="pricingStore.listModality"
                   label="Sentido*"
                   item-title="name"
                   item-value="id"
@@ -451,7 +453,7 @@ onMounted(async () => {
               </v-col>
               <v-col cols="6">
                 <v-autocomplete
-                  :items="rootStore.state.pricing.listShipment"
+                  :items="pricingStore.listShipment"
                   label="Tipo de Embarque*"
                   item-title="embarque"
                   item-value="id"
@@ -663,7 +665,7 @@ onMounted(async () => {
             <v-row>
               <v-col cols="4">
                 <v-autocomplete
-                  :items="rootStore.state.pricing.listModality"
+                  :items="pricingStore.listModality"
                   label="Sentido*"
                   item-title="name"
                   item-value="id"
@@ -673,7 +675,7 @@ onMounted(async () => {
               </v-col>
               <v-col cols="4">
                 <v-autocomplete
-                  :items="rootStore.state.pricing.listShipment"
+                  :items="pricingStore.listShipment"
                   label="Tipo de Embarque*"
                   item-title="embarque"
                   item-value="id"
@@ -769,7 +771,7 @@ onMounted(async () => {
       <v-divider />
 
       <v-autocomplete
-        :items="rootStore.state.pricing.listModality"
+        :items="pricingStore.listModality"
         label="Sentido*"
         item-title="name"
         item-value="id"
@@ -778,7 +780,7 @@ onMounted(async () => {
       />
 
       <v-autocomplete
-        :items="rootStore.state.pricing.listShipment"
+        :items="pricingStore.listShipment"
         label="Tipo de Embarque*"
         item-title="embarque"
         item-value="id"

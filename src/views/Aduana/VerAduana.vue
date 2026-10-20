@@ -118,6 +118,7 @@ import mixins from "../../components/mixins/funciones.js";
 import { mapActions as mapPiniaActions } from "pinia";
 import { useMasterusuariosStore } from "@/stores/masterusuarios";
 import { useEnterprisesStore } from "@/stores/enterprises";
+import { usePricingStore } from "@/stores/pricing";
 export default {
   mixins: [mixins],
   name: "VerQuoteView",
@@ -165,25 +166,17 @@ export default {
   },
   methods: {
     ...mapActions([
-      "getItemsServicesDetails",
-      "getMarketingList",
-      "getQuoteStatus",
-      "getModulesEntities",
       "getModalityAduana",
       "getShipmentAduana",
       "getIncotermsAduana",
-      "getModuleRole",
-      "getCargarMasterDetalleNotasCotizacion",
       "_getEntities",
       "_getRole",
-      "getImpuestos",
       "getAdunaVer",
       "getPortBeginAduana",
       "getPortEndAduana",
       "getMultiplicadorAduana",
       "getInstructivoIdAduana",
       "generaInstructivoAduana",
-      "getBegEndList",
       "getTipoCostosAduana",
       "cargarProveedores",
       "_getEntitiesCliente",
@@ -191,6 +184,7 @@ export default {
       "getCotizacionUnificar",
       "GuardaCostosFinalesAduana",
     ]),
+    ...mapPiniaActions(usePricingStore, ["getItemsServicesDetails", "getMarketingList", "getQuoteStatus", "getModulesEntities", "getModuleRole", "getCargarMasterDetalleNotasCotizacion", "getImpuestos", "getBegEndList"]),
     ...mapPiniaActions(useEnterprisesStore, ["obtenerImpuestoXEmpresa"]),
     ...mapPiniaActions(useMasterusuariosStore, ["cargarMasterDetallePercepcionAduana"]),
   },

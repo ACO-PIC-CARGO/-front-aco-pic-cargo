@@ -218,6 +218,8 @@
 <script>
 import { mapActions } from "vuex";
 import Swal from "sweetalert2";
+import { mapActions as mapPiniaActions } from "pinia";
+import { usePricingStore } from "@/stores/pricing";
 export default {
   data() {
     return {
@@ -245,10 +247,10 @@ export default {
   },
   methods: {
     ...mapActions([
-      "registrarQuote",
       "generarReporteAduana",
       "obtenerDatosEmpresaAduana",
     ]),
+    ...mapPiniaActions(usePricingStore, ["registrarQuote"]),
     formatDate(val) {
       if (!val) return "";
       try {

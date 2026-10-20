@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, watch } from "vue";
-import { useStore } from "vuex";
+import { usePricingStore } from "@/stores/pricing";
 import type { RegistroConUrlCarpeta } from "@/types/archivos";
 
 const props = withDefaults(
@@ -9,7 +9,7 @@ const props = withDefaults(
 );
 const emit = defineEmits<{ cerrar: [] }>();
 
-const rootStore = useStore();
+const pricingStore = usePricingStore();
 
 const url_folderonedrive = ref("");
 const err = ref("");
@@ -23,7 +23,7 @@ async function actualizarUrl() {
     err.value = "Dato requerido";
     return;
   }
-  await rootStore.dispatch("actualizarURLEnElQuote", {
+  await pricingStore.actualizarURLEnElQuote({
     id: props.masterEditar.id,
     url: url_folderonedrive.value,
   });

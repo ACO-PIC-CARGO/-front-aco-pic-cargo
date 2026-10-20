@@ -293,7 +293,7 @@
             <v-autocomplete
               density="compact"
               label="Ejecutivo"
-              :items="$store.state.pricing.listEjecutivo"
+              :items="pricingStore.listEjecutivo"
               item-title="name"
               item-value="id_entitie"
               v-model="comentario.id_ejecutivo"
@@ -515,6 +515,7 @@ import { mapActions as mapPiniaActions, mapStores } from "pinia";
 import { useGastosStore } from "@/stores/gastos";
 import { useSubgastoStore } from "@/stores/subgasto";
 import { useEnterprisesStore } from "@/stores/enterprises";
+import { usePricingStore } from "@/stores/pricing";
 export default {
   name: "debstoPay",
   components: {
@@ -729,7 +730,7 @@ export default {
     cerrar() {},
   },
   computed: {
-    ...mapStores(useEnterprisesStore, useSubgastoStore, useGastosStore),
+    ...mapStores(usePricingStore, useEnterprisesStore, useSubgastoStore, useGastosStore),
     ...mapState(["provedores", "refreshReport", "listProgramacion"]),
     dateRange() {
       return this.date.join(" ~ ");
@@ -739,8 +740,8 @@ export default {
     ...mapActions([
       "cargarProveedores",
       "GetTotalCotizacion",
-      "getModulesEntities",
     ]),
+    ...mapPiniaActions(usePricingStore, ["getModulesEntities"]),
     ...mapPiniaActions(useEnterprisesStore, ["obtenerImpuestoXEmpresa"]),
     ...mapPiniaActions(useSubgastoStore, ["GetListSubGasto"]),
     ...mapPiniaActions(useGastosStore, ["cargarGasto"]),

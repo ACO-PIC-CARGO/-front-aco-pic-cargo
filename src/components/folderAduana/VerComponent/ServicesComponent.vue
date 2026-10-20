@@ -125,10 +125,11 @@
 </template>
 
 <script>
-import { mapActions } from "vuex";
+import { mapActions as mapPiniaActions } from "pinia";
+import { usePricingStore } from "@/stores/pricing";
 export default {
   methods: {
-    ...mapActions(["getItemsServices"]),
+    ...mapPiniaActions(usePricingStore, ["getItemsServices"]),
   },
 };
 </script>

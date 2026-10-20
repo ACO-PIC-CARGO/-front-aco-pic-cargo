@@ -4,6 +4,7 @@ import Swal from "sweetalert2";
 import axios from "@/api/http";
 import store from "@/store";
 import { useMultiplicadorStore } from "@/stores/multiplicador";
+import { usePricingStore } from "@/stores/pricing";
 import type { ApiResponse } from "@/types/api";
 import type { FiltroTipoCarga, FormTipoCarga, Transporte } from "@/types/catalogos";
 import type { TipoCarga } from "@/types/cotizacion";
@@ -21,6 +22,7 @@ export const useShipmentStore = defineStore("shipment", () => {
     list.value = data;
     // While shipment was a Vuex module this commit also ran multiplicador's, pricing's and aduana's SET_LIST_SHIPMENT.
     useMultiplicadorStore().shipments = data;
+    usePricingStore().listShipment = data;
     store.commit("SET_LIST_SHIPMENT", data);
   }
 

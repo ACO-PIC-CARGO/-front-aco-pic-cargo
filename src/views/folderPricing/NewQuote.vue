@@ -171,6 +171,7 @@ import { useMasterusuariosStore } from "@/stores/masterusuarios";
 import { useEnterprisesStore } from "@/stores/enterprises";
 import { useProveedorStore } from "@/stores/proveedor";
 import { useCalculadorasStore } from "@/stores/calculadoras";
+import { usePricingStore } from "@/stores/pricing";
 export default {
   mixins: [mixins],
   components: {
@@ -196,8 +197,8 @@ export default {
     };
   },
   async mounted() {
-    this.$store.state.pricing.step = 1;
-    this.$store.commit("SET_RESET");
+    this.pricingStore.step = 1;
+    this.pricingStore.SET_RESET();
     this.$store.state.mainTitle = "Nueva Cotización";
     await Promise.all([
       // await this.resetQuoteNew(),
@@ -211,7 +212,7 @@ export default {
     ]);
 
     await this.setDefaultStatusPreliminar();
-    let opciones = [...this.$store.state.pricing.opcionCostos];
+    let opciones = [...this.pricingStore.opcionCostos];
     let IdProveedor = [];
     opciones.forEach((opcion) => {
       opcion.listCostos.forEach((costo) => {
@@ -236,34 +237,16 @@ export default {
   },
   methods: {
     ...mapActions([
-      "resetQuoteNew",
-      "getMarketingList",
-      "getQuoteStatus",
-      "getModality",
-      "getShipment",
-      "getIncoterms",
-      "getCargarEjecutivo",
-      "getPortBegin",
-      "getPortEnd",
-      "getServices",
-      "getBegEndList",
-      "getTipoCostos",
-      "obtenerCostosPricing",
-      "getMultiplicador",
-      "getImpuestos",
-      "getCargarMasterDetalleNotasCotizacion",
       "cargarProveedores",
-      "registrarQuote",
       "_getContainers",
-      "crearCarpetaOneDrive",
-      "actualizarURLEnElQuote",
     ]),
+    ...mapPiniaActions(usePricingStore, ["resetQuoteNew", "getMarketingList", "getQuoteStatus", "getModality", "getShipment", "getIncoterms", "getCargarEjecutivo", "getPortBegin", "getPortEnd", "getServices", "getBegEndList", "getTipoCostos", "obtenerCostosPricing", "getMultiplicador", "getImpuestos", "getCargarMasterDetalleNotasCotizacion", "registrarQuote", "crearCarpetaOneDrive", "actualizarURLEnElQuote"]),
     ...mapPiniaActions(useCalculadorasStore, ["obtenerFleteCalculadora", "getTransporte"]),
     ...mapPiniaActions(useProveedorStore, ["obtenerProveedorPricing"]),
     ...mapPiniaActions(useEnterprisesStore, ["obtenerImpuestoXEmpresa"]),
     ...mapPiniaActions(useMasterusuariosStore, ["cargarMasterDetallePercepcionAduana"]),
     recargar() {
-      if (this.$store.state.pricing.listServices.length > 0) {
+      if (this.pricingStore.listServices.length > 0) {
         this.recargarServicios();
         this.getTipoCostos();
       }
@@ -274,24 +257,24 @@ export default {
     },
     continuarComparativa() {
       this.step = 3;
-      this.$store.state.pricing.step = 3;
+      this.pricingStore.step = 3;
     },
     async activarDatosCarga() {
       this.$store.state.spiner = true;
       await Promise.all([
         this.getPortBegin({
-          id_transport: this.$store.state.pricing.datosPrincipales.idtipocarga
+          id_transport: this.pricingStore.datosPrincipales.idtipocarga
             .id_transport
-            ? this.$store.state.pricing.datosPrincipales.idtipocarga
+            ? this.pricingStore.datosPrincipales.idtipocarga
                 .id_transport
-            : this.$store.state.pricing.datosPrincipales.idtipocarga,
+            : this.pricingStore.datosPrincipales.idtipocarga,
         }),
         this.getPortEnd({
-          id_transport: this.$store.state.pricing.datosPrincipales.idtipocarga
+          id_transport: this.pricingStore.datosPrincipales.idtipocarga
             .id_transport
-            ? this.$store.state.pricing.datosPrincipales.idtipocarga
+            ? this.pricingStore.datosPrincipales.idtipocarga
                 .id_transport
-            : this.$store.state.pricing.datosPrincipales.idtipocarga,
+            : this.pricingStore.datosPrincipales.idtipocarga,
         }),
       ]);
       this.DatosCargaComponentFlag = true;
@@ -308,35 +291,35 @@ export default {
     async activarServicios() {
       this.ServicesComponentFlag = true;
       let idTipoCarga =
-        typeof this.$store.state.pricing.datosPrincipales.idtipocarga ===
+        typeof this.pricingStore.datosPrincipales.idtipocarga ===
         "object"
-          ? this.$store.state.pricing.datosPrincipales.idtipocarga.id
-          : this.$store.state.pricing.datosPrincipales.idtipocarga;
+          ? this.pricingStore.datosPrincipales.idtipocarga.id
+          : this.pricingStore.datosPrincipales.idtipocarga;
 
-      let services = [...this.$store.state.pricing.preServices];
+      let services = [...this.pricingStore.preServices];
       let serv = services.filter(
         (v) =>
           v.id_incoterms ==
-            this.$store.state.pricing.datosPrincipales.idincoterms &&
+            this.pricingStore.datosPrincipales.idincoterms &&
           v.id_modality ==
-            this.$store.state.pricing.datosPrincipales.idsentido &&
+            this.pricingStore.datosPrincipales.idsentido &&
           v.id_shipment ==
-            this.$store.state.pricing.datosPrincipales.idtipocarga.id,
+            this.pricingStore.datosPrincipales.idtipocarga.id,
       );
       Promise.all([
         this.getTipoCostos(),
 
         this.getTransporte({
-          shimpent: this.$store.state.pricing.listShipment.find(
+          shimpent: this.pricingStore.listShipment.find(
             (v) => v.id == idTipoCarga,
           ).code,
-          id_modality: this.$store.state.pricing.datosPrincipales.idsentido,
+          id_modality: this.pricingStore.datosPrincipales.idsentido,
           id_pais: JSON.parse(sessionStorage.getItem("dataUser"))[0].id_pais,
           id_branch: JSON.parse(sessionStorage.getItem("dataUser"))[0]
             .id_branch,
         }),
       ]);
-      const { esgrupalflag } = this.$store.state.pricing.datosPrincipales;
+      const { esgrupalflag } = this.pricingStore.datosPrincipales;
 
       if (esgrupalflag) {
         serv = serv.map((v) => {
@@ -350,7 +333,7 @@ export default {
           return v;
         });
       }
-      this.$store.state.pricing.listServices = serv;
+      this.pricingStore.listServices = serv;
       this.$nextTick(() => {
         // setTimeout(() => {
         const element = document.getElementById("ServicesComponent");
@@ -363,47 +346,47 @@ export default {
       this.$store.state.spiner = false;
     },
     recargarServicios() {
-      let services = [...this.$store.state.pricing.preServices];
+      let services = [...this.pricingStore.preServices];
       if (services.length == 0) {
         return;
       }
       let serv = services.filter(
         (v) =>
           v.id_incoterms ==
-            this.$store.state.pricing.datosPrincipales.idincoterms &&
+            this.pricingStore.datosPrincipales.idincoterms &&
           v.id_modality ==
-            this.$store.state.pricing.datosPrincipales.idsentido &&
+            this.pricingStore.datosPrincipales.idsentido &&
           v.id_shipment ==
-            this.$store.state.pricing.datosPrincipales.idtipocarga.id,
+            this.pricingStore.datosPrincipales.idtipocarga.id,
       );
       // eliminando los servicios que ya no van
       let IdServices = serv.map((v) => v.id);
-      this.$store.state.pricing.listServices
+      this.pricingStore.listServices
         .filter((v) => !!v.id)
         .forEach((servicios) => {
           if (!IdServices.includes(servicios.id)) {
-            let index = this.$store.state.pricing.listServices.findIndex(
+            let index = this.pricingStore.listServices.findIndex(
               (v) => v.code_service == servicios.code_service,
             );
-            this.$store.state.pricing.listServices.splice(index, 1);
+            this.pricingStore.listServices.splice(index, 1);
           }
         });
       // agregando los servicios que faltan
-      IdServices = this.$store.state.pricing.listServices.map(
+      IdServices = this.pricingStore.listServices.map(
         (v) => v.code_service,
       );
 
       serv.forEach((servicios) => {
         if (!IdServices.includes(servicios.code_service)) {
-          this.$store.state.pricing.listServices.push(servicios);
+          this.pricingStore.listServices.push(servicios);
         }
       });
     },
     async activarLlenadoCostos() {
-      let existeTransporteDestino = this.$store.state.pricing.listServices.some(
+      let existeTransporteDestino = this.pricingStore.listServices.some(
         (v) => v.code_service == 14 && v.status == 1,
       );
-      let { id_town, peso } = this.$store.state.pricing.datosPrincipales;
+      let { id_town, peso } = this.pricingStore.datosPrincipales;
 
       let val = this.calculadorasStore.lstTransporte.some(
         (v) =>
@@ -432,31 +415,31 @@ export default {
       this.dialogPesoVolumen = false;
       this.dialogDistrito = false;
       let idTipoCarga =
-        typeof this.$store.state.pricing.datosPrincipales.idtipocarga ===
+        typeof this.pricingStore.datosPrincipales.idtipocarga ===
         "object"
-          ? this.$store.state.pricing.datosPrincipales.idtipocarga.id
-          : this.$store.state.pricing.datosPrincipales.idtipocarga;
+          ? this.pricingStore.datosPrincipales.idtipocarga.id
+          : this.pricingStore.datosPrincipales.idtipocarga;
 
       const { esindividualflag, esgrupalflag } =
-        this.$store.state.pricing.datosPrincipales;
+        this.pricingStore.datosPrincipales;
       this.$store.state.spiner = true;
       await Promise.all([
         this.getMultiplicador(),
 
         this.obtenerFleteCalculadora({
-          shipment: this.$store.state.pricing.listShipment.find(
+          shipment: this.pricingStore.listShipment.find(
             (v) => v.id == idTipoCarga,
           ).code,
-          puerto_origen: this.$store.state.pricing.listPortBegin.find(
+          puerto_origen: this.pricingStore.listPortBegin.find(
             (v) =>
-              v.id_port == this.$store.state.pricing.datosPrincipales.idorigen,
+              v.id_port == this.pricingStore.datosPrincipales.idorigen,
           ).puerto,
-          puerto_destino: this.$store.state.pricing.listPortEnd.find(
+          puerto_destino: this.pricingStore.listPortEnd.find(
             (v) =>
-              v.id_port == this.$store.state.pricing.datosPrincipales.iddestino,
+              v.id_port == this.pricingStore.datosPrincipales.iddestino,
           ).puerto,
-          volumen: this.$store.state.pricing.datosPrincipales.volumen,
-          peso: this.$store.state.pricing.datosPrincipales.peso,
+          volumen: this.pricingStore.datosPrincipales.volumen,
+          peso: this.pricingStore.datosPrincipales.peso,
         }),
       ]);
       this.$store.state.spiner = false;
@@ -479,7 +462,7 @@ export default {
         listImpuestos,
         listNotasQuote,
         opcionCostos,
-      } = this.$store.state.pricing;
+      } = this.pricingStore;
       const {
         idincoterms,
         idsentido,
@@ -606,7 +589,7 @@ export default {
         }).then(async (result) => {
           if (result.isConfirmed) {
             this.step = 2;
-            this.$store.state.pricing.step = 2;
+            this.pricingStore.step = 2;
             this.editableStep2 = true;
           } else if (result.isDenied) {
             await this.guardar();
@@ -627,7 +610,7 @@ export default {
         listImpuestos,
         listNotasQuote,
         opcionCostos,
-      } = this.$store.state.pricing;
+      } = this.pricingStore;
       const {
         idincoterms,
         idsentido,
@@ -754,7 +737,7 @@ export default {
         }).then(async (result) => {
           if (result.isConfirmed) {
             this.step = 2;
-            this.$store.state.pricing.step = 2;
+            this.pricingStore.step = 2;
             this.editableStep2 = true;
           } else if (result.isDenied) {
             await this.guardar();
@@ -828,7 +811,7 @@ export default {
       let factor = parseFloat(this.formatearCostoTotal(item)) || 0;
       if (
         item.code_cost == 4 &&
-        this.$store.state.pricing.datosPrincipales.volumen < 1 &&
+        this.pricingStore.datosPrincipales.volumen < 1 &&
         factor < 1
       ) {
         factor = 1;
@@ -842,12 +825,12 @@ export default {
       if (item.code_cost == 13) {
         const opcion = 2;
         let pesoActual =
-          parseFloat(this.$store.state.pricing.datosPrincipales.peso) || 0;
+          parseFloat(this.pricingStore.datosPrincipales.peso) || 0;
 
         let transporte = this.calculadorasStore.lstTransporte.find(
           (v) =>
             v.id_distrito ==
-              this.$store.state.pricing.datosPrincipales.id_town &&
+              this.pricingStore.datosPrincipales.id_town &&
             v.opcion == opcion &&
             pesoActual >= parseFloat(v.peso_desde) &&
             pesoActual <= parseFloat(v.peso_hasta),
@@ -878,11 +861,11 @@ export default {
       if (item.code_cost == 13) {
         const opcion = 1;
         const pesoActual =
-          parseFloat(this.$store.state.pricing.datosPrincipales.peso) || 0;
+          parseFloat(this.pricingStore.datosPrincipales.peso) || 0;
         const transporte = this.calculadorasStore.lstTransporte.find(
           (v) =>
             v.id_distrito ==
-              this.$store.state.pricing.datosPrincipales.id_town &&
+              this.pricingStore.datosPrincipales.id_town &&
             v.opcion == opcion &&
             pesoActual >= parseFloat(v.peso_desde) &&
             pesoActual <= parseFloat(v.peso_hasta),
@@ -896,16 +879,16 @@ export default {
     async guardar() {
       this.$store.state.spiner = true;
 
-      this.$store.state.pricing.opcionCostos[0].selected = true;
+      this.pricingStore.opcionCostos[0].selected = true;
       await this.registrarQuote({ fullflag: false }).catch((err) => {});
-      if (this.$store.state.pricing.nro_quote) {
+      if (this.pricingStore.nro_quote) {
         this.$store.state.spiner = false;
         let vm = this;
 
         Swal.fire({
           icon: "success",
           title: "Aviso",
-          text: vm.$store.state.pricing.mensaje,
+          text: vm.pricingStore.mensaje,
           confirmButtonText: "Ir al listado",
           showConfirmButton: true,
         }).then((result) => {
@@ -925,13 +908,13 @@ export default {
         let branchCreacion = [1, 2];
         if (branchCreacion.includes(id_branch)) {
           const urlGenerada = await this.crearCarpetaOneDrive({
-            nro_quote: this.$store.state.pricing.nro_quote,
-            nombre: this.$store.state.pricing.datosPrincipales.nombre,
+            nro_quote: this.pricingStore.nro_quote,
+            nombre: this.pricingStore.datosPrincipales.nombre,
           });
 
           if (urlGenerada) {
             await this.actualizarURLEnElQuote({
-              id: this.$store.state.pricing.id,
+              id: this.pricingStore.id,
               url: urlGenerada,
             });
           } else {
@@ -943,7 +926,7 @@ export default {
       }
     },
     async anadirNuevaOpcion(nro_propuesta) {
-      const pricing = this.$store.state.pricing;
+      const pricing = this.pricingStore;
       pricing.opcionCostos.push({
         nro_propuesta,
         date_end: moment().add(7, "days").format("YYYY-MM-DD"),
@@ -964,27 +947,27 @@ export default {
     async recargarCostos() {
       Promise.all([this.getTipoCostos(), this.getMultiplicador()]);
       const codeServicesActivos = new Set(
-        (this.$store.state.pricing.listServices || [])
+        (this.pricingStore.listServices || [])
           .filter((v) => v.status === true || v.status === 1)
           .map((v) => v.code_service),
       );
 
-      const c = (this.$store.state.pricing.preCostos || []).filter(
+      const c = (this.pricingStore.preCostos || []).filter(
         (v) =>
           v.id_incoterms ===
-            this.$store.state.pricing.datosPrincipales.idincoterms &&
+            this.pricingStore.datosPrincipales.idincoterms &&
           v.id_modality ===
-            this.$store.state.pricing.datosPrincipales.idsentido &&
+            this.pricingStore.datosPrincipales.idsentido &&
           v.id_shipment ===
-            this.$store.state.pricing.datosPrincipales.idtipocarga.id &&
+            this.pricingStore.datosPrincipales.idtipocarga.id &&
           codeServicesActivos.has(v.code_service),
       );
 
       let idContainer = [];
       if (
-        (this.$store.state.pricing.datosPrincipales.containers || []).length > 0
+        (this.pricingStore.datosPrincipales.containers || []).length > 0
       ) {
-        idContainer = this.$store.state.pricing.datosPrincipales.containers.map(
+        idContainer = this.pricingStore.datosPrincipales.containers.map(
           (v) => v.id,
         );
       }
@@ -1006,13 +989,13 @@ export default {
               esopcionflag: 1,
               esventaflag: 0,
               status: true,
-              cif: this.$store.state.pricing.datosPrincipales.esgrupalflag
+              cif: this.pricingStore.datosPrincipales.esgrupalflag
                 ? 0
                 : parseFloat(0.35),
-              seguro: this.$store.state.pricing.datosPrincipales.esgrupalflag
+              seguro: this.pricingStore.datosPrincipales.esgrupalflag
                 ? 0
                 : parseFloat(0.45),
-              costounitario: this.$store.state.pricing.datosPrincipales
+              costounitario: this.pricingStore.datosPrincipales
                 .esgrupalflag
                 ? 0
                 : item.costounitario,
@@ -1027,12 +1010,12 @@ export default {
             (v) =>
               String(v.id) ===
               String(
-                this.$store.state.pricing.datosPrincipales.id_percepcionaduana,
+                this.pricingStore.datosPrincipales.id_percepcionaduana,
               ),
           );
         const profitList = item.profit_ganancia_pricing || [];
 
-        if (this.$store.state.pricing.datosPrincipales.esindividualflag) {
+        if (this.pricingStore.datosPrincipales.esindividualflag) {
           const profitObj = profitList.find((v) => v.esindividualflag);
           if (tipoImportacion?.codigo == "01") {
             montoprofit = profitObj?.profitprimeraimportacion || 0;
@@ -1042,7 +1025,7 @@ export default {
           }
         }
 
-        if (this.$store.state.pricing.datosPrincipales.esgrupalflag) {
+        if (this.pricingStore.datosPrincipales.esgrupalflag) {
           const profitObj = profitList.find((v) => v.esgrupalflag);
           if (tipoImportacion?.codigo == "01") {
             montoprofit = profitObj?.profitprimeraimportacion || 0;
@@ -1059,13 +1042,13 @@ export default {
             esopcionflag: 1,
             esventaflag: 0,
             status: true,
-            cif: this.$store.state.pricing.datosPrincipales.esgrupalflag
+            cif: this.pricingStore.datosPrincipales.esgrupalflag
               ? 0
               : parseFloat(0.35),
-            seguro: this.$store.state.pricing.datosPrincipales.esgrupalflag
+            seguro: this.pricingStore.datosPrincipales.esgrupalflag
               ? 0
               : parseFloat(0.45),
-            costounitario: this.$store.state.pricing.datosPrincipales
+            costounitario: this.pricingStore.datosPrincipales
               .esgrupalflag
               ? 0
               : item.costounitario,
@@ -1080,7 +1063,7 @@ export default {
             seguro: parseFloat(0.45),
             costounitario:
               parseFloat(
-                this.$store.state.pricing.datosPrincipales.esgrupalflag
+                this.pricingStore.datosPrincipales.esgrupalflag
                   ? 0
                   : item.costounitario,
               ) + parseFloat(montoprofit),
@@ -1089,30 +1072,30 @@ export default {
         ];
       });
 
-      this.$store.state.pricing.opcionCostos = (
-        this.$store.state.pricing.opcionCostos || []
+      this.pricingStore.opcionCostos = (
+        this.pricingStore.opcionCostos || []
       ).slice(0, 1);
-      this.$store.state.pricing.index = 0;
-      this.$store.state.pricing.opcionCostos[0].listCostos = cDuplicado;
-      this.$store.state.pricing.opcionCostos[0].listImpuestos =
-        this.$store.state.pricing.listImpuestos;
-      this.$store.state.pricing.opcionCostos[0].listNotasQuote =
-        this.$store.state.pricing.listNotasQuote;
+      this.pricingStore.index = 0;
+      this.pricingStore.opcionCostos[0].listCostos = cDuplicado;
+      this.pricingStore.opcionCostos[0].listImpuestos =
+        this.pricingStore.listImpuestos;
+      this.pricingStore.opcionCostos[0].listNotasQuote =
+        this.pricingStore.listNotasQuote;
 
-      this.$store.state.pricing.llenadoCostos = true;
+      this.pricingStore.llenadoCostos = true;
       this.$forceUpdate();
       this.indexCostos++;
     },
     irVentaCliente() {
       this.step = 2;
-      this.$store.state.pricing.step = 2;
+      this.pricingStore.step = 2;
       this.editableStep3 = true;
     },
     irANotas() {
       this.step = 4;
-      this.$store.state.pricing.step = 4;
+      this.pricingStore.step = 4;
       this.editableStep4 = true;
-      this.$store.state.pricing.btnRegistrar = true;
+      this.pricingStore.btnRegistrar = true;
     },
     triggerExcel() {
       if (this.$refs.excelInput) this.$refs.excelInput.click();
@@ -1160,7 +1143,7 @@ export default {
         rows.slice(1).find((r) => (r || []).some((v) => norm(v) !== "")) ||
         rows[1];
       let cambios = 0;
-      const sp = this.$store.state.pricing;
+      const sp = this.pricingStore;
 
       const idxMarketing = findIdx("marketing", "tipo de marketing");
       const idxStatus = findIdx(
@@ -1305,7 +1288,7 @@ export default {
       return { actualizados: cambios };
     },
     async ensurePreliminarStatus() {
-      const estados = this.$store.state.pricing.listQuoteStatus || [];
+      const estados = this.pricingStore.listQuoteStatus || [];
       const existe = estados.some(
         (e) =>
           typeof e.name === "string" &&
@@ -1338,7 +1321,7 @@ export default {
       } catch (e) {}
     },
     setDefaultStatusPreliminar() {
-      const estados = this.$store.state.pricing.listQuoteStatus || [];
+      const estados = this.pricingStore.listQuoteStatus || [];
       if (!Array.isArray(estados) || estados.length === 0) return;
       const prelim = estados.find(
         (e) =>
@@ -1347,16 +1330,16 @@ export default {
           e.status == 1,
       );
       if (prelim) {
-        this.$store.state.pricing.datosPrincipales.id_status = prelim.id;
+        this.pricingStore.datosPrincipales.id_status = prelim.id;
         return;
       }
       const activo = estados.find((e) => e.status == 1) || estados[0];
       if (activo) {
-        this.$store.state.pricing.datosPrincipales.id_status = activo.id;
+        this.pricingStore.datosPrincipales.id_status = activo.id;
       }
     },
     async emitirPreliminarAuto() {
-      this.$store.state.pricing.opcionCostos[0].selected = true;
+      this.pricingStore.opcionCostos[0].selected = true;
       try {
         await this.registrarQuote({ fullflag: false });
         Swal.fire({
@@ -1374,7 +1357,7 @@ export default {
     },
     formatearCostoTotal(valor) {
       // 1. Desestructuración de los estados del Vuex para escribir menos y más limpio
-      const { listMultiplicador, datosPrincipales } = this.$store.state.pricing;
+      const { listMultiplicador, datosPrincipales } = this.pricingStore;
       const multiplicadores = listMultiplicador || [];
 
       // 2. Buscamos el multiplicador correspondiente UNA SOLA VEZ
@@ -1398,7 +1381,7 @@ export default {
     },
   },
   computed: {
-    ...mapStores(useCalculadorasStore, useMasterusuariosStore, useQuoteStatusStore),
+    ...mapStores(usePricingStore, useCalculadorasStore, useMasterusuariosStore, useQuoteStatusStore),
     // ...mapState(["preServices", "preCostos"]),
   },
 };

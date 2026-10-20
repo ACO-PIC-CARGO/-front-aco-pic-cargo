@@ -9,10 +9,10 @@
             variant="outlined"
             density="compact"
             class="my-1"
-            :items="$store.state.pricing.listMarketing"
+            :items="pricingStore.listMarketing"
             item-title="name"
             item-value="id"
-            v-model="$store.state.pricing.datosPrincipales.id_marketing"
+            v-model="pricingStore.datosPrincipales.id_marketing"
             readonly
             v-if="mostrarmarketing"
           ></v-autocomplete>
@@ -24,7 +24,7 @@
             :items="estadoCotizacionItems"
             item-title="name"
             item-value="id"
-            v-model="$store.state.pricing.datosPrincipales.id_status"
+            v-model="pricingStore.datosPrincipales.id_status"
             readonly
             v-if="mostrarmarestado"
           ></v-autocomplete>
@@ -33,10 +33,10 @@
             variant="outlined"
             density="compact"
             class="my-1"
-            :items="$store.state.pricing.listEjecutivo"
+            :items="pricingStore.listEjecutivo"
             item-title="name"
             item-value="id_entitie"
-            v-model="$store.state.pricing.datosPrincipales.id_vendedor"
+            v-model="pricingStore.datosPrincipales.id_vendedor"
             readonly
             v-if="mostrarmarejecutivo"
           ></v-autocomplete>
@@ -46,10 +46,10 @@
             variant="outlined"
             density="compact"
             class="my-1"
-            :items="$store.state.pricing.listEjecutivo"
+            :items="pricingStore.listEjecutivo"
             item-title="name"
             item-value="id_entitie"
-            v-model="$store.state.pricing.datosPrincipales.id_pricing"
+            v-model="pricingStore.datosPrincipales.id_pricing"
             readonly
             v-if="mostrarmarpricing"
           ></v-autocomplete>
@@ -62,7 +62,7 @@
             autocomplete="off"
             id="nombre"
             name="nombre"
-            v-model="$store.state.pricing.datosPrincipales.nombre"
+            v-model="pricingStore.datosPrincipales.nombre"
             readonly
           ></v-text-field>
           <v-text-field
@@ -71,7 +71,7 @@
             placeholder="Teléfono..."
             density="compact"
             readonly
-            v-model="$store.state.pricing.datosPrincipales.telefono"
+            v-model="pricingStore.datosPrincipales.telefono"
           ></v-text-field>
 
           <v-autocomplete
@@ -79,10 +79,10 @@
             variant="outlined"
             density="compact"
             class="my-1"
-            :items="$store.state.pricing.listModality"
+            :items="pricingStore.listModality"
             item-title="name"
             item-value="id"
-            v-model="$store.state.pricing.datosPrincipales.idsentido"
+            v-model="pricingStore.datosPrincipales.idsentido"
             readonly
           ></v-autocomplete>
           <v-autocomplete
@@ -90,10 +90,10 @@
             variant="outlined"
             density="compact"
             class="my-1"
-            :items="$store.state.pricing.listShipment"
+            :items="pricingStore.listShipment"
             item-title="embarque"
             item-value="id"
-            v-model="$store.state.pricing.datosPrincipales.idtipocarga"
+            v-model="pricingStore.datosPrincipales.idtipocarga"
             readonly
           ></v-autocomplete>
           <v-autocomplete
@@ -101,10 +101,10 @@
             variant="outlined"
             density="compact"
             class="my-1"
-            :items="$store.state.pricing.listIncoterms"
+            :items="pricingStore.listIncoterms"
             item-title="name"
             item-value="id"
-            v-model="$store.state.pricing.datosPrincipales.idincoterms"
+            v-model="pricingStore.datosPrincipales.idincoterms"
             readonly
           >
             <template v-slot:selection="data" >
@@ -116,7 +116,7 @@
             name="name"
             label="Nombre del proveedor"
             id="id"
-            v-model="$store.state.pricing.datosPrincipales.proveedor"
+            v-model="pricingStore.datosPrincipales.proveedor"
             density="compact"
             variant="outlined"
             readonly
@@ -126,7 +126,7 @@
           <v-text-field
             name="Teléfono"
             label="Teléfono del proveedor"
-            v-model="$store.state.pricing.datosPrincipales.telefonoproveedor"
+            v-model="pricingStore.datosPrincipales.telefonoproveedor"
             density="compact"
             variant="outlined"
             readonly
@@ -135,7 +135,7 @@
 
           <v-text-field
             label="Dirección del proveedor"
-            v-model="$store.state.pricing.datosPrincipales.direccionproveedor"
+            v-model="pricingStore.datosPrincipales.direccionproveedor"
             density="compact"
             variant="outlined"
             readonly
@@ -150,8 +150,9 @@
 <script>
 import { mapActions, mapState } from "vuex";
 import axios from "@/api/http";
-import { mapStores } from "pinia";
+import { mapActions as mapPiniaActions, mapStores } from "pinia";
 import { useEntitiesStore } from "@/stores/entities";
+import { usePricingStore } from "@/stores/pricing";
 
 export default {
   props: {
@@ -191,22 +192,13 @@ export default {
   },
   methods: {
     ...mapActions([
-      "getMarketingList",
-      "getQuoteStatus",
-      "getModulesEntities",
-      "getModality",
-      "getShipment",
-      "getIncoterms",
-      "getPortBegin",
-      "getPortEnd",
-      "getModuleRole",
       "_getRole",
-      "getCargarMasterDetalleNotasCotizacion",
       "_getEntities",
       "_getProveedor",
     ]),
+    ...mapPiniaActions(usePricingStore, ["getMarketingList", "getQuoteStatus", "getModulesEntities", "getModality", "getShipment", "getIncoterms", "getPortBegin", "getPortEnd", "getModuleRole", "getCargarMasterDetalleNotasCotizacion"]),
     async changeShipment() {
-      if (this.$store.state.pricing.datosPrincipales.idtipocarga) {
+      if (this.pricingStore.datosPrincipales.idtipocarga) {
         this.$store.state.spiner = true;
         await this.getPortBegin();
         await this.getPortEnd();
@@ -215,22 +207,22 @@ export default {
     },
     async aceptar() {
       if ((await this.$refs.form.validate()).valid) {
-        this.$store.state.pricing.step2 = true;
+        this.pricingStore.step2 = true;
       }
     },
     guardarCliente(e, { item }) {
-      this.$store.state.pricing.datosPrincipales.id_entitie = item.id;
-      this.$store.state.pricing.datosPrincipales.nombre = item.namelong;
-      this.$store.state.pricing.datosPrincipales.telefono = item.phone;
+      this.pricingStore.datosPrincipales.id_entitie = item.id;
+      this.pricingStore.datosPrincipales.nombre = item.namelong;
+      this.pricingStore.datosPrincipales.telefono = item.phone;
       this.buscarClienteDialog = false;
     },
     registrarNuevoCliente() {
       this.$store.state.modalEntitie = true;
     },
     mostrarProveedorFlag() {
-      let exw = this.$store.state.pricing.listIncoterms.filter(
+      let exw = this.pricingStore.listIncoterms.filter(
         (v) =>
-          v.id == this.$store.state.pricing.datosPrincipales.idincoterms &&
+          v.id == this.pricingStore.datosPrincipales.idincoterms &&
           v.name == "EXW",
       );
 
@@ -238,13 +230,13 @@ export default {
     },
   },
   computed: {
-    ...mapStores(useEntitiesStore),
+    ...mapStores(usePricingStore, useEntitiesStore),
     ...mapState(["registroClienteFlag"]),
     estadoCotizacionItems() {
-      const list = this.$store.state.pricing.listQuoteStatus || [];
-      const idStatus = this.$store.state.pricing.datosPrincipales.id_status;
+      const list = this.pricingStore.listQuoteStatus || [];
+      const idStatus = this.pricingStore.datosPrincipales.id_status;
       const nameStatus =
-        this.$store.state.pricing.datosPrincipales.nameStatusQuote;
+        this.pricingStore.datosPrincipales.nameStatusQuote;
 
       const exists = list.some((v) => v.id == idStatus);
       if (exists || !idStatus || !nameStatus) {
@@ -271,9 +263,9 @@ export default {
           (v) => v.id == this.entitiesStore.id,
         )[0];
 
-        this.$store.state.pricing.datosPrincipales.id_entitie = cliente.id;
-        this.$store.state.pricing.datosPrincipales.nombre = cliente.namelong;
-        this.$store.state.pricing.datosPrincipales.telefono = cliente.phone;
+        this.pricingStore.datosPrincipales.id_entitie = cliente.id;
+        this.pricingStore.datosPrincipales.nombre = cliente.namelong;
+        this.pricingStore.datosPrincipales.telefono = cliente.phone;
       }
       this.buscarClienteDialog = false;
     },

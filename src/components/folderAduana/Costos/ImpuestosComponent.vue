@@ -41,6 +41,8 @@
 
 <script>
 import mixins from "@/components/mixins/funciones";
+import { mapStores } from "pinia";
+import { usePricingStore } from "@/stores/pricing";
 export default {
   props: ["amount", "impuestos", "index"],
   mixins: [mixins],
@@ -63,37 +65,37 @@ export default {
       let monto = 0;
       if (item.codigo === "01") {
         monto = parseFloat(
-          this.$store.state.pricing.datosPrincipales.amount
+          this.pricingStore.datosPrincipales.amount
         ).toFixed(2);
       }
       if (item.codigo === "02") {
-        monto = parseFloat(this.$store.state.pricing.totalFlete).toFixed(2);
+        monto = parseFloat(this.pricingStore.totalFlete).toFixed(2);
       }
       if (item.codigo === "03") {
         monto = parseFloat(
-          ((parseFloat(this.$store.state.pricing.totalFlete) +
-            parseFloat(this.$store.state.pricing.datosPrincipales.amount)) *
+          ((parseFloat(this.pricingStore.totalFlete) +
+            parseFloat(this.pricingStore.datosPrincipales.amount)) *
             item.codigo01) /
             100
         ).toFixed(2);
       }
       if (item.codigo === "04") {
-        let fob = parseFloat(this.$store.state.pricing.datosPrincipales.amount);
-        let flet = parseFloat(this.$store.state.pricing.totalFlete);
+        let fob = parseFloat(this.pricingStore.datosPrincipales.amount);
+        let flet = parseFloat(this.pricingStore.totalFlete);
         let seguro = parseFloat(
-          ((parseFloat(this.$store.state.pricing.totalFlete) +
-            parseFloat(this.$store.state.pricing.datosPrincipales.amount)) *
+          ((parseFloat(this.pricingStore.totalFlete) +
+            parseFloat(this.pricingStore.datosPrincipales.amount)) *
             this.obtenerPorcentaje({ code: "03" })) /
             100
         );
         monto = parseFloat(fob) + parseFloat(flet) + parseFloat(seguro);
       }
       if (item.codigo === "05") {
-        let fob = parseFloat(this.$store.state.pricing.datosPrincipales.amount);
-        let flet = parseFloat(this.$store.state.pricing.totalFlete);
+        let fob = parseFloat(this.pricingStore.datosPrincipales.amount);
+        let flet = parseFloat(this.pricingStore.totalFlete);
         let seguro = parseFloat(
-          ((parseFloat(this.$store.state.pricing.totalFlete) +
-            parseFloat(this.$store.state.pricing.datosPrincipales.amount)) *
+          ((parseFloat(this.pricingStore.totalFlete) +
+            parseFloat(this.pricingStore.datosPrincipales.amount)) *
             this.obtenerPorcentaje({ code: "03" })) /
             100
         );
@@ -101,12 +103,12 @@ export default {
         monto = (cif * item.codigo01) / 100;
       }
       if (item.codigo === "06") {
-        let fob = parseFloat(this.$store.state.pricing.datosPrincipales.amount);
-        let flet = parseFloat(this.$store.state.pricing.totalFlete);
+        let fob = parseFloat(this.pricingStore.datosPrincipales.amount);
+        let flet = parseFloat(this.pricingStore.totalFlete);
 
         let seguro = parseFloat(
-          ((parseFloat(this.$store.state.pricing.totalFlete) +
-            parseFloat(this.$store.state.pricing.datosPrincipales.amount)) *
+          ((parseFloat(this.pricingStore.totalFlete) +
+            parseFloat(this.pricingStore.datosPrincipales.amount)) *
             this.obtenerPorcentaje({ code: "03" })) /
             100
         );
@@ -115,12 +117,12 @@ export default {
         monto = ((cif + adv) * item.codigo01) / 100;
       }
       if (item.codigo === "07") {
-        let fob = parseFloat(this.$store.state.pricing.datosPrincipales.amount);
-        let flet = parseFloat(this.$store.state.pricing.totalFlete);
+        let fob = parseFloat(this.pricingStore.datosPrincipales.amount);
+        let flet = parseFloat(this.pricingStore.totalFlete);
 
         let seguro = parseFloat(
-          ((parseFloat(this.$store.state.pricing.totalFlete) +
-            parseFloat(this.$store.state.pricing.datosPrincipales.amount)) *
+          ((parseFloat(this.pricingStore.totalFlete) +
+            parseFloat(this.pricingStore.datosPrincipales.amount)) *
             this.obtenerPorcentaje({ code: "03" })) /
             100
         );
@@ -130,12 +132,12 @@ export default {
         monto = ((cif + adv + isc) * item.codigo01) / 100;
       }
       if (item.codigo === "08") {
-        let fob = parseFloat(this.$store.state.pricing.datosPrincipales.amount);
-        let flet = parseFloat(this.$store.state.pricing.totalFlete);
+        let fob = parseFloat(this.pricingStore.datosPrincipales.amount);
+        let flet = parseFloat(this.pricingStore.totalFlete);
 
         let seguro = parseFloat(
-          ((parseFloat(this.$store.state.pricing.totalFlete) +
-            parseFloat(this.$store.state.pricing.datosPrincipales.amount)) *
+          ((parseFloat(this.pricingStore.totalFlete) +
+            parseFloat(this.pricingStore.datosPrincipales.amount)) *
             this.obtenerPorcentaje({ code: "03" })) /
             100
         );
@@ -145,12 +147,12 @@ export default {
         monto = ((cif + adv + isc) * item.codigo01) / 100;
       }
       if (item.codigo === "09") {
-        let fob = parseFloat(this.$store.state.pricing.datosPrincipales.amount);
-        let flet = parseFloat(this.$store.state.pricing.totalFlete);
+        let fob = parseFloat(this.pricingStore.datosPrincipales.amount);
+        let flet = parseFloat(this.pricingStore.totalFlete);
 
         let seguro = parseFloat(
-          ((parseFloat(this.$store.state.pricing.totalFlete) +
-            parseFloat(this.$store.state.pricing.datosPrincipales.amount)) *
+          ((parseFloat(this.pricingStore.totalFlete) +
+            parseFloat(this.pricingStore.datosPrincipales.amount)) *
             this.obtenerPorcentaje({ code: "03" })) /
             100
         );
@@ -197,8 +199,9 @@ export default {
     },
   },
   computed: {
+    ...mapStores(usePricingStore),
     actualizarCostosFlag() {
-      return this.$store.state.pricing.actualizarCostosFlag;
+      return this.pricingStore.actualizarCostosFlag;
     },
   },
   watch: {

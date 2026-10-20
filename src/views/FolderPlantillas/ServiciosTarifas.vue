@@ -4,9 +4,11 @@ import { useRoute } from "vue-router";
 import { useStore } from "vuex";
 import ServiciosTarifasComponent from "@/components/FolderPlantillas/ServiciosTarifasComponent.vue";
 import EditarTarifasComponent from "@/components/FolderPlantillas/EditarTarifasComponent.vue";
+import { usePricingStore } from "@/stores/pricing";
 
 const route = useRoute();
 const rootStore = useStore();
+const pricingStore = usePricingStore();
 
 const componentKey = ref(0);
 
@@ -19,8 +21,8 @@ onMounted(async () => {
     rootStore.state.spinner = true;
   }
   await Promise.all([
-    rootStore.dispatch("getModality"),
-    rootStore.dispatch("getShipment"),
+    pricingStore.getModality(),
+    pricingStore.getShipment(),
     rootStore.dispatch("_getProveedor"),
   ]);
   if (rootStore.state.spinner !== undefined) {

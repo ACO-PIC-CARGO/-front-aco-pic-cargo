@@ -153,7 +153,7 @@
 
         <h3 class="mb-1 ml-1">
           {{
-            $store.state.pricing.listQuoteStatus.filter(
+            pricingStore.listQuoteStatus.filter(
                   (v) => v.id == $store.state.aduana.datosPrincipales.id_status
                 )[0].name
           }}
@@ -599,13 +599,14 @@
 <script>
 import { defineAsyncComponent } from "vue";
 import { mapActions } from "vuex";
-import { mapActions as mapPiniaActions } from "pinia";
+import { mapActions as mapPiniaActions, mapStores } from "pinia";
 import { useSecuritysStore } from "@/stores/securitys";
 import Swal from "sweetalert2";
 import moment from "moment";
 import mixins from "../../../components/mixins/funciones.js";
 import axios from '@/api/http';
 import { useConfigEmpresaStore } from "@/stores/configEmpresa";
+import { usePricingStore } from "@/stores/pricing";
 export default {
   mixins: [mixins],
   components: {
@@ -666,15 +667,16 @@ export default {
       }, 4000);
     });
   },
+  computed: {
+    ...mapStores(usePricingStore),
+  },
   methods: {
     ...mapActions([
-      "imprimirInstructivoQuote",
       "aprobarCotizacionAduana",
       "cargarMaster",
-      "setNoteQuote",
-      "getInstructivoId",
       "generaInstructivoparaguardataAduana",
     ]),
+    ...mapPiniaActions(usePricingStore, ["imprimirInstructivoQuote", "setNoteQuote", "getInstructivoId"]),
     ...mapPiniaActions(useConfigEmpresaStore, ["GuardarConfiguracionEmpresa"]),
     ...mapPiniaActions(useSecuritysStore, ["ObtenerDatosConfig"]),
     async guardarConfig() {

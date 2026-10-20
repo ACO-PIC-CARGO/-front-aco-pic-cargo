@@ -3,7 +3,7 @@ import { ref } from "vue";
 import moment from "moment";
 import Swal from "sweetalert2";
 import axios from "@/api/http";
-import store from "@/store";
+import { usePricingStore } from "@/stores/pricing";
 import type { ApiResponse } from "@/types/api";
 import type { FiltroMarketing, FormMarketing, Marketing, UltimaPosicionMarketing } from "@/types/catalogos";
 import { sessionBranchId } from "@/utils/sesion";
@@ -18,7 +18,7 @@ export const useMarketingStore = defineStore("marketing", () => {
   function setListMarketing(data: Marketing[]) {
     list.value = data;
     // While marketing was a Vuex module this commit also ran pricing's SET_LIST_MARKETING.
-    store.commit("SET_LIST_MARKETING", data);
+    usePricingStore().SET_LIST_MARKETING(data);
   }
 
   async function fetchDataMarketing(data: FiltroMarketing): Promise<void> {

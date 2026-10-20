@@ -1,7 +1,7 @@
 <template>
   <v-container fluid class="pa-0" v-if="verFlag">
     <v-card elevation="5">
-      <v-stepper v-model="$store.state.pricing.e1" non-linear>
+      <v-stepper v-model="pricingStore.e1" non-linear>
         <v-stepper-header>
           <v-stepper-item
             complete
@@ -87,9 +87,10 @@
 import { defineAsyncComponent } from "vue";
 import { mapActions } from "vuex";
 import mixins from "../../components/mixins/funciones.js";
-import { mapActions as mapPiniaActions } from "pinia";
+import { mapActions as mapPiniaActions, mapStores } from "pinia";
 import { useMasterusuariosStore } from "@/stores/masterusuarios";
 import { useEnterprisesStore } from "@/stores/enterprises";
+import { usePricingStore } from "@/stores/pricing";
 export default {
   mixins: [mixins],
   name: "VerQuoteView",
@@ -138,34 +139,18 @@ export default {
       mostrarStepS: false,
     };
   },
+  computed: {
+    ...mapStores(usePricingStore),
+  },
   methods: {
     ...mapActions([
-      "getItemsServicesDetails",
-      "getMarketingList",
-      "getQuoteStatus",
-      "getModulesEntities",
-      "getModality",
-      "getShipment",
-      "getIncoterms",
-      "getModuleRole",
-      "getCargarMasterDetalleNotasCotizacion",
       "_getEntities",
       "_getRole",
-      "getImpuestos",
-      "getQuote",
-      "getPortBegin",
-      "getPortEnd",
-      "getMultiplicador",
-      "getInstructivoId",
-      "generaInstructivo",
-      "getBegEndList",
-      "getTipoCostos",
       "cargarProveedores",
       "_getEntitiesCliente",
-      "getPersonalPricing",
       "getAduanaUnificar",
-      "GuardaCostosFinalesQuote",
     ]),
+    ...mapPiniaActions(usePricingStore, ["getItemsServicesDetails", "getMarketingList", "getQuoteStatus", "getModulesEntities", "getModality", "getShipment", "getIncoterms", "getModuleRole", "getCargarMasterDetalleNotasCotizacion", "getImpuestos", "getQuote", "getPortBegin", "getPortEnd", "getMultiplicador", "getInstructivoId", "generaInstructivo", "getBegEndList", "getTipoCostos", "getPersonalPricing", "GuardaCostosFinalesQuote"]),
     ...mapPiniaActions(useEnterprisesStore, ["obtenerImpuestoXEmpresa"]),
     ...mapPiniaActions(useMasterusuariosStore, ["cargarMasterDetallePercepcionAduana"]),
   },
@@ -178,14 +163,14 @@ export default {
       this.getShipment(),
     ]);
 
-    this.$store.state.mainTitle = `VER  COTIZACIÓN - ${this.$store.state.pricing.nro_quote}`;
+    this.$store.state.mainTitle = `VER  COTIZACIÓN - ${this.pricingStore.nro_quote}`;
 
     this.$store.state.spiner = false;
     this.verFlag = true;
 
     // Buscar el tipo de carga y validar que existe
-    const tipoCargaItem = this.$store.state.pricing.listShipment.find(
-      (v) => v.id == this.$store.state.pricing.datosPrincipales.idtipocarga,
+    const tipoCargaItem = this.pricingStore.listShipment.find(
+      (v) => v.id == this.pricingStore.datosPrincipales.idtipocarga,
     );
 
     let idTipoCarga = tipoCargaItem ? tipoCargaItem.id_transport : null;
@@ -212,11 +197,11 @@ export default {
       promisesToLoad.unshift(
         this.getPortBegin({
           id_transport: idTipoCarga,
-          id: this.$store.state.pricing.datosPrincipales.idorigen,
+          id: this.pricingStore.datosPrincipales.idorigen,
         }),
         this.getPortEnd({
           id_transport: idTipoCarga,
-          id: this.$store.state.pricing.datosPrincipales.iddestino,
+          id: this.pricingStore.datosPrincipales.iddestino,
         }),
       );
     }
@@ -224,30 +209,30 @@ export default {
     await Promise.all(promisesToLoad);
     this.mostrarStepS = true;
 
-    this.$store.state.pricing.llenadoCostos = false;
-    this.$store.state.pricing.actualizarCostosFlag =
-      !this.$store.state.pricing.actualizarCostosFlag;
-    this.$store.state.pricing.actualizarComparativa =
-      !this.$store.state.pricing.actualizarComparativa;
+    this.pricingStore.llenadoCostos = false;
+    this.pricingStore.actualizarCostosFlag =
+      !this.pricingStore.actualizarCostosFlag;
+    this.pricingStore.actualizarComparativa =
+      !this.pricingStore.actualizarComparativa;
     setTimeout(async () => {
       await this.generaInstructivo();
     }, 1000);
-    this.$store.state.pricing.actualizarCostosFlag = false;
-    this.$store.state.pricing.step2 = true;
+    this.pricingStore.actualizarCostosFlag = false;
+    this.pricingStore.step2 = true;
 
     // await this.getImpuestos();
     // await this.getCargarMasterDetalleNotasCotizacion();
     // await this._getEntities();
 
-    this.$store.state.pricing.actualizarCostosFlag =
-      !this.$store.state.pricing.actualizarCostosFlag;
+    this.pricingStore.actualizarCostosFlag =
+      !this.pricingStore.actualizarCostosFlag;
 
     this.$store.state.drawer = false;
     this.$forceUpdate;
     if (this.$route.params.step) {
       this.$nextTick(() => {
         setTimeout(() => {
-          this.$store.state.pricing.e1 = this.$route.params.step
+          this.pricingStore.e1 = this.$route.params.step
             ? Number(this.$route.params.step)
             : 1;
         }, 100);
@@ -255,10 +240,10 @@ export default {
     }
     this.getAduanaUnificar(this.$route.params.id);
     setTimeout(async () => {
-      let aprobadas = this.$store.state.pricing.opcionCostos.filter(
+      let aprobadas = this.pricingStore.opcionCostos.filter(
         (v) => v.selected,
       );
-      if (aprobadas.length && !this.$store.state.pricing.aprobadoflag) {
+      if (aprobadas.length && !this.pricingStore.aprobadoflag) {
         await this.GuardaCostosFinalesQuote();
       }
     }, 300);

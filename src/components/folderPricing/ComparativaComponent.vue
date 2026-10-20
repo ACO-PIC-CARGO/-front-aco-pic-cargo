@@ -69,6 +69,7 @@ import mixins from "@/components/mixins/funciones.js";
 import Swal from "sweetalert2";
 import { mapStores } from "pinia";
 import { useProveedorStore } from "@/stores/proveedor";
+import { usePricingStore } from "@/stores/pricing";
 export default {
   emits: ["irVentaCliente"],
   mixins: [mixins],
@@ -106,7 +107,7 @@ export default {
     regregar() {
       Swal.fire({
         icon: "question",
-        html: `<h1>¿Desea regresar a la OPCIÓN - COSTOS ${this.$store.state.pricing.opcionCostos.length}?<h1>`,
+        html: `<h1>¿Desea regresar a la OPCIÓN - COSTOS ${this.pricingStore.opcionCostos.length}?<h1>`,
         confirmButtonColor: "green",
         showCancelButton: true,
         cancelButtonColor: "red",
@@ -117,7 +118,7 @@ export default {
         allowOutsideClick: false,
       }).then((action) => {
         if (action.isConfirmed) {
-          this.$store.state.pricing.tab = 2;
+          this.pricingStore.tab = 2;
         }
       });
     },
@@ -129,7 +130,7 @@ export default {
 
       if (this.opcionesSeleccionadas.some((v) => parseFloat(v.flete) > 0)) {
         this.headers.push({
-          text: this.$store.state.pricing.listTipoCostos.filter(
+          text: this.pricingStore.listTipoCostos.filter(
             (v) => v.codigo == "FL",
           )[0].name,
           value: "flete",
@@ -142,7 +143,7 @@ export default {
         )
       ) {
         this.headers.push({
-          text: this.$store.state.pricing.listTipoCostos.filter(
+          text: this.pricingStore.listTipoCostos.filter(
             (v) => v.codigo == "FL",
           )[0].name,
           value: "flete",
@@ -157,7 +158,7 @@ export default {
         )
       ) {
         this.headers.push({
-          text: this.$store.state.pricing.listTipoCostos.filter(
+          text: this.pricingStore.listTipoCostos.filter(
             (v) => v.codigo == "OR",
           )[0].name,
           value: "origen",
@@ -170,7 +171,7 @@ export default {
         )
       ) {
         this.headers.push({
-          text: this.$store.state.pricing.listTipoCostos.filter(
+          text: this.pricingStore.listTipoCostos.filter(
             (v) => v.codigo == "LO",
           )[0].name,
           value: "local",
@@ -183,7 +184,7 @@ export default {
         )
       ) {
         this.headers.push({
-          text: this.$store.state.pricing.listTipoCostos.filter(
+          text: this.pricingStore.listTipoCostos.filter(
             (v) => v.codigo == "AD",
           )[0].name,
           value: "aduana",
@@ -196,7 +197,7 @@ export default {
         )
       ) {
         this.headers.push({
-          text: this.$store.state.pricing.listTipoCostos.filter(
+          text: this.pricingStore.listTipoCostos.filter(
             (v) => v.codigo == "AL",
           )[0].name,
           value: "almacen",
@@ -210,7 +211,7 @@ export default {
         )
       ) {
         this.headers.push({
-          text: this.$store.state.pricing.listTipoCostos.filter(
+          text: this.pricingStore.listTipoCostos.filter(
             (v) => v.codigo == "GT",
           )[0].name,
           value: "gastostercero",
@@ -225,11 +226,11 @@ export default {
       this.headers.push({ text: "Usar", value: "selected" });
     },
     continuar() {
-      if (this.$store.state.pricing.opcionCostos.some((v) => v.selected)) {
+      if (this.pricingStore.opcionCostos.some((v) => v.selected)) {
         Swal.fire({
           width: 1000,
           icon: "question",
-          html: `<h1>¿Desea regresar a la OPCIÓN - COSTOS ${this.$store.state.pricing.opcionCostos.length}?</h1>`,
+          html: `<h1>¿Desea regresar a la OPCIÓN - COSTOS ${this.pricingStore.opcionCostos.length}?</h1>`,
           confirmButtonColor: "green",
           showCancelButton: true,
           cancelButtonColor: "#4A85D2",
@@ -241,10 +242,10 @@ export default {
           allowOutsideClick: false,
         }).then((action) => {
           if (action.isConfirmed) {
-            this.$store.state.pricing.llenadoCostos = false;
-            this.$store.state.pricing.recargarCostoSeleccionados =
-              !this.$store.state.pricing.recargarCostoSeleccionados;
-            this.$store.state.pricing.page = 1;
+            this.pricingStore.llenadoCostos = false;
+            this.pricingStore.recargarCostoSeleccionados =
+              !this.pricingStore.recargarCostoSeleccionados;
+            this.pricingStore.page = 1;
             this.$emit("irVentaCliente");
           }
         });
@@ -260,7 +261,7 @@ export default {
       this.loadingTable = true;
       this.opcionesSeleccionadas = [];
 
-      const listaCostos = this.$store.state.pricing.opcionCostos || [];
+      const listaCostos = this.pricingStore.opcionCostos || [];
       const opcionesCalculadas = [];
 
       for (const element of listaCostos) {
@@ -315,7 +316,7 @@ export default {
     },
     calcularCostoPorMultiplicador(element) {
       const { datosPrincipales, listMultiplicador } =
-        this.$store.state.pricing;
+        this.pricingStore;
       const multiplicador = listMultiplicador.find(
         (item) => item.id == element.id_multiplicador,
       );
@@ -380,21 +381,21 @@ export default {
                 this.calcularCostoPorMultiplicador(element);
             } else {
               this.resumenOpcion.flete += this.calcularValor(
-                this.$store.state.pricing.datosPrincipales.amount,
+                this.pricingStore.datosPrincipales.amount,
                 this.totalFleteVentas,
-                this.$store.state.pricing.listMultiplicador.filter(
+                this.pricingStore.listMultiplicador.filter(
                   (v) => v.id == element.id_multiplicador,
                 ).length > 0
-                  ? this.$store.state.pricing.listMultiplicador.filter(
+                  ? this.pricingStore.listMultiplicador.filter(
                       (v) => v.id == element.id_multiplicador,
                     )[0].code
                   : "",
-                this.$store.state.pricing.listMultiplicador.some(
+                this.pricingStore.listMultiplicador.some(
                   (v) =>
                     v.id == element.id_multiplicador &&
                     (v.code == 14 || v.code == 13 || v.code == 5),
                 )
-                  ? this.$store.state.pricing.listMultiplicador.some(
+                  ? this.pricingStore.listMultiplicador.some(
                       (v) =>
                         v.id == element.id_multiplicador &&
                         (v.code == 14 || v.code == 13),
@@ -427,21 +428,21 @@ export default {
                   this.calcularCostoPorMultiplicador(element);
               } else {
                 this.resumenOpcion.origen += this.calcularValor(
-                  this.$store.state.pricing.datosPrincipales.amount,
+                  this.pricingStore.datosPrincipales.amount,
                   this.totalFleteVentas,
-                  this.$store.state.pricing.listMultiplicador.filter(
+                  this.pricingStore.listMultiplicador.filter(
                     (v) => v.id == element.id_multiplicador,
                   ).length > 0
-                    ? this.$store.state.pricing.listMultiplicador.filter(
+                    ? this.pricingStore.listMultiplicador.filter(
                         (v) => v.id == element.id_multiplicador,
                       )[0].code
                     : "",
-                  this.$store.state.pricing.listMultiplicador.some(
+                  this.pricingStore.listMultiplicador.some(
                     (v) =>
                       v.id == element.id_multiplicador &&
                       (v.code == 14 || v.code == 13 || v.code == 5),
                   )
-                    ? this.$store.state.pricing.listMultiplicador.some(
+                    ? this.pricingStore.listMultiplicador.some(
                         (v) =>
                           v.id == element.id_multiplicador &&
                           (v.code == 14 || v.code == 13),
@@ -460,21 +461,21 @@ export default {
                   this.calcularCostoPorMultiplicador(element);
               } else {
                 this.resumenOpcion.gasto += this.calcularValor(
-                  this.$store.state.pricing.datosPrincipales.amount,
+                  this.pricingStore.datosPrincipales.amount,
                   this.totalFleteVentas,
-                  this.$store.state.pricing.listMultiplicador.filter(
+                  this.pricingStore.listMultiplicador.filter(
                     (v) => v.id == element.id_multiplicador,
                   ).length > 0
-                    ? this.$store.state.pricing.listMultiplicador.filter(
+                    ? this.pricingStore.listMultiplicador.filter(
                         (v) => v.id == element.id_multiplicador,
                       )[0].code
                     : "",
-                  this.$store.state.pricing.listMultiplicador.some(
+                  this.pricingStore.listMultiplicador.some(
                     (v) =>
                       v.id == element.id_multiplicador &&
                       (v.code == 14 || v.code == 13 || v.code == 5),
                   )
-                    ? this.$store.state.pricing.listMultiplicador.some(
+                    ? this.pricingStore.listMultiplicador.some(
                         (v) =>
                           v.id == element.id_multiplicador &&
                           (v.code == 14 || v.code == 13),
@@ -494,21 +495,21 @@ export default {
                   this.calcularCostoPorMultiplicador(element);
               } else {
                 this.resumenOpcion.aduana += this.calcularValor(
-                  this.$store.state.pricing.datosPrincipales.amount,
+                  this.pricingStore.datosPrincipales.amount,
                   this.totalFleteVentas,
-                  this.$store.state.pricing.listMultiplicador.filter(
+                  this.pricingStore.listMultiplicador.filter(
                     (v) => v.id == element.id_multiplicador,
                   ).length > 0
-                    ? this.$store.state.pricing.listMultiplicador.filter(
+                    ? this.pricingStore.listMultiplicador.filter(
                         (v) => v.id == element.id_multiplicador,
                       )[0].code
                     : "",
-                  this.$store.state.pricing.listMultiplicador.some(
+                  this.pricingStore.listMultiplicador.some(
                     (v) =>
                       v.id == element.id_multiplicador &&
                       (v.code == 14 || v.code == 13 || v.code == 5),
                   )
-                    ? this.$store.state.pricing.listMultiplicador.some(
+                    ? this.pricingStore.listMultiplicador.some(
                         (v) =>
                           v.id == element.id_multiplicador &&
                           (v.code == 14 || v.code == 13),
@@ -528,21 +529,21 @@ export default {
                   this.calcularCostoPorMultiplicador(element);
               } else {
                 this.resumenOpcion.almacen += this.calcularValor(
-                  this.$store.state.pricing.datosPrincipales.amount,
+                  this.pricingStore.datosPrincipales.amount,
                   this.totalFleteVentas,
-                  this.$store.state.pricing.listMultiplicador.filter(
+                  this.pricingStore.listMultiplicador.filter(
                     (v) => v.id == element.id_multiplicador,
                   ).length > 0
-                    ? this.$store.state.pricing.listMultiplicador.filter(
+                    ? this.pricingStore.listMultiplicador.filter(
                         (v) => v.id == element.id_multiplicador,
                       )[0].code
                     : "",
-                  this.$store.state.pricing.listMultiplicador.some(
+                  this.pricingStore.listMultiplicador.some(
                     (v) =>
                       v.id == element.id_multiplicador &&
                       (v.code == 14 || v.code == 13 || v.code == 5),
                   )
-                    ? this.$store.state.pricing.listMultiplicador.some(
+                    ? this.pricingStore.listMultiplicador.some(
                         (v) =>
                           v.id == element.id_multiplicador &&
                           (v.code == 14 || v.code == 13),
@@ -562,21 +563,21 @@ export default {
                   this.calcularCostoPorMultiplicador(element);
               } else {
                 this.resumenOpcion.gastostercero += this.calcularValor(
-                  this.$store.state.pricing.datosPrincipales.amount,
+                  this.pricingStore.datosPrincipales.amount,
                   this.totalFleteVentas,
-                  this.$store.state.pricing.listMultiplicador.filter(
+                  this.pricingStore.listMultiplicador.filter(
                     (v) => v.id == element.id_multiplicador,
                   ).length > 0
-                    ? this.$store.state.pricing.listMultiplicador.filter(
+                    ? this.pricingStore.listMultiplicador.filter(
                         (v) => v.id == element.id_multiplicador,
                       )[0].code
                     : "",
-                  this.$store.state.pricing.listMultiplicador.some(
+                  this.pricingStore.listMultiplicador.some(
                     (v) =>
                       v.id == element.id_multiplicador &&
                       (v.code == 14 || v.code == 13 || v.code == 5),
                   )
-                    ? this.$store.state.pricing.listMultiplicador.some(
+                    ? this.pricingStore.listMultiplicador.some(
                         (v) =>
                           v.id == element.id_multiplicador &&
                           (v.code == 14 || v.code == 13),
@@ -625,7 +626,7 @@ export default {
     montoConfeccion(item) {
       let monto = 0;
       if (item.code_cost == 33) {
-        let amount = this.$store.state.pricing.datosPrincipales.amount;
+        let amount = this.pricingStore.datosPrincipales.amount;
         let cif =
           parseFloat(amount) +
           parseFloat(this.totalFleteVentas) +
@@ -655,26 +656,26 @@ export default {
         let val = data.filter((v) => code.includes(v.code_cost));
         val.forEach((element) => {
           monto += parseFloat(
-            (this.$store.state.pricing.listMultiplicador.some(
+            (this.pricingStore.listMultiplicador.some(
               (v) => v.id == element.id_multiplicador,
             )
-              ? this.$store.state.pricing.listMultiplicador.filter(
+              ? this.pricingStore.listMultiplicador.filter(
                   (v) => v.id == element.id_multiplicador,
                 )[0].valor
               : 0) *
               element.costounitario *
               this.calcularFac(
-                this.$store.state.pricing.listMultiplicador.some(
+                this.pricingStore.listMultiplicador.some(
                   (v) => v.id == element.id_multiplicador,
                 )
-                  ? this.$store.state.pricing.listMultiplicador.filter(
+                  ? this.pricingStore.listMultiplicador.filter(
                       (v) => v.id == element.id_multiplicador,
                     )[0].code
                   : "N",
-                this.$store.state.pricing.datosPrincipales.volumen,
-                this.$store.state.pricing.datosPrincipales.peso,
-                this.$store.state.pricing.datosPrincipales.containers,
-                this.$store.state.pricing.datosPrincipales.amount,
+                this.pricingStore.datosPrincipales.volumen,
+                this.pricingStore.datosPrincipales.peso,
+                this.pricingStore.datosPrincipales.containers,
+                this.pricingStore.datosPrincipales.amount,
               ),
           );
         });
@@ -700,7 +701,7 @@ export default {
     isNotPorcentaje(element, id_multiplicador) {
       let code = [5, 13, 14, 15];
 
-      let mul = this.$store.state.pricing.listMultiplicador.some(
+      let mul = this.pricingStore.listMultiplicador.some(
         (v) => v.id == id_multiplicador && code.includes(v.code),
       );
 
@@ -712,13 +713,13 @@ export default {
     },
     cambiarOpcionSeleccionada(opcion, selected) {
       opcion.selected = selected;
-      const opcionEnStore = this.$store.state.pricing.opcionCostos.find(
+      const opcionEnStore = this.pricingStore.opcionCostos.find(
         (item) => item.nro_propuesta === opcion.nro_propuesta,
       );
       if (opcionEnStore) {
         opcionEnStore.selected = selected;
       }
-      this.$store.state.pricing.page = 1;
+      this.pricingStore.page = 1;
     },
   },
   watch: {
@@ -730,13 +731,13 @@ export default {
     },
   },
   computed: {
-    ...mapStores(useProveedorStore),
+    ...mapStores(usePricingStore, useProveedorStore),
     actualizarComparativa: {
       get() {
-        return this.$store.state.pricing.actualizarComparativa;
+        return this.pricingStore.actualizarComparativa;
       },
       set(val) {
-        return (this.$store.state.pricing.actualizarComparativa =
+        return (this.pricingStore.actualizarComparativa =
           actualizarComparativa);
       },
     },

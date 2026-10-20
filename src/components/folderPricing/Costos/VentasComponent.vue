@@ -4,7 +4,7 @@
       <v-row>
         <v-col cols="12" lg="4" xl="4" class="my-1 py-2">
           <span class="text-headline-small">
-            Ventas {{ currencyFormat($store.state.pricing.totalVenta) }}
+            Ventas {{ currencyFormat(pricingStore.totalVenta) }}
             <v-btn variant="text" icon color="primary" @click="abrirModal">
               <v-icon>mdi-plus</v-icon>
             </v-btn>
@@ -98,7 +98,7 @@
                     <v-text-field
                       class="derecha tdMontos"
                       v-if="
-                        $store.state.pricing.listMultiplicador.some(
+                        pricingStore.listMultiplicador.some(
                           (v) =>
                             v.id == valor.id_multiplicador &&
                             (v.code == 13 || v.code == 14 || v.code == 15),
@@ -121,7 +121,7 @@
                       suffix="%"
                       class="derecha tdMontos"
                       v-if="
-                        $store.state.pricing.listMultiplicador.some(
+                        pricingStore.listMultiplicador.some(
                           (v) => v.id == valor.id_multiplicador && v.code == 5,
                         ) &&
                         !isITBM(valor.code_cost) &&
@@ -224,7 +224,7 @@
                 <v-autocomplete
                   density="compact"
                   autocomplete="none"
-                  :items="$store.state.pricing.listTipoCostos"
+                  :items="pricingStore.listTipoCostos"
                   label="Tipo"
                   item-value="codigo"
                   item-title="name"
@@ -236,7 +236,7 @@
                 <v-autocomplete item-title="text"
                   density="compact"
                   label="Multiplicador"
-                  :items="$store.state.pricing.listMultiplicador"
+                  :items="pricingStore.listMultiplicador"
                   v-model="fromDataService.id_multiplicador"
                   :rules="[(v) => !!v || 'Dato requerido']"
                 ></v-autocomplete>
@@ -288,6 +288,8 @@
 <script>
 import mixins from "@/components/mixins/funciones";
 import CboMultiplicador from "@/components/comun/CboMultiplicador.vue";
+import { mapStores } from "pinia";
+import { usePricingStore } from "@/stores/pricing";
 
 export default {
   mixins: [mixins],
@@ -367,8 +369,8 @@ export default {
     },
     eliminarCostos({ costo = null }) {
       costo.status = 0;
-      this.$store.state.pricing.listCostos =
-        this.$store.state.pricing.listCostos.filter((v) => v.status == 1);
+      this.pricingStore.listCostos =
+        this.pricingStore.listCostos.filter((v) => v.status == 1);
       setTimeout(() => {
         this.recalcularCostos();
       }, 10);
@@ -398,7 +400,7 @@ export default {
         .forEach((element) => {
           this.resumenOpcion.flete += this.obtenerCostoElemento(element);
         });
-      this.$store.state.pricing.totalFlete = this.resumenOpcion.flete;
+      this.pricingStore.totalFlete = this.resumenOpcion.flete;
     },
 
     calcularTotalesNoFlete() {
@@ -444,12 +446,12 @@ export default {
         (Number(this.resumenOpcion.almacen) || 0) +
         (Number(this.resumenOpcion.gastostercero) || 0);
 
-      this.$store.state.pricing.totalVenta = this.totalOption;
+      this.pricingStore.totalVenta = this.totalOption;
       // this.setTotalOpcion(valores);
     },
     obtenerCostoElemento(element) {
       const { listMultiplicador, datosPrincipales, totalFlete } =
-        this.$store.state.pricing;
+        this.pricingStore;
       const multiplicadores = listMultiplicador || [];
 
       // Buscamos el multiplicador una sola vez por elemento
@@ -472,7 +474,7 @@ export default {
 
         if (
           element.code_cost == 4 &&
-          this.$store.state.pricing.datosPrincipales.volumen < 1
+          this.pricingStore.datosPrincipales.volumen < 1
         ) {
           if (factorCalculado < 1) {
             factorCalculado = 1;
@@ -530,14 +532,14 @@ export default {
         if (this.fromDataService.idOpcion == "GT") {
           this.fromDataService.esgastostercerosflag = 1;
         }
-        this.$store.state.pricing.opcionCostos
+        this.pricingStore.opcionCostos
           .filter((v) => v.nro_propuesta == this.valores[0].nro_propuesta)[0]
           .listCostos.push(this.fromDataService);
 
         this.dialog = !this.dialog;
         this.calcTotales();
-        this.$store.state.pricing.actualizarCostosFlag =
-          !this.$store.state.pricing.actualizarCostosFlag;
+        this.pricingStore.actualizarCostosFlag =
+          !this.pricingStore.actualizarCostosFlag;
         //
       }
     },
@@ -548,7 +550,7 @@ export default {
     isNotPorcentaje(element, id_multiplicador) {
       let code = [5, 13, 14, 15];
 
-      let mul = this.$store.state.pricing.listMultiplicador.some(
+      let mul = this.pricingStore.listMultiplicador.some(
         (v) => v.id == id_multiplicador && code.includes(v.code),
       );
 
@@ -599,12 +601,12 @@ export default {
     montoConfeccion(item) {
       let monto = 0;
       if (item.code_cost == 33) {
-        let amount = this.$store.state.pricing.datosPrincipales.amount;
+        let amount = this.pricingStore.datosPrincipales.amount;
         let cif =
           parseFloat(amount) +
-          parseFloat(this.$store.state.pricing.totalFlete) +
+          parseFloat(this.pricingStore.totalFlete) +
           (parseFloat(amount) +
-            parseFloat(this.$store.state.pricing.totalFlete)) *
+            parseFloat(this.pricingStore.totalFlete)) *
             0.01;
 
         if (cif < 5000) {
@@ -634,26 +636,26 @@ export default {
         let val = this.valores.filter((v) => code.includes(v.code_cost));
         val.forEach((element) => {
           monto += parseFloat(
-            (this.$store.state.pricing.listMultiplicador.some(
+            (this.pricingStore.listMultiplicador.some(
               (v) => v.id == element.id_multiplicador,
             )
-              ? this.$store.state.pricing.listMultiplicador.filter(
+              ? this.pricingStore.listMultiplicador.filter(
                   (v) => v.id == element.id_multiplicador,
                 )[0].valor
               : 0) *
               element.costounitario *
               this.calcularFac(
-                this.$store.state.pricing.listMultiplicador.some(
+                this.pricingStore.listMultiplicador.some(
                   (v) => v.id == element.id_multiplicador,
                 )
-                  ? this.$store.state.pricing.listMultiplicador.filter(
+                  ? this.pricingStore.listMultiplicador.filter(
                       (v) => v.id == element.id_multiplicador,
                     )[0].code
                   : "N",
-                this.$store.state.pricing.datosPrincipales.volumen,
-                this.$store.state.pricing.datosPrincipales.peso,
-                this.$store.state.pricing.datosPrincipales.containers,
-                this.$store.state.pricing.datosPrincipales.amount,
+                this.pricingStore.datosPrincipales.volumen,
+                this.pricingStore.datosPrincipales.peso,
+                this.pricingStore.datosPrincipales.containers,
+                this.pricingStore.datosPrincipales.amount,
               ),
           );
         });
@@ -696,15 +698,15 @@ export default {
       };
     },
     isImport() {
-      return this.$store.state.pricing.listModality.some(
+      return this.pricingStore.listModality.some(
         (v) =>
-          v.id == this.$store.state.pricing.datosPrincipales.idsentido &&
+          v.id == this.pricingStore.datosPrincipales.idsentido &&
           v.code == "I",
       );
     },
     recalcularCostos() {
-      this.$store.state.pricing.actualizarCostosFlag =
-        !this.$store.state.pricing.actualizarCostosFlag;
+      this.pricingStore.actualizarCostosFlag =
+        !this.pricingStore.actualizarCostosFlag;
       this.calcTotales();
     },
     reponerCero(valor) {
@@ -718,7 +720,7 @@ export default {
       this.$forceUpdate();
     },
     formatearValorCalculado(valor) {
-      const pricingState = this.$store.state.pricing;
+      const pricingState = this.pricingStore;
       const multiplicadores = pricingState.listMultiplicador || [];
 
       const multiplicadorEncontrado = multiplicadores.find(
@@ -751,7 +753,7 @@ export default {
     },
     formatearCostoTotal(valor) {
       // 1. Desestructuración de los estados del Vuex para escribir menos y más limpio
-      const { listMultiplicador, datosPrincipales } = this.$store.state.pricing;
+      const { listMultiplicador, datosPrincipales } = this.pricingStore;
       const multiplicadores = listMultiplicador || [];
 
       // 2. Buscamos el multiplicador correspondiente UNA SOLA VEZ
@@ -774,7 +776,7 @@ export default {
 
       if (
         valor.code_cost == 4 &&
-        this.$store.state.pricing.datosPrincipales.volumen < 1
+        this.pricingStore.datosPrincipales.volumen < 1
       ) {
         if (factorCalculado < 1) {
           factorCalculado = 1;
@@ -797,7 +799,7 @@ export default {
       return this.currencyFormat(operacionFinal);
     },
     formatearValorCalculado(valor) {
-      const pricingState = this.$store.state.pricing;
+      const pricingState = this.pricingStore;
       const multiplicadores = pricingState.listMultiplicador || [];
 
       const multiplicadorEncontrado = multiplicadores.find(
@@ -842,7 +844,7 @@ export default {
       }
       if (
         data.code_cost == 7 &&
-        this.$store.state.pricing.datosPrincipales.esgrupalflag
+        this.pricingStore.datosPrincipales.esgrupalflag
       ) {
         if (data.tienefleteflag) {
           return `Tarifa del Tarifario. Vence: ${this.formatoFecha(
@@ -891,8 +893,9 @@ export default {
     },
   },
   computed: {
+    ...mapStores(usePricingStore),
     panelesConDatos() {
-      const listaTipos = this.$store.state.pricing.listTipoCostos;
+      const listaTipos = this.pricingStore.listTipoCostos;
       if (!listaTipos) return [];
       const panelesFiltrados = listaTipos.filter((tipo) => {
         const costosFiltrados = this.obtenerCostosEnBaseTipoCosto(tipo.codigo);

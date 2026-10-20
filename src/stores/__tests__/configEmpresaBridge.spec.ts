@@ -3,7 +3,6 @@ import { createPinia, setActivePinia } from "pinia";
 import { toRaw } from "vue";
 import { createStore } from "vuex";
 import aduana from "@/store/modules/aduana";
-import pricing from "@/store/modules/pricing";
 import { useConfigEmpresaStore } from "@/stores/configEmpresa";
 
 vi.mock("@/api/http", () => ({ default: vi.fn() }));
@@ -11,10 +10,7 @@ vi.mock("@/router", () => ({ default: { push: vi.fn() } }));
 vi.mock("sweetalert2", () => ({ default: { fire: vi.fn() } }));
 vi.mock("@/store", () => ({ default: { state: {}, commit: vi.fn() } }));
 
-describe.each([
-  ["pricing", pricing],
-  ["aduana", aduana],
-])("configEmpresa shared mutations committed by the %s Vuex module", (key, module) => {
+describe.each([["aduana", aduana]])("configEmpresa shared mutations committed by the %s Vuex module", (key, module) => {
   beforeEach(() => setActivePinia(createPinia()));
 
   test("SET_MULTPLICADOR hands the same rows to configEmpresa and still fills its own list", () => {

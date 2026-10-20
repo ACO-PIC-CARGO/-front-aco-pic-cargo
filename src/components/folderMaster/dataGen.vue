@@ -193,8 +193,9 @@
 <script>
 import { mapState, mapActions } from "vuex";
 import axios from "@/api/http";
-import { mapActions as mapPiniaActions } from "pinia";
+import { mapActions as mapPiniaActions, mapStores } from "pinia";
 import { useMasterusuariosStore } from "@/stores/masterusuarios";
+import { usePricingStore } from "@/stores/pricing";
 export default {
   name: "dataGen",
   data() {
@@ -228,6 +229,7 @@ export default {
     //this.$store.state.drawer = false;
   },
   computed: {
+    ...mapStores(usePricingStore),
     ...mapState([
       "itemsModality",
       "itemsShipment",
@@ -498,7 +500,7 @@ export default {
     },
     async obternerDatosCotizacion() {
       if (!!this.$store.state.master_cotizanion && !this.$route.params.id) {
-        let cot = this.$store.state.pricing.listQuotes.filter(
+        let cot = this.pricingStore.listQuotes.filter(
           (v) => v.id == this.$store.state.master_cotizanion,
         )[0];
         let vm = this;

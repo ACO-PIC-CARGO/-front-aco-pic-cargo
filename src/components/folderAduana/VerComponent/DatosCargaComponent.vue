@@ -160,8 +160,9 @@
 <script>
 import { mapActions } from "vuex";
 import Swal from "sweetalert2";
-import { mapStores } from "pinia";
+import { mapActions as mapPiniaActions, mapStores } from "pinia";
 import { useMasterusuariosStore } from "@/stores/masterusuarios";
+import { usePricingStore } from "@/stores/pricing";
 export default {
   name: "DatosCargaComponent",
   data() {
@@ -187,7 +188,8 @@ export default {
     await this._getContainers();
   },
   methods: {
-    ...mapActions(["_getContainers", "getItemsServices", "getMultiplicador"]),
+    ...mapActions(["_getContainers"]),
+    ...mapPiniaActions(usePricingStore, ["getItemsServices", "getMultiplicador"]),
     añadirCarga() {
       this.err = "";
       if (this.numerobultos > 0 && this.volumen > 0 && this.peso > 0) {

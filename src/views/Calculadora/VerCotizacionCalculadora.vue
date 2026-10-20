@@ -3,6 +3,7 @@ import { defineAsyncComponent, onMounted, ref } from "vue";
 import { useRoute } from "vue-router";
 import { useStore } from "vuex";
 import { useMasterusuariosStore } from "@/stores/masterusuarios";
+import { usePricingStore } from "@/stores/pricing";
 
 const DatosPrincipales = defineAsyncComponent(() =>
   import(
@@ -23,6 +24,7 @@ const Costos = defineAsyncComponent(() =>
 
 const route = useRoute();
 const rootStore = useStore();
+const pricingStore = usePricingStore();
 const masterusuariosStore = useMasterusuariosStore();
 
 const editable1 = true;
@@ -32,12 +34,12 @@ onMounted(async () => {
   verFlag.value = false;
 
   await Promise.all([
-    rootStore.dispatch("getCotzacionCalculadora", {
+    pricingStore.getCotzacionCalculadora({
       id: route.query.id,
       individualflag: route.query.individualflag == '1' ? true : false,
       esgrupalflag: route.query.esgrupalflag == '1' ? true : false,
     }),
-    rootStore.dispatch("getShipment"),
+    pricingStore.getShipment(),
   ]);
 
   // this.$store.state.mainTitle = `VER  COTIZACIÓN - ${this.$store.state.pricing.nro_quote}`;
@@ -46,33 +48,33 @@ onMounted(async () => {
   verFlag.value = true;
 
   // Buscar el tipo de carga y validar que existe
-  const tipoCargaItem = rootStore.state.pricing.listShipment.find(
-    (v: { id: unknown }) => v.id == rootStore.state.pricing.datosPrincipales.idtipocarga,
+  const tipoCargaItem = pricingStore.listShipment.find(
+    (v) => v.id == pricingStore.datosPrincipales.idtipocarga,
   );
 
   const idTipoCarga = tipoCargaItem ? tipoCargaItem.id_transport : null;
 
   // Solo cargar puertos si tenemos un id_transport válido
   const promisesToLoad = [
-    rootStore.dispatch("getModality"),
-    rootStore.dispatch("getIncoterms"),
+    pricingStore.getModality(),
+    pricingStore.getIncoterms(),
 
-    rootStore.dispatch("getMultiplicador"),
+    pricingStore.getMultiplicador(),
     rootStore.dispatch("cargarProveedores"),
-    rootStore.dispatch("getBegEndList"),
-    rootStore.dispatch("getTipoCostos"),
+    pricingStore.getBegEndList(),
+    pricingStore.getTipoCostos(),
     masterusuariosStore.cargarMasterDetallePercepcionAduana(),
   ];
 
   if (idTipoCarga) {
     promisesToLoad.unshift(
-      rootStore.dispatch("getPortBegin", {
+      pricingStore.getPortBegin({
         id_transport: idTipoCarga,
-        id: rootStore.state.pricing.datosPrincipales.idorigen,
+        id: pricingStore.datosPrincipales.idorigen,
       }),
-      rootStore.dispatch("getPortEnd", {
+      pricingStore.getPortEnd({
         id_transport: idTipoCarga,
-        id: rootStore.state.pricing.datosPrincipales.iddestino,
+        id: pricingStore.datosPrincipales.iddestino,
       }),
     );
   }
@@ -96,7 +98,7 @@ onMounted(async () => {
   >
     <v-card elevation="5">
       <v-stepper
-        v-model="rootStore.state.pricing.e1"
+        v-model="pricingStore.e1"
         non-linear
       >
         <v-stepper-header>

@@ -2,11 +2,11 @@
 import { computed, onMounted, ref, useTemplateRef, watch } from "vue";
 import Swal from "sweetalert2";
 import moment from "moment";
-import { useStore } from "vuex";
 import FormatFecha from "../comun/FormatFecha.vue";
+import { usePricingStore } from "@/stores/pricing";
 import type { ArchivoDrive, ContenedorEnvio, TipoCarga } from "@/types/cotizacion";
 
-const rootStore = useStore();
+const pricingStore = usePricingStore();
 
 const errorFechaEntrega = ref("");
 const dialog = ref(false);
@@ -22,10 +22,10 @@ const nombrePdfEnviarCliente = ref("");
 const frmEnvioWsp = useTemplateRef("frmEnvioWsp");
 
 const texto_pdf_vuex = computed(
-  () => rootStore.state.pricing.textWhatsapp?.[0]?.texto_pdf || "",
+  () => pricingStore.textWhatsapp?.[0]?.texto_pdf || "",
 );
 const texto_link_vuex = computed(
-  () => rootStore.state.pricing.textWhatsapp?.[0]?.texto_link || "",
+  () => pricingStore.textWhatsapp?.[0]?.texto_link || "",
 );
 const dateRangeText = computed(() => {
   if (!dates.value || dates.value.length === 0) return "";
@@ -100,8 +100,8 @@ function selectDateRange(value: moment.MomentInput[]) {
   dates.value = value.map((date) => moment(date).format("YYYY-MM-DD"));
 }
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
-function GetArchivos(payload?: unknown) {
-  return rootStore.dispatch("GetArchivos", payload);
+function GetArchivos(payload?: string | null) {
+  return pricingStore.GetArchivos(payload);
 }
 function abrirModal() {
   dialog.value = true;
@@ -122,13 +122,13 @@ async function enviarWsp() {
     return;
   }
 
-  if (!fecha_max.value && rootStore.state.pricing.datosPrincipales.esgrupalflag) {
+  if (!fecha_max.value && pricingStore.datosPrincipales.esgrupalflag) {
     errorFechaEntrega.value = "Dato Requerido";
     return;
   }
 
   const nameFile = nombrePdfEnviarCliente.value + ".pdf";
-  if (rootStore.state.pricing.listadoFilesDrive.some((v: ArchivoDrive) => v.name == nameFile)) {
+  if (pricingStore.listadoFilesDrive.some((v: ArchivoDrive) => v.name == nameFile)) {
     Swal.fire({
       icon: "warning",
       title: "Nombre duplicado",
@@ -140,11 +140,11 @@ async function enviarWsp() {
 
   loading.value = true;
   let tipo = "individual";
-  if (rootStore.state.pricing.datosPrincipales.esgrupalflag) {
+  if (pricingStore.datosPrincipales.esgrupalflag) {
     tipo = "grupal";
   }
   await Promise.all([
-    rootStore.dispatch("generarReporte", {
+    pricingStore.generarReporte({
       tipo: "AGRUPADO",
       enviarWspCliente: true,
       guardarFlag: true,
@@ -153,11 +153,11 @@ async function enviarWsp() {
       linkflag: tabIndex.value == "linkflag",
       tipoCotizacion: tipo,
       fecha_salida: dateRangeText.value,
-      nombre_cliente: rootStore.state.pricing.datosPrincipales.nombre,
+      nombre_cliente: pricingStore.datosPrincipales.nombre,
       fecha_max: fecha_max.value,
       nombrePdfEnviarCliente: nombrePdfEnviarCliente.value,
     }),
-    rootStore.dispatch("setEmisionPdf"),
+    pricingStore.setEmisionPdf(),
   ]);
   loading.value = false;
   dialog.value = false;
@@ -185,10 +185,10 @@ function formatearFecha(fecha: string) {
 }
 
 onMounted(() => {
-  rootStore.dispatch("obtenerDatosEmpresa");
+  pricingStore.obtenerDatosEmpresa();
   const contenedor: Array<{ name?: string; valor?: number | string; code?: string }> = [];
 
-  (rootStore.state.pricing.datosPrincipales.containers || []).forEach(
+  (pricingStore.datosPrincipales.containers || []).forEach(
     (element: ContenedorEnvio) => {
       contenedor.push({
         name: element.description,
@@ -200,15 +200,15 @@ onMounted(() => {
 
   nombrePdfEnviarCliente.value = "COTIZACION_";
 
-  if (rootStore.state.pricing.datosPrincipales.esindividualflag) {
+  if (pricingStore.datosPrincipales.esindividualflag) {
     nombrePdfEnviarCliente.value += "INDIVIDUAL";
   }
-  if (rootStore.state.pricing.datosPrincipales.esgrupalflag) {
+  if (pricingStore.datosPrincipales.esgrupalflag) {
     nombrePdfEnviarCliente.value += "GRUPAL";
   }
 
-  const shipment = rootStore.state.pricing.listShipment.find(
-    (v: TipoCarga) => v.id == rootStore.state.pricing.datosPrincipales.idtipocarga,
+  const shipment = pricingStore.listShipment.find(
+    (v: TipoCarga) => v.id == pricingStore.datosPrincipales.idtipocarga,
   );
 
   if (shipment?.code == "FCL") {
@@ -222,7 +222,7 @@ onMounted(() => {
     nombrePdfEnviarCliente.value += "_CONSOLIDADOS";
   }
   nombrePdfEnviarCliente.value +=
-    "_" + limpiarNombre(rootStore.state.pricing.datosPrincipales.nombre);
+    "_" + limpiarNombre(pricingStore.datosPrincipales.nombre!);
 });
 </script>
 
@@ -319,7 +319,7 @@ onMounted(() => {
                   max-width="290px"
                   min-width="auto"
                   outline
-                  v-if="rootStore.state.pricing.datosPrincipales.esgrupalflag"
+                  v-if="pricingStore.datosPrincipales.esgrupalflag"
                 >
                   <template #activator="{ props }">
                     <v-text-field
@@ -329,7 +329,7 @@ onMounted(() => {
                       readonly
                       v-bind="props"
                       :rules="[(v) => !!v || 'Dato Requerido']"
-                      v-if="rootStore.state.pricing.datosPrincipales.esgrupalflag"
+                      v-if="pricingStore.datosPrincipales.esgrupalflag"
                       color="blue-grey-darken-2"
                       variant="outlined"
                       density="compact"
@@ -367,7 +367,7 @@ onMounted(() => {
                   :dense="true"
                   label="Fecha Máxima de Entrega"
                   v-model="fecha_max"
-                  v-if="rootStore.state.pricing.datosPrincipales.esgrupalflag"
+                  v-if="pricingStore.datosPrincipales.esgrupalflag"
                   :error-messages="errorFechaEntrega"
                   :outlined="true"
                 />

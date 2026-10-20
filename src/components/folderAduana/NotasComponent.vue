@@ -381,6 +381,8 @@
 import { defineAsyncComponent } from "vue";
 import { mapActions } from "vuex";
 import Swal from "sweetalert2";
+import { mapActions as mapPiniaActions } from "pinia";
+import { usePricingStore } from "@/stores/pricing";
 export default {
   components: {
     previewCotizacion: defineAsyncComponent(() =>
@@ -415,14 +417,12 @@ export default {
   methods: {
     ...mapActions([
       "registrarAduana",
-      "getQuote",
       "obtenerDatosEmpresaAduana",
       "generarReporteAduana",
-      "crearCarpetaOneDrive",
-      "actualizarURLEnElQuote",
       "predataAduana",
       "actualizarQuoteAduana",
     ]),
+    ...mapPiniaActions(usePricingStore, ["getQuote", "crearCarpetaOneDrive", "actualizarURLEnElQuote"]),
     formatDate(val) {
       if (!val) return "";
       try {

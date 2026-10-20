@@ -6,8 +6,8 @@
         icon
         color="default"
         @click="
-          $store.state.pricing.filtrarCallsFlag =
-            !$store.state.pricing.filtrarCallsFlag
+          pricingStore.filtrarCallsFlag =
+            !pricingStore.filtrarCallsFlag
         "
       >
         <v-icon>mdi-close</v-icon>
@@ -25,60 +25,60 @@
                 item-title="namelong"
                 item-value="id"
                 placeholder="Clientes"
-                v-model="$store.state.pricing.filtroCalls.id_cliente"
+                v-model="pricingStore.filtroCalls.id_cliente"
                 clearable
               >
               </v-autocomplete>
             </v-col>
             <v-col cols="12" md="6" class="py-1">
               <v-autocomplete
-                :items="$store.state.pricing.listMarketing"
+                :items="pricingStore.listMarketing"
                 label="Tipo de Marketing"
                 density="compact"
                 item-title="name"
                 item-value="id"
-                v-model="$store.state.pricing.filtroCalls.id_marketing"
+                v-model="pricingStore.filtroCalls.id_marketing"
                 clearable
               ></v-autocomplete>
             </v-col>
             <v-col cols="12" md="6" class="py-1">
               <v-autocomplete
-                :items="$store.state.pricing.listQuoteStatus"
+                :items="pricingStore.listQuoteStatus"
                 label="Estado de la Cotización"
                 density="compact"
                 item-title="name"
                 item-value="id"
-                v-model="$store.state.pricing.filtroCalls.id_status"
+                v-model="pricingStore.filtroCalls.id_status"
                 clearable
               ></v-autocomplete>
             </v-col>
             <v-col cols="12" md="6" class="py-1">
               <v-autocomplete
-                :items="$store.state.pricing.listEjecutivo"
+                :items="pricingStore.listEjecutivo"
                 label="Pricing."
                 density="compact"
                 item-title="name"
                 item-value="id_entitie"
-                v-model="$store.state.pricing.filtroCalls.id_pricing"
+                v-model="pricingStore.filtroCalls.id_pricing"
                 clearable
               ></v-autocomplete>
             </v-col>
             <v-col cols="12" md="6" class="py-1">
               <v-autocomplete
-                :items="$store.state.pricing.listEjecutivo"
+                :items="pricingStore.listEjecutivo"
                 label="Ejecutivo."
                 density="compact"
                 item-title="name"
                 item-value="id_entitie"
-                v-model="$store.state.pricing.filtroCalls.id_entities"
+                v-model="pricingStore.filtroCalls.id_entities"
                 clearable
               ></v-autocomplete>
             </v-col>
             <v-col cols="12" md="6" class="py-1">
               <v-autocomplete
-                :items="$store.state.pricing.listModality"
+                :items="pricingStore.listModality"
                 label="Sentido"
-                v-model="$store.state.pricing.filtroCalls.id_modality"
+                v-model="pricingStore.filtroCalls.id_modality"
                 density="compact"
                 item-title="name"
                 item-value="id"
@@ -87,24 +87,24 @@
             </v-col>
             <v-col cols="12" md="6" class="py-1">
               <v-autocomplete
-                :items="$store.state.pricing.listShipment"
+                :items="pricingStore.listShipment"
                 label="Carga*"
                 density="compact"
                 item-title="embarque"
                 item-value="id"
-                v-model="$store.state.pricing.filtroCalls.id_shipment"
+                v-model="pricingStore.filtroCalls.id_shipment"
                 clearable
               >
               </v-autocomplete>
             </v-col>
             <v-col cols="12" md="6" class="py-1">
               <v-autocomplete
-                :items="$store.state.pricing.listIncoterms"
+                :items="pricingStore.listIncoterms"
                 label="Incoterm*"
                 density="compact"
                 item-title="name"
                 item-value="id"
-                v-model="$store.state.pricing.filtroCalls.id_incoterm"
+                v-model="pricingStore.filtroCalls.id_incoterm"
                 clearable
               ></v-autocomplete>
             </v-col>
@@ -113,7 +113,7 @@
               <v-autocomplete
                 :items="masterusuariosStore.lstTemperatura"
                 v-model="
-                  $store.state.pricing.filtroCalls
+                  pricingStore.filtroCalls
                     .id_masterdetalletemperaturaventa
                 "
                 item-value="id"
@@ -154,7 +154,7 @@
               <FormatFecha
                 :dense="true"
                 label="Fecha Envío Cliente Desde"
-                v-model="$store.state.pricing.filtroCalls.fechaemisiondesde"
+                v-model="pricingStore.filtroCalls.fechaemisiondesde"
                 clearable
               />
             </v-col>
@@ -163,7 +163,7 @@
               <FormatFecha
                 :dense="true"
                 label="Fecha Envío Cliente Hasta"
-                v-model="$store.state.pricing.filtroCalls.fechaemisionhasta"
+                v-model="pricingStore.filtroCalls.fechaemisionhasta"
                 clearable
               />
             </v-col>
@@ -173,7 +173,7 @@
                 :dense="true"
                 label="Fecha Creación Desde"
                 id="filtroDesde"
-                v-model="$store.state.pricing.filtroCalls.fechainicio"
+                v-model="pricingStore.filtroCalls.fechainicio"
                 clearable
               />
             </v-col>
@@ -182,7 +182,7 @@
                 :dense="true"
                 label="Fecha Creación Hasta"
                 id="filtroHasta"
-                v-model="$store.state.pricing.filtroCalls.fechafin"
+                v-model="pricingStore.filtroCalls.fechafin"
                 clearable
               />
             </v-col>
@@ -210,7 +210,7 @@
           <v-row>
             <v-col class="12">
               <p>Seleccione Tipo de reporte a Imprimir</p>
-              <v-radio-group v-model="$store.state.pricing.filtroCalls.tipopdf">
+              <v-radio-group v-model="pricingStore.filtroCalls.tipopdf">
                 <v-radio
                   label="Reporte por Estatus"
                   color="green"
@@ -236,11 +236,11 @@
 </template>
 
 <script>
-import { mapActions } from "vuex";
 import FormatFecha from "../comun/FormatFecha.vue";
 import moment from "moment";
-import { mapStores } from "pinia";
+import { mapActions as mapPiniaActions, mapStores } from "pinia";
 import { useMasterusuariosStore } from "@/stores/masterusuarios";
+import { usePricingStore } from "@/stores/pricing";
 export default {
   components: {
     FormatFecha,
@@ -251,24 +251,15 @@ export default {
     };
   },
   computed: {
-    ...mapStores(useMasterusuariosStore),
+    ...mapStores(usePricingStore, useMasterusuariosStore),
   },
   methods: {
-    ...mapActions([
-      "getMarketingList",
-      "getModulesEntities",
-      "getQuoteStatus",
-      "getModality",
-      "getShipment",
-      "getIncoterms",
-      "getListQuote",
-      "getQuoteCall",
-    ]),
+    ...mapPiniaActions(usePricingStore, ["getMarketingList", "getModulesEntities", "getQuoteStatus", "getModality", "getShipment", "getIncoterms", "getListQuote", "getQuoteCall"]),
 
     validarFiltroFechas() {
       this.errorFiltroFecha = "";
 
-      const filtro = this.$store.state.pricing.filtroCalls;
+      const filtro = this.pricingStore.filtroCalls;
 
       // Normalizar fechas: detectar valores vacíos o inválidos
       const tieneFecha = (fecha) => {
@@ -341,28 +332,28 @@ export default {
     async filtrar() {
       if (!this.validarFiltroFechas()) return;
       this.$store.state.spiner = true;
-      await this.getQuoteCall(this.$store.state.pricing.filtroCalls);
-      this.$store.state.pricing.filtrarCallsFlag = false;
+      await this.getQuoteCall(this.pricingStore.filtroCalls);
+      this.pricingStore.filtrarCallsFlag = false;
       this.$store.state.spiner = false;
     },
     async limpiar() {
       this.$store.state.spiner = true;
-      this.$store.state.pricing.filtroCalls.id_marketing = null;
-      this.$store.state.pricing.filtroCalls.id_status = null;
-      this.$store.state.pricing.filtroCalls.id_entities = null;
-      this.$store.state.pricing.filtroCalls.id_modality = null;
-      this.$store.state.pricing.filtroCalls.id_shipment = null;
-      this.$store.state.pricing.filtroCalls.id_incoterm = null;
-      this.$store.state.pricing.filtroCalls.fechaemisiondesde = null;
-      this.$store.state.pricing.filtroCalls.fechaemisionhasta = null;
-      this.$store.state.pricing.filtroCalls.fechafin =
+      this.pricingStore.filtroCalls.id_marketing = null;
+      this.pricingStore.filtroCalls.id_status = null;
+      this.pricingStore.filtroCalls.id_entities = null;
+      this.pricingStore.filtroCalls.id_modality = null;
+      this.pricingStore.filtroCalls.id_shipment = null;
+      this.pricingStore.filtroCalls.id_incoterm = null;
+      this.pricingStore.filtroCalls.fechaemisiondesde = null;
+      this.pricingStore.filtroCalls.fechaemisionhasta = null;
+      this.pricingStore.filtroCalls.fechafin =
         moment().format("YYYY-01-01");
-      this.$store.state.pricing.filtroCalls.fechafin = moment()
+      this.pricingStore.filtroCalls.fechafin = moment()
         .endOf("month")
         .format("YYYY-MM-DD");
-      this.$store.state.pricing.filtroCalls.estado = true;
-      await this.getQuoteCall(this.$store.state.pricing.filtroCalls);
-      this.$store.state.pricing.filtrarCallsFlag = false;
+      this.pricingStore.filtroCalls.estado = true;
+      await this.getQuoteCall(this.pricingStore.filtroCalls);
+      this.pricingStore.filtrarCallsFlag = false;
       this.$store.state.spiner = false;
     },
   },

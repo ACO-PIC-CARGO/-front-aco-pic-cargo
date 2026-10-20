@@ -4,6 +4,7 @@ import { useRouter } from "vue-router";
 import { useStore } from "vuex";
 import Swal from "sweetalert2";
 import { useConfigEmpresaStore } from "@/stores/configEmpresa";
+import { usePricingStore } from "@/stores/pricing";
 import type { Modalidad } from "@/types/catalogos";
 import type { CostoConfig, TipoCostoConfig } from "@/types/empresas";
 import type { TipoCarga } from "@/types/cotizacion";
@@ -15,6 +16,7 @@ const emit = defineEmits<{ regresar: [] }>();
 
 const router = useRouter();
 const rootStore = useStore();
+const pricingStore = usePricingStore();
 const configEmpresaStore = useConfigEmpresaStore();
 
 const isMobile = ref(false);
@@ -78,23 +80,23 @@ const frmRegistro = ref<{ $el: { scrollTop: number } }>();
 onMounted(async () => {
   checkIfMobile();
   loadingTable.value = true;
-  ids_modality.value = rootStore.state.pricing.listModality.map((element: Modalidad) => {
+  ids_modality.value = pricingStore.listModality.map((element: Modalidad) => {
     return element.id;
   });
-  ids_shipment.value = rootStore.state.pricing.listShipment.map((element: TipoCarga) => {
-    return element.id;
+  ids_shipment.value = pricingStore.listShipment.map((element: TipoCarga) => {
+    return element.id!;
   });
   id_modality.value = ids_modality.value[0]!;
   id_shipment.value = ids_shipment.value[0]!;
   await configEmpresaStore.obtenerConfigCostos({
     id_modality: id_modality.value,
-    shipment: rootStore.state.pricing.listShipment.filter(
+    shipment: pricingStore.listShipment.filter(
       (v: TipoCarga) =>
         v.id ==
-        rootStore.state.pricing.listShipment.map((element: TipoCarga) => {
+        pricingStore.listShipment.map((element: TipoCarga) => {
           return element.id;
         })[0],
-    )[0].code,
+    )[0]!.code!,
   });
   generarHeader();
   await configEmpresaStore.getMultiplicadorConfig({
@@ -253,7 +255,7 @@ async function guardarCostosPredefinidos() {
 
       await configEmpresaStore.obtenerConfigCostos({
         id_modality: id_modality.value,
-        shipment: rootStore.state.pricing.listShipment.find((v: TipoCarga) => v.id === id_shipment.value).code,
+        shipment: pricingStore.listShipment.find((v: TipoCarga) => v.id === id_shipment.value)!.code!,
       });
 
       await configEmpresaStore.getMultiplicadorConfig({
@@ -270,12 +272,12 @@ async function guardarCostosPredefinidos() {
 
       // Reiniciar los shipments para la nueva modalidad
       indexShipment.value = 0;
-      ids_shipment.value = rootStore.state.pricing.listShipment.map((element: TipoCarga) => element.id);
+      ids_shipment.value = pricingStore.listShipment.map((element: TipoCarga) => element.id!);
       id_shipment.value = ids_shipment.value[indexShipment.value]!;
 
       await configEmpresaStore.obtenerConfigCostos({
         id_modality: id_modality.value,
-        shipment: rootStore.state.pricing.listShipment.find((v: TipoCarga) => v.id === id_shipment.value).code,
+        shipment: pricingStore.listShipment.find((v: TipoCarga) => v.id === id_shipment.value)!.code!,
       });
 
       await configEmpresaStore.getMultiplicadorConfig({
@@ -314,7 +316,7 @@ async function retroceder() {
 
       await configEmpresaStore.obtenerConfigCostos({
         id_modality: id_modality.value,
-        shipment: rootStore.state.pricing.listShipment.find((v: TipoCarga) => v.id === id_shipment.value).code,
+        shipment: pricingStore.listShipment.find((v: TipoCarga) => v.id === id_shipment.value)!.code!,
       });
 
       await configEmpresaStore.getMultiplicadorConfig({
@@ -331,12 +333,12 @@ async function retroceder() {
 
       // Reiniciar los shipments para la modalidad anterior
       indexShipment.value = ids_shipment.value.length - 1;
-      ids_shipment.value = rootStore.state.pricing.listShipment.map((element: TipoCarga) => element.id);
+      ids_shipment.value = pricingStore.listShipment.map((element: TipoCarga) => element.id!);
       id_shipment.value = ids_shipment.value[indexShipment.value]!;
 
       await configEmpresaStore.obtenerConfigCostos({
         id_modality: id_modality.value,
-        shipment: rootStore.state.pricing.listShipment.find((v: TipoCarga) => v.id === id_shipment.value).code,
+        shipment: pricingStore.listShipment.find((v: TipoCarga) => v.id === id_shipment.value)!.code!,
       });
 
       await configEmpresaStore.getMultiplicadorConfig({
@@ -378,7 +380,7 @@ async function guardarCosto() {
     // Obtener los costos y multiplicadores para el siguiente shipment
     await configEmpresaStore.obtenerConfigCostos({
       id_modality: id_modality.value,
-      shipment: rootStore.state.pricing.listShipment.find((v: TipoCarga) => v.id === id_shipment.value).code,
+      shipment: pricingStore.listShipment.find((v: TipoCarga) => v.id === id_shipment.value)!.code!,
     });
 
     await configEmpresaStore.getMultiplicadorConfig({
@@ -395,13 +397,13 @@ async function guardarCosto() {
 
     // Reiniciar los shipments para la nueva modalidad
     indexShipment.value = 0;
-    ids_shipment.value = rootStore.state.pricing.listShipment.map((element: TipoCarga) => element.id);
+    ids_shipment.value = pricingStore.listShipment.map((element: TipoCarga) => element.id!);
     id_shipment.value = ids_shipment.value[indexShipment.value]!;
 
     // Obtener los costos y multiplicadores para el primer shipment de la nueva modalidad
     await configEmpresaStore.obtenerConfigCostos({
       id_modality: id_modality.value,
-      shipment: rootStore.state.pricing.listShipment.find((v: TipoCarga) => v.id === id_shipment.value).code,
+      shipment: pricingStore.listShipment.find((v: TipoCarga) => v.id === id_shipment.value)!.code!,
     });
 
     await configEmpresaStore.getMultiplicadorConfig({
@@ -632,9 +634,9 @@ function reponerCero(valor: CostoConfig) {
                 <b>Modalidad: </b>
                 <span class="description">
                   {{
-                    rootStore.state.pricing.listModality.filter(
+                    pricingStore.listModality.filter(
                       (v: Modalidad) => v.id == id_modality
-                    )[0].name
+                    )[0]!.name
                   }}
                 </span>
               </v-col>
@@ -647,9 +649,9 @@ function reponerCero(valor: CostoConfig) {
                 <b>Tipo de Carga: </b>
                 <span class="description">
                   {{
-                    rootStore.state.pricing.listShipment.filter(
+                    pricingStore.listShipment.filter(
                       (v: TipoCarga) => v.id == id_shipment
-                    )[0].code
+                    )[0]!.code
                   }}
                 </span>
               </v-col>

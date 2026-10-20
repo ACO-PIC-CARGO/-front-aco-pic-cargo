@@ -74,7 +74,7 @@
                 variant="outlined"
                 label="Distrito"
                 class="pr-10"
-                v-model="$store.state.pricing.datosPrincipales.id_town"
+                v-model="pricingStore.datosPrincipales.id_town"
                 readonly
               />
             </template>
@@ -134,9 +134,10 @@
 </template>
 
 <script>
-import { mapState, mapActions, mapGetters } from "vuex";
-import { mapActions as mapPiniaActions, mapStores } from "pinia";
+import { mapGetters } from "vuex";
+import { mapActions as mapPiniaActions, mapState, mapStores } from "pinia";
 import { useTownStore } from "@/stores/town";
+import { usePricingStore } from "@/stores/pricing";
 
 export default {
   emits: ["activarLlenadoCostos", "recargarCostos"],
@@ -165,40 +166,35 @@ export default {
     };
   },
   async mounted() {
-    let port = this.$store.state.pricing.listPortEnd.find(
-      (v) => v.id_port == this.$store.state.pricing.datosPrincipales.iddestino,
+    let port = this.pricingStore.listPortEnd.find(
+      (v) => v.id_port == this.pricingStore.datosPrincipales.iddestino,
     );
     if (port) {
       await this.cargarTownParaPricing({ id_pais: port.id_pais });
     }
   },
   computed: {
-    ...mapStores(useTownStore),
-    ...mapState({
-      begEndList: (state) => state.pricing.begEndList,
-      listServices: (state) => state.pricing.listServices,
-      opcionCostos: (state) => state.pricing.opcionCostos,
-      errorValorMercancia: (state) => state.pricing.errorValorMercancia,
-    }),
+    ...mapStores(usePricingStore, useTownStore),
+    ...mapState(usePricingStore, ["begEndList", "listServices", "opcionCostos", "errorValorMercancia"]),
     ...mapGetters(["isEmpresaPermitida"]),
     iddestino() {
-      return this.$store.state.pricing.datosPrincipales.iddestino;
+      return this.pricingStore.datosPrincipales.iddestino;
     },
     // Two-way bindings para propiedades de Vuex usando getters/setters computados
     amountModel: {
       get() {
-        return this.$store.state.pricing.datosPrincipales.amount;
+        return this.pricingStore.datosPrincipales.amount;
       },
       set(value) {
-        this.$store.state.pricing.datosPrincipales.amount = value;
+        this.pricingStore.datosPrincipales.amount = value;
       },
     },
     descripcionCargaModel: {
       get() {
-        return this.$store.state.pricing.datosPrincipales.descripcioncarga;
+        return this.pricingStore.datosPrincipales.descripcioncarga;
       },
       set(value) {
-        this.$store.state.pricing.datosPrincipales.descripcioncarga = value;
+        this.pricingStore.datosPrincipales.descripcioncarga = value;
       },
     },
 
@@ -212,12 +208,7 @@ export default {
     },
   },
   methods: {
-    ...mapActions([
-      "getItemsServices",
-      "getImpuestos",
-      "getItemsServicesDetails",
-      "getBegEndList",
-    ]),
+    ...mapPiniaActions(usePricingStore, ["getItemsServices", "getImpuestos", "getItemsServicesDetails", "getBegEndList"]),
     ...mapPiniaActions(useTownStore, ["cargarTownParaPricing"]),
 
     normalizeText(str) {
@@ -269,21 +260,21 @@ export default {
     },
 
     recargarCostos() {
-      this.$store.state.pricing.errorValorMercancia = "";
-      this.$store.state.pricing.actualizarCostosFlag =
-        !this.$store.state.pricing.actualizarCostosFlag;
+      this.pricingStore.errorValorMercancia = "";
+      this.pricingStore.actualizarCostosFlag =
+        !this.pricingStore.actualizarCostosFlag;
     },
 
     continuarLlenadoCostos() {
       if (this.requiereValorMercancia) {
-        const amount = this.$store.state.pricing.datosPrincipales.amount;
+        const amount = this.pricingStore.datosPrincipales.amount;
         if (!amount || amount <= 0) {
-          this.$store.state.pricing.errorValorMercancia =
+          this.pricingStore.errorValorMercancia =
             "Datos Requeridos y mayor que 0";
           return false;
         }
       } else {
-        this.$store.state.pricing.errorValorMercancia = "";
+        this.pricingStore.errorValorMercancia = "";
       }
       this.$emit("activarLlenadoCostos");
       this.mostrarContinuarFlag = false;
@@ -332,13 +323,13 @@ export default {
 
       this.$emit("recargarCostos");
       if (!this.requiereValorMercancia) {
-        this.$store.state.pricing.errorValorMercancia = "";
+        this.pricingStore.errorValorMercancia = "";
       }
     },
     async buscarYCARGAR(idDestino) {
       if (!idDestino) return;
 
-      const listaPuertos = this.$store.state.pricing.listPortEnd || [];
+      const listaPuertos = this.pricingStore.listPortEnd || [];
 
       // Usamos Number() o String() para evitar problemas de tipos
       let port = listaPuertos.find(
@@ -358,7 +349,7 @@ export default {
       immediate: true,
     },
 
-    "$store.state.pricing.listPortEnd": {
+    "pricingStore.listPortEnd": {
       handler() {
         this.buscarYCARGAR(this.iddestino);
       },

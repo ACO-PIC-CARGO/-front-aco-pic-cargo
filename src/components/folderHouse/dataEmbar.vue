@@ -113,7 +113,7 @@
 
       <v-col cols="12">
         <v-autocomplete
-          :items="$store.state.pricing.listEjecutivo"
+          :items="pricingStore.listEjecutivo"
           item-title="nombrecompleto"
           item-value="id"
           label="Vendedor"
@@ -123,7 +123,7 @@
       </v-col>
       <v-col cols="12">
         <v-autocomplete
-          :items="$store.state.pricing.listEjecutivo"
+          :items="pricingStore.listEjecutivo"
           item-title="nombrecompleto"
           item-value="id"
           label="Pricing"
@@ -273,6 +273,8 @@
 import { mapState, mapActions } from "vuex";
 import axios from "@/api/http";
 import Swal from "sweetalert2";
+import { mapStores } from "pinia";
+import { usePricingStore } from "@/stores/pricing";
 export default {
   name: "dataEmbar",
   props: {
@@ -303,6 +305,7 @@ export default {
     // this.$store.state.spiner = false;
   },
   computed: {
+    ...mapStores(usePricingStore),
     ...mapState([
       "itemsCoinsList",
       "itemsAgents",

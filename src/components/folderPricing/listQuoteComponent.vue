@@ -25,7 +25,7 @@
                 <v-text-field
                   prepend-inner-icon="mdi-calendar-month"
                   :model-value="
-                    formatearFecha($store.state.pricing.filtro.fechainicio)
+                    formatearFecha(pricingStore.filtro.fechainicio)
                   "
                   density="compact"
                   readonly
@@ -38,7 +38,7 @@
               <v-col cols="4">
                 <v-text-field
                   prepend-inner-icon="mdi-calendar-month"
-                  :model-value="formatearFecha($store.state.pricing.filtro.fechafin)"
+                  :model-value="formatearFecha(pricingStore.filtro.fechafin)"
                   density="compact"
                   readonly
                   hide-details
@@ -52,8 +52,8 @@
             cols="6"
             class="py-1"
             v-if="
-              $store.state.pricing.filtro.fechaemisiondesde ||
-              $store.state.pricing.filtro.fechaemisionhasta
+              pricingStore.filtro.fechaemisiondesde ||
+              pricingStore.filtro.fechaemisionhasta
             "
           >
             <v-row>
@@ -73,7 +73,7 @@
                   prepend-inner-icon="mdi-calendar-month"
                   :model-value="
                     formatearFecha(
-                      $store.state.pricing.filtro.fechaemisiondesde,
+                      pricingStore.filtro.fechaemisiondesde,
                     )
                   "
                   density="compact"
@@ -88,7 +88,7 @@
                   prepend-inner-icon="mdi-calendar-month"
                   :model-value="
                     formatearFecha(
-                      $store.state.pricing.filtro.fechaemisionhasta,
+                      pricingStore.filtro.fechaemisionhasta,
                     )
                   "
                   density="compact"
@@ -105,10 +105,10 @@
             cols="12"
             md="2"
             class="py-1"
-            v-if="$store.state.pricing.filtro.id_marketing"
+            v-if="pricingStore.filtro.id_marketing"
           >
             <v-autocomplete
-              :items="$store.state.pricing.listMarketing"
+              :items="pricingStore.listMarketing"
               label="Tipo de Marketing"
               density="compact"
               readonly
@@ -116,18 +116,18 @@
               variant="outlined"
               item-title="name"
               item-value="id"
-              v-model="$store.state.pricing.filtro.id_marketing"
+              v-model="pricingStore.filtro.id_marketing"
             ></v-autocomplete>
           </v-col>
           <v-col
             cols="12"
             md="2"
             class="py-1"
-            v-if="$store.state.pricing.filtro.id_status"
+            v-if="pricingStore.filtro.id_status"
           >
             <v-autocomplete
               auto-select-first
-              :items="$store.state.pricing.listQuoteStatus"
+              :items="pricingStore.listQuoteStatus"
               label="Estado de la Cotización"
               density="compact"
               readonly
@@ -135,17 +135,17 @@
               variant="outlined"
               item-title="name"
               item-value="id"
-              v-model="$store.state.pricing.filtro.id_status"
+              v-model="pricingStore.filtro.id_status"
             ></v-autocomplete>
           </v-col>
           <v-col
             cols="12"
             md="2"
             class="py-1"
-            v-if="$store.state.pricing.filtro.id_pricing"
+            v-if="pricingStore.filtro.id_pricing"
           >
             <v-autocomplete
-              :items="$store.state.pricing.listEjecutivo"
+              :items="pricingStore.listEjecutivo"
               label="Pricing."
               density="compact"
               readonly
@@ -153,17 +153,17 @@
               variant="outlined"
               item-title="name"
               item-value="id_entitie"
-              v-model="$store.state.pricing.filtro.id_pricing"
+              v-model="pricingStore.filtro.id_pricing"
             ></v-autocomplete>
           </v-col>
           <v-col
             cols="12"
             md="2"
             class="py-1"
-            v-if="$store.state.pricing.filtro.id_entities"
+            v-if="pricingStore.filtro.id_entities"
           >
             <v-autocomplete
-              :items="$store.state.pricing.listEjecutivo"
+              :items="pricingStore.listEjecutivo"
               label="Ejecutivo."
               density="compact"
               readonly
@@ -171,19 +171,19 @@
               variant="outlined"
               item-title="name"
               item-value="id_entitie"
-              v-model="$store.state.pricing.filtro.id_entities"
+              v-model="pricingStore.filtro.id_entities"
             ></v-autocomplete>
           </v-col>
           <v-col
             cols="12"
             md="2"
             class="py-1"
-            v-if="$store.state.pricing.filtro.id_modality"
+            v-if="pricingStore.filtro.id_modality"
           >
             <v-autocomplete
-              :items="$store.state.pricing.listModality"
+              :items="pricingStore.listModality"
               label="Sentido"
-              v-model="$store.state.pricing.filtro.id_modality"
+              v-model="pricingStore.filtro.id_modality"
               density="compact"
               readonly
               hide-details
@@ -196,10 +196,10 @@
             cols="12"
             md="2"
             class="py-1"
-            v-if="$store.state.pricing.filtro.id_shipment"
+            v-if="pricingStore.filtro.id_shipment"
           >
             <v-autocomplete
-              :items="$store.state.pricing.listShipment"
+              :items="pricingStore.listShipment"
               label="Tipo Embarque"
               density="compact"
               readonly
@@ -207,7 +207,7 @@
               variant="outlined"
               item-title="embarque"
               item-value="id"
-              v-model="$store.state.pricing.filtro.id_shipment"
+              v-model="pricingStore.filtro.id_shipment"
             >
             </v-autocomplete>
           </v-col>
@@ -215,10 +215,10 @@
             cols="12"
             md="2"
             class="py-1"
-            v-if="$store.state.pricing.filtro.id_incoterm"
+            v-if="pricingStore.filtro.id_incoterm"
           >
             <v-autocomplete
-              :items="$store.state.pricing.listIncoterms"
+              :items="pricingStore.listIncoterms"
               label="Incoterm"
               density="compact"
               readonly
@@ -226,7 +226,7 @@
               variant="outlined"
               item-title="name"
               item-value="id"
-              v-model="$store.state.pricing.filtro.id_incoterm"
+              v-model="pricingStore.filtro.id_incoterm"
             ></v-autocomplete>
           </v-col>
         </v-row>
@@ -285,8 +285,8 @@
           <v-btn
             color="info"
             @click="
-              $store.state.pricing.filtrarQuoteFlag =
-                !$store.state.pricing.filtrarQuoteFlag
+              pricingStore.filtrarQuoteFlag =
+                !pricingStore.filtrarQuoteFlag
             "
             class="mx-1 my-1"
             size="small"
@@ -305,7 +305,7 @@
     <v-data-table
       :search="search"
       :headers="cabCotizaciones"
-      :items="$store.state.pricing.listQuotes"
+      :items="pricingStore.listQuotes"
       :expand-strategy="singleExpand ? 'single' : 'multiple'"
       v-model:expanded="expanded"
       item-value="rowId"
@@ -579,7 +579,7 @@
             <v-select
               auto-select-first
               :items="
-                $store.state.pricing.listQuoteStatus.filter((v) => v.id != 1)
+                pricingStore.listQuoteStatus.filter((v) => v.id != 1)
               "
               label="ESTADO DE LA COTIZACIÓN"
               v-model="id_status"
@@ -588,7 +588,7 @@
               item-value="id"
             ></v-select>
             <v-select
-              :items="$store.state.pricing.listRecibidoCotizacion"
+              :items="pricingStore.listRecibidoCotizacion"
               item-value="id"
               item-title="descripcion"
               v-model="id_master_recibidocotizacion"
@@ -596,7 +596,7 @@
               :rules="[(v) => !!v || 'Dato Requerido']"
             ></v-select>
             <v-select
-              :items="$store.state.pricing.listEnviadoCliente"
+              :items="pricingStore.listEnviadoCliente"
               item-value="id"
               item-title="descripcion"
               v-model="id_master_enviadocliente"
@@ -609,7 +609,7 @@
               label="FECHA DE ENVÍO AL CLIENTE"
               :rules="[(v) => !!v || 'Dato Requerido']"
               v-if="
-                $store.state.pricing.listEnviadoCliente.filter(
+                pricingStore.listEnviadoCliente.filter(
                   (v) => v.id == id_master_enviadocliente && v.codigo == 'SE',
                 ).length > 0
               "
@@ -655,7 +655,7 @@
             >
             </v-text-field>
             <v-autocomplete
-              :items="$store.state.pricing.listEjecutivo"
+              :items="pricingStore.listEjecutivo"
               label="Ejecutivo."
               density="compact"
               readonly
@@ -668,7 +668,7 @@
 
             <v-autocomplete
               variant="outlined"
-              :items="$store.state.pricing.listQuoteStatus"
+              :items="pricingStore.listQuoteStatus"
               label="ESTADO DE LA COTIZACIÓN"
               v-model="id_status"
               :rules="[(v) => !!v || 'Dato Requerido']"
@@ -779,12 +779,13 @@
 <script>
 import moment from "moment";
 import { mapActions } from "vuex";
-import { mapActions as mapPiniaActions } from "pinia";
+import { mapActions as mapPiniaActions, mapStores } from "pinia";
 import { useSecuritysStore } from "@/stores/securitys";
 import Swal from "sweetalert2";
 import axios from "@/api/http";
 import GuardarUrlPricing from "../comun/GuardarUrlPricing.vue";
 import FormatFecha from "../comun/FormatFecha.vue";
+import { usePricingStore } from "@/stores/pricing";
 export default {
   components: {
     GuardarUrlPricing,
@@ -981,24 +982,14 @@ export default {
       id_exp: "",
     };
   },
+  computed: {
+    ...mapStores(usePricingStore),
+  },
   methods: {
     ...mapActions([
-      "getListQuote",
-      "imprimiReporteListado",
-      "exportarExcelListadoQuote",
-      "imprimirMercadeo",
-      "actualizarQuoteRecibidoEnviado",
-      "getListRecibidoCotizacion",
-      "getListEnviadoCliente",
-      "getModulesEntities",
-      "getMarketingList",
-      "guardarNotaQuote",
-      "eliminarRegistro",
-      "getQuoteStatus",
       "cargarMaster",
-      "aprobarCotizacion",
-      "actualizarURLEnElQuote",
     ]),
+    ...mapPiniaActions(usePricingStore, ["getListQuote", "imprimiReporteListado", "exportarExcelListadoQuote", "imprimirMercadeo", "actualizarQuoteRecibidoEnviado", "getListRecibidoCotizacion", "getListEnviadoCliente", "getModulesEntities", "getMarketingList", "guardarNotaQuote", "eliminarRegistro", "getQuoteStatus", "aprobarCotizacion", "actualizarURLEnElQuote"]),
     ...mapPiniaActions(useSecuritysStore, ["validarUsuarioAdmin"]),
     mostrarBoton(item) {
       if (item.statusmain == 0) {
@@ -1026,18 +1017,18 @@ export default {
     },
     async limpiar() {
       this.$store.state.spiner = true;
-      this.$store.state.pricing.filtro = {
+      this.pricingStore.filtro = {
         fechainicio: moment().format("YYYY-01-01"),
         fechadesde: moment().format("YYYY-01-01"),
         fechafin: moment().endOf("month").format("YYYY-MM-DD"),
         tipopdf: 1,
       };
 
-      this.$store.state.pricing.filtro.estado = true;
+      this.pricingStore.filtro.estado = true;
       await this.getListQuote();
 
-      this.$store.state.pricing.filtrarQuoteFlag = false;
-      this.$store.state.pricing.filtro.estado = true;
+      this.pricingStore.filtrarQuoteFlag = false;
+      this.pricingStore.filtro.estado = true;
       this.$store.state.spiner = false;
     },
     displayMarketing(item) {
@@ -1045,7 +1036,7 @@ export default {
       if (item.marketing) return item.marketing;
       const id = item.id_marketing || item.idmarketing || item.idMarketing;
       if (!id) return "";
-      const m = (this.$store.state.pricing.listMarketing || []).find(
+      const m = (this.pricingStore.listMarketing || []).find(
         (v) => String(v.id) === String(id),
       );
       return m ? m.name : "";
@@ -1183,7 +1174,7 @@ export default {
       );
     },
     async reporteListado() {
-      const f = this.$store.state.pricing.filtro;
+      const f = this.pricingStore.filtro;
       const rangoCreacionExcedido = this.rangoFechaSuperaUnMes(
         f.fechainicio,
         f.fechafin,
@@ -1211,7 +1202,7 @@ export default {
 
       this.loading2 = true;
       let filtroSeleccionado = {};
-      const store = this.$store.state.pricing;
+      const store = this.pricingStore;
 
       if (f.fechainicio) filtroSeleccionado["Creación De:"] = f.fechainicio;
       if (f.fechafin) filtroSeleccionado["Creación Hasta:"] = f.fechafin;
@@ -1355,7 +1346,7 @@ export default {
           ? JSON.parse(sessionStorage.getItem("dataUser"))[0].id
           : "",
       };
-      this.$store.state.pricing.id = item.id;
+      this.pricingStore.id = item.id;
       this.id_status = item.statusquote;
       this.dialogRegistroNotaLlamada = true;
     },
@@ -1365,7 +1356,7 @@ export default {
         this.$store.state.spiner = true;
 
         let data = {
-          id_quote: this.$store.state.pricing.id,
+          id_quote: this.pricingStore.id,
           id_operador: this.fromData.identities,
           comentario: this.fromData.descripcion,
           fecha: this.fromData.date,
@@ -1622,7 +1613,7 @@ export default {
     // });
   },
   watch: {
-    async "$store.state.pricing.search"() {
+    async "pricingStore.search"() {
       if (this.typingTimer) {
         clearTimeout(this.typingTimer);
       }

@@ -1,9 +1,9 @@
 <script setup lang="ts">
 import { onMounted, ref } from "vue";
 import { useRouter } from "vue-router";
-import { useStore } from "vuex";
 import Swal from "sweetalert2";
 import axios from "@/api/http";
+import { usePricingStore } from "@/stores/pricing";
 import type { ApiResponse } from "@/types/api";
 import type { Modalidad } from "@/types/catalogos";
 import type { CostoBase } from "@/types/configuracion";
@@ -12,7 +12,7 @@ import type { TipoCarga } from "@/types/cotizacion";
 withDefaults(defineProps<{ initialShipmentCode?: string | null }>(), { initialShipmentCode: null });
 
 const router = useRouter();
-const rootStore = useStore();
+const pricingStore = usePricingStore();
 
 const search = ref("");
 const modalidadSeleccionada = ref<number | null>(null);
@@ -35,12 +35,12 @@ async function cargarDatosIniciales() {
   loading.value = true;
   try {
     // Cargar modalidades y tipos de envío usando las acciones estándar del proyecto
-    await rootStore.dispatch("getModality");
-    await rootStore.dispatch("getShipment");
+    await pricingStore.getModality();
+    await pricingStore.getShipment();
 
     // Tomar los datos directamente del store
-    modalidadesDisponibles.value = rootStore.state.pricing.listModality || [];
-    tiposEnvioDisponibles.value = rootStore.state.pricing.listShipment || [];
+    modalidadesDisponibles.value = pricingStore.listModality || [];
+    tiposEnvioDisponibles.value = pricingStore.listShipment || [];
 
     console.log('Datos iniciales cargados:', {
       modalidades: modalidadesDisponibles.value.length,

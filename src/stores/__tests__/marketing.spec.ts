@@ -1,10 +1,8 @@
 import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
-import type { Mock } from "vitest";
 import { createPinia, setActivePinia } from "pinia";
-import { toRaw } from "vue";
 import Swal from "sweetalert2";
-import store from "@/store";
 import { useMarketingStore } from "@/stores/marketing";
+import { usePricingStore } from "@/stores/pricing";
 import { JSON_HEADERS, URL_MAIN, accepted, flushPromises, httpMock, rejected, respond } from "./catalogHttp";
 
 vi.mock("@/api/http", () => ({ default: vi.fn() }));
@@ -14,8 +12,6 @@ vi.mock("@/store", () => ({ default: { commit: vi.fn() } }));
 
 const web = { id: 3, code: "WEB", name: "Web", description: null, position: 1, status: 1 };
 const defaultFilter = { name: "", description: "", position: "", status: 1 };
-const commitMock = store.commit as unknown as Mock<(type: string, payload: unknown) => void>;
-const sharedCommits = () => commitMock.mock.calls.filter(([type]) => type === "SET_LIST_MARKETING");
 
 describe("marketing store", () => {
   beforeEach(() => {
@@ -48,8 +44,19 @@ describe("marketing store", () => {
     expect(loadingDuringRequest).toBe(false);
     expect(marketing.list).toEqual([web]);
     expect(marketing.loading).toBe(true);
-    expect(sharedCommits()).toHaveLength(1);
-    expect(sharedCommits()[0]![1]).toBe(toRaw(marketing.list));
+    expect(usePricingStore().listMarketing).toEqual([web]);
+  });
+
+  test("fetchDataMarketing hands pricing a copy of the list sorted by name", async () => {
+    const zeta = { ...web, id: 4, name: "zeta" };
+    const alfa = { ...web, id: 5, name: "Alfa" };
+    respond({ listar_marketing: accepted([zeta, alfa]) });
+    const marketing = useMarketingStore();
+
+    await marketing.fetchDataMarketing(defaultFilter);
+
+    expect(marketing.list).toEqual([zeta, alfa]);
+    expect(usePricingStore().listMarketing).toEqual([alfa, zeta]);
   });
 
   test("fetchDataMarketing empties the list and pricing's copy without a message when the backend rejects", async () => {
@@ -61,7 +68,7 @@ describe("marketing store", () => {
 
     expect(marketing.list).toEqual([]);
     expect(marketing.loading).toBe(true);
-    expect(sharedCommits()[0]![1]).toEqual([]);
+    expect(usePricingStore().listMarketing).toEqual([]);
     expect(Swal.fire).not.toHaveBeenCalled();
   });
 
@@ -70,12 +77,13 @@ describe("marketing store", () => {
     respond({ listar_marketing: new Error("network") });
     const marketing = useMarketingStore();
     marketing.list = [web];
+    usePricingStore().listMarketing = [web];
 
     await marketing.fetchDataMarketing(defaultFilter);
 
     expect(marketing.list).toEqual([web]);
     expect(marketing.loading).toBe(false);
-    expect(sharedCommits()).toHaveLength(0);
+    expect(usePricingStore().listMarketing).toEqual([web]);
   });
 
   test("insertMarketing posts the record and reloads the unfiltered list once the user closes the message", async () => {

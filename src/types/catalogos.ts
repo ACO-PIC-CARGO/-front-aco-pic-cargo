@@ -239,6 +239,7 @@ export interface Modalidad {
   status: number | boolean;
   created_at?: string;
   updated_at?: string;
+  selected?: boolean;
 }
 
 export interface FiltroModalidad {

@@ -1650,8 +1650,9 @@ import Swal from "sweetalert2";
 import axios from "@/api/http";
 import { mapActions } from "vuex";
 import ArrastraYSolarComponent from "./ArrastraYSolarComponentFile.vue";
-import { mapActions as mapPiniaActions } from "pinia";
+import { mapActions as mapPiniaActions, mapStores } from "pinia";
 import { usePuertoStore } from "@/stores/puerto";
+import { usePricingStore } from "@/stores/pricing";
 export default {
   components: {
     ArrastraYSolarComponent,
@@ -1759,8 +1760,8 @@ export default {
       incoterms: {},
       proveedor: {},
       cliente: {},
-      pricing: this.$store.state.pricing,
-      datosPrincipales: this.$store.state.pricing.datosPrincipales,
+      pricing: usePricingStore(),
+      datosPrincipales: usePricingStore().datosPrincipales,
       files: [],
       filesLinkPagoAlibaba: [],
       datosFile: [],
@@ -1834,9 +1835,8 @@ export default {
   methods: {
     ...mapActions([
       "uploadFileFromUrlToOneDrive",
-      "guardarDatosInstructivo",
-      "quotePreviewInstructivoManual",
     ]),
+    ...mapPiniaActions(usePricingStore, ["guardarDatosInstructivo", "quotePreviewInstructivoManual"]),
     ...mapPiniaActions(usePuertoStore, ["verPuerto"]),
     pasarASeguro() {
       this.e6 = 23;
@@ -1958,7 +1958,7 @@ export default {
         await vm.uploadFileFromUrlToOneDrive({
           fileUrl: res.ruta,
           destinationFolderUrl:
-            vm.$store.state.pricing.datosPrincipales.url_folderonedrive,
+            vm.pricingStore.datosPrincipales.url_folderonedrive,
         });
       } catch (error) {
         console.error(error);
@@ -1979,7 +1979,7 @@ export default {
       ]);
     },
     async generarHTMLPDF(guardarFlag) {
-      const state = this.$store.state.pricing;
+      const state = this.pricingStore;
       const main = state.datosPrincipales;
       const cliente = state.dataCliente;
 
@@ -2546,7 +2546,7 @@ export default {
       );
     },
     cargarDatosCliente() {
-      this.cliente = { ...this.$store.state.pricing.dataCliente };
+      this.cliente = { ...this.pricingStore.dataCliente };
       this.cliente.nombre_clean = (this.cliente.nombrecompleto || "")
         .trim()
         .normalize("NFD")
@@ -2587,17 +2587,17 @@ export default {
       this.cargarDatosAsesorPricing(),
     ]);
 
-    const tipoCargaItem = this.$store.state.pricing.listShipment.find(
-      (v) => v.id == this.$store.state.pricing.datosPrincipales.idtipocarga,
+    const tipoCargaItem = this.pricingStore.listShipment.find(
+      (v) => v.id == this.pricingStore.datosPrincipales.idtipocarga,
     );
 
     let idTipoCarga = tipoCargaItem ? tipoCargaItem.id_transport : null;
-    if (this.$store.state.pricing.datosPrincipales.datosinstructivomanual) {
+    if (this.pricingStore.datosPrincipales.datosinstructivomanual) {
       this.datosManuales =
-        this.$store.state.pricing.datosPrincipales.datosinstructivomanual;
+        this.pricingStore.datosPrincipales.datosinstructivomanual;
       this.datosFile =
-        this.$store.state.pricing.datosPrincipales.datosinstructivomanual.table_allpath_list;
-      let opcionCostos = this.$store.state.pricing.opcionCostos.filter(
+        this.pricingStore.datosPrincipales.datosinstructivomanual.table_allpath_list;
+      let opcionCostos = this.pricingStore.opcionCostos.filter(
         (v) => !!v.selected,
       );
       let costosFlete = opcionCostos[0].listCostos.filter(
@@ -2614,11 +2614,11 @@ export default {
     }
     this.puertoOrigen = await this.verPuerto({
       id_transport: idTipoCarga,
-      id: this.$store.state.pricing.datosPrincipales.idorigen,
+      id: this.pricingStore.datosPrincipales.idorigen,
     });
     this.puertoDestino = await this.verPuerto({
       id_transport: idTipoCarga,
-      id: this.$store.state.pricing.datosPrincipales.iddestino,
+      id: this.pricingStore.datosPrincipales.iddestino,
     });
   },
   watch: {
@@ -2674,7 +2674,7 @@ export default {
       this.msgfile = "Archivo procesado y vinculado correctamente.";
       this.errfile = "";
     },
-    "$store.state.pricing.datosPrincipales.datosinstructivomanual": {
+    "pricingStore.datosPrincipales.datosinstructivomanual": {
       handler(newData) {
         if (newData && newData.listaDocumentos) {
           this.listaDocumentos = JSON.parse(
@@ -2689,6 +2689,7 @@ export default {
     },
   },
   computed: {
+    ...mapStores(usePricingStore),
     mostrarPagarProveedorAlibaba() {
       if (this.datosManuales.pagarProveedor) {
         if (this.datosManuales.metodoPagarProveedor == 1) {

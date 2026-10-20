@@ -114,12 +114,13 @@ import DatosCostosComponent from "../../components/folderPricing/DatosCostosComp
 import ComparativaComponent from "../../components/folderPricing/ComparativaComponent.vue";
 import NotasComponent from "../../components/folderPricing/NotasComponent.vue";
 import { mapActions, mapState } from "vuex";
-import { mapActions as mapPiniaActions } from "pinia";
+import { mapActions as mapPiniaActions, mapStores } from "pinia";
 import { useTownStore } from "@/stores/town";
 import { useMasterusuariosStore } from "@/stores/masterusuarios";
 import { useEnterprisesStore } from "@/stores/enterprises";
 import { useProveedorStore } from "@/stores/proveedor";
 import { useCalculadorasStore } from "@/stores/calculadoras";
+import { usePricingStore } from "@/stores/pricing";
 
 export default {
   components: {
@@ -146,23 +147,23 @@ export default {
     };
   },
   async mounted() {
-    this.$store.state.pricing.actualizarCostosFlag =
-      !this.$store.state.pricing.actualizarCostosFlag;
+    this.pricingStore.actualizarCostosFlag =
+      !this.pricingStore.actualizarCostosFlag;
 
-    this.$store.commit("SET_RESET");
+    this.pricingStore.SET_RESET();
     this.$store.state.spiner = true;
     await Promise.all([
       this.getQuote({ id: this.$route.params.id }),
       this.getShipment(),
     ]);
 
-    this.$store.state.mainTitle = `EDITAR  COTIZACIÓN - ${this.$store.state.pricing.nro_quote}`;
+    this.$store.state.mainTitle = `EDITAR  COTIZACIÓN - ${this.pricingStore.nro_quote}`;
 
-    let idTransport = this.$store.state.pricing.listShipment.filter(
-      (v) => v.id == this.$store.state.pricing.datosPrincipales.idtipocarga,
+    let idTransport = this.pricingStore.listShipment.filter(
+      (v) => v.id == this.pricingStore.datosPrincipales.idtipocarga,
     )[0].id_transport;
     //
-    let opciones = [...this.$store.state.pricing.opcionCostos];
+    let opciones = [...this.pricingStore.opcionCostos];
     let IdProveedor = [];
     opciones.forEach((opcion) => {
       opcion.listCostos.forEach((costo) => {
@@ -196,85 +197,66 @@ export default {
       this.obtenerImpuestoXEmpresa(),
       this.getPortBegin({
         id_transport: idTransport,
-        id: this.$store.state.pricing.datosPrincipales.idorigen,
+        id: this.pricingStore.datosPrincipales.idorigen,
       }),
       this.getPortEnd({
         id_transport: idTransport,
-        id: this.$store.state.pricing.datosPrincipales.iddestino,
+        id: this.pricingStore.datosPrincipales.iddestino,
       }),
       this.getCargarMasterDetalleNotasCotizacion(),
     ]);
 
     this.mostrarStepS = true;
-    this.$store.state.pricing.llenadoCostos = false;
+    this.pricingStore.llenadoCostos = false;
     let idTipoCarga =
-      typeof this.$store.state.pricing.datosPrincipales.idtipocarga === "object"
-        ? this.$store.state.pricing.datosPrincipales.idtipocarga.id
-        : this.$store.state.pricing.datosPrincipales.idtipocarga;
+      typeof this.pricingStore.datosPrincipales.idtipocarga === "object"
+        ? this.pricingStore.datosPrincipales.idtipocarga.id
+        : this.pricingStore.datosPrincipales.idtipocarga;
     await Promise.all([
       this.getServices(),
       this.obtenerCostosPricing(),
       this.obtenerFleteCalculadora({
-        shipment: this.$store.state.pricing.listShipment.find(
+        shipment: this.pricingStore.listShipment.find(
           (v) => v.id == idTipoCarga,
         ).code,
-        puerto_origen: this.$store.state.pricing.listPortBegin.find(
+        puerto_origen: this.pricingStore.listPortBegin.find(
           (v) =>
-            v.id_port == this.$store.state.pricing.datosPrincipales.idorigen,
+            v.id_port == this.pricingStore.datosPrincipales.idorigen,
         ).puerto,
-        puerto_destino: this.$store.state.pricing.listPortEnd.find(
+        puerto_destino: this.pricingStore.listPortEnd.find(
           (v) =>
-            v.id_port == this.$store.state.pricing.datosPrincipales.iddestino,
+            v.id_port == this.pricingStore.datosPrincipales.iddestino,
         ).puerto,
-        volumen: this.$store.state.pricing.datosPrincipales.volumen,
-        peso: this.$store.state.pricing.datosPrincipales.peso,
+        volumen: this.pricingStore.datosPrincipales.volumen,
+        peso: this.pricingStore.datosPrincipales.peso,
       }),
       this.getTransporte({
-        shimpent: this.$store.state.pricing.listShipment.find(
+        shimpent: this.pricingStore.listShipment.find(
           (v) => v.id == idTipoCarga,
         ).code,
-        id_modality: this.$store.state.pricing.datosPrincipales.idsentido,
+        id_modality: this.pricingStore.datosPrincipales.idsentido,
         id_pais: JSON.parse(sessionStorage.getItem("dataUser"))[0].id_pais,
         id_branch: JSON.parse(sessionStorage.getItem("dataUser"))[0].id_branch,
       }),
     ]);
-    const puertoDestino = this.$store.state.pricing.listPortEnd.find(
+    const puertoDestino = this.pricingStore.listPortEnd.find(
       (puerto) =>
         String(puerto.id_port) ===
-        String(this.$store.state.pricing.datosPrincipales.iddestino),
+        String(this.pricingStore.datosPrincipales.iddestino),
     );
     if (puertoDestino) {
       await this.cargarTownParaPricing({ id_pais: puertoDestino.id_pais });
     }
 
-    this.$store.state.pricing.actualizarComparativa =
-      !this.$store.state.pricing.actualizarComparativa;
+    this.pricingStore.actualizarComparativa =
+      !this.pricingStore.actualizarComparativa;
   },
   methods: {
     ...mapActions([
-      "getMarketingList",
-      "getQuoteStatus",
-      "getModality",
-      "getShipment",
-      "getIncoterms",
-      "getCargarEjecutivo",
-      "getQuote",
-      "getServices",
-      "getBegEndList",
-      "getTipoCostos",
-      "obtenerCostosPricing",
-      "getMultiplicador",
-      "getImpuestos",
-      "getCargarMasterDetalleNotasCotizacion",
       "cargarProveedores",
-      "getImpuestos",
-      "getPortBegin",
-      "getPortEnd",
       "_getContainers",
-      "getServices",
-      "obtenerCostosPricing",
-      "getCargarMasterDetalleNotasCotizacion",
     ]),
+    ...mapPiniaActions(usePricingStore, ["getMarketingList", "getQuoteStatus", "getModality", "getShipment", "getIncoterms", "getCargarEjecutivo", "getQuote", "getServices", "getBegEndList", "getTipoCostos", "obtenerCostosPricing", "getMultiplicador", "getImpuestos", "getCargarMasterDetalleNotasCotizacion", "getPortBegin", "getPortEnd"]),
     ...mapPiniaActions(useCalculadorasStore, ["obtenerFleteCalculadora", "getTransporte"]),
     ...mapPiniaActions(useProveedorStore, ["obtenerProveedorPricing"]),
     ...mapPiniaActions(useEnterprisesStore, ["obtenerImpuestoXEmpresa"]),
@@ -301,21 +283,21 @@ export default {
     },
     async activarServicios() {
       this.ServicesComponentFlag = true;
-      let services = [...this.$store.state.pricing.preServices];
+      let services = [...this.pricingStore.preServices];
       let serv = services.filter(
         (v) =>
           v.id_incoterms ==
-            this.$store.state.pricing.datosPrincipales.idincoterms &&
+            this.pricingStore.datosPrincipales.idincoterms &&
           v.id_modality ==
-            this.$store.state.pricing.datosPrincipales.idsentido &&
+            this.pricingStore.datosPrincipales.idsentido &&
           v.id_shipment ==
-            this.$store.state.pricing.datosPrincipales.idtipocarga.id,
+            this.pricingStore.datosPrincipales.idtipocarga.id,
       );
-      this.$store.state.pricing.listServices = serv;
+      this.pricingStore.listServices = serv;
       await this.getTipoCostos();
     },
     recargarServicios() {
-      let services = [...this.$store.state.pricing.preServices];
+      let services = [...this.pricingStore.preServices];
 
       if (services.length == 0) {
         return;
@@ -323,35 +305,35 @@ export default {
       let serv = services.filter(
         (v) =>
           v.id_incoterms ==
-            this.$store.state.pricing.datosPrincipales.idincoterms &&
+            this.pricingStore.datosPrincipales.idincoterms &&
           v.id_modality ==
-            this.$store.state.pricing.datosPrincipales.idsentido &&
+            this.pricingStore.datosPrincipales.idsentido &&
           v.id_shipment ==
-            (typeof this.$store.state.pricing.datosPrincipales.idtipocarga ===
+            (typeof this.pricingStore.datosPrincipales.idtipocarga ===
             "object"
-              ? this.$store.state.pricing.datosPrincipales.idtipocarga.id
-              : this.$store.state.pricing.datosPrincipales.idtipocarga),
+              ? this.pricingStore.datosPrincipales.idtipocarga.id
+              : this.pricingStore.datosPrincipales.idtipocarga),
       );
 
       let IdServices = serv.map((v) => v.id);
-      this.$store.state.pricing.listServices
+      this.pricingStore.listServices
         .filter((v) => !!v.id)
         .forEach((servicios) => {
           if (!IdServices.includes(servicios.id)) {
-            let index = this.$store.state.pricing.listServices.findIndex(
+            let index = this.pricingStore.listServices.findIndex(
               (v) => v.code_service == servicios.code_service,
             );
-            this.$store.state.pricing.listServices.splice(index, 1);
+            this.pricingStore.listServices.splice(index, 1);
           }
         });
 
-      IdServices = this.$store.state.pricing.listServices.map(
+      IdServices = this.pricingStore.listServices.map(
         (v) => v.code_service,
       );
 
       serv.forEach((servicios) => {
         if (!IdServices.includes(servicios.code_service)) {
-          this.$store.state.pricing.listServices.push(servicios);
+          this.pricingStore.listServices.push(servicios);
         }
       });
     },
@@ -361,27 +343,27 @@ export default {
       await this.getImpuestos();
 
       let codeServicesActivos = new Set(
-        this.$store.state.pricing.listServices
+        this.pricingStore.listServices
           .filter((v) => v.status === true || v.status === 1)
           .map((v) => v.code_service),
       );
 
-      let costos = [...this.$store.state.pricing.preCostos];
+      let costos = [...this.pricingStore.preCostos];
 
       let c = costos.filter(
         (v) =>
           v.id_incoterms ==
-            this.$store.state.pricing.datosPrincipales.idincoterms &&
+            this.pricingStore.datosPrincipales.idincoterms &&
           v.id_modality ==
-            this.$store.state.pricing.datosPrincipales.idsentido &&
+            this.pricingStore.datosPrincipales.idsentido &&
           v.id_shipment ==
-            this.$store.state.pricing.datosPrincipales.idtipocarga.id &&
+            this.pricingStore.datosPrincipales.idtipocarga.id &&
           codeServicesActivos.has(Number(v.code_service)),
       );
 
       let idContainer = [];
-      if (this.$store.state.pricing.datosPrincipales.containers.length > 0) {
-        idContainer = this.$store.state.pricing.datosPrincipales.containers.map(
+      if (this.pricingStore.datosPrincipales.containers.length > 0) {
+        idContainer = this.pricingStore.datosPrincipales.containers.map(
           (v) => v.id,
         );
       }
@@ -429,11 +411,11 @@ export default {
         }
       });
 
-      this.$store.state.pricing.opcionCostos[0].listCostos = cDuplicado;
-      this.$store.state.pricing.opcionCostos[0].listImpuestos =
-        this.$store.state.pricing.listImpuestos;
-      this.$store.state.pricing.opcionCostos[0].listNotasQuote =
-        this.$store.state.pricing.listNotasQuote;
+      this.pricingStore.opcionCostos[0].listCostos = cDuplicado;
+      this.pricingStore.opcionCostos[0].listImpuestos =
+        this.pricingStore.listImpuestos;
+      this.pricingStore.opcionCostos[0].listNotasQuote =
+        this.pricingStore.listNotasQuote;
 
       this.step = 2;
       this.editableStep2 = true;
@@ -442,24 +424,24 @@ export default {
     anadirNuevaOpcion(nro_propuesta) {
       // this.$store.state.spiner = true;
       let codeServicesActivos = new Set(
-        this.$store.state.pricing.listServices
+        this.pricingStore.listServices
           .filter((v) => v.status === true || v.status === 1)
           .map((v) => v.code_service),
       );
-      let costos = [...this.$store.state.pricing.preCostos];
+      let costos = [...this.pricingStore.preCostos];
       let c = costos.filter(
         (v) =>
           v.id_incoterms ==
-            this.$store.state.pricing.datosPrincipales.idincoterms &&
+            this.pricingStore.datosPrincipales.idincoterms &&
           v.id_modality ==
-            this.$store.state.pricing.datosPrincipales.idsentido &&
+            this.pricingStore.datosPrincipales.idsentido &&
           v.id_shipment ==
-            this.$store.state.pricing.datosPrincipales.idtipocarga.id &&
+            this.pricingStore.datosPrincipales.idtipocarga.id &&
           codeServicesActivos.has(Number(v.code_service)),
       );
       let idContainer = [];
-      if (this.$store.state.pricing.datosPrincipales.containers.length > 0) {
-        idContainer = this.$store.state.pricing.datosPrincipales.containers.map(
+      if (this.pricingStore.datosPrincipales.containers.length > 0) {
+        idContainer = this.pricingStore.datosPrincipales.containers.map(
           (v) => v.id,
         );
       }
@@ -510,10 +492,10 @@ export default {
          date_end: moment().add(7, 'days').format("YYYY-MM-DD"),
         tiempo_transito: 35,
         listCostos: cDuplicado,
-        listImpuestos: this.$store.state.pricing.listImpuestos,
-        listNotasQuote: this.$store.state.pricing.listNotasQuote,
+        listImpuestos: this.pricingStore.listImpuestos,
+        listNotasQuote: this.pricingStore.listNotasQuote,
       };
-      this.$store.state.pricing.opcionCostos.push(newPropuesta);
+      this.pricingStore.opcionCostos.push(newPropuesta);
       // this.$store.state.spiner = false;
     },
     async recargarCostos(event = true) {
@@ -522,29 +504,29 @@ export default {
       await this.getMultiplicador();
 
       let codeServicesActivos = new Set(
-        this.$store.state.pricing.listServices
+        this.pricingStore.listServices
           .filter((v) => v.status === true || v.status === 1)
           .map((v) => v.code_service),
       );
 
-      let id_shipment = this.$store.state.pricing.datosPrincipales.idtipocarga;
+      let id_shipment = this.pricingStore.datosPrincipales.idtipocarga;
       if (typeof id_shipment === "object") {
         id_shipment = id_shipment.id;
       }
 
-      let c = this.$store.state.pricing.preCostos.filter(
+      let c = this.pricingStore.preCostos.filter(
         (v) =>
           v.id_incoterms ===
-            this.$store.state.pricing.datosPrincipales.idincoterms &&
+            this.pricingStore.datosPrincipales.idincoterms &&
           v.id_modality ===
-            this.$store.state.pricing.datosPrincipales.idsentido &&
+            this.pricingStore.datosPrincipales.idsentido &&
           v.id_shipment === id_shipment &&
           codeServicesActivos.has(Number(v.code_service)),
       );
 
       let idContainer = [];
-      if (this.$store.state.pricing.datosPrincipales.containers.length > 0) {
-        idContainer = this.$store.state.pricing.datosPrincipales.containers.map(
+      if (this.pricingStore.datosPrincipales.containers.length > 0) {
+        idContainer = this.pricingStore.datosPrincipales.containers.map(
           (v) => v.id_containers,
         );
       }
@@ -593,7 +575,7 @@ export default {
       });
       let newOpciones = [];
 
-      this.$store.state.pricing.opcionCostos.forEach((opcion) => {
+      this.pricingStore.opcionCostos.forEach((opcion) => {
         let listCostosActual = opcion.listCostos || [];
 
         let costosValidos = listCostosActual.filter(
@@ -627,18 +609,18 @@ export default {
         newOpciones.push(Propuesta);
       });
 
-      this.$store.state.pricing.opcionCostos = newOpciones;
+      this.pricingStore.opcionCostos = newOpciones;
 
-      this.$store.state.pricing.llenadoCostos = false;
+      this.pricingStore.llenadoCostos = false;
       this.$forceUpdate();
       this.indexCostos++;
       this.$store.state.spiner = false;
-      let isFCL = this.$store.state.pricing.listShipment.some(
+      let isFCL = this.pricingStore.listShipment.some(
         (v) =>
           v.id ==
-            (this.$store.state.pricing.datosPrincipales.idtipocarga.id
-              ? this.$store.state.pricing.datosPrincipales.idtipocarga.id
-              : this.$store.state.pricing.datosPrincipales.idtipocarga) &&
+            (this.pricingStore.datosPrincipales.idtipocarga.id
+              ? this.pricingStore.datosPrincipales.idtipocarga.id
+              : this.pricingStore.datosPrincipales.idtipocarga) &&
           v.code == "FCL",
       );
       Swal.fire({
@@ -648,8 +630,8 @@ export default {
         allowEnterKey: false,
         allowOutsideClick: false,
       }).then((res) => {
-        this.$store.state.pricing.actualizarComparativa =
-          !this.$store.state.pricing.actualizarComparativa;
+        this.pricingStore.actualizarComparativa =
+          !this.pricingStore.actualizarComparativa;
         if (res.isConfirmed) {
           if (isFCL && event) {
             this.abrirModalContenedorRecargar =
@@ -668,11 +650,12 @@ export default {
     },
   },
   computed: {
+    ...mapStores(usePricingStore),
     ...mapState(["itemsShipment"]),
   },
   watch: {
     step() {
-      this.$store.state.pricing.step = this.step;
+      this.pricingStore.step = this.step;
     },
   },
 };

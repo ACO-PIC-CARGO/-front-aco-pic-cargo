@@ -1,11 +1,11 @@
 <script setup lang="ts">
 import { computed, ref, useTemplateRef } from "vue";
 import { storeToRefs } from "pinia";
-import { useStore } from "vuex";
 // @ts-expect-error lodash ships no type declarations
 import _ from "lodash";
 import Swal from "sweetalert2";
 import { useConfiguracionStore } from "@/stores/configuracion";
+import { usePricingStore } from "@/stores/pricing";
 import { useProveedorStore } from "@/stores/proveedor";
 import type { CostoPricing, FormNuevoCostoPricing } from "@/types/configuracion";
 import type { TipoCostoConfig } from "@/types/empresas";
@@ -30,7 +30,7 @@ const props = withDefaults(
 );
 const emit = defineEmits<{ cerrarModal: []; cerrarModalGuardar: []; recargarCostos: [] }>();
 
-const rootStore = useStore();
+const pricingStore = usePricingStore();
 const configuracionStore = useConfiguracionStore();
 const proveedorStore = useProveedorStore();
 const { lstCostos, lstMultiplicador, lstServicios } = storeToRefs(configuracionStore);
@@ -201,7 +201,7 @@ async function guardarCosto() {
 }
 
 const panelesConDatos = computed(() => {
-  const listaTipos = rootStore.state.pricing.listTipoCostos;
+  const listaTipos = pricingStore.listTipoCostos;
   if (!listaTipos) return [];
 
   const panelesFiltrados = listaTipos.filter((tipo: TipoCostoConfig) => {

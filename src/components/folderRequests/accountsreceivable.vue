@@ -291,7 +291,7 @@
             <v-autocomplete
               density="compact"
               label="Ejecutivo"
-              :items="$store.state.pricing.listEjecutivo"
+              :items="pricingStore.listEjecutivo"
               item-title="name"
               item-value="id_entitie"
               v-model="comentario.id_ejecutivo"
@@ -433,6 +433,7 @@ import { mapActions as mapPiniaActions, mapStores } from "pinia";
 import { useIngresosStore } from "@/stores/ingresos";
 import { useSubingresoStore } from "@/stores/subingreso";
 import { useEnterprisesStore } from "@/stores/enterprises";
+import { usePricingStore } from "@/stores/pricing";
 export default {
   name: "accountsreceivable",
   data: () => ({
@@ -598,7 +599,7 @@ export default {
     await this.GetListSubIngreso();
   },
   computed: {
-    ...mapStores(useEnterprisesStore, useSubingresoStore, useIngresosStore),
+    ...mapStores(usePricingStore, useEnterprisesStore, useSubingresoStore, useIngresosStore),
     ...mapState(["clientes"]),
 
     dateRange() {
@@ -608,8 +609,8 @@ export default {
   methods: {
     ...mapActions([
       "cargarClientes",
-      "getModulesEntities",
     ]),
+    ...mapPiniaActions(usePricingStore, ["getModulesEntities"]),
     ...mapPiniaActions(useEnterprisesStore, ["obtenerImpuestoXEmpresa"]),
     ...mapPiniaActions(useSubingresoStore, ["GetListSubIngreso"]),
     ...mapPiniaActions(useIngresosStore, ["cargarIngreso"]),

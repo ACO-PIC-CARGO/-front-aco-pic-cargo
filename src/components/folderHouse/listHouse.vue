@@ -164,7 +164,7 @@
               ></v-text-field>
               <v-autocomplete
                 label="Ejecutivo"
-                :items="$store.state.pricing.listEjecutivo"
+                :items="pricingStore.listEjecutivo"
                 item-title="name"
                 item-value="id_entitie"
                 v-model="id_vendedor"
@@ -230,6 +230,8 @@
 <script>
 import { mapState, mapActions } from "vuex";
 import moment from "moment";
+import { mapActions as mapPiniaActions, mapStores } from "pinia";
+import { usePricingStore } from "@/stores/pricing";
 
 export default {
   name: "listMasterCom",
@@ -285,6 +287,7 @@ export default {
     ]);
   },
   computed: {
+    ...mapStores(usePricingStore),
     ...mapState(["itemsHouseListAll", "totalItemsHouseListAll"]),
   },
   methods: {
@@ -295,11 +298,11 @@ export default {
       "_getModality",
       "_getShipment",
       "cargarClientes",
-      "getModulesEntities",
       "insertComentarioHouse",
       "listarHouse",
       "actualizarURLEnElMaster",
     ]),
+    ...mapPiniaActions(usePricingStore, ["getModulesEntities"]),
     abrirCaperta(item) {
       console.log("item:", item);
       this.houseEditar = { ...item };

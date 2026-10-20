@@ -1452,6 +1452,7 @@ import ArrastraYSolarComponent from "../comun/ArrastraYSolarComponent.vue";
 import ArrastraYSolarComponent2 from "../comun/ArrastraYSolarComponentFile.vue";
 import swal from "sweetalert2";
 import { useEnterprisesStore } from "@/stores/enterprises";
+import { usePricingStore } from "@/stores/pricing";
 export default {
   emits: ["recalcularProfit"],
   props: {
@@ -1715,10 +1716,10 @@ export default {
       "copiarCGingresos",
       "getCargarHouse",
       "_getMasterList",
-      "guardarDatosInstructivo",
       "getFacturasFiscales",
       "getListControlGastosHouses",
     ]),
+    ...mapPiniaActions(usePricingStore, ["guardarDatosInstructivo"]),
     ...mapPiniaActions(useSecuritysStore, ["validarUsuarioAdmin"]),
     abrirModalRegistroDocumentoHouse(datosinstructivomanual, id_quote) {
       this.datosinstructivomanual = datosinstructivomanual;

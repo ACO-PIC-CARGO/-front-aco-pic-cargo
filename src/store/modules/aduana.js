@@ -5,6 +5,7 @@ import moment from "moment";
 import router from "@/router";
 import { useEnterprisesStore } from "@/stores/enterprises";
 import { useConfigEmpresaStore } from "@/stores/configEmpresa";
+import { usePricingStore } from "@/stores/pricing";
 import aduana from "./aduana";
 import modules from "./../index";
 const state = {
@@ -134,63 +135,99 @@ const mutations = {
   },
   SET_LIST_EJECUTIVO(state, data) {
     state.listEjecutivo = data;
+    // While pricing was a Vuex module this commit also ran its SET_LIST_EJECUTIVO.
+    usePricingStore().listEjecutivo = data;
   },
   PRE_SERVICES(state, data) {
     state.preServices = data;
+    // While pricing was a Vuex module this commit also ran its PRE_SERVICES.
+    usePricingStore().preServices = data;
   },
   SET_TIPO_COSTOS(state, data) {
     state.listTipoCostos = data;
     state.namesection = data;
     // While configEmpresa was a Vuex module this commit also ran its SET_TIPO_COSTOS.
     useConfigEmpresaStore().listTipoCostos = data;
+    // While pricing was a Vuex module this commit also ran its SET_TIPO_COSTOS.
+    usePricingStore().listTipoCostos = data;
+    usePricingStore().namesection = data;
   },
   SET_MULTPLICADOR(state, data) {
     state.listMultiplicador = data;
     // While configEmpresa was a Vuex module this commit also ran its SET_MULTPLICADOR.
     useConfigEmpresaStore().lstMultiplicador = data;
+    // While pricing was a Vuex module this commit also ran its SET_MULTPLICADOR.
+    usePricingStore().listMultiplicador = data;
   },
   SET_LIST_SERVICES(state, data) {
     state.listServices = data;
     state.copylistServices = data;
+    // While pricing was a Vuex module this commit also ran its SET_LIST_SERVICES.
+    usePricingStore().listServices = data;
+    usePricingStore().copylistServices = data;
   },
   SET_LIST_COSTES(state, data) {
     state.listCostos = data;
+    // While pricing was a Vuex module this commit also ran its SET_LIST_COSTES.
+    usePricingStore().listCostos = data;
   },
   SET_CARGAR_IMPUESTOS(state, data) {
     state.listImpuestos = data;
+    // While pricing was a Vuex module this commit also ran its SET_CARGAR_IMPUESTOS.
+    usePricingStore().listImpuestos = data;
   },
   ACTUALIZAR_IMPUEST(state, data) {
     state.listImpuestos = data;
+    // While pricing was a Vuex module this commit also ran its ACTUALIZAR_IMPUEST.
+    usePricingStore().listImpuestos = data;
   },
   PRE_COSTOS(state, data) {
     state.preCostos = data;
+    // While pricing was a Vuex module this commit also ran its PRE_COSTOS.
+    usePricingStore().preCostos = data;
   },
   SET_LIST_MODALITY(state, data) {
     state.listModality = data;
+    // While pricing was a Vuex module this commit also ran its SET_LIST_MODALITY.
+    usePricingStore().listModality = data;
   },
   SET_LIST_PORT_BEGIN(state, data) {
     state.listPortBegin = data;
+    // While pricing was a Vuex module this commit also ran its SET_LIST_PORT_BEGIN.
+    usePricingStore().listPortBegin = data;
   },
   SET_LIST_PORT_END(state, data) {
     state.listPortEnd = data;
+    // While pricing was a Vuex module this commit also ran its SET_LIST_PORT_END.
+    usePricingStore().listPortEnd = data;
   },
   SET_LIST_SHIPMENT(state, data) {
     state.listShipment = data;
+    // While pricing was a Vuex module this commit also ran its SET_LIST_SHIPMENT.
+    usePricingStore().listShipment = data;
   },
   SET_LIST_INCOTERMS(state, data) {
     state.listIncoterms = data;
+    // While pricing was a Vuex module this commit also ran its SET_LIST_INCOTERMS.
+    usePricingStore().listIncoterms = data;
   },
   SET_LIST_QUOTES(state, data) {
     state.listQuotes = data;
+    // While pricing was a Vuex module this commit also ran its SET_LIST_QUOTES.
+    usePricingStore().SET_LIST_QUOTES(data);
   },
   SET_LIST_QUOTES2(state, data) {
     state.listQuotes2 = data;
   },
   SET_CARGAR_NOTAS_COTIZACION(state, data) {
     state.listNotasQuote = data;
+    // While pricing was a Vuex module this commit also ran its SET_CARGAR_NOTAS_COTIZACION.
+    usePricingStore().listNotasQuote = data;
   },
   setInstructivo(state, data) {
     state.listInstructivo = data;
+    // While pricing was a Vuex module this commit also ran its setInstructivo.
+    usePricingStore().listInstructivo = data;
   },
 };
 const actions = {
@@ -3216,9 +3253,10 @@ const actions = {
         let data = response.data;
         sessionStorage.setItem("auth-token", data.token);
         if (data.estadoflag) {
-          commit("SET_LIST_CALLS", data.data);
+          // Only pricing's mutation answered this commit while pricing was a Vuex module.
+          usePricingStore().SET_LIST_CALLS(data.data);
         } else {
-          commit("SET_LIST_CALLS", []);
+          usePricingStore().SET_LIST_CALLS([]);
           Swal.fire({
             icon: "error",
             text: data.mensaje,

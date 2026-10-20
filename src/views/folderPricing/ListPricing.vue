@@ -8,7 +8,7 @@
             lg="2"
             xl="2"
             class="ocultarMovil"
-            v-for="(item, index) in $store.state.pricing.listadoResumen"
+            v-for="(item, index) in pricingStore.listadoResumen"
             :key="index"
           >
             <v-chip
@@ -52,7 +52,7 @@
       </v-row>
     </v-card>
     <v-navigation-drawer
-      v-model="$store.state.pricing.filtrarQuoteFlag"
+      v-model="pricingStore.filtrarQuoteFlag"
       location="right"
       width="40%"
       temporary
@@ -62,7 +62,7 @@
       </v-card>
     </v-navigation-drawer>
     <v-navigation-drawer
-      v-model="$store.state.pricing.filtrarCallsFlag"
+      v-model="pricingStore.filtrarCallsFlag"
       location="right"
       width="40%"
       temporary
@@ -94,10 +94,11 @@
 <script>
 import { defineAsyncComponent } from "vue";
 import { mapActions } from "vuex";
-import { mapActions as mapPiniaActions } from "pinia";
+import { mapActions as mapPiniaActions, mapStores } from "pinia";
 import { useSecuritysStore } from "@/stores/securitys";
 import { useMasterusuariosStore } from "@/stores/masterusuarios";
 import { useConfigEmpresaStore } from "@/stores/configEmpresa";
+import { usePricingStore } from "@/stores/pricing";
 
 export default {
   name: "ListPricingView",
@@ -120,7 +121,7 @@ export default {
   },
   async mounted() {
     this.$store.state.drawer = false;
-    this.$store.state.pricing.e1 = 1;
+    this.pricingStore.e1 = 1;
     let val = JSON.parse(sessionStorage.getItem("ConfigEmpresa"));
     this.dialog = !val.existecot;
     this.$store.state.spiner = true;
@@ -137,21 +138,14 @@ export default {
       // this.getListRecibidoCotizacion(),
     ]);
   },
+  computed: {
+    ...mapStores(usePricingStore),
+  },
   methods: {
     ...mapActions([
-      "getQuoteCall",
-      "getListEnviadoCliente",
-      "getResumenPorEstado",
       "cargarClientes",
-      "getMarketingList",
-      "cargarTrabajadores",
-      "getQuoteStatus",
-      "getModality",
-      "getShipment",
-      "getIncoterms",
-      "getListQuote",
-      "getListRecibidoCotizacion",
     ]),
+    ...mapPiniaActions(usePricingStore, ["getQuoteCall", "getListEnviadoCliente", "getResumenPorEstado", "getMarketingList", "cargarTrabajadores", "getQuoteStatus", "getModality", "getShipment", "getIncoterms", "getListQuote", "getListRecibidoCotizacion"]),
     ...mapPiniaActions(useConfigEmpresaStore, ["GuardarConfiguracionEmpresa"]),
     ...mapPiniaActions(useMasterusuariosStore, ["cargarTemperaturaLeds"]),
     ...mapPiniaActions(useSecuritysStore, ["ObtenerDatosConfig"]),

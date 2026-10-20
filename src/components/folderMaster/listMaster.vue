@@ -15,7 +15,7 @@
           <v-form ref="frmQuote">
             <v-autocomplete
               :items="
-                $store.state.pricing.listQuotes.filter((v) => !!v.porasignar)
+                pricingStore.listQuotes.filter((v) => !!v.porasignar)
               "
               v-model="id_quote"
               item-title="code"
@@ -559,7 +559,7 @@
             <v-autocomplete
               label="Ejecutivo"
               class="my-1"
-              :items="$store.state.pricing.listEjecutivo"
+              :items="pricingStore.listEjecutivo"
               item-title="name"
               item-value="id_entitie"
               v-model="id_vendedor"
@@ -659,7 +659,7 @@
 </template>
 <script>
 import { mapState, mapActions } from "vuex";
-import { mapActions as mapPiniaActions } from "pinia";
+import { mapActions as mapPiniaActions, mapStores } from "pinia";
 import { useSecuritysStore } from "@/stores/securitys";
 import axios from "@/api/http";
 import moment from "moment";
@@ -667,6 +667,7 @@ import Swal from "sweetalert2";
 import GuardarUrlMaster from "../comun/GuardarUrlMaster.vue";
 import FormatFecha from "../comun/FormatFecha.vue";
 import { useMasterusuariosStore } from "@/stores/masterusuarios";
+import { usePricingStore } from "@/stores/pricing";
 export default {
   components: { GuardarUrlMaster, FormatFecha },
   name: "listMasterCom",
@@ -722,6 +723,7 @@ export default {
     ]);
   },
   computed: {
+    ...mapStores(usePricingStore),
     ...mapState(["itemsMasterList", "itemsModality", "totalItemsMasterList"]),
     mastersConHouse() {
       return this.itemsMasterList || [];
@@ -730,9 +732,7 @@ export default {
   methods: {
     ...mapActions([
       "_getMasterList",
-      "getModulesEntities",
       "insertComentarioMaster",
-      "getQuoteNoAsignadoHouse",
       "_getPortBegin",
       "_getPortEnd",
       "_getModality",
@@ -741,6 +741,7 @@ export default {
       "actualizarURLEnElMaster",
       "controlGastosReactivar",
     ]),
+    ...mapPiniaActions(usePricingStore, ["getModulesEntities", "getQuoteNoAsignadoHouse"]),
     ...mapPiniaActions(useMasterusuariosStore, ["cargarMasterDetalleCanal"]),
     ...mapPiniaActions(useSecuritysStore, ["validarUsuarioAdmin"]),
     async cerrarDialog() {

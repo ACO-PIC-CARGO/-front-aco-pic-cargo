@@ -21,7 +21,7 @@
       <v-col cols="12" md="4">
         <v-autocomplete
           label="Cot Nro"
-          :items="$store.state.pricing.listQuotes"
+          :items="pricingStore.listQuotes"
           item-title="code"
           item-value="id"
           v-model:search="searchHouseCotizacion"
@@ -346,6 +346,8 @@
 import { mapState, mapActions } from "vuex";
 import axios from '@/api/http';
 import Swal from "sweetalert2";
+import { mapActions as mapPiniaActions, mapStores } from "pinia";
+import { usePricingStore } from "@/stores/pricing";
 export default {
   name: "dataGen",
   data() {
@@ -424,6 +426,7 @@ export default {
     this.$forceUpdate();
   },
   computed: {
+    ...mapStores(usePricingStore),
     ...mapState([
       "itemsModality",
       "itemsShipment",
@@ -466,7 +469,6 @@ export default {
       "_getServicesBegin",
       "_getBitacoraList",
       "_getnroMaster",
-      "getQuoteDataNoAsignadaHouse",
       "_getnroMaster",
       "_getAgents",
       "_getConsigners",
@@ -482,17 +484,15 @@ export default {
       "_getHouseContainers",
       "_getProveedor",
       "_getHouseContainers",
-      "getQuoteNoAsignadoHouse",
       "_getBegEndList",
       "_getBitacoraLineal",
-      "ListarMontosFinalesQuoteMONGODB",
       "ListarMontosFinalesAduanaMONGODB",
-      "aprobarCotizacion",
       "aprobarCotizacionAduana",
       "setHouseEdit",
       "guardarCarpetaHouse",
       "verHouse",
     ]),
+    ...mapPiniaActions(usePricingStore, ["getQuoteDataNoAsignadaHouse", "getQuoteNoAsignadoHouse", "ListarMontosFinalesQuoteMONGODB", "aprobarCotizacion"]),
     isDisabled(item) {
       return !item.porasignar; // Deshabilita si el estado no es "activo"
     },
@@ -762,7 +762,7 @@ export default {
       this.activarBtnContinuar = false;
     },
     async asignarDatos() {
-      this.dataAprobar = this.$store.state.pricing.listQuotes.filter(
+      this.dataAprobar = this.pricingStore.listQuotes.filter(
         (v) => v.id == this.$store.state.house_cotizacion,
       )[0];
       this.dialogCostos = true;
