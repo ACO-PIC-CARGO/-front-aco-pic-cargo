@@ -31,26 +31,3 @@ export interface TotalMasterAgrupado {
 export interface TotalMasterMes {
   [campo: string]: unknown;
 }
-
-export interface ProyeccionListado {
-  id?: number;
-  [campo: string]: unknown;
-}
-
-export interface Proyeccion {
-  id?: number;
-  id_month?: number;
-  id_year?: number;
-  tipocambio?: Numerico;
-  details?: unknown[];
-  aprobadoflag?: boolean;
-}
-
-export interface FiltroProyeccion {
-  id_month: number | string;
-  id_year: number | string;
-  correlativo: number | string;
-  total_proyectado_ext: number | string;
-  estado: number | string;
-  aprobadoflag: number | string | boolean;
-}

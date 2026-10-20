@@ -8,6 +8,7 @@ const imgMailbox = "/img/svg/mailbox.svg";
 const imgList = "/img/svg/lista.svg";
 import controlGastos from "./modules/controlGasto";
 import balances from "./modules/balanace";
+import proyecciones from "./modules/proyeccion";
 import bank from "./modules/bank";
 import Swal from "sweetalert2";
 import moment from "moment";
@@ -2827,6 +2828,7 @@ export default createStore({
   modules: {
     controlGastos,
     balances,
+    proyecciones,
     bank,
   },
 });

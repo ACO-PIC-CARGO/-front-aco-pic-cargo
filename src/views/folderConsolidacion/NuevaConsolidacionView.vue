@@ -1,15 +1,12 @@
+<script setup lang="ts">
+import { defineAsyncComponent } from "vue";
+
+const nuevaConsolidacion = defineAsyncComponent(() =>
+  import("@/components/folderConsolidacion/NuevaConsolidacionComponent.vue"));
+</script>
+
 <template>
   <nuevaConsolidacion />
 </template>
-
-<script>
-import { defineAsyncComponent } from "vue";
-export default {
-  components: {
-    nuevaConsolidacion: defineAsyncComponent(() =>
-      import("@/components/folderConsolidacion/newConsolidacion.vue")),
-  },
-};
-</script>
 
 <style></style>

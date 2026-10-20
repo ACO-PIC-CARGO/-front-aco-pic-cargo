@@ -193,8 +193,6 @@
 
 <script>
 import { mapActions } from "vuex";
-import { mapActions as mapPiniaActions } from "pinia";
-import { useProyeccionesStore } from "@/stores/proyecciones";
 export default {
   data() {
     return {
@@ -267,8 +265,8 @@ export default {
       "getCargarTipoSubGastos",
       "_getChargeMonth",
       "_getChargeYear",
+      "setProyeccion",
     ]),
-    ...mapPiniaActions(useProyeccionesStore, ["setProyeccion"]),
     agregarFila(item) {
       let data = {
         id_gasto: "",

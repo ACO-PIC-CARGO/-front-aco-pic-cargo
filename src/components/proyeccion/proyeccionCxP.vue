@@ -33,7 +33,7 @@
       <v-col cols="12">
         <v-data-table
           :headers="headers"
-          :items="proyeccionesStore.listProyeccion"
+          :items="$store.state.proyecciones.listProyeccion"
           class="elevation-1"
           item-value="id"
           :search="search"
@@ -276,8 +276,6 @@
 
 <script>
 import { mapActions } from "vuex";
-import { mapActions as mapPiniaActions, mapStores } from "pinia";
-import { useProyeccionesStore } from "@/stores/proyecciones";
 export default {
   data() {
     return {
@@ -325,15 +323,15 @@ export default {
       generarflag: false,
     };
   },
-  computed: {
-    ...mapStores(useProyeccionesStore),
-  },
   methods: {
     ...mapActions([
+      "getProyeccion",
       "_getChargeMonth",
       "_getChargeYear",
+      "copiarProyeccion",
+      "eliminarProyeccion",
+      "primeraProyeccion",
     ]),
-    ...mapPiniaActions(useProyeccionesStore, ["getProyeccion", "copiarProyeccion", "eliminarProyeccion", "primeraProyeccion"]),
     async pProyeccion() {
       let data = {
         id_month: this.id_monthn,
@@ -426,7 +424,7 @@ export default {
       this._getChargeMonth(),
       this._getChargeYear(),
     ]);
-    this.proyeccionesStore.listProyeccion.length == 0
+    this.$store.state.proyecciones.listProyeccion.length == 0
       ? (this.generarflag = true)
       : (this.generarflag = false);
     this.$store.state.spiner = false;

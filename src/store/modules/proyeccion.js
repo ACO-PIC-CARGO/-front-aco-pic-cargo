@@ -1,65 +1,75 @@
-import { defineStore } from "pinia";
-import { ref } from "vue";
+import axios from '@/api/http';
 import Swal from "sweetalert2";
-import axios from "@/api/http";
 import router from "@/router";
-import type { ApiResponse } from "@/types/api";
-import type { FiltroProyeccion, Proyeccion, ProyeccionListado } from "@/types/finanzas";
-import { sessionBranchId } from "@/utils/sesion";
-
-export const useProyeccionesStore = defineStore("proyecciones", () => {
-  const listProyeccion = ref<ProyeccionListado[]>([]);
-  const proyeccion = ref<Proyeccion>({});
-  const proyeccionaprobada = ref<string>("");
-
-  async function setProyeccion(data: Record<string, unknown>): Promise<void> {
-    const config = {
+const state = {
+  listProyeccion: [],
+  proyeccion: {},
+  proyeccionaprobada: "",
+};
+const mutations = {
+  SET_LIST_PROYECCION(state, data) {
+    state.listProyeccion = data;
+  },
+  SET_PROYECCION(state, data) {
+    state.proyeccion = data;
+  },
+  SET_PROYECCION_APROBADA(state, data) {
+    state.proyeccionaprobada = data;
+  },
+};
+const actions = {
+  async setProyeccion(_, data) {
+    var config = {
       method: "post",
       url: import.meta.env.VITE_URL_MAIN + `insertar_proyeccion`,
 
       headers: {
+       
         "Content-Type": "application/json",
       },
       data: data,
     };
-    await axios<ApiResponse>(config)
+    await axios(config)
       .then((response) => {
-        const data = response.data;
+        let data = response.data;
         Swal.fire({
-          icon: data.estadoflag ? "success" : "error",
+          icon: !!data.estadoflag ? "success" : "error",
           text: data.mensaje,
         });
-        if (data.estadoflag) {
+        if (!!data.estadoflag) {
           router.go(-1);
         }
       })
       .catch(function (error) {
         console.error(error);
       });
-  }
-  async function getProyeccion(data: FiltroProyeccion): Promise<void> {
-    const config = {
+  },
+  async getProyeccion({ commit }, data) {
+    var config = {
       method: "get",
       url:
         import.meta.env.VITE_URL_MAIN +
-        `list_proyeccion?id_branch=${sessionBranchId()}&id_month=${data.id_month}&id_year=${data.id_year}&correlativo=${
+        `list_proyeccion?id_branch=${
+          JSON.parse(sessionStorage.getItem("dataUser"))[0].id_branch
+        }&id_month=${data.id_month}&id_year=${data.id_year}&correlativo=${
           data.correlativo
         }&total_proyectado_ext=${data.total_proyectado_ext}&estado=${
           data.estado
         }&aprobadoflag=${data.aprobadoflag}`,
 
       headers: {
+       
         "Content-Type": "application/json",
       },
       data: data,
     };
-    await axios<ApiResponse<ProyeccionListado[]>>(config)
+    await axios(config)
       .then((response) => {
-        const data = response.data;
-        if (data.estadoflag) {
-          listProyeccion.value = data.data;
+        let data = response.data;
+        if (!!data.estadoflag) {
+          commit("SET_LIST_PROYECCION", data.data);
         } else {
-          listProyeccion.value = [];
+          commit("SET_LIST_PROYECCION", []);
           Swal.fire({
             icon: "error",
             text: data.mensaje,
@@ -79,25 +89,26 @@ export const useProyeccionesStore = defineStore("proyecciones", () => {
       .catch(function (error) {
         console.error(error);
       });
-  }
-  async function verProyeccion(id: number | string): Promise<void> {
-    const config = {
+  },
+  async verProyeccion({ commit }, id) {
+    var config = {
       method: "get",
       url: import.meta.env.VITE_URL_MAIN + `ver_proyeccion?id=${id}`,
 
       headers: {
+       
         "Content-Type": "application/json",
       },
     };
-    await axios<ApiResponse<Proyeccion[]>>(config)
+    await axios(config)
       .then((response) => {
-        const data = response.data;
-        sessionStorage.setItem("auth-token", data.token!);
-        if (data.estadoflag) {
-          proyeccion.value = data.data[0]!;
+        let data = response.data;
+        sessionStorage.setItem("auth-token", data.token);
+        if (!!data.estadoflag) {
+          commit("SET_PROYECCION", data.data[0]);
         } else {
           Swal.fire({
-            icon: data.estadoflag ? "success" : "error",
+            icon: !!data.estadoflag ? "success" : "error",
             text: data.mensaje,
           });
         }
@@ -105,46 +116,52 @@ export const useProyeccionesStore = defineStore("proyecciones", () => {
       .catch(function (error) {
         console.error(error);
       });
-  }
+  },
 
-  async function updateProyeccion(data: Record<string, unknown>): Promise<void> {
-    const config = {
+  async updateProyeccion(_, data) {
+    var config = {
       method: "put",
       url: import.meta.env.VITE_URL_MAIN + `update_proyeccion`,
 
       headers: {
+       
         "Content-Type": "application/json",
       },
       data: data,
     };
-    await axios<ApiResponse>(config)
+    await axios(config)
       .then((response) => {
-        const data = response.data;
-        sessionStorage.setItem("auth-token", data.token!);
+        let data = response.data;
+        sessionStorage.setItem("auth-token", data.token);
         Swal.fire({
-          icon: data.estadoflag ? "success" : "error",
+          icon: !!data.estadoflag ? "success" : "error",
           text: data.mensaje,
         });
-        if (data.estadoflag) {
+        if (!!data.estadoflag) {
           router.go(-1);
         }
       })
       .catch(function (error) {
         console.error(error);
       });
-  }
-  async function validateProyeccionAprobacion(data: Record<string, unknown>): Promise<ApiResponse | null> {
-    let res: ApiResponse | null = null;
-    const config = {
+  },
+  async validateProyeccionAprobacion(_, data) {
+    let res = null;
+    var config = {
       method: "put",
-      url: import.meta.env.VITE_URL_MAIN + `validate_proyeccion_aprobacion?id_branch=${sessionBranchId()}`,
+      url:
+        import.meta.env.VITE_URL_MAIN +
+        `validate_proyeccion_aprobacion?id_branch=${
+          JSON.parse(sessionStorage.getItem("dataUser"))[0].id_branch
+        }`,
 
       headers: {
+       
         "Content-Type": "application/json",
       },
       data: data,
     };
-    await axios<ApiResponse>(config)
+    await axios(config)
       .then((response) => {
         res = response.data;
       })
@@ -152,114 +169,119 @@ export const useProyeccionesStore = defineStore("proyecciones", () => {
         console.error(error);
       });
     return res;
-  }
-  async function copiarProyeccion(data: Record<string, unknown>): Promise<void> {
-    const config = {
+  },
+  async copiarProyeccion(_, data) {
+    var config = {
       method: "put",
       url: import.meta.env.VITE_URL_MAIN + `copiar_proyeccion`,
 
       headers: {
+       
         "Content-Type": "application/json",
       },
       data: data,
     };
-    await axios<ApiResponse>(config)
+    await axios(config)
       .then((response) => {
-        const data = response.data;
-        sessionStorage.setItem("auth-token", data.token!);
+        let data = response.data;
+        sessionStorage.setItem("auth-token", data.token);
         Swal.fire({
-          icon: data.estadoflag ? "success" : "error",
+          icon: !!data.estadoflag ? "success" : "error",
           html: data.mensaje,
         });
       })
       .catch(function (error) {
         console.error(error);
       });
-  }
-  async function aprobarProyeccion(data: Record<string, unknown>): Promise<void> {
-    const config = {
+  },
+  async aprobarProyeccion(_, data) {
+    var config = {
       method: "put",
       url: import.meta.env.VITE_URL_MAIN + `aprobar_proyeccion`,
 
       headers: {
+       
         "Content-Type": "application/json",
       },
       data: data,
     };
-    await axios<ApiResponse>(config)
+    await axios(config)
       .then((response) => {
-        const data = response.data;
-        sessionStorage.setItem("auth-token", data.token!);
+        let data = response.data;
+        sessionStorage.setItem("auth-token", data.token);
         Swal.fire({
-          icon: data.estadoflag ? "success" : "error",
+          icon: !!data.estadoflag ? "success" : "error",
           text: data.mensaje,
         });
       })
       .catch(function (error) {
         console.error(error);
       });
-  }
-  async function eliminarProyeccion(data: Record<string, unknown>): Promise<void> {
-    const config = {
+  },
+  async eliminarProyeccion(_, data) {
+    var config = {
       method: "put",
       url: import.meta.env.VITE_URL_MAIN + `eliminar_proyeccion`,
 
       headers: {
+       
         "Content-Type": "application/json",
       },
       data: data,
     };
-    await axios<ApiResponse>(config)
+    await axios(config)
       .then((response) => {
-        const data = response.data;
+        let data = response.data;
         Swal.fire({
-          icon: data.estadoflag ? "success" : "error",
+          icon: !!data.estadoflag ? "success" : "error",
           text: data.mensaje,
         });
       })
       .catch(function (error) {
         console.error(error);
       });
-  }
-  async function primeraProyeccion(data: Record<string, unknown>): Promise<void> {
-    const config = {
+  },
+  async primeraProyeccion(_, data) {
+    var config = {
       method: "post",
       url: import.meta.env.VITE_URL_MAIN + `generar_primerar_proyeccion`,
 
       headers: {
+       
         "Content-Type": "application/json",
       },
       data: data,
     };
-    await axios<ApiResponse<{ id: number }[]>>(config)
+    await axios(config)
       .then((response) => {
-        const data = response.data;
-        sessionStorage.setItem("auth-token", data.token!);
+        let data = response.data;
+        sessionStorage.setItem("auth-token", data.token);
         Swal.fire({
-          icon: data.estadoflag ? "success" : "error",
+          icon: !!data.estadoflag ? "success" : "error",
           text: data.mensaje,
         });
-        if (data.estadoflag) {
+        if (!!data.estadoflag) {
           router.push({
             name: "editarProyeccion",
-            params: { id: data.data[0]!.id },
+            params: { id: data.data[0].id },
           });
         }
       })
       .catch(function (error) {
         console.error(error);
       });
-  }
-  async function exportarVerProyeccion(id: number | string): Promise<void> {
-    const config = {
+  },
+  async exportarVerProyeccion(__, id) {
+    var config = {
       method: "get",
       url: import.meta.env.VITE_URL_MAIN + `excel_proyeccion?id=${id}`,
-      responseType: "blob" as const,
+      responseType: "blob",
       headers: {
+       
         "Content-Type": "application/json",
       },
     };
-    await axios<BlobPart>(config)
+    await axios(config)
       .then(function (response) {
         const url = window.URL.createObjectURL(new Blob([response.data]));
         const link = document.createElement("a");
@@ -271,24 +293,29 @@ export const useProyeccionesStore = defineStore("proyecciones", () => {
       .catch(function (error) {
         console.error(error);
       });
-  }
-  async function getProyeccionAprobada(): Promise<void> {
-    const config = {
+  },
+  async getProyeccionAprobada({ commit }) {
+    var config = {
       method: "get",
-      url: import.meta.env.VITE_URL_MAIN + `proyeccion_aprobada?id_branch=${sessionBranchId()}`,
+      url:
+        import.meta.env.VITE_URL_MAIN +
+        `proyeccion_aprobada?id_branch=${
+          JSON.parse(sessionStorage.getItem("dataUser"))[0].id_branch
+        }`,
 
       headers: {
+       
         "Content-Type": "application/json",
       },
     };
-    await axios<ApiResponse<{ proyeccion_mes_anio: string }[]>>(config)
+    await axios(config)
       .then((response) => {
-        const data = response.data;
-        if (data.estadoflag) {
-          proyeccionaprobada.value = data.data[0]!.proyeccion_mes_anio;
+        let data = response.data;
+        if (!!data.estadoflag) {
+          commit("SET_PROYECCION_APROBADA", data.data[0].proyeccion_mes_anio);
         } else {
           Swal.fire({
-            icon: data.estadoflag ? "success" : "error",
+            icon: !!data.estadoflag ? "success" : "error",
             text: data.mensaje,
           });
         }
@@ -296,22 +323,11 @@ export const useProyeccionesStore = defineStore("proyecciones", () => {
       .catch(function (error) {
         console.error(error);
       });
-  }
-
-  return {
-    listProyeccion,
-    proyeccion,
-    proyeccionaprobada,
-    setProyeccion,
-    getProyeccion,
-    verProyeccion,
-    updateProyeccion,
-    validateProyeccionAprobacion,
-    copiarProyeccion,
-    aprobarProyeccion,
-    eliminarProyeccion,
-    primeraProyeccion,
-    exportarVerProyeccion,
-    getProyeccionAprobada,
-  };
-});
+  },
+};
+export default {
+  namespace: true,
+  state,
+  mutations,
+  actions,
+};
