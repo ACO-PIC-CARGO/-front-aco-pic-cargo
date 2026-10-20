@@ -706,3 +706,26 @@ export interface TotalMedidaCarga {
   peso: Numerico;
   volumen: Numerico;
 }
+
+export interface FormNuevoCosto {
+  id?: number;
+  idOpcion?: string;
+  nameservice?: string;
+  ventaFlag: number;
+  esopcionflag: number;
+  id_begend: number;
+  costounitario: Numerico;
+  esorigenflag: number;
+  eslocalflag: number;
+  esaduanaflag: number;
+  esalmacenflag: number;
+  esfleteflag?: number;
+  esgastostercerosflag?: number;
+  seguro: number;
+  cif: number;
+  esventaflag: number;
+  status: number;
+  id_groupservices: number;
+  id_multiplicador: number;
+  id_proveedor: number;
+}

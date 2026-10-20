@@ -93,7 +93,6 @@ export const LEGACY = [
   "src/components/folderModulesPays/regularizarProformace.vue",
   "src/components/folderPricing/ComparativaComponent.vue",
   "src/components/folderPricing/Costos/CostosComponent.vue",
-  "src/components/folderPricing/Costos/VentasComponent.vue",
   "src/components/folderPricing/CotizacionPilotoAutomatico.vue",
   "src/components/folderPricing/NotasComponent.vue",
   "src/components/folderPricing/VerComponent/ComparativaComponent.vue",
