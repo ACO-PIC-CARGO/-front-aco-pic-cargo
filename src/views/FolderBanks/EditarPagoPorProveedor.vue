@@ -177,8 +177,9 @@ function abrirSoporte(url: unknown) {
   window.open(url as string, "_blank");
 }
 
+// Not defined anywhere, so calling it throws.
+const calcularTotales = undefined as unknown as () => void;
 watch(selected, () => {
-  // @ts-expect-error calcularTotales is not defined
   calcularTotales();
 });
 
