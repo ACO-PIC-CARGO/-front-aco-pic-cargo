@@ -405,7 +405,7 @@
                 </v-col>
                 <v-col cols="12" xl="3" lg="3">
                   <v-autocomplete
-                    :items="$store.state.controlGastos.listCorrelativo"
+                    :items="controlGastosStore.listCorrelativo"
                     v-model="id_correlativo"
                     @update:model-value="activarSeccion3"
                     item-title="code"
@@ -1346,6 +1346,7 @@ import { useMasterusuariosStore } from "@/stores/masterusuarios";
 import { useEnterprisesStore } from "@/stores/enterprises";
 import { useFilesStore } from "@/stores/files";
 import { useMastersStore } from "@/stores/masters";
+import { useControlGastosStore } from "@/stores/controlGastos";
 export default {
   emits: ["recalcularProfit", "statusBtn"],
   props: {
@@ -1633,7 +1634,7 @@ export default {
 
       const gruposMap = new Map();
 
-      const masterHouses = this.$store.state.controlGastos.master_houses || [];
+      const masterHouses = this.controlGastosStore.master_houses || [];
 
       detalle.forEach((item) => {
         const id_house = item.id_house || null;
@@ -1955,7 +1956,7 @@ export default {
       vm.isBotonGuardarEgresoDisabled = true;
 
       var data = {
-        id_master: vm.$store.state.controlGastos.listControlGastos[0].master_id,
+        id_master: vm.controlGastosStore.listControlGastos[0].master_id,
         id_orders: vm.egresos.id_orders,
         id_proveedor: vm.egresos.id_proveedor,
         concepto: vm.egresos.concepto,
@@ -2059,7 +2060,7 @@ export default {
       });
 
       var data = {
-        id_house: this.$store.state.controlGastos.master_houses.filter(
+        id_house: this.controlGastosStore.master_houses.filter(
           (v) => v.id_house,
         )[0].id_house,
         id_proveedor: vm.egreso.id_proveedor,
@@ -2468,7 +2469,7 @@ export default {
         id_coins: vm.id_coins,
 
         id_user: JSON.parse(sessionStorage.getItem("dataUser"))[0].id,
-        id_master: vm.$store.state.controlGastos.listControlGastos[0].master_id,
+        id_master: vm.controlGastosStore.listControlGastos[0].master_id,
         id_correlativo: vm.id_correlativo,
         tipocambio: vm.tipocambio,
         status: true,
@@ -2515,7 +2516,7 @@ export default {
       this.$emit("recalcularProfit");
     },
     async imprimirControl() {
-      let master = this.$store.state.controlGastos.listControlGastos[0];
+      let master = this.controlGastosStore.listControlGastos[0];
 
       let data = {
         bultos: master.master_volumen,
@@ -2709,7 +2710,7 @@ export default {
         },
         data: datas,
       };
-      let clientes = this.$store.state.controlGastos.master_houses
+      let clientes = this.controlGastosStore.master_houses
         .map((element) => {
           return element.consigner;
         })
@@ -2722,14 +2723,14 @@ export default {
             nameConsignatario: clientes,
             totalPagar: vm.TotalLocal,
             expediente:
-              vm.$store.state.controlGastos.listControlGastos[0]
+              vm.controlGastosStore.listControlGastos[0]
                 .master_nromaster,
             fecha: vm.currentDate(),
             totalProveedores: proveedor,
             comentarios: vm.comentarios,
             codigo_pago: vm.codigo_pago,
             codigo_master:
-              vm.$store.state.controlGastos.listControlGastos[0]
+              vm.controlGastosStore.listControlGastos[0]
                 .master_nromaster,
             cuentas: vm.selectedAccount,
             operador: vm.$store.state.dataHouse_operador,
@@ -2738,7 +2739,7 @@ export default {
             totalSelected: vm.total,
             number: response.data.number,
             url_logo: JSON.parse(sessionStorage.getItem("dataUser"))[0].path,
-            url: vm.$store.state.controlGastos.listControlGastos[0]
+            url: vm.controlGastosStore.listControlGastos[0]
               .url_folderonedrive,
           };
           var config = {
@@ -3023,14 +3024,12 @@ export default {
       }
     },
     ...mapActions([
-      "getListControlGastosMaster",
       "setEgresos",
       "setInvoice",
       "delInvoice",
       "getAccountsNumber",
       "delEgregso",
       "getSPaymentPro",
-      "getListControlGastos",
       "editEgreso",
       "putSPaymentPro",
       "eliminar_spaymentpro",
@@ -3038,12 +3037,11 @@ export default {
       "list_invoice_path",
       "setSPaymentPro",
       "uploadAllPath",
-      "guardarCuotasCgeTipoProveedor",
       "getBanksListCargar",
       "_getProveedor",
-      "copiarCGEgresos",
       "_getMasterList",
     ]),
+    ...mapPiniaActions(useControlGastosStore, ["getListControlGastosMaster", "getListControlGastos", "guardarCuotasCgeTipoProveedor", "copiarCGEgresos"]),
     ...mapPiniaActions(useMastersStore, ["moverCostos"]),
     ...mapPiniaActions(useFilesStore, ["_uploadFile"]),
     ...mapPiniaActions(useMasterusuariosStore, ["cargarMasterDetalleTipoTransaccion"]),
@@ -3223,12 +3221,12 @@ export default {
       this.codigo_master = "";
       if (!!this.checkMaster) {
         this.codigo_master =
-          this.$store.state.controlGastos.listControlGastos[0].master_codemaster;
+          this.controlGastosStore.listControlGastos[0].master_codemaster;
       }
     },
   },
   computed: {
-    ...mapStores(useFilesStore, useEnterprisesStore, useMasterusuariosStore, useCoinsStore),
+    ...mapStores(useControlGastosStore, useFilesStore, useEnterprisesStore, useMasterusuariosStore, useCoinsStore),
     getNameModalNuevoEditar() {
       if (this.egresos && this.egresos.id) {
         return "EDITAR REGISTRO COSTO";
@@ -3241,14 +3239,14 @@ export default {
           consigner: "COSTO ASOCIADO AL MASTER",
           id_orders: null,
         },
-        ...this.$store.state.controlGastos.master_houses,
+        ...this.controlGastosStore.master_houses,
       ];
       return houses;
     },
     nombreCodigoPago() {
       let shipment =
-        (this.$store.state.controlGastos.listControlGastos[0] &&
-          this.$store.state.controlGastos.listControlGastos[0]
+        (this.controlGastosStore.listControlGastos[0] &&
+          this.controlGastosStore.listControlGastos[0]
             .master_shipment) ||
         "";
       let codigoPago = "";

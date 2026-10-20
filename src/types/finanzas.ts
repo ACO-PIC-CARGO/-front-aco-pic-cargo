@@ -1,3 +1,4 @@
+import type { ApiResponse } from "@/types/api";
 import type { Numerico } from "@/types/cotizacion";
 
 export interface ProgramacionListado {
@@ -53,4 +54,37 @@ export interface FiltroProyeccion {
   total_proyectado_ext: number | string;
   estado: number | string;
   aprobadoflag: number | string | boolean;
+}
+
+export interface ControlGastoMaster {
+  master_id?: number;
+  master_codemaster?: string;
+  master_nromaster?: string;
+  url_folderonedrive?: string;
+  folders_quote?: unknown;
+  id_branch?: number;
+  [campo: string]: unknown;
+}
+
+export interface ControlGastoHouse {
+  isExpanded?: boolean;
+  [campo: string]: unknown;
+}
+
+export interface ListadoControlGastoHouses {
+  lsthouses: ControlGastoHouse[];
+}
+
+export interface CorrelativoControlGasto {
+  index?: number;
+  [campo: string]: unknown;
+}
+
+export interface RespuestaControlGasto<T = unknown> extends ApiResponse<T> {
+  statusBol?: boolean;
+  statusText?: string;
+}
+
+export interface FilaMensaje {
+  mensaje: string;
 }

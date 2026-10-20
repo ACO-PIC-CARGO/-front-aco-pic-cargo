@@ -2,7 +2,7 @@
   <v-container fluid class="py-0 mx-0">
     <v-row>
       <v-col cols="12" md="8" xl="8" lg="8">
-        <v-card class="cardHouse" v-if="$store.state.controlGastos">
+        <v-card class="cardHouse" v-if="controlGastosStore">
           <v-card-text>
             <v-row>
               <v-col cols="12" xl="3" lg="3">
@@ -11,8 +11,8 @@
                   <h3 class="mt-4">
                     Master:
                     {{
-                      ($store.state.controlGastos.listControlGastos[0] &&
-                        $store.state.controlGastos.listControlGastos[0]
+                      (controlGastosStore.listControlGastos[0] &&
+                        controlGastosStore.listControlGastos[0]
                           .master_codemaster) ||
                       ""
                     }}
@@ -29,8 +29,8 @@
                   <p>
                     Sentido:
                     {{
-                      ($store.state.controlGastos.listControlGastos[0] &&
-                        $store.state.controlGastos.listControlGastos[0]
+                      (controlGastosStore.listControlGastos[0] &&
+                        controlGastosStore.listControlGastos[0]
                           .master_modality) ||
                       ""
                     }}
@@ -38,8 +38,8 @@
                   <p>
                     Tipo de Embarque:
                     {{
-                      ($store.state.controlGastos.listControlGastos[0] &&
-                        $store.state.controlGastos.listControlGastos[0]
+                      (controlGastosStore.listControlGastos[0] &&
+                        controlGastosStore.listControlGastos[0]
                           .master_shipment) ||
                       ""
                     }}
@@ -47,8 +47,8 @@
                   <p>
                     Puerto de Origen:
                     {{
-                      ($store.state.controlGastos.listControlGastos[0] &&
-                        $store.state.controlGastos.listControlGastos[0]
+                      (controlGastosStore.listControlGastos[0] &&
+                        controlGastosStore.listControlGastos[0]
                           .master_port_begin) ||
                       ""
                     }}
@@ -56,8 +56,8 @@
                   <p>
                     Puerto de Destino:
                     {{
-                      ($store.state.controlGastos.listControlGastos[0] &&
-                        $store.state.controlGastos.listControlGastos[0]
+                      (controlGastosStore.listControlGastos[0] &&
+                        controlGastosStore.listControlGastos[0]
                           .master_port_end) ||
                       ""
                     }}
@@ -71,8 +71,8 @@
                   <p>
                     Agente:
                     {{
-                      ($store.state.controlGastos.listControlGastos[0] &&
-                        $store.state.controlGastos.listControlGastos[0]
+                      (controlGastosStore.listControlGastos[0] &&
+                        controlGastosStore.listControlGastos[0]
                           .master_operador) ||
                       ""
                     }}
@@ -80,8 +80,8 @@
                   <p>
                     Consignatario:
                     {{
-                      ($store.state.controlGastos.listControlGastos[0] &&
-                        $store.state.controlGastos.listControlGastos[0]
+                      (controlGastosStore.listControlGastos[0] &&
+                        controlGastosStore.listControlGastos[0]
                           .master_consigner) ||
                       ""
                     }}
@@ -89,8 +89,8 @@
                   <p>
                     Notify:
                     {{
-                      ($store.state.controlGastos.listControlGastos[0] &&
-                        $store.state.controlGastos.listControlGastos[0]
+                      (controlGastosStore.listControlGastos[0] &&
+                        controlGastosStore.listControlGastos[0]
                           .master_notify) ||
                       ""
                     }}
@@ -104,8 +104,8 @@
                   <p>
                     Bultos:
                     {{
-                      ($store.state.controlGastos.listControlGastos[0] &&
-                        $store.state.controlGastos.listControlGastos[0]
+                      (controlGastosStore.listControlGastos[0] &&
+                        controlGastosStore.listControlGastos[0]
                           .master_bultos) ||
                       ""
                     }}
@@ -113,8 +113,8 @@
                   <p>
                     Peso:
                     {{
-                      ($store.state.controlGastos.listControlGastos[0] &&
-                        $store.state.controlGastos.listControlGastos[0]
+                      (controlGastosStore.listControlGastos[0] &&
+                        controlGastosStore.listControlGastos[0]
                           .master_peso) ||
                       ""
                     }}
@@ -123,8 +123,8 @@
                   <p>
                     Volumen:
                     {{
-                      ($store.state.controlGastos.listControlGastos[0] &&
-                        $store.state.controlGastos.listControlGastos[0]
+                      (controlGastosStore.listControlGastos[0] &&
+                        controlGastosStore.listControlGastos[0]
                           .master_volumen) ||
                       ""
                     }}
@@ -191,13 +191,13 @@
           size="small"
           block
           v-if="
-            Object.keys($store.state.controlGastos.listControlGastos).length >
+            Object.keys(controlGastosStore.listControlGastos).length >
               0 &&
-            $store.state.controlGastos.listControlGastos[0].url_folderonedrive
+            controlGastosStore.listControlGastos[0].url_folderonedrive
           "
           @click="
             to_direct({
-              url: $store.state.controlGastos.listControlGastos[0]
+              url: controlGastosStore.listControlGastos[0]
                 .url_folderonedrive,
             })
           "
@@ -214,7 +214,7 @@
           :ingreso_op="ingreso_op"
           v-on:recalcularProfit="calcularProfit()"
           :editable="editable"
-          :master_houses="$store.state.controlGastos.master_houses"
+          :master_houses="controlGastosStore.master_houses"
         />
       </v-col>
       <!-- EGRESOS -->
@@ -229,7 +229,7 @@
           @statusBtn="statusBtn = $event"
           @recargarDatos="recargarDatos()"
           :editable="editable"
-          :master_egresos="$store.state.controlGastos.master_egresos"
+          :master_egresos="controlGastosStore.master_egresos"
         />
       </v-col>
     </v-row>
@@ -241,10 +241,11 @@ import { mapState, mapActions } from "vuex";
 import moment from "moment";
 import axios from "@/api/http";
 import Swal from "sweetalert2";
-import { mapActions as mapPiniaActions } from "pinia";
+import { mapActions as mapPiniaActions, mapStores } from "pinia";
 import { useEnterprisesStore } from "@/stores/enterprises";
 import { useFilesStore } from "@/stores/files";
 import { useBancosStore } from "@/stores/bancos";
+import { useControlGastosStore } from "@/stores/controlGastos";
 export default {
   props: {
     editable: {
@@ -328,19 +329,17 @@ export default {
       errFile: "",
     };
   },
+  computed: {
+    ...mapStores(useControlGastosStore),
+  },
   methods: {
     ...mapActions([
-      "getListControlGastos",
-      "getListControlGastosHouses",
-      "getListControlGastosMaster",
-      "setControl",
       "cargarBranch",
       "_getBanksList",
       "_getCoinsList",
       "_getProveedor",
-      "cargarCorrelativo",
-      "guardarCuotasCgeTipoProveedor",
     ]),
+    ...mapPiniaActions(useControlGastosStore, ["getListControlGastos", "getListControlGastosHouses", "getListControlGastosMaster", "setControl", "cargarCorrelativo", "guardarCuotasCgeTipoProveedor"]),
     ...mapPiniaActions(useBancosStore, ["getListBanksDetailsCargar"]),
     ...mapPiniaActions(useFilesStore, ["_uploadFile"]),
     ...mapPiniaActions(useEnterprisesStore, ["obtenerImpuestoXEmpresa"]),
@@ -348,7 +347,7 @@ export default {
     // --------------------
     irAEditar() {
       let id_branch =
-        this.$store.state.controlGastos.listControlGastos[0].id_branch;
+        this.controlGastosStore.listControlGastos[0].id_branch;
       if (
         !(
           JSON.parse(sessionStorage.getItem("dataUser"))[0].id_branch ==
@@ -433,8 +432,8 @@ export default {
     calcularProfit() {
       this.$nextTick(() => {
         setTimeout(() => {
-          let house = this.$store.state.controlGastos.master_houses || [];
-          let egr = this.$store.state.controlGastos.master_egresos || [];
+          let house = this.controlGastosStore.master_houses || [];
+          let egr = this.controlGastosStore.master_egresos || [];
           this.ingreso_pr = house
             .map((element) => {
               return element.total_total_pr_ingresos;
@@ -496,7 +495,7 @@ export default {
           guardarEnCarpeta: guardarEnCarpeta,
           asociadoflag:false,
           folders_quote:
-            this.$store.state.controlGastos.listControlGastos[0].folders_quote,
+            this.controlGastosStore.listControlGastos[0].folders_quote,
         },
       };
       await axios(config)
@@ -548,7 +547,7 @@ export default {
     ]);
     await this._getProveedor(), this.calcularProfit();
     this.codigo_master =
-      this.$store.state.controlGastos.listControlGastos[0].master_nromaster;
+      this.controlGastosStore.listControlGastos[0].master_nromaster;
     this.$store.state.spiner = false;
   },
 };

@@ -8,8 +8,10 @@ import Swal from "sweetalert2";
 import type { FilaPedidoGastos, ResultadoCargaMasivaGastos } from "@/types/cargaMasiva";
 import { sessionBranchId } from "@/utils/sesion";
 import { useMastersStore } from "@/stores/masters";
+import { useControlGastosStore } from "@/stores/controlGastos";
 
 const rootStore = useStore();
+const controlGastosStore = useControlGastosStore();
 const mastersStore = useMastersStore();
 const router = useRouter();
 
@@ -75,9 +77,9 @@ function subirarchivoflag() {
 }
 async function nombreCampania() {
   rootStore.state.spiner = true;
-  nombrecampania.value = await rootStore
-    .dispatch("getNombreCompania", id_exp.value)
-    .catch((e: unknown) => console.log(e));
+  nombrecampania.value = (await controlGastosStore
+    .getNombreCompania(id_exp.value)
+    .catch((e: unknown) => console.log(e))) as string;
 
   if (!!nombrecampania.value) {
     companiaflag.value = true;
@@ -372,7 +374,7 @@ async function generarControlesGastos() {
       nuevo: nuevoExpediente.value,
     };
     rootStore.state.spiner = true;
-    const response: ResultadoCargaMasivaGastos[] = await rootStore.dispatch("CargaMasivaControlDeGastos", data);
+    const response: ResultadoCargaMasivaGastos[] = await controlGastosStore.CargaMasivaControlDeGastos(data);
 
     if (response[0]!.esnuevoflag == true) {
       // nro_master
@@ -407,7 +409,7 @@ async function generarControlesGastos() {
       allowOutsideClick: false,
     }).then(async (res) => {
       if (res.isConfirmed) {
-        await rootStore.dispatch("DescargarConsolidadoCargaMasiva", response[0]!.id_master);
+        await controlGastosStore.DescargarConsolidadoCargaMasiva(response[0]!.id_master);
         // this.datos = [];
       }
       if (res.isDenied) {

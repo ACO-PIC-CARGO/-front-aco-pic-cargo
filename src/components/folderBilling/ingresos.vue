@@ -396,7 +396,7 @@
                 <v-col cols="12" xl="3" lg="3">
                   <!-- @change="activarSeccion3" -->
                   <v-autocomplete
-                    :items="$store.state.controlGastos.listCorrelativo"
+                    :items="controlGastosStore.listCorrelativo"
                     v-model="ingresos.id_correlativo"
                     item-title="code"
                     item-value="id"
@@ -1456,6 +1456,7 @@ import { usePricingStore } from "@/stores/pricing";
 import { useHousesStore } from "@/stores/houses";
 import { useFilesStore } from "@/stores/files";
 import { useBancosStore } from "@/stores/bancos";
+import { useControlGastosStore } from "@/stores/controlGastos";
 export default {
   emits: ["recalcularProfit"],
   props: {
@@ -1706,19 +1707,13 @@ export default {
   },
   methods: {
     ...mapActions([
-      "setControl",
-      "guardarIngresos",
-      "getListControlGastos",
       "delDebsClient",
       "data_factura",
       "generar_factura",
       "registrar_factura",
-      "actualizarIngresos",
-      "eliminarIngreso",
-      "copiarCGingresos",
       "_getMasterList",
-      "getListControlGastosHouses",
     ]),
+    ...mapPiniaActions(useControlGastosStore, ["setControl", "guardarIngresos", "getListControlGastos", "actualizarIngresos", "eliminarIngreso", "copiarCGingresos", "getListControlGastosHouses"]),
     ...mapPiniaActions(useFilesStore, ["_uploadFile"]),
     ...mapPiniaActions(useHousesStore, ["getCargarHouse", "getFacturasFiscales"]),
     ...mapPiniaActions(usePricingStore, ["guardarDatosInstructivo"]),
@@ -1997,8 +1992,8 @@ export default {
       this.dialogNewDebs = true;
     },
     abrirExpandIngreso(index) {
-      this.$store.state.controlGastos.master_houses[index].isExpanded =
-        this.$store.state.controlGastos.master_houses[index].isExpanded;
+      this.controlGastosStore.master_houses[index].isExpanded =
+        this.controlGastosStore.master_houses[index].isExpanded;
     },
     editIngreso(item) {
       this.dialogIngreso = true;
@@ -3073,7 +3068,7 @@ export default {
     },
   },
   computed: {
-    ...mapStores(useBancosStore, useFilesStore, useHousesStore, useEnterprisesStore),
+    ...mapStores(useControlGastosStore, useBancosStore, useFilesStore, useHousesStore, useEnterprisesStore),
   },
   components: {
     ArrastraYSolarComponent,

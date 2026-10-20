@@ -6,7 +6,6 @@ const imgSave = "/img/svg/save.svg";
 const imgFolder = "/img/svg/folder.svg";
 const imgMailbox = "/img/svg/mailbox.svg";
 const imgList = "/img/svg/lista.svg";
-import controlGastos from "./modules/controlGasto";
 import balances from "./modules/balanace";
 import bank from "./modules/bank";
 import Swal from "sweetalert2";
@@ -2825,7 +2824,6 @@ export default createStore({
   },
 
   modules: {
-    controlGastos,
     balances,
     bank,
   },
