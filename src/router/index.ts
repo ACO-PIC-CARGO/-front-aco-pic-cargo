@@ -269,7 +269,7 @@ const routes = [
       {
         path: "folderModulesPays/addmodulesAccountPays",
         name: "addAccountPays",
-        component: () => import("../views/folderModulesPays/AddAccountPaysView.vue"),
+        component: () => import("../views/folderModulesPays/ControlAccountPaysNewView.vue"),
       },
 
       {
@@ -285,7 +285,7 @@ const routes = [
       {
         path: "folderModulesPays/viewAccountPays/:id",
         name: "viewAccountPays",
-        component: () => import("../views/folderModulesPays/ControlAccountPaysViewView.vue"),
+        component: () => import("../views/folderModulesPays/ControlAccountPaysDetailView.vue"),
       },
       {
         path: "folderModulesPays/EditAccountPays/:id",
@@ -323,7 +323,7 @@ const routes = [
       {
         path: "viewAccountPaysCxC/:id",
         name: "viewAccountPaysCxC",
-        component: () => import("../views/folderModulesPays/ControlAccountPaysCxCViewView.vue"),
+        component: () => import("../views/folderModulesPays/ControlAccountPaysCxCDetailView.vue"),
       },
       {
         path: "EditviewAccountPaysCxC/:id",
