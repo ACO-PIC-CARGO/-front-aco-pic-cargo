@@ -541,14 +541,14 @@ export const usePricingStore = defineStore("pricing", () => {
   }
   function setMultiplicador(data: Multiplicador[]): void {
     listMultiplicador.value = data;
-    // While configEmpresa was a Vuex module this commit also ran its SET_MULTPLICADOR.
+    // configEmpresa keeps its own copy of the multiplier list.
     useConfigEmpresaStore().lstMultiplicador = data;
     useAduanaStore().listMultiplicador = data;
   }
   function setTipoCostos(data: TipoCostoConfig[]): void {
     listTipoCostos.value = data;
     namesection.value = data;
-    // While configEmpresa was a Vuex module this commit also ran its SET_TIPO_COSTOS.
+    // configEmpresa keeps its own copy of the cost type list.
     useConfigEmpresaStore().listTipoCostos = data;
     const aduana = useAduanaStore();
     aduana.listTipoCostos = data;
@@ -3016,7 +3016,7 @@ export const usePricingStore = defineStore("pricing", () => {
       "Content-Type": "application/json",
     };
     await axios
-      // @ts-expect-error Kept: the headers object goes in as the request config, as before.
+      // @ts-expect-error the headers object goes in as the request config.
       .post<RespuestaArchivo>(import.meta.env.VITE_URL_MAIN + "quote_preview_totales", data, headers)
       .then((response) => {
         if (!enviarWspCliente) {
@@ -3084,7 +3084,7 @@ export const usePricingStore = defineStore("pricing", () => {
     });
 
     await axios
-      // @ts-expect-error Kept: the headers object goes in as the request config, as before.
+      // @ts-expect-error the headers object goes in as the request config.
       .post<RespuestaArchivo>(import.meta.env.VITE_URL_MAIN + "export_list_quote", data, headers)
       .then((response) => {
         if (response.data.estadoflag) {
@@ -3250,7 +3250,7 @@ export const usePricingStore = defineStore("pricing", () => {
       }
     });
     await axios
-      // @ts-expect-error Kept: the headers object goes in as the request config, as before.
+      // @ts-expect-error the headers object goes in as the request config.
       .post<RespuestaArchivo>(import.meta.env.VITE_URL_MAIN + "reporte_llamadas_export", data, headers)
       .then((response) => {
         if (response.data.estadoflag) {
@@ -5094,7 +5094,7 @@ export const usePricingStore = defineStore("pricing", () => {
           totalCostos += parseFloat(String(montoDetails));
         });
 
-      // @ts-expect-error Kept: equal rows make the comparator return undefined, as before.
+      // @ts-expect-error equal rows make the comparator return undefined.
       dataIngresos = dataIngresos.sort((a, b) => {
         if ((a.orden as number) < (b.orden as number)) return -1;
         if ((a.orden as number) > (b.orden as number)) return 1;
@@ -5147,7 +5147,7 @@ export const usePricingStore = defineStore("pricing", () => {
       dataIngresos = resultIngresos;
 
       // ------------------------------------------------
-      // @ts-expect-error Kept: equal rows make the comparator return undefined, as before.
+      // @ts-expect-error equal rows make the comparator return undefined.
       dataCostos = dataCostos.sort((a, b) => {
         if ((a.proveedor as string) < (b.proveedor as string)) return -1;
         if ((a.proveedor as string) > (b.proveedor as string)) return 1;
@@ -5190,7 +5190,7 @@ export const usePricingStore = defineStore("pricing", () => {
           currentProvider = item.proveedor;
           valor = item.valor as number;
           subtotal = item.total!;
-          // @ts-expect-error Kept: subtracts the running IGV from the row object (NaN), as before.
+          // @ts-expect-error subtracts the running IGV from the row object (NaN).
           igv = item - igv;
         }
 
@@ -5327,13 +5327,13 @@ export const usePricingStore = defineStore("pricing", () => {
       },
     }).then((res) => {
       if (res.dismiss) {
-        // @ts-expect-error Kept: timerInterval is not declared in this action, so a dismissed alert throws a ReferenceError, as before.
+        // @ts-expect-error timerInterval is not declared in this action, so a dismissed alert throws a ReferenceError.
         clearInterval(timerInterval);
       }
     });
 
     await axios
-      // @ts-expect-error Kept: the headers object goes in as the request config, as before.
+      // @ts-expect-error the headers object goes in as the request config.
       .post<RespuestaArchivo>(import.meta.env.VITE_URL_MAIN + "quote_instructivo", data, headers)
       .then((response) => {
         Swal.fire({
@@ -5420,7 +5420,7 @@ export const usePricingStore = defineStore("pricing", () => {
     };
 
     await axios
-      // @ts-expect-error Kept: the headers object goes in as the request config, as before.
+      // @ts-expect-error the headers object goes in as the request config.
       .post<ApiResponse>(import.meta.env.VITE_URL_MAIN + "insert_monto_finales_quote", data, headers)
       .then((response) => {
         // eslint-disable-next-line @typescript-eslint/no-unused-vars

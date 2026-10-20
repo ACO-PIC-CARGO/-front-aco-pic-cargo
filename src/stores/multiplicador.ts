@@ -28,7 +28,7 @@ export const useMultiplicadorStore = defineStore("multiplicador", () => {
         sessionStorage.setItem("auth-token", data.token!);
         if (data.estadoflag) {
           shipments.value = data.data;
-          // While multiplicador was a Vuex module this commit also ran pricing's and aduana's SET_LIST_SHIPMENT.
+          // pricing and aduana keep their own copy of the shipment list.
           usePricingStore().listShipment = data.data;
           useAduanaStore().listShipment = data.data;
         }

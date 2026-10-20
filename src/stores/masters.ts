@@ -78,7 +78,7 @@ export const useMastersStore = defineStore("masters", () => {
           allowEnterKey: false,
         }).then((resSwal) => {
           if (resSwal.isConfirmed && res.status == "401") {
-            // @ts-expect-error Kept: router is not imported in this module, so a confirmed 401 throws a ReferenceError.
+            // @ts-expect-error router is not imported in this module, so a confirmed 401 throws a ReferenceError.
             router.push({ name: "Login" });
             setTimeout(() => {
               window.location.reload();

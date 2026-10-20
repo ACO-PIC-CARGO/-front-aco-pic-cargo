@@ -16,7 +16,7 @@ export const useTransportStore = defineStore("transport", () => {
 
   function setListTransport(data: Transporte[]) {
     list.value = data;
-    // While transport was a Vuex module this commit also ran shipment's SET_LIST_TRANSPORT.
+    // shipment keeps its own copy of the transport list.
     useShipmentStore().transports = data;
   }
 

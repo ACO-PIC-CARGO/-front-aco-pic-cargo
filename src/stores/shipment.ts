@@ -20,7 +20,7 @@ export const useShipmentStore = defineStore("shipment", () => {
 
   function setListShipment(data: TipoCarga[]) {
     list.value = data;
-    // While shipment was a Vuex module this commit also ran multiplicador's, pricing's and aduana's SET_LIST_SHIPMENT.
+    // multiplicador, pricing and aduana keep their own copy of the shipment list.
     useMultiplicadorStore().shipments = data;
     usePricingStore().listShipment = data;
     useAduanaStore().listShipment = data;

@@ -133,7 +133,7 @@ export interface FormCuentaEmpresa {
 }
 
 export interface RegistroNuevaEmpresaRow {
-  // Kept: data_users is an array, so id_secutiry has always been undefined.
+  // data_users is an array, so id_secutiry is always undefined.
   data_users: UsuarioLogin[] & { id_secutiry?: number };
   data_branch: unknown;
 }

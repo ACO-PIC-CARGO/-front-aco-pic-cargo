@@ -17,7 +17,7 @@ export const useMarketingStore = defineStore("marketing", () => {
 
   function setListMarketing(data: Marketing[]) {
     list.value = data;
-    // While marketing was a Vuex module this commit also ran pricing's SET_LIST_MARKETING.
+    // pricing keeps its own copy of the marketing list.
     usePricingStore().SET_LIST_MARKETING(data);
   }
 

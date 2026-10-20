@@ -18,7 +18,7 @@ export const useIncotermStore = defineStore("incoterm", () => {
 
   function setListIncoterms(data: Incoterm[]) {
     list.value = data;
-    // While incoterm was a Vuex module this commit also ran pricing's and aduana's SET_LIST_INCOTERMS.
+    // pricing and aduana keep their own copy of the incoterm list.
     usePricingStore().listIncoterms = data;
     useAduanaStore().listIncoterms = data;
   }

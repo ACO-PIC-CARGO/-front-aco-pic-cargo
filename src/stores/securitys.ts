@@ -93,7 +93,7 @@ export const useSecuritysStore = defineStore("securitys", () => {
           localStorage.setItem("iso_pais", dataBranch[0]!.iso_pais);
           sessionStorage.setItem("dataBranch", JSON.stringify(dataBranch));
           localStorage.setItem("dataBranch", JSON.stringify(dataBranch));
-          // Awaiting the timer id only yields one tick, as the Vuex action did.
+          // Awaiting the timer id only yields one tick.
           await setTimeout(async () => {
             await _getMenuItem();
             await ObtenerDatosConfig();

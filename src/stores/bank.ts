@@ -316,7 +316,7 @@ export const useBankStore = defineStore("bank", () => {
     return res;
   }
   async function actualizarPagoRealizadoSombreado(data: unknown): Promise<ApiResponse | null> {
-    // Shadowed by the later actualizarPagoRealizado, so the old module never ran this body.
+    // Shadowed by the later actualizarPagoRealizado, so this body never ran.
     let res: ApiResponse | null = null;
     const config = {
       method: "put",
@@ -558,7 +558,7 @@ export const useBankStore = defineStore("bank", () => {
               name: "listBankCxP",
             });
           }
-          // @ts-expect-error Kept: SweetAlertResult has no cancelButtonText, so this branch never runs.
+          // @ts-expect-error SweetAlertResult has no cancelButtonText, so this branch never runs.
           if (res.cancelButtonText) {
             router.push({
               name: "listBankCxP",
@@ -645,7 +645,7 @@ export const useBankStore = defineStore("bank", () => {
                 name: "listBankCxC",
               });
             }
-            // @ts-expect-error Kept: SweetAlertResult has no cancelButtonText, so this branch never runs.
+            // @ts-expect-error SweetAlertResult has no cancelButtonText, so this branch never runs.
             if (res.cancelButtonText) {
               router.push({
                 name: "listBankCxC",

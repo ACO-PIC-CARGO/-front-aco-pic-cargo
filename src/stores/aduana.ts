@@ -254,7 +254,7 @@ export const useAduanaStore = defineStore("aduana", () => {
   }
   function setMultiplicador(data: Multiplicador[]): void {
     usePricingStore().listMultiplicador = data;
-    // While configEmpresa was a Vuex module this commit also ran its SET_MULTPLICADOR.
+    // configEmpresa keeps its own copy of the multiplier list.
     useConfigEmpresaStore().lstMultiplicador = data;
     listMultiplicador.value = data;
   }
@@ -262,7 +262,7 @@ export const useAduanaStore = defineStore("aduana", () => {
     const pricing = usePricingStore();
     pricing.listTipoCostos = data;
     pricing.namesection = data;
-    // While configEmpresa was a Vuex module this commit also ran its SET_TIPO_COSTOS.
+    // configEmpresa keeps its own copy of the cost type list.
     useConfigEmpresaStore().listTipoCostos = data;
     listTipoCostos.value = data;
     namesection.value = data;
@@ -341,7 +341,7 @@ export const useAduanaStore = defineStore("aduana", () => {
     };
 
     await axios
-      // @ts-expect-error Kept: the headers object goes in as the request config, as before.
+      // @ts-expect-error the headers object goes in as the request config.
       .post<ApiResponse>(import.meta.env.VITE_URL_MAIN + "insert_monto_finales_aduana", data, headers)
       .then((response) => {
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -3978,7 +3978,7 @@ export const useAduanaStore = defineStore("aduana", () => {
     };
 
     await axios
-      // @ts-expect-error Kept: the headers object goes in as the request config, as before.
+      // @ts-expect-error the headers object goes in as the request config.
       .post<RespuestaArchivo>(import.meta.env.VITE_URL_MAIN + "quote_preview_totales", data, headers)
       .then((response) => {
         Swal.fire({
@@ -4258,7 +4258,7 @@ export const useAduanaStore = defineStore("aduana", () => {
           totalCostosOpcion += parseFloat(String(montoDetails));
         });
 
-      // @ts-expect-error Kept: equal rows make the comparator return undefined, as before.
+      // @ts-expect-error equal rows make the comparator return undefined.
       dataIngresos = dataIngresos.sort((a, b) => {
         if ((a.orden as number) < (b.orden as number)) return -1;
         if ((a.orden as number) > (b.orden as number)) return 1;
@@ -4311,7 +4311,7 @@ export const useAduanaStore = defineStore("aduana", () => {
       dataIngresos = resultIngresos;
 
       // ------------------------------------------------
-      // @ts-expect-error Kept: equal rows make the comparator return undefined, as before.
+      // @ts-expect-error equal rows make the comparator return undefined.
       dataCostos = dataCostos.sort((a, b) => {
         if ((a.proveedor as string) < (b.proveedor as string)) return -1;
         if ((a.proveedor as string) > (b.proveedor as string)) return 1;

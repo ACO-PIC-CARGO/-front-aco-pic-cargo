@@ -152,7 +152,7 @@ export const useEntitiesStore = defineStore("entities", () => {
   const isStep6Valid = ref(true);
   const lstProveedores_x_nombre = ref<EntidadCoincidencia[]>([]);
   const lstProveedores_x_documento = ref<EntidadCoincidencia[]>([]);
-  // Vuex created this slot only when telConctactoProveedor first ran, so it starts undefined.
+  // Starts undefined until telConctactoProveedor first fills it.
   const lstTelefono = ref<TelefonoEntidad[]>();
 
   function _setEntitie(dataEntitie: { status?: number }): void {

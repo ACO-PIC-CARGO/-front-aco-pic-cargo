@@ -492,7 +492,7 @@ export const useCalculadorasStore = defineStore("calculadoras", () => {
     });
     if (response.data.estadoflag) {
       const res = response.data.data;
-      // @ts-expect-error Kept: the title reads mensaje from the row list, so it is undefined
+      // @ts-expect-error the title reads mensaje from the row list, so it is undefined
       Swal.fire(confirmacionSimple(res.mensaje)).then((res) => {
         if (res.isConfirmed) {
           GetCotCostos();

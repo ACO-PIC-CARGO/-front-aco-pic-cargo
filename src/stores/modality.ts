@@ -17,7 +17,7 @@ export const useModalityStore = defineStore("modality", () => {
 
   function setListModality(data: Modalidad[]) {
     list.value = data;
-    // While modality was a Vuex module this commit also ran pricing's and aduana's SET_LIST_MODALITY.
+    // pricing and aduana keep their own copy of the modality list.
     usePricingStore().listModality = data;
     useAduanaStore().listModality = data;
   }

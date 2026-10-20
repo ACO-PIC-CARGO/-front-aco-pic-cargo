@@ -28,7 +28,7 @@ export const useTypePhoneStore = defineStore("type_phone", () => {
         const data = response.data;
         sessionStorage.setItem("auth-token", data.token!);
         if (data.estadoflag) {
-          // The whole response body, not its rows, has always been stored here.
+          // Stores the whole response body, not its rows.
           list.value = response.data as unknown as TipoTelefono[];
         } else {
           list.value = [];

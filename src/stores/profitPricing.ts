@@ -33,7 +33,7 @@ export const useProfitPricingStore = defineStore("profitPricing", () => {
           lstProfigIndividual.value = listado.profitindividual;
           lstProfigGrupal.value = listado.profitgrupal;
         } else {
-          // SET_LISTADO_PROFIT read both lists off an empty array.
+          // A rejected response leaves both lists undefined.
           lstProfigIndividual.value = undefined;
           lstProfigGrupal.value = undefined;
         }
