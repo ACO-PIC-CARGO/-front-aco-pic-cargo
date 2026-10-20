@@ -1,12 +1,24 @@
+<script setup lang="ts">
+import { ref } from "vue";
+
+const descripcionSaludo = ref("Estimado sr(es):");
+const descripcionDatosCarga = ref("Datos de la Carga:");
+</script>
+
 <template>
   <v-container fluid>
     <v-card>
       <v-row>
-        <v-col cols="6" class="px-5 py-5">
+        <v-col
+          cols="6"
+          class="px-5 py-5"
+        >
           <div style="float: right">
-            <p style="text-align: right">[FECHA_ENVIO]</p>
+            <p style="text-align: right">
+              [FECHA_ENVIO]
+            </p>
           </div>
-          <div style="clear: both"></div>
+          <div style="clear: both" />
 
           <p>
             <v-text-field
@@ -29,10 +41,14 @@
               density="compact"
               hide-details
               class="my-2"
-            ></v-text-field>
+            />
           </p>
 
-          <table border="1" cellspacing="0" style="width: 600px; margin: auto">
+          <table
+            border="1"
+            cellspacing="0"
+            style="width: 600px; margin: auto"
+          >
             <thead>
               <tr>
                 <th
@@ -45,14 +61,20 @@
             </thead>
             <tbody>
               <tr>
-                <td style="width: 50%; padding: 0.25rem 0.5rem"><b>Peso</b></td>
-                <td style="width: 50%; padding: 0.25rem 0.5rem">[PESO]</td>
+                <td style="width: 50%; padding: 0.25rem 0.5rem">
+                  <b>Peso</b>
+                </td>
+                <td style="width: 50%; padding: 0.25rem 0.5rem">
+                  [PESO]
+                </td>
               </tr>
               <tr>
                 <td style="width: 50%; padding: 0.25rem 0.5rem">
                   <b>Volumen</b>
                 </td>
-                <td style="width: 50%; padding: 0.25rem 0.5rem">[VOLUMEN]</td>
+                <td style="width: 50%; padding: 0.25rem 0.5rem">
+                  [VOLUMEN]
+                </td>
               </tr>
               <tr>
                 <td style="width: 50%; padding: 0.25rem 0.5rem">
@@ -90,19 +112,23 @@
                 <td style="width: 50%; padding: 0.25rem 0.5rem">
                   <b>Nro. BL / Nro. Guía Aérea</b>
                 </td>
-                <td style="width: 50%; padding: 0.25rem 0.5rem">[NRO_BL]</td>
+                <td style="width: 50%; padding: 0.25rem 0.5rem">
+                  [NRO_BL]
+                </td>
               </tr>
               <tr>
                 <td style="width: 50%; padding: 0.25rem 0.5rem">
                   <b>Monto Servicio Logístico Cotizado</b>
                 </td>
-                <td style="width: 50%; padding: 0.25rem 0.5rem">USD [MONTO]</td>
+                <td style="width: 50%; padding: 0.25rem 0.5rem">
+                  USD [MONTO]
+                </td>
               </tr>
             </tbody>
           </table>
           <p>Por medio del presente, te notificamos que tu carga ya llegó.</p>
 
-          <br />
+          <br>
 
           <p>
             Le recordamos que el servicio logístico que le fue cotizado es un
@@ -116,24 +142,34 @@
           <p>[RAZON_SOCIAL]</p>
 
           <div style="text-align: center; padding: 10px">
+            <!-- @vue-expect-error process is not defined in the template scope -->
             <img
               :src="`${process.env.VITE_URL_MAIN}uploads/logo-aco.png`"
               alt="Logo ACO"
               style="width: 100%; max-width: 300px; height: auto"
-            />
+            >
           </div>
         </v-col>
-        <v-col cols="6" class="px-5 py-5 clsPreview">
+        <v-col
+          cols="6"
+          class="px-5 py-5 clsPreview"
+        >
           <div style="float: right">
-            <p style="text-align: right">[FECHA_ENVIO]</p>
+            <p style="text-align: right">
+              [FECHA_ENVIO]
+            </p>
           </div>
-          <div style="clear: both"></div>
+          <div style="clear: both" />
 
           <p>{{ descripcionSaludo }} <b>[NOMBRE_CLIENTE]</b></p>
           <p>Asunto: <b>[AVISO_LLEGADA]</b></p>
           <p>{{ descripcionDatosCarga }}:</p>
 
-          <table border="1" cellspacing="0" style="width: 600px; margin: auto">
+          <table
+            border="1"
+            cellspacing="0"
+            style="width: 600px; margin: auto"
+          >
             <thead>
               <tr>
                 <th
@@ -146,14 +182,20 @@
             </thead>
             <tbody>
               <tr>
-                <td style="width: 50%; padding: 0.25rem 0.5rem"><b>Peso</b></td>
-                <td style="width: 50%; padding: 0.25rem 0.5rem">[PESO]</td>
+                <td style="width: 50%; padding: 0.25rem 0.5rem">
+                  <b>Peso</b>
+                </td>
+                <td style="width: 50%; padding: 0.25rem 0.5rem">
+                  [PESO]
+                </td>
               </tr>
               <tr>
                 <td style="width: 50%; padding: 0.25rem 0.5rem">
                   <b>Volumen</b>
                 </td>
-                <td style="width: 50%; padding: 0.25rem 0.5rem">[VOLUMEN]</td>
+                <td style="width: 50%; padding: 0.25rem 0.5rem">
+                  [VOLUMEN]
+                </td>
               </tr>
               <tr>
                 <td style="width: 50%; padding: 0.25rem 0.5rem">
@@ -191,19 +233,23 @@
                 <td style="width: 50%; padding: 0.25rem 0.5rem">
                   <b>Nro. BL / Nro. Guía Aérea</b>
                 </td>
-                <td style="width: 50%; padding: 0.25rem 0.5rem">[NRO_BL]</td>
+                <td style="width: 50%; padding: 0.25rem 0.5rem">
+                  [NRO_BL]
+                </td>
               </tr>
               <tr>
                 <td style="width: 50%; padding: 0.25rem 0.5rem">
                   <b>Monto Servicio Logístico Cotizado</b>
                 </td>
-                <td style="width: 50%; padding: 0.25rem 0.5rem">USD [MONTO]</td>
+                <td style="width: 50%; padding: 0.25rem 0.5rem">
+                  USD [MONTO]
+                </td>
               </tr>
             </tbody>
           </table>
           <p>Por medio del presente, te notificamos que tu carga ya llegó.</p>
 
-          <br />
+          <br>
 
           <p>
             Le recordamos que el servicio logístico que le fue cotizado es un
@@ -217,28 +263,18 @@
           <p>[RAZON_SOCIAL]</p>
 
           <div style="text-align: center; padding: 10px">
+            <!-- @vue-expect-error process is not defined in the template scope -->
             <img
               :src="`${process.env.VITE_URL_MAIN}uploads/logo-aco.png`"
               alt="Logo ACO"
               style="width: 100%; max-width: 300px; height: auto"
-            />
+            >
           </div>
         </v-col>
       </v-row>
     </v-card>
   </v-container>
 </template>
-
-<script>
-export default {
-  data() {
-    return {
-      descripcionSaludo: "Estimado sr(es):",
-      descripcionDatosCarga: "Datos de la Carga:",
-    };
-  },
-};
-</script>
 
 <style>
 .clsPreview {

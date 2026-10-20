@@ -376,9 +376,9 @@
 import { v4 as uuidv4 } from "uuid";
 import dataGen from "./dataGen.vue";
 //import houselist from "./houselist.vue";
-import dataEmbar from "./dataEmbar.vue";
+import dataEmbar from "./DataEmbar.vue";
 import Bitacora from "./bitacora.vue";
-import services from "./services.vue";
+import services from "./ServicesHouse.vue";
 import { mapActions, mapState } from "vuex";
 
 import axios from "@/api/http";

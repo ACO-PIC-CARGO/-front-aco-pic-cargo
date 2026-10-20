@@ -1,3 +1,25 @@
+<script setup lang="ts">
+import { onMounted } from "vue";
+import Editor from "@/components/comun/EditorHtml.vue";
+import { useConfigAvisoStore } from "@/stores/configAviso";
+
+const configAvisoStore = useConfigAvisoStore();
+
+onMounted(() => {
+
+  configAvisoStore.obtenerConfigAviso();
+});
+
+function reset() {
+  configAvisoStore.configAviso.aviso_llegada =
+    configAvisoStore.configAviso.aviso_llegada_original;
+}
+async function guardarContenido() {
+
+  await configAvisoStore.actualizarConfigAviso(configAvisoStore.configAviso)
+}
+</script>
+
 <template>
   <v-container fluid>
     <v-card>
@@ -5,41 +27,21 @@
         <Editor />
       </v-card-text>
       <v-card-actions>
-        <v-btn color="success" @click="guardarContenido">
+        <v-btn
+          color="success"
+          @click="guardarContenido"
+        >
           Guardar contenido
         </v-btn>
-        <v-btn color="warning" @click="reset"> Resetear al Original </v-btn>
+        <v-btn
+          color="warning"
+          @click="reset"
+        >
+          Resetear al Original
+        </v-btn>
       </v-card-actions>
     </v-card>
   </v-container>
 </template>
 
-<script>
-import Editor from "@/components/comun/EditorHtml.vue";
-import { mapActions as mapPiniaActions, mapStores } from "pinia";
-import { useConfigAvisoStore } from "@/stores/configAviso";
 
-export default {
-  components: {
-    Editor,
-  },
-  mounted() {
-
-    this.obtenerConfigAviso();
-  },
-  computed: {
-    ...mapStores(useConfigAvisoStore),
-  },
-  methods: {
-    ...mapPiniaActions(useConfigAvisoStore, ["obtenerConfigAviso", "actualizarConfigAviso"]),
-    reset() {
-      this.configAvisoStore.configAviso.aviso_llegada =
-        this.configAvisoStore.configAviso.aviso_llegada_original;
-    },
-    async guardarContenido() {
-      
-      await this.actualizarConfigAviso(this.configAvisoStore.configAviso)
-    },
-  },
-};
-</script>

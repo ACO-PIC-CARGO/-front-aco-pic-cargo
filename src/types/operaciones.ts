@@ -1,4 +1,6 @@
 import type { ArchivoSubido } from "@/types/archivos";
+import type { ComentarioEstadoHouse } from "@/types/catalogos";
+import type { CotizacionListado, LineaInstructivo } from "@/types/cotizacion";
 
 export interface ComentarioHouse {
   fecha?: string;
@@ -12,6 +14,28 @@ export interface HouseDetalle {
   id_operador?: number | string;
   nro_hbl?: string;
   consigner?: string;
+  id_transport?: number | string;
+  telexconfirmado?: boolean;
+  fechaconfirmaciontelex?: string;
+  id_incoterms?: number | string;
+  id_cot?: number | string;
+  id_quoteaduana?: number | string;
+  id_notify?: number | string;
+  id_aerolinea?: number | string;
+  id_coloader?: number | string;
+  id_vendedor?: number | string;
+  id_pricing?: number | string;
+  id_naviera?: number | string;
+  id_motonave?: number | string;
+  nro_viaje?: string;
+  id_conditions?: number | string;
+  id_moneda?: number | string;
+  url_onedrive?: string;
+  id_consigner_real?: number | string;
+  itemshousecontainers?: unknown[];
+  nro_declaracion_aduana?: string;
+  canal_aduana?: string;
+  token_rastreo?: string;
   code_master?: string;
   code_house?: string;
   modality?: string;
@@ -74,4 +98,64 @@ export interface FilaConsolidacion {
 export interface ConfigAviso {
   aviso_llegada?: string;
   aviso_llegada_original?: string;
+}
+
+export interface RegistroBitacoraHouse {
+  id: number;
+  id_bitacora: number;
+  namebitacora: string;
+  comentario: string;
+  date: string;
+  visible_cliente: boolean | number;
+  orden: number;
+}
+
+export interface BitacoraLinealHouse {
+  id: number;
+  orden: number;
+  comentarios?: ComentarioEstadoHouse[];
+}
+
+export interface ServicioHouse {
+  id?: number;
+  id_begend?: number;
+  namebegend?: string;
+  position_begend?: number;
+  nameservice?: string;
+  status?: number | string | boolean;
+  date_service?: string | null;
+  updated_at?: string | null;
+  created_at?: string;
+  color?: string;
+  showDatePicker?: boolean;
+}
+
+export interface ServicioPorIncoterm {
+  id_begend: number;
+  namebegend: string;
+  position_begend: number;
+  namegroupservice: string;
+}
+
+export interface HouseCambio {
+  id: number;
+  house: string;
+}
+
+export interface CotizacionAsociableHouse extends CotizacionListado {
+  listIngresosInstructivo: LineaInstructivo[];
+  listCostosInstructivo: LineaInstructivo[];
+}
+
+export interface ItemNotificacion {
+  title: string;
+  value: number;
+}
+
+export interface CuentaBancariaPic {
+  id: number;
+  label: string;
+  cuenta: string;
+  cci: string;
+  symbol: string;
 }
