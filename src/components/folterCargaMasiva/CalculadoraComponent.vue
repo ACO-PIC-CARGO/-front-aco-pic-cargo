@@ -9,6 +9,7 @@ import moment from "moment";
 import Swal from "sweetalert2";
 import axios from "@/api/http";
 import { useCalculadorasStore } from "@/stores/calculadoras";
+import { useMonedasStore } from "@/stores/monedas";
 import type { ApiResponse } from "@/types/api";
 import type {
   FilaCargaFlete,
@@ -21,6 +22,7 @@ import type {
 
 const calculadorasStore = useCalculadorasStore();
 const rootStore = useStore();
+const monedasStore = useMonedasStore();
 
 // The old form starts every single selection as an empty array.
 const sinSeleccion = () => [] as unknown as OpcionRegistroFlete;
@@ -1099,7 +1101,7 @@ function validar() {
 onMounted(async () => {
   rootStore.state.spiner = true;
   await rootStore.dispatch("_getPais");
-  await rootStore.dispatch("CargarMoneda");
+  await monedasStore.CargarMoneda();
   await calculadorasStore.CargarSucursal();
   await calculadorasStore.CargarnavieraCalc();
   await calculadorasStore.CargarcontendedorCalc();
