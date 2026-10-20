@@ -57,7 +57,8 @@ import {
   formatearNotas,
   formatearServicios,
 } from "@/utils/cotizacion";
-import { sessionBranchId, sessionIsoPais, sessionSucursal, sessionUser, sessionUserIdOrEmpty } from "@/utils/sesion";
+import { userIdAtAppLoad } from "@/utils/appLoad";
+import { sessionBranchId, sessionIsoPais, sessionSucursal, sessionUser } from "@/utils/sesion";
 
 export const useAduanaStore = defineStore("aduana", () => {
   const { calcularFac, formatearCostos, formatearCostosEditar } = useCotizacionCalculos();
@@ -89,8 +90,8 @@ export const useAduanaStore = defineStore("aduana", () => {
     id_percepcionaduana: "",
     id_marketing: "",
     id_status: "",
-    id_vendedor: sessionUserIdOrEmpty(),
-    id_pricing: sessionUserIdOrEmpty(),
+    id_vendedor: userIdAtAppLoad,
+    id_pricing: userIdAtAppLoad,
     cif: "",
     contacto: "",
     descripcionMercancia: "",

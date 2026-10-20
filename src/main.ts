@@ -9,6 +9,8 @@ import App from "./App.vue";
 import "./registerServiceWorker";
 import router from "./router";
 import store from "./store";
+// Imported here so it captures the session and the date at app start, before the session sync below.
+import "./utils/appLoad";
 import vuetify from "./plugins/vuetify";
 
 // Importing a moment locale also activates it; the webpack build started in "en" until a screen chose "es".

@@ -72,6 +72,7 @@ import {
   formatearNotas,
   formatearServicios,
 } from "@/utils/cotizacion";
+import { quoteFilterDatesAtAppLoad } from "@/utils/appLoad";
 import { sessionBranchId, sessionIsoPais, sessionSucursal, sessionUser, sessionUserIdOrEmpty } from "@/utils/sesion";
 
 export const usePricingStore = defineStore("pricing", () => {
@@ -123,13 +124,13 @@ export const usePricingStore = defineStore("pricing", () => {
   const page = ref(1);
   const nombre_cotizacion = ref("");
   const filtro = ref<FiltroCotizaciones>({
-    fechainicio: moment().format("YYYY-01-01"),
-    fechafin: moment().endOf("month").format("YYYY-MM-DD"),
+    fechainicio: quoteFilterDatesAtAppLoad.fechainicio,
+    fechafin: quoteFilterDatesAtAppLoad.fechafin,
     tipopdf: 1,
   });
   const filtroCalls = ref<FiltroCotizaciones>({
-    fechainicio: moment().format("YYYY-01-01"),
-    fechafin: moment().endOf("month").format("YYYY-MM-DD"),
+    fechainicio: quoteFilterDatesAtAppLoad.fechainicio,
+    fechafin: quoteFilterDatesAtAppLoad.fechafin,
     tipopdf: 1,
   });
   const ventaflag = ref(false);
