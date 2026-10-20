@@ -6,16 +6,15 @@ import router from "@/router";
 import store from "@/store";
 import { useAppStore } from "@/stores/app";
 import type { ApiResponse } from "@/types/api";
-import type { CampoRaiz, FilaRaiz, FiltroExpedientesRaiz, SeleccionRaiz } from "@/types/app";
-import type { ComentarioEstadoHouse } from "@/types/catalogos";
-import type { HouseListado } from "@/types/cotizacion";
+import type { FilaConIdRaiz, FilaRaiz, FiltroExpedientesRaiz, HouseCopiaRaiz, RegistroBitacoraRaiz, TipoEmbarqueRaiz } from "@/types/app";
+import type { ComentarioEstadoHouse, TipoContenedor } from "@/types/catalogos";
+import type { HouseListado, Numerico } from "@/types/cotizacion";
 import type {
   BitacoraLinealHouse,
   FacturaFiscal,
   FiltroHouseConsulta,
   HouseDetalle,
   HouseFacturable,
-  RegistroBitacoraHouse,
 } from "@/types/operaciones";
 import { localDateAtAppLoad } from "@/utils/appLoad";
 import { sessionBranchId } from "@/utils/sesion";
@@ -246,65 +245,65 @@ export const useHousesStore = defineStore("houses", () => {
       });
   }
 
-  const copy_house = ref<FilaRaiz | null>(null);
+  const copy_house = ref<HouseCopiaRaiz>(null as unknown as HouseCopiaRaiz);
   const modalServices_manualMode = ref(false);
   const itemsColoaders = ref<FilaRaiz[]>([]);
   const itemsBitacoraLineal = ref<BitacoraLinealHouse[]>([]);
-  const itemsBitacora = ref<RegistroBitacoraHouse[]>([]);
-  const itemsHouseContainers = ref<FilaRaiz[]>([]);
+  const itemsBitacora = ref<RegistroBitacoraRaiz[]>([]);
+  const itemsHouseContainers = ref<FilaConIdRaiz[] | null>([]);
   const itemsComentariosPredefinidos = ref<ComentarioEstadoHouse[]>([]);
-  const house_id_trasnport = ref<SeleccionRaiz | CampoRaiz>("");
-  const house_sentido = ref<CampoRaiz>("");
-  const house_incoterms = ref<CampoRaiz>("");
-  const house_origen = ref<CampoRaiz>("");
-  const telexconfirmado = ref(false);
-  const fechaconfirmaciontelex = ref<CampoRaiz>("");
-  const house_destino = ref<CampoRaiz>("");
-  const house_id_containers = ref<SeleccionRaiz | CampoRaiz>("");
-  const house_cantidad = ref<CampoRaiz>("");
-  const house_id = ref<CampoRaiz>("");
-  const house_id_agente = ref<CampoRaiz>("");
-  const house_id_consigner_real = ref<CampoRaiz>("");
-  const house_id_notify = ref<CampoRaiz>("");
-  const house_id_airlines = ref<CampoRaiz>("");
-  const house_id_coloader = ref<CampoRaiz>("");
-  const house_id_naviera = ref<CampoRaiz>("");
-  const house_id_motonave = ref<CampoRaiz>("");
-  const house_viaje = ref<CampoRaiz>("");
-  const house_bultos = ref<CampoRaiz>("");
-  const house_peso = ref<CampoRaiz>("");
-  const house_volumen = ref<CampoRaiz>("");
-  const house_id_condicion = ref<CampoRaiz>("");
-  const house_id_coins = ref<CampoRaiz>("");
-  const house_blmaster = ref<CampoRaiz>("");
-  const url_onedrive = ref<CampoRaiz>("");
-  const house_master = ref<CampoRaiz>("");
-  const house_master_expediente = ref<CampoRaiz>("");
-  const house_nro_declaracion_aduana = ref<CampoRaiz>("");
-  const house_canal_aduana = ref<CampoRaiz>("");
+  const house_id_trasnport = ref<TipoEmbarqueRaiz | Numerico>("");
+  const house_sentido = ref<Numerico>("");
+  const house_incoterms = ref<Numerico>("");
+  const house_origen = ref<Numerico>("");
+  const telexconfirmado = ref<boolean | undefined>(false);
+  const fechaconfirmaciontelex = ref<string | null | undefined>("");
+  const house_destino = ref<Numerico>("");
+  const house_id_containers = ref<TipoContenedor>("" as unknown as TipoContenedor);
+  const house_cantidad = ref<Numerico>("");
+  const house_id = ref<Numerico>("");
+  const house_id_agente = ref<Numerico>("");
+  const house_id_consigner_real = ref<Numerico>("");
+  const house_id_notify = ref<Numerico>("");
+  const house_id_airlines = ref<Numerico>("");
+  const house_id_coloader = ref<Numerico>("");
+  const house_id_naviera = ref<Numerico>("");
+  const house_id_motonave = ref<Numerico>("");
+  const house_viaje = ref<Numerico>("");
+  const house_bultos = ref<Numerico>("");
+  const house_peso = ref<Numerico>("");
+  const house_volumen = ref<Numerico>("");
+  const house_id_condicion = ref<Numerico>("");
+  const house_id_coins = ref<Numerico>("");
+  const house_blmaster = ref<Numerico>("");
+  const url_onedrive = ref<Numerico>("");
+  const house_master = ref<Numerico>("");
+  const house_master_expediente = ref<Numerico>("");
+  const house_nro_declaracion_aduana = ref<Numerico>("");
+  const house_canal_aduana = ref<Numerico>("");
   const house_filtrarData = ref(false);
   const house_filtro = ref<FiltroExpedientesRaiz>({
     fecha_etd_desde: null,
     fecha_eta_desde: null,
     fecha_etd_hasta: null,
     fecha_eta_hasta: null,
-  });
-  const dataHouse_transporte = ref<CampoRaiz>("");
-  const bitacora_id_bitacora = ref<CampoRaiz>("");
-  const bitacora_comentario_predefinido = ref<SeleccionRaiz | CampoRaiz>("");
-  const bitacora_comentario = ref<CampoRaiz>("");
+  } as FiltroExpedientesRaiz);
+  const dataHouse_transporte = ref<Numerico>("");
+  const bitacora_id_bitacora = ref<Numerico>("");
+  const bitacora_comentario_predefinido = ref<ComentarioEstadoHouse>("" as unknown as ComentarioEstadoHouse);
+  const bitacora_comentario = ref<Numerico>("");
   const bitacora_comentario_flag = ref(false);
-  const bitacora_fecha = ref<CampoRaiz>(localDateAtAppLoad);
+  const bitacora_fecha = ref(localDateAtAppLoad);
   const bitacora_visible_cliente = ref(true);
-  const house_enlace_tracking = ref<CampoRaiz>("");
-  const house_monto = ref<CampoRaiz>();
-  const house_cotizacion = ref<CampoRaiz>();
-  const house_id_vendedor = ref<CampoRaiz>();
-  const house_id_pricing = ref<CampoRaiz>();
-  const house_nro_containers = ref<CampoRaiz>();
-  const house_nro_precinto = ref<CampoRaiz>();
-  const id_master = ref<CampoRaiz>();
-  const house_cotizacionaduana = ref<CampoRaiz>();
+  const house_enlace_tracking = ref("");
+  const house_monto = ref<Numerico>();
+  const house_cotizacion = ref<Numerico>();
+  const house_id_vendedor = ref<Numerico>();
+  const house_id_pricing = ref<Numerico>();
+  const house_nro_containers = ref<Numerico>();
+  const house_nro_precinto = ref<Numerico>();
+  const id_master = ref<Numerico>();
+  const house_cotizacionaduana = ref<Numerico>();
 
   const itemsColoadersGetter = computed(() => itemsColoaders.value);
   const itemsBitacoraLinealGetter = computed(() => itemsBitacoraLineal.value);
@@ -320,11 +319,11 @@ export const useHousesStore = defineStore("houses", () => {
     itemsBitacoraLineal.value = data;
   }
 
-  function _setItemsBitacora(data: RegistroBitacoraHouse[]): void {
+  function _setItemsBitacora(data: RegistroBitacoraRaiz[]): void {
     itemsBitacora.value = data;
   }
 
-  function _setItemsHouseContainers(data: FilaRaiz[]): void {
+  function _setItemsHouseContainers(data: FilaConIdRaiz[] | null): void {
     itemsHouseContainers.value = data;
   }
 
@@ -386,7 +385,7 @@ export const useHousesStore = defineStore("houses", () => {
       },
       data: data,
     };
-    await axios<ApiResponse<RegistroBitacoraHouse[]>>(config)
+    await axios<ApiResponse<RegistroBitacoraRaiz[]>>(config)
       .then(function (response) {
         _setItemsBitacora(response.data.estadoflag ? response.data.data : []);
       })
@@ -404,7 +403,7 @@ export const useHousesStore = defineStore("houses", () => {
       },
       params: data,
     };
-    await axios<ApiResponse<FilaRaiz[]>>(config)
+    await axios<ApiResponse<FilaConIdRaiz[] | null>>(config)
       .then(function (response) {
         _setItemsHouseContainers(response.data.data);
       })

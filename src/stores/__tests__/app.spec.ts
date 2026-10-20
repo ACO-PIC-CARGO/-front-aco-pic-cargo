@@ -6,6 +6,9 @@ import { useAppStore } from "@/stores/app";
 import { useEntitiesStore } from "@/stores/entities";
 import { useHousesStore } from "@/stores/houses";
 import { useMastersStore } from "@/stores/masters";
+import type { ExpedienteSinSolicitud } from "@/types/requests";
+import type { FiltroControlGastosRaiz, ListaPagosRaiz, TipoEmbarqueRaiz } from "@/types/app";
+import type { MasterListadoControlGasto } from "@/types/billing";
 import { JSON_HEADERS, URL_MAIN, accepted, flushPromises, httpMock, rejected, respond } from "./catalogHttp";
 
 vi.mock("@/api/http", () => ({ default: vi.fn() }));
@@ -13,6 +16,7 @@ vi.mock("@/router", () => ({ default: { push: vi.fn(), go: vi.fn() } }));
 vi.mock("sweetalert2", () => ({ default: { fire: vi.fn() } }));
 
 const lastConfig = () => httpMock.mock.lastCall![0];
+const embarque = (id: number): TipoEmbarqueRaiz => ({ id, code: "FCL", id_transport: 1 });
 const emptyFilter = () => ({
   fecha_etd_desde: null,
   fecha_eta_desde: null,
@@ -145,7 +149,7 @@ describe("app store", () => {
     useMastersStore().master_filtro = {
       ...emptyFilter(),
       id_canal: 3,
-      id_tipo_embarque: { id: 2 },
+      id_tipo_embarque: embarque(2),
       status_administrativo: 0,
       pagina: 3,
       limite: 20,
@@ -182,7 +186,11 @@ describe("app store", () => {
 
   test("_getMasterList falls back to empty type and status, the first page and no limit", async () => {
     respond({ getMasterList: accepted([]) });
-    useMastersStore().master_filtro = { ...emptyFilter(), id_tipo_embarque: {}, status_administrativo: 2 };
+    useMastersStore().master_filtro = {
+      ...emptyFilter(),
+      id_tipo_embarque: {} as TipoEmbarqueRaiz,
+      status_administrativo: 2,
+    };
 
     await useAppStore()._getMasterList();
 
@@ -226,7 +234,7 @@ describe("app store", () => {
       ...emptyFilter(),
       id_master: 4,
       id_sentido: 1,
-      id_tipo_embarque: { id: 2 },
+      id_tipo_embarque: embarque(2),
       id_origen: 5,
       id_destino: 6,
       id_cliente: 8,
@@ -254,7 +262,7 @@ describe("app store", () => {
       return { data: rejected("Sin houses") };
     });
     app.dataHouse = true;
-    app.itemsHouseListAll = [{ id: 1 }];
+    app.itemsHouseListAll = [{ id: 1 }] as unknown as ExpedienteSinSolicitud[];
 
     await app._getHouseListAll();
     expect(loadedDuringRequest).toBe(false);
@@ -268,7 +276,7 @@ describe("app store", () => {
 
   test("_getTotalHouseListAll counts with the houses filter, leaves the list flag down and reads a bad total as zero", async () => {
     const app = useAppStore();
-    useHousesStore().house_filtro = { ...emptyFilter(), id_master: 4, id_tipo_embarque: { id: 2 } };
+    useHousesStore().house_filtro = { ...emptyFilter(), id_master: 4, id_tipo_embarque: embarque(2) };
     app.dataHouse = true;
     respond({ getTotalHouseListAll: { ...accepted([]), total: "12" } });
 
@@ -589,7 +597,7 @@ describe("app store", () => {
 
   test("_getControlList sends the expense filter with the branch and flags the list as loading during the request", async () => {
     const app = useAppStore();
-    app.controlgastosfiltro = { id_canal: 2 };
+    app.controlgastosfiltro = { id_canal: 2 } as FiltroControlGastosRaiz;
     app.dataGastos = true;
     let loadedDuringRequest: unknown;
     httpMock.mockImplementation(async () => {
@@ -615,7 +623,7 @@ describe("app store", () => {
     vi.useFakeTimers();
     respond({ getControlList: { ...rejected("Sesión expirada", "401"), statusText: "Unauthorized" } });
     const app = useAppStore();
-    app.itemsDataControlList = [{ id: 1 }];
+    app.itemsDataControlList = [{ id: 1 }] as MasterListadoControlGasto[];
 
     await app._getControlList();
     await flushPromises();
@@ -634,7 +642,7 @@ describe("app store", () => {
 
   test("_getListaPagosXProveedorCxC empties the list first, then numbers the rows and defaults rate and currency to 1", async () => {
     const app = useAppStore();
-    app.listPagosXProveedorCxP = [{ id: 1 }];
+    app.listPagosXProveedorCxP = [{ id: 1 }] as unknown as ListaPagosRaiz;
     let duringRequest: unknown;
     const rows = [{ a: 1 }, { tipocambio: 3.5, id_coins: 2 }, { tipocambio: 0, id_coins: null }];
     httpMock.mockImplementation(async () => {
@@ -659,7 +667,7 @@ describe("app store", () => {
 
   test("_getListaPagosXProveedorCxC warns and leaves the list empty when the answer is not ok", async () => {
     const app = useAppStore();
-    app.listPagosXProveedorCxP = [{ id: 1 }];
+    app.listPagosXProveedorCxP = [{ id: 1 }] as unknown as ListaPagosRaiz;
     respond({ "getListaPagosXProveedorCxC/15": { statusBol: false, mensaje: "Sin pagos" } });
 
     await app._getListaPagosXProveedorCxC(15);

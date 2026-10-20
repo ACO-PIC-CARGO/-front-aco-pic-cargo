@@ -2,6 +2,7 @@ import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
 import { createPinia, setActivePinia } from "pinia";
 import { useAppStore } from "@/stores/app";
 import { useMastersStore } from "@/stores/masters";
+import type { TipoEmbarqueRaiz } from "@/types/app";
 import { JSON_HEADERS, URL_MAIN, accepted, httpMock, respond } from "./catalogHttp";
 
 vi.mock("@/api/http", () => ({ default: vi.fn() }));
@@ -9,6 +10,7 @@ vi.mock("@/router", () => ({ default: { push: vi.fn() } }));
 vi.mock("sweetalert2", () => ({ default: { fire: vi.fn() } }));
 
 const lastConfig = () => httpMock.mock.lastCall![0];
+const embarque = (id: number): TipoEmbarqueRaiz => ({ id, code: "FCL", id_transport: 1 });
 
 describe("masters store, root state part", () => {
   beforeEach(() => {
@@ -33,7 +35,7 @@ describe("masters store, root state part", () => {
     });
 
     masters.master_sentido = 1;
-    useAppStore().master_id_trasnport = { id: 2 };
+    useAppStore().master_id_trasnport = embarque(2);
     masters.master_incoterms = 3;
     await masters._getServicesBegin();
     expect(lastConfig().data).toEqual({ id_modality: 1, id_shipment: 2, id_incoterms: 3, id_branch: 7 });
@@ -53,7 +55,7 @@ describe("masters store, root state part", () => {
   test("_getServicesList sends the raw direction, transport id and incoterm", async () => {
     const masters = useMastersStore();
     masters.master_sentido = 1;
-    useAppStore().master_id_trasnport = { id: 2 };
+    useAppStore().master_id_trasnport = embarque(2);
     masters.master_incoterms = 3;
     respond({ getItemsServicesList: accepted([{ id: 9 }]) });
 
@@ -87,7 +89,7 @@ describe("masters store, root state part", () => {
       fecha_eta_hasta: null,
       id_canal: 1,
       id_sentido: 2,
-      id_tipo_embarque: { id: 3 },
+      id_tipo_embarque: embarque(3),
       id_origen: 4,
       id_destino: 5,
       id_agente: 6,

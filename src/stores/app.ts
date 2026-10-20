@@ -10,26 +10,40 @@ import { useMastersStore } from "@/stores/masters";
 import { useSecuritysStore } from "@/stores/securitys";
 import type { ApiResponse } from "@/types/api";
 import type {
-  CampoRaiz,
+  BegEndHouseRaiz,
+  ClienteRaiz,
   ContactoRaiz,
+  ContenedorMasterRaiz,
   ControlRaiz,
+  EntidadListadoRaiz,
+  ExpedienteMasterRaiz,
+  FilaConIdRaiz,
   FilaRaiz,
   FiltroCargaMasterRaiz,
+  FiltroControlGastosRaiz,
   GrupoMenuRaiz,
+  IncotermRaiz,
+  ListaPagosRaiz,
   NroHouseRaiz,
-  PagoProveedorRaiz,
+  OperadorRaiz,
+  ProveedorRolRaiz,
   RolSinParsearRaiz,
-  SeleccionRaiz,
   TelefonoListadoRaiz,
   TelefonoRaiz,
+  TipoEmbarqueRaiz,
   TipoTelefonoRaiz,
-  UsuarioSesionRaiz,
+  TotalProveedorRaiz,
+  FacturaAdminRaiz,
+  ProveedorRaiz,
+  HouseListaRaiz,
 } from "@/types/app";
-import type { ConceptoSolicitud } from "@/types/billing";
-import type { DocumentoPais, Moneda, Pais, TipoContenedor } from "@/types/catalogos";
-import type { ExpedienteMaster, FiltroPuertos, Puerto } from "@/types/cotizacion";
-import type { ClienteListado, OpcionCuentaBancaria, ProveedorPricing, RolProveedor } from "@/types/entidades";
+import type { ConceptoSolicitud, MasterListadoControlGasto } from "@/types/billing";
+import type { DocumentoPais, Modalidad, Moneda, Pais, TipoContenedor } from "@/types/catalogos";
+import type { FiltroPuertos, Numerico, Puerto } from "@/types/cotizacion";
+import type { OpcionCuentaBancaria, RolProveedor } from "@/types/entidades";
 import type { CuentaBancariaPic, ServicioHouse } from "@/types/operaciones";
+import type { ExpedienteMasterReporte } from "@/types/reportes";
+import type { ExpedienteSinSolicitud } from "@/types/requests";
 import type { ItemMenu, SucursalSesion, UsuarioSesion } from "@/types/sesion";
 import { dataBranchAtAppLoad } from "@/utils/appLoad";
 import { sessionBranchId, sessionUser } from "@/utils/sesion";
@@ -57,9 +71,9 @@ export const useAppStore = defineStore("app", () => {
   const dataHouse = ref(false);
   const nro_cuotas = ref(3);
   const spiner = ref(false);
-  const house_id_master = ref<CampoRaiz>("");
-  const cuota = ref<CampoRaiz[]>([]);
-  const fechacuota = ref<CampoRaiz[]>([]);
+  const house_id_master = ref<Numerico>("");
+  const cuota = ref<Numerico[]>([]);
+  const fechacuota = ref<string[]>([]);
   const modalAgente = ref(false);
   const modalAdmin = ref(false);
   const modalPro = ref(false);
@@ -90,13 +104,13 @@ export const useAppStore = defineStore("app", () => {
   const totalTotalEgresos = ref(0);
   const totalTotalEgresosOp = ref(0);
   const security = ref(2);
-  const departamentoUser = ref(0);
+  const departamentoUser = ref<number | string>(0);
   const menuName = ref("");
   const modalServices = ref(false);
-  const phone_id = ref<SeleccionRaiz | CampoRaiz>("");
-  const phone_number = ref<CampoRaiz>("");
+  const phone_id = ref<TipoTelefonoRaiz>("" as unknown as TipoTelefonoRaiz);
+  const phone_number = ref<Numerico>("");
   const contact_name = ref("");
-  const contact_number = ref<CampoRaiz>("");
+  const contact_number = ref<Numerico>("");
   const cuentas_pic = ref<CuentaBancariaPic[]>([]);
   const itemsPhone = ref<TipoTelefonoRaiz[]>([
     {
@@ -113,8 +127,8 @@ export const useAppStore = defineStore("app", () => {
     },
   ]);
   const itemsListPhone = ref<TelefonoRaiz[]>([]);
-  const itemsListPhoneEdit = ref<FilaRaiz[]>([]);
-  const contact_id = ref<CampoRaiz>("");
+  const itemsListPhoneEdit = ref<FilaConIdRaiz[]>([]);
+  const contact_id = ref<Numerico>("");
   const itemsContact = ref<TipoTelefonoRaiz[]>([
     {
       id: 1,
@@ -126,8 +140,8 @@ export const useAppStore = defineStore("app", () => {
     },
   ]);
   const itemsListContact = ref<ContactoRaiz[]>([]);
-  const itemsListContactEdit = ref<FilaRaiz[]>([]);
-  const itemsEntities = ref<ClienteListado[]>([]);
+  const itemsListContactEdit = ref<FilaConIdRaiz[]>([]);
+  const itemsEntities = ref<EntidadListadoRaiz[]>([]);
   const itemsAgents = ref<FilaRaiz[]>([]);
   const itemsConsigners = ref<FilaRaiz[]>([]);
   const itemsNotify = ref<FilaRaiz[]>([]);
@@ -141,11 +155,11 @@ export const useAppStore = defineStore("app", () => {
   const itemsCity = ref<FilaRaiz[]>([]);
   const itemsTown = ref<FilaRaiz[]>([]);
   const itemsSex = ref<FilaRaiz[]>([]);
-  const itemsModality = ref<FilaRaiz[]>([]);
-  const itemsShipment = ref<FilaRaiz[]>([]);
+  const itemsModality = ref<Modalidad[]>([]);
+  const itemsShipment = ref<TipoEmbarqueRaiz[]>([]);
   const itemsPortBegin = ref<Puerto[]>([]);
   const itemsPortEnd = ref<Puerto[]>([]);
-  const itemsIncoterms = ref<FilaRaiz[]>([]);
+  const itemsIncoterms = ref<IncotermRaiz[]>([]);
   const itemsServicesEnd = ref<FilaRaiz[]>([]);
   const itemsServicesFlete = ref<FilaRaiz[]>([]);
   const itemsServicesOpcional = ref<FilaRaiz[]>([]);
@@ -153,126 +167,126 @@ export const useAppStore = defineStore("app", () => {
   const itemsList = ref<GrupoMenuRaiz[]>([]);
   const itemsFleteCon = ref<FilaRaiz[]>([]);
   const itemsCoinsList = ref<Moneda[]>([]);
-  const itemsHouseList = ref<FilaRaiz[]>([]);
-  const itemsMasterList = ref<ExpedienteMaster[]>([]);
-  const itemsHouseListAll = ref<FilaRaiz[]>([]);
+  const itemsHouseList = ref<HouseListaRaiz[]>([]);
+  const itemsMasterList = ref<ExpedienteMasterRaiz[]>([]);
+  const itemsHouseListAll = ref<ExpedienteSinSolicitud[]>([]);
   const itemsHouseServices = ref<ServicioHouse[]>([]);
-  const itemsBegEndList = ref<FilaRaiz[]>([]);
-  const itemsOperadorList = ref<FilaRaiz[]>([]);
-  const itemsProveedorList = ref<FilaRaiz[]>([]);
-  const itemsReportFileAll = ref<FilaRaiz[]>([]);
+  const itemsBegEndList = ref<BegEndHouseRaiz[]>([]);
+  const itemsOperadorList = ref<OperadorRaiz[]>([]);
+  const itemsProveedorList = ref<ProveedorRolRaiz[]>([]);
+  const itemsReportFileAll = ref<ExpedienteMasterReporte[]>([]);
   const itemsReportFileAllMaster = ref<FilaRaiz[]>([]);
   const itemsTotalesAll = ref<FilaRaiz[]>([]);
   const itemsDataControl = ref<ControlRaiz[]>([]);
   const itemsDataIngresos = ref<FilaRaiz[]>([]);
   const itemsDataIngresosList = ref<FilaRaiz[]>([]);
   const itemsDataEgresosList = ref<FilaRaiz[]>([]);
-  const itemsDataControlList = ref<FilaRaiz[]>([]);
+  const itemsDataControlList = ref<MasterListadoControlGasto[]>([]);
   const itemsDataRoleList = ref<RolProveedor[]>([]);
   const itemsDataAccountList = ref<OpcionCuentaBancaria[]>([]);
   const itemsDataBanksList = ref<OpcionCuentaBancaria[]>([]);
-  const itemsDataAccountsNumberList = ref<FilaRaiz[]>([]);
+  const itemsDataAccountsNumberList = ref<FilaConIdRaiz[]>([]);
   const itemsDataConceptos = ref<ConceptoSolicitud[]>([]);
   const itemsProveedorRolAerolinea = ref<FilaRaiz[]>([]);
   const itemsProveedorRolShipper = ref<FilaRaiz[]>([]);
-  const provedores = ref<ProveedorPricing[]>([]);
-  const clientes = ref<FilaRaiz[]>([]);
-  const itemsDataTotalesProveedor = ref<FilaRaiz[]>([]);
+  const provedores = ref<ProveedorRaiz[]>([]);
+  const clientes = ref<ClienteRaiz[]>([]);
+  const itemsDataTotalesProveedor = ref<TotalProveedorRaiz[]>([]);
   const performances = ref<FilaRaiz[]>([]);
-  const InvoiceAdmin = ref<FilaRaiz[]>([]);
+  const InvoiceAdmin = ref<FacturaAdminRaiz[]>([]);
   const month = ref<FilaRaiz[]>([]);
   const year = ref<FilaRaiz[]>([]);
-  const listPagosXProveedorCxP = ref<PagoProveedorRaiz[]>([]);
-  const datanroMaster = ref<CampoRaiz>("");
-  const datanroHouse = ref<CampoRaiz>("");
+  const listPagosXProveedorCxP = ref<ListaPagosRaiz>([]);
+  const datanroMaster = ref<Numerico>("");
+  const datanroHouse = ref<Numerico>("");
   const drawer = ref(false);
   const mainTitle = ref("INICIO");
-  const master_id_trasnport = ref<SeleccionRaiz | CampoRaiz>("");
-  const master_embarque = ref<CampoRaiz>("");
-  const master_origen = ref<CampoRaiz>("");
-  const master_destino = ref<CampoRaiz>("");
-  const master_id_containers = ref<SeleccionRaiz | CampoRaiz>("");
-  const master_nro_containers = ref<CampoRaiz>("");
-  const master_nro_precinto = ref<CampoRaiz>("");
+  const master_id_trasnport = ref<TipoEmbarqueRaiz>("" as unknown as TipoEmbarqueRaiz);
+  const master_embarque = ref<Numerico>("");
+  const master_origen = ref<Numerico>("");
+  const master_destino = ref<Numerico>("");
+  const master_id_containers = ref<TipoContenedor>("" as unknown as TipoContenedor);
+  const master_nro_containers = ref("");
+  const master_nro_precinto = ref("");
   const accountIdTypeAccount = ref<number | string>(1);
-  const accountIdBanks = ref<CampoRaiz>("");
-  const accountIdCoins = ref<CampoRaiz>("");
-  const accountNumer = ref<CampoRaiz>("");
-  const accountIdEntities = ref<CampoRaiz>("");
+  const accountIdBanks = ref<number | string>("");
+  const accountIdCoins = ref<number | string>("");
+  const accountNumer = ref("");
+  const accountIdEntities = ref<Numerico>("");
   const accountStatus = ref(1);
-  const master_cantidad = ref<CampoRaiz>("");
-  const master_id_agente = ref<CampoRaiz>("");
-  const master_master_monto = ref<CampoRaiz>("");
+  const master_cantidad = ref<number | string>("");
+  const master_id_agente = ref<Numerico>("");
+  const master_master_monto = ref<Numerico>("");
   const cg_filtrarData = ref(false);
-  const controlgastosfiltro = ref<FilaRaiz>({});
-  const dataControl_Numero = ref<CampoRaiz>("");
-  const dataControl_idControl = ref<CampoRaiz>("");
-  const dataControl_id_house = ref<CampoRaiz>("");
-  const dataControl_id_user = ref<CampoRaiz>("");
+  const controlgastosfiltro = ref<FiltroControlGastosRaiz>({} as FiltroControlGastosRaiz);
+  const dataControl_Numero = ref<Numerico | string[]>("");
+  const dataControl_idControl = ref<Numerico>("");
+  const dataControl_id_house = ref<Numerico | string[]>("");
+  const dataControl_id_user = ref<Numerico>("");
   const dataControl_status = ref(1);
-  const dataControl_id_orders = ref<CampoRaiz>("");
-  const house_Id_get = ref<CampoRaiz>("");
-  const house_cotizanion = ref<CampoRaiz>("");
-  const house_embarque = ref<CampoRaiz>("");
+  const dataControl_id_orders = ref<Numerico>("");
+  const house_Id_get = ref<Numerico | string[]>("");
+  const house_cotizanion = ref<Numerico>("");
+  const house_embarque = ref<Numerico>("");
   const house_cantidad_house = ref(1);
   const house_insertId = ref(1);
-  const house_id_consigner = ref<CampoRaiz>("");
-  const house_master_monto = ref<CampoRaiz>("");
-  const house_expediente = ref<CampoRaiz>("");
+  const house_id_consigner = ref<Numerico>("");
+  const house_master_monto = ref<Numerico>("");
+  const house_expediente = ref<Numerico>("");
   const totalItemsHouseListAll = ref(0);
-  const services_id_begend = ref<CampoRaiz>("");
-  const services_name = ref<CampoRaiz>("");
-  const services_price = ref<CampoRaiz>("");
-  const dataHouse_modality = ref<CampoRaiz>("");
-  const dataHouse_shipment = ref<CampoRaiz>("");
-  const dataHouse_port_begin = ref<CampoRaiz>("");
-  const dataHouse_port_end = ref<CampoRaiz>("");
-  const dataHouse_agente = ref<CampoRaiz>("");
-  const dataHouse_consigners = ref<CampoRaiz>("");
-  const dataHouse_notify = ref<CampoRaiz>("");
-  const dataHouse_ruc = ref<CampoRaiz>("");
-  const dataHouse_exp = ref<CampoRaiz>("");
-  const dataHouse_code_house = ref<CampoRaiz>("");
-  const dataHouse_code_master = ref<CampoRaiz>("");
-  const dataHouse_bultos = ref<CampoRaiz>("");
-  const dataHouse_peso = ref<CampoRaiz>("");
-  const dataHouse_volumen = ref<CampoRaiz>("");
-  const dataHouse_operador = ref<CampoRaiz>("");
-  const dataIngreso_concepto = ref<CampoRaiz>("");
+  const services_id_begend = ref<Numerico>("");
+  const services_name = ref<Numerico>("");
+  const services_price = ref<Numerico>("");
+  const dataHouse_modality = ref<Numerico>("");
+  const dataHouse_shipment = ref<Numerico>("");
+  const dataHouse_port_begin = ref<Numerico>("");
+  const dataHouse_port_end = ref<Numerico>("");
+  const dataHouse_agente = ref<Numerico>("");
+  const dataHouse_consigners = ref<Numerico>("");
+  const dataHouse_notify = ref<Numerico>("");
+  const dataHouse_ruc = ref<Numerico>("");
+  const dataHouse_exp = ref<Numerico>("");
+  const dataHouse_code_house = ref<Numerico>("");
+  const dataHouse_code_master = ref<Numerico>("");
+  const dataHouse_bultos = ref<Numerico>("");
+  const dataHouse_peso = ref<Numerico>("");
+  const dataHouse_volumen = ref<Numerico>("");
+  const dataHouse_operador = ref<Numerico>("");
+  const dataIngreso_concepto = ref<Numerico>("");
   const dataIngreso_statusCalcula = ref(true);
-  const dataIngreso_montoop = ref<CampoRaiz>("");
-  const dataIngreso_montopr = ref<CampoRaiz>("");
-  const dataIngreso_igvop = ref<CampoRaiz>("");
-  const dataIngreso_igvpr = ref<CampoRaiz>("");
-  const dataIngreso_totalop = ref<CampoRaiz>("");
-  const dataIngreso_totalpr = ref<CampoRaiz>("");
-  const dataIngreso_opcion = ref<CampoRaiz>("");
-  const dataIngreso_fnumero = ref<CampoRaiz>("");
-  const dataIngreso_ffecha = ref<CampoRaiz>("");
-  const dataIngreso_id = ref<CampoRaiz>("");
+  const dataIngreso_montoop = ref<Numerico>("");
+  const dataIngreso_montopr = ref<Numerico>("");
+  const dataIngreso_igvop = ref<Numerico>("");
+  const dataIngreso_igvpr = ref<Numerico>("");
+  const dataIngreso_totalop = ref<Numerico>("");
+  const dataIngreso_totalpr = ref<Numerico>("");
+  const dataIngreso_opcion = ref<Numerico>("");
+  const dataIngreso_fnumero = ref<Numerico>("");
+  const dataIngreso_ffecha = ref<Numerico>("");
+  const dataIngreso_id = ref<Numerico>("");
   const dataIngresoItems = ref<FilaRaiz[]>([]);
-  const dataCostos_proveedorName = ref<CampoRaiz>("");
-  const dataCostos_idProveedor = ref<CampoRaiz>("");
-  const dataCostos_concepto = ref<CampoRaiz>("");
+  const dataCostos_proveedorName = ref<Numerico>("");
+  const dataCostos_idProveedor = ref<Numerico>("");
+  const dataCostos_concepto = ref<Numerico>("");
   const dataCostos_statusCalcula = ref(true);
-  const dataCostos_monto = ref<CampoRaiz>("");
-  const dataCostos_igv = ref<CampoRaiz>("");
-  const dataCostos_total = ref<CampoRaiz>("");
-  const dataCostos_id = ref<CampoRaiz>("");
-  const dataCostos_opcion = ref<CampoRaiz>("");
-  const dataCostos_fnumero = ref<CampoRaiz>("");
-  const dataCostos_ffecha = ref<CampoRaiz>("");
+  const dataCostos_monto = ref<Numerico>("");
+  const dataCostos_igv = ref<Numerico>("");
+  const dataCostos_total = ref<Numerico>("");
+  const dataCostos_id = ref<Numerico>("");
+  const dataCostos_opcion = ref<Numerico>("");
+  const dataCostos_fnumero = ref<Numerico>("");
+  const dataCostos_ffecha = ref<Numerico>("");
   const dataCostosItems = ref<FilaRaiz[]>([]);
-  const dataTotalIngreso = ref<CampoRaiz>("");
-  const dataTotalCostos = ref<CampoRaiz>("");
-  const dataTotalIGV = ref<CampoRaiz>("");
-  const dataTotalCI = ref<CampoRaiz>("");
-  const report_id_status = ref<CampoRaiz>("");
-  const report_id_status_adm = ref<CampoRaiz>("");
-  const report_id_sentido = ref<CampoRaiz>("");
-  const report_id_operador = ref<CampoRaiz>("");
-  const reportFecha_ini = ref<CampoRaiz>("");
-  const reportFecha_fin = ref<CampoRaiz>("");
+  const dataTotalIngreso = ref<Numerico>("");
+  const dataTotalCostos = ref<Numerico>("");
+  const dataTotalIGV = ref<Numerico>("");
+  const dataTotalCI = ref<Numerico>("");
+  const report_id_status = ref<Numerico>("");
+  const report_id_status_adm = ref<Numerico>("");
+  const report_id_sentido = ref<Numerico>("");
+  const report_id_operador = ref<Numerico>("");
+  const reportFecha_ini = ref<Numerico>("");
+  const reportFecha_fin = ref<Numerico>("");
   const reportStatusTable = ref(true);
   const reportStatusTotal = ref(true);
   const reportsDialog = ref(false);
@@ -287,12 +301,12 @@ export const useAppStore = defineStore("app", () => {
   const totalPL = ref(0);
   const totalSS = ref(0);
   const totalPS = ref(0);
-  const branchs = ref<SucursalSesion[] | null>(null);
-  const id_role_actual = ref<CampoRaiz>("");
-  const master_itemsContainers = ref<FilaRaiz[]>([]);
+  const branchs = ref<SucursalSesion[]>(null as unknown as SucursalSesion[]);
+  const id_role_actual = ref<Numerico | string[]>("");
+  const master_itemsContainers = ref<ContenedorMasterRaiz[]>([]);
   const embar_title_nacn = ref("Aerolinea/Coloader/Naviera");
   const dataBranch = ref(dataBranchAtAppLoad);
-  const service_id_begend = ref<CampoRaiz>();
+  const service_id_begend = ref<Numerico>();
 
   const isEmpresaPermitida = computed(() => {
     const valEmpresaPic = [1, 2];
@@ -354,7 +368,7 @@ export const useAppStore = defineStore("app", () => {
   const itemsDataTotalesProveedorGetter = computed(() => itemsDataTotalesProveedor.value);
   const datanroMasterGetter = computed(() => datanroMaster.value);
   const datanroHouseGetter = computed(() => datanroHouse.value);
-  const master_embarqueGetter = computed(() => (master_id_trasnport.value as SeleccionRaiz).id);
+  const master_embarqueGetter = computed(() => master_id_trasnport.value.id);
   const id_role_actualGetter = computed(() => id_role_actual.value);
   const performancesGetter = computed(() => performances.value);
   const InvoiceAdminGetter = computed(() => InvoiceAdmin.value);
@@ -364,7 +378,7 @@ export const useAppStore = defineStore("app", () => {
   const provedoresGetter = computed(() => provedores.value);
   const clientesGetter = computed(() => clientes.value);
 
-  function _setEntities(dataEntities: ClienteListado[]): void {
+  function _setEntities(dataEntities: EntidadListadoRaiz[]): void {
     itemsEntities.value = dataEntities;
 
     dataList.value = true;
@@ -406,11 +420,11 @@ export const useAppStore = defineStore("app", () => {
     itemsSex.value = dataSex;
   }
 
-  function _setModality(dataModality: FilaRaiz[]): void {
+  function _setModality(dataModality: Modalidad[]): void {
     itemsModality.value = dataModality;
   }
 
-  function _setShipment(dataShipment: FilaRaiz[]): void {
+  function _setShipment(dataShipment: TipoEmbarqueRaiz[]): void {
     itemsShipment.value = dataShipment;
   }
 
@@ -422,7 +436,7 @@ export const useAppStore = defineStore("app", () => {
     itemsPortEnd.value = withoutDuplicatePorts(dataPortEnd);
   }
 
-  function _setIncoterms(dataIncoterms: FilaRaiz[]): void {
+  function _setIncoterms(dataIncoterms: IncotermRaiz[]): void {
     itemsIncoterms.value = dataIncoterms;
   }
 
@@ -478,17 +492,17 @@ export const useAppStore = defineStore("app", () => {
     mastersStore.house_nro_expediente = data[0]!.nro_house;
   }
 
-  function _setHouseList(data: FilaRaiz[]): void {
+  function _setHouseList(data: HouseListaRaiz[]): void {
     itemsHouseList.value = data;
   }
 
-  function _setMasterList(data: ExpedienteMaster[]): void {
+  function _setMasterList(data: ExpedienteMasterRaiz[]): void {
     itemsMasterList.value = data;
     // state.totalItemsMasterList = data.length || 0;
     dataMaster.value = true;
   }
 
-  function _setHouseListAll(data: FilaRaiz[]): void {
+  function _setHouseListAll(data: ExpedienteSinSolicitud[]): void {
     itemsHouseListAll.value = data;
     // state.totalItemsHouseListAll = data.length || 0;
     dataHouse.value = true;
@@ -502,15 +516,15 @@ export const useAppStore = defineStore("app", () => {
     itemsHouseServices.value = data;
   }
 
-  function _setBegEndList(data: FilaRaiz[]): void {
+  function _setBegEndList(data: BegEndHouseRaiz[]): void {
     itemsBegEndList.value = data;
   }
 
-  function _setItemsOperador(data: FilaRaiz[]): void {
+  function _setItemsOperador(data: OperadorRaiz[]): void {
     itemsOperadorList.value = data;
   }
 
-  function _setItemsProveedorList(data: FilaRaiz[]): void {
+  function _setItemsProveedorList(data: ProveedorRolRaiz[]): void {
     itemsProveedorList.value = data;
   }
 
@@ -527,7 +541,7 @@ export const useAppStore = defineStore("app", () => {
     itemsDataIngresos.value = data;
   }
 
-  function _setItemsDataTotalesProveedor(data: FilaRaiz[]): void {
+  function _setItemsDataTotalesProveedor(data: TotalProveedorRaiz[]): void {
     itemsDataTotalesProveedor.value = data;
   }
 
@@ -556,16 +570,16 @@ export const useAppStore = defineStore("app", () => {
     itemsDataBanksList.value = data;
   }
 
-  function _setItemsDataAccountsNumberList(data: FilaRaiz[]): void {
+  function _setItemsDataAccountsNumberList(data: FilaConIdRaiz[]): void {
     itemsDataAccountsNumberList.value = data;
   }
 
-  function _setItemsDataControlList(data: FilaRaiz[]): void {
+  function _setItemsDataControlList(data: MasterListadoControlGasto[]): void {
     itemsDataControlList.value = data;
     dataGastos.value = true;
   }
 
-  function _setItemsReportFileAll(data: FilaRaiz[]): void {
+  function _setItemsReportFileAll(data: ExpedienteMasterReporte[]): void {
     itemsReportFileAll.value = [];
     // data.sort((a, b) => {
     //   if (
@@ -597,11 +611,11 @@ export const useAppStore = defineStore("app", () => {
     itemsTotalesAll.value = data;
   }
 
-  function _setItemsPhone(data: FilaRaiz[]): void {
+  function _setItemsPhone(data: FilaConIdRaiz[]): void {
     itemsListPhoneEdit.value = data;
   }
 
-  function _setItemsContacts(data: FilaRaiz[]): void {
+  function _setItemsContacts(data: FilaConIdRaiz[]): void {
     itemsListContactEdit.value = data;
   }
 
@@ -609,7 +623,7 @@ export const useAppStore = defineStore("app", () => {
     performances.value = data;
   }
 
-  function _setInvoiceAdmin(data: FilaRaiz[]): void {
+  function _setInvoiceAdmin(data: FacturaAdminRaiz[]): void {
     InvoiceAdmin.value = data;
   }
 
@@ -621,19 +635,19 @@ export const useAppStore = defineStore("app", () => {
     year.value = data;
   }
 
-  function _setListPagosXProveedorCxP(data: PagoProveedorRaiz[]): void {
+  function _setListPagosXProveedorCxP(data: ListaPagosRaiz): void {
     listPagosXProveedorCxP.value = data;
   }
 
-  function _setProveedores(data: ProveedorPricing[]): void {
+  function _setProveedores(data: ProveedorRaiz[]): void {
     provedores.value = data;
   }
 
-  function _setClientes(data: FilaRaiz[]): void {
+  function _setClientes(data: ClienteRaiz[]): void {
     clientes.value = data;
   }
 
-  function SET_BRANCH(data: SucursalSesion[] | null): void {
+  function SET_BRANCH(data: SucursalSesion[]): void {
     branchs.value = data;
   }
 
@@ -663,7 +677,7 @@ export const useAppStore = defineStore("app", () => {
       },
       data: data,
     };
-    await axios<ApiResponse<ClienteListado[]>>(config)
+    await axios<ApiResponse<EntidadListadoRaiz[]>>(config)
       .then(function (response) {
         if (response.data.data) {
           _setEntities(response.data.data);
@@ -682,7 +696,7 @@ export const useAppStore = defineStore("app", () => {
         "Content-Type": "application/json",
       },
     };
-    await axios<ApiResponse<ClienteListado[]>>(config)
+    await axios<ApiResponse<EntidadListadoRaiz[]>>(config)
       .then(function (response) {
         if (response.data.data) {
           _setEntities(response.data.data);
@@ -767,7 +781,7 @@ export const useAppStore = defineStore("app", () => {
         "Content-Type": "application/json",
       },
     };
-    await axios<ApiResponse<FilaRaiz[]>>(config)
+    await axios<ApiResponse<ProveedorRolRaiz[]>>(config)
       .then(function (response) {
         _setItemsProveedorList(response.data.data);
       })
@@ -811,7 +825,7 @@ export const useAppStore = defineStore("app", () => {
       },
       data: data,
     };
-    await axios<ApiResponse<FilaRaiz[]>>(config)
+    await axios<ApiResponse<OperadorRaiz[]>>(config)
       .then(function (response) {
         _setItemsOperador(response.data.data);
       })
@@ -859,7 +873,7 @@ export const useAppStore = defineStore("app", () => {
       });
   }
 
-  async function _getState(idPais?: CampoRaiz): Promise<void> {
+  async function _getState(idPais?: Numerico): Promise<void> {
     const config = {
       method: "get",
       url: import.meta.env.VITE_URL_MAIN + `cargar_state?id_pais=${idPais || ""}`,
@@ -881,7 +895,7 @@ export const useAppStore = defineStore("app", () => {
       });
   }
 
-  async function _getCity(idState?: CampoRaiz): Promise<void> {
+  async function _getCity(idState?: Numerico): Promise<void> {
     const data = JSON.stringify({
       idState: idState,
     });
@@ -907,7 +921,7 @@ export const useAppStore = defineStore("app", () => {
       });
   }
 
-  async function _getTown(idCity?: CampoRaiz): Promise<void> {
+  async function _getTown(idCity?: Numerico): Promise<void> {
     const data = JSON.stringify({
       idCity: idCity,
     });
@@ -958,7 +972,7 @@ export const useAppStore = defineStore("app", () => {
       },
       data: data,
     };
-    await axios<ApiResponse<FilaRaiz[]>>(config)
+    await axios<ApiResponse<Modalidad[]>>(config)
       .then(function (response) {
         _setModality(response.data.data);
       })
@@ -979,7 +993,7 @@ export const useAppStore = defineStore("app", () => {
       },
       data: data,
     };
-    await axios<ApiResponse<FilaRaiz[]>>(config)
+    await axios<ApiResponse<TipoEmbarqueRaiz[]>>(config)
       .then(function (response) {
         _setShipment(response.data.data);
       })
@@ -1047,7 +1061,7 @@ export const useAppStore = defineStore("app", () => {
       },
       data: data,
     };
-    await axios<ApiResponse<FilaRaiz[]>>(config)
+    await axios<ApiResponse<IncotermRaiz[]>>(config)
       .then(function (response) {
         _setIncoterms(response.data.data);
       })
@@ -1213,7 +1227,7 @@ export const useAppStore = defineStore("app", () => {
       },
       data: data,
     };
-    await axios<ApiResponse<FilaRaiz[]>>(config)
+    await axios<ApiResponse<HouseListaRaiz[]>>(config)
       .then(function (response) {
         _setHouseList(response.data.data);
       })
@@ -1240,9 +1254,9 @@ export const useAppStore = defineStore("app", () => {
       },
       data: data,
     };
-    await axios<ApiResponse<ExpedienteMaster[]>>(config)
+    await axios<ApiResponse<ExpedienteMasterRaiz[]>>(config)
       .then(function (response) {
-        let data: ApiResponse<ExpedienteMaster[]> | ExpedienteMaster[] = response.data;
+        let data: ApiResponse<ExpedienteMasterRaiz[]> | ExpedienteMasterRaiz[] = response.data;
         sessionStorage.setItem("auth-token", data.token!);
         if (data.estadoflag) {
           data = data.data.map((elemento, index) => {
@@ -1258,7 +1272,7 @@ export const useAppStore = defineStore("app", () => {
             allowEscapeKey: false,
             allowEnterKey: false,
           }).then((resSwal) => {
-            if (resSwal.isConfirmed && (data as ApiResponse<ExpedienteMaster[]>).status == "401") {
+            if (resSwal.isConfirmed && (data as ApiResponse<ExpedienteMasterRaiz[]>).status == "401") {
               router.push({ name: "Login" });
               setTimeout(() => {
                 window.location.reload();
@@ -1327,7 +1341,7 @@ export const useAppStore = defineStore("app", () => {
         "Content-Type": "application/json",
       },
     };
-    await axios<ApiResponse<ExpedienteMaster[]>>(config)
+    await axios<ApiResponse<ExpedienteMasterRaiz[]>>(config)
       .then(function (response) {
         sessionStorage.setItem("auth-token", response.data.token!);
         if (response.data.estadoflag) {
@@ -1374,7 +1388,7 @@ export const useAppStore = defineStore("app", () => {
         "Content-Type": "application/json",
       },
     };
-    await axios<ApiResponse<FilaRaiz[]>>(config)
+    await axios<ApiResponse<ExpedienteSinSolicitud[]>>(config)
       .then(function (response) {
         sessionStorage.setItem("auth-token", response.data.token!);
         if (response.data.estadoflag) {
@@ -1461,7 +1475,7 @@ export const useAppStore = defineStore("app", () => {
       },
       data: data,
     };
-    await axios<ApiResponse<FilaRaiz[]>>(config)
+    await axios<ApiResponse<BegEndHouseRaiz[]>>(config)
       .then(function (response) {
         _setBegEndList(response.data.data);
       })
@@ -1481,7 +1495,7 @@ export const useAppStore = defineStore("app", () => {
         "Content-Type": "application/json",
       },
     };
-    await axios<ApiResponse<FilaRaiz[]>>(config)
+    await axios<ApiResponse<ExpedienteMasterReporte[]>>(config)
       .then(function (response) {
         if (response.data.estadoflag == true) {
           _setItemsReportFileAll(response.data.data);
@@ -1538,7 +1552,7 @@ export const useAppStore = defineStore("app", () => {
       },
       data: data,
     };
-    await axios<ApiResponse<FilaRaiz[]>>(config)
+    await axios<ApiResponse<ExpedienteMasterReporte[]>>(config)
       .then(function (response) {
         _setItemsReportFileAll(response.data.data);
       })
@@ -1617,15 +1631,15 @@ export const useAppStore = defineStore("app", () => {
       });
   }
 
-  async function _addPhones(id_entities: CampoRaiz): Promise<void> {
+  async function _addPhones(id_entities: Numerico): Promise<void> {
     itemsListPhone.value.push({
-      id: (phone_id.value as SeleccionRaiz).id,
-      name: (phone_id.value as SeleccionRaiz).name,
+      id: phone_id.value.id,
+      name: phone_id.value.name,
       number: phone_number.value,
     });
     const data = {
       id: id_entities,
-      tipo: (phone_id.value as SeleccionRaiz).id,
+      tipo: phone_id.value.id,
       phone: phone_number.value,
     };
     const config = {
@@ -1641,7 +1655,7 @@ export const useAppStore = defineStore("app", () => {
       .catch(function (error) {
         console.error(error);
       });
-    phone_id.value = "";
+    phone_id.value = "" as unknown as TipoTelefonoRaiz;
     phone_number.value = "";
   }
 
@@ -1655,7 +1669,7 @@ export const useAppStore = defineStore("app", () => {
     contact_number.value = "";
   }
 
-  async function ListarPhones(id: CampoRaiz): Promise<void> {
+  async function ListarPhones(id: Numerico): Promise<void> {
     const config = {
       method: "get",
       url: import.meta.env.VITE_URL_MAIN + "listar_phone/" + id,
@@ -1706,7 +1720,7 @@ export const useAppStore = defineStore("app", () => {
       },
       data: data,
     };
-    await axios<ApiResponse<FilaRaiz[]>>(config)
+    await axios<ApiResponse<FilaConIdRaiz[]>>(config)
       .then(function (response) {
         _setItemsPhone(response.data.data);
       })
@@ -1728,7 +1742,7 @@ export const useAppStore = defineStore("app", () => {
       },
       data: data,
     };
-    await axios<ApiResponse<FilaRaiz[]>>(config)
+    await axios<ApiResponse<FilaConIdRaiz[]>>(config)
       .then(function (response) {
         _setItemsContacts(response.data.data);
       })
@@ -1830,7 +1844,7 @@ export const useAppStore = defineStore("app", () => {
         "Content-Type": "application/json",
       },
     };
-    await axios<ApiResponse<FilaRaiz[]>>(config)
+    await axios<ApiResponse<TotalProveedorRaiz[]>>(config)
       .then(function (response) {
         _setItemsDataTotalesProveedor(response.data.data);
       })
@@ -1853,7 +1867,7 @@ export const useAppStore = defineStore("app", () => {
       },
       params: data,
     };
-    await axios<ApiResponse<FilaRaiz[]> & { statusText?: string }>(config)
+    await axios<ApiResponse<MasterListadoControlGasto[]> & { statusText?: string }>(config)
       .then(function (response) {
         const data = response.data;
         sessionStorage.setItem("auth-token", data.token!);
@@ -1942,7 +1956,7 @@ export const useAppStore = defineStore("app", () => {
       });
   }
 
-  async function _getInvoiceAdmin(id: CampoRaiz): Promise<void> {
+  async function _getInvoiceAdmin(id: Numerico): Promise<void> {
     const config = {
       method: "get",
       url: import.meta.env.VITE_URL_MAIN + "getVerInvoiceAdmin/" + id,
@@ -1950,7 +1964,7 @@ export const useAppStore = defineStore("app", () => {
         "Content-Type": "application/json",
       },
     };
-    await axios<ApiResponse<FilaRaiz[]>>(config)
+    await axios<ApiResponse<FacturaAdminRaiz[]>>(config)
       .then(function (response) {
         _setInvoiceAdmin(response.data.data);
       })
@@ -1959,7 +1973,7 @@ export const useAppStore = defineStore("app", () => {
       });
   }
 
-  async function _getInvoiceAdminCxC(id: CampoRaiz): Promise<void> {
+  async function _getInvoiceAdminCxC(id: Numerico): Promise<void> {
     const config = {
       method: "get",
       url: import.meta.env.VITE_URL_MAIN + "getVerInvoiceAdminCxC/" + id,
@@ -1967,7 +1981,7 @@ export const useAppStore = defineStore("app", () => {
         "Content-Type": "application/json",
       },
     };
-    await axios<ApiResponse<FilaRaiz[]>>(config)
+    await axios<ApiResponse<FacturaAdminRaiz[]>>(config)
       .then(function (response) {
         _setInvoiceAdmin(response.data.data);
       })
@@ -2013,7 +2027,7 @@ export const useAppStore = defineStore("app", () => {
       });
   }
 
-  async function _getListaPagosXProveedorCxP(id: CampoRaiz): Promise<void> {
+  async function _getListaPagosXProveedorCxP(id: Numerico): Promise<void> {
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const data = {
       id_proveedor: id,
@@ -2028,7 +2042,7 @@ export const useAppStore = defineStore("app", () => {
       },
       // params: data,
     };
-    await axios<ApiResponse<PagoProveedorRaiz[]>>(config)
+    await axios<ApiResponse<ListaPagosRaiz>>(config)
       .then(function (response) {
         const res = response.data;
         if (!!res.estadoflag) {
@@ -2047,7 +2061,7 @@ export const useAppStore = defineStore("app", () => {
       });
   }
 
-  async function _getListaPagosXProveedorCxC(id: CampoRaiz): Promise<void> {
+  async function _getListaPagosXProveedorCxC(id: Numerico): Promise<void> {
     _setListPagosXProveedorCxP([]);
     const config = {
       method: "get",
@@ -2056,7 +2070,7 @@ export const useAppStore = defineStore("app", () => {
         "Content-Type": "application/json",
       },
     };
-    await axios<ApiResponse<PagoProveedorRaiz[]> & { statusBol?: boolean }>(config)
+    await axios<ApiResponse<ListaPagosRaiz> & { statusBol?: boolean }>(config)
       .then(function (response) {
         if (!!response.data.statusBol) {
           const data = response.data.data;
@@ -2091,7 +2105,7 @@ export const useAppStore = defineStore("app", () => {
         "Content-Type": "application/json",
       },
     };
-    await axios<ApiResponse<ProveedorPricing[]>>(config)
+    await axios<ApiResponse<ProveedorRaiz[]>>(config)
       .then(function (response) {
         _setProveedores(response.data.data);
       })
@@ -2108,7 +2122,7 @@ export const useAppStore = defineStore("app", () => {
         "Content-Type": "application/json",
       },
     };
-    await axios<ApiResponse<FilaRaiz[]>>(config)
+    await axios<ApiResponse<ClienteRaiz[]>>(config)
       .then(function (response) {
         // console.log(response)
         _setClientes(response.data.data);
@@ -2122,7 +2136,7 @@ export const useAppStore = defineStore("app", () => {
   async function cargarBranch(): Promise<void> {
     const config = {
       method: "get",
-      url: import.meta.env.VITE_URL_MAIN + "CargarBranch/" + (sessionUser() as UsuarioSesionRaiz).id_user,
+      url: import.meta.env.VITE_URL_MAIN + "CargarBranch/" + sessionUser().id_user,
 
       headers: {
         "Content-Type": "application/json",

@@ -6,7 +6,7 @@ import axios from "@/api/http";
 import router from "@/router";
 import store from "@/store";
 import type { ApiResponse } from "@/types/api";
-import type { CampoRaiz } from "@/types/app";
+import type { Numerico } from "@/types/cotizacion";
 import type {
   Cliente,
   ClienteDetalle,
@@ -1156,8 +1156,8 @@ export const useEntitiesStore = defineStore("entities", () => {
     return res;
   }
 
-  const id_entitie_selected = ref<CampoRaiz>("");
-  const data_id_role = ref<CampoRaiz>("");
+  const id_entitie_selected = ref<Numerico>("");
+  const data_id_role = ref<Numerico>("");
 
   return {
     dataEntitiePost,

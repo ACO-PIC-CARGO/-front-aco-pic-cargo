@@ -4,7 +4,8 @@ import Swal from "sweetalert2";
 import axios from "@/api/http";
 import { useAppStore } from "@/stores/app";
 import type { ApiResponse } from "@/types/api";
-import type { CampoRaiz, FilaRaiz, FiltroExpedientesRaiz, NroMasterRaiz, SeleccionRaiz } from "@/types/app";
+import type { ExpedienteMasterRaiz, FilaRaiz, FiltroExpedientesRaiz, GrupoServiciosRaiz, NroMasterRaiz, ServicioListaRaiz } from "@/types/app";
+import type { Numerico } from "@/types/cotizacion";
 import type { ComentarioMaster } from "@/types/operaciones";
 import { localDateAtAppLoad } from "@/utils/appLoad";
 import { sessionBranchId } from "@/utils/sesion";
@@ -147,47 +148,47 @@ export const useMastersStore = defineStore("masters", () => {
   const salidaflag = ref(false);
   const llegadaflag = ref(false);
   const disponibilidadflag = ref(false);
-  const namecampaign = ref<CampoRaiz>("");
+  const namecampaign = ref<Numerico>("");
   const comentario = ref<FilaRaiz[]>([]);
-  const id_canal = ref<CampoRaiz>("");
-  const nro_manifiesto = ref<CampoRaiz>("");
-  const url_folderonedrive = ref<CampoRaiz>("");
-  const fecha_libre_almacenaje = ref<CampoRaiz>("");
-  const fecha_libre_sobreestadia = ref<CampoRaiz>("");
-  const almacen_recepcion = ref<CampoRaiz>("");
+  const id_canal = ref<Numerico>("");
+  const nro_manifiesto = ref<Numerico>("");
+  const url_folderonedrive = ref("");
+  const fecha_libre_almacenaje = ref<Numerico>("");
+  const fecha_libre_sobreestadia = ref<Numerico>("");
+  const almacen_recepcion = ref<Numerico>("");
   const dias_sobreestadia = ref<number | string>(0);
   const grupalflag = ref(false);
-  const itemsServicesBegin = ref<FilaRaiz[]>([]);
-  const itemsServicesList = ref<FilaRaiz[]>([]);
-  const itemsBitacoraList = ref<FilaRaiz[]>([]);
+  const itemsServicesBegin = ref<GrupoServiciosRaiz[]>([]);
+  const itemsServicesList = ref<ServicioListaRaiz[]>([]);
+  const itemsBitacoraList = ref<GrupoServiciosRaiz[]>([]);
   const itemsProveedorRolAgente = ref<FilaRaiz[]>([]);
   const itemsProveedorRolColoader = ref<FilaRaiz[]>([]);
   const itemsProveedorRolNaviera = ref<FilaRaiz[]>([]);
   const statusData = ref<boolean | string>(false);
-  const master_expediente = ref<CampoRaiz>("");
-  const master_Id_get = ref<CampoRaiz>("");
-  const master_nro_expediente = ref<CampoRaiz>("");
-  const master_cotizanion = ref<CampoRaiz>("");
-  const master_sentido = ref<CampoRaiz>("");
-  const master_incoterms = ref<CampoRaiz>("");
-  const master_ganancia_pricing = ref<CampoRaiz>("");
-  const master_ganancia_operaciones = ref<CampoRaiz>("");
-  const master_id_operador = ref<CampoRaiz>("");
+  const master_expediente = ref<Numerico>("");
+  const master_Id_get = ref<Numerico | string[]>("");
+  const master_nro_expediente = ref<Numerico>("");
+  const master_cotizanion = ref<Numerico>("");
+  const master_sentido = ref<Numerico>("");
+  const master_incoterms = ref<Numerico>("");
+  const master_ganancia_pricing = ref<Numerico>("");
+  const master_ganancia_operaciones = ref<Numerico>("");
+  const master_id_operador = ref<Numerico>("");
   const master_cantidad_house = ref(1);
-  const master_insertId = ref(1);
-  const master_id_consigner = ref<CampoRaiz>("");
-  const master_id_notify = ref<CampoRaiz>("");
-  const master_id_airlines = ref<CampoRaiz>("");
-  const master_id_coloader = ref<CampoRaiz>("");
-  const master_id_naviera = ref<CampoRaiz>("");
-  const master_id_motonave = ref<CampoRaiz>("");
-  const master_viaje = ref<CampoRaiz>("");
-  const master_bultos = ref<CampoRaiz>("");
-  const master_peso = ref<CampoRaiz>("");
-  const master_volumen = ref<CampoRaiz>("");
-  const master_id_condicion = ref<CampoRaiz>("");
-  const master_id_coins = ref<CampoRaiz>("");
-  const master_blmaster = ref<CampoRaiz>("");
+  const master_insertId = ref<Numerico | string[]>(1);
+  const master_id_consigner = ref<Numerico>("");
+  const master_id_notify = ref<Numerico>("");
+  const master_id_airlines = ref<Numerico>("");
+  const master_id_coloader = ref<Numerico>("");
+  const master_id_naviera = ref<Numerico>("");
+  const master_id_motonave = ref<Numerico>("");
+  const master_viaje = ref<Numerico>("");
+  const master_bultos = ref<Numerico>("");
+  const master_peso = ref<Numerico>("");
+  const master_volumen = ref<Numerico>("");
+  const master_id_condicion = ref<Numerico>("");
+  const master_id_coins = ref<Numerico>("");
+  const master_blmaster = ref<Numerico>("");
   const totalItemsMasterList = ref(0);
   const master_filtrarData = ref(false);
   const master_filtro = ref<FiltroExpedientesRaiz>({
@@ -195,26 +196,26 @@ export const useMastersStore = defineStore("masters", () => {
     fecha_eta_desde: null,
     fecha_etd_hasta: null,
     fecha_eta_hasta: null,
-  });
-  const master_fecha_eta = ref<CampoRaiz>(localDateAtAppLoad);
-  const master_fecha_etd = ref<CampoRaiz>(localDateAtAppLoad);
-  const master_fecha_disponibilidad = ref<CampoRaiz>(localDateAtAppLoad);
-  const house_nro_expediente = ref<CampoRaiz>("");
-  const rowMaster = ref<SeleccionRaiz | CampoRaiz>("");
-  const master_monto = ref<CampoRaiz>();
-  const nro_master = ref<CampoRaiz>();
-  const master_vuelo = ref<CampoRaiz>();
-  const cuotas = ref<CampoRaiz>();
+  } as FiltroExpedientesRaiz);
+  const master_fecha_eta = ref(localDateAtAppLoad);
+  const master_fecha_etd = ref(localDateAtAppLoad);
+  const master_fecha_disponibilidad = ref(localDateAtAppLoad);
+  const house_nro_expediente = ref<Numerico>("");
+  const rowMaster = ref<ExpedienteMasterRaiz>("" as unknown as ExpedienteMasterRaiz);
+  const master_monto = ref<Numerico>();
+  const nro_master = ref<Numerico>();
+  const master_vuelo = ref<Numerico>();
+  const cuotas = ref<Numerico>();
 
   const itemsServicesBeginGetter = computed(() => itemsServicesBegin.value);
   const itemsServicesListGetter = computed(() => itemsServicesList.value);
   const itemsBitacoraListGetter = computed(() => itemsBitacoraList.value);
 
-  function _setServicesBegin(dataServicesBegin: FilaRaiz[]): void {
+  function _setServicesBegin(dataServicesBegin: GrupoServiciosRaiz[]): void {
     itemsServicesBegin.value = dataServicesBegin.sort();
   }
 
-  function _setItemsBitacoraList(dataBitacoraList: FilaRaiz[]): void {
+  function _setItemsBitacoraList(dataBitacoraList: GrupoServiciosRaiz[]): void {
     itemsBitacoraList.value = dataBitacoraList;
   }
 
@@ -223,7 +224,7 @@ export const useMastersStore = defineStore("masters", () => {
     master_nro_expediente.value = data[0]!.nro_master;
   }
 
-  function _setRowMaster(data: SeleccionRaiz | CampoRaiz): void {
+  function _setRowMaster(data: ExpedienteMasterRaiz): void {
     rowMaster.value = data;
   }
 
@@ -231,7 +232,7 @@ export const useMastersStore = defineStore("masters", () => {
     totalItemsMasterList.value = data;
   }
 
-  function _setServicesList(data: FilaRaiz[]): void {
+  function _setServicesList(data: ServicioListaRaiz[]): void {
     itemsServicesList.value = data;
   }
 
@@ -255,9 +256,7 @@ export const useMastersStore = defineStore("masters", () => {
     const appStore = useAppStore();
     const data = {
       id_modality: master_sentido.value ? master_sentido.value : null,
-      id_shipment: (appStore.master_id_trasnport as SeleccionRaiz).id
-        ? (appStore.master_id_trasnport as SeleccionRaiz).id
-        : null,
+      id_shipment: appStore.master_id_trasnport.id ? appStore.master_id_trasnport.id : null,
       id_incoterms: master_incoterms.value ? master_incoterms.value : null,
       id_branch: sessionBranchId(),
     };
@@ -269,7 +268,7 @@ export const useMastersStore = defineStore("masters", () => {
       },
       data: data,
     };
-    await axios<ApiResponse<FilaRaiz[]>>(config)
+    await axios<ApiResponse<GrupoServiciosRaiz[]>>(config)
       .then(function (response) {
         if (response.data.data) {
           _setServicesBegin(response.data.data);
@@ -293,7 +292,7 @@ export const useMastersStore = defineStore("masters", () => {
       },
       data: data,
     };
-    await axios<ApiResponse<FilaRaiz[]>>(config)
+    await axios<ApiResponse<GrupoServiciosRaiz[]>>(config)
       .then(function (response) {
         _setItemsBitacoraList(response.data.data);
       })
@@ -362,7 +361,7 @@ export const useMastersStore = defineStore("masters", () => {
     const appStore = useAppStore();
     const data = {
       id_modality: master_sentido.value,
-      id_shipment: (appStore.master_id_trasnport as SeleccionRaiz).id,
+      id_shipment: appStore.master_id_trasnport.id,
       id_incoterms: master_incoterms.value,
       id_branch: sessionBranchId(),
     };
@@ -374,7 +373,7 @@ export const useMastersStore = defineStore("masters", () => {
       },
       data: data,
     };
-    await axios<ApiResponse<FilaRaiz[]>>(config)
+    await axios<ApiResponse<ServicioListaRaiz[]>>(config)
       .then(function (response) {
         _setServicesList(response.data.data);
       })

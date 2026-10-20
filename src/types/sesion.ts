@@ -11,6 +11,7 @@ export interface UsuarioSesion {
   user?: string;
   usuario?: string;
   users?: string;
+  id_user?: number;
 }
 
 export interface SucursalSesion {
