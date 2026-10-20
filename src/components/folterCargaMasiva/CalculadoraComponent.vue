@@ -29,7 +29,7 @@ const undeclaredAppState = appStore as typeof appStore & {
   moneda: { moneda: unknown[] };
 };
 
-// The old form starts every single selection as an empty array.
+// The form starts every single selection as an empty array.
 const sinSeleccion = () => [] as unknown as OpcionRegistroFlete;
 const formularioVacio = (): FormRegistroFlete => ({
   paisOrigen: sinSeleccion(),
@@ -132,7 +132,7 @@ const frecuencias = [
   { value: "INDEFINIDO", text: "INDEFINIDO" },
 ];
 const datosFormulario = ref<FormRegistroFlete>(formularioVacio());
-// Never declared in the old component, so it always reads undefined.
+// Never declared, so it always reads undefined.
 const moneda = undefined as OpcionRegistroFlete | undefined;
 
 //   ...mapState(["$store.state.itemsPais", "$store.state.moneda.moneda", "$store.state.calculadora.navieraCalc", "$store.state.calculadora.contendedorCalc"]),
@@ -1115,7 +1115,7 @@ onMounted(async () => {
 });
 
 watch(excel, () => {
-  // @ts-expect-error Kept: never true, an array literal is a new object
+  // @ts-expect-error never true, an array literal is a new object
   if (excel.value == null || excel.value == []) {
     procesarflag.value = false;
     itemsLCL.value = [];

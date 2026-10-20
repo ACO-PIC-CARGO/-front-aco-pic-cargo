@@ -162,7 +162,7 @@ function disabledImp({ code = "" }: { code?: string | number }) {
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 function amountOption() {
-  // @ts-expect-error Kept: called without its destructured argument, so it throws
+  // @ts-expect-error called without its destructured argument, so it throws
   calcularImpuestos();
 }
 </script>

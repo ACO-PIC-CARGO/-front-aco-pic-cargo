@@ -598,7 +598,7 @@ function montoITBM(item: Costo) {
   let monto = 0;
   const code = [29, 36, 41, 68];
   if (item.code_cost == 38) {
-    // @ts-expect-error Kept: data is not defined in this method, so this throws
+    // @ts-expect-error data is not defined in this method, so this throws
     const val = data.filter((v) => code.includes(v.code_cost));
     val.forEach((element: Costo) => {
       monto += parseFloat(
@@ -638,7 +638,7 @@ function montoNotaCredito(item: Costo) {
   let monto = 0 as Numerico;
   const code = [33];
   if (item.code_cost == 69) {
-    // @ts-expect-error Kept: data is not defined in this method, so this throws
+    // @ts-expect-error data is not defined in this method, so this throws
     const val = data.filter((v) => code.includes(v.code_cost));
     val.forEach((element: Costo) => {
       monto = element.costounitario;
@@ -659,7 +659,7 @@ function isNotPorcentaje(element: Costo, id_multiplicador: Costo["id_multiplicad
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 function abrirModal() {
   dialog = !dialog;
-  // @ts-expect-error Kept: limpiar is not defined in this component, so this throws
+  // @ts-expect-error limpiar is not defined in this component, so this throws
   limpiar();
 }
 function cambiarOpcionSeleccionada(opcion: OpcionComparativa, selected: boolean) {

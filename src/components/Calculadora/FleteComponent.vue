@@ -33,7 +33,7 @@ const undeclaredAppState = appStore as typeof appStore & {
 };
 const pricingStore = usePricingStore();
 
-// The old form starts every single selection as an empty array.
+// The form starts every single selection as an empty array.
 const sinSeleccion = () => [] as unknown as OpcionRegistroFlete;
 const formularioVacio = (): FormRegistroFlete => ({
   paisOrigen: sinSeleccion(),
@@ -141,7 +141,7 @@ const frecuencias = [
   { value: "INDEFINIDO", text: "INDEFINIDO" },
 ];
 const datosFormulario = ref<FormRegistroFlete>(formularioVacio());
-// Never declared in the old component, so it always reads undefined.
+// Never declared, so it always reads undefined.
 const moneda = undefined as OpcionRegistroFlete | undefined;
 
 // async guardarDatos() {
@@ -867,7 +867,7 @@ function change() {
       }
       if (result.isDenied) {
         /* eslint-disable vue/no-mutating-props */
-        // @ts-expect-error Kept: writes the read-only type prop
+        // @ts-expect-error writes the read-only type prop
         props.type = tipoSelected.value;
         /* eslint-enable vue/no-mutating-props */
       }
@@ -1330,7 +1330,7 @@ onMounted(async () => {
 });
 
 watch(excel, () => {
-  // @ts-expect-error Kept: never true, an array literal is a new object
+  // @ts-expect-error never true, an array literal is a new object
   if (excel.value == null || excel.value == []) {
     procesarflag.value = false;
     itemsLCL.value = [];
@@ -1414,7 +1414,7 @@ watch(excel, () => {
         >
           Nuevo Registro
         </v-btn> -->
-        <!-- @vue-expect-error Kept: compares the air item list with 0 -->
+        <!-- @vue-expect-error compares the air item list with 0 -->
         <v-btn
           color="success"
           class="mx-1"

@@ -107,7 +107,7 @@ function recargarServiciosCostos() {
   if (
     !aduanaStore.datosPrincipales.idsentido ||
     !aduanaStore.datosPrincipales.idincoterms ||
-    // @ts-expect-error Kept: an array never equals 0, so this operand is always false.
+    // @ts-expect-error an array never equals 0, so this operand is always false.
     Object.keys(aduanaStore.datosPrincipales.idtipocarga) === 0
   ) {
     return;

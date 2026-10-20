@@ -43,7 +43,7 @@ const metromcad = ref<Numerico>(0);
 const metromcadflag = ref(true);
 const nuevoflag = ref(true);
 const editarflag = ref(false);
-// Undeclared in the old data(): plain, non-reactive fields.
+// Never declared as data: plain, non-reactive fields.
 let peso: unknown;
 let volumen: unknown;
 let valor: unknown;
@@ -68,7 +68,7 @@ const opciones = computed({
     return calculadorasStore.opciones;
   },
   set(value: OpcionCalculadora[]) {
-    // @ts-expect-error Kept: the old setter passed the option list as the selected option
+    // @ts-expect-error the setter passes the option list as the selected option
     calculadorasStore.setOpcion(value); // o una mutation/action de Vuex
   },
 });

@@ -297,7 +297,7 @@ async function handleDrop(event: DragEvent) {
   event.preventDefault();
   loadingArras.value = true;
   loading.value = true;
-  // @ts-expect-error Kept: a drop stores the FileList itself
+  // @ts-expect-error a drop stores the FileList itself
   files.value = event.dataTransfer!.files;
   const procesar = await procesarExcel().then((res) => {
     return res;

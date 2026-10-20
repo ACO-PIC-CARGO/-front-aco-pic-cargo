@@ -1009,7 +1009,7 @@ let payfile: unknown;
 let msgfile = "";
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 let errfile = "";
-// It watched a name this component never had, so it never ran.
+// Never called: it handles a watch source this component does not have.
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 function recibirId(file: { inserid?: unknown; archivo?: unknown }) {
   payPath = file.inserid;

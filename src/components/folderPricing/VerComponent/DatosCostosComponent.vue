@@ -111,7 +111,7 @@ function isDateValid(date: string) {
           lg="3"
           xl="3"
         >
-          <!-- @vue-expect-error Kept: the store has no fecha_inicio, so no error message is shown -->
+          <!-- @vue-expect-error the store has no fecha_inicio, so no error message is shown -->
           <v-text-field
             type="date"
             v-model="pricingStore.datosPrincipales.fecha_inicio"

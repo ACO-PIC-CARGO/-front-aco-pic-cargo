@@ -167,7 +167,7 @@ function disabledImp({ code = "" }: { code?: string | number }) {
 }
 
 watch(() => props.impuestos, () => {
-  // @ts-expect-error Kept: called without its destructured argument, so it throws
+  // @ts-expect-error called without its destructured argument, so it throws
   calcularImpuestos();
   abierto.value = 0;
 });
@@ -179,7 +179,7 @@ watch(actualizarCostosFlag, () => {
   }, 120);
 });
 watch(() => props.amount, () => {
-  // @ts-expect-error Kept: called without its destructured argument, so it throws
+  // @ts-expect-error called without its destructured argument, so it throws
   calcularImpuestos();
   abierto.value = 0;
 });

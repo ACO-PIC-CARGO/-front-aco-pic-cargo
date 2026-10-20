@@ -16,7 +16,7 @@ const loading4 = ref(false);
 const dialogRegistroNotaLlamada = ref(false);
 const detallenota = useTemplateRef("detallenota");
 let fromData = undefined as unknown as FormNotaLlamada;
-// The template calls this handler but the old component never defined it.
+// Not defined anywhere, so calling it throws.
 const accionVerCotizacion = undefined as unknown as (id?: number) => void;
 const headers = [
     { key: "acciones", title: "", align: "center", estado: true },
@@ -81,7 +81,7 @@ const filtro = {
 async function imprimierCalls() {
   appStore.spiner = true;
   loading4.value = true;
-  // @ts-expect-error Kept: the action destructures other keys, so filtro is ignored.
+  // @ts-expect-error the action destructures other keys, so filtro is ignored.
   await pricingStore.imprimiReporteListadoCalls({ filtro: filtro });
   loading4.value = false;
   appStore.spiner = false;

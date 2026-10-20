@@ -116,7 +116,7 @@ async function actualizar() {
         await calculadorasStore.updateFleteGrupalVenta({ ...form.value, estado: false });
         calculadorasStore.getFleteGrupalVenta({ tipo: props.type });
       }
-      // @ts-expect-error Kept: called without a filter, so it throws before any request
+      // @ts-expect-error called without a filter, so it throws before any request
       calculadorasStore.getFleteGrupalResumen();
       dialog.value = false;
     }

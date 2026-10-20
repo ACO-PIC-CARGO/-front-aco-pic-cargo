@@ -21,9 +21,9 @@ const registroClienteFlag = computed(() => appStore.registroClienteFlag);
 async function changeShipment() {
   if (aduanaStore.datosPrincipales.idtipocarga) {
     appStore.spiner = true;
-    // @ts-expect-error Kept: the store action destructures its argument, so the call without one throws
+    // @ts-expect-error the store action destructures its argument, so the call without one throws
     await pricingStore.getPortBegin();
-    // @ts-expect-error Kept: the store action destructures its argument, so the call without one throws
+    // @ts-expect-error the store action destructures its argument, so the call without one throws
     await pricingStore.getPortEnd();
     appStore.spiner = false;
   }

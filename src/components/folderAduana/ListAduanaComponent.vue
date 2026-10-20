@@ -238,7 +238,7 @@ function to_direct({ url }: { url: string }) {
 
 async function reporteListado() {
   loading2.value = true;
-  // @ts-expect-error Kept: the action destructures other keys, so the filter is ignored.
+  // @ts-expect-error the action destructures other keys, so the filter is ignored.
   await pricingStore.imprimiReporteListado(filtro).catch((e) => {
     console.error(e);
   });
@@ -801,7 +801,7 @@ onMounted(async () => {
                 </tr>
               </thead>
               <tbody v-if="item.details!.length > 0">
-                <!-- @vue-expect-error Kept: the row object is the key -->
+                <!-- @vue-expect-error the row object is the key -->
                 <tr
                   v-for="i in item.details!"
                   :key="i"

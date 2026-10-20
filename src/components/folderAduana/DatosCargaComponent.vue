@@ -79,7 +79,7 @@ const frmDatosCarga = useTemplateRef("frmDatosCarga");
 const frmContainer = useTemplateRef("frmContainer");
 const calcularPesoFrom = useTemplateRef("calcularPesoFrom");
 
-// The old component declared this computed twice and only the later block ran, so it never existed.
+// Shadowed by the later computed block, so it never ran.
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 const abrirModalContenedorSombreado = computed(() => aduanaStore.abrirModalContenedor);
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -146,7 +146,7 @@ watch(
     }
   },
 );
-// The old watcher observed the missing computed, so it never fired.
+// Shadowed with the earlier computed block, so this watcher never ran.
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 async function abrirModalContenedorSombreadoWatcher() {
   const isFCL = aduanaStore.listShipment.some(

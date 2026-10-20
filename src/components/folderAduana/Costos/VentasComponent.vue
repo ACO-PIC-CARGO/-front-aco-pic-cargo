@@ -871,7 +871,7 @@ onMounted(() => {
 
                 <td class="colCostos">
                   <!-- eslint-disable vue/v-on-style -->
-                  <!-- @vue-expect-error Kept: the element listens to blur twice -->
+                  <!-- @vue-expect-error the element listens to blur twice -->
                   <v-text-field
                     class="derecha tdMontos"
                     v-if="
@@ -1148,7 +1148,7 @@ onMounted(() => {
 
                 <td class="colCostos">
                   <!-- eslint-disable vue/v-on-style -->
-                  <!-- @vue-expect-error Kept: the element listens to blur twice -->
+                  <!-- @vue-expect-error the element listens to blur twice -->
                   <v-text-field
                     class="derecha tdMontos"
                     v-if="
@@ -1425,7 +1425,7 @@ onMounted(() => {
 
                 <td class="colCostos">
                   <!-- eslint-disable vue/v-on-style -->
-                  <!-- @vue-expect-error Kept: the element listens to blur twice -->
+                  <!-- @vue-expect-error the element listens to blur twice -->
                   <v-text-field
                     class="derecha tdMontos"
                     v-if="
@@ -1702,7 +1702,7 @@ onMounted(() => {
 
                 <td class="colCostos">
                   <!-- eslint-disable vue/v-on-style -->
-                  <!-- @vue-expect-error Kept: the element listens to blur twice -->
+                  <!-- @vue-expect-error the element listens to blur twice -->
                   <v-text-field
                     class="derecha tdMontos"
                     v-if="
@@ -1977,7 +1977,7 @@ onMounted(() => {
 
                 <td class="colCostos">
                   <!-- eslint-disable vue/v-on-style -->
-                  <!-- @vue-expect-error Kept: the element listens to blur twice -->
+                  <!-- @vue-expect-error the element listens to blur twice -->
                   <v-text-field
                     class="derecha tdMontos"
                     v-if="
@@ -2255,7 +2255,7 @@ onMounted(() => {
 
                 <td class="colCostos">
                   <!-- eslint-disable vue/v-on-style -->
-                  <!-- @vue-expect-error Kept: the element listens to blur twice -->
+                  <!-- @vue-expect-error the element listens to blur twice -->
                   <v-text-field
                     class="derecha tdMontos"
                     v-if="
@@ -2533,7 +2533,7 @@ onMounted(() => {
 
                 <td class="colCostos">
                   <!-- eslint-disable vue/v-on-style -->
-                  <!-- @vue-expect-error Kept: the element listens to blur twice -->
+                  <!-- @vue-expect-error the element listens to blur twice -->
                   <v-text-field
                     class="derecha tdMontos"
                     v-if="

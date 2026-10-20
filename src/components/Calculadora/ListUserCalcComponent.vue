@@ -84,13 +84,13 @@ const datos = ref<Record<string, unknown>>({
   naviera: [],
 });
 const dataCotizacion = ref<Partial<UsuarioCalculadora>>({});
-// Undeclared in the old data(): plain, non-reactive fields.
+// Never declared as data: plain, non-reactive fields.
 let user: UsuarioCalculadora | undefined;
 let call: LlamadaCalculadora | undefined;
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 let calls: unknown[] | undefined;
 const frmComentario = useTemplateRef("frmComentario");
-// The template never declares this ref, so it stays undefined as in the old component.
+// The template never declares this ref, so it stays undefined.
 const frmCall = ref<{ validate: () => Promise<{ valid: boolean }> }>();
 
 onMounted(async () => {

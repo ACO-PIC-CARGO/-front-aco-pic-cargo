@@ -38,7 +38,7 @@ const opciones = computed({
     return calculadorasStore.opciones;
   },
   set(value: OpcionCalculadora[]) {
-    // @ts-expect-error Kept: the old setter passed the option list as the selected option
+    // @ts-expect-error the setter passes the option list as the selected option
     calculadorasStore.setOpcion(value); // o una mutation/action de Vuex
   },
 });

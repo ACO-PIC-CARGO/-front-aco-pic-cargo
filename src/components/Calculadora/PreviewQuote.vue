@@ -19,7 +19,7 @@ const incluye = ref<ElementoPreview[]>([]);
 const noincluye = ref<ElementoPreview[]>([]);
 const notasPrincipales = ref<ElementoPreview[]>([]);
 const datosEmpresa = ref<Partial<SucursalSesion>>({});
-// The old effective props never declared index, so it always reads undefined.
+// index is not a declared prop, so it always reads undefined.
 const index = undefined as number | undefined;
 
 const branches = () => JSON.parse(sessionStorage.getItem("dataBranch") as string) as SucursalSesion[];

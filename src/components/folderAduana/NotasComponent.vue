@@ -108,7 +108,7 @@ function formatDate(val: string) {
   }
 }
 function llenarNotasSeleccionadas() {
-  // @ts-expect-error Kept: the computed is read-only, so this write is ignored
+  // @ts-expect-error the computed is read-only, so this write is ignored
   opcionesSeleccionadas.value = aduanaStore.opcionCostos.filter(
     (v) => !!v.selected
   );
@@ -323,7 +323,7 @@ onMounted(() => {
         >
           Registro de nueva nota - Opción
           {{ opcionesSeleccionadas[page]!.nro_propuesta }}<v-spacer />
-          <!-- @vue-expect-error Kept: abrirDialog needs its argument, so the click throws -->
+          <!-- @vue-expect-error abrirDialog needs its argument, so the click throws -->
           <v-btn
             variant="text"
             icon

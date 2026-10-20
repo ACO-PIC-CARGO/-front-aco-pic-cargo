@@ -114,7 +114,7 @@ function to_link({ url = "" }: { url?: string }) {
   window.open(url, "_blank");
 }
 function llenarNotasSeleccionadas() {
-  // @ts-expect-error Kept: the computed is read-only, so this write is ignored
+  // @ts-expect-error the computed is read-only, so this write is ignored
   opcionesSeleccionadas.value =
     pricingStore.opcionCostos.filter((v) => !!v.selected);
 }
