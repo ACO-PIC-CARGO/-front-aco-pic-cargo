@@ -332,7 +332,7 @@ onMounted(async () => {
           </v-card-title>
         </v-col>
         <v-col cols="12">
-          <!-- @vue-expect-error the root state items are untyped until the Vuex store is typed -->
+          <!-- @vue-expect-error the headers pass sort: false, which the v-data-table header type does not accept -->
           <v-data-table
             :headers="headers"
             :items="listStatusHouse"

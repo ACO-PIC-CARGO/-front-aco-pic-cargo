@@ -31,7 +31,7 @@ const editableStep4 = ref(false);
 const indexCostos = ref(0);
 // ...mapState(["preServices", "preCostos"]),
 
-// The old component calls these three helpers but never defined them, so each call throws.
+// Not defined anywhere, so calling these throws.
 const recargarServicios = undefined as unknown as () => void;
 const crearCarpetaOneDrive = undefined as unknown as (
   data: Record<string, unknown>

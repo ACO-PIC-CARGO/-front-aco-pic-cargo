@@ -83,7 +83,7 @@ function showPaymentForm(plan: PlanPrecioMembresia) {
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 async function processPayment(planId: number | null) {
   try {
-    // @ts-expect-error Kept: no $axios global exists, so the payment throws before any request.
+    // @ts-expect-error no $axios global exists, so the payment throws before any request.
     const response = await $axios.post(
       import.meta.env.VITE_URL_MAIN + "getPayment",
       {

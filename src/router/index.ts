@@ -774,11 +774,11 @@ const routes = [
         path: "folterCalculadora/cotizacion/:id",
         name: "UserCalculadoraVer",
         component: () => import("../views/Calculadora/UserCalculadoraVer.vue"),
-        // @ts-expect-error duplicate keys of the unreachable UserCalculadoraVer route are kept as is
+        // @ts-expect-error duplicate keys: the later path, name and component win, so UserCalculadoraVer is unreachable
         path: "folderPlantillas/servicios_tarifas",
-        // @ts-expect-error duplicate keys of the unreachable UserCalculadoraVer route are kept as is
+        // @ts-expect-error duplicate key
         name: "ServiciosTarifasPlantillas",
-        // @ts-expect-error duplicate keys of the unreachable UserCalculadoraVer route are kept as is
+        // @ts-expect-error duplicate key
         component: () =>
           import("../views/FolderPlantillas/ServiciosTarifas.vue"),
       },

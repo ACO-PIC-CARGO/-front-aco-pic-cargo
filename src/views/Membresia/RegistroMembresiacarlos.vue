@@ -215,7 +215,7 @@ const planes: PlanMembresia[] = [
       ],
     },
   ];
-// Kept: the template has no ref="carrusel", so the auto scroll throws on undefined as before.
+// The template has no ref="carrusel", so the auto scroll throws on undefined.
 const carrusel = ref<HTMLElement>();
 
 onMounted(() => {

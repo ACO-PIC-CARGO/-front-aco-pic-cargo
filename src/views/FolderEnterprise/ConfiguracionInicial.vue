@@ -149,7 +149,7 @@ function regresarStep() {
             />
           </v-stepper-window-item>
           <v-stepper-window-item :value="4">
-            <!-- @vue-expect-error Kept: the view has never defined finalizar, and the component never emits it -->
+            <!-- @vue-expect-error the view does not define finalizar, and the component never emits it -->
             <ConfiguracionCostosComponent
               v-if="e1 == 4"
               @finalizar="finalizar()"
