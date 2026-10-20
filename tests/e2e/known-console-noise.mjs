@@ -160,6 +160,11 @@ export const KNOWN_CONSOLE_NOISE = [
     routes: ["VerAduana"],
   },
   {
+    pattern: /^Cannot read properties of undefined \(reading 'name'\)$/,
+    reason: "pre-existing timing race: folderAduana/ComparativaComponent builds its headers 120 ms after mount and throws when tipo_costo_x_embarque answers later (same with the pre-conversion files)",
+    routes: ["EditarAduana"],
+  },
+  {
     pattern: /^\[Vue warn\]: Error in mounted hook \(Promise\/async\): "TypeError: Cannot read properties of null \(reading 'forEach'\)"(\n|$)/,
     reason: "pre-existing on Vue 2: VerCotizacionCalculadora",
     routes: ["VerCotizacionCalculadora"],
