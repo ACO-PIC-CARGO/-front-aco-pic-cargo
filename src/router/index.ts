@@ -338,7 +338,7 @@ const routes = [
       {
         path: "FolderBanks/registroPayForProveedor",
         name: "registroPayForProveedor",
-        component: () => import("../views/FolderBanks/registroPagoProveedor.vue"),
+        component: () => import("../views/FolderBanks/RegistroPagoProveedorView.vue"),
       },
       {
         path: "FolderBanks/verPagosPorProveedor/:id",
