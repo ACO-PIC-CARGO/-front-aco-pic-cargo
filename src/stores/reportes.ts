@@ -1,28 +1,23 @@
-import axios from "@/api/http";
+import { defineStore } from "pinia";
+import { ref } from "vue";
 import Swal from "sweetalert2";
+import axios from "@/api/http";
+import type { ApiResponse } from "@/types/api";
+import type { BancoGastoDetalle, TotalMasterAgrupado, TotalMasterMes } from "@/types/finanzas";
+import { sessionBranchId } from "@/utils/sesion";
 
-const state = {
-  listDetalle: [],
-  totalMasterAgrupado: {},
-  totalMasterPorMes: [],
-};
-const mutations = {
-  SET_LIST_DETALLE(state, data) {
-    state.listDetalle = data;
-  },
-  SET_TOTAL_MASTER_AGRUPADO(state, data) {
+export const useReportesStore = defineStore("reportes", () => {
+  const listDetalle = ref<BancoGastoDetalle[]>([]);
+  const totalMasterAgrupado = ref<TotalMasterAgrupado | never[]>({});
+  const totalMasterPorMes = ref<TotalMasterMes[]>([]);
+
+  function setTotalMasterAgrupado(data: TotalMasterAgrupado | never[]): void {
     console.log("data", data);
-    state.totalMasterAgrupado = data;
-  },
-  SET_TOTAL_MASTER_POR_MES(state, data) {
-    state.totalMasterPorMes = data;
-  },
-};
-const actions = {
-  async exportReporteFile(__, data) {
-    data.id_branch = JSON.parse(
-      sessionStorage.getItem("dataUser"),
-    )[0].id_branch;
+    totalMasterAgrupado.value = data;
+  }
+
+  async function exportReporteFile(data: Record<string, unknown>): Promise<void> {
+    data.id_branch = sessionBranchId();
     Swal.fire({
       icon: "info",
       title: "Generando PDF...",
@@ -30,7 +25,7 @@ const actions = {
       showConfirmButton: false,
       allowOutsideClick: false,
     });
-    var config = {
+    const config = {
       method: "post",
       url: import.meta.env.VITE_URL_MAIN + "createdPDF",
       headers: {
@@ -38,9 +33,8 @@ const actions = {
       },
       data: data,
     };
-    var vm = this;
     await axios(config)
-      .then(function (response) {
+      .then(function () {
         Swal.fire({
           icon: "success",
           title: "PDF Generado",
@@ -57,13 +51,11 @@ const actions = {
       .catch(function (error) {
         console.error(error);
       });
-  },
-  async getListarBancosgastosDetalles({ commit }, data) {
-    data.id_branch = JSON.parse(
-      sessionStorage.getItem("dataUser"),
-    )[0].id_branch;
+  }
+  async function getListarBancosgastosDetalles(data: Record<string, unknown>): Promise<void> {
+    data.id_branch = sessionBranchId();
 
-    var config = {
+    const config = {
       method: "get",
       url: import.meta.env.VITE_URL_MAIN + `listar_banco_gasto_detalles`,
       headers: {
@@ -71,20 +63,20 @@ const actions = {
       },
       params: data,
     };
-    await axios(config)
+    await axios<ApiResponse<BancoGastoDetalle[]>>(config)
       .then(function (response) {
         if (response.data.estadoflag) {
-          commit("SET_LIST_DETALLE", response.data.data);
+          listDetalle.value = response.data.data;
         } else {
-          commit("SET_LIST_DETALLE", []);
+          listDetalle.value = [];
         }
       })
       .catch(function (error) {
         console.error(error);
       });
-  },
-  async getTotalesMasterAgrupado({ commit }, data) {
-    var config = {
+  }
+  async function getTotalesMasterAgrupado(data: Record<string, unknown>): Promise<void> {
+    const config = {
       method: "get",
       url: import.meta.env.VITE_URL_MAIN + `obtener_totales_master_general`,
       params: data,
@@ -92,22 +84,22 @@ const actions = {
         "Content-Type": "application/json",
       },
     };
-    await axios(config)
+    await axios<ApiResponse<TotalMasterAgrupado[]>>(config)
       .then((response) => {
-        let data = response.data;
-        sessionStorage.setItem("auth-token", data.token);
+        const data = response.data;
+        sessionStorage.setItem("auth-token", data.token!);
         if (data.estadoflag) {
-          commit("SET_TOTAL_MASTER_AGRUPADO", data.data[0]);
+          setTotalMasterAgrupado(data.data[0]!);
         } else {
-          commit("SET_TOTAL_MASTER_AGRUPADO", []);
+          setTotalMasterAgrupado([]);
         }
       })
       .catch((error) => {
         console.log("Error al obtener los datos:", error);
       });
-  },
-  async printTotalesMasterPorMes({ commit }, data) {
-    var config = {
+  }
+  async function printTotalesMasterPorMes(data: Record<string, unknown>): Promise<void> {
+    const config = {
       method: "get",
       url: import.meta.env.VITE_URL_MAIN + `imprimir_reporte_ganancia`,
       params: data,
@@ -127,18 +119,18 @@ const actions = {
       },
     });
 
-    await axios(config)
+    await axios<{ path: string }>(config)
       .then(function (response) {
-        let data = response.data;
+        const data = response.data;
         window.open(import.meta.env.VITE_URL_MAIN + data.path, "_blank");
         Swal.close();
       })
       .catch(function (error) {
         console.error(error);
       });
-  },
-  async imprimirReporteGananciaDetallado({ commit }, data) {
-    var config = {
+  }
+  async function imprimirReporteGananciaDetallado(data: Record<string, unknown>): Promise<void> {
+    const config = {
       method: "get",
       url: import.meta.env.VITE_URL_MAIN + `imprimir_reporte_ganancia_detallado`,
       params: data,
@@ -158,18 +150,18 @@ const actions = {
       },
     });
 
-    await axios(config)
+    await axios<{ path: string }>(config)
       .then(function (response) {
-        let data = response.data;
+        const data = response.data;
         window.open(import.meta.env.VITE_URL_MAIN + data.path, "_blank");
         Swal.close();
       })
       .catch(function (error) {
         console.error(error);
       });
-  },
-  async getTotalesMasterPorMes({ commit }, data) {
-    var config = {
+  }
+  async function getTotalesMasterPorMes(data: Record<string, unknown>): Promise<void> {
+    const config = {
       method: "get",
       url: import.meta.env.VITE_URL_MAIN + `obtener_totales_master_por_mes`,
       params: data,
@@ -177,73 +169,78 @@ const actions = {
         "Content-Type": "application/json",
       },
     };
-    await axios(config)
+    await axios<ApiResponse<TotalMasterMes[]>>(config)
       .then((response) => {
-        let data = response.data;
-        sessionStorage.setItem("auth-token", data.token);
+        const data = response.data;
+        sessionStorage.setItem("auth-token", data.token!);
         if (data.estadoflag) {
-          commit("SET_TOTAL_MASTER_POR_MES", data.data);
+          totalMasterPorMes.value = data.data;
         } else {
-          commit("SET_TOTAL_MASTER_POR_MES", []);
+          totalMasterPorMes.value = [];
         }
       })
       .catch((error) => {
         console.log("Error al obtener los datos:", error);
       });
-  },
-  async getTotalesMasterGeneralAgrupado({ commit }, data) {
-    var config = {
+  }
+  async function getTotalesMasterGeneralAgrupado(data: Record<string, unknown>): Promise<void> {
+    const config = {
       method: "get",
-      url:
-        import.meta.env.VITE_URL_MAIN + `obtener_totales_master_genetal_general`,
+      url: import.meta.env.VITE_URL_MAIN + `obtener_totales_master_genetal_general`,
       params: data,
       headers: {
         "Content-Type": "application/json",
       },
     };
-    await axios(config)
+    await axios<ApiResponse<TotalMasterAgrupado[]>>(config)
       .then((response) => {
-        let data = response.data;
-        sessionStorage.setItem("auth-token", data.token);
+        const data = response.data;
+        sessionStorage.setItem("auth-token", data.token!);
         if (data.estadoflag) {
-          commit("SET_TOTAL_MASTER_AGRUPADO", data.data[0]);
+          setTotalMasterAgrupado(data.data[0]!);
         } else {
-          commit("SET_TOTAL_MASTER_AGRUPADO", []);
+          setTotalMasterAgrupado([]);
         }
       })
       .catch((error) => {
         console.log("Error al obtener los datos:", error);
       });
-  },
-  async getTotalesMasterGeneralPorMes({ commit }, data) {
-    var config = {
+  }
+  async function getTotalesMasterGeneralPorMes(data: Record<string, unknown>): Promise<void> {
+    const config = {
       method: "get",
-      url:
-        import.meta.env.VITE_URL_MAIN + `obtener_totales_master_genetal_por_mes`,
+      url: import.meta.env.VITE_URL_MAIN + `obtener_totales_master_genetal_por_mes`,
       params: data,
       headers: {
         "Content-Type": "application/json",
       },
     };
-    await axios(config)
+    await axios<ApiResponse<TotalMasterMes[]>>(config)
       .then((response) => {
-        let data = response.data;
-        sessionStorage.setItem("auth-token", data.token);
+        const data = response.data;
+        sessionStorage.setItem("auth-token", data.token!);
         if (data.estadoflag) {
-          commit("SET_TOTAL_MASTER_POR_MES", data.data);
+          totalMasterPorMes.value = data.data;
         } else {
-          commit("SET_TOTAL_MASTER_POR_MES", []);
+          totalMasterPorMes.value = [];
         }
       })
       .catch((error) => {
         console.log("Error al obtener los datos:", error);
       });
-  },
-};
+  }
 
-export default {
-  namespace: true,
-  state,
-  mutations,
-  actions,
-};
+  return {
+    listDetalle,
+    totalMasterAgrupado,
+    totalMasterPorMes,
+    exportReporteFile,
+    getListarBancosgastosDetalles,
+    getTotalesMasterAgrupado,
+    printTotalesMasterPorMes,
+    imprimirReporteGananciaDetallado,
+    getTotalesMasterPorMes,
+    getTotalesMasterGeneralAgrupado,
+    getTotalesMasterGeneralPorMes,
+  };
+});

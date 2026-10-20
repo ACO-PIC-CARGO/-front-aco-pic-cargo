@@ -296,6 +296,7 @@ import Swal from "sweetalert2";
 import FormatFecha from "../comun/FormatFecha.vue";
 import { mapActions as mapPiniaActions } from "pinia";
 import { usePricingStore } from "@/stores/pricing";
+import { useReportesStore } from "@/stores/reportes";
 export default {
   name: "listMasterCom",
   props: {
@@ -376,10 +377,10 @@ export default {
       "_getControlFileAll",
       "_getControlFileAllFilter",
       "_getOperador",
-      "exportReporteFile",
       "_getTotalesAll",
       "_getTotales",
     ]),
+    ...mapPiniaActions(useReportesStore, ["exportReporteFile"]),
     ...mapPiniaActions(usePricingStore, ["getModulesEntities"]),
     getFecha(fecha) {
       moment.locale("es");

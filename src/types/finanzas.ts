@@ -19,3 +19,15 @@ export interface FiltroProgramacionProveedor {
   id: number | string;
   id_coins: number | string;
 }
+
+export interface BancoGastoDetalle {
+  [campo: string]: unknown;
+}
+
+export interface TotalMasterAgrupado {
+  [campo: string]: unknown;
+}
+
+export interface TotalMasterMes {
+  [campo: string]: unknown;
+}

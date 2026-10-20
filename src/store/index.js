@@ -10,7 +10,6 @@ import controlGastos from "./modules/controlGasto";
 import balances from "./modules/balanace";
 import proyecciones from "./modules/proyeccion";
 import bank from "./modules/bank";
-import reportes from "./modules/reporte";
 import Swal from "sweetalert2";
 import moment from "moment";
 
@@ -2827,7 +2826,6 @@ export default createStore({
   },
 
   modules: {
-    reportes,
     controlGastos,
     balances,
     proyecciones,

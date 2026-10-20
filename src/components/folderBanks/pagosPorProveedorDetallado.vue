@@ -35,7 +35,7 @@
         <v-data-table
           :search="search"
           :headers="headersCabecera"
-          :items="$store.state.reportes.listDetalle"
+          :items="reportesStore.listDetalle"
           density="compact"
         >
           <template v-slot:[`item.action`]="{ item }">
@@ -165,13 +165,13 @@
 
 <script>
 import moment from "moment";
-import { mapActions } from "vuex";
-import { mapActions as mapPiniaActions } from "pinia";
+import { mapActions as mapPiniaActions, mapStores } from "pinia";
 import { useSecuritysStore } from "@/stores/securitys";
 import FormatFecha from "../comun/FormatFecha.vue";
 import axios from "@/api/http";
 import Swal from "sweetalert2";
 import BarraFiltro from "../BarraMostrarFiltro/BarraFiltro.vue";
+import { useReportesStore } from "@/stores/reportes";
 export default {
   components: {
     FormatFecha,
@@ -224,8 +224,11 @@ export default {
     await this.getListarBancosgastosDetalles(this.filtro);
     await this.getListBanksDetailsCargar();
   },
+  computed: {
+    ...mapStores(useReportesStore),
+  },
   methods: {
-    ...mapActions(["getListarBancosgastosDetalles"]),
+    ...mapPiniaActions(useReportesStore, ["getListarBancosgastosDetalles"]),
     ...mapPiniaActions(useSecuritysStore, ["validarUsuarioAdmin"]),
     async ver(pago) {
       this.$router.push({

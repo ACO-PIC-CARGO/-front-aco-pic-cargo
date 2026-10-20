@@ -342,7 +342,8 @@
 </template>
 
 <script>
-import { mapActions } from "vuex";
+import { mapActions as mapPiniaActions, mapStores } from "pinia";
+import { useReportesStore } from "@/stores/reportes";
 
 export default {
   name: "ReporteGanancia",
@@ -365,13 +366,14 @@ export default {
     this.cargarReporte();
   },
   computed: {
+    ...mapStores(useReportesStore),
     // =========================================================
     // DATOS DEL STORE
     // =========================================================
 
     totalMasterAgrupado() {
       return (
-        this.$store.state.reportes.totalMasterAgrupado || {
+        this.reportesStore.totalMasterAgrupado || {
           total_pr: 0,
           total_op: 0,
           total_individuales: 0,
@@ -383,7 +385,7 @@ export default {
     },
 
     totalMasterPorMes() {
-      return this.$store.state.reportes.totalMasterPorMes || [];
+      return this.reportesStore.totalMasterPorMes || [];
     },
 
     // =========================================================
@@ -444,11 +446,7 @@ export default {
   },
 
   methods: {
-    ...mapActions([
-      "getTotalesMasterAgrupado",
-      "getTotalesMasterPorMes",
-      "printTotalesMasterPorMes",
-    ]),
+    ...mapPiniaActions(useReportesStore, ["getTotalesMasterAgrupado", "getTotalesMasterPorMes", "printTotalesMasterPorMes"]),
     abrirReporteGananciaDetallado(item) {
       this.$router.push({
         name: "ReporteGananciaDetallado",
