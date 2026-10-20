@@ -45,7 +45,7 @@
                 v-if="DatosCargaComponentFlag"
                 @activarServicios="activarServicios()"
                 @recargarCostos="recargarCostos"
-                :ServicesComponentFlag="ServicesComponentFlag"
+                :services-component-flag="ServicesComponentFlag"
               />
             </v-col>
             <v-col cols="12" id="ServicesComponent">

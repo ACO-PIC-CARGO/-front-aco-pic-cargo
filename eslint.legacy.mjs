@@ -98,7 +98,6 @@ export const LEGACY = [
   "src/components/folderPricing/Costos/ImpuestosComponent.vue",
   "src/components/folderPricing/Costos/VentasComponent.vue",
   "src/components/folderPricing/CotizacionPilotoAutomatico.vue",
-  "src/components/folderPricing/DatosCargaComponent.vue",
   "src/components/folderPricing/DatosCostosComponent.vue",
   "src/components/folderPricing/NotasComponent.vue",
   "src/components/folderPricing/VerComponent/ComparativaComponent.vue",

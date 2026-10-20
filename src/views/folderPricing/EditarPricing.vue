@@ -55,7 +55,7 @@
                 @recargarGrupalFlag="recargarGrupalFlag"
                 :mostrarBtn="false"
                 :abrirModalContenedorRecargar="abrirModalContenedorRecargar"
-                :ServicesComponentFlag="true"
+                :services-component-flag="true"
               />
             </v-col>
             <v-col cols="12">

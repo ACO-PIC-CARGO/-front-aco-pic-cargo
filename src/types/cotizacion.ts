@@ -121,6 +121,30 @@ export interface Costo {
   id_proveedor?: number | string | null;
   id_role?: number | string | null;
   error?: string;
+  id_incoterms?: number | string;
+  id_modality?: number | string;
+  id_shipment?: number | string;
+  id_services?: number | string;
+  id_container?: number | string | null;
+  escontenedorflag?: boolean | number;
+  profit_ganancia_pricing?: ProfitGananciaPricing[];
+  tienefleteflag?: boolean;
+  tieneprofitflag?: boolean;
+  fechavigencia?: string | null;
+  nro_propuesta?: number | string;
+}
+
+export interface ProfitGananciaPricing {
+  esindividualflag?: boolean;
+  esgrupalflag?: boolean;
+  profitprimeraimportacion?: Numerico;
+  profitsegundaimportacion?: Numerico;
+}
+
+export interface FleteOpcionCosto {
+  monto: Numerico;
+  tienefleteflag: boolean;
+  fechavigencia: string | null | undefined;
 }
 
 export interface Servicio {
@@ -137,7 +161,7 @@ export interface Servicio {
 }
 
 export interface Nota {
-  id?: number | string;
+  id?: number | string | null;
   descripcion?: string;
   statusincluye?: unknown;
   statusnoincluye?: unknown;
@@ -145,6 +169,8 @@ export interface Nota {
   nro_propuesta?: number | string;
   estado?: number | boolean;
   statusprincipal?: number;
+  individualflag?: boolean;
+  grupalflag?: boolean;
 }
 
 export interface EstadoCotizacion {
@@ -651,4 +677,31 @@ export interface CostoServicioDetalle {
   esalmacenflag?: boolean;
   esfleteflag?: boolean;
   esgastostercerosflag?: boolean;
+}
+
+export interface FormMedidasCarga {
+  idLongitud: number | null;
+  idpeso: number | null;
+  bultos: Numerico;
+  largo: Numerico;
+  ancho: Numerico;
+  alto: Numerico;
+  peso: Numerico;
+}
+
+export interface FilaMedidaCarga {
+  uni: Numerico;
+  peso: Numerico;
+  volumen: Numerico;
+  largo: Numerico;
+  ancho: Numerico;
+  alto: Numerico;
+  pesoXBulto: Numerico;
+}
+
+export interface TotalMedidaCarga {
+  descripcion: string | null;
+  uni: Numerico;
+  peso: Numerico;
+  volumen: Numerico;
 }
