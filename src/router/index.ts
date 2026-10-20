@@ -358,7 +358,7 @@ const routes = [
       {
         path: "FolderBanks/listadoPagosPorCliente",
         name: "listBankCxC",
-        component: () => import("../views/FolderBanks/listadoPagosPorCliente.vue"),
+        component: () => import("../views/FolderBanks/ListadoPagosPorClienteView.vue"),
       },
       {
         path: "FolderBanks/registroPayForCliente",

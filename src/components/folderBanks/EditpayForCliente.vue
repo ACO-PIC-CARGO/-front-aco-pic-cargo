@@ -1,564 +1,627 @@
-<template>
-  
-    <v-container fluid>
-      <!-- v-model="value" -->
-      <v-tabs color="#A43542" slider-color="primary" fixed-tabs v-model="tab">
-        <v-tab value="ref1">STEP 1</v-tab>
-        <v-tab value="ref2" :disabled="step2">STEP 2</v-tab>
-      </v-tabs>
-      <v-tabs-window v-model="tab">
-        <v-tabs-window-item value="ref1">
-          <v-row class="mt-5">
-            <v-col md="12" cols="12">
-              <h1 v-if="tipo == 'nuevo'">
-                MONTO A COBRAR :{{ symbol }} {{ total }}
-              </h1>
-              <h1 v-else>MONTO TOTAL : {{ totalPagado }}</h1>
-            </v-col>
-            <v-col md="4" cols="4">
-              <v-autocomplete
-                :items="clientes"
-                item-title="namelong"
-                item-value="id"
-                label="Cliente"
-                v-model="id_proveedor"
-                return-object
-                clearable
-                :readonly="tipo == 'ver'"
-                @update:model-value="obtenerListado()"
-              >
-              </v-autocomplete>
-            </v-col>
+<script setup lang="ts">
+import { computed, onMounted, ref, watch } from "vue";
+import { useRoute } from "vue-router";
+import { useStore } from "vuex";
+import Swal from "sweetalert2";
+import axios from "@/api/http";
+import type { ClientePago, CuentaDestinoCliente, DetallePagoCliente } from "@/types/banks";
+import { sessionBranchId } from "@/utils/sesion";
 
-            <v-col
-              md="12"
-              cols="12"
-              v-if="$store.state.listPagosXProveedorCxP.length > 0"
-            >
-              <v-data-table
-                :headers="headers"
-                :items="listPagosXProveedorCxP"
-                show-select
-                item-value="id"
-                return-object
-                v-model="selected"
-              >
-                <template v-slot:[`item.moneda`]="{ item }">
-                  <v-autocomplete
-                    :items="$store.state.itemsCoinsList"
-                    v-model="id_coins"
-                    item-title="acronym"
-                    item-value="id"
-                    label="Moneda"
-                    v-on:blur="obtenerSymbol()"
-                    :disabled="
-                      selected.filter((v) => v.id == item.id).length == 0
-                    "
-                  ></v-autocomplete>
-                </template>
-                <template v-slot:[`item.montopagar`]="{ item }">
-                  <v-text-field
-                    :prefix="symbol"
-                    v-model="item.montopagar"
-                    type="number"
-                    :max="item.montopagar"
-                    :disabled="
-                      selected.filter((v) => v.index == item.index).length == 0
-                    "
-                    v-on:blur="calcularTotal()"
-                    :error-messages="item.err"
-                  >
-                  </v-text-field>
-                </template>
-                <template v-slot:[`item.maxpagar`]="{ item }">
-                  {{ item.symbol }} {{ item.max_pagar }}
-                </template>
-                <template v-slot:[`item.tipocambio`]="{ item }">
-                  <v-text-field
-                    v-model="item.tipocambio"
-                    v-on:blur="calcularMonto()"
-                    type="number"
-                    :disabled="
-                      selected.filter((v) => v.index == item.index).length == 0
-                    "
-                  >
-                  </v-text-field>
-                </template>
-              </v-data-table>
-            </v-col>
-            <v-col
-              md="12"
-              cols="12"
-              v-if="$store.state.listPagosXProveedorCxP.length > 0"
-            >
-              <div class="text-right" v-if="tipo == 'nuevo'">
-                <v-btn color="success" @click="continuar()"> Continuar </v-btn>
-              </div>
-            </v-col>
-          </v-row>
-        </v-tabs-window-item>
-        <v-tabs-window-item value="ref2">
-          <v-col md="12" cols="12">
-            <h1>MONTO A COBRAR : {{ symbol }} {{ total }}</h1>
-          </v-col>
-          <v-row class="mt-5">
-            <v-col cols="4" md="4">
-              <v-text-field
-                type="date"
-                v-model="date"
-                label="Fecha "
-              ></v-text-field>
-            </v-col>
-            <v-col md="6" cols="6" v-if="tipo == 'nuevo'">
-              <div>
-                <v-file-input
-                  v-model="payfile"
-                  label="Soporte de Pago"
-                  show-size
-                  truncate-length="50"
-                  hide-details
-                  v-if="!boolFile"
-                >
-                </v-file-input>
-                <v-chip color="success" v-if="boolFile">
-                  Documento Cargado
-                </v-chip>
-              </div>
-            </v-col>
-            <v-col md="2" cols="2" v-if="!boolFile && tipo == 'nuevo'">
-              <v-btn color="info" @click="_uploadFile()">
-                <v-icon class="mx-1" size="small">
-                  mdi-cloud-upload-outline
-                </v-icon>
-                Upload
-              </v-btn>
-            </v-col>
-            <v-col md="6" v-if="tipo != 'nuevo'">
-              <h6>DOCUMENTO:</h6>
-              <v-table>
-                <tbody>
-                  <tr>
-                    <td>{{ name_path }}</td>
-                    <td>
-                      <v-btn variant="text"
-                        icon
-                        color="red"
-                        :href="url_documento"
-                        target="_blank"
-                      >
-                        <v-icon>mdi-file-pdf-box</v-icon>
-                      </v-btn>
-                    </td>
-                  </tr>
-                </tbody>
-              </v-table>
-            </v-col>
-            <v-col md="4" cols="4">
-              <v-autocomplete
-                :items="cuentas.filter((v) => v.symbol == symbol)"
-                item-title="label"
-                item-value="id"
-                label="Cuenta Destino (PIC)"
-                v-model="id_cuenta"
-                return-object
-                :readonly="tipo == 'ver'"
-              ></v-autocomplete>
-            </v-col>
-            <v-col md="4" cols="4">
-              <v-text-field
-                readonly
-                v-model="id_cuenta.banco"
-                label="Banco:"
-                v-if="tipo == 'nuevo'"
-              ></v-text-field>
-            </v-col>
-            <v-col md="4" cols="4">
-              <v-text-field
-                readonly
-                v-model="id_cuenta.moneda"
-                label="Moneda:"
-                v-if="tipo == 'nuevo'"
-              ></v-text-field>
-            </v-col>
-            <v-col md="4" cols="4"
-              ><v-text-field
-                readonly
-                v-model="id_cuenta.cuenta"
-                label="N° Cuenta:"
-                v-if="tipo == 'nuevo'"
-              ></v-text-field
-            ></v-col>
-            <v-col md="4" cols="4">
-              <v-select
-                :items="$store.state.itemsDataBanksList"
-                v-model="id_banco_origen"
-                label="Banco Origen"
-                item-title="acronym"
-                item-value="id"
-              ></v-select>
-            </v-col>
-            <v-col md="4" cols="4"
-              ><v-text-field
-                v-model="nro_operacion"
-                label="Nro Operacion"
-                v-if="tipo == 'nuevo'"
-              ></v-text-field
-            ></v-col>
-            <v-col md="12" cols="12" v-if="tipo == 'nuevo'">
-              <div class="text-right">
-                <v-btn
-                  :loading="loading"
-                  :disabled="
-                    !id_cuenta.id ||
-                    !nro_operacion ||
-                    !id_banco_origen 
-                  "
-                  color="success"
-                  @click="_putPayForProveedor()"
-                >
-                  PROCESAR PAGO
-                </v-btn>
-              </div>
-            </v-col>
-          </v-row>
-        </v-tabs-window-item>
-      </v-tabs-window>
-    </v-container>
-  
-</template>
+const props = defineProps<{ tipo?: string }>();
 
-<script>
-import axios from '@/api/http';
+const rootStore = useStore();
+const route = useRoute();
+const listPagosXProveedorCxP = computed<DetallePagoCliente[]>(() => rootStore.state.listPagosXProveedorCxP);
+const clientes = computed(() => rootStore.state.clientes);
 
-import { mapActions, mapState } from "vuex";
-import { mapActions as mapPiniaActions } from "pinia";
-import { useBancosStore } from "@/stores/bancos";
-export default {
-  props: ["tipo"],
-  data() {
-    return {
-      loading: false,
-      date: "",
-      symbol: "USD",
-      payfile: [],
-      selected: [],
-      id_coins: 1,
-      payPath: "",
-      id_proveedor: "",
-      boolFile: false,
-      cuentas: [],
-      id_cuenta: "",
-      itemsClientes: [],
-      tab: null,
-      total: 0,
-      step2: true,
-      name_path: "",
-      url_documento: "",
-      totalPagado: 0,
-      nro_operacion: "",
-      id_banco_origen: "",
-      headers: [
-        {
-          title: "Fecha",
-          key: "fecha",
-        },
-
-        {
-          title: "House",
-          key: "codigo_house",
-        },
-
-        {
-          title: "Cliente Pagó",
-          key: "statuspago",
-        },
-        {
-          title: "Monto Dolar",
-          key: "monto_pagar",
-        },
-
-        {
-          title: "Monto Moneda Banco",
-          key: "maxpagar",
-        },
-
-        {
-          title: "Moneda",
-          key: "moneda",
-        },
-        {
-          title: "Tipo Cambio",
-          key: "tipocambio",
-        },
-        {
-          title: "Pago Parcial",
-          key: "montopagar",
-        },
-      ],
-    };
+const loading = ref(false);
+const date = ref("");
+const symbol = ref("USD");
+const payfile = ref<File[]>([]);
+const selected = ref<DetallePagoCliente[]>([]);
+const id_coins = ref<number | string>(1);
+const payPath = ref("");
+const id_proveedor = ref<ClientePago>("" as unknown as ClientePago);
+const boolFile = ref(false);
+const cuentas = ref<CuentaDestinoCliente[]>([]);
+const id_cuenta = ref<CuentaDestinoCliente>("" as unknown as CuentaDestinoCliente);
+const tab = ref<string | null>(null);
+const total = ref<number | string>(0);
+const step2 = ref(true);
+const name_path = ref("");
+const url_documento = ref("");
+const totalPagado = ref(0);
+const nro_operacion = ref("");
+const id_banco_origen = ref<number | string>("");
+const headers = [
+  {
+    title: "Fecha",
+    key: "fecha",
   },
-  async mounted() {
-    let vm = this;
-    vm.$store.state.spiner = true;
-    await vm._getBanksList();
-    await vm.cargarClientes();
-    await vm.obtenerListado();
-    await vm.getListBanksDetailsCargar();
-    await vm.getListBanksDetailsCargar();
-    await vm.limpiarDatos();
-    await vm.obtenerDatos();
-    await vm._getCoinsList();
 
-    vm.$store.state.spiner = false;
+  {
+    title: "House",
+    key: "codigo_house",
   },
-  methods: {
-    ...mapActions([
-      "_getListaPagosXProveedorCxC",
-      "_getCoinsList",
-      "cargarClientes",
-      "_getBanksList",
-    ]),
-    ...mapPiniaActions(useBancosStore, ["getListBanksDetailsCargar"]),
-    async obtenerListado() {
-      this.$store.state.listPagosXProveedorCxP.listPagosXProveedorCxP = [];
-      this.date = "";
-      this.payfile = [];
-      this.boolFile = false;
-      this.id_cuenta = "";
-      this.id_banco_origen = "";
-      this.nro_operacion = "";
-      if (this.id_proveedor.id && this.tipo == "nuevo") {
-        await this._getListaPagosXProveedorCxC(this.id_proveedor.id);
-      } else {
-        this.selected = [];
-      }
-    },
 
-    async getListBanksDetailsCargar() {
-      let vm = this;
-      var config = {
-        method: "get",
-        url: import.meta.env.VITE_URL_MAIN + "getListBanksDetailsCargar",
-        params: {
-          id_branch: JSON.parse(sessionStorage.getItem("dataUser"))[0].id_branch,
-        },
-        headers: {
-         
-          "Content-Type": "application/json",
-        },
-      };
-      await axios(config)
-        .then(function (response) {
-          vm.cuentas = response.data.data;
-        })
-        .catch(function (error) {
-          console.error(error);
-        });
-    },
+  {
+    title: "Cliente Pagó",
+    key: "statuspago",
+  },
+  {
+    title: "Monto Dolar",
+    key: "monto_pagar",
+  },
 
-    validarMonto(details) {
-      if (parseFloat(details.max_pagar) < parseFloat(details.monto_deuda)) {
-        document.getElementById(`pago${details.id}`).focus();
-      } else {
-        this.calcularTotal();
-      }
+  {
+    title: "Monto Moneda Banco",
+    key: "maxpagar",
+  },
+
+  {
+    title: "Moneda",
+    key: "moneda",
+  },
+  {
+    title: "Tipo Cambio",
+    key: "tipocambio",
+  },
+  {
+    title: "Pago Parcial",
+    key: "montopagar",
+  },
+];
+
+async function obtenerListado() {
+  rootStore.state.listPagosXProveedorCxP.listPagosXProveedorCxP = [];
+  date.value = "";
+  payfile.value = [];
+  boolFile.value = false;
+  id_cuenta.value = "" as unknown as CuentaDestinoCliente;
+  id_banco_origen.value = "";
+  nro_operacion.value = "";
+  if (id_proveedor.value.id && props.tipo == "nuevo") {
+    await rootStore.dispatch("_getListaPagosXProveedorCxC", id_proveedor.value.id);
+  } else {
+    selected.value = [];
+  }
+}
+async function getListBanksDetailsCargar() {
+  const config = {
+    method: "get",
+    url: import.meta.env.VITE_URL_MAIN + "getListBanksDetailsCargar",
+    params: {
+      id_branch: sessionBranchId(),
     },
-    obtenerSymbol() {
-      this.symbol = this.$store.state.itemsCoinsList.filter(
-        (v) => v.id == this.id_coins
+    headers: {
+     
+      "Content-Type": "application/json",
+    },
+  };
+  await axios(config)
+    .then(function (response) {
+      cuentas.value = response.data.data;
+    })
+    .catch(function (error) {
+      console.error(error);
+    });
+}
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+function validarMonto(details: DetallePagoCliente) {
+  if (parseFloat(String(details.max_pagar)) < parseFloat(String(details.monto_deuda))) {
+    document.getElementById(`pago${details.id}`)!.focus();
+  } else {
+    calcularTotal();
+  }
+}
+function obtenerSymbol() {
+  symbol.value = rootStore.state.itemsCoinsList.filter(
+    (v: { id: number }) => v.id == id_coins.value
+  )[0].symbol;
+}
+function calcularMonto() {
+  if (selected.value.length > 0) {
+    selected.value.forEach((element) => {
+      id_coins.value = element.id_coins;
+      symbol.value = rootStore.state.itemsCoinsList.filter(
+        (v: { id: number }) => v.id == selected.value[0]!.id_coins
       )[0].symbol;
-    },
-    calcularMonto() {
-      if (this.selected.length > 0) {
-        this.selected.forEach((element) => {
-          this.id_coins = element.id_coins;
-          this.symbol = this.$store.state.itemsCoinsList.filter(
-            (v) => v.id == this.selected[0].id_coins
-          )[0].symbol;
-          element.montopagar = parseFloat(
-            element.monto_pagar * element.tipocambio
-          ).toFixed(2);
-          element.montopagar > element.max_pagar
-            ? (element.err = "Monto Superior a la deuda ")
-            : (element.err = "");
-        });
-        this.calcularTotal();
-        this.obtenerSymbol();
-      }
-    },
-    calcularTotal() {
-      let sum = 0;
-      this.selected.forEach((element) => {
-        sum += parseFloat(element.montopagar);
-      });
-      this.total = parseFloat(sum).toFixed(4);
-    },
-    _uploadFile() {
-      var data = new FormData();
-      var vm = this;
-      data.append("name", "Prueba");
-      data.append("file", vm.payfile);
+      element.montopagar = parseFloat(
+        String((element.monto_pagar as number) * (element.tipocambio as number))
+      ).toFixed(2);
+      // eslint-disable-next-line @typescript-eslint/no-unused-expressions
+      (element.montopagar as unknown as number) > (element.max_pagar as number)
+        ? (element.err = "Monto Superior a la deuda ")
+        : (element.err = "");
+    });
+    calcularTotal();
+    obtenerSymbol();
+  }
+}
+function calcularTotal() {
+  let sum = 0;
+  selected.value.forEach((element) => {
+    sum += parseFloat(String(element.montopagar));
+  });
+  total.value = parseFloat(String(sum)).toFixed(4);
+}
+function _uploadFile() {
+  const data = new FormData();
+  data.append("name", "Prueba");
+  data.append("file", payfile.value as unknown as Blob);
 
-      var config = {
+  const config = {
+    method: "post",
+    url: import.meta.env.VITE_URL_MAIN + "uploadAllPath",
+    headers: {
+     
+      "Content-Type": "application/json",
+    },
+    data: data,
+  };
+
+  axios(config)
+    .then(function (response) {
+      boolFile.value = true;
+      payPath.value = JSON.stringify(response.data.data[0].insertid);
+    })
+    .catch(function (error) {
+      console.error(error);
+    });
+}
+function validar(registro = false) {
+  let validacion = true;
+  let msg = "";
+  listPagosXProveedorCxP.value.forEach((element) => {
+    let monto_deuda: number | string = 0;
+    monto_deuda = parseFloat(String(element.monto_deuda)).toFixed(4);
+    let max_pagar: number | string = 0;
+    max_pagar = parseFloat(String(element.max_pagar)).toFixed(4);
+
+    if (parseFloat(String(monto_deuda)) > parseFloat(String(max_pagar))) {
+      validacion = false;
+      msg = "No puede realizar un pago mayor a la deuda. ";
+    }
+  });
+  if (!payPath.value && registro) {
+    validacion = false;
+    msg += "Por favor, seleccione un documento para soporte de pago. ";
+  }
+  if (!id_cuenta.value && registro) {
+    validacion = false;
+    msg += "Por favor, seleccione una cuenta. ";
+  }
+
+  if (selected.value.length == 0) {
+    validacion = false;
+    msg += "Seleccione al menos una cuenta a pagar. ";
+  }
+
+  if (!validacion) {
+    Swal.fire({
+      icon: "error",
+      title: "Lo sentimos",
+      text: msg,
+    });
+  }
+
+  return validacion;
+}
+async function _putPayForProveedor() {
+  try {
+    if (validar(true)) {
+      loading.value = true;
+      const data = {
+        id_proveedor: id_proveedor.value.id,
+        id_path: payPath.value,
+        details: selected.value,
+        id_cuenta: id_cuenta.value.id,
+        fecha: date.value,
+        nro_operacion: nro_operacion.value,
+        id_banco_origen: id_banco_origen.value,
+        id_coins: id_coins.value,
+      };
+      const config = {
         method: "post",
-        url: import.meta.env.VITE_URL_MAIN + "uploadAllPath",
+        url: import.meta.env.VITE_URL_MAIN + "setPayForCustomer",
+
         headers: {
          
           "Content-Type": "application/json",
         },
         data: data,
       };
-
-      axios(config)
+      await axios(config)
         .then(function (response) {
-          vm.boolFile = true;
-          vm.payPath = JSON.stringify(response.data.data[0].insertid);
+          if (response.data.statusBol == true) {
+            Swal.fire({
+              icon: "success",
+              title: "Aviso",
+              text: response.data.data.msg,
+            });
+            limpiarDatos();
+          }
         })
         .catch(function (error) {
           console.error(error);
         });
-    },
-    validar(registro = false) {
-      let validacion = true;
-      let msg = "";
-      this.listPagosXProveedorCxP.forEach((element) => {
-        let monto_deuda = 0;
-        monto_deuda = parseFloat(element.monto_deuda).toFixed(4);
-        let max_pagar = 0;
-        max_pagar = parseFloat(element.max_pagar).toFixed(4);
+      loading.value = false;
+    }
+  } catch (err) {
+    console.log(err);
+  }
+}
+function continuar() {
+  if (validar()) {
+    step2.value = false;
+    tab.value = "ref2";
+  }
+}
+function limpiarDatos() {
+  payfile.value = [];
+  payPath.value = "";
+  id_proveedor.value = "" as unknown as ClientePago;
+  selected.value = [];
+  boolFile.value = false;
+  tab.value = "ref1";
+  step2.value = true;
+  total.value = 0;
+  rootStore.state.listPagosXProveedorCxP = [];
+}
+async function obtenerDatos() {
+  if (props.tipo == "ver") {
+    const id = route.params.id;
 
-        if (parseFloat(monto_deuda) > parseFloat(max_pagar)) {
-          validacion = false;
-          msg = "No puede realizar un pago mayor a la deuda. ";
-        }
+    const config = {
+      method: "get",
+      url: import.meta.env.VITE_URL_MAIN + `getVerPagosPorCustomer?id=` + id,
+
+      headers: {
+       
+        "Content-Type": "application/json",
+      },
+    };
+    await axios(config)
+      .then(function () {
+        step2.value = false;
+        // @ts-expect-error data is not defined
+        id_proveedor.value = data.id_proveedor;
+        // @ts-expect-error data is not defined
+        rootStore.state.listPagosXProveedorCxP = data.details;
+        // @ts-expect-error data is not defined
+        id_cuenta.value = data.id_bank;
+        // @ts-expect-error data is not defined
+        name_path.value = data.documento;
+        // @ts-expect-error data is not defined
+        url_documento.value = data.link_documento;
+        setTimeout(() => {
+          // @ts-expect-error vm is not defined
+          vm.calcularTotalPagado();
+        }, 200);
+      })
+      .catch(function (error) {
+        console.error(error);
       });
-      if (!this.payPath && registro) {
-        validacion = false;
-        msg += "Por favor, seleccione un documento para soporte de pago. ";
-      }
-      if (!this.id_cuenta && registro) {
-        validacion = false;
-        msg += "Por favor, seleccione una cuenta. ";
-      }
+  }
+}
 
-      if (this.selected.length == 0) {
-        validacion = false;
-        msg += "Seleccione al menos una cuenta a pagar. ";
-      }
+watch(selected, () => {
+  calcularMonto();
+});
 
-      if (!validacion) {
-        this.$swal({
-          icon: "error",
-          title: "Lo sentimos",
-          text: msg,
-        });
-      }
+onMounted(async () => {
+  rootStore.state.spiner = true;
+  await rootStore.dispatch("_getBanksList");
+  await rootStore.dispatch("cargarClientes");
+  await obtenerListado();
+  await getListBanksDetailsCargar();
+  await getListBanksDetailsCargar();
+  await limpiarDatos();
+  await obtenerDatos();
+  await rootStore.dispatch("_getCoinsList");
 
-      return validacion;
-    },
-    async _putPayForProveedor() {
-      try {
-        if (this.validar(true)) {
-          let vm = this;
-          vm.loading = true;
-          var data = {
-            id_proveedor: vm.id_proveedor.id,
-            id_path: vm.payPath,
-            details: vm.selected,
-            id_cuenta: vm.id_cuenta.id,
-            fecha: vm.date,
-            nro_operacion: vm.nro_operacion,
-            id_banco_origen: vm.id_banco_origen,
-            id_coins: vm.id_coins,
-          };
-          var config = {
-            method: "post",
-            url: import.meta.env.VITE_URL_MAIN + "setPayForCustomer",
-
-            headers: {
-             
-              "Content-Type": "application/json",
-            },
-            data: data,
-          };
-          await axios(config)
-            .then(function (response) {
-              if (response.data.statusBol == true) {
-                vm.$swal({
-                  icon: "success",
-                  title: "Aviso",
-                  text: response.data.data.msg,
-                });
-                vm.limpiarDatos();
-              }
-            })
-            .catch(function (error) {
-              console.error(error);
-            });
-          this.loading = false;
-        }
-      } catch (err) {
-        console.log(err);
-      }
-    },
-    continuar() {
-      if (this.validar()) {
-        this.step2 = false;
-        this.tab = "ref2";
-      }
-    },
-    limpiarDatos() {
-      this.payfile = [];
-      this.payPath = "";
-      this.id_proveedor = "";
-      this.selected = [];
-      this.boolFile = false;
-      this.tab = "ref1";
-      this.step2 = true;
-      this.total = 0;
-      this.$store.state.listPagosXProveedorCxP = [];
-    },
-    async obtenerDatos() {
-      if (this.tipo == "ver") {
-        let vm = this;
-        let id = vm.$route.params.id;
-
-        var config = {
-          method: "get",
-          url: import.meta.env.VITE_URL_MAIN + `getVerPagosPorCustomer?id=` + id,
-
-          headers: {
-           
-            "Content-Type": "application/json",
-          },
-        };
-        await axios(config)
-          .then(function (response) {
-            vm.step2 = false;
-            vm.id_proveedor = data.id_proveedor;
-            vm.$store.state.listPagosXProveedorCxP = data.details;
-            vm.id_cuenta = data.id_bank;
-            vm.name_path = data.documento;
-            vm.url_documento = data.link_documento;
-            setTimeout(() => {
-              vm.calcularTotalPagado();
-            }, 200);
-          })
-          .catch(function (error) {
-            console.error(error);
-          });
-      }
-    },
-  },
-  computed: {
-    ...mapState(["itemsProveedorList", "listPagosXProveedorCxP", "clientes"]),
-  },
-  watch: {
-    selected() {
-      this.calcularMonto();
-    },
-  },
-};
+  rootStore.state.spiner = false;
+});
 </script>
+
+<template>
+  <v-container fluid>
+    <!-- v-model="value" -->
+    <v-tabs
+      color="#A43542"
+      slider-color="primary"
+      fixed-tabs
+      v-model="tab"
+    >
+      <v-tab value="ref1">
+        STEP 1
+      </v-tab>
+      <v-tab
+        value="ref2"
+        :disabled="step2"
+      >
+        STEP 2
+      </v-tab>
+    </v-tabs>
+    <v-tabs-window v-model="tab">
+      <v-tabs-window-item value="ref1">
+        <v-row class="mt-5">
+          <v-col
+            md="12"
+            cols="12"
+          >
+            <h1 v-if="tipo == 'nuevo'">
+              MONTO A COBRAR :{{ symbol }} {{ total }}
+            </h1>
+            <h1 v-else>
+              MONTO TOTAL : {{ totalPagado }}
+            </h1>
+          </v-col>
+          <v-col
+            md="4"
+            cols="4"
+          >
+            <v-autocomplete
+              :items="clientes"
+              item-title="namelong"
+              item-value="id"
+              label="Cliente"
+              v-model="id_proveedor"
+              return-object
+              clearable
+              :readonly="tipo == 'ver'"
+              @update:model-value="obtenerListado()"
+            />
+          </v-col>
+
+          <v-col
+            md="12"
+            cols="12"
+            v-if="rootStore.state.listPagosXProveedorCxP.length > 0"
+          >
+            <v-data-table
+              :headers="headers"
+              :items="listPagosXProveedorCxP"
+              show-select
+              item-value="id"
+              return-object
+              v-model="selected"
+            >
+              <template #[`item.moneda`]="{ item }">
+                <v-autocomplete
+                  :items="rootStore.state.itemsCoinsList"
+                  v-model="id_coins"
+                  item-title="acronym"
+                  item-value="id"
+                  label="Moneda"
+                  @blur="obtenerSymbol()"
+                  :disabled="
+                    selected.filter((v) => v.id == item.id).length == 0
+                  "
+                />
+              </template>
+              <template #[`item.montopagar`]="{ item }">
+                <v-text-field
+                  :prefix="symbol"
+                  v-model="item.montopagar"
+                  type="number"
+                  :max="item.montopagar"
+                  :disabled="
+                    selected.filter((v) => v.index == item.index).length == 0
+                  "
+                  @blur="calcularTotal()"
+                  :error-messages="item.err"
+                />
+              </template>
+              <template #[`item.maxpagar`]="{ item }">
+                {{ item.symbol }} {{ item.max_pagar }}
+              </template>
+              <template #[`item.tipocambio`]="{ item }">
+                <v-text-field
+                  v-model="item.tipocambio"
+                  @blur="calcularMonto()"
+                  type="number"
+                  :disabled="
+                    selected.filter((v) => v.index == item.index).length == 0
+                  "
+                />
+              </template>
+            </v-data-table>
+          </v-col>
+          <v-col
+            md="12"
+            cols="12"
+            v-if="rootStore.state.listPagosXProveedorCxP.length > 0"
+          >
+            <div
+              class="text-right"
+              v-if="tipo == 'nuevo'"
+            >
+              <v-btn
+                color="success"
+                @click="continuar()"
+              >
+                Continuar
+              </v-btn>
+            </div>
+          </v-col>
+        </v-row>
+      </v-tabs-window-item>
+      <v-tabs-window-item value="ref2">
+        <v-col
+          md="12"
+          cols="12"
+        >
+          <h1>MONTO A COBRAR : {{ symbol }} {{ total }}</h1>
+        </v-col>
+        <v-row class="mt-5">
+          <v-col
+            cols="4"
+            md="4"
+          >
+            <v-text-field
+              type="date"
+              v-model="date"
+              label="Fecha "
+            />
+          </v-col>
+          <v-col
+            md="6"
+            cols="6"
+            v-if="tipo == 'nuevo'"
+          >
+            <div>
+              <v-file-input
+                v-model="payfile"
+                label="Soporte de Pago"
+                show-size
+                truncate-length="50"
+                hide-details
+                v-if="!boolFile"
+              />
+              <v-chip
+                color="success"
+                v-if="boolFile"
+              >
+                Documento Cargado
+              </v-chip>
+            </div>
+          </v-col>
+          <v-col
+            md="2"
+            cols="2"
+            v-if="!boolFile && tipo == 'nuevo'"
+          >
+            <v-btn
+              color="info"
+              @click="_uploadFile()"
+            >
+              <v-icon
+                class="mx-1"
+                size="small"
+              >
+                mdi-cloud-upload-outline
+              </v-icon>
+              Upload
+            </v-btn>
+          </v-col>
+          <v-col
+            md="6"
+            v-if="tipo != 'nuevo'"
+          >
+            <h6>DOCUMENTO:</h6>
+            <v-table>
+              <tbody>
+                <tr>
+                  <td>{{ name_path }}</td>
+                  <td>
+                    <v-btn
+                      variant="text"
+                      icon
+                      color="red"
+                      :href="url_documento"
+                      target="_blank"
+                    >
+                      <v-icon>mdi-file-pdf-box</v-icon>
+                    </v-btn>
+                  </td>
+                </tr>
+              </tbody>
+            </v-table>
+          </v-col>
+          <v-col
+            md="4"
+            cols="4"
+          >
+            <v-autocomplete
+              :items="cuentas.filter((v) => v.symbol == symbol)"
+              item-title="label"
+              item-value="id"
+              label="Cuenta Destino (PIC)"
+              v-model="id_cuenta"
+              return-object
+              :readonly="tipo == 'ver'"
+            />
+          </v-col>
+          <v-col
+            md="4"
+            cols="4"
+          >
+            <v-text-field
+              readonly
+              v-model="id_cuenta.banco"
+              label="Banco:"
+              v-if="tipo == 'nuevo'"
+            />
+          </v-col>
+          <v-col
+            md="4"
+            cols="4"
+          >
+            <v-text-field
+              readonly
+              v-model="id_cuenta.moneda"
+              label="Moneda:"
+              v-if="tipo == 'nuevo'"
+            />
+          </v-col>
+          <v-col
+            md="4"
+            cols="4"
+          >
+            <v-text-field
+              readonly
+              v-model="id_cuenta.cuenta"
+              label="N° Cuenta:"
+              v-if="tipo == 'nuevo'"
+            />
+          </v-col>
+          <v-col
+            md="4"
+            cols="4"
+          >
+            <v-select
+              :items="rootStore.state.itemsDataBanksList"
+              v-model="id_banco_origen"
+              label="Banco Origen"
+              item-title="acronym"
+              item-value="id"
+            />
+          </v-col>
+          <v-col
+            md="4"
+            cols="4"
+          >
+            <v-text-field
+              v-model="nro_operacion"
+              label="Nro Operacion"
+              v-if="tipo == 'nuevo'"
+            />
+          </v-col>
+          <v-col
+            md="12"
+            cols="12"
+            v-if="tipo == 'nuevo'"
+          >
+            <div class="text-right">
+              <v-btn
+                :loading="loading"
+                :disabled="
+                  !id_cuenta.id ||
+                    !nro_operacion ||
+                    !id_banco_origen 
+                "
+                color="success"
+                @click="_putPayForProveedor()"
+              >
+                PROCESAR PAGO
+              </v-btn>
+            </div>
+          </v-col>
+        </v-row>
+      </v-tabs-window-item>
+    </v-tabs-window>
+  </v-container>
+</template>
 
 <style></style>
