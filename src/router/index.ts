@@ -139,27 +139,27 @@ const routes = [
       {
         path: "folderMaster/control",
         name: "controlMaster",
-        component: () => import("../views/folderMaster/controlMaster.vue"),
+        component: () => import("../views/folderMaster/ControlMaster.vue"),
       },
       {
         path: "folderMaster/control/editar/:id",
         name: "controlMasterEditar",
-        component: () => import("../views/folderMaster/controlMaster.vue"),
+        component: () => import("../views/folderMaster/ControlMaster.vue"),
       },
       {
         path: "folderMaster/control/ver/:id",
         name: "controlMasterVer",
-        component: () => import("../views/folderMaster/controlMaster.vue"),
+        component: () => import("../views/folderMaster/ControlMaster.vue"),
       },
       {
         path: "folderMaster/control/:id",
         name: "controlMasterId",
-        component: () => import("../views/folderMaster/controlMaster.vue"),
+        component: () => import("../views/folderMaster/ControlMaster.vue"),
       },
       {
         path: "folderMaster/control/:id/:params",
         name: "controlMasterParams",
-        component: () => import("../views/folderMaster/controlMaster.vue"),
+        component: () => import("../views/folderMaster/ControlMaster.vue"),
       },
       {
         path: "folderHouse/list",
